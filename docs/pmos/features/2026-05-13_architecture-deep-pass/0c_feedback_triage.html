@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feedback triage — /architecture deepening pass + hygiene</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 920px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; }
+  h1 { border-bottom: 2px solid #888; padding-bottom: .4rem; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: .25rem; margin-top: 2.2rem; }
+  h3 { margin-top: 1.6rem; }
+  .meta { color: #666; font-size: .9rem; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; }
+  th, td { border: 1px solid #bbb; padding: .4rem .6rem; text-align: left; vertical-align: top; font-size: .92rem; }
+  th { background: #f3f3f3; }
+  .sev-block { color: #b00; font-weight: bold; }
+  .sev-friction { color: #c60; font-weight: bold; }
+  .sev-nit { color: #555; }
+  .rec-apply { color: #060; font-weight: bold; }
+  .rec-modify { color: #c60; }
+  .rec-skip { color: #777; text-decoration: line-through; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: #f6f6f6; padding: .6rem .8rem; overflow-x: auto; border-radius: 4px; font-size: .85rem; }
+  .quote { border-left: 3px solid #aaa; padding: .2rem .8rem; color: #444; margin: .4rem 0; font-size: .9rem; }
+  .finding { border: 1px solid #ddd; border-radius: 6px; padding: .4rem 1rem; margin: 1rem 0; }
+  .badge { display: inline-block; padding: 0 .4rem; border-radius: 3px; font-size: .8rem; font-weight: bold; }
+  .b-bug { background: #fdd; color: #800; }
+  .b-friction { background: #fed; color: #840; }
+  .b-cap { background: #def; color: #036; }
+  .b-nit { background: #eee; color: #555; }
+  .b-large { background: #fcc; color: #600; }
+  .b-medium { background: #fde; color: #604; }
+  .b-small { background: #efe; color: #060; }
+</style>
+</head>
+<body>
+
+<h1 id="feedback-triage">Feedback triage — <code>/architecture</code> deepening pass + hygiene</h1>
+
+<p class="meta">
+  <strong>Pipeline:</strong> <code>/feature-sdlc skill --from-feedback &lt;inline&gt;</code> &middot;
+  <strong>Mode:</strong> interactive &middot;
+  <strong>Run Outcome:</strong> in-progress &middot;
+  <strong>Open Questions:</strong> 0 &middot;
+  <strong>Target skill:</strong> <code>plugins/pmos-toolkit/skills/architecture/</code> &middot;
+  <strong>Feedback source:</strong> &lt;inline text&gt; &middot;
+  <strong>Date:</strong> 2026-05-13
+</p>
+
+<h2 id="findings-parsed">Findings (parsed)</h2>
+
+<p>The feedback parses into 12 distinct findings: 1 deepening-review pass (the headline) and 11 hygiene / prioritization / cross-module-visibility / workflow improvements. All target <code>/architecture</code>.</p>
+
+<table>
+  <thead><tr><th>ID</th><th>Severity</th><th>One-line</th><th>Section</th></tr></thead>
+  <tbody>
+    <tr><td>F1</td><td><span class="sev-block">blocker</span></td><td>Add a "deepening review" pass (Tier 4 / <code>--deep</code>): subagent classifies top-N modules as deep / shallow / leaky; deletion test; emits <code>deepening_candidates[]</code>.</td><td>Feature request</td></tr>
+    <tr><td>F2</td><td><span class="sev-friction">friction</span></td><td>Auto-detect framework idioms (Typer/Click/Alembic/protobuf/pydantic) and exempt them from U004 <code>print()</code> / similar noise rules.</td><td>Signal hygiene</td></tr>
+    <tr><td>F3</td><td><span class="sev-friction">friction</span></td><td>Demote U007 (missing top-of-file purpose) to opt-in OR harden to files &gt;100 LOC without a module docstring.</td><td>Signal hygiene</td></tr>
+    <tr><td>F4</td><td><span class="sev-block">blocker</span></td><td>Monorepo-aware mode: detect <code>backend/pyproject.toml</code> + <code>frontend/package.json</code> below scan root; fan out or warn instead of silently skipping stacks.</td><td>Signal hygiene</td></tr>
+    <tr><td>F5</td><td><span class="sev-friction">friction</span></td><td>Rank findings by churn (<code>git log --since</code>) + coupling (inbound imports); emit <code>risk_score</code> per finding.</td><td>Prioritization</td></tr>
+    <tr><td>F6</td><td><span class="sev-friction">friction</span></td><td>Add <code>module_fanin</code> / <code>module_fanout</code> AST counts; flag top-5 outliers. Real depth proxy without needing the LLM pass.</td><td>Prioritization</td></tr>
+    <tr><td>F7</td><td><span class="sev-friction">friction</span></td><td>Expand ruff selectors: C901 (complexity), PLR0911-15 (branches/returns/statements), PLR2004 (magic values), ARG (unused args).</td><td>Prioritization</td></tr>
+    <tr><td>F8</td><td><span class="sev-block">blocker</span></td><td>Python import-cycle detector (~50 LOC AST walker) — dep-cruiser only covers JS/TS.</td><td>Cross-module visibility</td></tr>
+    <tr><td>F9</td><td><span class="sev-friction">friction</span></td><td>Detect duplicated function signatures across files (hash <code>def name(args)</code>) — would catch <code>_resolve_audio_units</code> living in two places.</td><td>Cross-module visibility</td></tr>
+    <tr><td>F10</td><td><span class="sev-friction">friction</span></td><td>Diff mode (<code>--since &lt;commit&gt;</code>): compare to last report; surface only deltas. Required for CI usability once any backlog exists.</td><td>Workflow</td></tr>
+    <tr><td>F11</td><td><span class="sev-friction">friction</span></td><td><code>--scaffold-l3</code> flag: generate starter <code>.pmos/architecture/principles.yaml</code> with exemptions for detected idioms.</td><td>Workflow</td></tr>
+    <tr><td>F12</td><td><span class="sev-nit">nit</span></td><td>Top-5 ranked stderr summary (per <code>risk_score</code>) — prioritized punch-list for humans; JSON stays canonical.</td><td>Workflow</td></tr>
+  </tbody>
+</table>
+
+<h2 id="critique">Critique (per finding vs. current <code>SKILL.md</code> + <code>principles.yaml</code>)</h2>
+
+<p>Critiqued against <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> (158 lines, 6 phases) and <code>principles.yaml</code> (10 L1 + 4 L2-ts + 4 L2-py rules). Only the cited files were read; the full <code>reference/</code> tree was not.</p>
+
+<div class="finding" id="critique-f1">
+  <h3>F1 — Deepening review pass <span class="badge b-cap">new-capability</span> <span class="badge b-large">large</span></h3>
+  <p><strong>already_handled:</strong> no. The skill's Phase 4 (Evaluate rules) dispatches by <code>delegate_to ∈ {grep, dependency-cruiser, ruff}</code> — all deterministic, file-local. No subagent dispatch exists today; Phase 0 of <code>SKILL.md</code> mentions "rule evaluation is fully sequential in v1 — no subagent dispatch."</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span> as proposed — new opt-in Phase 4.5 ("Deepening review") gated by <code>--deep</code>, dispatched after the mechanical pass. Reuse vocabulary from <code>/improve-codebase-architecture</code> (module / interface / implementation / depth / seam / adapter / leverage / locality / deletion test) verbatim. Cap candidate set at ~10 modules. Emit <code>deepening_candidates[]</code> with <code>{module, classification, rationale, deletion_test_outcome, cross_module_patterns[], proposed_reshape, affected_files[]}</code>. Implement double-report demotion: if L1 flagged a file with U001 and the deep pass classifies it as "deep, no reshape," demote U001 to info <em>or</em> annotate the report. Emit <code>tools_skipped: ["deep_pass"]</code> if no subagent tool is available — never crash. <strong>Rationale:</strong> the user's case (book-companion, 935/797/745-LOC files) is exactly the shape this is for; the matching reference skill already exists and gives us the vocabulary; reusing it makes outputs consistent across both tools.</p>
+</div>
+
+<div class="finding" id="critique-f2">
+  <h3>F2 — Auto-detect framework idioms <span class="badge b-bug">bug</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> no. U004's check is <code>regex:console\.log|print\(;paths:src/;exclude:tests/,scripts/</code> — pure regex, no AST, no idiom detection. 218 false positives on a Typer-heavy backend is the maximum-noise outcome.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. Detect <code>typer</code>/<code>click</code>/<code>fire</code>/<code>argparse</code> imports per file at scan time → file-level exemption for U004 only. Detect <code>migrations/versions/</code> path (Alembic) → exempt U001, U004, U007. Detect <code>*_pb2.py</code> / <code>*_pb2_grpc.py</code> (protobuf) → exempt all hygiene rules. Detect pydantic <code>BaseModel</code> subclass → relax U001 (schema modules legitimately get long). Surface in JSON as <code>exemptions.idiomatic[]</code> with <code>{rule_id, file, idiom, reason}</code> so the audit doesn't hide what it skipped. <strong>Rationale:</strong> false-positive floods are the #1 reason users mentally tune out the report — every Typer project produces this exact noise today.</p>
+</div>
+
+<div class="finding" id="critique-f3">
+  <h3>F3 — Demote U007 to opt-in <span class="badge b-friction">ux-friction</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> no. U007 ships <code>severity: info</code> but always emits, producing the 710-finding wallpaper.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. Two-tier handling: (a) default-off — U007 fires only when <code>--include-info-comments</code> is passed OR when L3 explicitly opts in; (b) when it does fire, harden the heuristic to "file &gt; 100 LOC AND no module-level docstring AND no top-of-file comment in the first 5 non-blank lines." Document in <code>l1-rationales.md</code>. <strong>Rationale:</strong> the rule's intent (legibility for cold readers) is sound; the default-on behavior is what poisons it.</p>
+</div>
+
+<div class="finding" id="critique-f4">
+  <h3>F4 — Monorepo-aware mode <span class="badge b-bug">bug</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> partial. <code>SKILL.md</code> Phase 2 step 2 "Stack detection: scans the resolved root for stack markers" — but it scans the <em>root</em> only. A monorepo with <code>backend/pyproject.toml</code> and <code>frontend/package.json</code> below the root produces zero stacks, no L2 rules, silent success.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. At scan-root resolution time: (1) check for stack markers at root; (2) if absent, walk depth-2 looking for child stack markers; (3) if found, emit one of: stderr warning + record <code>monorepo_detected: ["backend", "frontend"]</code> in JSON + offer <code>--monorepo</code> fan-out (one report per stack with combined index), OR auto-fan when <code>--monorepo</code> is passed. Silent stack-skipping is the worst failure mode — explicit is better. <strong>Rationale:</strong> silent failure is much worse than noisy failure; the cost of the depth-2 walk is negligible.</p>
+</div>
+
+<div class="finding" id="critique-f5">
+  <h3>F5 — Risk score (churn + coupling) <span class="badge b-cap">new-capability</span> <span class="badge b-medium">medium</span></h3>
+  <p><strong>already_handled:</strong> no. <code>findings[]</code> sorts severity-first then by rule_id / file / line (FR-73). All U001 hits look equally bad.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. Per finding, compute <code>risk_score = w_severity + w_churn(git log --since=&lt;90d&gt; --oneline | wc -l per file) + w_coupling(F6 fanin count)</code>. Concrete weights: severity {block:100, warn:10, info:1}; churn capped at 50 (1 point per commit, max 50); coupling capped at 50 (5 points per inbound import, max 50). Emit <code>risk_score</code> per finding. Keep severity-first sort for backward compatibility, but add a <code>--sort risk</code> flag and use it by default in the stderr summary (F12). <strong>Rationale:</strong> hot files are where bug rate compounds; this is the single biggest prioritization win and costs one shell-out per file.</p>
+</div>
+
+<div class="finding" id="critique-f6">
+  <h3>F6 — Module fanin / fanout <span class="badge b-cap">new-capability</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> no.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. AST walk (Python <code>ast</code> module + a TS regex pass since dep-cruiser already does the heavy lift on TS side) to count: per module — <code>fanin</code> (count of distinct importers) + <code>fanout</code> (count of distinct imports) + <code>public_symbols</code> (top-level <code>def</code> + <code>class</code> count). Emit per-module under <code>module_metrics[]</code>; flag top-5 by <code>fanin × public_symbols</code> as <code>godmodule_candidates[]</code>. Used by F1 (seed list for deep pass) and F5 (coupling weight). <strong>Rationale:</strong> a deterministic god-module detector that doesn't need the LLM and feeds the LLM pass when run.</p>
+</div>
+
+<div class="finding" id="critique-f7">
+  <h3>F7 — Expand ruff selectors <span class="badge b-cap">new-capability</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> partial. Current Python L2: TID252 / F401 / F403 / F405 / B006 (PY001–PY004). Architectural ruff rules (C901, PLR0911-15, PLR2004, ARG) are unmapped.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. Add to <code>principles.yaml</code>: <strong>PY005</strong> <code>ruff:C901</code> (complexity, severity warn — maps to U002 with real AST); <strong>PY006</strong> <code>ruff:PLR0911,PLR0912,PLR0913,PLR0915</code> (too many returns/branches/args/statements, severity warn — maps to U002/U003); <strong>PY007</strong> <code>ruff:PLR2004</code> (magic values, severity info); <strong>PY008</strong> <code>ruff:ARG001,ARG002</code> (unused arguments, severity warn). Document the dual-pass rationale in <code>gap-map-rationale.md</code>: regex U002/U003 stay as backstop on non-Python; ruff gives AST-grade signal where available. <strong>Rationale:</strong> we already shell out to ruff — adding 4 more rules is a one-line YAML each.</p>
+</div>
+
+<div class="finding" id="critique-f8">
+  <h3>F8 — Python import-cycle detector <span class="badge b-cap">new-capability</span> <span class="badge b-medium">medium</span></h3>
+  <p><strong>already_handled:</strong> no. dep-cruiser TS001 covers JS/TS only.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. New <strong>PY009</strong> rule (severity block, <code>delegate_to: cycle-py</code>) with a ~50-LOC <code>tools/cycle-py.py</code> — walks <code>ast.parse</code> per file, extracts <code>Import</code>/<code>ImportFrom</code>, resolves relative imports against package roots from <code>pyproject.toml</code>, builds a module graph, runs Tarjan's SCC, emits cycles &gt; 1 node. Treat as L2 (only fires when Python stack is detected). <strong>Rationale:</strong> Python cycles surface as runtime <code>MissingGreenlet</code> / partial-init errors that are nasty to debug; a 50-LOC walker closes a real gap.</p>
+</div>
+
+<div class="finding" id="critique-f9">
+  <h3>F9 — Duplicated function signatures <span class="badge b-cap">new-capability</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> no.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. New <strong>U011</strong> rule (severity warn, <code>delegate_to: grep</code>) — but implemented as a per-file AST pass that hashes <code>(function_name, arg_names_tuple, return_annotation)</code> across the scan and reports any signature appearing in &gt; 1 file. Emit each occurrence as a finding with <code>cross_refs: [other_file_paths]</code>. Cap at 1 finding per duplicate set to avoid double-reporting. Honor the U001-style demote rule if the deep pass classifies it as legitimate (e.g., framework-required hooks). <strong>Rationale:</strong> highest-value finding in the user's example (<code>_resolve_audio_units</code>) and lowest implementation cost. Real signal even without the LLM pass.</p>
+</div>
+
+<div class="finding" id="critique-f10">
+  <h3>F10 — Diff mode (--since) <span class="badge b-cap">new-capability</span> <span class="badge b-medium">medium</span></h3>
+  <p><strong>already_handled:</strong> no.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. Two complementary inputs: (a) <code>--since &lt;ref&gt;</code> — filter <code>findings[]</code> to files in <code>git diff --name-only &lt;ref&gt;...HEAD</code> (CI use case: <code>--since main</code>); (b) <code>--baseline &lt;path&gt;</code> — load a prior report JSON, emit only findings <em>new</em> since baseline (diff by <code>{rule_id, file, line}</code> tuple). Both write a top-level <code>diff: { mode, base_ref, total_baseline, total_now, new, dropped, unchanged }</code> block. <strong>Rationale:</strong> the difference between "586 findings, ignore" and "3 new findings in this PR" — first-class CI signal.</p>
+</div>
+
+<div class="finding" id="critique-f11">
+  <h3>F11 — --scaffold-l3 <span class="badge b-cap">new-capability</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> no. L3 is documented but un-bootstrapped — users see findings, hand-author the YAML, most never do.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. <code>--scaffold-l3</code> generates <code>&lt;scan_root&gt;/.pmos/architecture/principles.yaml</code> seeded from the current run: (a) inline a commented template; (b) pre-populate <code>exemptions:</code> for detected idioms (Typer files for U004, Alembic dirs for U001/U004/U007, protobuf for all); (c) leave overrides commented-out with the current findings count as guidance. Refuse to overwrite an existing file (atomic write); print path on success. <strong>Rationale:</strong> activation-energy collapse — turns the report from "586 findings" into "actionable starter config."</p>
+</div>
+
+<div class="finding" id="critique-f12">
+  <h3>F12 — Top-5 stderr summary <span class="badge b-friction">ux-friction</span> <span class="badge b-small">small</span></h3>
+  <p><strong>already_handled:</strong> partial. Phase 6 stderr today lists counts + one example per severity. The user has to grep JSON to find the worst offenders.</p>
+  <p><strong>recommendation:</strong> <span class="rec-apply">apply</span>. After the existing counts line, emit <code>"Top 5 risks (by risk_score):"</code> followed by 5 numbered lines of the form <code>(N) &lt;path&gt; — &lt;rule_id&gt; + &lt;commits/qtr&gt; commits + &lt;fanin&gt; inbound</code>. Depends on F5 (risk_score) and F6 (fanin); when those are absent (e.g., non-git scan or no python AST), fall back to severity-rank ordering. <strong>Rationale:</strong> the JSON is the canonical artifact, but the punch-list is what humans use to decide where to spend Monday morning.</p>
+</div>
+
+<h2 id="disposition-log">Disposition log</h2>
+
+<p>All 12 findings are recommended <span class="rec-apply">apply</span>. None look stale, redundant against the current skill, or out-of-scope for an architectural linter. The deepening pass (F1) and the cycle detector (F8) carry the most implementation surface; the rest are small-to-medium. Two natural orderings emerge from dependencies:</p>
+
+<ul>
+  <li><strong>Block 1 (signal hygiene + prerequisites):</strong> F2 (idiom exemptions), F3 (U007 opt-in), F4 (monorepo), F6 (fanin/fanout — feeds F5 and F1), F7 (ruff selectors). All independent except F6 → F5.</li>
+  <li><strong>Block 2 (prioritization layer):</strong> F5 (risk_score, needs F6), F12 (top-5 stderr, needs F5).</li>
+  <li><strong>Block 3 (cross-module visibility — deterministic):</strong> F8 (Python cycles), F9 (dup signatures). Independent.</li>
+  <li><strong>Block 4 (workflow):</strong> F10 (diff mode), F11 (scaffold-l3).</li>
+  <li><strong>Block 5 (deepening pass — depends on F2 to dedupe, F6 for seed list):</strong> F1.</li>
+</ul>
+
+<p>User-approved disposition: <em>pending approval — see "Approved changes by skill" below</em>.</p>
+
+<h2 id="approved-changes-by-skill">Approved changes by skill — <code>/architecture</code></h2>
+
+<p>Default recommendation: <strong>apply all 12 as recommended</strong>. The user will be prompted to confirm, modify, skip, or defer via <code>AskUserQuestion</code>.</p>
+
+<h2 id="per-skill-tier">Per-skill tier</h2>
+
+<p><strong>Run tier: 3</strong> (large change set). Reasoning:</p>
+
+<ul>
+  <li>1 new opt-in phase (Phase 4.5 deepening pass) with subagent dispatch — first such use of subagents in this skill.</li>
+  <li>4 new L1/L2 rules (U011, PY005–PY009 — actually PY005, PY006, PY007, PY008, PY009 = 5 new rules).</li>
+  <li>~5 new flags / inputs (<code>--deep</code>, <code>--include-info-comments</code>, <code>--monorepo</code>, <code>--since</code> / <code>--baseline</code>, <code>--scaffold-l3</code>, <code>--sort risk</code>).</li>
+  <li>New JSON top-level keys: <code>deepening_candidates[]</code>, <code>module_metrics[]</code>, <code>godmodule_candidates[]</code>, <code>exemptions.idiomatic[]</code>, <code>monorepo_detected</code>, <code>diff{...}</code>, per-finding <code>risk_score</code>.</li>
+  <li>2 new <code>tools/</code> scripts: <code>cycle-py.py</code> (Tarjan SCC), deep-pass orchestration in <code>run-audit.sh</code> or sibling.</li>
+  <li>Updates to <code>reference/l1-rationales.md</code> (new rules) + <code>reference/gap-map-rationale.md</code> (new delegate_to assignments).</li>
+</ul>
+
+<p>Schema bump implied: <code>schema_version: 1 → 2</code> (additive — old fields preserved). Back-compat handling: diff mode's <code>--baseline</code> must accept v1 reports.</p>
+
+<h2 id="hand-off">Hand-off to /requirements</h2>
+
+<p>Per FR-27, the Phase 2 <code>/requirements</code> invocation will be seeded from <code>reference/seed-requirements-template.md</code> (skill-feedback flavor): one combined <code>01_requirements.html</code> with a single per-skill section (only one target skill — <code>/architecture</code>), the 12 approved findings carried verbatim, trimmed excerpts of the current <code>SKILL.md</code> + <code>principles.yaml</code>, a one-paragraph proposed direction, out-of-scope, and constraints — with <code>reference/skill-patterns.md</code> cited as the standing acceptance criteria.</p>
+
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>/architecture — deepening pass + hygiene — Requirements (Tier 3)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 940px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; }
+  h1 { border-bottom: 2px solid #888; padding-bottom: .4rem; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: .25rem; margin-top: 2.2rem; }
+  h3 { margin-top: 1.5rem; }
+  h4 { margin-top: 1.2rem; color: #444; }
+  .meta { color: #666; font-size: .9rem; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; }
+  th, td { border: 1px solid #bbb; padding: .4rem .6rem; text-align: left; vertical-align: top; font-size: .92rem; }
+  th { background: #f3f3f3; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: #f6f6f6; padding: .6rem .8rem; overflow-x: auto; border-radius: 4px; font-size: .85rem; }
+  .quote { border-left: 3px solid #aaa; padding: .2rem .8rem; color: #444; margin: .4rem 0; }
+  .strong { font-weight: bold; }
+  ul li, ol li { margin: .25rem 0; }
+  .seed-section { background: #fafafa; border: 1px solid #e3e3e3; border-radius: 6px; padding: .6rem 1rem; margin: .8rem 0; }
+</style>
+</head>
+<body>
+
+<h1 id="title"><code>/architecture</code> — deepening pass + hygiene — Requirements</h1>
+
+<p class="meta">
+  <strong>Date:</strong> 2026-05-13 &middot;
+  <strong>Last updated:</strong> 2026-05-13 &middot;
+  <strong>Status:</strong> Draft &middot;
+  <strong>Tier:</strong> 3 — Skill feedback (12 findings) &middot;
+  <strong>Mode:</strong> interactive &middot;
+  <strong>Pipeline:</strong> <code>/feature-sdlc skill --from-feedback</code> &middot;
+  <strong>Target skill:</strong> <code>plugins/pmos-toolkit/skills/architecture/</code> &middot;
+  <strong>Target platform:</strong> generic &middot;
+  <strong>Acceptance criteria reference:</strong> <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code>
+</p>
+
+<h2 id="problem">Problem</h2>
+
+<p>The <code>/architecture</code> skill is a fast, deterministic rule engine that runs L1 universal (≤15 rules) + L2 stack-specific (TS via dependency-cruiser, Python via ruff) + L3 per-repo overrides against a scan root and emits a JSON report. In its current shape (v2.48.0) it catches hygiene symptoms — oversized files, <code>print()</code> in src, dead comments, long arg lists — but it <strong>cannot surface the architectural issues that actually matter</strong>: shallow modules, cross-module seam leaks, dispatch-by-conditional chains, implicit pipelines, responsibility scatter across CLI + service + route. These require reading code, following call graphs, and applying a deletion test — not regex matching.</p>
+
+<p>On a real Python backend (book-companion, ~900 LOC service files), one run produced <strong>586 findings dominated by 218 <code>print()</code> false positives</strong> (all legitimate Typer CLI commands) <strong>and 710 info-noise findings</strong> from U007 missing-purpose-comment wallpaper. The 14 oversized-file flags are real but undifferentiated — every U001 hit looks equally bad. Worse: running the audit at the monorepo root silently skipped both stacks because <code>pyproject.toml</code> and <code>package.json</code> live in subdirs.</p>
+
+<h3 id="who-experiences-this">Who experiences this?</h3>
+
+<p><strong>The developer running <code>/architecture audit .</code> on a real repo</strong> — typically a senior engineer or tech lead trying to audit a codebase for architectural health before a refactor, during onboarding, or as a periodic check. Concrete persona from the feedback: the maintainer of <code>book-companion</code> (~900 LOC backend Python service files), running the audit to find architectural problems but receiving an unranked sea of false-positive hygiene flags that swamps the real signal.</p>
+
+<h3 id="why-now">Why now?</h3>
+
+<p>Three triggers converged this week:</p>
+
+<ol>
+  <li>A real user ran <code>/architecture audit .</code> on book-companion and produced the 586-finding report that motivated this feedback. The single run made the noise/signal ratio undeniable.</li>
+  <li>The user already runs a sibling skill, <code>/improve-codebase-architecture</code> (Matt Pocock-derived, at <code>~/Desktop/Projects/personal/book-companion/.claude/skills/</code>), which has the deletion-test vocabulary and the depth/seam concepts. Running them <em>separately</em> works, but the human must mentally join the two outputs. The seam list (oversized + high-fanout files) lives in <code>/architecture</code>'s report; the depth analysis lives in the other skill. Merging them is strictly additive.</li>
+  <li>The deterministic improvements (idiom exemption, monorepo detection, ruff selectors, cycle detector, dup-signature detector, risk score, diff mode, scaffold-l3, top-5 stderr) are each cheap on their own but cumulatively transform the report from "586 lines of noise" into "3 ranked risks to fix this week." Shipping them piecemeal would mean five separate releases with the noise still poisoning each interim run.</li>
+</ol>
+
+<h2 id="goals-and-non-goals">Goals & Non-Goals</h2>
+
+<h3 id="goals">Goals</h3>
+
+<ul>
+  <li><strong>Surface architectural issues regex cannot see</strong> — when <code>--deep</code> is passed, the skill identifies at least the route↔service DTO leak, the duplicated function across two callers, and the missing pipeline orchestrator on book-companion's backend — measured by acceptance test (see <a href="#acceptance-test">Acceptance test</a>).</li>
+  <li><strong>Cut false-positive noise by ≥80% on a Typer-heavy backend</strong> — measured by total findings emitted on book-companion's <code>backend/</code> before vs. after idiom exemptions (F2) and U007 default-off (F3) land. Target: from 586 → ≤120 findings on the same code state.</li>
+  <li><strong>Make findings prioritized, not ranked-by-rule-id</strong> — every finding carries a <code>risk_score</code> (F5) blending severity + churn + coupling; the stderr summary surfaces the top 5 risks ranked (F12) rather than counts alone.</li>
+  <li><strong>Stop silently misreporting monorepos</strong> — when scan root has no stack markers but a depth-2 child does, the user is informed and offered <code>--monorepo</code> fan-out (F4); zero silent stack-skips.</li>
+  <li><strong>Close the cross-module visibility gap structurally</strong> — Python import cycles (F8) and duplicate function signatures (F9) surface as first-class findings via deterministic AST walkers, not requiring the LLM pass.</li>
+  <li><strong>Make the report usable in CI</strong> — <code>--since &lt;ref&gt;</code> and <code>--baseline &lt;path&gt;</code> (F10) let CI emit "3 new findings on this PR" instead of "586 findings, ignore."</li>
+  <li><strong>Collapse the L3 activation-energy barrier</strong> — <code>--scaffold-l3</code> (F11) generates a starter <code>.pmos/architecture/principles.yaml</code> seeded from the current run's detected idioms, so users get an actionable starter config out of one command instead of hand-authoring YAML against a 586-finding report.</li>
+  <li><strong>Preserve the deterministic-fast guarantee</strong> — the mechanical pass (L1/L2/L3 + new deterministic checks F2/F3/F4/F5/F6/F7/F8/F9) remains the baseline; <code>--deep</code> is strictly opt-in and never gates the mechanical pass — measured by the existing <code>tools/check-determinism.sh</code> still passing.</li>
+</ul>
+
+<h3 id="non-goals">Non-Goals</h3>
+
+<ul>
+  <li><strong>NOT</strong> turning <code>--deep</code> on by default — because the LLM pass is non-deterministic, slow, and the mechanical pass alone delivers most of the value; opt-in keeps CI usage predictable.</li>
+  <li><strong>NOT</strong> rewriting <code>/improve-codebase-architecture</code> or absorbing it wholesale — because that skill is owned in a different project namespace; we reuse its vocabulary (module / interface / implementation / depth / seam / adapter / leverage / locality / deletion test) for output consistency only.</li>
+  <li><strong>NOT</strong> auto-fanning monorepos without explicit <code>--monorepo</code> — because the user may legitimately want to audit one stack in isolation; we warn loudly instead of silently fanning.</li>
+  <li><strong>NOT</strong> writing new tools/ scripts in languages other than POSIX bash + Python 3 (already required prereqs) — because adding a new prereq breaks the install story.</li>
+  <li><strong>NOT</strong> changing the JSON output's existing top-level shape — schema_version bumps 1 → 2 additively; old fields preserved; old readers still parse.</li>
+  <li><strong>NOT</strong> exceeding the 10-candidate cap on the deep pass per run — because the LLM cost scales linearly with candidates and the top-10 by fanin × public_symbols is sufficient signal density.</li>
+  <li><strong>NOT</strong> double-reporting — when the deep pass classifies a U001-flagged file as "deep, no reshape," the mechanical U001 finding is demoted to info (with a <code>deep_pass_cleared: true</code> annotation), not silently dropped.</li>
+  <li><strong>NOT</strong> crashing when no subagent/LLM is available — <code>tools_skipped: ["deep_pass"]</code> is emitted and the run succeeds.</li>
+</ul>
+
+<h2 id="ux-analysis">User Experience Analysis (Motivation / Friction / Satisfaction)</h2>
+
+<p>The "user" here is a developer running <code>/architecture</code> against their repo. The feedback was itself an MSF critique — F2/F3/F12 are friction reductions, F5/F6/F11 are motivation enhancements, F1/F8/F9 are satisfaction improvements. This section makes that mapping explicit.</p>
+
+<h3 id="motivation">Motivation</h3>
+
+<ul>
+  <li><strong>Job to be done:</strong> "Tell me what's architecturally wrong with my codebase, ranked by what's most likely to bite me next month, so I can spend my Monday morning on the right thing."</li>
+  <li><strong>Importance / urgency:</strong> High when the user is mid-refactor, onboarding, or evaluating tech debt for a planning cycle. Today's report fails this job — it lists every U001 hit as equally bad, so the developer either reads everything (impossible) or reads nothing (the actual behaviour).</li>
+  <li><strong>Alternatives:</strong> (a) Run a paid SaaS like SonarQube / CodeClimate — heavyweight, language-coupled, doesn't follow the user's own principles. (b) Run <code>ruff</code> + <code>dependency-cruiser</code> by hand — what <code>/architecture</code> orchestrates today, but no ranking, no cross-module seams, no deletion test. (c) Just read the code — what an experienced engineer does, but expensive and inconsistent. <code>/architecture</code>'s advantage is "your principles, your repo, your IDE" — but that advantage is squandered when the report is unreadable.</li>
+</ul>
+
+<h3 id="friction">Friction Points</h3>
+
+<table>
+  <thead><tr><th>Friction</th><th>Cause</th><th>Mitigation (finding)</th></tr></thead>
+  <tbody>
+    <tr><td>"Why are 218 prints flagged when they're all Typer commands?"</td><td>U004's regex doesn't know about CLI frameworks; treats every <code>print(</code> in src/ as debug rot.</td><td><strong>F2</strong> — auto-detect <code>typer</code>/<code>click</code>/<code>fire</code> imports; file-level exempt from U004. Surface under <code>exemptions.idiomatic[]</code>.</td></tr>
+    <tr><td>"710 info findings about missing top-of-file comments is wallpaper."</td><td>U007 ships severity:info but emits unconditionally — the rule is always on.</td><td><strong>F3</strong> — demote to opt-in (<code>--include-info-comments</code> or L3 opt-in) AND harden: only fire on files &gt; 100 LOC with no module docstring.</td></tr>
+    <tr><td>"I ran it at the monorepo root and got zero stacks detected."</td><td>Stack detection scans root only; child stacks below root are invisible.</td><td><strong>F4</strong> — depth-2 walk for stack markers; warn or fan out via <code>--monorepo</code>; emit <code>monorepo_detected[]</code>.</td></tr>
+    <tr><td>"Every U001 hit looks equally bad — I don't know what to fix first."</td><td>Findings sorted severity-first; no churn or coupling signal.</td><td><strong>F5</strong> — <code>risk_score = severity + churn(git log --since=90d) + coupling(fanin)</code>; sortable via <code>--sort risk</code>.</td></tr>
+    <tr><td>"I have to grep JSON to find the worst offenders."</td><td>Stderr today lists counts + one example per severity.</td><td><strong>F12</strong> — top-5 ranked risks in stderr summary.</td></tr>
+    <tr><td>"There's no starter L3 config — I have to hand-author the YAML against 586 findings."</td><td>L3 is documented but un-bootstrapped.</td><td><strong>F11</strong> — <code>--scaffold-l3</code> generates seeded starter file with idiomatic exemptions pre-populated.</td></tr>
+    <tr><td>"In CI, 586 findings every run means I ignore the report."</td><td>No delta semantics; full-scan output every time.</td><td><strong>F10</strong> — <code>--since &lt;ref&gt;</code> filters to diff'd files; <code>--baseline &lt;prior.json&gt;</code> emits only deltas.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="satisfaction">Satisfaction Signals</h3>
+
+<ul>
+  <li>The developer can name the top architectural risk in their codebase within 10 seconds of reading stderr — because the top-5 punch-list is the first thing they see.</li>
+  <li>When they run <code>--deep</code>, they get back a classification (deep / shallow / leaky) per oversized module with a deletion-test rationale — vocabulary they recognise from <code>/improve-codebase-architecture</code>.</li>
+  <li>The Python cycle detector (<strong>F8</strong>) catches a <code>service → repo → service</code> cycle that previously surfaced only at runtime as <code>MissingGreenlet</code>.</li>
+  <li>The dup-signature detector (<strong>F9</strong>) flags <code>_resolve_audio_units</code> existing in two files — the highest-value finding in the user's example, surfaced by a 30-LOC AST walker.</li>
+  <li>Running on a 50M-LOC monorepo's <code>backend/</code> subdir produces a meaningful report; running at the monorepo root produces a useful warning, not a silent zero-stack success.</li>
+</ul>
+
+<h2 id="solution-direction">Solution Direction</h2>
+
+<p>Three layers, each independently shippable and additive over the existing skill:</p>
+
+<h3 id="layer-1-signal-hygiene">Layer 1 — Signal hygiene (F2, F3, F4, F7)</h3>
+
+<p>Wire framework idiom detection into the scan-time file classifier. For each file: detect Typer/Click/Fire/argparse imports, Alembic migrations path, protobuf <code>*_pb2.py</code>, pydantic <code>BaseModel</code> subclass — apply rule-specific file-level exemptions and surface under <code>exemptions.idiomatic[]</code>. Demote U007 to opt-in. Add depth-2 stack-marker walk with monorepo warning + <code>--monorepo</code> fan-out. Add 4 new ruff rules (PY005–PY008: complexity, branches, magic values, unused args).</p>
+
+<h3 id="layer-2-prioritization-cross-module">Layer 2 — Prioritization + cross-module visibility (F5, F6, F8, F9, F12)</h3>
+
+<p>Add a Python AST pass that, per module, counts <code>fanin</code> + <code>fanout</code> + <code>public_symbols</code>, hashes function signatures across files for duplicate detection, and walks the module graph + runs Tarjan's SCC for cycle detection. Compute per-finding <code>risk_score = severity_weight + churn(git log -90d) + coupling(fanin)</code>. Emit <code>module_metrics[]</code>, <code>godmodule_candidates[]</code> (top-5 by fanin × public_symbols), and a <code>cycles[]</code> block. Re-rank stderr top-5 by risk_score.</p>
+
+<h3 id="layer-3-workflow">Layer 3 — Workflow (F10, F11)</h3>
+
+<p><code>--since &lt;ref&gt;</code> filters findings to files in <code>git diff --name-only &lt;ref&gt;...HEAD</code>; <code>--baseline &lt;path&gt;</code> loads a prior report and emits a <code>diff{}</code> block (new / dropped / unchanged finding sets). <code>--scaffold-l3</code> writes a starter <code>.pmos/architecture/principles.yaml</code> with detected idiomatic exemptions pre-populated and refuses to overwrite existing files.</p>
+
+<h3 id="layer-4-deepening-pass">Layer 4 — Deepening pass (F1)</h3>
+
+<p>New opt-in <strong>Phase 4.5</strong> (between current Phase 4 evaluate-rules and Phase 5 reconcile-exemptions), gated by <code>--deep</code>. Seed list = top-10 modules by Layer 2's fanin × public_symbols product (god-module candidates). Dispatch a single subagent (Task tool or platform equivalent) with: per-candidate file content, declared L1 findings on that file, fanin / fanout / public_symbols, and the <code>/improve-codebase-architecture</code> vocabulary cheatsheet. Subagent returns one JSON object per candidate:</p>
+
+<pre>{
+  "module": "&lt;path&gt;",
+  "classification": "deep|shallow|leaky",
+  "rationale": "&lt;one line&gt;",
+  "deletion_test": { "outcome": "vanishes|reappears", "estimate": "&lt;rationale&gt;" },
+  "cross_module_patterns": [
+    { "kind": "dto-leak|dispatch-conditional|duplicated-decision|implicit-pipeline|responsibility-scatter",
+      "evidence": "&lt;quoted code or file paths&gt;" }
+  ],
+  "proposed_reshape": "&lt;one paragraph&gt;",
+  "affected_files": ["&lt;path1&gt;", "&lt;path2&gt;"]
+}</pre>
+
+<p>Orchestrator validates: each returned <code>module</code> is in the seed set; each <code>cross_module_patterns[].evidence</code> is verbatim-substring-grep-able against the named files; classification ∈ enum. Hard-fail on miss → emit warning, skip the deepening pass for this run (<code>tools_skipped: ["deep_pass:validation_failed"]</code>). Pass → emit under top-level <code>deepening_candidates[]</code>.</p>
+
+<p>Reconciliation: when a U001-flagged file is classified <code>classification: deep</code> with <code>deletion_test.outcome: reappears</code>, mark the corresponding U001 finding as <code>deep_pass_cleared: true</code> and demote its severity to <code>info</code>. The mechanical finding stays in <code>findings[]</code> (audit-trail), just demoted.</p>
+
+<h3 id="acceptance-test">Acceptance test</h3>
+
+<p>On book-companion (the user's repo, with <code>summarizer_service.py</code> 935 LOC, <code>job_queue_worker.py</code> 797 LOC, <code>evaluator.py</code> 745 LOC), <code>/architecture audit . --monorepo --deep</code> must:</p>
+
+<ol>
+  <li>Detect both backend (Python) and frontend (TS) stacks via depth-2 monorepo walk.</li>
+  <li>Cut total findings count by ≥80% versus a v2.48.0 run on the same code (idiom exemptions + U007 default-off).</li>
+  <li>Surface a top-5 stderr punch-list ranked by risk_score, with the three large service files in the top 5.</li>
+  <li>Surface, under <code>deepening_candidates[]</code>: (a) the route↔service DTO leak in quiz, (b) the duplicated <code>_resolve_audio_units</code> across <code>api/routes/audio.py</code> and <code>services/job_queue_worker.py</code>, (c) the missing <code>BookIngestionPipeline</code> orchestrator (responsibility scatter).</li>
+  <li>Pass <code>tools/check-determinism.sh</code> (mechanical pass is byte-identical run-to-run; deepening pass is allowed non-deterministic, recorded under a separate determinism boundary).</li>
+</ol>
+
+<h2 id="user-journeys">User Journeys</h2>
+
+<h3 id="primary-journey-quick-audit">Primary journey — quick local audit on a Typer-heavy backend</h3>
+
+<ol>
+  <li>Developer runs <code>/architecture audit backend/</code>.</li>
+  <li>Idiom detection runs at scan time; Typer files in <code>backend/cli/</code> auto-exempted from U004.</li>
+  <li>Stderr emits: <code>scanned 47 files (1 stack: python); 12 idiomatic exemptions applied</code>.</li>
+  <li>L1/L2 rules evaluate; PY005 (C901) flags two complexity warnings.</li>
+  <li>Layer 2 AST pass computes module_metrics; top-5 god-module candidates surfaced.</li>
+  <li>Stderr emits <strong>Top 5 risks (by risk_score):</strong> ranked punch-list with file + rule + commits/qtr + inbound.</li>
+  <li>Developer reads the top entry, opens that file, makes the fix.</li>
+</ol>
+
+<h3 id="alternate-journey-monorepo">Alternate journey — monorepo audit</h3>
+
+<ol>
+  <li>Developer runs <code>/architecture audit .</code> at the monorepo root (no stack markers at root).</li>
+  <li>Depth-2 walk detects <code>backend/pyproject.toml</code> + <code>frontend/package.json</code>.</li>
+  <li>Stderr warns: <code>No stack markers at scan root; found backend/pyproject.toml, frontend/package.json. Re-run with --monorepo to fan out, or audit each stack directly.</code></li>
+  <li>Developer re-runs with <code>--monorepo</code>; two reports emit (one per stack) plus a combined index.</li>
+</ol>
+
+<h3 id="alternate-journey-ci">Alternate journey — CI delta mode</h3>
+
+<ol>
+  <li>CI runs <code>/architecture audit . --since origin/main</code> on a PR branch.</li>
+  <li>Findings filtered to files in <code>git diff --name-only origin/main...HEAD</code>.</li>
+  <li>Stderr emits: <code>3 new findings on this PR; 0 dropped; 583 unchanged on base.</code></li>
+  <li>CI fails the PR if <code>diff.new</code> contains any <code>block</code>-severity finding.</li>
+</ol>
+
+<h3 id="alternate-journey-deep">Alternate journey — deepening pass on legacy code</h3>
+
+<ol>
+  <li>Tech lead runs <code>/architecture audit . --deep</code> before a major refactor.</li>
+  <li>Mechanical pass completes; Layer 2 produces god-module candidates.</li>
+  <li>Phase 4.5 dispatches subagent with top-10 candidates.</li>
+  <li>Subagent returns classifications; orchestrator validates evidence substrings against source.</li>
+  <li>JSON report carries <code>deepening_candidates[]</code> with classification, deletion-test outcome, cross-module patterns, proposed reshape.</li>
+  <li>Stderr summary appends: <code>Deepening: 3/10 modules classified leaky — see deepening_candidates[] in report</code>.</li>
+  <li>Tech lead reads the proposed reshape paragraphs, decides which to action.</li>
+</ol>
+
+<h3 id="error-journeys">Error / edge journeys</h3>
+
+<ul>
+  <li><strong>No subagent tool available</strong> on <code>--deep</code>: emit <code>tools_skipped: ["deep_pass:no_subagent_tool"]</code>; mechanical pass runs to completion; exit 0.</li>
+  <li><strong>Subagent validation fails</strong> (evidence not verbatim in source, classification out-of-enum, module not in seed set): emit <code>tools_skipped: ["deep_pass:validation_failed"]</code> with detail; mechanical pass output preserved; exit 0.</li>
+  <li><strong><code>--scaffold-l3</code> with existing file</strong>: stderr <code>refusing to overwrite existing .pmos/architecture/principles.yaml</code>; exit 64.</li>
+  <li><strong><code>--baseline</code> against a schema_version: 1 report</strong>: load it, treat absent <code>risk_score</code> as 0; diff still works.</li>
+  <li><strong>Cycle detector finds 0 cycles</strong>: emit empty <code>cycles: []</code>; no finding rows.</li>
+  <li><strong>Scan root is not a git repo</strong>: <code>risk_score</code>'s churn weight is 0 (graceful); <code>--since</code>/<code>--baseline</code> not usable (stderr warning + exit 64 if flag was passed).</li>
+</ul>
+
+<h3 id="empty-states">Empty states</h3>
+
+<table>
+  <thead><tr><th>Scenario</th><th>Condition</th><th>Expected behaviour</th></tr></thead>
+  <tbody>
+    <tr><td>Zero findings</td><td>Clean repo</td><td>Stderr emits <code>0 findings across N files</code>; JSON <code>findings: []</code>; top-5 punch-list omitted.</td></tr>
+    <tr><td>Zero god-module candidates</td><td>All modules below fanin × public_symbols threshold</td><td><code>godmodule_candidates: []</code>; <code>--deep</code> skips the subagent dispatch entirely with <code>tools_skipped: ["deep_pass:no_candidates"]</code>.</td></tr>
+    <tr><td>Zero new findings since baseline</td><td><code>--baseline</code> matches current state</td><td>Stderr: <code>0 new findings since baseline</code>; <code>diff.new: []</code>; exit 0.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="design-decisions">Design Decisions</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Deepening pass dispatches ONE subagent for all top-10 candidates, not 10 parallel subagents.</td><td>(a) One subagent, batched candidates. (b) N parallel subagents, one per candidate. (c) Sequential subagents.</td><td>Batched single subagent: lower coordination cost, deterministic candidate-count cap, shared context across candidates (helps cross-module pattern detection in F1). Parallel would be faster but cross-module patterns require seeing N modules together. Sequential adds latency with no upside.</td></tr>
+    <tr><td>D2</td><td><code>risk_score</code> weights: severity {block:100, warn:10, info:1}, churn capped at 50 (1pt/commit max 50), coupling capped at 50 (5pt/inbound import max 50). Range 1–200.</td><td>(a) These caps. (b) Unbounded weights. (c) Multiplicative formula.</td><td>Bounded additive keeps the score interpretable (severity always dominates rank within a class; churn/coupling break ties). Multiplicative would let a single hot file dominate. Unbounded would make scores hard to compare across runs.</td></tr>
+    <tr><td>D3</td><td>F9 (duplicate signatures) is U011, severity warn, delegate_to grep (special-cased AST in harness).</td><td>(a) New U011 grep-class rule. (b) New ruff rule wrapper (not possible — ruff has no cross-file signature check). (c) Separate top-level <code>duplicates[]</code> block.</td><td>U011 fits the existing rule-emission shape; <code>delegate_to: grep</code> with a per-file AST under the hood matches how U001/U002 already special-case in <code>run-audit.sh</code>. Keeps the report schema flat.</td></tr>
+    <tr><td>D4</td><td>F8 (Python cycles) is PY009, severity block, delegate_to <code>cycle-py</code> (new tools/ script).</td><td>(a) New PY009 with custom delegate. (b) Reuse PY rules via ruff plugin. (c) New top-level <code>cycles[]</code> block.</td><td>Block-severity matches dependency-cruiser's TS001 cycle rule; consistency across stacks. New <code>delegate_to</code> value documented; new <code>tools/cycle-py.py</code> ~50 LOC.</td></tr>
+    <tr><td>D5</td><td>JSON schema bump: <code>schema_version: 1 → 2</code>. Additive only.</td><td>(a) Bump to 2 additive. (b) Stay at 1, add fields without bump. (c) Bump to 2 with breaking removals.</td><td>Additive bump signals new fields exist without forcing readers to upgrade. <code>--baseline</code> must accept v1 reports — handled by null-coalescing missing fields. Breaking removals would invalidate existing CI tooling.</td></tr>
+    <tr><td>D6</td><td>Idiom exemptions are surfaced under <code>exemptions.idiomatic[]</code>, NOT silently dropped from findings.</td><td>(a) Surface under exemptions.idiomatic. (b) Silently exclude. (c) Emit as info-severity findings with idiom note.</td><td>Audit principle: every dropped finding is visible. <code>exemptions.idiomatic[]</code> carries <code>{rule_id, file, idiom, reason}</code> so the user can retire an exemption if the idiom assumption is wrong.</td></tr>
+    <tr><td>D7</td><td>U007 default behaviour: OFF. Enable via <code>--include-info-comments</code> flag OR L3 opt-in (<code>rules.U007.severity: info</code> in L3 yaml as explicit opt-in).</td><td>(a) Default-off, opt-in. (b) Default-on, harden heuristic. (c) Remove the rule.</td><td>The rule's intent (cold-reader legibility) is sound; the default-on behaviour poisons the report. Default-off + harden-when-on (only fire on file &gt; 100 LOC with no module docstring) is the best of both. Removing it loses the legibility signal entirely.</td></tr>
+    <tr><td>D8</td><td>Monorepo mode is explicit opt-in via <code>--monorepo</code>. Without the flag, depth-2 child stacks trigger a stderr warning, NOT silent fan-out.</td><td>(a) Warn-only by default; explicit fan-out. (b) Auto-fan when stacks below root exceed 1. (c) Always require the flag (no warning).</td><td>The user may legitimately want to audit one subdir; silent fan-out would scan paths they didn't ask for. The warning closes the silent-failure mode; the flag confirms intent.</td></tr>
+    <tr><td>D9</td><td>The deepening pass is a new <strong>Phase 4.5</strong> in <code>SKILL.md</code> (between current Phase 4 evaluate-rules and Phase 5 reconcile-exemptions). Numbered to preserve all downstream cross-refs.</td><td>(a) Phase 4.5. (b) Renumber 5→6, 6→7. (c) Append as Phase 7.</td><td>Per a documented learning (2026-05-13): inserting a new phase mid-pipeline in an existing skill, use a fractional number rather than renumbering. Cheaper, safer, preserves audit-trail.</td></tr>
+    <tr><td>D10</td><td>The vocabulary cheatsheet handed to the deep-pass subagent is bundled as <code>reference/deepening-vocabulary.md</code>, derived from <code>/improve-codebase-architecture</code> (Matt Pocock-derived), cited by URL in the new reference file's header.</td><td>(a) New reference file in /architecture's reference/. (b) Reference the external skill at runtime. (c) Inline the vocabulary in SKILL.md.</td><td>Bundling keeps the skill self-contained (the external skill is in a different project namespace and may not be installed). Citing the source via URL preserves attribution. Inlining bloats SKILL.md past the soft cap.</td></tr>
+    <tr><td>D11</td><td>The deep-pass subagent validation hard-fails on evidence-not-verbatim or classification-out-of-enum; the run continues with mechanical findings intact and <code>tools_skipped[]</code> records the validation failure.</td><td>(a) Hard-fail with run continuation. (b) Soft-fail (accept and warn). (c) Hard-fail with whole-run abort.</td><td>Mirrors the FR-44 pattern in <code>/feature-sdlc</code> Phase 6a: the reviewer (here the deep-pass subagent) gets validated by the orchestrator; on miss, the LLM half is skipped but the deterministic half still ships. Abort would lose the mechanical findings — unacceptable.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="success-metrics">Success Metrics</h2>
+
+<table>
+  <thead><tr><th>Metric</th><th>Baseline (v2.48.0)</th><th>Target</th><th>Measurement</th></tr></thead>
+  <tbody>
+    <tr><td>Findings count on book-companion <code>backend/</code></td><td>586</td><td>≤120 (≥80% reduction)</td><td>Re-run <code>/architecture audit backend/</code> before / after the merge; compare <code>findings.length</code>.</td></tr>
+    <tr><td>U004 false-positive rate on Typer projects</td><td>~100% (218/218 false)</td><td>≤5% (≤11/218)</td><td>Manual triage of remaining U004 findings on book-companion post-merge.</td></tr>
+    <tr><td>Stacks detected on monorepo root run</td><td>0 (silent)</td><td>2 (warn + offer fan-out)</td><td>Run <code>/architecture audit .</code> at book-companion repo root; inspect stderr + <code>monorepo_detected[]</code>.</td></tr>
+    <tr><td>Top-5 stderr punch-list present</td><td>No (counts only)</td><td>Yes, ranked by <code>risk_score</code></td><td>Grep stderr for <code>Top 5 risks</code> line on post-merge run.</td></tr>
+    <tr><td>Deepening-pass acceptance findings on book-companion</td><td>0 (mechanical pass cannot see)</td><td>≥3 (DTO leak, dup signature, missing pipeline)</td><td>Run <code>/architecture audit . --deep</code>; inspect <code>deepening_candidates[]</code>.</td></tr>
+    <tr><td>Determinism check pass-rate on mechanical pass</td><td>100% (FR-73)</td><td>100% (no regression)</td><td><code>tools/check-determinism.sh</code> on the post-merge skill.</td></tr>
+    <tr><td>Skill-eval rubric score (Phase 6a)</td><td>n/a (new feature)</td><td>All [D] + [J] checks pass without accepted residuals</td><td>Run <code>tools/skill-eval-check.sh</code> + reviewer subagent.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="findings-to-requirements-map">Findings → Requirements map (skill-feedback bookkeeping)</h2>
+
+<p>Each finding from the approved triage (<code>0c_feedback_triage.html</code>) maps to one or more requirements in this doc. This table is the spec-author's load-bearing artifact when deriving FRs.</p>
+
+<table>
+  <thead><tr><th>Finding</th><th>Title</th><th>Primary requirement(s)</th><th>Owning layer</th></tr></thead>
+  <tbody>
+    <tr><td>F1</td><td>Deepening review pass (<code>--deep</code>)</td><td>New SKILL.md Phase 4.5; subagent dispatch contract; <code>deepening_candidates[]</code> JSON key; double-report demotion; cap=10; graceful no-subagent skip.</td><td>Layer 4</td></tr>
+    <tr><td>F2</td><td>Auto-detect framework idioms</td><td>Scan-time idiom detector (Typer/Click/Fire/Alembic/protobuf/pydantic); <code>exemptions.idiomatic[]</code> output.</td><td>Layer 1</td></tr>
+    <tr><td>F3</td><td>Demote U007 to opt-in</td><td>U007 default-off; <code>--include-info-comments</code> flag; hardened heuristic (LOC&gt;100 + no docstring).</td><td>Layer 1</td></tr>
+    <tr><td>F4</td><td>Monorepo-aware mode</td><td>Depth-2 stack-marker walk; stderr warning; <code>--monorepo</code> fan-out; <code>monorepo_detected[]</code>.</td><td>Layer 1</td></tr>
+    <tr><td>F5</td><td>Risk score</td><td>Per-finding <code>risk_score</code>; weight definition (D2); <code>--sort risk</code> flag.</td><td>Layer 2</td></tr>
+    <tr><td>F6</td><td>Fanin / fanout</td><td>Python AST pass; <code>module_metrics[]</code>; <code>godmodule_candidates[]</code> (top-5 by fanin × public_symbols).</td><td>Layer 2</td></tr>
+    <tr><td>F7</td><td>Expand ruff selectors</td><td>5 new rules PY005 (C901) / PY006 (PLR0911-15) / PY007 (PLR2004) / PY008 (ARG001-002).</td><td>Layer 1</td></tr>
+    <tr><td>F8</td><td>Python import-cycle detector</td><td>New rule PY009; new <code>tools/cycle-py.py</code> Tarjan SCC walker; <code>cycles[]</code> block.</td><td>Layer 2</td></tr>
+    <tr><td>F9</td><td>Duplicate function signatures</td><td>New rule U011; per-file AST signature hash; per-occurrence finding with <code>cross_refs[]</code>.</td><td>Layer 2</td></tr>
+    <tr><td>F10</td><td>Diff mode</td><td><code>--since &lt;ref&gt;</code>; <code>--baseline &lt;path&gt;</code>; <code>diff{}</code> block; v1-report back-compat.</td><td>Layer 3</td></tr>
+    <tr><td>F11</td><td><code>--scaffold-l3</code></td><td>Starter L3 YAML generator; pre-populates idiomatic exemptions; refuses overwrite.</td><td>Layer 3</td></tr>
+    <tr><td>F12</td><td>Top-5 stderr summary</td><td>Stderr top-5 risk-ranked punch-list; falls back to severity rank when risk_score unavailable.</td><td>Layer 2</td></tr>
+  </tbody>
+</table>
+
+<h2 id="research-sources">Research Sources</h2>
+
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Key takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> (158 LOC, v2.48.0)</td><td>Existing code</td><td>Current 6-phase pipeline; <code>delegate_to ∈ {grep, dependency-cruiser, ruff}</code>; no subagent dispatch yet. New phase inserts cleanly at 4.5.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code></td><td>Existing code</td><td>10 L1 + 4 L2-ts + 4 L2-py rules. New rules (U011, PY005–PY009) fit existing schema.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (1256 LOC)</td><td>Existing code</td><td>Per-rule check expressions in one harness file; new checks bolt on without redesign.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md</code> (158 LOC)</td><td>Existing code</td><td>Per-rule rationale + source citation; new rules must extend this file with same shape.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/reference/gap-map-rationale.md</code> (69 LOC)</td><td>Existing code</td><td>Per-rule <code>delegate_to</code> rationale; new delegates (<code>cycle-py</code>) must extend.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code></td><td>Existing code</td><td>The standing acceptance criteria. Spec must derive FRs from these sections that <code>/skill-eval</code> Phase 6a can grade.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md</code></td><td>Existing code</td><td>Binary rubric — 39 checks ([D] deterministic + [J] judge). Layer-1/2 changes must not regress any current pass.</td></tr>
+    <tr><td><code>tools/skill-eval-check.sh</code> (~v2.40.0+ fix)</td><td>Existing code</td><td>Pipefail fix landed (cached BODY_TXT). New SKILL.md content (likely 240+ LOC after phase 4.5 + ref additions) safely under pipe buffer.</td></tr>
+    <tr><td>Tarjan's strongly-connected-components algorithm</td><td>Algorithm</td><td>Linear time module-graph cycle detection; ~50 LOC in Python with <code>ast.parse</code> + dict-of-sets adjacency.</td></tr>
+    <tr><td><code>ruff</code> documentation — C901 / PLR / ARG / PLR2004 rules</td><td>External</td><td>Existing AST-grade rules; one-line YAML additions.</td></tr>
+    <tr><td>Matt Pocock — <code>/improve-codebase-architecture</code> skill (book-companion repo)</td><td>External / sibling skill</td><td>Source of deletion-test vocabulary + module/interface/depth/seam/adapter/leverage/locality lexicon. Cited verbatim in <code>reference/deepening-vocabulary.md</code>.</td></tr>
+    <tr><td>John Ousterhout — <em>A Philosophy of Software Design</em></td><td>External</td><td>Original framing of "deep modules": interface ≪ implementation. Used in shallow/deep/leaky classification rationale.</td></tr>
+    <tr><td>Adam Tornhill — <em>Your Code as a Crime Scene</em> (churn-as-risk pattern)</td><td>External</td><td>Validates the churn weight in <code>risk_score</code>: high-churn files are where bug rate compounds.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="open-questions">Open Questions</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Question</th></tr></thead>
+  <tbody>
+    <tr><td>OQ1</td><td>Concrete numeric thresholds for the god-module candidate cut: top-5 by <code>fanin × public_symbols</code> with a floor of <code>fanin ≥ 5 AND public_symbols ≥ 8</code>? Or top-10 with no floor? Resolve in /spec by picking one; tuneable via L3 if wrong.</td></tr>
+    <tr><td>OQ2</td><td>Does the deep-pass subagent run inside the audit's bash harness (via Task tool / Claude Code platform), or is it dispatched via the orchestrator that called <code>/architecture</code>? For Claude Code, the Task tool is available to the parent agent; the harness shell-out cannot summon a subagent itself. Resolution: spec to assume the platform-equivalent of Task tool is callable from the skill body; if absent, <code>tools_skipped[]</code> covers the case (no-subagent error journey).</td></tr>
+    <tr><td>OQ3</td><td>Idiom detection coverage list — beyond Typer/Click/Fire/argparse/Alembic/protobuf/pydantic, are there other Python frameworks worth including in v1 (e.g., FastAPI command runners, Celery worker entrypoints, Django management commands)? Resolution: ship the listed 7; add via L3 exemption rows when users surface gaps.</td></tr>
+    <tr><td>OQ4</td><td><code>--baseline</code> path resolution: filesystem path, gs:// URL, or both? Resolution: filesystem-only in v1; URL fetch is a follow-up.</td></tr>
+    <tr><td>OQ5</td><td>Should <code>--scaffold-l3</code> also detect existing exemptions in the report and emit them, or only the idiomatic ones? Resolution: idiomatic-only in v1 (deterministic); covering existing exemptions is a follow-up that depends on a baseline.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="acceptance-criteria-from-skill-patterns">Standing acceptance criteria (from <code>skill-patterns.md §A–§F</code>)</h2>
+
+<p>Per the parent <code>/feature-sdlc skill --from-feedback</code> contract (FR-61), the revised <code>/architecture</code> skill must conform to <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code>. The spec will derive concrete FRs from each section; this doc cites them as standing requirements:</p>
+
+<ul>
+  <li><strong>§A Frontmatter:</strong> name, description with ≥5 trigger phrases, user-invocable, argument-hint enumerating <em>every</em> new flag (<code>audit [path]</code>, <code>--no-adr</code>, <code>--non-interactive</code>, <code>--deep</code>, <code>--include-info-comments</code>, <code>--monorepo</code>, <code>--since &lt;ref&gt;</code>, <code>--baseline &lt;path&gt;</code>, <code>--scaffold-l3</code>, <code>--sort risk</code>), target=generic preserved.</li>
+  <li><strong>§B Description & triggering:</strong> description gains explicit mentions of the new flags' user-spoken trigger phrases ("deepening review", "with churn", "monorepo audit", "since last commit", "scaffold L3").</li>
+  <li><strong>§C Structure & progressive disclosure:</strong> SKILL.md stays under the soft cap; the deepening-pass vocabulary cheatsheet lives at <code>reference/deepening-vocabulary.md</code> (new); new <code>tools/cycle-py.py</code>; new tests under <code>tests/fixtures/</code> for each finding.</li>
+  <li><strong>§D Body & content:</strong> new Phase 4.5 documented in body; Phase 0 prereq gates extended for <code>git</code> (already required when scan root is a git repo); Anti-Patterns section gains entries for double-reporting prevention, subagent validation, and monorepo silent-skip.</li>
+  <li><strong>§E Scripts & tooling:</strong> <code>tools/run-audit.sh</code> extended; new <code>tools/cycle-py.py</code> (Tarjan SCC, ~50 LOC); existing <code>tools/check-citations.sh</code>, <code>check-determinism.sh</code>, <code>check-gap-map.sh</code> must still pass.</li>
+  <li><strong>§F Platform-conditional frontmatter:</strong> generic target preserved; <code>--deep</code> degrades gracefully when no subagent tool is available (per the no-subagent error journey).</li>
+</ul>
+
+<h2 id="release-prerequisites-pointer">Release prerequisites (carried by <code>/complete-dev</code>, not <code>/execute</code>)</h2>
+
+<p>Per a documented learning (2026-05-13), the <code>03_plan</code> waves must NOT include version bumps, changelog entries, README rows, or manifest version-sync tasks. Those are <code>/complete-dev</code>'s exclusive territory. The spec will explicitly list under "Release prerequisites":</p>
+
+<ul>
+  <li>Minor version bump in both <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> AND <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>, same commit, kept in sync (pre-push hook enforces).</li>
+  <li>Changelog entry for the new behaviour under <code>docs/pmos/changelog.md</code>.</li>
+  <li>README row update if the README lists <code>/architecture</code>'s flags (verify at /complete-dev time).</li>
+  <li><code>~/.pmos/learnings.md</code> header bootstrap for <code>## /architecture</code> if absent (idempotent).</li>
+</ul>
+
+<h2 id="review-log">Review Log</h2>
+
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr><td>1 (author-self)</td><td>Structural lens: all journeys walked; alternate + error + empty states present; non-goals carry reasons; decisions have options + rationale. Product lens: friction table mirrors the feedback's MSF tilt; D1–D11 cover non-trivial choices; acceptance test is concrete (3 named patterns to surface). Polish lens: standing acceptance criteria cited; release prerequisites pointed at /complete-dev.</td><td>None — first loop is the terminal loop for a feedback-driven skill change where the user pre-approved direction at the triage gate.</td></tr>
+  </tbody>
+</table>
+
+<p><strong>6-gate exit status:</strong> Both lenses ran; findings logged (none beyond what the triage already captured); dispositions captured (apply-all from triage); user confirmation pending at the orchestrator level (Phase 2 returns to <code>/feature-sdlc</code> which will surface the next gate). Decision coverage: 11 rows. Zero open clarifications inline. Phase 5 review exits clean.</p>
+
+<h2 id="learnings-line">Learnings</h2>
+
+<p><strong>No new learnings this session because</strong> the triage doc and the user's pre-approval did the brainstorm work upfront; this requirements pass was a structured emission of the approved disposition into the Tier-3 template, not a discovery session. The mid-pipeline fractional-phase pattern (Phase 4.5) and the no-MSF-on-MSF-feedback decision are both already-documented learnings; nothing new surfaced.</p>
+
+</body>
+</html>
