@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>/architecture — deepening pass + hygiene — Spec (Tier 3)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 940px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; }
+  h1 { border-bottom: 2px solid #888; padding-bottom: .4rem; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: .25rem; margin-top: 2.2rem; }
+  h3 { margin-top: 1.5rem; }
+  h4 { margin-top: 1.2rem; color: #444; }
+  .meta { color: #666; font-size: .9rem; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; }
+  th, td { border: 1px solid #bbb; padding: .4rem .6rem; text-align: left; vertical-align: top; font-size: .92rem; }
+  th { background: #f3f3f3; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: #f6f6f6; padding: .6rem .8rem; overflow-x: auto; border-radius: 4px; font-size: .85rem; }
+  .quote { border-left: 3px solid #aaa; padding: .2rem .8rem; color: #444; margin: .4rem 0; }
+  .strong { font-weight: bold; }
+  ul li, ol li { margin: .25rem 0; }
+  .frontmatter { background: #fafafa; border: 1px solid #e3e3e3; border-radius: 6px; padding: .6rem 1rem; margin: .8rem 0; font-size: .9rem; }
+  .fr-id { font-family: ui-monospace, monospace; white-space: nowrap; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1 id="title"><code>/architecture</code> — deepening pass + hygiene — Spec</h1>
+
+<div class="frontmatter">
+<strong>tier:</strong> 3 &middot;
+<strong>type:</strong> feature &middot;
+<strong>feature:</strong> architecture-deep-pass &middot;
+<strong>date:</strong> 2026-05-14 &middot;
+<strong>status:</strong> Ready for Plan &middot;
+<strong>requirements:</strong> <code>docs/pmos/features/2026-05-13_architecture-deep-pass/01_requirements.html</code> &middot;
+<strong>target skill:</strong> <code>plugins/pmos-toolkit/skills/architecture/</code> &middot;
+<strong>target platform:</strong> generic &middot;
+<strong>acceptance criteria:</strong> <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code>
+</div>
+
+<h2 id="problem-statement">1. Problem Statement</h2>
+
+<p>The <code>/architecture</code> skill is a fast, deterministic rule engine that runs L1 universal + L2 stack-specific (TS via dependency-cruiser, Python via ruff) + L3 per-repo overrides and emits JSON to stdout. On a real Typer-heavy backend (book-companion, ~900 LOC service files), v2.48.0 produced 586 findings dominated by 218 <code>print()</code> false positives and 710 info-noise rows, silently skipped monorepo stacks because <code>pyproject.toml</code> lived a level below the scan root, and gave no human-readable artifact to share. This spec defines the technical implementation of a <strong>discovery-capable deepening pass</strong> + signal-hygiene fixes + cross-module structural detectors + an <strong>HTML+MD+JSON triplet output</strong> that replaces stdout-JSON, and breaks the severity axis in favour of a disposition (Must Fix / Should Fix / Won't Fix) axis. Primary success metric: total findings on book-companion's <code>backend/</code> drop from 586 to ≤120 (≥80% reduction); on <code>--deep</code>, ≥3 leaky/shallow classifications with substring-grep-verified evidence.</p>
+
+<h2 id="goals">2. Goals</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Goal</th><th>Success Metric</th></tr></thead>
+  <tbody>
+    <tr><td>G1</td><td>Cut Typer false-positive noise via function-scoped idiom exemption + U007 default-off</td><td>586 → ≤120 findings on book-companion <code>backend/</code> (re-run before/after, compare <code>findings.length</code>)</td></tr>
+    <tr><td>G2</td><td>Surface architectural issues regex cannot see, via <code>--deep</code> discovery-capable subagent</td><td>≥3 leaky/shallow classifications with verbatim-substring-grep-verified evidence on book-companion</td></tr>
+    <tr><td>G3</td><td>Eliminate silent monorepo stack-skip</td><td>Monorepo root run emits <code>monorepo_detected[]</code> + stderr warning naming the candidate manifests; zero silent stack-skips</td></tr>
+    <tr><td>G4</td><td>Produce a single human-readable artifact per run</td><td>Every successful run writes <code>{docs_path}/architecture/{date}_&lt;slug&gt;.html</code> + MD + JSON sidecars; no JSON to stdout</td></tr>
+    <tr><td>G5</td><td>Make findings prioritized by actionability, not by rule_id</td><td>Every finding carries <code>disposition ∈ {must_fix, should_fix, wont_fix}</code> + <code>risk_score</code>; HTML Must Fix section orders by risk_score within disposition</td></tr>
+    <tr><td>G6</td><td>Close cross-module visibility gap structurally</td><td>PY009 (import cycles, Tarjan SCC) + U011 (duplicate function signatures) emit findings deterministically without LLM</td></tr>
+    <tr><td>G7</td><td>Make the report usable in CI</td><td><code>--since</code> + <code>--baseline</code> consume the JSON sidecar; AND-intersect when both passed; CI emits "N new findings on this PR" via <code>diff.new</code></td></tr>
+    <tr><td>G8</td><td>Collapse the L3 activation-energy barrier</td><td><code>--scaffold-l3</code> emits a starter YAML seeded with detected idiomatic exemptions, using <code>disposition:</code> keys</td></tr>
+    <tr><td>G9</td><td>Conform to <code>skill-patterns.md §A–§F</code></td><td><code>feature-sdlc/tools/skill-eval-check.sh --target generic plugins/pmos-toolkit/skills/architecture/</code> passes all [D] checks + reviewer [J] checks at Phase 6a with no accepted residuals</td></tr>
+  </tbody>
+</table>
+
+<h2 id="non-goals">3. Non-Goals</h2>
+
+<ul>
+  <li><strong>Not</strong> turning <code>--deep</code> on by default — opt-in only; mechanical pass remains the deterministic default.</li>
+  <li><strong>Not</strong> rewriting <code>/improve-codebase-architecture</code> or absorbing it wholesale; the deep-pass vocabulary is bundled at <code>reference/deepening-vocabulary.md</code> with attribution.</li>
+  <li><strong>Not</strong> auto-fanning monorepos without explicit <code>--monorepo</code>; warn-loudly is the default.</li>
+  <li><strong>Not</strong> writing new tools in languages other than POSIX bash + Python 3 (already-required prereqs).</li>
+  <li><strong>Not</strong> preserving back-compat for <code>severity:</code> keys — the rename to <code>disposition:</code> is breaking; user L3 files parse-error with a one-line rename hint.</li>
+  <li><strong>Not</strong> writing JSON to stdout; stdout is empty (D17 below).</li>
+  <li><strong>Not</strong> promoting findings to Nygard ADRs; ADR machinery and <code>--no-adr</code> flag are removed.</li>
+  <li><strong>Not</strong> double-reporting — size-class findings (U001/U002/PY005/PY006 only) on a <code>deep, reappears</code> file demote to Won't Fix with <code>deep_pass_cleared: true</code>, not silently dropped.</li>
+  <li><strong>Not</strong> crashing when no subagent/Read tool is available — runtime probe sets <code>tools_skipped: ["deep_pass:no_subagent_tool_use"]</code> and the run succeeds with mechanical findings only.</li>
+  <li><strong>Not</strong> capping deep-pass candidate count — discovery-capable; <code>seed_hint[]</code> is advisory.</li>
+  <li><strong>Not</strong> retaining byte-identical determinism — <code>tools/check-determinism.sh</code> is removed; users self-check via <code>--baseline</code> against a prior JSON sidecar.</li>
+</ul>
+
+<h2 id="decision-log">4. Decision Log</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td><strong>Discovery-capable deep-pass</strong>: one batched subagent dispatched with full module-graph stats + <code>seed_hint[]</code> + vocab cheatsheet; subagent uses Read/Grep to pull source for whichever modules it picks.</td><td>(a) Classification-only over fixed top-N seed; (b) discovery-capable with tool access (chosen); (c) two-phase pick-then-classify with orchestrator-bundled source; (d) N parallel subagents.</td><td>Discovery preserves the ability to find DTO leaks in small adapter files that don't rank in fanin×public_symbols. Tool access keeps the up-front prompt small. Carried from requirements §Design Decisions D1.</td></tr>
+    <tr><td>D2</td><td><strong>risk_score</strong> = disposition_weight + churn (cap 50) + coupling (cap 50); weights {must_fix:1000, should_fix:100, wont_fix:1}; combined churn+coupling sum cap 100. Range 1–1100. <strong>Disposition class always dominates rank.</strong></td><td>(a) Within-class re-ranking only (chosen); (b) cross-class ranking allowed; (c) multiplicative formula.</td><td>A high-churn high-coupling should_fix maxes at 200, well below any must_fix (1000+). Users reading the top of Must Fix never see a Should Fix snuck in. Carried from requirements D2.</td></tr>
+    <tr><td>D3</td><td>F9 dup-signature is <strong>U011, disposition: should_fix, delegate_to: grep</strong> (special-cased AST in harness, mirroring U001/U002).</td><td>(a) U011 grep-class with under-the-hood AST (chosen); (b) ruff plugin (impossible, no cross-file); (c) separate <code>duplicates[]</code> block.</td><td>U011 fits the existing rule-emission shape; keeps findings[] flat. Carried from requirements D3.</td></tr>
+    <tr><td>D4</td><td>F8 cycles is <strong>PY009, disposition: should_fix by default</strong> (L3 may upgrade to must_fix); <code>delegate_to: cycle-py</code> (new ~50-LOC Tarjan SCC walker).</td><td>(a) Default must_fix; (b) default should_fix + L3 upgrade (chosen); (c) scope-aware (must_fix only on all-top-level edges).</td><td>Python tolerates intentional cycles via lazy imports and <code>__init__.py</code> re-exports. Block-by-default would CI-fail PRs on accepted patterns. Carried from requirements D4.</td></tr>
+    <tr><td>D5</td><td>JSON <code>schema_version: 1 → 2</code>. Breaking on severity → disposition; additive on new top-level keys.</td><td>(a) Breaking axis swap (chosen); (b) additive with both keys; (c) migrate-subcommand.</td><td>Severity → disposition is the load-bearing UX change; carrying both keys would confuse rule authors. Carried from requirements D5.</td></tr>
+    <tr><td>D6</td><td>Idiom exemptions surface under <code>exemptions.idiomatic[]</code> with <code>exempt_ranges[]</code> (line ranges per file), NOT silently dropped.</td><td>(a) Surface with line ranges (chosen); (b) silently exclude; (c) emit as low-disposition findings.</td><td>Audit principle: every dropped finding visible with provenance. Carried from requirements D6.</td></tr>
+    <tr><td>D7</td><td>U007 default OFF; enable via <code>--include-info-comments</code> OR L3 <code>rules.U007.disposition: wont_fix → should_fix</code>. Hardened: LOC&gt;100 AND no module docstring ≥40 chars stripped AND not <code>__init__.py</code>.</td><td>(a) Default-off + harden + carve-outs (chosen); (b) bare docstring presence; (c) LOC&gt;200.</td><td>40-char floor kills <code>"""utils"""</code> theater. Carried from requirements D7.</td></tr>
+    <tr><td>D8</td><td>Monorepo mode is explicit opt-in via <code>--monorepo</code>. Depth-2 child stacks trigger stderr warning, NOT silent fan-out.</td><td>(a) Warn-only + explicit fan-out (chosen); (b) auto-fan; (c) always require flag.</td><td>User may legitimately want one subdir. Carried from requirements D8.</td></tr>
+    <tr><td>D9</td><td>Deep-pass becomes <strong>SKILL.md Phase 4.5</strong> (between current Phase 4 and Phase 5). Fractional numbering preserves cross-refs.</td><td>(a) Phase 4.5 (chosen); (b) renumber 5→6, 6→7; (c) append as Phase 7.</td><td>Per a documented learning, mid-pipeline insertion uses fractional numbering. Carried from requirements D9.</td></tr>
+    <tr><td>D10</td><td>Vocab cheatsheet at <code>reference/deepening-vocabulary.md</code>, derived from Matt Pocock's <code>/improve-codebase-architecture</code>, cited by URL in the file header.</td><td>(a) New reference file (chosen); (b) reference external skill at runtime; (c) inline in SKILL.md.</td><td>Self-contained; preserves attribution. Carried from requirements D10.</td></tr>
+    <tr><td>D11</td><td>Deep-pass validation contract: (a) module path resolves to a real file in the repo; (b) every <code>cross_module_patterns[].evidence</code> is verbatim-substring-grep-able against the named file; (c) classification ∈ <code>{deep, shallow, leaky}</code>. <strong>No seed-set check.</strong> On miss → hard-fail; <code>deep_pass.skipped_reason: "validation_failed"</code>; mechanical findings preserved.</td><td>(a) Path + grep + enum, no seed (chosen); (b) + module-in-graph-set; (c) + every enum field.</td><td>Path + grep are necessary and sufficient to catch hallucinated files and fabricated quotes. Module-in-graph-set would constrain discovery beyond intent. Carried from requirements D11.</td></tr>
+    <tr><td>D12</td><td>Output is <strong>HTML+MD+JSON triplet</strong> at <code>{docs_path}/architecture/{date}_&lt;slug&gt;.{html,md,json}</code>; disposition axis replaces severity; ADR promotion removed; F12 stderr top-5 dropped; determinism check removed.</td><td>(a) Triplet + disposition + no ADR + no F12 + no determinism (chosen); (b) keep stdout-JSON + add <code>--out</code>; (c) JSON only.</td><td>JSON-on-stdout is unreadable; ADR/F12/determinism were workarounds. Carried from requirements D12.</td></tr>
+    <tr><td>D13</td><td>Function-scoped idiom exemption for U004: only <code>print()</code> inside functions decorated with <code>@app.command</code>/<code>@click.command</code>/<code>@cli.command</code>/<code>@cli.group</code>/<code>fire.Fire</code>-equivalent are exempted; helper-function prints in same file still flag.</td><td>(a) Function-scoped (chosen); (b) file-level; (c) file-level + L3 force-check override.</td><td>Highest precision; catches mixed-file case. Carried from requirements D13.</td></tr>
+    <tr><td>D14</td><td>No principles.yaml migration tool. Plugin-shipped rules rewritten in this release. User L3 files with legacy <code>severity:</code> keys parse-error at Phase 1 load with the exact rename message.</td><td>(a) Parse-error + clear message (chosen); (b) migrate subcommand; (c) soft-fallback.</td><td>User call: no back-compat. Carried from requirements D14.</td></tr>
+    <tr><td>D15 (new)</td><td><strong>Deep-pass module-graph payload</strong>: pre-load every module's <code>{path, fanin, fanout, public_symbols, LOC}</code> (~150 bytes each); soft-warn at &gt;1,000 modules; hard error at &gt;5,000. Resolves OQ6.</td><td>(a) All modules, lightweight stats (chosen); (b) Top-N by fanin × public_symbols + Read fallback; (c) two-stage select-then-classify.</td><td>~150 KB on a 1,000-module repo — comfortably within Opus context. Preserves discovery: subagent sees small adapter files in metadata even if they don't rank in seed_hint. User input via OQ6 prompt.</td></tr>
+    <tr><td>D16 (new)</td><td><strong>Same-day re-run slug collision</strong>: append <code>-2</code>, <code>-3</code>, ... to the slug component (not the date prefix). Resolves OQ7.</td><td>(a) Append numeric suffix (chosen); (b) overwrite; (c) timestamp suffix.</td><td>Preserves audit trail of prior runs same day (e.g., before/after a refactor). No data loss. Carried from requirements OQ7 default.</td></tr>
+    <tr><td>D17 (new)</td><td><strong>Stdout is empty</strong>. Stderr carries the one-line summary. Shell pipelines that need machine-readable output read the JSON sidecar; <code>jq</code>-able paths are documented in SKILL.md Phase 6. Resolves OQ8.</td><td>(a) Empty stdout (chosen); (b) one-line summary mirrored to stdout; (c) JSON to stdout when piped (TTY-conditional).</td><td>Cleanest contract; eliminates the &gt;/dev/null friction; avoids TTY-conditional behaviour that breaks in CI vs. dev. JSON sidecar is the documented stable contract for tooling. Resolves OQ8.</td></tr>
+    <tr><td>D18 (new)</td><td><strong>JSON sidecar schema</strong> (top-level keys, see §10.2 below). Stable per <code>schema_version: 2</code>; additive bumps within v2 do not break <code>--baseline</code> tuple identity. Resolves OQ9.</td><td>(a) Full key inventory with strict shape per key (chosen); (b) loose JSON without documented contract; (c) JSON Schema file shipped under <code>reference/</code>.</td><td>Document the inventory in SKILL.md + this spec §10; defer formal JSON Schema until external consumers ask for it (YAGNI). Carried from requirements OQ9 — answered by spec.</td></tr>
+    <tr><td>D19 (new)</td><td><strong>HTML appendix rendering</strong>: top-5 godmodule_candidates as a sortable HTML table (columns: module / fanin / fanout / public_symbols / LOC); <code>cycles[]</code> as a <code>&lt;details&gt;</code>-wrapped list when non-empty (omitted when empty). All section headings carry kebab-case IDs.</td><td>(a) Table + collapsed cycles (chosen); (b) text-only; (c) Mermaid diagram of the cycle graph.</td><td>Mermaid adds a runtime dep (mermaid.js); plain HTML table + collapsed details is zero-dep, copy-paste-friendly. Stated as Designer-role assumption.</td></tr>
+    <tr><td>D20 (new)</td><td><strong>Subagent A research only</strong> at Phase 2; Subagent B (industry research) skipped. The grill exhausted the design space; the requirements doc cites all comparables (Ousterhout, Tornhill, Pocock, Tarjan).</td><td>(a) Skip B with explicit rationale (chosen); (b) run B anyway.</td><td>No non-obvious architectural choice remains open after the grill; running B would produce duplicate sources.</td></tr>
+    <tr><td>D21 (new)</td><td><strong>No retry on subagent failure in Phase 4.5.</strong> A single subagent dispatch; on parse error, validation hard-fail, or timeout, fall back to mechanical-only with the appropriate <code>skipped_reason</code>. The user re-runs <code>--deep</code> if they want another attempt.</td><td>(a) No retry (chosen); (b) 1 retry on malformed JSON only; (c) up to 2 retries with backoff.</td><td>LLM non-determinism: a retry produces different output, not necessarily better; the orchestrator can't tell. Cheaper, simpler, transparent — failures emit a stderr line + <code>skipped_reason</code>; user decides to re-run. Surfaced as Review-loop finding; explicit Decision-Log entry.</td></tr>
+    <tr><td>D22 (new)</td><td><strong>Godmodule candidate scoring with Laplace smoothing</strong>: <code>score = (fanin + 1) × (public_symbols + 1) − 1</code>. Adapters with <code>public_symbols: 0</code> get score ≥ <code>fanin</code> instead of 0, keeping them in the candidate pool. Top-10 by this score, ties broken by <code>path</code> ascending.</td><td>(a) Laplace smoothed (chosen); (b) zero-product exclusion (the v1 behaviour, drops adapters); (c) sort by fanin alone (regresses on god-modules).</td><td>Preserves discovery: a 5-LOC adapter with <code>fanin: 1, public_symbols: 0</code> is a textbook DEEP_LEAKY candidate. Smoothing keeps it visible. Surfaced as Review-loop finding; updates FR-44.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="personas-journeys">5. User Personas &amp; Journeys</h2>
+
+<h3 id="primary-persona">5.1 Primary persona — Tech lead auditing a backend</h3>
+
+<p>Senior engineer / tech lead running <code>/architecture audit .</code> on a real repo before a refactor, during onboarding, or as a periodic check. Concrete example: maintainer of <code>book-companion</code> (~900 LOC Python backend service files). Needs (a) noise gone, (b) prioritized action list, (c) a shareable artifact.</p>
+
+<h3 id="journey-quick-audit">5.2 Journey — Quick local audit on a Typer-heavy backend</h3>
+
+<ol>
+  <li>Developer runs <code>/architecture audit backend/</code> at the repo root.</li>
+  <li>Phase 3 scan detects 1 stack (python via <code>pyproject.toml</code>); idiom detector finds Typer imports + walks AST to compute <code>exempt_ranges[]</code> per file (function-scoped: <code>@app.command</code>-decorated bodies only).</li>
+  <li>Phase 4 evaluators run L1 grep checks + L2 ruff (PY001–PY008) + new PY009 cycle-py + U011 dup-signature.</li>
+  <li>Phase 4.5 — <code>--deep</code> absent — skipped.</li>
+  <li>Phase 5 reconciles idiomatic exemptions; computes <code>module_metrics[]</code>; emits <code>godmodule_candidates[]</code> (top-10) — for the appendix.</li>
+  <li>Phase 6 emits HTML+MD+JSON triplet to <code>docs/pmos/architecture/2026-05-14_backend.{html,md,json}</code>. Stderr: <code>Wrote docs/pmos/architecture/2026-05-14_backend.html: 4 Must Fix, 31 Should Fix, 85 Won't Fix in 47 files</code>.</li>
+  <li>Developer opens the HTML, reads the Must Fix section, opens the top file, makes the fix.</li>
+</ol>
+
+<h3 id="journey-monorepo">5.3 Journey — Monorepo audit</h3>
+
+<ol>
+  <li>Developer runs <code>/architecture audit .</code> at the monorepo root (no stack markers at root).</li>
+  <li>Phase 1 depth-2 walk detects <code>backend/pyproject.toml</code> + <code>frontend/package.json</code>; populates <code>monorepo_detected[]</code>.</li>
+  <li>Phase 2 emits stderr warning: <code>No stack markers at scan root; found backend/pyproject.toml, frontend/package.json. Re-run with --monorepo to fan out, or audit each stack directly.</code> Exit 0 with empty findings.</li>
+  <li>Developer re-runs with <code>/architecture audit . --monorepo</code>; orchestrator iterates each detected stack; emits per-stack triplet (<code>2026-05-14_backend.{html,md,json}</code>, <code>2026-05-14_frontend.{html,md,json}</code>) + a top-level <code>2026-05-14_index.{html,json}</code>. Index HTML links each per-stack HTML; index JSON carries <code>stacks: [{name, json_path, html_path}]</code>.</li>
+</ol>
+
+<h3 id="journey-ci">5.4 Journey — CI delta mode</h3>
+
+<ol>
+  <li>CI runs <code>/architecture audit . --since origin/main --baseline docs/pmos/architecture/2026-05-12_root.json</code> on a PR branch.</li>
+  <li>Phase 3 scan filters to <code>git diff --name-only origin/main...HEAD</code> intersected with normal file-walk results.</li>
+  <li>Phase 6 loads baseline JSON; diffs against current findings via <code>(rule_id, file, line)</code> tuple identity; emits <code>diff{}</code> block (<code>new[]</code>, <code>dropped[]</code>, <code>unchanged[]</code> counts + samples).</li>
+  <li>Stderr: <code>Wrote docs/pmos/architecture/2026-05-14_root.html: 3 Must Fix (new), 0 Should Fix (new), 0 Won't Fix (new); 0 dropped; 583 unchanged on base.</code></li>
+  <li>CI step parses the JSON sidecar's <code>diff.new[]</code>, fails the PR if any entry has <code>disposition: must_fix</code>.</li>
+</ol>
+
+<h3 id="journey-deep">5.5 Journey — Deepening pass on legacy code</h3>
+
+<ol>
+  <li>Tech lead runs <code>/architecture audit . --deep</code> before a major refactor.</li>
+  <li>Mechanical pass (Phases 1–4) completes; Phase 5 produces <code>godmodule_candidates[]</code> → <code>seed_hint[]</code> (top-10).</li>
+  <li><strong>Phase 4.5 — Deepening pass</strong>:
+    <ol>
+      <li><strong>Runtime probe</strong>: attempt a no-op subagent dispatch + <code>Read</code> probe. On failure → set <code>deep_pass.skipped_reason: "no_subagent_tool_use"</code>; jump to Phase 5.</li>
+      <li><strong>Payload build</strong> (D15): assemble <code>module_metadata[]</code> for every Python module (<code>path</code>, <code>fanin</code>, <code>fanout</code>, <code>public_symbols</code>, <code>LOC</code>). Soft-warn to stderr at &gt;1,000 modules; hard error at &gt;5,000.</li>
+      <li><strong>Subagent dispatch</strong>: one blocking Task subagent with system prompt = vocab cheatsheet (<code>reference/deepening-vocabulary.md</code> body) + payload (<code>module_metadata[]</code> + <code>seed_hint[]</code>) + the verbatim return-shape template. Subagent has Read + Grep tool access. Per-call timeout 600s; no retry (LLM non-determinism makes retry less valuable; failure → fall back to mechanical).</li>
+      <li><strong>Validation</strong> (D11): for each returned candidate, assert (a) <code>module</code> resolves to a real file; (b) every <code>cross_module_patterns[].evidence</code> verbatim-substring-greps inside the named file; (c) classification ∈ <code>{deep, shallow, leaky}</code>. Any miss → drop the candidate and emit a stderr warning naming the violation. If &gt;50% of candidates fail validation → <code>deep_pass.skipped_reason: "validation_failed"</code>; preserve mechanical findings.</li>
+      <li><strong>Promotion</strong>: <code>leaky</code> → finding with <code>rule_id: DEEP_LEAKY</code>, <code>disposition: must_fix</code>; <code>shallow</code> → <code>rule_id: DEEP_SHALLOW</code>, <code>disposition: should_fix</code>; <code>deep</code> → no finding emitted (the absence of a problem).</li>
+      <li><strong>Reconciliation</strong>: for each <code>deep, deletion_test.outcome: reappears</code> classification, scan existing findings for size-class entries (U001/U002/PY005/PY006) on that file; demote each to <code>disposition: wont_fix</code> with <code>deep_pass_cleared: true</code>. Other rule classes unaffected.</li>
+    </ol>
+  </li>
+  <li>Phase 6 emits HTML; Must Fix section leads with <code>DEEP_LEAKY</code> entries (rationale + proposed_reshape paragraphs); Won't Fix &gt; "Cleared by deep pass" sub-section preserves the demoted size-class rows.</li>
+</ol>
+
+<h3 id="error-journeys">5.6 Error / edge journeys</h3>
+
+<ul>
+  <li><strong>No subagent on <code>--deep</code></strong>: <code>deep_pass.skipped_reason: "no_subagent_tool_use"</code>; mechanical run completes; exit 0.</li>
+  <li><strong>Subagent validation fails (&gt;50%)</strong>: <code>deep_pass.skipped_reason: "validation_failed"</code> + detail; mechanical preserved; exit 0.</li>
+  <li><strong><code>--scaffold-l3</code> with existing file</strong>: stderr <code>refusing to overwrite existing &lt;path&gt;</code>; exit 64.</li>
+  <li><strong>Schema-v1 baseline</strong>: parse-error with <code>baseline file uses legacy schema_version 1; v1 used `severity`, not `disposition`. Regenerate.</code> Exit 64.</li>
+  <li><strong>L3 with legacy <code>severity:</code></strong>: parse-error at Phase 1: <code>principles.yaml uses legacy 'severity:' key; rename to 'disposition:' (block→must_fix, warn→should_fix, info→wont_fix).</code> Exit 64.</li>
+  <li><strong>Scan root not a git repo</strong>: <code>risk_score.churn = 0</code>; <code>--since</code> / <code>--baseline</code> → exit 64 if either passed with <code>scan root is not a git repo; --since/--baseline unavailable</code>.</li>
+  <li><strong><code>--baseline index.json</code> without <code>--monorepo</code></strong>: stderr <code>index baseline requires --monorepo on current run; aborting</code>; exit 64.</li>
+  <li><strong>Deep-pass module count &gt;5,000</strong>: stderr <code>--deep payload exceeds 5,000-module cap; audit a sub-tree or omit --deep</code>; exit 64.</li>
+</ul>
+
+<h2 id="system-design">6. System Design</h2>
+
+<h3 id="architecture-overview">6.1 Architecture Overview</h3>
+
+<pre>
+                  ┌──────────────────────────────────────────────────┐
+                  │  /architecture audit &lt;path&gt; [--flags]            │
+                  └────────────────────────┬─────────────────────────┘
+                                           │
+                  ┌────────────────────────▼─────────────────────────┐
+                  │ SKILL.md orchestrator (Bash → tools/run-audit.sh)│
+                  └────────────────────────┬─────────────────────────┘
+                                           │
+       ┌───────────┬────────┬──────────────┼──────────┬─────────────┬──────────────┐
+       ▼           ▼        ▼              ▼          ▼             ▼              ▼
+  Phase 0      Phase 1    Phase 2     Phase 3     Phase 4       Phase 4.5      Phase 5
+  prereqs    resolve+    load 3-tier  scan +      delegate to    DEEP-PASS     reconcile
+  (jq, py3,  monorepo    (L1+L2+L3,   idiom-      grep / ruff /  (subagent     exemptions
+   ruff?,    detect      schema v2)   detect      depcruise /    + Read/Grep)  + module-
+   depcr?)   (depth-2)                (AST       cycle-py /     (opt-in,      metrics
+                                      walk)      U011-AST       --deep)       + risk
+                                                                              + cycles
+                                                                              + reconcile
+                                                                              size-class
+                                                                              demotion
+                                           │
+                                           ▼
+                              ┌─────────────────────────────┐
+                              │ Phase 6 — emit HTML+MD+JSON │
+                              │ triplet via               │
+                              │ _shared/html-authoring/   │
+                              │ substrate                 │
+                              └──────────────┬──────────────┘
+                                             │
+                                             ▼
+              {docs_path}/architecture/{YYYY-MM-DD}_&lt;slug&gt;.{html,md,json}
+                                  +
+              (monorepo only) {date}_index.{html,json}
+</pre>
+
+<p><strong>Trust boundaries</strong>: the orchestrator (run-audit.sh) is fully local; no network. <code>cycle-py.py</code> reads source via <code>ast.parse</code>, never <code>exec</code>. The subagent in Phase 4.5 is the only non-deterministic component; its output is validated structurally before promotion. No persistent state across runs except the JSON sidecar (which the next run consumes via <code>--baseline</code>).</p>
+
+<h3 id="sequence-diagram-deep-pass">6.2 Sequence diagram — <code>--deep</code> pass</h3>
+
+<pre>
+User                run-audit.sh           Subagent          Filesystem
+ │ /architecture        │                     │                  │
+ │ audit . --deep       │                     │                  │
+ │─────────────────────▶│                     │                  │
+ │                      │ Phases 0–4 run      │                  │
+ │                      │ mechanically        │                  │
+ │                      │─────────────────────│─────────────────▶│ (read source files)
+ │                      │◀────────────────────│──────────────────│
+ │                      │                     │                  │
+ │                      │ build module_       │                  │
+ │                      │ metadata[] +        │                  │
+ │                      │ seed_hint[]         │                  │
+ │                      │                     │                  │
+ │                      │ runtime probe       │                  │
+ │                      │────────────────────▶│                  │
+ │                      │◀──── ok ────────────│                  │
+ │                      │                     │                  │
+ │                      │ dispatch w/         │                  │
+ │                      │ vocab + payload +   │                  │
+ │                      │ return-shape        │                  │
+ │                      │────────────────────▶│                  │
+ │                      │                     │ Read graph stats │
+ │                      │                     │ pick targets     │
+ │                      │                     │─────────────────▶│ (Read source)
+ │                      │                     │◀─────────────────│
+ │                      │                     │ classify         │
+ │                      │◀────── JSON ────────│                  │
+ │                      │ validate            │                  │
+ │                      │  (path resolves,    │                  │
+ │                      │   verbatim grep,    │                  │
+ │                      │   enum)             │                  │
+ │                      │                     │                  │
+ │                      │ promote leaky/      │                  │
+ │                      │ shallow to          │                  │
+ │                      │ findings[];         │                  │
+ │                      │ demote size-class   │                  │
+ │                      │ on deep+reappears   │                  │
+ │                      │                     │                  │
+ │                      │ Phase 6 emit        │                  │
+ │                      │ HTML+MD+JSON        │                  │
+ │                      │─────────────────────│─────────────────▶│ (write triplet)
+ │◀── stderr summary ───│                     │                  │
+</pre>
+
+<h3 id="sequence-diagram-error-deep">6.3 Sequence diagram — <code>--deep</code> validation failure path</h3>
+
+<pre>
+run-audit.sh        Subagent
+   │ dispatch          │
+   │──────────────────▶│
+   │◀──── JSON ────────│
+   │ validate          │
+   │  ┌─ path miss     │
+   │  ├─ quote miss    │  → drop candidate; stderr warn
+   │  └─ enum miss     │
+   │                   │
+   │ count failures    │
+   │  &gt;50% ?           │
+   │      │            │
+   │      ▼            │
+   │ set deep_pass.    │
+   │ skipped_reason =  │
+   │ "validation_      │
+   │ failed"           │
+   │                   │
+   │ preserve          │
+   │ mechanical        │
+   │ findings;         │
+   │ Phase 6 emits     │
+   │ HTML showing      │
+   │ skipped_reason    │
+   │ in Run Metadata   │
+</pre>
+
+<h3 id="sequence-diagram-monorepo">6.4 Sequence diagram — Monorepo fan-out</h3>
+
+<pre>
+User                run-audit.sh         (per-stack invocation)        Filesystem
+ │ audit . --monorepo  │                       │                          │
+ │────────────────────▶│ Phase 1 depth-2 walk: │                          │
+ │                     │  ["backend", "frontend"]                         │
+ │                     │ for stack in detected:│                          │
+ │                     │   spawn child invoke  │                          │
+ │                     │ ──────────────────────▶│ Phases 0–6 (subdir)     │
+ │                     │                       │─────────────────────────▶│ write triplet
+ │                     │ ◀─────────────────────│                          │
+ │                     │ collect per-stack     │                          │
+ │                     │ summary               │                          │
+ │                     │ build index.json +    │                          │
+ │                     │ index.html            │                          │
+ │                     │ ──────────────────────│─────────────────────────▶│ write index pair
+ │◀── stderr summary ──│                       │                          │
+</pre>
+
+<h2 id="functional-requirements">7. Functional Requirements</h2>
+
+<h3 id="fr-skill-patterns">7.1 Skill-patterns conformance (§A–§F)</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-01</td><td>SKILL.md frontmatter MUST carry: <code>name: architecture</code>, <code>description:</code> rewritten per §B below, <code>user-invocable: true</code>, <code>argument-hint:</code> enumerating every flag (<code>audit [path]</code>, <code>--label &lt;slug&gt;</code>, <code>--non-interactive</code>, <code>--deep</code>, <code>--include-info-comments</code>, <code>--monorepo</code>, <code>--since &lt;ref&gt;</code>, <code>--baseline &lt;path&gt;</code>, <code>--scaffold-l3</code>, <code>--sort risk</code>), <code>target: generic</code>, <code>allowed-tools:</code> retained. The flag <code>--no-adr</code> MUST NOT appear.</td></tr>
+    <tr><td class="fr-id">FR-02</td><td>SKILL.md <code>description</code> MUST carry ≥5 distinct user-spoken trigger phrases: "audit my codebase against principles", "run an architecture review", "check for circular imports", "find shallow modules", "do a deep architectural audit", "scaffold an L3 config", "/architecture", "lint my repo against universal rules". The phrase "promote ≤5 block findings to Nygard ADRs" MUST NOT appear.</td></tr>
+    <tr><td class="fr-id">FR-03</td><td>SKILL.md MUST document the deep-pass at a new <strong>Phase 4.5</strong>, inserted between current Phase 4 (evaluate-rules) and Phase 5 (reconcile-exemptions). Existing Phase numbering MUST be preserved (no renumber).</td></tr>
+    <tr><td class="fr-id">FR-04</td><td>SKILL.md's current Phase 5 ADR-promotion section MUST be removed. SKILL.md's current Phase 6 (emit JSON to stdout) MUST be rewritten to emit the HTML+MD+JSON triplet via the <code>_shared/html-authoring/</code> substrate.</td></tr>
+    <tr><td class="fr-id">FR-05</td><td>SKILL.md's Anti-Patterns section MUST gain entries for: (a) double-reporting prevention (size-class demotion only); (b) subagent validation enforcement; (c) monorepo silent-skip prevention; (d) function-scoped-not-file-level idiom exemption; (e) no-stdout-JSON.</td></tr>
+    <tr><td class="fr-id">FR-06</td><td>A new reference file <code>plugins/pmos-toolkit/skills/architecture/reference/deepening-vocabulary.md</code> MUST exist, carrying the deletion-test / module / interface / implementation / depth / seam / adapter / leverage / locality vocabulary, with attribution to Matt Pocock's <code>/improve-codebase-architecture</code> in the header (link in source comment).</td></tr>
+    <tr><td class="fr-id">FR-07</td><td>A new tool <code>plugins/pmos-toolkit/skills/architecture/tools/cycle-py.py</code> MUST exist, implementing Tarjan SCC over Python module imports (~50 LOC). Exits 0 on success; exits 64 on usage error. Output is a JSON list of cycles, one cycle per inner list, ready to merge into <code>cycles[]</code> in the report.</td></tr>
+    <tr><td class="fr-id">FR-08</td><td><code>tools/check-determinism.sh</code> MUST be deleted; the <code>tests/fixtures/determinism/</code> fixture directory MUST be deleted.</td></tr>
+    <tr><td class="fr-id">FR-09</td><td><code>tools/check-citations.sh</code> and <code>tools/check-gap-map.sh</code> MUST continue to pass against the revised <code>principles.yaml</code> + <code>l1-rationales.md</code> + <code>gap-map-rationale.md</code> (regression-free).</td></tr>
+    <tr><td class="fr-id">FR-10</td><td>Existing 20 test fixtures MUST continue to pass with the noted edits: rename <code>severity</code> → <code>disposition</code> in <code>.assert</code> files and inline L3 YAMLs; remove the <code>adr-*</code> fixture set (5 directories); remove <code>determinism/</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-deep-pass">7.2 F1 — Deepening pass (Layer 4)</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-20</td><td>Phase 4.5 MUST run only when <code>--deep</code> is passed; absence → Phase 4.5 is a no-op; mechanical run completes normally.</td></tr>
+    <tr><td class="fr-id">FR-21</td><td>Phase 4.5 MUST begin with a <strong>runtime probe</strong>: attempt a no-op Task subagent dispatch with Read tool access. On any error (exit non-zero, exception, tool-not-found) → set <code>deep_pass.skipped_reason: "no_subagent_tool_use"</code>; SKIP the rest of Phase 4.5; proceed to Phase 5.</td></tr>
+    <tr><td class="fr-id">FR-22</td><td>Phase 4.5 MUST build a <code>module_metadata[]</code> payload: one entry per Python module under scan root, fields <code>{path, fanin, fanout, public_symbols, LOC}</code>. Fanin = count of inbound imports across the repo. Fanout = count of outbound imports. Public_symbols = count of module-level <code>def</code>/<code>class</code> not starting with <code>_</code>.</td></tr>
+    <tr><td class="fr-id">FR-23</td><td>If module count &gt;1,000 → emit stderr warning <code>--deep: module count N exceeds soft-warn threshold 1,000 (payload ~K KB); proceeding</code>. If module count &gt;5,000 → emit stderr <code>--deep payload exceeds 5,000-module cap; audit a sub-tree or omit --deep</code>; exit 64. Bypass: <code>ARCH_DEEP_NO_CAP=1</code> environment variable disables both thresholds.</td></tr>
+    <tr><td class="fr-id">FR-24</td><td>Phase 4.5 MUST dispatch <strong>one</strong> blocking Task subagent with: system prompt = body of <code>reference/deepening-vocabulary.md</code> + return-shape template (verbatim from §6.2 of <code>01_requirements.html</code>); user prompt = <code>module_metadata[]</code> JSON + <code>seed_hint[]</code> (top-10 by fanin × public_symbols) + the instruction "Start with seed_hint; expand to other modules in the graph if cross-module patterns lead you there." Subagent MUST receive Read + Grep tool access (Read calls denylisted per NFR-09). Timeout 600s. No retry on failure (D21).</td></tr>
+    <tr><td class="fr-id">FR-25</td><td>Orchestrator MUST validate each returned candidate: (a) <code>module</code> path resolves to a real file in the repo; (b) every <code>cross_module_patterns[].evidence</code> is verbatim-substring-grep-able inside the file named by <code>module</code>; (c) <code>classification</code> ∈ <code>{deep, shallow, leaky}</code>; (d) <code>deletion_test.outcome</code> ∈ <code>{vanishes, reappears}</code>. Any miss → drop the candidate; emit stderr warning naming the specific violation + module path.</td></tr>
+    <tr><td class="fr-id">FR-26</td><td>If <strong>any</strong> returned candidate fails validation → set <code>deep_pass.skipped_reason: "validation_failed"</code> with detail naming the first failure; clear the promotion buffer; preserve mechanical findings; proceed to Phase 5. Faithful to requirements D11 "hard-fail on any miss" — single invalid candidate nukes the deep-pass output for this run; the user re-runs <code>--deep</code> to retry.</td></tr>
+    <tr><td class="fr-id">FR-27</td><td>For each validated candidate: <code>classification: leaky</code> → emit finding with <code>rule_id: DEEP_LEAKY</code>, <code>disposition: must_fix</code>, <code>file: candidate.module</code>, <code>line: 1</code>, <code>message: candidate.rationale + "\n\nProposed reshape: " + candidate.proposed_reshape</code>. <code>classification: shallow</code> → same shape with <code>rule_id: DEEP_SHALLOW</code> and <code>disposition: should_fix</code>. <code>classification: deep</code> → no finding emitted.</td></tr>
+    <tr><td class="fr-id">FR-28</td><td>For each <code>classification: deep, deletion_test.outcome: reappears</code> candidate, scan existing findings for rule_ids ∈ <code>{U001, U002, PY005, PY006}</code> on the same file path; demote each to <code>disposition: wont_fix</code> + add field <code>deep_pass_cleared: true</code>. Other rule classes are unaffected.</td></tr>
+    <tr><td class="fr-id">FR-29</td><td>Raw subagent output MUST be preserved verbatim under <code>deep_pass.candidates[]</code> in the JSON sidecar (after validation; invalid candidates dropped, not preserved). <code>deep_pass.dispatched_at</code> is ISO-8601 UTC. <code>deep_pass.seed_hint[]</code> echoes the input. <code>deep_pass.skipped_reason</code> ∈ <code>{null, "no_subagent_tool_use", "dispatch_failed", "validation_failed", "no_candidates"}</code>. <code>"dispatch_failed"</code> covers mid-dispatch errors (network drop, subagent process killed, 600s timeout exceeded) — distinguishes them from probe-time failure (<code>no_subagent_tool_use</code>) and post-return content failure (<code>validation_failed</code>).</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-signal-hygiene">7.3 F2, F3, F4, F7 — Signal hygiene (Layer 1)</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-30</td><td>Phase 3 idiom detector MUST AST-walk every Python file's <code>Import</code> + <code>ImportFrom</code> nodes to build a <em>name-resolution map</em>: <code>local_name → fully_qualified_module</code>. <code>import typer</code> maps <code>typer → typer</code>; <code>import typer as t</code> maps <code>t → typer</code>; <code>from click import command as cmd</code> maps <code>cmd → click.command</code>. Files whose name-resolution map contains a binding to any of <code>{typer, click, fire, argparse}</code> (root module) trigger the FR-31 decorator walk.</td></tr>
+    <tr><td class="fr-id">FR-31</td><td>The AST walk MUST collect line ranges (<code>start_line</code>, <code>end_line</code> inclusive) of any function whose <code>decorator_list</code> contains a decorator whose root identifier resolves (via the FR-30 name-resolution map) to one of: <code>typer</code>, <code>click</code>, <code>fire</code>, <code>argparse</code>. Specifically:<br>
+      &bull; <code>@app.command</code> where <code>app</code> is the bound name of a <code>typer.Typer()</code> instance, OR<br>
+      &bull; <code>@click.command</code>, <code>@click.group</code>, OR aliased equivalents per FR-30 (e.g., <code>@c.command</code> when <code>import click as c</code>),<br>
+      &bull; <code>@cli.command</code>, <code>@cli.group</code> when <code>cli</code> binds to a Click/Typer group,<br>
+      &bull; <code>@fire.Fire</code> calls or <code>fire.Fire(target)</code> with the target function passed in,<br>
+      &bull; functions whose body calls <code>argparse.ArgumentParser()</code> at module-call level (heuristic for argparse-driven entry points).<br>
+      Detection MUST handle both bare (<code>@click.command</code>) and dotted/aliased (<code>@c.command</code>) forms via the name-resolution map. Detection MUST NOT match decorators whose root is unbound or resolves to a different module (false-positive guard).</td></tr>
+    <tr><td class="fr-id">FR-32</td><td>Phase 4 U004 evaluator MUST suppress any <code>print(</code> match falling inside an <code>exempt_ranges[]</code> entry on the same file. Helper-function prints (outside ranges) are NOT suppressed. Suppressed finding rows are recorded under <code>exemptions.idiomatic[]</code> with <code>{file, exempt_ranges, framework}</code>, NOT silently dropped.</td></tr>
+    <tr><td class="fr-id">FR-33</td><td>U007 (missing top-of-file purpose comment) is disposition <code>wont_fix</code> by default in plugin-shipped <code>principles.yaml</code>. The flag <code>--include-info-comments</code> OR L3 override <code>rules.U007.disposition: should_fix</code> enables it. When enabled, U007 fires only on files with: LOC &gt; 100 AND no module-level docstring of ≥40 chars (after stripping whitespace + quotes) AND filename ≠ <code>__init__.py</code>.</td></tr>
+    <tr><td class="fr-id">FR-34</td><td>Phase 1 MUST run a depth-2 stack-marker walk: if scan root has no stack markers (no <code>package.json</code>+<code>tsconfig.json</code> pair AND no <code>pyproject.toml</code>/<code>setup.py</code>/<code>requirements*.txt</code>), walk each direct child directory and check for the same markers. Detected stacks populate <code>monorepo_detected[]</code> with <code>[{name: &lt;dir&gt;, stack: ts|py, manifest_path: &lt;rel-path&gt;}]</code>.</td></tr>
+    <tr><td class="fr-id">FR-35</td><td>If <code>monorepo_detected[]</code> is non-empty AND <code>--monorepo</code> is absent → emit stderr warning <code>No stack markers at scan root; found &lt;manifest paths comma-sep&gt;. Re-run with --monorepo to fan out, or audit each stack directly.</code> Exit 0 with empty <code>findings[]</code>.</td></tr>
+    <tr><td class="fr-id">FR-36</td><td>If <code>--monorepo</code> is passed AND <code>monorepo_detected[]</code> is non-empty → for each detected stack, recursively invoke the audit harness with <code>scan_root = stack.manifest_path's parent dir</code>, output prefix <code>{date}_&lt;stack.name&gt;</code>; write per-stack triplet to <code>{docs_path}/architecture/{date}_&lt;stack.name&gt;.{html,md,json}</code>. <strong>The child invocation is a normal single-stack run: <code>--monorepo</code> is OFF, the depth-2 walk is skipped, and child <code>monorepo_detected[]</code> is empty by construction.</strong> The parent orchestrator iterates the parent's <code>monorepo_detected[]</code> only; no recursion possible. Then write a top-level <code>{date}_index.{html,json}</code> with <code>{stacks: [{name, json_path, html_path}], summary: {total_must_fix, total_should_fix, total_wont_fix}}</code>.</td></tr>
+    <tr><td class="fr-id">FR-37</td><td>If <code>--monorepo</code> is passed AND <code>monorepo_detected[]</code> is empty (no depth-2 stacks) AND scan root has its own stack markers → behave as a normal single-stack run (no fan-out, no index).</td></tr>
+    <tr><td class="fr-id">FR-38</td><td>4 new ruff rules MUST be added to plugin-shipped <code>principles.yaml</code>: PY005 = C901 (complexity), PY006 = PLR0911/PLR0912/PLR0913/PLR0915 (branches/args/statements), PY007 = PLR2004 (magic values), PY008 = ARG001/ARG002 (unused arguments). Each carries <code>delegate_to: ruff</code>, <code>disposition: should_fix</code>, <code>source:</code> citation, <code>why:</code> rationale.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-prioritization">7.4 F5, F6, F8, F9 — Prioritization + cross-module (Layer 2)</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-40</td><td>Every finding emitted MUST carry <code>disposition ∈ {must_fix, should_fix, wont_fix}</code> + <code>risk_score</code> (integer 1–1100). The legacy field <code>severity</code> MUST NOT appear in any emitted finding or in <code>principles.yaml</code>.</td></tr>
+    <tr><td class="fr-id">FR-41</td><td><code>risk_score = disposition_weight + churn + coupling</code>, where: disposition_weight = 1000 (must_fix), 100 (should_fix), 1 (wont_fix); churn = min(50, commit_count_in_window); commit_count_in_window from <code>git log --since=&lt;N&gt;.days &lt;file&gt;</code> with N defaulting to 90 (overridable per L3 <code>risk_score.churn_window_days</code>); coupling = min(50, 5 × inbound_imports). Combined churn+coupling MUST be ≤100 (sum cap).</td></tr>
+    <tr><td class="fr-id">FR-42</td><td>HTML and JSON output MUST order findings within each disposition section by <code>risk_score</code> descending; ties broken by <code>file</code> ascending then <code>line</code> ascending. The CLI flag <code>--sort risk</code> is the default sort (no-op flag; preserved for explicit invocation).</td></tr>
+    <tr><td class="fr-id">FR-43</td><td>A new Phase 5 substep MUST run a Python AST pass that, per module under scan root, computes <code>{path, fanin, fanout, public_symbols, LOC}</code> and emits <code>module_metrics[]</code> in the JSON sidecar.</td></tr>
+    <tr><td class="fr-id">FR-44</td><td><code>godmodule_candidates[]</code> MUST contain the top-10 modules sorted by <code>score = (fanin + 1) × (public_symbols + 1) − 1</code> descending (D22 Laplace smoothing); ties broken by <code>path</code> ascending. No floor — if there are fewer than 10 modules, all are listed. Small adapters with <code>public_symbols: 0</code> remain in the candidate pool with <code>score ≥ fanin</code>.</td></tr>
+    <tr><td class="fr-id">FR-45</td><td>New rule <strong>U011</strong> (duplicate function signature) MUST be added: <code>delegate_to: grep</code> (special-cased AST in harness), <code>disposition: should_fix</code>, fires when the same canonical function signature (<code>def name(arg1: T1, arg2: T2, ...) -&gt; R</code> normalized: param-name AST-stripped, type-annotation string-compared) appears in 2+ Python files. Each occurrence emits one finding; <code>cross_refs: [&lt;other-file:line&gt;]</code> field carries the peer occurrences.</td></tr>
+    <tr><td class="fr-id">FR-46</td><td>New rule <strong>PY009</strong> (Python import cycle) MUST be added: <code>delegate_to: cycle-py</code>, <code>disposition: should_fix</code>, fires once per cycle found by <code>tools/cycle-py.py</code>. The finding <code>file</code> is one canonical entry-point of the cycle (lexicographically first); <code>message</code> includes the cycle path as <code>A -&gt; B -&gt; C -&gt; A</code>; <code>cross_refs</code> lists every file in the cycle.</td></tr>
+    <tr><td class="fr-id">FR-47</td><td><code>cycles[]</code> in the JSON sidecar MUST list every detected cycle as <code>[{members: [&lt;file1&gt;, &lt;file2&gt;, ...], cycle_length: N}]</code>; empty array when no cycles.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-workflow">7.5 F10, F11 — Workflow (Layer 3)</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-50</td><td><code>--since &lt;ref&gt;</code> MUST filter <code>findings[]</code> in Phase 6 to those whose <code>file</code> appears in <code>git diff --name-only &lt;ref&gt;...HEAD</code>. If scan root is not a git repo → exit 64 with stderr <code>scan root is not a git repo; --since unavailable</code>.</td></tr>
+    <tr><td class="fr-id">FR-51</td><td><code>--baseline &lt;path&gt;</code> MUST load the named JSON file in Phase 6 and emit a <code>diff{}</code> block with three keyed arrays: <code>new[]</code> (findings with <code>(rule_id, file, line)</code> not present in baseline), <code>dropped[]</code> (findings in baseline not in current), <code>unchanged[]</code> (findings in both). Tuple identity is <code>(rule_id, file, line)</code>; <code>risk_score</code> + <code>disposition</code> + <code>message</code> are NOT part of identity. Baseline schema_version != 2 → exit 64 with <code>baseline file uses legacy schema_version &lt;N&gt;; regenerate.</code></td></tr>
+    <tr><td class="fr-id">FR-52</td><td>When <code>--since</code> AND <code>--baseline</code> are both passed: <code>findings[]</code> is first filtered by <code>--since</code>, then the <code>diff{}</code> block is computed against the filtered set (AND-intersection). Both must independently succeed; either error → exit 64.</td></tr>
+    <tr><td class="fr-id">FR-53</td><td><code>--baseline</code> accepts either a single per-stack JSON or a monorepo <code>index.json</code>. If <code>index.json</code> is given AND current run is NOT <code>--monorepo</code> → exit 64 with <code>index baseline requires --monorepo on current run; aborting</code>. When both are <code>--monorepo</code>: pair stacks by name; emit per-stack <code>diff{}</code> in each per-stack JSON sidecar.</td></tr>
+    <tr><td class="fr-id">FR-54</td><td><code>--scaffold-l3</code> MUST refuse to overwrite an existing <code>{scan_root}/.pmos/architecture/principles.yaml</code> — emit stderr <code>refusing to overwrite existing {path}</code>; exit 64. Otherwise, write a YAML file with <code>schema_version: 2</code>, <code>rules: []</code>, and <code>exemptions.idiomatic: []</code> populated from the current run's detected idioms (one entry per <code>(framework, file)</code> with the file's <code>exempt_ranges</code> inlined). Format mirrors the plugin-shipped file's commented shape.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-output">7.6 F13 — Output triplet</h3>
+
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td class="fr-id">FR-60</td><td>Every successful run MUST write three files to <code>{docs_path}/architecture/{YYYY-MM-DD}_&lt;slug&gt;.{html,md,json}</code>. <code>{docs_path}</code> resolves via <code>.pmos/settings.yaml</code> (default <code>docs/pmos/</code>). <code>&lt;slug&gt;</code> = basename of scan root (e.g., <code>audit .</code> → <code>root</code>; <code>audit backend/</code> → <code>backend</code>); overridable with <code>--label &lt;slug&gt;</code>. Same-day collision: append <code>-2</code>, <code>-3</code>, ... to <code>&lt;slug&gt;</code> (not to the date prefix) until unique.</td></tr>
+    <tr><td class="fr-id">FR-61</td><td>HTML MUST be rendered via the <code>_shared/html-authoring/</code> substrate: <code>template.html</code>, <code>style.css</code>, <code>viewer.js</code>. Assets MUST be copied to <code>{docs_path}/architecture/assets/</code> on first write (idempotent via <code>cp -n</code>). Asset references in HTML carry <code>?v=&lt;plugin-version&gt;</code> cache-bust. Every <code>&lt;h2&gt;</code> and <code>&lt;h3&gt;</code> carries a stable kebab-case <code>id</code> per <code>_shared/html-authoring/conventions.md §3</code>. A companion <code>{date}_&lt;slug&gt;.sections.json</code> MUST be emitted with <code>{ids: [...], sections: [...]}</code> per the substrate's <code>build_sections_json.js</code>.</td></tr>
+    <tr><td class="fr-id">FR-62</td><td>HTML body structure MUST be: <code>&lt;h2&gt;</code> sections in this order — Must Fix (N), Should Fix (N), Won't Fix (N) (wrapped in <code>&lt;details&gt;</code> collapsed-by-default; sub-headings: Cleared by deep pass / Idiomatic exemptions / L3 explicit exemptions), Architecture metrics (top-5 godmodule_candidates table + cycles list when non-empty), Run metadata (config, scan_root, generated_at, schema_version).</td></tr>
+    <tr><td class="fr-id">FR-63</td><td>MD sidecar MUST be generated by piping the freshly-written HTML through <code>bash node {docs_path}/architecture/assets/html-to-md.js {date}_&lt;slug&gt;.html &gt; {date}_&lt;slug&gt;.md</code>. The MD sidecar is read-only — never edited by the skill, never the source of truth.</td></tr>
+    <tr><td class="fr-id">FR-64</td><td>JSON sidecar MUST be the machine-readable canonical (consumed by <code>--baseline</code>). Atomic write via temp-then-rename. The HTML and JSON MUST be derived from the same in-memory finding set (no re-scan between them).</td></tr>
+    <tr><td class="fr-id">FR-65</td><td>Stderr MUST emit exactly one summary line at end of run: <code>Wrote {docs_path}/architecture/{date}_&lt;slug&gt;.html: N Must Fix, M Should Fix, K Won't Fix in T files</code>. In monorepo mode: one line per stack + a final <code>Index: {date}_index.html</code>. Errors and warnings continue to surface on stderr above this line.</td></tr>
+    <tr><td class="fr-id">FR-66</td><td>Stdout MUST be empty on every successful run. Shell pipelines requiring machine-readable output use the JSON sidecar; <code>jq</code> example paths MUST be documented in SKILL.md Phase 6.</td></tr>
+    <tr><td class="fr-id">FR-67</td><td>The flag <code>--no-adr</code> MUST be removed from the parser; passing it yields stderr <code>unknown flag --no-adr (ADR promotion removed in schema v2; see CHANGELOG)</code>; exit 64.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="nfrs">8. Non-Functional Requirements</h2>
+
+<table>
+  <thead><tr><th>ID</th><th>Category</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>NFR-01</td><td>Performance (mechanical)</td><td>A full mechanical audit (no <code>--deep</code>) on a 50k-LOC Python backend MUST complete in &lt;30s on a developer laptop (M-series Mac, 16 GB RAM). Module-metrics + cycle-py + U011 AST passes MUST individually complete in &lt;5s on the same input.</td></tr>
+    <tr><td>NFR-02</td><td>Performance (deep)</td><td><code>--deep</code> MUST complete in &lt;3 minutes wall-clock on the 50k-LOC reference target (1k modules, ~150 KB payload). Subagent timeout is 600s; orchestrator's total wall-clock budget is 900s.</td></tr>
+    <tr><td>NFR-03</td><td>Portability</td><td>Skill remains <code>target: generic</code>. Mechanical pass works on any platform with bash + Python 3 + jq. <code>--deep</code> degrades gracefully on platforms without subagent tool-use (runtime probe sets <code>skipped_reason</code>).</td></tr>
+    <tr><td>NFR-04</td><td>Atomicity</td><td>All three triplet files + the index pair (monorepo) MUST be written via temp-then-rename. Partial-write artifacts MUST never be observable on disk.</td></tr>
+    <tr><td>NFR-05</td><td>Offline-by-default</td><td>Mechanical pass MUST work offline. <code>--deep</code> requires network only via the subagent's LLM call; the orchestrator itself remains offline.</td></tr>
+    <tr><td>NFR-06</td><td>Reproducibility (best-effort)</td><td>Mechanical pass MUST be deterministic input-to-output (sorted findings, stable risk_score given stable git history). Deep pass is non-deterministic by design; users self-check via <code>--baseline</code> against a prior JSON sidecar. The previous byte-identical guarantee (NFR-02 in v1) is dropped.</td></tr>
+    <tr><td>NFR-07</td><td>Observability</td><td>Stderr MUST be the only run-progress channel. The single-line summary at end-of-run is the only on-success stdout-or-stderr emission (D17). Warnings and errors stream to stderr above the summary line.</td></tr>
+    <tr><td>NFR-08</td><td>Audit trail</td><td>Every dropped or demoted finding MUST be visible somewhere in the artifact: idiomatic exemptions under Won't Fix &gt; Idiomatic exemptions; deep-pass clearances under Won't Fix &gt; Cleared by deep pass; L3 explicit overrides under Won't Fix &gt; L3 explicit exemptions. No silent suppression.</td></tr>
+    <tr><td>NFR-09</td><td>Secret-file guard (Phase 4.5)</td><td>The Phase 4.5 subagent Read tool access MUST deny the following path patterns even if the subagent constructs them: <code>**/.env</code>, <code>**/.env.*</code>, <code>**/*.pem</code>, <code>**/*.key</code>, <code>**/credentials.json</code>, <code>**/credentials.yaml</code>, <code>**/.ssh/**</code>, <code>**/secrets/**</code>. Denied Read calls return a stub <code>"path matched secret-file denylist; not read"</code> string; the subagent receives no file content.<br><strong>Enforcement mechanism (defense-in-depth):</strong> (a) <em>Orchestrator-side path filter</em> — the Task subagent is dispatched through a Read-call wrapper in <code>tools/run-audit.sh</code> that intercepts each Read request from the subagent, glob-matches against the denylist, and returns the stub string for matches (the subagent never sees the bytes); (b) <em>Prompt-level instruction</em> — the subagent system prompt explicitly lists the denylist patterns with the instruction "do not attempt to Read these patterns; they will return a stub". Mechanism (a) is the binding contract; (b) is advisory. Where the harness platform does not expose mid-tool-call interception (the wrapper is impossible to implement), <code>--deep</code> degrades to <code>deep_pass.skipped_reason: "no_subagent_tool_use"</code> (NFR-03) and mechanical findings are preserved. The Phase 3 file-walker denylist already excludes these patterns from <code>module_metadata[]</code>; NFR-09 adds defense for paths the subagent could synthesise from imagination.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="api-contracts">9. API Contracts (CLI surface)</h2>
+
+<h3 id="cli-invocation">9.1 Invocation</h3>
+
+<pre>
+/architecture audit [path]
+    [--label &lt;slug&gt;]
+    [--non-interactive]
+    [--deep]
+    [--include-info-comments]
+    [--monorepo]
+    [--since &lt;ref&gt;]
+    [--baseline &lt;path&gt;]
+    [--scaffold-l3]
+    [--sort risk]
+</pre>
+
+<p><strong>Removed flags</strong>: <code>--no-adr</code> (D12).</p>
+
+<p><strong>Default <code>path</code></strong>: <code>.</code> (current directory). <strong>Default <code>--sort</code></strong>: <code>risk</code> (explicit flag retained for forward compatibility with future sort modes).</p>
+
+<h3 id="exit-codes">9.2 Exit codes</h3>
+
+<table>
+  <thead><tr><th>Code</th><th>Condition</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Successful run. Findings may exist; CI consumers check <code>diff.new[]</code> or finding counts via JSON.</td></tr>
+    <tr><td>64</td><td>Usage error: unknown flag, missing required arg, conflicting flags, scan root not a git repo when <code>--since</code>/<code>--baseline</code> passed, <code>--scaffold-l3</code> with existing file, schema-v1 baseline, legacy <code>severity:</code> in L3 YAML, deep-pass module count &gt;5,000 (without bypass env var).</td></tr>
+    <tr><td>65</td><td>Tool prereq missing: jq, python3 not on PATH.</td></tr>
+    <tr><td>74</td><td>I/O error: cannot write to <code>{docs_path}/architecture/</code>; permission denied.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="data-schemas">10. Data Schemas</h2>
+
+<h3 id="principles-yaml-schema">10.1 <code>principles.yaml</code> (v2, breaking)</h3>
+
+<pre>
+schema_version: 2
+rules:
+  - id: U001                       # rule identifier (string, unique)
+    tier: 1                        # 1 | 2 | 3
+    stack: null                    # null | "ts" | "py"
+    disposition: should_fix        # must_fix | should_fix | wont_fix  (was: severity)
+    delegate_to: grep              # grep | ruff | dependency-cruiser | cycle-py
+    check: "file_loc_gt(400)"      # check expression (delegate-specific)
+    source: "https://example/..."  # citation URL or local reference (mandatory)
+    message: "Oversized file"
+    why: "Files &gt; 400 LOC are hard to grok in a single pass."
+
+exemptions:
+  idiomatic: []                    # auto-populated by --scaffold-l3
+  explicit: []                     # user-authored, with file + range + reason
+
+risk_score:
+  churn_window_days: 90            # optional L3 override
+</pre>
+
+<p><strong>Breaking changes from v1</strong>: <code>severity:</code> → <code>disposition:</code> (value map: <code>block→must_fix</code>, <code>warn→should_fix</code>, <code>info→wont_fix</code>); L3 files with legacy keys parse-error at Phase 1.</p>
+
+<h3 id="json-sidecar-schema">10.2 JSON sidecar (v2)</h3>
+
+<pre>
+{
+  "schema_version": 2,
+  "config": {
+    "scan_root": "&lt;abs-path&gt;",
+    "flags": { "deep": false, "monorepo": false, "since": null, "baseline": null,
+               "include_info_comments": false, "scaffold_l3": false, "sort": "risk",
+               "label": null, "non_interactive": false },
+    "plugin_version": "&lt;semver&gt;",
+    "rules_loaded": { "l1_count": 11, "l2_ts_count": 4, "l2_py_count": 9, "l3_count": 0 }
+  },
+  "scanned": {
+    "files_total": 47,
+    "files_by_stack": { "py": 47, "ts": 0 },
+    "skipped_by_gitignore": 0,
+    "skipped_by_denylist": 3
+  },
+  "findings": [
+    {
+      "rule_id": "U001",
+      "file": "backend/summarizer_service.py",
+      "line": 1,
+      "disposition": "should_fix",
+      "risk_score": 188,
+      "message": "Oversized file (935 LOC &gt; 400)",
+      "cross_refs": [],            # optional, used by U011/PY009
+      "deep_pass_cleared": false   # optional, set by Phase 4.5 reconciliation
+    }
+  ],
+  "exemptions": {
+    "idiomatic": [
+      { "framework": "typer", "file": "backend/cli/main.py",
+        "exempt_ranges": [{"start": 10, "end": 25}, {"start": 30, "end": 42}] }
+    ],
+    "explicit": []
+  },
+  "module_metrics": [
+    { "path": "backend/services/summarizer.py", "fanin": 7, "fanout": 12,
+      "public_symbols": 5, "loc": 935 }
+  ],
+  "godmodule_candidates": [
+    { "path": "...", "fanin": 7, "public_symbols": 5, "score": 35 }
+  ],
+  "cycles": [
+    { "members": ["backend/a.py", "backend/b.py"], "cycle_length": 2 }
+  ],
+  "monorepo_detected": [
+    { "name": "backend", "stack": "py", "manifest_path": "backend/pyproject.toml" }
+  ],
+  "deep_pass": {
+    "dispatched_at": "2026-05-14T10:00:00Z" | null,
+    "seed_hint": ["&lt;path1&gt;", ...],
+    "candidates": [
+      { "module": "...", "classification": "leaky",
+        "rationale": "...", "deletion_test": { "outcome": "vanishes", "estimate": "..." },
+        "cross_module_patterns": [...], "proposed_reshape": "...",
+        "affected_files": [...] }
+    ],
+    "skipped_reason": null | "no_subagent_tool_use" | "validation_failed" | "no_candidates"
+  },
+  "tools_errored": [],
+  "tools_skipped": [],
+  "coverage_gaps": [],
+  "diff": {
+    "new": [], "dropped": [], "unchanged_count": 583
+  }
+}
+</pre>
+
+<p>Top-level keys present on every run (some may be empty arrays); <code>diff{}</code> only when <code>--baseline</code> was passed.</p>
+
+<h3 id="index-json-schema">10.3 Monorepo <code>index.json</code> (v2)</h3>
+
+<pre>
+{
+  "schema_version": 2,
+  "date": "2026-05-14",
+  "scan_root": "&lt;abs-path&gt;",
+  "stacks": [
+    { "name": "backend", "json_path": "2026-05-14_backend.json",
+      "html_path": "2026-05-14_backend.html",
+      "summary": { "must_fix": 4, "should_fix": 31, "wont_fix": 85, "files": 47 } }
+  ],
+  "summary": { "total_must_fix": 4, "total_should_fix": 31, "total_wont_fix": 85, "total_files": 47 }
+}
+</pre>
+
+<h2 id="frontend-design">11. Frontend Design — HTML report</h2>
+
+<h3 id="component-hierarchy">11.1 Component hierarchy (semantic)</h3>
+
+<pre>
+&lt;body&gt;
+  &lt;header data-pmos-role="toolbar"&gt; (substrate)
+  &lt;main&gt;
+    &lt;section id="must-fix"&gt;
+      &lt;h2&gt;Must Fix (N)&lt;/h2&gt;
+      &lt;table&gt; one row per finding (rule_id | file:line | risk_score | message) &lt;/table&gt;
+    &lt;/section&gt;
+    &lt;section id="should-fix"&gt; ... &lt;/section&gt;
+    &lt;section id="wont-fix"&gt;
+      &lt;h2&gt;Won't Fix (N)&lt;/h2&gt;
+      &lt;details&gt; collapsed by default
+        &lt;h3 id="cleared-by-deep-pass"&gt;Cleared by deep pass&lt;/h3&gt; &lt;table/&gt;
+        &lt;h3 id="idiomatic-exemptions"&gt;Idiomatic exemptions&lt;/h3&gt; &lt;table/&gt;
+        &lt;h3 id="l3-explicit-exemptions"&gt;L3 explicit exemptions&lt;/h3&gt; &lt;table/&gt;
+      &lt;/details&gt;
+    &lt;/section&gt;
+    &lt;section id="architecture-metrics"&gt;
+      &lt;h2&gt;Architecture metrics&lt;/h2&gt;
+      &lt;table&gt; top-5 godmodule_candidates (path | fanin | fanout | public_symbols | LOC) &lt;/table&gt;
+      &lt;details&gt; cycles &lt;ul/&gt; if non-empty &lt;/details&gt;
+    &lt;/section&gt;
+    &lt;section id="run-metadata"&gt;
+      &lt;h2&gt;Run metadata&lt;/h2&gt;
+      &lt;dl&gt; scan_root, generated_at, plugin_version, schema_version, deep_pass.skipped_reason &lt;/dl&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+  &lt;footer data-pmos-role="footer"&gt; (substrate)
+&lt;/body&gt;
+</pre>
+
+<h3 id="state-management">11.2 State &amp; interactions</h3>
+
+<ul>
+  <li><strong>Substrate-managed</strong>: copy-markdown button, copy-section-link button (no skill code needed; viewer.js handles).</li>
+  <li><strong>Won't Fix collapsing</strong>: native <code>&lt;details&gt;</code> element; no JS.</li>
+  <li><strong>Table sortability</strong>: out of scope for v1; tables emit pre-sorted by risk_score. Future enhancement.</li>
+  <li><strong>Responsive</strong>: substrate <code>style.css</code> handles mobile breakpoints. Tables degrade to scrollable on narrow viewports.</li>
+</ul>
+
+<h3 id="heading-ids">11.3 Heading IDs</h3>
+
+<p>Every <code>&lt;h2&gt;</code> and <code>&lt;h3&gt;</code> carries a stable kebab-case <code>id</code>. The canonical IDs in §11.1 above are reserved. Per-finding rows do NOT have IDs (cardinality unbounded; not stable).</p>
+
+<h2 id="edge-cases">12. Edge Cases</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>E1</td><td>Zero findings</td><td>Clean repo, no rules trigger</td><td>HTML still emits with empty Must/Should/Won't sections (each shows "(0)"). Stderr: <code>Wrote ...: 0 Must Fix, 0 Should Fix, 0 Won't Fix in N files</code>. JSON: <code>findings: []</code>. Exit 0.</td></tr>
+    <tr><td>E2</td><td>Zero god-module candidates</td><td>All modules below fanin × public_symbols threshold (0)</td><td><code>godmodule_candidates: []</code>; HTML appendix shows "(none)". <code>--deep</code> emits <code>deep_pass.skipped_reason: "no_candidates"</code> when <code>seed_hint</code> is empty — subagent NOT dispatched (would have no useful seed; preserves token budget).</td></tr>
+    <tr><td>E3</td><td>Same-day re-run slug collision</td><td>Re-run audit on same day, same scan root</td><td>Slug becomes <code>&lt;basename&gt;-2</code> on second run, <code>-3</code> on third, ... — see FR-60. Date prefix unchanged.</td></tr>
+    <tr><td>E4</td><td>Scan root not a git repo</td><td>No <code>.git/</code></td><td><code>risk_score</code> churn term = 0 (graceful). If <code>--since</code> OR <code>--baseline</code> passed → exit 64 (FR-50).</td></tr>
+    <tr><td>E5</td><td>Subagent returns malformed JSON</td><td><code>--deep</code>, subagent response not parseable</td><td>Treat as validation failure (FR-26 "any miss"); <code>deep_pass.skipped_reason: "validation_failed"</code> with detail <code>malformed JSON: &lt;parse-error excerpt&gt;</code>; mechanical findings preserved; exit 0.</td></tr>
+    <tr><td>E5b</td><td>Mid-dispatch failure</td><td><code>--deep</code>, subagent times out (600s) OR process killed OR network drop during call</td><td><code>deep_pass.skipped_reason: "dispatch_failed"</code> with detail naming the failure mode; mechanical findings preserved; exit 0. Distinct from E5 (post-return content failure) and from the FR-21 probe-time failure (<code>no_subagent_tool_use</code>).</td></tr>
+    <tr><td>E6</td><td>Subagent returns empty array</td><td><code>--deep</code>, no candidates</td><td><code>deep_pass.skipped_reason: "no_candidates"</code>; mechanical findings preserved; exit 0.</td></tr>
+    <tr><td>E7</td><td>L3 with mixed valid + legacy keys</td><td>User L3 YAML has some rules with <code>disposition:</code> AND some with <code>severity:</code></td><td>Parse-error at first legacy key encountered; exit 64 with the rename message (D14). No partial-load.</td></tr>
+    <tr><td>E8</td><td>Monorepo with one stack at depth 2</td><td><code>backend/pyproject.toml</code> only, no <code>frontend/</code></td><td>Stderr warning still emits; <code>--monorepo</code> still fans out (single stack → one triplet + index with one entry — preserves contract).</td></tr>
+    <tr><td>E9</td><td>Idiom-decorated function with helper function in same file</td><td>One file has both <code>@app.command</code> bodies AND module-level helpers with <code>print()</code></td><td>FR-32: only the decorated function bodies' prints suppressed; helper prints still flag U004.</td></tr>
+    <tr><td>E10</td><td>Cycle detected involving <code>__init__.py</code></td><td>Common pattern: package re-export creates cycle</td><td>FR-46/47: cycle reported; user may add an L3 override <code>rules.PY009.exemptions</code> for known-intentional cycles (escape-hatch documented in SKILL.md).</td></tr>
+    <tr><td>E11</td><td>Symlink loop in scan root</td><td>Filesystem has a symlink that points up the tree</td><td>Phase 3 file walk uses <code>os.scandir</code> with <code>follow_symlinks=False</code>; loop is not entered. Existing behaviour preserved.</td></tr>
+    <tr><td>E12</td><td>Module count = 0 (no Python in repo)</td><td>Pure TS monorepo, no <code>.py</code> files</td><td><code>module_metrics: []</code>, <code>godmodule_candidates: []</code>, <code>cycles: []</code>; <code>--deep</code> skipped with <code>no_candidates</code>; mechanical TS rules run normally.</td></tr>
+    <tr><td>E13</td><td>U011 dup-signature with overload (<code>@overload</code>-decorated)</td><td>Python's <code>typing.overload</code> pattern: 2+ signatures of same name in same file</td><td>Same-file occurrences NOT flagged (U011 fires only across files); cross-file overloads are rare and remain flagged (user can L3-exempt).</td></tr>
+    <tr><td>E14</td><td>Deep-pass returns candidate referencing a file outside scan root</td><td>Subagent hallucinates a path like <code>/etc/passwd</code> or <code>../other-repo/x.py</code></td><td>FR-25(a): path-resolves-to-real-file check fails (file not under scan root); candidate dropped; warning emitted; counted toward 50% threshold.</td></tr>
+    <tr><td>E15</td><td>Schema-v2 baseline + schema-v2 current, drift in additive fields</td><td>Baseline doesn't have a field current does (e.g., <code>deep_pass</code>)</td><td>Tuple identity is <code>(rule_id, file, line)</code> only (FR-51); additive fields ignored; <code>diff{}</code> works correctly. Forward-compatible.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="configuration">13. Configuration &amp; Feature Flags</h2>
+
+<table>
+  <thead><tr><th>Variable / Flag</th><th>Default</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>.pmos/settings.yaml :: docs_path</code></td><td><code>docs/pmos/</code></td><td>Root for the architecture output directory.</td></tr>
+    <tr><td><code>ARCH_DEEP_NO_CAP</code> env var</td><td>unset</td><td>When <code>=1</code>, disables both the soft-warn (&gt;1k modules) and hard-error (&gt;5k) thresholds in Phase 4.5 (FR-23). Escape hatch for very large monorepos.</td></tr>
+    <tr><td>L3 <code>risk_score.churn_window_days</code></td><td><code>90</code></td><td>Window for git-log churn counting (FR-41).</td></tr>
+    <tr><td>L3 <code>rules.U007.disposition</code></td><td><code>wont_fix</code></td><td>Per-rule override; setting to <code>should_fix</code> enables U007 (FR-33), same as <code>--include-info-comments</code>.</td></tr>
+    <tr><td>L3 <code>rules.PY009.disposition</code></td><td><code>should_fix</code></td><td>Per-rule override; strict shops set to <code>must_fix</code> to fail CI on import cycles.</td></tr>
+    <tr><td>L3 <code>exemptions.explicit[]</code></td><td><code>[]</code></td><td>User-authored idiom or one-off exemptions; each entry <code>{file, line_range, reason}</code>.</td></tr>
+  </tbody>
+</table>
+
+<p>No feature flags in this release — every behaviour change ships in v2 together (D5: breaking schema bump). Users gate adoption by updating their L3 file.</p>
+
+<h2 id="testing">14. Testing &amp; Verification Strategy</h2>
+
+<h3 id="unit-tests">14.1 Unit tests</h3>
+
+<table>
+  <thead><tr><th>Test</th><th>What</th><th>Assertion</th></tr></thead>
+  <tbody>
+    <tr><td>risk_score class dominance</td><td>For every (must_fix, churn=50, coupling=50) vs every (should_fix, *, *)</td><td>must_fix risk ≥ 1000 &gt; any should_fix risk ≤ 200. Hard invariant.</td></tr>
+    <tr><td>risk_score caps</td><td>churn=100 commits in window; coupling=20 inbound imports</td><td>churn clamped to 50; coupling clamped to 50 (5×20=100→50); combined sum ≤100.</td></tr>
+    <tr><td>cycle-py Tarjan correctness</td><td>Fixture graphs: empty, 1-node, 2-node cycle, 3-node cycle, two disjoint cycles, nested SCCs</td><td>Output matches hand-computed cycles[] in expected order.</td></tr>
+    <tr><td>U011 signature canonicalization</td><td>Two files with <code>def f(a: int, b: str) -&gt; bool:</code> vs <code>def f(x: int, y: str) -&gt; bool:</code></td><td>Both flagged as duplicates (param names stripped).</td></tr>
+    <tr><td>Idiom AST walker</td><td>File with <code>@app.command</code> body + helper function + nested function</td><td>Only decorated body's line range in <code>exempt_ranges[]</code>; helper + nested unaffected.</td></tr>
+    <tr><td>Slug collision</td><td>Write triplet at <code>2026-05-14_backend</code>; re-run</td><td>Second run writes <code>2026-05-14_backend-2.{html,md,json}</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="integration-tests">14.2 Integration tests (fixtures)</h3>
+
+<table>
+  <thead><tr><th>Fixture dir</th><th>Source</th><th>.assert (expected JSON or behaviour)</th></tr></thead>
+  <tbody>
+    <tr><td><code>tests/fixtures/typer-mixed/</code></td><td>One <code>cli.py</code> with <code>@app.command def hello(): print("hi")</code> AND <code>def _internal(): print("debug")</code></td><td>Zero U004 on <code>hello</code>; one U004 on <code>_internal</code>; <code>exemptions.idiomatic[0].framework == "typer"</code>.</td></tr>
+    <tr><td><code>tests/fixtures/click-cli/</code></td><td>Same shape with <code>@click.command</code></td><td>Same as above for click.</td></tr>
+    <tr><td><code>tests/fixtures/u007-default-off/</code></td><td>150-LOC file no docstring</td><td>Zero U007 findings. With <code>--include-info-comments</code>: one U007.</td></tr>
+    <tr><td><code>tests/fixtures/u007-init-py/</code></td><td>150-LOC <code>__init__.py</code> no docstring + <code>--include-info-comments</code></td><td>Zero U007 (carve-out).</td></tr>
+    <tr><td><code>tests/fixtures/monorepo-no-flag/</code></td><td><code>backend/pyproject.toml</code> + <code>frontend/package.json</code> at depth 2</td><td>Stderr warning matches; <code>monorepo_detected.length == 2</code>; <code>findings: []</code>; exit 0.</td></tr>
+    <tr><td><code>tests/fixtures/monorepo-fan-out/</code></td><td>Same with <code>--monorepo</code></td><td>Two per-stack triplets emitted; <code>2026-05-14_index.html</code> + <code>.json</code> present; <code>index.json.stacks.length == 2</code>.</td></tr>
+    <tr><td><code>tests/fixtures/risk-score-ordering/</code></td><td>Mixed dispositions with high-churn should_fix + low-churn must_fix</td><td>HTML Must Fix appears before Should Fix; within Must Fix section, ordering by risk_score desc.</td></tr>
+    <tr><td><code>tests/fixtures/py-complexity/</code></td><td>Function with cyclomatic complexity &gt;10</td><td>PY005 finding emitted (delegate ruff C901).</td></tr>
+    <tr><td><code>tests/fixtures/py-branches/</code></td><td>Function with 16 branches</td><td>PY006 finding (delegate ruff PLR0912).</td></tr>
+    <tr><td><code>tests/fixtures/py-magic-values/</code></td><td><code>if x == 42:</code> repeated 3 times</td><td>PY007 finding (delegate ruff PLR2004).</td></tr>
+    <tr><td><code>tests/fixtures/py-unused-args/</code></td><td><code>def f(a, b, c): return a + b</code></td><td>PY008 finding on <code>c</code> (delegate ruff ARG001).</td></tr>
+    <tr><td><code>tests/fixtures/py-cycle/</code></td><td>service.py imports repo.py imports service.py</td><td>One PY009 finding; <code>cycles[0].members</code> includes both files.</td></tr>
+    <tr><td><code>tests/fixtures/dup-signature/</code></td><td>Same <code>_resolve_audio_units(self, x: int) -&gt; Foo</code> in two files</td><td>Two U011 findings (one per file); each has <code>cross_refs</code> to the other.</td></tr>
+    <tr><td><code>tests/fixtures/since-baseline-and/</code></td><td>Git repo with 3 commits + a baseline JSON; PR-style branch</td><td>With <code>--since HEAD~1 --baseline old.json</code>: <code>findings[]</code> filtered to changed files; <code>diff.new[]</code> only the deltas.</td></tr>
+    <tr><td><code>tests/fixtures/baseline-schema-v1/</code></td><td>Old baseline JSON with <code>severity:</code> key</td><td>Exit 64 with rename message.</td></tr>
+    <tr><td><code>tests/fixtures/baseline-index-no-monorepo/</code></td><td><code>--baseline index.json</code> without <code>--monorepo</code></td><td>Exit 64 with documented stderr error.</td></tr>
+    <tr><td><code>tests/fixtures/scaffold-l3-fresh/</code></td><td>No existing L3 file + <code>--scaffold-l3</code></td><td>File written; parses; uses <code>disposition:</code> keys; has <code>schema_version: 2</code>.</td></tr>
+    <tr><td><code>tests/fixtures/scaffold-l3-existing/</code></td><td>Pre-existing L3 + <code>--scaffold-l3</code></td><td>Exit 64; file unchanged.</td></tr>
+    <tr><td><code>tests/fixtures/legacy-principles-severity/</code></td><td>User L3 with <code>severity: warn</code></td><td>Exit 64 with rename message at Phase 1.</td></tr>
+    <tr><td><code>tests/fixtures/output-triplet/</code></td><td>Normal run</td><td>All three files exist; HTML parses; every h2/h3 has kebab-case id; assets copied; cache-bust present; sections.json companion present; stderr line matches; stdout empty.</td></tr>
+    <tr><td><code>tests/fixtures/deep-pass-validation-fail/</code></td><td>Mock subagent response with hallucinated path</td><td><code>deep_pass.skipped_reason == "validation_failed"</code>; mechanical findings preserved.</td></tr>
+    <tr><td><code>tests/fixtures/deep-pass-no-tool-use/</code></td><td>Mock no-subagent environment</td><td><code>deep_pass.skipped_reason == "no_subagent_tool_use"</code>; mechanical preserved.</td></tr>
+    <tr><td><code>tests/fixtures/deep-pass-size-class-demotion/</code></td><td>Mock subagent classifies a 935-LOC file as deep+reappears; U001 already in mechanical findings</td><td>U001 entry demoted to <code>disposition: wont_fix</code>, <code>deep_pass_cleared: true</code>; appears under Won't Fix &gt; Cleared by deep pass in HTML.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="end-to-end-tests">14.3 End-to-end tests</h3>
+
+<ul>
+  <li><strong>book-companion regression</strong> (manual gate, runs at /verify Phase 7): clone book-companion at a pinned SHA; run <code>/architecture audit backend/</code> before and after this branch lands; assert finding count ≤120 (G1). Manual triage of remaining U004 findings to confirm ≤5% false-positive rate (NFR-target).</li>
+  <li><strong>book-companion --deep</strong> (manual gate): on the same pinned SHA, run <code>/architecture audit . --monorepo --deep</code>; assert <code>deep_pass.candidates[]</code> contains ≥3 entries with <code>classification ∈ {leaky, shallow}</code> AND validation-passed evidence.</li>
+</ul>
+
+<h3 id="verification-commands">14.4 Verification commands</h3>
+
+<pre>
+# Phase 6a skill-eval (per Phase 6a in /feature-sdlc)
+bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+     --target generic \
+     plugins/pmos-toolkit/skills/architecture/
+
+# Fixture suite
+bash plugins/pmos-toolkit/skills/architecture/tests/run.sh
+
+# Citation + gap-map checks (regression)
+bash plugins/pmos-toolkit/skills/architecture/tools/check-citations.sh
+bash plugins/pmos-toolkit/skills/architecture/tools/check-gap-map.sh
+
+# Smoke: HTML emission + heading IDs
+/architecture audit plugins/pmos-toolkit/skills/architecture/
+test -f docs/pmos/architecture/$(date +%F)_architecture.html
+python3 -c "
+from html.parser import HTMLParser; import sys
+class P(HTMLParser):
+    def __init__(s): super().__init__(); s.missing=[]
+    def handle_starttag(s,t,a):
+        if t in ('h2','h3') and not any(k=='id' for k,_ in a): s.missing.append(t)
+p=P(); p.feed(open(sys.argv[1]).read())
+assert not p.missing, f'missing ids on: {p.missing}'
+" docs/pmos/architecture/$(date +%F)_architecture.html
+
+# Negative: --no-adr must be gone
+! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/SKILL.md
+! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh
+
+# Negative: ADR/determinism artifacts removed
+test ! -e plugins/pmos-toolkit/skills/architecture/tools/check-determinism.sh
+test ! -e plugins/pmos-toolkit/skills/architecture/reference/adr-template.md
+test ! -d plugins/pmos-toolkit/skills/architecture/tests/fixtures/determinism
+</pre>
+
+<h2 id="rollout">15. Rollout Strategy</h2>
+
+<p>No feature flag; v2 schema bump is a single coordinated release. Adoption gating happens at the L3 layer (user must update legacy <code>severity:</code> keys; first run after upgrade parse-errors with the rename message).</p>
+
+<h3 id="release-prereqs">15.1 Release prerequisites (carried by <code>/complete-dev</code>, NOT <code>/execute</code>)</h3>
+
+<p>Per the documented learning (2026-05-13) and FR-63 of <code>/feature-sdlc skill</code>: the <code>03_plan</code> waves MUST NOT include any of the items below; they are <code>/complete-dev</code>'s exclusive territory. Listed here for /complete-dev's checklist:</p>
+
+<ul>
+  <li><strong>Version bump (minor)</strong> in BOTH <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> AND <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>, same commit, kept in sync (pre-push hook enforces). v2.48.0 → v2.49.0.</li>
+  <li><strong>CHANGELOG entry</strong> at <code>docs/pmos/changelog.md</code> explicitly calling out the breaking changes: severity → disposition rename; JSON-on-stdout removed; ADR promotion removed; <code>--no-adr</code> flag removed; <code>check-determinism.sh</code> removed.</li>
+  <li><strong>README row update</strong>: the existing <code>/architecture</code> row in the repo README must be rewritten to match the new <code>description</code> (no "promote to Nygard ADRs" phrasing; mention HTML report + deep pass + disposition).</li>
+  <li><strong>Learnings header bootstrap</strong>: <code>~/.pmos/learnings.md</code> gains <code>## /architecture</code> section header if absent (idempotent — append-only if missing).</li>
+</ul>
+
+<h3 id="rollback">15.2 Rollback</h3>
+
+<p>If post-release a serious regression surfaces: revert the merge commit; v2 schema files are forward-incompatible with v1 baselines (and vice versa) — a hot-fix release bumping back to v1 schema is not feasible without re-rewriting principles.yaml. Mitigation: thorough Phase 6a + Phase 7 /verify gating; manual book-companion regression at /verify Phase 7.</p>
+
+<h2 id="research-sources">16. Research Sources</h2>
+
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> (158 LOC, v2.48.0)</td><td>Existing code</td><td>Current 6-phase pipeline structure; <code>delegate_to ∈ {grep, dependency-cruiser, ruff}</code>. Phase 4.5 inserts cleanly between current Phase 4 and Phase 5. Phase 5 ADR-promotion block deleted; Phase 6 rewritten for triplet emission.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code> (194 LOC)</td><td>Existing code</td><td>10 L1 (U001–U010, 1 block on U009/U010, 6 warn, 1 info on U007, 2 warn elsewhere) + 4 L2-ts (TS001-TS004) + 4 L2-py (PY001-PY004). Adding U011 + PY005–PY009 fits the existing rule shape; severity → disposition rename per D5.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (1,256 LOC)</td><td>Existing code</td><td>Per-rule check expressions inline; new checks bolt on at lines ~630–750 (delegate dispatcher); ADR-write block (lines ~975–1,050) gets deleted; JSON emit block (lines ~1,100–1,160) gets rewritten for triplet output.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md</code> (158 LOC)</td><td>Existing code</td><td>Per-rule narrative with <code>**Severity:**</code> inline line per rule — must be renamed to <code>**Disposition:**</code>. New rules (U011, PY005–PY009) add fresh sections.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/reference/gap-map-rationale.md</code> (69 LOC)</td><td>Existing code</td><td>Per-rule <code>delegate_to</code> rationale; new <code>cycle-py</code> delegate extends.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/</code> (20 fixture dirs)</td><td>Existing code</td><td>L1/L2/L3, ADR flow, schema, functional fixtures. ADR-* + determinism dirs are deleted; 13+ new fixtures added per §14.2.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code></td><td>Existing code</td><td>Standing acceptance criteria. §A frontmatter → FR-01; §B description triggers → FR-02; §C structure → FR-03/04/06; §D body content → FR-03/04/05; §E scripts → FR-07/08/09; §F platform-conditional → NFR-03.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md</code></td><td>Existing code</td><td>39-check binary rubric ([D] + [J]). All §A–§F changes traced through the rubric at Phase 6a.</td></tr>
+    <tr><td><code>_shared/html-authoring/</code> substrate (style.css, viewer.js, html-to-md.js, template.html)</td><td>Existing code</td><td>Output triplet uses this substrate; cache-bust via <code>?v=&lt;plugin-version&gt;</code>; conventions.md §3 governs kebab-case heading IDs.</td></tr>
+    <tr><td>Tarjan, R. (1972) — Depth-first search and linear graph algorithms</td><td>Algorithm</td><td>Linear-time SCC over the module graph (~50 LOC Python with <code>ast.parse</code> + dict-of-sets adjacency).</td></tr>
+    <tr><td><code>ruff</code> docs — C901, PLR0911-15, PLR2004, ARG001-002</td><td>External</td><td>AST-grade rules already implemented; one-line YAML additions per rule.</td></tr>
+    <tr><td>Matt Pocock — <code>/improve-codebase-architecture</code></td><td>External / sibling skill</td><td>Source of deletion-test + depth/seam/adapter vocabulary; cited via URL in <code>reference/deepening-vocabulary.md</code> header.</td></tr>
+    <tr><td>John Ousterhout — <em>A Philosophy of Software Design</em></td><td>External</td><td>"Deep modules" framing: interface ≪ implementation. Drives DEEP_LEAKY / DEEP_SHALLOW rule_id rationale.</td></tr>
+    <tr><td>Adam Tornhill — <em>Your Code as a Crime Scene</em></td><td>External</td><td>Churn-as-risk pattern validates the churn weight in <code>risk_score</code>.</td></tr>
+    <tr><td>Subagent A (Phase 2) inspection of <code>plugins/pmos-toolkit/skills/architecture/</code></td><td>This-session research</td><td>Mapped current shape: 158-LOC SKILL.md, 1,256-LOC run-audit.sh, 51-LOC check-determinism.sh, 18 rules. Confirmed line ranges for surgical edits.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="review-log">17. Review Log</h2>
+
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Dispositions / Changes Made</th></tr></thead>
+  <tbody>
+    <tr><td>1 (author-self, structural + design)</td><td>
+      Structural: all 13 findings + §A–§F + 14 D-rows traced to FRs/NFRs; sequence diagrams cover dispatch, validation-failure, monorepo fan-out; edge cases E1–E15 covered.<br>
+      Design (5 surfaced; 4 user-batched):<br>
+      <strong>F1 [Should-fix]</strong> FR-26 ">50% threshold" contradicted requirements D11 "hard-fail on any miss".<br>
+      <strong>F2 [Should-fix]</strong> Subagent retry policy was implicit in FR-24, not in Decision Log.<br>
+      <strong>F3 [Nit]</strong> ASCII diagrams vs Mermaid — defensible as zero-dep; not raised.<br>
+      <strong>F4 [Should-fix]</strong> FR-44 score formula excluded adapters with <code>public_symbols: 0</code>.<br>
+      <strong>F5 [Should-fix]</strong> No explicit secret-file guard for subagent Read access.</td>
+    <td>
+      F1: <strong>Fix as proposed</strong> — FR-26 rewritten to "any miss" per D11.<br>
+      F2: <strong>Fix as proposed</strong> — added D21 (no retry; rationale + alternatives).<br>
+      F3: not raised; logged here for visibility.<br>
+      F4: <strong>Fix as proposed</strong> — FR-44 rewritten with Laplace smoothing; added D22.<br>
+      F5: <strong>Fix as proposed</strong> — added NFR-09 (subagent Read denylist) + FR-24 cross-reference.</td></tr>
+    <tr><td>2 (folded simulate-spec, Tier 3 default-on)</td><td>
+      Pre-apply guard fired (02_spec.html untracked) → auto-apply skipped; manual disposition per sim-spec-heuristics §5.5.<br>
+      4-pass scenario enumeration (30 scenarios). Artifact-fitness walk (4 buckets).<br>
+      7 gaps surfaced:<br>
+      <strong>G1 [blocker, conf 90]</strong> FR-36 monorepo recursion didn't disable child re-detection.<br>
+      <strong>G2 [significant, conf 85]</strong> NFR-09 enforcement mechanism unspecified.<br>
+      <strong>G3 [minor, conf 70]</strong> FR-60 slug-collision check is racey under concurrent runs.<br>
+      <strong>G4 [significant, conf 80]</strong> FR-30 import detection misses aliased forms.<br>
+      <strong>G5 [minor, conf 60]</strong> Phase 4.5 missing <code>dispatch_failed</code> skipped_reason.<br>
+      <strong>G6 [forward-compat, conf 50]</strong> §9.2 exit codes don't address SIGINT.<br>
+      <strong>G7 [forward-compat, conf 55]</strong> No FR mandates <code>--help</code> parity with flag list.</td>
+    <td>
+      G1: <strong>Fix as proposed</strong> — FR-36 amended: child invocation runs with --monorepo OFF, depth-2 walk skipped, no recursion possible.<br>
+      G2: <strong>Fix as proposed</strong> — NFR-09 extended with two-mechanism contract (orchestrator path-filter + prompt instruction) + degradation path.<br>
+      G3: <strong>Defer to follow-up</strong> — known-deferred, rare under normal dev workflow; future Lockfile-based mitigation.<br>
+      G4: <strong>Fix as proposed</strong> — FR-30/FR-31 rewritten to use AST name-resolution map; catches aliased imports.<br>
+      G5: <strong>Fix as proposed</strong> — FR-29 skipped_reason enum extended with <code>dispatch_failed</code>; new edge case E5b documents.<br>
+      G6: <strong>Defer to follow-up</strong> — bash default (130) is acceptable; not a contract failure.<br>
+      G7: <strong>Defer to follow-up</strong> — future enhancement.</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Universal exit checklist:</strong></p>
+<ol>
+  <li>Every requirement from <code>01_requirements.html</code> → covered by numbered FR/NFR. ✅</li>
+  <li>Decision Log has Options + Rationale for every non-trivial choice (D1–D22). ✅</li>
+  <li>API contracts complete (CLI flags + exit codes + JSON schema). ✅</li>
+  <li>"DB" schema = principles.yaml v2 + JSON sidecar v2, shown as actual YAML/JSON with migration notes. ✅</li>
+  <li>Sequence diagrams for 3+ component interactions (3 diagrams: §6.2/6.3/6.4). ✅</li>
+  <li>Edge cases E1–E15 with conditions + behaviour. ✅</li>
+  <li>Verification Plan Sketch reflected in §14 with exact commands. ✅</li>
+  <li>Frontend design: §11 hierarchy + state + heading-IDs. ✅</li>
+  <li>Rollout strategy + release prereqs (§15). ✅</li>
+  <li>Open Questions section absent — all OQs resolved in Decision Log (D15/D16/D17/D18). ✅</li>
+  <li>10b: Frontmatter contract — tier, type, feature, date, status, requirements all non-empty. ✅</li>
+  <li>Last loop produced only [Should-fix] and [Nit] findings; all dispositioned by user; nothing deferred. ✅</li>
+  <li>User confirmation pending — awaiting Phase 7 ack to promote status: Draft → Ready for Plan.</li>
+</ol>
+
+</body>
+</html>
