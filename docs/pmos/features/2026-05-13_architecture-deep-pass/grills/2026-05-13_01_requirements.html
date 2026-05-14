@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Grill Report — /architecture deepening pass + hygiene — 01_requirements</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.48.0">
+</head>
+<body>
+
+<h1 id="title">Grill Report — <code>01_requirements.html</code> (<code>/architecture</code> deepening pass + hygiene)</h1>
+
+<p class="meta">
+  <strong>Date:</strong> 2026-05-13 &middot;
+  <strong>Depth:</strong> deep &middot;
+  <strong>Questions asked:</strong> 19 &middot;
+  <strong>Target:</strong> <code>docs/pmos/features/2026-05-13_architecture-deep-pass/01_requirements.html</code>
+</p>
+
+<h2 id="summary">Summary</h2>
+
+<p>The requirements doc held up structurally but the <strong>output shape, severity axis, ADR-promotion path, F12 stderr top-5, determinism guarantee, and deep-pass role all flipped</strong> through the grill. The doc needs a substantial revision pass before <code>/spec</code> — see <a href="#recommended-next-step">Recommended next step</a>.</p>
+
+<h2 id="resolved">Resolved</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Branch</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Deep-pass role</td><td><strong>Discovery-capable</strong>, not classification-only — LLM gets the whole module graph + per-module summary stats and picks its own targets. Reverses D1's "10 batched classification" framing.</td></tr>
+    <tr><td>2</td><td>Source access</td><td>Subagent has tool access (Read/Grep); orchestrator pre-loads only graph + stats + vocab cheatsheet. Codex/generic platforms fall back to <code>tools_skipped:["deep_pass:no_subagent_tool_use"]</code>.</td></tr>
+    <tr><td>3</td><td>Acceptance test</td><td>Softened to "≥N findings (N≥3) classified leaky/shallow with valid evidence" — drops the three specifically-named book-companion patterns as a hard requirement.</td></tr>
+    <tr><td>4</td><td>Validation contract</td><td>Path-exists + evidence-substring-grep against the named file are necessary and sufficient. Classification enum still validated. No seed-set check.</td></tr>
+    <tr><td>5</td><td>Determinism boundary</td><td>Initially: <code>check-determinism.sh</code> runs only without <code>--deep</code>. Later (#19b): the entire determinism check is dropped.</td></tr>
+    <tr><td>6</td><td>Idiom exemption scope</td><td><strong>Function-scoped</strong>, not file-level. Only <code>print()</code> inside <code>@app.command</code> / <code>@click.command</code> / <code>@cli.command</code> functions are exempted from U004; helper-function prints in the same file still flag. Detector emits <code>exempt_ranges[]</code> (line ranges) per file.</td></tr>
+    <tr><td>7</td><td>PY009 severity</td><td><strong>warn</strong> by default; L3 can upgrade to block via <code>rules.PY009.disposition: must_fix</code>. Reflects Python's tolerance of lazy/deferred cycles.</td></tr>
+    <tr><td>8</td><td><code>--since</code> + <code>--baseline</code> interaction</td><td><strong>AND</strong> (intersection): filter findings to files in <code>git diff --name-only &lt;ref&gt;...HEAD</code> AND emit only deltas vs baseline. Order-independent.</td></tr>
+    <tr><td>9</td><td>Diff identity across schema bumps</td><td><code>(rule_id, file, line)</code> tuple. <code>risk_score</code> and other added v2 fields are NOT part of identity — <code>diff.unchanged</code> carries v2's risk_score forward without flagging the field as new.</td></tr>
+    <tr><td>10</td><td>U007 hardening</td><td><code>LOC &gt; 100</code> AND no module-level docstring of <code>≥40 chars</code> (stripped) AND not <code>__init__.py</code>.</td></tr>
+    <tr><td>11</td><td>risk_score cross-class ordering</td><td>Severity class always dominates. Weights <code>{must_fix:1000, should_fix:100, wont_fix:1}</code>; churn cap 50; coupling cap 50; combined sum cap 100 (&lt; <code>weight(should) − weight(wont)</code>). Drops the doc's 100/10/1 numbers.</td></tr>
+    <tr><td>12</td><td>Churn window</td><td>Default 90 days; L3 override via <code>principles.yaml</code> <code>risk_score.churn_window_days: N</code>.</td></tr>
+    <tr><td>13</td><td>Platform support for <code>--deep</code></td><td>Skill target stays <code>generic</code>; <code>--deep</code> is platform-conditional, detected at runtime via no-op subagent + Read probe; on failure emits <code>tools_skipped: ['deep_pass:no_subagent_tool_use']</code>; mechanical pass always runs.</td></tr>
+    <tr><td>14</td><td>Output persistence + axis</td><td><strong>HTML/MD/JSON triplet</strong> saved to <code>{docs_path}/architecture/{YYYY-MM-DD}_&lt;slug&gt;.{html,md,json}</code>. Slug = scan-root basename (<code>audit . → root</code>, <code>audit backend/ → backend</code>); <code>--label &lt;slug&gt;</code> overrides. Monorepo fan-out emits one triplet per stack + a top-level <code>index.{html,json}</code>. Severity replaced by <strong>disposition ∈ {must_fix, should_fix, wont_fix}</strong>. No back-compat. ADR promotion <strong>removed entirely</strong> (Nygard ADRs were a workaround for unreadable JSON; HTML is now the artifact). F12 (stderr top-5) <strong>dropped</strong> — stderr becomes a one-line summary: <code>Wrote &lt;path&gt;: N Must Fix, M Should Fix, K Won't Fix in T files</code>.</td></tr>
+    <tr><td>15</td><td>Mechanical/deep reconciliation</td><td>Deep-pass <code>classification: deep, deletion_test.outcome: reappears</code> demotes only <strong>size-class findings</strong> (U001 oversized file, U002 large class, PY005 complexity, PY006 branches) to Won't Fix with <code>deep_pass_cleared: true</code> annotation. Other rules (dead code, missing docstring, dup signature, cycles) unaffected.</td></tr>
+    <tr><td>16</td><td>Won't Fix UI</td><td>Collapsed-by-default <code>&lt;details&gt;</code> block in HTML with three sub-headings: "Cleared by deep pass" / "Idiomatic exemptions" / "L3 explicit exemptions". Section header: <code>Won't Fix (N) — click to expand</code>.</td></tr>
+    <tr><td>17</td><td>principles.yaml migration</td><td>No back-compat, no migrate tool. Plugin-shipped <code>principles.yaml</code> rewritten in this release. User L3 files with legacy <code>severity:</code> keys → parse-error on first run. CHANGELOG documents the rename: <code>severity:</code> → <code>disposition:</code>; <code>block → must_fix</code>, <code>warn → should_fix</code>, <code>info → wont_fix</code>.</td></tr>
+    <tr><td>18</td><td>Deep-pass classification render</td><td><code>leaky → Must Fix</code>, <code>shallow → Should Fix</code>, <code>deep → no finding</code> (it's the absence of a problem). New rule_ids <code>DEEP_LEAKY</code> / <code>DEEP_SHALLOW</code>. The deep-pass <code>rationale</code> + <code>proposed_reshape</code> become the finding's <code>message</code> field. Raw subagent output preserved under JSON sidecar <code>deep_pass.candidates[]</code>.</td></tr>
+    <tr><td>19</td><td><code>godmodule_candidates[]</code> flow</td><td>Hint, not constraint — orchestrator computes top-10; passes them to deep-pass as <code>seed_hint[]</code> alongside the full module graph. Subagent prompt: "start with these; expand to other modules if cross-module patterns lead elsewhere." Also surfaced in HTML "Architecture metrics" appendix (top-5) and JSON sidecar (top-10, no floor).</td></tr>
+    <tr><td>19a</td><td>Monorepo <code>--baseline</code> shape</td><td><code>--baseline</code> accepts either a single <code>&lt;stack&gt;.json</code> (diffs that stack only) or an <code>index.json</code> (fans out, requires current run be <code>--monorepo</code>, pairs stacks by name). <code>index.json</code> contains <code>stacks: [{name, json_path, html_path}]</code> with relative paths under the same date-stamped folder.</td></tr>
+    <tr><td>19b</td><td>Determinism check</td><td><strong>Dropped entirely.</strong> <code>check-determinism.sh</code> removed; users self-check via <code>--baseline</code> if they care. Pulls the deterministic-fast guarantee goal, the determinism Success Metric row, FR-73, and §E references with it.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="open">Open / Deferred (for <code>/spec</code> to resolve)</h2>
+
+<ul>
+  <li><strong>Token budget for the deep-pass module graph payload</strong> — discovery-capable design means the <em>graph</em> (not source) goes up-front; needs an explicit cap (e.g., top-N modules' metadata, not all). Resolve in <code>/spec</code>.</li>
+  <li><strong><code>seed_hint[]</code> size</strong> — top-10 from godmodule_candidates as the hint, but the deep-pass can read source for any module it picks; how many actual files does it inspect per run? Likely LLM-side budget; spec should document the expected operating range.</li>
+  <li><strong><code>generated_at</code> and other timestamp/run-identity fields in JSON</strong> — still needed for human auditing; with determinism check dropped, no formal contract, but spec should declare them as non-canonical (not part of <code>--baseline</code> diff identity).</li>
+  <li><strong>Parse-error UX for legacy <code>severity:</code> keys</strong> — user declined a migrate subcommand, but the error message needs to <em>name</em> the exact key rename so users don't have to dig. Resolve in <code>/spec</code> as an error-message spec.</li>
+  <li><strong>JSON sidecar full key inventory</strong> — <code>deep_pass{}</code> parent shape locked, but other v2 keys (<code>cycles[]</code>, <code>module_metrics[]</code>, <code>godmodule_candidates[]</code>, <code>monorepo_detected[]</code>, <code>exemptions.idiomatic[]</code>, <code>coverage_gaps[]</code>, <code>tools_errored[]</code>, <code>tools_skipped[]</code>, <code>diff{}</code>) need a single schema definition. Resolve in <code>/spec</code>.</li>
+</ul>
+
+<h2 id="gaps">Gaps surfaced</h2>
+
+<ul>
+  <li><strong><code>--out</code> / save-default behaviour</strong>: not in the original doc. Implied by the HTML save path being the default — i.e., the skill always writes. Spec should make this explicit and define collision behaviour when the target path already exists (e.g., same-day re-run).</li>
+  <li><strong><code>--label &lt;slug&gt;</code> override flag</strong>: introduced in answer 14 but not in the original doc. Spec adds an FR.</li>
+  <li><strong>HTML report's "Architecture metrics" appendix section</strong>: introduced in answer 19. Needs an FR.</li>
+  <li><strong><code>--no-adr</code> flag obsolete</strong>: now obsolete with ADR promotion removed. Spec must explicitly drop it from <code>argument-hint</code> frontmatter (currently listed in §A).</li>
+  <li><strong>Description frontmatter rewrite</strong>: currently advertises "promote ≤5 block findings to Nygard ADRs" — replace with disposition/HTML framing. Spec must specify the new ≥5 trigger phrases (§B).</li>
+  <li><strong>Phase 5 of current SKILL.md vanishes</strong>; new Phase 6 (emit report) becomes "emit HTML+MD+JSON triplet" not "emit JSON to stdout." Phase removal (not insertion) — D9's fractional-phase rule doesn't apply; numbers can be reused.</li>
+  <li><strong>Goals section rewrite</strong>: "Preserve the deterministic-fast guarantee" goal removed; "Make the report usable in CI" goal needs to mention the JSON sidecar specifically.</li>
+  <li><strong>Success Metrics rewrite</strong>: row "Determinism check pass-rate" removed; row "Top-5 stderr punch-list present" removed (F12 dropped); row "Deepening-pass acceptance findings" reframed as "≥3 leaky/shallow classifications with valid evidence."</li>
+</ul>
+
+<h2 id="recommended-next-step">Recommended next step</h2>
+
+<p>Update <code>01_requirements.html</code> against the 19 resolved items before <code>/spec</code>. This is a substantial revision — at minimum, the following sections need rework:</p>
+
+<ul>
+  <li><strong>Goals</strong>: drop deterministic-fast guarantee; soften deep-pass acceptance to ≥3 classifications.</li>
+  <li><strong>Non-Goals</strong>: drop "NOT exceeding 10-candidate cap" (deep-pass is discovery); drop "NOT changing JSON top-level shape" (axis swap is the change); add "NOT preserving back-compat for principles.yaml severity keys"; add "NOT writing JSON to stdout."</li>
+  <li><strong>Friction Points</strong>: drop F12 row.</li>
+  <li><strong>Solution Direction</strong>: Layer 1 — function-scoped idiom exemption + <code>exempt_ranges[]</code>; Layer 2 — drop F12; risk_score formula <code>{must:1000, should:100, wont:1}</code>; Layer 4 — discovery-capable rewrite (seed_hint, subagent tool access, no fixed candidate cap, runtime platform detection, DEEP_LEAKY/DEEP_SHALLOW rule_ids, <code>deep_pass{}</code> JSON parent).</li>
+  <li><strong>Acceptance test</strong>: soften to ≥3 leaky/shallow with valid evidence; drop determinism row.</li>
+  <li><strong>User journeys</strong>: replace stderr top-5 references with one-line summary; drop ADR mentions; add the HTML+MD+JSON write step.</li>
+  <li><strong>Design Decisions</strong>: D1 reframed (one batched subagent with discovery + seed_hint, tool access); D2 new weights; D4 PY009 default warn; D5 schema v1→v2 breaking (severity → disposition axis); D7 add 40-char + __init__ carve-outs; D11 validation = path-exists + evidence-grep (drop seed-set check); <strong>new D12</strong> output triplet + ADR removal + F12 drop + determinism drop; <strong>new D13</strong> function-scoped idiom; <strong>new D14</strong> principles.yaml parse-error on legacy keys.</li>
+  <li><strong>Success Metrics</strong>: drop determinism + stderr top-5 rows.</li>
+  <li><strong>Findings→Requirements map</strong>: drop F12 row; update F1 (discovery-capable), F2 (function-scoped), F8 (warn default).</li>
+  <li><strong>§A–§F standing acceptance criteria</strong>: argument-hint = <code>audit [path]</code>, <code>--label &lt;slug&gt;</code>, <code>--non-interactive</code>, <code>--deep</code>, <code>--include-info-comments</code>, <code>--monorepo</code>, <code>--since &lt;ref&gt;</code>, <code>--baseline &lt;path&gt;</code>, <code>--scaffold-l3</code>, <code>--sort risk</code>. <strong>Removed</strong>: <code>--no-adr</code>. Description rewrite per (§B) gaps above.</li>
+  <li><strong>Open Questions</strong>: OQ1 (god-module floor) resolved as <code>seed_hint[]</code> top-10 no floor; OQ2 (Task tool availability) resolved by runtime detection.</li>
+</ul>
+
+<p>After requirements revision, re-run <code>/feature-sdlc --resume</code>; the orchestrator will pick up at <code>/spec</code> (Phase 4) with the revised doc.</p>
+
+</body>
+</html>
