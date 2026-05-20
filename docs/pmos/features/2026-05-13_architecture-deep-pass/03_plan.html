@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>/architecture deepening pass + hygiene — Implementation Plan (Tier 3)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 980px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.55; }
+  h1 { border-bottom: 2px solid #888; padding-bottom: .4rem; }
+  h2 { border-bottom: 1px solid #ccc; padding-bottom: .25rem; margin-top: 2.2rem; }
+  h3 { margin-top: 1.5rem; }
+  h4 { margin-top: 1.1rem; color: #444; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; }
+  th, td { border: 1px solid #bbb; padding: .4rem .6rem; text-align: left; vertical-align: top; font-size: .92rem; }
+  th { background: #f3f3f3; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  pre { background: #f6f6f6; padding: .6rem .8rem; overflow-x: auto; border-radius: 4px; font-size: .85rem; }
+  .frontmatter { background: #fafafa; border: 1px solid #e3e3e3; border-radius: 6px; padding: .6rem 1rem; margin: .8rem 0; font-size: .9rem; }
+  .task { border: 1px solid #ddd; border-radius: 6px; padding: .6rem 1rem; margin: 1.2rem 0; background: #fcfcfc; }
+  .task h3 { margin-top: 0; }
+  .meta-line { font-size: .87rem; color: #555; margin: .15rem 0; }
+  ul.steps { padding-left: 1.4rem; }
+  ul.steps li { margin: .35rem 0; }
+</style>
+</head>
+<body>
+
+<h1 id="title"><code>/architecture</code> deepening pass + hygiene — Implementation Plan</h1>
+
+<div class="frontmatter">
+<strong>tier:</strong> 3 &middot;
+<strong>type:</strong> feature &middot;
+<strong>feature:</strong> architecture-deep-pass &middot;
+<strong>spec_ref:</strong> <code>02_spec.html</code> &middot;
+<strong>requirements_ref:</strong> <code>01_requirements.html</code> &middot;
+<strong>date:</strong> 2026-05-15 &middot;
+<strong>status:</strong> Ready for Execute &middot;
+<strong>commit_cadence:</strong> per-task &middot;
+<strong>contract_version:</strong> 1 &middot;
+<strong>spec_hash:</strong> 2026-05-14:17-sections &middot;
+<strong>execution_mode:</strong> subagent-driven
+</div>
+
+<h2 id="overview">Overview</h2>
+
+<p>Refactor the existing <code>/architecture</code> skill (v2.48.0) into a <strong>discovery-capable deepening pass + signal-hygiene + cross-module structural detectors + HTML+MD+JSON triplet output</strong>. Breaking schema bump (<code>severity</code> → <code>disposition</code>); ADR machinery removed; <code>--no-adr</code> deleted; stdout-JSON replaced with a single artifact triplet under <code>{docs_path}/architecture/</code>. Approach: edit the existing <code>tools/run-audit.sh</code> in surgical-modification waves keyed off the spec's FR groups, add two new tools (<code>cycle-py.py</code>, idiom AST walker as inline Python in the harness), one new reference (<code>deepening-vocabulary.md</code>), and rewrite <code>SKILL.md</code> for the new Phase 4.5 + emission contract. Empirical anchor: book-companion <code>backend/</code> findings drop 586 → ≤120, and <code>--deep</code> surfaces ≥3 leaky/shallow classifications with substring-grep-verified evidence.</p>
+
+<p><strong>Done when:</strong> All 24 task verifications pass (lint exits 0; <code>tests/run.sh</code> reports <code>0 failed</code> across 28 fixtures including the 13 new ones); <code>skill-eval-check.sh --target generic plugins/pmos-toolkit/skills/architecture/</code> exits 0; running <code>/architecture audit plugins/pmos-toolkit/skills/architecture/</code> writes the <code>{html,md,json}</code> triplet, stdout is empty, stderr emits exactly one summary line of the documented shape, every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> in the HTML carries a kebab-case <code>id</code>; book-companion regression (manual gate at /verify Phase 7) reports ≤120 findings on <code>backend/</code> AND <code>--deep . --monorepo</code> populates <code>deep_pass.candidates[]</code> with ≥3 validated entries.</p>
+
+<p><strong>Done-when walkthrough:</strong> Engineer at the repo root runs <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — terminal prints <code>28 passed, 0 failed</code>. Engineer runs <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target generic plugins/pmos-toolkit/skills/architecture/</code> — exit code 0, no <code>FAIL</code> lines. Engineer runs <code>/architecture audit plugins/pmos-toolkit/skills/architecture/</code> — terminal stdout is empty (verify with <code>... | wc -c</code> → <code>0</code>); stderr's last line matches <code>/^Wrote docs\/pmos\/architecture\/[0-9]{4}-[0-9]{2}-[0-9]{2}_architecture\.html: \d+ Must Fix, \d+ Should Fix, \d+ Won't Fix in \d+ files$/</code>; <code>ls docs/pmos/architecture/</code> shows the date-prefixed <code>{html,md,json}</code> triplet plus <code>{date}_architecture.sections.json</code>; opening the HTML in a browser shows Must Fix / Should Fix / Won't Fix sections in that order, with the godmodule_candidates table beneath. Engineer clones book-companion at the pinned SHA, runs <code>/architecture audit backend/</code>, jq-counts <code>findings | length</code> → ≤120; re-runs with <code>--monorepo --deep</code>, jq-counts <code>deep_pass.candidates | map(select(.classification != "deep")) | length</code> → ≥3.</p>
+
+<p><strong>Execution order:</strong></p>
+<pre>
+T1 (tracer: schema rename + triplet for empty repo)
+ ├─ T21 (ADR machinery deletion — run immediately after T1 per Loop 2 N1 to keep intermediate fixture runs clean)
+ ├─ T2 (substrate copy idempotence + kebab-id assertion)
+ ├─ T3 (idiom AST walker — Typer/Click decorator detection)
+ ├─ T4 (U004 suppression by exempt_ranges + idiomatic-exemption surfacing)
+ ├─ T5 (U007 default-off + carve-outs)
+ ├─ T6 (PY005-PY008 ruff additions)
+ ├─ T7 (depth-2 monorepo detection + warn)
+ ├─ T8 (--monorepo fan-out + index.json/html)
+ ├─ T9 (U011 cross-file dup-signature, AST in harness)
+ ├─ T10 (cycle-py.py Tarjan SCC + PY009)
+ ├─ T11 (module_metrics + godmodule_candidates with Laplace [P])
+ ├─ T12 (risk_score with churn + coupling + class dominance — sequential after T11)
+ ├─ T13 (--since filter)
+ ├─ T14 (--baseline single-stack diff)
+ ├─ T15 (--baseline + --since AND-intersect + index-baseline guard + schema-v1 reject)
+ ├─ T16 (--scaffold-l3 with idiomatic exemptions)
+ ├─ T17 (--deep runtime probe + module_metadata payload + size cap)
+ ├─ T18 (--deep subagent dispatch + return-shape validation)
+ ├─ T19 (--deep promotion: DEEP_LEAKY/SHALLOW + size-class demotion)
+ ├─ T20 (NFR-09 secret-file Read denylist wrapper)
+ ├─ T21 (ADR machinery deletion: code, fixtures, --no-adr, adr-template.md)
+ ├─ T22 (deepening-vocabulary.md + l1-rationales severity rename + gap-map)
+ ├─ T23 (SKILL.md rewrite: Phase 4.5 insert, Phase 5/6 rewrite, Anti-Patterns, frontmatter)
+ ├─ T24 (fixture suite update: 13 new fixtures + 5 ADR-* removed + 1 determinism removed)
+ └─ TN (final verification — fixture suite + skill-eval + book-companion regression)
+</pre>
+
+<h2 id="decision-log">Decision Log</h2>
+
+<p>Inherits architecture decisions D1–D22 from <code>02_spec.html §4</code>. Entries below are implementation-specific decisions made during planning.</p>
+
+<table>
+<thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr>
+  <td>PD1</td>
+  <td><strong>Idiom AST walker lives inline in <code>run-audit.sh</code></strong> as a Python heredoc, not as a separate <code>tools/idiom-detect.py</code> script.</td>
+  <td>(a) Inline Python heredoc (chosen); (b) separate <code>tools/idiom-detect.py</code>; (c) call <code>ruff</code> via a custom plugin.</td>
+  <td>The harness already runs four other Python heredocs (loader, scanner, ADR-reconcile, report-build). Inline keeps trust boundary tight (one process, no extra <code>chmod +x</code>), preserves the "skill is one bash + a few small helpers" shape, and avoids a second tool prereq in <code>tools_errored[]</code>. Separate file would be needed only if size exceeded ~200 LOC; AST walker for FR-30/FR-31 is ~80 LOC.</td>
+</tr>
+<tr>
+  <td>PD2</td>
+  <td><strong>Cycle detection runs as a standalone <code>tools/cycle-py.py</code></strong> (not inline), invoked from the harness as <code>python3 tools/cycle-py.py &lt;scan-root&gt;</code> and parsed via <code>jq</code>.</td>
+  <td>(a) Standalone file (chosen); (b) inline Python heredoc; (c) use <code>pylint --disable=all --enable=cyclic-import</code>.</td>
+  <td>FR-07 mandates <code>tools/cycle-py.py</code> exists as a discoverable tool (delegate identity matches U011's pattern of <code>delegate_to: cycle-py</code>). Mirrors the gap-map shape ("a tool per non-trivial delegate"). Standalone enables independent unit tests in <code>tests/fixtures/py-cycle/</code> via direct invocation, not just via the harness.</td>
+</tr>
+<tr>
+  <td>PD3</td>
+  <td><strong>U011 dup-signature lives inline in <code>run-audit.sh</code></strong> (Python heredoc) — special-cased AST in the harness, like <code>file_loc_gt</code>/<code>function_loc_gt</code>.</td>
+  <td>(a) Inline Python heredoc (chosen); (b) standalone <code>tools/dup-sig.py</code>; (c) ruff plugin (impossible per D3).</td>
+  <td>Spec D3 records <code>delegate_to: grep</code> for U011 with "special-cased AST in harness" — symmetric with U001/U002 size checks. Keeping it inline avoids growing the <code>tools/</code> directory disproportionately; the canonicalization logic (~40 LOC) is small enough to live with the other inline evaluators.</td>
+</tr>
+<tr>
+  <td>PD4</td>
+  <td><strong>Module-graph payload (FR-22, FR-43) reuses one Python AST pass</strong> shared between <code>module_metrics[]</code>, <code>godmodule_candidates[]</code>, <code>cycle-py.py</code> input, and <code>--deep</code> <code>module_metadata[]</code>. Single in-memory dict-of-sets is built once per run, consumed by all four downstream features.</td>
+  <td>(a) Single shared pass (chosen); (b) one pass per consumer (4 passes); (c) cache to disk between runs.</td>
+  <td>Performance: a 50k-LOC backend has ~500 modules; one <code>ast.parse</code> per module is ~3s end-to-end. Four passes = ~12s, blowing NFR-01's &lt;30s budget when added to grep + ruff + dep-cruiser. Disk cache (option c) introduces invalidation complexity for marginal gain. Single-pass with the dict held in the harness's Python heredoc memory is the right shape.</td>
+</tr>
+<tr>
+  <td>PD5</td>
+  <td><strong>Triplet emission uses temp-then-rename per file</strong> (HTML, MD, JSON written separately under <code>.tmp.<pid></code> then atomically renamed in HTML→MD→JSON order). The MD generation step (which shells to <code>node assets/html-to-md.js</code>) reads the renamed HTML; failure mid-MD does not corrupt the HTML.</td>
+  <td>(a) Per-file temp-then-rename, HTML→MD→JSON order (chosen); (b) all three to temp then bulk rename; (c) write all three then rename in one shell command.</td>
+  <td>HTML and JSON are independently meaningful; users may consume just the JSON sidecar. Per-file rename allows partial recovery if MD generation fails (HTML + JSON are still on disk; user re-runs to regenerate MD). Bulk rename (b) means a single MD failure orphans all three. Order HTML→MD→JSON keeps the human-readable artifact published first; JSON last so external CI consumers know "JSON exists" implies "HTML exists" (they wait on the JSON sentinel).</td>
+</tr>
+<tr>
+  <td>PD6</td>
+  <td><strong>Subagent dispatch wiring uses the harness platform's <code>Task</code> tool indirection</strong>: the harness sees a <code>tools/dispatch-deep-pass.sh</code> wrapper that the SKILL.md Phase 4.5 invokes as a <em>top-level skill action</em> (not from inside <code>run-audit.sh</code>). The wrapper produces JSON on stdout that <code>run-audit.sh</code> reads via <code>--deep-result &lt;file&gt;</code> on a continuation invocation.</td>
+  <td>(a) Wrapper + two-phase harness invocation (chosen); (b) shell out from <code>run-audit.sh</code> directly to a Task-tool CLI; (c) re-implement the harness in Python so it can call the Task tool natively.</td>
+  <td>Subagent dispatch (Task tool) is a harness-platform primitive, not a shell command — <code>run-audit.sh</code> cannot invoke it from bash. SKILL.md instructs the orchestrator to (1) run mechanical passes via <code>run-audit.sh --deep-prep &lt;tmpfile&gt;</code> producing the payload; (2) the SKILL itself invokes the Task subagent and writes the result to <code>&lt;tmpfile&gt;.result</code>; (3) <code>run-audit.sh --deep-finalize &lt;tmpfile&gt; &lt;tmpfile&gt;.result</code> validates and emits. This keeps trust boundaries: bash never crosses into LLM territory. The runtime probe (FR-21) becomes a SKILL-level capability check; on absence, SKILL skips the dispatch step and calls <code>--deep-finalize</code> with an empty result, setting <code>skipped_reason: no_subagent_tool_use</code>.</td>
+</tr>
+<tr>
+  <td>PD7</td>
+  <td><strong>HTML report is self-contained (inline CSS), not substrate-rendered.</strong> The <code>_shared/html-authoring/</code> substrate's <code>template.html</code>/<code>viewer.js</code> is for SDLC-pipeline artifacts (requirements, spec, plan); <code>/architecture</code> reports are operational artifacts that benefit from zero-dep portability (paste the HTML into a Slack thread, attach to an email, view offline without <code>assets/</code> hosting).</td>
+  <td>(a) Inline-styled self-contained HTML (chosen); (b) substrate-rendered with assets/ folder; (c) Markdown-only with HTML generated via <code>html-to-md.js</code> in reverse.</td>
+  <td>Spec FR-61 mandates substrate use, but observability of the deviation matters: substrate-rendered HTML requires the <code>assets/</code> directory adjacent on disk, which breaks copy-paste sharing and offline viewing. <strong>Loop 1 disposition: substrate-per-spec confirmed</strong>: PD7 stands as historical context; T1+T2 implement FR-61 as written (substrate path with cache-bust + sections.json + assets/). Recorded here so a future reader sees the trade-off was deliberate, not overlooked.</td>
+</tr>
+<tr>
+  <td>PD8</td>
+  <td><strong>Fixture <code>.assert</code> scripts are kept as bash with jq</strong> (existing pattern); 13 new fixtures follow the existing shape — no Python <code>.assert</code> scripts.</td>
+  <td>(a) Bash + jq (chosen, status quo); (b) migrate all to <code>pytest</code>; (c) add a fixture DSL.</td>
+  <td>Existing 20 fixtures all use bash + jq; <code>tests/run.sh</code> is a bash runner. Mixing pytest would require a second runner and dependency. The new fixtures (typer-mixed, click-cli, py-cycle, dup-signature, deep-pass-validation-fail, etc.) all assert against the JSON sidecar — jq is the right tool. Stays consistent with the existing surface.</td>
+</tr>
+<tr>
+  <td>PD9</td>
+  <td><strong>Deletion of <code>tools/check-determinism.sh</code>, <code>tests/fixtures/determinism/</code>, <code>tests/fixtures/adr-*</code> (5 dirs), and <code>reference/adr-template.md</code> happens in T21 as a single git-tracked deletion commit</strong> — not interleaved with the additive work.</td>
+  <td>(a) One deletion commit at T21 (chosen); (b) delete in T1 alongside schema rename; (c) delete piecemeal across tasks.</td>
+  <td>Single deletion commit makes the breaking change auditable in one diff (<code>git show T21</code>), simplifies revert if the cleanup needs adjustment, and avoids "is it gone yet?" coordination across tasks. Deleting in T1 (option b) would force the tracer bullet to fight ADR-fixture failures while also doing the rename — too much churn at once.</td>
+</tr>
+ <tr>
+  <td>PD10 <em>(Loop 2)</em></td>
+  <td><strong>SKILL-orchestrator runtime probe for subagent availability</strong>: SKILL.md prelude reads <code>${CLAUDE_PLUGIN_ROOT:-}</code> (set in Claude Code plugin context) OR <code>${CLAUDE_CODE_VERSION:-}</code>; if both unset → set <code>SKILL_NO_SUBAGENT=1</code> in the env before invoking <code>run-audit.sh --deep-prep</code>, which causes T17's probe branch to set <code>deep_pass.skipped_reason: no_subagent_tool_use</code>.</td>
+  <td>(a) Env-marker check (chosen); (b) no-op Task probe (authoritative but adds 1-2s wall-clock per --deep run); (c) per-platform recipes in SKILL.md prose without explicit probe.</td>
+  <td>Cheap (zero-cost env lookup), deterministic, makes the test-only <code>SKILL_NO_SUBAGENT=1</code> stub a documented production codepath. CC plugin context always sets <code>CLAUDE_PLUGIN_ROOT</code>; Codex / generic platforms do not. T23 (SKILL.md rewrite) carries the env-check; T17 docstring updated.</td>
+</tr>
+<tr>
+  <td>PD11 <em>(Loop 2)</em></td>
+  <td><strong>NFR-09 degradation contract on Claude Code</strong>: orchestrator-side Read interception of subagent tool calls is not possible from a sibling bash wrapper on Claude Code; <code>tools/dispatch-deep-pass.sh</code> emits <code>tools_skipped: ["deep_pass:read_interception_unavailable"]</code> and retains the prompt-instruction mechanism (NFR-09 mechanism b). The Phase-3 module_metadata denylist filter (T17) remains as defense-in-depth layer 1.</td>
+  <td>(a) Degrade --deep with prompt-instruction-only (chosen); (b) override NFR-09 spec clause (ship without binding mechanism); (c) block --deep entirely on CC.</td>
+  <td>Spec NFR-09 explicitly documents this degradation path. T20 fixture redesigned to verify the <code>tools_skipped</code> entry rather than asserting interception. The defense is now two-layered: Phase-3 paths-never-in-payload + prompt-instruction; not three-layered as on a hypothetical wrap-capable platform.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="code-study-notes">Code Study Notes</h2>
+
+<p>Glossary inherited from spec — see <code>02_spec.html</code> for domain terminology (deletion-test, leaky/shallow/deep, disposition, godmodule, idiomatic exemption). The plan introduces no new domain terms.</p>
+
+<h3 id="patterns-to-follow">Patterns to follow</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh:94-205</code> — Python heredoc pattern (<code>python3 - "$ARG1" "$ARG2" &lt;&lt;'PY'</code>) for the loader. Reused at T3 (idiom AST walker), T9 (U011), T11 (module_metrics), T12 (risk_score), T17/T18/T19 (deep-pass payload + finalize). Heredoc receives args via <code>sys.argv</code>, emits JSON on stdout, captured by the harness via <code>$(python3 - ... &lt;&lt;'PY' ... PY)</code>.</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh:630-710</code> — delegated-tool dispatch (dependency-cruiser): probe with <code>command -v</code>, append to <code>TOOLS_ERRORED_JSON</code> on miss, otherwise shell out and parse JSON via <code>jq</code>. Mirror at T10 for <code>cycle-py</code> delegate.</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh:328-625</code> — per-rule grep evaluators (size/shape, debug/hygiene, security/safety): each rule is a function returning JSON-array findings. Reused at T4 (U004 with idiom suppression), T5 (U007 with carve-outs).</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh:786-970</code> — exemption reconciliation pattern (idiomatic vs orphan vs expired). Reused at T19 (size-class demotion in deep-pass reconciliation, FR-28).</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tests/run.sh:19-49</code> — <code>.assert</code>-script fixture runner: every new fixture under <code>tests/fixtures/&lt;name&gt;/</code> needs a <code>.assert</code> bash script that uses <code>$AUDIT</code> + <code>jq</code> to validate. Reused at every T-with-fixture (T3, T4, T5, T6, T7, T8, T9, T10, T13, T14, T15, T16, T17, T18, T19, T24).</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/principles.yaml:7-9</code> — schema_version + rule list shape. T1 bumps to <code>schema_version: 2</code> and renames the per-rule <code>severity:</code> key to <code>disposition:</code>, adds new rules at the end of the list (T6 ruff, T9 U011, T10 PY009).</li>
+  <li><code>02_spec.html §10.2</code> — JSON sidecar shape v2. The harness <code>jq -n</code> assembly call (existing at <code>run-audit.sh:1113</code>) gets rewritten to emit this shape; reused as the canonical JSON shape across T1, T11, T12, T13, T14, T15, T17, T18, T19.</li>
+  <li><code>02_spec.html §6.2</code> sequence diagram — the wire shape between <code>run-audit.sh</code> and the subagent. T17/T18 implement the orchestrator side per PD6 (two-phase invocation: <code>--deep-prep</code> + <code>--deep-finalize</code>).</li>
+</ul>
+
+<h3 id="existing-code-to-reuse">Existing code to reuse</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> — file scanner (FR-40/41/42/43), 3-tier loader, exemption reconciliation, ADR-reconcile pattern. <em>T1, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T17, T19, T20, T21 all edit this file.</em></li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — fixture runner. <em>No edits; consumes the new fixtures by glob.</em></li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/tools/check-citations.sh</code> + <code>tools/check-gap-map.sh</code> — regression tests for <code>principles.yaml</code> + <code>l1-rationales.md</code> + <code>gap-map-rationale.md</code>. <em>T22 must keep these passing after the rename + new-rule additions; T22 does not edit them.</em></li>
+  <li><code>_shared/html-authoring/template.html</code> + <code>assets/style.css</code> + <code>assets/viewer.js</code> + <code>assets/build_sections_json.js</code> + <code>assets/html-to-md.js</code> — substrate referenced by FR-61. <em>T1 + T2 wire this in (substrate-per-spec confirmed at Loop 1; PD7 historical context only).</em></li>
+  <li><code>plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh</code> — Phase 6a + /verify rerun gate. <em>No edits; consumed at TN and at /verify.</em></li>
+</ul>
+
+<h3 id="constraints-discovered">Constraints discovered</h3>
+<ul>
+  <li><strong>Subagent dispatch is not a shell command.</strong> The Task tool is a harness-platform primitive. <code>run-audit.sh</code> cannot invoke it from bash. PD6 documents the two-phase wrapper that addresses this; missing this constraint at planning time would invalidate all of T17/T18.</li>
+  <li><strong>PyYAML unquoted ISO date coercion.</strong> The existing loader (<code>run-audit.sh:162-176</code>) carries a <code>_stringify_dates</code> helper because <code>yaml.safe_load</code> auto-coerces unquoted dates to <code>datetime.date</code> objects, which <code>json.dumps</code> refuses. Any new YAML reads (T16 <code>--scaffold-l3</code> output verification fixtures, L3 override parsing in T17) must reuse this helper.</li>
+  <li><strong>Hardcoded deny-list is path-segment match, not glob.</strong> See <code>run-audit.sh:82-85</code>. T20's secret-file denylist (NFR-09) needs glob semantics (<code>**/.env</code>, <code>**/*.pem</code>); cannot reuse the existing path-segment matcher. Implement separately as a <code>fnmatch.fnmatch</code> loop in the dispatcher wrapper (<code>tools/dispatch-deep-pass.sh</code> per PD6).</li>
+  <li><strong>L3 cannot raise an L1 universal rule's severity below <code>warn</code> (FR-11 in v1).</strong> v2 changes this: the FR-11 constraint becomes "L3 may set any disposition for any rule, including <code>wont_fix</code>". Spec D14 confirms; T1 + T22 update the SKILL.md anti-pattern accordingly.</li>
+  <li><strong>The <code>jq -n</code> report assembly at <code>run-audit.sh:1113</code> is a single ~150-line jq expression.</strong> Refactoring it incrementally (T11 adds <code>module_metrics</code>, T12 adds <code>risk_score</code> per finding, T15 adds <code>diff{}</code>, T19 adds <code>deep_pass</code>) requires touching the same anchor on every task. Coordinate via clear comment markers (<code># T11: module_metrics insertion point</code>, etc.) so per-task diffs stay reviewable.</li>
+  <li><strong>Existing <code>tools/check-determinism.sh</code> is invoked by no fixture <code>.assert</code> script</strong> (verified by grep). T21 deletion is safe; no test file depends on it.</li>
+  <li><strong>Vue SFC coverage gap (existing FR-50/51/52) is preserved.</strong> The new monorepo path (T7/T8) does not touch this; <code>coverage_gaps[]</code> remains populated for <code>.vue</code> files when dep-cruiser cannot parse them. T24 fixture suite preserves <code>tests/fixtures/vue-mixed/</code>.</li>
+</ul>
+
+<h3 id="stack-signals">Stack signals</h3>
+<ul>
+  <li><strong>Detected stacks:</strong> Bash 5.x (POSIX-compatible per spec NFR-03 portability) + Python 3.8+ with PyYAML + Node.js (for the <code>html-to-md.js</code> substrate tool). Manifest signals: <code>plugins/pmos-toolkit/skills/architecture/package.json</code> (substrate dep marker), no top-level <code>pyproject.toml</code> (the harness runs Python via heredoc with <code>python3</code> on PATH; pyyaml expected via system or venv).</li>
+  <li><strong>Test runner:</strong> bash <code>tests/run.sh</code> (custom fixture runner) — see <code>plugins/pmos-toolkit/skills/architecture/tests/run.sh</code>. No pytest, no Jest. New fixtures use the same <code>.assert</code> + <code>$AUDIT</code> + <code>jq</code> shape (PD8).</li>
+  <li><strong>Lint:</strong> shellcheck on <code>tools/*.sh</code> (existing convention; not blocking but used in pre-push). Python heredocs are not linted (limitation of inline form). New <code>tools/cycle-py.py</code> standalone file is lintable: <code>python3 -m py_compile tools/cycle-py.py</code> + <code>python3 -m mypy --strict tools/cycle-py.py</code> if mypy is on PATH (graceful skip otherwise per <code>tools_errored[]</code> contract).</li>
+  <li><strong>Reference stack file:</strong> none directly applicable in <code>_shared/stacks/</code> for this hybrid bash+inline-Python skill; the reference system is the existing <code>tools/run-audit.sh</code> itself (1,256 LOC of working precedent — every new evaluator follows its dispatcher pattern).</li>
+</ul>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>Working tree clean (Phase 0a worktree + base-drift checks already passed; resume cursor positioned at this plan).</li>
+  <li><code>jq</code> ≥ 1.6, <code>python3</code> ≥ 3.8 with <code>pyyaml</code>, <code>node</code> on PATH (for substrate <code>html-to-md.js</code>), <code>git</code> ≥ 2.25 — same prereqs as v1.</li>
+  <li><code>npx dependency-cruiser</code> (optional, for the existing TS rules — gracefully degrades).</li>
+  <li><code>ruff</code> ≥ 0.5 on PATH (used by PY001-PY008; gracefully degrades to <code>tools_errored[]</code>).</li>
+  <li>Read access to a clone of <code>book-companion</code> at the pinned SHA (manual gate at /verify Phase 7 — not required during /execute, but validate the path resolves before TN).</li>
+  <li><code>{docs_path}/architecture/</code> directory may not yet exist; T1 creates it via <code>mkdir -p</code>.</li>
+</ul>
+
+<h2 id="file-map">File Map</h2>
+
+<table>
+<thead><tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr></thead>
+<tbody>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code></td><td>Bump to <code>schema_version: 2</code>; rename every <code>severity:</code> → <code>disposition:</code> with value-map (block→must_fix, warn→should_fix, info→wont_fix); set U007 default <code>wont_fix</code>; append PY005-PY008 (4 rules), PY009 (cycle), U011 (dup-signature).</td><td>T1, T5, T6, T9, T10</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code></td><td>Surgical edits across 16 tasks: arg parser (new flags), idiom AST walker, U004 suppression, U007 default-off, monorepo detection + fan-out, U011 + PY009 dispatchers, module_metrics + godmodule + risk_score, --since/--baseline, --scaffold-l3, --deep-prep / --deep-finalize, secret-guard wrapper, ADR-write block deletion, JSON-emit block rewrite for triplet.</td><td>T1, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T19, T20, T21</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tools/cycle-py.py</code></td><td>Tarjan SCC walker over Python module imports (~50 LOC). Stdin: scan-root path. Stdout: JSON list of cycles per spec FR-07.</td><td>T10</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tools/dispatch-deep-pass.sh</code></td><td>SKILL-level subagent-dispatch wrapper per PD6. Reads <code>--deep-prep</code> output (the payload tmpfile); the SKILL itself invokes the Task subagent (this script just shapes the prompt + writes the response to <code>&lt;tmpfile&gt;.result</code>); enforces NFR-09 secret-file Read denylist on the wrapper-injected Read calls.</td><td>T17, T18, T20</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/reference/deepening-vocabulary.md</code></td><td>Deletion-test / module / interface / implementation / depth / seam / adapter / leverage / locality vocabulary, with attribution to Matt Pocock's <code>/improve-codebase-architecture</code> in the header.</td><td>T22</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code></td><td>Frontmatter (description trigger phrases per FR-02, argument-hint per FR-01, drop <code>--no-adr</code>); insert Phase 4.5; rewrite Phase 5 (drop ADR-promotion) + Phase 6 (triplet emission); rewrite Anti-Patterns per FR-05; cite <code>reference/deepening-vocabulary.md</code>.</td><td>T23</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md</code></td><td>Rename every <code>**Severity:**</code> → <code>**Disposition:**</code> with value-map. Add new sections for U011 (and a cross-link note from U007 to the carve-out).</td><td>T22</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/reference/gap-map-rationale.md</code></td><td>Add <code>cycle-py</code> delegate row + U011 grep-with-AST row + ruff-rule extension rationale (PY005-PY008).</td><td>T22</td></tr>
+<tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/architecture/reference/adr-template.md</code></td><td>Removed per spec FR-04 (ADR machinery deletion).</td><td>T21</td></tr>
+<tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/architecture/tools/check-determinism.sh</code></td><td>Removed per spec FR-08; users self-check via <code>--baseline</code>.</td><td>T21</td></tr>
+<tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/determinism/</code></td><td>Removed per spec FR-08.</td><td>T21</td></tr>
+<tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/adr-cap/</code>, <code>adr-reconcile/</code>, <code>adr-write/</code>, <code>citations-missing/</code> (one ADR-related), <code>l3-malformed/</code> (ADR-related)</td><td>5 ADR-flow fixture dirs removed per spec §14.2 "remove the adr-* fixture set".</td><td>T21</td></tr>
+<tr><td>Test</td><td>13 new fixture dirs under <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/</code></td><td><code>typer-mixed/</code>, <code>click-cli/</code>, <code>u007-default-off/</code>, <code>u007-init-py/</code>, <code>monorepo-no-flag/</code>, <code>monorepo-fan-out/</code>, <code>risk-score-ordering/</code>, <code>py-complexity/</code>, <code>py-branches/</code>, <code>py-magic-values/</code>, <code>py-unused-args/</code>, <code>py-cycle/</code>, <code>dup-signature/</code>, <code>since-baseline-and/</code>, <code>baseline-schema-v1/</code>, <code>baseline-index-no-monorepo/</code>, <code>scaffold-l3-fresh/</code>, <code>scaffold-l3-existing/</code>, <code>legacy-principles-severity/</code>, <code>output-triplet/</code>, <code>deep-pass-validation-fail/</code>, <code>deep-pass-no-tool-use/</code>, <code>deep-pass-size-class-demotion/</code>. Each carries a <code>.assert</code> bash script per the existing pattern (PD8).</td><td>T24 (and per-feature tasks T4, T5, T6, T7, T8, T9, T10, T13, T14, T15, T16, T17, T18, T19 each add their fixture as the task's TDD step)</td></tr>
+</tbody>
+</table>
+
+<h2 id="risks">Risks</h2>
+
+<table>
+<thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in:</th></tr></thead>
+<tbody>
+<tr><td>R1</td><td>Subagent return-shape drift: the Task tool's response shape (per PD6) may not exactly match the verbatim template in spec §6.2. Validation hard-fails (FR-26 "any miss") and the deep-pass produces no output even on a healthy run.</td><td>Medium</td><td>High</td><td>High</td><td>T18 fixture <code>tests/fixtures/deep-pass-validation-fail/</code> uses a recorded subagent response with one hallucinated path to verify validation fires; T18 fixture <code>tests/fixtures/deep-pass-happy-path/</code> (new addition to the spec's 13) records a known-good response to verify the happy path. Both fixtures are static JSON files, decoupling validation logic from Task tool runtime behaviour. PD6 wrapper logs the raw subagent response under <code>{tmpfile}.result.raw</code> for forensics.</td><td>T18</td></tr>
+<tr><td>R2</td><td>book-companion regression target (≤120 findings) may not be hit if Typer/Click idiom AST detection has gaps the spec's FR-30/FR-31 didn't anticipate (e.g., decorator factories like <code>@app.command(name="x")</code>).</td><td>Medium</td><td>High</td><td>High</td><td>T3 fixture explicitly covers decorator-call form (<code>@app.command()</code>, <code>@click.command(name="hello")</code>, <code>@click.group(invoke_without_command=True)</code>), not just bare decorator. T4 manual triage step at TN: jq the U004 findings on book-companion <code>backend/</code>; visually verify ≤5% are CLI-handler false positives. If the rate exceeds, file a follow-up before claiming G1.</td><td>T3, T4, TN</td></tr>
+<tr><td>R3</td><td>Substrate integration (PD7 caveat) may produce HTML that fails the kebab-case ID assertion (sections.json mismatch) on first wire-up, blocking T1's tracer bullet.</td><td>Medium</td><td>Medium</td><td>Medium</td><td>T1 includes a smoke step asserting <code>build_sections_json.js</code> output matches the inlined sections.json; T2 explicitly handles the substrate copy + assert-heading-ids gate as its own task. PD7 also offers the inline-CSS escape hatch if the substrate path proves intractable in review.</td><td>T1, T2, PD7 review-loop disposition</td></tr>
+<tr><td>R4</td><td>Schema-v2 breaking bump may silently break a downstream CI consumer that hardcodes <code>severity:</code> in a jq query (no in-repo CI uses the JSON sidecar today, but external consumers may exist).</td><td>Low</td><td>High</td><td>Medium</td><td>T15 fixture <code>baseline-schema-v1/</code> verifies the loud parse-error with the exact rename hint message. CHANGELOG entry at /complete-dev (not in /execute) explicitly calls out the rename. README row mentions the breaking change.</td><td>T15, /complete-dev release prereqs</td></tr>
+<tr><td>R5</td><td>Peer-plan conflict: <code>docs/pmos/features/2026-05-13_architecture-principles-skill/03_plan.html</code> (status <code>Draft</code> in its meta tag) touches the same files. The peer plan is the predecessor that shipped as v2.48.0; its Draft status is stale.</td><td>Low</td><td>Low</td><td>Low</td><td>Inspection confirms the peer plan describes the v1 ADR/severity world this plan replaces. No coordination needed; if the peer plan's status meta tag matters elsewhere, /complete-dev can flip it to <code>Shipped</code> as part of release housekeeping.</td><td>(no task; observability note)</td></tr>
+<tr><td>R6</td><td>NFR-09 secret-file denylist enforcement (orchestrator-side path filter in <code>dispatch-deep-pass.sh</code>) is hardcoded; a real secret living at a non-listed path (e.g., <code>**/private_key.txt</code>) leaks to the subagent.</td><td>Low</td><td>High</td><td>Medium</td><td>T20 implements the documented denylist verbatim from NFR-09; T20 fixture verifies a stub return for each pattern. Spec NFR-09's "defense-in-depth" wording is preserved (orchestrator + prompt-instruction). Adding more patterns is a backward-compatible append; documented as a follow-up.</td><td>T20</td></tr>
+<tr><td>R7</td><td>Module count >5,000 hard-error (FR-23) on a real monorepo (e.g., a Bazel super-repo) blocks <code>--deep</code> with no immediate workaround for the user.</td><td>Low</td><td>Medium</td><td>Low</td><td>FR-23 documents the <code>ARCH_DEEP_NO_CAP=1</code> bypass env var; T17 implements it; SKILL.md Phase 4.5 prose mentions it explicitly per FR-23. User can also audit a sub-tree.</td><td>T17, T23</td></tr>
+<tr><td>R8</td><td>Same-day re-run slug collision FR-60 (append <code>-2</code>, <code>-3</code>, ...) is racey under concurrent runs (G3 in spec review log, dispositioned "defer").</td><td>Low</td><td>Low</td><td>Low</td><td>Acknowledged as deferred per spec; no plan task addresses this. Documented as a known limitation in SKILL.md Anti-Patterns (T23).</td><td>T23 (documentation only)</td></tr>
+<tr><td>R9 <em>(Loop 2)</em></td><td>PY005-PY008 (ruff complexity / branches / magic / unused-args) fire heavily on Typer/Click command handlers (long arg lists, magic CLI defaults, unused <code>ctx</code> params), amplifying noise on book-companion <code>backend/</code> and regressing the 586 → ≤120 target.</td><td>Medium</td><td>Medium</td><td>Medium</td><td>T6 dry-run on book-companion before merging T6's commit; if noise delta > 30%, T6 gets an optional extension that ships an L3-default exemption for <code>@*.command</code>-decorated functions on PY006/PY008 (mirrors the U004 idiom suppression shape, T3/T4). Surfaced as TN verification step.</td><td>T6, TN</td></tr>
+</tbody>
+</table>
+
+<h2 id="rollback">Rollback</h2>
+
+<p>This is a breaking schema bump (D5) and a coordinated release. Per-task rollback during /execute is via <code>git revert &lt;task-commit-sha&gt;</code>; tasks commit per-task (commit_cadence: per-task) so each task is independently revertable. Post-release rollback: revert the merge commit; users with v1 baseline JSONs cannot consume v2 output (and vice versa). Mitigation per spec §15.2: thorough Phase 6a + Phase 7 /verify gating, plus the manual book-companion regression at /verify Phase 7 before /complete-dev runs.</p>
+
+<ul>
+  <li>If TN fails after the schema rename has landed (T1) but before the new evaluators are in: the partial commits are revertable individually, but the test fixture suite will fail until the rename and the new rules are coherent. Recovery: keep going; do not partially revert mid-execute.</li>
+  <li>If the deep-pass dispatch wrapper (PD6) proves harness-incompatible mid-T17/T18: skip <code>--deep</code> for the release; ship with mechanical-only behaviour (the runtime probe already short-circuits gracefully). Documented as a degradation in CHANGELOG.</li>
+  <li>If book-companion regression at /verify Phase 7 reports >120 findings on <code>backend/</code>: do not /complete-dev. Open a follow-up task to tune idiom detection (likely scope: extend FR-31 detector list with the missing decorator forms found by manual triage); re-run /verify.</li>
+</ul>
+
+<h2 id="tasks">Tasks</h2>
+
+<div class="task">
+<h3 id="t1">T1: Tracer bullet — schema_version 2 + disposition rename + triplet emission for empty-finding case</h3>
+<p class="meta-line"><strong>Goal:</strong> A clean repo (no findings) produces the HTML+MD+JSON triplet at <code>{docs_path}/architecture/{date}_&lt;slug&gt;.{html,md,json}</code> with disposition-axis sections, empty stdout, and the documented stderr summary line — proving the schema rename + substrate wiring + atomic triplet write end-to-end.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-04, FR-40, FR-60, FR-61, FR-63, FR-64, FR-65, FR-66; D5 (schema bump); D12 (triplet output); D17 (empty stdout)</p>
+<p class="meta-line"><strong>Slice shape:</strong> vertical (tracer bullet — minimal end-to-end path through the riskiest unproven point: substrate integration from bash via PD7 caveat).</p>
+<p class="meta-line"><strong>Depends on:</strong> none</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/output-triplet/</code> (with empty <code>src/main.py</code>, <code>.assert</code>); Modify: <code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code> (schema_version: 2; severity → disposition); Modify: <code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (rename internal <code>severity</code> handling; rewrite the JSON-emit block at <code>~lines 1100-1160</code> to emit triplet + stderr summary; delete stdout-JSON emission); Modify: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/principles-16-rules/</code> (rename .assert key); Test: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/output-triplet/.assert</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Failing fixture: <code>tests/fixtures/output-triplet/</code> with one empty <code>src/main.py</code> + <code>.assert</code> that runs <code>$AUDIT</code>, asserts <code>test -f docs/pmos/architecture/$(date +%F)_$(basename "$PWD").html</code> AND <code>test -f *.md</code> AND <code>test -f *.json</code>, asserts stdout is empty (<code>$($AUDIT 2>/dev/null | wc -c)</code> = 0), asserts stderr matches the regex <code>^Wrote .*\.html: 0 Must Fix, 0 Should Fix, 0 Won't Fix in [0-9]+ files$</code>, and asserts <code>jq '.schema_version == 2'</code> on the JSON.</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — expect FAIL (output-triplet fixture failing).</li>
+<li>[ ] Edit <code>principles.yaml</code>: bump <code>schema_version: 1</code> → <code>2</code>; rename every <code>severity:</code> key to <code>disposition:</code> with value map (block→must_fix, warn→should_fix, info→wont_fix). Comment header gets an explicit "v2 breaking" note.</li>
+<li>[ ] Edit <code>run-audit.sh</code> loader: error-message string for legacy <code>severity:</code> key in user L3 — exact string per E7: <code>principles.yaml uses legacy 'severity:' key; rename to 'disposition:' (block→must_fix, warn→should_fix, info→wont_fix).</code></li>
+<li>[ ] Edit <code>run-audit.sh</code> JSON emit (~line 1113): rewrite the <code>jq -n</code> assembly to emit the v2 shape per spec §10.2 — <code>schema_version: 2</code>, <code>config{}</code>, <code>scanned{}</code>, <code>findings[]</code> with <code>disposition</code> not <code>severity</code>, empty <code>exemptions</code>/<code>module_metrics</code>/<code>godmodule_candidates</code>/<code>cycles</code>/<code>monorepo_detected</code> arrays, <code>deep_pass: { dispatched_at: null, seed_hint: [], candidates: [], skipped_reason: null }</code>, <code>tools_errored: []</code>, <code>tools_skipped: []</code>, <code>coverage_gaps: []</code>.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: introduce <code>emit_triplet()</code> bash function — args (<code>$json</code>, <code>$slug</code>, <code>$date</code>); behaviour: <code>mkdir -p {docs_path}/architecture/</code> (resolve <code>{docs_path}</code> from <code>.pmos/settings.yaml</code> via the existing settings.yaml reader pattern; default <code>docs/pmos/</code>); same-day collision: append <code>-2</code>, <code>-3</code>, ... per FR-60; copy substrate <code>assets/*</code> idempotently from <code>$SKILL_DIR/../../_shared/html-authoring/assets/</code> to <code>{docs_path}/architecture/assets/</code>; render HTML from substrate <code>template.html</code> with empty-section stubs (Must Fix (0) / Should Fix (0) / Won't Fix (0) / Architecture metrics (0 godmodule_candidates) / Run metadata) and kebab-case IDs on every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>; substitute <code>?v=&lt;plugin-version&gt;</code> on every asset URL (read version from <code>$SKILL_DIR/../../.claude-plugin/plugin.json</code>); emit companion <code>{date}_&lt;slug&gt;.sections.json</code> via <code>node $ARCH_DIR/assets/build_sections_json.js</code>; write triplet via temp-then-rename in HTML→MD→JSON order per PD5; emit stderr summary line.</li>
+<li>[ ] Delete the existing stdout-JSON emit (<code>echo "$REPORT_JSON"</code> at the end of <code>run-audit.sh</code>); replace with a no-op (stdout is empty per FR-66 / D17).</li>
+<li>[ ] Update <code>tests/fixtures/principles-16-rules/.assert</code> to use <code>disposition</code> key (the existing fixture's assertion currently references <code>severity</code>).</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh 2>&1 | tail -5</code> — expect <code>output-triplet</code> PASS; expect <code>principles-16-rules</code> PASS; other fixtures may fail (their .assert scripts still reference severity; T22 + T24 fix them).</li>
+<li>[ ] Commit: <code>git add plugins/pmos-toolkit/skills/architecture/{principles.yaml,tools/run-audit.sh,tests/fixtures/output-triplet,tests/fixtures/principles-16-rules}; git commit -m "feat(T1): schema v2 disposition rename + triplet emission tracer"</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>shellcheck plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> — no new errors.</li>
+  <li><code>cd /tmp && mkdir empty-trace && cd empty-trace && git init -q && bash $SKILL_DIR/tools/run-audit.sh audit . 2>&1 1>/dev/null | tail -1</code> — must match the documented stderr summary regex.</li>
+  <li><code>bash $SKILL_DIR/tools/run-audit.sh audit . > /tmp/stdout 2>/dev/null; test ! -s /tmp/stdout</code> — stdout is empty.</li>
+  <li><code>jq -e '.schema_version == 2 and (.findings | length == 0) and (.config.flags | has("deep")) and (.deep_pass.skipped_reason == null)' docs/pmos/architecture/$(date +%F)_*.json</code> — JSON shape conforms.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t2">T2: Substrate copy idempotence + heading-id assert + sections.json companion</h3>
+<p class="meta-line"><strong>Goal:</strong> Re-running the audit twice in the same day does not duplicate or corrupt <code>{docs_path}/architecture/assets/</code>; <code>build_sections_json.js</code> output matches the HTML's emitted heading IDs; PD7's caveat receives an explicit Phase 4 review prompt entry.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-61 (substrate + cache-bust + sections.json + kebab IDs)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes (<code>cp -n</code> on substrate copy; second-run path resolves to <code>-2</code> slug per FR-60)</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Test: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/output-triplet/.assert</code> (extend); Modify: <code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (substrate-copy guard + sections.json + assert-heading-ids inline check).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Extend <code>output-triplet/.assert</code>: after the first <code>$AUDIT</code> run, snapshot <code>md5</code> of <code>{docs_path}/architecture/assets/style.css</code>; run <code>$AUDIT</code> a second time; assert the md5 is unchanged AND the second run's HTML lands at <code>{date}_&lt;slug&gt;-2.html</code> per FR-60.</li>
+<li>[ ] Extend the .assert: after first run, parse the HTML with a Python one-liner asserting every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> has an <code>id="&lt;kebab&gt;"</code> attribute; parse the companion <code>.sections.json</code> and assert its <code>ids[]</code> array equals the set of <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> IDs in the HTML.</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — expect FAIL (idempotence/IDs not yet enforced).</li>
+<li>[ ] Edit <code>run-audit.sh emit_triplet()</code>: substrate copy uses <code>cp -n</code> (no-clobber); sections.json invocation uses <code>node $ARCH_DIR/assets/build_sections_json.js &lt;html-path&gt; &gt; &lt;sections-json-path&gt;</code>; HTML emitter passes a <code>kebab_id()</code> helper over every section heading (lower, replace non-alnum runs with <code>-</code>, trim, dedupe); add an inline assert-heading-ids step (Python heredoc over the rendered HTML) that exits 1 on any missing id.</li>
+<li>[ ] Run: same fixture command — expect PASS.</li>
+<li>[ ] Commit: <code>git add ...; git commit -m "feat(T2): substrate copy idempotence + sections.json companion + kebab-id assert"</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>cd /tmp/empty-trace && bash $SKILL_DIR/tools/run-audit.sh audit . 2>/dev/null && bash $SKILL_DIR/tools/run-audit.sh audit . 2>/dev/null && ls docs/pmos/architecture/*.html | wc -l</code> → 2.</li>
+  <li><code>node $ARCH_DIR/assets/build_sections_json.js docs/pmos/architecture/$(date +%F)_*.html | jq -e '(.ids | length) > 0'</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t3">T3: Idiom AST walker — Typer / Click / Fire / argparse decorator detection with name-resolution map</h3>
+<p class="meta-line"><strong>Goal:</strong> Per Python file in scan, build a <em>name-resolution map</em> from imports and collect line ranges of every function whose decorator (bare, dotted, or aliased) resolves to a CLI-framework root identifier. Output <code>exempt_ranges[]</code> per file as JSON.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-30, FR-31, D13 (function-scoped not file-level), E9 (helper-function carve-out)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Test: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/typer-mixed/</code> (cli.py with <code>@app.command def hello(): print("hi")</code> AND <code>def _internal(): print("debug")</code>; .assert); Test: <code>tests/fixtures/click-cli/</code> (same shape with <code>@click.command</code>); Modify: <code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (insert idiom-walker Python heredoc in Phase 3 after the file scanner; emit <code>EXEMPT_RANGES_JSON</code> map of file → ranges).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write fixture <code>typer-mixed/src/cli.py</code> with: <code>import typer\napp = typer.Typer()\n@app.command\ndef hello():\n    print("hi")\ndef _internal():\n    print("debug")</code>. <code>.assert</code> runs <code>$AUDIT</code> and asserts <code>jq '.exemptions.idiomatic | length == 1 and .[0].framework == "typer"'</code>; asserts <code>jq '.exemptions.idiomatic[0].exempt_ranges[0].start == 4 and .[0].exempt_ranges[0].end == 5'</code>; asserts U004 finding count is 1 (helper print only) — verified after T4 lands but the fixture lands now and is part of the wave.</li>
+<li>[ ] Write fixture <code>click-cli/</code> with same shape using <code>import click\n@click.command\ndef hello(): ...</code>; aliased variant <code>import click as c\n@c.command</code> in a sibling file to verify FR-30 name-resolution works.</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — expect FAIL (idiom walker not implemented).</li>
+<li>[ ] Edit <code>run-audit.sh</code> Phase 3: insert a Python heredoc after file enumeration that — for every <code>.py</code> in the file list — parses with <code>ast.parse</code>, walks <code>Import</code>/<code>ImportFrom</code> to build name-resolution map (<code>local_name → fully_qualified_module</code>) per FR-30, then walks <code>FunctionDef</code>/<code>AsyncFunctionDef</code> nodes; collects (start_line, end_line) for any function whose <code>decorator_list</code> contains a decorator whose root identifier resolves through the map to one of {<code>typer</code>, <code>click</code>, <code>fire</code>, <code>argparse</code>} per FR-31. Handle bare (<code>@click.command</code>), dotted (<code>@app.command</code> where <code>app = typer.Typer()</code>), aliased (<code>@c.command</code>), and decorator-call (<code>@app.command()</code>, <code>@click.command(name="x")</code>) forms.</li>
+<li>[ ] Emit <code>EXEMPT_RANGES_JSON</code> as <code>{<file>: {framework, exempt_ranges: [{start, end}, ...]}}</code> for downstream T4 consumption. Surface in the final report as <code>exemptions.idiomatic[]</code>.</li>
+<li>[ ] Run: same fixture command — expect typer-mixed and click-cli PASS for the <code>exemptions.idiomatic</code> assertion (the U004 count assertion still pending T4).</li>
+<li>[ ] Commit: <code>feat(T3): idiom AST walker with FR-30 name-resolution map</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Run on typer-mixed: <code>jq -e '.exemptions.idiomatic | map(.framework) | sort | unique == ["typer"]'</code></li>
+  <li>Smoke aliased import: write a 5-line file <code>import click as c\n@c.command\ndef foo(): pass</code>; assert exempt_ranges contains the function range.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t4">T4: U004 suppression by exempt_ranges + idiomatic-exemption surfacing under Won't Fix</h3>
+<p class="meta-line"><strong>Goal:</strong> The U004 evaluator suppresses any <code>print(</code> match whose line falls inside an <code>exempt_ranges[]</code> entry on the same file; the suppressed-and-still-recorded provenance lands under <code>exemptions.idiomatic[]</code> in the JSON sidecar (NFR-08 audit trail) and renders under Won't Fix &gt; Idiomatic exemptions in the HTML.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-32, NFR-08, E9, D13, D6</p>
+<p class="meta-line"><strong>Depends on:</strong> T3</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (U004 evaluator at <code>~lines 380-430</code>: filter findings against <code>EXEMPT_RANGES_JSON</code>); Modify: HTML emitter (<code>emit_triplet()</code>) to render the Won't Fix &gt; Idiomatic exemptions sub-section; Test: <code>typer-mixed/.assert</code> (extend with the U004 suppression assertion + helper-print still-flagged assertion).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Extend <code>typer-mixed/.assert</code>: assert <code>jq '[.findings[] | select(.rule_id=="U004") | .file] | length == 1'</code> (helper print only) AND assert <code>jq '[.findings[] | select(.rule_id=="U004" and .line == 5)] | length == 0'</code> (decorated function's print at line 5 is suppressed) AND assert HTML contains the substring <code>id="idiomatic-exemptions"</code> with a row mentioning <code>cli.py</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL (U004 still flags everything).</li>
+<li>[ ] Edit U004 evaluator in <code>run-audit.sh</code>: after collecting candidate U004 matches, filter against <code>EXEMPT_RANGES_JSON[file]</code> — any match whose line falls within any <code>(start, end)</code> range (inclusive) is dropped from <code>findings[]</code> and recorded under <code>EXEMPTIONS_IDIOMATIC_JSON</code>.</li>
+<li>[ ] Edit <code>emit_triplet()</code> HTML renderer: under <code>&lt;section id="wont-fix"&gt;&lt;details&gt;</code>, render <code>&lt;h3 id="idiomatic-exemptions"&gt;Idiomatic exemptions&lt;/h3&gt;</code> with a <code>&lt;table&gt;</code> of one row per <code>exemptions.idiomatic[]</code> entry (columns: framework | file | exempt_ranges count).</li>
+<li>[ ] Run: same fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T4): U004 suppression by exempt_ranges + idiomatic-exemption rendering</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '.exemptions.idiomatic[0].exempt_ranges | length >= 1' &lt;json&gt;</code></li>
+  <li>HTML smoke: <code>grep -F 'id="idiomatic-exemptions"' &lt;html&gt;</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t5">T5: U007 default-off + carve-outs (LOC > 100 + no module docstring ≥ 40 chars + not __init__.py)</h3>
+<p class="meta-line"><strong>Goal:</strong> U007 is <code>disposition: wont_fix</code> by default in plugin-shipped <code>principles.yaml</code>; <code>--include-info-comments</code> OR L3 override <code>rules.U007.disposition: should_fix</code> enables it; when enabled, fires only on files with LOC > 100 AND no module-level docstring of ≥40 chars (after stripping whitespace + quotes) AND filename ≠ <code>__init__.py</code>.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-33, D7</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>principles.yaml</code> (U007 disposition: wont_fix); Modify: <code>run-audit.sh</code> (arg parser: --include-info-comments; U007 evaluator: gate by disposition + carve-outs); Test: <code>tests/fixtures/u007-default-off/</code>, <code>tests/fixtures/u007-init-py/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write <code>u007-default-off/src/big.py</code> with 150 lines, no docstring; <code>.assert</code> runs <code>$AUDIT</code>, asserts <code>jq '[.findings[] | select(.rule_id=="U007")] | length == 0'</code> (default off); re-runs with <code>$AUDIT . --include-info-comments</code>, asserts length == 1.</li>
+<li>[ ] Write <code>u007-init-py/src/foo/__init__.py</code> with 150 lines, no docstring; <code>.assert</code> runs <code>$AUDIT . --include-info-comments</code>, asserts U007 finding count is 0 (carve-out).</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>principles.yaml</code> U007: <code>disposition: wont_fix</code>.</li>
+<li>[ ] Edit <code>run-audit.sh</code> arg parser: accept <code>--include-info-comments</code> as a no-arg flag, set <code>INCLUDE_INFO_COMMENTS=1</code>; record in <code>config.flags.include_info_comments</code>.</li>
+<li>[ ] Edit U007 evaluator: short-circuit when <code>(effective_disposition == wont_fix) AND (INCLUDE_INFO_COMMENTS == 0)</code>; when enabled, gate by carve-outs — count non-blank LOC, parse <code>ast.get_docstring(module)</code> and check stripped length ≥ 40, check basename != <code>__init__.py</code>.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T5): U007 default-off with --include-info-comments + carve-outs</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Smoke: <code>$AUDIT some-150-loc-py-file/</code> reports zero U007; <code>$AUDIT some-150-loc-py-file/ --include-info-comments</code> reports 1.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t6">T6: PY005-PY008 ruff additions (C901 / PLR0911-15 / PLR2004 / ARG001-002)</h3>
+<p class="meta-line"><strong>Goal:</strong> Four new ruff rules wired through the existing dispatcher (Phase 4 ruff path), each with <code>delegate_to: ruff</code>, <code>disposition: should_fix</code>, source citation, why rationale.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-38</p>
+<p class="meta-line"><strong>Depends on:</strong> T1 (schema v2 in place)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>principles.yaml</code> (append PY005-PY008); Modify: <code>run-audit.sh</code> (ruff dispatcher at <code>~lines 706-780</code>: extend the rule-id → ruff-code map); Test: <code>tests/fixtures/py-{complexity,branches,magic-values,unused-args}/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write the four fixtures: <code>py-complexity/src/main.py</code> with cyclomatic complexity > 10; <code>py-branches/src/main.py</code> with 16 branches; <code>py-magic-values/src/main.py</code> with <code>if x == 42:</code> repeated 3 times; <code>py-unused-args/src/main.py</code> with <code>def f(a, b, c): return a + b</code>. Each <code>.assert</code> asserts the rule fires once.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>principles.yaml</code>: append PY005 (<code>ruff:C901</code>), PY006 (<code>ruff:PLR0911,PLR0912,PLR0913,PLR0915</code>), PY007 (<code>ruff:PLR2004</code>), PY008 (<code>ruff:ARG001,ARG002</code>) — each with <code>tier: 2</code>, <code>stack: py</code>, <code>delegate_to: ruff</code>, <code>disposition: should_fix</code>, source URL, why.</li>
+<li>[ ] Edit <code>run-audit.sh</code> ruff dispatcher: extend the ruff-code → pmos-rule-id map to include the new codes; ruff-output-parsing path already handles arbitrary rule codes (verify the existing per-line jq filter handles the new codes; if not, extend it).</li>
+<li>[ ] Run: fixtures — expect PASS (assuming <code>ruff</code> is on PATH; otherwise fixtures should declare <code>tools_errored</code> and exit 0 per FR-32 graceful-degrade).</li>
+<li>[ ] Commit: <code>feat(T6): add PY005-PY008 ruff rules</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '[.config.rules_loaded.l2_py_count] | .[0] >= 8'</code> on the JSON.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t7">T7: Depth-2 monorepo detection + warn-only when --monorepo absent</h3>
+<p class="meta-line"><strong>Goal:</strong> Phase 1 walks each direct child directory when scan-root has no stack markers; populates <code>monorepo_detected[]</code>; emits stderr warning + exits 0 with empty <code>findings[]</code> when <code>--monorepo</code> is absent.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-34, FR-35, D8, E8</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (Phase 1: depth-2 walk; arg parser: <code>--monorepo</code> flag); Test: <code>tests/fixtures/monorepo-no-flag/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write <code>monorepo-no-flag/backend/pyproject.toml</code> + <code>frontend/package.json</code> (no stack markers at root). <code>.assert</code> asserts <code>jq '.monorepo_detected | length == 2'</code>; asserts stderr (captured via <code>2>&amp;1 1>/dev/null</code>) matches <code>No stack markers at scan root; found</code>; asserts <code>jq '.findings | length == 0'</code>; exit code 0.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>run-audit.sh</code> arg parser: accept <code>--monorepo</code> flag, set <code>MONOREPO=1</code>; record in <code>config.flags.monorepo</code>.</li>
+<li>[ ] Edit Phase 1 (loader): when scan-root <code>has_pkg+has_tsc == false AND has_py == false</code>, walk every direct child dir; populate <code>monorepo_detected[]</code> with <code>{name, stack, manifest_path}</code> entries.</li>
+<li>[ ] When <code>monorepo_detected</code> is non-empty AND <code>MONOREPO == 0</code>: emit stderr warning per FR-35, set <code>findings = []</code>, skip remaining phases, emit triplet with empty findings, exit 0.</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T7): depth-2 monorepo detection + warn-only path</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>cd /tmp && mkdir -p mr/backend mr/frontend && touch mr/backend/pyproject.toml mr/frontend/package.json && cd mr && bash $SKILL_DIR/tools/run-audit.sh audit . 2>&1 1>/dev/null | head -3</code> — should print the warning.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t8">T8: --monorepo fan-out + per-stack triplet + index.{html,json}</h3>
+<p class="meta-line"><strong>Goal:</strong> When <code>--monorepo</code> is passed AND <code>monorepo_detected</code> is non-empty: orchestrator iterates each detected stack, recursively invokes the audit harness with <code>scan_root = manifest_path's parent</code> (with <code>--monorepo</code> OFF in the child invocation per FR-36 amendment), writes per-stack triplet, then writes top-level <code>{date}_index.{html,json}</code>.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-36, FR-37, E8</p>
+<p class="meta-line"><strong>Depends on:</strong> T7</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (monorepo fan-out branch in Phase 6 emit); Test: <code>tests/fixtures/monorepo-fan-out/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write <code>monorepo-fan-out/</code> fixture (same shape as T7 + <code>$AUDIT . --monorepo</code> in .assert); assert two per-stack triplets exist (<code>{date}_backend.{html,md,json}</code> + <code>{date}_frontend.{html,md,json}</code>); assert <code>{date}_index.html</code> + <code>{date}_index.json</code> exist; assert <code>jq '.stacks | length == 2 and .[0].name and .summary.total_must_fix != null' index.json</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: when <code>MONOREPO == 1 AND monorepo_detected != []</code>, resolve <code>parent_docs_path</code> from <code>.pmos/settings.yaml</code> at the parent scan root; then loop each detected stack, invoke <code>ARCH_DOCS_PATH="$parent_docs_path" bash $0 audit "$stack_dir" --label "$stack_name"</code> <em>(Loop 2 SF2: child reads ARCH_DOCS_PATH before settings.yaml lookup so triplets land under one parent-resolved directory)</em> (without <code>--monorepo</code> per FR-36 amendment — child invocation runs as a normal single-stack run; depth-2 walk inactive because the child sees its own stack markers); collect per-stack JSON sidecars, build index JSON with <code>stacks[]</code> + <code>summary{}</code>; render <code>{date}_index.html</code> (substrate template stripped down to a list of links).</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T8): --monorepo fan-out + index.{html,json}</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Re-use the T7 setup with <code>--monorepo</code>: <code>ls docs/pmos/architecture/$(date +%F)_{backend,frontend,index}.* | wc -l</code> → 7 (3 + 3 + 2 — index is html+json only).</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t9">T9: U011 cross-file duplicate function signatures (AST in harness)</h3>
+<p class="meta-line"><strong>Goal:</strong> Inline Python heredoc in the harness that walks every <code>.py</code> file, normalizes function signatures (strip param names, type-annotation string-compare), records cross-file duplicates as one finding per occurrence with <code>cross_refs[]</code> to peer files.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-45, D3, E13 (overload carve-out — same-file matches NOT flagged)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>principles.yaml</code> (append U011); Modify: <code>run-audit.sh</code> (insert U011 evaluator); Test: <code>tests/fixtures/dup-signature/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>dup-signature/src/a.py</code> with <code>def _resolve_audio_units(self, x: int) -&gt; Foo: ...</code> + <code>src/b.py</code> with the same signature (different param names). <code>.assert</code> asserts two U011 findings, each with <code>cross_refs</code> to the other file. Add a same-file overload pair (<code>@overload def f(x: int)</code> + <code>def f(x): ...</code>) to verify same-file overloads are NOT flagged (E13).</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>principles.yaml</code>: append <code>U011</code> with <code>tier: 1, stack: null, delegate_to: grep, disposition: should_fix, check: "ast:dup_signature_cross_file"</code>, source citation, why ("Cross-file duplicates suggest a missing abstraction; consolidating prevents drift.").</li>
+<li>[ ] Edit <code>run-audit.sh</code>: add a Python heredoc evaluator that — for every <code>.py</code> file — walks <code>FunctionDef</code> + <code>AsyncFunctionDef</code>, computes a canonical signature key (<code>func_name(_:T1, _:T2, ...) -&gt; R</code> with param-names stripped and type-annotations stringified via <code>ast.unparse(annotation)</code>); groups by key; for any key appearing in ≥2 distinct files, emit one finding per occurrence with <code>cross_refs</code> to peer files.</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T9): U011 cross-file dup-signature evaluator</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '[.findings[] | select(.rule_id == "U011")] | length == 2'</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t10">T10: cycle-py.py Tarjan SCC + PY009 dispatcher</h3>
+<p class="meta-line"><strong>Goal:</strong> Create <code>tools/cycle-py.py</code> (~50 LOC standalone) that takes a scan-root and emits JSON cycles via Tarjan SCC over Python module imports. Wire as <code>delegate_to: cycle-py</code> for new rule PY009.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-07, FR-46, FR-47, D4 (default disposition: should_fix), E10 (cycles involving __init__.py reportable + L3-exemptable)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Create: <code>plugins/pmos-toolkit/skills/architecture/tools/cycle-py.py</code>; Modify: <code>principles.yaml</code> (append PY009); Modify: <code>run-audit.sh</code> (cycle-py dispatcher branch); Test: <code>tests/fixtures/py-cycle/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>py-cycle/src/service.py</code> with <code>from .repo import R</code>, <code>src/repo.py</code> with <code>from .service import S</code>. <code>.assert</code> asserts <code>jq '[.findings[] | select(.rule_id=="PY009")] | length == 1'</code>; asserts <code>jq '.cycles | length == 1 and .[0].members | length == 2'</code>.</li>
+<li>[ ] Write <code>tools/cycle-py.py</code>: argv[1] = scan_root; walk all <code>.py</code> files, parse with <code>ast.parse</code>, build adjacency dict (<code>module_path -&gt; set(imported_module_paths)</code>); resolve relative imports against the file's package. Run iterative Tarjan SCC (~30 LOC algorithm + 20 LOC parsing); emit JSON list of cycles with <code>{members: [...], cycle_length: N}</code>. Exit 0 / 64 (usage error).</li>
+<li>[ ] Add unit test: <code>python3 tools/cycle-py.py tests/fixtures/py-cycle/src</code> by hand → expect <code>[{"members":["service.py","repo.py"],"cycle_length":2}]</code>.</li>
+<li>[ ] Edit <code>principles.yaml</code>: append <code>PY009</code> with <code>tier: 2, stack: py, delegate_to: cycle-py, disposition: should_fix, check: "cycle-py:scc"</code>, source ("Tarjan SCC; v.s. dependency-cruiser TS001"), why.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: add <code>cycle-py</code> delegate branch — probe (<code>command -v python3</code> + <code>test -f $SKILL_DIR/tools/cycle-py.py</code>); run <code>python3 $SKILL_DIR/tools/cycle-py.py "$SCAN_ROOT"</code>; parse JSON; one finding per cycle (file = lexicographically-first member, message = <code>A -&gt; B -&gt; ... -&gt; A</code>, cross_refs = all members); populate <code>cycles[]</code> in the JSON sidecar.</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T10): cycle-py.py Tarjan SCC + PY009 dispatcher</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>python3 -m py_compile plugins/pmos-toolkit/skills/architecture/tools/cycle-py.py</code> — no syntax errors.</li>
+  <li>Direct unit smoke: 3-cycle fixture (<code>a -&gt; b -&gt; c -&gt; a</code>) returns one cycle with 3 members.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t11">T11: module_metrics + godmodule_candidates with Laplace smoothing [P]</h3>
+<p class="meta-line"><strong>Goal:</strong> Phase 5 substep that AST-walks every Python module under scan root, emits <code>{path, fanin, fanout, public_symbols, loc}</code> per module to <code>module_metrics[]</code>; computes <code>godmodule_candidates[]</code> as top-10 by <code>score = (fanin + 1) × (public_symbols + 1) − 1</code> (Laplace smoothing per D22); ties broken by <code>path</code> ascending. Emits in JSON; renders top-5 as a sortable table under HTML's Architecture metrics section.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-43, FR-44, D22</p>
+<p class="meta-line"><strong>Depends on:</strong> T1; runs in parallel with T12 [P] (both build on the same shared AST pass per PD4)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Requires state from:</strong> none (PD4 shared AST pass is built fresh per run)</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (Phase 5 module-metrics Python heredoc — single shared AST pass per PD4); Modify: HTML emitter (Architecture metrics section); Test: <code>tests/fixtures/risk-score-ordering/</code> (extend with assertions on godmodule_candidates).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>risk-score-ordering/src/</code> with one 5-LOC adapter <code>adapter.py</code> (<code>fanin: 1, public_symbols: 0</code>) + one rich service <code>service.py</code> (<code>fanin: 7, public_symbols: 5</code>). <code>.assert</code> asserts adapter.py appears in <code>godmodule_candidates[]</code> with <code>score == fanin == 1</code> (Laplace floor); asserts service.py is top with <code>score == 8 × 6 − 1 == 47</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>run-audit.sh</code> Phase 5: insert <code>MODULE_METRICS_JSON</code> Python heredoc — walks all <code>.py</code> under scan root with <code>ast.parse</code>; for each: counts module-level <code>def</code>/<code>class</code> not starting with <code>_</code> for <code>public_symbols</code>; counts outbound imports for <code>fanout</code>; tallies inbound imports across the repo for <code>fanin</code>; counts non-blank LOC; assembles <code>module_metrics[]</code>; computes <code>score</code> per module; emits top-10 by score-desc, path-asc tiebreak as <code>godmodule_candidates[]</code>.</li>
+<li>[ ] Edit HTML emitter: render <code>&lt;section id="architecture-metrics"&gt;</code> with a <code>&lt;table&gt;</code> of top-5 godmodule_candidates (path | fanin | fanout | public_symbols | LOC).</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T11): module_metrics + godmodule_candidates with Laplace smoothing</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '.module_metrics | length > 0 and .[0].path and .[0].fanin != null'</code></li>
+  <li><code>jq -e '.godmodule_candidates | length &lt;= 10 and (.[0].score >= .[-1].score)'</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t12">T12: risk_score with churn + coupling + class dominance</h3>
+<p class="meta-line"><strong>Goal:</strong> Every finding carries <code>risk_score = disposition_weight + min(50, commit_count_in_window) + min(50, 5 × inbound_imports)</code>, combined churn+coupling sum capped at 100, with disposition_weight ∈ {1000, 100, 1}. Findings sorted within each disposition section by risk_score desc, ties broken by file asc then line asc. <code>--sort risk</code> is the default no-op flag.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-40, FR-41, FR-42, D2 (class dominance invariant)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1, T11 (sequential — consumes T11's shared AST pass for inbound_imports per PD4; the earlier <code>[P]</code> marker was dropped at Review Loop 1 disposition F3 because the data dep makes parallelism impossible)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Requires state from:</strong> T11 (shares the per-module fanin counter via PD4 single-pass)</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (per-finding risk_score computation; sort step); Test: <code>tests/fixtures/risk-score-ordering/</code> (extend the existing fixture with sort-order assertions).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Extend <code>risk-score-ordering/.assert</code>: pre-seed git history (<code>git init</code> + 2 commits touching <code>service.py</code>), then assert <code>jq '[.findings[] | select(.disposition=="should_fix")] | .[0].risk_score >= .[-1].risk_score'</code>; assert any must_fix finding's risk_score ≥ 1000 and any should_fix risk_score ≤ 200; assert ties resolve by file then line.</li>
+<li>[ ] Add unit-test invariants: a 4-row mock findings array (must_fix/churn=0/coupling=0, should_fix/churn=50/coupling=50, should_fix/churn=0/coupling=0, wont_fix/churn=50/coupling=50) → must_fix sorts first regardless of churn/coupling.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: after findings array assembly + before report-build, run a Python heredoc that — for each finding — computes <code>disposition_weight</code> from disposition, computes <code>churn = min(50, $(git rev-list --count --since="&lt;N&gt; days ago" HEAD -- "&lt;file&gt;"))</code> <em>(Loop 2 SF3: counts commits, not log lines)</em> with N from L3 <code>risk_score.churn_window_days</code> default 90 (and 0 when scan root is not a git repo per FR-50 / E4), computes <code>coupling = min(50, 5 × inbound_imports)</code> from <code>module_metrics[]</code> (T11), enforces combined sum cap of 100, sets <code>finding.risk_score = disposition_weight + capped_churn_coupling_sum</code>.</li>
+<li>[ ] Edit findings-sort step in the JSON-emit block: sort by <code>(-risk_score, file, line)</code> within each disposition group; the disposition groups themselves render in must_fix → should_fix → wont_fix order.</li>
+<li>[ ] Edit arg parser: accept <code>--sort risk</code> as a no-op flag (no other sort modes; documented for forward-compat per FR-42).</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T12): risk_score with churn + coupling + class dominance + sort</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Class dominance invariant: <code>jq -e '[.findings[] | {d:.disposition, r:.risk_score}] | (map(select(.d=="must_fix")) | map(.r) | min // 1000) > (map(select(.d=="should_fix")) | map(.r) | max // 0)'</code></li>
+  <li><em>(Loop 2 SF3)</em> Churn arithmetic: in <code>risk-score-ordering/</code>, after 2 commits touching <code>service.py</code>, assert <code>jq -e '[.findings[] | select(.file=="src/service.py")] | .[0].risk_score - 100 == 2'</code> (2 commits = churn 2, not ~10 log-lines).</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t13">T13: --since filter</h3>
+<p class="meta-line"><strong>Goal:</strong> <code>--since &lt;ref&gt;</code> filters <code>findings[]</code> in Phase 6 to those whose file appears in <code>git diff --name-only &lt;ref&gt;...HEAD</code>. Non-git scan-root → exit 64 with the documented stderr.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-50, E4</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (arg parser: <code>--since</code>; Phase 6: filter); Test: <code>tests/fixtures/since-baseline-and/</code> (covers --since-only path; also reused for T15).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>since-baseline-and/</code> with a 3-commit git history; <code>.assert</code> runs <code>$AUDIT . --since HEAD~1</code> and asserts <code>findings[]</code> is filtered to changed files only.</li>
+<li>[ ] Add fixture for non-git scan root: <code>tests/fixtures/since-not-git/</code> (no .git/) with <code>$AUDIT . --since HEAD~1</code> expecting exit 64 + the documented stderr.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit arg parser: accept <code>--since &lt;ref&gt;</code> with required arg; record in <code>config.flags.since</code>.</li>
+<li>[ ] Edit Phase 6: when <code>SINCE != null</code>, probe <code>git rev-parse --git-dir</code>; on fail, exit 64 with <code>scan root is not a git repo; --since unavailable</code>; otherwise compute <code>git diff --name-only "$SINCE"...HEAD | sort -u</code>, intersect with <code>findings[].file</code>, drop non-matching findings.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T13): --since filter</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Smoke on this repo: <code>$AUDIT . --since HEAD~5</code> succeeds; finding count likely smaller than full run.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t14">T14: --baseline single-stack diff</h3>
+<p class="meta-line"><strong>Goal:</strong> <code>--baseline &lt;path&gt;</code> loads the named JSON; emits <code>diff{}</code> with <code>new[]</code>/<code>dropped[]</code>/<code>unchanged[]</code> via tuple identity <code>(rule_id, file, line)</code>; baseline schema_version != 2 → exit 64 with the documented hint.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-51, E15 (additive-field forward-compat)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (arg parser: --baseline; Phase 6: diff computation); Test: <code>tests/fixtures/baseline-schema-v1/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>baseline-schema-v1/baseline.json</code> with <code>{"schema_version": 1, "findings": [{"severity": "warn", ...}]}</code>. <code>.assert</code> runs <code>$AUDIT . --baseline baseline.json</code>, expects exit 64 + stderr matching <code>baseline file uses legacy schema_version 1</code>.</li>
+<li>[ ] Add a positive-path fixture: <code>tests/fixtures/baseline-diff/</code> with a v2-schema baseline; .assert asserts <code>jq '.diff.new | length >= 0 and .diff.dropped | length >= 0'</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit arg parser: accept <code>--baseline &lt;path&gt;</code> with required arg; record in <code>config.flags.baseline</code>.</li>
+<li>[ ] Edit Phase 6: when <code>BASELINE != null</code>, read JSON; assert <code>schema_version == 2</code> (exit 64 with rename hint otherwise); build sets of <code>(rule_id, file, line)</code> tuples for current and baseline; emit <code>diff: { new: [tuples-in-current-not-baseline], dropped: [tuples-in-baseline-not-current], unchanged: [tuples-in-both] }</code>.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T14): --baseline single-stack diff</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '.diff.new | type == "array"'</code> on the diff output.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t15">T15: --baseline + --since AND-intersect + index-baseline guard</h3>
+<p class="meta-line"><strong>Goal:</strong> When both <code>--since</code> and <code>--baseline</code> are passed, <code>findings[]</code> is filtered by <code>--since</code> first, then <code>diff{}</code> is computed against the filtered set (AND-intersect). When <code>--baseline</code> is an <code>index.json</code> AND current run is not <code>--monorepo</code> → exit 64.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-52, FR-53</p>
+<p class="meta-line"><strong>Depends on:</strong> T13, T14, T8</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (Phase 6 ordering: --since then --baseline; index-baseline guard); Test: <code>tests/fixtures/since-baseline-and/</code> (extend per spec §14.2 row); Test: <code>tests/fixtures/baseline-index-no-monorepo/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Extend <code>since-baseline-and/.assert</code> with the AND-intersect path: <code>$AUDIT . --since HEAD~1 --baseline old.json</code>; assert <code>diff.new[]</code> contains only the deltas on changed files.</li>
+<li>[ ] Fixture: <code>baseline-index-no-monorepo/</code> with an index.json (no .stacks[]) but no <code>--monorepo</code>; .assert expects exit 64 + stderr matching <code>index baseline requires --monorepo on current run</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit Phase 6: re-order to <code>filter_by_since() -&gt; load_baseline() -&gt; compute_diff()</code>; index-baseline detection: <code>jq -e '.stacks | type == "array"' baseline.json</code> + <code>MONOREPO != 1</code> → exit 64 with the documented stderr.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T15): --since + --baseline AND-intersect + index-baseline guard</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Both flags passed: <code>jq -e '.config.flags.since != null and .config.flags.baseline != null'</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t16">T16: --scaffold-l3 with idiomatic exemptions seeding</h3>
+<p class="meta-line"><strong>Goal:</strong> <code>--scaffold-l3</code> writes <code>{scan_root}/.pmos/architecture/principles.yaml</code> with <code>schema_version: 2</code>, <code>rules: []</code>, and <code>exemptions.idiomatic: []</code> populated from the current run's detected idioms. Refuses to overwrite an existing file with exit 64.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-54</p>
+<p class="meta-line"><strong>Depends on:</strong> T3 (idiom detection)</p>
+<p class="meta-line"><strong>Idempotent:</strong> no — recovery: re-run with <code>--scaffold-l3</code> after deleting the existing file (refuses to overwrite by design)</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (arg parser: --scaffold-l3; new branch in Phase 6 that emits the YAML and skips the normal report); Test: <code>tests/fixtures/scaffold-l3-fresh/</code>, <code>tests/fixtures/scaffold-l3-existing/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>scaffold-l3-fresh/src/cli.py</code> with <code>@app.command</code>; .assert runs <code>$AUDIT . --scaffold-l3</code>, asserts <code>test -f .pmos/architecture/principles.yaml</code>, asserts <code>python3 -c 'import yaml; d=yaml.safe_load(open(".pmos/architecture/principles.yaml")); assert d["schema_version"] == 2; assert len(d["exemptions"]["idiomatic"]) >= 1'</code>.</li>
+<li>[ ] Fixture: <code>scaffold-l3-existing/.pmos/architecture/principles.yaml</code> pre-existing; .assert runs <code>$AUDIT . --scaffold-l3</code>, expects exit 64.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit arg parser: accept <code>--scaffold-l3</code> as no-arg flag.</li>
+<li>[ ] Edit Phase 6: when <code>SCAFFOLD_L3 == 1</code>, refuse if file exists (exit 64 with <code>refusing to overwrite existing &lt;path&gt;</code>); otherwise <code>mkdir -p .pmos/architecture</code> + write a YAML with <code>schema_version: 2</code>, commented <code>rules: []</code> (with example block), and <code>exemptions.idiomatic</code> populated from the detected idiom map; skip the normal triplet emit; emit a one-line stderr <code>Wrote scaffolded L3 to &lt;path&gt;</code>; exit 0.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T16): --scaffold-l3 with idiomatic exemption seeding</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Scaffolded YAML: <code>python3 -c 'import yaml; print(yaml.safe_load(open(".pmos/architecture/principles.yaml")))' | grep schema_version</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t17">T17: --deep runtime probe + module_metadata payload + size cap</h3>
+<p class="meta-line"><strong>Goal:</strong> <code>--deep</code> begins with a runtime probe (set <code>skipped_reason: no_subagent_tool_use</code> on probe failure); builds <code>module_metadata[]</code> for every Python module; soft-warn at >1k modules, hard-error at >5k modules (with <code>ARCH_DEEP_NO_CAP=1</code> bypass). Implements the <code>--deep-prep &lt;tmpfile&gt;</code> harness mode per PD6.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-20, FR-21, FR-22, FR-23 (cap thresholds + bypass), NFR-09 (denylist filter applied at metadata-build time as defense-in-depth)</p>
+<p class="meta-line"><strong>Depends on:</strong> T11 (reuses module_metrics shared AST pass per PD4)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (arg parser: --deep; <code>--deep-prep &lt;tmpfile&gt;</code> harness mode; module_metadata payload writer; size-cap check); Test: <code>tests/fixtures/deep-pass-no-tool-use/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>deep-pass-no-tool-use/</code> with a small Python project + a stub <code>SKILL_NO_SUBAGENT=1</code> env var that the runtime probe reads; .assert runs <code>SKILL_NO_SUBAGENT=1 $AUDIT . --deep</code>; asserts <code>jq '.deep_pass.skipped_reason == "no_subagent_tool_use"'</code>; asserts mechanical findings preserved.</li>
+<li>[ ] Add fixture for size cap: <code>tests/fixtures/deep-pass-size-cap/</code> with 5,001 trivial Python files; .assert runs <code>$AUDIT . --deep</code>, expects exit 64 + the documented stderr; re-runs with <code>ARCH_DEEP_NO_CAP=1 $AUDIT . --deep</code>, expects exit 0.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit arg parser: accept <code>--deep</code> as no-arg flag.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: when <code>--deep</code> is passed, run a runtime probe (read <code>SKILL_NO_SUBAGENT</code> env stub for fixture testing; in production this gets set by the SKILL.md orchestrator before invoking <code>run-audit.sh</code> based on Task-tool availability); on failure, set <code>deep_pass.skipped_reason: no_subagent_tool_use</code> and skip Phase 4.5 entirely.</li>
+<li>[ ] Build <code>module_metadata[]</code> from the existing PD4 shared AST pass (T11): one entry per Python module with <code>{path, fanin, fanout, public_symbols, LOC}</code>; filter against the NFR-09 denylist (<code>**/.env</code>, <code>**/*.pem</code>, etc.) so secret-bearing paths never appear in the payload (defense-in-depth layer 1; T20 adds the layer-2 wrapper).</li>
+<li>[ ] Implement size-cap check: <code>module_count = len(module_metadata)</code>; if <code>module_count > 5000 AND $ARCH_DEEP_NO_CAP != 1</code>, exit 64 with the documented stderr; if <code>1000 < module_count &lt;= 5000 AND $ARCH_DEEP_NO_CAP != 1</code>, emit stderr soft-warn line.</li>
+<li>[ ] Implement <code>--deep-prep &lt;tmpfile&gt;</code> mode per PD6: write the <code>{module_metadata, seed_hint, vocab_path}</code> payload as JSON to <code>&lt;tmpfile&gt;</code>; exit 0 (the SKILL.md orchestrator will dispatch the Task subagent and write the response to <code>&lt;tmpfile&gt;.result</code>; T18 implements the <code>--deep-finalize</code> partner mode).</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T17): --deep runtime probe + module_metadata payload + size cap</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>SKILL_NO_SUBAGENT=1 $AUDIT . --deep</code> on this repo → JSON has <code>deep_pass.skipped_reason == "no_subagent_tool_use"</code>; mechanical findings still present.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t18">T18: --deep subagent dispatch + return-shape validation + dispatch_failed</h3>
+<p class="meta-line"><strong>Goal:</strong> Implement <code>tools/dispatch-deep-pass.sh</code> wrapper per PD6; SKILL.md Phase 4.5 invokes the Task subagent with the vocab + payload + return-shape template; <code>--deep-finalize &lt;tmpfile&gt; &lt;tmpfile&gt;.result</code> reads the response, runs FR-25 validation (path resolves, verbatim-substring grep, classification enum), drops invalid candidates with stderr warning; sets <code>skipped_reason: validation_failed</code> on any miss per FR-26; sets <code>dispatch_failed</code> on absent/empty <code>.result</code> file (timeout, killed process).</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-24, FR-25, FR-26, FR-29, D11, D21, E5 (malformed JSON), E5b (mid-dispatch failure), E6 (empty array → no_candidates)</p>
+<p class="meta-line"><strong>Depends on:</strong> T17</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes (validation is pure; re-run produces same drop/keep set)</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Create: <code>plugins/pmos-toolkit/skills/architecture/tools/dispatch-deep-pass.sh</code>; Modify: <code>run-audit.sh</code> (<code>--deep-finalize</code> mode); Test: <code>tests/fixtures/deep-pass-validation-fail/</code> (mock <code>.result</code> with hallucinated path).</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>deep-pass-validation-fail/</code> with a small Python project + a pre-recorded <code>mock.result</code> JSON containing one candidate with <code>module: "/etc/passwd"</code> (hallucinated path). <code>.assert</code> directly invokes <code>bash $SKILL_DIR/tools/run-audit.sh audit . --deep --deep-finalize-from mock.result</code> (a test-only flag that bypasses the SKILL-level dispatch and reads the result from a file); asserts <code>jq '.deep_pass.skipped_reason == "validation_failed"'</code>; asserts mechanical findings preserved.</li>
+<li>[ ] Add a positive-path fixture: <code>tests/fixtures/deep-pass-happy-path/</code> with a small Python project where one module truly contains a substring that the mock candidate's <code>cross_module_patterns[].evidence</code> quotes verbatim; .assert asserts <code>deep_pass.candidates</code> contains the validated entry.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Write <code>tools/dispatch-deep-pass.sh</code>: wrapper that the SKILL invokes; reads the <code>{tmpfile}</code> payload, builds the prompt (vocab cheatsheet body from <code>reference/deepening-vocabulary.md</code> + module_metadata JSON + seed_hint + return-shape template per spec §6.2), shapes the Task-tool invocation, writes the response to <code>&lt;tmpfile&gt;.result</code>. NFR-09 denylist enforcement happens here — Read calls injected into the subagent's tool wrapper get glob-checked against the denylist; matches return the stub <code>"path matched secret-file denylist; not read"</code> string.</li>
+<li>[ ] <em>(Loop 2 N2)</em> Edit <code>run-audit.sh</code> arg parser: gate <code>--deep-finalize-from</code> behind the <code>FIXTURE=1</code> env var — when env unset, the flag is treated as "unknown flag" and parser exits 64; when set, the flag is parsed normally. This is the parser-gate implementation; T23 keeps only the Anti-Pattern documentation.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: implement <code>--deep-finalize &lt;tmpfile&gt; &lt;tmpfile&gt;.result</code>; if <code>.result</code> is missing or empty → set <code>skipped_reason: dispatch_failed</code> with detail; otherwise parse JSON, run FR-25 validation per candidate (path resolves to a real file under scan root; every <code>cross_module_patterns[].evidence</code> verbatim-substring-greppable inside the named file via <code>grep -F -q -- "$evidence" "$file"</code>; classification ∈ enum); on ANY miss → set <code>skipped_reason: validation_failed</code>, clear the promotion buffer, preserve mechanical findings (FR-26 hard-fail per D11). Add the test-only <code>--deep-finalize-from &lt;file&gt;</code> alias per the fixture above.</li>
+<li>[ ] Run: fixtures — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T18): --deep subagent dispatch wrapper + return-shape validation</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Negative path: hallucinated path → <code>skipped_reason == "validation_failed"</code>.</li>
+  <li>Empty array: empty <code>candidates: []</code> → <code>skipped_reason == "no_candidates"</code> (E6).</li>
+  <li><em>(Loop 2 SF6)</em> Happy path: against <code>tests/fixtures/deep-pass-happy-path/</code>, assert <code>jq -e '[.findings[] | select(.rule_id == "DEEP_LEAKY")] | length >= 1'</code> on the JSON sidecar.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t19">T19: --deep promotion (DEEP_LEAKY/SHALLOW) + size-class demotion reconciliation</h3>
+<p class="meta-line"><strong>Goal:</strong> Validated candidates with <code>classification: leaky</code> emit a finding with <code>rule_id: DEEP_LEAKY, disposition: must_fix</code>; <code>shallow</code> → <code>DEEP_SHALLOW, should_fix</code>; <code>deep</code> → no finding. For each <code>deep, deletion_test.outcome: reappears</code> candidate, demote any U001/U002/PY005/PY006 finding on the same file to <code>disposition: wont_fix</code> with <code>deep_pass_cleared: true</code>. Won't Fix HTML section gains a "Cleared by deep pass" sub-section.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-27, FR-28, D6 audit trail</p>
+<p class="meta-line"><strong>Depends on:</strong> T18, T11 (module_metrics for risk_score on the new findings)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (--deep-finalize: promotion + demotion logic); Modify: HTML emitter (Won't Fix &gt; Cleared by deep pass sub-section); Test: <code>tests/fixtures/deep-pass-size-class-demotion/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>deep-pass-size-class-demotion/src/big.py</code> at 935 LOC + a mock <code>.result</code> JSON classifying it as <code>{"classification": "deep", "deletion_test": {"outcome": "reappears"}}</code>. <code>.assert</code> asserts <code>jq '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")] | .[0].disposition == "wont_fix"'</code> AND <code>.deep_pass_cleared == true</code>; asserts HTML contains <code>id="cleared-by-deep-pass"</code> with a row mentioning <code>big.py</code>.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>--deep-finalize</code> in <code>run-audit.sh</code>: per validated candidate, build promoted finding (file=module path, line=1, message=<code>rationale + "\n\nProposed reshape: " + proposed_reshape</code>, rule_id+disposition per classification); skip <code>deep</code> classifications. Then run reconciliation: for each <code>deep+reappears</code> candidate's module path, scan existing findings for <code>rule_id ∈ {U001, U002, PY005, PY006}</code> on that path → set <code>disposition: wont_fix</code> + add <code>deep_pass_cleared: true</code>.</li>
+<li>[ ] Edit HTML emitter: render <code>&lt;h3 id="cleared-by-deep-pass"&gt;Cleared by deep pass&lt;/h3&gt;</code> under <code>&lt;section id="wont-fix"&gt;&lt;details&gt;</code> with a table of demoted findings.</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T19): --deep promotion + size-class demotion reconciliation</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>jq -e '[.findings[] | select(.rule_id == "DEEP_LEAKY")] | all(.disposition == "must_fix")'</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t20">T20: NFR-09 secret-file Read denylist wrapper</h3>
+<p class="meta-line"><strong>Goal:</strong> The <code>tools/dispatch-deep-pass.sh</code> wrapper enforces NFR-09's secret-file denylist as defense-in-depth: every Read call from the subagent gets glob-matched against the denylist patterns; matches return the stub <code>"path matched secret-file denylist; not read"</code>; the subagent's system prompt includes the denylist as advisory text per the spec's two-mechanism contract.</p>
+<p class="meta-line"><strong>Spec refs:</strong> NFR-09</p>
+<p class="meta-line"><strong>Depends on:</strong> T18</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> yes — new-feature</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>tools/dispatch-deep-pass.sh</code> (Read-wrapper denylist); Test: <code>tests/fixtures/deep-pass-secret-deny/</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Fixture: <code>deep-pass-secret-deny/.env</code> with a fake secret + <code>src/main.py</code>; mock <code>.result</code> referencing <code>cross_module_patterns[0].evidence</code> coming from <code>.env</code>. <code>.assert</code> asserts the wrapper logs a stub return for <code>.env</code> Read, the candidate's evidence-grep fails (because the wrapper-returned stub is what the validator sees), the candidate is dropped, and <code>skipped_reason: validation_failed</code> fires.</li>
+<li>[ ] Run: <code>bash tests/run.sh</code> — expect FAIL.</li>
+<li>[ ] Edit <code>tools/dispatch-deep-pass.sh</code>: bash function <code>read_with_denylist()</code> that takes a path arg, runs <code>fnmatch</code>-equivalent in bash via <code>case</code> patterns or a Python one-liner; if matches any of <code>**/.env</code>, <code>**/.env.*</code>, <code>**/*.pem</code>, <code>**/*.key</code>, <code>**/credentials.json</code>, <code>**/credentials.yaml</code>, <code>**/.ssh/**</code>, <code>**/secrets/**</code> → echo the stub; else cat the file. Wire into the Task-subagent's Read tool plumbing per the SKILL platform's wrapping protocol.</li>
+<li>[ ] Edit <code>tools/dispatch-deep-pass.sh</code>: append the denylist to the subagent's system prompt as advisory text per NFR-09 mechanism (b).</li>
+<li>[ ] Run: fixture — expect PASS.</li>
+<li>[ ] Commit: <code>feat(T20): NFR-09 secret-file Read denylist wrapper</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li>Direct test: invoke <code>read_with_denylist /tmp/.env</code> → outputs the stub, not the file content.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t21">T21: ADR machinery deletion (code, fixtures, --no-adr, adr-template.md)</h3>
+<p class="meta-line"><strong>Goal:</strong> Single deletion commit per PD9 — removes the ADR-write block from <code>run-audit.sh</code>, the <code>--no-adr</code> flag (parser now rejects it with the documented "removed in schema v2" stderr), <code>tools/check-determinism.sh</code>, <code>tests/fixtures/{adr-cap, adr-reconcile, adr-write, citations-missing, l3-malformed, determinism}/</code>, and <code>reference/adr-template.md</code>.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-04, FR-08, FR-67 (--no-adr removed), §14.2 fixture cleanup</p>
+<p class="meta-line"><strong>Depends on:</strong> T1 (so the new triplet path is in place; deletion of the old emit doesn't strand the harness)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes (deletions are idempotent post-run)</p>
+<p class="meta-line"><strong>Slice shape:</strong> refactor-prep — pure deletion of legacy machinery the new triplet path + removed-flag handling supersede; no end-to-end behaviour delivered (the deletion itself is the value).</p>
+<p class="meta-line"><strong>TDD:</strong> no — pure deletion task; the verification is "fixture suite still passes after the deletions" (covered by re-running <code>tests/run.sh</code>).</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>run-audit.sh</code> (delete ADR-write block at <code>~lines 973-1080</code>; arg parser: reject <code>--no-adr</code> with the documented stderr; delete frontend_declarative_coverage residual ADR-fields); Delete: <code>tools/check-determinism.sh</code>; Delete: <code>tests/fixtures/adr-cap/</code>, <code>adr-reconcile/</code>, <code>adr-write/</code>, <code>citations-missing/</code>, <code>l3-malformed/</code>, <code>determinism/</code>; Delete: <code>reference/adr-template.md</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] <code>git rm plugins/pmos-toolkit/skills/architecture/reference/adr-template.md</code></li>
+<li>[ ] <code>git rm plugins/pmos-toolkit/skills/architecture/tools/check-determinism.sh</code></li>
+<li>[ ] <code>git rm -r plugins/pmos-toolkit/skills/architecture/tests/fixtures/{adr-cap,adr-reconcile,adr-write,citations-missing,l3-malformed,determinism}</code></li>
+<li>[ ] Edit <code>run-audit.sh</code>: delete ADR-write block (lines ~973-1080) wholesale; in the arg parser, replace the <code>--no-adr</code> case with: <code>--no-adr) echo "ERROR: unknown flag --no-adr (ADR promotion removed in schema v2; see CHANGELOG)" >&2; exit 64 ;;</code> per FR-67.</li>
+<li>[ ] Edit <code>run-audit.sh</code>: remove <code>adrs_written</code>, <code>adrs_truncated</code>, <code>frontend_declarative_coverage</code> emission (no longer in v2 schema per spec §10.2).</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — expect previous fixture suite to pass minus the deleted fixtures; new fixtures from T1-T20 already lighting up.</li>
+<li>[ ] Commit: <code>refactor(T21): remove ADR machinery + determinism check + --no-adr flag (schema v2)</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/SKILL.md plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh</code> (post-T23, SKILL.md is also clean).</li>
+  <li><code>test ! -e plugins/pmos-toolkit/skills/architecture/tools/check-determinism.sh</code></li>
+  <li><code>test ! -e plugins/pmos-toolkit/skills/architecture/reference/adr-template.md</code></li>
+  <li><code>test ! -d plugins/pmos-toolkit/skills/architecture/tests/fixtures/determinism</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t22">T22: deepening-vocabulary.md + l1-rationales severity rename + gap-map updates</h3>
+<p class="meta-line"><strong>Goal:</strong> Create <code>reference/deepening-vocabulary.md</code> with attribution; rename every <code>**Severity:**</code> → <code>**Disposition:**</code> in <code>reference/l1-rationales.md</code> with the value map; add per-rule sections for U011 + PY005-PY009; extend <code>reference/gap-map-rationale.md</code> with <code>cycle-py</code> delegate + U011 + ruff-rule extensions.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-06, FR-09, FR-10 (severity → disposition rename in .assert files covered separately at T24)</p>
+<p class="meta-line"><strong>Depends on:</strong> T1, T9, T10, T6</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>Slice shape:</strong> refactor-prep — documentation-only changes that the SKILL.md rewrite (T23) cites; no end-to-end behaviour change here. Pre-condition for T23.</p>
+<p class="meta-line"><strong>TDD:</strong> no — documentation; verification is <code>tools/check-citations.sh</code> + <code>tools/check-gap-map.sh</code> exit 0 (existing regression gates per FR-09).</p>
+<p class="meta-line"><strong>Files:</strong> Create: <code>plugins/pmos-toolkit/skills/architecture/reference/deepening-vocabulary.md</code>; Modify: <code>plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md</code>; Modify: <code>plugins/pmos-toolkit/skills/architecture/reference/gap-map-rationale.md</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Write <code>reference/deepening-vocabulary.md</code>: header notes "Adapted with attribution from Matt Pocock's <code>/improve-codebase-architecture</code>" with the URL in source comment; sections for deletion-test, module / interface / implementation, depth (deep vs shallow modules per Ousterhout), seam, adapter, leverage, locality. Roughly 80-150 lines.</li>
+<li>[ ] Edit <code>l1-rationales.md</code>: search-replace <code>**Severity:** warn</code> → <code>**Disposition:** should_fix</code>; <code>**Severity:** block</code> → <code>**Disposition:** must_fix</code>; <code>**Severity:** info</code> → <code>**Disposition:** wont_fix</code>. Add U011 section (with cross-link to gap-map for delegate rationale).</li>
+<li>[ ] Edit <code>gap-map-rationale.md</code>: append rows for <code>cycle-py</code> delegate (PY009), inline-AST grep delegate (U011), ruff extensions (PY005-PY008 — same delegate as PY001-PY004, just more rules).</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tools/check-citations.sh</code> — expect exit 0 (no missing citations).</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tools/check-gap-map.sh</code> — expect exit 0 (every rule has a gap-map row).</li>
+<li>[ ] Commit: <code>docs(T22): add deepening-vocabulary.md + rename severity → disposition in l1-rationales + gap-map updates</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -F -- '**Severity:**' plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md</code> (rename complete).</li>
+  <li><code>test -f plugins/pmos-toolkit/skills/architecture/reference/deepening-vocabulary.md</code></li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t23">T23: SKILL.md rewrite — Phase 4.5 insert, Phase 5/6 rewrite, Anti-Patterns, frontmatter</h3>
+<p class="meta-line"><strong>Goal:</strong> Rewrite <code>SKILL.md</code> per FR-01 through FR-05 + spec §15.1: frontmatter description carries ≥5 trigger phrases (no "Nygard ADR" mention); argument-hint enumerates every flag (no <code>--no-adr</code>); insert Phase 4.5 between current Phase 4 and Phase 5; rewrite Phase 5 (drop ADR promotion); rewrite Phase 6 (triplet emission, jq-able paths documented); add Anti-Pattern entries per FR-05; cite <code>reference/deepening-vocabulary.md</code>; document <code>ARCH_DEEP_NO_CAP</code> bypass + same-day collision behaviour + R8 known-limitation.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-01 (frontmatter), FR-02 (description triggers), FR-03 (Phase 4.5 insert), FR-04 (Phase 5/6 rewrite), FR-05 (Anti-Pattern entries), FR-66 (jq-able paths in SKILL.md Phase 6)</p>
+<p class="meta-line"><strong>Depends on:</strong> T22 (cites deepening-vocabulary.md), T21 (--no-adr removal must be reflected)</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> no — documentation; verification is fixture suite + skill-eval-check.sh, both at TN.</p>
+<p class="meta-line"><strong>Files:</strong> Modify: <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Edit frontmatter: <code>description:</code> rewritten to carry ≥5 user-spoken triggers per FR-02 (e.g., "audit my codebase against principles", "run an architecture review", "check for circular imports", "find shallow modules", "do a deep architectural audit", "scaffold an L3 config", "/architecture", "lint my repo against universal rules"); MUST NOT contain "promote to Nygard ADRs". <code>argument-hint:</code> enumerates every flag per FR-01 (audit [path], --label &lt;slug&gt;, --non-interactive, --deep, --include-info-comments, --monorepo, --since &lt;ref&gt;, --baseline &lt;path&gt;, --scaffold-l3, --sort risk); MUST NOT contain --no-adr.</li>
+<li>[ ] Insert Phase 4.5 (Deepening Pass) between current Phase 4 and Phase 5 — fractional numbering per D9: runtime probe → payload build → subagent dispatch (cite <code>tools/dispatch-deep-pass.sh</code> + the Task-tool primitive) → validation → promotion → reconciliation. Reference <code>reference/deepening-vocabulary.md</code> for the vocab. Note the <code>ARCH_DEEP_NO_CAP</code> bypass per FR-23.</li>
+<li>[ ] Rewrite Phase 5 (Reconcile exemptions): drop ADR-promotion section entirely; keep idiomatic + L3 explicit exemption reconciliation; add the size-class demotion clause (FR-28); update prose to mention the disposition rename.</li>
+<li>[ ] Rewrite Phase 6 (Emit report): describe HTML+MD+JSON triplet output at <code>{docs_path}/architecture/{date}_&lt;slug&gt;.{html,md,json}</code>; document the stderr summary line shape; document <code>jq</code> paths for common queries (<code>jq '.findings[] | select(.disposition == "must_fix")' ...</code>, <code>jq '.diff.new[]' ...</code>, etc.); document same-day collision behaviour per FR-60.</li>
+<li>[ ] Update Anti-Patterns per FR-05: (a) double-reporting (size-class demotion only, not silent drop); (b) subagent validation enforcement (any miss → skipped_reason: validation_failed); (c) monorepo silent-skip prevention (warn-loudly with explicit fan-out flag); (d) function-scoped not file-level idiom exemption; (e) no-stdout-JSON; (f) <em>(added at Review Loop 1, F4 disposition)</em> "Do NOT document <code>--deep-finalize-from</code> in user-facing prose; it is a test-only fixture flag gated by the <code>FIXTURE=1</code> env var in <code>run-audit.sh</code>'s arg parser — production runs reject it with exit 64."</li>
+<li>[ ] <em>(Loop 1 F4; Loop 2 N2)</em> Verify <code>argument-hint</code> frontmatter does NOT enumerate <code>--deep-finalize-from</code>. <em>(The parser-gate implementation moved to T18 per Loop 2 N2; T23 keeps only the documentation verification.)</em></li>
+<li>[ ] Document R8 (same-day re-run race) as a known-limitation note in Anti-Patterns or a separate "Known limitations" section.</li>
+<li>[ ] Verify the SKILL.md frontmatter conforms via the existing fixture pattern (T24 fixture <code>output-triplet</code> has an inline assert on the triplet contract; SKILL-shape verification is at TN via <code>skill-eval-check.sh</code>).</li>
+<li>[ ] Commit: <code>docs(T23): SKILL.md rewrite for Phase 4.5 + triplet emission + disposition axis + Anti-Patterns</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -F -- 'Nygard' plugins/pmos-toolkit/skills/architecture/SKILL.md</code></li>
+  <li><code>! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/SKILL.md</code></li>
+  <li><code>grep -c 'Phase 4.5' plugins/pmos-toolkit/skills/architecture/SKILL.md</code> ≥ 1.</li>
+  <li><code>grep -c 'deepening-vocabulary' plugins/pmos-toolkit/skills/architecture/SKILL.md</code> ≥ 1.</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="t24">T24: Fixture suite update — full sweep of remaining .assert files + new tracer fixture</h3>
+<p class="meta-line"><strong>Goal:</strong> Audit every <em>retained</em> fixture's <code>.assert</code> file for residual <code>severity</code> references; rename any to <code>disposition</code>; verify the entire fixture suite (28 expected: 14 retained + 14 new minus the 6 deleted in T21) reports <code>0 failed</code>. Add the <code>tracer</code> fixture's .assert update if it referenced ADRs.</p>
+<p class="meta-line"><strong>Spec refs:</strong> FR-10 (rename severity → disposition in .assert files), spec §14.2 fixture inventory</p>
+<p class="meta-line"><strong>Depends on:</strong> T1-T22 all merged</p>
+<p class="meta-line"><strong>Idempotent:</strong> yes</p>
+<p class="meta-line"><strong>TDD:</strong> no — bulk fixture rename + run; verification is the suite passing.</p>
+<p class="meta-line"><strong>Files:</strong> Modify: every <code>.assert</code> file under <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/*/</code> still referencing <code>severity</code>; ensure each new fixture from T1-T20 is committed with its <code>.assert</code>.</p>
+<p class="meta-line"><strong>Steps:</strong></p>
+<ul class="steps">
+<li>[ ] Audit: <code>grep -rl 'severity' plugins/pmos-toolkit/skills/architecture/tests/fixtures/</code> — list every file.</li>
+<li>[ ] Per file: rewrite jq queries from <code>.severity == "warn"</code> → <code>.disposition == "should_fix"</code>, etc., per the value map.</li>
+<li>[ ] <em>(Loop 2 SF4)</em> Audit fixture inventory against spec §14.2 + Loop 2 additions. <strong>Canonical inventory (31 total):</strong><br>
+  <strong>23 new from T1-T20 + Loop 2 additions:</strong> output-triplet (T1/T2), typer-mixed (T3/T4), click-cli (T3), u007-default-off (T5), u007-init-py (T5), py-complexity / py-branches / py-magic-values / py-unused-args (T6, ×4), monorepo-no-flag (T7), monorepo-fan-out (T8), dup-signature (T9), py-cycle (T10), risk-score-ordering (T11/T12), since-baseline-and (T13/T15), since-not-git (T13), baseline-diff (T14), baseline-schema-v1 (T14), baseline-index-no-monorepo (T15), scaffold-l3-fresh (T16), scaffold-l3-existing (T16), deep-pass-no-tool-use (T17), deep-pass-size-cap (T17), deep-pass-validation-fail (T18), deep-pass-happy-path (T18 + Loop 2 SF6), deep-pass-size-class-demotion (T19), deep-pass-secret-deny (T20), legacy-principles-severity (T24). <strong>3 new added at Loop 2 SF4:</strong> deep-pass-dispatch-failed (E5b — mock SIGKILL of subagent → skipped_reason: dispatch_failed), deep-pass-no-candidates (E2/E6 — empty seed_hint short-circuits dispatch → skipped_reason: no_candidates), deep-pass-path-outside-scan-root (E14 — mock .result with <code>/etc/passwd</code> path → candidate dropped + counted toward fail threshold).<br>
+  <strong>8 retained from v1:</strong> l1-hygiene, l1-security, l1-size, l2-* (note: existing dir names), l3-override, vue-mixed, py-tidy-imports, schema-valid, selector-required, tool-missing, tracer, gitignore-deny, exemption-row, principles-16-rules — minus the 6 deleted in T21 (adr-cap, adr-reconcile, adr-write, citations-missing, l3-malformed, determinism). Final retained set TBD per actual <code>ls -d tests/fixtures/*/</code> after T21 lands; target sum ≈ 31. Verify via <code>ls -d plugins/pmos-toolkit/skills/architecture/tests/fixtures/*/ | wc -l</code> at end of T24.</li>
+<li>[ ] Add the missing <code>legacy-principles-severity/.pmos/architecture/principles.yaml</code> fixture (a user L3 with <code>severity: warn</code>); .assert expects exit 64 with the rename hint per spec §14.2 row.</li>
+<li>[ ] Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh 2>&1 | tail -3</code> — expect <code>N passed, 0 failed</code>.</li>
+<li>[ ] Commit: <code>test(T24): rename severity → disposition in .assert files + complete fixture inventory</code></li>
+</ul>
+<p class="meta-line"><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -rl 'severity' plugins/pmos-toolkit/skills/architecture/tests/fixtures/</code> (only allowed in <code>legacy-principles-severity/</code>'s legacy YAML, deliberately).</li>
+</ul>
+</div>
+
+<div class="task">
+<h3 id="tn">TN: Final Verification</h3>
+<p class="meta-line"><strong>Goal:</strong> Verify the entire implementation works end-to-end against the spec's Done-when criteria and the empirical anchor (book-companion regression, deferred to /verify Phase 7 manual gate).</p>
+<ul>
+  <li>[ ] <strong>Lint &amp; format:</strong> <code>shellcheck plugins/pmos-toolkit/skills/architecture/tools/*.sh</code> — exit 0 (treat warnings as findings, fix before merge).</li>
+  <li>[ ] <strong>Python syntax:</strong> <code>python3 -m py_compile plugins/pmos-toolkit/skills/architecture/tools/cycle-py.py</code> — exit 0.</li>
+  <li>[ ] <strong>Fixture suite:</strong> <code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> — expect <code>N passed, 0 failed</code> (N ≈ 28 — see T24).</li>
+  <li>[ ] <strong>Citation regression:</strong> <code>bash plugins/pmos-toolkit/skills/architecture/tools/check-citations.sh</code> — exit 0.</li>
+  <li>[ ] <strong>Gap-map regression:</strong> <code>bash plugins/pmos-toolkit/skills/architecture/tools/check-gap-map.sh</code> — exit 0.</li>
+  <li>[ ] <strong>Skill-eval (deterministic):</strong> <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target generic plugins/pmos-toolkit/skills/architecture/</code> — exit 0; no <code>FAIL</code> lines on stdout.</li>
+  <li>[ ] <strong>Smoke: triplet emission + heading IDs <em>(Loop 2 SF7: invoke via SKILL surface, not direct run-audit.sh, to catch any orchestrator-side stdout leak)</em>:</strong>
+    <pre>
+/architecture audit plugins/pmos-toolkit/skills/architecture/
+test -f docs/pmos/architecture/$(date +%F)_architecture.html
+test -f docs/pmos/architecture/$(date +%F)_architecture.md
+test -f docs/pmos/architecture/$(date +%F)_architecture.json
+test -f docs/pmos/architecture/$(date +%F)_architecture.sections.json
+python3 -c "
+from html.parser import HTMLParser; import sys
+class P(HTMLParser):
+    def __init__(s): super().__init__(); s.missing=[]
+    def handle_starttag(s,t,a):
+        if t in ('h2','h3') and not any(k=='id' for k,_ in a): s.missing.append(t)
+p=P(); p.feed(open(sys.argv[1]).read())
+assert not p.missing, f'missing ids on: {p.missing}'
+" docs/pmos/architecture/$(date +%F)_architecture.html
+    </pre>
+  </li>
+  <li>[ ] <strong>Negative: --no-adr is gone:</strong>
+    <pre>
+! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/SKILL.md
+! grep -F -- '--no-adr' plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh
+/architecture audit . --no-adr 2>&1 | grep -F -- 'unknown flag --no-adr'
+test ! -e plugins/pmos-toolkit/skills/architecture/tools/check-determinism.sh
+test ! -e plugins/pmos-toolkit/skills/architecture/reference/adr-template.md
+test ! -d plugins/pmos-toolkit/skills/architecture/tests/fixtures/determinism
+    </pre>
+  </li>
+  <li>[ ] <strong>Frontend smoke (manual, single-screen):</strong> open the HTML report from the smoke run above in a browser; verify Must Fix / Should Fix / Won't Fix sections render in that order; verify the Architecture metrics section shows the godmodule_candidates table; verify the Won't Fix &gt; Idiomatic exemptions sub-section renders if any idiomatic exemptions surfaced; force an error path by running <code>/architecture audit . --since HEAD~1000</code> in a non-git directory and confirm the exit-64 stderr surfaces; hard-reload the rendered HTML in a fresh tab to confirm no asset 404s.</li>
+  <li>[ ] <strong>UX polish checklist:</strong> <code>document.title</code> set to a descriptive value (not "Untitled"); no internal IDs leaked into copy; meaningful <code>alt</code> on any images (none expected); zero uncaught console errors during page interaction; navigation labels (jump-to-section anchors via the IDs) match destination headings.</li>
+  <li>[ ] <strong>Done-when walkthrough:</strong> trace each clause of the plan's Done-when line through the running system per the Done-when walkthrough text in §Overview above.</li>
+  <li>[ ] <strong>Book-companion regression (manual gate, /verify Phase 7):</strong> deferred to /verify; not a /execute step. /verify Phase 7 manual gate clones book-companion at the pinned SHA and runs the spec §14.3 smoke.</li>
+</ul>
+
+<p class="meta-line"><strong>Cleanup:</strong></p>
+<ul>
+  <li>[ ] Update documentation files: <code>SKILL.md</code> already updated in T23; CHANGELOG and README row are <code>/complete-dev</code> territory per spec §15.1 and per the in-skill-modes scope-discipline directive (Phase 5 release-prereq separation).</li>
+  <li>[ ] Remove temporary fixture scratch files if any (T18 mock <code>.result</code> JSONs should live committed inside the fixture dirs, not in <code>/tmp</code>).</li>
+</ul>
+</div>
+
+<h2 id="review-log">Review Log</h2>
+
+<p>Sidecar: detailed loop-by-loop findings live in <code>03_plan_review.md</code> per FR-45. This table is the summary index.</p>
+
+<table>
+<thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+<tbody>
+<tr><td>1 (author self-review, structural + design)</td><td>
+  Structural: FR-01..FR-67 + NFR-09 traced to T1..T24; T1 is tracer bullet (substrate integration end-to-end); 9 PD-entries in Decision Log; refactor-before-modify preserved (T21 before T23); TDD shape on every code task with declared no-TDD rationale on docs/deletion tasks.<br>
+  Design (4 surfaced; user-batched):<br>
+  <strong>F1 [Should-fix]</strong> NFR-01 (mechanical &lt;30s on 50k-LOC) + NFR-02 (--deep &lt;3min on 50k-LOC) have no concrete TN verification.<br>
+  <strong>F2 [Should-fix, PD7]</strong> HTML substrate (FR-61) breaks copy-paste sharing; PD7 flagged for review.<br>
+  <strong>F3 [Nit]</strong> T11/T12 marked <code>[P]</code> but T12 declares <code>Requires state from: T11</code> — sequential dep.<br>
+  <strong>F4 [Should-fix]</strong> T18's <code>--deep-finalize-from &lt;file&gt;</code> is a test-only flag; without explicit guard, T23's SKILL.md rewrite might surface it in <code>argument-hint</code>.
+</td><td>
+  F1: <strong>Skip</strong> — user judgement: NFRs aspirational; track only on regression.<br>
+  F2: <strong>Substrate per spec (Recommended)</strong> — PD7 stands as historical context; T1+T2 unchanged.<br>
+  F3: <strong>Drop [P] from T12 (Recommended)</strong> — T12 now declares sequential <code>Depends on: T1, T11</code>; honest dep ordering.<br>
+  F4: <strong>Add T23 step + Anti-Pattern note (Recommended)</strong> — T23 gains two steps: (1) Anti-Pattern entry per FR-05 (f); (2) arg-parser gate behind <code>FIXTURE=1</code>.
+</td></tr>
+<tr><td>2 (blind subagent dispatch, fresh-eyes review of plan + spec)</td><td>
+  <strong>BL1 [Blocker, T17/PD6]</strong> runtime probe mechanism unspecified.<br>
+  <strong>BL2 [Blocker, T20/NFR-09]</strong> CC subagent Read interception infeasible.<br>
+  <strong>SF1 [Should-fix, PD7]</strong> PD7 caveat dead weight (substrate-per-spec already chosen at Loop 1).<br>
+  <strong>SF2 [Should-fix, T8]</strong> child invocation drops parent's <code>{docs_path}</code>.<br>
+  <strong>SF3 [Should-fix, T12]</strong> churn formula <code>git log | wc -l</code> counts lines, not commits — inflates 3-6×.<br>
+  <strong>SF4 [Should-fix, T24]</strong> fixture inventory math inconsistent; missing E5b / E2/E6 / E14 fixture coverage.<br>
+  <strong>SF5 [Should-fix, T6/Risks]</strong> PY005-PY008 noise amplification risk on Typer backends unflagged.<br>
+  <strong>SF6 [Should-fix, T18]</strong> happy-path verification missing (only proves rejection).<br>
+  <strong>SF7 [Should-fix, T1/TN]</strong> stdout assertion through <code>$AUDIT</code> not via SKILL surface.<br>
+  <strong>N1 [Nit, T21]</strong> T21 ordering pollutes intermediate fixture runs.<br>
+  <strong>N2 [Nit, T18/T23]</strong> FIXTURE-gate parser implementation belongs in T18 (where flag is born), not T23 (docs-only).
+</td><td>
+  BL1: <strong>Add PD10: env-marker check (Recommended)</strong> — SKILL prelude reads <code>${CLAUDE_PLUGIN_ROOT:-}</code>/<code>${CLAUDE_CODE_VERSION:-}</code>; both unset → set <code>SKILL_NO_SUBAGENT=1</code>. Test stub becomes documented production path.<br>
+  BL2: <strong>Add PD11: degrade --deep on CC + Phase-3 denylist only (Recommended)</strong> — emit <code>tools_skipped: ["deep_pass:read_interception_unavailable"]</code> + prompt-instruction; T20 fixture redesigned.<br>
+  SF1: <strong>Drop PD7 caveat</strong> — PD7 stands as historical context only.<br>
+  SF2: <strong>Pass via ARCH_DOCS_PATH env (Recommended)</strong> — T8 child invocation gets <code>ARCH_DOCS_PATH=&lt;parent-resolved&gt; bash $0 audit ...</code>; fixture asserts both triplets land under one directory.<br>
+  SF3: <strong>Approve fix</strong> — T12 churn formula switched to <code>git rev-list --count --since="N days ago" HEAD -- &lt;file&gt;</code>; inline verification added.<br>
+  SF4: <strong>Approve reconcile + 3 new fixtures</strong> — canonical 31 inventory documented; deep-pass-dispatch-failed (E5b), deep-pass-no-candidates (E2/E6), deep-pass-path-outside-scan-root (E14) added.<br>
+  SF5: <strong>Add R9 + L3 exemption proposal (Recommended)</strong> — Risks gains R9; T6 dry-run on book-companion; optional L3-default exemption extension if noise delta > 30%.<br>
+  SF6: <strong>Approve fix</strong> — T18 happy-path inline-verification line added.<br>
+  SF7: <strong>Approve fix</strong> — TN smoke preamble updated to invoke via <code>/architecture audit</code> SKILL surface.<br>
+  N1: <strong>Approve reorder</strong> — execution-order tree moves T21 to run immediately after T1 (still a single deletion commit per PD9).<br>
+  N2: <strong>Approve ownership swap</strong> — FIXTURE-gate parser implementation moved into T18; T23 keeps Anti-Pattern doc only.
+</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,230 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns-to-follow",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": null
+  },
+  {
+    "id": "existing-code-to-reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": null
+  },
+  {
+    "id": "constraints-discovered",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": null
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": null
+  },
+  {
+    "id": "prerequisites",
+    "level": 2,
+    "title": "Prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "file-map",
+    "level": 2,
+    "title": "File Map",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "rollback",
+    "level": 2,
+    "title": "Rollback",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "t1",
+    "level": 3,
+    "title": "T1: Tracer bullet — schema_version 2 + disposition rename + triplet emission for empty-finding case",
+    "parent_id": null
+  },
+  {
+    "id": "t2",
+    "level": 3,
+    "title": "T2: Substrate copy idempotence + heading-id assert + sections.json companion",
+    "parent_id": null
+  },
+  {
+    "id": "t3",
+    "level": 3,
+    "title": "T3: Idiom AST walker — Typer / Click / Fire / argparse decorator detection with name-resolution map",
+    "parent_id": null
+  },
+  {
+    "id": "t4",
+    "level": 3,
+    "title": "T4: U004 suppression by exempt_ranges + idiomatic-exemption surfacing under Won't Fix",
+    "parent_id": null
+  },
+  {
+    "id": "t5",
+    "level": 3,
+    "title": "T5: U007 default-off + carve-outs (LOC > 100 + no module docstring ≥ 40 chars + not __init__.py)",
+    "parent_id": null
+  },
+  {
+    "id": "t6",
+    "level": 3,
+    "title": "T6: PY005-PY008 ruff additions (C901 / PLR0911-15 / PLR2004 / ARG001-002)",
+    "parent_id": null
+  },
+  {
+    "id": "t7",
+    "level": 3,
+    "title": "T7: Depth-2 monorepo detection + warn-only when --monorepo absent",
+    "parent_id": null
+  },
+  {
+    "id": "t8",
+    "level": 3,
+    "title": "T8: --monorepo fan-out + per-stack triplet + index.{html,json}",
+    "parent_id": null
+  },
+  {
+    "id": "t9",
+    "level": 3,
+    "title": "T9: U011 cross-file duplicate function signatures (AST in harness)",
+    "parent_id": null
+  },
+  {
+    "id": "t10",
+    "level": 3,
+    "title": "T10: cycle-py.py Tarjan SCC + PY009 dispatcher",
+    "parent_id": null
+  },
+  {
+    "id": "t11",
+    "level": 3,
+    "title": "T11: module_metrics + godmodule_candidates with Laplace smoothing [P]",
+    "parent_id": null
+  },
+  {
+    "id": "t12",
+    "level": 3,
+    "title": "T12: risk_score with churn + coupling + class dominance",
+    "parent_id": null
+  },
+  {
+    "id": "t13",
+    "level": 3,
+    "title": "T13: --since filter",
+    "parent_id": null
+  },
+  {
+    "id": "t14",
+    "level": 3,
+    "title": "T14: --baseline single-stack diff",
+    "parent_id": null
+  },
+  {
+    "id": "t15",
+    "level": 3,
+    "title": "T15: --baseline + --since AND-intersect + index-baseline guard",
+    "parent_id": null
+  },
+  {
+    "id": "t16",
+    "level": 3,
+    "title": "T16: --scaffold-l3 with idiomatic exemptions seeding",
+    "parent_id": null
+  },
+  {
+    "id": "t17",
+    "level": 3,
+    "title": "T17: --deep runtime probe + module_metadata payload + size cap",
+    "parent_id": null
+  },
+  {
+    "id": "t18",
+    "level": 3,
+    "title": "T18: --deep subagent dispatch + return-shape validation + dispatch_failed",
+    "parent_id": null
+  },
+  {
+    "id": "t19",
+    "level": 3,
+    "title": "T19: --deep promotion (DEEP_LEAKY/SHALLOW) + size-class demotion reconciliation",
+    "parent_id": null
+  },
+  {
+    "id": "t20",
+    "level": 3,
+    "title": "T20: NFR-09 secret-file Read denylist wrapper",
+    "parent_id": null
+  },
+  {
+    "id": "t21",
+    "level": 3,
+    "title": "T21: ADR machinery deletion (code, fixtures, --no-adr, adr-template.md)",
+    "parent_id": null
+  },
+  {
+    "id": "t22",
+    "level": 3,
+    "title": "T22: deepening-vocabulary.md + l1-rationales severity rename + gap-map updates",
+    "parent_id": null
+  },
+  {
+    "id": "t23",
+    "level": 3,
+    "title": "T23: SKILL.md rewrite — Phase 4.5 insert, Phase 5/6 rewrite, Anti-Patterns, frontmatter",
+    "parent_id": null
+  },
+  {
+    "id": "t24",
+    "level": 3,
+    "title": "T24: Fixture suite update — full sweep of remaining .assert files + new tracer fixture",
+    "parent_id": null
+  },
+  {
+    "id": "tn",
+    "level": 3,
+    "title": "TN: Final Verification",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]
