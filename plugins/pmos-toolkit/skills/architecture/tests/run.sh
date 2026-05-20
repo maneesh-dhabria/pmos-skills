@@ -21,7 +21,11 @@ run_one() {
   local assert="$fixture/.assert"
   [ -f "$assert" ] || return 2  # no .assert → skip
 
-  local audit_cmd="bash $SKILL_DIR/tools/run-audit.sh audit ."
+  # T1 — v2 production stdout is empty (FR-66). The wrapper runs run-audit.sh
+  # and cats the resulting JSON sidecar to stdout so existing .assert scripts
+  # that pipe `$AUDIT | jq` keep working. Fixtures that explicitly test the
+  # empty-stdout production contract invoke run-audit.sh directly instead.
+  local audit_cmd="bash $SKILL_DIR/tests/audit-wrapper.sh ."
   if (
     cd "$fixture" &&
     export SKILL_DIR FIXTURE="$name" AUDIT="$audit_cmd" &&

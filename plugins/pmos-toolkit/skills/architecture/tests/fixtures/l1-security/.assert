@@ -4,5 +4,5 @@ out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 rules=$(echo "$out" | jq -r '.findings | map(.rule_id) | unique | join(",")')
 echo "$out" | jq -e '[.findings[].rule_id] | (contains(["U009"]) or contains(["U010"]))' >/dev/null \
   || { echo "expected ≥1 of U009/U010; got [$rules]"; exit 1; }
-echo "$out" | jq -e '[.findings[] | select(.rule_id == "U009" or .rule_id == "U010") | .severity] | all(. == "block")' >/dev/null \
-  || { echo "U009/U010 must be block severity"; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "U009" or .rule_id == "U010") | .disposition] | all(. == "must_fix")' >/dev/null \
+  || { echo "U009/U010 must be must_fix disposition"; exit 1; }

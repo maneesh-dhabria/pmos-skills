@@ -1,7 +1,7 @@
 # exemption-row — L3 exemption rows parse cleanly; reconciliation shape valid (FR-13/65/66).
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.schema_version == 1' >/dev/null || { echo "schema_version invalid"; exit 1; }
+echo "$out" | jq -e '.schema_version == 2' >/dev/null || { echo "schema_version invalid"; exit 1; }
 echo "$out" | jq -e '.exemptions | type == "object"' >/dev/null \
   || { echo ".exemptions must be an object"; exit 1; }
 for k in applied orphan expired; do

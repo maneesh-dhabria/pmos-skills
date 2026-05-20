@@ -1,7 +1,7 @@
 # l3-override — L3 (project-level) override merges over plugin L1/L2 (FR-11/20).
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.schema_version == 1' >/dev/null || { echo "schema_version invalid"; exit 1; }
+echo "$out" | jq -e '.schema_version == 2' >/dev/null || { echo "schema_version invalid"; exit 1; }
 echo "$out" | jq -e '.rules_loaded | type == "object"' >/dev/null \
   || { echo ".rules_loaded must be an object"; exit 1; }
 echo "$out" | jq -e '.l3_present == true' >/dev/null \

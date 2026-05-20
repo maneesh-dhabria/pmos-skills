@@ -1,7 +1,7 @@
 # tracer — end-to-end audit emits valid JSON with the U004 console.log finding.
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.schema_version == 1' >/dev/null || { echo "schema_version != 1"; exit 1; }
+echo "$out" | jq -e '.schema_version == 2' >/dev/null || { echo "schema_version != 1"; exit 1; }
 echo "$out" | jq -e '[.findings[] | select(.rule_id == "U004")] | length >= 1' >/dev/null \
   || { echo "expected at least one U004 finding"; exit 1; }
 echo "$out" | jq -e '.findings[0].file | endswith("src/a.ts")' >/dev/null \

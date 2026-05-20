@@ -3,7 +3,7 @@ set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 # Audit must complete; whether coverage_gaps surfaces depends on dep-cruiser
 # being available AND finding .vue files it can't analyze.
-echo "$out" | jq -e '.schema_version == 1' >/dev/null \
+echo "$out" | jq -e '.schema_version == 2' >/dev/null \
   || { echo "schema_version invalid"; exit 1; }
 # If dep-cruiser is on PATH, .vue files in the scan should surface a coverage gap.
 if ! echo "$out" | jq -e '[.tools_errored[]? | select(.tool == "dependency-cruiser")] | length > 0' >/dev/null 2>&1; then

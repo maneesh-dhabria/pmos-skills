@@ -1,0 +1,3 @@
+# T1 — fixtures' /architecture audit runs write the HTML+MD+JSON triplet to
+# {fixture}/docs/pmos/architecture/. Keep those test artifacts out of git.
+**/docs/pmos/

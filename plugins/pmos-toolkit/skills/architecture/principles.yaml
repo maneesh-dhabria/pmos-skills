@@ -1,10 +1,12 @@
 # /architecture — plugin-owned principles.yaml (L1 + L2).
 # Shipped verbatim with the pmos-toolkit plugin; replaced on plugin update.
 # v1: 10 L1 universal rules + 4 L2 ts + 4 L2 py. delegated_pct = 8/18 = 0.444.
+# v2 (BREAKING — T1 of architecture-deep-pass): `severity:` renamed to `disposition:`
+#     with value-map (block→must_fix, warn→should_fix, info→wont_fix).
 # Project-level L3 overrides + exemptions live at <repo>/.pmos/architecture/principles.yaml.
-# Schema per spec §7.2 (FR-12): id, tier, stack, severity, delegate_to, check, source, message, why.
+# Schema per spec §7.2 (FR-12): id, tier, stack, disposition, delegate_to, check, source, message, why.
 # `source:` is MANDATORY non-empty (D9).
-schema_version: 1
+schema_version: 2
 
 rules:
   # ── L1: universal (10 rules; cap is 15 per FR-21) ──────────────────────────
@@ -12,7 +14,7 @@ rules:
   - id: U001
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "file_loc_gt:500;exclude_generated"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u001"
@@ -22,7 +24,7 @@ rules:
   - id: U002
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "function_loc_gt:100"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u002"
@@ -32,7 +34,7 @@ rules:
   - id: U003
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "positional_args_gt:4"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u003"
@@ -42,7 +44,7 @@ rules:
   - id: U004
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "regex:console\\.log|print\\(;paths:src/;exclude:tests/,scripts/"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u004"
@@ -52,7 +54,7 @@ rules:
   - id: U005
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "regex:TODO|FIXME|XXX;blame_older_than_days:90"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u005"
@@ -62,7 +64,7 @@ rules:
   - id: U006
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "path_depth_from_src_gt:4"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u006"
@@ -72,7 +74,7 @@ rules:
   - id: U007
     tier: 1
     stack: null
-    severity: info
+    disposition: wont_fix
     delegate_to: grep
     check: "missing_top_of_file_purpose_comment"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u007"
@@ -82,7 +84,7 @@ rules:
   - id: U008
     tier: 1
     stack: null
-    severity: warn
+    disposition: should_fix
     delegate_to: grep
     check: "commented_code_block_gt:5_lines"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u008"
@@ -92,7 +94,7 @@ rules:
   - id: U009
     tier: 1
     stack: null
-    severity: block
+    disposition: must_fix
     delegate_to: grep
     check: "regex:(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]+PRIVATE KEY-----|api[_-]?key\\s*=\\s*['\"][A-Za-z0-9_\\-]{16,}['\"])"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u009"
@@ -102,7 +104,7 @@ rules:
   - id: U010
     tier: 1
     stack: null
-    severity: block
+    disposition: must_fix
     delegate_to: grep
     check: "regex:NotImplementedError|throw\\s+new\\s+Error\\(['\"]TBD['\"];exclude:tests/"
     source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u010"
@@ -114,7 +116,7 @@ rules:
   - id: TS001
     tier: 2
     stack: ts
-    severity: block
+    disposition: must_fix
     delegate_to: dependency-cruiser
     check: "depcruise:no-circular"
     source: "https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md#no-circular"
@@ -124,7 +126,7 @@ rules:
   - id: TS002
     tier: 2
     stack: ts
-    severity: block
+    disposition: must_fix
     delegate_to: dependency-cruiser
     check: "depcruise:forbidden:src/ui-not-to-src/db"
     source: "https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md#forbidden"
@@ -134,7 +136,7 @@ rules:
   - id: TS003
     tier: 2
     stack: ts
-    severity: warn
+    disposition: should_fix
     delegate_to: dependency-cruiser
     check: "depcruise:no-orphans"
     source: "https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md#no-orphans"
@@ -144,7 +146,7 @@ rules:
   - id: TS004
     tier: 2
     stack: ts
-    severity: warn
+    disposition: should_fix
     delegate_to: dependency-cruiser
     check: "depcruise:not-to-dev-dep"
     source: "https://github.com/sverweij/dependency-cruiser/blob/main/doc/rules-reference.md#not-to-dev-dep"
@@ -156,7 +158,7 @@ rules:
   - id: PY001
     tier: 2
     stack: py
-    severity: warn
+    disposition: should_fix
     delegate_to: ruff
     check: "ruff:TID252"
     source: "https://docs.astral.sh/ruff/rules/relative-imports/"
@@ -166,7 +168,7 @@ rules:
   - id: PY002
     tier: 2
     stack: py
-    severity: warn
+    disposition: should_fix
     delegate_to: ruff
     check: "ruff:F401"
     source: "https://docs.astral.sh/ruff/rules/unused-import/"
@@ -176,7 +178,7 @@ rules:
   - id: PY003
     tier: 2
     stack: py
-    severity: warn
+    disposition: should_fix
     delegate_to: ruff
     check: "ruff:F403,F405"
     source: "https://docs.astral.sh/ruff/rules/undefined-local-with-import-star/"
@@ -186,7 +188,7 @@ rules:
   - id: PY004
     tier: 2
     stack: py
-    severity: block
+    disposition: must_fix
     delegate_to: ruff
     check: "ruff:B006"
     source: "https://docs.astral.sh/ruff/rules/mutable-argument-default/"

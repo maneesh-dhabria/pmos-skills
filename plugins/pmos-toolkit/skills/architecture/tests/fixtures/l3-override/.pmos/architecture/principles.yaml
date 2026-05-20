@@ -1,8 +1,8 @@
 # Project L3 override fixture — demotes U004 from warn to info.
-schema_version: 1
+schema_version: 2
 
 rules:
   - id: U004
     tier: 3
-    severity: info
+    disposition: wont_fix
     source: "tests/fixtures/l3-override — exercise FR-20 precedence (L3 > L1)."

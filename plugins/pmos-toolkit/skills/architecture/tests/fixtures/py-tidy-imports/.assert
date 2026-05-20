@@ -6,5 +6,5 @@ if echo "$out" | jq -e '[.tools_errored[]? | select(.tool == "ruff")] | length >
   exit 0
 fi
 # When ruff is available, audit must complete cleanly with no schema corruption.
-echo "$out" | jq -e '.schema_version == 1' >/dev/null \
+echo "$out" | jq -e '.schema_version == 2' >/dev/null \
   || { echo "schema_version corrupted under ruff path"; exit 1; }

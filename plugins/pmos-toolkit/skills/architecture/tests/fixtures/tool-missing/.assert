@@ -3,7 +3,7 @@
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 # The audit must NOT crash on a missing optional tool; the JSON must be well-formed.
-echo "$out" | jq -e '.schema_version == 1' >/dev/null \
+echo "$out" | jq -e '.schema_version == 2' >/dev/null \
   || { echo "schema corrupted on optional-tool absence path"; exit 1; }
 # tools_errored may or may not be populated depending on local PATH; the
 # invariant is that the harness DID NOT crash and the shape is valid.

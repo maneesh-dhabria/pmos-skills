@@ -105,6 +105,16 @@ except Exception as exc:
     sys.exit(64)
 
 plugin_rules = plugin.get("rules", []) or []
+
+# T1 — v2 schema uses `disposition` (must_fix/should_fix/wont_fix); map to the
+# harness internal `severity` vocab (block/warn/info) so the rest of the
+# pipeline keeps working unchanged. JSON emit at the end remaps back to
+# disposition before writing the sidecar.
+_DISP_TO_SEV = {"must_fix": "block", "should_fix": "warn", "wont_fix": "info"}
+for _r in plugin_rules:
+    if "disposition" in _r and "severity" not in _r:
+        _r["severity"] = _DISP_TO_SEV.get(_r["disposition"], _r["disposition"])
+
 tier_1_rules = [r for r in plugin_rules if r.get("tier") == 1]
 
 # FR-21 — L1 cap.
@@ -175,9 +185,18 @@ def _stringify_dates(v):
 exemptions = _stringify_dates(list(l3.get("exemptions", []) or []))
 
 # FR-20 — merge L3 rule overrides onto merged set; track diffs.
+# T1 — v2: L3 rules use `disposition`. Loud-fail on legacy `severity:` keys (E7).
 rule_overrides = []
 tier_3_new = 0
 for r in (l3.get("rules", []) or []):
+    if "severity" in r and "disposition" not in r:
+        print(
+            "principles.yaml uses legacy 'severity:' key; rename to 'disposition:' (block->must_fix, warn->should_fix, info->wont_fix).",
+            file=sys.stderr,
+        )
+        sys.exit(64)
+    if "disposition" in r and "severity" not in r:
+        r["severity"] = _DISP_TO_SEV.get(r["disposition"], r["disposition"])
     rid = r.get("id")
     if not rid:
         continue
@@ -1124,7 +1143,7 @@ REPORT_JSON=$(jq -n \
   --argjson duration_s "$DURATION_S" \
   --arg root "$SCAN_ROOT" \
   '{
-    schema_version: 1,
+    schema_version: 2,
     run: { started_at: $start, finished_at: $end, duration_s: $duration_s },
     scan_root: $root,
     rules_loaded: {
@@ -1147,110 +1166,175 @@ REPORT_JSON=$(jq -n \
     adrs_truncated: $adrs_truncated,
     findings: ($f
       | map(. + { severity: ($loader.effective_severity[.rule_id] // .severity) })
-      | sort_by({block:0, warn:1, info:2}[.severity] // 9, .rule_id, .file, .line))
+      | map(. + { disposition: ({block:"must_fix", warn:"should_fix", info:"wont_fix"}[.severity] // .severity) })
+      | map(del(.severity))
+      | sort_by({must_fix:0, should_fix:1, wont_fix:2}[.disposition] // 9, .rule_id, .file, .line))
   }')
 
-# Emit JSON to stdout (FR-70: stdout = machine-readable only).
-printf '%s\n' "$REPORT_JSON"
+# T1 — emit HTML+MD+JSON triplet to {docs_path}/architecture/.
+# Stdout stays empty (FR-66 / D17); stderr emits a single-line summary.
+REPORT_JSON_FOR_TRIPLET="$REPORT_JSON" \
+SKILL_DIR_ENV="$SKILL_DIR" \
+SCAN_ROOT_ENV="$SCAN_ROOT" \
+python3 <<'PY' 1>&2
+import json, os, sys, shutil, subprocess, pathlib, datetime, re, html
 
-# Render stderr summary (FR-72) unless QUIET mode is on.
-if [ "${QUIET:-0}" -ne 1 ]; then
-  REPORT_JSON_FOR_SUMMARY="$REPORT_JSON" \
-  NO_COLOR_ENV="${NO_COLOR:-}" \
-  python3 <<'PY' 1>&2
-import json, os, sys
+report = json.loads(os.environ["REPORT_JSON_FOR_TRIPLET"])
+skill_dir = pathlib.Path(os.environ["SKILL_DIR_ENV"])
+scan_root_str = os.environ["SCAN_ROOT_ENV"]
+scan_root = pathlib.Path(scan_root_str).resolve()
+substrate_dir = skill_dir.parent.parent / "_shared" / "html-authoring"
+substrate_assets = substrate_dir / "assets"
 
-report = json.loads(os.environ["REPORT_JSON_FOR_SUMMARY"])
-use_color = os.environ.get("NO_COLOR_ENV", "") == "" and sys.stderr.isatty()
+template_html = ""
+template_path = substrate_dir / "template.html"
+if template_path.is_file():
+    template_html = template_path.read_text()
+else:
+    # Minimal inline template fallback (substrate missing → still emit a file).
+    template_html = (
+        "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
+        "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
+    )
 
-def tint(text, code):
-    if not use_color:
-        return text
-    return f"\x1b[{code}m{text}\x1b[0m"
+# Resolve docs_path from .pmos/settings.yaml (default docs/pmos/).
+docs_path = pathlib.Path("docs/pmos")
+settings_path = pathlib.Path(".pmos/settings.yaml")
+if settings_path.is_file():
+    try:
+        import yaml
+        s = yaml.safe_load(settings_path.read_text()) or {}
+        if s.get("docs_path"):
+            docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
+    except Exception:
+        pass
 
-RED_BOLD = "1;31"
-YELLOW = "33"
-DIM = "2"
+arch_dir = docs_path / "architecture"
+arch_dir.mkdir(parents=True, exist_ok=True)
 
-scan_root = report.get("scan_root", "?")
-dur = report.get("run", {}).get("duration_s", 0)
-stacks = report.get("stacks_detected") or []
-l3 = "present" if report.get("l3_present") else "absent"
-delegated_pct = report.get("declarative_delegated_pct") or 0
-fde = report.get("frontend_declarative_coverage")
-findings = report.get("findings") or []
-exemptions = report.get("exemptions") or {}
-adrs_written = report.get("adrs_written") or []
-adrs_truncated = report.get("adrs_truncated") or []
-tools_skipped = report.get("tools_skipped") or []
-tools_errored = report.get("tools_errored") or []
+# Plugin version for cache-bust.
+plugin_version = "0"
+plugin_json = skill_dir.parent.parent / ".claude-plugin" / "plugin.json"
+if plugin_json.is_file():
+    try:
+        plugin_version = json.loads(plugin_json.read_text()).get("version", "0")
+    except Exception:
+        pass
 
-n_block = sum(1 for f in findings if f.get("severity") == "block")
-n_warn = sum(1 for f in findings if f.get("severity") == "warn")
-n_info = sum(1 for f in findings if f.get("severity") == "info")
+date_s = datetime.date.today().isoformat()
+slug = pathlib.Path(os.getcwd()).name or "audit"
+slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
 
-lines = []
-stacks_str = ", ".join(stacks) if stacks else "none"
-fde_str = f" · frontend declarative coverage: {int(round(fde * 100))}%" if isinstance(fde, (int, float)) else ""
-lines.append(f"/architecture audit — scan_root={scan_root} duration={dur}s")
-lines.append(
-    f"stacks: {stacks_str} · l3: {l3} · gap-map: {int(round(delegated_pct * 100))}% delegated{fde_str}"
-)
-lines.append(
-    f"findings: {len(findings)} ({n_block} block, {n_warn} warn, {n_info} info) · "
-    f"exemptions applied: {exemptions.get('applied', 0)} · orphan: {exemptions.get('orphan', 0)} · "
-    f"expired: {exemptions.get('expired', 0)}"
-)
+# FR-60 — same-day collision: append -2, -3, ...
+def stem_for(idx):
+    return f"{date_s}_{slug}" if idx == 0 else f"{date_s}_{slug}-{idx + 1}"
 
-if n_block:
-    lines.append("")
-    lines.append(tint(f"block ({n_block}):", RED_BOLD))
-    for f in findings:
-        if f.get("severity") != "block":
+idx = 0
+while (arch_dir / f"{stem_for(idx)}.html").exists():
+    idx += 1
+stem = stem_for(idx)
+html_path = arch_dir / f"{stem}.html"
+md_path = arch_dir / f"{stem}.md"
+json_path = arch_dir / f"{stem}.json"
+sections_path = arch_dir / f"{stem}.sections.json"
+
+# Copy substrate assets idempotently (cp -n equivalent).
+assets_dst = arch_dir / "assets"
+assets_dst.mkdir(exist_ok=True)
+if substrate_assets.is_dir():
+    for src in substrate_assets.iterdir():
+        if not src.is_file():
             continue
-        lines.append(
-            f"  {f.get('rule_id')} {f.get('file')}:{f.get('line')} — {f.get('message','')}"
+        dst = assets_dst / src.name
+        if not dst.exists():
+            shutil.copy2(src, dst)
+
+findings = report.get("findings") or []
+by_disp = {"must_fix": [], "should_fix": [], "wont_fix": []}
+for f in findings:
+    by_disp.setdefault(f.get("disposition", "wont_fix"), []).append(f)
+
+def render_section(title, items, heading_id):
+    head = f'<h2 id="{heading_id}">{html.escape(title)} ({len(items)})</h2>'
+    if not items:
+        return f"{head}\n<p><em>none</em></p>"
+    rows = []
+    for it in items:
+        rows.append(
+            f"<tr><td><code>{html.escape(it.get('rule_id',''))}</code></td>"
+            f"<td><code>{html.escape(str(it.get('file','')))}:{it.get('line','')}</code></td>"
+            f"<td>{html.escape(str(it.get('message','')))}</td></tr>"
         )
-
-if n_warn:
-    sample = next((f for f in findings if f.get("severity") == "warn"), None)
-    sample_str = (
-        f" e.g. {sample.get('rule_id')} {sample.get('file')}:{sample.get('line')}"
-        if sample else ""
+    return (
+        f"{head}\n"
+        '<table><thead><tr><th>Rule</th><th>Location</th><th>Message</th></tr></thead>\n'
+        f"<tbody>\n{chr(10).join(rows)}\n</tbody></table>"
     )
-    lines.append(tint(f"warn ({n_warn}):{sample_str}", YELLOW))
 
-if n_info:
-    sample = next((f for f in findings if f.get("severity") == "info"), None)
-    sample_str = (
-        f" e.g. {sample.get('rule_id')} {sample.get('file')}:{sample.get('line')}"
-        if sample else ""
-    )
-    lines.append(tint(f"info ({n_info}):{sample_str}", DIM))
+scanned = report.get("scanned") or {}
+total_files = scanned.get("total", 0)
+stacks = ", ".join(report.get("stacks_detected") or []) or "none"
 
-if adrs_truncated:
-    lines.append(
-        f"note: {len(adrs_truncated)} additional block findings not promoted to ADR (cap 5/run)."
-    )
-informational = exemptions.get("informational") or []
-for note in informational:
-    lines.append(f"note: {note}")
-if tools_skipped:
-    lines.append(f"note: tools skipped: {', '.join(tools_skipped)}")
-if tools_errored:
-    lines.append(f"note: tools errored: {len(tools_errored)} (see report.tools_errored)")
+content_html = "\n".join([
+    render_section("Must Fix", by_disp.get("must_fix", []), "must-fix"),
+    render_section("Should Fix", by_disp.get("should_fix", []), "should-fix"),
+    render_section("Won't Fix", by_disp.get("wont_fix", []), "wont-fix"),
+    '<h2 id="architecture-metrics">Architecture metrics</h2>'
+    '<p><em>godmodule_candidates: 0</em> (populated by future tasks)</p>',
+    '<h2 id="run-metadata">Run metadata</h2>'
+    f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> · stacks: {html.escape(stacks)} · '
+    f'files scanned: {total_files} · schema_version: 2</p>',
+])
 
-if adrs_written:
-    lines.append("")
-    lines.append(f"adrs written ({len(adrs_written)}):")
-    for adr in adrs_written:
-        lines.append(f"  {adr.get('path')}")
+asset_prefix = "assets/"
+final_html = (template_html
+    .replace("{{title}}", f"/architecture audit — {html.escape(slug)}")
+    .replace("{{asset_prefix}}", asset_prefix)
+    .replace("{{plugin_version}}", str(plugin_version))
+    .replace("{{content}}", content_html)
+    .replace("{{source_path}}", f"{stem}.html"))
 
-# FR-72: cap at 30 lines for clean output. If exceeded, truncate with a note.
-if len(lines) > 30:
-    lines = lines[:29] + [f"... ({len(lines) - 29} more lines truncated; see report.findings)"]
+# Guard: every <h2>/<h3> we emit must carry an id= attribute.
+for m in re.finditer(r"<(h[23])\b([^>]*)>", final_html):
+    if 'id="' not in m.group(2):
+        print(f"emit_triplet: missing id on <{m.group(1)}>: {m.group(0)}", file=sys.stderr)
+        sys.exit(1)
 
-for line in lines:
-    print(line, file=sys.stderr)
+def atomic_write(path, content):
+    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
+    tmp.write_text(content)
+    tmp.rename(path)
+
+# PD5: HTML → MD → JSON order.
+atomic_write(html_path, final_html)
+
+bsj = substrate_assets / "build_sections_json.js"
+if bsj.is_file():
+    try:
+        sj = subprocess.check_output(["node", str(bsj), str(html_path)], text=True)
+        atomic_write(sections_path, sj)
+    except Exception as exc:
+        print(f"emit_triplet: sections.json generation failed: {exc}", file=sys.stderr)
+
+h2m = substrate_assets / "html-to-md.js"
+md_ok = False
+if h2m.is_file():
+    try:
+        md = subprocess.check_output(["node", str(h2m), str(html_path)], text=True)
+        atomic_write(md_path, md)
+        md_ok = True
+    except Exception as exc:
+        print(f"emit_triplet: MD conversion failed ({exc}); writing fallback", file=sys.stderr)
+if not md_ok:
+    atomic_write(md_path, f"# /architecture audit — {slug}\n\nSee {html_path.name} for the rendered report.\n")
+
+atomic_write(json_path, json.dumps(report, indent=2))
+
+n_must = len(by_disp.get("must_fix", []))
+n_should = len(by_disp.get("should_fix", []))
+n_wont = len(by_disp.get("wont_fix", []))
+print(
+    f"Wrote {html_path}: {n_must} Must Fix, {n_should} Should Fix, {n_wont} Won't Fix in {total_files} files",
+    file=sys.stderr,
+)
 PY
-fi

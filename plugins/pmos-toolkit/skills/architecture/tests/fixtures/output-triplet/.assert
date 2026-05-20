@@ -1,0 +1,39 @@
+# output-triplet — T1 tracer: empty repo yields HTML+MD+JSON triplet with
+# disposition-axis sections, empty stdout, and the documented stderr summary.
+# Invokes run-audit.sh directly (NOT via $AUDIT) because $AUDIT is the
+# test-shim wrapper that cats the JSON sidecar to stdout.
+set -uo pipefail
+
+# Clean prior-run output before this attempt. Stay non-git (the file scanner
+# falls back to find when no git repo is present); avoids leaving a stray
+# .git dir under the fixture between runs.
+rm -rf docs/
+
+# Production call: stdout must be empty; stderr carries the summary line.
+out="$(bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>/tmp/output-triplet-stderr)"
+rc=$?
+[ "$rc" -eq 0 ] || { echo "audit exited rc=$rc"; cat /tmp/output-triplet-stderr; exit 1; }
+
+# FR-66 / D17 — stdout is empty.
+n_bytes=$(printf '%s' "$out" | wc -c | tr -d ' ')
+[ "$n_bytes" -eq 0 ] || { echo "stdout not empty ($n_bytes bytes): $out"; exit 1; }
+
+# Stderr last line matches the documented summary regex.
+last_stderr=$(tail -1 /tmp/output-triplet-stderr)
+echo "$last_stderr" | grep -Eq '^Wrote .*\.html: [0-9]+ Must Fix, [0-9]+ Should Fix, [0-9]+ Won.t Fix in [0-9]+ files$' \
+  || { echo "stderr summary missing/malformed: $last_stderr"; cat /tmp/output-triplet-stderr; exit 1; }
+
+# Triplet exists on disk.
+date_s=$(date +%F)
+html=$(ls docs/pmos/architecture/${date_s}_*.html 2>/dev/null | head -1)
+md=$(ls docs/pmos/architecture/${date_s}_*.md 2>/dev/null | head -1)
+json=$(ls docs/pmos/architecture/${date_s}_*.json 2>/dev/null | head -1)
+[ -f "$html" ] || { echo "missing HTML triplet"; exit 1; }
+[ -f "$md"   ] || { echo "missing MD triplet"; exit 1; }
+[ -f "$json" ] || { echo "missing JSON triplet"; exit 1; }
+
+# JSON shape conforms to v2.
+jq -e '.schema_version == 2' "$json" >/dev/null \
+  || { echo "JSON schema_version != 2"; jq . "$json" | head; exit 1; }
+jq -e '(.findings | length) == 0' "$json" >/dev/null \
+  || { echo "expected 0 findings on empty repo"; exit 1; }
