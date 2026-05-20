@@ -37,3 +37,89 @@ jq -e '.schema_version == 2' "$json" >/dev/null \
   || { echo "JSON schema_version != 2"; jq . "$json" | head; exit 1; }
 jq -e '(.findings | length) == 0' "$json" >/dev/null \
   || { echo "expected 0 findings on empty repo"; exit 1; }
+
+# T2 — substrate copy must exist and capture its md5 for the idempotence check.
+css_path="docs/pmos/architecture/assets/style.css"
+[ -f "$css_path" ] || { echo "missing substrate asset: $css_path"; exit 1; }
+md5_before=$(md5 -q "$css_path" 2>/dev/null || md5sum "$css_path" | awk '{print $1}')
+
+# T2 — every <h2>/<h3> in the emitted HTML must carry a kebab-case id=.
+python3 - "$html" <<'PY'
+import re, sys
+html_path = sys.argv[1]
+with open(html_path) as f:
+    body = f.read()
+KEBAB = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
+bad = []
+ids_in_html = []
+for m in re.finditer(r'<(h[23])\b([^>]*)>', body):
+    attrs = m.group(2)
+    id_m = re.search(r'\bid="([^"]+)"', attrs)
+    if not id_m:
+        bad.append(f"<{m.group(1)}> without id: {m.group(0)}")
+        continue
+    if not KEBAB.match(id_m.group(1)):
+        bad.append(f"id={id_m.group(1)!r} is not kebab-case")
+    ids_in_html.append(id_m.group(1))
+if bad:
+    for b in bad:
+        print(b)
+    sys.exit(1)
+if not ids_in_html:
+    print("no h2/h3 ids found at all"); sys.exit(1)
+PY
+
+# T2 — sections.json companion exists and its ids match the HTML's h2/h3 ids.
+sections_json=$(ls docs/pmos/architecture/${date_s}_*.sections.json 2>/dev/null | head -1)
+[ -f "$sections_json" ] || { echo "missing sections.json companion"; exit 1; }
+python3 - "$html" "$sections_json" <<'PY'
+import json, re, sys
+html_path, sj_path = sys.argv[1], sys.argv[2]
+with open(html_path) as f:
+    body = f.read()
+html_ids = set()
+for m in re.finditer(r'<h[23]\b[^>]*\bid="([^"]+)"', body):
+    html_ids.add(m.group(1))
+sj = json.load(open(sj_path))
+# Substrate emits an array of {id, level, title, parent_id}. Build the id set.
+if isinstance(sj, list):
+    sj_ids = {e["id"] for e in sj if isinstance(e, dict) and "id" in e}
+elif isinstance(sj, dict) and "ids" in sj:
+    sj_ids = set(sj["ids"])
+else:
+    print(f"unknown sections.json shape: {type(sj).__name__}"); sys.exit(1)
+if sj_ids != html_ids:
+    print(f"sections.json id set differs from HTML h2/h3 id set")
+    print(f"  in HTML only:   {sorted(html_ids - sj_ids)}")
+    print(f"  in sections only: {sorted(sj_ids - html_ids)}")
+    sys.exit(1)
+PY
+
+# T2 — second run idempotence: re-invoking the audit must NOT clobber the
+# substrate (md5 of style.css unchanged) AND must write to a `-2` slug per
+# FR-60 collision-suffix rule.
+out2="$(bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>/tmp/output-triplet-stderr2)"
+rc2=$?
+[ "$rc2" -eq 0 ] || { echo "second audit exited rc=$rc2"; cat /tmp/output-triplet-stderr2; exit 1; }
+
+md5_after=$(md5 -q "$css_path" 2>/dev/null || md5sum "$css_path" | awk '{print $1}')
+[ "$md5_before" = "$md5_after" ] || {
+  echo "substrate style.css md5 changed across runs (not idempotent):"
+  echo "  before=$md5_before"
+  echo "  after =$md5_after"
+  exit 1
+}
+
+# Second HTML must land at <date>_<slug>-2.html per FR-60.
+html_count=$(ls docs/pmos/architecture/${date_s}_*.html 2>/dev/null | wc -l | tr -d ' ')
+[ "$html_count" -eq 2 ] || {
+  echo "expected 2 HTML triplets after second run, got $html_count"
+  ls docs/pmos/architecture/
+  exit 1
+}
+slug_base=$(basename "$html" .html)
+[ -f "docs/pmos/architecture/${slug_base}-2.html" ] || {
+  echo "expected ${slug_base}-2.html after second run; not found"
+  ls docs/pmos/architecture/
+  exit 1
+}

@@ -1183,7 +1183,7 @@ report = json.loads(os.environ["REPORT_JSON_FOR_TRIPLET"])
 skill_dir = pathlib.Path(os.environ["SKILL_DIR_ENV"])
 scan_root_str = os.environ["SCAN_ROOT_ENV"]
 scan_root = pathlib.Path(scan_root_str).resolve()
-substrate_dir = skill_dir.parent.parent / "_shared" / "html-authoring"
+substrate_dir = skill_dir.parent / "_shared" / "html-authoring"
 substrate_assets = substrate_dir / "assets"
 
 template_html = ""
