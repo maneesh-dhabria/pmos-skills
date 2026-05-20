@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="multi-plugin-marketplace">
+  <meta name="pmos:ideate-date" content="2026-05-20">
+  <title>Multi-plugin marketplace migration — Ideation</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.48.0">
+  <script defer src="assets/viewer.js?v=2.48.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Multi-plugin marketplace migration</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p>Chosen topology — confirmed after surfacing the discovery requirement (each plugin is an independent product needing its own GitHub presence, stars, issues) and confirming Claude Code's <code>marketplace.json</code> supports external git sources:</p>
+<p><strong>Umbrella repo + per-plugin repos remotely, monorepo locally, split-on-release.</strong></p>
+<ul>
+<li><strong>Remote:</strong> a tiny new umbrella repo <code>github.com/maneesh-dhabria/pmos-agent-skills</code> holds only <code>.claude-plugin/marketplace.json</code> + README. Each plugin (<code>pmos-toolkit</code>, <code>pmos-learnkit</code>, future <code>pmos-*</code>) lives at its own GitHub repo and is referenced via <code>{"source": "github", "repo": "..."}</code>.</li>
+<li><strong>Local:</strong> keep the existing <code>agent-skills/</code> monorepo with one <code>.git</code>. Cross-plugin substrate refactors (<code>_shared/html-authoring</code>, <code>_shared/interactive-prompts</code>) stay atomic — single commit, single grep surface.</li>
+<li><strong>Release:</strong> <code>git subtree split --prefix=plugins/&lt;name&gt;</code> pushes filtered history to the standalone GitHub repo per plugin on tag. Wrapped in a ~150 LOC release script with <code>--dry-run</code>.</li>
+<li><strong>Codex:</strong> wait-and-see — Codex's external-source schema isn't documented at parity yet; ship Claude Code umbrella first, add Codex umbrella when their spec stabilizes. Acceptable 3–6 month gap given Codex is the smaller surface.</li>
+</ul>
+<p>This shape gives each plugin independent discoverability (its own stars, issues, README, SEO) without paying the cross-plugin refactor tax of a full local split.</p>
+<table>
+<tr><th>Variant</th><th>Risk-density (H×H)</th><th>Assumption-load (H×H)</th><th>Ease-of-validation</th><th>Discovery per plugin</th></tr>
+<tr><td>#1 Separate repos (full local + remote split)</td><td>3</td><td>2</td><td>5</td><td>✓</td></tr>
+<tr><td>#2 Namespaced tags (single monorepo, one GitHub repo)</td><td>1</td><td>2</td><td>4</td><td>✗</td></tr>
+<tr><td><strong>#3 Umbrella + monorepo-local + subtree-split-on-release</strong></td><td><strong>2</strong></td><td><strong>1</strong></td><td><strong>4</strong></td><td><strong>✓</strong></td></tr>
+</table>
+<p><strong>Recommendation:</strong> <strong>#3 — umbrella + monorepo-local + split-on-release.</strong> The discovery axis flipped the analysis: #2 (namespaced tags) fails on independent-product discoverability, and #1 (full local split) gives up the <code>_shared/</code> refactor ergonomics that pmos-toolkit already depends on heavily. #3 is the only variant that satisfies both axes simultaneously, at the cost of one one-time release-tooling investment.</p>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we restructure <code>agent-skills</code> so it cleanly hosts multiple plugins (pmos-toolkit, pmos-learnkit, future ones) with independent release cycles and remotes, while keeping the marketplace manifest cohesive and CLAUDE.md invariants intact?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> Maneesh — sole maintainer, currently shipping pmos-toolkit (v2.49.0) and about to scaffold pmos-learnkit.</p>
+<p><strong>When / where:</strong> Pre-scaffold of pmos-learnkit; the next 1–4 weeks before any second-plugin code lands.</p>
+<p><strong>JTBD:</strong> When I'm ready to ship a second plugin alongside pmos-toolkit, I want a repo topology that lets me tag/release/push one without dragging the other, so I can iterate independently without paying ongoing tax on every commit.</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe <strong>adopting an umbrella marketplace repo that references each plugin's standalone GitHub repo, while keeping a local monorepo and splitting on release</strong> will produce <strong>per-plugin discoverability + independent release cycles + preserved cross-plugin substrate refactor ergonomics</strong> because <strong>Claude Code's <code>marketplace.json</code> supports external GitHub sources with ref/sha pinning, <code>git subtree split</code> can extract clean filtered history per release, and the umbrella repo itself is near-static (changes only when adding a plugin or tuning a manifest field).</strong></p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via SCAMPER + Analogous Inspiration. Finalists flagged with ★.</p>
+<ol>
+<li>★ <strong>Separate git repo per plugin</strong> — the doc's current plan; each plugin has own <code>.git</code> + GitHub remotes; root is thin registry.</li>
+<li>★ <strong>Monorepo with namespaced tags</strong> — keep single <code>.git</code>; release via <code>pmos-toolkit/v2.50.0</code> + <code>pmos-learnkit/v0.1.0</code> tags.</li>
+<li>★ <strong>Subtree-split on release</strong> — monorepo is source of truth; <code>git subtree split --prefix=plugins/&lt;name&gt;</code> pushes filtered history to per-plugin GitHub mirrors at release time.</li>
+<li>Git submodules — root references each plugin as a submodule.</li>
+<li>Sparse-checkout distribution — single repo; CI builds per-plugin distribution tarballs/branches.</li>
+<li>Hybrid: monorepo dev, auto-mirror each <code>plugins/*</code> to standalone GitHub repos via subtree push on tag (close relative of #3).</li>
+<li>Workspace pattern: shared tooling via symlink, each plugin has own <code>.git</code>.</li>
+<li>Orphan branches per plugin in one repo (never merged).</li>
+<li>Marketplace-as-pure-manifest — root holds only <code>marketplace.json</code> + docs; plugin source lives entirely in external repos.</li>
+<li>Release-script monorepo — keep single <code>.git</code>; add <code>release.sh &lt;plugin&gt;</code> handling tagging via on-the-fly subtree-split.</li>
+<li>Bare mirror repos alongside monorepo, updated post-commit.</li>
+<li>Two-tier split: <code>agent-marketplace</code> (manifest only) + <code>agent-plugins</code> (all plugin source).</li>
+</ol>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist: umbrella + monorepo-local + split-on-release)</h2>
+<h3>Remote topology</h3>
+<pre><code>github.com/maneesh-dhabria/
+├─ pmos-agent-skills/      ← umbrella: .claude-plugin/marketplace.json + README + docs
+├─ pmos-toolkit/           ← standalone plugin (already exists; stays as-is)
+├─ pmos-learnkit/          ← standalone plugin (new)
+└─ pmos-&lt;future&gt;/          ← each future plugin gets its own repo
+</code></pre>
+<p>Each plugin owns its own GitHub presence: stars, issues, discussions, README, SEO. The umbrella is install-time discovery (<code>/plugin marketplace add maneesh-dhabria/pmos-agent-skills</code>).</p>
+<h3>Umbrella <code>marketplace.json</code></h3>
+<pre><code>{
+  "name": "pmos-agent-skills",
+  "owner": { "name": "Maneesh Dhabria", "url": "https://github.com/maneesh-dhabria" },
+  "plugins": [
+    {
+      "name": "pmos-toolkit",
+      "description": "PM + software delivery pipeline.",
+      "source": { "source": "github", "repo": "maneesh-dhabria/pmos-toolkit", "ref": "main" },
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-toolkit"
+    },
+    {
+      "name": "pmos-learnkit",
+      "description": "...",
+      "source": { "source": "github", "repo": "maneesh-dhabria/pmos-learnkit", "ref": "main" },
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-learnkit"
+    }
+  ]
+}</code></pre>
+<p>Pin via <code>"ref": "v2.50.0"</code> or <code>"sha": "..."</code> if you want frozen install points; <code>"ref": "main"</code> tracks latest.</p>
+<h3>Local topology</h3>
+<p>Unchanged from today — single <code>.git</code> at <code>agent-skills/</code>, plugins under <code>plugins/&lt;name&gt;/</code>. Shared substrate (<code>plugins/pmos-toolkit/skills/_shared/</code> and any future top-level shared modules) edits remain single-commit, atomic, greppable across all plugins.</p>
+<h3>Release flow (per plugin)</h3>
+<ol>
+<li>Work locally in <code>agent-skills/</code>; commit normally.</li>
+<li><code>/complete-dev --plugin &lt;name&gt;</code> bumps the targeted plugin's <code>.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> + <code>CHANGELOG.md</code>.</li>
+<li>Tag locally with namespaced format: <code>git tag pmos-learnkit/v0.1.0</code> (still useful as a monorepo cross-reference).</li>
+<li>Release script invokes <code>git subtree split --prefix=plugins/&lt;name&gt; -b release-&lt;name&gt;</code>, then pushes <code>release-&lt;name&gt; → &lt;plugin-repo&gt;:main</code> and the tag <code>v0.1.0</code> (unprefixed in the standalone repo).</li>
+<li>Umbrella repo is touched only if a new plugin is being added or the manifest is being re-pinned.</li>
+</ol>
+<h3>Release script sketch</h3>
+<pre><code>#!/usr/bin/env bash
+# scripts/release-plugin.sh &lt;plugin-name&gt; &lt;version&gt;
+set -euo pipefail
+plugin="$1"; version="$2"
+prefix="plugins/$plugin"
+remote="$plugin"   # git remote pointing at github.com/maneesh-dhabria/$plugin
+
+[[ -d "$prefix" ]] || { echo "no such plugin: $prefix"; exit 1; }
+git remote get-url "$remote" &gt;/dev/null || { echo "no remote: $remote"; exit 1; }
+
+split_branch="release-$plugin"
+git subtree split --prefix="$prefix" -b "$split_branch"
+git push "$remote" "$split_branch:main"
+git push "$remote" "$plugin/v$version:refs/tags/v$version"
+git branch -D "$split_branch"</code></pre>
+<p>Add <code>--dry-run</code>, pin git version in CI, integration-test against a throwaway plugin before going live.</p>
+<h3>Codex strategy</h3>
+<ul>
+<li><strong>Phase 1 (now):</strong> ship Claude Code umbrella. Each plugin's <code>.codex-plugin/plugin.json</code> still exists in its standalone repo — Codex users install each plugin individually (current Codex norm anyway).</li>
+<li><strong>Phase 2 (later):</strong> when Codex documents external-source schema at parity with Claude Code, add <code>.codex-plugin/marketplace.json</code> to the umbrella. No structural change required.</li>
+</ul>
+<h3>Reversibility</h3>
+<p>If this topology ever stops fitting (e.g., one plugin becomes so dominant that the umbrella feels like overhead, or vice versa), the escape hatches are cheap: collapse umbrella into a plugin repo's README; or stop using subtree-split and let plugin repos diverge to be source-of-truth. Local monorepo is preserved either way.</p>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td>Anthropic <code>claude-code</code> plugin examples repo</td><td>Multi-plugin monorepo, single <code>.git</code>, shared marketplace manifest.</td><td>Same shape as #2; validates the pattern at the platform level.</td></tr>
+<tr><td>Lerna / Nx / Turborepo (JS ecosystem)</td><td>Monorepos with per-package namespaced tags (<code>@scope/pkg@1.2.3</code>) and per-package release scripts.</td><td>Direct prior art for #2 — proven at scale; no reason it wouldn't work at scale-of-one.</td></tr>
+<tr><td>Kubernetes <code>kubernetes/kubernetes</code> + staging repos</td><td>Monorepo dev; auto-published filtered mirrors per subdir (apimachinery, client-go, etc.) via <code>publishing-bot</code>.</td><td>Direct prior art for #3/#6; pattern works but tooling investment is meaningful (~100s of LOC of Go).</td></tr>
+<tr><td>The migration doc (Part 1+2+3)</td><td>Force-push per-plugin <code>.git</code>; gitignore plugins in root; manually copy pre-push hook into each plugin.</td><td>This is variant #1. Cleanest conceptually; highest reorg cost; hardest to reverse; hook duplication drift is a latent failure mode.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<h3>Chosen: Umbrella + monorepo-local + split-on-release</h3>
+<table>
+<tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>Release script's <code>git subtree split</code> produces surprising commit metadata or fails on a rename across the plugin boundary</td><td>M</td><td>Test on pmos-toolkit before pmos-learnkit's first real release; pin git version; avoid cross-boundary file moves; fall back to <code>git filter-repo</code> for one-shot rewrites if needed.</td></tr>
+<tr><td>Someone (you, future you) commits directly to a standalone plugin's GitHub repo, diverging it from the monorepo</td><td>H</td><td>GitHub branch protection on plugin repos: only release-bot / specific user can push to <code>main</code>. README at the top of each plugin repo states "PRs go to <code>pmos-agent-skills</code> monorepo, not here."</td></tr>
+<tr><td>Umbrella <code>marketplace.json</code> drifts from reality (refs a renamed/deleted plugin)</td><td>M</td><td>CI lint job in the umbrella repo: every <code>source.repo</code> must resolve via <code>gh api</code>; every pinned <code>ref</code>/<code>sha</code> must exist.</td></tr>
+<tr><td>Codex users have a worse install experience for 3–6 months</td><td>M (acceptable)</td><td>Document the per-plugin Codex install path explicitly in each plugin's README; revisit when Codex marketplace schema stabilizes.</td></tr>
+<tr><td>Release script complexity grows past ~200 LOC and becomes its own maintenance burden</td><td>M</td><td>Keep it boring: bash, no abstractions, integration tests against a throwaway plugin in CI; refactor only when N&gt;3 plugins.</td></tr>
+<tr><td>First-time setup error: standalone plugin repos created with stale/wrong initial content</td><td>L</td><td>For each new plugin's first release, run release script with <code>--dry-run</code>, inspect the would-be-pushed branch with <code>git log</code>, then run for real.</td></tr>
+</table>
+<h3>#1 Separate repo per plugin</h3>
+<table>
+<tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>Cross-plugin refactor friction (shared <code>_shared/</code>, <code>interactive-prompts.md</code>, html-authoring substrate)</td><td>H</td><td>Keep <code>_shared/</code> in root; symlink into each plugin's git, or vendor a copy on release.</td></tr>
+<tr><td>Force-push step in migration overwrites unrelated GitHub content (existing PRs, branches, tags)</td><td>M</td><td>Run <code>gh pr list</code> + <code>git ls-remote --heads</code> on each remote before force-push; back up tags first.</td></tr>
+<tr><td>Pre-push hook copy drifts across N plugins after a root update</td><td>H</td><td>Use a symlink (<code>ln -s</code>) from each plugin's <code>.git/hooks/pre-push</code> to the canonical root hook — not <code>cp</code>.</td></tr>
+<tr><td>pmos-toolkit skill scripts assume a single <code>.git</code> boundary and break after the split</td><td>H</td><td>Audit <code>grep -rn 'git -C\|git log\|git diff' plugins/pmos-toolkit/skills/*/scripts/</code> before migrating.</td></tr>
+<tr><td>Marketplace manifest's <code>./plugins/&lt;name&gt;</code> path references drift from gitignored subdirs</td><td>M</td><td>CI lint: every <code>marketplace.json</code> source path must exist and its <code>plugin.json</code> version must match the latest tag.</td></tr>
+<tr><td>Contributors can't figure out which repo to PR against</td><td>L (solo)</td><td>README redirects in each repo + root.</td></tr>
+</table>
+<h3>#2 Namespaced tags (chosen)</h3>
+<table>
+<tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>/complete-dev bumps both plugins' versions when only one changed</td><td>H</td><td><code>--plugin &lt;name&gt;</code> flag; auto-detect via <code>git diff main...HEAD</code> path prefix; refuse to bump when diff spans multiple plugins (force explicit flag).</td></tr>
+<tr><td>Tag namespace collisions or wrong-prefix tags pollute history</td><td>M</td><td>Pre-push hook validates tag regex; rejects unprefixed <code>v*</code> tags entirely.</td></tr>
+<tr><td>GitHub Releases page gets cluttered with cross-plugin tags</td><td>M</td><td>Use GitHub's release-list filter; <code>gh release create</code> with the namespaced tag still produces clean per-plugin releases.</td></tr>
+<tr><td>Pre-push hook's version-sync logic is per-repo, not per-plugin</td><td>M</td><td>Refactor hook to iterate <code>plugins/*/</code> and verify each plugin's two manifests independently.</td></tr>
+<tr><td>External user wanting just pmos-learnkit gets the full monorepo clone</td><td>L</td><td>Acceptable — marketplace install is path-based, not clone-based.</td></tr>
+</table>
+<h3>#3 Subtree-split on release</h3>
+<table>
+<tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>Mirror GitHub repos diverge from monorepo (someone commits to the mirror)</td><td>H</td><td>Lock mirrors with GitHub branch protection (only the release bot/local script can push).</td></tr>
+<tr><td>Release script becomes too brittle (subtree commands have sharp edges around <code>--rejoin</code>, renames)</td><td>H</td><td>Wrap in a tested script with a <code>--dry-run</code> mode; pin git version; document the recipe.</td></tr>
+<tr><td>Subtree-split produces commits with surprising author/date metadata</td><td>M</td><td>Use <code>git subtree split</code> (not <code>filter-branch</code>); validate output on a test plugin before going live.</td></tr>
+<tr><td>Cross-boundary file moves (e.g., promoting <code>_shared/</code> code into pmos-toolkit) corrupt split history</td><td>M</td><td>Avoid such moves; if necessary, use <code>git filter-repo</code> for one-shot rewrites.</td></tr>
+<tr><td>Users confused which repo to file issues against</td><td>M</td><td>GitHub issue template in mirrors redirects to monorepo.</td></tr>
+</table>
+<h3>Munger inversion — what would <em>guarantee</em> failure?</h3>
+<ul>
+<li><strong>For #1:</strong> Force-push without auditing skill scripts; <code>cp</code> (not symlink) the pre-push hook; leave <code>plugins/pmos-toolkit/</code> tracked in root <code>.git</code> alongside its own <code>.git</code> (double-tracking → conflicting commits); skip <code>git remote -v</code> verification before each force-push; forget <code>.gitignore</code> after <code>git rm --cached</code>.</li>
+<li><strong>For #2:</strong> Tag without prefix (<code>v2.50.0</code> alone); let /complete-dev bump both plugins when only one changed; mix plugin commits in a single PR/merge; skip extending the pre-push hook; reuse <code>main</code> without per-plugin release branches when scoping demands it.</li>
+<li><strong>For #3:</strong> Allow direct commits to mirror repos; run subtree-split on every push instead of on tag; skip pinning git version; let the recipe live in one developer's head; use deprecated <code>filter-branch</code> instead of <code>subtree split</code> or <code>filter-repo</code>.</li>
+</ul>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<h3>Chosen: Umbrella + monorepo-local + split-on-release</h3>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>Claude Code marketplace's <code>{"source": "github", "repo": "..."}</code> resolves cleanly when installed by an end user</td><td>H</td><td>L</td><td>Create a test umbrella repo referencing pmos-toolkit; <code>/plugin marketplace add</code> against it; verify install. (Confirmed in spec — verify once in practice.)</td></tr>
+<tr><td><code>git subtree split --prefix=plugins/pmos-toolkit</code> against current monorepo produces clean linear history</td><td>H</td><td>M</td><td>Run it now (read-only, no push); <code>git log --oneline</code> on the split branch; check for surprising merge commits or author drift.</td></tr>
+<tr><td>Branch protection on standalone plugin repos is sufficient to prevent accidental direct commits</td><td>M</td><td>L</td><td>Set rules on a test repo; try pushing; confirm it rejects.</td></tr>
+<tr><td>Codex users tolerate per-plugin install until umbrella parity ships</td><td>M</td><td>M</td><td>Ask: does any current Codex user expect a single-marketplace install for pmos? If no, no friction.</td></tr>
+<tr><td>Release script stays under ~200 LOC including dry-run, validation, error handling</td><td>M</td><td>M</td><td>Sketch the full script before committing; count lines.</td></tr>
+<tr><td>Existing pmos-toolkit GitHub repo's history rewrite (first subtree-split push) doesn't break existing clones / forks / open PRs</td><td>H</td><td>M</td><td><code>gh pr list --repo maneesh-dhabria/pmos-toolkit</code>; <code>gh api repos/maneesh-dhabria/pmos-toolkit/forks</code>; if non-empty, plan a coordinated cutover.</td></tr>
+</table>
+<h3>#1 Separate repos</h3>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>No skill script depends on a single-<code>.git</code> topology</td><td>H</td><td>H</td><td><code>grep -rn 'git -C\|git log\|git diff\|git rev-parse' plugins/pmos-toolkit/skills/*/scripts/ tests/</code></td></tr>
+<tr><td>Future plugins will be mostly independent (no deep cross-references to pmos-toolkit's <code>_shared/</code>)</td><td>H</td><td>H</td><td>Sketch pmos-learnkit's first 3 skills on paper — do they import from <code>_shared/html-authoring</code>, <code>_shared/interactive-prompts</code>, etc.?</td></tr>
+<tr><td>Force-push to GitHub origin won't conflict with existing branches/PRs/CI</td><td>H</td><td>L</td><td><code>gh pr list --repo maneesh-dhabria/pmos-toolkit</code> + <code>git ls-remote</code> before each force-push.</td></tr>
+<tr><td>Pre-push hook copy-vs-symlink doesn't matter in practice</td><td>M</td><td>M</td><td>Symlink one plugin's hook; update root canonical; verify the symlinked hook picks up the change.</td></tr>
+</table>
+<h3>#2 Namespaced tags (chosen)</h3>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>/complete-dev can be extended to be plugin-aware in &lt;1 day</td><td>H</td><td>M</td><td>Read /complete-dev Phase 9 + Phase 13; count lines that hardcode <code>pmos-toolkit</code>; estimate.</td></tr>
+<tr><td>Single-remote topology (one push lands both plugins) is acceptable long-term</td><td>M</td><td>L</td><td>Explicit user check: does pmos-learnkit need its own GitHub repo for stars/issues/visibility before v1.0?</td></tr>
+<tr><td>Monorepo grep/refactor benefit outweighs release-isolation cost at solo scale</td><td>H</td><td>M</td><td>Count current cross-<code>_shared/</code> references; estimate frequency of future cross-plugin substrate edits.</td></tr>
+<tr><td><code>gh release create pmos-toolkit/v2.50.0</code> works cleanly with slash in tag name</td><td>M</td><td>L</td><td>Create a test tag on a throwaway branch; <code>gh release create</code> against it; delete.</td></tr>
+</table>
+<h3>#3 Subtree-split</h3>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td><code>git subtree split --prefix=plugins/pmos-toolkit</code> produces clean history against current monorepo</td><td>H</td><td>M</td><td>Run it now (read-only, no push); inspect <code>git log</code> on the split branch.</td></tr>
+<tr><td>Automation surface stays under 200 LOC</td><td>M</td><td>M</td><td>Sketch the release script; count lines including dry-run + validation.</td></tr>
+<tr><td>GitHub mirror repos can be set effectively read-only</td><td>M</td><td>L</td><td>GitHub branch protection rules — well-documented and known to work.</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading (within 1 release of pmos-learnkit v0.1.0):</strong> <code>pmos-agent-skills</code> umbrella repo exists with valid <code>marketplace.json</code>; end-user can run <code>/plugin marketplace add maneesh-dhabria/pmos-agent-skills</code> and see both plugins listed; <code>release-plugin.sh pmos-learnkit 0.1.0</code> pushes a clean history to the standalone <code>pmos-learnkit</code> repo without manual intervention; pmos-toolkit's release cadence is untouched.</p>
+<p><strong>Lagging (3–6 months in):</strong> Each plugin has its own non-zero GitHub stars/issues count (i.e., people are finding them by their own names, not just via the umbrella); cross-plugin substrate refactors (<code>_shared/html-authoring</code> updates) remain single-commit on the local monorepo and split cleanly to both standalone repos on next release; release script LOC has stayed under 200; no commits have leaked directly to the standalone plugin repos (branch protection holds); Codex umbrella manifest has been added (or a conscious decision made not to).</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li><strong>Create the umbrella GitHub repo</strong> <code>maneesh-dhabria/pmos-agent-skills</code> (private or public).</li>
+<li><strong>Validate Claude Code external-source install path in practice</strong> — small test umbrella referencing current <code>pmos-toolkit</code>; run <code>/plugin marketplace add</code>; confirm install succeeds.</li>
+<li><strong>Dry-run <code>git subtree split --prefix=plugins/pmos-toolkit</code></strong> against the current monorepo; inspect output history; confirm no surprises.</li>
+<li><strong>Audit existing pmos-toolkit GitHub repo</strong> for open PRs, forks, external references before any history-rewriting push.</li>
+<li><strong>Build the release script</strong> (<code>scripts/release-plugin.sh</code>) with <code>--dry-run</code>; integration-test against a throwaway plugin.</li>
+<li><strong>Extend <code>/complete-dev</code></strong> for plugin-aware version bumping (<code>--plugin &lt;name&gt;</code> + diff-based detection).</li>
+<li><strong>Scaffold pmos-learnkit</strong> in the monorepo under <code>plugins/pmos-learnkit/</code>; create its standalone GitHub repo; first release via the new script.</li>
+<li><strong>Author umbrella <code>marketplace.json</code></strong> with both plugins as GitHub sources; publish.</li>
+<li><strong>Update CLAUDE.md invariants</strong> for the new release topology and umbrella manifest sync rules.</li>
+<li><strong>Retire <code>docs/migration-separate-repos.md</code></strong> — annotate header with "superseded by /ideate finding 2026-05-20" and reference this artifact.</li>
+</ol>
+<p><em>Suggested handoff commands:</em></p>
+<ul>
+<li><strong><code>/feature-sdlc docs/pmos/ideate/2026-05-20_multi-plugin-marketplace.html</code></strong> — drive the full requirements → spec → plan → execute → verify → ship pipeline against this ideation. <em>(Recommended next action per the user's stated plan.)</em></li>
+<li><code>/grill docs/pmos/ideate/2026-05-20_multi-plugin-marketplace.html</code> — optional adversarial pressure-test before the SDLC if you want one more pass.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li><strong>Umbrella ref strategy:</strong> pin to <code>"ref": "main"</code> (always latest) or to specific tagged versions (e.g., <code>"ref": "v2.50.0"</code>)? Latest = simpler maintenance, no umbrella commits per release. Pinned = reproducible installs, but every plugin release needs an umbrella update.</li>
+<li><strong>Cutover risk on pmos-toolkit:</strong> first <code>git subtree split</code> push rewrites the standalone repo's history. Are there forks/clones/external PR references that need coordinated cutover, or is the repo solo enough that a clean replace is fine?</li>
+<li><strong>Should <code>_shared/</code> become its own plugin / package eventually?</strong> If pmos-learnkit consumes &gt;30% of it, factoring it out (and having both plugins depend on it) becomes more honest than copy-by-subtree. Defer the decision until learnkit is real.</li>
+<li><strong>Codex umbrella schema:</strong> when (not if) Codex documents external-source support, do we mirror Claude Code's umbrella structure, or does Codex's design force a different shape?</li>
+<li><strong>GitLab remote:</strong> current root pushes to GitLab as <code>origin</code>. Does GitLab keep getting the monorepo (yes, that's the source of truth), or do we also create per-plugin GitLab mirrors via subtree-split? (Suggest: monorepo only on GitLab; per-plugin only on GitHub.)</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/ideate/2026-05-20_multi-plugin-marketplace.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
