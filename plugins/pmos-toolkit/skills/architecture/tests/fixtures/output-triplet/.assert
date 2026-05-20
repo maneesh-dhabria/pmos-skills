@@ -98,7 +98,7 @@ PY
 # T2 — second run idempotence: re-invoking the audit must NOT clobber the
 # substrate (md5 of style.css unchanged) AND must write to a `-2` slug per
 # FR-60 collision-suffix rule.
-out2="$(bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>/tmp/output-triplet-stderr2)"
+bash "$SKILL_DIR/tools/run-audit.sh" audit . >/dev/null 2>/tmp/output-triplet-stderr2
 rc2=$?
 [ "$rc2" -eq 0 ] || { echo "second audit exited rc=$rc2"; cat /tmp/output-triplet-stderr2; exit 1; }
 
