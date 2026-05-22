@@ -194,3 +194,43 @@ rules:
     source: "https://docs.astral.sh/ruff/rules/mutable-argument-default/"
     message: "No mutable default args (B006)."
     why: "Mutable defaults are shared across calls — a Python footgun that ships bugs."
+
+  - id: PY005
+    tier: 2
+    stack: py
+    disposition: should_fix
+    delegate_to: ruff
+    check: "ruff:C901"
+    source: "https://docs.astral.sh/ruff/rules/complex-structure/"
+    message: "No functions with cyclomatic complexity above the configured threshold (C901)."
+    why: "Functions with high cyclomatic complexity are hard to read and harder to test — every branch is another mental thread."
+
+  - id: PY006
+    tier: 2
+    stack: py
+    disposition: should_fix
+    delegate_to: ruff
+    check: "ruff:PLR0911,PLR0912,PLR0913,PLR0915"
+    source: "https://docs.astral.sh/ruff/rules/too-many-branches/"
+    message: "No functions with too many returns / branches / arguments / statements (PLR0911/PLR0912/PLR0913/PLR0915)."
+    why: "A function with too many returns / branches / arguments / statements is doing too much; split it."
+
+  - id: PY007
+    tier: 2
+    stack: py
+    disposition: should_fix
+    delegate_to: ruff
+    check: "ruff:PLR2004"
+    source: "https://docs.astral.sh/ruff/rules/magic-value-comparison/"
+    message: "No magic values in comparisons (PLR2004)."
+    why: "Bare numeric/string literals in comparisons hide intent; name them with a constant."
+
+  - id: PY008
+    tier: 2
+    stack: py
+    disposition: should_fix
+    delegate_to: ruff
+    check: "ruff:ARG001,ARG002"
+    source: "https://docs.astral.sh/ruff/rules/unused-function-argument/"
+    message: "No unused function or method arguments (ARG001/ARG002)."
+    why: "Unused args mislead callers about what the function actually consumes."

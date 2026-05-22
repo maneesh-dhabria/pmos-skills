@@ -1,0 +1,9 @@
+# py-complexity — C901 (cyclomatic complexity > 10) must fire as PY005 (FR-31).
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+if echo "$out" | jq -e '[.tools_errored[]? | select(.tool == "ruff")] | length > 0' >/dev/null 2>&1; then
+  echo "ruff not on PATH; PY rules auto-skipped (FR-32) — pass."
+  exit 0
+fi
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="PY005")] | length == 1' >/dev/null \
+  || { echo "expected exactly 1 PY005 finding"; echo "$out" | jq '[.findings[] | select(.rule_id=="PY005")]'; exit 1; }

@@ -957,12 +957,13 @@ findings_json=$(jq -n \
 # ── L2 delegated tool: ruff (T10, FR-31/32/33) ───────────────────────────────
 # Runs only when stacks_detected includes "py". Graceful-degrade per FR-32:
 # missing `ruff` on PATH → tools_skipped += "ruff", findings=[].
-# Invocation: `ruff check --output-format=json --quiet --select=TID252,F401,F403,F405,B006 $SCAN_ROOT`
+# Invocation: `ruff check --output-format=json --quiet --select=TID252,F401,F403,F405,B006,C901,PLR0911,PLR0912,PLR0913,PLR0915,PLR2004,ARG001,ARG002 $SCAN_ROOT`
 # from within $SCAN_ROOT so a project's own pyproject (e.g. ban-relative-imports
 # setting for TID252) is honoured. `--quiet` suppresses the trailing status
 # line that ruff 0.15+ otherwise prints to stdout (would corrupt JSON parse).
 # Code mapping per principles.yaml: TID252→PY001, F401→PY002,
-# F403/F405→PY003, B006→PY004.
+# F403/F405→PY003, B006→PY004, C901→PY005,
+# PLR0911/PLR0912/PLR0913/PLR0915→PY006, PLR2004→PY007, ARG001/ARG002→PY008.
 ruff_findings='[]'
 if echo ",$STACKS," | grep -q ',py,'; then
   echo "[delegated] ruff: check available" 1>&2
@@ -972,12 +973,12 @@ if echo ",$STACKS," | grep -q ',py,'; then
     elif command -v gtimeout >/dev/null 2>&1; then rf_timeout="gtimeout 60"
     fi
     scan_abs="$(cd "$SCAN_ROOT" && pwd)"
-    echo "[delegated] $rf_timeout ruff check --output-format=json --quiet --select=TID252,F401,F403,F405,B006 $scan_abs" 1>&2
+    echo "[delegated] $rf_timeout ruff check --output-format=json --quiet --select=TID252,F401,F403,F405,B006,C901,PLR0911,PLR0912,PLR0913,PLR0915,PLR2004,ARG001,ARG002 $scan_abs" 1>&2
     rf_start=$(date +%s)
     set +e
     rf_out=$(cd "$SCAN_ROOT" && $rf_timeout ruff check \
       --output-format=json --quiet \
-      --select=TID252,F401,F403,F405,B006 \
+      --select=TID252,F401,F403,F405,B006,C901,PLR0911,PLR0912,PLR0913,PLR0915,PLR2004,ARG001,ARG002 \
       "$scan_abs" 2>/tmp/ruff.err)
     rf_rc=$?
     set -e
@@ -1000,6 +1001,10 @@ if echo ",$STACKS," | grep -q ',py,'; then
           elif .code == "F401" then "PY002"
           elif .code == "F403" or .code == "F405" then "PY003"
           elif .code == "B006" then "PY004"
+          elif .code == "C901" then "PY005"
+          elif .code == "PLR0911" or .code == "PLR0912" or .code == "PLR0913" or .code == "PLR0915" then "PY006"
+          elif .code == "PLR2004" then "PY007"
+          elif .code == "ARG001" or .code == "ARG002" then "PY008"
           else ("PY-" + .code) end
         ),
         file: (.filename | sub("^" + $root + "/?"; "")),
@@ -1011,6 +1016,10 @@ if echo ",$STACKS," | grep -q ',py,'; then
           elif .code == "F401" then "principles.yaml#PY002"
           elif .code == "F403" or .code == "F405" then "principles.yaml#PY003"
           elif .code == "B006" then "principles.yaml#PY004"
+          elif .code == "C901" then "principles.yaml#PY005"
+          elif .code == "PLR0911" or .code == "PLR0912" or .code == "PLR0913" or .code == "PLR0915" then "principles.yaml#PY006"
+          elif .code == "PLR2004" then "principles.yaml#PY007"
+          elif .code == "ARG001" or .code == "ARG002" then "principles.yaml#PY008"
           else ("ruff#" + .code) end
         ),
         suppressed_by: null

@@ -1,0 +1,5 @@
+[project]
+name = "py-branches-fixture"
+version = "0.0.0"
+description = "T6 fixture — PLR0912 too many branches."
+requires-python = ">=3.9"

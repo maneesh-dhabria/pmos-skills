@@ -1,0 +1,5 @@
+[project]
+name = "py-magic-values-fixture"
+version = "0.0.0"
+description = "T6 fixture — PLR2004 magic value comparison."
+requires-python = ">=3.9"
