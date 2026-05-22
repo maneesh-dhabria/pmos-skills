@@ -1,0 +1,6 @@
+set -euo pipefail
+out=$(SKILL_NO_SUBAGENT=1 $AUDIT . --deep) || { echo "audit --deep exited non-zero"; exit 1; }
+echo "$out" | jq -e '.deep_pass.skipped_reason == "no_subagent_tool_use"' >/dev/null \
+  || { echo "expected skipped_reason"; echo "$out" | jq '.deep_pass'; exit 1; }
+echo "$out" | jq -e '[.findings[]] | length > 0' >/dev/null \
+  || { echo "expected mechanical findings preserved"; exit 1; }

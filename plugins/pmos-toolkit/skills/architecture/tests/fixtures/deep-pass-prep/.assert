@@ -1,0 +1,9 @@
+set -euo pipefail
+tmp=$(mktemp)
+cleanup() { rm -f "$tmp"; }
+trap cleanup EXIT
+bash "$SKILL_DIR/tools/run-audit.sh" audit . --deep --deep-prep "$tmp" 2>/dev/null \
+  || { echo "audit --deep --deep-prep exited non-zero"; exit 1; }
+test -s "$tmp" || { echo "tmpfile empty"; exit 1; }
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert isinstance(d["module_metadata"], list), d; assert isinstance(d["seed_hint"], list), d; assert d["vocab_path"].endswith("reference/deepening-vocabulary.md"), d' "$tmp" \
+  || { echo "tmpfile shape mismatch"; cat "$tmp"; exit 1; }

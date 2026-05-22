@@ -24,6 +24,8 @@ SORT_MODE="risk"
 SINCE=""
 BASELINE=""
 SCAN_ROOT="."
+DEEP=0
+DEEP_PREP=""
 POSITIONALS=()
 prev=""
 for arg in "$@"; do
@@ -51,19 +53,26 @@ for arg in "$@"; do
     prev=""
     continue
   fi
+  if [ "$prev" = "--deep-prep" ]; then
+    DEEP_PREP="$arg"
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     --monorepo) MONOREPO=1 ;;
     --scaffold-l3) SCAFFOLD_L3=1 ;;
+    --deep) DEEP=1 ;;
+    --deep-prep) prev="--deep-prep" ;;
     --label) prev="--label" ;;
     --sort) prev="--sort" ;;
     --since) prev="--since" ;;
     --baseline) prev="--baseline" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -72,7 +81,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -80,9 +89,17 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
   exit 64
 fi
+# T17 — --deep-prep <tmpfile> only meaningful with --deep (PD6); enforce here
+# rather than silently no-op so harness misuse surfaces immediately.
+if [ -n "$DEEP_PREP" ] && [ "$DEEP" -ne 1 ]; then
+  echo "ERROR: --deep-prep requires --deep" >&2
+  exit 64
+fi
+export DEEP
+
 # T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
 export INCLUDE_INFO_COMMENTS
 # T7 (FR-34/35, D8) — exported for the monorepo detection gate in Phase 1.
@@ -466,6 +483,7 @@ if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
 fi
 findings_with_risk_json='[]'
 diff_json='null'
+deep_pass_json='null'
 
 FANOUT_MODE=0
 if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 1 ]; then
@@ -1687,6 +1705,71 @@ PY
   fi
 fi
 
+# ── T17 (FR-20/21/22/23, NFR-09) — --deep runtime probe + module_metadata payload ──
+# Runs only when --deep is passed. Probe: SKILL_NO_SUBAGENT=1 short-circuits to
+# skipped_reason=no_subagent_tool_use (test stub; production wrapper in SKILL.md
+# sets the same var when the Task tool is unavailable). On probe failure we DO
+# NOT exit — mechanical findings must still flow through; deep_pass block carries
+# the reason. Probe success → denylist + size-cap; over-cap → exit 64.
+deep_pass_skipped_reason=""
+if [ "$DEEP" = "1" ]; then
+  if [ "${SKILL_NO_SUBAGENT:-0}" = "1" ]; then
+    deep_pass_skipped_reason="no_subagent_tool_use"
+  fi
+
+  if [ -z "$deep_pass_skipped_reason" ]; then
+    # NFR-09 layer 1 — drop secret-bearing paths from module_metadata before
+    # size-cap counting and before serialising to --deep-prep tmpfile.
+    module_metadata_json=$(echo "$module_metrics_json" | jq '[.[]
+      | select((.path | test("(^|/)\\.env(\\.|$)")) | not)
+      | select((.path | test("\\.pem$")) | not)
+      | select((.path | test("\\.key$")) | not)
+      | select((.path | test("(^|/)credentials\\.(json|yaml)$")) | not)
+      | select((.path | test("(^|/)\\.ssh/")) | not)
+      | select((.path | test("(^|/)secrets/")) | not)
+      | {path, fanin, fanout, public_symbols, loc}]')
+    module_count=$(echo "$module_metadata_json" | jq 'length')
+
+    if [ "${ARCH_DEEP_NO_CAP:-0}" != "1" ]; then
+      if [ "$module_count" -gt 5000 ]; then
+        echo "--deep payload exceeds 5,000-module cap; audit a sub-tree or omit --deep" >&2
+        exit 64
+      elif [ "$module_count" -gt 1000 ]; then
+        soft_kb=$(( (module_count * 150) / 1024 ))
+        echo "--deep: module count ${module_count} exceeds soft-warn threshold 1,000 (payload ~${soft_kb} KB); proceeding" >&2
+      fi
+    fi
+
+    # --deep-prep tmpfile mode (PD6): write {module_metadata, seed_hint, vocab_path}
+    # and exit 0; SKILL.md orchestrator handles the Task dispatch, T18 wires
+    # --deep-finalize for the response side.
+    if [ -n "$DEEP_PREP" ]; then
+      seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
+      vocab_path="$SKILL_DIR/reference/deepening-vocabulary.md"
+      jq -n \
+        --argjson mm "$module_metadata_json" \
+        --argjson sh "$seed_hint_json" \
+        --arg vp "$vocab_path" \
+        '{module_metadata: $mm, seed_hint: $sh, vocab_path: $vp}' \
+        > "$DEEP_PREP"
+      exit 0
+    fi
+  fi
+
+  # Build the deep_pass JSON block for REPORT_JSON. T17 is the transitional
+  # state — until T18 wires real Task dispatch, probe-success still emits
+  # skipped_reason=no_subagent_tool_use (safe default). seed_hint always
+  # echoes the top-10 godmodule paths so consumers can see the would-be seeds.
+  seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
+  if [ -z "$deep_pass_skipped_reason" ]; then
+    deep_pass_skipped_reason="no_subagent_tool_use"
+  fi
+  deep_pass_json=$(jq -n \
+    --argjson seed_hint "$seed_hint_json" \
+    --arg reason "$deep_pass_skipped_reason" \
+    '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: $reason}')
+fi
+
 # Build tools_skipped JSON array (empty when no tool was skipped).
 if [ "${#TOOLS_SKIPPED[@]}" -gt 0 ]; then
   tools_skipped_json=$(printf '%s\n' "${TOOLS_SKIPPED[@]}" | jq -R . | jq -s .)
@@ -2183,6 +2266,7 @@ REPORT_JSON=$(jq -n \
   --argjson module_metrics "$module_metrics_json" \
   --argjson godmodule_candidates "$godmodule_candidates_json" \
   --argjson diff "$diff_json" \
+  --argjson deep_pass "$deep_pass_json" \
   --arg start "$START" \
   --arg end "$END" \
   --argjson duration_s "$DURATION_S" \
@@ -2214,6 +2298,7 @@ REPORT_JSON=$(jq -n \
     module_metrics: $module_metrics,
     godmodule_candidates: $godmodule_candidates,
     diff: $diff,
+    deep_pass: $deep_pass,
     findings: ($f
       | sort_by({must_fix:0, should_fix:1, wont_fix:2}[.disposition] // 9, (-.risk_score), .file, .line))
   }')
