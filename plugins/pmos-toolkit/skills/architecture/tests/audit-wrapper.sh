@@ -12,9 +12,13 @@ set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$(cd "$HERE/.." && pwd)"
 SCAN_ROOT="${1:-.}"
+shift || true
+# Drop a leading bare "." that .assert scripts may pass redundantly (e.g.
+# `$AUDIT . --since HEAD~1`) — the wrapper already encodes SCAN_ROOT=".".
+if [ "${1:-}" = "." ]; then shift; fi
 # Remove any prior triplet so cat picks up exactly this run's output.
 rm -rf docs/pmos/architecture/ 2>/dev/null || true
-bash "$SKILL_DIR/tools/run-audit.sh" audit "$SCAN_ROOT" 2>/dev/null
+bash "$SKILL_DIR/tools/run-audit.sh" audit "$SCAN_ROOT" "$@" 2>/dev/null
 rc=$?
 json="$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1 || true)"
 if [ -n "$json" ] && [ -f "$json" ]; then

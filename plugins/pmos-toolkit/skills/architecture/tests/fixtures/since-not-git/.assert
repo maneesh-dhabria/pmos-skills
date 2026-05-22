@@ -1,0 +1,15 @@
+set -uo pipefail
+
+# Fixture ships without a .git/; guard against stray ones from prior runs.
+if [ -d .git ]; then rm -rf .git; fi
+
+# Invoke run-audit.sh directly (bypassing audit-wrapper.sh's stderr redirect)
+# so we can assert the documented stderr line.
+out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --since HEAD~1 2>&1) && rc=0 || rc=$?
+if [ "$rc" -ne 64 ]; then
+  echo "expected exit 64, got $rc"
+  echo "$out"
+  exit 1
+fi
+echo "$out" | grep -q "scan root is not a git repo; --since unavailable" \
+  || { echo "stderr mismatch: expected 'scan root is not a git repo; --since unavailable'"; echo "$out"; exit 1; }

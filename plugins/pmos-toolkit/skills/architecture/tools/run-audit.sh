@@ -20,6 +20,7 @@ INCLUDE_INFO_COMMENTS=0
 MONOREPO=0
 LABEL=""
 SORT_MODE="risk"
+SINCE=""
 SCAN_ROOT="."
 POSITIONALS=()
 prev=""
@@ -38,6 +39,11 @@ for arg in "$@"; do
     prev=""
     continue
   fi
+  if [ "$prev" = "--since" ]; then
+    SINCE="$arg"
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
@@ -45,9 +51,10 @@ for arg in "$@"; do
     --monorepo) MONOREPO=1 ;;
     --label) prev="--label" ;;
     --sort) prev="--sort" ;;
+    --since) prev="--since" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -56,7 +63,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -64,7 +71,7 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
   exit 64
 fi
 # T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
@@ -1962,6 +1969,30 @@ if [ "$fde_den" -gt 0 ]; then
     vue_count=$(echo "$LOADER_JSON" | jq '.scanned.by_ext[".vue"]//0')
     echo "[F3] frontend_declarative_coverage=$fde_json — $vue_count .vue file(s) get L1-semantic treatment only (no L2 dep-cruiser pipeline)" 1>&2
   fi
+fi
+
+# T13 (FR-50, E4) — `--since <ref>` filters findings to files changed since
+# the ref. Runs BEFORE risk-score computation so we don't spawn per-file git
+# subprocesses for findings we're about to drop. Exits 64 if SCAN_ROOT isn't
+# its own git repo (FR-50 contract) or if the ref is unknown.
+if [ -n "$SINCE" ]; then
+  # `.git` is a directory in a normal repo and a file in a git-worktree checkout;
+  # either counts as "scan root is its own repo" for `--since`.
+  if [ ! -e "$SCAN_ROOT/.git" ]; then
+    echo "scan root is not a git repo; --since unavailable" >&2
+    exit 64
+  fi
+  if ! since_files=$( cd "$SCAN_ROOT" && git diff --name-only "$SINCE"...HEAD 2>&1 ); then
+    echo "--since ref unknown or invalid: $since_files" >&2
+    exit 64
+  fi
+  findings_json=$(SINCE_FILES="$since_files" FINDINGS_JSON="$findings_json" python3 <<'PY'
+import json, os
+files = set(line for line in os.environ["SINCE_FILES"].splitlines() if line)
+findings = json.loads(os.environ["FINDINGS_JSON"])
+print(json.dumps([f for f in findings if f.get("file") in files]))
+PY
+)
 fi
 
 CHURN_WINDOW_DAYS=$(echo "$LOADER_JSON" | jq -r '.config.risk_score.churn_window_days // 90')

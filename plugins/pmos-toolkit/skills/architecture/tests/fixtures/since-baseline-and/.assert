@@ -1,0 +1,38 @@
+set -euo pipefail
+
+# Snapshot mutated files so c2/c3 edits don't leak into the fixture tree.
+_orig_touched=$(mktemp)
+_orig_more=$(mktemp)
+cp src/touched.py "$_orig_touched"
+cp src/touched_more.py "$_orig_more"
+cleanup() {
+  cp "$_orig_touched" src/touched.py
+  cp "$_orig_more" src/touched_more.py
+  rm -f "$_orig_touched" "$_orig_more"
+  rm -rf .git
+}
+trap cleanup EXIT
+
+rm -rf .git 2>/dev/null || true
+git init -q .
+git config user.email "test@test"
+git config user.name "test"
+git add -A
+git -c commit.gpgsign=false commit -q -m "c1 baseline"
+
+echo "" >> src/touched.py
+git add src/touched.py
+git -c commit.gpgsign=false commit -q -m "c2 touches touched.py"
+
+echo "" >> src/touched_more.py
+git add src/touched_more.py
+git -c commit.gpgsign=false commit -q -m "c3 touches touched_more.py"
+
+# HEAD~1...HEAD = diff from c2 to c3 = only touched_more.py changed.
+out=$($AUDIT . --since HEAD~1) || { echo "audit exited non-zero"; exit 1; }
+
+echo "$out" | jq -e '.findings | length > 0' >/dev/null \
+  || { echo "expected at least one finding after --since filter"; echo "$out" | jq '.findings'; exit 1; }
+
+echo "$out" | jq -e '[.findings[] | .file] | unique == ["src/touched_more.py"]' >/dev/null \
+  || { echo "findings not filtered to touched_more.py only"; echo "$out" | jq '[.findings[] | .file] | unique'; exit 1; }
