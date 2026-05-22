@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-plugin marketplace migration — Spec</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.49.0">
+  <script defer src="assets/viewer.js?v=2.49.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Multi-plugin marketplace migration — Spec</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+<li><strong>Tier:</strong> 3 — Feature</li>
+<li><strong>Type:</strong> feature</li>
+<li><strong>Feature:</strong> 2026-05-20_multi-plugin-marketplace</li>
+<li><strong>Date:</strong> 2026-05-22</li>
+<li><strong>Status:</strong> Ready for Plan</li>
+<li><strong>Requirements:</strong> <a href="01_requirements.html">01_requirements.html</a></li>
+<li><strong>Tier carried forward from:</strong> requirements frontmatter (no re-confirmation needed).</li>
+<li><strong>Subagent B (industry research):</strong> SKIPPED — alternatives table in requirements (D1 options a/b/c, Lerna/Nx/Turborepo prior art) already covers the design space. No non-obvious architectural choice remains open.</li>
+</ul>
+</section>
+
+<section id="problem-statement">
+<h2 id="problem-statement">1. Problem Statement</h2>
+<p>The <code>agent-skills</code> repo hosts a single plugin (<code>pmos-toolkit</code>) and its marketplace manifest. A second plugin (<code>pmos-learnkit</code>) is pre-scaffold; more <code>pmos-*</code> plugins are anticipated. The current topology gives no place for a second plugin without coupling it to the toolkit's identity or building parallel publication mechanisms. After two /grill passes, the chosen direction is a single repo named <code>pmos-skills</code> with namespaced tags, peer-copy <code>_shared/</code>, and a generalized <code>/complete-dev</code>. This spec defines the exact files, code paths, hook implementations, and cutover sequence.</p>
+<p><strong>Primary success metric:</strong> <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> in a fresh Claude Code instance exposes both <code>pmos-toolkit</code> and <code>pmos-learnkit</code> in the install picker, within one release of <code>pmos-learnkit/v0.1.0</code>.</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">2. Goals</h2>
+<table>
+<tr><th>#</th><th>Goal</th><th>Success Metric</th></tr>
+<tr><td>G1</td><td>Single-marketplace install of all plugins.</td><td><code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> in fresh CC exposes both plugins.</td></tr>
+<tr><td>G2</td><td>Per-plugin release cadence independence within one repo.</td><td><code>git log --name-only pmos-toolkit/v2.50.0..pmos-toolkit/v2.51.0 -- plugins/pmos-learnkit/</code> returns empty.</td></tr>
+<tr><td>G3</td><td><code>marketplace.json[plugin].version</code> is the canonical update signal CC consumes.</td><td>Pre-push hook validates 3-way version match per plugin (<code>marketplace.json</code> + <code>.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code>). 100% of post-cutover releases bump all three in lockstep.</td></tr>
+<tr><td>G4</td><td>Cross-plugin substrate refactors remain atomic on main.</td><td>A substrate edit lands as one feature branch (canonical edit + sync delta); no fix-up commits on main.</td></tr>
+<tr><td>G5</td><td><code>_shared/</code> peer copies are byte-identical at HEAD.</td><td>Pre-commit drift hook hard-fails on difference; main branch is provably drift-free.</td></tr>
+<tr><td>G6</td><td>Skills reference <code>_shared/</code> only via plugin-local copies (no <code>plugins/_shared/</code> top-level directory).</td><td>No <code>plugins/_shared/</code> directory exists at any commit. Skills continue using the <code>${CLAUDE_PLUGIN_ROOT}/skills/_shared/...</code> token (already true per /grill L1; verified by Subagent A §7).</td></tr>
+<tr><td>G7</td><td><code>/complete-dev</code> is generalized to read <code>plugins:</code> from CLAUDE.md and route per-plugin via <code>--plugin &lt;name&gt;</code>.</td><td><code>/complete-dev --plugin pmos-toolkit</code> and <code>/complete-dev --plugin pmos-learnkit</code> both work end-to-end on the same monorepo.</td></tr>
+<tr><td>G8</td><td>Cutover from <code>maneesh-dhabria/pmos-toolkit</code> is forward-only; old repo non-discoverable.</td><td>Old repo <code>archived=true, private=true</code>; cached <code>v2.49.0</code> installs continue read-only; no auto-migration path.</td></tr>
+<tr><td>G9</td><td>Tooling LOC budget kept low.</td><td><code>scripts/sync-shared.sh</code> ≤ 30 LOC; pre-commit drift hook ≤ 30 LOC; pre-push hook additions ≤ 40 LOC; total ≤ 100 LOC.</td></tr>
+<tr><td>G10</td><td>Time from <code>pmos-learnkit</code> first commit to <code>v0.1.0</code> release.</td><td>≤ 1 week after this migration ships.</td></tr>
+</table>
+</section>
+
+<section id="non-goals">
+<h2 id="non-goals">3. Non-Goals</h2>
+<ul>
+<li>NOT giving each plugin its own GitHub repo, stars, issues, or SEO — explicitly traded away on 2026-05-22 for tooling simplicity (D1 rationale).</li>
+<li>NOT building <code>scripts/release-plugin.sh</code> — generalized <code>/complete-dev</code> + drift hook + <code>sync-shared.sh</code> + pre-push hook do the entire job (D6).</li>
+<li>NOT using <code>git subtree split</code> / <code>git filter-repo</code> / <code>git filter-branch</code> — single-repo trivializes cross-history concerns.</li>
+<li>NOT extracting <code>_shared/</code> into its own <code>pmos-shared</code> plugin — peer copies + drift hook is the chosen mechanism (D9). Revisit when N ≥ 4 plugins OR <code>_shared/</code> surface &gt; 30% of any one plugin (OQ3).</li>
+<li>NOT supporting cross-plugin <code>_shared/</code> divergence at HEAD — drift hook hard-fails on commit.</li>
+<li>NOT publishing a public migration banner on the archived old repo — archive + private makes it impossible (Q1/D13).</li>
+<li>NOT supporting hotfix-on-prior-line as a delivered-to-users mechanism (D10). Forward-only.</li>
+<li>NOT enforcing the drift check at pre-push or in CI — pre-commit only (D16/Q4).</li>
+<li>NOT building <code>/complete-dev</code> with explicit knowledge of repo-specific remotes — second/third remotes are configured at the git layer (D19).</li>
+<li>NOT deferring Codex marketplace — same-repo dual-manifest ships day one (D4).</li>
+<li>NOT publishing per-plugin GitLab mirrors (D5).</li>
+<li>NOT building a sandbox throwaway plugin or unit-test suite for the sync/drift tooling — solo-maintainer pragmatism.</li>
+<li>NOT preserving the pre-cutover monorepo tag history under the new naming convention — existing tags kept as-is (D7/Q5).</li>
+<li>NOT documenting an explicit rollback procedure for a failed <code>pmos-toolkit/v2.50.0</code> cutover release — fix forward; accept any window of brokenness (DevOps Q2; per solo-maintainer pragmatism).</li>
+</ul>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">4. Decision Log</h2>
+<p>Carries forward D1–D19 from <a href="01_requirements.html#design-decisions">requirements §Design Decisions</a> verbatim (not re-quoted; only deltas surfaced here). Adds D20, D21, D22 from this Phase-3 multi-role interview.</p>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr>
+<tr><td>D1..D19</td><td>See <a href="01_requirements.html#design-decisions">01_requirements.html §Design Decisions</a>.</td><td>—</td><td>Locked after second /grill (2026-05-22 PM).</td></tr>
+<tr><td>D20 (NEW, Phase-3 Architect)</td><td><strong>Remote topology at cutover:</strong> promote <code>github.com/maneesh-dhabria/pmos-skills</code> to <code>origin</code>; demote the current GitLab remote (presently <code>origin</code>) to <code>gitlab-mirror</code>; rename <code>github-work</code> to <code>work-mirror</code>; drop the named bulk-fanout <code>all</code> remote.</td><td>(a) keep <code>origin</code> = GitLab, add a new named remote for GitHub <code>pmos-skills</code>; (b) promote GitHub <code>pmos-skills</code> to <code>origin</code>, demote GitLab (chosen); (c) drop the <code>all</code> fanout and rely on /complete-dev iterating named remotes (folded into (b)).</td><td>(b) aligns local <code>git push</code> defaults with the public canonical (GitHub <code>pmos-skills</code>), matching the requirements doc's mental model of origin = public. <strong>Trade-off / invariant change:</strong> bare <code>git push</code> now goes to GitHub, not GitLab; GitLab backup requires conscious <code>git push gitlab-mirror</code> OR the /complete-dev publish phase (which iterates all remotes, per D22).</td></tr>
+<tr><td>D21 (NEW, Phase-5 pragmatism)</td><td>Sequence diagrams in §6.2 are emitted as inline Mermaid source within <code>&lt;pre&gt;&lt;code class="language-mermaid"&gt;</code> blocks; SVG rendering via /pmos-toolkit:diagram subagent is deferred to a post-spec pass (to be triggered by /verify or manually).</td><td>(a) dispatch /diagram per FR-60 (3 diagrams × ~5min subagent wall-clock = ~15min added to /spec runtime); (b) author SVGs inline directly in this skill's prompt; (c) inline Mermaid source + deferred /diagram pass (chosen).</td><td>(c) keeps /spec wall-clock predictable and lets reviewers (Maneesh) read the Mermaid source directly. <code>&lt;figcaption&gt;</code> per FR-65 explicitly marks provenance as "Diagram source inline; SVG render deferred to post-spec /diagram pass per D21" — not silent inline authorship. Re-run /diagram subagent in Phase 6 or post-spec to convert.</td></tr>
+<tr><td>D22 (NEW, Phase-3 DevOps)</td><td><code>/complete-dev</code> publish phase pushes branch + tag to <strong>every</strong> configured git remote sequentially (iterates <code>git remote</code> output); not just <code>origin</code>.</td><td>(a) push to <code>origin</code> only and require manual mirroring; (b) push to every configured remote sequentially (chosen); (c) push to a single named <code>release-remote</code> per CLAUDE.md ## Release policy.</td><td>(b) matches the requirements doc's "existing push-to-configured-remotes behavior" claim AND the current /complete-dev Phase 15 implementation (per Subagent A §9 confirming 4 remotes are configured). Tri-remote post-cutover (origin = GitHub pmos-skills + work-mirror + gitlab-mirror) becomes the default release fan-out without /complete-dev needing repo-specific knowledge.</td></tr>
+<tr><td>D23 (NEW, Phase-3 DevOps)</td><td>Cutover sequencing: (1) create empty GitHub repo <code>maneesh-dhabria/pmos-skills</code>; (2) update local remotes per D20; (3) push current monorepo to new origin; (4) cut <code>pmos-toolkit/v2.50.0</code> (the first release on generalized /complete-dev) and push tag; (5) verify fresh-CC install of both <code>pmos-toolkit</code> from new marketplace; (6) archive + private the old <code>maneesh-dhabria/pmos-toolkit</code> repo.</td><td>(a) create new → push → cut v2.50.0 → verify → archive old (chosen); (b) archive old first → create new → push → cut v2.50.0; (c) create new + cut v2.50.0 in parallel → archive old immediately after.</td><td>(a) preserves a public revert target until v2.50.0 is verified working. Solo-maintainer-acceptable interregnum where both repos are briefly discoverable (mitigated by the new repo's README leading with the migration breadcrumb).</td></tr>
+<tr><td>D24 (NEW, Phase-3 DevOps)</td><td>No documented rollback procedure for a defective <code>pmos-toolkit/v2.50.0</code>. Fix forward as <code>v2.50.1</code> on the new <code>pmos-skills</code> repo.</td><td>(a) hotfix forward to v2.50.1 (chosen, consistent with D10); (b) un-archive the old repo as a temporary fallback; (c) no documented rollback at all (folded into (a)).</td><td>Consistent with D10 (forward-only). Accepts the brokenness window. Solo-maintainer pragmatism — same rationale as D10 and D16.</td></tr>
+</table>
+</section>
+
+<section id="user-journeys-personas">
+<h2 id="user-journeys-personas">5. User Personas &amp; Journeys</h2>
+<p>Carried forward verbatim from <a href="01_requirements.html#user-journeys">requirements §User Journeys</a>: J1 (toolkit release / cutover), J2 (learnkit first release), J3 (end-user install), J4 (substrate refactor), J5 (forgot sync), J6 (ambiguous commit set). No additional journeys surfaced in the multi-role interview.</p>
+<p>Personas: <strong>Maneesh</strong> (sole maintainer, primary), <strong>end-user plugin consumers</strong> (secondary), <strong>future plugin authors</strong> (tertiary).</p>
+</section>
+
+<section id="system-design">
+<h2 id="system-design">6. System Design</h2>
+
+<h3 id="repo-layout">6.1 Architecture Overview — Repo Layout</h3>
+<pre><code>maneesh-dhabria/pmos-skills/                  (single GitHub repo; was pmos-toolkit)
+├── .claude-plugin/
+│   └── marketplace.json                       Claude Code marketplace manifest, name="pmos-skills"
+├── .codex-plugin/
+│   └── marketplace.json                       Codex marketplace manifest (NEW — created in this feature)
+├── .githooks/
+│   ├── pre-commit                             NEW — drift check on _shared/ peer copies
+│   ├── pre-push                                EXTENDED — adds 3-way version + tag-format + tag-version-match
+│   └── README.md                               EXTENDED — documents new hook contracts
+├── scripts/
+│   └── sync-shared.sh                          NEW — propagates _shared/ from one plugin to peers
+├── plugins/
+│   ├── pmos-toolkit/                           Existing plugin (path unchanged)
+│   │   ├── .claude-plugin/plugin.json          version: 2.50.0 (post-cutover)
+│   │   ├── .codex-plugin/plugin.json           version: 2.50.0
+│   │   ├── skills/_shared/                     Peer copy of substrate (was canonical)
+│   │   ├── skills/&lt;skill-name&gt;/SKILL.md
+│   │   ├── agents/, tools/, scripts/, tests/
+│   │   ├── CHANGELOG.md
+│   │   └── README.md
+│   └── pmos-learnkit/                          NEW plugin scaffolded post-cutover
+│       ├── .claude-plugin/plugin.json          version: 0.1.0
+│       ├── .codex-plugin/plugin.json           version: 0.1.0
+│       ├── skills/_shared/                     Peer copy of substrate (byte-identical to pmos-toolkit's)
+│       ├── skills/, agents/, tools/, scripts/, tests/
+│       ├── CHANGELOG.md
+│       └── README.md
+├── CLAUDE.md                                   EDITED — 4 sections generalized + ## Release policy ADDED
+├── archive/skills/                             unchanged (legacy skills moved out of plugins/)
+├── tests/                                      EXTENDED — adds hook fixtures + 3-way version validator test
+└── docs/, .pmos/                                unchanged
+</code></pre>
+<p>Notable invariants enforced by this layout:</p>
+<ul>
+<li>No <code>plugins/_shared/</code> directory exists. <code>_shared/</code> lives only under <code>plugins/&lt;plugin&gt;/skills/_shared/</code>.</li>
+<li>Each plugin tree is self-contained — no symlinks, no cross-plugin path references at runtime (skills already use <code>${CLAUDE_PLUGIN_ROOT}</code> token, verified by Subagent A §7).</li>
+<li>Marketplace manifests at the repo root reference plugins via relative path (<code>./plugins/&lt;name&gt;</code>) — supported natively by both Claude Code and Codex schemas.</li>
+</ul>
+
+<h3 id="sequence-diagrams">6.2 Sequence Diagrams</h3>
+<p>Per <a href="#decision-log">D21</a>: Mermaid source inline; SVG rendering deferred to post-spec /diagram pass.</p>
+
+<figure>
+<figcaption>Figure 6.2.1 — J1: <code>/complete-dev --plugin pmos-toolkit</code> release flow. Diagram source inline; SVG render deferred to post-spec /diagram pass per D21.</figcaption>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant U as Maneesh
+    participant W as Working tree
+    participant CD as /complete-dev
+    participant PC as pre-commit hook
+    participant PP as pre-push hook
+    participant R as Remotes (origin/work-mirror/gitlab-mirror)
+    participant CC as End-user CC
+
+    U->>W: git commit (feature branch)
+    W->>PC: trigger
+    PC-->>W: pass (_shared/ in sync OR untouched)
+    U->>W: merge to main locally
+    U->>CD: /complete-dev --plugin pmos-toolkit
+    CD->>W: read CLAUDE.md ## Release policy (plugins list)
+    CD->>W: detect plugin from diff (auto-detect: only plugins/pmos-toolkit/)
+    CD->>W: bump plugins/pmos-toolkit/.claude-plugin/plugin.json → 2.50.0
+    CD->>W: bump plugins/pmos-toolkit/.codex-plugin/plugin.json → 2.50.0
+    CD->>W: bump .claude-plugin/marketplace.json [pmos-toolkit].version → 2.50.0
+    CD->>W: bump .codex-plugin/marketplace.json [pmos-toolkit].version → 2.50.0
+    CD->>W: update plugins/pmos-toolkit/CHANGELOG.md
+    CD->>W: git commit + tag pmos-toolkit/v2.50.0
+    CD->>PP: git push (per remote)
+    PP-->>CD: validate 3-way version + tag format + tag-version match → pass
+    CD->>R: push branch + tag to origin
+    CD->>R: push branch + tag to work-mirror
+    CD->>R: push branch + tag to gitlab-mirror
+    CC->>R: refresh marketplace.json
+    R-->>CC: marketplace.json[pmos-toolkit].version == 2.50.0
+    CC->>U: prompts update from cached install
+</code></pre>
+</figure>
+
+<figure>
+<figcaption>Figure 6.2.2 — J4: cross-plugin substrate refactor with drift hook. Diagram source inline; SVG render deferred to post-spec /diagram pass per D21.</figcaption>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant U as Maneesh
+    participant W as Working tree
+    participant PC as pre-commit hook
+    participant SS as sync-shared.sh
+
+    U->>W: edit plugins/pmos-toolkit/skills/_shared/foo.md
+    U->>W: git add + git commit
+    W->>PC: trigger
+    PC->>W: diff -rq plugins/pmos-toolkit/skills/_shared/ plugins/pmos-learnkit/skills/_shared/
+    W-->>PC: differs at foo.md
+    PC-->>U: FAIL — "_shared/ drift detected: ... Resolve with: scripts/sync-shared.sh --from=pmos-toolkit"
+    U->>SS: scripts/sync-shared.sh --from=pmos-toolkit
+    SS->>W: rsync -a --delete plugins/pmos-toolkit/skills/_shared/ → plugins/pmos-learnkit/skills/_shared/
+    U->>W: git add (sync delta) + git commit (re-attempt)
+    W->>PC: trigger
+    PC->>W: diff -rq → equal
+    PC-->>U: pass
+    U->>W: commit lands (substrate edit + sync delta together)
+</code></pre>
+</figure>
+
+<figure>
+<figcaption>Figure 6.2.3 — J6: <code>/complete-dev</code> ambiguity refusal. Diagram source inline; SVG render deferred to post-spec /diagram pass per D21.</figcaption>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant U as Maneesh
+    participant W as Working tree
+    participant CD as /complete-dev
+
+    U->>W: commits span plugins/pmos-toolkit/*.md + plugins/pmos-learnkit/*.md (non-_shared)
+    U->>CD: /complete-dev   (no --plugin)
+    CD->>W: read CLAUDE.md ## Release policy
+    CD->>W: classify diff
+    W-->>CD: non-_shared changes in pmos-toolkit AND pmos-learnkit
+    CD-->>U: REFUSE — "Diff spans plugins/pmos-toolkit/ AND plugins/pmos-learnkit/ with non-_shared changes. Pass --plugin &lt;name&gt; (once per plugin) OR split into per-plugin commits."
+    U->>CD: /complete-dev --plugin pmos-toolkit
+    CD->>W: bump pmos-toolkit manifests, tag, push
+    U->>CD: /complete-dev --plugin pmos-learnkit
+    CD->>W: bump pmos-learnkit manifests, tag, push
+</code></pre>
+</figure>
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">7. Functional Requirements</h2>
+
+<h3 id="fr-repo-topology">7.1 Repo Topology</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-01</td><td>Repo is renamed/recreated as <code>github.com/maneesh-dhabria/pmos-skills</code>; old <code>github.com/maneesh-dhabria/pmos-toolkit</code> is archived AND private after cutover.</td></tr>
+<tr><td>FR-02</td><td>All plugins live under <code>plugins/&lt;name&gt;/</code> at the repo root. Each plugin tree is self-contained.</td></tr>
+<tr><td>FR-03</td><td>No <code>plugins/_shared/</code> directory exists at any commit. <code>_shared/</code> is only under <code>plugins/&lt;plugin&gt;/skills/_shared/</code>.</td></tr>
+<tr><td>FR-04</td><td>Marketplace manifests live at repo root: <code>.claude-plugin/marketplace.json</code> AND <code>.codex-plugin/marketplace.json</code> (NEW).</td></tr>
+<tr><td>FR-05</td><td>Local remote topology post-cutover: <code>origin</code> → GitHub <code>pmos-skills</code> (canonical), <code>work-mirror</code> → GitHub work-account fork, <code>gitlab-mirror</code> → GitLab backup. The legacy <code>all</code> bulk remote is removed (D20).</td></tr>
+</table>
+
+<h3 id="fr-marketplace">7.2 Marketplace Manifests</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-10</td><td><code>.claude-plugin/marketplace.json</code> top-level <code>name</code> field changes from <code>"pmos-toolkit"</code> to <code>"pmos-skills"</code> (D17).</td></tr>
+<tr><td>FR-11</td><td><code>.claude-plugin/marketplace.json</code> contains a <code>plugins</code> array with one entry per plugin under <code>plugins/</code>; each entry MUST carry <code>name</code>, <code>description</code>, <code>source</code> (relative path), <code>version</code>, <code>category</code>, <code>homepage</code>.</td></tr>
+<tr><td>FR-12</td><td><code>.codex-plugin/marketplace.json</code> is created with the equivalent shape per Codex marketplace schema. Both manifests reference the same plugins via relative <code>source</code> paths.</td></tr>
+<tr><td>FR-13</td><td><code>marketplace.json[plugin].version</code> is the canonical update signal CC consumes (D17b). MUST be bumped on every release of that plugin (folded into FR-40's 3-way invariant).</td></tr>
+<tr><td>FR-14</td><td>At cutover, <code>.claude-plugin/marketplace.json[pmos-toolkit].version</code> is set to <code>2.50.0</code> (the cutover release version), replacing the stale <code>1.0.0</code> value found in the pre-cutover manifest (per Subagent A §2).</td></tr>
+<tr><td>FR-15</td><td>When a new plugin is added under <code>plugins/&lt;name&gt;/</code>, the maintainer MUST add a corresponding entry to BOTH marketplace manifests in the same commit (or release-time commit). Not auto-enforced; documented in CLAUDE.md ## Release policy.</td></tr>
+</table>
+
+<h3 id="fr-sync-shared">7.3 <code>scripts/sync-shared.sh</code></h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-20</td><td>Script is bash, target ≤ 30 LOC, idempotent. Path: <code>scripts/sync-shared.sh</code>.</td></tr>
+<tr><td>FR-21</td><td>Usage: <code>scripts/sync-shared.sh --from=&lt;plugin&gt;</code>. <code>&lt;plugin&gt;</code> is a directory name under <code>plugins/</code> with a <code>skills/_shared/</code> subtree.</td></tr>
+<tr><td>FR-22</td><td>Behavior: for every <code>plugins/*/</code> other than <code>--from</code>, run <code>mkdir -p plugins/&lt;other&gt;/skills/_shared/</code> (idempotent; ensures destination exists for first-run bootstrap per J2), then <code>rsync -a --delete plugins/&lt;from&gt;/skills/_shared/ plugins/&lt;other&gt;/skills/_shared/</code>. <strong>Source-of-truth direction is one-way: the <code>--from</code> plugin's <code>_shared/</code> overwrites every peer.</strong> The <code>--delete</code> flag is destructive on the destination — files present in the destination but absent from the source are removed. This is the documented invariant; commit work-in-progress before running sync.</td></tr>
+<tr><td>FR-23</td><td><code>--dry-run</code> flag prints proposed <code>rsync</code> commands to stdout without mutating filesystem. <code>--help</code> prints usage and exits 0.</td></tr>
+<tr><td>FR-24</td><td>Exit codes: 0 = success (or dry-run); 64 = bad usage (unknown plugin, missing <code>--from</code>); 1 = rsync failure.</td></tr>
+<tr><td>FR-25</td><td>Single-plugin case (only one entry under <code>plugins/</code>): script is a no-op, exits 0. Prints <code>sync-shared.sh: only one plugin, nothing to sync.</code> to stderr.</td></tr>
+</table>
+
+<h3 id="fr-pre-commit-hook">7.4 Pre-commit Drift Hook</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-30</td><td>Hook is bash, target ≤ 30 LOC, lives at <code>.githooks/pre-commit</code>. Note: <code>core.hooksPath</code> is already configured (per Subagent A §5) so no extra <code>git config</code> setup is needed by Maneesh; external contributors get the instruction in CONTRIBUTING.md (NEW).</td></tr>
+<tr><td>FR-31</td><td>On every <code>git commit</code>: iterate <code>plugins/*/skills/_shared/</code> directories. If exactly one exists, exit 0 (no peers to compare). If two or more, pick the alphabetically-first as baseline and run <code>diff -rq baseline other</code> for each other peer.</td></tr>
+<tr><td>FR-32</td><td>On any difference: exit non-zero with stderr output:
+<pre><code>_shared/ drift detected:
+  plugins/&lt;baseline&gt;/skills/_shared/  →  plugins/&lt;other&gt;/skills/_shared/
+    &lt;file&gt; differs
+    ...
+Resolve with: scripts/sync-shared.sh --from=&lt;source&gt;</code></pre>
+The <code>&lt;source&gt;</code> suggestion is the plugin whose <code>_shared/</code> contains files the others don't (heuristic: most additions vs deletions); if heuristic is ambiguous, suggest <code>--from=&lt;baseline&gt;</code>.</td></tr>
+<tr><td>FR-33</td><td>The hook MUST NOT run on commits that don't touch <code>_shared/</code> paths — short-circuit on <code>git diff --cached --name-only</code> if no <code>_shared/</code> entries appear. (Performance: solo-maintainer commits trivially fast.)</td></tr>
+<tr><td>FR-34</td><td>Hook is bypassable via <code>git commit --no-verify</code>; this is an accepted risk per D16. No additional bypass guard.</td></tr>
+</table>
+
+<h3 id="fr-pre-push-hook">7.5 Pre-push Hook Extension</h3>
+<p>Extends the existing <code>.githooks/pre-push</code> (76 LOC per Subagent A §5) in place — does NOT rewrite. The existing 2-way version-sync check (between <code>.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code>) is preserved; per-plugin iteration + 3-way invariant + tag rules are layered on.</p>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-40</td><td>For every directory under <code>plugins/*/</code>, validate the 3-way version match: <code>marketplace.json[&lt;plugin&gt;].version</code> == <code>plugins/&lt;plugin&gt;/.claude-plugin/plugin.json</code> version == <code>plugins/&lt;plugin&gt;/.codex-plugin/plugin.json</code> version. Where <code>marketplace.json</code> is BOTH <code>.claude-plugin/marketplace.json</code> AND <code>.codex-plugin/marketplace.json</code>. On any mismatch: reject the push with the named plugin + the three observed versions.</td></tr>
+<tr><td>FR-41</td><td>For every tag being created in this push (i.e., not already present on the remote), validate against regex <code>^&lt;plugin&gt;/v\d+\.\d+\.\d+$</code> where <code>&lt;plugin&gt;</code> is exactly one of the directory names under <code>plugins/</code>. Reject with the offending tag name + the valid plugin list.</td></tr>
+<tr><td>FR-42</td><td>For every namespaced tag matching FR-41, validate that the tag's version segment equals all 3 manifest version fields for that plugin (from FR-40). Mismatch rejects with both versions.</td></tr>
+<tr><td>FR-43</td><td>FR-41 and FR-42 apply ONLY to tags being newly pushed. Pre-existing tags (<code>v2.x</code>, <code>pmos-toolkit-v2.x</code>, <code>pmos-toolkit-2.x</code> per Subagent A §8) are not retroactively validated.</td></tr>
+<tr><td>FR-44</td><td>Hook bypassable via <code>git push --no-verify</code>; accepted risk per solo-maintainer pragmatism.</td></tr>
+<tr><td>FR-45</td><td>Implementation reads JSON via <code>jq</code>. If <code>jq</code> is missing on the user's system, hook errors with <code>pre-push: jq not installed; install via brew/apt/dnf and retry.</code> and exits 1.</td></tr>
+<tr><td>FR-46</td><td>Total additions to existing <code>.githooks/pre-push</code>: ≤ 40 LOC (G9). The existing 2-way version-sync check is preserved as the inner-loop body of FR-40's outer per-plugin iteration; not duplicated.</td></tr>
+<tr><td>FR-46a</td><td><strong>Plan dependency.</strong> /plan's task for the pre-push hook extension MUST first read the existing 76-LOC <code>.githooks/pre-push</code> (quoted by Subagent A §5) before authoring the extension. The structure of the additions MUST be an outer <code>for plugin in plugins/*/</code> iteration wrapping the existing 2-way check as the inner-loop body. Tag-format + tag-version-match validation runs once per push (not per plugin). No rewrite — preserves <code>git blame</code> on the existing 76 LOC.</td></tr>
+</table>
+
+<h3 id="fr-complete-dev">7.6 <code>/complete-dev</code> Generalization</h3>
+<p>Edits to <code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code>. Per Subagent A §1, 13 hardcoded references at lines 323, 389, 429, 431, 444, 453, 461, 477, 496, 504, 505, 514, 616 (verified). Plus an additional reference at line 753 (<code>plugins/pmos-toolkit/skills/learnings/learnings-capture.md</code>) which Subagent A flagged but the requirements doc missed.</p>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-50</td><td>Add a <code>--plugin &lt;name&gt;</code> argument-string flag handled in Phase 0 argument parsing. Value is one of the directory names under <code>plugins/</code>. Sets a skill-state variable <code>plugin_name</code>.</td></tr>
+<tr><td>FR-51</td><td>If <code>--plugin</code> is omitted, run auto-detect: collect <code>git diff --name-only HEAD~..HEAD</code> (or against merge-base if Phase 0 has resolved one). Compute the set of distinct top-level <code>plugins/&lt;name&gt;/</code> prefixes. If exactly one plugin appears AND there are non-<code>_shared/</code> entries under that prefix, auto-set <code>plugin_name</code> and surface confirmation: <code>"Auto-detected --plugin &lt;name&gt; from diff. Proceed?"</code> via <code>AskUserQuestion</code> with options <code>Proceed (Recommended)</code> / <code>Pass --plugin explicitly</code> / <code>Abort</code>.</td></tr>
+<tr><td>FR-52</td><td>If <code>--plugin</code> is omitted AND the diff spans multiple plugins with non-<code>_shared/</code> changes in two or more: REFUSE with message: <code>"Diff spans plugins/&lt;a&gt;/ AND plugins/&lt;b&gt;/ with non-_shared changes. Either pass --plugin &lt;name&gt; explicitly (and re-invoke once per plugin), or split the merge into per-plugin commits first."</code> Exit 64.</td></tr>
+<tr><td>FR-53</td><td>If <code>--plugin</code> is omitted AND the diff is exclusively under <code>_shared/</code> paths (across one or more plugins): surface smart-detect prompt: <code>"Substrate-only change detected across plugins/&lt;list&gt;/. Ride which plugin's next release?"</code> via <code>AskUserQuestion</code> with one option per plugin in scope + a <code>Cancel</code> option.</td></tr>
+<tr><td>FR-54</td><td>If <code>--plugin</code> is omitted AND the diff is empty (no changes): standard /complete-dev empty-diff handling (existing behavior).</td></tr>
+<tr><td>FR-55</td><td>Read CLAUDE.md and parse the <code>## Release policy</code> section for the <code>plugins:</code> list. Cross-check against the directory list under <code>plugins/</code>. On mismatch (file exists but not in policy list, or vice versa): warn but proceed.</td></tr>
+<tr><td>FR-56</td><td>Replace every hardcoded <code>plugins/pmos-toolkit/</code> path reference (the 14 lines per Subagent A §1) with <code>plugins/${plugin_name}/</code>. Specifically:
+<ul>
+<li>Bash command paths (lines 389, 429, 444, 453, 461, 504, 505, 514, 753): replace path literal.</li>
+<li>Prose mentions (lines 323, 431, 477, 496, 616): replace with templated reference.</li>
+</ul>
+</td></tr>
+<tr><td>FR-57</td><td>Version-bump phase (existing Phase 10/11 in /complete-dev): bump THREE manifests, not two — add <code>marketplace.json[&lt;plugin&gt;].version</code> to the bump targets for both <code>.claude-plugin/marketplace.json</code> AND <code>.codex-plugin/marketplace.json</code>. All four files (2× plugin.json + 2× marketplace.json entry) bump in lockstep within one commit.</td></tr>
+<tr><td>FR-58</td><td>Tag-creation phase: tag format MUST be <code>&lt;plugin_name&gt;/v&lt;semver&gt;</code> (the namespaced convention per D7). Reject any other format with an error (this also satisfies the pre-push hook).</td></tr>
+<tr><td>FR-59</td><td>Publish phase (existing Phase 15): push to every configured git remote sequentially (D22). Iterate <code>git remote</code> output; for each, push branch + tag. Continue past individual remote failures (warn but don't abort entire publish); surface failed remotes in final summary.</td></tr>
+<tr><td>FR-60</td><td>Dry-run mode (<code>/complete-dev --plugin &lt;name&gt; --dry-run</code> if not already present, or the existing dry-run path) MUST display: detected plugin, bump targets (4 files), tag name, push targets (every configured remote).</td></tr>
+<tr><td>FR-61</td><td>The cutover release — <code>pmos-toolkit/v2.50.0</code> itself — is the FIRST release run through this generalized code. <strong>Ordering for the dogfood-at-release flow:</strong>
+<ol>
+<li>On feature branch <code>feat/multi-plugin-marketplace</code>, edit <code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> with the FR-50..FR-60 generalizations + all other cutover changes (manifests, hooks, CLAUDE.md edits, sync-shared.sh, codex marketplace.json).</li>
+<li>Commit the changes + merge the feature branch to <code>main</code> (per §15 rollout step 4).</li>
+<li>From <code>main</code>, invoke <code>/complete-dev --plugin pmos-toolkit</code>. <strong>The skill loader reads the just-merged SKILL.md at invocation time</strong> — so this invocation runs the generalized code path. There is NO "old code runs one last time" sequence; the new code path runs from this very first release call.</li>
+<li>That call cuts <code>pmos-toolkit/v2.50.0</code>: bumps the 4 manifest entries to 2.50.0, tags <code>pmos-toolkit/v2.50.0</code>, pushes to all 3 remotes.</li>
+</ol>
+Acceptable chicken-and-egg risk: if the generalized code has a defect surfaced only at release-time, fix forward to <code>v2.50.1</code> per D24.</td></tr>
+</table>
+
+<h3 id="fr-claude-md">7.7 CLAUDE.md Edits</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-70</td><td>Section <code>## Canonical skill path (pmos-toolkit)</code> → rename heading to <code>## Canonical skill path</code> (drop parenthetical). Generalize body: each plugin loads from <code>plugins/&lt;plugin&gt;/skills/&lt;skill-name&gt;/SKILL.md</code>.</td></tr>
+<tr><td>FR-71</td><td>Section <code>## Skill-authoring conventions</code> → generalize path references from <code>plugins/pmos-toolkit/skills/</code> to <code>plugins/&lt;plugin&gt;/skills/</code>. Preserve the SDLC sub-bullet on <code>/feature-sdlc skill</code>.</td></tr>
+<tr><td>FR-72</td><td>Section <code>## Plugin manifest version sync</code> → expand from 2-way to 3-way: list <code>plugins/&lt;plugin&gt;/.claude-plugin/plugin.json</code> + <code>plugins/&lt;plugin&gt;/.codex-plugin/plugin.json</code> + <code>marketplace.json[plugin].version</code> (in BOTH <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code>). Apply per-plugin (iterate plugins list).</td></tr>
+<tr><td>FR-73</td><td>Section <code>## Release entry point</code> → unchanged in spirit (<code>/complete-dev</code> remains canonical); add reference to <code>--plugin &lt;name&gt;</code> flag and auto-detect behavior.</td></tr>
+<tr><td>FR-74</td><td>NEW section <code>## Release policy</code> (D18). Required subsections:
+<ul>
+<li><strong>Plugins list:</strong> bullet list of plugin directory names (initially <code>pmos-toolkit</code>, <code>pmos-learnkit</code>).</li>
+<li><strong>Tag convention:</strong> <code>&lt;plugin&gt;/v&lt;semver&gt;</code> for new tags; pre-cutover tags preserved as-is.</li>
+<li><strong>/complete-dev invocation:</strong> <code>--plugin &lt;name&gt;</code> required (or auto-detected from diff); refuse-on-ambiguity; substrate-only smart-detect prompt.</li>
+<li><strong>Drift hook contract:</strong> pre-commit only; <code>scripts/sync-shared.sh --from=&lt;plugin&gt;</code> is the only sanctioned mutation path for cross-plugin <code>_shared/</code> sync.</li>
+<li><strong>Tri-remote topology:</strong> <code>origin</code> = GitHub <code>pmos-skills</code>, <code>work-mirror</code> = GitHub work-account, <code>gitlab-mirror</code> = GitLab backup. <code>/complete-dev</code> pushes to all configured remotes.</li>
+<li><strong>Old repo posture:</strong> <code>maneesh-dhabria/pmos-toolkit</code> archived + private at cutover; cached <code>v2.49.0</code> installs continue read-only.</li>
+</ul>
+</td></tr>
+<tr><td>FR-75</td><td>All 5 edits (FR-70..FR-74) land in the same commit as the rest of the cutover (the <code>pmos-toolkit/v2.50.0</code> release commit) so the new <code>/complete-dev</code> code and the policy it reads ship together.</td></tr>
+</table>
+
+<h3 id="fr-cutover">7.8 Cutover Operations</h3>
+<p>Per D23 sequencing.</p>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-80</td><td>Create empty repo <code>github.com/maneesh-dhabria/pmos-skills</code> with branch protection on <code>main</code> + admin-bypass enabled (D8).</td></tr>
+<tr><td>FR-81</td><td>Update local remotes per D20: rename current <code>origin</code> (GitLab) → <code>gitlab-mirror</code>; rename current <code>github</code> → <code>origin</code> (URL repointed to <code>pmos-skills</code>); rename current <code>github-work</code> → <code>work-mirror</code> (URL repointed to <code>pmos-skills</code>); delete bulk-fanout remote <code>all</code>. Steps:
+<pre><code>git remote rename origin gitlab-mirror
+git remote remove all
+git remote rename github origin
+git remote set-url origin git@github.com:maneesh-dhabria/pmos-skills.git
+git remote rename github-work work-mirror
+git remote set-url work-mirror git@github.com-work:maneesh-dh/pmos-skills.git</code></pre>
+</td></tr>
+<tr><td>FR-82</td><td>Push current monorepo (including all branches + tags + the cutover feature branch with all changes from FR-10..FR-74) to new <code>origin</code> and <code>work-mirror</code>. Also push to <code>gitlab-mirror</code> for backup parity.</td></tr>
+<tr><td>FR-83</td><td>Cut <code>pmos-toolkit/v2.50.0</code> via <code>/complete-dev --plugin pmos-toolkit</code> running the generalized code (FR-50..FR-61). This is the first release on the new flow.</td></tr>
+<tr><td>FR-84</td><td>Verify in fresh CC: <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> shows <code>pmos-toolkit v2.50.0</code> in the picker; installing it yields a working plugin. Verify Codex install path equivalently if Codex tooling is available locally.</td></tr>
+<tr><td>FR-85</td><td>Pre-archive audit of old repo (OQ2): <code>gh pr list --repo maneesh-dhabria/pmos-toolkit --state open</code> + <code>gh api repos/maneesh-dhabria/pmos-toolkit/forks</code>. If open PRs exist: pause and resolve before archiving. If forks exist: add migration breadcrumb to old repo description (last edit before archive).</td></tr>
+<tr><td>FR-86</td><td>Archive + privatize old repo: <code>gh repo archive maneesh-dhabria/pmos-toolkit --yes</code> + <code>gh repo edit maneesh-dhabria/pmos-toolkit --visibility private --accept-visibility-change-consequences</code>.</td></tr>
+<tr><td>FR-87</td><td>Update <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code>'s <code>homepage</code> and <code>repository</code> URLs from <code>github.com/maneesh-dhabria/pmos-toolkit</code> → <code>github.com/maneesh-dhabria/pmos-skills</code> (in the same cutover release commit).</td></tr>
+<tr><td>FR-88</td><td>Top-level README for <code>pmos-skills</code> repo (created or updated in the same cutover commit) leads with: <code>"Previously the pmos-toolkit marketplace; now hosts multiple pmos-* plugins. Install: /plugin marketplace add maneesh-dhabria/pmos-skills"</code> (D15).</td></tr>
+</table>
+</section>
+
+<section id="nfr">
+<h2 id="nfr">8. Non-Functional Requirements</h2>
+<table>
+<tr><th>ID</th><th>Category</th><th>Requirement</th></tr>
+<tr><td>NFR-01</td><td>LOC budget</td><td>Total NEW shell tooling LOC ≤ 100 (G9): sync-shared.sh ≤ 30; pre-commit drift hook ≤ 30; pre-push hook ADDITIONS ≤ 40 (the 76-LOC existing hook is preserved; this counts only added lines).</td></tr>
+<tr><td>NFR-02</td><td>Performance — drift hook</td><td>Pre-commit drift hook MUST short-circuit when no <code>_shared/</code> files appear in the staged diff. On a 4,162-LOC <code>_shared/</code> tree (current size, Subagent A §6), full <code>diff -rq</code> on one peer pair completes in &lt; 200ms locally — acceptable when it does run.</td></tr>
+<tr><td>NFR-03</td><td>Performance — sync-shared</td><td><code>scripts/sync-shared.sh</code> completes in &lt; 1s for the current <code>_shared/</code> size (rsync against local filesystem).</td></tr>
+<tr><td>NFR-04</td><td>Portability</td><td>All shell scripts MUST run on macOS (current dev environment) AND Linux. Avoid GNU-specific flags (e.g., <code>diff --color</code>, <code>readlink -f</code>); use POSIX where possible. Per <a href="#bash-portability"><code>CLAUDE.md ## Bash portability</code></a> repo invariant. <strong>Windows is out-of-scope for hook execution</strong> — external contributors on Windows are expected to use WSL; CONTRIBUTING.md documents this. (Solo-maintainer + secondary external-contributor profile both run macOS or Linux.)</td></tr>
+<tr><td>NFR-05</td><td>Idempotence</td><td>Both <code>sync-shared.sh</code> AND both hooks are idempotent. Running any of them twice consecutively with no other changes is a no-op.</td></tr>
+<tr><td>NFR-06</td><td>Backwards compatibility</td><td>Existing skill substrate references via <code>${CLAUDE_PLUGIN_ROOT}/skills/_shared/</code> (32 references per Subagent A §7) MUST continue working unchanged. Zero skill code edits required for the peer-copy model.</td></tr>
+<tr><td>NFR-07</td><td>Observability</td><td>Every hook + script emits a single-line summary to stderr on completion (success or failure) per repo convention. <code>/complete-dev</code> retains its existing NFR-07 chat log line.</td></tr>
+<tr><td>NFR-08</td><td>Atomic writes</td><td>The cutover release commit (FR-75) MUST include all CLAUDE.md edits, the new <code>## Release policy</code> section, the marketplace manifest changes, AND the generalized <code>/complete-dev</code> SKILL.md changes — as ONE logical change. Not split across multiple commits on main.</td></tr>
+</table>
+</section>
+
+<section id="api-contracts">
+<h2 id="api-contracts">9. API Contracts</h2>
+<p>N/A — this feature introduces no HTTP / RPC / IPC APIs. The only external integration surfaces are the Claude Code and Codex marketplace fetch protocols (read-only consumers of the JSON manifests defined in §7.2), which are defined by Anthropic / OpenAI and not modified here.</p>
+</section>
+
+<section id="db-design">
+<h2 id="db-design">10. Database Design</h2>
+<p>N/A — no persistent store. Manifest files (JSON) and shell-script outputs are the entire state surface.</p>
+</section>
+
+<section id="frontend-design">
+<h2 id="frontend-design">11. Frontend Design</h2>
+<p>N/A — no end-user UI introduced or modified. The only end-user touch surface is Claude Code's native <code>/plugin marketplace</code> install picker, which is fed by the marketplace.json manifests defined in §7.2 — its rendering is owned by CC, not this feature.</p>
+</section>
+
+<section id="edge-cases">
+<h2 id="edge-cases">12. Edge Cases</h2>
+<table>
+<tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr>
+<tr><td>E1</td><td>Fresh repo before first plugin</td><td>Marketplace manifests have <code>plugins: []</code> (transitional)</td><td>Valid JSON; <code>marketplace add</code> succeeds; picker shows "no plugins available".</td></tr>
+<tr><td>E2</td><td>Drift-check hook with one plugin only</td><td><code>plugins/</code> contains only <code>pmos-toolkit/</code></td><td>Hook passes trivially. <code>sync-shared.sh</code> emits stderr no-op message + exits 0.</td></tr>
+<tr><td>E3</td><td>Cross-boundary file move out of <code>_shared/</code></td><td>File <code>git mv</code>-ed from <code>plugins/&lt;a&gt;/skills/_shared/</code> to <code>plugins/&lt;a&gt;/skills/non-shared/</code></td><td>Hook detects drift (file still in other plugin's <code>_shared/</code>). Sync from <code>&lt;a&gt;</code> removes file from peers. If a peer needed the file, move it in the same PR.</td></tr>
+<tr><td>E4</td><td>Codex marketplace consumer</td><td>End-user on Codex</td><td>Codex reads <code>.codex-plugin/marketplace.json</code>; same relative <code>source</code> resolution; both plugins install.</td></tr>
+<tr><td>E5</td><td>External contributor clones <code>pmos-skills</code></td><td>Wants to PR a fix</td><td>CONTRIBUTING.md documents <code>git config core.hooksPath .githooks</code>. Repo-local <code>.git/config</code> already has it (committed via <code>git config --local include.path</code> trick is NOT used — instead CONTRIBUTING.md instructs the manual step). PR review at solo scale catches missed hooks.</td></tr>
+<tr><td>E6</td><td>End-user on archived <code>maneesh-dhabria/pmos-toolkit</code> URL</td><td>Marketplace previously added at old URL</td><td>Old URL 404s publicly (archive + private). Cached install at <code>v2.49.0</code> functions read-only. New repo README is sole migration breadcrumb. Accepted attrition at solo scale.</td></tr>
+<tr><td>E7</td><td><code>git commit --no-verify</code></td><td>Bypasses pre-commit drift hook</td><td>Drift can land on feature branch. Pre-push does NOT re-check drift (D16). Risk: drift on main if merged without inspection. Mitigation: PR self-review.</td></tr>
+<tr><td>E8</td><td><code>jq</code> not installed</td><td>Pre-push hook runs on a system without jq</td><td>Hook fails fast with <code>pre-push: jq not installed; install via brew/apt/dnf and retry.</code> (FR-45). User installs jq + retries.</td></tr>
+<tr><td>E9</td><td>Multiple plugins newly bumped in one push</td><td><code>git push origin main pmos-toolkit/v2.50.0 pmos-learnkit/v0.1.1</code></td><td>Pre-push hook iterates <code>plugins/*/</code>, validates 3-way for EACH plugin, validates EACH new tag's format + version-match. All must pass; otherwise reject.</td></tr>
+<tr><td>E10</td><td><code>--plugin</code> name doesn't match any directory under <code>plugins/</code></td><td><code>/complete-dev --plugin pmos-typo</code></td><td>Exit 64 with <code>--plugin: 'pmos-typo' not found under plugins/. Valid: pmos-toolkit, pmos-learnkit.</code></td></tr>
+<tr><td>E11</td><td>Auto-detect ambiguous on substrate + plugin-private mix</td><td>Diff has <code>_shared/</code> changes in plugin A AND plugin-private changes in plugin A only</td><td>Auto-detect picks plugin A (only one plugin has plugin-private changes). Standard FR-51 confirmation prompt fires.</td></tr>
+<tr><td>E12</td><td><code>plugins/&lt;name&gt;/.codex-plugin/plugin.json</code> missing</td><td>New plugin scaffolded without Codex manifest</td><td>Pre-push hook fails at FR-40 step 3 ("missing manifest"). Maneesh must create the Codex manifest before pushing.</td></tr>
+<tr><td>E13</td><td>Marketplace manifest entry mismatch</td><td>A plugin directory exists under <code>plugins/</code> but is absent from <code>marketplace.json[plugins]</code> array (or vice versa)</td><td>Pre-push hook fails at FR-40 ("plugin <code>&lt;name&gt;</code> directory exists but no marketplace.json entry"). Maneesh adds the entry; FR-15 documents this in CLAUDE.md.</td></tr>
+<tr><td>E14</td><td>Remote rename collision</td><td>Existing remote name <code>gitlab-mirror</code> or <code>work-mirror</code> from prior local config</td><td>FR-81 commands fail loudly; user inspects and resolves (likely by manually <code>git remote remove</code> first). Documented in /execute runbook.</td></tr>
+<tr><td>E15</td><td><code>/complete-dev</code> on a branch with diff that touches CLAUDE.md only (no plugin)</td><td>Edit to <code>## Release policy</code> standalone</td><td>Auto-detect fails (no <code>plugins/&lt;name&gt;/</code> prefix in diff). Refuses with: <code>"Diff touches no plugin. Either pass --plugin &lt;name&gt; to ride a plugin's next release, or commit the CLAUDE.md edit as a standalone commit on main without a /complete-dev release."</code></td></tr>
+</table>
+</section>
+
+<section id="configuration">
+<h2 id="configuration">13. Configuration &amp; Setup</h2>
+<p>No new environment variables or feature flags. New filesystem state:</p>
+<table>
+<tr><th>Path</th><th>Type</th><th>Purpose</th></tr>
+<tr><td><code>.githooks/pre-commit</code></td><td>NEW (executable bash)</td><td>Drift check on <code>_shared/</code> peers.</td></tr>
+<tr><td><code>.githooks/pre-push</code></td><td>EXTENDED</td><td>3-way version + tag-format + tag-version-match per plugin.</td></tr>
+<tr><td><code>.githooks/README.md</code></td><td>EXTENDED</td><td>Documents both hooks' contracts.</td></tr>
+<tr><td><code>scripts/sync-shared.sh</code></td><td>NEW (executable bash)</td><td>Cross-plugin <code>_shared/</code> sync from a chosen source.</td></tr>
+<tr><td><code>.codex-plugin/marketplace.json</code></td><td>NEW</td><td>Codex marketplace manifest.</td></tr>
+<tr><td><code>CONTRIBUTING.md</code></td><td>NEW</td><td>External contributor workflow; documents <code>git config core.hooksPath .githooks</code> for non-Maneesh clones.</td></tr>
+<tr><td><code>plugins/pmos-learnkit/</code></td><td>NEW (out of scope here)</td><td>Scaffolded post-cutover in a follow-up.</td></tr>
+</table>
+<p>One-time setup for external contributors (E5):</p>
+<pre><code>git config core.hooksPath .githooks
+# (Maneesh's clone already has this configured per Subagent A §5.)</code></pre>
+</section>
+
+<section id="testing-verification">
+<h2 id="testing-verification">14. Testing &amp; Verification Strategy</h2>
+
+<h3 id="testing-unit">14.1 Unit / Integration Tests</h3>
+<p>All tests are shell-script assertions following the existing <code>tests/scripts/</code> convention (per Subagent A §10). No new test framework. Each test is a standalone <code>.sh</code> file that exits 0 on pass / non-zero on fail; runnable individually.</p>
+<table>
+<tr><th>Test path</th><th>What it asserts</th></tr>
+<tr><td><code>tests/scripts/assert_sync_shared_idempotent.sh</code></td><td><code>sync-shared.sh --from=pmos-toolkit</code> twice consecutively — second run mutates nothing (<code>diff -rq</code> peer→peer empty after each run).</td></tr>
+<tr><td><code>tests/scripts/assert_sync_shared_dry_run.sh</code></td><td><code>sync-shared.sh --dry-run --from=pmos-toolkit</code> after deliberate drift — stdout names the diverging files; filesystem unchanged.</td></tr>
+<tr><td><code>tests/scripts/assert_sync_shared_single_plugin_noop.sh</code></td><td>With a fixture <code>plugins/</code> containing only one entry, sync exits 0 + emits stderr no-op message.</td></tr>
+<tr><td><code>tests/scripts/assert_sync_shared_bad_usage.sh</code></td><td>Bad <code>--from=&lt;nonexistent&gt;</code> exits 64; missing flag exits 64; <code>--help</code> exits 0.</td></tr>
+<tr><td><code>tests/scripts/assert_pre_commit_drift_detected.sh</code></td><td>Fixture with deliberate <code>_shared/</code> drift → run <code>.githooks/pre-commit</code> directly → exit non-zero + stderr contains <code>"drift detected"</code> + suggested <code>sync-shared.sh</code> command.</td></tr>
+<tr><td><code>tests/scripts/assert_pre_commit_short_circuit.sh</code></td><td>Fixture with staged diff NOT touching <code>_shared/</code> → hook exits 0 without running <code>diff -rq</code> (verified by timing or by mocking <code>diff</code>).</td></tr>
+<tr><td><code>tests/scripts/assert_pre_push_3_way_version_match.sh</code></td><td>Fixture where <code>plugin.json</code> = 2.50.0 but <code>marketplace.json[plugin].version</code> = 2.49.0 → hook rejects with named plugin + observed versions.</td></tr>
+<tr><td><code>tests/scripts/assert_pre_push_tag_format.sh</code></td><td>Try <code>git push --dry-run origin v3.0.0</code> against fixture → rejected. <code>git push --dry-run origin pmos-toolkit/v3.0.0</code> → accepted (when all 3 manifests are at 3.0.0).</td></tr>
+<tr><td><code>tests/scripts/assert_pre_push_tag_version_match.sh</code></td><td>Manifests at 2.50.0; tag <code>pmos-toolkit/v2.51.0</code> → rejected. Same manifests; tag <code>pmos-toolkit/v2.50.0</code> → accepted.</td></tr>
+<tr><td><code>tests/scripts/assert_pre_push_preserves_existing_tags.sh</code></td><td>Push that does NOT create new tags (just a regular branch push) → hook does not validate any pre-existing <code>v2.x</code> or <code>pmos-toolkit-2.x</code> tags.</td></tr>
+<tr><td><code>tests/scripts/assert_complete_dev_auto_detect.sh</code></td><td>Mock /complete-dev Phase 0 — stage diff exclusively under one plugin; invoke without <code>--plugin</code> → confirmation prompt names that plugin.</td></tr>
+<tr><td><code>tests/scripts/assert_complete_dev_refuse_ambiguous.sh</code></td><td>Mock /complete-dev Phase 0 — diff with non-<code>_shared/</code> changes in two plugins; invoke without <code>--plugin</code> → exit 64 with refuse message.</td></tr>
+<tr><td><code>tests/scripts/assert_complete_dev_substrate_smart_detect.sh</code></td><td>Mock /complete-dev Phase 0 — diff exclusively under <code>_shared/</code> paths in multiple plugins → "ride which plugin's next release?" prompt fires with one option per plugin.</td></tr>
+<tr><td><code>tests/scripts/assert_claude_md_generalized.sh</code></td><td>After CLAUDE.md edits land: <code>grep -nE 'plugins/pmos-toolkit/' CLAUDE.md</code> returns matches ONLY inside the <code>## Release policy</code> example block; <code>grep -c '\${plugin}\|plugins/&lt;plugin&gt;/'</code> &gt;= 4.</td></tr>
+<tr><td><code>tests/scripts/assert_release_policy_section.sh</code></td><td>CLAUDE.md contains <code>## Release policy</code> heading; the section body lists both plugins; includes the 6 required subsections from FR-74.</td></tr>
+<tr><td><code>tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code></td><td>After /complete-dev SKILL.md edits: <code>grep -nE 'plugins/pmos-toolkit/' plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> returns matches ONLY inside example blocks or pre-existing prose mentions explicitly preserved. The 14 cited lines from Subagent A §1 are all templated to <code>plugins/\${plugin_name}/</code>.</td></tr>
+<tr><td><code>tests/scripts/assert_marketplace_json_schema.sh</code></td><td><code>jq empty .claude-plugin/marketplace.json</code> + <code>jq empty .codex-plugin/marketplace.json</code> parse cleanly. Each plugin entry has required fields. <code>name</code> is <code>"pmos-skills"</code>.</td></tr>
+<tr><td><code>tests/scripts/assert_skill_substrate_refs_unchanged.sh</code></td><td><code>grep -rc '\${CLAUDE_PLUGIN_ROOT}/skills/_shared' plugins/pmos-toolkit/skills/</code> count = pre-cutover count (32 per Subagent A §7); <code>grep -rc 'plugins/pmos-toolkit/skills/_shared' plugins/pmos-toolkit/skills/</code> = 0.</td></tr>
+</table>
+
+<h3 id="testing-manual">14.2 Manual / Integration Verification</h3>
+<table>
+<tr><th>Step</th><th>Verification</th></tr>
+<tr><td>Fresh CC install (J3)</td><td>In a clean CC session: <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code>. Picker MUST show <code>pmos-toolkit v2.50.0</code> (and eventually <code>pmos-learnkit v0.1.0</code>).</td></tr>
+<tr><td>Old repo archive state</td><td><code>gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived, .private'</code> returns <code>true</code>, <code>true</code>.</td></tr>
+<tr><td>Tri-remote tag presence</td><td>After cutover release: <code>git ls-remote origin pmos-toolkit/v2.50.0</code> + same for <code>work-mirror</code> + <code>gitlab-mirror</code> all return the same SHA.</td></tr>
+<tr><td>Codex install path</td><td>If Codex CLI is locally available: install both plugins via the Codex marketplace command path; both succeed.</td></tr>
+<tr><td>End-to-end <code>pmos-learnkit/v0.1.0</code></td><td>Out of scope for this spec; but the verification of FR-50..FR-61 includes a dry-run pass against a scaffolded <code>plugins/pmos-learnkit/</code> fixture before any real release.</td></tr>
+</table>
+
+<h3 id="testing-commands">14.3 Verification Commands (cheat sheet)</h3>
+<pre><code># Run all new shell-assertion tests
+for t in tests/scripts/assert_sync_shared_*.sh \
+         tests/scripts/assert_pre_commit_*.sh \
+         tests/scripts/assert_pre_push_*.sh \
+         tests/scripts/assert_complete_dev_*.sh \
+         tests/scripts/assert_claude_md_*.sh \
+         tests/scripts/assert_release_policy_section.sh \
+         tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh \
+         tests/scripts/assert_marketplace_json_schema.sh \
+         tests/scripts/assert_skill_substrate_refs_unchanged.sh; do
+  bash "$t" || echo "FAIL: $t"
+done
+
+# Schema-validate manifests
+jq empty .claude-plugin/marketplace.json && jq empty .codex-plugin/marketplace.json && \
+jq empty plugins/pmos-toolkit/.claude-plugin/plugin.json && \
+jq empty plugins/pmos-toolkit/.codex-plugin/plugin.json
+
+# Verify 3-way version match for pmos-toolkit (manual)
+jq -r '.plugins[] | select(.name=="pmos-toolkit") | .version' .claude-plugin/marketplace.json
+jq -r '.plugins[] | select(.name=="pmos-toolkit") | .version' .codex-plugin/marketplace.json
+jq -r '.version' plugins/pmos-toolkit/.claude-plugin/plugin.json
+jq -r '.version' plugins/pmos-toolkit/.codex-plugin/plugin.json
+# All four MUST be equal.
+
+# Drift hook (negative test)
+echo "drift" &gt;&gt; plugins/pmos-toolkit/skills/_shared/test-drift.txt
+git add plugins/pmos-toolkit/skills/_shared/test-drift.txt
+git commit -m "test drift" || echo "expected fail: drift hook rejected"
+git restore --staged plugins/pmos-toolkit/skills/_shared/test-drift.txt
+rm plugins/pmos-toolkit/skills/_shared/test-drift.txt
+
+# Post-cutover archive verification
+gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived, .private'</code></pre>
+</section>
+
+<section id="rollout">
+<h2 id="rollout">15. Rollout Strategy</h2>
+<p>Per D23 sequencing. No feature flags; this is a one-shot cutover.</p>
+<ol>
+<li><strong>Pre-cutover (off-branch):</strong> on the <code>feat/multi-plugin-marketplace</code> branch, land all code changes from §7 (manifest renames, new sync-shared.sh, new pre-commit hook, pre-push extension, /complete-dev generalization, CLAUDE.md edits). Each lands as separate commits per /plan task boundary. All Phase 14.1 shell-assertion tests pass locally.</li>
+<li><strong>Create new repo:</strong> <code>gh repo create maneesh-dhabria/pmos-skills --public --description "Multi-plugin marketplace for pmos-* Claude Code + Codex plugins"</code>. Enable branch protection on <code>main</code> with admin-bypass (FR-80).</li>
+<li><strong>Remote rename + push (FR-81, FR-82):</strong> execute the 6-command sequence in FR-81. Then push the feature branch + main to new <code>origin</code>, <code>work-mirror</code>, <code>gitlab-mirror</code>.</li>
+<li><strong>Merge feature branch to main on origin (GitHub pmos-skills).</strong></li>
+<li><strong>Cut <code>pmos-toolkit/v2.50.0</code> (FR-83):</strong> <code>/complete-dev --plugin pmos-toolkit</code> from main. The new code path runs for the first time.</li>
+<li><strong>Verify install in fresh CC (FR-84).</strong> If verification fails, fix forward to <code>pmos-toolkit/v2.50.1</code> per D24 — do NOT archive old repo until verification passes.</li>
+<li><strong>Pre-archive audit (FR-85):</strong> <code>gh pr list --repo maneesh-dhabria/pmos-toolkit --state open</code> + <code>gh api repos/maneesh-dhabria/pmos-toolkit/forks</code>. Pause if either is non-empty.</li>
+<li><strong>Archive + privatize old repo (FR-86):</strong> <code>gh repo archive</code> + <code>gh repo edit --visibility private</code>.</li>
+<li><strong>Done.</strong> End-users on cached <code>v2.49.0</code> from the old marketplace continue read-only. New installs flow through the new marketplace.</li>
+</ol>
+<p><strong>Rollback (D24):</strong> none. Fix forward to <code>v2.50.1</code> if v2.50.0 has a defect. Until step 8 (archive) completes, the old repo remains a publicly visible reference but receives no new pushes.</p>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">16. Research Sources</h2>
+<table>
+<tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr>
+<tr><td><code>docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html</code></td><td>Internal — requirements</td><td>Source of truth. D1–D19; 6 user journeys; 10 success metrics.</td></tr>
+<tr><td>Grill report #2 (<code>grills/2026-05-22_01_requirements-2.html</code>)</td><td>Internal — adversarial review</td><td>Locked Q1–Q6 + OQ10–OQ13. Surfaced 14 hardcoded paths in /complete-dev.</td></tr>
+<tr><td>Phase-2 Subagent A research pass (this skill)</td><td>Internal — live repo inspection</td><td>Verified the 13 cited /complete-dev lines (all correct) + flagged 1 additional (line 753); confirmed <code>.codex-plugin/marketplace.json</code> doesn't exist; confirmed <code>.githooks/</code> already exists with 76-LOC pre-push hook; confirmed 4 remotes (origin=GitLab, github=personal, github-work=work, all=fanout); confirmed all skill substrate refs use <code>${CLAUDE_PLUGIN_ROOT}</code> token.</td></tr>
+<tr><td>Subagent B (industry research)</td><td>SKIPPED</td><td>Alternatives table in <a href="01_requirements.html#design-decisions">requirements D1</a> (Lerna/Nx/Turborepo prior art) already covers the design space; no non-obvious architectural choice remains open.</td></tr>
+<tr><td><a href="https://code.claude.com/docs/en/plugin-marketplaces.md">code.claude.com/docs/en/plugin-marketplaces.md</a></td><td>External — Anthropic docs</td><td>Multi-plugin marketplace is native; relative-path <code>source</code> supported; update signal is <code>marketplace.json[plugin].version</code>.</td></tr>
+<tr><td><a href="https://developers.openai.com/codex/plugins/build">developers.openai.com/codex/plugins/build</a></td><td>External — Codex docs</td><td>Relative-path plugin sources supported.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code></td><td>Internal — existing skill</td><td>14 hardcoded path references (Subagent A §1) to template.</td></tr>
+<tr><td><code>.githooks/pre-push</code></td><td>Internal — existing hook</td><td>76 LOC; already enforces 2-way <code>plugin.json</code> version sync. To be extended in place (FR-46).</td></tr>
+<tr><td>CLAUDE.md sections (4 + 1 new)</td><td>Internal — host policy</td><td>Specific text of 4 generalizable sections quoted by Subagent A §4.</td></tr>
+</table>
+</section>
+
+<section id="silent-roles">
+<h2 id="silent-roles">17. Roles Considered, No Questions</h2>
+<pre><code>Silent roles considered:
+- DBA — no schema changes; the feature is repo restructuring + bash hooks + JSON manifests. Covered by §10 N/A statement.
+- Principal Designer — no UI surface; the only end-user touch is CC's native marketplace picker (rendered by CC, not this feature). Covered by §11 N/A statement.
+- Product Director — User Journeys J1–J6 and the edge-case table in &lt;a href="01_requirements.html#empty-states"&gt;requirements §Empty States &amp; Edge Cases&lt;/a&gt; were already exhaustive after second /grill. No additional persona / journey gaps surfaced.
+- Senior Analyst — FR derivation in §7 is structural (turning locked decisions from D1–D19 into FR-IDs); no new requirements introduced beyond what /grill #2 locked. Coverage validated by mapping each goal G1–G10 to at least one FR.
+</code></pre>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">18. Open Questions</h2>
+<p>None. The spec is the contract; all decisions from D1–D24 are locked. Deferred items (OQ2 pre-archive audit, OQ3 future <code>pmos-shared</code> extraction, OQ7 Codex install README snippet, OQ8 local directory rename) are tracked in <a href="01_requirements.html#open-questions">requirements §Open Questions</a> and are runbook / future-work items, not unresolved design decisions.</p>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">19. Review Log</h2>
+<table>
+<tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr>
+<tr><td>0 (draft)</td><td>Initial spec authored from requirements + Phase 2 research + Phase 3 multi-role interview + Phase 4 verification sketch.</td><td>Draft written.</td></tr>
+<tr><td>1</td><td>4 design-critique findings: (a) FR-22 destructive rsync semantics + missing mkdir -p for first-run [Should-fix]; (b) FR-46 extend-in-place plan dependency not pinned [Should-fix]; (c) FR-61 dogfood-at-release ordering implicit [Should-fix]; (d) NFR-04 Windows scope unclear [Nit]. Structural checklist: all 7 items pass.</td><td>All 4 Fixed-as-proposed: FR-22 body expanded (mkdir -p + destructive warning); new FR-46a (read-existing-hook plan dep); FR-61 body expanded (4-step ordering); NFR-04 body expanded (Windows out-of-scope, WSL).</td></tr>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-20_multi-plugin-marketplace/02_spec.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
