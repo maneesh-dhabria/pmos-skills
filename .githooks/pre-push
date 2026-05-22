@@ -16,8 +16,12 @@ fail=0
 
 get_version() {
   # get_version <ref> <path>
+  # Returns the version string from a JSON manifest at <ref>:<path>, or empty string
+  # when the file does not exist at <ref> (e.g., pushing to an empty remote where the
+  # base is the empty-tree SHA). Wrapped in `|| true` so `set -euo pipefail` doesn't
+  # exit when `git show` returns non-zero for a missing path.
   local ref="$1" path="$2"
-  git show "$ref:$path" 2>/dev/null | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1
+  { git show "$ref:$path" 2>/dev/null || true; } | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1
 }
 
 command -v jq >/dev/null || { echo "pre-push: jq not installed; required for marketplace.json / tag checks." >&2; exit 1; }
