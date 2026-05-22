@@ -10,13 +10,13 @@
 - [U006 — path depth > 4](#u006--path-depth--4)
 - [U007 — missing file-purpose comment](#u007--missing-file-purpose-comment)
 - [U008 — commented-out code blocks](#u008--commented-out-code-blocks)
-- [U009 — hardcoded credentials (BLOCK)](#u009--hardcoded-credentials-block)
-- [U010 — NotImplementedError on main path (BLOCK)](#u010--notimplementederror-on-main-path-block)
+- [U009 — hardcoded credentials (must_fix)](#u009--hardcoded-credentials-must_fix)
+- [U010 — NotImplementedError on main path (must_fix)](#u010--notimplementederror-on-main-path-must_fix)
 - [U011 — duplicate cross-file signature](#u011--duplicate-cross-file-signature)
 
 The L1 set is plugin-owned (`principles.yaml`), capped at 15 rules (FR-21), and applies to every repo regardless of stack. v1 ships 10 rules. Each section below carries the rule statement, the *why*, the source citation, and an example violation. Rules surface via the `grep`-family evaluators in `tools/run-audit.sh`.
 
-L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax severity (to `warn` or `info`) or add exemption rows, but may NOT silently drop a universal rule (FR-11).
+L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax disposition (to `should_fix` or `wont_fix`) or add exemption rows, but may NOT silently drop a universal rule (FR-11).
 
 ---
 
@@ -116,8 +116,6 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Example violation:** `src/utils/dates.py` starts at `import datetime` with no top comment. Add `"""Date helpers — parse, format, and compare ISO-8601 strings."""`.
 
-See also U011 (duplicate signatures) — a related cross-file smell.
-
 ---
 
 ## U008 — commented-out code blocks
@@ -134,7 +132,7 @@ See also U011 (duplicate signatures) — a related cross-file smell.
 
 ---
 
-## U009 — hardcoded credentials (BLOCK)
+## U009 — hardcoded credentials (must_fix)
 
 **Rule:** No hardcoded credentials / API-key patterns.
 **Check:** `regex:(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]+PRIVATE KEY-----|api[_-]?key\s*=\s*['"][A-Za-z0-9_\-]{16,}['"])`
@@ -144,11 +142,11 @@ See also U011 (duplicate signatures) — a related cross-file smell.
 
 **Source:** OWASP A02:2021 (Cryptographic Failures) + A07:2021 (Identification and Auth Failures); CWE-798 (Use of Hard-coded Credentials).
 
-**Example violation:** `const apiKey = "sk_live_abc123def456ghi789"` in `src/billing.ts` — rotate the key immediately, move to env var, then ADR-promote because it's BLOCK severity.
+**Example violation:** `const apiKey = "sk_live_abc123def456ghi789"` in `src/billing.ts` — rotate the key immediately, move to env var, then treat as a release blocker.
 
 ---
 
-## U010 — NotImplementedError on main path (BLOCK)
+## U010 — NotImplementedError on main path (must_fix)
 
 **Rule:** No `NotImplementedError` / `throw new Error('TBD')` on a main code path.
 **Check:** `regex:NotImplementedError|throw\s+new\s+Error\(['"]TBD['"];exclude:tests/`
@@ -158,7 +156,7 @@ See also U011 (duplicate signatures) — a related cross-file smell.
 
 **Source:** "Defensive Programming" (McConnell, "Code Complete" §8) — fail fast, but at boundaries, not in the middle of a request.
 
-**Example violation:** `def refund(self, order_id): raise NotImplementedError` is exposed via the public API. BLOCK severity → ADR or implement before merge.
+**Example violation:** `def refund(self, order_id): raise NotImplementedError` is exposed via the public API. must_fix disposition → implement the case or remove the call site before merge.
 
 ---
 
