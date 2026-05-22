@@ -12,6 +12,7 @@
 - [U008 — commented-out code blocks](#u008--commented-out-code-blocks)
 - [U009 — hardcoded credentials (BLOCK)](#u009--hardcoded-credentials-block)
 - [U010 — NotImplementedError on main path (BLOCK)](#u010--notimplementederror-on-main-path-block)
+- [U011 — duplicate cross-file signature](#u011--duplicate-cross-file-signature)
 
 The L1 set is plugin-owned (`principles.yaml`), capped at 15 rules (FR-21), and applies to every repo regardless of stack. v1 ships 10 rules. Each section below carries the rule statement, the *why*, the source citation, and an example violation. Rules surface via the `grep`-family evaluators in `tools/run-audit.sh`.
 
@@ -23,7 +24,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No file > 500 LOC (excluding generated).
 **Check:** `file_loc_gt:500;exclude_generated`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** Files past ~500 LOC are hard to load mentally. A reader has to scroll multiple times to see the file's surface area, which slows every code review and every refactor. The cure is usually splitting by responsibility — extract a collaborator class, move helpers to a sibling file.
 
@@ -37,7 +38,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No function > 100 LOC.
 **Check:** `function_loc_gt:100`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** 100-LOC functions almost always do more than one thing. Reading them requires holding multiple intermediate variables in working memory; testing them requires constructing improbable inputs to reach internal branches. Extract collaborators.
 
@@ -51,7 +52,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No constructor / function with > 4 positional args.
 **Check:** `positional_args_gt:4`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** Long positional lists are call-site bugs waiting to happen — swap two same-typed parameters and the type-checker says nothing. Use a named-options object / dataclass / typed dict so call sites read like prose.
 
@@ -65,7 +66,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No `console.log` / `print()` in `src/` (allowed in `scripts/`, `tests/`).
 **Check:** `regex:console\.log|print\(;paths:src/;exclude:tests/,scripts/`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** Stray print/log statements leak into production and signal abandoned debugging. Replace with a structured logger that respects log levels.
 
@@ -79,7 +80,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No TODO / FIXME / XXX older than 90 days.
 **Check:** `regex:TODO|FIXME|XXX;blame_older_than_days:90`
-**Severity:** warn · **Delegate:** grep (via `git blame`)
+**Disposition:** should_fix · **Delegate:** grep (via `git blame`)
 
 **Why:** TODOs older than a quarter are decisions, not reminders. If the work mattered, it would have happened; if it didn't, the marker is noise. File the ticket and delete the comment, or just delete it.
 
@@ -93,7 +94,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No file path > 4 directory levels deep from `src/`.
 **Check:** `path_depth_from_src_gt:4`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** Deep nesting hides scope creep. `src/features/admin/users/edit/forms/validators/email.ts` is a smell: the directory tree has become a substitute for module boundaries. Flatten by feature, not by category.
 
@@ -107,7 +108,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** Every file should carry a top-of-file purpose comment (warn-only).
 **Check:** `missing_top_of_file_purpose_comment`
-**Severity:** info · **Delegate:** grep
+**Disposition:** wont_fix · **Delegate:** grep
 
 **Why:** A one-line purpose comment at the top of the file makes the file's job legible to a cold reader before they read the code. Lowest-cost documentation that doesn't rot, because it sits above the code that proves or disproves it.
 
@@ -115,13 +116,15 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Example violation:** `src/utils/dates.py` starts at `import datetime` with no top comment. Add `"""Date helpers — parse, format, and compare ISO-8601 strings."""`.
 
+See also U011 (duplicate signatures) — a related cross-file smell.
+
 ---
 
 ## U008 — commented-out code blocks
 
 **Rule:** No commented-out code blocks > 5 lines.
 **Check:** `commented_code_block_gt:5_lines`
-**Severity:** warn · **Delegate:** grep
+**Disposition:** should_fix · **Delegate:** grep
 
 **Why:** Dead code in comments rots. Git remembers — `git log --all -S '<the deleted code>'` recovers anything you might want back. Commented blocks are noise that future readers must decide whether to trust.
 
@@ -135,7 +138,7 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No hardcoded credentials / API-key patterns.
 **Check:** `regex:(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]+PRIVATE KEY-----|api[_-]?key\s*=\s*['"][A-Za-z0-9_\-]{16,}['"])`
-**Severity:** **block** · **Delegate:** grep
+**Disposition:** **must_fix** · **Delegate:** grep
 
 **Why:** Secrets in source are an incident. Once committed, they live forever in git history and trigger credential-rotation work even if "fixed" in a later commit. Use a secret manager (AWS Secrets Manager, Vault, 1Password) or env vars loaded at runtime.
 
@@ -149,10 +152,27 @@ L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax sev
 
 **Rule:** No `NotImplementedError` / `throw new Error('TBD')` on a main code path.
 **Check:** `regex:NotImplementedError|throw\s+new\s+Error\(['"]TBD['"];exclude:tests/`
-**Severity:** **block** · **Delegate:** grep
+**Disposition:** **must_fix** · **Delegate:** grep
 
 **Why:** Stubs on main paths ship as 500s. The stub looked harmless during local dev (you never hit that branch) but production traffic hits the unhappy path within minutes. Either implement the case or remove the call site entirely.
 
 **Source:** "Defensive Programming" (McConnell, "Code Complete" §8) — fail fast, but at boundaries, not in the middle of a request.
 
 **Example violation:** `def refund(self, order_id): raise NotImplementedError` is exposed via the public API. BLOCK severity → ADR or implement before merge.
+
+---
+
+## U011 — duplicate cross-file signature
+
+**Rule:** No identical function / method signature appearing in ≥2 files (excluding tests, generated).
+**Check:** `duplicate_signature_cross_file;exclude:tests/,generated/`
+**Disposition:** should_fix · **Delegate:** grep (special-cased AST) (see [gap-map-rationale.md](gap-map-rationale.md) for delegate rationale)
+
+**Why:** The same signature recurring across files is almost always one of two smells. Either the function was copy-pasted — two implementations now drift independently and bug-fixes apply to only one — or a shared abstraction is missing and each caller re-implemented the same shape because there was no obvious home for it. Both lead to the same cure: hoist the function to a shared module, leave one call site that owns the canonical implementation, and migrate the others to import it.
+
+U011 differs from U002 (function size) — U002 flags individual functions that have grown too large; U011 flags structural duplication across the file boundary, regardless of size. A 6-line function duplicated four times is invisible to U002 but loud under U011.
+
+**Source:** "Refactoring" (Fowler, 1999) §3 — "Duplicated Code" listed as the first and most pervasive code smell. Mirrored by DRY (Hunt & Thomas, *The Pragmatic Programmer*, 1999).
+
+**Example violation:** `def normalize_email(addr: str) -> str:` appears verbatim in `src/auth/signup.py` and `src/billing/invoice.py`. Hoist to `src/shared/email.py`; both call sites import it.
+
