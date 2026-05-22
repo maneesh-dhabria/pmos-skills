@@ -1,8 +1,4 @@
-# dup-signature — U011 cross-file duplicate function signatures (T9, FR-45, D3, E13).
-# - src/a.py + src/b.py both define `_resolve_audio_units(self, X: int) -> Foo`
-#   with different param names → 2 U011 findings, each cross-ref'd to the peer.
-# - src/a.py also has a same-file @overload + impl `f(...)` pair, which is the
-#   E13 carve-out and must NOT fire (same-file matches are not flagged).
+# U011 fires on cross-file dup signatures; E13 same-file overload must not fire.
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 

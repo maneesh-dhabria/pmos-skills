@@ -1201,11 +1201,7 @@ PY
 findings_json=$(echo "$l1_pass_json" | jq '.findings')
 idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
 
-# ── U011 cross-file duplicate function signatures (T9, FR-45, D3, E13) ───────
-# Two-pass shape (collect all signatures → group by canonical key → emit per
-# occurrence iff the key spans ≥2 distinct files). Same-file matches are
-# the E13 carve-out and do not fire. Param names are stripped; type
-# annotations are stringified via ast.unparse.
+# E13 carve-out: same-file matches don't fire (distinct_files < 2 short-circuits).
 u011_json=$(
 LOADER_JSON_ENV="$LOADER_JSON" \
 SCAN_ROOT_ENV="$SCAN_ROOT" \
@@ -1264,8 +1260,6 @@ print(json.dumps(u011_findings))
 PY
 )
 
-# Merge U011 findings into the unified findings array (matches the depcruise
-# / ruff aggregation pattern at L1279/L1362).
 findings_json=$(jq -n \
   --argjson a "$findings_json" \
   --argjson b "$u011_json" \
