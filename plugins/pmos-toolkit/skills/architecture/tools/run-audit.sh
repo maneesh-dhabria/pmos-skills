@@ -19,6 +19,7 @@ NONINTERACTIVE=0
 INCLUDE_INFO_COMMENTS=0
 MONOREPO=0
 LABEL=""
+SORT_MODE="risk"
 SCAN_ROOT="."
 POSITIONALS=()
 prev=""
@@ -28,12 +29,22 @@ for arg in "$@"; do
     prev=""
     continue
   fi
+  if [ "$prev" = "--sort" ]; then
+    SORT_MODE="$arg"
+    if [ "$SORT_MODE" != "risk" ]; then
+      echo "unknown sort mode: $SORT_MODE (only 'risk' supported)" >&2
+      exit 64
+    fi
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     --monorepo) MONOREPO=1 ;;
     --label) prev="--label" ;;
+    --sort) prev="--sort" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
       echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
@@ -234,12 +245,16 @@ if os.path.isfile(l3_path):
 # T5 (FR-33, D7): flags.include_info_comments mirrors the shell flag
 # --include-info-comments via $INCLUDE_INFO_COMMENTS so the JSON sidecar
 # records the run-mode.
+_risk_score = l3.get("risk_score", {}) or {}
 config = {
     "adr_path": l3.get("adr_path", "docs/adr/"),
     "scan_root": l3.get("scan_root", "."),
     "extra_ignore": list(l3.get("extra_ignore", []) or []),
     "flags": {
         "include_info_comments": os.environ.get("INCLUDE_INFO_COMMENTS", "0") == "1",
+    },
+    "risk_score": {
+        "churn_window_days": int(_risk_score.get("churn_window_days", 90)),
     },
 }
 
@@ -433,6 +448,7 @@ if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
   findings_json='[]'
   STACKS=""
 fi
+findings_with_risk_json='[]'
 
 FANOUT_MODE=0
 if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 1 ]; then
@@ -1948,6 +1964,70 @@ if [ "$fde_den" -gt 0 ]; then
   fi
 fi
 
+CHURN_WINDOW_DAYS=$(echo "$LOADER_JSON" | jq -r '.config.risk_score.churn_window_days // 90')
+
+# T12 (FR-40/41/42): annotate findings with disposition + risk_score (churn + coupling).
+findings_with_risk_json=$(FINDINGS_JSON="$findings_json" \
+  MODULE_METRICS_JSON="$module_metrics_json" \
+  EFFECTIVE_SEVERITY_JSON="$(echo "$LOADER_JSON" | jq -c '.effective_severity')" \
+  SCAN_ROOT_ENV="$SCAN_ROOT" \
+  CHURN_WINDOW_DAYS="$CHURN_WINDOW_DAYS" \
+  python3 <<'PY'
+import json, os, subprocess
+findings = json.loads(os.environ["FINDINGS_JSON"])
+module_metrics = json.loads(os.environ["MODULE_METRICS_JSON"])
+eff_sev = json.loads(os.environ["EFFECTIVE_SEVERITY_JSON"])
+scan_root = os.environ["SCAN_ROOT_ENV"]
+N = int(os.environ.get("CHURN_WINDOW_DAYS", "90"))
+
+sev_to_disp = {"block": "must_fix", "warn": "should_fix", "info": "wont_fix"}
+disp_weight = {"must_fix": 1000, "should_fix": 100, "wont_fix": 1}
+
+try:
+    r = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=scan_root,
+                       capture_output=True, text=True, check=False)
+    is_git = (r.returncode == 0)
+except Exception:
+    is_git = False
+
+fanin_by_path = {m["path"]: m.get("fanin", 0) for m in module_metrics}
+churn_cache = {}
+
+def churn_for(file):
+    if not is_git or not file:
+        return 0
+    if file in churn_cache:
+        return churn_cache[file]
+    try:
+        cp = subprocess.run(
+            ["git", "rev-list", "--count", f"--since={N} days ago", "HEAD", "--", file],
+            cwd=scan_root, capture_output=True, text=True, check=False)
+        n = int((cp.stdout or "0").strip() or "0") if cp.returncode == 0 else 0
+    except Exception:
+        n = 0
+    churn_cache[file] = n
+    return n
+
+out = []
+for f in findings:
+    rid = f.get("rule_id")
+    sev = eff_sev.get(rid, f.get("severity"))
+    disp = sev_to_disp.get(sev, sev) if sev else "wont_fix"
+    weight = disp_weight.get(disp, 1)
+    file = f.get("file")
+    c = min(50, churn_for(file))
+    coup = min(50, 5 * fanin_by_path.get(file, 0))
+    cc = min(100, c + coup)
+    g = dict(f)
+    g.pop("severity", None)
+    g["disposition"] = disp
+    g["risk_score"] = weight + cc
+    out.append(g)
+
+print(json.dumps(out))
+PY
+)
+
 END="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 END_EPOCH="$(date -u +%s)"
 DURATION_S=$((END_EPOCH - START_EPOCH))
@@ -1955,7 +2035,7 @@ DURATION_S=$((END_EPOCH - START_EPOCH))
 # Build the final report JSON. Sort findings per FR-73: severity desc (block
 # < warn < info via 0/1/2 numeric key), then rule_id asc, file asc, line asc.
 REPORT_JSON=$(jq -n \
-  --argjson f "$findings_json" \
+  --argjson f "$findings_with_risk_json" \
   --argjson loader "$LOADER_JSON" \
   --argjson tools_skipped "$tools_skipped_json" \
   --argjson tools_errored "$TOOLS_ERRORED_JSON" \
@@ -1997,10 +2077,7 @@ REPORT_JSON=$(jq -n \
     module_metrics: $module_metrics,
     godmodule_candidates: $godmodule_candidates,
     findings: ($f
-      | map(. + { severity: ($loader.effective_severity[.rule_id] // .severity) })
-      | map(. + { disposition: ({block:"must_fix", warn:"should_fix", info:"wont_fix"}[.severity] // .severity) })
-      | map(del(.severity))
-      | sort_by({must_fix:0, should_fix:1, wont_fix:2}[.disposition] // 9, .rule_id, .file, .line))
+      | sort_by({must_fix:0, should_fix:1, wont_fix:2}[.disposition] // 9, (-.risk_score), .file, .line))
   }')
 
 # T1 — emit HTML+MD+JSON triplet to {docs_path}/architecture/.

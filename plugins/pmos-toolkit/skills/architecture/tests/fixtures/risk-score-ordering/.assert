@@ -1,23 +1,62 @@
 # T11: module_metrics + godmodule_candidates with Laplace smoothing.
+# T12: disposition + risk_score (churn + coupling + class dominance).
 set -euo pipefail
+
+# Pre-seed git history so churn computation has something to measure.
+# Snapshot src/service.py so the c2 mutation doesn't leak into the fixture tree.
+_orig_service=$(mktemp)
+cp src/service.py "$_orig_service"
+cleanup() { cp "$_orig_service" src/service.py; rm -f "$_orig_service"; rm -rf .git; }
+trap cleanup EXIT
+
+rm -rf .git 2>/dev/null || true
+git init -q .
+git config user.email "test@test"
+git config user.name "test"
+git add -A
+git -c commit.gpgsign=false commit -q -m "c1"
+echo "" >> src/service.py
+git add src/service.py
+git -c commit.gpgsign=false commit -q -m "c2 touches service"
+
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 
-# module_metrics has entries for every .py file.
+# ── T11 baseline ─────────────────────────────────────────────────────────────
 echo "$out" | jq -e '.module_metrics | length > 0 and (.[0] | has("path") and has("fanin") and has("fanout") and has("public_symbols") and has("loc"))' >/dev/null \
   || { echo "module_metrics[] shape wrong"; echo "$out" | jq '.module_metrics'; exit 1; }
 
-# service.py: fanin=7, public_symbols=5, score=47
 echo "$out" | jq -e '[.module_metrics[] | select(.path == "src/service.py")] | .[0] | .fanin == 7 and .public_symbols == 5' >/dev/null \
   || { echo "service.py metrics wrong"; echo "$out" | jq '[.module_metrics[] | select(.path == "src/service.py")]'; exit 1; }
 
-# godmodule_candidates: service.py is top with score 47
 echo "$out" | jq -e '.godmodule_candidates[0] | .path == "src/service.py" and .score == 47' >/dev/null \
   || { echo "service.py not top of godmodule_candidates"; echo "$out" | jq '.godmodule_candidates'; exit 1; }
 
-# adapter.py: fanin=1, public_symbols=0, score=1 (Laplace floor)
 echo "$out" | jq -e '[.godmodule_candidates[] | select(.path == "src/adapter.py")] | .[0] | .score == 1' >/dev/null \
   || { echo "adapter.py Laplace floor wrong"; echo "$out" | jq '[.godmodule_candidates[] | select(.path == \"src/adapter.py\")]'; exit 1; }
 
-# godmodule_candidates is length <= 10 and sorted by score desc
 echo "$out" | jq -e '.godmodule_candidates | length <= 10 and ([.[].score] | . == (sort | reverse))' >/dev/null \
   || { echo "godmodule_candidates not sorted score-desc or > 10"; echo "$out" | jq '.godmodule_candidates'; exit 1; }
+
+# ── T12: risk_score shape + range ────────────────────────────────────────────
+echo "$out" | jq -e '.findings | length > 0 and (.[0] | has("risk_score") and has("disposition"))' >/dev/null \
+  || { echo "findings missing risk_score/disposition"; echo "$out" | jq '.findings[0]'; exit 1; }
+
+echo "$out" | jq -e '[.findings[] | .risk_score] | all(. >= 1 and . <= 1100)' >/dev/null \
+  || { echo "risk_score out of 1..1100 range"; echo "$out" | jq '[.findings[] | .risk_score]'; exit 1; }
+
+# ── T12: class dominance — every must_fix > every should_fix > every wont_fix ─
+echo "$out" | jq -e '[.findings[] | {d:.disposition, r:.risk_score}] | (map(select(.d=="must_fix")) | map(.r) | min // 1100) > (map(select(.d=="should_fix")) | map(.r) | max // 0)' >/dev/null \
+  || { echo "class dominance violated: must_fix not strictly > should_fix"; echo "$out" | jq '[.findings[] | {file, disposition, risk_score}]'; exit 1; }
+
+echo "$out" | jq -e '[.findings[] | {d:.disposition, r:.risk_score}] | (map(select(.d=="should_fix")) | map(.r) | min // 100) > (map(select(.d=="wont_fix")) | map(.r) | max // 0)' >/dev/null \
+  || { echo "class dominance violated: should_fix not strictly > wont_fix"; echo "$out" | jq '[.findings[] | {file, disposition, risk_score}]'; exit 1; }
+
+# ── T12: within-disposition sort is risk_score desc ──────────────────────────
+echo "$out" | jq -e '[.findings[] | select(.disposition=="should_fix")] as $s | $s | length <= 1 or ($s | [.[].risk_score] == ([.[].risk_score] | sort | reverse))' >/dev/null \
+  || { echo "should_fix not sorted by risk_score desc"; echo "$out" | jq '[.findings[] | select(.disposition=="should_fix") | {file, risk_score}]'; exit 1; }
+
+# ── T12: churn arithmetic on importer files ──────────────────────────────────
+# imp1.py..imp7.py each: fanin=0 (leaf), coupling=0; churn=1 (c1 only).
+# disposition=should_fix → risk_score = 100 + 0 + 1 = 101.
+echo "$out" | jq -e '[.findings[] | select(.file=="src/imp1.py" and .disposition=="should_fix")] | length == 0 or .[0].risk_score == 101' >/dev/null \
+  || { echo "imp1.py risk_score arithmetic wrong (expected 101)"; echo "$out" | jq '[.findings[] | select(.file=="src/imp1.py")]'; exit 1; }
