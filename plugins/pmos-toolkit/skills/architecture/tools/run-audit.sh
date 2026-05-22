@@ -1705,21 +1705,14 @@ PY
   fi
 fi
 
-# ── T17 (FR-20/21/22/23, NFR-09) — --deep runtime probe + module_metadata payload ──
-# Runs only when --deep is passed. Probe: SKILL_NO_SUBAGENT=1 short-circuits to
-# skipped_reason=no_subagent_tool_use (test stub; production wrapper in SKILL.md
-# sets the same var when the Task tool is unavailable). On probe failure we DO
-# NOT exit — mechanical findings must still flow through; deep_pass block carries
-# the reason. Probe success → denylist + size-cap; over-cap → exit 64.
-deep_pass_skipped_reason=""
+# --deep runtime probe + module_metadata payload. Probe failure must not exit
+# — mechanical findings keep flowing; the deep_pass block carries the reason.
+# T17 transitional: until T18 wires Task dispatch, probe-success also defaults
+# to no_subagent_tool_use (no subagent is actually used yet).
 if [ "$DEEP" = "1" ]; then
-  if [ "${SKILL_NO_SUBAGENT:-0}" = "1" ]; then
-    deep_pass_skipped_reason="no_subagent_tool_use"
-  fi
+  deep_pass_skipped_reason="no_subagent_tool_use"
 
-  if [ -z "$deep_pass_skipped_reason" ]; then
-    # NFR-09 layer 1 — drop secret-bearing paths from module_metadata before
-    # size-cap counting and before serialising to --deep-prep tmpfile.
+  if [ "${SKILL_NO_SUBAGENT:-0}" != "1" ]; then
     module_metadata_json=$(echo "$module_metrics_json" | jq '[.[]
       | select((.path | test("(^|/)\\.env(\\.|$)")) | not)
       | select((.path | test("\\.pem$")) | not)
@@ -1740,9 +1733,6 @@ if [ "$DEEP" = "1" ]; then
       fi
     fi
 
-    # --deep-prep tmpfile mode (PD6): write {module_metadata, seed_hint, vocab_path}
-    # and exit 0; SKILL.md orchestrator handles the Task dispatch, T18 wires
-    # --deep-finalize for the response side.
     if [ -n "$DEEP_PREP" ]; then
       seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
       vocab_path="$SKILL_DIR/reference/deepening-vocabulary.md"
@@ -1756,14 +1746,7 @@ if [ "$DEEP" = "1" ]; then
     fi
   fi
 
-  # Build the deep_pass JSON block for REPORT_JSON. T17 is the transitional
-  # state — until T18 wires real Task dispatch, probe-success still emits
-  # skipped_reason=no_subagent_tool_use (safe default). seed_hint always
-  # echoes the top-10 godmodule paths so consumers can see the would-be seeds.
   seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
-  if [ -z "$deep_pass_skipped_reason" ]; then
-    deep_pass_skipped_reason="no_subagent_tool_use"
-  fi
   deep_pass_json=$(jq -n \
     --argjson seed_hint "$seed_hint_json" \
     --arg reason "$deep_pass_skipped_reason" \
