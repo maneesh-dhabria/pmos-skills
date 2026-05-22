@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verify Report — multi-plugin-marketplace — 2026-05-23</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.51.0">
+</head>
+<body>
+<main>
+<h1>Verify Report — multi-plugin-marketplace</h1>
+
+<p><strong>Date:</strong> 2026-05-23 &middot; <strong>Feature:</strong> multi-plugin-marketplace &middot; <strong>Tier:</strong> 3 &middot; <strong>Mode:</strong> interactive &middot; <strong>Plugin version:</strong> 2.51.0 &middot; <strong>Tag:</strong> pmos-toolkit/v2.51.0 &middot; <strong>Outcome:</strong> PASS (with documented residuals)</p>
+
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Static verification:</strong> 32/36 assert scripts PASS; 4 pre-existing failures unrelated to this feature.</li>
+<li><strong>4-manifest version invariant:</strong> all 4 files at 2.51.0 (pre-commit drift hook clean).</li>
+<li><strong>Plan compliance:</strong> T1–T11 all <code>status: done</code>; release commit 998e8af present on main.</li>
+<li><strong>Remote topology:</strong> origin (github maneesh-dhabria/pmos-skills) + gitlab-mirror (gitlab pmos1/pmos-skills) configured; tag <code>pmos-toolkit/v2.51.0</code> pushed to both.</li>
+<li><strong>Phase 4 UX/3f:</strong> N/A &mdash; zero UI surface (infra + release tooling).</li>
+</ul>
+
+<h2 id="phase-2-static">Phase 2 — Static Verification</h2>
+<p>Lint/type/unit tests for this repo are the bash assertion harness under <code>tests/scripts/</code>. Results:</p>
+<table>
+<thead><tr><th>Test family</th><th>Count</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Pre-commit drift hook (FR-30..34)</td><td>2</td><td>PASS</td></tr>
+<tr><td>Pre-push 4-manifest match (FR-41/42)</td><td>1</td><td>PASS</td></tr>
+<tr><td>Pre-push tag format/version-match (FR-41/43)</td><td>2</td><td>PASS</td></tr>
+<tr><td>Pre-push empty-remote, legacy tags, preserve-existing (FR-43)</td><td>3</td><td>PASS</td></tr>
+<tr><td>Marketplace JSON schema (FR-20..25)</td><td>1</td><td>PASS</td></tr>
+<tr><td>Release policy section in CLAUDE.md (FR-50..56)</td><td>1</td><td>PASS</td></tr>
+<tr><td>sync-shared.sh (FR-10..15)</td><td>4</td><td>PASS</td></tr>
+<tr><td>CLAUDE.md generalized (FR-50..56)</td><td>1</td><td>PASS</td></tr>
+<tr><td>No hardcoded pmos-toolkit path in /complete-dev</td><td>1</td><td>PASS</td></tr>
+<tr><td>/complete-dev auto-detect / refuse-ambiguous / substrate-smart-detect (FR-40..46a)</td><td>3</td><td>PASS</td></tr>
+<tr><td><strong>Marketplace-migration suite total</strong></td><td><strong>19</strong></td><td><strong>19 PASS / 0 FAIL</strong></td></tr>
+<tr><td>Pre-existing unrelated failures</td><td>4</td><td>see Known residuals</td></tr>
+</tbody>
+</table>
+
+<h2 id="phase-3-quality">Phase 3 — Code Quality Review</h2>
+<p>Folded into <code>/execute</code> Phase 4 spec/quality review pass (per T7/T8 logs; commits cc43ad1, 4594bc6). The independent multi-agent review was run inline at the per-task level rather than as a final Phase-3 sweep here, since 998e8af (release) is already on main and external blocking review at this stage is out of scope.</p>
+
+<h2 id="phase-4-deploy">Phase 4 — Deploy &amp; Integration</h2>
+
+<h3 id="phase-4-entry-gate">Entry gate</h3>
+<p>Runtime surfaces enumerated from spec FR sections:</p>
+<ul>
+<li><strong>UI surface:</strong> none (infra/release feature) &rarr; sub-step 3d/3e/3f all NA.</li>
+<li><strong>API surface:</strong> none (no HTTP endpoints) &rarr; 3c NA.</li>
+<li><strong>Data surface:</strong> none (no DB / migrations) &rarr; 3a NA.</li>
+<li><strong>Hook + script surfaces:</strong> <code>.githooks/pre-commit</code>, <code>.githooks/pre-push</code>, <code>scripts/sync-shared.sh</code>, <code>/complete-dev</code> SKILL.md changes &rarr; verified via assertion suite (Phase 2).</li>
+<li><strong>Release surfaces:</strong> tag <code>pmos-toolkit/v2.51.0</code>, manifest version sync, remote topology, GH repo cutover.</li>
+</ul>
+
+<h3 id="manifest-invariant">4-manifest version invariant (FR-20..25, FR-40)</h3>
+<pre><code>plugins/pmos-toolkit/.claude-plugin/plugin.json   "version": "2.51.0"
+plugins/pmos-toolkit/.codex-plugin/plugin.json    "version": "2.51.0"
+.claude-plugin/marketplace.json                   "version": "2.51.0"
+.codex-plugin/marketplace.json                    "version": "2.51.0"</code></pre>
+<p>Drift hook (<code>.githooks/pre-commit</code>) ran clean on the current tree.</p>
+
+<h3 id="remote-topology">Remote topology (FR-57..60)</h3>
+<pre><code>gitlab-mirror  git@gitlab.com:pmos1/pmos-skills.git
+origin         git@github.com:maneesh-dhabria/pmos-skills.git</code></pre>
+<p>Tag <code>pmos-toolkit/v2.51.0</code> present on both remotes (SHA <code>8b9a073</code>). <code>work-mirror</code> deferred per documented post-cutover TODO (in CLAUDE.md).</p>
+
+<h2 id="phase-5-compliance">Phase 5 — Spec Compliance</h2>
+
+<h3 id="fr-compliance">FR compliance (by spec §7 section)</h3>
+<table>
+<thead><tr><th>Section</th><th>FRs</th><th>Outcome</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>§7.1 Repo Topology</td><td>FR-01..08</td><td>Verified</td><td>34 skills under <code>plugins/pmos-toolkit/skills/</code>; tag namespacing <code>pmos-toolkit/v2.51.0</code>; T1 commit + topology test.</td></tr>
+<tr><td>§7.2 Marketplace Manifests</td><td>FR-20..25</td><td>Verified</td><td>4 manifests at 2.51.0; <code>assert_marketplace_json_schema.sh</code> PASS; T1 + release commit 998e8af.</td></tr>
+<tr><td>§7.3 sync-shared.sh</td><td>FR-10..15</td><td>Verified</td><td>4 sync-shared assert tests PASS; T2 commit.</td></tr>
+<tr><td>§7.4 Pre-commit Drift Hook</td><td>FR-30..34</td><td>Verified</td><td><code>assert_pre_commit_drift_detected.sh</code>, <code>assert_pre_commit_short_circuit.sh</code> PASS; live drift-hook run clean; T3 commit.</td></tr>
+<tr><td>§7.5 Pre-push Hook Extension</td><td>FR-41..46a</td><td>Verified</td><td>6 pre-push tests PASS (3-way match, tag format, tag version match, empty-remote, preserve-existing-tags, skips-legacy-tag-refs); T4 + T10 defect-fix commits fbb7fa5, f84a24d.</td></tr>
+<tr><td>§7.6 /complete-dev Generalization</td><td>FR-40..46a</td><td>Verified</td><td>auto-detect / refuse-ambiguous / substrate-smart-detect tests PASS; no hardcoded <code>pmos-toolkit</code> path remaining in SKILL.md (grep=0); T5+T6 commits.</td></tr>
+<tr><td>§7.7 CLAUDE.md Edits</td><td>FR-50..56</td><td>Verified</td><td><code>assert_claude_md_generalized.sh</code>, <code>assert_release_policy_section.sh</code> PASS; <code>## Release policy</code> section present with plugins list, tag convention, drift hook contract, remote topology, old repo posture; T7 commit 2fca9fb.</td></tr>
+<tr><td>§7.8 Cutover Operations</td><td>FR-70..75, FR-80..82</td><td>Verified</td><td>Repo created at github maneesh-dhabria/pmos-skills; old <code>pmos-toolkit</code> repo archived+private; tag <code>pmos-toolkit/v2.51.0</code> on both remotes; FR-75 atomic release commit 998e8af (single commit bumps all 4 manifests). T10+T11 logs.</td></tr>
+<tr><td>NFR (Bash portability, observability)</td><td>NFR-01..NFR-07</td><td>Verified</td><td>Drift hook + pre-push hook both bash 3.2 compatible; chat log lines present in /complete-dev (Phase 0.5 confirm); BASH_SOURCE fallback per CLAUDE.md.</td></tr>
+</tbody>
+</table>
+
+<h3 id="plan-compliance">Plan compliance (T1–T11)</h3>
+<table>
+<thead><tr><th>Task</th><th>Status</th><th>Evidence (commit + log)</th></tr></thead>
+<tbody>
+<tr><td>T1 marketplace manifests</td><td>Verified-complete</td><td>Release commit 998e8af + <code>execute/task-01.md</code> + <code>assert_marketplace_json_schema.sh</code> PASS</td></tr>
+<tr><td>T2 sync-shared.sh</td><td>Verified-complete</td><td>4 sync-shared asserts PASS + <code>execute/task-02.md</code></td></tr>
+<tr><td>T3 pre-commit drift hook</td><td>Verified-complete</td><td>2 pre-commit asserts PASS + live hook run + <code>execute/task-03.md</code></td></tr>
+<tr><td>T4 pre-push extension</td><td>Verified-complete</td><td>6 pre-push asserts PASS + <code>execute/task-04.md</code></td></tr>
+<tr><td>T5 /complete-dev arg parsing</td><td>Verified-complete</td><td>3 complete-dev routing asserts PASS + <code>execute/task-05.md</code></td></tr>
+<tr><td>T6 /complete-dev templating</td><td>Verified-complete</td><td>Commit 3e2ed2a + <code>assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code> PASS</td></tr>
+<tr><td>T7 CLAUDE.md + Release policy</td><td>Verified-complete</td><td>Commit 2fca9fb + 2 grep asserts PASS</td></tr>
+<tr><td>T8 CONTRIBUTING + .githooks/README</td><td>Verified-complete</td><td>Commit 0b75253 + 4594bc6 (heading rename)</td></tr>
+<tr><td>T9 pre-cutover verification</td><td>Verified-complete</td><td>Commit 2d28a33 (3-way invariant fix: marketplace.json synced 2.49→2.50; plan target revised to v2.51.0)</td></tr>
+<tr><td>T10 GH repo + remote rename + monorepo push</td><td>Verified-complete</td><td>Commits 387cf70, fbb7fa5, f84a24d (defect fixes); both remotes carry SHA <code>8b9a073</code></td></tr>
+<tr><td>T11 Release cut + archive old repo</td><td>Verified-complete</td><td>Tag <code>pmos-toolkit/v2.51.0</code> on both remotes; old <code>pmos-toolkit</code> repo archived+private (per state.yaml notes + T11 log)</td></tr>
+</tbody>
+</table>
+
+<h2 id="gaps">Phase 5e — Gap Report</h2>
+<p>No critical gaps. Two documented residuals:</p>
+<ol>
+<li><strong>4 pre-existing assert failures unrelated to this feature</strong>:
+  <ul>
+    <li><code>assert_survey_design_skill.sh</code> &mdash; hardcoded expectation of plugin version 2.36.0; stale since 2.37.0 cut. <strong>Action:</strong> update the assert OR delete it; tracked outside this feature.</li>
+    <li><code>assert_t39.sh</code> / <code>assert_t40.sh</code> / <code>assert_t41.sh</code> &mdash; pipeline-fixture tests that require running <code>/plan</code> against <code>tests/fixtures/repos/python/docs/pmos/features/2026-05-09_fixture-bugfix/</code> first to produce a <code>03_plan.md</code>. Pre-existing &mdash; not caused by marketplace migration.</li>
+  </ul>
+  Classification: <strong>Unverified — action required</strong> on the survey-design assert (stale check needs maintainer attention); <strong>NA — alt-evidence</strong> on t39/t40/t41 (fixture pre-state required; outside this feature's scope).
+</li>
+<li><strong>2 docs-only commits ahead of main on feat branch</strong> (a915853, 735eaf6) &mdash; these are post-release execute-log captures. <code>/complete-dev</code> will need to either merge or skip them at cleanup. <strong>Action:</strong> /complete-dev Phase 16.5 worktree cleanup or manual merge.</li>
+</ol>
+
+<h2 id="phase-6-hardening">Phase 6 — Test Hardening</h2>
+<p>No new failures discovered during this verify pass that warrant new regression tests &mdash; T10's two defect fixes (empty-remote handling, refs/tags/* per-ref skip) already shipped with regression tests (<code>assert_pre_push_empty_remote.sh</code>, <code>assert_pre_push_skips_legacy_tag_refs.sh</code>) as part of T10. No additional hardening needed for this verify pass.</p>
+
+<h2 id="phase-7-final">Phase 7 — Final Pass</h2>
+<ul>
+<li>TODO/FIXME/HACK in changed files: none introduced.</li>
+<li>Debug logging: none.</li>
+<li>Hardcoded values that should be config: <code>/complete-dev</code> path templating uses <code>${plugin}</code> &mdash; verified by the no-hardcoded-path test.</li>
+<li>Documentation: CLAUDE.md updated (T7), CONTRIBUTING.md created (T8), .githooks/README.md extended (T8), README.md install URL updated (T11).</li>
+</ul>
+
+<h2 id="folded-phase-awareness">Phase 4.5 — Folded-phase Awareness</h2>
+<p>State.yaml records the run was retroactively adopted into /feature-sdlc on 2026-05-22; folded phases (msf-req, msf-wf, sim-spec) were not applicable to this infra feature (no UI, no end-user journeys). <code>folded_phase_failures[]</code> empty across all phases &mdash; affirmative: no silent folded crashes.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Verify PASSES. The 2.51.0 cutover is shipped, the 4-manifest invariant holds, the new hook contracts are tested and live, both remotes carry the tag. /complete-dev (Phase 8) can proceed &mdash; though note: per state.yaml, the release commit 998e8af is already on main and tags are already pushed (the "merge IS the release commit" path per FR-75 was taken at /execute time). /complete-dev should be invoked in <strong>cleanup-only mode</strong> &mdash; merge the 2 docs-only follow-up commits and run worktree cleanup; the version-bump / tag / push steps are already done.</p>
+
+</main>
+</body>
+</html>
