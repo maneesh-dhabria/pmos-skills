@@ -646,6 +646,167 @@ print(json.dumps(findings))
 PY
 )
 
+# ── Idiom AST walker — Typer/Click/Fire/argparse (T3, FR-30/31, D13, E9) ─────
+# For every .py file in scanned.files_for_rules, parse with ast and locate
+# functions whose decorators resolve to a CLI-framework root. Emit
+# idiomatic_exemptions_json with shape:
+#   [ { file: <rel>, framework: <typer|click|fire|argparse>,
+#       exempt_ranges: [{start, end}, ...] }, ... ]
+# Sorted by file asc, ranges sorted by start asc — idempotent across runs.
+# Range start = min(decorator_list[*].lineno, FunctionDef.lineno), end = end_lineno.
+# T3 only emits the data; U004 suppression against these ranges is T4.
+idiomatic_exemptions_json=$(
+  python3 - "$LOADER_JSON" "$SCAN_ROOT" <<'PY'
+import ast, json, os, sys
+
+loader = json.loads(sys.argv[1])
+scan_root = sys.argv[2]
+files = loader["scanned"]["files_for_rules"]
+
+CLI_FRAMEWORKS = {"typer", "click", "fire", "argparse"}
+
+def attr_root(node):
+    """Return the leftmost ast.Name id of a (possibly nested) Attribute chain,
+    or None if the chain doesn't bottom out at a Name."""
+    cur = node
+    while isinstance(cur, ast.Attribute):
+        cur = cur.value
+    if isinstance(cur, ast.Name):
+        return cur.id
+    return None
+
+def resolve_to_framework(root_name, name_map, assign_map):
+    """Walk root_name through assignment_map and name_resolution_map until a
+    CLI framework is hit or no further resolution is possible. Returns the
+    framework string or None."""
+    seen = set()
+    cur = root_name
+    while cur and cur not in seen:
+        seen.add(cur)
+        if cur in CLI_FRAMEWORKS:
+            return cur
+        # Assignment first (e.g. app = typer.Typer() → app → typer).
+        if cur in assign_map:
+            cur = assign_map[cur]
+            continue
+        # Then aliased / from-imports.
+        if cur in name_map:
+            mapped = name_map[cur]
+            # mapped may be a dotted path ("click.command") — take the head.
+            head = mapped.split(".")[0]
+            if head == cur:
+                # Self-referential (e.g. import click → click→click); check
+                # framework membership directly then stop to avoid infinite loop.
+                if head in CLI_FRAMEWORKS:
+                    return head
+                return None
+            cur = head
+            continue
+        return None
+    return None
+
+def decorator_root(dec):
+    """Unwrap @foo(...) → foo, then return the root Name id of foo or foo.bar."""
+    if isinstance(dec, ast.Call):
+        dec = dec.func
+    if isinstance(dec, ast.Name):
+        return dec.id
+    if isinstance(dec, ast.Attribute):
+        return attr_root(dec)
+    return None
+
+results = []
+
+for rel in files:
+    if not rel.endswith(".py"):
+        continue
+    abs_path = os.path.join(scan_root, rel)
+    try:
+        with open(abs_path, "r", encoding="utf-8") as fh:
+            source = fh.read()
+    except (OSError, UnicodeDecodeError):
+        continue
+    try:
+        tree = ast.parse(source, filename=abs_path)
+    except SyntaxError:
+        continue
+
+    # Build name_resolution_map from Import / ImportFrom nodes.
+    name_map = {}  # local_name → fully_qualified_module (or module.attr)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                local = alias.asname or alias.name.split(".")[0]
+                # alias.name may be dotted ("foo.bar"); local resolves to head.
+                name_map[local] = alias.name.split(".")[0]
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            if not mod:
+                continue
+            for alias in node.names:
+                local = alias.asname or alias.name
+                # e.g. from click import command → command → click.command
+                name_map[local] = mod
+
+    # Build assignment_map: target_name → root_name of RHS attribute chain.
+    # Captures `app = typer.Typer()` → app → typer; ignores complex RHS.
+    assign_map = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        # Only single-target Name assignments with a Call/Attribute/Name RHS.
+        if len(node.targets) != 1 or not isinstance(node.targets[0], ast.Name):
+            continue
+        target = node.targets[0].id
+        rhs = node.value
+        if isinstance(rhs, ast.Call):
+            rhs = rhs.func
+        root = None
+        if isinstance(rhs, ast.Attribute):
+            root = attr_root(rhs)
+        elif isinstance(rhs, ast.Name):
+            root = rhs.id
+        if root:
+            assign_map[target] = root
+
+    # Walk FunctionDef / AsyncFunctionDef collecting CLI-decorated ranges.
+    ranges = []
+    framework_hit = None
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if not node.decorator_list:
+            continue
+        for dec in node.decorator_list:
+            root_name = decorator_root(dec)
+            if not root_name:
+                continue
+            fw = resolve_to_framework(root_name, name_map, assign_map)
+            if fw:
+                # D13: function-scoped range. Start = decorator line (earliest
+                # decorator); end = FunctionDef.end_lineno (Py 3.8+).
+                dec_linenos = [d.lineno for d in node.decorator_list
+                               if hasattr(d, "lineno")]
+                start = min(dec_linenos + [node.lineno]) if dec_linenos else node.lineno
+                end = getattr(node, "end_lineno", node.lineno)
+                ranges.append({"start": start, "end": end})
+                if framework_hit is None:
+                    framework_hit = fw
+                break  # one decorator hit is enough for this function
+
+    if ranges:
+        ranges.sort(key=lambda r: r["start"])
+        results.append({
+            "file": rel,
+            "framework": framework_hit,
+            "exempt_ranges": ranges,
+        })
+
+results.sort(key=lambda e: e["file"])
+print(json.dumps(results))
+PY
+)
+
 # ── L2 delegated tool: dependency-cruiser (T9, FR-30/32/33) ──────────────────
 # Runs only when stacks_detected includes "ts". Graceful-degrade per FR-32:
 # missing npx/depcruise → tools_skipped += "dependency-cruiser", findings=[].
@@ -982,6 +1143,13 @@ PY
 # The python block emits warn lines + final JSON on stdout. The JSON is the
 # LAST line; everything before it is the warn stream (already on stderr).
 exemptions_summary_json=$(echo "$reconcile_json" | jq '.exemptions_summary')
+# T3 (FR-30/31) — merge idiomatic AST-walker exemptions into the summary.
+# Surfaces in final report as exemptions.idiomatic[]. U004 suppression
+# against these ranges lands in T4.
+exemptions_summary_json=$(jq -n \
+  --argjson s "$exemptions_summary_json" \
+  --argjson i "$idiomatic_exemptions_json" \
+  '$s + {idiomatic: $i}')
 findings_json=$(echo "$reconcile_json" | jq '.filtered_findings')
 expired_count=$(echo "$reconcile_json" | jq '.expired_count')
 

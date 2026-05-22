@@ -1,0 +1,18 @@
+# typer-mixed — idiom AST walker detects @app.command (typer alias).
+# T3 only emits exemptions.idiomatic[]; U004 suppression is T4 (TODO).
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic | length == 1' >/dev/null \
+  || { echo "expected exactly one idiomatic exemption file"; echo "$out" | jq '.exemptions.idiomatic'; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].framework == "typer"' >/dev/null \
+  || { echo "expected framework=typer"; echo "$out" | jq '.exemptions.idiomatic'; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].file | endswith("src/cli.py")' >/dev/null \
+  || { echo "expected file to end with src/cli.py"; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].exempt_ranges | length == 1' >/dev/null \
+  || { echo "expected exactly one exempt range (hello, not _internal)"; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].exempt_ranges[0].start == 5' >/dev/null \
+  || { echo "expected exempt range start=5 (decorator line)"; echo "$out" | jq '.exemptions.idiomatic[0].exempt_ranges'; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].exempt_ranges[0].end == 7' >/dev/null \
+  || { echo "expected exempt range end=7"; echo "$out" | jq '.exemptions.idiomatic[0].exempt_ranges'; exit 1; }
+# TODO(T4): assert that U004 findings inside the exempt range are suppressed
+# and that _internal's print on line 10 is still flagged.

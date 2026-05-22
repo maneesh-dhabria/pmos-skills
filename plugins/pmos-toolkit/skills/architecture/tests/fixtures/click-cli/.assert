@@ -1,0 +1,21 @@
+# click-cli — idiom AST walker detects @click.command and aliased @c.command.
+# T3 only emits exemptions.idiomatic[]; U004 suppression is T4 (TODO).
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+# Two files: src/aliased.py (sorts first) + src/cli.py.
+echo "$out" | jq -e '.exemptions.idiomatic | length == 2' >/dev/null \
+  || { echo "expected 2 idiomatic-exempt files"; echo "$out" | jq '.exemptions.idiomatic'; exit 1; }
+# All entries should be framework=click.
+echo "$out" | jq -e '[.exemptions.idiomatic[] | select(.framework == "click")] | length == 2' >/dev/null \
+  || { echo "expected both entries framework=click"; echo "$out" | jq '.exemptions.idiomatic'; exit 1; }
+# cli.py: hello decorator @ line 3, function body ends at line 5.
+cli_entry=$(echo "$out" | jq -c '.exemptions.idiomatic[] | select(.file | endswith("src/cli.py"))')
+[ -n "$cli_entry" ] || { echo "src/cli.py not in idiomatic[]"; exit 1; }
+echo "$cli_entry" | jq -e '.exempt_ranges[0].start == 3 and .exempt_ranges[0].end == 5' >/dev/null \
+  || { echo "cli.py expected range 3..5"; echo "$cli_entry"; exit 1; }
+# aliased.py: @c.command on line 3, goodbye body ends at line 5.
+ali_entry=$(echo "$out" | jq -c '.exemptions.idiomatic[] | select(.file | endswith("src/aliased.py"))')
+[ -n "$ali_entry" ] || { echo "aliased import sibling src/aliased.py not in idiomatic[]"; exit 1; }
+echo "$ali_entry" | jq -e '.exempt_ranges[0].start == 3 and .exempt_ranges[0].end == 5' >/dev/null \
+  || { echo "aliased.py expected range 3..5"; echo "$ali_entry"; exit 1; }
+# TODO(T4): assert that U004 findings inside exempt ranges are suppressed.
