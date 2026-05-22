@@ -1279,6 +1279,8 @@ TOOLS_ERRORED_JSON='[]'  # appended via jq when a delegated tool exits non-zero
 
 tools_skipped_json='[]'
 cycles_json='[]'
+module_metrics_json='[]'
+godmodule_candidates_json='[]'
 if [ "$WARN_MODE" != "1" ]; then  # skip L2 delegated tools in warn-mode
 depcruise_findings='[]'
 if echo ",$STACKS," | grep -q ',ts,'; then
@@ -1479,6 +1481,142 @@ findings_json=$(jq -n \
   --argjson a "$findings_json" \
   --argjson b "$cycle_py_findings" \
   '$a + $b')
+
+# ── Phase 5: module_metrics + godmodule_candidates (FR-43/44, D22) ───────────
+if echo ",$STACKS," | grep -q ',py,'; then
+  if command -v python3 >/dev/null 2>&1; then
+    set +e
+    module_data=$(SCAN_ROOT="$SCAN_ROOT" python3 <<'PY'
+import ast, json, os
+
+scan_root = os.environ["SCAN_ROOT"]
+
+files = []
+for dirpath, dirnames, filenames in os.walk(scan_root):
+    dirnames[:] = [d for d in dirnames if d != ".git"]
+    for n in filenames:
+        if n.endswith(".py"):
+            files.append(os.path.relpath(os.path.join(dirpath, n), scan_root).replace("\\", "/"))
+
+def rel_to_module(rel):
+    parts = rel.split("/")
+    if parts[-1] == "__init__.py":
+        parts = parts[:-1]
+    else:
+        parts[-1] = parts[-1][:-3]
+    return ".".join(parts)
+
+def rel_to_package(rel):
+    parts = rel.split("/")
+    if parts[-1] == "__init__.py":
+        parts = parts[:-1]
+    else:
+        parts = parts[:-1]
+    return ".".join(parts)
+
+mod_to_file = {}
+for rel in files:
+    mod_to_file[rel_to_module(rel)] = rel
+known_modules = set(mod_to_file.keys())
+
+public_symbols = {}
+loc = {}
+adj = {m: set() for m in known_modules}
+
+for rel in files:
+    abs_path = os.path.join(scan_root, rel)
+    try:
+        with open(abs_path, encoding="utf-8") as fh:
+            src = fh.read()
+        tree = ast.parse(src, filename=abs_path)
+    except (SyntaxError, ValueError, OSError):
+        public_symbols[rel_to_module(rel)] = 0
+        try:
+            with open(abs_path, encoding="utf-8") as fh:
+                loc[rel_to_module(rel)] = sum(1 for ln in fh if ln.strip())
+        except OSError:
+            loc[rel_to_module(rel)] = 0
+        continue
+
+    this_mod = rel_to_module(rel)
+    this_pkg = rel_to_package(rel)
+
+    pub = 0
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if not node.name.startswith("_"):
+                pub += 1
+    public_symbols[this_mod] = pub
+    loc[this_mod] = sum(1 for ln in src.splitlines() if ln.strip())
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in known_modules and alias.name != this_mod:
+                    adj[this_mod].add(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            level = node.level or 0
+            if level > 0:
+                pkg_parts = this_pkg.split(".") if this_pkg else []
+                if level - 1 > len(pkg_parts):
+                    continue
+                base = pkg_parts[: len(pkg_parts) - (level - 1)]
+                target_parts = base + ([mod] if mod else [])
+                target = ".".join(p for p in target_parts if p)
+            else:
+                target = mod
+            if not target:
+                continue
+            if target in known_modules and target != this_mod:
+                adj[this_mod].add(target)
+            for alias in node.names:
+                sub = f"{target}.{alias.name}" if target else alias.name
+                if sub in known_modules and sub != this_mod:
+                    adj[this_mod].add(sub)
+
+inbound = {m: 0 for m in known_modules}
+for src_mod, targets in adj.items():
+    for t in targets:
+        if t != src_mod:
+            inbound[t] += 1
+
+metrics = []
+for mod, rel in mod_to_file.items():
+    metrics.append({
+        "path": rel,
+        "fanin": inbound[mod],
+        "fanout": len(adj[mod]),
+        "public_symbols": public_symbols.get(mod, 0),
+        "loc": loc.get(mod, 0),
+    })
+metrics.sort(key=lambda e: e["path"])
+
+scored = []
+for e in metrics:
+    score = (e["fanin"] + 1) * (e["public_symbols"] + 1) - 1
+    scored.append({
+        "path": e["path"],
+        "fanin": e["fanin"],
+        "fanout": e["fanout"],
+        "public_symbols": e["public_symbols"],
+        "loc": e["loc"],
+        "score": score,
+    })
+scored.sort(key=lambda e: (-e["score"], e["path"]))
+candidates = scored[:10]
+
+print(json.dumps({"module_metrics": metrics, "godmodule_candidates": candidates}))
+PY
+)
+    md_rc=$?
+    set -e
+    if [ "$md_rc" -eq 0 ] && [ -n "$module_data" ]; then
+      module_metrics_json=$(echo "$module_data" | jq '.module_metrics')
+      godmodule_candidates_json=$(echo "$module_data" | jq '.godmodule_candidates')
+    fi
+  fi
+fi
 
 # Build tools_skipped JSON array (empty when no tool was skipped).
 if [ "${#TOOLS_SKIPPED[@]}" -gt 0 ]; then
@@ -1831,6 +1969,8 @@ REPORT_JSON=$(jq -n \
   --argjson adrs_truncated "$adrs_truncated_json" \
   --argjson exemptions_summary "$exemptions_summary_json" \
   --argjson cycles "$cycles_json" \
+  --argjson module_metrics "$module_metrics_json" \
+  --argjson godmodule_candidates "$godmodule_candidates_json" \
   --arg start "$START" \
   --arg end "$END" \
   --argjson duration_s "$DURATION_S" \
@@ -1859,6 +1999,8 @@ REPORT_JSON=$(jq -n \
     adrs_written: $adrs_written,
     adrs_truncated: $adrs_truncated,
     cycles: $cycles,
+    module_metrics: $module_metrics,
+    godmodule_candidates: $godmodule_candidates,
     findings: ($f
       | map(. + { severity: ($loader.effective_severity[.rule_id] // .severity) })
       | map(. + { disposition: ({block:"must_fix", warn:"should_fix", info:"wont_fix"}[.severity] // .severity) })
@@ -2000,13 +2142,35 @@ if idiomatic_list:
         f"<tbody>\n{chr(10).join(irows)}\n</tbody></table>"
     )
 
+godmodule_top5 = (report.get("godmodule_candidates") or [])[:5]
+if godmodule_top5:
+    grows = []
+    for g in godmodule_top5:
+        grows.append(
+            f"<tr><td><code>{html.escape(str(g.get('path','')))}</code></td>"
+            f"<td>{g.get('fanin',0)}</td>"
+            f"<td>{g.get('fanout',0)}</td>"
+            f"<td>{g.get('public_symbols',0)}</td>"
+            f"<td>{g.get('loc',0)}</td></tr>"
+        )
+    arch_metrics_html = (
+        '<h2 id="architecture-metrics">Architecture metrics</h2>\n'
+        '<table><thead><tr><th>Path</th><th>fanin</th><th>fanout</th>'
+        '<th>public_symbols</th><th>LOC</th></tr></thead>\n'
+        f"<tbody>\n{chr(10).join(grows)}\n</tbody></table>"
+    )
+else:
+    arch_metrics_html = (
+        '<h2 id="architecture-metrics">Architecture metrics</h2>\n'
+        '<p>No Python modules detected.</p>'
+    )
+
 content_html = "\n".join([
     render_section("Must Fix", by_disp.get("must_fix", []), "must-fix"),
     render_section("Should Fix", by_disp.get("should_fix", []), "should-fix"),
     render_section("Won't Fix", by_disp.get("wont_fix", []), "wont-fix")
         + (("\n" + idiomatic_html) if idiomatic_html else ""),
-    '<h2 id="architecture-metrics">Architecture metrics</h2>'
-    '<p><em>godmodule_candidates: 0</em> (populated by future tasks)</p>',
+    arch_metrics_html,
     '<h2 id="run-metadata">Run metadata</h2>'
     f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> · stacks: {html.escape(stacks)} · '
     f'files scanned: {total_files} · schema_version: 2</p>',

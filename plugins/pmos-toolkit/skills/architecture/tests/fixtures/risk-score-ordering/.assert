@@ -1,0 +1,23 @@
+# T11: module_metrics + godmodule_candidates with Laplace smoothing.
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+
+# module_metrics has entries for every .py file.
+echo "$out" | jq -e '.module_metrics | length > 0 and (.[0] | has("path") and has("fanin") and has("fanout") and has("public_symbols") and has("loc"))' >/dev/null \
+  || { echo "module_metrics[] shape wrong"; echo "$out" | jq '.module_metrics'; exit 1; }
+
+# service.py: fanin=7, public_symbols=5, score=47
+echo "$out" | jq -e '[.module_metrics[] | select(.path == "src/service.py")] | .[0] | .fanin == 7 and .public_symbols == 5' >/dev/null \
+  || { echo "service.py metrics wrong"; echo "$out" | jq '[.module_metrics[] | select(.path == "src/service.py")]'; exit 1; }
+
+# godmodule_candidates: service.py is top with score 47
+echo "$out" | jq -e '.godmodule_candidates[0] | .path == "src/service.py" and .score == 47' >/dev/null \
+  || { echo "service.py not top of godmodule_candidates"; echo "$out" | jq '.godmodule_candidates'; exit 1; }
+
+# adapter.py: fanin=1, public_symbols=0, score=1 (Laplace floor)
+echo "$out" | jq -e '[.godmodule_candidates[] | select(.path == "src/adapter.py")] | .[0] | .score == 1' >/dev/null \
+  || { echo "adapter.py Laplace floor wrong"; echo "$out" | jq '[.godmodule_candidates[] | select(.path == \"src/adapter.py\")]'; exit 1; }
+
+# godmodule_candidates is length <= 10 and sorted by score desc
+echo "$out" | jq -e '.godmodule_candidates | length <= 10 and ([.[].score] | . == (sort | reverse))' >/dev/null \
+  || { echo "godmodule_candidates not sorted score-desc or > 10"; echo "$out" | jq '.godmodule_candidates'; exit 1; }
