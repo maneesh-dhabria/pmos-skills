@@ -1,0 +1,1 @@
+{"candidates":[{"module":"src/big.py","classification":"deep","rationale":"large but cohesive","deletion_test":{"outcome":"reappears","estimate":"high"},"cross_module_patterns":[{"evidence":"def f0"}],"proposed_reshape":"none","affected_files":["src/big.py"]}]}

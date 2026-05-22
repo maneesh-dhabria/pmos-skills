@@ -6,3 +6,7 @@ echo "$out" | jq -e '.deep_pass.candidates | length == 1' >/dev/null \
   || { echo "expected 1 candidate preserved"; echo "$out" | jq '.deep_pass.candidates'; exit 1; }
 echo "$out" | jq -e '.deep_pass.candidates[0].classification == "leaky"' >/dev/null \
   || { echo "expected leaky classification"; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "DEEP_LEAKY")] | length >= 1' >/dev/null \
+  || { echo "expected DEEP_LEAKY finding promoted"; echo "$out" | jq '[.findings[] | select(.rule_id == "DEEP_LEAKY")]'; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "DEEP_LEAKY")] | all(.disposition == "must_fix")' >/dev/null \
+  || { echo "DEEP_LEAKY findings should all be must_fix"; exit 1; }

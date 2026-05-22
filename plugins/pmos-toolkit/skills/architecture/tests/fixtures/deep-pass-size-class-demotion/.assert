@@ -1,0 +1,16 @@
+set -euo pipefail
+out=$(FIXTURE=1 $AUDIT . --deep --deep-finalize-from mock.result) || { echo "audit exited non-zero"; exit 1; }
+
+# U001 must surface on src/big.py, demoted to wont_fix with deep_pass_cleared.
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")] | length >= 1' >/dev/null \
+  || { echo "expected U001 finding on src/big.py"; echo "$out" | jq '[.findings[] | select(.file=="src/big.py")]'; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")] | .[0].disposition == "wont_fix"' >/dev/null \
+  || { echo "expected U001 demoted to wont_fix"; echo "$out" | jq '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")]'; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")] | .[0].deep_pass_cleared == true' >/dev/null \
+  || { echo "expected deep_pass_cleared: true"; echo "$out" | jq '[.findings[] | select(.rule_id=="U001" and .file=="src/big.py")]'; exit 1; }
+
+# HTML sidecar should contain the cleared-by-deep-pass section.
+html=$(ls -t docs/pmos/architecture/*.html 2>/dev/null | head -1 || true)
+test -n "$html" && test -f "$html" || { echo "HTML sidecar not found"; ls docs/pmos/architecture/ 2>&1; exit 1; }
+grep -qF 'id="cleared-by-deep-pass"' "$html" || { echo "cleared-by-deep-pass anchor missing"; exit 1; }
+grep -qF 'big.py' "$html" || { echo "big.py not in HTML"; exit 1; }

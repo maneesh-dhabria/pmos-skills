@@ -2339,6 +2339,75 @@ print(json.dumps(out))
 PY
 )
 
+# T19 (FR-27/FR-28, D6): promote validated --deep candidates into findings and
+# demote U001/U002/PY005/PY006 mechanical findings on modules the deep pass
+# classified `deep` with `deletion_test.outcome: reappears`. Runs after
+# risk-score so the mechanical pipeline is already scored; promoted findings
+# get risk_score = disposition_weight only (no churn/coupling lookup — YAGNI).
+findings_with_risk_json=$(DEEP_PASS_JSON="$deep_pass_json" \
+  FINDINGS_JSON="$findings_with_risk_json" \
+  python3 <<'PY'
+import json, os, sys
+deep = json.loads(os.environ["DEEP_PASS_JSON"] or "null") or {}
+findings = json.loads(os.environ["FINDINGS_JSON"])
+candidates = deep.get("candidates") or []
+skipped = deep.get("skipped_reason")
+
+if skipped is not None or not candidates:
+    print(json.dumps(findings))
+    sys.exit(0)
+
+disp_weight = {"must_fix": 1000, "should_fix": 100, "wont_fix": 1}
+cls_to_rule = {"leaky": ("DEEP_LEAKY", "must_fix"),
+               "shallow": ("DEEP_SHALLOW", "should_fix")}
+DEMOTABLE = {"U001", "U002", "PY005", "PY006"}
+
+demote_files = set()
+promoted = []
+for c in candidates:
+    cls = c.get("classification")
+    mod = c.get("module") or ""
+    if cls == "deep":
+        dt = c.get("deletion_test") or {}
+        if (dt.get("outcome") if isinstance(dt, dict) else None) == "reappears":
+            demote_files.add(mod)
+        continue
+    pair = cls_to_rule.get(cls)
+    if not pair:
+        continue
+    rid, disp = pair
+    rationale = c.get("rationale") or ""
+    reshape = c.get("proposed_reshape") or ""
+    msg = rationale + "\n\nProposed reshape: " + reshape
+    promoted.append({
+        "rule_id": rid,
+        "file": mod,
+        "line": 1,
+        "message": msg,
+        "disposition": disp,
+        "risk_score": disp_weight[disp],
+    })
+
+# Demote mechanical findings on `deep+reappears` modules. D6 audit trail =
+# the `deep_pass_cleared: true` field stamped on each demoted finding.
+out = []
+for f in findings:
+    if (f.get("file") in demote_files
+            and f.get("rule_id") in DEMOTABLE
+            and f.get("disposition") != "wont_fix"):
+        g = dict(f)
+        g["disposition"] = "wont_fix"
+        g["risk_score"] = disp_weight["wont_fix"]
+        g["deep_pass_cleared"] = True
+        out.append(g)
+    else:
+        out.append(f)
+
+out.extend(promoted)
+print(json.dumps(out))
+PY
+)
+
 if [ -n "$BASELINE" ]; then
   if [ ! -f "$BASELINE" ]; then
     echo "baseline file not found: $BASELINE" >&2
@@ -2586,6 +2655,24 @@ if idiomatic_list:
         f"<tbody>\n{chr(10).join(irows)}\n</tbody></table>"
     )
 
+# T19 (FR-28, D6) — Won't Fix > Cleared by deep pass sub-section. Renders one
+# row per finding flagged with `deep_pass_cleared: true`. Suppressed when
+# empty so non-deep runs' HTML byte output stays unchanged.
+cleared_list = [f for f in findings if f.get("deep_pass_cleared")]
+cleared_by_deep_html = ""
+if cleared_list:
+    crows = []
+    for f in cleared_list:
+        crows.append(
+            f"<tr><td><code>{html.escape(str(f.get('rule_id','')))}</code></td>"
+            f"<td><code>{html.escape(str(f.get('file','')))}</code></td></tr>"
+        )
+    cleared_by_deep_html = (
+        '<h3 id="cleared-by-deep-pass">Cleared by deep pass</h3>\n'
+        '<table><thead><tr><th>Rule</th><th>File</th></tr></thead>\n'
+        f"<tbody>\n{chr(10).join(crows)}\n</tbody></table>"
+    )
+
 godmodule_top5 = (report.get("godmodule_candidates") or [])[:5]
 if godmodule_top5:
     grows = []
@@ -2613,7 +2700,8 @@ content_html = "\n".join([
     render_section("Must Fix", by_disp.get("must_fix", []), "must-fix"),
     render_section("Should Fix", by_disp.get("should_fix", []), "should-fix"),
     render_section("Won't Fix", by_disp.get("wont_fix", []), "wont-fix")
-        + (("\n" + idiomatic_html) if idiomatic_html else ""),
+        + (("\n" + idiomatic_html) if idiomatic_html else "")
+        + (("\n" + cleared_by_deep_html) if cleared_by_deep_html else ""),
     arch_metrics_html,
     '<h2 id="run-metadata">Run metadata</h2>'
     f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> · stacks: {html.escape(stacks)} · '
