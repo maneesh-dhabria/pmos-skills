@@ -2339,11 +2339,10 @@ print(json.dumps(out))
 PY
 )
 
-# T19 (FR-27/FR-28, D6): promote validated --deep candidates into findings and
-# demote U001/U002/PY005/PY006 mechanical findings on modules the deep pass
-# classified `deep` with `deletion_test.outcome: reappears`. Runs after
-# risk-score so the mechanical pipeline is already scored; promoted findings
-# get risk_score = disposition_weight only (no churn/coupling lookup — YAGNI).
+# Promote validated --deep candidates into findings and demote U001/U002/
+# PY005/PY006 mechanical findings on `deep+reappears` modules. Runs after
+# risk-score; promoted findings get risk_score = disposition_weight only
+# (class dominance preserved per D2).
 findings_with_risk_json=$(DEEP_PASS_JSON="$deep_pass_json" \
   FINDINGS_JSON="$findings_with_risk_json" \
   python3 <<'PY'
@@ -2388,8 +2387,6 @@ for c in candidates:
         "risk_score": disp_weight[disp],
     })
 
-# Demote mechanical findings on `deep+reappears` modules. D6 audit trail =
-# the `deep_pass_cleared: true` field stamped on each demoted finding.
 out = []
 for f in findings:
     if (f.get("file") in demote_files
@@ -2655,9 +2652,7 @@ if idiomatic_list:
         f"<tbody>\n{chr(10).join(irows)}\n</tbody></table>"
     )
 
-# T19 (FR-28, D6) — Won't Fix > Cleared by deep pass sub-section. Renders one
-# row per finding flagged with `deep_pass_cleared: true`. Suppressed when
-# empty so non-deep runs' HTML byte output stays unchanged.
+# Suppressed when empty so non-deep runs' HTML byte output is unchanged.
 cleared_list = [f for f in findings if f.get("deep_pass_cleared")]
 cleared_by_deep_html = ""
 if cleared_list:
