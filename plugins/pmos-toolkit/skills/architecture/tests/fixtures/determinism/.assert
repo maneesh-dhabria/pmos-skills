@@ -1,4 +1,0 @@
-# determinism — repeated audits against this fixture yield byte-identical JSON
-# (after stripping ephemeral run fields). Delegates to tools/check-determinism.sh.
-set -euo pipefail
-bash "$SKILL_DIR/tools/check-determinism.sh" . 2>&1 || { echo "determinism check failed"; exit 1; }

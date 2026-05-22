@@ -1,8 +1,7 @@
 # schema-valid — top-level JSON shape conforms to the locked spec (FR-70/71/72/73).
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-for key in schema_version run config rules_loaded scanned findings exemptions adrs_written adrs_truncated; do
+for key in schema_version run config rules_loaded scanned findings exemptions; do
   echo "$out" | jq -e "has(\"$key\")" >/dev/null || { echo "report missing top-level key: $key"; exit 1; }
 done
 echo "$out" | jq -e '.findings | type == "array"' >/dev/null || { echo ".findings must be array"; exit 1; }
-echo "$out" | jq -e '.adrs_written | type == "array"' >/dev/null || { echo ".adrs_written must be array"; exit 1; }

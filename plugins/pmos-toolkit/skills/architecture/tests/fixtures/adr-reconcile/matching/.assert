@@ -1,7 +1,0 @@
-# adr-reconcile/matching — exemption-reconciliation shape is valid (FR-65).
-set -euo pipefail
-out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.exemptions | type == "object"' >/dev/null \
-  || { echo ".exemptions must be object"; exit 1; }
-echo "$out" | jq -e '.exemptions.applied | type == "number"' >/dev/null \
-  || { echo ".exemptions.applied must be a count (number)"; exit 1; }

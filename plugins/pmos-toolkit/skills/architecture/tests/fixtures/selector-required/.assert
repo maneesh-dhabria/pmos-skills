@@ -16,14 +16,20 @@ rc=0; bash "$RUN_AUDIT" . >/dev/null 2>&1 || rc=$?
 [ "$rc" = "64" ] || { echo "FR-01: path-only exit was $rc (expected 64)"; exit 1; }
 
 # Case 3: `audit .` works → exit 0.
-bash "$RUN_AUDIT" audit . --no-adr >/dev/null 2>&1 \
+bash "$RUN_AUDIT" audit . >/dev/null 2>&1 \
   || { echo "FR-01: 'audit .' should succeed but failed"; exit 1; }
 
 # Case 4: `--non-interactive` accepted (FR-04) → exit 0 + stderr log line.
-err=$(bash "$RUN_AUDIT" audit . --no-adr --non-interactive 2>&1 >/dev/null)
+err=$(bash "$RUN_AUDIT" audit . --non-interactive 2>&1 >/dev/null)
 echo "$err" | grep -q "non-interactive" \
   || { echo "FR-04: --non-interactive did not log mode line to stderr"; exit 1; }
 
 # Case 5: too many positionals → exit 64.
 rc=0; bash "$RUN_AUDIT" audit . extra-arg >/dev/null 2>&1 || rc=$?
 [ "$rc" = "64" ] || { echo "FR-01: too-many-positionals exit was $rc (expected 64)"; exit 1; }
+
+# Case 6: --no-adr removed in schema v2 → exit 64 with documented stderr.
+rc=0; err=$(bash "$RUN_AUDIT" audit . --no-adr 2>&1 >/dev/null) || rc=$?
+[ "$rc" = "64" ] || { echo "FR-67: --no-adr exit was $rc (expected 64)"; exit 1; }
+echo "$err" | grep -q "removed in schema v2" \
+  || { echo "FR-67: --no-adr stderr missing 'removed in schema v2'"; exit 1; }

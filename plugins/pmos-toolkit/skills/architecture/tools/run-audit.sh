@@ -11,10 +11,6 @@ set -euo pipefail
 
 # Arg parsing (T14, FR-67; selector + --non-interactive added in /verify pass).
 # FR-01: first positional MUST be the `audit` selector; absence/unknown selector → exit 64.
-# --no-adr suppresses ADR writes; --non-interactive defaults the ADR-promotion prompt
-# to "promote within cap" (no-op at the shell level — run-audit.sh always emits JSON
-# without prompting; the flag is parsed for forward-compat with FR-04 + SKILL.md L48).
-NO_ADR=0
 NONINTERACTIVE=0
 INCLUDE_INFO_COMMENTS=0
 MONOREPO=0
@@ -75,7 +71,7 @@ for arg in "$@"; do
     continue
   fi
   case "$arg" in
-    --no-adr) NO_ADR=1 ;;
+    --no-adr) echo "ERROR: unknown flag --no-adr (ADR promotion removed in schema v2; see CHANGELOG)" >&2; exit 64 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     --monorepo) MONOREPO=1 ;;
@@ -96,7 +92,7 @@ for arg in "$@"; do
     --baseline) prev="--baseline" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
+      echo "usage: /architecture audit [path] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -105,7 +101,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
+  echo "usage: /architecture audit [path] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -113,7 +109,7 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
+  echo "usage: /architecture audit [path] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
   exit 64
 fi
 # T17 — --deep-prep <tmpfile> only meaningful with --deep (PD6); enforce here
@@ -140,7 +136,7 @@ export LABEL
 # NFR-06 observability: log non-interactive mode to stderr (also keeps shellcheck
 # from flagging NONINTERACTIVE as unused — it IS read here, not just written).
 if [[ "$NONINTERACTIVE" -eq 1 ]]; then
-  echo "[mode] non-interactive: ADR-promotion prompt defaulted to 'promote within cap' (FR-04)." >&2
+  echo "[mode] non-interactive (FR-04)." >&2
 fi
 
 command -v jq >/dev/null 2>&1 || {
@@ -526,7 +522,6 @@ if [ "$FANOUT_MODE" = "1" ]; then
   SKILL_DIR_ENV="$SKILL_DIR" \
   SCAN_ROOT_ENV="$SCAN_ROOT" \
   AUDIT_SH="$0" \
-  NO_ADR_ENV="${NO_ADR:-0}" \
   NONINTERACTIVE_ENV="${NONINTERACTIVE:-0}" \
   python3 <<'PY' 1>&2
 import json, os, sys, subprocess, pathlib, datetime, re, html, shutil
@@ -566,9 +561,7 @@ if plugin_json.is_file():
     except Exception:
         pass
 
-# Propagate parent flags so children inherit non-interactive / no-adr behavior
-# when the parent had them — never silently strip ADR work the user expected.
-parent_no_adr = os.environ.get("NO_ADR_ENV", "0") == "1"
+# Propagate parent non-interactive flag so children inherit it.
 parent_noninteractive = os.environ.get("NONINTERACTIVE_ENV", "0") == "1"
 
 detected = loader.get("monorepo_detected") or []
@@ -584,8 +577,6 @@ for entry in detected:
     # Child must not re-fan-out — it sees its own stack markers as single-stack.
     child_env.pop("MONOREPO", None)
     argv = ["bash", audit_sh, "audit", str(stack_dir), "--label", sanitized]
-    if parent_no_adr:
-        argv.append("--no-adr")
     if parent_noninteractive:
         argv.append("--non-interactive")
     try:
@@ -2120,140 +2111,6 @@ if [ "$expired_count" -gt 0 ]; then
   echo "note: $expired_count exemption(s) expired; suppression lifted. Re-affirm via ADR or remove the row." >&2
 fi
 
-# ── ADR write (T13, FR-60/61/62) ─────────────────────────────────────────────
-# For each block-severity finding (post-effective_severity rewrite), stamp a
-# Nygard ADR at <scan-root>/<adr_path>/ADR-NNNN-<kebab-title>.md. Numbering is
-# monotonic across runs (highest existing +1) and never recycles. Writes are
-# atomic (tmp + mv). No cap yet — T14 adds the 5/run ceiling and --no-adr.
-ADR_PATH_REL="$(echo "$LOADER_JSON" | jq -r '.config.adr_path')"
-# Strip any trailing slash so the joined path stays clean.
-ADR_PATH_REL="${ADR_PATH_REL%/}"
-ADR_DIR="$SCAN_ROOT/$ADR_PATH_REL"
-ADR_TEMPLATE="$SKILL_DIR/reference/adr-template.md"
-ADR_CAP=5
-adrs_written_json='[]'
-adrs_truncated_json='[]'
-
-# Sort block findings per FR-63: severity desc (block only here, so moot) →
-# rule_id asc → file asc → line asc. Take top ADR_CAP for ADR write; the
-# remainder lands in adrs_truncated[].
-block_findings_json=$(jq -n --argjson f "$findings_json" --argjson loader "$LOADER_JSON" '
-  $f
-  | map(. + { severity: ($loader.effective_severity[.rule_id] // .severity) })
-  | map(select(.severity == "block"))
-  | sort_by(.rule_id, .file, .line)
-')
-block_count=$(echo "$block_findings_json" | jq 'length')
-
-# Split into to-write and to-truncate slices (only when at/over cap).
-# --no-adr (FR-67) short-circuits the split before the stderr note fires:
-# no "promoted vs not promoted" distinction when nothing is promoted at all.
-# Findings still emit normally; adrs_truncated stays [].
-if [ "$NO_ADR" -eq 1 ]; then
-  to_write_json='[]'
-  adrs_truncated_json='[]'
-else
-  to_write_json=$(echo "$block_findings_json" | jq --argjson cap "$ADR_CAP" '.[:$cap]')
-  if [ "$block_count" -gt "$ADR_CAP" ]; then
-    adrs_truncated_json=$(echo "$block_findings_json" | jq --argjson cap "$ADR_CAP" '
-      .[$cap:] | map({rule_id, file, line})
-    ')
-    trunc_count=$((block_count - ADR_CAP))
-    echo "note: $trunc_count additional block findings not promoted to ADR (cap $ADR_CAP/run). See report.adrs_truncated." >&2
-  fi
-fi
-
-to_write_count=$(echo "$to_write_json" | jq 'length')
-
-if [ "$to_write_count" -gt 0 ] && [ -f "$ADR_TEMPLATE" ]; then
-  mkdir -p "$ADR_DIR"
-  highest=0
-  shopt -s nullglob
-  for f in "$ADR_DIR"/ADR-[0-9][0-9][0-9][0-9]-*.md; do
-    base=$(basename "$f")
-    num=$(echo "$base" | sed -nE 's/^ADR-([0-9]{4})-.*\.md$/\1/p')
-    if [ -n "$num" ]; then
-      n=$((10#$num))
-      [ "$n" -gt "$highest" ] && highest=$n
-    fi
-  done
-  shopt -u nullglob
-
-  TODAY="$(date -u +%Y-%m-%d)"
-  template_content=$(cat "$ADR_TEMPLATE")
-
-  i=0
-  while [ "$i" -lt "$to_write_count" ]; do
-    rule_id=$(echo "$to_write_json" | jq -r ".[$i].rule_id")
-    file_path=$(echo "$to_write_json" | jq -r ".[$i].file")
-    line_no=$(echo "$to_write_json" | jq -r ".[$i].line")
-    msg=$(echo "$to_write_json" | jq -r ".[$i].message // .[$i].rule_id")
-    severity=$(echo "$to_write_json" | jq -r ".[$i].severity")
-
-    title_slug=$(printf '%s' "$msg" | tr '[:upper:]' '[:lower:]' \
-      | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//' \
-      | cut -c1-60 | sed 's/-$//')
-    [ -z "$title_slug" ] && title_slug="$(printf '%s' "$rule_id" | tr '[:upper:]' '[:lower:]')-finding"
-
-    # Collision-safe monotonic increment (E14: scan picks +1; loop guards
-    # against a same-run duplicate when two block findings produce the same
-    # title_slug or NNNN somehow gets pre-occupied).
-    while :; do
-      highest=$((highest + 1))
-      nnnn=$(printf '%04d' "$highest")
-      target="$ADR_DIR/ADR-$nnnn-$title_slug.md"
-      [ -e "$target" ] || break
-    done
-
-    body="$template_content"
-    body="${body//\{NNNN\}/$nnnn}"
-    body="${body//\{title\}/$msg}"
-    body="${body//\{date\}/$TODAY}"
-    body="${body//\{rule_id\}/$rule_id}"
-    body="${body//\{severity\}/$severity}"
-    body="${body//\{file\}/$file_path}"
-    body="${body//\{line\}/$line_no}"
-
-    tmp="$ADR_DIR/.tmp-$$-$nnnn"
-    printf '%s\n' "$body" > "$tmp"
-    mv "$tmp" "$target"
-
-    rel="$ADR_PATH_REL/ADR-$nnnn-$title_slug.md"
-    adrs_written_json=$(echo "$adrs_written_json" | jq \
-      --arg path "$rel" --arg rid "$rule_id" --arg file "$file_path" \
-      --arg nnnn "$nnnn" --arg title "$title_slug" \
-      '. + [{nnnn: $nnnn, path: $path, rule_id: $rid, file: $file, title: $title}]')
-
-    i=$((i + 1))
-  done
-fi
-
-# ── Frontend declarative coverage (T12, FR-50/51/52) ─────────────────────────
-# Coverage = (TS/JS frontend files) / (TS/JS + Vue SFC files), 2-decimal.
-# Vue files run only L1 grep rules (declarative L2 via dep-cruiser doesn't
-# cover .vue's <script> blocks today — surfaced as the F3 gap). The field is
-# emitted only when the denominator is non-zero (i.e. a frontend tree); on
-# pure-Py or empty trees the field is omitted (null), keeping back-compat.
-# When coverage < 1.0, an F3 stderr note flags the gap to the operator.
-fde_json='null'
-fde_num=$(echo "$LOADER_JSON" | jq '.scanned.by_ext as $e
-  | (($e[".ts"]//0) + ($e[".tsx"]//0) + ($e[".js"]//0)
-     + ($e[".jsx"]//0) + ($e[".mjs"]//0) + ($e[".cjs"]//0))')
-fde_den=$(echo "$LOADER_JSON" | jq '.scanned.by_ext as $e
-  | (($e[".ts"]//0) + ($e[".tsx"]//0) + ($e[".js"]//0)
-     + ($e[".jsx"]//0) + ($e[".mjs"]//0) + ($e[".cjs"]//0)
-     + ($e[".vue"]//0))')
-if [ "$fde_den" -gt 0 ]; then
-  fde_json=$(jq -n --argjson n "$fde_num" --argjson d "$fde_den" \
-    '($n / $d * 100 | round / 100)')
-  # F3 stderr note: emit only when coverage is strictly below 1.0.
-  fde_lt_one=$(jq -n --argjson c "$fde_json" '$c < 1.0')
-  if [ "$fde_lt_one" = "true" ]; then
-    vue_count=$(echo "$LOADER_JSON" | jq '.scanned.by_ext[".vue"]//0')
-    echo "[F3] frontend_declarative_coverage=$fde_json — $vue_count .vue file(s) get L1-semantic treatment only (no L2 dep-cruiser pipeline)" 1>&2
-  fi
-fi
-
 # Filter runs BEFORE risk-score computation so we don't spawn per-file
 # git subprocesses for findings we're about to drop.
 if [ -n "$SINCE" ]; then
@@ -2473,9 +2330,6 @@ REPORT_JSON=$(jq -n \
   --argjson loader "$LOADER_JSON" \
   --argjson tools_skipped "$tools_skipped_json" \
   --argjson tools_errored "$TOOLS_ERRORED_JSON" \
-  --argjson fde "$fde_json" \
-  --argjson adrs_written "$adrs_written_json" \
-  --argjson adrs_truncated "$adrs_truncated_json" \
   --argjson exemptions_summary "$exemptions_summary_json" \
   --argjson cycles "$cycles_json" \
   --argjson module_metrics "$module_metrics_json" \
@@ -2506,9 +2360,6 @@ REPORT_JSON=$(jq -n \
     scanned: ($loader.scanned | del(.files_for_rules)),
     tools_skipped: $tools_skipped,
     tools_errored: $tools_errored,
-    frontend_declarative_coverage: $fde,
-    adrs_written: $adrs_written,
-    adrs_truncated: $adrs_truncated,
     cycles: $cycles,
     module_metrics: $module_metrics,
     godmodule_candidates: $godmodule_candidates,

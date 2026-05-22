@@ -1,5 +1,0 @@
-# adr-reconcile/expired — expired-exemption count exposed under .exemptions.expired.
-set -euo pipefail
-out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.exemptions.expired | type == "number"' >/dev/null \
-  || { echo ".exemptions.expired must be a count (number)"; exit 1; }

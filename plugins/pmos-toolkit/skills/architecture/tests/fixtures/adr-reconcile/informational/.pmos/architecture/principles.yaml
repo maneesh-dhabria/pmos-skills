@@ -1,8 +1,0 @@
-schema_version: 1
-
-adr_path: docs/adr/
-
-# No exemptions row — ADR-0001 below claims to suppress U009 but principles.yaml
-# does not authorise it. Per FR-65 the finding still surfaces and the report
-# emits an info-level note.
-exemptions: []

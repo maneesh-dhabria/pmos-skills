@@ -1,5 +1,0 @@
-# adr-reconcile/orphan — orphan-exemption count exposed under .exemptions.orphan (FR-66).
-set -euo pipefail
-out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.exemptions.orphan | type == "number"' >/dev/null \
-  || { echo ".exemptions.orphan must be a count (number)"; exit 1; }

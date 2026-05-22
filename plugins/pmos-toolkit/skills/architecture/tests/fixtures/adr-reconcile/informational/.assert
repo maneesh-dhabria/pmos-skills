@@ -1,8 +1,0 @@
-# adr-reconcile/informational — info-severity exemption row + an unrelated
-# block-severity finding both coexist; the report shape stays valid.
-set -euo pipefail
-out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
-echo "$out" | jq -e '.schema_version == 2' >/dev/null \
-  || { echo "schema_version invalid"; exit 1; }
-echo "$out" | jq -e '.findings | type == "array"' >/dev/null \
-  || { echo "findings must be array"; exit 1; }

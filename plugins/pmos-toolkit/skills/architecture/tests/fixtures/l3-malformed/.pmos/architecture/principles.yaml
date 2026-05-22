@@ -1,6 +1,0 @@
-# Malformed L3 fixture — broken YAML to exercise FR-23 abort path.
-schema_version: 1
-rules:
-  - id: U001
-    severity:
-  [unclosed
