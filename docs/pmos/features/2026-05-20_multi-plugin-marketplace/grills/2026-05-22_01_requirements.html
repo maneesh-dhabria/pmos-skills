@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill Report — 01_requirements (multi-plugin marketplace migration)</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.48.0">
+  <script defer src="../assets/viewer.js?v=2.48.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Grill Report — 01_requirements (multi-plugin marketplace migration)</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Meta</h2>
+<ul>
+<li><strong>Target artifact:</strong> <code>docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html</code></li>
+<li><strong>Date:</strong> 2026-05-22</li>
+<li><strong>Depth:</strong> deep</li>
+<li><strong>Questions asked:</strong> 13 (7 high-leverage + 6 leaves)</li>
+<li><strong>Outcome:</strong> 13 decisions recorded; 18 mechanical edits applied to <code>01_requirements.html</code> in the same pass</li>
+</ul>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved</h2>
+<table>
+<tr><th>#</th><th>Branch</th><th>Decision</th></tr>
+<tr><td>Q1</td><td>Hotfix path</td><td>Subtree-split a named hotfix branch (<code>hotfix/&lt;plugin&gt;-vX.Y.Z</code>). Release script needs <code>--from-branch &lt;ref&gt;</code> flag; standalone repo branch protection needs release-branch exemption. → req doc D10.</td></tr>
+<tr><td>Q2</td><td>Bypass guard</td><td>Pre-push hook actively BLOCKS namespaced-tag pushes without paired standalone-repo update (verifies <code>git ls-remote &lt;plugin&gt; refs/tags/v...</code> matches). → req doc D12.</td></tr>
+<tr><td>Q3</td><td><code>_shared/</code> ownership</td><td>Move to top-level <code>plugins/_shared/</code>; release script vendors into each plugin's tree pre-subtree-split. Standalone repos self-contained. → req doc D9.</td></tr>
+<tr><td>Q4</td><td>Two GitHub accounts</td><td>Personal primary, work mirror. Release script pushes to both per plugin per release. Umbrella references personal only.</td></tr>
+<tr><td>Q5</td><td>Umbrella ref strategy</td><td>PIN to latest tag (<code>"ref": "v2.50.0"</code>); umbrella commit per plugin release. Tags become load-bearing. Release script auto-bumps umbrella ref. → req doc D3 (revised).</td></tr>
+<tr><td>Q6</td><td>First subtree-split cutover</td><td>Audit (<code>gh pr list</code> + <code>gh api .../forks</code>) → force-push the subtree-split → README banner explaining rewrite. → req doc D13.</td></tr>
+<tr><td>Q7</td><td>Release script validation</td><td>Solo-pragmatism: <code>--dry-run</code> against pmos-toolkit + first-real-use-is-test. No sandbox plugin; no bats. → req doc Non-Goals.</td></tr>
+<tr><td>Q8</td><td><code>/complete-dev</code> scope</td><td><code>/complete-dev</code> stays GENERIC — honors <code>CLAUDE.md ## Release policy</code>. THIS repo's CLAUDE.md encodes multi-plugin rules. Eliminates <code>/complete-dev</code> modification from feature scope. → req doc D11 + Non-Goals.</td></tr>
+<tr><td>Q9</td><td>Umbrella name (closes OQ6)</td><td><code>pmos-skills</code>. Install: <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code>.</td></tr>
+<tr><td>Q10</td><td>Release script path (closes OQ5)</td><td><code>scripts/release-plugin.sh</code> at repo root.</td></tr>
+<tr><td>L1</td><td>Standalone-repo hooks</td><td>GitHub branch protection ONLY; no local hooks on standalone repos. → req doc Non-Goals.</td></tr>
+<tr><td>L2</td><td>Umbrella lifecycle</td><td>Rolling commits-on-main; no umbrella tags/releases. → req doc Non-Goals.</td></tr>
+<tr><td>L3</td><td>Branch-protection bypass</td><td>Admin-bypass enabled on the protection rule (Maneesh = admin). → req doc D8 (revised).</td></tr>
+<tr><td>L4</td><td>Pre-cutover tag preservation</td><td>Forward-only — drop pre-cutover tags from standalone pmos-toolkit; tag fresh from v2.50.0. Umbrella's initial ref = v2.50.0. → req doc D13 + Non-Goals.</td></tr>
+<tr><td>L5</td><td>Mid-flight failure</td><td>Idempotent retry — re-run; already-successful pushes no-op. No rollback. → req doc D14.</td></tr>
+<tr><td>L6</td><td>Substrate vintages</td><td>Per-release divergence accepted — each release pulls current <code>_shared/</code>. → req doc Structural §5.</td></tr>
+</table>
+</section>
+
+<section id="open-deferred">
+<h2 id="open-deferred">Open / Deferred</h2>
+<table>
+<tr><th>#</th><th>Item</th><th>Why deferred / What triggers revisit</th></tr>
+<tr><td>OQ2 (kept)</td><td>Pre-cutover audit of <code>maneesh-dhabria/pmos-toolkit</code> for open PRs / forks</td><td>Runbook step before first real release-script run; not a decision, an action item for /execute.</td></tr>
+<tr><td>OQ3 (kept)</td><td><code>_shared/</code> → its own plugin (<code>pmos-shared</code>)</td><td>Revisit when pmos-learnkit's substrate consumption is measurable (>30% of surface).</td></tr>
+<tr><td>OQ4 (kept)</td><td>Codex umbrella schema</td><td>Watch Codex changelog; when external-source schema is documented at parity with Claude Code, add <code>.codex-plugin/marketplace.json</code> to the umbrella.</td></tr>
+<tr><td>OQ7 (new)</td><td>Codex install path documentation in each standalone repo's README</td><td>/execute writes; exact phrasing depends on current Codex install UX.</td></tr>
+<tr><td>OQ8 (new)</td><td>Local monorepo dir rename <code>agent-skills/</code> → <code>pmos-skills/</code></td><td>Maneesh-local filesystem decision; not user-visible; no spec impact.</td></tr>
+</table>
+</section>
+
+<section id="gaps">
+<h2 id="gaps">Gaps surfaced (resolved by the above)</h2>
+<ul>
+<li><strong>Hotfix mechanism was missing entirely</strong> — Q1 added the branch-based subtree-split flow.</li>
+<li><strong>Bypass risk was unguarded</strong> — Q2 added a pre-push hook responsibility.</li>
+<li><strong><code>_shared/</code> cross-plugin import path was undefined</strong> — Q3 added vendor-at-release mechanic.</li>
+<li><strong>Work-account mirroring was unspecified</strong> — Q4 added.</li>
+<li><strong><code>/complete-dev</code> was over-scoped (specific to this repo)</strong> — Q8 reframed; eliminated from feature scope. <em>This is the most material correction — collapses what was assumed to be a multi-day skill-modification subtask into a CLAUDE.md edit.</em></li>
+<li><strong>Umbrella ref semantics conflicted with tag/rollback assumptions</strong> — Q5 made tags load-bearing.</li>
+<li><strong>First-cutover risk on pmos-toolkit was a punt</strong> — Q6/L4 pinned the plan (forward-only, fresh tags from v2.50.0).</li>
+<li><strong>Shared-only commit policy was undefined</strong> — Q8 settled it via CLAUDE.md prose (ride next plugin release; <code>--plugin</code> explicit).</li>
+</ul>
+</section>
+
+<section id="material-updates-applied">
+<h2 id="material-updates-applied">Material updates applied to <code>01_requirements.html</code></h2>
+<ol>
+<li>Frontmatter: <code>Last updated 2026-05-22 (post-/grill revision)</code>, <code>Status: Draft (grilled)</code>, grill report link added.</li>
+<li>Non-Goals: added 5 new exclusions (no <code>/complete-dev</code> modification; no umbrella tags; no standalone-repo hooks; no pre-cutover tag preservation; no sandbox plugin / bats tests).</li>
+<li>UX Friction Points: added 2 new rows (shared-only commit; bypass-attempt).</li>
+<li>Solution Direction §Structural: added work-mirror, shared-substrate move, branch protection w/ admin-bypass. Umbrella name corrected to <code>pmos-skills</code>.</li>
+<li>Solution Direction §Tooling: rewrote release script responsibilities (vendor _shared/, --from-branch, work-mirror push, umbrella ref auto-bump, idempotent retry); added pre-push hook bypass-guard; replaced "<code>/complete-dev</code> extension" with "<code>CLAUDE.md ## Release policy</code> section".</li>
+<li>J1: updated mechanics (vendoring, dual push, umbrella ref bump).</li>
+<li>J2: updated mechanics (two-repo setup, work mirror, umbrella entry pre-pinned to v0.1.0).</li>
+<li>J2.5 (new): hotfix journey end-to-end.</li>
+<li>D3: revised — pin to latest tag (was: track main).</li>
+<li>D8: revised — admin-bypass enabled.</li>
+<li>D9–D14: added (substrate vendor; hotfix branch; CLAUDE.md policy; bypass guard; cutover plan; idempotent retry).</li>
+<li>Success Metric: release script LOC target raised 200→300 (scope grew with vendoring + work-mirror + umbrella update + hotfix path).</li>
+<li>Open Questions: OQ1/OQ5/OQ6 closed (struck-through with redirects); OQ7 + OQ8 added.</li>
+</ol>
+</section>
+
+<section id="next-step">
+<h2 id="next-step">Recommended next step</h2>
+<p>Proceed to <code>/spec</code>. The updated requirements doc is internally consistent post-edits; the decisions are pinned; the open questions are either runbook-action items (OQ2, OQ7) or genuinely deferrable (OQ3, OQ4, OQ8). /spec can design the release script, the pre-push hook bypass guard, the CLAUDE.md Release policy content, and the umbrella manifest schema without further requirements work.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-20_multi-plugin-marketplace/grills/2026-05-22_01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
