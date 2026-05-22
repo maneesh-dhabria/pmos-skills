@@ -175,7 +175,7 @@ Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted
 
    - **Exit 0, stdout contains `Substrate-only change detected`** → only `plugins/<name>/skills/_shared/` files touched across multiple plugins (FR-53). Surface an `AskUserQuestion` listing each plugin and asking which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry will land under that plugin). Set `--plugin <chosen>` and continue.
 
-   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/pmos-toolkit/`) and continue. This preserves pre-rollout single-plugin invocations.
+   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/${plugin_name}/` where `${plugin_name}` defaults to the sole entry under `plugins/`, or `pmos-toolkit` when ambiguous) and continue. This preserves pre-rollout single-plugin invocations.
 
 3. **Cross-check `## Release policy` in top-level `CLAUDE.md` (FR-55, E15).** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case (E15): warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
 
@@ -352,7 +352,7 @@ Probe and **enumerate ALL detected signals** (do not pick silently):
 2. `package.json` `scripts.deploy` / `scripts.release` / `scripts.publish`
 3. `Makefile` targets named `deploy`, `release`, `publish`
 4. `.github/workflows/` files that trigger on `push` to `main` (CI auto-deploy)
-5. Plugin manifest at `plugins/pmos-toolkit/.claude-plugin/plugin.json` (this repo: deploy = push to remotes)
+5. Plugin manifest at `plugins/${plugin_name}/.claude-plugin/plugin.json` (this repo: deploy = push to remotes)
 6. `pyproject.toml` with `[project]` metadata at `./pyproject.toml` or `./backend/pyproject.toml` (PyPI publish via `uv publish`)
 
 See `reference/deploy-norms.md` for the full detection rubric.
@@ -418,8 +418,8 @@ Apply approved entries inline. Stage the edited files for the Phase 11 commit.
 
 Detect skill inventory drift (per /push Phase 1.5 logic):
 
-- Skill directories on disk: `/bin/ls plugins/pmos-toolkit/skills/ | grep -vE "^(_shared|\.shared|\.system)$"`
-- Skill rows in README: `/usr/bin/grep -oE '/pmos-toolkit:[a-z-]+' README.md | sort -u`
+- Skill directories on disk: `/bin/ls plugins/${plugin_name}/skills/ | grep -vE "^(_shared|\.shared|\.system)$"`
+- Skill rows in README: `/usr/bin/grep -oE "/${plugin_name}:[a-z-]+" README.md | sort -u`
 
 If diff exists, ask:
 
@@ -458,9 +458,9 @@ options:
 
 ## Phase 9 — Version bump
 
-If skill content changed (Phase 0 detected new/modified files under `plugins/pmos-toolkit/skills/` or `plugins/pmos-toolkit/agents/`), bump is **mandatory** — pre-push hook enforces.
+If skill content changed (Phase 0 detected new/modified files under `plugins/${plugin_name}/skills/` or `plugins/${plugin_name}/agents/`), bump is **mandatory** — pre-push hook enforces.
 
-**Paired-manifest special case**: if BOTH `plugins/pmos-toolkit/.claude-plugin/plugin.json` AND `plugins/pmos-toolkit/.codex-plugin/plugin.json` exist, treat as ONE logical version that bumps together.
+**Paired-manifest special case**: if BOTH `plugins/${plugin_name}/.claude-plugin/plugin.json` AND `plugins/${plugin_name}/.codex-plugin/plugin.json` exist, treat as ONE logical version that bumps together.
 
 **Step 1 — Pre-flight: sync main reference.**
 
@@ -473,7 +473,7 @@ On non-zero exit, log `pre-flight skipped: could not fetch origin/main; pre-push
 **Step 2 — Read main_v.**
 
 ```bash
-main_v=$(git show origin/main:plugins/pmos-toolkit/.claude-plugin/plugin.json | jq -r .version)
+main_v=$(git show origin/main:plugins/${plugin_name}/.claude-plugin/plugin.json | jq -r .version)
 ```
 
 On parse failure, treat as Step 1 failure (skip pre-flight, warn).
@@ -482,7 +482,7 @@ On parse failure, treat as Step 1 failure (skip pre-flight, warn).
 
 ```bash
 merge_base=$(git merge-base HEAD origin/main)
-branch_point_v=$(git show "$merge_base":plugins/pmos-toolkit/.claude-plugin/plugin.json | jq -r .version || echo "$main_v")
+branch_point_v=$(git show "$merge_base":plugins/${plugin_name}/.claude-plugin/plugin.json | jq -r .version || echo "$main_v")
 ```
 
 If lookup fails, fall back to `branch_point_v=$main_v` (degraded 2-way mode; warn).
@@ -490,7 +490,7 @@ If lookup fails, fall back to `branch_point_v=$main_v` (degraded 2-way mode; war
 **Step 4 — Read local_v + decide.**
 
 ```bash
-local_v=$(jq -r .version plugins/pmos-toolkit/.claude-plugin/plugin.json)
+local_v=$(jq -r .version plugins/${plugin_name}/.claude-plugin/plugin.json)
 ```
 
 Apply the decision table (semantic-version compare on each cell):
@@ -530,12 +530,34 @@ options:
 
 Where `<baseline_v>` is `main_v` (when pre-flight ran cleanly) or `local_v` with suffix `(pre-flight skipped — verify manually)` when `pre_flight_skipped=true`.
 
-Apply the bump to BOTH paired manifests (paired-manifest invariant). Validate JSON parses:
+Apply the bump to **all four manifest entries** (FR-57, paired-manifest + paired-marketplace invariant):
+
+1. `plugins/${plugin_name}/.claude-plugin/plugin.json` — top-level `.version`
+2. `plugins/${plugin_name}/.codex-plugin/plugin.json` — top-level `.version`
+3. `.claude-plugin/marketplace.json` — the `plugins[]` entry whose `.name == "${plugin_name}"`, field `.version`
+4. `.codex-plugin/marketplace.json` — the `plugins[]` entry whose `.name == "${plugin_name}"`, field `.version`
+
+The two marketplace.json entries are updated via jq (atomic write-and-rename):
 
 ```bash
-python3 -c "import json; json.load(open('plugins/pmos-toolkit/.claude-plugin/plugin.json'))"
-python3 -c "import json; json.load(open('plugins/pmos-toolkit/.codex-plugin/plugin.json'))"
+new_version="<bumped semver>"
+for mp in .claude-plugin/marketplace.json .codex-plugin/marketplace.json; do
+  jq --arg p "$plugin_name" --arg v "$new_version" \
+     '(.plugins[] | select(.name==$p) | .version) = $v' \
+     "$mp" > "$mp.tmp" && mv "$mp.tmp" "$mp"
+done
 ```
+
+Validate every manifest still parses:
+
+```bash
+python3 -c "import json; json.load(open('plugins/${plugin_name}/.claude-plugin/plugin.json'))"
+python3 -c "import json; json.load(open('plugins/${plugin_name}/.codex-plugin/plugin.json'))"
+python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
+python3 -c "import json; json.load(open('.codex-plugin/marketplace.json'))"
+```
+
+The pre-push 3-way-version-match hook (T4) enforces that all four entries agree before push lands.
 
 **Stale-bump recovery:** see `reference/version-bump-recovery.md`.
 
@@ -543,7 +565,7 @@ python3 -c "import json; json.load(open('plugins/pmos-toolkit/.codex-plugin/plug
 
 ## Phase 10 — JSON schema validation
 
-For any `.json` schema files in `plugins/pmos-toolkit/skills/*/schemas/` that changed:
+For any `.json` schema files in `plugins/${plugin_name}/skills/*/schemas/` that changed:
 
 ```bash
 python3 -c "import json; json.load(open('<schema-path>'))"
@@ -614,16 +636,18 @@ Delete only selected branches with `git branch -d` (NEVER `-D`).
 
 If `--no-tag`: skip.
 
-Otherwise pre-check tag existence:
+**Tag format (FR-58):** the tag MUST be `${plugin_name}/v<version>` (e.g., `pmos-toolkit/v2.42.0`, `my-other-plugin/v0.3.1`). The repo-root namespace is shared across all plugins, so the per-plugin prefix is what keeps tags unique. This also satisfies the pre-push hook (T4), which rejects unprefixed `v<version>` tags in a multi-plugin repo.
+
+Pre-check tag existence:
 
 ```bash
-git rev-parse v<version> 2>/dev/null
+git rev-parse "${plugin_name}/v<version>" 2>/dev/null
 ```
 
 If tag exists at expected version:
 
 ```
-question: "Tag v<version> already exists at <existing-sha>. What to do?"
+question: "Tag ${plugin_name}/v<version> already exists at <existing-sha>. What to do?"
 options:
   - Skip tagging (Recommended if version unchanged)
   - Force-replace tag (DESTRUCTIVE — rewrites tag pointer)
@@ -633,22 +657,27 @@ options:
 Otherwise create annotated tag:
 
 ```bash
-git tag -a v<version> -m "Release v<version>"
+git tag -a "${plugin_name}/v<version>" -m "Release ${plugin_name} v<version>"
 ```
 
 ## Phase 14 — Dry-run summary
 
-Print a one-screen summary BEFORE pushing:
+Print a one-screen summary BEFORE pushing (FR-60). The summary must surface the detected plugin name, the four bump targets, the templated tag name, and every configured remote in the push-targets line:
 
 ```
 === /complete-dev summary ===
+Plugin:           ${plugin_name}
 Branch:           main
 Local commits:    <N> ahead of origin/main
 Last commit:      <hash> <message>
-Plugin version:   <X.Y.Z> (manifests in-sync: <YES|NO>)
-Tag:              v<X.Y.Z> (new | force-replaced | skipped)
+Plugin version:   <X.Y.Z> (4 bump targets in-sync: <YES|NO>)
+  - plugins/${plugin_name}/.claude-plugin/plugin.json
+  - plugins/${plugin_name}/.codex-plugin/plugin.json
+  - .claude-plugin/marketplace.json (plugins[name=${plugin_name}].version)
+  - .codex-plugin/marketplace.json  (plugins[name=${plugin_name}].version)
+Tag:              ${plugin_name}/v<X.Y.Z> (new | force-replaced | skipped)
 Deploy method:    <chosen Phase 5 path | skipped>
-Pushing to:       <remote-list>
+Pushing to:       <remote-1>, <remote-2>, ... (every entry from `git remote`)
 =============================
 ```
 
@@ -667,7 +696,7 @@ options:
 **Step 1 — Deploy** (skipped if `--skip-deploy` or user picked skip in Phase 5):
 Run the chosen deploy command. If it fails, abort BEFORE push and surface the error. Do not retry automatically.
 
-**Step 2 — Push**, sequentially. Origin first (pre-push hook runs once):
+**Step 2 — Push**, sequentially to **every** remote enumerated by `git remote` (FR-59). Origin first (pre-push hook runs once):
 
 ```bash
 git push origin main 2>&1
@@ -688,13 +717,15 @@ options:
 
 If "Fix and retry" → proceed to Phase 15.5.
 
-If origin succeeds, continue with other configured remotes:
+If origin succeeds, continue with **every** other remote returned by `git remote` (FR-59):
 
 ```bash
-git push <other-remote> main 2>&1
+for remote in $(git remote | grep -v '^origin$'); do
+  git push "$remote" main 2>&1 || echo "WARNING: push to $remote failed; continuing"
+done
 ```
 
-Each runs sequentially; report each result. Failures on non-origin remotes don't roll back origin.
+Each runs sequentially; report each result. Failures on non-origin remotes don't roll back origin and don't abort the loop — the warning is surfaced and the next remote is attempted.
 
 See `reference/rollback-recipes.md` for the destructive rollback procedure.
 
@@ -702,16 +733,18 @@ See `reference/rollback-recipes.md` for the destructive rollback procedure.
 
 If user picked "Fix and retry" in Phase 15:
 
-1. Delete local tag (so re-tag at the new HEAD can succeed if the retry includes new commits): `git tag -d v<version>`
+1. Delete local tag (so re-tag at the new HEAD can succeed if the retry includes new commits): `git tag -d "${plugin_name}/v<version>"`
 2. Pause and tell the user: "Tag deleted. Address the push failure (auth, hook, conflict), then tell me to resume."
 3. On resume, loop back to Phase 13 (re-create tag) → Phase 14 (re-summary) → Phase 15 (re-push).
 
 ## Phase 16 — Push tag
 
-After Phase 15 push success, push the tag to remotes that accepted main:
+After Phase 15 push success, push the tag to **every** remote that accepted main (FR-59):
 
 ```bash
-git push <remote> v<version>
+for remote in $(git remote); do
+  git push "$remote" "${plugin_name}/v<version>" 2>&1 || echo "WARNING: tag push to $remote failed; continuing"
+done
 ```
 
 Skip if `--no-tag` was used.
@@ -773,16 +806,16 @@ A **failed** or **cancelled** run skips the lastrun write — we do not memorial
 Print success summary:
 
 ```
-✓ Merged <branch>, bumped to vX.Y.Z, deployed via <method | skipped>,
-  pushed to <remotes>, tagged vX.Y.Z. Worktree <removed|retained>. Now in <main-path>.
+✓ Merged <branch>, bumped ${plugin_name} to vX.Y.Z, deployed via <method | skipped>,
+  pushed to <remotes>, tagged ${plugin_name}/vX.Y.Z. Worktree <removed|retained>. Now in <main-path>.
   lastrun defaults saved to .pmos/complete-dev.lastrun.yaml.
 ```
 
-If anything failed in Phase 15-16, list the failed remote(s) + suggested manual retry: `git push <remote> main && git push <remote> v<version>`.
+If anything failed in Phase 15-16, list the failed remote(s) + suggested manual retry: `git push <remote> main && git push <remote> "${plugin_name}/v<version>"`.
 
 ## Phase 18: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory, i.e. `plugins/pmos-toolkit/skills/learnings/learnings-capture.md`) now.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory, i.e. `plugins/${plugin_name}/skills/learnings/learnings-capture.md`) now.
 
 Reflect on whether this session surfaced anything worth capturing under `## /complete-dev` — surprising behaviors, repeated corrections, deploy-norm misdetections, push failures with non-obvious causes. Proposing zero learnings is a valid outcome.
 
