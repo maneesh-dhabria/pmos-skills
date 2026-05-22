@@ -1931,8 +1931,6 @@ fi  # end WARN_MODE guard for L2 delegated tools
 # Informational ADRs (Suppresses block, no matching exemption row) emit an
 # info-level note; the finding still surfaces (ADR alone is documentation —
 # the principles.yaml row is what mutes).
-#
-# Runs BEFORE ADR write so already-exempted findings do not spawn new ADRs.
 ADR_PATH_REL_FOR_RECONCILE="$(echo "$LOADER_JSON" | jq -r '.config.adr_path')"
 ADR_PATH_REL_FOR_RECONCILE="${ADR_PATH_REL_FOR_RECONCILE%/}"
 RECONCILE_ADR_DIR="$SCAN_ROOT/$ADR_PATH_REL_FOR_RECONCILE"
@@ -2108,7 +2106,7 @@ findings_json=$(echo "$reconcile_json" | jq '.filtered_findings')
 expired_count=$(echo "$reconcile_json" | jq '.expired_count')
 
 if [ "$expired_count" -gt 0 ]; then
-  echo "note: $expired_count exemption(s) expired; suppression lifted. Re-affirm via ADR or remove the row." >&2
+  echo "note: $expired_count exemption(s) expired; suppression lifted. Re-affirm in principles.yaml or remove the row." >&2
 fi
 
 # Filter runs BEFORE risk-score computation so we don't spawn per-file
