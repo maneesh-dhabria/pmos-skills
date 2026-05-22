@@ -2,7 +2,7 @@
 
 The `delegate_to:` field on every rule names the evaluator that produces findings for that rule. v2 ships 24 rules: 11 L1 (universal, all `grep` — U001–U010 plus U011's AST-aware grep special case), 4 L2 TypeScript (all `dependency-cruiser`), 8 L2 Python (PY001–PY008, all `ruff`), and 1 L2 Python cycle rule (PY009, `cycle-py`). That yields `delegated_pct = 13/24 = 0.542` — below the 70% G2 stretch goal, which is documented as a stretch in spec §7.4 (not a release blocker).
 
-`tools/check-gap-map.sh` reports the ratio to stderr but exits 0 always — report-only, not gating (FR-24, G2 stretch framing).
+`scripts/check-gap-map.sh` reports the ratio to stderr but exits 0 always — report-only, not gating (FR-24, G2 stretch framing).
 
 This file justifies each rule's evaluator choice. The decision tree is roughly:
 
@@ -66,7 +66,7 @@ This file justifies each rule's evaluator choice. The decision tree is roughly:
 
 ## L2 Python rule PY009 — `delegate_to: cycle-py`
 
-**PY009 — no circular imports.** Why cycle-py, not regex or ruff: cycle detection requires building the full import graph and finding strongly-connected components > 1; a regex cannot see indirect cycles (A → B → C → A), and ruff has no equivalent of dependency-cruiser's graph analysis. Pylint ships `cyclic-import` but pulling pylint in would add a second Python linter prerequisite alongside ruff for one check. Instead, `tools/cycle-py.py` is a small repo-local tool (~50 LOC, a Tarjan SCC walker over `ast.parse` import edges) — same shape as the existing `dependency-cruiser` integration for TS001, but kept inside the skill so no extra prereq is imposed on Python repos. (See PD2 in the plan for the decision rationale.)
+**PY009 — no circular imports.** Why cycle-py, not regex or ruff: cycle detection requires building the full import graph and finding strongly-connected components > 1; a regex cannot see indirect cycles (A → B → C → A), and ruff has no equivalent of dependency-cruiser's graph analysis. Pylint ships `cyclic-import` but pulling pylint in would add a second Python linter prerequisite alongside ruff for one check. Instead, `scripts/cycle-py.py` is a small repo-local tool (~50 LOC, a Tarjan SCC walker over `ast.parse` import edges) — same shape as the existing `dependency-cruiser` integration for TS001, but kept inside the skill so no extra prereq is imposed on Python repos. (See PD2 in the plan for the decision rationale.)
 
 ---
 
@@ -80,4 +80,4 @@ This file justifies each rule's evaluator choice. The decision tree is roughly:
 
 L1 rules are universal; they cannot delegate to a stack-bound linter without losing the universality. The ratio is mechanically capped by the L1 set size — even with U011 added, L1 stays on grep-family evaluators by construction. As more L2 stacks land (Rust → clippy, Go → staticcheck, Ruby → rubocop, …) the ratio rises automatically. The 70% G2 goal is a long-run target measured across the full L1 + L2 set, not a v1 gate.
 
-`tools/check-gap-map.sh` reports the live ratio to stderr; CI does not enforce it.
+`scripts/check-gap-map.sh` reports the live ratio to stderr; CI does not enforce it.

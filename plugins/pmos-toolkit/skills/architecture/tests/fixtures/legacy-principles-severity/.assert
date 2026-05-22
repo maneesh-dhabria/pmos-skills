@@ -2,7 +2,7 @@
 # `severity:` key (no `disposition:`) must produce exit 64 with the documented
 # rename-hint stderr per spec §10.2 + D5 (v1→v2 breaking rename).
 set -euo pipefail
-RUN_AUDIT="$SKILL_DIR/tools/run-audit.sh"
+RUN_AUDIT="$SKILL_DIR/scripts/run-audit.sh"
 
 rc=0; err=$(bash "$RUN_AUDIT" audit . 2>&1 >/dev/null) || rc=$?
 [ "$rc" = "64" ] \

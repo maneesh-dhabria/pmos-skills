@@ -18,7 +18,7 @@ shift || true
 if [ "${1:-}" = "." ]; then shift; fi
 # Remove any prior triplet so cat picks up exactly this run's output.
 rm -rf docs/pmos/architecture/ 2>/dev/null || true
-bash "$SKILL_DIR/tools/run-audit.sh" audit "$SCAN_ROOT" "$@" 2>/dev/null
+bash "$SKILL_DIR/scripts/run-audit.sh" audit "$SCAN_ROOT" "$@" 2>/dev/null
 rc=$?
 json="$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1 || true)"
 if [ -n "$json" ] && [ -f "$json" ]; then

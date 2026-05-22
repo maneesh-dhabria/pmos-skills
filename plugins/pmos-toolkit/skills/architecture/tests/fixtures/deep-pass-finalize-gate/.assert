@@ -4,7 +4,7 @@ set -uo pipefail
 # the directory name ("deep-pass-finalize-gate"), not "1" — exactly the
 # production-style environment we want to assert against.
 set +e
-out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --deep --deep-finalize-from mock.result 2>&1)
+out=$(bash "$SKILL_DIR/scripts/run-audit.sh" audit . --deep --deep-finalize-from mock.result 2>&1)
 rc=$?
 set -e
 if [ "$rc" -eq 0 ]; then

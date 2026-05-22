@@ -5,11 +5,11 @@ mkdir -p src
 for i in $(seq 1 5001); do printf 'pass\n' > "src/m${i}.py"; done
 
 # Direct bash invocation (bypass wrapper) so we can capture stderr.
-output=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --deep 2>&1) && rc=0 || rc=$?
+output=$(bash "$SKILL_DIR/scripts/run-audit.sh" audit . --deep 2>&1) && rc=0 || rc=$?
 [ "$rc" -eq 64 ] || { echo "expected rc=64 over cap, got $rc"; echo "$output" | tail -20; exit 1; }
 echo "$output" | grep -qF -- "--deep payload exceeds 5,000-module cap; audit a sub-tree or omit --deep" \
   || { echo "expected cap stderr literal not found"; echo "$output" | tail -20; exit 1; }
 
 # Bypass with env var should succeed (rc=0).
-ARCH_DEEP_NO_CAP=1 bash "$SKILL_DIR/tools/run-audit.sh" audit . --deep >/dev/null 2>&1 \
+ARCH_DEEP_NO_CAP=1 bash "$SKILL_DIR/scripts/run-audit.sh" audit . --deep >/dev/null 2>&1 \
   || { echo "expected bypass success"; exit 1; }

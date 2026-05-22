@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tools/dispatch-deep-pass.sh — assemble the Task-subagent prompt for the
+# scripts/dispatch-deep-pass.sh — assemble the Task-subagent prompt for the
 # --deep pass (FR-24/29) and provide the NFR-09 layer-2 denylist wrapper.
 #
 # Contract: this wrapper CANNOT call the Task tool from bash — Task dispatch

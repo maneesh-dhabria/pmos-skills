@@ -5,7 +5,7 @@ if [ -d .git ]; then rm -rf .git; fi
 
 # Invoke run-audit.sh directly (bypassing audit-wrapper.sh's stderr redirect)
 # so we can assert the documented stderr line.
-out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --since HEAD~1 2>&1) && rc=0 || rc=$?
+out=$(bash "$SKILL_DIR/scripts/run-audit.sh" audit . --since HEAD~1 2>&1) && rc=0 || rc=$?
 if [ "$rc" -ne 64 ]; then
   echo "expected exit 64, got $rc"
   echo "$out"

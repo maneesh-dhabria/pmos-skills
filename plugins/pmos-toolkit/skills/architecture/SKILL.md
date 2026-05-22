@@ -59,7 +59,7 @@ Resolve `~`/symlinks once (no recursive follow). The resolved absolute path is r
 
 ## Phase 2: Load rules — 3-tier merge
 
-Rule loading is delegated to the harness (`tools/run-audit.sh`); cite this phase, do not re-implement it. The loader:
+Rule loading is delegated to the harness (`scripts/run-audit.sh`); cite this phase, do not re-implement it. The loader:
 
 1. **L1 + L2 (plugin-owned):** reads `plugins/pmos-toolkit/skills/architecture/principles.yaml` shipped with this plugin. The L1 set is capped at 15 rules.
 2. **Stack detection:** scans the resolved root for stack markers (`tsconfig.json`, `package.json`, `pyproject.toml`, `*.vue`); only matching L2 rules participate.
@@ -80,11 +80,11 @@ The scanner walks the resolved root and enumerates files for rule evaluation:
 
 Each loaded rule dispatches by `delegate_to`:
 
-- **`grep`:** the harness's built-in evaluators (hygiene, security/safety) — see `tools/run-audit.sh` for the per-rule check expressions.
+- **`grep`:** the harness's built-in evaluators (hygiene, security/safety) — see `scripts/run-audit.sh` for the per-rule check expressions.
 - **`ast-inline`:** in-harness Python AST checks for U001/U002 size limits, U004 debug-log idiom suppression (Typer/Click `@app.command()`-decorated function bodies only), and U011 cross-file duplicate-signature detection.
-- **`dependency-cruiser`:** shells out to `npx dependency-cruiser` with the plugin-owned `tools/.depcruise.cjs` config; parses JSON and surfaces findings against TS001–TS004.
+- **`dependency-cruiser`:** shells out to `npx dependency-cruiser` with the plugin-owned `scripts/.depcruise.cjs` config; parses JSON and surfaces findings against TS001–TS004.
 - **`ruff`:** shells out to `ruff check --format=json` against rules PY001–PY008 (complexity, branches, magic values, unused args, etc.).
-- **`cycle-py`:** delegates to `tools/cycle-py.py` for PY009 Python import-cycle detection (dep-cruiser covers JS/TS only).
+- **`cycle-py`:** delegates to `scripts/cycle-py.py` for PY009 Python import-cycle detection (dep-cruiser covers JS/TS only).
 
 Findings are sorted deterministically by disposition, then `rule_id`, then `file`, then `line`.
 
@@ -100,7 +100,7 @@ Vue SFC coverage gap: dependency-cruiser does not parse `<script setup>` blocks.
 
 **Payload build.** The harness assembles a module-graph payload (file paths, imports, size-class seed hints) and filters it through a secret-file denylist covering `**/.env`, `**/.env.*`, `**/*.pem`, `**/*.key`, `**/credentials.json`, `**/credentials.yaml`, `**/.ssh/**`, and `**/secrets/**`.
 
-**Subagent dispatch.** `tools/dispatch-deep-pass.sh` is the orchestrator-side wrapper that pairs the payload with the SYSTEM prompt from `reference/deepening-vocabulary.md` (with the denylist advisory section embedded) and invokes the Task-tool primitive. The orchestrator wraps the subagent's Read calls through `read_with_denylist()` so denied paths return synthetic empty content. The subagent returns a JSON candidates array matching the shape locked in the spec.
+**Subagent dispatch.** `scripts/dispatch-deep-pass.sh` is the orchestrator-side wrapper that pairs the payload with the SYSTEM prompt from `reference/deepening-vocabulary.md` (with the denylist advisory section embedded) and invokes the Task-tool primitive. The orchestrator wraps the subagent's Read calls through `read_with_denylist()` so denied paths return synthetic empty content. The subagent returns a JSON candidates array matching the shape locked in the spec.
 
 **Validation.** Each candidate's `module` is grep-checked against the subagent's actually-read file content; any evidence quote that is not verbatim-present in the named file marks the candidate `validation_failed`. A fully-failed pass records `skipped_reason: validation_failed` and promotes no candidates.
 

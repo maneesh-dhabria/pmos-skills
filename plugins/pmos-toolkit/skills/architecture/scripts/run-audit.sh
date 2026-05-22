@@ -1401,16 +1401,16 @@ depcruise_findings='[]'
 if echo ",$STACKS," | grep -q ',ts,'; then
   echo "[delegated] dependency-cruiser: check available" 1>&2
   # Run from $SCAN_ROOT first to honour project-local typescript; fall back to
-  # $SKILL_DIR (which ships dep-cruiser + typescript as devDeps) so the skill
-  # works on projects that don't install typescript themselves.
+  # $SKILL_DIR/scripts (which ships dep-cruiser + typescript as devDeps) so the
+  # skill works on projects that don't install typescript themselves.
   dc_cwd=""
   if (cd "$SCAN_ROOT" && npx --no-install depcruise --version >/dev/null 2>&1); then
     dc_cwd="$SCAN_ROOT"
-  elif (cd "$SKILL_DIR" && npx --no-install depcruise --version >/dev/null 2>&1); then
-    dc_cwd="$SKILL_DIR"
+  elif (cd "$SKILL_DIR/scripts" && npx --no-install depcruise --version >/dev/null 2>&1); then
+    dc_cwd="$SKILL_DIR/scripts"
   fi
   if [ -n "$dc_cwd" ]; then
-    dc_cfg="$SKILL_DIR/tools/.depcruise.cjs"
+    dc_cfg="$SKILL_DIR/scripts/.depcruise.cjs"
     scan_abs="$(cd "$SCAN_ROOT" && pwd)"
     # `timeout` is GNU; macOS ships `gtimeout` only when coreutils is installed.
     # Fall through to a no-timeout invocation if neither is present.
@@ -1549,9 +1549,9 @@ findings_json=$(jq -n \
 # ── L2 delegated tool: cycle-py (PY009) ──────────────────────────────────────
 cycle_py_findings='[]'
 if echo ",$STACKS," | grep -q ',py,'; then
-  if command -v python3 >/dev/null 2>&1 && [ -f "$SKILL_DIR/tools/cycle-py.py" ]; then
+  if command -v python3 >/dev/null 2>&1 && [ -f "$SKILL_DIR/scripts/cycle-py.py" ]; then
     set +e
-    cycles_json=$(python3 "$SKILL_DIR/tools/cycle-py.py" "$SCAN_ROOT" 2>/tmp/cycle-py.err)
+    cycles_json=$(python3 "$SKILL_DIR/scripts/cycle-py.py" "$SCAN_ROOT" 2>/tmp/cycle-py.err)
     cp_rc=$?
     set -e
     if [ "$cp_rc" -ne 0 ] || [ -z "$cycles_json" ]; then
@@ -1583,7 +1583,7 @@ PY
     cycle_py_findings=$(jq -n '[{
       rule_id: "PY009",
       severity: "info",
-      message: "cycle-py probe failed — Python 3 or tools/cycle-py.py unavailable",
+      message: "cycle-py probe failed — Python 3 or scripts/cycle-py.py unavailable",
       file: null,
       line: null,
       source_citation: "principles.yaml#PY009",

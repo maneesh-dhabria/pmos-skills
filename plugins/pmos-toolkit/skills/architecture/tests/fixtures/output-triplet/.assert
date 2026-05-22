@@ -10,7 +10,7 @@ set -uo pipefail
 rm -rf docs/
 
 # Production call: stdout must be empty; stderr carries the summary line.
-out="$(bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>/tmp/output-triplet-stderr)"
+out="$(bash "$SKILL_DIR/scripts/run-audit.sh" audit . 2>/tmp/output-triplet-stderr)"
 rc=$?
 [ "$rc" -eq 0 ] || { echo "audit exited rc=$rc"; cat /tmp/output-triplet-stderr; exit 1; }
 
@@ -98,7 +98,7 @@ PY
 # T2 — second run idempotence: re-invoking the audit must NOT clobber the
 # substrate (md5 of style.css unchanged) AND must write to a `-2` slug per
 # FR-60 collision-suffix rule.
-bash "$SKILL_DIR/tools/run-audit.sh" audit . >/dev/null 2>/tmp/output-triplet-stderr2
+bash "$SKILL_DIR/scripts/run-audit.sh" audit . >/dev/null 2>/tmp/output-triplet-stderr2
 rc2=$?
 [ "$rc2" -eq 0 ] || { echo "second audit exited rc=$rc2"; cat /tmp/output-triplet-stderr2; exit 1; }
 

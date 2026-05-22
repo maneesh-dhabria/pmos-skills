@@ -14,7 +14,7 @@
 - [U010 — NotImplementedError on main path (must_fix)](#u010--notimplementederror-on-main-path-must_fix)
 - [U011 — duplicate cross-file signature](#u011--duplicate-cross-file-signature)
 
-The L1 set is plugin-owned (`principles.yaml`), capped at 15 rules (FR-21), and applies to every repo regardless of stack. v1 ships 10 rules. Each section below carries the rule statement, the *why*, the source citation, and an example violation. Rules surface via the `grep`-family evaluators in `tools/run-audit.sh`.
+The L1 set is plugin-owned (`principles.yaml`), capped at 15 rules (FR-21), and applies to every repo regardless of stack. v1 ships 10 rules. Each section below carries the rule statement, the *why*, the source citation, and an example violation. Rules surface via the `grep`-family evaluators in `scripts/run-audit.sh`.
 
 L3 (project-owned, at `<repo>/.pmos/architecture/principles.yaml`) may relax disposition (to `should_fix` or `wont_fix`) or add exemption rows, but may NOT silently drop a universal rule (FR-11).
 

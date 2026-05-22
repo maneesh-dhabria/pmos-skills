@@ -13,7 +13,7 @@ echo "$out" | jq -e '.config.flags.include_info_comments == false' >/dev/null \
 
 # With --include-info-comments — invoke run-audit.sh directly (wrapper can't pass flags).
 rm -rf docs/pmos/architecture/ 2>/dev/null || true
-bash "$SKILL_DIR/tools/run-audit.sh" audit . --include-info-comments >/dev/null 2>&1 \
+bash "$SKILL_DIR/scripts/run-audit.sh" audit . --include-info-comments >/dev/null 2>&1 \
   || { echo "audit (with flag) exited non-zero"; exit 1; }
 json2=$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1)
 [ -n "$json2" ] || { echo "no JSON produced after --include-info-comments"; exit 1; }

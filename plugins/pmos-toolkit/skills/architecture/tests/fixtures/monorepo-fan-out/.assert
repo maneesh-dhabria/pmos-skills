@@ -8,7 +8,7 @@ set -euo pipefail
 rm -rf docs/pmos/architecture/ 2>/dev/null || true
 
 rc=0
-bash "$SKILL_DIR/tools/run-audit.sh" audit . --monorepo >/dev/null 2>&1 || rc=$?
+bash "$SKILL_DIR/scripts/run-audit.sh" audit . --monorepo >/dev/null 2>&1 || rc=$?
 rc=${rc:-0}
 
 if [ "$rc" -ne 0 ]; then

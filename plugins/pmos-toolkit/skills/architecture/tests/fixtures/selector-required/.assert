@@ -2,7 +2,7 @@
 # must exit 64 with a usage line on stderr. Regression test added in /verify pass
 # after the reviewer caught the missing selector enforcement.
 set -euo pipefail
-RUN_AUDIT="$SKILL_DIR/tools/run-audit.sh"
+RUN_AUDIT="$SKILL_DIR/scripts/run-audit.sh"
 
 # Case 1: no args at all → exit 64.
 if bash "$RUN_AUDIT" >/dev/null 2>&1; then

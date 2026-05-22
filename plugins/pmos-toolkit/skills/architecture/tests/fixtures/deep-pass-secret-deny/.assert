@@ -1,11 +1,11 @@
 set -euo pipefail
 
 # Unit: source the wrapper as a library and exercise read_with_denylist().
-unit_out=$(bash -c 'source "$1"; read_with_denylist .env' _ "$SKILL_DIR/tools/dispatch-deep-pass.sh")
+unit_out=$(bash -c 'source "$1"; read_with_denylist .env' _ "$SKILL_DIR/scripts/dispatch-deep-pass.sh")
 [ "$unit_out" = "path matched secret-file denylist; not read" ] \
   || { echo "denylist stub mismatch for .env: $unit_out"; exit 1; }
 
-passthrough=$(bash -c 'source "$1"; read_with_denylist src/main.py' _ "$SKILL_DIR/tools/dispatch-deep-pass.sh")
+passthrough=$(bash -c 'source "$1"; read_with_denylist src/main.py' _ "$SKILL_DIR/scripts/dispatch-deep-pass.sh")
 expected=$(cat src/main.py)
 [ "$passthrough" = "$expected" ] \
   || { echo "passthrough mismatch for src/main.py"; exit 1; }
