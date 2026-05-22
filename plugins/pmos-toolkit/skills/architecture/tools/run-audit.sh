@@ -1482,7 +1482,6 @@ findings_json=$(jq -n \
   --argjson b "$cycle_py_findings" \
   '$a + $b')
 
-# ── Phase 5: module_metrics + godmodule_candidates (FR-43/44, D22) ───────────
 if echo ",$STACKS," | grep -q ',py,'; then
   if command -v python3 >/dev/null 2>&1; then
     set +e
@@ -1531,11 +1530,7 @@ for rel in files:
         tree = ast.parse(src, filename=abs_path)
     except (SyntaxError, ValueError, OSError):
         public_symbols[rel_to_module(rel)] = 0
-        try:
-            with open(abs_path, encoding="utf-8") as fh:
-                loc[rel_to_module(rel)] = sum(1 for ln in fh if ln.strip())
-        except OSError:
-            loc[rel_to_module(rel)] = 0
+        loc[rel_to_module(rel)] = 0
         continue
 
     this_mod = rel_to_module(rel)
@@ -1611,7 +1606,7 @@ PY
 )
     md_rc=$?
     set -e
-    if [ "$md_rc" -eq 0 ] && [ -n "$module_data" ]; then
+    if [ "$md_rc" -eq 0 ]; then
       module_metrics_json=$(echo "$module_data" | jq '.module_metrics')
       godmodule_candidates_json=$(echo "$module_data" | jq '.godmodule_candidates')
     fi
