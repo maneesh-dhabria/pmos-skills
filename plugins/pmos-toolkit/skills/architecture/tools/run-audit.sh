@@ -1966,7 +1966,6 @@ fi
 
 CHURN_WINDOW_DAYS=$(echo "$LOADER_JSON" | jq -r '.config.risk_score.churn_window_days // 90')
 
-# T12 (FR-40/41/42): annotate findings with disposition + risk_score (churn + coupling).
 findings_with_risk_json=$(FINDINGS_JSON="$findings_json" \
   MODULE_METRICS_JSON="$module_metrics_json" \
   EFFECTIVE_SEVERITY_JSON="$(echo "$LOADER_JSON" | jq -c '.effective_severity')" \
