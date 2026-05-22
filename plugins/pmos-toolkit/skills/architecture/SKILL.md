@@ -20,6 +20,14 @@ At Phase 0, the skill reads `~/.pmos/learnings.md` if present; entries under `##
 
 This skill runs 7 phases sequentially against the resolved scan root (Phase 4.5 is the opt-in deepening pass). Use your agent's task-tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code) to create one task per phase, mark each in-progress when entered, and completed when its artifact lands. If no task tracker is available, the stderr summary line + the on-disk triplet are the durable progress record.
 
+## When NOT to use
+
+- **Style or formatting lint.** This skill audits *architecture* (boundaries, cycles, coupling, depth). For code-style issues, run `ruff` / `prettier` / `eslint` directly.
+- **Docs-only or non-code repos.** With no source files in the scan root, every L1/L2 rule short-circuits to zero findings; the resulting triplet is empty noise.
+- **Single-file scripts.** L1 cycle / coupling / depth rules have no signal at this scale; the time cost outweighs the value.
+- **Repos missing required tooling** (`jq`, `python3`, `node`). Phase 0 halts before emitting the triplet — install the prerequisites first.
+- **PR-scoped diff review.** Use `--since <ref>` to constrain the scan; do not run a full audit as a per-PR gate (the report is a project-level artifact, not a per-commit check).
+
 ## Platform Adaptation
 
 Reference tool names below are Claude Code. In other environments:
