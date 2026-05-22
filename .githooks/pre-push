@@ -49,6 +49,13 @@ while read -r local_ref local_oid remote_ref remote_oid; do
   # Deleting a remote branch — nothing to check.
   [ "$local_oid" = "$ZERO" ] && continue
 
+  # Tag refs: per-ref version validation does not apply. The top-of-file
+  # `git tag --points-at HEAD` loop handles version-bump tags for the
+  # current HEAD; historical tags (e.g., pushed from --tags on an initial
+  # mirror push) MUST NOT be retroactively validated against the current
+  # marketplace.json (per FR-43). Skip cleanly.
+  case "$local_ref" in refs/tags/*) continue ;; esac
+
   # New branch on remote: diff against merge-base with origin/HEAD if available,
   # else against the empty tree.
   if [ "$remote_oid" = "$ZERO" ]; then
