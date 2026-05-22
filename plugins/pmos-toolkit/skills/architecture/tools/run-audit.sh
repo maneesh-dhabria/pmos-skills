@@ -21,6 +21,7 @@ MONOREPO=0
 LABEL=""
 SORT_MODE="risk"
 SINCE=""
+BASELINE=""
 SCAN_ROOT="."
 POSITIONALS=()
 prev=""
@@ -44,6 +45,11 @@ for arg in "$@"; do
     prev=""
     continue
   fi
+  if [ "$prev" = "--baseline" ]; then
+    BASELINE="$arg"
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
@@ -52,9 +58,10 @@ for arg in "$@"; do
     --label) prev="--label" ;;
     --sort) prev="--sort" ;;
     --since) prev="--since" ;;
+    --baseline) prev="--baseline" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -63,7 +70,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -71,7 +78,7 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
   exit 64
 fi
 # T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
@@ -456,6 +463,7 @@ if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
   STACKS=""
 fi
 findings_with_risk_json='[]'
+diff_json='null'
 
 FANOUT_MODE=0
 if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 1 ]; then
@@ -2056,6 +2064,56 @@ print(json.dumps(out))
 PY
 )
 
+if [ -n "$BASELINE" ]; then
+  if [ ! -f "$BASELINE" ]; then
+    echo "baseline file not found: $BASELINE" >&2
+    exit 64
+  fi
+  set +e
+  diff_json=$(FINDINGS_JSON="$findings_with_risk_json" BASELINE_PATH="$BASELINE" python3 <<'PY'
+import json, os, sys
+try:
+    with open(os.environ["BASELINE_PATH"], encoding="utf-8") as fh:
+        baseline = json.load(fh)
+except (json.JSONDecodeError, OSError) as e:
+    print(f"baseline file unreadable or malformed: {e}", file=sys.stderr)
+    sys.exit(64)
+
+sv = baseline.get("schema_version")
+if sv != 2:
+    if sv == 1:
+        print("baseline file uses legacy schema_version 1; v1 used `severity`, not `disposition`. Regenerate.", file=sys.stderr)
+    else:
+        print(f"baseline file uses legacy schema_version {sv}; regenerate.", file=sys.stderr)
+    sys.exit(64)
+
+def tuple_set(findings):
+    return {(f.get("rule_id"), f.get("file"), f.get("line")) for f in findings}
+
+current = json.loads(os.environ["FINDINGS_JSON"])
+cur_tuples = tuple_set(current)
+base_tuples = tuple_set(baseline.get("findings", []))
+
+def to_obj(t):
+    return {"rule_id": t[0], "file": t[1], "line": t[2]}
+
+new_t = sorted(cur_tuples - base_tuples, key=lambda t: (t[0] or "", t[1] or "", t[2] or 0))
+dropped_t = sorted(base_tuples - cur_tuples, key=lambda t: (t[0] or "", t[1] or "", t[2] or 0))
+unchanged_t = sorted(cur_tuples & base_tuples, key=lambda t: (t[0] or "", t[1] or "", t[2] or 0))
+
+print(json.dumps({
+    "new": [to_obj(t) for t in new_t],
+    "dropped": [to_obj(t) for t in dropped_t],
+    "unchanged": [to_obj(t) for t in unchanged_t],
+}))
+PY
+)
+  rc=$?
+  set -e
+  # Heredoc captures stdout only; on sys.exit(64) diff_json is empty and rc=64.
+  if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+fi
+
 END="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 END_EPOCH="$(date -u +%s)"
 DURATION_S=$((END_EPOCH - START_EPOCH))
@@ -2074,6 +2132,7 @@ REPORT_JSON=$(jq -n \
   --argjson cycles "$cycles_json" \
   --argjson module_metrics "$module_metrics_json" \
   --argjson godmodule_candidates "$godmodule_candidates_json" \
+  --argjson diff "$diff_json" \
   --arg start "$START" \
   --arg end "$END" \
   --argjson duration_s "$DURATION_S" \
@@ -2104,6 +2163,7 @@ REPORT_JSON=$(jq -n \
     cycles: $cycles,
     module_metrics: $module_metrics,
     godmodule_candidates: $godmodule_candidates,
+    diff: $diff,
     findings: ($f
       | sort_by({must_fix:0, should_fix:1, wont_fix:2}[.disposition] // 9, (-.risk_score), .file, .line))
   }')

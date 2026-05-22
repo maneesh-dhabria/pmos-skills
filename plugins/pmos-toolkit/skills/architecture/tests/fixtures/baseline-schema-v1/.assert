@@ -1,0 +1,12 @@
+set -uo pipefail
+
+# Invoke run-audit.sh directly (bypassing audit-wrapper.sh's stderr redirect)
+# so we can assert the documented v1 schema_version error.
+out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --baseline baseline.json 2>&1) && rc=0 || rc=$?
+if [ "$rc" -ne 64 ]; then
+  echo "expected exit 64, got $rc"
+  echo "$out"
+  exit 1
+fi
+echo "$out" | grep -q "baseline file uses legacy schema_version 1" \
+  || { echo "stderr mismatch: missing v1 documented hint"; echo "$out"; exit 1; }

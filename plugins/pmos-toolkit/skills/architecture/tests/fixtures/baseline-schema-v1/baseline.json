@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "findings": [
+    {"severity": "warn", "rule_id": "X1", "file": "a.py", "line": 1, "message": "x"}
+  ]
+}

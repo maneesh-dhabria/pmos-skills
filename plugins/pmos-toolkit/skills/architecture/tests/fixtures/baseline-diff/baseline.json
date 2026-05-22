@@ -1,0 +1,7 @@
+{
+  "schema_version": 2,
+  "findings": [
+    {"rule_id": "U004", "file": "src/kept.py", "line": 2},
+    {"rule_id": "U004", "file": "src/dropped.py", "line": 5}
+  ]
+}
