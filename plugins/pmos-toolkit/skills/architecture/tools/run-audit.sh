@@ -21,9 +21,6 @@ MONOREPO=0
 LABEL=""
 SCAN_ROOT="."
 POSITIONALS=()
-# T8 (FR-36/37) — --label sets the triplet slug for per-stack fan-out children;
-# ARCH_DOCS_PATH (env var) overrides .pmos/settings.yaml docs_path for the
-# same fan-out children so all per-stack triplets land under the parent dir.
 prev=""
 for arg in "$@"; do
   if [ "$prev" = "--label" ]; then
@@ -63,7 +60,6 @@ fi
 export INCLUDE_INFO_COMMENTS
 # T7 (FR-34/35, D8) — exported for the monorepo detection gate in Phase 1.
 export MONOREPO
-# T8 (FR-36/37) — exported so the triplet-emit heredoc can pick it up.
 export LABEL
 # NFR-06 observability: log non-interactive mode to stderr (also keeps shellcheck
 # from flagging NONINTERACTIVE as unused — it IS read here, not just written).
@@ -438,14 +434,6 @@ if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
   STACKS=""
 fi
 
-# ── T8 (FR-36/37, E8) — --monorepo fan-out terminal branch ─────────────────
-# When monorepo stacks are detected AND --monorepo was passed, iterate each
-# detected stack: recursively invoke this script on the stack's subdir as a
-# normal single-stack audit (NO --monorepo on the child), with ARCH_DOCS_PATH
-# pointing at the parent's docs_path so per-stack triplets all land under one
-# directory. After all children finish, glob the resulting per-stack JSON
-# triplets and emit a top-level {date}_index.{html,json} summary. The fan-out
-# branch is self-terminal (exits 0) so the normal flow below stays untouched.
 FANOUT_MODE=0
 if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 1 ]; then
   FANOUT_MODE=1
@@ -455,6 +443,8 @@ if [ "$FANOUT_MODE" = "1" ]; then
   SKILL_DIR_ENV="$SKILL_DIR" \
   SCAN_ROOT_ENV="$SCAN_ROOT" \
   AUDIT_SH="$0" \
+  NO_ADR_ENV="${NO_ADR:-0}" \
+  NONINTERACTIVE_ENV="${NONINTERACTIVE:-0}" \
   python3 <<'PY' 1>&2
 import json, os, sys, subprocess, pathlib, datetime, re, html, shutil
 
@@ -493,28 +483,33 @@ if plugin_json.is_file():
     except Exception:
         pass
 
-# 2. Fan out: one child invocation per detected stack.
+# Propagate parent flags so children inherit non-interactive / no-adr behavior
+# when the parent had them — never silently strip ADR work the user expected.
+parent_no_adr = os.environ.get("NO_ADR_ENV", "0") == "1"
+parent_noninteractive = os.environ.get("NONINTERACTIVE_ENV", "0") == "1"
+
 detected = loader.get("monorepo_detected") or []
 stack_entries = []
+failed_stacks = []
 for entry in detected:
     name = entry.get("name") or "stack"
     sanitized = re.sub(r"[^A-Za-z0-9._-]", "-", name)
     manifest_path = entry.get("manifest_path") or ""
-    # manifest_path is relative (loader emits "backend/pyproject.toml"); resolve.
     stack_dir = (scan_root / pathlib.Path(manifest_path).parent).resolve()
     child_env = dict(os.environ)
     child_env["ARCH_DOCS_PATH"] = str(docs_path)
-    # Drop MONOREPO from the child env to be safe (child should not re-fan-out;
-    # it will detect its own stack markers as a normal single-stack scan).
+    # Child must not re-fan-out — it sees its own stack markers as single-stack.
     child_env.pop("MONOREPO", None)
+    argv = ["bash", audit_sh, "audit", str(stack_dir), "--label", sanitized]
+    if parent_no_adr:
+        argv.append("--no-adr")
+    if parent_noninteractive:
+        argv.append("--non-interactive")
     try:
-        subprocess.run(
-            ["bash", audit_sh, "audit", str(stack_dir),
-             "--label", sanitized, "--no-adr", "--non-interactive"],
-            env=child_env, check=True,
-        )
+        subprocess.run(argv, env=child_env, check=True)
     except subprocess.CalledProcessError as exc:
         print(f"fan-out: child audit for {name} failed rc={exc.returncode}", file=sys.stderr)
+        failed_stacks.append(name)
     stack_entries.append({
         "name": name,
         "sanitized": sanitized,
@@ -672,6 +667,9 @@ print(
     f"over {total_files} files",
     file=sys.stderr,
 )
+if failed_stacks:
+    print(f"fan-out: {len(failed_stacks)} child audit(s) failed: {failed_stacks}", file=sys.stderr)
+    sys.exit(1)
 PY
   exit 0
 fi
@@ -1778,11 +1776,12 @@ else:
         "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
     )
 
-# Resolve docs_path. T8 (FR-36/37): ARCH_DOCS_PATH env var wins over
-# .pmos/settings.yaml so fan-out children land under the parent's dir.
+# ARCH_DOCS_PATH wins over settings.yaml so fan-out children land under the
+# parent's resolved docs_path; expanduser+resolve in case a future direct
+# caller sets a relative or ~-relative path.
 _arch_docs_env = os.environ.get("ARCH_DOCS_PATH", "").strip()
 if _arch_docs_env:
-    docs_path = pathlib.Path(_arch_docs_env)
+    docs_path = pathlib.Path(_arch_docs_env).expanduser().resolve()
 else:
     docs_path = pathlib.Path("docs/pmos")
     settings_path = pathlib.Path(".pmos/settings.yaml")
@@ -1808,8 +1807,6 @@ if plugin_json.is_file():
         pass
 
 date_s = datetime.date.today().isoformat()
-# T8 (FR-36/37) — LABEL env var (set via --label) overrides cwd basename as slug
-# so fan-out children write stable per-stack stems like {date}_{stack-name}.
 _label_env = os.environ.get("LABEL", "").strip()
 slug = _label_env or (pathlib.Path(os.getcwd()).name or "audit")
 slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
