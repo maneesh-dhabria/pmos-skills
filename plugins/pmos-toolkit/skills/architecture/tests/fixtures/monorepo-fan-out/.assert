@@ -1,0 +1,46 @@
+# monorepo-fan-out — --monorepo fan-out emits per-stack triplets + index.{html,json} (T8, FR-36/37, E8).
+# Root has no stack markers; backend/ has pyproject.toml; frontend/ has package.json + tsconfig.json.
+# With --monorepo: parent invokes child audits per stack (no --monorepo on children),
+# emits {date}_{name}.{html,md,json} per stack and a top-level {date}_index.{html,json}.
+set -euo pipefail
+
+# Clean any prior output to ensure assertions reflect this run only.
+rm -rf docs/pmos/architecture/ 2>/dev/null || true
+
+rc=0
+bash "$SKILL_DIR/tools/run-audit.sh" audit . --monorepo >/dev/null 2>&1 || rc=$?
+rc=${rc:-0}
+
+if [ "$rc" -ne 0 ]; then
+  echo "FAIL: expected exit 0 in --monorepo fan-out mode, got $rc"
+  exit 1
+fi
+
+date_s="$(date -u +%F)"
+arch="docs/pmos/architecture"
+
+# Per-stack triplets exist for both stacks.
+for f in \
+  "$arch/${date_s}_backend.html" \
+  "$arch/${date_s}_backend.md" \
+  "$arch/${date_s}_backend.json" \
+  "$arch/${date_s}_frontend.html" \
+  "$arch/${date_s}_frontend.md" \
+  "$arch/${date_s}_frontend.json"; do
+  if [ ! -f "$f" ]; then
+    echo "FAIL: missing per-stack triplet file: $f"
+    exit 1
+  fi
+done
+
+# Index files exist.
+test -f "$arch/${date_s}_index.html"
+test -f "$arch/${date_s}_index.json"
+
+# Index JSON shape.
+jq -e '.stacks | length == 2' "$arch/${date_s}_index.json" >/dev/null
+jq -e '[.stacks[].name] | contains(["backend", "frontend"])' "$arch/${date_s}_index.json" >/dev/null
+jq -e '.summary.total_must_fix != null' "$arch/${date_s}_index.json" >/dev/null
+jq -e '.schema_version == 2' "$arch/${date_s}_index.json" >/dev/null
+
+echo "monorepo-fan-out: all assertions passed"

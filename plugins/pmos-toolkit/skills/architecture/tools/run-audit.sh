@@ -18,14 +18,25 @@ NO_ADR=0
 NONINTERACTIVE=0
 INCLUDE_INFO_COMMENTS=0
 MONOREPO=0
+LABEL=""
 SCAN_ROOT="."
 POSITIONALS=()
+# T8 (FR-36/37) — --label sets the triplet slug for per-stack fan-out children;
+# ARCH_DOCS_PATH (env var) overrides .pmos/settings.yaml docs_path for the
+# same fan-out children so all per-stack triplets land under the parent dir.
+prev=""
 for arg in "$@"; do
+  if [ "$prev" = "--label" ]; then
+    LABEL="$arg"
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     --monorepo) MONOREPO=1 ;;
+    --label) prev="--label" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
       echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
@@ -52,6 +63,8 @@ fi
 export INCLUDE_INFO_COMMENTS
 # T7 (FR-34/35, D8) — exported for the monorepo detection gate in Phase 1.
 export MONOREPO
+# T8 (FR-36/37) — exported so the triplet-emit heredoc can pick it up.
+export LABEL
 # NFR-06 observability: log non-interactive mode to stderr (also keeps shellcheck
 # from flagging NONINTERACTIVE as unused — it IS read here, not just written).
 if [[ "$NONINTERACTIVE" -eq 1 ]]; then
@@ -423,6 +436,244 @@ if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
   WARN_MODE=1
   findings_json='[]'
   STACKS=""
+fi
+
+# ── T8 (FR-36/37, E8) — --monorepo fan-out terminal branch ─────────────────
+# When monorepo stacks are detected AND --monorepo was passed, iterate each
+# detected stack: recursively invoke this script on the stack's subdir as a
+# normal single-stack audit (NO --monorepo on the child), with ARCH_DOCS_PATH
+# pointing at the parent's docs_path so per-stack triplets all land under one
+# directory. After all children finish, glob the resulting per-stack JSON
+# triplets and emit a top-level {date}_index.{html,json} summary. The fan-out
+# branch is self-terminal (exits 0) so the normal flow below stays untouched.
+FANOUT_MODE=0
+if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 1 ]; then
+  FANOUT_MODE=1
+fi
+if [ "$FANOUT_MODE" = "1" ]; then
+  LOADER_JSON_ENV="$LOADER_JSON" \
+  SKILL_DIR_ENV="$SKILL_DIR" \
+  SCAN_ROOT_ENV="$SCAN_ROOT" \
+  AUDIT_SH="$0" \
+  python3 <<'PY' 1>&2
+import json, os, sys, subprocess, pathlib, datetime, re, html, shutil
+
+loader = json.loads(os.environ["LOADER_JSON_ENV"])
+skill_dir = pathlib.Path(os.environ["SKILL_DIR_ENV"])
+scan_root_str = os.environ["SCAN_ROOT_ENV"]
+scan_root = pathlib.Path(scan_root_str).resolve()
+audit_sh = os.environ["AUDIT_SH"]
+substrate_dir = skill_dir.parent / "_shared" / "html-authoring"
+substrate_assets = substrate_dir / "assets"
+
+# 1. Resolve parent docs_path from .pmos/settings.yaml under scan_root.
+docs_path = pathlib.Path("docs/pmos")
+settings_path = scan_root / ".pmos" / "settings.yaml"
+if settings_path.is_file():
+    try:
+        import yaml
+        s = yaml.safe_load(settings_path.read_text()) or {}
+        if s.get("docs_path"):
+            docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
+    except Exception:
+        pass
+# Resolve relative docs_path against scan_root so the env var we pass to
+# children is absolute (children may cwd into stack subdirs).
+if not docs_path.is_absolute():
+    docs_path = (scan_root / docs_path).resolve()
+arch_dir = docs_path / "architecture"
+arch_dir.mkdir(parents=True, exist_ok=True)
+
+# Plugin version for cache-bust.
+plugin_version = "0"
+plugin_json = skill_dir.parent.parent / ".claude-plugin" / "plugin.json"
+if plugin_json.is_file():
+    try:
+        plugin_version = json.loads(plugin_json.read_text()).get("version", "0")
+    except Exception:
+        pass
+
+# 2. Fan out: one child invocation per detected stack.
+detected = loader.get("monorepo_detected") or []
+stack_entries = []
+for entry in detected:
+    name = entry.get("name") or "stack"
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "-", name)
+    manifest_path = entry.get("manifest_path") or ""
+    # manifest_path is relative (loader emits "backend/pyproject.toml"); resolve.
+    stack_dir = (scan_root / pathlib.Path(manifest_path).parent).resolve()
+    child_env = dict(os.environ)
+    child_env["ARCH_DOCS_PATH"] = str(docs_path)
+    # Drop MONOREPO from the child env to be safe (child should not re-fan-out;
+    # it will detect its own stack markers as a normal single-stack scan).
+    child_env.pop("MONOREPO", None)
+    try:
+        subprocess.run(
+            ["bash", audit_sh, "audit", str(stack_dir),
+             "--label", sanitized, "--no-adr", "--non-interactive"],
+            env=child_env, check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        print(f"fan-out: child audit for {name} failed rc={exc.returncode}", file=sys.stderr)
+    stack_entries.append({
+        "name": name,
+        "sanitized": sanitized,
+        "stack": entry.get("stack"),
+        "manifest_path": manifest_path,
+    })
+
+# 3. Same-day collision: pick index stem before reading children (the children
+# emit on their own collision logic; index just needs its own free slot).
+date_s = datetime.date.today().isoformat()
+def index_stem(idx):
+    return f"{date_s}_index" if idx == 0 else f"{date_s}_index-{idx + 1}"
+idx = 0
+while (arch_dir / f"{index_stem(idx)}.html").exists():
+    idx += 1
+stem = index_stem(idx)
+
+# 4. Collect per-stack triplet summaries by globbing the latest matching JSON
+# for each stack (children handle their own -2/-3 suffixing).
+stacks = []
+total_must = total_should = total_wont = total_files = 0
+for ent in stack_entries:
+    san = ent["sanitized"]
+    # Match exactly {date}_{san}.json or {date}_{san}-N.json (N>=2). Excludes
+    # .sections.json sidecars and unrelated stacks whose names share a prefix.
+    stem_re = re.compile(r"^" + re.escape(f"{date_s}_{san}") + r"(?:-\d+)?\.json$")
+    candidates = sorted(
+        p for p in arch_dir.iterdir()
+        if p.is_file() and stem_re.match(p.name)
+    )
+    triplet_html = None
+    triplet_json = None
+    summary = {"must_fix": 0, "should_fix": 0, "wont_fix": 0, "files": 0}
+    if candidates:
+        latest = candidates[-1]
+        triplet_json = latest.name
+        triplet_html = latest.with_suffix(".html").name
+        try:
+            r = json.loads(latest.read_text())
+            findings = r.get("findings") or []
+            for f in findings:
+                d = f.get("disposition", "wont_fix")
+                if d in summary:
+                    summary[d] += 1
+            summary["files"] = (r.get("scanned") or {}).get("total", 0) or 0
+        except Exception as exc:
+            print(f"fan-out: failed reading {latest}: {exc}", file=sys.stderr)
+    total_must += summary["must_fix"]
+    total_should += summary["should_fix"]
+    total_wont += summary["wont_fix"]
+    total_files += summary["files"]
+    stacks.append({
+        "name": ent["name"],
+        "stack": ent["stack"],
+        "manifest_path": ent["manifest_path"],
+        "triplet_html": triplet_html,
+        "triplet_json": triplet_json,
+        "summary": summary,
+    })
+
+index_obj = {
+    "schema_version": 2,
+    "date": date_s,
+    "scan_root": str(scan_root),
+    "stacks": stacks,
+    "summary": {
+        "total_must_fix": total_must,
+        "total_should_fix": total_should,
+        "total_wont_fix": total_wont,
+        "total_files": total_files,
+    },
+}
+
+# 5. Asset substrate (idempotent cp -n) — mirrors the canonical-emit logic.
+assets_dst = arch_dir / "assets"
+assets_dst.mkdir(exist_ok=True)
+if substrate_assets.is_dir():
+    for src in substrate_assets.iterdir():
+        if not src.is_file():
+            continue
+        dst = assets_dst / src.name
+        if not dst.exists():
+            shutil.copy2(src, dst)
+
+# 6. Render index HTML from substrate template (with inline fallback).
+template_html = ""
+template_path = substrate_dir / "template.html"
+if template_path.is_file():
+    template_html = template_path.read_text()
+else:
+    template_html = (
+        "<!DOCTYPE html><html><head><meta charset=\x22utf-8\x22>"
+        "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
+    )
+
+rows = []
+for s in stacks:
+    sm = s["summary"]
+    link = s.get("triplet_html") or ""
+    report_cell = (
+        f'<a href=\x22{html.escape(link)}\x22>{html.escape(link)}</a>'
+        if link else "<em>missing</em>"
+    )
+    rows.append(
+        "<tr>"
+        f"<td><code>{html.escape(str(s.get('name','')))}</code></td>"
+        f"<td>{html.escape(str(s.get('stack','')))}</td>"
+        f"<td>{sm['must_fix']}</td>"
+        f"<td>{sm['should_fix']}</td>"
+        f"<td>{sm['wont_fix']}</td>"
+        f"<td>{report_cell}</td>"
+        "</tr>"
+    )
+
+content_html = "\n".join([
+    f'<h2 id=\x22monorepo-index\x22>Monorepo audit index ({len(stacks)} stacks)</h2>',
+    '<table><thead><tr>'
+    '<th>Stack</th><th>Type</th><th>Must Fix</th><th>Should Fix</th>'
+    '<th>Won\x27t Fix</th><th>Report</th>'
+    '</tr></thead>',
+    f'<tbody>\n{chr(10).join(rows) if rows else ""}\n</tbody></table>',
+    '<h2 id=\x22index-summary\x22>Summary</h2>',
+    f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> · '
+    f'total must_fix: {total_must} · total should_fix: {total_should} · '
+    f'total won\x27t_fix: {total_wont} · total files: {total_files}</p>',
+])
+
+asset_prefix = "assets/"
+final_html = (template_html
+    .replace("{{title}}", f"/architecture audit — monorepo index")
+    .replace("{{asset_prefix}}", asset_prefix)
+    .replace("{{plugin_version}}", str(plugin_version))
+    .replace("{{content}}", content_html)
+    .replace("{{source_path}}", f"{stem}.html"))
+
+# Guard: every <h2>/<h3> we emit must carry an id= attribute.
+for m in re.finditer(r"<(h[23])\b([^>]*)>", final_html):
+    if 'id="' not in m.group(2):
+        print(f"fan-out: missing id on <{m.group(1)}>: {m.group(0)}", file=sys.stderr)
+        sys.exit(1)
+
+def atomic_write(path, content):
+    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
+    tmp.write_text(content)
+    tmp.rename(path)
+
+html_path = arch_dir / f"{stem}.html"
+json_path = arch_dir / f"{stem}.json"
+atomic_write(html_path, final_html)
+atomic_write(json_path, json.dumps(index_obj, indent=2))
+
+print(
+    f"Wrote {html_path}: {len(stacks)} stacks "
+    f"({total_must} must, {total_should} should, {total_wont} won\x27t) "
+    f"over {total_files} files",
+    file=sys.stderr,
+)
+PY
+  exit 0
 fi
 
 # Skipped entirely in warn-mode (monorepo detected without --monorepo flag).
@@ -1504,6 +1755,8 @@ REPORT_JSON=$(jq -n \
 REPORT_JSON_FOR_TRIPLET="$REPORT_JSON" \
 SKILL_DIR_ENV="$SKILL_DIR" \
 SCAN_ROOT_ENV="$SCAN_ROOT" \
+LABEL="${LABEL:-}" \
+ARCH_DOCS_PATH="${ARCH_DOCS_PATH:-}" \
 python3 <<'PY' 1>&2
 import json, os, sys, shutil, subprocess, pathlib, datetime, re, html
 
@@ -1525,17 +1778,22 @@ else:
         "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
     )
 
-# Resolve docs_path from .pmos/settings.yaml (default docs/pmos/).
-docs_path = pathlib.Path("docs/pmos")
-settings_path = pathlib.Path(".pmos/settings.yaml")
-if settings_path.is_file():
-    try:
-        import yaml
-        s = yaml.safe_load(settings_path.read_text()) or {}
-        if s.get("docs_path"):
-            docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
-    except Exception:
-        pass
+# Resolve docs_path. T8 (FR-36/37): ARCH_DOCS_PATH env var wins over
+# .pmos/settings.yaml so fan-out children land under the parent's dir.
+_arch_docs_env = os.environ.get("ARCH_DOCS_PATH", "").strip()
+if _arch_docs_env:
+    docs_path = pathlib.Path(_arch_docs_env)
+else:
+    docs_path = pathlib.Path("docs/pmos")
+    settings_path = pathlib.Path(".pmos/settings.yaml")
+    if settings_path.is_file():
+        try:
+            import yaml
+            s = yaml.safe_load(settings_path.read_text()) or {}
+            if s.get("docs_path"):
+                docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
+        except Exception:
+            pass
 
 arch_dir = docs_path / "architecture"
 arch_dir.mkdir(parents=True, exist_ok=True)
@@ -1550,7 +1808,10 @@ if plugin_json.is_file():
         pass
 
 date_s = datetime.date.today().isoformat()
-slug = pathlib.Path(os.getcwd()).name or "audit"
+# T8 (FR-36/37) — LABEL env var (set via --label) overrides cwd basename as slug
+# so fan-out children write stable per-stack stems like {date}_{stack-name}.
+_label_env = os.environ.get("LABEL", "").strip()
+slug = _label_env or (pathlib.Path(os.getcwd()).name or "audit")
 slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
 
 # FR-60 — same-day collision: append -2, -3, ...
