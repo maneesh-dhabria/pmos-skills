@@ -2,7 +2,7 @@
 name: complete-dev
 description: End-of-development orchestrator that follows /verify — merges feature work into main, captures learnings into CLAUDE.md/AGENTS.md, regenerates the changelog, bumps versions, deploys per repo norms, tags the release, and pushes to all configured remotes. Supersedes the legacy /push skill. Terminal stage of the requirements -> spec -> plan -> execute -> verify -> complete-dev pipeline. Use when the user says "complete the dev cycle", "ship this work", "merge and deploy", "wrap up this branch", "finish development", "ready to push and deploy", "push to remotes", "push and ship", or "push the release".
 user-invocable: true
-argument-hint: "[--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
+argument-hint: "[--plugin <name>] [--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
 ---
 
 # /complete-dev — end-of-development orchestrator
@@ -148,6 +148,38 @@ Run in parallel:
 - `git status -sb` (ahead/behind tracking)
 
 Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted: <N>; Remotes: <list>; Ahead of origin: <N>`.
+
+**Resolve `--plugin <name>` (multi-plugin marketplace).** In a multi-plugin repo (multiple `plugins/<name>/` directories under the repo root), Phase 0 must scope the release to exactly one plugin before any version-bump / tag / push work begins.
+
+1. **Parse argument (FR-50).** If the invocation includes `--plugin <name>`, capture `<name>` and validate against `ls plugins/`. If `<name>` does not match any directory under `plugins/`, emit `ERROR: --plugin <name> does not match any directory under plugins/. Known: <list>. Exit 64.` to stderr and abort.
+
+2. **Auto-detect / refuse / substrate-smart-detect.** If `--plugin` is unset, invoke the runtime helper (a Bash tool call):
+
+   ```
+   bash ${CLAUDE_PLUGIN_ROOT}/skills/complete-dev/scripts/diff_router.sh
+   ```
+
+   Branch on its exit code + output:
+
+   - **Exit 0, stdout contains `Auto-detected --plugin <name> from diff`** → single-plugin diff (FR-51). Surface an `AskUserQuestion`:
+     ```
+     question: "Auto-detected --plugin <name> from diff. Proceed?"
+     options:
+       - Proceed (Recommended)
+       - Pass --plugin explicitly (let me retype)
+       - Abort /complete-dev
+     ```
+     On Proceed → set `--plugin <name>` and continue. On explicit retype → re-run this substep with the new value. On Abort → exit 0.
+
+   - **Exit 64, stderr contains `spans plugins/.* AND plugins/`** → multi-plugin diff with non-`_shared` changes (FR-52). Surface the helper's stderr message verbatim to the user and abort with exit 64. Do not proceed.
+
+   - **Exit 0, stdout contains `Substrate-only change detected`** → only `plugins/<name>/skills/_shared/` files touched across multiple plugins (FR-53). Surface an `AskUserQuestion` listing each plugin and asking which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry will land under that plugin). Set `--plugin <chosen>` and continue.
+
+   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/pmos-toolkit/`) and continue. This preserves pre-rollout single-plugin invocations.
+
+3. **Cross-check `## Release policy` in top-level `CLAUDE.md` (FR-55, E15).** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case (E15): warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
+
+The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 12), marketplace.json sync (Phase 14 pre-push), and changelog routing (Phase 8).
 
 **Load lastrun defaults.** Read `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md`:
 
