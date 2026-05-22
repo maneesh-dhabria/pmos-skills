@@ -17,6 +17,7 @@ set -euo pipefail
 NO_ADR=0
 NONINTERACTIVE=0
 INCLUDE_INFO_COMMENTS=0
+MONOREPO=0
 SCAN_ROOT="."
 POSITIONALS=()
 for arg in "$@"; do
@@ -24,9 +25,10 @@ for arg in "$@"; do
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
+    --monorepo) MONOREPO=1 ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -35,7 +37,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -43,11 +45,13 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo]" >&2
   exit 64
 fi
 # T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
 export INCLUDE_INFO_COMMENTS
+# T7 (FR-34/35, D8) — exported for the monorepo detection gate in Phase 1.
+export MONOREPO
 # NFR-06 observability: log non-interactive mode to stderr (also keeps shellcheck
 # from flagging NONINTERACTIVE as unused — it IS read here, not just written).
 if [[ "$NONINTERACTIVE" -eq 1 ]]; then
@@ -67,10 +71,11 @@ command -v python3 >/dev/null 2>&1 || {
 SKILL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_YAML="${RUN_AUDIT_PLUGIN_YAML:-$SKILL_DIR/principles.yaml}"
 
-# ── Loader (FR-11/12/13/14/20/21/22/23) ─────────────────────────────────────
+# ── Loader (FR-11/12/13/14/20/21/22/23/34/35) ────────────────────────────────
 # Emits JSON: {
 #   tier_1, tier_2_ts, tier_2_py, tier_3, total_loaded,
 #   l3_present, stacks_detected,
+#   monorepo_detected: [{name, stack, manifest_path}],
 #   rule_overrides: [{id, fields:{<field>:{before,after}}}],
 #   exemptions: [{rule, file, line?, adr, expires?, note?}],
 #   config: {adr_path, scan_root, extra_ignore},
@@ -142,6 +147,47 @@ has_py = (
 )
 if has_py:
     stacks.append("py")
+
+# FR-34/35 (T7) — depth-2 monorepo detection.
+# When scan-root has no stack markers, walk each direct child dir to find
+# sub-stacks. Populates monorepo_detected[{name, stack, manifest_path}].
+monorepo_detected = []
+if not stacks and os.path.isdir(scan_root):
+    for child_name in sorted(os.listdir(scan_root)):
+        child_path = os.path.join(scan_root, child_name)
+        if not os.path.isdir(child_path):
+            continue
+        c_has_pkg = os.path.isfile(os.path.join(child_path, "package.json"))
+        c_has_tsc = os.path.isfile(os.path.join(child_path, "tsconfig.json"))
+        c_has_py = (
+            os.path.isfile(os.path.join(child_path, "pyproject.toml"))
+            or os.path.isfile(os.path.join(child_path, "setup.py"))
+            or any(
+                n.startswith("requirements") and n.endswith(".txt")
+                for n in os.listdir(child_path)
+            )
+        )
+        if c_has_pkg and c_has_tsc:
+            monorepo_detected.append({
+                "name": child_name,
+                "stack": "ts",
+                "manifest_path": os.path.join(child_name, "package.json").replace("\\", "/"),
+            })
+        elif c_has_py:
+            manifest = (
+                os.path.join(child_name, "pyproject.toml") if os.path.isfile(os.path.join(child_path, "pyproject.toml"))
+                else os.path.join(child_name, "setup.py") if os.path.isfile(os.path.join(child_path, "setup.py"))
+                else next(
+                    (os.path.join(child_name, n) for n in os.listdir(child_path)
+                     if n.startswith("requirements") and n.endswith(".txt")),
+                    os.path.join(child_name, "requirements.txt"),
+                )
+            )
+            monorepo_detected.append({
+                "name": child_name,
+                "stack": "py",
+                "manifest_path": manifest.replace("\\", "/"),
+            })
 
 tier_2_rules = [r for r in plugin_rules if r.get("tier") == 2 and r.get("stack") in stacks]
 tier_2_ts = sum(1 for r in tier_2_rules if r.get("stack") == "ts")
@@ -336,6 +382,7 @@ print(json.dumps({
     "declarative_delegated_pct": declarative_delegated_pct,
     "l3_present": l3_present,
     "stacks_detected": stacks,
+    "monorepo_detected": monorepo_detected,
     "rule_overrides": rule_overrides,
     "exemptions": exemptions,
     "config": config,
@@ -888,6 +935,201 @@ idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
 TOOLS_SKIPPED=()
 TOOLS_ERRORED_JSON='[]'  # appended via jq when a delegated tool exits non-zero
 STACKS=$(echo "$LOADER_JSON" | jq -r '.stacks_detected | join(",")')
+
+# T7 (FR-34/35, D8, E8) — monorepo warn-mode.
+# When the loader found candidate sub-stacks (monorepo_detected non-empty) but
+# --monorepo was not passed, emit a stderr warning, produce a minimal triplet
+# with findings=[] + monorepo_detected populated, and exit 0.
+MONOREPO_DETECTED_LEN=$(echo "$LOADER_JSON" | jq '.monorepo_detected | length')
+if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
+  MONOREPO_NAMES=$(echo "$LOADER_JSON" | jq -r '[.monorepo_detected[] | .name + "(" + .stack + ")"] | join(", ")')
+  echo "No stack markers at scan root; found ${MONOREPO_DETECTED_LEN} candidate stacks under direct children: ${MONOREPO_NAMES}. Re-run with --monorepo to fan out." >&2
+  # Build a minimal triplet-compatible report with findings=[] and monorepo_detected populated.
+  START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  START_EPOCH="$(date -u +%s)"
+  END="$START"
+  DURATION_S=0
+  REPORT_JSON=$(jq -n \
+    --argjson loader "$LOADER_JSON" \
+    --arg start "$START" \
+    --arg end "$END" \
+    --argjson duration_s "$DURATION_S" \
+    --arg root "$SCAN_ROOT" \
+    '{
+      schema_version: 2,
+      run: { started_at: $start, finished_at: $end, duration_s: $duration_s },
+      scan_root: $root,
+      rules_loaded: {
+        tier_1: $loader.tier_1,
+        tier_2: ($loader.tier_2_ts + $loader.tier_2_py),
+        tier_3: $loader.tier_3,
+        total: $loader.total_loaded
+      },
+      declarative_delegated_pct: $loader.declarative_delegated_pct,
+      l3_present: $loader.l3_present,
+      stacks_detected: [],
+      monorepo_detected: $loader.monorepo_detected,
+      config: $loader.config,
+      rule_overrides: [],
+      exemptions: {applied: 0, orphan: 0, expired: 0, informational: [], rows: [], idiomatic: []},
+      scanned: ($loader.scanned | del(.files_for_rules)),
+      tools_skipped: [],
+      tools_errored: [],
+      frontend_declarative_coverage: null,
+      adrs_written: [],
+      adrs_truncated: [],
+      findings: []
+    }')
+  REPORT_JSON_FOR_TRIPLET="$REPORT_JSON" \
+  SKILL_DIR_ENV="$SKILL_DIR" \
+  SCAN_ROOT_ENV="$SCAN_ROOT" \
+  python3 <<'PY' 1>&2
+import json, os, sys, shutil, subprocess, pathlib, datetime, re, html
+
+report = json.loads(os.environ["REPORT_JSON_FOR_TRIPLET"])
+skill_dir = pathlib.Path(os.environ["SKILL_DIR_ENV"])
+scan_root_str = os.environ["SCAN_ROOT_ENV"]
+scan_root = pathlib.Path(scan_root_str).resolve()
+substrate_dir = skill_dir.parent / "_shared" / "html-authoring"
+substrate_assets = substrate_dir / "assets"
+
+template_html = ""
+template_path = substrate_dir / "template.html"
+if template_path.is_file():
+    template_html = template_path.read_text()
+else:
+    template_html = (
+        "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
+        "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
+    )
+
+docs_path = pathlib.Path("docs/pmos")
+settings_path = pathlib.Path(".pmos/settings.yaml")
+if settings_path.is_file():
+    try:
+        import yaml
+        s = yaml.safe_load(settings_path.read_text()) or {}
+        if s.get("docs_path"):
+            docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
+    except Exception:
+        pass
+
+arch_dir = docs_path / "architecture"
+arch_dir.mkdir(parents=True, exist_ok=True)
+
+plugin_version = "0"
+plugin_json = skill_dir.parent.parent / ".claude-plugin" / "plugin.json"
+if plugin_json.is_file():
+    try:
+        plugin_version = json.loads(plugin_json.read_text()).get("version", "0")
+    except Exception:
+        pass
+
+date_s = datetime.date.today().isoformat()
+slug = pathlib.Path(os.getcwd()).name or "audit"
+slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
+
+def stem_for(idx):
+    return f"{date_s}_{slug}" if idx == 0 else f"{date_s}_{slug}-{idx + 1}"
+
+idx = 0
+while (arch_dir / f"{stem_for(idx)}.html").exists():
+    idx += 1
+stem = stem_for(idx)
+html_path = arch_dir / f"{stem}.html"
+md_path = arch_dir / f"{stem}.md"
+json_path = arch_dir / f"{stem}.json"
+sections_path = arch_dir / f"{stem}.sections.json"
+
+assets_dst = arch_dir / "assets"
+assets_dst.mkdir(exist_ok=True)
+if substrate_assets.is_dir():
+    for src in substrate_assets.iterdir():
+        if not src.is_file():
+            continue
+        dst = assets_dst / src.name
+        if not dst.exists():
+            shutil.copy2(src, dst)
+
+stacks = ", ".join(report.get("stacks_detected", [])) or "none"
+total_files = report.get("scanned", {}).get("total", 0)
+monorepo_list = report.get("monorepo_detected", [])
+
+mono_rows = "".join(
+    f'<tr><td>{html.escape(e["name"])}</td><td>{html.escape(e["stack"])}</td>'
+    f'<td><code>{html.escape(e["manifest_path"])}</code></td></tr>'
+    for e in monorepo_list
+)
+monorepo_section = (
+    '<h2 id="monorepo-detected">Monorepo detected</h2>'
+    '<p>No stack markers at scan root. Re-run with <code>--monorepo</code> to fan out.</p>'
+    '<table><thead><tr><th>Package</th><th>Stack</th><th>Manifest</th></tr></thead>'
+    f'<tbody>{mono_rows}</tbody></table>'
+) if monorepo_list else ""
+
+content_html = "\n".join([
+    monorepo_section,
+    '<h2 id="must-fix">Must Fix</h2><p>No findings (monorepo warn-mode).</p>',
+    '<h2 id="should-fix">Should Fix</h2><p>No findings (monorepo warn-mode).</p>',
+    '<h2 id="wont-fix">Won\'t Fix</h2><p>No findings (monorepo warn-mode).</p>',
+    '<h2 id="architecture-metrics">Architecture metrics</h2>'
+    '<p><em>godmodule_candidates: 0</em> (populated by future tasks)</p>',
+    '<h2 id="run-metadata">Run metadata</h2>'
+    f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> '
+    f'· stacks: {html.escape(stacks)} '
+    f'· files scanned: {total_files} · schema_version: 2</p>',
+])
+
+asset_prefix = "assets/"
+final_html = (template_html
+    .replace("{{title}}", f"/architecture audit — {html.escape(slug)}")
+    .replace("{{asset_prefix}}", asset_prefix)
+    .replace("{{plugin_version}}", str(plugin_version))
+    .replace("{{content}}", content_html)
+    .replace("{{source_path}}", f"{stem}.html"))
+
+for m in re.finditer(r"<(h[23])\b([^>]*)>", final_html):
+    if 'id="' not in m.group(2):
+        print(f"emit_triplet: missing id on <{m.group(1)}>: {m.group(0)}", file=sys.stderr)
+        sys.exit(1)
+
+def atomic_write(path, content):
+    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
+    tmp.write_text(content)
+    tmp.rename(path)
+
+atomic_write(html_path, final_html)
+
+bsj = substrate_assets / "build_sections_json.js"
+if bsj.is_file():
+    try:
+        sj = subprocess.check_output(["node", str(bsj), str(html_path)], text=True)
+        atomic_write(sections_path, sj)
+    except Exception as exc:
+        print(f"emit_triplet: sections.json generation failed: {exc}", file=sys.stderr)
+
+h2m = substrate_assets / "html-to-md.js"
+md_ok = False
+if h2m.is_file():
+    try:
+        md = subprocess.check_output(["node", str(h2m), str(html_path)], text=True)
+        atomic_write(md_path, md)
+        md_ok = True
+    except Exception as exc:
+        print(f"emit_triplet: MD conversion failed ({exc}); writing fallback", file=sys.stderr)
+if not md_ok:
+    atomic_write(md_path, f"# /architecture audit — {slug}\n\nSee {html_path.name} for the rendered report.\n")
+
+atomic_write(json_path, json.dumps(report, indent=2))
+
+print(
+    f"Wrote {html_path}: 0 Must Fix, 0 Should Fix, 0 Won't Fix in {total_files} files (monorepo warn-mode)",
+    file=sys.stderr,
+)
+PY
+  exit 0
+fi
+
 depcruise_findings='[]'
 if echo ",$STACKS," | grep -q ',ts,'; then
   echo "[delegated] dependency-cruiser: check available" 1>&2
@@ -1403,6 +1645,7 @@ REPORT_JSON=$(jq -n \
     declarative_delegated_pct: $loader.declarative_delegated_pct,
     l3_present: $loader.l3_present,
     stacks_detected: $loader.stacks_detected,
+    monorepo_detected: ($loader.monorepo_detected // []),
     config: $loader.config,
     rule_overrides: $loader.rule_overrides,
     exemptions: $exemptions_summary,

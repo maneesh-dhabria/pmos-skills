@@ -1,0 +1,60 @@
+# monorepo-no-flag — depth-2 walk detects sub-stacks when scan-root has none (FR-34, FR-35, D8, E8).
+# Root has no stack markers; backend/ has pyproject.toml; frontend/ has package.json + tsconfig.json.
+# Without --monorepo: warn to stderr, findings=[], monorepo_detected has 2 entries, exit 0.
+set -euo pipefail
+
+# Run audit without --monorepo flag; capture stderr separately.
+stderr_file=$(mktemp)
+json_file=$(mktemp)
+trap 'rm -f "$stderr_file" "$json_file"' EXIT
+
+bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>"$stderr_file" 1>/dev/null
+rc=$?
+
+# Exit code must be 0 (not an error — just warn mode).
+if [ "$rc" -ne 0 ]; then
+  echo "FAIL: expected exit 0 in monorepo warn-mode, got $rc"
+  cat "$stderr_file"
+  exit 1
+fi
+
+# Stderr must contain the warning message.
+if ! grep -q "No stack markers at scan root; found" "$stderr_file"; then
+  echo "FAIL: expected stderr warning 'No stack markers at scan root; found'"
+  echo "--- actual stderr ---"
+  cat "$stderr_file"
+  exit 1
+fi
+
+# Now get the JSON sidecar that was written to docs/pmos/architecture/.
+json_sidecar=$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1)
+if [ -z "$json_sidecar" ]; then
+  echo "FAIL: no JSON sidecar written to docs/pmos/architecture/"
+  exit 1
+fi
+
+# monorepo_detected must have exactly 2 entries.
+detected_len=$(jq '.monorepo_detected | length' "$json_sidecar")
+if [ "$detected_len" -ne 2 ]; then
+  echo "FAIL: expected monorepo_detected length == 2, got $detected_len"
+  jq '.monorepo_detected' "$json_sidecar"
+  exit 1
+fi
+
+# findings must be empty.
+findings_len=$(jq '.findings | length' "$json_sidecar")
+if [ "$findings_len" -ne 0 ]; then
+  echo "FAIL: expected findings length == 0, got $findings_len"
+  jq '.findings' "$json_sidecar"
+  exit 1
+fi
+
+# stacks_detected must be empty (no stacks at root).
+stacks_len=$(jq '.stacks_detected | length' "$json_sidecar")
+if [ "$stacks_len" -ne 0 ]; then
+  echo "FAIL: expected stacks_detected length == 0, got $stacks_len"
+  jq '.stacks_detected' "$json_sidecar"
+  exit 1
+fi
+
+echo "monorepo-no-flag: all assertions passed"
