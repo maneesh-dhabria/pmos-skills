@@ -27,13 +27,14 @@ set -euo pipefail
 # 8 secret-file globs from spec NFR-09 (kept in sync with T17's jq filter).
 read_with_denylist() {
   local path="$1"
+  local stub="path matched secret-file denylist; not read"
   case "$path" in
-    .env|*/.env|.env.*|*/.env.*) echo "path matched secret-file denylist; not read"; return 0 ;;
-    *.pem|*.key) echo "path matched secret-file denylist; not read"; return 0 ;;
-    credentials.json|*/credentials.json) echo "path matched secret-file denylist; not read"; return 0 ;;
-    credentials.yaml|*/credentials.yaml) echo "path matched secret-file denylist; not read"; return 0 ;;
-    .ssh/*|*/.ssh/*) echo "path matched secret-file denylist; not read"; return 0 ;;
-    secrets/*|*/secrets/*) echo "path matched secret-file denylist; not read"; return 0 ;;
+    .env|*/.env|.env.*|*/.env.* \
+    |*.pem|*.key \
+    |credentials.json|*/credentials.json \
+    |credentials.yaml|*/credentials.yaml \
+    |.ssh/*|*/.ssh/* \
+    |secrets/*|*/secrets/*) echo "$stub"; return 0 ;;
   esac
   cat "$path"
 }
