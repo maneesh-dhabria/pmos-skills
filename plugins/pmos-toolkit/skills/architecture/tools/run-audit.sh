@@ -26,7 +26,6 @@ BASELINE=""
 SCAN_ROOT="."
 DEEP=0
 DEEP_PREP=""
-DEEP_FINALIZE_PAYLOAD=""
 DEEP_FINALIZE_RESULT=""
 DEEP_FINALIZE_FROM=""
 POSITIONALS=()
@@ -61,11 +60,6 @@ for arg in "$@"; do
     prev=""
     continue
   fi
-  if [ "$prev" = "--deep-finalize-payload" ]; then
-    DEEP_FINALIZE_PAYLOAD="$arg"
-    prev=""
-    continue
-  fi
   if [ "$prev" = "--deep-finalize-result" ]; then
     DEEP_FINALIZE_RESULT="$arg"
     prev=""
@@ -88,7 +82,6 @@ for arg in "$@"; do
     --scaffold-l3) SCAFFOLD_L3=1 ;;
     --deep) DEEP=1 ;;
     --deep-prep) prev="--deep-prep" ;;
-    --deep-finalize-payload) prev="--deep-finalize-payload" ;;
     --deep-finalize-result) prev="--deep-finalize-result" ;;
     --deep-finalize-from)
       if [ "${FIXTURE:-0}" != "1" ]; then
@@ -1746,10 +1739,12 @@ fi
 
 # --deep runtime probe + module_metadata payload. Probe failure must not exit
 # — mechanical findings keep flowing; the deep_pass block carries the reason.
-# T17 transitional: until T18 wires Task dispatch, probe-success also defaults
-# to no_subagent_tool_use (no subagent is actually used yet).
+# Probe-success without --deep-finalize-result wired (the transitional state
+# pre-SKILL.md wiring) defaults to no_subagent_tool_use — no subagent has
+# actually been invoked yet.
 if [ "$DEEP" = "1" ]; then
   deep_pass_skipped_reason="no_subagent_tool_use"
+  seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
 
   if [ "${SKILL_NO_SUBAGENT:-0}" != "1" ]; then
     module_metadata_json=$(echo "$module_metrics_json" | jq '[.[]
@@ -1773,7 +1768,6 @@ if [ "$DEEP" = "1" ]; then
     fi
 
     if [ -n "$DEEP_PREP" ]; then
-      seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
       vocab_path="$SKILL_DIR/reference/deepening-vocabulary.md"
       jq -n \
         --argjson mm "$module_metadata_json" \
@@ -1796,7 +1790,6 @@ if [ "$DEEP" = "1" ]; then
       deep_finalize_result_path="$DEEP_FINALIZE_FROM"
     fi
 
-    seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
     if [ -n "$deep_finalize_result_path" ]; then
       if [ ! -s "$deep_finalize_result_path" ]; then
         # E5b — file missing or empty → dispatch_failed.
@@ -1913,17 +1906,12 @@ PY
         # Python script always exits 0 and writes a single JSON object to stdout.
         deep_pass_json="$deep_validate_json"
       fi
-    else
-      # No finalize result wired — fall back to T17 transitional behaviour.
-      deep_pass_json=$(jq -n \
-        --argjson seed_hint "$seed_hint_json" \
-        --arg reason "$deep_pass_skipped_reason" \
-        '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: $reason}')
     fi
   fi
 
+  # Default block for any path that didn't wire candidates: SKILL_NO_SUBAGENT
+  # probe-fail, or --deep with no finalize result supplied yet.
   if [ -z "$deep_pass_json" ] || [ "$deep_pass_json" = "null" ]; then
-    seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
     deep_pass_json=$(jq -n \
       --argjson seed_hint "$seed_hint_json" \
       --arg reason "$deep_pass_skipped_reason" \
