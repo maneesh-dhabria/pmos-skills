@@ -244,3 +244,13 @@ rules:
     source: "https://docs.astral.sh/ruff/rules/unused-function-argument/"
     message: "No unused function or method arguments (ARG001/ARG002)."
     why: "Unused args mislead callers about what the function actually consumes."
+
+  - id: PY009
+    tier: 2
+    stack: py
+    disposition: should_fix
+    delegate_to: cycle-py
+    check: "cycle-py:scc"
+    source: "Tarjan SCC over Python module imports; analogous to dependency-cruiser TS001 for TypeScript."
+    message: "No import cycles between Python modules."
+    why: "Import cycles indicate tangled module boundaries; resolving them simplifies reasoning and prevents subtle init-order bugs."

@@ -1278,6 +1278,7 @@ TOOLS_SKIPPED=()
 TOOLS_ERRORED_JSON='[]'  # appended via jq when a delegated tool exits non-zero
 
 tools_skipped_json='[]'
+cycles_json='[]'
 if [ "$WARN_MODE" != "1" ]; then  # skip L2 delegated tools in warn-mode
 depcruise_findings='[]'
 if echo ",$STACKS," | grep -q ',ts,'; then
@@ -1426,6 +1427,58 @@ fi
 findings_json=$(jq -n \
   --argjson a "$findings_json" \
   --argjson b "$ruff_findings" \
+  '$a + $b')
+
+# ── L2 delegated tool: cycle-py (T10, FR-07/46/47, PY009) ────────────────────
+cycles_json='[]'
+cycle_py_findings='[]'
+if echo ",$STACKS," | grep -q ',py,'; then
+  if command -v python3 >/dev/null 2>&1 && [ -f "$SKILL_DIR/tools/cycle-py.py" ]; then
+    set +e
+    cycles_json=$(python3 "$SKILL_DIR/tools/cycle-py.py" "$SCAN_ROOT" 2>/tmp/cycle-py.err)
+    cp_rc=$?
+    set -e
+    if [ "$cp_rc" -ne 0 ] || [ -z "$cycles_json" ]; then
+      cycles_json='[]'
+    fi
+    cycle_py_findings=$(CYCLES_JSON="$cycles_json" python3 <<'PY'
+import json, os
+cycles = json.loads(os.environ["CYCLES_JSON"])
+out = []
+for c in cycles:
+    members = c.get("members", [])
+    if not members:
+        continue
+    chain = members + [members[0]]
+    out.append({
+        "rule_id": "PY009",
+        "severity": "warn",
+        "file": members[0],
+        "line": 1,
+        "message": " -> ".join(chain),
+        "source_citation": "principles.yaml#PY009",
+        "cross_refs": members[1:],
+        "suppressed_by": None,
+    })
+print(json.dumps(out))
+PY
+)
+  else
+    cycle_py_findings=$(jq -n '[{
+      rule_id: "PY009",
+      severity: "info",
+      message: "cycle-py probe failed — Python 3 or tools/cycle-py.py unavailable",
+      file: null,
+      line: null,
+      source_citation: "principles.yaml#PY009",
+      suppressed_by: null
+    }]')
+  fi
+fi
+
+findings_json=$(jq -n \
+  --argjson a "$findings_json" \
+  --argjson b "$cycle_py_findings" \
   '$a + $b')
 
 # Build tools_skipped JSON array (empty when no tool was skipped).
@@ -1778,6 +1831,7 @@ REPORT_JSON=$(jq -n \
   --argjson adrs_written "$adrs_written_json" \
   --argjson adrs_truncated "$adrs_truncated_json" \
   --argjson exemptions_summary "$exemptions_summary_json" \
+  --argjson cycles "$cycles_json" \
   --arg start "$START" \
   --arg end "$END" \
   --argjson duration_s "$DURATION_S" \
@@ -1805,6 +1859,7 @@ REPORT_JSON=$(jq -n \
     frontend_declarative_coverage: $fde,
     adrs_written: $adrs_written,
     adrs_truncated: $adrs_truncated,
+    cycles: $cycles,
     findings: ($f
       | map(. + { severity: ($loader.effective_severity[.rule_id] // .severity) })
       | map(. + { disposition: ({block:"must_fix", warn:"should_fix", info:"wont_fix"}[.severity] // .severity) })

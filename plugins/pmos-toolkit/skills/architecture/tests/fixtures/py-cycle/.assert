@@ -1,0 +1,11 @@
+# PY009 fires on cycle between service.py and repo.py
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+
+# Exactly one PY009 finding (one cycle of length 2; one finding per cycle).
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "PY009")] | length == 1' >/dev/null \
+  || { echo "expected exactly 1 PY009 finding"; echo "$out" | jq '[.findings[] | select(.rule_id == "PY009")]'; exit 1; }
+
+# cycles[] sidecar has one cycle with two members.
+echo "$out" | jq -e '.cycles | length == 1 and (.[0].members | length == 2) and .[0].cycle_length == 2' >/dev/null \
+  || { echo "expected one 2-member cycle in cycles[]"; echo "$out" | jq '.cycles'; exit 1; }
