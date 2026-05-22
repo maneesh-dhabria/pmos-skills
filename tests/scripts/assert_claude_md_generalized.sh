@@ -10,11 +10,11 @@ filtered=$(awk '
   !allow { print }
 ' CLAUDE.md)
 hits=$(echo "$filtered" | grep -nE 'plugins/pmos-toolkit/' || true)
-n_hits=$(echo "$hits" | grep -c '^[0-9]' || echo 0)
-n_templated=$(grep -cE 'plugins/<plugin>/|plugins/\$\{plugin\}/' CLAUDE.md || echo 0)
+n_hits=$(echo "$hits" | grep -c '^[0-9]' || true)
+n_templated=$(grep -cE 'plugins/<plugin>/|plugins/\$\{plugin\}/' CLAUDE.md || true)
 if [ "$n_hits" -gt 0 ]; then echo "FAIL: $n_hits hardcoded pmos-toolkit refs outside <!-- allow-hardcoded --> markers:"; echo "$hits"; fail=1; fi
 # Marker-count cap: at most one allow-hardcoded block in CLAUDE.md.
-n_markers=$(grep -c '<!-- allow-hardcoded' CLAUDE.md || echo 0)
+n_markers=$(grep -c '<!-- allow-hardcoded' CLAUDE.md || true)
 if [ "$n_markers" -gt 1 ]; then echo "FAIL: $n_markers allow-hardcoded markers in CLAUDE.md; cap is 1"; fail=1; fi
 # Per-section behavioral assertions
 # FR-70: ## Canonical skill path must mention plugins/<plugin>/skills/
