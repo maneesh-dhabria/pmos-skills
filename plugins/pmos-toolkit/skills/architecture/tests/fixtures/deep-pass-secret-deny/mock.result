@@ -1,0 +1,1 @@
+{"candidates":[{"module":".env","classification":"leaky","rationale":"subagent claims to have read .env but only got the denylist stub","deletion_test":{"outcome":"vanishes","estimate":"low"},"cross_module_patterns":[{"evidence":"FAKE_SECRET=hallucinated_value_xyz"}],"proposed_reshape":"rotate the fake key","affected_files":[".env"]}]}

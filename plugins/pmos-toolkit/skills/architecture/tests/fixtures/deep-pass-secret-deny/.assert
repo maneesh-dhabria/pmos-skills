@@ -1,0 +1,19 @@
+set -euo pipefail
+
+# Unit: source the wrapper as a library and exercise read_with_denylist().
+unit_out=$(bash -c 'source "$1"; read_with_denylist .env' _ "$SKILL_DIR/tools/dispatch-deep-pass.sh")
+[ "$unit_out" = "path matched secret-file denylist; not read" ] \
+  || { echo "denylist stub mismatch for .env: $unit_out"; exit 1; }
+
+passthrough=$(bash -c 'source "$1"; read_with_denylist src/main.py' _ "$SKILL_DIR/tools/dispatch-deep-pass.sh")
+expected=$(cat src/main.py)
+[ "$passthrough" = "$expected" ] \
+  || { echo "passthrough mismatch for src/main.py"; exit 1; }
+
+# Integration: candidate cites evidence that does not appear verbatim in .env
+# (the subagent fabricated the quote because it only got the denylist stub).
+out=$(FIXTURE=1 $AUDIT . --deep --deep-finalize-from mock.result) || { echo "audit exited non-zero"; exit 1; }
+echo "$out" | jq -e '.deep_pass.skipped_reason == "validation_failed"' >/dev/null \
+  || { echo "expected validation_failed"; echo "$out" | jq '.deep_pass'; exit 1; }
+echo "$out" | jq -e '[.findings[]] | length > 0' >/dev/null \
+  || { echo "expected mechanical findings preserved"; exit 1; }
