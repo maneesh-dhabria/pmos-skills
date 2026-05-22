@@ -1,0 +1,16 @@
+set -uo pipefail
+# Without FIXTURE=1 the test-only --deep-finalize-from flag must be rejected
+# as unknown. tests/run.sh exports FIXTURE=<fixture-name>, so $FIXTURE here is
+# the directory name ("deep-pass-finalize-gate"), not "1" — exactly the
+# production-style environment we want to assert against.
+set +e
+out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --deep --deep-finalize-from mock.result 2>&1)
+rc=$?
+set -e
+if [ "$rc" -eq 0 ]; then
+  echo "expected non-zero exit; got 0"
+  echo "$out"
+  exit 1
+fi
+echo "$out" | grep -q -- "unknown flag: --deep-finalize-from" \
+  || { echo "expected 'unknown flag: --deep-finalize-from' in stderr"; echo "$out"; exit 1; }

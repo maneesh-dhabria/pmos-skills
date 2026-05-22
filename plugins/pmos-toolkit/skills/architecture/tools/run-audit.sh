@@ -26,6 +26,9 @@ BASELINE=""
 SCAN_ROOT="."
 DEEP=0
 DEEP_PREP=""
+DEEP_FINALIZE_PAYLOAD=""
+DEEP_FINALIZE_RESULT=""
+DEEP_FINALIZE_FROM=""
 POSITIONALS=()
 prev=""
 for arg in "$@"; do
@@ -58,6 +61,25 @@ for arg in "$@"; do
     prev=""
     continue
   fi
+  if [ "$prev" = "--deep-finalize-payload" ]; then
+    DEEP_FINALIZE_PAYLOAD="$arg"
+    prev=""
+    continue
+  fi
+  if [ "$prev" = "--deep-finalize-result" ]; then
+    DEEP_FINALIZE_RESULT="$arg"
+    prev=""
+    continue
+  fi
+  if [ "$prev" = "--deep-finalize-from" ]; then
+    # Gated behind FIXTURE=1 (test-only mode that bypasses dispatch). When
+    # FIXTURE is unset/!=1 the flag is treated as unknown — surfaced below in
+    # the standard unknown-flag branch by leaving DEEP_FINALIZE_FROM unset and
+    # falling through to the gate check after parsing.
+    DEEP_FINALIZE_FROM="$arg"
+    prev=""
+    continue
+  fi
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
@@ -66,13 +88,22 @@ for arg in "$@"; do
     --scaffold-l3) SCAFFOLD_L3=1 ;;
     --deep) DEEP=1 ;;
     --deep-prep) prev="--deep-prep" ;;
+    --deep-finalize-payload) prev="--deep-finalize-payload" ;;
+    --deep-finalize-result) prev="--deep-finalize-result" ;;
+    --deep-finalize-from)
+      if [ "${FIXTURE:-0}" != "1" ]; then
+        echo "ERROR: unknown flag: --deep-finalize-from" >&2
+        exit 64
+      fi
+      prev="--deep-finalize-from"
+      ;;
     --label) prev="--label" ;;
     --sort) prev="--sort" ;;
     --since) prev="--since" ;;
     --baseline) prev="--baseline" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -81,7 +112,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -89,13 +120,21 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>] [--deep] [--deep-prep <tmpfile>] [--deep-finalize-result <path>]" >&2
   exit 64
 fi
 # T17 — --deep-prep <tmpfile> only meaningful with --deep (PD6); enforce here
 # rather than silently no-op so harness misuse surfaces immediately.
 if [ -n "$DEEP_PREP" ] && [ "$DEEP" -ne 1 ]; then
   echo "ERROR: --deep-prep requires --deep" >&2
+  exit 64
+fi
+if [ -n "$DEEP_FINALIZE_RESULT" ] && [ "$DEEP" -ne 1 ]; then
+  echo "ERROR: --deep-finalize-result requires --deep" >&2
+  exit 64
+fi
+if [ -n "$DEEP_FINALIZE_FROM" ] && [ "$DEEP" -ne 1 ]; then
+  echo "ERROR: --deep-finalize-from requires --deep" >&2
   exit 64
 fi
 export DEEP
@@ -1744,13 +1783,152 @@ if [ "$DEEP" = "1" ]; then
         > "$DEEP_PREP"
       exit 0
     fi
+
+    # FR-25/26 finalize: consume the subagent result file (or test mock).
+    # Mechanical pipeline has already produced findings; deep_pass block is
+    # decorated either with validated candidates or with a skipped_reason.
+    # Any failure path here is graceful — mechanical findings must reach the
+    # final REPORT_JSON regardless of validation outcome (spec E5/E5b/E6).
+    deep_finalize_result_path=""
+    if [ -n "$DEEP_FINALIZE_RESULT" ]; then
+      deep_finalize_result_path="$DEEP_FINALIZE_RESULT"
+    elif [ -n "$DEEP_FINALIZE_FROM" ]; then
+      deep_finalize_result_path="$DEEP_FINALIZE_FROM"
+    fi
+
+    seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
+    if [ -n "$deep_finalize_result_path" ]; then
+      if [ ! -s "$deep_finalize_result_path" ]; then
+        # E5b — file missing or empty → dispatch_failed.
+        echo "[deep] dispatch_failed: result file missing or empty: $deep_finalize_result_path" >&2
+        deep_pass_json=$(jq -n \
+          --argjson seed_hint "$seed_hint_json" \
+          '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: "dispatch_failed"}')
+      else
+        deep_validate_json=$(
+          RESULT_PATH="$deep_finalize_result_path" \
+          SCAN_ROOT="$SCAN_ROOT" \
+          SEED_HINT_JSON="$seed_hint_json" \
+          python3 <<'PY'
+import json, os, subprocess, sys
+from datetime import datetime, timezone
+
+result_path = os.environ["RESULT_PATH"]
+scan_root = os.environ["SCAN_ROOT"]
+seed_hint = json.loads(os.environ["SEED_HINT_JSON"])
+
+def emit(reason, detail, candidates=None, dispatched_at=None):
+    block = {
+        "dispatched_at": dispatched_at,
+        "seed_hint": seed_hint,
+        "candidates": candidates or [],
+        "skipped_reason": reason,
+    }
+    if detail:
+        block["skipped_detail"] = detail
+    print(json.dumps(block))
+    sys.exit(0)
+
+try:
+    with open(result_path, "r") as fh:
+        raw = fh.read()
+except OSError as exc:
+    emit("dispatch_failed", "cannot read result file: " + str(exc))
+
+try:
+    parsed = json.loads(raw)
+except Exception as exc:
+    excerpt = (raw[:80] + "...") if len(raw) > 80 else raw
+    print("[deep] validation_failed: malformed JSON: " + excerpt.replace("\n", " "), file=sys.stderr)
+    emit("validation_failed", "malformed JSON: " + excerpt.replace("\n", " "))
+
+if not isinstance(parsed, dict) or "candidates" not in parsed or not isinstance(parsed["candidates"], list):
+    print("[deep] validation_failed: result missing candidates[] array", file=sys.stderr)
+    emit("validation_failed", "result missing candidates[] array")
+
+candidates = parsed["candidates"]
+if len(candidates) == 0:
+    emit("no_candidates", None)
+
+valid_classifications = {"deep", "shallow", "leaky"}
+valid_outcomes = {"vanishes", "reappears"}
+
+for idx, cand in enumerate(candidates):
+    if not isinstance(cand, dict):
+        print("[deep] validation_failed: candidate[" + str(idx) + "] is not an object", file=sys.stderr)
+        emit("validation_failed", "candidate[" + str(idx) + "] is not an object")
+
+    mod = cand.get("module")
+    if not isinstance(mod, str) or not mod:
+        print("[deep] validation_failed: candidate[" + str(idx) + "] missing module", file=sys.stderr)
+        emit("validation_failed", "candidate[" + str(idx) + "] missing module")
+
+    abs_mod = mod if os.path.isabs(mod) else os.path.join(scan_root, mod)
+    if not os.path.isfile(abs_mod):
+        print("[deep] validation_failed: candidate[" + str(idx) + "] module not a real file: " + mod, file=sys.stderr)
+        emit("validation_failed", "module not found: " + mod)
+
+    cls = cand.get("classification")
+    if cls not in valid_classifications:
+        print("[deep] validation_failed: candidate[" + str(idx) + "] classification invalid: " + str(cls), file=sys.stderr)
+        emit("validation_failed", "classification invalid for " + mod + ": " + str(cls))
+
+    dt = cand.get("deletion_test") or {}
+    outcome = dt.get("outcome") if isinstance(dt, dict) else None
+    if outcome not in valid_outcomes:
+        print("[deep] validation_failed: candidate[" + str(idx) + "] deletion_test.outcome invalid: " + str(outcome), file=sys.stderr)
+        emit("validation_failed", "deletion_test.outcome invalid for " + mod + ": " + str(outcome))
+
+    patterns = cand.get("cross_module_patterns") or []
+    if not isinstance(patterns, list):
+        print("[deep] validation_failed: candidate[" + str(idx) + "] cross_module_patterns not a list", file=sys.stderr)
+        emit("validation_failed", "cross_module_patterns not a list for " + mod)
+    for pidx, pat in enumerate(patterns):
+        ev = pat.get("evidence") if isinstance(pat, dict) else None
+        if not isinstance(ev, str) or not ev:
+            print("[deep] validation_failed: candidate[" + str(idx) + "] pattern[" + str(pidx) + "] missing evidence", file=sys.stderr)
+            emit("validation_failed", "pattern[" + str(pidx) + "] missing evidence for " + mod)
+        try:
+            rc = subprocess.run(
+                ["grep", "-F", "-q", "--", ev, abs_mod],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ).returncode
+        except Exception as exc:
+            print("[deep] validation_failed: grep error: " + str(exc), file=sys.stderr)
+            emit("validation_failed", "grep error for " + mod)
+        if rc != 0:
+            print("[deep] validation_failed: candidate[" + str(idx) + "] evidence not found in " + mod, file=sys.stderr)
+            emit("validation_failed", "evidence not found in " + mod)
+
+dispatched_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+print(json.dumps({
+    "dispatched_at": dispatched_at,
+    "seed_hint": seed_hint,
+    "candidates": candidates,
+    "skipped_reason": None,
+}))
+PY
+        )
+        # Python script always exits 0 and writes a single JSON object to stdout.
+        deep_pass_json="$deep_validate_json"
+      fi
+    else
+      # No finalize result wired — fall back to T17 transitional behaviour.
+      deep_pass_json=$(jq -n \
+        --argjson seed_hint "$seed_hint_json" \
+        --arg reason "$deep_pass_skipped_reason" \
+        '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: $reason}')
+    fi
   fi
 
-  seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
-  deep_pass_json=$(jq -n \
-    --argjson seed_hint "$seed_hint_json" \
-    --arg reason "$deep_pass_skipped_reason" \
-    '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: $reason}')
+  if [ -z "$deep_pass_json" ] || [ "$deep_pass_json" = "null" ]; then
+    seed_hint_json=$(echo "$godmodule_candidates_json" | jq '[.[].path]')
+    deep_pass_json=$(jq -n \
+      --argjson seed_hint "$seed_hint_json" \
+      --arg reason "$deep_pass_skipped_reason" \
+      '{dispatched_at: null, seed_hint: $seed_hint, candidates: [], skipped_reason: $reason}')
+  fi
 fi
 
 # Build tools_skipped JSON array (empty when no tool was skipped).

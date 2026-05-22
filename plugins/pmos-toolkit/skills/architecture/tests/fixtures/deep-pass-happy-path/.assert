@@ -1,0 +1,8 @@
+set -euo pipefail
+out=$(FIXTURE=1 $AUDIT . --deep --deep-finalize-from mock.result) || { echo "audit exited non-zero"; exit 1; }
+echo "$out" | jq -e '.deep_pass.skipped_reason == null' >/dev/null \
+  || { echo "expected skipped_reason=null"; echo "$out" | jq '.deep_pass'; exit 1; }
+echo "$out" | jq -e '.deep_pass.candidates | length == 1' >/dev/null \
+  || { echo "expected 1 candidate preserved"; echo "$out" | jq '.deep_pass.candidates'; exit 1; }
+echo "$out" | jq -e '.deep_pass.candidates[0].classification == "leaky"' >/dev/null \
+  || { echo "expected leaky classification"; exit 1; }

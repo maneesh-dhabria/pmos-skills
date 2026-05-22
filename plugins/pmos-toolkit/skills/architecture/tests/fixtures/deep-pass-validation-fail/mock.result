@@ -1,0 +1,1 @@
+{"candidates":[{"module":"src/nonexistent_hallucinated.py","classification":"leaky","rationale":"hallucinated module path","deletion_test":{"outcome":"vanishes","estimate":"low"},"cross_module_patterns":[{"evidence":"never matters"}],"proposed_reshape":"...","affected_files":[]}]}

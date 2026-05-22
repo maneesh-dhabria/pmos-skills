@@ -1,0 +1,1 @@
+{"candidates":[{"module":"src/leaky.py","classification":"leaky","rationale":"DB access in handler","deletion_test":{"outcome":"vanishes","estimate":"low"},"cross_module_patterns":[{"evidence":"db.execute(\"SELECT * FROM users\")"}],"proposed_reshape":"extract repo","affected_files":["src/leaky.py"]}]}
