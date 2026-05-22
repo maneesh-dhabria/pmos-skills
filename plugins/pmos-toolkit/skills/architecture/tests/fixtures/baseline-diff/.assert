@@ -1,5 +1,14 @@
 set -euo pipefail
 
+# --baseline requires a git repo at the scan root (spec L172).
+trap 'rm -rf .git' EXIT
+rm -rf .git 2>/dev/null || true
+git init -q .
+git config user.email "test@test"
+git config user.name "test"
+git add -A
+git -c commit.gpgsign=false commit -q -m "c1"
+
 out=$($AUDIT . --baseline baseline.json) || { echo "audit with --baseline exited non-zero"; exit 1; }
 
 echo "$out" | jq -e '.diff.new | type == "array"' >/dev/null \

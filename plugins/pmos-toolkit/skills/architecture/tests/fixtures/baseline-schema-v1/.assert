@@ -1,5 +1,15 @@
 set -uo pipefail
 
+# --baseline requires a git repo at the scan root (spec L172); init one so we
+# reach the schema_version check instead of failing at the non-git guard.
+trap 'rm -rf .git' EXIT
+rm -rf .git 2>/dev/null || true
+git init -q .
+git config user.email "test@test"
+git config user.name "test"
+git add -A
+git -c commit.gpgsign=false commit -q -m "c1"
+
 # Invoke run-audit.sh directly (bypassing audit-wrapper.sh's stderr redirect)
 # so we can assert the documented v1 schema_version error.
 out=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --baseline baseline.json 2>&1) && rc=0 || rc=$?

@@ -1,0 +1,4 @@
+set -euo pipefail
+output=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --baseline baseline.json 2>&1) && rc=0 || rc=$?
+[ "$rc" -eq 64 ] || { echo "expected rc=64, got $rc"; echo "$output"; exit 1; }
+echo "$output" | grep -qF "index baseline requires --monorepo on current run; aborting" || { echo "expected stderr literal not found"; echo "$output"; exit 1; }

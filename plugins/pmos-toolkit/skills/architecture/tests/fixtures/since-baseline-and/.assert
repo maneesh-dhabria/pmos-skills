@@ -8,7 +8,7 @@ cp src/touched_more.py "$_orig_more"
 cleanup() {
   cp "$_orig_touched" src/touched.py
   cp "$_orig_more" src/touched_more.py
-  rm -f "$_orig_touched" "$_orig_more"
+  rm -f "$_orig_touched" "$_orig_more" old.json
   rm -rf .git
 }
 trap cleanup EXIT
@@ -36,3 +36,23 @@ echo "$out" | jq -e '.findings | length > 0' >/dev/null \
 
 echo "$out" | jq -e '[.findings[] | .file] | unique == ["src/touched_more.py"]' >/dev/null \
   || { echo "findings not filtered to touched_more.py only"; echo "$out" | jq '[.findings[] | .file] | unique'; exit 1; }
+
+# AND-intersect: --since filters first, then --baseline diffs against the filtered set.
+# Baseline carries a fake finding on src/touched.py; --since drops touched.py from current,
+# so the diff should show touched_more.py as new (not in baseline) and touched.py as dropped.
+cat > old.json <<'JSON'
+{"schema_version":2,"findings":[{"rule_id":"U004","file":"src/touched.py","line":3}]}
+JSON
+
+out2=$($AUDIT . --since HEAD~1 --baseline old.json) || { echo "audit with --since+--baseline exited non-zero"; exit 1; }
+
+echo "$out2" | jq -e '.diff != null' >/dev/null \
+  || { echo "expected .diff to be non-null"; echo "$out2" | jq '.diff'; exit 1; }
+
+echo "$out2" | jq -e '[.diff.new[] | .file] | unique == ["src/touched_more.py"]' >/dev/null \
+  || { echo "expected diff.new to contain only src/touched_more.py"; echo "$out2" | jq '.diff'; exit 1; }
+
+echo "$out2" | jq -e '[.findings[] | .file] | unique == ["src/touched_more.py"]' >/dev/null \
+  || { echo "expected --since filter still applied with --baseline"; echo "$out2" | jq '[.findings[] | .file] | unique'; exit 1; }
+
+rm -f old.json

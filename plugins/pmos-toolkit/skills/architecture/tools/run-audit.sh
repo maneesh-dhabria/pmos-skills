@@ -2069,6 +2069,16 @@ if [ -n "$BASELINE" ]; then
     echo "baseline file not found: $BASELINE" >&2
     exit 64
   fi
+  # Index-baseline guard runs before the non-git guard so the more specific
+  # "wrong shape for current mode" diagnostic wins over the generic non-git one.
+  if jq -e '.stacks | type == "array"' "$BASELINE" >/dev/null 2>&1 && [ "$MONOREPO" -ne 1 ]; then
+    echo "index baseline requires --monorepo on current run; aborting" >&2
+    exit 64
+  fi
+  if [ ! -e "$SCAN_ROOT/.git" ]; then
+    echo "scan root is not a git repo; --baseline unavailable" >&2
+    exit 64
+  fi
   if ! diff_json=$(FINDINGS_JSON="$findings_with_risk_json" BASELINE_PATH="$BASELINE" python3 <<'PY'
 import json, os, sys
 try:
