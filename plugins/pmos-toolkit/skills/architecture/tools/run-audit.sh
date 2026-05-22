@@ -1971,10 +1971,8 @@ if [ "$fde_den" -gt 0 ]; then
   fi
 fi
 
-# T13 (FR-50, E4) — `--since <ref>` filters findings to files changed since
-# the ref. Runs BEFORE risk-score computation so we don't spawn per-file git
-# subprocesses for findings we're about to drop. Exits 64 if SCAN_ROOT isn't
-# its own git repo (FR-50 contract) or if the ref is unknown.
+# Filter runs BEFORE risk-score computation so we don't spawn per-file
+# git subprocesses for findings we're about to drop.
 if [ -n "$SINCE" ]; then
   # `.git` is a directory in a normal repo and a file in a git-worktree checkout;
   # either counts as "scan root is its own repo" for `--since`.

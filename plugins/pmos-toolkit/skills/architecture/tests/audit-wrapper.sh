@@ -13,8 +13,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 SKILL_DIR="$(cd "$HERE/.." && pwd)"
 SCAN_ROOT="${1:-.}"
 shift || true
-# Drop a leading bare "." that .assert scripts may pass redundantly (e.g.
-# `$AUDIT . --since HEAD~1`) — the wrapper already encodes SCAN_ROOT=".".
+# tests/run.sh bakes `.` into $AUDIT and many .assert scripts append `.`
+# again — drop the duplicate so run-audit.sh sees one positional, not two.
 if [ "${1:-}" = "." ]; then shift; fi
 # Remove any prior triplet so cat picks up exactly this run's output.
 rm -rf docs/pmos/architecture/ 2>/dev/null || true
