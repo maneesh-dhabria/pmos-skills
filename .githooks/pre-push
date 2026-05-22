@@ -20,6 +20,27 @@ get_version() {
   git show "$ref:$path" 2>/dev/null | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n1
 }
 
+command -v jq >/dev/null || { echo "pre-push: jq not installed; required for marketplace.json / tag checks." >&2; exit 1; }
+
+existing_tags=$(git ls-remote --tags origin 2>/dev/null | awk '{print $2}' | sed 's#refs/tags/##;s#\^{}##' | sort -u || true)
+for tag in $(git tag --points-at HEAD 2>/dev/null); do
+  printf '%s\n' "$existing_tags" | grep -qx "$tag" && continue
+  if ! echo "$tag" | grep -qE '^[^/]+/v[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo "ERROR: tag '$tag' has invalid format — expected <plugin>/v<semver>." >&2
+    fail=1
+    continue
+  fi
+  tag_plugin=${tag%%/v*}; tag_v=${tag##*/v}
+  cj=$(jq -r --arg n "$tag_plugin" '.plugins[]|select(.name==$n)|.version' .claude-plugin/marketplace.json 2>/dev/null)
+  xj=$(jq -r --arg n "$tag_plugin" '.plugins[]|select(.name==$n)|.version' .codex-plugin/marketplace.json 2>/dev/null)
+  pv=$(jq -r '.version' "plugins/$tag_plugin/.claude-plugin/plugin.json" 2>/dev/null)
+  xv=$(jq -r '.version' "plugins/$tag_plugin/.codex-plugin/plugin.json" 2>/dev/null)
+  if [ "$tag_v" != "$cj" ] || [ "$tag_v" != "$xj" ] || [ "$tag_v" != "$pv" ] || [ "$tag_v" != "$xv" ]; then
+    echo "ERROR: tag '$tag' version $tag_v does not match manifests (claude-plugin=$pv codex-plugin=$xv marketplace.claude=$cj marketplace.codex=$xj)." >&2
+    fail=1
+  fi
+done
+
 while read -r local_ref local_oid remote_ref remote_oid; do
   # Deleting a remote branch — nothing to check.
   [ "$local_oid" = "$ZERO" ] && continue
@@ -68,6 +89,13 @@ while read -r local_ref local_oid remote_ref remote_oid; do
     elif [ "$codex_v" != "$local_v" ]; then
       echo "ERROR: $plugin version drift — .claude-plugin=$local_v .codex-plugin=$codex_v." >&2
       echo "       Both manifests must carry the same version." >&2
+      fail=1
+    fi
+
+    mc=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.version' .claude-plugin/marketplace.json 2>/dev/null)
+    mx=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.version' .codex-plugin/marketplace.json 2>/dev/null)
+    if [ "$mc" != "$local_v" ] || [ "$mx" != "$local_v" ]; then
+      echo "ERROR: $plugin marketplace drift — plugin.json=$local_v marketplace.claude=$mc marketplace.codex=$mx." >&2
       fail=1
     fi
   done
