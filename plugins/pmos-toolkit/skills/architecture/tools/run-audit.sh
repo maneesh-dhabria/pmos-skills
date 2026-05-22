@@ -1429,8 +1429,7 @@ findings_json=$(jq -n \
   --argjson b "$ruff_findings" \
   '$a + $b')
 
-# ── L2 delegated tool: cycle-py (T10, FR-07/46/47, PY009) ────────────────────
-cycles_json='[]'
+# ── L2 delegated tool: cycle-py (PY009) ──────────────────────────────────────
 cycle_py_findings='[]'
 if echo ",$STACKS," | grep -q ',py,'; then
   if command -v python3 >/dev/null 2>&1 && [ -f "$SKILL_DIR/tools/cycle-py.py" ]; then

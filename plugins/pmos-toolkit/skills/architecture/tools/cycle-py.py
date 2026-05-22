@@ -129,9 +129,7 @@ def main():
 
     cycles = []
     for comp in sccs:
-        members = sorted(mod_to_file[m] for m in comp if m in mod_to_file)
-        if len(members) < 2:
-            continue
+        members = sorted(mod_to_file[m] for m in comp)
         cycles.append({"members": members, "cycle_length": len(members)})
 
     cycles.sort(key=lambda c: c["members"][0])
