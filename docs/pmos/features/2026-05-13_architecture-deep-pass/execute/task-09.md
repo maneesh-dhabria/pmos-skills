@@ -8,7 +8,7 @@ worktree_path: "/Users/maneeshdhabria/Desktop/agent-skills-architecture-deep-pas
 status: done
 started_at: 2026-05-22T04:50:00Z
 completed_at: 2026-05-22T05:20:00Z
-commit_sha: 80b8b18
+commit_sha: 5fd3f6d
 files_touched:
   - plugins/pmos-toolkit/skills/architecture/principles.yaml
   - plugins/pmos-toolkit/skills/architecture/tools/run-audit.sh
@@ -96,4 +96,4 @@ from 10 → 11 U-rules is still in cap.
 ## Commits
 
 - `ee40080` — `feat(T9): U011 cross-file dup-signature evaluator`
-- `80b8b18` — `fix(T9): drop decorative comments per Q-review`
+- `5fd3f6d` — `fix(T9): drop decorative comments per Q-review`
