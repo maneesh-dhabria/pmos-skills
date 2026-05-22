@@ -1,4 +1,4 @@
-# l1-security — U009/U010 block-severity rules fire.
+# l1-security — U009/U010 must_fix rules fire.
 set -euo pipefail
 out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
 rules=$(echo "$out" | jq -r '.findings | map(.rule_id) | unique | join(",")')

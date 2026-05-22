@@ -1,0 +1,13 @@
+# legacy-principles-severity — E7: user L3 principles.yaml carrying a legacy
+# `severity:` key (no `disposition:`) must produce exit 64 with the documented
+# rename-hint stderr per spec §10.2 + D5 (v1→v2 breaking rename).
+set -euo pipefail
+RUN_AUDIT="$SKILL_DIR/tools/run-audit.sh"
+
+rc=0; err=$(bash "$RUN_AUDIT" audit . 2>&1 >/dev/null) || rc=$?
+[ "$rc" = "64" ] \
+  || { echo "E7: legacy severity key did not exit 64 (got $rc)"; echo "$err"; exit 1; }
+echo "$err" | grep -q "legacy 'severity:' key" \
+  || { echo "E7: stderr missing the 'legacy severity key' hint"; echo "$err"; exit 1; }
+echo "$err" | grep -q "rename to 'disposition:'" \
+  || { echo "E7: stderr missing the rename instruction"; echo "$err"; exit 1; }
