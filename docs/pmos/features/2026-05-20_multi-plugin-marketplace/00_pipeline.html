@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>/feature-sdlc — pipeline status (multi-plugin-marketplace)</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.47.0">
+  <script defer src="assets/viewer.js?v=2.47.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/feature-sdlc — pipeline status</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+<section id="metadata">
+<h2 id="metadata-h">Metadata</h2>
+<ul>
+  <li><strong>schema_version:</strong> 1</li>
+  <li><strong>Slug:</strong> multi-plugin-marketplace</li>
+  <li><strong>Tier:</strong> 3</li>
+  <li><strong>Mode:</strong> interactive</li>
+  <li><strong>Worktree:</strong> /Users/maneeshdhabria/Desktop/Projects/agent-skills-multi-plugin-marketplace</li>
+  <li><strong>Branch:</strong> feat/multi-plugin-marketplace</li>
+  <li><strong>Feature folder:</strong> docs/pmos/features/2026-05-20_multi-plugin-marketplace</li>
+  <li><strong>Started:</strong> 2026-05-20T00:00:00Z</li>
+  <li><strong>Last updated:</strong> 2026-05-22T09:55:00Z</li>
+  <li><strong>Current phase:</strong> execute (paused — Phase 1 of plan complete; HALT_FOR_COMPACT before T4)</li>
+  <li><strong>Output format:</strong> html</li>
+  <li><strong>Notes:</strong> adopted-into-pipeline:state-initialized-retroactively-2026-05-22 (requirements + grill artifacts pre-existed)</li>
+</ul>
+</section>
+
+<section id="phases">
+<h2 id="phases-h">Phases</h2>
+<table>
+<thead>
+<tr><th>#</th><th>Phase</th><th>Hardness</th><th>Status</th><th>Artifact</th><th>Timestamp</th><th>Notes</th></tr>
+</thead>
+<tbody>
+<tr><td>0a</td><td>worktree</td><td>infra</td><td>skipped</td><td>—</td><td>—</td><td>pre-existing worktree adopted</td></tr>
+<tr><td>1</td><td>init-state</td><td>infra</td><td>completed</td><td><code>.pmos/feature-sdlc/state.yaml</code></td><td>2026-05-22T06:25:51Z</td><td>—</td></tr>
+<tr><td>2</td><td>requirements</td><td>hard</td><td>completed</td><td><a href="01_requirements.html">01_requirements.html</a></td><td>2026-05-20T00:00:00Z</td><td>completed pre-adoption (commits 38cdcd9, 4ee1506)</td></tr>
+<tr><td>2a</td><td>grill</td><td>soft</td><td>completed</td><td><a href="grills/2026-05-22_01_requirements-2.html">grills/2026-05-22_01_requirements-2.html</a></td><td>2026-05-22T00:00:00Z</td><td>two grill passes ran pre-adoption</td></tr>
+<tr><td>3a</td><td>creativity-gate</td><td>soft</td><td>skipped</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>3b</td><td>wireframes-gate</td><td>soft</td><td>skipped</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>3c</td><td>prototype-gate</td><td>soft</td><td>skipped</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>4</td><td>spec</td><td>hard</td><td>completed</td><td><a href="02_spec.html">02_spec.html</a></td><td>2026-05-22T06:30:00Z</td><td>—</td></tr>
+<tr><td>5</td><td>plan</td><td>hard</td><td>completed</td><td><a href="03_plan.html">03_plan.html</a></td><td>2026-05-22T07:45:00Z</td><td>execution_mode: subagent-driven; 2 review loops; 7 decision-log entries</td></tr>
+<tr><td>6</td><td><strong>execute</strong></td><td>hard</td><td><strong>paused-resumable (Phase 1 of plan ✅; next: T4)</strong></td><td><a href="execute/phase-1.md">execute/phase-1.md</a></td><td>2026-05-22T09:55:00Z</td><td>T1=b76de64, T2=29f0360, T3=b804e26. Awaiting /compact before T4.</td></tr>
+<tr><td>7</td><td>verify</td><td>hard</td><td>pending</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>8</td><td>complete-dev</td><td>hard</td><td>pending</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>8a</td><td>retro</td><td>soft</td><td>pending</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>9</td><td>final-summary</td><td>infra</td><td>pending</td><td>—</td><td>—</td><td>—</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="deferred-questions">
+<h2 id="deferred-questions-h">Deferred questions</h2>
+<p><em>(none)</em></p>
+</section>
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-20_multi-plugin-marketplace/00_pipeline.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

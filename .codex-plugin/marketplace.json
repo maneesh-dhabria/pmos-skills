@@ -1,0 +1,17 @@
+{
+  "name": "pmos-skills",
+  "owner": {
+    "name": "Maneesh Dhabria",
+    "url": "https://github.com/maneesh-dhabria"
+  },
+  "plugins": [
+    {
+      "name": "pmos-toolkit",
+      "description": "Product management and software delivery pipeline — requirements, spec, plan, execute, verify, and supporting utilities.",
+      "source": "./plugins/pmos-toolkit",
+      "version": "2.51.0",
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
+    }
+  ]
+}

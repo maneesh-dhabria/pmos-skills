@@ -1,0 +1,200 @@
+[
+  {
+    "id": "frontmatter",
+    "level": 2,
+    "title": "Frontmatter",
+    "parent_id": null
+  },
+  {
+    "id": "problem-statement",
+    "level": 2,
+    "title": "1. Problem Statement",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "2. Goals",
+    "parent_id": null
+  },
+  {
+    "id": "non-goals",
+    "level": 2,
+    "title": "3. Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "4. Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "user-journeys-personas",
+    "level": 2,
+    "title": "5. User Personas & Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "system-design",
+    "level": 2,
+    "title": "6. System Design",
+    "parent_id": null
+  },
+  {
+    "id": "repo-layout",
+    "level": 3,
+    "title": "6.1 Architecture Overview — Repo Layout",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-diagrams",
+    "level": 3,
+    "title": "6.2 Sequence Diagrams",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "7. Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-repo-topology",
+    "level": 3,
+    "title": "7.1 Repo Topology",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-marketplace",
+    "level": 3,
+    "title": "7.2 Marketplace Manifests",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-sync-shared",
+    "level": 3,
+    "title": "7.3 scripts/sync-shared.sh",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-pre-commit-hook",
+    "level": 3,
+    "title": "7.4 Pre-commit Drift Hook",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-pre-push-hook",
+    "level": 3,
+    "title": "7.5 Pre-push Hook Extension",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-complete-dev",
+    "level": 3,
+    "title": "7.6 /complete-dev Generalization",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-claude-md",
+    "level": 3,
+    "title": "7.7 CLAUDE.md Edits",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-cutover",
+    "level": 3,
+    "title": "7.8 Cutover Operations",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "nfr",
+    "level": 2,
+    "title": "8. Non-Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "api-contracts",
+    "level": 2,
+    "title": "9. API Contracts",
+    "parent_id": null
+  },
+  {
+    "id": "db-design",
+    "level": 2,
+    "title": "10. Database Design",
+    "parent_id": null
+  },
+  {
+    "id": "frontend-design",
+    "level": 2,
+    "title": "11. Frontend Design",
+    "parent_id": null
+  },
+  {
+    "id": "edge-cases",
+    "level": 2,
+    "title": "12. Edge Cases",
+    "parent_id": null
+  },
+  {
+    "id": "configuration",
+    "level": 2,
+    "title": "13. Configuration & Setup",
+    "parent_id": null
+  },
+  {
+    "id": "testing-verification",
+    "level": 2,
+    "title": "14. Testing & Verification Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "testing-unit",
+    "level": 3,
+    "title": "14.1 Unit / Integration Tests",
+    "parent_id": "testing-verification"
+  },
+  {
+    "id": "testing-manual",
+    "level": 3,
+    "title": "14.2 Manual / Integration Verification",
+    "parent_id": "testing-verification"
+  },
+  {
+    "id": "testing-commands",
+    "level": 3,
+    "title": "14.3 Verification Commands (cheat sheet)",
+    "parent_id": "testing-verification"
+  },
+  {
+    "id": "rollout",
+    "level": 2,
+    "title": "15. Rollout Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "research-sources",
+    "level": 2,
+    "title": "16. Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "silent-roles",
+    "level": 2,
+    "title": "17. Roles Considered, No Questions",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "18. Open Questions",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "19. Review Log",
+    "parent_id": null
+  }
+]

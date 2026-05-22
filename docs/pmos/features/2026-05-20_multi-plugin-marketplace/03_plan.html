@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Multi-plugin marketplace migration — Implementation Plan</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.49.0">
+  <script defer src="assets/viewer.js?v=2.49.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Multi-plugin marketplace migration — Implementation Plan</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+<li><strong>Tier:</strong> 3 — Feature</li>
+<li><strong>Type:</strong> feature</li>
+<li><strong>Feature:</strong> 2026-05-20_multi-plugin-marketplace</li>
+<li><strong>Spec:</strong> <a href="02_spec.html">02_spec.html</a></li>
+<li><strong>Requirements:</strong> <a href="01_requirements.html">01_requirements.html</a></li>
+<li><strong>Date:</strong> 2026-05-22</li>
+<li><strong>Status:</strong> Draft</li>
+<li><strong>Commit cadence:</strong> per-task</li>
+<li><strong>Contract version:</strong> 1</li>
+<li><strong>Execution mode:</strong> subagent-driven (chosen at close — independent tasks T2/T3 run in parallel; T5/T6 sequential same-file; cutover T9-T11 sequential)</li>
+</ul>
+</section>
+
+<section id="overview">
+<h2 id="overview">1. Overview</h2>
+<p>Migrate the single-plugin <code>pmos-toolkit</code> repo to a multi-plugin <code>pmos-skills</code> monorepo so a second plugin (<code>pmos-learnkit</code>) and future <code>pmos-*</code> plugins can be installed via one marketplace URL. The work spans repo-level tooling (≤100 LOC of new bash: <code>scripts/sync-shared.sh</code>, <code>.githooks/pre-commit</code>, <code>.githooks/pre-push</code> extension), marketplace manifests for both Claude Code and Codex, generalization of <code>/complete-dev</code> SKILL.md (14 templated path refs + per-plugin routing), CLAUDE.md policy edits, and the one-shot cutover release (<code>pmos-toolkit/v2.50.0</code>) that dogfoods the new code path. The cutover is monolithic by design: all code changes ship in one commit (NFR-08), the new <code>/complete-dev</code> code runs at-release for the first time (FR-61), and the old GitHub repo is archived+private after verification (FR-86).</p>
+
+<p><strong>Done when:</strong> <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> in a fresh Claude Code instance shows <code>pmos-toolkit v2.50.0</code> in the install picker; old repo returns <code>archived=true, private=true</code> from <code>gh api</code>; all 18 shell-assertion tests under <code>tests/scripts/assert_*.sh</code> (the new ones from this plan) exit 0; <code>git ls-remote origin pmos-toolkit/v2.50.0</code> returns the same SHA on all three configured remotes; the pre-push hook rejects a deliberate 3-way-version mismatch and accepts a clean one.</p>
+
+<p><strong>Done-when walkthrough:</strong> from a freshly-cloned <code>pmos-skills</code> repo on macOS, running <code>bash tests/scripts/assert_marketplace_json_schema.sh</code> through <code>bash tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code> prints <code>PASS:</code> on each of the 18 named scripts. Opening a fresh Claude Code session and running <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> causes the marketplace picker to list <code>pmos-toolkit</code> with version <code>2.50.0</code>; selecting Install completes and the plugin's commands (e.g., <code>/pmos-toolkit:plan</code>) appear in the prompt completer. From the maintainer's terminal, <code>gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived, .private'</code> returns two lines: <code>true</code> and <code>true</code>. Running <code>git ls-remote origin pmos-toolkit/v2.50.0 | awk '{print $1}'</code> returns a 40-char SHA equal to the output of the same command against <code>work-mirror</code> and <code>gitlab-mirror</code>. Finally, staging <code>echo drift >> plugins/pmos-toolkit/skills/_shared/test-drift.txt</code> + <code>git commit -m test</code> fails with stderr containing <code>_shared/ drift detected</code> and a suggested <code>sync-shared.sh --from=...</code> command.</p>
+
+<p><strong>Execution order:</strong></p>
+<pre><code>Phase 1 — Foundation (T1 tracer, T2, T3)
+  T1: marketplace manifests + jq schema test           [tracer bullet — end-to-end through file/jq/test]
+  T2: scripts/sync-shared.sh + 4 assertion tests        [P with T3]
+  T3: .githooks/pre-commit drift hook + 2 tests          [P with T2]
+
+Phase 2 — /complete-dev generalization (T4..T6)
+  T4: .githooks/pre-push extension + 4 tests             (depends T1)
+  T5: /complete-dev argument parsing + diff routing + 3 tests   (depends none — SKILL.md edit)
+  T6: /complete-dev path templating + version-bump 3-way + tag format + push-all-remotes + 2 tests   (depends T5)
+
+Phase 3 — Policy docs (T7, T8)
+  T7: CLAUDE.md edits (4 sections + new ## Release policy) + 2 grep tests    [P with T8]
+  T8: CONTRIBUTING.md (NEW) + .githooks/README.md extended                   [P with T7]
+
+Phase 4 — Cutover ops (T9..T11) — runbook, gated on prior phases
+  T9:  Pre-cutover local verification — run all 18 tests + /complete-dev --plugin pmos-toolkit --dry-run
+  T10: Create pmos-skills GH repo + remote rename + push monorepo + merge to main
+  T11: Cut pmos-toolkit/v2.50.0 + verify fresh-CC install + archive old repo + update README/plugin.json URLs
+
+TN: Final verification — full assertion-test sweep + manifest schema parse + fresh-CC install + post-archive audit + Done-when walkthrough.
+</code></pre>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">2. Decision Log</h2>
+<p>Inherits D1–D24 from <a href="02_spec.html#decision-log">spec §4 Decision Log</a> (architecture-level). Entries below are implementation-specific decisions made during planning.</p>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr>
+<tr><td>P1</td><td><strong>Test convention:</strong> follow the existing <code>tests/scripts/assert_*.sh</code> pattern (bash, exits 0 on pass; runnable individually; no harness/runner). All 18 new tests are plain bash files.</td><td>(a) introduce a tap-style harness; (b) use <code>bats</code>; (c) follow the existing <code>assert_*.sh</code> pattern (chosen).</td><td>(c) preserves the repo's zero-dep test convention (verified at <code>tests/scripts/assert_resolve_input.sh</code> et al). No new test framework dependency; new tests are immediately discoverable by the existing <code>for t in tests/scripts/assert_*.sh; do bash "$t"; done</code> loop pattern.</td></tr>
+<tr><td>P2</td><td><strong>T1 tracer bullet = marketplace manifests + jq schema test.</strong> It's the smallest vertical that cuts through file authoring → jq parse → assertion test → commit, and produces the FR-10/FR-12/FR-14 artifacts every downstream task depends on (FR-40's 3-way check is meaningless without both marketplace.json files in place).</td><td>(a) start with sync-shared.sh (no manifests required); (b) start with /complete-dev arg parsing (no test layer involved); (c) start with marketplace manifests + jq test (chosen).</td><td>(c) derisks the manifest schema choice early — if jq + the Claude Code marketplace schema disagree on shape, T1 surfaces it before any hook or /complete-dev work is built on top. Both (a) and (b) postpone the highest-coupling artifact (marketplace.json) and force later tasks to backtrack if its shape needs revision.</td></tr>
+<tr><td>P3</td><td><strong>Test fixtures live under <code>tests/fixtures/multi-plugin/</code>.</strong> Each fixture is a minimal <code>plugins/</code> subtree the assertion script <code>cp -r</code>'s into a temp dir, mutates, then asserts against. No fixtures are committed at runtime-mutable paths.</td><td>(a) construct fixtures inline in each test script via heredoc; (b) commit static fixtures under <code>tests/fixtures/multi-plugin/</code> and have tests copy them to <code>$(mktemp -d)</code> before mutation (chosen); (c) tests operate on the real repo's <code>plugins/</code> tree (forbidden — destructive).</td><td>(b) keeps assertions readable (no heredoc walls) and reusable across tests; <code>cp -r ... $(mktemp -d)</code> isolates mutation; matches the convention seen at <code>tests/fixtures/specs/</code> and <code>tests/fixtures/chrome-strip/</code>. (c) is unsafe; the drift-detection tests deliberately introduce drift and could land staged in <code>plugins/pmos-toolkit/skills/_shared/</code> if not isolated.</td></tr>
+<tr><td>P4</td><td><strong>Pre-push hook extension is layered, not rewritten.</strong> The existing 76-LOC body (the inner 2-way version-sync loop) becomes the body of an outer <code>for plugin in plugins/*/</code> iteration. Tag-format + tag-version-match are appended as a separate top-of-script section that runs once per push, not per plugin (per FR-41 / FR-46a).</td><td>(a) rewrite from scratch with cleaner separation; (b) extend in place, wrapping the existing 2-way check as the inner loop body (chosen per FR-46a).</td><td>(b) preserves <code>git blame</code> on the 76 existing lines and respects FR-46a's explicit plan-dependency. Rewriting (a) would obscure attribution and risk regressing edge-cases the existing hook already handles (empty diffs, deleted branches, new-branch base resolution at lines 23-34).</td></tr>
+<tr><td>P6</td><td><strong>Extract <code>/complete-dev</code> Phase 0 diff-routing logic into a runtime helper at <code>plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh</code>; SKILL.md Phase 0 invokes it via Bash, so the helper IS production (not test-only).</strong></td><td>(a) test SKILL.md prose by capturing output of a real <code>/complete-dev</code> invocation against fixture diffs; (b) extract the routing logic into a test-tree helper that SKILL.md "cites" (rejected at Loop 2 — divergence trap: skill loader runs prose, not helper); (c) extract the routing logic into a <em>runtime</em> helper at <code>plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh</code> that SKILL.md Phase 0 actually invokes via a Bash step (chosen).</td><td>(c) makes the helper production — the skill loader does execute Bash steps in SKILL.md, so the helper runs at <code>/complete-dev</code> invocation time. Tests against the same helper file therefore test the actual code path, eliminating the Loop-2-flagged divergence trap. The pattern is straightforward for skills (script-as-impl, prose-as-orchestration).</td></tr>
+<tr><td>P7</td><td><strong>Defer the marketplace.json <code>plugins[pmos-toolkit].version</code> bump from T1 to T11.</strong> T1 anchors all four manifest entries at the pre-cutover <code>2.49.0</code>; T11's <code>/complete-dev</code> bumps all four to <code>2.50.0</code> atomically.</td><td>(a) bump marketplace entries to <code>2.50.0</code> in T1 (creates R7: 3-way invariant violated between T1 and T11; requires <code>--no-verify</code> on all intermediate pushes); (b) defer the bump to T11 so the invariant is never violated (chosen at Loop 2).</td><td>(b) eliminates R7 entirely. The pre-push hook from T4 passes cleanly on every intermediate feature-branch push. <code>assert_marketplace_json_schema.sh</code> is rewritten to assert cross-manifest version equality (not a hardcoded literal), so it stays correct across the 2.49.0→2.50.0 transition.</td></tr>
+<tr><td>P5</td><td><strong>Cutover ops (T10/T11) are runbook tasks, not TDD.</strong> Each substep has a precise <code>gh</code> / <code>git</code> command and an expected output assertion, but there is no inline "write failing test → implement" cycle — the steps are mutations to GitHub / remote state that cannot be unit-tested. Verification is post-hoc via <code>gh api</code> and <code>git ls-remote</code> checks. <strong>Slice shape:</strong> <code>config</code> — these are infrastructure mutations, not user-observable behavior changes deliverable in isolation.</td><td>(a) wrap each cutover substep in a mock-via-fixture test before running it (chosen — for the auto-detect and refuse logic in T5/T6); (b) skip the test layer entirely for cutover ops, rely on post-hoc verification (chosen — for the irreversible GH-state mutations in T10/T11); (c) defer cutover until automation is built.</td><td>(b) for T10/T11 because the actions are inherently one-shot (rename remote, archive repo); test-doubling them would be theatre. Post-hoc <code>gh api repos/... -q '.archived,.private'</code> verifies the resulting state directly. (a) still applies to T5/T6's <em>logic</em> (auto-detect, refusal), which is mocked via fixture diffs.</td></tr>
+</table>
+</section>
+
+<section id="code-study-notes">
+<h2 id="code-study-notes">3. Code Study Notes</h2>
+<p>Glossary inherited from <a href="02_spec.html">spec</a> — see spec §17 silent-roles and §4 Decision Log for terminology. The plan introduces no new domain terms.</p>
+
+<h3 id="patterns-to-follow">3.1 Patterns to follow</h3>
+<ul>
+<li><code>tests/scripts/assert_resolve_input.sh</code> (32 lines) — canonical <code>assert_*.sh</code> shape: <code>set -e</code>, named-case loop, OK/FAIL prints, exit-1 on any failure, PASS line on success. Reused by every new test in this plan.</li>
+<li><code>.githooks/pre-push:14-21</code> — <code>get_version()</code> helper using <code>git show $ref:$path | sed</code> to extract <code>"version"</code> from JSON without jq. Reused for the inner 2-way check in T4's outer loop body. (Note: T4 adds <code>jq</code>-based reads for the marketplace.json plugin-array lookup since <code>sed</code> can't index by <code>name</code>.)</li>
+<li><code>.githooks/pre-push:23-34</code> — new-branch / deleted-branch handling via <code>$ZERO</code> sentinel; this block is preserved verbatim under the outer loop.</li>
+<li>HTML substrate at <code>plugins/pmos-toolkit/skills/_shared/html-authoring/</code> — not directly used by this plan's runtime artifacts (no docs HTML emitted), but the plan doc itself uses it.</li>
+</ul>
+
+<h3 id="existing-code-to-reuse">3.2 Existing code to reuse</h3>
+<ul>
+<li><code>.githooks/pre-push</code> (76 LOC) — outer wrapping target; T4 reuses lines 23-72 verbatim as the inner-loop body.</li>
+<li><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> (774 LOC) — single-file SKILL with the 14 hardcoded path refs at lines 323, 389, 429, 431, 444, 453, 461, 477, 496, 504, 505, 514, 616, 753 (Subagent A §1 + spec FR-56). T5/T6 edit in place.</li>
+<li><code>.claude-plugin/marketplace.json</code> (18 lines) — existing structure (one-plugin array); T1 renames top-level <code>name</code>, bumps the <code>pmos-toolkit</code> entry's <code>version</code> from <code>1.0.0</code> to <code>2.50.0</code>, and creates the parallel <code>.codex-plugin/marketplace.json</code> with the same shape.</li>
+<li><code>CLAUDE.md</code> sections <code>## Canonical skill path (pmos-toolkit)</code>, <code>## Skill-authoring conventions</code>, <code>## Plugin manifest version sync</code>, <code>## Release entry point</code> (lines 5-46) — T7 generalizes these in place.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/canonical-path.md</code> + <code>plugins/pmos-toolkit/skills/_shared/non-interactive.md</code> — <em>not</em> consumed by this plan; cited only because T4/T5 SKILL.md edits must preserve <code>_shared/</code> token references already in <code>/complete-dev</code>.</li>
+</ul>
+
+<h3 id="constraints-discovered">3.3 Constraints discovered</h3>
+<ul>
+<li><strong>Macos default tools.</strong> <code>diff -rq</code>, <code>rsync -a --delete</code>, <code>jq</code>, <code>sed</code> are all standard on macOS + Linux. The repo's <code>CLAUDE.md ## Bash portability</code> invariant (line 47-51) about <code>BASH_SOURCE[0]</code> fallback applies — new scripts under <code>scripts/</code> and <code>.githooks/</code> must not rely on it being populated; resolve paths from <code>$0</code> or repo-relative <code>cd</code>.</li>
+<li><strong>The 4 currently-configured remotes</strong> (verified via <code>git remote -v</code>): <code>origin</code> = GitLab, <code>github</code> = GitHub personal (<code>maneesh-dhabria/pmos-toolkit</code>), <code>github-work</code> = GitHub work, <code>all</code> = bulk-fanout (GitLab push + 2 GitHub pushes). The cutover (FR-81) renames <code>origin</code> → <code>gitlab-mirror</code>, renames <code>github</code> → <code>origin</code> (URL re-pointed to <code>pmos-skills</code>), renames <code>github-work</code> → <code>work-mirror</code> (URL re-pointed to <code>pmos-skills</code>), and removes <code>all</code>.</li>
+<li><strong><code>.claude-plugin/marketplace.json[pmos-toolkit].version</code> is <code>1.0.0</code></strong> at HEAD on the feature branch — a stale value never bumped past the initial seed (per Subagent A §2). T1 sets it to <code>2.49.0</code> (matching <code>plugin.json</code>'s current value), so the 3-way invariant is satisfied from T1 onward. T11's <code>/complete-dev --plugin pmos-toolkit</code> bumps all four manifest entries to <code>2.50.0</code> in a single commit (FR-14, FR-57). This ordering eliminates the previously-feared R7 (no temporary invariant violation, no <code>--no-verify</code> pushes needed for intermediate feature-branch commits).</li>
+<li><strong>plugin.json + codex-plugin/plugin.json currently at 2.49.0.</strong> All four manifest entries (the two plugin.json files + the two marketplace.json plugin-array entries) sit at <code>2.49.0</code> through Phases 1–3. T11's <code>/complete-dev --plugin pmos-toolkit</code> bumps all four to <code>2.50.0</code> as a single per-plugin lockstep (FR-57); this IS the cutover release commit.</li>
+<li><strong>No <code>scripts/</code> directory at repo root</strong> — T2 creates it as part of writing <code>scripts/sync-shared.sh</code>.</li>
+<li><strong>No <code>CONTRIBUTING.md</code> at repo root</strong> — T8 creates it.</li>
+<li><strong>Existing <code>.githooks/</code> contains <code>pre-push</code> + <code>README.md</code>.</strong> The repo-local <code>core.hooksPath</code> is already configured for Maneesh's clone (per Subagent A §5). T3 adds <code>pre-commit</code> alongside.</li>
+<li><strong>Per FR-43</strong>, pre-existing tags (<code>v2.x</code>, <code>pmos-toolkit-v2.x</code>, <code>pmos-toolkit-2.x</code>) are NOT retroactively validated — T4's tag-format check applies only to tags being newly pushed (i.e., not already present on the remote). Implementation cue: in the pre-push hook, iterate <code>$(git tag --points-at $local_oid)</code> filtered against <code>git ls-remote --tags origin</code>.</li>
+</ul>
+
+<h3 id="stack-signals">3.4 Stack signals</h3>
+<ul>
+<li>No <code>package.json</code>, <code>Gemfile</code>, <code>go.mod</code>, <code>pyproject.toml</code>, <code>Cargo.toml</code>, <code>docker-compose.yml</code>, <code>Makefile</code>, or <code>Dockerfile</code> at the repo root. This is a markdown + bash + JSON skill-loader repository — no application stack to detect.</li>
+<li><strong>Greenfield substitute</strong> (per FR-91): reference system = this repo's own <code>tests/scripts/</code> bash-assertion convention (32 existing <code>assert_*.sh</code> files). Structural choices in this plan cite the existing scripts as their reference; absence of a JS/Python/etc stack is not a license to invent.</li>
+<li><strong>Required system tools at runtime:</strong> <code>bash</code> (≥3.2), <code>git</code>, <code>jq</code>, <code>rsync</code>, <code>diff</code>, <code>sed</code>, <code>awk</code>. All standard on macOS and Linux. Windows is out-of-scope per spec NFR-04.</li>
+</ul>
+
+<h3 id="tracer-bullet">3.5 Tracer-bullet candidate (Phase 2 step 7)</h3>
+<p>Tracer-bullet candidate: <strong>T1 (marketplace manifests + jq schema test)</strong> — exercises file authoring → jq schema parse → bash assertion test → commit. Risk it derisks: <em>does the Claude Code marketplace schema we plan to ship actually parse cleanly, and does our <code>plugins</code>-array entry shape match what FR-40's 3-way check will read?</em> Surfacing this in T1 means a schema misunderstanding is caught before any hook, /complete-dev edit, or cutover op is built on top.</p>
+</section>
+
+<section id="prerequisites">
+<h2 id="prerequisites">4. Prerequisites</h2>
+<ul>
+<li><strong>Working tree on <code>feat/multi-plugin-marketplace</code></strong> (verified clean before plan run).</li>
+<li><strong>System tools present:</strong> <code>bash</code>, <code>git</code>, <code>jq</code> (<code>brew install jq</code> if missing), <code>rsync</code>, <code>gh</code> (GitHub CLI, authenticated as <code>maneesh-dhabria</code>).</li>
+<li><strong>SSH access:</strong> SSH keys configured for <code>github.com</code> (personal account, <code>git@github.com</code>), <code>github.com-work</code> (work-account host alias), and <code>gitlab.com</code> — already true (verified via <code>git remote -v</code>).</li>
+<li><strong>GitHub permissions:</strong> ability to <code>gh repo create</code> under the <code>maneesh-dhabria</code> namespace, set branch protection, and (in T11) <code>gh repo archive</code> + <code>gh repo edit --visibility private</code> on <code>maneesh-dhabria/pmos-toolkit</code>.</li>
+<li><strong>Fresh Claude Code instance available</strong> for the FR-84 verification step in T11 (a different CC project root, ideally a freshly cloned empty directory).</li>
+<li><strong>Read access to Subagent A's findings</strong> in <a href="02_spec.html#research-sources">spec §16</a> — referenced as the source-of-truth for the 14 cited <code>/complete-dev</code> lines, the 76-LOC pre-push count, the 32 <code>${CLAUDE_PLUGIN_ROOT}</code> refs, the stale <code>1.0.0</code> in <code>marketplace.json</code>, and the 4 configured remotes.</li>
+</ul>
+</section>
+
+<section id="file-map">
+<h2 id="file-map">5. File Map</h2>
+<p>Generated index pointing back to per-task <strong>Files:</strong> sections — tasks are source of truth.</p>
+<table>
+<tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr>
+<tr><td>Modify</td><td><code>.claude-plugin/marketplace.json</code></td><td>Rename top-level <code>name</code> to <code>pmos-skills</code>; bump <code>plugins[pmos-toolkit].version</code> from <code>1.0.0</code> to <code>2.49.0</code> (matching <code>plugin.json</code>); T11's <code>/complete-dev</code> bumps all four to <code>2.50.0</code> together</td><td>T1</td></tr>
+<tr><td>Create</td><td><code>.codex-plugin/marketplace.json</code></td><td>Codex marketplace manifest with parallel shape — same plugins-array entry, version <code>2.49.0</code> matching the rest; T11 bumps to <code>2.50.0</code> together</td><td>T1</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_marketplace_json_schema.sh</code></td><td>jq parse both manifests; assert plugin entries carry name/description/source/version/category/homepage; assert name="pmos-skills"</td><td>T1</td></tr>
+<tr><td>Create</td><td><code>scripts/sync-shared.sh</code></td><td>Bash, ≤30 LOC, <code>--from=&lt;plugin&gt;</code> + <code>--dry-run</code> + <code>--help</code>; mkdir -p + rsync --delete to each peer</td><td>T2</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_sync_shared_idempotent.sh</code></td><td>Two consecutive runs; second is a no-op</td><td>T2</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_sync_shared_dry_run.sh</code></td><td>Dry-run after deliberate drift; stdout names diverging files; filesystem unchanged</td><td>T2</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_sync_shared_single_plugin_noop.sh</code></td><td>One plugin only; exit 0 + stderr no-op message</td><td>T2</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_sync_shared_bad_usage.sh</code></td><td>Bad <code>--from</code>: exit 64; missing flag: exit 64; <code>--help</code>: exit 0</td><td>T2</td></tr>
+<tr><td>Create</td><td><code>.githooks/pre-commit</code></td><td>Bash, ≤30 LOC; short-circuit when no <code>_shared/</code> in staged diff; <code>diff -rq</code> against alphabetically-first peer; suggested <code>sync-shared.sh</code> fix on failure</td><td>T3</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_commit_drift_detected.sh</code></td><td>Deliberate drift fixture → hook exits non-zero + stderr contains "drift detected" + sync-shared.sh hint</td><td>T3</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_commit_short_circuit.sh</code></td><td>Non-<code>_shared/</code> staged diff → exits 0 without calling <code>diff -rq</code> (verified via PATH-shadowed mock)</td><td>T3</td></tr>
+<tr><td>Modify</td><td><code>.githooks/pre-push:1-76</code></td><td>Wrap existing 2-way check (lines 23-72) as inner body of <code>for plugin in plugins/*/</code> outer loop; add jq-based 3-way check (marketplace.json plugin-array entry); add tag-format + tag-version-match for newly-pushed tags only</td><td>T4</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_push_3_way_version_match.sh</code></td><td>Fixture: plugin.json=2.50.0 but marketplace.json entry=2.49.0 → reject with named plugin + observed versions</td><td>T4</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_push_tag_format.sh</code></td><td><code>v3.0.0</code> rejected (no plugin prefix); <code>pmos-toolkit/v3.0.0</code> accepted when manifests at 3.0.0</td><td>T4</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_push_tag_version_match.sh</code></td><td>Manifests at 2.50.0; tag <code>pmos-toolkit/v2.51.0</code> rejected; <code>pmos-toolkit/v2.50.0</code> accepted</td><td>T4</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_pre_push_preserves_existing_tags.sh</code></td><td>Branch push with no new tags → hook does not validate pre-existing <code>v2.x</code> / <code>pmos-toolkit-2.x</code> tags</td><td>T4</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> (Phase 0 region)</td><td>Add <code>--plugin &lt;name&gt;</code> flag parsing; auto-detect from diff; refuse-on-ambiguity; substrate-smart-detect prompt; read CLAUDE.md <code>## Release policy</code></td><td>T5</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_complete_dev_auto_detect.sh</code></td><td>Mock Phase 0 — diff exclusively under one plugin → confirmation prompt names that plugin</td><td>T5</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_complete_dev_refuse_ambiguous.sh</code></td><td>Diff with non-_shared/ changes in two plugins → exit 64 with refuse message</td><td>T5</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_complete_dev_substrate_smart_detect.sh</code></td><td>Diff exclusively under _shared/ paths in multiple plugins → "ride which plugin?" prompt fires</td><td>T5</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> (lines 323, 389, 429, 431, 444, 453, 461, 477, 496, 504, 505, 514, 616, 753 + Phase 10/11 + Phase 13/15)</td><td>Template 14 path refs to <code>plugins/${plugin_name}/</code>; bump 4 manifests (2× plugin.json + 2× marketplace.json entry); tag as <code>${plugin_name}/v${semver}</code>; push to every configured remote</td><td>T6</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code></td><td>grep -nE 'plugins/pmos-toolkit/' SKILL.md returns matches only inside designated example/preserved blocks; 14 cited lines all templated</td><td>T6</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_skill_substrate_refs_unchanged.sh</code></td><td>grep <code>${CLAUDE_PLUGIN_ROOT}/skills/_shared</code> count under <code>plugins/pmos-toolkit/skills/</code> equals pre-cutover count (32); <code>plugins/pmos-toolkit/skills/_shared</code> hardcoded refs = 0</td><td>T6</td></tr>
+<tr><td>Modify</td><td><code>CLAUDE.md</code> (lines 5-46)</td><td>Generalize 4 sections (FR-70..FR-73); add new <code>## Release policy</code> section per FR-74</td><td>T7</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_claude_md_generalized.sh</code></td><td>grep -nE 'plugins/pmos-toolkit/' CLAUDE.md returns matches ONLY inside Release-policy example block; <code>plugins/&lt;plugin&gt;/</code> count ≥ 4</td><td>T7</td></tr>
+<tr><td>Test</td><td><code>tests/scripts/assert_release_policy_section.sh</code></td><td>CLAUDE.md contains <code>## Release policy</code> heading; body lists both plugins (or just pmos-toolkit pre-learnkit); 6 required subsections per FR-74</td><td>T7</td></tr>
+<tr><td>Create</td><td><code>CONTRIBUTING.md</code></td><td>External contributor workflow; documents <code>git config core.hooksPath .githooks</code> + jq dependency + WSL note for Windows</td><td>T8</td></tr>
+<tr><td>Modify</td><td><code>.githooks/README.md</code></td><td>Document both hook contracts: pre-commit drift check + pre-push 3-way + tag rules</td><td>T8</td></tr>
+<tr><td>Run</td><td><code>(no file emit — runbook task)</code></td><td>Run all 18 assert_*.sh scripts locally; run <code>/complete-dev --plugin pmos-toolkit --dry-run</code>; confirm exit 0 / dry-run summary matches expectation</td><td>T9</td></tr>
+<tr><td>Mutate</td><td><code>(GitHub state — gh repo create)</code></td><td>Create <code>maneesh-dhabria/pmos-skills</code> repo; enable branch protection on <code>main</code> with admin-bypass</td><td>T10</td></tr>
+<tr><td>Mutate</td><td><code>(local git remote state)</code></td><td>6-command remote rename sequence (FR-81); push feature branch + main to all 3 remotes; merge feature branch to main on new origin</td><td>T10</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code></td><td>Update <code>homepage</code> + <code>repository</code> URLs from <code>pmos-toolkit</code> → <code>pmos-skills</code> (lands in same commit as the cutover release)</td><td>T11</td></tr>
+<tr><td>Modify</td><td><code>README.md</code> (top-level)</td><td>Add migration breadcrumb: "Previously the pmos-toolkit marketplace; now hosts multiple pmos-* plugins"</td><td>T11</td></tr>
+<tr><td>Run</td><td><code>(release op — /complete-dev --plugin pmos-toolkit)</code></td><td>Cuts <code>pmos-toolkit/v2.50.0</code>: bumps 4 manifest entries to 2.50.0, tags <code>pmos-toolkit/v2.50.0</code>, pushes to all 3 remotes</td><td>T11</td></tr>
+<tr><td>Mutate</td><td><code>(GitHub state — gh repo archive + visibility)</code></td><td>Archive + privatize old <code>maneesh-dhabria/pmos-toolkit</code> after fresh-CC install verifies; preceded by gh pr list + gh forks audit (FR-85)</td><td>T11</td></tr>
+</table>
+
+<p>File-action verbs used: <code>Create</code> (new file), <code>Modify</code> (in-place edit), <code>Test</code> (new test file), <code>Run</code> (runbook step with no on-disk artifact), <code>Mutate</code> (external state — git remote / GitHub repo). No <code>Move</code> / <code>Rename</code> / <code>Delete</code> rows in this plan.</p>
+</section>
+
+<section id="risks">
+<h2 id="risks">6. Risks</h2>
+<table>
+<tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in:</th></tr>
+<tr><td>R1</td><td>Cutover release (<code>pmos-toolkit/v2.50.0</code>) has a defect in the just-generalized <code>/complete-dev</code> code — discovered only at release-time (FR-61 chicken-and-egg risk).</td><td>Medium</td><td>High</td><td>High</td><td>T9's local dry-run (<code>/complete-dev --plugin pmos-toolkit --dry-run</code>) against the feature branch surfaces most code-path defects before T11's real release. T11's order keeps old repo discoverable until install-verify passes — fix-forward to v2.50.1 per D24 is the documented recovery, with no archive until step 8 (FR-85). Plus: T5/T6 have isolated mock-fixture tests for the auto-detect / refuse / templating logic that exercise the new code paths without needing a real release.</td><td>T9, T11</td></tr>
+<tr><td>R2</td><td>jq missing on a target user's system causes pre-push hook to error mid-push, blocking release. The cutover release itself depends on the new pre-push hook passing.</td><td>Low</td><td>Medium</td><td>Medium</td><td>T4's hook implements FR-45: errors fast with <code>pre-push: jq not installed; install via brew/apt/dnf and retry.</code> + exit 1. T4's test <code>assert_pre_push_3_way_version_match.sh</code> runs under the maintainer's existing jq install; CONTRIBUTING.md (T8) documents jq as a prereq.</td><td>T4, T8</td></tr>
+<tr><td>R3</td><td>Remote-rename collision (E14) — if local repo already has a <code>gitlab-mirror</code> or <code>work-mirror</code> remote from prior config, FR-81's <code>git remote rename</code> commands fail mid-sequence and leave the local config in a partially-renamed state.</td><td>Low</td><td>Medium</td><td>Medium</td><td>T10's first substep runs <code>git remote -v</code> and asserts the expected starting state (4 remotes: origin/github/github-work/all). If any of <code>gitlab-mirror</code>, <code>work-mirror</code> already exist, the runbook halts and asks the user to <code>git remote remove</code> them manually before retry. Captured in T10's substep 1.</td><td>T10</td></tr>
+<tr><td>R4</td><td>Drift hook accepts <code>--no-verify</code> bypass (E7, D16) — drift can land on feature branch and propagate to main if PR self-review misses it. Solo-maintainer risk.</td><td>Low</td><td>Low</td><td>Low</td><td>Accepted per D16 (no extra bypass guard). T3's test verifies the hook DOES fire when invoked; not bypass-defeating. Mitigation surfaced in <a href="02_spec.html#edge-cases">spec §E7</a>; not coded around.</td><td>T3 (test verifies fire-when-invoked)</td></tr>
+<tr><td>R5</td><td><code>/complete-dev</code> hardcoded-path templating misses one of the 14 cited lines (or the one Subagent A flagged at line 753 that the requirements doc missed). The skill silently uses the wrong path at release time.</td><td>Low</td><td>High</td><td>Medium</td><td>T6's test <code>assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code> hard-asserts the grep result — any leftover hardcoded <code>plugins/pmos-toolkit/</code> outside the designated example/preserved block fails. The spec's FR-56 lines (323, 389, 429, 431, 444, 453, 461, 477, 496, 504, 505, 514, 616) + Subagent A's extra (line 753) are enumerated in T6's substeps with line-anchored Edit operations.</td><td>T6</td></tr>
+<tr><td>R6</td><td>Marketplace schema misunderstanding — the Claude Code schema or the Codex schema rejects a field shape (e.g., <code>source</code> as a relative path vs. an object) and the picker shows nothing or the manifest 404s.</td><td>Low</td><td>High</td><td>Medium</td><td>T1 cites the Anthropic + Codex docs (<a href="02_spec.html#research-sources">spec §16</a> external links). T1's jq schema test asserts the required keys but cannot validate against the official schema (no schema URL is callable in tests). The real schema gates are <strong>both</strong> <strong>T11 step 4a (Claude Code install-verify)</strong> AND <strong>T11 step 4b (Codex install-verify — now mandatory, blocks archive per Loop-2 hardening)</strong>. Either gate rejecting the manifest halts the runbook before <code>gh repo archive</code> runs.</td><td>T1, T11 (4a + 4b)</td></tr>
+<tr><td>R7</td><td><s>Pre-push hook validation runs against the cutover commit and fails because marketplace.json entry was bumped to 2.50.0 by T1 but plugin.json is still at 2.49.0 until /complete-dev runs at T11.</s> <strong>RESOLVED in Loop 2 — eliminated by deferring the 2.50.0 bump to T11.</strong> T1 now leaves the marketplace.json entry at 2.49.0 (matching plugin.json); the 3-way invariant holds throughout Phases 1–3. T11's <code>/complete-dev --plugin pmos-toolkit</code> bumps all four to 2.50.0 atomically. No <code>--no-verify</code> pushes needed at any point.</td><td>—</td><td>—</td><td>—</td><td>(See Decision Log P7.)</td><td>—</td></tr>
+</table>
+</section>
+
+<section id="rollback">
+<h2 id="rollback">7. Rollback</h2>
+<ul>
+<li><strong>If T11 cutover release fails verification (FR-84):</strong> do NOT archive old repo. Old <code>maneesh-dhabria/pmos-toolkit</code> remains publicly readable until v2.50.0 is fix-forwarded to v2.50.1 (D24). Fix the defect on <code>feat/multi-plugin-marketplace-fixup</code> → merge to main on <code>pmos-skills</code> → <code>/complete-dev --plugin pmos-toolkit</code> cuts v2.50.1.</li>
+<li><strong>If T10's remote rename mid-sequence corrupts local git config:</strong> <code>git remote remove</code> all remotes and re-add from scratch using the commands in <a href="02_spec.html#fr-cutover">spec FR-81</a>. <code>~/.gitconfig</code> is unaffected; only the local <code>.git/config</code> needs repair.</li>
+<li><strong>If T4 pre-push extension breaks the existing 2-way check (regression):</strong> <code>git revert</code> T4's commit; the existing 76-LOC hook is preserved verbatim as the inner-loop body, so a clean revert restores prior behavior.</li>
+<li><strong>For any task in Phase 1-3:</strong> per-task commits (<strong>commit_cadence: per-task</strong>) mean each task is independently revertable via <code>git revert &lt;sha&gt;</code> before T10 (feature branch is still mutable). After T10's push to new origin, the cutover-feature-branch sequence is immutable on the remote — fix-forward only.</li>
+<li><strong>No rollback for T11 archive step</strong> — D24: forward-only. Once <code>gh repo archive</code> runs, recovery is to un-archive via <code>gh repo unarchive</code> if needed (not a documented procedure, but mechanically possible).</li>
+</ul>
+</section>
+
+<section id="tasks">
+<h2 id="tasks">8. Tasks</h2>
+
+<h3 id="phase-1-foundation">Phase 1: Foundation — manifests + sync tooling + drift hook</h3>
+<p><strong>Phase rationale:</strong> Lay the manifest + tooling substrate every later task depends on. T1 is the tracer bullet (smallest end-to-end through file-write → jq-parse → assertion test). T2 and T3 are parallelizable peers — independent shell scripts with isolated fixtures. Phase exit criterion: all 7 new tests in this phase exit 0 against fixtures; <code>jq empty</code> parses both marketplace manifests.</p>
+
+<h4 id="t1">T1: Marketplace manifests — rename + bump + Codex create + schema test</h4>
+<p><strong>Goal:</strong> Establish the multi-plugin marketplace manifests at the repo root: rename Claude Code marketplace to <code>pmos-skills</code>, bump the <code>pmos-toolkit</code> entry to <code>2.50.0</code>, and create the parallel Codex manifest. Add a jq schema-assertion test.</p>
+<p><strong>Spec refs:</strong> FR-04, FR-10, FR-11, FR-12, FR-14, <a href="02_spec.html#testing-unit">spec §14.1 (assert_marketplace_json_schema)</a></p>
+<p><strong>Depends on:</strong> none</p>
+<p><strong>Idempotent:</strong> yes — re-running produces byte-identical JSON</p>
+<p><strong>Requires state from:</strong> (none — first task)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — file authoring → jq parse → bash assertion test → commit, end-to-end through the file/test layer the rest of the plan depends on.</p>
+<p><strong>Data:</strong> none (manifest content is the data)</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>.claude-plugin/marketplace.json</code></li>
+<li>Create: <code>.codex-plugin/marketplace.json</code></li>
+<li>Create: <code>tests/scripts/assert_marketplace_json_schema.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Write the failing test</strong> at <code>tests/scripts/assert_marketplace_json_schema.sh</code>:
+<pre><code>#!/usr/bin/env bash
+# Assert: both marketplace.json manifests parse and cross-match plugin.json.
+# FR-04, FR-10, FR-11, FR-12, FR-14; spec §14.1.
+# Note: asserts cross-manifest version equality, NOT a hardcoded literal — T1
+# anchors the marketplace entries at plugin.json's value (2.49.0 pre-cutover),
+# T11's /complete-dev bumps all four to 2.50.0 atomically.
+set -e
+fail=0
+anchor_v=$(jq -r '.version' plugins/pmos-toolkit/.claude-plugin/plugin.json)
+for m in .claude-plugin/marketplace.json .codex-plugin/marketplace.json; do
+  if ! jq empty "$m" 2&gt;/dev/null; then
+    echo "FAIL: $m does not parse"; fail=1; continue
+  fi
+  name=$(jq -r '.name' "$m")
+  if [ "$name" != "pmos-skills" ]; then
+    echo "FAIL: $m top-level name expected 'pmos-skills', got '$name'"; fail=1
+  fi
+  count=$(jq -r '.plugins | length' "$m")
+  if [ "$count" -lt 1 ]; then
+    echo "FAIL: $m plugins[] is empty"; fail=1
+  fi
+  for k in name description source version category; do
+    v=$(jq -r ".plugins[0].$k // empty" "$m")
+    if [ -z "$v" ]; then
+      echo "FAIL: $m plugins[0] missing key '$k'"; fail=1
+    fi
+  done
+  pmos_v=$(jq -r '.plugins[] | select(.name=="pmos-toolkit") | .version' "$m")
+  if [ "$pmos_v" != "$anchor_v" ]; then
+    echo "FAIL: $m plugins[pmos-toolkit].version='$pmos_v' != plugin.json version='$anchor_v' (3-way invariant)"; fail=1
+  fi
+done
+[ $fail -eq 0 ] || exit 1
+echo "PASS: assert_marketplace_json_schema.sh (anchor=$anchor_v)"
+</code></pre>
+Then <code>chmod +x tests/scripts/assert_marketplace_json_schema.sh</code>.</li>
+
+<li>[ ] <strong>Step 2: Run test, confirm failure</strong>
+Run: <code>bash tests/scripts/assert_marketplace_json_schema.sh</code>
+Expected: FAIL — top-level name is <code>pmos-toolkit</code> (not <code>pmos-skills</code>), <code>plugins[pmos-toolkit].version</code> is <code>1.0.0</code> (not the <code>2.49.0</code> anchor), and <code>.codex-plugin/marketplace.json</code> does not exist (jq errors).</li>
+
+<li>[ ] <strong>Step 3: Edit <code>.claude-plugin/marketplace.json</code></strong> — rename top-level <code>name</code> from <code>"pmos-toolkit"</code> to <code>"pmos-skills"</code>; change <code>plugins[0].version</code> from <code>"1.0.0"</code> to <code>"2.49.0"</code> (matching the current value of <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code>'s <code>version</code> field — this re-establishes the 3-way invariant immediately and avoids the previously-feared R7). Leave <code>source</code>, <code>description</code>, <code>category</code>, <code>homepage</code> unchanged. The <code>homepage</code> URL stays <code>github.com/maneesh-dhabria/pmos-toolkit</code> for now — T11 updates it to <code>pmos-skills</code> in the same cutover commit that bumps all four manifest entries to <code>2.50.0</code>.</li>
+
+<li>[ ] <strong>Step 4: Create <code>.codex-plugin/marketplace.json</code></strong> with this exact shape:
+<pre><code>{
+  "name": "pmos-skills",
+  "owner": {
+    "name": "Maneesh Dhabria",
+    "url": "https://github.com/maneesh-dhabria"
+  },
+  "plugins": [
+    {
+      "name": "pmos-toolkit",
+      "description": "Product management and software delivery pipeline — requirements, spec, plan, execute, verify, and supporting utilities.",
+      "source": "./plugins/pmos-toolkit",
+      "version": "2.49.0",
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-toolkit"
+    }
+  ]
+}
+</code></pre>
+The Codex schema is parallel; kept tight to <code>name</code> + <code>owner</code> + <code>plugins[]</code> (the Codex docs at <a href="https://developers.openai.com/codex/plugins/build">developers.openai.com/codex/plugins/build</a> do not publish a <code>$schema</code> URL). <strong>Schema-grounding caveat:</strong> the shape above mirrors the Claude Code schema structurally because Codex docs only specify "relative-path plugin sources supported" — see Risk R6 and the Codex-install mandatory verify step in T11 step 4b for the gate that catches a misshape.</li>
+
+<li>[ ] <strong>Step 5: Re-run test, confirm pass</strong>
+Run: <code>bash tests/scripts/assert_marketplace_json_schema.sh</code>
+Expected: <code>PASS: assert_marketplace_json_schema.sh</code></li>
+
+<li>[ ] <strong>Step 6: Commit</strong>
+<pre><code>git add .claude-plugin/marketplace.json .codex-plugin/marketplace.json tests/scripts/assert_marketplace_json_schema.sh
+git commit -m "feat(T1): multi-plugin marketplace manifests + schema test"
+</code></pre></li>
+</ul>
+
+<p><strong>T0 (Prerequisite Check):</strong></p>
+<ul>
+<li>[ ] <code>which jq</code> returns a path; if not: <code>brew install jq</code> (macOS) or <code>apt install jq</code> (Linux).</li>
+<li>[ ] <code>git rev-parse --abbrev-ref HEAD</code> returns <code>feat/multi-plugin-marketplace</code>.</li>
+<li>[ ] <code>git status --porcelain</code> is empty before starting (commit any in-flight work first).</li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>jq empty .claude-plugin/marketplace.json && jq empty .codex-plugin/marketplace.json</code> — exit 0.</li>
+<li><code>jq -r '.name' .claude-plugin/marketplace.json</code> — outputs <code>pmos-skills</code>.</li>
+<li><code>jq -r '.plugins[0].version' .codex-plugin/marketplace.json</code> — outputs <code>2.49.0</code> (the anchor; T11 bumps to 2.50.0).</li>
+<li><code>bash tests/scripts/assert_marketplace_json_schema.sh</code> — exit 0, prints <code>PASS</code>.</li>
+</ul>
+
+<h4 id="t2">T2: <code>scripts/sync-shared.sh</code> + 4 assertion tests</h4>
+<p><strong>Goal:</strong> Write a ≤30-LOC bash script that propagates one plugin's <code>skills/_shared/</code> tree to every peer plugin under <code>plugins/</code>, with <code>--dry-run</code> + <code>--help</code> + bad-usage exits, and idempotent re-runs. Cover the four required behaviors with one assertion test each.</p>
+<p><strong>Spec refs:</strong> FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, NFR-03, NFR-05, <a href="02_spec.html#testing-unit">spec §14.1</a></p>
+<p><strong>Depends on:</strong> none (parallel with T3)</p>
+<p><strong>Idempotent:</strong> yes — running the script twice consecutively is a no-op (per FR-22 / NFR-05)</p>
+<p><strong>Requires state from:</strong> (none — operates on isolated fixtures during tests; on the real repo at T9)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — script authoring → bash assertion tests → committable in isolation; provides a usable command (<code>scripts/sync-shared.sh --help</code>) on its own.</p>
+<p><strong>Data:</strong> 4 test fixtures under <code>tests/fixtures/multi-plugin/sync-shared/</code> — one for each test case (idempotent, dry-run, single-plugin, bad-usage). Each fixture is a minimal <code>plugins/&lt;a&gt;/skills/_shared/</code> + optionally <code>plugins/&lt;b&gt;/skills/_shared/</code> subtree with 2-3 dummy files.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>scripts/sync-shared.sh</code></li>
+<li>Create: <code>tests/scripts/assert_sync_shared_idempotent.sh</code></li>
+<li>Create: <code>tests/scripts/assert_sync_shared_dry_run.sh</code></li>
+<li>Create: <code>tests/scripts/assert_sync_shared_single_plugin_noop.sh</code></li>
+<li>Create: <code>tests/scripts/assert_sync_shared_bad_usage.sh</code></li>
+<li>Create: <code>tests/fixtures/multi-plugin/sync-shared/{idempotent,dry-run,single-plugin,bad-usage}/plugins/...</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Create fixtures</strong> under <code>tests/fixtures/multi-plugin/sync-shared/&lt;case&gt;/plugins/</code>. Each fixture's <code>plugins/&lt;name&gt;/skills/_shared/</code> contains 2-3 small <code>.md</code> stub files. For the <code>dry-run</code> fixture, the two peers' <code>_shared/</code> trees deliberately differ (one extra file in plugin <code>a</code>).</li>
+
+<li>[ ] <strong>Step 2: Write 4 failing tests</strong> (assertion shape — adapt this template):
+<pre><code>#!/usr/bin/env bash
+# Assert: sync-shared.sh idempotent — second run mutates nothing.
+# FR-20, FR-22, NFR-05; spec §14.1.
+set -e
+SCRIPT=${SCRIPT:-scripts/sync-shared.sh}
+FIX=${FIX:-tests/fixtures/multi-plugin/sync-shared/idempotent}
+TMP=$(mktemp -d)
+trap "rm -rf $TMP" EXIT
+cp -R "$FIX"/. "$TMP"/
+cd "$TMP"
+bash "$OLDPWD/$SCRIPT" --from=plugin-a &gt; /dev/null
+first_hash=$(find plugins -type f -exec sha256sum {} \; | sort | sha256sum)
+bash "$OLDPWD/$SCRIPT" --from=plugin-a &gt; /dev/null
+second_hash=$(find plugins -type f -exec sha256sum {} \; | sort | sha256sum)
+if [ "$first_hash" != "$second_hash" ]; then
+  echo "FAIL: second run mutated state"; exit 1
+fi
+echo "PASS: assert_sync_shared_idempotent.sh"
+</code></pre>
+The other three tests follow the same shape — see <a href="02_spec.html#testing-unit">spec §14.1</a> for their assertions. Tests are illustrative reference shape (per FR-103); /execute may adapt fixture paths and helper invocations to host conventions while preserving inputs/outputs/assertions.</li>
+
+<li>[ ] <strong>Step 3: Run all 4 tests, confirm fail</strong> (<code>scripts/sync-shared.sh</code> doesn't exist yet).
+Run: <code>for t in tests/scripts/assert_sync_shared_*.sh; do bash "$t" || echo "expected: $t failed"; done</code>
+Expected: all 4 print <code>FAIL</code> or error.</li>
+
+<li>[ ] <strong>Step 4: Write <code>scripts/sync-shared.sh</code></strong> (target ≤30 LOC, bash). Reference shape:
+<pre><code>#!/usr/bin/env bash
+# Sync one plugin's skills/_shared/ to every peer plugin under plugins/.
+# Usage: scripts/sync-shared.sh --from=&lt;plugin&gt; [--dry-run] [--help]
+# Per spec FR-20..FR-25.
+set -euo pipefail
+DRY=0; FROM=""
+for arg in "$@"; do
+  case "$arg" in
+    --help) echo "Usage: $0 --from=&lt;plugin&gt; [--dry-run]"; exit 0 ;;
+    --dry-run) DRY=1 ;;
+    --from=*) FROM="${arg#--from=}" ;;
+    *) echo "$0: unknown arg '$arg'" &gt;&amp;2; exit 64 ;;
+  esac
+done
+[ -z "$FROM" ] &amp;&amp; { echo "$0: --from=&lt;plugin&gt; required" &gt;&amp;2; exit 64; }
+SRC="plugins/$FROM/skills/_shared/"
+[ -d "$SRC" ] || { echo "$0: '$SRC' does not exist" &gt;&amp;2; exit 64; }
+peer_count=0
+for d in plugins/*/; do
+  p=$(basename "$d")
+  [ "$p" = "$FROM" ] &amp;&amp; continue
+  peer_count=$((peer_count + 1))
+  DEST="plugins/$p/skills/_shared/"
+  if [ "$DRY" -eq 1 ]; then
+    echo "rsync -a --delete $SRC $DEST"
+  else
+    mkdir -p "$DEST"
+    rsync -a --delete "$SRC" "$DEST"
+  fi
+done
+if [ "$peer_count" -eq 0 ]; then
+  echo "sync-shared.sh: only one plugin, nothing to sync." &gt;&amp;2
+fi
+exit 0
+</code></pre>
+Then <code>chmod +x scripts/sync-shared.sh</code>. Per spec FR-22's destructive-warning note: implementor SHOULD verify the <code>--delete</code> flag is intentional and matches FR-22 wording. <strong>Portability:</strong> the <code>for d in plugins/*/</code> + <code>basename</code> pattern works identically on macOS BSD and Linux GNU userland — no <code>find -printf</code> (GNU-only) and no <code>|| ls</code> fallback that could silently mask a failure (Loop-2 hardening).</li>
+
+<li>[ ] <strong>Step 5: Re-run all 4 tests, confirm pass</strong>
+Run: <code>for t in tests/scripts/assert_sync_shared_*.sh; do bash "$t" || exit 1; done</code>
+Expected: 4× <code>PASS:</code> lines.</li>
+
+<li>[ ] <strong>Step 6: Verify LOC budget</strong>
+Run: <code>wc -l scripts/sync-shared.sh</code>
+Expected: ≤ 30 (per FR-20 / G9).</li>
+
+<li>[ ] <strong>Step 7: Commit</strong>
+<pre><code>git add scripts/sync-shared.sh tests/scripts/assert_sync_shared_*.sh tests/fixtures/multi-plugin/sync-shared/
+git commit -m "feat(T2): scripts/sync-shared.sh + 4 assertion tests"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>wc -l scripts/sync-shared.sh</code> — ≤ 30.</li>
+<li><code>scripts/sync-shared.sh --help</code> — exit 0, prints usage.</li>
+<li><code>scripts/sync-shared.sh</code> (no args) — exit 64, stderr "<code>--from required</code>".</li>
+<li>All 4 <code>assert_sync_shared_*.sh</code> tests — exit 0.</li>
+</ul>
+
+<h4 id="t3">T3: <code>.githooks/pre-commit</code> drift hook + 2 tests</h4>
+<p><strong>Goal:</strong> Write a ≤30-LOC bash pre-commit hook that detects drift across <code>plugins/*/skills/_shared/</code> peer copies and rejects the commit with a suggested <code>sync-shared.sh</code> fix. Short-circuit when the staged diff doesn't touch any <code>_shared/</code> path. Cover both behaviors with one test each.</p>
+<p><strong>Spec refs:</strong> FR-30, FR-31, FR-32, FR-33, FR-34, NFR-02, NFR-05, NFR-07, <a href="02_spec.html#testing-unit">spec §14.1</a></p>
+<p><strong>Depends on:</strong> none (parallel with T2 — operates on isolated fixtures); soft-dep on T2 if the hook's stderr message references <code>scripts/sync-shared.sh --from=...</code> verbatim (mitigation: T2 lands first by convention but tests are isolated).</p>
+<p><strong>Idempotent:</strong> yes — re-running on the same staged state produces the same result</p>
+<p><strong>Requires state from:</strong> none</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — script authoring → bash assertion tests → committable; the hook is usable on its own once <code>core.hooksPath</code> is configured (already true on Maneesh's clone per spec FR-30).</p>
+<p><strong>Data:</strong> 2 fixtures under <code>tests/fixtures/multi-plugin/pre-commit/</code> — one with deliberate drift, one with a non-<code>_shared/</code> staged file.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>.githooks/pre-commit</code></li>
+<li>Create: <code>tests/scripts/assert_pre_commit_drift_detected.sh</code></li>
+<li>Create: <code>tests/scripts/assert_pre_commit_short_circuit.sh</code></li>
+<li>Create: <code>tests/fixtures/multi-plugin/pre-commit/{drift,short-circuit}/...</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Build fixtures</strong> — under <code>tests/fixtures/multi-plugin/pre-commit/drift/</code>, two plugins with deliberately-different <code>skills/_shared/</code>. Under <code>.../short-circuit/</code>, one plugin with a non-<code>_shared/</code> staged file. Each fixture initializes a tiny git repo on demand inside the test (<code>git init</code> in <code>$(mktemp -d)</code> after <code>cp -R</code>).</li>
+
+<li>[ ] <strong>Step 2: Write 2 failing tests.</strong> Shape for drift-detected:
+<pre><code>#!/usr/bin/env bash
+# Assert: pre-commit drift hook fires when peer _shared/ trees differ.
+# FR-30, FR-31, FR-32; spec §14.1.
+set -e
+HOOK=${HOOK:-.githooks/pre-commit}
+FIX=${FIX:-tests/fixtures/multi-plugin/pre-commit/drift}
+TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
+cp -R "$FIX"/. "$TMP"/
+cd "$TMP"
+git init -q &amp;&amp; git add . &amp;&amp; GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t git commit -q -m init --no-verify
+# Re-stage the drift file
+git add plugins/plugin-a/skills/_shared/drift.md
+out=$(bash "$OLDPWD/$HOOK" 2&gt;&amp;1 || true)
+echo "$out" | grep -q 'drift detected' || { echo "FAIL: missing 'drift detected' in stderr"; exit 1; }
+echo "$out" | grep -q 'sync-shared.sh' || { echo "FAIL: missing sync-shared.sh hint"; exit 1; }
+echo "PASS: assert_pre_commit_drift_detected.sh"
+</code></pre>
+Short-circuit test uses a fixture where staged diff has only non-<code>_shared/</code> files and asserts hook exits 0 without running <code>diff -rq</code> (use a PATH-shadowed <code>diff</code> that logs an invocation marker).</li>
+
+<li>[ ] <strong>Step 3: Run both tests, confirm fail</strong>
+Run: <code>bash tests/scripts/assert_pre_commit_drift_detected.sh; bash tests/scripts/assert_pre_commit_short_circuit.sh</code>
+Expected: both FAIL (hook doesn't exist yet).</li>
+
+<li>[ ] <strong>Step 4: Write <code>.githooks/pre-commit</code></strong> (target ≤30 LOC):
+<pre><code>#!/usr/bin/env bash
+# Pre-commit drift hook: reject commits whose staged diff causes plugins/*/skills/_shared/ drift.
+# Per spec FR-30..FR-34.
+set -euo pipefail
+staged=$(git diff --cached --name-only)
+echo "$staged" | grep -q '^plugins/[^/]\+/skills/_shared/' || exit 0  # FR-33 short-circuit
+peers=$(find plugins -maxdepth 3 -type d -name _shared | sort)
+count=$(echo "$peers" | wc -l | tr -d ' ')
+[ "$count" -lt 2 ] &amp;&amp; exit 0  # FR-31 only-one-plugin
+baseline=$(echo "$peers" | head -1)
+fail=0
+for p in $(echo "$peers" | tail -n +2); do
+  if ! diff -rq "$baseline" "$p" &gt;/dev/null 2&gt;&amp;1; then
+    echo "_shared/ drift detected:" &gt;&amp;2
+    echo "  $baseline  -&gt;  $p" &gt;&amp;2
+    diff -rq "$baseline" "$p" 2&gt;/dev/null | sed 's/^/    /' &gt;&amp;2
+    echo "Resolve with: scripts/sync-shared.sh --from=$(basename $(dirname $(dirname $baseline)))" &gt;&amp;2
+    fail=1
+  fi
+done
+exit $fail
+</code></pre>
+Then <code>chmod +x .githooks/pre-commit</code>. <strong>Source-suggestion heuristic note:</strong> the FR-32 spec wording asks for the plugin whose <code>_shared/</code> contains the most extras — implementor MAY simplify to suggesting the baseline (alphabetically-first) per the FR-32 "if heuristic is ambiguous" clause.</li>
+
+<li>[ ] <strong>Step 5: Re-run both tests, confirm pass.</strong>
+Run: <code>bash tests/scripts/assert_pre_commit_drift_detected.sh &amp;&amp; bash tests/scripts/assert_pre_commit_short_circuit.sh</code>
+Expected: 2× <code>PASS:</code>.</li>
+
+<li>[ ] <strong>Step 6: Verify LOC budget</strong>
+Run: <code>wc -l .githooks/pre-commit</code>
+Expected: ≤ 30 (per FR-30 / G9).</li>
+
+<li>[ ] <strong>Step 7: Smoke test against live repo</strong> — verify the short-circuit path doesn't break unrelated commits:
+Run: <code>echo '# test' &gt;&gt; /tmp/test-noop.md; (cd && git add . && git status)</code>
+Then in a scratch shell: stage a non-_shared/ file in this repo and verify the hook exits 0. (Don't actually commit; use <code>git commit --dry-run</code>.)</li>
+
+<li>[ ] <strong>Step 8: Commit</strong>
+<pre><code>git add .githooks/pre-commit tests/scripts/assert_pre_commit_*.sh tests/fixtures/multi-plugin/pre-commit/
+git commit -m "feat(T3): .githooks/pre-commit drift hook + 2 tests"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>wc -l .githooks/pre-commit</code> — ≤ 30.</li>
+<li><code>bash tests/scripts/assert_pre_commit_drift_detected.sh</code> — exit 0.</li>
+<li><code>bash tests/scripts/assert_pre_commit_short_circuit.sh</code> — exit 0.</li>
+</ul>
+
+<h3 id="phase-2-complete-dev">Phase 2: <code>/complete-dev</code> generalization + pre-push extension</h3>
+<p><strong>Phase rationale:</strong> Turn the single-plugin tooling into multi-plugin. Pre-push hook (T4) and <code>/complete-dev</code> SKILL.md (T5, T6) are the two non-trivial code surfaces. T4 depends on T1 (marketplace.json existing for the 3-way check); T5 and T6 are sequential because both edit the same SKILL.md. Phase exit: all 7 new tests in this phase exit 0; <code>/complete-dev --plugin pmos-toolkit --dry-run</code> against the feature branch prints a coherent dry-run summary.</p>
+
+<h4 id="t4">T4: <code>.githooks/pre-push</code> extension + 4 tests</h4>
+<p><strong>Goal:</strong> Extend the existing 76-LOC pre-push hook by wrapping its current 2-way version-sync body as the inner-loop body of an outer <code>for plugin in plugins/*/</code> iteration, adding a jq-based 3-way version check (against <code>marketplace.json[plugin].version</code> in both <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code>), and adding tag-format + tag-version-match validation for newly-pushed tags only.</p>
+<p><strong>Spec refs:</strong> FR-40, FR-41, FR-42, FR-43, FR-44, FR-45, FR-46, FR-46a, <a href="02_spec.html#testing-unit">spec §14.1</a>, R7</p>
+<p><strong>Depends on:</strong> T1 (the 3-way check reads <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code> — both must exist)</p>
+<p><strong>Idempotent:</strong> yes — hook is read-only; running it does not mutate state</p>
+<p><strong>Requires state from:</strong> T1's marketplace manifests must be present (otherwise hook errors at jq-empty step)</p>
+<p><strong>TDD:</strong> yes — new-feature (the extension is new behavior; the existing 2-way check is preserved verbatim under the outer loop)</p>
+<p><strong>Slice shape:</strong> vertical — script edit → 4 bash assertion tests → committable; the hook is functional after this task even though it only enforces against fixtures (the real-repo validation runs at T9).</p>
+<p><strong>Data:</strong> 4 fixtures under <code>tests/fixtures/multi-plugin/pre-push/</code> — one per behavior (3-way mismatch, bad tag format, version-mismatch tag, preserved-existing-tags).</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>.githooks/pre-push</code> (wrap existing 76 LOC, add ≤40 LOC per G9)</li>
+<li>Create: <code>tests/scripts/assert_pre_push_3_way_version_match.sh</code></li>
+<li>Create: <code>tests/scripts/assert_pre_push_tag_format.sh</code></li>
+<li>Create: <code>tests/scripts/assert_pre_push_tag_version_match.sh</code></li>
+<li>Create: <code>tests/scripts/assert_pre_push_preserves_existing_tags.sh</code></li>
+<li>Create: <code>tests/fixtures/multi-plugin/pre-push/{3-way,tag-format,tag-version,existing-tags}/...</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Re-read existing <code>.githooks/pre-push</code> in full</strong> (FR-46a mandate). Identify the 2-way check at lines 49-72 — this becomes the inner-loop body. Identify the <code>$ZERO</code> sentinel handling (lines 14, 25, 29-34) — preserved verbatim at outer-most level.</li>
+
+<li>[ ] <strong>Step 2: Build 4 fixtures.</strong> Each fixture is a minimal git repo with <code>plugins/&lt;a&gt;/.claude-plugin/plugin.json</code> + <code>plugins/&lt;a&gt;/.codex-plugin/plugin.json</code> + the two marketplace.json files at root, with mismatch behaviors per the test name (e.g., <code>3-way/</code> has plugin.json=2.50.0 + marketplace=2.49.0). Each fixture's <code>.githooks/pre-push</code> is a symlink to the under-test hook so tests can invoke it via <code>cd $TMP && git push --dry-run origin main</code> with <code>core.hooksPath</code> configured locally.</li>
+
+<li>[ ] <strong>Step 3: Write 4 failing tests.</strong> Reference shape for <code>assert_pre_push_3_way_version_match.sh</code>:
+<pre><code>#!/usr/bin/env bash
+# Assert: pre-push 3-way version mismatch rejected.
+# FR-40; spec §14.1.
+set -e
+HOOK=${HOOK:-.githooks/pre-push}
+FIX=${FIX:-tests/fixtures/multi-plugin/pre-push/3-way}
+TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
+cp -R "$FIX"/. "$TMP"/ &amp;&amp; cd "$TMP"
+out=$(echo "refs/heads/main local-oid refs/heads/main 0000000000000000000000000000000000000000" | bash "$OLDPWD/$HOOK" 2&gt;&amp;1 || true)
+echo "$out" | grep -q 'pmos-toolkit' || { echo "FAIL: missing plugin name"; exit 1; }
+echo "$out" | grep -qE '2\.49\.0|2\.50\.0' || { echo "FAIL: missing observed versions"; exit 1; }
+echo "PASS: assert_pre_push_3_way_version_match.sh"
+</code></pre>
+The other three tests follow shape per <a href="02_spec.html#testing-unit">spec §14.1</a>. /execute may adapt the hook invocation pattern (e.g., setting up <code>git push --dry-run</code> against a local bare repo) to match host git behavior.</li>
+
+<li>[ ] <strong>Step 4: Run all 4 tests, confirm fail</strong> (pre-push hook does not yet implement these checks).</li>
+
+<li>[ ] <strong>Step 5: Edit <code>.githooks/pre-push</code></strong>:
+<ol>
+<li><strong>Preserve lines 1-22 verbatim</strong> (shebang, doc comment, <code>ZERO</code>, <code>get_version</code> helper).</li>
+<li><strong>Add a top-section block</strong> after the helper (before the <code>while read</code> loop) that validates tag format + tag-version-match. Skeleton:
+<pre><code># FR-41, FR-42: validate newly-pushed tags (skip pre-existing).
+for tag in $(git tag --points-at HEAD 2&gt;/dev/null); do
+  # Skip if tag already exists on origin
+  git ls-remote --tags origin "refs/tags/$tag" 2&gt;/dev/null | grep -q "$tag" &amp;&amp; continue
+  # FR-41: format check
+  if ! echo "$tag" | grep -qE '^[^/]+/v[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo "ERROR: tag '$tag' does not match &lt;plugin&gt;/v&lt;semver&gt; format." &gt;&amp;2
+    fail=1; continue
+  fi
+  plugin="${tag%%/v*}"; version="${tag##*/v}"
+  # FR-42: version-match check
+  for mf in .claude-plugin/marketplace.json .codex-plugin/marketplace.json \
+           "plugins/$plugin/.claude-plugin/plugin.json" "plugins/$plugin/.codex-plugin/plugin.json"; do
+    [ -f "$mf" ] || { echo "ERROR: missing $mf for tag '$tag'." &gt;&amp;2; fail=1; continue 2; }
+  done
+  # ...read versions via jq, compare to $version, set fail=1 on mismatch
+done
+</code></pre></li>
+<li><strong>Wrap lines 23-72</strong> (the <code>while read</code> body, including the change-detection at line 36, the <code>plugins=$(...)</code> at line 39, and the existing 2-way check at lines 41-72) with an outer <code>for plugin in $plugins</code> that is ALREADY there at line 41. Per FR-46a: <em>extend, don't rewrite</em>. The change is to also read the marketplace.json entry for the plugin (via <code>jq -r '.plugins[] | select(.name=="'"$plugin"'") | .version'</code>) and compare against <code>local_v</code>.</li>
+<li><strong>Add jq-missing check</strong> at the top: <code>command -v jq &gt;/dev/null || { echo "pre-push: jq not installed; install via brew/apt/dnf and retry." &gt;&amp;2; exit 1; }</code> (FR-45).</li>
+<li><strong>LOC budget audit:</strong> after editing, run <code>wc -l .githooks/pre-push</code>. The diff (added lines) must be ≤ 40 (G9 / NFR-01); total hook size ≤ 76 + 40 = 116 LOC.</li>
+</ol></li>
+
+<li>[ ] <strong>Step 6: Re-run all 4 tests, confirm pass.</strong>
+Run: <code>for t in tests/scripts/assert_pre_push_*.sh; do bash "$t" || exit 1; done</code>
+Expected: 4× <code>PASS:</code>.</li>
+
+<li>[ ] <strong>Step 7: Verify existing 2-way invariant still holds</strong> — run the (existing-from-pre-T4) behavior of the hook against a non-_shared/ plugin diff with matching versions; the hook should exit 0. (No new test for this; manual verification step.)</li>
+
+<li>[ ] <strong>Step 8: Commit</strong>
+<pre><code>git add .githooks/pre-push tests/scripts/assert_pre_push_*.sh tests/fixtures/multi-plugin/pre-push/
+git commit -m "feat(T4): pre-push hook 3-way + tag rules + 4 tests"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li>Added LOC count: <code>git diff HEAD~1 -- .githooks/pre-push | grep -c '^+' | awk '{print $1 - 1}'</code> — ≤ 40.</li>
+<li>All 4 <code>assert_pre_push_*.sh</code> tests — exit 0.</li>
+</ul>
+
+<h4 id="t5">T5: <code>/complete-dev</code> arg parsing + diff-routing + 3 tests</h4>
+<p><strong>Goal:</strong> Add <code>--plugin &lt;name&gt;</code> argument parsing to the existing <code>/complete-dev</code> SKILL.md Phase 0 section. Implement auto-detect from git diff, refuse-on-ambiguity, substrate-smart-detect prompt, and CLAUDE.md <code>## Release policy</code> parsing. Cover the three branching behaviors with mock-fixture tests.</p>
+<p><strong>Spec refs:</strong> FR-50, FR-51, FR-52, FR-53, FR-54, FR-55, <a href="02_spec.html#testing-unit">spec §14.1</a>, E10, E11, E15</p>
+<p><strong>Depends on:</strong> none directly; landing order suggests after T4 so the cutover-release flow (T11) sees both the hook and the SKILL.md changes</p>
+<p><strong>Idempotent:</strong> yes — SKILL.md edits are pure text changes</p>
+<p><strong>Requires state from:</strong> none</p>
+<p><strong>TDD:</strong> yes — new-feature (the auto-detect / refuse / substrate-smart-detect branches are new logic specified as bash-fixture tests)</p>
+<p><strong>Slice shape:</strong> vertical — SKILL.md prose edit → 3 bash assertion tests using fixture git diffs → committable; <code>/complete-dev --plugin pmos-toolkit</code> works against the real repo after this task even though the version-bump + tag-format logic generalization is deferred to T6.</p>
+<p><strong>Data:</strong> 3 fixtures under <code>tests/fixtures/multi-plugin/complete-dev/</code> — auto-detect (single-plugin diff), refuse-ambiguous (two-plugin non-_shared diff), substrate-smart-detect (multi-plugin _shared-only diff).</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> (Phase 0 section — argument-hint frontmatter + Phase 0 body)</li>
+<li>Create: <code>tests/scripts/assert_complete_dev_auto_detect.sh</code></li>
+<li>Create: <code>tests/scripts/assert_complete_dev_refuse_ambiguous.sh</code></li>
+<li>Create: <code>tests/scripts/assert_complete_dev_substrate_smart_detect.sh</code></li>
+<li>Create: <code>tests/fixtures/multi-plugin/complete-dev/{auto-detect,refuse-ambiguous,substrate-smart-detect}/...</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Build fixtures</strong> — each fixture is a tiny git repo (created on-demand inside the test) with deliberate diff state matching the test name. For <code>auto-detect/</code>: only <code>plugins/pmos-toolkit/skills/foo.md</code> is modified. For <code>refuse-ambiguous/</code>: <code>plugins/pmos-toolkit/skills/foo.md</code> + <code>plugins/pmos-learnkit/skills/bar.md</code> both modified. For <code>substrate-smart-detect/</code>: <code>plugins/pmos-toolkit/skills/_shared/baz.md</code> + <code>plugins/pmos-learnkit/skills/_shared/baz.md</code> both modified.</li>
+
+<li>[ ] <strong>Step 2: Write 3 failing tests.</strong> Tests invoke a runtime helper at <code>plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh</code> that implements FR-51/52/53 routing logic. SKILL.md Phase 0 includes a Bash step that <em>actually invokes</em> the helper at <code>/complete-dev</code> run time — the helper IS production (per Decision Log P6), not a test-only extract. Tests therefore exercise the exact code path users hit.
+
+Reference shape for <code>assert_complete_dev_refuse_ambiguous.sh</code>:
+<pre><code>#!/usr/bin/env bash
+# Assert: /complete-dev refuses ambiguous multi-plugin non-_shared diff.
+# FR-52; spec §14.1.
+set -e
+ROUTER=${ROUTER:-plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh}
+FIX=${FIX:-tests/fixtures/multi-plugin/complete-dev/refuse-ambiguous}
+TMP=$(mktemp -d); trap "rm -rf $TMP" EXIT
+cp -R "$FIX"/. "$TMP"/ &amp;&amp; cd "$TMP"
+git init -q
+git add . &amp;&amp; GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t git commit -q -m init --no-verify
+# Modify both plugins
+echo x &gt;&gt; plugins/pmos-toolkit/skills/foo.md
+echo x &gt;&gt; plugins/pmos-learnkit/skills/bar.md
+out=$(bash "$OLDPWD/$ROUTER" 2&gt;&amp;1 || true)
+echo "$out" | grep -q 'spans plugins/.* AND plugins/' || { echo "FAIL: missing refuse message"; exit 1; }
+echo "$out" | grep -q 'exit 64' || true  # router exits 64; we ran with || true above so the message-presence is the assertion
+echo "PASS: assert_complete_dev_refuse_ambiguous.sh"
+</code></pre>
+The harness <code>plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh</code> is created in this task as a standalone ~25-LOC bash function implementing FR-51/52/53. SKILL.md cites it as the canonical implementation of Phase 0 routing.</li>
+
+<li>[ ] <strong>Step 3: Run 3 tests, confirm fail.</strong></li>
+
+<li>[ ] <strong>Step 4: Write the runtime helper</strong> <code>plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh</code> (mkdir -p the scripts/ directory first). Reference shape:
+<pre><code>#!/usr/bin/env bash
+# Diff-router for /complete-dev Phase 0 (testable extract of FR-51/52/53).
+set -euo pipefail
+diff_files=$(git diff --cached --name-only 2&gt;/dev/null; git diff --name-only HEAD 2&gt;/dev/null)
+plugins_in_diff=$(echo "$diff_files" | grep -oE '^plugins/[^/]+/' | sort -u | sed 's|plugins/||;s|/$||')
+non_shared=$(echo "$diff_files" | grep -E '^plugins/[^/]+/' | grep -v '/_shared/' | grep -oE '^plugins/[^/]+/' | sort -u | sed 's|plugins/||;s|/$||')
+shared_only=$(echo "$diff_files" | grep -E '^plugins/[^/]+/skills/_shared/' | grep -oE '^plugins/[^/]+/' | sort -u | sed 's|plugins/||;s|/$||')
+if [ -z "$diff_files" ]; then exit 0; fi  # FR-54
+n_non_shared=$(echo "$non_shared" | grep -c . || echo 0)
+n_shared=$(echo "$shared_only" | grep -c . || echo 0)
+if [ "$n_non_shared" -ge 2 ]; then  # FR-52
+  a=$(echo "$non_shared" | head -1); b=$(echo "$non_shared" | sed -n 2p)
+  echo "Diff spans plugins/$a/ AND plugins/$b/ with non-_shared changes. Either pass --plugin &lt;name&gt; explicitly (and re-invoke once per plugin), or split the merge into per-plugin commits first." &gt;&amp;2
+  exit 64
+fi
+if [ "$n_non_shared" -eq 1 ]; then  # FR-51
+  echo "Auto-detected --plugin $non_shared from diff. Proceed? (Recommended)"; exit 0
+fi
+if [ "$n_shared" -ge 1 ]; then  # FR-53
+  echo "Substrate-only change detected across plugins/$(echo $shared_only | tr '\n' ',')/. Ride which plugin's next release?"; exit 0
+fi
+</code></pre>
+Then <code>chmod +x</code>.</li>
+
+<li>[ ] <strong>Step 5: Edit <code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> Phase 0 section</strong>:
+<ol>
+<li>Update <code>argument-hint</code> frontmatter (line 5) to add <code>[--plugin &lt;name&gt;]</code>.</li>
+<li>In Phase 0 body (around line 140), add a substep: "Parse <code>--plugin &lt;name&gt;</code> from argument string (FR-50). If unset, invoke <code>bash ${CLAUDE_PLUGIN_ROOT}/skills/complete-dev/scripts/diff_router.sh</code> via the Bash tool — the helper's stdout names the auto-detected plugin (FR-51), or its stderr surfaces the refuse-ambiguous message + exit 64 (FR-52), or it surfaces the substrate-smart-detect prompt content (FR-53). Empty-diff handled by existing behavior (FR-54). The helper output drives the subsequent <code>AskUserQuestion</code> prompts." The Bash invocation makes the helper production (per Decision Log P6).</li>
+<li>Add the auto-detect <code>AskUserQuestion</code> prompt prose per FR-51 (with <code>Proceed (Recommended)</code> / <code>Pass --plugin explicitly</code> / <code>Abort</code> options) and the substrate-smart-detect prompt per FR-53.</li>
+<li>Add a substep: "Read CLAUDE.md <code>## Release policy</code> section for the <code>plugins:</code> list (FR-55); cross-check against directory list under <code>plugins/</code>; warn-but-proceed on mismatch."</li>
+<li>Add a substep capturing E10 (unknown <code>--plugin</code>) and E15 (CLAUDE.md-only diff) handling as one-line prose with the exact error messages from spec §12.</li>
+</ol>
+DO NOT touch the 14 hardcoded path lines yet — that's T6's scope.</li>
+
+<li>[ ] <strong>Step 6: Re-run all 3 tests, confirm pass.</strong>
+Run: <code>for t in tests/scripts/assert_complete_dev_*.sh; do bash "$t" || exit 1; done</code>
+Expected: 3× <code>PASS:</code>.</li>
+
+<li>[ ] <strong>Step 7: Commit</strong>
+<pre><code>git add plugins/pmos-toolkit/skills/complete-dev/SKILL.md \
+        plugins/pmos-toolkit/skills/complete-dev/scripts/diff_router.sh \
+        tests/scripts/assert_complete_dev_*.sh \
+        tests/fixtures/multi-plugin/complete-dev/
+git commit -m "feat(T5): /complete-dev --plugin arg + runtime diff_router.sh + 3 tests"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -nE '^argument-hint:' plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> — line includes <code>[--plugin &lt;name&gt;]</code>.</li>
+<li><code>grep -c 'FR-5[0-5]' plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> — ≥ 6 occurrences (FR-50..FR-55 each cited at least once).</li>
+<li>All 3 <code>assert_complete_dev_*.sh</code> tests — exit 0.</li>
+</ul>
+
+<h4 id="t6">T6: <code>/complete-dev</code> path templating + 3-way version-bump + tag format + push-all-remotes + 2 tests</h4>
+<p><strong>Goal:</strong> Template the 14 hardcoded <code>plugins/pmos-toolkit/</code> path references in <code>complete-dev/SKILL.md</code> to <code>plugins/${plugin_name}/</code>. Generalize the version-bump phase to bump 4 manifest entries (2× plugin.json + 2× marketplace.json plugin-array entry). Generalize tag format to <code>${plugin_name}/v${semver}</code>. Generalize publish phase to push to every configured git remote. Cover with two grep-style assertion tests.</p>
+<p><strong>Spec refs:</strong> FR-56, FR-57, FR-58, FR-59, FR-60, FR-61, <a href="02_spec.html#testing-unit">spec §14.1</a>, R5</p>
+<p><strong>Depends on:</strong> T5 (same file; sequential edit prevents conflict)</p>
+<p><strong>Idempotent:</strong> yes — text edits are idempotent</p>
+<p><strong>Requires state from:</strong> T1 (so the FR-57 4-manifest bump targets exist)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — SKILL.md edits → 2 grep-style tests → committable; combined with T5 this delivers the full <code>/complete-dev --plugin</code> behavior end-to-end (the next <code>/complete-dev</code> invocation reads the just-edited SKILL.md).</p>
+<p><strong>Data:</strong> none (tests grep against the live SKILL.md)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> (14 cited lines + Phase 10/11 version-bump body + Phase 13 tag body + Phase 15 publish body)</li>
+<li>Create: <code>tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code></li>
+<li>Create: <code>tests/scripts/assert_skill_substrate_refs_unchanged.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Write the two failing tests.</strong>
+<pre><code># tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh
+#!/usr/bin/env bash
+# Filter out content inside &lt;!-- allow-hardcoded --&gt; ... &lt;!-- /allow-hardcoded --&gt;
+# marker pairs (intentional example blocks). Same convention as CLAUDE.md test.
+set -e
+SKILL=plugins/pmos-toolkit/skills/complete-dev/SKILL.md
+filtered=$(awk '
+  /&lt;!-- allow-hardcoded/ { allow=1; next }
+  /&lt;!-- \/allow-hardcoded --&gt;/ { allow=0; next }
+  !allow { print }
+' "$SKILL")
+# Allow the templated placeholder ${plugin_name} pattern (matches but is desirable).
+hits=$(echo "$filtered" | grep -nE 'plugins/pmos-toolkit/' | grep -vE 'plugins/\$\{plugin_name\}' || true)
+n=$(echo "$hits" | grep -c . || echo 0)
+# Marker-count cap: at most one allow-hardcoded block in this SKILL.md.
+n_markers=$(grep -c '&lt;!-- allow-hardcoded' "$SKILL" || echo 0)
+if [ "$n_markers" -gt 1 ]; then echo "FAIL: $n_markers allow-hardcoded markers in $SKILL; cap is 1"; exit 1; fi
+if [ "$n" -gt 0 ]; then
+  echo "FAIL: $n hardcoded plugins/pmos-toolkit/ matches remain"
+  echo "$hits"; exit 1
+fi
+echo "PASS: assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh"
+</code></pre>
+<pre><code># tests/scripts/assert_skill_substrate_refs_unchanged.sh
+#!/usr/bin/env bash
+set -e
+n_token=$(grep -rE '\$\{CLAUDE_PLUGIN_ROOT\}/skills/_shared' plugins/pmos-toolkit/skills/ | wc -l | tr -d ' ')
+n_hard=$(grep -rE 'plugins/pmos-toolkit/skills/_shared' plugins/pmos-toolkit/skills/ | wc -l | tr -d ' ')
+# Pre-cutover snapshot per Subagent A §7: 32 token refs, 0 hardcoded.
+if [ "$n_token" -lt 28 ]; then echo "FAIL: token-ref count $n_token below floor 28 (regression risk)"; exit 1; fi
+if [ "$n_hard" -ne 0 ]; then echo "FAIL: $n_hard hardcoded plugins/pmos-toolkit/skills/_shared/ refs introduced"; exit 1; fi
+echo "PASS: assert_skill_substrate_refs_unchanged.sh ($n_token token refs, 0 hardcoded)"
+</code></pre>
+<em>Note on the floor:</em> 28 not 32 because some refs naturally move between releases as skills get renamed/consolidated; we assert "didn't fall off a cliff" not "exact 32".</li>
+
+<li>[ ] <strong>Step 2: Run both tests, confirm one passes + one fails.</strong> <code>assert_skill_substrate_refs_unchanged.sh</code> should PASS pre-edit (no hardcoded refs introduced yet). <code>assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code> should FAIL — 14 hardcoded refs remain.</li>
+
+<li>[ ] <strong>Step 3: Edit each of the 14 cited lines in <code>complete-dev/SKILL.md</code>.</strong> <strong>Important — content-anchored edits:</strong> after T5 lands, the cited line numbers below will have shifted (T5 adds prose to Phase 0). Locate each target by grepping for its content fragment (e.g., <code>grep -n 'jq -r .version plugins/pmos-toolkit/.claude-plugin' SKILL.md</code>) rather than by the original line number. The line numbers below are the pre-T5 reference; use them as a search hint, not an addressing scheme. The mapping (verified in code-study §3.2):
+<ul>
+<li>Line 323: prose "Plugin manifest at <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code>" → <code>plugins/${plugin_name}/.claude-plugin/plugin.json</code></li>
+<li>Line 389: bash <code>/bin/ls plugins/pmos-toolkit/skills/</code> → <code>/bin/ls plugins/${plugin_name}/skills/</code></li>
+<li>Line 429: prose "files under <code>plugins/pmos-toolkit/skills/</code> or <code>plugins/pmos-toolkit/agents/</code>" → templated</li>
+<li>Line 431: prose "<code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> AND <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>" → both templated</li>
+<li>Line 444: bash <code>git show origin/main:plugins/pmos-toolkit/.claude-plugin/plugin.json</code> → templated</li>
+<li>Line 453: bash <code>git show "$merge_base":plugins/pmos-toolkit/.claude-plugin/plugin.json</code> → templated</li>
+<li>Line 461: bash <code>jq -r .version plugins/pmos-toolkit/.claude-plugin/plugin.json</code> → templated</li>
+<li>Line 477: prose stale-version-bump question → leave plugin.json mention but template path</li>
+<li>Line 496: prose "(only if no plugin content changed)" → unchanged path-wise; verify no leftover hardcoded ref</li>
+<li>Line 504: bash <code>python3 -c json.load(open('plugins/pmos-toolkit/.claude-plugin/plugin.json'))</code> → templated</li>
+<li>Line 505: bash <code>python3 -c json.load(open('plugins/pmos-toolkit/.codex-plugin/plugin.json'))</code> → templated</li>
+<li>Line 514: prose "<code>plugins/pmos-toolkit/skills/*/schemas/</code>" → templated</li>
+<li>Line 616: prose dry-run summary "Plugin version" line — replace prose "<code>plugins/pmos-toolkit</code>" with <code>plugins/${plugin_name}</code></li>
+<li>Line 753: prose "<code>plugins/pmos-toolkit/skills/learnings/learnings-capture.md</code>" → templated (Subagent A flagged this; was missed by requirements doc)</li>
+</ul></li>
+
+<li>[ ] <strong>Step 4: Update Phase 10/11 version-bump body.</strong> Where the existing prose describes bumping <code>plugin.json</code> + <code>codex-plugin/plugin.json</code> (2 files), expand to bump 4 entries (FR-57): the two plugin.json files + the per-plugin entry in <code>.claude-plugin/marketplace.json</code> + the per-plugin entry in <code>.codex-plugin/marketplace.json</code>. The bump targets use jq:
+<pre><code>jq --arg p "$plugin_name" --arg v "$new_version" \
+   '(.plugins[] | select(.name==$p) | .version) = $v' \
+   .claude-plugin/marketplace.json &gt; .claude-plugin/marketplace.json.tmp \
+&amp;&amp; mv .claude-plugin/marketplace.json.tmp .claude-plugin/marketplace.json
+</code></pre>
+(Same for <code>.codex-plugin/marketplace.json</code>.)</li>
+
+<li>[ ] <strong>Step 5: Update Phase 13 tag-creation body.</strong> Replace <code>git tag -a v&lt;version&gt;</code> with <code>git tag -a ${plugin_name}/v&lt;version&gt;</code> (FR-58). Add a precondition prose: "Tag format MUST be <code>&lt;plugin_name&gt;/v&lt;semver&gt;</code>; reject any other format with an error (this also satisfies the pre-push hook from T4)."</li>
+
+<li>[ ] <strong>Step 6: Update Phase 15 publish body.</strong> Replace any reference to "push to origin" with prose describing iterating <code>git remote</code> output and pushing branch + tag to each, continuing past individual-remote failures (FR-59). The existing "Push to all configured remotes (Recommended)" option in the AskUserQuestion at line 599 already exists; verify it's consistent and reference FR-59 in the prose.</li>
+
+<li>[ ] <strong>Step 7: Update <code>--dry-run</code> Phase 14 summary</strong> (FR-60) — must display: detected plugin, the 4 bump targets, the templated tag name, and every configured remote in the push-targets line.</li>
+
+<li>[ ] <strong>Step 8: Re-run both tests, confirm pass.</strong>
+Run: <code>bash tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh &amp;&amp; bash tests/scripts/assert_skill_substrate_refs_unchanged.sh</code>
+Expected: 2× <code>PASS:</code>.</li>
+
+<li>[ ] <strong>Step 9: Commit</strong>
+<pre><code>git add plugins/pmos-toolkit/skills/complete-dev/SKILL.md tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh tests/scripts/assert_skill_substrate_refs_unchanged.sh
+git commit -m "feat(T6): /complete-dev path templating + 4-manifest bump + namespaced tags + push-all-remotes"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -c '\${plugin_name}' plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> — ≥ 14 occurrences.</li>
+<li><code>bash tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code> — exit 0.</li>
+<li><code>bash tests/scripts/assert_skill_substrate_refs_unchanged.sh</code> — exit 0.</li>
+</ul>
+
+<h3 id="phase-3-policy-docs">Phase 3: Policy docs — CLAUDE.md edits + CONTRIBUTING.md</h3>
+<p><strong>Phase rationale:</strong> The new <code>/complete-dev</code> (from T5/T6) reads CLAUDE.md's <code>## Release policy</code> section per FR-55 — that section must exist before the cutover release in T11. T7 and T8 are parallelizable peers (CLAUDE.md vs new files). Phase exit: <code>grep ## Release policy CLAUDE.md</code> returns the heading; <code>cat CONTRIBUTING.md</code> documents the hooksPath + jq prereqs.</p>
+
+<h4 id="t7">T7: <code>CLAUDE.md</code> edits — generalize 4 sections + new <code>## Release policy</code> + 2 grep tests</h4>
+<p><strong>Goal:</strong> Generalize 4 existing CLAUDE.md sections from <code>pmos-toolkit</code>-specific to <code>&lt;plugin&gt;</code>-templated. Add a new <code>## Release policy</code> section with the 6 required subsections per FR-74. Cover both via grep-based tests.</p>
+<p><strong>Spec refs:</strong> FR-70, FR-71, FR-72, FR-73, FR-74, FR-75, <a href="02_spec.html#testing-unit">spec §14.1</a></p>
+<p><strong>Depends on:</strong> none (parallel with T8)</p>
+<p><strong>Idempotent:</strong> yes — text edits are idempotent</p>
+<p><strong>Requires state from:</strong> none</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — text edits → 2 grep assertion tests → committable; the docs themselves are the deliverable.</p>
+<p><strong>Data:</strong> none (tests grep against live CLAUDE.md)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>CLAUDE.md</code> (lines 5-46 — 4 existing sections; plus new section appended after line 46)</li>
+<li>Create: <code>tests/scripts/assert_claude_md_generalized.sh</code></li>
+<li>Create: <code>tests/scripts/assert_release_policy_section.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Write 2 failing tests.</strong>
+<pre><code># tests/scripts/assert_claude_md_generalized.sh
+#!/usr/bin/env bash
+# Filter out content inside &lt;!-- allow-hardcoded --&gt; ... &lt;!-- /allow-hardcoded --&gt;
+# marker pairs (intentional example blocks). Marker is the contract, not the heading.
+# Loop-2 hardening: adds per-section behavioral assertions + marker-count cap.
+set -e
+fail=0
+filtered=$(awk '
+  /&lt;!-- allow-hardcoded/ { allow=1; next }
+  /&lt;!-- \/allow-hardcoded --&gt;/ { allow=0; next }
+  !allow { print }
+' CLAUDE.md)
+hits=$(echo "$filtered" | grep -nE 'plugins/pmos-toolkit/' || true)
+n_hits=$(echo "$hits" | grep -c '^[0-9]' || echo 0)
+n_templated=$(grep -cE 'plugins/&lt;plugin&gt;/|plugins/\$\{plugin\}/' CLAUDE.md || echo 0)
+if [ "$n_hits" -gt 0 ]; then echo "FAIL: $n_hits hardcoded pmos-toolkit refs outside &lt;!-- allow-hardcoded --&gt; markers:"; echo "$hits"; fail=1; fi
+# Marker-count cap: at most one allow-hardcoded block in CLAUDE.md.
+n_markers=$(grep -c '&lt;!-- allow-hardcoded' CLAUDE.md || echo 0)
+if [ "$n_markers" -gt 1 ]; then echo "FAIL: $n_markers allow-hardcoded markers in CLAUDE.md; cap is 1"; fail=1; fi
+# Per-section behavioral assertions — generalized text must appear under each generalized heading.
+# FR-70: ## Canonical skill path must mention plugins/&lt;plugin&gt;/skills/
+sed -n '/^## Canonical skill path/,/^## /p' CLAUDE.md | grep -q 'plugins/&lt;plugin&gt;/skills' || { echo "FAIL: ## Canonical skill path does not reference plugins/&lt;plugin&gt;/skills"; fail=1; }
+# FR-71: ## Skill-authoring conventions must mention plugins/&lt;plugin&gt;/skills/
+sed -n '/^## Skill-authoring conventions/,/^## /p' CLAUDE.md | grep -q 'plugins/&lt;plugin&gt;/skills' || { echo "FAIL: ## Skill-authoring conventions does not reference plugins/&lt;plugin&gt;/skills"; fail=1; }
+# FR-72: ## Plugin manifest version sync must mention marketplace.json
+sed -n '/^## Plugin manifest version sync/,/^## /p' CLAUDE.md | grep -q 'marketplace.json' || { echo "FAIL: ## Plugin manifest version sync does not reference marketplace.json"; fail=1; }
+# FR-73: ## Release entry point must mention --plugin
+sed -n '/^## Release entry point/,/^## /p' CLAUDE.md | grep -q -- '--plugin' || { echo "FAIL: ## Release entry point does not mention --plugin"; fail=1; }
+if [ "$n_templated" -lt 4 ]; then echo "FAIL: only $n_templated templated &lt;plugin&gt; refs; expected ≥ 4"; fail=1; fi
+[ $fail -eq 0 ] || exit 1
+echo "PASS: assert_claude_md_generalized.sh ($n_templated templated refs, 0 unauthorized hardcoded, $n_markers marker block)"
+</code></pre>
+<pre><code># tests/scripts/assert_release_policy_section.sh
+#!/usr/bin/env bash
+set -e
+grep -qE '^## Release policy' CLAUDE.md || { echo "FAIL: missing ## Release policy heading"; exit 1; }
+for sub in 'Plugins list' 'Tag convention' '/complete-dev invocation' 'Drift hook contract' 'Tri-remote topology' 'Old repo posture'; do
+  grep -qE "$sub" CLAUDE.md || { echo "FAIL: missing subsection '$sub'"; exit 1; }
+done
+grep -q 'pmos-toolkit' CLAUDE.md || { echo "FAIL: Plugins list does not mention pmos-toolkit"; exit 1; }
+echo "PASS: assert_release_policy_section.sh"
+</code></pre></li>
+
+<li>[ ] <strong>Step 2: Run both, confirm fail.</strong></li>
+
+<li>[ ] <strong>Step 3: Edit existing 4 sections in <code>CLAUDE.md</code>:</strong>
+<ul>
+<li><strong>FR-70:</strong> Rename heading <code>## Canonical skill path (pmos-toolkit)</code> → <code>## Canonical skill path</code>. Body: replace <code>plugins/pmos-toolkit/skills/&lt;skill-name&gt;/SKILL.md</code> with <code>plugins/&lt;plugin&gt;/skills/&lt;skill-name&gt;/SKILL.md</code>. Update the prose "Anywhere else (root <code>skills/</code>, under another plugin, ...)" to reflect multi-plugin reality.</li>
+<li><strong>FR-71:</strong> <code>## Skill-authoring conventions</code> section — replace <code>plugins/pmos-toolkit/skills/</code> occurrences with <code>plugins/&lt;plugin&gt;/skills/</code>. Preserve the SDLC sub-bullet on <code>/feature-sdlc skill</code> verbatim. Update the "After any move" check from <code>ls plugins/pmos-toolkit/skills/</code> to <code>ls plugins/&lt;plugin&gt;/skills/</code>.</li>
+<li><strong>FR-72:</strong> <code>## Plugin manifest version sync</code> section — expand to 3-way per-plugin. New body lists: <code>plugins/&lt;plugin&gt;/.claude-plugin/plugin.json</code> + <code>plugins/&lt;plugin&gt;/.codex-plugin/plugin.json</code> + <code>marketplace.json[&lt;plugin&gt;].version</code> (in BOTH <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code>). Note: 4 files total per plugin per release.</li>
+<li><strong>FR-73:</strong> <code>## Release entry point</code> section — add a sub-bullet: "<code>/complete-dev</code> requires <code>--plugin &lt;name&gt;</code> (auto-detected from diff when unambiguous; refuses ambiguous multi-plugin diffs; substrate-only smart-detect prompt for cross-plugin <code>_shared/</code> changes)."</li>
+</ul></li>
+
+<li>[ ] <strong>Step 4: Append new <code>## Release policy</code> section</strong> after line 46 (FR-74). Wrap the "Example bump targets" block in explicit allow-list markers (<code>&lt;!-- allow-hardcoded --&gt;</code> … <code>&lt;!-- /allow-hardcoded --&gt;</code>) so the T6/T7 grep tests can filter on the marker pair rather than a heading-pattern guess. Include the 6 required subsections:
+<pre><code>## Release policy
+
+### Plugins list
+- pmos-toolkit
+
+### Tag convention
+- Format: `&lt;plugin&gt;/v&lt;semver&gt;` (e.g. `pmos-toolkit/v2.50.0`).
+- Pre-cutover tags (`v2.x`, `pmos-toolkit-2.x`, `pmos-toolkit-v2.x`) are preserved as-is; new tags MUST follow the namespaced format.
+
+### /complete-dev invocation
+- Pass `--plugin &lt;name&gt;` explicitly, OR rely on auto-detect from `git diff` (single-plugin only; ambiguous diffs are refused).
+- Substrate-only changes (under any `plugins/*/skills/_shared/`) trigger the "ride which plugin's next release?" prompt.
+
+### Drift hook contract
+- Pre-commit only (FR-30); bypassable via `git commit --no-verify` (accepted risk per D16).
+- `scripts/sync-shared.sh --from=&lt;plugin&gt;` is the only sanctioned mutation path for cross-plugin `_shared/` sync.
+
+### Tri-remote topology
+- `origin` = GitHub `pmos-skills` (canonical).
+- `work-mirror` = GitHub work-account fork of `pmos-skills`.
+- `gitlab-mirror` = GitLab backup of `pmos-skills`.
+- `/complete-dev` Phase 15 pushes branch + tag to every configured remote (per FR-59).
+
+### Old repo posture
+- `maneesh-dhabria/pmos-toolkit` is `archived=true, private=true` post-cutover.
+- Cached `v2.49.0` installs continue read-only. New installs flow through `maneesh-dhabria/pmos-skills`.
+
+### Example bump targets (per-plugin)
+&lt;!-- allow-hardcoded: example block intentionally cites the literal pmos-toolkit paths; tests filter this range out. --&gt;
+For a `pmos-toolkit/v2.50.0` release, all four of these MUST carry version `2.50.0`:
+- `plugins/pmos-toolkit/.claude-plugin/plugin.json`
+- `plugins/pmos-toolkit/.codex-plugin/plugin.json`
+- `.claude-plugin/marketplace.json` → `plugins[pmos-toolkit].version`
+- `.codex-plugin/marketplace.json` → `plugins[pmos-toolkit].version`
+&lt;!-- /allow-hardcoded --&gt;
+</code></pre>
+The <code>&lt;!-- allow-hardcoded --&gt;</code> … <code>&lt;!-- /allow-hardcoded --&gt;</code> markers wrap the only block where hardcoded <code>plugins/pmos-toolkit/</code> references are intentional. The T7 grep test (<code>assert_claude_md_generalized.sh</code>) and the T6 grep test (<code>assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh</code>) use these markers to skip the allowed range. Adding similar markers elsewhere in CLAUDE.md or in <code>/complete-dev</code>'s SKILL.md is fine; the marker is the contract, not the heading.</li>
+
+<li>[ ] <strong>Step 5: Re-run both tests, confirm pass.</strong>
+Run: <code>bash tests/scripts/assert_claude_md_generalized.sh &amp;&amp; bash tests/scripts/assert_release_policy_section.sh</code>
+Expected: 2× <code>PASS:</code>.</li>
+
+<li>[ ] <strong>Step 6: Commit</strong>
+<pre><code>git add CLAUDE.md tests/scripts/assert_claude_md_generalized.sh tests/scripts/assert_release_policy_section.sh
+git commit -m "feat(T7): CLAUDE.md generalized + ## Release policy + 2 tests"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -c '## Release policy' CLAUDE.md</code> — exactly 1 heading.</li>
+<li><code>grep -c '&lt;plugin&gt;' CLAUDE.md</code> — ≥ 4 templated refs.</li>
+<li>Both tests — exit 0.</li>
+</ul>
+
+<h4 id="t8">T8: <code>CONTRIBUTING.md</code> (NEW) + <code>.githooks/README.md</code> extended</h4>
+<p><strong>Goal:</strong> Document the external contributor workflow — primarily the one-time <code>git config core.hooksPath .githooks</code> step (E5 / FR-30 note) and the jq prereq (R2). Extend <code>.githooks/README.md</code> to describe both new hook contracts.</p>
+<p><strong>Spec refs:</strong> FR-30 (hooksPath note), FR-45 (jq), <a href="02_spec.html#configuration">spec §13</a>, E5, E8</p>
+<p><strong>Depends on:</strong> none (parallel with T7)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>Requires state from:</strong> none</p>
+<p><strong>TDD:</strong> no — <em>doc-only; no behavioral assertions to write red/green.</em> FR-105 TDD-optional class: docs. Phase 4 reviews justification.</p>
+<p><strong>Slice shape:</strong> css-only — pure documentation, no end-to-end user-observable behavior other than reading the file. Implements E5's contributor-workflow contract.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>CONTRIBUTING.md</code></li>
+<li>Modify: <code>.githooks/README.md</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] <strong>Step 1: Write <code>CONTRIBUTING.md</code></strong> (≤ 80 lines target). Required sections: (a) one-line repo intro pointing at the marketplace install command; (b) <strong>One-time setup</strong> with <code>git config core.hooksPath .githooks</code> + <code>brew install jq</code> / <code>apt install jq</code> / <code>dnf install jq</code>; (c) <strong>Hook contracts</strong> brief — pre-commit drift check (links to <code>.githooks/README.md</code>) + pre-push 3-way + tag rules; (d) <strong>Windows</strong> — out-of-scope; use WSL (NFR-04); (e) <strong>PR workflow</strong> — fork → branch → PR → solo-maintainer review.</li>
+
+<li>[ ] <strong>Step 2: Extend <code>.githooks/README.md</code></strong> — add sections describing the pre-commit drift hook (what it does, when it short-circuits, how to fix drift with <code>sync-shared.sh</code>, the <code>--no-verify</code> bypass) and the extended pre-push hook (3-way version check, namespaced tag format, tag-version-match, jq prereq). Reference FR-30..FR-46a inline so the doc is auditable.</li>
+
+<li>[ ] <strong>Step 3: Inline verification (manual)</strong> — open both files; eyeball that the one-time-setup command is correct and the hook contracts are accurately summarized.</li>
+
+<li>[ ] <strong>Step 4: Commit</strong>
+<pre><code>git add CONTRIBUTING.md .githooks/README.md
+git commit -m "docs(T8): CONTRIBUTING.md + .githooks/README.md hook contracts"
+</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -q 'core.hooksPath .githooks' CONTRIBUTING.md</code> — exit 0.</li>
+<li><code>grep -qE 'brew install jq|apt install jq|dnf install jq' CONTRIBUTING.md</code> — exit 0 (at least one platform shown).</li>
+<li><code>grep -qE 'pre-commit|pre-push' .githooks/README.md</code> — both hook names present.</li>
+</ul>
+
+<h3 id="phase-4-cutover">Phase 4: Cutover — local verification + remote topology + dogfood release</h3>
+<blockquote><p><strong>Plan revision 2026-05-23 (defect-T9):</strong> The pre-existing <code>pmos-toolkit v2.50.0</code> release (commit <code>58a130d — /architecture deep-pass v2</code>) landed on <code>main</code> before this feature branch was cut, bumping both <code>plugin.json</code> files to <code>2.50.0</code> and publishing tag <code>v2.50.0</code>. T1 authored the new <code>marketplace.json</code> entries at the stale <code>2.49.0</code> baseline, breaking the 3-way invariant. <strong>Resolution (Option A): release target is now <code>pmos-toolkit/v2.51.0</code>.</strong> A fix(T9) commit syncs marketplace entries 2.49.0 → 2.50.0 to restore the invariant; T11's <code>/complete-dev</code> then bumps all four to 2.51.0 atomically. All literal "v2.50.0" / "2.50.0" target-version references in T11 below are SUPERSEDED — use <code>2.51.0</code> / <code>v2.51.0</code>. See <code>03_plan_defect_T9.md</code> for full root-cause analysis.</p></blockquote>
+<p><strong>Phase rationale:</strong> Execute the one-shot D23 cutover sequence. T9 is the in-place test pass (all 18 assertion tests + dry-run); T10 mutates remote topology and pushes; T11 dogfoods <code>/complete-dev --plugin pmos-toolkit</code> as the first release on the new code path, then archives the old repo after install-verify. Phase exit: <code>gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived,.private'</code> returns <code>true,true</code>; <code>git ls-remote origin pmos-toolkit/v2.50.0</code> returns a SHA; fresh-CC install picker shows <code>pmos-toolkit v2.50.0</code>.</p>
+
+<h4 id="t9">T9: Pre-cutover local verification — full assertion-test sweep + <code>/complete-dev</code> dry-run</h4>
+<p><strong>Goal:</strong> Verify all 18 new shell-assertion tests exit 0 in sequence; run <code>/complete-dev --plugin pmos-toolkit --dry-run</code> against the feature branch; confirm the dry-run summary matches expectations (4 bump targets, namespaced tag, 4 push targets — pre-T10 the topology is still the original 4 remotes; that's fine, the dry-run validates the code path, not the eventual post-T10 topology).</p>
+<p><strong>Spec refs:</strong> FR-60, FR-83 (precursor), <a href="02_spec.html#testing-commands">spec §14.3</a></p>
+<p><strong>Depends on:</strong> T1, T2, T3, T4, T5, T6, T7, T8 (all of Phases 1-3)</p>
+<p><strong>Idempotent:</strong> yes — running the test sweep twice produces the same exit codes</p>
+<p><strong>Requires state from:</strong> all Phase 1-3 commits landed on <code>feat/multi-plugin-marketplace</code></p>
+<p><strong>TDD:</strong> no — <em>verification-only task; runs existing assertion tests rather than authoring new behavior.</em> Slice shape: <code>config</code> — no production code emitted; pre-flight gate for T10/T11.</p>
+<p><strong>Slice shape:</strong> config — gate check.</p>
+<p><strong>Files:</strong> none (runbook task)</p>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Run the full assertion-test sweep</strong> using the cheat sheet from spec §14.3:
+<pre><code>fail=0
+for t in tests/scripts/assert_sync_shared_*.sh \
+         tests/scripts/assert_pre_commit_*.sh \
+         tests/scripts/assert_pre_push_*.sh \
+         tests/scripts/assert_complete_dev_*.sh \
+         tests/scripts/assert_claude_md_*.sh \
+         tests/scripts/assert_release_policy_section.sh \
+         tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh \
+         tests/scripts/assert_marketplace_json_schema.sh \
+         tests/scripts/assert_skill_substrate_refs_unchanged.sh; do
+  if ! bash "$t"; then echo "FAILED: $t"; fail=1; fi
+done
+[ $fail -eq 0 ] || { echo "OVERALL: FAIL — at least one test failed"; exit 1; }
+echo "OVERALL: 18 PASS"
+</code></pre>
+Expected: <code>OVERALL: 18 PASS</code>.</li>
+
+<li>[ ] <strong>Step 2: Schema-validate all four manifests</strong>:
+<pre><code>jq empty .claude-plugin/marketplace.json &amp;&amp; \
+jq empty .codex-plugin/marketplace.json &amp;&amp; \
+jq empty plugins/pmos-toolkit/.claude-plugin/plugin.json &amp;&amp; \
+jq empty plugins/pmos-toolkit/.codex-plugin/plugin.json
+</code></pre>
+Expected: all four parse silently (exit 0).</li>
+
+<li>[ ] <strong>Step 3: Confirm 3-way invariant state on feature branch</strong>:
+<pre><code>echo "marketplace.json (claude):    $(jq -r '.plugins[] | select(.name==\"pmos-toolkit\") | .version' .claude-plugin/marketplace.json)"
+echo "marketplace.json (codex):     $(jq -r '.plugins[] | select(.name==\"pmos-toolkit\") | .version' .codex-plugin/marketplace.json)"
+echo "plugin.json (claude):         $(jq -r '.version' plugins/pmos-toolkit/.claude-plugin/plugin.json)"
+echo "plugin.json (codex):          $(jq -r '.version' plugins/pmos-toolkit/.codex-plugin/plugin.json)"
+</code></pre>
+Expected (REVISED per defect-T9): all four lines show <code>2.50.0</code> after the fix(T9) marketplace sync. T11's <code>/complete-dev</code> will bump all four from 2.50.0 → <code>2.51.0</code> in a single commit.</li>
+
+<li>[ ] <strong>Step 4: Run <code>/complete-dev --plugin pmos-toolkit --dry-run</code> against the feature branch.</strong> Open a Claude Code session in this repo root and invoke <code>/pmos-toolkit:complete-dev --plugin pmos-toolkit --dry-run</code>. Expected output: a dry-run summary listing 4 bump targets, tag name <code>pmos-toolkit/v2.50.0</code>, and the current 4 push targets (<code>origin</code> = GitLab, <code>github</code>, <code>github-work</code>, <code>all</code> — pre-T10 topology). NO actual mutation.</li>
+
+<li>[ ] <strong>Step 5: Trigger the drift hook deliberately</strong> (the spec §14.3 negative test):
+<pre><code>echo "drift" &gt;&gt; plugins/pmos-toolkit/skills/_shared/test-drift.txt
+git add plugins/pmos-toolkit/skills/_shared/test-drift.txt
+git commit -m "test drift" 2&gt;&amp;1 | grep -q 'drift detected' &amp;&amp; echo "OK: hook fired" || echo "FAIL: hook did not fire"
+git restore --staged plugins/pmos-toolkit/skills/_shared/test-drift.txt
+rm plugins/pmos-toolkit/skills/_shared/test-drift.txt
+</code></pre>
+Expected: <code>OK: hook fired</code>. Pre-condition: only <code>pmos-toolkit</code> has <code>skills/_shared/</code> on this branch (no learnkit yet), so the drift hook short-circuits if not configured to handle the FR-31 "one plugin" case — verify by checking the hook's behavior with <code>plugins/pmos-learnkit/</code> not yet existing. (If only-one-plugin: the FR-31 trivial-pass case fires, hook exits 0; that's the documented behavior, NOT a failure. Test with a pre-T11 fixture where a second plugin exists.)</li>
+
+<li>[ ] <strong>Step 6: Gate decision.</strong> If any of steps 1-5 fail, halt; do NOT proceed to T10. Fix on the feature branch (commit-by-commit) and re-run step 1. If all pass, log the result and proceed to T10.</li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li>All 18 assert_*.sh tests — exit 0.</li>
+<li>4× <code>jq empty</code> — exit 0.</li>
+<li><code>/complete-dev --plugin pmos-toolkit --dry-run</code> — prints summary; exits 0; no git mutations.</li>
+<li>Drift-hook smoke test — hook fires when triggered against multi-_shared/ fixture; trivially passes against current single-plugin state (FR-31).</li>
+</ul>
+
+<h4 id="t10">T10: Create <code>pmos-skills</code> GH repo + remote rename + push monorepo + merge feature branch</h4>
+<p><strong>Goal:</strong> Execute the D23 step 2-4 sequence: create the new GitHub repo, rename local remotes per FR-81, push the monorepo (including the feature branch with all T1-T8 commits + the not-yet-existing T11 cutover-release commit slot) to all three remotes, and merge the feature branch to main on the new origin.</p>
+<p><strong>Spec refs:</strong> FR-80, FR-81, FR-82, <a href="02_spec.html#rollout">spec §15 rollout steps 2-4</a>, E14, R3</p>
+<p><strong>Depends on:</strong> T9 (no green tests → no cutover)</p>
+<p><strong>Idempotent:</strong> NO — recovery: per-substep rollback. The 6-command remote-rename sequence is documented in R3's mitigation; <code>gh repo create</code> errors loudly if the repo already exists.</p>
+<p><strong>Requires state from:</strong> T9 green</p>
+<p><strong>TDD:</strong> no — <em>runbook task with external state mutations (GitHub repo creation, git remote renames); not unit-testable.</em> Verification via post-hoc <code>git remote -v</code> + <code>gh api</code>. Slice shape: <code>config</code>.</p>
+<p><strong>Slice shape:</strong> config — infrastructure ops.</p>
+<p><strong>Files:</strong> none on disk (all state mutations are external)</p>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Assert starting remote state.</strong>
+<pre><code>git remote -v | sort | uniq -c
+</code></pre>
+Expected: 4 distinct remotes — <code>origin</code> (gitlab), <code>github</code>, <code>github-work</code>, <code>all</code>. If <code>gitlab-mirror</code> or <code>work-mirror</code> already exist, halt and resolve manually (R3).</li>
+
+<li>[ ] <strong>Step 2: Create the new GitHub repo</strong> (FR-80):
+<pre><code>gh repo create maneesh-dhabria/pmos-skills --public \
+  --description "Multi-plugin marketplace for pmos-* Claude Code + Codex plugins"
+gh api -X PUT "repos/maneesh-dhabria/pmos-skills/branches/main/protection" \
+  --input - &lt;&lt;'JSON'
+{"required_status_checks":null,"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null}
+JSON
+</code></pre>
+Expected: <code>gh repo create</code> prints the new repo URL. Branch protection set with admin-bypass (<code>enforce_admins: false</code>).</li>
+
+<li>[ ] <strong>Step 3: Execute the 6-command remote rename</strong> (FR-81):
+<pre><code>git remote rename origin gitlab-mirror
+git remote remove all
+git remote rename github origin
+git remote set-url origin git@github.com:maneesh-dhabria/pmos-skills.git
+git remote rename github-work work-mirror
+git remote set-url work-mirror git@github.com-work:maneesh-dh/pmos-skills.git
+</code></pre>
+Verify post-state: <code>git remote -v | sort</code> shows exactly <code>origin</code> (GitHub pmos-skills), <code>work-mirror</code> (GitHub work pmos-skills), <code>gitlab-mirror</code> (GitLab agent-skills).</li>
+
+<li>[ ] <strong>Step 4: Push the monorepo</strong> (FR-82). With R7 eliminated (Loop 2 fix), pushes go through clean — no <code>--no-verify</code> needed:
+<pre><code>git push origin main:main
+git push origin feat/multi-plugin-marketplace:feat/multi-plugin-marketplace
+git push origin --tags
+git push work-mirror main feat/multi-plugin-marketplace --tags
+git push gitlab-mirror main feat/multi-plugin-marketplace --tags
+</code></pre>
+Expected: each push reports the SHA range pushed; pre-push hook accepts (3-way invariant satisfied at 2.49.0 anchor). Tags include all pre-existing <code>v2.x</code> / <code>pmos-toolkit-2.x</code> — pre-existing tags are not retroactively validated per FR-43.</li>
+
+<li>[ ] <strong>Step 5: Merge feature branch to main on new origin.</strong> Local <code>git checkout main &amp;&amp; git merge --no-ff feat/multi-plugin-marketplace</code> with merge commit message: <code>"feat: multi-plugin marketplace migration to pmos-skills"</code>. Push:
+<pre><code>git push origin main
+</code></pre>
+Pre-push hook accepts (invariant still satisfied at 2.49.0; T11's <code>/complete-dev</code> will be the commit that bumps everything to 2.50.0 atomically).</li>
+
+<li>[ ] <strong>Step 6: Verify post-T10 state.</strong>
+<pre><code>git remote -v
+gh api repos/maneesh-dhabria/pmos-skills -q '.name,.default_branch,.private'
+git ls-remote origin refs/heads/main | awk '{print $1}'
+</code></pre>
+Expected: 3 remotes; <code>pmos-skills</code> exists, default_branch=<code>main</code>, private=<code>false</code>; main on origin has the merged SHA.</li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>git remote | wc -l</code> — exactly 3.</li>
+<li><code>gh api repos/maneesh-dhabria/pmos-skills -q '.archived'</code> — <code>false</code>.</li>
+<li><code>git ls-remote origin refs/heads/main</code> — returns a SHA.</li>
+</ul>
+
+<h4 id="t11">T11: Cut <code>pmos-toolkit/v2.51.0</code> + verify install + update URLs + archive old repo</h4>
+<p><strong>Goal:</strong> Dogfood the new <code>/complete-dev</code> by running <code>/complete-dev --plugin pmos-toolkit</code> from main. That call bumps the 4 manifest entries to 2.50.0, tags <code>pmos-toolkit/v2.50.0</code>, pushes to all 3 remotes (hooks fire and pass cleanly). Verify install in a fresh CC. Update plugin.json + README URLs to point at <code>pmos-skills</code>. Pre-archive audit + archive + privatize the old repo.</p>
+<p><strong>Spec refs:</strong> FR-61, FR-75, FR-83, FR-84, FR-85, FR-86, FR-87, FR-88, <a href="02_spec.html#rollout">spec §15 rollout steps 5-9</a>, R1, R6</p>
+<p><strong>Depends on:</strong> T10</p>
+<p><strong>Idempotent:</strong> NO — recovery: per substep (e.g., a failed install-verify triggers D24 fix-forward to v2.50.1; archive is one-way per D24).</p>
+<p><strong>Requires state from:</strong> T10 complete, main on origin has the merged feature branch</p>
+<p><strong>TDD:</strong> no — <em>runbook task. Verification via <code>gh api</code> + fresh-CC install picker observation.</em> Slice shape: <code>config</code>.</p>
+<p><strong>Slice shape:</strong> config — release op + external state mutations.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify (in /complete-dev's commit): <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> (homepage + repository URL update to <code>pmos-skills</code>; version bumped by /complete-dev)</li>
+<li>Modify (in /complete-dev's commit): <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code> (version bump only; no URL fields)</li>
+<li>Modify (in /complete-dev's commit): <code>.claude-plugin/marketplace.json</code> + <code>.codex-plugin/marketplace.json</code> (version bumps in plugins-array entry; <code>homepage</code> URL in the plugin entry stays at the old <code>pmos-toolkit</code> URL during this step then is updated in a follow-up patch release — OR updated here in-line; PREFER the latter for FR-75 atomicity)</li>
+<li>Modify (in /complete-dev's commit): <code>README.md</code> (top-level — add migration breadcrumb per FR-88)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+<li>[ ] <strong>Step 1: Pre-flight URL + README updates.</strong> On <code>main</code>, BEFORE invoking /complete-dev, edit:
+<ul>
+<li><code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> — <code>homepage</code> and <code>repository</code> from <code>github.com/maneesh-dhabria/pmos-toolkit</code> to <code>github.com/maneesh-dhabria/pmos-skills</code> (FR-87).</li>
+<li><code>.claude-plugin/marketplace.json</code> + <code>.codex-plugin/marketplace.json</code> — <code>plugins[pmos-toolkit].homepage</code> from <code>pmos-toolkit</code> → <code>pmos-skills</code>.</li>
+<li><code>README.md</code> (top-level) — prepend or modify-in-place to lead with: "<code>pmos-skills</code> — Previously the <code>pmos-toolkit</code> marketplace; now hosts multiple <code>pmos-*</code> plugins. Install: <code>/plugin marketplace add maneesh-dhabria/pmos-skills</code>" (FR-88).</li>
+</ul>
+Commit these standalone: <code>git commit -m "feat: update homepage URLs + README breadcrumb to pmos-skills"</code>. (This commit precedes the release commit; FR-75 says the release commit must include everything — D23/rollout step 4 already merged everything else; the URL updates are the last bit. Practically: this commit + the /complete-dev release commit land in tight sequence; both can land before the next push since /complete-dev's own publish phase pushes.)</li>
+
+<li>[ ] <strong>Step 2: Invoke <code>/complete-dev --plugin pmos-toolkit</code></strong> from a Claude Code session opened against this repo's main branch (FR-83). The skill:
+<ol>
+<li>Reads the just-merged <code>complete-dev/SKILL.md</code> (the new code path, FR-61).</li>
+<li>Bumps 4 manifest entries (FR-57): both plugin.json files: 2.50.0 → 2.51.0; both marketplace.json plugin entries: 2.50.0 → 2.51.0 (REVISED per defect-T9: baseline is now uniformly 2.50.0 after fix(T9) sync, target is 2.51.0).</li>
+<li>Commits the bump.</li>
+<li>Creates tag <code>pmos-toolkit/v2.50.0</code> (FR-58).</li>
+<li>Runs pre-push hook (T4) — 3-way invariant now satisfied; tag format passes; tag-version-match passes.</li>
+<li>Pushes branch + tag to <code>origin</code>, then <code>work-mirror</code>, then <code>gitlab-mirror</code> (FR-59).</li>
+</ol>
+Expected output: <code>/complete-dev</code> summary lists the bumped files, the tag name <code>pmos-toolkit/v2.50.0</code>, and 3 successful remote pushes.</li>
+
+<li>[ ] <strong>Step 3: Verify tag presence on all remotes</strong>:
+<pre><code>for r in origin work-mirror gitlab-mirror; do
+  echo "$r: $(git ls-remote $r refs/tags/pmos-toolkit/v2.51.0 | awk '{print $1}')"
+done
+</code></pre>
+Expected: all three lines show the same 40-char SHA.</li>
+
+<li>[ ] <strong>Step 4a: Fresh-CC install verification (Claude Code)</strong> (FR-84). In a different Claude Code session (preferably a freshly cloned empty directory, NOT this repo root):
+<pre><code>/plugin marketplace add maneesh-dhabria/pmos-skills
+</code></pre>
+Expected: the picker shows <code>pmos-toolkit v2.51.0</code>. Install it; verify the new install's commands (e.g., <code>/pmos-toolkit:plan --help</code>) work.</li>
+
+<li>[ ] <strong>Step 4b: Fresh-Codex install verification (mandatory, blocks archive)</strong> — added in Loop 2 to close the R6 coverage gap.
+<ol>
+<li>If <code>codex</code> CLI is not installed locally, install per <a href="https://developers.openai.com/codex/cli">developers.openai.com/codex/cli</a> first. Runbook does NOT proceed to archive until this completes.</li>
+<li>From a fresh working directory, run the Codex marketplace-add equivalent (consult Codex docs for the exact command; the canonical phrase per <a href="https://developers.openai.com/codex/plugins/build">developers.openai.com/codex/plugins/build</a> is the Codex marketplace-add command). The expected outcome is: Codex's plugin picker / installed-plugin list shows <code>pmos-toolkit v2.51.0</code> sourced from <code>maneesh-dhabria/pmos-skills</code>.</li>
+<li>Run any one installed Codex-side command from the plugin to confirm the install is functional (not just metadata-parsed).</li>
+<li>If Codex rejects <code>.codex-plugin/marketplace.json</code>'s shape (R6 realized): D4 says ship Codex day-one, so fix forward as <code>v2.51.1</code> per D24 with corrected schema; do NOT proceed to T11 step 5+ until Codex install verifies cleanly. (This is the explicit gate that R6 was deferring.)</li>
+</ol>
+This step closes the FR-12 / D4 / R6 gap surfaced in Loop 2 (Codex schema was fabricated from external docs without a parse-against-real-Codex check until cutover; this step makes that check a hard gate before archive).</li>
+
+<li>[ ] <strong>Step 5: Pre-archive audit</strong> (FR-85):
+<pre><code>gh pr list --repo maneesh-dhabria/pmos-toolkit --state open
+gh api repos/maneesh-dhabria/pmos-toolkit/forks --jq '.[].full_name'
+</code></pre>
+If open PRs exist: HALT, do not archive; resolve manually first. If forks exist: edit the old repo's description to read "→ Migrated to <code>maneesh-dhabria/pmos-skills</code>" via <code>gh repo edit maneesh-dhabria/pmos-toolkit --description "..."</code>.</li>
+
+<li>[ ] <strong>Step 6: Archive + privatize old repo</strong> (FR-86):
+<pre><code>gh repo archive maneesh-dhabria/pmos-toolkit --yes
+gh repo edit maneesh-dhabria/pmos-toolkit --visibility private \
+  --accept-visibility-change-consequences
+</code></pre>
+Verify:
+<pre><code>gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived, .private'
+</code></pre>
+Expected: two lines, each <code>true</code>.</li>
+
+<li>[ ] <strong>Step 7: Final state assertion.</strong>
+<pre><code>echo "Old repo: $(gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived,.private' | tr '\n' ',')"
+echo "New repo: $(gh api repos/maneesh-dhabria/pmos-skills -q '.archived,.private' | tr '\n' ',')"
+echo "Tag SHA:  $(git ls-remote origin refs/tags/pmos-toolkit/v2.51.0 | awk '{print $1}')"
+</code></pre>
+Expected: <code>Old repo: true,true,</code> · <code>New repo: false,false,</code> · <code>Tag SHA: &lt;40-char&gt;</code>.</li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>gh api repos/maneesh-dhabria/pmos-toolkit -q '.archived,.private'</code> — <code>true,true</code>.</li>
+<li><code>gh api repos/maneesh-dhabria/pmos-skills -q '.archived,.private'</code> — <code>false,false</code>.</li>
+<li><code>git ls-remote origin refs/tags/pmos-toolkit/v2.51.0</code> — returns SHA.</li>
+<li>Fresh-CC <code>/plugin marketplace add</code> — picker lists <code>pmos-toolkit v2.50.0</code>.</li>
+</ul>
+
+<h3 id="tn">TN: Final Verification</h3>
+<p><strong>Goal:</strong> Verify the entire implementation works end-to-end. Re-run the full assertion-test suite from <code>main</code> (post-cutover); verify the 4-way version invariant; verify the 3-remote tag fan-out; verify the fresh-CC install picker; verify the archived state; walk the Done-when one-liner clause-by-clause through the running system.</p>
+
+<ul>
+<li>[ ] <strong>Lint &amp; format:</strong> N/A — no application code added; bash scripts pass <code>shellcheck</code> (recommended optional: <code>shellcheck scripts/sync-shared.sh .githooks/pre-commit .githooks/pre-push</code> — surface warnings, fix or document).</li>
+
+<li>[ ] <strong>Type check:</strong> N/A.</li>
+
+<li>[ ] <strong>Unit tests (full assertion-test sweep):</strong>
+<pre><code>fail=0
+for t in tests/scripts/assert_sync_shared_*.sh \
+         tests/scripts/assert_pre_commit_*.sh \
+         tests/scripts/assert_pre_push_*.sh \
+         tests/scripts/assert_complete_dev_*.sh \
+         tests/scripts/assert_claude_md_*.sh \
+         tests/scripts/assert_release_policy_section.sh \
+         tests/scripts/assert_no_hardcoded_pmos_toolkit_path_in_complete_dev.sh \
+         tests/scripts/assert_marketplace_json_schema.sh \
+         tests/scripts/assert_skill_substrate_refs_unchanged.sh; do
+  bash "$t" || { echo "FAIL: $t"; fail=1; }
+done
+[ $fail -eq 0 ] &amp;&amp; echo "TN: all 18 tests pass" || { echo "TN: FAIL"; exit 1; }
+</code></pre>
+Expected: <code>TN: all 18 tests pass</code> (0 failures, 0 regressions).</li>
+
+<li>[ ] <strong>Full test suite (existing repo tests):</strong>
+<pre><code>fail=0
+for t in tests/scripts/assert_*.sh; do bash "$t" || { echo "REGRESS: $t"; fail=1; }; done
+[ $fail -eq 0 ] || exit 1
+</code></pre>
+Expected: 0 regressions in pre-existing assertion tests.</li>
+
+<li>[ ] <strong>4-way version invariant assertion:</strong>
+<pre><code>v_claude_mkt=$(jq -r '.plugins[]|select(.name=="pmos-toolkit")|.version' .claude-plugin/marketplace.json)
+v_codex_mkt=$(jq -r '.plugins[]|select(.name=="pmos-toolkit")|.version' .codex-plugin/marketplace.json)
+v_claude_plg=$(jq -r '.version' plugins/pmos-toolkit/.claude-plugin/plugin.json)
+v_codex_plg=$(jq -r '.version' plugins/pmos-toolkit/.codex-plugin/plugin.json)
+[ "$v_claude_mkt" = "$v_codex_mkt" ] &amp;&amp; \
+[ "$v_codex_mkt" = "$v_claude_plg" ] &amp;&amp; \
+[ "$v_claude_plg" = "$v_codex_plg" ] &amp;&amp; \
+echo "OK: 4-way invariant holds at $v_claude_mkt" || { echo "FAIL: 4-way invariant violated"; exit 1; }
+</code></pre>
+Expected: <code>OK: 4-way invariant holds at 2.51.0</code>.</li>
+
+<li>[ ] <strong>Tri-remote tag presence:</strong>
+<pre><code>for r in origin work-mirror gitlab-mirror; do
+  sha=$(git ls-remote $r refs/tags/pmos-toolkit/v2.51.0 | awk '{print $1}')
+  echo "$r: $sha"
+done | awk '{print $2}' | sort -u | wc -l
+</code></pre>
+Expected: <code>1</code> (one unique SHA across all 3 remotes).</li>
+
+<li>[ ] <strong>Database migrations:</strong> N/A — no DB.</li>
+
+<li>[ ] <strong>Docker deploy:</strong> N/A — no Docker.</li>
+
+<li>[ ] <strong>API smoke test:</strong> N/A — no API surfaces.</li>
+
+<li>[ ] <strong>Frontend smoke test (Playwright MCP):</strong> N/A — no UI introduced; the only end-user surface is Claude Code's native marketplace picker, verified in T11 Step 4 via manual fresh-CC install.</li>
+
+<li>[ ] <strong>UX polish checklist:</strong> N/A (no UI). Document-level polish: <code>CLAUDE.md</code>, <code>CONTRIBUTING.md</code>, <code>.githooks/README.md</code>, <code>README.md</code> all read coherently end-to-end (read each top-to-bottom; no broken cross-references; no stale <code>pmos-toolkit</code> URLs outside the Release-policy example block).</li>
+
+<li>[ ] <strong>Wireframe diff:</strong> N/A — no wireframes folder (spec §11 N/A).</li>
+
+<li>[ ] <strong>Done-when walkthrough:</strong> Trace each clause of the Done-when one-liner (§1 Overview) through the running system:
+<ol>
+<li>"<code>/plugin marketplace add maneesh-dhabria/pmos-skills</code> in fresh CC shows <code>pmos-toolkit v2.50.0</code>" → confirmed at T11 Step 4.</li>
+<li>"Old repo <code>archived=true, private=true</code>" → confirmed at T11 Step 6.</li>
+<li>"All 18 shell-assertion tests exit 0" → re-confirmed at TN unit-tests step above.</li>
+<li>"<code>git ls-remote origin pmos-toolkit/v2.50.0</code> returns same SHA on all three configured remotes" → confirmed at TN tri-remote step above.</li>
+<li>"Pre-push hook rejects a deliberate 3-way mismatch" → run <code>tests/scripts/assert_pre_push_3_way_version_match.sh</code> one more time; exit 0.</li>
+</ol>
+All 5 clauses confirmed by named verification commands.</li>
+
+<li>[ ] <strong>Cleanup:</strong>
+<ul>
+<li>Remove the <code>.plan.lock</code> file at <code>docs/pmos/features/2026-05-20_multi-plugin-marketplace/.plan.lock</code> (created by /plan Phase 0 step 7).</li>
+<li>Verify no <code>plugins/pmos-learnkit/</code> stub was accidentally created during this work (it's deliberately out-of-scope; the next-feature release scaffolds it).</li>
+<li>Update documentation: the new <code>## Release policy</code> section in CLAUDE.md auto-covers the on-going contract; no per-task documentation backfill needed.</li>
+</ul></li>
+
+<li>[ ] <strong>Final commit-sequence summary</strong>: 11 task commits on <code>feat/multi-plugin-marketplace</code> (T1..T8 = 8 commits; T9 has no on-disk artifact so no commit; T10 has remote-state mutations + no-verify pushes; T11 has 2 commits — pre-flight URL update + /complete-dev release commit). Verify via:
+<pre><code>git log feat/multi-plugin-marketplace --not main --oneline
+</code></pre>
+Expected: ≥ 11 commits ending at the merge-to-main; latest commit is the <code>/complete-dev</code> release commit (or its merge commit).</li>
+</ul>
+
+</section>
+
+<section id="review-log">
+<h2 id="review-log">9. Review Log</h2>
+<p>Sidecar: detailed loop-by-loop findings live in <code>03_plan_review.md</code> (FR-45) if a Phase-4 loop generates any. This table is the summary index.</p>
+
+<p><strong>Open Questions from review loops:</strong></p>
+<ul>
+<li><strong>OQ-P1 (from Loop 2):</strong> T4 pre-push hook tests need a real <code>git push</code> path (not stdin-pipe to the hook) to actually exercise git's pre-push wiring. The blind-review subagent recommended either (a) extracting validators into a sourceable lib and unit-testing the lib directly, OR (b) using a local bare-repo fixture per test. The plan defers this choice to <code>/execute</code> with the constraint that the chosen pattern MUST result in 4 tests that exit 0 against fixtures AND fail loudly when the underlying invariant is violated. /execute is expected to surface its chosen approach in the per-task commit message.</li>
+</ul>
+
+<table>
+<tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr>
+<tr><td>0 (draft)</td><td>Initial plan authored from spec + Phase-2 deep-code-study + 5 plan-level Decision Log entries.</td><td>Draft written.</td></tr>
+<tr><td>1</td><td>Structural checklist: all 13 items pass (every FR/edge case mapped; TDD declared per task with FR-105 rationale for doc/runbook tasks; 5 DL entries ≥ Tier-3 floor; vertical-slice shape declared on every task; no placeholders). Design self-critique surfaced 3 findings: (a) T6 line-anchored edits will drift after T5's prose additions to same SKILL.md; (b) T5 harness-extraction pattern (testable extract → SKILL.md cites it) is novel and worth recording in Decision Log; (c) T6/T7 grep tests rely on a fragile "Release policy" heading filter for the allow-list.</td><td>All 3 fixed-as-proposed: (a) T6 step 3 augmented with content-anchored note instructing implementor to grep by content fragment, not line number; (b) new Decision Log entry P6 added covering the harness-extraction pattern with options + rationale; (c) introduced <code>&lt;!-- allow-hardcoded --&gt;</code> … <code>&lt;!-- /allow-hardcoded --&gt;</code> marker convention; T7's CLAUDE.md edit wraps the example bump-targets block; both T6 and T7 grep tests rewritten to use the marker pair (awk-based range filter, heading-rename-resilient).</td></tr>
+<tr><td>2</td><td>Blind-subagent review (fresh Explore agent, no shared context) against spec + plan. Surfaced 6 findings: 2 high, 3 medium, 1 low. <strong>High:</strong> (a) T4 pre-push fixture tests as written can't fire the hook (stdin-pipe ≠ real git pre-push wiring); (b) T1 bumping marketplace entries to 2.50.0 violates 3-way invariant until T11, requiring <code>--no-verify</code> on every intermediate push (R7). <strong>Medium:</strong> (c) P6's "SKILL.md cites test-tree helper" creates a divergence trap (skill loader runs prose, not helper); (d) grep tests in T6/T7 are existence-only, not behavioral; (e) Codex schema fabricated, T11 step 4 verification is conditional on local Codex CLI. <strong>Low:</strong> (f) sync-shared.sh uses GNU-only <code>find -printf</code>.</td><td>5 of 6 fixed-as-proposed (one skipped). (b) Deferred 2.50.0 bump from T1 to T11; T1 anchors marketplace entries at 2.49.0 matching plugin.json; <code>assert_marketplace_json_schema.sh</code> now asserts cross-manifest equality, not a literal; R7 marked RESOLVED; T9 expected-output updated; T10 push commands no longer need <code>--no-verify</code>; new DL entry P7. (c) Moved diff_router.sh from <code>tests/scripts/</code> to <code>plugins/pmos-toolkit/skills/complete-dev/scripts/</code>; SKILL.md Phase 0 invokes it via Bash so helper IS production; DL P6 updated to reflect runtime-path choice. (d) T7 grep test rewritten with 4 per-section behavioral assertions (Canonical-skill-path / Skill-authoring-conventions / Plugin-manifest-version-sync / Release-entry-point) + allow-hardcoded marker-count cap (≤1 per file) on both T6 and T7 tests. (e) T11 step 4 split into 4a (Claude Code install-verify) + 4b (Codex install-verify, mandatory pre-archive gate); R6 mitigation row updated. (f) T2's sync-shared.sh reference shape rewritten to <code>for d in plugins/*/; do basename...</code> portable pattern. <strong>Skipped:</strong> (a) — implementer judgment trusted to sort T4 fixture wiring; noted as Open Question for /execute.</td></tr>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

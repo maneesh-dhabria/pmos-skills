@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "pmos-toolkit",
+  "name": "pmos-skills",
   "owner": {
     "name": "Maneesh Dhabria",
     "url": "https://github.com/maneesh-dhabria"
@@ -10,9 +10,9 @@
       "name": "pmos-toolkit",
       "description": "Product management and software delivery pipeline — requirements, spec, plan, execute, verify, and supporting utilities.",
       "source": "./plugins/pmos-toolkit",
-      "version": "1.0.0",
+      "version": "2.51.0",
       "category": "productivity",
-      "homepage": "https://github.com/maneesh-dhabria/pmos-toolkit"
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
     }
   ]
 }

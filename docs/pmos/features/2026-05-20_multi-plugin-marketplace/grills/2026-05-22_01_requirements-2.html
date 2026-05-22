@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill Report #2 — 01_requirements (single-repo + Option C revision)</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.48.0">
+  <script defer src="../assets/viewer.js?v=2.48.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Grill Report #2 — 01_requirements (single-repo + Option C revision)</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Meta</h2>
+<ul>
+<li><strong>Target artifact:</strong> <code>docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html</code></li>
+<li><strong>Revision under review:</strong> 2026-05-22 PM first pass (single-repo + peer <code>_shared/</code> + drift hook), post the umbrella+subtree-split pivot.</li>
+<li><strong>Date:</strong> 2026-05-22 (PM, second pass)</li>
+<li><strong>Depth:</strong> deep</li>
+<li><strong>Questions asked:</strong> 6 (Q1–Q6) + 2 closures (OQ10, OQ13) + 5 verification rounds against the live codebase</li>
+<li><strong>Outcome:</strong> 6 decisions locked; 4 open questions closed; doc updated in-place; 8 gaps surfaced and addressed in the same pass</li>
+</ul>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved</h2>
+<table>
+<tr><th>#</th><th>Branch</th><th>Decision</th></tr>
+<tr><td>Q1</td><td>Old <code>maneesh-dhabria/pmos-toolkit</code> repo disposition</td><td><strong>Archive + make private.</strong> Old URL 404s publicly; no public banner possible. Closes OQ11. Strikes "README banner on archived repo" language from D13/D15.</td></tr>
+<tr><td>Q2</td><td>Hotfix-on-prior-line install mechanics</td><td><strong>Forward-only.</strong> Hotfix subsumed into next forward release. Removes J2.5 entirely; collapses D10. Locks in: CC reads <code>marketplace.json[plugin].version</code> (not git tags) for plugin resolution → pre-push hook needs <strong>3-way</strong> version validation (marketplace.json + <code>.claude-plugin</code> + <code>.codex-plugin</code>), not 2-way.</td></tr>
+<tr><td>Q3</td><td><code>/complete-dev</code> plugin-awareness mechanism</td><td><strong>Generalize /complete-dev with <code>--plugin</code> flag + CLAUDE.md plugins list.</strong> Flips "NOT modifying /complete-dev" from Non-Goal to Goal. Adds /execute scope: replace 10+ hardcoded <code>plugins/pmos-toolkit/</code> paths with <code>plugins/${plugin}/</code>, implement auto-detect-from-diff with refuse-on-ambiguity, ship the change in <code>pmos-toolkit/v2.50.0</code> (the cutover release; the last one done via old hardcoded flow).</td></tr>
+<tr><td>Q4</td><td>Drift-check enforcement layers</td><td><strong>Pre-commit hook only.</strong> No pre-push, no CI. Solo-maintainer pragmatism. Collapses D16. Closes OQ9 + OQ12. Tooling budget drops to ~60 LOC total.</td></tr>
+<tr><td>Q5</td><td>Existing tag history at cutover</td><td><strong>Keep existing tags as-is.</strong> Hook validates format only on new tags (from <code>pmos-toolkit/v2.50.0</code> onward). Historical heterogeneity preserved as archeology.</td></tr>
+<tr><td>Q6</td><td>Substrate-only commits + <code>/complete-dev</code> auto-detect</td><td><strong>Smart-detect.</strong> Substrate-only-across-plugins → prompt "ride which plugin's next release?"; real cross-plugin code → refuse. Adds modest logic to the Q3 generalization.</td></tr>
+<tr><td>L1</td><td><code>${CLAUDE_PLUGIN_ROOT}</code> substrate path token</td><td><strong>Verified working.</strong> Skills reference <code>_shared/</code> via plugin-relative token; Option C peer copies work transparently with zero skill code changes.</td></tr>
+<tr><td>L2</td><td>Marketplace install model</td><td><strong>Verified.</strong> Relative-path sources resolve at HEAD-of-marketplace-ref (typically main); per-plugin <code>version</code> field in marketplace.json is what CC reads for update signals. Currently stale at <code>"1.0.0"</code>; must become load-bearing post-cutover (D17b).</td></tr>
+<tr><td>OQ10 closure</td><td>Dual-remote push behavior</td><td><strong>Second git remote + CLAUDE.md ## Release policy documentation.</strong> Work-mirror configured as <code>git remote add work-mirror …</code>; <code>/complete-dev</code>'s existing push-to-configured-remotes behavior covers it transparently. /complete-dev stays generic; D19 added. Architectural consistency with prior /grill Q8.</td></tr>
+<tr><td>OQ13 closure</td><td>Migration comms with old repo private</td><td><strong>README of new pmos-skills repo only.</strong> External broadcast deferred unless someone files a confused issue. Solo-maintainer pragmatism. Closes OQ13.</td></tr>
+</table>
+</section>
+
+<section id="gaps-surfaced">
+<h2 id="gaps-surfaced">Gaps Surfaced (8) — all addressed</h2>
+<ol>
+<li><strong>CLAUDE.md cutover is 5 sections, not 1.</strong> The prior revision implied a single new <code>## Release policy</code> section. Live inspection found 4 existing sections (<code>## Canonical skill path</code>, <code>## Skill-authoring conventions</code>, <code>## Plugin manifest version sync</code>, <code>## Release entry point</code>) that all reference single-plugin <code>plugins/pmos-toolkit/</code> paths and must be generalized in the same cutover. → D18 added.</li>
+<li><strong>"NOT modifying /complete-dev" Non-Goal was unachievable.</strong> Live inspection of <code>complete-dev/SKILL.md</code> found 10+ hardcoded <code>plugins/pmos-toolkit/</code> references. → Q3 flipped this; D11 reworded; D6 stays dropped (no separate release script needed — /complete-dev does the job).</li>
+<li><strong>Pre-push hook validation was 2-way, must be 3-way.</strong> Live inspection of <code>.claude-plugin/marketplace.json</code> showed <code>plugins[].version = "1.0.0"</code> (stale, never bumped, while plugin.json is at 2.49.0). CC uses this field as the canonical update signal. → D12 amended to 3-way; D17b added.</li>
+<li><strong>D16 was over-engineered (triple-layer).</strong> Pre-commit + pre-push + CI was belt-suspenders-airbag for a solo project. → Q4 collapsed to pre-commit only.</li>
+<li><strong>J2.5 hotfix journey was wrong as written.</strong> Tag on a hotfix branch doesn't reach end-users via marketplace install (CC reads marketplace.json at HEAD-of-main). → Q2 removed J2.5 entirely; D10 collapsed to forward-only.</li>
+<li><strong>D13 / D15 README-banner language contradicted Q1.</strong> Archive + private means no public banner. → D13 amended; D15 rewritten ("README of new repo only"); OQ11 closed; OQ13 added then closed.</li>
+<li><strong>Marketplace <code>name</code> field change unstated.</strong> The marketplace's top-level <code>name</code> field is currently <code>"pmos-toolkit"</code>; must flip to <code>"pmos-skills"</code> at cutover. Also affects CC's plugin cache directory layout (<code>~/.claude-personal/plugins/cache/pmos-toolkit/...</code> → <code>~/.claude-personal/plugins/cache/pmos-skills/...</code>). → D17 added.</li>
+<li><strong>Mixed pre-cutover tag conventions undocumented.</strong> Live inspection: three formats (<code>v2.x</code>, <code>pmos-toolkit-v2.x</code>, <code>pmos-toolkit-2.x</code>). → Q5 + D7 (revised) made the "preserve, don't rewrite" choice explicit.</li>
+</ol>
+</section>
+
+<section id="open-deferred">
+<h2 id="open-deferred">Open / Deferred (post-grill)</h2>
+<table>
+<tr><th>#</th><th>Item</th><th>Why deferred / trigger</th></tr>
+<tr><td>OQ2 (kept)</td><td>Pre-archive audit of <code>maneesh-dhabria/pmos-toolkit</code> for open PRs / forks</td><td>Runbook step before flipping archive switch. Not a design question; an /execute runbook item. <code>gh pr list --repo maneesh-dhabria/pmos-toolkit</code> + <code>gh api repos/maneesh-dhabria/pmos-toolkit/forks</code>.</td></tr>
+<tr><td>OQ3 (kept)</td><td>Factor <code>_shared/</code> into its own plugin (<code>pmos-shared</code>)</td><td>Explicit trigger: N ≥ 4 plugins OR <code>_shared/</code> surface > 30% of any plugin's skill content. Premature to revisit now.</td></tr>
+<tr><td>OQ7 (kept)</td><td>Codex install snippet in each plugin's README</td><td>/execute writes per current Codex install UX. Not blocking /spec; documentation detail.</td></tr>
+<tr><td>OQ8 (kept)</td><td>Local monorepo dir rename <code>agent-skills/</code> → <code>pmos-skills/</code></td><td>Maneesh-local filesystem decision; no user-visible impact; no spec impact. Deferred indefinitely.</td></tr>
+</table>
+</section>
+
+<section id="closed-this-pass">
+<h2 id="closed-this-pass">Closed this pass</h2>
+<ul>
+<li>OQ9 → CLOSED via Q4 (pre-commit only).</li>
+<li>OQ10 → CLOSED via OQ10-closure question (second git remote + CLAUDE.md policy; /complete-dev stays generic).</li>
+<li>OQ11 → CLOSED via Q1 (archive + private).</li>
+<li>OQ12 → CLOSED via Q4 (CI dropped).</li>
+<li>OQ13 → CLOSED via OQ13-closure question (README of new repo only).</li>
+</ul>
+</section>
+
+<section id="material-updates-applied">
+<h2 id="material-updates-applied">Material updates applied to <code>01_requirements.html</code></h2>
+<ol>
+<li>Frontmatter — added 4th revision history entry; added link to this grill report.</li>
+<li>Problem — added paragraph summarizing second-grill findings.</li>
+<li>Goals — added "marketplace.json[plugin].version is canonical update signal" + "/complete-dev generalized" goals.</li>
+<li>Non-Goals — REMOVED "NOT modifying /complete-dev"; ADDED "NOT supporting hotfix-on-prior-line as delivered-to-users mechanism"; ADDED "NOT enforcing drift check at pre-push or CI"; ADDED "NOT building /complete-dev with explicit work-mirror knowledge"; ADDED "NOT preserving pre-cutover tag history under new convention."</li>
+<li>UX Friction Points — DROPPED "did my release publish to the right place" row; ADDED "I bumped plugin.json but forgot marketplace.json" row; ADDED "user runs --no-verify" edge case row.</li>
+<li>Solution §Structural — added D17 marketplace name change, archive+private posture, work-mirror as second git remote.</li>
+<li>Solution §Tooling — restructured into 4 items: sync-shared.sh, pre-commit drift hook, pre-push hook (3-way), <strong>generalized /complete-dev</strong> as a tooling deliverable.</li>
+<li>Solution §CLAUDE.md cutover — NEW subsection enumerating the 5-section CLAUDE.md edit set (D18).</li>
+<li>J1 — added 3-way version bump, dual-remote push, cutover-release note.</li>
+<li>J2 — clarified dual-marketplace-manifest update.</li>
+<li>J2.5 — REMOVED entirely (Q2).</li>
+<li>J4 — added smart-detect "ride which plugin?" prompt for substrate-only.</li>
+<li>J6 — clarified smart-detect classifier (real-code vs substrate-only).</li>
+<li>Empty States — added <code>--no-verify</code> bypass row; archived-repo URL 404 row.</li>
+<li>Design Decisions — REVISED D7 (Q5), D10 (Q2), D12 (3-way), D13 (Q1), D15 (Q13), D16 (Q4); ADDED D17 (marketplace name), D17b (marketplace.json version field), D18 (CLAUDE.md 5-section edits), D19 (OQ10 work-mirror).</li>
+<li>Success Metrics — added 3-way version match metric; reduced tooling LOC budget to ≤100 (includes pre-push extension).</li>
+<li>Research Sources — added live-inspection findings as explicit sources.</li>
+<li>Open Questions — closed OQ9/OQ10/OQ11/OQ12/OQ13; kept OQ2/OQ3/OQ7/OQ8 with explicit triggers.</li>
+</ol>
+</section>
+
+<section id="next-step">
+<h2 id="next-step">Recommended next step</h2>
+<p>Proceed to <code>/spec</code>. The updated requirements doc is internally consistent post-edits; the decisions are pinned; the remaining open questions are runbook items (OQ2, OQ7), genuinely deferrable (OQ3, OQ8), or post-/execute documentation (OQ7). /spec can design the generalized <code>/complete-dev</code> code changes, the drift-check hook + sync-shared.sh, the pre-push hook 3-way validation, the CLAUDE.md ## Release policy content, and the cutover runbook (audit → archive+private → push to new repo → README banner on new repo) without further requirements work.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-20_multi-plugin-marketplace/grills/2026-05-22_01_requirements-2.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/2026-05-20_multi-plugin-marketplace#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
