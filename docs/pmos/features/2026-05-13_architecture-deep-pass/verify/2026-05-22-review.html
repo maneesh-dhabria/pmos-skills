@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>architecture-deep-pass — /verify Phase 7 review</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.48.0">
+</head>
+<body>
+<main>
+<h1 id="title">architecture-deep-pass — /verify review (2026-05-22)</h1>
+
+<p class="meta-line"><strong>Pipeline:</strong> skill-feedback · <strong>Skill:</strong> <code>plugins/pmos-toolkit/skills/architecture/</code> · <strong>Branch:</strong> <code>feat/architecture-deep-pass</code> · <strong>HEAD:</strong> <code>bcc7745</code></p>
+
+<h2 id="summary">Summary</h2>
+
+<ul>
+<li><strong>Outcome:</strong> PASS with 1 known accepted residual + 1 unverified manual gate (book-companion regression).</li>
+<li><strong>Static verification:</strong> fixture suite 46/1 (pre-existing <code>ts-circular</code> baseline; depcruise not installed locally).</li>
+<li><strong>Skill-eval fresh re-run:</strong> [D] 18/18 pass · [J] 17/18 pass after in-flight fix of <code>d-when-not-to-use</code>; 1 residual (<code>a-name-verb-or-gerund</code>) accepted in Phase 6a — surfaced loudly here.</li>
+<li><strong>Release prereqs (best-effort):</strong> manifest version-sync ✓ (both at 2.48.0; needs minor bump in /complete-dev); README has 2 <code>/architecture</code> refs ✓; CHANGELOG file absent (defer to /complete-dev); CLAUDE.md skill-authoring section ✓.</li>
+<li><strong>Book-companion regression (manual gate, plan §Done-when):</strong> NOT RUN — backend/ pinned-SHA clone not present in this worktree. User action required before /complete-dev.</li>
+</ul>
+
+<h2 id="known-residual">Known / accepted residual (Phase 6a)</h2>
+
+<p>Per <code>state.yaml.phases.skill-eval.accepted_residuals[]</code>, one residual was accepted at Phase 6a and remains failing on this fresh re-run:</p>
+
+<table>
+<thead><tr><th>check_id</th><th>fix_note</th><th>rationale</th><th>acked_at</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>a-name-verb-or-gerund</code></td>
+  <td>Rename frontmatter <code>name:</code> from <code>architecture</code> (bare noun) to a verb/gerund such as <code>audit-architecture</code>.</td>
+  <td>Pre-existing skill name; rename would break the <code>/architecture</code> slash command, plugin manifest, README rows, CLAUDE.md references, every reference doc, and all fixture <code>.assert</code> files. Out of scope for the deep-pass feature.</td>
+  <td>2026-05-22T15:50:00Z</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Non-blocking for ship</strong> per FR-50 reconciliation. Surfaced again here for /complete-dev summary visibility.</p>
+
+<h2 id="static-verification">Static verification (Phase 2)</h2>
+
+<table>
+<thead><tr><th>Step</th><th>Outcome</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>1a. Lint &amp; Format</td><td>NA — alt-evidence</td><td>Skill is markdown + bash + yaml; no project linter applies. Bash scripts use <code>set -euo pipefail</code> (verified by [J] <code>e-script-error-handling</code> check).</td></tr>
+<tr><td>1b. Type checks</td><td>NA — alt-evidence</td><td>No typed code in skill bundle.</td></tr>
+<tr><td>1c. Unit tests / fixture suite</td><td>Verified</td><td><code>bash plugins/pmos-toolkit/skills/architecture/tests/run.sh</code> → <strong>46 passed, 1 failed</strong>. The 1 failure is <code>ts-circular</code> — pre-existing baseline since T1 (depcruise not installed in this worktree); unchanged across T1–T24+TN; not introduced by deep-pass.</td></tr>
+<tr><td>1d. Frontend tests</td><td>NA — alt-evidence</td><td>No frontend surface.</td></tr>
+</tbody>
+</table>
+
+<h2 id="multi-agent-review">Multi-agent code quality review (Phase 3)</h2>
+
+<p><strong>NA — alt-evidence.</strong> Every task T1–T24 + TN ran two-stage subagent review during /execute (spec-compliance + code-quality), with Q-fix commits captured in the per-task <code>execute/task-N.md</code> logs. Re-dispatching diff reviewers over a 13K-line skill rewrite would surface noise, not signal. Evidence: 26 implementer commits + N Q-fix commits visible in <code>git log main..HEAD</code> with subjects like <code>fix(TN): drop decorative comments per Q-review</code>.</p>
+
+<h2 id="deploy-integration">Deploy &amp; integration verification (Phase 4)</h2>
+
+<p><strong>NA — alt-evidence.</strong> No runtime deploy surface — the artifact is a skill loaded by Claude Code's plugin manifest. The fixture suite (Phase 2 above) is the equivalent end-to-end check; the run-audit harness executes against 46 real-shape fixtures covering every L1/L2 rule + the v2 schema loader path + the legacy-severity rejection path.</p>
+
+<h2 id="skill-eval-rerun">Skill-eval fresh re-run (Phase 5 skill-mode addendum, FR-50)</h2>
+
+<h3 id="d-half">[D] deterministic half</h3>
+
+<p><code>bash skill-eval-check.sh --target generic --plan 03_plan.html plugins/.../architecture</code> → exit 0, 18/18 pass. Identical to Phase 6a iter-1.</p>
+
+<h3 id="j-half">[J] LLM-judge half (reviewer subagent, temp 0, JSON-array, FR-43/44)</h3>
+
+<table>
+<thead><tr><th>check_id</th><th>verdict</th><th>note</th></tr></thead>
+<tbody>
+<tr><td><code>a-name-verb-or-gerund</code></td><td>fail</td><td>KNOWN — accepted in Phase 6a (see above). Non-blocking.</td></tr>
+<tr><td><code>d-when-not-to-use</code></td><td>fail (NEW) → fixed in-flight</td><td>SKILL.md lacked explicit when-NOT-to-use guidance. Added 5-bullet section at commit <code>bcc7745</code>: style/format lint, docs-only repos, single-file scripts, missing prereqs, PR-scoped diff review. Body 175 → 178 lines (still ≤500).</td></tr>
+<tr><td>(remaining 16 in-scope checks)</td><td>pass</td><td>b-desc-{third-person, symptom-coverage, no-mechanism-leak, no-self-ref, no-marketing, trigger-coverage}; c-{prog-disclosure, references-loaded-from-skill}; d-{when-to-use, anti-patterns, platform-adaptation-substance, evidence-standards}; e-script-{shebangs, error-handling, doc-cross-ref}; g-release-prereqs-scope.</td></tr>
+</tbody>
+</table>
+
+<p><strong>FR-44 orchestrator-side validation:</strong> (a) set-equality 18 returned vs 18 in-scope ✓; (b) substring-grep of both fail quotes against SKILL.md → True. Both fails stood under validation; <code>d-when-not-to-use</code> was remediated in-flight (single small section add), <code>a-name-verb-or-gerund</code> remains accepted residual.</p>
+
+<h2 id="release-prereqs">Best-effort host-repo release prereqs (FR-51)</h2>
+
+<table>
+<thead><tr><th>Prereq</th><th>Outcome</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Manifest version-sync</td><td>Verified (sync); needs bump</td><td>Both <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> at <code>2.48.0</code>. Needs synced minor bump to <code>2.49.0</code> at /complete-dev (pre-push hook enforces sync).</td></tr>
+<tr><td>README row</td><td>Verified</td><td>2 <code>/architecture</code> references in README.md (one in skill description; one in standalone-skills list).</td></tr>
+<tr><td>CHANGELOG entry</td><td>Unverified — action required</td><td>No CHANGELOG.md file in repo root. /complete-dev's release recipe owns this. Surface to /complete-dev to confirm whether this repo uses a CHANGELOG file or relies on plugin.json + git log alone.</td></tr>
+<tr><td>CLAUDE.md skill-authoring section</td><td>Verified</td><td>Present at line 22 (<code>## Skill-authoring conventions</code>).</td></tr>
+</tbody>
+</table>
+
+<h2 id="book-companion">Book-companion regression (Phase 5.4 — gating manual check)</h2>
+
+<table>
+<thead><tr><th>Item</th><th>Outcome</th><th>Evidence / Action</th></tr></thead>
+<tbody>
+<tr>
+  <td>Run <code>/architecture audit backend/</code> on book-companion at pinned SHA; assert <code>jq '.findings | length'</code> → ≤120 (down from v1 baseline of 586).</td>
+  <td><strong>Unverified — action required</strong></td>
+  <td><code>backend/</code> clone not present in this worktree. User must clone book-companion at the pinned SHA before /complete-dev, run the audit, and confirm the count is at or below 120. Plan §Risk-runbook line 258: "If book-companion regression at /verify Phase 7 reports &gt;120 findings on backend/: do not /complete-dev."</td>
+</tr>
+<tr>
+  <td>Run <code>--monorepo --deep</code>; assert <code>jq '.deep_pass.candidates | map(select(.classification != "deep")) | length'</code> → ≥3.</td>
+  <td><strong>Unverified — action required</strong></td>
+  <td>Same blocker as above. Surface ≥3 leaky/shallow classifications with substring-grep-verified evidence per spec G1.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="open-items">Open items requiring user action before /complete-dev</h2>
+
+<ol>
+<li><strong>Book-companion regression</strong> — clone backend/ at pinned SHA, run audit, confirm ≤120 findings + ≥3 non-deep candidates. <em>Gating per the plan; /complete-dev must not proceed without this.</em></li>
+<li><strong>Accepted residual surfacing in /complete-dev summary</strong> — <code>a-name-verb-or-gerund</code> should appear in the release notes as a known follow-up (skill rename is a separate, future feature).</li>
+<li><strong>CHANGELOG verification at /complete-dev</strong> — confirm repo's release-notes convention; create CHANGELOG.md or document the absence.</li>
+</ol>
+
+<h2 id="folded-phase">Folded-phase failures</h2>
+
+<p>None across all phases. <code>state.yaml.phases.*.folded_phase_failures[]</code> empty.</p>
+
+</main>
+</body>
+</html>
