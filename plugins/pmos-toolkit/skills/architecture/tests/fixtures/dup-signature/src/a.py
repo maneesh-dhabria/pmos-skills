@@ -1,0 +1,13 @@
+class Foo: ...
+
+
+class Service:
+    def _resolve_audio_units(self, x: int) -> Foo: ...
+
+
+from typing import overload
+
+
+@overload
+def f(x: int) -> int: ...
+def f(x): ...

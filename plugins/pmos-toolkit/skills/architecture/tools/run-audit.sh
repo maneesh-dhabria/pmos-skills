@@ -1201,6 +1201,76 @@ PY
 findings_json=$(echo "$l1_pass_json" | jq '.findings')
 idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
 
+# ── U011 cross-file duplicate function signatures (T9, FR-45, D3, E13) ───────
+# Two-pass shape (collect all signatures → group by canonical key → emit per
+# occurrence iff the key spans ≥2 distinct files). Same-file matches are
+# the E13 carve-out and do not fire. Param names are stripped; type
+# annotations are stringified via ast.unparse.
+u011_json=$(
+LOADER_JSON_ENV="$LOADER_JSON" \
+SCAN_ROOT_ENV="$SCAN_ROOT" \
+python3 <<'PY'
+import ast, json, os, pathlib
+from collections import defaultdict
+
+loader = json.loads(os.environ["LOADER_JSON_ENV"])
+scan_root = pathlib.Path(os.environ["SCAN_ROOT_ENV"]).resolve()
+files = [f for f in loader["scanned"]["files_for_rules"] if f.endswith(".py")]
+
+def sig_key(node):
+    args = node.args
+    def ann(a):
+        return ast.unparse(a.annotation) if a.annotation is not None else ""
+    parts = []
+    for a in args.posonlyargs + args.args:
+        parts.append(f"_:{ann(a)}")
+    if args.vararg is not None:
+        parts.append(f"*:{ann(args.vararg)}")
+    for a in args.kwonlyargs:
+        parts.append(f"_:{ann(a)}")
+    if args.kwarg is not None:
+        parts.append(f"**:{ann(args.kwarg)}")
+    ret = ast.unparse(node.returns) if node.returns is not None else ""
+    return f"{node.name}({','.join(parts)})->{ret}"
+
+sig_map = defaultdict(list)
+for rel in files:
+    abspath = scan_root / rel
+    try:
+        tree = ast.parse(abspath.read_text())
+    except (SyntaxError, ValueError, OSError):
+        continue
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            sig_map[sig_key(node)].append((rel, node.lineno))
+
+u011_findings = []
+for key, occurrences in sig_map.items():
+    distinct_files = {f for (f, _ln) in occurrences}
+    if len(distinct_files) < 2:
+        continue
+    for (rel, ln) in occurrences:
+        peers = sorted({f for f in distinct_files if f != rel})
+        u011_findings.append({
+            "rule_id": "U011",
+            "file": rel,
+            "line": ln,
+            "message": f"Cross-file duplicate signature: {key}",
+            "severity": "warn",
+            "source": "principles.yaml#U011",
+            "cross_refs": peers,
+        })
+print(json.dumps(u011_findings))
+PY
+)
+
+# Merge U011 findings into the unified findings array (matches the depcruise
+# / ruff aggregation pattern at L1279/L1362).
+findings_json=$(jq -n \
+  --argjson a "$findings_json" \
+  --argjson b "$u011_json" \
+  '$a + $b')
+
 fi  # end WARN_MODE guard for T3 + L1
 
 # ── L2 delegated tool: dependency-cruiser (T9, FR-30/32/33) ──────────────────

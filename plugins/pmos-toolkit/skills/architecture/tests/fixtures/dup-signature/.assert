@@ -1,0 +1,21 @@
+# dup-signature — U011 cross-file duplicate function signatures (T9, FR-45, D3, E13).
+# - src/a.py + src/b.py both define `_resolve_audio_units(self, X: int) -> Foo`
+#   with different param names → 2 U011 findings, each cross-ref'd to the peer.
+# - src/a.py also has a same-file @overload + impl `f(...)` pair, which is the
+#   E13 carve-out and must NOT fire (same-file matches are not flagged).
+set -euo pipefail
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+
+# Two U011 findings (one per occurrence across the two files).
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "U011")] | length == 2' >/dev/null \
+  || { echo "expected exactly 2 U011 findings"; echo "$out" | jq '[.findings[] | select(.rule_id == "U011")]'; exit 1; }
+
+# Each finding cross-refs to the other file.
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "U011" and .file == "src/a.py")] | .[0].cross_refs == ["src/b.py"]' >/dev/null \
+  || { echo "a.py U011 should cross_ref [src/b.py]"; echo "$out" | jq '[.findings[] | select(.rule_id == "U011" and .file == "src/a.py")]'; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "U011" and .file == "src/b.py")] | .[0].cross_refs == ["src/a.py"]' >/dev/null \
+  || { echo "b.py U011 should cross_ref [src/a.py]"; echo "$out" | jq '[.findings[] | select(.rule_id == "U011" and .file == "src/b.py")]'; exit 1; }
+
+# E13: same-file overload+impl for `f` must not fire U011.
+echo "$out" | jq -e '[.findings[] | select(.rule_id == "U011" and (.message | contains("f(")))] | length == 0' >/dev/null \
+  || { echo "FAIL: same-file overload f(...) should not fire U011"; echo "$out" | jq '[.findings[] | select(.rule_id == "U011")]'; exit 1; }

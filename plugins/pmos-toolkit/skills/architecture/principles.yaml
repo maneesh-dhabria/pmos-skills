@@ -111,6 +111,16 @@ rules:
     message: "No NotImplementedError / throw new Error('TBD') on a main code path."
     why: "Stubs on main paths ship as 500s; either implement or remove the call site."
 
+  - id: U011
+    tier: 1
+    stack: null
+    disposition: should_fix
+    delegate_to: grep
+    check: "ast:dup_signature_cross_file"
+    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u011"
+    message: "No cross-file duplicate function signatures."
+    why: "Cross-file duplicates suggest a missing abstraction; consolidating prevents drift."
+
   # ── L2: TypeScript (4 rules; delegate_to: dependency-cruiser) ──────────────
 
   - id: TS001
