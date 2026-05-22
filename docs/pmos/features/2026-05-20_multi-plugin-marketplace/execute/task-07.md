@@ -27,4 +27,8 @@ files_touched:
 - Green phase: `PASS: assert_claude_md_generalized.sh (10 templated refs, 0 unauthorized hardcoded, 1 marker block)` + `PASS: assert_release_policy_section.sh` (exit 0).
 - Benign stderr `[: 0\n0: integer expression expected` on `grep -c` fallbacks is per-spec verbatim, doesn't affect exit code; not fixed (test logic intact).
 
-**Deviations:** none.
+**Spec-review findings (applied/deferred):**
+- (applied) Test stderr noise: `grep -c ... || echo 0` produced `"0\n0"` on no-match (set -e + BSD bash). Replaced with `|| true` in 3 sites — grep -c already prints `0`; `|| true` just suppresses set -e. Both tests still PASS, no more spurious `[: integer expression` warnings. Committed as `fix(T7): silence grep -c stderr noise`.
+- (deferred) Plugins list omits `pmos-learnkit`. Plan §T7 Step 4 explicitly lists only `pmos-toolkit`; spec FR-74 literal text names both. `pmos-learnkit` is not scaffolded in this repo; adding it would be aspirational doc. Surface to /verify for confirmation; remediate via a follow-up plan or in T11 if pmos-learnkit lands.
+
+**Deviations:** none vs plan; one literal-spec deviation (above) inherited from the plan.

@@ -26,4 +26,9 @@ files_touched:
 
 **TDD:** opted out per task `TDD: no` (FR-105 doc-class exemption — no behavioral assertions to write red/green).
 
+**Code-quality review findings (applied/deferred):**
+- (applied) Important: "3-way version + tag" header was inconsistent with the body, which enumerates 4 manifests. Renamed to "4-manifest version + tag" in both `CONTRIBUTING.md` and `.githooks/README.md`. Also added `/complete-dev automates the bump` to the CONTRIBUTING pre-push bullet. Committed as `fix(T8): rename pre-push section "3-way" → "4-manifest" for consistency`.
+- (deferred to follow-up) Important: jq-missing error string drift between FR-45 spec text and actual `.githooks/pre-push:23` output. Cross-task issue (T4 hook author vs T8 doc author); flag to /verify for resolution either by updating the hook string or relaxing FR-45's verbatim contract.
+- (skipped — nit) T11-cutover marker on `CONTRIBUTING.md:6` install line; PR-workflow precision phrasing; bash fence language tag.
+
 **Deviations:** none.
