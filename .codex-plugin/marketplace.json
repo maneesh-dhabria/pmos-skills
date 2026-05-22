@@ -9,7 +9,7 @@
       "name": "pmos-toolkit",
       "description": "Product management and software delivery pipeline — requirements, spec, plan, execute, verify, and supporting utilities.",
       "source": "./plugins/pmos-toolkit",
-      "version": "2.49.0",
+      "version": "2.50.0",
       "category": "productivity",
       "homepage": "https://github.com/maneesh-dhabria/pmos-toolkit"
     }
