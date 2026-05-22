@@ -533,7 +533,7 @@ PY
 # The variable value is preserved verbatim; quote $findings_json at use site.
 l1_pass_json=$(
   python3 - "$LOADER_JSON" "$SCAN_ROOT" "$idiomatic_exemptions_json" <<'PY'
-import json, os, re, subprocess, sys, time
+import ast, json, os, re, subprocess, sys, time
 
 loader = json.loads(sys.argv[1])
 scan_root = sys.argv[2]
@@ -774,14 +774,14 @@ for rel in files:
         non_blank_loc = sum(1 for l in lines if l.strip())
         basename = os.path.basename(rel)
         has_long_docstring = False
+        # Docstring carve-out is Py-only — JS/TS/Vue have no equivalent construct.
         if rel.endswith(".py"):
             try:
-                import ast as _ast
-                _mod = _ast.parse("".join(lines))
-                _doc = _ast.get_docstring(_mod) or ""
+                _mod = ast.parse("".join(lines))
+                _doc = ast.get_docstring(_mod) or ""
                 if len(_doc.strip()) >= 40:
                     has_long_docstring = True
-            except SyntaxError:
+            except (SyntaxError, ValueError):
                 pass
         if non_blank_loc > 100 and basename != "__init__.py" and not has_long_docstring:
             findings.append({
