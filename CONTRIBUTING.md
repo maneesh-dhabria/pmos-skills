@@ -36,12 +36,13 @@ summary:
 - **pre-commit (drift)** — rejects commits where `plugins/*/skills/_shared/`
   copies have drifted between plugins. Fix with
   `scripts/sync-shared.sh --from=<plugin>`. Single-plugin repos short-circuit.
-- **pre-push (3-way version + tag)** — for any plugin whose `skills/` or
+- **pre-push (4-manifest version + tag)** — for any plugin whose `skills/` or
   `agents/` changed, requires the version in `plugins/<name>/.claude-plugin/plugin.json`,
   `plugins/<name>/.codex-plugin/plugin.json`, and both `marketplace.json`
   entries to all match and to differ from the remote tip. Tags must be
   `<plugin>/v<semver>` (e.g. `pmos-toolkit/v2.42.0`) and the version in the
-  tag must match the four manifests.
+  tag must match the four manifests. `/complete-dev` automates the bump
+  and tag for Claude Code users.
 
 ## Windows
 

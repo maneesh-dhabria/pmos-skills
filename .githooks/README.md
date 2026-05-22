@@ -36,7 +36,7 @@ resulting changes and commit again.
 
 **Bypass.** `git commit --no-verify` — only for hook-maintenance commits.
 
-## pre-push (3-way version + tag)
+## pre-push (4-manifest version + tag)
 
 Blocks pushes that modify plugin content without a coherent 4-manifest version
 bump, and blocks tags whose version disagrees with the manifests
