@@ -3,6 +3,3 @@ name = "py-complexity-fixture"
 version = "0.0.0"
 description = "T6 fixture — C901 cyclomatic complexity."
 requires-python = ">=3.9"
-
-[tool.ruff.lint.mccabe]
-max-complexity = 10

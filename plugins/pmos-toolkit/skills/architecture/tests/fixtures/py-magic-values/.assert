@@ -7,3 +7,9 @@ if echo "$out" | jq -e '[.tools_errored[]? | select(.tool == "ruff")] | length >
 fi
 echo "$out" | jq -e '[.findings[] | select(.rule_id=="PY007")] | length == 1' >/dev/null \
   || { echo "expected exactly 1 PY007 finding"; echo "$out" | jq '[.findings[] | select(.rule_id=="PY007")]'; exit 1; }
+# Lock in fixture minimality: only the target rule may fire from the PY family.
+other_py_count=$(echo "$out" | jq '[.findings[] | select((.rule_id | startswith("PY")) and .rule_id != "PY007")] | length')
+if [ "$other_py_count" -ne 0 ]; then
+  echo "FAIL: expected only PY007, got other PY rules: $(echo "$out" | jq '[.findings[] | select(.rule_id | startswith("PY"))] | map(.rule_id) | unique')"
+  exit 1
+fi

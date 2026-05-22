@@ -1,30 +1,30 @@
 # Purpose: T6 fixture — too many branches (>12); ruff must flag PLR0912 (PY006).
 def too_many_branches(x):
-    if x == 1:
+    if x is None:
         pass
-    elif x == 2:
+    elif isinstance(x, bool):
         pass
-    elif x == 3:
+    elif isinstance(x, int):
         pass
-    elif x == 4:
+    elif isinstance(x, float):
         pass
-    elif x == 5:
+    elif isinstance(x, str):
         pass
-    elif x == 6:
+    elif isinstance(x, list):
         pass
-    elif x == 7:
+    elif isinstance(x, tuple):
         pass
-    elif x == 8:
+    elif isinstance(x, dict):
         pass
-    elif x == 9:
+    elif isinstance(x, set):
         pass
-    elif x == 10:
+    elif isinstance(x, frozenset):
         pass
-    elif x == 11:
+    elif isinstance(x, bytes):
         pass
-    elif x == 12:
+    elif isinstance(x, bytearray):
         pass
-    elif x == 13:
+    elif callable(x):
         pass
     else:
         pass
