@@ -2069,8 +2069,7 @@ if [ -n "$BASELINE" ]; then
     echo "baseline file not found: $BASELINE" >&2
     exit 64
   fi
-  set +e
-  diff_json=$(FINDINGS_JSON="$findings_with_risk_json" BASELINE_PATH="$BASELINE" python3 <<'PY'
+  if ! diff_json=$(FINDINGS_JSON="$findings_with_risk_json" BASELINE_PATH="$BASELINE" python3 <<'PY'
 import json, os, sys
 try:
     with open(os.environ["BASELINE_PATH"], encoding="utf-8") as fh:
@@ -2107,11 +2106,9 @@ print(json.dumps({
     "unchanged": [to_obj(t) for t in unchanged_t],
 }))
 PY
-)
-  rc=$?
-  set -e
-  # Heredoc captures stdout only; on sys.exit(64) diff_json is empty and rc=64.
-  if [ "$rc" -ne 0 ]; then exit "$rc"; fi
+); then
+    exit 64
+  fi
 fi
 
 END="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
