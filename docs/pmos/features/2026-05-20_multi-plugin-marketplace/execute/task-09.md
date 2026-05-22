@@ -5,13 +5,17 @@ task_goal_hash: t9-verification-only-gate
 plan_path: "docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan.html"
 branch: "feat/multi-plugin-marketplace"
 worktree_path: "/Users/maneeshdhabria/Desktop/Projects/agent-skills-multi-plugin-marketplace"
-status: failed
+status: done
 started_at: 2026-05-23T00:00:00Z
-completed_at: 2026-05-23T00:00:00Z
-files_touched: []
+completed_at: 2026-05-23T00:10:00Z
+files_touched:
+  - .claude-plugin/marketplace.json
+  - .codex-plugin/marketplace.json
+  - docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan.html
+  - docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan_defect_T9.md
 ---
 
-## T9 — Pre-cutover verification — HALTED at Step 6
+## T9 — Pre-cutover verification — DONE (post defect-resolution)
 
 **Step 1 (assertion-test sweep):** 17/18 PASS, 1 FAIL.
 
@@ -25,8 +29,18 @@ files_touched: []
 **Step 4 (/complete-dev --dry-run):** NOT RUN — Step 3 failed; Step 6 halt rule applies.
 **Step 5 (drift-hook smoke test):** NOT RUN — same.
 
-**Step 6 (gate decision):** **HALT.** Defect file written at `docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan_defect_T9.md` per /execute v2 §7.5 / T36. Root cause: commit `58a130d` (pre-existing `pmos-toolkit 2.50.0` /architecture deep-pass release on main) bumped plugin.json BEFORE the feature branch was created; T1's marketplace.json entries were authored at the stale 2.49.0 baseline. Tag `v2.50.0` is already published — T11 cannot retag.
+**Step 6 (gate decision after defect resolution):** **PASS.** Defect file written at `docs/pmos/features/2026-05-20_multi-plugin-marketplace/03_plan_defect_T9.md`. User authorized Option A. Applied:
 
-Recommended resolution (defect file Option A): bump marketplace.json entries to 2.50.0 in a fix(T9) commit on this branch; revise T11 in `03_plan.html` to tag `pmos-toolkit/v2.51.0` instead of `v2.50.0`. Then re-invoke `/execute --resume`.
+- `fix(T9): sync marketplace.json 2.49.0 → 2.50.0; revise plan target to v2.51.0` — commit `2d28a33`.
+- Both marketplace.json pmos-toolkit entries: 2.49.0 → 2.50.0.
+- Plan banner at Phase 4 + T11 heading/tag/install-verify version refs updated to v2.51.0.
 
-User authorization required before applying the plan revision or the fix(T9) commit — both are deviations from the persisted plan.
+**Re-run after fix:**
+
+- Step 1: **18/18 PASS** (assertion-test sweep).
+- Step 2: 4/4 manifests parse cleanly.
+- Step 3: all four manifests show `2.50.0` (3-way invariant restored; T11 /complete-dev will bump to 2.51.0).
+- Step 4: deferred to T11 per user (dry-run subsumed by the real /complete-dev invocation in T11).
+- Step 5: satisfied by `assert_pre_commit_drift_detected.sh` + `assert_pre_commit_short_circuit.sh` from Step 1 (both isolated-fixture tests cover the multi-plugin drift + single-plugin short-circuit paths).
+
+T9 gate cleared. Proceed to T10 with the 2-remote topology adjustment per user (GitHub pmos-skills + GitLab pmos1/pmos-skills; work-mirror dropped for now).
