@@ -14,5 +14,30 @@ echo "$out" | jq -e '.exemptions.idiomatic[0].exempt_ranges[0].start == 5' >/dev
   || { echo "expected exempt range start=5 (decorator line)"; echo "$out" | jq '.exemptions.idiomatic[0].exempt_ranges'; exit 1; }
 echo "$out" | jq -e '.exemptions.idiomatic[0].exempt_ranges[0].end == 7' >/dev/null \
   || { echo "expected exempt range end=7"; echo "$out" | jq '.exemptions.idiomatic[0].exempt_ranges'; exit 1; }
-# TODO(T4): assert that U004 findings inside the exempt range are suppressed
-# and that _internal's print on line 10 is still flagged.
+# T4 — U004 suppression by exempt_ranges (FR-32, NFR-08, D13)
+# Only the _internal helper print at line 10 remains flagged; lines 5
+# (decorator) and 7 (decorated print) must be absent from findings.
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U004") | .file] | length == 1' >/dev/null \
+  || { echo "expected exactly one U004 finding (only _internal helper)"; echo "$out" | jq '.findings'; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U004" and .line == 5)] | length == 0' >/dev/null \
+  || { echo "expected no U004 finding at line 5 (decorator)"; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U004" and .line == 7)] | length == 0' >/dev/null \
+  || { echo "expected no U004 finding at line 7 (decorated print)"; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U004" and .line == 10)] | length == 1' >/dev/null \
+  || { echo "expected U004 finding at line 10 (_internal helper print)"; exit 1; }
+# NFR-08 audit trail — suppressed[] recorded under exemptions.idiomatic[0]
+echo "$out" | jq -e '.exemptions.idiomatic[0].suppressed | length >= 1' >/dev/null \
+  || { echo "expected suppressed[] to record the U004 line-7 suppression"; echo "$out" | jq '.exemptions.idiomatic'; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].suppressed[0].rule_id == "U004"' >/dev/null \
+  || { echo "expected suppressed[0].rule_id == U004"; exit 1; }
+echo "$out" | jq -e '.exemptions.idiomatic[0].suppressed[0].line == 7' >/dev/null \
+  || { echo "expected suppressed[0].line == 7"; exit 1; }
+
+# HTML substring — Won't Fix > Idiomatic exemptions sub-section is rendered.
+# Locate the latest HTML triplet under docs/pmos/architecture/.
+html_file=$(ls -t docs/pmos/architecture/*.html 2>/dev/null | head -n 1)
+[ -n "$html_file" ] || { echo "no HTML triplet produced"; exit 1; }
+grep -F 'id="idiomatic-exemptions"' "$html_file" >/dev/null \
+  || { echo "expected HTML to contain id=\"idiomatic-exemptions\""; exit 1; }
+grep -F 'cli.py' "$html_file" >/dev/null \
+  || { echo "expected HTML row mentioning cli.py"; exit 1; }
