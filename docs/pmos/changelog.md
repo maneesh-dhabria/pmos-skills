@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-05-22 — pmos-toolkit 2.50.0: /architecture deep-pass v2 (discovery-capable deepening + signal-hygiene + cross-module detectors + triplet output)
+
+Major revision of `/architecture` shipped via `/feature-sdlc skill --from-feedback` (skill-feedback mode, Tier 3). 24 tasks (T1–T24 + TN) replayed onto an in-flight rewrite of the audit harness: a new opt-in deepening pass classifies modules as deep / shallow / leaky with substring-grep-verified evidence; monorepo fan-out, since/baseline diffing, and L3-config scaffolding are now first-class flags; output is an HTML+MD+JSON triplet under `{docs_path}/architecture/` rather than stdout-JSON. The schema break (`severity:` → `disposition:`) is intentional and not back-compatible with v1 baselines — see "Breaking" below. One eval residual accepted: skill name `architecture` is a bare noun, not a verb/gerund per `a-name-verb-or-gerund`; rename would cascade through manifests, README, every fixture `.assert`, and the `/architecture` slash command itself — deferred as a future feature.
+
+### What's new
+
+- **`--deep` deepening pass** classifies modules as deep / shallow / leaky with substring-grep-verified evidence. Subagent-driven; runtime-gated via Task-tool marker — `--deep` is a no-op when no subagent runtime is available (records `skipped_reason: no_tool_use_runtime` in the JSON sidecar). Module classifications carry inline rationale + at least one verbatim code citation.
+- **`--monorepo` fan-out** runs the audit once per detected stack root rather than at repo root, so polyglot trees with separate TS/Python/Vue subtrees get per-stack findings without false-positive cross-pollination.
+- **`--since <ref>` + `--baseline <path>` AND-intersect** filter findings to those that are simultaneously new since `<ref>` AND absent from `<path>`'s baseline. Designed for "did this PR regress us?" gating.
+- **`--scaffold-l3`** writes `.pmos/architecture/principles.yaml` seeded with idiomatic exemptions (Typer/Click decorators, framework conventions) so L3 overrides start from a sensible baseline, not from scratch.
+- **HTML+MD+JSON triplet output** under `{docs_path}/architecture/{date}_<slug>.{html,md,json}` replaces stdout-JSON. The HTML view renders Must-Fix / Should-Fix / Won't-Fix sections with kebab-case `<h2>`/`<h3>` IDs and a `godmodule_candidates` table from the deepening pass; the MD sidecar is a regenerated companion; the JSON is the machine-readable artifact.
+- **Phase 4.5 deepening pass** is documented inline in `SKILL.md` with the full subagent dispatch contract (return shape, validation rules, size caps).
+- **New reference docs:** `deepening-vocabulary.md` (deep / shallow / leaky definitions + indicative anti-patterns), `l1-rationales.md` (per-rule rationale + source citation for U001–U011), `gap-map-rationale.md` (per-rule rationale for `delegate_to:` assignment).
+- **`scripts/cycle-py.py`** ships a Python cross-file cycle detector (the missing peer to `dependency-cruiser` for TS); the L2 Python pass now includes cycle findings, not just ruff complexity signals.
+- **`## When NOT to use`** section added to `SKILL.md` per `skill-patterns §D` (style-only lint should use `ruff`/`prettier` directly; docs-only repos / single-file scripts / repos missing `jq`+`python3`+`node`).
+
+### Breaking
+
+- **Schema: `severity:` → `disposition:`.** Every finding now carries `disposition ∈ {must-fix, should-fix, wont-fix}` rather than a numeric/textual severity. L3 principles.yaml files using the legacy `severity:` key are rejected at load with exit 64 and the verbatim message `legacy 'severity:' key … rename to 'disposition:'`. **v1 baseline JSONs do NOT interop with v2** — re-baseline against a v2 run before relying on `--baseline`.
+- **ADR machinery removed.** The `--no-adr` flag is deleted; no ADRs are written under `docs/adr/`. The architecture audit is read-mostly: it emits the triplet and nothing else. Repos that relied on the v1 ADR-write behaviour need to capture decisions via `/spec` or manual ADRs instead.
+- **Stdout-JSON replaced with the triplet.** Pipelines that consumed `architecture audit … | jq …` from stdout must instead read `{docs_path}/architecture/{date}_<slug>.json`. Stdout is now empty; stderr emits a single human summary line of the documented shape.
+- **Skill layout: `tools/` → `scripts/`** per `skill-patterns §E`. `package.json` colocates with `scripts/` (`scripts/package.json`); `npm install` lands at `scripts/node_modules/`; the `.depcruise` fallback `cwd` is `scripts/`, not the skill root. External callers shelling into `$SKILL_DIR/tools/...` must rewrite to `$SKILL_DIR/scripts/...`.
+
+### Known follow-ups
+
+- **`a-name-verb-or-gerund` eval residual accepted.** Skill name `architecture` is a bare noun (rule expects a verb/gerund such as `audit-architecture`). Rename would cascade through plugin manifests, README rows, CLAUDE.md references, every reference doc, all fixture `.assert` files, and the `/architecture` slash command itself — deferred as a separate future feature. Surfaced in this release's `/verify` report and recorded in `state.yaml.accepted_residuals[]`.
+- **Book-companion regression deferred.** Plan §Done-when requires running `/architecture audit backend/` on a pinned-SHA clone of `book-companion` and confirming `jq '.findings | length' ≤ 120` (down from v1's 586) AND `--monorepo --deep` yielding ≥3 non-deep candidates. User disposition is post-release follow-up; verify manually before relying on the deep-pass numbers in production reports.
+
+### References
+
+- [Feature folder](docs/pmos/features/2026-05-13_architecture-deep-pass/)
+- [Spec](docs/pmos/features/2026-05-13_architecture-deep-pass/02_spec.html)
+- [Plan](docs/pmos/features/2026-05-13_architecture-deep-pass/03_plan.html)
+- [Verify report](docs/pmos/features/2026-05-13_architecture-deep-pass/verify/2026-05-22-review.html)
+- [Skill source](plugins/pmos-toolkit/skills/architecture/)
+
 ## 2026-05-15 — pmos-toolkit 2.49.0: /readme — hardening pass against /retro feedback (rubric portability, reviewer-subagent contract, FR-V-2 polish-hook)
 
 Skill-feedback revision of `/pmos-toolkit:readme` shipped via `/feature-sdlc skill --from-feedback` (skill-feedback mode, Tier 2). Ten surgical changes (T1–T10) against the existing `/readme` substrate to close gaps surfaced by a prior `/retro` against the audit pipeline: rubric script BSD-awk portability, deterministic rubric schema (`type:` field), reviewer-subagent contract with parent-side validation, 4th simulated-reader persona + 5-Task dispatch, audit close-out mode-branch, FR-V-2 `Suggest:/polish` unconditional hook, and four new regression fixtures registered under the run-all harness. Two known structural residuals from Phase 6a (skill name `readme` is a noun — not verb/gerund per `a-name-verb-or-gerund`; SKILL.md body 505 lines in the 501–800 reviewer-judge band per `c-body-size-judge`) accepted as out-of-scope for this audit-fix revision; both surfaced loudly in the `/verify` report. The `/readme` skill at `plugins/pmos-toolkit/skills/readme/SKILL.md` remains the canonical path (no rename, no relocation).
