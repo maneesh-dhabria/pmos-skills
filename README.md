@@ -1,4 +1,12 @@
-# PMOS Toolkit
+# pmos-skills
+
+> **Migration breadcrumb (2026-05):** previously distributed as the `pmos-toolkit`
+> marketplace; now the `pmos-skills` multi-plugin marketplace hosting `pmos-toolkit`
+> (and future `pmos-*` plugins). Install: `/plugin marketplace add maneesh-dhabria/pmos-skills`.
+> Cached `v2.49.0` installs of the old `pmos-toolkit` repo continue read-only;
+> new installs flow through `pmos-skills`.
+
+## PMOS Toolkit
 
 A Claude Code and Codex plugin for product builders. Turn fuzzy ideas into
 shipped features, run user research, draft PRDs and design docs, critique UIs,

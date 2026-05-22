@@ -1,6 +1,24 @@
 # Changelog
 
-## pmos-toolkit 2.45.0 — 2026-05-13
+## pmos-toolkit 2.51.0 — 2026-05-23
+
+### What's new
+
+- **Multi-plugin marketplace migration.** The repo is now `pmos-skills` — a multi-plugin marketplace structured for future `pmos-*` plugins under `plugins/<name>/`. `pmos-toolkit` is the first (and currently only) hosted plugin. Install via `/plugin marketplace add maneesh-dhabria/pmos-skills`; cached `v2.49.0` installs of the old `pmos-toolkit` repo continue read-only.
+- **Per-plugin manifests + namespaced tags.** Each plugin owns its own `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`; top-level `.claude-plugin/marketplace.json` and `.codex-plugin/marketplace.json` mirror the per-plugin versions. Release tags now follow `<plugin>/v<semver>` (e.g., `pmos-toolkit/v2.51.0`). Pre-existing `v2.x` / `pmos-toolkit-v2.x` tags are preserved as-is (FR-43); new tags MUST be namespaced.
+- **`scripts/sync-shared.sh`** — sanctioned mutation path for cross-plugin `_shared/` substrate sync; invoked as `scripts/sync-shared.sh --from=<plugin>`.
+- **`.githooks/pre-commit` drift hook** — fails commits when `_shared/` substrate diverges across plugins; trivially passes when only one plugin exists (FR-31).
+- **`.githooks/pre-push` 4-manifest invariant + tag-format hook** — enforces `<plugin>/v<semver>` tag format, tag-version-match, and version-bump-on-skill-content-change. Handles empty-remote pushes (fixed during cutover) and skips `refs/tags/*` per-ref validation for historical tags (FR-43).
+- **`/complete-dev --plugin <name>`** — required flag (auto-detect from diff for single-plugin diffs; refuses ambiguous multi-plugin diffs; substrate-only changes trigger the "which plugin's next release?" prompt). 4-manifest bump in one commit; namespaced tag; pushes to all configured remotes (currently 2: origin = GitHub `pmos-skills`, gitlab-mirror = GitLab `pmos1/pmos-skills`; `work-mirror` deferred until the work account is configured).
+- **`tests/scripts/assert_*.sh`** — 20 shell-assertion tests covering sync-shared (4), pre-commit drift (2), pre-push (6 incl. empty-remote + legacy-tag-skip regressions), /complete-dev (3), CLAUDE.md generalization (1), release-policy section (1), hardcoded-path guard (1), marketplace-json 3-way invariant (1), and skill-substrate-refs (1).
+
+### Breaking changes
+
+- **Repo URL.** The canonical install URL is now `maneesh-dhabria/pmos-skills`; the old `maneesh-dhabria/pmos-toolkit` repo will be archived + privatized post-install-verify. New installs MUST flow through `pmos-skills`.
+- **Tag format.** New release tags follow `<plugin>/v<semver>`. Tooling consuming tag names (e.g., release-note scripts) must accept both legacy (`v2.x`, `pmos-toolkit-2.x`) and namespaced (`pmos-toolkit/v2.x`) shapes.
+- **`/complete-dev` invocation.** The `--plugin <name>` flag is required (auto-detected for single-plugin diffs); ambiguous multi-plugin diffs are refused. Prior single-plugin-implicit calls no longer work.
+
+
 
 ### What's new
 
