@@ -1,0 +1,7 @@
+set -euo pipefail
+cleanup() { rm -rf .pmos; }
+trap cleanup EXIT
+$AUDIT . --scaffold-l3 || { echo "audit --scaffold-l3 exited non-zero"; exit 1; }
+test -f .pmos/architecture/principles.yaml || { echo "file not written"; exit 1; }
+python3 -c 'import yaml; d=yaml.safe_load(open(".pmos/architecture/principles.yaml")); assert d["schema_version"] == 2, d; assert isinstance(d.get("rules"), list), d; assert len(d["exemptions"]["idiomatic"]) >= 1, d' \
+  || { echo "yaml shape mismatch"; cat .pmos/architecture/principles.yaml; exit 1; }

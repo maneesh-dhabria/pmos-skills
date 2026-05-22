@@ -18,6 +18,7 @@ NO_ADR=0
 NONINTERACTIVE=0
 INCLUDE_INFO_COMMENTS=0
 MONOREPO=0
+SCAFFOLD_L3=0
 LABEL=""
 SORT_MODE="risk"
 SINCE=""
@@ -55,13 +56,14 @@ for arg in "$@"; do
     --non-interactive) NONINTERACTIVE=1 ;;
     --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     --monorepo) MONOREPO=1 ;;
+    --scaffold-l3) SCAFFOLD_L3=1 ;;
     --label) prev="--label" ;;
     --sort) prev="--sort" ;;
     --since) prev="--since" ;;
     --baseline) prev="--baseline" ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -70,7 +72,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -78,7 +80,7 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments] [--monorepo] [--scaffold-l3] [--since <ref>] [--baseline <path>]" >&2
   exit 64
 fi
 # T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
@@ -1231,6 +1233,47 @@ PY
 # stream + suppression-stamped idiomatic exemptions).
 findings_json=$(echo "$l1_pass_json" | jq '.findings')
 idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
+
+# --scaffold-l3 runs here (after L1 detection so idioms are populated) and exits
+# before downstream report emission — the goal is to seed L3, not produce a report.
+if [ "$SCAFFOLD_L3" -eq 1 ]; then
+  scaffold_target="$SCAN_ROOT/.pmos/architecture/principles.yaml"
+  if [ -e "$scaffold_target" ]; then
+    echo "refusing to overwrite existing $scaffold_target" >&2
+    exit 64
+  fi
+  mkdir -p "$SCAN_ROOT/.pmos/architecture"
+  IDIOMATIC_JSON_ENV="$idiomatic_exemptions_json" \
+  TARGET_PATH_ENV="$scaffold_target" \
+  python3 <<'PY'
+import json, os
+idioms = json.loads(os.environ["IDIOMATIC_JSON_ENV"])
+target = os.environ["TARGET_PATH_ENV"]
+pairs = sorted({(e["file"], e["framework"]) for e in idioms})
+lines = []
+lines.append("schema_version: 2")
+lines.append("")
+lines.append("# Add custom rules here. Example:")
+lines.append("# rules:")
+lines.append("#   - id: U999_no_singletons")
+lines.append("#     pattern: ...")
+lines.append("#     disposition: should_fix")
+lines.append("rules: []")
+lines.append("")
+lines.append("exemptions:")
+if not pairs:
+    lines.append("  idiomatic: []")
+else:
+    lines.append("  idiomatic:")
+    for f, fw in pairs:
+        lines.append("    - file: " + f)
+        lines.append("      framework: " + fw)
+with open(target, "w") as fh:
+    fh.write("\n".join(lines) + "\n")
+PY
+  echo "Wrote scaffolded L3 to $scaffold_target" >&2
+  exit 0
+fi
 
 # E13 carve-out: same-file matches don't fire (distinct_files < 2 short-circuits).
 u011_json=$(

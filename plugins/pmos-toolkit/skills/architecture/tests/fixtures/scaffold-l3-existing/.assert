@@ -1,0 +1,5 @@
+set -euo pipefail
+output=$(bash "$SKILL_DIR/tools/run-audit.sh" audit . --scaffold-l3 2>&1) && rc=0 || rc=$?
+[ "$rc" -eq 64 ] || { echo "expected rc=64, got $rc"; echo "$output"; exit 1; }
+echo "$output" | grep -qF "refusing to overwrite existing" || { echo "expected stderr literal not found"; echo "$output"; exit 1; }
+grep -q "^rules: \[\]$" .pmos/architecture/principles.yaml || { echo "existing file was modified"; exit 1; }
