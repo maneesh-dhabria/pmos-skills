@@ -5,11 +5,14 @@ set -euo pipefail
 
 # Run audit without --monorepo flag; capture stderr separately.
 stderr_file=$(mktemp)
-json_file=$(mktemp)
-trap 'rm -f "$stderr_file" "$json_file"' EXIT
+trap 'rm -f "$stderr_file"' EXIT
 
-bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>"$stderr_file" 1>/dev/null
-rc=$?
+# Clean up any prior output to avoid stale JSON sidecar from a previous run.
+rm -rf docs/pmos/architecture/ 2>/dev/null || true
+
+rc=0
+bash "$SKILL_DIR/tools/run-audit.sh" audit . 2>"$stderr_file" 1>/dev/null || rc=$?
+rc=${rc:-0}
 
 # Exit code must be 0 (not an error — just warn mode).
 if [ "$rc" -ne 0 ]; then

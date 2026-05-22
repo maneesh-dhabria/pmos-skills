@@ -151,11 +151,20 @@ if has_py:
 # FR-34/35 (T7) — depth-2 monorepo detection.
 # When scan-root has no stack markers, walk each direct child dir to find
 # sub-stacks. Populates monorepo_detected[{name, stack, manifest_path}].
+# Skip ignored dirs so node_modules/.venv do not cause false-positive monorepo detection.
+_DEPTH2_DENY = {
+    ".git", "node_modules", ".venv", "venv", "dist", "build",
+    ".next", ".nuxt", "__pycache__", ".pytest_cache", ".ruff_cache",
+    ".mypy_cache", "coverage", "target",
+}
 monorepo_detected = []
 if not stacks and os.path.isdir(scan_root):
     for child_name in sorted(os.listdir(scan_root)):
         child_path = os.path.join(scan_root, child_name)
         if not os.path.isdir(child_path):
+            continue
+        # Skip ignored dirs and hidden dirs (e.g. .git, .venv).
+        if child_name in _DEPTH2_DENY or child_name.startswith("."):
             continue
         c_has_pkg = os.path.isfile(os.path.join(child_path, "package.json"))
         c_has_tsc = os.path.isfile(os.path.join(child_path, "tsconfig.json"))
@@ -401,6 +410,24 @@ PY
 START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 START_EPOCH="$(date -u +%s)"
 
+# ── T7 (FR-34/35, D8, E8) — early monorepo warn-mode gate ──────────────────
+# Computed immediately after LOADER_JSON is captured so we can skip the
+# T3 idiom walker, L1 evaluator, and L2 delegated tools entirely on monorepos
+# (wasted work — their findings get discarded by warn-mode anyway).
+MONOREPO_DETECTED_LEN=$(echo "$LOADER_JSON" | jq '.monorepo_detected | length')
+STACKS=$(echo "$LOADER_JSON" | jq -r '.stacks_detected | join(",")')
+WARN_MODE=0
+if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
+  MONOREPO_NAMES=$(echo "$LOADER_JSON" | jq -r '[.monorepo_detected[] | .name + "(" + .stack + ")"] | join(", ")')
+  echo "No stack markers at scan root; found ${MONOREPO_DETECTED_LEN} candidate stacks under direct children: ${MONOREPO_NAMES}. Re-run with --monorepo to fan out." >&2
+  WARN_MODE=1
+  findings_json='[]'
+  STACKS=""
+fi
+
+# Skipped entirely in warn-mode (monorepo detected without --monorepo flag).
+idiomatic_exemptions_json='[]'
+if [ "$WARN_MODE" != "1" ]; then
 # ── Idiom AST walker — Typer/Click/Fire/argparse (T3/T4, FR-30/31/32, D13, E9) ─
 # Runs BEFORE the L1 evaluator so the U004 rule can consume exempt_ranges
 # to suppress idiomatic CLI-handler prints (FR-32) and record the
@@ -925,6 +952,8 @@ PY
 findings_json=$(echo "$l1_pass_json" | jq '.findings')
 idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
 
+fi  # end WARN_MODE guard for T3 + L1
+
 # ── L2 delegated tool: dependency-cruiser (T9, FR-30/32/33) ──────────────────
 # Runs only when stacks_detected includes "ts". Graceful-degrade per FR-32:
 # missing npx/depcruise → tools_skipped += "dependency-cruiser", findings=[].
@@ -934,202 +963,9 @@ idiomatic_exemptions_json=$(echo "$l1_pass_json" | jq '.idiomatic')
 # 1:1 with principles.yaml); severity is rewritten downstream via effective_severity.
 TOOLS_SKIPPED=()
 TOOLS_ERRORED_JSON='[]'  # appended via jq when a delegated tool exits non-zero
-STACKS=$(echo "$LOADER_JSON" | jq -r '.stacks_detected | join(",")')
 
-# T7 (FR-34/35, D8, E8) — monorepo warn-mode.
-# When the loader found candidate sub-stacks (monorepo_detected non-empty) but
-# --monorepo was not passed, emit a stderr warning, produce a minimal triplet
-# with findings=[] + monorepo_detected populated, and exit 0.
-MONOREPO_DETECTED_LEN=$(echo "$LOADER_JSON" | jq '.monorepo_detected | length')
-if [ "$MONOREPO_DETECTED_LEN" -gt 0 ] && [ "$MONOREPO" -eq 0 ]; then
-  MONOREPO_NAMES=$(echo "$LOADER_JSON" | jq -r '[.monorepo_detected[] | .name + "(" + .stack + ")"] | join(", ")')
-  echo "No stack markers at scan root; found ${MONOREPO_DETECTED_LEN} candidate stacks under direct children: ${MONOREPO_NAMES}. Re-run with --monorepo to fan out." >&2
-  # Build a minimal triplet-compatible report with findings=[] and monorepo_detected populated.
-  START="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  START_EPOCH="$(date -u +%s)"
-  END="$START"
-  DURATION_S=0
-  REPORT_JSON=$(jq -n \
-    --argjson loader "$LOADER_JSON" \
-    --arg start "$START" \
-    --arg end "$END" \
-    --argjson duration_s "$DURATION_S" \
-    --arg root "$SCAN_ROOT" \
-    '{
-      schema_version: 2,
-      run: { started_at: $start, finished_at: $end, duration_s: $duration_s },
-      scan_root: $root,
-      rules_loaded: {
-        tier_1: $loader.tier_1,
-        tier_2: ($loader.tier_2_ts + $loader.tier_2_py),
-        tier_3: $loader.tier_3,
-        total: $loader.total_loaded
-      },
-      declarative_delegated_pct: $loader.declarative_delegated_pct,
-      l3_present: $loader.l3_present,
-      stacks_detected: [],
-      monorepo_detected: $loader.monorepo_detected,
-      config: $loader.config,
-      rule_overrides: [],
-      exemptions: {applied: 0, orphan: 0, expired: 0, informational: [], rows: [], idiomatic: []},
-      scanned: ($loader.scanned | del(.files_for_rules)),
-      tools_skipped: [],
-      tools_errored: [],
-      frontend_declarative_coverage: null,
-      adrs_written: [],
-      adrs_truncated: [],
-      findings: []
-    }')
-  REPORT_JSON_FOR_TRIPLET="$REPORT_JSON" \
-  SKILL_DIR_ENV="$SKILL_DIR" \
-  SCAN_ROOT_ENV="$SCAN_ROOT" \
-  python3 <<'PY' 1>&2
-import json, os, sys, shutil, subprocess, pathlib, datetime, re, html
-
-report = json.loads(os.environ["REPORT_JSON_FOR_TRIPLET"])
-skill_dir = pathlib.Path(os.environ["SKILL_DIR_ENV"])
-scan_root_str = os.environ["SCAN_ROOT_ENV"]
-scan_root = pathlib.Path(scan_root_str).resolve()
-substrate_dir = skill_dir.parent / "_shared" / "html-authoring"
-substrate_assets = substrate_dir / "assets"
-
-template_html = ""
-template_path = substrate_dir / "template.html"
-if template_path.is_file():
-    template_html = template_path.read_text()
-else:
-    template_html = (
-        "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
-        "<title>{{title}}</title></head><body><main>{{content}}</main></body></html>"
-    )
-
-docs_path = pathlib.Path("docs/pmos")
-settings_path = pathlib.Path(".pmos/settings.yaml")
-if settings_path.is_file():
-    try:
-        import yaml
-        s = yaml.safe_load(settings_path.read_text()) or {}
-        if s.get("docs_path"):
-            docs_path = pathlib.Path(str(s["docs_path"]).rstrip("/"))
-    except Exception:
-        pass
-
-arch_dir = docs_path / "architecture"
-arch_dir.mkdir(parents=True, exist_ok=True)
-
-plugin_version = "0"
-plugin_json = skill_dir.parent.parent / ".claude-plugin" / "plugin.json"
-if plugin_json.is_file():
-    try:
-        plugin_version = json.loads(plugin_json.read_text()).get("version", "0")
-    except Exception:
-        pass
-
-date_s = datetime.date.today().isoformat()
-slug = pathlib.Path(os.getcwd()).name or "audit"
-slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
-
-def stem_for(idx):
-    return f"{date_s}_{slug}" if idx == 0 else f"{date_s}_{slug}-{idx + 1}"
-
-idx = 0
-while (arch_dir / f"{stem_for(idx)}.html").exists():
-    idx += 1
-stem = stem_for(idx)
-html_path = arch_dir / f"{stem}.html"
-md_path = arch_dir / f"{stem}.md"
-json_path = arch_dir / f"{stem}.json"
-sections_path = arch_dir / f"{stem}.sections.json"
-
-assets_dst = arch_dir / "assets"
-assets_dst.mkdir(exist_ok=True)
-if substrate_assets.is_dir():
-    for src in substrate_assets.iterdir():
-        if not src.is_file():
-            continue
-        dst = assets_dst / src.name
-        if not dst.exists():
-            shutil.copy2(src, dst)
-
-stacks = ", ".join(report.get("stacks_detected", [])) or "none"
-total_files = report.get("scanned", {}).get("total", 0)
-monorepo_list = report.get("monorepo_detected", [])
-
-mono_rows = "".join(
-    f'<tr><td>{html.escape(e["name"])}</td><td>{html.escape(e["stack"])}</td>'
-    f'<td><code>{html.escape(e["manifest_path"])}</code></td></tr>'
-    for e in monorepo_list
-)
-monorepo_section = (
-    '<h2 id="monorepo-detected">Monorepo detected</h2>'
-    '<p>No stack markers at scan root. Re-run with <code>--monorepo</code> to fan out.</p>'
-    '<table><thead><tr><th>Package</th><th>Stack</th><th>Manifest</th></tr></thead>'
-    f'<tbody>{mono_rows}</tbody></table>'
-) if monorepo_list else ""
-
-content_html = "\n".join([
-    monorepo_section,
-    '<h2 id="must-fix">Must Fix</h2><p>No findings (monorepo warn-mode).</p>',
-    '<h2 id="should-fix">Should Fix</h2><p>No findings (monorepo warn-mode).</p>',
-    '<h2 id="wont-fix">Won\'t Fix</h2><p>No findings (monorepo warn-mode).</p>',
-    '<h2 id="architecture-metrics">Architecture metrics</h2>'
-    '<p><em>godmodule_candidates: 0</em> (populated by future tasks)</p>',
-    '<h2 id="run-metadata">Run metadata</h2>'
-    f'<p>scan_root: <code>{html.escape(str(scan_root))}</code> '
-    f'· stacks: {html.escape(stacks)} '
-    f'· files scanned: {total_files} · schema_version: 2</p>',
-])
-
-asset_prefix = "assets/"
-final_html = (template_html
-    .replace("{{title}}", f"/architecture audit — {html.escape(slug)}")
-    .replace("{{asset_prefix}}", asset_prefix)
-    .replace("{{plugin_version}}", str(plugin_version))
-    .replace("{{content}}", content_html)
-    .replace("{{source_path}}", f"{stem}.html"))
-
-for m in re.finditer(r"<(h[23])\b([^>]*)>", final_html):
-    if 'id="' not in m.group(2):
-        print(f"emit_triplet: missing id on <{m.group(1)}>: {m.group(0)}", file=sys.stderr)
-        sys.exit(1)
-
-def atomic_write(path, content):
-    tmp = path.with_suffix(path.suffix + f".tmp.{os.getpid()}")
-    tmp.write_text(content)
-    tmp.rename(path)
-
-atomic_write(html_path, final_html)
-
-bsj = substrate_assets / "build_sections_json.js"
-if bsj.is_file():
-    try:
-        sj = subprocess.check_output(["node", str(bsj), str(html_path)], text=True)
-        atomic_write(sections_path, sj)
-    except Exception as exc:
-        print(f"emit_triplet: sections.json generation failed: {exc}", file=sys.stderr)
-
-h2m = substrate_assets / "html-to-md.js"
-md_ok = False
-if h2m.is_file():
-    try:
-        md = subprocess.check_output(["node", str(h2m), str(html_path)], text=True)
-        atomic_write(md_path, md)
-        md_ok = True
-    except Exception as exc:
-        print(f"emit_triplet: MD conversion failed ({exc}); writing fallback", file=sys.stderr)
-if not md_ok:
-    atomic_write(md_path, f"# /architecture audit — {slug}\n\nSee {html_path.name} for the rendered report.\n")
-
-atomic_write(json_path, json.dumps(report, indent=2))
-
-print(
-    f"Wrote {html_path}: 0 Must Fix, 0 Should Fix, 0 Won't Fix in {total_files} files (monorepo warn-mode)",
-    file=sys.stderr,
-)
-PY
-  exit 0
-fi
-
+tools_skipped_json='[]'
+if [ "$WARN_MODE" != "1" ]; then  # skip L2 delegated tools in warn-mode
 depcruise_findings='[]'
 if echo ",$STACKS," | grep -q ',ts,'; then
   echo "[delegated] dependency-cruiser: check available" 1>&2
@@ -1280,10 +1116,11 @@ findings_json=$(jq -n \
   '$a + $b')
 
 # Build tools_skipped JSON array (empty when no tool was skipped).
-tools_skipped_json='[]'
 if [ "${#TOOLS_SKIPPED[@]}" -gt 0 ]; then
   tools_skipped_json=$(printf '%s\n' "${TOOLS_SKIPPED[@]}" | jq -R . | jq -s .)
 fi
+fi  # end WARN_MODE guard for L2 delegated tools
+
 
 # ── Exemption reconciliation (T15, FR-65/66) ─────────────────────────────────
 # For each exemption row in project principles.yaml, locate the corresponding
