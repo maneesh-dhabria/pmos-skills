@@ -65,11 +65,11 @@ The per-plugin `plugin.json` pair carries the plugin's own version. The two top-
 - Pre-commit only (FR-30); bypassable via `git commit --no-verify` (accepted risk per D16).
 - `scripts/sync-shared.sh --from=<plugin>` is the only sanctioned mutation path for cross-plugin `_shared/` sync.
 
-### Tri-remote topology
-- `origin` = GitHub `pmos-skills` (canonical).
-- `work-mirror` = GitHub work-account fork of `pmos-skills`.
-- `gitlab-mirror` = GitLab backup of `pmos-skills`.
-- `/complete-dev` Phase 15 pushes branch + tag to every configured remote (per FR-59).
+### Remote topology
+- `origin` = GitHub `maneesh-dhabria/pmos-skills` (canonical).
+- `gitlab-mirror` = GitLab `pmos1/pmos-skills` (backup).
+- `/complete-dev` Phase 15 pushes branch + tag to every configured remote (per FR-59) — currently 2 remotes.
+- **Deferred (post-cutover TODO):** `work-mirror` = GitHub work-account fork of `pmos-skills` will be added once the work account is set up. Until then, only origin + gitlab-mirror exist.
 
 ### Old repo posture
 - `maneesh-dhabria/pmos-toolkit` is `archived=true, private=true` post-cutover.
