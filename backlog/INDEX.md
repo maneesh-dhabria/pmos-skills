@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-05-13
+Last regenerated: 2026-05-23
 
-9 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+8 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## should
 
@@ -17,7 +17,6 @@ Last regenerated: 2026-05-13
 | id | type | status | priority | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|
 | 0002 | tech-debt | inbox | could | feature-sdlc/reference/failure-dialog.md has no leading ToC (119 lines) → fails c-reference-toc | — | — | — |
-| 0003 | tech-debt | inbox | could | README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical | — | — | — |
 | 0005 | tech-debt | inbox | could | skill-eval-check.sh HAS_SCRIPTS detection uses `find … \| grep -q .` — same SIGPIPE/pipefail pattern as the body-check race | — | — | — |
 | 0006 | feature | inbox | could | /polish — optionally honor HTML for URL / Notion inputs (currently always normalized to markdown) | — | — | — |
 | 0007 | feature | inbox | could | /polish — symmetric "expansion" mode (grow a doc that's too thin) | — | — | — |

@@ -2,11 +2,13 @@
 id: 3
 title: "README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical"
 type: tech-debt
-status: inbox
+status: done
 priority: could
 labels: [docs, release]
 created: 2026-05-12
-updated: 2026-05-12
+updated: 2026-05-23
+closed: 2026-05-23
+closed_reason: "README is already clean (no /push refs); .claude/commands/push.md deleted in cleanup pass."
 source: docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/verify/2026-05-12-review.html
 spec_doc:
 plan_doc:
