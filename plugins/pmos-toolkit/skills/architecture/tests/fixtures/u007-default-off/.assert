@@ -1,0 +1,23 @@
+# u007-default-off — U007 is wont_fix by default (FR-33, D7).
+# big.py has 150 lines, no module docstring. With default config, 0 U007 findings.
+# With --include-info-comments, U007 enables and emits exactly 1 finding (carve-outs
+# don't apply: LOC>100, no docstring, basename!=__init__.py).
+set -euo pipefail
+
+# Default — wrapper invokes run-audit.sh without --include-info-comments.
+out=$($AUDIT) || { echo "audit exited non-zero"; exit 1; }
+echo "$out" | jq -e '[.findings[] | select(.rule_id=="U007")] | length == 0' >/dev/null \
+  || { echo "expected 0 U007 findings by default"; echo "$out" | jq '[.findings[] | select(.rule_id=="U007")]'; exit 1; }
+echo "$out" | jq -e '.config.flags.include_info_comments == false' >/dev/null \
+  || { echo "expected config.flags.include_info_comments == false"; echo "$out" | jq '.config'; exit 1; }
+
+# With --include-info-comments — invoke run-audit.sh directly (wrapper can't pass flags).
+rm -rf docs/pmos/architecture/ 2>/dev/null || true
+bash "$SKILL_DIR/tools/run-audit.sh" audit . --include-info-comments >/dev/null 2>&1 \
+  || { echo "audit (with flag) exited non-zero"; exit 1; }
+json2=$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1)
+[ -n "$json2" ] || { echo "no JSON produced after --include-info-comments"; exit 1; }
+jq -e '[.findings[] | select(.rule_id=="U007")] | length == 1' "$json2" >/dev/null \
+  || { echo "expected exactly 1 U007 finding with --include-info-comments"; jq '[.findings[] | select(.rule_id=="U007")]' "$json2"; exit 1; }
+jq -e '.config.flags.include_info_comments == true' "$json2" >/dev/null \
+  || { echo "expected config.flags.include_info_comments == true"; jq '.config' "$json2"; exit 1; }

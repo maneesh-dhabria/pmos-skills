@@ -16,15 +16,17 @@ set -euo pipefail
 # without prompting; the flag is parsed for forward-compat with FR-04 + SKILL.md L48).
 NO_ADR=0
 NONINTERACTIVE=0
+INCLUDE_INFO_COMMENTS=0
 SCAN_ROOT="."
 POSITIONALS=()
 for arg in "$@"; do
   case "$arg" in
     --no-adr) NO_ADR=1 ;;
     --non-interactive) NONINTERACTIVE=1 ;;
+    --include-info-comments) INCLUDE_INFO_COMMENTS=1 ;;
     -*)
       echo "ERROR: unknown flag: $arg" >&2
-      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive]" >&2
+      echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
       exit 64
       ;;
     *) POSITIONALS+=("$arg") ;;
@@ -33,7 +35,7 @@ done
 # FR-01: require the `audit` selector as the first positional.
 if [[ ${#POSITIONALS[@]} -eq 0 || "${POSITIONALS[0]}" != "audit" ]]; then
   echo "ERROR: /architecture requires the 'audit' selector as the first argument." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
   exit 64
 fi
 if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
@@ -41,9 +43,11 @@ if [[ ${#POSITIONALS[@]} -ge 2 ]]; then
 fi
 if [[ ${#POSITIONALS[@]} -gt 2 ]]; then
   echo "ERROR: too many positional arguments (got ${#POSITIONALS[@]}, max 2)." >&2
-  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive]" >&2
+  echo "usage: /architecture audit [path] [--no-adr] [--non-interactive] [--include-info-comments]" >&2
   exit 64
 fi
+# T5 (FR-33, D7) — exported for the L1 evaluator's U007 gate.
+export INCLUDE_INFO_COMMENTS
 # NFR-06 observability: log non-interactive mode to stderr (also keeps shellcheck
 # from flagging NONINTERACTIVE as unused — it IS read here, not just written).
 if [[ "$NONINTERACTIVE" -eq 1 ]]; then
@@ -163,10 +167,16 @@ if os.path.isfile(l3_path):
     l3_present = True
 
 # FR-14 — config keys (defaults when absent).
+# T5 (FR-33, D7): flags.include_info_comments mirrors the shell flag
+# --include-info-comments via $INCLUDE_INFO_COMMENTS so the JSON sidecar
+# records the run-mode.
 config = {
     "adr_path": l3.get("adr_path", "docs/adr/"),
     "scan_root": l3.get("scan_root", "."),
     "extra_ignore": list(l3.get("extra_ignore", []) or []),
+    "flags": {
+        "include_info_comments": os.environ.get("INCLUDE_INFO_COMMENTS", "0") == "1",
+    },
 }
 
 # FR-13 — exemptions passthrough; reconciliation lives in T15.
@@ -750,11 +760,30 @@ for rel in files:
                         "suppressed_by": None,
                     })
 
-    # U007 — first non-blank line should be a comment (info-severity).
-    first_content = next((l for l in lines if l.strip()), None)
-    if first_content is not None:
-        stripped = first_content.lstrip()
-        if not (stripped.startswith('//') or stripped.startswith('#') or stripped.startswith('/*')):
+    # U007 — file lacks top-of-file purpose comment.
+    # T5 (FR-33, D7): default-off + carve-outs. U007 plugin disposition is
+    # wont_fix; skip unless --include-info-comments OR an L3 override
+    # promoted U007 to should_fix/must_fix. When enabled, fire only when
+    # ALL three carve-outs fail: non-blank LOC gt 100; no module docstring
+    # of stripped length ge 40 chars; basename ne __init__.py.
+    u007_eff_sev = loader.get("effective_severity", {}).get("U007", "info")
+    u007_enabled = (u007_eff_sev != "info") or (
+        os.environ.get("INCLUDE_INFO_COMMENTS", "0") == "1"
+    )
+    if u007_enabled:
+        non_blank_loc = sum(1 for l in lines if l.strip())
+        basename = os.path.basename(rel)
+        has_long_docstring = False
+        if rel.endswith(".py"):
+            try:
+                import ast as _ast
+                _mod = _ast.parse("".join(lines))
+                _doc = _ast.get_docstring(_mod) or ""
+                if len(_doc.strip()) >= 40:
+                    has_long_docstring = True
+            except SyntaxError:
+                pass
+        if non_blank_loc > 100 and basename != "__init__.py" and not has_long_docstring:
             findings.append({
                 "rule_id": "U007",
                 "severity": "info",

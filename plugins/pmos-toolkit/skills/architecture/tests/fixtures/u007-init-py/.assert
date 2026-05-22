@@ -1,0 +1,13 @@
+# u007-init-py — U007 carve-out: __init__.py never fires, even with the flag.
+# src/foo/__init__.py is 150 lines, no module docstring. Invoke run-audit.sh
+# directly with --include-info-comments to enable U007; the __init__.py
+# basename carve-out must still suppress.
+set -euo pipefail
+
+rm -rf docs/pmos/architecture/ 2>/dev/null || true
+bash "$SKILL_DIR/tools/run-audit.sh" audit . --include-info-comments >/dev/null 2>&1 \
+  || { echo "audit exited non-zero"; exit 1; }
+json=$(ls -t docs/pmos/architecture/*.json 2>/dev/null | head -1)
+[ -n "$json" ] || { echo "no JSON produced"; exit 1; }
+jq -e '[.findings[] | select(.rule_id=="U007")] | length == 0' "$json" >/dev/null \
+  || { echo "expected 0 U007 findings for __init__.py carve-out"; jq '[.findings[] | select(.rule_id=="U007")]' "$json"; exit 1; }
