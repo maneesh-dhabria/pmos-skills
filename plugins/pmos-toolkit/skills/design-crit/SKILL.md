@@ -2,7 +2,7 @@
 name: design-crit
 description: Critique an existing application, wireframes, or prototype on overall user experience — identifies journeys, captures flow screenshots via packaged Playwright script, evaluates against a Nielsen + WCAG 2.2 + visual-hierarchy + Gestalt + journey-friction rubric, then runs a PSYCH/MSF pass and synthesises prioritized UX recommendations. Standalone utility — does not require the requirements→spec→plan pipeline. Use when the user says "critique this UI", "design review", "audit this app", "UX review", "review the wireframes", "evaluate this prototype", "what's wrong with this UX", or provides a URL/HTML files and asks for a design crit.
 user-invocable: true
-argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--format <html|md|both>] [--depth shallow|standard|deep] [--non-interactive | --interactive]"
 ---
 
 # Design Crit
@@ -30,7 +30,7 @@ It captures screenshots, applies a hybrid rubric (`reference/eval.md`), runs a l
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No interactive prompt tool:** State your assumption (default = critique top 3 inferred journeys), document it in the report, and proceed. Findings dispositions fall back to a numbered table the user reviews after.
+- **No interactive prompt tool:** State your assumption (default = critique top 3 inferred journeys), document it in the report, and proceed. Findings dispositions fall back to a numbered table the user reviews after. Depth defaults to `standard` (cap=12 high+medium findings) unless `--depth` was explicitly set on CLI.
 - **No subagents:** Run the heuristic eval, PSYCH pass, and friction pass sequentially in the main agent rather than dispatching parallel reviewers.
 - **No Playwright:** If `playwright` is missing on the host (`assets/capture.mjs` exits with code 3), instruct the user to install via `npm i -g playwright && npx playwright install chromium`, then resume. If install isn't possible, ask the user to take screenshots manually and place them in the screenshots folder; proceed with eval-only mode and label the report accordingly.
 
@@ -56,6 +56,21 @@ If `--feature <slug>` is not provided, propose a slug from the source (URL hostn
 ### Phase 0 addendum: output_format resolution (FR-12)
 
 **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of all four artifacts written under `{out_dir}/`: `source.{ext}`, `journeys.{ext}`, `psych-msf.{ext}`, and the main `design-crit.{ext}` recommendations report. The `eval-findings-review.md` platform-fallback artifact (Phase 4) is read-back-and-edited by the user, so it stays MD regardless of `output_format`.
+
+### Phase 0 addendum: depth resolution (FR-DC-DEPTH-01..03)
+
+**Resolve `depth` and `effective_cap`.** Parse `--depth <shallow|standard|deep>` from the argument string. Last flag wins on conflict. Unknown value → print to stderr `--depth must be one of: shallow, standard, deep (got '<v>')` and exit 64.
+
+Map the resolved value to `effective_cap`:
+
+- `shallow` → `effective_cap = 5`
+- `standard` → `effective_cap = 12`
+- `deep` → `effective_cap = null` (sentinel: uncapped; reviewer-side safety bound of 50 still applies per FR-DC-DEPTH-05)
+- *(absent on CLI)* → `depth_source = "default"`, `effective_cap = null` for now; the adaptive gate in Phase 4 (FR-DC-DEPTH-04) resolves it after the reviewer returns
+
+Set `depth_source` to `"cli"` if the flag was present, else `"default"`. Carry both `depth_source` and `effective_cap` through to Phase 4.
+
+Print to stderr exactly: `depth: <value|unset> (source: <cli|default>) -> cap=<N|uncapped|deferred-to-gate>` once at Phase 0 entry.
 
 ---
 
@@ -259,7 +274,7 @@ Read `reference/eval.md` (canonical rubric) into context.
 
 Dispatch a **reviewer subagent** (or run inline if subagents unavailable) per scope:
 
-1. **Per-screen pass** — one subagent receives all screenshots + the rubric, returns the JSON array described in `eval.md`. Cap output at 12 high+medium findings; low findings go in an "unsurfaced" appendix.
+1. **Per-screen pass** — one subagent receives all screenshots + the rubric, returns the JSON array described in `eval.md`. Cap the reviewer's output per FR-DC-DEPTH-05: when `depth_source == "cli"`, instruct the reviewer to cap at `effective_cap` high+medium findings (or 50 when `effective_cap == null`, i.e. `--depth deep`); when `depth_source == "default"`, instruct the reviewer to cap at 50 high+medium findings as a safety bound (the orchestrator slices further after the FR-DC-DEPTH-04 gate fires). Low findings go in an "unsurfaced" appendix regardless of depth.
 2. **Per-component pass** — one subagent identifies recurring components (button, card, input, modal) across all screens and scores once per component class.
 3. **Per-journey pass** — one subagent per journey walks the screenshot sequence step-by-step, counts clicks / keystrokes / decisions / modal interrupts, and applies J1 thresholds.
 
@@ -285,10 +300,37 @@ AskUserQuestion:
     - "Defer" — finding moves to a "Deferred" section as known-but-not-now
 ```
 
-<!-- defer-only: ambiguous -->
-Issue multiple sequential `AskUserQuestion` calls until all high+medium findings are dispositioned. Cap dispositions at 12 per session — anything beyond that is logged in `eval-findings.json` as unsurfaced.
+#### Adaptive depth gate (FR-DC-DEPTH-04)
 
-**Platform fallback** (no interactive prompt tool): emit a numbered findings table with `disposition` column blank, save to `{out_dir}/eval-findings-review.md`, and ask the user to fill it in. Do NOT silently auto-apply.
+After the Phase 4 reviewer subagent returns and before the disposition loop begins, resolve the final `effective_cap`:
+
+- If `depth_source == "cli"` → skip the gate; the Phase 0 `effective_cap` applies as-is.
+- If `N_returned ≤ 5` → skip the gate; set `effective_cap = N_returned` (nothing would be capped).
+- Else (gate fires):
+  - If `mode == non-interactive` → auto-pick **Top 12 (standard, Recommended)** per the canonical Recommended-pick contract. Append one entry to the OQ buffer recording `{question, chosen: "standard", N_returned}` so the wrapping skill or script can audit what was capped.
+  - Else → issue one `AskUserQuestion`:
+<!-- defer-only: ambiguous -->
+    ```
+    AskUserQuestion:
+      question: "Reviewer surfaced <N_returned> findings. How many to disposition?"
+      header: "Depth"
+      options:
+        - "Top 5 (shallow)" — disposition the 5 highest-severity findings; rest logged as unsurfaced
+        - "Top 12 (standard, Recommended)" — current default behaviour; preserves no-regression path
+        - "All <N_returned> (deep)" — disposition every high+medium finding the reviewer returned
+    ```
+  - Map the user pick: `shallow → effective_cap = 5`, `standard → effective_cap = 12`, `deep → effective_cap = null`.
+
+#### Disposition loop (FR-DC-DEPTH-06)
+
+<!-- defer-only: ambiguous -->
+Sort the returned findings by `severity desc, then file-order`. Take the first `effective_cap` entries (or all entries when `effective_cap == null`, i.e. deep). Issue multiple sequential `AskUserQuestion` calls until all selected findings are dispositioned. Findings beyond `effective_cap` are logged in `eval-findings.json` as unsurfaced.
+
+#### Surfaced/unsurfaced report (FR-DC-DEPTH-07)
+
+After the disposition loop completes, print to chat exactly: `<N_surfaced> findings surfaced for disposition, <M_unsurfaced> unsurfaced — see {out_dir}/eval-findings.json` (substitute the actual counts and `{out_dir}` value). `M_unsurfaced` is 0 in deep mode and whenever `N_returned ≤ effective_cap`. This line MUST fire in all modes including `--non-interactive` — silent capping is forbidden (see Anti-patterns).
+
+**Platform fallback** (no interactive prompt tool): emit a numbered findings table with `disposition` column blank, save to `{out_dir}/eval-findings-review.md`, and ask the user to fill it in. Do NOT silently auto-apply. The depth resolution still applies — the table's row count respects `effective_cap` (default `standard`/12 in this fallback unless `--depth` was set).
 
 **Anti-pattern:** A wall of prose ending in "Let me know what you'd like to fix." Always structure the ask.
 
@@ -430,3 +472,4 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - **Inventing measurements.** If you didn't compute the contrast ratio or click count, don't state one. Cite "Stark says 3.2:1" only if Stark actually returned that value.
 - **Critiquing > 5 journeys.** Output dilutes; rubric becomes shallow. Cap at 5 per session.
 - **Treating analytical-only friction as live-walk friction.** If Playwright capture failed and you're inferring friction from the HTML alone, label the report accordingly and warn the user the numbers are estimates.
+- **Silently capping findings.** Even at `standard` depth, the FR-DC-DEPTH-07 surfaced/unsurfaced chat line MUST fire so the user can decide whether to re-run at `deep`. Treating the cap as a quiet truncation hides medium-severity friction that the rubric explicitly flagged — the original design's silent cap-at-12 is what motivated the depth control in the first place.

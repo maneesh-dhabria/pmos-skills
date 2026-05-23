@@ -1,5 +1,13 @@
 # Design-Crit Evaluation Rubric
 
+## Contents
+
+- [Per-screen checks](#per-screen-checks-apply-to-every-captured-screenshot)
+- [Per-component checks](#per-component-checks)
+- [Per-journey checks](#per-journey-checks)
+- [How to use this rubric](#how-to-use-this-rubric)
+- [Sources](#sources)
+
 The reviewer subagent uses this rubric to critique a single screen, a single component, or a complete journey from screenshots (and, when available, the underlying HTML/DOM). Output is JSON:
 
 ```json
