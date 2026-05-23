@@ -84,6 +84,12 @@
     "parent_id": "solution-direction"
   },
   {
+    "id": "audience-preset-shape",
+    "level": 3,
+    "title": "Audience preset shape (per Q3 grill disposition)",
+    "parent_id": "solution-direction"
+  },
+  {
     "id": "output-shape",
     "level": 3,
     "title": "Output shape (user-observable)",

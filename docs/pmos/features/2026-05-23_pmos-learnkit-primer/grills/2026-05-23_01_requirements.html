@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill Report — 01_requirements.html (/primer skill)</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.51.0">
+  <script defer src="../assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Grill Report — 01_requirements.html (/primer skill for pmos-learnkit)</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+<li><strong>Date:</strong> 2026-05-23</li>
+<li><strong>Target:</strong> <code>docs/pmos/features/2026-05-23_pmos-learnkit-primer/01_requirements.html</code></li>
+<li><strong>Depth:</strong> standard</li>
+<li><strong>Questions asked:</strong> 7</li>
+<li><strong>Mode:</strong> interactive</li>
+<li><strong>Pipeline parent:</strong> /feature-sdlc Phase 2a, skill-new mode, Tier 3</li>
+</ul>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved</h2>
+<table>
+<tr><th>#</th><th>Branch</th><th>Disposition</th></tr>
+<tr><td>1</td><td>OQ-1 / A1 deferral kill-criterion</td><td><strong>Accept the risk; no mid-build kill.</strong> Ship v1 end-to-end on the unvalidated curator-lens hypothesis. User explicitly chose this over the brief's pre-/spec spike recommendation AND over a hand-prototype mid-build gate.</td></tr>
+<tr><td>2</td><td>v1 differentiation claim</td><td><strong>Rewrite Problem + Goals around "verified-source primer + reviewer pass."</strong> Move curator-lens framing to a stretch goal contingent on post-v1 A1 validation. The honest v1 claim is (a) sources.json with verified-resolving URLs, (b) binary reviewer rubric, (c) persistent addressable HTML artifact, (d) audience preset (with Q3 substance).</td></tr>
+<tr><td>3</td><td>Audience preset substance</td><td><strong>Add an "Audience preset shape" subsection</strong> naming 3 concrete axes (e.g., section selection, background depth, closing shape) and stating how <code>senior-pms</code> vs <code>all-pms</code> differ on each. /spec turns the axes into reviewer-rubric checks.</td></tr>
+<tr><td>4</td><td>Reviewer rubric residual policy</td><td><strong>Split rubric into trust-tier (hard-block) and taste-tier (accept-as-known-risk).</strong> Trust = cites real URLs / no plagiarism / no hand-wavy claims. Taste = reading level / primer-shape / vocab. Justified by the learning-artifact category — user trust is qualitatively different from /skill-eval's code-artifact residuals.</td></tr>
+<tr><td>5</td><td>Phase 2 source floor</td><td><strong>Floor = 4 verified sources;</strong> below that, surface a gate: abort (default) / proceed with thin-source disclosure in the artifact footer / retry research with alternate query frame.</td></tr>
+<tr><td>6</td><td>Reviewer URL verification authority</td><td><strong>Reviewer cross-checks draft URLs against sources.json</strong> (no novel URLs invented in drafting). Phase 2 owns URL resolution; reviewer's job is consistency-check, not re-verification. Make explicit in /spec so it doesn't default to weaker well-formedness check.</td></tr>
+<tr><td>7</td><td>Hard-block recovery shape</td><td><strong>Persist sources.json + save draft as <code>&lt;slug&gt;.draft.html</code> with REJECTED banner + failing-checks list.</strong> User can read the draft, see exactly which trust-checks failed, decide patch / rerun / abandon. Matches <code>git --no-verify</code> pattern: user is informed and can choose.</td></tr>
+</table>
+</section>
+
+<section id="open-deferred">
+<h2 id="open-deferred">Open / Deferred</h2>
+<ul>
+<li><strong>OQ-2 (exact 10 rubric checks)</strong> — correctly deferred to /spec. Q4 disposition (trust/taste split) and Q6 disposition (URL cross-check authority) tighten the input.</li>
+<li><strong>OQ-3 (attribution mechanism)</strong> and <strong>OQ-4 (topic-shape detection)</strong> — correctly deferred to /spec.</li>
+<li><strong>A1 post-v1 retrospective trigger</strong> — the doc says "external-share signal within 2 weeks" measures A1, but the trigger for actually running the 2-hour side-by-side spike remains soft. Worth pinning during /spec or /complete-dev: e.g., "after the 3rd /primer run, run the 2-hour A1 spike before committing to v2 scope."</li>
+</ul>
+</section>
+
+<section id="gaps-surfaced">
+<h2 id="gaps-surfaced">Gaps surfaced</h2>
+<ol>
+<li><strong>No mid-build kill criterion for A1</strong> — by user choice, but the doc should make this stance <em>explicit</em>. Recommendation: add a new Non-Goal: <em>"NOT staging A1 validation mid-build — v1 ships on the unvalidated hypothesis; v2 scope responds to post-ship readership/share signal."</em> Right now OQ-1 is too neutral; the deliberate acceptance of risk is invisible.</li>
+<li><strong>Differentiation claim drift</strong> — Problem section markets the curator-lens claim that A1 hasn't validated. Q2 disposition fixes by re-anchoring Problem + Goals on the verified-source claim.</li>
+<li><strong>Audience preset is a one-line slider</strong> — the doc says "audience-shaped" but doesn't say <em>how</em>. Q3 disposition adds the 3-axis subsection.</li>
+<li><strong>Reviewer residual policy is uniform across trust/taste dimensions</strong> — wrong for a teaching artifact. Q4 disposition splits.</li>
+<li><strong>No source-count floor</strong> — Q5 disposition adds floor = 4.</li>
+<li><strong>Reviewer URL-verification authority unspecified</strong> — Q6 disposition states explicitly so /spec doesn't default to URL well-formedness only.</li>
+<li><strong>Hard-block recovery contract missing</strong> — Q7 disposition adds <code>.draft.html</code> + REJECTED banner pattern.</li>
+<li><strong>lastrun.yaml provenance unclear</strong> (small) — the friction table and Alternate Journey 3 mention <code>.pmos/primer.lastrun.yaml</code> but the doc doesn't state it's gitignored / per-developer (matching /complete-dev's lastrun pattern). Add a one-liner in Solution Direction or Release Prerequisites.</li>
+</ol>
+</section>
+
+<section id="recommended-next-step">
+<h2 id="recommended-next-step">Recommended next step</h2>
+<ol>
+<li>Apply the 7 dispositions + 1 small clarification (gap #8) to <code>01_requirements.html</code> BEFORE /spec opens. The dispositions tighten the doc enough that /spec gets clean inputs for FR derivation.</li>
+<li>Commit with <code>docs: apply /grill dispositions to requirements for pmos-learnkit-primer</code>.</li>
+<li>/feature-sdlc Phase 3a creativity gate next (Recommended Skip; the doc is now tightly scoped).</li>
+<li>Then /spec with the standing acceptance criteria of <code>reference/skill-patterns.md §A–§F</code> + the 7 grilled dispositions as additional FR seeds.</li>
+</ol>
+<p>Do <strong>not</strong> auto-invoke /spec — apply edits first.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: /grill on 01_requirements.html (pmos-toolkit 2.51.0)</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
