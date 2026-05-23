@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FSA fallback (Safari / Firefox) — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .doc-mock { max-width: 720px; margin: 24px auto; padding: 24px 32px; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .browser-frame { max-width: 880px; margin: 18px auto; border: 1px solid var(--wf-border); border-radius: 10px;
+      overflow: hidden; background: var(--wf-surface-2); }
+    .browser-bar { display: flex; gap: 6px; padding: 8px 12px; background: #ececef; border-bottom: 1px solid var(--wf-border); align-items: center; }
+    .browser-bar .dot { width: 10px; height: 10px; border-radius: 50%; background: #d4d4d8; }
+    .browser-bar .url { flex: 1; padding: 4px 10px; font-size: 12px; font-family: var(--wf-font-mono);
+      background: var(--wf-surface); border-radius: 6px; border: 1px solid var(--wf-border); color: var(--wf-muted); }
+    .browser-bar .browser-name { font-size: 11px; color: var(--wf-muted); }
+    .info-banner { background: #fef9c3; border: 1px solid #fde047; color: #713f12; padding: 10px 14px;
+      border-radius: var(--wf-radius); margin: 14px 0; display: flex; gap: 10px; align-items: center; font-size: 13px; }
+    .info-banner .save { margin-left: auto; }
+    .toast { background: var(--wf-text); color: var(--wf-surface); padding: 8px 14px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+    .save-progress { flex: 1 0 100%; height: 4px; border-radius: 2px; background: rgba(0,0,0,.08); margin-top: 8px; overflow: hidden; }
+    .save-progress__bar { height: 100%; width: 35%; background: var(--wf-accent); animation: wfBar 1.6s linear infinite; }
+    @keyframes wfBar { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">FSA fallback — Safari / Firefox download-to-replace</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="banner">Banner visible (drafted comments pending)</button>
+        <button class="wf-tab" aria-selected="false" data-state="saving">Save sidecar — saving</button>
+        <button class="wf-tab" aria-selected="false" data-state="saved">Saved (post-download instructions)</button>
+        <button class="wf-tab" aria-selected="false" data-state="idle">Idle (no drafts)</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="banner" aria-labelledby="state-banner-h">
+      <h1 id="state-banner-h" class="sr-only">FSA-unsupported browser — fallback banner with Save sidecar button</h1>
+      <div class="browser-frame">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">file:///.../02_spec.html</span><span class="browser-name">Safari 17</span></div>
+        <article class="doc-mock" style="margin:14px auto">
+          <div class="info-banner" role="status">
+            <span aria-hidden="true">ⓘ</span>
+            <span>This browser doesn't support File System Access. Comments are draft-saved in this tab only — click <strong>Save sidecar</strong> to persist.
+              <span class="wf-muted" style="font-size:11px; display:block">2 drafts pending · localStorage mirror active.</span></span>
+            <button class="mock-button mock-button--primary save" aria-label="Download 02_spec.comments.json">Save sidecar (download)</button>
+          </div>
+          <p><strong>02_spec.html</strong> — open in Safari for review. The overlay works; only the in-place
+          write step is replaced by a download.</p>
+        </article>
+      </div>
+      <div class="wf-anno" data-note="D11 fallback. Banner uses warning tone (not error) — capture works; persistence needs one manual file-move per session."></div>
+    </section>
+
+    <section class="wf-state" data-state="saving" aria-labelledby="state-saving-h">
+      <h1 id="state-saving-h" class="sr-only">Save in progress — button shows spinner state</h1>
+      <div class="browser-frame">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">file:///.../02_spec.html</span><span class="browser-name">Safari 17</span></div>
+        <article class="doc-mock" style="margin:14px auto">
+          <div class="info-banner" role="status" aria-live="polite">
+            <span aria-hidden="true">⏳</span>
+            <span>Preparing download… Browser will prompt for save location.</span>
+            <button class="mock-button save" disabled aria-label="Saving sidecar — please wait">Saving…</button>
+            <div class="save-progress" role="progressbar" aria-label="Save progress" aria-valuetext="In progress, indeterminate"><div class="save-progress__bar"></div></div>
+          </div>
+          <div class="skeleton" style="width:60%; margin-top:14px"></div>
+          <div class="skeleton" style="width:90%; margin-top:6px"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="saved" aria-labelledby="state-saved-h">
+      <h1 id="state-saved-h" class="sr-only">Sidecar downloaded — instructions to move it next to the artifact</h1>
+      <div class="browser-frame">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">file:///.../02_spec.html</span><span class="browser-name">Safari 17</span></div>
+        <article class="doc-mock" style="margin:14px auto">
+          <div class="wf-message wf-message--success" style="margin-top:0">
+            <div class="wf-message__title">Sidecar downloaded</div>
+            <div class="wf-message__hint">Move <code>~/Downloads/02_spec.comments.json</code> next to the artifact, overwriting any prior. <strong>localStorage drafts kept</strong> until next overlay-open detects the placed file.</div>
+            <div style="margin-top:10px"><span class="toast" role="status" aria-live="polite">✓ 2 drafts ready — move file next to artifact to finish persisting</span></div>
+          </div>
+          <div class="info-banner" role="status" style="background:#fff7ed; border-color:#fdba74; color:#9a3412; margin-top:10px">
+            <span aria-hidden="true">⚠</span>
+            <span><strong>Pending placement</strong> — keep these 2 drafts? Will clear automatically once next overlay-open finds <code>02_spec.comments.json</code> next to the artifact.</span>
+            <button class="mock-button" style="margin-left:auto; font-size:12px" aria-label="Clear pending drafts manually">Clear anyway</button>
+          </div>
+          <details style="margin-top:14px; font-size:13px">
+            <summary class="wf-muted" style="cursor:pointer">Why doesn't it save in place?</summary>
+            <p class="wf-muted" style="margin-top:6px">The File System Access API is Chrome 86+ / Edge 86+ only. Safari and
+            Firefox &lt;111 fall back to download-to-replace per <abbr title="Decision 11">D11</abbr>.</p>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="idle" aria-labelledby="state-idle-h">
+      <h1 id="state-idle-h" class="sr-only">No drafts to save — Save button disabled with explanatory help</h1>
+      <div class="browser-frame">
+        <div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">file:///.../02_spec.html</span><span class="browser-name">Firefox 124</span></div>
+        <article class="doc-mock" style="margin:14px auto">
+          <div class="info-banner" role="status" style="background:#f1f5f9; border-color:var(--wf-border); color:var(--wf-text)">
+            <span aria-hidden="true">ⓘ</span>
+            <span>Fallback mode — no drafts pending.</span>
+            <button class="mock-button save" disabled aria-label="Save sidecar — no changes to save">Save sidecar</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>FSA fallback</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 06 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Artifact with overlay (base) — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    /* Local wireframe-only mocks for the comment-overlay UI under design */
+    .co-launcher { position: fixed; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 8px;
+      background: var(--wf-surface); border: 1px solid var(--wf-border); border-radius: 999px;
+      padding: 6px 12px; box-shadow: var(--wf-shadow); font-size: 13px; }
+    .co-launcher .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--wf-accent); }
+    .co-launcher .badge { font-weight: 600; }
+    .co-anchored { background: rgba(37, 99, 235, .12); border-bottom: 2px solid var(--wf-accent); cursor: pointer; }
+    .co-anchored--resolved { background: rgba(22, 163, 74, .08); border-bottom: 2px dashed var(--wf-success); }
+    .co-orphan-banner { background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; padding: 10px 14px;
+      border-radius: var(--wf-radius); margin: 0 0 12px 0; display: flex; align-items: center; gap: 10px;
+      position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .doc-mock { max-width: 760px; margin: 24px auto; padding: 28px 36px; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .doc-mock h1 { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+    .doc-mock h2 { font-size: 18px; font-weight: 600; margin-top: 22px; margin-bottom: 8px; }
+    .doc-mock p  { font-size: 14px; color: var(--wf-text); margin-bottom: 10px; }
+    .doc-mock .meta { color: var(--wf-muted); font-size: 12px; margin-bottom: 18px; }
+  </style>
+</head>
+<body data-annotations="on">
+  <!--
+    Review Log
+    Loop 1: cross-file pass — pending
+  -->
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Artifact with overlay — base view</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="empty">Empty (zero threads)</button>
+        <button class="wf-tab" aria-selected="false" data-state="open">Open threads</button>
+        <button class="wf-tab" aria-selected="false" data-state="resolved-hidden">Only resolved (hidden)</button>
+        <button class="wf-tab" aria-selected="false" data-state="resolved-shown">Resolved (shown)</button>
+        <button class="wf-tab" aria-selected="false" data-state="orphan">Orphan present</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <!-- EMPTY: opened a just-emitted .html with zero threads -->
+    <section class="wf-state active" data-state="empty" aria-labelledby="state-empty-h">
+      <h1 id="state-empty-h" class="sr-only">Empty — zero threads on a freshly emitted artifact</h1>
+      <article class="doc-mock">
+        <h1>02_spec — Inline doc comments</h1>
+        <div class="meta">Date 2026-05-23 · Status Draft · Tier 3 · plugins/pmos-toolkit</div>
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and dispatches a fresh subagent
+        per thread loaded with that skill's context.</p>
+        <h2>§4.3 Apply-edit-at-anchor contract (FR-NEW-B)</h2>
+        <p>Every originating skill exposes a uniform entrypoint: inputs <code>{thread, artifact_path, anchor, body}</code>,
+        outputs <code>{success, diff_ref, system_reply}</code>. Idempotent.</p>
+      </article>
+      <div class="wf-anno" data-note="Selecting any text reveals the floating Comment button (see wireframe 02). No CLI invocation required.">
+        <span class="wf-muted" style="display:block; text-align:center; font-size:12px; padding:6px 0;">↑ Try selecting any text to open a new thread</span>
+      </div>
+      <div class="co-launcher" role="status" aria-label="Comments launcher — 0 threads">
+        <span class="dot" style="background: var(--wf-faint)"></span>
+        <span class="wf-muted">No threads yet</span>
+      </div>
+    </section>
+
+    <!-- OPEN THREADS -->
+    <section class="wf-state" data-state="open" aria-labelledby="state-open-h">
+      <h1 id="state-open-h" class="sr-only">Artifact with 3 open threads</h1>
+      <article class="doc-mock">
+        <h1>02_spec — Inline doc comments</h1>
+        <div class="meta">Date 2026-05-23 · Status Draft · Tier 3</div>
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and <span class="co-anchored" tabindex="0" role="button" aria-label="Open thread T1 — dispatches a fresh subagent per thread">dispatches a fresh subagent per thread</span>
+        loaded with that skill's context.</p>
+        <h2>§4.3 <span class="co-anchored" tabindex="0" role="button" aria-label="Open thread T2 — Apply-edit-at-anchor contract">Apply-edit-at-anchor contract</span> (FR-NEW-B)</h2>
+        <p>Every originating skill exposes a uniform entrypoint: inputs
+        <span class="co-anchored" tabindex="0" role="button" aria-label="Open thread T3 — idempotency clarification needed">
+        <code>{thread, artifact_path, anchor, body}</code></span>, outputs
+        <code>{success, diff_ref, system_reply}</code>. Idempotent.</p>
+      </article>
+      <div class="co-launcher" role="status" aria-label="Comments launcher — 3 open threads, mode: confirm-each">
+        <span class="dot"></span>
+        <span><span class="badge">3</span> open</span>
+        <span class="wf-muted">·</span>
+        <span class="wf-muted" style="font-size:11px">Mode: <button aria-label="Change resolve mode (currently confirm-each)" style="background:transparent; border:0; color:var(--wf-accent); cursor:pointer; font-size:11px; padding:0">confirm-each ▾</button></span>
+        <span class="wf-muted">·</span>
+        <button aria-label="Hide comment overlay (per-machine, requires re-enable from launcher)" style="background:transparent; border:0; color:var(--wf-muted); cursor:pointer; font-size:11px; padding:0; text-decoration:underline">Hide</button>
+        <span class="wf-muted">·</span>
+        <a href="./04_side-panel-thread_desktop-web.html" style="color: var(--wf-accent)">Open panel →</a>
+      </div>
+    </section>
+
+    <!-- RESOLVED HIDDEN (default after resolve) -->
+    <section class="wf-state" data-state="resolved-hidden" aria-labelledby="state-resolved-hidden-h">
+      <h1 id="state-resolved-hidden-h" class="sr-only">All threads resolved — overlay default-hides them</h1>
+      <article class="doc-mock">
+        <h1>02_spec — Inline doc comments</h1>
+        <div class="meta">Date 2026-05-23 · Status Draft · Tier 3</div>
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and dispatches a fresh subagent
+        per thread loaded with that skill's context.</p>
+        <h2>§4.3 Apply-edit-at-anchor contract (FR-NEW-B)</h2>
+        <p>Every originating skill exposes a uniform entrypoint: inputs
+        <code>{thread, artifact_path, anchor, body}</code>, outputs
+        <code>{success, diff_ref, system_reply}</code>. Idempotent.</p>
+      </article>
+      <div class="co-launcher" role="status" aria-label="Comments launcher — 0 open, 3 resolved hidden">
+        <span class="dot" style="background: var(--wf-success)"></span>
+        <span class="wf-muted">0 open · <button class="mock-button" style="font-size:12px; padding:2px 8px" aria-label="Show 3 resolved threads">Show 3 resolved</button></span>
+      </div>
+    </section>
+
+    <!-- RESOLVED SHOWN -->
+    <section class="wf-state" data-state="resolved-shown" aria-labelledby="state-resolved-shown-h">
+      <h1 id="state-resolved-shown-h" class="sr-only">Resolved threads visible (toggle on)</h1>
+      <article class="doc-mock">
+        <h1>02_spec — Inline doc comments</h1>
+        <div class="meta">Date 2026-05-23 · Status Draft · Tier 3</div>
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and
+        <span class="co-anchored co-anchored--resolved" tabindex="0" role="button" aria-label="Resolved thread T1">dispatches a fresh subagent per thread</span>
+        loaded with that skill's context.</p>
+      </article>
+      <div class="co-launcher" role="status" aria-label="Comments launcher — 0 open, 3 resolved shown">
+        <span class="dot" style="background: var(--wf-success)"></span>
+        <span class="wf-muted">0 open · 3 resolved · <button class="mock-button" style="font-size:12px; padding:2px 8px" aria-label="Hide resolved threads">Hide resolved</button></span>
+      </div>
+    </section>
+
+    <!-- ORPHAN PRESENT -->
+    <section class="wf-state" data-state="orphan" aria-labelledby="state-orphan-h">
+      <h1 id="state-orphan-h" class="sr-only">Orphan thread banner after artifact regeneration</h1>
+      <article class="doc-mock">
+        <div class="co-orphan-banner" role="alert">
+          <span aria-hidden="true">⚠</span>
+          <span><strong>1 orphaned thread</strong> — content was rewritten after the last <code>/spec --refine</code>.
+          <a href="./05_orphan-reattach_desktop-web.html" style="color: #9a3412; text-decoration: underline;">View thread →</a>
+          </span>
+        </div>
+        <h1>02_spec — Inline doc comments</h1>
+        <div class="meta">Date 2026-05-23 · Updated 2026-05-24 (after /spec --refine)</div>
+        <h2>§4.2 Resolver dispatch (rewritten)</h2>
+        <p>The resolver fans out per-thread subagents via the originating-skill meta tag. Per-thread context
+        loading and idempotency are owned by the apply-edit-at-anchor contract (see §4.3).</p>
+      </article>
+      <div class="co-launcher" role="status" aria-label="Comments launcher — 2 open, 1 orphan">
+        <span class="dot" style="background: var(--wf-warning)"></span>
+        <span><span class="badge">2</span> open · <span class="badge">1</span> orphan</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Artifact with overlay — base</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 01 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

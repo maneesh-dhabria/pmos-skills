@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Floating Comment button — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .doc-mock { max-width: 760px; margin: 24px auto; padding: 28px 36px; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .doc-mock h2 { font-size: 18px; font-weight: 600; margin: 12px 0 8px; }
+    .doc-mock p { font-size: 14px; line-height: 1.55; }
+    .co-selection { background: #dbeafe; box-shadow: 0 0 0 1px rgba(37,99,235,.35) inset; }
+    .co-float-btn { position: absolute; display: inline-flex; align-items: center; gap: 6px;
+      background: var(--wf-surface); border: 1px solid var(--wf-border); border-radius: 999px;
+      padding: 6px 12px; font-size: 13px; box-shadow: var(--wf-shadow); cursor: pointer; }
+    .co-float-btn:focus-visible { outline: 2px solid var(--wf-accent); outline-offset: 2px; }
+    .co-float-btn .ico { width: 14px; height: 14px; border: 1.5px solid currentColor; border-radius: 4px;
+      display: inline-block; position: relative; }
+    .co-float-btn .ico::after { content: ""; position: absolute; left: 3px; bottom: -4px; border-width: 0 0 4px 4px;
+      border-style: solid; border-color: transparent transparent currentColor transparent; }
+    .stage { position: relative; min-height: 240px; }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Floating "Comment" button on text selection</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="hover">After selection — button visible</button>
+        <button class="wf-tab" aria-selected="false" data-state="clicked">Clicked — panel opening</button>
+        <button class="wf-tab" aria-selected="false" data-state="keyboard">Keyboard equivalent (Cmd+M)</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="hover" aria-labelledby="state-hover-h">
+      <h1 id="state-hover-h" class="sr-only">User selected text — floating Comment button appears above selection</h1>
+      <article class="doc-mock stage">
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and
+        <span class="co-selection">dispatches a fresh subagent per thread</span> loaded with that skill's context.</p>
+        <button class="co-float-btn wf-anno" data-note="Anchored above the user's selection. Appears on selectionchange. Click → opens side panel with a new thread pre-anchored to the selection. ⌘M is the keyboard equivalent." style="top: 64px; left: 220px;" aria-label="Comment on selection (keyboard shortcut Cmd+M)">
+          <span class="ico" aria-hidden="true"></span>
+          <span>Comment</span>
+          <span style="font-size:11px; color:var(--wf-muted); border:1px solid var(--wf-border-2); padding:1px 5px; border-radius:4px; font-family:var(--wf-font-mono);" aria-hidden="true">⌘M</span>
+        </button>
+      </article>
+    </section>
+
+    <section class="wf-state" data-state="clicked" aria-labelledby="state-clicked-h">
+      <h1 id="state-clicked-h" class="sr-only">Clicked — side panel sliding in, selection preserved</h1>
+      <article class="doc-mock stage">
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and
+        <span class="co-selection">dispatches a fresh subagent per thread</span> loaded with that skill's context.</p>
+        <div class="wf-message" style="margin-top:18px">
+          <div class="wf-message__title">Opening side panel…</div>
+          <div class="wf-message__hint">Selection is preserved; the new thread will anchor to it on submit.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="wf-state" data-state="keyboard" aria-labelledby="state-keyboard-h">
+      <h1 id="state-keyboard-h" class="sr-only">Keyboard equivalent — Cmd/Ctrl+M opens the panel without clicking the floater</h1>
+      <article class="doc-mock stage">
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and
+        <span class="co-selection">dispatches a fresh subagent per thread</span> loaded with that skill's context.</p>
+        <div class="wf-anno" data-note="Keyboard equivalent of the floating button — required for a11y. Cmd+M (macOS) / Ctrl+M (other). Documented in overlay help.">
+          <kbd style="border:1px solid var(--wf-border); padding:2px 6px; border-radius:4px; font-family:var(--wf-font-mono); font-size:12px;">⌘</kbd> +
+          <kbd style="border:1px solid var(--wf-border); padding:2px 6px; border-radius:4px; font-family:var(--wf-font-mono); font-size:12px;">M</kbd>
+          <span class="wf-muted" style="margin-left:8px; font-size:12px">comment on current selection</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Floating Comment button</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 02 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

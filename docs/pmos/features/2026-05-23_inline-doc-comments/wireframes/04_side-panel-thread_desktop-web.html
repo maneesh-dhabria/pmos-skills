@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Side panel — single thread — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .panel-only { max-width: 420px; margin: 24px auto; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow);
+      display: flex; flex-direction: column; min-height: 580px; }
+    .ph { padding: 14px 16px; border-bottom: 1px solid var(--wf-border-2); display: flex; align-items: center; gap: 8px; }
+    .ph .back { color: var(--wf-accent); font-size: 13px; }
+    .ph h2 { font-size: 13px; font-weight: 600; margin: 0; flex: 1; }
+    .anchor { padding: 10px 16px; background: var(--wf-surface-2); border-bottom: 1px solid var(--wf-border-2);
+      font-size: 12px; }
+    .anchor__quote { font-family: var(--wf-font-mono); color: var(--wf-text); border-left: 2px solid var(--wf-accent);
+      padding-left: 8px; margin-top: 4px; }
+    .msgs { padding: 12px 16px; flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+    .msg { display: flex; flex-direction: column; gap: 4px; }
+    .msg__head { font-size: 11px; color: var(--wf-muted); display: flex; gap: 6px; }
+    .msg__head .who { font-weight: 600; color: var(--wf-text); }
+    .msg__body { font-size: 13px; line-height: 1.5; padding: 10px 12px; border-radius: var(--wf-radius);
+      background: var(--wf-surface-2); border: 1px solid var(--wf-border-2); }
+    .msg--system .msg__body { background: #f0f9ff; border-color: #bae6fd; }
+    .msg__body code { font-family: var(--wf-font-mono); font-size: 12px; background: rgba(0,0,0,.05); padding: 1px 4px; border-radius: 3px; }
+    .pf { padding: 12px 16px; border-top: 1px solid var(--wf-border-2); display: flex; flex-direction: column; gap: 8px; }
+    .pf textarea { width: 100%; min-height: 64px; font-family: var(--wf-font-sans); font-size: 13px;
+      padding: 8px 10px; border: 1px solid var(--wf-border); border-radius: var(--wf-radius); resize: vertical; }
+    .pf textarea:focus-visible { outline: 2px solid var(--wf-accent); outline-offset: 1px; }
+    .pf__row { display: flex; gap: 8px; }
+    .status-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .status-pill--open { background: #dbeafe; color: #1d4ed8; }
+    .status-pill--inprog { background: #fef3c7; color: #92400e; }
+    .status-pill--resolved { background: #dcfce7; color: #166534; }
+    .status-pill--orphan { background: #ffedd5; color: #9a3412; }
+    .diff { font-family: var(--wf-font-mono); font-size: 12px; background: var(--wf-surface-2); color: var(--wf-text);
+      padding: 10px 12px; border-radius: var(--wf-radius); overflow: auto; border: 1px solid var(--wf-border-2); }
+    .diff .add { color: #166534; background: #dcfce7; display: inline-block; width: 100%; }
+    .diff .del { color: #991b1b; background: #fee2e2; display: inline-block; width: 100%; }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Side panel — single thread (focused view)</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="open">Open</button>
+        <button class="wf-tab" aria-selected="false" data-state="inprog">In progress (proposal staged)</button>
+        <button class="wf-tab" aria-selected="false" data-state="reject">Reject proposal (3-option)</button>
+        <button class="wf-tab" aria-selected="false" data-state="resolved">Resolved</button>
+        <button class="wf-tab" aria-selected="false" data-state="orphan">Orphan</button>
+        <button class="wf-tab" aria-selected="false" data-state="compose">New thread compose</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="open" aria-labelledby="state-open-h">
+      <h1 id="state-open-h" class="sr-only">Open thread — single user message, awaiting /comments resolve</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back to thread list">←</a><h2>Thread T1</h2><span class="status-pill status-pill--open">open</span></div>
+        <div class="anchor"><span class="wf-muted">§4.2 · stable id + quote anchor</span>
+          <div class="anchor__quote">"dispatches a fresh subagent per thread"</div>
+        </div>
+        <div class="msgs">
+          <div class="msg"><div class="msg__head"><span class="who">maneesh</span><span>· 2h ago</span></div>
+            <div class="msg__body">This should specify originating-skill dispatch, not generic — see grill Q1.</div></div>
+        </div>
+        <div class="pf">
+          <button class="mock-button mock-button--primary" aria-label="Run /comments resolve on this thread">Resolve via <code>/comments resolve</code></button>
+          <div class="pf__row">
+            <button class="mock-button" style="flex:1" aria-label="Add another message to this thread">Add message</button>
+            <button class="mock-button" style="flex:1" aria-label="Mark this thread as resolved">Mark resolved</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="inprog" aria-labelledby="state-inprog-h">
+      <h1 id="state-inprog-h" class="sr-only">In progress — resolver staged an edit, awaiting --confirm-each accept</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back to thread list">←</a><h2>Thread T1</h2><span class="status-pill status-pill--inprog">in progress</span></div>
+        <div class="anchor"><span class="wf-muted">§4.2 · id + quote</span><div class="anchor__quote">"dispatches a fresh subagent per thread"</div></div>
+        <div class="msgs">
+          <div class="msg"><div class="msg__head"><span class="who">maneesh</span><span>· 2h ago</span></div>
+            <div class="msg__body">Specify originating-skill dispatch.</div></div>
+          <div class="msg msg--system"><div class="msg__head"><span class="who">system · spec subagent</span><span>· 18s ago</span></div>
+            <div class="msg__body">Proposing edit to §4.2 first sentence. Diff:
+              <pre class="diff" style="margin-top:8px"><span class="del">- and dispatches a fresh subagent per thread loaded with that skill's context.</span>
+<span class="add">+ and dispatches a fresh subagent per thread, loaded with the originating</span>
+<span class="add">+ skill's context (resolved via the &lt;meta name="pmos:skill"&gt; tag).</span></pre>
+            </div></div>
+        </div>
+        <div class="pf">
+          <div class="pf__row">
+            <button class="mock-button mock-button--primary" style="flex:1" aria-label="Accept the proposed edit and resolve">Accept</button>
+            <button class="mock-button" style="flex:1" aria-label="Reject the proposed edit">Reject</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="reject" aria-labelledby="state-reject-h">
+      <h1 id="state-reject-h" class="sr-only">Reject — 3-option inline (edit proposal / re-prompt / leave open)</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back">←</a><h2>Thread T1</h2><span class="status-pill status-pill--inprog">in progress</span></div>
+        <div class="anchor"><div class="anchor__quote">"dispatches a fresh subagent per thread"</div></div>
+        <div class="msgs">
+          <div class="msg msg--system"><div class="msg__head"><span class="who">system</span><span>· 18s ago</span></div>
+            <div class="msg__body">Proposed: "…loaded with the originating skill's context…"</div></div>
+        </div>
+        <div class="pf wf-anno" data-note="D25 reject workflow — 3 explicit options. Re-prompt is capped at 2 iterations (OQ9) before forcing 'leave open'. Primary = edit-inline (most-used path).">
+          <h3 style="font-size:13px; font-weight:600; margin:0">Reject — what next?</h3>
+          <button class="mock-button mock-button--primary" style="text-align:left" aria-label="Edit the proposed edit inline and accept (Recommended)">a) Edit the proposal inline → accept</button>
+          <button class="mock-button" style="text-align:left" aria-label="Re-prompt resolver with a refinement note">b) Re-prompt with refinement note (1 of 2)</button>
+          <button class="mock-button" style="text-align:left" aria-label="Leave thread open and skip">c) Leave open, skip</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="resolved" aria-labelledby="state-resolved-h">
+      <h1 id="state-resolved-h" class="sr-only">Resolved — system reply + diff pointer; reopen available</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back">←</a><h2>Thread T1</h2><span class="status-pill status-pill--resolved">resolved</span></div>
+        <div class="anchor"><div class="anchor__quote">"dispatches a fresh subagent per thread"</div></div>
+        <div class="msgs">
+          <div class="msg"><div class="msg__head"><span class="who">maneesh</span><span>· 2h ago</span></div>
+            <div class="msg__body">Specify originating-skill dispatch.</div></div>
+          <div class="msg msg--system"><div class="msg__head"><span class="who">system · spec subagent</span><span>· just now</span></div>
+            <div class="msg__body">Changed §4.2 first sentence to specify originating-skill dispatch. Diff staged at <code>02_spec.html</code> lines 124–128 (SHA pending commit). Resolved.</div></div>
+        </div>
+        <div class="pf">
+          <button class="mock-button" aria-label="Reopen this thread with a new message">Reopen with message</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="orphan" aria-labelledby="state-orphan-h">
+      <h1 id="state-orphan-h" class="sr-only">Orphan — quote fallback failed after rewrite, awaiting reattach</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back">←</a><h2>Thread T5</h2><span class="status-pill status-pill--orphan">orphan</span></div>
+        <div class="anchor" style="background:#fff7ed">
+          <span class="wf-muted">Was anchored to §problem · quote no longer matches (confidence 0.62 &lt; 0.85)</span>
+          <div class="anchor__quote">"the legacy auth middleware stores tokens in cookies"</div>
+        </div>
+        <div class="msgs">
+          <div class="msg"><div class="msg__head"><span class="who">maneesh</span><span>· 1d ago</span></div>
+            <div class="msg__body">Mention that this is a v1 NON-goal, not a v2 plan.</div></div>
+        </div>
+        <div class="pf wf-anno" data-note="Recovery actions surfaced primary; won't-fix demoted to overflow under '⋯ More' to subordinate the destructive path.">
+          <button class="mock-button mock-button--primary" aria-label="Reattach this thread to a new selection in the rewritten doc">Reattach to new selection</button>
+          <button class="mock-button" aria-label="Mark this orphan thread as resolved">Mark resolved</button>
+          <details style="margin-top:4px">
+            <summary class="wf-muted" style="font-size:12px; cursor:pointer; padding:4px 0">⋯ More actions</summary>
+            <button class="mock-button mock-button--danger" style="margin-top:6px; width:100%" aria-label="Mark this thread as won't-fix (requires confirmation)" aria-describedby="wf-confirm-help">Mark won't-fix…</button>
+            <span id="wf-confirm-help" class="wf-muted" style="font-size:11px; display:block; margin-top:4px">Opens a confirm dialog ("Are you sure?") before marking — won't-fix freezes the thread.</span>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="compose" aria-labelledby="state-compose-h">
+      <h1 id="state-compose-h" class="sr-only">New thread compose — anchored to selection, awaiting first message</h1>
+      <div class="panel-only">
+        <div class="ph"><a class="back" href="./03_side-panel-list_desktop-web.html" aria-label="Back">←</a><h2>New thread</h2></div>
+        <div class="anchor"><span class="wf-muted">Anchored to §4.2 · stable id + quote (auto-derived from selection)</span>
+          <div class="anchor__quote">"dispatches a fresh subagent per thread"</div></div>
+        <div class="pf">
+          <label class="wf-muted" style="font-size:12px">Your comment</label>
+          <textarea placeholder="Be specific — the AI resolver will read this verbatim. Reference grill IDs, FRs, or other threads where useful."></textarea>
+          <div class="pf__row">
+            <button class="mock-button mock-button--primary" style="flex:1" aria-label="Submit new thread">Submit</button>
+            <button class="mock-button" style="flex:1" aria-label="Cancel new thread">Cancel</button>
+          </div>
+          <span class="wf-muted" style="font-size:11px">Saves to <code>02_spec.comments.json</code> via the File System Access API.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Side panel — single thread</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 04 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

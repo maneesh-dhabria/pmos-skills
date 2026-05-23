@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Stakeholder read-only view — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .doc-mock { max-width: 720px; margin: 24px auto; padding: 24px 32px; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .doc-mock h2 { font-size: 16px; font-weight: 600; margin-top: 16px; margin-bottom: 6px; }
+    .doc-mock p { font-size: 14px; line-height: 1.55; }
+    .co-anchored { background: rgba(37, 99, 235, .12); border-bottom: 2px solid var(--wf-accent); cursor: pointer; }
+    .ph { padding: 14px 16px; border-bottom: 1px solid var(--wf-border-2); display: flex; align-items: center; gap: 8px; }
+    .panel-only { max-width: 420px; margin: 18px auto; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .anchor { padding: 10px 16px; background: var(--wf-surface-2); border-bottom: 1px solid var(--wf-border-2); font-size:12px; }
+    .anchor__quote { font-family: var(--wf-font-mono); border-left: 2px solid var(--wf-border); padding-left: 8px; margin-top:4px; }
+    .msg { padding: 12px 16px; font-size:13px; }
+    .msg__head { font-size: 11px; color: var(--wf-muted); margin-bottom: 4px; }
+    .readonly-banner { background: #f1f5f9; color: var(--wf-muted); font-size: 12px; padding: 8px 16px;
+      border-bottom: 1px solid var(--wf-border-2); display: flex; align-items: center; gap: 8px; }
+    .status-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; background:#dbeafe; color:#1d4ed8; }
+    .pf { padding: 12px 16px; border-top: 1px solid var(--wf-border-2); display:flex; flex-direction:column; gap:8px; }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Stakeholder share — read-only thread view (D7)</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="overview">Overview — overlay on, threads visible</button>
+        <button class="wf-tab" aria-selected="false" data-state="others-thread">Viewing another author's thread (read-only)</button>
+        <button class="wf-tab" aria-selected="false" data-state="own-thread">Viewing own thread (editable)</button>
+        <button class="wf-tab" aria-selected="false" data-state="hidden">Overlay hidden (localStorage off)</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="overview" aria-labelledby="state-overview-h">
+      <h1 id="state-overview-h" class="sr-only">Stakeholder lands on the artifact — overlay default-on, all threads visible</h1>
+      <article class="doc-mock">
+        <div role="status" aria-live="polite" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; padding:10px 14px; border-radius:var(--wf-radius); margin-bottom:14px; display:flex; gap:10px; align-items:flex-start;">
+          <span aria-hidden="true" style="font-size:16px">💬</span>
+          <div style="flex:1">
+            <strong>This artifact has comment threads</strong> — click any highlighted span to read the discussion. You're viewing as a stakeholder; threads you didn't author are read-only.
+            <div class="wf-muted" style="font-size:11px; margin-top:2px">Shown once · dismissed in localStorage</div>
+          </div>
+          <button class="mock-button" style="font-size:12px" aria-label="Dismiss first-time tooltip and don't show again">Got it</button>
+        </div>
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and
+        <span class="co-anchored" tabindex="0" role="button" aria-label="Open thread T1 by maneesh (read-only for you)">dispatches a fresh subagent per thread</span> loaded with that skill's context.</p>
+        <h2>§4.3 <span class="co-anchored" tabindex="0" role="button" aria-label="Open thread T2 by maneesh (read-only for you)">Apply-edit-at-anchor contract</span> (FR-NEW-B)</h2>
+        <p>Every originating skill exposes a uniform entrypoint.</p>
+        <div class="wf-anno" data-note="First-time tooltip auto-dismisses after click; not shown to authors (operator persona); shown once per stakeholder per device. Hide-overlay path lives in the launcher pill (see wireframe 01 open-threads state)."></div>
+      </article>
+    </section>
+
+    <section class="wf-state" data-state="others-thread" aria-labelledby="state-others-thread-h">
+      <h1 id="state-others-thread-h" class="sr-only">Viewing a thread you didn't author — reply box disabled with explanation</h1>
+      <div class="panel-only">
+        <div class="ph"><h2 style="flex:1; font-size:13px">Thread T1</h2><span class="status-pill">open</span></div>
+        <div class="readonly-banner" role="status">
+          <span aria-hidden="true">🔒</span>
+          <span>Read-only — you are viewing as <strong>stakeholder@acme.com</strong>; this thread's author is <strong>maneesh</strong>.</span>
+        </div>
+        <div class="anchor"><div class="anchor__quote">"dispatches a fresh subagent per thread"</div></div>
+        <div class="msg"><div class="msg__head">maneesh · 2h ago</div>
+          <div>This should specify originating-skill dispatch, not generic.</div></div>
+        <div class="pf">
+          <label for="reply-ro" class="sr-only">Reply (disabled — read-only)</label>
+          <textarea id="reply-ro" disabled aria-label="Reply disabled — read-only mode (you are viewing as a non-author)" placeholder="Reply disabled — set localStorage 'pmos:reviewMode' to your own author identity to participate." style="width:100%; min-height:48px; padding:8px; border:1px dashed var(--wf-border); background:var(--wf-surface-2); border-radius:6px; font-size:13px; color:var(--wf-muted)"></textarea>
+          <button class="mock-button" disabled aria-label="Reply disabled — read-only mode">Reply (read-only)</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="own-thread" aria-labelledby="state-own-thread-h">
+      <h1 id="state-own-thread-h" class="sr-only">Viewing your own thread — reply box editable</h1>
+      <div class="panel-only">
+        <div class="ph"><h2 style="flex:1; font-size:13px">Thread T7</h2><span class="status-pill">open</span></div>
+        <div class="anchor"><div class="anchor__quote">"≤20KB minified"</div></div>
+        <div class="msg"><div class="msg__head">stakeholder@acme.com · just now</div>
+          <div>Is the bundle size enforced or just a soft target?</div></div>
+        <div class="pf">
+          <textarea placeholder="Add a follow-up message…" style="width:100%; min-height:48px; padding:8px; border:1px solid var(--wf-border); border-radius:6px; font-size:13px"></textarea>
+          <button class="mock-button mock-button--primary" aria-label="Send reply">Send</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="hidden" aria-labelledby="state-hidden-h">
+      <h1 id="state-hidden-h" class="sr-only">Overlay hidden — localStorage flag off; doc renders without comment chrome</h1>
+      <article class="doc-mock">
+        <h2>§4.2 Resolver dispatch</h2>
+        <p>The <code>/comments resolve</code> command reads each thread's sidecar entry, reads the originating
+        skill from the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> tag, and dispatches a fresh subagent per thread loaded with that skill's context.</p>
+        <h2>§4.3 Apply-edit-at-anchor contract (FR-NEW-B)</h2>
+        <p>Every originating skill exposes a uniform entrypoint.</p>
+        <div style="margin-top:18px; padding:14px; border:1px dashed var(--wf-border); border-radius:var(--wf-radius); text-align:center;">
+          <p class="wf-muted" style="font-size:12px; margin-bottom:8px">Comment overlay hidden on this machine.</p>
+          <button class="mock-button mock-button--primary" aria-label="Re-enable comment overlay on this machine">Re-enable overlay</button>
+          <p class="wf-muted" style="font-size:11px; margin-top:8px">Or in DevTools: <code>localStorage.setItem('pmos:reviewMode','on')</code></p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Stakeholder read-only view</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 08 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

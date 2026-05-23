@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Side panel — thread list — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .layout { display: grid; grid-template-columns: 1fr 380px; gap: 0; min-height: 600px; }
+    .doc-col { padding: 24px 32px; background: var(--wf-surface-2); border-right: 1px solid var(--wf-border-2); overflow: auto; }
+    .doc-col h2 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .doc-col p { font-size: 13px; color: var(--wf-muted); }
+    .panel { background: var(--wf-surface); display: flex; flex-direction: column; }
+    .panel__head { padding: 14px 16px; border-bottom: 1px solid var(--wf-border-2); display: flex; align-items: center; gap: 8px; }
+    .panel__head h2 { font-size: 14px; font-weight: 600; margin: 0; flex: 1; }
+    .panel__filters { display: flex; gap: 6px; padding: 10px 16px; border-bottom: 1px solid var(--wf-border-2);
+      align-items: center; font-size: 12px; }
+    .panel__filters .seg { display: inline-flex; border: 1px solid var(--wf-border); border-radius: 6px; overflow: hidden; }
+    .panel__filters .seg button { padding: 6px 12px; min-height: 30px; background: transparent; border: 0; border-right: 1px solid var(--wf-border);
+      font-size: 12px; cursor: pointer; color: var(--wf-text); }
+    .panel__filters .seg button:last-child { border-right: 0; }
+    .panel__filters .seg button[aria-selected="true"] { background: var(--wf-accent); color: #fff; }
+    .panel__list { flex: 1; overflow: auto; }
+    .thread-card { padding: 12px 16px; border-bottom: 1px solid var(--wf-border-2); cursor: pointer; }
+    .thread-card:hover { background: var(--wf-surface-2); }
+    .thread-card__row1 { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--wf-muted); }
+    .thread-card__row1 .badge { font-weight: 600; color: var(--wf-text); }
+    .thread-card__quote { font-size: 12px; color: var(--wf-muted); font-family: var(--wf-font-mono);
+      border-left: 2px solid var(--wf-border); padding-left: 8px; margin: 6px 0 4px; line-height: 1.4;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .thread-card__body { font-size: 13px; color: var(--wf-text); margin-top: 4px; line-height: 1.45;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .status-pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .status-pill--open { background: #dbeafe; color: #1d4ed8; }
+    .status-pill--inprog { background: #fef3c7; color: #92400e; }
+    .status-pill--resolved { background: #dcfce7; color: #166534; }
+    .status-pill--orphan { background: #ffedd5; color: #9a3412; }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Side panel — thread list</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="multi">Multi-thread (mixed status)</button>
+        <button class="wf-tab" aria-selected="false" data-state="empty">Empty (no threads)</button>
+        <button class="wf-tab" aria-selected="false" data-state="orphan">With orphan</button>
+        <button class="wf-tab" aria-selected="false" data-state="filtered">Resolved filter on</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="multi" aria-labelledby="state-multi-h">
+      <h1 id="state-multi-h" class="sr-only">Side panel showing 4 threads — 2 open, 1 in_progress, 1 resolved (hidden by default)</h1>
+      <div class="layout">
+        <div class="doc-col" aria-label="Artifact preview">
+          <h2>02_spec — §4.2 Resolver dispatch</h2>
+          <p>The <code>/comments resolve</code> command reads each thread's sidecar entry…</p>
+          <p style="margin-top:12px"><span class="status-pill status-pill--open">●</span> anchored regions highlighted in document body</p>
+        </div>
+        <aside class="panel" aria-label="Comments side panel">
+          <div class="panel__head">
+            <h2>02_spec.comments.json</h2>
+            <button class="mock-button" style="font-size:12px; padding:4px 10px" aria-label="Save sidecar to disk">Save</button>
+            <button class="mock-button" style="font-size:12px; padding:4px 8px" aria-label="Close side panel">×</button>
+          </div>
+          <div class="panel__filters" role="toolbar" aria-label="Thread filters">
+            <span class="wf-muted">Filter:</span>
+            <div class="seg" role="tablist">
+              <button aria-selected="true">Open · 2</button>
+              <button aria-selected="false">In progress · 1</button>
+              <button aria-selected="false">All · 4</button>
+            </div>
+            <label style="margin-left:auto; display:flex; align-items:center; gap:4px;">
+              <input type="checkbox"> <span>Show resolved (1)</span>
+            </label>
+          </div>
+          <div class="panel__list">
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open thread T1 — §4.2 — open — dispatches a fresh subagent per thread">
+              <div class="thread-card__row1"><span class="badge">T1</span><span class="status-pill status-pill--open">open</span><span>·</span><span>§4.2 · 2h ago</span></div>
+              <div class="thread-card__quote">"dispatches a fresh subagent per thread"</div>
+              <div class="thread-card__body">This should specify originating-skill dispatch, not generic — see grill Q1.</div>
+            </div>
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open thread T2 — §4.3 — open — Apply-edit-at-anchor contract">
+              <div class="thread-card__row1"><span class="badge">T2</span><span class="status-pill status-pill--open">open</span><span>·</span><span>§4.3 · 2h ago</span></div>
+              <div class="thread-card__quote">"Apply-edit-at-anchor contract"</div>
+              <div class="thread-card__body">Add explicit idempotency clause — calling twice with same anchor must be a no-op.</div>
+            </div>
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open thread T3 — §5.1 — in progress — resolver proposed edit awaiting confirm">
+              <div class="thread-card__row1"><span class="badge">T3</span><span class="status-pill status-pill--inprog">in progress</span><span>·</span><span>§5.1 · 18m ago</span></div>
+              <div class="thread-card__quote">"&lt;artifact&gt;.comments.json"</div>
+              <div class="thread-card__body">Resolver subagent proposed an edit; awaiting your --confirm-each accept/reject.</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="empty" aria-labelledby="state-empty-h">
+      <h1 id="state-empty-h" class="sr-only">Side panel — empty state</h1>
+      <div class="layout">
+        <div class="doc-col"><p class="wf-muted">Artifact body preview…</p></div>
+        <aside class="panel">
+          <div class="panel__head"><h2>02_spec.comments.json</h2><button class="mock-button" style="font-size:12px" aria-label="Close panel">×</button></div>
+          <div class="wf-message" style="margin: 32px 16px;">
+            <div class="wf-message__title">No threads yet</div>
+            <div class="wf-message__hint">Select text in the document, or click an anchored diagram region, to start a thread.</div>
+            <kbd style="border:1px solid var(--wf-border); padding:2px 6px; border-radius:4px; font-family:var(--wf-font-mono); font-size:12px;">⌘M</kbd>
+            <span class="wf-muted" style="font-size:12px; margin-left:4px">on current selection</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="orphan" aria-labelledby="state-orphan-h">
+      <h1 id="state-orphan-h" class="sr-only">List with one orphan thread at top</h1>
+      <div class="layout">
+        <div class="doc-col"><p class="wf-muted">Artifact body preview…</p></div>
+        <aside class="panel">
+          <div class="panel__head"><h2>01_requirements.comments.json</h2><button class="mock-button" style="font-size:12px" aria-label="Close panel">×</button></div>
+          <div style="background:#fff7ed; padding:10px 16px; font-size:12px; color:#9a3412; border-bottom:1px solid #fed7aa;">
+            <strong>1 orphaned thread</strong> — content was rewritten. Pinned to top until reattached.
+          </div>
+          <div class="panel__list">
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open orphan thread T5 — content rewritten" style="background:#fffbeb">
+              <div class="thread-card__row1"><span class="badge">T5</span><span class="status-pill status-pill--orphan">orphan</span><span>·</span><span>was: §problem · 1d ago</span></div>
+              <div class="thread-card__quote">"the legacy auth middleware stores tokens in cookies"</div>
+              <div class="thread-card__body">Anchor confidence dropped below 0.85 after /requirements --update rewrote prose.</div>
+            </div>
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open thread T1 — §goals — open">
+              <div class="thread-card__row1"><span class="badge">T1</span><span class="status-pill status-pill--open">open</span><span>·</span><span>§goals · 2h ago</span></div>
+              <div class="thread-card__quote">"≥80% of opened threads reach resolved"</div>
+              <div class="thread-card__body">Define resolved more precisely — staged or committed?</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wf-state" data-state="filtered" aria-labelledby="state-filtered-h">
+      <h1 id="state-filtered-h" class="sr-only">Show-resolved toggle on — resolved threads visible alongside open</h1>
+      <div class="layout">
+        <div class="doc-col"><p class="wf-muted">Artifact body preview…</p></div>
+        <aside class="panel">
+          <div class="panel__head"><h2>02_spec.comments.json</h2><button class="mock-button" style="font-size:12px" aria-label="Close panel">×</button></div>
+          <div class="panel__filters">
+            <span class="wf-muted">Filter:</span>
+            <div class="seg" role="tablist">
+              <button aria-selected="false">Open · 2</button>
+              <button aria-selected="false">In progress · 1</button>
+              <button aria-selected="true">All · 4</button>
+            </div>
+            <label style="margin-left:auto; display:flex; align-items:center; gap:4px;">
+              <input type="checkbox" checked> <span>Show resolved (1)</span>
+            </label>
+          </div>
+          <div style="padding:6px 16px; font-size:11px; color:var(--wf-muted); border-bottom:1px solid var(--wf-border-2); background:var(--wf-surface-2)" role="status">Showing 4 of 4 · incl. 1 resolved</div>
+          <div class="panel__list">
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open resolved thread T4 — §4.2 — see staged diff">
+              <div class="thread-card__row1"><span class="badge">T4</span><span class="status-pill status-pill--resolved">resolved</span><span>·</span><span>§4.2 · 3h ago</span></div>
+              <div class="thread-card__quote">"per-thread context"</div>
+              <div class="thread-card__body">System: Changed §4.2 first sentence; see staged diff lines 124–128. Resolved.</div>
+            </div>
+            <div class="thread-card" tabindex="0" role="button" aria-label="Open thread T1 — §4.2 — open">
+              <div class="thread-card__row1"><span class="badge">T1</span><span class="status-pill status-pill--open">open</span><span>·</span><span>§4.2 · 2h ago</span></div>
+              <div class="thread-card__quote">"dispatches a fresh subagent per thread"</div>
+              <div class="thread-card__body">This should specify originating-skill dispatch, not generic.</div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Side panel — thread list</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 03 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Inline doc comments — Wireframes index</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .wrap { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
+    .head { display: flex; align-items: baseline; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--wf-border-2); margin-bottom: 20px; }
+    .head h1 { font-size: 22px; font-weight: 700; }
+    .head .meta { color: var(--wf-muted); font-size: 13px; }
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .search { flex: 1; padding: 8px 12px; border: 1px solid var(--wf-border); border-radius: 8px; font-size: 14px; background: var(--wf-surface); }
+    .search:focus-visible { outline: 2px solid var(--wf-accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .card { background: var(--wf-surface); border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg);
+      box-shadow: var(--wf-shadow); overflow: hidden; display: flex; flex-direction: column; transition: transform .15s ease; }
+    .card:hover { transform: translateY(-2px); }
+    .card a { display: block; color: inherit; text-decoration: none; }
+    .card a:focus-visible { outline: 2px solid var(--wf-accent); outline-offset: -2px; }
+    .card iframe { width: 100%; height: 180px; border: 0; background: var(--wf-surface-2);
+      pointer-events: none; transform: scale(.45); transform-origin: top left; width: 222%; height: 400px; }
+    .iframe-wrap { width: 100%; height: 180px; overflow: hidden; background: var(--wf-surface-2);
+      border-bottom: 1px solid var(--wf-border-2); }
+    .card__body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+    .card__name { font-size: 14px; font-weight: 600; }
+    .card__row { font-size: 12px; color: var(--wf-muted); display: flex; gap: 8px; align-items: center; }
+    .chip { background: var(--wf-surface-2); border: 1px solid var(--wf-border-2); padding: 1px 8px;
+      border-radius: 999px; font-size: 11px; color: var(--wf-text); }
+    .chip--accent { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+    footer { margin-top: 24px; padding: 14px 0; border-top: 1px solid var(--wf-border-2);
+      color: var(--wf-muted); font-size: 12px; }
+    footer h3 { color: var(--wf-text); font-size: 13px; font-weight: 600; margin-top: 12px; margin-bottom: 6px; }
+    footer ul { padding-left: 18px; }
+    footer li { margin: 2px 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="head">
+      <h1>Inline doc comments — Wireframes</h1>
+      <div class="meta">8 files · desktop-web · generated 2026-05-23 · feature <code>2026-05-23_inline-doc-comments</code></div>
+      <a class="meta" href="../01_requirements.html" style="margin-left:auto; color:var(--wf-accent)">← Back to requirements</a>
+    </header>
+
+    <p class="wf-muted" style="font-size:13px; margin-bottom:16px">
+      All wireframes target <strong>desktop-web</strong> — device filter omitted (single device).
+      Mid-fidelity, mock-only iconography, Tailwind + <code>wireframe.css</code> shared tokens.
+      Click a card to open the wireframe; each has a state-switcher across all stated states.
+    </p>
+
+    <div class="toolbar">
+      <input id="q" class="search" type="search" placeholder="Filter by component name…" aria-label="Filter wireframes by component name">
+      <span id="count" class="wf-muted" style="font-size:12px">8 of 8</span>
+    </div>
+
+    <div class="grid" id="grid">
+      <article class="card" data-name="artifact overlay base">
+        <a href="./01_artifact-overlay-base_desktop-web.html" aria-label="Open: Artifact with overlay (base)">
+          <div class="iframe-wrap"><iframe src="./01_artifact-overlay-base_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">01 · Artifact with overlay (base)</div>
+            <div class="card__row"><span class="chip chip--accent">5 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="floating comment button">
+        <a href="./02_floating-comment-btn_desktop-web.html" aria-label="Open: Floating Comment button">
+          <div class="iframe-wrap"><iframe src="./02_floating-comment-btn_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">02 · Floating "Comment" button</div>
+            <div class="card__row"><span class="chip chip--accent">3 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="side panel list">
+        <a href="./03_side-panel-list_desktop-web.html" aria-label="Open: Side panel thread list">
+          <div class="iframe-wrap"><iframe src="./03_side-panel-list_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">03 · Side panel — thread list</div>
+            <div class="card__row"><span class="chip chip--accent">4 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="side panel thread single">
+        <a href="./04_side-panel-thread_desktop-web.html" aria-label="Open: Side panel single thread">
+          <div class="iframe-wrap"><iframe src="./04_side-panel-thread_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">04 · Side panel — single thread</div>
+            <div class="card__row"><span class="chip chip--accent">6 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="orphan reattach">
+        <a href="./05_orphan-reattach_desktop-web.html" aria-label="Open: Orphan reattach flow">
+          <div class="iframe-wrap"><iframe src="./05_orphan-reattach_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">05 · Orphan reattach flow</div>
+            <div class="card__row"><span class="chip chip--accent">3 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="fsa fallback safari firefox">
+        <a href="./06_fsa-fallback_desktop-web.html" aria-label="Open: FSA fallback Safari Firefox">
+          <div class="iframe-wrap"><iframe src="./06_fsa-fallback_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">06 · FSA fallback (Safari / Firefox)</div>
+            <div class="card__row"><span class="chip chip--accent">4 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="diagram anchor svg region">
+        <a href="./07_diagram-anchor_desktop-web.html" aria-label="Open: Diagram region anchor">
+          <div class="iframe-wrap"><iframe src="./07_diagram-anchor_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">07 · Diagram region anchor</div>
+            <div class="card__row"><span class="chip chip--accent">3 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+      <article class="card" data-name="stakeholder read only view">
+        <a href="./08_stakeholder-view_desktop-web.html" aria-label="Open: Stakeholder read-only view">
+          <div class="iframe-wrap"><iframe src="./08_stakeholder-view_desktop-web.html" loading="lazy" aria-hidden="true" tabindex="-1"></iframe></div>
+          <div class="card__body">
+            <div class="card__name">08 · Stakeholder read-only view</div>
+            <div class="card__row"><span class="chip chip--accent">4 states</span><span class="chip">desktop-web</span></div>
+          </div>
+        </a>
+      </article>
+    </div>
+
+    <footer>
+      <div>Folder: <code>docs/pmos/features/2026-05-23_inline-doc-comments/wireframes/</code></div>
+      <div>Total: 8 files · 32 states · single device (desktop-web) — device-filter omitted intentionally per requirements (mobile/tablet are explicit non-goals).</div>
+
+      <h3>Known minor issues (deferred from Phase 4 cross-file review)</h3>
+      <ul>
+        <li>02 — kbd hint <code>⌘M</code> not discoverable from the floating-button hover state (only shown on the dedicated keyboard tab)</li>
+        <li>01 — empty-state launcher dot uses inline <code>var(--wf-faint)</code> instead of a semantic <code>--idle</code> modifier</li>
+        <li>08 — stakeholder overview state encodes author identity only in <code>aria-label</code>; sighted viewers lack a visible author chip</li>
+      </ul>
+    </footer>
+  </div>
+
+  <script>
+    const q = document.getElementById('q');
+    const grid = document.getElementById('grid');
+    const count = document.getElementById('count');
+    const cards = Array.from(grid.querySelectorAll('.card'));
+    function filter() {
+      const v = q.value.trim().toLowerCase();
+      let shown = 0;
+      cards.forEach(c => {
+        const match = !v || c.dataset.name.includes(v);
+        c.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      count.textContent = `${shown} of ${cards.length}`;
+    }
+    q.addEventListener('input', filter);
+  </script>
+</body>
+</html>

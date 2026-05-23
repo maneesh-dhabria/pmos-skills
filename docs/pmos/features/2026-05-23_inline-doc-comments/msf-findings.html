@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="msf-wf">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Inline doc comments — MSF + PSYCH findings</title>
+<link rel="stylesheet" href="assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments — MSF + PSYCH on wireframes</h1>
+  <p><strong>Entry context:</strong> Medium (40, default). Override by editing this line and re-running.</p>
+  <dl class="meta">
+    <dt>Date</dt><dd>2026-05-23</dd>
+    <dt>Wireframes folder</dt><dd><code>wireframes/</code> (8 files, desktop-web)</dd>
+    <dt>Personas</dt><dd>Operator (PM-engineer, solo) · Stakeholder (read-only viewer)</dd>
+    <dt>Journeys analysed</dt><dd>J1 happy · J2 orphan · J3 reject · J4 Safari fallback · J5 stakeholder first exposure</dd>
+    <dt>Findings counts</dt><dd>4 Must · 7 Should · 5 Nice · 16 total</dd>
+  </dl>
+</header>
+
+<section id="section-a-msf">
+  <h2 id="section-a-msf-h">Section A — MSF Analysis (grounded)</h2>
+
+  <h3 id="msf-j1">J1 — Operator happy path (select → comment → resolve)</h3>
+  <table>
+    <thead><tr><th>Dim</th><th>Consideration</th><th>Finding (grounded)</th></tr></thead>
+    <tbody>
+      <tr><td>M</td><td>Why does the operator open the artifact at all?</td><td>To review a freshly-emitted artifact before merge/share — already daily-habit per req §ux-motivation ("3–10 pipeline runs/week, 2–5 revision rounds per feature"). Zero CLI cost (D-A-hybrid) reinforces motivation; double-clicking <code>.html</code> works.</td></tr>
+      <tr><td>M</td><td>Does the UI make the next action obvious?</td><td>Yes, but only after selection. On <strong>01-empty</strong> the operator sees the doc + a small "No threads yet" launcher in the corner — the wf-anno "↑ Try selecting any text" is the only affordance hint. New operators may not realise selection is the entry verb. <em>Friction-low.</em></td></tr>
+      <tr><td>F</td><td>Physical effort to capture a thought</td><td>Low — select, click floating button (02), type, submit. Two clicks + typing. The keyboard equivalent <code>⌘M</code> exists but is only visible on a dedicated state tab (02-keyboard), not surfaced on hover state (02-hover). <em>Discoverability gap.</em></td></tr>
+      <tr><td>F</td><td>Decision cost in the resolve loop</td><td>The 04-inprog Accept / Reject buttons are unambiguous, but the diff snippet is dark-themed (terminal-style) inside an otherwise light panel — context shift adds 0.5–1s of "where am I looking?" cognitive load.</td></tr>
+      <tr><td>F</td><td>Trust gradient</td><td>Three modes (<code>--confirm-each</code> / <code>--batch</code> / <code>--auto</code>) per D6 are not visible in wireframes — the operator must know to pass a flag. Surfacing mode in the launcher or side panel is missing.</td></tr>
+      <tr><td>S</td><td>Reward for opening a thread</td><td>Strong on resolve — 04-resolved shows a green pill, a system reply with a diff pointer ("§4.2 first sentence; staged diff lines 124–128. Resolved."), and a clear close-out. Satisfies "no surprise edits" satisfaction signal from §ux-satisfaction.</td></tr>
+      <tr><td>S</td><td>Audit trail visibility</td><td>The "Show 3 resolved" toggle on 01-resolved-hidden is small (12px font, 2×8 padding) — keeps the operator from feeling like history is buried, but only marginally. Could be larger.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="msf-j2">J2 — Operator orphan recovery</h3>
+  <table>
+    <thead><tr><th>Dim</th><th>Consideration</th><th>Finding (grounded)</th></tr></thead>
+    <tbody>
+      <tr><td>M</td><td>Why bother reattaching?</td><td>The thread holds work-in-progress feedback that the operator already invested cognitive effort in (1 day ago, per 05-banner caption). Losing it = re-doing the analysis. Strong sunk-cost motivation.</td></tr>
+      <tr><td>F</td><td>Detecting the orphan</td><td>The orange banner on 01-orphan-present + the pinned-top T5 card on 03-orphan are both clear. <strong>However</strong>, on 01-orphan the banner is full-width inside the doc body, not at the top of the viewport — if the operator scrolls past the first 200px without noticing, they could miss it.</td></tr>
+      <tr><td>F</td><td>Reattach mode signalling</td><td>05-select uses a dashed blue banner + cursor-change implied. Selecting a new span is the same gesture as opening a new thread (selection). Risk: the operator could accidentally open a new thread instead of reattaching. <em>Mode confusion possible.</em></td></tr>
+      <tr><td>F</td><td>Cost of the alternative actions</td><td>"Mark resolved" and "Mark won't-fix" are equally weighted with "Reattach" on 05-view. Won't-fix is the destructive option (per D23, closure-reason lives in last message) — should be visually subordinate, not equal-weight.</td></tr>
+      <tr><td>S</td><td>Confidence the reattach worked</td><td>05-select has a hint "New dual-anchor (id + quote) saves automatically" — good. But no confirmation toast after click. The operator must trust silence = success.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="msf-j3">J3 — Operator rejects a resolver proposal</h3>
+  <table>
+    <thead><tr><th>Dim</th><th>Consideration</th><th>Finding (grounded)</th></tr></thead>
+    <tbody>
+      <tr><td>M</td><td>Why reject vs. accept?</td><td>Operator believes the AI misread intent. The 3-option reject panel (04-reject) is clear: edit / re-prompt / leave open. The "Re-prompt with refinement note (1 of 2)" pill telegraphs the OQ9 cap upfront — good.</td></tr>
+      <tr><td>F</td><td>Cognitive load of choosing among 3</td><td>Three same-weight buttons stacked vertically with no recommended-default. Operator must read all three to pick. <strong>Should</strong> bias visually: "Edit the proposal inline → accept" is the most-used path per D25 rationale — make it primary, the other two secondary.</td></tr>
+      <tr><td>F</td><td>"Edit the proposal" cost</td><td>The wireframe shows the button but not the inline edit affordance. /spec will design it; today it reads like a black box.</td></tr>
+      <tr><td>S</td><td>Capping the re-prompt loop</td><td>The "1 of 2" indicator is reassuring — operator knows they won't be stuck in a loop. Good.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="msf-j4">J4 — Operator on Safari (FSA fallback)</h3>
+  <table>
+    <thead><tr><th>Dim</th><th>Consideration</th><th>Finding (grounded)</th></tr></thead>
+    <tbody>
+      <tr><td>M</td><td>Why use Safari at all?</td><td>Borrowed laptop, family member's machine, default browser on macOS — incidental but real (D11 calls this out). Operator's motivation is to capture a thought RIGHT NOW; persisting can be one extra manual step.</td></tr>
+      <tr><td>F</td><td>Recognising the fallback mode</td><td>The yellow info-banner on 06-banner is unambiguous: "This browser doesn't support File System Access. 2 drafts pending · localStorage mirror active." Good. The "Save sidecar (download)" button label spells out the mechanic — good.</td></tr>
+      <tr><td>F</td><td>Cost of moving the downloaded file</td><td>06-saved tells the operator to "Move ~/Downloads/02_spec.comments.json next to the artifact, overwriting any prior." Three steps: find in Downloads, drag to right folder, accept overwrite. <em>Sustained friction</em> per session — but D11 accepted this trade-off.</td></tr>
+      <tr><td>F</td><td>Forgetting the manual move</td><td>06-saved clears localStorage drafts after download — meaning if the operator forgets to move the file, they lose their drafts on next browser session. <strong>Missing safety net</strong>: should keep localStorage drafts until the file is verified at the artifact location (post-reload re-detect).</td></tr>
+      <tr><td>S</td><td>Confidence after save</td><td>"✓ 2 drafts persisted" toast on 06-saved is reassuring. But it confirms the download, not the file-placement step. Misleading.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="msf-j5">J5 — Stakeholder first exposure to shared artifact</h3>
+  <table>
+    <thead><tr><th>Dim</th><th>Consideration</th><th>Finding (grounded)</th></tr></thead>
+    <tbody>
+      <tr><td>M</td><td>Why click on a highlighted span at all?</td><td>Curiosity + the visual cue (underline + tint). But the stakeholder has no prior context — they don't know what threads ARE. <strong>Significant motivation gap.</strong></td></tr>
+      <tr><td>F</td><td>Understanding the read-only state</td><td>08-others-thread surfaces a clear "🔒 Read-only — you are viewing as <strong>stakeholder@acme.com</strong>" banner. Identity attribution works. <em>However</em>, the stakeholder never set their email — where does it come from? (Likely from git config or a prompt). Wireframes don't show first-time onboarding for stakeholders.</td></tr>
+      <tr><td>F</td><td>Hiding the overlay</td><td>08-hidden tells the user to run <code>localStorage.setItem('pmos:reviewMode','on')</code> in DevTools. <strong>Hard-fail for non-technical stakeholders</strong>: 95% of stakeholders don't open DevTools. Per req §goals "stakeholders viewing a shared artifact see the UI but threads they didn't author are effectively read-only" — this is the explicit posture, but the hide-overlay path is technical-only.</td></tr>
+      <tr><td>S</td><td>Reward for the stakeholder</td><td>None obvious. They can read threads but can't reply. The read-only banner explains why. <em>Acceptable</em> — the stakeholder isn't the primary persona (operator is). But /verify should re-check this when the feature lands.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="section-b-psych">
+  <h2 id="section-b-psych-h">Section B — PSYCH Scoring (per-screen)</h2>
+  <p>Starting Psych = <strong>40 (Medium, default entry context)</strong>. Scores are directional; treat danger zones (&lt;20) and bounce risks (&lt;0) as <em>where attention is needed</em>, not exact predictions.</p>
+
+  <h3 id="psych-01">01 — Artifact with overlay (base)</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Empty state: clean doc, small launcher pill</td><td>+3</td><td>43</td><td>Low cognitive surface; doesn't shout. Familiar doc layout.</td></tr>
+      <tr><td>Empty state: "Try selecting any text" hint</td><td>+2</td><td>45</td><td>Tells the user the entry verb without nagging.</td></tr>
+      <tr><td>Empty state: hint is mid-doc, not top</td><td>−2</td><td>43</td><td>New operator may scroll past before seeing it.</td></tr>
+      <tr><td>Open-threads state: highlighted spans (3)</td><td>+4</td><td>47</td><td>Strong visual recognition of "where the conversation is happening."</td></tr>
+      <tr><td>Resolved-hidden: tiny "Show 3 resolved" button</td><td>−2</td><td>45</td><td>Audit-trail access feels hidden. Make larger.</td></tr>
+      <tr><td>Orphan banner mid-doc body (not top of viewport)</td><td>−4</td><td>41</td><td>Easy to miss; high-information warning gets buried.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 41.</strong> Healthy; no danger zone.</p>
+
+  <h3 id="psych-02">02 — Floating "Comment" button</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Hover state: button positioned above selection</td><td>+5</td><td>45</td><td>Google-Docs-familiar pattern; cursor-anchored = no aim required.</td></tr>
+      <tr><td>Hover state: no kbd hint on floater</td><td>−2</td><td>43</td><td>⌘M discoverability is hidden behind a separate state tab.</td></tr>
+      <tr><td>Clicked state: "Opening side panel…" affordance</td><td>+2</td><td>45</td><td>Acknowledges the click immediately.</td></tr>
+      <tr><td>Keyboard state: kbd graphic with caption</td><td>+3</td><td>48</td><td>Good a11y signal; keyboard-first users see they're not second-class.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 48.</strong> Strong screen; primary capture affordance reads as effortless.</p>
+
+  <h3 id="psych-03">03 — Side panel — thread list</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Multi state: thread cards with quote + body excerpt</td><td>+5</td><td>45</td><td>Recognition without click: quote + body excerpt tell you what each thread is about.</td></tr>
+      <tr><td>Multi state: status pills (open / in_progress / resolved)</td><td>+3</td><td>48</td><td>Color-coded triage at a glance.</td></tr>
+      <tr><td>Multi state: filter segment ergonomics post-fix (28px min-height)</td><td>+1</td><td>49</td><td>Comfortable Fitts targets.</td></tr>
+      <tr><td>Empty state: "Select text … or ⌘M"</td><td>+2</td><td>51</td><td>Empty state teaches the entry verb.</td></tr>
+      <tr><td>Orphan state: T5 pinned at top with explanatory banner</td><td>+4</td><td>55</td><td>Surfaces the highest-priority item without burying it.</td></tr>
+      <tr><td>Filtered state: "Showing 4 of 4 · incl. 1 resolved" status line</td><td>+1</td><td>56</td><td>Removes ambiguity about what the filter did.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 56.</strong> Strongest screen in the set; high-information density with low cognitive cost.</p>
+
+  <h3 id="psych-04">04 — Side panel — single thread</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Open: anchor quote in mono font, indented</td><td>+3</td><td>43</td><td>Re-grounds context; user remembers what they were commenting on.</td></tr>
+      <tr><td>Open: "Resolve via /comments resolve" primary button</td><td>+4</td><td>47</td><td>Direct path forward. Reduces "what now?" friction.</td></tr>
+      <tr><td>In progress: diff snippet in dark terminal style inside light panel</td><td>−3</td><td>44</td><td>Context shift; eye must adjust. Functional but jarring.</td></tr>
+      <tr><td>In progress: Accept / Reject equally weighted</td><td>−1</td><td>43</td><td>No bias toward Accept (the most-used path). Mild decision cost.</td></tr>
+      <tr><td>Reject 3-option: heading is now &lt;h3&gt;</td><td>+1</td><td>44</td><td>Structural hierarchy fix from Phase 4.</td></tr>
+      <tr><td>Reject 3-option: no Recommended bias on the 3 options</td><td>−3</td><td>41</td><td>"Edit the proposal" is the most-used path per D25 but isn't visually primary.</td></tr>
+      <tr><td>Reject: "Re-prompt (1 of 2)" cap indicator</td><td>+3</td><td>44</td><td>Signals you won't be stuck in a loop. Trust signal.</td></tr>
+      <tr><td>Resolved: system reply with diff pointer + "Reopen with message"</td><td>+4</td><td>48</td><td>Closure feels real; reopen is a 1-click recovery.</td></tr>
+      <tr><td>Orphan: 3 reattach actions equally weighted (after Phase 4 won't-fix annotation)</td><td>−2</td><td>46</td><td>Won't-fix still visually equal to Reattach; the wf-anno helps but a confirm step would help more.</td></tr>
+      <tr><td>Compose: textarea placeholder hints at AI-resolver context</td><td>+3</td><td>49</td><td>Encourages well-formed thread bodies; sets expectation.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 49.</strong> Healthy; the −3 on the dark-diff context-shift is the main weakener.</p>
+
+  <h3 id="psych-05">05 — Orphan reattach flow</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Banner state: orange chrome + "View thread" CTA</td><td>+4</td><td>44</td><td>Clearly actionable; sunk-cost reminder ("was anchored to…").</td></tr>
+      <tr><td>View state: 3 actions surfaced equally</td><td>−2</td><td>42</td><td>Reattach is the recovery path; won't-fix is destructive. Should hierarchise.</td></tr>
+      <tr><td>Select state: dashed blue "Reattach mode" banner with Cancel</td><td>+3</td><td>45</td><td>Strong mode signal; escape hatch present.</td></tr>
+      <tr><td>Select state: candidate span has cursor + role=button</td><td>+2</td><td>47</td><td>Click target is obvious; keyboard-reachable.</td></tr>
+      <tr><td>Select state: no post-click confirmation toast</td><td>−3</td><td>44</td><td>Operator must trust silence = success. Weak satisfaction signal.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 44.</strong> Recovery-flow appropriate score; the missing post-action toast is the actionable miss.</p>
+
+  <h3 id="psych-06">06 — FSA fallback (Safari)</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Banner state: yellow info chrome, clear "doesn't support FSA" message</td><td>+3</td><td>43</td><td>Honest, plain-language degradation; not alarmist.</td></tr>
+      <tr><td>Banner state: "Save sidecar (download)" — mechanic spelled out</td><td>+3</td><td>46</td><td>Reduces "what will this do?" cost.</td></tr>
+      <tr><td>Banner state: "2 drafts pending · localStorage mirror active"</td><td>+2</td><td>48</td><td>Reassures the operator their drafts aren't lost yet.</td></tr>
+      <tr><td>Saving state: indeterminate progress bar (post-Phase 4)</td><td>+2</td><td>50</td><td>Acknowledges work is happening; reduces uncertainty.</td></tr>
+      <tr><td>Saved state: "Move file" instructions (3 manual steps)</td><td>−5</td><td>45</td><td>Sustained per-session friction. D11 accepts this; PSYCH calls it.</td></tr>
+      <tr><td>Saved state: "✓ 2 drafts persisted" toast</td><td>−2</td><td>43</td><td>Confirms download, not file-placement. <em>Misleading.</em></td></tr>
+      <tr><td>Saved state: localStorage cleared on download (not on placement-verify)</td><td>−4</td><td>39</td><td>Bounce risk if user forgets to move the file. Safety-net gap.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 39.</strong> Approaching danger zone (&lt;20 threshold not breached but trending). The localStorage-clear-on-download policy is the load-bearing issue.</p>
+
+  <h3 id="psych-07">07 — Diagram region anchor</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Hover state: data-anchor regions with visible legend + post-Phase-4 a11y attrs</td><td>+5</td><td>45</td><td>Click + keyboard parity with text-selection flow.</td></tr>
+      <tr><td>Hover state: focus-visible stroke widens on focus</td><td>+1</td><td>46</td><td>Subtle but present focus indicator.</td></tr>
+      <tr><td>Commented state: numbered pin (Figma-pattern familiarity)</td><td>+4</td><td>50</td><td>Universally recognised "there's a thread here" affordance.</td></tr>
+      <tr><td>Bbox state: dashed orange overlay + legend explaining "less stable"</td><td>+2</td><td>52</td><td>Honest about the trade-off; teaches the user why some anchors might drift.</td></tr>
+      <tr><td>Bbox state: 3 overlapping bbox regions are visually busy</td><td>−2</td><td>50</td><td>Foreign SVG with 3 large bbox overlays starts to noise-out the content.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 50.</strong> Strong; the a11y fixes from Phase 4 paid off.</p>
+
+  <h3 id="psych-08">08 — Stakeholder read-only view</h3>
+  <table>
+    <thead><tr><th>Element / state</th><th>±Psych</th><th>Running</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Overview: highlighted spans pull stakeholder attention</td><td>+3</td><td>43</td><td>Discoverable interactivity, even without prior context.</td></tr>
+      <tr><td>Overview: no first-time-stakeholder onboarding</td><td>−5</td><td>38</td><td>Stakeholder lands cold — no "what is this?" tooltip on first visit.</td></tr>
+      <tr><td>Others-thread: clear "🔒 Read-only" banner + identity attribution</td><td>+4</td><td>42</td><td>Explains why the reply is disabled; identity transparency.</td></tr>
+      <tr><td>Others-thread: disabled textarea with sr-only label (post-Phase-4)</td><td>+1</td><td>43</td><td>Accessible; screen-reader announces the disabled state.</td></tr>
+      <tr><td>Hidden state: "set localStorage.setItem(…) in DevTools"</td><td>−8</td><td>35</td><td>Non-technical stakeholders cannot do this. Hard barrier to hiding the overlay.</td></tr>
+      <tr><td>Hidden state: no UI affordance to re-enable</td><td>−2</td><td>33</td><td>Once hidden, only a DevTools incantation brings it back.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>End-of-screen total: 33.</strong> Lowest in the set. Not yet a danger zone (&lt;20) but the stakeholder UX is materially weaker than the operator UX. Acceptable for v1 since stakeholder is secondary persona, but flag for /verify.</p>
+
+  <h3 id="psych-rollup">Journey rollups</h3>
+  <table>
+    <thead><tr><th>Journey</th><th>Entry</th><th>End</th><th>Danger zone?</th><th>Bounce risk?</th></tr></thead>
+    <tbody>
+      <tr><td>J1 happy path (01→02→03→04)</td><td>40</td><td>49</td><td>no</td><td>no</td></tr>
+      <tr><td>J2 orphan (01-orphan→05→04-orphan)</td><td>40</td><td>46</td><td>no</td><td>no</td></tr>
+      <tr><td>J3 reject (04-inprog→04-reject)</td><td>40</td><td>44</td><td>no</td><td>no</td></tr>
+      <tr><td>J4 Safari fallback (06)</td><td>40</td><td>39</td><td>no (close)</td><td>no</td></tr>
+      <tr><td>J5 stakeholder (08)</td><td>40</td><td>33</td><td>no (lowest in set)</td><td>no</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="section-c-recs">
+  <h2 id="section-c-recs-h">Section C — Prioritized Recommendations</h2>
+
+  <h3 id="recs-must">Must (4)</h3>
+  <table>
+    <thead><tr><th>#</th><th>Wireframe(s)</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>M1</td><td>06 (saved)</td><td>localStorage drafts clear immediately on download, not on file-placement-verify. Operator who forgets the manual move loses all drafts on next browser session.</td><td>Keep localStorage mirror until next overlay-open detects the placed sidecar at the expected path. Show a "Pending placement — keep these drafts?" banner if mismatch.</td></tr>
+      <tr><td>M2</td><td>06 (saved)</td><td>"✓ 2 drafts persisted" toast confirms download, not placement — misleading.</td><td>Change toast to "✓ 2 drafts ready — move file next to artifact to finish persisting." (or split into two toasts: download-complete then placement-detected on next open).</td></tr>
+      <tr><td>M3</td><td>08 (hidden)</td><td>"Set localStorage in DevTools" is the only path to hide the overlay for stakeholders. Non-technical stakeholders cannot do this.</td><td>Add a visible "Hide comment overlay" link in the launcher pill or a corner menu (writes to localStorage under the hood). Or document that "stakeholder must ask the operator to share a no-overlay copy" — pick one and surface it.</td></tr>
+      <tr><td>M4</td><td>01 (orphan)</td><td>Orphan banner sits mid-doc body, not top-of-viewport. Easy to miss if operator scrolls past.</td><td>Pin the orphan banner to the top of the viewport (sticky position) until dismissed or reattached.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="recs-should">Should (7)</h3>
+  <table>
+    <thead><tr><th>#</th><th>Wireframe(s)</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>S1</td><td>02 (hover)</td><td><code>⌘M</code> keyboard shortcut is not discoverable from the floating-button hover state.</td><td>Add a tiny "⌘M" pill inside or next to the floating button caption.</td></tr>
+      <tr><td>S2</td><td>04 (reject)</td><td>3 reject options are visually equal; "Edit the proposal" is the most-used path per D25 but isn't primary.</td><td>Make "(a) Edit the proposal inline → accept" the primary (filled accent) button; the other two secondary.</td></tr>
+      <tr><td>S3</td><td>04 (orphan), 05 (view)</td><td>"Mark won't-fix" is visually equal to "Reattach" / "Mark resolved" — destructive path not visually subordinate.</td><td>Move "Mark won't-fix" to a secondary kebab/overflow menu, or render in muted/danger-only styling further from the primary recovery action.</td></tr>
+      <tr><td>S4</td><td>05 (select)</td><td>No post-click confirmation toast after picking the new anchor span.</td><td>Show a 2s toast "✓ Reattached to '<new span>'" + restore the panel to the now-fixed thread.</td></tr>
+      <tr><td>S5</td><td>04 (inprog)</td><td>Dark-terminal diff snippet inside a light panel forces a visual context shift.</td><td>Use a soft-light syntax-highlighted diff (e.g. GitHub-style), staying within the panel's light theme.</td></tr>
+      <tr><td>S6</td><td>08 (overview)</td><td>Stakeholder has no first-time onboarding — they don't know what threads are.</td><td>Show a one-time tooltip on first overlay-load explaining "This artifact has comment threads — click any highlighted span to read." Dismiss + don't-show-again.</td></tr>
+      <tr><td>S7</td><td>04 (inprog), launcher 01</td><td>Resolve modes (<code>--confirm-each</code> / <code>--batch</code> / <code>--auto</code>) are CLI-only; not surfaced in UI.</td><td>Show current mode in the launcher pill ("Resolve mode: confirm-each ▾") and let user switch per-run from the UI.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="recs-nice">Nice (5)</h3>
+  <table>
+    <thead><tr><th>#</th><th>Wireframe(s)</th><th>Finding</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>N1</td><td>01 (resolved-hidden)</td><td>"Show 3 resolved" button is small and easy to ignore.</td><td>Raise to wf-tab-equivalent sizing (28–32px min-height).</td></tr>
+      <tr><td>N2</td><td>01 (empty)</td><td>Launcher uses inline <code>var(--wf-faint)</code> for idle dot — palette bypass.</td><td>Introduce a <code>.co-launcher__dot--idle</code> modifier class (cosmetic).</td></tr>
+      <tr><td>N3</td><td>08 (overview)</td><td>Author identity only in <code>aria-label</code>; sighted users can't tell whose thread is whose without opening each.</td><td>Add tiny visible author chip ("M", "S") on each highlighted span.</td></tr>
+      <tr><td>N4</td><td>07 (bbox)</td><td>3 large overlapping bbox overlays start to noise-out content.</td><td>Reduce bbox tint opacity; show overlays only on hover-over-svg or toggle.</td></tr>
+      <tr><td>N5</td><td>03 (filtered)</td><td>"Showing 4 of 4 · incl. 1 resolved" status added in Phase 4 — works but could be a real Aria live region.</td><td>Make the status line <code>aria-live="polite"</code> so screen readers announce filter changes.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="section-d-applied">
+  <h2 id="section-d-applied-h">Section D — Applied Changes (--apply-edits)</h2>
+  <p>11 of 11 Must+Should findings dispositioned <strong>Fix as proposed</strong>. 5 Nice findings deferred to /spec.</p>
+  <table>
+    <thead><tr><th>#</th><th>Journey</th><th>Wireframe</th><th>Fix applied</th></tr></thead>
+    <tbody>
+      <tr><td>M1</td><td>J4 Safari</td><td>06_fsa-fallback (saved)</td><td>Rephrased success message ("drafts kept" language) + added "Pending placement" warning banner</td></tr>
+      <tr><td>M2</td><td>J4 Safari</td><td>06_fsa-fallback (saved)</td><td>Toast changed to "✓ 2 drafts ready — move file next to artifact to finish persisting"</td></tr>
+      <tr><td>M3</td><td>J5 Stakeholder</td><td>01 (launcher), 08 (hidden)</td><td>Added visible "Hide" button in launcher pill + "Re-enable overlay" button on hidden state (replaces DevTools-only path)</td></tr>
+      <tr><td>M4</td><td>J2 Orphan</td><td>01 (orphan)</td><td>Banner now <code>position:sticky; top:0; z-index:50</code> with subtle shadow</td></tr>
+      <tr><td>S1</td><td>J1 Happy</td><td>02 (hover)</td><td>Added <code>⌘M</code> kbd pill inside floating button + aria-label mentions shortcut</td></tr>
+      <tr><td>S2</td><td>J3 Reject</td><td>04 (reject)</td><td>Option (a) "Edit the proposal inline" promoted to <code>mock-button--primary</code></td></tr>
+      <tr><td>S3</td><td>J2 Orphan</td><td>04 (orphan), 05 (view)</td><td>Won't-fix moved into <code>&lt;details&gt;</code> "⋯ More" disclosure, subordinated to Reattach/Resolved primary actions</td></tr>
+      <tr><td>S4</td><td>J2 Orphan</td><td>05 (select)</td><td>Added mock confirmation toast "✓ Reattached thread T5 to '…' — auto-saved" pinned bottom-center</td></tr>
+      <tr><td>S5</td><td>J3 Reject</td><td>04 (inprog)</td><td>Diff snippet restyled to light theme (wf-surface-2 background, GitHub-style add/del backgrounds)</td></tr>
+      <tr><td>S6</td><td>J5 Stakeholder</td><td>08 (overview)</td><td>Added dismissable first-time tooltip banner explaining comment threads + read-only posture</td></tr>
+      <tr><td>S7</td><td>J1 Happy</td><td>01 (open-threads launcher)</td><td>Launcher now shows "Mode: confirm-each ▾" + "Hide" affordance</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="section-d-deferred">Deferred to /spec (Nice tier — 5)</h3>
+  <ul>
+    <li>N1 — Resize "Show resolved" button to wf-tab equivalent</li>
+    <li>N2 — Refactor <code>.co-launcher__dot--idle</code> modifier class</li>
+    <li>N3 — Visible author chip on highlighted spans (stakeholder overview)</li>
+    <li>N4 — Reduce bbox tint opacity / show-on-hover</li>
+    <li>N5 — Add <code>aria-live="polite"</code> to filtered-state status line</li>
+  </ul>
+</section>
+
+</main>
+<script src="assets/viewer.js?v=2.51.0" defer></script>
+<script src="assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>

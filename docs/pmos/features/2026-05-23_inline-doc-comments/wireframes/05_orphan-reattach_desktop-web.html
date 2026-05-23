@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Orphan reattach flow — desktop-web — Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./assets/wireframe.css">
+  <style>
+    .doc-mock { max-width: 720px; margin: 24px auto; padding: 24px 32px; background: var(--wf-surface);
+      border: 1px solid var(--wf-border-2); border-radius: var(--wf-radius-lg); box-shadow: var(--wf-shadow); }
+    .doc-mock h2 { font-size: 16px; font-weight: 600; margin-top: 16px; margin-bottom: 6px; }
+    .doc-mock p { font-size: 14px; }
+    .banner { background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; padding: 12px 16px;
+      border-radius: var(--wf-radius); margin-bottom: 14px; display: flex; gap: 10px; align-items: center; }
+    .banner button { margin-left: auto; }
+    .reattach-mode { background: rgba(37,99,235,.06); border: 2px dashed var(--wf-accent); padding: 14px;
+      border-radius: var(--wf-radius); font-size: 13px; color: var(--wf-accent-2); margin: 8px 0; }
+    .candidate { background: #dbeafe; border-bottom: 2px solid var(--wf-accent); padding: 1px 2px; cursor: pointer; }
+  </style>
+</head>
+<body data-annotations="on">
+  <header class="wf-chrome">
+    <div class="wf-chrome__inner">
+      <span class="wf-chrome__title">Orphan reattach flow</span>
+      <span class="wf-chrome__device">desktop-web</span>
+      <nav class="wf-tabs" aria-label="State switcher">
+        <button class="wf-tab" aria-selected="true"  data-state="banner">Banner (default on open)</button>
+        <button class="wf-tab" aria-selected="false" data-state="view">View orphan thread</button>
+        <button class="wf-tab" aria-selected="false" data-state="select">Reattach — selecting new span</button>
+      </nav>
+      <button id="toggle-anno" class="wf-tab" aria-pressed="true" aria-label="Toggle annotations">Annotations</button>
+    </div>
+  </header>
+
+  <main class="wf-frame wf-frame--desktop-web">
+    <section class="wf-state active" data-state="banner" aria-labelledby="state-banner-h">
+      <h1 id="state-banner-h" class="sr-only">Orphan banner appears at top of artifact on next open</h1>
+      <article class="doc-mock">
+        <div class="banner" role="alert">
+          <span aria-hidden="true">⚠</span>
+          <div>
+            <strong>1 orphaned thread</strong> — content was rewritten after <code>/requirements --update</code>.
+            <div class="wf-muted" style="font-size:12px; margin-top:2px">Was anchored to: "the legacy auth middleware stores tokens in cookies"</div>
+          </div>
+          <button class="mock-button" aria-label="View orphaned thread T5">View thread →</button>
+        </div>
+        <h2>§problem (rewritten)</h2>
+        <p>The pmos-toolkit pipeline emits 12+ HTML artifacts per feature. Today's free-form chat
+        feedback loop costs context every revision round; threaded conversations on a single concern
+        aren't auditable across sessions.</p>
+      </article>
+    </section>
+
+    <section class="wf-state" data-state="view" aria-labelledby="state-view-h">
+      <h1 id="state-view-h" class="sr-only">View orphan thread — three reattach actions surfaced</h1>
+      <article class="doc-mock">
+        <div class="banner" role="alert">
+          <span aria-hidden="true">⚠</span>
+          <div>
+            <strong>Thread T5 — orphan</strong>
+            <div class="wf-muted" style="font-size:12px">Quote no longer matches body (Levenshtein 0.62 &lt; 0.85 threshold).</div>
+          </div>
+        </div>
+        <div style="background:var(--wf-surface-2); padding:10px 14px; border-radius:var(--wf-radius); font-size:13px; border:1px solid var(--wf-border-2);">
+          <div class="wf-muted" style="font-size:11px">maneesh · 1d ago</div>
+          <div>"Mention that this is a v1 NON-goal, not a v2 plan."</div>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:14px; align-items:center;">
+          <button class="mock-button mock-button--primary" aria-label="Reattach by selecting a new span in the rewritten doc">Reattach to new selection</button>
+          <button class="mock-button" aria-label="Mark orphan as resolved">Mark resolved</button>
+          <details style="margin-left:auto">
+            <summary class="wf-muted" style="font-size:12px; cursor:pointer">⋯ More</summary>
+            <button class="mock-button mock-button--danger" style="margin-top:6px; font-size:12px" aria-label="Mark orphan as won't fix (requires confirmation)">Mark won't-fix…</button>
+          </details>
+        </div>
+      </article>
+    </section>
+
+    <section class="wf-state" data-state="select" aria-labelledby="state-select-h">
+      <h1 id="state-select-h" class="sr-only">Reattach mode — overlay highlights candidate selections; user picks one</h1>
+      <article class="doc-mock">
+        <div class="reattach-mode" role="status">
+          <strong>Reattach mode</strong> — select the equivalent span in the rewritten doc to anchor thread T5.
+          <button class="mock-button" style="margin-left:12px; font-size:12px" aria-label="Cancel reattach mode">Cancel</button>
+        </div>
+        <h2>§problem (rewritten)</h2>
+        <p>The pmos-toolkit pipeline emits 12+ HTML artifacts per feature. Today's
+        <span class="candidate" tabindex="0" role="button" aria-label="Pick this span as the new anchor">free-form chat feedback loop costs context every revision round</span>;
+        threaded conversations on a single concern aren't auditable across sessions.</p>
+        <p class="wf-muted" style="font-size:12px; margin-top:8px">↑ Click any text to reanchor. New dual-anchor (id + quote) saves automatically.</p>
+        <div role="status" aria-live="polite" style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--wf-text); color:var(--wf-surface); padding:8px 16px; border-radius:999px; font-size:13px; display:inline-flex; align-items:center; gap:8px; box-shadow:var(--wf-shadow);">
+          ✓ Reattached thread T5 to "free-form chat feedback loop costs context…" — auto-saved.
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="wf-footer">
+    <div class="wf-footer__inner">
+      <span>Orphan reattach flow</span>
+      <span class="mock-pill">desktop-web</span>
+      <span>File 05 of 8</span>
+      <span>Generated 2026-05-23</span>
+      <a class="wf-grow" style="text-align:right;color:var(--wf-accent)" href="./index.html">Back to index</a>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.wf-tab[data-state]');
+    const states = document.querySelectorAll('.wf-state');
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.setAttribute('aria-selected', x === t));
+      states.forEach(s => s.classList.toggle('active', s.dataset.state === t.dataset.state));
+    }));
+    const annoBtn = document.getElementById('toggle-anno');
+    annoBtn.addEventListener('click', () => {
+      const on = document.body.dataset.annotations === 'on';
+      document.body.dataset.annotations = on ? 'off' : 'on';
+      annoBtn.setAttribute('aria-pressed', String(!on));
+    });
+  </script>
+</body>
+</html>
