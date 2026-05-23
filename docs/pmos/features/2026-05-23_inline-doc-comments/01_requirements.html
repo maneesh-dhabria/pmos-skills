@@ -15,8 +15,8 @@
   <h1 id="title">Inline doc comments for HTML pipeline artifacts — Requirements</h1>
   <dl class="meta">
     <dt>Date</dt><dd>2026-05-23</dd>
-    <dt>Last updated</dt><dd>2026-05-23</dd>
-    <dt>Status</dt><dd>Approved</dd>
+    <dt>Last updated</dt><dd>2026-05-23 (loop 2, post-grill)</dd>
+    <dt>Status</dt><dd>Approved (loop 2)</dd>
     <dt>Tier</dt><dd>3 — Feature</dd>
     <dt>Slug</dt><dd><code>inline-doc-comments</code></dd>
   </dl>
@@ -46,8 +46,9 @@
   <ul>
     <li><strong>Precision review:</strong> the operator can attach feedback to an exact text span, heading, or diagram region in any HTML pipeline artifact — measured by anchor-resolution rate (id-first hit ≥90%; quote-fallback hit ≤5%; orphan ≤5%) at 30 days post-ship.</li>
     <li><strong>AI-driven edit application:</strong> a single command (<code>/comments resolve &lt;artifact&gt;</code>) consumes open threads, applies edits, and writes thread-level audit replies — measured by end-to-end latency &lt;60s per thread in default <code>--confirm-each</code> mode, and by ≥80% of opened threads reaching <code>resolved</code> status within their feature's review cycle.</li>
-    <li><strong>Replace chat as the primary revision channel:</strong> for ≥50% of revision rounds across <code>/spec</code>, <code>/requirements</code>, <code>/wireframes</code>, <code>/artifact</code> at 30 days — measured by sampling 10 random feature folders' commit histories.</li>
-    <li><strong>Zero-command capture surface:</strong> opening any emitted <code>.html</code> file in Chrome/Edge presents the comment overlay without any prior CLI invocation — measured by binary check (does the bundle load when the file is double-clicked?).</li>
+    <li><strong>Replace chat as the primary revision channel:</strong> qualitative — operator self-reports that the comment overlay feels like the primary revision surface for generated artifacts at 30 days. No hard % target; git history does not carry a comment-vs-chat marker, so the metric is intentionally unfalsifiable (per loop-2 grill Q4).</li>
+    <li><strong>Zero-command capture surface (Chrome/Edge):</strong> opening any emitted <code>.html</code> file in Chrome or Edge presents the comment overlay AND persists sidecar writes in place via the File System Access API, without any prior CLI invocation — measured by binary check (does the bundle load AND save when the file is double-clicked?).</li>
+    <li><strong>Zero-command capture surface (Safari/Firefox) — Goal-4b:</strong> opening any emitted <code>.html</code> file in Safari or Firefox presents the comment overlay; capture works without prior CLI invocation, but persistence requires one manual file-move (download-to-replace) per session — measured by binary check (does the bundle load AND surface a working "Save sidecar" button?).</li>
     <li><strong>Cross-session audit trail:</strong> every thread's full history (user messages + system replies + status transitions) is preserved in git via the committed sidecar — measured by spot-checking 5 resolved threads' git logs.</li>
   </ul>
 
@@ -119,6 +120,27 @@
 
   <h3 id="solution-failure">Failure handling</h3>
   <p>Resolver subagent failure (anchor orphaned / edit conflicted / agent judged infeasible / agent errored — G4) keeps the thread <code>open</code> and appends a system reply with the failure taxonomy + suggested next action (rephrase / split / mark won't-fix); resolver continues to next thread (D22). Closure-reason (fix-applied vs. won't-fix) lives in the last system message — no separate status (D23).</p>
+</section>
+
+<section id="hard-frs">
+  <h2 id="hard-frs-h">Hard requirements (Req-FRs surfaced in loop-2 grill)</h2>
+  <p>Three cross-cutting requirements promoted from open-questions to hard FRs in loop-2 (post-grill), because the choice to <strong>ship across all 12+ HTML-emitting skills at once</strong> (D18) makes them load-bearing rather than spec-discretionary.</p>
+
+  <h3 id="fr-new-a">FR-NEW-A — 12/12 ship-blocker (from grill Q1)</h3>
+  <p>v1 ship blocker: <strong>all 12+ HTML-emitting skills</strong> (<code>/requirements</code>, <code>/spec</code>, <code>/plan</code>, <code>/wireframes</code>, <code>/prototype</code>, <code>/artifact</code>, <code>/diagram</code>, <code>/ideate</code>, <code>/survey-design</code>, <code>/survey-analyse</code>, <code>/polish</code>, <code>/architecture</code>, <code>/readme</code>, plus the orchestrator-emitted <code>00_pipeline.html</code> and <code>00_open_questions_index.html</code>) MUST have the apply-edit-at-anchor entrypoint landed and the <code>comments.js</code> reference baked into their emit before v1 ships. No descope path — if any single skill blows past estimate, the feature pauses for re-decision rather than shipping a two-tier UX. Rationale: pilot-then-retrofit has historically become "pilot forever" in this repo (D18); a hard 12/12 ship-blocker eliminates that drift.</p>
+
+  <h3 id="fr-new-b">FR-NEW-B — apply-edit-at-anchor contract (from grill Q5)</h3>
+  <p>Every originating skill exposes a uniform entrypoint that <code>/comments resolve</code> dispatches into. The contract is locked at requirements layer (not deferred to /spec) because 12 implementations must agree on shape:</p>
+  <ul>
+    <li><strong>Inputs:</strong> <code>{thread, artifact_path, anchor, body}</code> where <code>thread</code> is the full thread object (id + messages + status), <code>artifact_path</code> is the absolute path to the target HTML, <code>anchor</code> is the resolved dual-anchor (id + quote/prefix-suffix), and <code>body</code> is the current request text extracted from the last user message.</li>
+    <li><strong>Outputs:</strong> <code>{success: bool, diff_ref: string | null, system_reply: string}</code> where <code>diff_ref</code> is either a staged-region reference (line ranges) or a SHA when committed (per D9), and <code>system_reply</code> is the ≤3-sentence prose summary appended to the thread.</li>
+    <li><strong>Error enum (closed set):</strong> <code>anchor_orphaned</code>, <code>edit_conflicted</code>, <code>agent_judged_infeasible</code>, <code>agent_errored</code> (resolves OQ4 by promotion — these four are the complete taxonomy). Any other failure mode surfaced during build forces a back-to-requirements discussion before extending the enum.</li>
+    <li><strong>Idempotency:</strong> calling the entrypoint twice with the same thread+anchor MUST be a no-op if the requested edit is already present in the artifact (so re-running <code>/comments resolve</code> after a partial-stage commit doesn't duplicate edits).</li>
+  </ul>
+  <p>The contract lives in <code>_shared/apply-edit-at-anchor.md</code> (created by /spec); every originating skill cites it. Supersedes OQ3.</p>
+
+  <h3 id="fr-new-c">FR-NEW-C — testing acceptance (from grill Q6)</h3>
+  <p>v1 ship blocker: <strong>each of the 12 originating skills MUST ship with a contract test</strong> for its apply-edit-at-anchor entrypoint (input shape, output shape, error-mode coverage, idempotency). One <strong>shared resolver integration test</strong> covers <code>/comments resolve</code>'s dispatch logic + the complete error taxonomy with mocked subagent dispatch. <code>/verify</code> enforces (12 + 1 = 13 tests must pass); fewer than 12 contract tests blocks ship the same way <code>assert_heading_ids.sh</code> blocks artifacts missing kebab-case ids. Supersedes OQ12.</p>
 </section>
 
 <section id="journeys">
@@ -200,7 +222,7 @@
       <tr><td>Two tabs open simultaneously</td><td>Operator has the artifact open in two browser tabs, edits both</td><td>Last write wins via FSA; the other tab's overlay shows a stale-state banner on next persist attempt. Documented behavior (G3).</td></tr>
       <tr><td>Directory-level resolve, mixed empty/non-empty sidecars</td><td><code>/comments resolve docs/pmos/features/2026-…/</code></td><td>Iterates <code>*.html</code>, skips files with missing/empty sidecars, processes the rest sequentially.</td></tr>
       <tr><td>Browser-tab open during live <code>/comments resolve</code></td><td>Operator has overlay open while resolver stages edits</td><td>Overlay does NOT auto-refresh; operator reloads the tab manually to see resolved threads. Documented behavior (G3).</td></tr>
-      <tr><td>Comment on existing (pre-feature) artifact</td><td>Operator opens <code>docs/pmos/features/2026-04-…/01_requirements.html</code> from before this feature shipped</td><td>Overlay does not load (no <code>comments.js</code> reference baked in); operator regenerates the artifact via the originating skill to upgrade (D24), or runs the optional one-shot <code>/comments enable</code> if surfaced in handoff text.</td></tr>
+      <tr><td>Comment on existing (pre-feature) artifact</td><td>Operator opens <code>docs/pmos/features/2026-04-…/01_requirements.html</code> from before this feature shipped</td><td>Overlay does not load (no <code>comments.js</code> reference baked in); operator regenerates the artifact via the originating skill to upgrade (D24). No opt-in <code>/comments enable</code> command in v1 — regen is the only upgrade path (loop-2 grill Q2).</td></tr>
     </tbody>
   </table>
 </section>
@@ -250,8 +272,8 @@
       <tr><td>Anchor orphan rate</td><td>n/a</td><td>≤5% of threads</td><td>Count threads in <code>orphan</code> state across all committed sidecars.</td></tr>
       <tr><td>Stable-id anchor hit rate</td><td>n/a</td><td>≥90% of resolves use id-first (quote fallback &lt;10%)</td><td>Resolver logs anchor-strategy used per thread; aggregate at 30 days.</td></tr>
       <tr><td>End-to-end <code>/comments resolve</code> latency (single-thread)</td><td>n/a</td><td>&lt;60s p50 in <code>--confirm-each</code> mode</td><td>Wallclock from <code>/comments resolve</code> invocation to system reply staged.</td></tr>
-      <tr><td>Comment overlay vs. chat free-form for revisions</td><td>0% comment usage</td><td>≥50% of revision rounds use comments on artifacts that have the overlay baked in</td><td>Sample 10 random feature folders post-30-day mark; manually classify each revision round as comment-driven vs. chat-driven.</td></tr>
-      <tr><td>Bundle size budget</td><td>n/a</td><td><code>comments.js</code> stays under the cap pinned in <a href="#open-questions">OQ5</a></td><td>CI check on substrate file size.</td></tr>
+      <tr><td>Comment overlay vs. chat free-form for revisions</td><td>0% comment usage</td><td>Qualitative — operator self-reports overlay feels primary at 30 days (loop-2 grill Q4)</td><td>Self-report; no hard % target. Git history does not carry a comment-vs-chat marker, so the metric is intentionally unfalsifiable.</td></tr>
+      <tr><td>Bundle size (soft target)</td><td>n/a</td><td><code>comments.js</code> ≈20KB minified; revisit at v1.1 if &gt;30KB (loop-2 grill Q7)</td><td>CI <strong>warns</strong> (does NOT fail) if size exceeds the soft target; reviewer judgement.</td></tr>
       <tr><td>Negative signal (would trigger rethink)</td><td>n/a</td><td>If operator opens threads then resolves via chat free-form (not <code>/comments resolve</code>) for &gt;30% of opens, the AI handoff isn't landing</td><td>Observation; no automated proxy.</td></tr>
     </tbody>
   </table>
@@ -282,22 +304,22 @@
 
 <section id="open-questions">
   <h2 id="open-questions-h">Open Questions</h2>
-  <p>Three items deferred from the grill + six gaps surfaced during the grill, plus tier-3 open question prompts. Each maps to a spec FR or out-of-scope note in <code>/spec</code>.</p>
+  <p>Items deferred from the original deep-grill + tier-3 prompts, minus three promoted to hard FRs in loop-2. Net: <strong>11 OQs forward to /spec</strong>. OQ3 → <a href="#fr-new-b">FR-NEW-B</a>; OQ5 → <a href="#metrics">metrics row (soft target)</a>; OQ12 → <a href="#fr-new-c">FR-NEW-C</a>.</p>
   <table>
     <thead><tr><th>#</th><th>Question</th></tr></thead>
     <tbody>
       <tr><td>OQ1 (G1)</td><td>Sidecar-follows-artifact-on-rename — when the operator runs <code>git mv 02_spec.html 02_design.html</code>, the sidecar must move atomically. Implement via filename convention documented in <code>_shared/html-authoring/conventions.md</code>, or via a rename-aware git filter?</td></tr>
       <tr><td>OQ2 (G2)</td><td>Thread-ID generation: nanoid 8-char (lean) vs. uuid v4 (canonical). Pin at spec time.</td></tr>
-      <tr><td>OQ3 (G3)</td><td>Apply-edit-at-anchor entrypoint surface — every one of the 12+ HTML-emitting skills needs this entrypoint documented + tested. Cross-cutting requirement that dominates the build estimate (D18). Surface this in /spec FR cluster.</td></tr>
-      <tr><td>OQ4 (G4)</td><td>System-reply failure-mode taxonomy — enum: <code>anchor_orphaned</code> / <code>edit_conflicted</code> / <code>agent_judged_infeasible</code> / <code>agent_errored</code>. Confirm enum is complete; pin in /spec.</td></tr>
-      <tr><td>OQ5 (G5)</td><td>Bundle size budget for <code>comments.js</code> — pin the exact cap (proposed ≤20KB minified) and add a CI check in /spec acceptance. Rationale for the cap value (vs. 30KB / 50KB) belongs in /spec.</td></tr>
+      <tr><td><s>OQ3 (G3)</s></td><td><em>Promoted to <a href="#fr-new-b">FR-NEW-B</a> in loop-2.</em></td></tr>
+      <tr><td>OQ4 (G4)</td><td>System-reply failure-mode taxonomy — enum: <code>anchor_orphaned</code> / <code>edit_conflicted</code> / <code>agent_judged_infeasible</code> / <code>agent_errored</code>. <em>Resolved by promotion in <a href="#fr-new-b">FR-NEW-B</a> (closed set; extensions require back-to-requirements).</em></td></tr>
+      <tr><td><s>OQ5 (G5)</s></td><td><em>Reframed as soft target in loop-2 (≈20KB minified, CI warns). See <a href="#metrics">metrics row</a>.</em></td></tr>
       <tr><td>OQ6 (G6)</td><td>Audit current 12+ skills' HTML output for stable-id coverage — already mandated by <code>conventions.md §3</code> but worth a one-shot grep before /spec commits to id-first anchoring. Pin as a /plan task (1-hour spike).</td></tr>
       <tr><td>OQ7 (deferred)</td><td>Mobile / tablet viewing — non-goal at v1. Revisit if stakeholder review patterns shift to phones.</td></tr>
       <tr><td>OQ8 (deferred)</td><td>Browser-tab synchronization — when the overlay is open in a browser tab while <code>/comments resolve</code> stages edits, the tab does NOT auto-refresh. Acceptable v1 behavior; document in skill body. Revisit if it causes confusion.</td></tr>
       <tr><td>OQ9 (deferred)</td><td>Re-dispatch loop cap in <code>--confirm-each</code> reject workflow (D25) — lean: 2 re-dispatches before forcing "leave open and skip". Pin exact cap at /spec time.</td></tr>
       <tr><td>OQ10</td><td>Should <code>/comments resolve</code> emit any artifact (e.g., a resolution log under <code>docs/pmos/features/.../comments-resolved-2026-…log</code>), or rely purely on git history of the sidecars? Lean: rely on git history; consider a per-run resolution-summary written to chat only.</td></tr>
       <tr><td>OQ11</td><td>Should <code>--non-interactive</code> mode skip resolve entirely, or process only threads that have no ambiguity (those that wouldn't trigger live-AskUserQuestion)? Lean: process unambiguous threads; defer ambiguous via in-thread system-reply per the non-interactive contract.</td></tr>
-      <tr><td>OQ12</td><td>How is <code>/comments resolve</code> tested in CI? Per-skill apply-edit-at-anchor entrypoints need contract tests; a single shared "resolver integration test" with mocked subagent dispatch is probably sufficient. Pin in /spec testing strategy.</td></tr>
+      <tr><td><s>OQ12</s></td><td><em>Promoted to <a href="#fr-new-c">FR-NEW-C</a> in loop-2.</em></td></tr>
       <tr><td>OQ13</td><td>Pre-commit drift hook (D21) install mechanism + share posture — repo <code>.git/hooks/pre-commit</code> via a checked-in installer script (the existing marketplace version-sync hook is the template) vs. husky-style vs. manual setup? Pin install path, install script location, and how new contributors get it. /spec decides.</td></tr>
       <tr><td>OQ14</td><td>Anchor-confidence threshold for the quote+prefix/suffix fallback re-anchor pass — proposed ≥0.85 Levenshtein on quote+prefix+suffix combined, below which the thread is marked orphan. Pin exact threshold + the scorer in /spec; consider validation against 50 random spans in a one-off test (see D3 sub-implementation).</td></tr>
     </tbody>

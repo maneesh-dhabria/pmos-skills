@@ -102,6 +102,30 @@
     "parent_id": "solution"
   },
   {
+    "id": "hard-frs-h",
+    "level": 2,
+    "title": "Hard requirements (Req-FRs surfaced in loop-2 grill)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-new-a",
+    "level": 3,
+    "title": "FR-NEW-A — 12/12 ship-blocker (from grill Q1)",
+    "parent_id": "hard-frs"
+  },
+  {
+    "id": "fr-new-b",
+    "level": 3,
+    "title": "FR-NEW-B — apply-edit-at-anchor contract (from grill Q5)",
+    "parent_id": "hard-frs"
+  },
+  {
+    "id": "fr-new-c",
+    "level": 3,
+    "title": "FR-NEW-C — testing acceptance (from grill Q6)",
+    "parent_id": "hard-frs"
+  },
+  {
     "id": "journeys-h",
     "level": 2,
     "title": "User Journeys",

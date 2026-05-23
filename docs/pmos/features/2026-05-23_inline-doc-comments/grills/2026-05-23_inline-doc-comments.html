@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="grill">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Inline doc comments — Grill report (loop 2)</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments — Grill report (loop 2, post-requirements)</h1>
+  <dl class="meta">
+    <dt>Date</dt><dd>2026-05-23</dd>
+    <dt>Artifact grilled</dt><dd><a href="../01_requirements.html">01_requirements.html</a></dd>
+    <dt>Depth</dt><dd>standard</dd>
+    <dt>Questions asked</dt><dd>8 (7 productive + 1 dropped)</dd>
+    <dt>Tier</dt><dd>3 — Feature</dd>
+    <dt>Context</dt><dd>Second grill pass; the requirements doc already absorbed a 25-Q deep-grill at ideate stage. This pass targeted residuals not resolved at requirements layer.</dd>
+  </dl>
+</header>
+
+<section id="resolved">
+  <h2 id="resolved-h">Resolved branches</h2>
+  <table>
+    <thead><tr><th>#</th><th>Branch</th><th>Disposition</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>D18 scope-explosion failure mode</td><td><strong>Add Req-FR:</strong> v1 ship-blocker = 12/12 apply-edit-at-anchor entrypoints land; no descope path. The rationale ("pilot becomes permanent in this repo") is reinforced as a hard requirement.</td></tr>
+      <tr><td>Q2</td><td>D24 vs. edge-case row 7 contradiction</td><td><strong>Edit:</strong> drop the optional <code>/comments enable</code> mention from edge-case row 7. D24 stays truly zero-touch — operator regenerates via originating skill to upgrade an old artifact. Row 7 simplified.</td></tr>
+      <tr><td>Q3</td><td>Goal-4 ("zero-command capture") vs. D11 (Safari/Firefox fallback)</td><td><strong>Edit:</strong> scope Goal-4 to Chrome/Edge explicitly; add Goal-4b for Safari/Firefox = "capture works, persistence requires one manual file-move per session". Honest about per-tier semantics.</td></tr>
+      <tr><td>Q4</td><td>Goal-3 unverifiable measurement (comment-driven vs. chat-driven revision rounds via commit history)</td><td><strong>Edit:</strong> drop Goal-3's ≥50% hard target → qualitative self-report ("operator self-reports comment usage feels primary"). No committed resolve-log artifact added; loses falsifiability in exchange for honesty.</td></tr>
+      <tr><td>Q5</td><td>OQ3 entrypoint contract — escalation given Q1</td><td><strong>Add Req-FR (cluster A):</strong> apply-edit-at-anchor contract. Inputs <code>{thread, artifact_path, anchor, body}</code>; outputs <code>{success, diff_ref, system_reply}</code>; error enum; idempotency expectation. Remove OQ3 (now resolved).</td></tr>
+      <tr><td>Q6</td><td>OQ12 testing — escalation given Q1 + Q5</td><td><strong>Add Req-FR (cluster B):</strong> 12 per-skill entrypoint contract tests + 1 shared resolver integration test (dispatch + error taxonomy). Remove OQ12 (now resolved). Mirrors the assert_heading_ids.sh enforcement model.</td></tr>
+      <tr><td>Q7</td><td>OQ5 bundle size cap — hard or soft?</td><td><strong>Edit:</strong> <code>comments.js</code> soft target ≈20KB minified; CI warns (does NOT fail); revisit at v1.1 if &gt;30KB. OQ5 closes as "soft target, no FR".</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="open">
+  <h2 id="open-h">Open / Deferred</h2>
+  <ul>
+    <li><strong>Q8 — id-vs-quote % split in Goal-1.</strong> User pushed back: "do we really need this?" Honored. Only orphan-rate ≤5% remains load-bearing as a success criterion. The descriptive split (id ≥90% / quote ≤5%) is misframed for prose-span capture but doesn't gate the design; /spec can fix the metric phrasing when designing the OQ14 confidence scorer.</li>
+  </ul>
+</section>
+
+<section id="gaps">
+  <h2 id="gaps-h">Gaps surfaced</h2>
+  <ul>
+    <li>The 14-OQ list shrinks by 2 (OQ3, OQ12 promoted to Req-FRs) and changes posture on OQ5 (soft target, not "pin in /spec"). Net: <strong>11 OQs forward to /spec</strong> (OQ1, OQ2, OQ4, OQ6, OQ7, OQ8, OQ9, OQ10, OQ11, OQ13, OQ14).</li>
+    <li>A new Req-FR cluster lands at requirements layer (was previously deferred):
+      <ul>
+        <li><strong>FR-NEW-A</strong> (from Q1): 12/12 apply-edit-at-anchor entrypoints are a v1 ship-blocker.</li>
+        <li><strong>FR-NEW-B</strong> (from Q5): apply-edit-at-anchor contract — inputs/outputs/error enum/idempotency.</li>
+        <li><strong>FR-NEW-C</strong> (from Q6): testing acceptance — 12 contract tests + 1 integration test.</li>
+      </ul>
+    </li>
+    <li>Goals section gains Goal-4b (Safari/Firefox manual-move acknowledgment) and loses Goal-3's hard %.</li>
+  </ul>
+</section>
+
+<section id="next-steps">
+  <h2 id="next-steps-h">Recommended next steps</h2>
+  <ol>
+    <li>Apply the 7 edits above to <a href="../01_requirements.html">01_requirements.html</a> and regenerate <code>01_requirements.sections.json</code>.</li>
+    <li>Bump status to <code>Approved (loop 2)</code>; commit.</li>
+    <li><code>/feature-sdlc</code> advances to Phase 3a (<code>/creativity</code> gate, Recommended Skip).</li>
+    <li>Phase 3b (<code>/wireframes</code>) gate follows — feature has a comment-overlay UI, so the gate will recommend Run.</li>
+  </ol>
+</section>
+
+</main>
+<script src="../assets/viewer.js?v=2.51.0" defer></script>
+<script src="../assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>

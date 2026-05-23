@@ -1,0 +1,10 @@
+{
+  "title": "Inline doc comments — Grill report (loop 2, post-requirements)",
+  "ids": ["title", "resolved-h", "open-h", "gaps-h", "next-steps-h"],
+  "sections": [
+    {"id": "resolved", "heading": "Resolved branches", "level": 2},
+    {"id": "open", "heading": "Open / Deferred", "level": 2},
+    {"id": "gaps", "heading": "Gaps surfaced", "level": 2},
+    {"id": "next-steps", "heading": "Recommended next steps", "level": 2}
+  ]
+}
