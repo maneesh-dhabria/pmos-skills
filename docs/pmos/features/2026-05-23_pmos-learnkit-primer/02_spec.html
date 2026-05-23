@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>/primer skill for pmos-learnkit — Spec</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.51.0">
+  <script defer src="assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/primer skill for pmos-learnkit — Spec</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+<li><strong>tier:</strong> 3</li>
+<li><strong>type:</strong> feature</li>
+<li><strong>feature:</strong> 2026-05-23_pmos-learnkit-primer</li>
+<li><strong>date:</strong> 2026-05-23</li>
+<li><strong>status:</strong> Ready for Plan</li>
+<li><strong>requirements:</strong> <code>docs/pmos/features/2026-05-23_pmos-learnkit-primer/01_requirements.html</code></li>
+<li><strong>pipeline_mode:</strong> skill-new</li>
+<li><strong>target_skill:</strong> <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></li>
+<li><strong>target_platform:</strong> claude-code</li>
+<li><strong>standing_acceptance:</strong> <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§G</code></li>
+</ul>
+</section>
+
+<section id="problem-statement">
+<h2 id="problem-statement">1. Problem Statement</h2>
+<p>PM-adjacent practitioners ramping on an unfamiliar topic — before a meeting, scope, or doc review — have no fast tool that produces a verified-source, reviewer-vetted, persistent teaching artifact. /primer fills that gap as the upstream skill of a new <code>pmos-learnkit</code> plugin. <strong>Primary success metric:</strong> &lt; 6 min wall-clock from invocation to written HTML artifact on the first 3 real runs, with 100% of cited URLs resolving against the persisted <code>sources.json</code> sidecar.</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">2. Goals</h2>
+<table>
+<tr><th>#</th><th>Goal</th><th>Success Metric</th></tr>
+<tr><td>G1</td><td>One-command topic-to-primer</td><td>&lt; 6 min wall-clock first 3 runs; end-to-end timer printed at completion</td></tr>
+<tr><td>G2</td><td>Source-grounded, not hallucinated</td><td>Reviewer trust-tier check <code>cites-real-urls</code> passes every run; 100% of <code>&lt;a href&gt;</code> targets in body present in <code>sources.json</code></td></tr>
+<tr><td>G3</td><td>Audience-shaped on three concrete axes</td><td>Reviewer taste-tier checks <code>structurally-complete</code> + <code>right-reading-level</code> + <code>audience-vocab</code> + <code>primer-shaped</code> all pass against the chosen preset</td></tr>
+<tr><td>G4</td><td>Substrate-native</td><td>SKILL.md ≤500 lines (target) / ≤800 lines (hard cap per §C); /polish runs against /primer artifacts unchanged</td></tr>
+<tr><td>G5</td><td>Composable upstream of pmos-learnkit</td><td><code>sections.json</code> IDs deep-equal on-page <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> <code>id=</code> attributes; reviewer trust-tier check <code>sections-json-ids-match</code> passes</td></tr>
+<tr><td>G6</td><td>Per-developer repeat-run efficiency</td><td><code>.pmos/primer.lastrun.yaml</code> seeds Phase 0.5 consolidated-confirm; gitignored; no shared-state leakage</td></tr>
+</table>
+</section>
+
+<section id="non-goals">
+<h2 id="non-goals">3. Non-Goals</h2>
+<ul>
+<li>NOT a source-eval / author-trust YAML registry in v1 — load-bearing quality comes from prompt-level curator-lens framing (A1 hypothesis); registry deferred to a v2 sibling <code>/source-eval</code> skill.</li>
+<li>NOT <code>--depth shallow</code>/<code>deep</code> — ship <code>--depth mid</code> only.</li>
+<li>NOT diagram-pass, persona-pass, blind-primer phase, learnings-as-phase, or worked-examples phase — explicitly NOT porting /rewrite's full machinery.</li>
+<li>NOT topic-or-URL auto-detect, <code>--sources</code> BYO-sources, or topic-tree recursion in v1.</li>
+<li>NOT validating A1 pre-ship; NOT staging an A1 mid-build kill criterion (per D-A1).</li>
+<li>NOT pinned-tag resume — /primer is single-session; harness handles compact-then-resume.</li>
+<li>NOT flashcard / quiz / retrieval-practice outputs — those are sibling skills consuming /primer.</li>
+<li>NOT spawning subagents in Phases 1–4 — only Phase 5 reviewer (per D2).</li>
+<li>NOT introducing a <code>plugins/pmos-toolkit/skills/_shared/</code> change that breaks existing pmos-toolkit skills — substrate parameterization (per D-ATTRIB) MUST default to "pmos-toolkit" so existing skills are byte-stable.</li>
+</ul>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">4. Decision Log</h2>
+<p>D1–D16 are carried forward from <code>01_requirements.html §Design Decisions</code> and are referenced here without restatement. The decisions logged below are NEW choices made in this spec phase.</p>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr>
+<tr><td>D-A1</td><td>Confirm: v1 ships on unvalidated A1 (curator-lens) hypothesis with NO mid-build kill criterion. Retrospective trigger: 2-hour side-by-side spike after the 3rd successful /primer run. If A1 disconfirms, v2 ports <code>/source-eval</code> sibling.</td><td>(a) Stage Phase-3 outline canary on first 3 runs. (b) Stage hard pre-Phase-5 kill criterion. (c) ★ <strong>Defer to post-v1 retro, no mid-build canary, no kill criterion.</strong></td><td>Per Phase-3 Architect interview confirm. Roughly two weeks of committed build effort before any quality signal; user has eyes-open accepted the risk. Reverses only on post-v1 readership/share signal.</td></tr>
+<tr><td>D-ATTRIB</td><td>Attribution parameterized via substrate <code>data-pmos-plugin</code> attribute (Option a, per OQ-3 resolution). Default value <code>"pmos-toolkit"</code> so every existing toolkit skill renders byte-identically. /primer (and any future pmos-learnkit skill) overrides to <code>"pmos-learnkit"</code> at write time.</td><td>(a) ★ <strong>Substrate parameter with default.</strong> (b) /primer post-write text-substitution. (c) Mustache-style template variable.</td><td>Long-term cleanest: one substrate change, no per-skill code, every future plugin can override without touching template.html. Default-value contract makes the change byte-stable for pmos-toolkit's existing artifacts.</td></tr>
+<tr><td>D-CONTEXT7</td><td>Phase 2 research uses a <strong>try-both</strong> strategy: dispatch <code>context7.resolve-library-id(topic)</code> AND WebFetch on candidate URLs in parallel; merge unique sources; prefer whichever set yields ≥3 usable sources first. No maintained library-name list. No <code>--source</code> flag in v1.</td><td>(a) ★ <strong>Try-both, prefer whichever yields ≥3.</strong> (b) <code>--source web|context7|auto</code> flag. (c) Heuristic library-name match.</td><td>Zero maintained list, zero new flag, costs one cheap failed context7 call on non-library topics. context7 returns no result for non-library topics quickly; net cost is negligible vs the maintenance cost of (c).</td></tr>
+<tr><td>D-RUBRIC</td><td>Final 10-check reviewer rubric with trust/taste split as specified in §7.4 below. Per the user-confirmed OQ-2 resolution, <code>sections-json-ids-match</code> is reclassified from taste to <strong>trust</strong> because failing it breaks downstream consumer skills (G5 composability contract), not just artifact taste.</td><td>(a) ★ <strong>4 trust + 6 taste (with #7 reclassified).</strong> (b) 3 trust + 7 taste (literal requirements draft).</td><td>Composability is a contract, not an aesthetic. If <code>/flashcards</code> v1 cannot parse a primer's <code>sections.json</code> because IDs drift from headings, the entire pmos-learnkit composition story breaks at the first sibling skill.</td></tr>
+<tr><td>D-WRITER-PATTERN</td><td>/primer mirrors <code>/artifact</code>'s writer wiring: atomic temp-then-rename for the trio of files (<code>{slug}.html</code> + <code>{slug}.sections.json</code> + <code>{slug}.sources.json</code>); asset substrate copied via <code>cp -n</code> (idempotent); index regen via <code>_shared/html-authoring/index-generator.md</code>.</td><td>(a) Inline new writer logic. (b) ★ <strong>Mirror /artifact directly.</strong></td><td>/artifact is the canonical writer pattern in the substrate; spec D7 already commits to HTML-primary and sections.json shape — wiring is identical. Zero new substrate.</td></tr>
+<tr><td>D-RECOVERY-PATH</td><td>Hard-block recovery artifact path is <code>{docs_path}/primer/{date}_{slug}.draft.html</code> (NOT under <code>.pmos/</code>). <code>sources.json</code> companion at <code>{date}_{slug}.sources.json</code> (same dir, same slug, no <code>.draft</code> in name — the JSON is reusable as-is by a fresh rerun cache hit, v2 backlog).</td><td>(a) Bury under <code>.pmos/primer-cache/</code>. (b) ★ <strong>Same directory as the would-be artifact, <code>.draft.html</code> suffix.</strong></td><td>Discoverability: users find rejected drafts where they expect to find primers. <code>.draft.html</code> suffix is the universal "this is not the real thing" signal. <code>sources.json</code> stays without the suffix so a v2 <code>--from-draft</code> rerun can short-circuit Phase 2.</td></tr>
+<tr><td>D-DIAGRAM-INLINE</td><td>This spec authors §6 architecture + sequence diagrams <strong>inline</strong> rather than dispatching /diagram subagent. Per FR-60 the subagent is the canonical path; this spec invokes the FR-64 wall-clock-cap fallback because the 5-phase flow is linear and a Mermaid sequence diagram is short.</td><td>(a) Dispatch /diagram subagent for both diagrams. (b) ★ <strong>Inline Mermaid; figcaption documents provenance.</strong></td><td>The /diagram subagent is mandatory when the diagram has design judgment to make; for a deterministic linear sequence diagram of a documented 5-phase pipeline, dispatch is pure overhead. FR-65 figcaption provenance preserved.</td></tr>
+<tr><td>D-PROMOTION</td><td>Buried-decision sweep against requirements (per /spec learnings): D14 (source floor = 4), D15 (reviewer URL verification authority), D16 (hard-block recovery) were already promoted in /grill. This spec promotes <strong>D17</strong> (substrate default = "pmos-toolkit") to the Decision Log explicitly, since D-ATTRIB's compatibility guarantee hinges on it — reviewers should be able to disagree with the default.</td><td>(a) Leave as Edge-Case footnote. (b) ★ <strong>Promote to Decision Log as D17 below.</strong></td><td>Per /spec learnings — buried decisions reviewers can disagree with belong in the Decision Log.</td></tr>
+<tr><td>D17</td><td>The substrate <code>template.html</code> default for the rendered attribution text is <code>"pmos-toolkit"</code> and the default href is the existing pmos-toolkit URL. The <strong>user-visible attribution (link text + href)</strong> is byte-stable for pmos-toolkit skills that don't opt into the new params; the new <code>data-pmos-plugin</code> DOM attribute is an additive harmless data-* hook (invisible to readers, ignored by /polish + html-to-md).</td><td>(a) Default to empty string (forces every writer to set). (b) Drop the <code>data-pmos-plugin</code> attribute entirely, drive only text+href via the variable. (c) ★ <strong>Keep <code>data-pmos-plugin</code> as additive data-* hook; text+href byte-stable by default.</strong></td><td>Backwards compatibility for what readers see (text + click target). The additive <code>data-pmos-plugin</code> hook is an HTML5 custom data attribute (spec-conformant, ignored by all renderers) and gives future plugins a DOM-level discriminator without breaking anything. (a) breaks every existing artifact. (b) loses the DOM discriminator.</td></tr>
+</table>
+</section>
+
+<section id="user-personas-and-journeys">
+<h2 id="user-personas-and-journeys">5. User Personas &amp; Journeys</h2>
+<p>Personas + Primary / Autonomous / Lastrun-repeat / 8 error journeys / 7 edge cases are exhaustively documented in <code>01_requirements.html §User Journeys</code> and <code>§Empty States &amp; Edge Cases</code>. This spec defers to them rather than restating. Two journey clarifications added below in §12 Edge Cases.</p>
+</section>
+
+<section id="system-design">
+<h2 id="system-design">6. System Design</h2>
+
+<h3 id="architecture-overview">6.1 Architecture Overview</h3>
+<p>/primer is a single-skill, single-session Claude Code slash command. It runs entirely inside the host repo's worktree. Five phases execute sequentially; the only out-of-process work is WebFetch (host platform tool), context7 MCP server queries (optional, library-shape topics), and a single Phase-5 reviewer Task subagent.</p>
+
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│  Claude Code session  (host platform — provides WebFetch, Task,    │
+│                        AskUserQuestion, context7 MCP)               │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+              ┌────────────▼────────────┐
+              │  /primer SKILL.md (≤500 │
+              │  lines target, ≤800 cap) │
+              └────────────┬────────────┘
+                           │
+   ┌───────────────────────┼───────────────────────────────────┐
+   │                       │                                   │
+   ▼                       ▼                                   ▼
+[Phase 1: Intake]    [Phase 2: Research]                [Phase 5: Eval]
+.pmos/settings.yaml  WebFetch (top-level tool)          Task tool
+.pmos/primer.        context7 MCP (try-both)            (reviewer
+  lastrun.yaml       (parallel; ≥3-source short-                 subagent;
+AskUserQuestion        circuit)                                  binary rubric;
+                                                                 10 checks)
+                           │
+                           ▼
+                   [Phase 3: Outline]
+                   AskUserQuestion (interactive gate)
+                           │
+                           ▼
+                   [Phase 4: Draft]
+                   inline drafting against approved outline
+                           │
+                           ▼
+                   [Phase 5 → write]
+                   {docs_path}/primer/{date}_{slug}.html
+                    + .sections.json + .sources.json
+                    + assets/ (cp -n from _shared/html-authoring/assets/)
+                    + index.html (regenerated)
+                   substrate template.html with data-pmos-plugin="pmos-learnkit"
+</code></pre>
+<figcaption>Architecture authored inline (D-DIAGRAM-INLINE / FR-64 wall-clock-cap fallback applied — linear 5-phase flow is deterministic enough to bypass /diagram subagent dispatch).</figcaption>
+
+<h3 id="sequence-diagram-primary-flow">6.2 Sequence diagram — primary (happy-path) flow</h3>
+<pre><code>User       /primer    .pmos/        WebFetch    context7    Reviewer    Filesystem
+ │           │         settings        │           MCP       (Task)        │
+ │  /primer  │            │            │            │           │           │
+ │ &lt;topic&gt; ──▶│            │            │            │           │           │
+ │           │── read ───▶│            │            │           │           │
+ │           │◀── values ─│            │            │           │           │
+ │           │            │            │            │           │           │
+ │           │── read lastrun.yaml ───▶│            │           │           │
+ │           │◀── prior audience ─────│            │           │           │
+ │  AskUQ    │            │            │            │           │           │
+ │ (audience,│            │            │            │           │           │
+ │  format)  │            │            │            │           │           │
+ │◀──ask─────│            │            │            │           │           │
+ │── reply──▶│            │            │            │           │           │
+ │           │            │            │            │           │           │
+ │           │── Phase 2: try-both ─▶ ─▶│           │           │           │
+ │           │            │            │── fetch ──│           │           │
+ │           │            │            │           │           │           │
+ │           │           ────────▶ context7.resolve-library-id│           │
+ │           │◀── merged sources (≥3 short-circuit) ──────────│           │
+ │           │            │            │            │           │           │
+ │           │── Phase 3 outline ─────────────────────────────│           │
+ │  AskUQ    │            │            │            │           │           │
+ │ (approve/ │            │            │            │           │           │
+ │  edit)    │            │            │            │           │           │
+ │◀──ask─────│            │            │            │           │           │
+ │── reply──▶│            │            │            │           │           │
+ │           │            │            │            │           │           │
+ │           │── Phase 4 draft inline ────────────────────────│           │
+ │           │            │            │            │           │           │
+ │           │── Phase 5: Task(reviewer) ─────────▶│ ──────────▶           │
+ │           │◀── verdict table ─────────────────────────────│           │
+ │           │            │            │            │           │           │
+ │           │  [if any trust-fail] ── auto-apply iteration 1 ─│           │
+ │           │            │            │            │           │           │
+ │           │── re-run reviewer ────────────────────▶          │           │
+ │           │◀── verdict ─────────────────────────────────────│           │
+ │           │            │            │            │           │           │
+ │           │  [trust-tier still fails]      [trust-tier pass]│           │
+ │           │       │                          │              │           │
+ │           │       ▼                          ▼              │           │
+ │           │  write .draft.html        AskUQ approve & write │           │
+ │           │  + sources.json           ◀── ask ──────────────│           │
+ │           │  REJECTED banner          ── reply ────────────▶│           │
+ │           │            │                                    │           │
+ │           │  atomic temp → rename ────────────────────────▶ │           │
+ │           │            │            │            │           │── write─▶│
+ │           │◀── path + elapsed time ──────────────────────────│          │
+ │◀── done ──│            │            │            │           │           │
+</code></pre>
+<figcaption>Sequence authored inline (D-DIAGRAM-INLINE / FR-64 fallback). Error branches: any AskUserQuestion=Abort short-circuits to clean-exit; WebFetch network failure surfaces the &quot;continue uncited / abort&quot; gate per requirements error journey #6.</figcaption>
+
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">7. Functional Requirements</h2>
+
+<h3 id="fr-a-skill-patterns-frontmatter">7.1 FR-A — skill-patterns.md §A: Frontmatter (derived requirements)</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-A1</td><td>The skill ships at canonical path <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code>.</td></tr>
+<tr><td>FR-A2</td><td>Frontmatter <code>name: primer</code> (lowercase-hyphenated; matches directory name; ≤64 chars).</td></tr>
+<tr><td>FR-A3</td><td>Frontmatter <code>description: &lt;string&gt;</code> — ≤1024 chars, third-person, contains both a one-clause WHAT and an explicit WHEN, ≥5 user-spoken trigger phrases (see FR-B3); no embedded numbered/bulleted step list.</td></tr>
+<tr><td>FR-A4</td><td>Frontmatter includes <code>user-invocable: true</code> (Claude Code slash-command requirement).</td></tr>
+<tr><td>FR-A5</td><td>Frontmatter includes <code>argument-hint:</code> string enumerating every flag the body parses: <code>&lt;topic&gt; [--audience &lt;senior-pms|all-pms&gt;] [--autonomous] [--format &lt;html|md|both&gt;] [--non-interactive] [--interactive]</code>.</td></tr>
+<tr><td>FR-A6</td><td>The name <code>primer</code> reads as a noun-of-action (the artifact produced), permitted per §A's resolved rule (verb or gerund or action-noun) — the failure case is bare-noun-phrase like <code>pdf-utilities</code>.</td></tr>
+</table>
+
+<h3 id="fr-b-skill-patterns-description-triggering">7.2 FR-B — skill-patterns.md §B: Description &amp; triggering</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-B1</td><td>Description includes a one-clause WHAT: <em>"Generate a verified-source, audience-shaped HTML primer on a topic, with a reviewer-vetted artifact at a deterministic path."</em> (or near-equivalent).</td></tr>
+<tr><td>FR-B2</td><td>Description includes explicit WHEN/trigger conditions: ramp-up before meeting/scope/doc-review; PM topic the user does not yet own.</td></tr>
+<tr><td>FR-B3</td><td>Description contains ≥5 user-spoken trigger phrases. Minimum set: "write me a primer on X", "ramp me up on Y", "generate a primer", "I need to learn about Z before a meeting", "/primer", "create a teachable artifact on this topic".</td></tr>
+<tr><td>FR-B4</td><td>Description is written in third person ("Use when…", not "I will…").</td></tr>
+<tr><td>FR-B5</td><td>Description contains NO numbered/bulleted step list, NO embedded mini-workflow. (Workflow lives in the body.)</td></tr>
+<tr><td>FR-B6</td><td>Description trigger conditions are phrased assertively ("Use this whenever…"), not hedged ("This skill can optionally help with…"). Anti-under-triggering.</td></tr>
+</table>
+
+<h3 id="fr-c-skill-patterns-structure">7.3 FR-C — skill-patterns.md §C: Structure &amp; progressive disclosure</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-C1</td><td>SKILL.md body (post-frontmatter) ≤500 lines target; 501–800 lines pass-with-note; &gt;800 lines fail. (NFR-1 mirrors this as a measurable.)</td></tr>
+<tr><td>FR-C2</td><td>Reference files under <code>plugins/pmos-learnkit/skills/primer/reference/</code> are depth-1 only — they MUST NOT chain to further reference files.</td></tr>
+<tr><td>FR-C3</td><td>Any reference file &gt;100 lines opens with a table-of-contents / section index in its first ~15 lines.</td></tr>
+<tr><td>FR-C4</td><td>All bundle file references use the portable token <code>${CLAUDE_PLUGIN_ROOT}</code> (or the body-local equivalent <code>plugins/pmos-learnkit/skills/primer/</code> in user-facing prose). No hard-coded absolute paths like <code>/Users/...</code>.</td></tr>
+<tr><td>FR-C5</td><td>Bundle layout: executable scripts under <code>scripts/</code> (none in v1); reference docs under <code>reference/</code>; assets / templates under <code>assets/</code> (none in v1 — substrate provides). <code>SKILL.md</code> alone at skill root.</td></tr>
+<tr><td>FR-C6</td><td>The SKILL.md body uses progressive disclosure — phase-level prose only; details (curator-lens framing, audience preset principles, rubric check definitions) live in <code>reference/</code>.</td></tr>
+<tr><td>FR-C7</td><td>Reference file inventory for v1: <code>reference/curator-lens.md</code> (prompt framing for Phase-4 draft), <code>reference/audience-presets.md</code> (the three-axis preset specification per requirements §Audience preset shape), <code>reference/rubric.md</code> (the 10-check reviewer rubric per FR-RUBRIC), <code>reference/source-floor.md</code> (Phase-2 source-floor + thin-source gate behavior).</td></tr>
+</table>
+
+<h3 id="fr-d-skill-patterns-body-content">7.4 FR-D — skill-patterns.md §D: Body &amp; content</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-D1</td><td>Body uses imperative form addressed to the agent ("Read X", "Write Y"), not narration ("the skill will read…").</td></tr>
+<tr><td>FR-D2</td><td>Body includes a <code>## Platform Adaptation</code> section immediately after the announce line, covering: no interactive prompt tool → state assumption + proceed; no Task subagent → run reviewer inline; no WebFetch → fail Phase 2 with the gate per requirements error journey #6.</td></tr>
+<tr><td>FR-D3</td><td>Body includes a learnings-load line near the top: read <code>~/.pmos/learnings.md</code> if present, factor entries under <code>## /primer</code>.</td></tr>
+<tr><td>FR-D4</td><td>Body ends with a numbered <code>## Phase N: Capture Learnings</code> section (numbered, not a trailing unnumbered tail).</td></tr>
+<tr><td>FR-D5</td><td>Body includes a <code>## Track Progress</code> instruction near the top — primer has 5 sequential phases plus intake/eval gates, so ≥3-phase threshold is met.</td></tr>
+<tr><td>FR-D6</td><td>Body explains the WHY for non-obvious instructions in one-line rationales; avoids all-caps shouting (<code>MUST</code>/<code>NEVER</code>/<code>ALWAYS</code> reserved for genuinely load-bearing constraints).</td></tr>
+<tr><td>FR-D7</td><td>Body includes one excellent worked example showing the Phase-1 → Phase-5 happy path for a sample topic (e.g., "feature flagging at scale").</td></tr>
+<tr><td>FR-D8</td><td>Body follows the recommended skeleton in spirit: Overview → When to Use → Core Pattern (5 phases) → Implementation → Anti-patterns.</td></tr>
+<tr><td>FR-D9</td><td>Body's only flowchart (if any) is justified — the 5-phase sequence is linear, so prose suffices; if a flowchart is included, it covers the trust-tier/taste-tier branching at Phase 5 (the only real branch).</td></tr>
+</table>
+
+<h3 id="fr-e-skill-patterns-scripts">7.5 FR-E — skill-patterns.md §E: Scripts &amp; tooling</h3>
+<p>v1 ships <strong>no bundled scripts</strong> (<code>scripts/</code> directory absent). §E checks (<code>e-scripts-dir</code>, <code>e-deps-documented</code>, <code>e-script-selftest</code>) resolve to N/A. <code>e-eval-driven</code> applies: the 10-check reviewer rubric documented in <code>reference/rubric.md</code> IS the eval, and the prose-skill carve-out in §E ("Prose-only skills and file-relocation tasks are carved out of the test-first requirement entirely") applies.</p>
+
+<h3 id="fr-f-skill-patterns-platform-conditional">7.6 FR-F — skill-patterns.md §F: Platform-conditional frontmatter</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-F1</td><td><code>user-invocable: true</code> present (per FR-A4).</td></tr>
+<tr><td>FR-F2</td><td><code>argument-hint</code> enumerates exactly the flags the body parses (per FR-A5) — stale hints (flags listed but not parsed, or parsed but not listed) are the failure case. The body's CLI-arg-parsing branch list MUST be byte-mappable to the argument-hint string.</td></tr>
+<tr><td>FR-F3</td><td>v1 ships claude-code target only; no <code>agents/openai.yaml</code> Codex sidecar in v1 (deferred to v2 if a pmos-learnkit Codex port is requested).</td></tr>
+</table>
+
+<h3 id="fr-g-skill-patterns-release-prereq-scope">7.7 FR-G — skill-patterns.md §G: Release-prerequisites scope</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-G1</td><td>This spec's <code>§17 Release prerequisites</code> section enumerates every file <code>/complete-dev</code> writes (manifests × 4, marketplace entries × 2, README row, changelog entry, learnings header bootstrap, .gitignore).</td></tr>
+<tr><td>FR-G2</td><td>/plan MUST NOT emit a <code>Wave N</code> task that edits <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code>, <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code>, <code>.claude-plugin/marketplace.json</code>, <code>.codex-plugin/marketplace.json</code>, <code>README.md</code> row, <code>docs/pmos/changelog.md</code>, or <code>~/.pmos/learnings.md</code> headers. <code>/execute</code> refuses to commit such edits if found.</td></tr>
+</table>
+
+<h3 id="fr-1-primer-behavior">7.8 FR-1..N — /primer behavior (per requirements)</h3>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-1</td><td><strong>Invocation.</strong> CLI shape: <code>/primer &lt;topic&gt; [--audience &lt;senior-pms|all-pms&gt;] [--autonomous] [--format html|md|both] [--non-interactive] [--interactive]</code>. Last flag wins on conflict. <code>--non-interactive</code>/<code>--interactive</code> follow the canonical non-interactive-block precedence (cli &gt; parent marker &gt; settings.default_mode &gt; builtin "interactive").</td></tr>
+<tr><td>FR-2</td><td><strong>Phase 0: Pipeline setup.</strong> Read <code>.pmos/settings.yaml</code> for <code>docs_path</code>, <code>output_format</code>, <code>default_mode</code>. Read <code>~/.pmos/learnings.md</code> §<code>/primer</code> if present. Resolve <code>output_format</code> per the canonical FR-12 precedence (cli <code>--format</code> &gt; settings &gt; default "html"). Print to stderr: <code>output_format: &lt;v&gt; (source: &lt;cli|settings|default&gt;)</code> and <code>mode: &lt;m&gt; (source: &lt;…&gt;)</code>.</td></tr>
+<tr><td>FR-3</td><td><strong>Phase 0.5: Consolidated confirm.</strong> Read <code>.pmos/primer.lastrun.yaml</code> if present. Single <code>AskUserQuestion</code> seeded from lastrun values (audience, output_format) lets the user one-touch-confirm or edit. <code>--autonomous</code> skips this gate.</td></tr>
+<tr><td>FR-4</td><td><strong>Phase 1: Intake.</strong> Derive <code>&lt;slug&gt;</code> from topic via <code>_shared</code> slug rules (lowercase, hyphenate, ≤64 chars). Canonical artifact path: <code>{docs_path}/primer/{YYYY-MM-DD}_&lt;slug&gt;.html</code>. If <code>--audience</code> missing AND not in lastrun, AskUserQuestion (Recommended: senior-pms). If <code>--audience</code> value is unknown (e.g., <code>eng-leads</code>), reject with platform-aware error listing v1 set + suggestion "use --audience all-pms as the broadest preset" (per requirements error journey #8).</td></tr>
+<tr><td>FR-4.1</td><td><strong>Topic vagueness heuristic.</strong> If topic is &lt;3 tokens AND no clear noun phrase, AskUserQuestion with 3 candidate refinements + "Other" escape (per error journey #1). <code>--autonomous</code> deferred-default: proceed with the topic as given (logged in OQ buffer).</td></tr>
+<tr><td>FR-4.2</td><td><strong>Artifact path collision.</strong> If <code>{date}_{slug}.html</code> exists, AskUserQuestion: Overwrite (git-snapshot first) / Append <code>-2</code> suffix (Recommended) / Abort.</td></tr>
+<tr><td>FR-5</td><td><strong>Phase 2: Research — try-both strategy.</strong> Dispatch in parallel: (a) context7 <code>resolve-library-id</code> with the topic verbatim; (b) WebFetch on 6–10 candidate URLs derived from the topic (seed via tool's domain-discovery). For each fetched URL, verify it resolves and capture a 1-line takeaway. Persist <code>sources.json</code> sidecar.</td></tr>
+<tr><td>FR-5.1</td><td><strong>≥3-source short-circuit.</strong> If either strand (context7 OR WebFetch) yields ≥3 usable resolving sources BEFORE the other completes, prefer that strand and cancel/drop the other's pending fetches (best-effort cancellation; on the host platform that means simply not awaiting). This bounds Phase 2 latency.</td></tr>
+<tr><td>FR-5.2</td><td><strong>Source floor = 4.</strong> If merged Phase-2 output yields &lt;4 verified resolving sources, surface the source-floor gate (Abort (Recommended) / Proceed with thin-source disclosure / Retry with alternate query frame). On Retry, run one alternate query reframe; if still &lt;4, re-surface the gate (no auto-retry loop).</td></tr>
+<tr><td>FR-5.3</td><td><strong>sources.json schema.</strong> One JSON file at <code>{date}_{slug}.sources.json</code> sibling to the HTML: <code>{ "topic": "...", "fetched_at": "&lt;ISO-8601&gt;", "audience": "...", "sources": [ { "url": "...", "title": "...", "takeaway": "&lt;1-line&gt;", "source": "&lt;web|context7&gt;", "resolved_at": "&lt;ISO-8601&gt;" }, ... ] }</code>.</td></tr>
+<tr><td>FR-5.4</td><td><strong>WebFetch unavailable.</strong> If no WebFetch tool present (platform adaptation), Phase 2 surfaces "WebFetch unavailable. Abort / Continue with no sources (NOT recommended)." If continued, artifact is marked "uncited draft" in footer banner; reviewer rubric flags it; trust-tier <code>cites-real-urls</code> resolves to N/A-fail (counts as a trust fail unless explicitly overridden).</td></tr>
+<tr><td>FR-6</td><td><strong>Phase 3: Outline.</strong> Render a 10–14 H2 section outline biased by the audience preset's required-sections list (per requirements §Audience preset shape). Inline the outline in chat for user review.</td></tr>
+<tr><td>FR-6.1</td><td><strong>Phase-3 interactive gate.</strong> AskUserQuestion: Approve outline (Recommended) / Edit / Re-prompt with feedback / Abort. On Edit, accept free-form reply and re-render. On Re-prompt, accept guidance text and re-generate from scratch. <code>--autonomous</code> skips the gate.</td></tr>
+<tr><td>FR-7</td><td><strong>Phase 4: Draft.</strong> Single-pass draft against the approved outline, inlining citations as <code>&lt;a href=&quot;{url-from-sources.json}&quot;&gt;</code> tags. Target ~3000 words for <code>--depth mid</code>. <strong>No diagram-pass, no persona-pass, no blind-primer.</strong> Curator-lens framing applied via <code>reference/curator-lens.md</code> prompt content.</td></tr>
+<tr><td>FR-7.1</td><td><strong>Citation discipline.</strong> Every <code>&lt;a href&gt;</code> URL in the draft MUST appear in <code>sources.json</code>. No novel URLs introduced. (Enforced as trust-tier reviewer check <code>cites-real-urls</code>.)</td></tr>
+<tr><td>FR-8</td><td><strong>Phase 5: Eval — reviewer subagent.</strong> Dispatch <code>Task</code> tool with a fresh subagent prompt: read the draft + <code>sources.json</code> + the 10-check rubric from <code>reference/rubric.md</code>; return a JSON array of <code>{check_id, verdict: pass|fail, evidence, quote}</code>. <strong>The reviewer makes NO edits — scores and reports only.</strong> (Mirrors /skill-eval D10 separation.)</td></tr>
+<tr><td>FR-8.1</td><td><strong>Reviewer URL verification authority.</strong> Reviewer cross-checks every URL in the draft against <code>sources.json</code>; reviewer does NOT re-fetch URLs (per requirements D15 / OQ-6 resolution). Phase 2 owns URL resolution.</td></tr>
+<tr><td>FR-8.2</td><td><strong>Reviewer-output validation.</strong> After the reviewer returns, /primer validates the returned set: (a) <code>check_id</code> set MUST equal the 10 IDs declared in <code>reference/rubric.md</code> — any miss/extra is a hard fail with the precise diff. (b) For every <code>fail</code> verdict, the <code>quote</code> field MUST be a ≥40-char verbatim substring of the draft (or of <code>sources.json</code> for plagiarism check) — a <code>fail</code> with empty/non-matching quote is treated as <code>pass</code>. Pattern mirrors /skill-eval FR-43/44.</td></tr>
+<tr><td>FR-8.3</td><td><strong>Auto-apply iteration 1.</strong> If iteration-1 verdict has any <code>fail</code>, /primer authors a fix patch inline (NOT the reviewer — separation of writer and reviewer) and re-runs the reviewer ONCE. Iteration cap = 1.</td></tr>
+<tr><td>FR-8.4</td><td><strong>Trust-tier hard-block.</strong> After iteration 1, if ANY trust-tier check is still failing (<code>cites-real-urls</code>, <code>no-plagiarism</code>, <code>no-hand-wavy-claims</code>, <code>sections-json-ids-match</code>), /primer hard-blocks the write per FR-RECOVERY below.</td></tr>
+<tr><td>FR-8.5</td><td><strong>Taste-tier accept-as-known-risk.</strong> If after iteration 1 only taste-tier checks are failing, /primer surfaces the residuals (AskUserQuestion: Accept as known risk and write (Recommended) / Iterate manually / Abort). On Accept, the artifact ships with a "Known residuals" footer note listing the failed taste-tier check IDs.</td></tr>
+<tr><td>FR-8.6</td><td><strong>Phase-5 interactive gate.</strong> Before the final write (when not hard-blocked), AskUserQuestion: Approve and write (Recommended) / Iterate manually / Abort. <code>--autonomous</code> skips this gate (residuals still apply per FR-8.5; trust-tier still hard-blocks per FR-8.4).</td></tr>
+<tr><td>FR-9</td><td><strong>Phase 5 → write.</strong> On approve, atomic temp-then-rename for the trio: <code>{date}_{slug}.html.tmp</code>, <code>{date}_{slug}.sections.json.tmp</code>, <code>{date}_{slug}.sources.json.tmp</code>. After all three temp-writes succeed, rename all three in sequence; any rename failure aborts and removes all temps. (No partial states.) Copy assets via <code>cp -n</code> from <code>plugins/pmos-learnkit/skills/_shared/html-authoring/assets/</code> to <code>{docs_path}/primer/assets/</code>. Regenerate <code>{docs_path}/primer/index.html</code> per <code>_shared/html-authoring/index-generator.md</code>.</td></tr>
+<tr><td>FR-9.1</td><td><strong>Heading IDs.</strong> Every <code>&lt;h2&gt;</code> and <code>&lt;h3&gt;</code> in the primer body carries a stable kebab-case <code>id</code> per <code>_shared/html-authoring/conventions.md §3</code>. <code>sections.json</code> deep-equals the on-page ID list (trust-tier check #7 enforces).</td></tr>
+<tr><td>FR-9.2</td><td><strong>Cache-bust.</strong> All asset URL refs in the emitted HTML carry <code>?v=&lt;pmos-learnkit-plugin-version&gt;</code> (NOT pmos-toolkit's version). The version is read at write time from <code>plugins/pmos-learnkit/.claude-plugin/plugin.json :: version</code> — single source of truth, no hard-coded literal in the skill body. The writer passes the resolved value into the <code>{{plugin_version}}</code> template token (per FR-14.2). If <code>plugin.json</code> is missing or unparseable, the writer fails fast with a clear error rather than emitting un-cache-busted asset refs.</td></tr>
+<tr><td>FR-9.3</td><td><strong>Output format.</strong> When <code>output_format = both</code>, emit MD sidecar via <code>node {docs_path}/primer/assets/html-to-md.js {date}_{slug}.html &gt; {date}_{slug}.md</code> after the HTML rename succeeds.</td></tr>
+<tr><td>FR-10</td><td><strong>FR-RECOVERY: Hard-block recovery artifact.</strong> When FR-8.4 triggers, /primer does NOT discard work. (a) Write <code>sources.json</code> to its canonical (non-draft) path <code>{date}_{slug}.sources.json</code>. (b) Write the rejected draft to <code>{date}_{slug}.draft.html</code> with: top-of-body banner <code>&lt;div class="primer-rejected-banner" role="alert"&gt;REJECTED BY REVIEWER — DO NOT TRUST&lt;/div&gt;</code>; a "Failing checks" section listing each failed trust-tier check with its reviewer verdict text + quote; the full draft body below. (c) Print to chat: <code>Trust-tier check '&lt;name&gt;' failed after auto-apply iteration. Hard-block: no primer artifact written. Draft preserved at &lt;path&gt;.draft.html for review. Manually patch and rerun, or rerun fresh.</code> (d) Do NOT regenerate <code>index.html</code> for a draft — the draft is not listed.</td></tr>
+<tr><td>FR-10.1</td><td><strong>Recovery banner CSS.</strong> The substrate's <code>style.css</code> may not have <code>.primer-rejected-banner</code>. /primer inlines the banner styles in the draft.html <code>&lt;style&gt;</code> tag at write time (red background, white text, large readable size, sticky positioning). v2 can promote to substrate.</td></tr>
+<tr><td>FR-11</td><td><strong>FR-RUBRIC: 10-check reviewer rubric.</strong> Documented at <code>plugins/pmos-learnkit/skills/primer/reference/rubric.md</code>. The 10 checks with tier assignments and binary pass-criteria are reproduced in §7.9 below.</td></tr>
+<tr><td>FR-12</td><td><strong>FR-LASTRUN: Per-developer repeat-run memory.</strong> Write <code>.pmos/primer.lastrun.yaml</code> at successful completion (or at hard-block recovery): <code>{ last_topic: "...", last_audience: "...", last_output_format: "...", last_artifact_path: "...", last_elapsed_seconds: N }</code>. File MUST be in <code>.gitignore</code> (per requirements + matches v2.41.0 <code>.pmos/complete-dev.lastrun.yaml</code> pattern).</td></tr>
+<tr><td>FR-13</td><td><strong>FR-NON-INTERACTIVE: Canonical non-interactive contract.</strong> /primer SKILL.md inlines the canonical <code>&lt;!-- non-interactive-block:start --&gt;</code> ... <code>:end --&gt;</code> contract from <code>plugins/pmos-learnkit/skills/_shared/non-interactive.md</code> (synced from pmos-toolkit). All <code>AskUserQuestion</code> calls in /primer have an option labeled <code>(Recommended)</code> OR are tagged with <code>&lt;!-- defer-only: &lt;reason&gt; --&gt;</code>. <code>tools/audit-recommended.sh</code> shipped with the skill family will pass.</td></tr>
+<tr><td>FR-14</td><td><strong>FR-SUBSTRATE: Attribution parameterization (substrate change).</strong> <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> is updated so the toolbar &amp; footer attribution links carry a <code>data-pmos-plugin</code> attribute and use a render-time variable for plugin name + repo URL. Default values render exactly the current bytes ("pmos-toolkit" + the existing href). The substrate then sync-shares to <code>plugins/pmos-learnkit/skills/_shared/html-authoring/template.html</code> via <code>scripts/sync-shared.sh --from=pmos-toolkit</code>. /primer's writer sets <code>plugin_name="pmos-learnkit"</code> and <code>plugin_url="https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme"</code> (or local-repo equivalent — exact href TBD in /execute per §17 Release prerequisites).</td></tr>
+<tr><td>FR-14.1</td><td><strong>Substrate backwards-compat.</strong> Every existing pmos-toolkit skill artifact rendered AFTER the FR-14 substrate change MUST render byte-stable <strong>user-visible attribution</strong> — the rendered link text ("Created using pmos-toolkit", with the soft-hyphen) AND the href value (the existing pmos-toolkit URL) AND the <code>class</code> attributes are byte-identical to pre-change output. The added <code>data-pmos-plugin</code> attribute is additive (HTML5 custom data-* hook; invisible to readers; ignored by /polish, html-to-md, and copy-MD). Validated by re-rendering a sample existing artifact post-change and diffing: the only allowed diff is the addition of the <code>data-pmos-plugin="pmos-toolkit"</code> attribute on the two attribution <code>&lt;a&gt;</code> tags.</td></tr><tr><td>FR-14.2</td><td><strong>Template-rendering mechanism — writer-side string replacement.</strong> The substrate ships no template engine. <code>template.html</code> is a static HTML file with literal <code>{{plugin_name}}</code>, <code>{{plugin_name_nbsp}}</code>, <code>{{plugin_url}}</code>, <code>{{plugin_version}}</code>, <code>{{title}}</code>, <code>{{content}}</code>, <code>{{source_path}}</code>, <code>{{asset_prefix}}</code> tokens. Writer skills (artifact, spec, requirements, plan, primer, etc.) read template.html, perform string-replace on the tokens, and write the resulting HTML. The contract is: tokens are literal <code>{{name}}</code> patterns; replacement is a single pass; no recursive expansion; no escaping (template authors are responsible for safe values). Tokens that a particular writer doesn't override fall through with the substrate-default values listed in §11.1.</td></tr>
+<tr><td>FR-15</td><td><strong>FR-MANIFEST: New plugin manifests at v0.1.0.</strong> /complete-dev (NOT /execute, per FR-G2) writes: <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code> at <code>0.1.0</code> with mirrored content. <code>.claude-plugin/marketplace.json</code> + <code>.codex-plugin/marketplace.json</code> each gain a new <code>plugins[]</code> entry for <code>pmos-learnkit</code> at <code>0.1.0</code>. Pre-commit drift hook (existing) enforces the four-file version sync.</td></tr>
+</table>
+
+<h3 id="fr-rubric-detail">7.9 FR-RUBRIC — the 10 reviewer-rubric checks (per OQ-2 resolution)</h3>
+<p>Lives in <code>plugins/pmos-learnkit/skills/primer/reference/rubric.md</code>. The reviewer subagent is prompted with this file inlined as the rubric source-of-truth.</p>
+<table>
+<tr><th>#</th><th>check_id</th><th>tier</th><th>Pass-criterion (binary)</th></tr>
+<tr><td>R1</td><td><code>cites-real-urls</code></td><td><strong>trust</strong></td><td>Every <code>&lt;a href&gt;</code> URL in the primer body is present (exact match, after normalization — trailing-slash + fragment-stripped) in <code>sources.json[].url</code>. No novel URLs.</td></tr>
+<tr><td>R2</td><td><code>no-plagiarism</code></td><td><strong>trust</strong></td><td>No verbatim span ≥40 contiguous chars from any <code>sources.json[].takeaway</code> appears outside a <code>&lt;blockquote&gt;</code> or <code>&lt;pre&gt;</code>/<code>&lt;code&gt;</code> block. (Code samples and explicit blockquotes are allowed verbatim.)</td></tr>
+<tr><td>R3</td><td><code>no-hand-wavy-claims</code></td><td><strong>trust</strong></td><td>No orphan "should/might/could" sentence without a cited antecedent or self-derivation. Every quantitative claim (number, percentage, "most", "many", "studies show") has either a <code>&lt;a href&gt;</code> citation OR a self-derivation in-text.</td></tr>
+<tr><td>R4</td><td><code>covers-ground</code></td><td>taste</td><td>Every approved Phase-3 H2 section title appears as an <code>&lt;h2&gt;</code> in the draft (case-insensitive, normalized).</td></tr>
+<tr><td>R5</td><td><code>right-reading-level</code></td><td>taste</td><td>For <code>--audience senior-pms</code>: no inline definitions of common PM concepts (a-b-test, NPS, churn, retention, activation). For <code>--audience all-pms</code>: every term of art on first use carries a 1-sentence inline definition.</td></tr>
+<tr><td>R6</td><td><code>structurally-complete</code></td><td>taste</td><td>Document has exactly one <code>&lt;h1&gt;</code>, ≥10 <code>&lt;h2&gt;</code> sections, opening paragraph &lt;120 words, closing section matches audience preset's "closing shape" (senior: open debates; all: concrete actions).</td></tr>
+<tr><td>R7</td><td><code>sections-json-ids-match</code></td><td><strong>trust</strong> (per D-RUBRIC)</td><td><code>sections.json[].id</code> set equals the on-page <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> <code>id=</code> attribute set, in document order. (Composability contract for /flashcards, /quiz consumers.)</td></tr>
+<tr><td>R8</td><td><code>audience-vocab</code></td><td>taste</td><td>Section selection matches audience preset's required-section list (per requirements §Audience preset shape). senior-pms: includes "Tradeoffs we considered against", "Metrics calibration", "Open debates". all-pms: includes "Common pitfalls", "What to do on day 1", "Questions to ask your team".</td></tr>
+<tr><td>R9</td><td><code>flags-uncertainty</code></td><td>taste</td><td>Where the cited sources disagree, or where evidence is thin (3 sources or fewer agreeing), the primer says so — at least one phrase like "the evidence is mixed", "sources disagree", "data is thin" or near-equivalent OR an explicit "Open debates" section flags the disagreement.</td></tr>
+<tr><td>R10</td><td><code>primer-shaped</code></td><td>taste</td><td>The document teaches a topic — it does NOT argue a thesis. No thesis statement in the opening (no "this article argues that…", "the answer is…", "X is the right approach"). No call-to-action closing for a specific position.</td></tr>
+</table>
+
+<h3 id="skill-md-body-structure">7.10 SKILL.md body structure (the concrete phase list /plan tasks against)</h3>
+<p>The /primer skill body MUST be structured as the following numbered phases, in this order. Section names are normative (used by <code>audit-recommended.sh</code>, <code>skill-eval-check.sh</code>, and /verify); intent text is informative.</p>
+<table>
+<tr><th>Section</th><th>Intent (one-line)</th><th>Maps to FRs</th></tr>
+<tr><td><code>## Announce</code> (first line of body)</td><td>"Using primer to research and draft a teachable artifact on '&lt;topic&gt;'." (FR-D6 imperative).</td><td>FR-D1, FR-D6</td></tr>
+<tr><td><code>## Platform Adaptation</code></td><td>No interactive prompt → state assumption + proceed; no Task subagent → run reviewer inline; no WebFetch → Phase 2 gate (FR-5.4); no context7 MCP → WebFetch-only Phase 2.</td><td>FR-D2</td></tr>
+<tr><td><code>## Track Progress</code></td><td>Create one task per phase via the host agent's tracker; in_progress on start, completed on finish.</td><td>FR-D5</td></tr>
+<tr><td><code>## Phase 0: Pipeline setup + Load Learnings</code></td><td>Read settings.yaml, resolve output_format + mode per the canonical non-interactive block, load <code>~/.pmos/learnings.md</code> §<code>/primer</code> if present.</td><td>FR-2, FR-D3, FR-13</td></tr>
+<tr><td><code>## Phase 0.5: Consolidated confirm</code></td><td>Read lastrun.yaml; single AskUserQuestion seeded from prior values; <code>--autonomous</code> skips.</td><td>FR-3, FR-12</td></tr>
+<tr><td><code>## Phase 1: Intake</code></td><td>Derive slug + canonical path; resolve audience; topic-vagueness heuristic; path-collision gate.</td><td>FR-4, FR-4.1, FR-4.2</td></tr>
+<tr><td><code>## Phase 2: Research (try-both)</code></td><td>Parallel context7 + WebFetch; ≥3-source short-circuit; source-floor gate; sources.json schema.</td><td>FR-5, FR-5.1, FR-5.2, FR-5.3, FR-5.4</td></tr>
+<tr><td><code>## Phase 3: Outline</code></td><td>Render 10–14 H2 outline biased by audience preset; interactive gate (Approve/Edit/Re-prompt/Abort); <code>--autonomous</code> skips.</td><td>FR-6, FR-6.1</td></tr>
+<tr><td><code>## Phase 4: Draft</code></td><td>Single-pass draft against approved outline; curator-lens framing from <code>reference/curator-lens.md</code>; citation discipline.</td><td>FR-7, FR-7.1</td></tr>
+<tr><td><code>## Phase 5: Eval + Write</code></td><td>Dispatch reviewer subagent (Task); validate returned JSON; auto-apply iteration 1; trust-tier hard-block → FR-10 recovery; taste-tier accept-as-known-risk gate; final write gate; atomic temp-then-rename trio; asset copy; index regen.</td><td>FR-8 ... FR-8.6, FR-9, FR-9.1, FR-9.2, FR-9.3, FR-10, FR-10.1</td></tr>
+<tr><td><code>## Phase 6: Capture Learnings</code></td><td>Numbered (per FR-D4) — read <code>learnings/learnings-capture.md</code> equivalent; reflect on surprises; zero entries is a valid outcome.</td><td>FR-D4</td></tr>
+<tr><td><code>## Anti-Patterns (DO NOT)</code></td><td>Per FR-D8 skeleton — list ≥6 anti-patterns: invent URLs, skip reviewer, write on trust-fail, deep-fetch in Phase 2 (per source-floor design), introduce novel URLs in Phase 4, conflate audience presets, run subagents in Phases 2–4 (per D2).</td><td>FR-D8</td></tr>
+</table>
+<p><strong>What is NOT in the body skeleton:</strong> a Workstream Enrichment phase (/primer does not load a workstream in Phase 0 per FR-2); a Frontend Design phase (substrate-only per §11); /spec-style multi-role Phase 3 (the orchestrator runs that, not /primer).</p>
+
+</section>
+
+<section id="non-functional-requirements">
+<h2 id="non-functional-requirements">8. Non-Functional Requirements</h2>
+<table>
+<tr><th>ID</th><th>Category</th><th>Requirement</th></tr>
+<tr><td>NFR-1</td><td>Code-budget</td><td>SKILL.md body ≤500 lines (target); ≤800 lines (hard cap per skill-patterns §C). Tracked at /verify via <code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> minus frontmatter.</td></tr>
+<tr><td>NFR-2</td><td>Latency</td><td>Wall-clock invocation → artifact write: &lt; 6 min target for <code>--depth mid</code> on first 3 real runs. Phase 2 latency bounded by FR-5.1 ≥3-source short-circuit.</td></tr>
+<tr><td>NFR-3</td><td>Network resilience</td><td>WebFetch failures on individual sources do NOT abort Phase 2 — they are logged as "Skipped: &lt;url&gt; — &lt;reason&gt;" and counted against the source floor.</td></tr>
+<tr><td>NFR-4</td><td>Idempotence</td><td>Asset substrate copy uses <code>cp -n</code> (no-clobber); index regeneration is deterministic given the same set of artifacts in <code>{docs_path}/primer/</code>.</td></tr>
+<tr><td>NFR-5</td><td>Atomicity</td><td>The Phase-5 write of (html + sections.json + sources.json) is atomic — all three rename or none do. Intermediate temp files are cleaned up on any rename failure.</td></tr>
+<tr><td>NFR-6</td><td>Observability</td><td>/primer emits stderr log lines at Phase-0 entry per the canonical non-interactive-block (mode + output_format with source). Phase 2 prints fetch results inline. Phase 5 prints the verdict table. End-of-run prints elapsed time.</td></tr>
+<tr><td>NFR-7</td><td>Single-developer state</td><td><code>.pmos/primer.lastrun.yaml</code> is per-developer, gitignored, never persisted across users or machines.</td></tr>
+</table>
+</section>
+
+<section id="api-contracts">
+<h2 id="api-contracts">9. API Contracts — N/A (filesystem-only)</h2>
+<p>/primer introduces no HTTP or RPC API surface. The skill's "external contract" surfaces are:</p>
+<ul>
+<li><strong>CLI contract:</strong> the invocation shape in FR-1 above is the user-facing contract. <code>argument-hint</code> frontmatter MUST mirror it exactly (FR-F2).</li>
+<li><strong>File contracts:</strong> <code>{date}_{slug}.html</code> conforms to the substrate template (template.html + heading-ID conventions); <code>{date}_{slug}.sections.json</code> conforms to the substrate sections.json schema; <code>{date}_{slug}.sources.json</code> conforms to FR-5.3.</li>
+<li><strong>Tool contracts (external dependencies):</strong> WebFetch (host platform), Task (host platform, used for reviewer subagent), AskUserQuestion (host platform), context7 MCP <code>resolve-library-id</code> (optional MCP server). /primer degrades gracefully if any of context7, Task, or AskUserQuestion are missing (Platform Adaptation per FR-D2); if WebFetch is missing, Phase 2 surfaces the gate per FR-5.4.</li>
+</ul>
+</section>
+
+<section id="database-design">
+<h2 id="database-design">10. Database Design — N/A (no DB)</h2>
+<p>/primer writes only to the host filesystem under <code>{docs_path}/primer/</code> + <code>.pmos/</code>. No database, no shared cache, no remote state.</p>
+</section>
+
+<section id="frontend-design">
+<h2 id="frontend-design">11. Frontend Design — substrate-only</h2>
+<p>The "frontend" of /primer's artifact IS the substrate. /primer writes content into the substrate template (template.html + style.css + viewer.js) per FR-9. No new components.</p>
+
+<h3 id="substrate-change-attribution">11.1 Substrate change — attribution parameterization</h3>
+<p>Per FR-14 + D-ATTRIB + D17, <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> is updated to parameterize the toolbar (lines 17–20) and footer (lines 25–32) attribution links. Proposed concrete change:</p>
+<pre><code>// Before (lines 17-20 + 28-31, identical pattern):
+&lt;a class="pmos-attribution pmos-attribution--toolbar"
+   href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+   target="_blank" rel="noopener noreferrer"
+   data-pmos-role="attribution"&gt;Created using pmos&amp;#8209;toolkit&lt;/a&gt;
+
+// After:
+&lt;a class="pmos-attribution pmos-attribution--toolbar"
+   href="{{plugin_url}}"
+   target="_blank" rel="noopener noreferrer"
+   data-pmos-role="attribution"
+   data-pmos-plugin="{{plugin_name}}"&gt;Created using {{plugin_name_nbsp}}&lt;/a&gt;
+
+// Substrate render-time defaults (in pipeline-setup.md or the writer skill):
+//   plugin_name      = "pmos-toolkit"
+//   plugin_name_nbsp = "pmos&amp;#8209;toolkit"      // soft-hyphen for nice line-break
+//   plugin_url       = "https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+</code></pre>
+<p>/primer writer overrides all three to the pmos-learnkit values. Existing pmos-toolkit skills do not opt in and render byte-identical attribution.</p>
+
+<h3 id="recovery-banner-styles">11.2 Hard-block recovery banner styles</h3>
+<p>Per FR-10.1, /primer inlines a <code>&lt;style&gt;</code> block in <code>{date}_{slug}.draft.html</code> for <code>.primer-rejected-banner</code>: red background (<code>#b71c1c</code>), white text, 1.25rem padding, sticky top, role="alert", screen-reader announcement. Reference styling lives at <code>plugins/pmos-learnkit/skills/primer/reference/recovery-banner.md</code> (out of v1 — inline-only for now).</p>
+</section>
+
+<section id="edge-cases">
+<h2 id="edge-cases">12. Edge Cases</h2>
+<p>Carries forward all 7 rows from <code>01_requirements.html §Empty States &amp; Edge Cases</code>. Spec-specific additions:</p>
+<table>
+<tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr>
+<tr><td>E1</td><td>Phase-2 try-both: BOTH strands return zero sources</td><td>context7 returns no library match AND WebFetch resolves 0 of 6–10 URLs</td><td>Surface the source-floor gate (FR-5.2) with "0 verified sources" framing. Recommended = Abort. If user picks "Continue with no sources", FR-5.4 path applies (uncited draft + reviewer flag + trust-tier fail).</td></tr>
+<tr><td>E2</td><td>Phase-2 short-circuit race</td><td>context7 returns 3+ sources AND WebFetch returns 3+ sources within ~1s of each other</td><td>Merge both; dedupe by normalized URL (case-insensitive host + path-stripped trailing-slash + fragment-stripped). Source attribution prefers whichever strand returned the URL first (recorded in <code>sources.json[].source</code>).</td></tr>
+<tr><td>E3</td><td>Reviewer returns malformed JSON</td><td>Phase-5 subagent returns a string that doesn't parse as JSON, or an array missing required keys</td><td>FR-8.2 validation fails. Surface the failure dialog (Retry reviewer / Iterate manually / Abort). Recommended = Retry once. Pattern mirrors /skill-eval FR-44.</td></tr>
+<tr><td>E4</td><td><code>output_format=both</code> AND HTML rename succeeds but MD sidecar generation fails</td><td><code>html-to-md.js</code> throws (unsupported HTML construct, OOM)</td><td>HTML artifact is canonical; MD sidecar failure is logged to chat (<code>WARNING: MD sidecar generation failed: &lt;error&gt;; HTML artifact at &lt;path&gt; is canonical</code>) but does NOT block the run. Per requirements + FR-33 of the substrate (MD sidecar is read-only, never source of truth).</td></tr>
+<tr><td>E5</td><td>Asset substrate not yet present in pmos-learnkit</td><td>First-ever pmos-learnkit skill run; <code>plugins/pmos-learnkit/skills/_shared/html-authoring/assets/</code> empty</td><td>/primer detects empty <code>_shared/html-authoring/assets/</code> and surfaces: "<code>scripts/sync-shared.sh --from=pmos-toolkit</code> has not been run since the pmos-learnkit plugin was created. Run it now? (Recommended: yes)". /complete-dev Phase 8 ensures the sync runs as part of the release flow; this gate handles the dev-loop case before that release.</td></tr>
+<tr><td>E6</td><td>Substrate-change rollback</td><td>FR-14 substrate change merged but a regression discovered in pmos-toolkit artifacts</td><td>Revert <code>template.html</code> to the pre-FR-14 bytes (the default-value contract per D17 makes the diff small and reversible). pmos-learnkit's /primer will then render with the pmos-toolkit default attribution until the substrate change is re-applied — a known but acceptable state for &lt;1 release cycle.</td></tr>
+</table>
+</section>
+
+<section id="configuration-and-feature-flags">
+<h2 id="configuration-and-feature-flags">13. Configuration &amp; Feature Flags</h2>
+<table>
+<tr><th>Setting</th><th>Source</th><th>Default</th><th>Purpose</th></tr>
+<tr><td><code>docs_path</code></td><td><code>.pmos/settings.yaml</code></td><td>(repo-set)</td><td>Root for primer artifacts (<code>{docs_path}/primer/</code>).</td></tr>
+<tr><td><code>output_format</code></td><td><code>.pmos/settings.yaml</code> + <code>--format</code></td><td><code>html</code></td><td>Primary artifact format; <code>both</code> emits MD sidecar.</td></tr>
+<tr><td><code>default_mode</code></td><td><code>.pmos/settings.yaml</code></td><td><code>interactive</code></td><td>Resolves /primer interactive vs non-interactive when no CLI flag passed.</td></tr>
+<tr><td><code>--audience</code></td><td>CLI flag + lastrun.yaml</td><td><code>senior-pms</code> (Phase 0.5 default)</td><td>Drives audience preset (FR-4, R5, R8).</td></tr>
+<tr><td><code>--autonomous</code></td><td>CLI flag</td><td>off (interactive)</td><td>Skips Phase 0.5, Phase 3, Phase 5 gates. Trust-tier hard-block + taste-tier residuals still apply.</td></tr>
+<tr><td><code>last_topic</code> / <code>last_audience</code> / <code>last_output_format</code></td><td><code>.pmos/primer.lastrun.yaml</code></td><td>(empty on first run)</td><td>Seeds Phase 0.5 consolidated confirm.</td></tr>
+</table>
+<p>No new env vars in v1. No new feature flags — <code>--autonomous</code>, <code>--format</code>, <code>--audience</code> are user-facing flags, not internal feature flags.</p>
+</section>
+
+<section id="testing-and-verification-strategy">
+<h2 id="testing-and-verification-strategy">14. Testing &amp; Verification Strategy</h2>
+
+<h3 id="unit-tests">14.1 Unit tests</h3>
+<p>None ship in v1 — /primer is a prose-skill with no bundled scripts (FR-E5 N/A carve-out per §E). The reviewer rubric IS the eval per <code>e-eval-driven</code>.</p>
+
+<h3 id="integration-tests">14.2 Integration tests — manual smoke</h3>
+<p>Three real /primer runs constitute the v1 integration test suite:</p>
+<ol>
+<li><code>/primer "feature flagging at scale"</code> — default audience (senior-pms), interactive, expect &lt; 6 min, expect ≥4 sources, expect all 4 trust-tier checks pass.</li>
+<li><code>/primer "PLG metrics" --audience all-pms --autonomous</code> — autonomous, expect no gates fired, expect "Known residuals" footer note if any taste-tier checks fail.</li>
+<li><code>/primer "tRPC"</code> — library-shape topic, expect context7 strand to short-circuit (FR-5.1), expect sources include context7-sourced entries.</li>
+</ol>
+
+<h3 id="skill-eval-deterministic">14.3 skill-eval deterministic half</h3>
+<pre><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+  --target claude-code plugins/pmos-learnkit/skills/primer/
+
+# Expected: all [D] checks pass.
+# Failure modes: a-name-matches-dir (frontmatter `name` != "primer"),
+#                c-body-size (SKILL.md > 800 lines),
+#                f-cc-argument-hint-matches (argument-hint stale).
+</code></pre>
+
+<h3 id="skill-eval-judge">14.4 skill-eval LLM-judge half</h3>
+<p>Run by /feature-sdlc Phase 6a (skill-mode). The reviewer subagent reads SKILL.md + every reference file + the <code>[J]</code> checks from <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md</code>. Expected: all <code>[J]</code> checks pass; if any fail and remediation iteration 1 doesn't clear them, surface the accept-as-known-risk gate or abort per the feature-sdlc Phase 6a contract.</p>
+
+<h3 id="trust-tier-hard-block-recovery">14.5 Hard-block recovery test</h3>
+<p>Synthetic test: invoke /primer with a contrived topic that produces ≥1 hallucinated URL (e.g., manually edit Phase-4 draft mid-run to insert <code>&lt;a href="https://fake.example.org"&gt;</code>). Confirm: (a) reviewer flags <code>cites-real-urls</code> trust-tier fail; (b) auto-apply iteration 1 either fixes or fails to fix; (c) on persistent fail, draft.html is written with banner, sources.json persisted, no canonical artifact written, no index.html update. (This is a manual test in v1 — a <code>--force-trust-fail</code> dev flag is a v2 backlog candidate.)</p>
+
+<h3 id="visual-attribution-diff">14.6 Visual attribution diff (FR-14 substrate change)</h3>
+<p>Before merge: render any existing pmos-toolkit artifact (e.g., this spec doc) AFTER the FR-14 substrate change. Confirm the toolbar + footer attribution text reads "Created using pmos-toolkit" with the existing href — byte-identical to the pre-change render. Then render a /primer artifact; confirm "Created using pmos-learnkit" with the pmos-learnkit href. Diffing the two HTML files: only the attribution-link bytes should differ (+ the title + content).</p>
+
+<h3 id="verification-commands">14.7 Verification commands</h3>
+<pre><code># Deterministic skill-eval
+bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+  --target claude-code plugins/pmos-learnkit/skills/primer/
+
+# Substrate sync (post-FR-14)
+scripts/sync-shared.sh --from=pmos-toolkit
+git diff plugins/pmos-learnkit/skills/_shared/html-authoring/template.html
+# Expected: matches plugins/pmos-toolkit/skills/_shared/html-authoring/template.html byte-for-byte
+
+# Pre-commit drift hook
+.githooks/pre-commit
+# OR
+git commit --dry-run
+# Expected: passes after manifest version bumps land
+
+# Audit-recommended (canonical non-interactive contract)
+bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh \
+  plugins/pmos-learnkit/skills/primer/SKILL.md
+# Expected: every AskUserQuestion call has either a (Recommended) option or a defer-only tag
+
+# Real smoke
+/primer "feature flagging at scale"
+</code></pre>
+</section>
+
+<section id="rollout-strategy">
+<h2 id="rollout-strategy">15. Rollout Strategy</h2>
+<ol>
+<li><strong>Substrate change first.</strong> Land FR-14 (template.html parameterization) in pmos-toolkit, bump pmos-toolkit to a patch release (e.g. 2.51.1), confirm byte-stable attribution on existing artifacts.</li>
+<li><strong>Scaffold pmos-learnkit plugin.</strong> Create <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> at v0.1.0. Update both <code>marketplace.json</code> files to add the <code>pmos-learnkit</code> entry.</li>
+<li><strong>Sync substrate.</strong> Run <code>scripts/sync-shared.sh --from=pmos-toolkit</code>. Verify pre-commit drift hook is green.</li>
+<li><strong>Implement /primer.</strong> Per /plan tasks (T1..T_N from the plan doc). Single-skill scope; no script bundles.</li>
+<li><strong>Skill-eval gate.</strong> /feature-sdlc Phase 6a runs the rubric. Trust-tier checks must pass; taste-tier residuals require explicit accept-as-known-risk.</li>
+<li><strong>Verify.</strong> /verify runs the manual smoke triple (§14.2) + deterministic skill-eval + audit-recommended.</li>
+<li><strong>/complete-dev releases.</strong> Phase 8 of /feature-sdlc writes the README row, the changelog entry, the <code>~/.pmos/learnings.md</code> <code>## /primer</code> header bootstrap, tags <code>pmos-learnkit/v0.1.0</code>, and pushes to both configured remotes (origin + gitlab-mirror).</li>
+<li><strong>Rollback plan.</strong> The new plugin is additive — removal is <code>git rm -r plugins/pmos-learnkit/</code> + revert the four manifest entries + revert the substrate change. No data migrations to reverse. Cached installs of pmos-toolkit are unaffected.</li>
+<li><strong>Post-ship monitoring.</strong> Watch for: (a) the first 3 runs hitting &lt; 6 min (G1 calibration); (b) reviewer rubric catching ≥1 issue per run on average over 10 runs (NFR calibration — if the rubric never fires, it's miscalibrated); (c) user external-share signal within 2 weeks (G3 / A1 validation early indicator).</li>
+<li><strong>Post-v1 A1 retrospective.</strong> After 3 successful runs, the 2-hour side-by-side spike runs (D-A1). If A1 disconfirms in practice, v2 ports a minimal <code>/source-eval</code> sibling skill (per requirements Non-Goal #6).</li>
+</ol>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">16. Research Sources</h2>
+<table>
+<tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr>
+<tr><td><code>01_requirements.html</code> (this feature)</td><td>Requirements doc</td><td>Tier 3 / type=feature; 5-phase pipeline; trust/taste rubric split; source floor = 4; lastrun.yaml pattern; 16 decisions already logged.</td></tr>
+<tr><td><code>grills/2026-05-23_01_requirements.html</code> (this feature)</td><td>Grill artifact</td><td>Q1–Q7 dispositions: defer A1 validation, ship on smaller "verified-source primer" claim, audience preset = 3 concrete axes, trust/taste split, floor = 4, reviewer cross-checks (not re-fetch), hard-block writes draft.html.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md</code></td><td>Standing acceptance (this repo)</td><td>§A–§G derived FRs (FR-A* through FR-G*). 1:1 mirror with <code>skill-eval.md</code>.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md</code></td><td>Eval rubric (this repo)</td><td>The <code>[D]</code> + <code>[J]</code> check pairs /feature-sdlc Phase 6a grades against. /primer must satisfy on first iteration.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/{template.html, conventions.md, index-generator.md}</code></td><td>Substrate (this repo)</td><td>Writer pattern, heading-ID conventions, kebab-case slug rules, index manifest format. Inherited verbatim post sync-shared.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/_shared/non-interactive.md</code> + <code>interactive-prompts.md</code></td><td>Substrate (this repo)</td><td>Canonical non-interactive contract; AskUserQuestion platform fallback (numbered free-form). /primer inlines verbatim.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/artifact/</code></td><td>Adjacent skill (this repo)</td><td>Writer wiring pattern (atomic temp-then-rename, asset copy, index regen). /primer mirrors.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/polish/</code></td><td>Adjacent skill (this repo)</td><td>Binary rubric + auto-apply + iteration-cap pattern. /primer Phase 5 mirrors structurally.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/complete-dev/</code> (lastrun.yaml v2.41.0)</td><td>Adjacent skill (this repo)</td><td>The <code>.pmos/&lt;skill&gt;.lastrun.yaml</code> + Phase-0.5 consolidated-confirm pattern. /primer FR-3 + FR-12 mirror directly.</td></tr>
+<tr><td><code>CLAUDE.md ## Plugin manifest version sync</code> + <code>## Release policy</code> (this repo)</td><td>Repo invariants</td><td>Four-file version-sync rule (per-plugin × 2 + marketplace × 2); pre-commit drift hook; <code>scripts/sync-shared.sh --from=&lt;plugin&gt;</code> as the only sanctioned mutation path.</td></tr>
+<tr><td>WebFetch tool (Claude Code built-in)</td><td>Host platform tool</td><td>URL-resolution-required, returns text/HTML body. /primer uses WebFetch (NOT WebSearch) per requirements D13.</td></tr>
+<tr><td>context7 MCP server (configured)</td><td>External tool</td><td>Library/SDK docs lookup via <code>resolve-library-id</code>. /primer Phase 2 try-both strand. Per the MCP's own instructions, the agent uses it even when it thinks it knows the answer.</td></tr>
+</table>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">17. Review Log</h2>
+<table>
+<tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr>
+<tr><td>1</td><td>[Should-fix] D17 + FR-14.1 wording overclaimed "byte-stable" — actually adds a data-* attribute. [Should-fix] Template-rendering mechanism for {{plugin_name}} was undefined. [Should-fix] Spec didn't enumerate the SKILL.md body's phase structure. [Nit] FR-9.2 didn't specify where pmos-learnkit version is read from.</td><td>Tightened D17 + FR-14.1 to "user-visible attribution byte-stable"; added FR-14.2 specifying writer-side string-replace contract + token list; added §7.10 enumerating the 12-section SKILL.md body skeleton with FR mapping; tightened FR-9.2 to read from <code>plugins/pmos-learnkit/.claude-plugin/plugin.json :: version</code>.</td></tr>
+</table>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">18. Release prerequisites</h2>
+<p>Per skill-patterns.md §G + this repo's <code>CLAUDE.md ## Plugin manifest version sync</code> + <code>## Release policy</code>. These items are <strong>/complete-dev's scope only</strong> (Phase 8 of /feature-sdlc). /plan MUST NOT enumerate these as <code>Wave N</code> tasks (FR-G2); /execute MUST refuse to commit such file edits if found in a legacy plan.</p>
+<ul>
+<li><strong>New plugin manifests at v0.1.0.</strong> <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code> — mirrored content; pre-commit drift hook enforces sync.</li>
+<li><strong>Marketplace registration (both files).</strong> Add a new <code>plugins[]</code> entry for <code>pmos-learnkit</code> at version <code>0.1.0</code> in BOTH <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code>.</li>
+<li><strong>Substrate change (pmos-toolkit patch release).</strong> Land FR-14 template.html parameterization; bump pmos-toolkit (e.g. 2.51.0 → 2.51.1 or 2.52.0); sync to pmos-learnkit's <code>_shared/</code> via <code>scripts/sync-shared.sh --from=pmos-toolkit</code>.</li>
+<li><strong>Skill at canonical path.</strong> <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> with name=primer, full argument-hint string, ≥5 trigger phrases, all §A–§F frontmatter fields.</li>
+<li><strong>Per-plugin <code>_shared/</code>.</strong> <code>plugins/pmos-learnkit/skills/_shared/</code> populated via sync-shared.sh. Verify pre-commit drift hook green.</li>
+<li><strong>README row.</strong> Add a "pmos-learnkit" plugin section to the repo README listing /primer at v0.1.0 with a one-line description and v1 invocation shape.</li>
+<li><strong>Changelog entry.</strong> Per <code>/changelog</code> convention — "Add pmos-learnkit plugin with /primer skill (v0.1.0): verified-source, audience-shaped HTML primer with reviewer-vetted artifact at deterministic path."</li>
+<li><strong>Tag convention.</strong> <code>pmos-learnkit/v0.1.0</code> per <code>CLAUDE.md ## Release policy / Tag convention</code>.</li>
+<li><strong>Learnings header bootstrap.</strong> Idempotent append of <code>## /primer</code> to <code>~/.pmos/learnings.md</code>.</li>
+<li><strong>.gitignore.</strong> Ensure <code>.pmos/*.lastrun.yaml</code> (or equivalent pattern covering <code>.pmos/primer.lastrun.yaml</code>) is gitignored before the first commit lands.</li>
+<li><strong>Remote topology.</strong> /complete-dev Phase 15 pushes branch + tag to both configured remotes (<code>origin</code>, <code>gitlab-mirror</code>) per <code>CLAUDE.md ## Release policy / Remote topology</code>.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-23_pmos-learnkit-primer/02_spec.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

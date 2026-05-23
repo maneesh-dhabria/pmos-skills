@@ -1,0 +1,242 @@
+[
+  {
+    "id": "frontmatter",
+    "level": 2,
+    "title": "Frontmatter",
+    "parent_id": null
+  },
+  {
+    "id": "problem-statement",
+    "level": 2,
+    "title": "1. Problem Statement",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "2. Goals",
+    "parent_id": null
+  },
+  {
+    "id": "non-goals",
+    "level": 2,
+    "title": "3. Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "4. Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "user-personas-and-journeys",
+    "level": 2,
+    "title": "5. User Personas & Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "system-design",
+    "level": 2,
+    "title": "6. System Design",
+    "parent_id": null
+  },
+  {
+    "id": "architecture-overview",
+    "level": 3,
+    "title": "6.1 Architecture Overview",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-diagram-primary-flow",
+    "level": 3,
+    "title": "6.2 Sequence diagram — primary (happy-path) flow",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "7. Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-a-skill-patterns-frontmatter",
+    "level": 3,
+    "title": "7.1 FR-A — skill-patterns.md §A: Frontmatter (derived requirements)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-b-skill-patterns-description-triggering",
+    "level": 3,
+    "title": "7.2 FR-B — skill-patterns.md §B: Description & triggering",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-c-skill-patterns-structure",
+    "level": 3,
+    "title": "7.3 FR-C — skill-patterns.md §C: Structure & progressive disclosure",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-d-skill-patterns-body-content",
+    "level": 3,
+    "title": "7.4 FR-D — skill-patterns.md §D: Body & content",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-e-skill-patterns-scripts",
+    "level": 3,
+    "title": "7.5 FR-E — skill-patterns.md §E: Scripts & tooling",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-f-skill-patterns-platform-conditional",
+    "level": 3,
+    "title": "7.6 FR-F — skill-patterns.md §F: Platform-conditional frontmatter",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-g-skill-patterns-release-prereq-scope",
+    "level": 3,
+    "title": "7.7 FR-G — skill-patterns.md §G: Release-prerequisites scope",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-1-primer-behavior",
+    "level": 3,
+    "title": "7.8 FR-1..N — /primer behavior (per requirements)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-rubric-detail",
+    "level": 3,
+    "title": "7.9 FR-RUBRIC — the 10 reviewer-rubric checks (per OQ-2 resolution)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "skill-md-body-structure",
+    "level": 3,
+    "title": "7.10 SKILL.md body structure (the concrete phase list /plan tasks against)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "non-functional-requirements",
+    "level": 2,
+    "title": "8. Non-Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "api-contracts",
+    "level": 2,
+    "title": "9. API Contracts — N/A (filesystem-only)",
+    "parent_id": null
+  },
+  {
+    "id": "database-design",
+    "level": 2,
+    "title": "10. Database Design — N/A (no DB)",
+    "parent_id": null
+  },
+  {
+    "id": "frontend-design",
+    "level": 2,
+    "title": "11. Frontend Design — substrate-only",
+    "parent_id": null
+  },
+  {
+    "id": "substrate-change-attribution",
+    "level": 3,
+    "title": "11.1 Substrate change — attribution parameterization",
+    "parent_id": "frontend-design"
+  },
+  {
+    "id": "recovery-banner-styles",
+    "level": 3,
+    "title": "11.2 Hard-block recovery banner styles",
+    "parent_id": "frontend-design"
+  },
+  {
+    "id": "edge-cases",
+    "level": 2,
+    "title": "12. Edge Cases",
+    "parent_id": null
+  },
+  {
+    "id": "configuration-and-feature-flags",
+    "level": 2,
+    "title": "13. Configuration & Feature Flags",
+    "parent_id": null
+  },
+  {
+    "id": "testing-and-verification-strategy",
+    "level": 2,
+    "title": "14. Testing & Verification Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "unit-tests",
+    "level": 3,
+    "title": "14.1 Unit tests",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "integration-tests",
+    "level": 3,
+    "title": "14.2 Integration tests — manual smoke",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "skill-eval-deterministic",
+    "level": 3,
+    "title": "14.3 skill-eval deterministic half",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "skill-eval-judge",
+    "level": 3,
+    "title": "14.4 skill-eval LLM-judge half",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "trust-tier-hard-block-recovery",
+    "level": 3,
+    "title": "14.5 Hard-block recovery test",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "visual-attribution-diff",
+    "level": 3,
+    "title": "14.6 Visual attribution diff (FR-14 substrate change)",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "verification-commands",
+    "level": 3,
+    "title": "14.7 Verification commands",
+    "parent_id": "testing-and-verification-strategy"
+  },
+  {
+    "id": "rollout-strategy",
+    "level": 2,
+    "title": "15. Rollout Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "research-sources",
+    "level": 2,
+    "title": "16. Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "17. Review Log",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "18. Release prerequisites",
+    "parent_id": null
+  }
+]
