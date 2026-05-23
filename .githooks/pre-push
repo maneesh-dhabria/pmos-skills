@@ -35,14 +35,14 @@ for tag in $(git tag --points-at HEAD 2>/dev/null); do
     continue
   fi
   tag_plugin=${tag%%/v*}; tag_v=${tag##*/v}
-  cj=$(jq -r --arg n "$tag_plugin" '.plugins[]|select(.name==$n)|.version' .claude-plugin/marketplace.json 2>/dev/null)
-  xj=$(jq -r --arg n "$tag_plugin" '.plugins[]|select(.name==$n)|.version' .codex-plugin/marketplace.json 2>/dev/null)
   pv=$(jq -r '.version' "plugins/$tag_plugin/.claude-plugin/plugin.json" 2>/dev/null)
   xv=$(jq -r '.version' "plugins/$tag_plugin/.codex-plugin/plugin.json" 2>/dev/null)
-  if [ "$tag_v" != "$cj" ] || [ "$tag_v" != "$xj" ] || [ "$tag_v" != "$pv" ] || [ "$tag_v" != "$xv" ]; then
-    echo "ERROR: tag '$tag' version $tag_v does not match manifests (claude-plugin=$pv codex-plugin=$xv marketplace.claude=$cj marketplace.codex=$xj)." >&2
+  if [ "$tag_v" != "$pv" ] || [ "$tag_v" != "$xv" ]; then
+    echo "ERROR: tag '$tag' version $tag_v does not match manifests (claude-plugin=$pv codex-plugin=$xv)." >&2
     fail=1
   fi
+  # NOTE: marketplace.json entries intentionally carry no `version` field
+  # (per Anthropic guidance — plugin.json wins silently); see CLAUDE.md ## Plugin manifest version sync.
 done
 
 while read -r local_ref local_oid remote_ref remote_oid; do
@@ -103,10 +103,13 @@ while read -r local_ref local_oid remote_ref remote_oid; do
       fail=1
     fi
 
-    mc=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.version' .claude-plugin/marketplace.json 2>/dev/null)
-    mx=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.version' .codex-plugin/marketplace.json 2>/dev/null)
-    if [ "$mc" != "$local_v" ] || [ "$mx" != "$local_v" ]; then
-      echo "ERROR: $plugin marketplace drift — plugin.json=$local_v marketplace.claude=$mc marketplace.codex=$mx." >&2
+    # marketplace.json entries intentionally carry no `version` field
+    # (per Anthropic guidance — plugin.json wins silently); see CLAUDE.md ## Plugin manifest version sync.
+    # Confirm the plugin is registered in both marketplace files (presence-only check).
+    mc=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.name' .claude-plugin/marketplace.json 2>/dev/null)
+    mx=$(jq -r --arg n "$plugin" '.plugins[]|select(.name==$n)|.name' .codex-plugin/marketplace.json 2>/dev/null)
+    if [ "$mc" != "$plugin" ] || [ "$mx" != "$plugin" ]; then
+      echo "ERROR: $plugin not registered in marketplace.json files (claude=$mc codex=$mx)." >&2
       fail=1
     fi
   done

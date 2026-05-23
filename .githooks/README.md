@@ -6,7 +6,7 @@ Repo-local git hooks. Opt in once per clone:
 git config core.hooksPath .githooks
 ```
 
-`jq` is required for the pre-push hook (marketplace.json + namespaced tag
+`jq` is required for the pre-push hook (namespaced tag + marketplace presence
 checks — FR-45). Install with `brew install jq` / `apt install jq` /
 `dnf install jq`.
 
@@ -36,11 +36,10 @@ resulting changes and commit again.
 
 **Bypass.** `git commit --no-verify` — only for hook-maintenance commits.
 
-## pre-push (4-manifest version + tag)
+## pre-push (2-manifest version + tag + marketplace presence)
 
-Blocks pushes that modify plugin content without a coherent 4-manifest version
-bump, and blocks tags whose version disagrees with the manifests
-(FR-30, FR-40..FR-46a).
+Blocks pushes that modify plugin content without a coherent version bump, and
+blocks tags whose version disagrees with the manifests (FR-30, FR-40..FR-46a).
 
 **Why it exists.** Claude Code and Codex load installed plugins from a
 version-keyed cache (`~/.claude-personal/plugins/cache/<plugin>/<plugin>/<version>/`).
@@ -49,18 +48,18 @@ to skill files silently do nothing on any machine that already has the old
 version cached. `/reload-plugins` and new sessions do not invalidate the cache.
 
 **What it enforces.** For each plugin whose `skills/` or `agents/` changed in
-the range being pushed, all four of the following must match each other AND
-must differ from the remote tip's `plugins/<name>/.claude-plugin/plugin.json`
-version:
+the range being pushed:
 
-1. `plugins/<name>/.claude-plugin/plugin.json` — `version`
-2. `plugins/<name>/.codex-plugin/plugin.json` — `version`
-3. `.claude-plugin/marketplace.json` — `.plugins[name=<name>].version`
-4. `.codex-plugin/marketplace.json` — `.plugins[name=<name>].version`
+1. `plugins/<name>/.claude-plugin/plugin.json` — `version` must differ from remote tip.
+2. `plugins/<name>/.codex-plugin/plugin.json` — `version` must equal (1).
+3. `.claude-plugin/marketplace.json` — must register the plugin under `.plugins[]` by `name` (presence only; no `version` field).
+4. `.codex-plugin/marketplace.json` — same presence check.
+
+**Why marketplace entries carry no `version` field.** Per [Anthropic's marketplace docs](https://code.claude.com/docs/en/plugin-marketplaces): "The `plugin.json` value always wins silently, so a stale manifest version can mask a version you set in `marketplace.json`." Keeping marketplace entries version-free eliminates that drift class entirely. See `CLAUDE.md ## Plugin manifest version sync`.
 
 **Tag rules (FR-46/FR-46a).** Tags pointing at `HEAD` that don't already exist
 on `origin` must match `^<plugin>/v<semver>$` (e.g. `pmos-toolkit/v2.42.0`).
-The `<semver>` part must equal all four manifest versions above for the named
+The `<semver>` part must equal both `plugin.json` versions for the named
 plugin. The legacy unscoped `v<semver>` form is rejected.
 
 **Semver guidance** (enforced by discipline, not by the hook):
@@ -72,9 +71,8 @@ plugin. The legacy unscoped `v<semver>` form is rejected.
 **Prereq.** `jq` must be on `PATH` — the hook exits 1 immediately if it's
 missing (FR-45).
 
-**If the hook fires.** Bump all four manifests (`plugin.json` × 2 +
-`marketplace.json` × 2) to the same new version in a single commit, then
-push again. `/complete-dev` automates this; see
+**If the hook fires.** Bump both `plugin.json` files to the same new version
+in a single commit, then push again. `/complete-dev` automates this; see
 `plugins/pmos-toolkit/skills/complete-dev/SKILL.md`.
 
 **Bypass.** `git push --no-verify` — only for hook-maintenance commits

@@ -31,16 +31,32 @@ How to author or revise a skill in any plugin in this repo:
 
 ## Plugin manifest version sync
 
-Every release bumps **4 files per plugin**, all carrying the same version:
+Every release bumps **2 files per plugin**, both carrying the same version:
 
 ```
-plugins/<plugin>/.claude-plugin/plugin.json
-plugins/<plugin>/.codex-plugin/plugin.json
-.claude-plugin/marketplace.json   → plugins[<plugin>].version
-.codex-plugin/marketplace.json    → plugins[<plugin>].version
+plugins/<plugin>/.claude-plugin/plugin.json   → .version
+plugins/<plugin>/.codex-plugin/plugin.json    → .version
 ```
 
-The per-plugin `plugin.json` pair carries the plugin's own version. The two top-level `marketplace.json` files each list every plugin with its current version — both must mirror each other and must mirror the per-plugin `plugin.json`s. The pre-commit drift hook enforces sync across all four. When bumping versions for a release, edit all four files in the same commit.
+**Do NOT add a `version` field to entries in `.claude-plugin/marketplace.json` or `.codex-plugin/marketplace.json`.** Per Anthropic's official guidance ([docs](https://code.claude.com/docs/en/plugin-marketplaces)):
+
+> "Avoid setting `version` in both `plugin.json` and the marketplace entry. The `plugin.json` value always wins silently, so a stale manifest version can mask a version you set in `marketplace.json`."
+
+The `marketplace.json` files are catalogs — they list each plugin's `name`, `description`, `source`, `category`, and `homepage`, but `version` is resolved from each plugin's `plugin.json` at install time. Keeping marketplace entries version-free eliminates an entire class of silent-drift bug.
+
+When bumping versions for a release, edit only the two `plugin.json` files in the same commit. Each plugin versions independently (e.g., `pmos-toolkit` at 2.52.0 and `pmos-learnkit` at 0.1.0 coexist — they're separate semver tracks).
+
+## New-plugin scaffolding
+
+When introducing a new plugin to this repo, the minimum scaffold is:
+
+- `plugins/<plugin>/.claude-plugin/plugin.json` — `version: 0.1.0` (or higher), `name`, `description`, `skills: "./skills/"`.
+- `plugins/<plugin>/.codex-plugin/plugin.json` — same `name` + `version`; mirrors the Claude manifest with the `interface` block for Codex.
+- `.claude-plugin/marketplace.json` — add an entry under `plugins[]` with `name`, `description`, `source: "./plugins/<plugin>"`, `category`, `homepage`. **Do not include a `version` field** — see `## Plugin manifest version sync` above.
+- `.codex-plugin/marketplace.json` — matching entry (also no `version` field).
+- `## Release policy → Plugins list` (below) — add the plugin name.
+
+An unregistered plugin directory under `plugins/` is silently invisible to the marketplace — skills inside it won't load. New plugins must complete this scaffold before `/complete-dev` can release them.
 
 ## Release entry point
 
@@ -78,11 +94,11 @@ The per-plugin `plugin.json` pair carries the plugin's own version. The two top-
 
 ### Example bump targets (per-plugin)
 <!-- allow-hardcoded: example block intentionally cites the literal pmos-toolkit paths; tests filter this range out. -->
-For a `pmos-toolkit/v2.50.0` release, all four of these MUST carry version `2.50.0`:
+For a `pmos-toolkit/v2.50.0` release, both of these MUST carry version `2.50.0`:
 - `plugins/pmos-toolkit/.claude-plugin/plugin.json`
 - `plugins/pmos-toolkit/.codex-plugin/plugin.json`
-- `.claude-plugin/marketplace.json` → `plugins[pmos-toolkit].version`
-- `.codex-plugin/marketplace.json` → `plugins[pmos-toolkit].version`
+
+The `marketplace.json` files do NOT carry per-plugin `version` fields — see `## Plugin manifest version sync` above.
 <!-- /allow-hardcoded -->
 
 ## Bash portability

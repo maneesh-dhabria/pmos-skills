@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-23 — pmos-learnkit 0.1.0: new plugin shipping /primer
+
+First release of the **pmos-learnkit** plugin — a companion to `pmos-toolkit`
+focused on verified-source, audience-shaped teachable artifacts.
+
+- New `/primer <topic>` skill — researches a topic from primary sources,
+  drafts an audience-shaped HTML primer (`senior-pms` or `all-pms`), and
+  self-evaluates against a binary rubric before delivering. Use to ramp up
+  before a meeting, a scope review, or a doc review when you need citations
+  you can trust.
+- Audience presets shape depth, jargon, and examples — see
+  `reference/audience-presets.md`.
+- Source-floor enforcement prefers primary sources over secondary commentary;
+  surfaces degraded-source warnings when WebFetch / context7 are unavailable.
+- Curator-lens pass biases drafts toward non-obvious angles before final
+  evaluation.
+- Output: single self-contained HTML artifact (Markdown sidecar when
+  `output_format: both`).
+
+### References
+
+- [Requirements](features/2026-05-23_pmos-learnkit-primer/01_requirements.html)
+- [Spec](features/2026-05-23_pmos-learnkit-primer/02_spec.html)
+- [Plan](features/2026-05-23_pmos-learnkit-primer/03_plan.html)
+- [Verify report](features/2026-05-23_pmos-learnkit-primer/verify/2026-05-23-review.html)
+
 ## 2026-05-23 — pmos-toolkit 2.52.0: /feature-sdlc gains an optional /ideate phase before /requirements
 
 `/feature-sdlc` now slots an **optional Phase 1.5 `/ideate` gate** between init-state and `/requirements`, for the cases where a user has a half-formed idea and `/requirements` is the wrong starting point. The gate auto-detects fuzzy-vs-formed via a deterministic heuristic (`reference/fuzzy-idea-detection.md`); a formed seed silently skips with a log line, a fuzzy seed surfaces a single Run /ideate (Recommended) / Skip prompt. When `/ideate` runs and the resulting brief looks Tier-3 (≥3 user-journey sections OR ≥5 pressure-test findings OR `--tier 3` explicit), the orchestrator auto-chains `/grill --deep` on the brief before handing off to `/requirements`. The brief lands in the feature folder as `00d_ideate.html` (+ optional `00d-grill_ideate.html`) and is forwarded to `/requirements` via `[ideate-brief: …]` and `[ideate-grill: …]` first-line seed lines.
