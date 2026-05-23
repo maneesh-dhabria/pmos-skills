@@ -1,0 +1,284 @@
+[
+  {
+    "id": "problem-statement",
+    "level": 2,
+    "title": "1. Problem Statement",
+    "parent_id": null
+  },
+  {
+    "id": "goals-h",
+    "level": 2,
+    "title": "2. Goals",
+    "parent_id": null
+  },
+  {
+    "id": "non-goals-h",
+    "level": 2,
+    "title": "3. Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-h",
+    "level": 2,
+    "title": "4. Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "personas-h",
+    "level": 2,
+    "title": "5. User Personas & Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "persona-primary",
+    "level": 3,
+    "title": "5.1 Primary persona — solo PM-engineer operator",
+    "parent_id": "personas-journeys"
+  },
+  {
+    "id": "journeys-list",
+    "level": 3,
+    "title": "5.2 User Journeys",
+    "parent_id": "personas-journeys"
+  },
+  {
+    "id": "journey-new-launcher",
+    "level": 3,
+    "title": "5.3 New journey — first-time launcher discovery",
+    "parent_id": "personas-journeys"
+  },
+  {
+    "id": "system-design-h",
+    "level": 2,
+    "title": "6. System Design",
+    "parent_id": null
+  },
+  {
+    "id": "architecture-overview",
+    "level": 3,
+    "title": "6.1 Architecture Overview",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-diagrams",
+    "level": 3,
+    "title": "6.2 Sequence Diagrams",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "functional-requirements-h",
+    "level": 2,
+    "title": "7. Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-capture",
+    "level": 3,
+    "title": "7.1 Capture surface",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-persistence",
+    "level": 3,
+    "title": "7.2 Persistence",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-resolve",
+    "level": 3,
+    "title": "7.3 Resolve command",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-launcher",
+    "level": 3,
+    "title": "7.4 Always-serve launcher",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-svg-anchor",
+    "level": 3,
+    "title": "7.5 SVG anchoring retrofit",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-contract-tests",
+    "level": 3,
+    "title": "7.6 Contract tests + verification",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "nfr-h",
+    "level": 2,
+    "title": "8. Non-Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "api-contracts-h",
+    "level": 2,
+    "title": "9. API Contracts",
+    "parent_id": null
+  },
+  {
+    "id": "api-apply-edit",
+    "level": 3,
+    "title": "9.1 Apply-edit-at-anchor entrypoint (S13 + FR-NEW-B)",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "api-error-enum",
+    "level": 3,
+    "title": "9.2 Error taxonomy (FR-NEW-B closed set)",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "api-idempotency",
+    "level": 3,
+    "title": "9.3 Idempotency",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "sidecar-schema-h",
+    "level": 2,
+    "title": "10. Sidecar Schema (Data Design)",
+    "parent_id": null
+  },
+  {
+    "id": "schema-v1",
+    "level": 3,
+    "title": "10.1 Schema v1 — JSON Schema (draft-07)",
+    "parent_id": "sidecar-schema"
+  },
+  {
+    "id": "schema-evolution",
+    "level": 3,
+    "title": "10.2 Schema evolution (S3)",
+    "parent_id": "sidecar-schema"
+  },
+  {
+    "id": "schema-write-protocol",
+    "level": 3,
+    "title": "10.3 Write protocol",
+    "parent_id": "sidecar-schema"
+  },
+  {
+    "id": "frontend-design-h",
+    "level": 2,
+    "title": "11. Frontend Design",
+    "parent_id": null
+  },
+  {
+    "id": "component-hierarchy",
+    "level": 3,
+    "title": "11.1 Component hierarchy",
+    "parent_id": "frontend-design"
+  },
+  {
+    "id": "state-mgmt",
+    "level": 3,
+    "title": "11.2 State management",
+    "parent_id": "frontend-design"
+  },
+  {
+    "id": "ui-spec",
+    "level": 3,
+    "title": "11.3 UI specifications",
+    "parent_id": "frontend-design"
+  },
+  {
+    "id": "edge-cases-h",
+    "level": 2,
+    "title": "12. Edge Cases",
+    "parent_id": null
+  },
+  {
+    "id": "configuration-h",
+    "level": 2,
+    "title": "13. Configuration & Feature Flags",
+    "parent_id": null
+  },
+  {
+    "id": "testing-h",
+    "level": 2,
+    "title": "14. Testing & Verification Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "testing-unit",
+    "level": 3,
+    "title": "14.1 Unit Tests",
+    "parent_id": "testing"
+  },
+  {
+    "id": "testing-integration",
+    "level": 3,
+    "title": "14.2 Integration Tests",
+    "parent_id": "testing"
+  },
+  {
+    "id": "testing-e2e",
+    "level": 3,
+    "title": "14.3 End-to-End Tests",
+    "parent_id": "testing"
+  },
+  {
+    "id": "testing-coverage",
+    "level": 3,
+    "title": "14.4 Coverage script (FR-62)",
+    "parent_id": "testing"
+  },
+  {
+    "id": "testing-perf",
+    "level": 3,
+    "title": "14.5 Performance verification (NFR-01, NFR-02)",
+    "parent_id": "testing"
+  },
+  {
+    "id": "testing-anchor-calibration",
+    "level": 3,
+    "title": "14.6 Anchor calibration (Goal-1, S2)",
+    "parent_id": "testing"
+  },
+  {
+    "id": "rollout-h",
+    "level": 2,
+    "title": "15. Rollout Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "rollout-order",
+    "level": 3,
+    "title": "15.1 Build order (vertical-slice → fanout)",
+    "parent_id": "rollout"
+  },
+  {
+    "id": "rollout-flags",
+    "level": 3,
+    "title": "15.2 Feature flags + degradation",
+    "parent_id": "rollout"
+  },
+  {
+    "id": "rollout-back",
+    "level": 3,
+    "title": "15.3 Rollback",
+    "parent_id": "rollout"
+  },
+  {
+    "id": "rollout-migration",
+    "level": 3,
+    "title": "15.4 Migration of existing artifacts",
+    "parent_id": "rollout"
+  },
+  {
+    "id": "sources-h",
+    "level": 2,
+    "title": "16. Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions-h",
+    "level": 2,
+    "title": "17. Open Questions",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="spec">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Inline doc comments — Spec</title>
+<link rel="stylesheet" href="assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments for HTML pipeline artifacts — Spec</h1>
+  <dl class="meta">
+    <dt>tier</dt><dd>3</dd>
+    <dt>type</dt><dd>feature</dd>
+    <dt>feature</dt><dd>inline-doc-comments</dd>
+    <dt>date</dt><dd>2026-05-23</dd>
+    <dt>status</dt><dd>Ready for Plan</dd>
+    <dt>requirements</dt><dd><a href="01_requirements.html">01_requirements.html</a></dd>
+  </dl>
+</header>
+
+<section id="problem">
+  <h2 id="problem-statement">1. Problem Statement</h2>
+  <p>The pmos-toolkit pipeline emits 14 HTML artifacts per feature (12 skills + 2 orchestrator-emitted), but feedback on those artifacts lives only in free-form chat — costing 200–800 tokens of restated location context per revision round, and offering no cross-session audit trail. The locked direction (Finalist A-hybrid in <a href="01_requirements.html#solution">requirements §Solution</a>) attaches feedback to a specific element via a pre-baked overlay, persists threads to a committed sidecar JSON, and resolves them through a single <code>/comments resolve</code> command that dispatches per-thread subagents routed by the originating skill. <strong>Primary success metric:</strong> ≥80% of opened threads reach <code>resolved</code> status within their feature's review cycle, with ≥90% anchor resolution rate via id-first matching.</p>
+</section>
+
+<section id="goals">
+  <h2 id="goals-h">2. Goals</h2>
+  <table>
+    <thead><tr><th>#</th><th>Goal</th><th>Success Metric</th></tr></thead>
+    <tbody>
+      <tr><td>G1</td><td>Precision review — operator attaches feedback to exact text span / heading / diagram region</td><td>Anchor-resolution rate (id-first ≥90%, quote-fallback ≤5%, orphan ≤5%) at 30 days post-ship; calibrated against 50 random spans from the existing <code>docs/pmos/</code> corpus.</td></tr>
+      <tr><td>G2</td><td>AI-driven edit application via single command</td><td>End-to-end latency &lt;60s p50 in default <code>--confirm-each</code> mode; ≥80% of opened threads reach <code>resolved</code> within their feature's review cycle.</td></tr>
+      <tr><td>G3</td><td>Replace chat as the primary revision channel for generated artifacts</td><td>Qualitative — operator self-reports overlay feels primary at 30 days. <em>Intentionally unfalsifiable</em> per requirements G3; git history carries no comment-vs-chat marker.</td></tr>
+      <tr><td>G4</td><td>One-double-click capture surface (consolidates requirements Goal-4 + Goal-4b after spec D1)</td><td>Binary: operator double-clicks the per-folder launcher → browser opens the artifact at <code>http://localhost:&lt;ephemeral-port&gt;/</code> with overlay loaded; capture works on all browsers; FSA in-place writes succeed on Chrome/Edge, download-to-replace on Safari/Firefox.</td></tr>
+      <tr><td>G5</td><td>Cross-session audit trail via git</td><td>Spot-check 5 resolved threads — full message history (user + system replies + status transitions) reconstructable from <code>git log --follow &lt;artifact&gt;.comments.json</code>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="non-goals">
+  <h2 id="non-goals-h">3. Non-Goals</h2>
+  <ul>
+    <li><strong>NOT supporting <code>file://</code> as a capture path</strong> — because FSA refuses <code>file://</code> origins (research finding #3); the always-serve architecture (D1) makes <code>http://localhost</code> the only supported path.</li>
+    <li><strong>NOT shipping a CI-side drift-hook mirror in v1</strong> (D7) — local pre-commit hook only; CI mirror deferred to v1.1 if drift-bypass becomes a real problem. Accepts <code>--no-verify</code> bypass risk for solo-operator scope.</li>
+    <li><strong>NOT building a browser-tab auto-refresh during live <code>/comments resolve</code></strong> (D14, requirements OQ8) — operator manually reloads to see resolved threads; revisit if it causes confusion.</li>
+    <li><strong>NOT producing a resolution-log artifact</strong> (D15, requirements OQ10) — per-run chat summary + git history of sidecars carries the durable trail; no <code>comments-resolved-YYYY-MM-DD.log</code> file.</li>
+    <li><strong>NOT supporting automated sidecar follow-rename in v1</strong> (D12, requirements OQ1) — operator runs <code>git mv</code> on both <code>.html</code> and <code>.comments.json</code> manually; drift hook catches mismatches.</li>
+    <li><em>Inherits all 9 non-goals from <a href="01_requirements.html#goals-non">requirements §Non-Goals</a></em> — mobile/tablet viewing, cross-artifact coherence checks, vendoring Annotator.js / Hypothes.is client, auto-migration of existing artifacts, official Safari/Firefox support for in-place writes, render-comments-into-MD path, thread labels/severity metadata, multi-author UI, clean-share mode that hides overlay for stakeholders.</li>
+  </ul>
+</section>
+
+<section id="decisions">
+  <h2 id="decisions-h">4. Decision Log</h2>
+  <p>17 spec-layer decisions, captured in Phase 3 multi-role interview + research findings. Each maps to one or more downstream FRs. <em>These supplement the 25 decisions D1–D25 already locked in <a href="01_requirements.html#decisions">requirements §Design Decisions</a>; references below to D1–D25 mean the requirements doc's decision IDs. Spec-layer decisions are numbered S1–S17 to avoid collision.</em></p>
+  <table>
+    <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td>S1</td><td><strong>Always-serve architecture:</strong> every artifact is opened via a substrate-provided launcher running bundled <code>serve.js</code> on an ephemeral <code>http://localhost</code> port; <code>file://</code> is not a supported open path</td><td>(a) always-serve via launcher (chosen), (b) two-tier UX (file:// for capture, http:// for save), (c) mandate explicit <code>/comments serve</code> command, (d) abandon FSA and use download-to-replace everywhere</td><td>FSA does not work over <code>file://</code> origins (research finding #3 — Chrome refuses on secure-context requirement). Consolidates Goal-4 + Goal-4b into a single architecture: FSA in-place on Chrome/Edge, download-to-replace on Safari/Firefox — both over <code>http://localhost</code>. Eliminates file:// permission quirks, IndexedDB-handle reload edge cases, and the "Goal-4b second-class browser" tier from requirements. Supersedes <a href="01_requirements.html#goals-positive">requirements Goal-4 wording</a>.</td></tr>
+      <tr><td>S2</td><td><strong>Anchor scorer is diff-match-patch + Bitap</strong> with <code>Match_Threshold=0.5</code>, <code>Match_Distance=1000</code> chars; vendored at <code>_shared/html-authoring/assets/diff-match-patch.js</code> (~10KB minified, public domain)</td><td>(a) diff-match-patch+Bitap (chosen), (b) roll our own with Levenshtein ≥0.85, (c) defer scorer choice to /plan spike</td><td>Hypothes.is and Annotator.js ship on diff-match-patch+Bitap; Bitap blends edit-distance with positional-proximity (Levenshtein lacks the location term). Public-domain library, battle-tested at scale. Resolves <a href="01_requirements.html#open-questions">requirements OQ14</a> — supersedes the "Levenshtein ≥0.85" lean with a published scorer. Threshold tuned in /plan against 50 random spans from existing <code>docs/pmos/</code> corpus.</td></tr>
+      <tr><td>S3</td><td><strong>Sidecar schema versioning:</strong> integer <code>schema_version</code> + <code>lineage</code> UUID; read-tolerant (accepts version ≤ current); write-current (upgrades in-place); refuse-load on version &gt; tool; no separate migrator binary</td><td>(a) package-lock.json model + lineage (chosen), (b) schema_version only, (c) refuse-load on any mismatch</td><td>Mirrors <code>package-lock.json</code> + Terraform <code>tfstate</code> patterns (research finding #5) — read accepts older, write upgrades, refuse on newer-than-tool. The <code>lineage</code> UUID detects cross-artifact-copy accidents (operator does <code>cp 02_spec.comments.json 03_plan.comments.json</code> by mistake). Git history is our serial — no Terraform-style <code>serial</code> counter needed.</td></tr>
+      <tr><td>S4</td><td><strong>Thread ID format:</strong> 8-char nanoid (URL-safe alphabet, ~48 bits)</td><td>(a) 8-char nanoid (chosen), (b) 10-char nanoid, (c) uuid v4</td><td>Per-artifact scoping makes collisions vanishingly rare: 1-in-5.6M at 10k threads in a single sidecar (birthday-bound math, research finding #4). Stays human-readable in URL fragments (<code>#c-aB3xK9Lm</code>). Resolves <a href="01_requirements.html#open-questions">requirements OQ2</a>.</td></tr>
+      <tr><td>S5</td><td><strong>Drift hook is local-only in v1; CI mirror deferred to v1.1</strong></td><td>(a) local-only v1 (chosen), (b) local + CI mirror, (c) CI-only</td><td>SOPS-ecosystem precedent (research finding #2) says CI mirror is needed because <code>--no-verify</code> always bypasses local hooks. For solo-operator scope, the bypass risk is acceptable in v1 — the operator is the only one committing. v1.1 adds <code>.github/workflows/comments-drift.yml</code> if drift-bypass surfaces as a real problem. Spec records this as accepted technical debt.</td></tr>
+      <tr><td>S6</td><td><strong>Launcher distribution:</strong> substrate auto-copies <code>comments-open.command</code> (macOS), <code>comments-open.sh</code> (Linux), <code>comments-open.bat</code> (Windows) into every feature folder alongside <code>assets/</code> on every HTML emit; <code>cp -n</code> idempotent</td><td>(a) auto-copy trio per folder (chosen), (b) single repo-level <code>bin/pmos-open</code>, (c) operator one-time install via <code>scripts/install-launchers.sh</code></td><td>Zero-install, preserves the "double-click in Finder" UX promised by Goal-4. Three small scripts (≤30 LOC each) added to <code>_shared/html-authoring/assets/</code>; auto-copy ride-along with the existing asset substrate pattern.</td></tr>
+      <tr><td>S7</td><td><strong>OQ1 — sidecar-follows-artifact-on-rename:</strong> out-of-scope at v1; document <code>git mv</code> pair convention in <code>_shared/html-authoring/conventions.md</code></td><td>(a) out-of-scope + convention (chosen), (b) git filter automation, (c) rename-aware sidecar lookup</td><td>Operator runs both <code>git mv</code> calls when renaming an artifact. The drift hook (D21) catches mismatches at commit time. Low frequency (artifact renames are rare in this repo's history); not worth the automation cost in v1.</td></tr>
+      <tr><td>S8</td><td><strong>OQ6 — id-coverage audit as /plan spike</strong> (1-hour task before substrate work begins)</td><td>(a) /plan spike (chosen), (b) trust conventions.md without verification, (c) per-skill audit in each skill's PR</td><td><code>conventions.md §3</code> + <code>assert_heading_ids.sh</code> already mandate kebab-case ids, but a one-shot grep across all 14 emitting skills' historical artifacts surfaces any pre-conventions docs that lack ids. Gates the id-first anchor strategy from shipping on broken assumptions.</td></tr>
+      <tr><td>S9</td><td><strong>OQ8 — tab auto-refresh is non-goal in v1;</strong> document "reload tab to see resolved threads" in <code>/comments</code> SKILL.md body</td><td>(a) no auto-refresh (chosen), (b) mtime polling in overlay, (c) WebSocket from serve.js</td><td>Adds complexity (mtime polling adds CPU; WebSocket adds infra) for a low-priority UX nicety. Operator workflow is "run resolve in terminal, reload tab, review" — one extra keystroke. Revisit if it becomes friction.</td></tr>
+      <tr><td>S10</td><td><strong>OQ9 — re-dispatch cap = 2</strong> in <code>--confirm-each</code> reject workflow (D25)</td><td>(a) cap=2 (chosen), (b) cap=1, (c) cap=3, (d) uncapped</td><td>After 2 re-prompts with refinement notes, the option list collapses to <code>{edit-the-proposal-and-accept, leave-open-and-skip}</code>. Prevents thrashing on threads the resolver fundamentally can't satisfy. Matches the lean in <a href="01_requirements.html#decisions">requirements D25</a>.</td></tr>
+      <tr><td>S11</td><td><strong>OQ10 — no resolution-log artifact;</strong> per-run chat summary + git history of sidecars carries audit trail</td><td>(a) chat + git only (chosen), (b) per-run <code>comments-resolved-YYYY-MM-DD.log</code>, (c) append to a feature-folder-wide <code>comments-history.log</code></td><td>Sidecars are already committed; <code>git log --follow &lt;artifact&gt;.comments.json</code> reconstructs full thread history. A separate log artifact is duplicate state. Chat summary at end of <code>/comments resolve</code> run gives the immediate "what happened" view.</td></tr>
+      <tr><td>S12</td><td><strong>OQ11 — <code>--non-interactive</code> mode:</strong> processes unambiguous threads; ambiguous threads (those that would have triggered live <code>AskUserQuestion</code>) defer via in-thread system-reply, status stays <code>open</code></td><td>(a) process unambiguous + defer ambiguous (chosen), (b) skip resolve entirely in non-interactive, (c) auto-pick first option on ambiguous</td><td>Matches canonical non-interactive contract (AUTO-PICK unambiguous, DEFER ambiguous). Resolver returns clean exit with summary; operator re-runs interactively for the deferred set.</td></tr>
+      <tr><td>S13</td><td><strong>Apply-edit-at-anchor entrypoint lives in</strong> <code>_shared/apply-edit-at-anchor.md</code> as a contract doc; each of the 14 skills cites it from their SKILL.md body and implements a phase named "Apply comment-resolver edit"</td><td>(a) contract doc + per-skill phase (chosen), (b) shared script in <code>_shared/</code> that each skill <code>source</code>s, (c) standalone script per-skill with no shared contract</td><td>The contract is prose + JSON-schema (not executable code); each skill's apply logic is genuinely different (e.g., /requirements re-renders frontmatter, /diagram regenerates SVG). Shared script doesn't fit. Contract-doc-as-source-of-truth matches existing repo pattern (e.g., <code>_shared/html-authoring/conventions.md</code>).</td></tr>
+      <tr><td>S14</td><td><strong>Apply-edit-at-anchor uses the LSP non-overlapping-ranges invariant + apply-right-to-left strategy</strong> for <code>--batch</code> mode; same wave-planner algorithm as <code>/execute --subagent-driven</code> v2.39.0</td><td>(a) LSP ranges + right-to-left + reused wave planner (chosen), (b) ad-hoc overlap detection, (c) last-write-wins (no planner), (d) post-dispatch conflict surface</td><td>Published precedent (LSP 3.17 spec, research finding #6) — partition threads into waves where in-wave ranges are pairwise disjoint, apply right-to-left within file so earlier-batch offsets stay valid. Wave-planner substrate from <code>plugins/pmos-toolkit/skills/execute/SKILL.md</code> Phase 1 (Kahn's algorithm + greedy packing) is directly reusable. Mirrors <a href="01_requirements.html#decisions">requirements D15</a>.</td></tr>
+      <tr><td>S15</td><td><strong>SVG <code>data-anchor</code> retrofit scope:</strong> /diagram and /wireframes SVG generators add <code>data-anchor="&lt;stable-slug&gt;"</code> to every <code>&lt;g&gt;</code> group and top-level <code>&lt;rect&gt;</code>/<code>&lt;path&gt;</code> shape; foreign SVGs (e.g., embedded by /artifact from external sources) get bounding-box pixel anchors as fallback</td><td>(a) retrofit + bbox fallback (chosen), (b) bbox-only universal, (c) refuse non-anchored SVGs, (d) per-SVG-whole comments</td><td>Inherits <a href="01_requirements.html#decisions">requirements D4</a>; this spec pins the exact retrofit shape (which SVG elements get the attribute, what the slug derivation is). Slug = kebab-cased <code>id</code> attribute if present, else kebab-cased label text, else <code>shape-&lt;N&gt;</code> ordinal fallback. Two-skill spike per requirements D4; effort estimated in /plan.</td></tr>
+      <tr><td>S16</td><td><strong>FSA permission handling:</strong> overlay treats <code>PermissionStatus === 'prompt'</code> mid-session as a normal state (Chrome 122+ auto-revokes on backgrounded tabs, research finding #3); writes call <code>requestPermission({mode: 'readwrite'})</code> on every save attempt and surface a non-blocking banner if denied</td><td>(a) per-save re-request + banner (chosen), (b) one-time request at page load, (c) IndexedDB-cached handle with eager re-request on revocation</td><td>Research finding #3: Chrome 122+ silently revokes FSA permission when tabs background "for a while". A one-time request fails on long sessions. Per-save re-request keeps the operator in control without losing drafts (drafts mirror to <code>localStorage</code> until save succeeds — same as Safari fallback path).</td></tr>
+      <tr><td>S17</td><td><strong>FileSystemHandle persistence:</strong> store directory handle in IndexedDB keyed by artifact absolute path (URL pathname); rehydrate on page load with permission re-prompt if needed</td><td>(a) IndexedDB + rehydrate (chosen), (b) localStorage (impossible — handles non-serializable), (c) re-pick file on every load</td><td>Research finding #3: <code>FileSystemHandle</code>s survive reload only when stored in IndexedDB. Eliminates the "re-pick file on every reload" UX wart. Clearing site data nukes them — documented limitation.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="personas-journeys">
+  <h2 id="personas-h">5. User Personas &amp; Journeys</h2>
+
+  <h3 id="persona-primary">5.1 Primary persona — solo PM-engineer operator</h3>
+  <p>Per <a href="01_requirements.html#problem-who">requirements §Problem-Who</a>: single operator running <code>/requirements</code>, <code>/spec</code>, <code>/plan</code>, <code>/wireframes</code>, <code>/prototype</code>, <code>/artifact</code>, <code>/diagram</code> on a laptop. Context: 3–10 pipeline runs per week; every feature has 2–5 revision rounds; today each round costs 200–800 tokens of restated location context. The <code>author</code> field on every thread (<a href="01_requirements.html#decisions">requirements D17</a>) reserves space for future multi-operator use without v1 build cost.</p>
+
+  <h3 id="journeys-list">5.2 User Journeys</h3>
+  <p>Six journeys documented in <a href="01_requirements.html#journeys">requirements §User Journeys</a>: primary single-thread happy path, clarification flow, batch mode with conflict, orphan-after-rewrite, resolver-subagent-failure, Safari/Firefox fallback. <strong>This spec inherits all six unchanged.</strong> The architecture pivot (S1, always-serve) changes the launch step from "double-click .html → Chrome opens" to "double-click launcher → Chrome opens http://localhost/&lt;artifact&gt;" but does not change any downstream UX step. See <a href="01_requirements.html#journeys">requirements §journeys</a> for the step-by-step flows.</p>
+
+  <h3 id="journey-new-launcher">5.3 New journey — first-time launcher discovery</h3>
+  <ol>
+    <li>Operator <code>cd</code>s into a feature folder and runs <code>ls</code>.</li>
+    <li>Sees the artifact <code>02_spec.html</code> alongside <code>comments-open.command</code> (macOS), <code>comments-open.sh</code> (Linux), and <code>comments-open.bat</code> (Windows).</li>
+    <li>Double-clicks the launcher matching their OS (macOS: Finder → <code>.command</code>; Linux: <code>chmod +x</code> on first use then double-click; Windows: Explorer → <code>.bat</code>).</li>
+    <li>Launcher script runs <code>node assets/serve.js --port=0 --open=02_spec.html</code> (zero argument means "pick first <code>.html</code> in folder" — documented in launcher script header comment).</li>
+    <li><code>serve.js</code> binds to an ephemeral port, starts an HTTP server scoped to the feature folder, and shells <code>open</code>/<code>xdg-open</code>/<code>start</code> against <code>http://localhost:&lt;port&gt;/02_spec.html</code>.</li>
+    <li>Browser opens; overlay loads; <code>FileSystemHandle</code> requested on first interaction; granted handle stored in IndexedDB keyed by <code>localhost:&lt;port&gt;/02_spec.html</code>.</li>
+    <li>Operator comments freely; saves go through FSA on Chrome/Edge.</li>
+    <li>When operator closes the browser tab, <code>serve.js</code> stays running until its idle timeout (default 5 minutes); next launcher double-click on the same folder reuses the running server if it finds it via PID file.</li>
+  </ol>
+</section>
+
+<section id="system-design">
+  <h2 id="system-design-h">6. System Design</h2>
+
+  <h3 id="architecture-overview">6.1 Architecture Overview</h3>
+  <figure>
+<pre>
+                                ┌──────────────────────────────────────────────┐
+                                │ Operator (single PM-engineer, laptop)        │
+                                └────────────────┬─────────────────────────────┘
+                                                 │
+                ┌────────────────────────────────┼────────────────────────────────┐
+                │                                │                                │
+        ┌───────▼──────────┐          ┌──────────▼──────────┐         ┌───────────▼──────────┐
+        │ comments-open    │          │ /comments resolve   │         │ git (commit, log)    │
+        │   .command/.sh/  │          │   &lt;artifact|dir&gt;    │         │   .html + .json pair │
+        │   .bat (launcher)│          │ [CLI in this repo]  │         │                      │
+        └───────┬──────────┘          └──────────┬──────────┘         └──────────▲───────────┘
+                │ shell: node serve.js           │                                │
+                ▼                                │                                │
+        ┌───────────────────┐                    │                       ┌────────┴────────────┐
+        │ Node serve.js     │                    │                       │ pre-commit hook     │
+        │ (ephemeral port,  │                    │                       │ (.githooks/         │
+        │  feature-folder   │                    │                       │  pre-commit;        │
+        │  scope, PID file) │                    │                       │  drift = .html ↔    │
+        └───────┬───────────┘                    │                       │  .json pair check)  │
+                │ http://localhost:&lt;p&gt;/         │                       └─────────────────────┘
+                ▼                                │
+        ┌───────────────────────────────┐        │
+        │ Browser (Chrome/Edge/Safari/  │        │
+        │  Firefox) opens .html         │        │
+        │  ┌─────────────────────────┐  │        │
+        │  │ Artifact HTML body      │  │        │
+        │  │ (per-skill content)     │  │        │
+        │  └─────────────────────────┘  │        │
+        │  ┌─────────────────────────┐  │        │
+        │  │ assets/comments.js      │  │        │
+        │  │ (overlay: selection,    │  │        │
+        │  │  side panel, dual-      │  │        │
+        │  │  anchor capture)        │  │        │
+        │  └────────┬────────────────┘  │        │
+        │           │ FSA (Chrome/Edge) │        │
+        │           │ download (others) │        │
+        └───────────┼───────────────────┘        │
+                    ▼                            │
+            ┌───────────────────┐                │
+            │ &lt;artifact&gt;        │◀───────────────┤
+            │   .comments.json  │   (resolver    │
+            │ (committed sidecar│    reads,      │
+            │  schema_version+  │    appends     │
+            │  lineage+threads) │    system      │
+            └───────┬───────────┘    replies,    │
+                    │                stages)     │
+                    │                            │
+                    │             ┌──────────────▼────────────────────┐
+                    │             │ /comments resolve dispatch        │
+                    │             │  per-thread Task subagent         │
+                    │             │   ├─ reads &lt;meta name="pmos:skill"&gt;│
+                    │             │   ├─ loads originating skill ctx  │
+                    │             │   ├─ calls apply-edit-at-anchor   │
+                    │             │   │     contract entrypoint       │
+                    │             │   └─ returns {success, diff_ref,  │
+                    │             │       system_reply, error_enum}   │
+                    │             └───────────────────────────────────┘
+                    │                            │
+                    └──── per-thread reads ──────┘
+                          + writes back
+</pre>
+  <figcaption>Architecture overview. Authored inline (diagram subagent skipped — preserves context budget; figcaption per FR-65 fallback convention). Components: Operator drives the system via three surfaces — the launcher (zero-CLI artifact open), /comments resolve (CLI), and git. Browser-side comments.js overlay captures threads to the sidecar via FSA or download-fallback. Resolver reads sidecars, dispatches per-thread subagents routed by <code>&lt;meta name="pmos:skill"&gt;</code>, each subagent calls the contract entrypoint (S13) implemented in its originating skill.</figcaption>
+  </figure>
+
+  <h3 id="sequence-diagrams">6.2 Sequence Diagrams</h3>
+
+  <h4 id="seq-capture">6.2.1 Capture flow (happy path, Chrome/Edge)</h4>
+  <figure>
+<pre>
+Operator   Launcher    serve.js    Browser    comments.js   IndexedDB   FSA      .comments.json
+   │           │           │           │           │            │         │              │
+   │ dblclick  │           │           │           │            │         │              │
+   ├──────────▶│           │           │           │            │         │              │
+   │           │ spawn     │           │           │            │         │              │
+   │           ├──────────▶│           │           │            │         │              │
+   │           │           │ listen    │           │            │         │              │
+   │           │           │ :&lt;port&gt;   │           │            │         │              │
+   │           │ open URL  │           │           │            │         │              │
+   │           ├──────────────────────▶│           │            │         │              │
+   │           │           │ GET .html │           │            │         │              │
+   │           │           │◀──────────┤           │            │         │              │
+   │           │           ├──────────▶│           │            │         │              │
+   │           │           │           │ load JS   │            │         │              │
+   │           │           │           ├──────────▶│            │         │              │
+   │           │           │           │           │ rehydrate? │         │              │
+   │           │           │           │           ├───────────▶│         │              │
+   │           │           │           │           │◀─ none     │         │              │
+   │ select    │           │           │           │            │         │              │
+   │ text      │           │           │           │            │         │              │
+   ├──────────────────────────────────▶│           │            │         │              │
+   │           │           │           │ selection │            │         │              │
+   │           │           │           ├──────────▶│            │         │              │
+   │           │           │           │           │ show btn   │         │              │
+   │ click     │           │           │           │            │         │              │
+   │ "Comment" │           │           │           │            │         │              │
+   ├──────────────────────────────────▶│ click     │            │         │              │
+   │           │           │           ├──────────▶│            │         │              │
+   │           │           │           │           │ open panel │         │              │
+   │ type +    │           │           │           │            │         │              │
+   │ submit    │           │           │           │            │         │              │
+   ├──────────────────────────────────▶│           │            │         │              │
+   │           │           │           │           │ build      │         │              │
+   │           │           │           │           │ thread     │         │              │
+   │           │           │           │           │ {id,anchor,│         │              │
+   │           │           │           │           │  msgs,…}   │         │              │
+   │           │           │           │           │ requestPerm│         │              │
+   │           │           │           │           ├──────────────────────▶│              │
+   │           │           │           │           │◀── granted │         │              │
+   │           │           │           │           │ persist    │         │              │
+   │           │           │           │           │ handle     │         │              │
+   │           │           │           │           ├───────────▶│         │              │
+   │           │           │           │           │ write file │         │              │
+   │           │           │           │           ├──────────────────────────────────────▶│
+   │           │           │           │           │ render in  │         │              │
+   │           │           │           │           │ side panel │         │              │
+   │           │           │           │◀──────────┤            │         │              │
+   │           │           │           │ visible   │            │         │              │
+   │◀──────────────────────────────────┤           │            │         │              │
+</pre>
+  <figcaption>Capture flow — happy path (Chrome/Edge over http://localhost). Authored inline. Steps: launcher spawns serve.js → browser opens artifact → operator selects text → floating button → side panel → thread built + FSA permission requested → handle persisted to IndexedDB → sidecar written.</figcaption>
+  </figure>
+
+  <h4 id="seq-resolve-confirm-each">6.2.2 Resolve flow (<code>--confirm-each</code>, default)</h4>
+  <figure>
+<pre>
+Operator    /comments      Resolver       Subagent      Originating       .comments.json    Operator
+            resolve CLI    controller     (Task tool)   skill ctx                            (review)
+   │            │              │             │              │                  │             │
+   │ /comments  │              │             │              │                  │             │
+   │ resolve    │              │             │              │                  │             │
+   │ 02_spec.   │              │             │              │                  │             │
+   │ html       │              │             │              │                  │             │
+   ├───────────▶│              │             │              │                  │             │
+   │            │ read sidecar │             │              │                  │             │
+   │            ├──────────────────────────────────────────────────────────────▶│             │
+   │            │◀── {threads:[T1,T2,T3]}    │             │                   │             │
+   │            │ read &lt;meta   │             │             │                   │             │
+   │            │  pmos:skill&gt; │             │             │                   │             │
+   │            │ for artifact │             │             │                   │             │
+   │            │   (= "spec") │             │             │                   │             │
+   │            │              │             │             │                   │             │
+   │            │ loop T1..T3: │             │             │                   │             │
+   │            │   resolve    │             │             │                   │             │
+   │            │   anchor     │             │             │                   │             │
+   │            │   (id-first  │             │             │                   │             │
+   │            │   then Bitap)│             │             │                   │             │
+   │            │              │             │             │                   │             │
+   │            │ dispatch T1  │             │             │                   │             │
+   │            ├─────────────▶│             │             │                   │             │
+   │            │              │ Task subagent w/ prompt = │                   │             │
+   │            │              │ contract-entrypoint call  │                   │             │
+   │            │              ├────────────▶│             │                   │             │
+   │            │              │             │ load spec   │                   │             │
+   │            │              │             │ skill ctx   │                   │             │
+   │            │              │             ├────────────▶│                   │             │
+   │            │              │             │ propose edit│                   │             │
+   │            │              │             │ at anchor   │                   │             │
+   │            │              │             │◀────────────┤                   │             │
+   │            │              │             │ {success:T, │                   │             │
+   │            │              │             │  diff_ref,  │                   │             │
+   │            │              │             │  reply}     │                   │             │
+   │            │              │◀────────────┤             │                   │             │
+   │            │              │ show diff   │             │                   │             │
+   │            │              │ snippet to  │             │                   │             │
+   │            │              │ operator    │             │                   │             │
+   │            │              ├───────────────────────────────────────────────────────────▶│
+   │            │              │                                                             │
+   │            │              │◀── accept / reject / modify (AskUserQuestion) ──────────────┤
+   │            │              │                                                             │
+   │            │              │ if accept:  │             │                   │             │
+   │            │              │   apply edit│             │                   │             │
+   │            │              │   to .html  │             │                   │             │
+   │            │              │   append    │             │                   │             │
+   │            │              │   system    │             │                   │             │
+   │            │              │   reply +   │             │                   │             │
+   │            │              │   set       │             │                   │             │
+   │            │              │   status=   │             │                   │             │
+   │            │              │   resolved  │             │                   │             │
+   │            │              ├──────────────────────────────────────────────▶│             │
+   │            │              │                                                             │
+   │            │              │ git add .html + .json (do NOT commit)                       │
+   │            │              │                                                             │
+   │            │              │ (loop to T2, T3)                                            │
+   │            │              │                                                             │
+   │            │ print summary│             │             │                   │             │
+   │            │ "Resolved 2/3│             │             │                   │             │
+   │            │  T3 left open│             │             │                   │             │
+   │            │  see thread" │             │             │                   │             │
+   │◀───────────┤              │             │             │                   │             │
+</pre>
+  <figcaption>Resolve flow — <code>--confirm-each</code> default. Authored inline. Per-thread subagent dispatch, operator confirmation per proposed edit, staged but not committed. Failure path (resolver-subagent returns <code>success: false</code>) shown in §6.2.4.</figcaption>
+  </figure>
+
+  <h4 id="seq-resolve-batch">6.2.3 Resolve flow (<code>--batch</code>, wave-planned)</h4>
+  <figure>
+<pre>
+Operator    /comments      Wave         Subagents    .html
+            resolve        planner      (parallel)
+            --batch
+   │           │              │             │           │
+   │ ──────────▶              │             │           │
+   │           │ resolve all  │             │           │
+   │           │ anchors      │             │           │
+   │           │              │             │           │
+   │           │ compute      │             │           │
+   │           │ overlap rel  │             │           │
+   │           ├─────────────▶│             │           │
+   │           │              │ partition:  │           │
+   │           │              │ Wave 1 =    │           │
+   │           │              │  {T1,T2,T3, │           │
+   │           │              │   T6}       │           │
+   │           │              │ Wave 2 =    │           │
+   │           │              │  {T4,T5}    │           │
+   │           │              │  (overlap   │           │
+   │           │              │   in §5)    │           │
+   │           │◀─────────────┤             │           │
+   │           │ dispatch     │             │           │
+   │           │ Wave 1 (4)   │             │           │
+   │           │  in parallel │             │           │
+   │           ├──────────────────────────▶ │           │
+   │           │              │             │ propose 4 │
+   │           │              │             │ edits     │
+   │           │◀───────────────────────────┤           │
+   │           │ present      │             │           │
+   │           │ combined     │             │           │
+   │           │ diff (4 hunks)             │           │
+   │ ──────────▶ accept?      │             │           │
+   │ accept    │              │             │           │
+   │ ──────────▶              │             │           │
+   │           │ apply right- │             │           │
+   │           │ to-left to   │             │           │
+   │           │ keep offsets │             │           │
+   │           ├──────────────────────────────────────▶ │
+   │           │              │             │           │
+   │           │ dispatch     │             │           │
+   │           │ Wave 2 (2)   │             │           │
+   │           │  sequential  │             │           │
+   │           │  T4 first,   │             │           │
+   │           │  T5 reads    │             │           │
+   │           │  post-T4 doc │             │           │
+   │           ├─────────────────────────▶ │            │
+   │           │              │             │ T4 edit   │
+   │           │              │             ├──────────▶│
+   │           │              │             │           │
+   │           │              │             │ T5 reads  │
+   │           │              │             │ updated   │
+   │           │              │             │ doc       │
+   │           │              │             │◀──────────┤
+   │           │              │             │ T5 edit   │
+   │           │              │             ├──────────▶│
+   │           │ summary, stage, exit       │           │
+   │◀──────────┤              │             │           │
+</pre>
+  <figcaption>Resolve flow — <code>--batch</code> with wave planner (S14, LSP non-overlapping-ranges). Authored inline. Wave 1 disjoint anchors run in parallel; Wave 2 overlapping anchors run sequentially with right-to-left application within each wave so earlier-batch offsets remain valid.</figcaption>
+  </figure>
+
+  <h4 id="seq-resolver-failure">6.2.4 Resolver subagent failure (D22, stays-open + continue)</h4>
+  <figure>
+<pre>
+/comments   Resolver       Subagent       .comments.json
+resolve     controller     (Task tool)
+   │           │              │                  │
+   │           │ dispatch T2  │                  │
+   │           ├─────────────▶│                  │
+   │           │              │ work             │
+   │           │              │ (assess          │
+   │           │              │  feasibility)    │
+   │           │              │ judge:           │
+   │           │              │ infeasible       │
+   │           │              │ (would violate   │
+   │           │              │  FR-14)          │
+   │           │◀─────────────┤                  │
+   │           │ {success:F,  │                  │
+   │           │  error_enum: │                  │
+   │           │  "agent_     │                  │
+   │           │  judged_     │                  │
+   │           │  infeasible",│                  │
+   │           │  system_     │                  │
+   │           │  reply: "..."│                  │
+   │           │  + suggested │                  │
+   │           │  next step}  │                  │
+   │           │              │                  │
+   │           │ append       │                  │
+   │           │ system_reply │                  │
+   │           │ to T2.       │                  │
+   │           │ messages[];  │                  │
+   │           │ status stays │                  │
+   │           │ "open"       │                  │
+   │           ├─────────────────────────────────▶
+   │           │              │                  │
+   │           │ continue to  │                  │
+   │           │ T3 (do NOT   │                  │
+   │           │ abort batch) │                  │
+   │           │              │                  │
+   │ final summary:           │                  │
+   │ "Resolved 2/3.           │                  │
+   │  T2 open — see body."    │                  │
+   │◀──────────┤              │                  │
+</pre>
+  <figcaption>Resolver subagent failure — stays-open + continue. Authored inline. The failure taxonomy is the closed 4-enum from <a href="01_requirements.html#fr-new-b">FR-NEW-B</a>: <code>anchor_orphaned</code>, <code>edit_conflicted</code>, <code>agent_judged_infeasible</code>, <code>agent_errored</code>. Each failure appends a system reply with the type + rationale + suggested next action; resolver continues to next thread.</figcaption>
+  </figure>
+
+  <h4 id="seq-reanchor">6.2.5 Re-anchor after artifact regeneration</h4>
+  <figure>
+<pre>
+Skill that      Re-anchor      .comments.json     Overlay (next open)
+regenerates     pass
+artifact
+(e.g. /spec
+ --refine)
+   │                │                │                       │
+   │ write new      │                │                       │
+   │ .html (assumes │                │                       │
+   │ sidecar exists)│                │                       │
+   │ ──────────────▶│                │                       │
+   │                │ read sidecar   │                       │
+   │                ├───────────────▶│                       │
+   │                │ for each       │                       │
+   │                │ thread T:      │                       │
+   │                │   try id_      │                       │
+   │                │   anchor first │                       │
+   │                │   if section   │                       │
+   │                │   id present:  │                       │
+   │                │     scan body  │                       │
+   │                │     for Bitap  │                       │
+   │                │     match of   │                       │
+   │                │     quote+pre+ │                       │
+   │                │     suf,       │                       │
+   │                │     threshold  │                       │
+   │                │     ≥ 0.5      │                       │
+   │                │       hit →    │                       │
+   │                │       update   │                       │
+   │                │       quote_   │                       │
+   │                │       anchor   │                       │
+   │                │       (new     │                       │
+   │                │       prefix/  │                       │
+   │                │       suffix)  │                       │
+   │                │       miss →   │                       │
+   │                │       set      │                       │
+   │                │       orphan=T │                       │
+   │                │   else: orphan │                       │
+   │                │ write back     │                       │
+   │                ├───────────────▶│                       │
+   │                │                │                       │
+   │                │                │ (next open)           │
+   │                │                ├──────────────────────▶│
+   │                │                │ overlay reads:        │
+   │                │                │ if any orphan=T:      │
+   │                │                │   show banner:        │
+   │                │                │   "N orphaned         │
+   │                │                │    threads — view +   │
+   │                │                │    reattach"          │
+   │                │                │                       │
+</pre>
+  <figcaption>Re-anchor after artifact regeneration. Authored inline. id-first → Bitap fallback (threshold 0.5 per S2) → orphan marker. Overlay surfaces orphans on next open via banner; operator reattaches or marks won't-fix.</figcaption>
+  </figure>
+</section>
+
+<section id="functional-requirements">
+  <h2 id="functional-requirements-h">7. Functional Requirements</h2>
+
+  <h3 id="fr-capture">7.1 Capture surface</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-01</td><td>Every HTML artifact emitted by the 14 in-scope skills (12 emitters + 2 orchestrator artifacts; see FR-21 inventory) MUST include in its <code>&lt;head&gt;</code>: (a) <code>&lt;meta name="pmos:skill" content="&lt;skill-slug&gt;"&gt;</code> with the emitting skill's slug as the value, (b) <code>&lt;meta name="pmos:plugin-version" content="&lt;current-version&gt;"&gt;</code>, (c) <code>&lt;link rel="stylesheet" href="assets/comments.css?v=&lt;plugin-version&gt;"&gt;</code>, and in its <code>&lt;body&gt;</code> just before the closing tag: <code>&lt;script src="assets/comments.js?v=&lt;plugin-version&gt;" defer&gt;&lt;/script&gt;</code>.</td></tr>
+      <tr><td>FR-02</td><td>On overlay load (browser fires DOMContentLoaded), <code>comments.js</code> MUST: (a) detect the artifact's origin — if <code>file://</code>, surface a banner with copy-to-clipboard text "Open via <code>comments-open.command</code> (macOS) / <code>comments-open.sh</code> (Linux) / <code>comments-open.bat</code> (Windows) in this folder" and exit (no capture, no save); (b) if <code>http(s)://</code>, attempt <code>FileSystemHandle</code> rehydration from IndexedDB keyed by <code>window.location.pathname</code>; (c) read the sibling <code>&lt;artifact-basename&gt;.comments.json</code> (best-effort via <code>fetch</code> against the serving origin); (d) render existing threads in the side panel.</td></tr>
+      <tr><td>FR-03</td><td>Text-selection capture MUST: (a) listen on <code>document</code> for <code>selectionchange</code>; (b) if a non-empty selection lies within <code>&lt;main class="doc"&gt;</code>, render a floating "Comment" button positioned next to the selection end-point; (c) on click, open the side-panel compose form with the selection's quoted text + 30-char prefix + 30-char suffix prefilled as the dual-anchor draft.</td></tr>
+      <tr><td>FR-04</td><td>Heading capture: when the operator clicks a "Comment on this section" affordance on an <code>&lt;h2&gt;</code> or <code>&lt;h3&gt;</code>, the thread's <code>anchor.id_anchor</code> MUST be set to the heading's <code>id</code> attribute; <code>quote_anchor</code> MUST be the heading text + 30-char body-prefix.</td></tr>
+      <tr><td>FR-05</td><td>SVG-region capture: when the operator clicks a <code>&lt;g data-anchor="…"&gt;</code> or top-level <code>&lt;rect|path data-anchor="…"&gt;</code> element inside an <code>&lt;svg&gt;</code>, the thread's <code>anchor.diagram_anchor</code> MUST be set to <code>{svg_id: &lt;parent svg id or null&gt;, shape_id: &lt;data-anchor value&gt;, bbox: null}</code>. For SVGs without <code>data-anchor</code> on any descendant (foreign SVGs from /artifact), capture MUST fall back to <code>{svg_id, shape_id: null, bbox: [x, y, w, h]}</code> where bbox is the click-point bounding-box ±20 px.</td></tr>
+      <tr><td>FR-06</td><td>Stakeholder read-only posture: the overlay MUST read <code>localStorage['pmos:reviewMode']</code> on load; if the value is <code>'off'</code>, the overlay MUST hide its UI surfaces (no floating button, no side panel, no banners). Comments persist in the sidecar regardless; threads remain readable in source.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="fr-persistence">7.2 Persistence</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-10</td><td>Each artifact <code>&lt;artifact&gt;.html</code> has a sibling <code>&lt;artifact&gt;.comments.json</code> conforming to the schema in §10.1. The sidecar MUST be committed to git (D2).</td></tr>
+      <tr><td>FR-11</td><td>Chrome/Edge writes MUST use the File System Access API: <code>showDirectoryPicker()</code> on first save → store handle in IndexedDB → <code>getFileHandle(&lt;artifact&gt;.comments.json, {create: true})</code> → <code>createWritable()</code> → <code>write(JSON.stringify(sidecar, null, 2))</code> → <code>close()</code>. Atomic via the FSA write-then-close semantics.</td></tr>
+      <tr><td>FR-12</td><td>Safari/Firefox writes MUST mirror to <code>localStorage</code> per-thread as drafts during compose, and on explicit "Save sidecar" click MUST trigger a browser download of the assembled sidecar JSON with filename <code>&lt;artifact-basename&gt;.comments.json</code>. The operator manually replaces the prior file; localStorage drafts MUST clear on successful download.</td></tr>
+      <tr><td>FR-13</td><td>FSA permission re-prompt mid-session: every save attempt MUST call <code>handle.requestPermission({mode: 'readwrite'})</code> before <code>createWritable()</code>; if the returned status is not <code>'granted'</code>, the overlay MUST surface a non-blocking banner "Click to grant write access" without losing the pending draft (draft persists in <code>localStorage</code> until the next granted save).</td></tr>
+      <tr><td>FR-14</td><td>Sidecar atomic write: writes MUST go via <code>createWritable({keepExistingData: false})</code> + full <code>write()</code> + <code>close()</code> — never partial. On <code>close()</code> failure (quota / permission revoked), the prior sidecar is preserved by FSA semantics; the overlay surfaces the failure as a banner with a "Retry save" button.</td></tr>
+      <tr><td>FR-15</td><td>The pre-commit drift hook (installed via <code>scripts/install-comments-hooks.sh</code> at <code>.githooks/pre-commit-comments-drift</code>) MUST: (a) detect any staged <code>*.html</code> file under <code>docs/pmos/</code> for which the sibling <code>*.comments.json</code> exists on disk but is not staged, OR vice versa; (b) refuse the commit with stderr message <code>"comments-drift: &lt;path&gt; is staged but its sibling &lt;sibling&gt; is not. Run 'git add &lt;sibling&gt;' or use --no-verify to bypass."</code>; (c) be installable idempotently; (d) be bypassable via <code>git commit --no-verify</code> per S5.</td></tr>
+      <tr><td>FR-16</td><td><strong>Sidecar serialization contract (F5 elevation from §10.3):</strong> every write of <code>&lt;artifact&gt;.comments.json</code> MUST serialize with: (a) <code>JSON.stringify(sidecar, null, 2)</code> — 2-space indent, no tabs; (b) LF line endings (<code>\n</code>), never CRLF; (c) trailing newline at end of file. Both the overlay (<code>comments.js</code>) AND the resolver (<code>/comments resolve</code>) MUST honor this contract. Rationale: minimal git diffs (no whitespace churn between operator-edits and resolver-edits) — the format-on-write convention prevents alternating commits from a Chrome-on-macOS overlay and a Linux-CLI resolver introducing newline-mode differences.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="fr-resolve">7.3 Resolve command</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-20</td><td><code>/comments resolve &lt;path&gt;</code> MUST accept either a file path (single <code>.html</code>) or a directory path; in directory mode, iterate every <code>*.html</code> with a non-empty sibling <code>*.comments.json</code>, processing each sequentially.</td></tr>
+      <tr><td>FR-21</td><td>The in-scope HTML-emitting surfaces (FR-NEW-A ship-blocker; supersedes the "12+" wording in requirements). <strong>Exact math:</strong> 13 originating skills emit 13 artifact-classes (some skills produce multi-file subfolders — e.g., /wireframes emits N wireframe HTMLs + an index.html; each subfolder is 1 instrumentation surface) + 1 orchestrator (/feature-sdlc) emitting 2 surfaces (00_pipeline + 00_open_questions_index) = <strong>14 entities, 15 surfaces total</strong>:
+        <ol>
+          <li>/requirements → <code>01_requirements.html</code></li>
+          <li>/spec → <code>02_spec.html</code></li>
+          <li>/plan → <code>03_plan.html</code></li>
+          <li>/wireframes → <code>wireframes/&lt;N&gt;_*.html</code> + <code>wireframes/index.html</code></li>
+          <li>/prototype → <code>prototype.html</code></li>
+          <li>/artifact → templated artifact HTML</li>
+          <li>/diagram → SVG wrapper HTML (when embedded)</li>
+          <li>/ideate → phase-specific HTML</li>
+          <li>/survey-design → survey form HTML</li>
+          <li>/survey-analyse → analysis HTML with charts</li>
+          <li>/polish → polished artifact HTML</li>
+          <li>/architecture → architecture audit HTML</li>
+          <li>/readme → <code>README.html</code></li>
+          <li>orchestrator surfaces — <code>00_pipeline.html</code> (feature-sdlc), <code>00_open_questions_index.html</code> (feature-sdlc/ideate)</li>
+        </ol>
+        Each MUST implement the apply-edit-at-anchor contract (FR-30) and bake the <code>comments.js</code> reference per FR-01. <code>/verify</code> hard-fails if fewer than 13 originating-skill contract tests pass OR if fewer than 15 surfaces bake the reference.</td></tr>
+      <tr><td>FR-22</td><td>Per-thread dispatch MUST: (a) read the artifact's <code>&lt;meta name="pmos:skill"&gt;</code> content; (b) map the slug to the originating skill's location (<code>plugins/pmos-toolkit/skills/&lt;slug&gt;/SKILL.md</code>); (c) dispatch a Task tool subagent (blocking) with prompt prefix <code>[mode: &lt;current-mode&gt;]\n[output_format: html]\n</code> + the contract-entrypoint call payload (§9.1); (d) reap the structured response.</td></tr>
+      <tr><td>FR-23</td><td>Anchor resolution at runtime: (a) try <code>anchor.id_anchor</code> first — query the DOM for the matching <code>id</code>; (b) within that element's descendant text, run Bitap fuzzy search for <code>anchor.quote_anchor.quote</code> with prefix/suffix proximity bias; (c) if Bitap score &lt; <code>Match_Threshold</code> (default 0.5, configurable via skill arg <code>--anchor-threshold</code>), mark thread <code>orphan: true</code>; (d) if <code>anchor.diagram_anchor</code> is present, resolve via SVG <code>data-anchor=&lt;shape_id&gt;</code> match, falling back to <code>bbox</code> overlap (within ±20 px center) if <code>shape_id</code> is null.</td></tr>
+      <tr><td>FR-24</td><td><code>--confirm-each</code> (default mode): for each thread, after the subagent returns a proposed edit, display the diff snippet to the operator via chat output, then issue one <code>AskUserQuestion</code> with options <code>{Accept, Reject + refinement note, Modify proposal, Skip / leave open}</code>. On <code>Reject + refinement note</code>, the operator's next-turn reply is appended to the thread as a user message and the subagent is re-dispatched. Re-dispatch is capped at 2 iterations per thread (S10); on the 3rd reject attempt the option set collapses to <code>{Modify proposal, Skip / leave open}</code>.</td></tr>
+      <tr><td>FR-25</td><td><code>--batch</code> mode: pre-flight computes the anchor-overlap relation per the rules below; wave-planner (reusing <code>plugins/pmos-toolkit/skills/execute/SKILL.md</code> Phase 1 algorithm) partitions threads into waves of pairwise-disjoint anchors; within each wave, dispatch subagents in parallel; between waves, sequential. Edits within a wave MUST be applied right-to-left in the document (S14) so earlier-batch offsets remain valid. Operator confirms the combined diff once per wave. <strong>Overlap rules (F4 resolution):</strong> (i) two text anchors overlap iff their resolved DOM ranges share any byte position in the rendered artifact's text content; (ii) two SVG anchors overlap iff their resolved bounding boxes intersect by ≥1 pixel (axis-aligned rect-intersect — <code>!(a.x + a.w &lt;= b.x \|\| b.x + b.w &lt;= a.x \|\| a.y + a.h &lt;= b.y \|\| b.y + b.h &lt;= a.y)</code>); (iii) a text anchor and an SVG anchor never overlap (different DOM trees — text edits go to <code>&lt;main class="doc"&gt;</code> prose, SVG edits go to <code>&lt;svg&gt;</code> shape attributes; no shared byte range).</td></tr>
+      <tr><td>FR-26</td><td><code>--auto</code> mode: applies every subagent-proposed edit without operator confirmation. <code>AskUserQuestion</code>-based clarification still surfaces — <code>--auto</code> applies confidently-resolved edits only, not ambiguous ones.</td></tr>
+      <tr><td>FR-27</td><td>Per-thread output on success: append a system message <code>{role: 'system', author: 'system', body: '&lt;≤3-sentence prose summary&gt; &lt;diff_ref&gt;', ts: &lt;ISO-8601&gt;}</code>; set <code>status: 'resolved'</code>. The <code>diff_ref</code> is either a SHA when committed (post-S19 the resolver does NOT commit, so the in-run value is always a staged-region reference <code>"staged: lines &lt;start&gt;–&lt;end&gt; in &lt;artifact&gt;"</code>).</td></tr>
+      <tr><td>FR-28</td><td>Per-thread output on failure (subagent returns <code>success: false</code>): append a system message with body <code>"&lt;error_enum&gt;: &lt;rationale&gt;. Next: &lt;suggested action: rephrase / split / mark won't-fix&gt;"</code>; status remains <code>open</code>; resolver continues to next thread without aborting the batch (D22).</td></tr>
+      <tr><td>FR-29</td><td>Clarification flow (interactive mode): when a subagent returns a clarification request (a structured <code>{clarification: {question, options: [..2..4..]}}</code> instead of an edit proposal), the resolver MUST issue a live <code>AskUserQuestion</code> in the chat with the question + options; the operator's pick is fed back to the subagent for a second-pass edit proposal. Capped at 1 clarification round per thread; subsequent ambiguity collapses to a system reply + <code>status: open</code>.</td></tr>
+      <tr><td>FR-30</td><td>Apply-edit-at-anchor contract (referenced from <code>_shared/apply-edit-at-anchor.md</code>) — see §9.1 for the full input/output schema and §9.2 for the error taxonomy.</td></tr>
+      <tr><td>FR-31</td><td>Resolver MUST stage modified <code>.html</code> + <code>.comments.json</code> via <code>git add</code> but MUST NOT commit (D19). End-of-run chat output includes the operator-facing instruction "Review with <code>git diff --cached</code> then commit."</td></tr>
+      <tr><td>FR-32</td><td><code>--non-interactive</code> mode: process every thread whose subagent does not return a clarification request; for clarification-returning threads, append a system message <code>"deferred — operator input required (re-run interactively for this thread)"</code> and leave <code>status: open</code>; resolver continues. End-of-run summary lists deferred threads.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="fr-launcher">7.4 Always-serve launcher</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-40</td><td>Every HTML-emitting skill, after writing its artifact(s), MUST copy <code>comments-open.command</code>, <code>comments-open.sh</code>, and <code>comments-open.bat</code> from <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/</code> to the artifact's feature-folder root via <code>cp -n</code> (idempotent — preserves any operator-modified version).</td></tr>
+      <tr><td>FR-41</td><td><code>comments-open.command</code> (macOS) MUST: (a) <code>cd "$(dirname "$0")"</code>; (b) <code>command -v node &gt;/dev/null || { echo "node not found on PATH. Install Node 18+ from https://nodejs.org and retry." &gt;&amp;2; exit 127; }</code> (NFR-09); (c) check for a running <code>serve.js</code> via <code>.pmos-serve.pid</code> file (format <code>{pid: int, port: int}</code> per FR-44); validate liveness with <code>kill -0 $PID 2&gt;/dev/null</code> — if alive, reuse the URL; if stale (PID file present but process gone), remove the PID file and spawn fresh (FR-44 amendment); (d) else spawn <code>node assets/serve.js --port=0 --root=. --pid-file=.pmos-serve.pid</code> and capture the bound port from stdout; (e) <code>open "http://localhost:$PORT/$1"</code> where <code>$1</code> defaults to the first <code>*.html</code> in the folder (alphabetical order). Total LOC ≤40 (raised from 30 to accommodate the precheck + liveness logic).</td></tr>
+      <tr><td>FR-42</td><td><code>comments-open.sh</code> (Linux) MUST behave identically to FR-41 (Node precheck + PID liveness + spawn-or-reuse) but use <code>xdg-open</code> instead of <code>open</code>. File MUST be marked executable (<code>chmod +x</code> applied at copy time; FR-40 amended: <code>install -m 0755</code> for the <code>.sh</code> and <code>.command</code> files on copy).</td></tr>
+      <tr><td>FR-43</td><td><code>comments-open.bat</code> (Windows) MUST behave identically (Node precheck via <code>where node &gt;NUL 2&gt;&amp;1 || (echo node not found... &amp; exit /b 127)</code> + PID liveness via <code>tasklist /FI "PID eq %PID%" 2&gt;NUL | find /I "%PID%" &gt;NUL</code>) using <code>start http://localhost:%PORT%/%1</code>. Spawned <code>node</code> uses <code>start /B node assets\serve.js ...</code> for background-detach.</td></tr>
+      <tr><td>FR-44</td><td><code>serve.js</code> (existing substrate file, FR-extended) MUST: (a) accept <code>--port=0</code> (ephemeral port assignment, default), <code>--root=&lt;dir&gt;</code> (default cwd), <code>--pid-file=&lt;path&gt;</code> (optional, default unset); (b) print bound port to stdout as line <code>"PMOS-SERVE-PORT: &lt;port&gt;"</code>; (c) write the PID file <strong>after</strong> successful bind, as JSON <code>{"pid": &lt;process.pid&gt;, "port": &lt;bound-port&gt;, "started_at": "&lt;ISO-8601&gt;"}</code> atomically (temp-then-rename); (d) on graceful shutdown (SIGTERM / SIGINT / idle-timeout), remove the PID file; (e) idle-timeout default 5 minutes (configurable via <code>--idle=&lt;sec&gt;</code>); (f) serve static files from <code>--root</code>, no directory listing, MIME types per extension, no caching (Cache-Control: no-store on every response). Launcher scripts (FR-41/42/43) MUST validate PID liveness via <code>kill -0 $PID</code> (Unix) / <code>tasklist /FI "PID eq %PID%"</code> (Windows) before reusing a discovered PID-file URL; stale PID files (process gone) MUST be removed and a fresh server spawned.</td></tr>
+      <tr><td>FR-45</td><td>Server scoping: <code>serve.js</code> binds only to <code>127.0.0.1</code> (not <code>0.0.0.0</code>) to keep artifacts off the LAN. No authentication; local-only.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="fr-svg-anchor">7.5 SVG anchoring retrofit</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-50</td><td><code>/diagram</code> MUST emit <code>data-anchor="&lt;slug&gt;"</code> on every <code>&lt;g&gt;</code> group, top-level <code>&lt;rect&gt;</code>, and top-level <code>&lt;path&gt;</code> in the rendered SVG. Slug derivation per S15: (a) kebab-cased <code>id</code> attribute if present, (b) else kebab-cased <code>aria-label</code> or label text, (c) else <code>shape-&lt;ordinal&gt;</code> (document-order). Slugs MUST be deduplicated per SVG via <code>-2</code>/<code>-3</code> suffixes.</td></tr>
+      <tr><td>FR-51</td><td><code>/wireframes</code> MUST emit <code>data-anchor</code> on the same set of SVG elements when its wireframe templates contain inline SVG (e.g., diagram-anchor wireframe in this feature's folder).</td></tr>
+      <tr><td>FR-52</td><td>For foreign SVGs (embedded by /artifact from external sources) lacking <code>data-anchor</code>, the overlay MUST fall back to bbox-based capture per FR-05 — no retrofit attempt is made on foreign SVGs.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="fr-contract-tests">7.6 Contract tests + verification</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>FR-60</td><td>Each of the 13 originating skills (FR-21 enumeration; the 2 orchestrator surfaces are tested via /feature-sdlc's own apply-edit-at-anchor implementation, counted separately) MUST ship a contract test at <code>plugins/pmos-toolkit/skills/&lt;slug&gt;/tests/apply-edit-at-anchor.test.js</code> conforming to the contract in §9.1.</td></tr>
+      <tr><td>FR-61</td><td>One shared resolver integration test MUST live at <code>plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code> covering: (a) all 4 error_enum branches with mocked subagent dispatch, (b) clarification flow, (c) <code>--confirm-each</code> / <code>--batch</code> / <code>--auto</code> modes, (d) non-interactive deferral.</td></tr>
+      <tr><td>FR-62</td><td><code>/verify</code> MUST run <code>scripts/check-comments-coverage.sh</code> and hard-fail if: (a) fewer than 13 originating-skill contract tests are found; (b) fewer than 15 surfaces (13 originating + 2 orchestrator) reference <code>comments.js</code> in their emitted template; (c) the integration test does not pass. Same posture as <code>assert_heading_ids.sh</code> (FR-NEW-C).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="nfr">
+  <h2 id="nfr-h">8. Non-Functional Requirements</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Category</th><th>Requirement</th></tr></thead>
+    <tbody>
+      <tr><td>NFR-01</td><td>Performance</td><td>End-to-end <code>/comments resolve</code> latency &lt;60s p50 in <code>--confirm-each</code> mode (single thread, including subagent dispatch + operator confirmation prompt rendering — operator decision time excluded from the p50). Measured per the verification plan §14.</td></tr>
+      <tr><td>NFR-02</td><td>Performance</td><td><code>comments.js</code> bundle size soft target ≤20KB minified; hard cap 40KB. CI warns at &gt;20KB, fails at &gt;40KB. Soft target preserves the substrate-leanness commitment from D20.</td></tr>
+      <tr><td>NFR-03</td><td>Reliability</td><td>Sidecar writes MUST be atomic — partial writes that would leave the file invalid JSON are not acceptable. FSA <code>createWritable() / write() / close()</code> semantics provide this on Chrome/Edge; download-to-replace on Safari/Firefox replaces the entire file at once.</td></tr>
+      <tr><td>NFR-04</td><td>Compatibility</td><td>Officially supported browsers — <strong>Full FSA path:</strong> Chrome ≥86, Edge ≥86 (File System Access API required). <strong>Download-to-replace fallback:</strong> any modern browser supporting <code>&lt;a download&gt;</code> attribute — effectively all maintained versions of Safari, Firefox, and other Chromium derivatives. Older browsers without <code>&lt;a download&gt;</code> support receive a "browser not supported — use Chrome or Edge for in-place writes, or any modern browser for download-mode" banner and no overlay surfaces. <em>(F8 resolution: dropped the prior "Firefox ≥111" pin — download-to-replace does not depend on FSA, and `&lt;a download&gt;` has been supported since Firefox 20 / Safari 10.1.)</em></td></tr>
+      <tr><td>NFR-05</td><td>Accessibility</td><td>Overlay UI MUST meet WCAG 2.1 AA per the wireframe MSF + PSYCH evaluation already applied (4 Must + 7 Should findings — see <a href="msf-findings.html">msf-findings.html</a>). Keyboard navigation: floating "Comment" button focusable + activatable via <code>Enter</code>; side panel close via <code>Esc</code>; thread compose via standard form controls.</td></tr>
+      <tr><td>NFR-06</td><td>Observability</td><td>Resolver MUST log to chat at each phase: anchor-resolution strategy used per thread (<code>id-first hit</code> / <code>quote-fallback hit (score=X)</code> / <code>orphan (score=X &lt; threshold)</code>); subagent dispatch + return for each thread; failure enum on any failure. Powers the 30-day metrics in <a href="01_requirements.html#metrics">requirements §Metrics</a>.</td></tr>
+      <tr><td>NFR-07</td><td>Security</td><td><code>serve.js</code> binds only to <code>127.0.0.1</code> (FR-45). No authentication; relies on local-machine trust boundary. Artifacts are not exposed to the LAN.</td></tr>
+      <tr><td>NFR-08</td><td>Maintainability</td><td>The 14 surfaces' apply-edit-at-anchor implementations MUST all cite the shared contract doc at <code>plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code> from their SKILL.md body. Contract changes are surfaced via this central doc, not 14 separate revisions.</td></tr>
+      <tr><td>NFR-09</td><td>Runtime dependency</td><td>Node.js ≥18 is required on the operator's machine for <code>serve.js</code> to run. Launcher scripts (FR-41/42/43) MUST <code>command -v node</code> before spawning and, if absent, emit a stderr message <code>"node not found on PATH. Install Node 18+ from https://nodejs.org and retry."</code> and exit 127. Documented in repo README + onboarding docs.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="api-contracts">
+  <h2 id="api-contracts-h">9. API Contracts</h2>
+
+  <h3 id="api-apply-edit">9.1 Apply-edit-at-anchor entrypoint (S13 + FR-NEW-B)</h3>
+  <p>Each of the 12 originating skills implements a function callable from <code>/comments resolve</code>'s per-thread subagent. The contract lives in <code>plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code>; the calling convention is <strong>via subagent prompt</strong>, not a direct function call. The subagent receives the input JSON in its prompt and is required to emit the output JSON as its final structured response.</p>
+
+  <p><strong>Input (in subagent prompt body):</strong></p>
+<pre><code class="lang-json">{
+  "thread": {
+    "id": "aB3xK9Lm",
+    "anchor": {
+      "id_anchor": "solution-resolve",
+      "quote_anchor": {
+        "quote": "the resolver dispatches a generic subagent",
+        "prefix": "...30 chars before...",
+        "suffix": "...30 chars after..."
+      },
+      "diagram_anchor": null
+    },
+    "status": "open",
+    "messages": [
+      {"role": "user", "author": "maneesh", "body": "this should specify originating-skill dispatch", "ts": "2026-05-23T16:00:00Z"}
+    ]
+  },
+  "artifact_path": "/abs/path/to/02_spec.html",
+  "anchor_resolved": {
+    "strategy": "id-first" | "quote-fallback",
+    "dom_range": {"start_offset": 1234, "end_offset": 1289},
+    "score": 0.92
+  },
+  "body": "this should specify originating-skill dispatch"
+}
+</code></pre>
+
+  <p><strong>Output (subagent's final JSON response):</strong></p>
+<pre><code class="lang-json">{
+  "success": true,
+  "diff_ref": "staged: lines 124–128 in 02_spec.html",
+  "system_reply": "Changed §4.2 first sentence to specify originating-skill dispatch with citation to grill Q1. Resolved."
+}
+</code></pre>
+
+  <p>OR — on failure:</p>
+
+<pre><code class="lang-json">{
+  "success": false,
+  "error_enum": "agent_judged_infeasible",
+  "system_reply": "Cannot apply: the edit would require restructuring §6 which would violate FR-14 (T4 must not import from T7). Next: split into two threads — one for §4.2 wording, one for §6 restructure as a separate decision."
+}
+</code></pre>
+
+  <p>OR — on clarification needed:</p>
+
+<pre><code class="lang-json">{
+  "success": false,
+  "clarification": {
+    "question": "Validation issue at <quoted span>: (a) reject when X is null, (b) reject when X is empty, (c) coerce X to null on empty. Which?",
+    "options": ["reject on null", "reject on empty", "coerce empty to null"]
+  }
+}
+</code></pre>
+
+  <h3 id="api-error-enum">9.2 Error taxonomy (FR-NEW-B closed set)</h3>
+  <table>
+    <thead><tr><th>error_enum</th><th>When emitted</th></tr></thead>
+    <tbody>
+      <tr><td><code>anchor_orphaned</code></td><td>The thread's anchor failed to resolve at runtime (id-anchor missing AND quote-fallback Bitap score &lt; threshold). Subagent emits without attempting edit.</td></tr>
+      <tr><td><code>edit_conflicted</code></td><td>The proposed edit would touch a region of the artifact that another concurrently-being-applied thread in the same wave has already modified. Wave planner should prevent this; if it fires, the planner has a bug — log + skip.</td></tr>
+      <tr><td><code>agent_judged_infeasible</code></td><td>The subagent assessed the request and concluded it cannot be applied without violating a constraint (broken FR, incoherent with rest of doc, requires re-architecting). Operator sees the rationale + suggested next action.</td></tr>
+      <tr><td><code>agent_errored</code></td><td>The subagent crashed, timed out, or returned malformed JSON. Generic catchall; system_reply contains the captured error excerpt.</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>Closed set:</strong> any new failure mode surfaced during build MUST trigger a back-to-requirements discussion before the enum is extended (FR-NEW-B).</p>
+
+  <h3 id="api-idempotency">9.3 Idempotency</h3>
+  <p>Per FR-NEW-B: calling the entrypoint twice with the same <code>{thread, anchor}</code> MUST be a no-op if the requested edit is already present in the artifact. Implementation: subagent reads the anchored region, compares against the thread's request, and if the desired state is already present, returns <code>{success: true, diff_ref: "no-op: edit already applied", system_reply: "Edit already present in artifact; marking resolved without changes."}</code>. This protects against re-running <code>/comments resolve</code> after a partial-stage commit.</p>
+
+  <p><strong>Semantic-match definition (F3 resolution):</strong> "already applied" means ≥80% of the keywords in the thread's last user message body (after stopword removal — using the standard English stoplist of ~150 words: <code>the, a, an, is, are, of, to, in, …</code>) appear as substrings in the artifact's currently-anchored region (or its post-edit DOM neighborhood, ±200 chars). The 80% threshold is a soft heuristic — if the score is between 60% and 80%, the subagent MUST proceed with the edit attempt (avoiding false positives that would skip genuine work) and let the second-pass diff naturally show "no change" if truly idempotent. If &lt;60%, the edit is not yet applied and proceeds normally.</p>
+</section>
+
+<section id="sidecar-schema">
+  <h2 id="sidecar-schema-h">10. Sidecar Schema (Data Design)</h2>
+
+  <h3 id="schema-v1">10.1 Schema v1 — JSON Schema (draft-07)</h3>
+<pre><code class="lang-json">{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PMOS Comments Sidecar",
+  "type": "object",
+  "required": ["schema_version", "lineage", "threads"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1},
+    "lineage": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+    "threads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "anchor", "status", "messages"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Za-z0-9_-]{8}$"},
+          "anchor": {
+            "type": "object",
+            "required": ["id_anchor"],
+            "properties": {
+              "id_anchor": {"type": ["string", "null"]},
+              "quote_anchor": {
+                "type": ["object", "null"],
+                "required": ["quote", "prefix", "suffix"],
+                "properties": {
+                  "quote":  {"type": "string", "maxLength": 2000},
+                  "prefix": {"type": "string", "maxLength": 64, "description": "Capture writes exactly 30 chars (FR-03). The 64-char cap is back-compat headroom for future tuning; the resolver MUST tolerate any length ≤64 on read."},
+                  "suffix": {"type": "string", "maxLength": 64, "description": "Same 30-char-write / 64-char-read tolerance as prefix."}
+                }
+              },
+              "diagram_anchor": {
+                "type": ["object", "null"],
+                "required": ["svg_id"],
+                "properties": {
+                  "svg_id":   {"type": ["string", "null"]},
+                  "shape_id": {"type": ["string", "null"]},
+                  "bbox":     {"type": ["array", "null"], "items": {"type": "number"}, "minItems": 4, "maxItems": 4}
+                }
+              }
+            }
+          },
+          "status": {"type": "string", "enum": ["open", "in_progress", "resolved"]},
+          "orphan": {"type": "boolean", "default": false},
+          "messages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["role", "author", "body", "ts"],
+              "properties": {
+                "role":   {"type": "string", "enum": ["user", "system"]},
+                "author": {"type": "string"},
+                "body":   {"type": "string"},
+                "ts":     {"type": "string", "format": "date-time"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre>
+
+  <h3 id="schema-evolution">10.2 Schema evolution (S3)</h3>
+  <ul>
+    <li><strong>Read-tolerant:</strong> the resolver and overlay MUST accept any <code>schema_version ≤ current</code>. Forward-incompatible reads emit a warning and downgrade gracefully (e.g., a v2 field unknown to a v1 reader is preserved on write — see "preserve-unknown" rule below).</li>
+    <li><strong>Write-current:</strong> every write upgrades the file to the current <code>schema_version</code>. Migration is implicit in the read-then-write path; no separate migrator binary.</li>
+    <li><strong>Refuse-load on newer:</strong> if <code>schema_version &gt; current tool</code>, the resolver MUST refuse with stderr <code>"comments.json schema_version=&lt;N&gt; is newer than /comments (current=&lt;M&gt;). Upgrade pmos-toolkit and retry."</code> and exit 64.</li>
+    <li><strong>Preserve-unknown:</strong> the read path MUST preserve any unknown top-level keys + unknown thread keys + unknown message keys verbatim on write, so a forward-running tool doesn't strip a backward-running tool's data. (Same posture as <code>package-lock.json</code> across npm versions.)</li>
+    <li><strong>Lineage UUID:</strong> generated on first sidecar creation (uuid v4); preserved across all subsequent writes. If a sidecar is copied between artifacts, the lineage UUID stays — drift hook + a future <code>/comments doctor</code> command can detect duplicates by lineage collision.</li>
+  </ul>
+
+  <h3 id="schema-write-protocol">10.3 Write protocol</h3>
+  <ol>
+    <li><strong>Read</strong> current sidecar (or initialize <code>{schema_version: 1, lineage: &lt;uuidv4&gt;, threads: []}</code> if absent).</li>
+    <li><strong>Mutate</strong> in-memory copy.</li>
+    <li><strong>Write</strong> via <code>createWritable({keepExistingData: false})</code> + <code>write(JSON.stringify(sidecar, null, 2))</code> + <code>close()</code>. JSON serialization uses 2-space indent + LF line endings + trailing newline (so git diffs are minimal).</li>
+    <li><strong>Failure handling:</strong> on <code>close()</code> rejection (quota / permission revoked), keep the draft in <code>localStorage</code> + surface retry banner; the prior sidecar on disk is preserved by FSA semantics.</li>
+  </ol>
+</section>
+
+<section id="frontend-design">
+  <h2 id="frontend-design-h">11. Frontend Design</h2>
+
+  <h3 id="component-hierarchy">11.1 Component hierarchy</h3>
+<pre>
+&lt;body&gt;
+└── &lt;main class="doc"&gt; (artifact body, per-skill content)
+    └── (annotated regions: &lt;h2 id&gt;, &lt;h3 id&gt;, text spans, &lt;svg&gt;)
+&lt;script src="assets/comments.js"&gt; mounts:
+└── #pmos-comments-overlay (fixed-position container)
+    ├── .pmos-floating-btn  (positioned next to selection on selectionchange)
+    ├── .pmos-side-panel    (collapsible drawer, right edge)
+    │   ├── .pmos-panel-header  (filter: All / Open / Resolved; "Save sidecar" on non-FSA)
+    │   ├── .pmos-thread-list   (ordered by anchor position in doc)
+    │   │   └── .pmos-thread-card (×N, click to expand)
+    │   │       ├── .pmos-thread-anchor-preview (the quoted span + nav-to-anchor link)
+    │   │       ├── .pmos-thread-messages (chat-style log)
+    │   │       │   └── .pmos-message (×N, role-styled: user vs. system)
+    │   │       └── .pmos-thread-compose (textarea + Submit / Reopen / Resolve / Won't-fix)
+    │   └── .pmos-banner (orphan / save-failed / browser-unsupported / file://-warning)
+    └── .pmos-diagram-marker (×N, absolute-positioned over &lt;svg&gt; data-anchor elements)
+</pre>
+
+  <h3 id="state-mgmt">11.2 State management</h3>
+  <table>
+    <thead><tr><th>State</th><th>Lives in</th><th>Lifecycle</th></tr></thead>
+    <tbody>
+      <tr><td>Sidecar (threads, schema_version, lineage)</td><td>In-memory + FSA-persisted file</td><td>Loaded on overlay init from <code>&lt;artifact-basename&gt;.comments.json</code>; mutated on user action; persisted via FSA on every change (Chrome/Edge) or batched + download (Safari/Firefox).</td></tr>
+      <tr><td>FileSystemHandle</td><td>IndexedDB (DB <code>pmos-comments</code>, store <code>handles</code>, key = <code>location.pathname</code>)</td><td>Stored on first <code>showDirectoryPicker()</code> grant; rehydrated on every page load.</td></tr>
+      <tr><td>Drafts (compose textareas)</td><td>localStorage (key <code>pmos:draft:&lt;artifact-pathname&gt;:&lt;thread-id|new&gt;</code>)</td><td>Written on textarea input; cleared on successful submit. Used as Safari/Firefox draft buffer between captures and the "Save sidecar" click.</td></tr>
+      <tr><td>Stakeholder-mode flag</td><td>localStorage (key <code>pmos:reviewMode</code>, value <code>'on'</code>|<code>'off'</code>)</td><td>Per-machine; user toggles via keyboard shortcut <code>Ctrl+Alt+R</code> (Windows/Linux) or <code>Cmd+Alt+R</code> (macOS). Default <code>'on'</code>. <em>Shortcut chosen to avoid the browser hard-reload binding on Ctrl/Cmd+Shift+R (F6 resolution).</em></td></tr>
+      <tr><td>Side-panel open/closed</td><td>localStorage (key <code>pmos:panel-open</code>)</td><td>Per-machine; persists across reloads.</td></tr>
+      <tr><td>Filter selection (All/Open/Resolved)</td><td>Component-local (not persisted)</td><td>Resets to "Open" on each page load (default to actionable view).</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="ui-spec">11.3 UI specifications</h3>
+  <p>The wireframe set at <a href="wireframes/index.html">wireframes/index.html</a> is the canonical visual reference (8 components × 32 states, MSF + PSYCH applied with 4 Must + 7 Should findings resolved). This spec inherits the wireframe IA + interactions verbatim. Key contracts:</p>
+  <ul>
+    <li><strong>Floating "Comment" button:</strong> 32×32px circular button, anchored to the selection's <code>endRect</code> + 8px offset; <code>z-index: 9999</code>; <code>aria-label="Add comment"</code>; focusable; activates on click or <code>Enter</code>.</li>
+    <li><strong>Side panel:</strong> 360px wide on desktop (only supported viewport per <a href="01_requirements.html#goals-non">requirements non-goal: mobile</a>); slides in from right edge; overlay <code>position: fixed; right: 0; top: 0; height: 100vh</code>; backdrop-blur 8px on the underlying doc area for legibility.</li>
+    <li><strong>Thread card:</strong> collapsed shows anchor-preview (truncated to 80 chars) + last message snippet + status pill; expanded shows full message log + compose form.</li>
+    <li><strong>Orphan banner:</strong> sticky-top in side panel; copy "<code>N orphaned thread(s) — content was rewritten since these comments were made.</code>" with per-thread actions: <em>View thread / Reattach to new selection / Mark resolved / Mark won't-fix</em>.</li>
+    <li><strong>SVG markers (FR-50, diagram anchoring):</strong> absolutely-positioned circular markers (16px) over the SVG <code>data-anchor</code> elements at the element's bbox centroid; <code>z-index: 5</code>; tooltip on hover shows thread count.</li>
+    <li><strong>FSA permission re-prompt banner:</strong> non-blocking toast at bottom-right; copy "<code>Click to grant write access</code>" + button; persists until granted or dismissed.</li>
+    <li><strong>file:// warning banner:</strong> blocking modal on page load; copy "<code>Open via the launcher script in this folder to enable comments</code>" + copy-to-clipboard buttons for the launcher commands.</li>
+    <li><strong>Responsive:</strong> not supported. Below 1024px viewport width, the overlay surfaces a "<code>Desktop only</code>" banner and exits. Per <a href="01_requirements.html#goals-non">requirements non-goal: mobile</a>.</li>
+  </ul>
+</section>
+
+<section id="edge-cases">
+  <h2 id="edge-cases-h">12. Edge Cases</h2>
+  <p>Inherits the 7 edge cases from <a href="01_requirements.html#journey-edge-empty">requirements §journey-edge-empty</a>. Spec-layer additions:</p>
+  <table>
+    <thead><tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr></thead>
+    <tbody>
+      <tr><td>E1</td><td>Operator opens artifact via <code>file://</code> (double-click .html directly, skipping launcher)</td><td><code>window.location.protocol === 'file:'</code></td><td>Blocking modal: "Open via the launcher script in this folder to enable comments. (Copy: <code>open comments-open.command</code>)". No overlay surfaces; no capture, no save. Per S1 + FR-02.</td></tr>
+      <tr><td>E2</td><td>FSA permission auto-revoked mid-session (Chrome 122+ background-tab revocation)</td><td><code>handle.requestPermission()</code> returns <code>'prompt'</code> on a save attempt that previously succeeded</td><td>Non-blocking toast "Click to grant write access"; draft persists in <code>localStorage</code>; next click on the toast re-requests; on grant, queued draft is written. Per FR-13 + S16.</td></tr>
+      <tr><td>E3</td><td>Operator pastes a sidecar from another artifact (lineage collision)</td><td><code>lineage</code> UUID in newly-read sidecar matches a sibling artifact's sidecar in the same directory</td><td>Resolver logs a warning to chat: "<code>Lineage collision: 02_spec.comments.json and 03_plan.comments.json share lineage &lt;UUID&gt;. One is likely a copy. Manual cleanup recommended.</code>" No automatic refusal; operator decides. (Future <code>/comments doctor</code> command can repair.)</td></tr>
+      <tr><td>E4</td><td>Sidecar's <code>schema_version &gt; current tool</code></td><td>Read of <code>{schema_version: 99, ...}</code></td><td>Refuse-load: stderr "<code>comments.json schema_version=99 is newer than /comments (current=1). Upgrade pmos-toolkit and retry.</code>" Exit 64. Per S3 + FR-10.</td></tr>
+      <tr><td>E5</td><td>Sidecar is invalid JSON (corrupted)</td><td><code>JSON.parse</code> throws</td><td>Overlay surfaces blocking modal: "<code>&lt;artifact&gt;.comments.json is corrupted. Backup recommended before editing.</code>" Resolver exits 64 with same message. No silent overwrite.</td></tr>
+      <tr><td>E6</td><td>Resolver hits the wave-planner cycle/conflict bug (FR-25 + edit_conflicted)</td><td>Two threads in the same wave both modify the same byte range — planner bug, should not occur</td><td>The losing-wave subagent returns <code>{success: false, error_enum: 'edit_conflicted'}</code>; resolver logs the bug + stays-open + continues. Operator can re-run with <code>--confirm-each</code> to resolve sequentially. Adds a /verify regression test for the specific scenario.</td></tr>
+      <tr><td>E7</td><td><code>serve.js</code> port collision (rare — ephemeral ports almost never collide)</td><td>OS rejects bind on every attempt in the ephemeral range</td><td>Launcher script: retry 5x with 100ms backoff; on continued failure, surface a chat message "Could not bind a local port — check no other service is bound to all ephemeral ports." Exit non-zero from the launcher; operator runs manually.</td></tr>
+      <tr><td>E8</td><td>Operator runs <code>/comments resolve</code> on a directory with no sidecars</td><td><code>find &lt;dir&gt; -name '*.comments.json'</code> returns empty</td><td>Print "<code>No sidecars found under &lt;dir&gt;. Nothing to resolve.</code>" Exit 0.</td></tr>
+      <tr><td>E9</td><td>Subagent returns malformed JSON (not <code>{success, ...}</code> shape)</td><td>JSON parse fails or required keys missing</td><td>Wrap as <code>{success: false, error_enum: 'agent_errored', system_reply: 'Subagent returned malformed response: &lt;first 200 chars&gt;'}</code>; thread stays open. Resolver continues.</td></tr>
+      <tr><td>E10</td><td>Subagent exceeds clarification re-dispatch cap (FR-24 cap=2 reached)</td><td>Operator has rejected the proposal twice with refinement notes</td><td>On the 3rd presentation, the option list MUST collapse to <code>{Modify proposal manually, Skip / leave open}</code> — no further re-dispatch is offered. Operator either rewrites the edit themselves or marks the thread for follow-up.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="configuration">
+  <h2 id="configuration-h">13. Configuration &amp; Feature Flags</h2>
+  <table>
+    <thead><tr><th>Setting</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>/comments resolve --anchor-threshold &lt;float&gt;</code></td><td><code>0.5</code></td><td>Bitap Match_Threshold override (S2). Lower = stricter, more orphans; higher = looser, more false positives.</td></tr>
+      <tr><td><code>/comments resolve --anchor-distance &lt;int&gt;</code></td><td><code>1000</code></td><td>Bitap Match_Distance override (chars). How far from the expected position to scan.</td></tr>
+      <tr><td><code>/comments resolve --mode &lt;confirm-each|batch|auto&gt;</code></td><td><code>confirm-each</code></td><td>Per requirements D6; explicit per-run trust level.</td></tr>
+      <tr><td><code>/comments resolve --redispatch-cap &lt;int&gt;</code></td><td><code>2</code></td><td>Per-thread re-dispatch cap in reject workflow (S10).</td></tr>
+      <tr><td><code>serve.js --port &lt;int&gt;</code></td><td><code>0</code> (ephemeral)</td><td>Bind port for the local server.</td></tr>
+      <tr><td><code>serve.js --idle &lt;sec&gt;</code></td><td><code>300</code> (5 min)</td><td>Idle timeout before <code>serve.js</code> exits.</td></tr>
+      <tr><td><code>localStorage['pmos:reviewMode']</code></td><td><code>'on'</code></td><td>Stakeholder hide-overlay flag, per-machine (FR-06).</td></tr>
+      <tr><td>No environment variables in v1</td><td>—</td><td>Settings live in CLI flags + browser localStorage. The repo-level <code>.pmos/settings.yaml</code> is NOT extended in v1 (revisit if cross-machine defaults are needed).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="testing">
+  <h2 id="testing-h">14. Testing &amp; Verification Strategy</h2>
+
+  <h3 id="testing-unit">14.1 Unit Tests</h3>
+  <ul>
+    <li><strong>Anchor resolver</strong> (<code>plugins/pmos-toolkit/skills/comments/tests/anchor.test.js</code>): id-first hit, id-first miss with quote-fallback hit, both miss → orphan, diagram_anchor by data-anchor, diagram_anchor by bbox fallback. Assertions on returned <code>{strategy, dom_range, score}</code>.</li>
+    <li><strong>Sidecar schema validator</strong> (<code>plugins/pmos-toolkit/skills/comments/tests/schema.test.js</code>): valid v1 passes; missing required keys fails; <code>schema_version=99</code> refuse-load; preserve-unknown round-trip (write v1, read v1, unknown top-level key preserved).</li>
+    <li><strong>Bitap scorer wrapper</strong> (<code>plugins/pmos-toolkit/skills/comments/tests/scorer.test.js</code>): paraphrased quote scores above 0.5; unrelated paragraph scores below 0.5; exact match scores ~1.0. Calibration: assert behavior on the 50-span set built by /plan task.</li>
+    <li><strong>Thread ID generator</strong> (<code>plugins/pmos-toolkit/skills/comments/tests/id.test.js</code>): generates 8-char URL-safe; 1000 generations produce zero duplicates (sanity test, not the full birthday bound).</li>
+  </ul>
+
+  <h3 id="testing-integration">14.2 Integration Tests</h3>
+  <ul>
+    <li><strong>Resolver integration</strong> (FR-61 — <code>plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code>): mock subagent dispatch; assert all 4 error_enum branches handled; clarification flow round-trips; <code>--confirm-each</code> respects re-dispatch cap; <code>--batch</code> wave-planner partitions correctly; <code>--auto</code> applies without prompting; <code>--non-interactive</code> defers ambiguous threads correctly.</li>
+    <li><strong>Per-skill contract tests</strong> (FR-60 — 13 files at <code>plugins/pmos-toolkit/skills/&lt;slug&gt;/tests/apply-edit-at-anchor.test.js</code>, plus 1 at <code>plugins/pmos-toolkit/skills/feature-sdlc/tests/apply-edit-at-anchor.test.js</code> covering both orchestrator surfaces): each asserts the contract shape (§9.1) — input parsing, output structure, idempotency (call twice → no-op response), each error_enum branch.</li>
+    <li><strong>Pre-commit drift hook</strong> (<code>tests/integration/comments-drift-hook.test.sh</code>): stage .html only → exit non-zero with grep-able stderr; stage both → exit 0; <code>--no-verify</code> → exit 0 always (per FR-15).</li>
+    <li><strong>Schema version refuse-load</strong> (<code>tests/integration/schema-version-refuse.test.sh</code>): craft a sidecar with <code>schema_version: 99</code>; <code>/comments resolve</code> exits 64 with grep-able stderr.</li>
+    <li><strong>Re-anchor after regen</strong> (<code>plugins/pmos-toolkit/skills/comments/tests/reanchor.integration.test.js</code>): synthetic artifact + sidecar with a quote-anchored thread; regenerate artifact with reworded prose; assert thread re-attaches with updated quote-anchor (above Bitap threshold) OR is marked <code>orphan: true</code> (below threshold).</li>
+  </ul>
+
+  <h3 id="testing-e2e">14.3 End-to-End Tests</h3>
+  <ul>
+    <li><strong>FSA write path (Chrome/Edge)</strong> (Playwright — <code>plugins/pmos-toolkit/skills/comments/tests/fsa-write.e2e.test.js</code>): launch Chrome with the existing chrome-devtools MCP setup; <code>node serve.js</code> against a fixture artifact; navigate; programmatically select text via JS; click floating button; submit thread; assert <code>fixtures/sandbox/&lt;artifact&gt;.comments.json</code> appears on disk with the expected thread.</li>
+    <li><strong>Download-to-replace fallback (Safari/Firefox)</strong>: manual smoke per platform; documented step-by-step in <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code>; runs as a /verify Phase-5 step (not automated).</li>
+    <li><strong>Launcher script smokes</strong>: manual per OS; double-click → assert browser opens at localhost URL. Documented in same MANUAL .md file.</li>
+  </ul>
+
+  <h3 id="testing-coverage">14.4 Coverage script (FR-62)</h3>
+<pre><code class="lang-bash">#!/usr/bin/env bash
+# scripts/check-comments-coverage.sh — invoked by /verify
+set -euo pipefail
+ROOT="${1:-plugins/pmos-toolkit/skills}"
+
+# (1) Each of 12 originating skills has the contract test
+expected_skills=(requirements spec plan wireframes prototype artifact diagram ideate survey-design survey-analyse polish architecture readme)
+missing_tests=()
+for s in "${expected_skills[@]}"; do
+  [[ -f "$ROOT/$s/tests/apply-edit-at-anchor.test.js" ]] || missing_tests+=("$s")
+done
+if [[ ${#missing_tests[@]} -gt 0 ]]; then
+  echo "comments-coverage: FAIL — missing contract tests for: ${missing_tests[*]}" &gt;&amp;2
+  exit 1
+fi
+
+# (2) Each emitting skill bakes comments.js into its template
+missing_refs=()
+for s in "${expected_skills[@]}"; do
+  grep -RIlq 'assets/comments.js' "$ROOT/$s/" || missing_refs+=("$s")
+done
+if [[ ${#missing_refs[@]} -gt 0 ]]; then
+  echo "comments-coverage: FAIL — missing comments.js reference in emit for: ${missing_refs[*]}" &gt;&amp;2
+  exit 1
+fi
+
+# (3) Resolver integration test exists
+[[ -f "$ROOT/comments/tests/resolver.integration.test.js" ]] || {
+  echo "comments-coverage: FAIL — missing resolver.integration.test.js" &gt;&amp;2
+  exit 1
+}
+
+echo "comments-coverage: PASS — 13 contract tests + 13 emit references + 1 integration test"
+</code></pre>
+
+  <h3 id="testing-perf">14.5 Performance verification (NFR-01, NFR-02)</h3>
+  <ul>
+    <li><strong>Latency &lt;60s p50</strong> (NFR-01): manual benchmark with a 3-thread fixture sidecar against the real <code>/spec</code> skill in <code>--confirm-each</code> mode; record wallclock from invoke to first prompt rendered; 5 runs, assert median &lt;60s. Documented in MANUAL .md file.</li>
+    <li><strong>Bundle size ≤20KB warn, ≤40KB hard</strong> (NFR-02): <code>du -b plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> + <code>du -b .../diff-match-patch.js</code> summed; CI step in <code>.github/workflows/comments-bundle-size.yml</code> warns at 20KB, fails at 40KB.</li>
+  </ul>
+
+  <h3 id="testing-anchor-calibration">14.6 Anchor calibration (Goal-1, S2)</h3>
+  <p>One-shot test (built by /plan task): take 50 random text spans from <code>docs/pmos/features/2026-04-*/</code> + <code>2026-05-0[1-7]_*</code> artifacts (pre-feature corpus); for each, generate a synthetic thread with dual-anchor (id + quote+prefix+suffix); then regenerate the artifact with light AI-rewrite (prose preserved, wording shuffled); run anchor resolver against the regenerated artifact. Assert: id-first hits ≥45 / 50; quote-fallback hits + orphan ≤5 / 50; orphan ≤2-3 / 50. Drives the Bitap threshold tune.</p>
+</section>
+
+<section id="rollout">
+  <h2 id="rollout-h">15. Rollout Strategy</h2>
+
+  <h3 id="rollout-order">15.1 Build order (vertical-slice → fanout)</h3>
+  <ol>
+    <li><strong>Spike (1 day, /plan task):</strong> id-coverage audit across all 14 surfaces (S8). Blocks downstream substrate work until pass.</li>
+    <li><strong>Substrate (1-2 days):</strong> build <code>_shared/html-authoring/assets/comments.js</code> + <code>comments.css</code> + vendor <code>diff-match-patch.js</code>; build the 3 launcher scripts; extend <code>serve.js</code> with <code>--port=0 / --pid-file</code>; write the substrate contract doc <code>_shared/apply-edit-at-anchor.md</code>.</li>
+    <li><strong>Vertical slice on /spec only (1 day):</strong> implement apply-edit-at-anchor in /spec; bake comments.js reference into /spec's emit; write /spec's contract test. End-to-end smoke: comment on this very spec doc, run <code>/comments resolve</code>, watch it apply.</li>
+    <li><strong>Fanout to remaining 11 skills (2-3 days):</strong> per-skill PR or single multi-skill PR — each skill gets the apply-edit-at-anchor entrypoint + bake-comments.js-into-emit + contract test. Per FR-NEW-A this is the 12/12 ship-blocker — no descope.</li>
+    <li><strong>Resolver CLI (1 day):</strong> build <code>plugins/pmos-toolkit/skills/comments/</code> with SKILL.md + the integration test; the substrate dispatches the apply-edit-at-anchor entrypoint per-thread.</li>
+    <li><strong>SVG retrofit (1 day, S15):</strong> /diagram + /wireframes emit <code>data-anchor</code> on group + shape elements.</li>
+    <li><strong>Pre-commit drift hook (½ day):</strong> install script + the hook itself + its test.</li>
+    <li><strong>Calibration (½ day, S2):</strong> 50-span test set + Bitap threshold tune.</li>
+    <li><strong>/verify integration (½ day):</strong> add <code>check-comments-coverage.sh</code> to /verify's gate set.</li>
+    <li><strong>Manual smoke + docs (½ day):</strong> launcher scripts on macOS, Linux, Windows; download-to-replace on Safari; update repo CLAUDE.md.</li>
+  </ol>
+  <p>Total estimate: 8-10 days of focused work. /plan will produce the exact task breakdown with TDD steps per task.</p>
+
+  <h3 id="rollout-flags">15.2 Feature flags + degradation</h3>
+  <ul>
+    <li>No feature flag for the overlay itself — once a skill's emit includes the <code>comments.js</code> reference, every freshly-emitted artifact has the overlay. No staged rollout because the overlay degrades silently when no sidecar exists (zero threads, zero UI).</li>
+    <li>The stakeholder hide-overlay flag (<code>localStorage['pmos:reviewMode']</code>) is per-machine, not a build-time flag. Operator toggles via keyboard shortcut.</li>
+    <li><strong>Degradation paths:</strong>
+      <ul>
+        <li><code>file://</code> open → overlay surfaces banner, no capture (E1).</li>
+        <li>Unsupported browser → overlay surfaces banner, no capture (NFR-04).</li>
+        <li>FSA unavailable (Safari/Firefox) → download-to-replace fallback (FR-12).</li>
+        <li>FSA permission denied → drafts persist in localStorage, retry banner (FR-13).</li>
+        <li>Subagent dispatch fails → thread stays open with system reply, resolver continues (D22 + FR-28).</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3 id="rollout-back">15.3 Rollback</h3>
+  <ul>
+    <li><strong>Substrate-level rollback:</strong> revert the substrate commits — the launcher scripts + comments.js + comments.css disappear from <code>_shared/html-authoring/assets/</code>; existing sidecars stay on disk (no data loss) but no overlay loads.</li>
+    <li><strong>Per-skill rollback:</strong> remove the comments.js reference from that skill's emit template; existing artifacts with the reference baked in keep working (the substrate file still resolves) until the operator regenerates.</li>
+    <li><strong>Sidecar data is never destroyed by rollback</strong> — sidecars are committed JSON files, not generated state. <code>git revert</code> + manual cleanup if needed.</li>
+  </ul>
+
+  <h3 id="rollout-migration">15.4 Migration of existing artifacts</h3>
+  <p>Per requirements D24: <strong>zero-touch</strong>. Existing artifacts (pre-feature) keep their existing HTML; the overlay is NOT retrofitted. The first time an operator regenerates an existing artifact via its originating skill (e.g., <code>/spec --refine</code>), the new emit includes the comments.js reference and the overlay activates from that point forward. Archive artifacts that are never re-engaged stay clean.</p>
+</section>
+
+<section id="sources">
+  <h2 id="sources-h">16. Research Sources</h2>
+  <table>
+    <thead><tr><th>Source</th><th>Type</th><th>Key takeaway</th></tr></thead>
+    <tbody>
+      <tr><td><a href="01_requirements.html">01_requirements.html</a></td><td>Internal — feature requirements</td><td>Locked Finalist A-hybrid; 25 decisions D1–D25; 11 OQs forwarded; 3 hard FRs (FR-NEW-A/B/C); wireframes + MSF + PSYCH applied.</td></tr>
+      <tr><td><a href="grills/2026-05-23_inline-doc-comments.html">grills/2026-05-23_inline-doc-comments.html</a></td><td>Internal — loop-2 grill</td><td>8 questions, 7 findings applied — promoted OQ3 → FR-NEW-B, OQ12 → FR-NEW-C, drove S10 + S15.</td></tr>
+      <tr><td><a href="https://web.hypothes.is/blog/fuzzy-anchoring/">Fuzzy Anchoring — Hypothesis blog</a></td><td>External — anchoring lineage</td><td>Diff-match-patch + Bitap (<code>Match_Threshold=0.5</code>, <code>Match_Distance=1000</code>) is the canonical anchor-confidence scorer. Drove S2.</td></tr>
+      <tr><td><a href="https://developer.chrome.com/blog/persistent-permissions-for-the-file-system-access-api">Persistent permissions for the File System Access API — Chrome Developers</a></td><td>External — FSA semantics</td><td>Chrome 122+ auto-revokes FSA permissions on backgrounded tabs; handles must be stored in IndexedDB; <code>file://</code> not supported. Drove S1, S16, S17.</td></tr>
+      <tr><td><a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/">LSP 3.17 specification — WorkspaceEdit non-overlapping-ranges</a></td><td>External — batch-edit pattern</td><td>Canonical "edits in a single batch must not overlap; apply right-to-left to preserve offsets" pattern. Drove S14.</td></tr>
+      <tr><td><a href="https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json/">package-lock.json npm docs</a></td><td>External — schema evolution</td><td>Integer <code>lockfileVersion</code>, read-tolerant + write-current, no separate migrator. Drove S3.</td></tr>
+      <tr><td><a href="https://github.com/yuvipanda/pre-commit-hook-ensure-sops">yuvipanda/pre-commit-hook-ensure-sops</a></td><td>External — paired-file hooks</td><td>SOPS-ecosystem pattern for refusing commits when one of a logical pair is missing. Drove FR-15; CI-mirror gap noted as v1.1 work (S5).</td></tr>
+      <tr><td><a href="https://alex7kom.github.io/nano-nanoid-cc/">Nano ID Collision Calculator</a></td><td>External — ID math</td><td>8-char nanoid: 1-in-5.6M collision at 10k threads scoped per-artifact. Safe at our scale. Drove S4.</td></tr>
+      <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/</code></td><td>Internal — existing substrate</td><td>style.css, viewer.js, chrome-strip.js, build_sections_json.js, html-to-md.js, serve.js, conventions.md, template.html. The bundle <code>comments.js</code> + <code>comments.css</code> + launcher scripts ride alongside.</td></tr>
+      <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md §3</code></td><td>Internal — id convention</td><td>Stable kebab-case ids on every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> with collision dedupe via <code>-2</code>/<code>-3</code> suffix. The foundation that makes id-first anchoring viable.</td></tr>
+      <tr><td><code>plugins/pmos-toolkit/skills/execute/SKILL.md</code> Phase 1 + <code>subagent-driven.md</code></td><td>Internal — wave-planner</td><td>Kahn's-algorithm topological sort + file-conflict relation + greedy packing into waves with all-singleton fallback. Directly reusable for <code>--batch</code> anchor-overlap planner (S14).</td></tr>
+      <tr><td><code>.githooks/pre-commit</code> (this repo)</td><td>Internal — existing hook</td><td>Reference posture for FR-15: refuse on drift, <code>--no-verify</code> bypass, installer via <code>scripts/</code>, error message shape.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions-h">17. Open Questions</h2>
+  <p><strong>None.</strong> All 11 requirements OQs are resolved as spec decisions:</p>
+  <ul>
+    <li>OQ1 (sidecar follows artifact on rename) → <a href="#decisions-h">S7</a> (out of scope at v1; <code>git mv</code> pair convention).</li>
+    <li>OQ2 (thread-ID format) → <a href="#decisions-h">S4</a> (8-char nanoid).</li>
+    <li>OQ3 (apply-edit-at-anchor entrypoint) → already promoted to <a href="01_requirements.html#fr-new-b">FR-NEW-B</a> in requirements loop 2; codified at <a href="#api-apply-edit">§9.1</a>.</li>
+    <li>OQ4 (failure-mode taxonomy) → already promoted into <a href="01_requirements.html#fr-new-b">FR-NEW-B</a>; codified at <a href="#api-error-enum">§9.2</a>.</li>
+    <li>OQ5 (bundle size) → already reframed as <a href="#nfr-h">NFR-02</a> (soft 20KB / hard 40KB).</li>
+    <li>OQ6 (id-coverage audit) → <a href="#decisions-h">S8</a> (/plan 1-hour spike).</li>
+    <li>OQ7 (mobile/tablet) → already non-goal in requirements; restated in <a href="#non-goals-h">§3</a>.</li>
+    <li>OQ8 (browser-tab sync) → <a href="#decisions-h">S9</a> (non-goal, documented).</li>
+    <li>OQ9 (re-dispatch cap) → <a href="#decisions-h">S10</a> (cap = 2).</li>
+    <li>OQ10 (resolution-log artifact) → <a href="#decisions-h">S11</a> (none; chat summary + git history).</li>
+    <li>OQ11 (non-interactive mode behavior) → <a href="#decisions-h">S12</a> (process unambiguous, defer ambiguous).</li>
+    <li>OQ12 (contract tests) → already promoted to <a href="01_requirements.html#fr-new-c">FR-NEW-C</a>; codified at <a href="#fr-contract-tests">§7.6</a>.</li>
+    <li>OQ13 (drift hook install) → <a href="#decisions-h">S5</a> + <a href="#fr-persistence">FR-15</a> (local-only v1).</li>
+    <li>OQ14 (anchor confidence threshold) → <a href="#decisions-h">S2</a> (diff-match-patch + Bitap, Match_Threshold=0.5).</li>
+  </ul>
+  <p>No new OQs surfaced during /spec. Per the spec's Universal Exit Checklist item 10: the published spec contains zero open questions.</p>
+</section>
+
+</main>
+<script src="assets/viewer.js?v=2.51.0" defer></script>
+<script src="assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>
