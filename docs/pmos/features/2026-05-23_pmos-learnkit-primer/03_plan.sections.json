@@ -1,0 +1,134 @@
+[
+  {
+    "id": "meta",
+    "level": 2,
+    "title": "Meta",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns-to-follow",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "existing-code-to-reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "constraints-discovered",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "prerequisites",
+    "level": 2,
+    "title": "Prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "file-map",
+    "level": 2,
+    "title": "File Map",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1-substrate",
+    "level": 3,
+    "title": "Wave 1 — substrate parameterization (tracer bullet)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-2-sync",
+    "level": 3,
+    "title": "Wave 2 — pmos-learnkit substrate sync",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-3-mvp-skill",
+    "level": 3,
+    "title": "Wave 3 — minimum-viable SKILL.md (loadable + audit-clean)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-4-references",
+    "level": 3,
+    "title": "Wave 4 — reference/ docs (prerequisite content)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-5-phase-bodies",
+    "level": 3,
+    "title": "Wave 5 — SKILL.md phase bodies",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-6-closing",
+    "level": 3,
+    "title": "Wave 6 — closing: anti-patterns + worked example + final trim",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-7-final-verification",
+    "level": 3,
+    "title": "Wave 7 — final verification (TN)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "rollback",
+    "level": 2,
+    "title": "Rollback",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]

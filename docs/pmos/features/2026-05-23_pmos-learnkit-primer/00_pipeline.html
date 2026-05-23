@@ -36,7 +36,7 @@
 <tr><td>Feature folder</td><td><code>docs/pmos/features/2026-05-23_pmos-learnkit-primer/</code></td></tr>
 <tr><td>Mode</td><td><code>interactive</code></td></tr>
 <tr><td>Output format</td><td><code>html</code></td></tr>
-<tr><td>Tier</td><td><em>pending — Phase 0d will resolve</em></td></tr>
+<tr><td>Tier</td><td>3 (resolved by Phase 0d <code>skill-tier-resolve</code>)</td></tr>
 <tr><td>Started</td><td>2026-05-23T07:57:28Z</td></tr>
 <tr><td>Seed brief</td><td><a href="../../ideate/2026-05-23_primer-skill-shape.html"><code>docs/pmos/ideate/2026-05-23_primer-skill-shape.html</code></a></td></tr>
 </table>
@@ -49,13 +49,13 @@
 <tr><th>#</th><th>Phase</th><th>Hardness</th><th>Status</th><th>Artifact</th></tr>
 <tr><td>1</td><td><code>setup</code></td><td>infra</td><td>completed</td><td>—</td></tr>
 <tr><td>2</td><td><code>worktree</code></td><td>infra</td><td>completed</td><td>—</td></tr>
-<tr><td>3</td><td><code>init-state</code></td><td>infra</td><td><strong>in_progress</strong></td><td><code>00_pipeline.html</code></td></tr>
-<tr><td>4</td><td><code>skill-tier-resolve</code></td><td>infra</td><td>pending</td><td>—</td></tr>
-<tr><td>5</td><td><code>requirements</code></td><td>hard</td><td>pending</td><td><code>01_requirements.{html,md}</code></td></tr>
-<tr><td>6</td><td><code>grill</code></td><td>soft</td><td>pending</td><td><code>grills/&lt;date&gt;_01_requirements.{html,md}</code></td></tr>
-<tr><td>7</td><td><code>creativity</code></td><td>soft</td><td>pending</td><td>—</td></tr>
-<tr><td>8</td><td><code>spec</code></td><td>hard</td><td>pending</td><td><code>02_spec.{html,md}</code></td></tr>
-<tr><td>9</td><td><code>plan</code></td><td>hard</td><td>pending</td><td><code>03_plan.{html,md}</code></td></tr>
+<tr><td>3</td><td><code>init-state</code></td><td>infra</td><td>completed</td><td><code>00_pipeline.html</code></td></tr>
+<tr><td>4</td><td><code>skill-tier-resolve</code></td><td>infra</td><td>completed</td><td>—</td></tr>
+<tr><td>5</td><td><code>requirements</code></td><td>hard</td><td>completed</td><td><code>01_requirements.html</code></td></tr>
+<tr><td>6</td><td><code>grill</code></td><td>soft</td><td>completed</td><td><code>grills/2026-05-23_01_requirements.html</code></td></tr>
+<tr><td>7</td><td><code>creativity</code></td><td>soft</td><td>skipped</td><td>—</td></tr>
+<tr><td>8</td><td><code>spec</code></td><td>hard</td><td>completed</td><td><code>02_spec.html</code></td></tr>
+<tr><td>9</td><td><code>plan</code></td><td>hard</td><td><strong>completed</strong></td><td><code>03_plan.html</code></td></tr>
 <tr><td>10</td><td><code>execute</code></td><td>hard</td><td>pending</td><td>(plugin scaffold + skill files)</td></tr>
 <tr><td>11</td><td><code>skill-eval</code></td><td>hard</td><td>pending</td><td>(eval iteration log in <code>state.yaml</code>)</td></tr>
 <tr><td>12</td><td><code>verify</code></td><td>hard</td><td>pending</td><td>(verify report)</td></tr>
@@ -72,7 +72,7 @@
 <pre><code>cd /Users/maneeshdhabria/Desktop/Projects/agent-skills-pmos-learnkit-primer
 claude --resume
 </code></pre>
-<p>Then run <code>/feature-sdlc --resume</code>. The resume cursor will land at the first non-completed phase (currently <code>init-state</code> → completes on this write → then <code>skill-tier-resolve</code>).</p>
+<p>Then run <code>/feature-sdlc --resume</code>. The resume cursor will land at the first non-completed phase (currently <code>execute</code>).</p>
 </section>
 
   </main>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>/primer skill for pmos-learnkit — Plan</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.51.0">
+  <script defer src="assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/primer skill for pmos-learnkit — Plan</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Meta</h2>
+<dl>
+<dt>tier</dt><dd>3</dd>
+<dt>type</dt><dd>feature</dd>
+<dt>feature</dt><dd>2026-05-23_pmos-learnkit-primer</dd>
+<dt>spec_ref</dt><dd><a href="02_spec.html">02_spec.html</a></dd>
+<dt>requirements_ref</dt><dd><a href="01_requirements.html">01_requirements.html</a></dd>
+<dt>standing_acceptance</dt><dd><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§G</code></dd>
+<dt>date</dt><dd>2026-05-23</dd>
+<dt>status</dt><dd>Draft</dd>
+<dt>pipeline_mode</dt><dd>skill-new</dd>
+<dt>target_skill</dt><dd><code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></dd>
+<dt>target_platform</dt><dd>claude-code</dd>
+<dt>commit_cadence</dt><dd>per-task</dd>
+<dt>contract_version</dt><dd>1</dd>
+<dt>execution_mode</dt><dd>subagent-driven <em>(user choice at close — overrides DP2's recommendation; the wave planner will serialize T3+T8–T14 by file-conflict on SKILL.md, while T4–T7 reference docs can run in parallel)</em></dd>
+</dl>
+</section>
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p>Build the <code>/primer</code> skill at <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> — the first skill of a new <code>pmos-learnkit</code> plugin. Five Claude Code phases produce a verified-source, audience-shaped HTML primer at <code>{docs_path}/primer/{date}_{slug}.html</code> with companion <code>sections.json</code> + <code>sources.json</code> sidecars. The plan derisks the substrate parameterization (FR-14 — touches every artifact) as the T1 tracer bullet, then scaffolds the new plugin's <code>_shared/</code>, then authors the skill in incremental phase-by-phase slices.</p>
+<p><strong>Done when:</strong> SKILL.md is ≤500 lines (target) / ≤800 (hard cap); <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/primer/</code> exits 0 with all <code>[D]</code> checks pass; <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh plugins/pmos-learnkit/skills/primer/SKILL.md</code> exits 0; rendering any pre-existing pmos-toolkit artifact post-substrate-change produces byte-stable user-visible attribution (toolbar + footer link text and href byte-identical, only the additive <code>data-pmos-plugin="pmos-toolkit"</code> attribute differs); all 4 reference files exist under <code>reference/</code> with TOC in first 15 lines if &gt;100 lines; SKILL.md body contains every section listed in spec §7.10 (verified by <code>grep</code>).</p>
+<p><strong>Done-when walkthrough.</strong></p>
+<ol>
+<li>Run the deterministic skill-eval: <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/primer/</code> → exits 0. The script reads SKILL.md, parses its frontmatter, counts body lines, greps for required sections — all <code>[D]</code> checks emit <code>PASS</code>.</li>
+<li>Run audit-recommended: <code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh plugins/pmos-learnkit/skills/primer/SKILL.md</code> → exits 0. Every <code>AskUserQuestion</code> in the body either carries a <code>(Recommended)</code> option or sits adjacent to a <code>&lt;!-- defer-only: … --&gt;</code> tag.</li>
+<li>Render-diff one pre-existing pmos-toolkit artifact (e.g., <code>docs/pmos/features/2026-05-13_survey-analyse/02_spec.html</code>): the toolbar &lt;a&gt; tag's <code>href</code> attribute is <code>https://github.com/maneesh-dhabria/pmos-toolkit#readme</code> and its inner text is <code>Created using pmos&amp;#8209;toolkit</code> — byte-identical to pre-T1. The only allowed diff is the addition of <code>data-pmos-plugin="pmos-toolkit"</code> on the two attribution &lt;a&gt; elements.</li>
+<li>Section-presence grep: <code>for s in "## Platform Adaptation" "## Track Progress" "## Phase 0" "## Phase 0.5" "## Phase 1" "## Phase 2" "## Phase 3" "## Phase 4" "## Phase 5" "## Phase 6" "## Anti-Patterns"; do grep -q "^$s" plugins/pmos-learnkit/skills/primer/SKILL.md || echo "MISSING: $s"; done</code> → zero output.</li>
+<li>Line-budget: <code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> ≤500 (target); ≤800 hard cap; fail if over.</li>
+</ol>
+<p><strong>Execution order:</strong></p>
+<pre><code>Wave 1 (T1)           Wave 2 (T2)              Wave 3 (T3)
+substrate          →  pmos-learnkit sync   →   minimum-viable SKILL.md
+(tracer bullet)       (config)                 (loadable + audit-clean)
+                                                       │
+                                                       ▼
+Wave 4 (T4, T5, T6, T7)                          Wave 5 (T8 → T9 → T10 → T11 → T12 → T13)
+reference/ docs (parallel-safe locally,         SKILL.md phase bodies
+serialized under inline execution)                (sequential — same file)
+                                                       │
+                                                       ▼
+                                              Wave 6 (T14)              Wave 7 (T15 = TN)
+                                              closing + worked-       final verification
+                                              example + line trim     (skill-eval, audit, diff)
+</code></pre>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">Decision Log</h2>
+<p>Architecture and FR-level decisions inherit from <a href="02_spec.html#decision-log">02_spec.html §4 Decision Log</a> (D1–D17). The entries below are implementation-specific choices made during planning.</p>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr>
+<tr><td>DP1</td><td><strong>T1 is the substrate-parameterization tracer bullet.</strong> Land FR-14's <code>template.html</code> change before any pmos-learnkit code; verify byte-stability against an existing pmos-toolkit artifact in the same task.</td><td>(a) Substrate change last (after the skill is written and validated). (b) Substrate change in a separate "Phase 0" outside the plan (handled by /complete-dev). (c) ★ <strong>Substrate change as T1 with inline byte-diff verification.</strong></td><td>The substrate touches every existing artifact. If byte-stability breaks, every downstream task inherits a broken substrate. Tracer-bullet discipline (Phase 3 §Vertical-Slice Decomposition) requires the riskiest unproven integration point to sit inside T1. (a) defers the risk; (b) hides it in /complete-dev's scope where /plan can't gate-test.</td></tr>
+<tr><td>DP2</td><td><strong>Inline execution mode</strong> — every SKILL.md body task (T3, T8–T14) edits the same single file, producing 100% file conflicts under subagent-driven parallel waves.</td><td>(a) Inline execution (one agent, sequential). (b) Subagent-driven (parallel waves where file-conflict allows).</td><td>The wave planner serializes tasks that touch the same file. T3 and T8–T14 all write <code>SKILL.md</code>; only T4–T7 (separate reference files) could parallelize, and the wins are negligible against the orchestration overhead. Inline wins on token cost and simplicity. Recorded in frontmatter; confirmed at close-of-plan question.</td></tr>
+<tr><td>DP3</td><td><strong>SKILL.md decomposition is one-phase-per-task</strong> (T8 = Phase 0/0.5, T9 = Phase 1, …, T13 = Phase 5).</td><td>(a) One task = entire SKILL.md (single megacommit). (b) One task per FR (~30 tasks). (c) ★ <strong>One task per SKILL.md phase (6 phase-body tasks).</strong></td><td>(a) is too large to review inline (review-loop scope collapses); (b) overshoots — many FRs share the same prose paragraph; (c) maps 1:1 to spec §7.10's normative phase list and keeps each task ~1 hour of focused work. Each task declares <code>**Slice shape:** config</code> (prose-skill exception) with the rationale "skill body section; vertical slicing of a single-document prose skill is not possible — see Anti-Patterns §Vertical-Slice Decomposition".</td></tr>
+<tr><td>DP4</td><td><strong>TN is a deterministic verification ceremony</strong>, not the smoke-triple from spec §14.2.</td><td>(a) TN = run all 3 smoke topics (feature flagging, PLG metrics, tRPC). (b) ★ <strong>TN = deterministic gates only (skill-eval-check.sh + audit-recommended.sh + line-budget + render byte-diff); smoke-triple deferred to /verify.</strong></td><td>The smoke-triple needs the plugin to be loadable, which requires <code>plugin.json</code> + <code>marketplace.json</code> — and those are /complete-dev's scope per FR-G2. /verify Phase 7 (after /complete-dev — wait, after /complete-dev in the orchestrator pipeline /verify already ran) actually owns smoke; /feature-sdlc Phase 7's /verify will run the manual smokes against the installed plugin per spec §14.2. TN here proves the artifacts on disk are correct; live invocation testing is downstream.</td></tr>
+<tr><td>DP5</td><td><strong>Reference-doc tasks (T4–T7) declare <code>**Slice shape:** refactor-prep</code></strong> with rationale "extracts content the Phase-4 draft (T12) and Phase-5 reviewer dispatch (T13) consume; depth-1 per FR-C2."</td><td>(a) <code>**Slice shape:** config</code>. (b) ★ <strong>refactor-prep</strong> — the docs aren't config (no runtime behavior parameter); they're prerequisite content the later vertical slices depend on.</td><td>Phase 3 §Vertical-Slice Decomposition lists the exception shapes; <code>refactor-prep</code> is the closest fit ("extracts the auth helper T3's vertical cut depends on" — analogous to "extracts the rubric T13's vertical cut depends on"). Each Wave-4 task documents its consumer explicitly.</td></tr>
+<tr><td>DP6</td><td><strong>Release prerequisites are listed in <code>## Release prerequisites</code> below, not as Wave-N tasks.</strong> Per FR-G2: plugin.json × 2, marketplace.json × 2, README row, changelog entry, learnings header bootstrap, .gitignore entry, tag, and remote push are all /complete-dev's exclusive scope (orchestrator Phase 8).</td><td>(a) Add a "Wave 8 — release" with these tasks (legacy 03_plan shape per <code>docs/pmos/features/2026-05-13_survey-analyse/03_plan.html</code>). (b) ★ <strong>Omit from waves; enumerate under §Release prerequisites; /skill-eval check <code>g-release-prereqs-scope</code> + <code>g-plan-grep-clean</code> will grade this.</strong></td><td>FR-G2 is a hard rule (the Phase 6a deterministic check <code>g-plan-grep-clean</code> greps the plan for forbidden paths and fails the wave if found). Legacy plans pre-date this rule; the discipline is now enforced.</td></tr>
+</table>
+</section>
+
+<section id="code-study-notes">
+<h2 id="code-study-notes">Code Study Notes</h2>
+<p>Glossary inherited from <a href="02_spec.html">02_spec.html</a>; the plan introduces no new domain terms.</p>
+
+<h3 id="patterns-to-follow">Patterns to follow</h3>
+<ul>
+<li><code>plugins/pmos-toolkit/skills/artifact/SKILL.md:25-126</code> — Phase 0 + Phase 1 wiring (pipeline-setup-block inline, subcommand routing). T8 mirrors this pattern.</li>
+<li><code>plugins/pmos-toolkit/skills/artifact/SKILL.md:278-338</code> — Phase 3 self-refinement loop (binary rubric + auto-apply + iteration cap). T13 mirrors this for the reviewer subagent (single auto-apply iteration per FR-8.3).</li>
+<li><code>plugins/pmos-toolkit/skills/artifact/SKILL.md:338-352</code> — Phase 4 Save &amp; Confirm: atomic temp-then-rename trio + asset copy + index regen. T13's write-phase mirrors verbatim (per spec D-WRITER-PATTERN).</li>
+<li><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code> — Phase 0.5 consolidated-confirm seeded from <code>.pmos/&lt;skill&gt;.lastrun.yaml</code>. T8 mirrors this for <code>.pmos/primer.lastrun.yaml</code>.</li>
+<li><code>plugins/pmos-toolkit/skills/polish/SKILL.md</code> — binary rubric + iteration cap pattern. The 10-check rubric in T5's <code>reference/rubric.md</code> mirrors this structure (one row per check_id with binary pass-criterion).</li>
+<li><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md</code> — the reviewer subagent contract pattern (FR-43/44 quote-validation, check_id set equality). T13 mirrors verbatim for the /primer reviewer (FR-8.2).</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html:11-34</code> — the 6 hardcoded literals to parameterize: 2 occurrences of <code>"https://github.com/maneesh-dhabria/pmos-toolkit#readme"</code> + 2 of <code>"Created using pmos&amp;#8209;toolkit"</code> + 2 attribution &lt;a&gt; tags that gain <code>data-pmos-plugin=</code>. T1 is bounded to this file alone.</li>
+</ul>
+
+<h3 id="existing-code-to-reuse">Existing code to reuse</h3>
+<ul>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — substrate template; T1 modifies in place; T13 reads at write-time for the trio.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/index-generator.md</code> — index manifest regeneration; T13 cites by reference.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md §3</code> — heading-ID kebab-case rules; T13's Phase-5-write task cites.</li>
+<li><code>scripts/sync-shared.sh</code> — substrate sync utility (<code>--from=&lt;plugin&gt;</code>); T2 invokes.</li>
+<li><code>plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh</code> — deterministic [D]-check half; T3 + T15 invoke.</li>
+<li><code>plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh</code> — non-interactive contract auditor; T3 + T15 invoke.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/non-interactive.md</code> — canonical non-interactive-block; T8 inlines verbatim into SKILL.md.</li>
+</ul>
+
+<h3 id="constraints-discovered">Constraints discovered</h3>
+<ul>
+<li><strong>FR-G2 scope discipline.</strong> Edits to <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code>, <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code>, <code>.claude-plugin/marketplace.json</code>, <code>.codex-plugin/marketplace.json</code>, the repo <code>README.md</code>, <code>docs/pmos/changelog.md</code>, and <code>~/.pmos/learnings.md</code> header bootstraps are all /complete-dev's scope only. Wave tasks MUST NOT touch these — graded by skill-eval check <code>g-plan-grep-clean</code>.</li>
+<li><strong>.gitignore for <code>.pmos/primer.lastrun.yaml</code>.</strong> Spec §18 lists this under /complete-dev's scope. BUT: <code>.pmos/complete-dev.lastrun.yaml</code> is already in <code>.gitignore</code> at line 18. If a wildcard pattern <code>.pmos/*.lastrun.yaml</code> is preferred, /complete-dev makes that change at Phase 8. /plan does NOT touch <code>.gitignore</code>.</li>
+<li><strong>Substrate-default contract (D17 / FR-14.1).</strong> The toolbar + footer attribution must render byte-identical user-visible text + href for any pmos-toolkit artifact that does NOT opt into the new template tokens. The ONLY allowed byte-diff is the additive <code>data-pmos-plugin="pmos-toolkit"</code> attribute. T1 must hard-fail if any other diff appears.</li>
+<li><strong>SKILL.md line budget (NFR-1).</strong> ≤500 lines target; 501–800 pass-with-note; &gt;800 hard fail. With ~12 mandatory body sections (spec §7.10), aggressive offloading to <code>reference/</code> is required. T14 owns the final trim.</li>
+<li><strong>Reference depth-1 (FR-C2).</strong> <code>reference/*.md</code> MUST NOT chain to deeper reference files. Each file stands alone.</li>
+<li><strong>Plugin not loaded until /complete-dev.</strong> Wave-7 TN verification CANNOT live-invoke /primer (plugin.json doesn't exist yet); deterministic file-based checks only. Smoke-triple deferred to /verify post-/complete-dev.</li>
+<li><strong>Substrate-sync prerequisite (E5).</strong> <code>scripts/sync-shared.sh --from=pmos-toolkit</code> requires <code>plugins/pmos-learnkit/skills/</code> to exist as a directory; created implicitly by T3's first SKILL.md write or pre-created by T2.</li>
+</ul>
+
+<h3 id="stack-signals">Stack signals</h3>
+<ul>
+<li><strong>Repo type:</strong> Claude Code plugin marketplace; bash + shell scripts; no compiled language; node available (substrate's <code>html-to-md.js</code>, <code>build_sections_json.js</code> are vanilla Node); python3 available (used by /survey-analyse).</li>
+<li><strong>Lint/test:</strong> no global lint (skills are prose); per-skill <code>skill-eval-check.sh</code> is the substitute. No <code>package.json</code> at repo root; substrate node tooling is zero-dep.</li>
+<li><strong>Pre-commit:</strong> <code>.githooks/pre-commit</code> enforces 4-file plugin-manifest version sync. The hook is bypassable only with <code>--no-verify</code> (not used here).</li>
+<li><strong>Reference system:</strong> <code>plugins/pmos-toolkit/</code> as the only existing plugin — the template for pmos-learnkit's plugin shape. Decisions cite this reference per FR-91.</li>
+</ul>
+</section>
+
+<section id="prerequisites">
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Working tree clean on <code>feat/pmos-learnkit-primer</code> branch (already true — see <code>state.yaml</code>).</li>
+<li><code>.pmos/settings.yaml</code> present with <code>docs_path: docs/pmos/</code> and <code>output_format: html</code> (verified at /plan Phase 0).</li>
+<li><code>plugins/pmos-toolkit/skills/</code> intact and unchanged before T1 (no other in-flight substrate edits).</li>
+<li>Node 18+ available on PATH (for <code>build_sections_json.js</code> + <code>html-to-md.js</code>).</li>
+<li>Bash 4+ available (substrate scripts use POSIX shell; <code>skill-eval-check.sh</code> is bash).</li>
+<li><code>scripts/sync-shared.sh</code> executable.</li>
+</ul>
+</section>
+
+<section id="file-map">
+<h2 id="file-map">File Map</h2>
+<p>Tasks are source of truth per FR-23; this table is a generated index.</p>
+<table>
+<tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></td><td>Parameterize toolbar (lines 17–20) + footer (lines 28–31) attribution: replace 2× hardcoded href, 2× hardcoded inner text, add 2× <code>data-pmos-plugin</code>; introduce <code>{{plugin_name}}</code>, <code>{{plugin_name_nbsp}}</code>, <code>{{plugin_url}}</code> tokens with documented defaults.</td><td>T1</td></tr>
+<tr><td>Test</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh</code></td><td>Snapshot existing pmos-toolkit artifact → apply new template with default values → diff → exit nonzero on any diff outside the allowed <code>data-pmos-plugin</code> addition.</td><td>T1</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/_shared/</code> (entire tree, via sync)</td><td>Sync from <code>plugins/pmos-toolkit/skills/_shared/</code> via <code>scripts/sync-shared.sh --from=pmos-toolkit</code>. Populates html-authoring, non-interactive.md, interactive-prompts.md, etc.</td><td>T2</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></td><td>The skill body; written across T3 (skeleton + frontmatter), T8 (Phase 0 + 0.5), T9 (Phase 1), T10 (Phase 2), T11 (Phase 3), T12 (Phase 4), T13 (Phase 5), T14 (Phase 6 + Anti-Patterns + worked example + final trim).</td><td>T3, T8–T14</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/primer/reference/audience-presets.md</code></td><td>Three-axis preset spec: senior-pms preset (required sections, vocab posture, closing-shape); all-pms preset (required sections, inline-definitions posture, closing-shape). TOC if &gt;100 lines.</td><td>T4</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/primer/reference/rubric.md</code></td><td>The 10-check reviewer rubric verbatim from spec §7.9 in reviewer-prompt-ready form: check_id, tier (trust|taste), pass-criterion (binary), evidence-quote convention. TOC.</td><td>T5</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code></td><td>Phase 2 source-floor=4 behavior; thin-source disclosure shape; sources.json schema (FR-5.3); retry-once protocol; WebFetch-unavailable fallback.</td><td>T6</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code></td><td>Phase-4 framing prompt the draft uses: "curator voice" definition + one excerpt comparing curator-voice vs explainer-voice on a sample paragraph + 3 anti-patterns. This is the A1 hypothesis owner per spec D-A1.</td><td>T7</td></tr>
+</table>
+</section>
+
+<section id="tasks">
+<h2 id="tasks">Tasks</h2>
+
+<h3 id="wave-1-substrate">Wave 1 — substrate parameterization (tracer bullet)</h3>
+<p><strong>Phase rationale:</strong> derisk byte-stability of the substrate change before any pmos-learnkit code. End-to-end behavior: an existing pmos-toolkit artifact, re-rendered against the new template with the default token values, produces byte-identical user-visible attribution. The riskiest unproven integration point (substrate-wide impact on every artifact) is fully inside T1.</p>
+
+<h4 id="t1">T1: Parameterize <code>template.html</code> attribution + byte-stability test</h4>
+<p><strong>Goal:</strong> Replace 2× hardcoded href and 2× hardcoded inner-text in <code>template.html</code> with <code>{{plugin_url}}</code> and <code>{{plugin_name_nbsp}}</code> tokens; add <code>data-pmos-plugin="{{plugin_name}}"</code> to both attribution &lt;a&gt; tags; document default values (<code>pmos-toolkit</code>, <code>pmos&amp;#8209;toolkit</code>, the existing pmos-toolkit URL) at the top of the file; write a byte-stability test script.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-functional-requirements">FR-14, FR-14.1, FR-14.2</a>, <a href="02_spec.html#frontend-design">§11.1</a>, <a href="02_spec.html#decision-log">D-ATTRIB, D17</a>.<br>
+<strong>Depends on:</strong> none.<br>
+<strong>Idempotent:</strong> yes (re-running produces the same diff against pre-T1 HEAD).<br>
+<strong>Requires state from:</strong> none.<br>
+<strong>TDD:</strong> yes — new-feature (write the byte-stability test first; verify it fails against pre-T1 template; modify template; verify test passes).<br>
+<strong>Data:</strong> one pre-existing pmos-toolkit artifact as the byte-diff snapshot input (default: <code>docs/pmos/features/2026-05-13_survey-analyse/02_spec.html</code> — any artifact predating T1 works).<br>
+<strong>Slice shape:</strong> vertical (substrate change + verification produces user-observable behavior: byte-identical attribution on pre-existing artifacts).</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh</code> (executable)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Snapshot pre-change toolbar + footer bytes from current template — capture the exact lines that will change:
+<pre><code>cd /Users/maneeshdhabria/Desktop/Projects/agent-skills-pmos-learnkit-primer
+sed -n '17,22p;28,32p' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html &gt; /tmp/template-pre-t1.txt
+wc -l /tmp/template-pre-t1.txt   # expect ~10 lines
+</code></pre></li>
+<li>Write the byte-stability test script <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh</code> (illustrative shape — adapt to host conventions):
+<pre><code>#!/usr/bin/env bash
+# Verify the parameterized template, with defaults applied, produces byte-identical
+# user-visible attribution to the pre-T1 template. Exits non-zero on any unexpected diff.
+set -euo pipefail
+TPL="plugins/pmos-toolkit/skills/_shared/html-authoring/template.html"
+PLUGIN_NAME="pmos-toolkit"
+PLUGIN_NAME_NBSP="pmos&amp;#8209;toolkit"
+PLUGIN_URL="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+rendered=$(sed -e "s|{{plugin_name}}|$PLUGIN_NAME|g" \
+               -e "s|{{plugin_name_nbsp}}|$PLUGIN_NAME_NBSP|g" \
+               -e "s|{{plugin_url}}|$PLUGIN_URL|g" "$TPL")
+# Expect: rendered toolbar &lt;a&gt; href = $PLUGIN_URL ; inner text = "Created using $PLUGIN_NAME_NBSP" ;
+# data-pmos-plugin="pmos-toolkit" attribute present on both attribution &lt;a&gt; elements.
+echo "$rendered" | grep -q "href=\"$PLUGIN_URL\"" || { echo "FAIL: href not rendered"; exit 1; }
+echo "$rendered" | grep -q "Created using $PLUGIN_NAME_NBSP" || { echo "FAIL: inner text drift"; exit 1; }
+echo "$rendered" | grep -cq 'data-pmos-plugin="pmos-toolkit"' &amp;&amp; \
+  [[ $(echo "$rendered" | grep -c 'data-pmos-plugin="pmos-toolkit"') == 2 ]] || \
+  { echo "FAIL: data-pmos-plugin not present exactly twice"; exit 1; }
+echo "PASS: template byte-stable for pmos-toolkit defaults"
+</code></pre></li>
+<li>Run the test against the pre-T1 template — expect <strong>FAIL</strong> (template has no <code>{{plugin_*}}</code> tokens yet, sed substitutions are no-ops, no <code>data-pmos-plugin</code> attribute present):
+<pre><code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh
+# Expected: FAIL: data-pmos-plugin not present exactly twice (exit 1)
+</code></pre></li>
+<li>Modify <code>template.html</code> lines 17–22 (toolbar &lt;a&gt;) and 28–32 (footer &lt;a&gt;): replace the hardcoded href with <code>{{plugin_url}}</code>; replace the hardcoded inner text (currently <code>Created using pmos&amp;#8209;toolkit</code>) with <code>Created using {{plugin_name_nbsp}}</code>; add <code>data-pmos-plugin="{{plugin_name}}"</code> immediately after the <code>data-pmos-role="attribution"</code> attribute on both. Add a top-of-file comment block documenting the three tokens and their defaults (<code>plugin_name=pmos-toolkit</code>, <code>plugin_name_nbsp=pmos&amp;#8209;toolkit</code>, <code>plugin_url=https://github.com/maneesh-dhabria/pmos-toolkit#readme</code>).</li>
+<li>Re-run the test — expect <strong>PASS</strong>:
+<pre><code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh
+# Expected: PASS: template byte-stable for pmos-toolkit defaults
+</code></pre></li>
+<li>Render-diff against an existing pmos-toolkit artifact. Pick one as snapshot reference:
+<pre><code>REF=docs/pmos/features/2026-05-13_survey-analyse/02_spec.html
+# Extract just the toolbar &lt;a&gt; tag and footer &lt;a&gt; tag from REF (lines varying).
+grep -n 'data-pmos-role="attribution"' "$REF"
+# Confirm REF currently shows: href=".../pmos-toolkit#readme" and inner-text="Created using pmos&amp;#8209;toolkit"
+# No regeneration needed — REF was rendered pre-T1; it embodies the pre-T1 substrate output.
+# The forward-compat test is structural: the new template, with defaults, renders identical bytes.
+</code></pre></li>
+<li>Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/template.html \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh
+git commit -m "feat(T1): parameterize substrate template attribution
+
+Adds {{plugin_name}}, {{plugin_name_nbsp}}, {{plugin_url}} tokens to template.html
+toolbar and footer attribution; defaults preserve byte-stable user-visible attribution
+for pmos-toolkit (text + href identical). The only diff for non-opting plugins is the
+additive data-pmos-plugin attribute (HTML5 custom data-* hook, invisible to readers).
+
+Byte-stability test ships at tests/template-bytestable.sh.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) &lt;noreply@anthropic.com&gt;"
+</code></pre></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh</code> — exits 0; prints "PASS: template byte-stable for pmos-toolkit defaults".</li>
+<li><code>grep -c '{{plugin_' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — exact count 4 (2× <code>{{plugin_url}}</code>, 2× <code>{{plugin_name_nbsp}}</code>) plus 2× <code>{{plugin_name}}</code> = 6 total token occurrences.</li>
+<li><code>grep -c 'data-pmos-plugin' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — exact count 2.</li>
+<li>Manual: open <code>docs/pmos/features/2026-05-13_survey-analyse/02_spec.html</code> in a browser, confirm toolbar and footer attribution still display "Created using pmos-toolkit" and link to the existing repo URL.</li>
+</ul>
+
+<h3 id="wave-2-sync">Wave 2 — pmos-learnkit substrate sync</h3>
+<p><strong>Phase rationale:</strong> populate <code>plugins/pmos-learnkit/skills/_shared/</code> so subsequent skill-authoring tasks can target a complete substrate. Single config task.</p>
+
+<h4 id="t2">T2: Scaffold pmos-learnkit skill dir + sync <code>_shared/</code> from pmos-toolkit</h4>
+<p><strong>Goal:</strong> Create <code>plugins/pmos-learnkit/skills/primer/</code> as an empty directory marker; run <code>scripts/sync-shared.sh --from=pmos-toolkit</code> to populate <code>plugins/pmos-learnkit/skills/_shared/</code>; verify substrate parity.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-14 (post-step), FR-D2</a>, <a href="02_spec.html#edge-cases">E5</a>, <a href="02_spec.html#rollout-strategy">§15 step 3</a>.<br>
+<strong>Depends on:</strong> T1 (T2 syncs the post-T1 template into the new plugin).<br>
+<strong>Idempotent:</strong> yes (<code>sync-shared.sh</code> overwrites destination from source; re-running produces the same tree).<br>
+<strong>Requires state from:</strong> T1 (modified <code>template.html</code>).<br>
+<strong>TDD:</strong> no — config/IaC task (per FR-105 carve-out).<br>
+<strong>Slice shape:</strong> config — populates substrate, no runtime behavior of its own.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create (directory): <code>plugins/pmos-learnkit/skills/primer/</code> (empty, with a single <code>.gitkeep</code> if git requires it; will be replaced by SKILL.md in T3).</li>
+<li>Create (via sync): <code>plugins/pmos-learnkit/skills/_shared/</code> tree.</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Pre-flight: confirm the source substrate has the T1 change:
+<pre><code>grep -c 'data-pmos-plugin' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html
+# Expected: 2
+</code></pre></li>
+<li>Create the destination skill directory:
+<pre><code>mkdir -p plugins/pmos-learnkit/skills/primer
+</code></pre></li>
+<li>Run the sync script:
+<pre><code>scripts/sync-shared.sh --from=pmos-toolkit
+</code></pre>
+Expected output: lines like <code>copying plugins/pmos-toolkit/skills/_shared/* → plugins/pmos-learnkit/skills/_shared/</code>; exit 0.</li>
+<li>Verify byte-equality of the synced template:
+<pre><code>diff plugins/pmos-toolkit/skills/_shared/html-authoring/template.html \
+     plugins/pmos-learnkit/skills/_shared/html-authoring/template.html
+# Expected: no output (byte-identical)
+</code></pre></li>
+<li>Verify the canonical substrate files are all present:
+<pre><code>ls plugins/pmos-learnkit/skills/_shared/html-authoring/
+# Expected: assets/ chrome-strip.md conventions.md index-generator.md README.md template.html
+ls plugins/pmos-learnkit/skills/_shared/
+# Expected: html-authoring/ non-interactive.md interactive-prompts.md (+ any other shared files)
+</code></pre></li>
+<li>Pre-commit drift hook check:
+<pre><code>git add plugins/pmos-learnkit/skills/_shared plugins/pmos-learnkit/skills/primer
+git status --short
+# Expected: only ?? new files; no M (modified) outside the substrate sync scope
+</code></pre></li>
+<li>Commit:
+<pre><code>git commit -m "feat(T2): scaffold pmos-learnkit skill dir + sync _shared/ from pmos-toolkit
+
+Creates plugins/pmos-learnkit/skills/primer/ as the canonical skill location
+(SKILL.md follows in T3) and runs scripts/sync-shared.sh --from=pmos-toolkit to
+populate the new plugin's _shared/ tree byte-identical to pmos-toolkit's.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) &lt;noreply@anthropic.com&gt;"
+</code></pre></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>diff -r plugins/pmos-toolkit/skills/_shared/ plugins/pmos-learnkit/skills/_shared/</code> — exits 0 (trees byte-identical).</li>
+<li><code>test -d plugins/pmos-learnkit/skills/primer/</code> — exit 0.</li>
+<li><code>.githooks/pre-commit</code> green when staged (no manifest drift since manifests don't exist yet — that's /complete-dev).</li>
+</ul>
+
+<h3 id="wave-3-mvp-skill">Wave 3 — minimum-viable SKILL.md (loadable + audit-clean)</h3>
+<p><strong>Phase rationale:</strong> establish the SKILL.md file with valid frontmatter and all required structural sections as stubs. End-to-end behavior: skill-eval-check.sh's <code>[D]</code> checks pass; audit-recommended.sh exits clean. Each subsequent task in Wave 5 grows one phase's body without breaking these gates.</p>
+
+<h4 id="t3">T3: SKILL.md frontmatter + announce + Platform Adaptation + Track Progress + 6 phase stubs</h4>
+<p><strong>Goal:</strong> Write <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> with full frontmatter (§A), announce line, Platform Adaptation (§D2), Track Progress (§D5), and <code>## Phase 0</code> through <code>## Phase 6: Capture Learnings</code> as one-paragraph stubs each. After T3, the deterministic skill-eval passes.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-A1–A6, FR-B1–B6, FR-C1, FR-C4, FR-C5, FR-D1, FR-D2, FR-D4, FR-D5, FR-F1, FR-F2, FR-F3</a>, spec §7.10 phase list.<br>
+<strong>Depends on:</strong> T2.<br>
+<strong>Idempotent:</strong> yes (overwrites SKILL.md from scratch).<br>
+<strong>TDD:</strong> no — prose-only carve-out per skill-patterns §E.<br>
+<strong>Slice shape:</strong> vertical — the skill becomes loadable + audit-clean end-to-end; subsequent tasks expand each phase body.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Author the frontmatter (the file's first ~25 lines) — exact required fields per <a href="02_spec.html#fr-a-skill-patterns-frontmatter">FR-A2..A5</a>:
+<pre><code>---
+name: primer
+description: &lt;~600-char third-person paragraph: one-clause WHAT (verified-source, audience-shaped HTML primer); explicit WHEN (ramp-up before meeting / scope / doc-review); ≥5 user-spoken trigger phrases ("write me a primer on X", "ramp me up on Y", "generate a primer", "I need to learn about Z before a meeting", "/primer", "create a teachable artifact on this topic"); no embedded step list&gt;
+user-invocable: true
+argument-hint: &lt;topic&gt; [--audience &lt;senior-pms|all-pms&gt;] [--autonomous] [--format &lt;html|md|both&gt;] [--non-interactive] [--interactive]
+---
+</code></pre></li>
+<li>Body — opening lines (announce per FR-D1):
+<pre><code>Using primer to research and draft a teachable artifact on the requested topic.
+
+## Platform Adaptation
+
+- No `AskUserQuestion` available → state the assumed defaults (audience=senior-pms, output_format=html) and proceed; document each assumed answer at the top of the final artifact.
+- No `Task` subagent → run the Phase 5 reviewer inline against the same rubric; record `mode: inline-reviewer` in the artifact frontmatter.
+- No `WebFetch` → Phase 2 surfaces the FR-5.4 gate (Abort / Continue with no sources — NOT recommended); on Continue the artifact is marked "uncited draft" in a footer banner.
+- No `context7` MCP → Phase 2 degrades to WebFetch-only; the source-floor=4 gate still applies.
+
+## Track Progress
+
+This skill has 5 sequential phases plus intake and eval gates. Create one task per phase via the host agent's tracker; mark in_progress when starting, completed as soon as finished.
+</code></pre></li>
+<li>Phase stubs — each section name is normative per spec §7.10:
+<pre><code>## Phase 0: Pipeline setup + Load Learnings
+[stub: 2 sentences describing intent — settings.yaml read, output_format/mode resolved per the canonical non-interactive block, ~/.pmos/learnings.md §/primer loaded if present.]
+
+## Phase 0.5: Consolidated confirm
+[stub: 2 sentences — .pmos/primer.lastrun.yaml read, single AskUserQuestion seeded from prior audience+output_format, --autonomous skips.]
+
+## Phase 1: Intake
+[stub]
+
+## Phase 2: Research (try-both)
+[stub]
+
+## Phase 3: Outline
+[stub]
+
+## Phase 4: Draft
+[stub]
+
+## Phase 5: Eval + Write
+[stub]
+
+## Phase 6: Capture Learnings
+[stub — numbered per FR-D4.]
+
+## Anti-Patterns (DO NOT)
+
+- &lt;at least 1 placeholder; full list authored in T14&gt;
+</code></pre></li>
+<li>Inline the canonical non-interactive block from <code>plugins/pmos-learnkit/skills/_shared/non-interactive.md</code> verbatim inside the Phase 0 stub (the block is large; this anchors audit-recommended.sh):
+<pre><code>cat plugins/pmos-learnkit/skills/_shared/non-interactive.md
+# Copy the &lt;!-- non-interactive-block:start --&gt; ... :end --&gt; region into Phase 0.
+</code></pre></li>
+<li>Validate frontmatter parses (substrate has no YAML lib; the regex-parse rules from /plan FR-50a apply — every <code>^([a-z_]+):\s*(.*)$</code> line OK):
+<pre><code>head -25 plugins/pmos-learnkit/skills/primer/SKILL.md | grep -E '^(name|description|user-invocable|argument-hint):'
+# Expected: 4 lines matching
+</code></pre></li>
+<li>Run the deterministic skill-eval:
+<pre><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+  --target claude-code plugins/pmos-learnkit/skills/primer/
+# Expected: all [D] checks PASS. Specifically:
+#   a-name-matches-dir (name=primer matches dir basename "primer")
+#   a-name-lowercase-hyphen, a-name-len, a-desc-present, a-desc-len
+#   c-body-size (well under 800 — stubs are short)
+#   f-cc-user-invocable (true), f-cc-argument-hint-matches (every flag in body is listed)
+</code></pre></li>
+<li>Run audit-recommended:
+<pre><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh \
+  plugins/pmos-learnkit/skills/primer/SKILL.md
+# Expected: exit 0. The non-interactive block is canonical (excluded from audit per its own
+# self-marker); stub phases have no AskUserQuestion calls yet, so nothing to audit.
+</code></pre></li>
+<li>Section-presence grep:
+<pre><code>for s in "## Platform Adaptation" "## Track Progress" "## Phase 0" "## Phase 0.5" "## Phase 1" "## Phase 2" "## Phase 3" "## Phase 4" "## Phase 5" "## Phase 6: Capture Learnings" "## Anti-Patterns"; do
+  grep -q "^$s" plugins/pmos-learnkit/skills/primer/SKILL.md || echo "MISSING: $s"
+done
+# Expected: no output
+</code></pre></li>
+<li>Commit:
+<pre><code>git add plugins/pmos-learnkit/skills/primer/SKILL.md
+git commit -m "feat(T3): minimum-viable /primer SKILL.md skeleton
+
+Frontmatter (FR-A1..A6), announce (FR-D1), Platform Adaptation (FR-D2),
+Track Progress (FR-D5), and stubs for Phase 0/0.5/1/2/3/4/5/6 per spec §7.10.
+Canonical non-interactive block inlined in Phase 0. Deterministic skill-eval
+[D] checks pass; audit-recommended clean.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) &lt;noreply@anthropic.com&gt;"
+</code></pre></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/primer/</code> — exit 0.</li>
+<li><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh plugins/pmos-learnkit/skills/primer/SKILL.md</code> — exit 0.</li>
+<li><code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> — ≤200 lines at this stage (substantial headroom for Wave 5 expansion).</li>
+</ul>
+
+<h3 id="wave-4-references">Wave 4 — reference/ docs (prerequisite content)</h3>
+<p><strong>Phase rationale:</strong> author the 4 reference docs the Wave-5 phase-body tasks consume. Each task creates one depth-1 file (FR-C2) with TOC if &gt;100 lines (FR-C3). Independent files, no inter-task dependency — under subagent-driven mode these could parallelize, but DP2 commits to inline.</p>
+
+<h4 id="t4">T4: <code>reference/audience-presets.md</code> — three-axis preset spec</h4>
+<p><strong>Goal:</strong> Document the senior-pms and all-pms presets per <a href="01_requirements.html">requirements §Audience preset shape</a>; each preset names its required sections list, vocab posture (inline-defs yes/no), and closing-shape.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-c-skill-patterns-structure">FR-C2, FR-C7</a>, R5, R8 (the rubric checks the file documents).<br>
+<strong>Depends on:</strong> T3.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — prose-only.<br>
+<strong>Slice shape:</strong> refactor-prep — extracts the preset spec the Phase-4 draft (T12) consumes for outline biasing and the Phase-5 reviewer (T13) consumes for R5+R8 evaluation.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-learnkit/skills/primer/reference/audience-presets.md</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>If file will be &gt;100 lines, lead with a TOC block in the first 15 lines (FR-C3). Otherwise, omit.</li>
+<li>Author two preset sections, each with: name, required H2 sections (≥3 named), vocab posture (e.g., senior-pms: "no inline definitions of common PM concepts"; all-pms: "every term-of-art on first use carries a 1-sentence inline definition"), and closing-shape (senior: "open debates"; all: "concrete actions").</li>
+<li>Add a short anti-patterns subsection: "Do NOT mix presets within one primer", "Do NOT add a third preset in v1" (per spec §3).</li>
+<li>Commit: <code>git add ... &amp;&amp; git commit -m "feat(T4): reference/audience-presets.md — three-axis presets"</code></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>wc -l plugins/pmos-learnkit/skills/primer/reference/audience-presets.md</code> — record the count; if &gt;100, confirm TOC is present in head -15.</li>
+<li><code>grep -E "^## (senior-pms|all-pms)" plugins/pmos-learnkit/skills/primer/reference/audience-presets.md</code> — both H2s present.</li>
+</ul>
+
+<h4 id="t5">T5: <code>reference/rubric.md</code> — the 10 reviewer-rubric checks</h4>
+<p><strong>Goal:</strong> Author the rubric file in reviewer-prompt-ready form, one row per check_id from spec §7.9: <code>cites-real-urls</code>, <code>no-plagiarism</code>, <code>no-hand-wavy-claims</code>, <code>covers-ground</code>, <code>right-reading-level</code>, <code>structurally-complete</code>, <code>sections-json-ids-match</code>, <code>audience-vocab</code>, <code>flags-uncertainty</code>, <code>primer-shaped</code>. Each row carries: check_id, tier (trust|taste), binary pass-criterion, the verbatim quote field convention (≥40-char substring per FR-8.2).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-rubric-detail">FR-11, FR-RUBRIC §7.9</a>, <a href="02_spec.html#decision-log">D-RUBRIC</a>.<br>
+<strong>Depends on:</strong> T3.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — prose-only.<br>
+<strong>Slice shape:</strong> refactor-prep — extracts the rubric the Phase-5 reviewer dispatch (T13) inlines verbatim into its Task subagent prompt.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-learnkit/skills/primer/reference/rubric.md</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>If &gt;100 lines, lead with TOC listing all 10 check_ids (FR-C3). Expected size: ~120–180 lines.</li>
+<li>For each of the 10 checks, copy the pass-criterion verbatim from spec §7.9; structure each as: <code>### R&lt;n&gt;: &lt;check_id&gt;</code> + tier + binary pass criterion + the verdict JSON shape <code>{check_id, verdict, evidence, quote}</code> + one worked-example evidence-quote.</li>
+<li>Append an "Output contract" section quoting the FR-8.2 quote-validation rule (≥40-char verbatim substring; empty/non-matching quote ⇒ treated as pass).</li>
+<li>Commit: <code>git add ... &amp;&amp; git commit -m "feat(T5): reference/rubric.md — 10-check reviewer rubric"</code></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -c '^### R' plugins/pmos-learnkit/skills/primer/reference/rubric.md</code> — exact count 10.</li>
+<li><code>grep -E '^### R[0-9]+: (cites-real-urls|no-plagiarism|no-hand-wavy-claims|covers-ground|right-reading-level|structurally-complete|sections-json-ids-match|audience-vocab|flags-uncertainty|primer-shaped)' plugins/pmos-learnkit/skills/primer/reference/rubric.md | wc -l</code> — exact count 10 (every check_id is present and matches the spec's name).</li>
+</ul>
+
+<h4 id="t6">T6: <code>reference/source-floor.md</code> — Phase-2 source-floor + sources.json schema</h4>
+<p><strong>Goal:</strong> Document source-floor=4 (FR-5.2), the retry-once protocol (one alternate-frame retry; re-surface gate on persistent fail), thin-source disclosure shape (footer banner format), <code>sources.json</code> schema verbatim from FR-5.3, and the WebFetch-unavailable fallback (FR-5.4).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-5.2, FR-5.3, FR-5.4</a>, <a href="02_spec.html#decision-log">D14 (carried)</a>.<br>
+<strong>Depends on:</strong> T3.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — prose-only.<br>
+<strong>Slice shape:</strong> refactor-prep — extracts content the Phase-2 task (T10) cites.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Section: "Source floor = 4" — restate from spec, name the gate options (Abort (Recommended) / Continue with thin-source disclosure / Retry with alternate query frame), name the retry-once protocol.</li>
+<li>Section: "sources.json schema" — verbatim from FR-5.3 with a small worked-example JSON block.</li>
+<li>Section: "Thin-source disclosure" — the footer banner string template and the "marked as thin-source" artifact note.</li>
+<li>Section: "WebFetch unavailable (FR-5.4)" — the gate, the "uncited draft" banner, and the reviewer trust-tier interaction (cites-real-urls resolves to N/A-fail per spec).</li>
+<li>Commit.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -q '"sources":' plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code> — exit 0 (sources.json schema example present).</li>
+<li><code>grep -q 'source-floor' plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code> — exit 0.</li>
+</ul>
+
+<h4 id="t7">T7: <code>reference/curator-lens.md</code> — Phase-4 framing prompt</h4>
+<p><strong>Goal:</strong> Document the curator-lens framing prompt the Phase-4 draft uses. Owns the A1 hypothesis (per spec D-A1): the prompt-level framing IS the load-bearing quality lever in v1.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#decision-log">D-A1</a>, <a href="02_spec.html#fr-c-skill-patterns-structure">FR-C7</a>, <a href="02_spec.html#functional-requirements">FR-7</a>.<br>
+<strong>Depends on:</strong> T3.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — prose-only.<br>
+<strong>Slice shape:</strong> refactor-prep — extracts the framing the Phase-4 draft task (T12) inlines into its prompt to the draft generator.</p>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+<li>Section: "Curator voice — definition" — one paragraph distinguishing curator-voice (selects, frames, attributes; teaches the landscape, not a position) from explainer-voice (teaches a chosen path; argues a thesis).</li>
+<li>Section: "Worked example" — one short before/after paragraph on the same topic, showing the voice shift.</li>
+<li>Section: "Anti-patterns" — at least 3: "Don't argue a position", "Don't use the first person", "Don't promise the reader 'the right answer'".</li>
+<li>Section: "Phase-4 framing prompt" — the verbatim text the Phase-4 task (T12) injects into the draft generator's context. Self-contained; no external references.</li>
+<li>Commit.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>grep -q 'curator' plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code> — exit 0.</li>
+<li><code>grep -E '^## (Curator voice|Worked example|Anti-patterns|Phase-4 framing)' plugins/pmos-learnkit/skills/primer/reference/curator-lens.md | wc -l</code> — exact count 4.</li>
+</ul>
+
+<h3 id="wave-5-phase-bodies">Wave 5 — SKILL.md phase bodies</h3>
+<p><strong>Phase rationale:</strong> expand each phase stub from T3 into the working body that implements the spec's FRs. One task per spec-§7.10 phase keeps each task ~1 hour and the diff reviewable. After each task, run the same gates from T3 to confirm no regression.</p>
+<p><strong>Common per-task inline verification (every task in Wave 5):</strong></p>
+<ul>
+<li><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/primer/</code> — exit 0.</li>
+<li><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh plugins/pmos-learnkit/skills/primer/SKILL.md</code> — exit 0.</li>
+<li><code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> — record the new line count; flag if approaching 500.</li>
+<li>Per-task section-grep listed in the task body.</li>
+</ul>
+<p><strong>Common per-task TDD posture:</strong> <code>no — prose-only carve-out per skill-patterns §E</code> for all Wave-5 tasks. <strong>Common slice shape:</strong> <code>config — skill body section; vertical slicing of a single-document prose skill is not possible (DP3)</code>.</p>
+
+<h4 id="t8">T8: SKILL.md Phase 0 + Phase 0.5 bodies</h4>
+<p><strong>Goal:</strong> Author Phase 0 (pipeline setup — settings.yaml read, output_format/mode resolved, learnings load) and Phase 0.5 (consolidated confirm seeded from <code>.pmos/primer.lastrun.yaml</code>). Inline the canonical non-interactive block from <code>plugins/pmos-learnkit/skills/_shared/non-interactive.md</code> inside Phase 0.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-2, FR-3, FR-12, FR-13</a>, <a href="02_spec.html#fr-d-skill-patterns-body-content">FR-D3</a>.<br>
+<strong>Depends on:</strong> T3.<br>
+<strong>Steps:</strong></p>
+<ol>
+<li>Phase 0 body: settings.yaml read, stderr log lines (<code>output_format: &lt;v&gt; (source: …)</code> + <code>mode: &lt;m&gt; (source: …)</code>), learnings <code>~/.pmos/learnings.md</code> §<code>/primer</code> load (factor entries; skill body wins on conflict).</li>
+<li>Phase 0.5 body: read <code>.pmos/primer.lastrun.yaml</code> if present; single AskUserQuestion seeded from <code>last_audience</code> + <code>last_output_format</code> (Recommended = "Use last values"). <code>--autonomous</code> skips. Tag the AskUserQuestion with no defer-only marker since it has a Recommended option.</li>
+<li>Section-grep: <code>grep -q 'lastrun.yaml' SKILL.md</code>; <code>grep -q '## Phase 0:' SKILL.md</code>; <code>grep -q '## Phase 0.5:' SKILL.md</code>.</li>
+<li>Commit: <code>feat(T8): /primer Phase 0 + 0.5 — setup, lastrun consolidated confirm</code></li>
+</ol>
+
+<h4 id="t9">T9: SKILL.md Phase 1 body — Intake</h4>
+<p><strong>Goal:</strong> Author Phase 1: slug derivation (<code>_shared</code> slug rules — lowercase, hyphenate, ≤64 chars); canonical path resolution (<code>{docs_path}/primer/{YYYY-MM-DD}_&lt;slug&gt;.html</code>); audience resolve (CLI flag &gt; lastrun &gt; AskUserQuestion with Recommended=senior-pms); topic-vagueness heuristic (FR-4.1 — &lt;3 tokens AND no clear noun phrase → AskUserQuestion with 3 candidate refinements); path-collision gate (FR-4.2 — Overwrite (git snapshot first) / Append -2 (Recommended) / Abort).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-4, FR-4.1, FR-4.2</a>.<br>
+<strong>Depends on:</strong> T8.<br>
+<strong>Section-grep:</strong> <code>grep -q '## Phase 1:' SKILL.md</code> AND <code>grep -q 'slug' SKILL.md</code>.<br>
+<strong>Commit:</strong> <code>feat(T9): /primer Phase 1 — intake, slug, audience, vagueness, collision</code></p>
+
+<h4 id="t10">T10: SKILL.md Phase 2 body — Research (try-both)</h4>
+<p><strong>Goal:</strong> Author Phase 2: parallel dispatch (context7 <code>resolve-library-id</code> + WebFetch on 6–10 candidate URLs); ≥3-source short-circuit (cancel/drop the other strand's pending fetches once one returns ≥3); source-floor=4 gate (FR-5.2 — cite <code>reference/source-floor.md</code>); <code>sources.json</code> schema (cite reference); WebFetch-unavailable degraded mode (FR-5.4); per-URL takeaway capture.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-5, FR-5.1, FR-5.2, FR-5.3, FR-5.4</a>.<br>
+<strong>Depends on:</strong> T6 (cites <code>reference/source-floor.md</code>), T9.<br>
+<strong>Section-grep:</strong> <code>grep -q 'try-both' SKILL.md</code>; <code>grep -q 'source-floor' SKILL.md</code>; <code>grep -q 'sources.json' SKILL.md</code>.<br>
+<strong>Commit:</strong> <code>feat(T10): /primer Phase 2 — try-both research, source floor, sources.json</code></p>
+
+<h4 id="t11">T11: SKILL.md Phase 3 body — Outline</h4>
+<p><strong>Goal:</strong> Author Phase 3: render a 10–14 H2 outline biased by the audience preset's required-sections (cite <code>reference/audience-presets.md</code>); inline the outline in chat; interactive gate via AskUserQuestion (Approve outline (Recommended) / Edit / Re-prompt with feedback / Abort); on Edit accept free-form reply and re-render; on Re-prompt accept guidance and re-generate from scratch; <code>--autonomous</code> skips the gate.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-6, FR-6.1</a>.<br>
+<strong>Depends on:</strong> T4 (cites <code>reference/audience-presets.md</code>), T10.<br>
+<strong>Section-grep:</strong> <code>grep -q '## Phase 3:' SKILL.md</code>; <code>grep -q 'audience-presets' SKILL.md</code>.<br>
+<strong>Commit:</strong> <code>feat(T11): /primer Phase 3 — outline + interactive gate</code></p>
+
+<h4 id="t12">T12: SKILL.md Phase 4 body — Draft</h4>
+<p><strong>Goal:</strong> Author Phase 4: single-pass draft against approved outline; inline citations as <code>&lt;a href=...&gt;</code> tags drawing only from <code>sources.json[].url</code> (FR-7.1 — citation discipline); curator-lens framing applied via cite of <code>reference/curator-lens.md</code>; target ~3000 words for <code>--depth mid</code>; NO diagram-pass, NO persona-pass, NO blind-primer (spec §3 non-goals).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-7, FR-7.1</a>.<br>
+<strong>Depends on:</strong> T7 (cites <code>reference/curator-lens.md</code>), T11.<br>
+<strong>Section-grep:</strong> <code>grep -q '## Phase 4:' SKILL.md</code>; <code>grep -q 'curator-lens' SKILL.md</code>; <code>grep -q 'citation' SKILL.md</code>.<br>
+<strong>Commit:</strong> <code>feat(T12): /primer Phase 4 — draft, curator-lens framing, citation discipline</code></p>
+
+<h4 id="t13">T13: SKILL.md Phase 5 body — Eval + Write (the big one)</h4>
+<p><strong>Goal:</strong> Author Phase 5: reviewer subagent dispatch via Task tool (inlining <code>reference/rubric.md</code> verbatim into the reviewer prompt); orchestrator-side JSON validation (check_id set equality + ≥40-char quote substring per FR-8.2); auto-apply iteration 1 (the writer — NOT the reviewer — patches inline; iteration cap=1); trust-tier hard-block branch → FR-RECOVERY (write <code>{date}_{slug}.draft.html</code> with red banner inline-CSS per FR-10.1; persist <code>sources.json</code> at canonical path; skip index regen for drafts; print chat message); taste-tier accept-as-known-risk gate (AskUserQuestion: Accept and write (Recommended) / Iterate manually / Abort); Phase-5 interactive gate before final write; atomic temp-then-rename trio (html + sections.json + sources.json); asset copy via <code>cp -n</code> from <code>plugins/pmos-learnkit/skills/_shared/html-authoring/assets/</code>; index regen via <code>_shared/html-authoring/index-generator.md</code>; heading-ID kebab convention (FR-9.1); cache-bust version read from <code>plugins/pmos-learnkit/.claude-plugin/plugin.json :: version</code> (FR-9.2) — fail-fast if plugin.json missing; output_format=both → MD sidecar via <code>node html-to-md.js</code> after HTML rename succeeds; on MD sidecar failure log warning and continue.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#functional-requirements">FR-8, FR-8.1, FR-8.2, FR-8.3, FR-8.4, FR-8.5, FR-8.6, FR-9, FR-9.1, FR-9.2, FR-9.3, FR-10, FR-10.1</a>, <a href="02_spec.html#decision-log">D-WRITER-PATTERN</a>.<br>
+<strong>Depends on:</strong> T5 (cites <code>reference/rubric.md</code>), T12.<br>
+<strong>Section-grep:</strong> <code>grep -q '## Phase 5:' SKILL.md</code>; <code>grep -q 'reviewer' SKILL.md</code>; <code>grep -q 'temp-then-rename' SKILL.md</code>; <code>grep -q 'draft.html' SKILL.md</code>; <code>grep -q 'data-pmos-plugin' SKILL.md</code> (the writer sets this to "pmos-learnkit").<br>
+<strong>Commit:</strong> <code>feat(T13): /primer Phase 5 — reviewer, hard-block, write trio, recovery</code><br>
+<strong>Acceptance-of-risk note:</strong> R2 (reviewer JSON malformed) is mitigated here by FR-8.2 validation; R1 (substrate-change blast radius) was already mitigated in T1.</p>
+
+<h3 id="wave-6-closing">Wave 6 — closing: anti-patterns + worked example + final trim</h3>
+
+<h4 id="t14">T14: Anti-patterns + worked example + Phase 6 + line-budget trim</h4>
+<p><strong>Goal:</strong> Replace Phase 6 stub with the numbered Capture Learnings body (cite a learnings-capture pattern; reflect-on-surprises; zero entries is a valid outcome per skill-patterns §D). Write ≥6 anti-patterns (Don't invent URLs not in sources.json; Don't skip the reviewer; Don't write on trust-fail; Don't deep-fetch single sources in Phase 2 — source-floor design; Don't introduce novel URLs in Phase 4; Don't conflate audience presets; Don't spawn subagents in Phases 2–4 — only Phase 5; Don't mix curator and explainer voice). Write the FR-D7 worked example (Phase 1→5 happy path on "feature flagging at scale"). Trim total body to ≤500 lines (target) / ≤800 (hard cap) — push detail to <code>reference/</code> where any phase body grows over its share.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-c-skill-patterns-structure">FR-C1</a>, <a href="02_spec.html#fr-d-skill-patterns-body-content">FR-D4, FR-D7, FR-D8</a>.<br>
+<strong>Depends on:</strong> T13.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — prose-only.<br>
+<strong>Slice shape:</strong> config — terminal authoring step.<br>
+<strong>Steps:</strong></p>
+<ol>
+<li>Replace Phase 6 stub with numbered <code>## Phase 6: Capture Learnings</code> body.</li>
+<li>Replace Anti-Patterns placeholder with ≥6 entries (the spec §7.10 list above).</li>
+<li>Add a <code>## Worked example</code> section at the bottom (after Anti-Patterns is the conventional placement) showing the topic "feature flagging at scale" walked from Phase 0 → Phase 5.</li>
+<li>Final line-count: <code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> — if &gt;500, audit each phase for content that belongs in <code>reference/</code>; move and re-cite. If &gt;800, hard-fail and split into a follow-up task.</li>
+<li>Section-grep: <code>grep -q '## Worked example' SKILL.md</code>; <code>grep -c '^- ' SKILL.md</code> at least N (anti-pattern bullets present).</li>
+<li>Commit: <code>feat(T14): /primer anti-patterns + worked example + Phase 6 + line trim</code></li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md</code> ≤ 800 (hard); ≤ 500 (target — pass-with-note if 501–800).</li>
+<li>Section-greps from above.</li>
+<li>Skill-eval-check.sh + audit-recommended.sh both exit 0.</li>
+</ul>
+
+<h3 id="wave-7-final-verification">Wave 7 — final verification (TN)</h3>
+
+<h4 id="t15-tn">T15 (TN): Final verification ceremony</h4>
+<p><strong>Goal:</strong> Run every deterministic gate end-to-end, record outputs, declare done.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#testing-and-verification-strategy">§14.3, §14.6, §14.7</a>; the §14.2 manual-smoke triple is deferred to /verify post-/complete-dev per DP4.<br>
+<strong>Depends on:</strong> T14.<br>
+<strong>Idempotent:</strong> yes.<br>
+<strong>TDD:</strong> no — verification task.<br>
+<strong>Slice shape:</strong> vertical — final end-to-end behavioral check (skill is file-correct).</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>Lint &amp; format.</strong> No global lint; substrate scripts only — <code>bash -n plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh</code> exits 0.</li>
+<li><strong>Skill-eval deterministic half (FR §14.3):</strong>
+<pre><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+  --target claude-code plugins/pmos-learnkit/skills/primer/
+# Expected: exit 0; every [D] check PASS (including a-name-matches-dir, c-body-size,
+# f-cc-argument-hint-matches, g-release-prereqs-scope, g-plan-grep-clean).
+</code></pre></li>
+<li><strong>audit-recommended:</strong>
+<pre><code>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/audit-recommended.sh \
+  plugins/pmos-learnkit/skills/primer/SKILL.md
+# Expected: exit 0.
+</code></pre></li>
+<li><strong>Line budget:</strong>
+<pre><code>wc -l plugins/pmos-learnkit/skills/primer/SKILL.md
+# Expected: ≤500 (pass) / 501–800 (pass-with-note) / &gt;800 (FAIL).
+</code></pre></li>
+<li><strong>Substrate byte-stability re-run:</strong>
+<pre><code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/template-bytestable.sh
+# Expected: PASS.
+</code></pre></li>
+<li><strong>Reference depth-1 (FR-C2):</strong> verify no reference file chains to another:
+<pre><code>for f in plugins/pmos-learnkit/skills/primer/reference/*.md; do
+  echo "=== $f ==="
+  grep -nE 'reference/[a-z-]+\.md' "$f" | grep -v '^# ' || echo "  (no chain)"
+done
+# Expected: every file says "(no chain)" or only references itself.
+</code></pre></li>
+<li><strong>Reference TOC if &gt;100 lines (FR-C3):</strong>
+<pre><code>for f in plugins/pmos-learnkit/skills/primer/reference/*.md; do
+  lc=$(wc -l &lt; "$f")
+  if [ "$lc" -gt 100 ]; then
+    head -15 "$f" | grep -qi '^- ' || echo "FAIL: $f is $lc lines without a TOC in head -15"
+  fi
+done
+# Expected: no FAIL output.
+</code></pre></li>
+<li><strong>Done-when walkthrough (paste each Done-when clause + its proof):</strong> walk every Done-when clause from §Overview, paste the command output proving it. Bug-fix-quality discipline — if any clause has no proof, declare the gate failed and loop back to T14.</li>
+<li><strong>Commit:</strong>
+<pre><code>git commit -m "feat(T15): final verification passes — /primer ready for /verify
+
+Skill-eval [D] checks: PASS. audit-recommended: PASS. Line budget: &lt;N&gt; lines.
+Substrate byte-stability re-confirmed. Reference depth-1 OK; TOC present where required.
+Smoke-triple deferred to /verify per DP4.
+
+Co-Authored-By: Claude Opus 4.7 (1M context) &lt;noreply@anthropic.com&gt;"
+</code></pre></li>
+</ol>
+<p><strong>Cleanup (trigger-based per FR-92):</strong></p>
+<ul>
+<li>No tasks created files outside <code>src/</code>/<code>tests/</code> (substrate test script lives inside its own <code>tests/</code> dir — clean).</li>
+<li>No <code>--worktree</code> Docker containers (no docker in this repo).</li>
+<li>No feature flags added.</li>
+<li>User-facing skill is added (UI signal) → /complete-dev (Phase 8) updates documentation, not /execute. No documentation edits in waves per FR-G2.</li>
+</ul>
+</section>
+
+<section id="risks">
+<h2 id="risks">Risks</h2>
+<table>
+<tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in</th></tr>
+<tr><td>R1</td><td>Substrate-change blast radius: <code>template.html</code> edit breaks byte-stability for one or more existing pmos-toolkit artifacts.</td><td>Medium</td><td>High</td><td>High</td><td>T1 ships a byte-stability test script that explicitly checks toolbar + footer attribution bytes against the pre-T1 contract. Failed test blocks commit. The only allowed diff is the additive <code>data-pmos-plugin</code> attribute.</td><td>T1</td></tr>
+<tr><td>R2</td><td>Reviewer subagent returns malformed JSON or out-of-set <code>check_id</code>s, breaking the Phase-5 dispatch.</td><td>Medium</td><td>Medium</td><td>Medium</td><td>FR-8.2 validation: check_id set equality (any miss/extra → hard fail with diff); ≥40-char quote substring check (failed quote → treated as pass). T13 implements verbatim from spec.</td><td>T13</td></tr>
+<tr><td>R3</td><td>A1 (curator-lens framing) hypothesis disconfirms post-ship — primer artifacts come out as explainer-voice not curator-voice.</td><td>Medium</td><td>Medium</td><td>Medium</td><td>Per spec D-A1: accepted v1 risk; no mid-build kill criterion; post-v1 retro at the 3rd successful run triggers a 2-hour side-by-side spike. T7 ships the curator-lens framing as the load-bearing lever; if disconfirmed, v2 ports <code>/source-eval</code> sibling.</td><td>none in plan — accepted risk per D-A1</td></tr>
+<tr><td>R4</td><td>Source-floor=4 too strict in practice — users hit the gate frequently, eroding the &lt;6 min wall-clock target.</td><td>Low</td><td>Low</td><td>Low</td><td>Per spec D14 (carried): floor=4 selected; gate offers Recommended=Abort but Continue-with-thin-source available. Post-v1 calibration after 10 runs.</td><td>T10</td></tr>
+<tr><td>R5</td><td>SKILL.md line budget creeps over 500 (target) or 800 (hard).</td><td>Medium</td><td>Low</td><td>Low</td><td>T14 owns the final trim; aggressive offloading to <code>reference/</code>; each Wave-5 task records current line count. NFR-1 is the binding constraint.</td><td>T14</td></tr>
+<tr><td>R6</td><td>sync-shared.sh changes substrate semantics across pmos-toolkit / pmos-learnkit in a future run (someone updates one and forgets to sync).</td><td>Low</td><td>Medium</td><td>Low</td><td>Per CLAUDE.md ## Release policy: pre-commit drift hook enforces sync. Outside scope of this plan; raised here for visibility.</td><td>(repo invariant — not plan-owned)</td></tr>
+</table>
+<p><strong>R1 has Severity=High</strong> (Medium-likelihood × High-impact) and IS mitigated by a per-task Mitigation citation (T1) — FR-81 hard-fail avoided.</p>
+</section>
+
+<section id="rollback">
+<h2 id="rollback">Rollback</h2>
+<p>Conditional inclusion — the substrate change in T1 is a non-trivial filesystem-level mutation that warrants explicit rollback.</p>
+<ul>
+<li><strong>If T1 substrate change introduces an unexpected byte-diff in any existing pmos-toolkit artifact:</strong> <code>git checkout HEAD~1 -- plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> (restore pre-T1 template). Re-run the byte-stability test to confirm restoration. Re-author T1 with tighter token replacement.</li>
+<li><strong>If T2 sync-shared.sh produces an unexpected file or permission diff:</strong> <code>git checkout HEAD~1 -- plugins/pmos-learnkit/skills/_shared/</code> then <code>git clean -fd plugins/pmos-learnkit/skills/_shared/</code>. Re-run sync after fixing root cause.</li>
+<li><strong>If T13's writer fails on a real run (post-/complete-dev /verify):</strong> the hard-block recovery path is by design (FR-10) — the <code>.draft.html</code> artifact is the rollback artifact. No rollback action needed at /verify; user manually patches and re-runs.</li>
+<li><strong>If the plugin's first release lands but a regression is found:</strong> per spec E6, revert <code>template.html</code> to pre-T1 bytes; pmos-learnkit's /primer continues to render with the pmos-toolkit-default attribution until the substrate change is re-applied — known but acceptable state for &lt;1 release cycle.</li>
+<li><strong>Database migrations:</strong> N/A — no DB.</li>
+<li><strong>Deployment:</strong> N/A — /complete-dev handles release per Phase 8; rollback is <code>git revert</code> of the release commit + tag deletion.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites</h2>
+<p>Per FR-G2 these are <strong>/complete-dev's scope only</strong> (orchestrator Phase 8) — listed here for visibility but NOT enumerated as Wave-N tasks. /skill-eval Phase 6a will grade compliance via <code>g-release-prereqs-scope</code> [J] and <code>g-plan-grep-clean</code> [D].</p>
+<ul>
+<li>Both <code>plugin.json</code> manifests at <code>0.1.0</code> with mirrored content: <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code>. (Per CLAUDE.md ## Plugin manifest version sync — pre-commit drift hook enforces sync.)</li>
+<li>Both <code>marketplace.json</code> entries: <code>.claude-plugin/marketplace.json</code> + <code>.codex-plugin/marketplace.json</code> each gain a new <code>plugins[]</code> entry for <code>pmos-learnkit</code> at <code>0.1.0</code>.</li>
+<li>README row: add a "pmos-learnkit" plugin section to the repo README listing /primer at v0.1.0 with one-line description and v1 invocation shape.</li>
+<li>Changelog entry: "Add pmos-learnkit plugin with /primer skill (v0.1.0): verified-source, audience-shaped HTML primer with reviewer-vetted artifact at deterministic path." Per /changelog convention.</li>
+<li>Learnings header bootstrap: idempotent append of <code>## /primer</code> to <code>~/.pmos/learnings.md</code>.</li>
+<li><code>.gitignore</code>: ensure <code>.pmos/*.lastrun.yaml</code> (or explicit <code>.pmos/primer.lastrun.yaml</code>) is gitignored before the first artifact-producing commit lands.</li>
+<li>Tag: <code>pmos-learnkit/v0.1.0</code> per CLAUDE.md ## Release policy / Tag convention.</li>
+<li>Remote push: branch + tag to both configured remotes (<code>origin</code>, <code>gitlab-mirror</code>) per /complete-dev Phase 15.</li>
+<li>(Substrate change at T1 lives in pmos-toolkit's release scope — /complete-dev's <code>--plugin pmos-toolkit</code> bump from 2.51.0 to 2.51.1 or 2.52.0 to release the substrate change. The pmos-learnkit/v0.1.0 release rides on top.)</li>
+</ul>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+<p>Sidecar review log at <code>03_plan_review.md</code> when present (FR-45).</p>
+<table>
+<tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr>
+<tr><td>1 (self-review)</td><td>Structural: TN includes the smoke-triple from §14.2 (overscoped — plugin not installed yet). Design: T2's sync-shared dependency on T1 is implicit (T2 syncs the modified template) — should be explicit. Constraint: <code>.gitignore</code> entry for <code>.pmos/primer.lastrun.yaml</code> was double-counted (Wave 6 task + Release prereqs section).</td><td>DP4 added making TN deterministic-only; T2's "Depends on T1" + "Requires state from T1" made explicit; <code>.gitignore</code> moved entirely to §Release prerequisites with explanatory note in Code Study constraints. Per-task Wireframe refs omitted across the board (no wireframes folder — not a UI feature).</td></tr>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-23_pmos-learnkit-primer/03_plan.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
