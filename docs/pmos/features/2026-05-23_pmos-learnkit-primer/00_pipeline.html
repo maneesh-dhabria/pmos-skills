@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:feature-slug" content="pmos-learnkit-primer">
+  <meta name="pmos:pipeline-mode" content="skill-new">
+  <meta name="pmos:plugin-version" content="2.51.0">
+  <title>pmos-learnkit-primer — Pipeline status</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.51.0">
+  <script defer src="assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">pmos-learnkit-primer — Pipeline status</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Slug</td><td><code>pmos-learnkit-primer</code></td></tr>
+<tr><td>Pipeline mode</td><td><code>skill-new</code></td></tr>
+<tr><td>Branch</td><td><code>feat/pmos-learnkit-primer</code></td></tr>
+<tr><td>Base</td><td><code>main</code> (no upstream; explicit fetch shows 0 behind)</td></tr>
+<tr><td>Worktree</td><td><code>/Users/maneeshdhabria/Desktop/Projects/agent-skills-pmos-learnkit-primer</code></td></tr>
+<tr><td>Feature folder</td><td><code>docs/pmos/features/2026-05-23_pmos-learnkit-primer/</code></td></tr>
+<tr><td>Mode</td><td><code>interactive</code></td></tr>
+<tr><td>Output format</td><td><code>html</code></td></tr>
+<tr><td>Tier</td><td><em>pending — Phase 0d will resolve</em></td></tr>
+<tr><td>Started</td><td>2026-05-23T07:57:28Z</td></tr>
+<tr><td>Seed brief</td><td><a href="../../ideate/2026-05-23_primer-skill-shape.html"><code>docs/pmos/ideate/2026-05-23_primer-skill-shape.html</code></a></td></tr>
+</table>
+<p><strong>Scope (user-confirmed):</strong> bundled run — scaffold <code>plugins/pmos-learnkit/</code> plugin home AND author <code>/primer</code> as its first skill in a single SDLC pipeline.</p>
+</section>
+
+<section id="phase-status">
+<h2 id="phase-status">Phase status</h2>
+<table>
+<tr><th>#</th><th>Phase</th><th>Hardness</th><th>Status</th><th>Artifact</th></tr>
+<tr><td>1</td><td><code>setup</code></td><td>infra</td><td>completed</td><td>—</td></tr>
+<tr><td>2</td><td><code>worktree</code></td><td>infra</td><td>completed</td><td>—</td></tr>
+<tr><td>3</td><td><code>init-state</code></td><td>infra</td><td><strong>in_progress</strong></td><td><code>00_pipeline.html</code></td></tr>
+<tr><td>4</td><td><code>skill-tier-resolve</code></td><td>infra</td><td>pending</td><td>—</td></tr>
+<tr><td>5</td><td><code>requirements</code></td><td>hard</td><td>pending</td><td><code>01_requirements.{html,md}</code></td></tr>
+<tr><td>6</td><td><code>grill</code></td><td>soft</td><td>pending</td><td><code>grills/&lt;date&gt;_01_requirements.{html,md}</code></td></tr>
+<tr><td>7</td><td><code>creativity</code></td><td>soft</td><td>pending</td><td>—</td></tr>
+<tr><td>8</td><td><code>spec</code></td><td>hard</td><td>pending</td><td><code>02_spec.{html,md}</code></td></tr>
+<tr><td>9</td><td><code>plan</code></td><td>hard</td><td>pending</td><td><code>03_plan.{html,md}</code></td></tr>
+<tr><td>10</td><td><code>execute</code></td><td>hard</td><td>pending</td><td>(plugin scaffold + skill files)</td></tr>
+<tr><td>11</td><td><code>skill-eval</code></td><td>hard</td><td>pending</td><td>(eval iteration log in <code>state.yaml</code>)</td></tr>
+<tr><td>12</td><td><code>verify</code></td><td>hard</td><td>pending</td><td>(verify report)</td></tr>
+<tr><td>13</td><td><code>complete-dev</code></td><td>hard</td><td>pending</td><td>(merge + tag)</td></tr>
+<tr><td>14</td><td><code>retro</code></td><td>soft</td><td>pending</td><td>—</td></tr>
+<tr><td>15</td><td><code>final-summary</code></td><td>infra</td><td>pending</td><td>—</td></tr>
+<tr><td>16</td><td><code>capture-learnings</code></td><td>infra</td><td>pending</td><td>—</td></tr>
+</table>
+</section>
+
+<section id="resume">
+<h2 id="resume">Resume</h2>
+<p>To continue the pipeline in a fresh session:</p>
+<pre><code>cd /Users/maneeshdhabria/Desktop/Projects/agent-skills-pmos-learnkit-primer
+claude --resume
+</code></pre>
+<p>Then run <code>/feature-sdlc --resume</code>. The resume cursor will land at the first non-completed phase (currently <code>init-state</code> → completes on this write → then <code>skill-tier-resolve</code>).</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: /feature-sdlc skill (pmos-toolkit 2.51.0)</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
