@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:ideate-phase" content="complete">
+<meta name="pmos:skill" content="ideate">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Inline doc comments — /ideate brief</title>
+<link rel="stylesheet" href="assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments for HTML pipeline artifacts</h1>
+  <p class="meta">/ideate brief · 2026-05-23 · slug <code>inline-doc-comments</code> · idea-type <code>extend</code></p>
+</header>
+
+<section id="tldr">
+  <h2 id="tldr-h">TL;DR</h2>
+  <p>A cross-cutting feature for every pmos-toolkit skill that emits HTML (12+ skills today): the user opens a generated artifact, selects a text span or diagram region, drops a comment thread, and a follow-up Claude invocation (<code>/comments resolve &lt;artifact&gt;</code> or pipeline-aware <code>--resume</code>) consumes open threads — either applying edits and posting a system reply marking the thread resolved, or asking clarification via threaded options.</p>
+  <p>Three finalists pressure-tested below differ on operating shape: <strong>(A) served overlay + Docs-style UX + stable-id JSON sidecar</strong>, <strong>(B) static-file overlay + Figma-style pins + quote-anchored sidecar</strong>, <strong>(C) Notion-style inline <code>@claude</code> markers embedded in the artifact</strong>. Cross-cutting decision table at <a href="#decision-table">§ Decision table</a> locks in <strong>Finalist A-hybrid</strong> as the chosen direction: A's Docs-style UX + stable-id JSON sidecar, with the comment-overlay JS <strong>pre-baked into every emitted artifact</strong> (B's static-bundle trick) so the user can add comments anytime by just opening the <code>.html</code> file — no <code>serve</code> step. Quote+prefix/suffix anchoring (B's robustness layer) is written on every thread as a mandatory fallback. The single command in the loop is <code>/comments resolve &lt;artifact&gt;</code>, which triggers an agent to read the sidecar + the artifact and resolve each open thread.</p>
+</section>
+
+<section id="hmw">
+  <h2 id="hmw-h">How might we</h2>
+  <p>How might we let users annotate any HTML pipeline artifact (text spans + diagram regions) inline, so those annotations drive AI-applied edits with multi-turn threads, system replies, and resolution states — uniformly across every skill that emits HTML?</p>
+</section>
+
+<section id="jtbd">
+  <h2 id="jtbd-h">Target user &amp; JTBD</h2>
+  <p><strong>User:</strong> the operator of the pmos-toolkit pipeline (currently: Maneesh, primary user of <code>/requirements</code>, <code>/spec</code>, <code>/plan</code>, <code>/wireframes</code>, <code>/prototype</code>, <code>/artifact</code>, <code>/diagram</code>, etc.) reviewing generated HTML artifacts before merge.</p>
+  <p><strong>Job:</strong> When I spot something wrong in a generated artifact, I want to mark exactly <em>which</em> element is wrong and <em>what</em> should change, so a follow-up Claude session resolves it without me re-supplying location context or re-prompting from scratch.</p>
+</section>
+
+<section id="hypothesis">
+  <h2 id="hypothesis-h">Hypothesis</h2>
+  <p>If review feedback can be attached to a specific anchor in the artifact (vs. a free-form chat message), the AI's edit precision goes up and the user's framing cost goes down. Anchors are the load-bearing primitive. Multi-turn threads + system replies + resolved state are the lightweight workflow shell that makes the captured anchors auditable across sessions.</p>
+</section>
+
+<section id="variants">
+  <h2 id="variants-h">Idea variants considered</h2>
+  <p>12 variants generated across three axes; user selected three finalists for pressure-testing.</p>
+  <h3 id="variants-axis-persist">Axis 1 — persistence &amp; identity model</h3>
+  <ol>
+    <li><strong>Sidecar JSON, anchor by stable element id</strong> — comments in <code>&lt;artifact&gt;.comments.json</code>; anchors point at <code>&lt;h2 id&gt;</code> / <code>&lt;section id&gt;</code> / explicit <code>[data-anchor]</code>. Re-render preserves ids → threads survive.</li>
+    <li><strong>Sidecar JSON, anchor by text quote + prefix/suffix</strong> (Hypothes.is style) — robust to id churn; fuzzy-match breaks when prose is rewritten.</li>
+    <li><strong>Embedded in HTML</strong> as <code>&lt;aside data-comment-thread&gt;</code> siblings — single-file portability; every re-render must merge.</li>
+    <li><strong>Git-tracked <code>.comments/</code> directory</strong> — one MD file per thread; diff-able and code-review-able.</li>
+    <li><strong>SQLite under <code>~/.pmos/comments.db</code></strong> — central store; survives <code>{docs_path}</code> moves; harder to share.</li>
+  </ol>
+  <h3 id="variants-axis-capture">Axis 2 — capture &amp; AI handoff</h3>
+  <ol start="6">
+    <li><strong>In-browser overlay served by <code>/comments serve &lt;artifact&gt;</code></strong> — local static server injects comment UI; persists to sidecar JSON; <code>/comments resolve</code> dispatches open threads to Claude. <strong>[Finalist A]</strong></li>
+    <li><strong>Static HTML enhancement, no server</strong> — comment UI is plain JS shipped in <code>_shared/html-authoring/assets/comments.js</code>; uses <code>localStorage</code> + an "export" button that downloads the sidecar JSON the user commits. <strong>[Finalist B]</strong></li>
+    <li><strong>Pure-CLI capture</strong> — <code>/comment add &lt;artifact&gt; --anchor &lt;id-or-quote&gt; --body "..."</code>.</li>
+  </ol>
+  <h3 id="variants-axis-ux">Axis 3 — interaction model</h3>
+  <ol start="9">
+    <li><strong>Google Docs clone</strong> — selection → floating "Comment" button → side-panel thread → reply/resolve. <strong>[Finalist A]</strong></li>
+    <li><strong>GitHub PR review clone</strong> — comments queued as a "review batch", submitted together; Claude processes the whole batch as one pass.</li>
+    <li><strong>Notion-style inline <code>@claude</code> mentions</strong> — typed directly into the doc as inline markers; comments are first-class content. <strong>[Finalist C]</strong></li>
+    <li><strong>Figma-style numbered pins</strong> — pins on text + diagrams; resolved pins persist as ghost markers. <strong>[Finalist B]</strong></li>
+  </ol>
+</section>
+
+<section id="how-it-works">
+  <h2 id="how-it-works-h">How it works (per finalist)</h2>
+
+  <h3 id="finalist-a">Finalist A-hybrid — static-bundled overlay + Docs UX + stable-id JSON sidecar + quote fallback <em>(CHOSEN)</em></h3>
+  <ul>
+    <li><strong>Capture (zero commands):</strong> every HTML artifact emitted by a pipeline skill ships with a <code>&lt;script src="assets/comments.js"&gt;</code> pre-baked into the rendered HTML (a substrate-level addition to <code>_shared/html-authoring/</code>). User opens the <code>.html</code> file in any browser — file URL or otherwise — selects text → floating "Comment" button → side-panel thread (Google Docs UX). Diagram regions become commentable when the SVG carries <code>data-anchor</code> attributes on shapes.</li>
+    <li><strong>Lightweight state:</strong> <code>comments.js</code> auto-persists to a sidecar <code>&lt;artifact&gt;.comments.json</code> next to the file. Schema: <code>{ threads: [ { id, anchor: {kind: "id"|"data-anchor"|"quote", ref, quote?, prefix?, suffix?}, status: "open"|"in_progress"|"resolved", messages: [ {role: "user"|"system", body, ts} ] } ] }</code>. Every thread writes <strong>both</strong> a stable-id anchor AND a quote+prefix/suffix anchor — resolve prefers id, falls back to quote, surfaces orphan otherwise. Writes go through the File System Access API where available; otherwise the bundle prompts a one-click "save sidecar" (or falls back to <code>localStorage</code> + an export button as a last resort for restricted browsers).</li>
+    <li><strong>Resolve (one command):</strong> <code>/comments resolve &lt;artifact&gt;</code> reads the sidecar + the artifact, identifies the originating skill via <code>&lt;meta name="pmos:skill"&gt;</code>, and for each open thread either (a) applies the edit, appends a <code>system</code> reply summarising what changed + diff pointer, flips <code>status: resolved</code>, OR (b) appends a <code>system</code> reply containing 2–4 clarification options for the user to pick by replying in the thread on next open. Threads in clarification state stay <code>in_progress</code> until the user replies.</li>
+    <li><strong>Re-render survival:</strong> stable section/heading ids are already mandated by <code>_shared/html-authoring/conventions.md</code> §3; quote fallback covers prose churn. Orphaned threads surface a banner in the overlay UI on next open.</li>
+    <li><strong>Stakeholder-share posture:</strong> the comment overlay is gated behind a "?review=1" URL param or a body-class toggle, so the artifact shared with stakeholders renders clean by default; reviewers append the param to enable commenting.</li>
+  </ul>
+
+  <h3 id="finalist-b">Finalist B — static-file overlay + Figma pins + quote-anchored sidecar</h3>
+  <ul>
+    <li><strong>Capture:</strong> the existing <code>viewer.js</code> bundle ships a <code>comments.js</code> sibling that activates with no server. Click anywhere → drops a numbered pin; selection-then-pin attaches a quote anchor; pins are visible badges over text + diagrams.</li>
+    <li><strong>Persistence:</strong> <code>localStorage</code> for in-progress drafts; an "Export comments" button downloads <code>&lt;artifact&gt;.comments.json</code> for the user to commit. Resolved pins become ghost (greyed) badges still visible in the rendered doc.</li>
+    <li><strong>Anchor strategy:</strong> quote + ±32-char prefix/suffix (Hypothes.is W3C Web Annotations fuzzy-match); falls back to "orphan" status when the quote no longer matches, surfaced as a banner.</li>
+    <li><strong>Resolve:</strong> same <code>/comments resolve &lt;artifact&gt;</code> but the JSON is the canonical input — no server needed for the AI pass.</li>
+  </ul>
+
+  <h3 id="finalist-c">Finalist C — Notion-style inline <code>@claude</code> markers</h3>
+  <ul>
+    <li><strong>Capture:</strong> the rendered HTML has a "review mode" toggle that switches the body to <code>contenteditable</code>; the user types <code>@claude &lt;instruction&gt;</code> inline next to the offending content. Markers render as styled inline pills.</li>
+    <li><strong>Persistence:</strong> markers are embedded as <code>&lt;mark data-claude-instruction="…" data-thread-id="…"&gt;</code> in the artifact itself. No sidecar. Multi-turn happens via Claude appending sibling <code>&lt;mark role="system"&gt;</code> nodes inline.</li>
+    <li><strong>Resolve:</strong> <code>/comments resolve</code> walks the DOM for <code>[data-claude-instruction]</code>, applies edits, replaces the marker with a system-reply marker or removes it on resolution.</li>
+    <li><strong>Trade:</strong> lowest-ceremony capture for prose; weak for diagrams (you can't type inside an SVG); muddles authored content vs. annotations in the file the user reads.</li>
+  </ul>
+</section>
+
+<section id="prior-art">
+  <h2 id="prior-art-h">Alternatives &amp; prior art</h2>
+  <ul>
+    <li><strong>Hypothes.is</strong> — open-source web annotations; canonical reference for quote + prefix/suffix anchoring (W3C Web Annotations Data Model). Direct steal target for Finalist B.</li>
+    <li><strong>Google Docs comments</strong> — selection → floating button → side panel → reply/resolve. UX template for Finalist A.</li>
+    <li><strong>GitHub PR inline review</strong> — batched comments, single-shot AI resolution. Considered as variant #10 but rejected: pipeline artifacts are not PRs and batching delays feedback loops.</li>
+    <li><strong>Figma comment pins</strong> — numbered, persistent-after-resolve. UX template for Finalist B's diagram handling.</li>
+    <li><strong>Notion inline mentions</strong> — comments-as-content. UX template for Finalist C.</li>
+    <li><strong>VS Code / Cursor inline-chat</strong> — closest existing pattern in the AI-coding space; differs in that it operates on source files, not rendered HTML.</li>
+    <li><strong>Internal prior art</strong> — the existing <code>viewer.js</code> chrome-strip + serve.js substrate in <code>_shared/html-authoring/</code> is the foundation; any finalist extends it rather than replacing it.</li>
+  </ul>
+</section>
+
+<section id="premortem">
+  <h2 id="premortem-h">Premortem: failure modes</h2>
+  <p>It is 2027-05-23. The feature shipped 12 months ago. It failed. Why?</p>
+
+  <h3 id="premortem-a">Finalist A failure modes</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Server-launch friction (<code>/comments serve</code> port conflicts, browser tab management) makes users skip the feature</td><td>M</td><td>Reuse existing <code>serve.js</code> port-discovery; auto-open browser; surface single command in handoff messages of every HTML-emitting skill.</td></tr>
+      <tr><td>Stable-id assumption breaks when a skill re-renders with different ids (e.g. /spec rewriting section headings); threads orphan</td><td>M</td><td>Mandate quote fallback anchor on every thread (write both); skill bodies enforce id stability in <code>_shared/html-authoring/conventions.md</code>.</td></tr>
+      <tr><td><code>/comments resolve</code> edits clash with concurrent skill re-runs (e.g. user edits artifact via <code>/spec --refine</code> while comments are open)</td><td>M</td><td>Resolve writes a <code>.comments.lock</code>; <code>/spec --refine</code> respects the lock and merges threads through a controller subagent.</td></tr>
+      <tr><td>Diagram anchoring fails on <code>/diagram</code> SVGs that don't carry <code>data-anchor</code> on shapes</td><td>H</td><td>Backfill <code>data-anchor</code> emission in <code>/diagram</code> + <code>/wireframes</code> SVG generation; fall back to bounding-box pixel coords as last resort (Finalist B's trick).</td></tr>
+      <tr><td>System replies become noise (Claude over-explains in every thread; threads bloat past usefulness)</td><td>M</td><td>Cap system-reply body at ~3 sentences; surface diff link instead of repeating the edit.</td></tr>
+      <tr><td>Sidecar JSON drifts out of sync with artifact (user commits one without the other)</td><td>H</td><td>Pre-commit hook: refuse commits that change <code>*.html</code> without bringing forward the <code>.comments.json</code> (or vice-versa); offer auto-stage.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="premortem-b">Finalist B failure modes</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Quote-anchor fuzzy-match silently re-attaches to the wrong span after a rewrite</td><td>H</td><td>Require min-confidence threshold (e.g. 0.85 Levenshtein on quote + prefix/suffix) before re-attach; below threshold → orphan banner.</td></tr>
+      <tr><td>"Export comments" button is forgotten; <code>localStorage</code> drafts vanish on cache clear</td><td>H</td><td>Auto-export on every thread mutation via Service Worker; or, accept friction and surface a persistent "unsaved drafts" banner.</td></tr>
+      <tr><td>Resolved-pin "ghost markers" clutter the rendered doc when shared with stakeholders</td><td>M</td><td>Default-hide resolved pins; reveal via "show resolved" toggle.</td></tr>
+      <tr><td>No-server model breaks <code>file://</code> CORS / fetch when comments.js needs to load adjacent assets</td><td>M</td><td>Inline all comment-UI assets into a single bundled <code>&lt;script&gt;</code>; no fetch dependencies.</td></tr>
+      <tr><td>Diagram pins drift on SVG re-layout</td><td>M</td><td>Anchor pins to SVG element <code>data-anchor</code> when present; fall back to viewport-relative coords with re-layout detection banner.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="premortem-c">Finalist C failure modes</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Inline markers contaminate the artifact that gets shared with stakeholders; the doc is no longer "clean"</td><td>H</td><td>Render markers as hidden in print/share mode; or, maintain a clean copy and a review copy — but this re-introduces the sidecar problem in disguise.</td></tr>
+      <tr><td>Diagram comments are effectively unsupported (can't type <code>@claude</code> inside an SVG region naturally)</td><td>H</td><td>Fall back to a sidebar comment for diagrams — but then the UX is no longer "inline", killing the value prop.</td></tr>
+      <tr><td><code>contenteditable</code> mode lets the user accidentally edit content (not just annotate)</td><td>H</td><td>Restrict contenteditable to inserting <code>@claude</code> spans only; complex to enforce in browser.</td></tr>
+      <tr><td>Multi-turn threading inside inline pills is visually unwieldy past 2–3 replies</td><td>M</td><td>Pop the thread into a side panel when message count &gt;2 — collapsing back to Finalist A's shape.</td></tr>
+      <tr><td>Resolution removes the marker, losing the thread's audit trail unless persisted elsewhere</td><td>H</td><td>Move resolved threads to a sidecar — re-introducing the sidecar.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="inversion">
+  <h2 id="inversion-h">Munger inversion — how to guarantee failure</h2>
+  <p><em>Per finalist: choices that, if made, would guarantee this idea fails.</em></p>
+
+  <h4 id="inversion-a">Finalist A</h4>
+  <ul>
+    <li>Ship without quote-anchor fallback — every <code>/spec --refine</code> orphans every thread.</li>
+    <li>Make <code>/comments serve</code> the only entry point and require it to be running for <code>/comments resolve</code> to work (couples capture and resolve unnecessarily).</li>
+    <li>Skip the pre-commit sidecar-sync hook — sidecar drifts; users blame the feature when threads point at stale content.</li>
+    <li>Build it as a single skill instead of substrate — every HTML-emitting skill has to be updated by hand, inconsistencies proliferate, retrofitting is abandoned at skill #5.</li>
+  </ul>
+
+  <h4 id="inversion-b">Finalist B</h4>
+  <ul>
+    <li>Trust quote-anchor fuzzy match silently — comments re-attach to wrong spans, user loses trust within a week.</li>
+    <li>Rely on user-clicked "Export" — drafts get lost; users learn to distrust the feature.</li>
+    <li>Skip the "orphan" surfacing UI — users don't know their comments stopped pointing anywhere.</li>
+  </ul>
+
+  <h4 id="inversion-c">Finalist C</h4>
+  <ul>
+    <li>Persist threads inline only — sharing the artifact requires a "strip markers" pass that may forget some.</li>
+    <li>Treat diagrams as out-of-scope — the original requirement explicitly included diagrams.</li>
+    <li>Ship without restricted-contenteditable enforcement — users accidentally rewrite their own spec while trying to comment.</li>
+  </ul>
+</section>
+
+<section id="assumptions">
+  <h2 id="assumptions-h">Riskiest assumptions</h2>
+  <table>
+    <thead><tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test to validate</th></tr></thead>
+    <tbody>
+      <tr><td>All 12+ HTML-emitting skills emit stable section/heading ids today (Finalist A precondition)</td><td>H</td><td>M</td><td>Grep all rendered artifacts under <code>docs/pmos/</code> for <code>&lt;section id=</code> coverage; should be ≥90% — already mandated in conventions.md §3.</td></tr>
+      <tr><td>Diagram regions in <code>/diagram</code> + <code>/wireframes</code> SVGs carry stable <code>data-anchor</code> attributes (or can be retrofitted cheaply)</td><td>H</td><td>H</td><td>Open three existing SVG outputs from <code>/diagram</code>, /wireframes; grep for <code>data-anchor</code>. If absent, scope retrofit cost as a 1-day spike in <code>_shared/html-authoring/</code>.</td></tr>
+      <tr><td>User volume of comments per artifact is low (≤20 threads typical), so JSON-sidecar performance is fine</td><td>M</td><td>L</td><td>Self-evident from solo-operator usage; verified by 1 week of dogfooding.</td></tr>
+      <tr><td><code>/comments resolve</code> can be implemented as a single skill that dispatches to the originating skill (e.g. <code>/spec</code> for a spec.html) for the actual edit</td><td>H</td><td>M</td><td>Spike: read open thread, identify originating skill via <code>&lt;meta name="pmos:skill"&gt;</code>, dispatch as subagent with the snippet + instruction. ~2 hours.</td></tr>
+      <tr><td>The pre-commit sidecar-sync hook can detect drift reliably (no false positives blocking unrelated commits)</td><td>M</td><td>M</td><td>Prototype the hook against last 30 commits in <code>docs/pmos/</code>; measure false-positive rate.</td></tr>
+      <tr><td>Quote-anchor with 32-char prefix/suffix is sufficient for the prose density of pipeline artifacts (Finalist B fallback)</td><td>M</td><td>M</td><td>Implement a one-off scorer over current artifacts: pick 50 random spans, mutate the doc, re-anchor; measure correct-attach rate.</td></tr>
+      <tr><td>File System Access API (or one-click save fallback) is reliable enough to persist the sidecar from a directly-opened <code>file://</code> artifact without a server</td><td>H</td><td>M</td><td>~1-hour spike: prototype <code>comments.js</code> save-flow against Chrome (FSA), Safari (no FSA — needs download fallback), Firefox; measure the user-friction delta vs. localStorage-only.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="decision-table" data-cross-cutting>
+  <h2 id="decision-table-h">Cross-cutting decision table</h2>
+  <table>
+    <thead><tr><th>Finalist</th><th>Risk-density (H lik × H impact)</th><th>Assumption-load (H impact × H uncertainty)</th><th>Ease-of-validation (cheap tests)</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><strong>A-hybrid</strong> — static-bundled overlay + Docs UX + stable-id sidecar + quote fallback</td><td>2 (diagram anchoring; sidecar drift)</td><td>2 (diagram <code>data-anchor</code> coverage; File System Access API browser coverage)</td><td>5 cheap tests cover the load-bearing assumptions</td><td><strong>CHOSEN</strong> — zero commands to capture (open the file, comment); one command to resolve (<code>/comments resolve</code>); both anchor strategies written on every thread for robustness.</td></tr>
+      <tr><td>A-strict — served overlay (no static bundle)</td><td>2 + serve-launch friction</td><td>1</td><td>4 cheap tests</td><td>Dominated by A-hybrid (adds a <code>serve</code> command for no robustness gain).</td></tr>
+      <tr><td>B — static overlay + pins + quote anchors only</td><td>2 (silent mis-anchor; lost drafts)</td><td>1 (quote-anchor sufficiency on dense prose)</td><td>3 cheap tests</td><td>Anchor strategy adopted as A-hybrid's mandatory fallback layer.</td></tr>
+      <tr><td>C — inline <code>@claude</code> markers</td><td>5 (artifact contamination; diagrams unsupported; contenteditable accidents; threading collapse; resolution loses audit)</td><td>0 distinct assumptions — failure modes are structural</td><td>n/a — failures aren't testable, they're definitional</td><td>Reject. Every mitigation collapses back into A or B.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Chosen direction:</strong> <strong>Finalist A-hybrid</strong> — static-bundled comment overlay shipped with every emitted artifact (zero commands to capture), JSON sidecar persistence with dual-anchor (stable-id + quote/prefix/suffix), and a single <code>/comments resolve &lt;artifact&gt;</code> command that triggers an agent to read the sidecar + the artifact and resolve each open thread (either applying edits with a system-reply summary, or posting a system-reply with 2–4 clarification options). Finalist C rejected; A-strict dominated by A-hybrid.</p>
+</section>
+
+<section id="success-signals">
+  <h2 id="success-signals-h">Success signals</h2>
+  <ul>
+    <li><strong>30 days post-ship:</strong> ≥10 threads opened across ≥3 distinct HTML-emitting skills; ≥80% of opened threads reach <code>resolved</code> status (vs. abandoned).</li>
+    <li><strong>Anchor robustness:</strong> ≤5% orphan rate across all threads (target: stable-id resolves before quote-fallback in ≥90% of cases).</li>
+    <li><strong>Latency:</strong> <code>/comments resolve</code> end-to-end (read sidecar → dispatch → apply edits → write system reply) under 60s for single-thread batches.</li>
+    <li><strong>Friction proxy:</strong> the user starts using <code>/comments serve</code> as the default review surface for <code>/spec</code>, <code>/wireframes</code>, <code>/artifact</code> outputs — replacing free-form chat feedback for ≥50% of revision rounds.</li>
+    <li><strong>Negative signal (would-trigger-rethink):</strong> users open threads then resolve via free-form chat instead of <code>/comments resolve</code> — means the AI handoff is not landing.</li>
+  </ul>
+</section>
+
+<section id="next-steps">
+  <h2 id="next-steps-h">Next steps</h2>
+  <ol>
+    <li><strong>Validate diagram anchoring assumption</strong> (the riskiest H/H assumption) — grep <code>docs/pmos/</code> for <code>data-anchor</code> presence on SVG shapes; spike a retrofit in <code>/diagram</code> + <code>/wireframes</code> if absent. ~2 hours.</li>
+    <li><strong>Spike <code>/comments resolve</code> dispatch shape</strong> — confirm a single skill can route open threads back to the originating skill via the existing <code>&lt;meta name="pmos:skill"&gt;</code> tag. ~2 hours.</li>
+    <li><strong>Promote into requirements</strong> via <code>/requirements inline-doc-comments</code> when validation passes — the decision table here is the recommended-direction input.</li>
+    <li><strong>Backlog any deferred sub-features</strong> — pre-commit sidecar-sync hook (FR for Phase 2 of build), bulk-resolve UI, comment search.</li>
+    <li><strong>Refine this brief</strong> (optional) — <code>/ideate --refine --resume docs/pmos/ideate/2026-05-23_inline-doc-comments.html</code>.</li>
+  </ol>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions-h">Open questions</h2>
+  <ul>
+    <li><strong>Q1:</strong> Should <code>/comments resolve</code> be a standalone skill, or a flag on each originating skill (e.g. <code>/spec --resolve-comments</code>)? Standalone is cleaner; per-skill leverages each skill's existing context-loading. Lean: standalone, with the skill dispatching internally.</li>
+    <li><strong>Q2:</strong> When a thread's anchor orphans, should resolve auto-skip it (and surface in the system reply), or block the whole batch until the user re-anchors? Lean: auto-skip with summary.</li>
+    <li><strong>Q3:</strong> Multi-author future-proofing — should thread messages carry an <code>author</code> field now, even though the immediate use is solo? Lean: yes, cheap optionality.</li>
+    <li><strong>Q4:</strong> Markdown sidecars (<code>output_format=both</code>) — do comments apply to the <code>.md</code> twin, or only to the HTML primary? Lean: HTML-primary only; <code>.md</code> regenerates from HTML on resolve.</li>
+    <li><strong>Q5:</strong> Does this need its own plugin (separate from <code>pmos-toolkit</code>)? Lean: no — it's substrate-shaped, lives under <code>_shared/comments/</code> and ships with the toolkit.</li>
+    <li><strong>Q6:</strong> Should the comment-overlay JS bundle be vendored (like <code>turndown.umd.js</code>) or built from a tiny purpose-built script? Lean: purpose-built — comment UIs are simple; vendored libraries (e.g. Annotator.js) are heavy and over-shaped for this.</li>
+  </ul>
+</section>
+
+<footer>
+  <p class="meta">Generated by /ideate · pmos-toolkit 2.51.0 · 2026-05-23</p>
+</footer>
+
+</main>
+<script src="assets/viewer.js?v=2.51.0" defer></script>
+<script src="assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>

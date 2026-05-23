@@ -1,0 +1,140 @@
+[
+  {
+    "id": "tldr-h",
+    "level": 2,
+    "title": "TL;DR",
+    "parent_id": null
+  },
+  {
+    "id": "hmw-h",
+    "level": 2,
+    "title": "How might we",
+    "parent_id": null
+  },
+  {
+    "id": "jtbd-h",
+    "level": 2,
+    "title": "Target user & JTBD",
+    "parent_id": null
+  },
+  {
+    "id": "hypothesis-h",
+    "level": 2,
+    "title": "Hypothesis",
+    "parent_id": null
+  },
+  {
+    "id": "variants-h",
+    "level": 2,
+    "title": "Idea variants considered",
+    "parent_id": null
+  },
+  {
+    "id": "variants-axis-persist",
+    "level": 3,
+    "title": "Axis 1 — persistence & identity model",
+    "parent_id": "variants"
+  },
+  {
+    "id": "variants-axis-capture",
+    "level": 3,
+    "title": "Axis 2 — capture & AI handoff",
+    "parent_id": "variants"
+  },
+  {
+    "id": "variants-axis-ux",
+    "level": 3,
+    "title": "Axis 3 — interaction model",
+    "parent_id": "variants"
+  },
+  {
+    "id": "how-it-works-h",
+    "level": 2,
+    "title": "How it works (per finalist)",
+    "parent_id": null
+  },
+  {
+    "id": "finalist-a",
+    "level": 3,
+    "title": "Finalist A-hybrid — static-bundled overlay + Docs UX + stable-id JSON sidecar + quote fallback (CHOSEN)",
+    "parent_id": "how-it-works"
+  },
+  {
+    "id": "finalist-b",
+    "level": 3,
+    "title": "Finalist B — static-file overlay + Figma pins + quote-anchored sidecar",
+    "parent_id": "how-it-works"
+  },
+  {
+    "id": "finalist-c",
+    "level": 3,
+    "title": "Finalist C — Notion-style inline @claude markers",
+    "parent_id": "how-it-works"
+  },
+  {
+    "id": "prior-art-h",
+    "level": 2,
+    "title": "Alternatives & prior art",
+    "parent_id": null
+  },
+  {
+    "id": "premortem-h",
+    "level": 2,
+    "title": "Premortem: failure modes",
+    "parent_id": null
+  },
+  {
+    "id": "premortem-a",
+    "level": 3,
+    "title": "Finalist A failure modes",
+    "parent_id": "premortem"
+  },
+  {
+    "id": "premortem-b",
+    "level": 3,
+    "title": "Finalist B failure modes",
+    "parent_id": "premortem"
+  },
+  {
+    "id": "premortem-c",
+    "level": 3,
+    "title": "Finalist C failure modes",
+    "parent_id": "premortem"
+  },
+  {
+    "id": "inversion-h",
+    "level": 2,
+    "title": "Munger inversion — how to guarantee failure",
+    "parent_id": null
+  },
+  {
+    "id": "assumptions-h",
+    "level": 2,
+    "title": "Riskiest assumptions",
+    "parent_id": null
+  },
+  {
+    "id": "decision-table-h",
+    "level": 2,
+    "title": "Cross-cutting decision table",
+    "parent_id": null
+  },
+  {
+    "id": "success-signals-h",
+    "level": 2,
+    "title": "Success signals",
+    "parent_id": null
+  },
+  {
+    "id": "next-steps-h",
+    "level": 2,
+    "title": "Next steps",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions-h",
+    "level": 2,
+    "title": "Open questions",
+    "parent_id": null
+  }
+]

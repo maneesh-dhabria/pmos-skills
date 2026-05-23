@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="grill">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Grill report — inline-doc-comments</title>
+<link rel="stylesheet" href="assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Grill report — inline doc comments</h1>
+  <p class="meta">Target: <a href="../2026-05-23_inline-doc-comments.html">docs/pmos/ideate/2026-05-23_inline-doc-comments.html</a> · Depth: <strong>deep</strong> · Questions: 25 · 2026-05-23</p>
+</header>
+
+<section id="resolved">
+  <h2 id="resolved-h">Resolved (25)</h2>
+  <table>
+    <thead><tr><th>#</th><th>Branch</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>Resolve dispatch shape</td><td>Standalone <code>/comments resolve</code> dispatches a per-thread subagent using the originating skill's context (via <code>&lt;meta name="pmos:skill"&gt;</code>). Each HTML-emitting skill exposes a thin "apply-edit-at-anchor" entrypoint.</td></tr>
+      <tr><td>Q2</td><td>Sidecar git posture</td><td>Committed. Pre-commit drift hook enforces sync. Resolved-thread bloat mitigated by overlay default-hide.</td></tr>
+      <tr><td>Q3</td><td>Re-render survival</td><td>Regeneration always allowed; post-regen re-anchor pass tries stable id → quote/prefix-suffix → orphan banner.</td></tr>
+      <tr><td>Q4</td><td>Diagram fallback</td><td>Retrofit <code>data-anchor</code> emission in <code>/diagram</code> + <code>/wireframes</code> (bounded 1-day spike); bounding-box pixel coords as universal fallback for foreign SVGs.</td></tr>
+      <tr><td>Q5</td><td>Clarification UX</td><td>Interactive mode posts options via live <code>AskUserQuestion</code> in chat; non-interactive defers in-thread.</td></tr>
+      <tr><td>Q6</td><td>Iteration shape</td><td>Three modes per run: <code>--confirm-each</code> (default), <code>--batch</code> (parallel), <code>--auto</code>.</td></tr>
+      <tr><td>Q7</td><td>Stakeholder-share gate</td><td>Body-class toggle with <code>localStorage</code> flag; default-on for operator; stakeholders see UI but it's read-only.</td></tr>
+      <tr><td>Q8</td><td>Resolved lifecycle</td><td>Stays in main sidecar with <code>status=resolved</code>; overlay hides resolved by default with "show resolved" toggle.</td></tr>
+      <tr><td>Q9</td><td>System reply</td><td>≤3-sentence prose summary + diff pointer (SHA when committed, or staged-region reference).</td></tr>
+      <tr><td>Q10</td><td>Cross-artifact scope</td><td><code>/comments resolve</code> accepts file or directory; directory mode iterates <code>*.html</code> with non-empty sidecars.</td></tr>
+      <tr><td>Q11</td><td>Non-FSA browser fallback</td><td>Chrome/Edge officially supported (FSA in-place writes); Safari/Firefox get download-to-replace.</td></tr>
+      <tr><td>Q12</td><td>MD sidecar parity</td><td>HTML-primary only; <code>.md</code> sidecar regenerates on resolve (preserves FR-33).</td></tr>
+      <tr><td>Q13</td><td>Re-open resolved</td><td>Supported via overlay; reopen appends a user message capturing the trigger.</td></tr>
+      <tr><td>Q14</td><td>Thread metadata</td><td>Body + status only; no labels/severity/type (YAGNI).</td></tr>
+      <tr><td>Q15</td><td><code>--batch</code> conflict detection</td><td>Anchor-overlap-aware planner (mirrors v2.39.0 wave planner); non-overlapping parallel, overlapping sequential.</td></tr>
+      <tr><td>Q16</td><td>Cross-artifact coherence</td><td>No v1 check; contradictions deferred to user noticing post-resolve.</td></tr>
+      <tr><td>Q17</td><td><code>author</code> field</td><td>Yes, on every message (<code>user</code> | <code>system</code> | git-config-name); cheap optionality.</td></tr>
+      <tr><td>Q18</td><td>Pilot scope</td><td>Ship across all 12+ HTML-emitting skills at v1; every skill gains the apply-edit-at-anchor entrypoint.</td></tr>
+      <tr><td>Q19</td><td>Git posture of resolve</td><td>Stages <code>.html</code> + <code>.comments.json</code>; does NOT commit; user commits manually.</td></tr>
+      <tr><td>Q20</td><td>Overlay JS source</td><td>Purpose-built, zero-dep <code>comments.js</code> in <code>_shared/html-authoring/assets/</code>.</td></tr>
+      <tr><td>Q21</td><td>Pre-commit drift hook</td><td>Refuse on <code>.html</code>/<code>.comments.json</code> sync drift; <code>--no-verify</code> bypass.</td></tr>
+      <tr><td>Q22</td><td>Resolver failure</td><td>Thread stays open; system-reply explains failure + suggests next action (rephrase / split / mark won't-fix); resolver continues.</td></tr>
+      <tr><td>Q23</td><td>Status taxonomy</td><td><code>open</code> / <code>in_progress</code> / <code>resolved</code>; closure reason lives in the last system message.</td></tr>
+      <tr><td>Q24</td><td>Migration of existing artifacts</td><td>Zero-touch; bundle baked into new emit only; existing artifacts auto-upgrade when regenerated.</td></tr>
+      <tr><td>Q25</td><td><code>--confirm-each</code> reject workflow</td><td>User picks: (a) edit the proposal and accept, (b) re-prompt with refinement note, (c) leave open and skip.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="deferred">
+  <h2 id="deferred-h">Open / Deferred</h2>
+  <ul>
+    <li><strong>Mobile / tablet viewing</strong> — deferred; YAGNI for solo-laptop operator; revisit if stakeholders review on phones.</li>
+    <li><strong>Browser-tab synchronization</strong> — when overlay is open in browser <em>during</em> a live <code>/comments resolve</code> chat session, browser doesn't see staged edits until reload. Acceptable v1; document in skill body.</li>
+    <li><strong>Re-dispatch loop cap (Q25)</strong> — pick a value at spec time (lean: 2 re-dispatches before forcing "leave open and skip").</li>
+  </ul>
+</section>
+
+<section id="gaps">
+  <h2 id="gaps-h">Gaps surfaced</h2>
+  <ul>
+    <li><strong>Sidecar-follows-artifact-on-rename</strong> — when artifact is renamed/moved, sidecar must move atomically. Add convention/tool rule in <code>_shared/html-authoring/conventions.md</code>.</li>
+    <li><strong>Thread-ID generation scheme</strong> — lean: short nanoid-style 8-char UUID; pin at spec time.</li>
+    <li><strong>Apply-edit-at-anchor entrypoint surface</strong> — every one of 12+ HTML-emitting skills needs this contract documented and tested. Cross-cutting; will dominate build estimate.</li>
+    <li><strong>System-reply failure-mode taxonomy (Q22)</strong> — small enum needed: <code>anchor_orphaned</code> / <code>edit_conflicted</code> / <code>agent_judged_infeasible</code> / <code>agent_errored</code>.</li>
+    <li><strong>Bundle size budget for <code>comments.js</code></strong> — every emitted artifact ships with it; cap (≤20KB minified) keeps artifact bloat bounded.</li>
+    <li><strong>Audit of current 12+ skills' HTML output for stable-id coverage</strong> — mandated by <code>conventions.md</code> §3 but worth a one-shot grep before the build commits to id-first anchoring.</li>
+  </ul>
+</section>
+
+<section id="next">
+  <h2 id="next-h">Recommended next step</h2>
+  <p>Run <strong><code>/requirements inline-doc-comments</code></strong> to formalize the locked decisions above into <code>01_requirements.html</code>. The 25 resolved Qs map directly to FR/NFR clauses; the 3 deferred Qs become explicit "non-requirements" / "out-of-scope" lines; the 6 surfaced gaps become P0/P1 acceptance criteria the requirements doc must cover.</p>
+</section>
+
+</main>
+<script src="assets/viewer.js?v=2.51.0" defer></script>
+<script src="assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>
