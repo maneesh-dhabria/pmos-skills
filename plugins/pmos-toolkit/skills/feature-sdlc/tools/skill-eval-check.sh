@@ -252,7 +252,7 @@ if [[ -n "$PLAN_FILE" && -f "$PLAN_FILE" ]]; then
   if [[ -z "$wave_text" ]]; then
     : # no wave blocks found — nothing to grep; treat as N/A (silent)
   else
-    hits="$(grep -nEi 'version bump|bump.*plugin\.json|CHANGELOG\.md|docs/[^[:space:]]*changelog|README row|README\.md row' <<<"$wave_text" || true)"
+    hits="$(grep -nEi 'version bump|bump.*plugin\.json|CHANGELOG\.md|docs/[^[:space:]]*changelog|README row|README\.md row|[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*(->|→)[[:space:]]*[0-9]+\.[0-9]+\.[0-9]+' <<<"$wave_text" || true)"
     if [[ -z "$hits" ]]; then
       emit g-plan-grep-clean pass "no release-prereq markers in wave blocks of $(basename "$PLAN_FILE")"
     else

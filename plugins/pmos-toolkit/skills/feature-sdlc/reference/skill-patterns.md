@@ -295,6 +295,13 @@ at merge time.
 4. **Spec.** `/spec` in skill modes emits a `## Release prerequisites` section
    enumerating these items as plain bullets — file paths + one-line intent. This
    section is the handoff contract between `/plan`/`/execute` and `/complete-dev`.
+   **Do NOT write concrete version numbers** (e.g., `2.51.0 → 2.52.0`) in this
+   section — name the bump *type* only (`patch`/`minor`/`major`). The actual
+   from/to numbers depend on what `main` is at merge time, not when the
+   spec/worktree was authored; `/complete-dev` Phase 9 computes the baseline
+   from current `main` and applies the bump there. Baking specific numbers into
+   the spec produces stale-bump conflicts and is the failure mode `/complete-dev`'s
+   stale-bump recovery (`reference/version-bump-recovery.md`) exists to clean up.
 
 **The pmos-specific bits.** The list of files (`plugin.json` × 2, the canonical
 changelog path, the learnings file, the README row) is repo-specific and lives in
