@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>/primer skill — /verify Review (2026-05-23)</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.51.0">
+  <script defer src="../assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/primer skill — /verify Review (2026-05-23)</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h2 id="summary">Summary</h2>
+<dl>
+  <dt>Feature</dt><dd>2026-05-23_pmos-learnkit-primer — /primer skill (new pmos-learnkit plugin, first skill)</dd>
+  <dt>Branch</dt><dd>feat/pmos-learnkit-primer</dd>
+  <dt>Mode</dt><dd>skill-new (skill-mode /verify pass)</dd>
+  <dt>Result</dt><dd><strong>PASS</strong> with 1 accepted residual (judgement-tier).</dd>
+  <dt>Scope</dt><dd>15 plan tasks complete (T1–T15). Phase 6a /skill-eval ran iteration 1; user accepted 1 [J] residual. Release prereqs deferred to /complete-dev per FR-G2 (verified as out-of-scope for /execute).</dd>
+</dl>
+
+<h2 id="gates">Deterministic gates (all PASS)</h2>
+<table>
+<thead><tr><th>Gate</th><th>Tool</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>skill-eval [D] half (18 checks)</td><td>skill-eval-check.sh --target claude-code</td><td>exit 0; 18/18 pass</td></tr>
+<tr><td>Non-interactive contract</td><td>audit-recommended.sh</td><td>exit 0; 9 calls / 3 Recommended / 6 defer-only / 0 unmarked</td></tr>
+<tr><td>Substrate byte-stability (T1)</td><td>template-bytestable.sh</td><td>PASS — pmos-toolkit defaults render byte-identical</td></tr>
+<tr><td>Line budget</td><td>wc -l SKILL.md</td><td>324 lines (≤500 target; substantial headroom)</td></tr>
+<tr><td>Bash syntax</td><td>bash -n template-bytestable.sh</td><td>OK</td></tr>
+</tbody>
+</table>
+
+<h2 id="skill-eval-llm-judge">skill-eval [J] half (re-run, FR-50 reconciliation)</h2>
+<p>15 [J] checks scored at Phase 6a; result reconciled here.</p>
+<table>
+<thead><tr><th>check_id</th><th>verdict</th><th>note</th></tr></thead>
+<tbody>
+<tr><td>a-name-verb-or-gerund</td><td><strong>fail</strong> (accepted residual)</td><td>Reviewer flagged "primer" as noun rather than verb. User accepted as known risk: sibling pmos-toolkit skills (wireframes, changelog, backlog, mytasks) use noun names — repo convention precedent. Acked in state.yaml.phases.skill-eval.accepted_residuals[].</td></tr>
+<tr><td>b-desc-has-when</td><td>pass</td><td>—</td></tr>
+<tr><td>b-desc-has-what</td><td>pass</td><td>—</td></tr>
+<tr><td>b-desc-third-person</td><td>pass</td><td>—</td></tr>
+<tr><td>b-desc-trigger-phrases</td><td>pass</td><td>6 trigger phrases verbatim in description (≥5 required).</td></tr>
+<tr><td>b-desc-no-step-list</td><td>pass</td><td>—</td></tr>
+<tr><td>b-desc-pushy</td><td>pass</td><td>—</td></tr>
+<tr><td>c-progressive-disclosure</td><td>pass</td><td>SKILL.md cites reference/* rather than restating content.</td></tr>
+<tr><td>c-context-economy</td><td>pass</td><td>—</td></tr>
+<tr><td>d-imperative-form</td><td>pass</td><td>—</td></tr>
+<tr><td>d-explain-why</td><td>pass</td><td>—</td></tr>
+<tr><td>d-examples-quality</td><td>pass</td><td>One Worked example walking feature-flagging-at-scale through Phases 0→5.</td></tr>
+<tr><td>d-body-skeleton</td><td>pass</td><td>—</td></tr>
+<tr><td>f-cc-argument-hint-matches</td><td>pass</td><td>argument-hint enumerates every parsed flag.</td></tr>
+<tr><td>g-release-prereqs-scope</td><td>pass</td><td>Plan §Release prerequisites lists every prereq under /complete-dev scope; no wave block edits prohibited files.</td></tr>
+</tbody>
+</table>
+
+<h2 id="release-prereqs">Release prereqs (best-effort grade — advisory)</h2>
+<p>Per FR-G2, these are <strong>/complete-dev's scope</strong>, not /execute's. The /verify check is advisory — surfaces what /complete-dev (next pipeline stage) must produce.</p>
+<table>
+<thead><tr><th>Item</th><th>State</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>plugins/pmos-learnkit/.claude-plugin/plugin.json (v0.1.0)</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>plugins/pmos-learnkit/.codex-plugin/plugin.json (v0.1.0)</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>.claude-plugin/marketplace.json entry</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>.codex-plugin/marketplace.json entry</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>README row for /primer</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>docs/pmos/changelog.md entry</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>~/.pmos/learnings.md ## /primer header bootstrap</td><td>ABSENT</td><td>/complete-dev Phase 8</td></tr>
+<tr><td>.gitignore for .pmos/primer.lastrun.yaml</td><td>covered by .pmos/*.lastrun pattern (likely already present per the .pmos/complete-dev.lastrun.yaml precedent)</td><td>/complete-dev verifies; widen pattern if needed</td></tr>
+<tr><td>Tag: pmos-learnkit/v0.1.0</td><td>ABSENT</td><td>/complete-dev Phase 13</td></tr>
+<tr><td>Substrate change (T1) release on pmos-toolkit (2.51.0 → 2.52.0 minor)</td><td>ABSENT</td><td>/complete-dev Phase 8 (separate --plugin pmos-toolkit run, or coordinated multi-plugin release)</td></tr>
+</tbody>
+</table>
+
+<h2 id="spec-compliance">Spec compliance (per FR — abbreviated)</h2>
+<p>Skill-mode /verify uses the in-body FR coverage as the compliance check. Every FR in spec §7.8 (FR-1..FR-15) is cited in the SKILL.md body or its companion reference files, validated via the [D] + [J] gates above. Citation discipline confirmed via greps in the T15 ceremony (lastrun.yaml, slug, try-both, source-floor, sources.json, audience-presets, curator-lens, citation, reviewer, temp-then-rename, draft.html, data-pmos-plugin — all present).</p>
+<p>FR-14 (substrate parameterization): VERIFIED via T1 byte-stability test (re-run in this pass). FR-15 (plugin manifests): NA — deferred to /complete-dev per FR-G2.</p>
+
+<h2 id="folded-phase-failures">Folded-phase failures</h2>
+<p>None. All <code>folded_phase_failures[]</code> arrays in state.yaml are empty.</p>
+
+<h2 id="known-residuals">Known residuals (carried to /complete-dev summary)</h2>
+<ol>
+<li><strong>a-name-verb-or-gerund</strong> (judgement-tier [J]): reviewer flagged "primer" as a noun rather than a verb/gerund. User-accepted as known risk on 2026-05-23T15:42:00Z; ack_reason: "sibling pmos-toolkit skills use noun names; renaming would force structural changes across all artifacts for a judgement-tier check."</li>
+</ol>
+
+<h2 id="next-step">Next step</h2>
+<p>Pipeline advances to <strong>/complete-dev</strong> (Phase 8). /complete-dev will write all release-prereq files listed above, bump versions, regenerate changelog, tag, and push to remotes (origin + gitlab-mirror).</p>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-23_pmos-learnkit-primer/verify/2026-05-23-review.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
