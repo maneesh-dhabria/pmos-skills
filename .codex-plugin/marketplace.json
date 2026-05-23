@@ -12,6 +12,14 @@
       "version": "2.52.0",
       "category": "productivity",
       "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
+    },
+    {
+      "name": "pmos-learnkit",
+      "description": "Learning kit — verified-source, audience-shaped teachable artifacts (primers and ramp-up docs) generated on demand.",
+      "source": "./plugins/pmos-learnkit",
+      "version": "0.1.0",
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
     }
   ]
 }

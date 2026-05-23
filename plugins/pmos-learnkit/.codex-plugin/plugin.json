@@ -1,0 +1,14 @@
+{
+  "name": "pmos-learnkit",
+  "version": "0.1.0",
+  "description": "Learning kit — verified-source, audience-shaped teachable artifacts (primers and ramp-up docs) generated on demand.",
+  "author": {
+    "name": "Maneesh Dhabria"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PMOS LearnKit",
+    "shortDescription": "Generate verified-source primers on any topic",
+    "category": "Productivity"
+  }
+}

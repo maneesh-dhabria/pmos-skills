@@ -52,6 +52,7 @@ The per-plugin `plugin.json` pair carries the plugin's own version. The two top-
 
 ### Plugins list
 - pmos-toolkit
+- pmos-learnkit
 
 ### Tag convention
 - Format: `<plugin>/v<semver>` (e.g. `pmos-toolkit/v2.50.0`).

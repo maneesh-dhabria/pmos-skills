@@ -1,0 +1,21 @@
+{
+  "name": "pmos-learnkit",
+  "version": "0.1.0",
+  "description": "Learning kit — verified-source, audience-shaped teachable artifacts (primers and ramp-up docs) generated on demand.",
+  "author": {
+    "name": "Maneesh Dhabria"
+  },
+  "homepage": "https://github.com/maneesh-dhabria/pmos-skills",
+  "repository": "https://github.com/maneesh-dhabria/pmos-skills",
+  "license": "MIT",
+  "keywords": [
+    "primer",
+    "ramp-up",
+    "learning",
+    "teachable",
+    "research",
+    "citations",
+    "audience-shaping"
+  ],
+  "skills": "./skills/"
+}
