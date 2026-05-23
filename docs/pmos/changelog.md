@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-23 — pmos-toolkit 2.53.0: `/design-crit` gains `--depth` flag; lifts silent 12-finding cap
+
+`/design-crit` previously truncated reviewer output and disposition prompts at a hard 12 high+medium findings per run. On complex multi-screen audits, the 13th-Nth medium-severity finding silently became "unsurfaced" — logged to `eval-findings.json` but never reaching the user as an actionable disposition. This release adds explicit depth control:
+
+- **New `--depth shallow|standard|deep` flag** (default: unset → triggers adaptive Phase 4 gate). `shallow` caps at 5, `standard` caps at 12 (current behavior — no regression), `deep` lifts the cap entirely (reviewer-side safety bound of 50).
+- **Adaptive Phase 4 disposition gate** fires when `--depth` was not set on CLI and the reviewer returned >5 findings. Single AskUserQuestion: "Reviewer surfaced N findings. Top 5 / Top 12 (Recommended) / All N?". In `--non-interactive` mode, auto-picks Top 12 (standard) per the canonical Recommended-pick contract; the deferred choice is logged to the OQ buffer.
+- **No silent capping.** After dispositions, `/design-crit` now prints `<N> surfaced, <M> unsurfaced — see eval-findings.json` in every mode. A new anti-pattern entry codifies the rule.
+- Fixup: added a Contents ToC to `reference/eval.md` to satisfy the `c-reference-toc` skill-eval check (pre-existing failure unrelated to this change set).
+
 ## 2026-05-23 — pmos-toolkit 2.52.1: parameterize HTML substrate attribution
 
 Small refactor to support multi-plugin reuse of `_shared/html-authoring/`:
