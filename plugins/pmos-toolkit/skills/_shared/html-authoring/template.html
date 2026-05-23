@@ -1,3 +1,12 @@
+<!--
+  pmos html-authoring template
+  Tokens (defaults shown — substituted by the renderer per host plugin):
+    {{plugin_name}}      default: pmos-toolkit
+    {{plugin_name_nbsp}} default: pmos&#8209;toolkit
+    {{plugin_url}}       default: https://github.com/maneesh-dhabria/pmos-toolkit#readme
+  Other tokens ({{title}}, {{content}}, {{source_path}}, {{asset_prefix}},
+  {{plugin_version}}) are supplied per-render and not parameterized here.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,9 +24,10 @@
       <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
     </div>
     <a class="pmos-attribution pmos-attribution--toolbar"
-       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       href="{{plugin_url}}"
        target="_blank" rel="noopener noreferrer"
-       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+       data-pmos-role="attribution"
+       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
   </header>
   <main class="pmos-artifact-body" data-pmos-role="body">
 {{content}}
@@ -26,9 +36,10 @@
     <span class="pmos-artifact-source">Source: {{source_path}}</span>
     <span class="pmos-attribution-sep" aria-hidden="true">·</span>
     <a class="pmos-attribution pmos-attribution--footer"
-       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       href="{{plugin_url}}"
        target="_blank" rel="noopener noreferrer"
-       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+       data-pmos-role="attribution"
+       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
   </footer>
 </body>
 </html>
