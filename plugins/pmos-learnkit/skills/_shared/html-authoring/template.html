@@ -1,0 +1,45 @@
+<!--
+  pmos html-authoring template
+  Tokens (defaults shown — substituted by the renderer per host plugin):
+    {{plugin_name}}      default: pmos-toolkit
+    {{plugin_name_nbsp}} default: pmos&#8209;toolkit
+    {{plugin_url}}       default: https://github.com/maneesh-dhabria/pmos-toolkit#readme
+  Other tokens ({{title}}, {{content}}, {{source_path}}, {{asset_prefix}},
+  {{plugin_version}}) are supplied per-render and not parameterized here.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="{{asset_prefix}}style.css?v={{plugin_version}}">
+  <script defer src="{{asset_prefix}}viewer.js?v={{plugin_version}}"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">{{title}}</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="{{plugin_url}}"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+{{content}}
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: {{source_path}}</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="{{plugin_url}}"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
+  </footer>
+</body>
+</html>
