@@ -1,0 +1,176 @@
+[
+  {
+    "id": "problem-h",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "problem-who",
+    "level": 3,
+    "title": "Who experiences this?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "problem-whynow",
+    "level": 3,
+    "title": "Why now?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "goals-h",
+    "level": 2,
+    "title": "Goals & Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "goals-positive",
+    "level": 3,
+    "title": "Goals",
+    "parent_id": "goals"
+  },
+  {
+    "id": "goals-non",
+    "level": 3,
+    "title": "Non-Goals (explicit scope cuts)",
+    "parent_id": "goals"
+  },
+  {
+    "id": "ux-h",
+    "level": 2,
+    "title": "User Experience Analysis",
+    "parent_id": null
+  },
+  {
+    "id": "ux-motivation",
+    "level": 3,
+    "title": "Motivation",
+    "parent_id": "ux"
+  },
+  {
+    "id": "ux-friction",
+    "level": 3,
+    "title": "Friction Points",
+    "parent_id": "ux"
+  },
+  {
+    "id": "ux-satisfaction",
+    "level": 3,
+    "title": "Satisfaction Signals",
+    "parent_id": "ux"
+  },
+  {
+    "id": "solution-h",
+    "level": 2,
+    "title": "Solution Direction",
+    "parent_id": null
+  },
+  {
+    "id": "solution-capture",
+    "level": 3,
+    "title": "Capture surface (zero commands)",
+    "parent_id": "solution"
+  },
+  {
+    "id": "solution-persist",
+    "level": 3,
+    "title": "Persistence (committed sidecar)",
+    "parent_id": "solution"
+  },
+  {
+    "id": "solution-resolve",
+    "level": 3,
+    "title": "AI handoff (one command)",
+    "parent_id": "solution"
+  },
+  {
+    "id": "solution-survive",
+    "level": 3,
+    "title": "Re-render survival",
+    "parent_id": "solution"
+  },
+  {
+    "id": "solution-stakeholder",
+    "level": 3,
+    "title": "Stakeholder share posture",
+    "parent_id": "solution"
+  },
+  {
+    "id": "solution-failure",
+    "level": 3,
+    "title": "Failure handling",
+    "parent_id": "solution"
+  },
+  {
+    "id": "journeys-h",
+    "level": 2,
+    "title": "User Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "journey-primary",
+    "level": 3,
+    "title": "Primary journey — single-thread happy path",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-alt-clarification",
+    "level": 3,
+    "title": "Alternate journey — clarification flow",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-alt-batch",
+    "level": 3,
+    "title": "Alternate journey — batch mode with conflict",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-error-orphan",
+    "level": 3,
+    "title": "Error journey — orphaned thread after rewrite",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-error-resolver-fail",
+    "level": 3,
+    "title": "Error journey — resolver subagent fails",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-error-fsa-fallback",
+    "level": 3,
+    "title": "Error journey — Safari fallback path",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-edge-empty",
+    "level": 3,
+    "title": "Empty states & edge cases",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "decisions-h",
+    "level": 2,
+    "title": "Design Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "metrics-h",
+    "level": 2,
+    "title": "Success Metrics",
+    "parent_id": null
+  },
+  {
+    "id": "sources-h",
+    "level": 2,
+    "title": "Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions-h",
+    "level": 2,
+    "title": "Open Questions",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="requirements">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Inline doc comments — Requirements</title>
+<link rel="stylesheet" href="assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments for HTML pipeline artifacts — Requirements</h1>
+  <dl class="meta">
+    <dt>Date</dt><dd>2026-05-23</dd>
+    <dt>Last updated</dt><dd>2026-05-23</dd>
+    <dt>Status</dt><dd>Draft</dd>
+    <dt>Tier</dt><dd>3 — Feature</dd>
+    <dt>Slug</dt><dd><code>inline-doc-comments</code></dd>
+  </dl>
+</header>
+
+<section id="problem">
+  <h2 id="problem-h">Problem</h2>
+  <p>The pmos-toolkit pipeline emits 12+ HTML artifacts per feature (<code>01_requirements</code>, <code>02_spec</code>, <code>03_plan</code>, wireframes, prototypes, diagrams, surveys, artifacts, ideate briefs, grill reports, polish outputs, etc.). When the operator spots something wrong during review, the only feedback channel today is free-form chat — they describe <em>where</em> the problem is and <em>what</em> should change, the agent re-anchors against the doc, and the loop costs context every revision round. Threaded back-and-forth on a single concern is not auditable across sessions; "I asked about this last week" lives only in chat scrollback.</p>
+  <p><strong>The core gap:</strong> there is no precise, persisted, AI-readable way to attach feedback to a <em>specific element</em> in a generated HTML artifact and have an AI session resolve it without re-prompting from scratch.</p>
+
+  <h3 id="problem-who">Who experiences this?</h3>
+  <p>The operator of the pmos-toolkit pipeline (initially: a single PM-engineer running <code>/requirements</code>, <code>/spec</code>, <code>/plan</code>, <code>/wireframes</code>, <code>/prototype</code>, <code>/artifact</code>, <code>/diagram</code> in solo workflow) reviewing generated HTML artifacts before merge or stakeholder share. The <code>author</code> field on every thread (D17) leaves room for future multi-operator use without v1 build cost.</p>
+
+  <h3 id="problem-whynow">Why now?</h3>
+  <p>Three converging conditions make this the right time:</p>
+  <ul>
+    <li><strong>HTML-primary artifacts shipped in v2.33.0.</strong> The <code>_shared/html-authoring/</code> substrate (style.css, viewer.js, chrome-strip.js, build_sections_json.js) is mature and consistent across 12+ skills — the bundling-into-emit story is finally viable.</li>
+    <li><strong>Stable section/heading id conventions exist.</strong> <code>_shared/html-authoring/conventions.md §3</code> already mandates kebab-case ids on every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code>, and <code>assert_heading_ids.sh</code> (T22) blocks artifacts missing them. The id-first anchor strategy works <em>because</em> this groundwork is in place.</li>
+    <li><strong>Subagent-driven execution shipped in v2.39.0 (<code>/execute --subagent-driven</code>).</strong> The wave-planner pattern (deps + file-conflict relation) is reusable for the <code>--batch</code> resolve mode's anchor-overlap planner (D15) without inventing new substrate.</li>
+  </ul>
+</section>
+
+<section id="goals">
+  <h2 id="goals-h">Goals &amp; Non-Goals</h2>
+
+  <h3 id="goals-positive">Goals</h3>
+  <ul>
+    <li><strong>Precision review:</strong> the operator can attach feedback to an exact text span, heading, or diagram region in any HTML pipeline artifact — measured by anchor-resolution rate (id-first hit ≥90%; quote-fallback hit ≤5%; orphan ≤5%) at 30 days post-ship.</li>
+    <li><strong>AI-driven edit application:</strong> a single command (<code>/comments resolve &lt;artifact&gt;</code>) consumes open threads, applies edits, and writes thread-level audit replies — measured by end-to-end latency &lt;60s per thread in default <code>--confirm-each</code> mode, and by ≥80% of opened threads reaching <code>resolved</code> status within their feature's review cycle.</li>
+    <li><strong>Replace chat as the primary revision channel:</strong> for ≥50% of revision rounds across <code>/spec</code>, <code>/requirements</code>, <code>/wireframes</code>, <code>/artifact</code> at 30 days — measured by sampling 10 random feature folders' commit histories.</li>
+    <li><strong>Zero-command capture surface:</strong> opening any emitted <code>.html</code> file in Chrome/Edge presents the comment overlay without any prior CLI invocation — measured by binary check (does the bundle load when the file is double-clicked?).</li>
+    <li><strong>Cross-session audit trail:</strong> every thread's full history (user messages + system replies + status transitions) is preserved in git via the committed sidecar — measured by spot-checking 5 resolved threads' git logs.</li>
+  </ul>
+
+  <h3 id="goals-non">Non-Goals (explicit scope cuts)</h3>
+  <ul>
+    <li><strong>NOT building a multi-author collaboration UI in v1</strong> — because the operator is solo today; the <code>author</code> field is reserved on every message (D17) for cheap optionality later, but no presence, no conflict-resolution UI, no multi-cursor.</li>
+    <li><strong>NOT supporting mobile / tablet viewing</strong> — because the operator works on a laptop; revisit if stakeholders begin reviewing on phones.</li>
+    <li><strong>NOT running cross-artifact coherence checks at v1</strong> (G7) — because directory-level resolve runs each artifact's threads independently; contradictions across <code>01_requirements</code> + <code>02_spec</code> are rare in solo flow and surface to the user post-resolve.</li>
+    <li><strong>NOT vendoring Annotator.js or Hypothes.is client</strong> (D20) — because comment UIs are simple; the existing libs bring dependency surface and service-backend assumptions; purpose-built keeps the substrate lean.</li>
+    <li><strong>NOT auto-migrating existing artifacts</strong> (D24) — because the artifacts the operator actually re-engages with get the bundle on regen; archive artifacts stay clean.</li>
+    <li><strong>NOT enabling Safari/Firefox as officially supported browsers for capture in v1</strong> — because File System Access API coverage is incomplete; those browsers get a download-to-replace fallback (D11), not full parity.</li>
+    <li><strong>NOT building a render-comments-into-MD path</strong> (D12) — because <code>.md</code> sidecar is HTML-derived (FR-33); comments are HTML-primary; MD readers see clean docs.</li>
+    <li><strong>NOT adding thread labels / severity / type metadata at v1</strong> (D14) — because the body text + status carries enough signal for solo operator + LLM resolver.</li>
+  </ul>
+</section>
+
+<section id="ux">
+  <h2 id="ux-h">User Experience Analysis</h2>
+
+  <h3 id="ux-motivation">Motivation</h3>
+  <ul>
+    <li><strong>Job to be done:</strong> "When I spot something wrong in a generated artifact, mark exactly which element is wrong and what should happen, so a follow-up Claude session resolves it without me re-supplying location context."</li>
+    <li><strong>Importance/Urgency:</strong> Daily — the operator runs the pipeline 3–10 times per week; every feature has 2–5 revision rounds; today's free-form chat costs 200–800 tokens of restated context per round.</li>
+    <li><strong>Alternatives:</strong> (a) Continue with free-form chat (current state — high context cost). (b) Maintain a separate "review notes" markdown file (loses anchoring, no AI handoff). (c) Use a hosted annotation service like Hypothes.is (introduces an external service, breaks the "self-contained repo" property). The chosen direction strictly dominates each: cheaper than (a), more precise than (b), self-contained vs. (c).</li>
+  </ul>
+
+  <h3 id="ux-friction">Friction Points</h3>
+  <table>
+    <thead><tr><th>Friction point</th><th>Cause</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>"Do I need to launch a server to comment?"</td><td>Server-launch step was the v1-strict plan</td><td>A-hybrid: overlay JS pre-baked into every emitted artifact; zero CLI to capture (D-A-hybrid).</td></tr>
+      <tr><td>"Will my comments survive a <code>/spec --refine</code> rewrite?"</td><td>Re-generation produces a new HTML body with potentially different anchors</td><td>Post-regen re-anchor pass tries stable id → quote/prefix-suffix → orphan banner (D3). Dual-anchor written on every thread.</td></tr>
+      <tr><td>"My browser (Safari) can't write the file" / "I'm worried about losing comments"</td><td>FSA API is Chrome/Edge only</td><td>Officially-supported browsers = Chrome/Edge with in-place writes; Safari/Firefox get a download-to-replace fallback that surfaces a clear "Save sidecar" UI (D11).</td></tr>
+      <tr><td>"I forgot to commit the sidecar"</td><td>Sidecar/artifact pair must stay in sync</td><td>Pre-commit drift hook refuses commits where one of the pair is staged but not the other (D21).</td></tr>
+      <tr><td>"<code>/comments resolve</code> wants to make 8 edits — I don't trust it that much"</td><td>Trust gradient between confirm-each / batch / auto</td><td>Three explicit modes per run (D6): <code>--confirm-each</code> (default), <code>--batch</code>, <code>--auto</code>. User picks trust level per invocation.</td></tr>
+      <tr><td>"Stakeholders see a commenting UI in the doc I shared with them"</td><td>Overlay is part of the emitted file</td><td>Body-class toggle + <code>localStorage</code> flag — overlay default-on for operator, hideable per-machine; stakeholders see UI but it's effectively read-only (D7).</td></tr>
+      <tr><td>"The agent's proposed edit isn't what I meant"</td><td>Edit dispatch may misinterpret thread intent</td><td><code>--confirm-each</code> reject path: edit the proposal inline, re-prompt with refinement note, or leave open (D25).</td></tr>
+    </tbody>
+  </table>
+
+  <h3 id="ux-satisfaction">Satisfaction Signals</h3>
+  <ul>
+    <li>The operator runs <code>/comments serve</code> — oh wait, there <em>is no</em> <code>/comments serve</code> — just opens the file and starts commenting. No command barrier.</li>
+    <li>After <code>/comments resolve</code>, the operator sees a staged-changes diff and reads ≤3-sentence system replies in each thread explaining what changed. No surprise edits.</li>
+    <li>A thread re-opened a week later still anchors correctly to its target span — id stability + quote fallback proven by spot-check.</li>
+    <li>The operator stops opening chat tabs for "small fix" requests on generated artifacts; the comment overlay becomes the default revision surface.</li>
+  </ul>
+</section>
+
+<section id="solution">
+  <h2 id="solution-h">Solution Direction</h2>
+  <p>Finalist A-hybrid — the locked direction from the ideate brief, reinforced by the deep-grill (25 resolved Qs):</p>
+
+  <h3 id="solution-capture">Capture surface (zero commands)</h3>
+  <p>Every HTML artifact emitted by a pipeline skill ships with a <code>&lt;script src="assets/comments.js"&gt;</code> reference pre-baked into the rendered HTML. The substrate file lives at <code>_shared/html-authoring/assets/comments.js</code> (purpose-built, zero-dep, ≤20KB minified — D20, G5). Opening the <code>.html</code> file in any browser activates the overlay: text-selection produces a floating "Comment" button → opens a side-panel thread (Google Docs UX); SVG regions with <code>data-anchor</code> attributes become clickable comment targets; foreign SVGs without <code>data-anchor</code> get bounding-box pixel anchors as fallback (D4).</p>
+
+  <h3 id="solution-persist">Persistence (committed sidecar)</h3>
+  <p>Threads persist to <code>&lt;artifact&gt;.comments.json</code>, sibling to the HTML. Schema carries: <code>schema_version</code>, <code>threads[]</code> with <code>id</code> (8-char nanoid, G2), <code>anchor</code> (dual: stable id + quote/prefix-suffix on every thread — D3), <code>status ∈ {open, in_progress, resolved}</code> (D23), <code>messages[]</code> with <code>{role: user|system, author: &lt;user|system|git-config-name&gt;, body, ts}</code> (D17). Sidecar is committed to git (D2); resolved threads stay in the file with overlay default-hiding them (D8). Pre-commit hook refuses partial-pair commits (D21).</p>
+
+  <h3 id="solution-resolve">AI handoff (one command)</h3>
+  <p><code>/comments resolve &lt;artifact|directory&gt;</code> reads the sidecar(s), routes per-thread via <code>&lt;meta name="pmos:skill"&gt;</code> to the originating skill's "apply-edit-at-anchor" entrypoint (D1, D18 — all 12+ HTML-emitting skills gain this entrypoint at v1), and dispatches a fresh subagent per thread with the originating skill's context. Per-thread output: either (a) applied edit + ≤3-sentence system reply with diff pointer + <code>status: resolved</code> (D9), OR (b) clarification — live <code>AskUserQuestion</code> in interactive mode (D5) presenting 2–4 options inline; user picks; resolver continues. <code>--confirm-each</code> (default) confirms each proposed edit; <code>--batch</code> uses an anchor-overlap-aware planner mirroring v2.39.0's wave planner (D15); <code>--auto</code> applies all without confirmation. Resolver stages <code>.html</code> + <code>.comments.json</code> but does not commit (D19); user commits manually.</p>
+
+  <h3 id="solution-survive">Re-render survival</h3>
+  <p>When <code>/spec --refine</code> (or any skill's regenerate path) rewrites an artifact with open comments: regeneration proceeds without blocking (D3); post-regen re-anchor pass walks threads, trying id-first → quote/prefix-suffix fallback; threads that match neither surface as orphan with a banner in the overlay on next open. Diagram retrofit: <code>/diagram</code> + <code>/wireframes</code> SVG generators add <code>data-anchor</code> on shapes (D4 — 1-day bounded spike, prerequisite to v1 ship).</p>
+
+  <h3 id="solution-stakeholder">Stakeholder share posture</h3>
+  <p>Overlay enabled by default for the operator; hidden by setting <code>localStorage.setItem('pmos:reviewMode', 'off')</code> per-machine (D7). Stakeholders viewing the file see the UI but threads they didn't author act as read-only.</p>
+
+  <h3 id="solution-failure">Failure handling</h3>
+  <p>Resolver subagent failure (anchor orphaned / edit conflicted / agent judged infeasible / agent errored — G4) keeps the thread <code>open</code> and appends a system reply with the failure taxonomy + suggested next action (rephrase / split / mark won't-fix); resolver continues to next thread (D22). Closure-reason (fix-applied vs. won't-fix) lives in the last system message — no separate status (D23).</p>
+</section>
+
+<section id="journeys">
+  <h2 id="journeys-h">User Journeys</h2>
+
+  <h3 id="journey-primary">Primary journey — single-thread happy path</h3>
+  <ol>
+    <li>Operator runs <code>/spec inline-doc-comments</code>; pipeline emits <code>02_spec.html</code> with bundled <code>comments.js</code>.</li>
+    <li>Operator double-clicks <code>02_spec.html</code> → Chrome opens it; overlay activates automatically.</li>
+    <li>Operator selects "the resolver dispatches a generic subagent" in section §4.2.</li>
+    <li>Floating "Comment" button appears next to selection → click opens side panel.</li>
+    <li>Operator types: "this should specify originating-skill dispatch, not generic — see grill Q1." → Submit.</li>
+    <li>Side panel shows thread #1 with status <code>open</code>; <code>02_spec.comments.json</code> auto-saves via File System Access API.</li>
+    <li>Operator commits <code>02_spec.html</code> + <code>02_spec.comments.json</code> (pre-commit hook passes — pair in sync).</li>
+    <li>Operator runs <code>/comments resolve 02_spec.html</code>.</li>
+    <li>Resolver reads thread #1, reads <code>&lt;meta name="pmos:skill" content="spec"&gt;</code>, dispatches a subagent loaded with <code>/spec</code>'s context.</li>
+    <li>Subagent proposes the edit; <code>--confirm-each</code> mode displays the diff snippet to operator.</li>
+    <li>Operator: accept → resolver applies edit, appends system reply "Changed §4.2 first sentence; see staged diff lines 124–128. Resolved.", flips <code>status: resolved</code>, stages both files.</li>
+    <li>Operator runs <code>git diff --cached</code> to confirm, then commits.</li>
+    <li>Next open of <code>02_spec.html</code>: overlay shows zero open threads; "show resolved" toggle reveals thread #1.</li>
+  </ol>
+
+  <h3 id="journey-alt-clarification">Alternate journey — clarification flow</h3>
+  <ol>
+    <li>Operator adds a thread: "the validation logic here looks wrong — fix it."</li>
+    <li>Operator runs <code>/comments resolve</code>.</li>
+    <li>Subagent reads the thread + the anchored region + the originating skill's conventions, determines the request is ambiguous (multiple plausible interpretations).</li>
+    <li>Resolver invokes live <code>AskUserQuestion</code> in the chat session: "Validation issue at <em>&lt;quoted span&gt;</em>: (a) reject when X is null (default Per FR-12), (b) reject when X is empty-string, (c) coerce X to null on empty-string. Which?"</li>
+    <li>Operator picks (b).</li>
+    <li>Subagent applies the (b) edit; appends system reply citing the user's choice; flips <code>resolved</code>; resolver moves to next thread.</li>
+  </ol>
+
+  <h3 id="journey-alt-batch">Alternate journey — batch mode with conflict</h3>
+  <ol>
+    <li>Operator opens <code>02_spec.html</code> with 6 open threads — three target distinct sections, two target overlapping paragraphs in §5, one targets a diagram region.</li>
+    <li>Operator runs <code>/comments resolve 02_spec.html --batch</code>.</li>
+    <li>Pre-flight planner groups threads by anchor overlap (G6, D15): wave 1 = {T1, T2, T3, T6 (diagram)} run in parallel; wave 2 = {T4, T5} run sequentially within their overlap group.</li>
+    <li>Wave 1 dispatches 4 subagents in parallel; all return; resolver presents the combined diff (4 staged regions); operator accepts collectively.</li>
+    <li>Wave 2 runs T4 sequentially, then T5 (using wave-1's post-edit state). Each surfaces its own diff.</li>
+    <li>Operator commits.</li>
+  </ol>
+
+  <h3 id="journey-error-orphan">Error journey — orphaned thread after rewrite</h3>
+  <ol>
+    <li>Operator has thread #5 anchored to span "the legacy auth middleware stores tokens in cookies" in <code>01_requirements.html</code>.</li>
+    <li>Operator runs <code>/requirements --update</code> (the requirements skill's update path) which rewrites the entire prose.</li>
+    <li>Post-regen re-anchor pass: thread #5's id anchor still hits the section, but the quote fallback no longer matches because the paragraph was rewritten.</li>
+    <li>Anchor confidence falls below threshold (Levenshtein ≥0.85 required); thread marked <code>orphan</code> in sidecar metadata.</li>
+    <li>Operator opens <code>01_requirements.html</code> next time; overlay shows banner: "1 orphaned thread — content was rewritten. View thread → reattach to new selection / Mark resolved / Mark won't-fix."</li>
+    <li>Operator chooses "reattach to new selection", selects the equivalent span in the rewritten doc; thread reanchors with new quote anchor.</li>
+  </ol>
+
+  <h3 id="journey-error-resolver-fail">Error journey — resolver subagent fails</h3>
+  <ol>
+    <li>Operator runs <code>/comments resolve 03_plan.html</code> with 3 open threads.</li>
+    <li>Thread #2's subagent returns "infeasible: the requested edit would violate FR-14 (T4 must not import from T7)."</li>
+    <li>Resolver does NOT abort the batch (D22); appends system reply to thread #2 with failure type <code>agent_judged_infeasible</code> + the rationale + suggested next actions (rephrase the thread / split into two threads / mark won't-fix); leaves <code>status: open</code>; moves to thread #3.</li>
+    <li>Threads #1 and #3 resolve normally.</li>
+    <li>Final summary: "Resolved 2 of 3 threads. Thread #2 left open — see thread body for failure detail."</li>
+  </ol>
+
+  <h3 id="journey-error-fsa-fallback">Error journey — Safari fallback path</h3>
+  <ol>
+    <li>Operator opens <code>02_spec.html</code> in Safari (e.g., on a borrowed laptop).</li>
+    <li>Overlay activates; banner: "Browser does not support File System Access API. Save sidecar manually after commenting."</li>
+    <li>Operator drops two comments; each is mirrored to <code>localStorage</code>.</li>
+    <li>Operator clicks "Save sidecar" → browser downloads <code>02_spec.comments.json</code>.</li>
+    <li>Operator moves the downloaded file next to <code>02_spec.html</code> (overwriting any prior); <code>localStorage</code> drafts cleared.</li>
+    <li>Commit + resolve flow proceeds identically to Chrome path.</li>
+  </ol>
+
+  <h3 id="journey-edge-empty">Empty states &amp; edge cases</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th>Condition</th><th>Expected behavior</th></tr></thead>
+    <tbody>
+      <tr><td>Fresh artifact, zero threads</td><td>Operator opens a just-emitted <code>.html</code></td><td>Overlay loads silently; no side panel; selection triggers floating "Comment" button on hover.</td></tr>
+      <tr><td>Sidecar exists but empty</td><td>Operator opened, drafted, then deleted all drafts</td><td>Sidecar persisted as <code>{ schema_version: 1, threads: [] }</code>; pre-commit hook permits either committing the empty sidecar or removing it.</td></tr>
+      <tr><td>Artifact renamed/moved</td><td>Operator runs <code>git mv 02_spec.html 02_design.html</code></td><td>Out of scope at v1 (G1) — operator manually renames the sidecar; convention documented in <code>_shared/html-authoring/conventions.md</code>.</td></tr>
+      <tr><td>Two tabs open simultaneously</td><td>Operator has the artifact open in two browser tabs, edits both</td><td>Last write wins via FSA; the other tab's overlay shows a stale-state banner on next persist attempt. Documented behavior (G3).</td></tr>
+      <tr><td>Directory-level resolve, mixed empty/non-empty sidecars</td><td><code>/comments resolve docs/pmos/features/2026-…/</code></td><td>Iterates <code>*.html</code>, skips files with missing/empty sidecars, processes the rest sequentially.</td></tr>
+      <tr><td>Browser-tab open during live <code>/comments resolve</code></td><td>Operator has overlay open while resolver stages edits</td><td>Overlay does NOT auto-refresh; operator reloads the tab manually to see resolved threads. Documented behavior (G3).</td></tr>
+      <tr><td>Comment on existing (pre-feature) artifact</td><td>Operator opens <code>docs/pmos/features/2026-04-…/01_requirements.html</code> from before this feature shipped</td><td>Overlay does not load (no <code>comments.js</code> reference baked in); operator regenerates the artifact via the originating skill to upgrade (D24), or runs the optional one-shot <code>/comments enable</code> if surfaced in handoff text.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="decisions">
+  <h2 id="decisions-h">Design Decisions</h2>
+  <p>Mapped from the 25 grill resolutions. Each maps to one or more downstream FRs in <code>02_spec.html</code>.</p>
+  <table>
+    <thead><tr><th>#</th><th>Decision</th><th>Options considered</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td>D1</td><td>Resolve dispatch is standalone <code>/comments resolve</code> with per-thread subagent dispatch via <code>&lt;meta name="pmos:skill"&gt;</code></td><td>(a) standalone + dispatch (chosen), (b) standalone + generic resolver, (c) flag on each originating skill</td><td>One place to evolve; each originating skill carries its own conventions (e.g. /spec's section shape enforcement); no per-skill drift. Each skill exposes a thin "apply-edit-at-anchor" entrypoint.</td></tr>
+      <tr><td>D2</td><td>Sidecar JSON is committed to git</td><td>(a) committed (chosen), (b) gitignored, (c) hybrid auto-prune</td><td>Cross-machine survival; PR-visible audit trail; justifies pre-commit drift hook.</td></tr>
+      <tr><td>D3</td><td>Re-render survival: regeneration runs; post-regen re-anchor pass tries id → quote → orphan banner</td><td>(a) re-anchor pass (chosen), (b) refuse regen with open threads, (c) feed threads as regen input</td><td>Substrate complexity stays in resolver, not in every emitting skill. Dual-anchor (id + quote) written on every thread for robustness.</td></tr>
+      <tr><td>D4</td><td>Diagram anchoring: retrofit <code>data-anchor</code> in /diagram + /wireframes; bounding-box pixel coords as universal fallback</td><td>(a) retrofit + bbox fallback (chosen), (b) bbox universal, (c) refuse non-anchored SVGs, (d) per-SVG-whole comments</td><td>Bounded retrofit (1-day spike, 2 skills). bbox fallback handles foreign SVGs (e.g. embedded by /artifact).</td></tr>
+      <tr><td>D5</td><td>Clarification UX: live <code>AskUserQuestion</code> in chat during <code>/comments resolve</code> (interactive); in-thread defer in non-interactive</td><td>(a) chat AskUserQuestion (chosen), (b) in-thread only async, (c) hybrid by mode</td><td>Keeps the resolve loop tight; matches every other pmos skill's posture; non-interactive defers cleanly via the canonical contract.</td></tr>
+      <tr><td>D6</td><td>Resolve iteration: three modes per run — <code>--confirm-each</code> (default), <code>--batch</code>, <code>--auto</code></td><td>(a) confirm-each only, (b) batch only, (c) auto only, (d) user picks per run (chosen)</td><td>Genuine 3-way trust spectrum; user picks per invocation; surface area worth it.</td></tr>
+      <tr><td>D7</td><td>Stakeholder-share gate: body-class toggle + <code>localStorage</code> flag; overlay default-on for operator</td><td>(a) body-class+localStorage (chosen), (b) <code>?review=1</code> URL param, (c) build-time strip pass</td><td>Single artifact, no extra files, no URL discipline required. Stakeholders see UI but threads they didn't author are effectively read-only.</td></tr>
+      <tr><td>D8</td><td>Resolved threads stay in main sidecar; overlay default-hides them with "show resolved" toggle</td><td>(a) stay + hide (chosen), (b) auto-archive to sibling file, (c) auto-purge</td><td>Audit trail preserved in one file; git history captures full lifecycle; overlay UI controls noise.</td></tr>
+      <tr><td>D9</td><td>System reply: ≤3-sentence prose summary + diff pointer (SHA when committed, or staged-region reference)</td><td>(a) summary+pointer (chosen), (b) inline diff snippet, (c) prose only, (d) both expandable</td><td>Compact, readable in the side panel; user can click through if needed.</td></tr>
+      <tr><td>D10</td><td><code>/comments resolve</code> accepts file or directory; directory mode iterates <code>*.html</code> with non-empty sidecars</td><td>(a) file or dir (chosen), (b) file only, (c) dir only</td><td>Feature folders typically have multiple HTML artifacts; one command clears the backlog.</td></tr>
+      <tr><td>D11</td><td>Non-FSA browsers (Safari, Firefox &lt;111): download-to-replace fallback with a visible "Save sidecar" button</td><td>(a) download fallback (chosen), (b) mandate Chrome, (c) localStorage-only with export reminder, (d) local daemon</td><td>Honest about FSA coverage; supported path is fast; fallback adds one manual step; no daemon = no regression of the no-server promise.</td></tr>
+      <tr><td>D12</td><td>MD sidecar parity (<code>output_format=both</code>): HTML-primary only; <code>.md</code> regenerates on resolve; comments NOT rendered into MD</td><td>(a) HTML-primary (chosen), (b) MD shows resolved replies as blockquotes, (c) separate <code>.comments.md</code></td><td>Preserves FR-33 read-only contract on MD sidecar; one source of truth.</td></tr>
+      <tr><td>D13</td><td>Re-open resolved thread supported via overlay; reopen action appends a user message</td><td>(a) reopen-via-overlay (chosen), (b) terminal resolved, (c) CLI-only reopen</td><td>Threads behave like GitHub issues; reopen-with-reason preserves audit; trivial to implement.</td></tr>
+      <tr><td>D14</td><td>Thread metadata: body + status only — no labels, severity, or type</td><td>(a) body+status (chosen), (b) add type pill (edit/question/nit), (c) full GH-issue metadata</td><td>YAGNI for solo operator + LLM resolver; LLM derives intent from body.</td></tr>
+      <tr><td>D15</td><td><code>--batch</code> conflict detection: pre-flight anchor-overlap-aware planner; non-overlapping parallel, overlapping sequential</td><td>(a) anchor-overlap planner (chosen), (b) last-write-wins, (c) post-dispatch conflict surface, (d) auto-fallback to confirm-each</td><td>Mirrors v2.39.0's wave planner (deps + file-conflict). Substrate exists; safe by construction.</td></tr>
+      <tr><td>D16</td><td>No cross-artifact coherence check at v1 in directory-level resolve</td><td>(a) no check (chosen), (b) coherence subagent, (c) pipeline-order sequential resolve</td><td>YAGNI for solo flow; contradictions are rare and surface post-resolve; substrate stays simple.</td></tr>
+      <tr><td>D17</td><td>Every message carries <code>author: user|system|&lt;git-config-name&gt;</code></td><td>(a) author field on every message (chosen), (b) role-only</td><td>Cheap optionality for future multi-author; zero v1 UI cost.</td></tr>
+      <tr><td>D18</td><td>v1 pilot scope: ship across all 12+ HTML-emitting skills at once; every skill gains the apply-edit-at-anchor entrypoint</td><td>(a) all-at-once (chosen), (b) pilot on /spec+/requirements+/wireframes, (c) capture-only at v1, dispatch v1.1</td><td>Uniform user experience; dominates the build estimate (G3); avoids two-tier rollout confusion.</td></tr>
+      <tr><td>D19</td><td><code>/comments resolve</code> stages <code>.html</code> + <code>.comments.json</code>; does NOT commit; user commits manually</td><td>(a) stage-only (chosen), (b) auto-commit per thread, (c) no git, (d) auto-squash commit per run</td><td>Auditable; matches the existing /verify and /complete-dev pattern of staging without committing; user retains final commit control.</td></tr>
+      <tr><td>D20</td><td>Comment-overlay JS is purpose-built, zero-dep, in <code>_shared/html-authoring/assets/comments.js</code></td><td>(a) purpose-built (chosen), (b) vendor Annotator.js, (c) vendor Hypothesis client stripped</td><td>Comment UI is simple; existing libs are heavy and bring service assumptions; substrate stays lean. Size cap ≤20KB minified (G5).</td></tr>
+      <tr><td>D21</td><td>Pre-commit drift hook refuses commits where one of (<code>.html</code>, <code>.comments.json</code>) is staged but not the other; <code>--no-verify</code> bypass available</td><td>(a) refuse + bypass (chosen), (b) warn only, (c) refuse + auto-stage missing, (d) no hook</td><td>Same posture as the existing marketplace version-sync hook; drift is the most common failure mode of sidecar patterns.</td></tr>
+      <tr><td>D22</td><td>Resolver subagent failure: thread stays <code>open</code>; system reply explains failure + suggests next action; resolver continues to next thread</td><td>(a) stay-open+continue (chosen), (b) blocked status, (c) abort batch, (d) silent rollback</td><td>Graceful degradation; user sees failure in-thread on next open; batch isn't blocked by one bad thread.</td></tr>
+      <tr><td>D23</td><td>Status taxonomy: <code>open</code> / <code>in_progress</code> / <code>resolved</code> only; closure reason (fix vs. won't-fix vs. invalid) lives in last system message</td><td>(a) 3 statuses (chosen), (b) add <code>closed</code>, (c) add <code>disposition</code> field</td><td>Lean taxonomy; LLM can derive closure intent from message body.</td></tr>
+      <tr><td>D24</td><td>Migration of existing artifacts: zero-touch; bundle baked into new emit only; existing artifacts auto-upgrade when regenerated</td><td>(a) zero-touch (chosen), (b) one-shot migration script, (c) on-demand <code>/comments enable</code>, (d) hybrid</td><td>No mass file churn; the artifacts the operator re-engages with get upgraded on regen; archive stays clean.</td></tr>
+      <tr><td>D25</td><td><code>--confirm-each</code> reject workflow: 3 inline options — (a) edit the proposal and accept, (b) re-prompt with refinement note, (c) leave open and skip</td><td>(a) 3-option (chosen), (b) auto re-dispatch, (c) reject-as-async, (d) reject-as-resolved</td><td>Standard "AI proposes, user disposes" loop; rejection doesn't close the thread; re-prompt is capped at 2 iterations before forcing "leave open" (G-cap, deferred to spec).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="metrics">
+  <h2 id="metrics-h">Success Metrics</h2>
+  <table>
+    <thead><tr><th>Metric</th><th>Baseline</th><th>Target (30 days post-ship)</th><th>Measurement</th></tr></thead>
+    <tbody>
+      <tr><td>Threads opened across HTML-emitting skills</td><td>0 (feature doesn't exist)</td><td>≥10 threads spanning ≥3 distinct skills</td><td>Count <code>threads[]</code> entries in committed <code>*.comments.json</code> files across <code>docs/pmos/</code>.</td></tr>
+      <tr><td>Thread resolution rate</td><td>n/a</td><td>≥80% of opened threads reach <code>resolved</code></td><td>(resolved count) / (total threads opened) at 30-day snapshot.</td></tr>
+      <tr><td>Anchor orphan rate</td><td>n/a</td><td>≤5% of threads</td><td>Count threads in <code>orphan</code> state across all committed sidecars.</td></tr>
+      <tr><td>Stable-id anchor hit rate</td><td>n/a</td><td>≥90% of resolves use id-first (quote fallback &lt;10%)</td><td>Resolver logs anchor-strategy used per thread; aggregate at 30 days.</td></tr>
+      <tr><td>End-to-end <code>/comments resolve</code> latency (single-thread)</td><td>n/a</td><td>&lt;60s p50 in <code>--confirm-each</code> mode</td><td>Wallclock from <code>/comments resolve</code> invocation to system reply staged.</td></tr>
+      <tr><td>Comment overlay vs. chat free-form for revisions</td><td>0% comment usage</td><td>≥50% of revision rounds use comments on artifacts that have the overlay baked in</td><td>Sample 10 random feature folders post-30-day mark; manually classify each revision round as comment-driven vs. chat-driven.</td></tr>
+      <tr><td>Bundle size budget</td><td>n/a</td><td><code>comments.js</code> ≤20KB minified</td><td>CI check on substrate file size.</td></tr>
+      <tr><td>Negative signal (would trigger rethink)</td><td>n/a</td><td>If operator opens threads then resolves via chat free-form (not <code>/comments resolve</code>) for &gt;30% of opens, the AI handoff isn't landing</td><td>Observation; no automated proxy.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="sources">
+  <h2 id="sources-h">Research Sources</h2>
+  <table>
+    <thead><tr><th>Source</th><th>Type</th><th>Key takeaway</th></tr></thead>
+    <tbody>
+      <tr><td><a href="../../ideate/2026-05-23_inline-doc-comments.html">docs/pmos/ideate/2026-05-23_inline-doc-comments.html</a></td><td>Internal — ideate brief</td><td>12 variants generated; 3 finalists pressure-tested with premortem + Munger inversion + assumption maps; cross-cutting decision table locked Finalist A-hybrid.</td></tr>
+      <tr><td><a href="../../ideate/grills/2026-05-23_inline-doc-comments.html">docs/pmos/ideate/grills/2026-05-23_inline-doc-comments.html</a></td><td>Internal — grill report</td><td>25 design decisions resolved across 7 root branches; 3 deferred items; 6 surfaced gaps map to acceptance criteria.</td></tr>
+      <tr><td>Hypothes.is web annotations client + W3C Web Annotations Data Model</td><td>External — prior art</td><td>Canonical reference for quote + prefix/suffix anchoring. Considered as a vendoring candidate (D20-b); rejected due to service-backend coupling.</td></tr>
+      <tr><td>Google Docs comments</td><td>External — prior art</td><td>UX template for selection → floating "Comment" button → side panel → reply/resolve (D-A-hybrid capture flow).</td></tr>
+      <tr><td>GitHub PR inline review</td><td>External — prior art</td><td>Batched-review pattern considered as variant #10; rejected because pipeline artifacts are not PRs and batching delays feedback loops.</td></tr>
+      <tr><td>Figma comment pins</td><td>External — prior art</td><td>UX template for numbered, persistent-after-resolve diagram pins; informs D4 diagram anchoring fallback.</td></tr>
+      <tr><td>Notion inline mentions</td><td>External — prior art</td><td>"Comments-as-content" pattern considered as Finalist C; rejected — every mitigation it needs (clean share, diagram support, audit persistence) re-introduces a sidecar.</td></tr>
+      <tr><td>Annotator.js (W3C Web Annotations reference impl, maintenance mode)</td><td>External — vendoring candidate</td><td>Standards-aligned anchoring; considered for D20-b; rejected — dependency surface + maintenance status not worth it for a simple UI.</td></tr>
+      <tr><td>VS Code / Cursor inline-chat</td><td>External — closest AI-coding pattern</td><td>Operates on source files, not rendered HTML; informs the trust-mode spectrum (confirm-each/batch/auto) in D6.</td></tr>
+      <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/</code></td><td>Internal — existing substrate</td><td>style.css, viewer.js, chrome-strip.js, build_sections_json.js, html-to-md.js, serve.js, conventions.md. The bundle the new <code>comments.js</code> slots alongside; the substrate that emits every HTML artifact.</td></tr>
+      <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md §3</code></td><td>Internal — existing convention</td><td>Stable kebab-case ids on every <code>&lt;h2&gt;</code>/<code>&lt;h3&gt;</code> are already mandated and enforced (<code>assert_heading_ids.sh</code>, T22). Foundation that makes the id-first anchor strategy viable.</td></tr>
+      <tr><td><code>/execute --subagent-driven</code> (v2.39.0, plan.md execution-mode selection)</td><td>Internal — existing pattern</td><td>Wave-planner pattern (deps + file-conflict relation) directly reusable for the <code>--batch</code> resolve mode's anchor-overlap planner (D15).</td></tr>
+      <tr><td>Marketplace version-sync pre-commit hook (this repo)</td><td>Internal — existing hook</td><td>Reference posture for D21: refuse on drift, <code>--no-verify</code> bypass available, same drift-detection idiom.</td></tr>
+      <tr><td>File System Access API (Chrome 86+, Edge 86+, Safari/Firefox: not yet)</td><td>External — platform capability</td><td>Powers the in-place sidecar writes in supported browsers (D11). Safari/Firefox lack support → download-to-replace fallback.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions-h">Open Questions</h2>
+  <p>Three items deferred from the grill + six gaps surfaced during the grill, plus tier-3 open question prompts. Each maps to a spec FR or out-of-scope note in <code>/spec</code>.</p>
+  <table>
+    <thead><tr><th>#</th><th>Question</th></tr></thead>
+    <tbody>
+      <tr><td>OQ1 (G1)</td><td>Sidecar-follows-artifact-on-rename — when the operator runs <code>git mv 02_spec.html 02_design.html</code>, the sidecar must move atomically. Implement via filename convention documented in <code>_shared/html-authoring/conventions.md</code>, or via a rename-aware git filter?</td></tr>
+      <tr><td>OQ2 (G2)</td><td>Thread-ID generation: nanoid 8-char (lean) vs. uuid v4 (canonical). Pin at spec time.</td></tr>
+      <tr><td>OQ3 (G3)</td><td>Apply-edit-at-anchor entrypoint surface — every one of the 12+ HTML-emitting skills needs this entrypoint documented + tested. Cross-cutting requirement that dominates the build estimate (D18). Surface this in /spec FR cluster.</td></tr>
+      <tr><td>OQ4 (G4)</td><td>System-reply failure-mode taxonomy — enum: <code>anchor_orphaned</code> / <code>edit_conflicted</code> / <code>agent_judged_infeasible</code> / <code>agent_errored</code>. Confirm enum is complete; pin in /spec.</td></tr>
+      <tr><td>OQ5 (G5)</td><td>Bundle size budget for <code>comments.js</code> — proposed cap ≤20KB minified. Confirm cap; add CI check in /spec acceptance.</td></tr>
+      <tr><td>OQ6 (G6)</td><td>Audit current 12+ skills' HTML output for stable-id coverage — already mandated by <code>conventions.md §3</code> but worth a one-shot grep before /spec commits to id-first anchoring. Pin as a /plan task (1-hour spike).</td></tr>
+      <tr><td>OQ7 (deferred)</td><td>Mobile / tablet viewing — non-goal at v1. Revisit if stakeholder review patterns shift to phones.</td></tr>
+      <tr><td>OQ8 (deferred)</td><td>Browser-tab synchronization — when the overlay is open in a browser tab while <code>/comments resolve</code> stages edits, the tab does NOT auto-refresh. Acceptable v1 behavior; document in skill body. Revisit if it causes confusion.</td></tr>
+      <tr><td>OQ9 (deferred)</td><td>Re-dispatch loop cap in <code>--confirm-each</code> reject workflow (D25) — lean: 2 re-dispatches before forcing "leave open and skip". Pin exact cap at /spec time.</td></tr>
+      <tr><td>OQ10</td><td>Should <code>/comments resolve</code> emit any artifact (e.g., a resolution log under <code>docs/pmos/features/.../comments-resolved-2026-…log</code>), or rely purely on git history of the sidecars? Lean: rely on git history; consider a per-run resolution-summary written to chat only.</td></tr>
+      <tr><td>OQ11</td><td>Should <code>--non-interactive</code> mode skip resolve entirely, or process only threads that have no ambiguity (those that wouldn't trigger live-AskUserQuestion)? Lean: process unambiguous threads; defer ambiguous via in-thread system-reply per the non-interactive contract.</td></tr>
+      <tr><td>OQ12</td><td>How is <code>/comments resolve</code> tested in CI? Per-skill apply-edit-at-anchor entrypoints need contract tests; a single shared "resolver integration test" with mocked subagent dispatch is probably sufficient. Pin in /spec testing strategy.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+<script src="assets/viewer.js?v=2.51.0" defer></script>
+<script src="assets/chrome-strip.js?v=2.51.0" defer></script>
+</body>
+</html>
