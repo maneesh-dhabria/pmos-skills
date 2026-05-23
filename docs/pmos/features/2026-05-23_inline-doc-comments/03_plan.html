@@ -1,0 +1,1360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<meta name="pmos:plugin-version" content="2.52.0">
+<title>Inline doc comments — Implementation Plan</title>
+<link rel="stylesheet" href="assets/style.css?v=2.52.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">Inline doc comments for HTML pipeline artifacts — Implementation Plan</h1>
+  <dl class="meta">
+    <dt>tier</dt><dd>3</dd>
+    <dt>type</dt><dd>feature</dd>
+    <dt>feature</dt><dd>inline-doc-comments</dd>
+    <dt>spec_ref</dt><dd><a href="02_spec.html">02_spec.html</a></dd>
+    <dt>requirements_ref</dt><dd><a href="01_requirements.html">01_requirements.html</a></dd>
+    <dt>date</dt><dd>2026-05-23</dd>
+    <dt>status</dt><dd>Draft</dd>
+    <dt>commit_cadence</dt><dd>per-task</dd>
+    <dt>contract_version</dt><dd>1</dd>
+    <dt>execution_mode</dt><dd>subagent-driven</dd>
+    <dt>spec_hash</dt><dd>2026-05-23:47sections:38FR:9NFR:17S</dd>
+  </dl>
+</header>
+
+<section id="overview">
+<h2 id="overview-h">Overview</h2>
+<p>Build the inline-comments overlay + sidecar persistence + <code>/comments resolve</code> CLI + per-skill apply-edit-at-anchor instrumentation for the 14 HTML-emitting surfaces of the pmos-toolkit pipeline. Architecture is Finalist A-hybrid (always-serve over <code>http://localhost</code>, dual-anchor capture, per-thread originating-skill subagent dispatch). Build order tracks spec §15.1: spike → substrate → /spec tracer bullet → resolver completeness → fanout to remaining 12 skills + 2 orchestrator surfaces → SVG retrofit + polish → verify integration.</p>
+
+<p><strong>Done when:</strong> all 13 originating skills + 2 orchestrator surfaces (15 total) bake <code>comments.js</code> into their emit AND ship a passing <code>apply-edit-at-anchor.test.js</code> contract test; <code>/comments resolve</code> handles all 3 modes (<code>--confirm-each</code>, <code>--batch</code>, <code>--auto</code>) + <code>--non-interactive</code> deferral + all 4 <code>error_enum</code> branches + clarification flow + re-dispatch cap=2; <code>scripts/check-comments-coverage.sh</code> integrated into <code>/verify</code> and passes (13 originating-skill contract tests + 1 orchestrator contract test = 14 test files; 15 emit references; 1 integration test); pre-commit drift hook installed and tested; <code>comments.js</code> bundle size ≤20KB warn, ≤40KB hard; anchor calibration on 50-span corpus shows id-first ≥45/50; tracer-bullet end-to-end demo (comment on <code>02_spec.html</code> → <code>/comments resolve</code> → diff staged) succeeds.</p>
+
+<p><strong>Done-when walkthrough:</strong>
+<ol>
+  <li>Operator <code>cd</code>s into <code>docs/pmos/features/2026-05-23_inline-doc-comments/</code> and double-clicks <code>comments-open.command</code>. <code>serve.js</code> binds an ephemeral 127.0.0.1 port, writes <code>.pmos-serve.pid</code> (JSON <code>{pid, port, started_at}</code>), and Chrome opens <code>http://localhost:&lt;port&gt;/02_spec.html</code>.</li>
+  <li>Page loads; <code>comments.js</code> reads <code>02_spec.comments.json</code> (initially absent → empty in-memory <code>{schema_version:1, lineage:&lt;uuid&gt;, threads:[]}</code>); side panel renders empty Open filter; no floating button until selection.</li>
+  <li>Operator selects "the resolver dispatches a generic subagent" in §6.1. <code>selectionchange</code> fires; floating "Comment" button appears at selection endpoint. Click → side panel opens compose form with quote+prefix+suffix prefilled.</li>
+  <li>Operator types "should specify originating-skill dispatch" + Submit. <code>comments.js</code> builds thread <code>{id:&lt;nanoid8&gt;, anchor:{id_anchor:"architecture-overview", quote_anchor:{quote,prefix,suffix}}, status:"open", messages:[user msg]}</code>, calls <code>handle.requestPermission({mode:'readwrite'})</code> → granted, writes <code>02_spec.comments.json</code> via FSA <code>createWritable</code>. File appears on disk with 2-space indent + LF + trailing newline.</li>
+  <li>In terminal: <code>/comments resolve 02_spec.html</code>. Resolver reads sidecar, reads <code>&lt;meta name="pmos:skill" content="spec"&gt;</code>, resolves anchor (id-first hits <code>architecture-overview</code>, score=1.0), dispatches a Task subagent with input JSON per §9.1. Subagent loads <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> context, proposes an edit at the resolved DOM range, returns <code>{success:true, diff_ref, system_reply}</code>.</li>
+  <li>Resolver displays diff snippet, issues <code>AskUserQuestion</code> with <code>{Accept, Reject + refinement, Modify, Skip}</code>. Operator Accepts. Resolver applies edit to <code>02_spec.html</code>, appends system message to thread + sets <code>status:"resolved"</code>, runs <code>git add 02_spec.html 02_spec.comments.json</code>, does NOT commit. Chat prints "Resolved 1/1. Review with <code>git diff --cached</code> then commit."</li>
+  <li>Verification: <code>git diff --cached</code> shows both files staged; <code>02_spec.comments.json</code> contains the thread with <code>status:"resolved"</code>; <code>bash scripts/check-comments-coverage.sh</code> exits 0 with "PASS — 14 contract tests + 15 emit references + 1 integration test" (13 originating skills + 1 orchestrator); <code>bash tests/scripts/assert_comments_drift_hook.sh</code> + <code>assert_resolver_integration.sh</code> + per-skill contract test scripts all exit 0.</li>
+</ol></p>
+
+<p><strong>Execution order:</strong></p>
+<pre>
+Phase 1 (Substrate Foundation):    T1 → T2 → T3 → T4 → T5 → T6
+                                    │
+Phase 2 (Tracer Bullet — /spec):    └→ T7 → T8 → T9 → T10 → T11 (tracer demo)
+                                                              │
+Phase 3 (Resolver Completeness):                              └→ T12 → T13 → T14 → T15 → T16 → T17
+                                                                                          │
+Phase 4 (Fanout — 12 skills + 2 orch):                                                    ├→ T18 [P]
+                                                                                          ├→ T19 [P]
+                                                                                          ├→ T20 [P]
+                                                                                          └→ T21 [P]
+Phase 5 (Polish & Edges):                                                                        │
+                                                                                                 └→ T22 → T23 → T24 → T25 → T26
+Phase 6 (Verification & Rollout):                                                                                            │
+                                                                                                                             └→ T27 → T28 → T29 (TN)
+</pre>
+
+<p>T18–T21 are parallelizable [P] within Phase 4 (each touches a disjoint skill subset, with no shared edits to <code>_shared/</code>). Phase boundaries (between Phases 1→2, 2→3, 4→5, 5→6) trigger full <code>/verify</code> + <code>/compact</code> handshake per <code>execute/SKILL.md</code> Phase 2.5.</p>
+
+<p><strong>Tracer-bullet positioning (see Decision <a href="#decision-log-h">P8</a>):</strong> T1–T6 are foundation tasks (spike + substrate + contract doc) that the architectural tracer cannot run without; spec §15.1 deliberately sequences them ahead of the vertical slice. <strong>T11 is the architectural tracer bullet</strong> — the narrowest end-to-end path (launcher → serve.js → browser overlay → FSA → sidecar → resolver CLI → subagent dispatch → apply-edit-at-anchor → diff staged) that proves Finalist A-hybrid works against /spec. Per the Phase 3 §Vertical-Slice exception clause, each foundation task declares its <code>**Slice shape:**</code> explicitly.</p>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log-h">Decision Log</h2>
+<p>Inherits 17 spec decisions S1–S17 and 25 requirements decisions D1–D25. Entries below (P1–P7) are implementation-specific choices made during planning.</p>
+
+<table>
+<thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>P1</td><td><strong>Tracer bullet is /spec, not a synthetic skill.</strong> The T11 demo comments on <code>02_spec.html</code> itself (this feature's own spec doc), runs <code>/comments resolve</code>, asserts a diff is staged.</td><td>(a) /spec as tracer (chosen), (b) synthetic minimal skill, (c) /requirements as tracer</td><td>/spec is the richest emitter (47 sections in this doc alone) — exercises every anchor type (id, quote, SVG via the diagrams in §6.2). Synthetic skill defers the real integration risk; /requirements has simpler structure. Picking the most demanding emitter as the tracer surfaces architecture bugs early. Per §15.1 sequencing.</td></tr>
+<tr><td>P2</td><td><strong>Rename existing <code>serve.js --port-file</code> → <code>--pid-file</code> with JSON payload.</strong> The existing flag accepts a port-only output; spec FR-44 requires <code>{pid, port, started_at}</code> JSON. Keep <code>--port-file</code> as a deprecated alias for one release.</td><td>(a) rename + 1-release alias (chosen), (b) add <code>--pid-file</code> alongside, (c) replace <code>--port-file</code> directly</td><td>Alias avoids breaking callers of the existing flag (which is undocumented but referenced in <code>tests/scripts/assert_serve_js.sh</code>). Logging a deprecation warning on alias use lets downstream skills migrate. FR-44 JSON payload is non-negotiable for liveness check (FR-41 uses <code>kill -0 $PID</code> which requires the PID).</td></tr>
+<tr><td>P3</td><td><strong>Per-skill contract tests live at <code>plugins/pmos-toolkit/skills/&lt;slug&gt;/tests/apply-edit-at-anchor.test.js</code> (per FR-60), with a bash wrapper at <code>tests/scripts/assert_apply_edit_at_anchor_&lt;slug&gt;.sh</code> for /verify integration.</strong></td><td>(a) per-skill dir + bash wrapper (chosen, per spec FR-60), (b) all in <code>tests/scripts/</code> only, (c) per-skill dir + direct node invocation</td><td>FR-60 names the per-skill path explicitly — must follow. Existing repo convention (e.g., <code>tests/scripts/assert_viewer_js_unit.sh</code>) is bash-wrapper-around-JS-test; the wrapper sets up fixtures, runs <code>node</code>, asserts exit + stderr. <code>check-comments-coverage.sh</code> globs the per-skill paths; <code>/verify</code> runs the bash wrappers. Double-pathing satisfies both FR-60 (file location) and FR-62 (coverage check) without duplicating test logic.</td></tr>
+<tr><td>P4</td><td><strong>Vendor <code>diff-match-patch.js</code> at <code>_shared/html-authoring/assets/diff-match-patch.js</code>; commit verbatim from <a href="https://github.com/google/diff-match-patch/blob/master/javascript/diff_match_patch_uncompressed.js">Google's canonical repo</a>; LICENSE at <code>assets/LICENSE.dmp.txt</code>.</strong></td><td>(a) vendor uncompressed + LICENSE (chosen), (b) vendor minified, (c) npm dep (impossible — no package.json), (d) re-implement Bitap inline</td><td>Public domain (Apache-2.0 license header on the file itself but the project README declares public domain — both texts shipped). ~10KB min / ~50KB uncompressed; the uncompressed form preserves debuggability and audit trail. Inline re-implementation duplicates well-tested code; npm is not an option in this repo (zero-dep philosophy per <code>_shared/html-authoring/assets/</code> norm). Minification deferred to a CI step if NFR-02's 20KB warn fires.</td></tr>
+<tr><td>P5</td><td><strong>The 14 skill emit-bake edits are batched into 4 parallel-eligible PRs (T18–T21) of ~3 skills each, grouped by emit-template shape similarity.</strong> Each batch: 3 skills × (bake comments.js + write contract test) ≈ 6 file edits + 3 new test files.</td><td>(a) 4 batches of ~3 (chosen), (b) 14 separate tasks, (c) 1 mega-task for all 14</td><td>14 separate tasks balloon the plan past 40 and force serial /verify (slow). 1 mega-task can't be reviewed incrementally. Batches of 3 keep each task &lt;1 hour and let the wave planner (in <code>--subagent-driven</code> execution, if chosen) run them in parallel — they touch disjoint files. Grouping by shape similarity (e.g., /requirements + /spec + /plan all share the "prose + tables + decision log" template; /diagram + /wireframes + /prototype share SVG/visual; /survey-* share form/chart) lets one task's pattern inform the next two in its batch.</td></tr>
+<tr><td>P6</td><td><strong>Re-use <code>execute/SKILL.md</code> Phase 1 wave-planner verbatim — port it as a function, do not re-derive.</strong> Extract the Kahn's + greedy-packing logic from <code>execute/subagent-driven.md</code> into <code>plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js</code>; <code>--batch</code> mode calls it.</td><td>(a) port verbatim (chosen), (b) re-derive from spec, (c) shell out to <code>/execute</code></td><td>S14 mandates "same wave-planner algorithm as /execute --subagent-driven v2.39.0". Extracting the function once avoids drift; if /execute changes the algorithm later, both call sites update in lockstep. The function signature is <code>(tasks, overlapRelation) → waves[]</code>; tasks are threads, overlap is per FR-25 (i)/(ii)/(iii) rules. Pure function with no skill-context coupling — safe to extract.</td></tr>
+<tr><td>P8</td><td><strong>T1 is the id-coverage spike, not a tracer bullet; T11 carries the tracer-bullet role.</strong> Documented exception to the "T1 MUST be tracer" rule per Phase 3 §Vertical-Slice exception clause.</td><td>(a) T1=spike, T11=tracer (chosen — matches spec §15.1), (b) skip spike and fuse it into T11 (would push substrate decisions into the tracer task and bloat it), (c) reorder to make T1 = substrate skeleton + minimal capture (premature integration risk; substrate is 5+ files)</td><td>Spec §15.1 explicitly sequences spike → substrate → vertical slice. The id-coverage audit MUST land before substrate work because it gates the entire id-first anchor strategy (S8). Substrate (T2–T6) MUST land before any end-to-end demo because the demo touches every layer the substrate builds. T11's Slice shape is "vertical" and it carries the architectural-tracer responsibility — risky integration points (subagent dispatch + meta-tag routing + apply-edit-at-anchor + FSA write) all exercised in T11. Phase 4 review item 13 explicitly permits non-vertical foundation tasks when each declares its <code>**Slice shape:**</code> with rationale (T1=spike, T2/T3/T4/T5=refactor-prep, T6=refactor-prep).</td></tr>
+<tr><td>P7</td><td><strong>Anchor calibration corpus (T26) uses a deterministic seed</strong> (Python <code>random.seed(2026)</code> on a sorted file list) so the 50-span set is reproducible across runs. Corpus committed to <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code>.</td><td>(a) deterministic seed + committed corpus (chosen), (b) re-pick on every calibration run, (c) hand-curated 50 spans</td><td>Reproducibility matters — when NFR threshold (50%) is tuned, the test must be re-runnable to confirm the tune. Hand-curation biases toward easy spans. Deterministic random is auditable + repeatable. Corpus stored as JSON so the test file references it without re-globbing the docs corpus on every run (which would make the test non-hermetic).</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="code-study">
+<h2 id="code-study-h">Code Study Notes</h2>
+<p>Glossary inherited from spec — see <a href="02_spec.html">02_spec.html</a> for domain terminology (anchor, sidecar, thread, dual-anchor, originating skill, apply-edit-at-anchor, wave planner). No new terms introduced here.</p>
+
+<h3 id="patterns">Patterns to follow</h3>
+<ul>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md:36-50</code> — id-derivation algorithm (lowercase + replace non-alphanumeric runs with <code>-</code> + dedupe with <code>-2</code>/<code>-3</code>). Used by both <code>comments.js</code> capture (write id_anchor) and resolver (id-first lookup). Reused at T3, T12.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html:1-30</code> — substitution variables (<code>{{title}}</code>, <code>{{content}}</code>, <code>{{asset_prefix}}</code>, <code>{{plugin_version}}</code>) and <code>?v={{plugin_version}}</code> cache-bust on every asset URL. Reused at T8 (bake comments.css/.js into template) and T18–T21 (per-skill emit edits).</li>
+<li><code>plugins/pmos-toolkit/skills/execute/SKILL.md:380-405</code> + <code>plugins/pmos-toolkit/skills/execute/subagent-driven.md</code> — Kahn's-algorithm topological sort + file-conflict relation + greedy packing into waves with all-singleton fallback. Ported to <code>wave-planner.js</code> at T13 per P6.</li>
+<li><code>.githooks/pre-commit</code> — refuse-on-violation + <code>set -euo pipefail</code> + grep-able stderr + short-circuit when no relevant files staged + <code>scripts/sync-shared.sh</code> installer pointer. Pattern reused at T25 for the comments-drift hook.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/chrome-strip.js</code> — regex+stack-based HTML walker for in-place mutation without a DOM parser. Pattern (not the code) informs apply-edit-at-anchor implementations in T9 and T18–T21.</li>
+<li><code>tests/scripts/assert_serve_js.sh</code> + <code>tests/scripts/serve.test.js</code> — bash-wrapper-around-JS-test convention. Wrapper sets <code>set -euo pipefail</code>, runs <code>node tests/scripts/&lt;name&gt;.test.js</code>, asserts exit code + grep stderr. Mirrored at T3 (<code>assert_comments_js_unit.sh</code>), T9 (<code>assert_apply_edit_at_anchor_spec.sh</code>), T17 (<code>assert_resolver_integration.sh</code>), T18–T21 (per-skill).</li>
+<li><code>tests/scripts/assert_heading_ids.sh</code> — coverage-script posture: glob target files, assert presence of expected pattern, fail loud with grep-able stderr. Mirrored at T27 (<code>check-comments-coverage.sh</code>).</li>
+</ul>
+
+<h3 id="reuse">Existing code to reuse</h3>
+<ul>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code> — extended (not replaced) at T4 with <code>--pid-file</code> JSON-payload semantics; <code>--port-file</code> aliased per P2.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — modified at T8 to inject <code>comments.css</code> + <code>comments.js</code> references; per-skill emit bodies modified at T18–T21 to bake the <code>&lt;meta name="pmos:skill"&gt;</code> tag.</li>
+<li><code>plugins/pmos-toolkit/skills/execute/SKILL.md</code> Phase 1 wave-planner — algorithm extracted (not modified) to <code>wave-planner.js</code> at T13.</li>
+<li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md</code> — appended at T25 with the "git mv pair" rename convention (S7).</li>
+<li><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> — gate set extended at T27 with <code>check-comments-coverage.sh</code> invocation.</li>
+</ul>
+
+<h3 id="constraints">Constraints discovered</h3>
+<ul>
+<li><strong>No npm / no bundler.</strong> Repo is zero-dep JavaScript (Node 18+ stdlib only). <code>diff-match-patch</code> must be vendored verbatim. <code>comments.js</code> is a plain ES2018 script loaded with <code>defer</code> — no transpile, no module bundling.</li>
+<li><strong>No JS test framework.</strong> Tests are plain <code>node tests/scripts/&lt;name&gt;.test.js</code> files using <code>assert</code> from stdlib, wrapped in bash scripts that <code>set -euo pipefail</code> and grep output. Plan-emitted tests follow this shape.</li>
+<li><strong><code>plugins/pmos-toolkit/skills/comments/</code> does not exist.</strong> Created at T10 with <code>SKILL.md</code> + <code>tests/</code> + <code>scripts/</code> subdirs.</li>
+<li><strong>serve.js's existing <code>--port-file</code> flag is referenced by <code>tests/scripts/assert_serve_js.sh</code></strong> — the rename in T4 must preserve the alias for one release cycle (P2) to keep that test passing without modification.</li>
+<li><strong>Chrome FSA requires secure context.</strong> <code>http://localhost</code> qualifies; <code>http://192.168.x.x</code> does not. Hence FR-45's strict 127.0.0.1 bind (NFR-07 too).</li>
+<li><strong>14 emit surfaces, 15 instrumentations.</strong> FR-21 enumerates: 13 originating skills + 2 orchestrator artifacts. <code>/wireframes</code> emits a subfolder of N HTMLs + 1 <code>index.html</code> — counts as ONE originating-skill instrumentation surface (one entrypoint, one bake-edit in the wireframe template) but the bake reference goes into N+1 files. Per FR-21 math: 13 skills + 2 orchestrator = 14 entities / 15 surfaces. Coverage check (T27) asserts 13 contract tests + 15 emit references (the 14th = /wireframes' index.html, 15th = the per-wireframe template — but both share one bake-edit since they share a template helper).</li>
+<li><strong>2 orchestrator surfaces are <code>/feature-sdlc</code> only.</strong> <code>00_pipeline.html</code> and <code>00_open_questions_index.html</code> are both written by <code>/feature-sdlc</code>. <code>/ideate</code> can also write the OQ index in skill-feedback mode, but the bake edit lives in <code>/feature-sdlc</code>'s template (single source of truth). T21 covers this.</li>
+</ul>
+
+<h3 id="stack-signals">Stack signals</h3>
+<ul>
+<li><strong>Node.js (Node 18+ stdlib only)</strong> — file count: <code>serve.js</code>, <code>build_sections_json.js</code>, <code>chrome-strip.js</code>, <code>html-to-md.js</code>, <code>viewer.js</code>, <code>turndown*.js</code> (vendored); zero <code>package.json</code> in repo. No equivalent <code>_shared/stacks/node.md</code> exists in this repo (the architecture audit cited the stack-files concept but pmos-skills hasn't created one). Treat as "zero-dep Node, plain JS" per the explicit constraint above.</li>
+<li><strong>Bash</strong> — file count: 40+ scripts under <code>tests/scripts/</code> + <code>.githooks/</code> + <code>scripts/</code>. Standard <code>set -euo pipefail</code>; no <code>shellcheck</code> in CI but available locally.</li>
+<li><strong>JSON Schema (draft-07)</strong> — for sidecar validation (§10.1). Pure regex/JS-side validation (no <code>ajv</code> npm); hand-rolled per existing repo conventions (e.g., <code>build_sections_json.js</code> validates with a regex pass).</li>
+<li><strong>Reference system</strong> (FR-91, greenfield substitute): <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</code> is the closest existing JS overlay analogue (mounts on artifact pages, reads from <code>sections.json</code>, no framework). <code>comments.js</code> follows the same posture: ES2018 IIFE, no framework, no transpile.</li>
+</ul>
+
+<h3 id="peer-plans">Peer-plan conflict scan</h3>
+<ul>
+<li><strong>None blocking.</strong> Scanned 7 in-flight plans (Draft/Planned/Executing) under <code>docs/pmos/features/</code>; no overlap with the files this plan modifies (substrate <code>comments.js</code>/<code>comments.css</code> are new; the 14 skill SKILL.md edits are additive bake-statements). Noted in Risks (R3) as low-likelihood future drift if <code>/execute --subagent-driven</code> plan modifies the wave-planner algorithm before T13 lands.</li>
+</ul>
+</section>
+
+<section id="prerequisites">
+<h2 id="prerequisites-h">Prerequisites</h2>
+<ul>
+<li>Working tree on branch <code>feat/inline-doc-comments</code> (this branch); clean or only carries this feature's docs.</li>
+<li>Node.js ≥18 on the developer's machine (NFR-09). Verify: <code>node --version</code> → <code>v18.0.0</code> or higher.</li>
+<li>Bash 4+ for the install scripts and test harness. Verify: <code>bash --version</code>.</li>
+<li>Chrome ≥86 or Edge ≥86 installed (for FSA path manual smoke at T28). Safari + Firefox installed for download-fallback smoke.</li>
+<li>The 02_spec.html in this feature folder is the canonical contract — every task that cites <code>FR-XX</code> or <code>S-XX</code> refers to that document.</li>
+<li>Git working tree must remain on this branch through completion; <code>/comments resolve</code> stages but does NOT commit (per FR-31) so review-and-commit is the developer's manual step before moving phases.</li>
+</ul>
+</section>
+</content>
+</invoke>
+<section id="file-map">
+<h2 id="file-map-h">File Map</h2>
+<p>Generated index pointing to per-task <strong>Files:</strong> sections — tasks are source of truth (FR-23).</p>
+<table>
+<thead><tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr></thead>
+<tbody>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code></td><td>Browser overlay: selection capture, side panel, dual-anchor capture, FSA persistence, fallback download</td><td>T3, T7, T22, T23, T24</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css</code></td><td>Overlay styling (floating button, side panel, banners, SVG markers)</td><td>T3</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code></td><td>Vendored Google diff-match-patch (anchor Bitap scorer)</td><td>T2</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt</code></td><td>diff-match-patch license (Apache-2.0 + public-domain notice)</td><td>T2</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.command</code></td><td>macOS launcher script — double-click target</td><td>T5</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.sh</code></td><td>Linux launcher script</td><td>T5</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.bat</code></td><td>Windows launcher script</td><td>T5</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code></td><td>Add <code>--pid-file</code> JSON-payload semantics + alias <code>--port-file</code> + idle-timeout default + 127.0.0.1 hard-bind</td><td>T4</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></td><td>Inject <code>comments.css</code> and <code>comments.js</code> references with cache-bust</td><td>T8</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md</code></td><td>Append §7 "Comments sidecar pair convention" (S7 — git mv pair)</td><td>T25</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code></td><td>Contract doc — input/output schema + error taxonomy + idempotency</td><td>T6</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/SKILL.md</code></td><td>Resolver skill body — phases, dispatch, anchor resolution, modes</td><td>T10, T13, T14, T15, T16</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js</code></td><td>Ported wave planner (Kahn's + greedy packing) for <code>--batch</code> mode</td><td>T13</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code></td><td>id-first → Bitap fallback + SVG data-anchor / bbox resolver</td><td>T12</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/anchor.test.js</code></td><td>Anchor resolver unit tests (FR-23 strategy/score)</td><td>T12</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/schema.test.js</code></td><td>Sidecar schema validator tests (§10.1)</td><td>T16</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/scorer.test.js</code></td><td>Bitap scorer wrapper tests + 50-span calibration assertion</td><td>T26</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/id.test.js</code></td><td>Nanoid generator (8-char, 1000 uniqueness sanity)</td><td>T3</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code></td><td>Resolver: 4 error_enum branches + clarification + 3 modes + non-interactive</td><td>T17</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/reanchor.integration.test.js</code></td><td>Re-anchor after artifact regen (FR-23 + S2)</td><td>T26</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/fsa-write.e2e.test.js</code></td><td>Playwright/chrome-devtools-MCP E2E FSA write smoke</td><td>T28</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code></td><td>Manual smoke per OS / browser; runs in /verify Phase-5</td><td>T28</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code></td><td>50-span deterministic calibration corpus (P7)</td><td>T26</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/&lt;slug&gt;/tests/apply-edit-at-anchor.test.js</code> × 13</td><td>Per-skill contract tests (FR-60) — one per originating skill</td><td>T9, T18, T19, T20, T21</td></tr>
+<tr><td>Create</td><td><code>tests/scripts/assert_apply_edit_at_anchor_&lt;slug&gt;.sh</code> × 13</td><td>Bash wrappers for /verify gate-set integration (P3)</td><td>T9, T18, T19, T20, T21</td></tr>
+<tr><td>Create</td><td><code>tests/scripts/assert_comments_js_unit.sh</code></td><td>Wrapper around <code>comments-js.test.js</code></td><td>T3</td></tr>
+<tr><td>Create</td><td><code>tests/scripts/comments-js.test.js</code></td><td>Headless unit tests for comments.js (jsdom-style stubs, no browser)</td><td>T3</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/spec/SKILL.md</code></td><td>Bake comments.js reference + add apply-edit-at-anchor phase</td><td>T8, T9</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/requirements/SKILL.md</code>, <code>plan/SKILL.md</code>, <code>artifact/SKILL.md</code></td><td>Bake reference + apply-edit-at-anchor phase (Batch A)</td><td>T18</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/wireframes/SKILL.md</code>, <code>prototype/SKILL.md</code>, <code>diagram/SKILL.md</code></td><td>Bake reference + apply-edit-at-anchor phase + SVG data-anchor (Batch B)</td><td>T19</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/ideate/SKILL.md</code>, <code>survey-design/SKILL.md</code>, <code>survey-analyse/SKILL.md</code></td><td>Bake reference + apply-edit-at-anchor phase (Batch C)</td><td>T20</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/polish/SKILL.md</code>, <code>architecture/SKILL.md</code>, <code>readme/SKILL.md</code></td><td>Bake reference + apply-edit-at-anchor phase (Batch D)</td><td>T21</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/feature-sdlc/SKILL.md</code></td><td>Bake reference into 00_pipeline + 00_open_questions_index templates; add apply-edit-at-anchor phase for orchestrator surfaces (S15, FR-21 surfaces 14 + 15)</td><td>T21</td></tr>
+<tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/feature-sdlc/tests/apply-edit-at-anchor.test.js</code></td><td>Orchestrator-surface contract test (covers both 00_* surfaces)</td><td>T21</td></tr>
+<tr><td>Create</td><td><code>.githooks/pre-commit-comments-drift</code></td><td>Drift hook — refuse commits with .html ↔ .comments.json mismatch (FR-15)</td><td>T25</td></tr>
+<tr><td>Create</td><td><code>scripts/install-comments-hooks.sh</code></td><td>Idempotent installer — adds hook to <code>.githooks/pre-commit</code> chain</td><td>T25</td></tr>
+<tr><td>Modify</td><td><code>.githooks/pre-commit</code></td><td>Append source line for the comments-drift sub-hook (preserves existing _shared/ drift check)</td><td>T25</td></tr>
+<tr><td>Create</td><td><code>tests/scripts/assert_comments_drift_hook.sh</code></td><td>Drift hook test — stage one-side, assert refuse; --no-verify bypass</td><td>T25</td></tr>
+<tr><td>Create</td><td><code>scripts/check-comments-coverage.sh</code></td><td>Coverage gate — 13 contract tests + 15 emit references + integration test exist</td><td>T27</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code></td><td>Add <code>check-comments-coverage.sh</code> to gate set</td><td>T27</td></tr>
+<tr><td>Create</td><td><code>tests/scripts/assert_check_comments_coverage.sh</code></td><td>Meta-test for the coverage script (intentional miss → fail; full set → pass)</td><td>T27</td></tr>
+<tr><td>Create</td><td><code>.github/workflows/comments-bundle-size.yml</code></td><td>CI: bundle-size guard (warn 20KB, fail 40KB per NFR-02)</td><td>T22</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/diagram/SKILL.md</code></td><td>Emit <code>data-anchor</code> on every &lt;g&gt;, top-level &lt;rect&gt;, &lt;path&gt; with slug derivation (FR-50, S15)</td><td>T23</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/wireframes/SKILL.md</code></td><td>Same data-anchor emit for inline-SVG wireframes (FR-51)</td><td>T23</td></tr>
+<tr><td>Modify</td><td><code>CLAUDE.md</code></td><td>Append "Inline doc comments" section — overlay, sidecar, /comments resolve, drift-hook bypass policy, sidecar rename convention</td><td>T29</td></tr>
+<tr><td>Modify</td><td><code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code>, <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>, <code>.claude-plugin/marketplace.json</code>, <code>.codex-plugin/marketplace.json</code></td><td>Version bump 2.52.0 → 2.53.0 (4-file sync — repo invariant)</td><td>Release prereq — handled by /complete-dev, NOT inside this plan</td></tr>
+<tr><td>Test</td><td>see "Create" rows above for per-task test paths</td><td>—</td><td>—</td></tr>
+</tbody>
+</table>
+<p>File-action verbs (FR-24): only <code>Create</code> + <code>Modify</code> + <code>Test</code> used. No Move/Rename/Delete in this plan.</p>
+</section>
+
+<section id="risks">
+<h2 id="risks-h">Risks</h2>
+<p>Severity derived from Likelihood + Impact per FR-80. Phase 4 hard-fails any High-severity risk without a per-task Mitigation citation.</p>
+<table>
+<thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in:</th></tr></thead>
+<tbody>
+<tr><td>R1</td><td>Bitap threshold 0.5 misfires on the calibration corpus — too many orphans (false negatives) or too many quote-fallback wrong matches (false positives)</td><td>Medium</td><td>High</td><td>Medium</td><td>T26 calibration spike against 50-span deterministic corpus; tune <code>--anchor-threshold</code> default if needed. Defer to <code>/comments resolve --anchor-threshold 0.45</code> as user-override if defaults remain off.</td><td>T26</td></tr>
+<tr><td>R2</td><td>FSA permission UX regresses on Chrome 122+ — silent revocation breaks the "Save sidecar" flow mid-session, losing operator drafts</td><td>Medium</td><td>High</td><td>Medium</td><td>FR-13 + S16 — per-save re-request + non-blocking banner + localStorage draft mirror. T22 implements; T28 E2E asserts revocation→re-request→re-save path.</td><td>T22, T28</td></tr>
+<tr><td>R3</td><td>Peer plan <code>2026-05-13_execute-subagent-mode</code> modifies the wave-planner algorithm before T13 ports it, causing drift</td><td>Low</td><td>Medium</td><td>Low</td><td>P6 extracts the planner as a pure function with explicit signature; if peer plan changes algorithm semantics, the extracted file diffs cleanly — re-port in a follow-up. T13 commit message references the source git SHA to make drift detectable.</td><td>T13</td></tr>
+<tr><td>R4</td><td>14-surface fanout balloons review cost — each skill's emit edit needs verification against the substrate template + contract test execution</td><td>High</td><td>Medium</td><td>Medium</td><td>P5 batches 12 skills into 4 parallel tasks (T18–T21), each ~3 skills. Each task's TN sub-step runs the per-skill contract tests in parallel. Phase 4→5 boundary triggers /verify so all 14 surfaces are linted together.</td><td>T18, T19, T20, T21, T27</td></tr>
+<tr><td>R5</td><td>Launcher scripts work on dev machines but break on a fresh CI/container without Node — Goal-4 "double-click works" assumes Node ≥18 is installed</td><td>Medium</td><td>Low</td><td>Low</td><td>FR-41/42/43 + NFR-09 mandate a <code>command -v node</code> precheck; absence → exit 127 with grep-able stderr. T5 implements + T28 manual smoke verifies on macOS (no Node installed test case).</td><td>T5</td></tr>
+<tr><td>R6</td><td>SVG retrofit (T23) breaks existing /diagram + /wireframes test fixtures by adding <code>data-anchor</code> attributes the snapshot tests don't expect</td><td>Medium</td><td>Medium</td><td>Medium</td><td>T23 updates the SVG-emitting prose in both skills + regenerates the canonical /diagram + /wireframes snapshot fixtures in <code>tests/fixtures/</code>; the snapshot diff is a one-time intentional change captured in the task's commit.</td><td>T23</td></tr>
+<tr><td>R7</td><td>Pre-commit hook installer (T25) is bypassable via <code>--no-verify</code> per S5 — operator accidentally commits a half-paired .html without sidecar, drift goes unnoticed until CI</td><td>Medium</td><td>Low</td><td>Low</td><td>Accepted v1 risk per S5 + spec §3 non-goal; future v1.1 adds a CI-mirror workflow (<code>.github/workflows/comments-drift.yml</code>). Documented in T25's commit message + CLAUDE.md update at T29.</td><td>T25, T29</td></tr>
+<tr><td>R8</td><td>Bundle size creeps past 40KB hard cap when feature-completing UI states (orphan banner, diagram markers, stakeholder-mode toggle) — NFR-02 fails</td><td>Medium</td><td>Medium</td><td>Medium</td><td>T22 establishes CI guard (warn 20KB, fail 40KB); T24 adds UI states with size check after each commit; if cap threatens, minify diff-match-patch (P4 deferred minification trigger fires).</td><td>T22, T24</td></tr>
+<tr><td>R9</td><td>/comments resolve --batch wave planner mis-partitions threads with adjacent (but non-overlapping) anchors, causing edits to land in wrong byte ranges after right-to-left application</td><td>Low</td><td>High</td><td>Medium</td><td>FR-25 (i) overlap rule is precise (DOM-range byte intersection); P6 ports the proven /execute algorithm verbatim; T17 integration test includes adjacency edge case (two anchors with prefix/suffix touching but not overlapping). E6 in spec also covers planner-bug recovery via <code>edit_conflicted</code> stay-open.</td><td>T13, T17</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="rollback">
+<h2 id="rollback-h">Rollback</h2>
+<p>Per spec §15.3 (sidecars are committed data, never destroyed by code rollback).</p>
+<ul>
+<li><strong>Substrate-level rollback:</strong> <code>git revert</code> the substrate commits (T2–T6) — <code>comments.js</code>, <code>comments.css</code>, <code>diff-match-patch.js</code>, launcher scripts disappear from <code>_shared/html-authoring/assets/</code>. Existing sidecar JSON files on disk are untouched (zero data loss); freshly-emitted artifacts no longer load the overlay.</li>
+<li><strong>Per-skill rollback:</strong> revert the per-skill bake commit (one of T8/T18–T21). The skill's emit template no longer includes the <code>&lt;script src="assets/comments.js"&gt;</code> tag; previously-emitted artifacts continue working (substrate file still resolves until that's also reverted).</li>
+<li><strong>Resolver rollback:</strong> revert the <code>plugins/pmos-toolkit/skills/comments/</code> directory creation (T10–T17). <code>/comments resolve</code> command disappears; sidecars on disk remain; operator can still capture comments but cannot apply them via subagent dispatch.</li>
+<li><strong>Drift hook rollback:</strong> run <code>scripts/install-comments-hooks.sh --uninstall</code> (T25 includes this) OR <code>git revert</code> the <code>.githooks/pre-commit-comments-drift</code> commit; the drift check stops firing.</li>
+<li><strong>Version bump rollback</strong> is handled by /complete-dev's standard release-cycle reversal — not in scope for this plan.</li>
+</ul>
+</section>
+
+<section id="tasks">
+<h2 id="tasks-h">Tasks</h2>
+
+<h2 id="phase-1">Phase 1: Substrate Foundation (T1–T6)</h2>
+<p><em>Phase rationale: build all the substrate pieces — id-coverage proof, vendored dmp, comments.js skeleton, extended serve.js, launcher trio, contract doc — before any per-skill bake-in. T11 (Phase 2) is the demoable boundary, but this phase derisks the substrate by exercising it via T3's headless unit tests. Phase 1→2 boundary triggers /verify per execute/SKILL.md Phase 2.5.</em></p>
+
+<h3 id="t1">T1: id-coverage audit spike (S8)</h3>
+<p><strong>Goal:</strong> Audit every historical artifact under <code>docs/pmos/features/*/</code> for the kebab-case-id convention on &lt;h2&gt; / &lt;h3&gt;; surface coverage gaps that would break id-first anchor resolution.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#decisions-h">S8</a> (id-coverage audit as /plan spike), <a href="02_spec.html#fr-resolve">FR-23</a> (id-first anchor strategy)<br>
+<strong>Depends on:</strong> none<br>
+<strong>Idempotent:</strong> yes (read-only audit; no artifact mutations)<br>
+<strong>TDD:</strong> no — pure audit; output is a Markdown report consumed by humans, not by code<br>
+<strong>Slice shape:</strong> spike — proves the id-first anchor strategy is viable across the historical corpus; gates downstream substrate work</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_id_coverage_audit.md</code> (report)</li>
+<li>Create: <code>tests/scripts/audit_id_coverage.sh</code> (the audit script — reusable for regression)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write <code>tests/scripts/audit_id_coverage.sh</code> — glob <code>docs/pmos/features/*/*.html</code>, for each file: count &lt;h2&gt; / &lt;h3&gt; tags, count those with <code>id=</code> attribute; emit TSV <code>&lt;file&gt;\t&lt;h2_total&gt;\t&lt;h2_with_id&gt;\t&lt;h3_total&gt;\t&lt;h3_with_id&gt;</code>. Use grep + awk; no external deps.</li>
+<li>[ ] Step 2: Run: <code>bash tests/scripts/audit_id_coverage.sh > /tmp/id-coverage.tsv</code>. Expected output: one line per HTML artifact found.</li>
+<li>[ ] Step 3: Analyze: <code>awk -F'\t' '$3 < $2 || $5 < $4 {print}' /tmp/id-coverage.tsv</code> — surface files where any &lt;h2&gt; or &lt;h3&gt; lacks an id.</li>
+<li>[ ] Step 4: Write <code>03_plan_id_coverage_audit.md</code> with: total files audited, files with 100% id coverage, files with gaps (path + delta), recommendation. Three buckets expected: post-conventions docs (100% coverage), pre-conventions docs (may have gaps), retrofitting required (<5 files predicted).</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add tests/scripts/audit_id_coverage.sh docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_id_coverage_audit.md
+git commit -m "feat(T1): id-coverage audit + report — gates id-first anchor strategy"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/audit_id_coverage.sh | wc -l</code> — &gt;100 lines (audits every historical artifact).</li>
+<li><code>cat docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_id_coverage_audit.md | grep -E "^- 100%|^- gaps|^- recommend"</code> — three required summary bullets present.</li>
+</ul>
+
+<hr>
+
+<h3 id="t2">T2: Vendor diff-match-patch + license (P4)</h3>
+<p><strong>Goal:</strong> Vendor Google's diff-match-patch uncompressed source + Apache-2.0/public-domain license file into the html-authoring asset substrate. Verify file integrity via SHA-256 fingerprint.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#decisions-h">S2</a> (diff-match-patch + Bitap), <a href="02_spec.html#nfr-h">NFR-02</a> (bundle size ≤20KB warn / ≤40KB hard)<br>
+<strong>Depends on:</strong> T1<br>
+<strong>Idempotent:</strong> yes — recommit same SHA-pinned file<br>
+<strong>TDD:</strong> yes — bug-fix shape: write a regression test that loads the vendored file and exercises the documented API (<code>diff_match_patch.match_bitap_</code>) on a known-good pair<br>
+<strong>Slice shape:</strong> refactor-prep — vendoring an external dependency; the dmp library has no user-observable behavior until T3 + T12 consume it. Foundation for the Bitap anchor strategy.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code> (~50KB, vendored verbatim)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt</code></li>
+<li>Test: <code>tests/scripts/diff_match_patch_smoke.test.js</code> + <code>tests/scripts/assert_diff_match_patch.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test <code>tests/scripts/diff_match_patch_smoke.test.js</code>:
+<pre><code class="lang-js">'use strict';
+const path = require('path');
+const assert = require('assert');
+const DMP_PATH = path.resolve(__dirname, '../../plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js');
+const dmpModule = require(DMP_PATH); // verbatim Google source exports diff_match_patch
+const dmp = new dmpModule.diff_match_patch();
+dmp.Match_Threshold = 0.5;
+dmp.Match_Distance = 1000;
+
+// exact match → loc = expected
+assert.strictEqual(dmp.match_main("Hello world", "world", 0), 6, "exact match offset");
+// paraphrase → still finds with Bitap
+const r1 = dmp.match_main("the resolver dispatches a generic subagent here", "resolver dispatches subagent", 0);
+assert.ok(r1 >= 0 && r1 < 50, "Bitap finds paraphrased substring");
+// unrelated → returns -1
+assert.strictEqual(dmp.match_main("Hello world", "xyzpdq", 0), -1, "no false positive");
+console.log("PASS: dmp.match_main exact + paraphrase + miss");</code></pre>
+And wrapper <code>tests/scripts/assert_diff_match_patch.sh</code>:
+<pre><code class="lang-bash">#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+node tests/scripts/diff_match_patch_smoke.test.js
+echo "PASS: diff-match-patch smoke"</code></pre></li>
+<li>[ ] Step 2: Run test to verify FAIL: <code>bash tests/scripts/assert_diff_match_patch.sh</code> — Expected: FAIL with "Cannot find module .../diff-match-patch.js"</li>
+<li>[ ] Step 3: Vendor the file: download <code>diff_match_patch_uncompressed.js</code> from <a href="https://raw.githubusercontent.com/google/diff-match-patch/master/javascript/diff_match_patch_uncompressed.js">google/diff-match-patch master</a> at a pinned commit, save to <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code>. Append a <code>module.exports = { diff_match_patch };</code> footer (the upstream file declares it as a global; we expose for Node test loading). Vendor the LICENSE to <code>LICENSE.dmp.txt</code>.</li>
+<li>[ ] Step 4: Run test to verify PASS: <code>bash tests/scripts/assert_diff_match_patch.sh</code> — Expected: "PASS: dmp.match_main exact + paraphrase + miss" + "PASS: diff-match-patch smoke", exit 0.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt tests/scripts/diff_match_patch_smoke.test.js tests/scripts/assert_diff_match_patch.sh
+git commit -m "feat(T2): vendor google/diff-match-patch + license + smoke"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_diff_match_patch.sh</code> — exits 0 with PASS lines.</li>
+<li><code>du -b plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code> — file size &lt;100KB (verify reasonable).</li>
+<li><code>head -5 plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt</code> — Apache-2.0 license header present.</li>
+</ul>
+
+<hr>
+
+<h3 id="t3">T3: comments.js + comments.css skeleton + headless unit tests</h3>
+<p><strong>Goal:</strong> Build the initial <code>comments.js</code> overlay skeleton: IIFE wrapper, sidecar load/save via FSA (Chrome/Edge path only — fallback in T22), in-memory thread store, 8-char nanoid generator, schema-v1 validator, the id-derivation algorithm helper (mirroring conventions.md §3). Plus <code>comments.css</code> shell. Plus headless unit tests using jsdom-like stubs in Node (no real browser yet).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-01</a>, <a href="02_spec.html#fr-capture">FR-02</a>, <a href="02_spec.html#fr-persistence">FR-10</a>, <a href="02_spec.html#fr-persistence">FR-11</a>, <a href="02_spec.html#fr-persistence">FR-14</a>, <a href="02_spec.html#fr-persistence">FR-16</a>, <a href="02_spec.html#decisions-h">S3</a> (schema versioning), <a href="02_spec.html#decisions-h">S4</a> (nanoid8), <a href="02_spec.html#sidecar-schema-h">§10.1</a> (schema)<br>
+<strong>Depends on:</strong> T2 (dmp not yet used here but bundled adjacent)<br>
+<strong>Idempotent:</strong> yes — re-running tests with the same fixture produces the same sidecar bytes (S3 lineage UUID is generated deterministically in tests via a seed stub).<br>
+<strong>TDD:</strong> yes — new-feature<br>
+<strong>Slice shape:</strong> refactor-prep — builds the pure-data helpers (buildThread, derive_kebab_id, nanoid8, validate_sidecar, serialize_sidecar) the browser overlay (T7) and the resolver (T12, T17) both consume. No user-visible behavior until T7 mounts the UI on top.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css</code></li>
+<li>Test: <code>tests/scripts/comments-js.test.js</code></li>
+<li>Test: <code>tests/scripts/assert_comments_js_unit.sh</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/id.test.js</code> (nanoid uniqueness) + bash wrapper <code>tests/scripts/assert_comments_id.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests. <code>tests/scripts/comments-js.test.js</code> uses Node + a minimal DOM-stub (no jsdom — manual <code>{document, window, FileSystemHandle}</code> mock). Assertions: (a) <code>buildThread({id_anchor, quote_anchor, body})</code> returns an object matching schema-v1 (required keys present, status='open', messages.length===1, ts ISO-8601); (b) <code>derive_kebab_id("Decision Log — D7")</code> returns "decision-log-d7"; (c) <code>nanoid8()</code> returns 8 URL-safe chars; (d) <code>validate_sidecar({schema_version:1, lineage:'<valid uuid>', threads:[]})</code> returns true; (e) <code>validate_sidecar({schema_version:99,...})</code> returns false (refuse-newer); (e2 — covers spec edge case E5) <code>load_sidecar('&lt;corrupted-json&gt;')</code> where the bytes are valid UTF-8 but invalid JSON (truncated array, missing brace) → throws a typed error <code>SidecarCorruptedError</code>; the overlay catches this and surfaces a blocking modal "&lt;artifact&gt;.comments.json is corrupted. Backup recommended before editing." with no overlay capture surfaces enabled; assertion via DOM stub that the modal mounts; (f) <code>serialize_sidecar({...})</code> outputs 2-space indent + LF + trailing newline (test reads via Buffer for byte-exact); (g) <code>preserve_unknown_round_trip</code> — write a sidecar with unknown top-level key <code>foo: "bar"</code>, read it, serialize again, assert <code>foo: "bar"</code> preserved.</li>
+<li>[ ] Step 2: Run tests to verify FAIL: <code>bash tests/scripts/assert_comments_js_unit.sh</code> — Expected: FAIL with "Cannot find module .../comments.js".</li>
+<li>[ ] Step 3: Implement <code>comments.js</code> as an IIFE that, when loaded in Node test context, exposes <code>module.exports = {buildThread, derive_kebab_id, nanoid8, validate_sidecar, serialize_sidecar, ...}</code>. Browser-side, the same file mounts the overlay (deferred to T7) but the pure-data helpers are extractable. Implement: nanoid via <code>crypto.getRandomValues</code> (browser) / <code>crypto.randomFillSync</code> (Node). Schema validator is hand-rolled (regex for uuid, switch over required keys). Serializer: <code>JSON.stringify(obj, null, 2) + '\n'</code>. Preserve-unknown: pass through any non-recognized top-level / thread / message keys verbatim.</li>
+<li>[ ] Step 4: Run tests to verify PASS: <code>bash tests/scripts/assert_comments_js_unit.sh</code> — Expected: all assertions exit 0; "PASS: comments.js helpers" printed.</li>
+<li>[ ] Step 5: Write nanoid uniqueness test at <code>plugins/pmos-toolkit/skills/comments/tests/id.test.js</code> — generate 1000 ids, assert <code>new Set(ids).size === 1000</code>. Bash wrapper at <code>tests/scripts/assert_comments_id.sh</code>: <code>node plugins/pmos-toolkit/skills/comments/tests/id.test.js</code>.</li>
+<li>[ ] Step 6: Write <code>comments.css</code> shell — empty class declarations for the components in spec §11.1: <code>.pmos-floating-btn, .pmos-side-panel, .pmos-panel-header, .pmos-thread-list, .pmos-thread-card, .pmos-thread-messages, .pmos-message, .pmos-thread-compose, .pmos-banner, .pmos-diagram-marker</code>. Defer detailed styling to T7+; this is the contract surface T8 must reference.</li>
+<li>[ ] Step 7: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css plugins/pmos-toolkit/skills/comments/tests/id.test.js tests/scripts/comments-js.test.js tests/scripts/assert_comments_js_unit.sh tests/scripts/assert_comments_id.sh
+git commit -m "feat(T3): comments.js + comments.css skeleton + headless unit tests"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_comments_js_unit.sh</code> — exits 0 with all assertion lines.</li>
+<li><code>bash tests/scripts/assert_comments_id.sh</code> — exits 0 with "PASS: 1000 unique ids".</li>
+<li><code>du -b plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> — &lt;5KB at this stage (skeleton).</li>
+</ul>
+
+<hr>
+
+<h3 id="t4">T4: Extend serve.js — --pid-file JSON payload + idle timeout + 127.0.0.1 hard-bind</h3>
+<p><strong>Goal:</strong> Extend existing <code>serve.js</code> to accept <code>--pid-file=&lt;path&gt;</code>, write <code>{pid, port, started_at}</code> JSON atomically after bind; default idle timeout 300s (configurable via <code>--idle=&lt;sec&gt;</code>); on SIGTERM/SIGINT/idle, remove the pid file; hard-bind to <code>127.0.0.1</code> (already the default in the existing code per FR-45, just assert). Add deprecated alias <code>--port-file</code> (logs deprecation warning to stderr).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-launcher">FR-44</a>, <a href="02_spec.html#fr-launcher">FR-45</a>, <a href="02_spec.html#nfr-h">NFR-07</a>; Decision <a href="#decision-log-h">P2</a> (alias keeps prior <code>--port-file</code> working for one release)<br>
+<strong>Depends on:</strong> T3<br>
+<strong>Idempotent:</strong> yes — re-invoking serve.js with same args produces identical PID file (PID + port differ per process; the test asserts shape not value)<br>
+<strong>TDD:</strong> yes — new-feature for the pid-file logic; existing serve tests preserved<br>
+<strong>Slice shape:</strong> refactor-prep — extends an existing internal utility (<code>serve.js</code>) with semantics the launcher (T5) and tracer (T11) require. No user-observable behavior until T5 + T11 consume the PID file.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code></li>
+<li>Test: <code>tests/scripts/serve.test.js</code> (extend existing)</li>
+<li>Test: <code>tests/scripts/assert_serve_js_pid_file.sh</code> (new wrapper, specific to this task)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Extend <code>tests/scripts/serve.test.js</code> with new test cases: (a) start serve with <code>--pid-file=/tmp/pmos-test.pid</code>; assert file exists, contains valid JSON with keys <code>pid</code>, <code>port</code>, <code>started_at</code>; (b) <code>kill -0 $pid</code> succeeds while serve is running; (c) SIGTERM to the process → pid file removed within 500ms; (d) <code>--port-file=/tmp/x.txt</code> (legacy alias) still works, stderr contains "DEPRECATED"; (e) idle timeout: launch with <code>--idle=1</code>, wait 1500ms, assert process exited; (f) server bound to 127.0.0.1 — attempt connection from 0.0.0.0 or 192.168.x.x → ECONNREFUSED (use a non-loopback iface address from <code>os.networkInterfaces()</code> filtered to IPv4 non-loopback if available; skip test on hosts with no non-loopback iface). Also include a regression assertion that the original <code>--port</code> flag still binds.</li>
+<li>[ ] Step 2: Run to verify FAIL: <code>bash tests/scripts/assert_serve_js_pid_file.sh</code> — Expected: pid file test fails (<code>--pid-file</code> flag not handled).</li>
+<li>[ ] Step 3: Implement in <code>serve.js</code>: add <code>--pid-file</code> argv parsing (alongside existing <code>--port-file</code>); on alias use, emit <code>console.error("serve.js: --port-file is deprecated, use --pid-file (alias retained for one release)")</code>; after server.listen callback, write <code>{pid: process.pid, port: server.address().port, started_at: new Date().toISOString()}</code> via temp-then-rename (<code>fs.writeFileSync(path+'.tmp', JSON.stringify(...))</code> then <code>fs.renameSync</code>); register SIGTERM/SIGINT/exit handlers that <code>fs.unlinkSync</code> the pid file; add <code>--idle=&lt;sec&gt;</code> arg (default 300); idle timer resets on each request, fires <code>server.close()</code> on expiry.</li>
+<li>[ ] Step 4: Run tests to verify PASS: <code>bash tests/scripts/assert_serve_js.sh tests/scripts/assert_serve_js_pid_file.sh tests/scripts/assert_serve_js_unit.sh</code> — Expected: all green.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js tests/scripts/serve.test.js tests/scripts/assert_serve_js_pid_file.sh
+git commit -m "feat(T4): serve.js --pid-file JSON payload + idle timeout + alias"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_serve_js.sh && bash tests/scripts/assert_serve_js_unit.sh && bash tests/scripts/assert_serve_js_pid_file.sh</code> — all exit 0.</li>
+<li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js --port=0 --pid-file=/tmp/manual.pid &</code> + <code>sleep 1 && cat /tmp/manual.pid | python3 -c "import json,sys;print(json.load(sys.stdin))"</code> — JSON parses, has <code>pid</code> + <code>port</code> + <code>started_at</code>. Cleanup: <code>kill $(jq -r .pid /tmp/manual.pid)</code>.</li>
+</ul>
+
+<hr>
+
+<h3 id="t5">T5: Launcher trio — comments-open.command / .sh / .bat</h3>
+<p><strong>Goal:</strong> Three OS-specific launcher scripts (≤40 LOC each per FR-41/42/43) that double-click-launch: Node precheck → PID liveness check → reuse or spawn fresh serve.js → open browser at the bound URL. Substrate auto-copies these via <code>cp -n</code> + <code>install -m 0755</code> ride-along (T8 wires into substrate emit; here we just create + test the scripts in isolation).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-launcher">FR-40</a>, <a href="02_spec.html#fr-launcher">FR-41</a>, <a href="02_spec.html#fr-launcher">FR-42</a>, <a href="02_spec.html#fr-launcher">FR-43</a>, <a href="02_spec.html#nfr-h">NFR-09</a><br>
+<strong>Depends on:</strong> T4<br>
+<strong>Idempotent:</strong> yes — re-running the launcher with a live serve.js reuses; with stale PID, cleans up and spawns fresh; with no PID file, spawns fresh<br>
+<strong>TDD:</strong> yes — new-feature (cross-platform smoke tests)<br>
+<strong>Slice shape:</strong> refactor-prep — purely-foundational substrate (zero-CLI artifact open). Becomes user-observable when the tracer (T11) double-clicks the macOS launcher; until then, no UX surface.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.command</code> (macOS)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.sh</code> (Linux)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.bat</code> (Windows)</li>
+<li>Test: <code>tests/scripts/launcher.test.sh</code> + <code>tests/scripts/assert_launcher.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test <code>tests/scripts/launcher.test.sh</code>: (a) on macOS or Linux, set up a temp dir with a stub <code>02_spec.html</code> + a stub <code>assets/serve.js</code> that just prints a port and sleeps; invoke <code>comments-open.command</code> (macOS) or <code>comments-open.sh</code> (Linux) with PATH stripped of node → assert exit 127 + grep stderr for "node not found"; (b) restore node in PATH, invoke the launcher; assert exit 0 + <code>.pmos-serve.pid</code> created; (c) invoke launcher a second time; assert stderr indicates URL reuse; (d) kill the process, leave the PID file; invoke launcher; assert stale PID file is cleaned up and a fresh serve spawns. Windows test in same script wrapped in <code>case $(uname) in MINGW*|MSYS*)...</code>.</li>
+<li>[ ] Step 2: Run to verify FAIL: <code>bash tests/scripts/assert_launcher.sh</code> — Expected: FAIL (scripts don't exist).</li>
+<li>[ ] Step 3: Write the three launchers. <code>comments-open.command</code> + <code>comments-open.sh</code> share core logic (use POSIX shell <code>#!/bin/sh</code>, replace <code>open</code> with <code>xdg-open</code> for Linux variant). <code>comments-open.bat</code> uses Windows <code>where node</code> + <code>tasklist /FI</code>. All three: cd into <code>$(dirname "$0")/..</code> (script lives in <code>assets/</code>, parent is feature folder); read PID file if present; validate liveness; spawn <code>node assets/serve.js --port=0 --pid-file=.pmos-serve.pid --idle=300</code> if needed; parse the bound port from stdout's <code>PMOS-SERVE-PORT: N</code> line; open <code>http://localhost:$PORT/${1:-$(ls -1 *.html | head -1)}</code>.</li>
+<li>[ ] Step 4: Mark executable: <code>chmod +x comments-open.command comments-open.sh</code> (the .bat doesn't need it). Note in launcher header: "this file is auto-copied by the substrate via install -m 0755 — modifications survive cp -n".</li>
+<li>[ ] Step 5: Run tests to verify PASS: <code>bash tests/scripts/assert_launcher.sh</code> — Expected: all 4 sub-cases green on the running host's platform; cross-platform cases skipped with a TODO log.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.command plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.sh plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.bat tests/scripts/launcher.test.sh tests/scripts/assert_launcher.sh
+git commit -m "feat(T5): launcher trio + cross-platform smoke"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_launcher.sh</code> — exits 0 on macOS/Linux host.</li>
+<li><code>wc -l plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.{command,sh,bat}</code> — each ≤40 lines.</li>
+<li><code>file plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.command</code> — "POSIX shell script, executable".</li>
+</ul>
+
+<hr>
+
+<h3 id="t6">T6: Contract doc — _shared/apply-edit-at-anchor.md</h3>
+<p><strong>Goal:</strong> Write the canonical contract doc that every originating skill's apply-edit-at-anchor implementation cites. Captures the §9.1 schema + §9.2 error taxonomy + §9.3 idempotency rule + the FR-103 "tests are illustrative" stance + the subagent-prompt invocation convention.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#api-apply-edit">§9.1</a>, <a href="02_spec.html#api-error-enum">§9.2</a>, <a href="02_spec.html#api-idempotency">§9.3</a>, <a href="02_spec.html#decisions-h">S13</a>, <a href="02_spec.html#nfr-h">NFR-08</a><br>
+<strong>Depends on:</strong> T5<br>
+<strong>Idempotent:</strong> yes — doc-only<br>
+<strong>TDD:</strong> no — refactor-prep (doc that downstream tasks T9, T18–T21 cite verbatim; verifying its content is via review, not test)<br>
+<strong>Slice shape:</strong> refactor-prep — captures the contract every per-skill task depends on; cannot be tested in isolation</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Author <code>_shared/apply-edit-at-anchor.md</code> with these sections: (1) Purpose + cite spec; (2) Input schema (verbatim copy of §9.1 input JSON); (3) Output schema — success / failure / clarification variants (verbatim from §9.1, §9.2); (4) Error enum table (4 closed values); (5) Idempotency contract (semantic-match definition from §9.3, 60/80% thresholds, no-op return); (6) Subagent invocation convention — <code>[mode: &lt;current-mode&gt;]</code> first line + <code>[output_format: html]</code> + input JSON in prompt body; output JSON as final structured response; (7) Per-skill implementation expectations — each skill implements a phase named "Apply comment-resolver edit" that consumes input JSON, produces output JSON; (8) Tests-are-illustrative footer (FR-103).</li>
+<li>[ ] Step 2: Verify cross-references — every section cites a spec FR or section; broken anchors are a Phase 4 finding. Run a manual check: <code>grep -oE '02_spec\.html#[a-z0-9-]+' plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md | while read ref; do test -f "${ref%#*}" && echo "ok: $ref" || echo "broken: $ref"; done</code> — all "ok".</li>
+<li>[ ] Step 3: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md
+git commit -m "feat(T6): apply-edit-at-anchor contract doc"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>wc -l plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code> — between 80 and 300 lines (substantial but not bloated).</li>
+<li><code>grep -c '^##' plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code> — at least 8 top-level sections matching the outline above.</li>
+<li><code>grep -E 'anchor_orphaned|edit_conflicted|agent_judged_infeasible|agent_errored' plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md | wc -l</code> — all 4 enum values present.</li>
+</ul>
+
+<h2 id="phase-2">Phase 2: Tracer Bullet — /spec end-to-end (T7–T11)</h2>
+<p><em>Phase rationale: prove the entire architecture works for ONE skill (/spec) end-to-end, comment-capture through subagent-applied edit. Tracer derisks: substrate↔skill template wiring (T8); per-skill apply-edit-at-anchor implementation shape (T9); resolver subagent dispatch + meta-tag routing (T10); the FSA capture path in a real browser (T11). After T11 demo passes, the remaining 12 skills become a fanout copy-paste (Phase 4).</em></p>
+
+<h3 id="t7">T7: comments.js — text-selection capture + side panel + thread persist (Chrome FSA path)</h3>
+<p><strong>Goal:</strong> Add browser-side UI to <code>comments.js</code>: <code>selectionchange</code> listener, floating "Comment" button, side panel mount, compose form, thread submit → FSA write. Chrome/Edge only (Safari/Firefox fallback in T22).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-02</a>, <a href="02_spec.html#fr-capture">FR-03</a>, <a href="02_spec.html#fr-capture">FR-04</a>, <a href="02_spec.html#fr-persistence">FR-11</a>, <a href="02_spec.html#fr-persistence">FR-13</a>, <a href="02_spec.html#fr-persistence">FR-14</a>, <a href="02_spec.html#decisions-h">S16</a> (per-save FSA re-request), <a href="02_spec.html#decisions-h">S17</a> (IndexedDB persistence), <a href="02_spec.html#frontend-design-h">§11</a><br>
+<strong>Wireframe refs:</strong> <a href="wireframes/index.html">wireframes/index.html</a> — floating button, side panel compose form, thread card (8 components × 32 states)<br>
+<strong>Depends on:</strong> T3, T6 (contract doc cites the thread schema this writes)<br>
+<strong>Idempotent:</strong> N/A (UI action; thread create is intentional state mutation)<br>
+<strong>TDD:</strong> yes — new-feature; pure-DOM operations tested via Node + a minimal DOM stub (no real browser yet — that's T11)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> (extend T3 skeleton)</li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css</code> (fill in styles)</li>
+<li>Test: <code>tests/scripts/comments-js.test.js</code> (extend)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests. Extend <code>comments-js.test.js</code>: with a minimal DOM stub (mock <code>document</code>, <code>window.getSelection</code>, <code>document.createRange</code>, fake <code>FileSystemDirectoryHandle</code>): (a) <code>captureSelection({start, end, text, prefix, suffix})</code> builds an anchor object with all 3 fields populated correctly; (b) <code>onFloatingButtonClick(anchor)</code> opens the side panel (asserts <code>document.querySelector('.pmos-side-panel').classList.contains('open')</code>); (c) <code>submitThread({anchor, body, author})</code> calls a fake <code>writeSidecar</code> with the new thread appended; (d) <code>writeSidecar(sidecar, handle)</code> calls <code>handle.requestPermission({mode:'readwrite'})</code> + <code>getFileHandle</code> + <code>createWritable({keepExistingData:false})</code> + <code>write(serialize_sidecar(sidecar))</code> + <code>close()</code> in that order (mock asserts call order); (e) on revoked permission, the function surfaces a banner (<code>document.querySelector('.pmos-banner').textContent</code> contains "Click to grant write access") and the prior sidecar on disk is untouched.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement: <code>selectionchange</code> listener computes selection bounds, prefix/suffix (30 chars each from window.getSelection().anchorNode.textContent), spawns the floating button at <code>endRect</code> + 8px. Compose form submit builds the thread (using buildThread from T3), calls <code>writeSidecar</code>. <code>writeSidecar</code> implements FSA-per-save-re-request (FR-13). Banner mount on permission failure. IndexedDB rehydrate of handle on load (S17 — use idb open with DB <code>pmos-comments</code>, store <code>handles</code>, key <code>location.pathname</code>; rehydrate but don't actually open until first interaction).</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Implement <code>comments.css</code> styles for: <code>.pmos-floating-btn</code> (32x32 circular, z-index 9999), <code>.pmos-side-panel</code> (360px right drawer, position fixed, height 100vh, backdrop-filter blur 8px), <code>.pmos-thread-card</code> (collapsed/expanded states), <code>.pmos-banner</code> (toast bottom-right). Match wireframes/index.html (IA + states only — visual style follows host repo's existing <code>style.css</code> token palette: neutral grays, system font stack, no custom colors).</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css tests/scripts/comments-js.test.js
+git commit -m "feat(T7): comments.js text-selection capture + side panel + FSA write"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_comments_js_unit.sh</code> — all assertions pass, including the new capture + write tests.</li>
+<li><code>du -b plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> — &lt;15KB (well under 20KB warn).</li>
+</ul>
+
+<hr>
+
+<h3 id="t8">T8: /spec — bake comments.js + comments.css references into emit; substrate template wiring</h3>
+<p><strong>Goal:</strong> Extend <code>_shared/html-authoring/template.html</code> to inject <code>&lt;link rel="stylesheet" href="{{asset_prefix}}comments.css?v={{plugin_version}}"&gt;</code> and <code>&lt;script defer src="{{asset_prefix}}comments.js?v={{plugin_version}}"&gt;&lt;/script&gt;</code>. Modify <code>spec/SKILL.md</code>'s emit instructions to (a) include the <code>&lt;meta name="pmos:skill" content="spec"&gt;</code> tag, (b) include the bake references (or note the template already does it), (c) auto-copy comments.js + comments.css + launcher trio into the feature folder via <code>cp -n</code> + <code>install -m 0755</code>.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-01</a>, <a href="02_spec.html#fr-launcher">FR-40</a><br>
+<strong>Wireframe refs:</strong> n/a (template wiring, not UI)<br>
+<strong>Depends on:</strong> T7<br>
+<strong>Idempotent:</strong> yes — <code>cp -n</code> is no-op when files exist; <code>install -m 0755</code> is idempotent on perms<br>
+<strong>TDD:</strong> yes — new-feature; assertion on emitted artifact byte content</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code></li>
+<li>Test: <code>tests/scripts/template_comments_bake.test.sh</code> + <code>tests/scripts/assert_template_comments_bake.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test: render the template with sample <code>title/content/asset_prefix/plugin_version</code> values via a small helper script (already exists implicitly — every skill substitutes the template at emit time; for this test, use a fresh feature folder + invoke /spec briefly OR template-substitute manually with sed). Then grep the output for: <code>comments.css?v=2.53.0</code> + <code>comments.js?v=2.53.0</code> + <code>&lt;meta name="pmos:skill" content="spec"&gt;</code>. All three must be present.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Modify <code>template.html</code> — add the comments.css link in &lt;head&gt; (after style.css, before any inline script tags) + add comments.js defer script just before <code>&lt;/body&gt;</code>. Modify <code>spec/SKILL.md</code>'s "Atomic write" / "Asset substrate" section to extend the asset-copy list with <code>comments.js, comments.css, diff-match-patch.js, comments-open.command, comments-open.sh, comments-open.bat</code> + <code>LICENSE.dmp.txt</code> (the install -m 0755 only applies to .command and .sh; the others use cp -n). Add the &lt;meta name="pmos:skill"&gt; emit instruction to /spec's HTML body wrapper guidance.</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/template.html plugins/pmos-toolkit/skills/spec/SKILL.md tests/scripts/template_comments_bake.test.sh tests/scripts/assert_template_comments_bake.sh
+git commit -m "feat(T8): bake comments.js+css into template + /spec emit instructions"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_template_comments_bake.sh</code> — exits 0.</li>
+<li><code>grep -E 'comments\.(css|js)\?v=' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html | wc -l</code> — 2.</li>
+<li><code>grep -c 'comments-open\.\(command\|sh\|bat\)' plugins/pmos-toolkit/skills/spec/SKILL.md</code> — ≥1 (asset list updated).</li>
+</ul>
+
+<hr>
+
+<h3 id="t9">T9: /spec — apply-edit-at-anchor entrypoint + contract test</h3>
+<p><strong>Goal:</strong> Add the "Apply comment-resolver edit" phase to <code>spec/SKILL.md</code>: when invoked as a subagent with the §9.1 input JSON, /spec reads the artifact, resolves the anchor (id-first then Bitap fallback), proposes an edit at the resolved DOM range, returns §9.1 output JSON. Write the per-skill contract test at <code>plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.test.js</code> + bash wrapper at <code>tests/scripts/assert_apply_edit_at_anchor_spec.sh</code> per P3.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-22</a>, <a href="02_spec.html#fr-resolve">FR-30</a>, <a href="02_spec.html#fr-contract-tests">FR-60</a>, <a href="02_spec.html#api-apply-edit">§9.1</a>, <a href="02_spec.html#api-idempotency">§9.3</a><br>
+<strong>Depends on:</strong> T6 (cites contract doc), T8 (bake-references must be in place)<br>
+<strong>Idempotent:</strong> yes — §9.3 "no-op when edit already applied" is the contract<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> (append "Apply comment-resolver edit" phase)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.test.js</code></li>
+<li>Create: <code>tests/scripts/assert_apply_edit_at_anchor_spec.sh</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/fixtures/02_spec_mini.html</code> + <code>02_spec_mini.comments.json</code> (small fixture artifact + sidecar with 3 threads)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Build the test fixtures: <code>02_spec_mini.html</code> is a 50-line fake spec with 3 sections (id="problem", id="solution", id="rollout"); <code>02_spec_mini.comments.json</code> contains 3 threads: T_A (id_anchor="problem", user msg "tighten this wording"), T_B (id_anchor="solution", quote_anchor with valid quote), T_C (id_anchor="missing-section" → orphan path).</li>
+<li>[ ] Step 2: Write failing test <code>apply-edit-at-anchor.test.js</code>:
+<pre><code class="lang-js">'use strict';
+const assert = require('assert');
+const path = require('path');
+// Test harness: invoke the apply-edit-at-anchor entrypoint as if /spec were a subagent.
+// The skill body is markdown-driven; the test exercises the JS "contract entrypoint"
+// shim that the skill emits when its apply-phase is loaded by a Task subagent.
+// For Node-level testing, the shim lives at plugins/pmos-toolkit/skills/spec/scripts/apply-edit-at-anchor.js.
+const apply = require('../scripts/apply-edit-at-anchor.js');
+
+(async () => {
+  // (a) Happy path: id-first anchor resolves, edit applies, returns success
+  const input1 = {/* schema per §9.1, anchor.id_anchor="problem", body="…tighten…" */};
+  const out1 = await apply(input1);
+  assert.strictEqual(out1.success, true);
+  assert.ok(out1.diff_ref && out1.system_reply);
+
+  // (b) Orphan: id_anchor missing + quote-fallback below threshold → returns failure with error_enum=anchor_orphaned
+  const input2 = {/* anchor.id_anchor="missing-section", quote_anchor pointing at unrelated text */};
+  const out2 = await apply(input2);
+  assert.strictEqual(out2.success, false);
+  assert.strictEqual(out2.error_enum, "anchor_orphaned");
+
+  // (c) Idempotent: calling apply twice with same thread/body → second call returns no-op
+  const out3a = await apply(input1);
+  const out3b = await apply(input1);
+  assert.match(out3b.diff_ref || "", /no-op: edit already applied/);
+
+  // (d) agent_judged_infeasible: contrive a thread whose body asks for an incoherent restructure
+  const input4 = {/* body="rewrite §1 to remove all references to S1 — would break inheritance chain" */};
+  const out4 = await apply(input4);
+  assert.strictEqual(out4.success, false);
+  assert.strictEqual(out4.error_enum, "agent_judged_infeasible");
+
+  // (e) Clarification path: body is ambiguous, returns {clarification: {question, options}}
+  const input5 = {/* body="should this be X or Y?" */};
+  const out5 = await apply(input5);
+  assert.ok(out5.clarification);
+  assert.ok(Array.isArray(out5.clarification.options));
+
+  console.log("PASS: /spec apply-edit-at-anchor — 5 cases");
+})().catch(e => { console.error(e); process.exit(1); });</code></pre>
+Wrapper <code>assert_apply_edit_at_anchor_spec.sh</code>:
+<pre><code class="lang-bash">#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+node plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.test.js</code></pre></li>
+<li>[ ] Step 3: Run to verify FAIL: shim file doesn't exist.</li>
+<li>[ ] Step 4: Implement the apply-phase. The skill body (<code>spec/SKILL.md</code>) gains a new phase section "Apply comment-resolver edit" that documents the contract; the shim at <code>spec/scripts/apply-edit-at-anchor.js</code> is the Node-callable implementation: parses input JSON, resolves anchor (calls into <code>comments/scripts/anchor-resolver.js</code> from T12 — but for this task, inline a minimal version that does id-first lookup + Bitap via the dmp from T2), reads the artifact, judges feasibility (heuristic: if body is one sentence with clear instruction, propose; if ambiguous, return clarification; if would touch &gt;3 sections, return infeasible), applies edit via string-replace at the resolved range, returns output JSON.</li>
+<li>[ ] Step 5: Run tests to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/spec/SKILL.md plugins/pmos-toolkit/skills/spec/scripts/apply-edit-at-anchor.js plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.test.js plugins/pmos-toolkit/skills/spec/tests/fixtures/ tests/scripts/assert_apply_edit_at_anchor_spec.sh
+git commit -m "feat(T9): /spec apply-edit-at-anchor entrypoint + contract test"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_apply_edit_at_anchor_spec.sh</code> — exits 0 with "PASS: /spec apply-edit-at-anchor — 5 cases".</li>
+<li><code>grep -c 'Apply comment-resolver edit' plugins/pmos-toolkit/skills/spec/SKILL.md</code> — ≥1 (phase section present).</li>
+</ul>
+
+<hr>
+
+<h3 id="t10">T10: /comments resolver skill skeleton — sidecar read, meta-tag route, dispatch (--confirm-each only)</h3>
+<p><strong>Goal:</strong> Create the new skill directory <code>plugins/pmos-toolkit/skills/comments/</code> with <code>SKILL.md</code> + <code>scripts/</code> + <code>tests/</code> subdirs. SKILL.md body documents: invocation <code>/comments resolve &lt;path&gt;</code>, modes, anchor strategy, stage-only semantics. Implement the controller's core loop: read sidecar → read &lt;meta name="pmos:skill"&gt; → dispatch subagent per thread → present diff + AskUserQuestion (Accept/Reject/Modify/Skip) → apply on Accept → stage. Implementation handles <code>--confirm-each</code> only at this task; --batch, --auto, --non-interactive in T13/T14.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-20</a>, <a href="02_spec.html#fr-resolve">FR-22</a>, <a href="02_spec.html#fr-resolve">FR-24</a>, <a href="02_spec.html#fr-resolve">FR-27</a>, <a href="02_spec.html#fr-resolve">FR-28</a>, <a href="02_spec.html#fr-resolve">FR-31</a><br>
+<strong>Depends on:</strong> T6, T9 (real entrypoint to dispatch to)<br>
+<strong>Idempotent:</strong> yes — re-running on the same sidecar reuses §9.3 no-op semantics<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/SKILL.md</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/scripts/resolver.js</code> (controller, callable from CLI)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/scripts/cli.js</code> (CLI argv parsing entrypoint)</li>
+<li>Test: <code>plugins/pmos-toolkit/skills/comments/tests/resolver-confirm-each.test.js</code> + <code>tests/scripts/assert_resolver_confirm_each.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test. Uses a fixture (the T9 mini-spec + sidecar with 1 thread, anchor.id_anchor="problem"); mocks the subagent dispatch as a stub function that returns the §9.1 success JSON; mocks <code>AskUserQuestion</code> as a function returning "Accept"; invokes <code>resolver({path: 'fixture/02_spec_mini.html', mode: 'confirm-each'})</code>; asserts (a) thread status becomes "resolved", (b) <code>02_spec_mini.html</code> contains the edit string, (c) <code>git add</code> is called with both file paths (test stubs <code>execSync</code>), (d) <code>git commit</code> is NOT called.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement <code>resolver.js</code> + <code>cli.js</code>. Resolver: <code>async function resolve({path, mode, askUser, dispatchSubagent, runGit})</code> — these last three are injectable (defaults are real implementations; tests inject mocks). Read sidecar JSON. For each thread in <code>status:open</code>: resolve anchor (id-first dom lookup using a regex pass over the artifact HTML — no jsdom dep; T12 will replace with the proper resolver); build §9.1 input; await <code>dispatchSubagent</code>; on success, present diff snippet, await <code>askUser</code> with 4 options; on Accept, apply edit (string replace in the html file), append system reply to thread, set status="resolved"; on Reject + refinement, append user msg, re-dispatch (cap T15); on Modify, prompt for free-form text; on Skip, leave thread open. After loop, write sidecar back (using the same serialize_sidecar from T3), run <code>git add &lt;html&gt; &lt;sidecar&gt;</code>. Print summary. Author SKILL.md with full prose body (intake, phases, modes, configuration, edge cases referring to spec).</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/SKILL.md plugins/pmos-toolkit/skills/comments/scripts/ plugins/pmos-toolkit/skills/comments/tests/resolver-confirm-each.test.js tests/scripts/assert_resolver_confirm_each.sh
+git commit -m "feat(T10): /comments skeleton — --confirm-each only, single-thread happy path"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_resolver_confirm_each.sh</code> — exits 0.</li>
+<li><code>ls plugins/pmos-toolkit/skills/comments/</code> — SKILL.md, scripts/, tests/ present.</li>
+</ul>
+
+<hr>
+
+<h3 id="t11">T11: TRACER DEMO — comment on 02_spec.html → /comments resolve → diff staged</h3>
+<p><strong>Goal:</strong> End-to-end manual demo that proves the architecture works. Operator follows the Done-when walkthrough above against this feature's own 02_spec.html. This is the milestone: T1–T10 are validated by this demo's success.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#rollout-order">§15.1 step 3</a> (vertical slice on /spec only)<br>
+<strong>Wireframe refs:</strong> <a href="wireframes/index.html">wireframes/index.html</a><br>
+<strong>Depends on:</strong> T7, T8, T9, T10<br>
+<strong>Idempotent:</strong> N/A (one-shot demo; re-runs hit §9.3 no-op)<br>
+<strong>TDD:</strong> no — manual demo with documented step-by-step proof in a markdown log<br>
+<strong>Slice shape:</strong> vertical — end-to-end through every layer (launcher, server, browser overlay, FSA, sidecar, resolver CLI, subagent, apply-edit)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_tracer_demo.md</code> (demo log with screenshots/output captured at each step)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Re-emit <code>02_spec.html</code> by running <code>/spec --refine</code> on the feature folder (or manually patch the HTML to bake the comments.js reference). Confirm <code>grep 'comments.js?v=' 02_spec.html</code> finds the script tag + <code>grep 'meta name="pmos:skill"' 02_spec.html</code> finds the meta tag.</li>
+<li>[ ] Step 2: Double-click <code>comments-open.command</code> in the feature folder. Confirm: Chrome opens at <code>http://localhost:&lt;port&gt;/02_spec.html</code>; <code>.pmos-serve.pid</code> file appears with JSON; floating button does NOT appear until selection.</li>
+<li>[ ] Step 3: Select the phrase "the resolver dispatches a generic subagent" in §6.1 architecture overview. Confirm floating button appears at selection end. Click it.</li>
+<li>[ ] Step 4: Side panel opens. Enter comment "should specify originating-skill dispatch — cite grill Q1". Click Submit. On FSA permission prompt, grant. Confirm <code>02_spec.comments.json</code> appears on disk with the new thread. Capture <code>cat 02_spec.comments.json | python3 -m json.tool</code> output to the demo log.</li>
+<li>[ ] Step 5: In terminal: <code>/pmos-toolkit:comments resolve 02_spec.html</code>. Confirm: resolver reads sidecar, prints "Resolving 1 thread: T_&lt;id&gt; (id-first hit on #architecture-overview, score 1.0)"; dispatches subagent (logs "Dispatching to /spec"); subagent returns success with diff_ref + system_reply; resolver presents the diff snippet + AskUserQuestion 4-option prompt.</li>
+<li>[ ] Step 6: Operator picks "Accept". Resolver applies the edit, appends system reply to thread, sets status="resolved", runs <code>git add 02_spec.html 02_spec.comments.json</code>, prints "Resolved 1/1. Review with git diff --cached then commit."</li>
+<li>[ ] Step 7: Verify: <code>git diff --cached --stat</code> shows both files; <code>jq '.threads[0].status' 02_spec.comments.json</code> → "resolved"; <code>git diff --cached 02_spec.html | head</code> shows the edit. Capture into demo log.</li>
+<li>[ ] Step 8: Do NOT commit (demo is for verification; real run is post-/verify). <code>git restore --staged 02_spec.html 02_spec.comments.json</code> to clean up. Document any deviations in the demo log.</li>
+<li>[ ] Step 9: Commit demo log:
+<pre><code>git add docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_tracer_demo.md
+git commit -m "feat(T11): tracer-bullet demo passed — /spec end-to-end inline comment + resolve"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li>Demo log includes (a) launcher PID file JSON sample, (b) browser screenshot of side panel + thread, (c) sidecar JSON dump, (d) resolver CLI transcript, (e) <code>git diff --cached</code> output, (f) status="resolved" assertion.</li>
+<li><code>wc -l docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_tracer_demo.md</code> — ≥30 lines (substantial proof).</li>
+</ul>
+
+<h2 id="phase-3">Phase 3: Resolver Completeness (T12–T17)</h2>
+<p><em>Phase rationale: with the tracer proven, fill in the resolver's missing capabilities — proper anchor resolver (T12), wave-planned --batch (T13), --auto + --non-interactive (T14), clarification flow + re-dispatch cap (T15), error_enum + idempotency (T16), and the integration test that covers all 4 error_enum branches + 3 modes (T17). Phase 3→4 boundary triggers /verify. Each task is small (4-6 hours) and independently committable.</em></p>
+
+<h3 id="t12">T12: Proper anchor resolver — id-first + Bitap fallback + SVG path</h3>
+<p><strong>Goal:</strong> Replace T10's regex-pass anchor resolution with <code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code> — a pure function <code>resolveAnchor({anchor, artifactHtml, threshold, distance}) → {strategy, dom_range, score} | {orphan: true, score}</code>. Three strategies: id-first DOM lookup; quote-fallback via dmp Bitap with prefix/suffix proximity; SVG via data-anchor or bbox.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-23</a>, <a href="02_spec.html#decisions-h">S2</a><br>
+<strong>Depends on:</strong> T11<br>
+<strong>Idempotent:</strong> yes — pure function<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/anchor.test.js</code> + <code>tests/scripts/assert_anchor_resolver.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test with 6 sub-cases per spec §14.1: (a) id-first hit on existing &lt;h2 id="x"&gt; → strategy="id-first", score=1.0, dom_range present; (b) id-first miss + quote-fallback hit → strategy="quote-fallback", score≥0.5; (c) both miss → orphan=true, score reported; (d) diagram_anchor by data-anchor match → returns shape_id + bbox; (e) diagram_anchor bbox fallback → returns matched-by-bbox; (f) prefix/suffix proximity bias — same quote in two locations, the one closer to prefix/suffix wins.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement. Load the html as a string. id-first: regex <code>id="anchor.id_anchor"</code>; if found, locate its containing &lt;section&gt; or surrounding region; for quote_anchor, run dmp.match_main inside the region. quote-fallback when id miss: scan whole &lt;main class="doc"&gt; body; bias score by prefix/suffix presence (if prefix appears within 200 chars before quote match, +0.1; same for suffix). SVG: scan for <code>&lt;svg ...&gt;</code> blocks; if diagram_anchor.shape_id is set, regex <code>data-anchor="shape_id"</code>; else bbox overlap (parse element bbox attrs).</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Refactor T10 <code>resolver.js</code> to call <code>resolveAnchor</code> instead of its inline regex pass. Re-run T10's test → still PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js plugins/pmos-toolkit/skills/comments/tests/anchor.test.js tests/scripts/assert_anchor_resolver.sh plugins/pmos-toolkit/skills/comments/scripts/resolver.js
+git commit -m "feat(T12): anchor resolver — id-first + Bitap + SVG"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_anchor_resolver.sh && bash tests/scripts/assert_resolver_confirm_each.sh</code> — both pass.</li>
+</ul>
+
+<hr>
+
+<h3 id="t13">T13: --batch mode + wave planner (P6 port from /execute)</h3>
+<p><strong>Goal:</strong> Add <code>--batch</code> mode to <code>/comments resolve</code>. Implement <code>plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js</code> by porting Kahn's-algorithm + greedy packing from <code>execute/subagent-driven.md</code>. Implement FR-25 overlap rules: text/text intersect, SVG/SVG bbox intersect, text/SVG never overlap. Right-to-left application within each wave to preserve offsets.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-25</a>, <a href="02_spec.html#decisions-h">S14</a>; Decision <a href="#decision-log-h">P6</a><br>
+<strong>Depends on:</strong> T12<br>
+<strong>Idempotent:</strong> yes (planner is deterministic on fixed input)<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js</code></li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/comments/scripts/resolver.js</code> (add --batch branch)</li>
+<li>Test: <code>plugins/pmos-toolkit/skills/comments/tests/wave-planner.test.js</code> + <code>tests/scripts/assert_wave_planner.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) 3 disjoint threads → 1 wave with 3 parallel; (b) 2 disjoint + 1 overlap → wave 1 has 2, wave 2 has 1; (c) all overlap → 3 sequential waves of 1; (d) text-only + SVG-only mixed → grouped into 2 waves (one per range type) per FR-25(iii); (e) within-wave right-to-left ordering — assert returned wave's task IDs are sorted by anchor start_offset descending.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement. Read the /execute Phase 1 algorithm from <code>plugins/pmos-toolkit/skills/execute/subagent-driven.md</code> + record the SHA at top of wave-planner.js as a provenance comment. Compute overlap relation per FR-25 (i)/(ii)/(iii). Kahn's-algorithm groups threads with disjoint anchors; greedy packing fills each wave; all-singleton fallback if planner detects cycle (shouldn't happen for static threads but defensive).</li>
+<li>[ ] Step 4: In <code>resolver.js</code>, add <code>mode === 'batch'</code> branch: planner → wave[] → for each wave, dispatch subagents in parallel via <code>Promise.all</code>, gather results, present combined diff with one AskUserQuestion, on Accept apply right-to-left, between waves sequential.</li>
+<li>[ ] Step 5: Run tests to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js plugins/pmos-toolkit/skills/comments/scripts/resolver.js plugins/pmos-toolkit/skills/comments/tests/wave-planner.test.js tests/scripts/assert_wave_planner.sh
+git commit -m "feat(T13): --batch wave planner ported from /execute"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_wave_planner.sh</code> — all 5 sub-cases pass.</li>
+<li><code>head -5 plugins/pmos-toolkit/skills/comments/scripts/wave-planner.js</code> — provenance comment with SHA of /execute source visible.</li>
+</ul>
+
+<hr>
+
+<h3 id="t14">T14: --auto and --non-interactive modes</h3>
+<p><strong>Goal:</strong> Two additional modes: <code>--auto</code> (apply every confidently-resolved edit without prompting; still uses AskUserQuestion for clarification requests per FR-26); <code>--non-interactive</code> (per S12: process unambiguous threads via Recommended defaults, defer ambiguous via in-thread system reply).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-26</a>, <a href="02_spec.html#fr-resolve">FR-32</a>, <a href="02_spec.html#decisions-h">S12</a><br>
+<strong>Depends on:</strong> T13<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/comments/scripts/resolver.js</code> (add --auto + --non-interactive branches)</li>
+<li>Test: extend <code>resolver-confirm-each.test.js</code> with auto/non-interactive cases, or add <code>resolver-modes.test.js</code> + <code>tests/scripts/assert_resolver_modes.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) --auto: 3 threads all confidently-resolved → all applied, no AskUserQuestion called; (b) --auto: 1 confident + 1 ambiguous (subagent returns clarification) → confident applied immediately, ambiguous triggers AskUserQuestion mid-run; (c) --non-interactive: 2 unambiguous + 1 ambiguous → unambiguous applied via Recommended-default, ambiguous gets system reply "deferred — operator input required", status stays open; (d) --non-interactive: end-of-run summary lists deferred threads.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement. <code>--auto</code>: skip the Accept/Reject prompt; apply on subagent success. <code>--non-interactive</code>: hook into the canonical non-interactive contract from spec §11.2; AUTO-PICK Recommended for any AskUserQuestion that has Recommended; DEFER any without (clarification requests have no Recommended → defer).</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/resolver.js plugins/pmos-toolkit/skills/comments/tests/resolver-modes.test.js tests/scripts/assert_resolver_modes.sh
+git commit -m "feat(T14): /comments resolve --auto + --non-interactive"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_resolver_modes.sh</code> — 4 sub-cases pass.</li>
+</ul>
+
+<hr>
+
+<h3 id="t15">T15: Clarification flow + re-dispatch cap=2 (S10)</h3>
+<p><strong>Goal:</strong> When a subagent returns <code>{clarification: {...}}</code>, surface a live AskUserQuestion with the question + options; feed pick back as a 2nd-pass input; cap at 1 clarification round per thread (FR-29). On Reject + refinement, re-dispatch is capped at 2 attempts per thread (S10); 3rd attempt collapses option list to {Modify, Skip}.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-resolve">FR-24</a>, <a href="02_spec.html#fr-resolve">FR-29</a>, <a href="02_spec.html#decisions-h">S10</a>, <a href="02_spec.html#edge-cases-h">E10</a><br>
+<strong>Depends on:</strong> T14<br>
+<strong>Idempotent:</strong> yes — per-thread counters reset between resolver runs<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/comments/scripts/resolver.js</code></li>
+<li>Test: extend <code>resolver-modes.test.js</code> or add <code>resolver-clarify-redispatch.test.js</code> + <code>tests/scripts/assert_resolver_clarify.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) subagent returns clarification → AskUserQuestion presented with the question; user picks option; subagent re-dispatched with selected option in input; (b) 2 sequential rejections with refinement notes → on 3rd presentation, option list is {Modify, Skip} only (no Re-dispatch); (c) clarification cap=1 — second clarification request from subagent collapses to system reply + status=open.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement: per-thread counters <code>{redispatchCount, clarificationCount}</code>; on subagent clarification response and clarificationCount &lt; 1, present AskUserQuestion + increment + re-dispatch; else fold to system reply. On user Reject + refinement, increment redispatchCount, re-dispatch; if redispatchCount &gt;= 2, on next presentation use restricted option set.</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/resolver.js plugins/pmos-toolkit/skills/comments/tests/resolver-clarify-redispatch.test.js tests/scripts/assert_resolver_clarify.sh
+git commit -m "feat(T15): clarification flow + re-dispatch cap=2"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_resolver_clarify.sh</code> — 3 cases pass.</li>
+</ul>
+
+<hr>
+
+<h3 id="t16">T16: error_enum closed-set handling + idempotency + schema-version refuse-load</h3>
+<p><strong>Goal:</strong> Handle each of the 4 closed-set <code>error_enum</code> values per FR-NEW-B (§9.2): <code>anchor_orphaned</code> (resolver-side, before subagent dispatch), <code>edit_conflicted</code> (wave-planner bug catch), <code>agent_judged_infeasible</code>, <code>agent_errored</code>. On any failure: append system reply to thread, status stays open, resolver continues. Implement idempotency per §9.3 (80% semantic-match returns no-op). Implement schema-version refuse-load per E4 (S3): on read of <code>schema_version &gt; 1</code>, exit 64 with grep-able stderr.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#api-error-enum">§9.2</a>, <a href="02_spec.html#api-idempotency">§9.3</a>, <a href="02_spec.html#fr-resolve">FR-28</a>, <a href="02_spec.html#decisions-h">S3</a>, <a href="02_spec.html#edge-cases-h">E4, E5, E6, E9</a><br>
+<strong>Depends on:</strong> T15<br>
+<strong>Idempotent:</strong> yes — that IS the contract<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/comments/scripts/resolver.js</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/schema.test.js</code> + <code>tests/scripts/assert_schema.sh</code></li>
+<li>Create: <code>tests/scripts/schema-version-refuse.test.sh</code> + <code>tests/scripts/assert_schema_version_refuse.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) anchor_orphaned: subagent returns error_enum=anchor_orphaned → thread status stays open, system reply contains "anchor_orphaned:" + suggested action, resolver continues to next; (b) agent_judged_infeasible: same pattern, system reply contains rationale + next step; (c) agent_errored: subagent throws OR returns malformed JSON → wrapped as agent_errored with first 200 chars of error; (d) edit_conflicted: simulated wave-planner returns two same-wave threads with overlapping ranges (force the bug) → thread fails, log "planner bug" warning + stay open; (e) §9.3 idempotency: second call returns no-op; semantic-match 80% → returns no-op; semantic-match between 60-80% → proceeds normally; (f) schema_version=99 sidecar → resolver exits 64 with grep-able stderr "schema_version=99 is newer than /comments (current=1)".</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement: wrap subagent dispatch in try/catch + JSON-parse defense; route by error_enum; semantic-match keyword overlap helper (stopword strip, 80%/60% thresholds per §9.3 F3 resolution); sidecar load includes schema_version branch (==1 ok; ==tool current ok; &gt;current exit 64; &lt;current upgrade-on-write).</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/resolver.js plugins/pmos-toolkit/skills/comments/tests/schema.test.js tests/scripts/assert_schema.sh tests/scripts/schema-version-refuse.test.sh tests/scripts/assert_schema_version_refuse.sh
+git commit -m "feat(T16): error_enum closed-set + idempotency + schema refuse-load"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_schema.sh && bash tests/scripts/assert_schema_version_refuse.sh</code> — both pass.</li>
+</ul>
+
+<hr>
+
+<h3 id="t17">T17: Resolver integration test — all 4 enum branches + clarification + 3 modes + non-interactive defer</h3>
+<p><strong>Goal:</strong> Single integration test at <code>plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code> + bash wrapper. Exercises the whole pipeline against a curated fixture with multiple threads, asserting end-to-end behavior across all modes and all error branches. This is the FR-61 ship-blocker test.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-contract-tests">FR-61</a>, <a href="02_spec.html#testing-integration">§14.2</a><br>
+<strong>Depends on:</strong> T16<br>
+<strong>Idempotent:</strong> yes — fixture is reset between sub-cases<br>
+<strong>TDD:</strong> yes — bug-fix shape: writes the assertion suite that locks the resolver behavior; any future regression breaks this test</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code></li>
+<li>Create: <code>tests/scripts/assert_resolver_integration.sh</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/integration/</code> (artifact + sidecar with 8 threads covering all paths)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Build the integration fixture: a 200-line synthetic artifact (id'd sections + an SVG with data-anchors) + sidecar with 8 threads — T_happy, T_orphan, T_infeasible, T_errored, T_clarify, T_conflict, T_idempotent, T_already_resolved (already status=resolved, should be skipped).</li>
+<li>[ ] Step 2: Write the integration test invoking the resolver in each mode with mock subagent + mock askUser scripted to drive the relevant paths: (a) --confirm-each: walk all 8, assert final sidecar has 5 resolved + 3 open (orphan, infeasible, errored each stay open); (b) --batch: planner partitions; combined diff present; same end-state; (c) --auto: skips all prompts on confident-resolved; clarification still triggers AskUserQuestion; (d) --non-interactive: clarification thread is deferred with system reply; resolver returns clean.</li>
+<li>[ ] Step 3: Run to verify FAIL (test file added but resolver assertions trigger initially due to fixture/mock setup mismatches; iterate until shaped right).</li>
+<li>[ ] Step 4: Fix any resolver behaviors surfaced by the integration test (true regressions from T15/T16 implementation gaps).</li>
+<li>[ ] Step 5: Run to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js plugins/pmos-toolkit/skills/comments/tests/fixtures/integration/ tests/scripts/assert_resolver_integration.sh
+git commit -m "feat(T17): resolver integration test — FR-61 ship-blocker green"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_resolver_integration.sh</code> — exits 0 with all 4-mode sub-cases passing.</li>
+<li><code>wc -l plugins/pmos-toolkit/skills/comments/tests/resolver.integration.test.js</code> — &gt;150 lines (substantial coverage).</li>
+</ul>
+
+<h2 id="phase-4">Phase 4: Fanout — 12 remaining skills + 2 orchestrator surfaces (T18–T21)</h2>
+<p><em>Phase rationale: with /spec proven (T11) and the resolver complete (T17), fan out the bake-in + apply-edit-at-anchor implementation to the remaining 12 skills + 2 orchestrator surfaces. Per P5, batch into 4 parallel-eligible tasks of ~3 skills each grouped by emit-template similarity. Each task follows the exact pattern proven at T9 (apply-phase prose + scripts/apply-edit-at-anchor.js shim + per-skill tests/apply-edit-at-anchor.test.js + bash wrapper). Tasks T18–T21 are [P] — wave-planner can run them concurrently in --subagent-driven mode. Phase 4→5 boundary triggers full /verify.</em></p>
+
+<h3 id="t18">T18 [P]: Batch A — /requirements, /plan, /artifact (prose+tables+decision-log shape)</h3>
+<p><strong>Goal:</strong> For each of /requirements, /plan, /artifact: add the "Apply comment-resolver edit" phase to SKILL.md; add scripts/apply-edit-at-anchor.js shim; add tests/apply-edit-at-anchor.test.js (per-skill contract test mirroring T9's 5-case structure); add tests/scripts/assert_apply_edit_at_anchor_&lt;slug&gt;.sh wrapper. Verify the existing emit already gets comments.js via the substrate template change from T8 (no per-skill template edits needed unless the skill bypasses the template — none of these three do).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-01</a>, <a href="02_spec.html#fr-resolve">FR-22</a>, <a href="02_spec.html#fr-contract-tests">FR-60</a>, <a href="02_spec.html#fr-contract-tests">FR-21</a> items 1, 3, 6<br>
+<strong>Wireframe refs:</strong> n/a (no UI change in this task; the overlay is already mounted by the substrate)<br>
+<strong>Depends on:</strong> T17<br>
+<strong>Idempotent:</strong> yes — apply-edit-at-anchor.js obeys §9.3<br>
+<strong>TDD:</strong> yes — new-feature (3 contract tests)</p>
+
+<p><strong>Files (×3 skills):</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/{requirements,plan,artifact}/SKILL.md</code> — append "Apply comment-resolver edit" phase + asset-substrate copy list update (comments.js/css + diff-match-patch + launcher trio)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/{requirements,plan,artifact}/scripts/apply-edit-at-anchor.js</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/{requirements,plan,artifact}/tests/apply-edit-at-anchor.test.js</code></li>
+<li>Create: <code>tests/scripts/assert_apply_edit_at_anchor_{requirements,plan,artifact}.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 0 (applies to every batch task T18–T21): each skill's emit MUST bake <code>&lt;meta name="pmos:skill" content="&lt;slug&gt;"&gt;</code> into the artifact &lt;head&gt; — this is the routing key the resolver reads (FR-01, FR-22). The substrate template does NOT auto-inject the meta tag (the slug differs per skill); each skill is responsible for emitting its own slug. Verification: <code>grep '&lt;meta name="pmos:skill"' &lt;emitted-artifact&gt;.html</code> returns exactly one line per emitted file.</li>
+<li>[ ] Step 1: For each of the 3 skills, write failing contract test (mirror T9's 5-case template; reuse fixture pattern from <code>plugins/pmos-toolkit/skills/spec/tests/fixtures/</code> but adapt the synthetic mini-artifact to each skill's content shape: /requirements mini has "Problem", "Solution" sections; /plan mini has "Tasks" + a single "T1" block; /artifact mini has its custom-template variant). Each contract test MUST also assert the emitted artifact contains the correct meta tag (per Step 0 above).</li>
+<li>[ ] Step 2: Run all 3 wrappers to verify FAIL.</li>
+<li>[ ] Step 3: Implement the 3 apply-edit-at-anchor.js shims (mostly copy from T9 with skill-specific feasibility heuristics — e.g., /plan refuses to edit task headers; /requirements refuses to remove FR IDs without explicit instruction).</li>
+<li>[ ] Step 4: Append the apply-phase prose to each SKILL.md citing <code>_shared/apply-edit-at-anchor.md</code>; extend each skill's asset-copy list.</li>
+<li>[ ] Step 5: Run all 3 wrappers to verify PASS.</li>
+<li>[ ] Step 6: Commit (one commit, all 3 skills):
+<pre><code>git add plugins/pmos-toolkit/skills/{requirements,plan,artifact}/{SKILL.md,scripts/,tests/} tests/scripts/assert_apply_edit_at_anchor_{requirements,plan,artifact}.sh
+git commit -m "feat(T18): Batch A — /requirements, /plan, /artifact apply-edit-at-anchor"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>for s in requirements plan artifact; do bash tests/scripts/assert_apply_edit_at_anchor_$s.sh || echo "FAIL: $s"; done</code> — all 3 PASS.</li>
+</ul>
+
+<hr>
+
+<h3 id="t19">T19 [P]: Batch B — /wireframes, /prototype, /diagram (visual/SVG shape)</h3>
+<p><strong>Goal:</strong> Same as T18 but for /wireframes, /prototype, /diagram. Plus: /wireframes emits a subfolder of N HTMLs + index.html — bake the comments.js reference into BOTH the per-screen template AND the index.html template (FR-21 counts these as 1 instrumentation surface but 2 emit references).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-01</a>, <a href="02_spec.html#fr-contract-tests">FR-60</a>, <a href="02_spec.html#fr-contract-tests">FR-21</a> items 4, 5, 7<br>
+<strong>Wireframe refs:</strong> n/a (does not introduce new UI; SVG retrofit is T23)<br>
+<strong>Depends on:</strong> T17 (parallel-eligible with T18)<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files (×3 skills):</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/{wireframes,prototype,diagram}/SKILL.md</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/{wireframes,prototype,diagram}/scripts/apply-edit-at-anchor.js</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/{wireframes,prototype,diagram}/tests/apply-edit-at-anchor.test.js</code></li>
+<li>Create: <code>tests/scripts/assert_apply_edit_at_anchor_{wireframes,prototype,diagram}.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 0: same meta-tag bake requirement as T18 — each skill emits its own <code>&lt;meta name="pmos:skill" content="&lt;slug&gt;"&gt;</code>; verification via <code>grep '&lt;meta name="pmos:skill"' &lt;emitted&gt;.html</code> in each contract test.</li>
+<li>[ ] Step 1: Write 3 failing contract tests with fixtures adapted to each skill's shape: /wireframes fixture has 2 screens + an index.html with cross-screen nav; /prototype fixture has a single-page SPA shell; /diagram fixture has an inline &lt;svg&gt; with 3 &lt;g&gt; groups.</li>
+<li>[ ] Step 2: Run wrappers to verify FAIL.</li>
+<li>[ ] Step 3: Implement the 3 shims. /wireframes shim must handle both per-screen edits and index.html edits (input.artifact_path may be either). /diagram shim refuses to edit SVG geometry directly — restricts to data-anchor element attributes + label text.</li>
+<li>[ ] Step 4: For /wireframes specifically, also extend the per-screen template emit so the bake reference appears in BOTH the index.html and each per-screen HTML (asset_prefix differs by 1 level for subfolder files → ensure prefix calculation is correct).</li>
+<li>[ ] Step 5: Run wrappers to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/{wireframes,prototype,diagram}/ tests/scripts/assert_apply_edit_at_anchor_{wireframes,prototype,diagram}.sh
+git commit -m "feat(T19): Batch B — /wireframes, /prototype, /diagram apply-edit-at-anchor"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>for s in wireframes prototype diagram; do bash tests/scripts/assert_apply_edit_at_anchor_$s.sh || echo "FAIL: $s"; done</code> — all 3 PASS.</li>
+<li><code>grep -c 'comments.js' plugins/pmos-toolkit/skills/wireframes/SKILL.md</code> — ≥1 (bake reference present for both index + per-screen).</li>
+</ul>
+
+<hr>
+
+<h3 id="t20">T20 [P]: Batch C — /ideate, /survey-design, /survey-analyse (interactive/data shape)</h3>
+<p><strong>Goal:</strong> Same pattern for /ideate, /survey-design, /survey-analyse. /survey-* skills emit HTML with embedded charts/forms — the apply-edit-at-anchor shim must refuse to edit chart data / form schema (those are generated from inputs, not editable post-hoc).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-contract-tests">FR-60</a>, <a href="02_spec.html#fr-contract-tests">FR-21</a> items 8, 9, 10<br>
+<strong>Depends on:</strong> T17<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files (×3 skills):</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/{ideate,survey-design,survey-analyse}/SKILL.md</code></li>
+<li>Create: per-skill <code>scripts/apply-edit-at-anchor.js</code>, <code>tests/apply-edit-at-anchor.test.js</code>, and bash wrappers.</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 0: same meta-tag bake requirement as T18 (each skill's emit includes its own <code>&lt;meta name="pmos:skill" content="&lt;slug&gt;"&gt;</code>).</li>
+<li>[ ] Step 1: Write 3 failing tests + fixtures (briefs / survey form / analysis charts).</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement 3 shims with skill-specific feasibility refusals (survey form schema is read-only post-emit; charts are read-only).</li>
+<li>[ ] Step 4: SKILL.md updates + asset-list extensions.</li>
+<li>[ ] Step 5: Run to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/{ideate,survey-design,survey-analyse}/ tests/scripts/assert_apply_edit_at_anchor_{ideate,survey-design,survey-analyse}.sh
+git commit -m "feat(T20): Batch C — /ideate, /survey-design, /survey-analyse apply-edit-at-anchor"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>for s in ideate survey-design survey-analyse; do bash tests/scripts/assert_apply_edit_at_anchor_$s.sh; done</code> — all PASS.</li>
+</ul>
+
+<hr>
+
+<h3 id="t21">T21 [P]: Batch D — /polish, /architecture, /readme + orchestrator (/feature-sdlc 2 surfaces)</h3>
+<p><strong>Goal:</strong> Final fanout batch: /polish, /architecture, /readme apply-edit-at-anchor (3 skills); AND wire the 2 orchestrator surfaces (00_pipeline.html and 00_open_questions_index.html written by /feature-sdlc). For the orchestrator: the apply-edit-at-anchor entrypoint lives at <code>plugins/pmos-toolkit/skills/feature-sdlc/scripts/apply-edit-at-anchor.js</code>; ONE contract test at <code>feature-sdlc/tests/apply-edit-at-anchor.test.js</code> covers BOTH orchestrator surfaces (input differentiates by artifact_path). Brings total to 13 skill contract tests + 1 orchestrator contract test = 14 test files (FR-60 says "each of the 13 originating skills"; orchestrator's separate test = +1 surface coverage).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-contract-tests">FR-60</a>, <a href="02_spec.html#fr-contract-tests">FR-62</a>, <a href="02_spec.html#fr-contract-tests">FR-21</a> items 11, 12, 13 + the orchestrator entry<br>
+<strong>Depends on:</strong> T17<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/{polish,architecture,readme}/SKILL.md</code></li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/feature-sdlc/SKILL.md</code> — bake comments.js into both <code>00_pipeline.html</code> emit + <code>00_open_questions_index.html</code> emit; cite contract doc.</li>
+<li>Create: per-skill <code>scripts/apply-edit-at-anchor.js</code>, <code>tests/apply-edit-at-anchor.test.js</code> for 4 skills (3 + feature-sdlc) + bash wrappers.</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 0: same meta-tag bake requirement as T18 — note that /feature-sdlc emits TWO surfaces (00_pipeline.html with <code>pmos:skill="feature-sdlc"</code>, 00_open_questions_index.html also with <code>pmos:skill="feature-sdlc"</code>); the resolver routes both to the /feature-sdlc apply-edit-at-anchor entrypoint which differentiates by artifact_path.</li>
+<li>[ ] Step 1: Write 4 failing tests with fixtures: /polish fixture is a polished prose doc; /architecture fixture is an audit; /readme fixture is the README.html; /feature-sdlc fixtures are 00_pipeline + 00_open_questions_index minimal docs.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement 4 shims; /feature-sdlc's shim dispatches by artifact_path: pipeline-status table edits vs OQ-index edits.</li>
+<li>[ ] Step 4: SKILL.md updates including /feature-sdlc's dual-surface bake.</li>
+<li>[ ] Step 5: Run to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/{polish,architecture,readme,feature-sdlc}/ tests/scripts/assert_apply_edit_at_anchor_{polish,architecture,readme,feature-sdlc}.sh
+git commit -m "feat(T21): Batch D — /polish, /architecture, /readme + /feature-sdlc orchestrator surfaces"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>for s in polish architecture readme feature-sdlc; do bash tests/scripts/assert_apply_edit_at_anchor_$s.sh; done</code> — all PASS.</li>
+<li><code>grep -c 'comments.js' plugins/pmos-toolkit/skills/feature-sdlc/SKILL.md</code> — ≥2 (one per orchestrator surface).</li>
+<li><strong>Cumulative coverage check:</strong> <code>find plugins/pmos-toolkit/skills -path '*/tests/apply-edit-at-anchor.test.js' | wc -l</code> — exactly 14 (13 originating + 1 orchestrator).</li>
+</ul>
+
+<h2 id="phase-5">Phase 5: Polish & Edges (T22–T26)</h2>
+<p><em>Phase rationale: substrate + 14-surface coverage is in place. Now harden: Safari/Firefox download fallback (T22), SVG data-anchor retrofit (T23), orphan banner + diagram markers + stakeholder mode (T24), pre-commit drift hook (T25), anchor calibration on 50-span corpus (T26). Each task is independently committable; T26 (calibration) may surface threshold tuning that retroactively updates the default in T12.</em></p>
+
+<h3 id="t22">T22: Safari/Firefox download fallback + bundle-size CI guard</h3>
+<p><strong>Goal:</strong> Add browser-feature detection to <code>comments.js</code>: on FSA-unavailable browsers (Safari, Firefox), surface a "Save sidecar" button; assemble the full sidecar in-memory; on click, trigger a browser download with the correct filename. Persist drafts in localStorage between captures. Plus: CI bundle-size guard via GitHub Actions per NFR-02.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-persistence">FR-12</a>, <a href="02_spec.html#nfr-h">NFR-02</a>, <a href="02_spec.html#nfr-h">NFR-04</a><br>
+<strong>Wireframe refs:</strong> <a href="wireframes/index.html">wireframes/index.html</a> — "Save sidecar" header button (panel-header state)<br>
+<strong>Depends on:</strong> T21<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> (extend with fallback)</li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css</code> (Save sidecar button styles)</li>
+<li>Test: extend <code>tests/scripts/comments-js.test.js</code></li>
+<li>Create: <code>.github/workflows/comments-bundle-size.yml</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) with FSA unavailable (stub <code>window.showDirectoryPicker = undefined</code>), submit a thread → no FSA call, instead localStorage gets the draft, "Save sidecar" button is rendered visible; (b) click "Save sidecar" → triggers a download (mock <code>document.createElement('a')</code> + click); downloaded blob is the serialized sidecar; (c) after successful download, localStorage drafts cleared; (d) bundle-size workflow file present at .github/workflows/.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement browser-feature detection (typeof showDirectoryPicker === 'function' check); fallback path; localStorage draft mirroring; Save sidecar download via &lt;a download&gt; trick.</li>
+<li>[ ] Step 4: Author the CI workflow: on PR + push to main, <code>du -b</code> the sum of <code>comments.js + comments.css + diff-match-patch.js</code>; warn (echo + GH annotation) at &gt;20KB; exit 1 at &gt;40KB. Use the GitHub Actions runner's default <code>ubuntu-latest</code>.</li>
+<li>[ ] Step 5: Run tests to verify PASS. Confirm <code>du -b ... | awk '{s+=$1} END {print s}'</code> currently &lt;20KB (or below 40KB at worst).</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css tests/scripts/comments-js.test.js .github/workflows/comments-bundle-size.yml
+git commit -m "feat(T22): Safari/Firefox download fallback + bundle-size CI guard"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_comments_js_unit.sh</code> — passes with new fallback cases.</li>
+<li><code>du -bc plugins/pmos-toolkit/skills/_shared/html-authoring/assets/{comments.js,comments.css,diff-match-patch.js} | tail -1</code> — &lt;40KB.</li>
+</ul>
+
+<hr>
+
+<h3 id="t23">T23: SVG retrofit — /diagram + /wireframes emit data-anchor (FR-50, FR-51, S15)</h3>
+<p><strong>Goal:</strong> /diagram emits <code>data-anchor="&lt;slug&gt;"</code> on every &lt;g&gt;, top-level &lt;rect&gt;, &lt;path&gt;; /wireframes does the same for inline-SVG wireframes. Slug derivation per S15: kebab(id) → kebab(label) → shape-&lt;N&gt;. Dedupe via -2/-3 suffixes per SVG. Update both skills' SKILL.md prose; regenerate canonical snapshot fixtures.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-svg-anchor">FR-50</a>, <a href="02_spec.html#fr-svg-anchor">FR-51</a>, <a href="02_spec.html#decisions-h">S15</a>; Risk <a href="#risks-h">R6</a><br>
+<strong>Depends on:</strong> T22<br>
+<strong>Idempotent:</strong> yes — re-emitting same SVG produces same anchor slugs (deterministic)<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/diagram/SKILL.md</code> + <code>plugins/pmos-toolkit/skills/diagram/scripts/svg-emit.js</code> (or wherever the SVG generation lives — locate during step 1)</li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/wireframes/SKILL.md</code> + wireframe template assets that contain inline SVG</li>
+<li>Test: <code>plugins/pmos-toolkit/skills/diagram/tests/svg-data-anchor.test.js</code> + <code>tests/scripts/assert_svg_data_anchor.sh</code></li>
+<li>Modify: existing snapshot fixtures in <code>tests/fixtures/</code> for /diagram + /wireframes</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Locate the SVG-emit code paths in /diagram + /wireframes (grep for <code>&lt;svg</code> in their SKILL.md or scripts). Write failing tests asserting data-anchor presence: (a) /diagram emits an SVG with 3 &lt;g&gt; groups (with ids "header", "body", "footer") → resulting SVG has <code>data-anchor="header"</code>, <code>data-anchor="body"</code>, <code>data-anchor="footer"</code>; (b) /diagram emits an SVG with 2 &lt;g&gt; groups having no id but aria-label "Step 1", "Step 2" → kebab fallback yields <code>data-anchor="step-1"</code>, <code>data-anchor="step-2"</code>; (c) collision dedupe: 3 unlabeled groups → <code>data-anchor="shape-1"</code>, <code>shape-2</code>, <code>shape-3</code>; (d) /wireframes inline SVG same patterns.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement the slug-derivation function in /diagram's svg-emit pass; wire into both /diagram and /wireframes (a shared helper at <code>_shared/html-authoring/assets/svg-anchor.js</code> if both need it). Update SKILL.md prose for the new emit contract.</li>
+<li>[ ] Step 4: Regenerate snapshot fixtures: any existing diagram/wireframe test fixture under <code>tests/fixtures/</code> with inline SVG must be re-rendered or updated to expect data-anchor attributes. Audit + bulk-update via a one-shot script; commit the diff with explanation.</li>
+<li>[ ] Step 5: Run tests to verify PASS — including the re-baselined snapshot tests.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/{diagram,wireframes}/ plugins/pmos-toolkit/skills/_shared/html-authoring/assets/svg-anchor.js tests/scripts/assert_svg_data_anchor.sh tests/fixtures/
+git commit -m "feat(T23): SVG data-anchor retrofit — /diagram + /wireframes"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_svg_data_anchor.sh</code> — all 4 sub-cases pass.</li>
+<li><code>grep -rE 'data-anchor="' tests/fixtures/ | wc -l</code> — &gt;0 (snapshots updated).</li>
+</ul>
+
+<hr>
+
+<h3 id="t24">T24: Orphan banner + diagram markers + stakeholder review-mode toggle + file:// warning</h3>
+<p><strong>Goal:</strong> Round out the overlay UX surfaces: (a) orphan banner — overlay scans threads for <code>orphan: true</code> on load and shows "N orphaned threads — view + reattach" banner with per-thread actions; (b) diagram markers — for threads with <code>diagram_anchor</code>, render an absolutely-positioned 16px circular marker over the SVG element; (c) stakeholder hide-overlay flag — read localStorage['pmos:reviewMode']; if 'off', no UI surfaces. Keyboard shortcut Ctrl/Cmd+Alt+R toggles. (d) file:// warning blocking modal per E1.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-capture">FR-02</a>, <a href="02_spec.html#fr-capture">FR-05</a>, <a href="02_spec.html#fr-capture">FR-06</a>, <a href="02_spec.html#fr-svg-anchor">FR-52</a>, <a href="02_spec.html#frontend-design-h">§11.3</a>, <a href="02_spec.html#edge-cases-h">E1</a><br>
+<strong>Wireframe refs:</strong> <a href="wireframes/index.html">wireframes/index.html</a> — orphan banner, file:// modal, diagram markers components<br>
+<strong>Depends on:</strong> T23<br>
+<strong>Idempotent:</strong> yes<br>
+<strong>TDD:</strong> yes — new-feature</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> + <code>comments.css</code></li>
+<li>Test: extend <code>tests/scripts/comments-js.test.js</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing tests: (a) load sidecar with 2 threads where one has orphan:true → banner mounted with "1 orphaned thread"; (b) reattach action calls a stub that updates the thread's quote_anchor; (c) load with 1 diagram_anchor thread + a stub SVG → marker positioned at the data-anchor element's bbox centroid; (c2 — covers FR-52) <strong>foreign-SVG bbox capture fallback</strong>: SVG has NO descendant carrying <code>data-anchor</code> (simulates /artifact's foreign embeds); operator clicks at point (100, 50) within the SVG; comments.js MUST produce <code>diagram_anchor: {svg_id, shape_id: null, bbox: [80, 30, 40, 40]}</code> (click point ±20px); assert anchor shape; (d) localStorage['pmos:reviewMode']='off' → no overlay surfaces (#pmos-comments-overlay element absent or display:none); (e) Ctrl+Alt+R toggles the flag (jsdom KeyboardEvent stub); (f) window.location.protocol='file:' → blocking modal rendered with copy-clipboard buttons; no other capture surfaces.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement each surface. Orphan banner: scan threads on init, render sticky-top in side panel; per-thread actions wire to compose form re-anchor. Diagram markers: for each diagram_anchor thread, find the SVG element, compute centroid, position 16px circle with z-index 5. <strong>Foreign-SVG bbox capture (FR-52):</strong> when operator clicks inside an SVG whose ancestor &lt;g&gt;/&lt;rect&gt;/&lt;path&gt; has no <code>data-anchor</code> attribute, capture a bbox anchor instead of a shape_id anchor — emit <code>{svg_id, shape_id: null, bbox: [click.x-20, click.y-20, 40, 40]}</code>; resolver at runtime matches by bbox-overlap (FR-23(d)). Stakeholder mode: read localStorage on init, early-return if 'off'; keyboard listener at document level. file:// modal: detect on init, render blocking modal, exit no-capture.</li>
+<li>[ ] Step 4: Run tests to verify PASS.</li>
+<li>[ ] Step 5: Verify bundle size still under cap: <code>du -bc plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.{js,css} diff-match-patch.js | tail -1</code>.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css tests/scripts/comments-js.test.js
+git commit -m "feat(T24): orphan banner + diagram markers + review-mode + file:// warning"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_comments_js_unit.sh</code> — all assertions pass.</li>
+<li><code>du -bc plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.{js,css} plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js | tail -1</code> — under 40KB hard cap.</li>
+</ul>
+
+<hr>
+
+<h3 id="t25">T25: Pre-commit drift hook + installer + test + conventions.md update</h3>
+<p><strong>Goal:</strong> The pre-commit hook at <code>.githooks/pre-commit-comments-drift</code> + installer <code>scripts/install-comments-hooks.sh</code>. Extend <code>.githooks/pre-commit</code> to source the comments-drift sub-hook (preserves the existing _shared/ drift check). Hook logic per FR-15: detect staged .html under docs/pmos/ where sibling .comments.json exists but isn't staged (or vice versa); refuse with grep-able stderr; bypassable via --no-verify per S5. Append "§7 Comments sidecar pair convention" to conventions.md describing the git mv pair (S7).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-persistence">FR-15</a>, <a href="02_spec.html#decisions-h">S5, S7</a><br>
+<strong>Depends on:</strong> T24<br>
+<strong>Idempotent:</strong> yes — installer detects existing line and skips append<br>
+<strong>TDD:</strong> yes — bug-fix shape (regression test that exercises the hook directly)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>.githooks/pre-commit-comments-drift</code></li>
+<li>Create: <code>scripts/install-comments-hooks.sh</code></li>
+<li>Modify: <code>.githooks/pre-commit</code> (append source line idempotently)</li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md</code> (append §7)</li>
+<li>Test: <code>tests/scripts/assert_comments_drift_hook.sh</code> + fixture under <code>tests/fixtures/comments-drift/</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing test <code>assert_comments_drift_hook.sh</code>: setup a fixture git repo with <code>docs/pmos/feat/a.html</code> + <code>docs/pmos/feat/a.comments.json</code>; (case A) stage only a.html → run hook → expect exit 1 + stderr matches "comments-drift: docs/pmos/feat/a.html is staged but its sibling docs/pmos/feat/a.comments.json is not"; (case B) stage both → expect exit 0; (case C) stage with <code>--no-verify</code> equivalent (run hook with env var simulating bypass) → exit 0; (case D) installer idempotency — run install twice → .githooks/pre-commit's source line appears exactly once.</li>
+<li>[ ] Step 2: Run to verify FAIL.</li>
+<li>[ ] Step 3: Implement hook + installer. Hook walks <code>git diff --cached --name-only</code>, partitions by .html / .comments.json extension under docs/pmos/, checks pairing; emits exit 1 with multi-line grep-able stderr on mismatch.</li>
+<li>[ ] Step 4: Append §7 to conventions.md: "Comments sidecar pair convention — when renaming an artifact, the operator MUST <code>git mv</code> both the .html AND its .comments.json sibling. The drift hook (FR-15) refuses commits where one half is staged without the other; <code>--no-verify</code> bypasses this check per S5."</li>
+<li>[ ] Step 5: Run tests to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add .githooks/pre-commit .githooks/pre-commit-comments-drift scripts/install-comments-hooks.sh plugins/pmos-toolkit/skills/_shared/html-authoring/conventions.md tests/scripts/assert_comments_drift_hook.sh tests/fixtures/comments-drift/
+git commit -m "feat(T25): pre-commit drift hook + installer + §7 conventions"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_comments_drift_hook.sh</code> — 4 cases pass.</li>
+<li><code>grep -c 'pre-commit-comments-drift' .githooks/pre-commit</code> — exactly 1.</li>
+<li><code>bash scripts/install-comments-hooks.sh && bash scripts/install-comments-hooks.sh && grep -c 'pre-commit-comments-drift' .githooks/pre-commit</code> — still exactly 1 (idempotent).</li>
+</ul>
+
+<hr>
+
+<h3 id="t26">T26: Anchor calibration — 50-span corpus + Bitap threshold tune + re-anchor integration test</h3>
+<p><strong>Goal:</strong> Build the deterministic 50-span calibration corpus per P7; run the anchor resolver against the corpus; assert id-first hits ≥45/50, quote-fallback+orphan ≤5/50, orphan ≤3/50 (per spec §14.6). Tune <code>--anchor-threshold</code> default if needed and re-run. Also implement the re-anchor integration test (FR-23 quote-fallback / orphan path on regenerated artifact).<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#decisions-h">S2</a>, <a href="02_spec.html#testing-anchor-calibration">§14.6</a>, <a href="02_spec.html#testing-integration">§14.2 re-anchor integration</a>; Risk <a href="#risks-h">R1</a>; Decision <a href="#decision-log-h">P7</a><br>
+<strong>Depends on:</strong> T25<br>
+<strong>Idempotent:</strong> yes — deterministic seed (random.seed(2026))<br>
+<strong>TDD:</strong> yes — bug-fix shape (corpus-driven regression suite)</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/scripts/build-calibration-corpus.py</code> (one-shot, generates the 50-span JSON deterministically)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/scorer.test.js</code> + <code>tests/scripts/assert_scorer_calibration.sh</code></li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/reanchor.integration.test.js</code> + <code>tests/scripts/assert_reanchor_integration.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write the corpus generator <code>build-calibration-corpus.py</code>: list all .html files under <code>docs/pmos/features/2026-04-*/</code> + <code>2026-05-0[1-7]_*/</code>; sort; <code>random.seed(2026)</code>; pick 50 random spans (each: file, section_id, quote, prefix, suffix). Output JSON to fixtures/.</li>
+<li>[ ] Step 2: Run: <code>python3 plugins/pmos-toolkit/skills/comments/scripts/build-calibration-corpus.py > plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code>. Confirm 50 entries.</li>
+<li>[ ] Step 3: Write failing scorer test <code>scorer.test.js</code>: load the corpus; for each span, regenerate the artifact with a light AI-rewrite-style perturbation (programmatic word substitution from a small wordlist applied stochastically with the same seed); run anchor resolver against the perturbed artifact; classify each result (id-first hit / quote-fallback hit / orphan); assert thresholds. Also re-anchor integration test: load fixture + sidecar with quote-anchored thread; regenerate fixture with reworded prose; assert thread re-attaches or marks orphan correctly.</li>
+<li>[ ] Step 4: Run to verify FAIL (resolver hasn't been calibrated; expected initially).</li>
+<li>[ ] Step 5: Run the test against the current Match_Threshold=0.5 default. If asserts pass, commit as-is. If fail, tune threshold (try 0.45 and 0.55); re-run; pick the value that satisfies the §14.6 thresholds with margin; update the default in T12's anchor-resolver.js + document the tune decision as a new Decision P8 (append to Decision Log at this task).</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/scripts/build-calibration-corpus.py plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json plugins/pmos-toolkit/skills/comments/tests/scorer.test.js plugins/pmos-toolkit/skills/comments/tests/reanchor.integration.test.js tests/scripts/assert_scorer_calibration.sh tests/scripts/assert_reanchor_integration.sh plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js
+git commit -m "feat(T26): anchor calibration corpus + Bitap tune + re-anchor integration test"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_scorer_calibration.sh</code> — exits 0 with "id-first: N/50, quote: M/50, orphan: K/50" where N≥45, K≤3.</li>
+<li><code>bash tests/scripts/assert_reanchor_integration.sh</code> — passes.</li>
+<li><code>jq '.spans | length' plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code> — 50.</li>
+</ul>
+
+<h2 id="phase-6">Phase 6: Verification & Rollout (T27–T29)</h2>
+<p><em>Phase rationale: gate the work with the coverage script + /verify integration (T27); manual smokes across all 3 OS launchers + Safari/Firefox download path + Chrome E2E (T28); CLAUDE.md update + final verification (TN, T29). TN is the deployable signal: every gate green, all 14 contract tests + integration test + drift hook passing.</em></p>
+
+<h3 id="t27">T27: scripts/check-comments-coverage.sh + /verify gate integration + meta-test</h3>
+<p><strong>Goal:</strong> Implement <code>scripts/check-comments-coverage.sh</code> per FR-62 (verbatim from spec §14.4 but updated: 13 contract tests + 15 emit references + 1 integration test + 1 orchestrator contract test = "13 + 15 + 1 + 1" = 30 assertions; spec wording is "fewer than 13 contract tests" → ship-blocker). Wire into <code>verify/SKILL.md</code>'s gate set. Meta-test: scenario where one skill is missing → script exits 1 with the missing skill name in stderr.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#fr-contract-tests">FR-62</a>, <a href="02_spec.html#testing-coverage">§14.4</a><br>
+<strong>Depends on:</strong> T26<br>
+<strong>Idempotent:</strong> yes — read-only check<br>
+<strong>TDD:</strong> yes — bug-fix shape</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>scripts/check-comments-coverage.sh</code></li>
+<li>Modify: <code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> (add invocation to gate set)</li>
+<li>Test: <code>tests/scripts/assert_check_comments_coverage.sh</code> + fixture under <code>tests/fixtures/check-comments-coverage/</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Write failing meta-test: (a) golden case — run check-comments-coverage.sh against current repo → exits 0 with PASS line; (b) missing-skill case — symlink the script's --root at a fixture where one skill's tests/ dir is removed → exits 1 with stderr listing the missing skill; (c) missing emit-reference case — similar; (d) missing integration test → exits 1.</li>
+<li>[ ] Step 2: Run to verify FAIL (script not yet created).</li>
+<li>[ ] Step 3: Implement the script per spec §14.4 template; extend with the 14th surface (feature-sdlc) and the 2 orchestrator references in the emit check.</li>
+<li>[ ] Step 4: Wire into verify/SKILL.md — add a step "Run scripts/check-comments-coverage.sh" to /verify Phase 4 or Phase 5 gate set; hard-fail on non-zero exit.</li>
+<li>[ ] Step 5: Run tests to verify PASS.</li>
+<li>[ ] Step 6: Commit:
+<pre><code>git add scripts/check-comments-coverage.sh plugins/pmos-toolkit/skills/verify/SKILL.md tests/scripts/assert_check_comments_coverage.sh tests/fixtures/check-comments-coverage/
+git commit -m "feat(T27): check-comments-coverage.sh + /verify gate integration"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash scripts/check-comments-coverage.sh</code> — exits 0 with "PASS — 13 contract tests + 15 emit references + 1 integration test".</li>
+<li><code>bash tests/scripts/assert_check_comments_coverage.sh</code> — 4 sub-cases pass.</li>
+<li><code>grep -c 'check-comments-coverage' plugins/pmos-toolkit/skills/verify/SKILL.md</code> — ≥1.</li>
+</ul>
+
+<hr>
+
+<h3 id="t28">T28: Manual smoke — launcher trio on macOS/Linux/Windows + Chrome E2E + Safari fallback</h3>
+<p><strong>Goal:</strong> Document and execute the manual smoke checklist for each OS launcher + each browser fallback path. Captured in <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> as a checklist with screenshots / terminal transcripts per case. Chrome FSA write E2E test via <code>chrome-devtools-mcp</code> automation (or playwright if available); manual smokes for Safari + Firefox + the Linux + Windows launchers.<br>
+<strong>Spec refs:</strong> <a href="02_spec.html#testing-e2e">§14.3</a>, <a href="02_spec.html#nfr-h">NFR-04</a><br>
+<strong>Depends on:</strong> T27<br>
+<strong>Idempotent:</strong> N/A (manual cases; automated case is one-shot)<br>
+<strong>TDD:</strong> no — manual / E2E smoke; not unit-testable</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> (the manual checklist with per-case sections)</li>
+<li>Create: <code>plugins/pmos-toolkit/skills/comments/tests/fsa-write.e2e.test.js</code> (Chrome E2E via chrome-devtools-mcp or playwright)</li>
+<li>Create: <code>tests/scripts/assert_fsa_write_e2e.sh</code> (wrapper, skips if Chrome unavailable)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+<ul>
+<li>[ ] Step 1: Author MANUAL-fsa-fallback.md with sections per platform: (a) macOS launcher double-click → Chrome opens → comment captures → sidecar appears; (b) macOS launcher with Node uninstalled → exit 127 + grep-able stderr; (c) Linux equivalent; (d) Windows equivalent via .bat; (e) Safari fallback → download triggers, replace .comments.json manually; (f) Firefox fallback — same; (g) Chrome FSA permission revocation simulation (DevTools → Application → Storage → manually revoke perm) → banner appears → re-grant → save succeeds.</li>
+<li>[ ] Step 2: Author the Chrome E2E test. Use the chrome-devtools-mcp tooling (already available in this repo's MCP servers list): navigate to <code>http://localhost:&lt;port&gt;/02_spec_mini.html</code>; programmatically select text via <code>document.getSelection</code>; click floating button via the page snapshot; submit thread; verify .comments.json appears on disk via fs poll. Wrap in a Node test that orchestrates serve.js + the MCP browser session.</li>
+<li>[ ] Step 3: Execute the E2E test: <code>bash tests/scripts/assert_fsa_write_e2e.sh</code>. On host without chrome-devtools-mcp installed, skip with a clear log message (the test wrapper detects MCP availability via env var or a probe).</li>
+<li>[ ] Step 4: Execute the manual checklist on developer's machine (macOS). Tick off each item with terminal transcripts captured into the .md file. Linux + Windows cases either run on the developer's machine if available OR are marked "deferred to next pass with maintainer attestation".</li>
+<li>[ ] Step 5: Commit:
+<pre><code>git add plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md plugins/pmos-toolkit/skills/comments/tests/fsa-write.e2e.test.js tests/scripts/assert_fsa_write_e2e.sh
+git commit -m "feat(T28): manual smoke checklist + Chrome FSA E2E test"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+<li><code>bash tests/scripts/assert_fsa_write_e2e.sh</code> — exits 0 (or skips with clear message if Chrome unavailable).</li>
+<li><code>grep -c '^- \[x\]' plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> — ≥3 (at least macOS happy path + launcher edge + FSA-revocation case ticked).</li>
+</ul>
+
+<hr>
+
+<h3 id="t29">TN: Final Verification</h3>
+<p><strong>Goal:</strong> Validate the entire implementation works end-to-end against the Done-when definition.<br>
+<strong>Spec refs:</strong> Universal exit checklist + all 38 FRs + 9 NFRs.<br>
+<strong>Depends on:</strong> T28<br>
+<strong>Idempotent:</strong> yes — all checks are read-only</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>CLAUDE.md</code> — append "## Inline doc comments" section documenting the overlay, sidecar pair convention, drift hook bypass policy, and pointer to /comments resolve</li>
+<li>Modify: nothing else — TN is read-only verification</li>
+</ul>
+
+<p><strong>Steps (verification checklist):</strong></p>
+<ul>
+<li>[ ] <strong>Lint &amp; format:</strong> <code>bash tests/scripts/assert_no_es_modules_in_viewer.sh</code> (still passes after touching viewer/comments.js) and shellcheck (if installed) on the new bash scripts: <code>shellcheck scripts/install-comments-hooks.sh scripts/check-comments-coverage.sh .githooks/pre-commit-comments-drift tests/scripts/assert_apply_edit_at_anchor_*.sh tests/scripts/assert_comments*.sh tests/scripts/assert_resolver*.sh</code> — 0 errors.</li>
+<li>[ ] <strong>Type check:</strong> n/a (plain JS, no TypeScript).</li>
+<li>[ ] <strong>Unit tests:</strong> <code>bash tests/scripts/assert_comments_js_unit.sh && bash tests/scripts/assert_diff_match_patch.sh && bash tests/scripts/assert_comments_id.sh && bash tests/scripts/assert_anchor_resolver.sh && bash tests/scripts/assert_wave_planner.sh && bash tests/scripts/assert_schema.sh</code> — all exit 0.</li>
+<li>[ ] <strong>Per-skill contract tests:</strong> <code>for s in requirements spec plan wireframes prototype artifact diagram ideate survey-design survey-analyse polish architecture readme feature-sdlc; do bash tests/scripts/assert_apply_edit_at_anchor_$s.sh || echo "FAIL: $s"; done | tee /tmp/contract-results.log && ! grep -q FAIL /tmp/contract-results.log</code> — all 14 PASS.</li>
+<li>[ ] <strong>Resolver integration test (FR-61):</strong> <code>bash tests/scripts/assert_resolver_integration.sh</code> — exits 0.</li>
+<li>[ ] <strong>Drift hook test:</strong> <code>bash tests/scripts/assert_comments_drift_hook.sh</code> — 4 sub-cases pass.</li>
+<li>[ ] <strong>Coverage gate (FR-62):</strong> <code>bash scripts/check-comments-coverage.sh</code> — exits 0 with "PASS — 13 contract tests + 15 emit references + 1 integration test".</li>
+<li>[ ] <strong>Anchor calibration (Goal-1, §14.6):</strong> <code>bash tests/scripts/assert_scorer_calibration.sh</code> — id-first ≥45/50, orphan ≤3/50.</li>
+<li>[ ] <strong>Re-anchor integration:</strong> <code>bash tests/scripts/assert_reanchor_integration.sh</code> — passes.</li>
+<li>[ ] <strong>Schema-version refuse-load:</strong> <code>bash tests/scripts/assert_schema_version_refuse.sh</code> — exits 0 (test internal exits 64 as expected).</li>
+<li>[ ] <strong>Bundle size (NFR-02):</strong> <code>du -bc plugins/pmos-toolkit/skills/_shared/html-authoring/assets/{comments.js,comments.css,diff-match-patch.js} | tail -1</code> — &lt;40KB hard cap (target &lt;20KB).</li>
+<li>[ ] <strong>Database migrations:</strong> n/a (no DB).</li>
+<li>[ ] <strong>Docker deploy:</strong> n/a (no Docker stack).</li>
+<li>[ ] <strong>API smoke test:</strong> n/a (no HTTP API beyond local serve.js); covered by Chrome E2E in T28.</li>
+<li>[ ] <strong>Frontend smoke test (chrome-devtools-mcp):</strong>
+  <ol>
+    <li>Launch /pmos-toolkit:chrome-devtools to drive Chrome.</li>
+    <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js --port=0 --root=docs/pmos/features/2026-05-23_inline-doc-comments/</code>.</li>
+    <li>Navigate to <code>http://localhost:&lt;port&gt;/02_spec.html</code> via MCP.</li>
+    <li>Verify floating button + side panel render.</li>
+    <li>Programmatically capture a thread.</li>
+    <li>Take a screenshot.</li>
+    <li><strong>Hard-reload every parameterized route:</strong> open <code>http://localhost:&lt;port&gt;/01_requirements.html</code> in a fresh tab (not via in-app nav) and confirm overlay loads independently; same for <code>03_plan.html</code>; same for one wireframe subfolder file (<code>wireframes/01_*.html</code>).</li>
+    <li><strong>Force an error path:</strong> with FSA permission revoked via DevTools, attempt save → confirm non-blocking banner "Click to grant write access" surfaces with recoverable CTA.</li>
+  </ol></li>
+<li>[ ] <strong>UX polish checklist:</strong> <code>document.title</code> set to artifact title (per template.html); no internal IDs leaked into operator-facing UI; thread compose textarea has proper aria-label; no dead disabled buttons in the side panel; zero uncaught console errors during the capture+save journey; floating "Comment" button label reads "Add comment" (matches the destination action).</li>
+<li>[ ] <strong>Wireframe diff:</strong> open <code>wireframes/index.html</code> + live overlay side-by-side. Diff dimensions (IA, copy, states, journeys) only — visual style adapts to host: (a) floating button position ✓ (selection endpoint + 8px) ✓; (b) side panel right-edge slide-in ✓; (c) thread-card collapsed/expanded states ✓; (d) orphan banner sticky-top ✓; (e) SVG markers over data-anchor ✓; (f) Save-sidecar button on non-FSA browsers ✓; (g) file:// blocking modal ✓. No regressions identified.</li>
+<li>[ ] <strong>Done-when walkthrough:</strong> execute steps 1–7 from the Overview Done-when walkthrough against this feature's own 02_spec.html; confirm each step produces the expected on-disk state. Capture transcript appended to <code>docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_tracer_demo.md</code> as a "Final Verification Re-run" section.</li>
+<li>[ ] <strong>Seed data:</strong> n/a.</li>
+<li>[ ] <strong>Cleanup — Update documentation files:</strong> append "## Inline doc comments" section to <code>CLAUDE.md</code> documenting: how /comments resolve works, the sidecar pair convention (S7), drift hook + --no-verify bypass policy (S5), where the substrate lives (<code>_shared/html-authoring/assets/comments.{js,css}</code> + <code>diff-match-patch.js</code> + <code>comments-open.*</code>), and Node 18+ requirement (NFR-09). Verification: <code>grep -c '^## Inline doc comments' CLAUDE.md</code> = 1.</li>
+<li>[ ] <strong>Commit the CLAUDE.md update + TN final-verification log:</strong>
+<pre><code>git add CLAUDE.md docs/pmos/features/2026-05-23_inline-doc-comments/03_plan_tracer_demo.md
+git commit -m "feat(TN): final verification + CLAUDE.md inline-doc-comments section"</code></pre></li>
+</ul>
+
+<p><strong>Inline verification (final):</strong></p>
+<ul>
+<li><code>git log --oneline feat/inline-doc-comments | wc -l</code> — 29+ commits (T1–T29 + TN cleanup).</li>
+<li>All 22+ bash test scripts under <code>tests/scripts/assert_*.sh</code> for this feature exit 0 when run sequentially.</li>
+<li><code>bash scripts/check-comments-coverage.sh</code> — exits 0.</li>
+<li><code>grep -c '^## Inline doc comments' CLAUDE.md</code> — exactly 1.</li>
+</ul>
+</section>
+
+<section id="review-log">
+<h2 id="review-log-h">Review Log</h2>
+<p>Sidecar: detailed loop-by-loop findings live in <code>03_plan_review.md</code> (FR-45). This table is the summary index.</p>
+<table>
+<thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+<tbody>
+<tr><td>1 (self-review)</td><td>F1: T1 ≠ tracer-bullet per the rule (T11 is) — declared exception. F2: T2–T5 lacked Slice shape declarations. F3-F4: minor structural nits (skipped — already covered).</td><td>Applied: added Decision P8 documenting T1=spike + T11=tracer per spec §15.1 sequencing; added <code>**Slice shape:** refactor-prep</code> + rationale to T2/T3/T4/T5; added "Tracer-bullet positioning" note to Overview.</td></tr>
+<tr><td>2 (blind subagent — Explore agent, 5-min cap)</td><td>F1 (HIGH): FR-52 foreign-SVG bbox-fallback had zero task coverage. F3/F4 (MED): Done-when prose said "13 contract tests" when work actually creates 14 test files (13 originating + 1 orchestrator). F7 (MED): meta-tag <code>&lt;meta name="pmos:skill"&gt;</code> bake explicitly in T8 but not T18-T21. F8 (LOW): bash-wrapper naming nit. F10 (MED): E5 corrupted-JSON parse-failure test not in T3. Skipped: F2 (spec-internal ref), F5/F6/F9 (subagent had incomplete reads — already covered in plan body).</td><td>Applied: added explicit FR-52 bbox-fallback test case + implementation note to T24; corrected Done-when math to "13 originating + 1 orchestrator = 14 test files + 15 emit references + 1 integration test"; added a "Step 0" meta-tag bake requirement to T18/T19/T20/T21 (plus dual-surface note for /feature-sdlc in T21); renamed wrapper in Done-when prose for consistency; added E5 corrupted-JSON test case (e2) to T3 with SidecarCorruptedError + blocking-modal assertion.</td></tr>
+</tbody>
+</table>
+</section>
+
+</main>
+</body>
+</html>

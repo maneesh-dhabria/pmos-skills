@@ -1,0 +1,296 @@
+[
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log-h",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "constraints",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "peer-plans",
+    "level": 3,
+    "title": "Peer-plan conflict scan",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "prerequisites-h",
+    "level": 2,
+    "title": "Prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "file-map-h",
+    "level": 2,
+    "title": "File Map",
+    "parent_id": null
+  },
+  {
+    "id": "risks-h",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "rollback-h",
+    "level": 2,
+    "title": "Rollback",
+    "parent_id": null
+  },
+  {
+    "id": "tasks-h",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "phase-1",
+    "level": 2,
+    "title": "Phase 1: Substrate Foundation (T1–T6)",
+    "parent_id": null
+  },
+  {
+    "id": "t1",
+    "level": 3,
+    "title": "T1: id-coverage audit spike (S8)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t2",
+    "level": 3,
+    "title": "T2: Vendor diff-match-patch + license (P4)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t3",
+    "level": 3,
+    "title": "T3: comments.js + comments.css skeleton + headless unit tests",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t4",
+    "level": 3,
+    "title": "T4: Extend serve.js — --pid-file JSON payload + idle timeout + 127.0.0.1 hard-bind",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t5",
+    "level": 3,
+    "title": "T5: Launcher trio — comments-open.command / .sh / .bat",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t6",
+    "level": 3,
+    "title": "T6: Contract doc — _shared/apply-edit-at-anchor.md",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "phase-2",
+    "level": 2,
+    "title": "Phase 2: Tracer Bullet — /spec end-to-end (T7–T11)",
+    "parent_id": null
+  },
+  {
+    "id": "t7",
+    "level": 3,
+    "title": "T7: comments.js — text-selection capture + side panel + thread persist (Chrome FSA path)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t8",
+    "level": 3,
+    "title": "T8: /spec — bake comments.js + comments.css references into emit; substrate template wiring",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t9",
+    "level": 3,
+    "title": "T9: /spec — apply-edit-at-anchor entrypoint + contract test",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t10",
+    "level": 3,
+    "title": "T10: /comments resolver skill skeleton — sidecar read, meta-tag route, dispatch (--confirm-each only)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t11",
+    "level": 3,
+    "title": "T11: TRACER DEMO — comment on 02_spec.html → /comments resolve → diff staged",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "phase-3",
+    "level": 2,
+    "title": "Phase 3: Resolver Completeness (T12–T17)",
+    "parent_id": null
+  },
+  {
+    "id": "t12",
+    "level": 3,
+    "title": "T12: Proper anchor resolver — id-first + Bitap fallback + SVG path",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t13",
+    "level": 3,
+    "title": "T13: --batch mode + wave planner (P6 port from /execute)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t14",
+    "level": 3,
+    "title": "T14: --auto and --non-interactive modes",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t15",
+    "level": 3,
+    "title": "T15: Clarification flow + re-dispatch cap=2 (S10)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t16",
+    "level": 3,
+    "title": "T16: error_enum closed-set handling + idempotency + schema-version refuse-load",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t17",
+    "level": 3,
+    "title": "T17: Resolver integration test — all 4 enum branches + clarification + 3 modes + non-interactive defer",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "phase-4",
+    "level": 2,
+    "title": "Phase 4: Fanout — 12 remaining skills + 2 orchestrator surfaces (T18–T21)",
+    "parent_id": null
+  },
+  {
+    "id": "t18",
+    "level": 3,
+    "title": "T18 [P]: Batch A — /requirements, /plan, /artifact (prose+tables+decision-log shape)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t19",
+    "level": 3,
+    "title": "T19 [P]: Batch B — /wireframes, /prototype, /diagram (visual/SVG shape)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t20",
+    "level": 3,
+    "title": "T20 [P]: Batch C — /ideate, /survey-design, /survey-analyse (interactive/data shape)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t21",
+    "level": 3,
+    "title": "T21 [P]: Batch D — /polish, /architecture, /readme + orchestrator (/feature-sdlc 2 surfaces)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "phase-5",
+    "level": 2,
+    "title": "Phase 5: Polish & Edges (T22–T26)",
+    "parent_id": null
+  },
+  {
+    "id": "t22",
+    "level": 3,
+    "title": "T22: Safari/Firefox download fallback + bundle-size CI guard",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t23",
+    "level": 3,
+    "title": "T23: SVG retrofit — /diagram + /wireframes emit data-anchor (FR-50, FR-51, S15)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t24",
+    "level": 3,
+    "title": "T24: Orphan banner + diagram markers + stakeholder review-mode toggle + file:// warning",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t25",
+    "level": 3,
+    "title": "T25: Pre-commit drift hook + installer + test + conventions.md update",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t26",
+    "level": 3,
+    "title": "T26: Anchor calibration — 50-span corpus + Bitap threshold tune + re-anchor integration test",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "phase-6",
+    "level": 2,
+    "title": "Phase 6: Verification & Rollout (T27–T29)",
+    "parent_id": null
+  },
+  {
+    "id": "t27",
+    "level": 3,
+    "title": "T27: scripts/check-comments-coverage.sh + /verify gate integration + meta-test",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t28",
+    "level": 3,
+    "title": "T28: Manual smoke — launcher trio on macOS/Linux/Windows + Chrome E2E + Safari fallback",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t29",
+    "level": 3,
+    "title": "TN: Final Verification",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "review-log-h",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]
