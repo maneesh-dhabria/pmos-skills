@@ -131,8 +131,8 @@ does — see above.)
 
 **Portable paths.** Refer to bundled files via a portable token —
 `${CLAUDE_SKILL_DIR}` / `${CLAUDE_PLUGIN_ROOT}` on Claude Code, or the platform
-equivalent — never a hard-coded absolute path (`/Users/alice/...`,
-`/home/bob/...`). Hard-coded absolute bundle paths break the moment the skill is
+equivalent — never the literal `${BAD}` form `/Users/alice/...` or
+`/home/bob/...` (use the `${CLAUDE_SKILL_DIR}` token instead). Hard-coded absolute bundle paths break the moment the skill is
 installed anywhere else.
 
 **Bundle layout.** Executable scripts under `scripts/`; long/optional documentation

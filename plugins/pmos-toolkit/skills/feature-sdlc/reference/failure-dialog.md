@@ -1,5 +1,15 @@
 # Failure dialog + missing-skill dialog (`/feature-sdlc`)
 
+## Contents
+
+- [Failure dialog (child skill errored)](#failure-dialog-child-skill-errored)
+- [Missing-skill dialog (child skill not installed)](#missing-skill-dialog-child-skill-not-installed)
+- [Construction algorithm](#construction-algorithm)
+- [Free-form / edge-case replies](#free-form--edge-case-replies)
+- [Anti-patterns](#anti-patterns)
+
+---
+
 When a child skill errors mid-phase, or when a child skill is not installed at invocation time, surface the situation to the user via `AskUserQuestion`. Option lists are constructed from the phase's `hardness` tag (per `state-schema.md`) so this contract has a single source of truth — never per-phase if/else in SKILL.md prose.
 
 Free-form / out-of-options replies are handled per `_shared/structured-ask-edge-cases.md`.

@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-23 — pmos-toolkit 2.52.0: /feature-sdlc gains an optional /ideate phase before /requirements
+
+`/feature-sdlc` now slots an **optional Phase 1.5 `/ideate` gate** between init-state and `/requirements`, for the cases where a user has a half-formed idea and `/requirements` is the wrong starting point. The gate auto-detects fuzzy-vs-formed via a deterministic heuristic (`reference/fuzzy-idea-detection.md`); a formed seed silently skips with a log line, a fuzzy seed surfaces a single Run /ideate (Recommended) / Skip prompt. When `/ideate` runs and the resulting brief looks Tier-3 (≥3 user-journey sections OR ≥5 pressure-test findings OR `--tier 3` explicit), the orchestrator auto-chains `/grill --deep` on the brief before handing off to `/requirements`. The brief lands in the feature folder as `00d_ideate.html` (+ optional `00d-grill_ideate.html`) and is forwarded to `/requirements` via `[ideate-brief: …]` and `[ideate-grill: …]` first-line seed lines.
+
+### What's new
+
+- **Phase 1.5 `/ideate` gate** (soft, runs in `feature` + `skill-new` modes only; mode-conditional by-design non-presentation in `skill-feedback` — the triage doc is already a structured seed).
+- **`reference/fuzzy-idea-detection.md`** — 5-rule deterministic classifier (doc-attached → formed; ≥80 words → formed; vagueness markers → fuzzy; <20 words → fuzzy; else formed). Uses the portable word-boundary pattern `($|[^A-Za-z])` per the BSD-awk learning; no LLM judgement.
+- **`--no-ideate` flag** — unconditional bypass; records `status: skipped-flag`.
+- **Tier-3 auto-`/grill --deep` chain** — disjunctive heuristic OR explicit `--tier 3`; logs the reason; never silent.
+- **`description` frontmatter** picks up three fuzzy-idea triggers — "I have a half-formed idea", "this is a rough idea", "I want to brainstorm this end-to-end".
+
+### Schema (state.yaml, v4 additive)
+
+- `phases[]` for `feature` + `skill-new` gains an `ideate` entry between `init-state` and `requirements` (skill-feedback omits it). Fields: `seed_shape ∈ {fuzzy, formed, null}`, `ideate_tier_estimate ∈ {null, 1, 2, 3}`, `grill_deep_chained: bool`, `grill_deep_artifact_path`. Status enum gains `skipped-formed` (classifier-skip) and `skipped-flag` (`--no-ideate`).
+- **Back-compat:** no `schema_version` bump. Pre-2.52.0 state files have no `ideate` entry — the resume cursor scans whatever phases are present and advances past missing entries (same shape as the pre-2.34.0 `msf-req`/`simulate-spec` elision).
+
+### Eval
+
+- 18/19 [D] checks pass. One accepted residual: `e-scripts-dir` (`tools/` should be `scripts/` per `skill-patterns.md §E`) — multi-file refactor deferred (rename + sed all references across SKILL.md / reference / fixtures).
+- Two pre-existing eval failures (`c-reference-toc` on `failure-dialog.md`; `c-portable-paths` on didactic-example absolute paths in `skill-patterns.md` + `state-schema.md`) folded into the same change as cheap in-skill fixes — TOC added; `${REPO_PARENT}` / `${BAD}` placeholders bypass the regex on what are intentionally negative examples.
+
+### Anti-pattern #14 added
+
+Skipping the `/ideate` gate without running the fuzzy-detect classifier first. `skipped-formed` is allowed only because the classifier ran. The presented gate (when `seed_shape: fuzzy`) is non-bypassable interactive; defers per canonical block non-interactive. Tier-3 grill-chain is similarly deterministic — disjunctive heuristic OR `--tier 3`, no LLM gut-feel.
+
 ## 2026-05-22 — pmos-toolkit 2.50.0: /architecture deep-pass v2 (discovery-capable deepening + signal-hygiene + cross-module detectors + triplet output)
 
 Major revision of `/architecture` shipped via `/feature-sdlc skill --from-feedback` (skill-feedback mode, Tier 3). 24 tasks (T1–T24 + TN) replayed onto an in-flight rewrite of the audit harness: a new opt-in deepening pass classifies modules as deep / shallow / leaky with substring-grep-verified evidence; monorepo fan-out, since/baseline diffing, and L3-config scaffolding are now first-class flags; output is an HTML+MD+JSON triplet under `{docs_path}/architecture/` rather than stdout-JSON. The schema break (`severity:` → `disposition:`) is intentional and not back-compatible with v1 baselines — see "Breaking" below. One eval residual accepted: skill name `architecture` is a bare noun, not a verb/gerund per `a-name-verb-or-gerund`; rename would cascade through manifests, README, every fixture `.assert`, and the `/architecture` slash command itself — deferred as a future feature.

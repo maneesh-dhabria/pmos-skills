@@ -77,6 +77,7 @@ In declared execution order. Membership is mode-conditional (see below); a `—`
 | `init-state` | infra | ✓ | ✓ | ✓ | write state.yaml + 00_pipeline.{html,md} |
 | `feedback-triage` | **hard** | — | — | ✓ | **new in v4 (D22).** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
 | `skill-tier-resolve` | **infra** | — | ✓ | ✓ | **new in v4 (D22).** A setup/detection phase like `worktree`/`init-state`. |
+| `ideate` | **soft** | ✓ | ✓ | — | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
 | `requirements` | hard | ✓ | ✓ | ✓ | Skip HIDDEN in failure dialog |
 | `grill` | soft | ✓ | ✓ | ✓ | Skip SHOWN; auto-skipped in `--non-interactive` |
 | `creativity` | soft | ✓ | ✓ | ✓ | gate, Recommended=Skip |
@@ -98,11 +99,14 @@ In declared execution order. Membership is mode-conditional (see below); a `—`
 
 At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode` (D21/FR-11):
 
-- **`feature`** — the 2.36.0 set, all `id` labels unchanged:
-  `setup, worktree, init-state, requirements, grill, creativity, wireframes, prototype, spec, plan, execute, verify, complete-dev, retro, final-summary, capture-learnings`.
-- **`skill-new`** — that set **minus** `{wireframes, prototype}` **plus** `{skill-tier-resolve, skill-eval}`, in order:
-  `setup, worktree, init-state, skill-tier-resolve, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
-- **`skill-feedback`** — the `skill-new` set **plus** `{feedback-triage}` inserted **after `init-state`** (before `skill-tier-resolve`).
+- **`feature`** — the 2.52.0 set (with `ideate` inserted after `init-state`):
+  `setup, worktree, init-state, ideate, requirements, grill, creativity, wireframes, prototype, spec, plan, execute, verify, complete-dev, retro, final-summary, capture-learnings`.
+- **`skill-new`** — feature **minus** `{wireframes, prototype}` **plus** `{skill-tier-resolve, skill-eval}`; `ideate` sits between `skill-tier-resolve` and `requirements`:
+  `setup, worktree, init-state, skill-tier-resolve, ideate, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
+- **`skill-feedback`** — the `skill-new` set **plus** `{feedback-triage}` inserted **after `init-state`** (before `skill-tier-resolve`), and `ideate` **omitted** (the per-skill triage doc is already a structured seed; nothing fuzzy to flesh out):
+  `setup, worktree, init-state, feedback-triage, skill-tier-resolve, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
+
+**Back-compat for pre-2.52.0 state files (additive, no `schema_version` bump):** state files written before 2.52.0 have no `ideate` entry in `phases[]`. The resume cursor scans whatever phases the file declares — a missing `ideate` entry is treated as "this phase did not exist when the run started; advance past it" (the same shape as the elision of `msf-req`/`simulate-spec` for pre-2.34.0 files). No on-read migration step is required; runs are not retroactively re-ideated.
 
 The resume cursor scans whatever `phases[]` contains — it is **mode-agnostic** (`pipeline_mode` is read back from the state file, never re-derived from a subcommand on `--resume` — FR-05). `current_phase` at fresh init is the first phase of the mode's set (`requirements` in feature; `skill-tier-resolve` in `skill-new`; `feedback-triage` in `skill-feedback`).
 
@@ -133,6 +137,20 @@ skill_eval:
 
 `iterations[0]` is implicit (the initial `/execute` Phase 6 build); the first recorded entry is `n: 1`. `iterations[n].pre_ref` is HEAD *before* iteration n's remediation commits — so "Restore iteration 1" (offered only when iteration 2 was net-worse) `git reset`s the skill files to `iterations[2].pre_ref`. All writes to this substructure use the atomic temp-then-rename protocol (D31).
 
+#### `ideate` substructure (2.52.0)
+
+On the `ideate` phase entry only (feature + skill-new modes):
+
+```yaml
+ideate:
+  seed_shape: fuzzy | formed | null              # null until classified by reference/fuzzy-idea-detection.md
+  ideate_tier_estimate: null | 1 | 2 | 3          # set after /ideate runs; --tier flag wins
+  grill_deep_chained: false | true                # true iff /grill --deep auto-ran on the brief
+  grill_deep_artifact_path: null | "<feature_folder>/00d-grill_ideate.html"
+```
+
+`artifact_path` on the `ideate` entry holds the path to the brief (`<feature_folder>/00d_ideate.html`) when /ideate ran; `null` otherwise. The Tier-3 chain rule: `--tier 3` explicit OR (brief contains ≥3 user-journey sections OR ≥5 pressure-test findings). Skipping records `status ∈ {skipped-formed, skipped-flag, skipped-non-interactive}` per the corresponding gate path.
+
 ### Status enum
 
 - `pending` — declared but not started.
@@ -144,6 +162,8 @@ skill_eval:
 - `skipped-on-failure` — user picked Skip in the failure dialog after an error (soft phases only).
 - `skipped-non-interactive` — explicit auto-skip in non-interactive mode (`grill` when `mode == non-interactive`).
 - `skipped-unavailable` — child skill not installed and user (or `--non-interactive` auto-pick) chose Skip in the missing-skill dialog (soft phases only).
+- `skipped-formed` — (2.52.0, `ideate` phase only) the fuzzy-idea-detection classifier returned `seed_shape: formed`; the gate prompt was not presented per the auto-detect-and-only-then-confirm contract. Distinct from `skipped` (which is an explicit user pick at a presented gate).
+- `skipped-flag` — (2.52.0, `ideate` phase only) the user passed `--no-ideate`; the classifier did not run; the gate was bypassed unconditionally.
 
 ### `paused_reason` enum
 
@@ -258,9 +278,9 @@ mode: interactive
 started_at: 2026-05-09T14:22:11Z
 last_updated: 2026-05-09T14:48:32Z
 current_phase: wireframes
-worktree_path: /Users/example/code/myrepo-oauth-refresh-tokens
+worktree_path: ${REPO_PARENT}/myrepo-oauth-refresh-tokens
 branch: feat/oauth-refresh-tokens
-feature_folder: /Users/example/code/myrepo-oauth-refresh-tokens/docs/pmos/features/2026-05-09_oauth-refresh-tokens
+feature_folder: ${REPO_PARENT}/myrepo-oauth-refresh-tokens/docs/pmos/features/2026-05-09_oauth-refresh-tokens
 phases:
   - id: setup
     hardness: infra
@@ -346,9 +366,9 @@ mode: interactive
 started_at: 2026-05-11T09:01:00Z
 last_updated: 2026-05-11T11:40:00Z
 current_phase: verify
-worktree_path: /Users/example/code/agent-skills-polish-wireframes-feedback
+worktree_path: ${REPO_PARENT}/agent-skills-polish-wireframes-feedback
 branch: feat/polish-wireframes-feedback
-feature_folder: /Users/example/code/agent-skills-polish-wireframes-feedback/docs/pmos/features/2026-05-11_polish-wireframes-feedback
+feature_folder: ${REPO_PARENT}/agent-skills-polish-wireframes-feedback/docs/pmos/features/2026-05-11_polish-wireframes-feedback
 phases:
   - id: setup
     hardness: infra

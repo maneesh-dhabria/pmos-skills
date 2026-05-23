@@ -1,8 +1,8 @@
 ---
 name: feature-sdlc
-description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an initial idea (text or doc) into a shipped feature by sequentially driving the full pmos-toolkit pipeline — worktree + branch, requirements, grill, optional MSF/creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage and persisting resumable state in the worktree. `/feature-sdlc skill <description>` and `/feature-sdlc skill --from-feedback <text|path|--from-retro>` drive the same pipeline to author or revise skills, scoring each against a binary skill-eval rubric (Phase 6a) before merge. `/feature-sdlc list` shows in-flight feature worktrees. Use when the user says "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", or "process this skill feedback end-to-end".
+description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an initial idea (text or doc) into a shipped feature by driving the pmos-toolkit pipeline — worktree, optional /ideate when the seed is fuzzy, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage and persisting resumable state. `/feature-sdlc skill <description>` and `/feature-sdlc skill --from-feedback <text|path|--from-retro>` drive the same pipeline to author or revise skills, scored against a binary skill-eval rubric before merge. `/feature-sdlc list` shows in-flight worktrees. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "I want to brainstorm this end-to-end".
 user-invocable: true
-argument-hint: "[skill [--from-feedback]] <description|idea> [--from-retro] [--tier 1|2|3] [--resume] [--no-worktree] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] | list"
+argument-hint: "[skill [--from-feedback]] <description|idea> [--from-retro] [--tier 1|2|3] [--resume] [--no-worktree] [--no-ideate] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] | list"
 ---
 
 # Feature SDLC
@@ -18,6 +18,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
     └─> [worktree + slug]            • bare  /feature-sdlc <idea>            → pipeline_mode = feature
         └─> [feedback-triage]        • /feature-sdlc skill <description>     → pipeline_mode = skill-new
         └─> [skill-tier-resolve]     • /feature-sdlc skill --from-feedback <text|path|--from-retro> → skill-feedback
+        └─> [/ideate]                # Phase 1.5; feature + skill-new only; auto-detect-fuzzy + confirm; auto-/grill --deep on Tier-3 brief
         └─> /requirements            (/skill-sdlc … is a thin alias for /feature-sdlc skill …)
               └─> [/grill]                        # Tier 2+, skip if --non-interactive
               └─> [/creativity]                   # always optional, all modes
@@ -38,6 +39,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 |---|---|---|---|
 | `0c` /feedback-triage | — | — | ✓ (hard) |
 | `0d` /skill-tier-resolve | — | ✓ (infra) | ✓ (infra) |
+| `1.5` /ideate gate | ✓ (soft) | ✓ (soft) | — |
 | `2a` /grill · `3a` /creativity | ✓ | ✓ | ✓ |
 | `3b` /wireframes · `3c` /prototype | ✓ | — | — |
 | `6a` /skill-eval | — | ✓ (hard) | ✓ (hard) |
@@ -504,6 +506,18 @@ After every phase end (pass / fail / skip / pause), do all three atomically — 
 
 A failed update of any one of these three breaks the resume contract. Rolling back the partial write is the implementor's responsibility.
 
+## Phase 1.5: /ideate gate (soft; feature + skill-new only)
+
+**Runs only when `pipeline_mode ∈ {feature, skill-new}`** — in `skill-feedback` it is a mode-conditional by-design non-presentation (per Anti-pattern #4 carve-out; triage doc is already structured). Phase id `ideate` is absent from `phases[]` in skill-feedback (see `reference/state-schema.md`). Hardness: **soft**. **Goal:** when the seed is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; if the brief reads as a big idea (Tier-3), auto-chain `/grill --deep`. Brief lands in the feature folder and seeds Phase 2.
+
+1. **`--no-ideate` short-circuit.** If passed, log `[orchestrator] phase 1.5 ideate: --no-ideate flag; skipping`, set `status = skipped-flag`, proceed. Else: apply `reference/fuzzy-idea-detection.md` to the seed text + `doc_attached` flag → `seed_shape ∈ {fuzzy, formed}` (record on `state.yaml.phases.ideate.seed_shape`). `formed` → log `[orchestrator] phase 1.5 ideate: formed seed detected; skipping`, set `status = skipped-formed`, **do NOT present the gate** (auto-skip-on-formed is allowed because the classifier ran — Anti-pattern #14; distinct from `skipped`, explicit user pick at a presented gate). `fuzzy` → present a single gate:
+
+<!-- defer-only: ambiguous -->
+`AskUserQuestion` — **Run /ideate (Recommended)** (brainstorm; brief seeds /requirements) / **Skip** (proceed straight to /requirements; pick this if the detector misfired). In `--non-interactive`: deferred per canonical block; default = Skip; `status = skipped-non-interactive` with a log line analogous to /grill's Anti-pattern #7 contract.
+
+2. **Run `/ideate`** (Run-picked). Invoke `/pmos-toolkit:ideate` with the seed; prepend `[mode: <current-mode>]\n` + `[output_format: <resolved>]\n` first-lines (FR-06). Copy the brief into the feature folder as `00d_ideate.html` (+ `.md` sidecar when `output_format=both`) via the atomic-write substrate. Resolve path via `_shared/resolve-input.md` `phase=ideate`; on resolver-miss, fall back to `find {docs_path}/ideate -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path: 00d_ideate.html`. On `/ideate` failure: soft-phase failure dialog (Skip SHOWN — proceed without a brief).
+3. **Tier-3 auto-chain to `/grill --deep`.** Estimate — `ideate_tier_estimate = 3` iff **either** `--tier 3` was explicit **or** the brief satisfies one disjunct: ≥3 user-journey `<section>` blocks (IDs matching `#journey-` / `#scenario-` / `#user-`, case-insensitive) **or** ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test` / `#premortem`). Otherwise estimate ∈ {1, 2} (default 2). If `== 3`: invoke `/pmos-toolkit:grill --deep` against `00d_ideate.html`; capture to `00d-grill_ideate.html`; log `[orchestrator] phase 1.5 ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else: log `[orchestrator] phase 1.5 ideate: tier estimate <N>; grill --deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`); Phase 2 reads `artifact_path` + `grill_deep_artifact_path` and forwards them via `[ideate-brief: …]` / `[ideate-grill: …]` lines (see Phase 2 below). On any unexpected failure: soft-phase failure dialog (Skip SHOWN — the gate is non-blocking).
+
 ## Phase 2: /requirements (hard)
 
 Invoke `/pmos-toolkit:requirements` with the seed for this mode:
@@ -513,6 +527,8 @@ Invoke `/pmos-toolkit:requirements` with the seed for this mode:
 - **skill-feedback:** the **combined per-skill seed** built in Phase 0c from `reference/seed-requirements-template.md` (one self-contained section per in-scope skill) — see Phase 0c step 6 and the Phase-2 skill-patterns wiring below.
 
 Pass `[mode: <current-mode>]\n` and `[output_format: <resolved>]\n` as the first lines of the child prompt (per FR-06). Pass `--tier <N>` if `{tier}` is set (it is, in skill modes — Phase 0d resolved it). Pass `--backlog <id>` through if it was given to `/feature-sdlc`.
+
+**Ideate brief passthrough (feature + skill-new only, when Phase 1.5 produced a brief).** If `state.yaml.phases.ideate.artifact_path` is non-null, append `[ideate-brief: <path>]` after the `[output_format: …]` line; if `grill_deep_artifact_path` is also non-null, append `[ideate-grill: <path>]`. `/requirements` reads these as additional seed (brief = framed problem + journeys + pressure-test findings; grill artifact = resolved decisions). Skipped-* states write nothing.
 
 **In skill modes** (FR-61 — fuller wiring in the citation pass): prepend a line citing `reference/skill-patterns.md` as the standing acceptance criteria — "the produced/revised skill must conform to `skill-patterns.md §A–§F`".
 
@@ -751,7 +767,7 @@ On missing-skill: soft-variant missing-skill dialog from `reference/failure-dial
 Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md` sidecar in mixed-format mode), plus:
 
 - Branch + tag info from `/complete-dev` output.
-- Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
+- Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1.5 ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
 - If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Mixed-format sidecar emitted as `00_open_questions_index.md` when `output_format=both`. Link to the HTML primary in the chat summary.
 - Final one-liner: `Pipeline complete for <slug>. Branch feat/<slug> merged to main and tagged via /complete-dev.`
 
@@ -765,8 +781,8 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 
 - **README** — add a `/skill-sdlc` row under "Pipeline orchestrators"; update the `/feature-sdlc` row + the bottom standalone line + the pipeline-flow note to mention the `skill` subcommand; **remove** the `/update-skills` row from "Pipeline orchestrators" and the `/create-skill` row from "Utilities" (both are archived — point at `archive/skills/README.md`).
 - **Both `plugin.json` manifests** — a **minor** version bump (2.37.0 → 2.38.0) in BOTH `plugins/pmos-toolkit/.claude-plugin/plugin.json` and `plugins/pmos-toolkit/.codex-plugin/plugin.json`, in one commit, versions kept in sync (pre-push hook enforces). The manifests carry **no per-command description fields**, so FR-95's "byte-identical description" requirement is satisfied vacuously — the `SKILL.md` frontmatter `description` is the single source of truth. (If a future manifest format adds per-command descriptions, mirror this frontmatter — decision P5.)
-- **`argument-hint` frontmatter** enumerates every parsed token/flag (FR-06): `skill`, `--from-feedback`, `--from-retro`, `--tier`, `--resume`, `--no-worktree`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `list`.
-- **`description` frontmatter** carries ≥5 user-spoken trigger phrases spanning both modes (FR-RELEASE.ii / FR-95): "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", plus the skill-authoring ones — "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "process this skill feedback end-to-end".
+- **`argument-hint` frontmatter** enumerates every parsed token/flag (FR-06): `skill`, `--from-feedback`, `--from-retro`, `--tier`, `--resume`, `--no-worktree`, `--no-ideate`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `list`.
+- **`description` frontmatter** carries ≥5 user-spoken trigger phrases spanning both modes (FR-RELEASE.ii / FR-95): "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", plus the skill-authoring ones — "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "process this skill feedback end-to-end", plus the fuzzy-idea ones (2.52.0) — "I have a half-formed idea", "this is a rough idea", "I want to brainstorm this end-to-end".
 - **`archive/skills/`** — `archive/skills/create-skill/` and `archive/skills/update-skills/` exist (the two old skills, moved verbatim via `git mv`), with an `archive/skills/README.md` explaining the merge. `ls plugins/pmos-toolkit/skills/` shows **neither** `create-skill` nor `update-skills`, but **does** show `skill-sdlc`.
 - **`CLAUDE.md`** — gains a `## Skill-authoring conventions` section (the pmos-specific bits: canonical `plugins/pmos-toolkit/skills/<name>/SKILL.md` path, synced `plugin.json` bump, `/complete-dev` as release entry — the generic conventions live in `reference/skill-patterns.md`).
 - **Learnings header bootstrap** — add a `## /feature-sdlc` section header to `~/.pmos/learnings.md` (idempotent — only append if missing). **No separate `## /skill-sdlc` header** — the alias rides on `/feature-sdlc`'s learnings (D19 / FR-81).
@@ -787,3 +803,4 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 11. **Letting the Phase 6a reviewer make edits.** The reviewer **scores and reports only** — `/execute` (Phase 6) is the sole writer of the skill (D10). A reviewer that "fixes while reviewing" makes the eval result unreproducible and the writer/reviewer separation meaningless.
 12. **Treating Phase 6a's "accept residuals as known risk" as a silent pass.** Residuals are recorded in `state.yaml.phases.skill-eval.skill_eval.accepted_residuals[]`, re-checked by `/verify`, and surfaced loudly in both the `/verify` report and the `/complete-dev` summary. Accepting a residual is a logged decision, not a way to make the gate go away. And do not exceed the 2-iteration remediation cap — past it, the only exits are accept / iterate-manually / restore-iteration-1 / abort.
 13. **Inferring the run mode from the seed text.** `pipeline_mode` comes from the explicit `skill` subcommand (FR-02), never from sniffing whether the idea "sounds like a skill". A bare `/feature-sdlc <text>` is always `feature` mode, even if the text describes a skill.
+14. **Skipping the Phase 1.5 `/ideate` gate without running the fuzzy-detect classifier first.** `reference/fuzzy-idea-detection.md` runs deterministically on every feature / skill-new run (unless `--no-ideate`). `skipped-formed` is allowed only because the classifier ran; the presented gate (`seed_shape: fuzzy`) is non-bypassable interactive, defers per canonical block non-interactive. Tier-3 grill-chain (Step 4) is similarly deterministic — disjunctive heuristic OR `--tier 3`; no LLM gut-feel.
