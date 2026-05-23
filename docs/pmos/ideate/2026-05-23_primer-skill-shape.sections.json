@@ -1,0 +1,74 @@
+[
+  {
+    "id": "tldr",
+    "level": 2,
+    "title": "TL;DR",
+    "parent_id": null
+  },
+  {
+    "id": "hmw",
+    "level": 2,
+    "title": "How Might We",
+    "parent_id": null
+  },
+  {
+    "id": "target-user-jtbd",
+    "level": 2,
+    "title": "Target user & job-to-be-done",
+    "parent_id": null
+  },
+  {
+    "id": "hypothesis",
+    "level": 2,
+    "title": "Hypothesis",
+    "parent_id": null
+  },
+  {
+    "id": "idea-variants",
+    "level": 2,
+    "title": "Idea variants considered",
+    "parent_id": null
+  },
+  {
+    "id": "how-it-works",
+    "level": 2,
+    "title": "How it works (chosen finalist)",
+    "parent_id": null
+  },
+  {
+    "id": "alternatives-prior-art",
+    "level": 2,
+    "title": "Alternatives & prior art",
+    "parent_id": null
+  },
+  {
+    "id": "premortem",
+    "level": 2,
+    "title": "Premortem: failure modes",
+    "parent_id": null
+  },
+  {
+    "id": "riskiest-assumptions",
+    "level": 2,
+    "title": "Riskiest assumptions",
+    "parent_id": null
+  },
+  {
+    "id": "success-signals",
+    "level": 2,
+    "title": "Success signals",
+    "parent_id": null
+  },
+  {
+    "id": "next-steps",
+    "level": 2,
+    "title": "Next steps",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions",
+    "parent_id": null
+  }
+]

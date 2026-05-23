@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="primer-skill-shape">
+  <meta name="pmos:ideate-date" content="2026-05-23">
+  <title>/primer skill shape for pmos-learnkit — Ideation</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.51.0">
+  <script defer src="assets/viewer.js?v=2.51.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/primer skill shape for pmos-learnkit</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p>Ship <code>/primer</code> as a lean 5-phase pipeline (intake → research → outline → draft → eval) inside a new <code>pmos-learnkit</code> plugin, reusing the pmos-toolkit <code>_shared/</code> substrate, with no source-eval registry in v1, interactive-by-default, and a <code>--depth</code> tier flag. Defer the curator-lens machinery from <code>/rewrite</code> (author YAML registry, diagram-pass, persona-pass, pinned-tag resume) until v1 usage proves they're needed.</p>
+<p><strong>Recommendation:</strong> Proceed — but cut the <code>--depth</code> tier from v1 too (ship <code>mid</code> only), so the v1 surface is one mode, one path, one output. The biggest risk is shipping nothing because v1 grew back into <code>/rewrite</code>.</p>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we ship a <code>/primer</code> skill that produces a deep, source-grounded PM-topic primer with materially less machinery than the existing <code>/rewrite</code> pipeline, while still earning a credible "curator-lens" quality bar — and do it inside a new <code>pmos-learnkit</code> plugin that fits naturally next to the pmos-toolkit pipeline skills?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> Maneesh (the author) and PM-adjacent practitioners who want to ramp on a topic they don't yet own.</p>
+<p><strong>When / where:</strong> Before joining a meeting / scoping a feature / reviewing a doc on an unfamiliar topic; inside Claude Code with the pmos-skills marketplace installed.</p>
+<p><strong>JTBD:</strong> When I want to ramp on a PM topic I don't yet own, I want a primer that synthesizes vetted sources into a teachable artifact, so I can move from "I've heard of this" to "I can lead a conversation about it" in one read.</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe <strong>shipping a 5-phase, single-file, substrate-reusing <code>/primer</code> skill without the source-eval registry</strong> will produce <strong>a primer that's 70% of <code>/rewrite</code>'s quality at &lt;30% of its build cost and surface area</strong> because <strong>(a) the load-bearing quality comes from the outline-principles + writing-style reference docs, not the YAML author registry; (b) prompt-level curator-lens framing captures most of the trust signal; (c) the pmos-toolkit <code>_shared/</code> substrate (html-authoring, interactive-prompts, pipeline-setup, non-interactive) eliminates 60%+ of the orchestrator boilerplate; and (d) interactive-by-default catches hallucinated facts at the outline gate before drafting amplifies them</strong>.</p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via First Principles + SCAMPER (Eliminate / Combine emphasis). Finalist composition flagged with ★.</p>
+<ol>
+<li><strong>Single-file minimalist</strong> — one SKILL.md, three inline phases (research → outline+draft one-shot → eval). No subagents. Closest to <code>/diagram</code> / <code>/ideate</code> shape.</li>
+<li>★ <strong>/rewrite-lite (5 phases)</strong> — intake → research → outline → draft → eval. Drop blind-primer, assembly-persona, diagram-pass, learnings-as-phase.</li>
+<li><strong>Three-subagent fan-out</strong> — single SKILL.md dispatches 3 parallel subagents (source-hunter, outliner, drafter); controller stitches.</li>
+<li><strong>Reviewer-loop, no standalone eval</strong> — fold eval into one reviewer-subagent + auto-apply iteration (max 2 loops), matching <code>/polish</code> / <code>/wireframes</code>.</li>
+<li><strong>Topic-first only</strong> — <code>/primer &lt;topic&gt; [--audience X]</code>. No URL / source-grounded mode.</li>
+<li><strong>Topic-or-URL auto-detect</strong> — one surface, two entry shapes.</li>
+<li><strong>Topic + audience + "what I already know"</strong> — three-input intake; the third input lets the primer skip basics.</li>
+<li><strong>Bring-your-own-sources</strong> — <code>--sources &lt;urls,…&gt;</code> seeds research; skill still discovers more but anchors on seeds.</li>
+<li>★ <strong>Depth-tier flag</strong> — <code>--depth shallow|mid|deep</code> (1k / 3k / 6k words). One skill, three doses.</li>
+<li><strong>Topic-tree (recursive)</strong> — parent + 4-6 sub-topics; user picks which sub-primers to also expand.</li>
+<li>★ <strong>Reuse pmos-toolkit <code>_shared/</code> substrate</strong> — no port of pmos-content's <code>_pipeline/</code>; lean on html-authoring, interactive-prompts, pipeline-setup, non-interactive that already exist.</li>
+<li><strong>HTML-primary output</strong> — primer is an HTML artifact at <code>{docs_path}/primer/&lt;date&gt;_&lt;slug&gt;.html</code>; markdown sidecar via <code>output_format=both</code>. <em>(Implicit in #11 substrate choice.)</em></li>
+<li><strong>Source-eval as a separate skill</strong> — extract author-trust YAML registry as its own <code>/source-eval</code> in pmos-learnkit; <code>/primer</code> reads from it but doesn't manage it.</li>
+<li>★ <strong>No source-eval in v1</strong> — strip curator-positioning + author-trust machinery entirely; ship "topic → research → draft" without an opinion about author quality. Earn the registry in v2.</li>
+<li>★ <strong>Interactive-by-default, <code>--autonomous</code> flag</strong> — invert <code>/rewrite</code>'s default; for a learning artifact the user reads cover-to-cover, gating is the value.</li>
+</ol>
+<p><strong>Composite finalist (★):</strong> #2 + #9 + #11 + #14 + #15 — a lean rewrite-style pipeline, native to pmos-skills substrate, depth-configurable, no source-eval burden, interactive-by-default.</p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<ul>
+<li><strong>Plugin home:</strong> <code>plugins/pmos-learnkit/</code> in the <code>pmos-skills</code> marketplace repo, registered in both <code>.claude-plugin/marketplace.json</code> and <code>.codex-plugin/marketplace.json</code> (per the four-file version-sync invariant in <code>CLAUDE.md</code>).</li>
+<li><strong>Skill path:</strong> <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> (lowercase-hyphenated, matches frontmatter <code>name: primer</code> — the canonical skill-path invariant).</li>
+<li><strong>Invocation:</strong> <code>/primer &lt;topic&gt; [--audience &lt;senior-pms|all-pms|exec&gt;] [--depth shallow|mid|deep] [--autonomous]</code>. Interactive-by-default; gates at outline (Phase 3) and eval (Phase 5). One-shot consolidated <code>AskUserQuestion</code> intake when fields are unspecified.</li>
+<li><strong>Phase 1 — Intake:</strong> resolve topic, audience, depth, output_format from <code>.pmos/settings.yaml</code>. Single consolidated <code>AskUserQuestion</code> for any missing fields. Derive slug + path: <code>{docs_path}/primer/{YYYY-MM-DD}_&lt;slug&gt;.html</code>.</li>
+<li><strong>Phase 2 — Research:</strong> WebFetch on 6–10 candidate sources (not WebSearch alone; verify each URL resolves before quoting); context7 for any library-style docs; pull a "scope of the topic" outline. Persist a <code>sources.json</code> companion with URL + 1-line takeaway each. <em>Prompt-level curator-lens framing replaces the YAML registry in v1.</em></li>
+<li><strong>Phase 3 — Outline:</strong> render a section-by-section outline (10–14 H2s for <code>--depth mid</code>); interactive gate by default — user can edit / cut / reorder. Re-prompts allowed.</li>
+<li><strong>Phase 4 — Draft:</strong> single-pass drafting against the approved outline, inlining citations to <code>sources.json</code> URLs. ~3000 words for <code>--depth mid</code>.</li>
+<li><strong>Phase 5 — Eval:</strong> reviewer subagent reads draft against a 10-check binary rubric (covers ground / cites real URLs / no hand-wavy claims / right reading level / structurally complete / etc.); auto-apply fixes, max 1 iteration. Interactive gate by default to confirm before write.</li>
+<li><strong>Output:</strong> HTML primary at <code>{docs_path}/primer/&lt;date&gt;_&lt;slug&gt;.html</code> with <code>sections.json</code> companion, MD sidecar via <code>output_format=both</code>. Asset substrate copied from <code>_shared/html-authoring/assets/</code>. Polish-compatible — <code>/polish &lt;path&gt;</code> works out of the box.</li>
+<li><strong>What's NOT in v1:</strong> source-eval YAML registry, diagram-pass, persona-pass, pinned-tag resume, autonomous-decisions log, blind-primer, learnings-as-phase, worked-examples phase, topic-tree, BYO-sources flag. All deferred to v2+ based on real usage signal.</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td><code>pmos-content/.claude/skills/rewrite</code> (v0.15.0)</td><td>9-phase orchestrator with pinned-tag resume, source-eval registry, diagram-pass, persona-pass; rewrites existing Notion content through curator lens.</td><td>Source-grounded (URL in); <code>/primer</code> is greenfield (topic in). <code>/rewrite</code> is fully-loaded; <code>/primer</code> v1 strips ~half the phases and all the registry machinery.</td></tr>
+<tr><td><code>pmos-content/.claude/skills/primer-deep</code> (v0.1.0 skeleton)</td><td>Skeleton placeholder for a greenfield primer reusing the same 8-phase shared <code>_pipeline/</code> library, including assembly-persona and worked-examples.</td><td>Skeleton never finished. <code>/primer</code> here is the simpler, shipped version — fewer phases, no <code>_pipeline/</code> port, native to pmos-skills substrate instead of pmos-content's.</td></tr>
+<tr><td><code>pmos-toolkit/.../artifact</code></td><td>PRD / EDD / discovery-doc generator with reviewer subagent loop, HTML-primary output, 4 writing-style presets.</td><td>Document-shaped output, but for PM artifacts not topic teaching. Shares substrate; <code>/primer</code> reuses <code>_shared/html-authoring</code> + reviewer-loop pattern.</td></tr>
+<tr><td><code>pmos-toolkit/.../polish</code></td><td>Critique-and-rewrite a single doc against a binary rubric with optional editorial reduction pass.</td><td>Polishes existing prose. <code>/primer</code> generates net-new prose, then can be handed off to <code>/polish</code> for voice tightening.</td></tr>
+<tr><td>ChatGPT / claude.ai direct prompt ("write me a primer on X")</td><td>One-shot LLM topic summary.</td><td>No source verification, no audience targeting, no persistent artifact, no curator framing, no reviewer loop. The differentiation bar — if <code>/primer</code> doesn't clear this, there's no reason to install pmos-learnkit.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<p><em>It is 2027-05-23. <code>/primer</code> shipped 12 months ago and has failed. Why?</em></p>
+<table>
+<tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>Primers feel generic — without source-eval / curator-lens, <code>/primer</code> reads as "ChatGPT on a topic" which the user can get from claude.ai directly. No reason to install pmos-learnkit.</td><td>H</td><td>Even without the YAML registry, a tight curator-lens reference doc + audience-shaped outline principles can capture 70% of <code>/rewrite</code>'s quality at prompt-time. Validate side-by-side on 2 topics before locking the v1 scope (see assumption A1).</td></tr>
+<tr><td>Research phase hallucinates citations — without a vetted source registry, WebFetched sources may be junk, paywalled, or fabricated.</td><td>H</td><td>Require WebFetch (not WebSearch alone); add a "verify each URL resolves and quote-check" sub-step; prefer context7 for library/SDK docs; persist <code>sources.json</code> and surface it in the artifact for human spot-check.</td></tr>
+<tr><td>Scope creep mid-build — building <code>/primer</code> surfaces gaps (need <code>/source-eval</code>, need diagram pass, need persona-pass) and v1 grows back into v0.15.0 of <code>/rewrite</code>. Ship date slips.</td><td>H</td><td>Write down a v1 hard-cap in the spec ("no subagents in research, no diagrams, single SKILL.md, no <code>_pipeline/</code> port") and treat additions as v2 backlog items. Use <code>/backlog add</code> to defer rather than absorb.</td></tr>
+<tr><td>Depth-tier modes become three half-done skills — <code>shallow</code> is fine but <code>deep</code> never matches a real <code>/rewrite</code> output, so users churn back to running <code>/rewrite</code> manually on pmos-content.</td><td>M</td><td>Ship <code>--depth mid</code> only in v1. Add <code>shallow</code> / <code>deep</code> via <code>/feature-sdlc</code> when there's real demand, with each as a deliberate spec, not a flag.</td></tr>
+<tr><td>Interactive-by-default annoys you on repeat runs — gating gets in the way once you trust the skill; nobody passes <code>--autonomous</code> reliably.</td><td>M</td><td>Use the <code>.pmos/&lt;skill&gt;.lastrun.yaml</code> pattern (per <code>/complete-dev</code> v2.41.0): consolidated Phase 0.5 confirm of last-used mode short-circuits gates when nothing has changed.</td></tr>
+<tr><td>pmos-learnkit plugin scaffold is wrong — the four-file version-sync invariant, marketplace registration, manifest sync hook all bite on first-time plugin creation. Day-one is consumed by infra, not the skill.</td><td>M</td><td>Copy the structure verbatim from <code>plugins/pmos-toolkit/</code>; run the pre-commit drift hook locally before writing SKILL.md content; verify the plugin loads (skill registers as a slash command) before any primer logic lands.</td></tr>
+<tr><td><code>/primer</code> output isn't reusable enough — single HTML you read once and forget. No retention loop, no extraction to flashcards / quizzes / notes.</td><td>M</td><td>Out of scope for v1, but anchor it: ensure the HTML artifact has stable <code>sections.json</code> + addressable section IDs so a future <code>/flashcards &lt;primer-path&gt;</code> skill can consume it. Don't paint into a corner.</td></tr>
+</table>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test to validate</th></tr>
+<tr><td>A1 — Prompt-level curator-lens framing (no YAML registry) produces "good enough" primer quality vs the full <code>/rewrite</code> output.</td><td>H</td><td>H</td><td>Hand-write a one-shot curator-lens prompt; run it on 2 topics you know cold (e.g. "AARRR funnel", "feature flagging at scale"); rate side-by-side against <code>/rewrite</code>'s output on the same topics. ≤2 hours, completely de-risks the v1 scope decision. <strong>Do this before /spec.</strong></td></tr>
+<tr><td>A2 — WebFetch returns reliable, non-junk sources for PM topics (not paywalled, not LLM-spam blogs).</td><td>H</td><td>M</td><td>Hand-run WebFetch on 5 representative PM topics; eyeball quality of top-10 results. ≤1 hour. Falls out of A1 if you do them together.</td></tr>
+<tr><td>A3 — <code>/primer</code> is the right <em>first</em> skill for pmos-learnkit (not <code>/flashcards</code>, <code>/retrieval-quiz</code>, <code>/source-eval</code>, <code>/topic-tree</code>).</td><td>H</td><td>L</td><td>List 3 alternate first-skill candidates; rank by "what unlocks the most other learnkit skills." <code>/primer</code> almost certainly wins (every other learn-kit skill needs content to work over), but explicitly write it down in the requirements doc.</td></tr>
+<tr><td>A4 — pmos-toolkit <code>_shared/</code> substrate is consumable from a sibling plugin in the same repo (or needs to be copied into pmos-learnkit).</td><td>H</td><td>M</td><td>Read the plugin manifest loader docs + the <code>scripts/sync-shared.sh</code> convention from <code>CLAUDE.md</code>. If cross-plugin reference doesn't work, the substrate is duplicated per-plugin and <code>sync-shared.sh</code> keeps them in step. ≤30 min spike.</td></tr>
+<tr><td>A5 — <code>--depth</code> tier is wanted at all.</td><td>M</td><td>H</td><td>Don't ship it. Use <code>--depth mid</code> output as the only mode in v1; see if anyone asks for shallow or deep. Zero-cost test.</td></tr>
+<tr><td>A6 — Users want primers as HTML artifacts (not markdown for Notion-import like <code>/rewrite</code>).</td><td>M</td><td>M</td><td>Ship HTML primary + MD sidecar via <code>output_format=both</code> default; let usage tell you. The substrate makes this nearly free.</td></tr>
+<tr><td>A7 — Interactive-by-default is the right default (vs autonomous like <code>/rewrite</code>).</td><td>M</td><td>M</td><td>Use it yourself on 3 real primers; if you skip the gates every time, flip the default. Cheap, but only after shipping.</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> (a) A1 side-by-side rates the no-registry primer at ≥70% of <code>/rewrite</code> output on 2 known topics. (b) A complete v1 SKILL.md fits in &lt;500 lines (vs <code>/rewrite</code>'s ~120 lines orchestrator + ~9 phase files totalling thousands). (c) First end-to-end <code>/primer</code> run completes in &lt;6 minutes wall-clock for <code>--depth mid</code>. (d) Reviewer subagent catches ≥1 bad citation or hand-wavy claim per run on average.</p>
+<p><strong>Lagging:</strong> (e) You run <code>/primer</code> a second, then third time without grimacing at the cost. (f) At least 1 generated primer is shared externally (Notion / link / DM) within 2 weeks of v1. (g) At least 1 follow-up pmos-learnkit skill (<code>/flashcards</code>, <code>/quiz</code>, <code>/source-eval</code>) becomes the natural next request — meaning <code>/primer</code> created the appetite for the rest of the kit.</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li><strong>Run the A1 spike</strong> — hand-write a curator-lens primer prompt; run on 2 topics; rate vs <code>/rewrite</code>. Don't write any plugin scaffolding until this passes. (≤2 hrs)</li>
+<li><strong>Scaffold the pmos-learnkit plugin</strong> — copy structure from <code>plugins/pmos-toolkit/</code>: <code>.claude-plugin/plugin.json</code>, <code>.codex-plugin/plugin.json</code>, register in both top-level <code>marketplace.json</code> files at version <code>0.1.0</code>. Verify the pre-commit drift hook accepts it. (≤1 hr)</li>
+<li><strong>Decide <code>_shared/</code> strategy</strong> — cross-plugin reference vs copy-into-pmos-learnkit. Read <code>scripts/sync-shared.sh</code> and the manifest loader contract; pick one and document it in pmos-learnkit's CLAUDE.md or README.</li>
+<li><strong>Promote this brief to /requirements</strong> — <code>/feature-sdlc skill /primer for pmos-learnkit</code> (or <code>/skill-sdlc</code>) to drive the full pipeline through skill-eval before merge. The composite finalist is the seed input.</li>
+<li><strong>Capture deferred scope as backlog</strong> — <code>/backlog add</code> entries for: source-eval registry as separate <code>/source-eval</code> skill (#13), <code>--depth shallow</code>, <code>--depth deep</code>, topic-or-URL auto-detect (#6), BYO-sources (#8), topic-tree (#10), follow-on <code>/flashcards</code> + <code>/quiz</code> skills.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/requirements /primer skill for pmos-learnkit — see docs/pmos/ideate/2026-05-23_primer-skill-shape.html</code></li>
+<li><code>/feature-sdlc skill /primer for pmos-learnkit (lean primer pipeline)</code> — drives the full SDLC including skill-eval rubric before merge.</li>
+<li><code>/grill docs/pmos/ideate/2026-05-23_primer-skill-shape.html</code> — adversarial interrogation of this composite before committing to a spec.</li>
+<li><code>/backlog add /source-eval skill for pmos-learnkit (v2)</code> + companion entries for deferred variants.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-05-23_primer-skill-shape.html</code> — Phase-4 voice polish if this brief gets shared.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Does <code>pmos-learnkit</code> reference <code>plugins/pmos-toolkit/skills/_shared/</code> directly, or does each plugin carry its own <code>_shared/</code> kept in step by <code>scripts/sync-shared.sh</code>? (Assumption A4.)</li>
+<li>Is the source-eval YAML registry from pmos-content worth porting to pmos-learnkit later (as <code>/source-eval</code>), or is it tied so tightly to the curator-positioning rewrite philosophy that it should live or die with <code>/rewrite</code> in pmos-content?</li>
+<li>Should <code>/primer</code> share output_format / docs_path settings with pmos-toolkit (via the same <code>.pmos/settings.yaml</code>), or does pmos-learnkit get its own settings namespace?</li>
+<li>What's the v1 audience set — <code>senior-pms</code> / <code>all-pms</code> only (matching pmos-content), or broader (<code>exec</code>, <code>eng-onboarding</code>, <code>new-to-pm</code>)?</li>
+<li>Does <code>/primer</code>'s output need an attribution footer pointing at <code>pmos-learnkit</code> (mirroring pmos-toolkit's), and if so does that template live in <code>_shared/html-authoring/</code> or pmos-learnkit-local?</li>
+<li>Is there a topic catalog (a "library" of generated primers) we want indexable, e.g. <code>docs/pmos/primer/index.html</code> via <code>_shared/html-authoring/index-generator.md</code>? Out of v1 scope, but worth flagging if section IDs / file naming need to support it.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: /ideate (pmos-toolkit 2.51.0)</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
