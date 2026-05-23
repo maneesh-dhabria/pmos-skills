@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-23 — pmos-toolkit 2.52.1: parameterize HTML substrate attribution
+
+Small refactor to support multi-plugin reuse of `_shared/html-authoring/`:
+
+- The `template.html` "attribution" string is now parameterized so sibling plugins (e.g. `pmos-learnkit`) can reuse the substrate without leaking pmos-toolkit's name into their HTML output. Behavior is unchanged for existing callers; the default still renders pmos-toolkit's attribution.
+- Added `_shared/html-authoring/tests/template-bytestable.sh` to lock the byte-stable template invariant under the new parameterization.
+
 ## 2026-05-23 — pmos-learnkit 0.1.0: new plugin shipping /primer
 
 First release of the **pmos-learnkit** plugin — a companion to `pmos-toolkit`
