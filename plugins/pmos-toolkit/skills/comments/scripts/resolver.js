@@ -19,6 +19,11 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
+// T12 — canonical anchor resolver. Used to pre-validate each thread's
+// anchor before burning a subagent dispatch; an orphan result becomes
+// an immediate error_enum=anchor_orphaned skip.
+const { resolveAnchor } = require("./anchor-resolver.js");
+
 const MAX_CLARIFY = 2;
 
 // Closed error_enum — must match the T6 contract / T9 shim verbatim.
@@ -162,16 +167,36 @@ async function resolve(params) {
 
     // Dispatch loop (with bounded clarification re-dispatch).
     while (outcome === null) {
+      const anchorObj = {
+        id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
+        quote_anchor:
+          thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
+        diagram_anchor:
+          thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
+      };
       const input = {
         artifact_path: artifactPath,
-        anchor: {
-          id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
-          quote_anchor:
-            thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
-        },
+        anchor: anchorObj,
         body: body,
         thread_id: thread.id,
       };
+
+      // T12 — pre-validate via canonical resolver. On orphan, skip without
+      // dispatching the subagent. id-first / quote-fallback / svg results
+      // pass through to the per-skill apply-edit phase as-is.
+      if (clarifyAttempts === 0) {
+        const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
+        if (pre && pre.orphan === true) {
+          skipped.push({
+            id: thread.id,
+            reason:
+              ERROR_ENUM.ANCHOR_ORPHANED +
+              ": anchor unresolved (id-first miss + quote-fallback below threshold)",
+          });
+          outcome = "skip";
+          break;
+        }
+      }
 
       let out;
       try {
