@@ -139,16 +139,18 @@ async function testClarificationFlowConfirmEach() {
     }
 
     let askCount = 0;
+    let askCallNumber = 0;
     const askLog = [];
     async function askUser(question, options) {
       askCount++;
+      askCallNumber++;
       askLog.push({ question, options: options ? options.slice() : [] });
-      // For clarification: return "Formal"; for accept prompt: return "Accept"
-      if (options && options.indexOf("Accept") !== -1) {
-        return "Accept";
+      // call 1 = clarification question; call 2 = accept/reject prompt
+      switch (askCallNumber) {
+        case 1: return "Formal"; // clarification pick
+        case 2: return "Accept"; // accept the proposed edit
+        default: return options && options[0];
       }
-      // Clarification pick
-      return "Formal";
     }
 
     const { runGit } = makeRunGit(tmp);
@@ -425,14 +427,17 @@ async function testRejectWithEmptyRefinementNote() {
     }
 
     let askCount = 0;
+    let askCallNumber = 0;
     async function askUser(question, options) {
       askCount++;
-      // First call: main accept/reject prompt — pick "Reject with refinement"
-      if (options && options.indexOf("Accept") !== -1) {
-        return "Reject with refinement";
+      askCallNumber++;
+      // call 1 = main accept/reject prompt → pick "Reject with refinement"
+      // call 2 = refinement note prompt → submit whitespace only
+      switch (askCallNumber) {
+        case 1: return "Reject with refinement";
+        case 2: return "   ";
+        default: return options && options[0];
       }
-      // Second call: the refinement note prompt — submit whitespace only
-      return "   ";
     }
 
     const { runGit } = makeRunGit(tmp);

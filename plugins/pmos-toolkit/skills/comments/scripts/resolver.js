@@ -33,6 +33,10 @@ const MAX_CLARIFY = 1;
 // T15: re-dispatch cap per thread (S10).
 const MAX_REDISPATCH = 2;
 
+// T16: current sidecar schema version. Sidecar files with schema_version
+// greater than this value are refused at load time (E4 / S3).
+const CURRENT_SCHEMA_VERSION = 1;
+
 // T15: system message body when clarification cap is exceeded (pinned string for tests).
 const CLARIFY_CAP_EXCEEDED_BODY = "clarification cap exceeded — operator input required";
 
@@ -46,6 +50,42 @@ const ERROR_ENUM = Object.freeze({
 
 // Valid modes — closed set.
 const VALID_MODES = new Set(["confirm-each", "batch", "auto", "non-interactive"]);
+
+// T16 §9.3 — English stopwords list (~150 words). Exported for testability.
+const STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in",
+  "on", "at", "by", "for", "with", "from", "as", "is", "are", "was",
+  "were", "be", "been", "being", "have", "has", "had", "do", "does",
+  "did", "will", "would", "can", "could", "should", "may", "might",
+  "must", "shall", "that", "this", "these", "those", "it", "its",
+  "they", "them", "their", "what", "which", "who", "whom", "when",
+  "where", "why", "how", "all", "any", "each", "few", "more", "most",
+  "other", "some", "such", "no", "nor", "not", "only", "own", "same",
+  "so", "than", "too", "very", "s", "t", "just", "into", "through",
+  "during", "before", "after", "above", "below", "up", "down", "out",
+  "off", "over", "under", "again", "further", "once", "here", "there",
+  "both", "also", "about", "against", "between", "i", "me", "my",
+  "myself", "we", "our", "ours", "ourselves", "you", "your", "yours",
+  "yourself", "yourselves", "he", "him", "his", "himself", "she", "her",
+  "hers", "herself", "itself", "themselves", "am", "isn", "aren",
+  "wasn", "weren", "hasn", "haven", "hadn", "won", "wouldn", "don",
+  "doesn", "didn", "can", "couldn", "shouldn", "mightn", "mustn",
+  "needn", "ought", "shan", "there", "when", "where", "while",
+  "although", "because", "since", "unless", "until", "whereas",
+  "whether", "however", "therefore", "thus", "hence", "accordingly",
+  "consequently", "nevertheless", "nonetheless", "otherwise", "instead",
+  "meanwhile", "furthermore", "moreover", "besides", "indeed",
+  "certainly", "clearly", "obviously", "simply", "quite", "rather",
+  "somewhat", "enough", "almost", "already", "always", "never",
+  "often", "sometimes", "usually", "generally", "perhaps", "probably",
+  "possibly", "maybe", "really", "actually", "even", "still", "yet",
+  "well", "now", "then", "here", "there", "within", "without",
+  "along", "among", "around", "across", "behind", "beside", "besides",
+  "beyond", "concerning", "despite", "except", "inside", "near",
+  "outside", "past", "per", "plus", "regarding", "since", "toward",
+  "towards", "upon", "versus", "via", "whatever", "whichever",
+  "whoever", "whomever", "wherever", "whenever", "however", "whatever"
+]);
 
 // ---- helpers ----
 
@@ -84,6 +124,32 @@ function _isoNow() {
 //   JSON.stringify(obj, null, 2) + '\n'  (LF, trailing newline).
 function _serializeSidecar(obj) {
   return JSON.stringify(obj, null, 2) + "\n";
+}
+
+// T16 §9.3 — semantic-match idempotency helper.
+// Returns: keywordsInRegion / totalKeywords, where "in region" = substring
+// (case-insensitive) appearance in the anchored region text.
+// Tokenizes by whitespace + punctuation; removes STOPWORDS from the user body.
+// Returns 0 when there are no keywords (body is all stopwords or empty).
+function _semanticMatchScore(userMessageBody, anchoredRegionText) {
+  const bodyLower = String(userMessageBody || "").toLowerCase();
+  const regionLower = String(anchoredRegionText || "").toLowerCase();
+
+  // Tokenize both by whitespace + punctuation.
+  const tokens = bodyLower.split(/[\s\p{P}]+/u).filter(Boolean);
+
+  // Remove stopwords from body tokens → keywords.
+  const keywords = tokens.filter((tok) => !STOPWORDS.has(tok));
+
+  if (keywords.length === 0) return 0;
+
+  // Count how many keywords appear as substrings in the region.
+  let found = 0;
+  for (const kw of keywords) {
+    if (regionLower.indexOf(kw) !== -1) found++;
+  }
+
+  return found / keywords.length;
 }
 
 // ---- default injectables ----
@@ -152,7 +218,6 @@ function _defaultRunGit(args, opts) {
 // strategy: {
 //   promptOnSuccess:    bool — confirm-each=true; auto/non-interactive=false
 //   onClarification:    'prompt' | 'defer'  — confirm-each/auto='prompt'; non-interactive='defer'
-//   checkAnchorAlways:  bool — non-interactive checks on every iteration; others only on first
 // }
 //
 // Returns: 'applied' | 'skip' | 'deferred' (outcome string, same as the
@@ -173,7 +238,7 @@ async function _resolveSingleThread(thread, ctx, strategy) {
   let clarifyAttempts = 0;
   let redispatchCount = 0;
 
-  // Anchor pre-validation (first pass only, unless checkAnchorAlways).
+  // Anchor pre-validation (first pass only).
   const anchorObj = {
     id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
     quote_anchor:
@@ -184,13 +249,35 @@ async function _resolveSingleThread(thread, ctx, strategy) {
 
   const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: ctx.html });
   if (pre && pre.orphan === true) {
-    skipped.push({
-      id: thread.id,
-      reason:
-        ERROR_ENUM.ANCHOR_ORPHANED +
-        ": anchor unresolved (id-first miss + quote-fallback below threshold)",
-    });
+    const orphanReason =
+      ERROR_ENUM.ANCHOR_ORPHANED +
+      ": anchor unresolved (id-first miss + quote-fallback below threshold)" +
+      " — suggested action: re-anchor the thread or close it manually";
+    thread.messages = thread.messages || [];
+    thread.messages.push({ role: "system", body: orphanReason, ts: _isoNow() });
+    skipped.push({ id: thread.id, reason: orphanReason });
     return "skip";
+  }
+
+  // T16 §9.3 — idempotency: if the user message's keywords already appear in
+  // the anchored region, short-circuit as a no-op rather than dispatching.
+  // Only applies to text-range anchors (dom_range); SVG anchors are skipped.
+  if (pre && pre.dom_range && !pre.bbox &&
+      pre.strategy !== "svg-data-anchor" && pre.strategy !== "svg-bbox") {
+    const anchoredText = ctx.html.slice(
+      pre.dom_range.start_offset,
+      pre.dom_range.end_offset
+    );
+    const score = _semanticMatchScore(body, anchoredText);
+    if (score >= 0.80) {
+      const alreadyMsg = "Edit already present in artifact; marking resolved without changes.";
+      thread.messages = thread.messages || [];
+      thread.messages.push({ role: "system", body: alreadyMsg, ts: _isoNow() });
+      thread.status = "resolved";
+      resolvedCount.value++;
+      return "applied";
+    }
+    // score in [0.60, 0.80) or < 0.60 → dispatch normally.
   }
 
   // Main dispatch loop.
@@ -249,8 +336,30 @@ async function _resolveSingleThread(thread, ctx, strategy) {
     // Failure path.
     if (!out || out.success !== true) {
       const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
-      const msg = (out && out.system_reply) || "(no reply)";
-      skipped.push({ id: thread.id, reason: enumv + ": " + msg });
+      const rawMsg = (out && out.system_reply) || "(no reply)";
+
+      // edit_conflicted: wave planner should prevent this — log a warning.
+      if (enumv === ERROR_ENUM.EDIT_CONFLICTED) {
+        console.warn(
+          "resolver: WARNING wave-planner bug — same-wave threads modified overlapping ranges: thread=" +
+            thread.id
+        );
+      }
+
+      // Build the system-reply body with error_enum prefix.
+      // For anchor_orphaned: include suggested-action suffix per E4.
+      let systemReplyBody;
+      if (enumv === ERROR_ENUM.ANCHOR_ORPHANED) {
+        systemReplyBody =
+          enumv + ": " + rawMsg +
+          " — suggested action: re-anchor the thread or close it manually";
+      } else {
+        systemReplyBody = enumv + ": " + rawMsg;
+      }
+
+      thread.messages = thread.messages || [];
+      thread.messages.push({ role: "system", body: systemReplyBody, ts: _isoNow() });
+      skipped.push({ id: thread.id, reason: systemReplyBody });
       return "skip";
     }
 
@@ -275,10 +384,7 @@ async function _resolveSingleThread(thread, ctx, strategy) {
     // confirm-each: present Accept/Reject/Reject-with-refinement/Modify/Skip prompt.
     // Re-dispatch cap: once redispatchCount >= MAX_REDISPATCH, hide the
     // "Reject with refinement" option (E10).
-    const promptOptions =
-      redispatchCount < MAX_REDISPATCH
-        ? ["Accept", "Reject", "Reject with refinement", "Modify", "Skip"]
-        : ["Modify", "Skip"];
+    const promptOptions = _buildPromptOptions(redispatchCount, MAX_REDISPATCH);
 
     const choice = await askUser(
       "Apply edit for thread " + thread.id + "?\n" + (out.diff_ref || "(no diff_ref)") +
@@ -331,6 +437,15 @@ async function _resolveSingleThread(thread, ctx, strategy) {
       return "skip";
     }
   }
+}
+
+// _buildPromptOptions — returns the confirm-each prompt option list depending
+// on whether the re-dispatch cap has been reached (E10 / S10).
+function _buildPromptOptions(redispatchCount, maxRedispatch) {
+  if (redispatchCount < maxRedispatch) {
+    return ["Accept", "Reject", "Reject with refinement", "Modify", "Skip"];
+  }
+  return ["Modify", "Skip"];
 }
 
 // ---- mode branch helpers ----
@@ -386,6 +501,19 @@ async function resolve(params) {
   const sidecarPath = _sidecarPathFor(artifactPath);
   const sidecarRaw = fs.readFileSync(sidecarPath, "utf8");
   const sidecar = JSON.parse(sidecarRaw);
+
+  // T16 E4 / S3 — schema-version refuse-load.
+  if (typeof sidecar.schema_version === "number") {
+    if (sidecar.schema_version > CURRENT_SCHEMA_VERSION) {
+      process.stderr.write(
+        "comments-resolver: schema_version=" + sidecar.schema_version +
+          " is newer than /comments (current=" + CURRENT_SCHEMA_VERSION +
+          "); upgrade pmos-toolkit\n"
+      );
+      process.exit(64);
+    }
+    // schema_version < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
+  }
 
   // 2. Read meta tag → originating skill slug.
   const skillSlug = _readMetaSkill(html);
@@ -722,10 +850,15 @@ module.exports = {
   resolve: resolve,
   ERROR_ENUM: ERROR_ENUM,
   MAX_CLARIFY: MAX_CLARIFY,
+  MAX_REDISPATCH: MAX_REDISPATCH,
   CLARIFY_CAP_EXCEEDED_BODY: CLARIFY_CAP_EXCEEDED_BODY,
+  CURRENT_SCHEMA_VERSION: CURRENT_SCHEMA_VERSION,
+  STOPWORDS: STOPWORDS,
   _internal: {
     _sidecarPathFor: _sidecarPathFor,
     _readMetaSkill: _readMetaSkill,
     _serializeSidecar: _serializeSidecar,
+    _buildPromptOptions: _buildPromptOptions,
+    _semanticMatchScore: _semanticMatchScore,
   },
 };
