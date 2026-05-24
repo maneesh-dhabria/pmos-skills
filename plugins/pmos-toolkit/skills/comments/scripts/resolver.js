@@ -27,7 +27,14 @@ const { resolveAnchor } = require("./anchor-resolver.js");
 const { planWaves, overlapRelationFR25, _internal: _plannerInternal } = require("./wave-planner.js");
 const _plannerKind = _plannerInternal && _plannerInternal._kind;
 
-const MAX_CLARIFY = 2;
+// FR-29: clarification cap = 1 per thread.
+const MAX_CLARIFY = 1;
+
+// T15: re-dispatch cap per thread (S10).
+const MAX_REDISPATCH = 2;
+
+// T15: system message body when clarification cap is exceeded (pinned string for tests).
+const CLARIFY_CAP_EXCEEDED_BODY = "clarification cap exceeded — operator input required";
 
 // Closed error_enum — must match the T6 contract / T9 shim verbatim.
 const ERROR_ENUM = Object.freeze({
@@ -36,6 +43,9 @@ const ERROR_ENUM = Object.freeze({
   AGENT_JUDGED_INFEASIBLE: "agent_judged_infeasible",
   AGENT_ERRORED: "agent_errored",
 });
+
+// Valid modes — closed set.
+const VALID_MODES = new Set(["confirm-each", "batch", "auto", "non-interactive"]);
 
 // ---- helpers ----
 
@@ -122,6 +132,232 @@ function _defaultRunGit(args, opts) {
   return execFileSync("git", args, { cwd: cwd, stdio: "pipe" });
 }
 
+// ---- extracted per-thread helper ----
+
+// _resolveSingleThread — shared dispatch loop body across confirm-each,
+// auto, and non-interactive modes.
+//
+// ctx: {
+//   html,              // current artifact HTML (mutable via ctx.setHtml)
+//   artifactPath,      // string — absolute path
+//   skillSlug,         // string — originating skill slug
+//   askUser,           // injectable
+//   dispatchSubagent,  // injectable
+//   deferred,          // mutable array (non-interactive pushes to it)
+//   skipped,           // mutable array — shared with caller
+//   resolvedCount,     // object { value } — mutable by reference
+//   setHtml,           // (newHtml) => void — write-back for html update
+// }
+//
+// strategy: {
+//   promptOnSuccess:    bool — confirm-each=true; auto/non-interactive=false
+//   onClarification:    'prompt' | 'defer'  — confirm-each/auto='prompt'; non-interactive='defer'
+//   checkAnchorAlways:  bool — non-interactive checks on every iteration; others only on first
+// }
+//
+// Returns: 'applied' | 'skip' | 'deferred' (outcome string, same as the
+// original per-mode while-loop used internally).
+async function _resolveSingleThread(thread, ctx, strategy) {
+  const {
+    artifactPath,
+    skillSlug,
+    askUser,
+    dispatchSubagent,
+    deferred,
+    skipped,
+    resolvedCount,
+    setHtml,
+  } = ctx;
+
+  let body = _lastUserBody(thread);
+  let clarifyAttempts = 0;
+  let redispatchCount = 0;
+
+  // Anchor pre-validation (first pass only, unless checkAnchorAlways).
+  const anchorObj = {
+    id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
+    quote_anchor:
+      thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
+    diagram_anchor:
+      thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
+  };
+
+  const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: ctx.html });
+  if (pre && pre.orphan === true) {
+    skipped.push({
+      id: thread.id,
+      reason:
+        ERROR_ENUM.ANCHOR_ORPHANED +
+        ": anchor unresolved (id-first miss + quote-fallback below threshold)",
+    });
+    return "skip";
+  }
+
+  // Main dispatch loop.
+  for (;;) {
+    const input = {
+      artifact_path: artifactPath,
+      anchor: anchorObj,
+      body: body,
+      thread_id: thread.id,
+    };
+
+    let out;
+    try {
+      out = await dispatchSubagent({ skill: skillSlug, input: input });
+    } catch (e) {
+      out = {
+        success: false,
+        error_enum: ERROR_ENUM.AGENT_ERRORED,
+        system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
+      };
+    }
+
+    // Clarification path.
+    if (out && out.clarification) {
+      if (strategy.onClarification === "defer") {
+        // non-interactive: append system message, leave open, do NOT prompt.
+        const DEFERRED_BODY =
+          "deferred — operator input required (re-run interactively for this thread)";
+        thread.messages = thread.messages || [];
+        thread.messages.push({ role: "system", body: DEFERRED_BODY, ts: _isoNow() });
+        // status stays "open"; do NOT increment resolvedCount.
+        deferred.push(thread.id);
+        return "deferred";
+      }
+
+      // 'prompt' path (confirm-each / auto).
+      if (clarifyAttempts >= MAX_CLARIFY) {
+        // Cap exceeded: append system message, leave status open, record skip.
+        thread.messages = thread.messages || [];
+        thread.messages.push({
+          role: "system",
+          body: CLARIFY_CAP_EXCEEDED_BODY,
+          ts: _isoNow(),
+        });
+        skipped.push({ id: thread.id, reason: "clarify_cap_exceeded" });
+        return "skip";
+      }
+      clarifyAttempts++;
+      const ans = await askUser(out.clarification.question, out.clarification.options);
+      thread.messages = thread.messages || [];
+      thread.messages.push({ role: "user", body: String(ans), ts: _isoNow() });
+      body = String(ans);
+      continue;
+    }
+
+    // Failure path.
+    if (!out || out.success !== true) {
+      const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
+      const msg = (out && out.system_reply) || "(no reply)";
+      skipped.push({ id: thread.id, reason: enumv + ": " + msg });
+      return "skip";
+    }
+
+    // Success path.
+    if (!strategy.promptOnSuccess) {
+      // auto / non-interactive: apply without prompting.
+      if (typeof out.applied_artifact === "string") {
+        setHtml(out.applied_artifact);
+        fs.writeFileSync(artifactPath, ctx.html, "utf8");
+      }
+      thread.messages = thread.messages || [];
+      thread.messages.push({
+        role: "system",
+        body: String(out.system_reply || ""),
+        ts: _isoNow(),
+      });
+      thread.status = "resolved";
+      resolvedCount.value++;
+      return "applied";
+    }
+
+    // confirm-each: present Accept/Reject/Reject-with-refinement/Modify/Skip prompt.
+    // Re-dispatch cap: once redispatchCount >= MAX_REDISPATCH, hide the
+    // "Reject with refinement" option (E10).
+    const promptOptions =
+      redispatchCount < MAX_REDISPATCH
+        ? ["Accept", "Reject", "Reject with refinement", "Modify", "Skip"]
+        : ["Modify", "Skip"];
+
+    const choice = await askUser(
+      "Apply edit for thread " + thread.id + "?\n" + (out.diff_ref || "(no diff_ref)") +
+        "\n" + (out.system_reply || ""),
+      promptOptions
+    );
+
+    if (choice === "Accept") {
+      if (typeof out.applied_artifact === "string") {
+        setHtml(out.applied_artifact);
+        fs.writeFileSync(artifactPath, ctx.html, "utf8");
+      }
+      thread.messages = thread.messages || [];
+      thread.messages.push({
+        role: "system",
+        body: String(out.system_reply || ""),
+        ts: _isoNow(),
+      });
+      thread.status = "resolved";
+      resolvedCount.value++;
+      return "applied";
+    } else if (choice === "Reject with refinement") {
+      // re-dispatch with a refinement note. Counter already checked above.
+      const note = await askUser(
+        "Enter refinement note for thread " + thread.id + ":",
+        []
+      );
+      redispatchCount++;
+      thread.messages = thread.messages || [];
+      thread.messages.push({ role: "user", body: String(note), ts: _isoNow() });
+      body = String(note);
+      continue;
+    } else if (choice === "Skip" || choice === "Reject") {
+      skipped.push({ id: thread.id, reason: "operator_" + choice.toLowerCase() });
+      return "skip";
+    } else if (choice === "Modify") {
+      // T10 records the choice as a skip-for-now; full Modify-edit-then-
+      // resubmit UX lands in T14 (Modify-edit-then-resubmit UX). Thread stays open.
+      skipped.push({ id: thread.id, reason: "operator_modify_deferred" });
+      return "skip";
+    } else {
+      skipped.push({ id: thread.id, reason: "operator_unknown_choice:" + String(choice) });
+      return "skip";
+    }
+  }
+}
+
+// ---- mode branch helpers ----
+
+async function _resolveConfirmEach(openIdxs, threads, ctx) {
+  const strategy = {
+    promptOnSuccess: true,
+    onClarification: "prompt",
+  };
+  for (const idx of openIdxs) {
+    await _resolveSingleThread(threads[idx], ctx, strategy);
+  }
+}
+
+async function _resolveAuto(openIdxs, threads, ctx) {
+  const strategy = {
+    promptOnSuccess: false,
+    onClarification: "prompt",
+  };
+  for (const idx of openIdxs) {
+    await _resolveSingleThread(threads[idx], ctx, strategy);
+  }
+}
+
+async function _resolveNonInteractive(openIdxs, threads, ctx) {
+  const strategy = {
+    promptOnSuccess: false,
+    onClarification: "defer",
+  };
+  for (const idx of openIdxs) {
+    await _resolveSingleThread(threads[idx], ctx, strategy);
+  }
+}
+
 // ---- core resolve loop ----
 
 async function resolve(params) {
@@ -131,14 +367,10 @@ async function resolve(params) {
   const dispatchSubagent = params.dispatchSubagent || _defaultDispatchSubagent;
   const runGit = params.runGit || _defaultRunGit;
 
-  if (
-    mode !== "confirm-each" &&
-    mode !== "batch" &&
-    mode !== "auto" &&
-    mode !== "non-interactive"
-  ) {
+  if (!VALID_MODES.has(mode)) {
     throw new Error(
-      "resolve: mode='" + mode + "' not implemented — valid modes: confirm-each, batch, auto, non-interactive"
+      "resolve: mode='" + mode + "' not implemented — valid modes: " +
+        Array.from(VALID_MODES).join(", ")
     );
   }
 
@@ -167,11 +399,6 @@ async function resolve(params) {
   const skipped = [];
 
   // T13 — --batch mode (FR-25, §S14, Decision P6).
-  //
-  // TODO(T14): this branch is ~140 LOC and slated for extraction into a
-  // private `_resolveBatch` helper once `auto` mode lands in T14 — with
-  // three branches in mind (confirm-each / batch / auto) the shared
-  // skeleton + per-mode strategy split will be cleaner than extracting now.
   //
   // Resolve anchors for all open threads, partition into waves via the
   // wave planner, then per wave: dispatch subagents in parallel, present
@@ -368,16 +595,16 @@ async function resolve(params) {
       }
     }
 
-    // Persist + stage, then short-circuit the confirm-each loop.
+    // Persist + stage, then short-circuit.
     fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
-    const repoRootB = _gitRepoRoot(artifactPath, runGit);
-    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootB });
+    const repoRoot = _gitRepoRoot(artifactPath, runGit);
+    runGit(["add", artifactPath, sidecarPath], { cwd: repoRoot });
 
-    const summaryB =
+    const summary =
       "Resolved " + resolvedCount + "/" + totalOpen +
       " (batch, " + waves.length + " wave(s)). Review with git diff --cached then commit.";
     if (params.printSummary !== false) {
-      process.stdout.write(summaryB + "\n");
+      process.stdout.write(summary + "\n");
       if (skipped.length > 0) {
         for (const s of skipped) {
           process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
@@ -393,372 +620,41 @@ async function resolve(params) {
       resolved: resolvedCount,
       skipped: skipped,
       waves: waves.length,
-      summary: summaryB,
+      summary: summary,
     };
   }
 
-  // T14 — --auto mode (FR-26).
+  // --- per-thread modes: confirm-each, auto, non-interactive ---
   //
-  // Same dispatch + clarification loop as confirm-each EXCEPT the post-success
-  // Accept/Reject prompt is skipped: edits are applied automatically on success.
-  // Clarification requests (subagent returns `{clarification: {...}}`) STILL
-  // invoke askUser exactly as confirm-each does (with the MAX_CLARIFY cap).
+  // Build a shared ctx object; resolvedCount is boxed so _resolveSingleThread
+  // can increment it by reference. html is similarly accessed through ctx.html
+  // and updated via ctx.setHtml so the batch-style html variable stays in sync.
+  const deferred = [];
+  const rcBox = { value: 0 };
+  let htmlRef = html;
+
+  const ctx = {
+    get html() { return htmlRef; },
+    artifactPath,
+    skillSlug,
+    askUser,
+    dispatchSubagent,
+    deferred,
+    skipped,
+    resolvedCount: rcBox,
+    setHtml(newHtml) { htmlRef = newHtml; },
+  };
+
   if (mode === "auto") {
-    for (const idx of openIdxs) {
-      const thread = threads[idx];
-      let body = _lastUserBody(thread);
-      let clarifyAttempts = 0;
-      let outcome = null;
-
-      while (outcome === null) {
-        const anchorObj = {
-          id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
-          quote_anchor:
-            thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
-          diagram_anchor:
-            thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
-        };
-        const input = {
-          artifact_path: artifactPath,
-          anchor: anchorObj,
-          body: body,
-          thread_id: thread.id,
-        };
-
-        if (clarifyAttempts === 0) {
-          const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
-          if (pre && pre.orphan === true) {
-            skipped.push({
-              id: thread.id,
-              reason:
-                ERROR_ENUM.ANCHOR_ORPHANED +
-                ": anchor unresolved (id-first miss + quote-fallback below threshold)",
-            });
-            outcome = "skip";
-            break;
-          }
-        }
-
-        let out;
-        try {
-          out = await dispatchSubagent({ skill: skillSlug, input: input });
-        } catch (e) {
-          out = {
-            success: false,
-            error_enum: ERROR_ENUM.AGENT_ERRORED,
-            system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
-          };
-        }
-
-        // Clarification path — still prompts in auto mode.
-        if (out && out.clarification) {
-          if (clarifyAttempts >= MAX_CLARIFY) {
-            skipped.push({ id: thread.id, reason: "clarify_cap_exceeded" });
-            outcome = "skip";
-            break;
-          }
-          clarifyAttempts++;
-          const ans = await askUser(out.clarification.question, out.clarification.options);
-          thread.messages = thread.messages || [];
-          thread.messages.push({ role: "user", body: String(ans), ts: _isoNow() });
-          body = String(ans);
-          continue;
-        }
-
-        // Failure path.
-        if (!out || out.success !== true) {
-          const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
-          const msg = (out && out.system_reply) || "(no reply)";
-          skipped.push({ id: thread.id, reason: enumv + ": " + msg });
-          outcome = "skip";
-          break;
-        }
-
-        // Success — auto-apply without prompting.
-        if (typeof out.applied_artifact === "string") {
-          html = out.applied_artifact;
-          fs.writeFileSync(artifactPath, html, "utf8");
-        }
-        thread.messages = thread.messages || [];
-        thread.messages.push({
-          role: "system",
-          body: String(out.system_reply || ""),
-          ts: _isoNow(),
-        });
-        thread.status = "resolved";
-        resolvedCount++;
-        outcome = "applied";
-      }
-    }
-
-    // Persist + stage.
-    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
-    const repoRootA = _gitRepoRoot(artifactPath, runGit);
-    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootA });
-
-    const summaryA =
-      "Resolved " + resolvedCount + "/" + totalOpen +
-      " (auto). Review with git diff --cached then commit.";
-    if (params.printSummary !== false) {
-      process.stdout.write(summaryA + "\n");
-      if (skipped.length > 0) {
-        for (const s of skipped) {
-          process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
-        }
-      }
-    }
-
-    return {
-      artifact: artifactPath,
-      sidecar: sidecarPath,
-      skill: skillSlug,
-      total_open: totalOpen,
-      resolved: resolvedCount,
-      skipped: skipped,
-      summary: summaryA,
-    };
+    await _resolveAuto(openIdxs, threads, ctx);
+  } else if (mode === "non-interactive") {
+    await _resolveNonInteractive(openIdxs, threads, ctx);
+  } else {
+    // confirm-each (default)
+    await _resolveConfirmEach(openIdxs, threads, ctx);
   }
 
-  // T14 — --non-interactive mode (FR-32, S12).
-  //
-  // AUTO-PICK Recommended: apply on success without prompting. DEFER ambiguous:
-  // when a clarification is returned, append a system message and leave status
-  // "open" — never call askUser. End-of-run summary lists deferred threads.
-  if (mode === "non-interactive") {
-    const deferred = [];
-
-    for (const idx of openIdxs) {
-      const thread = threads[idx];
-      const body = _lastUserBody(thread);
-      let outcome = null;
-
-      while (outcome === null) {
-        const anchorObj = {
-          id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
-          quote_anchor:
-            thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
-          diagram_anchor:
-            thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
-        };
-        const input = {
-          artifact_path: artifactPath,
-          anchor: anchorObj,
-          body: body,
-          thread_id: thread.id,
-        };
-
-        // Pre-validate anchor.
-        const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
-        if (pre && pre.orphan === true) {
-          skipped.push({
-            id: thread.id,
-            reason:
-              ERROR_ENUM.ANCHOR_ORPHANED +
-              ": anchor unresolved (id-first miss + quote-fallback below threshold)",
-          });
-          outcome = "skip";
-          break;
-        }
-
-        let out;
-        try {
-          out = await dispatchSubagent({ skill: skillSlug, input: input });
-        } catch (e) {
-          out = {
-            success: false,
-            error_enum: ERROR_ENUM.AGENT_ERRORED,
-            system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
-          };
-        }
-
-        // Clarification path — DEFER in non-interactive mode (never prompt).
-        if (out && out.clarification) {
-          const DEFERRED_BODY =
-            "deferred — operator input required (re-run interactively for this thread)";
-          thread.messages = thread.messages || [];
-          thread.messages.push({ role: "system", body: DEFERRED_BODY, ts: _isoNow() });
-          // status stays "open"; do NOT increment resolvedCount.
-          deferred.push(thread.id);
-          outcome = "deferred";
-          break;
-        }
-
-        // Failure path.
-        if (!out || out.success !== true) {
-          const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
-          const msg = (out && out.system_reply) || "(no reply)";
-          skipped.push({ id: thread.id, reason: enumv + ": " + msg });
-          outcome = "skip";
-          break;
-        }
-
-        // Success — auto-apply without prompting.
-        if (typeof out.applied_artifact === "string") {
-          html = out.applied_artifact;
-          fs.writeFileSync(artifactPath, html, "utf8");
-        }
-        thread.messages = thread.messages || [];
-        thread.messages.push({
-          role: "system",
-          body: String(out.system_reply || ""),
-          ts: _isoNow(),
-        });
-        thread.status = "resolved";
-        resolvedCount++;
-        outcome = "applied";
-      }
-    }
-
-    // Persist + stage.
-    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
-    const repoRootN = _gitRepoRoot(artifactPath, runGit);
-    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootN });
-
-    const summaryN =
-      "Resolved " + resolvedCount + "/" + totalOpen +
-      " (non-interactive). Review with git diff --cached then commit.";
-    if (params.printSummary !== false) {
-      process.stdout.write(summaryN + "\n");
-      if (skipped.length > 0) {
-        for (const s of skipped) {
-          process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
-        }
-      }
-      if (deferred.length > 0) {
-        process.stdout.write("  deferred (re-run interactively):\n");
-        for (const tid of deferred) {
-          process.stdout.write("    deferred " + tid + ": operator input required\n");
-        }
-      }
-    }
-
-    return {
-      artifact: artifactPath,
-      sidecar: sidecarPath,
-      skill: skillSlug,
-      total_open: totalOpen,
-      resolved: resolvedCount,
-      skipped: skipped,
-      deferred: deferred,
-      summary: summaryN,
-    };
-  }
-
-  for (const idx of openIdxs) {
-    const thread = threads[idx];
-    let body = _lastUserBody(thread);
-    let clarifyAttempts = 0;
-    let outcome = null;
-
-    // Dispatch loop (with bounded clarification re-dispatch).
-    while (outcome === null) {
-      const anchorObj = {
-        id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
-        quote_anchor:
-          thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
-        diagram_anchor:
-          thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
-      };
-      const input = {
-        artifact_path: artifactPath,
-        anchor: anchorObj,
-        body: body,
-        thread_id: thread.id,
-      };
-
-      // T12 — pre-validate via canonical resolver. On orphan, skip without
-      // dispatching the subagent. id-first / quote-fallback / svg results
-      // pass through to the per-skill apply-edit phase as-is.
-      if (clarifyAttempts === 0) {
-        const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
-        if (pre && pre.orphan === true) {
-          skipped.push({
-            id: thread.id,
-            reason:
-              ERROR_ENUM.ANCHOR_ORPHANED +
-              ": anchor unresolved (id-first miss + quote-fallback below threshold)",
-          });
-          outcome = "skip";
-          break;
-        }
-      }
-
-      let out;
-      try {
-        out = await dispatchSubagent({ skill: skillSlug, input: input });
-      } catch (e) {
-        out = {
-          success: false,
-          error_enum: ERROR_ENUM.AGENT_ERRORED,
-          system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
-        };
-      }
-
-      // Clarification path.
-      if (out && out.clarification) {
-        if (clarifyAttempts >= MAX_CLARIFY) {
-          skipped.push({ id: thread.id, reason: "clarify_cap_exceeded" });
-          outcome = "skip";
-          break;
-        }
-        clarifyAttempts++;
-        const ans = await askUser(out.clarification.question, out.clarification.options);
-        // Fold the answer back into the thread as a new user message,
-        // then re-dispatch.
-        thread.messages = thread.messages || [];
-        thread.messages.push({ role: "user", body: String(ans), ts: _isoNow() });
-        body = String(ans);
-        continue;
-      }
-
-      // Failure path.
-      if (!out || out.success !== true) {
-        const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
-        const msg = (out && out.system_reply) || "(no reply)";
-        skipped.push({ id: thread.id, reason: enumv + ": " + msg });
-        outcome = "skip";
-        break;
-      }
-
-      // Success — present diff for confirmation.
-      const choice = await askUser(
-        "Apply edit for thread " + thread.id + "?\n" + (out.diff_ref || "(no diff_ref)") +
-          "\n" + (out.system_reply || ""),
-        ["Accept", "Reject", "Modify", "Skip"]
-      );
-
-      if (choice === "Accept") {
-        // Apply: prefer out.applied_artifact (full-text replacement) when
-        // the dispatched skill returns one. Fall back to leaving the
-        // artifact bytes untouched (the T9 shim does not mutate; the
-        // resolver-skeleton's job is to support a full-text shim too).
-        if (typeof out.applied_artifact === "string") {
-          html = out.applied_artifact;
-          fs.writeFileSync(artifactPath, html, "utf8");
-        }
-        thread.messages = thread.messages || [];
-        thread.messages.push({
-          role: "system",
-          body: String(out.system_reply || ""),
-          ts: _isoNow(),
-        });
-        thread.status = "resolved";
-        resolvedCount++;
-        outcome = "applied";
-      } else if (choice === "Skip" || choice === "Reject") {
-        skipped.push({ id: thread.id, reason: "operator_" + choice.toLowerCase() });
-        outcome = "skip";
-      } else if (choice === "Modify") {
-        // T10 records the choice as a skip-for-now; full Modify-edit-then-
-        // resubmit UX lands in T14 (Modify-edit-then-resubmit UX). Thread stays open.
-        skipped.push({ id: thread.id, reason: "operator_modify_deferred" });
-        outcome = "skip";
-      } else {
-        skipped.push({ id: thread.id, reason: "operator_unknown_choice:" + String(choice) });
-        outcome = "skip";
-      }
-    }
-  }
+  resolvedCount = rcBox.value;
 
   // 4. Persist sidecar; stage via `git add`. The resolver never invokes
   //    the commit verb — operator commits after reviewing staged diff.
@@ -769,6 +665,7 @@ async function resolve(params) {
 
   const summary =
     "Resolved " + resolvedCount + "/" + totalOpen +
+    (mode !== "confirm-each" ? " (" + mode + ")" : "") +
     ". Review with git diff --cached then commit.";
   if (params.printSummary !== false) {
     process.stdout.write(summary + "\n");
@@ -777,9 +674,15 @@ async function resolve(params) {
         process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
       }
     }
+    if (mode === "non-interactive" && deferred.length > 0) {
+      process.stdout.write("  deferred (re-run interactively):\n");
+      for (const tid of deferred) {
+        process.stdout.write("    deferred " + tid + ": operator input required\n");
+      }
+    }
   }
 
-  return {
+  const result = {
     artifact: artifactPath,
     sidecar: sidecarPath,
     skill: skillSlug,
@@ -788,6 +691,12 @@ async function resolve(params) {
     skipped: skipped,
     summary: summary,
   };
+
+  if (mode === "non-interactive") {
+    result.deferred = deferred;
+  }
+
+  return result;
 }
 
 function _gitRepoRoot(seedPath, runGit) {
@@ -806,6 +715,7 @@ module.exports = {
   resolve: resolve,
   ERROR_ENUM: ERROR_ENUM,
   MAX_CLARIFY: MAX_CLARIFY,
+  CLARIFY_CAP_EXCEEDED_BODY: CLARIFY_CAP_EXCEEDED_BODY,
   _internal: {
     _sidecarPathFor: _sidecarPathFor,
     _readMetaSkill: _readMetaSkill,
