@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wireframes — Canvas view</title>
+<script type="application/json" id="canvas-data">{{canvas_json}}</script>
+<style>
+  :root {
+    --bg: #fafaf9; --grid: #ececeb; --ink: #18181b; --muted: #6b7280;
+    --accent: #2563eb; --border: #d4d4d8; --shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+    --toolbar-h: 48px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); overflow: hidden; }
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--toolbar-h);
+    display: flex; align-items: center; gap: 16px; padding: 0 16px;
+    background: #fff; border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+    z-index: 100; font-size: 13px;
+  }
+  .toolbar h1 { margin: 0; font-size: 14px; font-weight: 600; }
+  .toolbar .meta { color: var(--muted); margin-right: auto; }
+  .toolbar button { font: inherit; padding: 6px 12px; border: 1px solid var(--border); background: #fff; border-radius: 4px; cursor: pointer; }
+  .toolbar button:hover { background: #f4f4f5; }
+  .toolbar button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .toolbar button.primary:hover { background: #1d4ed8; }
+  .stage {
+    position: fixed; top: var(--toolbar-h); left: 0; right: 0; bottom: 0;
+    overflow: hidden;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--bg);
+    cursor: grab;
+  }
+  .stage:active { cursor: grabbing; }
+  .canvas {
+    position: absolute; top: 0; left: 0;
+    transform-origin: 0 0;
+    width: 50000px; height: 50000px;
+  }
+  .screen {
+    position: absolute; background: #fff;
+    border: 1px solid var(--border); border-radius: 6px;
+    box-shadow: var(--shadow); overflow: hidden;
+    cursor: move; user-select: none;
+  }
+  .screen.dragging { box-shadow: 0 6px 16px rgb(0 0 0 / 0.15); z-index: 10; }
+  .screen-header {
+    position: absolute; top: -24px; left: 0;
+    font-size: 12px; font-weight: 500; color: var(--ink);
+    background: #fff; padding: 2px 8px; border-radius: 3px;
+    border: 1px solid var(--border); pointer-events: none;
+    white-space: nowrap;
+  }
+  .screen-header .device { color: var(--muted); margin-left: 6px; font-size: 11px; }
+  .screen iframe {
+    width: 100%; height: 100%; border: 0; pointer-events: none;
+  }
+  .screen:focus-within iframe { pointer-events: auto; }
+  .empty {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; color: var(--muted); font-size: 14px;
+  }
+  .empty h2 { margin: 0 0 8px; font-size: 16px; color: var(--ink); }
+</style>
+<script
+  src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"
+  integrity="sha384-X6CkAJsTeFP/0vO9Bq4MlV5cZWfDXAYjGmlS+QbS7q/UQDz//4Wmu+nKQYP3PD4t"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"
+  integrity="sha384-Iq3Vc+8tBR/eAYAxJpqaSXc4aLjbCXOFOuvJjK0i6opTeMyAGOFLZJVeF3OWQpyA"
+  crossorigin="anonymous"
+  referrerpolicy="no-referrer"></script>
+</head>
+<body>
+<div class="toolbar">
+  <h1>Wireframes — Canvas view</h1>
+  <span class="meta" id="meta-bar"></span>
+  <button id="btn-fit" type="button">Fit to screen</button>
+  <button id="btn-reset" type="button">Reset zoom</button>
+  <button id="btn-save" class="primary" type="button">Save layout</button>
+</div>
+<div class="stage" id="stage">
+  <div class="canvas" id="canvas"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const dataEl = document.getElementById('canvas-data');
+  const data = JSON.parse(dataEl.textContent || '{}');
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('canvas');
+  const screensById = new Map();
+
+  if (!data.screens || data.screens.length === 0) {
+    canvas.innerHTML = '<div class="empty"><h2>No screens found</h2>Run /wireframes first; this viewer aggregates the per-device output files.</div>';
+    return;
+  }
+
+  // Render screens.
+  for (const s of data.screens) {
+    const wrap = document.createElement('div');
+    wrap.className = 'screen';
+    wrap.dataset.id = s.id;
+    wrap.style.left = s.x + 'px';
+    wrap.style.top = s.y + 'px';
+    wrap.style.width = s.w + 'px';
+    wrap.style.height = s.h + 'px';
+    const header = document.createElement('div');
+    header.className = 'screen-header';
+    header.textContent = s.title || s.screen_id;
+    const dev = document.createElement('span');
+    dev.className = 'device';
+    dev.textContent = s.device;
+    header.appendChild(dev);
+    wrap.appendChild(header);
+    const frame = document.createElement('iframe');
+    frame.src = s.source_file + (s.anchor || '');
+    frame.setAttribute('sandbox', 'allow-same-origin');
+    frame.setAttribute('loading', 'lazy');
+    frame.setAttribute('title', s.title || s.screen_id);
+    wrap.appendChild(frame);
+    canvas.appendChild(wrap);
+    screensById.set(s.id, { el: wrap, data: s });
+  }
+
+  // Initialize panzoom on the canvas.
+  const pz = (window.Panzoom || window.panzoom)
+    ? (window.Panzoom || window.panzoom)(canvas, {
+        maxScale: 3, minScale: 0.05, startScale: data.viewport && data.viewport.default_zoom || 0.3,
+        startX: data.viewport && data.viewport.default_x || 0,
+        startY: data.viewport && data.viewport.default_y || 0,
+        excludeClass: 'screen',
+      })
+    : null;
+  if (pz) stage.addEventListener('wheel', pz.zoomWithWheel);
+
+  // Per-screen drag handlers. Drags update inline left/top in canvas-space
+  // coordinates (account for current panzoom scale so 1px of mouse movement
+  // = 1px of canvas movement regardless of zoom).
+  let dragging = null;
+  for (const [id, { el }] of screensById) {
+    el.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return;
+      e.stopPropagation();
+      const scale = pz ? pz.getScale() : 1;
+      dragging = {
+        id,
+        startX: e.clientX,
+        startY: e.clientY,
+        origLeft: parseFloat(el.style.left) || 0,
+        origTop: parseFloat(el.style.top) || 0,
+        scale,
+      };
+      el.classList.add('dragging');
+    });
+  }
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = (e.clientX - dragging.startX) / dragging.scale;
+    const dy = (e.clientY - dragging.startY) / dragging.scale;
+    const rec = screensById.get(dragging.id);
+    rec.el.style.left = (dragging.origLeft + dx) + 'px';
+    rec.el.style.top = (dragging.origTop + dy) + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    const rec = screensById.get(dragging.id);
+    rec.el.classList.remove('dragging');
+    rec.data.x = parseFloat(rec.el.style.left) || 0;
+    rec.data.y = parseFloat(rec.el.style.top) || 0;
+    dragging = null;
+    redrawArrows();
+  });
+
+  // Arrows via leader-line-new. Drawn after the layout settles + on drag-end.
+  const lines = [];
+  function redrawArrows() {
+    while (lines.length) lines.pop().remove();
+    if (!window.LeaderLine || !data.arrows) return;
+    for (const a of data.arrows) {
+      const from = screensById.get(a.from);
+      const to = screensById.get(a.to);
+      if (!from || !to) continue;
+      try {
+        const line = new window.LeaderLine(from.el, to.el, {
+          color: 'rgba(37, 99, 235, 0.7)', size: 2,
+          path: 'arc', endPlug: 'arrow1', endPlugSize: 1.4,
+          startSocket: 'right', endSocket: 'left',
+        });
+        if (a.label) line.middleLabel = a.label;
+        lines.push(line);
+      } catch (e) { /* leader-line errors on hidden elements; skip */ }
+    }
+  }
+  // Defer arrow draw until iframes have laid out.
+  setTimeout(redrawArrows, 100);
+  window.addEventListener('resize', redrawArrows);
+
+  // Toolbar wiring.
+  document.getElementById('btn-fit').addEventListener('click', () => {
+    if (!pz) return;
+    // Compute bounding box of all screens and scale to fit.
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const { data: s } of screensById.values()) {
+      minX = Math.min(minX, s.x); minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x + s.w); maxY = Math.max(maxY, s.y + s.h);
+    }
+    const w = maxX - minX, h = maxY - minY;
+    const stageW = stage.clientWidth, stageH = stage.clientHeight;
+    const scale = Math.min(stageW / w, stageH / h) * 0.85;
+    pz.zoom(scale);
+    pz.pan(-minX * scale + 60, -minY * scale + 60);
+    setTimeout(redrawArrows, 150);
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (!pz) return;
+    pz.reset();
+    setTimeout(redrawArrows, 150);
+  });
+  document.getElementById('btn-save').addEventListener('click', () => {
+    const out = {
+      version: 1,
+      generated_at: data.generated_at,
+      generator: data.generator,
+      viewport: data.viewport,
+      screens: Array.from(screensById.values()).map(r => r.data),
+      arrows: data.arrows,
+    };
+    const blob = new Blob([JSON.stringify(out, null, 2) + '\n'], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'canvas.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  });
+
+  // Meta bar.
+  document.getElementById('meta-bar').textContent =
+    data.screens.length + ' screens · ' + (data.arrows ? data.arrows.length : 0) + ' arrows · generated ' + (data.generated_at || '').slice(0, 10);
+})();
+</script>
+</body>
+</html>

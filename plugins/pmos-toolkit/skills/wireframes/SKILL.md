@@ -1,6 +1,6 @@
 ---
 name: wireframes
-description: Generate static HTML wireframes (single-file, mid-fi, Tailwind) for a user-facing feature — covers all screens, components, states, and target devices. Optional bridge between /requirements and /spec in the requirements -> spec -> plan pipeline (run before /spec when the feature is user-facing). Auto-triggers /requirements if no req doc exists. Optionally extracts a "house style" from the host repo's frontend (Tailwind tokens, component library, layout patterns) so wireframes match the existing app, and accepts screenshots (`--screenshots`) of existing flows as IA anchors for "extend this flow" requests. Self-evaluates each wireframe against UX heuristics with a reviewer subagent and runs up to 2 self-refinement loops. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "design the screens", "show me the UI states", "extend this existing flow", or has a requirements doc ready and wants visuals before the spec.
+description: Generate static HTML wireframes (single-file, mid-fi, Tailwind) for a user-facing feature — covers all screens, components, states, and target devices. Optional bridge between /requirements and /spec in the requirements -> spec -> plan pipeline (run before /spec when the feature is user-facing). Auto-triggers /requirements if no req doc exists. Optionally extracts a "house style" from the host repo's frontend (Tailwind tokens, component library, layout patterns) so wireframes match the existing app, and accepts screenshots (`--screenshots`) of existing flows as IA anchors for "extend this flow" requests. Self-evaluates each wireframe against UX heuristics with a reviewer subagent and runs up to 2 self-refinement loops. Also emits a single-file Figma-like canvas viewer (`canvas.html`) aggregating every screen of every device on an infinite pan/zoom surface, with flow arrows derived from DESIGN.md journeys and drag-positionable screens persisted to `canvas.json`. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "design the screens", "show me the UI states", "show all screens on a canvas", "Figma-like view", "extend this existing flow", or has a requirements doc ready and wants visuals before the spec.
 user-invocable: true
 argument-hint: "<path-to-requirements-doc or feature description> [--devices=desktop-web,mobile-web,...] [--feature <slug>] [--screenshots <path>] [--bootstrap-design-only] [--skip-folded-msf-wf] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
 ---
@@ -511,7 +511,7 @@ After all per-file refinement is done, present a cross-file rollup of any unreso
 
 Create `{feature_folder}/wireframes/index.html` with:
 
-- Header: feature name, generation date, link back to req doc
+- Header: feature name, generation date, link back to req doc, and a prominent link to `canvas.html` ("Canvas view (all devices)") which is added by Phase 7 after this index is generated. The link is rendered unconditionally (Phase 7 always emits the file); if a reviewer opens the index before Phase 7 lands, the link 404s briefly — acceptable since Phase 7 follows immediately.
 - **Device tabs** at the top — one tab per device targeted; clicking filters the card grid. **When only one device is targeted, omit the device-tabs row entirely** (a single-tab control is visual noise). Document the omission in the index footer ("All wireframes target desktop-web — device filter omitted") so the user knows it was intentional, not forgotten.
 - **Card grid** — one card per `(component × device)` pair showing:
   - Component name + device chip
@@ -618,6 +618,37 @@ After /msf-wf returns:
 
 ---
 
+## Phase 7: Canvas Aggregation (always-on)
+
+Aggregate every per-device wireframe into a single Figma-like canvas viewer so stakeholders can see the whole feature laid out spatially with flow arrows. Reads the per-device HTML files written by Phase 3 (and any inline edits from Phase 6 /msf-wf), parses DESIGN.md journeys for arrow derivation, and emits two files alongside the existing wireframes:
+
+- `canvas.html` — self-contained viewer (CDN-loaded panzoom + leader-line with SRI). Inlines a `<script type="application/json" id="canvas-data">` block so the viewer works under `file://` without a fetch. Each screen rendered as a sandboxed `<iframe src="<device-file>#<anchor>" sandbox="allow-same-origin" loading="lazy">` — no content duplication; the per-device files remain the source of truth.
+- `canvas.json` — canonical layout (positions, dimensions, journey labels) + DESIGN.md-derived arrows. Schema-versioned (`version: 1`). User drags update positions in-memory; the **Save layout** button serializes the current state and triggers a browser download (no dev-server write needed). Commit `canvas.json` to preserve the curated layout across re-runs.
+
+**Invocation:**
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/skills/wireframes/assets/canvas/build-canvas.js \
+  {feature_folder}/wireframes \
+  {feature_folder}/wireframes/DESIGN.md
+```
+
+Pass an empty string `""` for the second argument when DESIGN.md is not present — arrows fall back to empty; screens still render.
+
+**Success criteria:** `canvas.html` and `canvas.json` exist in `{feature_folder}/wireframes/` after the script returns. The script logs `canvas-aggregator: wrote ... (N screens, M arrows)` to stdout on success.
+
+**Failure handling:** The aggregator is additive — it logs to stderr and exits 0 on any non-fatal condition (missing DESIGN.md, no per-device files, no extractable screens, malformed existing canvas.json). It must never block `/wireframes` from completing. If exit 64 (bad CLI args), surface the error to the user but proceed to Phase 8.
+
+**Idempotency on re-run:** if `canvas.json` already exists, the aggregator preserves user-curated `(x, y)` positions for screens still present; newly-added screens (post-regen) are auto-laid-out below the existing layout; removed screens are dropped. Arrows are always regenerated from DESIGN.md (canonical source).
+
+**Bootstrap-only mode carve-out:** when `/wireframes --bootstrap-design-only` is invoked, Phase 5 does not run (no per-device files produced); Phase 7 therefore also does not run. This is a by-design mode-conditional non-presentation, not a silent skip — it follows directly from the bootstrap-mode contract.
+
+See `reference/canvas-aggregation.md` for the full `canvas.json` schema, the screen-extraction rules, the DESIGN.md journey parser, and the auto-layout algorithm.
+
+**Index link:** also append a row to `{feature_folder}/wireframes/index.html` (generated in Phase 5) linking to `canvas.html` with the label "Canvas view (all devices)" so reviewers find it from the index.
+
+---
+
 ## Phase 8: Spec Handoff
 
 Append a `## Wireframes` section to the requirements doc:
@@ -628,6 +659,7 @@ Append a `## Wireframes` section to the requirements doc:
 Generated: {YYYY-MM-DD}
 Folder: `{relative_path_to_folder}`
 Index: `{relative_path}/index.html`
+Canvas view: `{relative_path}/canvas.html` (Figma-like infinite-canvas aggregator; layout in `canvas.json`)
 MSF + PSYCH: `{relative_path}/msf-findings.md` (if Phase 6 ran)
 
 | # | Component | Devices | States | File |
@@ -639,6 +671,7 @@ Commit:
 
 ```bash
 git add {feature_folder}/wireframes/ {feature_folder}/msf-findings.md {requirements_doc_path}
+# Includes canvas.html + canvas.json from Phase 7 — commit canvas.json so curated layouts persist across re-runs.
 git commit -m "docs: add wireframes for <feature>"
 ```
 
