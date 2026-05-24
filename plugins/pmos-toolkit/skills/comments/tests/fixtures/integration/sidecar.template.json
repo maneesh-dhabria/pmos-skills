@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "lineage": "17171717-1717-4171-8171-171717171717",
+  "threads": [
+    {
+      "id": "T_happy",
+      "id_anchor": "happy",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "tighten the wording",
+          "ts": "2026-05-24T10:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_orphan",
+      "id_anchor": "does-not-exist",
+      "quote_anchor": {
+        "text": "wholly missing prose that is not anywhere in this artifact",
+        "prefix": "",
+        "suffix": ""
+      },
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "fix the missing section",
+          "ts": "2026-05-24T10:01:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_infeasible",
+      "id_anchor": "infeasible",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "remove the backward-compatibility requirement entirely",
+          "ts": "2026-05-24T10:02:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_errored",
+      "id_anchor": "errored",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "add a retry mechanism with exponential backoff",
+          "ts": "2026-05-24T10:03:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_clarify",
+      "id_anchor": "clarify",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "expand this section with more detail",
+          "ts": "2026-05-24T10:04:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_conflict",
+      "id_anchor": "conflict-a",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "rewrite to be more concise",
+          "ts": "2026-05-24T10:05:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_idempotent",
+      "id_anchor": null,
+      "quote_anchor": {
+        "text": "To clarify: the workflow steps and their ordering",
+        "prefix": "",
+        "suffix": " are described"
+      },
+      "diagram_anchor": null,
+      "status": "open",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "clarify the workflow steps and ordering",
+          "ts": "2026-05-24T10:06:00Z"
+        }
+      ]
+    },
+    {
+      "id": "T_already_resolved",
+      "id_anchor": "happy",
+      "quote_anchor": null,
+      "diagram_anchor": null,
+      "status": "resolved",
+      "messages": [
+        {
+          "role": "user",
+          "author": "tester",
+          "body": "this was already done",
+          "ts": "2026-05-24T10:07:00Z"
+        }
+      ]
+    }
+  ]
+}

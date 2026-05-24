@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="spec">
+  <title>Integration Fixture — T17</title>
+</head>
+<body>
+  <article>
+    <h1>Integration Fixture</h1>
+
+    <!-- T_happy target: tighten the wording -->
+    <section id="happy">
+      <h2>Overview</h2>
+      <p>This section describes the overall approach to implementing the feature
+      and outlines the key decisions made during the design phase. The solution
+      prioritises clarity and maintainability over raw performance.</p>
+    </section>
+
+    <!-- T_orphan target: id_anchor "does-not-exist" → orphan (id absent, quote missing) -->
+
+    <!-- T_infeasible target -->
+    <section id="infeasible">
+      <h2>Constraints</h2>
+      <p>Several hard constraints govern the implementation. The artifact schema
+      must remain backward-compatible with all existing consumers. No breaking
+      changes may be introduced to the public API surface without a major version
+      bump and an explicit migration guide.</p>
+    </section>
+
+    <!-- T_errored target -->
+    <section id="errored">
+      <h2>Error Handling</h2>
+      <p>All subagent dispatch calls must be wrapped in try/catch blocks. On
+      failure the resolver records a structured error_enum value in the sidecar
+      thread and continues to the next open thread rather than aborting the
+      entire resolution run.</p>
+    </section>
+
+    <!-- T_clarify target -->
+    <section id="clarify">
+      <h2>Clarification Protocol</h2>
+      <p>When the subagent cannot determine the correct edit without additional
+      operator guidance, it returns a clarification object. The resolver presents
+      the question to the operator and re-dispatches with the chosen answer. The
+      clarification cap is set to one round per thread to prevent infinite loops.</p>
+    </section>
+
+    <!-- T_conflict targets: two threads that will overlap in batch wave -->
+    <section id="conflict-a">
+      <h2>Conflict Scenario A</h2>
+      <p>This section intentionally shares its document-offset range with the
+      adjacent section to trigger the edit_conflicted error path in the resolver.
+      The wave planner should segregate these into separate waves when possible.</p>
+    </section>
+
+    <section id="conflict-b">
+      <h2>Conflict Scenario B</h2>
+      <p>This section is paired with conflict-a for overlap testing. Both
+      sections are used together in the batch-mode conflict assertion to verify
+      that the resolver handles the edit_conflicted error_enum correctly and
+      does not crash the wave.</p>
+    </section>
+
+    <!-- T_idempotent target: quote_anchor used so region is >= 40 chars.
+         Body: "clarify the workflow steps and ordering"
+         Keywords after stopword removal: clarify, workflow, steps, ordering
+         Region text contains all four as substrings → score = 1.0 >= 0.80 -->
+    <section id="idempotent">
+      <h2>Idempotency Check</h2>
+      <p>To clarify: the workflow steps and their ordering are described in full
+      below. Each step must be executed in the prescribed sequence to ensure
+      idempotent behaviour across repeated resolution runs. Steps that have
+      already been applied are detected via semantic scoring and skipped.</p>
+    </section>
+
+    <!-- SVG block for T_svg_anchor diagram_anchor path coverage -->
+    <svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+      <rect data-anchor="diagram-shape-1" x="10" y="10" width="80" height="60" fill="#e0e0e0" />
+      <circle data-anchor="diagram-shape-2" cx="150" cy="40" r="30" fill="#c0d8f0" />
+    </svg>
+
+  </article>
+</body>
+</html>

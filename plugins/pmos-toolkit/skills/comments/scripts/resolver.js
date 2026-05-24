@@ -51,7 +51,9 @@ const ERROR_ENUM = Object.freeze({
 // Valid modes — closed set.
 const VALID_MODES = new Set(["confirm-each", "batch", "auto", "non-interactive"]);
 
-// T16 §9.3 — English stopwords list (~150 words). Exported for testability.
+// T16 §9.3 — English stopwords list (225 unique entries). Exported for testability.
+// Deduplicated in T17 (removed second occurrences of: can, there, when, where,
+// then, here, besides, since, however, whatever).
 const STOPWORDS = new Set([
   "the", "a", "an", "and", "or", "but", "if", "then", "of", "to", "in",
   "on", "at", "by", "for", "with", "from", "as", "is", "are", "was",
@@ -69,8 +71,8 @@ const STOPWORDS = new Set([
   "yourself", "yourselves", "he", "him", "his", "himself", "she", "her",
   "hers", "herself", "itself", "themselves", "am", "isn", "aren",
   "wasn", "weren", "hasn", "haven", "hadn", "won", "wouldn", "don",
-  "doesn", "didn", "can", "couldn", "shouldn", "mightn", "mustn",
-  "needn", "ought", "shan", "there", "when", "where", "while",
+  "doesn", "didn", "couldn", "shouldn", "mightn", "mustn",
+  "needn", "ought", "shan", "while",
   "although", "because", "since", "unless", "until", "whereas",
   "whether", "however", "therefore", "thus", "hence", "accordingly",
   "consequently", "nevertheless", "nonetheless", "otherwise", "instead",
@@ -79,12 +81,12 @@ const STOPWORDS = new Set([
   "somewhat", "enough", "almost", "already", "always", "never",
   "often", "sometimes", "usually", "generally", "perhaps", "probably",
   "possibly", "maybe", "really", "actually", "even", "still", "yet",
-  "well", "now", "then", "here", "there", "within", "without",
-  "along", "among", "around", "across", "behind", "beside", "besides",
+  "well", "now", "within", "without",
+  "along", "among", "around", "across", "behind", "beside",
   "beyond", "concerning", "despite", "except", "inside", "near",
-  "outside", "past", "per", "plus", "regarding", "since", "toward",
+  "outside", "past", "per", "plus", "regarding", "toward",
   "towards", "upon", "versus", "via", "whatever", "whichever",
-  "whoever", "whomever", "wherever", "whenever", "however", "whatever"
+  "whoever", "whomever", "wherever", "whenever",
 ]);
 
 // ---- helpers ----
@@ -144,6 +146,9 @@ function _semanticMatchScore(userMessageBody, anchoredRegionText) {
   if (keywords.length === 0) return 0;
 
   // Count how many keywords appear as substrings in the region.
+  // Substring (indexOf) is intentional over word-boundary matching: it avoids
+  // false-negatives on stemmed forms (e.g. "workflow" matching "workflows");
+  // the 0.80 threshold absorbs the rare incidental substring match.
   let found = 0;
   for (const kw of keywords) {
     if (regionLower.indexOf(kw) !== -1) found++;
@@ -262,8 +267,12 @@ async function _resolveSingleThread(thread, ctx, strategy) {
   // T16 §9.3 — idempotency: if the user message's keywords already appear in
   // the anchored region, short-circuit as a no-op rather than dispatching.
   // Only applies to text-range anchors (dom_range); SVG anchors are skipped.
+  // Guard: id-first anchors covering only the id="…" attribute slice are too
+  // short (<40 chars) for meaningful semantic scoring — skip the check and
+  // dispatch normally so tiny anchors are never incorrectly short-circuited.
   if (pre && pre.dom_range && !pre.bbox &&
-      pre.strategy !== "svg-data-anchor" && pre.strategy !== "svg-bbox") {
+      pre.strategy !== "svg-data-anchor" && pre.strategy !== "svg-bbox" &&
+      (pre.dom_range.end_offset - pre.dom_range.start_offset) >= 40) {
     const anchoredText = ctx.html.slice(
       pre.dom_range.start_offset,
       pre.dom_range.end_offset
