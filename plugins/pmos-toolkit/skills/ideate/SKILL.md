@@ -120,8 +120,8 @@ Goal: emit `{docs_path}/ideate/{YYYY-MM-DD}_<slug>.html` (plus `.md` sidecar whe
 
 1. **Render the artifact** from `reference/artifact-template.html` — 12 sections (TL;DR / HMW / Target user & JTBD / Hypothesis / Idea variants considered / How it works / Alternatives & prior art / Premortem: failure modes / Riskiest assumptions / Success signals / Next steps / Open questions). Each section is `<section id="kebab-case-id">` with an `<h2 id="kebab-case-id">` per `_shared/html-authoring/conventions.md` §3.
 2. **Atomic write.** Temp-then-rename for `.html` and the `.sections.json` companion (build via `_shared/html-authoring/assets/build_sections_json.js`). On the `.md` sidecar (`output_format=both`), pipe through `_shared/html-authoring/assets/html-to-md.js`.
-3. **Asset substrate.** Copy `_shared/html-authoring/assets/*` to `{docs_path}/ideate/assets/` if not already present (`cp -n`). Asset prefix in the rendered HTML is `assets/` (relative to the `{docs_path}/ideate/` parent). Apply `?v=<plugin-version>` cache-bust on all asset URLs.
-4. **Phase cursor.** Embed `<meta name="pmos:ideate-phase" content="complete">` in `<head>`. (For partial-write checkpoints in Phases 2 / 3, use `content="expand"` / `content="pressure-test"`.)
+3. **Asset substrate.** Copy the following from `_shared/html-authoring/assets/` to `{docs_path}/ideate/assets/` if not already present (`cp -n`): `style.css`, `viewer.js`, `comments.js`, `comments.css`, `diff-match-patch.js`, `launcher.js`, `launcher.css`, `launcher-config.js`. Asset prefix in the rendered HTML is `assets/` (relative to the `{docs_path}/ideate/` parent). Apply `?v=<plugin-version>` cache-bust on all asset URLs.
+4. **Phase cursor + skill meta tag.** Embed `<meta name="pmos:skill" content="ideate">` and `<meta name="pmos:ideate-phase" content="complete">` in `<head>`. The `pmos:skill` tag is required for `/comments resolve` routing (FR-01, FR-40). (For partial-write checkpoints in Phases 2 / 3, use `pmos:ideate-phase content="expand"` / `content="pressure-test"` — the `pmos:skill` tag is always `ideate`.)
 5. **Print the absolute file path** in the chat summary so the user can click through.
 
 ## Phase 6: Handoff
@@ -147,6 +147,43 @@ Reflect on whether this session surfaced anything worth capturing under `## /ide
 - `No new learnings this session because <specific reason tied to this session>` — when the session was smooth and routine. The reason must be specific, not boilerplate.
 
 Empty reflection (no line emitted) counts as unfinished work.
+
+## Apply comment-resolver edit
+
+This phase is the `/ideate` entrypoint that `/comments resolve` dispatches into when walking open threads in an ideate artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/ideate`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/ideate/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
+
+### Resolution order
+
+Per the contract:
+
+1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Skill-specific feasibility
+
+No read-only regions for `/ideate` — all prose sections are editable via standard anchor resolution. The only generic infeasibility heuristic applies: a `body` that reads as a multi-section out-of-scope restructure (first sentence contains `rewrite` + two `§N`/`SN` references) returns `agent_judged_infeasible`.
+
+### Closed error_enum
+
+`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/ideate/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_ideate.sh`.
+
+---
 
 ## Anti-Patterns (DO NOT)
 

@@ -266,10 +266,10 @@ Compute `estimated_minutes`. If it exceeds `time_budget_min` (or the question co
 Write all of these into the run folder:
 
 - **`survey.json`** — the object above; pretty-printed (2-space indent) and deterministic key order.
-- **`survey.html`** — substrate-compliant (uses the `_shared/html-authoring/template.html` shape: a toolbar with Copy-Markdown / Copy-link, a `<main>` body, a footer). Body: `<section id="intro">` rendering the intro/consent block; one `<section id="<section-id>">` per survey section with `<h2>` = section title; within each, every question is an `<h3 id="<question-id>">` = stem, help text a `<p>`, options a `<ul>` (opt-out items after a `<hr>` rule), scales/matrix/grid as a small `<table>`; a metadata line `Mode: <mode> · Target: ~<n> min · Estimated: <m> min · <k> questions`. **No inline `<script>` or `<style>` in `<main>`**; assets referenced as `assets/style.css?v=<plugin-version>` and `assets/viewer.js?v=<plugin-version>` (`<plugin-version>` = the `version` from `plugins/pmos-toolkit/.claude-plugin/plugin.json`). Companion **`survey.sections.json`** enumerating `{id, level, title, parent_id}` for every `<section>`, `<h2>`, and `<h3>`.
+- **`survey.html`** — substrate-compliant (uses the `_shared/html-authoring/template.html` shape: a toolbar with Copy-Markdown / Copy-link, a `<main>` body, a footer). The `<head>` MUST include `<meta name="pmos:skill" content="survey-design">` — required for `/comments resolve` routing (FR-01, FR-40). Body: `<section id="intro">` rendering the intro/consent block; one `<section id="<section-id>">` per survey section with `<h2>` = section title; within each, every question is an `<h3 id="<question-id>">` = stem, help text a `<p>`, options a `<ul>` (opt-out items after a `<hr>` rule), scales/matrix/grid as a small `<table>`; a metadata line `Mode: <mode> · Target: ~<n> min · Estimated: <m> min · <k> questions`. **No inline `<script>` or `<style>` in `<main>`**; assets referenced as `assets/style.css?v=<plugin-version>` and `assets/viewer.js?v=<plugin-version>` (`<plugin-version>` = the `version` from `plugins/pmos-toolkit/.claude-plugin/plugin.json`). Companion **`survey.sections.json`** enumerating `{id, level, title, parent_id}` for every `<section>`, `<h2>`, and `<h3>`.
 - **`preview.html`** — a standalone page (intentionally **not** a pmos artifact — D4): a minimal HTML page with `<div id="survey-root">`, a small inline `<style>` (mobile-first; label-adjacent controls; ≥ 4.5:1 contrast; visible focus; text "Question X of Y"; no graphical-only progress bar), an inline `<script type="application/json" id="survey-data">` holding the **full** `survey.json`, and `<script src="survey-preview.js"></script>`. No `fetch()`, no CDN, no external refs — it must work on double-click (`file://`).
 - **`survey-preview.js`** — `cp -n` the skill's `assets/survey-preview.js` into the run folder's root (sibling to `preview.html`). Do not regenerate it.
-- **`assets/`** in the run folder — `cp -n` `style.css`, `viewer.js`, and `serve.js` from `_shared/html-authoring/assets/` (idempotent; only the ones `survey.html` references plus `serve.js` for the viewer).
+- **`assets/`** in the run folder — `cp -n` `style.css`, `viewer.js`, `serve.js`, `comments.js`, `comments.css`, `diff-match-patch.js`, `launcher.js`, `launcher.css`, `launcher-config.js` from `_shared/html-authoring/assets/` (idempotent; `style.css` and `viewer.js` are hard-required; the comments/launcher assets are needed for `/comments` integration; `serve.js` is convenience).
 - **`index.html`** — seed it via the `_shared/html-authoring/index-generator.md` pattern (a manifest inlined as `<script type="application/json" id="pmos-index">`), listing the artifacts present so far (`survey.html`, `preview.html`); later phases regenerate it to add the eval/simulation/export entries.
 
 **Substrate-asset handling — two tiers (applies to every `cp -n` source above and in Phase 7).** Before each copy, classify the source asset:
@@ -380,6 +380,45 @@ Write **`export/README.md`** with, per chosen platform: the import steps (Typefo
 Print: the run-folder path; the list of commits made (or one line noting commits were skipped because the cwd isn't a git repo); links to every artifact (`survey.json`, `survey.html`, `preview.html`, `index.html`, `survey-eval.md`, `question-eval.md`, `simulation.md`, `export/*`); the view command; and — if the simulated estimate exceeded `time_budget_min` and over-budget questions were kept — a prominent drop-off / overage flag (E10, FR-42). In non-interactive runs, note the `_open_questions.md` path (NFR-06).
 
 Then run **## Capture Learnings** (below).
+
+---
+
+## Apply comment-resolver edit
+
+This phase is the `/survey-design` entrypoint that `/comments resolve` dispatches into when walking open threads in a survey artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/survey-design`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/survey-design/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
+
+### Resolution order
+
+Per the contract:
+
+1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Skill-specific feasibility
+
+Edits to the form schema (`<form>` field structures generated from `survey.json`) return `agent_judged_infeasible` with `system_reply`: `"Form schema is generated from survey.json — edit survey.json and regenerate via /survey-design."` Detection: anchor `id_anchor` matching `q-*`, `question-*`, `field-*`, or `form`; or `quote_anchor.text` containing form field HTML elements (`<input>`, `<select>`, `<textarea>`, etc.).
+
+Prose around the form (intro / outro paragraphs) IS editable via the standard anchor path.
+
+### Closed error_enum
+
+`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/survey-design/tests/apply-edit-at-anchor.test.js` (5 cases: id-first prose happy, orphan, idempotent, infeasible form schema edit, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_survey-design.sh`.
 
 ---
 
