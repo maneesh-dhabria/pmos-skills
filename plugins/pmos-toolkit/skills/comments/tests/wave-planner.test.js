@@ -7,6 +7,7 @@
 //   (c) all overlap                  → 3 waves of 1
 //   (d) text-only + SVG-only mixed   → 2 waves (one per range type)
 //   (e) within-wave right-to-left    → wave threads sorted by start_offset DESC
+//   (g) cycle in depEdges            → all-singleton waves (defensive fallback)
 //
 // Spec refs: FR-25 (i)/(ii)/(iii), §S14; Decision P6.
 
@@ -144,6 +145,25 @@ it("(f) orphan threads excluded entirely", () => {
   const allIds = waves.flat().map((t) => t.id);
   assert.strictEqual(allIds.indexOf("TO"), -1, "orphan excluded");
   assert.ok(allIds.indexOf("T1") !== -1, "non-orphan included");
+});
+
+// --- (g) cycle in depEdges → all-singleton waves (defensive fallback) ---
+it("(g) cycle in depEdges → all-singleton waves", () => {
+  // Three disjoint text threads (would otherwise pack into 1 wave of 3),
+  // but with a synthetic cycle T1 → T2 → T3 → T1 in depEdges. Kahn's
+  // can't make progress, so the planner falls back to all-singleton
+  // layering: each thread in its own layer → 3 sequential waves of 1.
+  const threads = [
+    textThread("T1", 0, 10),
+    textThread("T2", 20, 30),
+    textThread("T3", 40, 50),
+  ];
+  const depEdges = [["T1", "T2"], ["T2", "T3"], ["T3", "T1"]];
+  const waves = planWaves(threads, overlapRelationFR25, depEdges);
+  assert.strictEqual(waves.length, 3, "expected 3 all-singleton waves");
+  for (const w of waves) assert.strictEqual(w.length, 1, "each wave is singleton");
+  const allIds = waves.flat().map((t) => t.id).sort();
+  assert.deepStrictEqual(allIds, ["T1", "T2", "T3"], "all threads preserved");
 });
 
 if (failed > 0) {

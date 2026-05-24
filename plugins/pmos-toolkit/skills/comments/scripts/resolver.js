@@ -24,7 +24,8 @@ const { execFileSync } = require("child_process");
 // an immediate error_enum=anchor_orphaned skip.
 const { resolveAnchor } = require("./anchor-resolver.js");
 // T13 — wave planner for --batch mode (FR-25, §S14, Decision P6).
-const { planWaves, overlapRelationFR25 } = require("./wave-planner.js");
+const { planWaves, overlapRelationFR25, _internal: _plannerInternal } = require("./wave-planner.js");
+const _plannerKind = _plannerInternal && _plannerInternal._kind;
 
 const MAX_CLARIFY = 2;
 
@@ -163,6 +164,11 @@ async function resolve(params) {
 
   // T13 — --batch mode (FR-25, §S14, Decision P6).
   //
+  // TODO(T14): this branch is ~140 LOC and slated for extraction into a
+  // private `_resolveBatch` helper once `auto` mode lands in T14 — with
+  // three branches in mind (confirm-each / batch / auto) the shared
+  // skeleton + per-mode strategy split will be cleaner than extracting now.
+  //
   // Resolve anchors for all open threads, partition into waves via the
   // wave planner, then per wave: dispatch subagents in parallel, present
   // ONE accept/reject prompt per wave, and on Accept apply edits
@@ -200,6 +206,10 @@ async function resolve(params) {
       } else if (resolved && resolved.dom_range) {
         // SVG resolution with dom_range but no usable bbox — treat as
         // text-style range over its dom_range for packing purposes.
+        console.warn(
+          "resolver: thread " + t.id + " SVG anchor has no bbox; " +
+            "reclassifying as text-range for wave packing"
+        );
         plannerAnchor.start_offset = resolved.dom_range.start_offset;
         plannerAnchor.end_offset = resolved.dom_range.end_offset;
       }
@@ -218,8 +228,12 @@ async function resolve(params) {
     for (let wi = 0; wi < waves.length; wi++) {
       const wave = waves[wi];
 
-      // Dispatch all subagents in parallel for this wave.
-      const settled = await Promise.all(
+      // Dispatch all subagents in parallel for this wave. We use
+      // Promise.allSettled (not Promise.all) so a dispatcher that returns
+      // a synchronously-rejected Promise outside the inner try/catch
+      // cannot crash the whole wave — wave-mate isolation does not depend
+      // on every dispatcher being well-behaved.
+      const settledRaw = await Promise.allSettled(
         wave.map(async (entry) => {
           const t = entry._thread;
           const input = {
@@ -245,6 +259,23 @@ async function resolve(params) {
           }
         })
       );
+      // Map any allSettled-rejected entries (dispatcher misbehaved before
+      // the inner try/catch could catch) to the same failure shape.
+      const settled = settledRaw.map((s, i) => {
+        if (s.status === "fulfilled") return s.value;
+        const entry = wave[i];
+        const e = s.reason;
+        return {
+          entry,
+          out: {
+            success: false,
+            error_enum: ERROR_ENUM.AGENT_ERRORED,
+            system_reply:
+              "Dispatch failed: " + (e && e.message ? e.message : String(e)),
+          },
+          err: e,
+        };
+      });
 
       // Build a combined diff summary across this wave's successes.
       const successes = settled.filter((r) => r.out && r.out.success === true);
@@ -282,14 +313,39 @@ async function resolve(params) {
 
       // Apply right-to-left within the wave (planner already RTL-sorted
       // the wave; re-sort defensively in case a caller swapped planner).
+      // Mirror the planner's _rightToLeft: primary by kind (text first,
+      // then svg), secondary by start_offset DESC, tertiary by id ASC.
+      // Use the planner's exported _kind so an SVG that ever populates
+      // start_offset still sorts AFTER text threads.
+      const kindOf = (entry) => {
+        if (typeof _plannerKind === "function") {
+          // Planner _kind reads thread.anchor — wrap the entry's planner
+          // anchor (entry.anchor was built in planInputs above).
+          return _plannerKind({ anchor: entry.anchor });
+        }
+        if (entry.anchor && entry.anchor.bbox) return "svg";
+        if (entry.anchor && typeof entry.anchor.start_offset === "number") return "text";
+        return "unknown";
+      };
       const ordered = successes.slice().sort((a, b) => {
+        const ka = kindOf(a.entry);
+        const kb = kindOf(b.entry);
+        if (ka !== kb) {
+          if (ka === "text") return -1;
+          if (kb === "text") return 1;
+        }
         const sa = a.entry.anchor && typeof a.entry.anchor.start_offset === "number"
           ? a.entry.anchor.start_offset
           : -1;
         const sb = b.entry.anchor && typeof b.entry.anchor.start_offset === "number"
           ? b.entry.anchor.start_offset
           : -1;
-        return sb - sa;
+        if (sa !== sb) return sb - sa;
+        const ia = String(a.entry._thread.id || "");
+        const ib = String(b.entry._thread.id || "");
+        if (ia < ib) return -1;
+        if (ia > ib) return 1;
+        return 0;
       });
       for (const r of ordered) {
         if (typeof r.out.applied_artifact === "string") {
@@ -443,7 +499,7 @@ async function resolve(params) {
         outcome = "skip";
       } else if (choice === "Modify") {
         // T10 records the choice as a skip-for-now; full Modify-edit-then-
-        // resubmit UX lands in T13. Thread stays open.
+        // resubmit UX lands in T14 (Modify-edit-then-resubmit UX). Thread stays open.
         skipped.push({ id: thread.id, reason: "operator_modify_deferred" });
         outcome = "skip";
       } else {

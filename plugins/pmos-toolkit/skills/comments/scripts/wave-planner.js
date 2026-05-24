@@ -68,12 +68,59 @@ function overlapRelationFR25(threadA, threadB) {
 // sidecar). Kept explicit so future dep-bearing inputs Just Work and the
 // function shape matches Decision P6.
 
-function _kahnLayers(threads /*, depEdges = [] */) {
-  // depEdges parameter is reserved; current callers pass none.
-  // With zero edges, in-degree is 0 for every node → single layer.
-  // If a caller ever supplies edges and a cycle is detected, fall back
-  // to an all-singleton layering (defensive — see step 3 of the task).
-  return [threads.slice()];
+function _kahnLayers(threads, depEdges) {
+  // depEdges is an optional array of [fromId, toId] pairs expressing
+  // "from must run before to". When omitted/empty, in-degree is 0 for
+  // every node → a single layer containing every thread (the common
+  // /comments case, since static sidecars have no inter-thread edges).
+  //
+  // If a caller supplies edges and Kahn's detects a cycle (after
+  // processing the queue, some nodes still have in-degree > 0), we fall
+  // back to an all-singleton layering — each thread in its own layer —
+  // which is the safest possible execution: fully sequential, no
+  // assumption about which edge to break.
+  const edges = Array.isArray(depEdges) ? depEdges : [];
+  if (edges.length === 0) return [threads.slice()];
+
+  const byId = new Map();
+  for (const t of threads) byId.set(String(t.id), t);
+
+  const inDeg = new Map();
+  const adj = new Map();
+  for (const t of threads) {
+    inDeg.set(String(t.id), 0);
+    adj.set(String(t.id), []);
+  }
+  for (const [from, to] of edges) {
+    const f = String(from);
+    const tt = String(to);
+    if (!inDeg.has(f) || !inDeg.has(tt)) continue;
+    adj.get(f).push(tt);
+    inDeg.set(tt, inDeg.get(tt) + 1);
+  }
+
+  const layers = [];
+  let frontier = [];
+  for (const [id, deg] of inDeg) if (deg === 0) frontier.push(id);
+  let processed = 0;
+  while (frontier.length > 0) {
+    layers.push(frontier.map((id) => byId.get(id)));
+    const next = [];
+    for (const id of frontier) {
+      processed++;
+      for (const m of adj.get(id)) {
+        inDeg.set(m, inDeg.get(m) - 1);
+        if (inDeg.get(m) === 0) next.push(m);
+      }
+    }
+    frontier = next;
+  }
+
+  if (processed < threads.length) {
+    // Cycle detected — fall back to all-singleton layering.
+    return threads.map((t) => [t]);
+  }
+  return layers;
 }
 
 // ---- Greedy packing within a layer ----
@@ -148,7 +195,7 @@ function _rightToLeft(wave) {
 
 // ---- Public API ----
 
-function planWaves(threads, overlapRelation) {
+function planWaves(threads, overlapRelation, depEdges) {
   const rel = typeof overlapRelation === "function"
     ? overlapRelation
     : overlapRelationFR25;
@@ -161,7 +208,10 @@ function planWaves(threads, overlapRelation) {
 
   if (eligible.length === 0) return [];
 
-  const layers = _kahnLayers(eligible);
+  // depEdges is reserved for future dep-bearing inputs (current /comments
+  // callers pass none). When supplied with a cycle, _kahnLayers falls
+  // back to all-singleton layering — see test case (g).
+  const layers = _kahnLayers(eligible, depEdges);
   const waves = [];
   for (const layer of layers) {
     const packed = _packLayer(layer, rel);
