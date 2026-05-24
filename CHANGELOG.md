@@ -1,5 +1,22 @@
 # Changelog
 
+## pmos-toolkit 2.54.0 — 2026-05-24
+
+### What's new
+
+- **`/prototype-sdlc <seed>`** — new pipeline orchestrator that runs the **discovery half** of the SDLC only: `requirements → grill → creativity → spec → wireframes → prototype`, then stops. No `/plan`, `/execute`, `/skill-eval`, `/verify`, or `/complete-dev` runs. The branch + worktree are left intact for the user to extend (edit `state.yaml.pipeline_mode` from `prototype` → `feature` and `/feature-sdlc --resume`) or discard. Implemented as a thin alias (24-line SKILL.md) over a new `prototype` subcommand on `/feature-sdlc`. Reuses all of `/feature-sdlc`'s state, resume, worktree, gate, compact-checkpoint, non-interactive, `--minimal`, `--no-worktree`, `--tier N`, and `--format` machinery. In `prototype` mode `/wireframes` and `/prototype` are **hard, always-run** (no gate) — they are the deliverable; `/spec` is reordered to run *before* `/wireframes` so the wireframes consume the technical design. Use cases: stakeholder-walkable prototype before committing to implementation; design exploration with the same resumable pipeline as `/feature-sdlc`.
+- **State schema v5** — additive: `pipeline_mode` enum widens to include `prototype`; new mode-conditional `phases[]` membership. v1–v4 files auto-migrate on read via the `v4 → v5` block (2 steps, idempotent).
+
+### Breaking changes
+
+None. `/feature-sdlc skill …`, bare `/feature-sdlc <idea>`, `/skill-sdlc`, `/feature-sdlc list`, and all existing flags continue to behave identically. The Phase 0 token-1 disambiguation grows `prototype` as a recognised selector, but only when it is the literal first token AND followed by a flag, a single quoted arg, or nothing — multi-word seeds starting with the word "prototype" (e.g., `/feature-sdlc prototype this in detail`) continue to be parsed as `feature` mode with that text as the seed.
+
+### Internal
+
+- The new alias was authored end-to-end via `/feature-sdlc skill` (the `/skill-sdlc` alias), `--minimal` ceremony, Tier 2. Requirements/spec/plan artifacts ship under `docs/pmos/features/2026-05-24_prototype-sdlc-skill/`.
+
+---
+
 ## pmos-toolkit 2.51.0 — 2026-05-23
 
 ### What's new

@@ -6,11 +6,11 @@ Single source of truth for the resumable pipeline state file written at `<worktr
 
 ## schema_version
 
-`schema_version: 4` is the current version (added with the `/feature-sdlc skill` modes). Older files are auto-migrated on read, in order, through the chain `v1 → v2 → v3 → v4` (each step additive/idempotent — see the per-version "auto-migration block" sections below). Files written by /feature-sdlc < 2.34.0 carry `schema_version: 1`; files from the 2.34.0–2.37.x cohort carry `2` or `3`.
+`schema_version: 5` is the current version (added with the `/feature-sdlc prototype` mode — `pipeline_mode = prototype` is the new valid value; phases[] gains a prototype-mode entry set). Older files are auto-migrated on read, in order, through the chain `v1 → v2 → v3 → v4 → v5` (each step additive/idempotent — see the per-version "auto-migration block" sections below). Files written by /feature-sdlc < 2.34.0 carry `schema_version: 1`; files from the 2.34.0–2.37.x cohort carry `2` or `3`; files from the 2.38.0+ cohort carry `4`.
 
 **Migration policy** (per FR-SCHEMA / FR-13 / spec §15 G3):
 
-- `state.schema_version > current code's max supported` (i.e., `> 4`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
+- `state.schema_version > current code's max supported` (i.e., `> 5`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
 - `state.schema_version < current code's max` → run each migration step in version order; each is additive (default-fill new fields, never remove/rename/reshape) and idempotent; log every step to chat as `migration: state.schema vM → vN (added: <fields>)`. The pre-2.34.0 phase-id elision (`msf-req`/`simulate-spec` dropped on read — see "Auto-migration of pre-2.34.0 state files" in SKILL.md) runs *before* the v4 step.
 - Same version → no migration.
 
@@ -22,9 +22,9 @@ Pipeline runs are short-lived (days, not years) so destructive migrations are no
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | int | yes | `1` in v1 … `4` in v4 (the current version). |
+| `schema_version` | int | yes | `1` in v1 … `5` in v5 (the current version). |
 | `slug` | string | yes | LLM-derived kebab-case identifier (per `slug-derivation.md`). |
-| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, or `skill-feedback`. Resolved by the Phase 0 subcommand dispatch (FR-02). **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
+| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, `skill-feedback`, or `prototype` (the last added in v5). Resolved by the Phase 0 subcommand dispatch (FR-02). **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
 | `tier` | int (1\|2\|3) \| null | yes | Set when known: `--tier` flag, or — in skill modes — Phase 0d `/skill-tier-resolve`, or — otherwise — after `/requirements` auto-tier. `null` until then. |
 | `mode` | string | yes | `interactive` or `non-interactive`. Resolved per the canonical non-interactive block at Phase 0. (Untouched by v4 — see `pipeline_mode` above for the run-kind selector.) |
 | `started_at` | string (ISO-8601) | yes | First creation timestamp. Never updated. |
@@ -70,28 +70,28 @@ Every entry has at minimum:
 
 In declared execution order. Membership is mode-conditional (see below); a `—` in the column means the phase is absent from that mode's `phases[]`.
 
-| id | hardness | feature | skill-new | skill-feedback | notes |
-|---|---|---|---|---|---|
-| `setup` | infra | ✓ | ✓ | ✓ | always run; no failure dialog beyond pipeline-setup's own |
-| `worktree` | infra | ✓ | ✓ | ✓ | worktree creation; G7 dialog inline |
-| `init-state` | infra | ✓ | ✓ | ✓ | write state.yaml + 00_pipeline.{html,md} |
-| `feedback-triage` | **hard** | — | — | ✓ | **new in v4 (D22).** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
-| `skill-tier-resolve` | **infra** | — | ✓ | ✓ | **new in v4 (D22).** A setup/detection phase like `worktree`/`init-state`. |
-| `ideate` | **soft** | ✓ | ✓ | — | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
-| `requirements` | hard | ✓ | ✓ | ✓ | Skip HIDDEN in failure dialog |
-| `grill` | soft | ✓ | ✓ | ✓ | Skip SHOWN; auto-skipped in `--non-interactive` |
-| `creativity` | soft | ✓ | ✓ | ✓ | gate, Recommended=Skip |
-| `wireframes` | soft | ✓ | — | — | feature mode only |
-| `prototype` | soft | ✓ | — | — | feature mode only |
-| `spec` | hard | ✓ | ✓ | ✓ | |
-| `plan` | hard | ✓ | ✓ | ✓ | |
-| `execute` | hard | ✓ | ✓ | ✓ | |
-| `skill-eval` | **hard** | — | ✓ | ✓ | **new in v4 (D22).** A non-skippable quality gate; "accept residuals as known risk" is a documented exit, not a skip; peer of `verify`. |
-| `verify` | hard | ✓ | ✓ | ✓ | non-skippable |
-| `complete-dev` | hard | ✓ | ✓ | ✓ | |
-| `retro` | soft | ✓ | ✓ | ✓ | gate, Recommended=Skip |
-| `final-summary` | infra | ✓ | ✓ | ✓ | |
-| `capture-learnings` | infra | ✓ | ✓ | ✓ | |
+| id | hardness | feature | skill-new | skill-feedback | prototype | notes |
+|---|---|---|---|---|---|---|
+| `setup` | infra | ✓ | ✓ | ✓ | ✓ | always run; no failure dialog beyond pipeline-setup's own |
+| `worktree` | infra | ✓ | ✓ | ✓ | ✓ | worktree creation; G7 dialog inline |
+| `init-state` | infra | ✓ | ✓ | ✓ | ✓ | write state.yaml + 00_pipeline.{html,md} |
+| `feedback-triage` | **hard** | — | — | ✓ | — | **new in v4 (D22).** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
+| `skill-tier-resolve` | **infra** | — | ✓ | ✓ | — | **new in v4 (D22).** A setup/detection phase like `worktree`/`init-state`. |
+| `ideate` | **soft** | ✓ | ✓ | — | ✓ | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
+| `requirements` | hard | ✓ | ✓ | ✓ | ✓ | Skip HIDDEN in failure dialog |
+| `grill` | soft | ✓ | ✓ | ✓ | ✓ | Skip SHOWN; auto-skipped in `--non-interactive` |
+| `creativity` | soft | ✓ | ✓ | ✓ | ✓ | gate, Recommended=Skip |
+| `wireframes` | soft / **hard in prototype** | ✓ | — | — | ✓ | feature mode soft (gate); prototype mode hard (no gate, always-run — the deliverable). |
+| `prototype` | soft / **hard in prototype** | ✓ | — | — | ✓ | feature mode soft (gate); prototype mode hard (no gate, always-run — the deliverable). |
+| `spec` | hard | ✓ | ✓ | ✓ | ✓ | in prototype mode, runs **before** `wireframes`/`prototype` (post-3a). |
+| `plan` | hard | ✓ | ✓ | ✓ | — | not in prototype mode |
+| `execute` | hard | ✓ | ✓ | ✓ | — | not in prototype mode |
+| `skill-eval` | **hard** | — | ✓ | ✓ | — | **new in v4 (D22).** A non-skippable quality gate; "accept residuals as known risk" is a documented exit, not a skip; peer of `verify`. |
+| `verify` | hard | ✓ | ✓ | ✓ | — | non-skippable in feature/skill modes; not in prototype mode (nothing implemented to verify) |
+| `complete-dev` | hard | ✓ | ✓ | ✓ | — | not in prototype mode (nothing to ship) |
+| `retro` | soft | ✓ | ✓ | ✓ | — | gate, Recommended=Skip; not in prototype mode (no merge happened) |
+| `final-summary` | infra | ✓ | ✓ | ✓ | ✓ | prototype-mode variant per SKILL.md FR-PSDLC-08 |
+| `capture-learnings` | infra | ✓ | ✓ | ✓ | ✓ | |
 
 (The removed `msf-req` and `simulate-spec` phase ids — present in pre-2.34.0 state files — are elided on read before the v4 migration step; they are not in any mode's fresh-init `phases[]`.)
 
@@ -105,6 +105,8 @@ At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode`
   `setup, worktree, init-state, skill-tier-resolve, ideate, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
 - **`skill-feedback`** — the `skill-new` set **plus** `{feedback-triage}` inserted **after `init-state`** (before `skill-tier-resolve`), and `ideate` **omitted** (the per-skill triage doc is already a structured seed; nothing fuzzy to flesh out):
   `setup, worktree, init-state, feedback-triage, skill-tier-resolve, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
+- **`prototype`** (new in v5) — discovery-half only; declared in *execution* order (the Phase 0b resume cursor walks `phases[]` in order so this matches the SKILL.md `## Prototype-mode phase ordering`); `/spec` sits between `creativity` and `wireframes`; `plan`/`execute`/`skill-eval`/`verify`/`complete-dev`/`retro` are all omitted; `final-summary` is the prototype-mode variant:
+  `setup, worktree, init-state, ideate, requirements, grill, creativity, spec, wireframes, prototype, final-summary, capture-learnings`.
 
 **Back-compat for pre-2.52.0 state files (additive, no `schema_version` bump):** state files written before 2.52.0 have no `ideate` entry in `phases[]`. The resume cursor scans whatever phases the file declares — a missing `ideate` entry is treated as "this phase did not exist when the run started; advance past it" (the same shape as the elision of `msf-req`/`simulate-spec` for pre-2.34.0 files). No on-read migration step is required; runs are not retroactively re-ideated.
 
@@ -261,7 +263,30 @@ Performed on read whenever `state.schema_version < 4` AND the drift check has pa
 3. **`phases[]` unchanged** — the skill-dev phase ids are only ever added by a fresh skill-mode init, never retrofitted; a migrated v3 file keeps its existing feature-mode phase set.
 4. **Emit chat log line:** `migration: state.schema v3 → v4 (added: pipeline_mode=feature; cohort-marker bump)`.
 
-`schema_version > 4` → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`, exit 64. On a v1 file, the full `v1 → v2 → v3 → v4` chain runs in order (each step's block above).
+`schema_version > 4` → fall through to v5 check below. On a v1 file, the full `v1 → v2 → v3 → v4 → v5` chain runs in order (each step's block above + the v5 step below).
+
+---
+
+## Schema v5 (added 2026-05-24)
+
+v5 is **additive over v4** — no field removals, no renames, no reshape. It is the schema for the `/feature-sdlc prototype` mode. v4 (and earlier, via the chain) files are auto-migrated on read.
+
+### What's new in v5
+
+1. **`pipeline_mode` enum widens** — `prototype` becomes a valid value alongside `feature`/`skill-new`/`skill-feedback` (D16-extended).
+2. **New mode-conditional `phases[]` membership** — the `prototype` mode's `phases[]` set (see "Mode-conditional `phases[]` membership (v4)" above, the `prototype` bullet). The phase entries are declared in *execution order*, so the resume cursor walks them correctly without special-casing.
+3. **No new top-level fields, no new per-phase fields, no new substructures.** All `prototype`-mode metadata is captured in existing fields (`current_phase`, `phases[].status`, etc.).
+
+### v4 → v5 auto-migration block (2 steps, idempotent)
+
+Performed on read whenever `state.schema_version < 5` AND the drift check has passed:
+
+1. **Set `schema_version: 5`.**
+2. **Emit chat log line:** `migration: state.schema v4 → v5 (added: pipeline_mode=prototype valid value; cohort-marker bump)`.
+
+(`phases[]` is unchanged — the `prototype`-mode phase set is only ever produced by a fresh `prototype`-mode init; never retrofitted onto an older feature/skill-mode run.)
+
+`schema_version > 5` → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`, exit 64.
 
 ---
 
