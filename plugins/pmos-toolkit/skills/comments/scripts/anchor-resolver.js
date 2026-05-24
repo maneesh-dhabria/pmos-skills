@@ -90,11 +90,16 @@ function _mainDocBounds(html) {
 // in the original `html` or -1 on miss. `start` shifts dmp's `loc` into
 // absolute coordinates.
 function _bitapFind(html, region, query, threshold, distance) {
-  if (!query) return { offset: -1, score: 0 };
+  if (!query) return { offset: -1, score: 0, matchedLen: 0 };
   const dmp = new diff_match_patch();
   dmp.Match_Threshold = threshold;
   dmp.Match_Distance = distance;
   const maxBits = dmp.Match_MaxBits || 32;
+  // dmp's Bitap implementation only handles probes up to Match_MaxBits
+  // (32 by default). When the query exceeds that, we MUST truncate the
+  // probe — but that means the matched region in the artifact is only
+  // ~probe.length chars, NOT query.length. We return matchedLen so the
+  // caller can compute a correct end_offset and not over-claim the span.
   const probe = query.length > maxBits ? query.slice(0, maxBits) : query;
   const slice = html.slice(region.start, region.end);
   let loc = -1;
@@ -103,11 +108,11 @@ function _bitapFind(html, region, query, threshold, distance) {
   } catch (_) {
     loc = -1;
   }
-  if (loc === -1) return { offset: -1, score: 0 };
+  if (loc === -1) return { offset: -1, score: 0, matchedLen: 0 };
   const matched = slice.substr(loc, probe.length);
   const edits = dmp.diff_levenshtein(dmp.diff_main(matched, probe));
   const score = Math.max(0, 1 - edits / Math.max(probe.length, 1));
-  return { offset: region.start + loc, score };
+  return { offset: region.start + loc, score, matchedLen: probe.length };
 }
 
 // Score a candidate offset for prefix/suffix proximity. Adds up to
@@ -134,19 +139,19 @@ function _proximityBonus(html, offset, qLen, prefix, suffix) {
 // single Bitap fallback when no exact occurrence exists.
 function _quoteFallback(html, region, qAnchor, threshold, distance) {
   const q = qAnchor.text || "";
-  if (!q) return { offset: -1, score: 0 };
+  if (!q) return { offset: -1, score: 0, matchedLen: 0 };
   const prefix = qAnchor.prefix || "";
   const suffix = qAnchor.suffix || "";
 
   // 1. Enumerate every exact occurrence within the region and rank by
-  //    proximity bonus. Base score for exact = 1.0.
+  //    proximity bonus.
   const sliceStart = region.start;
   const sliceEnd = region.end;
   // Base score for an exact match is 0.8; proximity bonus (≤ 2 * 0.1)
   // takes the matched-on-both-sides candidate to 1.0 and breaks ties
   // against bare-quote occurrences (spec §14.1 (f)).
   const EXACT_BASE = 0.8;
-  let best = { offset: -1, score: 0 };
+  let best = { offset: -1, score: 0, matchedLen: 0 };
   let scanFrom = sliceStart;
   while (true) {
     const hit = html.indexOf(q, scanFrom);
@@ -154,13 +159,14 @@ function _quoteFallback(html, region, qAnchor, threshold, distance) {
     const bonus = _proximityBonus(html, hit, q.length, prefix, suffix);
     const score = Math.min(1.0, EXACT_BASE + bonus);
     if (score > best.score) {
-      best = { offset: hit, score };
+      best = { offset: hit, score, matchedLen: q.length };
     }
     scanFrom = hit + 1;
   }
   if (best.offset !== -1) return best;
 
-  // 2. No exact match — fall back to Bitap fuzzy.
+  // 2. No exact match — fall back to Bitap fuzzy. The returned matchedLen
+  //    may be < q.length when the probe was truncated to Match_MaxBits.
   return _bitapFind(html, region, q, threshold, distance);
 }
 
@@ -346,11 +352,17 @@ function resolveAnchor(params) {
     const region = _mainDocBounds(html);
     const r = _quoteFallback(html, region, anchor.quote_anchor, threshold, distance);
     if (r.offset !== -1 && r.score >= QUOTE_MIN_SCORE) {
+      // Use matchedLen (not text.length) so a Bitap probe truncated to
+      // Match_MaxBits does not over-claim the matched span. Exact hits
+      // set matchedLen = text.length, preserving prior behavior.
+      const matchedLen = (typeof r.matchedLen === "number" && r.matchedLen > 0)
+        ? r.matchedLen
+        : anchor.quote_anchor.text.length;
       return {
         strategy: "quote-fallback",
         dom_range: {
           start_offset: r.offset,
-          end_offset: r.offset + anchor.quote_anchor.text.length,
+          end_offset: r.offset + matchedLen,
         },
         score: r.score,
       };
