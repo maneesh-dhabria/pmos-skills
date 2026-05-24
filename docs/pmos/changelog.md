@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-05-24 — pmos-toolkit 2.55.0: `/wireframes` Phase 7 — Figma-like canvas view aggregating every screen
+
+`/wireframes` now always emits a Figma-like `canvas.html` viewer alongside the per-device wireframe files. Every screen of every device renders on an infinite pan/zoom surface, with flow arrows derived from DESIGN.md user journeys and screens drag-positionable on the canvas. The curated layout persists to a `canvas.json` sidecar that round-trips across re-runs — drag a screen, click **Save layout**, drop the downloaded JSON next to the existing one, commit. Next time anyone opens the canvas they see the curated arrangement.
+
+(Skips 2.54.0 — that version was concurrently shipped for `/prototype-sdlc`; this release rides 2.55.0 to avoid the collision. See the 2026-05-13 origin-drift learning in `~/.pmos/learnings.md`.)
+
+**What's new**
+
+- New **Phase 7: Canvas Aggregation** in `/wireframes`, between Phase 6 (MSF + PSYCH) and Phase 8 (Spec Handoff). Always-on — no flag, no gate.
+- New substrate at `plugins/pmos-toolkit/skills/wireframes/assets/canvas/`: `canvas-template.html` (the viewer), `build-canvas.js` (the aggregator), `extract-screens.js` (screen discovery).
+- New reference at `plugins/pmos-toolkit/skills/wireframes/reference/canvas-aggregation.md` — full Phase 7 contract, `canvas.json` schema (v1), screen-extraction rules, DESIGN.md journey parser, auto-layout algorithm, merge semantics.
+- Canvas viewer dependencies: `panzoom@4.5.1` and `leader-line-new@1.1.9` loaded via jsdelivr with SRI hashes. Single-file HTML; works under `file://` once cached.
+
+**Why it matters**
+
+Before this release, design crits required scrolling back and forth through one stacked HTML file per device, mentally reconstructing the flow each time. The canvas view lays the entire feature out spatially so stakeholders can compare onboarding screens side-by-side, spot inconsistencies across devices, and walk the journey end-to-end without leaving one viewport. The arrows make user-flow structure visible at-a-glance instead of buried in DESIGN.md prose.
+
+**Behavioural notes**
+
+- Existing per-device wireframe files are unchanged — the canvas is additive. Per-device files remain the source of truth; the canvas embeds them as sandboxed iframes (`allow-scripts allow-same-origin` so wireframe state-switchers still work).
+- Idempotent on re-run: user-curated `(x, y)` positions in `canvas.json` are preserved; newly-added screens (post-regen) are auto-laid-out below the existing layout; removed screens drop out.
+- Bootstrap-only mode (`/wireframes --bootstrap-design-only`) does **not** run Phase 7 — by-design, because no per-device files exist in that mode.
+- Missing DESIGN.md degrades gracefully: screens still render; arrows array is empty; a warning is logged to chat.
+- Smoke-tested in a real browser: 4 wireframes render via iframes; Fit-to-screen, Reset zoom, drag, and Save-layout all work; 0 console errors.
+
+**Files changed**
+
+- `plugins/pmos-toolkit/skills/wireframes/SKILL.md` — frontmatter description + new Phase 7 section + Phase 5 / Phase 8 cross-references.
+- `plugins/pmos-toolkit/skills/wireframes/assets/canvas/` — new substrate directory (3 files).
+- `plugins/pmos-toolkit/skills/wireframes/reference/canvas-aggregation.md` — new reference.
+- `plugins/pmos-toolkit/skills/wireframes/reference/{eval-rubric,components-md-spec,style-extraction,screenshot-ingestion,design-md-spec,html-template}.md` — added `## Contents` ToC blocks to satisfy `c-reference-toc` skill-eval check (pre-existing failure).
+
 ## 2026-05-23 — pmos-toolkit 2.53.0: `/design-crit` gains `--depth` flag; lifts silent 12-finding cap
 
 `/design-crit` previously truncated reviewer output and disposition prompts at a hard 12 high+medium findings per run. On complex multi-screen audits, the 13th-Nth medium-severity finding silently became "unsurfaced" — logged to `eval-findings.json` but never reaching the user as an actionable disposition. This release adds explicit depth control:
