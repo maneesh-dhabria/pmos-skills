@@ -509,3 +509,34 @@ When `scripts/workspace-discovery.sh` reports composition=`monorepo`, §10 orche
 ## Phase N: Capture Learnings
 
 This skill is not complete until learnings-capture has run. Read `learnings/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, simulated-reader persona refinements, or platform-adaptation gotchas. Append entries to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill-body wins on conflict.
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/readme` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a readme audit artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/readme`-specific implementation guidance only.
+
+**Comments meta tag (FR-01, FR-40):** any HTML artifact emitted by `/readme` (scaffold output rendered to HTML, audit report) MUST carry `<meta name="pmos:skill" content="readme">` in the `<head>`. Set `{{pmos_skill}}` to `readme` when expanding the substrate template. The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
+
+**Asset substrate (FR-40):** when writing HTML artifacts, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/readme/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
+
+### Resolution order
+
+1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/readme/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_readme.sh`.

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="architecture">
+  <title>Mini Architecture Report (fixture)</title>
+</head>
+<body>
+  <article>
+    <h1>Mini Architecture Report</h1>
+
+    <section id="summary">
+      <h2>Summary</h2>
+      <p>Audit complete. 2 Must Fix, 4 Should Fix, 1 Won't Fix across 14 files. L1 universal rules all evaluated; L2 TypeScript rules applied via dependency-cruiser.</p>
+    </section>
+
+    <section id="findings">
+      <h2>Findings</h2>
+      <p>U001: file size exceeds 500 lines (src/core.ts — 612 lines). U004: debug log found outside @app.command decorator (src/util.py:88). Cycle detected: src/a.ts → src/b.ts → src/a.ts.</p>
+    </section>
+
+    <section id="rollout">
+      <h2>Rollout</h2>
+      <p>Address must-fix findings before next release. Should-fix items tracked in backlog. Deep pass deferred pending Task-tool runtime availability.</p>
+    </section>
+
+  </article>
+</body>
+</html>

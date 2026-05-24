@@ -380,3 +380,34 @@ Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero 
 - `editor_notes.json` — run artifact written by Phase 2.5 (editor critique) next to the polished file
 - `tests/fixtures/` — 11 fixtures (incl. `html-doc.html`, `bloated-doc.md`) with paired `expected.yaml` contracts
 - `example/custom-checks.yaml` — example user can copy to `~/.pmos/polish/`
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/polish` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a polish artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/polish`-specific implementation guidance only.
+
+**Comments meta tag (FR-01, FR-40):** the polished HTML artifact (`.polished.html`) MUST carry `<meta name="pmos:skill" content="polish">` in the `<head>`. This meta tag is written at Phase 7 (write output). The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
+
+**Asset substrate (FR-40):** when writing `.polished.html`, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the same `assets/` directory as the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/polish/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
+
+### Resolution order
+
+1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/polish/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_polish.sh`.
