@@ -929,3 +929,50 @@ For this skill, evaluate whether anything from this session is worth writing bac
 - Do NOT force-fit a structural finding into the inline-edit flow — use the Phase 6 escape hatch
 - Do NOT batch findings without `[Blocker]/[Should-fix]/[Nit]` severity tags
 - Do NOT run industry research at Tier 2 unless the design has a non-obvious architectural choice
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/spec` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a spec artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/spec`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/spec/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
+
+### Resolution order
+
+Per the contract:
+
+1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7. Longer-than-32-bit queries are probed on a leading window — the full alignment lands in `comments/scripts/anchor-resolver.js` (T12).
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Closed error_enum
+
+Authoritative list in [§9.2](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#api-error-enum) / the contract doc:
+
+`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
+
+The shim raises `anchor_orphaned`, `agent_judged_infeasible`, and `agent_errored`. `edit_conflicted` is the resolver's responsibility (wave-planner concern).
+
+### Idempotency (§9.3) — local choice
+
+The shim returns the **`diff_ref` substring** form for no-ops:
+
+```json
+{ "success": true, "diff_ref": "no-op: edit already applied", "system_reply": "Edit already present in artifact; marking resolved without changes." }
+```
+
+(Not a top-level `noop: true` key.) Per-process ledger keyed by `${artifact_path}:${thread_id}:sha1(body)` is sufficient for the §9.3 contract within one `/comments resolve` run; the persistent semantic-keyword (≥80% overlap) check belongs to the resolver.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_spec.sh`.

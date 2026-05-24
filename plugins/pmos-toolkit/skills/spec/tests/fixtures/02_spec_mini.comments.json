@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "artifact": "02_spec_mini.html",
+  "threads": [
+    {
+      "id": "T_A",
+      "id_anchor": "problem",
+      "quote_anchor": null,
+      "status": "open",
+      "messages": [
+        {"role": "user", "author": "tester", "body": "tighten this wording", "ts": "2026-05-24T10:00:00Z"}
+      ]
+    },
+    {
+      "id": "T_B",
+      "id_anchor": "solution",
+      "quote_anchor": {
+        "text": "dual anchors (id-first then quote-fallback Bitap)",
+        "prev_sibling": "Introduce a sidecar comments.json with ",
+        "next_sibling": ". The resolver dispatches"
+      },
+      "status": "open",
+      "messages": [
+        {"role": "user", "author": "tester", "body": "clarify which bitap threshold", "ts": "2026-05-24T10:01:00Z"}
+      ]
+    },
+    {
+      "id": "T_C",
+      "id_anchor": "missing-section",
+      "quote_anchor": {
+        "text": "a phrase that does not appear anywhere in the artifact at all xyzzy plugh",
+        "prev_sibling": "",
+        "next_sibling": ""
+      },
+      "status": "open",
+      "messages": [
+        {"role": "user", "author": "tester", "body": "fix this", "ts": "2026-05-24T10:02:00Z"}
+      ]
+    }
+  ]
+}

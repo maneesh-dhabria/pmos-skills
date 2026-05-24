@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos-originating-skill" content="spec">
+  <title>Mini Spec (fixture)</title>
+</head>
+<body>
+  <article>
+    <h1>Mini Spec</h1>
+
+    <section id="problem">
+      <h2>Problem</h2>
+      <p>Users currently have no way to attach inline review comments to generated HTML artifacts. Reviewers fall back to ad-hoc Slack threads which lose anchor context.</p>
+    </section>
+
+    <section id="solution">
+      <h2>Solution</h2>
+      <p>Introduce a sidecar comments.json with dual anchors (id-first then quote-fallback Bitap). The resolver dispatches a generic subagent that calls each originating skill's apply-edit-at-anchor entrypoint.</p>
+    </section>
+
+    <section id="rollout">
+      <h2>Rollout</h2>
+      <p>Ship per-skill contract tests before flipping the resolver on. Each of the 14 originating skills owns its own shim under scripts/.</p>
+    </section>
+
+  </article>
+</body>
+</html>
