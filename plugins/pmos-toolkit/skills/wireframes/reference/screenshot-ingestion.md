@@ -1,5 +1,13 @@
 # Screenshot Ingestion
 
+## Contents
+
+- [Inputs](#inputs)
+- [Vision-extraction prompt](#vision-extraction-prompt)
+- [`source-screens.md` format](#source-screensmd-format)
+- [Journey anchoring protocol](#journey-anchoring-protocol)
+- [Generator briefing](#generator-briefing)
+
 Lets users seed wireframe generation with screenshots of an existing flow ("here's today's onboarding — redesign step 3"). Optional. Augments the requirements doc, never replaces it.
 
 ## Inputs

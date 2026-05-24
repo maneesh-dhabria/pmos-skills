@@ -235,16 +235,17 @@ function main() {
     process.exit(0);
   }
 
-  // 2. Extract screens from each file.
+  // 2. Extract screens from each file. Strategy is file-level by default
+  // (each per-device HTML = one screen); section-level if the file has
+  // explicit <section data-screen> elements. See extract-screens.js.
   const allScreens = [];
   for (const f of files) {
     const html = fs.readFileSync(path.join(wfDir, f), 'utf8');
-    const device = deviceFromFilename(f);
-    const screens = extractScreens(html, f).map(s => ({ ...s, device }));
+    const screens = extractScreens(html, f);
     for (const s of screens) allScreens.push(s);
   }
   if (allScreens.length === 0) {
-    console.error('canvas-aggregator: no <section data-screen> or <section id> elements found in any wireframe; skipping.');
+    console.error('canvas-aggregator: no extractable screens found; skipping.');
     process.exit(0);
   }
 

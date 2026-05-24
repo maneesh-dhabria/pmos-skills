@@ -1,5 +1,12 @@
 # COMPONENTS.md Specification
 
+## Contents
+
+- [Why a separate file?](#why-a-separate-file)
+- [File shape](#file-shape)
+- [Per-component section](#per-component-section)
+- [Header block (required)](#header-block-required)
+
 `COMPONENTS.md` is the prose-first companion to `DESIGN.md`. Where DESIGN.md captures **visual identity** (tokens, rationale), COMPONENTS.md captures the **existing component library inventory** so generators can reuse what's already built instead of inventing parallel components.
 
 Lives next to `DESIGN.md` in the same directory.
