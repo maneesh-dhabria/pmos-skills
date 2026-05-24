@@ -77,6 +77,10 @@ function makeReadlineAsker() {
       askUser: ask,
     });
   } catch (e) {
+    if (e && typeof e.exitCode === "number") {
+      process.stderr.write("comments-resolver: " + e.message + "\n");
+      process.exit(e.exitCode);
+    }
     process.stderr.write("resolve error: " + (e && e.message ? e.message : String(e)) + "\n");
     process.exit(1);
   } finally {

@@ -26,11 +26,11 @@ else
   fi
 fi
 
-RESOLVER="$REPO/plugins/pmos-toolkit/skills/comments/scripts/resolver.js"
+CLI="$REPO/plugins/pmos-toolkit/skills/comments/scripts/cli.js"
 FIXTURE_HTML="$REPO/plugins/pmos-toolkit/skills/spec/tests/fixtures/02_spec_mini.html"
 
-if [ ! -f "$RESOLVER" ]; then
-  echo "FAIL: resolver not found at $RESOLVER" >&2
+if [ ! -f "$CLI" ]; then
+  echo "FAIL: cli.js not found at $CLI" >&2
   exit 2
 fi
 if [ ! -f "$FIXTURE_HTML" ]; then
@@ -61,36 +61,10 @@ cat > "$SIDECAR" <<'SIDECAR_EOF'
 }
 SIDECAR_EOF
 
-# Write the driver script to a temp file so shell variable quoting is safe.
-DRIVER_FILE="$TMP_DIR/driver.js"
-cat > "$DRIVER_FILE" <<DRIVER_EOF
-const resolver = require("$RESOLVER");
-
-async function main() {
-  try {
-    await resolver.resolve({
-      path: "$ARTIFACT",
-      mode: "confirm-each",
-      askUser: async () => "Accept",
-      dispatchSubagent: async () => ({ success: true, applied_artifact: "", system_reply: "" }),
-      runGit: function(args) {
-        if (args[0] === "rev-parse") return "$TMP_DIR\\n";
-        return "";
-      },
-      printSummary: false,
-    });
-  } catch (e) {
-    process.stderr.write("driver: resolve threw: " + e.message + "\\n");
-    process.exit(1);
-  }
-}
-main().catch(function(e) { process.stderr.write("driver: uncaught: " + e.message + "\\n"); process.exit(1); });
-DRIVER_EOF
-
-# Run the driver; capture stderr; record exit code without set -e killing us.
+# Run cli.js end-to-end (exercises the cli.js catch handler → exitCode translation).
 STDERR_FILE="$TMP_DIR/stderr.txt"
 ACTUAL_EXIT=0
-node "$DRIVER_FILE" 2>"$STDERR_FILE" || ACTUAL_EXIT=$?
+node "$CLI" resolve "$ARTIFACT" --confirm-each </dev/null 2>"$STDERR_FILE" || ACTUAL_EXIT=$?
 STDERR_OUT="$(cat "$STDERR_FILE")"
 
 PASS=true

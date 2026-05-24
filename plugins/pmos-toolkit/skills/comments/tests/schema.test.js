@@ -689,6 +689,34 @@ async function testIdempotencyLowScore() {
 }
 
 // -------------------------------------------------------------------------
+// Schema-version refuse-load: schema_version=99 rejects with ESCHEMA_NEWER.
+// -------------------------------------------------------------------------
+async function testSchemaVersionRefuse() {
+  const tmp = makeTmp("t16svr");
+  try {
+    const { artifactPath } = makeFixture(tmp, [], 99);
+
+    await assert.rejects(
+      async () => {
+        await resolver.resolve({
+          path: artifactPath,
+          mode: "confirm-each",
+          askUser: async () => "Accept",
+          dispatchSubagent: async () => ({ success: true, applied_artifact: "", system_reply: "" }),
+          runGit: makeRunGit(tmp).runGit,
+          printSummary: false,
+        });
+      },
+      (err) => err.code === "ESCHEMA_NEWER" && err.exitCode === 64
+    );
+
+    console.log("PASS: schema_version=99 rejects with ESCHEMA_NEWER + exitCode=64");
+  } finally {
+    try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (_) { /* swallow */ }
+  }
+}
+
+// -------------------------------------------------------------------------
 // Schema-version pass-through: schema_version=1 loads fine.
 // -------------------------------------------------------------------------
 async function testSchemaVersionPassthrough() {
@@ -752,6 +780,7 @@ async function testSchemaVersionPassthrough() {
     await testIdempotencyShortCircuit();
     await testIdempotencyMidRange();
     await testIdempotencyLowScore();
+    await testSchemaVersionRefuse();
     await testSchemaVersionPassthrough();
     console.log("\nPASS: /comments resolver schema + error_enum + idempotency — all sub-cases (T16)");
   } catch (e) {

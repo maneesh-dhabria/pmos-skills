@@ -505,12 +505,14 @@ async function resolve(params) {
   // T16 E4 / S3 — schema-version refuse-load.
   if (typeof sidecar.schema_version === "number") {
     if (sidecar.schema_version > CURRENT_SCHEMA_VERSION) {
-      process.stderr.write(
-        "comments-resolver: schema_version=" + sidecar.schema_version +
+      const err = new Error(
+        "schema_version=" + sidecar.schema_version +
           " is newer than /comments (current=" + CURRENT_SCHEMA_VERSION +
-          "); upgrade pmos-toolkit\n"
+          "); upgrade pmos-toolkit"
       );
-      process.exit(64);
+      err.code = "ESCHEMA_NEWER";
+      err.exitCode = 64;
+      throw err;
     }
     // schema_version < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
   }
