@@ -55,9 +55,12 @@ The subagent's final structured response MUST be one of three JSON shapes (verba
 {
   "success": true,
   "diff_ref": "staged: lines 124–128 in 02_spec.html",
-  "system_reply": "Changed §4.2 first sentence to specify originating-skill dispatch with citation to grill Q1. Resolved."
+  "system_reply": "Changed §4.2 first sentence to specify originating-skill dispatch with citation to grill Q1. Resolved.",
+  "applied_artifact": "<full edited HTML text of the artifact, optional>"
 }
 ```
+
+`applied_artifact` is optional. When present, it carries the full post-edit HTML and the resolver writes those bytes to disk. When absent, the success response is treated as a proposal-only — the resolver records the resolution but does not mutate artifact bytes (used by skill implementations whose edits depend on richer DOM machinery — e.g., T12's proper anchor resolver).
 
 **Failure:**
 

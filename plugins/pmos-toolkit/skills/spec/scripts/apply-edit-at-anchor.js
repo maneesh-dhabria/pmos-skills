@@ -175,10 +175,19 @@ async function apply(input) {
       };
     }
 
-    // 5. Propose edit. The shim does not mutate the artifact — mutation
-    //    happens in the resolver (T10) once the operator stages the diff.
+    // 5. Propose edit + synthesize applied_artifact. The shim does NOT
+    //    do real prose rewriting (that's the originating skill's deeper
+    //    machinery, T12+). It inserts a single HTML annotation comment
+    //    immediately before the resolved anchor element capturing the
+    //    operator's request — byte-real (shows in git diff), idempotent
+    //    via the per-process ledger. Lets the tracer demo (T11) prove
+    //    the apply path works end-to-end.
     _applied.add(key);
     const r = resolved.dom_range;
+    const bodyExcerpt = String(input.body || "").slice(0, 80).replace(/-->/g, "--&gt;");
+    const annotation = `<!-- comment-resolver: thread=${input.thread_id} skill=spec request="${bodyExcerpt}" -->\n`;
+    const applied_artifact =
+      html.slice(0, r.start_offset) + annotation + html.slice(r.start_offset);
     return {
       success: true,
       diff_ref: `staged: offsets ${r.start_offset}–${r.end_offset} in ${path.basename(
@@ -187,6 +196,7 @@ async function apply(input) {
       system_reply: `Proposed edit at #${input.anchor && input.anchor.id_anchor} per request: "${String(
         input.body || ""
       ).slice(0, 80)}". Resolved.`,
+      applied_artifact,
     };
   } catch (e) {
     return {

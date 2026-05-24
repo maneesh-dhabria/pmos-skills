@@ -944,7 +944,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 
 The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
 
-- **Shim:** `plugins/pmos-toolkit/skills/spec/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
+- **Shim:** `plugins/pmos-toolkit/skills/spec/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
 
 ### Resolution order
 
