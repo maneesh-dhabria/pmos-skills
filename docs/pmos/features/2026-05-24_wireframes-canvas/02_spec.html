@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec — /wireframes canvas-view enhancement</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.53.1">
+  <script defer src="assets/viewer.js?v=2.53.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec — /wireframes canvas-view enhancement</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<p><strong>Mode:</strong> skill-feedback · <strong>Tier:</strong> 2 · <strong>Source:</strong> 01_requirements.html</p>
+
+<section id="overview"><h2 id="overview-h">Overview</h2>
+<p>Add Phase 7.5 to <code>/wireframes</code> that aggregates the per-device wireframe HTML files into a single <code>canvas.html</code> viewer plus a <code>canvas.json</code> layout sidecar. New substrate at <code>plugins/pmos-toolkit/skills/wireframes/assets/canvas/</code> holds the canvas template and the Node builder script. The builder is invoked from Phase 7.5 via <code>node</code> against the feature folder; it reads the per-device files + DESIGN.md, writes <code>canvas.html</code> (single-file, CDN deps) and <code>canvas.json</code> (auto-laid-out positions + DESIGN.md-derived arrows). <code>canvas.html</code> embeds the sidecar inline so it works in <code>file://</code> without a fetch.</p>
+</section>
+
+<section id="architecture"><h2 id="architecture-h">Architecture</h2>
+<pre>
+plugins/pmos-toolkit/skills/wireframes/
+├── SKILL.md                                  (modified: new Phase 7.5 section, argument-hint unchanged)
+├── assets/
+│   └── canvas/                               (NEW substrate dir)
+│       ├── canvas-template.html              (NEW — viewer template with {{canvas_json}} + {{screens_html}} tokens)
+│       ├── build-canvas.js                   (NEW — Node aggregator: reads per-device HTML + DESIGN.md, emits canvas.html + canvas.json)
+│       └── extract-screens.js                (NEW — small helper: parses &lt;section data-screen="..."&gt; from per-device HTML)
+└── reference/
+    └── canvas-aggregation.md                 (NEW — detailed Phase 7.5 contract, canvas.json schema, screen-extraction rules)
+
+Feature folder output (per /wireframes run, added by Phase 7.5):
+docs/pmos/features/&lt;YYYY-MM-DD&gt;_&lt;slug&gt;/wireframes/
+├── desktop-web.html                          (existing per-device file)
+├── mobile-web.html                           (existing per-device file)
+├── canvas.html                               (NEW — single-file viewer; iframes the per-device files)
+└── canvas.json                               (NEW — schema-v1 layout + arrows)
+</pre>
+</section>
+
+<section id="canvas-json-schema"><h2 id="canvas-json-schema-h">canvas.json schema (v1)</h2>
+<pre>{
+  "version": 1,
+  "generated_at": "&lt;ISO-8601&gt;",
+  "generator": "pmos-toolkit/wireframes canvas-aggregator v&lt;plugin-version&gt;",
+  "viewport": { "default_zoom": 0.3, "default_x": 0, "default_y": 0 },
+  "screens": [
+    {
+      "id": "&lt;screen-id&gt;-&lt;device&gt;",
+      "screen_id": "&lt;screen-id&gt;",
+      "device": "desktop-web",
+      "source_file": "desktop-web.html",
+      "anchor": "#&lt;screen-id&gt;",
+      "title": "&lt;screen title from h2/section heading&gt;",
+      "journey": "&lt;journey-id or null&gt;",
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 800
+    }
+  ],
+  "arrows": [
+    { "from": "&lt;screen-id&gt;-desktop-web", "to": "&lt;next-screen-id&gt;-desktop-web", "label": "submit", "journey": "&lt;journey-id&gt;" }
+  ]
+}</pre>
+<p><strong>ID convention:</strong> <code>{screen_id}-{device}</code> — uniqueness across devices. <code>screen_id</code> = the <code>data-screen</code> attribute or the heading slug.</p>
+</section>
+
+<section id="fr"><h2 id="fr-h">Functional requirements</h2>
+<ul>
+<li><strong>FR-1 (always-on):</strong> Phase 7.5 runs unconditionally after Phase 7 (except in <code>--bootstrap-design-only</code> mode where Phase 7 itself is skipped — see D6). No flag, no gate.</li>
+<li><strong>FR-2 (screen extraction):</strong> for each per-device HTML file in the feature folder's <code>wireframes/</code> dir, extract every top-level <code>&lt;section&gt;</code> with a <code>data-screen</code> attribute OR (fallback) every <code>&lt;section&gt;</code> with an <code>id</code>. The screen ID is <code>data-screen</code> if set, else the section <code>id</code>. The screen title is the first <code>&lt;h2&gt;</code> text inside the section.</li>
+<li><strong>FR-3 (auto-layout):</strong> on first run (no existing <code>canvas.json</code> at the output path), generate a default layout: each journey's screens lay out left-to-right (column = position-in-journey × (screen_width + 200px gutter)); journeys stack top-to-bottom (row = journey-index × (screen_height + 400px gutter)). Devices for the same logical screen stack vertically within the same column (mobile under desktop). Screens not assigned to any journey lay out in an "orphans" row at the bottom.</li>
+<li><strong>FR-4 (preserve existing layout):</strong> if <code>canvas.json</code> already exists at the output path, READ it, merge: keep all existing positions; add any new screens (post-regen) at the bottom in an "added" row; remove screens no longer present in the per-device files. Never silently drop user-curated positions.</li>
+<li><strong>FR-5 (DESIGN.md arrows):</strong> parse DESIGN.md's user-journey sections — for each journey, identify the ordered list of screen references; emit one arrow per consecutive pair within a journey. Journey reference: any link or list-item whose text or href contains a known <code>screen_id</code>. If DESIGN.md is missing, no arrows (warn in chat, do not fail).</li>
+<li><strong>FR-6 (single-file output):</strong> <code>canvas.html</code> is a single self-contained file. Inline the <code>canvas.json</code> as a <code>&lt;script type="application/json" id="canvas-data"&gt;</code> block so the viewer works under <code>file://</code> without fetch. The companion <code>canvas.json</code> remains on disk as the canonical source for diff / merge.</li>
+<li><strong>FR-7 (CDN deps with SRI):</strong> <code>panzoom@9.4.3</code> and <code>leader-line@1.0.7</code> loaded via CDN with subresource-integrity hashes. Both small (&lt;15KB combined gzipped).</li>
+<li><strong>FR-8 (drag + save):</strong> screens drag-positionable on the canvas (mousedown on screen wrapper → drag → mouseup commits position to in-memory state). A <strong>Save layout</strong> button serializes the current state to JSON and triggers a browser download named <code>canvas.json</code>. No fetch / no dev-server write.</li>
+<li><strong>FR-9 (pan/zoom):</strong> standard panzoom: scroll-wheel to zoom (0.1×–3×), drag empty canvas to pan, +/- buttons for keyboard accessibility. Default zoom 0.3× so the whole layout fits a 1440-px viewport.</li>
+<li><strong>FR-10 (iframe rendering):</strong> each screen rendered as <code>&lt;iframe src="&lt;source_file&gt;#&lt;anchor&gt;" sandbox="allow-same-origin" loading="lazy"&gt;</code>. CSS <code>transform: scale(1)</code> at iframe level — the parent wrapper scales via panzoom's transform.</li>
+<li><strong>FR-11 (skill-eval pass):</strong> the modified <code>SKILL.md</code> must pass <code>tools/skill-eval-check.sh --target claude-code</code> with zero new [D] or [J] failures.</li>
+<li><strong>FR-12 (index.html link):</strong> Phase 7's <code>index.html</code> gains a top-row link to <code>canvas.html</code> labelled "Canvas view (all devices)".</li>
+</ul>
+</section>
+
+<section id="nfr"><h2 id="nfr-h">Non-functional</h2>
+<ul>
+<li><strong>NFR-1 (perf):</strong> Phase 7.5 adds &lt;2s wall-clock for typical runs (≤20 screens × 3 devices). Single Node invocation; no subagents.</li>
+<li><strong>NFR-2 (no regressions):</strong> Phase 7 output (per-device files + index.html) unchanged in content; only the new top-row link added to index.html.</li>
+<li><strong>NFR-3 (offline-capable):</strong> after first load (CDN deps cached) <code>canvas.html</code> works offline. SRI hashes mean stale CDN is detected, not silently mis-rendered.</li>
+<li><strong>NFR-4 (idempotent):</strong> re-running /wireframes preserves user-curated canvas.json positions (FR-4).</li>
+</ul>
+</section>
+
+<section id="testing"><h2 id="testing-h">Verification plan</h2>
+<ul>
+<li><strong>V1 — Skill-eval:</strong> <code>tools/skill-eval-check.sh --target claude-code plugins/pmos-toolkit/skills/wireframes/</code> exits 0.</li>
+<li><strong>V2 — End-to-end:</strong> Run <code>/wireframes</code> against an existing feature with desktop-web + mobile-web devices; verify <code>canvas.html</code> + <code>canvas.json</code> emitted; open <code>canvas.html</code> in browser; confirm all screens visible, draggable, arrows present from DESIGN.md.</li>
+<li><strong>V3 — Idempotency:</strong> Drag a screen; click Save; replace existing canvas.json with downloaded; re-run /wireframes; confirm the dragged position is preserved.</li>
+<li><strong>V4 — Bootstrap mode:</strong> Run <code>/wireframes --bootstrap-design-only</code>; confirm canvas.html / canvas.json are NOT emitted (Phase 7.5 doesn't run when Phase 7 doesn't run).</li>
+<li><strong>V5 — Missing DESIGN.md:</strong> Run on a feature with no DESIGN.md; confirm canvas.html still emits with screens but zero arrows; chat shows a warning.</li>
+</ul>
+</section>
+
+<section id="release-prereqs"><h2 id="release-prereqs-h">Release prerequisites (for /complete-dev)</h2>
+<ul>
+<li>Both <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> and <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code> bump in lockstep (minor bump — new user-visible feature).</li>
+<li>Changelog entry at <code>docs/pmos/changelog.md</code> describing the new canvas view.</li>
+<li>/wireframes SKILL.md frontmatter <code>description</code> gains a phrase about the canvas view (e.g., "...and a Figma-like canvas view aggregating all screens").</li>
+<li>Update <code>~/.pmos/learnings.md</code> <code>## /wireframes</code> header if new learnings surface (bootstrap if missing).</li>
+</ul>
+<p>NOTE: per repo CLAUDE.md, all release prereqs are written by <code>/complete-dev</code>, not by /execute / inline-implementation.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-24_wireframes-canvas/02_spec.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer" href="https://github.com/maneesh-dhabria/coding-skills#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

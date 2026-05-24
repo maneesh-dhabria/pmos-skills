@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Requirements — /wireframes canvas-view enhancement</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.53.1">
+  <script defer src="assets/viewer.js?v=2.53.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Requirements — /wireframes canvas-view enhancement</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<p><strong>Mode:</strong> skill-feedback (enhancement to existing /wireframes) · <strong>Tier:</strong> 2 · <strong>Target version:</strong> next minor of pmos-toolkit · <strong>Run Outcome:</strong> clean</p>
+
+<section id="problem"><h2 id="problem-h">Problem</h2>
+<p>Today <code>/wireframes</code> emits one stacked HTML file per device — usable for sequential review, but it hides cross-screen relationships. Stakeholders walking a design crit want to see the whole journey laid out spatially (Figma-like), with arrows showing flow, so they can compare states side-by-side and spot inconsistencies. They currently have to scroll back-and-forth through one file per device, mentally reconstructing the flow each time.</p>
+<p>The acceptance criteria for any solution is the standing skill-authoring rubric at <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§F</code>.</p>
+</section>
+
+<section id="solution-direction"><h2 id="solution-direction-h">Solution direction</h2>
+<p>Add a <strong>canvas-view aggregator</strong> to <code>/wireframes</code> as a new Phase 7.5 that runs after Phase 7 (Index &amp; Serve) and before Phase 8 (MSF). It produces a single self-contained <code>canvas.html</code> alongside the existing per-device files, plus a <code>canvas.json</code> sidecar holding screen positions and arrow definitions. Default behaviour: always emit (no flag, no gate). Single-file HTML, CDN-only deps, zero build — matches the repo's single-file-HTML invariant.</p>
+</section>
+
+<section id="user-journeys"><h2 id="user-journeys-h">User journeys</h2>
+<h3 id="j1">J1 — Design crit walk-through</h3>
+<p>Designer opens <code>canvas.html</code>, sees every screen of every device laid out on an infinite pan/zoom surface with flow arrows derived from DESIGN.md journeys. Pans across the canvas to compare onboarding screens side-by-side. Zooms in to inspect one screen's details. Closes the tab — no state saved.</p>
+<h3 id="j2">J2 — Persisted layout</h3>
+<p>Designer drags screens into a custom layout (groups onboarding top-left, dashboards centre, settings bottom-right). Clicks <strong>Save layout</strong> → browser downloads <code>canvas.json</code> with new positions. They drop it next to the existing <code>canvas.json</code> in the feature folder, commit. Next time anyone opens <code>canvas.html</code> they see the curated layout.</p>
+<h3 id="j3">J3 — Auto-layout from DESIGN.md</h3>
+<p>On first run (no <code>canvas.json</code> exists), the aggregator derives a default layout from DESIGN.md journeys: screens in the same journey lay out left-to-right, journeys stack top-to-bottom. Arrows connect consecutive screens within a journey. User opens and the layout is already meaningful.</p>
+</section>
+
+<section id="decisions"><h2 id="decisions-h">Decisions (captured from interactive Phase 2)</h2>
+<ul>
+<li><strong>D1 — Trigger:</strong> always emit <code>canvas.html</code> alongside per-device files (no flag, no gate). Zero cognitive load; if users don't want it they just don't open it. <strong>Why:</strong> opt-in flags rot; gates add a prompt to every run.</li>
+<li><strong>D2 — Persistence:</strong> <code>canvas.json</code> sidecar in the feature folder. Save = browser-download (no dev-server write). User commits the file next to wireframes. <strong>Why:</strong> versionable, team-shareable, no daemon required.</li>
+<li><strong>D3 — Arrows:</strong> derived from DESIGN.md journey sections (parse the existing structure). No manual arrow-drawing in v1. <strong>Why:</strong> reuses authoring already done; smallest scope.</li>
+<li><strong>D4 — Rendering:</strong> each screen rendered via sandboxed <code>&lt;iframe&gt;</code> pointing at the per-device wireframe file with a hash anchor (e.g. <code>desktop-web.html#login</code>). No content duplication; iframes scale via CSS <code>transform</code>. <strong>Why:</strong> single source of truth — the canvas is a viewer, not a regenerator.</li>
+<li><strong>D5 — Deps:</strong> <code>panzoom</code> (~5KB) for pan/zoom, <code>leader-line</code> for arrows. Both via CDN with SRI hashes. No build step. <strong>Why:</strong> matches single-file-HTML invariant; no toolchain.</li>
+<li><strong>D6 — Bootstrap-only mode:</strong> in <code>--bootstrap-design-only</code> Phase 7.5 does NOT run (no wireframe HTML to aggregate). <strong>Why:</strong> bootstrap mode produces only DESIGN.md + COMPONENTS.md.</li>
+</ul>
+</section>
+
+<section id="out-of-scope"><h2 id="out-of-scope-h">Out of scope (v1)</h2>
+<ul>
+<li>Real-time multi-user collaboration (no Figma-parity for live cursors).</li>
+<li>Manual arrow drawing in the browser (D3 — DESIGN.md is the only arrow source).</li>
+<li>Comments / annotations on the canvas surface (use the existing per-screen annotations layer).</li>
+<li>Auto-save back to <code>canvas.json</code> (browser can't write files; explicit Save button → download).</li>
+<li>Replacing the per-device files (canvas is additive — per-device files remain primary).</li>
+</ul>
+</section>
+
+<section id="constraints"><h2 id="constraints-h">Constraints</h2>
+<ul>
+<li>Single-file HTML output (no build step, no module bundler, no Node dependency at view-time).</li>
+<li>CDN-only deps with SRI hashes; works offline once cached.</li>
+<li>Must run in <code>file://</code> context (no localhost requirement for viewing — though dev-server still optional).</li>
+<li>Iframe sandbox: <code>sandbox="allow-same-origin"</code> (needed for scroll/hash navigation; <code>allow-scripts</code> NOT set since wireframes are static).</li>
+<li>canvas.json schema versioned (<code>version: 1</code>) for forward-compat.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-24_wireframes-canvas/01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>

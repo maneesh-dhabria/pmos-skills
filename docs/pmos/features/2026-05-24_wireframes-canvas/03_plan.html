@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plan — /wireframes canvas-view enhancement</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.53.1">
+  <script defer src="assets/viewer.js?v=2.53.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Plan — /wireframes canvas-view enhancement</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<p><strong>Mode:</strong> skill-feedback · <strong>Tier:</strong> 2 · <strong>execution_mode:</strong> inline · <strong>Source:</strong> 02_spec.html</p>
+
+<section id="file-map"><h2 id="file-map-h">File map</h2>
+<ul>
+<li><strong>NEW</strong> <code>plugins/pmos-toolkit/skills/wireframes/assets/canvas/canvas-template.html</code> — viewer template with token slots.</li>
+<li><strong>NEW</strong> <code>plugins/pmos-toolkit/skills/wireframes/assets/canvas/build-canvas.js</code> — Node aggregator script (no deps, regex-based HTML parse).</li>
+<li><strong>NEW</strong> <code>plugins/pmos-toolkit/skills/wireframes/assets/canvas/extract-screens.js</code> — small helper for screen extraction (sourced by build-canvas.js).</li>
+<li><strong>NEW</strong> <code>plugins/pmos-toolkit/skills/wireframes/reference/canvas-aggregation.md</code> — Phase 7.5 contract, canvas.json schema, screen-extraction rules.</li>
+<li><strong>EDIT</strong> <code>plugins/pmos-toolkit/skills/wireframes/SKILL.md</code> — new Phase 7.5 section between Phase 7 and Phase 8; description gains canvas-view mention; argument-hint unchanged (FR-1 always-on).</li>
+</ul>
+</section>
+
+<section id="waves"><h2 id="waves-h">Waves</h2>
+<h3 id="w1">Wave 1 — Substrate (foundation; no /wireframes dependency)</h3>
+<ol>
+<li><strong>T1</strong> — Write <code>extract-screens.js</code>: function <code>extractScreens(html, sourceFile)</code> → array of <code>{screen_id, source_file, anchor, title}</code>. Regex-based: match top-level <code>&lt;section&gt;</code> tags, prefer <code>data-screen</code> attr over <code>id</code>, capture first <code>&lt;h2&gt;</code> inner text as title.</li>
+<li><strong>T2</strong> — Write <code>build-canvas.js</code>: CLI entry point <code>node build-canvas.js &lt;wireframes-dir&gt; &lt;design-md-path-or-empty&gt;</code>. Reads per-device <code>*.html</code> files (excluding <code>index.html</code> and <code>canvas.html</code> itself), invokes <code>extractScreens</code>, parses DESIGN.md journeys (regex on <code>## Journey:</code> or <code>### </code> headings under a "User journeys" h2), computes default layout (FR-3), merges with existing canvas.json if present (FR-4), reads <code>canvas-template.html</code>, substitutes <code>{{canvas_json}}</code> and <code>{{plugin_version}}</code>, writes <code>canvas.html</code> + <code>canvas.json</code>.</li>
+<li><strong>T3</strong> — Write <code>canvas-template.html</code>: full HTML page with embedded CSS (canvas surface styling, screen wrapper, save button), CDN script tags for panzoom + leader-line with SRI hashes, inline canvas-data script block (<code>id="canvas-data"</code>), inline viewer JS that: reads canvas-data, renders one <code>&lt;iframe&gt;</code> per screen at the saved position, initializes panzoom on the canvas surface, wires drag handlers per screen (mousedown/mousemove/mouseup), draws leader-lines from arrows array, binds Save button to serialize state → trigger download.</li>
+<li><strong>T4</strong> — Write <code>reference/canvas-aggregation.md</code>: full Phase 7.5 contract — invocation command, canvas.json schema (v1), screen-extraction algorithm, DESIGN.md journey parsing rules, FR-3 auto-layout algorithm, FR-4 merge semantics, troubleshooting (missing DESIGN.md, no screens found, malformed canvas.json).</li>
+</ol>
+
+<h3 id="w2">Wave 2 — Skill integration</h3>
+<ol start="5">
+<li><strong>T5</strong> — Edit <code>SKILL.md</code> Phase 7 (Index & Serve): inside the index.html generation step, add a top-row link to canvas.html ("Canvas view (all devices)") — this is FR-12.</li>
+<li><strong>T6</strong> — Edit <code>SKILL.md</code>: insert new "<code>## Phase 7.5: Canvas Aggregation (always-on, after Phase 7)</code>" section. Content: rationale (1 paragraph), invocation command (<code>node ${CLAUDE_PLUGIN_ROOT}/assets/canvas/build-canvas.js &lt;wireframes-dir&gt; &lt;design-md-path&gt;</code>), success criteria (canvas.html + canvas.json present), failure handling (log warning + continue, do not block /wireframes), bootstrap-mode carve-out (D6 — skipped in <code>--bootstrap-design-only</code> because Phase 7 itself doesn't run), reference link to <code>reference/canvas-aggregation.md</code>.</li>
+<li><strong>T7</strong> — Edit <code>SKILL.md</code> frontmatter <code>description</code>: append a phrase mentioning the canvas view (e.g., "...Also emits a single-file canvas viewer (canvas.html) showing every screen of every device on an infinite pan/zoom surface with DESIGN.md-derived flow arrows.").</li>
+<li><strong>T8</strong> — Edit <code>SKILL.md</code> Phase 8 (MSF) opening sentence: change "after Phase 7" → "after Phase 7.5" to keep the phase pointer accurate.</li>
+</ol>
+
+<h3 id="w3">Wave 3 — Verification</h3>
+<ol start="9">
+<li><strong>T9</strong> — Run <code>plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-toolkit/skills/wireframes/</code>. Expect exit 0. If any [D] checks fail, fix in-branch (per the 2026-05-13 learning: ≤1 edit per finding, fix don't accept).</li>
+<li><strong>T10</strong> — Smoke-test the builder: copy a real wireframes/ dir from a recent feature folder into <code>/tmp/wf-test/wireframes/</code>; run <code>node plugins/pmos-toolkit/skills/wireframes/assets/canvas/build-canvas.js /tmp/wf-test/wireframes ""</code>; confirm canvas.html + canvas.json emitted, canvas.html opens in a browser, screens render via iframes. (Manual check — document outcome in the verify report.)</li>
+</ol>
+
+</section>
+
+<section id="release-prereqs"><h2 id="release-prereqs-h">Release prerequisites (NOT in any wave — /complete-dev writes these)</h2>
+<ul>
+<li>Plugin manifest version bump (both .claude-plugin + .codex-plugin) — minor bump.</li>
+<li>Changelog entry at <code>docs/pmos/changelog.md</code>.</li>
+<li>~/.pmos/learnings.md <code>## /wireframes</code> header bootstrap (if missing).</li>
+</ul>
+</section>
+
+<section id="risks"><h2 id="risks-h">Risks</h2>
+<ul>
+<li><strong>R1 — Iframe scroll bleed:</strong> if a per-device HTML file is taller than the canvas screen window, scrolling inside the iframe propagates to canvas pan. Mitigation: set iframe wrapper to <code>overflow: hidden</code> and disable iframe wheel events at zoom &lt; 1×.</li>
+<li><strong>R2 — DESIGN.md journey format drift:</strong> if a future /wireframes-bootstrap changes journey heading conventions, arrow parsing breaks. Mitigation: tolerate both <code>## Journey:</code> and <code>### Journey N — &lt;name&gt;</code>; warn but don't fail if no journeys found.</li>
+<li><strong>R3 — CDN unavailable:</strong> first-time viewing requires internet. Mitigation: SRI hashes mean tampering is caught; an offline fallback (local-vendor panzoom + leader-line) could be added later — not in v1 scope.</li>
+<li><strong>R4 — Large feature folders:</strong> &gt;50 screens × 3 devices = 150 iframes. May be slow at zoom-1×. Mitigation: <code>loading="lazy"</code> on iframes + default zoom 0.3× so most are below the lazy-load threshold.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-24_wireframes-canvas/03_plan.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution" data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
