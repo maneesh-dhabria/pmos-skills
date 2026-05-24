@@ -67,12 +67,12 @@
 </style>
 <script
   src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom@4.5.1/dist/panzoom.min.js"
-  integrity="sha384-X6CkAJsTeFP/0vO9Bq4MlV5cZWfDXAYjGmlS+QbS7q/UQDz//4Wmu+nKQYP3PD4t"
+  integrity="sha384-ZOYffjPUyf23W5DufkQVkrN7uZvIMRRCPo64S2N2S0mFM9+bFZpn2/MQTy2O35gF"
   crossorigin="anonymous"
   referrerpolicy="no-referrer"></script>
 <script
   src="https://cdn.jsdelivr.net/npm/leader-line-new@1.1.9/leader-line.min.js"
-  integrity="sha384-Iq3Vc+8tBR/eAYAxJpqaSXc4aLjbCXOFOuvJjK0i6opTeMyAGOFLZJVeF3OWQpyA"
+  integrity="sha384-LE9qY46wSQtGLFdKk+na4saTOtmlGF3GByazLVjZXb8DPBJxCMTzshHEW0BzBszp"
   crossorigin="anonymous"
   referrerpolicy="no-referrer"></script>
 </head>
@@ -122,7 +122,10 @@
     wrap.appendChild(header);
     const frame = document.createElement('iframe');
     frame.src = s.source_file + (s.anchor || '');
-    frame.setAttribute('sandbox', 'allow-same-origin');
+    // allow-scripts so wireframe state-switchers and annotation toggles
+    // work; allow-same-origin so hash-anchor scrolling inside the iframe
+    // resolves. Wireframes are generator-produced and trusted.
+    frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
     frame.setAttribute('loading', 'lazy');
     frame.setAttribute('title', s.title || s.screen_id);
     wrap.appendChild(frame);
@@ -130,13 +133,25 @@
     screensById.set(s.id, { el: wrap, data: s });
   }
 
-  // Initialize panzoom on the canvas.
-  const pz = (window.Panzoom || window.panzoom)
-    ? (window.Panzoom || window.panzoom)(canvas, {
-        maxScale: 3, minScale: 0.05, startScale: data.viewport && data.viewport.default_zoom || 0.3,
-        startX: data.viewport && data.viewport.default_x || 0,
-        startY: data.viewport && data.viewport.default_y || 0,
+  // Initialize panzoom on the canvas. Panzoom defaults transform-origin to
+  // 50% 50%, which causes a huge offset on our 50000×50000 canvas; force 0 0
+  // so screen coordinates map 1:1 from canvas-space to viewport-space (after
+  // scale + pan).
+  canvas.style.transformOrigin = '0 0';
+  const PanzoomCtor = window.Panzoom || window.panzoom;
+  const startScale = (data.viewport && data.viewport.default_zoom) || 0.3;
+  const startX = (data.viewport && data.viewport.default_x) || 0;
+  const startY = (data.viewport && data.viewport.default_y) || 0;
+  const pz = PanzoomCtor
+    ? PanzoomCtor(canvas, {
+        maxScale: 3, minScale: 0.05, startScale, startX, startY,
         excludeClass: 'screen',
+        setTransform: (el, { scale, x, y }) => {
+          // Custom transform writer keeps origin-0,0 invariant so panzoom's
+          // own setStyle pass cannot reintroduce a center-origin.
+          el.style.transformOrigin = '0 0';
+          el.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + scale + ')';
+        },
       })
     : null;
   if (pz) stage.addEventListener('wheel', pz.zoomWithWheel);
