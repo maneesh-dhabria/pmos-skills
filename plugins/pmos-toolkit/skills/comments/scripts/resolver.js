@@ -131,10 +131,14 @@ async function resolve(params) {
   const dispatchSubagent = params.dispatchSubagent || _defaultDispatchSubagent;
   const runGit = params.runGit || _defaultRunGit;
 
-  if (mode !== "confirm-each" && mode !== "batch") {
-    // T14 ships auto / non-interactive.
+  if (
+    mode !== "confirm-each" &&
+    mode !== "batch" &&
+    mode !== "auto" &&
+    mode !== "non-interactive"
+  ) {
     throw new Error(
-      "resolve: mode='" + mode + "' not implemented — see T14 for auto / non-interactive"
+      "resolve: mode='" + mode + "' not implemented — valid modes: confirm-each, batch, auto, non-interactive"
     );
   }
 
@@ -390,6 +394,253 @@ async function resolve(params) {
       skipped: skipped,
       waves: waves.length,
       summary: summaryB,
+    };
+  }
+
+  // T14 — --auto mode (FR-26).
+  //
+  // Same dispatch + clarification loop as confirm-each EXCEPT the post-success
+  // Accept/Reject prompt is skipped: edits are applied automatically on success.
+  // Clarification requests (subagent returns `{clarification: {...}}`) STILL
+  // invoke askUser exactly as confirm-each does (with the MAX_CLARIFY cap).
+  if (mode === "auto") {
+    for (const idx of openIdxs) {
+      const thread = threads[idx];
+      let body = _lastUserBody(thread);
+      let clarifyAttempts = 0;
+      let outcome = null;
+
+      while (outcome === null) {
+        const anchorObj = {
+          id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
+          quote_anchor:
+            thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
+          diagram_anchor:
+            thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
+        };
+        const input = {
+          artifact_path: artifactPath,
+          anchor: anchorObj,
+          body: body,
+          thread_id: thread.id,
+        };
+
+        if (clarifyAttempts === 0) {
+          const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
+          if (pre && pre.orphan === true) {
+            skipped.push({
+              id: thread.id,
+              reason:
+                ERROR_ENUM.ANCHOR_ORPHANED +
+                ": anchor unresolved (id-first miss + quote-fallback below threshold)",
+            });
+            outcome = "skip";
+            break;
+          }
+        }
+
+        let out;
+        try {
+          out = await dispatchSubagent({ skill: skillSlug, input: input });
+        } catch (e) {
+          out = {
+            success: false,
+            error_enum: ERROR_ENUM.AGENT_ERRORED,
+            system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
+          };
+        }
+
+        // Clarification path — still prompts in auto mode.
+        if (out && out.clarification) {
+          if (clarifyAttempts >= MAX_CLARIFY) {
+            skipped.push({ id: thread.id, reason: "clarify_cap_exceeded" });
+            outcome = "skip";
+            break;
+          }
+          clarifyAttempts++;
+          const ans = await askUser(out.clarification.question, out.clarification.options);
+          thread.messages = thread.messages || [];
+          thread.messages.push({ role: "user", body: String(ans), ts: _isoNow() });
+          body = String(ans);
+          continue;
+        }
+
+        // Failure path.
+        if (!out || out.success !== true) {
+          const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
+          const msg = (out && out.system_reply) || "(no reply)";
+          skipped.push({ id: thread.id, reason: enumv + ": " + msg });
+          outcome = "skip";
+          break;
+        }
+
+        // Success — auto-apply without prompting.
+        if (typeof out.applied_artifact === "string") {
+          html = out.applied_artifact;
+          fs.writeFileSync(artifactPath, html, "utf8");
+        }
+        thread.messages = thread.messages || [];
+        thread.messages.push({
+          role: "system",
+          body: String(out.system_reply || ""),
+          ts: _isoNow(),
+        });
+        thread.status = "resolved";
+        resolvedCount++;
+        outcome = "applied";
+      }
+    }
+
+    // Persist + stage.
+    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
+    const repoRootA = _gitRepoRoot(artifactPath, runGit);
+    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootA });
+
+    const summaryA =
+      "Resolved " + resolvedCount + "/" + totalOpen +
+      " (auto). Review with git diff --cached then commit.";
+    if (params.printSummary !== false) {
+      process.stdout.write(summaryA + "\n");
+      if (skipped.length > 0) {
+        for (const s of skipped) {
+          process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
+        }
+      }
+    }
+
+    return {
+      artifact: artifactPath,
+      sidecar: sidecarPath,
+      skill: skillSlug,
+      total_open: totalOpen,
+      resolved: resolvedCount,
+      skipped: skipped,
+      summary: summaryA,
+    };
+  }
+
+  // T14 — --non-interactive mode (FR-32, S12).
+  //
+  // AUTO-PICK Recommended: apply on success without prompting. DEFER ambiguous:
+  // when a clarification is returned, append a system message and leave status
+  // "open" — never call askUser. End-of-run summary lists deferred threads.
+  if (mode === "non-interactive") {
+    const deferred = [];
+
+    for (const idx of openIdxs) {
+      const thread = threads[idx];
+      const body = _lastUserBody(thread);
+      let outcome = null;
+
+      while (outcome === null) {
+        const anchorObj = {
+          id_anchor: thread.id_anchor || (thread.anchor && thread.anchor.id_anchor) || null,
+          quote_anchor:
+            thread.quote_anchor || (thread.anchor && thread.anchor.quote_anchor) || null,
+          diagram_anchor:
+            thread.diagram_anchor || (thread.anchor && thread.anchor.diagram_anchor) || null,
+        };
+        const input = {
+          artifact_path: artifactPath,
+          anchor: anchorObj,
+          body: body,
+          thread_id: thread.id,
+        };
+
+        // Pre-validate anchor.
+        const pre = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
+        if (pre && pre.orphan === true) {
+          skipped.push({
+            id: thread.id,
+            reason:
+              ERROR_ENUM.ANCHOR_ORPHANED +
+              ": anchor unresolved (id-first miss + quote-fallback below threshold)",
+          });
+          outcome = "skip";
+          break;
+        }
+
+        let out;
+        try {
+          out = await dispatchSubagent({ skill: skillSlug, input: input });
+        } catch (e) {
+          out = {
+            success: false,
+            error_enum: ERROR_ENUM.AGENT_ERRORED,
+            system_reply: "Dispatch failed: " + (e && e.message ? e.message : String(e)),
+          };
+        }
+
+        // Clarification path — DEFER in non-interactive mode (never prompt).
+        if (out && out.clarification) {
+          const DEFERRED_BODY =
+            "deferred — operator input required (re-run interactively for this thread)";
+          thread.messages = thread.messages || [];
+          thread.messages.push({ role: "system", body: DEFERRED_BODY, ts: _isoNow() });
+          // status stays "open"; do NOT increment resolvedCount.
+          deferred.push(thread.id);
+          outcome = "deferred";
+          break;
+        }
+
+        // Failure path.
+        if (!out || out.success !== true) {
+          const enumv = (out && out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
+          const msg = (out && out.system_reply) || "(no reply)";
+          skipped.push({ id: thread.id, reason: enumv + ": " + msg });
+          outcome = "skip";
+          break;
+        }
+
+        // Success — auto-apply without prompting.
+        if (typeof out.applied_artifact === "string") {
+          html = out.applied_artifact;
+          fs.writeFileSync(artifactPath, html, "utf8");
+        }
+        thread.messages = thread.messages || [];
+        thread.messages.push({
+          role: "system",
+          body: String(out.system_reply || ""),
+          ts: _isoNow(),
+        });
+        thread.status = "resolved";
+        resolvedCount++;
+        outcome = "applied";
+      }
+    }
+
+    // Persist + stage.
+    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
+    const repoRootN = _gitRepoRoot(artifactPath, runGit);
+    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootN });
+
+    const summaryN =
+      "Resolved " + resolvedCount + "/" + totalOpen +
+      " (non-interactive). Review with git diff --cached then commit.";
+    if (params.printSummary !== false) {
+      process.stdout.write(summaryN + "\n");
+      if (skipped.length > 0) {
+        for (const s of skipped) {
+          process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
+        }
+      }
+      if (deferred.length > 0) {
+        process.stdout.write("  deferred (re-run interactively):\n");
+        for (const tid of deferred) {
+          process.stdout.write("    deferred " + tid + ": operator input required\n");
+        }
+      }
+    }
+
+    return {
+      artifact: artifactPath,
+      sidecar: sidecarPath,
+      skill: skillSlug,
+      total_open: totalOpen,
+      resolved: resolvedCount,
+      skipped: skipped,
+      deferred: deferred,
+      summary: summaryN,
     };
   }
 
