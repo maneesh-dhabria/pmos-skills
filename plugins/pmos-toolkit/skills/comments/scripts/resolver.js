@@ -302,14 +302,21 @@ async function _resolveSingleThread(thread, ctx, strategy) {
       return "applied";
     } else if (choice === "Reject with refinement") {
       // re-dispatch with a refinement note. Counter already checked above.
-      const note = await askUser(
+      const rawNote = await askUser(
         "Enter refinement note for thread " + thread.id + ":",
         []
       );
+      const trimmedNote = String(rawNote).trim();
+      if (!trimmedNote) {
+        // Empty/whitespace note — treat as a plain Reject without burning a
+        // re-dispatch slot. Operator likely fat-fingered Enter.
+        skipped.push({ id: thread.id, reason: "operator_reject_empty_refinement" });
+        return "skip";
+      }
       redispatchCount++;
       thread.messages = thread.messages || [];
-      thread.messages.push({ role: "user", body: String(note), ts: _isoNow() });
-      body = String(note);
+      thread.messages.push({ role: "user", body: trimmedNote, ts: _isoNow() });
+      body = trimmedNote;
       continue;
     } else if (choice === "Skip" || choice === "Reject") {
       skipped.push({ id: thread.id, reason: "operator_" + choice.toLowerCase() });

@@ -41,7 +41,7 @@ The subagent returns one of three shapes (verbatim from [§9.1](../../../../docs
 
 - **Success** — `{ success: true, diff_ref, system_reply, applied_artifact? }`. The optional `applied_artifact` carries the full edited HTML; when present the resolver uses it as the new on-disk artifact text.
 - **Failure** — `{ success: false, error_enum, system_reply }`. `error_enum` is the closed set [§9.2](../../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#api-error-enum): `anchor_orphaned | edit_conflicted | agent_judged_infeasible | agent_errored`. **No other values are valid** — extending the set requires amending the contract doc first (NFR-08).
-- **Clarification** — `{ clarification: { question, options } }`. The resolver surfaces the question via `AskUserQuestion`; the operator's choice is appended to the thread as a new user message and the subagent is re-dispatched. Re-dispatch is capped at `MAX_CLARIFY = 2`; further loops mark the thread as skipped with reason `clarify_cap_exceeded`. T15 hardens this; T10 ships the cap as a constant.
+- **Clarification** — `{ clarification: { question, options } }`. The resolver surfaces the question via `AskUserQuestion`; the operator's choice is appended to the thread as a new user message and the subagent is re-dispatched. Clarification requests are capped at `MAX_CLARIFY=1` per thread (a second clarification request collapses to a system reply + `status: open`). Operator re-dispatch via 'Reject with refinement' is capped at `MAX_REDISPATCH=2`; the 3rd presentation collapses to `{Modify, Skip}`. T15 hardens this; T10 ships the cap as a constant.
 
 ## Phase 3: Diff presentation + Accept/Reject/Modify/Skip
 
@@ -75,13 +75,14 @@ Resolved N/M. Review with git diff --cached then commit.
 
 ## Configuration
 
-Future: per-workstream defaults under `.pmos/settings.yaml :: comments` (default mode, max-clarify, etc.). Not wired in T10 — every invocation defaults to `confirm-each` and `MAX_CLARIFY=2` regardless of settings.
+Future: per-workstream defaults under `.pmos/settings.yaml :: comments` (default mode, max-clarify, etc.). Not wired in T10 — every invocation defaults to `confirm-each`, `MAX_CLARIFY=1`, and `MAX_REDISPATCH=2` regardless of settings.
 
 ## Edge cases
 
 - **Orphan thread** — dispatch returns `error_enum: "anchor_orphaned"`. The resolver records a skip with the failure rationale; the thread stays `open` so the operator can triage it (re-anchor or close manually). The artifact is not mutated.
 - **Idempotent re-run** — `/comments resolve` is safe to re-run on the same sidecar. Each per-skill apply-edit shim implements the §9.3 no-op contract (semantic-keyword overlap ≥ 80%). Re-runs surface as `diff_ref: "no-op: edit already applied"`; the resolver still marks the thread resolved + stages an empty diff (sidecar status flip is the only on-disk change).
-- **Clarification cap** — `MAX_CLARIFY = 2`. Beyond that the thread is skipped with `clarify_cap_exceeded`; the operator can re-engage interactively.
+- **Clarification cap** — `MAX_CLARIFY = 1`. Beyond that the thread is skipped with `clarify_cap_exceeded`; the operator can re-engage interactively.
+- **Re-dispatch cap** — `MAX_REDISPATCH = 2`. After 2 'Reject with refinement' loops the 3rd presentation collapses to `{Modify, Skip}` only.
 - **Missing meta tag** — refuse with a clear error. The artifact violates FR-01; fix at emission, not in the resolver.
 - **Single open thread with malformed JSON in the sidecar** — refuse at parse time (the T3 `parse_sidecar` throws `SidecarCorruptedError`).
 

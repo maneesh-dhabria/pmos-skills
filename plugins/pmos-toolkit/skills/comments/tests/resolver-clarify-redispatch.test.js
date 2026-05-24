@@ -12,6 +12,10 @@
 //       → resolver appends system reply CLARIFY_CAP_EXCEEDED_BODY (verbatim),
 //       status stays "open", resolvedCount NOT incremented, askUser called
 //       exactly once (the first clarification only).
+//   (d) Operator picks "Reject with refinement" then submits "   " (whitespace)
+//       as the note → thread goes to skipped with reason
+//       "operator_reject_empty_refinement", dispatchSubagent called exactly
+//       ONCE (no re-dispatch), status stays "open", resolvedCount === 0.
 //
 // Spec refs: FR-24, FR-29, S10, E10.
 
@@ -391,6 +395,86 @@ async function testClarifyCap() {
 }
 
 // -----------------------------------------------------------------------
+// Sub-case (d): "Reject with refinement" then submits whitespace note →
+// thread goes to skipped with reason "operator_reject_empty_refinement",
+// dispatchSubagent called exactly ONCE (no re-dispatch),
+// status stays "open", resolvedCount === 0.
+// -----------------------------------------------------------------------
+async function testRejectWithEmptyRefinementNote() {
+  const tmp = makeTmp("t15d");
+  try {
+    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+      {
+        id: "T_D",
+        id_anchor: "problem",
+        quote_anchor: null,
+        status: "open",
+        messages: [{ role: "user", author: "tester", body: "initial request", ts: "2026-05-24T10:00:00Z" }],
+      },
+    ]);
+
+    let dispatchCount = 0;
+    async function dispatchSubagent({ skill, input }) {
+      dispatchCount++;
+      return {
+        success: true,
+        diff_ref: "staged: T_D dispatch #" + dispatchCount,
+        applied_artifact: html,
+        system_reply: "Proposed edit #" + dispatchCount,
+      };
+    }
+
+    let askCount = 0;
+    async function askUser(question, options) {
+      askCount++;
+      // First call: main accept/reject prompt — pick "Reject with refinement"
+      if (options && options.indexOf("Accept") !== -1) {
+        return "Reject with refinement";
+      }
+      // Second call: the refinement note prompt — submit whitespace only
+      return "   ";
+    }
+
+    const { runGit } = makeRunGit(tmp);
+
+    let out;
+    try {
+      out = await resolver.resolve({
+        path: artifactPath,
+        mode: "confirm-each",
+        askUser: askUser,
+        dispatchSubagent: dispatchSubagent,
+        runGit: runGit,
+        printSummary: false,
+      });
+    } catch (e) {
+      throw new Error("FAIL (d): resolver threw — " + (e && e.stack ? e.stack : e));
+    }
+
+    // dispatchSubagent called exactly once (no re-dispatch after empty note)
+    assert.strictEqual(dispatchCount, 1, "(d) dispatchSubagent must be called exactly once — no re-dispatch");
+
+    // thread in skipped with "operator_reject_empty_refinement"
+    assert.ok(
+      out.skipped.some((s) => s.id === "T_D" && s.reason === "operator_reject_empty_refinement"),
+      "(d) T_D must be in skipped with reason=operator_reject_empty_refinement — got: " +
+        JSON.stringify(out.skipped)
+    );
+
+    // resolvedCount === 0
+    assert.strictEqual(out.resolved, 0, "(d) resolved must be 0");
+
+    // thread status stays "open" on disk
+    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    assert.strictEqual(onDisk.threads[0].status, "open", "(d) thread status stays open");
+
+    console.log("PASS: (d) Reject with refinement + whitespace note → skipped(operator_reject_empty_refinement), dispatchSubagent=1");
+  } finally {
+    try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (_) { /* swallow */ }
+  }
+}
+
+// -----------------------------------------------------------------------
 // Run all sub-cases
 // -----------------------------------------------------------------------
 (async () => {
@@ -398,7 +482,8 @@ async function testClarifyCap() {
     await testClarificationFlowConfirmEach();
     await testRedispatchCapCollapseOptions();
     await testClarifyCap();
-    console.log("\nPASS: /comments resolver clarify+redispatch — all 3 sub-cases (T15)");
+    await testRejectWithEmptyRefinementNote();
+    console.log("\nPASS: /comments resolver clarify+redispatch — all 4 sub-cases (T15)");
   } catch (e) {
     console.error("\nFAIL: " + (e && e.stack ? e.stack : e));
     process.exit(1);
