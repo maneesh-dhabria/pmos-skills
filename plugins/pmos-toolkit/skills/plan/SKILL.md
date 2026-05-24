@@ -237,7 +237,9 @@ Save to `{feature_folder}/03_plan.html` per the substrate at `${CLAUDE_PLUGIN_RO
 
 **Atomic write (FR-10.2):** write `03_plan.html` and the companion `03_plan.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff_match_patch.js`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files.
+
+**Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `plan` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="plan">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
 
 **Asset prefix (FR-10.1):** the per-folder relative asset prefix for top-level feature-folder artifacts is `assets/`.
 
@@ -891,3 +893,30 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT create `## Phase N` groupings of 1–2 tasks — each phase boundary triggers full /verify (multi-agent code review + interactive QA), which dwarfs the implementation cost of a tiny phase. Target 5–10 tasks per phase, or skip phases entirely for small plans.
 - Do NOT skip the execution-mode selection question (Inline vs Subagent-driven) at close — the recorded `execution_mode:` frontmatter value is what `/execute` and `/feature-sdlc` Phase 6 read; omitting it silently forces inline everywhere.
 - Do NOT decompose by layer — "all migrations first, then all endpoints, then all UI." Each task is a thin **vertical slice** that cuts through every layer it needs to deliver one user-observable behavior. T1 is a **tracer bullet**: the narrowest end-to-end path that proves the architecture. Refactors, schema-only spikes, CSS-only, and config-only tasks are the only legitimate exceptions and MUST declare `**Slice shape:**` with a one-line rationale. See Phase 3 §Vertical-Slice Decomposition.
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/plan` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a plan artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/plan`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/plan/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
+
+### Resolution order
+
+1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="t1"`, `id="overview"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/plan/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_plan.sh`.

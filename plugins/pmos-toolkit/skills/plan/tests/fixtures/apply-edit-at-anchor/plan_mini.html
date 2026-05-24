@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="plan">
+  <title>Mini Plan (fixture)</title>
+</head>
+<body>
+  <article>
+    <h1>Mini Plan</h1>
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>Implement inline doc comments in two phases: tracer bullet (T1) then widen (T2-T3). All 5 tests must pass before ship.</p>
+      <p><strong>Done when:</strong> all 5 contract tests pass, lint exits 0, Docker stack healthy.</p>
+    </section>
+
+    <section id="decision-log">
+      <h2>Decision Log</h2>
+      <table>
+        <thead><tr><th>#</th><th>Decision</th><th>Options</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>D1</td><td>Use diff-match-patch for anchor resolution</td><td>(a) regex, (b) dmp Bitap</td><td>dmp handles fuzzy matches; regex is brittle on reformatted HTML</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="tasks">
+      <h2>Tasks</h2>
+
+      <section id="t1">
+        <h3>T1: Tracer bullet — anchor resolution end-to-end</h3>
+        <p><strong>Goal:</strong> Prove id-first + quote-fallback resolution works on a live artifact.</p>
+        <p><strong>Spec refs:</strong> FR-01, §9.1</p>
+        <p><strong>Depends on:</strong> none</p>
+        <p><strong>Steps:</strong></p>
+        <ol>
+          <li>Write failing test for anchor resolution.</li>
+          <li>Implement id-first lookup; verify test passes.</li>
+          <li>Commit: <code>git commit -m "feat(T1): anchor resolution tracer"</code></li>
+        </ol>
+      </section>
+
+    </section>
+
+  </article>
+</body>
+</html>

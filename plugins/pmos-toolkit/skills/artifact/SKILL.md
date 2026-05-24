@@ -244,7 +244,9 @@ On either fail: hard-fail the Phase 2.7 write; surface the soft-phase failure di
 
 **Atomic write (FR-10.2):** write `{slug}.html` and the companion `{slug}.sections.json` via temp-then-rename — never serve a half-written file. The `sections.json` companion is built by running `node {feature_folder}/assets/build_sections_json.js {slug}.html.tmp > {slug}.sections.json.tmp` and renamed alongside.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff_match_patch.js`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
+
+**Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `artifact` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="artifact">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
 
 **Asset prefix (FR-10.1):** `assets/` for top-level feature-folder writes.
 
@@ -599,3 +601,30 @@ Render built-in + user presets in a table with `Slug | Description | Source`.
 ### `/artifact preset remove <slug>`
 
 Symmetric to `template remove`. Reject if built-in.
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/artifact` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in an artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/artifact`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/artifact/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
+
+### Resolution order
+
+1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="problem"`, `id="goals"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/artifact/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_artifact.sh`.
