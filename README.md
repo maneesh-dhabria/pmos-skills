@@ -40,6 +40,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | Pressure-test a half-formed idea before writing it up | `/ideate` | Frame → expand → premortem + inversion; outputs a one-page brief |
 | Shape just requirements (no code yet) | `/requirements` | Stress-test with `/grill` or `/msf-req` after |
 | Mock up the UI before specifying it | `/wireframes` → `/prototype` | Static HTML wireframes, then a clickable React prototype |
+| Run the discovery half of the pipeline only (no /plan or /execute) | `/prototype-sdlc <seed>` | requirements → grill → spec → wireframes → prototype, then stop. Branch left intact for the user to extend (`--resume`) or discard. Thin alias of `/feature-sdlc prototype …` |
 | Critique an existing UI, wireframes, or prototype | `/design-crit` | Nielsen + WCAG 2.2 + Gestalt + PSYCH/MSF rubric |
 | Write a technical design doc | `/spec`, or `/artifact` for a standalone EDD/PRD | `/simulate-spec` to pressure-test |
 | Break a spec into TDD tasks | `/plan` | Then `/execute` to implement |
