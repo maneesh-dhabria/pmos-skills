@@ -23,6 +23,8 @@ const { execFileSync } = require("child_process");
 // anchor before burning a subagent dispatch; an orphan result becomes
 // an immediate error_enum=anchor_orphaned skip.
 const { resolveAnchor } = require("./anchor-resolver.js");
+// T13 — wave planner for --batch mode (FR-25, §S14, Decision P6).
+const { planWaves, overlapRelationFR25 } = require("./wave-planner.js");
 
 const MAX_CLARIFY = 2;
 
@@ -128,10 +130,10 @@ async function resolve(params) {
   const dispatchSubagent = params.dispatchSubagent || _defaultDispatchSubagent;
   const runGit = params.runGit || _defaultRunGit;
 
-  if (mode !== "confirm-each") {
-    // T13/T14 ship batch / auto / non-interactive.
+  if (mode !== "confirm-each" && mode !== "batch") {
+    // T14 ships auto / non-interactive.
     throw new Error(
-      "resolve: mode='" + mode + "' not implemented in T10 — see T13/T14"
+      "resolve: mode='" + mode + "' not implemented — see T14 for auto / non-interactive"
     );
   }
 
@@ -158,6 +160,182 @@ async function resolve(params) {
 
   let resolvedCount = 0;
   const skipped = [];
+
+  // T13 — --batch mode (FR-25, §S14, Decision P6).
+  //
+  // Resolve anchors for all open threads, partition into waves via the
+  // wave planner, then per wave: dispatch subagents in parallel, present
+  // ONE accept/reject prompt per wave, and on Accept apply edits
+  // right-to-left so earlier offsets aren't invalidated. Sequential
+  // between waves.
+  if (mode === "batch") {
+    // 1. Pre-resolve every open thread's anchor.
+    const planInputs = [];
+    for (const idx of openIdxs) {
+      const t = threads[idx];
+      const anchorObj = {
+        id_anchor: t.id_anchor || (t.anchor && t.anchor.id_anchor) || null,
+        quote_anchor: t.quote_anchor || (t.anchor && t.anchor.quote_anchor) || null,
+        diagram_anchor: t.diagram_anchor || (t.anchor && t.anchor.diagram_anchor) || null,
+      };
+      const resolved = resolveAnchor({ anchor: anchorObj, artifactHtml: html });
+      if (resolved && resolved.orphan === true) {
+        skipped.push({
+          id: t.id,
+          reason:
+            ERROR_ENUM.ANCHOR_ORPHANED +
+            ": anchor unresolved (id-first miss + quote-fallback below threshold)",
+        });
+        continue;
+      }
+      // Build the planner thread shape: id + anchor (planner reads
+      // start_offset/end_offset for text, bbox for svg).
+      const plannerAnchor = {};
+      if (resolved && resolved.dom_range && resolved.strategy !== "svg-data-anchor"
+          && resolved.strategy !== "svg-bbox") {
+        plannerAnchor.start_offset = resolved.dom_range.start_offset;
+        plannerAnchor.end_offset = resolved.dom_range.end_offset;
+      } else if (resolved && resolved.bbox) {
+        plannerAnchor.bbox = resolved.bbox;
+      } else if (resolved && resolved.dom_range) {
+        // SVG resolution with dom_range but no usable bbox — treat as
+        // text-style range over its dom_range for packing purposes.
+        plannerAnchor.start_offset = resolved.dom_range.start_offset;
+        plannerAnchor.end_offset = resolved.dom_range.end_offset;
+      }
+      planInputs.push({
+        id: t.id,
+        anchor: plannerAnchor,
+        _thread: t,
+        _anchorObj: anchorObj,
+      });
+    }
+
+    // 2. Plan waves.
+    const waves = planWaves(planInputs, overlapRelationFR25);
+
+    // 3. Per wave: dispatch in parallel, one combined prompt, apply RTL.
+    for (let wi = 0; wi < waves.length; wi++) {
+      const wave = waves[wi];
+
+      // Dispatch all subagents in parallel for this wave.
+      const settled = await Promise.all(
+        wave.map(async (entry) => {
+          const t = entry._thread;
+          const input = {
+            artifact_path: artifactPath,
+            anchor: entry._anchorObj,
+            body: _lastUserBody(t),
+            thread_id: t.id,
+          };
+          try {
+            const out = await dispatchSubagent({ skill: skillSlug, input });
+            return { entry, out, err: null };
+          } catch (e) {
+            return {
+              entry,
+              out: {
+                success: false,
+                error_enum: ERROR_ENUM.AGENT_ERRORED,
+                system_reply:
+                  "Dispatch failed: " + (e && e.message ? e.message : String(e)),
+              },
+              err: e,
+            };
+          }
+        })
+      );
+
+      // Build a combined diff summary across this wave's successes.
+      const successes = settled.filter((r) => r.out && r.out.success === true);
+      const failures = settled.filter((r) => !(r.out && r.out.success === true));
+
+      // Record failures as skips immediately (don't gate the wave on them).
+      for (const f of failures) {
+        const enumv = (f.out && f.out.error_enum) || ERROR_ENUM.AGENT_ERRORED;
+        const msg = (f.out && f.out.system_reply) || "(no reply)";
+        skipped.push({ id: f.entry._thread.id, reason: enumv + ": " + msg });
+      }
+
+      if (successes.length === 0) {
+        continue; // nothing to apply this wave
+      }
+
+      const diffSummary = successes
+        .map((r) => "  - " + r.entry._thread.id + ": " + (r.out.diff_ref || "(no diff_ref)"))
+        .join("\n");
+      const choice = await askUser(
+        "Wave " + (wi + 1) + "/" + waves.length + " — " + successes.length +
+          " edit(s) ready:\n" + diffSummary +
+          "\nApply this wave?",
+        ["Accept wave", "Reject wave", "Defer"]
+      );
+
+      if (choice !== "Accept wave") {
+        const reason =
+          choice === "Reject wave" ? "operator_reject_wave" : "operator_defer_wave";
+        for (const r of successes) {
+          skipped.push({ id: r.entry._thread.id, reason });
+        }
+        continue;
+      }
+
+      // Apply right-to-left within the wave (planner already RTL-sorted
+      // the wave; re-sort defensively in case a caller swapped planner).
+      const ordered = successes.slice().sort((a, b) => {
+        const sa = a.entry.anchor && typeof a.entry.anchor.start_offset === "number"
+          ? a.entry.anchor.start_offset
+          : -1;
+        const sb = b.entry.anchor && typeof b.entry.anchor.start_offset === "number"
+          ? b.entry.anchor.start_offset
+          : -1;
+        return sb - sa;
+      });
+      for (const r of ordered) {
+        if (typeof r.out.applied_artifact === "string") {
+          html = r.out.applied_artifact;
+          fs.writeFileSync(artifactPath, html, "utf8");
+        }
+        const t = r.entry._thread;
+        t.messages = t.messages || [];
+        t.messages.push({
+          role: "system",
+          body: String(r.out.system_reply || ""),
+          ts: _isoNow(),
+        });
+        t.status = "resolved";
+        resolvedCount++;
+      }
+    }
+
+    // Persist + stage, then short-circuit the confirm-each loop.
+    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
+    const repoRootB = _gitRepoRoot(artifactPath, runGit);
+    runGit(["add", artifactPath, sidecarPath], { cwd: repoRootB });
+
+    const summaryB =
+      "Resolved " + resolvedCount + "/" + totalOpen +
+      " (batch, " + waves.length + " wave(s)). Review with git diff --cached then commit.";
+    if (params.printSummary !== false) {
+      process.stdout.write(summaryB + "\n");
+      if (skipped.length > 0) {
+        for (const s of skipped) {
+          process.stdout.write("  skipped " + s.id + ": " + s.reason + "\n");
+        }
+      }
+    }
+
+    return {
+      artifact: artifactPath,
+      sidecar: sidecarPath,
+      skill: skillSlug,
+      total_open: totalOpen,
+      resolved: resolvedCount,
+      skipped: skipped,
+      waves: waves.length,
+      summary: summaryB,
+    };
+  }
 
   for (const idx of openIdxs) {
     const thread = threads[idx];
