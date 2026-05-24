@@ -1,5 +1,12 @@
 # DESIGN.md Specification (pmos-toolkit dialect)
 
+## Contents
+
+- [File shape](#file-shape)
+- [Base fields (Google Labs alpha)](#base-fields-google-labs-alpha)
+- [Canonical section order (markdown body)](#canonical-section-order-markdown-body)
+- [pmos-toolkit `x-*` extensions](#pmos-toolkit-x-extensions)
+
 `DESIGN.md` is a single-file, human-and-machine-readable description of an app's visual identity. It is the canonical brand contract used by `/wireframes`, `/prototype`, and `/verify`.
 
 This document defines the **pmos-toolkit dialect** of DESIGN.md: the base spec from Google Labs (open-sourced April 2026, Apache 2.0, upstream at <https://github.com/google-labs-code/design.md>) **plus** namespaced `x-*` extensions that the pmos-toolkit pipeline relies on.

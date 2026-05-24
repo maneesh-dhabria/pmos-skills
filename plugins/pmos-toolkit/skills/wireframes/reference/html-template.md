@@ -1,5 +1,14 @@
 # Wireframe HTML Template
 
+## Contents
+
+- [Skeleton](#skeleton)
+- [Vocabulary cheat-sheet](#vocabulary-cheat-sheet)
+- [Annotations](#annotations)
+- [Realistic copy guidance](#realistic-copy-guidance)
+- [Strict format requirements](#strict-format-requirements)
+- [Anti-patterns](#anti-patterns)
+
 Every generated wireframe file MUST follow this skeleton. The shared CSS at `./wireframe.css` (copied into the output folder at the start of Phase 3) provides theme tokens, mock-* primitives, state-switcher styles, annotations layer, and device frames. Files reference that stylesheet — do not duplicate its rules in inline `<style>` blocks.
 
 ## Skeleton

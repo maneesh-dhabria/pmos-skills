@@ -1,5 +1,13 @@
 # Host Style Extraction (Phase 2.5) — SUPERSEDED
 
+## Contents
+
+- [When this runs](#when-this-runs)
+- [Detection algorithm](#detection-algorithm)
+- [Output schema](#output-schema)
+- [Confidence rules](#confidence-rules)
+- [Confirmation prompt](#confirmation-prompt)
+
 > **Superseded as of pmos-toolkit v2.7.0.** Phase 2.5 of `/wireframes` no longer follows this document. The new procedure is split across:
 >
 > - `design-md-spec.md` — DESIGN.md schema (base + `x-*` extensions).

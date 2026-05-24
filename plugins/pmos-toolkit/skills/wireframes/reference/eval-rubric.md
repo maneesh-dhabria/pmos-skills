@@ -1,5 +1,10 @@
 # Wireframe Evaluation Rubric
 
+## Contents
+
+- [Heuristics (the rubric)](#heuristics-the-rubric)
+- [How to use this rubric](#how-to-use-this-rubric)
+
 The reviewer subagent uses this rubric to score a single HTML wireframe file. Output is JSON:
 
 ```json
