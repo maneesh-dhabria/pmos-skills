@@ -113,6 +113,258 @@
     return parse_sidecar(text);
   }
 
+  /* =====================================================================
+   * T7 — browser-side UI + FSA write path.
+   * Chrome/Edge only; Safari/Firefox fallback lands at T22.
+   * Refs: FR-02, FR-03, FR-04, FR-11, FR-13, FR-14, S16, S17, §11.
+   * ===================================================================== */
+
+  // Module-scope state (single overlay per artifact).
+  var state = {
+    mounted: false,
+    artifactPath: '/',
+    artifactBaseName: 'artifact',
+    lineage: null,
+    sidecar: null,           // current sidecar object in memory
+    dirHandle: null,         // FileSystemDirectoryHandle (browser)
+    writeSidecarImpl: null   // overridable for tests
+  };
+
+  /* ---- FNV-1a 64-bit → 16 hex chars. Sync, pure, no deps.
+   *      Sufficient as a stable quote-content fingerprint for anchor
+   *      matching; collision risk is non-security (Bitap recheck via DMP
+   *      at apply-time per T6). */
+  function fnv1a64Hex(str) {
+    // Two 32-bit lanes simulate 64-bit avoiding BigInt (broad runtime support).
+    var s = String(str == null ? '' : str);
+    var hi = 0xcbf29ce4 >>> 0, lo = 0x84222325 >>> 0;
+    var primeHi = 0x00000100, primeLo = 0x000001b3;
+    for (var i = 0; i < s.length; i++) {
+      var code = s.charCodeAt(i);
+      lo = lo ^ code;
+      // 64-bit multiply: (hi:lo) * (primeHi:primeLo)
+      var lolo = (lo & 0xffff) * primeLo;
+      var lohi = (lo >>> 16) * primeLo;
+      var hilo = (lo & 0xffff) * primeHi;
+      var newLo = (lolo + ((lohi & 0xffff) << 16)) >>> 0;
+      var carry = ((lolo >>> 16) + lohi + hilo) >>> 0;
+      var newHi = ((hi * primeLo) + (lo * primeHi) + (carry >>> 16)) >>> 0;
+      // Account for carry from low half overflow:
+      if (newLo < lolo) newHi = (newHi + 1) >>> 0;
+      hi = newHi; lo = newLo;
+    }
+    function hex8(n) { var h = (n >>> 0).toString(16); while (h.length < 8) h = '0' + h; return h; }
+    return hex8(hi) + hex8(lo);
+  }
+
+  /* ---- captureSelection: pure. Builds quote_anchor from raw selection bits. */
+  function captureSelection(sel) {
+    sel = sel || {};
+    var text = String(sel.text == null ? '' : sel.text);
+    var prefix = String(sel.prefix == null ? '' : sel.prefix);
+    var suffix = String(sel.suffix == null ? '' : sel.suffix);
+    return {
+      quote_hash: fnv1a64Hex(text),
+      context_before: prefix.slice(-30),
+      context_after: suffix.slice(0, 30)
+    };
+  }
+
+  /* ---- DOM helpers (no-ops in Node) ---- */
+  function _doc() { return (typeof document !== 'undefined') ? document : null; }
+
+  function _ensurePanel() {
+    var doc = _doc(); if (!doc) return null;
+    var panel = doc.querySelector('.pmos-side-panel');
+    if (panel) return panel;
+    panel = doc.createElement('div');
+    panel.classList.add('pmos-side-panel');
+    var header = doc.createElement('div');
+    header.classList.add('pmos-panel-header');
+    header.textContent = 'Comments';
+    panel.appendChild(header);
+    var list = doc.createElement('div');
+    list.classList.add('pmos-thread-list');
+    panel.appendChild(list);
+    var compose = doc.createElement('div');
+    compose.classList.add('pmos-thread-compose');
+    var ta = doc.createElement('textarea');
+    compose.appendChild(ta);
+    var btn = doc.createElement('button');
+    btn.textContent = 'Submit';
+    btn.classList.add('pmos-compose-submit');
+    compose.appendChild(btn);
+    panel.appendChild(compose);
+    doc.body.appendChild(panel);
+    return panel;
+  }
+
+  function onFloatingButtonClick(anchor) {
+    var panel = _ensurePanel();
+    if (!panel) return;
+    panel.classList.add('open');
+    // Stash the pending anchor on the panel for compose submit.
+    panel._pendingAnchor = anchor || null;
+  }
+
+  /* ---- mountBanner: idempotent toast. ---- */
+  function mountBanner(msg) {
+    var doc = _doc(); if (!doc) return null;
+    var b = doc.querySelector('.pmos-banner');
+    if (b) { b.textContent = String(msg == null ? '' : msg); return b; }
+    b = doc.createElement('div');
+    b.classList.add('pmos-banner');
+    b.textContent = String(msg == null ? '' : msg);
+    doc.body.appendChild(b);
+    return b;
+  }
+
+  /* ---- writeSidecar: per-save FSA re-request (S16, FR-13).
+   *      Order MUST be: requestPermission → getFileHandle → createWritable
+   *      → write → close. On 'denied', mount banner and return without
+   *      writing (prior sidecar on disk untouched). */
+  function writeSidecar(sidecar, handle) {
+    if (!handle || typeof handle.requestPermission !== 'function') {
+      // No handle → cannot write; surface banner so user can re-grant.
+      mountBanner('Click to grant write access');
+      return Promise.resolve(false);
+    }
+    return Promise.resolve(handle.requestPermission({ mode: 'readwrite' }))
+      .then(function (perm) {
+        if (perm !== 'granted') {
+          mountBanner('Click to grant write access');
+          return false;
+        }
+        var fname = (state.artifactBaseName || 'artifact') + '.comments.json';
+        return Promise.resolve(handle.getFileHandle(fname, { create: true }))
+          .then(function (fh) {
+            return Promise.resolve(fh.createWritable({ keepExistingData: false }));
+          })
+          .then(function (writable) {
+            var payload = serialize_sidecar(sidecar);
+            return Promise.resolve(writable.write(payload))
+              .then(function () { return writable.close(); })
+              .then(function () { return true; });
+          });
+      })
+      .catch(function (err) {
+        mountBanner('Click to grant write access');
+        // Re-throw? Spec says surface banner; do not throw — caller treats
+        // false as soft-fail (prior sidecar untouched).
+        return false;
+      });
+  }
+
+  /* ---- submitThread: build thread, append to in-memory sidecar, persist. */
+  function submitThread(opts) {
+    opts = opts || {};
+    var t = buildThread({
+      id_anchor: opts.anchor && opts.anchor.id_anchor,
+      quote_anchor: opts.anchor && opts.anchor.quote_anchor,
+      body: opts.body,
+      author: opts.author
+    });
+    if (!state.sidecar) {
+      state.sidecar = {
+        schema_version: SCHEMA_VERSION,
+        lineage: state.lineage || '00000000-0000-4000-8000-000000000000',
+        threads: []
+      };
+    }
+    state.sidecar.threads.push(t);
+    var impl = state.writeSidecarImpl || writeSidecar;
+    return impl(state.sidecar, state.dirHandle);
+  }
+
+  /* ---- IndexedDB rehydrate (S17). Best-effort; no-op in Node. */
+  function _rehydrateHandle() {
+    if (typeof indexedDB === 'undefined') return;
+    try {
+      var req = indexedDB.open('pmos-comments', 1);
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains('handles')) db.createObjectStore('handles');
+      };
+      req.onsuccess = function () {
+        try {
+          var db = req.result;
+          var tx = db.transaction('handles', 'readonly');
+          var store = tx.objectStore('handles');
+          var key = (typeof location !== 'undefined' && location.pathname) ? location.pathname : state.artifactPath;
+          var g = store.get(key);
+          g.onsuccess = function () {
+            if (g.result && !state.dirHandle) state.dirHandle = g.result;
+          };
+        } catch (_) { /* swallow — best-effort */ }
+      };
+    } catch (_) { /* swallow */ }
+  }
+
+  /* ---- selectionchange listener: spawns floating button at end of range. */
+  function _attachSelectionListener() {
+    var doc = _doc(); if (!doc) return;
+    if (typeof document.addEventListener !== 'function') return;
+    document.addEventListener('selectionchange', function () {
+      try {
+        var sel = (typeof window !== 'undefined' && window.getSelection) ? window.getSelection() : null;
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+        var range = sel.getRangeAt(0);
+        var rect = range.getBoundingClientRect ? range.getBoundingClientRect() : null;
+        if (!rect) return;
+        // Build prefix/suffix from anchor node's textContent.
+        var node = sel.anchorNode || null;
+        var nodeText = (node && node.textContent) ? node.textContent : '';
+        var startOff = Math.min(sel.anchorOffset || 0, sel.focusOffset || 0);
+        var endOff = Math.max(sel.anchorOffset || 0, sel.focusOffset || 0);
+        var anchor = captureSelection({
+          start: startOff,
+          end: endOff,
+          text: sel.toString(),
+          prefix: nodeText.slice(0, startOff),
+          suffix: nodeText.slice(endOff)
+        });
+        _placeFloatingButton(rect, anchor);
+      } catch (_) { /* swallow — UI nicety */ }
+    });
+  }
+
+  function _placeFloatingButton(rect, anchor) {
+    var doc = _doc(); if (!doc) return;
+    var btn = doc.querySelector('.pmos-floating-btn');
+    if (!btn) {
+      btn = doc.createElement('button');
+      btn.classList.add('pmos-floating-btn');
+      btn.textContent = '💬';
+      btn.setAttribute('type', 'button');
+      doc.body.appendChild(btn);
+      btn.addEventListener('click', function () {
+        onFloatingButtonClick(btn._anchor);
+      });
+    }
+    btn._anchor = anchor;
+    btn.style.top = ((rect.bottom || 0) + 8) + 'px';
+    btn.style.left = ((rect.right || 0) + 8) + 'px';
+  }
+
+  /* ---- mount: idempotent. Wires DOM listeners + rehydrates handle. */
+  function mount(opts) {
+    opts = opts || {};
+    state.artifactPath = opts.artifactPath || state.artifactPath;
+    // Derive base name from artifact path (strip .html).
+    var bn = String(state.artifactPath).replace(/^.*\//, '').replace(/\.html?$/i, '');
+    state.artifactBaseName = bn || 'artifact';
+    if (opts.lineage) state.lineage = opts.lineage;
+    if (opts.dirHandle) state.dirHandle = opts.dirHandle;
+    if (opts.sidecar) state.sidecar = opts.sidecar;
+    if (typeof opts._writeSidecar === 'function') state.writeSidecarImpl = opts._writeSidecar;
+
+    if (state.mounted) return;
+    state.mounted = true;
+
+    if (_doc()) _attachSelectionListener();
+    _rehydrateHandle();
+  }
+
   /* ---- public surface ---- */
   var api = {
     SCHEMA_VERSION: SCHEMA_VERSION,
@@ -123,7 +375,14 @@
     validate_sidecar: validate_sidecar,
     serialize_sidecar: serialize_sidecar,
     parse_sidecar: parse_sidecar,
-    load_sidecar: load_sidecar
+    load_sidecar: load_sidecar,
+    // T7 additions
+    captureSelection: captureSelection,
+    onFloatingButtonClick: onFloatingButtonClick,
+    submitThread: submitThread,
+    writeSidecar: writeSidecar,
+    mountBanner: mountBanner,
+    mount: mount
   };
 
   if (typeof module !== 'undefined' && module.exports) {
