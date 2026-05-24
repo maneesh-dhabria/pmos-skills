@@ -13,7 +13,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{title}}</title>
+  <meta name="pmos:skill" content="{{pmos_skill}}">
   <link rel="stylesheet" href="{{asset_prefix}}style.css?v={{plugin_version}}">
+  <link rel="stylesheet" href="{{asset_prefix}}comments.css?v={{plugin_version}}">
   <script defer src="{{asset_prefix}}viewer.js?v={{plugin_version}}"></script>
 </head>
 <body>
@@ -41,5 +43,6 @@
        data-pmos-role="attribution"
        data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
   </footer>
+  <script defer src="{{asset_prefix}}comments.js?v={{plugin_version}}"></script>
 </body>
 </html>

@@ -311,7 +311,21 @@ Save to `{feature_folder}/02_spec.html` per the substrate at `${CLAUDE_PLUGIN_RO
 
 **Atomic write (FR-10.2):** write `02_spec.html` and the companion `02_spec.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files; on initial setup an unconditional `cp assets/* feature_folder/assets/` is fine.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff-match-patch.js`, `LICENSE.dmp.txt` (all via `cp -n`), plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755` so the bits survive the copy) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files; on initial setup an unconditional `cp assets/* feature_folder/assets/` is fine.
+
+**Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `spec` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="spec">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
+
+Per-file copy posture for the comments substrate (each on its own line so the cp/install invocation is unambiguous):
+
+```bash
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{feature_folder}/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{feature_folder}/assets/"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/assets/comments-open.command"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/assets/comments-open.sh"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/assets/comments-open.bat"
+```
 
 **Asset prefix (FR-10.1):** the per-folder relative asset prefix for top-level feature-folder artifacts is `assets/`.
 
