@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="prototype">
+  <title>Mini Prototype — Desktop Web (fixture)</title>
+  <link rel="stylesheet" href="../../assets/prototype.css">
+  <link rel="stylesheet" href="../../assets/design-overlay.css">
+  <script src="../../assets/comments.js"></script>
+  <link rel="stylesheet" href="../../assets/comments.css">
+</head>
+<body>
+  <div id="root">
+
+    <section id="header-section">
+      <h2>App Header</h2>
+      <p>Persistent chrome: logo, primary navigation tabs (Dashboard, Items, Settings), user avatar with dropdown.</p>
+    </section>
+
+    <section id="dashboard-screen">
+      <h2>Dashboard Screen</h2>
+      <p>Landing screen after login. Shows the stats row and main table populated with mock data from window.__mockData.items.</p>
+    </section>
+
+    <section id="empty-state">
+      <h2>Empty State</h2>
+      <p>Shown when items array is empty. Illustrated empty-state with CTA button "Create your first item".</p>
+    </section>
+
+    <section id="rollout">
+      <h2>Rollout Notes</h2>
+      <p>Prototype covers desktop-web only. Mobile-web prototype is deferred to sprint 2.</p>
+    </section>
+
+  </div>
+
+  <script type="application/json" id="mock-items">
+  [
+    {"id": "item-001", "name": "Alpha Widget", "status": "active", "owner": "Alice Chen"},
+    {"id": "item-002", "name": "Beta Module", "status": "pending", "owner": "Bob Torres"}
+  ]
+  </script>
+
+  <script type="text/babel">
+  (function () {
+    // Simulated prototype entry point.
+    // Edits inside <section> regions above are applyable.
+    // Edits inside this JSX block require regeneration via /prototype.
+    function App() {
+      return React.createElement('div', null, 'Prototype loaded');
+    }
+    ReactDOM.render(React.createElement(App), document.getElementById('root'));
+  })();
+  </script>
+</body>
+</html>

@@ -19,9 +19,12 @@ Every generated wireframe file MUST follow this skeleton. The shared CSS at `./w
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="pmos:skill" content="wireframes">
   <title>{{COMPONENT_NAME}} — {{DEVICE}} — Wireframe</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./wireframe.css">
+  <link rel="stylesheet" href="./assets/comments.css">
+  <script src="./assets/comments.js" defer></script>
 </head>
 <body data-annotations="on">
   <!--

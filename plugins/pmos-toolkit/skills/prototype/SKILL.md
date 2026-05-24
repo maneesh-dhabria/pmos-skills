@@ -666,3 +666,69 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT write design-system content (colors, typography, modal style, interaction patterns) into the workstream — those live in DESIGN.md / COMPONENTS.md (canonical). Phase 11 only writes `target_app.path` if missing
 - Do NOT keep the legacy `house-style.json` codepath alive — Phase 4d is rewritten to consume `design-overlay.css` + `design-tokens.js`. The legacy `reference/styles-derivation.md` is superseded
 - Do NOT load `design-tokens.js` after `runtime.js` or `components.js` — tokens must be on `window.__designTokens` before runtime/components evaluate, or atoms get `undefined` lookups
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/prototype` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a prototype artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/prototype`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/prototype/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
+
+### Applyable vs infeasible edits (prototype-specific)
+
+/prototype emits a single per-device HTML file with embedded React via CDN + simulated API.
+
+- **Applyable:** textual/HTML edits inside `<section>` regions (screen descriptions, copy, notes).
+- **Infeasible:** edits inside `<script type="text/babel">` JSX blocks or the simulated mock-data block — those require regeneration via `/prototype`. The shim returns `agent_judged_infeasible` with `system_reply: "Cannot apply: edit targets JSX script block or simulated mock-data. Regenerate the prototype via /prototype to apply structural React or data changes."`.
+
+### Comments meta tag (FR-01, FR-40) + asset substrate (FR-10)
+
+Every generated per-device HTML file (`index.<device>.html`) MUST include `<meta name="pmos:skill" content="prototype">` in `<head>`. The `/comments` resolver routes apply-edit dispatches via this meta tag.
+
+**Asset substrate:** copy the inline-doc-comments substrate alongside the existing prototype assets:
+
+```bash
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/prototype/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/prototype/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{feature_folder}/prototype/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{feature_folder}/prototype/assets/"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/prototype/assets/comments-open.command"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/prototype/assets/comments-open.sh"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/prototype/assets/comments-open.bat"
+```
+
+### Resolution order
+
+Per the contract:
+
+1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Closed error_enum
+
+Authoritative list in [§9.2](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#api-error-enum) / the contract doc:
+
+`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
+
+### Idempotency (§9.3) — local choice
+
+The shim returns the **`diff_ref` substring** form for no-ops:
+
+```json
+{ "success": true, "diff_ref": "no-op: edit already applied", "system_reply": "Edit already present in artifact; marking resolved without changes." }
+```
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/prototype/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_prototype.sh`.

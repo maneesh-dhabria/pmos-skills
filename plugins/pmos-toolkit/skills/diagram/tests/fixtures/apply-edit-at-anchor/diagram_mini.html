@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="pmos:skill" content="diagram">
+  <title>Mini Diagram (fixture)</title>
+  <script src="../../assets/comments.js"></script>
+  <link rel="stylesheet" href="../../assets/comments.css">
+</head>
+<body>
+  <article>
+    <h1>Mini Architecture Diagram</h1>
+
+    <section id="diagram-container">
+      <h2>Diagram</h2>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" font-family="Inter, system-ui, sans-serif">
+        <title>Mini Architecture Diagram</title>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <style>
+          .node-rect { fill: #f5f5f5; stroke: #1a1a1a; stroke-width: 1.5; rx: 4; }
+          .node-label { font-size: 14px; fill: #1a1a1a; font-weight: 600; }
+          .edge-label { font-size: 12px; fill: #555; }
+        </style>
+
+        <!-- Node A -->
+        <rect data-anchor="node-client" x="60" y="200" width="140" height="60" class="node-rect" rx="4"/>
+        <text data-anchor="node-client" x="130" y="235" text-anchor="middle" class="node-label">Client</text>
+
+        <!-- Node B -->
+        <rect data-anchor="node-api" x="340" y="200" width="140" height="60" class="node-rect" rx="4"/>
+        <text data-anchor="node-api" x="410" y="235" text-anchor="middle" class="node-label">API Gateway</text>
+
+        <!-- Node C -->
+        <rect data-anchor="node-db" x="600" y="200" width="140" height="60" class="node-rect" rx="4"/>
+        <text data-anchor="node-db" x="670" y="235" text-anchor="middle" class="node-label">Database</text>
+
+        <!-- Edge A → B -->
+        <line x1="200" y1="230" x2="340" y2="230" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="270" y="222" text-anchor="middle" class="edge-label">HTTP/REST</text>
+
+        <!-- Edge B → C -->
+        <line x1="480" y1="230" x2="600" y2="230" stroke="#1a1a1a" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <text x="540" y="222" text-anchor="middle" class="edge-label">SQL</text>
+
+        <!-- Legend -->
+        <rect x="620" y="40" width="140" height="40" fill="#fff" stroke="#ccc" stroke-width="1" rx="2"/>
+        <text x="690" y="65" text-anchor="middle" font-size="12" fill="#555">Legend placeholder</text>
+      </svg>
+    </section>
+
+    <section id="diagram-notes">
+      <h2>Design Notes</h2>
+      <p>Three-tier architecture: client talks to API Gateway over HTTP, gateway reads and writes to the database over SQL.</p>
+    </section>
+
+    <section id="rollout">
+      <h2>Rollout</h2>
+      <p>This diagram documents the current state. Geometry edits require regeneration via /diagram.</p>
+    </section>
+
+  </article>
+</body>
+</html>

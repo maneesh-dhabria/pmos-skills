@@ -735,3 +735,74 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT bypass COMPONENTS.md by inventing button/input/card/modal variants — Phase 3 generators must prefer existing variants and flag novel ones explicitly in the file footer
 - Do NOT modify the workstream `## Constraints & Scars` from this skill — Phase 2.6 reads it; only humans (or `/verify` with explicit confirmation) write to it
 - Do NOT keep the legacy `house-style.json` / `house-style.css` artifacts alive in new feature folders — Phase 2.5 produces `design-overlay.css` from DESIGN.md instead. Old folders' artifacts are left in place but not consulted
+
+---
+
+## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+
+This phase is the `/wireframes` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a wireframe artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+
+Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/wireframes`-specific implementation guidance only.
+
+### When invoked
+
+The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+
+- **Shim:** `plugins/pmos-toolkit/skills/wireframes/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
+
+### Applyable vs infeasible edits (wireframes-specific)
+
+/wireframes emits a subfolder of N per-screen HTML files plus `index.html`. The apply-edit shim only handles textual/HTML edits inside an individual screen file.
+
+- **Applyable:** edits to section content, copy, annotations, state descriptions inside a per-screen `.html` file.
+- **Infeasible:** edits to `index.html` structure (`<nav>`, screen list, card grid, reordering screens) — those require regeneration via `/wireframes`. The shim returns `agent_judged_infeasible` with `system_reply: "Cannot apply: edit targets index.html navigation or screen-list structure. Regenerate via /wireframes to restructure across-screen layout."`.
+
+### Comments instrumentation (FR-21) — two emit references
+
+FR-21 counts wireframes as ONE instrumentation surface but with TWO emit references:
+
+1. **Per-screen template** (`reference/html-template.md` skeleton `<head>`): must include `<meta name="pmos:skill" content="wireframes">` and the comments.js/css asset links.
+2. **`index.html` template** (Phase 5a generation): must also include `<meta name="pmos:skill" content="wireframes">` and the comments.js/css asset links so threads can be opened on the index too.
+
+**Asset substrate (FR-10):** in addition to the existing `wireframe.css` copy, copy the inline-doc-comments substrate for BOTH the wireframes folder and the index:
+
+```bash
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/wireframes/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/wireframes/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{feature_folder}/wireframes/assets/"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{feature_folder}/wireframes/assets/"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/wireframes/assets/comments-open.command"
+install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/wireframes/assets/comments-open.sh"
+cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/wireframes/assets/comments-open.bat"
+```
+
+**Comments meta tag (FR-01, FR-40):** every generated wireframe file (per-screen AND `index.html`) MUST include `<meta name="pmos:skill" content="wireframes">` in `<head>`. The `/comments` resolver routes apply-edit dispatches via this meta tag.
+
+### Resolution order
+
+Per the contract:
+
+1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
+2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+
+### Closed error_enum
+
+Authoritative list in [§9.2](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#api-error-enum) / the contract doc:
+
+`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
+
+### Idempotency (§9.3) — local choice
+
+The shim returns the **`diff_ref` substring** form for no-ops:
+
+```json
+{ "success": true, "diff_ref": "no-op: edit already applied", "system_reply": "Edit already present in artifact; marking resolved without changes." }
+```
+
+### Tests
+
+- Per-skill contract: `plugins/pmos-toolkit/skills/wireframes/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
+- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_wireframes.sh`.
