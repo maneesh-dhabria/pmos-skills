@@ -1,0 +1,15 @@
+/* comments.css — pmos-toolkit html-authoring substrate.
+ * Skeleton (T3): empty class declarations only. Styles land at T7.
+ * Refs: FR-10, FR-11, §10.
+ */
+
+.pmos-floating-btn { }
+.pmos-side-panel { }
+.pmos-panel-header { }
+.pmos-thread-list { }
+.pmos-thread-card { }
+.pmos-thread-messages { }
+.pmos-message { }
+.pmos-thread-compose { }
+.pmos-banner { }
+.pmos-diagram-marker { }
