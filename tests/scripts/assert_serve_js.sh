@@ -29,18 +29,20 @@ SVG
 echo "raw" >"$FIX/notes.txt"
 
 cd "$FIX"
-PORT_FILE="$(mktemp -t serve-port.XXXXXX)"
-node "$SERVE" --port-file "$PORT_FILE" >/dev/null 2>&1 &
+PID_FILE="$(mktemp -t serve-pid.XXXXXX)"
+# Use --pid-file (FR-44 JSON format). --port-file remains a deprecated alias.
+node "$SERVE" --pid-file "$PID_FILE" >/dev/null 2>&1 &
 SERVE_PID=$!
 
-# Wait up to 3s for the port file to materialize (port-fallback may scan a few).
+# Wait up to 3s for the pid file to materialize (port-fallback may scan a few).
 for _ in $(seq 1 30); do
-  [[ -s "$PORT_FILE" ]] && break
+  [[ -s "$PID_FILE" ]] && break
   sleep 0.1
 done
-PORT="$(cat "$PORT_FILE" 2>/dev/null || true)"
+# Extract port from JSON {pid, port, started_at} without requiring jq.
+PORT="$(node -e "const fs=require('fs');try{const d=JSON.parse(fs.readFileSync('$PID_FILE','utf8'));process.stdout.write(String(d.port||''));}catch(e){}" 2>/dev/null || true)"
 if [[ -z "$PORT" ]]; then
-  echo "FAIL: serve.js did not write a port to $PORT_FILE within 3s" >&2
+  echo "FAIL: serve.js did not write a port to $PID_FILE within 3s" >&2
   exit 1
 fi
 
