@@ -33,3 +33,11 @@ logged_by: /execute (Phase 2 boundary)
 **Effect:** `02_spec.html` NFR-02 row amended. `.github/workflows/comments-bundle-size.yml` enforces two buckets. Current sizes: authoring 24,557 bytes (over soft 20KB, under hard 40KB — passes hard threshold but emits a soft-warn annotation); vendored 79,574 bytes (under 100KB ceiling — passes).
 
 **Authoring soft-warn is real:** comments.js is at 20,758 bytes (just over 20KB). T22's added Save-sidecar fallback + localStorage drafts pushed it over the soft threshold. Triage candidates for a future tightening: extract the Save button render into a separate optional asset, or fold _ls* helpers into a smaller closure. Not blocking; the soft warn surfaces it for future cleanup.
+
+## D26 — Calibration corpus date-pattern fallback (2026-05-25)
+
+**Context:** T26 plan specifies the calibration corpus is built from feature folders matching `^2026-04-` and `^2026-05-0[1-7]_`. Those folders contain only `.md` files (pre-HTML emit era of this codebase); they yield zero eligible HTML artifacts.
+
+**Decision:** Generator falls back to all HTML under `docs/pmos/features/`. Yields 424 eligible spans across 87 artifacts in 15 feature folders before the 50-pick shuffle. The fallback is principled — the broader corpus is more representative for §14.6 calibration than the original 7-day window would have been.
+
+**Effect:** Documented inline in `build-calibration-corpus.py`'s script header. §14.6 thresholds passed with margin (id-first 45/50, quote-fallback 4/50, orphan 1/50). No spec amendment opened; the header note is the canonical record.
