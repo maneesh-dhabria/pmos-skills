@@ -76,6 +76,8 @@ async function main() {
     throw new Error('serve.js not found at expected path: ' + serveJs);
   }
 
+  // TODO(maintenance): hard-coded fixture path 02_spec_mini.html — update if the
+  // /comments skill ever ships its own fixture, or refactor to read from a config.
   const fixtureRelPath = 'plugins/pmos-toolkit/skills/spec/tests/fixtures/02_spec_mini.html';
   const fixtureFull = path.join(repoRoot, fixtureRelPath);
   if (!fs.existsSync(fixtureFull)) {
@@ -91,29 +93,54 @@ async function main() {
   });
 
   let serverReady = false;
+  let receivedAnyOutput = false;
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('Server start timeout')), 10_000);
+
+    function onReadyLine() {
+      serverReady = true;
+      clearTimeout(timeout);
+      clearTimeout(fallbackTimer);
+      resolve();
+    }
+
     server.stdout.on('data', (chunk) => {
+      receivedAnyOutput = true;
       if (!serverReady && /listening|started|port/i.test(chunk.toString())) {
-        serverReady = true;
-        clearTimeout(timeout);
-        resolve();
+        onReadyLine();
       }
     });
     server.stderr.on('data', (chunk) => {
       // Some serve.js variants print to stderr.
+      receivedAnyOutput = true;
       if (!serverReady && /listening|started|port/i.test(chunk.toString())) {
-        serverReady = true;
-        clearTimeout(timeout);
-        resolve();
+        onReadyLine();
       }
     });
     server.on('exit', (code) => {
-      clearTimeout(timeout);
-      reject(new Error('Server exited prematurely with code ' + code));
+      if (!serverReady) {
+        clearTimeout(timeout);
+        clearTimeout(fallbackTimer);
+        reject(new Error(`serve.js exited (code=${code}) before becoming ready`));
+      }
     });
-    // Fallback: wait 2 s then assume ready (some serve.js versions have no ready log).
-    setTimeout(() => { clearTimeout(timeout); resolve(); }, 2_000);
+    // Fallback: fires after 2 s only if no ready-regex match yet.
+    // - Silent server (no output at all): reject — assume hang or dead.
+    // - Got some output but no ready line: warn and proceed optimistically.
+    const fallbackTimer = setTimeout(() => {
+      if (serverReady) return;
+      clearTimeout(timeout);
+      if (!receivedAnyOutput) {
+        reject(new Error(
+          'serve.js produced no output and did not log ready within 2s — assuming hang/dead'
+        ));
+        return;
+      }
+      // Received output but no ready line — optimistic proceed with a warn.
+      console.warn('[fsa-write.e2e] server emitted output but no ready line within 2s; proceeding optimistically');
+      serverReady = true;
+      resolve();
+    }, 2_000);
   });
 
   const artifactUrl = `http://localhost:${port}/${fixtureRelPath}`;
