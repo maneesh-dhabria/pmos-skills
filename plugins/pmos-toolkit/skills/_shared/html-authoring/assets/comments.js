@@ -5,6 +5,8 @@
  * Skeleton only (T3) — the panel/marker UI lands at T7.
  * Safari/Firefox fallback (T22): FSA-unavailable browsers use localStorage +
  * a "Save sidecar" download button instead of the FSA write path.
+ * T24: Overlay UX surfaces — orphan banner, diagram markers, review-mode gate,
+ *      file:// E1 blocking modal, FR-52 foreign-SVG bbox capture.
  * Refs: FR-01, FR-02, FR-10, FR-11, FR-14, FR-16, S3, S4, §10.1.
  */
 (function (root) {
@@ -236,9 +238,202 @@
     sidecar: null,           // current sidecar object in memory
     dirHandle: null,         // FileSystemDirectoryHandle (browser)
     writeSidecarImpl: null,  // overridable for tests
-    _docRef: null            // test override: pin a document reference so async callbacks
+    _docRef: null,           // test override: pin a document reference so async callbacks
                              // see a stable doc even after global.document is deleted
+    diagramMarkers: []       // T24: tracked markers { threadId, element }
   };
+
+  /* T24: orphan banner, diagram markers, review-mode gate, file:// modal, FR-52 bbox. */
+
+  var _reviewMode = 'on';
+  var _keyboardToggleAttached = false;
+
+  function _initReviewMode() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        var v = localStorage.getItem('pmos:reviewMode');
+        if (v === 'off') { _reviewMode = 'off'; return; }
+      }
+    } catch (_) { /* swallow */ }
+    _reviewMode = 'on';
+  }
+
+  function _isFileProtocol() {
+    try {
+      if (typeof root !== 'undefined' && root.location && root.location.protocol === 'file:') return true;
+      if (typeof location !== 'undefined' && location.protocol === 'file:') return true;
+    } catch (_) { /* swallow */ }
+    return false;
+  }
+
+  function _mkBtn(doc, attr, text, cmd) {
+    var btn = doc.createElement('button');
+    btn.setAttribute(attr, '1');
+    btn.setAttribute('type', 'button');
+    btn.textContent = text;
+    btn.addEventListener('click', function () {
+      try { if (root && root.navigator && root.navigator.clipboard) root.navigator.clipboard.writeText(cmd); } catch (_) { /* swallow */ }
+    });
+    return btn;
+  }
+
+  function _renderFileWarningModal() {
+    var doc = _doc(); if (!doc) return;
+    if (doc.querySelector('[data-pmos-file-warning]')) return;
+    var overlay = doc.createElement('div');
+    overlay.setAttribute('data-pmos-file-warning', '1');
+    var modal = doc.createElement('div');
+    modal.setAttribute('data-pmos-file-warning-modal', '1');
+    var title = doc.createElement('h2');
+    title.textContent = 'HTTP serving required';
+    var msg = doc.createElement('p');
+    msg.textContent = 'The comments overlay requires HTTP serving (not file://). Use one of the commands below:';
+    modal.appendChild(title);
+    modal.appendChild(msg);
+    modal.appendChild(_mkBtn(doc, 'data-pmos-copy-serve', 'Copy serve command', 'python3 -m http.server 8000'));
+    modal.appendChild(_mkBtn(doc, 'data-pmos-copy-launcher', 'Copy launcher command',
+      'bash <repo>/plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.sh <artifact-path>'));
+    overlay.appendChild(modal);
+    doc.body.appendChild(overlay);
+  }
+
+  function _renderOrphanBanner(threads) {
+    var doc = _doc(); if (!doc) return;
+    var orphans = (threads || []).filter(function (t) { return t && t.orphan === true; });
+    if (!orphans.length) return;
+    var panel = _ensurePanel(); if (!panel) return;
+    var old = doc.querySelector('[data-pmos-orphan-banner]');
+    if (old) old.remove();
+    var banner = doc.createElement('div');
+    banner.setAttribute('data-pmos-orphan-banner', '1');
+    var n = orphans.length;
+    banner.textContent = (n === 1 ? '1 orphaned thread' : n + ' orphaned threads') + ' — view + reattach';
+    var existingSecond = panel.children[1] || null;
+    if (existingSecond) { panel.insertBefore(banner, existingSecond); }
+    else { panel.appendChild(banner); }
+    orphans.forEach(function (t) {
+      var btn = doc.createElement('button');
+      btn.setAttribute('data-pmos-reattach-btn', t.id);
+      btn.setAttribute('type', 'button');
+      btn.textContent = 'Reattach';
+      btn.addEventListener('click', function () { openReattachForm(t.id); });
+      banner.appendChild(btn);
+    });
+  }
+
+  function openReattachForm(threadId) {
+    var doc = _doc(); if (!doc) return;
+    var panel = _ensurePanel(); if (!panel) return;
+    panel.classList.add('open');
+    var threads = (state.sidecar && state.sidecar.threads) || [];
+    var thread = null;
+    for (var i = 0; i < threads.length; i++) { if (threads[i].id === threadId) { thread = threads[i]; break; } }
+    var composeDiv = doc.querySelector('.pmos-thread-compose');
+    var ta = composeDiv ? composeDiv.querySelector('textarea') : null;
+    if (ta && thread) {
+      var msgs = thread.messages || [], lastBody = '';
+      for (var j = msgs.length - 1; j >= 0; j--) { if (msgs[j].role === 'user') { lastBody = msgs[j].body || ''; break; } }
+      ta.value = lastBody; ta._textContent = lastBody;
+    }
+    if (!doc.querySelector('[data-pmos-reattach-anchor]') && composeDiv) {
+      var inp = doc.createElement('input');
+      inp.setAttribute('type', 'text');
+      inp.setAttribute('data-pmos-reattach-anchor', threadId);
+      inp.setAttribute('placeholder', 'Paste quote anchor text to reattach to...');
+      composeDiv.appendChild(inp);
+    }
+  }
+
+  function _computeMarkerPos(anchorEl) {
+    if (!anchorEl) return null;
+    try {
+      if (typeof anchorEl.getBoundingClientRect === 'function') {
+        var r = anchorEl.getBoundingClientRect();
+        return { left: r.left + r.width / 2, top: r.top + r.height / 2 };
+      }
+      if (typeof anchorEl.getBBox === 'function') {
+        var b = anchorEl.getBBox();
+        return { left: b.x + b.width / 2, top: b.y + b.height / 2 };
+      }
+    } catch (_) { /* swallow */ }
+    return null;
+  }
+
+  function _clearDiagramMarkers(doc) {
+    state.diagramMarkers.forEach(function (e) { try { if (e.element) e.element.remove(); } catch (_) { /* swallow */ } });
+    state.diagramMarkers = [];
+    if (doc) { var s = doc.querySelectorAll('[data-pmos-diagram-marker]'); s.forEach(function (el) { try { el.remove(); } catch (_) { /* swallow */ } }); }
+  }
+
+  function _renderDiagramMarkers(threads) {
+    var doc = _doc(); if (!doc) return;
+    _clearDiagramMarkers(doc);
+    (threads || []).forEach(function (thread) {
+      if (!thread || !thread.diagram_anchor) return;
+      var da = thread.diagram_anchor;
+      var anchorEl = da.shape_id ? doc.querySelector('[data-anchor="' + da.shape_id + '"]') : null;
+      if (!anchorEl && da.svg_id) anchorEl = doc.querySelector('#' + da.svg_id);
+      if (!anchorEl) return;
+      var pos = _computeMarkerPos(anchorEl); if (!pos) return;
+      var m = doc.createElement('div');
+      m.setAttribute('data-pmos-diagram-marker', thread.id);
+      m.style.position = 'absolute'; m.style.left = pos.left + 'px'; m.style.top = pos.top + 'px';
+      m.style.width = '16px'; m.style.height = '16px'; m.style.zIndex = '5';
+      m.style.borderRadius = '50%'; m.style.cursor = 'pointer'; m.style.transform = 'translate(-50%, -50%)';
+      m.addEventListener('click', function () { var p = _ensurePanel(); if (p) p.classList.add('open'); });
+      doc.body.appendChild(m);
+      state.diagramMarkers.push({ threadId: thread.id, element: m });
+    });
+  }
+
+  function _renderMainOverlay() {
+    var doc = _doc(); if (!doc) return;
+    if (doc.querySelector('#pmos-comments-overlay')) return;
+    var o = doc.createElement('div'); o.setAttribute('id', 'pmos-comments-overlay'); doc.body.appendChild(o);
+  }
+
+  function unmount() {
+    var doc = _doc(); if (!doc) return;
+    _clearDiagramMarkers(doc);
+    var o = doc.querySelector('#pmos-comments-overlay'); if (o) o.remove();
+    var p = doc.querySelector('.pmos-side-panel'); if (p) p.remove();
+    state.mounted = false;
+  }
+
+  function captureSvgBboxAnchor(targetEl, svgEl, clickX, clickY) {
+    var el = targetEl;
+    while (el) {
+      var tag = el.tagName ? el.tagName.toUpperCase() : '';
+      if ((tag === 'G' || tag === 'RECT' || tag === 'PATH') && el.getAttribute && el.getAttribute('data-anchor')) {
+        return { svg_id: svgEl ? (svgEl.getAttribute('id') || null) : null, shape_id: el.getAttribute('data-anchor'), bbox: null };
+      }
+      if (el === svgEl || tag === 'SVG') break;
+      el = el.parentNode || null;
+    }
+    var svgId = svgEl ? (svgEl.getAttribute ? svgEl.getAttribute('id') : null) : null;
+    return { svg_id: svgId || null, shape_id: null, bbox: [clickX - 20, clickY - 20, 40, 40] };
+  }
+
+  function _attachKeyboardToggle(doc) {
+    if (!doc || typeof doc.addEventListener !== 'function') return;
+    if (_keyboardToggleAttached) return;
+    _keyboardToggleAttached = true;
+    doc.addEventListener('keydown', function (e) {
+      e = e || {};
+      if (!(e.key && e.key.toUpperCase() === 'R') || !(e.ctrlKey || e.metaKey) || !e.altKey) return;
+      if (typeof e.preventDefault === 'function') e.preventDefault();
+      _reviewMode = (_reviewMode === 'off') ? 'on' : 'off';
+      try { if (typeof localStorage !== 'undefined') localStorage.setItem('pmos:reviewMode', _reviewMode); } catch (_) { /* swallow */ }
+      if (_reviewMode === 'on') { state.mounted = false; _mountOverlaySurfaces(); } else { unmount(); }
+    });
+  }
+
+  function _mountOverlaySurfaces() {
+    _renderMainOverlay();
+    var threads = (state.sidecar && state.sidecar.threads) || [];
+    _renderOrphanBanner(threads);
+    _renderDiagramMarkers(threads);
+  }
 
   /* ---- FNV-1a 64-bit → 16 hex chars. Sync, pure, no deps.
    *      Sufficient as a stable quote-content fingerprint for anchor
@@ -469,7 +664,8 @@
 
   /* ---- mount: idempotent. Wires DOM listeners + rehydrates handle.
    *      T22: also detects FSA availability, rehydrates localStorage draft
-   *      on FSA-unavailable browsers, and renders the "Save sidecar" button. */
+   *      on FSA-unavailable browsers, and renders the "Save sidecar" button.
+   *      T24: review-mode gate, file:// modal, orphan banner, diagram markers. */
   function mount(opts) {
     opts = opts || {};
     state.artifactPath = opts.artifactPath || state.artifactPath;
@@ -488,10 +684,31 @@
       _detectFsaSupport();
     }
 
+    // T24: read review-mode from localStorage on every mount call (allows toggle).
+    _initReviewMode();
+
+    // T24: always attach the keyboard toggle listener (even when reviewMode='off'),
+    // so Ctrl/Cmd+Alt+R can turn the overlay back on.
+    var doc = _doc();
+    if (doc) {
+      _attachKeyboardToggle(doc);
+    }
+
+    // T24: file:// protocol → render blocking modal only; no overlay surfaces.
+    if (_isFileProtocol()) {
+      if (doc) _renderFileWarningModal();
+      return; // Do NOT proceed to mount the overlay.
+    }
+
+    // T24: review-mode gate — if 'off', skip mounting overlay surfaces.
+    if (_reviewMode === 'off') {
+      return; // Keyboard listener already attached above.
+    }
+
     if (state.mounted) return;
     state.mounted = true;
 
-    if (_doc()) {
+    if (doc) {
       _attachSelectionListener();
       if (_fsaFallbackMode) {
         // Rehydrate previous localStorage draft so reload doesn't lose threads.
@@ -509,6 +726,8 @@
         _ensurePanel();
         _renderSaveSidecarButton();
       }
+      // T24: render the overlay + orphan banner + diagram markers.
+      _mountOverlaySurfaces();
     }
     if (!_fsaFallbackMode) {
       _rehydrateHandle();
@@ -540,6 +759,10 @@
     _lsDraftLoad: _lsDraftLoad,
     _lsDraftClear: _lsDraftClear,
     triggerSidecarDownload: triggerSidecarDownload,
+    // T24 additions — overlay UX surfaces
+    unmount: unmount,
+    openReattachForm: openReattachForm,
+    captureSvgBboxAnchor: captureSvgBboxAnchor,
     // Expose state for test introspection.
     _state: state
   };

@@ -169,3 +169,119 @@
 
 /* Note: .pmos-panel-header display:flex is applied via the existing rule
  * above (T7). The [data-pmos-save-sidecar] margin-left:auto handles alignment. */
+
+/* T24 — Orphan banner (sticky-top warning inside the side panel). */
+[data-pmos-orphan-banner] {
+  position: sticky;
+  top: 0;
+  padding: 8px 12px;
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+[data-pmos-reattach-btn] {
+  padding: 2px 8px;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 3px;
+  color: #92400e;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+[data-pmos-reattach-btn]:hover {
+  background: #fde68a;
+}
+
+[data-pmos-reattach-anchor] {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #fde68a;
+  border-radius: 3px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #44403c;
+}
+
+/* T24 — Diagram markers (16px circle overlaid on SVG anchors). */
+[data-pmos-diagram-marker] {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #6366f1;
+  border-radius: 50%;
+  z-index: 5;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.3);
+  transition: background 120ms ease;
+}
+
+[data-pmos-diagram-marker]:hover {
+  background: #4f46e5;
+}
+
+/* T24 — file:// E1 blocking modal (full-viewport overlay). */
+[data-pmos-file-warning] {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-pmos-file-warning-modal] {
+  background: #fff;
+  border-radius: 8px;
+  padding: 28px 32px;
+  max-width: 460px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+[data-pmos-file-warning-modal] h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #18181b;
+}
+
+[data-pmos-file-warning-modal] p {
+  margin: 0;
+  font-size: 14px;
+  color: #52525b;
+  line-height: 1.5;
+}
+
+[data-pmos-copy-serve],
+[data-pmos-copy-launcher] {
+  padding: 8px 14px;
+  border-radius: 5px;
+  border: 1px solid #d4d4d8;
+  background: #f4f4f5;
+  color: #18181b;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+[data-pmos-copy-serve]:hover,
+[data-pmos-copy-launcher]:hover {
+  background: #e4e4e7;
+  border-color: #a1a1aa;
+}

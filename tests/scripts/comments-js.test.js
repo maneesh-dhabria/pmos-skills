@@ -193,6 +193,14 @@ class StubNode {
     this.value = '';
   }
   appendChild(c) { c.parentNode = this; this.children.push(c); return c; }
+  insertBefore(newNode, refNode) {
+    if (refNode == null) { return this.appendChild(newNode); }
+    const i = this.children.indexOf(refNode);
+    if (i < 0) { return this.appendChild(newNode); }
+    newNode.parentNode = this;
+    this.children.splice(i, 0, newNode);
+    return newNode;
+  }
   click() { (this._listeners['click'] || []).forEach(fn => fn({})); }
   removeChild(c) {
     const i = this.children.indexOf(c);
@@ -601,6 +609,397 @@ test('(T22-e) FSA fallback: invalid schema_version draft is NOT seeded into stat
   assert.strictEqual(ls.getItem(key), null, 'localStorage entry must be cleared after rejected draft');
 
   delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ============================================================
+// T24 — Overlay UX surfaces: orphan banner, diagram markers,
+//        review-mode gate, file:// E1 modal, FR-52 foreign-SVG bbox.
+// ============================================================
+
+// ---- extend StubNode: querySelector by #id, [attr=val], and bare tagname ----
+// Extend the class prototype so all StubNode instances (existing + new) support
+// the additional selectors required by T24 tests.
+{
+  const _origQS = StubNode.prototype.querySelector;
+  StubNode.prototype.querySelector = function (sel) {
+    // #id selector
+    const idMatch = sel.match(/^#([^.\[]+)$/);
+    if (idMatch) {
+      const id = idMatch[1];
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.attributes && c.attributes['id'] === id) return c;
+          const r = walk(c); if (r) return r;
+        }
+        return null;
+      };
+      return walk(this);
+    }
+    // [attr=val] selector
+    const attrValMatch = sel.match(/^\[([^\]=]+)=["']?([^"'\]]+)["']?\]$/);
+    if (attrValMatch) {
+      const [, attr, val] = attrValMatch;
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.attributes && c.attributes[attr] === val) return c;
+          const r = walk(c); if (r) return r;
+        }
+        return null;
+      };
+      return walk(this);
+    }
+    // bare tagname selector (e.g. "textarea", "input", "button")
+    if (/^[a-zA-Z][a-zA-Z0-9]*$/.test(sel)) {
+      const tag = sel.toUpperCase();
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.tagName && c.tagName.toUpperCase() === tag) return c;
+          const r = walk(c); if (r) return r;
+        }
+        return null;
+      };
+      return walk(this);
+    }
+    return _origQS.call(this, sel);
+  };
+
+  const _origQSA = StubNode.prototype.querySelectorAll;
+  StubNode.prototype.querySelectorAll = function (sel) {
+    // [attr=val] selector
+    const attrValMatch = sel.match(/^\[([^\]=]+)=["']?([^"'\]]+)["']?\]$/);
+    if (attrValMatch) {
+      const [, attr, val] = attrValMatch;
+      const out = [];
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.attributes && c.attributes[attr] === val) out.push(c);
+          walk(c);
+        }
+      };
+      walk(this);
+      return out;
+    }
+    return _origQSA.call(this, sel);
+  };
+}
+
+// ---- (T24-a) Orphan banner: 1 orphaned thread → banner with count ----
+test('(T24-a) orphan banner shows "1 orphaned thread" when one thread has orphan:true', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  const Cx = freshC();
+  const sidecar = {
+    schema_version: 1,
+    lineage: '11111111-1111-4111-8111-111111111111',
+    threads: [
+      {
+        id: 'orphan01',
+        orphan: true,
+        anchor: { id_anchor: null, quote_anchor: null },
+        status: 'open',
+        messages: [{ role: 'user', body: 'Lost comment body', author: 'alice', ts: '2026-01-01T00:00:00Z' }],
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z'
+      },
+      {
+        id: 'normal01',
+        orphan: false,
+        anchor: { id_anchor: 'sec-1', quote_anchor: null },
+        status: 'open',
+        messages: [{ role: 'user', body: 'Normal comment', author: 'bob', ts: '2026-01-01T00:00:00Z' }],
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z'
+      }
+    ]
+  };
+
+  Cx.mount({ artifactPath: '/foo.html', sidecar, _fsaFallbackMode: true });
+
+  // The orphan banner should be mounted in the side panel.
+  const banner = doc.querySelector('[data-pmos-orphan-banner]');
+  assert.ok(banner, 'orphan banner must be in DOM');
+  assert.ok(/1 orphaned thread/.test(banner.textContent), `banner text should contain "1 orphaned thread", got: ${banner.textContent}`);
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-a2) Orphan banner is positioned at index 1 (after panel header) ----
+test('(T24-a2) orphan banner is inserted at index 1 in panel children (after header)', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  const Cx = freshC();
+  const sidecar = {
+    schema_version: 1,
+    lineage: '22222222-2222-4222-8222-222222222222',
+    threads: [
+      {
+        id: 'orphan-pos01',
+        orphan: true,
+        anchor: { id_anchor: null, quote_anchor: null },
+        status: 'open',
+        messages: [{ role: 'user', body: 'Orphan for position test', author: 'alice', ts: '2026-01-01T00:00:00Z' }],
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z'
+      }
+    ]
+  };
+
+  Cx.mount({ artifactPath: '/foo.html', sidecar, _fsaFallbackMode: true });
+
+  // Find the side panel and verify header is at [0], banner at [1].
+  const panel = doc.querySelector('.pmos-side-panel');
+  assert.ok(panel, 'side panel must be in DOM');
+  const banner = doc.querySelector('[data-pmos-orphan-banner]');
+  assert.ok(banner, 'orphan banner must be in DOM');
+  const bannerIdx = panel.children.indexOf(banner);
+  assert.ok(bannerIdx >= 0, 'banner must be a direct child of the panel');
+  assert.strictEqual(bannerIdx, 1, `banner must be at index 1 (after header), found at index ${bannerIdx}`);
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-b) Reattach button prefills compose form ----
+test('(T24-b) reattach action prefills compose with orphan body + quote_anchor input', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  const Cx = freshC();
+  const sidecar = {
+    schema_version: 1,
+    lineage: '11111111-1111-4111-8111-111111111111',
+    threads: [
+      {
+        id: 'orphan02',
+        orphan: true,
+        anchor: { id_anchor: null, quote_anchor: null },
+        status: 'open',
+        messages: [{ role: 'user', body: 'Orphaned comment to reattach', author: 'alice', ts: '2026-01-01T00:00:00Z' }],
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z'
+      }
+    ]
+  };
+
+  Cx.mount({ artifactPath: '/foo.html', sidecar, _fsaFallbackMode: true });
+  // Simulate clicking reattach button for orphan02.
+  Cx.openReattachForm('orphan02');
+
+  // The compose form textarea should be pre-filled with the last user body.
+  // Use two-step query: find compose div first, then textarea inside it.
+  const composeDiv = doc.querySelector('.pmos-thread-compose');
+  assert.ok(composeDiv, 'compose div must be present');
+  const ta = composeDiv.querySelector('textarea');
+  assert.ok(ta, 'compose textarea must be present');
+  assert.ok(ta.value === 'Orphaned comment to reattach' || ta.textContent === 'Orphaned comment to reattach',
+    `textarea must be prefilled with orphan body, got value="${ta.value}" textContent="${ta.textContent}"`);
+
+  // A quote_anchor input must be rendered in the compose form.
+  const qaInput = doc.querySelector('[data-pmos-reattach-anchor]');
+  assert.ok(qaInput, 'quote_anchor reattach input must be in compose form');
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-c) Diagram marker positioned at data-anchor element centroid ----
+test('(T24-c) diagram marker positioned at data-anchor element centroid', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  // Stub SVG element tree: <svg id="diag-1"> <rect data-anchor="shape-a"> </svg>
+  const svgEl = new StubNode('svg');
+  svgEl.setAttribute('id', 'diag-1');
+  const rectEl = new StubNode('rect');
+  rectEl.setAttribute('data-anchor', 'shape-a');
+  // Mock getBBox to return a known bbox; mock getBoundingClientRect on both.
+  rectEl.getBBox = () => ({ x: 40, y: 30, width: 60, height: 40 });
+  rectEl.getBoundingClientRect = () => ({ left: 40, top: 30, width: 60, height: 40, right: 100, bottom: 70 });
+  svgEl.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 200, right: 300, bottom: 200 });
+  svgEl.appendChild(rectEl);
+  doc.body.appendChild(svgEl);
+
+  // Extend doc.querySelector to handle nested SVG by delegating to body.
+  const origQS = doc.querySelector.bind(doc);
+  doc.querySelector = (sel) => {
+    // data-anchor attribute selector with value
+    const m = sel.match(/^\[data-anchor=["']?([^"'\]]+)["']?\]$/);
+    if (m) {
+      if (rectEl.getAttribute('data-anchor') === m[1]) return rectEl;
+    }
+    return origQS(sel);
+  };
+
+  const Cx = freshC();
+  const sidecar = {
+    schema_version: 1,
+    lineage: '11111111-1111-4111-8111-111111111111',
+    threads: [
+      {
+        id: 'diag-thread-1',
+        diagram_anchor: { svg_id: 'diag-1', shape_id: 'shape-a' },
+        anchor: { id_anchor: null, quote_anchor: null },
+        status: 'open',
+        messages: [{ role: 'user', body: 'Diagram comment', author: 'alice', ts: '2026-01-01T00:00:00Z' }],
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z'
+      }
+    ]
+  };
+
+  Cx.mount({ artifactPath: '/foo.html', sidecar, _fsaFallbackMode: true });
+
+  // Find marker in DOM.
+  const marker = doc.querySelector('[data-pmos-diagram-marker]');
+  assert.ok(marker, 'diagram marker must be rendered in DOM');
+
+  // Centroid = rectEl bbox: x=40 w=60 → cx=70; y=30 h=40 → cy=50.
+  // SVG origin at page (0,0) → marker should be at left≈70px, top≈50px.
+  const leftVal = parseFloat(marker.style.left);
+  const topVal = parseFloat(marker.style.top);
+  assert.ok(Math.abs(leftVal - 70) <= 5, `marker.style.left should be ~70px, got ${leftVal}`);
+  assert.ok(Math.abs(topVal - 50) <= 5, `marker.style.top should be ~50px, got ${topVal}`);
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-c2 / FR-52) Foreign-SVG bbox capture ----
+test('(T24-c2 / FR-52) foreign-SVG bbox capture: click at (100,50) produces bbox [80,30,40,40], shape_id null', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  // Stub SVG with NO data-anchor descendants (foreign-embed scenario).
+  const svgEl = new StubNode('svg');
+  svgEl.setAttribute('id', 'foreign-svg-1');
+  // A <g> without data-anchor.
+  const gEl = new StubNode('g');
+  svgEl.appendChild(gEl);
+  // A <path> inside g (also no data-anchor).
+  const pathEl = new StubNode('path');
+  gEl.appendChild(pathEl);
+  doc.body.appendChild(svgEl);
+
+  const Cx = freshC();
+  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+
+  // Simulate a click on pathEl at point (100, 50).
+  // pathEl has no data-anchor, so the bbox-fallback should fire.
+  // The captured anchor should be:
+  //   { svg_id: 'foreign-svg-1', shape_id: null, bbox: [80, 30, 40, 40] }
+  const captured = Cx.captureSvgBboxAnchor(pathEl, svgEl, 100, 50);
+  assert.ok(captured, 'captureSvgBboxAnchor must return an object');
+  assert.strictEqual(captured.shape_id, null, 'shape_id must be null for foreign-SVG');
+  assert.strictEqual(captured.svg_id, 'foreign-svg-1', 'svg_id must be the SVG element id');
+  assert.deepStrictEqual(captured.bbox, [80, 30, 40, 40], `bbox must be [click.x-20, click.y-20, 40, 40] = [80,30,40,40], got ${JSON.stringify(captured.bbox)}`);
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-d) reviewMode='off' → no #pmos-comments-overlay after mount ----
+test('(T24-d) reviewMode=off → no #pmos-comments-overlay element after mount()', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  // Set reviewMode to 'off'.
+  ls.setItem('pmos:reviewMode', 'off');
+
+  const Cx = freshC();
+  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+
+  const overlay = doc.querySelector('#pmos-comments-overlay');
+  assert.strictEqual(overlay, null, '#pmos-comments-overlay must NOT be mounted when reviewMode=off');
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-e) Ctrl+Alt+R toggles reviewMode + mounts/unmounts overlay ----
+test('(T24-e) Ctrl+Alt+R toggle from off→on mounts #pmos-comments-overlay', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  const docListeners = {};
+  // Override doc.addEventListener to capture keyboard listener.
+  doc.addEventListener = (ev, fn) => { (docListeners[ev] = docListeners[ev] || []).push(fn); };
+  doc.removeEventListener = (ev, fn) => {
+    const a = docListeners[ev] || [];
+    const i = a.indexOf(fn); if (i >= 0) a.splice(i, 1);
+  };
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  // Start with reviewMode='off'.
+  ls.setItem('pmos:reviewMode', 'off');
+
+  const Cx = freshC();
+  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+
+  // Overlay must NOT be mounted yet.
+  assert.strictEqual(doc.querySelector('#pmos-comments-overlay'), null,
+    'overlay must not be mounted before toggle');
+
+  // Simulate Ctrl+Alt+R keydown.
+  const kbListeners = docListeners['keydown'] || [];
+  assert.ok(kbListeners.length > 0, 'mount() must attach a keydown listener');
+  kbListeners.forEach(fn => fn({ ctrlKey: true, altKey: true, key: 'r', metaKey: false, preventDefault: () => {} }));
+
+  // After toggle from 'off' to 'on', overlay should be mounted.
+  const overlay = doc.querySelector('#pmos-comments-overlay');
+  assert.ok(overlay, '#pmos-comments-overlay must be mounted after Ctrl+Alt+R toggle from off→on');
+
+  // LocalStorage flag should have been flipped to 'on'.
+  assert.strictEqual(ls.getItem('pmos:reviewMode'), 'on', 'pmos:reviewMode should be toggled to on');
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---- (T24-f) file:// protocol → blocking modal, no #pmos-comments-overlay ----
+test('(T24-f) file:// protocol → blocking modal [data-pmos-file-warning] present, no #pmos-comments-overlay', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null, location: { protocol: 'file:' } };
+  global.localStorage = ls;
+  global.location = { protocol: 'file:' };
+
+  const Cx = freshC();
+  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+
+  // Blocking modal must be present.
+  const modal = doc.querySelector('[data-pmos-file-warning]');
+  assert.ok(modal, '[data-pmos-file-warning] blocking modal must be mounted under file:// protocol');
+
+  // Copy serve button must be present.
+  const serveBtn = doc.querySelector('[data-pmos-copy-serve]');
+  assert.ok(serveBtn, '[data-pmos-copy-serve] button must be present in file:// modal');
+
+  // Copy launcher button must be present.
+  const launchBtn = doc.querySelector('[data-pmos-copy-launcher]');
+  assert.ok(launchBtn, '[data-pmos-copy-launcher] button must be present in file:// modal');
+
+  // Main overlay must NOT be mounted.
+  const overlay = doc.querySelector('#pmos-comments-overlay');
+  assert.strictEqual(overlay, null, '#pmos-comments-overlay must NOT be mounted under file:// protocol');
+
+  delete global.document; delete global.window; delete global.localStorage;
+  delete global.location;
 });
 
 Promise.all(_pending).then(() => {
