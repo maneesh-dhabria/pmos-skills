@@ -1,0 +1,68 @@
+[
+  {
+    "id": "summary-h",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "static-verification-h",
+    "level": 2,
+    "title": "Phase 2 — Static verification",
+    "parent_id": null
+  },
+  {
+    "id": "code-review-h",
+    "level": 2,
+    "title": "Phase 3 — Cross-task seam code review",
+    "parent_id": null
+  },
+  {
+    "id": "integration-h",
+    "level": 2,
+    "title": "Phase 4 — Deploy & integration",
+    "parent_id": null
+  },
+  {
+    "id": "requirements-compliance-h",
+    "level": 2,
+    "title": "Phase 5a — Requirements compliance",
+    "parent_id": null
+  },
+  {
+    "id": "spec-compliance-h",
+    "level": 2,
+    "title": "Phase 5b — Spec compliance (FRs + NFRs + edge cases)",
+    "parent_id": null
+  },
+  {
+    "id": "edge-cases",
+    "level": 3,
+    "title": "Edge cases",
+    "parent_id": "spec-compliance"
+  },
+  {
+    "id": "plan-compliance-h",
+    "level": 2,
+    "title": "Phase 5c — Plan compliance (29 tasks)",
+    "parent_id": null
+  },
+  {
+    "id": "open-items-h",
+    "level": 2,
+    "title": "Open items (Unverified — action required)",
+    "parent_id": null
+  },
+  {
+    "id": "fixes-applied-h",
+    "level": 2,
+    "title": "Fixes applied this verify pass",
+    "parent_id": null
+  },
+  {
+    "id": "next-h",
+    "level": 2,
+    "title": "Next",
+    "parent_id": null
+  }
+]

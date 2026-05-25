@@ -150,7 +150,7 @@ three shapes (success / failure / clarification) defined in the contract.
 
 ## Per-skill implementation expectations
 
-Each of the 14 originating skills (`/requirements`, `/spec`, `/plan`, `/wireframes`, `/prototype`, `/diagram`, `/artifact`, `/grill`, `/msf-req`, `/msf-wf`, `/design-crit`, `/simulate-spec`, `/architecture`, `/readme`) MUST:
+Each of the 14 surfaces (13 originating skills — `/requirements`, `/spec`, `/plan`, `/wireframes`, `/prototype`, `/diagram`, `/artifact`, `/ideate`, `/polish`, `/architecture`, `/readme`, `/survey-design`, `/survey-analyse` — plus the `/feature-sdlc` orchestrator) MUST:
 
 1. **Implement a phase named exactly** `Apply comment-resolver edit` in its `SKILL.md`. The phase name is the contract entry point — the resolver locates it by name.
 2. **Cite this file** by relative path from the skill's `SKILL.md` body (`plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`), satisfying [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h).

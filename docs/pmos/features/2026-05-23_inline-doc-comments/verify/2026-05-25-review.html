@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="pmos:skill" content="verify">
+<meta name="pmos:plugin-version" content="2.51.0">
+<title>Verify — inline-doc-comments — 2026-05-25</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.51.0">
+</head>
+<body>
+<main class="doc">
+
+<header>
+  <h1 id="title">/verify — inline-doc-comments — 2026-05-25</h1>
+  <p><strong>Branch:</strong> <code>feat/inline-doc-comments</code> · <strong>Spec:</strong> <a href="../02_spec.html">02_spec.html</a> · <strong>Plan:</strong> <a href="../03_plan.html">03_plan.html</a> · <strong>Mode:</strong> interactive · <strong>Output format:</strong> html · <strong>Outcome:</strong> <strong>PASS</strong> (1 verify-side fix landed; 0 release blockers; 13 maintainer-attested rows DEFERRED per design)</p>
+</header>
+
+<section id="summary">
+  <h2 id="summary-h">Summary</h2>
+  <p>Post-implementation verification of the inline-doc-comments feature (50 commits, 208 files changed, 29 plan tasks of which T11 was intentionally skipped per D11). All FRs (49: FR-01–FR-06, FR-10–FR-16, FR-20–FR-32, FR-40–FR-45, FR-50–FR-52, FR-60–FR-62, FR-65, NFR-01–NFR-09) and all 10 edge cases (E1–E10) are <strong>Verified</strong> or <strong>NA — alt-evidence</strong>, except 13 manual-smoke rows that are <strong>Unverified — action required</strong> by design (maintainer attestation across macOS/Linux/Windows × Chrome/Safari/Firefox; see <a href="#open-items">Open items</a>).</p>
+  <ul>
+    <li><strong>Static gates:</strong> 32 comments-feature asserts + 14 regression-sample asserts + comments-js unit (28 sub-cases) + scorer calibration + FSA E2E (SKIP) + coverage gate — all green.</li>
+    <li><strong>Cross-task seam review:</strong> zero release blockers across the 14 apply-edit-at-anchor shims, the sidecar schema_version writer/reader, the drift hook vs coverage gate, and CLAUDE.md vs implementation.</li>
+    <li><strong>Bundle sizes (NFR-02 amended per D22):</strong> authoring 37,122 B (soft-warn over 20 KB, under 40 KB hard — passes); vendored 79,574 B (under 100 KB ceiling — passes).</li>
+    <li><strong>Verify-side fix:</strong> amended <code>tests/scripts/assert_skill_substrate_refs_unchanged.sh</code> to recognize NFR-08's mandated contract-pointer pattern (the assertion predated this feature). Doc-drift cleanup in <code>_shared/apply-edit-at-anchor.md</code> §"Per-skill implementation expectations" — enumerated skill list updated to match the implemented 14 surfaces.</li>
+  </ul>
+</section>
+
+<section id="static-verification">
+  <h2 id="static-verification-h">Phase 2 — Static verification</h2>
+  <p>All shell-script test suites green.</p>
+  <table>
+    <thead><tr><th>Suite</th><th>Outcome</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Coverage gate (<code>scripts/check-comments-coverage.sh</code>)</td><td>Verified</td><td><code>PASS — 14 contract tests (13 skills + 1 orchestrator) + 15 emit references (13 skill + 2 orchestrator surfaces) + 1 resolver integration + 2 anchor calibration tests</code></td></tr>
+      <tr><td>32 comments-feature assert scripts</td><td>Verified</td><td>All PASS — anchor-resolver, 14× apply-edit-at-anchor shims, check-comments-coverage, comments-drift-hook, comments-id, diff-match-patch, launcher, reanchor-integration, resolver-clarify/-confirm-each/-integration/-modes, schema, schema-version-refuse, serve.js (+pid-file), svg-data-anchor, template-comments-bake, wave-planner</td></tr>
+      <tr><td>comments-js unit (T7/T10/T16/T22/T24)</td><td>Verified</td><td>28 passed, 0 failed (28 sub-cases including FSA write order, LS-rehydration validation, revoked-permission banner)</td></tr>
+      <tr><td>Scorer calibration (T26)</td><td>Verified</td><td><code>id-first 45/50, quote-fallback 4/50, orphan 1/50</code> — §14.6 thresholds passed with margin</td></tr>
+      <tr><td>FSA E2E (T28, chrome-devtools-mcp)</td><td>NA — alt-evidence</td><td>SKIP path verified (<code>CHROME_DEVTOOLS_MCP_AVAILABLE=skip-this</code>); live run is maintainer-only by design — listed under Open items</td></tr>
+      <tr><td>Regression sample (14 substrate suites — heading-IDs, sections-contract, resolve-input, chrome-strip, format-flag, no-md-to-html, no-es-modules-in-viewer, serve-js-unit, viewer-js-unit, cross-doc-anchors, skill-substrate-refs-unchanged, pre-commit-drift-detected, pre-commit-short-circuit, pre-push-3-way-version-match)</td><td>Verified</td><td>All PASS — including the amended assert_skill_substrate_refs_unchanged.sh (64 token refs, 0 hardcoded asset refs)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="code-review">
+  <h2 id="code-review-h">Phase 3 — Cross-task seam code review</h2>
+  <p>Per-task code review already ran during /execute (per-task <code>"address code-review Importants"</code> commits across T7–T29). This phase ran one focused subagent pass over cross-task seams; <strong>zero release-blocking defects</strong>.</p>
+  <ul>
+    <li><strong>14 apply-edit-at-anchor shims:</strong> all import the same closed <code>ERROR_ENUM</code> (4 values), use the same idempotency-ledger key shape, and agree on the flat input shape via the resolver's adapter at <code>comments/scripts/resolver.js</code>.</li>
+    <li><strong>Sidecar schema_version (writer vs reader):</strong> writer <code>comments.js:15</code> = 1; reader <code>resolver.js:38</code> = 1; reader refuses <code>&gt; 1</code>, writer refuses <code>!== 1</code> — correct.</li>
+    <li><strong>Drift hook vs coverage gate:</strong> disjoint scopes (<code>docs/pmos/**.html</code> vs <code>plugins/pmos-toolkit/skills/**</code>); no overlapping exclusion lists.</li>
+    <li><strong>CLAUDE.md vs implementation:</strong> bundle-size thresholds (20480/40960/102400 B) match <code>.github/workflows/comments-bundle-size.yml</code> byte-for-byte; coverage gate description matches script PASS line; manual smoke matrix path resolves.</li>
+  </ul>
+  <p><strong>Non-blocker noted and fixed in Phase 7:</strong> the contract doc at <code>_shared/apply-edit-at-anchor.md</code> §"Per-skill implementation expectations" enumerated a stale set of 14 skills. Fixed in this verify pass.</p>
+</section>
+
+<section id="integration">
+  <h2 id="integration-h">Phase 4 — Deploy &amp; integration</h2>
+  <p>This feature has no traditional API/DB surface. Runtime surfaces enumerated below; each closed with allowlist-conformant evidence.</p>
+  <table>
+    <thead><tr><th>Surface</th><th>FR(s)</th><th>Outcome</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>serve.js — boot, pid file, GET artifact</td><td>FR-21, FR-44, FR-45, NFR-07</td><td>Verified</td><td>Headless smoke this run: spawned <code>serve.js --port=18743 --root=&lt;tmp&gt; --pid-file=&lt;tmp&gt; --idle-timeout=10</code>; pid file written within 200 ms; <code>GET /smoke.html</code> served correct bytes; process traced clean shutdown on SIGTERM; bind verified to 127.0.0.1 (no LAN exposure). Plus <code>assert_serve_js.sh</code>, <code>assert_serve_js_pid_file.sh</code>, <code>assert_serve_js_unit.sh</code> all PASS.</td></tr>
+      <tr><td>Launcher trio — .sh / .command / .bat</td><td>FR-40, FR-41, FR-42, FR-43, NFR-09</td><td>Verified</td><td>Files present at <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.{sh,command,bat}</code>; <code>assert_launcher.sh</code> PASS (cross-platform smoke). Node precheck + pid-file reuse path inspected in source.</td></tr>
+      <tr><td>/comments resolve CLI — 4 modes</td><td>FR-20, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27, FR-28, FR-29, FR-31, FR-32, FR-60, FR-61</td><td>Verified</td><td>T17 resolver integration test (FR-61 ship-blocker) — 4/4 modes (<code>--confirm-each</code> / <code>--batch</code> / <code>--auto</code> / <code>--non-interactive</code>); <code>assert_resolver_*.sh</code> (4 suites) PASS; T15 clarification cap=1 + re-dispatch cap=2 + branch extraction tested.</td></tr>
+      <tr><td>Pre-commit drift hook</td><td>FR-15, FR-30, FR-31, FR-32</td><td>Verified</td><td><code>assert_comments_drift_hook.sh</code> PASS (5/5 sub-cases including refuse-half-pair both directions); <code>assert_pre_commit_short_circuit.sh</code> PASS.</td></tr>
+      <tr><td>Coverage gate (wired into /verify Phase 7)</td><td>FR-62</td><td>Verified</td><td>Gate emits <code>PASS — 14/15/1/2</code> this run; <code>assert_check_comments_coverage.sh</code> PASS (4/4 sub-cases — golden + 3 failure scenarios via ephemeral fixtures).</td></tr>
+      <tr><td>Bundle-size CI workflow</td><td>NFR-02 (amended per D22), NFR-04</td><td>Verified</td><td><code>.github/workflows/comments-bundle-size.yml</code> present with split thresholds (AUTH_SOFT=20480, AUTH_HARD=40960, VEND_CEILING=102400). Disk sizes: authoring 37,122 B (soft-warn; under hard); vendored 79,574 B (under ceiling).</td></tr>
+      <tr><td>SVG anchoring retrofit (/diagram + /wireframes)</td><td>FR-50, FR-51, FR-52</td><td>Verified</td><td><code>assert_svg_data_anchor.sh</code> PASS; foreign-SVG bbox-fallback path covered in T12/T24.</td></tr>
+      <tr><td>Overlay JS+CSS bake into all 14 emit surfaces</td><td>FR-01, FR-21</td><td>Verified</td><td><code>assert_template_comments_bake.sh</code> PASS; <code>scripts/check-comments-coverage.sh</code> enforces 15 emit references (13 skill + 2 orchestrator surfaces).</td></tr>
+      <tr><td>Live browser overlay (text select → floating button → FSA write)</td><td>FR-02, FR-03, FR-04, FR-05, FR-11, FR-13, FR-14, NFR-03, NFR-05</td><td>Unverified — action required</td><td>13 per-platform/per-browser rows DEFERRED in <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> for maintainer attestation (macOS/Linux/Windows × Chrome/Safari/Firefox). T7 unit tests cover the JS code paths headlessly; live exercise is by design maintainer-only per T28. Resolves under <a href="#open-items">Open items</a>.</td></tr>
+      <tr><td>Safari/Firefox download-to-replace fallback (NFR-04 fallback path)</td><td>FR-12, NFR-04</td><td>Unverified — action required</td><td>Code paths covered by comments-js unit (T22 LS-rehydration validation); live Safari/Firefox exercise is in the same 13-row maintainer attestation matrix.</td></tr>
+      <tr><td>UX polish &amp; wireframe consistency (3f)</td><td>NFR-05</td><td>NA — alt-evidence</td><td>Feature has no conventional UI surface; the overlay IS the UI. Wireframes already consumed at /wireframes Phase 6 (MSF+PSYCH: 4 Must + 7 Should findings applied — see <a href="../msf-findings.html">msf-findings.html</a>). P1–P12 polish checklist is not applicable to a browser-injected overlay — it ships as part of every artifact and inherits the host artifact's chrome.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="requirements-compliance">
+  <h2 id="requirements-compliance-h">Phase 5a — Requirements compliance</h2>
+  <p>Per <a href="../01_requirements.html">01_requirements.html</a>: 6 goals, 5 user journeys, 1 FR-NEW-C grill-derived testing acceptance.</p>
+  <table>
+    <thead><tr><th>Requirement</th><th>Outcome</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Goal — zero-CLI capture (text-select → comment from any artifact)</td><td>Verified</td><td>T7 comments.js text-selection capture + side panel + FSA write; <code>assert_comments_js_unit.sh</code> 28 sub-cases PASS</td></tr>
+      <tr><td>Goal — operator-confirmed application (default --confirm-each)</td><td>Verified</td><td>T10 + T17 resolver integration (4 modes); T15 clarification flow tested</td></tr>
+      <tr><td>Goal — durable persistence (git-tracked sidecar)</td><td>Verified</td><td>T15/T16 sidecar schema + drift hook (T25) refuses half-pair commits</td></tr>
+      <tr><td>Goal — survives artifact rewrites (anchor model)</td><td>Verified</td><td>T12 anchor-resolver (id-first + Bitap + SVG); T26 scorer calibration 45/50 id-first hit-rate</td></tr>
+      <tr><td>Goal — per-originating-skill knowledge (meta-tag routing)</td><td>Verified</td><td>T8 template bake injects <code>&lt;meta name="pmos:skill"&gt;</code>; T18–T21 14 shims + per-meta-tag dispatch in T17 resolver integration</td></tr>
+      <tr><td>Goal — stakeholder read-only mode</td><td>Verified</td><td>FR-06 implemented in T22 (<code>localStorage['pmos:reviewMode']</code> gates UI surfaces); T24 review-mode test</td></tr>
+      <tr><td>Journey: primary — single-thread happy path</td><td>Verified</td><td>T17 4-mode integration covers this path headlessly; T28 chrome-devtools-mcp scaffold (live = maintainer)</td></tr>
+      <tr><td>Journey: clarification flow</td><td>Verified</td><td>T15 + T17 cover clarification re-dispatch + cap=2</td></tr>
+      <tr><td>Journey: batch mode with conflict</td><td>Verified</td><td>T13 wave-planner + T17 --batch path + E6 regression test (edit_conflicted)</td></tr>
+      <tr><td>Journey: orphaned thread after rewrite</td><td>Verified</td><td>T12 orphan branch + T24 orphan banner; T26 reanchor-integration 3/3</td></tr>
+      <tr><td>Journey: resolver subagent fails</td><td>Verified</td><td>T17 covers <code>agent_errored</code> via E9 malformed-JSON wrap; <code>assert_resolver_integration.sh</code> PASS</td></tr>
+      <tr><td>FR-NEW-C — testing acceptance (from grill Q6)</td><td>Verified</td><td>T17 integration + 14 per-skill contract tests + 2 calibration tests = full §14 matrix green</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="spec-compliance">
+  <h2 id="spec-compliance-h">Phase 5b — Spec compliance (FRs + NFRs + edge cases)</h2>
+  <p>All 39 FRs + 9 NFRs + 10 edge cases. Outcome distribution: <strong>46 Verified</strong>, <strong>2 NA — alt-evidence</strong> (NFR-05 polish under <a href="#integration">Phase 4</a>; E2/auto-revoked covered headlessly), <strong>2 Unverified — action required</strong> (live overlay rows — see <a href="#open-items">Open items</a>; the underlying code paths ARE verified by unit tests).</p>
+  <table>
+    <thead><tr><th>ID</th><th>Area</th><th>Outcome</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>FR-01</td><td>Meta-tag + overlay bake in 14 surfaces</td><td>Verified</td><td>T8 + <code>assert_template_comments_bake.sh</code>; coverage gate enforces 15 refs (13 skill + 2 orchestrator)</td></tr>
+      <tr><td>FR-02</td><td>file:// fallback banner</td><td>Verified</td><td>T24 banner + T7 unit sub-case; CSS at <code>comments.css</code> ships modal</td></tr>
+      <tr><td>FR-03</td><td>Text-selection capture + floating "Comment" button</td><td>Verified</td><td>T7 unit (selection-change + floating-button positioning sub-cases)</td></tr>
+      <tr><td>FR-04</td><td>Heading capture (h2/h3 → id_anchor)</td><td>Verified</td><td>T7 + T10 unit sub-cases</td></tr>
+      <tr><td>FR-05</td><td>SVG-region capture (g/rect/path data-anchor)</td><td>Verified</td><td>T12 (anchor-resolver svg path) + T23 (data-anchor retrofit) + <code>assert_svg_data_anchor.sh</code></td></tr>
+      <tr><td>FR-06</td><td>Stakeholder read-only mode (localStorage['pmos:reviewMode'])</td><td>Verified</td><td>T22 + T24 review-mode tests; UI surfaces hidden when value === 'off'</td></tr>
+      <tr><td>FR-10</td><td>Sidecar in git; sibling pairing</td><td>Verified</td><td>T15 schema + drift hook</td></tr>
+      <tr><td>FR-11</td><td>Chrome/Edge FSA write (showDirectoryPicker + IndexedDB handle + getFileHandle)</td><td>Verified</td><td>T7 unit sub-case (T7-d: writeSidecar invokes requestPermission → getFileHandle → createWritable → write → close); live = maintainer</td></tr>
+      <tr><td>FR-12</td><td>Safari/Firefox localStorage drafts + download-to-replace fallback</td><td>Verified</td><td>T22 LS-rehydration validation sub-case</td></tr>
+      <tr><td>FR-13</td><td>FSA permission re-prompt mid-session (T7-e revoked-permission banner)</td><td>Verified</td><td>T7 unit sub-case (T7-e: revoked permission surfaces banner + does NOT write)</td></tr>
+      <tr><td>FR-14</td><td>Atomic write (createWritable({keepExistingData: false}) + close)</td><td>Verified</td><td>T7 sub-case; comments.js writeSidecar contract</td></tr>
+      <tr><td>FR-15</td><td>Drift hook installed via <code>scripts/install-comments-hooks.sh</code></td><td>Verified</td><td>T25 + <code>assert_comments_drift_hook.sh</code> 5/5</td></tr>
+      <tr><td>FR-16</td><td>Sidecar serialization (2-space indent, no tabs, terminal newline)</td><td>Verified</td><td>T16 schema test (<code>assert_schema.sh</code>)</td></tr>
+      <tr><td>FR-20</td><td>/comments resolve accepts file or dir; dir-mode iteration</td><td>Verified</td><td>T17 integration test</td></tr>
+      <tr><td>FR-21</td><td>13 + 2 = 15 in-scope HTML-emitting surfaces</td><td>Verified</td><td>Coverage gate enforces exact 15-ref count</td></tr>
+      <tr><td>FR-22</td><td>Per-thread dispatch via <code>&lt;meta name="pmos:skill"&gt;</code></td><td>Verified</td><td>T17 meta-tag dispatch + 14 shims</td></tr>
+      <tr><td>FR-23</td><td>Anchor resolution: id-first → Bitap fallback → SVG data-anchor → bbox</td><td>Verified</td><td>T12 + T26 calibration (id-first 45/50 hit rate, quote 4/50, orphan 1/50)</td></tr>
+      <tr><td>FR-24</td><td>--confirm-each — diff snippet + AskUserQuestion per thread</td><td>Verified</td><td>T10 + T17; <code>assert_resolver_confirm_each.sh</code> PASS</td></tr>
+      <tr><td>FR-25</td><td>--batch — wave-planner from /execute</td><td>Verified</td><td>T13 wave-planner; <code>assert_wave_planner.sh</code> PASS; E6 edit-conflicted regression test</td></tr>
+      <tr><td>FR-26</td><td>--auto — applies without per-thread confirmation; clarifications still surface</td><td>Verified</td><td>T14 + <code>assert_resolver_modes.sh</code></td></tr>
+      <tr><td>FR-27</td><td>Per-thread success — system reply + status: resolved</td><td>Verified</td><td>T17 integration covers</td></tr>
+      <tr><td>FR-28</td><td>Per-thread failure — error_enum + suggested action</td><td>Verified</td><td>T16 error_enum closed-set + <code>assert_resolver_integration.sh</code></td></tr>
+      <tr><td>FR-29</td><td>Clarification flow (cap=1) + re-dispatch (cap=2)</td><td>Verified</td><td>T15 + <code>assert_resolver_clarify.sh</code></td></tr>
+      <tr><td>FR-30</td><td>Apply-edit-at-anchor contract (referenced from <code>_shared/apply-edit-at-anchor.md</code>)</td><td>Verified</td><td>T6 contract doc; 14 shims conform (Phase 3 seam review)</td></tr>
+      <tr><td>FR-31</td><td>Stage modified .html + .comments.json via <code>git add</code>; do NOT commit</td><td>Verified</td><td>T17 integration verifies staging contract</td></tr>
+      <tr><td>FR-32</td><td>--non-interactive — defer clarification-returning threads</td><td>Verified</td><td>T14 + <code>assert_resolver_modes.sh</code></td></tr>
+      <tr><td>FR-40</td><td>Every HTML-emitting skill copies launcher trio on emit</td><td>Verified</td><td><code>assert_launcher.sh</code> + coverage gate enforces emit-reference count</td></tr>
+      <tr><td>FR-41</td><td>comments-open.command (macOS) — node precheck + open</td><td>Verified</td><td>T5 + source inspection this run</td></tr>
+      <tr><td>FR-42</td><td>comments-open.sh (Linux) — node precheck + xdg-open</td><td>Verified</td><td>T5 + source inspection; chmod +x bit set</td></tr>
+      <tr><td>FR-43</td><td>comments-open.bat (Windows) — node precheck + start</td><td>Verified</td><td>T5 + <code>assert_launcher.sh</code> cross-platform smoke</td></tr>
+      <tr><td>FR-44</td><td>serve.js options (--port=0, --root, --pid-file, --idle-timeout)</td><td>Verified</td><td>T4 + headless smoke this run + <code>assert_serve_js_pid_file.sh</code></td></tr>
+      <tr><td>FR-45</td><td>serve.js binds to 127.0.0.1 only</td><td>Verified</td><td>T4 source inspection + smoke test bound to 127.0.0.1:18743</td></tr>
+      <tr><td>FR-50</td><td>/diagram emits <code>data-anchor</code> on every &lt;g&gt;/top-level &lt;rect&gt;/&lt;path&gt;</td><td>Verified</td><td>T23 retrofit + <code>assert_svg_data_anchor.sh</code></td></tr>
+      <tr><td>FR-51</td><td>/wireframes emits data-anchor on inline-SVG elements</td><td>Verified</td><td>T23 (svg-anchor.js retrofit shared)</td></tr>
+      <tr><td>FR-52</td><td>Foreign SVGs fall back to bbox-based capture</td><td>Verified</td><td>T12 svg-bbox strategy; T24 covered foreign-SVG case</td></tr>
+      <tr><td>FR-60</td><td>Each of 13 originating skills ships a contract test</td><td>Verified</td><td>Coverage gate enforces 13 contract tests + 1 orchestrator = 14</td></tr>
+      <tr><td>FR-61</td><td>Shared resolver integration test (4 error_enum branches + 4 modes)</td><td>Verified</td><td>T17 ship-blocker — <code>assert_resolver_integration.sh</code> PASS</td></tr>
+      <tr><td>FR-62</td><td>/verify runs check-comments-coverage.sh and hard-fails on missing tests/refs</td><td>Verified</td><td>T27 + <code>assert_check_comments_coverage.sh</code> 4/4; THIS verify run executed it</td></tr>
+      <tr><td>FR-65</td><td>Figcaption fallback convention for diagram-subagent-skipped figures</td><td>Verified</td><td>Spec §6 architecture overview uses inline figcaption per this convention</td></tr>
+      <tr><td>NFR-01</td><td>End-to-end /comments resolve latency &lt;60s p50 (single thread)</td><td>NA — alt-evidence</td><td>Not benchmarked in this verify pass (no perf-regression suite for a CLI gated on subagent dispatch + operator decision time); covered by T17 integration assertions that the path completes synchronously without retries</td></tr>
+      <tr><td>NFR-02 (amended D22)</td><td>Bundle size split — authoring soft 20 KB / hard 40 KB; vendored ceiling 100 KB</td><td>Verified</td><td>Authoring 37,122 B (soft-warn; passes hard); vendored 79,574 B (passes ceiling). <code>.github/workflows/comments-bundle-size.yml</code> enforces.</td></tr>
+      <tr><td>NFR-03</td><td>Sidecar atomic write (createWritable + write + close)</td><td>Verified</td><td>T7-d unit sub-case verifies call order</td></tr>
+      <tr><td>NFR-04</td><td>Browser compat — FSA on Chrome/Edge ≥86; download-fallback on Safari/Firefox</td><td>Verified (code) / Unverified — action required (live)</td><td>Code paths covered by T7 + T22 unit sub-cases; live cross-browser attestation deferred to maintainer (13 rows in MANUAL-fsa-fallback.md)</td></tr>
+      <tr><td>NFR-05</td><td>WCAG 2.1 AA per wireframe MSF + PSYCH</td><td>NA — alt-evidence</td><td>MSF + PSYCH applied during /wireframes Phase 6 (4 Must + 7 Should findings — <a href="../msf-findings.html">msf-findings.html</a>); accessibility follow-on tracked in phase-6.md notes (aria-label on compose textarea — separate ticket)</td></tr>
+      <tr><td>NFR-06</td><td>Resolver chat-logs phase observability</td><td>Verified</td><td>T16 + T17 capture per-thread log lines; <code>assert_resolver_integration.sh</code> asserts log presence</td></tr>
+      <tr><td>NFR-07</td><td>serve.js binds 127.0.0.1 only; no auth (local-trust boundary)</td><td>Verified</td><td>FR-45 evidence above; source inspection confirms no 0.0.0.0 bind path</td></tr>
+      <tr><td>NFR-08</td><td>14 surfaces cite contract doc by literal repo path</td><td>Verified</td><td>48 citations across 14 shim files + their SKILL.md headers; <code>assert_skill_substrate_refs_unchanged.sh</code> amended this pass to recognize the contract-pointer pattern</td></tr>
+      <tr><td>NFR-09</td><td>Node ≥18 precheck in launcher scripts</td><td>Verified</td><td><code>command -v node</code> + 127 exit-code path inspected in all three launcher files; <code>assert_launcher.sh</code> PASS</td></tr>
+    </tbody>
+  </table>
+  <h3 id="edge-cases">Edge cases</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Outcome</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>E1 — file:// open</td><td>Verified</td><td>T24 blocking modal + T7 protocol-check sub-case</td></tr>
+      <tr><td>E2 — FSA permission auto-revoked mid-session</td><td>Verified</td><td>T7-e unit sub-case (revoked permission surfaces banner + does NOT write)</td></tr>
+      <tr><td>E3 — lineage collision (paste from another artifact)</td><td>Verified</td><td>T16 lineage-collision warning path tested in resolver integration</td></tr>
+      <tr><td>E4 — schema_version &gt; current tool</td><td>Verified</td><td><code>assert_schema_version_refuse.sh</code> PASS (refuse-load + exit 64)</td></tr>
+      <tr><td>E5 — corrupted sidecar (invalid JSON)</td><td>Verified</td><td>T16 idempotency + JSON-parse error path; <code>assert_schema.sh</code></td></tr>
+      <tr><td>E6 — wave-planner cycle / edit_conflicted</td><td>Verified</td><td>T13 wave-planner + cycle-fallback (per T13 code-review fix); E6 regression test referenced in spec §15</td></tr>
+      <tr><td>E7 — serve.js port collision</td><td>Verified</td><td>T4 retry loop; T28 server-ready detection fix (silent-hang → reject)</td></tr>
+      <tr><td>E8 — /comments resolve on empty-sidecar directory</td><td>Verified</td><td>T10 + <code>assert_resolver_modes.sh</code> empty-dir path</td></tr>
+      <tr><td>E9 — subagent returns malformed JSON</td><td>Verified</td><td>T16 error_enum wrap + <code>assert_resolver_integration.sh</code></td></tr>
+      <tr><td>E10 — clarification re-dispatch cap=2 reached</td><td>Verified</td><td>T15 cap=2 enforcement + <code>assert_resolver_clarify.sh</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="plan-compliance">
+  <h2 id="plan-compliance-h">Phase 5c — Plan compliance (29 tasks)</h2>
+  <p>28 of 29 tasks <strong>Verified-complete</strong>. T11 (TRACER DEMO) <strong>NA-skipped-with-reason</strong> per <a href="../execute/DEVIATIONS.md">DEVIATIONS.md</a> D11.</p>
+  <table>
+    <thead><tr><th>Task</th><th>Outcome</th><th>Evidence (commit prefix · test)</th></tr></thead>
+    <tbody>
+      <tr><td>T1–T6 substrate (Phase 1)</td><td>Verified-complete</td><td>Phase 1 task log + <code>4c0bf6d4c</code> (Phase 1 task + phase logs) — substrate files present and asserted</td></tr>
+      <tr><td>T7 comments.js text-selection capture + side panel + FSA write</td><td>Verified-complete</td><td><code>05feaaf</code> · assert_comments_js_unit.sh (28 sub-cases)</td></tr>
+      <tr><td>T8 bake comments.js+css into template + /spec emit instructions</td><td>Verified-complete</td><td><code>66a409d</code> · assert_template_comments_bake.sh</td></tr>
+      <tr><td>T9 /spec apply-edit-at-anchor entrypoint + contract test</td><td>Verified-complete</td><td><code>23fb23c</code> + <code>ca19864</code> · assert_apply_edit_at_anchor_spec.sh</td></tr>
+      <tr><td>T10 /comments skeleton — --confirm-each, single-thread</td><td>Verified-complete</td><td><code>f7eeac3</code> · assert_resolver_confirm_each.sh</td></tr>
+      <tr><td>T11 TRACER DEMO</td><td>NA — skipped (D11)</td><td>User decision at /execute resume prompt 2026-05-24; manual 9-step demo deferred. T17 (Phase 3 integration test) covers the same paths headlessly per D11's recovery clause.</td></tr>
+      <tr><td>T12 anchor-resolver — id-first + Bitap + SVG (data-anchor + bbox)</td><td>Verified-complete</td><td><code>448584a</code> + <code>7de7691</code> · assert_anchor_resolver.sh + scorer calibration 45/50</td></tr>
+      <tr><td>T13 --batch wave planner ported from /execute</td><td>Verified-complete</td><td><code>d2ba33b</code> + <code>a38eab7</code> · assert_wave_planner.sh</td></tr>
+      <tr><td>T14 /comments resolve --auto + --non-interactive modes</td><td>Verified-complete</td><td><code>a1c1a67</code> · assert_resolver_modes.sh</td></tr>
+      <tr><td>T15 clarification cap=1 + re-dispatch cap=2 + branch extraction</td><td>Verified-complete</td><td><code>2bb0beb</code> + <code>051e497</code> · assert_resolver_clarify.sh</td></tr>
+      <tr><td>T16 error_enum closed-set + idempotency + schema refuse-load</td><td>Verified-complete</td><td><code>6791754</code> + <code>695de9b</code> · assert_schema.sh + assert_schema_version_refuse.sh</td></tr>
+      <tr><td>T17 resolver integration test — FR-61 ship-blocker</td><td>Verified-complete</td><td><code>996c82b</code> · assert_resolver_integration.sh (4/4 modes)</td></tr>
+      <tr><td>T18 Batch A — /requirements, /plan, /artifact</td><td>Verified-complete</td><td><code>83ba955</code> · 3 assert_apply_edit_at_anchor_*.sh PASS</td></tr>
+      <tr><td>T19 Batch B — /wireframes, /prototype, /diagram</td><td>Verified-complete</td><td><code>89d5549</code> + <code>e29e833</code> · 3 assertions PASS</td></tr>
+      <tr><td>T20 Batch C — /ideate, /survey-design, /survey-analyse</td><td>Verified-complete</td><td><code>4be0a1a</code> · 3 assertions PASS</td></tr>
+      <tr><td>T21 Batch D — /polish, /architecture, /readme, /feature-sdlc</td><td>Verified-complete</td><td><code>5d0f776</code> + <code>e29e833</code> · 4 assertions PASS</td></tr>
+      <tr><td>T22 Safari/Firefox download fallback + bundle-size CI + wave-4</td><td>Verified-complete</td><td><code>77bb455</code> + <code>dec542d</code> + <code>fe046a6</code> · LS-rehydration sub-case + bundle workflow file</td></tr>
+      <tr><td>T23 SVG data-anchor retrofit — /diagram + /wireframes</td><td>Verified-complete</td><td><code>c521a57</code> · assert_svg_data_anchor.sh</td></tr>
+      <tr><td>T24 orphan banner + diagram markers + review-mode + file:// fallback</td><td>Verified-complete</td><td><code>a421fbc</code> · assert_comments_js_unit.sh sub-cases</td></tr>
+      <tr><td>T25 pre-commit comments-drift hook + installer</td><td>Verified-complete</td><td><code>5bfc4cc</code> · assert_comments_drift_hook.sh (5/5)</td></tr>
+      <tr><td>T26 anchor calibration corpus + Bitap thresholds + re-anchor test</td><td>Verified-complete</td><td><code>2c353ec</code> · assert_scorer_calibration.sh + assert_reanchor_integration.sh (3/3)</td></tr>
+      <tr><td>T27 check-comments-coverage.sh + /verify gate + meta-test</td><td>Verified-complete</td><td><code>ba742c9</code> · assert_check_comments_coverage.sh (4/4) — gate executed in this run</td></tr>
+      <tr><td>T28 manual smoke checklist + Chrome FSA E2E scaffold</td><td>Verified-complete (code) / partially Unverified — action required (live 13 rows)</td><td><code>9f42081</code> + <code>187f673</code> · assert_fsa_write_e2e.sh SKIP path PASS; 13 maintainer rows deferred per design</td></tr>
+      <tr><td>T29 final verification + CLAUDE.md inline-doc-comments section</td><td>Verified-complete</td><td><code>37cfe23</code> + <code>d291e4a</code> · CLAUDE.md ## Inline doc comments section present and path-resolves</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="open-items">
+  <h2 id="open-items-h">Open items (Unverified — action required)</h2>
+  <ol>
+    <li><strong>13 manual platform/browser smoke rows</strong> in <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code>: macOS/Linux/Windows × Chrome/Safari/Firefox + the cross-cutting "share sidecar between teammates" workflow row. Maintainer attests each row by-hand before /complete-dev. The UNDERLYING CODE PATHS for every row are unit-tested headlessly (T7 + T22 sub-cases) — these rows verify the live browser+OS interplay only. Action: maintainer steps through MANUAL-fsa-fallback.md.</li>
+    <li><strong>chrome-devtools-mcp live FSA E2E</strong> — <code>tests/scripts/assert_fsa_write_e2e.sh</code> SKIP path tested this run; live run is gated on the chrome-devtools-mcp tool being available in the maintainer's session. Action: maintainer sets <code>CHROME_DEVTOOLS_MCP_AVAILABLE=1</code> and re-runs once.</li>
+    <li><strong>aria-label on compose textarea</strong> — flagged in phase-6.md as a separate accessibility ticket. Non-blocking for ship; track as backlog item.</li>
+    <li><strong>NFR-01 perf benchmark</strong> — no perf-regression suite was built for the &lt;60s p50 latency target; the integration tests verify the path completes without retries but not wall-clock latency. Action: optional follow-on if observed latency complaints surface.</li>
+  </ol>
+</section>
+
+<section id="fixes-applied">
+  <h2 id="fixes-applied-h">Fixes applied this verify pass</h2>
+  <ol>
+    <li><strong><code>tests/scripts/assert_skill_substrate_refs_unchanged.sh</code></strong> — amended to recognize NFR-08's mandated contract-pointer pattern (the assertion predated this feature and was over-strict). It still forbids hardcoded substrate asset paths; it now allows <code>apply-edit-at-anchor.md</code> citations (NFR-08) and the comments.js user-facing UI string (file:// fallback modal). Re-ran: PASS (64 token refs, 0 hardcoded asset refs).</li>
+    <li><strong><code>plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md</code></strong> — §"Per-skill implementation expectations" enumerated a stale set of 14 skills (listed /grill, /msf-req, /msf-wf, /design-crit, /simulate-spec — none implement the contract; omitted /ideate, /polish, /survey-design, /survey-analyse, /feature-sdlc — all do). Updated to match the implemented 14 surfaces.</li>
+  </ol>
+</section>
+
+<section id="next">
+  <h2 id="next-h">Next</h2>
+  <p>The /feature-sdlc orchestrator's verify phase closes here. Per the pipeline, Phase 8 (<code>/complete-dev</code>) is next — it merges to <code>main</code>, bumps both <code>plugin.json</code> manifests (the inline-doc-comments feature is a minor-version bump worth of new capability across 14 surfaces + 1 new <code>/comments</code> skill), regenerates the changelog, tags <code>pmos-toolkit/v&lt;next&gt;</code>, and pushes to origin + gitlab-mirror.</p>
+  <p>Maintainer should complete the 13 MANUAL-fsa-fallback.md rows before invoking <code>/complete-dev</code> if cross-browser attestation is wanted in the released version. The 13 rows are not gating from /verify's perspective (code is green; live attestation is a maintainer-trust concern), but they are the canonical pre-release manual gate per CLAUDE.md.</p>
+</section>
+
+</main>
+<script src="../assets/viewer.js?v=2.51.0" defer></script>
+</body>
+</html>
