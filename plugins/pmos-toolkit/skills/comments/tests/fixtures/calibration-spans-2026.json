@@ -1,0 +1,356 @@
+{
+  "seed": 2026,
+  "generated_at": "2026-05-25T06:32:00.521681+00:00",
+  "spans": [
+    {
+      "file": "docs/pmos/features/2026-05-13_ideation/01_requirements.html",
+      "section_id": "design-decisions",
+      "quote": " the polish cost. 2-phase folds Frame into Generate, losing the HMW discipline t",
+      "prefix": "ost ideas don't earn",
+      "suffix": "hat prevents bad fra"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-15_readme-audit-fixes/03_plan.html",
+      "section_id": "code-study-notes",
+      "quote": "ine count stays within the existing footprint plus +15–25 lines.\" T3+T5+T6's com",
+      "prefix": "act says \"SKILL.md l",
+      "suffix": "bined edits must sta"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_readme-skill/03_plan.html",
+      "section_id": "decision-log",
+      "quote": "k's Steps section now ends with a pre-flight grep asserting prior subsections st",
+      "prefix": "s bounded). Each tas",
+      "suffix": "ill exist before app"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_artifact-html-output/01_requirements.html",
+      "section_id": "user-journeys",
+      "quote": "e; assets copied (idempotent); heading-id assertion passes; atomic rename. Index",
+      "prefix": "om the in-memory tre",
+      "suffix": " regen pulls in <cod"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/02_spec.html",
+      "section_id": "goals",
+      "quote": "c→plan→execute→6a→verify→complete-dev cycle across all approved skills (D3-revis",
+      "prefix": "ned requirements→spe",
+      "suffix": "ed / G10)\n"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_survey-analyse/01_requirements.html",
+      "section_id": "design-decisions",
+      "quote": "ss is the source of credibility; final code-to-response assignments are JSON, so",
+      "prefix": "e. The 6-phase proce",
+      "suffix": " counts and quote se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html",
+      "section_id": "problem",
+      "quote": "t — costing 200–800 tokens of restated location context per revision round, and ",
+      "prefix": "nly in free-form cha",
+      "suffix": "offering no cross-se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/01_requirements.html",
+      "section_id": "user-journeys",
+      "quote": " to semantic check only&rdquo;). Run continues; semantic-check verdict is marked",
+      "prefix": " check; falling back",
+      "suffix": " &ldquo;degraded&rdq"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_update-skills-survey-design-fixes/verify/2026-05-11-review.html",
+      "section_id": "spec-compliance",
+      "quote": " contract, §10 schema v2, §11 rendered-artifact changes, §12 edge cases (E1..E12",
+      "prefix": "FR-01..05, §9 return",
+      "suffix": "), §14 testing. Rows"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_artifact-html-output/grills/2026-05-13_01_requirements.html",
+      "section_id": "gaps-surfaced",
+      "quote": "tically\" precedent applies to future additions, but the named-list update is one",
+      "prefix": " \"rides along automa",
+      "suffix": "-time).\n  <"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html",
+      "section_id": "research-sources",
+      "quote": " is flipped. Marketplace.json version field is the canonical update signal — not",
+      "prefix": "was unachievable and",
+      "suffix": " tags. CLAUDE.md cut"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/grills/2026-05-22_01_requirements.html",
+      "section_id": "resolved",
+      "quote": "sh from v2.50.0. Umbrella's initial ref = v2.50.0. → req doc D13 + Non-Goals.",
+      "prefix": "mos-toolkit; tag fre",
+      "suffix": "\nL"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_artifact-html-output/02_spec.html",
+      "section_id": "overview",
+      "quote": "ote-validation; the refine/update flows mirror the primary format; ",
+      "prefix": "tripped HTML with qu",
+      "suffix": "sections.json<"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html",
+      "section_id": "non-goals",
+      "quote": "fox support for in-place writes, render-comments-into-MD path, thread labels/sev",
+      "prefix": "official Safari/Fire",
+      "suffix": "erity metadata, mult"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/00_pipeline.html",
+      "section_id": "overview",
+      "quote": "re-principles-skill.html\">Ideation artifact",
+      "prefix": "026-05-13_architectu",
+      "suffix": "\n\n</se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_survey-design-skill/02_spec.html",
+      "section_id": "frontmatter",
+      "quote": " Plan\nrequirements: docs/pmos/features/2026-05-11_survey-design-skill/01_require",
+      "prefix": "11\nstatus: Ready for",
+      "suffix": "ments.html</p"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/02_spec.html",
+      "section_id": "goals",
+      "quote": "onical edit + sync delta); no fix-up commits on main.",
+      "prefix": " feature branch (can",
+      "suffix": "\nG"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_update-skills-survey-design-fixes/02_spec.html",
+      "section_id": "decision-log",
+      "quote": "ndling); if still malformed, skip the auto-regenerate for the run and proceed to",
+      "prefix": "on-count-mismatch ha",
+      "suffix": " Phase 5 with whatev"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_survey-analyse/01_requirements.html",
+      "section_id": "research-sources",
+      "quote": "rite up. Themes are constructed by the analyst, not \"emergent\". Themes need a cl",
+      "prefix": "ame &amp; define → w",
+      "suffix": "ear definition + rep"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/02_spec.html",
+      "section_id": "problem-statement",
+      "quote": "-dev run worktree-isolated, resumable, and scored against a binary eval rubric b",
+      "prefix": " 1, with every skill",
+      "suffix": "efore merge.\n</s"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/02_spec.html",
+      "section_id": "configuration",
+      "quote": "e or nothing. Toggle-style behaviour lives in the YAML / CLI flags above.",
+      "prefix": "he full audit surfac",
+      "suffix": "\n\n\n<se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html",
+      "section_id": "problem",
+      "quote": "e user concluded the per-plugin GitHub identity was not worth the tooling weight",
+      "prefix": "ng. On 2026-05-22 th",
+      "suffix": "; marketplace-level "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/03_plan.html",
+      "section_id": "risks",
+      "quote": "r the bad name is still parseable), so T7's red-first test passes prematurely an",
+      "prefix": "n't &gt;800 lines, o",
+      "suffix": "d the behavioural pr"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-15_readme-audit-fixes/02_spec.html",
+      "section_id": "testing-strategy",
+      "quote": "tracer_audit_polish_suggest.sh\nbash plugins/pmos-toolkit/skills/readme/tests/int",
+      "prefix": "e/tests/integration/",
+      "suffix": "egration/reviewer_su"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/02_spec.html",
+      "section_id": "frontend-design",
+      "quote": "ts defined in §7.2 — its rendering is owned by CC, not this feature.",
+      "prefix": "etplace.json manifes",
+      "suffix": "\n\n\n<se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/02_spec.html",
+      "section_id": "fr-tool-delegation",
+      "quote": " raising the ratio requires either adding more L2 rules or migrating L1 rules of",
+      "prefix": "ap-map structurally;",
+      "suffix": "f grep — both v1.1+ "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/grills/2026-05-11_01_requirements.html",
+      "section_id": "recommended-next-step",
+      "quote": "uestions table (close OQ1 + OQ5; keep OQ2–4). Then proceed to ",
+      "prefix": "nd update the Open Q",
+      "suffix": "/spec, "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/03_plan.html",
+      "section_id": "file-map",
+      "quote": "ent contract FR-43/44 + the §6.2 control-flow); mode-condition the gates (3b/3c ",
+      "prefix": "+ the reviewer-subag",
+      "suffix": "suppressed in skill "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-23_inline-doc-comments/msf-findings.html",
+      "section_id": "section-d-applied",
+      "quote": "overlay\" button on hidden state (replaces DevTools-only path)",
+      "prefix": "r pill + \"Re-enable ",
+      "suffix": "\n      <tr"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_survey-design-skill/02_spec.html",
+      "section_id": "non-functional-requirements",
+      "quote": " assets with cache-bust, sections.json companions). Manifest versions in both pl",
+      "prefix": "dies, local-relative",
+      "suffix": "ugin manifests MUST "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/03_plan.html",
+      "section_id": "decision-log",
+      "quote": ". python3-yaml for principles.yaml parse (universally present on macOS + modern ",
+      "prefix": " the simplest cases)",
+      "suffix": "Linux dev boxes; SKI"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/02_spec.html",
+      "section_id": "rollout",
+      "quote": " Dep Cruiser gaps emerge; Vue SFC extractor (v1.1); pre-commit/CI hooks (v2).",
+      "prefix": "h re-introduction if",
+      "suffix": "\n\n</sectio"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_survey-analyse/02_spec.html",
+      "section_id": "testing-strategy",
+      "quote": " as integer; subgroup base shown; theme quotes) are CI-asserted on the integrati",
+      "prefix": "respondent base; NPS",
+      "suffix": "on fixture's produce"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/03_plan.html",
+      "section_id": "tasks",
+      "quote": "source_citation\\\":\\\"principles.yaml#U004\\\",\\\"suppressed_by\\\":null}\"}' \\\n  | jq -",
+      "prefix": "rbidden in src/\\\",\\\"",
+      "suffix": "s .)\"\nEND=\"$(date -u"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/02_spec.html",
+      "section_id": "db-design",
+      "quote": "nd shell-script outputs are the entire state surface.",
+      "prefix": "ifest files (JSON) a",
+      "suffix": "\n\n\n<se"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-23_inline-doc-comments/msf-findings.html",
+      "section_id": "section-b-psych",
+      "quote": " than the operator UX. Acceptable for v1 since stakeholder is secondary persona,",
+      "prefix": "is materially weaker",
+      "suffix": " but flag for /verif"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-23_inline-doc-comments/01_requirements.html",
+      "section_id": "decisions",
+      "quote": "risk (where the v1.1 retrofit gets deprioritized and the pilot subset becomes th",
+      "prefix": "etrofit-as-followup ",
+      "suffix": "e permanent state). "
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_update-skills-survey-design-fixes/01_requirements.html",
+      "section_id": "success-metrics",
+      "quote": "ither auto-rewrites them or surfaces them as top-of-batch kill/rewrite questions",
+      "prefix": "lem on its own and e",
+      "suffix": "; the author isn't t"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-15_readme-audit-fixes/03_plan.html",
+      "section_id": "review-log",
+      "quote": "ted — combined coverage of T7 (sub-40 path) + T9 (audit_clean.sh AskUserQuestion",
+      "prefix": " tracking). T6 accep",
+      "suffix": " + Suggest:/polish g"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/03_plan.html",
+      "section_id": "code-study-notes",
+      "quote": "s\" list, the \"Status enum\", the \"Atomicity (D31)\" temp-then-rename note, the \"Wo",
+      "prefix": "dentifiers + hardnes",
+      "suffix": "rked example\" struct"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/02_spec.html",
+      "section_id": "edge-cases",
+      "quote": "ly tasks below the marker run; a task whose diff is already present is a no-op. ",
+      "prefix": "s marker (FR-46): on",
+      "suffix": "iterations[N]."
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_survey-design-skill/02_spec.html",
+      "section_id": "system-design",
+      "quote": " list + dispositions  [written Phase 6]\n    index.html           ← regenerated e",
+      "prefix": "dent report(s) + fix",
+      "suffix": "ach write (index-gen"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_architecture-principles-skill/01_requirements.html",
+      "section_id": "solution-direction",
+      "quote": "s:14 — domain layer depends on infra layer\n                → draft ADR queued at",
+      "prefix": "src/services/email.t",
+      "suffix": " docs/architecture/d"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/grills/2026-05-22_01_requirements-2.html",
+      "section_id": "closed-this-pass",
+      "quote": "remote + CLAUDE.md policy; /complete-dev stays generic).",
+      "prefix": "uestion (second git ",
+      "suffix": "\nOQ11 → CLO"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/02_spec.html",
+      "section_id": "non-goals",
+      "quote": "plicitly traded away on 2026-05-22 for tooling simplicity (D1 rationale).",
+      "prefix": " issues, or SEO — ex",
+      "suffix": "\nNOT buildi"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_update-skills-survey-design-fixes/verify/2026-05-11-review.html",
+      "section_id": "plan-compliance",
+      "quote": "ng rubric (0–100, informational)\" (8 dims summing 100) + the intro WIIFM require",
+      "prefix": "IL examples + \"Scori",
+      "suffix": "ment; \"never gates t"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-20_multi-plugin-marketplace/01_requirements.html",
+      "section_id": "ux-analysis",
+      "quote": "cross-plugins → prompt \"ride which plugin's next release?\"; real cross-plugin co",
+      "prefix": "ct: substrate-only-a",
+      "suffix": "de → refuse and dema"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-11_update-skills-survey-design-fixes/03_plan.html",
+      "section_id": "decision-log",
+      "quote": "tro/consent dimension in Phase 4 must mention the F8 WIIFM check; the Edge-cases",
+      "prefix": "s (the reviewer's in",
+      "suffix": " index gains rows fr"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-15_readme-audit-fixes/0c_feedback_triage.html",
+      "section_id": "critique",
+      "quote": "avigator\" persona, no IA-fit rubric check. Retro fix is a same-shape extension.",
+      "prefix": "no \"returning-user n",
+      "suffix": "medium"
+    },
+    {
+      "file": "docs/pmos/features/2026-05-13_readme-skill/01_requirements.html",
+      "section_id": "open-questions",
+      "quote": "irements doc rather than designing forward against an invalidated assumption. Th",
+      "prefix": "ec re-opens the requ",
+      "suffix": "e validation method "
+    }
+  ]
+}
