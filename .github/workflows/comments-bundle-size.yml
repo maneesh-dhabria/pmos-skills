@@ -1,14 +1,12 @@
 name: Comments bundle-size guard (NFR-02)
-# Enforces soft (20 KB) and hard (40 KB) byte-size thresholds on the
-# comments overlay bundle — comments.js + comments.css + diff-match-patch.js.
+# Enforces split size thresholds (NFR-02 amended 2026-05-25):
 #
-# KNOWN STATE (as of T22): diff-match-patch.js is a third-party library
-# (~79 KB). The combined bundle is ~97 KB, which exceeds the 40 KB hard
-# threshold and will emit an error annotation. The threshold is intentionally
-# strict to flag if comments.js or comments.css grows unexpectedly; the
-# diff-match-patch.js overage is a documented accepted deviation (D22).
-# To suppress the error for the known-overage state, adjust the HARD_LIMIT
-# or exclude diff-match-patch.js from the size computation below.
+#   Authoring-controlled bucket (comments.js + comments.css):
+#     soft warn  >20 KB (20480 bytes)
+#     hard fail  >40 KB (40960 bytes)
+#
+#   Vendored bucket (diff-match-patch.js):
+#     ceiling fail  >100 KB (102400 bytes)  — no soft warn; one cap.
 
 on:
   pull_request:
@@ -22,29 +20,52 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compute comments bundle size
-        id: size
+      - name: Compute bundle sizes
+        id: sizes
         run: |
-          TOTAL=$(du -b \
+          AUTH_SIZE=$(du -b \
             plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js \
             plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css \
-            plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js \
             | awk '{s+=$1} END {print s}')
-          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
-          echo "Bundle size: $TOTAL bytes"
+          VEND_SIZE=$(du -b \
+            plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js \
+            | awk '{print $1}')
+          echo "auth=$AUTH_SIZE" >> "$GITHUB_OUTPUT"
+          echo "vend=$VEND_SIZE" >> "$GITHUB_OUTPUT"
+          echo "Authoring bundle: $AUTH_SIZE bytes | Vendored bundle: $VEND_SIZE bytes"
 
-      - name: Evaluate size thresholds
+      - name: Evaluate authoring-controlled threshold
         env:
-          TOTAL: ${{ steps.size.outputs.total }}
+          AUTH_SIZE: ${{ steps.sizes.outputs.auth }}
         run: |
-          SOFT_LIMIT=20480   # 20 KB
-          HARD_LIMIT=40960   # 40 KB
+          AUTH_SOFT=20480   # 20 KB
+          AUTH_HARD=40960   # 40 KB
 
-          if [ "$TOTAL" -gt "$HARD_LIMIT" ]; then
-            echo "::error::comments bundle size ${TOTAL} bytes exceeds hard threshold (40 KB) — review diff-match-patch.js or split assets"
+          if [ "$AUTH_SIZE" -gt "$AUTH_HARD" ]; then
+            echo "::error::comments authoring bundle ${AUTH_SIZE} bytes exceeds hard threshold (40 KB) — slim comments.js or comments.css"
             exit 1
-          elif [ "$TOTAL" -gt "$SOFT_LIMIT" ]; then
-            echo "::warning::comments bundle size ${TOTAL} bytes exceeds soft threshold (20 KB)"
+          elif [ "$AUTH_SIZE" -gt "$AUTH_SOFT" ]; then
+            echo "::warning::comments authoring bundle ${AUTH_SIZE} bytes exceeds soft threshold (20 KB) — consider trimming authoring assets"
           else
-            echo "comments bundle size ${TOTAL} bytes — within soft threshold (20 KB). OK."
+            echo "comments authoring bundle ${AUTH_SIZE} bytes — within soft threshold (20 KB). OK."
           fi
+
+      - name: Evaluate vendored ceiling
+        env:
+          VEND_SIZE: ${{ steps.sizes.outputs.vend }}
+        run: |
+          VEND_CEILING=102400   # 100 KB
+
+          if [ "$VEND_SIZE" -gt "$VEND_CEILING" ]; then
+            echo "::error::comments vendored bundle ${VEND_SIZE} bytes exceeds ceiling (100 KB) — review diff-match-patch.js or replace with a lighter library"
+            exit 1
+          else
+            echo "comments vendored bundle ${VEND_SIZE} bytes — under ceiling (100 KB). OK."
+          fi
+
+      - name: Summary
+        env:
+          AUTH_SIZE: ${{ steps.sizes.outputs.auth }}
+          VEND_SIZE: ${{ steps.sizes.outputs.vend }}
+        run: |
+          echo "comments bundle — authoring: ${AUTH_SIZE} bytes (limit 20480 soft / 40960 hard); vendored: ${VEND_SIZE} bytes (ceiling 102400)."

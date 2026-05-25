@@ -547,16 +547,20 @@ test('(T22-c) After triggerSidecarDownload, localStorage draft for artifact is c
   delete global.Blob; delete global.URL; delete global.setTimeout;
 });
 
-// ---------- (T22-d) Workflow file exists ----------
-test('(T22-d) .github/workflows/comments-bundle-size.yml exists', () => {
+// ---------- (T22-d) Workflow file exists + two-bucket split shape ----------
+test('(T22-d) .github/workflows/comments-bundle-size.yml exists with split AUTH/VEND buckets', () => {
   const wfPath = path.join(REPO, '.github/workflows/comments-bundle-size.yml');
   assert.ok(fs.existsSync(wfPath), 'comments-bundle-size.yml must exist at .github/workflows/');
   const content = fs.readFileSync(wfPath, 'utf8');
   assert.ok(content.includes('pull_request'), 'workflow must trigger on pull_request');
   assert.ok(content.includes('push'), 'workflow must trigger on push');
   assert.ok(content.includes('ubuntu-latest'), 'workflow must use ubuntu-latest');
-  assert.ok(content.includes('comments.js'), 'workflow must reference comments.js');
-  assert.ok(content.includes('::warning::') || content.includes('warning'), 'workflow must emit a warning annotation');
+  // Two-bucket split shape (NFR-02 amended 2026-05-25)
+  assert.ok(content.includes('AUTH_SIZE'), 'workflow must define AUTH_SIZE bucket variable');
+  assert.ok(content.includes('VEND_SIZE'), 'workflow must define VEND_SIZE bucket variable');
+  assert.ok(content.includes('20480'), 'workflow must reference authoring soft threshold (20480)');
+  assert.ok(content.includes('40960'), 'workflow must reference authoring hard threshold (40960)');
+  assert.ok(content.includes('102400'), 'workflow must reference vendored ceiling (102400)');
   assert.ok(content.includes('exit 1') || content.includes('exit(1)'), 'workflow must exit 1 on size violation');
 });
 
