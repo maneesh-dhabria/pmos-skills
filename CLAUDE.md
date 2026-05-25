@@ -106,3 +106,23 @@ The `marketplace.json` files do NOT carry per-plugin `version` fields — see `#
 Repo-wide invariants for any shell script in this repo (most live under `plugins/<plugin>/skills/*/scripts/` and `tests/integration/`):
 
 - **`BASH_SOURCE[0]` is not always populated.** When a script is sourced from a non-canonical path (e.g., via a symlink or under `bash -c "source …"`), `BASH_SOURCE[0]` can be empty or a relative segment that fails `cd "$(dirname …)"`. Always implement a fallback: prefer `${BASH_SOURCE[0]:-$0}`, then fall back to walking up from `$PWD` until a sentinel file is found, then exit with a clear error if neither resolves. Pattern in `plugins/<plugin>/skills/readme/scripts/_reviewer_validate.sh` (2026-05-15).
+
+## Inline doc comments
+
+The `/comments` overlay (delivered 2026-05-25 on `feat/inline-doc-comments`) lets stakeholders annotate any pmos-emitted HTML artifact in their browser; comments persist to a sidecar `<artifact>.comments.json`. The flow:
+
+1. **Author** an HTML artifact via any pmos skill (e.g., `/spec`, `/requirements`, `/plan`). All 14 surfaces (13 originating skills + `/feature-sdlc` orchestrator with 2 emit surfaces) bake `<meta name="pmos:skill" content="<slug>">` + the comments overlay JS+CSS into the emit per FR-01/FR-21.
+2. **Open** the artifact via the launcher trio (`comments-open.command` / `.sh` / `.bat` for macOS/Linux/Windows) which spawns the local `serve.js` (T4) and points Chrome (or default browser) at it.
+3. **Annotate**: select text → floating "💬" button → thread submits to FSA-driven sidecar write (Chrome) or localStorage-buffered Save-sidecar download (Safari/Firefox per T22).
+4. **Resolve** comments via `/comments resolve <artifact>` (one of 4 modes: `--confirm-each` default, `--batch`, `--auto`, `--non-interactive` per T10/T13/T14/T15). Routes per-thread to the originating skill's `apply-edit-at-anchor` shim (T18–T21); operator confirms or rejects each edit; resolver stages the patched artifact + updated sidecar.
+5. **Drift hook** (T25): pre-commit refuses to commit one half of the `<artifact>.html` + `<artifact>.comments.json` pair without its sibling. Install with `bash scripts/install-comments-hooks.sh`. Bypass via `git commit --no-verify` per S5 — use only when intentionally breaking the pair (archival/migration scenarios).
+
+**Coverage gate:** `bash scripts/check-comments-coverage.sh` (T27) is wired into `/verify` Phase 7 Hard Gates; refuses /verify completion if any of the 14 contract tests, 15 emit references, or 1 resolver integration test is missing.
+
+**Bundle size policy (NFR-02 amended per D22):** authoring assets (`comments.js + comments.css`) ≤20KB soft / ≤40KB hard; vendored library (`diff-match-patch.js`) ≤100KB ceiling. Enforced by `.github/workflows/comments-bundle-size.yml`.
+
+**SVG anchoring:** /diagram + /wireframes emit `data-anchor="<slug>"` on every `<g>` + top-level `<rect>`/`<path>` per T23 (svg-anchor.js retrofit). Foreign embedded SVGs use bbox-based anchors (FR-52, T24 / T12 svg-bbox strategy).
+
+**Manual smoke matrix:** `plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md` (T28) tracks per-platform/per-browser smoke rows (macOS/Linux/Windows × Chrome/Safari/Firefox). Maintainer attestation per row.
+
+Spec lives at `docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html`; plan at `03_plan.html`; per-task logs under `execute/`.
