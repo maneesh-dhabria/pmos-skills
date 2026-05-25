@@ -780,6 +780,13 @@ cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open
 
 **Comments meta tag (FR-01, FR-40):** every generated wireframe file (per-screen AND `index.html`) MUST include `<meta name="pmos:skill" content="wireframes">` in `<head>`. The `/comments` resolver routes apply-edit dispatches via this meta tag.
 
+**SVG data-anchor retrofit (FR-51, S15):** When a per-screen wireframe HTML file contains inline `<svg>` blocks (e.g., flow diagrams, component sketches), pass the full HTML string through the shared helper before writing:
+```js
+const { retrofitSvg } = require('skills/_shared/html-authoring/assets/svg-anchor.js');
+htmlContent = retrofitSvg(htmlContent);
+```
+This injects `data-anchor="<slug>"` on every `<g>`, top-level `<rect>`, and top-level `<path>` in any inline SVG. Slug derivation order: `kebab(id)` → `kebab(aria-label)` → `kebab(first <text> child)` → `shape-<N>` ordinal. Duplicates get `-2`/`-3` suffixes per SVG block. Idempotent. These anchors are consumed by `/comments resolve`'s svg-data-anchor strategy (T12/T23). If a wireframe screen has no inline SVG, the call is a safe no-op.
+
 ### Resolution order
 
 Per the contract:

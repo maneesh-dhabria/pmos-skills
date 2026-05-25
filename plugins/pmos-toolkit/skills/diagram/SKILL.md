@@ -439,6 +439,13 @@ See `themes/editorial/infographic/editorial-v1.md` for the full layout spec.
    <!-- DIAGRAM QUALITY WARNING: <comma-separated remaining fails> -->
    ```
 
+   **SVG data-anchor retrofit (FR-50, FR-51, S15):** Before writing the final `.svg`, pass the SVG string through the shared helper:
+   ```js
+   const { retrofitSvg } = require('skills/_shared/html-authoring/assets/svg-anchor.js');
+   svgText = retrofitSvg(svgText);
+   ```
+   This injects `data-anchor="<slug>"` on every `<g>`, top-level `<rect>`, and top-level `<path>` in the output. Slug derivation order: `kebab(id)` → `kebab(aria-label)` → `kebab(first <text> child)` → `shape-<N>` ordinal. Duplicates get `-2`/`-3` suffixes within the SVG. The operation is idempotent — re-applying to an already-anchored SVG is a no-op. These anchors are consumed by `/comments resolve`'s svg-data-anchor strategy (T12/T23) when routing comment threads to diagram nodes.
+
 2. **Write `<out>.diagram.json`** sidecar via `write_sidecar()` per `reference/sidecar-schema.md`:
    - `schemaVersion: 2`
    - `theme` — the active theme name (from `--theme`, default `technical`).
