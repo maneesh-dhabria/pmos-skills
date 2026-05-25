@@ -490,6 +490,7 @@ The `started_at` write is the cursor `/execute` and folded apply-loops use to de
    - **No sections.json companion** for orchestrator artifacts (per runbook edge case row 3 — `00_pipeline.html` has no `<h2>`-anchored TOC of substantive content; the status table is the body).
    - **Index regeneration (FR-22, §9.1):** seed `<feature_folder>/index.html` via `_shared/html-authoring/index-generator.md` — at this point the manifest contains a single entry for `00_pipeline.html` (subsequent child-skill writes will trigger their own regenerations to extend the manifest).
    - **Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `00_pipeline.md` via `bash node <feature_folder>/assets/html-to-md.js 00_pipeline.html > 00_pipeline.md`.
+   > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
 3. Print the in-chat short-form status table.
 
 ## Compact checkpoint (recurring micro-phase)
@@ -817,6 +818,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 - Branch + tag info from `/complete-dev` output.
 - Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1.5 ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
 - If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Mixed-format sidecar emitted as `00_open_questions_index.md` when `output_format=both`. Link to the HTML primary in the chat summary.
+  > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
 - Final one-liner: `Pipeline complete for <slug>. Branch feat/<slug> merged to main and tagged via /complete-dev.`
 
 **In `prototype` mode (FR-PSDLC-08):** the summary block above is replaced with the discovery-mode variant:

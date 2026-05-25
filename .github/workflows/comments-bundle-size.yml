@@ -1,0 +1,50 @@
+name: Comments bundle-size guard (NFR-02)
+# Enforces soft (20 KB) and hard (40 KB) byte-size thresholds on the
+# comments overlay bundle — comments.js + comments.css + diff-match-patch.js.
+#
+# KNOWN STATE (as of T22): diff-match-patch.js is a third-party library
+# (~79 KB). The combined bundle is ~97 KB, which exceeds the 40 KB hard
+# threshold and will emit an error annotation. The threshold is intentionally
+# strict to flag if comments.js or comments.css grows unexpectedly; the
+# diff-match-patch.js overage is a documented accepted deviation (D22).
+# To suppress the error for the known-overage state, adjust the HARD_LIMIT
+# or exclude diff-match-patch.js from the size computation below.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  bundle-size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute comments bundle size
+        id: size
+        run: |
+          TOTAL=$(du -b \
+            plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js \
+            plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css \
+            plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js \
+            | awk '{s+=$1} END {print s}')
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+          echo "Bundle size: $TOTAL bytes"
+
+      - name: Evaluate size thresholds
+        env:
+          TOTAL: ${{ steps.size.outputs.total }}
+        run: |
+          SOFT_LIMIT=20480   # 20 KB
+          HARD_LIMIT=40960   # 40 KB
+
+          if [ "$TOTAL" -gt "$HARD_LIMIT" ]; then
+            echo "::error::comments bundle size ${TOTAL} bytes exceeds hard threshold (40 KB) — review diff-match-patch.js or split assets"
+            exit 1
+          elif [ "$TOTAL" -gt "$SOFT_LIMIT" ]; then
+            echo "::warning::comments bundle size ${TOTAL} bytes exceeds soft threshold (20 KB)"
+          else
+            echo "comments bundle size ${TOTAL} bytes — within soft threshold (20 KB). OK."
+          fi

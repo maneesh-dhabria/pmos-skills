@@ -68,7 +68,7 @@ function _isChartDataEdit(input, html) {
   const id = (input.anchor.id_anchor || "").toLowerCase();
 
   // Known chart-data id patterns: chart-*, data-*, per-question chart sections.
-  if (/^(?:chart-|pmos-chart-|data-block-|chart-config-)/.test(id)) return true;
+  if (/^(?:chart-|pmos-chart-|data-block-)/.test(id)) return true;
 
   // Check the quote_anchor text for chart data patterns.
   const qt = input.anchor.quote_anchor && input.anchor.quote_anchor.text

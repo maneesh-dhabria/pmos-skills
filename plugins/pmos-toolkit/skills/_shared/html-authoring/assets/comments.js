@@ -3,6 +3,8 @@
  *   (a) Browser: <script defer src="comments.js"> → attaches to window.PMOSComments.
  *   (b) Node:    require('.../comments.js')      → module.exports = {...}.
  * Skeleton only (T3) — the panel/marker UI lands at T7.
+ * Safari/Firefox fallback (T22): FSA-unavailable browsers use localStorage +
+ * a "Save sidecar" download button instead of the FSA write path.
  * Refs: FR-01, FR-02, FR-10, FR-11, FR-14, FR-16, S3, S4, §10.1.
  */
 (function (root) {
@@ -119,6 +121,112 @@
    * Refs: FR-02, FR-03, FR-04, FR-11, FR-13, FR-14, S16, S17, §11.
    * ===================================================================== */
 
+  /* =====================================================================
+   * T22 — Safari/Firefox fallback: FSA feature detection + localStorage
+   * draft mirroring + "Save sidecar" download button.
+   * Refs: FR-02, FR-03, FR-11, NFR-02.
+   * ===================================================================== */
+
+  // FSA availability flag. Set once at init; overridable for tests.
+  var _fsaFallbackMode = false;
+
+  /* ---- _detectFsaSupport: set _fsaFallbackMode. Called from mount(). */
+  function _detectFsaSupport() {
+    var hasDP = typeof root !== 'undefined' &&
+                typeof root.showDirectoryPicker === 'function';
+    var hasSFP = typeof root !== 'undefined' &&
+                 typeof root.showSaveFilePicker === 'function';
+    _fsaFallbackMode = !(hasDP && hasSFP);
+  }
+
+  /* ---- _lsKey: stable localStorage key for this artifact.
+   *      Uses the artifact path directly — readable, collision-free for
+   *      single-origin usage. Prefix isolates our keys. */
+  function _lsKey(artifactPath) {
+    return 'pmos:comments:' + String(artifactPath || '/');
+  }
+
+  /* ---- _lsDraftSave: mirror sidecar to localStorage (fallback mode). */
+  function _lsDraftSave(artifactPath, sidecar) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      localStorage.setItem(_lsKey(artifactPath), serialize_sidecar(sidecar));
+    } catch (_) { /* quota exceeded or private-browse no-storage: swallow */ }
+  }
+
+  /* ---- _lsDraftLoad: restore previous draft from localStorage. */
+  function _lsDraftLoad(artifactPath) {
+    try {
+      if (typeof localStorage === 'undefined') return null;
+      var raw = localStorage.getItem(_lsKey(artifactPath));
+      if (!raw) return null;
+      return parse_sidecar(raw);
+    } catch (_) { return null; }
+  }
+
+  /* ---- _lsDraftClear: remove draft after successful download. */
+  function _lsDraftClear(artifactPath) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      localStorage.removeItem(_lsKey(artifactPath));
+    } catch (_) { /* swallow */ }
+  }
+
+  /* ---- _renderSaveSidecarButton: inject the "Save sidecar" button into
+   *      the panel header. Hidden when FSA is available.
+   *      data-pmos-save-sidecar attribute for test queries. */
+  function _renderSaveSidecarButton() {
+    var doc = _doc(); if (!doc) return;
+    var panel = doc.querySelector('.pmos-side-panel');
+    if (!panel) return;
+    // Idempotent — skip if already rendered.
+    if (doc.querySelector('[data-pmos-save-sidecar]')) return;
+    var btn = doc.createElement('button');
+    btn.setAttribute('data-pmos-save-sidecar', '1');
+    btn.textContent = 'Save sidecar';
+    btn.setAttribute('type', 'button');
+    if (_fsaFallbackMode) {
+      btn.style.display = '';   // visible
+    } else {
+      btn.style.display = 'none'; // hidden — FSA happy path handles persistence
+    }
+    btn.addEventListener('click', function () { triggerSidecarDownload(); });
+    var header = doc.querySelector('.pmos-panel-header');
+    if (header) {
+      header.appendChild(btn);
+    } else {
+      panel.appendChild(btn);
+    }
+  }
+
+  /* ---- triggerSidecarDownload: assemble sidecar, Blob-download, clear draft.
+   *      Uses <a download> pattern (broad browser support). */
+  function triggerSidecarDownload() {
+    var doc = _doc(); if (!doc) return;
+    if (!state.sidecar) return;
+    var fname = (state.artifactBaseName || 'artifact') + '.comments.json';
+    var payload = serialize_sidecar(state.sidecar);
+    var blob = new Blob([payload], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = doc.createElement('a');
+    a.href = url;
+    a.setAttribute('download', fname);
+    a.style.display = 'none';
+    doc.body.appendChild(a);
+    a.click();
+    // Revoke after a tick so the browser can initiate the download.
+    if (typeof setTimeout !== 'undefined') {
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+        a.remove();
+      }, 100);
+    } else {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }
+    _lsDraftClear(state.artifactPath);
+  }
+
   // Module-scope state (single overlay per artifact).
   var state = {
     mounted: false,
@@ -127,7 +235,9 @@
     lineage: null,
     sidecar: null,           // current sidecar object in memory
     dirHandle: null,         // FileSystemDirectoryHandle (browser)
-    writeSidecarImpl: null   // overridable for tests
+    writeSidecarImpl: null,  // overridable for tests
+    _docRef: null            // test override: pin a document reference so async callbacks
+                             // see a stable doc even after global.document is deleted
   };
 
   /* ---- FNV-1a 64-bit → 16 hex chars. Sync, pure, no deps.
@@ -171,7 +281,12 @@
   }
 
   /* ---- DOM helpers (no-ops in Node) ---- */
-  function _doc() { return (typeof document !== 'undefined') ? document : null; }
+  // _docRef: if set (e.g. by tests via state._docRef = doc), overrides the
+  // global document lookup so async callbacks see a stable reference.
+  function _doc() {
+    if (state._docRef) return state._docRef;
+    return (typeof document !== 'undefined') ? document : null;
+  }
 
   function _ensurePanel() {
     var doc = _doc(); if (!doc) return null;
@@ -255,7 +370,8 @@
       });
   }
 
-  /* ---- submitThread: build thread, append to in-memory sidecar, persist. */
+  /* ---- submitThread: build thread, append to in-memory sidecar, persist.
+   *      In FSA-fallback mode, persists to localStorage instead of FSA. */
   function submitThread(opts) {
     opts = opts || {};
     var t = buildThread({
@@ -272,6 +388,11 @@
       };
     }
     state.sidecar.threads.push(t);
+    if (_fsaFallbackMode) {
+      // Fallback: persist to localStorage; no FSA call.
+      _lsDraftSave(state.artifactPath, state.sidecar);
+      return Promise.resolve(true);
+    }
     var impl = state.writeSidecarImpl || writeSidecar;
     return impl(state.sidecar, state.dirHandle);
   }
@@ -346,7 +467,9 @@
     btn.style.left = ((rect.right || 0) + 8) + 'px';
   }
 
-  /* ---- mount: idempotent. Wires DOM listeners + rehydrates handle. */
+  /* ---- mount: idempotent. Wires DOM listeners + rehydrates handle.
+   *      T22: also detects FSA availability, rehydrates localStorage draft
+   *      on FSA-unavailable browsers, and renders the "Save sidecar" button. */
   function mount(opts) {
     opts = opts || {};
     state.artifactPath = opts.artifactPath || state.artifactPath;
@@ -358,11 +481,30 @@
     if (opts.sidecar) state.sidecar = opts.sidecar;
     if (typeof opts._writeSidecar === 'function') state.writeSidecarImpl = opts._writeSidecar;
 
+    // T22: allow tests to override the fallback flag directly.
+    if (typeof opts._fsaFallbackMode === 'boolean') {
+      _fsaFallbackMode = opts._fsaFallbackMode;
+    } else {
+      _detectFsaSupport();
+    }
+
     if (state.mounted) return;
     state.mounted = true;
 
-    if (_doc()) _attachSelectionListener();
-    _rehydrateHandle();
+    if (_doc()) {
+      _attachSelectionListener();
+      if (_fsaFallbackMode) {
+        // Rehydrate previous localStorage draft so reload doesn't lose threads.
+        var draft = _lsDraftLoad(state.artifactPath);
+        if (draft && !state.sidecar) state.sidecar = draft;
+        // Ensure panel exists before rendering the save button.
+        _ensurePanel();
+        _renderSaveSidecarButton();
+      }
+    }
+    if (!_fsaFallbackMode) {
+      _rehydrateHandle();
+    }
   }
 
   /* ---- public surface ---- */
@@ -382,7 +524,16 @@
     submitThread: submitThread,
     writeSidecar: writeSidecar,
     mountBanner: mountBanner,
-    mount: mount
+    mount: mount,
+    // T22 additions — FSA fallback (Safari/Firefox)
+    _detectFsaSupport: _detectFsaSupport,
+    _lsKey: _lsKey,
+    _lsDraftSave: _lsDraftSave,
+    _lsDraftLoad: _lsDraftLoad,
+    _lsDraftClear: _lsDraftClear,
+    triggerSidecarDownload: triggerSidecarDownload,
+    // Expose state for test introspection.
+    _state: state
   };
 
   if (typeof module !== 'undefined' && module.exports) {

@@ -193,6 +193,7 @@ class StubNode {
     this.value = '';
   }
   appendChild(c) { c.parentNode = this; this.children.push(c); return c; }
+  click() { (this._listeners['click'] || []).forEach(fn => fn({})); }
   removeChild(c) {
     const i = this.children.indexOf(c);
     if (i >= 0) { this.children.splice(i, 1); c.parentNode = null; }
@@ -210,7 +211,19 @@ class StubNode {
   get textContent() { return this._textContent + this.children.map(c => c.textContent).join(''); }
   set textContent(v) { this._textContent = String(v); this.children = []; }
   querySelector(sel) {
-    // Supports ".class" only (sufficient for T7 tests).
+    // Supports ".class" and "[attr]" selectors (sufficient for T7+T22 tests).
+    const attrMatch = sel.match(/^\[([^\]]+)\]$/);
+    if (attrMatch) {
+      const attr = attrMatch[1];
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.attributes && Object.prototype.hasOwnProperty.call(c.attributes, attr)) return c;
+          const r = walk(c); if (r) return r;
+        }
+        return null;
+      };
+      return walk(this);
+    }
     if (!sel.startsWith('.')) return null;
     const cls = sel.slice(1);
     const walk = (n) => {
@@ -223,6 +236,19 @@ class StubNode {
     return walk(this);
   }
   querySelectorAll(sel) {
+    const attrMatch = sel.match(/^\[([^\]]+)\]$/);
+    if (attrMatch) {
+      const attr = attrMatch[1];
+      const out = [];
+      const walk = (n) => {
+        for (const c of n.children) {
+          if (c.attributes && Object.prototype.hasOwnProperty.call(c.attributes, attr)) out.push(c);
+          walk(c);
+        }
+      };
+      walk(this);
+      return out;
+    }
     if (!sel.startsWith('.')) return [];
     const cls = sel.slice(1);
     const out = [];
@@ -247,6 +273,18 @@ function makeStubDom() {
     removeEventListener: () => {}
   };
   return doc;
+}
+
+// Minimal in-memory localStorage stub (Node has none by default).
+function makeStubLocalStorage() {
+  const store = {};
+  return {
+    getItem: (k) => Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null,
+    setItem: (k, v) => { store[k] = String(v); },
+    removeItem: (k) => { delete store[k]; },
+    clear: () => { Object.keys(store).forEach(k => delete store[k]); },
+    _store: store
+  };
 }
 
 // Fresh module instance per T7 test (re-requires comments.js after wiring globals).
@@ -301,7 +339,8 @@ test('(T7-c) submitThread appends thread + invokes writeSidecar', () => {
     artifactPath: '/foo.html',
     lineage: '11111111-1111-4111-8111-111111111111',
     dirHandle: fakeHandle,
-    _writeSidecar: (sidecar, handle) => { captured = { sidecar, handle }; return Promise.resolve(); }
+    _writeSidecar: (sidecar, handle) => { captured = { sidecar, handle }; return Promise.resolve(); },
+    _fsaFallbackMode: false   // T7-c: force FSA-available path
   });
   const anchor = { quote_hash: 'deadbeefdeadbeef', context_before: 'p', context_after: 's' };
   Cx.submitThread({
@@ -336,7 +375,9 @@ test('(T7-d) writeSidecar invokes requestPermission → getFileHandle → create
     requestPermission: (opts) => { calls.push(['requestPermission', opts]); return Promise.resolve('granted'); },
     getFileHandle: (name, opts) => { calls.push(['getFileHandle', name, opts]); return Promise.resolve(fileHandle); }
   };
-  Cx.mount({ artifactPath: '/spec.html' });
+  Cx.mount({ artifactPath: '/spec.html', _fsaFallbackMode: false }); // T7-d: force FSA-available path
+  // Pin the doc reference on state so _doc() sees it even after global.document is deleted.
+  Cx._state._docRef = doc;
   const sidecar = {
     schema_version: 1,
     lineage: '11111111-1111-4111-8111-111111111111',
@@ -364,13 +405,159 @@ test('(T7-e) revoked permission surfaces banner + does NOT write', async () => {
     requestPermission: () => Promise.resolve('denied'),
     getFileHandle: () => { wrote = true; return Promise.reject(new Error('should not call')); }
   };
-  Cx.mount({ artifactPath: '/spec.html' });
+  Cx.mount({ artifactPath: '/spec.html', _fsaFallbackMode: false }); // T7-e: force FSA-available path
+  // Pin the doc reference on state so _doc() sees it even after global.document is deleted.
+  Cx._state._docRef = doc;
   await Cx.writeSidecar({ schema_version: 1, lineage: '11111111-1111-4111-8111-111111111111', threads: [] }, dirHandle);
   assert.strictEqual(wrote, false, 'must not attempt to write');
   const banner = doc.querySelector('.pmos-banner');
   assert.ok(banner, 'banner mounted on denial');
   assert.ok(/Click to grant write access/.test(banner.textContent), 'banner text');
   delete global.document; delete global.window;
+});
+
+// ============================================================
+// T22 — Safari/Firefox FSA fallback: localStorage draft +
+//        "Save sidecar" download button.
+// ============================================================
+
+// ---------- (T22-a) FSA unavailable → localStorage gets draft, Save button visible ----------
+// Synchronous: _lsDraftSave is called synchronously before the Promise resolves,
+// and triggerSidecarDownload is fully synchronous with mocked setTimeout.
+test('(T22-a) FSA unavailable: submitThread → localStorage draft + Save button rendered visible', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null }; // no showDirectoryPicker / showSaveFilePicker
+  global.localStorage = ls;
+  const Cx = freshC();
+  // Force fallback mode (FSA absent since window has no showDirectoryPicker/showSaveFilePicker).
+  Cx.mount({
+    artifactPath: '/project/my-spec.html',
+    lineage: '22222222-2222-4222-8222-222222222222'
+  });
+  // submitThread: _lsDraftSave is called synchronously; Promise.resolve(true) is returned after.
+  Cx.submitThread({
+    anchor: { id_anchor: 'overview', quote_anchor: { quote_hash: 'aabbccddeeff0011', context_before: 'a', context_after: 'b' } },
+    body: 'Fallback comment',
+    author: 'safari-user'
+  });
+  // Assert localStorage has the draft (written synchronously before promise returned).
+  const key = Cx._lsKey('/project/my-spec.html');
+  const raw = ls.getItem(key);
+  assert.ok(raw, 'localStorage should contain the draft');
+  const parsed = JSON.parse(raw);
+  assert.strictEqual(parsed.threads.length, 1, 'one thread in draft');
+  assert.strictEqual(parsed.threads[0].messages[0].body, 'Fallback comment');
+  // Assert Save sidecar button is rendered and visible.
+  const btn = doc.querySelector('[data-pmos-save-sidecar]');
+  assert.ok(btn, 'Save sidecar button must be in the DOM');
+  assert.ok(btn.style.display !== 'none', 'Save sidecar button must be visible in fallback mode');
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
+// ---------- (T22-b) Click "Save sidecar" → triggers <a download> with correct attrs + blob content ----------
+test('(T22-b) triggerSidecarDownload: <a> element has download attr + blob: href + correct JSON content', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  // Capture blob + URL creation.
+  let capturedBlob = null;
+  let capturedObjectUrl = null;
+  global.Blob = class MockBlob {
+    constructor(parts, opts) { this._parts = parts; this._opts = opts; }
+    get content() { return this._parts.join(''); }
+  };
+  global.URL = {
+    createObjectURL: (blob) => { capturedBlob = blob; capturedObjectUrl = 'blob:mock-url-1234'; return capturedObjectUrl; },
+    revokeObjectURL: () => {}
+  };
+  global.setTimeout = (fn) => fn(); // execute synchronously in tests
+
+  // Capture <a> element creation.
+  let capturedAnchor = null;
+  const origCreateElement = doc.createElement.bind(doc);
+  doc.createElement = (tag) => {
+    const el = origCreateElement(tag);
+    if (tag === 'a') capturedAnchor = el;
+    return el;
+  };
+
+  const Cx = freshC();
+  Cx.mount({
+    artifactPath: '/project/my-spec.html',
+    lineage: '22222222-2222-4222-8222-222222222222'
+  });
+  // Seed in-memory sidecar directly (simulate prior submitThread).
+  Cx._state.sidecar = {
+    schema_version: 1,
+    lineage: '22222222-2222-4222-8222-222222222222',
+    threads: [{ id: 'abcd1234', anchor: {}, status: 'open', messages: [{ role: 'user', body: 'test', ts: '2026-01-01T00:00:00Z' }], created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' }]
+  };
+  Cx._state.artifactBaseName = 'my-spec';
+
+  Cx.triggerSidecarDownload();
+
+  assert.ok(capturedAnchor, '<a> element must have been created');
+  assert.strictEqual(capturedAnchor.getAttribute('download'), 'my-spec.comments.json', 'download attribute must be artifact.comments.json');
+  assert.strictEqual(capturedAnchor.href, capturedObjectUrl, 'href must be the blob: URL');
+  assert.ok(capturedObjectUrl && capturedObjectUrl.startsWith('blob:'), 'URL must start with blob:');
+  // Assert blob content matches serialize_sidecar output.
+  assert.ok(capturedBlob, 'Blob must have been created');
+  const blobContent = capturedBlob.content;
+  const expectedContent = Cx.serialize_sidecar(Cx._state.sidecar);
+  assert.strictEqual(blobContent, expectedContent, 'Blob content must match serialize_sidecar output');
+
+  delete global.document; delete global.window; delete global.localStorage;
+  delete global.Blob; delete global.URL; delete global.setTimeout;
+});
+
+// ---------- (T22-c) After download, localStorage draft cleared ----------
+test('(T22-c) After triggerSidecarDownload, localStorage draft for artifact is cleared', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+  global.Blob = class MockBlob { constructor(parts, opts) { this._parts = parts; } };
+  global.URL = { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} };
+  global.setTimeout = (fn) => fn();
+
+  const Cx = freshC();
+  Cx.mount({
+    artifactPath: '/project/my-spec.html',
+    lineage: '22222222-2222-4222-8222-222222222222'
+  });
+
+  // Seed localStorage with a draft.
+  const key = Cx._lsKey('/project/my-spec.html');
+  ls.setItem(key, '{"schema_version":1,"lineage":"22222222-2222-4222-8222-222222222222","threads":[]}');
+  assert.ok(ls.getItem(key) !== null, 'draft should exist before download');
+
+  Cx._state.sidecar = { schema_version: 1, lineage: '22222222-2222-4222-8222-222222222222', threads: [] };
+  Cx._state.artifactBaseName = 'my-spec';
+  Cx.triggerSidecarDownload();
+
+  assert.strictEqual(ls.getItem(key), null, 'localStorage draft must be cleared after download');
+
+  delete global.document; delete global.window; delete global.localStorage;
+  delete global.Blob; delete global.URL; delete global.setTimeout;
+});
+
+// ---------- (T22-d) Workflow file exists ----------
+test('(T22-d) .github/workflows/comments-bundle-size.yml exists', () => {
+  const wfPath = path.join(REPO, '.github/workflows/comments-bundle-size.yml');
+  assert.ok(fs.existsSync(wfPath), 'comments-bundle-size.yml must exist at .github/workflows/');
+  const content = fs.readFileSync(wfPath, 'utf8');
+  assert.ok(content.includes('pull_request'), 'workflow must trigger on pull_request');
+  assert.ok(content.includes('push'), 'workflow must trigger on push');
+  assert.ok(content.includes('ubuntu-latest'), 'workflow must use ubuntu-latest');
+  assert.ok(content.includes('comments.js'), 'workflow must reference comments.js');
+  assert.ok(content.includes('::warning::') || content.includes('warning'), 'workflow must emit a warning annotation');
+  assert.ok(content.includes('exit 1') || content.includes('exit(1)'), 'workflow must exit 1 on size violation');
 });
 
 Promise.all(_pending).then(() => {

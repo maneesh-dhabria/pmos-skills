@@ -65,6 +65,9 @@ function _isInfeasible(body, artifactPath) {
   }
   // Index-structure edit — only infeasible when the artifact IS the
   // index.html (nav / screen-list edits require full regen).
+  // TODO: this gate hard-codes 'index.html'; if /wireframes ever renames its index emit (e.g., 'nav.html'/'home.html'),
+  // this check silently disables and the structural-change refusal stops firing. Re-evaluate when/if the emit naming
+  // convention changes.
   if (artifactPath && path.basename(artifactPath) === "index.html") {
     if (/\b(nav|navigation|screen.?list|card.?grid|reorder|add.?screen|remove.?screen)\b/i.test(text)) {
       return true;

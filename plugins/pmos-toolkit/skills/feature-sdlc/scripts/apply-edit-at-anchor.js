@@ -52,16 +52,18 @@ function _key(input) {
 // Handles both production filenames and test fixture filenames (e.g. 00_pipeline_mini.html).
 function _detectSurface(artifactPath) {
   const base = path.basename(String(artifactPath || ""));
-  // Match "00_pipeline.html" OR "00_pipeline_*.html" (e.g. test fixtures).
-  if (/^00_pipeline(\.[^.]+)?\.html$/.test(base) || base.startsWith("00_pipeline")) return "pipeline";
-  // Match "00_open_questions_index.html" OR "00_open_questions_index_*.html".
-  if (/^00_open_questions_index(\.[^.]+)?\.html$/.test(base) || base.startsWith("00_open_questions_index")) return "oq-index";
+  // startsWith is sufficient — the regex /^00_pipeline(\.[^.]+)?\.html$/ is fully subsumed by this check.
+  if (base.startsWith("00_pipeline")) return "pipeline";
+  // Same for the OQ branch.
+  if (base.startsWith("00_open_questions_index")) return "oq-index";
   return "unknown";
 }
 
 // Infeasibility: pipeline table schema changes are infeasible (FR-62).
 // Body heuristic: mentions "add column", "remove column", "restructure table",
 // or "reorder rows" → infeasible for pipeline surface.
+// Body-text keyword heuristic. Over-blocks rare prose mentions of "add column"/"restructure table" in legit
+// row-cell edits; user can rephrase and retry. Acceptable trade-off vs an HTML-AST parser.
 function _isPipelineSchemaChange(body) {
   if (!body) return false;
   const t = String(body).toLowerCase();
