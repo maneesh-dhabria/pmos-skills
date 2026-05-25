@@ -64,8 +64,13 @@ function _isInfeasible(body) {
     if (refs.length >= 2) return true;
   }
   // JSX / React internals or mock-data block edits require regen.
+  // We require BOTH an edit-intent verb AND a target keyword — a verb+keyword
+  // bigram — to avoid false-positives when a reviewer merely references a
+  // keyword in passing (e.g., "Add a note explaining that mock-data lives in
+  // window.__mockData"). Only explicit edit intent on those surfaces trips
+  // infeasible; informational prose mentioning the same keywords does not.
   if (
-    /\b(jsx|react\s+component|mock.?data|runtime\.js|components\.js|window\.__)\b/i.test(text)
+    /\b(edit|change|modify|restructure|rewrite|refactor|update)\s+(the\s+)?(jsx|react\s+component|mock.?data|runtime\.js|components\.js|window\.__)\b/i.test(text)
   ) {
     return true;
   }

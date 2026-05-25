@@ -85,7 +85,16 @@ function _isChartDataEdit(input, html) {
       const pos = html.indexOf(m[0]);
       // Walk backward from pos to find the nearest opening <script tag.
       const before = html.slice(0, pos);
-      const lastScriptOpen = before.lastIndexOf("<script");
+      // Use \b after "script" so we match only genuine opening <script tags
+      // and not the "script" substring inside </script> close tags.
+      // (Without \b, `<script` is a prefix of `</script>` and lastIndexOf
+      //  would match inside a close tag, causing a false-positive.)
+      let lastScriptOpen = -1;
+      const scriptOpenRe = /<script\b/g;
+      let scriptMatch;
+      while ((scriptMatch = scriptOpenRe.exec(before)) !== null) {
+        lastScriptOpen = scriptMatch.index;
+      }
       const lastScriptClose = before.lastIndexOf("</script>");
       // If the last <script open comes after the last </script> close, we're inside a script block.
       if (lastScriptOpen > lastScriptClose) {

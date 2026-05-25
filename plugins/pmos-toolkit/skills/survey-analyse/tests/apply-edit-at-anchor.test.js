@@ -119,12 +119,39 @@ function mkInput(overrides) {
     failures.push("case (e) clarification: " + (e && e.message));
   }
 
+  // (f) False-positive guard: anchor immediately after </script> close tag must NOT be infeasible.
+  // Regression for the `<script` prefix bug — without \b, lastIndexOf("<script") could match
+  // inside "</script>" and incorrectly conclude the anchor is inside a script block.
+  try {
+    const out = await apply(
+      mkInput({
+        thread_id: "T_F",
+        // "methodology" section in the fixture appears immediately after the </script> close tag
+        // for the chart-q-barrier-data block — exercises the post-</script> boundary case.
+        anchor: { id_anchor: "methodology", quote_anchor: null },
+        body: "clarify the correction method used",
+      })
+    );
+    // Must NOT return agent_judged_infeasible — the anchor is outside any script block.
+    assert.ok(
+      out.error_enum !== "agent_judged_infeasible",
+      "(f) anchor after </script> must not be judged infeasible (false-positive guard)"
+    );
+    // Should resolve normally — success or orphaned (not infeasible).
+    assert.ok(
+      out.success === true || out.error_enum === "anchor_orphaned",
+      "(f) expected success or orphaned, got: " + JSON.stringify(out)
+    );
+  } catch (e) {
+    failures.push("case (f) post-script-close false-positive guard: " + (e && e.message));
+  }
+
   if (failures.length > 0) {
-    console.error("FAIL: /survey-analyse apply-edit-at-anchor — " + failures.length + " of 5 cases");
+    console.error("FAIL: /survey-analyse apply-edit-at-anchor — " + failures.length + " of 6 cases");
     for (const f of failures) console.error("  - " + f);
     process.exit(1);
   }
-  console.log("PASS: /survey-analyse apply-edit-at-anchor — 5 cases");
+  console.log("PASS: /survey-analyse apply-edit-at-anchor — 6 cases");
 })().catch((e) => {
   console.error("FAIL: uncaught " + (e && e.stack ? e.stack : e));
   process.exit(1);

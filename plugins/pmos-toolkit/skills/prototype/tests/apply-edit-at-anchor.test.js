@@ -80,12 +80,13 @@ function mkInput(overrides) {
   }
 
   // (d) agent_judged_infeasible: JSX / mock-data heuristic.
+  // Body must contain BOTH an edit-intent verb AND a target keyword (verb+keyword bigram).
   try {
     const out = await apply(
       mkInput({
         thread_id: "T_D",
         anchor: { id_anchor: "dashboard-screen" },
-        body: "update the mock-data to add a third item to the list",
+        body: "modify the mock-data block to add a new field",
       })
     );
     assert.strictEqual(out.success, false, "(d) success false");
@@ -115,12 +116,37 @@ function mkInput(overrides) {
     failures.push("case (e) clarification: " + (e && e.message));
   }
 
+  // (f) False-positive guard: keyword present but no edit-intent verb must NOT trip infeasible.
+  // Body mentions "mock-data" and "window.__mockData" in explanatory prose — keyword present
+  // but no verb like edit/modify/update directly preceding the keyword.
+  try {
+    const out = await apply(
+      mkInput({
+        thread_id: "T_F",
+        anchor: { id_anchor: "dashboard-screen" },
+        body: "Add a note explaining that mock-data lives in window.__mockData",
+      })
+    );
+    // Must NOT return agent_judged_infeasible — reviewer is describing context, not requesting regen.
+    assert.ok(
+      out.error_enum !== "agent_judged_infeasible",
+      "(f) keyword-only prose must not be judged infeasible (false-positive guard)"
+    );
+    // Should proceed to success or orphaned.
+    assert.ok(
+      out.success === true || out.error_enum === "anchor_orphaned",
+      "(f) expected success or orphaned, got: " + JSON.stringify(out)
+    );
+  } catch (e) {
+    failures.push("case (f) keyword-only prose false-positive guard: " + (e && e.message));
+  }
+
   if (failures.length > 0) {
-    console.error("FAIL: /prototype apply-edit-at-anchor — " + failures.length + " of 5 cases");
+    console.error("FAIL: /prototype apply-edit-at-anchor — " + failures.length + " of 6 cases");
     for (const f of failures) console.error("  - " + f);
     process.exit(1);
   }
-  console.log("PASS: /prototype apply-edit-at-anchor — 5 cases");
+  console.log("PASS: /prototype apply-edit-at-anchor — 6 cases");
 })().catch((e) => {
   console.error("FAIL: uncaught " + (e && e.stack ? e.stack : e));
   process.exit(1);
