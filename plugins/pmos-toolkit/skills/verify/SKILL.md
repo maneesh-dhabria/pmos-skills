@@ -626,6 +626,12 @@ One last check before committing:
 4. **Check for hardcoded values** that should be configuration.
 5. **Verify documentation is updated** (CLAUDE.md, changelogs, API docs).
 
+### Phase 7 Hard Gates
+
+The following script checks must pass before Phase 8 (Commit & Report). A non-zero exit blocks `/verify` completion for this feature.
+
+- **Comments coverage check** (FR-62): `bash scripts/check-comments-coverage.sh` — refuses /verify completion if any of the 14 `apply-edit-at-anchor` contract tests are missing (13 originating skills + 1 orchestrator), if any of the 15 emit references are absent (13 skill-level `comments.js` refs + 2 orchestrator surface refs for `00_pipeline.html` and `00_open_questions_index.html`), or if the resolver integration test or calibration tests (`scorer.test.js`, `reanchor.integration.test.js`) are missing. Bypassable only via documented spec amendment.
+
 ---
 
 ## Phase 7.5: Design-System Drift Check (advisory)
