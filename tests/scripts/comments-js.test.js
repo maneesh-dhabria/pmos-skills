@@ -564,6 +564,45 @@ test('(T22-d) .github/workflows/comments-bundle-size.yml exists with split AUTH/
   assert.ok(content.includes('exit 1') || content.includes('exit(1)'), 'workflow must exit 1 on size violation');
 });
 
+// ---------- (T22-e) LS rehydration validates schema ----------
+test('(T22-e) FSA fallback: invalid schema_version draft is NOT seeded into state and localStorage entry is cleared', () => {
+  const doc = makeStubDom();
+  const ls = makeStubLocalStorage();
+  global.document = doc;
+  global.window = { document: doc, getSelection: () => null };
+  global.localStorage = ls;
+
+  const Cx = freshC();
+  const key = Cx._lsKey('/project/my-spec.html');
+
+  // Seed localStorage with a sidecar whose schema_version validate_sidecar will reject.
+  const badDraft = {
+    schema_version: 99,
+    lineage: '22222222-2222-4222-8222-222222222222',
+    threads: []
+  };
+  ls.setItem(key, JSON.stringify(badDraft));
+  assert.ok(ls.getItem(key) !== null, 'bad draft should be present before mount');
+
+  // Force FSA-fallback mode via the opts override (_fsaFallbackMode: true).
+  Cx.mount({
+    artifactPath: '/project/my-spec.html',
+    lineage: '22222222-2222-4222-8222-222222222222',
+    _fsaFallbackMode: true
+  });
+
+  // Assert: state.sidecar was NOT seeded from the invalid draft.
+  assert.ok(
+    !Cx._state.sidecar || Cx._state.sidecar.schema_version !== 99,
+    'state.sidecar must NOT be the bad draft (schema_version 99)'
+  );
+
+  // Assert: the bad localStorage entry was cleared.
+  assert.strictEqual(ls.getItem(key), null, 'localStorage entry must be cleared after rejected draft');
+
+  delete global.document; delete global.window; delete global.localStorage;
+});
+
 Promise.all(_pending).then(() => {
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);

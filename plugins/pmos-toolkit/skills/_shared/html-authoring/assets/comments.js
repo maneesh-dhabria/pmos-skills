@@ -495,8 +495,16 @@
       _attachSelectionListener();
       if (_fsaFallbackMode) {
         // Rehydrate previous localStorage draft so reload doesn't lose threads.
+        // Validate first: seed only if schema is current; clear if stale/unknown.
         var draft = _lsDraftLoad(state.artifactPath);
-        if (draft && !state.sidecar) state.sidecar = draft;
+        if (draft) {
+          if (validate_sidecar(draft) && !state.sidecar) {
+            state.sidecar = draft;
+          } else if (!validate_sidecar(draft)) {
+            // Stale/invalid draft — clear so it doesn't get re-seeded on every reload.
+            _lsDraftClear(state.artifactPath);
+          }
+        }
         // Ensure panel exists before rendering the save button.
         _ensurePanel();
         _renderSaveSidecarButton();
