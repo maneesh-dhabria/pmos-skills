@@ -51,6 +51,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | Draft a PRD / EDD / Discovery Doc | `/artifact` | Section-level eval + writing-style presets |
 | Tighten any prose | `/polish` | 14-check rubric; voice-preserving; optional editorial reduction pass |
 | Audit, scaffold, or update a README | `/readme` | Rubric + 3-persona simulated reader |
+| Annotate any pmos-emitted HTML artifact in the browser | `/comments` | Highlight → comment → resolve via `/comments resolve <artifact>`; sidecar `<artifact>.comments.json` pairs to the HTML |
 | Design and field a survey | `/survey-design` | Then `/survey-analyse` on the responses |
 | Generate a vector diagram | `/diagram` | Brainstorms framings, self-evaluates against a hybrid rubric |
 | Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs |

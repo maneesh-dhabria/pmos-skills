@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-05-25 — pmos-toolkit 2.56.0: `/comments` — inline comment overlay on every pmos HTML artifact
+
+Stakeholders can now annotate any pmos-emitted HTML artifact directly in their browser — highlight a span, leave a threaded comment, resolve from chat. No screenshots, no out-of-band Slack threads, no "what page did you mean" back-and-forth. The overlay JS + sidecar JSON are baked into every HTML emit; `/comments resolve <artifact>` walks the threads and dispatches each to its originating skill for surgical edits.
+
+**What's new**
+
+- New `/comments` skill with `/comments resolve <artifact>` in 4 modes: `--confirm-each` (default), `--batch`, `--auto`, `--non-interactive`.
+- New launcher trio (`comments-open.command` / `.sh` / `.bat`) opens any artifact through a local Node server with the overlay pre-loaded. Chrome writes the sidecar `<artifact>.comments.json` directly via the File System Access API; Safari/Firefox buffer to localStorage and offer a Save-sidecar download.
+- 14 pmos surfaces (`/requirements`, `/spec`, `/plan`, `/wireframes`, `/prototype`, `/diagram`, `/polish`, `/architecture`, `/readme`, `/survey-design`, `/survey-analyse`, `/ideate`, `/artifact`, `/feature-sdlc` × 2 emits) now bake `<meta name="pmos:skill">` + the comments overlay into every HTML emit, with per-skill `apply-edit-at-anchor.js` shims so each resolved thread routes back to the originating skill.
+- SVG artifacts (`/diagram`, `/wireframes`) get `data-anchor` attributes on every `<g>` + top-level `<rect>` / `<path>`; foreign embedded SVGs fall back to bbox-based anchors.
+- New pre-commit drift hook refuses to commit one half of the `<artifact>.html` / `<artifact>.comments.json` pair without its sibling. Install with `bash scripts/install-comments-hooks.sh`; bypass via `git commit --no-verify` for archival/migration scenarios.
+- `/verify` Phase 7 Hard Gates now invoke `scripts/check-comments-coverage.sh` — refuses completion if any of the 14 contract tests, 15 emit references, or the resolver integration test is missing.
+- Bundle-size policy: authoring assets (`comments.js + comments.css`) ≤20KB soft / ≤40KB hard; vendored `diff-match-patch.js` ≤100KB ceiling. Enforced by `.github/workflows/comments-bundle-size.yml`.
+
+**References**
+
+- Spec: `docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html`
+- Plan: `docs/pmos/features/2026-05-23_inline-doc-comments/03_plan.html`
+- Verify report: `docs/pmos/features/2026-05-23_inline-doc-comments/verify/2026-05-25-review.html`
+- Manual smoke matrix: `plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md`
+
 ## 2026-05-24 — pmos-toolkit 2.55.0: `/wireframes` Phase 7 — Figma-like canvas view aggregating every screen
 
 `/wireframes` now always emits a Figma-like `canvas.html` viewer alongside the per-device wireframe files. Every screen of every device renders on an infinite pan/zoom surface, with flow arrows derived from DESIGN.md user journeys and screens drag-positionable on the canvas. The curated layout persists to a `canvas.json` sidecar that round-trips across re-runs — drag a screen, click **Save layout**, drop the downloaded JSON next to the existing one, commit. Next time anyone opens the canvas they see the curated arrangement.
