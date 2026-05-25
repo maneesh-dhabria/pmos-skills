@@ -2,6 +2,13 @@
 # Pre-commit drift hook: reject commits whose staged diff causes plugins/*/skills/_shared/ drift.
 # Per spec FR-30..FR-34.
 set -euo pipefail
+
+# Source comments-drift sub-hook (T25, FR-15)
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+if [ -x "${hook_dir}/pre-commit-comments-drift" ]; then
+  "${hook_dir}/pre-commit-comments-drift" || exit $?
+fi
+
 staged=$(git diff --cached --name-only)
 echo "$staged" | grep -q '^plugins/[^/]\+/skills/_shared/' || exit 0  # FR-33 short-circuit
 peers=$(find plugins -maxdepth 3 -type d -name _shared | sort)
