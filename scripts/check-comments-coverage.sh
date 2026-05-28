@@ -98,6 +98,23 @@ for f in "$ROOT/comments/tests/scorer.test.js" \
 done
 
 # ---------------------------------------------------------------------------
+# (5) NFR-03 soft-warn: inline JSON block size budget.
+#     Warns (does NOT fail) when an artifact's inline pmos-comments block
+#     exceeds the per-artifact size ceiling. Soft so the gate stays green for
+#     legitimately large review backlogs; the WARN line is the operator's
+#     cue to triage (resolve stale threads, archive the artifact).
+# ---------------------------------------------------------------------------
+NFR03_LIMIT=204800  # 200 KiB
+if [[ -d docs/pmos ]]; then
+  while IFS= read -r -d '' f; do
+    size=$(awk '/pmos-comments:start/,/pmos-comments:end/' "$f" | wc -c | tr -d ' ')
+    if [[ "$size" -gt "$NFR03_LIMIT" ]]; then
+      echo "WARN: $f inline pmos-comments block ${size}B exceeds ${NFR03_LIMIT}B (NFR-03)" >&2
+    fi
+  done < <(find docs/pmos -type f -name '*.html' -print0)
+fi
+
+# ---------------------------------------------------------------------------
 # All checks passed
 # ---------------------------------------------------------------------------
 echo "comments-coverage: PASS — 14 contract tests (13 skills + 1 orchestrator) + 15 emit references (13 skill + 2 orchestrator surfaces) + 1 resolver integration + 2 anchor calibration tests"
