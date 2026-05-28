@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": 2,
+  "generated_at": "2026-05-21T11:30:00.000Z",
+  "threads": [
+    {
+      "id": "fixb_t01",
+      "anchor": { "id_anchor": "scenario", "quote_anchor": null },
+      "status": "open",
+      "messages": [
+        { "role": "user", "body": "Worth covering the empty-input case too.", "author": "reviewer-a", "ts": "2026-05-21T11:30:00.000Z" }
+      ],
+      "created_at": "2026-05-21T11:30:00.000Z",
+      "updated_at": "2026-05-21T11:30:00.000Z"
+    }
+  ]
+}
