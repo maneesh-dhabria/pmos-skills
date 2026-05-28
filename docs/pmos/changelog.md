@@ -1,6 +1,34 @@
 # Changelog
 
-## 2026-05-28 — pmos-toolkit 2.59.0: inline-HTML artifacts (comments persist inside the HTML)
+## 2026-05-28 — pmos-toolkit 2.60.0: `/architecture --from-spec` mode + folded into /spec and /verify
+
+`/architecture` gains a seventh mode — `--from-spec <spec-path>` — that audits a Tier-3 spec's `§Modules` + `§Architectural Assertions` against the loaded principles set (L1 + L2 + L3) by dispatching a judge subagent at `temperature: 0`, validating findings via a 6-rule orchestrator-side gate, and emitting the standard HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}`. The mode also lights up two new folded sub-phases in the SDLC: `/spec` Phase 6.6 (Tier-3 default-on, Tier-2 auto-upgrade-on-new-modules, Tier-1 skipped) and `/verify` Phase 4.7 (`--since <merge-base>` against the feature branch's diff). Both sub-phases follow the advisory-failure pattern (D11): folded-architecture crashes append to `state.yaml.phases.<host>.folded_phase_failures[]` and emit a chat `WARNING` but never block the host phase.
+
+**What's new**
+
+- **`--from-spec <spec-path>` CLI mode.** Mutually exclusive with `--since` / `--baseline` / `--deep`. Three D8 knobs control output: `--top-n <N>` (default 8), `--min-confidence <N>` (default 70), `--no-evidence-required` (disables the ≥40-char verbatim-quote requirement). Spec contract violations exit 65 with §9.4 stderr; usage errors exit 64. Spec parsing extracts `§Modules` (table → `{name, deps, role}`) and `§Architectural Assertions` (bullet list → `{text, section_id}`) via `node scripts/parse-spec.js`.
+- **`/spec` Phase 6.6 (folded /architecture --from-spec).** Runs immediately after the spec's review loop closes. Tier-1 skips with a log line; Tier-2 runs `auto-upgrade-detector.sh` (a deterministic heuristic that resolves `§Modules` entries against the live repo tree — basename OR full-path match — and returns `{upgrade, new_modules, reason}`); Tier-3 runs unconditionally. The auto-upgrade-to-Tier-3 path fires only when the spec declares new modules absent from the repo. `--skip-folded-arch` is the explicit escape hatch. Re-invoking `/spec` re-runs Phase 6.6 idempotently (overwrites the prior triplet at the same path; no new orchestrator phase ID is created).
+- **`/verify` Phase 4.7 (folded /architecture --since).** Runs after Phase 4's compliance tables. Tier-1 skips; Tier-2 dispatches with scoped `--since <merge-base>` (branch diff); Tier-3 dispatches with full `--since $(git merge-base HEAD main)`. The empty-diff log line `architecture: no changes since $SINCE; skipping` short-circuits when the diff is clean. `--skip-folded-arch` mirrors `/spec`'s escape. Findings are aggregated into `verify`'s compliance summary as an `Architecture findings` subsection.
+- **Principles set (24 rules).** `plugins/pmos-toolkit/skills/architecture/principles.md` ships 11 L1 universal rules + 4 L2 TypeScript rules + 9 L2 Python rules. Each rule carries `id`, `layer`, `severity ∈ {must_fix, should_fix, consider}`, prose `description`, and `## Why` / `## How to verify` subsections (per the existing skill's rubric). `principles.yaml` is the structured loader source; `principles.md` is the human-readable rationale doc. A pre-commit drift hook (`bash plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh`) installs `check-principles-drift.sh` to refuse commits that desynchronize the two; bypassable via `git commit --no-verify` per D9.
+- **Advisory-failure pattern (D11).** Folded-architecture crashes (judge dispatch timeout, validator hard-fail, etc.) append `{skill: 'architecture', ts, error_excerpt}` to `state.yaml.phases.<host>.folded_phase_failures[]` and emit `WARNING: architecture crashed (advisory continue per D11): <excerpt>` to chat. The host phase continues to PASS. `/feature-sdlc` Phase 9 (final-summary) surfaces all `folded_phase_failures[]` aggregates per FR-29.
+- **State-schema invariance.** `/feature-sdlc`'s `reference/state-schema.md` carries **zero** top-level `arch-spec` / `arch-verify` / `architecture` phase IDs. The whole feature is folded sub-step only — verified by `test-feature-sdlc-state-invariance.sh`.
+- **20 bash test suites.** 15 architecture (rule loader, validator, knobs, emit, drift hook, drift-hook installer, from-spec parser, judge prompt template, since-extension, tracer, principles-md coverage, auto-upgrade detector, findings validator, advisory-failure pattern, E2E + state-invariance + installer) + 3 spec (Phase 6.6 smoke / gate / re-run cascade) + 2 verify (Phase 4.7 smoke / sub-step). All green at release.
+
+**Marketplace.json hygiene**
+
+This release also strips the `version` field from both `.claude-plugin/marketplace.json` and `.codex-plugin/marketplace.json` entries — they were carrying a stale `2.57.0` value pre-existing this branch, which directly violates `CLAUDE.md ## Plugin manifest version sync` ("The `plugin.json` value always wins silently, so a stale manifest version can mask a version you set in `marketplace.json`"). The marketplace catalogs are now version-free; `plugin.json` is the single source of truth.
+
+**Why this matters**
+
+The shipped `/architecture` (v2.50+) audited code against principles; this release flips the same lens onto the spec — does the architecture you *committed to in the doc* match what's actually in the tree? Auditing both directions closes the loop where teams write idealized spec architecture and then drift silently as the code evolves. The folded sub-phases make this automatic at /spec time (catch drift the moment the spec is written) and at /verify time (catch drift before the merge lands).
+
+**References**
+
+- Feature folder: `docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/` — requirements (Tier 3, 13 reshaped after grill), spec (47 FRs, 6 NFRs, 13 decisions), plan (16 tasks, 6 waves), /verify review report (Phase 7 PASS with 3 advisory deviations).
+- Spec: `02_spec.html#mode-from-spec-cli` (§9.1 CLI signature), `#advisory-failure-pattern` (§14 D11), `#fr-29` (folded_phase_failures aggregation).
+- 3 deviations logged for follow-up minor: (1) WARNING-phrasing divergence /spec ↔ /verify; (2) T15 E2E honest degradation — real-judge dispatch is a TN human API-smoke item; (3) shfmt not installed in dev env, TN lint degraded to `bash -n`.
+
+
 
 Stakeholder comment threads on pmos-emitted HTML artifacts now persist as an **inline JSON block inside the HTML itself** — `<script id="pmos-comments" type="application/json">` between `<!-- pmos-comments:start -->` / `<!-- pmos-comments:end -->` sentinels. The legacy `<artifact>.comments.json` sidecar contract (pre-v2.59.0) and its pre-commit drift-hook installer are retired. The artifact is now the single source of truth; copy the file, the threads come with it.
 

@@ -54,7 +54,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | Annotate any pmos-emitted HTML artifact in the browser | `/comments` | Highlight → comment → resolve via `/comments resolve <artifact>`; sidecar `<artifact>.comments.json` pairs to the HTML |
 | Design and field a survey | `/survey-design` | Then `/survey-analyse` on the responses |
 | Generate a vector diagram | `/diagram` | Brainstorms framings, self-evaluates against a hybrid rubric |
-| Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs |
+| Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs; `--from-spec` mode audits spec architectural assertions against code (folded into `/spec` Phase 6.6 + `/verify` Phase 4.7) |
 | Track personal tasks (LNO, due dates, people) | `/mytasks` | Lives at `~/.pmos/tasks/` |
 | Maintain a shared person / contact directory | `/people` | Handle, name, role, working relationship; consumed by `/mytasks` |
 | Track a lightweight repo backlog | `/backlog` | Hybrid quick-capture + structured tracker |
