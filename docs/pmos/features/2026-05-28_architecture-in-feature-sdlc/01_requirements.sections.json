@@ -1,0 +1,158 @@
+[
+  {
+    "id": "metadata",
+    "level": 2,
+    "title": "Metadata",
+    "parent_id": null
+  },
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "who-experiences-this",
+    "level": 3,
+    "title": "Who experiences this?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "why-now",
+    "level": 3,
+    "title": "Why now?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "goals-and-non-goals",
+    "level": 2,
+    "title": "Goals & Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 3,
+    "title": "Goals",
+    "parent_id": "goals-and-non-goals"
+  },
+  {
+    "id": "non-goals",
+    "level": 3,
+    "title": "Non-Goals",
+    "parent_id": "goals-and-non-goals"
+  },
+  {
+    "id": "user-experience-analysis",
+    "level": 2,
+    "title": "User Experience Analysis",
+    "parent_id": null
+  },
+  {
+    "id": "motivation",
+    "level": 3,
+    "title": "Motivation",
+    "parent_id": "user-experience-analysis"
+  },
+  {
+    "id": "friction-points",
+    "level": 3,
+    "title": "Friction Points",
+    "parent_id": "user-experience-analysis"
+  },
+  {
+    "id": "satisfaction-signals",
+    "level": 3,
+    "title": "Satisfaction Signals",
+    "parent_id": "user-experience-analysis"
+  },
+  {
+    "id": "solution-direction",
+    "level": 2,
+    "title": "Solution Direction",
+    "parent_id": null
+  },
+  {
+    "id": "slot-1-phase-4-5",
+    "level": 3,
+    "title": "Slot 1 — Phase 4.5 (between /spec and /plan)",
+    "parent_id": "solution-direction"
+  },
+  {
+    "id": "slot-2-phase-7-sub-step",
+    "level": 3,
+    "title": "Slot 2 — Phase 7 sub-step (inside /verify)",
+    "parent_id": "solution-direction"
+  },
+  {
+    "id": "foundation-deliverables",
+    "level": 3,
+    "title": "Foundation deliverables (same release)",
+    "parent_id": "solution-direction"
+  },
+  {
+    "id": "user-journeys",
+    "level": 2,
+    "title": "User Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "primary-tier-3-happy-path",
+    "level": 3,
+    "title": "Primary (Tier-3, happy path)",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "alternate-tier-2",
+    "level": 3,
+    "title": "Alternate (Tier-2)",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "edge-tier-1",
+    "level": 3,
+    "title": "Edge (Tier-1)",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "error-journeys",
+    "level": 3,
+    "title": "Error journeys",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "empty-states-and-edge-cases",
+    "level": 3,
+    "title": "Empty states & edge cases",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "design-decisions",
+    "level": 2,
+    "title": "Design Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "success-metrics",
+    "level": 2,
+    "title": "Success Metrics",
+    "parent_id": null
+  },
+  {
+    "id": "research-sources",
+    "level": 2,
+    "title": "Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open Questions",
+    "parent_id": null
+  }
+]

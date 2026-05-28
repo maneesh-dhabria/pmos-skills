@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integrating /architecture into /feature-sdlc — Requirements</title>
+  <meta name="pmos:skill" content="requirements">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.1">
+  <script defer src="assets/viewer.js?v=2.57.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Integrating /architecture into /feature-sdlc — Requirements</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="metadata">
+<h2 id="metadata">Metadata</h2>
+<dl>
+  <dt>Date</dt><dd>2026-05-28</dd>
+  <dt>Last updated</dt><dd>2026-05-28</dd>
+  <dt>Status</dt><dd>Draft</dd>
+  <dt>Tier</dt><dd>3 — Feature</dd>
+  <dt>Source brief</dt><dd><a href="../../ideate/2026-05-28_architecture-in-feature-sdlc.html">docs/pmos/ideate/2026-05-28_architecture-in-feature-sdlc.html</a></dd>
+</dl>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem</h2>
+<p>The repo currently has <code>/architecture</code> as a code-side static-analysis lint and <code>/feature-sdlc</code> as the SDLC orchestrator, but the two never talk to each other. Spec-time design proceeds without an architectural lens; verify-time has no structural-regression check beyond what diff-level reviewers happen to notice. The result is that architectural issues surface post-merge during <code>/reflect</code> retros — or never — and accumulate as silent tech debt.</p>
+
+<h3 id="who-experiences-this">Who experiences this?</h3>
+<p>Repo maintainer driving <code>/feature-sdlc</code> on Tier-3 features in <code>pmos-toolkit</code> and adjacent multi-module repos. Single user today (Maneesh), but the contract generalises to any <code>/feature-sdlc</code> operator on a repo that has shipped an <code>/architecture</code> principles configuration.</p>
+
+<h3 id="why-now">Why now?</h3>
+<ul>
+  <li>State schema v5 just shipped; the next additive bump (v6 or per-phase substructure) is the natural integration window.</li>
+  <li><code>/simulate-spec</code> has proved out the pre-<code>/plan</code> validator pattern — there is a working precedent to mirror.</li>
+  <li><code>principles.yaml</code> already ships in <code>/architecture</code>, so the marginal cost is mostly orchestration, not new rule-authoring.</li>
+</ul>
+</section>
+
+<section id="goals-and-non-goals">
+<h2 id="goals-and-non-goals">Goals &amp; Non-Goals</h2>
+
+<h3 id="goals">Goals</h3>
+<ul>
+  <li>Surface architectural concerns at design time (Phase 4.5) for Tier-3 features — measured by user-retains-gate signal (operator does not auto-pass <code>--skip</code> after the first 3 Tier-3 runs) and by a false-positive rate below 20% on <code>--from-spec</code> findings.</li>
+  <li>Catch structural regressions at verify time (Phase 7) for Tier-2 and Tier-3 — measured by <code>/architecture</code> finding a delta in changed modules that <code>/verify</code>'s existing reviewers miss.</li>
+  <li>Zero added cost on Tier-1 bug fixes — measured by no <code>/architecture</code> invocation appearing in T1 <code>state.yaml</code> runs.</li>
+  <li>Keep added latency at Phase 4.5 under 90s P50 on Tier-3 — measured by timing the gate on a representative sample run.</li>
+</ul>
+
+<h3 id="non-goals">Non-Goals</h3>
+<ul>
+  <li>NOT auditing the entire repo at Phase 7 — scoped to changed modules only (since merge-base) — because whole-repo audits produce noise at PR time.</li>
+  <li>NOT building a parallel rules engine — because <code>principles.yaml</code> + a single LLM judge is the chosen direction and dual-implementation is the explicit failure mode the brief eliminated.</li>
+  <li>NOT making Phase 4.5 hard at any tier — because pre-spec design is exploratory and false positives train users to skip.</li>
+  <li>NOT building <code>--from-spec</code> as a separate skill — because the existing <code>/architecture</code> skill owns "audit against principles" and <code>--from-spec</code> is a new input mode, not a new domain.</li>
+</ul>
+</section>
+
+<section id="user-experience-analysis">
+<h2 id="user-experience-analysis">User Experience Analysis</h2>
+
+<h3 id="motivation">Motivation</h3>
+<ul>
+  <li><strong>Job:</strong> surface architectural violations while they are still cheap to fix (at spec time vs. post-merge).</li>
+  <li><strong>Importance / Urgency:</strong> medium — issues today are caught at retro and become tech debt; no incident is driving it, but the cost compounds.</li>
+  <li><strong>Alternatives:</strong> do nothing (status quo); manual ad-hoc <code>/architecture</code> invocation; augmenting <code>/verify</code>'s existing reviewer prompts.</li>
+</ul>
+
+<h3 id="friction-points">Friction Points</h3>
+<table>
+  <thead><tr><th>Friction</th><th>Cause</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>LLM judge false positives at Phase 4.5 → user learns to skip</td><td>Prose-on-prose judging is fuzzier than code-side static checks</td><td>Cap findings at top-N by impact; require evidence citation from spec; spike before commit (5 historical specs, measure precision/recall)</td></tr>
+    <tr><td>Added pipeline latency on every Tier-3 run</td><td>New phase plus new verify sub-step</td><td>Tier-gate from day 1; <code>--from-spec</code> runs only the LLM judge (no static tools) to keep ≤90s P50</td></tr>
+    <tr><td>Phase 4.5 overlaps with <code>/verify</code>'s existing code review</td><td>Both look at code-level issues at adjacent stages</td><td>Explicit boundary: <code>/verify</code> = diff-level quality; <code>/architecture</code> = structural principles</td></tr>
+    <tr><td>Principles doc drifts from what tools actually enforce</td><td>Two sources of truth (prose doc + YAML rules)</td><td>Each principle in the prose doc declares which static tools (if any) enforce it; judge-only principles clearly marked</td></tr>
+  </tbody>
+</table>
+
+<h3 id="satisfaction-signals">Satisfaction Signals</h3>
+<ul>
+  <li>User keeps the Phase 4.5 gate enabled after the first 3 Tier-3 features (does not auto-pass <code>--skip</code>).</li>
+  <li><code>/complete-dev</code> release notes cite architecture findings actually addressed in the merged feature.</li>
+</ul>
+</section>
+
+<section id="solution-direction">
+<h2 id="solution-direction">Solution Direction</h2>
+<p>Two integration slots, sharing one rule definition and one LLM judge.</p>
+
+<h3 id="slot-1-phase-4-5">Slot 1 — Phase 4.5 (between /spec and /plan)</h3>
+<p>Runs <code>/architecture --from-spec &lt;spec-path&gt;</code>. The LLM judge reads <code>principles.md</code> + the spec and renders findings. Soft gate at every tier: Recommended-Run on T3, Recommended-Skip on T2, suppressed on T1.</p>
+
+<h3 id="slot-2-phase-7-sub-step">Slot 2 — Phase 7 sub-step (inside /verify)</h3>
+<p>The existing <code>/architecture</code> static-analysis path runs against changed modules (<code>--since &lt;merge-base&gt;</code>) and produces mechanical evidence. The same LLM judge reads principles + code + that evidence and renders findings. Runs on T2 (scoped) and T3.</p>
+
+<h3 id="foundation-deliverables">Foundation deliverables (same release)</h3>
+<ul>
+  <li>New <code>/architecture --from-spec &lt;spec-path&gt;</code> invocation mode. Reads spec HTML/MD, extracts the proposed module list, dependencies, and architectural assertions, dispatches the judge subagent with principles + spec inputs, and emits the HTML+MD+JSON triplet under <code>{docs_path}/architecture/{date}_&lt;slug&gt;_from-spec.{html,md,json}</code>. Fails loud on specs lacking module/dependency structure.</li>
+  <li>Authoring of <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> — prose source of truth (L1 universal + L2 stack-specific + L3 per-repo conventions). Each principle declares which static tools (if any) detect violations.</li>
+  <li>State schema bump (v5 → v6, or additive sub-structure on existing phase entries) to record <code>phase_4_5_arch_spec_findings_path</code> and <code>phase_7_arch_code_findings_path</code>.</li>
+</ul>
+</section>
+
+<section id="user-journeys">
+<h2 id="user-journeys">User Journeys</h2>
+
+<h3 id="primary-tier-3-happy-path">Primary (Tier-3, happy path)</h3>
+<ol>
+  <li>Operator runs <code>/feature-sdlc &lt;idea&gt;</code>; pipeline proceeds normally through <code>/requirements</code> → <code>/grill</code> → <code>/creativity</code> → <code>/wireframes</code> → <code>/prototype</code> → <code>/spec</code>.</li>
+  <li><strong>Phase 4.5 gate fires:</strong> "Run <code>/architecture --from-spec</code> against the just-emitted spec? (Recommended)" — operator confirms.</li>
+  <li><code>/architecture --from-spec</code> dispatches the judge subagent and returns 3 findings cited to specific principles + spec sections.</li>
+  <li>Operator either revises the spec (re-runs <code>/spec</code>) or accepts the findings and proceeds to <code>/plan</code>.</li>
+  <li>Pipeline continues through <code>/plan</code> → <code>/execute</code>.</li>
+  <li><strong>Phase 7 sub-step (inside /verify):</strong> <code>/architecture --since &lt;merge-base&gt;</code> runs against changed modules; static tools + judge return 1 finding (a cycle introduced); the <code>/verify</code> report includes it alongside lint and test results.</li>
+  <li>Operator addresses the finding before <code>/complete-dev</code> merges.</li>
+</ol>
+
+<h3 id="alternate-tier-2">Alternate (Tier-2)</h3>
+<p>Phase 4.5 gate suppressed (Recommended-Skip). Phase 7 sub-step runs scoped to changed modules.</p>
+
+<h3 id="edge-tier-1">Edge (Tier-1)</h3>
+<p>Both slots skipped entirely. No <code>/architecture</code> invocation. Zero added latency.</p>
+
+<h3 id="error-journeys">Error journeys</h3>
+<ul>
+  <li><strong><code>--from-spec</code> hits a spec lacking module/dep structure:</strong> fails loud (exit non-zero); operator sees a structured error pointing to the minimum spec contract; can revise the spec or pass <code>--force-incomplete</code>.</li>
+  <li><strong>Phase 4.5 LLM judge times out or hits rate limit:</strong> soft-gate failure dialog (per <code>/feature-sdlc reference/failure-dialog.md</code>); operator picks Retry / Pause / Skip.</li>
+  <li><strong>Principles doc out of sync with YAML rules:</strong> judge cites a principle the tools never check → finding metadata is flagged <code>judge_only: true</code>; does not block.</li>
+</ul>
+
+<h3 id="empty-states-and-edge-cases">Empty states &amp; edge cases</h3>
+<table>
+  <thead><tr><th>Scenario</th><th>Condition</th><th>Expected</th></tr></thead>
+  <tbody>
+    <tr><td>Spec has 0 modules declared</td><td><code>--from-spec</code> invoked</td><td>Fail loud with <code>spec-contract-violation</code> exit code; structured message lists missing sections</td></tr>
+    <tr><td>No changed files since merge-base</td><td>Phase 7 sub-step</td><td>Skip cleanly with log line <code>architecture: no changes since merge-base; skipping</code>; no judge invocation</td></tr>
+    <tr><td>L3 <code>principles.yaml</code> missing in target repo</td><td><code>/architecture</code> invocation</td><td>Use plugin-shipped L1+L2 only; advisory log <code>no L3 overrides found; using defaults</code></td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="design-decisions">
+<h2 id="design-decisions">Design Decisions</h2>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Two slots (Phase 4.5 pre-spec + Phase 7 post-impl)</td><td>(a) Phase 4 alone, (b) Phase 7 alone, (c) Phase 0 baseline only, (d) bookend at all tiers, (e) standalone handoff suggestion</td><td>Bookend catches issues at both moments where action is cheap; tier-gated to avoid T1 cost. Standalone-only loses signal because users do not run optional tools (per ideate variant #7 rejection).</td></tr>
+    <tr><td>D2</td><td>One principles document + one LLM judge (not parallel evaluators)</td><td>(a) Static tools authoritative + LLM supplement, (b) LLM authoritative + tools as evidence (selected), (c) dual independent evaluators</td><td>Dual implementations drift; single judge with tools-as-evidence is the simplest contract and eliminates one of the original H/H risks from the brief.</td></tr>
+    <tr><td>D3</td><td>Ship <code>/architecture --from-spec</code> in the same release as the integration</td><td>(a) Backlog the mode, ship orchestration only, (b) ship both together (selected)</td><td>Without <code>--from-spec</code>, Phase 4.5 is theatre — has no signal when pointed at prose.</td></tr>
+    <tr><td>D4</td><td>Tier-gating: T1 skip both, T2 post-only, T3 both</td><td>(a) Tier-3-only at all slots, (b) all tiers all slots, (c) ternary T1/T2/T3 dispatch (selected)</td><td>Pre-spec slot is exploratory; T2 does not reliably need it. T1 fixes do not introduce structural change. Ternary is novel (no precedent in <code>/feature-sdlc</code>) — accepted complexity for right-sized cost.</td></tr>
+    <tr><td>D5</td><td>Findings doc shape = same HTML+MD+JSON triplet as code-audit mode</td><td>(a) New simulation-style folder per <code>/simulate-spec</code>, (b) inline into spec doc as sibling section, (c) standalone triplet (selected)</td><td>Triplet is the established <code>/architecture</code> artifact contract; reuses substrate; per-feature folder gets a sibling under <code>{docs_path}/architecture/</code> with cross-links.</td></tr>
+    <tr><td>D6</td><td>Principles prose lives at <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (not in YAML comments)</td><td>(a) Inline as YAML comments, (b) separate .md authoritative + YAML generated, (c) .md prose alongside YAML (selected; both human-authored, YAML is the machine-readable handoff)</td><td>Prose readability matters for the LLM judge's rule comprehension; YAML stays the script handoff. Drift risk mitigated by "each principle declares its tool" pattern.</td></tr>
+    <tr><td>D7</td><td>Phase 4.5 is a soft gate; never blocks at any tier</td><td>(a) Hard at T3, soft elsewhere, (b) always soft (selected)</td><td>Spec-time design is exploratory; hard gates here train users to skip. Findings still rolled into <code>/verify</code>'s mandatory pass.</td></tr>
+    <tr><td>D8</td><td>Run a 1-day pre-build spike against 5 historical specs to test whether the LLM judge reliably applies prose principles to spec prose; no hard kill-switch threshold</td><td>(a) Skip spike, trust the judge, (b) spike with hard threshold (e.g. ship Slot 2 only if precision &lt;50%), (c) spike informs design but no go/no-go threshold (selected)</td><td>The brief flagged judge-on-prose as the riskiest assumption (H/H); the spike is cheap insurance, but a rigid precision threshold would over-mechanise a judgment call. Spike findings feed Decisions in <code>/spec</code> (e.g. cap findings, evidence-citation rules), not a build/no-build gate.</td></tr>
+    <tr><td>D9</td><td>New principles ship as both a YAML rule entry and a prose entry in <code>principles.md</code> in the same PR</td><td>(a) Prose lags YAML and is back-filled, (b) YAML auto-generated from prose, (c) prose + YAML co-authored in the same PR (selected; enforced by review convention)</td><td>Co-authoring is the cheapest way to keep the two halves aligned. A mechanical drift hook (Q5) would harden this but is out of scope for v1 — review convention is the v1 enforcement and the drift hook is the v2 upgrade path.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="success-metrics">
+<h2 id="success-metrics">Success Metrics</h2>
+<table>
+  <thead><tr><th>Metric</th><th>Baseline</th><th>Target</th><th>Measurement</th></tr></thead>
+  <tbody>
+    <tr><td>Added P50 latency at Phase 4.5</td><td>n/a</td><td>&lt;90s</td><td>Time the gate on a sample run</td></tr>
+    <tr><td>Added latency on Tier-1 runs</td><td>n/a</td><td>0s</td><td>Confirm no <code>/architecture</code> invocation in T1 <code>state.yaml</code></td></tr>
+    <tr><td><code>--from-spec</code> false-positive rate</td><td>n/a</td><td>&lt;20%</td><td>User accept/reject ratio on findings (first 5 features)</td></tr>
+    <tr><td>User retains Phase 4.5 gate</td><td>n/a</td><td>No auto-<code>--skip</code> across first 3 Tier-3 runs</td><td>Inspect <code>state.yaml</code> phase status across the first 3 post-launch Tier-3 features</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">Research Sources</h2>
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><a href="../../ideate/2026-05-28_architecture-in-feature-sdlc.html"><code>docs/pmos/ideate/2026-05-28_architecture-in-feature-sdlc.html</code></a></td><td>Ideate brief</td><td>Pressure-tested design; H/H risk reduced to one (LLM judge on prose); ternary tier-gating proposed</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code></td><td>Existing skill</td><td>Modes (<code>--deep</code>, <code>--since</code>, <code>--baseline</code>, <code>--scaffold-l3</code>, <code>--non-interactive</code>, <code>--monorepo</code>), artifact shape, static-tool wiring; no <code>--from-spec</code> mode today</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code></td><td>Existing rules</td><td>Schema v2; 10 L1 universal (U001–U011) + 4 L2 TS (TS001–TS004) + 4 L2 Python (PY001–PY009); per-rule <code>message/why/source/check/delegate_to</code></td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/SKILL.md</code></td><td>Orchestrator</td><td>Phase 2a / 3a / 3b gate patterns; Phase 4/5 boundary; no Phase 4.5 today</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code></td><td>Schema source</td><td>Currently v5; migration is additive 5-step chain; new fields need v6 bump or per-phase sub-structure</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/simulate-spec/SKILL.md</code></td><td>Prior art</td><td>Same shape as proposed Phase 4.5: optional, tier-gated, standalone validator between <code>/spec</code> and <code>/plan</code></td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/spec/SKILL.md</code></td><td>Spec emitter</td><td><code>/simulate-spec</code> folded inside Phase 6.5; pattern for Phase 4.5 to mirror</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code></td><td>Verify orchestrator</td><td>Phase 3 multi-agent reviewer pattern; Phase 4.5 folded-phase advisory; Phase 7 hard gates (script-based)</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>
+        F1. Goal #1 (≥1 issue per Tier-3 feature) read as a quota.<br>
+        F2. Spike outcome contingency was undefined.<br>
+        F3. Success-metric row targeted 0 drift incidents but no mechanism existed.<br>
+        F4. Authorship workflow for <code>principles.md</code> was unaddressed.
+      </td>
+      <td>
+        F1 → dropped count goal; kept FP rate + user-retains-gate as proxy metrics.<br>
+        F2 → added D8 (spike runs, no hard kill-switch threshold).<br>
+        F3 → dropped the 0-drift success metric; left enforcement question as Q5.<br>
+        F4 → added D9 (YAML + prose co-author in same PR; review convention v1, drift hook v2).
+      </td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open Questions</h2>
+<table>
+  <thead><tr><th>#</th><th>Question</th></tr></thead>
+  <tbody>
+    <tr><td>Q1</td><td>State schema: bump v5 → v6 (additive new top-level fields), or extend existing phase entries with sub-structure (<code>phases.spec.arch_findings_path</code>, <code>phases.verify.arch_findings_path</code>)? v6 is cleaner; sub-structure avoids a schema bump.</td></tr>
+    <tr><td>Q2</td><td>Phase 4.5 phase ID — <code>arch-spec</code> or <code>architecture-spec</code> or fold into <code>spec</code> as a sub-step? Affects <code>state.yaml</code> shape and resume cursor.</td></tr>
+    <tr><td>Q3</td><td>Phase 7 sub-step — independent phase ID (<code>arch-code</code>) or rolled into <code>verify</code> as an internal sub-step (per <code>/verify</code>'s existing Phase 4.5 folded-phase pattern)? Brief says "sub-step inside <code>/verify</code>".</td></tr>
+    <tr><td>Q4</td><td>Compact-checkpoint trigger before Phase 4.5 — is 90s + judge dispatch enough to warrant a checkpoint? Existing triggers fire before 3b / 3c / 6 / 7.</td></tr>
+    <tr><td>Q5</td><td>Principles drift detection — how is YAML↔MD sync enforced? Pre-commit hook? CI check? Manual? Brief does not specify.</td></tr>
+    <tr><td>Q6</td><td>Phase 4.5 re-run on spec revision — if a finding causes the user to revise <code>/spec</code>, does the pipeline auto-re-run <code>--from-spec</code>, or wait for explicit re-invocation?</td></tr>
+    <tr><td>Q7</td><td>Tier-2 carve-out for new-module specs — should Tier-2 get Phase 4.5 when the spec introduces a new top-level module, even though the default is post-only?</td></tr>
+    <tr><td>Q8</td><td>Principles file location — <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (versioned with plugin) vs. <code>&lt;repo&gt;/.pmos/architecture/principles.md</code> (per-repo override) — likely both (L1/L2 in skill, L3 in repo), but the layering contract needs defining.</td></tr>
+    <tr><td>Q9</td><td><code>--from-spec</code> spec-contract minimum — what sections / structure must a spec have? Does this drive a new spec template requirement (affects the <code>/spec</code> skill)?</td></tr>
+    <tr><td>Q10</td><td>Spike-first protocol — should <code>/requirements</code> block on the 1-day spike (test LLM judge against 5 historical specs) before allowing <code>/spec</code>? Or is the spike a parallel-track precondition?</td></tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.1"></script>
+</body>
+</html>
