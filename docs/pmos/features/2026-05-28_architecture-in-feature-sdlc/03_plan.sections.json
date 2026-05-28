@@ -1,0 +1,140 @@
+[
+  {
+    "id": "metadata",
+    "level": 2,
+    "title": "Metadata",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns-to-follow",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "existing-code-to-reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "constraints-discovered",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "peer-plan-conflict-scan",
+    "level": 3,
+    "title": "Peer-plan conflict scan",
+    "parent_id": "code-study-notes"
+  },
+  {
+    "id": "prerequisites",
+    "level": 2,
+    "title": "Prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "file-map",
+    "level": 2,
+    "title": "File Map",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "rollback",
+    "level": 2,
+    "title": "Rollback",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1-tracer-bullet",
+    "level": 3,
+    "title": "Wave 1 — Tracer bullet (serial)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-2-foundations",
+    "level": 3,
+    "title": "Wave 2 — Foundations (parallel)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-3-widen-from-spec",
+    "level": 3,
+    "title": "Wave 3 — Widen --from-spec (parallel within wave)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-4-auto-upgrade-and-since",
+    "level": 3,
+    "title": "Wave 4 — Auto-upgrade detector + --since extension (parallel)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-5-host-integrations",
+    "level": 3,
+    "title": "Wave 5 — Host-skill integrations (parallel — disjoint skill dirs)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "wave-6-tests",
+    "level": 3,
+    "title": "Wave 6 — Integration + E2E tests (parallel)",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "tn",
+    "level": 3,
+    "title": "TN: Final Verification",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integrating /architecture into /spec and /verify — Implementation Plan</title>
+  <meta name="pmos:skill" content="plan">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.1">
+  <script defer src="assets/viewer.js?v=2.57.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Integrating /architecture into /spec and /verify — Implementation Plan</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="metadata">
+<h2 id="metadata">Metadata</h2>
+<dl>
+  <dt>tier</dt><dd>3</dd>
+  <dt>type</dt><dd>feature</dd>
+  <dt>feature</dt><dd>architecture-in-feature-sdlc</dd>
+  <dt>date</dt><dd>2026-05-28</dd>
+  <dt>status</dt><dd>Ready for Execute</dd>
+  <dt>commit_cadence</dt><dd>per-task</dd>
+  <dt>contract_version</dt><dd>1</dd>
+  <dt>execution_mode</dt><dd>subagent-driven</dd>
+  <dt>spec</dt><dd><a href="02_spec.html">02_spec.html</a></dd>
+  <dt>requirements</dt><dd><a href="01_requirements.html">01_requirements.html</a></dd>
+</dl>
+</section>
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p>Fold <code>/architecture</code> into <code>/spec</code> (new Phase 6.6) and <code>/verify</code> (new Phase 4.7) as sub-steps — NOT as orchestrator phases. <code>/feature-sdlc</code> stays unchanged. Ship one shared <code>principles.md</code> (alongside existing <code>principles.yaml</code>, schema v2, 18 rules), one shared LLM judge subagent (temperature 0, orchestrator-side validation), a new <code>/architecture --from-spec</code> mode plus a <code>--since</code> extension for /verify integration, and a ~30 LOC bash drift hook enforcing rule-ID set equality between the two principles files.</p>
+
+<p><strong>Done when:</strong> All 6 unit-test scripts pass (0 failures), all 5 integration-test scripts pass (0 failures), all 3 E2E test scripts pass (0 failures); <code>bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> exits 0; <code>/architecture --from-spec docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> emits a valid findings triplet (HTML+MD+JSON conforming to §13 schema) in &lt;90s wall-clock; <code>grep -E "^(arch-spec|arch-verify|architecture)" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code> returns zero matches (orchestrator unchanged); judge dispatch in <code>/spec</code> Phase 6.6 happy-path returns ≤8 findings, all with <code>rule_id</code> in loaded set and <code>quote</code> ≥40 chars verifiable as a substring of the cited spec section.</p>
+
+<p><strong>Done-when walkthrough:</strong> An operator runs <code>/spec</code> on this feature's own 02_spec.html. /spec emits the spec, then Phase 6.6 fires with the gate prompt <em>"Run /architecture --from-spec? (Recommended)"</em>. The operator confirms. Phase 6.6 dispatches <code>/architecture --from-spec</code> as a 300s blocking Task subagent. <code>/architecture</code> parses §Modules (5 rows) and §Architectural Assertions (7 bullets) from the spec, loads merged L1+L2+L3 principles (18 rules), assembles the judge prompt from <code>reference/judge-prompt-template.md</code>, dispatches the judge subagent at temperature 0, validates the returned JSON array (drops findings whose rule_id is unknown or whose quote is not a verbatim substring of the cited spec section), applies knobs (top-N=8, min-confidence=70, evidence-required=true), and emits the triplet to <code>docs/pmos/architecture/2026-05-28_architecture-in-feature-sdlc_from-spec.{html,md,json}</code>. The operator inspects the HTML triplet, confirms findings cite real rule IDs and real spec quotes, then runs <code>/verify</code> on the integration commit; /verify Phase 4.7 dispatches <code>/architecture --since $(git merge-base HEAD main)</code>, which runs <code>dependency-cruiser</code> + <code>ruff</code> + <code>cycle-py</code> on changed files, dispatches the same judge with code+evidence input, and aggregates findings into /verify's report alongside lint/tests/code-review. Operator commits aligned principles.yaml + principles.md; pre-commit drift hook exits 0. Final check: <code>cat plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md | grep -c "arch"</code> returns 0 (zero new orchestrator state).</p>
+
+<p><strong>Execution order (subagent-driven; deterministic wave planner per file-conflict relation):</strong></p>
+<pre><code>Wave 1 — Tracer bullet (1 task, serial — derisks judge pipeline end-to-end)
+  T1: Tracer-bullet /architecture --from-spec (hardcoded 2-rule slice, 1 fixture spec,
+      minimal judge dispatch + orchestrator validation + triplet emit)
+
+Wave 2 — Foundations (3 tasks, parallel; non-overlapping files)
+  T2 [P]: Author principles.md — all 18 rules (10 L1 + 4 L2 TS + 4 L2 Py)
+  T3 [P]: Author reference/judge-prompt-template.md
+  T4 [P]: Drift hook script + installer (scripts/check-principles-drift.sh + install-arch-hooks.sh)
+
+Wave 3 — Widen --from-spec (5 tasks, parallel within wave; depend on W1+W2)
+  T5 [P]: Principles loader with L1+L2+L3 merge + collision logging
+  T6 [P]: Spec parser — 5 fixtures, exit 65 contract for missing sections
+  T7 [P]: Knob application (top-N, min-confidence, evidence-required)
+  T8 [P]: Findings JSON emit + HTML/MD substrate emit
+  T9 [P]: /architecture --from-spec CLI wiring + mutual-exclusion flags + exit codes
+
+Wave 4 — Auto-upgrade detector + --since extension (2 tasks, parallel)
+  T10 [P]: Auto-upgrade detector (FR-18, settings.yaml :: architecture.module_roots)
+  T11 [P]: --since mode extension (FR-09, FR-10, FR-11) for /verify integration
+
+Wave 5 — Host-skill integrations (2 tasks, parallel — different skill dirs)
+  T12 [P]: /spec Phase 6.6 + spec template additions + universal exit checklist
+  T13 [P]: /verify Phase 4.7 sub-step
+
+Wave 6 — Integration + E2E tests (2 tasks, parallel)
+  T14 [P]: Integration tests (Phase 6.6 three-tier, Phase 4.7 three-tier, re-run cascade, advisory failure)
+  T15 [P]: E2E tests (synthetic T3 dry-run, standalone /spec, drift hook installer)
+
+TN: Final verification
+</code></pre>
+
+<p><strong>Wave dependency graph (Mermaid; FR-25 — &gt;12 tasks):</strong></p>
+<pre><code>flowchart TD
+  T1 --&gt; T2
+  T1 --&gt; T3
+  T1 --&gt; T4
+  T2 --&gt; T5
+  T2 --&gt; T8
+  T3 --&gt; T6
+  T1 --&gt; T7
+  T1 --&gt; T9
+  T5 --&gt; T9
+  T6 --&gt; T9
+  T7 --&gt; T9
+  T8 --&gt; T9
+  T9 --&gt; T10
+  T9 --&gt; T11
+  T10 --&gt; T12
+  T9 --&gt; T12
+  T11 --&gt; T13
+  T9 --&gt; T13
+  T12 --&gt; T14
+  T13 --&gt; T14
+  T9 --&gt; T15
+  T12 --&gt; T15
+  T13 --&gt; T15
+  T14 --&gt; TN
+  T15 --&gt; TN
+  T4 --&gt; TN
+</code></pre>
+
+<p><strong>Critical path length:</strong> 6 waves → 6 sequential task-cohorts (T1 → T2|T3|T4 → T5..T9 → T10|T11 → T12|T13 → T14|T15 → TN). Longest dependency chain by task count: T1 → T2 → T5 → T9 → T10 → T12 → T14 → TN = 8 nodes.</p>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">Decision Log</h2>
+<blockquote>Inherits architecture decisions D1–D13 from <a href="02_spec.html#decision-log">02_spec.html §4 Decision Log</a>. Entries below are implementation-specific decisions made during planning.</blockquote>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>P1</td>
+      <td>Tracer-bullet T1 wires the full <code>--from-spec</code> pipeline (parse → judge dispatch → validate → emit) against a hardcoded 2-rule principles slice and a single 1-module fixture spec, before authoring the real 18-rule <code>principles.md</code>.</td>
+      <td>(a) Author principles.md first (T1=foundation), (b) wire the pipeline first with a stub principles slice (selected), (c) wire spec parser first and stub judge.</td>
+      <td>Risky unproven integration is the judge subagent + orchestrator-side validation (rule_id ∈ set + quote substring), per /plan Phase 2 step 7. Authoring 18 rules first proves nothing about whether the pipeline works. A 2-rule slice plus a 1-module fixture is the narrowest end-to-end path that exercises temperature-0 dispatch, JSON-array parsing, rule_id validation, quote validation, and triplet emit. If the judge contract is wrong, we discover it in T1 — not after writing 18 rules of prose.</td>
+    </tr>
+    <tr>
+      <td>P2</td>
+      <td>Implement spec parser (T6) and judge-prompt-template authoring (T3) as separate parallel tasks rather than bundling them.</td>
+      <td>(a) One "spec ingestion" task covering both, (b) split into parser + template (selected), (c) split three ways including loader.</td>
+      <td>The parser touches <code>scripts/parse-spec.js</code> and consumes only <code>build_sections_json.js</code> substrate; the template touches <code>reference/judge-prompt-template.md</code> and consumes only the rule list. Non-overlapping file sets allow Wave 3 parallel dispatch (subagent-driven mode benefits from file-conflict-free waves per /execute deterministic planner). Bundling would force serialization with no engineering benefit.</td>
+    </tr>
+    <tr>
+      <td>P3</td>
+      <td>Place <code>scripts/parse-spec.js</code> as a Node script reusing the existing <code>_shared/html-authoring/assets/build_sections_json.js</code> substrate, NOT a fresh HTML parser.</td>
+      <td>(a) Write a fresh DOM walker, (b) shell out to a Python BeautifulSoup script, (c) reuse <code>build_sections_json.js</code> regex+stack walker (selected, ~80 LOC).</td>
+      <td>Per FR-02 spec text: <em>"Parser uses existing build_sections_json.js substrate"</em>. Substrate is zero-dep, already tested across 14 surfaces, handles the same HTML shape /spec emits. Reusing it eliminates an entire class of parser-divergence bugs and keeps the implementation aligned with the spec's stated contract.</td>
+    </tr>
+    <tr>
+      <td>P4</td>
+      <td>Author <code>principles.md</code> (T2) and the judge prompt template (T3) in Wave 2 in parallel with the drift hook (T4), gated on T1's tracer-bullet proving the judge contract first.</td>
+      <td>(a) Author principles.md before any pipeline code, (b) author in parallel with prompt template + drift hook (selected), (c) defer principles.md to last.</td>
+      <td>T1's tracer slice (2 rules) defines the principles.md schema empirically before scaling to 18 rules. Once T1 lands, T2/T3/T4 are leaf parallel tasks with non-overlapping files (principles.md vs reference/judge-prompt-template.md vs scripts/check-principles-drift.sh + install-arch-hooks.sh). Drift hook can be authored without depending on the 18-rule MD content — it operates on rule-ID set equality regardless of count.</td>
+    </tr>
+    <tr>
+      <td>P5</td>
+      <td>Wave-5 host-skill integrations (T12 /spec Phase 6.6 + T13 /verify Phase 4.7) dispatched as parallel tasks because they touch disjoint skill directories.</td>
+      <td>(a) Sequential (T12 then T13), (b) parallel within one wave (selected).</td>
+      <td>T12 modifies <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> + <code>plugins/pmos-toolkit/skills/spec/reference/spec-template.md</code> (if present); T13 modifies <code>plugins/pmos-toolkit/skills/verify/SKILL.md</code>. Zero file overlap. Both depend only on the completed <code>--from-spec</code> mode (T9) and <code>--since</code> extension (T11). Parallel dispatch halves wall-clock at no merge risk.</td>
+    </tr>
+    <tr>
+      <td>P6</td>
+      <td>Test suites split into Wave-6 "integration + E2E" pair rather than per-task inline-only.</td>
+      <td>(a) Inline tests per task only (already done), (b) inline + Wave-6 integration/E2E suites (selected), (c) one big test task at end.</td>
+      <td>Inline tests per task prove each component in isolation (TDD red/green per /plan FR-37). Integration tests prove host-skill wiring (Phase 6.6 gate, Phase 4.7 sub-step, re-run cascade, advisory failure). E2E proves /feature-sdlc state-schema invariance and drift-hook installer behavior. The two suites have disjoint scope (integration = wired-up skill behavior; E2E = full pipeline + installer) and disjoint test files, so they run parallel in Wave 6.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section id="code-study-notes">
+<h2 id="code-study-notes">Code Study Notes</h2>
+<blockquote>Glossary inherited from spec — see <a href="02_spec.html">02_spec.html</a> for domain terminology. The plan introduces no new domain terms.</blockquote>
+
+<h3 id="patterns-to-follow">Patterns to follow</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> — Phase 6.5 folded /simulate-spec sub-step is the direct template for Phase 6.6. Same gate-prompt shape, same <code>--skip-folded-*</code> flag pattern, same <code>folded_phase_failures[]</code> append on advisory failure. Reused at T12.</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> — existing 214-LOC skill with <code>--since</code>, <code>--deep</code>, <code>--baseline</code>, <code>--scaffold-l3</code> modes; <code>scripts/</code> + <code>reference/</code> + <code>tests/</code> directory layout. Gain <code>--from-spec</code> additively at T9. Reused at T9, T10, T11.</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code> — schema v2, 18 rules across L1 (10) + L2 TS (4) + L2 Py (4). Per-rule fields (<code>id</code>, <code>tier</code>, <code>disposition</code>, <code>delegate_to</code>, <code>check</code>) drive the principles.md authoring contract at T2.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/build_sections_json.js</code> — zero-dep regex+stack DOM walker (~80 LOC) used to extract <code>&lt;section id="..."&gt;</code> structure. Reused by spec parser at T6 per P3.</li>
+  <li><code>plugins/pmos-toolkit/skills/skill-eval/</code> family — reviewer subagent contract at temperature 0 with orchestrator-side hard-validation (rule_id ∈ set, quote substring). Mirrored exactly by judge subagent contract at T6/T9 per spec D11.</li>
+  <li><code>plugins/pmos-toolkit/skills/complete-dev/scripts/install-*-hooks.sh</code> family — pre-commit hook installer pattern, bypassable via <code>--no-verify</code>. Mirrored at T4 for <code>install-arch-hooks.sh</code>.</li>
+  <li><code>plugins/pmos-toolkit/skills/comments/scripts/check-comments-coverage.sh</code> — bash portability pattern (BASH_SOURCE[0] fallback walk-up-from-PWD per <a href="../../../../CLAUDE.md">CLAUDE.md ## Bash portability</a>). Mirrored at T4 per FR-39.</li>
+</ul>
+
+<h3 id="existing-code-to-reuse">Existing code to reuse</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/build_sections_json.js</code> — spec section extraction; imported by T6.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> + <code>assets/style.css</code> — findings triplet HTML substrate; consumed by T8.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/html-to-md.js</code> — HTML→MD conversion for findings MD sidecar; consumed by T8.</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code> — canonical machine-readable rule source; consumed by T5 (loader) and T4 (drift hook).</li>
+  <li><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> — host SKILL gains new mode at T9; existing modes preserved per FR-09.</li>
+  <li><code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> Phase 6.5 — folded sub-step template for T12.</li>
+  <li><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> existing Phase 4.5 — folded-phase advisory pattern for T13.</li>
+</ul>
+
+<h3 id="constraints-discovered">Constraints discovered</h3>
+<ul>
+  <li><strong>Orchestrator invariance:</strong> <code>/feature-sdlc</code> state-schema MUST remain unchanged — no new phase IDs (<code>arch-spec</code>, <code>arch-verify</code>, <code>architecture</code>). Spec §13 architectural assertion #6. Verified at TN via <code>grep -E "^(arch-spec|arch-verify|architecture)" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code> returning zero matches.</li>
+  <li><strong>Judge runs in /architecture, not in callers:</strong> spec §13 architectural assertion #7 — orchestrator-side validation (FR-06) lives inside <code>/architecture</code>, NOT inside /spec or /verify. /spec and /verify receive only validated findings. T9 and T12/T13 must respect this boundary.</li>
+  <li><strong>--from-spec MUST NOT shell out to static tools:</strong> spec §13 architectural assertion #4 — <code>--from-spec</code> mode is judge-only by contract. Only <code>--since</code> mode invokes dep-cruiser/ruff/cycle-py. T9 must not import or invoke static tools.</li>
+  <li><strong>Default module_roots are repo-tuned:</strong> spec FR-18 — the <code>["plugins/*/skills/", "src/"]</code> default is tuned for pmos-toolkit. T10 must implement the <code>git ls-tree</code> heuristic (0 entries → skip auto-upgrade, log warning) to avoid misfiring on other repos.</li>
+  <li><strong>Drift hook covers principles.yaml AND principles.md changes:</strong> FR-37 — installer must register the hook against commits touching either file (not just one). T4 must check both paths in the pre-commit guard.</li>
+  <li><strong>Quote validation is ≥40 chars verbatim substring:</strong> FR-06 — orchestrator hard-drops findings whose quote is &lt;40 chars OR not a verbatim substring of the cited <code>spec_section_id</code> in the source spec. T9 validation logic must implement both checks; T1 tracer bullet must prove this end-to-end.</li>
+  <li><strong>Findings JSON schema is fixed:</strong> spec §13 — <code>{rule_id, severity, confidence, spec_section_id|file_path, quote, finding, recommendation}</code>. All seven fields required (with the spec_section_id/file_path conditional on mode). T8 must validate the emitted JSON against this exact schema.</li>
+  <li><strong>Same-day re-runs overwrite the triplet:</strong> E6 — no suffix logic; same-day re-runs supersede; cross-day collisions are impossible (date in filename). T8 must overwrite without suffix-disambiguation.</li>
+</ul>
+
+<h3 id="stack-signals">Stack signals</h3>
+<ul>
+  <li><strong>Primary stack: bash + Node.js (zero-dep substrate).</strong> Evidence: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/</code> contains Node.js scripts (<code>build_sections_json.js</code>, <code>html-to-md.js</code>, <code>serve.js</code>); all existing /architecture <code>scripts/</code> are bash; all hook installers are bash. No <code>package.json</code> in this repo (substrate is zero-dep, ships its own UMD bundles). Test runners are bash shell scripts (<code>tests/*.sh</code> family).</li>
+  <li><strong>Greenfield substitute (FR-91):</strong> no traditional language manifest at repo root (this is a plugin repo, not an app). Closest reference systems for new code: existing <code>plugins/pmos-toolkit/skills/architecture/scripts/*.sh</code> (bash convention), <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/build_sections_json.js</code> (Node.js convention, zero-dep, no transpile). New code at T6, T9, T10, T11 follows these references.</li>
+  <li><strong>Lockfile disambiguation (FR-10a):</strong> N/A — no <code>package.json</code> or lockfile at repo root. New Node scripts run via <code>node &lt;path&gt;</code> directly without an install step.</li>
+  <li><strong>Reference: <code>_shared/stacks/bash.md</code> + <code>_shared/stacks/nodejs.md</code></strong> in pmos-toolkit substrate (cited per FR-100).</li>
+</ul>
+
+<h3 id="peer-plan-conflict-scan">Peer-plan conflict scan</h3>
+<ul>
+  <li>Globbed <code>docs/pmos/features/*/03_plan.{html,md}</code> with status ∈ {Draft, Planned, Executing}. No in-flight peer plan touches <code>plugins/pmos-toolkit/skills/architecture/</code>, <code>plugins/pmos-toolkit/skills/spec/</code>, or <code>plugins/pmos-toolkit/skills/verify/</code>. Most recent landed plans (2026-05-13 architecture-deep-pass, 2026-05-13 architecture-principles-skill) are closed; this feature builds on their delivered substrate (principles.yaml schema v2, /architecture skill scaffold).</li>
+</ul>
+</section>
+
+<section id="prerequisites">
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+  <li>Repo cloned at <code>/Users/maneeshdhabria/Desktop/Projects/agent-skills-architecture-in-feature-sdlc</code> on branch <code>feat/architecture-in-feature-sdlc</code> (worktree).</li>
+  <li>Node.js available on PATH (any LTS; substrate is zero-dep). Verify: <code>node --version</code> succeeds.</li>
+  <li>Bash 3.2+ available (macOS default). Verify: <code>bash --version</code> succeeds.</li>
+  <li>Git available with the worktree's main remote configured. Verify: <code>git log --oneline -3</code> succeeds.</li>
+  <li>Existing pmos-toolkit substrate readable at <code>plugins/pmos-toolkit/skills/_shared/html-authoring/</code> and <code>plugins/pmos-toolkit/skills/architecture/</code>. Verify: <code>ls plugins/pmos-toolkit/skills/architecture/principles.yaml</code> exists.</li>
+  <li>For T11 only: <code>dependency-cruiser</code>, <code>ruff</code>, <code>cycle-py</code> available either via <code>npx</code>, <code>pip install --user</code>, or graceful fallback per existing /architecture <code>--since</code> contract. (T11 preserves existing behavior; new installation not required.)</li>
+</ul>
+</section>
+
+<section id="file-map">
+<h2 id="file-map">File Map</h2>
+<blockquote>Generated index pointing back to per-task <strong>Files:</strong> sections — tasks are source of truth (FR-23).</blockquote>
+<table>
+  <thead><tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr></thead>
+  <tbody>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/principles.md</code></td><td>Prose layer for 18 rules; consumed by judge prompt assembly (FR-12, FR-15)</td><td>T2</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/reference/judge-prompt-template.md</code></td><td>Judge subagent input template (FR-32)</td><td>T3</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code></td><td>Rule-ID set-equality drift check (~30 LOC, FR-36)</td><td>T4</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh</code></td><td>Pre-commit hook installer (FR-37)</td><td>T4</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/load-principles.sh</code></td><td>L1+L2+L3 loader with collision logging (FR-04, FR-14)</td><td>T5</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js</code></td><td>Spec parser (§Modules + §Architectural Assertions) — reuses build_sections_json.js (FR-02, P3)</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/apply-knobs.js</code></td><td>top-N + min-confidence + evidence-required filtering (FR-07)</td><td>T7</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/emit-findings.js</code></td><td>Findings JSON + HTML/MD triplet emit (FR-08, FR-11)</td><td>T8</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code></td><td>Add <code>--from-spec</code> mode + CLI dispatch + exit codes 0/1/64/65 (FR-01, FR-03, FR-05, FR-06)</td><td>T9</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh</code></td><td>Module-set diff via <code>git ls-tree</code> (FR-18)</td><td>T10</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code></td><td>Extend <code>--since</code> mode: empty-diff skip + §13 JSON schema conformance (FR-09, FR-10, FR-11)</td><td>T11</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/spec/SKILL.md</code></td><td>Add Phase 6.6 folded sub-step + universal exit checklist item (FR-16–FR-24, FR-44)</td><td>T12</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/spec/reference/spec-template.md</code> (or equivalent template doc)</td><td>Add §Modules + §Architectural Assertions to Tier-3 template; mark optional at Tier-2 (FR-40–FR-43)</td><td>T12</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code></td><td>Add Phase 4.7 folded sub-step (FR-25–FR-30)</td><td>T13</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh</code></td><td>Unit: 5 fixture parser cases (canonical + 4 error)</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh</code></td><td>Unit: 4 loader-merge fixture cases</td><td>T5</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh</code></td><td>Unit: 5 validator cases (valid + 4 invalid kinds)</td><td>T9</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh</code></td><td>Unit: top-N + min-confidence + evidence-required on 15-finding fixture</td><td>T7</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh</code></td><td>Unit: 3 fixture cases (new module, all existing, empty §Modules)</td><td>T10</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh</code></td><td>Unit: 3 shell cases (drift, aligned, untouched-commit)</td><td>T4</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-gate.sh</code></td><td>Integration: T1/T2-no-new/T2-new/T3 gate semantics</td><td>T14</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-sub-step.sh</code></td><td>Integration: T1 skip / T2 scoped / T3 full</td><td>T14</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-canonical.html</code></td><td>Tracer + parser fixture (1 module, 1 assertion)</td><td>T1</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-missing-modules.html</code></td><td>Parser error fixture (exit 65)</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-empty-modules-table.html</code></td><td>Parser error fixture (exit 65, missing_sections: modules-table-empty)</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-malformed-row.html</code></td><td>Parser tolerance fixture</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-empty-assertions.html</code></td><td>Parser error fixture</td><td>T6</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/principles-tracer.yaml</code></td><td>Tracer 2-rule principles slice</td><td>T1</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/principles-tracer.md</code></td><td>Tracer 2-rule principles prose</td><td>T1</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-fixtures.json</code></td><td>Validator + knob test inputs (valid + invalid mix; 15-finding cap test set)</td><td>T7, T9</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/synthetic-t3-feature/</code></td><td>E2E fixture feature folder (synthetic 02_spec.html with full §Modules + §Architectural Assertions)</td><td>T15</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-e2e.sh</code></td><td>E2E: full /architecture --from-spec on fixture; triplet schema validation; latency &lt;90s assertion</td><td>T15</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-feature-sdlc-state-invariance.sh</code></td><td>E2E: <code>grep -E "^(arch-spec|arch-verify|architecture)"</code> on state-schema.md returns zero matches</td><td>T15</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook-installer.sh</code></td><td>E2E: installer adds hook → commit-only-yaml refused → commit-aligned passes → <code>--no-verify</code> bypasses</td><td>T15</td></tr>
+    <tr><td>Modify</td><td><code>CLAUDE.md</code></td><td>Add <code>## /architecture conventions</code> section noting principles.{yaml,md} co-authorship rule + drift hook bypass posture — <strong>release-prereq, NOT a wave task; see §Release prerequisites below.</strong></td><td>Release</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="risks">
+<h2 id="risks">Risks</h2>
+<blockquote>5-column Risks table. Severity derived per FR-80: any-H + no-L → High; any-H + any-L → Medium; both M → Medium; M+L → Low; both L → Low. Phase 4 hard-fails any High-severity risk without a per-task Mitigation citation (FR-81).</blockquote>
+<table>
+  <thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in:</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>R1</td>
+      <td>Judge subagent hallucinates rule_id or quote at rate that overwhelms orchestrator drop logging, masking real findings.</td>
+      <td>Medium</td>
+      <td>High</td>
+      <td>High</td>
+      <td>T1 tracer-bullet asserts that with a 2-rule slice the validator drops 100% of inputs whose rule_id ∉ set and 100% of inputs whose quote is not a verbatim substring. T9 emits one log line per drop with the rule_id so spurious volume is visible. NFR-03 post-launch monitoring tracks accept/reject ratio across first 5 T3 features and tightens min-confidence to 80 if FP &gt;20%.</td>
+      <td>T1, T9</td>
+    </tr>
+    <tr>
+      <td>R2</td>
+      <td>Drift between principles.yaml and principles.md diverges silently when developer edits one and forgets the other.</td>
+      <td>High</td>
+      <td>Medium</td>
+      <td>High</td>
+      <td>T4 ships drift hook + installer (pre-commit, ~30 LOC, rule-ID set-equality). T4's <code>test-drift-hook.sh</code> proves the hook refuses commits with mismatched sets and passes commits with aligned sets. <code>install-arch-hooks.sh</code> documented in Release Prerequisites §18 so /complete-dev release notes prompt developers to install. Bypass posture (<code>--no-verify</code>) accepted per FR-38.</td>
+      <td>T4</td>
+    </tr>
+    <tr>
+      <td>R3</td>
+      <td>Spec parser breaks when /spec's HTML emit shape evolves (e.g., section-id naming change, table structure change).</td>
+      <td>Low</td>
+      <td>High</td>
+      <td>Medium</td>
+      <td>T6 reuses <code>build_sections_json.js</code> substrate (P3) — same parser /spec emits against, so they evolve in lockstep. T6's 5-fixture coverage includes malformed-row tolerance. Cross-link: if /spec template changes §Modules format, the spec-template test in T12 fails before the parser breaks in production.</td>
+      <td>T6, T12</td>
+    </tr>
+    <tr>
+      <td>R4</td>
+      <td>/spec Phase 6.6 latency exceeds NFR-01's 90s P50 budget on real T3 specs, training operators to skip the gate.</td>
+      <td>Medium</td>
+      <td>Medium</td>
+      <td>Medium</td>
+      <td>T1 tracer-bullet runs the full dispatch end-to-end and emits wall-clock timing so the budget is empirically verified before Wave 3 widens scope. T15 E2E test asserts wall-clock &lt;90s on the synthetic T3 fixture. NFR-01 post-launch tracking on first 3 T3 features per §17 Rollout monitoring.</td>
+      <td>T1, T15</td>
+    </tr>
+    <tr>
+      <td>R5</td>
+      <td>Auto-upgrade detector misfires on non-pmos-toolkit repos where default <code>module_roots</code> glob doesn't match repo layout.</td>
+      <td>Medium</td>
+      <td>Low</td>
+      <td>Low</td>
+      <td>T10 implements FR-18's <code>git ls-tree</code> heuristic: if defaults find 0 modules AND no <code>architecture.module_roots</code> config exists, detector logs <code>auto-upgrade: module_roots config absent and defaults found no modules; gate stays at Recommended=Skip</code> rather than misfiring. <code>test-auto-upgrade-detector.sh</code> covers this case with a fixture repo layout.</td>
+      <td>T10</td>
+    </tr>
+    <tr>
+      <td>R6</td>
+      <td>Static tools (dep-cruiser, ruff, cycle-py) unavailable on operator's machine breaks <code>/verify</code> Phase 4.7.</td>
+      <td>Medium</td>
+      <td>Low</td>
+      <td>Low</td>
+      <td>T11 preserves existing <code>--since</code> graceful-fallback behavior. T13 wires Phase 4.7 with advisory-failure pattern (FR-29) — if /architecture exits non-zero, /verify appends to <code>folded_phase_failures[]</code> and continues. Spec §17 Rollback notes the feature is purely additive at the host-skill level.</td>
+      <td>T11, T13</td>
+    </tr>
+    <tr>
+      <td>R7</td>
+      <td>Race condition on same-day re-runs overwriting the triplet while another reader (e.g., /verify) consumes it.</td>
+      <td>Low</td>
+      <td>Low</td>
+      <td>Low</td>
+      <td>T8 uses atomic temp+rename per existing /architecture artifact contract (mirrors <code>_shared/html-authoring</code> FR-10.2). Same-day overwrite is the intended contract (E6); cross-process read sees either the prior or the new triplet, never a half-written file.</td>
+      <td>T8</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section id="rollback">
+<h2 id="rollback">Rollback</h2>
+<ul>
+  <li>If T1–T11 fail before host-skill integration lands: <code>git reset --hard &lt;commit-before-T1&gt;</code> on the worktree. No production effect — /architecture, /spec, /verify behavior unchanged. principles.md becomes orphaned harmlessly.</li>
+  <li>If T12 wires /spec Phase 6.6 and it misbehaves in operator testing: <code>git revert &lt;T12-commit&gt;</code>. /spec returns to pre-Phase-6.6 behavior; /architecture <code>--from-spec</code> mode remains available as a standalone invocation.</li>
+  <li>If T13 wires /verify Phase 4.7 and it misbehaves: <code>git revert &lt;T13-commit&gt;</code>. /verify returns to pre-Phase-4.7 behavior; /architecture <code>--since</code> mode remains available as a standalone invocation.</li>
+  <li>Drift hook uninstall: <code>rm .git/hooks/pre-commit</code> OR <code>git config --unset core.hooksPath</code>. The hook script itself remains in the repo for re-installation.</li>
+  <li>Full feature revert: <code>git revert &lt;merge-commit&gt;</code> on main per spec §17 Rollback plan. The feature is purely additive at the host-skill level; existing behavior fully restored by the revert.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites</h2>
+<blockquote>Per /plan FR-63 — release-time tasks owned by <code>/complete-dev</code>, NOT included in any wave below. See <a href="02_spec.html#release-prerequisites">02_spec.html §18 Release Prerequisites</a> for the full list (9 bullets):</blockquote>
+<ul>
+  <li>Manifest minor bump (both files, same version) — <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> + <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>.</li>
+  <li>README row update — <code>--from-spec</code> in /architecture row; folded-into mentions in /spec + /verify rows.</li>
+  <li>CHANGELOG entry under new minor-bump heading.</li>
+  <li>principles.md authoring (delivered in T2 but cited as release deliverable in /complete-dev release-notes recipe).</li>
+  <li>Drift hook installer mention in release notes.</li>
+  <li><code>~/.pmos/learnings.md</code> header bootstrap — append <code>## /architecture</code> section header if missing.</li>
+  <li><code>argument-hint</code> frontmatter update on /architecture SKILL.md.</li>
+  <li><code>description</code> frontmatter trigger-phrase additions on /architecture SKILL.md.</li>
+  <li>CLAUDE.md <code>## /architecture conventions</code> section addition.</li>
+</ul>
+<p>None of the above appear as tasks in <code>## Wave 1</code>–<code>## Wave 6</code> or in <code>TN</code>. /complete-dev (Phase 8) is the sole writer of these files per repo norms (see <a href="../../../../CLAUDE.md">CLAUDE.md ## Skill-authoring conventions</a>).</p>
+</section>
+
+<section id="tasks">
+<h2 id="tasks">Tasks</h2>
+
+<h3 id="wave-1-tracer-bullet">Wave 1 — Tracer bullet (serial)</h3>
+<p>Phase rationale: prove the full <code>--from-spec</code> pipeline (parse → judge dispatch at temperature 0 → orchestrator validation → triplet emit) against a hardcoded 2-rule principles slice and a 1-module fixture spec. This derisks the judge subagent contract (the riskiest unproven integration point per /plan Phase 2 step 7) before any other code is written. Demoable: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh</code> exits 0 with a valid findings triplet on disk.</p>
+
+<h4 id="t1">T1: Tracer bullet — minimal /architecture --from-spec end-to-end</h4>
+<p><strong>Goal:</strong> Wire the full <code>--from-spec</code> pipeline (parse, judge dispatch, orchestrator validation, triplet emit) end-to-end against a 2-rule principles slice + 1-module fixture spec. Proves the architecture works before scaling to 18 rules.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-01</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-02</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-05</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-06</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-08</a>, <a href="02_spec.html#fr-judge-subagent">FR-31</a>, <a href="02_spec.html#decision-log">D11</a></p>
+<p><strong>Depends on:</strong> none</p>
+<p><strong>Idempotent:</strong> yes (overwrites tracer triplet at fixed path per E6 contract)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — narrowest end-to-end path through every layer the feature touches (parser + principles loader + judge dispatch + validator + emitter).</p>
+<p><strong>Data:</strong> Tracer fixtures (created in this task): <code>tests/fixtures/spec-canonical.html</code> (single <code>&lt;section id="modules"&gt;</code> with one <code>{name: "foo", deps: [], role: "..."}</code> row + single <code>&lt;section id="architectural-assertions"&gt;</code> with one bullet "Module foo must not import from bar"), <code>tests/fixtures/principles-tracer.yaml</code> (2 rules: U001 + U002), <code>tests/fixtures/principles-tracer.md</code> (matching prose).</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-canonical.html</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/principles-tracer.yaml</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/principles-tracer.md</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/from-spec-tracer.sh</code> (tracer-bullet entrypoint; reused by T9 as the basis for the real CLI dispatch)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Author the 3 fixture files. Spec canonical fixture is a real HTML doc using the substrate template shape; principles tracer YAML and MD share exactly the same rule-ID set <code>{U001, U002}</code>.</li>
+  <li>Write failing test <code>test-tracer-bullet.sh</code>: invoke <code>bash scripts/from-spec-tracer.sh tests/fixtures/spec-canonical.html</code>; assert exit 0; assert <code>/tmp/architecture-tracer-findings.json</code> exists; parse with <code>node -e "const f=require('/tmp/architecture-tracer-findings.json'); if(!Array.isArray(f)) process.exit(1); for(const x of f){ if(!['U001','U002'].includes(x.rule_id)) process.exit(2); if(!x.quote || x.quote.length &lt; 40) process.exit(3); }"</code>.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh</code> → expect FAIL (script not yet implemented).</li>
+  <li>Implement <code>from-spec-tracer.sh</code>: (a) shell out to <code>node -e "..."</code> to parse the fixture spec using <code>_shared/html-authoring/assets/build_sections_json.js</code> (require + invoke) and extract §modules + §architectural-assertions to JSON, (b) cat the tracer principles.md into a prompt buffer, (c) dispatch the judge subagent via the platform's Task tool invocation pattern with temperature=0, principles + parsed spec + rule_id_set <code>["U001","U002"]</code> as input, (d) capture JSON-array response, (e) validate: drop findings with <code>rule_id ∉ {"U001","U002"}</code> (log each drop), drop findings whose <code>quote</code> is not a verbatim substring of the cited <code>spec_section_id</code>'s body (log each drop) or whose quote length &lt; 40, (f) write validated array to <code>/tmp/architecture-tracer-findings.json</code>.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh</code> → expect PASS.</li>
+  <li>Wall-clock budget check: timestamp at script start + end; emit <code>tracer wall-clock: &lt;N&gt;s</code> to stderr. Assert &lt;90s (R4 mitigation; informs NFR-01 budget validity before Wave 3).</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/from-spec-tracer.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/ plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh && git commit -m "feat(T1): tracer-bullet /architecture --from-spec pipeline"</code>.</li>
+</ol>
+<p><strong>T0 (Prerequisite Check):</strong></p>
+<ul>
+  <li>Run: <code>node --version &amp;&amp; bash --version &amp;&amp; git rev-parse --git-dir</code> — all succeed.</li>
+  <li>Run: <code>ls plugins/pmos-toolkit/skills/_shared/html-authoring/assets/build_sections_json.js</code> — exists.</li>
+</ul>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-tracer-bullet.sh</code> — exit 0, fixtures-and-emit assertion passes.</li>
+  <li><code>node -e "const f=require('/tmp/architecture-tracer-findings.json'); console.log(JSON.stringify(f,null,2));"</code> — array of objects each with <code>{rule_id, severity, confidence, spec_section_id, quote, finding, recommendation}</code>.</li>
+  <li>Wall-clock timing: tracer run completes in &lt;90s (R4 mitigation, NFR-01 budget validation).</li>
+</ul>
+
+<h3 id="wave-2-foundations">Wave 2 — Foundations (parallel)</h3>
+<p>Phase rationale: with the judge contract proven in T1, author the three leaf foundations that the widened <code>--from-spec</code> mode depends on. Each task touches a non-overlapping file set, so the controller dispatches T2, T3, T4 as parallel implementer subagents. Demoable: <code>principles.md</code> covers all 18 rules; the judge prompt template loads against any rule list; the drift hook refuses mismatched commits.</p>
+
+<h4 id="t2">T2 [P]: Author principles.md — all 18 rules</h4>
+<p><strong>Goal:</strong> Create <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> with one H2 section per rule (rule ID as heading text), bodies containing summary + why-narrative + example violation + example compliance + declared static tools. All 18 rules from <code>principles.yaml</code> v2 (10 L1 + 4 L2 TS + 4 L2 Py).</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-principles-md">FR-12</a>, <a href="02_spec.html#fr-principles-md">FR-15</a>, <a href="02_spec.html#decision-log">D6</a></p>
+<p><strong>Depends on:</strong> T1 (proves the principles.md schema empirically via tracer)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature (rule-ID coverage test)</p>
+<p><strong>Slice shape:</strong> vertical — delivers a user-observable artifact (the prose layer judges read).</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/principles.md</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-principles-md-coverage.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-principles-md-coverage.sh</code>: extract all rule IDs from <code>principles.yaml</code> via <code>grep -E '^[[:space:]]*-[[:space:]]*id:[[:space:]]*([A-Z]+[0-9]+)' principles.yaml | sed -E 's/.*id:[[:space:]]*//' | tr -d "\"'" | sort -u</code>; extract all H2 rule IDs from <code>principles.md</code> via <code>grep -E '^## ([A-Z]+[0-9]+)' principles.md | sed -E 's/^## //' | sort -u</code>; assert the two lists are byte-equal via <code>diff</code>.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-md-coverage.sh</code> → expect FAIL (principles.md missing).</li>
+  <li>Author <code>principles.md</code>. Read <code>principles.yaml</code> for the canonical 18-rule list. For each rule, emit: <code>## &lt;id&gt;</code> heading, then 5 subsections — Summary (1 line), Why (≥2 sentences explaining the architectural rationale), Example violation (code or doc snippet), Example compliance (code or doc snippet), Static tools (the YAML's <code>delegate_to</code> field as a literal — e.g., <code>ruff</code>, <code>dependency-cruiser</code>, <code>cycle-py</code>, or <code>judge-only</code> when null). Total target length: ~30 lines per rule × 18 rules = ~540 lines.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-md-coverage.sh</code> → expect PASS.</li>
+  <li>Sanity check: <code>bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> (from T4) — expect exit 0 (note: depends on T4's hook script existing; sequence post-T4 in the wave-completion order; in practice T4 commits in the same wave so the controller invokes the check after both land).</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/principles.md plugins/pmos-toolkit/skills/architecture/tests/test-principles-md-coverage.sh && git commit -m "feat(T2): author principles.md for all 18 rules"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>wc -l plugins/pmos-toolkit/skills/architecture/principles.md</code> — &gt;400 lines (sanity floor for 18 rules × 5 subsections).</li>
+  <li><code>grep -c '^## ' plugins/pmos-toolkit/skills/architecture/principles.md</code> — exactly 18.</li>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-md-coverage.sh</code> — exit 0.</li>
+</ul>
+
+<h4 id="t3">T3 [P]: Author reference/judge-prompt-template.md</h4>
+<p><strong>Goal:</strong> Create the judge subagent input prompt template containing: rule-list slot (verbatim from merged principles.md), artifact-under-review slot, output-schema spec (§13), and the instruction "evaluate against every applicable rule; emit findings citing rule_id; quote ≥40 chars verbatim from source".</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-judge-subagent">FR-32</a>, <a href="02_spec.html#fr-judge-subagent">FR-33</a>, <a href="02_spec.html#fr-judge-subagent">FR-35</a></p>
+<p><strong>Depends on:</strong> T1 (proves the prompt shape empirically via tracer)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature (template variable presence test)</p>
+<p><strong>Slice shape:</strong> vertical — delivers the prompt artifact the judge subagent consumes.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/reference/judge-prompt-template.md</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-judge-prompt-template.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-judge-prompt-template.sh</code>: assert template file exists; assert it contains the literal tokens <code>{{principles}}</code>, <code>{{artifact}}</code>, <code>{{rule_id_set}}</code>, <code>{{mode}}</code>; assert it contains the instruction string <code>"quote ≥40 chars verbatim"</code>; assert it documents the §13 output schema with all 7 fields named.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-judge-prompt-template.sh</code> → expect FAIL.</li>
+  <li>Author the template. Shape: top section describes the judge's role + temperature 0 contract; middle section has substitution tokens <code>{{principles}}</code>, <code>{{artifact}}</code>, <code>{{rule_id_set}}</code>, <code>{{mode}}</code>; bottom section specifies output JSON shape per §13 with required-field list <code>[rule_id, severity, confidence, spec_section_id|file_path, quote, finding, recommendation]</code>; explicit instruction "Emit ONLY a JSON array. quote ≥40 chars verbatim from source. Do not edit or rewrite the artifact under review."</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-judge-prompt-template.sh</code> → expect PASS.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/reference/judge-prompt-template.md plugins/pmos-toolkit/skills/architecture/tests/test-judge-prompt-template.sh && git commit -m "feat(T3): judge prompt template"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-judge-prompt-template.sh</code> — exit 0.</li>
+  <li><code>grep -c '{{' plugins/pmos-toolkit/skills/architecture/reference/judge-prompt-template.md</code> — ≥4 (one per substitution token).</li>
+</ul>
+
+<h4 id="t4">T4 [P]: Drift hook script + installer</h4>
+<p><strong>Goal:</strong> Ship <code>check-principles-drift.sh</code> (~30 LOC bash, rule-ID set-equality) + <code>install-arch-hooks.sh</code> (pre-commit installer, bypassable via <code>--no-verify</code>). Closes risk R2.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-drift-hook">FR-36</a>, <a href="02_spec.html#fr-drift-hook">FR-37</a>, <a href="02_spec.html#fr-drift-hook">FR-38</a>, <a href="02_spec.html#fr-drift-hook">FR-39</a>, <a href="02_spec.html#decision-log">D9</a></p>
+<p><strong>Depends on:</strong> T1 (validates the bash portability pattern; T2/T3 not required since the hook operates on rule-ID set regardless of content)</p>
+<p><strong>Idempotent:</strong> yes (installer is <code>cp -n</code> + idempotent hook-script append)</p>
+<p><strong>TDD:</strong> yes — new-feature (3 shell cases: drift / aligned / untouched-commit)</p>
+<p><strong>Slice shape:</strong> vertical — delivers an end-to-end behavior (pre-commit refusal on rule-ID drift).</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-drift-hook.sh</code>: three cases — (a) create temp YAML with only rule U001 + temp MD with U001+U999 → invoke <code>check-principles-drift.sh --yaml &lt;path&gt; --md &lt;path&gt;</code> → expect exit 1 with diff stderr; (b) both with U001 only → expect exit 0; (c) installer mode — invoke installer in a temp git repo → assert <code>.git/hooks/pre-commit</code> contains the drift-check invocation; <code>git commit -m "noop"</code> with no principles change → hook skips silently.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh</code> → expect FAIL.</li>
+  <li>Implement <code>check-principles-drift.sh</code>. Bash portability per CLAUDE.md ## Bash portability: <code>SOURCE="${BASH_SOURCE[0]:-$0}"</code>; if dirname-cd fails, walk up from <code>$PWD</code> until <code>plugins/pmos-toolkit/skills/architecture/</code> sentinel found; exit clear error if neither resolves. Accept <code>--yaml &lt;path&gt;</code> and <code>--md &lt;path&gt;</code> flags (default to plugin paths). Extract YAML rule IDs via <code>grep -E '^[[:space:]]*-[[:space:]]*id:[[:space:]]*([A-Z]+[0-9]+)' "$YAML" | sed -E 's/.*id:[[:space:]]*//' | tr -d "\"'" | sort -u &gt; "$tmp_yaml"</code>; extract MD via <code>grep -E '^## ([A-Z]+[0-9]+)$' "$MD" | sed -E 's/^## //' | sort -u &gt; "$tmp_md"</code>; <code>diff -u "$tmp_yaml" "$tmp_md"</code>; exit 0 on no diff, exit 1 on diff (diff output already printed).</li>
+  <li>Implement <code>install-arch-hooks.sh</code>. Find <code>.git/hooks/</code> via <code>git rev-parse --git-path hooks</code>. Append a guard block to <code>pre-commit</code> (create if absent, <code>chmod +x</code>): only runs when <code>git diff --cached --name-only</code> includes <code>principles.yaml</code> OR <code>principles.md</code>; invokes <code>plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code>; relays exit code. Idempotent — bail if block already present (grep marker line).</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh</code> → expect PASS.</li>
+  <li>Self-test the hook against the real repo (depends on T2 having authored principles.md; controller invokes after T2 lands in the same wave): <code>bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> → expect exit 0 (real principles.yaml ↔ principles.md aligned by T2).</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh && git commit -m "feat(T4): principles drift hook + installer"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh</code> — exit 0 (all 3 cases pass).</li>
+  <li>Real-repo self-check: <code>bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> — exit 0.</li>
+  <li><code>wc -l plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> — ≤40 LOC (per FR-36 ~30 LOC budget; allow slack for portability boilerplate).</li>
+</ul>
+
+<h3 id="wave-3-widen-from-spec">Wave 3 — Widen --from-spec (parallel within wave)</h3>
+<p>Phase rationale: with T1's tracer pipeline proven and T2/T3/T4's foundations in place, decompose the tracer's monolithic <code>from-spec-tracer.sh</code> into composable scripts (loader, parser, knobs, emitter) and wire the production CLI dispatch. Each task touches a non-overlapping file set so the controller can dispatch T5–T9 as parallel implementer subagents within the wave; T9 (CLI wiring) is the convergence point that consumes T5–T8 outputs but writes only to SKILL.md. Demoable: <code>/architecture --from-spec docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> runs against the real 18-rule principles set and emits a validated triplet.</p>
+
+<h4 id="t5">T5 [P]: Principles loader with L1+L2+L3 merge</h4>
+<p><strong>Goal:</strong> Implement <code>scripts/load-principles.sh</code> that reads plugin L1+L2 from <code>plugins/pmos-toolkit/skills/architecture/principles.{yaml,md}</code> and L3 from <code>&lt;repo&gt;/.pmos/architecture/principles.{yaml,md}</code>; merges with last-wins on rule-ID collision; logs <code>L3 override applied: &lt;rule-id&gt;</code> per collision; logs <code>no L3 overrides found; using plugin defaults</code> when L3 absent; emits merged JSON to stdout.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-04</a>, <a href="02_spec.html#fr-principles-md">FR-13</a>, <a href="02_spec.html#fr-principles-md">FR-14</a>, <a href="02_spec.html#edge-cases">E4</a>, <a href="02_spec.html#edge-cases">E15</a></p>
+<p><strong>Depends on:</strong> T2 (consumes real principles.md format)</p>
+<p><strong>Idempotent:</strong> yes (read-only)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the loaded ruleset the judge consumes.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/load-principles.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/l3-override-yaml-only/</code> (fixture L3 dir with principles.yaml overriding U001)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/l3-override-with-md/</code> (fixture L3 dir with both files)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/l3-duplicate-rule-md/</code> (E15: two same-ID rules in one MD)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-principles-loader.sh</code>: 4 fixture cases — (a) no L3 dir → assert merged ruleset has 18 rules + log line <code>no L3 overrides found</code>; (b) L3 yaml-only override of U001 → assert merged U001 has L3's <code>disposition</code> + log <code>L3 override applied: U001</code>; (c) L3 yaml+md aligned override → assert merged set has 18 rules + L3 prose used; (d) L3 md with duplicate <code>## U999</code> headers → assert hard-error exit 1 (per E15).</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh</code> → expect FAIL.</li>
+  <li>Implement <code>load-principles.sh</code>. Bash portability per CLAUDE.md ## Bash portability. Read flag <code>--l3-root &lt;path&gt;</code> (default <code>&lt;repo&gt;/.pmos/architecture/</code>; resolve <code>&lt;repo&gt;</code> via <code>git rev-parse --show-toplevel</code>). Use a Node helper <code>node -e "..."</code> for YAML-to-JSON conversion (parse via the same regex pattern in build_sections_json.js shape; pmos-toolkit substrate is zero-dep; YAML structure is simple flat list). For MD: parse rules via <code>awk</code> into per-rule blocks keyed by H2 heading. Merge: start with L1+L2 plugin YAML+MD as base; iterate L3 YAML rules, replace base entry on collision (log line); iterate L3 MD rules, replace base prose on collision; hard-error if L3 MD has duplicate H2 ID within the same file. Emit merged JSON array <code>[{id, tier, disposition, delegate_to, summary, why, ...}]</code> to stdout.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh</code> → expect PASS.</li>
+  <li>Smoke against real repo (no L3 expected): <code>bash plugins/pmos-toolkit/skills/architecture/scripts/load-principles.sh | jq 'length'</code> → expect 18; stderr contains <code>no L3 overrides found</code>.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/load-principles.sh plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/l3-* && git commit -m "feat(T5): principles loader with L1+L2+L3 merge"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh</code> — exit 0 (4 cases pass).</li>
+  <li>Real-repo smoke: <code>bash plugins/pmos-toolkit/skills/architecture/scripts/load-principles.sh | node -e "let d=''; process.stdin.on('data',c=&gt;d+=c).on('end',()=&gt;{ const a=JSON.parse(d); if(a.length!==18) process.exit(1); for(const r of a) if(!r.id.match(/^[A-Z]+[0-9]+$/)) process.exit(2); })"</code> — exit 0.</li>
+</ul>
+
+<h4 id="t6">T6 [P]: Spec parser — 5 fixtures + exit 65 contract</h4>
+<p><strong>Goal:</strong> Implement <code>scripts/parse-spec.js</code> (Node, reuses <code>build_sections_json.js</code> per P3). Parses §Modules (table → array of <code>{name, deps[], role}</code>) and §Architectural Assertions (bulleted list → string array). Exit codes: 0 success; 65 spec-contract-violation with structured stderr per §9.4.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-02</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-03</a>, <a href="02_spec.html#api-error-stderr">§9.4</a>, <a href="02_spec.html#edge-cases">E1</a>, <a href="02_spec.html#edge-cases">E2</a></p>
+<p><strong>Depends on:</strong> T3 (template prose shape informs assertion parsing — co-emergent contract)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the parsed spec the judge consumes.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-missing-modules.html</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-empty-modules-table.html</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-malformed-row.html</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-empty-assertions.html</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-from-spec-parser.sh</code>: 5 cases — (a) <code>spec-canonical.html</code> (from T1) → exit 0; stdout JSON has <code>modules: [{name,deps,role}]</code> and <code>assertions: ["..."]</code>; (b) <code>spec-missing-modules.html</code> → exit 65; stderr JSON has <code>error: "spec-contract-violation"</code>, <code>missing_sections: ["modules"]</code>, <code>remedy</code> field non-empty; (c) <code>spec-empty-modules-table.html</code> → exit 65; <code>missing_sections: ["modules-table-empty"]</code>; (d) <code>spec-malformed-row.html</code> → exit 0 with tolerance (parser skips the malformed row, emits warning to stderr); (e) <code>spec-empty-assertions.html</code> → exit 65; <code>missing_sections: ["architectural-assertions"]</code>.</li>
+  <li>Author the 4 new fixtures. Each is a real HTML document using the substrate template shape; the deviations from canonical are surgical (delete the §modules section / empty &lt;tbody&gt; / malformed row markup / empty assertions section).</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh</code> → expect FAIL.</li>
+  <li>Implement <code>parse-spec.js</code>. <code>require('../../_shared/html-authoring/assets/build_sections_json.js')</code> for the section walker. Read spec path from <code>process.argv[2]</code>. Extract sections; locate <code>id="modules"</code> and <code>id="architectural-assertions"</code>. For modules: regex-parse the &lt;table&gt; body — each &lt;tr&gt; → <code>{name: td0_text, deps: td1_text.split(/,\s*/), role: td2_text}</code>; skip malformed rows (fewer than 3 &lt;td&gt;) with a stderr warning. For assertions: regex-parse &lt;li&gt; entries → string array. Validate: missing modules section → emit §9.4 JSON stderr with <code>missing_sections: ["modules"]</code> and exit 65; empty modules tbody → <code>missing_sections: ["modules-table-empty"]</code> and exit 65; missing OR empty assertions → <code>missing_sections: ["architectural-assertions"]</code> and exit 65. Otherwise emit JSON <code>{modules, assertions, section_ids}</code> to stdout and exit 0.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh</code> → expect PASS.</li>
+  <li>Smoke against the real feature spec: <code>node plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html | jq '.modules | length'</code> → expect 5; <code>jq '.assertions | length'</code> → expect 7.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-* && git commit -m "feat(T6): spec parser with §9.4 exit 65 contract"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh</code> — exit 0 (5 cases pass).</li>
+  <li>Real-spec smoke: <code>node plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> — exit 0; stdout valid JSON with 5 modules + 7 assertions.</li>
+  <li>Error-path smoke: <code>node plugins/pmos-toolkit/skills/architecture/scripts/parse-spec.js plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-missing-modules.html; echo "exit=$?"</code> — <code>exit=65</code>, stderr contains <code>"error": "spec-contract-violation"</code>.</li>
+</ul>
+
+<h4 id="t7">T7 [P]: Knob application (top-N, min-confidence, evidence-required)</h4>
+<p><strong>Goal:</strong> Implement <code>scripts/apply-knobs.js</code> applying the 3 D8 knobs to a JSON array of validated findings. Order: drop below min-confidence → drop missing-quote-when-evidence-required → cap top-N by (severity, confidence).</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-07</a>, <a href="02_spec.html#decision-log">D8</a>, <a href="02_spec.html#configuration-and-feature-flags">§15</a></p>
+<p><strong>Depends on:</strong> T1 (proves the finding shape)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the filter the orchestrator applies.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/apply-knobs.js</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-15-findings.json</code> (mix of severities, confidences 50–95, some without quote)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Author the 15-finding fixture: realistic mix — 5 must_fix (conf 90/85/80/72/68), 7 should_fix (conf 88/75/74/71/69/55/50), 3 wont_fix (conf 80/65/60); 2 entries have <code>quote</code> field omitted; the rest have valid ≥40-char quotes.</li>
+  <li>Write failing test <code>test-knobs.sh</code>: feed the 15-finding fixture through <code>node apply-knobs.js --top-n 8 --min-confidence 70 --evidence-required</code>; assert output array length == 8; assert every entry has <code>confidence &gt;= 70</code>; assert every entry has a <code>quote</code> field; assert sort order: must_fix before should_fix before wont_fix, ties broken by confidence descending.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh</code> → expect FAIL.</li>
+  <li>Implement <code>apply-knobs.js</code>. Read findings array from stdin. Parse CLI args: <code>--top-n N</code> (default 8), <code>--min-confidence N</code> (default 70), <code>--evidence-required</code> (default true; <code>--no-evidence-required</code> disables). Filter pipeline: (a) drop where <code>confidence &lt; min</code>, (b) if evidence-required: drop where <code>!quote || quote.length &lt; 40</code>, (c) sort by severity rank (must_fix=0, should_fix=1, wont_fix=2) ascending then by confidence descending, (d) slice top N. Emit JSON array to stdout.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh</code> → expect PASS.</li>
+  <li>Edge-case smoke: feed empty array → expect <code>[]</code> stdout, exit 0. Feed array of size 3 with all below threshold → expect <code>[]</code>, exit 0.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/apply-knobs.js plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-15-findings.json && git commit -m "feat(T7): knob application — top-N + min-confidence + evidence-required"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh</code> — exit 0.</li>
+  <li>Behavioral assertion: <code>cat plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-15-findings.json | node plugins/pmos-toolkit/skills/architecture/scripts/apply-knobs.js --top-n 8 --min-confidence 70 | jq 'length'</code> — outputs <code>8</code>.</li>
+  <li>Behavioral: same pipeline with <code>--min-confidence 95 --no-evidence-required</code> → length ≤ 2 (only top-confidence findings retained).</li>
+</ul>
+
+<h4 id="t8">T8 [P]: Findings JSON emit + HTML/MD triplet substrate</h4>
+<p><strong>Goal:</strong> Implement <code>scripts/emit-findings.js</code> writing the §13 JSON, the HTML triplet (via html-authoring substrate), and the MD sidecar (via <code>html-to-md.js</code>) at <code>{docs_path}/architecture/{date}_&lt;slug&gt;_{from-spec|code}.{html,md,json}</code>. Atomic temp+rename per FR-10.2. Same-day overwrite per E6.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-08</a>, <a href="02_spec.html#fr-architecture-since-extension">FR-11</a>, <a href="02_spec.html#api-judge-output">§9.3</a>, <a href="02_spec.html#edge-cases">E6</a></p>
+<p><strong>Depends on:</strong> T2 (HTML triplet body cites rule prose excerpts)</p>
+<p><strong>Idempotent:</strong> yes (same-day overwrite per E6)</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the triplet artifact operators consume.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/emit-findings.js</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-emit-findings.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-emit-findings.sh</code>: feed a 3-finding fixture array through <code>node emit-findings.js --out-prefix /tmp/test-emit-findings_from-spec --mode from-spec</code>; assert 3 files exist: <code>.json</code>, <code>.html</code>, <code>.md</code>; JSON parses to array of length 3 with all 7 required fields per §9.3; HTML contains <code>&lt;meta name="pmos:skill" content="architecture"&gt;</code> and one <code>&lt;section&gt;</code> per finding with the quote rendered; MD contains <code>## Finding 1</code> through <code>## Finding 3</code>.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-emit-findings.sh</code> → expect FAIL.</li>
+  <li>Implement <code>emit-findings.js</code>. Read findings array from stdin. Parse args: <code>--out-prefix &lt;path&gt;</code>, <code>--mode from-spec|since</code>, <code>--source-path &lt;spec-or-code-ref&gt;</code>. JSON: validate every finding has all 7 §9.3 fields (mode-conditional on spec_section_id vs file_path); write to <code>${out-prefix}.json</code> via temp+rename. HTML: load <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code>; substitute <code>{{title}}="Architecture Findings — &lt;source-path&gt;"</code>, <code>{{pmos_skill}}="architecture"</code>, <code>{{plugin_version}}="2.57.1"</code>, <code>{{content}}=&lt;sections HTML built per-finding&gt;</code>; copy substrate assets via <code>cp -n</code>; write via temp+rename. MD sidecar: <code>node {assets}/html-to-md.js &lt;html-out&gt;</code> piped to <code>${out-prefix}.md</code> via temp+rename.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-emit-findings.sh</code> → expect PASS.</li>
+  <li>Atomicity smoke: in test, kill the script mid-write (<code>kill -9</code>); assert no half-written file at final path (only <code>.tmp.&lt;pid&gt;</code> orphan, which the next run cleans).</li>
+  <li>Schema-roundtrip smoke: emit, then re-parse JSON, assert every finding round-trips exactly.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/emit-findings.js plugins/pmos-toolkit/skills/architecture/tests/test-emit-findings.sh && git commit -m "feat(T8): findings triplet emit (JSON + HTML + MD)"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-emit-findings.sh</code> — exit 0.</li>
+  <li>Behavioral: <code>cat &lt;3-finding-fixture&gt; | node emit-findings.js --out-prefix /tmp/eft --mode from-spec; ls /tmp/eft.{json,html,md} && jq '.[] | keys' /tmp/eft.json</code> — all 3 files exist; jq shows all 7 §9.3 keys per finding.</li>
+  <li>Atomicity: no <code>.tmp</code> orphan at final path after successful run.</li>
+</ul>
+
+<h4 id="t9">T9 [P]: /architecture --from-spec CLI wiring + exit codes</h4>
+<p><strong>Goal:</strong> Modify <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> to add the <code>--from-spec</code> mode dispatch flow: parse CLI flags (mutually exclusive with <code>--since</code>, <code>--baseline</code>, <code>--deep</code>); load principles (T5); parse spec (T6); dispatch judge subagent (T3 template) at temperature 0; orchestrator-side validate per FR-06 (rule_id ∈ set, quote substring, confidence 0–100); apply knobs (T7); emit triplet (T8). Implement the FR-06 validator inline within /architecture per spec §13 architectural assertion #7. Exit codes: 0 success, 1 runtime error, 64 usage error, 65 spec-contract-violation.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-from-spec">FR-01</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-03</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-05</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-06</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-07</a>, <a href="02_spec.html#fr-architecture-from-spec">FR-08</a>, <a href="02_spec.html#api-from-spec-cli">§9.1</a>, <a href="02_spec.html#api-judge-output">§9.3</a></p>
+<p><strong>Depends on:</strong> T1 (tracer dispatch pattern), T5, T6, T7, T8</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>Requires state from:</strong> T5 (loader script), T6 (parser script), T7 (knob script), T8 (emit script) all in scripts/ — runtime invocation only, no source-file overlap.</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the end-user CLI behavior.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> (add <code>## --from-spec</code> mode section)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/validate-findings.js</code> (FR-06 validator)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-invalid-mix.json</code> (1 valid + 1 unknown-rule + 1 quote-not-in-source + 1 confidence-out-of-range + 1 missing-quote)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-findings-validator.sh</code>: feed the 5-entry fixture through <code>node validate-findings.js --rule-id-set "U001,U002" --source &lt;spec-canonical.html&gt;</code>; assert output array contains exactly 1 entry (the valid one); assert stderr has 4 distinct drop log lines naming each invalid kind.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh</code> → expect FAIL.</li>
+  <li>Implement <code>validate-findings.js</code>. Read findings array from stdin. Parse args: <code>--rule-id-set &lt;csv&gt;</code>, <code>--source &lt;path&gt;</code>. Load source file into memory. For each finding: (a) drop if <code>rule_id</code> not in csv set, log <code>dropped finding: unknown rule_id "&lt;id&gt;"</code>; (b) drop if <code>confidence</code> not in 0..100 integer, log <code>dropped finding: confidence out of range (rule_id &lt;id&gt;, value &lt;v&gt;)</code>; (c) drop if <code>!quote</code> when evidence-required (handled by knob layer but defensive-check here); (d) drop if <code>quote.length &lt; 40</code>, log <code>dropped finding: quote &lt;40 chars (rule_id &lt;id&gt;)</code>; (e) drop if <code>!source.includes(quote)</code> (verbatim substring check), log <code>dropped finding: quote not in source (rule_id &lt;id&gt;)</code>. Emit kept findings to stdout.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh</code> → expect PASS.</li>
+  <li>Modify <code>SKILL.md</code>. Append a new section <code>## Mode: --from-spec</code> after the existing mode sections. Document: CLI signature per §9.1; flag mutual-exclusion check (exit 64 on violation); dispatch flow — (1) <code>node scripts/parse-spec.js $SPEC_PATH</code> capture stdout JSON, propagate exit 65 verbatim; (2) <code>bash scripts/load-principles.sh</code> capture stdout JSON; (3) build judge prompt from <code>reference/judge-prompt-template.md</code> substituting <code>{{principles}}</code>, <code>{{artifact}}</code>, <code>{{rule_id_set}}</code>, <code>{{mode}}=from-spec</code>; (4) dispatch judge subagent (blocking Task call, temperature 0, 300s timeout per FR-21 inherited from /spec sub-step contract — for standalone CLI the timeout matches); (5) <code>cat judge-output | node scripts/validate-findings.js --rule-id-set ... --source $SPEC_PATH</code>; (6) <code>... | node scripts/apply-knobs.js --top-n 8 --min-confidence 70 --evidence-required</code>; (7) <code>... | node scripts/emit-findings.js --out-prefix {docs_path}/architecture/{date}_&lt;slug&gt;_from-spec --mode from-spec --source-path $SPEC_PATH</code>; exit 0 on success, 1 on judge dispatch failure. Update <code>argument-hint</code> note (release-prereq, deferred to /complete-dev).</li>
+  <li>Smoke against the real feature spec: <code>/architecture --from-spec docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> via Task dispatch → expect exit 0, triplet emitted at <code>docs/pmos/architecture/2026-05-28_architecture-in-feature-sdlc_from-spec.{html,md,json}</code>, findings array length ≤ 8, every finding's rule_id in the loaded 18-rule set, every quote ≥ 40 chars and present in source spec.</li>
+  <li>Error-path smoke: <code>/architecture --from-spec --since HEAD~1</code> → exit 64 (mutually exclusive). <code>/architecture --from-spec nonexistent.html</code> → exit 64 (file not found). <code>/architecture --from-spec plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-missing-modules.html</code> → exit 65 with §9.4 stderr.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/SKILL.md plugins/pmos-toolkit/skills/architecture/scripts/validate-findings.js plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/judge-output-invalid-mix.json && git commit -m "feat(T9): /architecture --from-spec CLI + FR-06 validator"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh</code> — exit 0; stderr has 4 distinct drop log lines.</li>
+  <li>Behavioral: real-spec dispatch produces a triplet whose JSON validates against §9.3 schema (jq round-trip on all 7 keys per finding).</li>
+  <li>Mutual-exclusion: <code>/architecture --from-spec ... --since ...</code> exits 64.</li>
+  <li>Spec-contract error: missing-modules fixture exits 65 with structured §9.4 stderr.</li>
+</ul>
+
+<h3 id="wave-4-auto-upgrade-and-since">Wave 4 — Auto-upgrade detector + --since extension (parallel)</h3>
+<p>Phase rationale: with <code>--from-spec</code> complete, deliver the two remaining mode-level pieces that host-skill integration (Wave 5) consumes. T10 and T11 touch disjoint files; controller dispatches in parallel.</p>
+
+<h4 id="t10">T10 [P]: Auto-upgrade detector (FR-18)</h4>
+<p><strong>Goal:</strong> Implement <code>scripts/auto-upgrade-detector.sh</code> — given a spec path, parse §Modules names, compute repo's current top-level module set via <code>git ls-tree --name-only HEAD -- &lt;configured-roots&gt;</code>; emit JSON <code>{upgrade: bool, new_modules: [...], reason: "..."}</code> to stdout. Roots configurable via <code>.pmos/settings.yaml :: architecture.module_roots</code>; defaults <code>["plugins/*/skills/", "src/"]</code>. Heuristic: if defaults find 0 entries AND no config exists → upgrade=false, reason=<code>module_roots config absent and defaults found no modules</code>.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-spec-phase-66">FR-18</a>, <a href="02_spec.html#decision-log">D12</a>, <a href="02_spec.html#edge-cases">E10</a>, <a href="02_spec.html#edge-cases">E11</a>, <a href="02_spec.html#edge-cases">E13</a></p>
+<p><strong>Depends on:</strong> T6 (consumes parser output), T9 (CLI integration pattern)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the auto-upgrade decision /spec Phase 6.6 consumes.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-t2-new-module.html</code> (1 module name absent from real repo)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-t2-all-existing.html</code> (all modules match real repo's <code>plugins/pmos-toolkit/skills/*</code>)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-empty-modules.html</code> (already exists from T6)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-auto-upgrade-detector.sh</code>: 3 cases — (a) spec with 1 new module → assert stdout JSON has <code>upgrade: true, new_modules: ["&lt;name&gt;"]</code>; (b) spec with all existing modules → assert <code>upgrade: false, reason: "no new modules"</code>; (c) spec with empty §Modules → assert <code>upgrade: false, reason: "no modules declared"</code>. Add 4th case (E13): in a temp dir with no .git, invoke detector → assert <code>upgrade: false, reason: "git ls-tree failed"</code>, exit 0.</li>
+  <li>Author the 2 new fixtures (spec-empty-modules already created in T6).</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh</code> → expect FAIL.</li>
+  <li>Implement <code>auto-upgrade-detector.sh</code>. Bash portability per CLAUDE.md. Read spec path from <code>$1</code>. Parse <code>.pmos/settings.yaml</code> for <code>architecture.module_roots</code> (use <code>grep + sed</code> for the simple flat YAML key; fall back to default <code>["plugins/*/skills/", "src/"]</code>). Run <code>node scripts/parse-spec.js $SPEC | jq -r '.modules[].name' &gt; "$tmp_spec_modules"</code>. Run <code>git ls-tree --name-only HEAD -- &lt;root1&gt; &lt;root2&gt; ...</code> capturing top-level dir names → <code>"$tmp_repo_modules"</code>. Heuristic: if config absent AND repo set is empty → emit <code>{"upgrade":false,"reason":"module_roots config absent and defaults found no modules"}</code>, exit 0. Heuristic: if <code>git ls-tree</code> fails (non-zero exit) → emit <code>{"upgrade":false,"reason":"git ls-tree failed"}</code>, exit 0. Otherwise: <code>comm -23 "$tmp_spec_modules" "$tmp_repo_modules"</code> → new_modules array; emit <code>{"upgrade": &lt;non-empty&gt;, "new_modules": [...], "reason": "..."}</code>.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh</code> → expect PASS.</li>
+  <li>Smoke against real feature spec: <code>bash plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> → expect <code>upgrade: false</code> (all 5 declared modules — architecture/, spec/, verify/, architecture/scripts/, architecture/reference/ — already exist in repo).</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-t2-* && git commit -m "feat(T10): auto-upgrade detector (FR-18)"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh</code> — exit 0 (4 cases pass).</li>
+  <li>Real-spec smoke: <code>bash plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html | jq '.upgrade'</code> — <code>false</code>.</li>
+</ul>
+
+<h4 id="t11">T11 [P]: --since mode extension (FR-09, FR-10, FR-11)</h4>
+<p><strong>Goal:</strong> Modify <code>SKILL.md</code>'s existing <code>--since</code> mode to: (a) preserve existing behavior for standalone invocation, (b) on empty diff exit 0 with log line <code>architecture: no changes since &lt;ref&gt;; skipping</code> and NOT emit an empty triplet, (c) emit findings JSON conforming to §13 schema (identical shape to <code>--from-spec</code> with <code>file_path</code> instead of <code>spec_section_id</code>). Reuses T5 (principles loader), T7 (knobs), T8 (emit), T9's validator.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-architecture-since-extension">FR-09</a>, <a href="02_spec.html#fr-architecture-since-extension">FR-10</a>, <a href="02_spec.html#fr-architecture-since-extension">FR-11</a>, <a href="02_spec.html#edge-cases">E3</a></p>
+<p><strong>Depends on:</strong> T9 (validator + dispatch pattern shared; same SKILL.md file edited — wave-internal serialization with T9 implicit because T11 also edits SKILL.md, BUT T9 lands in Wave 3 before T11 in Wave 4 so no conflict)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — bug-fix (extending existing behavior; regression test for empty-diff case)</p>
+<p><strong>Slice shape:</strong> vertical — delivers the end-user CLI behavior /verify Phase 4.7 consumes.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code> (extend <code>## Mode: --since</code> section)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-since-extension.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Write failing test <code>test-since-extension.sh</code>: (a) in a temp git repo with no commits ahead → invoke <code>/architecture --since HEAD</code> (via SKILL invocation pattern) → assert exit 0, stderr contains <code>architecture: no changes since HEAD; skipping</code>, no triplet emitted at expected path; (b) with 1 commit ahead touching <code>foo.ts</code> → assert exit 0, triplet emitted, JSON conforms to §13 schema with <code>file_path: "foo.ts"</code> populated (and <code>spec_section_id</code> absent or null).</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-since-extension.sh</code> → expect FAIL.</li>
+  <li>Modify <code>SKILL.md</code>'s <code>## Mode: --since</code> section. Add pre-flight: <code>CHANGED=$(git diff --name-only $SINCE..HEAD); if [ -z "$CHANGED" ]; then echo "architecture: no changes since $SINCE; skipping" &gt;&amp;2; exit 0; fi</code>. Wire dispatch to emit through the same <code>validate-findings.js</code> + <code>apply-knobs.js</code> + <code>emit-findings.js</code> pipeline as <code>--from-spec</code>, but with <code>--mode since</code> on the emitter and the judge input shape from §9.2 case 2 (code+static-tool-evidence). Ensure judge output entries carry <code>file_path</code> instead of <code>spec_section_id</code>; validator handles both via mode flag.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-since-extension.sh</code> → expect PASS.</li>
+  <li>Smoke: in this worktree, <code>/architecture --since $(git merge-base HEAD main)</code> → assert exit 0 (with either an empty-diff skip OR a real findings emit depending on the state of the branch).</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/SKILL.md plugins/pmos-toolkit/skills/architecture/tests/test-since-extension.sh && git commit -m "feat(T11): --since extension — empty-diff skip + §13 schema conformance"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/architecture/tests/test-since-extension.sh</code> — exit 0 (both cases pass).</li>
+  <li>Real-worktree smoke: <code>/architecture --since $(git merge-base HEAD main)</code> — exit 0; either skipping log OR valid triplet.</li>
+</ul>
+
+<h3 id="wave-5-host-integrations">Wave 5 — Host-skill integrations (parallel — disjoint skill dirs)</h3>
+<p>Phase rationale: with the <code>/architecture</code> skill's <code>--from-spec</code> and <code>--since</code> modes complete and proven, wire the two host-skill folded sub-steps. T12 modifies /spec exclusively; T13 modifies /verify exclusively. Zero file overlap → controller dispatches in parallel. Each delivers a user-observable behavior independently (operator running /spec sees Phase 6.6; operator running /verify sees Phase 4.7).</p>
+
+<h4 id="t12">T12 [P]: /spec Phase 6.6 + spec template additions + universal exit checklist</h4>
+<p><strong>Goal:</strong> Add Phase 6.6 to <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> (gate prompt, tier logic with auto-upgrade, dispatch, advisory failure, <code>--skip-folded-arch</code>). Add §Modules + §Architectural Assertions to /spec's Tier-3 template (required) and Tier-2 template (optional, required only on auto-upgrade). Add the universal exit checklist item.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-spec-phase-66">FR-16</a>–<a href="02_spec.html#fr-spec-phase-66">FR-24</a>, <a href="02_spec.html#fr-spec-template-contract">FR-40</a>–<a href="02_spec.html#fr-spec-template-contract">FR-44</a></p>
+<p><strong>Depends on:</strong> T9 (--from-spec mode), T10 (auto-upgrade detector)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers Phase 6.6 end-to-end behavior (gate → dispatch → triplet → cross-link in /spec output).</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> (insert Phase 6.6 after Phase 6.5; add exit-checklist item to Phase 6)</li>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/spec/reference/spec-template.md</code> (or the equivalent template doc — verify exact path during deep code study at task start; spec FR-40 phrasing implies a template asset, but the SKILL may inline it)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-smoke.sh</code> (lightweight per-task smoke; full integration in T14)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Read <code>plugins/pmos-toolkit/skills/spec/SKILL.md</code> end-to-end. Locate the exact byte position of Phase 6.5 close + Phase 7 open (insertion point). Locate the universal exit checklist in Phase 6. Locate the spec-template (inline or sibling <code>reference/</code> file) to identify the exact file to modify for §Modules + §Architectural Assertions.</li>
+  <li>Write failing test <code>test-phase-6-6-smoke.sh</code>: grep <code>SKILL.md</code> for the literal heading <code>## Phase 6.6: Folded /architecture --from-spec</code> → expect ≥1 match; grep for <code>--skip-folded-arch</code> → expect ≥1 match; grep template file for <code>&lt;section id="modules"&gt;</code> sample → expect ≥1 match; grep template for <code>&lt;section id="architectural-assertions"&gt;</code> → expect ≥1 match; grep universal exit checklist for the line containing <code>§Modules and §Architectural Assertions present and non-empty</code> → expect ≥1 match.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-smoke.sh</code> → expect FAIL.</li>
+  <li>Author Phase 6.6 section in <code>SKILL.md</code>. Title per FR-16: <code>## Phase 6.6: Folded /architecture --from-spec (T3 default-on; T2 conditional; T1 skip)</code>. Body sections: (a) Gate logic — T1 skip + log line per FR-17; T2 invoke <code>bash plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh $SPEC</code>, set Recommended per upgrade.outcome; T3 Recommended=Run; (b) <code>--skip-folded-arch</code> short-circuit per FR-20; (c) AskUserQuestion gate per FR-19 with the canonical defer/auto-pick semantics; (d) On Run: dispatch <code>/architecture --from-spec {feature_folder}/02_spec.html</code> as blocking Task subagent with 300s timeout per FR-21; (e) On success: parse JSON output, cross-link triplet path into /spec output; (f) On failure: capture <code>{folded_skill, error_excerpt, ts}</code>, append to per-skill <code>folded_phase_failures[]</code>, emit advisory chat line, continue per FR-22; (g) Re-run invalidates prior output per FR-23.</li>
+  <li>Author spec-template additions. Tier-3 template: add §Modules block (HTML <code>&lt;section id="modules"&gt;</code> with example table) and §Architectural Assertions block (HTML <code>&lt;section id="architectural-assertions"&gt;</code> with example bullets) at the appropriate place (per FR-40 the implementation chooses minimum-disruption ordering — likely append after §15 with subsequent §16+ renumbering). Tier-2 template: add the same blocks marked optional with comment <code>&lt;!-- Required only when /spec Phase 6.6 auto-upgrade fires --&gt;</code>.</li>
+  <li>Add universal exit checklist item to Phase 6: <code>- [ ] §Modules and §Architectural Assertions present and non-empty (T3 mandatory; T2 only on auto-upgrade)</code> per FR-44.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-smoke.sh</code> → expect PASS.</li>
+  <li>Behavioral smoke: re-emit this feature's own 02_spec.html via /spec (dry-run mode) → assert Phase 6.6 fires; OR manually trace through the SKILL.md to confirm the dispatch path resolves to <code>/architecture --from-spec</code> with the correct args.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/spec/SKILL.md plugins/pmos-toolkit/skills/spec/reference/spec-template.md plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-smoke.sh && git commit -m "feat(T12): /spec Phase 6.6 + spec template additions"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-smoke.sh</code> — exit 0 (5 grep assertions pass).</li>
+  <li>Manual: <code>grep -A 20 "## Phase 6.6" plugins/pmos-toolkit/skills/spec/SKILL.md</code> — shows full phase body with gate, dispatch, advisory failure, skip-flag.</li>
+  <li>Template: <code>grep -A 5 "section id=\"modules\"" plugins/pmos-toolkit/skills/spec/reference/spec-template.md</code> — shows the new template block.</li>
+</ul>
+
+<h4 id="t13">T13 [P]: /verify Phase 4.7 sub-step</h4>
+<p><strong>Goal:</strong> Add Phase 4.7 to <code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> dispatching <code>/architecture --since $(git merge-base HEAD main)</code> as blocking Task subagent with 600s timeout. Tier logic: T1 skip; T2 run scoped to changed modules; T3 run full. Findings aggregated into /verify's existing report. Advisory failure pattern. <code>--skip-folded-arch</code> short-circuit.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-verify-sub-step">FR-25</a>–<a href="02_spec.html#fr-verify-sub-step">FR-30</a></p>
+<p><strong>Depends on:</strong> T11 (--since extension provides the empty-diff skip + schema conformance)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers Phase 4.7 end-to-end behavior (gate → dispatch → aggregate into report).</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> (insert Phase 4.7 after Phase 4.5)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-smoke.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Read <code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> end-to-end. Locate Phase 4.5 close + Phase 7 (hard gates) open as the insertion window.</li>
+  <li>Write failing test <code>test-phase-4-7-smoke.sh</code>: grep <code>SKILL.md</code> for the literal heading <code>## Phase 4.7: Folded /architecture --since</code> → expect ≥1 match; grep for <code>--skip-folded-arch</code> → expect ≥1 match; grep for <code>folded_phase_failures</code> in the Phase 4.7 body → expect ≥1 match; grep for <code>git merge-base HEAD main</code> → expect ≥1 match; grep for <code>Architecture findings</code> aggregator section → expect ≥1 match.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-smoke.sh</code> → expect FAIL.</li>
+  <li>Author Phase 4.7 section in <code>SKILL.md</code>. Title per FR-25: <code>## Phase 4.7: Folded /architecture --since (T2 scoped; T3 full; T1 skip)</code>. Body: (a) Tier gate per FR-26 (T1 skip+log; T2 scoped; T3 full); (b) <code>--skip-folded-arch</code> short-circuit per FR-30; (c) Compute <code>SINCE=$(git merge-base HEAD main)</code>; (d) Dispatch <code>/architecture --since $SINCE</code> as blocking Task subagent with 600s timeout per FR-27; (e) On success: aggregate findings into a new "Architecture findings" section in /verify's output report alongside lint/tests/code-review per FR-28; (f) On failure: capture per-skill state, append to <code>folded_phase_failures[]</code>, do NOT block /verify pass per FR-29.</li>
+  <li>Run: <code>bash plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-smoke.sh</code> → expect PASS.</li>
+  <li>Behavioral smoke: walk the SKILL.md Phase 4.7 logic mentally with a T1 fixture → confirm log+skip; T3 fixture → confirm dispatch.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/verify/SKILL.md plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-smoke.sh && git commit -m "feat(T13): /verify Phase 4.7 folded /architecture --since"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-smoke.sh</code> — exit 0 (5 grep assertions pass).</li>
+  <li>Manual: <code>grep -A 30 "## Phase 4.7" plugins/pmos-toolkit/skills/verify/SKILL.md</code> — shows phase body.</li>
+</ul>
+
+<h3 id="wave-6-tests">Wave 6 — Integration + E2E tests (parallel)</h3>
+<p>Phase rationale: with all implementation tasks complete, ship the two test suites that prove host-skill wiring (T14) and full-pipeline invariance (T15). Disjoint test files; controller dispatches in parallel.</p>
+
+<h4 id="t14">T14 [P]: Integration tests</h4>
+<p><strong>Goal:</strong> Ship the four integration test scripts from spec §16.2 — /spec Phase 6.6 three-tier fixtures (T1/T2-no-new/T2-new/T3), /verify Phase 4.7 three-tier fixtures, /spec re-run cascade (FR-23), advisory failure pattern (FR-22, FR-29).</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#integration-tests">§16.2</a>, <a href="02_spec.html#fr-spec-phase-66">FR-17</a>, <a href="02_spec.html#fr-spec-phase-66">FR-22</a>, <a href="02_spec.html#fr-spec-phase-66">FR-23</a>, <a href="02_spec.html#fr-verify-sub-step">FR-26</a>, <a href="02_spec.html#fr-verify-sub-step">FR-29</a></p>
+<p><strong>Depends on:</strong> T12, T13</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the integration test suite that proves host-skill behaviors.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-gate.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-sub-step.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-rerun-cascade.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-advisory-failure-pattern.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/spec/tests/fixtures/spec-t1.html</code>, <code>spec-t2-no-new.html</code>, <code>spec-t2-new.html</code>, <code>spec-t3.html</code> (tier-tagged minimal specs)</li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Author tier fixtures. Each is a minimal spec.html with frontmatter <code>tier: &lt;N&gt;</code>; T2 variants have/lack a new module name (respectively absent from / present in real repo's module set).</li>
+  <li>Write <code>test-phase-6-6-gate.sh</code>: 4 cases — invoke /spec Phase 6.6 logic against each fixture (in dry-run; do not actually dispatch judge), assert (T1) skip-log emitted, no /architecture invocation; (T2-no-new) Recommended=Skip, log <code>arch sub-step: tier 2, no new modules, skipping</code>; (T2-new) auto-upgrade fires, log <code>arch sub-step: T2→T3 auto-upgrade (new module: &lt;name&gt;)</code>, Recommended=Run; (T3) Recommended=Run. Use the AskUserQuestion non-interactive defer path so the test can assert on the Recommended option without operator input.</li>
+  <li>Write <code>test-phase-4-7-sub-step.sh</code>: 3 cases — (T1) skip-log emitted, no /architecture invocation; (T2) scoped dispatch (assert <code>--since</code> arg present, no full-repo flag); (T3) full dispatch.</li>
+  <li>Write <code>test-phase-6-6-rerun-cascade.sh</code>: invoke /spec once → trigger Phase 6.6 (mock judge with canned 2-finding output) → assert triplet emitted; revise the fixture spec (add an extra assertion); re-invoke /spec → assert Phase 6.6 re-runs internally (new triplet at same path, overwriting per E6) and orchestrator state.yaml is NOT mutated with a new phase ID.</li>
+  <li>Write <code>test-advisory-failure-pattern.sh</code>: mock the judge subagent to return an error / timeout; invoke /spec Phase 6.6 → assert <code>folded_phase_failures[]</code> appended with <code>{folded_skill: "architecture", error_excerpt, ts}</code>; assert chat warning emitted; assert /spec exits 0 (continues). Repeat for /verify Phase 4.7 with same mock.</li>
+  <li>Run all 4: expect PASS.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-* plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-sub-step.sh plugins/pmos-toolkit/skills/architecture/tests/test-advisory-failure-pattern.sh plugins/pmos-toolkit/skills/spec/tests/fixtures/spec-t* && git commit -m "test(T14): integration tests for Phase 6.6 + Phase 4.7"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li>All 4 scripts exit 0; collectively cover 4+3+1+2 = 10 assertions.</li>
+  <li><code>find plugins/pmos-toolkit/skills/{spec,verify,architecture}/tests -name "test-phase-*" -o -name "test-advisory-*"</code> — 4 new files.</li>
+</ul>
+
+<h4 id="t15">T15 [P]: E2E tests</h4>
+<p><strong>Goal:</strong> Ship the three E2E test scripts from spec §16.3 — synthetic-T3 /feature-sdlc dry-run + standalone /spec invocation + drift hook installer.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#end-to-end-tests">§16.3</a></p>
+<p><strong>Depends on:</strong> T9, T12, T13</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — delivers the E2E suite that proves full-pipeline invariance.</p>
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/fixtures/synthetic-t3-feature/02_spec.html</code> (full Tier-3 spec with §Modules + §Architectural Assertions)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-e2e.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-feature-sdlc-state-invariance.sh</code></li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook-installer.sh</code></li>
+</ul>
+<p><strong>Steps:</strong></p>
+<ol>
+  <li>Author the synthetic T3 fixture spec (canonical shape, 3 modules, 4 architectural assertions, all frontmatter populated).</li>
+  <li>Write <code>test-from-spec-e2e.sh</code>: invoke <code>/architecture --from-spec &lt;fixture&gt;</code> end-to-end (real judge dispatch); assert exit 0; assert triplet emitted at expected path; <code>jq</code>-validate JSON conforms to §9.3 schema (all 7 fields per finding); assert wall-clock &lt; 90s (NFR-01 budget); cleanup emitted triplet on success.</li>
+  <li>Write <code>test-feature-sdlc-state-invariance.sh</code>: <code>grep -Ec "^(arch-spec|arch-verify|architecture)" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code> → assert output is <code>0</code>; <code>grep -c "arch" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code> → assert no orchestrator-level arch references (or document the exception narrative if any unrelated "arch" substring exists — e.g., "architecture" in a glossary aside is acceptable; "arch-spec phase" is not).</li>
+  <li>Write <code>test-drift-hook-installer.sh</code>: create temp git repo; run <code>bash plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh</code>; assert <code>.git/hooks/pre-commit</code> exists and is executable and contains the drift-check invocation; touch <code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code> in temp repo with a new rule absent from principles.md; <code>git add . && git commit -m "drift"</code> → assert non-zero exit code; align principles.md → commit → assert exit 0; <code>git commit --no-verify -m "bypass"</code> → assert exit 0 (bypass works); cleanup temp repo.</li>
+  <li>Run all 3: expect PASS.</li>
+  <li>Commit: <code>git add plugins/pmos-toolkit/skills/architecture/tests/fixtures/synthetic-t3-feature/ plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-e2e.sh plugins/pmos-toolkit/skills/architecture/tests/test-feature-sdlc-state-invariance.sh plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook-installer.sh && git commit -m "test(T15): E2E tests — from-spec, state invariance, installer"</code>.</li>
+</ol>
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li>All 3 scripts exit 0.</li>
+  <li><code>test-feature-sdlc-state-invariance.sh</code> confirms orchestrator unchanged at runtime.</li>
+  <li><code>test-drift-hook-installer.sh</code> confirms R2 mitigation works under real commit flow.</li>
+</ul>
+
+<h3 id="tn">TN: Final Verification</h3>
+<p><strong>Goal:</strong> Verify the entire implementation works end-to-end and the Done-when line resolves true.</p>
+<ul>
+  <li>[ ] <strong>Lint &amp; format:</strong> <code>shfmt -d plugins/pmos-toolkit/skills/architecture/scripts/*.sh</code> (or skip if shfmt unavailable per stack-file fallback) — no diff. <code>node --check plugins/pmos-toolkit/skills/architecture/scripts/*.js</code> for every new .js file — exit 0.</li>
+  <li>[ ] <strong>Type check:</strong> N/A — bash + zero-dep Node scripts; no TS or Python in the changed surface.</li>
+  <li>[ ] <strong>Unit tests:</strong> <code>for t in plugins/pmos-toolkit/skills/architecture/tests/test-*.sh; do echo "=== $t ==="; bash "$t" || exit 1; done</code> — expect every script exits 0; 8 unit-test scripts (tracer, principles-md-coverage, judge-prompt-template, drift-hook, principles-loader, from-spec-parser, knobs, emit-findings, findings-validator, since-extension, auto-upgrade-detector) all pass.</li>
+  <li>[ ] <strong>Integration tests:</strong> <code>bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-gate.sh && bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-rerun-cascade.sh && bash plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-sub-step.sh && bash plugins/pmos-toolkit/skills/architecture/tests/test-advisory-failure-pattern.sh</code> — all 4 exit 0.</li>
+  <li>[ ] <strong>E2E tests:</strong> <code>bash plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-e2e.sh && bash plugins/pmos-toolkit/skills/architecture/tests/test-feature-sdlc-state-invariance.sh && bash plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook-installer.sh</code> — all 3 exit 0.</li>
+  <li>[ ] <strong>Database migrations:</strong> N/A — no DB changes.</li>
+  <li>[ ] <strong>Docker deploy:</strong> N/A — no Docker in scope.</li>
+  <li>[ ] <strong>API smoke test:</strong> <code>/architecture --from-spec docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> via Task dispatch — exit 0; triplet at <code>docs/pmos/architecture/2026-05-28_architecture-in-feature-sdlc_from-spec.{html,md,json}</code>; JSON conforms to §9.3 schema; wall-clock &lt;90s.</li>
+  <li>[ ] <strong>API smoke test — error path:</strong> <code>/architecture --from-spec plugins/pmos-toolkit/skills/architecture/tests/fixtures/spec-missing-modules.html; echo exit=$?</code> — <code>exit=65</code> with §9.4 stderr.</li>
+  <li>[ ] <strong>API smoke test — mutual exclusion:</strong> <code>/architecture --from-spec docs/...spec.html --since HEAD~1; echo exit=$?</code> — <code>exit=64</code>.</li>
+  <li>[ ] <strong>Drift hook self-check against repo:</strong> <code>bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> — exit 0 (principles.yaml ↔ principles.md aligned).</li>
+  <li>[ ] <strong>/feature-sdlc state-schema invariance:</strong> <code>grep -Ec "^(arch-spec|arch-verify|architecture)" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md</code> — <code>0</code>.</li>
+  <li>[ ] <strong>Frontend smoke test (Playwright MCP):</strong> N/A — no UI surface per spec §11.</li>
+  <li>[ ] <strong>UX polish checklist:</strong> N/A — no UI surface.</li>
+  <li>[ ] <strong>Wireframe diff:</strong> N/A — no <code>{feature_folder}/wireframes/</code> exists.</li>
+  <li>[ ] <strong>Done-when walkthrough:</strong> run the narrative in the Done-when block above against the running implementation — confirm each clause: tests pass count, drift hook exit 0, triplet emit &lt;90s, judge findings have valid rule_ids + ≥40-char verbatim quotes, orchestrator state-schema unchanged.</li>
+  <li>[ ] <strong>Seed data:</strong> N/A — no seed data.</li>
+</ul>
+<p><strong>Cleanup:</strong></p>
+<ul>
+  <li>Remove temporary files written during testing: <code>rm -f /tmp/architecture-tracer-findings.json /tmp/test-emit-findings_from-spec.{json,html,md} /tmp/eft.*</code>.</li>
+  <li>Remove the synthetic-T3 fixture's emitted triplet if landed on disk during E2E: <code>rm -f docs/pmos/architecture/&lt;date&gt;_synthetic-t3-feature_from-spec.*</code>.</li>
+</ul>
+<p><strong>Trigger-omitted cleanup items (per FR-92):</strong></p>
+<ul>
+  <li>No <code>--worktree</code> /execute mode used → worktree-container cleanup line omitted.</li>
+  <li>No feature flags added → flag-flip cleanup line omitted.</li>
+  <li>User-facing documentation changes (CLAUDE.md, changelog, README, learnings header bootstrap, argument-hint, description) are <strong>release-prereq tasks per §Release prerequisites above</strong> — owned by /complete-dev, NOT a TN cleanup item.</li>
+</ul>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+<blockquote>Sidecar: per-loop detailed findings live in <code>03_plan_review.md</code> if loops run beyond Loop 1. This table is the summary index.</blockquote>
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Structural checklist: every FR-ID from spec §7 mapped to a task (FR-01–FR-08 → T1+T6+T7+T8+T9; FR-09–FR-11 → T11; FR-12–FR-15 → T2; FR-16–FR-24 → T12; FR-25–FR-30 → T13; FR-31–FR-35 → T3+T9; FR-36–FR-39 → T4; FR-40–FR-44 → T12). Decision-Log has 6 implementation-specific entries (≥3 required at T3). Risks table has 7 entries; R1+R2 high severity both cite per-task mitigations (T1+T9 and T4). Done-when has 6 quantitative assertions (8 unit tests pass count, drift-hook exit 0, &lt;90s wall-clock, ≤8 findings, grep -c 0 for state-schema, ≥40 chars verbatim). Wireframe coverage N/A. Vertical-slice shape: T1 is tracer-bullet (narrowest end-to-end through judge dispatch — the riskiest unproven integration); T2/T3/T4 declared as vertical (each ships a user-observable artifact); T5–T11 vertical (each delivers script-level behavior consumed by next layer); T12/T13 vertical (each delivers a folded sub-step's end-to-end behavior). No layer-named phases; every wave is a deployable slice. Design self-critique: tasks sized 30–90 min each; T9 is the largest (CLI wiring + validator) but justified because the validator is intrinsic to FR-06 contract that lives in /architecture per spec §13 #7. Dependencies reflected in the wave graph match per-task <code>**Depends on:**</code> lines.</td>
+      <td>None — exit-criteria met on Loop 1.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/03_plan.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.1"></script>
+  <script defer src="assets/diff-match-patch.js?v=2.57.1"></script>
+</body>
+</html>
