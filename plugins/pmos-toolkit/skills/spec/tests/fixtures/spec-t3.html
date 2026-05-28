@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Spec T3 fixture</title>
+  <meta name="pmos:skill" content="spec">
+  <meta name="pmos:tier" content="3">
+</head>
+<body>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+    <p><strong>Tier:</strong> 3</p>
+    <section id="modules">
+      <h2 id="modules">16. Modules</h2>
+      <p>Tier-3 fixture; every module already exists in the repo. T3 must Recommend Run regardless of upgrade detection.</p>
+      <table>
+        <thead><tr><th>name</th><th>deps</th><th>role</th></tr></thead>
+        <tbody>
+          <tr><td>spec</td><td>(none)</td><td>Existing skill.</td></tr>
+          <tr><td>architecture</td><td>spec</td><td>Existing skill.</td></tr>
+          <tr><td>verify</td><td>architecture</td><td>Existing skill.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">17. Architectural assertions</h2>
+      <ul>
+        <li>Spec module must not import directly from verify (layering invariant).</li>
+        <li>Architecture findings must be advisory at Phase 6.6 (D11).</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

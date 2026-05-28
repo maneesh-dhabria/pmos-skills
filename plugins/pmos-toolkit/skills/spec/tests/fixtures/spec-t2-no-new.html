@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Spec T2 (no new modules)</title>
+  <meta name="pmos:skill" content="spec">
+  <meta name="pmos:tier" content="2">
+</head>
+<body>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+    <p><strong>Tier:</strong> 2</p>
+    <section id="modules">
+      <h2 id="modules">11. Modules</h2>
+      <p>Tier-2 fixture; every named module already exists in the repo, so auto-upgrade-detector must return upgrade=false.</p>
+      <table>
+        <thead><tr><th>name</th><th>deps</th><th>role</th></tr></thead>
+        <tbody>
+          <tr><td>spec</td><td>(none)</td><td>Existing skill.</td></tr>
+          <tr><td>architecture</td><td>spec</td><td>Existing skill.</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">12. Architectural assertions</h2>
+      <ul>
+        <li>Optional at T2 — populated only when Phase 6.6 auto-upgrade fires (it should not, here).</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
