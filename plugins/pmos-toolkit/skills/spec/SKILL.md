@@ -482,6 +482,27 @@ requirements: <path-to-01_requirements.{html,md}>
 
 ## 10. Testing & Verification Strategy
 [What to test, how, exact commands]
+
+<!-- Required only when /spec Phase 6.6 auto-upgrade fires (a previously-unseen module was declared) -->
+## 11. Modules (optional at Tier-2)
+
+<section id="modules">
+
+| Module | Owner | Purpose |
+|--------|-------|---------|
+| <module-name> | <team or path> | <one-line purpose> |
+
+</section>
+
+<!-- Required only when /spec Phase 6.6 auto-upgrade fires -->
+## 12. Architectural Assertions (optional at Tier-2)
+
+<section id="architectural-assertions">
+
+- <module-name> MUST <invariant phrased as a checkable rule>.
+- <module-name> MUST NOT <forbidden coupling or escape hatch>.
+
+</section>
 ```
 
 ### Tier 3 Template: Feature / New System
@@ -659,7 +680,34 @@ CREATE TABLE ... (
 
 ---
 
-## 16. Research Sources
+## 16. Modules
+
+<section id="modules">
+
+| Module | Owner | Purpose |
+|--------|-------|---------|
+| <module-name> | <team or path> | <one-line purpose> |
+
+</section>
+
+[Required at Tier-3. Every module the spec introduces or touches gets a row. Names must resolve in the host repo (basename match OR full-path resolves in git HEAD) so /architecture's auto-upgrade detector does not flag false positives. See `plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh` for the matching contract.]
+
+---
+
+## 17. Architectural Assertions
+
+<section id="architectural-assertions">
+
+- <module-name> MUST <invariant phrased as a checkable rule>.
+- <module-name> MUST NOT <forbidden coupling or escape hatch>.
+
+</section>
+
+[Required at Tier-3. Each assertion is one sentence, testable by an LLM judge against the codebase. Cite the §6 architecture diagram or §5 user journey that motivates each assertion. /architecture --from-spec emits findings per assertion via the §13-schema triplet.]
+
+---
+
+## 18. Research Sources
 
 | Source | Type | Key Takeaway |
 |--------|------|-------------|
@@ -799,6 +847,7 @@ All items below must be `pass` or `N/A` (with a stated reason for N/A). Loop unt
 | 9 | Rollout strategy documented (flags, migration order, rollback) | Tier 1-2 with no deploy-time risk |
 | 10 | **Open Questions section is empty (no unresolved items)** | Never N/A — see below |
 | 10b | Frontmatter contract complete: tier, type, feature, date, status, requirements all present and non-empty | Never N/A |
+| 10c | §Modules and §Architectural Assertions present and non-empty (T3 mandatory; T2 only on auto-upgrade) | Tier 1 always; Tier 2 unless /spec Phase 6.6 auto-upgrade fired |
 | 11 | Last loop produced only `[Nit]` findings or none | Never N/A |
 | 12 | User has explicitly confirmed no further concerns | Never N/A — do not self-declare exit |
 
@@ -850,6 +899,61 @@ The 4-pass scenario enumeration (Spec extraction → variant generation → adve
 
 `--skip-folded-sim-spec` (boolean) — short-circuits this phase entirely.
 `--msf-auto-apply-threshold N` (int, default 80) — overrides the apply threshold (shared with folded MSF paths).
+
+---
+
+## Phase 6.6: Folded /architecture --from-spec (T3 default-on; T2 conditional; T1 skip)
+
+**Skip if `--skip-folded-arch` was passed** (FR-20 escape). This phase delegates to the `/architecture` skill's `--from-spec` mode (shipped in Waves 1-3 of the architecture-in-feature-sdlc feature) to evaluate `02_spec.html`'s §Architectural Assertions against the codebase via an LLM judge. Findings emit as a §13-conforming triplet (`<feature_folder>/architecture/02_spec.{json,html,md}`) cross-linked from /spec's output. Replaces the prior standalone `/architecture` orchestrator phase per D5 (fold-into-spec-and-verify).
+
+### Tier gate (FR-17, FR-18)
+
+| Tier | Recommended | Rule |
+|------|-------------|------|
+| 1    | n/a — skipped | Emit log line `arch sub-step: tier 1, skipping` and proceed to Phase 7. No gate prompt. |
+| 2    | Determined by auto-upgrade detector | Run `bash plugins/pmos-toolkit/skills/architecture/scripts/auto-upgrade-detector.sh <spec-path>`; if `upgrade=true` and `new_modules` non-empty, set `Recommended=Run` and log `arch sub-step: T2→T3 auto-upgrade (new module: <name>)`. Else `Recommended=Skip` and log `arch sub-step: tier 2, no new modules, skipping`. |
+| 3    | Run        | Default-on per D2; user can still pick Skip explicitly. |
+
+### Pre-flight short-circuit (FR-20)
+
+If the argument string carries `--skip-folded-arch`, emit `architecture: --skip-folded-arch flag; skipping` to stderr and proceed to Phase 7 without further work. No gate prompt, no state.yaml mutation.
+
+### Gate prompt (FR-19)
+
+<!-- defer-only: ambiguous -->
+`AskUserQuestion`:
+```
+question: "Run folded /architecture --from-spec to lint §Architectural Assertions against the codebase?"
+options:
+  - Run /architecture --from-spec (Recommended)
+    description: Dispatch the judge subagent (~30-90s) and cross-link findings into the spec.
+  - Skip
+    description: Defer architecture lint to /verify Phase 4.7 (--since mode against merge-base).
+```
+
+The `(Recommended)` marker is computed per the tier gate table above — T2-no-new-modules and T1 do not present this prompt at all (Skip is logged automatically).
+
+### Dispatch (FR-21)
+
+On Run: invoke `/architecture --from-spec {feature_folder}/02_spec.html` as a blocking Task subagent with 300s timeout. The child resolves its own modules + assertions from the spec, dispatches the judge, validates findings, and writes the triplet atomically. On success, parse the returned JSON output, capture the triplet path, and cross-link it from /spec's primary output as: `Architecture findings: <feature_folder>/architecture/02_spec.html`.
+
+### Advisory failure (FR-22, D11)
+
+On dispatch failure (subagent crash, timeout, schema-conformance hard-fail, judge API error), capture `{folded_skill: "architecture", error_excerpt: <first-200-chars>, ts: <ISO-8601>}` and append to `state.yaml.phases.spec.folded_phase_failures[]` per the dedup rule in `feature-sdlc/reference/state-schema.md`. Emit at moment-of-append:
+
+```
+WARNING: architecture crashed (advisory continue per D11): <error_excerpt>
+```
+
+Continue to Phase 7 — folded-phase failures do NOT halt /spec. /feature-sdlc Phase 9 surfaces them (T12b Resume Status + Phase 9 subsection).
+
+### Re-run idempotency (FR-23)
+
+Re-invoking /spec (e.g., after a Phase 6 revise loop) re-runs Phase 6.6 internally, overwriting the prior triplet at the same path. No new orchestrator phase ID is created — state.yaml mutation is confined to `phases.spec.folded_phase_failures[]` only. Operators expecting to see fresh findings after a spec revision get them automatically.
+
+### Flag handling (Phase 0 parser additions)
+
+`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `--skip-folded-sim-spec` for Phase 6.5).
 
 ---
 
