@@ -1,8 +1,8 @@
 ---
 name: ideate
-description: Turn a fuzzy idea into a structured, pressure-tested one-page brief in ~10–15 minutes. Standalone utility — runs a 3-phase loop (Frame → Expand → Pressure-test) with always-on premortem + inversion + assumption-mapping against the chosen idea, then writes a single per-idea HTML artifact to {docs_path}/ideate/{YYYY-MM-DD}_<slug>.html (markdown sidecar when output_format=both). Lives outside the requirements→spec→plan pipeline — for pre-requirements ideation, not committed-plan interrogation. Use when the user says "help me brainstorm this idea", "stress-test this idea", "I have a half-formed idea", "ideate on X", "what should we build to solve Y", "pressure-test this concept", "poke holes in this idea before I write it up", or "/ideate".
+description: Turn a fuzzy idea into a structured, pressure-tested one-page brief in ~10–15 minutes. Standalone utility — runs a 3-phase default loop (Frame → Expand → Pressure-test) with always-on premortem + inversion + assumption-mapping against the chosen idea, plus an opt-in Amplify phase (Brian Chesky's 11-star ladder) between Expand and Pressure-test that recommends a sweet-spot reframe of the finalist. Writes a single per-idea HTML artifact to {docs_path}/ideate/{YYYY-MM-DD}_<slug>.html (markdown sidecar when output_format=both). Lives outside the requirements→spec→plan pipeline — for pre-requirements ideation, not committed-plan interrogation. Use when the user says "help me brainstorm this idea", "stress-test this idea", "I have a half-formed idea", "ideate on X", "what should we build to solve Y", "pressure-test this concept", "poke holes in this idea before I write it up", "11-star this idea", "amplify this idea past its obvious shape", or "/ideate".
 user-invocable: true
-argument-hint: "<seed-text> [--format html|md|both] [--no-stress-test] [--refine] [--slug <slug>] [--resume <path>] [--non-interactive | --interactive]"
+argument-hint: "<seed-text> [--format html|md|both] [--amplify | --no-amplify] [--no-stress-test] [--refine] [--slug <slug>] [--resume <path>] [--non-interactive | --interactive]"
 ---
 
 # /ideate
@@ -51,20 +51,26 @@ These instructions use Claude Code tool names. In other environments:
                     │   generate 8–15 variants            │
                     │   user picks 1–3 finalists          │
                     └──────────────┬──────────────────────┘
+                                   │ (opt-in; new/extend only)
+                    ┌──────────────▼──────────────────────┐
+                    │  Phase 3 — AMPLIFY (11-star ladder) │
+                    │   1→11★ per finalist                │
+                    │   recommend sweet-spot reframe      │
+                    └──────────────┬──────────────────────┘
                                    │
                     ┌──────────────▼──────────────────────┐
-                    │  Phase 3 — PRESSURE-TEST (always-on)│
+                    │  Phase 4 — PRESSURE-TEST (always-on)│
                     │   Premortem + Inversion +           │
                     │   Assumption-map (batch)            │
                     └──────────────┬──────────────────────┘
                                    │ (optional Refine)
                     ┌──────────────▼──────────────────────┐
-                    │  Phase 5 — WRITE ARTIFACT           │
+                    │  Phase 6 — WRITE ARTIFACT           │
                     │  {docs_path}/ideate/<date>_<slug> │
                     └─────────────────────────────────────┘
 ```
 
-Phases 0 / 4 / 6 / 7 (setup, optional refine, handoff, capture-learnings) wrap the core loop.
+Phases 0 / 5 / 7 / 8 (setup, optional refine, handoff, capture-learnings) wrap the core loop. Phase 3 (Amplify) is opt-in for `new`/`extend` ideas and auto-skipped for `fix`.
 
 ## Phase 0: Setup
 
@@ -92,13 +98,34 @@ Goal: generate **8–15 distinct one-line variants** using the two techniques, t
 1. **Generate variants.** Apply each technique to the framed idea per the prompt templates in `reference/techniques.md`. Variants are deliberately diverse — no two should paraphrase the same idea. Each ≤120 characters.
 2. **Present as a numbered list.** Plain chat output, not a structured ask. Brief one-line rationale per variant when non-obvious.
 3. **Convergence prompt.** Issue one `AskUserQuestion` asking the user to pick 1–3 finalists. Options: "Pick #N — the strongest single idea (Recommended)" / "Pick multiple — reply with numbers" / "Regenerate — different angles needed". On Regenerate, swap one of the two techniques and re-run step 1 with a `(2/3)` indicator (cap: 3 regenerations; after that, force a finalist pick).
-4. **Persist a partial artifact** (Frame + Expand sections populated; Pressure-test section is a placeholder; `<meta name="pmos:ideate-phase" content="expand">`). Atomic write per Phase 5's substrate contract.
+4. **Persist a partial artifact** (Frame + Expand sections populated; Amplify and Pressure-test sections are placeholders; `<meta name="pmos:ideate-phase" content="expand">`). Atomic write per Phase 6's substrate contract.
+5. **Amplify gate (end of Phase 2).** Apply the gating rules in `reference/eleven-star-ladder.md`:
+   - If idea-type is `fix` → auto-skip Phase 3. Log `Phase 3 Amplify: skipped — idea-type=fix (no UX ceiling to raise)` and advance to Phase 4.
+   - Else (`new` / `extend`) → if `--amplify` was passed, force-run Phase 3; if `--no-amplify` was passed, force-skip; otherwise surface a single `AskUserQuestion` with **Skip Amplify (Recommended)** / **Run Amplify (11-star ladder on the finalist)**. Most ideas don't earn the ceiling-raising cost; opt in when the finalist has room to grow before pressure-testing.
+   - Non-interactive mode honors Recommended=Skip per the standard auto-pick contract.
 
-## Phase 3: Pressure-test (always-on)
+## Phase 3: Amplify (opt-in; new/extend only)
+
+Goal: stretch the chosen finalist(s) past their obvious shape via Brian Chesky's 11-star design exercise, then **recommend** a concrete sweet-spot reframe that feeds Phase 4. Runs only when gated in by Phase 2 step 5; otherwise skipped per the rules in `reference/eleven-star-ladder.md`.
+
+For **each finalist** (per `reference/eleven-star-ladder.md`):
+
+1. **Generate the 1→11 ladder.** Produce one 11-row table — columns `★` and `Experience description`. Follow the anchors in the ladder reference: 1=terrible, 5=baseline (the Phase-2 finalist as written), 7-8=delightful/memorable, 11=deliberately absurd. Each rung must clearly exceed the one below it; do not skip rungs.
+2. **Identify the sweet spot.** Almost always rung 7 or 8. Never 11. State it as a one-line **reframed finalist**: *"Finalist (sweet-spot reframe): <restate the original finalist with the sweet-spot rung's ceiling-raising element folded in>."* This is the skill's recommendation.
+3. **Confirm via `AskUserQuestion`.** Three options: **Use sweet-spot reframe (Recommended)** / **Stay with original Phase-2 finalist** / **Pick a different rung**. Never present "pick from the 11 rungs" — the skill expresses a recommendation; the user redirects only when their judgement diverges.
+4. **Persist a partial artifact** (Frame + Expand + Amplify sections populated; Pressure-test is a placeholder; `<meta name="pmos:ideate-phase" content="amplify">`). Atomic write per Phase 6's substrate contract.
+
+**Multi-finalist handling.** When Phase 2 produced 2–3 finalists, run the ladder per finalist (each gets its own 11-row table + sweet-spot reframe + confirm prompt). Phase 4 then runs its battery against the **chosen reframes** (or originals where the user picked "Stay with original"). The cross-cutting decision table in Phase 4 compares whatever variants Phase 3 hands forward, not the unconditional originals.
+
+**Artifact preservation.** The original Phase-2 finalist(s) stay listed in the `idea-variants` section regardless of which option the user picked — the amplification is additive, never destructive.
+
+## Phase 4: Pressure-test (always-on)
 
 Goal: run a structured battery against the chosen finalist(s) — premortem + Munger inversion + assumption mapping — in **one non-interactive batch pass**. No clarifying questions in this phase.
 
-For **each finalist** (per `reference/pressure-test-battery.md`):
+**Input.** When Phase 3 Amplify ran AND the user chose **Use sweet-spot reframe** (or **Pick a different rung**), this phase attacks the reframed variant(s). When Phase 3 was skipped, or the user picked **Stay with original Phase-2 finalist**, it attacks the original Phase-2 finalist(s) unchanged. Either way, the original Phase-2 selection is preserved in the artifact.
+
+For **each finalist (or reframe)** (per `reference/pressure-test-battery.md`):
 
 1. **Premortem.** Frame: "It is 2027-05-13. This idea, shipped 12 months ago, has failed. Why?" Produce a 3–6-row table: `mode | likelihood (H/M/L) | mitigation`.
 2. **Munger Inversion.** Frame: "What set of choices would *guarantee* this idea fails?" Produce 3–5 inverted-action bullets — concrete, actionable inversions, not platitudes.
@@ -108,34 +135,34 @@ For **each finalist** (per `reference/pressure-test-battery.md`):
 
 **Escape:** `--no-stress-test` short-circuits this phase. The artifact's TL;DR carries a `⚠ Stress-test skipped — failure modes and assumptions NOT validated` warning line and the Next Steps section recommends `--resume <path>` to add the battery later. This escape is for deliberately throwaway brainstorms only.
 
-## Phase 4: Refine (optional)
+## Phase 5: Refine (optional)
 
-Default: skip. When `--refine` is passed OR the user opts in via an end-of-Phase-3 `AskUserQuestion` (Recommended Skip), rewrite the artifact for voice consistency, tighten the TL;DR, and cross-link failure-modes ↔ assumptions where they reinforce each other.
+Default: skip. When `--refine` is passed OR the user opts in via an end-of-Phase-4 `AskUserQuestion` (Recommended Skip), rewrite the artifact for voice consistency, tighten the TL;DR, and cross-link failure-modes ↔ assumptions where they reinforce each other.
 
-Most ideas don't earn the polish cost — the Phase-3 working artifact is itself shippable. Run this only when the artifact will be shared widely or attached to a written brief.
+Most ideas don't earn the polish cost — the Phase-4 working artifact is itself shippable. Run this only when the artifact will be shared widely or attached to a written brief.
 
-## Phase 5: Write Artifact
+## Phase 6: Write Artifact
 
 Goal: emit `{docs_path}/ideate/{YYYY-MM-DD}_<slug>.html` (plus `.md` sidecar when `output_format=both`).
 
-1. **Render the artifact** from `reference/artifact-template.html` — 12 sections (TL;DR / HMW / Target user & JTBD / Hypothesis / Idea variants considered / How it works / Alternatives & prior art / Premortem: failure modes / Riskiest assumptions / Success signals / Next steps / Open questions). Each section is `<section id="kebab-case-id">` with an `<h2 id="kebab-case-id">` per `_shared/html-authoring/conventions.md` §3.
+1. **Render the artifact** from `reference/artifact-template.html` — 13 sections (TL;DR / HMW / Target user & JTBD / Hypothesis / Idea variants considered / Amplify: 11-star ladder / How it works / Alternatives & prior art / Premortem: failure modes / Riskiest assumptions / Success signals / Next steps / Open questions). Each section is `<section id="kebab-case-id">` with an `<h2 id="kebab-case-id">` per `_shared/html-authoring/conventions.md` §3. The `amplify-ladder` section carries either the ladder table(s) + sweet-spot reframe(s) (when Phase 3 ran) or a `<em>Skipped — <reason></em>` placeholder per `reference/eleven-star-ladder.md` §"Skip signaling".
 2. **Atomic write.** Temp-then-rename for `.html` and the `.sections.json` companion (build via `_shared/html-authoring/assets/build_sections_json.js`). On the `.md` sidecar (`output_format=both`), pipe through `_shared/html-authoring/assets/html-to-md.js`.
 3. **Asset substrate.** Copy the following from `_shared/html-authoring/assets/` to `{docs_path}/ideate/assets/` if not already present (`cp -n`): `style.css`, `viewer.js`, `comments.js`, `comments.css`, `diff-match-patch.js`, `launcher.js`, `launcher.css`, `launcher-config.js`. Asset prefix in the rendered HTML is `assets/` (relative to the `{docs_path}/ideate/` parent). Apply `?v=<plugin-version>` cache-bust on all asset URLs.
-4. **Phase cursor + skill meta tag.** Embed `<meta name="pmos:skill" content="ideate">` and `<meta name="pmos:ideate-phase" content="complete">` in `<head>`. The `pmos:skill` tag is required for `/comments resolve` routing (FR-01, FR-40). (For partial-write checkpoints in Phases 2 / 3, use `pmos:ideate-phase content="expand"` / `content="pressure-test"` — the `pmos:skill` tag is always `ideate`.)
+4. **Phase cursor + skill meta tag.** Embed `<meta name="pmos:skill" content="ideate">` and `<meta name="pmos:ideate-phase" content="complete">` in `<head>`. The `pmos:skill` tag is required for `/comments resolve` routing (FR-01, FR-40). (For partial-write checkpoints in Phases 2 / 3 / 4, use `pmos:ideate-phase content="expand"` / `content="amplify"` / `content="pressure-test"` — the `pmos:skill` tag is always `ideate`.)
 5. **Print the absolute file path** in the chat summary so the user can click through.
 
-## Phase 6: Handoff
+## Phase 7: Handoff
 
 Print 1–3 candidate follow-up commands in the chat summary, named by exact slash-command syntax:
 
 - Idea-type `new`: suggest `/requirements <slug>` + `/backlog add`.
 - Idea-type `extend`: suggest `/requirements <slug>` + `/grill <artifact-path>`.
 - Idea-type `fix`: suggest `/grill <artifact-path>` + `/backlog add`.
-- All cases: include `/ideate --refine --resume <artifact-path>` when Phase 4 was skipped.
+- All cases: include `/ideate --refine --resume <artifact-path>` when Phase 5 was skipped.
 
 The skill does NOT auto-invoke any of these. Promotion is explicit.
 
-## Phase 7: Capture Learnings
+## Phase 8: Capture Learnings
 
 **This skill is not complete until the learnings reflection has produced a one-line output.**
 
@@ -190,10 +217,12 @@ No read-only regions for `/ideate` — all prose sections are editable via stand
 1. **Generating fewer than 8 variants in Phase 2.** Breadth before convergence is the load-bearing rule — LLMs over-converge in single-shot generation. A 6-variant pass dressed up as "good enough" is the most common failure mode of LLM-assisted ideation. Aim for the upper end (12–15) when in doubt.
 2. **Skipping the pressure-test phase by default.** Pressure-test is the *differentiating value* vs `/superpowers:brainstorming` and `/creativity`. Making it opt-in causes users to skip the half that matters. The only path to skipping is the explicit `--no-stress-test` flag with the in-artifact warning.
 3. **Folding `/creativity` in as a sub-phase.** `/creativity` stays standalone (Tier-3-requirements enhancer per its own surface). Tight coupling would erase its standalone use case and couple release cycles. The Expand phase has its own auto-picked techniques.
-4. **Acting like `/grill`.** `/grill` is a *decision-tree interrogation* of a committed plan (one question per turn, branch walking). Pressure-test is a *batch structured battery* against an uncommitted idea (premortem + inversion + assumption-map in one pass). Different inputs, cadence, outputs. Do NOT issue turn-by-turn questions in Phase 3.
+4. **Acting like `/grill`.** `/grill` is a *decision-tree interrogation* of a committed plan (one question per turn, branch walking). Pressure-test is a *batch structured battery* against an uncommitted idea (premortem + inversion + assumption-map in one pass). Different inputs, cadence, outputs. Do NOT issue turn-by-turn questions in Phase 4.
 5. **Loading workstream context.** This is a standalone utility — workstream pollution biases variant generation. Do NOT call any workstream-loader. (`/diagram`, `/polish`, `/design-crit`, `/survey-design` all skip workstream — same shape.)
 6. **Auto-promoting to `/backlog` or `/requirements`.** Handoff is explicit. Auto-promotion floods `/backlog` with half-baked ideas; manual promotion preserves the bar. Suggest, don't dispatch.
 7. **Inventing techniques the skill doesn't support.** The auto-pick set is closed (HMW, SCAMPER, Crazy 8s, First Principles, Analogous Inspiration, Premortem-as-generator, Inversion). Six Thinking Hats, Disney Method, 6-3-5 Brainwriting, Reverse Brainstorming are explicitly excluded — they are workshop-shaped and don't translate to chat.
-8. **Writing the artifact without a Pressure-test section.** Even with `--no-stress-test`, the section must exist with an explicit `<em>Skipped — see TL;DR warning</em>` placeholder. Silently omitting it breaks the artifact schema and downstream tooling that expects the 12 sections.
+8. **Writing the artifact without a Pressure-test or Amplify section.** Both sections must exist in every artifact. Pressure-test with `--no-stress-test` carries `<em>Skipped — see TL;DR warning</em>`; Amplify when skipped carries `<em>Skipped — <reason></em>` per `reference/eleven-star-ladder.md` §"Skip signaling". Silently omitting either breaks the artifact schema and downstream tooling that expects the 13 sections.
 9. **Re-asking locked decisions.** If the seed already contains HMW + JTBD signal, do NOT ask the user to confirm — auto-derive and present as a single confirm prompt. Saving a turn is more polite than ceremony.
 10. **Hardcoding paths.** Use `${CLAUDE_PLUGIN_ROOT}` (or `${CLAUDE_SKILL_DIR}`) and the resolved `{docs_path}` token. Hardcoded `/Users/<name>/...` paths break the moment the skill is installed elsewhere.
+11. **Treating Phase 3 Amplify as default-on.** Amplify is opt-in even when the idea-type gate passes (`new`/`extend`). Routine extensions and obvious features don't earn the ceiling-raising cost; defaulting on punishes those cases with a phase whose output they won't use. The only force-runs are `--amplify` (user explicit) or an explicit gate pick.
+12. **Picking 11★ as the sweet spot (or dumping the ladder without a recommendation).** 11★ is infeasible by construction — the value lives in the *walk back* from it. Sweet spot is almost always 7–8. And the skill MUST recommend a concrete sweet-spot reframe as a one-line restated finalist — never present "pick from the 11 rungs" as the convergence prompt. The skill expresses a recommendation; the user redirects only when their judgement diverges.
