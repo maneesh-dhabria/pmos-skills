@@ -1,5 +1,23 @@
 # Changelog
 
+## pmos-learnkit 0.3.0 — 2026-05-28
+
+### What's new
+
+- **`/primer` Phase 4 now drafts inline SVG diagrams.** When a section's concept has a structural shape that prose explains awkwardly — a loop, a comparison across named camps, a hierarchy, a sequence, a state machine, a 2×2 — the drafter embeds a small inline `<svg>` within that section. Diagrams ship inline in the single HTML artifact (no external assets); accessible via `<title>`/`<desc>` children; styled per the new `reference/diagram-style.md` (palette, viewBox sizing, accessibility, shape patterns). Reverses the prior "No diagram-pass" non-goal.
+- **Diagrams are an affordance, not a requirement.** A new anti-pattern guards against forced/decorative diagrams. The drafter picks diagrams where they earn their place — one well-chosen diagram saves a paragraph; a forced diagram displaces citation density.
+- **Reviewer rubric R10 grows two informational fields.** `diagrams_per_h2_distribution: [{h2_id, h2_title, count}]` counts inline `<svg>` elements per H2 (audit / longitudinal observation only — no write-gate note). `word_count` clarified to exclude text inside `<svg>` subtrees so depth-tier thresholds compare against prose only.
+
+### Breaking changes
+
+None. Existing primers still draft; the diagram instruction is permissive ("where useful"). Drafts without diagrams remain valid.
+
+### Internal
+
+- Authored end-to-end via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias), `--minimal` ceremony, Tier 2. Requirements/spec/plan/triage artifacts ship under `docs/pmos/features/2026-05-28_primer-inline-diagrams/`.
+
+---
+
 ## pmos-toolkit 2.54.0 — 2026-05-24
 
 ### What's new
