@@ -243,6 +243,196 @@
     diagramMarkers: []       // T24: tracked markers { threadId, element }
   };
 
+  /* =====================================================================
+   * T3 — Inline JSON read path + FR-14 mode detection + POST /save.
+   * Replaces the FSA / sidecar-fetch read path. The legacy code paths
+   * below (FSA + localStorage fallback) remain in place; T9 will gut
+   * them once T3..T8 land.
+   * Refs: FR-13, FR-14, FR-15, FR-16, FR-17, E2..E6, E11.
+   * ===================================================================== */
+
+  // _state: hydrated from the inline JSON block at first mount-or-eval.
+  // Shape: { schema, version, generated_at, threads, mode }.
+  // mode ∈ {'unknown','read-only','read-write'}; resolved by detectMode().
+  var _state = {
+    schema: 1,
+    version: 0,
+    generated_at: null,
+    threads: [],
+    mode: 'unknown'
+  };
+
+  /* readInlineState: parse the sentinel-bracketed <script id="pmos-comments">
+   * block into _state. Idempotent; on parse-fail leaves _state at defaults
+   * and surfaces nothing (artifact may be mid-render in tests). */
+  function readInlineState() {
+    var doc = _doc(); if (!doc) return;
+    var el = doc.getElementById ? doc.getElementById('pmos-comments') : null;
+    if (!el) return;
+    var raw = el.textContent || '';
+    try {
+      var obj = JSON.parse(raw);
+      if (obj && typeof obj === 'object') {
+        _state.schema = (typeof obj.schema === 'number') ? obj.schema : 1;
+        _state.version = (typeof obj.version === 'number') ? obj.version : 0;
+        _state.generated_at = obj.generated_at || null;
+        _state.threads = Array.isArray(obj.threads) ? obj.threads.slice() : [];
+      }
+    } catch (_) { /* swallow — defaults stand */ }
+  }
+
+  /* detectMode (FR-14): file:// short-circuits to read-only; otherwise HEAD
+   * /save with 500ms AbortController timeout. Any non-2xx OR network error
+   * OR timeout → read-only. Returns a Promise<'read-only' | 'read-write'>. */
+  function detectMode() {
+    try {
+      var proto = (typeof location !== 'undefined' && location.protocol) ? location.protocol :
+                  (root && root.location && root.location.protocol);
+      if (proto === 'file:') return Promise.resolve('read-only');
+    } catch (_) { return Promise.resolve('read-only'); }
+
+    var fetchFn = (typeof fetch === 'function') ? fetch :
+                  (root && typeof root.fetch === 'function') ? root.fetch : null;
+    if (!fetchFn) return Promise.resolve('read-only');
+
+    var AC = (typeof AbortController !== 'undefined') ? AbortController :
+             (root && root.AbortController) ? root.AbortController : null;
+    var ctrl = AC ? new AC() : null;
+    var timer = null;
+    if (ctrl && typeof setTimeout !== 'undefined') {
+      timer = setTimeout(function () { try { ctrl.abort(); } catch (_) {} }, 500);
+    }
+    var opts = { method: 'HEAD' };
+    if (ctrl) opts.signal = ctrl.signal;
+
+    return Promise.resolve()
+      .then(function () { return fetchFn('/save', opts); })
+      .then(function (r) {
+        if (timer) clearTimeout(timer);
+        var ok = (r && (r.ok === true || (typeof r.status === 'number' && r.status >= 200 && r.status < 300)));
+        return ok ? 'read-write' : 'read-only';
+      })
+      .catch(function () {
+        if (timer) clearTimeout(timer);
+        return 'read-only';
+      });
+  }
+
+  /* _hideComposeForReadOnly: dim+disable the compose UI and append a passive
+   * footer hint per FR-14. Idempotent. */
+  function _hideComposeForReadOnly() {
+    var doc = _doc(); if (!doc) return;
+    var compose = doc.querySelector('.pmos-thread-compose');
+    if (compose) {
+      compose.style.display = 'none';
+      compose.setAttribute('data-pmos-readonly', '1');
+    }
+    var panel = doc.querySelector('.pmos-side-panel');
+    if (panel && !doc.querySelector('.pmos-readonly-hint')) {
+      var hint = doc.createElement('div');
+      hint.className = 'pmos-readonly-hint';
+      hint.textContent = 'Read-only — launch comments-open to add comments';
+      panel.appendChild(hint);
+    }
+  }
+
+  /* _renderConflictBanner (FR-17): top-of-page banner on 409.
+   * "This document was updated since you opened it (current version: M).
+   *  Reload to merge." plus a Reload button. Idempotent — replaces any
+   *  prior banner so the most-recent server-current version wins. */
+  function _renderConflictBanner(currentVersion) {
+    var doc = _doc(); if (!doc) return null;
+    var prior = doc.querySelector('.pmos-conflict-banner');
+    if (prior) prior.remove();
+    var banner = doc.createElement('div');
+    banner.className = 'pmos-conflict-banner';
+    banner.setAttribute('role', 'alert');
+    banner.textContent = 'This document was updated since you opened it (current version: ' +
+                         currentVersion + '). Reload to merge.';
+    var reload = doc.createElement('button');
+    reload.setAttribute('type', 'button');
+    reload.className = 'pmos-conflict-reload';
+    reload.textContent = 'Reload';
+    reload.addEventListener('click', function () {
+      try { if (root && root.location && typeof root.location.reload === 'function') root.location.reload(); } catch (_) {}
+    });
+    banner.appendChild(reload);
+    // Disable compose while a conflict is pending.
+    var compose = doc.querySelector('.pmos-thread-compose');
+    if (compose) compose.setAttribute('data-pmos-conflict', '1');
+    // Insert at top of body.
+    if (doc.body && doc.body.firstChild) {
+      doc.body.insertBefore(banner, doc.body.firstChild);
+    } else if (doc.body) {
+      doc.body.appendChild(banner);
+    }
+    return banner;
+  }
+
+  /* postSubmit: POST a new-thread submission to /save with optimistic
+   * concurrency. Body shape:
+   *   { expected_version: <N>, payload: { schema, version: N, generated_at, threads: [..., newThread] } }
+   * Returns { ok: true, version, generated_at } on 200, or
+   *         { ok: false, status, conflict_version? } on non-2xx.
+   * On 409 also renders the conflict banner with the server-reported
+   * current_version (FR-17). */
+  function postSubmit(opts) {
+    opts = opts || {};
+    var t = buildThread({
+      id_anchor: opts.anchor && opts.anchor.id_anchor,
+      quote_anchor: opts.anchor && opts.anchor.quote_anchor,
+      body: opts.body,
+      author: opts.author
+    });
+    var nextThreads = _state.threads.concat([t]);
+    var body = {
+      expected_version: _state.version,
+      payload: {
+        schema: _state.schema || 1,
+        version: _state.version,
+        generated_at: _state.generated_at,
+        threads: nextThreads
+      }
+    };
+    var fetchFn = (typeof fetch === 'function') ? fetch :
+                  (root && typeof root.fetch === 'function') ? root.fetch : null;
+    if (!fetchFn) return Promise.resolve({ ok: false, status: 0 });
+
+    return Promise.resolve()
+      .then(function () {
+        return fetchFn('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      })
+      .then(function (r) {
+        var status = (r && typeof r.status === 'number') ? r.status : 0;
+        if (status === 200) {
+          return Promise.resolve(r.json ? r.json() : {}).then(function (j) {
+            if (j && typeof j.version === 'number') _state.version = j.version;
+            else _state.version = _state.version + 1; // optimistic local bump
+            if (j && j.generated_at) _state.generated_at = j.generated_at;
+            _state.threads = nextThreads;
+            return { ok: true, version: _state.version, generated_at: _state.generated_at };
+          });
+        }
+        if (status === 409) {
+          return Promise.resolve(r.json ? r.json() : {}).then(function (j) {
+            var cur = (j && typeof j.current_version === 'number') ? j.current_version : null;
+            if (cur != null) _renderConflictBanner(cur);
+            return { ok: false, status: 409, conflict_version: cur };
+          });
+        }
+        return { ok: false, status: status };
+      })
+      .catch(function () { return { ok: false, status: 0 }; });
+  }
+
+  // Hydrate _state from the inline JSON block immediately on module eval.
+  // Safe in Node (no document) — readInlineState() bails on missing doc.
+  readInlineState();
+
   /* T24: orphan banner, diagram markers, review-mode gate, file:// modal, FR-52 bbox. */
 
   var _reviewMode = 'on';
@@ -708,6 +898,14 @@
     if (state.mounted) return;
     state.mounted = true;
 
+    // T3: hydrate inline _state on each mount (cheap; idempotent), then
+    // resolve mode via FR-14 detection. Compose UI gates on the resolved mode.
+    readInlineState();
+    detectMode().then(function (m) {
+      _state.mode = m;
+      if (m === 'read-only') _hideComposeForReadOnly();
+    });
+
     if (doc) {
       _attachSelectionListener();
       if (_fsaFallbackMode) {
@@ -763,9 +961,25 @@
     unmount: unmount,
     openReattachForm: openReattachForm,
     captureSvgBboxAnchor: captureSvgBboxAnchor,
+    // T3 additions — inline JSON read path + FR-14 mode detection + POST submit.
+    detectMode: detectMode,
+    postSubmit: postSubmit,
+    readInlineState: readInlineState,
     // Expose state for test introspection.
     _state: state
   };
+
+  // T3: test-only hook. Activated when window.__pmosTest === true (set by
+  // jsdom harness before eval'ing this source). Exposes _state as an accessor
+  // so tests see the live object, not a stale snapshot.
+  if (typeof root !== 'undefined' && root.__pmosTest) {
+    root.__pmosTestHook = {
+      detectMode: detectMode,
+      postSubmit: postSubmit,
+      readInlineState: readInlineState,
+      _state: function () { return _state; }
+    };
+  }
 
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
