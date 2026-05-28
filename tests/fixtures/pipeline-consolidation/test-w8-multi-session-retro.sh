@@ -1,10 +1,10 @@
 #!/bin/bash
-# W8 fixture: /retro multi-session — Phase 1 cap, Phase 2 dispatch, Phase 4
+# W8 fixture: /reflect multi-session — Phase 1 cap, Phase 2 dispatch, Phase 4
 # aggregation with boilerplate-strip, Phase 5 two-tier output + per-wave progress.
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
-f=plugins/pmos-toolkit/skills/retro/SKILL.md
+f=plugins/pmos-toolkit/skills/reflect/SKILL.md
 
 # T15: Phase 1 cap + 0-candidate handling + most-recent-20 default
 /usr/bin/grep -q "Phase 1 (multi-session prelude)" "$f"

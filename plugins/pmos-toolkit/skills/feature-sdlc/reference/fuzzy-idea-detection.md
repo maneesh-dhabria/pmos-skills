@@ -6,7 +6,7 @@ Deterministic heuristic used by `/feature-sdlc` Phase 1.5 to classify the run's 
 
 | Name | Type | Source |
 |---|---|---|
-| `seed_text` | string | The user's argument string to `/feature-sdlc` (or to `/feature-sdlc skill`), with recognised flags removed (`--tier`, `--resume`, `--no-worktree`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `--no-ideate`, `--from-feedback`, `--from-retro`) and surrounding quotes stripped. |
+| `seed_text` | string | The user's argument string to `/feature-sdlc` (or to `/feature-sdlc skill`), with recognised flags removed (`--tier`, `--resume`, `--no-worktree`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `--no-ideate`, `--from-feedback`, `--from-reflect`) and surrounding quotes stripped. |
 | `doc_attached` | bool | `true` iff the user supplied a `--doc <path>` (or the `--from-feedback <path>` resolved to a real file). |
 
 ## Output

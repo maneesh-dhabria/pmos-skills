@@ -60,7 +60,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | Track a lightweight repo backlog | `/backlog` | Hybrid quick-capture + structured tracker |
 | Persist context across sessions and repos | `/product-context` | Workstream / product / feature scope |
 | Capture session learnings | `/session-log` | Decisions, gotchas, patterns |
-| Send feedback to skill authors | `/retro` | Severity-tagged, per-skill, from the session transcript |
+| Send feedback to skill authors | `/reflect` | Severity-tagged, per-skill, from the session transcript |
 | Diagnose a slow / hot Mac | `/mac-health` | Background processes, extension leaks, sleep blockers |
 
 ## How it works
@@ -203,8 +203,8 @@ cd ~/.codex/pmos-toolkit && git pull
 
 This is a solo-maintained project. To keep the surface area honest:
 
-- **Feedback is welcome** — open a GitHub issue, or run `/pmos-toolkit:retro`
-  at the end of a session and paste the output. `/retro` produces
+- **Feedback is welcome** — open a GitHub issue, or run `/pmos-toolkit:reflect`
+  at the end of a session and paste the output. `/reflect` produces
   severity-tagged, per-skill feedback that's the easiest signal for me to act
   on.
 - **Bug reports are welcome** — issues with a reproducer get priority.

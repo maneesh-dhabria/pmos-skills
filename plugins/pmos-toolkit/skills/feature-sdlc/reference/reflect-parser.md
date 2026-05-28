@@ -1,8 +1,8 @@
-# /retro paste-back parser
+# /reflect paste-back parser
 
-Single-source extractor for `/retro` output blocks. Phase 2 (and any future audit/lint step) **must inline this snippet verbatim** rather than reimplement the regex — drift between parsing and audit must be structurally impossible.
+Single-source extractor for `/reflect` output blocks. Phase 2 (and any future audit/lint step) **must inline this snippet verbatim** rather than reimplement the regex — drift between parsing and audit must be structurally impossible.
 
-## Block shape (from `/retro` SKILL.md Phase 5)
+## Block shape (from `/reflect` SKILL.md Phase 5)
 
 ````markdown
 ### Retro: /<skill-name>  ·  <run-count> run(s)
@@ -51,7 +51,7 @@ For each `### Retro:` heading:
 
 ## Edge cases
 
-- **Multiple runs in one block** — `/retro` folds them with "Run 1: …, Run 2: …" inside *What happened*. Treat findings as belonging to the skill, not a specific run, unless the finding text starts with `Run N:`.
+- **Multiple runs in one block** — `/reflect` folds them with "Run 1: …, Run 2: …" inside *What happened*. Treat findings as belonging to the skill, not a specific run, unless the finding text starts with `Run N:`.
 - **Multiline findings** — if a bullet wraps across lines, join with single spaces before regex match.
 - **Missing `— *Proposed fix:*` segment** — emit the tuple with `proposed_fix` empty and surface during Phase 4 critique as "no fix proposed; ask user".
 - **Severity not in enum** — log and treat as `friction`; surface in Phase 4 critique.

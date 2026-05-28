@@ -8,7 +8,7 @@
 > file was lifted from the (now-archived) `/update-skills` skill; the only changes on
 > move were generalising the `update-skills`-specific path/marker framing.
 
-**Source:** {raw text | file: <path> | --from-retro: run <n> at <timestamp>}
+**Source:** {raw text | file: <path> | --from-reflect: run <n> at <timestamp>}
 **Feature folder:** {feature_folder}  (the `/feature-sdlc` run's feature folder)
 **Affected skills (in scope):** {comma-separated skill names}
 **Out-of-scope skill mentions:** {list with reason; or "none"}

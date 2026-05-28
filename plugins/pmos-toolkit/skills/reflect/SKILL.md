@@ -1,15 +1,15 @@
 ---
-name: retro
-description: Generate a paste-back retrospective for every pmos-toolkit skill invoked in the current session. Reads the session transcript (not the skill's source) to identify what went wrong, where the user pushed back, what got skipped, and where friction surfaced — emits one markdown block per skill, severity-tagged (blocker / friction / nit), ready to paste to the skill author. Use when the user says "/retro", "what went wrong this session", "give feedback to the skill authors", "how did the pmos skills hold up", or "produce a session retro".
+name: reflect
+description: Generate a paste-back retrospective for every pmos-toolkit skill invoked in the current session. Reads the session transcript (not the skill's source) to identify what went wrong, where the user pushed back, what got skipped, and where friction surfaced — emits one markdown block per skill, severity-tagged (blocker / friction / nit), ready to paste to the skill author. Use when the user says "/reflect", "what went wrong this session", "give feedback to the skill authors", "how did the pmos skills hold up", or "produce a session retro".
 user-invocable: true
 argument-hint: "[skill-name to filter, optional] [--last N] [--days N] [--since YYYY-MM-DD] [--project current|all] [--skill <name>] [--scan-all] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
 ---
 
-# Retro
+# Reflect
 
 Produce a transcript-grounded retrospective on every `pmos-toolkit:*` skill that ran this session. The output is markdown the user can paste back to the skill author for improvement. **Critique is grounded in observed behavior — never in reading the skill's implementation.**
 
-**Announce at start:** "Using retro to analyze pmos skill invocations in this session from the transcript."
+**Announce at start:** "Using reflect to analyze pmos skill invocations in this session from the transcript."
 
 ## Platform Adaptation
 
@@ -24,7 +24,7 @@ This skill has multiple phases. Create one task per phase using your agent's tas
 
 ## Phase 0: Load Learnings
 
-Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /retro` and factor them into your approach for this session.
+Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /reflect` and factor them into your approach for this session.
 
 ### Multi-session flag parser (T14, new in v2.34.0 per W8)
 
@@ -38,7 +38,7 @@ Parse the following flags from the argument string before any other processing. 
 | `--project current\|all` | string | `current` | Scope: `current` = this project's transcript dir only; `all` = every project under `~/.claude-personal/projects/`. |
 | `--skill <name>` | string | unset | Filter findings to only the named skill (e.g., `--skill spec`). Combine with `--last` for "recurring spec issues across sessions". |
 | `--scan-all` | boolean | false | Override the cap-confirmation prompt — process every transcript without prompting (D18 escape). |
-| `--msf-auto-apply-threshold N` | int (0-100) | 80 | Confidence threshold for any folded MSF apply-loops invoked by /retro (per FR-RETRO-MSF integration). |
+| `--msf-auto-apply-threshold N` | int (0-100) | 80 | Confidence threshold for any folded MSF apply-loops invoked by /reflect (per FR-RETRO-MSF integration). |
 
 **Validation rules** (exit 64 with usage hint on violation):
 
@@ -267,7 +267,7 @@ For each signal you find, capture: the transcript quote (≤2 lines), what you i
 After Phase 4 aggregation, emit a two-tier report:
 
 ```markdown
-# /retro — multi-session
+# /reflect — multi-session
 
 **Selector:** <flag values>  •  **Transcripts processed:** N  •  **Wall-clock:** <sec>s
 
@@ -340,11 +340,11 @@ After all blocks, print a one-paragraph **Session summary** that lists the skill
 
 ## Phase 6: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/retro` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, output shapes that didn't paste cleanly. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/reflect` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, output shapes that didn't paste cleanly. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
 ## Anti-Patterns
 
-- **Reading the skill body to form the critique.** The whole point of `/retro` is a black-box, transcript-grounded view. Reading SKILL.md will bias you toward rationalizing the existing design ("ah, the skill does X because phase 3 says Y") instead of noticing that X was missing from this session. Frontmatter only.
+- **Reading the skill body to form the critique.** The whole point of `/reflect` is a black-box, transcript-grounded view. Reading SKILL.md will bias you toward rationalizing the existing design ("ah, the skill does X because phase 3 says Y") instead of noticing that X was missing from this session. Frontmatter only.
 - **Manufacturing findings to fill space.** A clean run is a valid outcome. Emit the one-line "clean run" block and move on. Pretending you found three nits per skill makes the paste-back useless.
 - **Vague proposed fixes.** "Improve clarity" is not a fix. "Replace the prose dump in Phase 4 with an interactive-prompt batch using Fix / Modify / Skip / Defer options" is a fix.
 - **Treating every user message as a correction.** A clarifying question or a "looks good" is not pushback. Only count turns that re-direct, reject, or repeat instruction.

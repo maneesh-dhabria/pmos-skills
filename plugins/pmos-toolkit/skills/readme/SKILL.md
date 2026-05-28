@@ -375,7 +375,7 @@ When `--update <range>` is passed (per §4 FR-MODE-2), the runtime patches an EX
      - Apply (Recommended) — apply the LLM-drafted patch verbatim
      - Modify              — user supplies replacement text next turn
      - Skip                — drop the patch for this section
-     - Defer               — log to /retro for later
+     - Defer               — log to /reflect for later
    ```
    Batch ≤4 sections per call (per §8.6 of the spec's batching convention). The LLM drafts the per-section patch using the commit subjects + commit_affinity from `reference/section-schema.yaml`.
 
@@ -389,9 +389,9 @@ When `--update <range>` is passed (per §4 FR-MODE-2), the runtime patches an EX
      ```json
      {"event":"patch_dropped","reason":"rubric_blocker_fail","range":"<range>","failed_checks":["<id>",...],"timestamp":"<ISO-8601>"}
      ```
-   - **Emit /retro finding** via the `/retro` skill's pending-findings queue (chat log entry + JSON to the retro buffer per the retro skill's contract).
+   - **Emit /reflect finding** via the `/reflect` skill's pending-findings queue (chat log entry + JSON to the retro buffer per the retro skill's contract).
    - **Release proceeds unpatched** — the existing README ships as-is. The patch failure does NOT block `/complete-dev`.
-   - **Chat log:** `update-mode: patch dropped (rubric blockers: <ids>); README unchanged; finding logged for /retro`.
+   - **Chat log:** `update-mode: patch dropped (rubric blockers: <ids>); README unchanged; finding logged for /reflect`.
 
 6. **On rubric pass.** The patched README remains on disk; staging deferred to §8 (`git add` only — no commit by /readme per FR-UP-5).
 

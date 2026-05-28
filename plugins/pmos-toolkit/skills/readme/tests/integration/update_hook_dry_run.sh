@@ -57,7 +57,7 @@ fi
 
 # --- (b) FR-UP-3 — patch-fail guard documented + JSONL event shape ----------
 # SKILL.md §7 step 5 must document: revert via git checkout, append JSONL
-# `patch_dropped` event with `failed_checks`, /retro finding, release proceeds.
+# `patch_dropped` event with `failed_checks`, /reflect finding, release proceeds.
 if ! grep -q '"event":"patch_dropped"' "$SKILL_MD"; then
   echo "FAIL: SKILL.md missing FR-UP-3 patch_dropped JSONL event contract"
   exit 1

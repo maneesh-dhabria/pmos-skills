@@ -38,6 +38,6 @@ Safe alternative: complete the pipeline (or pause via the compact checkpoint), t
 | `/requirements` | `--skip-folded-msf`, `--msf-auto-apply-threshold N` |
 | `/wireframes` | `--skip-folded-msf-wf`, `--msf-auto-apply-threshold N` |
 | `/spec` | `--skip-folded-sim-spec` |
-| `/retro` | `--last N`, `--days N`, `--since YYYY-MM-DD`, `--project current\|all`, `--skill <name>`, `--scan-all` |
+| `/reflect` | `--last N`, `--days N`, `--since YYYY-MM-DD`, `--project current\|all`, `--skill <name>`, `--scan-all` |
 
 `--msf-auto-apply-threshold N` defaults to 80 (Tier 3) — sub-threshold findings surface via inline disposition (D14) with `Recommended=Defer`.

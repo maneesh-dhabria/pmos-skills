@@ -1,13 +1,13 @@
 ---
 name: feature-sdlc
-description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an initial idea (text or doc) into a shipped feature by driving the pmos-toolkit pipeline — worktree, optional /ideate when the seed is fuzzy, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage and persisting resumable state. `/feature-sdlc skill <description>` and `/feature-sdlc skill --from-feedback <text|path|--from-retro>` drive the same pipeline to author or revise skills, scored against a binary skill-eval rubric before merge. `/feature-sdlc prototype <seed>` drives the discovery half only (requirements → grill → creativity → spec → wireframes → prototype) and stops — no /plan/execute/verify/complete-dev; `/prototype-sdlc` is a thin alias. `/feature-sdlc list` shows in-flight worktrees. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "I want to brainstorm this end-to-end", "prototype this idea end-to-end", "discovery pipeline only", "wireframes + prototype for", "stakeholder-walkable prototype".
+description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an initial idea (text or doc) into a shipped feature by driving the pmos-toolkit pipeline — worktree, optional /ideate when the seed is fuzzy, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage and persisting resumable state. `/feature-sdlc skill <description>` and `/feature-sdlc skill --from-feedback <text|path|--from-reflect>` drive the same pipeline to author or revise skills, scored against a binary skill-eval rubric before merge. `/feature-sdlc prototype <seed>` drives the discovery half only (requirements → grill → creativity → spec → wireframes → prototype) and stops — no /plan/execute/verify/complete-dev; `/prototype-sdlc` is a thin alias. `/feature-sdlc list` shows in-flight worktrees. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "I want to brainstorm this end-to-end", "prototype this idea end-to-end", "discovery pipeline only", "wireframes + prototype for", "stakeholder-walkable prototype".
 user-invocable: true
-argument-hint: "[skill [--from-feedback] | prototype] <description|idea> [--from-retro] [--tier 1|2|3] [--resume] [--no-worktree] [--no-ideate] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] | list"
+argument-hint: "[skill [--from-feedback] | prototype] <description|idea> [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--no-ideate] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] | list"
 ---
 
 # Feature SDLC
 
-Top-level orchestrator that drives the full pmos-toolkit pipeline from an initial idea (or a skill-authoring task) through to ship. Creates a git worktree + branch, runs `/requirements → [/grill] → [/creativity] → [/wireframes → /prototype] → /spec → /plan → /execute → /verify → /complete-dev → [/retro]` sequentially, auto-tiers each stage, and persists resumable state inside the worktree. The `skill` subcommand picks a **skill mode** — `/feature-sdlc skill <description>` (`skill-new`) or `/feature-sdlc skill --from-feedback <text|path|--from-retro>` (`skill-feedback`) — driving the same pipeline to author or revise a skill: the UI gates (wireframes/prototype) are not presented, `skill-feedback` adds a `/feedback-triage` phase, both add a `/skill-tier-resolve` phase and a binary skill-eval gate (Phase 6a) before merge. The `prototype` subcommand picks a **prototype mode** — `/feature-sdlc prototype <seed>` — driving the discovery half of the pipeline (`requirements → grill → creativity → spec → wireframes → prototype`) and stopping; no `/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, or `/retro` runs. `/skill-sdlc` and `/prototype-sdlc` are thin aliases for the `skill` and `prototype` subcommands. See `reference/skill-patterns.md` (the authoring guide) and `reference/skill-eval.md` (the rubric).
+Top-level orchestrator that drives the full pmos-toolkit pipeline from an initial idea (or a skill-authoring task) through to ship. Creates a git worktree + branch, runs `/requirements → [/grill] → [/creativity] → [/wireframes → /prototype] → /spec → /plan → /execute → /verify → /complete-dev → [/reflect]` sequentially, auto-tiers each stage, and persists resumable state inside the worktree. The `skill` subcommand picks a **skill mode** — `/feature-sdlc skill <description>` (`skill-new`) or `/feature-sdlc skill --from-feedback <text|path|--from-reflect>` (`skill-feedback`) — driving the same pipeline to author or revise a skill: the UI gates (wireframes/prototype) are not presented, `skill-feedback` adds a `/feedback-triage` phase, both add a `/skill-tier-resolve` phase and a binary skill-eval gate (Phase 6a) before merge. The `prototype` subcommand picks a **prototype mode** — `/feature-sdlc prototype <seed>` — driving the discovery half of the pipeline (`requirements → grill → creativity → spec → wireframes → prototype`) and stopping; no `/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, or `/reflect` runs. `/skill-sdlc` and `/prototype-sdlc` are thin aliases for the `skill` and `prototype` subcommands. See `reference/skill-patterns.md` (the authoring guide) and `reference/skill-eval.md` (the rubric).
 
 **Announce at start:** "Using feature-sdlc — orchestrating the full SDLC pipeline for this feature." (In a skill mode: "…for this skill." In prototype mode: "Using feature-sdlc — orchestrating the discovery half of the pipeline for this prototype.")
 
@@ -17,7 +17,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 /feature-sdlc (this skill)        — four run modes; the subcommand picks one (FR-02):
     └─> [worktree + slug]            • bare  /feature-sdlc <idea>            → pipeline_mode = feature
         └─> [feedback-triage]        • /feature-sdlc skill <description>     → pipeline_mode = skill-new
-        └─> [skill-tier-resolve]     • /feature-sdlc skill --from-feedback <text|path|--from-retro> → skill-feedback
+        └─> [skill-tier-resolve]     • /feature-sdlc skill --from-feedback <text|path|--from-reflect> → skill-feedback
         └─> [/ideate]                • /feature-sdlc prototype <seed>        → pipeline_mode = prototype
         └─> /requirements            (/skill-sdlc, /prototype-sdlc are thin aliases for the skill / prototype subcommands)
               └─> [/grill]                        # Tier 2+, skip if --non-interactive
@@ -30,7 +30,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
         └─> [/skill-eval]                         # skill modes only — binary rubric gate (Phase 6a)
         └─> /verify                               # NOT in prototype mode
         └─> /complete-dev                         # NOT in prototype mode
-        └─> [/retro]                              # NOT in prototype mode
+        └─> [/reflect]                              # NOT in prototype mode
 ```
 
 **Mode × phase (paraphrase of spec §6.1):**
@@ -44,7 +44,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 | `2a` /grill · `3a` /creativity | ✓ | ✓ | ✓ | ✓ |
 | `3b` /wireframes · `3c` /prototype | ✓ (soft gates) | — | — | ✓ (hard, always-run) |
 | `4` /spec | ✓ | ✓ | ✓ | ✓ |
-| `5` /plan · `6` /execute · `7` /verify · `8` /complete-dev · `8a` /retro | ✓ | ✓ | ✓ | — |
+| `5` /plan · `6` /execute · `7` /verify · `8` /complete-dev · `8a` /reflect | ✓ | ✓ | ✓ | — |
 | `6a` /skill-eval | — | ✓ (hard) | ✓ (hard) | — |
 | `9` final-summary | ✓ | ✓ | ✓ | ✓ |
 
@@ -79,17 +79,17 @@ This skill has multiple phases. Create one task per phase using your agent's tas
 
 Before running pipeline-setup, resolve `pipeline_mode ∈ {feature, skill-new, skill-feedback, prototype}` from the argument string. This is independent of the `mode ∈ {interactive, non-interactive}` resolution in the non-interactive block below — both are computed at Phase 0 entry; do not conflate them.
 
-**Token-1 disambiguation (FR-02).** Token 1 of the argument string is the *subcommand selector* — i.e., the literal word `skill`, `prototype`, or `list` — **only when** it is exactly one of those three **and** one of: (a) it is the sole token; (b) the next token is a recognised flag (`--from-feedback`, `--from-retro`, `--tier`, `--resume`, `--no-worktree`, `--no-ideate`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`); (c) the remainder is exactly one quoted argument. Otherwise token 1 is the first word of a feature description (e.g., `/feature-sdlc list of recently changed files` → `feature` mode, seed = the whole string; `/feature-sdlc prototype this in detail` → `feature` mode, seed = `prototype this in detail`). Never infer the run mode from seed text — the subcommand is explicit.
+**Token-1 disambiguation (FR-02).** Token 1 of the argument string is the *subcommand selector* — i.e., the literal word `skill`, `prototype`, or `list` — **only when** it is exactly one of those three **and** one of: (a) it is the sole token; (b) the next token is a recognised flag (`--from-feedback`, `--from-reflect`, `--tier`, `--resume`, `--no-worktree`, `--no-ideate`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`); (c) the remainder is exactly one quoted argument. Otherwise token 1 is the first word of a feature description (e.g., `/feature-sdlc list of recently changed files` → `feature` mode, seed = the whole string; `/feature-sdlc prototype this in detail` → `feature` mode, seed = `prototype this in detail`). Never infer the run mode from seed text — the subcommand is explicit.
 
 **Dispatch:**
 
 - **`--resume` present (FR-05):** ignore any subcommand token entirely — `pipeline_mode` is read from `state.yaml` (set on the original run). If both `--resume` and a subcommand token are present → stderr warn `subcommand ignored on --resume; mode read from state.yaml` and continue with the state-file value. (No `list` short-circuit on `--resume` — `--resume` always means "resume a pipeline".)
 - **`list` selector (FR-L01):** short-circuit — skip pipeline-setup, skip Phase 0a, skip Phase 0b, run the list logic below, exit 0. (`pipeline_mode` is irrelevant here.)
-- **`skill` selector, no further description (FR-03):** stderr `usage: /feature-sdlc skill <description> | /feature-sdlc skill --from-feedback <text|path|--from-retro>`; exit 64.
-- **`skill --from-feedback <source>` (FR-04):** `pipeline_mode = skill-feedback`. `<source>` is a quoted text blob, a file path, or `--from-retro`. `--from-retro` resolves to the newest `/retro` artifact (per the `/retro` skill's output location); if none found → stderr `no /retro artifact found; pass feedback text or a file path`, exit 64. `skill --from-feedback` with neither a source nor `--from-retro` → the FR-03 usage error, exit 64.
+- **`skill` selector, no further description (FR-03):** stderr `usage: /feature-sdlc skill <description> | /feature-sdlc skill --from-feedback <text|path|--from-reflect>`; exit 64.
+- **`skill --from-feedback <source>` (FR-04):** `pipeline_mode = skill-feedback`. `<source>` is a quoted text blob, a file path, or `--from-reflect`. `--from-reflect` resolves to the newest `/reflect` artifact (per the `/reflect` skill's output location); if none found → stderr `no /reflect artifact found; pass feedback text or a file path`, exit 64. `skill --from-feedback` with neither a source nor `--from-reflect` → the FR-03 usage error, exit 64.
 - **`skill <description>` (no `--from-feedback`):** `pipeline_mode = skill-new`; the description is the seed for Phase 2 `/requirements`.
 - **`prototype` selector, no further description (FR-PSDLC-02):** stderr `usage: /feature-sdlc prototype <seed>`; exit 64.
-- **`prototype <description>` (FR-PSDLC-02):** `pipeline_mode = prototype`; the description is the seed for Phase 2 `/requirements`. Execution stops after Phase 3c `/prototype`; no `/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, or `/retro` runs (see `## Prototype-mode phase ordering`). The worktree and branch are left intact for the user to extend manually (edit `state.yaml.pipeline_mode` → `feature` and `--resume`) or discard.
+- **`prototype <description>` (FR-PSDLC-02):** `pipeline_mode = prototype`; the description is the seed for Phase 2 `/requirements`. Execution stops after Phase 3c `/prototype`; no `/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, or `/reflect` runs (see `## Prototype-mode phase ordering`). The worktree and branch are left intact for the user to extend manually (edit `state.yaml.pipeline_mode` → `feature` and `--resume`) or discard.
 - **bare (no subcommand selector):** `pipeline_mode = feature`; the whole argument string (minus recognised flags) is the feature seed.
 
 **NFR-07 — log line.** On Phase 0 entry, log to chat `pipeline_mode: <m> (source: cli|state)` (`cli` for a fresh run, `state` on `--resume`) — analogous to the `mode: <mode> (source: …)` line emitted by the non-interactive block; keep both lines.
@@ -410,7 +410,7 @@ When `--resume` reads a pre-2.34.0 `state.yaml` carrying these phase entries, tr
 **Goal:** turn raw feedback into an approved, per-skill change set + a per-skill tier, persisted as `{feature_folder}/0c_feedback_triage.html`, which Phase 2 (`/requirements`) then seeds from.
 
 1. **Parse the feedback input into findings (FR-20).** Dispatch by input shape:
-   - It's a `/retro` paste-back (or `--from-retro` resolved to one) → parse it verbatim via `reference/retro-parser.md` into the canonical finding shape.
+   - It's a `/reflect` paste-back (or `--from-reflect` resolved to one) → parse it verbatim via `reference/reflect-parser.md` into the canonical finding shape.
    - It's a file path → read the file, then detect findings (a structured list → parse it; free prose → LLM-extract).
    - It's an inline text blob → LLM-extract into the same finding shape.
    The finding shape: `{skill, severity, one_line, evidence (≤2 lines), proposed_fix (verbatim from input)}`.
@@ -594,7 +594,7 @@ i.e. `/spec` (normally Phase 4, post-3c) runs *immediately after* `/creativity` 
 1. Run Phase 4 (/spec) immediately (skip 3b/3c for now).
 2. Then run Phase 3b (/wireframes) — hard per FR-PSDLC-04.
 3. Then run Phase 3c (/prototype) — hard per FR-PSDLC-04.
-4. Then jump to Phase 9 (final-summary). Phases 5–8a (`/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, `/retro`) are skipped wholesale; each phase section below has a `pipeline_mode == prototype: skip` directive.
+4. Then jump to Phase 9 (final-summary). Phases 5–8a (`/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, `/reflect`) are skipped wholesale; each phase section below has a `pipeline_mode == prototype: skip` directive.
 
 The state.yaml `phases[]` for prototype mode lists the entries in *execution order* (per `reference/state-schema.md` schema v5 prototype-mode block), so Phase 0b resume cursor naturally advances correctly without special-casing.
 
@@ -783,29 +783,29 @@ Invoke `/pmos-toolkit:complete-dev` to merge, capture learnings into CLAUDE.md/A
 
 On failure: hard-phase failure dialog.
 
-## Phase 8a: /retro gate (soft, Recommended=Skip; NOT in prototype mode)
+## Phase 8a: /reflect gate (soft, Recommended=Skip; NOT in prototype mode)
 
-**In `prototype` mode:** skip wholesale (no merge/release happened; nothing to retro). Log `[orchestrator] prototype mode: Phase 8a /retro skipped (discovery-only pipeline)`.
+**In `prototype` mode:** skip wholesale (no merge/release happened; nothing to retro). Log `[orchestrator] prototype mode: Phase 8a /reflect skipped (discovery-only pipeline)`.
 
 After `/complete-dev` lands the release, surface an optional retro gate. The default is Skip — most users ship and move on; retro is opt-in for sessions that surfaced patterns worth analyzing across this and prior runs.
 
 `AskUserQuestion`:
 ```
-question: "Run /retro to capture cross-session learnings before closing the pipeline?"
+question: "Run /reflect to capture cross-session learnings before closing the pipeline?"
 options:
   - Skip (Recommended)
     description: Pipeline complete; close out without retro.
-  - Run /retro
+  - Run /reflect
     description: Single-session retro on the just-finished /feature-sdlc run.
-  - Run /retro --last 5
+  - Run /reflect --last 5
     description: Multi-session retro across the last 5 transcripts (recurring patterns + unique findings).
   - Defer
-    description: Log to OQ index; user runs /retro later.
+    description: Log to OQ index; user runs /reflect later.
 ```
 
 **Auto-skip if `_minimal_active` is true** per Phase 0 `--minimal` directive. Log `[orchestrator] phase_minimal_skip: retro` to chat and proceed to Phase 9 final-summary without issuing the gate prompt.
 
-On Run: invoke `/pmos-toolkit:retro` with the appropriate flags. The retro phase entry in `state.yaml.phases.retro` is initialized by Phase 1 fresh-init (per `reference/state-schema.md`). On Defer: append a stub entry to `state.yaml.open_questions_log[]` so /feature-sdlc Phase 9 surfaces the deferral.
+On Run: invoke `/pmos-toolkit:reflect` with the appropriate flags. The retro phase entry in `state.yaml.phases.retro` is initialized by Phase 1 fresh-init (per `reference/state-schema.md`). On Defer: append a stub entry to `state.yaml.open_questions_log[]` so /feature-sdlc Phase 9 surfaces the deferral.
 
 On missing-skill: soft-variant missing-skill dialog from `reference/failure-dialog.md`. Skip option is the Recommended default.
 
@@ -838,7 +838,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 
 - **README** — add a `/skill-sdlc` row under "Pipeline orchestrators"; update the `/feature-sdlc` row + the bottom standalone line + the pipeline-flow note to mention the `skill` subcommand; **remove** the `/update-skills` row from "Pipeline orchestrators" and the `/create-skill` row from "Utilities" (both are archived — point at `archive/skills/README.md`).
 - **Both `plugin.json` manifests** — a **minor** version bump (bump *type* only — `/complete-dev` Phase 9 computes the from/to numbers against current `main` at merge time per `reference/skill-patterns.md §G #4`) in BOTH `plugins/pmos-toolkit/.claude-plugin/plugin.json` and `plugins/pmos-toolkit/.codex-plugin/plugin.json`, in one commit, versions kept in sync (pre-push hook enforces). The manifests carry **no per-command description fields**, so FR-95's "byte-identical description" requirement is satisfied vacuously — the `SKILL.md` frontmatter `description` is the single source of truth. (If a future manifest format adds per-command descriptions, mirror this frontmatter — decision P5.)
-- **`argument-hint` frontmatter** enumerates every parsed token/flag (FR-06): `skill`, `--from-feedback`, `--from-retro`, `--tier`, `--resume`, `--no-worktree`, `--no-ideate`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `list`.
+- **`argument-hint` frontmatter** enumerates every parsed token/flag (FR-06): `skill`, `--from-feedback`, `--from-reflect`, `--tier`, `--resume`, `--no-worktree`, `--no-ideate`, `--format`, `--non-interactive`, `--interactive`, `--backlog`, `--minimal`, `list`.
 - **`description` frontmatter** carries ≥5 user-spoken trigger phrases spanning both modes (FR-RELEASE.ii / FR-95): "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", plus the skill-authoring ones — "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "process this skill feedback end-to-end", plus the fuzzy-idea ones (2.52.0) — "I have a half-formed idea", "this is a rough idea", "I want to brainstorm this end-to-end".
 - **`archive/skills/`** — `archive/skills/create-skill/` and `archive/skills/update-skills/` exist (the two old skills, moved verbatim via `git mv`), with an `archive/skills/README.md` explaining the merge. `ls plugins/pmos-toolkit/skills/` shows **neither** `create-skill` nor `update-skills`, but **does** show `skill-sdlc`.
 - **`CLAUDE.md`** — gains a `## Skill-authoring conventions` section (the pmos-specific bits: canonical `plugins/pmos-toolkit/skills/<name>/SKILL.md` path, synced `plugin.json` bump, `/complete-dev` as release entry — the generic conventions live in `reference/skill-patterns.md`).

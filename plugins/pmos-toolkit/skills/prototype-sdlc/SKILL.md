@@ -15,7 +15,7 @@ Immediately invoke `/pmos-toolkit:feature-sdlc` with the arguments `prototype` f
 - `/prototype-sdlc --resume` → `/pmos-toolkit:feature-sdlc prototype --resume`
 - `/prototype-sdlc list` → `/pmos-toolkit:feature-sdlc prototype list`
 
-Do nothing else — all worktree, resume, state, gate, compact-checkpoint, and final-summary logic lives in `/feature-sdlc`. The `prototype` subcommand there drives the discovery-half pipeline (requirements → grill → creativity → spec → wireframes → prototype → final-summary) and stops; no /plan, /execute, /skill-eval, /verify, /complete-dev, or /retro runs.
+Do nothing else — all worktree, resume, state, gate, compact-checkpoint, and final-summary logic lives in `/feature-sdlc`. The `prototype` subcommand there drives the discovery-half pipeline (requirements → grill → creativity → spec → wireframes → prototype → final-summary) and stops; no /plan, /execute, /skill-eval, /verify, /complete-dev, or /reflect runs.
 
 The branch + worktree are left intact at the end. To extend the run into full implementation, edit `state.yaml.pipeline_mode` from `prototype` to `feature` and `/feature-sdlc --resume` from the same worktree. To discard, `git worktree remove <path>`.
 

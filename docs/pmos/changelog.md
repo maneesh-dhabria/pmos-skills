@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-28 — pmos-toolkit 2.57.0: `/retro` renamed to `/reflect`
+
+The session-retrospective skill is now `/reflect`. Same behavior, clearer name — "reflect on what just happened" reads more naturally than "retro this session". The `--from-retro` flag on `/feature-sdlc skill --from-feedback` becomes `--from-reflect`; the `retro-parser.md` reference and `retro.bats` integration test are renamed in parallel for consistency.
+
+**Breaking change — no alias.** Anyone scripted around `/retro`, `--from-retro`, or `/pmos-toolkit:retro` must update to the new names. The historical phase identifier `state.yaml.phases.retro` is intentionally preserved (renaming would force a state-schema migration for in-flight `/feature-sdlc` worktrees). The noun "retrospective" / "retro" is preserved in prose where it describes the artifact, not the command.
+
+**Migration:** find-and-replace `/retro` → `/reflect`, `--from-retro` → `--from-reflect`. CLAUDE.md, `/feature-sdlc`, `/complete-dev`, `/readme`, `/skill-sdlc`, `/prototype-sdlc`, and the top-level README have been updated in this release; historical pipeline artifacts under `docs/pmos/features/` and prior changelog entries are unchanged (they record what shipped under the old name).
+
 ## 2026-05-25 — pmos-toolkit 2.56.0: `/comments` — inline comment overlay on every pmos HTML artifact
 
 Stakeholders can now annotate any pmos-emitted HTML artifact directly in their browser — highlight a span, leave a threaded comment, resolve from chat. No screenshots, no out-of-band Slack threads, no "what page did you mean" back-and-forth. The overlay JS + sidecar JSON are baked into every HTML emit; `/comments resolve <artifact>` walks the threads and dispatches each to its originating skill for surgical edits.

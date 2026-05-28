@@ -60,7 +60,7 @@ Every entry has at minimum:
 | `child_tier_divergence` | string \| null | Free-form note when child reports a different tier. |
 | `missing_skill` | string \| null | Set when `paused_reason: missing_skill` — names the missing child skill. |
 | `folded_phase_failures` | list | (v2) Append-only list of folded-skill failure records — `{folded_skill, error_excerpt, ts}`. Empty `[]` until a folded child crashes. See "Schema v2" below for dedup rule. |
-| `feedback_source` | string \| null | (v4) On the `feedback-triage` entry only — the resolved feedback input: a file path, `<inline-text>`, or `--from-retro:<artifact>`. |
+| `feedback_source` | string \| null | (v4) On the `feedback-triage` entry only — the resolved feedback input: a file path, `<inline-text>`, or `--from-reflect:<artifact>`. |
 | `target_skills` | list \| null | (v4) On the `feedback-triage` entry only — the in-scope skill names the triage produced approved changes for. |
 | `resolved_tier` / `skill_location` / `target_platform` | int / string / string \| null | (v4) On the `skill-tier-resolve` entry only — the three values that phase resolves (tier; the skill's on-disk location; `claude-code`/`codex`/`generic`). |
 | `per_skill_tiers` | object \| null | (v4) On the `skill-tier-resolve` entry, skill-feedback only — `{<skill-name>: <tier-int>}`; the run `tier` is the max. |
@@ -419,7 +419,7 @@ phases:
     artifact_path: 0c_feedback_triage.html
     started_at: 2026-05-11T09:01:21Z
     completed_at: 2026-05-11T09:18:40Z
-    feedback_source: --from-retro:.pmos/retros/2026-05-10_run.html
+    feedback_source: --from-reflect:.pmos/reflects/2026-05-10_run.html
     target_skills: [polish, wireframes]
   - id: skill-tier-resolve
     hardness: infra

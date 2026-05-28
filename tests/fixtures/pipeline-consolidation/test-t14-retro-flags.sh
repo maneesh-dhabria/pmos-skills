@@ -1,9 +1,9 @@
 #!/bin/bash
-# T14 fixture: /retro multi-session flag parser.
+# T14 fixture: /reflect multi-session flag parser.
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
-f=plugins/pmos-toolkit/skills/retro/SKILL.md
+f=plugins/pmos-toolkit/skills/reflect/SKILL.md
 
 # All 7 new flags documented
 for flag in -- '--last' '--days' '--since' '--project' '--skill' '--scan-all' '--msf-auto-apply-threshold'; do
