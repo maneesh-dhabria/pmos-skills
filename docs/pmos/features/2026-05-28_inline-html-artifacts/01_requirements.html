@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inline-everything HTML artifacts — Requirements</title>
+  <meta name="pmos:skill" content="requirements">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Inline-everything HTML artifacts — Requirements</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<p><strong>Date:</strong> 2026-05-28<br>
+<strong>Last updated:</strong> 2026-05-28<br>
+<strong>Status:</strong> Draft<br>
+<strong>Tier:</strong> 3 — Feature<br>
+<strong>Seed:</strong> <code>docs/pmos/ideate/2026-05-28_inline-html-artifacts.html</code> (committed @ <code>46f0de7</code>)</p>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem</h2>
+<p>Every pmos-emitted HTML artifact today loads styling and interactivity from a sibling <code>assets/</code> directory. When opened outside a local web server — Claude Code desktop preview, Mail.app, Dropbox preview, a copy saved to disk, an attachment received in chat — the sibling fetches fail and the artifact renders unstyled with no comments overlay. The user sees a broken document and has to remember to launch via a helper script just to make the file readable.</p>
+
+<h3 id="who-experiences-this">Who experiences this?</h3>
+<p>The plugin author (sole user today), plus any stakeholder who receives a pmos artifact by link, attachment, or shared folder. The friction lands hardest when an artifact has just been emitted and the author opens it via the IDE preview pane to sanity-check the output — the most natural first interaction is the one that breaks.</p>
+
+<h3 id="why-now">Why now?</h3>
+<p>The <code>/comments</code> overlay (v2.56.0, 2026-05-25) added a sidecar persistence model and a launcher trio that depend on local-http hosting. That work made the existing sibling-fetch problem worse: the artifact is no longer just unstyled under <code>file://</code>, it also silently loses every comment thread because the FSA write path is Chrome-only and localStorage fallbacks don't survive across machines. The sidecar+artifact pair also introduced a drift hook (T25) that refuses commits where the two halves are out of sync — a recurring footgun. Now is the right moment to collapse the sidecar into the artifact and let one file carry everything.</p>
+</section>
+
+<section id="goals-and-non-goals">
+<h2 id="goals-and-non-goals">Goals &amp; Non-Goals</h2>
+
+<h3 id="goals">Goals</h3>
+<ul>
+  <li><strong>Open-anywhere fidelity</strong> — opening any pmos artifact under <code>file://</code> (desktop preview, email, Dropbox, archived copy) shows the toolbar, properly-styled prose, and existing comment threads in read-only form — measured by visual parity against <code>http://localhost</code> render across the 14 emit surfaces.</li>
+  <li><strong>Single-file portability</strong> — one <code>.html</code> file is the complete artifact; no required siblings — measured by every <code>docs/pmos/</code> tree containing zero <code>.comments.json</code> files after migration.</li>
+  <li><strong>Lossless write path</strong> — launching via <code>comments-open.*</code> still provides full read/write commenting against the same single file — measured by the existing manual smoke matrix (macOS/Linux/Windows × Chrome/Safari/Firefox) passing without the FSA fallback or localStorage buffer.</li>
+  <li><strong>Substrate shrinkage</strong> — retire the sidecar format, the drift hook, the FSA write path, the localStorage fallback, and <code>diff-match-patch.js</code> — measured by deletion of those files from authoring source + the comments-bundle-size gate moving downward.</li>
+  <li><strong>One-touchpoint fanout</strong> — the 14 emit surfaces inherit the change through a single template-renderer substitution; no per-surface edits to ride this through — measured by the <code>_shared/html-authoring/template.html</code> + asset-substrate being the only authoring-source bytes changed for the cross-cutting behavior.</li>
+</ul>
+
+<h3 id="non-goals">Non-Goals (explicit scope cuts)</h3>
+<ul>
+  <li><strong>NOT</strong> shipping a build pipeline / bundler step (variant #10) — because template-substitution is a 10-line renderer change; a build step is needless indirection.</li>
+  <li><strong>NOT</strong> dual-emitting the artifact (variant #12) — because doubling disk for parity with the legacy shape has no upside once the standalone shape is the only shape.</li>
+  <li><strong>NOT</strong> migrating already-published / already-shared artifacts that live on someone else's disk — because there is one human user today; only this repo's <code>docs/pmos/**</code> is the migration corpus.</li>
+  <li><strong>NOT</strong> keeping the FSA write path in any form — because it's Chrome-only, requires a user-gesture file picker per save, and dies in Safari/Firefox; <code>http://localhost</code> via the existing launcher trio is uniform.</li>
+  <li><strong>NOT</strong> preserving the Copy-Markdown button after turndown is removed — because there is no in-domain signal that the button is used; users who want Markdown can re-emit with <code>output_format=both</code>.</li>
+  <li><strong>NOT</strong> resolving assumption #1 (does Claude desktop preview honor inline <code>&lt;style&gt;</code>/<code>&lt;script&gt;</code>?) as a precondition — because the chosen architecture is invariant under both outcomes (worst case: <code>file://</code> is unstyled-read-only and <code>http://localhost</code> via launcher is the always-functional path); the question becomes a non-blocking validation item for <code>/verify</code>.</li>
+</ul>
+</section>
+
+<section id="user-experience-analysis">
+<h2 id="user-experience-analysis">User Experience Analysis</h2>
+
+<h3 id="motivation">Motivation</h3>
+<ul>
+  <li><strong>Job to be done:</strong> Open an artifact I just emitted (or one a stakeholder shared) and have it work — read it with styling, see existing comments, optionally add my own — without thinking about whether the assets are next to the file.</li>
+  <li><strong>Importance / urgency:</strong> Daily friction for the author every time the IDE desktop preview pane is the first place they look at an emit. Higher latent friction for any future stakeholder receiving an artifact by attachment.</li>
+  <li><strong>Alternatives:</strong> (a) remember to <code>comments-open.sh &lt;artifact&gt;</code> every time even just to read; (b) screenshot the styled version and ship that; (c) just live with the unstyled view. None preserve commenting; (a) is a per-open cognitive tax; (b)/(c) lose the artifact's affordances entirely.</li>
+</ul>
+
+<h3 id="friction-points">Friction Points</h3>
+<table>
+  <thead><tr><th>Friction Point</th><th>Cause</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>"This document is broken" first impression</td>
+      <td>Sibling <code>assets/</code> not fetched under <code>file://</code>; CSS/JS 404</td>
+      <td>Inline CSS + JS at emit time so <code>file://</code> renders with full styling</td>
+    </tr>
+    <tr>
+      <td>"Where did my comments go?"</td>
+      <td>Sidecar fetched separately; FSA path Chrome-only; localStorage doesn't cross machines</td>
+      <td>Persist comments as inline JSON block inside the same HTML file</td>
+    </tr>
+    <tr>
+      <td>"Why is the drift hook blocking my commit?"</td>
+      <td>Pre-commit refuses one half of artifact + sidecar without the other</td>
+      <td>Sidecar retired; nothing to drift against; drift hook deleted</td>
+    </tr>
+    <tr>
+      <td>"Do I commit the artifact or the sidecar?"</td>
+      <td>Cognitive load of remembering which file is the source of truth</td>
+      <td>One file. The HTML is the artifact; nothing else is normative.</td>
+    </tr>
+    <tr>
+      <td>"It opens fine for me but my stakeholder sees a mess"</td>
+      <td>Sharing requires explaining the launcher</td>
+      <td>Inline assets so file:// works for read-only; <code>comments-open.*</code> required only when the recipient wants to write back</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="satisfaction-signals">Satisfaction Signals</h3>
+<ul>
+  <li>Author re-opens a freshly emitted artifact in the IDE preview pane and the styled view is the first thing they see — no "oh right, I have to launch the helper".</li>
+  <li>A shared artifact opens with full styling in the recipient's mail client or download folder. They can read and link to a section. They never see an unstyled wall of HTML.</li>
+  <li>A comment thread from three weeks ago is still visible without depending on a sidecar file that may or may not have made it into the shared bundle.</li>
+  <li>The author commits a comment-bearing artifact without thinking about the drift hook — because there is no drift hook to think about.</li>
+</ul>
+</section>
+
+<section id="solution-direction">
+<h2 id="solution-direction">Solution Direction</h2>
+
+<p>Make every emitted artifact <strong>fully self-contained</strong>:</p>
+
+<ol>
+  <li><strong>Inline at emit time.</strong> The substrate's <code>template.html</code> grows three new tokens: <code>{{inline_css}}</code> (concatenated <code>style.css</code> + <code>comments.css</code> in a single <code>&lt;style&gt;</code>), <code>{{inline_js}}</code> (concatenated <code>viewer.js</code> + slimmed <code>comments.js</code> in a single <code>&lt;script&gt;</code>), and <code>{{inline_comments_json}}</code> (seeded <code>{"schema":1,"version":0,"threads":[]}</code>). The external <code>&lt;link&gt;</code> and <code>&lt;script src=&gt;</code> references for those files are removed. The substrate renderer reads each authoring-source file once at emit and pastes its contents into the template.</li>
+  <li><strong>Sentinel-delimited comments block.</strong> Comments persist inside <code>&lt;script id="pmos-comments" type="application/json"&gt;</code>, wrapped between sentinel comments <code>&lt;!-- pmos-comments:start --&gt;</code> and <code>&lt;!-- pmos-comments:end --&gt;</code>, so the server-side regex rewrite has unambiguous anchors and a future schema bump never has to parse the entire HTML.</li>
+  <li><strong>Read path under <code>file://</code>.</strong> The page renders fully styled. The viewer code reads the inline JSON block, surfaces existing threads in read-only mode (compose UI hidden), auto-detected by attempting a <code>HEAD /save</code> and getting nothing.</li>
+  <li><strong>Write path under <code>http://localhost</code>.</strong> The existing <code>comments-open.*</code> trio still launches <code>serve.js</code> in the same one-artifact-per-port shape as today. <code>serve.js</code> gains a <code>POST /save</code> handler: it reads the artifact file, regex-replaces the JSON block between the sentinel comments, writes to <code>artifact.html.tmp</code>, atomically renames to <code>artifact.html</code>. The client posts the full updated JSON plus an <code>expected_version</code> field; the server returns 409 on mismatch.</li>
+  <li><strong>Re-emit preserves comments.</strong> When a pmos skill regenerates an existing artifact (e.g., <code>/spec --update</code>), the renderer first reads the existing file's <code>&lt;script id="pmos-comments"&gt;</code> block and writes it back into the new emission. The existing quote-hash anchor resolver in <code>comments.js</code> ports forward: matched → preserve; near-match → <code>status: needs-review</code>; lost → <code>status: orphaned</code> with a visible bottom-of-page panel.</li>
+  <li><strong>Retire the sidecar substrate.</strong> Delete the <code>.comments.json</code> sidecar format; the pre-commit drift hook in <code>scripts/install-comments-hooks.sh</code>; the FSA write path; the localStorage fallback; <code>diff-match-patch.js</code> from authoring source. Migrate every existing <code>*.comments.json</code> into its sibling <code>*.html</code>'s embedded block via an idempotent <code>scripts/migrate-sidecars-to-inline.sh</code>, then delete the sidecars.</li>
+  <li><strong>Drop turndown + Copy-Markdown.</strong> Remove the <code>turndown.umd.js</code> + <code>turndown-plugin-gfm.umd.js</code> + <code>LICENSE.turndown.txt</code> assets and the <code>data-pmos-action="copy-md"</code> button from the template's toolbar. Users who want Markdown emit with <code>--format=both</code>; the existing <code>html-to-md.js</code> handles that path unchanged.</li>
+  <li><strong>Fan-out via the single template.</strong> All 14 emit surfaces consume the same <code>_shared/html-authoring/template.html</code>. The change is one template edit + renderer-side inlining glue; no per-surface code lands.</li>
+</ol>
+
+<p><strong>Per-artifact size budget:</strong> the inlined CSS (style ~15KB + comments ~6KB) plus JS (viewer ~13KB + slimmed comments ~15KB) lands ~50KB heavier than today's reference-only HTML. Turndown (~80KB) and DMP (~80KB) are <em>not</em> inlined; both are deleted outright. A typical <code>/spec</code> artifact moves from ~50KB to ~100KB. Roughly 2.5MB across the current ~50 artifacts in this repo — acceptable per the brief.</p>
+</section>
+
+<section id="user-journeys">
+<h2 id="user-journeys">User Journeys</h2>
+
+<h3 id="primary-journey">Primary Journey (Happy Path) — Author opens a freshly emitted artifact</h3>
+<ol>
+  <li>Author runs <code>/spec</code> (or any of the 14 surfaces). The skill writes <code>02_spec.html</code> via the substrate.</li>
+  <li>Author opens the file via the IDE's Cmd-click → "Reveal in Preview" pane.</li>
+  <li>The pane renders the artifact fully styled — toolbar visible, prose laid out, section anchors live. The comments-overlay is dormant (no <code>http://localhost</code> reachable) but the UI affordance hint indicates "Read-only — launch <code>comments-open.sh</code> to comment".</li>
+  <li>Author scans the doc, decides it's good. Done.</li>
+</ol>
+
+<h3 id="alternate-journeys">Alternate Journeys</h3>
+
+<p><strong>Stakeholder reviews via mail / Dropbox link.</strong></p>
+<ol>
+  <li>Author shares the <code>02_spec.html</code> by attaching or linking it.</li>
+  <li>Recipient opens it from Mail.app / Downloads / a Dropbox preview URL.</li>
+  <li>Page renders fully styled. Recipient reads it, optionally copies a section link by anchor. They cannot comment from this entry point (no localhost), but the artifact is fully legible — the read-only goal is met.</li>
+</ol>
+
+<p><strong>Author launches the commenter to leave annotations.</strong></p>
+<ol>
+  <li>Author double-clicks <code>assets/comments-open.command</code> (or runs <code>comments-open.sh &lt;artifact&gt;</code> from a terminal) — the existing launcher trio, no changes to the invocation contract.</li>
+  <li><code>serve.js</code> picks a free port, opens the default browser to <code>http://localhost:PORT/&lt;artifact&gt;</code>.</li>
+  <li>Page loads with the comments overlay active. Existing threads (read from the inline JSON block at page load) are visible; compose UI is enabled.</li>
+  <li>Author selects text, clicks 💬, writes a thread. On submit, the client POSTs the updated JSON + <code>expected_version</code> to <code>/save</code>; <code>serve.js</code> rewrites the file atomically; the client re-reads the persisted JSON to confirm.</li>
+  <li>Author closes the browser; <code>serve.js</code> exits when the process is killed (existing lifecycle).</li>
+</ol>
+
+<p><strong>Author re-emits an artifact that has accumulated comments.</strong></p>
+<ol>
+  <li>Author runs <code>/spec --update</code> on a folder where <code>02_spec.html</code> already has 4 comment threads.</li>
+  <li>The substrate renderer reads the existing file's <code>&lt;script id="pmos-comments"&gt;</code> block before overwriting.</li>
+  <li>The renderer emits the new HTML, splicing the preserved JSON block back into the new file between the sentinels.</li>
+  <li>The quote-hash anchor resolver runs at next page-load: matched threads remain; near-match threads display a <code>status: needs-review</code> badge; orphaned threads (the underlying quote text was removed in the rewrite) surface in a bottom-of-page "Orphaned comments" panel.</li>
+</ol>
+
+<h3 id="error-journeys">Error Journeys</h3>
+
+<p><strong>Two tabs editing the same artifact.</strong></p>
+<ol>
+  <li>Tab A and Tab B both load <code>artifact.html</code> at version <code>v=5</code>.</li>
+  <li>Tab A submits a thread; <code>serve.js</code> writes <code>v=6</code>.</li>
+  <li>Tab B submits a thread with <code>expected_version=5</code>.</li>
+  <li>Server returns <code>409 Conflict</code> with the current version + JSON. Tab B's client surfaces a "Document changed since you opened it — reload to merge" banner and disables further submits until reload.</li>
+</ol>
+
+<p><strong>Server crashes mid-write.</strong></p>
+<ol>
+  <li><code>serve.js</code> writes <code>artifact.html.tmp</code> with the updated JSON block.</li>
+  <li>Process dies before <code>rename(2)</code>.</li>
+  <li>On next launch, startup scans for orphaned <code>.tmp</code> siblings in the served directory. If found: surface in stderr ("Orphan tmp file: <code>artifact.html.tmp</code> from previous crash; inspect and delete manually"). No automatic recovery — the user owns the decision.</li>
+</ol>
+
+<p><strong>Embedded <code>&lt;/script&gt;</code> in a comment body.</strong></p>
+<ol>
+  <li>User pastes <code>"&lt;/script&gt; HA HA"</code> into a comment body.</li>
+  <li>The client-side serializer encodes <code>&lt;</code> inside JSON string values as <code><</code> before embedding the JSON into the <code>&lt;script&gt;</code> block — so the literal token <code>&lt;/script&gt;</code> never appears in the rendered HTML.</li>
+  <li>On read, the standard <code>JSON.parse</code> on the <code>&lt;script&gt;</code> content restores the original text. The user's comment displays correctly.</li>
+</ol>
+
+<p><strong>Inline-script-stripping email client.</strong></p>
+<ol>
+  <li>Recipient's mail client (or sanitizer) strips all <code>&lt;script&gt;</code> tags.</li>
+  <li>Page loses both the viewer JS and the comments JSON.</li>
+  <li>The page still renders styled (CSS is in <code>&lt;style&gt;</code>, untouched), so the document is legible.</li>
+  <li>No comments visible. Acceptable: comments-in-email was never on the table.</li>
+</ol>
+
+<h3 id="empty-states-and-edge-cases">Empty States &amp; Edge Cases</h3>
+<table>
+  <thead><tr><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>Fresh emit, no comments</td><td>Inline JSON block contains <code>{"schema":1,"version":0,"threads":[]}</code></td><td>Overlay loads, no threads to render; compose UI available under <code>http://localhost</code>, hidden under <code>file://</code></td></tr>
+    <tr><td>file:// open</td><td><code>HEAD /save</code> returns nothing (no localhost)</td><td>Read-only mode: threads render, compose UI hidden, footer hint shows "Launch <code>comments-open.sh</code> to comment"</td></tr>
+    <tr><td>Orphan tmp file at startup</td><td>Previous <code>serve.js</code> crashed mid-write</td><td>Stderr warning naming the orphan; no auto-delete; serve continues</td></tr>
+    <tr><td>Migration of legacy sidecar</td><td><code>artifact.comments.json</code> exists next to <code>artifact.html</code></td><td><code>migrate-sidecars-to-inline.sh</code> reads sidecar, injects into artifact's <code>&lt;script id="pmos-comments"&gt;</code>, deletes sidecar. Idempotent on re-run.</td></tr>
+    <tr><td>Already-migrated artifact</td><td>Artifact has inline block, no sidecar</td><td>Migration script no-ops cleanly</td></tr>
+    <tr><td>Artifact open in browser when re-emit runs</td><td>User loaded artifact at <code>v=5</code>; <code>/spec --update</code> writes <code>v=0</code> (preserved JSON re-spliced unchanged)</td><td>Next submit returns 409; client banner; same as two-tab case</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="design-decisions">
+<h2 id="design-decisions">Design Decisions</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>D1</td>
+      <td>Inline CSS + JS via template-substitution at emit time</td>
+      <td>(a) inline via template substitution; (b) post-emit bundler step (variant #10); (c) data-URI assets; (d) dual-emit (variant #12); (e) inline-CSS-only fallback (variants #4/#5)</td>
+      <td>(a) is a 10-line glue change against the single shared template. (b) adds build-pipeline indirection for no benefit. (c) is functionally equivalent to (a) but harder to debug. (d) doubles disk and keeps the legacy shape supported indefinitely — no upside once standalone is the only shape. (e) remains as a planned fallback only if assumption #1 fails for the JS path during /verify.</td>
+    </tr>
+    <tr>
+      <td>D2</td>
+      <td>Comments persist as inline <code>&lt;script id="pmos-comments" type="application/json"&gt;</code> block between sentinel comments</td>
+      <td>(a) inline JSON block w/ sentinels; (b) keep sidecar; (c) inline JSON block w/o sentinels (anchor on script tag); (d) attributes on body element</td>
+      <td>(a) is the only option that satisfies single-file-portability. Sentinels are unambiguous regex anchors for server-side rewrite — no HTML-parsing dependency. (b) is what we're trying to leave. (c) makes the regex brittle (any script tag in body could collide). (d) caps comment payload at attribute-length limits in practice.</td>
+    </tr>
+    <tr>
+      <td>D3</td>
+      <td><code>serve.js</code> stays one-artifact-per-port; gains <code>POST /save</code></td>
+      <td>(a) one-artifact-per-port (today's shape); (b) persistent daemon serving <code>docs/pmos/</code> root</td>
+      <td>(a) is the lower-risk path. Matches existing launcher contract. ~30 LOC + atomic-rename helper to add /save. (b) is friendlier UX but adds daemon lifecycle (start/stop/PID file) and cross-artifact routing — a separate, larger feature; not now.</td>
+    </tr>
+    <tr>
+      <td>D4</td>
+      <td>Write path uses temp-file-then-<code>rename(2)</code></td>
+      <td>(a) temp-then-rename atomic; (b) in-place write; (c) write to sidecar then rename over artifact</td>
+      <td>(a) is POSIX-atomic; a crash mid-write leaves either the old file intact or an orphan <code>.tmp</code> that the user can inspect. (b) risks corruption with no recovery path now that the sidecar is gone. (c) is what we're leaving.</td>
+    </tr>
+    <tr>
+      <td>D5</td>
+      <td>Optimistic concurrency via <code>version</code> field; 409 on mismatch; user manually reloads to merge</td>
+      <td>(a) version + 409; (b) <code>BroadcastChannel</code> single-writer-tab lock; (c) automatic merge</td>
+      <td>(a) is the simplest correct option for a single-user tool. (b) is a UX upgrade we can take later if multi-tab editing becomes routine. (c) is incorrect — comment ordering is user-meaningful, not auto-mergeable without conflict.</td>
+    </tr>
+    <tr>
+      <td>D6</td>
+      <td>Drop <code>diff-match-patch.js</code> from authoring source</td>
+      <td>(a) delete outright; (b) keep for advanced near-match scoring in the resolver; (c) move DMP logic server-side into <code>serve.js</code></td>
+      <td>(a) is correct because the only reason DMP was vendored was to reconcile sidecar drift against artifact text — with no sidecar, there is no drift surface to score. The existing quote-hash anchor resolver in <code>comments.js</code> is exact-match by hash; near-match needs only substring containment + character-window scoring, which doesn't need DMP. (c) is contingency: if the inline-resolver miss rate measurably degrades on the calibration corpus, port a minimal substring scorer into <code>serve.js</code> rather than re-importing DMP.</td>
+    </tr>
+    <tr>
+      <td>D7</td>
+      <td>Drop turndown + Copy-Markdown button outright</td>
+      <td>(a) remove button + asset; (b) flip <code>output_format</code> default to <code>both</code> so MD sidecar is always present; (c) keep turndown client-side</td>
+      <td>(a) wins on minimalism — no user signal that the button is used, and re-emit with <code>--format=both</code> covers the rare case. (b) adds ~30KB/artifact of MD that mostly nobody reads. (c) keeps ~80KB/artifact of dead JS.</td>
+    </tr>
+    <tr>
+      <td>D8</td>
+      <td>Migration is automated and idempotent; no per-artifact human review</td>
+      <td>(a) automated idempotent script; (b) per-artifact interactive confirm; (c) leave existing sidecars; new artifacts only inline</td>
+      <td>(a) — single user, low artifact count (~50), trivial mechanical transform (read sidecar JSON → inject between sentinels → delete sidecar). Spot-check 3–5 in dry-run; commit the whole transform in one go. (b) is overkill. (c) leaves a permanent split-brain in the codebase.</td>
+    </tr>
+    <tr>
+      <td>D9</td>
+      <td>Assumption #1 (Claude desktop preview inline-style/script support) deferred to <code>/verify</code></td>
+      <td>(a) treat as precondition spike; (b) defer to /verify as non-blocking validation</td>
+      <td>(b) — the chosen architecture is invariant under both outcomes. If inline style works but inline script doesn't (the "Inline-CSS-only" fallback in variants #4/#5), comments overlay silently no-ops under <code>file://</code> while styling still works; that's a graceful degradation, not a re-architecture. The full architecture spec lands now; <code>/verify</code> validates the bonus.</td>
+    </tr>
+    <tr>
+      <td>D10</td>
+      <td>Per-artifact size bloat (~50KB) accepted; <code>.gitattributes</code> marks <code>docs/pmos/**/*.html</code> as <code>linguist-generated</code> + <code>-diff</code></td>
+      <td>(a) accept bytes + tame diff noise; (b) reject the inlining premise on cost grounds; (c) accept bytes but keep diffs full</td>
+      <td>(a) — 50 artifacts × ~50KB ≈ 2.5MB across the repo, one-time cost the user has signed off on. Tagging as <code>linguist-generated</code> hides them from GitHub language stats and <code>-diff</code> collapses them in PR views so the asset noise doesn't drown content edits.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section id="success-metrics">
+<h2 id="success-metrics">Success Metrics</h2>
+
+<table>
+  <thead><tr><th>Metric</th><th>Baseline</th><th>Target</th><th>Measurement</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Cross-context styling fidelity (file:// vs http://localhost)</td>
+      <td>0/14 surfaces styled under file://</td>
+      <td>14/14 surfaces visually equivalent under both</td>
+      <td>Manual visual-diff smoke across each emit surface; one screenshot pair per surface</td>
+    </tr>
+    <tr>
+      <td>Sidecar count under <code>docs/pmos/</code></td>
+      <td>Current count of <code>*.comments.json</code> at start of migration</td>
+      <td>0</td>
+      <td><code>find docs/pmos -name '*.comments.json' | wc -l</code> after migration</td>
+    </tr>
+    <tr>
+      <td>Per-artifact size delta</td>
+      <td>~50KB / artifact (current /spec average)</td>
+      <td>≤110KB / artifact (≤60KB inline overhead)</td>
+      <td><code>du -k</code> across <code>docs/pmos/**/*.html</code> before / after the cutover commit</td>
+    </tr>
+    <tr>
+      <td>Authoring-source LOC delta</td>
+      <td>Current count of authoring-source bytes for comments substrate (incl. DMP, turndown, drift hook, FSA path)</td>
+      <td>Net negative — bytes deleted &gt; bytes added by the template inlining glue</td>
+      <td><code>git diff --stat</code> between cutover commit and its parent</td>
+    </tr>
+    <tr>
+      <td>Comment-anchor preservation across re-emit</td>
+      <td>Calibration corpus at <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code>: current match rate via existing quote-hash + DMP resolver</td>
+      <td>Match rate within 5pp of baseline post-DMP-removal</td>
+      <td>Run resolver against calibration corpus; report match / near-match / orphaned percentages</td>
+    </tr>
+    <tr>
+      <td>Manual smoke matrix (platform × browser)</td>
+      <td>Current pass count from <code>tests/MANUAL-fsa-fallback.md</code></td>
+      <td>All rows pass without invoking FSA or localStorage fallback paths (both paths deleted)</td>
+      <td>Maintainer attestation, same matrix file repurposed</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">Research Sources</h2>
+
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/pmos/ideate/2026-05-28_inline-html-artifacts.html</code></td><td>Prior /ideate brief</td><td>Authoritative seed: 12 variants → composite finalist; premortem; riskiest assumptions; size budget</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></td><td>Existing substrate</td><td>Single template consumed by all 14 emit surfaces; token-substitution renderer; the cross-cutting touchpoint</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code> (227 LOC)</td><td>Existing static-file server</td><td>Already picks a free port; lifecycle hooked to comments-open.*; +/save is ~30 LOC</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> + <code>comments.css</code></td><td>Existing overlay client</td><td>Quote-hash anchor resolver lives here; "needs-review" / "orphaned" states already implemented; slimming target for the JS inline payload</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code></td><td>Vendored dep (~80KB)</td><td>Used only by anchor-resolver near-match scoring; deletion candidate; substring fallback adequate per calibration corpus</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code> + <code>plugins/pmos-toolkit/skills/{diagram,wireframes,survey-analyse,plan}/scripts/apply-edit-at-anchor.js</code></td><td>DMP call sites in skills</td><td>Five call sites total; replaceable with exact-id + substring-contains. None need full Bitap.</td></tr>
+    <tr><td><code>scripts/install-comments-hooks.sh</code> (pre-commit drift hook)</td><td>Existing infrastructure</td><td>Deletion target — refuses commits when artifact + sidecar drift; no drift surface after sidecar retires</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code></td><td>Existing smoke matrix</td><td>Per-platform × per-browser rows; survives the architecture change with the FSA / localStorage attest columns removed</td></tr>
+    <tr><td>Jupyter <code>.ipynb</code> format; Observable notebooks; self-contained SVG with embedded scripts</td><td>Prior art (industry)</td><td>Single-file containers with embedded JSON metadata are an established, robust pattern; not a novel approach</td></tr>
+    <tr><td>WHATWG HTML <code>&lt;script type="application/json"&gt;</code> spec</td><td>Standard</td><td>Content treated as opaque data; <code>JSON.parse(document.getElementById('pmos-comments').textContent)</code> is the canonical read path</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open Questions</h2>
+
+<table>
+  <thead><tr><th>#</th><th>Question</th></tr></thead>
+  <tbody>
+    <tr><td>OQ1</td><td>Inline-JS support in Claude Code desktop preview is unverified (assumption #1). If JS is blocked but CSS works, the file:// path renders styled but cannot show threads; <code>http://localhost</code> remains fully functional. <code>/verify</code> validates and the spec carries the fallback wording.</td></tr>
+    <tr><td>OQ2</td><td>Calibration target for the post-DMP anchor-resolver match rate — is "within 5pp of current baseline" the right gate, or should the spec set a stricter / looser bar?</td></tr>
+    <tr><td>OQ3</td><td>Should the inline JSON block carry a <code>generated_at</code> ISO timestamp alongside <code>schema</code> + <code>version</code>? Cheap; would help debug re-emit drift later. Defer to /spec.</td></tr>
+    <tr><td>OQ4</td><td>The "orphan tmp file at startup" surface currently warns to stderr only. Should it also surface in the page UI (a banner) when the user re-opens the artifact via comments-open.*? Defer to /spec.</td></tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_inline-html-artifacts/01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>

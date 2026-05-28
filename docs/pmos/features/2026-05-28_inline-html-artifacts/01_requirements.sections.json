@@ -1,0 +1,30 @@
+{
+  "artifact": "01_requirements.html",
+  "title": "Inline-everything HTML artifacts — Requirements",
+  "pmos_skill": "requirements",
+  "tier": 3,
+  "generated_at": "2026-05-28T00:02:00Z",
+  "ids": [
+    "meta",
+    "problem",
+    "who-experiences-this",
+    "why-now",
+    "goals-and-non-goals",
+    "goals",
+    "non-goals",
+    "user-experience-analysis",
+    "motivation",
+    "friction-points",
+    "satisfaction-signals",
+    "solution-direction",
+    "user-journeys",
+    "primary-journey",
+    "alternate-journeys",
+    "error-journeys",
+    "empty-states-and-edge-cases",
+    "design-decisions",
+    "success-metrics",
+    "research-sources",
+    "open-questions"
+  ]
+}

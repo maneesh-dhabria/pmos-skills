@@ -1,0 +1,77 @@
+Vendored third-party assets — license attribution
+====================================================
+
+The files in this directory include vendored builds of:
+
+  1. turndown@7.2.4
+       Source:  https://unpkg.com/turndown@7.2.4/dist/turndown.js
+       Vendored as: turndown.umd.js
+
+  2. turndown-plugin-gfm@1.0.2  (non-@joplin upstream)
+       Source:  https://unpkg.com/turndown-plugin-gfm@1.0.2/dist/turndown-plugin-gfm.js
+       Vendored as: turndown-plugin-gfm.umd.js
+
+Both packages ship under the MIT License. The full license text for each
+upstream is reproduced below. Copyright is retained by the original authors.
+
+NOTE on plugin choice: spec FR-07 / Decision Log P3 referenced
+@joplin/turndown-plugin-gfm@1.0.61 originally, but the @joplin fork dropped
+the browser-friendly UMD bundle after that line — they ship CommonJS only.
+The original (non-@joplin) `turndown-plugin-gfm@1.0.2` retains the
+self-contained IIFE bundle (`dist/turndown-plugin-gfm.js`) we need for both
+the browser viewer and the Node CLI shim. Same author (Dom Christie),
+same MIT license, same GFM-table support.
+
+
+-----------------------------------------------------------------
+turndown — MIT License
+-----------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2017 Dom Christie
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+-----------------------------------------------------------------
+turndown-plugin-gfm — MIT License
+-----------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2017 Dom Christie
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
