@@ -1,0 +1,68 @@
+[
+  {
+    "id": "commits",
+    "level": 2,
+    "title": "Commit history",
+    "parent_id": null
+  },
+  {
+    "id": "spec-compliance",
+    "level": 2,
+    "title": "Spec compliance (FR-IDs)",
+    "parent_id": null
+  },
+  {
+    "id": "plan-compliance",
+    "level": 2,
+    "title": "Plan compliance (T1–T13)",
+    "parent_id": null
+  },
+  {
+    "id": "gaps-found",
+    "level": 2,
+    "title": "Gaps found & resolved during /verify",
+    "parent_id": null
+  },
+  {
+    "id": "open-followups",
+    "level": 2,
+    "title": "Open follow-ups (out of /verify scope)",
+    "parent_id": null
+  },
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "commits",
+    "level": 2,
+    "title": "Commit history",
+    "parent_id": null
+  },
+  {
+    "id": "spec-compliance",
+    "level": 2,
+    "title": "Spec compliance (FR-IDs)",
+    "parent_id": null
+  },
+  {
+    "id": "plan-compliance",
+    "level": 2,
+    "title": "Plan compliance (T1–T13)",
+    "parent_id": null
+  },
+  {
+    "id": "gaps-found",
+    "level": 2,
+    "title": "Gaps found & resolved during /verify",
+    "parent_id": null
+  },
+  {
+    "id": "open-followups",
+    "level": 2,
+    "title": "Open follow-ups (out of /verify scope)",
+    "parent_id": null
+  }
+]
