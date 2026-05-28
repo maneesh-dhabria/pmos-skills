@@ -27,7 +27,7 @@
 <section id="meta">
 <p><strong>Date:</strong> 2026-05-28<br>
 <strong>Last updated:</strong> 2026-05-28<br>
-<strong>Status:</strong> Draft<br>
+<strong>Status:</strong> In Review<br>
 <strong>Tier:</strong> 3 — Feature<br>
 <strong>Seed:</strong> <code>docs/pmos/ideate/2026-05-28_inline-html-artifacts.html</code> (committed @ <code>46f0de7</code>)</p>
 </section>
@@ -124,9 +124,9 @@
 
 <ol>
   <li><strong>Inline at emit time.</strong> The substrate's <code>template.html</code> grows three new tokens: <code>{{inline_css}}</code> (concatenated <code>style.css</code> + <code>comments.css</code> in a single <code>&lt;style&gt;</code>), <code>{{inline_js}}</code> (concatenated <code>viewer.js</code> + slimmed <code>comments.js</code> in a single <code>&lt;script&gt;</code>), and <code>{{inline_comments_json}}</code> (seeded <code>{"schema":1,"version":0,"threads":[]}</code>). The external <code>&lt;link&gt;</code> and <code>&lt;script src=&gt;</code> references for those files are removed. The substrate renderer reads each authoring-source file once at emit and pastes its contents into the template.</li>
-  <li><strong>Sentinel-delimited comments block.</strong> Comments persist inside <code>&lt;script id="pmos-comments" type="application/json"&gt;</code>, wrapped between sentinel comments <code>&lt;!-- pmos-comments:start --&gt;</code> and <code>&lt;!-- pmos-comments:end --&gt;</code>, so the server-side regex rewrite has unambiguous anchors and a future schema bump never has to parse the entire HTML.</li>
-  <li><strong>Read path under <code>file://</code>.</strong> The page renders fully styled. The viewer code reads the inline JSON block, surfaces existing threads in read-only mode (compose UI hidden), auto-detected by attempting a <code>HEAD /save</code> and getting nothing.</li>
-  <li><strong>Write path under <code>http://localhost</code>.</strong> The existing <code>comments-open.*</code> trio still launches <code>serve.js</code> in the same one-artifact-per-port shape as today. <code>serve.js</code> gains a <code>POST /save</code> handler: it reads the artifact file, regex-replaces the JSON block between the sentinel comments, writes to <code>artifact.html.tmp</code>, atomically renames to <code>artifact.html</code>. The client posts the full updated JSON plus an <code>expected_version</code> field; the server returns 409 on mismatch.</li>
+  <li><strong>Delimited comments block.</strong> Comments persist as an inline JSON payload inside the artifact, bracketed by explicit start/end markers. The server has an unambiguous slot to rewrite without parsing the surrounding HTML, and a future schema bump can find the block by marker alone.</li>
+  <li><strong>Read path under <code>file://</code>.</strong> The page renders fully styled. The viewer code reads the inline JSON block and surfaces existing threads in read-only mode (compose UI hidden), with the read-only state detected by the runtime so the artifact never offers a compose action it can't actually fulfil.</li>
+  <li><strong>Write path under <code>http://localhost</code>.</strong> The existing <code>comments-open.*</code> trio still launches <code>serve.js</code> in the same one-artifact-per-port shape as today. <code>serve.js</code> gains a comment-save endpoint that crash-safely replaces the inline JSON block inside the artifact. The client posts the full updated JSON plus an <code>expected_version</code> for optimistic concurrency; on a version mismatch the server rejects the save and the client prompts the user to reload.</li>
   <li><strong>Re-emit preserves comments.</strong> When a pmos skill regenerates an existing artifact (e.g., <code>/spec --update</code>), the renderer first reads the existing file's <code>&lt;script id="pmos-comments"&gt;</code> block and writes it back into the new emission. The existing quote-hash anchor resolver in <code>comments.js</code> ports forward: matched → preserve; near-match → <code>status: needs-review</code>; lost → <code>status: orphaned</code> with a visible bottom-of-page panel.</li>
   <li><strong>Retire the sidecar substrate.</strong> Delete the <code>.comments.json</code> sidecar format; the pre-commit drift hook in <code>scripts/install-comments-hooks.sh</code>; the FSA write path; the localStorage fallback; <code>diff-match-patch.js</code> from authoring source. Migrate every existing <code>*.comments.json</code> into its sibling <code>*.html</code>'s embedded block via an idempotent <code>scripts/migrate-sidecars-to-inline.sh</code>, then delete the sidecars.</li>
   <li><strong>Drop turndown + Copy-Markdown.</strong> Remove the <code>turndown.umd.js</code> + <code>turndown-plugin-gfm.umd.js</code> + <code>LICENSE.turndown.txt</code> assets and the <code>data-pmos-action="copy-md"</code> button from the template's toolbar. Users who want Markdown emit with <code>--format=both</code>; the existing <code>html-to-md.js</code> handles that path unchanged.</li>
@@ -233,21 +233,21 @@
     </tr>
     <tr>
       <td>D2</td>
-      <td>Comments persist as inline <code>&lt;script id="pmos-comments" type="application/json"&gt;</code> block between sentinel comments</td>
-      <td>(a) inline JSON block w/ sentinels; (b) keep sidecar; (c) inline JSON block w/o sentinels (anchor on script tag); (d) attributes on body element</td>
-      <td>(a) is the only option that satisfies single-file-portability. Sentinels are unambiguous regex anchors for server-side rewrite — no HTML-parsing dependency. (b) is what we're trying to leave. (c) makes the regex brittle (any script tag in body could collide). (d) caps comment payload at attribute-length limits in practice.</td>
+      <td>Comments persist as a delimited inline JSON block inside the artifact</td>
+      <td>(a) inline JSON block with explicit start/end delimiters; (b) keep sidecar; (c) inline JSON block without explicit delimiters; (d) attributes on body element</td>
+      <td>(a) is the only option that satisfies single-file-portability. Explicit delimiters give the server an unambiguous slot to rewrite, independent of how the rest of the HTML changes. (b) is what we're trying to leave. (c) makes server-side rewriting brittle once other inline scripts join the page. (d) caps comment payload at attribute-length limits in practice.</td>
     </tr>
     <tr>
       <td>D3</td>
-      <td><code>serve.js</code> stays one-artifact-per-port; gains <code>POST /save</code></td>
+      <td><code>serve.js</code> stays one-artifact-per-port; gains a comment-save endpoint</td>
       <td>(a) one-artifact-per-port (today's shape); (b) persistent daemon serving <code>docs/pmos/</code> root</td>
-      <td>(a) is the lower-risk path. Matches existing launcher contract. ~30 LOC + atomic-rename helper to add /save. (b) is friendlier UX but adds daemon lifecycle (start/stop/PID file) and cross-artifact routing — a separate, larger feature; not now.</td>
+      <td>(a) is the lower-risk path. Matches existing launcher contract; the save endpoint is a minimal incremental addition to a static-file server we already trust. (b) is friendlier UX but adds daemon lifecycle (start/stop/PID file) and cross-artifact routing — a separate, larger feature; not now.</td>
     </tr>
     <tr>
       <td>D4</td>
-      <td>Write path uses temp-file-then-<code>rename(2)</code></td>
-      <td>(a) temp-then-rename atomic; (b) in-place write; (c) write to sidecar then rename over artifact</td>
-      <td>(a) is POSIX-atomic; a crash mid-write leaves either the old file intact or an orphan <code>.tmp</code> that the user can inspect. (b) risks corruption with no recovery path now that the sidecar is gone. (c) is what we're leaving.</td>
+      <td>Saves are crash-safe: never leave the artifact in a half-written state</td>
+      <td>(a) crash-safe atomic replace; (b) direct in-place write; (c) write a sidecar copy then swap it over the artifact</td>
+      <td>(a) means a crashed save either leaves the previous version intact OR leaves a clearly-named orphan file the user can inspect — never a corrupted artifact. (b) risks corruption with no recovery path now that the sidecar is gone. (c) is what we're leaving — and reintroduces the sidecar surface we just retired.</td>
     </tr>
     <tr>
       <td>D5</td>
@@ -320,12 +320,6 @@
       <td><code>git diff --stat</code> between cutover commit and its parent</td>
     </tr>
     <tr>
-      <td>Comment-anchor preservation across re-emit</td>
-      <td>Calibration corpus at <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code>: current match rate via existing quote-hash + DMP resolver</td>
-      <td>Match rate within 5pp of baseline post-DMP-removal</td>
-      <td>Run resolver against calibration corpus; report match / near-match / orphaned percentages</td>
-    </tr>
-    <tr>
       <td>Manual smoke matrix (platform × browser)</td>
       <td>Current pass count from <code>tests/MANUAL-fsa-fallback.md</code></td>
       <td>All rows pass without invoking FSA or localStorage fallback paths (both paths deleted)</td>
@@ -337,6 +331,34 @@
 
 <section id="research-sources">
 <h2 id="research-sources">Research Sources</h2>
+
+<h3 id="emit-surfaces-inventory">Emit-surfaces inventory (14)</h3>
+<p>Per <code>CLAUDE.md ## Inline doc comments</code>: "13 originating skills + /feature-sdlc orchestrator with 2 emit surfaces" — confirmed via <code>grep -l 'pmos:skill' plugins/pmos-toolkit/skills/*/SKILL.md</code> minus the comments resolver (which is not itself a comment-enabled emit).</p>
+
+<table>
+  <thead><tr><th>#</th><th>Skill</th><th>Artifact type (representative)</th><th>pmos:skill meta value</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>architecture</td><td>audit report HTML</td><td><code>architecture</code></td></tr>
+    <tr><td>2</td><td>artifact</td><td>generic artifact HTML</td><td><code>artifact</code></td></tr>
+    <tr><td>3</td><td>diagram</td><td>SVG diagram (inline-SVG-anchored)</td><td><code>diagram</code></td></tr>
+    <tr><td>4</td><td>ideate</td><td>per-idea brief HTML</td><td><code>ideate</code></td></tr>
+    <tr><td>5</td><td>plan</td><td>03_plan.html</td><td><code>plan</code></td></tr>
+    <tr><td>6</td><td>polish</td><td>polished doc HTML (when source is HTML)</td><td><code>polish</code></td></tr>
+    <tr><td>7</td><td>prototype</td><td>per-device prototype HTML</td><td><code>prototype</code></td></tr>
+    <tr><td>8</td><td>readme</td><td>README audit report HTML</td><td><code>readme</code></td></tr>
+    <tr><td>9</td><td>requirements</td><td>01_requirements.html</td><td><code>requirements</code></td></tr>
+    <tr><td>10</td><td>spec</td><td>02_spec.html</td><td><code>spec</code></td></tr>
+    <tr><td>11</td><td>survey-analyse</td><td>survey-analysis HTML</td><td><code>survey-analyse</code></td></tr>
+    <tr><td>12</td><td>survey-design</td><td>survey HTML + preview.html + index.html</td><td><code>survey-design</code></td></tr>
+    <tr><td>13</td><td>wireframes</td><td>per-device wireframe HTML + canvas.html</td><td><code>wireframes</code></td></tr>
+    <tr><td>14a</td><td>feature-sdlc</td><td>00_pipeline.html</td><td><code>feature-sdlc</code></td></tr>
+    <tr><td>14b</td><td>feature-sdlc</td><td>00_open_questions_index.html</td><td><code>feature-sdlc</code></td></tr>
+  </tbody>
+</table>
+
+<p><strong>The fanout claim:</strong> all 14 surfaces consume <code>_shared/html-authoring/template.html</code>; the inline-everything behavior is a one-template-edit + renderer-side glue change. No per-surface skill code is touched by this feature — verified by inspection that each skill's SKILL.md "Atomic write" / "Asset substrate" instructions reference the shared template by path, not by reproducing its bytes.</p>
+
+<h3 id="other-sources">Other sources</h3>
 
 <table>
   <thead><tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr></thead>
@@ -355,6 +377,21 @@
 </table>
 </section>
 
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>F1: "14 emit surfaces" cited but never enumerated. F2: success metric "match rate within 5pp of baseline" with unknown baseline. F3: implementation details (regex sentinels, ~30 LOC, rename(2)) leaking into D2/D3/D4. F4: HEAD-probe contract for read-only detection unspecified.</td>
+      <td>F1: added 14-row Emit-surfaces inventory sub-table under Research Sources, sourced from <code>grep -l 'pmos:skill'</code> minus the comments resolver. F2: dropped the anchor-resolver match-rate metric from Success Metrics outright (no measured gate; regression caught manually if it occurs). F3: rewrote D2/D3/D4 rationale in user-observable terms ("delimited block", "minimal incremental change", "crash-safe replace"); softened the same impl-leaks in Solution Direction steps 2–4. F4: accepted detection mechanism as cheap; added OQ5 for /spec to lock the probe contract.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
 <section id="open-questions">
 <h2 id="open-questions">Open Questions</h2>
 
@@ -365,6 +402,7 @@
     <tr><td>OQ2</td><td>Calibration target for the post-DMP anchor-resolver match rate — is "within 5pp of current baseline" the right gate, or should the spec set a stricter / looser bar?</td></tr>
     <tr><td>OQ3</td><td>Should the inline JSON block carry a <code>generated_at</code> ISO timestamp alongside <code>schema</code> + <code>version</code>? Cheap; would help debug re-emit drift later. Defer to /spec.</td></tr>
     <tr><td>OQ4</td><td>The "orphan tmp file at startup" surface currently warns to stderr only. Should it also surface in the page UI (a banner) when the user re-opens the artifact via comments-open.*? Defer to /spec.</td></tr>
+    <tr><td>OQ5</td><td>Read-only-vs-write-mode detection: the requirements assume an unobtrusive probe to the local server. /spec owns the probe contract — timeout budget, behaviour when localhost is up but doesn't speak the save protocol (custom static server), and whether <code>window.location.protocol</code> short-circuits the probe under <code>file://</code>.</td></tr>
   </tbody>
 </table>
 </section>
