@@ -41,12 +41,26 @@ function buildInlineJs() {
   return '<script>\n' + viewer + '\n/* --- comments.js --- */\n' + comments + '\n</script>';
 }
 
-function buildInlineCommentsJson() {
+function extractExistingPayload(html) {
+  if (typeof html !== 'string') return null;
+  const re = /<script id="pmos-comments" type="application\/json">([\s\S]*?)<\/script>/;
+  const m = html.match(re);
+  if (!m) return null;
+  try {
+    return JSON.parse(m[1].trim().replace(/\\u003c/g, '<'));
+  } catch (_e) {
+    return null;
+  }
+}
+
+function buildInlineCommentsJson(prior) {
+  const priorVersion = (prior && typeof prior.version === 'number') ? prior.version : null;
+  const priorThreads = (prior && Array.isArray(prior.threads)) ? prior.threads : null;
   const payload = {
     schema: 1,
-    version: 0,
+    version: priorVersion === null ? 0 : priorVersion + 1,
     generated_at: new Date().toISOString(),
-    threads: [],
+    threads: priorThreads === null ? [] : priorThreads,
   };
   return (
     '<!-- pmos-comments:start -->\n' +
@@ -76,7 +90,8 @@ function renderArtifact(opts) {
 
   const inlineCss = buildInlineCss();
   const inlineJs = buildInlineJs();
-  const inlineCommentsJson = buildInlineCommentsJson();
+  const prior = (opts.existingHtml != null) ? extractExistingPayload(opts.existingHtml) : null;
+  const inlineCommentsJson = buildInlineCommentsJson(prior);
 
   const subs = {
     '{{inline_css}}': inlineCss,
