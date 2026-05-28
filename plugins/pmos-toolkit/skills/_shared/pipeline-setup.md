@@ -90,6 +90,14 @@ Then create `{docs_path}/features/{YYYY-MM-DD}_<slug>/` per Section B Step 4.
 
 If legacy state was detected in A.1, run Section D migration **before** writing settings.yaml — migration constructs the settings.yaml itself.
 
+### A.6 Optional skill-specific fields
+
+Skills MAY persist their own keys in `.pmos/settings.yaml` alongside the canonical fields. These are optional — absence MUST NOT fail-fast; the owning skill is responsible for first-run prompting and back-compat.
+
+| Key                    | Owning skill | Valid values             | Behavior when absent                                  |
+|------------------------|--------------|--------------------------|-------------------------------------------------------|
+| `default_primer_depth` | `/primer`    | `brief`, `standard`, `deep` | `/primer` Phase 0.5 surfaces a first-run depth prompt and writes the answer back to this file. Subsequent runs read silently. `--depth` CLI flag always overrides per-run. |
+
 ### A.5 Tell the user
 
 Echo a one-line summary:
