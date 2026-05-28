@@ -191,17 +191,7 @@
     }
   }
 
-  /* ---- Copy-Markdown surfaces (FR-24, FR-25, FR-25.1) ---- */
-  function getTurndown() {
-    if (typeof window.TurndownService !== 'function') return null;
-    var td = new window.TurndownService({
-      headingStyle: 'atx', codeBlockStyle: 'fenced', bulletListMarker: '-', emDelimiter: '*', fence: '```'
-    });
-    if (window.turndownPluginGfm && typeof window.turndownPluginGfm.gfm === 'function') {
-      try { td.use(window.turndownPluginGfm.gfm); } catch (_) {}
-    }
-    return td;
-  }
+  /* ---- Copy-link surface (FR-26) — Copy-MD removed in T8 ---- */
   function copyToClipboard(text) {
     var t = String(text == null ? '' : text);
     function fallback() {
@@ -235,42 +225,9 @@
     setTimeout(function () { try { t.parentNode && t.parentNode.removeChild(t); } catch (_) {} }, 2000);
   }
   function setupCopyMarkdown() {
-    var fileMode = isFileProtocol();
-    var toolbarBtns = document.querySelectorAll('[data-pmos-action="copy-md"]');
-    toolbarBtns.forEach(function (btn) {
-      if (fileMode && btn.closest && btn.closest('.pmos-toolbar')) { btn.disabled = true; return; }
-      btn.addEventListener('click', function () {
-        var body = document.querySelector('main.pmos-artifact-body') || getMain();
-        if (!body) return;
-        var td = getTurndown();
-        var md = td ? td.turndown(body.innerHTML) : (body.textContent || '');
-        Promise.resolve(copyToClipboard(md)).then(function (ok) { showToast(ok ? 'Copied' : 'Copy failed'); });
-      });
-    });
     document.querySelectorAll('[data-pmos-action="copy-link"]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         Promise.resolve(copyToClipboard(location.href)).then(function (ok) { showToast(ok ? 'Link copied' : 'Copy failed'); });
-      });
-    });
-    var body = document.querySelector('main.pmos-artifact-body');
-    if (!body) return;
-    body.querySelectorAll('h2[id], h3[id]').forEach(function (h) {
-      if (h.querySelector('.pmos-section-anchor')) return;
-      var a = document.createElement('a');
-      a.className = 'pmos-section-anchor';
-      a.href = '#' + h.id;
-      a.setAttribute('aria-label', 'Copy section markdown');
-      a.textContent = '¶';
-      h.appendChild(a);
-      a.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        var stop = h.tagName.toLowerCase() === 'h2' ? 'h2' : 'h2,h3';
-        var html = h.outerHTML;
-        var n = h.nextElementSibling;
-        while (n && !n.matches(stop)) { html += n.outerHTML; n = n.nextElementSibling; }
-        var td = getTurndown();
-        var md = td ? td.turndown(html) : (h.textContent || '');
-        Promise.resolve(copyToClipboard(md)).then(function (ok) { showToast(ok ? 'Section copied' : 'Copy failed'); });
       });
     });
   }
@@ -284,7 +241,7 @@
     b.className = 'pmos-quickstart-banner';
     b.setAttribute('data-pmos-role', 'quickstart');
     var s = document.createElement('strong'); s.textContent = 'Quickstart: '; b.appendChild(s);
-    b.appendChild(document.createTextNode('Pick an artifact from the left. Use Copy Markdown for export. '));
+    b.appendChild(document.createTextNode('Pick an artifact from the left. Use Copy section link to share a section. '));
     var dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.className = 'pmos-quickstart-dismiss';
