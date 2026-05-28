@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Synthetic T3 Spec (E2E fixture)</title>
+  <meta name="pmos:skill" content="spec">
+  <meta name="pmos:tier" content="3">
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Synthetic T3 Spec (E2E fixture)</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+    <p><strong>Tier:</strong> 3</p>
+    <p><strong>Type:</strong> feature</p>
+    <p><strong>Feature:</strong> synthetic-t3-feature</p>
+    <p><strong>Date:</strong> 2026-05-28</p>
+    <p><strong>Requirements:</strong> synthetic-fixture (none; E2E test fixture)</p>
+
+    <section id="modules">
+      <h2 id="modules">16. Modules</h2>
+      <p>Canonical Tier-3 module graph; three modules with explicit boundaries
+      and a one-line role description per row. The /architecture --from-spec
+      judge consumes this table as the structural input when evaluating the
+      §17 assertions against the codebase.</p>
+      <table>
+        <thead>
+          <tr><th>name</th><th>deps</th><th>role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>spec</td>
+            <td>(none)</td>
+            <td>Existing skill — owns spec authoring and Phase 6.6 dispatch into folded /architecture.</td>
+          </tr>
+          <tr>
+            <td>architecture</td>
+            <td>spec</td>
+            <td>Existing skill — judge-driven lint of architectural assertions against the codebase.</td>
+          </tr>
+          <tr>
+            <td>verify</td>
+            <td>architecture</td>
+            <td>Existing skill — Phase 4.7 invokes folded /architecture --since for branch-wide lint.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">17. Architectural assertions</h2>
+      <p>The following architectural invariants MUST hold across the module
+      graph defined in §16. Violations are surfaced by /architecture --from-spec
+      as findings with rule_id ∈ the active principles set and a verbatim
+      quote drawn from this section's prose.</p>
+      <ul>
+        <li>Module spec must not import directly from verify — the layering
+        invariant is unidirectional spec→architecture→verify and a reverse
+        import would close the architectural loop the orchestrator is
+        designed to keep open.</li>
+        <li>Module architecture must not declare any direct dependency on
+        verify — architecture is consumed by verify (via folded /architecture
+        --since) and the reverse coupling would invert the dependency
+        direction expected at Phase 4.7 dispatch time.</li>
+        <li>Module verify must remain advisory toward architecture findings
+        per D11 — surfacing folded_phase_failures[] entries as WARNINGs but
+        never blocking /verify PASS on a folded-architecture crash.</li>
+        <li>Module spec must confine its Phase 6.6 state mutations to
+        phases.spec.folded_phase_failures[] only — re-runs must overwrite
+        the triplet at the same path without minting a new orchestrator
+        phase ID (the invariance asserted by test-feature-sdlc-state-invariance).</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: synthetic E2E fixture (T15)</span>
+  </footer>
+</body>
+</html>
