@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inline-everything HTML artifacts — Spec</title>
+  <meta name="pmos:skill" content="spec">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Inline-everything HTML artifacts — Spec</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<pre>tier: 3
+type: feature
+feature: inline-html-artifacts
+date: 2026-05-28
+status: Draft
+requirements: docs/pmos/features/2026-05-28_inline-html-artifacts/01_requirements.html
+</pre>
+</section>
+
+<section id="problem-statement">
+<h2 id="problem-statement">1. Problem Statement</h2>
+<p>Pmos-emitted HTML artifacts depend on a sibling <code>assets/</code> directory for styling and interactivity. Under <code>file://</code> contexts (Claude Code desktop preview, Mail.app, Dropbox preview, archived copies), the sibling fetches fail and artifacts render unstyled with no comments overlay. The <code>/comments</code> overlay (v2.56.0) compounded the problem with sidecar persistence that's Chrome-only (FSA) or localStorage-bound. <strong>Primary success metric:</strong> all 14 pmos emit-surfaces render fully-styled under <code>file://</code> and remain fully-interactive under <code>http://localhost</code> via the existing <code>comments-open.*</code> launcher trio, with zero <code>.comments.json</code> sidecar files anywhere in <code>docs/pmos/</code> after migration.</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">2. Goals</h2>
+<table>
+  <thead><tr><th>#</th><th>Goal</th><th>Success Metric</th></tr></thead>
+  <tbody>
+    <tr><td>G1</td><td>Open-anywhere fidelity for styling; thread visibility scoped to script-permitting hosts</td><td>14/14 surfaces visually equivalent under <code>file://</code> and <code>http://localhost</code> on script-permitting hosts</td></tr>
+    <tr><td>G2</td><td>Single-file portability — no required siblings</td><td><code>find docs/pmos -name '*.comments.json' | wc -l</code> = 0 after migration</td></tr>
+    <tr><td>G3</td><td>Lossless write path via <code>http://localhost</code></td><td>Manual smoke matrix passes without FSA or localStorage code paths</td></tr>
+    <tr><td>G4</td><td>Substrate shrinkage — retire sidecar, drift hook, FSA, localStorage, DMP</td><td>Net negative authoring-source bytes (deletions &gt; additions)</td></tr>
+    <tr><td>G5</td><td>One-touchpoint fanout via <code>template.html</code></td><td>Zero per-surface skill code changed by this feature (verified by git-diff inspection)</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="non-goals">
+<h2 id="non-goals">3. Non-Goals</h2>
+<ul>
+  <li><strong>NOT</strong> shipping a build pipeline / post-emit bundler — template substitution suffices.</li>
+  <li><strong>NOT</strong> dual-emitting artifacts in legacy + standalone shapes — standalone is the only shape going forward.</li>
+  <li><strong>NOT</strong> migrating off-repo / already-shared artifacts that live on other users' disks.</li>
+  <li><strong>NOT</strong> keeping the FSA write path; <code>http://localhost</code> is the only write path.</li>
+  <li><strong>NOT</strong> preserving the Copy-Markdown button after turndown is removed; users wanting Markdown re-emit with <code>--format=both</code>.</li>
+  <li><strong>NOT</strong> specifically adapting inlining behavior to <code>/diagram</code> outputs — HTML wrapper inherits the template change incidentally; standalone <code>.svg</code> is out of scope.</li>
+  <li><strong>NOT</strong> instrumenting an automated anchor-resolver regression gate after DMP removal — manual <code>/verify</code> review only (risk accepted).</li>
+  <li><strong>NOT</strong> blocking on assumption #1 (Claude desktop preview inline-style/script support) — non-blocking validation at <code>/verify</code>.</li>
+</ul>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">4. Decision Log</h2>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Inline CSS+JS+comments-JSON via template substitution at emit</td><td>(a) template substitution; (b) post-emit bundler; (c) data-URIs; (d) dual-emit; (e) inline-CSS-only fallback</td><td>(a) is ~10 LOC against the single shared template; (b) is build-pipeline indirection; (c) hampers debug; (d) doubles disk; (e) reserved as fallback if assumption #1 fails for JS.</td></tr>
+    <tr><td>D2</td><td>Comments persist as inline <code>&lt;script id="pmos-comments" type="application/json"&gt;</code> bracketed by <code>&lt;!-- pmos-comments:start --&gt;</code> / <code>&lt;!-- pmos-comments:end --&gt;</code> sentinels</td><td>(a) sentinel-bracketed inline JSON; (b) keep sidecar; (c) script-tag anchor without sentinels; (d) attributes on body</td><td>(a) gives the server a parser-free rewrite slot. (c) is brittle if other inline scripts join the page. (d) caps payload length in practice.</td></tr>
+    <tr><td>D3</td><td>serve.js stays one-artifact-per-port; gains <code>POST /save</code> + <code>HEAD /save</code></td><td>(a) one-per-port (today); (b) persistent daemon serving docs root</td><td>(a) matches existing launcher contract; minimal incremental change. (b) is a separate, larger feature.</td></tr>
+    <tr><td>D4</td><td>Write path uses temp-file-then-rename(2) for atomicity</td><td>(a) temp-then-rename; (b) in-place write; (c) write-sidecar-then-swap</td><td>(a) is POSIX-atomic; crash leaves either old file intact or orphan .tmp. (b) risks corruption with no sidecar safety net. (c) reintroduces sidecar surface.</td></tr>
+    <tr><td>D5</td><td>Optimistic concurrency: <code>version</code> field; 409 on mismatch; client banner prompts reload</td><td>(a) version+409; (b) BroadcastChannel single-writer-lock; (c) auto-merge</td><td>(a) is correct + simplest for single-user. (b) is a future UX upgrade. (c) is wrong — comment order is user-meaningful.</td></tr>
+    <tr><td>D6</td><td>Drop <code>diff-match-patch.js</code> outright from authoring source</td><td>(a) delete; (b) keep; (c) port minimal substring scorer into serve.js</td><td>(a) — only reason DMP was vendored was to reconcile sidecar drift; no sidecar means no drift surface. Quote-hash exact match + substring containment covers re-emit anchor-resolve. (c) is contingency if a regression surfaces post-cutover.</td></tr>
+    <tr><td>D7</td><td>Drop turndown + Copy-MD button outright</td><td>(a) remove; (b) flip <code>output_format</code> default to <code>both</code>; (c) keep</td><td>(a) — no in-domain signal of button usage; re-emit with <code>--format=both</code> covers rare cases.</td></tr>
+    <tr><td>D8</td><td>Migration script automated + idempotent; no per-artifact review</td><td>(a) automated; (b) per-artifact confirm; (c) leave existing sidecars</td><td>(a) — single user, ~50 artifacts, trivial mechanical transform. Dry-run spot-check 3-5 first.</td></tr>
+    <tr><td>D9</td><td>Assumption #1 deferred to <code>/verify</code></td><td>(a) precondition spike; (b) defer non-blocking</td><td>(b) — architecture invariant under both outcomes (CSS-only fallback documented).</td></tr>
+    <tr><td>D10</td><td>Accept ~50KB/artifact bloat; <code>.gitattributes</code> marks <code>docs/pmos/**/*.html</code> as <code>linguist-generated -diff</code></td><td>(a) accept+tame; (b) reject premise; (c) accept full diff noise</td><td>(a) — 50 artifacts × ~50KB ≈ 2.5MB one-time; <code>-diff</code> hides them in PR views.</td></tr>
+    <tr><td>D11</td><td>Inline JSON schema gains optional <code>generated_at</code> ISO-8601 timestamp (resolves /spec-OQ3)</td><td>(a) add; (b) minimal schema only</td><td>(a) — cheap; debug value when investigating re-emit drift. Server stamps on every /save.</td></tr>
+    <tr><td>D12</td><td>Read-only detection: protocol short-circuit + HEAD probe with 500ms timeout (resolves /spec-OQ5)</td><td>(a) protocol+probe; (b) probe always; (c) protocol only</td><td>(a) — file:// short-circuits to read-only (zero network); other protocols probe HEAD /save and fall to read-only on 404/405/timeout. Handles "custom static server" case cleanly.</td></tr>
+    <tr><td>D13</td><td>Re-emit increments <code>version</code> on every re-emit (resolves /spec-OQ6)</td><td>(a) always increment; (b) preserve; (c) increment only if threads changed</td><td>(a) — simplest correct behavior. Any open browser gets a clean 409 on next submit and reloads. Diff noise on comment-less re-emits accepted as cost of robustness.</td></tr>
+    <tr><td>D14</td><td>Orphan .tmp at startup: stderr only (resolves /spec-OQ4)</td><td>(a) stderr only; (b) stderr + page banner</td><td>(a) — terminal-side log sufficient for single-user tool; banner UI is over-investment.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="user-personas-and-journeys">
+<h2 id="user-personas-and-journeys">5. User Personas &amp; Journeys</h2>
+
+<h3 id="primary-persona">5.1 Primary persona — plugin author</h3>
+<p>Daily IDE-preview reader; opens artifacts via desktop preview pane after every emit. Wants the preview to "just work". Launches <code>comments-open.*</code> only when intentionally annotating. Sometimes shares artifacts by file attachment or Dropbox link with non-technical stakeholders.</p>
+
+<h3 id="primary-journey-author-emit-and-preview">5.2 Primary journey — author emits and previews</h3>
+<ol>
+  <li>Author runs <code>/spec</code> (or any of the 14 surfaces).</li>
+  <li>Skill writes <code>02_spec.html</code> via the substrate renderer; template tokens <code>{{inline_css}}</code> / <code>{{inline_js}}</code> / <code>{{inline_comments_json}}</code> are substituted; output is a single self-contained file plus an <code>assets/</code> sibling (kept for the comments-open launcher trio only — not loaded by the artifact).</li>
+  <li>Author opens artifact in IDE desktop preview.</li>
+  <li>Page loads under <code>file://</code>; viewer.js (inlined) reads the inline JSON; protocol short-circuits to read-only mode; threads render (if any); compose UI hidden with hint "Launch <code>comments-open</code> to comment".</li>
+  <li>Author scans, closes. Done.</li>
+</ol>
+
+<h3 id="secondary-journey-stakeholder-receives">5.3 Secondary journey — stakeholder receives by attachment</h3>
+<ol>
+  <li>Author emails the .html attachment.</li>
+  <li>Recipient opens from mail / downloads / Dropbox preview.</li>
+  <li>Page renders styled. Threads visible (script-permitting host); section-link buttons functional.</li>
+  <li>Recipient cannot compose (no localhost); read-only is honest.</li>
+</ol>
+
+<h3 id="comment-write-journey">5.4 Comment write journey</h3>
+<ol>
+  <li>Author runs <code>comments-open.command</code> (or .sh / .bat).</li>
+  <li>Launcher spawns serve.js on a free port; opens browser to <code>http://localhost:PORT/&lt;artifact&gt;</code>.</li>
+  <li>Page loads; protocol is http → HEAD probe to <code>/save</code> → 204 (or 200) → read-write mode.</li>
+  <li>Author selects text, clicks 💬, writes a thread.</li>
+  <li>Client POSTs <code>{schema:1, version:N, generated_at:'ISO', threads:[...]}</code> + <code>expected_version: N</code> to <code>/save</code>.</li>
+  <li>Server reads artifact, validates expected_version against current version in the file, atomically writes new file with <code>version: N+1</code> and fresh <code>generated_at</code>. Returns <code>200 { version: N+1, generated_at: 'ISO' }</code>.</li>
+  <li>Client updates in-memory state.</li>
+</ol>
+
+<h3 id="re-emit-journey">5.5 Re-emit with pre-existing comments</h3>
+<ol>
+  <li>Author runs <code>/spec --update</code> on a folder where <code>02_spec.html</code> has 4 threads at version=12.</li>
+  <li>Substrate renderer reads existing file, extracts the inline JSON block between sentinels, parses it.</li>
+  <li>Renderer emits new HTML with the preserved threads, increments <code>version</code> to 13, updates <code>generated_at</code>.</li>
+  <li>Atomic write replaces the old file.</li>
+  <li>If a browser tab is open at version 12 and tries to save → 409 with current version 13 → client banner prompts reload → user reloads, sees the new artifact content with their threads intact.</li>
+</ol>
+</section>
+
+<section id="system-design">
+<h2 id="system-design">6. System Design</h2>
+
+<h3 id="architecture-overview">6.1 Architecture overview</h3>
+<pre>
++-------------------+   substrate-render   +---------------------+
+| Pmos emit skill   +--------------------->| _shared/html-       |
+| (any of 14)       |                      | authoring/template  |
++-------------------+                      | + renderer.js       |
+                                           +----------+----------+
+                                                      |
+                                  reads CSS/JS/seed-JSON, substitutes
+                                       {{inline_*}} tokens
+                                                      v
+                                +------------------------------+
+                                | <artifact>.html              |
+                                | (single self-contained file) |
+                                |                              |
+                                | &lt;style&gt;...&lt;/style&gt;     |
+                                | &lt;script&gt;viewer+comments&lt;/script&gt; |
+                                | &lt;!-- pmos-comments:start --&gt;  |
+                                | &lt;script id="pmos-comments"&gt;   |
+                                |   {"schema":1,"version":N,    |
+                                |    "generated_at":"...",      |
+                                |    "threads":[...]}           |
+                                | &lt;/script&gt;                    |
+                                | &lt;!-- pmos-comments:end --&gt;    |
+                                +-------+------------+---------+
+                                        |            |
+                                  file://            http://localhost
+                                  (read-only)        (read-write)
+                                        v            v
+                                +-----------+   +---------------+
+                                | Browser   |   | serve.js      |
+                                | (preview/ |   | + /save (POST)|
+                                | mail/dl)  |   | + /save (HEAD)|
+                                +-----------+   +-------+-------+
+                                                        |
+                                            atomic rewrite (rename(2))
+                                                        v
+                                            <artifact>.html (next version)
+</pre>
+
+<h3 id="sequence-diagrams">6.2 Sequence diagrams</h3>
+
+<p><em>Diagram authored inline (subagent fallback skipped for context efficiency; renders as ASCII).</em></p>
+
+<h4 id="sequence-comment-write">6.2.1 Comment write (happy path)</h4>
+<pre>
+Browser              serve.js               artifact.html
+   |                    |                        |
+   |--HEAD /save------->|                        |
+   |&lt;--204 No Content---|                        |
+   |  (read-write mode) |                        |
+   |                    |                        |
+ user writes thread     |                        |
+   |                    |                        |
+   |--POST /save        |                        |
+   |  {expected_version:N,                       |
+   |   schema:1,                                 |
+   |   version:N,                                |
+   |   threads:[...]}--->|                       |
+   |                    |--read file------------>|
+   |                    |&lt;-current version=N----|
+   |                    |  (match)               |
+   |                    |--write artifact.tmp--->|
+   |                    |--rename(2)------------>|
+   |                    |  (new version=N+1)     |
+   |&lt;--200 {version:N+1,|                        |
+   |  generated_at:ISO}-|                        |
+   |                    |                        |
+</pre>
+
+<h4 id="sequence-stale-version">6.2.2 Stale-version 409</h4>
+<pre>
+Tab A    Tab B   serve.js   artifact.html
+  |        |        |             |
+  |--POST/save (expected_version: 5)----->|
+  |                |--rewrite to v=6----->|
+  |&lt;--200 v=6------|
+  |        |                              |
+  |        |--POST/save (expected_v: 5)---->|
+  |        |        |--read v=6-----------|
+  |        |&lt;--409 {current_version: 6}---|
+  |        |                              |
+  |        | banner: "reload to merge"   |
+  |        | reload -> view shows v=6    |
+</pre>
+
+<h4 id="sequence-crash-mid-write">6.2.3 Crash mid-write</h4>
+<pre>
+serve.js                  filesystem
+  |--write artifact.tmp----->|  artifact.tmp present
+  |  CRASH                   |  artifact.html unchanged (intact)
+  |                          |
+serve.js restart             |
+  |--scan dir for .tmp------->|  orphan: artifact.tmp
+  |&lt;--stderr log--------------|
+  |  "Orphan tmp: artifact.tmp |
+  |   from previous crash;     |
+  |   inspect and delete       |
+  |   manually"                |
+  | (no auto-recovery)        |
+</pre>
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">7. Functional Requirements</h2>
+
+<h3 id="fr-substrate">7.1 Substrate (template + renderer)</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-01</td><td><code>_shared/html-authoring/template.html</code> gains three new token slots: <code>{{inline_css}}</code> in <code>&lt;head&gt;</code> (single <code>&lt;style&gt;</code> block), <code>{{inline_js}}</code> in <code>&lt;body&gt;</code> end (single <code>&lt;script defer&gt;</code> block), <code>{{inline_comments_json}}</code> in <code>&lt;body&gt;</code> end (bracketed by sentinel comments per FR-04).</td></tr>
+    <tr><td>FR-02</td><td>Existing external <code>&lt;link rel="stylesheet" href="...style.css"&gt;</code> + <code>&lt;link ...comments.css&gt;</code> + <code>&lt;script defer src="...viewer.js"&gt;</code> + <code>&lt;script defer src="...comments.js"&gt;</code> references in template.html are REMOVED.</td></tr>
+    <tr><td>FR-03</td><td>The substrate renderer (the code path each emit-skill calls to instantiate <code>template.html</code>) reads <code>style.css</code> + <code>comments.css</code> from the authoring source, concatenates them, substitutes into <code>{{inline_css}}</code>. Same for <code>viewer.js</code> + slimmed <code>comments.js</code> → <code>{{inline_js}}</code>. Files are read once per emit; no build-time bundling step.</td></tr>
+    <tr><td>FR-04</td><td>The <code>{{inline_comments_json}}</code> token expands to exactly: <code>&lt;!-- pmos-comments:start --&gt;\n&lt;script id="pmos-comments" type="application/json"&gt;\n{JSON-PAYLOAD}\n&lt;/script&gt;\n&lt;!-- pmos-comments:end --&gt;</code> where JSON-PAYLOAD is a UTF-8 JSON string with <code>&lt;</code> escaped as <code><</code> inside string values (defeats embedded <code>&lt;/script&gt;</code> sequences).</td></tr>
+    <tr><td>FR-05</td><td>Comments JSON schema (v1): <code>{ "schema": 1, "version": &lt;integer ≥ 0&gt;, "generated_at": "&lt;ISO-8601&gt;", "threads": [&lt;thread&gt;...] }</code>. <code>&lt;thread&gt;</code> structure ports forward from the current sidecar schema unchanged. Seeded value on fresh emit: <code>{schema:1, version:0, generated_at:"&lt;emit-time-ISO&gt;", threads:[]}</code>.</td></tr>
+    <tr><td>FR-06</td><td>Re-emit MUST preserve the <code>threads</code> array from the existing artifact's inline block (read between sentinels, JSON.parse), MUST increment <code>version</code> by 1, MUST stamp a fresh <code>generated_at</code>, MUST write back into the new emission's <code>{{inline_comments_json}}</code> slot.</td></tr>
+    <tr><td>FR-07</td><td>When no existing artifact is present (fresh emit), the renderer seeds <code>version: 0</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-serve">7.2 serve.js extensions</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-08</td><td>serve.js gains a <code>HEAD /save</code> handler that returns <code>204 No Content</code> (no body). Used by the client to detect read-write mode under non-<code>file://</code> protocols.</td></tr>
+    <tr><td>FR-09</td><td>serve.js gains a <code>POST /save</code> handler. Request body: JSON <code>{ expected_version: N, payload: { schema, version, generated_at, threads } }</code> (Content-Type: application/json). Response on success: <code>200 { version: N+1, generated_at: "ISO" }</code>. Response on mismatch: <code>409 { current_version: M, current_generated_at: "ISO" }</code>. Response on payload validation failure: <code>400 { error: "schema-validation-failed", details: "..." }</code>.</td></tr>
+    <tr><td>FR-10</td><td>POST /save algorithm: (1) read current artifact file; (2) extract inline JSON block between sentinels; (3) parse, compare <code>version</code> against request's <code>expected_version</code>; (4a) on mismatch return 409 with current version; (4b) on match: build new JSON payload with version+1 + fresh generated_at + request's threads; (5) write replacement block content (regex-replace between sentinels) to <code>&lt;artifact&gt;.html.tmp</code>; (6) <code>fs.rename(tmpPath, artifactPath)</code>; (7) return 200 with new version.</td></tr>
+    <tr><td>FR-11</td><td>serve.js startup: scan the serving directory for any <code>*.html.tmp</code> sibling files. For each, log to stderr: <code>orphan .tmp from previous run: &lt;path&gt; — inspect and delete manually</code>. No auto-delete, no auto-recovery, no in-page UI surface (per D14).</td></tr>
+    <tr><td>FR-12</td><td>serve.js keeps its existing one-artifact-per-port shape and lifecycle. No persistent daemon mode in this feature.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-client">7.3 Client-side viewer.js + comments.js</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-13</td><td>On page load, comments.js MUST read the inline JSON block via <code>JSON.parse(document.getElementById('pmos-comments').textContent)</code> and hydrate the in-memory thread store. Does NOT fetch a sidecar.</td></tr>
+    <tr><td>FR-14</td><td>Read-only detection algorithm: (a) if <code>window.location.protocol === 'file:'</code> → read-only, no probe issued; (b) else issue <code>HEAD /save</code> with a 500ms timeout (<code>AbortController</code> after 500ms); (c) on 2xx response → read-write; (d) on 4xx/5xx/network-error/timeout → read-only.</td></tr>
+    <tr><td>FR-15</td><td>In read-only mode: compose UI (selection trigger, thread-create dialog) MUST be hidden; existing threads still render with their badges; a passive footer hint reads "Read-only — launch comments-open to add comments".</td></tr>
+    <tr><td>FR-16</td><td>In read-write mode: full compose UI active. On thread submit, client POSTs to <code>/save</code> with <code>expected_version</code> set to the version it loaded. On 200, client updates in-memory <code>version</code> + <code>generated_at</code>. On 409, client surfaces a dismissible banner at the top of the page: <code>This document was updated since you opened it (current version: M). Reload to merge.</code>. Compose remains disabled until reload.</td></tr>
+    <tr><td>FR-17</td><td>JSON-string escape: any user-entered text destined for the inline JSON MUST encode <code>&lt;</code> as <code><</code> in JSON.stringify wrappers before being written to the script tag (handled by FR-04's server-side and FR-16's client-side serializers symmetrically).</td></tr>
+    <tr><td>FR-18</td><td>The FSA write path in current comments.js (<code>showSaveFilePicker</code> branches) is DELETED. The localStorage fallback is DELETED. Comments.js is shrunk accordingly.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-migration">7.4 Migration</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-19</td><td>A new script <code>scripts/migrate-sidecars-to-inline.sh</code> recursively scans a target directory (default: <code>docs/pmos/</code>) for <code>*.comments.json</code> files. For each: locate sibling <code>*.html</code>; read sidecar JSON; coerce into schema-v1 shape (add <code>schema:1</code> + <code>version: 0</code> + <code>generated_at</code> if absent); inject into the artifact's inline block (or add the block if the artifact predates the substrate update); delete the sidecar; log one line per migration to stdout.</td></tr>
+    <tr><td>FR-20</td><td>Migration script is idempotent: running it twice on the same tree produces no changes on the second run (exit 0, no log lines beyond a summary). Confirmed by integration test (NFR-09).</td></tr>
+    <tr><td>FR-21</td><td>Migration script supports <code>--dry-run</code> flag: lists what would migrate without writing. Use this to spot-check 3-5 cases before the real run.</td></tr>
+    <tr><td>FR-22</td><td>Migration runs ONCE as part of <code>/complete-dev</code> Phase 8 (D8) — a manual operator step recorded in the feature's <code>execute/</code> log. Not auto-invoked during /execute. The pre-commit drift hook (per FR-23) is uninstalled BEFORE migration runs so the migration's commit doesn't trip it.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-deletions">7.5 Deletions</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-23</td><td><code>scripts/install-comments-hooks.sh</code> is DELETED. Any existing local <code>.git/hooks/pre-commit</code> drift hook is removed by operator action documented in the migration runbook.</td></tr>
+    <tr><td>FR-24</td><td>The following authoring-source files are DELETED from <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/</code>: <code>diff-match-patch.js</code>, <code>LICENSE.dmp.txt</code>, <code>turndown.umd.js</code>, <code>turndown-plugin-gfm.umd.js</code>, <code>LICENSE.turndown.txt</code>.</td></tr>
+    <tr><td>FR-25</td><td>DMP call sites in <code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code> and each skill's <code>scripts/apply-edit-at-anchor.js</code> (diagram, wireframes, survey-analyse, plan) are replaced with exact-id + substring-contains matching. Per the closed grill disposition (G3): no automated regression gate; behavioral correctness verified by manual /verify review.</td></tr>
+    <tr><td>FR-26</td><td>The Copy-Markdown button (<code>&lt;button data-pmos-action="copy-md"&gt;</code>) is REMOVED from <code>template.html</code>'s toolbar. The corresponding <code>data-pmos-action="copy-md"</code> handler in viewer.js is REMOVED.</td></tr>
+    <tr><td>FR-27</td><td>FSA write path code in <code>comments.js</code> (calls to <code>showSaveFilePicker</code> and related branches) is DELETED. localStorage fallback code is DELETED.</td></tr>
+    <tr><td>FR-28</td><td>The <code>scripts/check-comments-coverage.sh</code> coverage gate (T27 from inline-doc-comments feature) is UPDATED: removes assertions about the FSA fallback (T22), the drift hook (T25), the localStorage path; retains assertions about the 14 emit surfaces baking <code>&lt;meta name="pmos:skill"&gt;</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-fanout">7.6 14-surface fanout</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-29</td><td>All 14 emit surfaces (architecture, artifact, diagram-HTML-wrapper, ideate, plan, polish, prototype, readme, requirements, spec, survey-analyse, survey-design, wireframes, plus /feature-sdlc's 00_pipeline + 00_open_questions_index) inherit FR-01..FR-07 via <code>template.html</code>. NO per-surface skill SKILL.md edits are required by this feature.</td></tr>
+    <tr><td>FR-30</td><td><code>/diagram</code>'s standalone <code>.svg</code> emit path is OUT OF SCOPE — no inlining, no comments retrofit beyond existing svg-anchor.js behavior. <code>/diagram</code>'s HTML-wrapper inherits the template change incidentally without code changes.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="non-functional-requirements">
+<h2 id="non-functional-requirements">8. Non-Functional Requirements</h2>
+<table>
+  <thead><tr><th>ID</th><th>Category</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>NFR-01</td><td>Size</td><td>Average artifact size across <code>docs/pmos/**/*.html</code> after cutover ≤ 110KB; per-artifact inline-overhead ≤ 60KB (style+comments CSS + viewer+slimmed comments JS, excluding turndown/DMP which are deleted).</td></tr>
+    <tr><td>NFR-02</td><td>Performance</td><td>HEAD /save probe completes (success or timeout) in ≤ 500ms client-side. /save POST handler completes in ≤ 100ms p50 / ≤ 500ms p99 for artifacts ≤ 1MB on a developer laptop.</td></tr>
+    <tr><td>NFR-03</td><td>Observability</td><td><code>/verify</code> Phase 7 gate: for each artifact in <code>docs/pmos/**/*.html</code>, extract the inline JSON block and assert size &lt; 200KB. Above threshold: warn only (do NOT block /verify completion).</td></tr>
+    <tr><td>NFR-04</td><td>Diff hygiene</td><td><code>.gitattributes</code> entry: <code>docs/pmos/**/*.html linguist-generated=true -diff</code>. Hides artifacts from GitHub language stats; collapses HTML diffs in PR views.</td></tr>
+    <tr><td>NFR-05</td><td>Crash safety</td><td>No code path leaves the artifact in a half-written state (FR-10 atomic write contract). On crash, original artifact remains intact OR an orphan <code>.tmp</code> is the only ambiguous state, surfaced at next startup (FR-11).</td></tr>
+    <tr><td>NFR-06</td><td>Backwards compatibility</td><td>Pre-feature artifacts that lack the inline block: migration script (FR-19) injects an empty block; renderer (FR-06) treats absence-of-block as version=0, empty threads.</td></tr>
+    <tr><td>NFR-07</td><td>Portability</td><td>serve.js implementation MUST use only Node.js core modules (no new dependencies). Atomic rename via <code>fs.rename</code> (Node.js wraps rename(2) on POSIX, ReplaceFile on Windows — both atomic enough for this purpose).</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="api-contracts">
+<h2 id="api-contracts">9. API Contracts</h2>
+
+<h3 id="api-head-save">9.1 HEAD /save (read-write probe)</h3>
+<pre>HEAD /save</pre>
+<p><strong>Request body:</strong> none.</p>
+<p><strong>Response:</strong> <code>204 No Content</code>. No body.</p>
+<p><strong>Errors:</strong> none (any error response means "not read-write"). Client interprets any non-2xx as read-only.</p>
+
+<h3 id="api-post-save">9.2 POST /save (write thread payload)</h3>
+<pre>POST /save
+Content-Type: application/json</pre>
+<p><strong>Request body:</strong></p>
+<pre>{
+  "expected_version": 5,
+  "payload": {
+    "schema": 1,
+    "version": 5,
+    "generated_at": "2026-05-28T12:34:56.789Z",
+    "threads": [ /* full thread list, not a diff */ ]
+  }
+}</pre>
+<p><strong>Response (200) — success:</strong></p>
+<pre>{
+  "version": 6,
+  "generated_at": "2026-05-28T12:35:00.123Z"
+}</pre>
+<p><strong>Response (409) — version mismatch:</strong></p>
+<pre>{
+  "error": "version-conflict",
+  "current_version": 7,
+  "current_generated_at": "2026-05-28T12:34:50.000Z"
+}</pre>
+<p><strong>Response (400) — payload validation:</strong></p>
+<pre>{
+  "error": "schema-validation-failed",
+  "details": "&lt;reason&gt;"
+}</pre>
+<p><strong>Response (500) — server error (e.g., disk full, rename failed):</strong></p>
+<pre>{
+  "error": "internal",
+  "details": "&lt;sanitized message&gt;"
+}</pre>
+
+<h3 id="api-error-enum">9.3 Closed error set</h3>
+<p>POST /save error responses use exactly these <code>error</code> values: <code>version-conflict</code>, <code>schema-validation-failed</code>, <code>internal</code>. Any other server error → 500 with <code>error: "internal"</code>.</p>
+</section>
+
+<section id="database-design">
+<h2 id="database-design">10. Database Design</h2>
+<p><strong>N/A.</strong> This feature has no database. The artifact file IS the persistence layer. The "schema" lives in JSON inside each artifact's inline block (FR-05).</p>
+</section>
+
+<section id="frontend-design">
+<h2 id="frontend-design">11. Frontend Design</h2>
+
+<h3 id="component-hierarchy">11.1 Component hierarchy (comments overlay, after slim)</h3>
+<pre>
+&lt;body&gt;
+ ├── &lt;header.pmos-artifact-toolbar&gt;
+ │    ├── &lt;h1.pmos-artifact-title&gt;
+ │    └── &lt;div.pmos-artifact-actions&gt;
+ │         └── &lt;button data-pmos-action="copy-link"&gt; (Copy-MD button REMOVED)
+ ├── &lt;main.pmos-artifact-body&gt; -- content (sections from each skill)
+ ├── &lt;footer.pmos-artifact-footer&gt;
+ │    └── &lt;span.pmos-artifact-source&gt; + &lt;a.pmos-attribution&gt;
+ ├── &lt;!-- pmos-comments:start --&gt;
+ ├── &lt;script id="pmos-comments" type="application/json"&gt;...
+ ├── &lt;!-- pmos-comments:end --&gt;
+ └── (comments.js dynamically renders the following on mount:)
+      ├── &lt;div.pmos-comments-overlay&gt;
+      │    ├── thread badges (one per thread, positioned by anchor)
+      │    ├── compose dialog (read-write only)
+      │    └── conflict banner (shown on 409, hidden otherwise)
+      └── &lt;div.pmos-orphan-comments-panel&gt; (bottom of page; shown only if orphaned threads exist)
+</pre>
+
+<h3 id="state-management">11.2 State management</h3>
+<table>
+  <thead><tr><th>State</th><th>Lives in</th><th>Initial source</th></tr></thead>
+  <tbody>
+    <tr><td>threads</td><td>in-memory module state in comments.js</td><td>JSON.parse(document.getElementById('pmos-comments').textContent) at page load</td></tr>
+    <tr><td>version, generated_at</td><td>same</td><td>same</td></tr>
+    <tr><td>mode (read-only / read-write)</td><td>same</td><td>FR-14 detection</td></tr>
+    <tr><td>compose dialog open/text/anchor</td><td>same (transient)</td><td>UI events</td></tr>
+    <tr><td>conflict banner visible</td><td>same (transient)</td><td>409 response from POST /save</td></tr>
+  </tbody>
+</table>
+<p>No localStorage. No IndexedDB. No FSA. Server is the only persistence.</p>
+
+<h3 id="interaction-specs">11.3 Key interactions</h3>
+<ul>
+  <li><strong>Selection → 💬 button:</strong> unchanged from current behavior.</li>
+  <li><strong>Compose → submit:</strong> POST /save flow (FR-16). On 200, dialog closes, badge appears. On 409, dialog stays open, banner shows.</li>
+  <li><strong>Read-only banner:</strong> hidden when compose UI is hidden; the footer hint is the only read-only signal.</li>
+  <li><strong>Orphaned threads panel:</strong> auto-collapsed if no orphans; expands inline if any threads carry <code>status: orphaned</code>.</li>
+</ul>
+</section>
+
+<section id="edge-cases">
+<h2 id="edge-cases">12. Edge Cases</h2>
+<table>
+  <thead><tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>E1</td><td>Fresh emit, no comments</td><td>Inline block contains <code>{schema:1, version:0, generated_at:&lt;ISO&gt;, threads:[]}</code></td><td>Overlay loads, no threads to render; compose UI available under http://localhost; hidden under file://</td></tr>
+    <tr><td>E2</td><td>file:// open</td><td>protocol short-circuit</td><td>Read-only mode; no HEAD probe; footer hint shows launcher instruction</td></tr>
+    <tr><td>E3</td><td>http://localhost with /save handler</td><td>HEAD /save → 204</td><td>Read-write mode</td></tr>
+    <tr><td>E4</td><td>http://other-static-server (no /save handler)</td><td>HEAD /save → 404 or 405 within 500ms</td><td>Read-only mode; compose hidden; footer hint shows</td></tr>
+    <tr><td>E5</td><td>http:// but localhost unreachable</td><td>HEAD /save → network error or timeout</td><td>Read-only mode (timeout) within 500ms</td></tr>
+    <tr><td>E6</td><td>Two tabs editing</td><td>Tab A submits and bumps to v+1; Tab B submits with stale expected_version</td><td>Tab B receives 409; banner; user reloads</td></tr>
+    <tr><td>E7</td><td>Server crash mid-write</td><td>artifact.html.tmp present; rename(2) never ran</td><td>Original artifact.html intact; next serve.js startup logs orphan .tmp to stderr; no auto-recovery</td></tr>
+    <tr><td>E8</td><td>Embedded &lt;/script&gt; in comment body</td><td>User pastes literal <code>"&lt;/script&gt; ha ha"</code></td><td>FR-17 escape encodes &lt; as < in JSON string; rendered HTML never contains the closing token; JSON.parse on read restores original text</td></tr>
+    <tr><td>E9</td><td>Inline-script-stripping email client</td><td>Mail sanitizer removes all &lt;script&gt;</td><td>Styled prose still renders (CSS in &lt;style&gt;); threads invisible; behaviour scoped by G1 (Goal #1 wording)</td></tr>
+    <tr><td>E10</td><td>Migrate already-migrated artifact</td><td>Artifact has inline block; no sidecar</td><td>Migration script no-ops; no log line beyond summary</td></tr>
+    <tr><td>E11</td><td>Re-emit with active browser session</td><td>Tab at v=12; /spec --update writes v=13</td><td>Next submit returns 409; banner; reload; user re-opens at v=13 with their threads intact (FR-06)</td></tr>
+    <tr><td>E12</td><td>Inline JSON block exceeds 200KB</td><td>~50 long threads accumulated</td><td>/verify warns at NFR-03 threshold; no functional change; user judges trim/archive</td></tr>
+    <tr><td>E13</td><td>Pre-feature artifact (no inline block)</td><td>Old artifact under docs/pmos/ that was emitted before substrate update</td><td>Renderer detects missing block on re-emit; injects fresh block (v=0); migration script handles same case for static artifacts</td></tr>
+    <tr><td>E14</td><td>POST /save with malformed JSON</td><td>Request body is not valid JSON or fails schema validation</td><td>400 with <code>schema-validation-failed</code>; artifact untouched</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="configuration-and-feature-flags">
+<h2 id="configuration-and-feature-flags">13. Configuration &amp; Feature Flags</h2>
+<p>No feature flags. The cutover is atomic — one PR replaces the substrate, all 14 surfaces re-emit with inline assets on next call, migration script runs once as part of /complete-dev. There is no "old vs new" toggle.</p>
+<table>
+  <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>PMOS_SAVE_PORT_HINT</td><td>0 (random free port)</td><td>(Existing, unchanged.) serve.js port selection. Future daemon mode would use this.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="testing-and-verification-strategy">
+<h2 id="testing-and-verification-strategy">14. Testing &amp; Verification Strategy</h2>
+
+<h3 id="unit-tests">14.1 Unit tests</h3>
+<ul>
+  <li><strong>Substrate renderer (FR-01–FR-07):</strong> fixture-based test in <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code>. Inputs: a known-shape title/content/source-path/asset-prefix + the three new inline tokens. Assertions: output contains <code>&lt;style&gt;</code> with style.css + comments.css concatenated bytes; output contains <code>&lt;script&gt;</code> with viewer.js + slimmed-comments.js bytes; output contains <code>&lt;!-- pmos-comments:start --&gt;</code> ... <code>&lt;!-- pmos-comments:end --&gt;</code> with valid schema-v1 JSON inside.</li>
+  <li><strong>Re-emit preservation (FR-06):</strong> test reads a fixture artifact with threads at v=5, re-renders, asserts new file has same threads + v=6 + new generated_at.</li>
+  <li><strong>JSON escape (FR-04, FR-17):</strong> table-driven test with adversarial inputs: <code>&lt;/script&gt;</code>, <code>&lt;!--</code>, <code>]]&gt;</code>, surrogate pairs. Assert serialized output is safe AND round-trips via JSON.parse.</li>
+  <li><strong>FR-14 detection table:</strong> jsdom-based test of comments.js detection algorithm. Inputs: protocol+probe-response. Assertions: file:// → read-only with zero fetches; http://+HEAD 204 → read-write; http://+HEAD 404 → read-only; http://+HEAD timeout → read-only after 500ms.</li>
+</ul>
+
+<h3 id="integration-tests">14.2 Integration tests</h3>
+<ul>
+  <li><strong>serve.js POST /save (FR-09, FR-10):</strong> in <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js</code>. Spawn serve.js on a tempdir with a fixture artifact. Test cases: (1) happy POST with matching expected_version → 200 + file rewritten + version+1; (2) stale expected_version → 409 with current; (3) malformed JSON → 400; (4) artifact missing → 404; (5) idempotency: same payload posted twice → second is 409 (because first bumped version).</li>
+  <li><strong>serve.js crash-safety (FR-10, FR-11, NFR-05):</strong> kill mid-write via signal; assert artifact.html intact + artifact.html.tmp present; restart serve; assert stderr log line about orphan.</li>
+  <li><strong>Migration script (FR-19, FR-20, FR-21):</strong> in <code>scripts/tests/migrate-sidecars-to-inline.test.sh</code>. Fixture dir with 3 (artifact + sidecar) pairs. Run script; assert all 3 artifacts contain inline blocks with sidecar contents, all 3 sidecars deleted. Re-run; assert no changes. Run with --dry-run; assert no changes, list output non-empty.</li>
+</ul>
+
+<h3 id="end-to-end-tests">14.3 End-to-end tests (manual smoke matrix)</h3>
+<p>Repurpose <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> as <code>MANUAL-cross-context.md</code>. Drop the FSA + localStorage columns. Keep per-platform × per-browser rows. Add one row per: file:// open via desktop preview (each platform); mail.app-attached open; download-and-open; comments-open.* launch + write + reload-after-409.</p>
+
+<h3 id="static-assertion-tests">14.4 Static assertions (run at /verify)</h3>
+<ul>
+  <li><strong>Deletion-set grep (FR-23–FR-28):</strong> assert <code>grep -r "diff_match_patch\|diff-match-patch" plugins/ </code> returns zero hits (outside <code>archive/</code> and historical commits); same for <code>turndown</code>, <code>install-comments-hooks</code>, <code>showSaveFilePicker</code>, <code>data-pmos-action="copy-md"</code>.</li>
+  <li><strong>14-surface fanout (FR-29):</strong> render one sample artifact per skill (use existing test fixtures); grep each for <code>&lt;!-- pmos-comments:start --&gt;</code> and <code>&lt;style&gt;</code> with inline CSS bytes.</li>
+  <li><strong>Inline JSON size soft-warn (NFR-03):</strong> for each artifact under <code>docs/pmos/**/*.html</code>, extract the inline block; assert size &lt; 200KB; emit a warning (not a fail) above threshold.</li>
+</ul>
+
+<h3 id="verification-commands">14.5 Verification commands</h3>
+<pre>
+# Substrate unit tests
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/json-escape.test.js
+
+# serve.js integration
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js
+
+# Migration
+bash scripts/tests/migrate-sidecars-to-inline.test.sh
+
+# Static assertions
+! grep -r "diff_match_patch\|diff-match-patch" plugins/ --exclude-dir=archive --exclude-dir=node_modules
+! grep -r "turndown" plugins/ --exclude-dir=archive --exclude-dir=node_modules
+! grep -r "install-comments-hooks" plugins/ --exclude-dir=archive
+! grep -r "showSaveFilePicker" plugins/ --exclude-dir=archive
+
+# Cross-context manual smoke
+# Open each row of plugins/pmos-toolkit/skills/comments/tests/MANUAL-cross-context.md and attest.
+
+# Assumption #1 spike (non-blocking)
+# Open docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html in Claude Code desktop preview.
+# Visually confirm: styled CSS rendered; if JS executed, overlay present; record outcome in /verify report.
+</pre>
+</section>
+
+<section id="rollout-strategy">
+<h2 id="rollout-strategy">15. Rollout Strategy</h2>
+
+<h3 id="cutover-order">15.1 Cutover order (single PR, ordered commits)</h3>
+<ol>
+  <li><strong>Template + renderer change</strong> — modify <code>template.html</code> with the 3 new tokens; update the substrate renderer to inline CSS/JS/seed-JSON. (No emit-skill code changes; they all consume the template by reference.)</li>
+  <li><strong>serve.js extension</strong> — add HEAD /save + POST /save handlers + atomic-rename helper + startup orphan-.tmp scan.</li>
+  <li><strong>comments.js slim</strong> — delete FSA + localStorage branches; switch read path to inline JSON via <code>document.getElementById('pmos-comments')</code>; implement the FR-14 detection algorithm + the FR-16 banner.</li>
+  <li><strong>Asset deletions</strong> — remove DMP + turndown + turndown-plugin-gfm + LICENSE.turndown.txt; replace DMP call sites in 4 skills + comments resolver with exact-id + substring-contains.</li>
+  <li><strong>Template toolbar change</strong> — remove Copy-MD button; remove handler.</li>
+  <li><strong>Coverage gate update</strong> — modify <code>scripts/check-comments-coverage.sh</code> per FR-28.</li>
+  <li><strong>Drift hook uninstall + migration</strong> — at <code>/complete-dev</code> Phase 8: (a) remove <code>scripts/install-comments-hooks.sh</code> + any existing local <code>.git/hooks/pre-commit</code> drift hook; (b) dry-run migration on docs/pmos/; (c) spot-check 3-5 outputs; (d) run real migration; (e) commit the migrated artifacts.</li>
+  <li><strong>.gitattributes</strong> — add <code>docs/pmos/**/*.html linguist-generated=true -diff</code>.</li>
+  <li><strong>CLAUDE.md "Inline doc comments" section</strong> — update to reflect the new persistence model (single-file artifact; serve.js write path; FSA/sidecar/drift-hook retired).</li>
+</ol>
+
+<h3 id="rollback">15.2 Rollback</h3>
+<p>Single PR; rollback = git revert. The migration's commit (step 7e) can be reverted independently to restore sidecars from history. Pre-feature artifacts in <code>docs/pmos/</code> are restored from <code>git show &lt;pre-cutover-sha&gt;:&lt;path&gt;</code> if needed. No data loss is possible because every state lives in git.</p>
+
+<h3 id="risks">15.3 Risks</h3>
+<table>
+  <thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>Assumption #1 (Claude desktop preview inline-JS) fails → file:// loses overlay visibility</td><td>L</td><td>Goal-#1 wording scoped to script-permitting hosts (G1); fallback documented; not a re-architecture.</td></tr>
+    <tr><td>R2</td><td>DMP removal silently degrades anchor-resolver behavior on edge-case comment anchors</td><td>M</td><td>No automated gate (grill G3 disposition: risk accepted). Manual /verify review against a few known threads.</td></tr>
+    <tr><td>R3</td><td>Migration script botches a subset of sidecars</td><td>L</td><td>--dry-run + spot-check 3-5 before real run; git-revert restores from history if needed.</td></tr>
+    <tr><td>R4</td><td>One of the 14 skills bypasses template.html via a code path I missed</td><td>L</td><td>Phase-2 grep confirmed all 20 references; FR-29 verification fans out per-skill at /verify.</td></tr>
+    <tr><td>R5</td><td>Inline JSON block grows pathologically large in some artifact</td><td>L</td><td>NFR-03 soft-warn at /verify; user judges trim/archive.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">16. Research Sources</h2>
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><code>docs/pmos/features/2026-05-28_inline-html-artifacts/01_requirements.html</code></td><td>Approved requirements (post-grill)</td><td>Authoritative input — tier, decisions D1-D10, non-goals, OQs that this spec resolves (D11-D14)</td></tr>
+    <tr><td><code>docs/pmos/features/2026-05-28_inline-html-artifacts/grills/2026-05-28_01_requirements.html</code></td><td>Grill report</td><td>5 grill branches → 5 Loop-2 patches in requirements; this spec carries dispositions forward</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></td><td>Existing substrate</td><td>Single template consumed by all 14 emit surfaces; 3 new tokens added by FR-01</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code> (227 LOC)</td><td>Existing static-file server</td><td>Adds HEAD /save + POST /save (~30 LOC) per FR-08, FR-09</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code></td><td>Existing overlay client</td><td>Read path switched to inline block (FR-13); FSA + localStorage branches deleted (FR-18)</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code> + 4 skill apply-edit shims</td><td>DMP call sites</td><td>5 call sites total — exact-id + substring-contains replacement per FR-25</td></tr>
+    <tr><td>WHATWG HTML §4.12.2 <code>&lt;script type="application/json"&gt;</code></td><td>Standard</td><td>Treated as raw data; <code>JSON.parse(textContent)</code> is the canonical access pattern</td></tr>
+    <tr><td>POSIX <code>rename(2)</code> + Node.js <code>fs.rename</code></td><td>Standard</td><td>Atomic on POSIX; Windows uses ReplaceFile which is atomic enough for single-writer scenarios</td></tr>
+    <tr><td>Jupyter <code>.ipynb</code>, Observable notebooks</td><td>Prior art</td><td>Single-file HTML with embedded JSON metadata is an established robust pattern</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1 (self-review)</td>
+      <td>Phase-6 structural check + design-critique self-pass. Structural: every FR maps to a requirement; API contracts complete with request/response/error shapes; DB N/A; sequence diagrams present (3, ASCII); edge cases have conditions+behaviors (14 rows); testing strategy has exact verification commands; verification plan sketch reflected in §14. Design-critique: error_enum closed at 3 values; orphan-tmp UX matches D14; FR-25 explicit about resolver replacement and no automated gate per grill G3; FR-29 explicit no-per-surface-changes claim; OQ-free at exit.</td>
+      <td>None — first-pass spec satisfies the Phase-6 universal exit checklist.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">&middot;</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>
