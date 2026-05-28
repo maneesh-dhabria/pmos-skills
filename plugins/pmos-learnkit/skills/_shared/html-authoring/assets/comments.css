@@ -142,34 +142,6 @@
   cursor: pointer;
 }
 
-/* T22 — "Save sidecar" download button (Safari/Firefox FSA fallback).
- * Shown only when FSA is unavailable (_fsaFallbackMode = true).
- * Hidden via inline style.display = 'none' when FSA is available.
- * data-pmos-save-sidecar selector used by tests. */
-[data-pmos-save-sidecar] {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: auto;
-  padding: 4px 10px;
-  background: #f4f4f5;
-  color: #18181b;
-  border: 1px solid #d4d4d8;
-  border-radius: 4px;
-  font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-[data-pmos-save-sidecar]:hover {
-  background: #e4e4e7;
-  border-color: #a1a1aa;
-}
-
-/* Note: .pmos-panel-header display:flex is applied via the existing rule
- * above (T7). The [data-pmos-save-sidecar] margin-left:auto handles alignment. */
-
 /* T24 — Orphan banner (sticky-top warning inside the side panel). */
 [data-pmos-orphan-banner] {
   position: sticky;

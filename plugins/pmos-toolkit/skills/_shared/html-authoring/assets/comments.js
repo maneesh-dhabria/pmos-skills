@@ -1,13 +1,15 @@
 /* comments.js — pmos-toolkit html-authoring substrate.
- * Pure-data helpers for the inline-comments overlay. Loaded two ways:
+ * Pure-data helpers + browser overlay for the inline-comments feature. Loaded two ways:
  *   (a) Browser: <script defer src="comments.js"> → attaches to window.PMOSComments.
  *   (b) Node:    require('.../comments.js')      → module.exports = {...}.
- * Skeleton only (T3) — the panel/marker UI lands at T7.
- * Safari/Firefox fallback (T22): FSA-unavailable browsers use localStorage +
- * a "Save sidecar" download button instead of the FSA write path.
- * T24: Overlay UX surfaces — orphan banner, diagram markers, review-mode gate,
- *      file:// E1 blocking modal, FR-52 foreign-SVG bbox capture.
- * Refs: FR-01, FR-02, FR-10, FR-11, FR-14, FR-16, S3, S4, §10.1.
+ *
+ * Read path (T3): inline JSON sentinel block in the artifact.
+ * Write path (T3): POST /save with optimistic concurrency (FR-16, FR-17).
+ * Overlay UX (T24): orphan banner, diagram markers, review-mode gate, file:// blocking modal.
+ *
+ * Refs: FR-01, FR-02, FR-10, FR-11, FR-13, FR-14, FR-16, FR-17, S3, S4, §10.1, §11.
+ * (T9 removed: FSA write path, localStorage draft mirror, Save-sidecar download button,
+ * IndexedDB handle rehydrate. Review-mode is in-memory only per D14.)
  */
 (function (root) {
   'use strict';
@@ -21,7 +23,6 @@
     var err = new Error(message || 'Sidecar JSON is corrupted');
     err.name = 'SidecarCorruptedError';
     err.cause = cause || null;
-    // Make instanceof work across realms by reparenting the prototype chain.
     if (Object.setPrototypeOf) Object.setPrototypeOf(err, SidecarCorruptedError.prototype);
     return err;
   }
@@ -35,7 +36,6 @@
       root.crypto.getRandomValues(b);
       return b;
     }
-    // Node fallback. require() is hidden behind typeof to keep browser-side static analysers quiet.
     if (typeof require === 'function') {
       var c = require('crypto');
       return c.randomFillSync(new Uint8Array(n));
@@ -48,15 +48,13 @@
     var bytes = randomBytes(8);
     var out = '';
     for (var i = 0; i < 8; i++) {
-      out += NANO_ALPHABET.charAt(bytes[i] & 63); // 64-char alphabet → 6 bits per char
+      out += NANO_ALPHABET.charAt(bytes[i] & 63);
     }
     return out;
   }
 
-  /* ---- ISO-8601 UTC ---- */
   function nowIso() { return new Date().toISOString(); }
 
-  /* ---- derive_kebab_id (mirrors conventions.md §3) ---- */
   function derive_kebab_id(text, seen) {
     var base = String(text == null ? '' : text)
       .toLowerCase()
@@ -92,16 +90,13 @@
   /* ---- validate_sidecar (S3) ---- */
   function validate_sidecar(obj) {
     if (!obj || typeof obj !== 'object') return false;
-    if (obj.schema_version !== SCHEMA_VERSION) return false; // refuse-newer + refuse-older
+    if (obj.schema_version !== SCHEMA_VERSION) return false;
     if (typeof obj.lineage !== 'string' || !V4_UUID_RE.test(obj.lineage)) return false;
     if (!Array.isArray(obj.threads)) return false;
     return true;
   }
 
-  /* ---- serialize / parse / load (preserve unknown keys via plain JSON round-trip) ---- */
   function serialize_sidecar(obj) {
-    // JSON.stringify preserves any extra top-level / nested keys verbatim.
-    // LF + trailing newline (FR-16 byte-exact contract).
     return JSON.stringify(obj, null, 2) + '\n';
   }
 
@@ -117,143 +112,22 @@
     return parse_sidecar(text);
   }
 
-  /* =====================================================================
-   * T7 — browser-side UI + FSA write path.
-   * Chrome/Edge only; Safari/Firefox fallback lands at T22.
-   * Refs: FR-02, FR-03, FR-04, FR-11, FR-13, FR-14, S16, S17, §11.
-   * ===================================================================== */
-
-  /* =====================================================================
-   * T22 — Safari/Firefox fallback: FSA feature detection + localStorage
-   * draft mirroring + "Save sidecar" download button.
-   * Refs: FR-02, FR-03, FR-11, NFR-02.
-   * ===================================================================== */
-
-  // FSA availability flag. Set once at init; overridable for tests.
-  var _fsaFallbackMode = false;
-
-  /* ---- _detectFsaSupport: set _fsaFallbackMode. Called from mount(). */
-  function _detectFsaSupport() {
-    var hasDP = typeof root !== 'undefined' &&
-                typeof root.showDirectoryPicker === 'function';
-    var hasSFP = typeof root !== 'undefined' &&
-                 typeof root.showSaveFilePicker === 'function';
-    _fsaFallbackMode = !(hasDP && hasSFP);
-  }
-
-  /* ---- _lsKey: stable localStorage key for this artifact.
-   *      Uses the artifact path directly — readable, collision-free for
-   *      single-origin usage. Prefix isolates our keys. */
-  function _lsKey(artifactPath) {
-    return 'pmos:comments:' + String(artifactPath || '/');
-  }
-
-  /* ---- _lsDraftSave: mirror sidecar to localStorage (fallback mode). */
-  function _lsDraftSave(artifactPath, sidecar) {
-    try {
-      if (typeof localStorage === 'undefined') return;
-      localStorage.setItem(_lsKey(artifactPath), serialize_sidecar(sidecar));
-    } catch (_) { /* quota exceeded or private-browse no-storage: swallow */ }
-  }
-
-  /* ---- _lsDraftLoad: restore previous draft from localStorage. */
-  function _lsDraftLoad(artifactPath) {
-    try {
-      if (typeof localStorage === 'undefined') return null;
-      var raw = localStorage.getItem(_lsKey(artifactPath));
-      if (!raw) return null;
-      return parse_sidecar(raw);
-    } catch (_) { return null; }
-  }
-
-  /* ---- _lsDraftClear: remove draft after successful download. */
-  function _lsDraftClear(artifactPath) {
-    try {
-      if (typeof localStorage === 'undefined') return;
-      localStorage.removeItem(_lsKey(artifactPath));
-    } catch (_) { /* swallow */ }
-  }
-
-  /* ---- _renderSaveSidecarButton: inject the "Save sidecar" button into
-   *      the panel header. Hidden when FSA is available.
-   *      data-pmos-save-sidecar attribute for test queries. */
-  function _renderSaveSidecarButton() {
-    var doc = _doc(); if (!doc) return;
-    var panel = doc.querySelector('.pmos-side-panel');
-    if (!panel) return;
-    // Idempotent — skip if already rendered.
-    if (doc.querySelector('[data-pmos-save-sidecar]')) return;
-    var btn = doc.createElement('button');
-    btn.setAttribute('data-pmos-save-sidecar', '1');
-    btn.textContent = 'Save sidecar';
-    btn.setAttribute('type', 'button');
-    if (_fsaFallbackMode) {
-      btn.style.display = '';   // visible
-    } else {
-      btn.style.display = 'none'; // hidden — FSA happy path handles persistence
-    }
-    btn.addEventListener('click', function () { triggerSidecarDownload(); });
-    var header = doc.querySelector('.pmos-panel-header');
-    if (header) {
-      header.appendChild(btn);
-    } else {
-      panel.appendChild(btn);
-    }
-  }
-
-  /* ---- triggerSidecarDownload: assemble sidecar, Blob-download, clear draft.
-   *      Uses <a download> pattern (broad browser support). */
-  function triggerSidecarDownload() {
-    var doc = _doc(); if (!doc) return;
-    if (!state.sidecar) return;
-    var fname = (state.artifactBaseName || 'artifact') + '.comments.json';
-    var payload = serialize_sidecar(state.sidecar);
-    var blob = new Blob([payload], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = doc.createElement('a');
-    a.href = url;
-    a.setAttribute('download', fname);
-    a.style.display = 'none';
-    doc.body.appendChild(a);
-    a.click();
-    // Revoke after a tick so the browser can initiate the download.
-    if (typeof setTimeout !== 'undefined') {
-      setTimeout(function () {
-        URL.revokeObjectURL(url);
-        a.remove();
-      }, 100);
-    } else {
-      URL.revokeObjectURL(url);
-      a.remove();
-    }
-    _lsDraftClear(state.artifactPath);
-  }
-
   // Module-scope state (single overlay per artifact).
   var state = {
     mounted: false,
     artifactPath: '/',
     artifactBaseName: 'artifact',
     lineage: null,
-    sidecar: null,           // current sidecar object in memory
-    dirHandle: null,         // FileSystemDirectoryHandle (browser)
-    writeSidecarImpl: null,  // overridable for tests
-    _docRef: null,           // test override: pin a document reference so async callbacks
-                             // see a stable doc even after global.document is deleted
-    diagramMarkers: []       // T24: tracked markers { threadId, element }
+    sidecar: null,           // in-memory sidecar object
+    _docRef: null,           // test override
+    diagramMarkers: []
   };
 
   /* =====================================================================
    * T3 — Inline JSON read path + FR-14 mode detection + POST /save.
-   * Replaces the FSA / sidecar-fetch read path. The legacy code paths
-   * below (FSA + localStorage fallback) remain in place; T9 will gut
-   * them once T3..T8 land.
    * Refs: FR-13, FR-14, FR-15, FR-16, FR-17, E2..E6, E11.
    * ===================================================================== */
 
-  // _state: hydrated from the inline JSON block at first mount-or-eval.
-  // Shape: { schema, version, generated_at, threads, mode }.
-  // mode ∈ {'unknown','read-only','read-write'}; resolved by detectMode().
   var _state = {
     schema: 1,
     version: 0,
@@ -262,9 +136,6 @@
     mode: 'unknown'
   };
 
-  /* readInlineState: parse the sentinel-bracketed <script id="pmos-comments">
-   * block into _state. Idempotent; on parse-fail leaves _state at defaults
-   * and surfaces nothing (artifact may be mid-render in tests). */
   function readInlineState() {
     var doc = _doc(); if (!doc) return;
     var el = doc.getElementById ? doc.getElementById('pmos-comments') : null;
@@ -281,9 +152,6 @@
     } catch (_) { /* swallow — defaults stand */ }
   }
 
-  /* detectMode (FR-14): file:// short-circuits to read-only; otherwise HEAD
-   * /save with 500ms AbortController timeout. Any non-2xx OR network error
-   * OR timeout → read-only. Returns a Promise<'read-only' | 'read-write'>. */
   function detectMode() {
     try {
       var proto = (typeof location !== 'undefined' && location.protocol) ? location.protocol :
@@ -318,8 +186,6 @@
       });
   }
 
-  /* _hideComposeForReadOnly: dim+disable the compose UI and append a passive
-   * footer hint per FR-14. Idempotent. */
   function _hideComposeForReadOnly() {
     var doc = _doc(); if (!doc) return;
     var compose = doc.querySelector('.pmos-thread-compose');
@@ -336,10 +202,6 @@
     }
   }
 
-  /* _renderConflictBanner (FR-17): top-of-page banner on 409.
-   * "This document was updated since you opened it (current version: M).
-   *  Reload to merge." plus a Reload button. Idempotent — replaces any
-   *  prior banner so the most-recent server-current version wins. */
   function _renderConflictBanner(currentVersion) {
     var doc = _doc(); if (!doc) return null;
     var prior = doc.querySelector('.pmos-conflict-banner');
@@ -357,10 +219,8 @@
       try { if (root && root.location && typeof root.location.reload === 'function') root.location.reload(); } catch (_) {}
     });
     banner.appendChild(reload);
-    // Disable compose while a conflict is pending.
     var compose = doc.querySelector('.pmos-thread-compose');
     if (compose) compose.setAttribute('data-pmos-conflict', '1');
-    // Insert at top of body.
     if (doc.body && doc.body.firstChild) {
       doc.body.insertBefore(banner, doc.body.firstChild);
     } else if (doc.body) {
@@ -369,13 +229,7 @@
     return banner;
   }
 
-  /* postSubmit: POST a new-thread submission to /save with optimistic
-   * concurrency. Body shape:
-   *   { expected_version: <N>, payload: { schema, version: N, generated_at, threads: [..., newThread] } }
-   * Returns { ok: true, version, generated_at } on 200, or
-   *         { ok: false, status, conflict_version? } on non-2xx.
-   * On 409 also renders the conflict banner with the server-reported
-   * current_version (FR-17). */
+  /* postSubmit: POST a new-thread submission to /save with optimistic concurrency. */
   function postSubmit(opts) {
     opts = opts || {};
     var t = buildThread({
@@ -411,7 +265,7 @@
         if (status === 200) {
           return Promise.resolve(r.json ? r.json() : {}).then(function (j) {
             if (j && typeof j.version === 'number') _state.version = j.version;
-            else _state.version = _state.version + 1; // optimistic local bump
+            else _state.version = _state.version + 1;
             if (j && j.generated_at) _state.generated_at = j.generated_at;
             _state.threads = nextThreads;
             return { ok: true, version: _state.version, generated_at: _state.generated_at };
@@ -430,23 +284,16 @@
   }
 
   // Hydrate _state from the inline JSON block immediately on module eval.
-  // Safe in Node (no document) — readInlineState() bails on missing doc.
   readInlineState();
 
-  /* T24: orphan banner, diagram markers, review-mode gate, file:// modal, FR-52 bbox. */
+  /* =====================================================================
+   * T24 — Overlay UX: orphan banner, diagram markers, review-mode gate,
+   *       file:// blocking modal, FR-52 foreign-SVG bbox capture.
+   * D14: review-mode is in-memory only (no localStorage persistence).
+   * ===================================================================== */
 
   var _reviewMode = 'on';
   var _keyboardToggleAttached = false;
-
-  function _initReviewMode() {
-    try {
-      if (typeof localStorage !== 'undefined') {
-        var v = localStorage.getItem('pmos:reviewMode');
-        if (v === 'off') { _reviewMode = 'off'; return; }
-      }
-    } catch (_) { /* swallow */ }
-    _reviewMode = 'on';
-  }
 
   function _isFileProtocol() {
     try {
@@ -613,7 +460,6 @@
       if (!(e.key && e.key.toUpperCase() === 'R') || !(e.ctrlKey || e.metaKey) || !e.altKey) return;
       if (typeof e.preventDefault === 'function') e.preventDefault();
       _reviewMode = (_reviewMode === 'off') ? 'on' : 'off';
-      try { if (typeof localStorage !== 'undefined') localStorage.setItem('pmos:reviewMode', _reviewMode); } catch (_) { /* swallow */ }
       if (_reviewMode === 'on') { state.mounted = false; _mountOverlaySurfaces(); } else { unmount(); }
     });
   }
@@ -625,26 +471,20 @@
     _renderDiagramMarkers(threads);
   }
 
-  /* ---- FNV-1a 64-bit → 16 hex chars. Sync, pure, no deps.
-   *      Sufficient as a stable quote-content fingerprint for anchor
-   *      matching; collision risk is non-security (Bitap recheck via DMP
-   *      at apply-time per T6). */
+  /* ---- FNV-1a 64-bit → 16 hex chars. Stable quote-content fingerprint. ---- */
   function fnv1a64Hex(str) {
-    // Two 32-bit lanes simulate 64-bit avoiding BigInt (broad runtime support).
     var s = String(str == null ? '' : str);
     var hi = 0xcbf29ce4 >>> 0, lo = 0x84222325 >>> 0;
     var primeHi = 0x00000100, primeLo = 0x000001b3;
     for (var i = 0; i < s.length; i++) {
       var code = s.charCodeAt(i);
       lo = lo ^ code;
-      // 64-bit multiply: (hi:lo) * (primeHi:primeLo)
       var lolo = (lo & 0xffff) * primeLo;
       var lohi = (lo >>> 16) * primeLo;
       var hilo = (lo & 0xffff) * primeHi;
       var newLo = (lolo + ((lohi & 0xffff) << 16)) >>> 0;
       var carry = ((lolo >>> 16) + lohi + hilo) >>> 0;
       var newHi = ((hi * primeLo) + (lo * primeHi) + (carry >>> 16)) >>> 0;
-      // Account for carry from low half overflow:
       if (newLo < lolo) newHi = (newHi + 1) >>> 0;
       hi = newHi; lo = newLo;
     }
@@ -665,9 +505,7 @@
     };
   }
 
-  /* ---- DOM helpers (no-ops in Node) ---- */
-  // _docRef: if set (e.g. by tests via state._docRef = doc), overrides the
-  // global document lookup so async callbacks see a stable reference.
+  /* ---- DOM helpers ---- */
   function _doc() {
     if (state._docRef) return state._docRef;
     return (typeof document !== 'undefined') ? document : null;
@@ -703,7 +541,6 @@
     var panel = _ensurePanel();
     if (!panel) return;
     panel.classList.add('open');
-    // Stash the pending anchor on the panel for compose submit.
     panel._pendingAnchor = anchor || null;
   }
 
@@ -719,93 +556,6 @@
     return b;
   }
 
-  /* ---- writeSidecar: per-save FSA re-request (S16, FR-13).
-   *      Order MUST be: requestPermission → getFileHandle → createWritable
-   *      → write → close. On 'denied', mount banner and return without
-   *      writing (prior sidecar on disk untouched). */
-  function writeSidecar(sidecar, handle) {
-    if (!handle || typeof handle.requestPermission !== 'function') {
-      // No handle → cannot write; surface banner so user can re-grant.
-      mountBanner('Click to grant write access');
-      return Promise.resolve(false);
-    }
-    return Promise.resolve(handle.requestPermission({ mode: 'readwrite' }))
-      .then(function (perm) {
-        if (perm !== 'granted') {
-          mountBanner('Click to grant write access');
-          return false;
-        }
-        var fname = (state.artifactBaseName || 'artifact') + '.comments.json';
-        return Promise.resolve(handle.getFileHandle(fname, { create: true }))
-          .then(function (fh) {
-            return Promise.resolve(fh.createWritable({ keepExistingData: false }));
-          })
-          .then(function (writable) {
-            var payload = serialize_sidecar(sidecar);
-            return Promise.resolve(writable.write(payload))
-              .then(function () { return writable.close(); })
-              .then(function () { return true; });
-          });
-      })
-      .catch(function (err) {
-        mountBanner('Click to grant write access');
-        // Re-throw? Spec says surface banner; do not throw — caller treats
-        // false as soft-fail (prior sidecar untouched).
-        return false;
-      });
-  }
-
-  /* ---- submitThread: build thread, append to in-memory sidecar, persist.
-   *      In FSA-fallback mode, persists to localStorage instead of FSA. */
-  function submitThread(opts) {
-    opts = opts || {};
-    var t = buildThread({
-      id_anchor: opts.anchor && opts.anchor.id_anchor,
-      quote_anchor: opts.anchor && opts.anchor.quote_anchor,
-      body: opts.body,
-      author: opts.author
-    });
-    if (!state.sidecar) {
-      state.sidecar = {
-        schema_version: SCHEMA_VERSION,
-        lineage: state.lineage || '00000000-0000-4000-8000-000000000000',
-        threads: []
-      };
-    }
-    state.sidecar.threads.push(t);
-    if (_fsaFallbackMode) {
-      // Fallback: persist to localStorage; no FSA call.
-      _lsDraftSave(state.artifactPath, state.sidecar);
-      return Promise.resolve(true);
-    }
-    var impl = state.writeSidecarImpl || writeSidecar;
-    return impl(state.sidecar, state.dirHandle);
-  }
-
-  /* ---- IndexedDB rehydrate (S17). Best-effort; no-op in Node. */
-  function _rehydrateHandle() {
-    if (typeof indexedDB === 'undefined') return;
-    try {
-      var req = indexedDB.open('pmos-comments', 1);
-      req.onupgradeneeded = function () {
-        var db = req.result;
-        if (!db.objectStoreNames.contains('handles')) db.createObjectStore('handles');
-      };
-      req.onsuccess = function () {
-        try {
-          var db = req.result;
-          var tx = db.transaction('handles', 'readonly');
-          var store = tx.objectStore('handles');
-          var key = (typeof location !== 'undefined' && location.pathname) ? location.pathname : state.artifactPath;
-          var g = store.get(key);
-          g.onsuccess = function () {
-            if (g.result && !state.dirHandle) state.dirHandle = g.result;
-          };
-        } catch (_) { /* swallow — best-effort */ }
-      };
-    } catch (_) { /* swallow */ }
-  }
-
   /* ---- selectionchange listener: spawns floating button at end of range. */
   function _attachSelectionListener() {
     var doc = _doc(); if (!doc) return;
@@ -817,7 +567,6 @@
         var range = sel.getRangeAt(0);
         var rect = range.getBoundingClientRect ? range.getBoundingClientRect() : null;
         if (!rect) return;
-        // Build prefix/suffix from anchor node's textContent.
         var node = sel.anchorNode || null;
         var nodeText = (node && node.textContent) ? node.textContent : '';
         var startOff = Math.min(sel.anchorOffset || 0, sel.focusOffset || 0);
@@ -852,54 +601,38 @@
     btn.style.left = ((rect.right || 0) + 8) + 'px';
   }
 
-  /* ---- mount: idempotent. Wires DOM listeners + rehydrates handle.
-   *      T22: also detects FSA availability, rehydrates localStorage draft
-   *      on FSA-unavailable browsers, and renders the "Save sidecar" button.
-   *      T24: review-mode gate, file:// modal, orphan banner, diagram markers. */
+  /* ---- mount: idempotent. Wires DOM listeners + overlay surfaces.
+   *      T24: review-mode gate, file:// modal, orphan banner, diagram markers.
+   *      T9: FSA detection + localStorage draft + Save-sidecar button + IndexedDB
+   *      rehydrate removed; persistence is exclusively the T3 POST /save flow. */
   function mount(opts) {
     opts = opts || {};
     state.artifactPath = opts.artifactPath || state.artifactPath;
-    // Derive base name from artifact path (strip .html).
     var bn = String(state.artifactPath).replace(/^.*\//, '').replace(/\.html?$/i, '');
     state.artifactBaseName = bn || 'artifact';
     if (opts.lineage) state.lineage = opts.lineage;
-    if (opts.dirHandle) state.dirHandle = opts.dirHandle;
     if (opts.sidecar) state.sidecar = opts.sidecar;
-    if (typeof opts._writeSidecar === 'function') state.writeSidecarImpl = opts._writeSidecar;
 
-    // T22: allow tests to override the fallback flag directly.
-    if (typeof opts._fsaFallbackMode === 'boolean') {
-      _fsaFallbackMode = opts._fsaFallbackMode;
-    } else {
-      _detectFsaSupport();
-    }
-
-    // T24: read review-mode from localStorage on every mount call (allows toggle).
-    _initReviewMode();
-
-    // T24: always attach the keyboard toggle listener (even when reviewMode='off'),
-    // so Ctrl/Cmd+Alt+R can turn the overlay back on.
     var doc = _doc();
     if (doc) {
       _attachKeyboardToggle(doc);
     }
 
-    // T24: file:// protocol → render blocking modal only; no overlay surfaces.
+    // file:// → render blocking modal only; no overlay surfaces.
     if (_isFileProtocol()) {
       if (doc) _renderFileWarningModal();
-      return; // Do NOT proceed to mount the overlay.
+      return;
     }
 
-    // T24: review-mode gate — if 'off', skip mounting overlay surfaces.
+    // Review-mode gate — if 'off', skip mounting overlay surfaces. (D14: in-memory)
     if (_reviewMode === 'off') {
-      return; // Keyboard listener already attached above.
+      return;
     }
 
     if (state.mounted) return;
     state.mounted = true;
 
-    // T3: hydrate inline _state on each mount (cheap; idempotent), then
-    // resolve mode via FR-14 detection. Compose UI gates on the resolved mode.
+    // T3: hydrate inline _state on each mount, then resolve mode (FR-14).
     readInlineState();
     detectMode().then(function (m) {
       _state.mode = m;
@@ -908,27 +641,7 @@
 
     if (doc) {
       _attachSelectionListener();
-      if (_fsaFallbackMode) {
-        // Rehydrate previous localStorage draft so reload doesn't lose threads.
-        // Validate first: seed only if schema is current; clear if stale/unknown.
-        var draft = _lsDraftLoad(state.artifactPath);
-        if (draft) {
-          if (validate_sidecar(draft) && !state.sidecar) {
-            state.sidecar = draft;
-          } else if (!validate_sidecar(draft)) {
-            // Stale/invalid draft — clear so it doesn't get re-seeded on every reload.
-            _lsDraftClear(state.artifactPath);
-          }
-        }
-        // Ensure panel exists before rendering the save button.
-        _ensurePanel();
-        _renderSaveSidecarButton();
-      }
-      // T24: render the overlay + orphan banner + diagram markers.
       _mountOverlaySurfaces();
-    }
-    if (!_fsaFallbackMode) {
-      _rehydrateHandle();
     }
   }
 
@@ -943,21 +656,10 @@
     serialize_sidecar: serialize_sidecar,
     parse_sidecar: parse_sidecar,
     load_sidecar: load_sidecar,
-    // T7 additions
     captureSelection: captureSelection,
     onFloatingButtonClick: onFloatingButtonClick,
-    submitThread: submitThread,
-    writeSidecar: writeSidecar,
     mountBanner: mountBanner,
     mount: mount,
-    // T22 additions — FSA fallback (Safari/Firefox)
-    _detectFsaSupport: _detectFsaSupport,
-    _lsKey: _lsKey,
-    _lsDraftSave: _lsDraftSave,
-    _lsDraftLoad: _lsDraftLoad,
-    _lsDraftClear: _lsDraftClear,
-    triggerSidecarDownload: triggerSidecarDownload,
-    // T24 additions — overlay UX surfaces
     unmount: unmount,
     openReattachForm: openReattachForm,
     captureSvgBboxAnchor: captureSvgBboxAnchor,
@@ -969,9 +671,7 @@
     _state: state
   };
 
-  // T3: test-only hook. Activated when window.__pmosTest === true (set by
-  // jsdom harness before eval'ing this source). Exposes _state as an accessor
-  // so tests see the live object, not a stale snapshot.
+  // T3 test hook.
   if (typeof root !== 'undefined' && root.__pmosTest) {
     root.__pmosTestHook = {
       detectMode: detectMode,
@@ -986,4 +686,4 @@
   } else {
     root.PMOSComments = api;
   }
-})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+}(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this)));
