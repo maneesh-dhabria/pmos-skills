@@ -501,6 +501,67 @@ WARNING: <folded-skill> crashed in <phase> (advisory per D11): <error_excerpt>
 
 These are advisory (not blocking) per D11; /verify still PASSes if everything else is green. They surface so the user sees folded-phase health at every /verify run.
 
+## Phase 4.7: Folded /architecture --since (T2 scoped; T3 full; T1 skip)
+
+**Skip if `--skip-folded-arch` was passed** (FR-30 escape). This phase delegates to the `/architecture` skill's `--since` mode (shipped in Wave 4 / T11) to lint code changed on this branch against the architectural assertions baked into `02_spec.html`. Findings aggregate into /verify's report alongside lint, tests, and code-review output. Per FR-25..FR-30.
+
+### Tier gate (FR-26)
+
+| Tier | Behavior |
+|------|----------|
+| 1    | Emit `arch sub-step: tier 1, skipping` to chat. No dispatch. Proceed to Phase 5. |
+| 2    | Scoped run — dispatch with `--since` against the changed file set only. /architecture's pre-flight already short-circuits on empty diff. |
+| 3    | Full run — dispatch with `--since` against `git merge-base HEAD main`. Larger scope but same skill invocation. |
+
+### Pre-flight short-circuit (FR-30)
+
+If the argument string carries `--skip-folded-arch`, emit `architecture: --skip-folded-arch flag; skipping` to stderr and proceed to Phase 5 without further work. No dispatch, no state.yaml mutation.
+
+### Dispatch (FR-27)
+
+Compute the since-base:
+
+```bash
+SINCE=$(git merge-base HEAD main)
+```
+
+If the resolution fails (no `main` branch, detached HEAD, etc.), log the git error and proceed to Phase 5 — folded-phase failures are advisory; we do not block /verify on a baseline-resolution miss.
+
+Invoke `/architecture --since $SINCE` as a blocking Task subagent with **600s timeout** (longer than Phase 6.6's 300s — branch-wide scans are heavier than single-spec evaluations). The child resolves changed files, runs the judge, validates findings (file_path schema variant), and writes its triplet atomically. On the empty-diff path, /architecture emits the canonical `architecture: no changes since $SINCE; skipping` log line and exits 0 with no triplet — this is the expected success path on doc-only branches.
+
+### Aggregation (FR-28)
+
+On success with findings: read the triplet's `<triplet>.json` and emit a new section in /verify's primary output report:
+
+```
+### Architecture findings
+
+Source: <triplet-path>.html
+<N> findings (M must-fix, K should-fix).
+
+| # | rule_id | severity | file_path | finding |
+|---|---------|----------|-----------|---------|
+| 1 | <rule>  | <sev>    | <path>    | <one-line restatement> |
+```
+
+Each row is one finding from the triplet's JSON, sorted by severity (`must_fix` → `should_fix` → `consider`). The aggregated table sits alongside the existing lint / tests / code-review aggregators (no schema conflict — these are siblings, not merges).
+
+On success with no findings: emit `Architecture findings: 0` as a one-line aggregator entry — keeps the section's presence visible so absence of findings is distinguishable from absence of the phase.
+
+### Advisory failure (FR-29, D11)
+
+On dispatch failure (subagent crash, timeout, schema-conformance hard-fail, judge API error), capture `{folded_skill: "architecture", error_excerpt: <first-200-chars>, ts: <ISO-8601>}` and append to `state.yaml.phases.verify.folded_phase_failures[]` per the dedup rule in `feature-sdlc/reference/state-schema.md`. Emit at moment-of-append:
+
+```
+WARNING: architecture crashed in verify (advisory per D11): <error_excerpt>
+```
+
+Continue to Phase 5 — folded-phase failures do NOT block /verify PASS. Phase 4.5 (folded-phase awareness) will re-surface these on the next /verify run.
+
+### Flag handling (Phase 0 parser additions)
+
+`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `/spec`'s same-named flag for Phase 6.6).
+
 ## Phase 5: Spec Compliance Check
 
 This is the most important phase. Re-read each upstream document and verify every requirement is implemented.
