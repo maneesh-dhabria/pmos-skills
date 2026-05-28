@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec T2 All Existing</title>
+  <meta name="pmos:skill" content="spec">
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec T2 All Existing</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+    <section id="modules">
+      <h2 id="modules">10. Modules</h2>
+      <p>All three module names already exist in the repo's plugins/pmos-toolkit/skills/ tree.</p>
+      <table>
+        <thead>
+          <tr><th>name</th><th>deps</th><th>role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>architecture</td>
+            <td>(none)</td>
+            <td>Existing skill at plugins/pmos-toolkit/skills/architecture.</td>
+          </tr>
+          <tr>
+            <td>spec</td>
+            <td>architecture</td>
+            <td>Existing skill at plugins/pmos-toolkit/skills/spec.</td>
+          </tr>
+          <tr>
+            <td>verify</td>
+            <td>architecture, spec</td>
+            <td>Existing skill at plugins/pmos-toolkit/skills/verify.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">11. Architectural assertions</h2>
+      <ul>
+        <li>Module architecture must not depend on spec or verify — keeps the audit primitive at the bottom of the dep graph so upstream callers can compose freely.</li>
+      </ul>
+    </section>
+
+  </main>
+</body>
+</html>
