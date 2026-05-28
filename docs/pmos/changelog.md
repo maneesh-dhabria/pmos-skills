@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-05-28 — pmos-toolkit 2.57.1: substrate — `## A.6 Optional skill-specific fields` registry
+
+Tiny patch ride-along with pmos-learnkit 0.2.0. `_shared/pipeline-setup.md` gains a `## A.6` registry section documenting optional skill-owned keys in `.pmos/settings.yaml` — first entry is `/primer`'s new `default_primer_depth`. Doc-only; no behavior change. Bumped to satisfy the pre-push version-sync hook (any pmos-toolkit content change requires a bump per `CLAUDE.md ## Plugin manifest version sync`).
+
 ## 2026-05-28 — pmos-learnkit 0.2.0: `/primer` deeper, broader, practitioner-aware
 
 `/primer` learns to read the room. Five fixes land together: senior-PM topics that used to come back as 3K-word skims with 7 mostly-overlapping sources now produce 4K–10K-word primers backed by 10–20+ sources, with named practitioner voices (not anonymous "industry experts") and named-company worked examples per H2 where they exist.
