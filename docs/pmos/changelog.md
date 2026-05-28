@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-05-28 — pmos-toolkit 2.58.0: `/ideate` gains Phase 3 Amplify (Brian Chesky's 11-star ladder)
+
+`/ideate` learns to push past the obvious shape of a chosen finalist. A new opt-in Phase 3 between Expand and Pressure-test runs Brian Chesky's 11-star design exercise — generate a 1→11★ ladder per chosen finalist, identify the sweet spot (typically 7-8★), and **recommend** a concrete sweet-spot reframe that feeds Phase 4 Pressure-test. The reframe is what the pressure-test attacks; the original Phase-2 finalist is preserved on record alongside it. Fills a real asymmetry — pressure-test pulls ideas down to feasibility but nothing pushed their ceiling up first.
+
+**What's new**
+
+- **New Phase 3 Amplify, opt-in.** Gated to `idea-type ∈ {new, extend}`; auto-skipped for `idea-type=fix` (bugs don't have a UX ceiling to raise). Even on a passing gate, default is Skip (mirrors `/refine`'s "don't pay the cost unless it earns it"). `--amplify` forces opt-in; `--no-amplify` forces skip. Most ideas don't earn the ceiling-raising cost.
+- **The skill recommends, doesn't dump.** After generating the 11-row ladder, the skill identifies the sweet-spot rung (almost always 7 or 8 — never 11, rarely 9-10) and produces a one-line "Finalist (sweet-spot reframe): …" that restates the original finalist with the sweet-spot rung's ceiling-raising element folded in. The confirm prompt presents three concrete options: **Use sweet-spot reframe (Recommended)** / **Stay with original Phase-2 finalist** / **Pick a different rung**. Never "pick from the 11 rungs" — that pushes synthesis onto the user.
+- **Clean integer phase numbering.** Phases are now `0 Setup · 1 Frame · 2 Expand · 3 Amplify (NEW) · 4 Pressure-test · 5 Refine · 6 Write Artifact · 7 Handoff · 8 Capture Learnings`. No Phase 1.5 / 2.5 / decimal sub-phases.
+- **New section in the artifact.** `<section id="amplify-ladder">` slots between `idea-variants` and `how-it-works`. Skill becomes 13 sections (was 12). When Amplify is skipped, the section carries an explicit `<em>Skipped — <reason></em>` placeholder so the artifact schema stays consistent — silent omission would break downstream tooling.
+- **New reference doc.** `reference/eleven-star-ladder.md` carries Chesky's framing (Airbnb arrival-experience → surfboard-in-apartment example), the rung-by-rung anchor table (1=terrible, 5=baseline, 7-8=delightful/memorable, 11=deliberately absurd), sweet-spot selection rules, multi-finalist handling, and skip-signaling contract.
+- **Two new anti-patterns** in the SKILL: **#11 Treating Amplify as default-on** (opt-in is the point), and **#12 Picking 11★ as the sweet spot / dumping the ladder without a recommendation** (the value lives in the *walk back* from 11; the skill MUST recommend, never present raw rungs).
+
+**Why this matters**
+
+`/ideate`'s existing shape — Frame → Expand → Pressure-test — has an asymmetry. Pressure-test pulls a chosen finalist down to earth (premortem, inversion, assumption-map) but nothing pushes its ceiling *up* before that. Generators like Expand are biased toward feasibility from the first variant; they rarely produce the 7-star moment that makes the 5-star baseline feel insufficient. Chesky's exercise is the canonical fix: by deliberately designing the 11-star (absurd, impossible), the 7-star sweet spot suddenly looks reasonable. "Surfboard waiting in the apartment because they know you surf" stops being crazy once "Elon Musk meets you at the airport with 5,000 people throwing a parade" is on the page.
+
+The phase is opt-in because most ideas don't earn it — a routine extension or obvious feature doesn't need ceiling-raising. But for ideas with real UX surface area and ambition behind them, Amplify produces variants that Expand alone couldn't reach. The skill always **recommends** a concrete reframe to the user; it never abdicates synthesis to "here are 11 options, you pick."
+
+**References**
+
+- Brian Chesky, [Masters of Scale — "Do things that don't scale"](https://mastersofscale.com/brian-chesky/)
+- Reid Hoffman, [How to Scale a Magical Experience: 4 Lessons from Airbnb's Brian Chesky](https://reid.medium.com/how-to-scale-a-magical-experience-4-lessons-from-airbnbs-brian-chesky-eca0a182f3e3)
+- [Airbnb's 11-Star Experience framework](https://www.product-frameworks.com/11-Star-Experience.html)
+
 ## 2026-05-28 — pmos-toolkit 2.57.1: substrate — `## A.6 Optional skill-specific fields` registry
 
 Tiny patch ride-along with pmos-learnkit 0.2.0. `_shared/pipeline-setup.md` gains a `## A.6` registry section documenting optional skill-owned keys in `.pmos/settings.yaml` — first entry is `/primer`'s new `default_primer_depth`. Doc-only; no behavior change. Bumped to satisfy the pre-push version-sync hook (any pmos-toolkit content change requires a bump per `CLAUDE.md ## Plugin manifest version sync`).
