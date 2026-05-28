@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-05-28 — pmos-learnkit 0.4.0: `/primer` SVG diagrams self-contained under dark mode
+
+`reference/diagram-style.md` now mandates that every inline SVG ship a full-viewBox background rect (`<rect x="0" y="0" width="<W>" height="<H>" fill="#fbfaf6"/>`) as its first drawn child, plus a CSS-style fallback (`style="background:#fbfaf6;border-radius:8px"`) on the `<svg>` element itself. The Phase 4 drafter inlines this file when authoring diagrams, so every new primer SVG inherits the rule.
+
+**Why**
+
+The primer's `assets/style.css` flips `--pmos-bg` to `#0b0b0c` under `prefers-color-scheme: dark`. Pre-0.4.0 diagrams rely on the page background showing through — under dark mode, dark strokes (`#222`) and gray labels disappear into the near-black page. The reviewer subagent reads markup, not rendered output, so R10 never caught it. Baking the background into the SVG makes every diagram self-contained regardless of page theme.
+
+**Changes**
+
+- New mandatory section "Background isolation" with the two-requirement contract (background rect + style fallback).
+- Worked example updated to demonstrate both requirements.
+- Anti-pattern added: "Diagrams without the mandatory background rect + `style=\"background:...\"` fallback".
+
 ## 2026-05-28 — pmos-toolkit 2.60.0: `/architecture --from-spec` mode + folded into /spec and /verify
 
 `/architecture` gains a seventh mode — `--from-spec <spec-path>` — that audits a Tier-3 spec's `§Modules` + `§Architectural Assertions` against the loaded principles set (L1 + L2 + L3) by dispatching a judge subagent at `temperature: 0`, validating findings via a 6-rule orchestrator-side gate, and emitting the standard HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}`. The mode also lights up two new folded sub-phases in the SDLC: `/spec` Phase 6.6 (Tier-3 default-on, Tier-2 auto-upgrade-on-new-modules, Tier-1 skipped) and `/verify` Phase 4.7 (`--since <merge-base>` against the feature branch's diff). Both sub-phases follow the advisory-failure pattern (D11): folded-architecture crashes append to `state.yaml.phases.<host>.folded_phase_failures[]` and emit a chat `WARNING` but never block the host phase.
