@@ -1,0 +1,20 @@
+[
+  {
+    "rule_id": "U001",
+    "severity": "must_fix",
+    "confidence": 88,
+    "file_path": "src/foo.ts",
+    "quote": "the boundary between presentation and domain logic must remain unidirectional everywhere",
+    "finding": "src/foo.ts imports a presentation helper from a domain module, inverting the layering.",
+    "recommendation": "Move the helper into a shared contracts module and re-export from both sides."
+  },
+  {
+    "rule_id": "U007",
+    "severity": "should_fix",
+    "confidence": 74,
+    "file_path": "src/bar.ts",
+    "quote": "every public module entry point must declare its exported surface explicitly via index files",
+    "finding": "src/bar.ts re-exports an internal symbol without listing it in any index file.",
+    "recommendation": "Add the re-export to src/index.ts or mark the symbol as internal."
+  }
+]

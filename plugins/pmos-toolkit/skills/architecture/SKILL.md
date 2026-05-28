@@ -218,6 +218,51 @@ Audit a `/spec` artifact (instead of the repo source tree) against the loaded pr
 
 ---
 
+## Mode: --since
+
+Audit only the source-tree delta between two git refs against the loaded principles (instead of the full repo). Used by `/verify` Phase 4.7 alongside `--from-spec`, and runnable as a standalone CLI for PR-scoped review. Reads `git diff --name-only $SINCE..HEAD`, dispatches a judge subagent against the changed files with the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_since.{html,md,json}`. Findings carry `file_path` (not `spec_section_id`) per §13.
+
+**CLI signature:**
+```
+/architecture --since <ref>
+              [--top-n <N>]              # default 8
+              [--min-confidence <N>]     # default 70
+              [--no-evidence-required]   # disables ≥40-char verbatim quote requirement
+```
+
+**Mutually exclusive with** `--from-spec`, `--baseline`, `--deep`. Combining any pair → exit 64 (usage error).
+
+**Pre-flight (empty-diff short-circuit, FR-09):**
+
+```bash
+CHANGED="$(git diff --name-only "$SINCE"..HEAD)"
+if [ -z "$CHANGED" ]; then
+  echo "architecture: no changes since $SINCE; skipping" >&2
+  exit 0
+fi
+```
+
+When `CHANGED` is empty, the skill exits 0 with the skip log line on stderr and emits **no triplet** — same-day overwrite of a prior triplet does not fire on empty diffs, so the prior artifact is preserved.
+
+**Dispatch flow (non-empty diff):**
+
+1. **Resolve changed files** — `CHANGED="$(git diff --name-only $SINCE..HEAD)"` captures the set of files the judge will review (the `<artifact>` slot in the prompt template is the concatenated set).
+2. **Load principles** — `bash scripts/load-principles.sh` captures stdout JSON (merged L1+L2 plugin + L3 overrides if present). Records loaded `rule_id_set` for downstream FR-06 validation.
+3. **Build judge prompt** — read `reference/judge-prompt-template.md`; substitute `{{principles}}` (loaded JSON), `{{artifact}}` (the changed files' content, path-labelled), `{{rule_id_set}}` (CSV of loaded rule IDs), `{{mode}}=since`. The judge is instructed by the template to emit findings with `file_path` (the changed-file path) instead of `spec_section_id` per §13 / §9.2 case 2.
+4. **Dispatch judge subagent** — blocking Task tool call, `temperature: 0`, 300s timeout. Read-only; the judge does NOT edit source.
+5. **Validate findings (FR-06, FR-10)** — `cat <judge-output> | node scripts/validate-findings.js --rule-id-set "<csv>" --source <concatenated-source>`. Same rules as `--from-spec`: drops unknown rule_id, out-of-range confidence, missing quote, quote <40 chars, or quote not verbatim-substring of source. Each drop logged to stderr.
+6. **Apply knobs (D8)** — `... | node scripts/apply-knobs.js --top-n <N> --min-confidence <N> [--evidence-required]`. Identical ordering to `--from-spec`.
+7. **Emit triplet (§9.3, FR-11)** — `... | node scripts/emit-findings.js --out-prefix {docs_path}/architecture/{date}_<slug>_since --mode since --source-path <ref-spec>`. The emitter's `--mode since` requires `file_path` on every finding (mode-conditional §9.3 validation); HTML carries `<meta name="pmos:skill" content="architecture">`; MD has `## Finding N` headings; JSON conforms to §13 with `file_path` populated and `spec_section_id` absent.
+
+**Exit codes:**
+- `0` — success (triplet written) OR empty-diff skip (no triplet).
+- `1` — runtime error (judge dispatch failure, file IO error).
+- `64` — usage error (mutually exclusive flag combo, missing ref).
+
+**When invoked by `/verify` Phase 4.7:** the parent passes the merge-base ref and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §4.7 for parent-side handling.
+
+---
+
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
 This phase is the `/architecture` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in an architecture artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:

@@ -18,6 +18,11 @@ FIX_NEW="$SCRIPT_DIR/fixtures/spec-t2-new-module.html"
 FIX_ALL="$SCRIPT_DIR/fixtures/spec-t2-all-existing.html"
 FIX_EMPTY="$SCRIPT_DIR/fixtures/spec-empty-modules-table.html"
 
+# Detector resolves module_roots relative to PWD — run cases a/b/c from repo root
+# so plugins/*/skills/ glob expands. Case d intentionally cd's to a tempdir.
+REPO_ROOT="$(cd "$SKILL_DIR/../../../.." && pwd)"
+cd "$REPO_ROOT"
+
 PASS=0
 FAIL=0
 
