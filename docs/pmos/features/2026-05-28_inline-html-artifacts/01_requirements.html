@@ -27,7 +27,7 @@
 <section id="meta">
 <p><strong>Date:</strong> 2026-05-28<br>
 <strong>Last updated:</strong> 2026-05-28<br>
-<strong>Status:</strong> In Review<br>
+<strong>Status:</strong> Approved (post-/grill Loop 2)<br>
 <strong>Tier:</strong> 3 — Feature<br>
 <strong>Seed:</strong> <code>docs/pmos/ideate/2026-05-28_inline-html-artifacts.html</code> (committed @ <code>46f0de7</code>)</p>
 </section>
@@ -48,7 +48,7 @@
 
 <h3 id="goals">Goals</h3>
 <ul>
-  <li><strong>Open-anywhere fidelity</strong> — opening any pmos artifact under <code>file://</code> (desktop preview, email, Dropbox, archived copy) shows the toolbar, properly-styled prose, and existing comment threads in read-only form — measured by visual parity against <code>http://localhost</code> render across the 14 emit surfaces.</li>
+  <li><strong>Open-anywhere fidelity</strong> — opening any pmos artifact under <code>file://</code> (desktop preview, email, Dropbox, archived copy) shows the toolbar and properly-styled prose; existing comment threads also render in read-only form <em>when the host honors inline <code>&lt;script&gt;</code></em> (most cases — desktop preview, file-system browsers, downloads). Hosts that strip scripts (some email clients, sanitizers) still get the fully-styled prose; thread visibility is acceptable to lose there since comments-in-email was already a non-goal. Measured by visual parity against <code>http://localhost</code> render across the 14 emit surfaces under script-permitting hosts.</li>
   <li><strong>Single-file portability</strong> — one <code>.html</code> file is the complete artifact; no required siblings — measured by every <code>docs/pmos/</code> tree containing zero <code>.comments.json</code> files after migration.</li>
   <li><strong>Lossless write path</strong> — launching via <code>comments-open.*</code> still provides full read/write commenting against the same single file — measured by the existing manual smoke matrix (macOS/Linux/Windows × Chrome/Safari/Firefox) passing without the FSA fallback or localStorage buffer.</li>
   <li><strong>Substrate shrinkage</strong> — retire the sidecar format, the drift hook, the FSA write path, the localStorage fallback, and <code>diff-match-patch.js</code> — measured by deletion of those files from authoring source + the comments-bundle-size gate moving downward.</li>
@@ -62,6 +62,8 @@
   <li><strong>NOT</strong> migrating already-published / already-shared artifacts that live on someone else's disk — because there is one human user today; only this repo's <code>docs/pmos/**</code> is the migration corpus.</li>
   <li><strong>NOT</strong> keeping the FSA write path in any form — because it's Chrome-only, requires a user-gesture file picker per save, and dies in Safari/Firefox; <code>http://localhost</code> via the existing launcher trio is uniform.</li>
   <li><strong>NOT</strong> preserving the Copy-Markdown button after turndown is removed — because there is no in-domain signal that the button is used; users who want Markdown can re-emit with <code>output_format=both</code>.</li>
+  <li><strong>NOT</strong> specifically adapting the inlining behavior to <code>/diagram</code> outputs — because /diagram's HTML wrapper inherits the <code>template.html</code> change incidentally (no extra work), and its standalone <code>.svg</code> emit path is out of scope (SVG already self-contained for styling; bbox-anchor comments substrate stays as-is).</li>
+  <li><strong>NOT</strong> instrumenting an automated anchor-resolver regression gate after DMP removal — because the user has signed off on manual <code>/verify</code> review as the only check, accepting the risk that a subtle resolver regression could slip past automated tooling.</li>
   <li><strong>NOT</strong> resolving assumption #1 (does Claude desktop preview honor inline <code>&lt;style&gt;</code>/<code>&lt;script&gt;</code>?) as a precondition — because the chosen architecture is invariant under both outcomes (worst case: <code>file://</code> is unstyled-read-only and <code>http://localhost</code> via launcher is the always-functional path); the question becomes a non-blocking validation item for <code>/verify</code>.</li>
 </ul>
 </section>
@@ -388,6 +390,11 @@
       <td>F1: "14 emit surfaces" cited but never enumerated. F2: success metric "match rate within 5pp of baseline" with unknown baseline. F3: implementation details (regex sentinels, ~30 LOC, rename(2)) leaking into D2/D3/D4. F4: HEAD-probe contract for read-only detection unspecified.</td>
       <td>F1: added 14-row Emit-surfaces inventory sub-table under Research Sources, sourced from <code>grep -l 'pmos:skill'</code> minus the comments resolver. F2: dropped the anchor-resolver match-rate metric from Success Metrics outright (no measured gate; regression caught manually if it occurs). F3: rewrote D2/D3/D4 rationale in user-observable terms ("delimited block", "minimal incremental change", "crash-safe replace"); softened the same impl-leaks in Solution Direction steps 2–4. F4: accepted detection mechanism as cheap; added OQ5 for /spec to lock the probe contract.</td>
     </tr>
+    <tr>
+      <td>2 (post-/grill)</td>
+      <td>G1: D9 deferral leaves a Goal-#1 wording problem — threads vanish under file:// if inline JS is blocked. G2: /diagram's dual emit (HTML wrapper + standalone .svg) needs an explicit scope cut. G3: F2's metric drop leaves no automated regression gate after DMP removal. G4: re-emit can race with an active commenting session — re-emit <code>version</code> semantics unspecified. G5: inline JSON block growth unbounded.</td>
+      <td>G1: softened Goal #1 to "threads visible when host honors inline <code>&lt;script&gt;</code>"; framed JS-blocked hosts as scoped fallback, not bug. G2: added Non-Goal — /diagram out of scope; HTML wrapper inherits incidentally, standalone .svg unchanged. G3: added Non-Goal — no automated regression gate; manual /verify accepted as risk. G4: added OQ6 (re-emit version semantics) — /spec resolves. G5: deferred to /spec to add a /verify soft-warn at ~200KB; no hard cap. Grill report saved to <code>grills/2026-05-28_01_requirements.html</code>.</td>
+    </tr>
   </tbody>
 </table>
 </section>
@@ -403,6 +410,7 @@
     <tr><td>OQ3</td><td>Should the inline JSON block carry a <code>generated_at</code> ISO timestamp alongside <code>schema</code> + <code>version</code>? Cheap; would help debug re-emit drift later. Defer to /spec.</td></tr>
     <tr><td>OQ4</td><td>The "orphan tmp file at startup" surface currently warns to stderr only. Should it also surface in the page UI (a banner) when the user re-opens the artifact via comments-open.*? Defer to /spec.</td></tr>
     <tr><td>OQ5</td><td>Read-only-vs-write-mode detection: the requirements assume an unobtrusive probe to the local server. /spec owns the probe contract — timeout budget, behaviour when localhost is up but doesn't speak the save protocol (custom static server), and whether <code>window.location.protocol</code> short-circuits the probe under <code>file://</code>.</td></tr>
+    <tr><td>OQ6</td><td>Re-emit <code>version</code> semantics: when a pmos skill re-emits an artifact (e.g., <code>/spec --update</code>), does the preserved-and-respliced JSON keep its <code>version</code> field unchanged, or is <code>version</code> incremented as a hint to any open browser that the file has been touched? Surfaced by G4 of the grill — affects how the 409+reload race resolves under <code>/spec --update</code> with an active commenting session.</td></tr>
   </tbody>
 </table>
 </section>

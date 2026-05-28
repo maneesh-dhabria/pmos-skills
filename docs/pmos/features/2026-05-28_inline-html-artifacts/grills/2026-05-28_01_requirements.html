@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill Report — 01_requirements (inline-html-artifacts)</title>
+  <meta name="pmos:skill" content="grill">
+  <link rel="stylesheet" href="../assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="../assets/comments.css?v=2.57.0">
+  <script defer src="../assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Grill Report — 01_requirements (inline-html-artifacts)</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<p><strong>Depth:</strong> standard &middot; <strong>Questions asked:</strong> 5 &middot; <strong>Date:</strong> 2026-05-28<br>
+<strong>Target:</strong> <code>../01_requirements.html</code></p>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved</h2>
+<ul>
+  <li><strong>G1 — D9 deferral of assumption #1.</strong> If inline JS is blocked in Claude desktop preview, threads vanish under <code>file://</code>, violating Goal #1. <em>Disposition:</em> soften Goal #1 to "styled prose; threads visible when JS is permitted"; /spec adds an explicit FR scoping the conditional.</li>
+  <li><strong>G2 — D2 fanout boundary on /diagram.</strong> /diagram has dual emit (HTML wrapper via template.html + standalone .svg without). <em>Disposition:</em> leave /diagram out entirely. HTML wrapper inherits template.html change incidentally; standalone .svg is unchanged. Add to Non-Goals.</li>
+  <li><strong>G3 — F2 dropped metric leaves no regression gate after DMP removal.</strong> <em>Disposition:</em> no automated gate; manual /verify review only. Risk accepted.</li>
+  <li><strong>G4 — D2/D3 re-emit race vs active comment compose.</strong> <em>Disposition:</em> existing 409+reload flow is sufficient. /spec resolves the related OQ on whether re-emit preserves or bumps <code>version</code>.</li>
+  <li><strong>G5 — inline JSON block unbounded growth.</strong> <em>Disposition:</em> soft warn at /verify when block exceeds ~200KB; no hard cap.</li>
+</ul>
+</section>
+
+<section id="open-deferred">
+<h2 id="open-deferred">Open / Deferred (handed to /spec)</h2>
+<ul>
+  <li>Probe contract for read-only detection (OQ5 from requirements) — timeout budget, behaviour when <code>localhost</code> is reachable but doesn't speak the save protocol, <code>window.location.protocol</code> short-circuit.</li>
+  <li>Re-emit <code>version</code> semantics (new OQ from G4) — preserve or increment on every re-emit?</li>
+  <li>Optional <code>generated_at</code> field in the inline JSON (OQ3 from requirements) — cheap; useful for debug.</li>
+  <li>Orphan <code>.tmp</code> UX surface (OQ4 from requirements) — stderr-only vs page banner.</li>
+</ul>
+</section>
+
+<section id="gaps-surfaced">
+<h2 id="gaps-surfaced">Gaps surfaced (Loop-2 patches)</h2>
+<ol>
+  <li><strong>Non-Goal addition</strong> — "NOT specifically inlining anything into /diagram outputs; HTML-wrapper inherits the template.html change incidentally, standalone .svg files are out of scope" (from G2).</li>
+  <li><strong>Goal #1 wording</strong> — soften from "shows existing comment threads in read-only form" to "shows existing comment threads when the host honors inline <code>&lt;script&gt;</code>" (from G1).</li>
+  <li><strong>Risk acknowledgement row</strong> — add an explicit risk capturing "no automated anchor-resolver regression gate; manual /verify review only" (from G3).</li>
+  <li><strong>New OQ entry</strong> — re-emit <code>version</code>-bump semantics on every re-emit (from G4).</li>
+</ol>
+</section>
+
+<section id="recommended-next-step">
+<h2 id="recommended-next-step">Recommended next step</h2>
+<p>Apply gaps 1–4 to <code>../01_requirements.html</code> as Loop 2 of Phase 5 review, commit, then hand off to <code>/spec</code>.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_inline-html-artifacts/grills/2026-05-28_01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">&middot;</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="../assets/comments.js?v=2.57.0"></script>
+</body>
+</html>
