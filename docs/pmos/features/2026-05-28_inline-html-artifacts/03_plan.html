@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inline-everything HTML artifacts — Plan</title>
+  <meta name="pmos:skill" content="plan">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Inline-everything HTML artifacts — Plan</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<pre>tier: 3
+type: feature
+feature: inline-html-artifacts
+spec_ref: 02_spec.html
+requirements_ref: 01_requirements.html
+date: 2026-05-28
+status: Draft
+commit_cadence: per-task
+contract_version: 1
+execution_mode: subagent-driven
+</pre>
+</section>
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p>Replace sibling-asset loading with template-substitution inlining across all 14 pmos emit surfaces; replace sidecar+FSA+localStorage persistence with a single inline JSON block written via <code>serve.js</code> POST /save; delete <code>diff-match-patch</code>, <code>turndown</code>, the FSA path, the localStorage fallback, the drift hook, and the Copy-MD button. Cutover is a single PR; migration script runs once at <code>/complete-dev</code>.</p>
+
+<p><strong>Done when:</strong> 14/14 emit surfaces render fully-styled under <code>file://</code>; <code>find docs/pmos -name '*.comments.json' | wc -l</code> = 0 after migration; all 6 verification commands in <a href="02_spec.html#verification-commands">spec §14.5</a> pass; manual smoke matrix attested per <code>MANUAL-cross-context.md</code>; net authoring-source bytes is negative.</p>
+
+<p><strong>Done-when walkthrough:</strong> (1) <code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code> exits 0 with all assertions passing; (2) <code>node …/serve.save.test.js</code> exits 0 across 5 cases including atomic-rename crash test; (3) <code>bash scripts/tests/migrate-sidecars-to-inline.test.sh</code> exits 0 (3 fixtures migrated, sidecars deleted, idempotency confirmed); (4) the four <code>! grep -r</code> deletion-set assertions return zero hits; (5) <code>find docs/pmos -name '*.comments.json'</code> returns nothing; (6) open <code>02_spec.html</code> in Chrome at <code>file://</code> — page renders styled with no console errors; open via <code>comments-open.command</code> at <code>http://localhost</code> — compose UI active, write a thread, observe file rewritten with <code>version: N+1</code>.</p>
+
+<p><strong>Execution order:</strong></p>
+<pre>
+T1 (tracer: substrate inline tokens — fixture only)
+ └─> T2 (serve.js POST/HEAD /save + atomic rename + orphan scan)
+      └─> T3 (comments.js read inline + FR-14 detection + POST + 409 banner)
+           ├─> T4 (re-emit preserves threads, bumps version)
+           ├─> T5 (JSON-escape adversarial table)
+           ├─> T6 (delete DMP + turndown + LICENSE files)
+           │    └─> T7 (replace DMP in 15 apply-edit shims + anchor-resolver)
+           ├─> T8 (remove Copy-MD button + handler)
+           └─> T9 (comments.js slim: delete FSA + localStorage + Save-sidecar btn)
+                └─> T10 (migration script + --dry-run + idempotency tests)
+                     └─> T11 (update check-comments-coverage.sh)
+                          └─> T12 (14-surface fanout assertion)
+                               └─> T13 (.gitattributes + CLAUDE.md)
+                                    └─> TN (final verification)
+</pre>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">Decision Log</h2>
+<p>Architecture decisions D1–D14 inherit from <a href="02_spec.html#decision-log">spec §4</a>. Implementation-specific decisions below.</p>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>P1</td><td>Single-PR cutover, no phase groupings in plan</td><td>(a) one implicit phase; (b) Phase-1 tracer + Phase-2 widen + Phase-3 wrap</td><td>(a) — spec §13 declares atomic cutover; phase boundaries would trigger redundant /verify passes. 14 tasks at threshold; manageable as a flat sequence with per-task verification.</td></tr>
+    <tr><td>P2</td><td>Widen FR-25 scope to all 15 apply-edit-at-anchor.js shims + resolver (16 sites), not the 4 named</td><td>(a) widen; (b) honor spec literally then patch post-cutover</td><td>(a) — grep confirms 15 shims all import DMP; patching only 4 leaves the substrate inconsistent and breaks T6 (DMP file deletion). Documented as Constraint in Code Study Notes; spec carries forward.</td></tr>
+    <tr><td>P3</td><td>Substrate renderer extension lives in a new helper file, not template.html itself</td><td>(a) new <code>plugins/pmos-toolkit/skills/_shared/html-authoring/render.js</code>; (b) inline a node script per skill</td><td>(a) — template.html stays declarative; one helper module owns the read-inline-block + JSON-escape + token substitution logic. Single test surface.</td></tr>
+    <tr><td>P4</td><td>POST /save handler is added inline to existing serve.js, not as a separate module</td><td>(a) inline; (b) separate save-handler.js + require</td><td>(a) — serve.js stays zero-deps and self-contained; ~50 LOC addition. A separate module adds ceremony without reuse value (serve.js has one caller — the launcher trio).</td></tr>
+    <tr><td>P5</td><td>Migration script in pure bash with node one-liners for JSON parse + sentinel rewrite</td><td>(a) bash+node; (b) standalone node script; (c) python</td><td>(a) — matches existing <code>scripts/</code> conventions (install-comments-hooks.sh, check-comments-coverage.sh); node-one-liner suffices for JSON.parse + inline-block replacement; bash handles the recursive walk + sidecar-delete.</td></tr>
+    <tr><td>P6</td><td>Substring-contains fallback after exact-id match uses naive String.prototype.includes (no Bitap port)</td><td>(a) includes; (b) port minimal Bitap subset; (c) fail-on-no-id-match</td><td>(a) — FR-25 + D6 + grill G3 say no automated regression gate; manual /verify covers it. <code>includes</code> is 2 LOC vs a port; matches the simplicity intent.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="code-study-notes">
+<h2 id="code-study-notes">Code Study Notes</h2>
+<p>Glossary inherited from <a href="02_spec.html">spec</a>; the plan introduces no new domain terms.</p>
+
+<h3 id="patterns-to-follow">Patterns to follow</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js:134-139</code> — existing <code>writePidFileAtomic</code> temp-then-renameSync. T2's <code>writeArtifactAtomic</code> mirrors this shape.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js:69-80</code> — <code>safeJoin</code> path-traversal hardening. POST /save handler reuses this for the path param.</li>
+  <li><code>scripts/install-comments-hooks.sh</code> — bash hook-install pattern; mirror for migration script's invocation shape.</li>
+  <li><code>scripts/check-comments-coverage.sh</code> — bash-with-grep coverage-gate pattern; T11 surgically removes 3 assertion blocks.</li>
+</ul>
+
+<h3 id="existing-code-to-reuse">Existing code to reuse</h3>
+<ul>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code> (227 LOC) — extended by T2 with POST/HEAD /save + atomic helper + orphan scan; existing handler() pipeline preserved unchanged.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> (48 LOC) — receives 3 new token slots; 4 outer asset refs removed.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> (775 LOC) — slimmed to ~350 LOC by T9 after FSA + localStorage + Save-sidecar-button removal.</li>
+  <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</code> (335 LOC) — Copy-MD handler block (T8) removed; rest preserved.</li>
+</ul>
+
+<h3 id="constraints-discovered">Constraints discovered</h3>
+<ul>
+  <li><strong>FR-25 enumeration is incomplete.</strong> Spec names 4 shims (diagram, wireframes, survey-analyse, plan); grep confirms 15 shims all import <code>diff-match-patch.js</code> + the resolver = 16 call sites. T7 covers all 16. See Decision P2.</li>
+  <li><strong>serve.js is currently a static-file server only</strong> — no body parsing, no JSON handlers. T2 adds the first request-body code path.</li>
+  <li><strong>comments.js uses <code>require('./diff-match-patch.js')</code> via a runtime DMP_PATH constant in apply-edit shims</strong>, not as a vendored bundle. Deletion (T6) is just removing the file; shim refactor (T7) drops the require + constructor + match_main calls.</li>
+  <li><strong>The substrate's <code>{{plugin_version}}</code> token is currently <code>2.57.0</code>.</strong> This feature ships under <code>2.58.0</code>; /complete-dev bumps both plugin.json manifests.</li>
+  <li><strong>No <code>.gitattributes</code> rule exists for <code>docs/pmos/**</code>.</strong> T13 adds the linguist-generated + -diff rule fresh.</li>
+  <li><strong>The substrate ships <code>turndown-plugin-gfm.umd.js</code> in addition to the two named turndown files.</strong> T6 deletes all three.</li>
+</ul>
+
+<h3 id="stack-signals">Stack signals</h3>
+<ul>
+  <li><strong>Node.js</strong> (no <code>package.json</code> at repo root, but all substrate scripts are CommonJS <code>node</code>; tests are node-as-runner). Existing pattern: bare <code>node &lt;test.js&gt;</code>, no test framework — assertions via <code>assert</code> core module.</li>
+  <li><strong>Bash</strong> for scripts/ (install-comments-hooks.sh, check-comments-coverage.sh) — POSIX sh-compatible, no shellcheck CI but conventions followed.</li>
+  <li><strong>No lockfile.</strong> Substrate is zero-deps by design (NFR-07). T2 preserves this — only Node core modules.</li>
+</ul>
+</section>
+
+<section id="prerequisites">
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+  <li>Working tree: <code>/Users/maneeshdhabria/Desktop/Projects/agent-skills-inline-html-artifacts</code> (worktree on <code>feat/inline-html-artifacts</code>, 5 commits ahead of <code>main</code>).</li>
+  <li>Node ≥ 18 (for <code>fs.rename</code>, <code>AbortController</code> in jsdom test).</li>
+  <li><code>jsdom</code> installed locally for FR-14 detection tests (one-time <code>npm install --no-save jsdom</code> in a tmpdir; tests import via absolute path or use node's <code>--experimental-vm-modules</code> + a minimal stub).</li>
+  <li>Sample <code>.comments.json</code> sidecars to migrate live under <code>docs/pmos/</code> (currently in the 2026-05-23 inline-doc-comments feature folder).</li>
+  <li>Substrate renderer (the per-skill code path that calls <code>fs.readFileSync(template.html)</code> + token substitution) — identified per skill at T1.</li>
+</ul>
+</section>
+
+<section id="file-map">
+<h2 id="file-map">File Map</h2>
+<table>
+  <thead><tr><th>Action</th><th>File</th><th>Responsibility</th><th>Task</th></tr></thead>
+  <tbody>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code></td><td>Add 3 inline tokens; remove 4 outer asset refs; remove Copy-MD button</td><td>T1, T8</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/render.js</code></td><td>Helper module: reads CSS+JS, escapes JSON, substitutes tokens, reads existing inline block on re-emit</td><td>T1, T4</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code></td><td>Add HEAD /save (204), POST /save handler, writeArtifactAtomic helper, orphan .tmp startup scan</td><td>T2</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code></td><td>Switch read path to inline JSON; add FR-14 detection; add POST /save + 409 banner; delete FSA + localStorage + Save-sidecar branches</td><td>T3, T9</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</code></td><td>Remove <code>data-pmos-action="copy-md"</code> handler block</td><td>T8</td></tr>
+    <tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code></td><td>Vendored DMP retired</td><td>T6</td></tr>
+    <tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt</code></td><td>DMP license retired</td><td>T6</td></tr>
+    <tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/turndown.umd.js</code></td><td>Turndown retired</td><td>T6</td></tr>
+    <tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/turndown-plugin-gfm.umd.js</code></td><td>Turndown plugin retired</td><td>T6</td></tr>
+    <tr><td>Delete</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.turndown.txt</code></td><td>Turndown license retired</td><td>T6</td></tr>
+    <tr><td>Delete</td><td><code>scripts/install-comments-hooks.sh</code></td><td>Drift hook installer retired</td><td>T10 (during /complete-dev runbook)</td></tr>
+    <tr><td>Modify</td><td><code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code></td><td>Replace DMP Bitap with exact-id + substring-contains</td><td>T7</td></tr>
+    <tr><td>Modify</td><td>15 × <code>plugins/pmos-toolkit/skills/&lt;skill&gt;/scripts/apply-edit-at-anchor.js</code></td><td>Drop DMP require + Bitap; use exact-id + substring-contains</td><td>T7</td></tr>
+    <tr><td>Modify</td><td><code>scripts/check-comments-coverage.sh</code></td><td>Remove FSA + drift-hook + localStorage assertions; keep 14-surface pmos:skill meta assertion</td><td>T11</td></tr>
+    <tr><td>Create</td><td><code>scripts/migrate-sidecars-to-inline.sh</code></td><td>Recursive sidecar→inline migration; --dry-run; idempotent</td><td>T10</td></tr>
+    <tr><td>Create</td><td><code>scripts/tests/migrate-sidecars-to-inline.test.sh</code></td><td>Integration test for migration script (3 fixtures, idempotency, --dry-run)</td><td>T10</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code></td><td>Substrate renderer unit tests (FR-01–FR-07, FR-04 escape)</td><td>T1, T4, T5</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js</code></td><td>serve.js POST/save integration (5 cases + crash-safety)</td><td>T2</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js</code></td><td>FR-14 read-only detection (jsdom; protocol+probe table)</td><td>T3</td></tr>
+    <tr><td>Create</td><td><code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh</code></td><td>14-surface render assertion (FR-29)</td><td>T12</td></tr>
+    <tr><td>Rename</td><td><code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> → <code>MANUAL-cross-context.md</code></td><td>Drop FSA + localStorage cols; add file://, mail, download, launcher rows</td><td>T9</td></tr>
+    <tr><td>Modify</td><td><code>.gitattributes</code></td><td>Add <code>docs/pmos/**/*.html linguist-generated=true -diff</code></td><td>T13</td></tr>
+    <tr><td>Modify</td><td><code>CLAUDE.md</code></td><td>Rewrite "Inline doc comments" section: inline persistence, serve.js write path, FSA/sidecar/drift-hook retired</td><td>T13</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="risks">
+<h2 id="risks">Risks</h2>
+<table>
+  <thead><tr><th>#</th><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Severity</th><th>Mitigation</th><th>Mitigation in:</th></tr></thead>
+  <tbody>
+    <tr><td>R1</td><td>Substrate renderer re-emit drops existing threads (FR-06 bug)</td><td>L</td><td>H</td><td>Medium</td><td>T4 round-trip test asserts threads byte-equal after re-emit; T10 migration includes spot-check of 3-5 pre-migration sidecars vs post-migration inline blocks</td><td>T4, T10</td></tr>
+    <tr><td>R2</td><td>POST /save rename(2) fails on disk-full / read-only mount mid-write</td><td>L</td><td>M</td><td>Low</td><td>T2 test exercises ENOSPC mock; FR-09 500 + <code>error: "internal"</code>; orphan .tmp left intact; FR-11 startup scan logs it</td><td>T2</td></tr>
+    <tr><td>R3</td><td>DMP removal silently degrades anchor resolution on unusual quote shapes (grill G3 risk-accepted)</td><td>M</td><td>L</td><td>Low</td><td>No automated gate (D6); manual /verify spot-check of 3-5 existing threads in 02_spec.html + spec from another feature; documented in /verify runbook</td><td>TN, /verify Phase 7</td></tr>
+    <tr><td>R4</td><td>One of the 14 emit surfaces has a code path that bypasses template.html</td><td>L</td><td>M</td><td>Low</td><td>T12 fanout test renders one sample artifact per skill and greps for the inline sentinels; FR-29 verification</td><td>T12</td></tr>
+    <tr><td>R5</td><td>Migration script botches a subset of sidecars (e.g., artifact lacks the substrate update yet)</td><td>L</td><td>M</td><td>Low</td><td>T10 --dry-run + spot-check 3-5 before real run; idempotency test; rollback via git revert</td><td>T10</td></tr>
+    <tr><td>R6</td><td>Inline JSON block accumulates pathologically (NFR-03)</td><td>L</td><td>L</td><td>Low</td><td>T11 keeps the size soft-warn assertion in coverage gate; /verify warns at 200KB; user judges trim/archive</td><td>T11</td></tr>
+    <tr><td>R7</td><td>Assumption #1 (Claude desktop preview honors inline &lt;script&gt;) fails — overlay invisible under file://</td><td>M</td><td>L</td><td>Low</td><td>Risk-accepted per D9; Goal #1 wording already scoped to script-permitting hosts; CSS-only fallback documented but not implemented in this PR; validated at /verify</td><td>/verify Phase 7</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="rollback">
+<h2 id="rollback">Rollback</h2>
+<ul>
+  <li><strong>Pre-migration rollback:</strong> <code>git revert &lt;PR-merge-sha&gt;</code> restores the entire substrate. Pre-feature artifacts in <code>docs/pmos/</code> are untouched until T10 runs at /complete-dev.</li>
+  <li><strong>Post-migration rollback:</strong> the migration commit (T10's <code>docs(migration): inline sidecars across docs/pmos</code>) can be reverted independently. <code>git show &lt;pre-migration-sha&gt;:&lt;sidecar-path&gt;</code> recovers any specific sidecar from history.</li>
+  <li><strong>serve.js regression:</strong> revert the T2 commit only; comments.js read path still works via FR-13 inline read (read-only mode). Authors regain compose UI when the revert is undone.</li>
+  <li><strong>No data loss possible</strong> — every state lives in git (per spec §15.2).</li>
+</ul>
+</section>
+
+<section id="tasks">
+<h2 id="tasks">Tasks</h2>
+
+<h3 id="t1">T1: Substrate template + renderer with inline tokens (tracer bullet)</h3>
+<p><strong>Goal:</strong> Modify <code>template.html</code> with 3 new inline tokens; create <code>render.js</code> helper that reads CSS+JS+seed-JSON and substitutes; minimal happy-path test proves a fixture artifact emits with inline blocks.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-substrate">FR-01, FR-02, FR-03, FR-05, FR-07</a></p>
+<p><strong>Depends on:</strong> none</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — exercises the riskiest unproven layer (template substitution + JSON-escape) end-to-end against a real fixture, proving the architecture before any further work.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> (add 3 token slots: <code>{{inline_css}}</code> in &lt;head&gt;, <code>{{inline_js}}</code> + <code>{{inline_comments_json}}</code> at end of &lt;body&gt;; remove 4 outer <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> asset refs to style.css/comments.css/viewer.js/comments.js)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/render.js</code> (~80 LOC: <code>renderArtifact({ template, title, content, sourcePath, assetPrefix, pluginVersion, pmosSkill, existingHtml? })</code> → string)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code> (uses node's built-in <code>assert</code>; no test framework)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write failing test for fresh-emit inline tokens.</strong>
+  <pre>// tests/render.test.js
+const assert = require('node:assert/strict');
+const fs     = require('node:fs');
+const path   = require('node:path');
+const { renderArtifact } = require('../render.js');
+
+const tmpl = fs.readFileSync(path.join(__dirname, '..', 'template.html'), 'utf8');
+
+(function freshEmit() {
+  const out = renderArtifact({
+    template: tmpl,
+    title: 'Test',
+    content: '&lt;section&gt;hi&lt;/section&gt;',
+    sourcePath: 'tests/fixture.html',
+    assetPrefix: 'assets/',
+    pluginVersion: '2.58.0',
+    pmosSkill: 'test',
+  });
+  assert.match(out, /&lt;style&gt;[\s\S]*pmos-artifact-toolbar[\s\S]*&lt;\/style&gt;/, 'inline CSS present');
+  assert.match(out, /&lt;script&gt;[\s\S]*comments-overlay[\s\S]*&lt;\/script&gt;/, 'inline JS present');
+  assert.match(out, /&lt;!-- pmos-comments:start --&gt;[\s\S]*&lt;script id="pmos-comments" type="application\/json"&gt;[\s\S]*"schema":1[\s\S]*"version":0[\s\S]*"threads":\[\][\s\S]*&lt;\/script&gt;[\s\S]*&lt;!-- pmos-comments:end --&gt;/, 'inline JSON block present');
+  assert.doesNotMatch(out, /&lt;link[^&gt;]+style\.css/, 'outer style.css link removed');
+  assert.doesNotMatch(out, /&lt;script[^&gt;]+viewer\.js/, 'outer viewer.js script removed');
+  console.log('OK: freshEmit');
+})();</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect FAIL.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+# Expect: MODULE_NOT_FOUND on require('../render.js')</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Implement <code>render.js</code> (minimal happy path).</strong>
+  <ul>
+    <li>Read <code>style.css</code> + <code>comments.css</code> from <code>assets/</code>; concatenate.</li>
+    <li>Read <code>viewer.js</code> + <code>comments.js</code> from <code>assets/</code>; concatenate.</li>
+    <li>Build seed JSON: <code>{schema:1, version:0, generated_at: new Date().toISOString(), threads:[]}</code>; pass to a <code>jsonInlineEscape</code> helper that runs <code>JSON.stringify(payload).replace(/&lt;/g, '\\u003c')</code>.</li>
+    <li>Substitute <code>{{inline_css}}</code> → <code>&lt;style&gt;\n${css}\n&lt;/style&gt;</code>; <code>{{inline_js}}</code> → <code>&lt;script&gt;\n${js}\n&lt;/script&gt;</code>; <code>{{inline_comments_json}}</code> → the sentinel-bracketed script tag per FR-04.</li>
+    <li>Existing <code>{{title}}/{{content}}/{{source_path}}/{{asset_prefix}}/{{plugin_version}}/{{pmos_skill}}</code> tokens substituted unchanged.</li>
+    <li>Export <code>renderArtifact</code> and <code>jsonInlineEscape</code>.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 4: Modify <code>template.html</code> per FR-01/FR-02.</strong>
+  <ul>
+    <li>Delete lines 17–19 (the 3 outer asset refs in &lt;head&gt;) and replace with: <code>{{inline_css}}</code> on its own line.</li>
+    <li>Delete line 46 (the outer comments.js &lt;script&gt;) and replace with: <code>{{inline_js}}</code>\n<code>{{inline_comments_json}}</code>.</li>
+    <li>Update the leading comment block to mention the 3 new tokens.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 5: Run test; expect PASS.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+# Expect: OK: freshEmit</pre>
+  </li>
+
+  <li>[ ] <strong>Step 6: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/template.html \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/render.js \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+git commit -m "feat(T1): inline css/js/seed-json into template substrate"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code> — prints <code>OK: freshEmit</code>, exit 0.</li>
+  <li><code>grep -c '{{inline_' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — returns 3.</li>
+  <li><code>grep -c '&lt;link\|&lt;script defer' plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — returns 0.</li>
+</ul>
+
+<h3 id="t2">T2: serve.js POST /save + HEAD /save + atomic write + orphan scan</h3>
+<p><strong>Goal:</strong> Extend serve.js with HEAD/POST /save handlers, atomic temp-then-rename helper, and startup orphan .tmp scan. Five integration test cases pass including crash-mid-write recovery.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-serve">FR-08, FR-09, FR-10, FR-11, FR-12</a>, <a href="02_spec.html#non-functional-requirements">NFR-05, NFR-07</a>, <a href="02_spec.html#api-contracts">§9</a></p>
+<p><strong>Depends on:</strong> T1</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — fires real HTTP requests against a real serve.js bound to a real tempdir; exercises every layer of the write path.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js</code> (~80 LOC added)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js</code> (~200 LOC)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write 5 failing test cases in <code>serve.save.test.js</code>.</strong>
+  <ul>
+    <li><strong>(1) HEAD /save → 204.</strong> Start serve on <code>--port 0</code> in a tmpdir; <code>fetch('http://127.0.0.1:PORT/save', {method:'HEAD'})</code> returns <code>status === 204</code> and no body.</li>
+    <li><strong>(2) POST happy path.</strong> Tmpdir has <code>foo.html</code> with inline block <code>version:5</code>. POST <code>{expected_version:5, payload:{schema:1,version:5,generated_at:'...',threads:[{id:'t1',text:'hi'}]}}</code>. Response <code>200 {version:6, generated_at:&lt;ISO&gt;}</code>. Re-read <code>foo.html</code>: inline block contains <code>version:6</code> and the new thread.</li>
+    <li><strong>(3) Stale version → 409.</strong> Same fixture; POST with <code>expected_version:4</code>. Response <code>409 {error:'version-conflict', current_version:5, current_generated_at:'...'}</code>. File unchanged.</li>
+    <li><strong>(4) Malformed JSON → 400.</strong> POST raw string <code>'not json'</code>. Response <code>400 {error:'schema-validation-failed', details:'...'}</code>. File unchanged.</li>
+    <li><strong>(5) Crash-safety + orphan scan.</strong> Manually drop <code>foo.html.tmp</code> in tmpdir before start; start serve; capture stderr; assert it contains <code>orphan .tmp from previous run: foo.html.tmp</code>; assert <code>foo.html.tmp</code> still exists (no auto-delete).</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect 5 FAILs.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js
+# Expect: all 5 assertions fail (HEAD returns 404, POST returns 404, orphan scan absent)</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Implement serve.js extensions.</strong>
+  <ul>
+    <li><strong>Startup orphan scan.</strong> In <code>start()</code> just after listen succeeds, <code>fs.readdirSync(root)</code>, filter <code>*.html.tmp</code>, for each <code>process.stderr.write(\`orphan .tmp from previous run: ${name} — inspect and delete manually\n\`)</code>. No auto-delete.</li>
+    <li><strong>Handler dispatch.</strong> Modify <code>handler()</code>: if <code>req.url === '/save'</code> and <code>req.method === 'HEAD'</code> → <code>send(res, 204, '')</code> with no body. If <code>req.url === '/save'</code> and <code>req.method === 'POST'</code> → buffer body (cap at 5MB; reject larger as 413), <code>JSON.parse</code>, dispatch to <code>handleSave(root, body, res)</code>. Else fall through to existing static-file logic.</li>
+    <li><strong><code>handleSave(root, body, res)</code>:</strong>
+      <ol>
+        <li>Validate body shape: <code>typeof body.expected_version === 'number'</code> + <code>body.payload &amp;&amp; typeof body.payload.version === 'number'</code> + <code>body.payload.schema === 1</code> + <code>Array.isArray(body.payload.threads)</code>. On fail → 400 with <code>schema-validation-failed</code>.</li>
+        <li>Resolve artifact path: take from a <code>?artifact=</code> query string OR (default) the single <code>*.html</code> at root that isn't <code>index.html</code>. If ambiguous: 400 with <code>schema-validation-failed</code> + <code>details: 'artifact param required'</code>.</li>
+        <li><code>safeJoin</code> the resolved path (reuse from line 69).</li>
+        <li>Read artifact via <code>fs.readFileSync</code>.</li>
+        <li>Extract inline block: regex <code>/&lt;!-- pmos-comments:start --&gt;[\s\S]*?&lt;script id="pmos-comments" type="application\/json"&gt;([\s\S]*?)&lt;\/script&gt;[\s\S]*?&lt;!-- pmos-comments:end --&gt;/</code>; <code>JSON.parse</code> the capture group. On parse fail: 500 with <code>internal</code>.</li>
+        <li>Compare <code>current.version</code> vs <code>body.expected_version</code>. On mismatch: 409 with <code>version-conflict, current_version, current_generated_at</code>.</li>
+        <li>Build new payload: <code>{schema:1, version: body.expected_version + 1, generated_at: new Date().toISOString(), threads: body.payload.threads}</code>.</li>
+        <li>Re-escape via <code>jsonInlineEscape</code> (require from <code>../render.js</code> or duplicate the 1-liner).</li>
+        <li>Build new file content: replace the captured block with the new one.</li>
+        <li><code>writeArtifactAtomic(path, content)</code>: <code>fs.writeFileSync(path + '.tmp', content)</code>; <code>fs.renameSync(path + '.tmp', path)</code>. Throws bubble to handler → 500 <code>internal</code>.</li>
+        <li>200 with <code>{version, generated_at}</code>.</li>
+      </ol>
+    </li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 4: Run test; expect 5 PASSes.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js
+# Expect: OK: HEAD-204 / POST-happy / POST-409 / POST-400 / orphan-scan-stderr</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/serve.js \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js
+git commit -m "feat(T2): serve.js POST/HEAD /save + atomic write + orphan scan"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js</code> — 5 PASSes, exit 0.</li>
+  <li>Manual: <code>cd /tmp/test-fixture &amp;&amp; node /path/to/serve.js --port 0 --pid-file /tmp/pid.json</code>; <code>cat /tmp/pid.json</code> shows pid+port; <code>curl -sI http://127.0.0.1:PORT/save</code> shows <code>204 No Content</code>.</li>
+</ul>
+
+<h3 id="t3">T3: comments.js read inline JSON + FR-14 detection + POST submit + 409 banner</h3>
+<p><strong>Goal:</strong> Switch comments.js read path from sidecar fetch to inline JSON; implement FR-14 read-only detection (protocol short-circuit + HEAD probe + 500ms timeout); add POST /save on thread submit + 409 banner rendering. Existing thread rendering unchanged.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-client">FR-13, FR-14, FR-15, FR-16, FR-17</a>, <a href="02_spec.html#edge-cases">E2, E3, E4, E5, E6, E11</a></p>
+<p><strong>Depends on:</strong> T1, T2</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — covers protocol detection, network probe, POST submit, and DOM banner mount; tested via jsdom + a fake fetch.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> (replace fetch-sidecar path with inline read; add detection + POST; ~120 LOC delta — full FSA/localStorage gut at T9)</li>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js</code> (jsdom; 4 detection-table cases + 2 POST cases)</li>
+</ul>
+
+<p><strong>Data:</strong> jsdom fixture HTML containing the inline JSON block at <code>version:5</code> with 2 sample threads.</p>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write failing detection-table test.</strong>
+  <pre>// tests/comments-detect.test.js
+const assert = require('node:assert/strict');
+const { JSDOM } = require('jsdom');
+const path = require('node:path');
+const fs   = require('node:fs');
+
+const commentsJs = fs.readFileSync(
+  path.join(__dirname, '..', 'assets', 'comments.js'), 'utf8'
+);
+const fixture = `&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;
+&lt;!-- pmos-comments:start --&gt;
+&lt;script id="pmos-comments" type="application/json"&gt;
+{"schema":1,"version":5,"generated_at":"2026-05-28T00:00:00Z","threads":[]}
+&lt;/script&gt;
+&lt;!-- pmos-comments:end --&gt;
+&lt;/body&gt;&lt;/html&gt;`;
+
+async function runDetect(protocol, headStatus, timeoutMs) {
+  const dom = new JSDOM(fixture, { url: `${protocol}//host/x.html`, runScripts: 'outside-only' });
+  const w = dom.window;
+  w.fetch = (url, opts) =&gt; {
+    if (timeoutMs) return new Promise((_, rej) =&gt; setTimeout(() =&gt; rej(new Error('AbortError')), timeoutMs));
+    return Promise.resolve({ status: headStatus, ok: headStatus &lt; 400 });
+  };
+  // Inject comments.js as a script tag and let it run; expose pmosComments.mode.
+  // ... (test harness — see implementation)
+}
+
+(async function () {
+  assert.equal(await runDetect('file:', null, null), 'read-only', 'file:// short-circuit');
+  assert.equal(await runDetect('http:', 204, null),  'read-write', 'http://+204');
+  assert.equal(await runDetect('http:', 404, null),  'read-only', 'http://+404');
+  assert.equal(await runDetect('http:', null, 600),  'read-only', 'http://+timeout&gt;500ms');
+  console.log('OK: detect-table');
+})();</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect FAIL.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js
+# Expect: assertion failure (detection not implemented)</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Modify comments.js.</strong>
+  <ul>
+    <li>Replace the existing init that fetches a sidecar with: <code>JSON.parse(document.getElementById('pmos-comments').textContent)</code>; hydrate <code>_state = {version, generated_at, threads}</code>.</li>
+    <li>Add <code>async function detectMode() { if (location.protocol === 'file:') return 'read-only'; const c = new AbortController(); setTimeout(() =&gt; c.abort(), 500); try { const r = await fetch('/save', {method:'HEAD', signal: c.signal}); return r.ok ? 'read-write' : 'read-only'; } catch { return 'read-only'; } }</code>.</li>
+    <li>Set <code>_state.mode</code> from <code>detectMode()</code> at mount. If read-only: hide compose UI (existing selector trigger + dialog); render passive footer hint "Read-only — launch comments-open to add comments".</li>
+    <li><strong>Submit handler.</strong> On thread-create form submit, POST <code>{expected_version: _state.version, payload: {schema:1, version: _state.version, generated_at: _state.generated_at, threads: [..._state.threads, newThread]}}</code> to <code>/save</code>. On 200: update <code>_state.version + generated_at</code>; close dialog; insert thread badge. On 409: render top-of-page banner <code>This document was updated since you opened it (current version: M). Reload to merge.</code> with a Reload button; keep compose disabled.</li>
+    <li>Keep existing thread-badge rendering unchanged.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 4: Run test; expect PASS.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js
+# Expect: OK: detect-table</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Add 409 banner test.</strong> Same harness, but stub <code>w.fetch</code> for POST /save to return <code>{status:409, json: () =&gt; Promise.resolve({error:'version-conflict', current_version:8})}</code>. After submit: assert <code>dom.window.document.querySelector('.pmos-conflict-banner')</code> is non-null and text includes "current version: 8". Implement banner if needed.</li>
+
+  <li>[ ] <strong>Step 6: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js
+git commit -m "feat(T3): comments.js inline read + FR-14 detection + 409 banner"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js</code> — both blocks PASS.</li>
+  <li>Manual smoke: open a freshly-emitted artifact under <code>file://</code> in Chrome → DevTools console shows zero failed fetches; <code>document.querySelector('.pmos-compose-trigger')?.style.display</code> is <code>'none'</code>.</li>
+</ul>
+
+<h3 id="t4">T4: Re-emit preserves threads + bumps version</h3>
+<p><strong>Goal:</strong> <code>render.js</code> reads any existing inline block in the target file (via the sentinel regex), parses its threads, increments version, stamps new generated_at, and writes back. Fresh emit (no existing file) seeds version=0.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-substrate">FR-06, FR-07</a>, <a href="02_spec.html#edge-cases">E11, E13</a>, <a href="02_spec.html#decision-log">D13</a></p>
+<p><strong>Depends on:</strong> T1</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — widens T1 with the re-emit path; round-trip thread preservation is the entire user value of FR-06.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/render.js</code> (add <code>extractExistingPayload(htmlString)</code> helper; teach <code>renderArtifact</code> to consume <code>opts.existingHtml</code>)</li>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code> (add re-emit + missing-block cases)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Add failing re-emit test.</strong>
+  <pre>// in render.test.js
+(function reEmit() {
+  const existing = renderArtifact({
+    template: tmpl, title: 'x', content: '', sourcePath: 'x', assetPrefix: 'assets/',
+    pluginVersion: '2.58.0', pmosSkill: 'test',
+  });
+  // Surgically bump version + add a thread:
+  const v5 = existing.replace(
+    /("version":\s*)0/, '$15'
+  ).replace(
+    /"threads":\[\]/, '"threads":[{"id":"t1","quote":"hi"}]'
+  );
+  const out = renderArtifact({
+    template: tmpl, title: 'x', content: '', sourcePath: 'x', assetPrefix: 'assets/',
+    pluginVersion: '2.58.0', pmosSkill: 'test',
+    existingHtml: v5,
+  });
+  const m = out.match(/&lt;script id="pmos-comments"[^&gt;]*&gt;([\s\S]*?)&lt;\/script&gt;/);
+  const parsed = JSON.parse(m[1]);
+  assert.equal(parsed.version, 6, 're-emit bumps version 5 -&gt; 6');
+  assert.deepEqual(parsed.threads, [{id:'t1', quote:'hi'}], 'threads preserved');
+  assert.match(parsed.generated_at, /^\d{4}-\d{2}-\d{2}T/, 'fresh generated_at stamped');
+  console.log('OK: reEmit');
+})();
+
+(function missingBlock() {
+  // E13: pre-feature artifact with no inline block
+  const out = renderArtifact({
+    template: tmpl, title: 'x', content: '', sourcePath: 'x', assetPrefix: 'assets/',
+    pluginVersion: '2.58.0', pmosSkill: 'test',
+    existingHtml: '&lt;html&gt;&lt;body&gt;ancient&lt;/body&gt;&lt;/html&gt;',
+  });
+  const m = out.match(/&lt;script id="pmos-comments"[^&gt;]*&gt;([\s\S]*?)&lt;\/script&gt;/);
+  const parsed = JSON.parse(m[1]);
+  assert.equal(parsed.version, 0, 'missing block seeds version=0');
+  assert.deepEqual(parsed.threads, [], 'missing block seeds empty threads');
+  console.log('OK: missingBlock');
+})();</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect FAIL on reEmit (existingHtml ignored).</strong></li>
+
+  <li>[ ] <strong>Step 3: Implement <code>extractExistingPayload</code> and wire into <code>renderArtifact</code>.</strong>
+  <ul>
+    <li><code>extractExistingPayload(html)</code>: regex <code>/&lt;script id="pmos-comments" type="application\/json"&gt;([\s\S]*?)&lt;\/script&gt;/</code>; on match <code>JSON.parse(group1.trim().replace(/\\u003c/g, '&lt;'))</code> + return; on no match return null.</li>
+    <li>In <code>renderArtifact</code>: if <code>opts.existingHtml</code> non-null, call <code>extractExistingPayload</code>; if non-null, use <code>{schema:1, version: prior.version + 1, generated_at: now, threads: prior.threads}</code> as the seed; else use fresh seed (version 0). Per D13: always increment, never preserve.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 4: Run; expect both PASSes.</strong></li>
+
+  <li>[ ] <strong>Step 5: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/render.js \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+git commit -m "feat(T4): re-emit preserves threads, bumps version"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js</code> — <code>OK: freshEmit / reEmit / missingBlock</code>.</li>
+</ul>
+
+<h3 id="t5">T5: JSON-string escape adversarial table</h3>
+<p><strong>Goal:</strong> Table-driven test of <code>jsonInlineEscape</code> against 5 adversarial inputs. Output is safe (no embedded close-script token) AND round-trips through JSON.parse.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-substrate">FR-04</a>, <a href="02_spec.html#fr-client">FR-17</a>, <a href="02_spec.html#edge-cases">E8</a></p>
+<p><strong>Depends on:</strong> T1</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — narrow but end-to-end (input → escape → parse → assert).</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/json-escape.test.js</code> (~40 LOC)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write failing test.</strong>
+  <pre>const assert = require('node:assert/strict');
+const { jsonInlineEscape } = require('../render.js');
+
+const cases = [
+  { name: 'close-script',   input: 'before &lt;/script&gt; after' },
+  { name: 'open-comment',   input: 'before &lt;!-- ha after' },
+  { name: 'cdata-close',    input: 'before ]]&gt; after' },
+  { name: 'surrogate-pair', input: 'emoji 😀 here' },
+  { name: 'mixed',          input: '&lt;/script&gt;&lt;!--&lt;&gt;&amp;&amp;' },
+];
+
+for (const c of cases) {
+  const payload = { schema:1, version:0, generated_at:'2026-01-01T00:00:00Z', threads:[{id:'t',quote:c.input}] };
+  const escaped = jsonInlineEscape(payload);
+  assert.equal(escaped.includes('&lt;/script&gt;'), false, `${c.name}: no raw &lt;/script&gt;`);
+  const parsed = JSON.parse(escaped.replace(/\\u003c/g, '&lt;'));
+  assert.equal(parsed.threads[0].quote, c.input, `${c.name}: round-trips`);
+}
+console.log('OK: json-escape');</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect FAIL if <code>jsonInlineEscape</code> doesn't yet escape &lt;.</strong></li>
+
+  <li>[ ] <strong>Step 3: Confirm <code>render.js</code>'s <code>jsonInlineEscape</code> handles all 5; tighten regex if needed (e.g., escape <code>--&gt;</code> sequences inside JSON strings is unnecessary since they're already inside JSON quoted strings, but <code>&lt;</code> escape covers <code>&lt;/script&gt;</code> by design).</strong></li>
+
+  <li>[ ] <strong>Step 4: Run; expect PASS.</strong></li>
+
+  <li>[ ] <strong>Step 5: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/tests/json-escape.test.js
+git commit -m "test(T5): json-escape adversarial table"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/json-escape.test.js</code> — <code>OK: json-escape</code>.</li>
+</ul>
+
+<h3 id="t6">T6: Delete DMP + turndown + LICENSE files</h3>
+<p><strong>Goal:</strong> Remove 5 files from substrate <code>assets/</code>: diff-match-patch.js, LICENSE.dmp.txt, turndown.umd.js, turndown-plugin-gfm.umd.js, LICENSE.turndown.txt.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-deletions">FR-24</a>, <a href="02_spec.html#decision-log">D6, D7</a></p>
+<p><strong>Depends on:</strong> none (independent of T7 in source-tree terms; T7 done before merge to keep tree consistent)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> no — deletion task; verification is a grep + ls.</p>
+<p><strong>Slice shape:</strong> config — pure asset deletion. Vertical exception: no behavior layer, only file removal.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Delete: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js</code></li>
+  <li>Delete: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.dmp.txt</code></li>
+  <li>Delete: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/turndown.umd.js</code></li>
+  <li>Delete: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/turndown-plugin-gfm.umd.js</code></li>
+  <li>Delete: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/LICENSE.turndown.txt</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Pre-flight — confirm T7 is complete or in progress.</strong> Run <code>grep -rln "diff-match-patch.js\|turndown" plugins/pmos-toolkit/skills/ --include="*.js" --exclude-dir=node_modules</code>. If any caller still requires these, halt and complete T7 first.</li>
+
+  <li>[ ] <strong>Step 2: Delete files.</strong>
+  <pre>cd plugins/pmos-toolkit/skills/_shared/html-authoring/assets/
+git rm diff-match-patch.js LICENSE.dmp.txt \
+       turndown.umd.js turndown-plugin-gfm.umd.js LICENSE.turndown.txt</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Verify.</strong>
+  <pre>ls plugins/pmos-toolkit/skills/_shared/html-authoring/assets/ | grep -E "diff-match|turndown" || echo "OK: all gone"</pre>
+  </li>
+
+  <li>[ ] <strong>Step 4: Commit.</strong>
+  <pre>git commit -m "chore(T6): delete diff-match-patch + turndown + LICENSE files"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>ls plugins/pmos-toolkit/skills/_shared/html-authoring/assets/ | wc -l</code> — drops by 5.</li>
+  <li><code>! ls plugins/pmos-toolkit/skills/_shared/html-authoring/assets/diff-match-patch.js 2&gt;/dev/null</code> — returns 0 (file gone, ls errored).</li>
+</ul>
+
+<h3 id="t7">T7: Replace DMP call sites in 15 apply-edit shims + anchor-resolver (exact-id + substring-contains)</h3>
+<p><strong>Goal:</strong> All 16 call sites (15 apply-edit-at-anchor.js + 1 anchor-resolver.js) drop the DMP require + Bitap, use exact-id match first, then naive substring-contains fallback. Per Decision P2, widens spec FR-25's 4-shim scope to all 15.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-deletions">FR-25</a>, <a href="02_spec.html#decision-log">D6</a>, grill G3 (no automated gate)</p>
+<p><strong>Depends on:</strong> T1</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — bug-fix (regression test for one happy-path resolution per shim type)</p>
+<p><strong>Slice shape:</strong> vertical — narrow per shim; touches the resolver layer end-to-end.</p>
+
+<p><strong>Files (16 total):</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js</code></li>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/{architecture,artifact,diagram,ideate,plan,polish,prototype,readme,requirements,spec,survey-analyse,survey-design,wireframes,feature-sdlc,comments}/scripts/apply-edit-at-anchor.js</code> — 15 shims</li>
+  <li>Modify: existing per-shim test files at <code>plugins/pmos-toolkit/skills/&lt;skill&gt;/tests/apply-edit-at-anchor.test.js</code> if any currently assert on Bitap-score paths</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Inventory the shims.</strong>
+  <pre>grep -rln "diff_match_patch\|diff-match-patch\|DiffMatchPatch" plugins/pmos-toolkit/skills/ --include="*.js"
+# Confirm 16 files (15 apply-edit + 1 anchor-resolver). Save list.</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: For ONE shim (e.g., spec), write a failing regression test.</strong>
+  <pre>// plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.no-dmp.test.js
+const assert = require('node:assert/strict');
+const { apply } = require('../scripts/apply-edit-at-anchor.js');
+// Fixture: spec HTML with id="fr-01" anchor + quote that contains "atomic write"
+const out = apply({
+  artifact_path: '/tmp/spec.html',
+  anchor: { id_anchor: 'fr-01', quote_anchor: { text: 'atomic write contract' } },
+  edit: { /* placeholder */ },
+});
+assert.equal(out.success, true);
+assert.equal(out.strategy, 'id-first');
+console.log('OK: spec apply-edit no-dmp');</pre>
+  Create a similar fixture artifact under <code>tests/fixtures/</code> if not already present.</li>
+
+  <li>[ ] <strong>Step 3: Run; expect FAIL (DMP path still active or test missing).</strong></li>
+
+  <li>[ ] <strong>Step 4: Refactor <em>one</em> shim (spec) — pattern to replicate:</strong>
+  <ol>
+    <li>Delete <code>const DMP_PATH = ...; const { diff_match_patch } = require(DMP_PATH);</code>.</li>
+    <li>Delete <code>const dmp = new diff_match_patch();</code>.</li>
+    <li>Replace the Bitap-fallback block with:
+    <pre>// exact-id first
+let match = html.match(new RegExp(`id="${anchor.id_anchor}"`));
+if (match) return { strategy: 'id-first', score: 1.0, index: match.index };
+
+// substring-contains fallback (FR-25 + P6)
+const q = anchor.quote_anchor.text;
+if (q &amp;&amp; q.length &gt;= 40 &amp;&amp; html.includes(q)) {
+  return { strategy: 'substring-contains', score: 0.8, index: html.indexOf(q) };
+}
+return null;</pre>
+    </li>
+  </ol>
+  </li>
+
+  <li>[ ] <strong>Step 5: Run spec shim test; expect PASS.</strong></li>
+
+  <li>[ ] <strong>Step 6: Replicate the refactor across the other 14 shims + anchor-resolver.</strong> Use the same regex-and-replace pattern. For each shim, confirm the existing per-shim test still passes (or add a minimal id-first test if one is missing).</li>
+
+  <li>[ ] <strong>Step 7: Run all shim tests.</strong>
+  <pre>for f in plugins/pmos-toolkit/skills/*/tests/apply-edit-at-anchor*.test.js; do
+  echo "== $f"
+  node "$f"
+done</pre>
+  All exit 0.</li>
+
+  <li>[ ] <strong>Step 8: Verify grep returns 0.</strong>
+  <pre>! grep -rln "diff_match_patch\|diff-match-patch" plugins/pmos-toolkit/skills/ --include="*.js"</pre>
+  </li>
+
+  <li>[ ] <strong>Step 9: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/*/scripts/apply-edit-at-anchor.js \
+        plugins/pmos-toolkit/skills/comments/scripts/anchor-resolver.js \
+        plugins/pmos-toolkit/skills/spec/tests/apply-edit-at-anchor.no-dmp.test.js
+git commit -m "refactor(T7): drop DMP across 15 apply-edit shims + anchor-resolver"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -rln "diff_match_patch\|diff-match-patch" plugins/pmos-toolkit/skills/ --include="*.js"</code> — exit 0.</li>
+  <li>Per-shim test exit 0 across all 15.</li>
+</ul>
+
+<h3 id="t8">T8: Remove Copy-MD button + handler</h3>
+<p><strong>Goal:</strong> Delete the <code>data-pmos-action="copy-md"</code> button from <code>template.html</code> toolbar; delete the matching handler block from <code>viewer.js</code>. Page header retains the Copy-section-link button only.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-deletions">FR-26</a>, <a href="02_spec.html#decision-log">D7</a></p>
+<p><strong>Depends on:</strong> T1 (template change)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> no — purely additive deletion; grep verification.</p>
+<p><strong>Slice shape:</strong> css-only-equivalent — UI element removal only.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — delete line 25 (the Copy-MD button)</li>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</code> — delete the <code>[data-pmos-action="copy-md"]</code> handler block</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Locate viewer.js handler.</strong>
+  <pre>grep -n "copy-md" plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Edit template.html.</strong> Remove the <code>&lt;button ... data-pmos-action="copy-md"&gt;Copy Markdown&lt;/button&gt;</code> line (line 25).</li>
+
+  <li>[ ] <strong>Step 3: Edit viewer.js.</strong> Remove the entire if-block / event listener that handles <code>data-pmos-action="copy-md"</code> clicks (the turndown invocation + clipboard write). Verify the Copy-section-link handler is untouched.</li>
+
+  <li>[ ] <strong>Step 4: Re-emit a sample artifact and visually inspect.</strong>
+  <pre>node -e "
+    const fs = require('fs');
+    const { renderArtifact } = require('./plugins/pmos-toolkit/skills/_shared/html-authoring/render.js');
+    const tmpl = fs.readFileSync('./plugins/pmos-toolkit/skills/_shared/html-authoring/template.html', 'utf8');
+    const out = renderArtifact({template:tmpl, title:'t', content:'', sourcePath:'x', assetPrefix:'assets/', pluginVersion:'2.58.0', pmosSkill:'test'});
+    console.log(out.match(/data-pmos-action/g) || 'OK: no copy-md');
+  "
+# Expect single match: [ "data-pmos-action=\"copy-link\"" ] (the section-link button only)</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Verify grep cleanup.</strong>
+  <pre>! grep -rn 'data-pmos-action="copy-md"' plugins/pmos-toolkit/skills/</pre>
+  </li>
+
+  <li>[ ] <strong>Step 6: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/template.html \
+        plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js
+git commit -m "feat(T8): remove Copy-MD button + handler"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>! grep -rn 'data-pmos-action="copy-md"' plugins/pmos-toolkit/skills/</code> — exit 0.</li>
+  <li><code>! grep -n "turndown" plugins/pmos-toolkit/skills/_shared/html-authoring/assets/viewer.js</code> — exit 0.</li>
+</ul>
+
+<h3 id="t9">T9: comments.js slim — delete FSA + localStorage + Save-sidecar branches; rename manual smoke matrix</h3>
+<p><strong>Goal:</strong> Surgically remove ~400 LOC from comments.js: FSA detection + writeFile branches, localStorage mirror/restore/clear, Save-sidecar button, FSA-availability badge. Rename <code>MANUAL-fsa-fallback.md</code> → <code>MANUAL-cross-context.md</code>, restructure rows for the new context matrix.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-deletions">FR-27, FR-18</a>, <a href="02_spec.html#end-to-end-tests">§14.3</a></p>
+<p><strong>Depends on:</strong> T3 (read path is now inline; T3 left the FSA path as dead code which T9 removes)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> no — deletion task; covered by T3 tests already passing without FSA path</p>
+<p><strong>Slice shape:</strong> refactor-prep — pure deletion of unreachable code that T3 already bypassed. Reduces comments.js from ~775 LOC to ~350 LOC.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code></li>
+  <li>Rename: <code>plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md</code> → <code>MANUAL-cross-context.md</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Identify deletion regions in comments.js.</strong>
+  <pre>grep -n "FSA\|fsa\|_fsaFallbackMode\|localStorage\|showSaveFilePicker\|_lsKey\|saveSidecarBtn\|reviewMode" \
+  plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</pre>
+  Tag every line for deletion in a scratch buffer.</li>
+
+  <li>[ ] <strong>Step 2: Delete.</strong> Remove:
+  <ol>
+    <li>FSA detection block (~lines 127–145): <code>_fsaFallbackMode</code>, <code>hasDP</code>, <code>hasSFP</code>, <code>showSaveFilePicker</code> references.</li>
+    <li>localStorage mirror/restore/clear functions (~lines 144–175).</li>
+    <li>Save-sidecar button creation + render (~lines 178–200).</li>
+    <li>FSA re-request prompt + writeFile branches in the submit path (~lines 530–600). Replace with the FR-16 POST /save flow added in T3 (already present).</li>
+    <li>localStorage rehydrate-on-mount block (~lines 713–732).</li>
+    <li>The "T22 additions" block (~line 755 onward).</li>
+    <li>Any references to <code>_fsaFallbackMode</code> or <code>localStorage</code> elsewhere (the <code>reviewMode</code> localStorage read at line 254 — D14 leaves a single in-memory flag; review-mode persistence is dropped).</li>
+  </ol>
+  </li>
+
+  <li>[ ] <strong>Step 3: Confirm comments.js still parses.</strong>
+  <pre>node --check plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</pre>
+  </li>
+
+  <li>[ ] <strong>Step 4: Re-run T3 tests; expect PASS.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Rename + restructure manual smoke matrix.</strong>
+  <pre>git mv plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md \
+       plugins/pmos-toolkit/skills/comments/tests/MANUAL-cross-context.md</pre>
+  Edit the renamed file: drop FSA + localStorage columns. Keep platform × browser rows (macOS/Linux/Windows × Chrome/Safari/Firefox). Replace the FSA-fallback-specific test cells with new test rows:
+  <ul>
+    <li>Row: file:// open via IDE desktop preview</li>
+    <li>Row: file:// open via Mail.app attachment</li>
+    <li>Row: file:// open via downloaded archive</li>
+    <li>Row: http://localhost via comments-open launcher (write + reload after 409)</li>
+  </ul>
+  Each cell: ☐ (unattested) initially.</li>
+
+  <li>[ ] <strong>Step 6: Grep cleanup.</strong>
+  <pre>! grep -n "showSaveFilePicker\|_fsaFallbackMode\|_lsKey" plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</pre>
+  </li>
+
+  <li>[ ] <strong>Step 7: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js \
+        plugins/pmos-toolkit/skills/comments/tests/MANUAL-cross-context.md
+git commit -m "refactor(T9): slim comments.js — drop FSA, localStorage, Save-sidecar"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>wc -l plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> — &lt; 400 lines.</li>
+  <li><code>! grep -n "showSaveFilePicker" plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> — exit 0.</li>
+  <li><code>node --check plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.js</code> — exit 0.</li>
+</ul>
+
+<h3 id="t10">T10: Migration script + tests + drift-hook removal runbook entry</h3>
+<p><strong>Goal:</strong> Create <code>scripts/migrate-sidecars-to-inline.sh</code> with <code>--dry-run</code> + idempotency + summary log; integration test against 3 fixture pairs; <code>scripts/install-comments-hooks.sh</code> deletion + drift-hook removal documented in feature's execute log for /complete-dev runbook.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-migration">FR-19, FR-20, FR-21, FR-22</a>, <a href="02_spec.html#fr-deletions">FR-23</a></p>
+<p><strong>Depends on:</strong> T1, T4 (renderer must support existingHtml so the migration can inject an inline block into pre-feature artifacts via E13's missing-block path)</p>
+<p><strong>Idempotent:</strong> yes — by design (FR-20).</p>
+<p><strong>TDD:</strong> yes — new-feature</p>
+<p><strong>Slice shape:</strong> vertical — bash + node helper; tested against fs fixtures end-to-end.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>scripts/migrate-sidecars-to-inline.sh</code> (~80 LOC bash)</li>
+  <li>Create: <code>scripts/tests/migrate-sidecars-to-inline.test.sh</code> (~120 LOC bash + assertions)</li>
+  <li>Create: <code>scripts/tests/fixtures/migration/</code> — 3 (artifact.html, artifact.comments.json) pairs:
+    <ul><li><code>a.html</code> already has inline block (idempotency case)</li>
+    <li><code>b.html</code> + <code>b.html.comments.json</code> (sidecar→inline injection case)</li>
+    <li><code>c.html</code> with NO inline block (pre-feature artifact, E13) + <code>c.html.comments.json</code></li></ul>
+  </li>
+  <li>Delete: <code>scripts/install-comments-hooks.sh</code> (committed alongside T10)</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write failing test.</strong>
+  <pre># scripts/tests/migrate-sidecars-to-inline.test.sh
+#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" &amp;&amp; pwd)"
+SCRIPT="$HERE/../migrate-sidecars-to-inline.sh"
+FIXTURES="$HERE/fixtures/migration"
+WORK="$(mktemp -d)"; trap "rm -rf $WORK" EXIT
+cp -r "$FIXTURES"/* "$WORK/"
+
+# Dry-run: lists 2 migrations (b, c), no writes
+DRY="$(bash "$SCRIPT" --dry-run "$WORK")"
+[[ "$DRY" == *"would migrate: $WORK/b.html"* ]] || { echo "FAIL: dry-run b"; exit 1; }
+[[ "$DRY" == *"would migrate: $WORK/c.html"* ]] || { echo "FAIL: dry-run c"; exit 1; }
+[[ -f "$WORK/b.html.comments.json" ]] || { echo "FAIL: dry-run deleted"; exit 1; }
+
+# Real run
+bash "$SCRIPT" "$WORK"
+[[ ! -f "$WORK/b.html.comments.json" ]] || { echo "FAIL: sidecar not deleted"; exit 1; }
+grep -q "pmos-comments:start" "$WORK/b.html" || { echo "FAIL: inline block not injected"; exit 1; }
+grep -q "pmos-comments:start" "$WORK/c.html" || { echo "FAIL: c missing-block path"; exit 1; }
+
+# Idempotency: second run = no-op
+OUT2="$(bash "$SCRIPT" "$WORK")"
+[[ "$OUT2" == *"summary: 0 migrated"* ]] || { echo "FAIL: not idempotent"; exit 1; }
+
+echo "OK: migration test"</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run; expect FAIL (script doesn't exist).</strong></li>
+
+  <li>[ ] <strong>Step 3: Implement <code>migrate-sidecars-to-inline.sh</code>.</strong>
+  <pre>#!/usr/bin/env bash
+# migrate-sidecars-to-inline.sh — one-shot migration per FR-19/20/21.
+# Usage: migrate-sidecars-to-inline.sh [--dry-run] [&lt;target-dir&gt; (default: docs/pmos)]
+set -euo pipefail
+DRY_RUN=0
+TARGET="docs/pmos"
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    *) TARGET="$arg" ;;
+  esac
+done
+
+MIGRATED=0
+SKIPPED=0
+while IFS= read -r -d '' sidecar; do
+  artifact="${sidecar%.comments.json}"
+  [[ ! -f "$artifact" ]] &amp;&amp; { echo "skipped: $sidecar (no sibling html)"; SKIPPED=$((SKIPPED+1)); continue; }
+  # Detect: artifact already has inline block?
+  if grep -q "pmos-comments:start" "$artifact"; then
+    # Idempotency: artifact has block, but sidecar still here → delete sidecar only
+    [[ "$DRY_RUN" -eq 0 ]] &amp;&amp; rm -f "$sidecar"
+    echo "$([[ $DRY_RUN -eq 1 ]] &amp;&amp; echo would-cleanup || echo cleaned-sidecar): $sidecar"
+    MIGRATED=$((MIGRATED+1))
+    continue
+  fi
+  echo "$([[ $DRY_RUN -eq 1 ]] &amp;&amp; echo would migrate || echo migrating): $artifact"
+  [[ "$DRY_RUN" -eq 1 ]] &amp;&amp; continue
+  # Use node to inject the inline block using extractExistingPayload + renderArtifact's seed logic
+  node -e "
+    const fs = require('fs');
+    const sidecar = JSON.parse(fs.readFileSync('$sidecar', 'utf8'));
+    const html = fs.readFileSync('$artifact', 'utf8');
+    const payload = {
+      schema: 1,
+      version: sidecar.version || 0,
+      generated_at: sidecar.generated_at || new Date().toISOString(),
+      threads: sidecar.threads || []
+    };
+    const escaped = JSON.stringify(payload).replace(/&lt;/g, '\\\\u003c');
+    const block = '&lt;!-- pmos-comments:start --&gt;\\n&lt;script id=\"pmos-comments\" type=\"application/json\"&gt;\\n' + escaped + '\\n&lt;/script&gt;\\n&lt;!-- pmos-comments:end --&gt;';
+    // Inject before &lt;/body&gt;
+    const out = html.replace('&lt;/body&gt;', block + '\\n&lt;/body&gt;');
+    fs.writeFileSync('$artifact.tmp', out);
+    fs.renameSync('$artifact.tmp', '$artifact');
+  "
+  rm -f "$sidecar"
+  MIGRATED=$((MIGRATED+1))
+done &lt; &lt;(find "$TARGET" -name '*.comments.json' -print0)
+
+echo "summary: $MIGRATED migrated, $SKIPPED skipped"</pre>
+  </li>
+
+  <li>[ ] <strong>Step 4: Make executable + run test.</strong>
+  <pre>chmod +x scripts/migrate-sidecars-to-inline.sh scripts/tests/migrate-sidecars-to-inline.test.sh
+bash scripts/tests/migrate-sidecars-to-inline.test.sh
+# Expect: OK: migration test</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Delete install-comments-hooks.sh.</strong>
+  <pre>git rm scripts/install-comments-hooks.sh</pre>
+  </li>
+
+  <li>[ ] <strong>Step 6: Document the manual operator step in execute log.</strong> Append to <code>docs/pmos/features/2026-05-28_inline-html-artifacts/execute/T10_migration_runbook.md</code> (create if absent): the dry-run command, spot-check guidance ("inspect 3-5 of the listed artifacts after a `--dry-run` to confirm sidecar content is what you expect; then run without the flag"), and the local <code>.git/hooks/pre-commit</code> uninstall instruction.</li>
+
+  <li>[ ] <strong>Step 7: Commit.</strong>
+  <pre>git add scripts/migrate-sidecars-to-inline.sh \
+        scripts/tests/migrate-sidecars-to-inline.test.sh \
+        scripts/tests/fixtures/migration/ \
+        docs/pmos/features/2026-05-28_inline-html-artifacts/execute/T10_migration_runbook.md
+git rm scripts/install-comments-hooks.sh
+git commit -m "feat(T10): migration script + tests; delete drift-hook installer"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash scripts/tests/migrate-sidecars-to-inline.test.sh</code> — <code>OK: migration test</code>.</li>
+  <li><code>! ls scripts/install-comments-hooks.sh 2&gt;/dev/null</code> — exit 0.</li>
+  <li><code>test -x scripts/migrate-sidecars-to-inline.sh</code> — exit 0.</li>
+</ul>
+
+<h3 id="t11">T11: Update check-comments-coverage.sh</h3>
+<p><strong>Goal:</strong> Remove 3 assertion blocks (FSA fallback / drift hook / localStorage); keep the 14-surface <code>&lt;meta name="pmos:skill"&gt;</code> assertion; add a stub for the NFR-03 size soft-warn.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-deletions">FR-28</a>, <a href="02_spec.html#non-functional-requirements">NFR-03</a></p>
+<p><strong>Depends on:</strong> none in source-tree terms (independent of T6/T7/T9 mechanically; logically follows them so the gate passes after deletions)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> no — script-edit task with grep verification</p>
+<p><strong>Slice shape:</strong> config — surgical script edit.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>scripts/check-comments-coverage.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Read existing.</strong> <code>cat scripts/check-comments-coverage.sh</code> — identify the assertion blocks for FSA-fallback (T22), drift-hook (T25), and localStorage.</li>
+
+  <li>[ ] <strong>Step 2: Remove the 3 blocks.</strong> Keep the 14-surface emit reference assertion (the one that ensures each emit-skill mentions <code>&lt;meta name="pmos:skill"&gt;</code>).</li>
+
+  <li>[ ] <strong>Step 3: Add an NFR-03 size soft-warn block.</strong>
+  <pre># NFR-03 soft-warn: inline JSON block size
+LIMIT=204800  # 200KB
+while IFS= read -r -d '' f; do
+  size=$(awk '/pmos-comments:start/,/pmos-comments:end/' "$f" | wc -c)
+  if [[ "$size" -gt "$LIMIT" ]]; then
+    echo "WARN: $f inline JSON block ${size}B exceeds ${LIMIT}B (NFR-03)"
+  fi
+done &lt; &lt;(find docs/pmos -name '*.html' -print0)</pre>
+  </li>
+
+  <li>[ ] <strong>Step 4: Run the gate against the current tree; expect exit 0 (no hard fails).</strong>
+  <pre>bash scripts/check-comments-coverage.sh</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Commit.</strong>
+  <pre>git add scripts/check-comments-coverage.sh
+git commit -m "chore(T11): update coverage gate — drop FSA/drift-hook/localStorage; add NFR-03 size warn"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash scripts/check-comments-coverage.sh</code> — exit 0; no warnings on current artifacts.</li>
+  <li><code>! grep -n "FSA\|fsa\|drift.hook\|localStorage" scripts/check-comments-coverage.sh</code> — exit 0.</li>
+</ul>
+
+<h3 id="t12">T12: 14-surface fanout assertion</h3>
+<p><strong>Goal:</strong> Bash test that renders one sample artifact per emit skill (13 originating + 2 from feature-sdlc orchestrator = 14 surfaces minus /diagram standalone-svg per FR-30). Each output contains the inline <code>&lt;style&gt;</code> and <code>&lt;!-- pmos-comments:start --&gt;</code> sentinels.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#fr-fanout">FR-29, FR-30</a>, <a href="02_spec.html#static-assertion-tests">§14.4</a></p>
+<p><strong>Depends on:</strong> T1, T4, T8</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> yes — new-feature (verifies FR-29 promise of zero per-surface changes)</p>
+<p><strong>Slice shape:</strong> vertical — covers every surface end-to-end through the substrate.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Create: <code>plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh</code></li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Write failing test.</strong>
+  <pre>#!/usr/bin/env bash
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" &amp;&amp; pwd)"
+SKILLS=(architecture artifact diagram ideate plan polish prototype readme requirements spec survey-analyse survey-design wireframes feature-sdlc)
+FAIL=0
+for s in "${SKILLS[@]}"; do
+  # Render a tiny fixture via render.js with that skill's pmos_skill value
+  OUT="$(node -e "
+    const fs = require('fs');
+    const path = require('path');
+    const { renderArtifact } = require('$HERE/../render.js');
+    const tmpl = fs.readFileSync('$HERE/../template.html', 'utf8');
+    const out = renderArtifact({template:tmpl, title:'sample', content:'&lt;section id=\"x\"&gt;hi&lt;/section&gt;', sourcePath:'sample.html', assetPrefix:'assets/', pluginVersion:'2.58.0', pmosSkill:'$s'});
+    console.log(out);
+  ")"
+  echo "$OUT" | grep -q '&lt;style&gt;' || { echo "FAIL: $s missing inline &lt;style&gt;"; FAIL=$((FAIL+1)); }
+  echo "$OUT" | grep -q 'pmos-comments:start' || { echo "FAIL: $s missing comments sentinel"; FAIL=$((FAIL+1)); }
+  echo "$OUT" | grep -q "content=\"$s\"" || { echo "FAIL: $s missing pmos:skill meta"; FAIL=$((FAIL+1)); }
+done
+[[ "$FAIL" -eq 0 ]] &amp;&amp; echo "OK: 14-surface fanout" || exit 1</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Run.</strong>
+  <pre>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh
+# Expect: OK: 14-surface fanout</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Commit.</strong>
+  <pre>git add plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh
+git commit -m "test(T12): 14-surface fanout assertion"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh</code> — <code>OK: 14-surface fanout</code>.</li>
+</ul>
+
+<h3 id="t13">T13: .gitattributes + CLAUDE.md update</h3>
+<p><strong>Goal:</strong> Add <code>docs/pmos/**/*.html linguist-generated=true -diff</code>; rewrite CLAUDE.md "Inline doc comments" section to reflect the new persistence model.</p>
+<p><strong>Spec refs:</strong> <a href="02_spec.html#non-functional-requirements">NFR-04</a>, <a href="02_spec.html#cutover-order">§15.1 step 8, step 9</a></p>
+<p><strong>Depends on:</strong> none (deferred near the end of the PR for docs accuracy)</p>
+<p><strong>Idempotent:</strong> yes</p>
+<p><strong>TDD:</strong> no — docs edit; grep verification.</p>
+<p><strong>Slice shape:</strong> config — repo-policy + docs only.</p>
+
+<p><strong>Files:</strong></p>
+<ul>
+  <li>Modify: <code>.gitattributes</code></li>
+  <li>Modify: <code>CLAUDE.md</code> — "## Inline doc comments" section</li>
+</ul>
+
+<p><strong>Steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Step 1: Append <code>.gitattributes</code> rule.</strong>
+  <pre>echo 'docs/pmos/**/*.html linguist-generated=true -diff' &gt;&gt; .gitattributes</pre>
+  </li>
+
+  <li>[ ] <strong>Step 2: Verify the rule is active.</strong>
+  <pre>git check-attr -a docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html | grep -E 'linguist-generated|-diff'
+# Expect: both attributes set</pre>
+  </li>
+
+  <li>[ ] <strong>Step 3: Rewrite CLAUDE.md "Inline doc comments" section.</strong> Replace the existing paragraph (currently describes FSA + sidecar + drift hook + launcher trio) with a concise version reflecting:
+  <ul>
+    <li>Comments persist as an inline JSON block in the HTML itself; no sidecar.</li>
+    <li>Reading is universal (any browser, any protocol).</li>
+    <li>Writing requires <code>http://localhost</code> via the existing <code>comments-open.*</code> launcher trio, which now spawns serve.js with the new POST /save endpoint.</li>
+    <li>Atomicity: temp-then-rename(2); crashes leave the original intact + an orphan .tmp logged to stderr.</li>
+    <li>Optimistic concurrency via the <code>version</code> field; stale writes get a 409 + reload banner.</li>
+    <li>FSA / localStorage / drift hook / diff-match-patch / turndown / Copy-MD button all retired.</li>
+    <li>Migration done in v2.58.0; running <code>scripts/migrate-sidecars-to-inline.sh</code> on a fork-state repo is a one-shot operator step.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Step 4: Verify CLAUDE.md no longer references retired symbols.</strong>
+  <pre>! grep -nE "FSA|showSaveFilePicker|localStorage|drift hook|diff-match-patch|turndown" CLAUDE.md</pre>
+  </li>
+
+  <li>[ ] <strong>Step 5: Commit.</strong>
+  <pre>git add .gitattributes CLAUDE.md
+git commit -m "docs(T13): .gitattributes -diff + CLAUDE.md inline-comments rewrite"</pre>
+  </li>
+</ul>
+
+<p><strong>Inline verification:</strong></p>
+<ul>
+  <li><code>grep -n "docs/pmos" .gitattributes</code> — finds the rule.</li>
+  <li><code>! grep -nE "FSA|showSaveFilePicker|localStorage" CLAUDE.md</code> — exit 0.</li>
+</ul>
+
+<h3 id="tn">TN: Final Verification</h3>
+<p><strong>Goal:</strong> Run every gate listed in <a href="02_spec.html#verification-commands">spec §14.5</a>, plus this plan's TN-specific checks. Manual smoke matrix attested per <code>MANUAL-cross-context.md</code>. Assumption #1 spike outcome recorded.</p>
+<p><strong>Depends on:</strong> T1–T13.</p>
+
+<p><strong>T0 (Prerequisite Check) — auto-generated:</strong></p>
+<ul>
+  <li>[ ] <strong>Confirm Node ≥ 18.</strong> <code>node -v</code> — major version ≥ 18.</li>
+  <li>[ ] <strong>jsdom installed.</strong> <code>node -e "require('jsdom')"</code> — exit 0.</li>
+  <li>[ ] <strong>Confirm in worktree.</strong> <code>git rev-parse --abbrev-ref HEAD</code> — <code>feat/inline-html-artifacts</code>.</li>
+</ul>
+
+<p><strong>Final verification steps:</strong></p>
+
+<ul>
+  <li>[ ] <strong>Unit + integration suite.</strong>
+  <pre>node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/render.test.js
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/json-escape.test.js
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/serve.save.test.js
+node plugins/pmos-toolkit/skills/_shared/html-authoring/tests/comments-detect.test.js
+bash plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh</pre>
+  All exit 0.</li>
+
+  <li>[ ] <strong>Per-skill apply-edit shim tests (DMP-free).</strong>
+  <pre>for f in plugins/pmos-toolkit/skills/*/tests/apply-edit-at-anchor*.test.js; do
+  node "$f" || { echo "FAIL: $f"; exit 1; }
+done
+echo "OK: all 15 shims"</pre>
+  </li>
+
+  <li>[ ] <strong>Deletion-set static assertions (spec §14.4).</strong>
+  <pre>! grep -rn "diff_match_patch\|diff-match-patch" plugins/ --exclude-dir=archive --exclude-dir=node_modules
+! grep -rn "turndown" plugins/ --exclude-dir=archive --exclude-dir=node_modules
+! grep -rn "install-comments-hooks" plugins/ --exclude-dir=archive
+! grep -rn "showSaveFilePicker" plugins/ --exclude-dir=archive
+! grep -rn 'data-pmos-action="copy-md"' plugins/ --exclude-dir=archive</pre>
+  All exit 0.</li>
+
+  <li>[ ] <strong>Coverage gate.</strong>
+  <pre>bash scripts/check-comments-coverage.sh
+# Exit 0; no errors; possibly NFR-03 warns on artifacts &gt; 200KB inline JSON.</pre>
+  </li>
+
+  <li>[ ] <strong>Migration dry-run + real run.</strong> This is the manual operator step normally run at /complete-dev (FR-22). For TN it runs only against the local <code>docs/pmos/</code> tree:
+  <pre>bash scripts/migrate-sidecars-to-inline.sh --dry-run docs/pmos
+# Inspect 3-5 artifacts the dry-run lists; confirm sidecar contents look right.
+bash scripts/migrate-sidecars-to-inline.sh docs/pmos
+# Real run.
+find docs/pmos -name '*.comments.json' | wc -l
+# Expect: 0</pre>
+  </li>
+
+  <li>[ ] <strong>Run migration test fixtures.</strong>
+  <pre>bash scripts/tests/migrate-sidecars-to-inline.test.sh
+# Expect: OK: migration test</pre>
+  </li>
+
+  <li>[ ] <strong>Frontend smoke (Playwright MCP or manual).</strong>
+  <ol>
+    <li>Open <code>02_spec.html</code> in Chrome under <code>file://</code> → DevTools console: 0 errors; page styled; threads visible (if any).</li>
+    <li>Open <code>02_spec.html</code> via <code>bash plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments-open.sh docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html</code> → browser opens at <code>http://127.0.0.1:PORT/02_spec.html</code>.</li>
+    <li>Select a paragraph; click 💬; write a thread; submit. Observe response 200; badge appears.</li>
+    <li>Reload page; thread persists in the inline block.</li>
+    <li>In a second tab, open the same artifact via comments-open in another worktree (or hand-edit the file to bump version); try to submit from the first tab → expect 409 banner.</li>
+    <li>Click Reload in the banner; first tab now shows the second tab's version.</li>
+    <li>Force an error: kill serve.js mid-write (Ctrl-C between dispatch and rename). Restart; observe stderr <code>orphan .tmp from previous run</code>. Original artifact intact.</li>
+  </ol>
+  </li>
+
+  <li>[ ] <strong>UX polish checklist.</strong> <code>document.title</code> set on the rendered artifact; no internal IDs in copy; no dead disabled affordances; zero uncaught console errors during the comment-write journey; navigation label "💬" matches its function.</li>
+
+  <li>[ ] <strong>Wireframe diff.</strong> N/A — this feature has no <code>wireframes/</code> subdir. (Confirmed: <code>! ls docs/pmos/features/2026-05-28_inline-html-artifacts/wireframes/ 2&gt;/dev/null</code> — exit 0.)</li>
+
+  <li>[ ] <strong>Done-when walkthrough.</strong> Trace each clause of the Overview's Done-when line:
+  <ul>
+    <li>"14/14 surfaces render fully-styled under file://" — fanout.test.sh + manual open of <code>02_spec.html</code> in Chrome (file://) — both pass.</li>
+    <li>"<code>find docs/pmos -name '*.comments.json' | wc -l</code> = 0 after migration" — verified above.</li>
+    <li>"all 6 verification commands in spec §14.5 pass" — verified above.</li>
+    <li>"manual smoke matrix attested" — record in <code>MANUAL-cross-context.md</code> attestation rows for the platforms exercised.</li>
+    <li>"net authoring-source bytes is negative" — <code>git diff --shortstat main..HEAD plugins/ scripts/</code> shows more deletions than insertions.</li>
+  </ul>
+  </li>
+
+  <li>[ ] <strong>Assumption #1 spike (non-blocking validation per D9).</strong>
+  <ol>
+    <li>Open <code>docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html</code> in Claude Code's desktop preview pane.</li>
+    <li>Visually confirm: page is styled (inline CSS executes).</li>
+    <li>Open any artifact with existing threads (e.g., <code>01_requirements.html</code> if migrated). Confirm thread badges render → inline JS executes.</li>
+    <li>Record outcome in <code>/verify</code> report: "Assumption #1: [confirmed | falsified] — Claude desktop preview [does | does not] execute inline scripts."</li>
+    <li>If falsified: file an immediate follow-up to ship the CSS-only fallback (out of scope for this PR, per D9).</li>
+  </ol>
+  </li>
+</ul>
+
+<p><strong>Cleanup (trigger-based):</strong></p>
+<ul>
+  <li>[ ] <strong>Remove the <code>.plan.lock</code> file.</strong> <code>rm docs/pmos/features/2026-05-28_inline-html-artifacts/.plan.lock</code> — released on /plan exit by Phase 7 (covered implicitly when /plan completes).</li>
+  <li>[ ] <strong>Update documentation files</strong> (CLAUDE.md updated in T13; changelog written by /complete-dev Phase 8). No additional doc files to update.</li>
+  <li>[ ] <em>(No worktree containers used; no feature flags added — no further cleanup.)</em></li>
+</ul>
+
+</section>
+
+<section id="review-log">
+<h2 id="review-log">Review Log</h2>
+<p>Sidecar: detailed loop-by-loop findings live in <code>03_plan_review.md</code>. This table is the summary index.</p>
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1 (self-review)</td>
+      <td>Structural: every FR-01..FR-30 + NFR-01..NFR-07 mapped to T1–T13 (FR-01–07→T1+T4+T5, FR-08–12→T2, FR-13–17→T3, FR-18+27→T9, FR-19–22→T10, FR-23→T10, FR-24→T6, FR-25→T7, FR-26→T8, FR-28→T11, FR-29→T12, FR-30→explicit non-goal recorded, NFR-01/03→T11+TN, NFR-04→T13, NFR-05/07→T2). Edge cases E1–E14 covered (E1→T1/T3, E2–E5→T3 detection table, E6→T3 banner test, E7→T2 orphan scan test, E8→T5, E10/E13→T10, E11→T4, E12→T11, E14→T2 case 4). Per-task verification includes exact commands + expected output. TDD red/green present in T1–T5, T7, T10, T12. Design-critique: tracer-bullet T1 narrow but end-to-end; T6 declared <code>config</code> slice with rationale; T9 declared <code>refactor-prep</code>; T13 declared <code>config</code>; no fat tasks. Wireframes N/A (declared). Spec divergence captured in P2 (DMP scope widened). Convergence: no findings escalated; loop closed.</td>
+      <td>None — first-pass plan satisfies the cap-of-4 exit checklist.</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_inline-html-artifacts/03_plan.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">&middot;</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>
