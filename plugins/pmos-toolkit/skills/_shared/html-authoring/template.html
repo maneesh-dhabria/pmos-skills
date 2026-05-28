@@ -4,8 +4,13 @@
     {{plugin_name}}      default: pmos-toolkit
     {{plugin_name_nbsp}} default: pmos&#8209;toolkit
     {{plugin_url}}       default: https://github.com/maneesh-dhabria/pmos-toolkit#readme
+  Inline-asset tokens (T1 — substrate CSS+JS+seed-comments-JSON are inlined,
+  not externally linked, per FR-01/FR-02/FR-03/FR-05):
+    {{inline_css}}             → <style>…concatenated style.css + comments.css…</style>
+    {{inline_js}}              → <script>…concatenated viewer.js + comments.js…</script>
+    {{inline_comments_json}}   → sentinel-bracketed <script id="pmos-comments"…> JSON
   Other tokens ({{title}}, {{content}}, {{source_path}}, {{asset_prefix}},
-  {{plugin_version}}) are supplied per-render and not parameterized here.
+  {{plugin_version}}, {{pmos_skill}}) are supplied per-render and not parameterized here.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -14,15 +19,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{title}}</title>
   <meta name="pmos:skill" content="{{pmos_skill}}">
-  <link rel="stylesheet" href="{{asset_prefix}}style.css?v={{plugin_version}}">
-  <link rel="stylesheet" href="{{asset_prefix}}comments.css?v={{plugin_version}}">
-  <script defer src="{{asset_prefix}}viewer.js?v={{plugin_version}}"></script>
+  {{inline_css}}
 </head>
 <body>
   <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
     <h1 class="pmos-artifact-title">{{title}}</h1>
     <div class="pmos-artifact-actions">
-      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
       <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
     </div>
     <a class="pmos-attribution pmos-attribution--toolbar"
@@ -43,6 +45,7 @@
        data-pmos-role="attribution"
        data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
   </footer>
-  <script defer src="{{asset_prefix}}comments.js?v={{plugin_version}}"></script>
+  {{inline_js}}
+  {{inline_comments_json}}
 </body>
 </html>
