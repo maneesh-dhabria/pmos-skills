@@ -112,12 +112,34 @@ function mkInput(overrides) {
     failures.push("case (e) clarification: " + (e && e.message));
   }
 
+  // (f) substring-contains fallback: id-anchor missing but quote_anchor.text
+  // (≥40 chars) appears verbatim in the artifact (FR-25 / P6).
+  try {
+    const out = await apply(
+      mkInput({
+        thread_id: "T_F",
+        anchor: {
+          id_anchor: "no-such-id",
+          quote_anchor: { text: "Ship per-skill contract tests before flipping the resolver on." },
+        },
+        body: "tighten this sentence",
+      })
+    );
+    assert.strictEqual(out.success, true, "(f) success true on substring hit");
+    assert.ok(
+      typeof out.diff_ref === "string" && out.diff_ref.indexOf("substring-contains") !== -1,
+      "(f) diff_ref strategy=substring-contains"
+    );
+  } catch (e) {
+    failures.push("case (f) substring-contains: " + (e && e.message));
+  }
+
   if (failures.length > 0) {
-    console.error("FAIL: /spec apply-edit-at-anchor — " + failures.length + " of 5 cases");
+    console.error("FAIL: /spec apply-edit-at-anchor — " + failures.length + " of 6 cases");
     for (const f of failures) console.error("  - " + f);
     process.exit(1);
   }
-  console.log("PASS: /spec apply-edit-at-anchor — 5 cases");
+  console.log("PASS: /spec apply-edit-at-anchor — 6 cases");
 })().catch((e) => {
   console.error("FAIL: uncaught " + (e && e.stack ? e.stack : e));
   process.exit(1);

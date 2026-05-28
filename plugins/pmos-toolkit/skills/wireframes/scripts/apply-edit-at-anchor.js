@@ -9,25 +9,14 @@
 // Infeasible surface: edits to index.html structure (<nav>, screen list)
 // — those require regeneration via /wireframes.
 //
-// Minimal in-shim anchor resolver (id-first + Bitap-via-dmp fallback).
-// Surface area kept ≤ ~200 LOC.
+// Minimal in-shim anchor resolver (id-first + naive substring-contains fallback,
+// FR-25 / P6). Surface area kept ≤ ~200 LOC.
 
 "use strict";
 
 const fs = require("fs");
 const crypto = require("crypto");
 const path = require("path");
-
-const DMP_PATH = path.join(
-  __dirname,
-  "..",
-  "..",
-  "_shared",
-  "html-authoring",
-  "assets",
-  "diff-match-patch.js"
-);
-const { diff_match_patch } = require(DMP_PATH);
 
 // Closed error_enum per the contract doc.
 const ERROR_ENUM = Object.freeze({
@@ -89,7 +78,8 @@ function _maybeClarification(body) {
   return { question: text, options: [a, b] };
 }
 
-// Anchor resolution: id-first; then Bitap-via-dmp on quote_anchor.text.
+// Anchor resolution: id-first; then naive substring-contains on quote_anchor.text
+// (FR-25, P6). Quote must be ≥40 chars to avoid false matches.
 function _resolveAnchor(html, anchor) {
   if (!anchor) return { ok: false, reason: "missing_anchor" };
   const id = anchor.id_anchor;
@@ -107,30 +97,15 @@ function _resolveAnchor(html, anchor) {
     }
   }
   const q = anchor.quote_anchor;
-  if (q && q.text) {
-    const dmp = new diff_match_patch();
-    dmp.Match_Threshold = 0.3;
-    dmp.Match_Distance = 1000;
-    const maxBits = dmp.Match_MaxBits || 32;
-    const probe = q.text.length > maxBits ? q.text.slice(0, maxBits) : q.text;
-    let loc = -1;
-    try {
-      loc = dmp.match_main(html, probe, 0);
-    } catch (_) {
-      loc = -1;
-    }
-    if (loc !== -1) {
-      const slice = html.substr(loc, probe.length);
-      const edits = dmp.diff_levenshtein(dmp.diff_main(slice, probe));
-      const score = Math.max(0, 1 - edits / Math.max(probe.length, 1));
-      if (score >= 0.7) {
-        return {
-          ok: true,
-          strategy: "quote-fallback",
-          dom_range: { start_offset: loc, end_offset: loc + q.text.length },
-          score,
-        };
-      }
+  if (q && q.text && q.text.length >= 40) {
+    const idx = html.indexOf(q.text);
+    if (idx !== -1) {
+      return {
+        ok: true,
+        strategy: "substring-contains",
+        dom_range: { start_offset: idx, end_offset: idx + q.text.length },
+        score: 0.8,
+      };
     }
   }
   return { ok: false, reason: "unresolved" };

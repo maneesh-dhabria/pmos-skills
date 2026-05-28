@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// T12 — Canonical anchor resolver (id-first + Bitap quote-fallback + SVG).
+// T12 — Canonical anchor resolver (id-first + substring-contains quote-fallback + SVG).
 //
 // Pure function. No I/O. Consumes the FR-22 sidecar anchor schema and the
 // artifact HTML string; returns either a resolution descriptor or an
 // orphan marker.
 //
-// Spec refs: §14.1, FR-23.
+// Spec refs: §14.1, FR-23, FR-25, P6. (Bitap dropped per /inline-html-artifacts
+// T7; exact-substring + prefix/suffix proximity is the sole quote-fallback path.)
 // Contract: see plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md
 //
 //   resolveAnchor({anchor, artifactHtml, threshold?, distance?})
@@ -14,27 +15,12 @@
 //
 // Strategies (in order):
 //   "id-first"          — regex grep id="<anchor.id_anchor>"; score=1.0
-//   "quote-fallback"    — dmp Bitap on quote_anchor.text, prefix/suffix bias
+//   "quote-fallback"    — exact substring on quote_anchor.text, prefix/suffix bias
 //   "svg-data-anchor"   — SVG element matching data-anchor="<shape_id>"
 //   "svg-bbox"          — SVG element whose axis-aligned bbox overlaps query
 
 "use strict";
 
-const path = require("path");
-
-const DMP_PATH = path.join(
-  __dirname,
-  "..",
-  "..",
-  "_shared",
-  "html-authoring",
-  "assets",
-  "diff-match-patch.js"
-);
-const { diff_match_patch } = require(DMP_PATH);
-
-const DEFAULT_THRESHOLD = 0.3;   // dmp Match_Threshold (lower = stricter)
-const DEFAULT_DISTANCE = 1000;   // dmp Match_Distance
 const QUOTE_MIN_SCORE = 0.5;     // §14.1 acceptance floor for quote-fallback
 const PROXIMITY_WINDOW = 200;    // chars before/after for prefix/suffix bias
 const PROXIMITY_BONUS = 0.1;     // score bump per side when present
@@ -86,34 +72,8 @@ function _mainDocBounds(html) {
   return { start, end };
 }
 
-// Bitap-via-dmp match within a substring window. Returns absolute offset
-// in the original `html` or -1 on miss. `start` shifts dmp's `loc` into
-// absolute coordinates.
-function _bitapFind(html, region, query, threshold, distance) {
-  if (!query) return { offset: -1, score: 0, matchedLen: 0 };
-  const dmp = new diff_match_patch();
-  dmp.Match_Threshold = threshold;
-  dmp.Match_Distance = distance;
-  const maxBits = dmp.Match_MaxBits || 32;
-  // dmp's Bitap implementation only handles probes up to Match_MaxBits
-  // (32 by default). When the query exceeds that, we MUST truncate the
-  // probe — but that means the matched region in the artifact is only
-  // ~probe.length chars, NOT query.length. We return matchedLen so the
-  // caller can compute a correct end_offset and not over-claim the span.
-  const probe = query.length > maxBits ? query.slice(0, maxBits) : query;
-  const slice = html.slice(region.start, region.end);
-  let loc = -1;
-  try {
-    loc = dmp.match_main(slice, probe, 0);
-  } catch (_) {
-    loc = -1;
-  }
-  if (loc === -1) return { offset: -1, score: 0, matchedLen: 0 };
-  const matched = slice.substr(loc, probe.length);
-  const edits = dmp.diff_levenshtein(dmp.diff_main(matched, probe));
-  const score = Math.max(0, 1 - edits / Math.max(probe.length, 1));
-  return { offset: region.start + loc, score, matchedLen: probe.length };
-}
+// Bitap dropped per T7 (FR-25 / P6). Substring-contains is the sole fuzzy
+// path; non-exact matches are now orphans.
 
 // Score a candidate offset for prefix/suffix proximity. Adds up to
 // 2*PROXIMITY_BONUS when both prefix and suffix are found within the
@@ -137,7 +97,7 @@ function _proximityBonus(html, offset, qLen, prefix, suffix) {
 // Quote-fallback scan with prefix/suffix proximity bias. Returns the
 // best candidate across ALL exact occurrences of the query text plus a
 // single Bitap fallback when no exact occurrence exists.
-function _quoteFallback(html, region, qAnchor, threshold, distance) {
+function _quoteFallback(html, region, qAnchor) {
   const q = qAnchor.text || "";
   if (!q) return { offset: -1, score: 0, matchedLen: 0 };
   const prefix = qAnchor.prefix || "";
@@ -165,9 +125,8 @@ function _quoteFallback(html, region, qAnchor, threshold, distance) {
   }
   if (best.offset !== -1) return best;
 
-  // 2. No exact match — fall back to Bitap fuzzy. The returned matchedLen
-  //    may be < q.length when the probe was truncated to Match_MaxBits.
-  return _bitapFind(html, region, q, threshold, distance);
+  // 2. No exact match — orphan. (Bitap fuzzy path removed per T7 / P6.)
+  return { offset: -1, score: 0, matchedLen: 0 };
 }
 
 // ---- SVG support ----
@@ -313,12 +272,8 @@ function _resolveSvg(html, diagram) {
 function resolveAnchor(params) {
   const anchor = params && params.anchor;
   const html = (params && params.artifactHtml) || "";
-  const threshold = (params && typeof params.threshold === "number")
-    ? params.threshold
-    : DEFAULT_THRESHOLD;
-  const distance = (params && typeof params.distance === "number")
-    ? params.distance
-    : DEFAULT_DISTANCE;
+  // `threshold`/`distance` params accepted for back-compat but unused — Bitap
+  // dropped per T7. Substring-contains is the sole fuzzy path.
 
   if (!anchor) return { orphan: true, score: 0 };
 
@@ -350,7 +305,7 @@ function resolveAnchor(params) {
   // quote-fallback
   if (anchor.quote_anchor && anchor.quote_anchor.text) {
     const region = _mainDocBounds(html);
-    const r = _quoteFallback(html, region, anchor.quote_anchor, threshold, distance);
+    const r = _quoteFallback(html, region, anchor.quote_anchor);
     if (r.offset !== -1 && r.score >= QUOTE_MIN_SCORE) {
       // Use matchedLen (not text.length) so a Bitap probe truncated to
       // Match_MaxBits does not over-claim the matched span. Exact hits
@@ -379,7 +334,6 @@ module.exports = {
   _internal: {
     _enclosingSection,
     _mainDocBounds,
-    _bitapFind,
     _quoteFallback,
     _scanSvgElements,
     _shapeBbox,

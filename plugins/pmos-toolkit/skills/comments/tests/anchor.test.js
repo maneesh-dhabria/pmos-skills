@@ -1,16 +1,13 @@
 #!/usr/bin/env node
 // T12 — anchor-resolver pure-function tests (spec §14.1, FR-23).
 //
-// Seven sub-cases:
+// Six sub-cases (Bitap dropped per T7; case (g) removed):
 //   (a) id-first hit            → strategy="id-first", score~=1.0, dom_range
 //   (b) id miss + quote hit     → strategy="quote-fallback", score>=0.5
 //   (c) both miss               → { orphan: true, score }
 //   (d) SVG data-anchor hit     → strategy="svg-data-anchor", shape_id+bbox
 //   (e) SVG bbox fallback       → strategy="svg-bbox", matched-by-bbox
 //   (f) prefix/suffix proximity → closer-to-prefix location wins
-//   (g) long-quote Bitap hit    → end_offset reflects the truncated probe
-//                                 length (Match_MaxBits), not the full
-//                                 quote_anchor.text length
 
 "use strict";
 
@@ -167,55 +164,9 @@ function ok(label, cond, detail) {
   );
 })();
 
-// ---------- (g) long-quote Bitap hit — truncated probe length ----------
-(function caseG() {
-  // Quote longer than dmp Match_MaxBits (32). Artifact contains a
-  // slightly-perturbed version (no exact substring match), forcing the
-  // Bitap fallback path. The fix under test: end_offset must reflect the
-  // truncated probe length (~32), not the full quote_anchor.text length.
-  const quote = "the quick brown fox jumps over the lazy dog and runs away fast";
-  // 62 chars — comfortably > 32.
-  if (quote.length <= 32) {
-    console.error("FAIL: g — test fixture quote is not longer than maxBits");
-    process.exit(1);
-  }
-  // Perturb a char inside the first 32 chars so the probe (first 32 chars)
-  // does NOT match the artifact exactly, but is still close enough for
-  // Bitap to land on it with a high score.
-  const perturbed =
-    "the quick brawn fox jumps over the lazy dog and runs away fast";
-  // sanity — quote must NOT appear verbatim, else exact-match path runs.
-  if (perturbed.indexOf(quote) !== -1) {
-    console.error("FAIL: g — fixture is not perturbed (would hit exact path)");
-    process.exit(1);
-  }
-  const html =
-    '<main class="doc"><p>padding lead-in. ' + perturbed + " trailing.</p></main>";
-  const r = resolveAnchor({
-    anchor: {
-      id_anchor: null,
-      quote_anchor: { text: quote, prefix: "", suffix: "" },
-      diagram_anchor: null,
-    },
-    artifactHtml: html,
-  });
-  ok("g.strategy", r.strategy === "quote-fallback", "strategy=" + r.strategy);
-  ok("g.score>=0.5", typeof r.score === "number" && r.score >= 0.5, "score=" + r.score);
-  ok("g.dom_range present", r.dom_range && typeof r.dom_range.start_offset === "number");
-  const span = r.dom_range.end_offset - r.dom_range.start_offset;
-  // span should reflect the truncated probe length (≤ 32), NOT the full
-  // 62-char quote.text length. Allow a small fuzz tolerance — but must be
-  // strictly less than the full quote length.
-  ok(
-    "g.span clamped to probe length",
-    span < quote.length,
-    "expected span < " + quote.length + " (full quote), got " + span
-  );
-  ok(
-    "g.span <= maxBits (32)",
-    span <= 32,
-    "expected span <= 32 (Match_MaxBits), got " + span
-  );
-})();
+// ---------- (g) REMOVED — Bitap dropped per T7 / FR-25 / P6 ----------
+// Was: long-quote Bitap hit with truncated probe length. Substring-contains
+// is the sole fuzzy path now; perturbed inputs orphan correctly (covered by
+// case (c) above).
 
-console.log("PASS: anchor-resolver — 7/7 cases (id-first, quote-fallback, orphan, svg-data, svg-bbox, prefix/suffix, long-quote-bitap)");
+console.log("PASS: anchor-resolver — 6/6 cases (id-first, quote-fallback, orphan, svg-data, svg-bbox, prefix/suffix)");
