@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Requirements — primer-inline-diagrams</title>
+<link rel="stylesheet" href="assets/style.css?v=2.59.0">
+</head>
+<body>
+<main>
+<h1 id="requirements">Requirements — primer-inline-diagrams</h1>
+
+<p><strong>Tier:</strong> 2 &middot; <strong>Mode:</strong> skill-feedback &middot; <strong>Target:</strong> <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> + <code>reference/rubric.md</code></p>
+
+<p><strong>Standing acceptance criteria:</strong> the revised /primer must conform to <code>reference/skill-patterns.md &sect;A&ndash;&sect;F</code> (frontmatter, description triggering, structure &amp; progressive disclosure, body content, scripts/tooling, platform-conditional frontmatter).</p>
+
+<h2 id="problem">Problem</h2>
+<p>/primer Phase 4 (Draft) explicitly excludes diagrams (&ldquo;Non-goals: No diagram-pass&rdquo;). Primer topics frequently have structural shapes &mdash; loops, comparisons, hierarchies, sequences &mdash; better conveyed visually. Pure prose forces the reader to assemble the mental model from text alone, raising friction for topics where one well-placed diagram saves a paragraph.</p>
+
+<h2 id="solution-direction">Solution direction</h2>
+<p>Permit (and recommend) inline SVG diagrams during the single-pass Phase 4 draft &mdash; not a separate diagram-pass, not mandatory per section. Diagrams ship inline in the HTML artifact (single-file primer contract preserved). Reviewer rubric R10 gains an informational <code>diagrams_per_h2_distribution</code> field, parallel to the existing <code>examples_per_h2_distribution</code> &mdash; the write gate surfaces a note when diagram density is unusually low for the topic, but never blocks.</p>
+
+<h2 id="functional-requirements">Functional requirements</h2>
+<ul>
+<li><strong>FR-D01</strong> &mdash; Phase 4 (Draft) MUST include an instruction directing the drafter to embed inline SVG diagrams within sections where a visual aids comprehension (concept loops, comparisons across camps, hierarchical relationships, sequence/flow). The instruction frames diagrams as a drafting affordance, not a per-section requirement.</li>
+<li><strong>FR-D02</strong> &mdash; Diagrams MUST be inline SVG (no <code>&lt;img&gt;</code> with external <code>src</code>, no <code>&lt;object&gt;</code>, no JS-rendered canvas). The single-file primer contract is preserved.</li>
+<li><strong>FR-D03</strong> &mdash; Diagrams MUST carry an accessible <code>&lt;title&gt;</code> child element (and optional <code>&lt;desc&gt;</code>) so screen readers and the no-CSS render path remain usable.</li>
+<li><strong>FR-D04</strong> &mdash; Phase 4 &sect;Non-goals MUST be updated: &ldquo;No diagram-pass&rdquo; &rarr; &ldquo;No separate diagram-pass; diagrams ship inline during the single-pass draft when a visual aids comprehension.&rdquo;</li>
+<li><strong>FR-D05</strong> &mdash; Anti-patterns MUST gain a new entry: do NOT force a diagram into every section / use diagrams as decoration / use diagrams to displace citation density. The drafter picks diagrams where they earn their place.</li>
+<li><strong>FR-D06</strong> &mdash; <code>reference/rubric.md</code> R10 MUST grow an informational field <code>diagrams_per_h2_distribution: [{h2_id, h2_title, count}]</code> &mdash; counts inline <code>&lt;svg&gt;</code> elements per H2 section. Informational only; does NOT affect the R10 verdict.</li>
+<li><strong>FR-D07</strong> &mdash; The Phase 5 write gate&rsquo;s informational-note logic SHOULD additionally prepend a one-line note when <code>diagrams_per_h2_distribution</code> reports zero diagrams across all H2s AND the topic appears diagram-amenable (heuristic deferred to spec).</li>
+<li><strong>FR-D08</strong> &mdash; Diagram styling MUST inherit the page&rsquo;s prose CSS (no inline <code>style</code> attributes beyond what the diagram itself requires for layout); diagrams should use the substrate&rsquo;s neutral palette where practical.</li>
+<li><strong>FR-D09</strong> &mdash; The Worked example MUST be updated to show 1&ndash;2 inline diagrams (e.g., a percentage-rollout flow diagram, or a build-vs-buy comparison) so the new behavior is anchored in the example.</li>
+<li><strong>FR-D10</strong> &mdash; Diagram instructions MUST cross-reference the existing <code>/diagram</code> skill&rsquo;s style conventions where practical, but the drafter does NOT invoke <code>/diagram</code> as a subagent (Phase 4 runs inline per spec D2).</li>
+</ul>
+
+<h2 id="non-functional-requirements">Non-functional requirements</h2>
+<ul>
+<li><strong>NFR-D01</strong> &mdash; SKILL.md remains &lt; 800 lines after edits (current ~430 lines; new diagram instruction + worked-example refresh estimated +50 lines).</li>
+<li><strong>NFR-D02</strong> &mdash; Reference file <code>reference/rubric.md</code> remains &lt; 300 lines (current ~108).</li>
+<li><strong>NFR-D03</strong> &mdash; No new dependencies (no new scripts, no new npm packages, no new external services).</li>
+</ul>
+
+<h2 id="out-of-scope">Out of scope</h2>
+<ul>
+<li>A separate <code>diagram-pass</code> Phase between Outline and Draft &mdash; rejected: increases turn count and conflicts with the single-pass-draft architectural choice.</li>
+<li>Mandating diagrams per section &mdash; rejected: produces forced/decorative diagrams in topics where visuals don&rsquo;t aid comprehension.</li>
+<li>Invoking <code>/diagram</code> as a subagent during Phase 4 &mdash; rejected per spec D2 (Phase 4 runs inline; no subagent dispatch outside Phase 5 reviewer).</li>
+<li>Raster diagrams or external SVG files &mdash; rejected: violates single-file primer contract.</li>
+<li>A new reviewer rubric check that hard-fails on missing diagrams &mdash; rejected: diagrams are taste-tier; informational-note at write gate is sufficient.</li>
+</ul>
+
+<h2 id="user-journey">User journey</h2>
+<ol>
+<li>User runs <code>/primer feature flagging at scale</code>.</li>
+<li>Phases 0&ndash;3 run unchanged; outline approved.</li>
+<li>Phase 4 draft now produces ~4,800 words AND ~2 inline SVG diagrams: a percentage-rollout flow under H2 &ldquo;How the smart teams are using it&rdquo; and a build-vs-buy comparison matrix under H2 &ldquo;Tradeoffs we considered against&rdquo;.</li>
+<li>Phase 5 reviewer scores; R10 informational fields report <code>diagrams_per_h2_distribution</code> = 2 H2s with diagrams / 10 H2s with zero. Write gate AUTO-PICKs Approve (no zero-density note triggered since 2 of 10 is acceptable).</li>
+<li>Artifact ships as a single HTML file containing inline SVGs.</li>
+</ol>
+
+<h2 id="acceptance">Acceptance criteria</h2>
+<ul>
+<li>Phase 4 SKILL.md prose contains a paragraph instructing inline-SVG diagrams &ldquo;where useful&rdquo;.</li>
+<li>Non-goals list is updated.</li>
+<li>Anti-patterns list includes the new entry about diagram-padding.</li>
+<li>rubric.md R10 lists the new informational field.</li>
+<li>Worked example shows ~2 inline diagrams.</li>
+<li>SKILL.md still passes skill-eval (39-check rubric).</li>
+<li>plugin.json version bumped (minor: <code>0.2.0 &rarr; 0.3.0</code>).</li>
+<li>README mentions the diagram capability in the /primer row.</li>
+</ul>
+
+</main>
+</body>
+</html>

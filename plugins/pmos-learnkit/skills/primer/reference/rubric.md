@@ -96,9 +96,10 @@ Tier convention (D-RUBRIC): **trust** checks are mechanically verifiable (URL ma
 - **Evidence shape:** the advocacy passage + the H2 it appears under + which sources were available but not contrasted.
 - **Quote requirement:** ≥40-char verbatim substring of the draft containing the advocacy passage. Example: `I strongly believe that continuous discovery is the only correct way to do product management, full stop.`
 - **Fail example:** an entire H2 section that argues one framework is correct and dismisses alternatives, rather than presenting the landscape with attribution.
-- **Informational fields (new in v0.2.0).** The R10 object additionally returns two fields used by the orchestrator at the Phase-5 write gate; neither affects the R10 verdict:
+- **Informational fields (new in v0.2.0; extended in v0.3.0).** The R10 object additionally returns three fields used by the orchestrator at the Phase-5 write gate; none affect the R10 verdict:
   - `examples_per_h2_distribution: [{h2_id, h2_title, count}]` — count of named-company / named-product / named-incident mentions plus any sentence prefixed `"Hypothetical: "` per H2 section. The orchestrator surfaces a one-line note at the write gate when ≥30% of H2s have `count == 0`. Per S-FR-6.2.
-  - `word_count: <int>` — actual draft word count. The orchestrator surfaces a one-line note at the write gate when this falls outside the resolved depth tier's target range (brief 2,000–3,000 / standard 4,000–6,000 / deep 7,000–10,000). Per S-FR-8.7.
+  - `word_count: <int>` — actual draft word count. The orchestrator surfaces a one-line note at the write gate when this falls outside the resolved depth tier's target range (brief 2,000–3,000 / standard 4,000–6,000 / deep 7,000–10,000). Per S-FR-8.7. **`word_count` excludes text inside `<svg>` subtrees** — depth-tier thresholds compare against prose only, so inline diagrams do not inflate the count (FR-D02 grill-Q3, v0.3.0).
+  - `diagrams_per_h2_distribution: [{h2_id, h2_title, count}]` — count of inline `<svg>` elements per H2 section. Informational only; does NOT affect the R10 verdict. The orchestrator does NOT surface a note based on this field at the write gate (per spec D7 / grill-Q1, v0.3.0) — it exists for audit and longitudinal observation of drafter behavior. New in v0.3.0 per FR-D06.
 
 ## Output contract
 

@@ -30,7 +30,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 
 | Skill | What it does |
 |---|---|
-| `/primer <topic>` | Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted, and self-evaluated into a single teachable artifact. Use before a meeting, a scope, or a doc review when you need citations you can trust. |
+| `/primer <topic>` | Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted with inline SVG diagrams where a visual aids comprehension, and self-evaluated into a single teachable artifact. Use before a meeting, a scope, or a doc review when you need citations you can trust. |
 
 ## What do you want to do?
 
