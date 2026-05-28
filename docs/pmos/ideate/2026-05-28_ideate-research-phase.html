@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="pmos:skill" content="ideate">
+<meta name="pmos:ideate-phase" content="complete">
+<title>Ideate — Should /ideate add a prior-art research phase?</title>
+<link rel="stylesheet" href="assets/style.css?v=2.57.1">
+<link rel="stylesheet" href="assets/comments.css?v=2.57.1">
+</head>
+<body>
+<main>
+<header>
+  <h1>Should <code>/ideate</code> add a prior-art research phase?</h1>
+  <p class="meta">Ideate artifact · 2026-05-28 · idea-type: <code>extend</code></p>
+</header>
+
+<section id="tldr">
+  <h2 id="tldr">TL;DR</h2>
+  <p><strong>Don't add research to Phase 2 (Expand).</strong> The skill's anti-pattern #1 names variant diversity as the load-bearing invariant; injecting prior art into generation is the single best way to collapse it (LLMs anchor hard on whatever's in context).</p>
+  <p><strong>Do add research as an optional pass <em>between</em> Expand and Pressure-test.</strong> Opt-in via single-tap <code>AskUserQuestion</code> at the convergence prompt; surfaces 2–3 prior-art bullets that flow into Pressure-test's Assumption-map (the "is this already solved?" assumption) and populates the existing "Alternatives &amp; prior art" section of the artifact.</p>
+  <p><strong>Narrow answer to the user's question:</strong> yes, putting research before Expand will impact variant quality — in the wrong direction. Lower diversity, more clones of prior art. Move it after Expand to preserve diversity.</p>
+</section>
+
+<section id="hmw">
+  <h2 id="hmw">How Might We</h2>
+  <p>How might we let <code>/ideate</code> users tap prior art (how others have solved similar problems) without biasing variant generation in Expand?</p>
+</section>
+
+<section id="target-user-jtbd">
+  <h2 id="target-user-jtbd">Target user &amp; JTBD</h2>
+  <p>When framing a fuzzy idea, the user wants grounded inputs on existing solutions so Expand produces non-obvious variants — not reinvented wheels, not anchored clones.</p>
+</section>
+
+<section id="hypothesis">
+  <h2 id="hypothesis">Hypothesis</h2>
+  <p>If <code>/ideate</code> offers research <em>after</em> blind variant generation (as a convergence input, not a generation input), then variant diversity is preserved <em>and</em> finalist selection is better-informed — without trading the load-bearing Expand invariant for a speculative Expand-quality gain.</p>
+</section>
+
+<section id="variants-considered">
+  <h2 id="variants-considered">Idea variants considered</h2>
+  <ol>
+    <li>Optional research sub-phase 1.5, gated by <code>--research</code>, off by default.</li>
+    <li>Mandatory research for <code>extend</code>/<code>fix</code> only; skipped for <code>new</code>.</li>
+    <li><strong>Hidden inline research inside Phase 2 generation</strong> (finalist).</li>
+    <li>Post-Expand research as "did we miss anything?" pass, flowing into Pressure-test.</li>
+    <li>Separate <code>/ideate --research-only</code> resume mode after Phase 5.</li>
+    <li>Replace second auto-picked technique with "Analogous Inspiration (researched)" under <code>--research</code>.</li>
+    <li>Research + adversarial "what did the research miss?" prompt in same pass.</li>
+    <li><strong>Blind Expand first, then show research at convergence</strong> (finalist, winner).</li>
+    <li>Research as a <em>constraint</em> ("generate 12 variants that are meaningfully different from these 3").</li>
+    <li>Cap research to 3 short bullets, hard-budgeted to limit anchoring.</li>
+    <li>Pull research from <code>~/.pmos/learnings.md</code> + workstream only (no web fetch).</li>
+    <li>Skip research; add a prior-art-check line to Phase 3 battery instead.</li>
+  </ol>
+</section>
+
+<section id="how-it-works">
+  <h2 id="how-it-works">How it works (winning variant: #8)</h2>
+  <ol>
+    <li>Phases 1–2 unchanged. Expand still produces 8–15 blind variants with no prior-art context.</li>
+    <li>At the Phase 2 convergence prompt, add a third option to the existing <code>AskUserQuestion</code>: <em>"Show me prior art for these N finalists before I pick."</em> Default: skip.</li>
+    <li>If opted in: run a WebSearch (or learnings-only fallback per #11) keyed off HMW + finalist labels. Cap: 3 bullets total, ≤120 chars each.</li>
+    <li>Surface bullets inline in the chat; user then picks finalists.</li>
+    <li>Research bullets are written into the artifact's <em>Alternatives &amp; prior art</em> section (existing, currently underused).</li>
+    <li>One assumption is auto-added to Phase 3 Assumption-map: <em>"this idea is meaningfully different from &lt;closest prior art&gt;"</em>, with cheapest-test "5-min comparison read".</li>
+  </ol>
+</section>
+
+<section id="alternatives-prior-art">
+  <h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+  <p>(Empty by design — this artifact <em>is</em> the prior-art exploration for the feature it proposes. Recursive but accurate: the dogfooded run shows the section is the right place to land prior art when the skill ships the new pass.)</p>
+  <ul>
+    <li>How <code>/superpowers:brainstorming</code> handles prior art: doesn't — purely divergent, no research step.</li>
+    <li>How <code>/creativity</code> handles it: explicit "Analogous Inspiration" technique pulls cross-domain analogies but from model knowledge, not live research.</li>
+    <li>How <code>/grill</code> handles it: surfaces prior art via interrogator questions ("has anyone solved this?") but only against a committed plan.</li>
+  </ul>
+</section>
+
+<section id="failure-modes">
+  <h2 id="failure-modes">Premortem — failure modes</h2>
+  <h3>If we ship #3 (hidden inline research):</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Variants converge on prior-art clones; user can't tell why diversity dropped</td><td>H</td><td>Reject batches with &lt;0.6 inter-variant distance (hard to measure cheaply)</td></tr>
+      <tr><td>Latency spike makes Expand feel slow → skip /ideate</td><td>M</td><td>Cap research to 1 query, 5s timeout, silent fallback</td></tr>
+      <tr><td>Hidden step is unauditable when variants are bad</td><td>H</td><td>Post-hoc <code>&lt;details&gt;</code> block in artifact (defeats the "hidden" point)</td></tr>
+      <tr><td>Cost — every /ideate pays for a web search</td><td>M</td><td>Skip when seed length &gt;300 chars or contains URLs</td></tr>
+      <tr><td>Research returns SEO slop, contaminates variants</td><td>M</td><td>Source allowlist (HN, GitHub, academic) or quote-extract only</td></tr>
+    </tbody>
+  </table>
+  <h3>If we ship #8 (blind-Expand-then-research):</h3>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Users skip the research step → no net change vs status quo</td><td>H</td><td>Single-tap prompt; if skip rate stays &gt;70%, remove or auto-opt-in for <code>extend</code> type</td></tr>
+      <tr><td>Research arrives too late to improve variants (only finalist pick)</td><td>M</td><td>Accept the scope limit; sell as "preserves diversity"</td></tr>
+      <tr><td>Finalist is solved-and-commoditized; downstream /requirements wastes cycle</td><td>M</td><td>"Prior-art-overlap" warning in Hypothesis section when match score is high</td></tr>
+      <tr><td>Web search flaky/offline</td><td>M</td><td>Soft-fail to "research unavailable, picking blind"</td></tr>
+      <tr><td>Research depth inconsistent (3 great links vs generic noise)</td><td>M</td><td>Cap to 3, source allowlist, skip on no quality match</td></tr>
+    </tbody>
+  </table>
+  <h3>Munger Inversion — to guarantee failure</h3>
+  <p>Make research invisible and unconfigurable. Use unfiltered web search. Run synchronously on every invocation. Never measure variant diversity before/after. Block the user with a 15s spinner. Show 10+ links of full snippets. Re-rank finalists silently without telling the user.</p>
+</section>
+
+<section id="riskiest-assumptions">
+  <h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+  <table>
+    <thead><tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr></thead>
+    <tbody>
+      <tr><td>Prior-art research <em>improves</em> variant quality more than it anchors (for #3)</td><td>H</td><td>H</td><td>A/B 5 ideas with/without; rate diversity + non-obviousness blind</td></tr>
+      <tr><td>LLMs can ingest research without converging toward it</td><td>H</td><td>H</td><td>Same A/B; measure cosine similarity of variants to research snippets</td></tr>
+      <tr><td>Variant diversity (not quality) is the load-bearing invariant to protect</td><td>H</td><td>M</td><td>Re-read anti-pattern #1 in /ideate — explicitly names diversity. ✅ Confirmed by spec read.</td></tr>
+      <tr><td>Research-at-convergence is genuinely useful (not a checkbox)</td><td>H</td><td>H</td><td>A/B 3 ideas: did the research change the finalist pick? If &lt;30%, it's a checkbox.</td></tr>
+      <tr><td>Users will opt in when prompted</td><td>M</td><td>M</td><td>Watch skip rate first 10 sessions; &gt;70% skip → move to opt-out or remove</td></tr>
+      <tr><td>WebSearch returns usable results for early-stage idea framing</td><td>M</td><td>M</td><td>Try 5 fuzzy seeds, rate result quality 1–5</td></tr>
+      <tr><td>The current /ideate has a variant-quality problem worth fixing at all</td><td>H</td><td>H</td><td>Check <code>~/.pmos/learnings.md</code> and past /ideate sessions — has variant quality ever been flagged?</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Cross-cutting decision:</strong> #8 wins on all three axes — risk-density 1 vs 2; assumption-load 1 vs 3; ease-of-validation 4 vs 2.</p>
+</section>
+
+<section id="success-signals">
+  <h2 id="success-signals">Success signals</h2>
+  <ul>
+    <li>Inter-variant distance in Expand stays ≥ baseline after the research pass ships (no regression on the load-bearing invariant).</li>
+    <li>Opt-in rate at the convergence prompt stabilizes between 30–70% (any lower = checkbox; any higher = should be default).</li>
+    <li>≥30% of opt-in sessions show finalist-pick change after seeing research (proves the step earns its turn).</li>
+    <li>Artifact's "Alternatives &amp; prior art" section is populated with concrete entries in ≥80% of opt-in sessions (vs current ~0%).</li>
+    <li>No user reports of "/ideate variants got more generic" within 4 weeks of shipping.</li>
+  </ul>
+</section>
+
+<section id="next-steps">
+  <h2 id="next-steps">Next steps</h2>
+  <ol>
+    <li><strong>Validate the cheapest assumption first:</strong> A/B 5 ideas with and without prior-art injection into Expand. If diversity doesn't drop, the whole concern is moot and #3 becomes viable. (~30 min.)</li>
+    <li><strong>If diversity drops as predicted:</strong> draft a tight spec for #8 — one new optional sub-phase 2.5, one flag (<code>--research</code> / <code>--no-research</code>), reuses WebSearch, writes into existing artifact section. <code>/requirements ideate-research-phase</code>.</li>
+    <li><strong>Grill before committing:</strong> <code>/grill</code> the proposed #8 against alternatives #11 (learnings-only, no web) and #12 (no new phase, prior-art line in Pressure-test) — those are cheaper still and may dominate.</li>
+    <li>Consider <code>/ideate --refine --resume</code> on this artifact if it gets shared.</li>
+  </ol>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions">Open questions</h2>
+  <ul>
+    <li>Is variant quality actually a complaint, or are we solving a problem nobody has? (Highest-leverage question — answer before building anything.)</li>
+    <li>Should research source be web (WebSearch / context7) or learnings-only (<code>~/.pmos/learnings.md</code> + workstream)? Web is richer; learnings-only ships without new dependencies and has lower anchoring risk.</li>
+    <li>Should research auto-trigger for <code>extend</code>/<code>fix</code> types (where prior art is most relevant) and stay opt-in for <code>new</code>?</li>
+    <li>Does "Analogous Inspiration" technique (already supported in Phase 1) already cover this implicitly via model knowledge? If so, the gap is smaller than it looks.</li>
+  </ul>
+</section>
+
+</main>
+<script src="assets/comments.js?v=2.57.1" defer></script>
+</body>
+</html>
