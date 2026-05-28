@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec Missing Modules</title>
+  <meta name="pmos:skill" content="spec">
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec Missing Modules</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">11. Architectural assertions</h2>
+      <p>Assertions remain but modules section is intentionally omitted.</p>
+      <ul>
+        <li>Module foo must not import from bar — the orchestration boundary is unidirectional and importing the downstream sibling would introduce a cycle.</li>
+      </ul>
+    </section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: tracer fixture</span>
+  </footer>
+</body>
+</html>

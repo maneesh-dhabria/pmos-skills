@@ -2,7 +2,7 @@
 name: architecture
 description: Audit a repo against tiered architectural principles (L1 universal ≤15 rules, L2 stack-specific TS+Python, L3 per-repo overrides); emit an HTML+MD+JSON triplet under `{docs_path}/architecture/`; optionally run a deepening pass (`--deep`) to classify modules as deep / shallow / leaky and propose reshapes. Use when the user says "audit my codebase against principles", "run an architecture review", "check for circular imports", "find shallow modules", "do a deep architectural audit", "scaffold an L3 config", "audit a monorepo", "diff against a baseline", "/architecture", or "lint my repo against universal rules".
 user-invocable: true
-argument-hint: "audit [path] [--label <slug>] [--non-interactive] [--deep] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>] [--scaffold-l3] [--sort risk]"
+argument-hint: "audit [path] [--label <slug>] [--non-interactive] [--deep] [--include-info-comments] [--monorepo] [--since <ref>] [--baseline <path>] [--scaffold-l3] [--sort risk] [--from-spec <spec-path>]"
 target: generic
 ---
 
@@ -181,6 +181,40 @@ After the report is emitted, reflect on whether this run surfaced anything worth
 - [`reference/l1-rationales.md`](reference/l1-rationales.md) — full per-rule rationale + source citation for U001–U011.
 - [`reference/gap-map-rationale.md`](reference/gap-map-rationale.md) — per-rule rationale for `delegate_to:` assignment.
 - [`reference/deepening-vocabulary.md`](reference/deepening-vocabulary.md) — vocabulary for the `--deep` pass (read at runtime as the Task-subagent SYSTEM prompt).
+
+---
+
+## Mode: --from-spec
+
+Audit a `/spec` artifact (instead of the repo source tree) against the loaded principles. Used by `/spec` Phase 6.6 (folded sub-step) and `/verify` Phase 4.7, but also runnable as a standalone CLI. Reads a spec HTML file's §Modules + §Architectural Assertions, dispatches a judge subagent against the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}`.
+
+**CLI signature (§9.1):**
+```
+/architecture --from-spec <spec-path>
+              [--top-n <N>]              # default 8
+              [--min-confidence <N>]     # default 70
+              [--no-evidence-required]   # disables ≥40-char verbatim quote requirement
+```
+
+**Mutually exclusive with** `--since`, `--baseline`, `--deep`. Combining any pair → exit 64 (usage error).
+
+**Dispatch flow:**
+
+1. **Parse spec** — `node scripts/parse-spec.js <spec-path>` captures stdout JSON `{modules, assertions, section_ids}`. Propagate exit 65 verbatim with §9.4 stderr on spec-contract-violation.
+2. **Load principles** — `bash scripts/load-principles.sh` captures stdout JSON (merged L1+L2 plugin + L3 overrides if present). Records loaded `rule_id_set` for downstream FR-06 validation.
+3. **Build judge prompt** — read `reference/judge-prompt-template.md`; substitute `{{principles}}` (loaded JSON), `{{artifact}}` (stripped spec HTML body), `{{rule_id_set}}` (CSV of loaded rule IDs), `{{mode}}=from-spec`.
+4. **Dispatch judge subagent** — blocking Task tool call, `temperature: 0`, 300s timeout. The judge returns a JSON array of finding objects per §13. The judge does NOT edit the spec.
+5. **Validate findings (FR-06)** — `cat <judge-output> | node scripts/validate-findings.js --rule-id-set "<csv>" --source <spec-path>`. Drops any finding with unknown rule_id, out-of-range confidence, missing quote, quote <40 chars, or quote not verbatim-substring of source. Each drop logged to stderr.
+6. **Apply knobs (D8)** — `... | node scripts/apply-knobs.js --top-n <N> --min-confidence <N> [--evidence-required]`. Order: drop below min-confidence → drop missing-quote-when-evidence-required → cap top-N by (severity, confidence).
+7. **Emit triplet (§9.3)** — `... | node scripts/emit-findings.js --out-prefix {docs_path}/architecture/{date}_<slug>_from-spec --mode from-spec --source-path <spec-path>`. Atomic temp+rename writes for all three files (E6 same-day overwrite is safe). HTML carries `<meta name="pmos:skill" content="architecture">`; MD has `## Finding N` headings; JSON is the §13 schema.
+
+**Exit codes:**
+- `0` — success; triplet written; stderr summary line.
+- `1` — runtime error (judge dispatch failure, file IO error).
+- `64` — usage error (mutually exclusive flag combo, missing spec path, file not found).
+- `65` — spec-contract-violation (propagated from `parse-spec.js`).
+
+**When invoked by `/spec` Phase 6.6 or `/verify` Phase 4.7:** the parent passes the spec path and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §6.6 / §4.7 for parent-side handling of findings (escalate `must_fix` to spec FRs; surface `should_fix` to author).
 
 ---
 

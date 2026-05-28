@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec Malformed Row</title>
+  <meta name="pmos:skill" content="spec">
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec Malformed Row</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+    <section id="modules">
+      <h2 id="modules">10. Modules</h2>
+      <p>Modules section has one valid row and one malformed (2-td) row that the parser should skip with a warning.</p>
+      <table>
+        <thead>
+          <tr><th>name</th><th>deps</th><th>role</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>foo</td>
+            <td>(none)</td>
+            <td>Owns the canonical pipeline orchestration for the tracer slice.</td>
+          </tr>
+          <tr>
+            <td>broken</td>
+            <td>only-two-cells</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="architectural-assertions">
+      <h2 id="architectural-assertions">11. Architectural assertions</h2>
+      <p>Assertions exist.</p>
+      <ul>
+        <li>Module foo must not import from bar — the orchestration boundary is unidirectional and importing the downstream sibling would introduce a cycle.</li>
+      </ul>
+    </section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: tracer fixture</span>
+  </footer>
+</body>
+</html>

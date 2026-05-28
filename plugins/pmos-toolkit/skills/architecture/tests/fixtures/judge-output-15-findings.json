@@ -1,0 +1,137 @@
+[
+  {
+    "rule_id": "L1-001",
+    "severity": "must_fix",
+    "confidence": 90,
+    "spec_section_id": "sec-architecture-overview",
+    "quote": "The system shall enforce module boundaries through explicit import contracts.",
+    "finding": "Module A imports internal symbols from Module B bypassing the public interface.",
+    "recommendation": "Refactor Module A to import only from Module B's index export."
+  },
+  {
+    "rule_id": "L1-002",
+    "severity": "must_fix",
+    "confidence": 85,
+    "spec_section_id": "sec-data-model",
+    "quote": "All persistence operations must go through the repository layer with transactional guarantees.",
+    "finding": "Service S writes directly to the database client, bypassing repository transactions.",
+    "recommendation": "Route writes through repository methods that wrap a single transaction."
+  },
+  {
+    "rule_id": "L1-003",
+    "severity": "must_fix",
+    "confidence": 80,
+    "spec_section_id": "sec-auth",
+    "quote": "Authentication tokens must be verified on every privileged endpoint before dispatch.",
+    "finding": "Endpoint /admin/purge dispatches without token verification middleware.",
+    "recommendation": "Add the requireAuth middleware to /admin/purge route registration."
+  },
+  {
+    "rule_id": "L1-004",
+    "severity": "must_fix",
+    "confidence": 72,
+    "spec_section_id": "sec-error-handling",
+    "quote": "Errors crossing a process boundary must be serialized with a stable error code and category.",
+    "finding": "The worker returns raw stack traces to the orchestrator without an error code envelope.",
+    "recommendation": "Wrap thrown errors in {code, category, message, cause} before returning across the boundary."
+  },
+  {
+    "rule_id": "L1-005",
+    "severity": "must_fix",
+    "confidence": 68,
+    "spec_section_id": "sec-observability",
+    "quote": "All long-running operations should emit a structured progress event at least every 30 seconds.",
+    "finding": "The batch importer emits a single completion event with no intermediate progress.",
+    "recommendation": "Add periodic progress events keyed by batch_id and percent_complete."
+  },
+  {
+    "rule_id": "L2-101",
+    "severity": "should_fix",
+    "confidence": 88,
+    "file_path": "src/api/handlers/users.ts",
+    "quote": "Handlers should remain thin and delegate business logic to a dedicated service module.",
+    "finding": "users.ts contains a 200-line validation + persistence block inline in the handler.",
+    "recommendation": "Extract validation+persistence into UserService and reduce the handler to orchestration."
+  },
+  {
+    "rule_id": "L2-102",
+    "severity": "should_fix",
+    "confidence": 75,
+    "file_path": "src/api/handlers/orders.ts",
+    "quote": "Domain entities must not import infrastructure adapters; dependency direction is inward only.",
+    "finding": "Order entity imports the Stripe SDK client directly to compute fees.",
+    "recommendation": "Inject a PaymentGateway port and move Stripe import into the adapter."
+  },
+  {
+    "rule_id": "L2-103",
+    "severity": "should_fix",
+    "confidence": 74,
+    "file_path": "src/workers/notifier.ts",
+    "quote": "Retry policy for transient failures must use exponential backoff with jitter capped at five minutes.",
+    "finding": "The notifier retries on a fixed 10s interval with no jitter or ceiling.",
+    "recommendation": "Replace with exponential backoff (base=1s, factor=2, jitter=full, cap=300s)."
+  },
+  {
+    "rule_id": "L2-104",
+    "severity": "should_fix",
+    "confidence": 71,
+    "file_path": "src/lib/cache.ts",
+    "quote": "",
+    "finding": "Cache lacks a TTL configuration knob; entries live indefinitely.",
+    "recommendation": "Add ttlMs parameter to cache.set and enforce eviction on read."
+  },
+  {
+    "rule_id": "L2-105",
+    "severity": "should_fix",
+    "confidence": 69,
+    "file_path": "src/lib/logger.ts",
+    "quote": "Log statements must include a correlation_id propagated from the inbound request context.",
+    "finding": "Worker logs omit correlation_id, breaking cross-service trace correlation.",
+    "recommendation": "Thread correlation_id through the worker context and include in every log line."
+  },
+  {
+    "rule_id": "L2-106",
+    "severity": "should_fix",
+    "confidence": 55,
+    "file_path": "src/lib/config.ts",
+    "quote": "",
+    "finding": "Configuration loader silently ignores unknown environment variables instead of warning.",
+    "recommendation": "Log a warning for unknown PREFIX_* env vars at startup."
+  },
+  {
+    "rule_id": "L2-107",
+    "severity": "should_fix",
+    "confidence": 50,
+    "file_path": "src/lib/strings.ts",
+    "quote": "Utility helpers should be pure functions with no module-level state or side effects.",
+    "finding": "string-slug helper memoizes results in a module-level Map, growing unbounded.",
+    "recommendation": "Replace module-level Map with an LRU bounded to 1000 entries or remove memoization."
+  },
+  {
+    "rule_id": "L3-201",
+    "severity": "wont_fix",
+    "confidence": 80,
+    "file_path": "scripts/legacy/migrate.sh",
+    "quote": "Legacy migration scripts under scripts/legacy/ are exempt from the no-bash-in-prod rule.",
+    "finding": "migrate.sh shells out to awk and sed which would otherwise trip the L2-bash rule.",
+    "recommendation": "No action: covered by the L3 legacy exemption; retain through 2026-12 sunset."
+  },
+  {
+    "rule_id": "L3-202",
+    "severity": "wont_fix",
+    "confidence": 65,
+    "file_path": "src/experiments/sandbox.ts",
+    "quote": "Files under src/experiments/ are scratch space and exempt from import-boundary rules.",
+    "finding": "sandbox.ts imports private internals of multiple modules for prototyping.",
+    "recommendation": "No action: exempt by L3 override; revisit on graduation out of experiments/."
+  },
+  {
+    "rule_id": "L3-203",
+    "severity": "wont_fix",
+    "confidence": 60,
+    "file_path": "src/vendor/third-party-shim.ts",
+    "quote": "Vendored third-party shims under src/vendor/ are excluded from the lint baseline.",
+    "finding": "third-party-shim.ts uses any-typed exports that would otherwise fail L2-strict-types.",
+    "recommendation": "No action: exempt by L3 override; track upstream typing PR."
+  }
+]

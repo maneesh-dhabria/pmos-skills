@@ -1,0 +1,14 @@
+schema_version: 2
+
+# L3 override fixture (yaml + md aligned): overrides U001 in both layers.
+# Used by test-principles-loader.sh case (c).
+rules:
+  - id: U001
+    tier: 1
+    stack: null
+    disposition: must_fix
+    delegate_to: grep
+    check: "file_loc_gt:500;exclude_generated"
+    source: "tests/fixtures/l3-override-with-md/principles.yaml"
+    message: "Project override of U001."
+    why: "Aligned yaml+md override for case (c)."

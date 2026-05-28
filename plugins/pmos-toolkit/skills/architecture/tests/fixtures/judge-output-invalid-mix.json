@@ -1,0 +1,46 @@
+[
+  {
+    "rule_id": "U001",
+    "severity": "must_fix",
+    "confidence": 85,
+    "spec_section_id": "modules",
+    "quote": "Owns the canonical pipeline orchestration for the tracer slice; consumes no internal modules and exposes the public entrypoint.",
+    "finding": "Module foo concentrates orchestration in a single entrypoint without seams for downstream substitution.",
+    "recommendation": "Split orchestration concerns into an interface layer separate from the public entrypoint."
+  },
+  {
+    "rule_id": "U999",
+    "severity": "should_fix",
+    "confidence": 70,
+    "spec_section_id": "modules",
+    "quote": "Owns the canonical pipeline orchestration for the tracer slice; consumes no internal modules and exposes the public entrypoint.",
+    "finding": "Unknown rule that the judge fabricated; should be dropped by the orchestrator validator.",
+    "recommendation": "n/a"
+  },
+  {
+    "rule_id": "U001",
+    "severity": "must_fix",
+    "confidence": 75,
+    "spec_section_id": "architectural-assertions",
+    "quote": "The judge invented this prose that does not appear verbatim anywhere in the canonical spec source file.",
+    "finding": "Quote is fabricated; orchestrator must reject under FR-06 verbatim-substring check.",
+    "recommendation": "n/a"
+  },
+  {
+    "rule_id": "U001",
+    "severity": "must_fix",
+    "confidence": 150,
+    "spec_section_id": "modules",
+    "quote": "Owns the canonical pipeline orchestration for the tracer slice; consumes no internal modules and exposes the public entrypoint.",
+    "finding": "Confidence out of range; orchestrator must drop under FR-06 0..100 integer check.",
+    "recommendation": "n/a"
+  },
+  {
+    "rule_id": "U002",
+    "severity": "should_fix",
+    "confidence": 60,
+    "spec_section_id": "modules",
+    "finding": "Missing quote field entirely; orchestrator must drop under FR-06 quote-presence check.",
+    "recommendation": "n/a"
+  }
+]
