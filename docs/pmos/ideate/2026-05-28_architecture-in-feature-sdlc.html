@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <title>Integrating /architecture into /feature-sdlc — ideate</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.1">
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Integrating <code>/architecture</code> into <code>/feature-sdlc</code></h1>
+  <p class="meta">Ideate · 2026-05-28 · slug <code>architecture-in-feature-sdlc</code></p>
+</header>
+
+<section id="tldr">
+  <h2 id="tldr">TL;DR</h2>
+  <p>Wire <code>/architecture</code> into <code>/feature-sdlc</code> in <strong>two slots</strong>, but ship a <strong>new <code>--from-spec</code> mode</strong> in the same release so the pre-spec slot has something to actually run. Today, <code>/architecture</code> is a static-analysis tool over a filesystem of code — it has no signal when pointed at <code>/spec</code> prose. Without the new mode, the pre-spec slot is theatre.</p>
+  <ul>
+    <li><strong>Slot 1 — Phase 4.5 (after <code>/spec</code>, before <code>/plan</code>):</strong> runs <code>/architecture --from-spec &lt;spec-path&gt;</code>. LLM judge reads the principles document + the spec; renders findings.</li>
+    <li><strong>Slot 2 — Phase 7 sub-step (inside <code>/verify</code>):</strong> existing static-analysis tools (<code>dependency-cruiser</code>, <code>ruff</code>, AST harness) run against changed modules and produce mechanical evidence; the same LLM judge reads principles + code + that evidence and renders findings.</li>
+    <li><strong>Tier-gated from day 1:</strong> T1 (bug fix) skips both. T2 (enhancement) runs post-impl only. T3 (feature) runs both.</li>
+    <li><strong>One principles document, one judge.</strong> No dual-implementation rule set. Static tools are evidence inputs, not parallel evaluators. Same judge prompt template, different inputs for spec vs. code review.</li>
+  </ul>
+</section>
+
+<section id="hmw">
+  <h2 id="hmw">How might we…</h2>
+  <p>How might we wire <code>/architecture</code> into <code>/feature-sdlc</code> so it informs design <em>and</em> catches regressions, without ballooning pipeline time on small features?</p>
+</section>
+
+<section id="target-user-jtbd">
+  <h2 id="target-user-jtbd">Target user &amp; JTBD</h2>
+  <p><strong>User:</strong> The repo maintainer (Maneesh) running <code>/feature-sdlc</code> on features in <code>pmos-toolkit</code> and adjacent repos.</p>
+  <p><strong>Job:</strong> When I drive a feature end-to-end, surface architecture violations at the moments where I can still cheaply act on them — at spec time (cheap to re-design) and at verify time (cheap to add a cleanup task before merge) — without paying the cost on bug fixes or small enhancements that don't introduce structural change.</p>
+</section>
+
+<section id="hypothesis">
+  <h2 id="hypothesis">Hypothesis</h2>
+  <p>Two-slot integration (pre-spec LLM-judge + post-impl static-analysis), sharing one rule definition, will catch ≥1 architectural issue per Tier 3 feature that the current pipeline misses, with &lt;90s added latency in Phase 4.5 and zero added cost on Tier 1.</p>
+</section>
+
+<section id="idea-variants-considered">
+  <h2 id="idea-variants-considered">Idea variants considered</h2>
+  <p>12 variants generated in Phase 2, grouped by placement count:</p>
+  <h3>Single-placement</h3>
+  <ol>
+    <li>Phase 4 (<code>/spec</code>) pre-step — audit current state, feed findings as constraints.</li>
+    <li>Phase 5 (<code>/plan</code>) sub-step — surface concerns when tasks are being defined.</li>
+    <li>Phase 7 (<code>/verify</code>) only — post-impl regression check.</li>
+    <li>Phase 8a (<code>/reflect</code>) only — post-merge audit, log to learnings.</li>
+    <li>Phase 0 baseline only — snapshot for the record.</li>
+    <li>Phase 4.5 between <code>/spec</code> and <code>/plan</code> — validate proposed design.</li>
+    <li>Standalone, handoff suggestion only.</li>
+  </ol>
+  <h3>Two-placement (bookend)</h3>
+  <ol start="8">
+    <li>Phase 4 + Phase 7 — design + verify.</li>
+    <li>Phase 0 + Phase 7 — baseline + diff.</li>
+    <li>Phase 4 + Phase 8a — both soft, never blocks.</li>
+    <li>Phase 5 + Phase 7 — plan-tasks include arch fixes, verify they landed.</li>
+  </ol>
+  <h3>Tier-gated</h3>
+  <ol start="12">
+    <li>Tier-3 only, Phase 4 + Phase 7 — bookend, but only at full tier.</li>
+  </ol>
+  <p>The user pushed back on the pre-spec slot, asking the right question: "does <code>/architecture</code> only audit code, or can it audit the proposed architecture from <code>/spec</code>?" That collapsed variants 1, 6, 8, 10, 12 into a single dependency: <strong>they require a new <code>--from-spec</code> mode to exist</strong>. Otherwise they're no-ops on prose. Decision: ship the new mode in the same release rather than as a backlog item.</p>
+</section>
+
+<section id="how-it-works">
+  <h2 id="how-it-works">How it works</h2>
+  <h3>Foundation: one principles document, one LLM judge</h3>
+  <ul>
+    <li><strong>Principles document</strong> — prose file capturing L1 (universal, ≤15 rules) + L2 (stack-specific TS/Python) + L3 (per-repo overrides). Lives at <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (or similar). Single source of truth.</li>
+    <li><strong>Static-analysis tools</strong> (<code>dependency-cruiser</code>, <code>ruff</code>, the Python AST harness) are <em>evidence-gathering tools</em>, not parallel evaluators. They detect mechanical violations (cycles, fan-in/out, unused exports) and emit structured findings.</li>
+    <li><strong>One LLM judge subagent</strong>, parameterized by input artifact type. Reads: (a) principles doc, (b) the artifact under review, (c) static-tool output when reviewing code. Renders findings citing specific principles.</li>
+  </ul>
+
+  <h3>New invocation: <code>/architecture --from-spec &lt;spec-path&gt;</code></h3>
+  <ul>
+    <li>Reads the spec HTML/MD; extracts the proposed module list, dependencies, and architectural assertions.</li>
+    <li>Dispatches the judge subagent with principles + spec as inputs. <em>No</em> static tools run (no code to scan).</li>
+    <li>Emits the same HTML+MD+JSON triplet shape as code-audit mode, written under <code>{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}</code>.</li>
+    <li><strong>Fails loud</strong> if the spec lacks module/dependency structure (no silent no-op).</li>
+  </ul>
+
+  <h3>Existing code-audit mode (unchanged interface)</h3>
+  <ul>
+    <li>Static tools scan changed modules → mechanical evidence.</li>
+    <li>Same judge subagent runs with principles + code + static-tool output as inputs → findings.</li>
+    <li>Today the static-tool output <em>is</em> the report. The change is wrapping it in the judge pass so the same evaluator handles both modes.</li>
+  </ul>
+  <h3>Slot 1 — <code>/feature-sdlc</code> Phase 4.5 (between <code>/spec</code> and <code>/plan</code>)</h3>
+  <ul>
+    <li>Soft gate (Recommended-Skip on T2, Recommended-Run on T3, suppressed on T1).</li>
+    <li>Runs <code>/architecture --from-spec</code> against the just-emitted spec.</li>
+    <li>Findings surface in chat; user decides whether to revise spec or proceed.</li>
+    <li>State key: <code>phase_4_5_arch_spec_findings_path</code> in state schema v5.</li>
+  </ul>
+  <h3>Slot 2 — <code>/feature-sdlc</code> Phase 7 (inside <code>/verify</code>)</h3>
+  <ul>
+    <li>Existing static-analysis <code>/architecture</code> mode.</li>
+    <li>Scoped with <code>--since &lt;merge-base&gt;</code> so only changed modules are audited (avoids whole-repo noise).</li>
+    <li>Findings rolled into <code>/verify</code>'s existing report alongside lint/test/multi-agent code-review output.</li>
+    <li>State key: <code>phase_7_arch_code_findings_path</code>.</li>
+  </ul>
+  <h3>Tier-gating</h3>
+  <table>
+    <thead><tr><th>Tier</th><th>Slot 1 (pre-spec)</th><th>Slot 2 (post-impl)</th></tr></thead>
+    <tbody>
+      <tr><td>T1 — bug fix</td><td>skip</td><td>skip</td></tr>
+      <tr><td>T2 — enhancement</td><td>skip</td><td>run (scoped to changed modules)</td></tr>
+      <tr><td>T3 — feature</td><td>run (soft gate, Recommended-Run)</td><td>run (scoped to changed modules)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="alternatives-and-prior-art">
+  <h2 id="alternatives-and-prior-art">Alternatives &amp; prior art</h2>
+  <ul>
+    <li><strong>Single-slot post-impl only (variant #3).</strong> Cheaper to build (no new mode), narrower value. Rejected because it leaves the spec-design phase blind to architectural constraints — exactly the slot where it's cheapest to act.</li>
+    <li><strong>Standalone-only, handoff suggestion (variant #7).</strong> Lowest cost, lowest signal — users don't run optional tools. Rejected.</li>
+    <li><strong>Bookend at all tiers (variant #8).</strong> Pays the cost on bug fixes that don't need it. Rejected via tier-gating.</li>
+    <li><strong>Phase 5 (<code>/plan</code>) integration (variant #2).</strong> Considered; <code>/plan</code> already includes deep code study, and surfacing arch concerns there is too late — the spec is already committed.</li>
+    <li><strong>Prior art:</strong> <code>/simulate-spec</code> is the existing optional gate between <code>/spec</code> and <code>/plan</code>. New Phase 4.5 should mirror its shape (soft gate, separate artifact, opt-in confirmation).</li>
+  </ul>
+</section>
+
+<section id="premortem-failure-modes">
+  <h2 id="premortem-failure-modes">Premortem: failure modes</h2>
+  <table>
+    <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td><code>--from-spec</code> LLM judge produces false positives; users learn to ignore both slots</td><td>H</td><td>Binary rubric per L1 rule (mirror <code>skill-eval</code> shape); require evidence citation from spec; cap findings at top-N by impact</td></tr>
+      <tr><td>Pipeline time balloons; Tier 1 fixes pay penalty they don't need</td><td>H</td><td>Tier-gate from day 1 (T1 skip, T2 post-only, T3 both)</td></tr>
+      <tr><td>Post-impl slot duplicates <code>/verify</code>'s multi-agent code review</td><td>M</td><td>Explicit boundary: <code>/verify</code> reviews diff-level quality; <code>/architecture</code> audits structural principles (cycles, depth, boundaries) across changed modules</td></tr>
+      <tr><td><code>--from-spec</code> silent no-ops on specs lacking module/dependency structure</td><td>M</td><td>Define minimum spec contract; fail loud (exit non-zero) when sections missing</td></tr>
+      <tr><td>Principles document drifts from what static tools actually enforce — judge cites a principle the tools never check</td><td>M</td><td>Each principle in the doc declares which static tools (if any) detect violations; principles without a tool are judge-only and clearly marked</td></tr>
+      <tr><td>Phase 4.5 / 7a break state schema v4 resume contract</td><td>L</td><td>Schema bump to v5; reuse soft-gate pattern from existing Phase 0d / 2a / 3a gates</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="riskiest-assumptions">
+  <h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+  <table>
+    <thead><tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr></thead>
+    <tbody>
+      <tr><td>LLM-as-judge reliably applies prose principles to spec prose</td><td>H</td><td>H</td><td>Run prototype <code>--from-spec</code> against 5 historical specs in <code>docs/pmos/features/</code>; measure precision/recall vs. known post-hoc issues</td></tr>
+      <tr><td>Post-impl <code>/architecture</code> finds issues that <code>/verify</code>'s multi-agent review misses</td><td>H</td><td>M</td><td>On 3 recent merged features, run <code>/architecture</code> post-merge; was anything new surfaced beyond what <code>/verify</code> already caught?</td></tr>
+      <tr><td>Recent <code>/spec</code> outputs are structured enough for <code>--from-spec</code> to parse modules + deps</td><td>H</td><td>M</td><td>Audit last 5 specs for module/dep clarity; define spec contract gaps</td></tr>
+      <tr><td>Users will accept ~30–90s added latency at Phase 4.5 in exchange for design-time catches</td><td>H</td><td>M</td><td>Time it on one feature; ask "would you skip this?"</td></tr>
+      <tr><td>Tier-gating (T1 skip / T2 post-only / T3 both) is the right shape</td><td>M</td><td>M</td><td>Walk last 10 <code>/feature-sdlc</code> runs; classify by tier; ask "would gates have helped?"</td></tr>
+    </tbody>
+  </table>
+  <p><strong>One assumption sits at the heart of this release</strong> — the LLM judge reliably applies prose principles to spec prose. Testable cheaply <em>before</em> committing to integration: run the prototype against 5 historical specs, measure precision/recall. (The original design had a second H/H risk — keeping static and LLM rule forms aligned — that's been eliminated by collapsing to a single principles document + single judge.)</p>
+</section>
+
+<section id="success-signals">
+  <h2 id="success-signals">Success signals</h2>
+  <ul>
+    <li>≥1 architectural issue caught per Tier 3 feature that the prior pipeline missed (measured over 5 features post-launch).</li>
+    <li>&lt;90s added latency in Phase 4.5 (P50).</li>
+    <li>Zero added latency on Tier 1 runs.</li>
+    <li>False-positive rate on <code>--from-spec</code> below 20% (measured by user accept/reject ratio on findings).</li>
+    <li>Principles document remains the single source of truth — no rule appears in code that isn't traceable to a principle in the doc.</li>
+  </ul>
+</section>
+
+<section id="next-steps">
+  <h2 id="next-steps">Next steps</h2>
+  <ol>
+    <li><strong>Spike (1 day):</strong> Test the remaining H/H assumption before committing. Build a throwaway <code>--from-spec</code> prototype (judge subagent reading principles + spec); run against 5 historical specs; measure precision/recall vs. known issues.</li>
+    <li>If the spike confirms: <code>/requirements architecture-in-feature-sdlc</code> to formalize scope.</li>
+    <li>Then <code>/grill docs/pmos/ideate/2026-05-28_architecture-in-feature-sdlc.html</code> to stress-test the design decisions on tier-gating, rule sharing, and the failure-loud contract.</li>
+    <li>Then <code>/spec</code> with explicit module list: shared rule-definition file, <code>--from-spec</code> mode in <code>/architecture</code>, Phase 4.5 in <code>/feature-sdlc</code>, Phase 7 sub-step in <code>/verify</code>, state schema v5 migration.</li>
+    <li><code>/ideate --refine --resume docs/pmos/ideate/2026-05-28_architecture-in-feature-sdlc.html</code> if this gets shared more widely.</li>
+  </ol>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions">Open questions</h2>
+  <ul>
+    <li>Should Phase 4.5 emit a separate artifact in <code>{docs_path}/features/&lt;feature&gt;/</code> or fold into the existing spec file as a sibling section?</li>
+    <li>Where does the principles document live? <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (versioned with the skill) vs. <code>{repo}/.pmos/architecture/principles.md</code> (per-repo override, layered on top of skill defaults). Likely both — L1/L2 in the skill, L3 in the repo.</li>
+    <li>Does the judge subagent need a separate prompt template per input type (spec vs. code), or one template that branches on input?</li>
+    <li>If a Phase 4.5 finding causes the user to revise the spec, does the pipeline re-run <code>--from-spec</code> automatically, or wait for explicit re-invocation?</li>
+    <li>Tier-gating shape — is "T2 post-only" actually right, or should T2 also get pre-spec when the spec introduces a new module?</li>
+  </ul>
+</section>
+
+</main>
+<script src="assets/viewer.js?v=2.57.1"></script>
+<script src="assets/diff-match-patch.js?v=2.57.1"></script>
+<script src="assets/comments.js?v=2.57.1"></script>
+</body>
+</html>
