@@ -1,0 +1,290 @@
+[
+  {
+    "id": "metadata",
+    "level": 2,
+    "title": "Metadata",
+    "parent_id": null
+  },
+  {
+    "id": "problem-statement",
+    "level": 2,
+    "title": "1. Problem Statement",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "2. Goals",
+    "parent_id": null
+  },
+  {
+    "id": "non-goals",
+    "level": 2,
+    "title": "3. Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "4. Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "user-personas-and-journeys",
+    "level": 2,
+    "title": "5. User Personas & Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "primary-persona",
+    "level": 3,
+    "title": "5.1 Primary Persona",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "journey-t3-happy-path",
+    "level": 3,
+    "title": "5.2 Journey — Tier-3 happy path via /feature-sdlc",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "journey-standalone-spec",
+    "level": 3,
+    "title": "5.3 Journey — Standalone /spec (T3)",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "journey-t2-auto-upgrade",
+    "level": 3,
+    "title": "5.4 Journey — Tier-2 with new-module auto-upgrade",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "journey-t1-edge",
+    "level": 3,
+    "title": "5.5 Journey — Tier-1 edge",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "journey-errors",
+    "level": 3,
+    "title": "5.6 Error journeys",
+    "parent_id": "user-personas-and-journeys"
+  },
+  {
+    "id": "system-design",
+    "level": 2,
+    "title": "6. System Design",
+    "parent_id": null
+  },
+  {
+    "id": "architecture-overview",
+    "level": 3,
+    "title": "6.1 Architecture Overview",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-from-spec",
+    "level": 3,
+    "title": "6.2 Sequence — /spec Phase 6.6 (--from-spec happy path)",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-since",
+    "level": 3,
+    "title": "6.3 Sequence — /verify folded sub-step (--since happy path)",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "sequence-error",
+    "level": 3,
+    "title": "6.4 Sequence — error: spec missing §Modules",
+    "parent_id": "system-design"
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "7. Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-architecture-from-spec",
+    "level": 3,
+    "title": "7.1 /architecture --from-spec mode",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-architecture-since-extension",
+    "level": 3,
+    "title": "7.2 /architecture --since mode (existing; extended for /verify integration)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-principles-md",
+    "level": 3,
+    "title": "7.3 principles.md authoring + L1/L2/L3 layering",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-spec-phase-66",
+    "level": 3,
+    "title": "7.4 /spec Phase 6.6 folded sub-step",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-verify-sub-step",
+    "level": 3,
+    "title": "7.5 /verify folded sub-step",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-judge-subagent",
+    "level": 3,
+    "title": "7.6 LLM judge subagent contract",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-drift-hook",
+    "level": 3,
+    "title": "7.7 Drift hook (rule-id-set-equality)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-spec-template-contract",
+    "level": 3,
+    "title": "7.8 Minimum spec contract (added to /spec Tier-3 template)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "non-functional-requirements",
+    "level": 2,
+    "title": "8. Non-Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "api-contracts",
+    "level": 2,
+    "title": "9. API Contracts",
+    "parent_id": null
+  },
+  {
+    "id": "api-from-spec-cli",
+    "level": 3,
+    "title": "9.1 /architecture --from-spec CLI",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "api-judge-input",
+    "level": 3,
+    "title": "9.2 Judge subagent input (in-memory)",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "api-judge-output",
+    "level": 3,
+    "title": "9.3 Judge subagent output (JSON array)",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "api-error-stderr",
+    "level": 3,
+    "title": "9.4 Error stderr shape (exit 65)",
+    "parent_id": "api-contracts"
+  },
+  {
+    "id": "database-design",
+    "level": 2,
+    "title": "10. Database Design",
+    "parent_id": null
+  },
+  {
+    "id": "frontend-design",
+    "level": 2,
+    "title": "11. Frontend Design",
+    "parent_id": null
+  },
+  {
+    "id": "modules",
+    "level": 2,
+    "title": "12. Modules",
+    "parent_id": null
+  },
+  {
+    "id": "architectural-assertions",
+    "level": 2,
+    "title": "13. Architectural Assertions",
+    "parent_id": null
+  },
+  {
+    "id": "edge-cases",
+    "level": 2,
+    "title": "14. Edge Cases",
+    "parent_id": null
+  },
+  {
+    "id": "configuration-and-feature-flags",
+    "level": 2,
+    "title": "15. Configuration & Feature Flags",
+    "parent_id": null
+  },
+  {
+    "id": "testing-and-verification",
+    "level": 2,
+    "title": "16. Testing & Verification Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "unit-tests",
+    "level": 3,
+    "title": "16.1 Unit Tests",
+    "parent_id": "testing-and-verification"
+  },
+  {
+    "id": "integration-tests",
+    "level": 3,
+    "title": "16.2 Integration Tests",
+    "parent_id": "testing-and-verification"
+  },
+  {
+    "id": "end-to-end-tests",
+    "level": 3,
+    "title": "16.3 End-to-End Tests",
+    "parent_id": "testing-and-verification"
+  },
+  {
+    "id": "verification-commands",
+    "level": 3,
+    "title": "16.4 Verification Commands",
+    "parent_id": "testing-and-verification"
+  },
+  {
+    "id": "rollout-strategy",
+    "level": 2,
+    "title": "17. Rollout Strategy",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "18. Release Prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "research-sources",
+    "level": 2,
+    "title": "19. Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "20. Open Questions",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "21. Review Log",
+    "parent_id": null
+  }
+]

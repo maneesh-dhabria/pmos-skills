@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Integrating /architecture into /spec and /verify — Spec</title>
+  <meta name="pmos:skill" content="spec">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.1">
+  <script defer src="assets/viewer.js?v=2.57.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Integrating /architecture into /spec and /verify — Spec</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="metadata">
+<h2 id="metadata">Metadata</h2>
+<dl>
+  <dt>tier</dt><dd>3</dd>
+  <dt>type</dt><dd>feature</dd>
+  <dt>feature</dt><dd>architecture-in-feature-sdlc</dd>
+  <dt>date</dt><dd>2026-05-28</dd>
+  <dt>status</dt><dd>Ready for Plan</dd>
+  <dt>requirements</dt><dd><a href="01_requirements.html">01_requirements.html</a></dd>
+</dl>
+</section>
+
+<section id="problem-statement">
+<h2 id="problem-statement">1. Problem Statement</h2>
+<p><code>/architecture</code> exists as a static-analysis lint but is invisible to <code>/spec</code> (pre-impl design) and <code>/verify</code> (post-impl gate). Architectural issues surface only at <code>/reflect</code> retros — or never — and accumulate as silent tech debt. This spec folds <code>/architecture</code> as a sub-step inside both <code>/spec</code> (new Phase 6.6) and <code>/verify</code> (new folded sub-step), sharing one principles doc and one LLM judge subagent. <code>/feature-sdlc</code> is unchanged. Primary success metric: operator does not auto-pass <code>--skip-arch</code> across the first 3 Tier-3 features post-launch.</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">2. Goals</h2>
+<table>
+  <thead><tr><th>#</th><th>Goal</th><th>Success Metric</th></tr></thead>
+  <tbody>
+    <tr><td>G1</td><td>Architectural concerns surface at spec time for T3 features</td><td>User-retains-gate signal (no auto-skip across first 3 T3 runs) + <code>--from-spec</code> false-positive rate &lt;20%</td></tr>
+    <tr><td>G2</td><td>Structural regressions caught at verify time for T2/T3</td><td>Aspirational/qualitative — post-launch retro inspection of /verify reports</td></tr>
+    <tr><td>G3</td><td>Zero added cost on T1 fixes</td><td>No <code>architecture</code> substring in T1 fixture <code>state.yaml</code> after /spec or /verify</td></tr>
+    <tr><td>G4</td><td>/spec arch sub-step P50 latency &lt;90s on T3</td><td>Time the folded sub-step on first 3 T3 runs; log to release notes</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="non-goals">
+<h2 id="non-goals">3. Non-Goals</h2>
+<ul>
+  <li>NOT whole-repo audit at /verify time — scoped to changed modules since merge-base. Whole-repo audits produce PR-time noise.</li>
+  <li>NOT a parallel rules engine — principles.yaml + single LLM judge is the chosen contract; dual implementations drift.</li>
+  <li>NOT making /spec's arch sub-step hard at any tier — pre-impl design is exploratory; false positives train users to skip.</li>
+  <li>NOT building <code>--from-spec</code> as a separate skill — extends existing /architecture skill with a new input mode.</li>
+  <li>NOT adding any new top-level phase to /feature-sdlc — orchestrator stays unchanged.</li>
+  <li>NOT bumping the /feature-sdlc state schema — sub-step state lives inside child-skill state.</li>
+  <li>NOT running the 1-day judge-precision spike before ship — knob defaults set by judgment (see D8); revisit if post-launch FP rate exceeds threshold.</li>
+</ul>
+</section>
+
+<section id="decision-log">
+<h2 id="decision-log">4. Decision Log</h2>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Fold /architecture into /spec (Phase 6.6) and into /verify (new folded sub-step); /feature-sdlc unchanged</td><td>(a) Two orchestrator slots in /feature-sdlc, (b) one slot only, (c) folded into both child skills (selected)</td><td>Carried from requirements D1 — matches /simulate-spec→/spec, /msf-req→/requirements folding precedent. Standalone /spec and /verify users get coverage too.</td></tr>
+    <tr><td>D2</td><td>One principles document + one LLM judge; static tools are evidence gatherers (not parallel evaluators)</td><td>(a) Static tools authoritative + LLM supplement, (b) LLM authoritative + tools as evidence (selected), (c) dual independent evaluators</td><td>Carried from requirements D2. Single source of truth eliminates evaluator drift.</td></tr>
+    <tr><td>D3</td><td>Ship <code>--from-spec</code> mode in the same release as integration plumbing</td><td>(a) Backlog the mode, (b) ship both (selected)</td><td>Carried from requirements D3. Phase 6.6 has no signal without it.</td></tr>
+    <tr><td>D4</td><td>Tier-gating lives in /spec and /verify (existing <code>--tier</code> passthrough); T1 skips both, T2 runs /verify only (with /spec auto-upgrade when new module declared), T3 runs both</td><td>(a) T3-only, (b) all tiers, (c) ternary with /spec auto-upgrade carve-out (selected)</td><td>Carried from requirements D4. Tier logic belongs in the host skill, not orchestrator.</td></tr>
+    <tr><td>D5</td><td>Findings doc = HTML+MD+JSON triplet at <code>{docs_path}/architecture/{date}_&lt;slug&gt;_{from-spec|code}.{html,md,json}</code></td><td>(a) /simulate-spec-style folder, (b) inline section in spec, (c) standalone triplet (selected)</td><td>Reuses existing /architecture artifact contract + substrate. Cross-linked from /spec's and /verify's output.</td></tr>
+    <tr><td>D6</td><td>principles.md alongside principles.yaml at <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (plugin L1+L2) with L3 override at <code>&lt;repo&gt;/.pmos/architecture/principles.md</code></td><td>(a) YAML comments only, (b) MD authoritative + YAML generated, (c) MD prose + YAML co-authored (selected)</td><td>Carried from requirements D6 + Q8 resolution. Prose readability matters for judge comprehension; YAML stays the script handoff. L3 layering mirrors existing YAML L3 layering (see <code>principles.yaml</code> header comment line 5).</td></tr>
+    <tr><td>D7</td><td>Both folded sub-steps inherit host-skill gate semantics (soft; advisory failure pattern)</td><td>(a) Hard at T3 / soft elsewhere, (b) always soft via host gate (selected)</td><td>Carried from requirements D7. Reuses host's <code>folded_phase_failures[]</code> pattern; no new dialog plumbing.</td></tr>
+    <tr><td>D8</td><td>Skip the pre-build judge-precision spike; ship 3 knobs (top-N cap, evidence-citation-required, min-confidence) with judgment-call defaults; revisit post-launch if FP rate exceeds 20%</td><td>(a) Run spike then ship, (b) skip spike, ship with judgment defaults + post-launch monitoring (selected)</td><td>Reshaped from requirements D8 per user Q10 resolution. Spike artifacts (5 historical specs, precision/recall measurement) deferred. Defaults: top-N=8, evidence-required=true, min-confidence=70.</td></tr>
+    <tr><td>D9</td><td>Drift hook ships in v1: rule-id-set-equality bash script (~30 LOC) at <code>plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code>; pre-commit, bypassable via <code>--no-verify</code></td><td>(a) Convention-only, (b) drift hook in v1 (selected), (c) full semantic diff</td><td>Carried from requirements D9 + grill G2. Catches the loud "added rule on one side but not the other" failure. Semantic drift deferred.</td></tr>
+    <tr><td>D10</td><td>Minimum spec contract: required <code>§Modules</code> section with name+deps per module, required <code>§Architectural Assertions</code> section, T3-mandatory (T2 only on auto-upgrade)</td><td>(a) Loose extraction (regex over whole spec), (b) strict contract with structured sections (selected)</td><td>Required so <code>--from-spec</code> has reliable input. Fails loud on missing sections with exit code 65 (spec-contract-violation). Adds 2 sections to Tier-3 spec template in /spec.</td></tr>
+    <tr><td>D11</td><td>Judge subagent runs at temperature 0; orchestrator-side validation hard-fails on (a) rule_id not in loaded ruleset, (b) quote not substring of cited spec section/source file</td><td>(a) Trust judge output, (b) orchestrator validates (selected, mirrors /skill-eval FR-44 + /grill FR-52 patterns)</td><td>Consistency with existing reviewer-subagent contracts in this repo. Prevents hallucinated rule IDs and fabricated quotes.</td></tr>
+    <tr><td>D12</td><td>T2→T3 auto-upgrade detector: compare module list extracted from spec §Modules against repo's current top-level module set (derived via <code>git ls-tree HEAD -- plugins/*/skills/ src/ &lt;configured-roots&gt;</code>); any new name triggers upgrade</td><td>(a) Operator-flagged, (b) auto-detect via module-list diff (selected)</td><td>Closes requirements Q7 / grill G3. Deterministic detection, no judgment required.</td></tr>
+    <tr><td>D13</td><td>Findings JSON schema: <code>{rule_id, severity, confidence, spec_section_id|file_path, quote, finding, recommendation}</code> with per-finding required <code>quote</code> field (≥40 chars verbatim)</td><td>(a) Free-form text findings, (b) structured schema (selected)</td><td>Makes orchestrator validation (D11) and downstream consumption (release-notes recipe) tractable.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="user-personas-and-journeys">
+<h2 id="user-personas-and-journeys">5. User Personas &amp; Journeys</h2>
+
+<h3 id="primary-persona">5.1 Primary Persona</h3>
+<p><strong>Repo maintainer</strong> driving /feature-sdlc on Tier-3 features in pmos-toolkit and adjacent multi-module repos. Single user today (Maneesh); contract generalises to any /feature-sdlc operator on a repo with a shipped /architecture principles configuration.</p>
+
+<h3 id="journey-t3-happy-path">5.2 Journey — Tier-3 happy path via /feature-sdlc</h3>
+<ol>
+  <li>Operator runs <code>/feature-sdlc &lt;idea&gt;</code>; pipeline proceeds normally through requirements → grill → creativity → wireframes → prototype.</li>
+  <li>Pipeline enters /spec. /spec emits 02_spec.html and the spec contains the new required §Modules + §Architectural Assertions sections (T3 template addition).</li>
+  <li>/spec Phase 6.6 fires: gate prompt <em>"Run /architecture --from-spec? (Recommended)"</em>; operator confirms.</li>
+  <li>Sub-step invokes <code>/architecture --from-spec 02_spec.html</code>. The mode (a) parses §Modules + §Architectural Assertions, (b) dispatches the judge subagent with <code>principles.md</code> (merged L1+L2+L3) + the parsed spec, (c) writes findings triplet to <code>docs/pmos/architecture/2026-05-28_&lt;slug&gt;_from-spec.{html,md,json}</code>.</li>
+  <li>Findings (3 items, top-N=8 cap) appear in /spec's output cross-linked to the triplet.</li>
+  <li>Operator either revises spec (re-runs /spec; the folded sub-step internally re-runs against the new spec — no orchestrator cascade) or accepts findings and proceeds.</li>
+  <li>Pipeline continues through /plan → /execute (no change).</li>
+  <li>/verify enters. Its new folded sub-step invokes <code>/architecture --since &lt;merge-base&gt;</code> against changed modules; static tools (dependency-cruiser, ruff, cycle-py) produce mechanical evidence; the same judge reads principles + code + evidence; findings appear in /verify's aggregated report alongside lint/tests/code-review.</li>
+  <li>Operator addresses the finding (a newly introduced cycle) before /complete-dev merges.</li>
+</ol>
+
+<h3 id="journey-standalone-spec">5.3 Journey — Standalone /spec (T3)</h3>
+<p>Operator runs /spec directly (not via /feature-sdlc). Phase 6.6 fires identically — same gate, same findings, same triplet. This was not possible in the orchestrator-slot design (closed in requirements reshape).</p>
+
+<h3 id="journey-t2-auto-upgrade">5.4 Journey — Tier-2 with new-module auto-upgrade</h3>
+<p>/spec arch sub-step default suppressed at T2 (Recommended=Skip). Auto-upgrade detector (D12) parses spec §Modules; if any module name is absent from <code>git ls-tree HEAD</code> module-set, gate flips to Recommended=Run with log line <code>arch sub-step: T2→T3 auto-upgrade (new module: &lt;name&gt;)</code>. /verify arch sub-step runs scoped to changed modules.</p>
+
+<h3 id="journey-t1-edge">5.5 Journey — Tier-1 edge</h3>
+<p>Both folded sub-steps skipped. No /architecture invocation. Zero added latency. Log line: <code>arch sub-step: skipped (tier 1)</code>.</p>
+
+<h3 id="journey-errors">5.6 Error journeys</h3>
+<ul>
+  <li><strong>Spec lacks §Modules:</strong> <code>--from-spec</code> exits 65 (spec-contract-violation) with structured stderr listing missing sections; /spec's folded sub-step surfaces the error and offers <code>--force-incomplete</code> (judge runs on whatever sections exist, marked degraded in findings JSON).</li>
+  <li><strong>Judge timeout / rate-limit:</strong> sub-step fails advisory per host-skill folded-phase pattern; entry appended to <code>state.yaml.phases.spec.folded_phase_failures[]</code> (or <code>verify</code>); pipeline continues.</li>
+  <li><strong>Principles MD↔YAML drift:</strong> pre-commit drift hook refuses the commit; bypassable via <code>git commit --no-verify</code> per established escape-hatch.</li>
+  <li><strong>L3 principles.{yaml,md} missing in target repo:</strong> use plugin L1+L2 only; advisory log <code>no L3 overrides found; using plugin defaults</code>.</li>
+  <li><strong>No changes since merge-base in /verify:</strong> skip cleanly with <code>architecture: no changes since merge-base; skipping</code>; no judge invocation.</li>
+</ul>
+</section>
+
+<section id="system-design">
+<h2 id="system-design">6. System Design</h2>
+
+<h3 id="architecture-overview">6.1 Architecture Overview</h3>
+<figure>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│ /feature-sdlc orchestrator (UNCHANGED — no new phase IDs, no schema │
+│ bump; this feature is invisible at the orchestrator level)          │
+└──────────────────┬──────────────────────────┬───────────────────────┘
+                   │                          │
+                   ▼                          ▼
+        ┌──────────────────┐         ┌──────────────────┐
+        │ /spec            │         │ /verify          │
+        │  Phase 6.5       │         │  Phase 4.5       │
+        │  /simulate-spec  │         │  (existing       │
+        │  (existing)      │         │   folded sub)    │
+        │                  │         │                  │
+        │ +Phase 6.6 NEW:  │         │ +NEW folded sub: │
+        │  /architecture   │         │  /architecture   │
+        │  --from-spec     │         │  --since &lt;mb&gt;    │
+        └────────┬─────────┘         └────────┬─────────┘
+                 │                            │
+                 ▼                            ▼
+        ┌─────────────────────────────────────────┐
+        │ /architecture skill (extended)          │
+        │  ─ existing modes: --deep, --since,     │
+        │    --baseline, --scaffold-l3,           │
+        │    --monorepo, --non-interactive        │
+        │  ─ NEW mode: --from-spec &lt;spec-path&gt;    │
+        └────┬────────────────────┬───────────────┘
+             │                    │
+             ▼                    ▼
+    ┌────────────────┐   ┌────────────────────┐
+    │ Static tools   │   │ Judge subagent     │
+    │ (code-side     │   │ (LLM, temp=0)      │
+    │  evidence):    │   │  reads:            │
+    │  ─ dep-cruiser │   │   principles.md    │
+    │  ─ ruff        │   │   (merged L1+L2+L3)│
+    │  ─ cycle-py    │   │   + artifact under │
+    │  ─ AST harness │   │   review           │
+    └───────┬────────┘   └──────────┬─────────┘
+            │                       │
+            └───────────┬───────────┘
+                        ▼
+            ┌───────────────────────────┐
+            │ Findings JSON             │
+            │ (schema §13)              │
+            │ + HTML + MD triplet at    │
+            │ docs/pmos/architecture/   │
+            └───────────────────────────┘
+
+Principles store (read by judge, validated by drift hook):
+  plugins/pmos-toolkit/skills/architecture/
+    principles.yaml         (existing; schema v2, 18 rules)
+    principles.md           (NEW; prose, same rule-ID set)
+    scripts/check-principles-drift.sh  (NEW; rule-id-set-equality)
+  &lt;repo&gt;/.pmos/architecture/
+    principles.yaml         (existing L3 override location)
+    principles.md           (NEW L3 prose override; optional)
+</code></pre>
+<figcaption>Diagram authored inline (single-developer pipeline run, /diagram subagent intentionally skipped for context efficiency per session pragmatics).</figcaption>
+</figure>
+
+<h3 id="sequence-from-spec">6.2 Sequence — /spec Phase 6.6 (--from-spec happy path)</h3>
+<figure>
+<pre><code>Operator    /spec              /architecture       Judge subagent     Filesystem
+   │          │                       │                  │                │
+   │ /spec    │                       │                  │                │
+   │─────────▶│                       │                  │                │
+   │          │ emit 02_spec.html     │                  │                │
+   │          │ (incl. §Modules,      │                  │                │
+   │          │  §Arch Assertions)    │                  │                │
+   │          │──────────────────────────────────────────────────────────▶│
+   │          │                       │                  │                │
+   │          │ Phase 6.6 gate prompt:│                  │                │
+   │          │   "Run /architecture  │                  │                │
+   │          │    --from-spec?"      │                  │                │
+   │◀─────────│                       │                  │                │
+   │ Confirm  │                       │                  │                │
+   │─────────▶│                       │                  │                │
+   │          │ dispatch              │                  │                │
+   │          │ --from-spec           │                  │                │
+   │          │──────────────────────▶│                  │                │
+   │          │                       │ parse §Modules + │                │
+   │          │                       │ §Arch Assertions │                │
+   │          │                       │ → modules.json   │                │
+   │          │                       │ (in-memory)      │                │
+   │          │                       │                  │                │
+   │          │                       │ load principles  │                │
+   │          │                       │ (L1+L2+L3 merge) │                │
+   │          │                       │◀─────────────────────────────────│
+   │          │                       │                  │                │
+   │          │                       │ dispatch judge   │                │
+   │          │                       │─────────────────▶│                │
+   │          │                       │                  │ findings[]     │
+   │          │                       │◀─────────────────│ (temp=0)       │
+   │          │                       │                  │                │
+   │          │                       │ orchestrator     │                │
+   │          │                       │ validate (D11):  │                │
+   │          │                       │  rule_id ∈ set?  │                │
+   │          │                       │  quote substring?│                │
+   │          │                       │                  │                │
+   │          │                       │ apply knobs:     │                │
+   │          │                       │  top-N=8,        │                │
+   │          │                       │  min-conf=70,    │                │
+   │          │                       │  evidence-req    │                │
+   │          │                       │                  │                │
+   │          │                       │ emit triplet     │                │
+   │          │                       │──────────────────────────────────▶│
+   │          │                       │                  │                │
+   │          │ findings + triplet path│                 │                │
+   │          │◀──────────────────────│                  │                │
+   │          │                       │                  │                │
+   │          │ append to /spec output│                  │                │
+   │◀─────────│ (cross-linked)        │                  │                │
+   │          │                       │                  │                │</code></pre>
+<figcaption>Diagram authored inline.</figcaption>
+</figure>
+
+<h3 id="sequence-since">6.3 Sequence — /verify folded sub-step (--since happy path)</h3>
+<figure>
+<pre><code>Operator   /verify         /architecture       Static tools     Judge subagent
+   │         │                    │                    │                │
+   │/verify  │                    │                    │                │
+   │────────▶│                    │                    │                │
+   │         │ ... existing       │                    │                │
+   │         │ Phases 1-7 ...     │                    │                │
+   │         │                    │                    │                │
+   │         │ NEW folded sub:    │                    │                │
+   │         │ dispatch           │                    │                │
+   │         │ --since &lt;merge-base&gt;                    │                │
+   │         │───────────────────▶│                    │                │
+   │         │                    │ git diff           │                │
+   │         │                    │ --name-only        │                │
+   │         │                    │ &lt;mb&gt;..HEAD         │                │
+   │         │                    │                    │                │
+   │         │                    │ filter to changed  │                │
+   │         │                    │ modules            │                │
+   │         │                    │                    │                │
+   │         │                    │ run static tools   │                │
+   │         │                    │───────────────────▶│                │
+   │         │                    │                    │ violations[]   │
+   │         │                    │◀───────────────────│ (mechanical)   │
+   │         │                    │                    │                │
+   │         │                    │ dispatch judge     │                │
+   │         │                    │ (principles +      │                │
+   │         │                    │  changed files +   │                │
+   │         │                    │  static evidence)  │                │
+   │         │                    │───────────────────────────────────▶│
+   │         │                    │                    │   findings[]   │
+   │         │                    │◀───────────────────────────────────│
+   │         │                    │                    │                │
+   │         │                    │ orchestrator       │                │
+   │         │                    │ validate + knobs   │                │
+   │         │                    │ + emit triplet     │                │
+   │         │                    │                    │                │
+   │         │ findings           │                    │                │
+   │         │◀───────────────────│                    │                │
+   │         │                    │                    │                │
+   │         │ aggregate into     │                    │                │
+   │         │ /verify report     │                    │                │
+   │         │ alongside lint/    │                    │                │
+   │         │ tests/code-review  │                    │                │
+   │◀────────│                    │                    │                │</code></pre>
+<figcaption>Diagram authored inline.</figcaption>
+</figure>
+
+<h3 id="sequence-error">6.4 Sequence — error: spec missing §Modules</h3>
+<figure>
+<pre><code>/spec ──▶ dispatch --from-spec ──▶ /architecture
+                                        │
+                                        │ parse spec.html
+                                        │ → no &lt;section id="modules"&gt;
+                                        │
+                                        │ exit 65
+                                        │ stderr (structured):
+                                        │   {
+                                        │     "error": "spec-contract-violation",
+                                        │     "missing_sections": ["modules", "architectural-assertions"],
+                                        │     "remedy": "Add required sections per spec template §10"
+                                        │   }
+                                        ▼
+/spec receives exit 65 ──▶ surface error in Phase 6.6 output ──▶ offer:
+   (a) Revise spec to add sections
+   (b) --force-incomplete  (judge runs on what's present; finding marked degraded:true)
+   (c) Skip arch sub-step  (status: skipped-contract-violation)</code></pre>
+<figcaption>Diagram authored inline.</figcaption>
+</figure>
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">7. Functional Requirements</h2>
+
+<h3 id="fr-architecture-from-spec">7.1 /architecture <code>--from-spec</code> mode</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-01</td><td><code>/architecture --from-spec &lt;spec-path&gt;</code> accepts a path to <code>02_spec.html</code> (or .md sidecar); flag <code>--from-spec</code> mutually exclusive with <code>--since</code>, <code>--baseline</code>, <code>--deep</code>.</td></tr>
+    <tr><td>FR-02</td><td>Parses spec for: (a) <code>&lt;section id="modules"&gt;</code> with <code>&lt;table&gt;</code> rows of <code>{name, deps[]}</code>, (b) <code>&lt;section id="architectural-assertions"&gt;</code> with bulleted assertions. Parser uses existing <code>build_sections_json.js</code> substrate.</td></tr>
+    <tr><td>FR-03</td><td>On missing required section (modules OR architectural-assertions): exit 65 with JSON-shaped stderr per §6.4 sequence. <code>--force-incomplete</code> flag allows degraded run.</td></tr>
+    <tr><td>FR-04</td><td>Loads merged principles (L1+L2 from plugin path, L3 from <code>&lt;repo&gt;/.pmos/architecture/principles.{yaml,md}</code>); missing L3 logs <code>no L3 overrides found; using plugin defaults</code> and proceeds.</td></tr>
+    <tr><td>FR-05</td><td>Dispatches judge subagent with (a) merged principles.md prose, (b) parsed §Modules JSON, (c) §Architectural Assertions list, (d) the rule-ID set (from YAML); judge runs at temperature 0.</td></tr>
+    <tr><td>FR-06</td><td>Orchestrator-side validates every finding: <code>rule_id</code> must be in loaded ruleset; <code>quote</code> (≥40 chars) must be a verbatim substring of the cited <code>spec_section_id</code> in the source spec; <code>finding.confidence</code> must be 0–100 integer. Invalid findings dropped with log line <code>dropped finding: &lt;reason&gt;</code>.</td></tr>
+    <tr><td>FR-07</td><td>Applies knobs: <code>--top-n N</code> (default 8) caps findings by severity then confidence; <code>--min-confidence N</code> (default 70) drops below-threshold; <code>--evidence-required</code> (default true) drops findings without valid <code>quote</code>.</td></tr>
+    <tr><td>FR-08</td><td>Emits triplet at <code>{docs_path}/architecture/{date}_&lt;slug&gt;_from-spec.{html,md,json}</code> via existing /architecture HTML substrate; JSON conforms to §13 schema.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-architecture-since-extension">7.2 /architecture <code>--since</code> mode (existing; extended for /verify integration)</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-09</td><td>Existing <code>--since &lt;ref&gt;</code> mode preserved unchanged for standalone invocation.</td></tr>
+    <tr><td>FR-10</td><td>When invoked with <code>--since</code> AND empty diff: exit 0 with log line <code>architecture: no changes since &lt;ref&gt;; skipping</code>; do NOT emit empty triplet.</td></tr>
+    <tr><td>FR-11</td><td>Findings JSON emitted by <code>--since</code> conforms to §13 schema (identical shape to <code>--from-spec</code>, with <code>file_path</code> populated instead of <code>spec_section_id</code>).</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-principles-md">7.3 principles.md authoring + L1/L2/L3 layering</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-12</td><td>New file <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> ships with one H2 section per rule, heading text is the rule ID (e.g., <code>## U001</code>), body contains: 1-line summary, why narrative (≥2 sentences), example violation, example compliance, declared static tools that detect (or <code>"judge-only"</code>). <strong>Loader contract:</strong> principles.yaml remains the canonical machine-readable source (id, tier, disposition, delegate_to, check) consumed by the existing /architecture rule loader. principles.md is consumed ONLY when assembling the judge prompt (FR-32) — never by the rule loader. The two halves share a rule-ID set (drift-hook enforced) but have distinct runtime roles.</td></tr>
+    <tr><td>FR-13</td><td>L3 override location: <code>&lt;repo&gt;/.pmos/architecture/principles.md</code> (sibling of existing L3 principles.yaml). Same format as plugin file; rules with IDs duplicating plugin rules override (last-wins).</td></tr>
+    <tr><td>FR-14</td><td>Loader merges L1+L2 (plugin) + L3 (repo) at runtime; collision logs <code>L3 override applied: &lt;rule-id&gt;</code>. Merged ruleset passed to judge.</td></tr>
+    <tr><td>FR-15</td><td>Initial principles.md authors all 18 existing YAML rules (10 L1 + 4 L2 TS + 4 L2 Py) — same rule-ID set as principles.yaml v2 schema.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-spec-phase-66">7.4 /spec Phase 6.6 folded sub-step</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-16</td><td>/spec SKILL.md gains a new Phase 6.6 section <em>after</em> Phase 6.5 (folded /simulate-spec) and <em>before</em> Phase 7 (final review). Section title: <code>## Phase 6.6: Folded /architecture --from-spec (T3 default-on; T2 conditional; T1 skip)</code>.</td></tr>
+    <tr><td>FR-17</td><td>Phase 6.6 gate logic: T1 → skip with log <code>arch sub-step: skipped (tier 1)</code>; T2 → run auto-upgrade detector (D12), Recommended=Run iff new module detected else Recommended=Skip; T3 → Recommended=Run.</td></tr>
+    <tr><td>FR-18</td><td>Auto-upgrade detector implementation: extract module names from spec §Modules table; compute repo's current module set via <code>git ls-tree --name-only HEAD -- &lt;configured-roots&gt;</code>; set-difference yields new-module list. Empty → no upgrade; non-empty → flip Recommended. <strong>Roots configurable</strong> in <code>.pmos/settings.yaml :: architecture.module_roots</code>; default <code>["plugins/*/skills/", "src/"]</code> is tuned for this repo's pmos-toolkit layout — other repos MUST configure their own roots before T2 auto-upgrade is reliable. When the config is absent AND the default doesn't match the repo's top-level layout (heuristic: <code>git ls-tree</code> returns 0 entries), detector logs <code>auto-upgrade: module_roots config absent and defaults found no modules; gate stays at Recommended=Skip</code> and skips upgrade rather than misfiring.</td></tr>
+    <tr><td>FR-19</td><td>Gate uses AskUserQuestion with options <strong>Run /architecture --from-spec (Recommended)</strong> / <strong>Skip</strong>; in <code>--non-interactive</code>, defers per canonical block with Recommended-default.</td></tr>
+    <tr><td>FR-20</td><td><code>--skip-folded-arch</code> flag short-circuits Phase 6.6 entirely (mirrors <code>--skip-folded-sim-spec</code> pattern from Phase 6.5).</td></tr>
+    <tr><td>FR-21</td><td>Phase 6.6 dispatches <code>/architecture --from-spec {feature_folder}/02_spec.html</code> as a blocking Task subagent with 300s per-call timeout; output JSON parsed; findings cross-linked into /spec output.</td></tr>
+    <tr><td>FR-22</td><td>On failure: capture <code>{folded_skill: "architecture", error_excerpt: &lt;first-200-chars&gt;, ts: &lt;ISO-8601&gt;}</code> and append to per-skill state <code>folded_phase_failures[]</code> (mirrors Phase 6.5 FR-50 pattern); emit advisory chat line; continue.</td></tr>
+    <tr><td>FR-23</td><td>Re-running /spec invalidates prior Phase 6.6 output; sub-step re-runs against new spec (no orchestrator cascade — internal re-run only; closes requirements Q6).</td></tr>
+    <tr><td>FR-24</td><td>Required spec sections (per D10): /spec Tier-3 template gains §Modules and §Architectural Assertions sections; Tier-2 template gains them as optional (required only on auto-upgrade trigger).</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-verify-sub-step">7.5 /verify folded sub-step</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-25</td><td>/verify SKILL.md gains a new folded sub-step section after the existing Phase 4.5 (folded-phase advisory pattern) and before Phase 7 (hard gates). Title: <code>## Phase 4.7: Folded /architecture --since (T2 scoped; T3 full; T1 skip)</code>.</td></tr>
+    <tr><td>FR-26</td><td>Sub-step tier logic: T1 → skip with log <code>arch sub-step: skipped (tier 1)</code>; T2 → run scoped to changed modules; T3 → run full.</td></tr>
+    <tr><td>FR-27</td><td>Sub-step dispatches <code>/architecture --since $(git merge-base HEAD main)</code> as blocking Task subagent with 600s per-call timeout (longer than /spec sub-step because static tools run).</td></tr>
+    <tr><td>FR-28</td><td>Findings aggregated into /verify's existing report (already aggregates lint + tests + multi-agent code review per existing /verify Phase 3); a new "Architecture findings" section emitted in /verify output.</td></tr>
+    <tr><td>FR-29</td><td>Advisory failure pattern (mirrors existing /verify folded-phase handling): on failure append to per-skill <code>folded_phase_failures[]</code>; do NOT block /verify pass.</td></tr>
+    <tr><td>FR-30</td><td><code>--skip-folded-arch</code> flag on /verify short-circuits the sub-step.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-judge-subagent">7.6 LLM judge subagent contract</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-31</td><td>Judge runs at <strong>temperature 0</strong> (deterministic, mirrors /skill-eval reviewer + /grill reviewer contracts).</td></tr>
+    <tr><td>FR-32</td><td>Judge input prompt template at <code>plugins/pmos-toolkit/skills/architecture/reference/judge-prompt-template.md</code>: contains rule list (verbatim from principles.md merged — this is the only runtime consumer of principles.md), the artifact under review, output schema (§13), and the instruction "evaluate against every applicable rule; emit findings citing rule_id; quote ≥40 chars verbatim from source".</td></tr>
+    <tr><td>FR-33</td><td>Judge output: JSON array of finding objects (schema §13); orchestrator validates per FR-06.</td></tr>
+    <tr><td>FR-34</td><td>Judge does NOT edit artifacts. Reports only. Mirrors /skill-eval D10 separation of writer vs reviewer.</td></tr>
+    <tr><td>FR-35</td><td>Single judge subagent serves both <code>--from-spec</code> and <code>--since</code> modes; input differs (spec prose vs code+evidence) but contract identical.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-drift-hook">7.7 Drift hook (rule-id-set-equality)</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-36</td><td>New script <code>plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh</code> (~30 LOC bash); reads rule IDs from <code>principles.yaml</code> (via <code>grep -E '^  - id:'</code> or yq) and rule IDs from <code>principles.md</code> (via <code>grep -E '^## [A-Z]+[0-9]+'</code>); set-equality check; exits 1 with diff output on mismatch.</td></tr>
+    <tr><td>FR-37</td><td>Hook installed via existing repo hook-install pattern (<code>scripts/install-*-hooks.sh</code> family); installer adds hook to <code>.git/hooks/pre-commit</code>; only runs when commit touches <code>principles.yaml</code> OR <code>principles.md</code>.</td></tr>
+    <tr><td>FR-38</td><td>Bypassable via <code>git commit --no-verify</code> per established escape-hatch pattern (matches /complete-dev hook FR-30, /comments hook S5).</td></tr>
+    <tr><td>FR-39</td><td>Bash portability per repo invariant (CLAUDE.md ## Bash portability): <code>BASH_SOURCE[0]</code> fallback walk-up-from-PWD pattern.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="fr-spec-template-contract">7.8 Minimum spec contract (added to /spec Tier-3 template)</h3>
+<table>
+  <thead><tr><th>ID</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>FR-40</td><td>/spec Tier-3 template gains a <strong>required</strong> §Modules section (per D10). Format: HTML <code>&lt;section id="modules"&gt;</code> with H2 "10. Modules" (re-numbering existing §10 Database Design → §11, etc., or appended as §17 with re-numbering of subsequent sections; implementation chooses minimum-disruption ordering).</td></tr>
+    <tr><td>FR-41</td><td>§Modules body: <code>&lt;table&gt;</code> with columns <code>Name | Deps | Role</code>; one row per module (top-level component the feature touches or introduces).</td></tr>
+    <tr><td>FR-42</td><td>/spec Tier-3 template gains a <strong>required</strong> §Architectural Assertions section. Format: <code>&lt;section id="architectural-assertions"&gt;</code>; body is bulleted list of assertions (e.g., "Module X must not import from Module Y", "All public APIs in §9 emit telemetry events").</td></tr>
+    <tr><td>FR-43</td><td>Tier-2 template gains both sections as <strong>optional</strong>; only required when /spec Phase 6.6 auto-upgrade fires (then prompts user to add them before sub-step proceeds).</td></tr>
+    <tr><td>FR-44</td><td>/spec Phase 6 universal exit checklist gains item: "§Modules and §Architectural Assertions present and non-empty (T3 mandatory; T2 only on auto-upgrade)".</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="non-functional-requirements">
+<h2 id="non-functional-requirements">8. Non-Functional Requirements</h2>
+<table>
+  <thead><tr><th>ID</th><th>Category</th><th>Requirement</th></tr></thead>
+  <tbody>
+    <tr><td>NFR-01</td><td>Performance</td><td>/spec Phase 6.6 P50 latency &lt;90s on Tier-3 (judge dispatch dominates; static tools not invoked in <code>--from-spec</code> mode).</td></tr>
+    <tr><td>NFR-02</td><td>Performance</td><td>Tier-1 runs of /spec OR /verify add 0s — no /architecture invocation at all.</td></tr>
+    <tr><td>NFR-03</td><td>Quality</td><td><code>--from-spec</code> false-positive rate &lt;20% measured by operator accept/reject ratio across first 5 T3 features post-launch.</td></tr>
+    <tr><td>NFR-04</td><td>Reliability</td><td>Judge failure (timeout, rate-limit, malformed output) → advisory-pass per host-skill folded-phase pattern; never blocks /spec or /verify.</td></tr>
+    <tr><td>NFR-05</td><td>Observability</td><td>Every gate decision emits a single chat log line: <code>arch sub-step: &lt;run|skipped|auto-upgraded&gt; (tier &lt;N&gt;&lt;, reason&gt;)</code>.</td></tr>
+    <tr><td>NFR-06</td><td>Backward compat</td><td>Existing /architecture CLI modes (<code>--deep</code>, <code>--since</code>, <code>--baseline</code>, <code>--scaffold-l3</code>, <code>--non-interactive</code>, <code>--monorepo</code>) unchanged in behavior. New <code>--from-spec</code> additive only.</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="api-contracts">
+<h2 id="api-contracts">9. API Contracts</h2>
+
+<h3 id="api-from-spec-cli">9.1 <code>/architecture --from-spec</code> CLI</h3>
+<pre><code>/architecture --from-spec &lt;spec-path&gt;
+              [--top-n N]             # default 8
+              [--min-confidence N]    # default 70 (0-100)
+              [--evidence-required]   # default true; --no-evidence-required to disable
+              [--force-incomplete]    # allow run on spec missing required sections
+              [--out-prefix &lt;path&gt;]   # default docs/pmos/architecture/{date}_{slug}_from-spec
+              [--non-interactive]
+</code></pre>
+<p><strong>Exit codes:</strong></p>
+<ul>
+  <li><code>0</code> — success (findings written to triplet, or empty findings).</li>
+  <li><code>1</code> — runtime error (judge dispatch failed, principles load failed).</li>
+  <li><code>64</code> — usage error (missing arg, mutually exclusive flags, file not found).</li>
+  <li><code>65</code> — spec-contract-violation (missing §Modules and/or §Architectural Assertions; structured stderr per §6.4).</li>
+</ul>
+
+<h3 id="api-judge-input">9.2 Judge subagent input (in-memory)</h3>
+<pre><code>{
+  "mode": "from-spec" | "since",
+  "principles": [
+    { "id": "U001", "tier": 1, "stack": null, "disposition": "should_fix",
+      "summary": "No file &gt; 500 LOC...", "why": "Files past ~500 LOC...",
+      "delegate_to": "grep" | null, "tools_detect": ["grep"] | [] }
+  ],
+  "rule_id_set": ["U001", "U002", ..., "PY009"],
+  "artifact": {
+    "kind": "spec" | "code",
+    "spec": {            // when mode="from-spec"
+      "path": "docs/pmos/features/.../02_spec.html",
+      "modules": [{ "name": "...", "deps": [...], "role": "..." }],
+      "assertions": ["...", "..."],
+      "section_ids": ["problem-statement", "goals", ...]
+    },
+    "code": {            // when mode="since"
+      "since_ref": "abc123",
+      "changed_files": ["path/a.ts", ...],
+      "static_tool_evidence": {
+        "dependency_cruiser": { /* tool output */ },
+        "ruff": { /* tool output */ },
+        "cycle_py": { /* tool output */ }
+      }
+    }
+  }
+}
+</code></pre>
+
+<h3 id="api-judge-output">9.3 Judge subagent output (JSON array)</h3>
+<pre><code>[
+  {
+    "rule_id": "U001",                                          // must be in rule_id_set
+    "severity": "must_fix" | "should_fix" | "wont_fix",         // mirrors principles.yaml disposition
+    "confidence": 85,                                           // 0-100 integer
+    "spec_section_id": "system-design",                         // when mode="from-spec"
+    "file_path": "src/x.ts",                                    // when mode="since"
+    "quote": "...verbatim ≥40-char substring from source...",   // required; orchestrator-validated
+    "finding": "One-sentence description of the violation",
+    "recommendation": "One-sentence fix suggestion"
+  }
+]
+</code></pre>
+
+<h3 id="api-error-stderr">9.4 Error stderr shape (exit 65)</h3>
+<pre><code>{
+  "error": "spec-contract-violation",
+  "missing_sections": ["modules"],
+  "found_sections": ["problem-statement", "goals", ...],
+  "remedy": "Add required &lt;section id='modules'&gt; with name+deps table per spec template §10 (FR-40)."
+}
+</code></pre>
+</section>
+
+<section id="database-design">
+<h2 id="database-design">10. Database Design</h2>
+<p>N/A — no database changes. State persists in:</p>
+<ul>
+  <li>Findings triplet on disk (<code>{docs_path}/architecture/{date}_&lt;slug&gt;_*.{html,md,json}</code>) — existing /architecture artifact contract; no new storage.</li>
+  <li>per-child-skill <code>folded_phase_failures[]</code> array in /spec and /verify state — additive only, no schema bump.</li>
+  <li>principles.{yaml,md} files on disk — already present (YAML) or net-new at known path (MD).</li>
+</ul>
+</section>
+
+<section id="frontend-design">
+<h2 id="frontend-design">11. Frontend Design</h2>
+<p>N/A — internal tooling, CLI-driven. No UI surface. (Wireframes + prototype skipped at /feature-sdlc gates per state.yaml.)</p>
+</section>
+
+<section id="modules">
+<h2 id="modules">12. Modules</h2>
+<table>
+  <thead><tr><th>Name</th><th>Deps</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/</code></td><td>(none new; existing principles.yaml + scripts)</td><td>Host of <code>--from-spec</code> mode, principles.md, drift hook, judge prompt template. Existing modes preserved.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/spec/</code></td><td>architecture</td><td>Gains Phase 6.6 folded sub-step + spec template additions (§Modules, §Architectural Assertions, universal exit checklist item).</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/verify/</code></td><td>architecture</td><td>Gains new folded sub-step (Phase 4.7) invoking <code>--since</code>.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/scripts/</code></td><td>(bash, existing /architecture tools)</td><td>Gains <code>check-principles-drift.sh</code> rule-id-set-equality hook.</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/reference/</code></td><td>(none)</td><td>Gains <code>judge-prompt-template.md</code> (the FR-32 prompt).</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="architectural-assertions">
+<h2 id="architectural-assertions">13. Architectural Assertions</h2>
+<ul>
+  <li><code>/spec</code> and <code>/verify</code> must NOT directly invoke principles parsing or judge logic — both dispatch <code>/architecture</code> as a subagent. The judge implementation stays in one place (per D2).</li>
+  <li>The judge subagent must NOT edit any artifact under review (per D11 / FR-34). Reports only. Mirrors /skill-eval D10.</li>
+  <li>principles.yaml remains the machine-readable source of truth for rule structure (id, tier, disposition, delegate_to); principles.md is the human-readable rationale layer. They share a rule-ID set, enforced by the drift hook.</li>
+  <li><code>--from-spec</code> mode must NOT shell out to static tools (dep-cruiser, ruff, cycle-py); spec mode is judge-only by contract. <code>--since</code> mode is the only path that runs static tools.</li>
+  <li>The orchestrator-side findings validation (FR-06) must hard-drop invalid findings (unknown rule_id, missing/fabricated quote) — not surface them with a "judge hallucinated" warning. Silent drop with log line is the contract (mirrors /skill-eval FR-43 quote-validation pattern).</li>
+  <li>/feature-sdlc orchestrator MUST remain unchanged — no new phase IDs in state-schema.md, no new phases[] entries, no new conditional logic. The arch sub-steps are invisible at the orchestrator layer.</li>
+  <li>The orchestrator-side findings validation logic (FR-06: rule_id ∈ set, quote substring-grep, confidence-range) lives inside <code>/architecture</code> (the host of the judge subagent dispatch), NOT inside /spec or /verify. Validation runs in the same process boundary as the dispatch; the calling skills receive only validated findings.</li>
+</ul>
+</section>
+
+<section id="edge-cases">
+<h2 id="edge-cases">14. Edge Cases</h2>
+<table>
+  <thead><tr><th>#</th><th>Scenario</th><th>Condition</th><th>Expected Behavior</th></tr></thead>
+  <tbody>
+    <tr><td>E1</td><td>Spec has 0 modules declared</td><td><code>--from-spec</code> invoked, spec missing §Modules entirely</td><td>Exit 65, structured stderr per §9.4, /spec Phase 6.6 surfaces error + offers Revise / --force-incomplete / Skip</td></tr>
+    <tr><td>E2</td><td>Spec has §Modules but empty table</td><td>Table present, &lt;tbody&gt; empty</td><td>Exit 65, missing_sections includes "modules-table-empty"</td></tr>
+    <tr><td>E3</td><td>No changed files since merge-base</td><td>/verify folded sub-step</td><td>Skip clean: <code>architecture: no changes since merge-base; skipping</code>; no judge invocation; sub-step status: skipped-empty-diff</td></tr>
+    <tr><td>E4</td><td>L3 principles.{yaml,md} missing in target repo</td><td>/architecture invocation in any mode</td><td>Use plugin L1+L2 only; advisory log; no error</td></tr>
+    <tr><td>E5</td><td>L3 principles.md has rule ID not in L3 principles.yaml</td><td>Drift between L3 prose and L3 YAML</td><td>Drift hook fails on commit (FR-36); bypass via --no-verify works</td></tr>
+    <tr><td>E6</td><td>/spec re-run after Phase 6.6 ran</td><td>Operator revises spec; /spec re-invoked same day</td><td>Internal re-run of Phase 6.6 on new spec; no orchestrator cascade; prior triplet at same-day path is <strong>overwritten</strong> (history preserved in git). No suffix logic — same-day re-runs supersede; cross-day collisions are impossible (date is in filename).</td></tr>
+    <tr><td>E7</td><td>Judge returns rule_id not in loaded set</td><td>Hallucination</td><td>Orchestrator drops finding with log <code>dropped finding: unknown rule_id "&lt;id&gt;"</code>; do NOT crash</td></tr>
+    <tr><td>E8</td><td>Judge returns quote not in source</td><td>Hallucination or paraphrase</td><td>Orchestrator drops finding with log <code>dropped finding: quote not in source (rule_id &lt;id&gt;)</code></td></tr>
+    <tr><td>E9</td><td>Judge times out (300s for --from-spec, 600s for --since)</td><td>LLM dispatch hangs</td><td>Sub-step fails advisory; entry appended to <code>folded_phase_failures[]</code>; chat warning; /spec or /verify continues</td></tr>
+    <tr><td>E10</td><td>T2 spec declares 1 new module + 5 existing modules</td><td>Auto-upgrade detector</td><td>Upgrade fires; gate Recommended=Run; log <code>arch sub-step: T2→T3 auto-upgrade (new module: &lt;name&gt;)</code></td></tr>
+    <tr><td>E11</td><td>T2 spec declares 0 new modules</td><td>Auto-upgrade detector</td><td>No upgrade; gate Recommended=Skip; log <code>arch sub-step: tier 2, no new modules, skipping</code></td></tr>
+    <tr><td>E12</td><td>Operator passes --skip-folded-arch on /spec</td><td>Phase 6.6 short-circuit</td><td>Skip; log <code>arch sub-step: --skip-folded-arch flag; skipping</code>; status: skipped-flag</td></tr>
+    <tr><td>E13</td><td>git ls-tree fails (no .git, detached HEAD, etc.) during auto-upgrade detection</td><td>FR-18 detector</td><td>Auto-upgrade detector returns "unable to determine module set"; gate Recommended=Skip with log warning; operator can pass --tier 3 to force run</td></tr>
+    <tr><td>E14</td><td>principles.md has H2 heading that doesn't match rule-ID regex</td><td>FR-12 format violation</td><td>Loader logs <code>principles.md: skipping non-rule H2 "&lt;text&gt;"</code>; not an error (allows narrative H2s if needed)</td></tr>
+    <tr><td>E15</td><td>Two L3 principles.md rules with same ID</td><td>Duplicate within L3</td><td>Loader hard-errors (not last-wins within a single file); user must dedupe</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="configuration-and-feature-flags">
+<h2 id="configuration-and-feature-flags">15. Configuration &amp; Feature Flags</h2>
+<table>
+  <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>CLI <code>--from-spec &lt;path&gt;</code></td><td>(unset)</td><td>New /architecture mode (FR-01)</td></tr>
+    <tr><td>CLI <code>--top-n N</code></td><td>8</td><td>Cap findings; per-knob default from D8</td></tr>
+    <tr><td>CLI <code>--min-confidence N</code></td><td>70</td><td>Drop findings below threshold; per-knob default from D8</td></tr>
+    <tr><td>CLI <code>--evidence-required</code></td><td>true (use <code>--no-evidence-required</code> to disable)</td><td>Require valid quote per finding; per-knob default from D8</td></tr>
+    <tr><td>CLI <code>--force-incomplete</code></td><td>false</td><td>Allow /architecture --from-spec to run on spec missing required sections (degraded mode)</td></tr>
+    <tr><td>CLI <code>--skip-folded-arch</code> (on /spec and /verify)</td><td>false</td><td>Short-circuit the folded arch sub-step</td></tr>
+    <tr><td><code>.pmos/settings.yaml :: architecture.module_roots</code></td><td><code>["plugins/*/skills/", "src/"]</code> (tuned for this repo; other repos MUST configure)</td><td>Configurable roots for FR-18 module-set derivation; absent + defaults-find-nothing → auto-upgrade detector cleanly aborts</td></tr>
+    <tr><td><code>.pmos/settings.yaml :: architecture.from_spec_defaults</code></td><td>(unset; CLI defaults win)</td><td>Per-repo overrides for top-N / min-confidence / evidence-required</td></tr>
+  </tbody>
+</table>
+<p>No feature-flagged rollout. Single-version release; principles.md + drift hook + integrations ship together. Manifest version bump at <code>/complete-dev</code> time (minor — additive feature).</p>
+</section>
+
+<section id="testing-and-verification">
+<h2 id="testing-and-verification">16. Testing &amp; Verification Strategy</h2>
+
+<h3 id="unit-tests">16.1 Unit Tests</h3>
+<ul>
+  <li><strong>Spec parser:</strong> feed 5 fixture spec.html files (canonical, missing §Modules, empty §Modules table, malformed §Modules row, present-but-empty §Architectural Assertions) → assert extracted JSON shape OR exit 65 with correct missing_sections array.</li>
+  <li><strong>Principles loader:</strong> feed (L1+L2 plugin only), (L1+L2 + L3 yaml only), (L1+L2 + L3 yaml + L3 md), (L3 collision with L1) fixtures → assert merged ruleset has expected rule-ID set + L3 last-wins.</li>
+  <li><strong>Findings validator (FR-06):</strong> feed judge output with (valid finding), (unknown rule_id), (quote not in source), (confidence out of range), (missing quote, evidence-required=true) → assert valid kept, invalid dropped with expected log lines.</li>
+  <li><strong>Knob application (FR-07):</strong> feed 15 findings, top-N=8, min-confidence=70, evidence-required=true → assert exactly 8 returned, all confidence ≥70, all with valid quote.</li>
+  <li><strong>Auto-upgrade detector (FR-18):</strong> feed (spec with 1 new module + 3 existing), (spec with all existing modules), (empty spec §Modules) → assert upgrade/no-upgrade/no-upgrade.</li>
+  <li><strong>Drift hook (FR-36):</strong> shell test — create YAML with rule U001 only, MD with U001 + U999 → hook exits 1 with diff; both with U001 only → hook exits 0; commit not touching either file → hook skips.</li>
+</ul>
+
+<h3 id="integration-tests">16.2 Integration Tests</h3>
+<ul>
+  <li><strong>/architecture --from-spec end-to-end:</strong> fixture spec → assert triplet written to expected path; JSON validates against §13 schema; HTML viewable.</li>
+  <li><strong>/spec Phase 6.6 gate, three-tier fixtures:</strong> T1 fixture → assert no /architecture dispatch, log line emitted; T2 fixture (no new modules) → assert Recommended=Skip; T2 fixture (new module) → assert auto-upgrade fires + Recommended=Run; T3 fixture → assert Recommended=Run.</li>
+  <li><strong>/verify Phase 4.7 sub-step, three-tier fixtures:</strong> T1 → skipped; T2 → run scoped; T3 → run full.</li>
+  <li><strong>/spec re-run cascade (FR-23):</strong> run /spec → trigger Phase 6.6 → revise spec via Edit → re-run /spec → assert Phase 6.6 re-runs internally, new triplet emitted (or suffix-2 on filename collision).</li>
+  <li><strong>Advisory failure pattern (FR-22, FR-29):</strong> mock judge timeout → assert <code>folded_phase_failures[]</code> append + chat warning + /spec or /verify continues to exit.</li>
+</ul>
+
+<h3 id="end-to-end-tests">16.3 End-to-End Tests</h3>
+<ul>
+  <li><strong>Single dry-run of /feature-sdlc on a synthetic T3 feature</strong> with the new plumbing: assert Phase 6.6 fires inside /spec, Phase 4.7 fires inside /verify, triplets land at expected paths, /feature-sdlc state.yaml unchanged in shape (no new phase IDs).</li>
+  <li><strong>Standalone /spec invocation</strong> on the same synthetic T3 spec (not via /feature-sdlc): assert Phase 6.6 fires identically.</li>
+  <li><strong>Drift hook installer:</strong> run <code>bash plugins/pmos-toolkit/skills/architecture/scripts/install-arch-hooks.sh</code> → assert .git/hooks/pre-commit includes drift check; commit YAML-only change → hook refuses; commit YAML+MD aligned → hook passes.</li>
+</ul>
+
+<h3 id="verification-commands">16.4 Verification Commands</h3>
+<pre><code># Unit tests
+bash plugins/pmos-toolkit/skills/architecture/tests/test-from-spec-parser.sh
+bash plugins/pmos-toolkit/skills/architecture/tests/test-principles-loader.sh
+bash plugins/pmos-toolkit/skills/architecture/tests/test-findings-validator.sh
+bash plugins/pmos-toolkit/skills/architecture/tests/test-knobs.sh
+bash plugins/pmos-toolkit/skills/architecture/tests/test-auto-upgrade-detector.sh
+bash plugins/pmos-toolkit/skills/architecture/tests/test-drift-hook.sh
+
+# Integration tests
+bash plugins/pmos-toolkit/skills/spec/tests/test-phase-6-6-gate.sh
+bash plugins/pmos-toolkit/skills/verify/tests/test-phase-4-7-sub-step.sh
+
+# Drift hook against current repo
+bash plugins/pmos-toolkit/skills/architecture/scripts/check-principles-drift.sh
+# Expected: exit 0 once principles.md is authored with same rule-ID set as principles.yaml
+
+# Verify /feature-sdlc state schema unchanged
+grep -E "^(arch-spec|arch-verify|architecture)" plugins/pmos-toolkit/skills/feature-sdlc/reference/state-schema.md
+# Expected: zero matches (no new orchestrator phase IDs)
+
+# Manual latency check on first 3 post-launch T3 runs
+# Time /spec Phase 6.6 from gate-confirm to triplet-written; log to release notes
+</code></pre>
+</section>
+
+<section id="rollout-strategy">
+<h2 id="rollout-strategy">17. Rollout Strategy</h2>
+<ul>
+  <li><strong>Single-version release</strong> via /complete-dev (minor bump — additive feature). All deliverables ship together: <code>--from-spec</code> mode + principles.md + drift hook + /spec Phase 6.6 + /verify Phase 4.7 + spec template additions.</li>
+  <li><strong>No feature flags.</strong> The new behaviour is opt-in by tier gating (T1 skip, T2 conditional, T3 default-on) plus per-invocation <code>--skip-folded-arch</code> escape; operator can always opt out per-run.</li>
+  <li><strong>Migration order at release time:</strong>
+    <ol>
+      <li>Author principles.md alongside existing principles.yaml (same PR).</li>
+      <li>Install drift hook via <code>bash scripts/install-arch-hooks.sh</code>.</li>
+      <li>Implement <code>--from-spec</code> mode in /architecture.</li>
+      <li>Wire /spec Phase 6.6 + spec template additions.</li>
+      <li>Wire /verify Phase 4.7.</li>
+      <li>Run integration tests; verify drift hook self-check passes against authored principles.md.</li>
+    </ol>
+  </li>
+  <li><strong>Rollback plan:</strong> the feature is purely additive at the host-skill level. Revert is a single git revert of the release commit; existing /architecture, /spec, /verify behavior restored. principles.md becomes orphan but harmless. Drift hook can be uninstalled via <code>git config core.hooksPath</code> reset or hook file removal.</li>
+  <li><strong>Graceful degradation:</strong> if /architecture is broken at runtime (judge dispatch fails, principles unparseable), folded sub-steps fail advisory and /spec / /verify continue. /verify's existing hard gates (Phase 7) still apply — arch sub-step does NOT gate merge.</li>
+  <li><strong>Post-launch monitoring:</strong> after first 3 T3 features, manually inspect (a) Phase 6.6 timing (NFR-01), (b) operator skip rate (G1), (c) false-positive rate via accept/reject ratio in operator response (NFR-03). If FP &gt;20%, revisit knob defaults (D8 escape clause) — likely tighten min-confidence to 80.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">18. Release Prerequisites</h2>
+<p>Per /plan FR-63 scope discipline — release-time tasks for /complete-dev, NOT to be included in any /plan wave:</p>
+<ul>
+  <li><strong>Manifest minor bump</strong> (both files, same version) — <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> + <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code>. Type: minor (additive feature). Numbers computed at merge time by /complete-dev Phase 9.</li>
+  <li><strong>README row</strong> — add <code>--from-spec</code> to the /architecture row's mode list under "Utilities"; mention "auto-folded into /spec Phase 6.6 + /verify Phase 4.7" in the relevant orchestrator/skill rows.</li>
+  <li><strong>CHANGELOG entry</strong> — under the new minor-bump heading, summarise: "Folded /architecture into /spec (Phase 6.6, T3 default / T2 on auto-upgrade) and /verify (Phase 4.7, T2 scoped / T3 full); new <code>--from-spec</code> mode; principles.md + drift hook ship together."</li>
+  <li><strong>principles.md authoring</strong> — even though authored as part of /execute (FR-12, FR-15), the file itself is a release deliverable; /complete-dev's release-notes recipe should cite the 18 rules covered.</li>
+  <li><strong>Drift hook installer wiring</strong> — <code>scripts/install-arch-hooks.sh</code> referenced from repo-root <code>scripts/</code> family; /complete-dev release notes mention installer command.</li>
+  <li><strong>Learnings header bootstrap</strong> — append <code>## /architecture</code> section header to <code>~/.pmos/learnings.md</code> if missing (idempotent).</li>
+  <li><strong>argument-hint frontmatter</strong> — /architecture SKILL.md frontmatter <code>argument-hint</code> enumerates the new <code>--from-spec</code>, <code>--top-n</code>, <code>--min-confidence</code>, <code>--evidence-required</code>, <code>--force-incomplete</code>, <code>--out-prefix</code> tokens alongside existing ones.</li>
+  <li><strong>description frontmatter</strong> — /architecture SKILL.md <code>description</code> gains ≥2 new trigger phrases: "audit this spec against architecture principles", "check spec for architectural violations".</li>
+  <li><strong>CLAUDE.md ## /architecture conventions</strong> — add a short section noting the principles.{yaml,md} co-authorship rule + drift hook bypass posture (matches existing CLAUDE.md style for ## Plugin manifest version sync etc.).</li>
+</ul>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">19. Research Sources</h2>
+<table>
+  <thead><tr><th>Source</th><th>Type</th><th>Key Takeaway</th></tr></thead>
+  <tbody>
+    <tr><td><a href="01_requirements.html">01_requirements.html</a></td><td>Feature requirements</td><td>9 design decisions, T3 tier, reshape to fold-into-child-skills</td></tr>
+    <tr><td><a href="grills/2026-05-28_01_requirements.html">grills/2026-05-28_01_requirements.html</a></td><td>Grill report</td><td>7 grill findings + 1 reshape; informed D8 / D9 / D10 / D12</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code></td><td>Existing skill (214 LOC)</td><td>Existing modes, artifact triplet shape, scripts/ + reference/ + tests/ directory pattern; gain <code>--from-spec</code> additively</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/architecture/principles.yaml</code></td><td>Existing rules (schema v2)</td><td>18 rules (10 L1 + 4 L2 TS + 4 L2 Py); per-rule fields drive principles.md authoring contract; L3 override pattern already documented in YAML header comment</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/simulate-spec/SKILL.md</code> + /spec Phase 6.5</td><td>Prior art — folded sub-step</td><td>Direct template for Phase 6.6 plumbing: gate prompt shape, --skip-folded-* flag, advisory failure pattern, folded_phase_failures[] append</td></tr>
+    <tr><td><code>plugins/pmos-toolkit/skills/verify/SKILL.md</code> Phase 4.5</td><td>Prior art — folded sub-step</td><td>Direct template for Phase 4.7 plumbing: advisory pattern, aggregated-report integration</td></tr>
+    <tr><td>/skill-eval Phase 6a (FR-43, FR-44)</td><td>Reviewer-subagent contract pattern</td><td>Temperature 0, orchestrator-side validation (rule_id ∈ set, quote substring), hard-drop invalid; FR-06 + FR-31 + FR-33 mirror this contract</td></tr>
+    <tr><td>/grill FR-50/51/52</td><td>Reviewer-subagent contract pattern</td><td>Same: chrome-strip artifact, sections_found enumeration, quote validation; FR-31..FR-35 align</td></tr>
+    <tr><td>/complete-dev drift hook (FR-30)</td><td>Hook contract pattern</td><td>Pre-commit only, bypass via --no-verify; FR-36..FR-38 follow this exact shape</td></tr>
+    <tr><td>CLAUDE.md ## Bash portability</td><td>Repo invariant</td><td>BASH_SOURCE[0] fallback pattern; FR-39 must comply</td></tr>
+  </tbody>
+</table>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">20. Open Questions</h2>
+<p><em>(none — all requirements OQs resolved before /spec exit; D8 simplification absorbs Q10; Q8 resolved into D6.)</em></p>
+</section>
+
+<section id="review-log">
+<h2 id="review-log">21. Review Log</h2>
+<table>
+  <thead><tr><th>Loop</th><th>Findings</th><th>Changes Made</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1 (draft)</td>
+      <td>Initial draft after Phase 0-4 (intake, tier confirm via frontmatter, skip Phase 2/3 deep research per skill anti-pattern "do not ask for the sake of asking" + requirements + grill already covered roles, Phase 4 verification sketch approved).</td>
+      <td>Drafted 20 sections per Tier 3 template. 13 decisions, 44 FRs, 6 NFRs, 15 edge cases. Inline diagrams (4) noted as efficiency exception per session pragmatics — figcaptions disclose provenance.</td>
+    </tr>
+    <tr>
+      <td>2 (design critique)</td>
+      <td>
+        F1 [Should-fix]. /plan FR-63 needs an explicit §Release Prerequisites section; §17 rollout alone scatters release-time tasks.<br>
+        F2 [Should-fix]. FR-18 default module_roots is pmos-repo-specific; portability disclosure missing.<br>
+        F3 [Should-fix]. E6 filename collision policy (suffix -2/-3) clutters /architecture dir on same-day re-runs.<br>
+        F4 [Nit]. §13 architectural assertion list missing explicit "orchestrator validation lives in /architecture".<br>
+        F5 [Nit]. FR-12 / FR-32 don't clarify principles.md is judge-prompt-input only; YAML stays the loader source.<br>
+        F6 [Nit]. requirements Q8 still listed as Open even though spec D6 absorbed it.
+      </td>
+      <td>
+        F1 → added §18 Release Prerequisites (renumbered Research Sources / Open Questions / Review Log to §19 / §20 / §21).<br>
+        F2 → FR-18 + §15 row updated with disclosure note.<br>
+        F3 → E6 updated: same-day re-run overwrites; suffix only on impossible cross-day collision.<br>
+        F4 → §13 gained new bullet on orchestrator-validation locus.<br>
+        F5 → FR-12 + FR-32 updated.<br>
+        F6 → requirements doc Q8 strikethrough applied with cross-ref to spec D6.
+      </td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="assets/comments.js?v=2.57.1"></script>
+</body>
+</html>
