@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-05-28 — pmos-toolkit 2.59.0: inline-HTML artifacts (comments persist inside the HTML)
+
+Stakeholder comment threads on pmos-emitted HTML artifacts now persist as an **inline JSON block inside the HTML itself** — `<script id="pmos-comments" type="application/json">` between `<!-- pmos-comments:start -->` / `<!-- pmos-comments:end -->` sentinels. The legacy `<artifact>.comments.json` sidecar contract (pre-v2.59.0) and its pre-commit drift-hook installer are retired. The artifact is now the single source of truth; copy the file, the threads come with it.
+
+**What's new**
+
+- **Inline `pmos-comments` block.** Every pmos-emitted HTML artifact carries a sentinel-bracketed `<script id="pmos-comments" type="application/json">` block at write time. Read mode works from `file://`, `http://`, any browser, any protocol — the overlay reads the inline JSON on page load.
+- **Write requires `http://localhost` via the launcher trio.** `comments-open.command` / `.sh` / `.bat` (macOS/Linux/Windows) spawn `serve.js` and open the artifact at `http://localhost:<port>/<artifact>`. The HEAD `/save` probe (FR-14) decides read-only vs. read-write on mount. `file://` opens are blocked from writing with a modal pointing at the launcher — avoids the "comment vanished" failure mode users hit when there was no server to receive the save.
+- **Atomic writes + optimistic concurrency.** `serve.js`'s `POST /save` writes via temp-then-rename; on crash the artifact is intact and an orphan `.tmp` is logged to stderr at startup. Each request carries `expected_version`; a stale write returns 409 + reload banner (FR-17).
+- **Migration script.** `scripts/migrate-sidecars-to-inline.sh [--dry-run] [path]` walks `*.comments.json` sidecars, injects each into the sibling artifact's inline block, deletes the sidecar. Idempotent; safe to re-run. Run once per fork at v2.59.0 to absorb pre-existing sidecars. The pre-commit installer that guarded the html/sidecar pairing was deleted in the same release.
+- **Bundle size policy (NFR-02).** Authoring assets (`comments.js + comments.css`) capped at ≤20KB soft / ≤40KB hard, enforced by `.github/workflows/comments-bundle-size.yml`. The inline `pmos-comments` block has a 200 KiB soft-warn (NFR-03) emitted by `scripts/check-comments-coverage.sh` per artifact.
+- **SVG anchoring (FR-52).** `/diagram` + `/wireframes` emit `data-anchor="<slug>"` on every `<g>` + top-level `<rect>`/`<path>`. Foreign embedded SVGs use bbox-based anchors.
+- **Diff suppression.** `.gitattributes` marks `docs/pmos/**/*.html` as `linguist-generated=true -diff` — the inline JSON mutates on every comment write and the inline `<style>` + scripts are bulk; suppressing the default diff keeps PR reviews readable. Use `git diff --text` to opt back in.
+- **Coverage gate.** `bash scripts/check-comments-coverage.sh` is wired into `/verify` Phase 7 Hard Gates; refuses completion if any of the 14 contract tests, 15 emit references, 1 resolver integration, or 2 anchor calibration tests are missing.
+
+**Retired in this release**
+
+- File System Access API (`showSaveFilePicker`) write path — replaced by serve.js POST /save.
+- `localStorage` draft persistence — threads now live in the artifact, no client-side draft layer.
+- Save-as-sidecar contract — see migration script above.
+- `diff-match-patch` + `turndown` + `html-to-md.js` — `output_format=both` is retired (FR-12.1); inert until a future feature re-introduces MD export. The 14 apply-edit-at-anchor shims now use the substring-contains anchor-resolver path (≥40 chars), same Bitap shape, no DMP dependency.
+- The Copy-Markdown toolbar button (`data-pmos-action="copy-md"`) — dead UI under FR-12.1.
+- The pre-commit drift-hook installer that paired `<artifact>.html` with `<artifact>.comments.json` — sidecar contract is gone.
+
+**Why this matters**
+
+The sidecar-pair contract was an awkward half-step: artifacts felt portable until you noticed the threads lived in a sibling file that `cp` missed. The inline model collapses the trust boundary — one file, one source of truth, threads travel with the artifact. Read mode is now universal (any browser, any protocol); write mode is locked behind localhost because `file://` write-back is unreliable enough that silently dropping comments is the wrong default.
+
+**Migration**
+
+Run `bash scripts/migrate-sidecars-to-inline.sh docs/pmos` once on any fork after pulling v2.59.0. Idempotent. Removes sidecars after a successful inject; the pre-commit hook installer is no-op'd in the same release.
+
+**References**
+
+- Feature folder: `docs/pmos/features/2026-05-28_inline-html-artifacts/` — spec, plan, 13 task logs, /verify review report.
+- Spec: `02_spec.html#fr-deletions` for the complete retirement inventory.
+
 ## 2026-05-28 — pmos-toolkit 2.58.0: `/ideate` gains Phase 3 Amplify (Brian Chesky's 11-star ladder)
 
 `/ideate` learns to push past the obvious shape of a chosen finalist. A new opt-in Phase 3 between Expand and Pressure-test runs Brian Chesky's 11-star design exercise — generate a 1→11★ ladder per chosen finalist, identify the sweet spot (typically 7-8★), and **recommend** a concrete sweet-spot reframe that feeds Phase 4 Pressure-test. The reframe is what the pressure-test attacks; the original Phase-2 finalist is preserved on record alongside it. Fills a real asymmetry — pressure-test pulls ideas down to feasibility but nothing pushed their ceiling up first.

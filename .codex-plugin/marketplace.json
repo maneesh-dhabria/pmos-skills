@@ -7,15 +7,14 @@
   "plugins": [
     {
       "name": "pmos-toolkit",
-      "description": "Product management and software delivery pipeline — requirements, spec, plan, execute, verify, and supporting utilities.",
+      "description": "Product management and software delivery pipeline \u2014 requirements, spec, plan, execute, verify, and supporting utilities.",
       "source": "./plugins/pmos-toolkit",
       "category": "productivity",
-      "homepage": "https://github.com/maneesh-dhabria/pmos-skills",
-      "version": "2.57.0"
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
     },
     {
       "name": "pmos-learnkit",
-      "description": "Learning kit — verified-source, audience-shaped teachable artifacts (primers and ramp-up docs) generated on demand.",
+      "description": "Learning kit \u2014 verified-source, audience-shaped teachable artifacts (primers and ramp-up docs) generated on demand.",
       "source": "./plugins/pmos-learnkit",
       "category": "productivity",
       "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
