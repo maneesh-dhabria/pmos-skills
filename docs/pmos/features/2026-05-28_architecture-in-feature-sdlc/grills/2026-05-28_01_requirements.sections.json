@@ -1,0 +1,26 @@
+[
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved",
+    "parent_id": null
+  },
+  {
+    "id": "open-deferred",
+    "level": 2,
+    "title": "Open / Deferred (mechanical — fold into /spec)",
+    "parent_id": null
+  },
+  {
+    "id": "gaps-surfaced",
+    "level": 2,
+    "title": "Gaps surfaced",
+    "parent_id": null
+  },
+  {
+    "id": "recommended-next-step",
+    "level": 2,
+    "title": "Recommended next step",
+    "parent_id": null
+  }
+]

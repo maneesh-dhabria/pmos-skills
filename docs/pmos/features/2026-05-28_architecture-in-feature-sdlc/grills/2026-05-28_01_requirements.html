@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill Report — 01_requirements</title>
+  <meta name="pmos:skill" content="grill">
+  <link rel="stylesheet" href="../assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="../assets/comments.css?v=2.57.1">
+  <script defer src="../assets/viewer.js?v=2.57.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Grill Report — 01_requirements</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h1>Grill Report — 01_requirements</h1>
+<p class="meta"><strong>Depth:</strong> standard · <strong>Questions asked:</strong> 7 · <strong>Date:</strong> 2026-05-28</p>
+
+<h2 id="resolved">Resolved</h2>
+<table>
+  <thead><tr><th>Q#</th><th>Branch</th><th>Disposition</th></tr></thead>
+  <tbody>
+    <tr><td>Q1</td><td>Goal #2 ("Catch structural regressions at verify time") is unmeasurable on day 1 — no baseline exists for "reviewers miss" delta.</td><td>Rephrased Goal #2 as aspirational, qualitatively validated via post-launch retro inspection. No day-1 quantitative metric.</td></tr>
+    <tr><td>Q2</td><td>D4 ternary tier-gating leaves a T2 gap: a Tier-2 feature that adds a new top-level module gets no Phase 4.5 scrutiny.</td><td>D4 carve-out added: T2 auto-upgrades to Phase 4.5 when /spec output declares a new top-level module not in repo's current module list (source TBD in /spec: dependency-cruiser index or top-level directory compare).</td></tr>
+    <tr><td>Q3</td><td>D8 "spike informs design but no go/no-go threshold" is fuzzy — what concrete /spec design knobs does spike output drive?</td><td>D8 rationale replaced. Spike outputs map to three knobs: (1) top-N findings cap, (2) evidence-citation requirement (judge MUST cite a spec section per finding), (3) confidence threshold (only surface findings rated ≥X). /spec wires each from spike data.</td></tr>
+    <tr><td>Q4</td><td>D9 "co-authoring by review convention" relies on human discipline; the YAML-vs-prose drift failure mode is exactly the "judge cites a rule the tools never check" risk the brief was meant to eliminate.</td><td>D9 upgraded. Ship a rule-id-set-equality drift hook in v1 (~30 lines bash; YAML rule IDs == MD rule headings — catches "added a rule on one side but not the other"). Semantic drift (mismatched <code>why</code> prose) deferred to v2.</td></tr>
+    <tr><td>Q5</td><td>Q9 ("--from-spec spec-contract minimum") is load-bearing for Slot 1 buildability — without it, Phase 4.5 cannot fail loud meaningfully.</td><td>Q9 closed: defining the minimum spec contract (required sections, exit codes, error shape) is a precondition for /spec; /spec produces both the integration design AND the new spec-template requirement.</td></tr>
+    <tr><td>Q6</td><td>Q6 (Phase 4.5 re-run on /spec revision) is implicitly required by the user-journey "operator revises spec, re-runs /spec" step but the cascade behavior is undefined.</td><td>Q6 closed: auto-cascade — /spec re-run marks Phase 4.5 status=stale; orchestrator auto-re-runs --from-spec with operator-confirm prompt. State.yaml gains <code>phases.spec.invalidates: [arch-spec]</code> (or similar mechanism — finalized in /spec).</td></tr>
+    <tr><td>Q7</td><td>Q3 (Phase 7 sub-step shape) is ambiguous: independent phase ID vs. folded into /verify.</td><td>Q3 partially closed: folded inside /verify (advisory pattern, matches /simulate-spec→/spec). The phase ID name itself is still TBD in /spec.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="open-deferred">Open / Deferred (mechanical — fold into /spec)</h2>
+<ul>
+  <li><strong>Q1 (state schema):</strong> v6 bump vs. per-phase substructure — pick during /spec; both are additive and migration-safe.</li>
+  <li><strong>Q2 (Phase 4.5 phase ID name):</strong> arch-spec likely (parallel to other kebab phase IDs); /spec to confirm.</li>
+  <li><strong>Q4 (compact-checkpoint before Phase 4.5):</strong> probably no (judge dispatch is light; existing triggers cover heavier phases).</li>
+  <li><strong>Q8 (principles file location):</strong> L1/L2 in plugin, L3 in repo — already the YAML pattern; /spec adopts same for MD.</li>
+  <li><strong>Q10 (spike-first protocol):</strong> D8 settled it — spike runs, informs /spec via the three knobs, no hard gate.</li>
+</ul>
+
+<h2 id="gaps-surfaced">Gaps surfaced</h2>
+<ul>
+  <li><strong>Drift hook now in scope</strong> — D9 reframed as convention + rule-id-set-equality hook v1; Q5 upgraded.</li>
+  <li><strong>T2 auto-upgrade detection</strong> — requires accessing repo's current module list (dependency-cruiser index or top-level dir compare); /spec specifies source of truth.</li>
+  <li><strong>Spike outputs need a target shape</strong> — /spec defines the JSON the spike emits (3-knob recommendations + per-spec precision/recall table) so /plan tasks can wire them mechanically.</li>
+  <li><strong>Phase 4.5 stale-detection</strong> — needs a state.yaml field (phases.spec.invalidates: [arch-spec] or similar); /spec specifies mechanism.</li>
+</ul>
+
+<h2 id="recommended-next-step">Recommended next step</h2>
+<p>Update the requirements doc with the 7 resolutions (handled in Task B below), then invoke <code>/spec</code>.</p>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/grills/2026-05-28_01_requirements.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <script defer src="../assets/comments.js?v=2.57.1"></script>
+</body>
+</html>

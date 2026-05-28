@@ -72,15 +72,21 @@
     "parent_id": null
   },
   {
-    "id": "slot-1-phase-4-5",
+    "id": "how-the-pieces-work-together",
     "level": 3,
-    "title": "Slot 1 — Phase 4.5 (between /spec and /plan)",
+    "title": "How the pieces work together",
     "parent_id": "solution-direction"
   },
   {
-    "id": "slot-2-phase-7-sub-step",
+    "id": "integration-1-spec-folded",
     "level": 3,
-    "title": "Slot 2 — Phase 7 sub-step (inside /verify)",
+    "title": "Integration 1 — folded inside /spec (sibling of /simulate-spec)",
+    "parent_id": "solution-direction"
+  },
+  {
+    "id": "integration-2-verify-folded",
+    "level": 3,
+    "title": "Integration 2 — folded inside /verify",
     "parent_id": "solution-direction"
   },
   {
@@ -98,7 +104,13 @@
   {
     "id": "primary-tier-3-happy-path",
     "level": 3,
-    "title": "Primary (Tier-3, happy path)",
+    "title": "Primary (Tier-3, happy path via /feature-sdlc)",
+    "parent_id": "user-journeys"
+  },
+  {
+    "id": "standalone-spec-tier-3",
+    "level": 3,
+    "title": "Standalone /spec invocation (Tier-3)",
     "parent_id": "user-journeys"
   },
   {

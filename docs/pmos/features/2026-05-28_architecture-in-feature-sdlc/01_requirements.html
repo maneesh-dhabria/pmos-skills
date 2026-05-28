@@ -37,16 +37,16 @@
 
 <section id="problem">
 <h2 id="problem">Problem</h2>
-<p>The repo currently has <code>/architecture</code> as a code-side static-analysis lint and <code>/feature-sdlc</code> as the SDLC orchestrator, but the two never talk to each other. Spec-time design proceeds without an architectural lens; verify-time has no structural-regression check beyond what diff-level reviewers happen to notice. The result is that architectural issues surface post-merge during <code>/reflect</code> retros — or never — and accumulate as silent tech debt.</p>
+<p>The repo today has <code>/architecture</code> as a code-side static-analysis lint, <code>/spec</code> as the technical-design emitter, and <code>/verify</code> as the post-impl verification orchestrator — but <code>/architecture</code> is invisible to both. <code>/spec</code> proceeds without an architectural lens; <code>/verify</code> has no structural-regression check beyond what diff-level reviewers happen to notice. The result: architectural issues surface post-merge during <code>/reflect</code> retros — or never — and accumulate as silent tech debt. Even operators running <code>/feature-sdlc</code> end-to-end never get arch coverage; standalone <code>/spec</code> users get less.</p>
 
 <h3 id="who-experiences-this">Who experiences this?</h3>
 <p>Repo maintainer driving <code>/feature-sdlc</code> on Tier-3 features in <code>pmos-toolkit</code> and adjacent multi-module repos. Single user today (Maneesh), but the contract generalises to any <code>/feature-sdlc</code> operator on a repo that has shipped an <code>/architecture</code> principles configuration.</p>
 
 <h3 id="why-now">Why now?</h3>
 <ul>
-  <li>State schema v5 just shipped; the next additive bump (v6 or per-phase substructure) is the natural integration window.</li>
-  <li><code>/simulate-spec</code> has proved out the pre-<code>/plan</code> validator pattern — there is a working precedent to mirror.</li>
-  <li><code>principles.yaml</code> already ships in <code>/architecture</code>, so the marginal cost is mostly orchestration, not new rule-authoring.</li>
+  <li>The folding precedent is already proved: <code>/simulate-spec</code> folded into <code>/spec</code> at Phase 6.5; <code>/msf-req</code> folded into <code>/requirements</code> at Phase 5.5. Same pattern applies cleanly to <code>/architecture</code>.</li>
+  <li><code>principles.yaml</code> already ships in <code>/architecture</code>, so the marginal cost is mostly orchestration plumbing inside <code>/spec</code> and <code>/verify</code> — not new rule-authoring.</li>
+  <li>Folding into the child skills (not the orchestrator) means standalone <code>/spec</code> and standalone <code>/verify</code> invocations also benefit, not just <code>/feature-sdlc</code> runs.</li>
 </ul>
 </section>
 
@@ -55,18 +55,19 @@
 
 <h3 id="goals">Goals</h3>
 <ul>
-  <li>Surface architectural concerns at design time (Phase 4.5) for Tier-3 features — measured by user-retains-gate signal (operator does not auto-pass <code>--skip</code> after the first 3 Tier-3 runs) and by a false-positive rate below 20% on <code>--from-spec</code> findings.</li>
-  <li>Catch structural regressions at verify time (Phase 7) for Tier-2 and Tier-3 — measured by <code>/architecture</code> finding a delta in changed modules that <code>/verify</code>'s existing reviewers miss.</li>
-  <li>Zero added cost on Tier-1 bug fixes — measured by no <code>/architecture</code> invocation appearing in T1 <code>state.yaml</code> runs.</li>
-  <li>Keep added latency at Phase 4.5 under 90s P50 on Tier-3 — measured by timing the gate on a representative sample run.</li>
+  <li>Surface architectural concerns at spec time (folded into <code>/spec</code>) for Tier-3 features — measured by user-retains-gate signal (operator does not auto-pass <code>--skip</code> on /spec's arch sub-step after the first 3 Tier-3 runs) and by a false-positive rate below 20% on <code>--from-spec</code> findings.</li>
+  <li>Catch structural regressions at verify time (folded into <code>/verify</code>) for Tier-2 and Tier-3 — validated qualitatively by post-launch retro inspection of <code>/verify</code> reports (Goal #2 is aspirational; no day-1 baseline exists for a quantitative delta metric).</li>
+  <li>Zero added cost on Tier-1 bug fixes — measured by no <code>/architecture</code> invocation appearing in T1 runs of either <code>/spec</code> or <code>/verify</code>.</li>
+  <li>Keep added latency on /spec's arch sub-step under 90s P50 on Tier-3 — measured by timing the folded sub-step on a representative sample run.</li>
 </ul>
 
 <h3 id="non-goals">Non-Goals</h3>
 <ul>
-  <li>NOT auditing the entire repo at Phase 7 — scoped to changed modules only (since merge-base) — because whole-repo audits produce noise at PR time.</li>
+  <li>NOT auditing the entire repo at /verify time — scoped to changed modules only (since merge-base) — because whole-repo audits produce noise at PR time.</li>
   <li>NOT building a parallel rules engine — because <code>principles.yaml</code> + a single LLM judge is the chosen direction and dual-implementation is the explicit failure mode the brief eliminated.</li>
-  <li>NOT making Phase 4.5 hard at any tier — because pre-spec design is exploratory and false positives train users to skip.</li>
+  <li>NOT making /spec's arch sub-step hard at any tier — because pre-impl design is exploratory and false positives train users to skip.</li>
   <li>NOT building <code>--from-spec</code> as a separate skill — because the existing <code>/architecture</code> skill owns "audit against principles" and <code>--from-spec</code> is a new input mode, not a new domain.</li>
+  <li>NOT adding any new top-level phase to <code>/feature-sdlc</code> — orchestrator stays unchanged; integration lives inside <code>/spec</code> and <code>/verify</code>.</li>
 </ul>
 </section>
 
@@ -100,47 +101,60 @@
 
 <section id="solution-direction">
 <h2 id="solution-direction">Solution Direction</h2>
-<p>Two integration slots, sharing one rule definition and one LLM judge.</p>
+<p>Two integrations, both <strong>folded into the child skill</strong>, sharing one rule definition and one LLM judge. <code>/feature-sdlc</code> is unchanged — it never invokes <code>/architecture</code> directly.</p>
 
-<h3 id="slot-1-phase-4-5">Slot 1 — Phase 4.5 (between /spec and /plan)</h3>
-<p>Runs <code>/architecture --from-spec &lt;spec-path&gt;</code>. The LLM judge reads <code>principles.md</code> + the spec and renders findings. Soft gate at every tier: Recommended-Run on T3, Recommended-Skip on T2, suppressed on T1.</p>
+<h3 id="how-the-pieces-work-together">How the pieces work together</h3>
+<ul>
+  <li><strong>Principles document</strong> (<code>principles.md</code> + <code>principles.yaml</code>) — the rules themselves, layered L1 (universal) / L2 (stack-specific) / L3 (per-repo). Source of truth for what "good architecture" means.</li>
+  <li><strong>LLM judge subagent</strong> — the evaluator. Reads principles + the artifact under review (spec prose, or code + static-tool evidence) and emits findings citing specific rules.</li>
+  <li><strong>Static tools</strong> (<code>dependency-cruiser</code>, <code>ruff</code>, <code>cycle-py</code>, AST harness) — evidence gatherers, code-side only. Feed mechanical signal into the judge.</li>
+</ul>
 
-<h3 id="slot-2-phase-7-sub-step">Slot 2 — Phase 7 sub-step (inside /verify)</h3>
-<p>The existing <code>/architecture</code> static-analysis path runs against changed modules (<code>--since &lt;merge-base&gt;</code>) and produces mechanical evidence. The same LLM judge reads principles + code + that evidence and renders findings. Runs on T2 (scoped) and T3.</p>
+<h3 id="integration-1-spec-folded">Integration 1 — folded inside <code>/spec</code> (sibling of <code>/simulate-spec</code>)</h3>
+<p><code>/spec</code> grows a new folded sub-step (proposed Phase 6.6, parallel to existing Phase 6.5 <code>/simulate-spec</code>). After <code>/spec</code> emits the spec doc, the sub-step invokes <code>/architecture --from-spec &lt;spec-path&gt;</code>; the LLM judge reads <code>principles.md</code> + the spec and writes findings to <code>{docs_path}/architecture/{date}_&lt;slug&gt;_from-spec.{html,md,json}</code>. Soft sub-step at every tier — uses <code>/spec</code>'s existing tier-aware gate semantics (Recommended-Run on T3, Recommended-Skip on T2, suppressed on T1, with auto-upgrade T2→T3 when <code>/spec</code>'s own module list contains a name not in the repo's current top-level module set).</p>
+
+<h3 id="integration-2-verify-folded">Integration 2 — folded inside <code>/verify</code></h3>
+<p><code>/verify</code> grows a new folded sub-step that invokes <code>/architecture --since &lt;merge-base&gt;</code> against changed modules; static tools produce mechanical evidence, the same LLM judge reads principles + code + evidence, findings appear in <code>/verify</code>'s aggregated report alongside lint / tests / multi-agent code review. Advisory pattern (matches <code>/verify</code>'s existing folded-phase-awareness — Phase 4.5 in <code>/verify</code> SKILL.md lines 450–502). Runs on T2 (scoped) and T3.</p>
 
 <h3 id="foundation-deliverables">Foundation deliverables (same release)</h3>
 <ul>
-  <li>New <code>/architecture --from-spec &lt;spec-path&gt;</code> invocation mode. Reads spec HTML/MD, extracts the proposed module list, dependencies, and architectural assertions, dispatches the judge subagent with principles + spec inputs, and emits the HTML+MD+JSON triplet under <code>{docs_path}/architecture/{date}_&lt;slug&gt;_from-spec.{html,md,json}</code>. Fails loud on specs lacking module/dependency structure.</li>
+  <li>New <code>/architecture --from-spec &lt;spec-path&gt;</code> invocation mode. Reads spec HTML/MD, extracts the proposed module list, dependencies, and architectural assertions, dispatches the judge subagent with principles + spec inputs, emits the HTML+MD+JSON triplet. Fails loud on specs lacking module/dependency structure (minimum spec contract defined in <code>/spec</code> per Q9 resolution).</li>
   <li>Authoring of <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> — prose source of truth (L1 universal + L2 stack-specific + L3 per-repo conventions). Each principle declares which static tools (if any) detect violations.</li>
-  <li>State schema bump (v5 → v6, or additive sub-structure on existing phase entries) to record <code>phase_4_5_arch_spec_findings_path</code> and <code>phase_7_arch_code_findings_path</code>.</li>
+  <li>Rule-id-set-equality drift hook (per D9): <code>scripts/check-principles-drift.sh</code> in <code>/architecture</code>'s skill folder; runs at <code>/complete-dev</code> time on any commit touching <code>principles.{yaml,md}</code>; refuses to merge if rule-ID sets disagree.</li>
+  <li><code>/spec</code> sub-step plumbing (Phase 6.6) — including the new spec template contract (Q9): required <code>§Modules</code> section with name+deps per module, <code>§Architectural Assertions</code> section, exit-code/error-message shape for <code>--from-spec</code> failures.</li>
+  <li><code>/verify</code> sub-step plumbing — folded sub-step invocation, results aggregated into the existing report.</li>
+  <li>NO state schema bump and NO new <code>/feature-sdlc</code> phase IDs — the orchestrator is unchanged.</li>
 </ul>
 </section>
 
 <section id="user-journeys">
 <h2 id="user-journeys">User Journeys</h2>
 
-<h3 id="primary-tier-3-happy-path">Primary (Tier-3, happy path)</h3>
+<h3 id="primary-tier-3-happy-path">Primary (Tier-3, happy path via /feature-sdlc)</h3>
 <ol>
-  <li>Operator runs <code>/feature-sdlc &lt;idea&gt;</code>; pipeline proceeds normally through <code>/requirements</code> → <code>/grill</code> → <code>/creativity</code> → <code>/wireframes</code> → <code>/prototype</code> → <code>/spec</code>.</li>
-  <li><strong>Phase 4.5 gate fires:</strong> "Run <code>/architecture --from-spec</code> against the just-emitted spec? (Recommended)" — operator confirms.</li>
-  <li><code>/architecture --from-spec</code> dispatches the judge subagent and returns 3 findings cited to specific principles + spec sections.</li>
-  <li>Operator either revises the spec (re-runs <code>/spec</code>) or accepts the findings and proceeds to <code>/plan</code>.</li>
-  <li>Pipeline continues through <code>/plan</code> → <code>/execute</code>.</li>
-  <li><strong>Phase 7 sub-step (inside /verify):</strong> <code>/architecture --since &lt;merge-base&gt;</code> runs against changed modules; static tools + judge return 1 finding (a cycle introduced); the <code>/verify</code> report includes it alongside lint and test results.</li>
+  <li>Operator runs <code>/feature-sdlc &lt;idea&gt;</code>; pipeline proceeds through <code>/requirements</code> → <code>/grill</code> → <code>/creativity</code> → <code>/wireframes</code> → <code>/prototype</code> → <code>/spec</code>.</li>
+  <li><strong>Inside <code>/spec</code>:</strong> after the spec doc lands, the new folded sub-step (Phase 6.6) prompts: "Run <code>/architecture --from-spec</code> against this spec? (Recommended)" — operator confirms.</li>
+  <li>Sub-step dispatches the judge subagent, returns 3 findings cited to specific principles + spec sections; findings appear in <code>/spec</code>'s output.</li>
+  <li>Operator either revises spec (re-runs <code>/spec</code> — the folded arch sub-step internally re-runs against the new spec) or accepts findings and proceeds.</li>
+  <li>Pipeline continues through <code>/plan</code> → <code>/execute</code> (no change).</li>
+  <li><strong>Inside <code>/verify</code>:</strong> a folded sub-step runs <code>/architecture --since &lt;merge-base&gt;</code> against changed modules; static tools + judge return 1 finding (a cycle introduced); <code>/verify</code>'s aggregated report includes it alongside lint and test results.</li>
   <li>Operator addresses the finding before <code>/complete-dev</code> merges.</li>
 </ol>
 
+<h3 id="standalone-spec-tier-3">Standalone <code>/spec</code> invocation (Tier-3)</h3>
+<p>Operator runs <code>/spec</code> directly (not via <code>/feature-sdlc</code>). The folded arch sub-step still fires — same gate prompt, same findings. This was not possible in the orchestrator-slot design.</p>
+
 <h3 id="alternate-tier-2">Alternate (Tier-2)</h3>
-<p>Phase 4.5 gate suppressed (Recommended-Skip). Phase 7 sub-step runs scoped to changed modules.</p>
+<p><code>/spec</code>'s arch sub-step suppressed at gate (Recommended-Skip) unless the spec introduces a new top-level module — then auto-upgrade to Run. <code>/verify</code>'s arch sub-step runs scoped to changed modules.</p>
 
 <h3 id="edge-tier-1">Edge (Tier-1)</h3>
-<p>Both slots skipped entirely. No <code>/architecture</code> invocation. Zero added latency.</p>
+<p>Both folded sub-steps skipped entirely. No <code>/architecture</code> invocation in either <code>/spec</code> or <code>/verify</code>. Zero added latency.</p>
 
 <h3 id="error-journeys">Error journeys</h3>
 <ul>
-  <li><strong><code>--from-spec</code> hits a spec lacking module/dep structure:</strong> fails loud (exit non-zero); operator sees a structured error pointing to the minimum spec contract; can revise the spec or pass <code>--force-incomplete</code>.</li>
-  <li><strong>Phase 4.5 LLM judge times out or hits rate limit:</strong> soft-gate failure dialog (per <code>/feature-sdlc reference/failure-dialog.md</code>); operator picks Retry / Pause / Skip.</li>
-  <li><strong>Principles doc out of sync with YAML rules:</strong> judge cites a principle the tools never check → finding metadata is flagged <code>judge_only: true</code>; does not block.</li>
+  <li><strong><code>--from-spec</code> hits a spec lacking module/dep structure:</strong> fails loud (exit non-zero); <code>/spec</code>'s folded sub-step surfaces the structured error pointing to the minimum spec contract; operator can revise the spec or pass <code>--force-incomplete</code>.</li>
+  <li><strong>LLM judge times out / rate-limit:</strong> folded sub-step fails advisory (per <code>/spec</code>'s and <code>/verify</code>'s existing folded-phase failure pattern); appended to <code>phases.spec.folded_phase_failures[]</code> or <code>phases.verify.folded_phase_failures[]</code>; pipeline continues.</li>
+  <li><strong>Principles doc out of sync with YAML rules (rule-ID drift):</strong> drift hook refuses the offending merge at <code>/complete-dev</code>; <code>git commit --no-verify</code> bypass works per the established escape-hatch pattern.</li>
 </ul>
 
 <h3 id="empty-states-and-edge-cases">Empty states &amp; edge cases</h3>
@@ -148,8 +162,9 @@
   <thead><tr><th>Scenario</th><th>Condition</th><th>Expected</th></tr></thead>
   <tbody>
     <tr><td>Spec has 0 modules declared</td><td><code>--from-spec</code> invoked</td><td>Fail loud with <code>spec-contract-violation</code> exit code; structured message lists missing sections</td></tr>
-    <tr><td>No changed files since merge-base</td><td>Phase 7 sub-step</td><td>Skip cleanly with log line <code>architecture: no changes since merge-base; skipping</code>; no judge invocation</td></tr>
+    <tr><td>No changed files since merge-base</td><td><code>/verify</code> folded sub-step</td><td>Skip cleanly with log line <code>architecture: no changes since merge-base; skipping</code>; no judge invocation</td></tr>
     <tr><td>L3 <code>principles.yaml</code> missing in target repo</td><td><code>/architecture</code> invocation</td><td>Use plugin-shipped L1+L2 only; advisory log <code>no L3 overrides found; using defaults</code></td></tr>
+    <tr><td>/spec is re-run after the folded arch sub-step ran</td><td>Operator revises spec</td><td>The folded sub-step re-runs internally on the new spec — no orchestrator cascade needed (closes Q6)</td></tr>
   </tbody>
 </table>
 </section>
@@ -159,15 +174,15 @@
 <table>
   <thead><tr><th>#</th><th>Decision</th><th>Options Considered</th><th>Rationale</th></tr></thead>
   <tbody>
-    <tr><td>D1</td><td>Two slots (Phase 4.5 pre-spec + Phase 7 post-impl)</td><td>(a) Phase 4 alone, (b) Phase 7 alone, (c) Phase 0 baseline only, (d) bookend at all tiers, (e) standalone handoff suggestion</td><td>Bookend catches issues at both moments where action is cheap; tier-gated to avoid T1 cost. Standalone-only loses signal because users do not run optional tools (per ideate variant #7 rejection).</td></tr>
+    <tr><td>D1</td><td>Fold <code>/architecture</code> into <code>/spec</code> (Phase 6.6) and into <code>/verify</code> (new folded sub-step); /feature-sdlc unchanged</td><td>(a) Two orchestrator slots in /feature-sdlc (Phase 4.5 + Phase 7 sub-step), (b) one slot only, (c) folded into both child skills (selected)</td><td>Matches the established folding precedent (<code>/simulate-spec</code>→<code>/spec</code> Phase 6.5; <code>/msf-req</code>→<code>/requirements</code> Phase 5.5). Eliminates state-schema bump (Q1 evaporates), new phase IDs (Q2 evaporates), and the re-run cascade problem (Q6 evaporates). Bonus: standalone <code>/spec</code> and <code>/verify</code> users get arch coverage too.</td></tr>
     <tr><td>D2</td><td>One principles document + one LLM judge (not parallel evaluators)</td><td>(a) Static tools authoritative + LLM supplement, (b) LLM authoritative + tools as evidence (selected), (c) dual independent evaluators</td><td>Dual implementations drift; single judge with tools-as-evidence is the simplest contract and eliminates one of the original H/H risks from the brief.</td></tr>
     <tr><td>D3</td><td>Ship <code>/architecture --from-spec</code> in the same release as the integration</td><td>(a) Backlog the mode, ship orchestration only, (b) ship both together (selected)</td><td>Without <code>--from-spec</code>, Phase 4.5 is theatre — has no signal when pointed at prose.</td></tr>
-    <tr><td>D4</td><td>Tier-gating: T1 skip both, T2 post-only, T3 both</td><td>(a) Tier-3-only at all slots, (b) all tiers all slots, (c) ternary T1/T2/T3 dispatch (selected)</td><td>Pre-spec slot is exploratory; T2 does not reliably need it. T1 fixes do not introduce structural change. Ternary is novel (no precedent in <code>/feature-sdlc</code>) — accepted complexity for right-sized cost.</td></tr>
-    <tr><td>D5</td><td>Findings doc shape = same HTML+MD+JSON triplet as code-audit mode</td><td>(a) New simulation-style folder per <code>/simulate-spec</code>, (b) inline into spec doc as sibling section, (c) standalone triplet (selected)</td><td>Triplet is the established <code>/architecture</code> artifact contract; reuses substrate; per-feature folder gets a sibling under <code>{docs_path}/architecture/</code> with cross-links.</td></tr>
+    <tr><td>D4</td><td>Tier-gating lives inside <code>/spec</code> and <code>/verify</code> (the child skills already accept <code>--tier</code> passthrough); T1 skips both folded sub-steps, T2 runs only the /verify sub-step (with /spec auto-upgrade to T3 when a new module is declared), T3 runs both</td><td>(a) Tier-3 only at both, (b) all tiers at both, (c) ternary T1/T2/T3 with /spec auto-upgrade carve-out (selected)</td><td>Tier-gating belongs in the child skill that owns the sub-step, not in the orchestrator. <code>/spec</code> and <code>/verify</code> already use <code>--tier</code> for their existing phases; reusing that handle keeps the design coherent. T1 fixes do not introduce structural change; T2 gets the post-impl check; T3 gets both. Auto-upgrade carve-out catches T2 specs that introduce new modules.</td></tr>
+    <tr><td>D5</td><td>Findings doc shape = same HTML+MD+JSON triplet as code-audit mode</td><td>(a) New simulation-style folder per <code>/simulate-spec</code>, (b) inline into spec doc as sibling section, (c) standalone triplet (selected)</td><td>Triplet remains the established /architecture artifact contract; reuses the substrate. Findings written to <code>{docs_path}/architecture/{date}_&lt;slug&gt;_from-spec.{html,md,json}</code> and <code>{docs_path}/architecture/{date}_&lt;slug&gt;_code.{html,md,json}</code>; cross-linked from /spec's and /verify's output but artifact location unchanged.</td></tr>
     <tr><td>D6</td><td>Principles prose lives at <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (not in YAML comments)</td><td>(a) Inline as YAML comments, (b) separate .md authoritative + YAML generated, (c) .md prose alongside YAML (selected; both human-authored, YAML is the machine-readable handoff)</td><td>Prose readability matters for the LLM judge's rule comprehension; YAML stays the script handoff. Drift risk mitigated by "each principle declares its tool" pattern.</td></tr>
-    <tr><td>D7</td><td>Phase 4.5 is a soft gate; never blocks at any tier</td><td>(a) Hard at T3, soft elsewhere, (b) always soft (selected)</td><td>Spec-time design is exploratory; hard gates here train users to skip. Findings still rolled into <code>/verify</code>'s mandatory pass.</td></tr>
-    <tr><td>D8</td><td>Run a 1-day pre-build spike against 5 historical specs to test whether the LLM judge reliably applies prose principles to spec prose; no hard kill-switch threshold</td><td>(a) Skip spike, trust the judge, (b) spike with hard threshold (e.g. ship Slot 2 only if precision &lt;50%), (c) spike informs design but no go/no-go threshold (selected)</td><td>The brief flagged judge-on-prose as the riskiest assumption (H/H); the spike is cheap insurance, but a rigid precision threshold would over-mechanise a judgment call. Spike findings feed Decisions in <code>/spec</code> (e.g. cap findings, evidence-citation rules), not a build/no-build gate.</td></tr>
-    <tr><td>D9</td><td>New principles ship as both a YAML rule entry and a prose entry in <code>principles.md</code> in the same PR</td><td>(a) Prose lags YAML and is back-filled, (b) YAML auto-generated from prose, (c) prose + YAML co-authored in the same PR (selected; enforced by review convention)</td><td>Co-authoring is the cheapest way to keep the two halves aligned. A mechanical drift hook (Q5) would harden this but is out of scope for v1 — review convention is the v1 enforcement and the drift hook is the v2 upgrade path.</td></tr>
+    <tr><td>D7</td><td>Both folded sub-steps use their host skill's existing gate semantics (soft, non-blocking; uses /spec's and /verify's existing folded-phase failure patterns)</td><td>(a) Hard at T3 / soft elsewhere, (b) always soft via host-skill gate (selected)</td><td>Folded sub-steps inherit failure semantics from the host skill — no new dialog plumbing needed. Findings are advisory; /verify's mandatory pass still gates merge as today.</td></tr>
+    <tr><td>D8</td><td>Run a 1-day pre-build spike against 5 historical specs to test whether the LLM judge reliably applies prose principles to spec prose; no hard kill-switch threshold</td><td>(a) Skip spike, trust the judge, (b) spike with hard threshold (e.g. ship Slot 2 only if precision &lt;50%), (c) spike informs design but no go/no-go threshold (selected)</td><td>The brief flagged judge-on-prose as the riskiest assumption (H/H); the spike is cheap insurance. Spike outputs map to three concrete /spec design knobs: (1) top-N findings cap, (2) evidence-citation requirement (judge MUST cite a spec section per finding), (3) confidence threshold (only surface findings rated ≥X). /spec wires each knob from spike data; no hard build/no-build threshold on aggregate precision.</td></tr>
+    <tr><td>D9</td><td>New principles ship as both a YAML rule entry and a prose entry in <code>principles.md</code> in the same PR</td><td>(a) Prose lags YAML and is back-filled, (b) YAML auto-generated from prose, (c) prose + YAML co-authored in the same PR (selected; enforced by review convention)</td><td>Co-authoring is the cheapest way to keep the two halves aligned. A minimum rule-id-set-equality drift hook ships in v1 (~30 lines bash; YAML rule IDs == MD rule headings — catches the loud "added a rule on one side but not the other" failure). Semantic drift (prose <code>why</code> field mismatched with YAML <code>why</code>) is deferred to v2.</td></tr>
   </tbody>
 </table>
 </section>
@@ -222,6 +237,36 @@
         F4 → added D9 (YAML + prose co-author in same PR; review convention v1, drift hook v2).
       </td>
     </tr>
+    <tr>
+      <td>2 (grill)</td>
+      <td>
+        G1. Q9 spec-contract is load-bearing for Slot 1 buildability.<br>
+        G2. D9 convention-only is insufficient for the judge-vs-tools failure mode.<br>
+        G3. D4 has a T2-with-new-module gap (Q7).<br>
+        G4. D8 "informs design" is fuzzy — no concrete output knobs.<br>
+        G5. Goal #2 unmeasurable on day 1.<br>
+        G6. Phase 4.5 re-run breaks /feature-sdlc resume contract.<br>
+        G7. Phase 7 sub-step shape (Q3) ambiguous.
+      </td>
+      <td>
+        G1 → Q9 closed as /spec precondition.<br>
+        G2 → D9 upgraded: ship rule-id-set-equality drift hook in v1.<br>
+        G3 → D4 carve-out: T2 auto-upgrades when /spec declares new module.<br>
+        G4 → D8 names three knobs: top-N cap, evidence-citation, confidence threshold.<br>
+        G5 → Goal #2 rephrased as aspirational, qualitative validation only.<br>
+        G6 → auto-cascade with operator-confirm (Q6 closed).<br>
+        G7 → folded inside /verify, advisory (Q3 partial — phase ID name still TBD).
+      </td>
+    </tr>
+    <tr>
+      <td>3 (reshape)</td>
+      <td>
+        R1. User pushback: should /architecture fold into /spec and /verify directly (like /simulate-spec → /spec) rather than be orchestrated by /feature-sdlc?
+      </td>
+      <td>
+        Reshaped: D1 rewritten (fold into child skills), D4 tier-gating moved into child skills, D5 + D7 updated. Q1/Q2/Q4/Q6 evaporated; Q3 fully resolved. Solution Direction + User Journeys + Foundation Deliverables rewritten. /feature-sdlc orchestrator unchanged. Added a "How the pieces work together" subsection foregrounding principles/judge/static-tools roles (per /requirements learning 2026-05-28).
+      </td>
+    </tr>
   </tbody>
 </table>
 </section>
@@ -231,15 +276,15 @@
 <table>
   <thead><tr><th>#</th><th>Question</th></tr></thead>
   <tbody>
-    <tr><td>Q1</td><td>State schema: bump v5 → v6 (additive new top-level fields), or extend existing phase entries with sub-structure (<code>phases.spec.arch_findings_path</code>, <code>phases.verify.arch_findings_path</code>)? v6 is cleaner; sub-structure avoids a schema bump.</td></tr>
-    <tr><td>Q2</td><td>Phase 4.5 phase ID — <code>arch-spec</code> or <code>architecture-spec</code> or fold into <code>spec</code> as a sub-step? Affects <code>state.yaml</code> shape and resume cursor.</td></tr>
-    <tr><td>Q3</td><td>Phase 7 sub-step — independent phase ID (<code>arch-code</code>) or rolled into <code>verify</code> as an internal sub-step (per <code>/verify</code>'s existing Phase 4.5 folded-phase pattern)? Brief says "sub-step inside <code>/verify</code>".</td></tr>
-    <tr><td>Q4</td><td>Compact-checkpoint trigger before Phase 4.5 — is 90s + judge dispatch enough to warrant a checkpoint? Existing triggers fire before 3b / 3c / 6 / 7.</td></tr>
-    <tr><td>Q5</td><td>Principles drift detection — how is YAML↔MD sync enforced? Pre-commit hook? CI check? Manual? Brief does not specify.</td></tr>
-    <tr><td>Q6</td><td>Phase 4.5 re-run on spec revision — if a finding causes the user to revise <code>/spec</code>, does the pipeline auto-re-run <code>--from-spec</code>, or wait for explicit re-invocation?</td></tr>
-    <tr><td>Q7</td><td>Tier-2 carve-out for new-module specs — should Tier-2 get Phase 4.5 when the spec introduces a new top-level module, even though the default is post-only?</td></tr>
+    <tr><td><del>Q1</del></td><td>State schema: bump v5 → v6 (additive new top-level fields), or extend existing phase entries with sub-structure (<code>phases.spec.arch_findings_path</code>, <code>phases.verify.arch_findings_path</code>)? v6 is cleaner; sub-structure avoids a schema bump.<br><em>Resolved (reshape 2026-05-28): folded design — no state schema bump needed; sub-steps live in child skill state.</em></td></tr>
+    <tr><td><del>Q2</del></td><td>Phase 4.5 phase ID — <code>arch-spec</code> or <code>architecture-spec</code> or fold into <code>spec</code> as a sub-step? Affects <code>state.yaml</code> shape and resume cursor.<br><em>Resolved (reshape 2026-05-28): folded design — no orchestrator phase ID; the sub-step lives inside /spec as Phase 6.6.</em></td></tr>
+    <tr><td><del>Q3</del></td><td>Phase 7 sub-step — independent phase ID (<code>arch-code</code>) or rolled into <code>verify</code> as an internal sub-step (per <code>/verify</code>'s existing Phase 4.5 folded-phase pattern)? Brief says "sub-step inside <code>/verify</code>".<br><em>Partially resolved (grill 2026-05-28): folded inside /verify (advisory pattern, matches /simulate-spec→/spec). The phase ID name itself is still TBD in /spec.</em><br><em>Resolved (reshape 2026-05-28): folded design — no orchestrator sub-step; folded inside /verify (advisory per existing folded-phase pattern).</em></td></tr>
+    <tr><td><del>Q4</del></td><td>Compact-checkpoint trigger before Phase 4.5 — is 90s + judge dispatch enough to warrant a checkpoint? Existing triggers fire before 3b / 3c / 6 / 7.<br><em>Resolved (reshape 2026-05-28): folded design — no orchestrator compact-checkpoint needed; folded sub-steps inherit host-skill timing.</em></td></tr>
+    <tr><td><del>Q5</del></td><td>Principles drift detection — how is YAML↔MD sync enforced? Pre-commit hook? CI check? Manual? Brief does not specify.<br><em>Resolved (grill 2026-05-28): ship rule-id-set-equality drift hook in v1 (~30 lines bash); semantic drift deferred to v2. See D9.</em></td></tr>
+    <tr><td><del>Q6</del></td><td>Phase 4.5 re-run on spec revision — if a finding causes the user to revise <code>/spec</code>, does the pipeline auto-re-run <code>--from-spec</code>, or wait for explicit re-invocation?<br><em>Resolved (grill 2026-05-28): auto-cascade — /spec re-run marks Phase 4.5 status=stale; orchestrator auto-re-runs --from-spec with operator-confirm prompt.</em><br><em>Resolved (reshape 2026-05-28): folded design — re-running /spec internally re-runs the folded arch sub-step; no orchestrator cascade plumbing required.</em></td></tr>
+    <tr><td><del>Q7</del></td><td>Tier-2 carve-out for new-module specs — should Tier-2 get Phase 4.5 when the spec introduces a new top-level module, even though the default is post-only?<br><em>Resolved (grill 2026-05-28): T2 auto-upgrades to Phase 4.5 when /spec declares a new top-level module. See D4.</em></td></tr>
     <tr><td>Q8</td><td>Principles file location — <code>plugins/pmos-toolkit/skills/architecture/principles.md</code> (versioned with plugin) vs. <code>&lt;repo&gt;/.pmos/architecture/principles.md</code> (per-repo override) — likely both (L1/L2 in skill, L3 in repo), but the layering contract needs defining.</td></tr>
-    <tr><td>Q9</td><td><code>--from-spec</code> spec-contract minimum — what sections / structure must a spec have? Does this drive a new spec template requirement (affects the <code>/spec</code> skill)?</td></tr>
+    <tr><td><del>Q9</del></td><td><code>--from-spec</code> spec-contract minimum — what sections / structure must a spec have? Does this drive a new spec template requirement (affects the <code>/spec</code> skill)?<br><em>Resolved (grill 2026-05-28): defining the minimum spec contract (required sections, exit codes, error shape) is a precondition for /spec; /spec produces both the integration design AND the new spec-template requirement.</em></td></tr>
     <tr><td>Q10</td><td>Spike-first protocol — should <code>/requirements</code> block on the 1-day spike (test LLM judge against 5 historical specs) before allowing <code>/spec</code>? Or is the spike a parallel-track precondition?</td></tr>
   </tbody>
 </table>
