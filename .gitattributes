@@ -1,0 +1,6 @@
+# Suppress noisy diffs for pmos-emitted HTML artifacts. They carry an
+# inline pmos-comments JSON block that mutates on every comment write,
+# and a substantial inline <style> + <script> bundle. Marking them
+# linguist-generated keeps the language-stats correct; -diff stops the
+# default unified diff (use `git diff --text` to opt back in).
+docs/pmos/**/*.html linguist-generated=true -diff

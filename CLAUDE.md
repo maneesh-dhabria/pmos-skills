@@ -109,20 +109,28 @@ Repo-wide invariants for any shell script in this repo (most live under `plugins
 
 ## Inline doc comments
 
-The `/comments` overlay (delivered 2026-05-25 on `feat/inline-doc-comments`) lets stakeholders annotate any pmos-emitted HTML artifact in their browser; comments persist to a sidecar `<artifact>.comments.json`. The flow:
+Stakeholders annotate any pmos-emitted HTML artifact in their browser. The comment threads persist as an **inline JSON block inside the HTML itself** — `<script id="pmos-comments" type="application/json">` between `<!-- pmos-comments:start -->` / `<!-- pmos-comments:end -->` sentinels. No sidecar files; the artifact is the single source of truth. (Pre-v2.58.0 artifacts used a separate `<artifact>.comments.json` sidecar; that contract was retired in 2026-05-28 on `feat/inline-html-artifacts` — see "Migration" below.)
 
-1. **Author** an HTML artifact via any pmos skill (e.g., `/spec`, `/requirements`, `/plan`). All 14 surfaces (13 originating skills + `/feature-sdlc` orchestrator with 2 emit surfaces) bake `<meta name="pmos:skill" content="<slug>">` + the comments overlay JS+CSS into the emit per FR-01/FR-21.
-2. **Open** the artifact via the launcher trio (`comments-open.command` / `.sh` / `.bat` for macOS/Linux/Windows) which spawns the local `serve.js` (T4) and points Chrome (or default browser) at it.
-3. **Annotate**: select text → floating "💬" button → thread submits to FSA-driven sidecar write (Chrome) or localStorage-buffered Save-sidecar download (Safari/Firefox per T22).
-4. **Resolve** comments via `/comments resolve <artifact>` (one of 4 modes: `--confirm-each` default, `--batch`, `--auto`, `--non-interactive` per T10/T13/T14/T15). Routes per-thread to the originating skill's `apply-edit-at-anchor` shim (T18–T21); operator confirms or rejects each edit; resolver stages the patched artifact + updated sidecar.
-5. **Drift hook** (T25): pre-commit refuses to commit one half of the `<artifact>.html` + `<artifact>.comments.json` pair without its sibling. Install with `bash scripts/install-comments-hooks.sh`. Bypass via `git commit --no-verify` per S5 — use only when intentionally breaking the pair (archival/migration scenarios).
+The flow:
 
-**Coverage gate:** `bash scripts/check-comments-coverage.sh` (T27) is wired into `/verify` Phase 7 Hard Gates; refuses /verify completion if any of the 14 contract tests, 15 emit references, or 1 resolver integration test is missing.
+1. **Author** an HTML artifact via any pmos skill (e.g., `/spec`, `/requirements`, `/plan`). All 14 surfaces (13 originating skills + `/feature-sdlc` orchestrator) bake the inline `<style>`, the inline `pmos-comments` block, the comments overlay JS, and `<meta name="pmos:skill" content="<slug>">` into the emit per FR-01/FR-04/FR-21. Static-assertion test: `plugins/pmos-toolkit/skills/_shared/html-authoring/tests/fanout.test.sh`.
+2. **Read** the artifact from anywhere — `file://` from disk, `http://` from any server, any browser, any protocol. The overlay reads the inline JSON and renders threads as soon as the page loads. Read mode is universal.
+3. **Write** requires `http://localhost` via the launcher trio (`comments-open.command` / `.sh` / `.bat` for macOS/Linux/Windows), which spawns `serve.js` and points the default browser at it. The HEAD `/save` probe (FR-14) decides read-only vs. read-write on mount. Atomicity: `serve.js` writes via temp-then-rename(2); on crash the original artifact is intact and an orphan `.tmp` is logged to stderr at startup. Optimistic concurrency: requests carry `expected_version`; a stale write returns 409 + reload banner (FR-17).
+4. **Resolve** comments via `/comments resolve <artifact>` (4 modes: `--confirm-each` default, `--batch`, `--auto`, `--non-interactive`). Routes per-thread to the originating skill's `apply-edit-at-anchor` shim. The shim's anchor resolver is id-first + substring-contains (≥40 chars).
+5. **`file://` is read-only by design.** Opening an artifact from disk shows a blocking modal pointing at the launcher; no thread capture surfaces are available. This avoids the "comment vanished" failure mode users hit when there's no server to receive the write.
 
-**Bundle size policy (NFR-02 amended per D22):** authoring assets (`comments.js + comments.css`) ≤20KB soft / ≤40KB hard; vendored library (`diff-match-patch.js`) ≤100KB ceiling. Enforced by `.github/workflows/comments-bundle-size.yml`.
+**Migration (run once on any fork at v2.58.0):** `bash scripts/migrate-sidecars-to-inline.sh [--dry-run] [docs/pmos]` walks `*.comments.json` files, injects each into the sibling artifact's inline block, deletes the sidecar. Idempotent; safe to re-run. Operator step + `.git/hooks/pre-commit` uninstall instructions in `docs/pmos/features/2026-05-28_inline-html-artifacts/execute/T10_migration_runbook.md`. The pre-commit installer that guarded the html/sidecar pairing was also deleted in the same release.
 
-**SVG anchoring:** /diagram + /wireframes emit `data-anchor="<slug>"` on every `<g>` + top-level `<rect>`/`<path>` per T23 (svg-anchor.js retrofit). Foreign embedded SVGs use bbox-based anchors (FR-52, T24 / T12 svg-bbox strategy).
+**Retired in v2.58.0:** see `docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html#fr-deletions` for the complete inventory of removed code paths. Review-mode is now an in-memory flag (D14): Ctrl/Cmd+Alt+R toggles for the session only.
 
-**Manual smoke matrix:** `plugins/pmos-toolkit/skills/comments/tests/MANUAL-fsa-fallback.md` (T28) tracks per-platform/per-browser smoke rows (macOS/Linux/Windows × Chrome/Safari/Firefox). Maintainer attestation per row.
+**Coverage gate:** `bash scripts/check-comments-coverage.sh` is wired into `/verify` Phase 7 Hard Gates; refuses completion if any of the 14 contract tests, 15 emit references, 1 resolver integration, or 2 anchor calibration tests are missing. Also emits a non-fatal stderr `WARN:` line per artifact whose inline block exceeds the 200 KiB NFR-03 ceiling.
 
-Spec lives at `docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html`; plan at `03_plan.html`; per-task logs under `execute/`.
+**Bundle size policy (NFR-02):** authoring assets (`comments.js + comments.css`) ≤20KB soft / ≤40KB hard. Enforced by `.github/workflows/comments-bundle-size.yml`.
+
+**SVG anchoring:** /diagram + /wireframes emit `data-anchor="<slug>"` on every `<g>` + top-level `<rect>`/`<path>`. Foreign embedded SVGs use bbox-based anchors (FR-52).
+
+**Manual smoke matrix:** `plugins/pmos-toolkit/skills/comments/tests/MANUAL-cross-context.md` tracks per-platform / per-browser / per-open-context rows (macOS/Linux/Windows × Chrome/Safari/Firefox × file:// vs. http://localhost). Maintainer attestation per row.
+
+**Diff suppression:** `.gitattributes` marks `docs/pmos/**/*.html` as `linguist-generated=true -diff`. The inline pmos-comments JSON mutates on every comment write and the inline `<style>` + scripts are bulk; suppressing the default diff keeps PR reviews readable. Use `git diff --text` to opt back in.
+
+Original inline-comments spec lives at `docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html`; the persistence-model rewrite at `docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html`; per-task logs under `execute/`.
