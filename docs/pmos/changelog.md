@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-28 — pmos-learnkit 0.2.0: `/primer` deeper, broader, practitioner-aware
+
+`/primer` learns to read the room. Five fixes land together: senior-PM topics that used to come back as 3K-word skims with 7 mostly-overlapping sources now produce 4K–10K-word primers backed by 10–20+ sources, with named practitioner voices (not anonymous "industry experts") and named-company worked examples per H2 where they exist.
+
+**What's new**
+
+- `--depth brief|standard|deep` — explicit sizing with persistence. First run in a project surfaces a prompt; the answer writes `default_primer_depth` to `.pmos/settings.yaml` and subsequent runs read silently. Tiers map to word targets (2K–3K / 4K–6K / 7K–10K) and source floors (6 / 10 / 15).
+- **Phase 2 practitioner+book naming step.** Before any URL generation, `/primer` lists 6–10 canonical practitioners and 3–5 canonical books on the topic. The primary research strand queries per-practitioner (`<name> <topic>`) and per-book free-entry (First Round Review, Lenny, podcast transcripts, author blogs, publisher excerpts). The old topic-frame queries (`<topic> overview`, etc.) become the demoted secondary strand. New `practitioner_index` field on `sources.json`; practitioners whose queries return zero usable sources are dropped silently with an OQ-buffer entry (no hallucinated authorities in citations).
+- **Depth-aware source floor.** Source-floor.md §"Source floor = 4" becomes §"Source floor by depth tier"; the thin-source banner interpolates `{floor}` + `{depth}`.
+- **Phase 1 topic-richness check.** A new heuristic next to the vagueness check returns `rich` (proceed), `narrow-by-design` (proceed with outline carve-out), or `thin` (surface 2–3 LLM-generated broader reframings + Keep-as-is + Abort). Pre-empts the failure mode where genuinely-narrow topics get padded into thin primers.
+- **Worked-examples drafting hint.** `curator-lens.md` Phase-4 framing prompt gains a bullet directing the writer to try ≥1 worked example per H2 (named company, named product, named incident, or labeled hypothetical) — without inventing. The Phase-5 reviewer emits an informational `examples_per_h2_distribution` field on R10; the write gate surfaces a one-line note when ≥30% of H2s lack examples. Informational only — never blocks.
+
+**Substrate update**
+
+- `pmos-learnkit`'s `skills/_shared/` forward-ported to `pmos-toolkit` v2.57.0 parity in a separate commit on the same release branch: the inline-doc-comments substrate (`apply-edit-at-anchor.md`, comments overlay assets, diff-match-patch, the comments-open launcher trio) now lives under both plugins. No primer code wires it up yet — future enablement work.
+- New shared `## A.6 Optional skill-specific fields` registry in `_shared/pipeline-setup.md` (both plugins): first entry documents `/primer`'s `default_primer_depth` setting.
+
+**References**
+
+- Feedback source: `docs/pmos/fixes/2026-05-28_primer-skill-fixes.md` (in `maneesh-dhabria/pmos-content`)
+- Triage: `docs/pmos/features/2026-05-28_primer-skill-fixes/0c_feedback_triage.html`
+- Spec: `docs/pmos/features/2026-05-28_primer-skill-fixes/02_spec.html`
+- Plan: `docs/pmos/features/2026-05-28_primer-skill-fixes/03_plan.html`
+- Verify report: `docs/pmos/features/2026-05-28_primer-skill-fixes/05_verify.html`
+- Skill-eval iteration 1 (clean pass): `docs/pmos/features/2026-05-28_primer-skill-fixes/skill-eval-iter1.json`
+
 ## 2026-05-28 — pmos-toolkit 2.57.0: `/retro` renamed to `/reflect`
 
 The session-retrospective skill is now `/reflect`. Same behavior, clearer name — "reflect on what just happened" reads more naturally than "retro this session". The `--from-retro` flag on `/feature-sdlc skill --from-feedback` becomes `--from-reflect`; the `retro-parser.md` reference and `retro.bats` integration test are renamed in parallel for consistency.
