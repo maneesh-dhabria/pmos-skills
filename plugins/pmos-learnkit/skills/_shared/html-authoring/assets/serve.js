@@ -14,6 +14,10 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 const url  = require('url');
+const { jsonInlineEscape } = require('../render.js');
+
+const MAX_SAVE_BYTES = 5 * 1024 * 1024; // 5MB cap on POST /save body
+const COMMENTS_RE = /<!-- pmos-comments:start -->[\s\S]*?<script id="pmos-comments" type="application\/json">([\s\S]*?)<\/script>[\s\S]*?<!-- pmos-comments:end -->/;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -84,8 +88,118 @@ function send(res, code, body, headers = {}) {
   res.end(body);
 }
 
+function sendJson(res, status, obj) {
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(JSON.stringify(obj));
+}
+
+function writeArtifactAtomic(p, c) {
+  fs.writeFileSync(p + '.tmp', c);
+  fs.renameSync(p + '.tmp', p);
+}
+
+function handleSave(root, body, res) {
+  // Validate body shape.
+  if (!body || typeof body.expected_version !== 'number'
+      || !body.payload || typeof body.payload !== 'object'
+      || body.payload.schema !== 1
+      || typeof body.payload.version !== 'number'
+      || !Array.isArray(body.payload.threads)) {
+    return sendJson(res, 400, { error: 'schema-validation-failed', details: 'body shape invalid' });
+  }
+
+  // Resolve artifact path from query (?artifact=foo.html) or fallback to single *.html.
+  const parsed = new URL(body.__url || '/', 'http://x');
+  let artifactName = parsed.searchParams.get('artifact');
+  if (!artifactName) {
+    let candidates;
+    try { candidates = fs.readdirSync(root).filter((n) => n.endsWith('.html') && n !== 'index.html'); }
+    catch (_) { return sendJson(res, 400, { error: 'schema-validation-failed', details: 'artifact param required' }); }
+    if (candidates.length !== 1) {
+      return sendJson(res, 400, { error: 'schema-validation-failed', details: 'artifact param required' });
+    }
+    artifactName = candidates[0];
+  }
+
+  const absPath = safeJoin(root, artifactName);
+  if (!absPath) return sendJson(res, 400, { error: 'schema-validation-failed', details: 'artifact path invalid' });
+
+  let html;
+  try { html = fs.readFileSync(absPath, 'utf8'); }
+  catch (_) { return sendJson(res, 500, { error: 'internal' }); }
+
+  const m = html.match(COMMENTS_RE);
+  if (!m) return sendJson(res, 500, { error: 'internal' });
+  let current;
+  try { current = JSON.parse(m[1]); }
+  catch (_) { return sendJson(res, 500, { error: 'internal' }); }
+
+  if (current.version !== body.expected_version) {
+    return sendJson(res, 409, {
+      error: 'version-conflict',
+      current_version: current.version,
+      current_generated_at: current.generated_at,
+    });
+  }
+
+  const newPayload = {
+    schema: 1,
+    version: body.expected_version + 1,
+    generated_at: new Date().toISOString(),
+    threads: body.payload.threads,
+  };
+  const newBlock = `<!-- pmos-comments:start -->\n<script id="pmos-comments" type="application/json">\n${jsonInlineEscape(newPayload)}\n</script>\n<!-- pmos-comments:end -->`;
+  const newHtml = html.replace(COMMENTS_RE, newBlock);
+
+  try { writeArtifactAtomic(absPath, newHtml); }
+  catch (_) { return sendJson(res, 500, { error: 'internal' }); }
+
+  return sendJson(res, 200, { version: newPayload.version, generated_at: newPayload.generated_at });
+}
+
 function handler(root) {
   return function (req, res) {
+    // Parse URL — req.url may include query string.
+    let parsedUrl;
+    try { parsedUrl = new URL(req.url || '/', 'http://x'); }
+    catch (_) { return send(res, 400, 'Bad Request\n', { 'Content-Type': 'text/plain; charset=utf-8' }); }
+
+    // /save dispatch — handle BEFORE static fall-through.
+    if (parsedUrl.pathname === '/save') {
+      if (req.method === 'HEAD') {
+        res.writeHead(204);
+        return res.end();
+      }
+      if (req.method === 'POST') {
+        let received = 0;
+        const chunks = [];
+        let aborted = false;
+        req.on('data', (chunk) => {
+          if (aborted) return;
+          received += chunk.length;
+          if (received > MAX_SAVE_BYTES) {
+            aborted = true;
+            sendJson(res, 413, { error: 'payload-too-large' });
+            try { req.destroy(); } catch (_) {}
+            return;
+          }
+          chunks.push(chunk);
+        });
+        req.on('end', () => {
+          if (aborted) return;
+          const raw = Buffer.concat(chunks).toString('utf8');
+          let body;
+          try { body = JSON.parse(raw); }
+          catch (e) { return sendJson(res, 400, { error: 'schema-validation-failed', details: String(e.message || e) }); }
+          // Pass req.url through so handleSave can read searchParams.
+          body.__url = req.url;
+          return handleSave(root, body, res);
+        });
+        return;
+      }
+      return send(res, 405, 'Method Not Allowed\n', { 'Content-Type': 'text/plain; charset=utf-8', 'Allow': 'HEAD, POST' });
+    }
+
     let target = safeJoin(root, req.url || '/');
     if (!target) return send(res, 403, 'Forbidden\n', { 'Content-Type': 'text/plain; charset=utf-8' });
 
@@ -148,7 +262,8 @@ async function start({ root, port, pidFile, pidFileFromAlias, idleSec, host }) {
     process.stderr.write('serve.js: --port-file is deprecated, use --pid-file (alias retained for one release)\n');
   }
 
-  const server = http.createServer(handler(path.resolve(root)));
+  const resolvedRoot = path.resolve(root);
+  const server = http.createServer(handler(resolvedRoot));
 
   // --port=0 lets the OS choose a free port (used by tests); otherwise scan.
   let bound = null;
@@ -166,6 +281,16 @@ async function start({ root, port, pidFile, pidFileFromAlias, idleSec, host }) {
     }
     if (!bound) throw new Error(`No free port in range ${startPort}..${startPort + PORT_SCAN_LIMIT - 1}`);
   }
+
+  // Orphan .tmp scan — log to stderr, no auto-delete. (T2 / FR — surface leftover
+  // atomic-write tmpfiles from a previous crashed run so the operator can inspect.)
+  try {
+    for (const name of fs.readdirSync(resolvedRoot)) {
+      if (name.endsWith('.html.tmp')) {
+        process.stderr.write(`orphan .tmp from previous run: ${name} — inspect and delete manually\n`);
+      }
+    }
+  } catch (_) { /* root unreadable: skip */ }
 
   // Idle timeout — server self-closes if no request arrives within idleSec.
   // Default 300s; --idle=<sec> overrides; 0/negative disables.
