@@ -1,0 +1,24 @@
+# Tracer slice — 2 universal rules used by /architecture --from-spec tracer-bullet test (T1).
+# Schema mirrors plugins/pmos-toolkit/skills/architecture/principles.yaml (schema_version: 2).
+schema_version: 2
+
+rules:
+  - id: U001
+    tier: 1
+    stack: null
+    disposition: should_fix
+    delegate_to: null
+    check: "module_must_not_import:declared"
+    source: "tests/fixtures/principles-tracer.md#u001"
+    message: "Declared module-level import bans in §architectural-assertions MUST hold."
+    why: "Module-graph invariants asserted in the spec define structural boundaries; violating them introduces unintended coupling or cycles."
+
+  - id: U002
+    tier: 1
+    stack: null
+    disposition: should_fix
+    delegate_to: null
+    check: "module_role_singular"
+    source: "tests/fixtures/principles-tracer.md#u002"
+    message: "Each module in §modules MUST own a single role (no multi-purpose modules)."
+    why: "Multi-purpose modules hide responsibility boundaries and become refactor magnets."
