@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify Review — architecture-in-feature-sdlc</title>
+  <meta name="pmos:skill" content="verify">
+  <link rel="stylesheet" href="../assets/style.css?v=2.57.1">
+  <link rel="stylesheet" href="../assets/comments.css?v=2.57.1">
+  <script defer src="../assets/diff-match-patch.js?v=2.57.1"></script>
+  <script defer src="../assets/comments.js?v=2.57.1"></script>
+  <script defer src="../assets/viewer.js?v=2.57.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Verify Review — architecture-in-feature-sdlc</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+    <p><strong>Feature:</strong> architecture-in-feature-sdlc &middot; <strong>Branch:</strong> feat/architecture-in-feature-sdlc &middot; <strong>Date:</strong> 2026-05-28 &middot; <strong>Last commit reviewed:</strong> 4143e6f</p>
+
+    <section id="verdict">
+      <h2 id="verdict">1. Verdict</h2>
+      <p><strong>PASS</strong> with 3 logged deviations (all advisory; non-blocking; surfaced for /complete-dev). Skill-authoring feature: no UI/API/DB surface; Phase 4 deploy/integration sub-steps are NA — alt-evidence cited via the 20-suite bash test corpus.</p>
+    </section>
+
+    <section id="static-verification">
+      <h2 id="static-verification">2. Static verification (Phase 2)</h2>
+      <ul>
+        <li><strong>Lint (bash -n + node --check):</strong> 0 errors across all *.sh and scripts/*.js in plugins/pmos-toolkit/skills/{architecture,spec,verify}/. <em>Deviation:</em> plan §TN row called for <code>shfmt -d</code> — shfmt not installed in this dev env; degraded to <code>bash -n</code> syntax check. Raised as TN deviation #3.</li>
+        <li><strong>Test suite:</strong> 20/20 PASS (15 architecture + 3 spec + 2 verify).</li>
+        <li><strong>Drift hook self-check:</strong> <code>bash plugins/.../check-principles-drift.sh</code> against this repo's principles.yaml + principles.md → exit 0.</li>
+        <li><strong>State-schema invariance:</strong> canonical <code>test-feature-sdlc-state-invariance.sh</code> 3/3 PASS — no top-level <code>arch-spec</code> / <code>arch-verify</code> / <code>architecture</code> phase ids in /feature-sdlc's <code>reference/state-schema.md</code>.</li>
+      </ul>
+    </section>
+
+    <section id="code-review">
+      <h2 id="code-review">3. Code-quality review (Phase 3, multi-agent)</h2>
+      <p><strong>Clean — 0 issues at 75+ confidence.</strong> Dispatched single general-purpose reviewer (paused_note pragmatics — Wave 3 subagent socket-timeout history made parallel multi-agent dispatch risky for a single-session inline run). Reviewer checked (a) CLAUDE.md compliance, (b) shell-script bug scan (quoting, set -e, exit-code §9.4 contract), (c) cross-file consistency /spec ↔ /verify ↔ scripts. Confirmed:</p>
+      <ul>
+        <li>Canonical skill path honored — <code>plugins/pmos-toolkit/skills/architecture/SKILL.md</code>, lowercase-hyphenated, frontmatter <code>name: architecture</code> matches directory.</li>
+        <li>Bash portability: <code>${BASH_SOURCE[0]:-$0}</code> + walk-up sentinel pattern used in <code>check-principles-drift.sh</code> and <code>auto-upgrade-detector.sh</code> per CLAUDE.md §Bash portability.</li>
+        <li>Exit-code contract (0/64/65/66) honored consistently; Wave 3 deviation (exit 64 = usage, distinct from 65 = contract-violation in <code>validate-findings.js</code>) is intentional and documented in state.yaml notes.</li>
+        <li>/spec Phase 6.6 + /verify Phase 4.7 cite the actual script paths + argument contracts; no drift.</li>
+      </ul>
+      <p><em>Deviation:</em> single reviewer agent instead of plan's prescribed 3–5 parallel agents — accepted risk per paused_note context-management strategy. Raised as Wave 7 / /verify deviation #1.</p>
+    </section>
+
+    <section id="phase-4-na">
+      <h2 id="phase-4-na">4. Phase 4 deploy &amp; integration — NA (skill-authoring feature)</h2>
+      <p>Feature ships skill-authoring artifacts (SKILL.md prose, shell scripts, JS validators, YAML rules, principles.md). No DB migration, no docker stack, no API endpoint, no UI surface. Phase 4 sub-steps 3a–3f marked <strong>NA — alt-evidence: 20-suite bash test corpus</strong>. Phase 4 entry gate not built (no runtime surfaces enumerable).</p>
+    </section>
+
+    <section id="compliance-summary">
+      <h2 id="compliance-summary">5. Spec compliance summary (Phase 5)</h2>
+      <p>Spec carries 47 FRs / 6 NFRs / 13 decisions / 15 edge cases. Plan carries 16 tasks (T1–T15 + TN). Three-state outcome model rolls up as:</p>
+
+      <h3 id="fr-outcomes">5a. FR/NFR roll-up</h3>
+      <table>
+        <thead><tr><th>Bucket</th><th>Count</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Verified (test-evidenced)</td><td>~40 of 47 FRs</td><td>Substrate (FR-01..FR-29 scripts + validators) directly tested by the 10 architecture suites; folded-phase FRs (FR-40 series Phase 6.6, FR-52 series Phase 4.7) tested by spec/verify integration suites. Advisory-failure pattern (FR-29 / D11) tested cross-skill (12/12 assertions).</td></tr>
+          <tr><td>NA — alt-evidence (process FRs)</td><td>~7 of 47 FRs</td><td>Documentation FRs (release prereqs, learnings header bootstrap, /complete-dev wiring) covered by /complete-dev Phase 8 and surfaced as TODOs in this report.</td></tr>
+          <tr><td>NFR-01 budget</td><td>Verified</td><td>test-from-spec-e2e.sh wall-clock asserts &lt;90s; observed 1s on bash-reachable path.</td></tr>
+          <tr><td>Unverified — action required</td><td>1</td><td>Real-judge dispatch via Task subagent (LLM-backed) — bash cannot drive; surfaced as TN human API-smoke item (deviation #2 below).</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="task-outcomes">5b. Plan task roll-up</h3>
+      <table>
+        <thead><tr><th>Task group</th><th>Outcome</th><th>Commit</th></tr></thead>
+        <tbody>
+          <tr><td>Wave 1 (T1)</td><td>Verified-complete</td><td>(per state.yaml.last_commit chain)</td></tr>
+          <tr><td>Wave 2 (T2..T4)</td><td>Verified-complete; deviation: principles.yaml v2 ships 24 rules vs plan's 18 (coverage-gate driven, documented)</td><td>—</td></tr>
+          <tr><td>Wave 3 (T5..T9)</td><td>Verified-complete inline (subagent socket-timeout on T8/T9 → controller finished from subagent-written files; 4 sub-deviations all documented)</td><td>—</td></tr>
+          <tr><td>Wave 4 (T10..T11)</td><td>Verified-complete; deviation: module-match widened to dual basename-OR-full-path</td><td>—</td></tr>
+          <tr><td>Wave 5 (T12..T13)</td><td>Verified-complete; clean (no deviations)</td><td>—</td></tr>
+          <tr><td>Wave 6 (T14..T15)</td><td>Verified-complete; 2 deviations (advisory phrasing divergence; honest E2E degradation — both below)</td><td>4143e6f</td></tr>
+          <tr><td>TN final verification</td><td>Verified-complete (this session, 22:35Z)</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="phase-7-hard-gates">5c. Phase 7 hard gates</h3>
+      <ul>
+        <li><strong>Comments coverage check</strong> (FR-62 of host-repo /comments overlay): <code>bash scripts/check-comments-coverage.sh</code> → <em>PASS</em> (14 contract tests + 15 emit refs + 1 resolver integration + 2 anchor calibration tests).</li>
+        <li><strong>Architecture-feature drift hook self-check:</strong> exit 0 (no drift).</li>
+      </ul>
+    </section>
+
+    <section id="deviations">
+      <h2 id="deviations">6. Deviations carried to /complete-dev</h2>
+      <p>All three are advisory / non-blocking; /complete-dev will surface them in the release summary.</p>
+      <ol>
+        <li><strong>WARNING-phrasing divergence /spec ↔ /verify (Wave 6 T14):</strong> /spec Phase 6.6 emits <code>WARNING: architecture crashed (advisory continue per D11): &lt;excerpt&gt;</code>; /verify Phase 4.7 emits <code>WARNING: architecture crashed in verify (advisory per D11): &lt;excerpt&gt;</code>. test-advisory-failure-pattern.sh accepts both. <strong>Recommendation:</strong> align both to include the host phase name in a follow-up minor (e.g., 2.58.x) — not blocking this release.</li>
+        <li><strong>T15 E2E honest degradation:</strong> test-from-spec-e2e.sh covers parse-spec + auto-upgrade-detector + validate-findings + wall-clock against canned judge fixture. Real-judge dispatch (Task subagent, LLM-backed) is harness-bound — bash cannot invoke. <strong>Recommendation:</strong> accept as TN human API-smoke item (operator-driven); document the gap explicitly in the release notes.</li>
+        <li><strong>TN shfmt unavailability:</strong> plan §TN's "lint (shfmt -d)" row degraded to <code>bash -n</code> syntax check. No errors found. <strong>Recommendation:</strong> add shfmt to the dev-env setup notes (CLAUDE.md or a dev-env doc) so future TN runs don't degrade silently.</li>
+      </ol>
+    </section>
+
+    <section id="release-prereqs">
+      <h2 id="release-prereqs">7. Release prerequisites for /complete-dev (Phase 8)</h2>
+      <ul>
+        <li><strong>Version sync:</strong> bump BOTH <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> AND <code>plugins/pmos-toolkit/.codex-plugin/plugin.json</code> from 2.57.1 → 2.58.0 (minor — new <code>/architecture</code> skill + folded sub-phases in /spec and /verify is additive). Marketplace.json files MUST NOT carry per-plugin version per CLAUDE.md ## Plugin manifest version sync.</li>
+        <li><strong>README:</strong> add row for <code>/architecture</code> skill in pmos-toolkit's README under "Utilities" or equivalent section.</li>
+        <li><strong>CLAUDE.md:</strong> may already cover skill-authoring conventions (no edit expected); confirm at Phase 8.</li>
+        <li><strong>Learnings header:</strong> bootstrap <code>## /architecture</code> section in <code>~/.pmos/learnings.md</code> if missing (idempotent append per spec §15).</li>
+        <li><strong>Drift hook installer rollout (R2 mitigation):</strong> consider whether <code>install-arch-hooks.sh</code> should be auto-invoked on first /architecture use, or remain opt-in. Spec defers to opt-in per D9 (--no-verify bypass acknowledged). No action this release.</li>
+      </ul>
+    </section>
+
+    <section id="follow-ups">
+      <h2 id="follow-ups">8. Known issues / follow-ups</h2>
+      <ul>
+        <li><strong>from-spec-tracer.sh stub bug:</strong> the synthetic-fixture quote-mismatch path emits <code>STUB BUG: valid quote not substring of fixture; fix the stub.</code> — pre-existing from Wave 3, deliberately not modified in Wave 6 (out of scope per T15 deviation). Track as a separate follow-up; not blocking.</li>
+        <li><strong>Single-reviewer code review:</strong> Phase 3 ran one general-purpose reviewer instead of plan's 3–5 parallel agents. Subsequent /verify runs in stable contexts should restore the parallel pattern.</li>
+        <li><strong>Real-judge API smoke (TN row):</strong> operator must run <code>/architecture --from-spec docs/pmos/features/2026-05-28_architecture-in-feature-sdlc/02_spec.html</code> at least once post-merge to validate the end-to-end LLM dispatch path before declaring full feature done.</li>
+      </ul>
+    </section>
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Generated by /verify — pmos-toolkit 2.57.1 — 2026-05-28T22:50Z</span>
+  </footer>
+</body>
+</html>

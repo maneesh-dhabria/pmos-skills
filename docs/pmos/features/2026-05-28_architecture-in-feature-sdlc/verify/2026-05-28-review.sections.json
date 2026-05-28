@@ -1,0 +1,68 @@
+[
+  {
+    "id": "verdict",
+    "level": 2,
+    "title": "1. Verdict",
+    "parent_id": null
+  },
+  {
+    "id": "static-verification",
+    "level": 2,
+    "title": "2. Static verification (Phase 2)",
+    "parent_id": null
+  },
+  {
+    "id": "code-review",
+    "level": 2,
+    "title": "3. Code-quality review (Phase 3, multi-agent)",
+    "parent_id": null
+  },
+  {
+    "id": "phase-4-na",
+    "level": 2,
+    "title": "4. Phase 4 deploy & integration — NA (skill-authoring feature)",
+    "parent_id": null
+  },
+  {
+    "id": "compliance-summary",
+    "level": 2,
+    "title": "5. Spec compliance summary (Phase 5)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-outcomes",
+    "level": 3,
+    "title": "5a. FR/NFR roll-up",
+    "parent_id": "compliance-summary"
+  },
+  {
+    "id": "task-outcomes",
+    "level": 3,
+    "title": "5b. Plan task roll-up",
+    "parent_id": "compliance-summary"
+  },
+  {
+    "id": "phase-7-hard-gates",
+    "level": 3,
+    "title": "5c. Phase 7 hard gates",
+    "parent_id": "compliance-summary"
+  },
+  {
+    "id": "deviations",
+    "level": 2,
+    "title": "6. Deviations carried to /complete-dev",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "7. Release prerequisites for /complete-dev (Phase 8)",
+    "parent_id": null
+  },
+  {
+    "id": "follow-ups",
+    "level": 2,
+    "title": "8. Known issues / follow-ups",
+    "parent_id": null
+  }
+]
