@@ -2582,17 +2582,9 @@ if bsj.is_file():
     except Exception as exc:
         print(f"emit_triplet: sections.json generation failed: {exc}", file=sys.stderr)
 
-h2m = substrate_assets / "html-to-md.js"
-md_ok = False
-if h2m.is_file():
-    try:
-        md = subprocess.check_output(["node", str(h2m), str(html_path)], text=True)
-        atomic_write(md_path, md)
-        md_ok = True
-    except Exception as exc:
-        print(f"emit_triplet: MD conversion failed ({exc}); writing fallback", file=sys.stderr)
-if not md_ok:
-    atomic_write(md_path, f"# /architecture audit — {slug}\n\nSee {html_path.name} for the rendered report.\n")
+# MD-sidecar emit path retired (FR-12.1); write a pointer stub instead.
+# A future feature may re-introduce MD export.
+atomic_write(md_path, f"# /architecture audit — {slug}\n\nSee {html_path.name} for the rendered report.\n")
 
 atomic_write(json_path, json.dumps(report, indent=2))
 

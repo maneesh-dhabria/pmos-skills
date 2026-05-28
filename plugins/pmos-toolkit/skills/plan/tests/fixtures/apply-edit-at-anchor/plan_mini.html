@@ -20,7 +20,7 @@
       <table>
         <thead><tr><th>#</th><th>Decision</th><th>Options</th><th>Rationale</th></tr></thead>
         <tbody>
-          <tr><td>D1</td><td>Use diff-match-patch for anchor resolution</td><td>(a) regex, (b) dmp Bitap</td><td>dmp handles fuzzy matches; regex is brittle on reformatted HTML</td></tr>
+          <tr><td>D1</td><td>Use substring-contains for anchor resolution</td><td>(a) regex, (b) substring</td><td>substring is simple, deterministic, and survives reformatted HTML</td></tr>
         </tbody>
       </table>
     </section>

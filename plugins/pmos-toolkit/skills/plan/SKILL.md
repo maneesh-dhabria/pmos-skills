@@ -237,7 +237,7 @@ Save to `{feature_folder}/03_plan.html` per the substrate at `${CLAUDE_PLUGIN_RO
 
 **Atomic write (FR-10.2):** write `03_plan.html` and the companion `03_plan.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff_match_patch.js`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files.
 
 **Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `plan` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="plan">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
 
@@ -249,7 +249,7 @@ Save to `{feature_folder}/03_plan.html` per the substrate at `${CLAUDE_PLUGIN_RO
 
 **Index regeneration (FR-22, §9.1):** after the artifact write completes, regenerate `{feature_folder}/index.html` by inlining the manifest per `_shared/html-authoring/index-generator.md` (no on-disk `_index.json` is written; the manifest is inlined as `<script type="application/json" id="pmos-index">`, FR-41).
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `03_plan.md` by piping the freshly-written HTML through `bash node {feature_folder}/assets/html-to-md.js 03_plan.html > 03_plan.md`. The MD sidecar is read-only — never the source of truth (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 ### Tier Gates (Phase 3 emission rules per `{tier}` from Phase 1)
 
@@ -913,7 +913,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="t1"`, `id="overview"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

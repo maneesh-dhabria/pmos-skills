@@ -171,7 +171,7 @@ After the report is emitted, reflect on whether this run surfaced anything worth
 
 - `jq` ≥ 1.6 (required; sidecar renderer)
 - `python3` ≥ 3.8 with `pyyaml` (required; rule loader, AST evaluators, cycle-py)
-- `node` ≥ 18 (required; substrate renderers `html-to-md.js` and `build_sections_json.js`)
+- `node` ≥ 18 (required; substrate renderer `build_sections_json.js`)
 - `dependency-cruiser` ≥ 15 (optional; L2 TS rules)
 - `ruff` ≥ 0.5 (optional; L2 Python rules)
 - `git` ≥ 2.25 (required when scan root is a git repo; used for `.gitignore` honoring, `--since` diffs, and blame queries)
@@ -194,7 +194,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 
 **Comments meta tag (FR-01, FR-40):** the emitted HTML report (`{date}_<slug>.html`) MUST carry `<meta name="pmos:skill" content="architecture">` in the `<head>`. Set `{{pmos_skill}}` to `architecture` when expanding the substrate template at Phase 6. The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
 
-**Asset substrate (FR-40):** when writing the HTML report, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets under `{docs_path}/architecture/assets/`. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
+**Asset substrate (FR-40):** when writing the HTML report, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets under `{docs_path}/architecture/assets/`. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
 
 ### When invoked
 
@@ -205,7 +205,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

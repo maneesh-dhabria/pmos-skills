@@ -373,7 +373,7 @@ Write `{out_dir}/design-crit.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/s
 
 **Atomic write (FR-10.2):** write `design-crit.html` and the companion `design-crit.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{out_dir}/assets/` (or `{feature_folder}/assets/` if `{out_dir}` resolves under a pipeline feature folder, sharing the substrate with sibling artifacts) if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{out_dir}/assets/` (or `{feature_folder}/assets/` if `{out_dir}` resolves under a pipeline feature folder, sharing the substrate with sibling artifacts) if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
 
 **Asset prefix (FR-10.1):** when `{out_dir}` is a top-level feature-folder write, `assets/`; when nested under a feature folder (`{feature_folder}/design-crit/`), `../assets/`.
 
@@ -383,7 +383,7 @@ Write `{out_dir}/design-crit.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/s
 
 **Index regeneration (FR-22, §9.1):** when `{out_dir}` is a sub-folder of a pipeline feature folder, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41). Standalone `--out` invocations outside the pipeline do NOT regenerate an index.
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `design-crit.md` by piping the freshly-written HTML through `bash node {out_dir}/assets/html-to-md.js design-crit.html > design-crit.md`. The MD sidecar is read-only (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 Structure:
 

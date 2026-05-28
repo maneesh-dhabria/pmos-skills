@@ -136,7 +136,7 @@ Bundled scripts under `scripts/` and the orchestrator body assume:
 - **bash ≥ 4** — `scripts/_lib.sh` and all `scripts/*.sh` use bash-4 features (associative arrays, `${var,,}`). macOS ships bash 3.2 by default; install GNU bash via Homebrew (`brew install bash`) for local dev.
 - **python3 ≥ 3.8** with **PyYAML** — `rubric.sh`, `workspace-discovery.sh`, and `commit-classifier.sh` invoke `python3 -c 'import yaml; ...'` to parse `reference/rubric.yaml` and `reference/section-schema.yaml`. Install with `pip install pyyaml` or `python3 -m pip install --user pyyaml`.
 - **jq ≥ 1.6** — workspace-discovery parses `package.json` / `pnpm-workspace.yaml` derivatives via jq.
-- **node ≥ 18** — `voice-diff.sh` shells into a tiny node helper for unified-diff rendering; the HTML substrate's `chrome-strip.js` / `html-to-md.js` (consumed by the artifact pipeline) also require node.
+- **node ≥ 18** — `voice-diff.sh` shells into a tiny node helper for unified-diff rendering; the HTML substrate's `chrome-strip.js` / `build_sections_json.js` (consumed by the artifact pipeline) also require node.
 - **git** — every flow reads commit history (`--update <range>` and the §7 update-mode flow) and never auto-commits (commit work is delegated to `/complete-dev`).
 
 Each script's `--selftest` exits non-zero with a clear diagnostic if any of the above is missing — run `bash scripts/<name>.sh --selftest` once after install to verify the environment.
@@ -522,7 +522,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 
 **Comments meta tag (FR-01, FR-40):** any HTML artifact emitted by `/readme` (scaffold output rendered to HTML, audit report) MUST carry `<meta name="pmos:skill" content="readme">` in the `<head>`. Set `{{pmos_skill}}` to `readme` when expanding the substrate template. The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
 
-**Asset substrate (FR-40):** when writing HTML artifacts, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
+**Asset substrate (FR-40):** when writing HTML artifacts, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
 
 ### When invoked
 
@@ -533,7 +533,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

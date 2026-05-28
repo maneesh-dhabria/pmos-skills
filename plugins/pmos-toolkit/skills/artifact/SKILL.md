@@ -244,7 +244,7 @@ On either fail: hard-fail the Phase 2.7 write; surface the soft-phase failure di
 
 **Atomic write (FR-10.2):** write `{slug}.html` and the companion `{slug}.sections.json` via temp-then-rename — never serve a half-written file. The `sections.json` companion is built by running `node {feature_folder}/assets/build_sections_json.js {slug}.html.tmp > {slug}.sections.json.tmp` and renamed alongside.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff_match_patch.js`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
 
 **Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `artifact` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="artifact">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
 
@@ -256,7 +256,7 @@ On either fail: hard-fail the Phase 2.7 write; surface the soft-phase failure di
 
 **Index regeneration (FR-22, §9.1):** after the artifact write completes, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41).
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `{slug}.md` by piping the freshly-written HTML through `bash node {feature_folder}/assets/html-to-md.js {slug}.html > {slug}.md`. The MD sidecar is read-only (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 Include a frontmatter block at the top of the HTML `<main>` body as a `<script type="application/json" id="pmos-frontmatter">` element carrying the artifact's metadata (FR-3):
 
@@ -311,8 +311,7 @@ Mirrors `/wireframes` Phase 4 pattern.
    ```bash
    node {feature_folder}/assets/build_sections_json.js {slug}.html > {slug}.sections.json.tmp
    mv {slug}.sections.json.tmp {slug}.sections.json
-   # When output_format=both:
-   node {feature_folder}/assets/html-to-md.js {slug}.html > {slug}.md.tmp && mv {slug}.md.tmp {slug}.md
+   # output_format=both MD-sidecar re-emit retired (FR-12.1).
    ```
    Atomic via temp-then-rename. Failures fall through to the soft-phase failure dialog. (Legacy `output_format=md` path skips both re-emits — sections.json is HTML-specific; MD primary has no sidecar.)
 
@@ -621,7 +620,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="problem"`, `id="goals"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

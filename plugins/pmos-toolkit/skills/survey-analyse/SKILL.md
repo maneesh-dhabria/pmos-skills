@@ -20,7 +20,7 @@ These instructions use Claude Code tool names. In other environments:
 - **No Bash:** Phase 4 can't auto-run `analysis.py`; emit the file path + a "Run this and paste the JSON output back" instruction; user runs and pastes; skill narrates from the pasted JSON.
 - **`TaskCreate` / `TodoWrite` missing:** announce phase transitions verbally; the run folder's `index.html` is the canonical progress artifact.
 - **Python missing:** the skill stops at Phase 4 prelude with a clear `python3 -m pip install openpyxl` instruction (or `apt/brew install python3` if no Python at all) + the partial run-folder state preserved. Re-run after install.
-- **Missing substrate assets:** the asset payload under `_shared/html-authoring/assets/` is the hard-required substrate for Phase 7 — if any of `style.css`, `viewer.js` is missing, abort with `survey-analyse: missing substrate asset <abs-path> — reinstall the pmos-toolkit plugin`. The turndown trio + `html-to-md.js` is convenience (only needed when `output_format=both`); missing → warn + skip the MD sidecar.
+- **Missing substrate assets:** the asset payload under `_shared/html-authoring/assets/` is the hard-required substrate for Phase 7 — if any of `style.css`, `viewer.js` is missing, abort with `survey-analyse: missing substrate asset <abs-path> — reinstall the pmos-toolkit plugin`. (The MD-sidecar emit path was retired in FR-12.1; `output_format=both` is treated as `html`.)
 
 This skill is a **standalone utility** — not a pipeline stage. It does NOT load workstream context, does NOT run `_shared/pipeline-setup.md` first-run setup, and writes into `{docs_path}/survey-analyses/{YYYY-MM-DD}_<slug>/` rather than into a `/feature-sdlc` feature folder.
 
@@ -129,10 +129,10 @@ Render `<run_folder>/report.html` via the `_shared/html-authoring/` substrate at
    - `open-end-themes` — one `<h3>` per open-text column with theme cards (name, definition, count + %, 1–3 verbatim quotes, sentiment lean).
    - `cross-tab-appendix` — full cross-tabs with raw + Holm-adjusted p; base sizes; small-N flags.
    - `data-quality-log` — the cleaning rules + counts table.
-2. **Atomic write** (`.html.tmp` → rename); the `<head>` MUST include `<meta name="pmos:skill" content="survey-analyse">` — required for `/comments resolve` routing (FR-01, FR-40); kebab-case heading ids on every `<h2>` / `<h3>` (per `_shared/html-authoring/conventions.md` §3); `?v=<plugin-version>` cache-bust on every asset URL; copy `style.css`, `viewer.js`, `comments.js`, `comments.css`, `diff-match-patch.js`, `launcher.js`, `launcher.css`, `launcher-config.js` from `_shared/html-authoring/assets/` to `<run_folder>/assets/` (`cp -n`).
+2. **Atomic write** (`.html.tmp` → rename); the `<head>` MUST include `<meta name="pmos:skill" content="survey-analyse">` — required for `/comments resolve` routing (FR-01, FR-40); kebab-case heading ids on every `<h2>` / `<h3>` (per `_shared/html-authoring/conventions.md` §3); `?v=<plugin-version>` cache-bust on every asset URL; copy `style.css`, `viewer.js`, `comments.js`, `comments.css`, plus the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) from `_shared/html-authoring/assets/` to `<run_folder>/assets/` (`cp -n`).
 3. **Companion `report.sections.json`** — built from the same in-memory section tree (do NOT post-parse the HTML).
 4. **Regenerate `<run_folder>/index.html`** via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`; no on-disk `_index.json`).
-5. **`output_format: both`** → also emit `report.md` via `bash node <run_folder>/assets/html-to-md.js report.html > report.md`. The MD is read-only.
+5. **`output_format: both`** → retired (FR-12.1); treated as `html` until a future feature re-introduces MD export.
 
 ## Phase 8 — Workstream / Learnings / Handoff
 
@@ -161,7 +161,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 Per the contract:
 
 1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Skill-specific feasibility

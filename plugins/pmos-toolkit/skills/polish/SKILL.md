@@ -393,7 +393,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 
 **Comments meta tag (FR-01, FR-40):** the polished HTML artifact (`.polished.html`) MUST carry `<meta name="pmos:skill" content="polish">` in the `<head>`. This meta tag is written at Phase 7 (write output). The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
 
-**Asset substrate (FR-40):** when writing `.polished.html`, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the same `assets/` directory as the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
+**Asset substrate (FR-40):** when writing `.polished.html`, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the same `assets/` directory as the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
 
 ### When invoked
 
@@ -404,7 +404,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

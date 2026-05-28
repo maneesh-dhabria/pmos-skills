@@ -146,8 +146,8 @@ Most ideas don't earn the polish cost — the Phase-4 working artifact is itself
 Goal: emit `{docs_path}/ideate/{YYYY-MM-DD}_<slug>.html` (plus `.md` sidecar when `output_format=both`).
 
 1. **Render the artifact** from `reference/artifact-template.html` — 13 sections (TL;DR / HMW / Target user & JTBD / Hypothesis / Idea variants considered / Amplify: 11-star ladder / How it works / Alternatives & prior art / Premortem: failure modes / Riskiest assumptions / Success signals / Next steps / Open questions). Each section is `<section id="kebab-case-id">` with an `<h2 id="kebab-case-id">` per `_shared/html-authoring/conventions.md` §3. The `amplify-ladder` section carries either the ladder table(s) + sweet-spot reframe(s) (when Phase 3 ran) or a `<em>Skipped — <reason></em>` placeholder per `reference/eleven-star-ladder.md` §"Skip signaling".
-2. **Atomic write.** Temp-then-rename for `.html` and the `.sections.json` companion (build via `_shared/html-authoring/assets/build_sections_json.js`). On the `.md` sidecar (`output_format=both`), pipe through `_shared/html-authoring/assets/html-to-md.js`.
-3. **Asset substrate.** Copy the following from `_shared/html-authoring/assets/` to `{docs_path}/ideate/assets/` if not already present (`cp -n`): `style.css`, `viewer.js`, `comments.js`, `comments.css`, `diff-match-patch.js`, `launcher.js`, `launcher.css`, `launcher-config.js`. Asset prefix in the rendered HTML is `assets/` (relative to the `{docs_path}/ideate/` parent). Apply `?v=<plugin-version>` cache-bust on all asset URLs.
+2. **Atomic write.** Temp-then-rename for `.html` and the `.sections.json` companion (build via `_shared/html-authoring/assets/build_sections_json.js`). The `.md` sidecar emit (`output_format=both`) is retired (FR-12.1) — treated as `html` until a future feature re-introduces MD export.
+3. **Asset substrate.** Copy the following from `_shared/html-authoring/assets/` to `{docs_path}/ideate/assets/` if not already present (`cp -n`): `style.css`, `viewer.js`, `comments.js`, `comments.css`, plus the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`). Asset prefix in the rendered HTML is `assets/` (relative to the `{docs_path}/ideate/` parent). Apply `?v=<plugin-version>` cache-bust on all asset URLs.
 4. **Phase cursor + skill meta tag.** Embed `<meta name="pmos:skill" content="ideate">` and `<meta name="pmos:ideate-phase" content="complete">` in `<head>`. The `pmos:skill` tag is required for `/comments resolve` routing (FR-01, FR-40). (For partial-write checkpoints in Phases 2 / 3 / 4, use `pmos:ideate-phase content="expand"` / `content="amplify"` / `content="pressure-test"` — the `pmos:skill` tag is always `ideate`.)
 5. **Print the absolute file path** in the chat summary so the user can click through.
 
@@ -194,7 +194,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 Per the contract:
 
 1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Skill-specific feasibility

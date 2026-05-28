@@ -311,7 +311,7 @@ Save to `{feature_folder}/02_spec.html` per the substrate at `${CLAUDE_PLUGIN_RO
 
 **Atomic write (FR-10.2):** write `02_spec.html` and the companion `02_spec.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, `LICENSE.turndown.txt`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, `diff-match-patch.js`, `LICENSE.dmp.txt` (all via `cp -n`), plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755` so the bits survive the copy) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files; on initial setup an unconditional `cp assets/* feature_folder/assets/` is fine.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css` (via `cp -n`), plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755` so the bits survive the copy) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files; on initial setup an unconditional `cp assets/* feature_folder/assets/` is fine.
 
 **Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `spec` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="spec">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
 
@@ -320,8 +320,6 @@ Per-file copy posture for the comments substrate (each on its own line so the cp
 ```bash
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/assets/"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{feature_folder}/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{feature_folder}/assets/"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/assets/comments-open.command"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/assets/comments-open.sh"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/assets/comments-open.bat"
@@ -335,7 +333,7 @@ cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open
 
 **Index regeneration (FR-22, §9.1):** after the artifact write completes, regenerate `{feature_folder}/index.html` by inlining the manifest per `_shared/html-authoring/index-generator.md` (no on-disk `_index.json` is written; the manifest is inlined as `<script type="application/json" id="pmos-index">`, FR-41). Honour the §9.1 phase-rank ordering policy.
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `02_spec.md` by piping the freshly-written HTML through `bash node {feature_folder}/assets/html-to-md.js 02_spec.html > 02_spec.md`. The MD sidecar is read-only — never the source of truth (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 **Before overwriting an existing spec:** if `{feature_folder}/02_spec.html` (or legacy `02_spec.md`) exists AND has uncommitted changes (check `git status --porcelain "{feature_folder}/02_spec.{html,md}"`), commit it first:
 
@@ -951,7 +949,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 Per the contract:
 
 1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7. Longer-than-32-bit queries are probed on a leading window — the full alignment lands in `comments/scripts/anchor-resolver.js` (T12).
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins. The full alignment lands in `comments/scripts/anchor-resolver.js`.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Closed error_enum

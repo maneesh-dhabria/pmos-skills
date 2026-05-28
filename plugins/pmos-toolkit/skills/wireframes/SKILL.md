@@ -771,8 +771,6 @@ FR-21 counts wireframes as ONE instrumentation surface but with TWO emit referen
 ```bash
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/wireframes/assets/"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/wireframes/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{feature_folder}/wireframes/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{feature_folder}/wireframes/assets/"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/wireframes/assets/comments-open.command"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/wireframes/assets/comments-open.sh"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/wireframes/assets/comments-open.bat"
@@ -792,7 +790,7 @@ This injects `data-anchor="<slug>"` on every `<g>`, top-level `<rect>`, and top-
 Per the contract:
 
 1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Closed error_enum

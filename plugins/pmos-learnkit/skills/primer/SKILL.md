@@ -376,7 +376,7 @@ The substantive phase. Execute in order.
 
 13. **Index regen.** Regenerate `{docs_path}/primer/index.html` per `_shared/html-authoring/index-generator.md` so the new primer appears in the index.
 
-14. **MD sidecar (FR-9.3).** When `output_format = both` (or `md`), after the HTML rename succeeds, run `node {docs_path}/primer/assets/html-to-md.js {date}_{slug}.html > {date}_{slug}.md`. On sidecar failure, log a warning to chat and continue — the HTML primary is the gate, not the sidecar.
+14. **MD sidecar (FR-9.3).** Retired (FR-12.1) — `output_format=both` (and `md`) is treated as `html` until a future feature re-introduces MD export.
 
 15. **Update lastrun (FR-12).** Write `.pmos/primer.lastrun.yaml`:
 

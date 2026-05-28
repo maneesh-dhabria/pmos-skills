@@ -489,7 +489,7 @@ The `started_at` write is the cursor `/execute` and folded apply-loops use to de
    - **Heading IDs (FR-03.1):** every `<h2>` and `<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md` §3.
    - **No sections.json companion** for orchestrator artifacts (per runbook edge case row 3 — `00_pipeline.html` has no `<h2>`-anchored TOC of substantive content; the status table is the body).
    - **Index regeneration (FR-22, §9.1):** seed `<feature_folder>/index.html` via `_shared/html-authoring/index-generator.md` — at this point the manifest contains a single entry for `00_pipeline.html` (subsequent child-skill writes will trigger their own regenerations to extend the manifest).
-   - **Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `00_pipeline.md` via `bash node <feature_folder>/assets/html-to-md.js 00_pipeline.html > 00_pipeline.md`.
+   - **Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
    > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
 3. Print the in-chat short-form status table.
 
@@ -883,7 +883,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 
 **Comments meta tag (FR-01, FR-40):** BOTH artifacts MUST carry `<meta name="pmos:skill" content="feature-sdlc">` in the `<head>`. Set this when writing each artifact at Phase 1 step 2 (`00_pipeline.html`) and Phase 9 (`00_open_questions_index.html`). The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
 
-**Asset substrate (FR-40):** when writing either artifact, include `comments.js`, `comments.css`, `diff_match_patch.js`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the feature folder's `assets/` directory alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent). The existing asset copy at Phase 1 step 2 covers both artifacts since they share the same `assets/` prefix.
+**Asset substrate (FR-40):** when writing either artifact, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the feature folder's `assets/` directory alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent). The existing asset copy at Phase 1 step 2 covers both artifacts since they share the same `assets/` prefix.
 
 ### When invoked
 
@@ -894,7 +894,7 @@ The resolver dispatches a subagent with the §9.1 input JSON. The subagent's too
 ### Resolution order
 
 1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when normalized score ≥ 0.7.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Tests

@@ -577,8 +577,6 @@ Every generated diagram HTML wrapper MUST include `<meta name="pmos:skill" conte
 ```bash
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{output_dir}/assets/"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{output_dir}/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/diff-match-patch.js"  "{output_dir}/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/LICENSE.dmp.txt"      "{output_dir}/assets/"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{output_dir}/assets/comments-open.command"
 install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{output_dir}/assets/comments-open.sh"
 cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{output_dir}/assets/comments-open.bat"
@@ -589,7 +587,7 @@ cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open
 Per the contract (diagram-specific: supports both `id=` and `data-anchor=`):
 
 1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML, OR `data-anchor="<id>"` on SVG elements (diagram-native anchor style). Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), run diff-match-patch Bitap against `anchor.quote_anchor.text`. Accept when the normalized score ≥ 0.7. Useful for matching `<text>` element content.
+2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins. Useful for matching `<text>` element content.
 3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
 
 ### Closed error_enum

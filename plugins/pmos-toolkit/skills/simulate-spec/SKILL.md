@@ -474,7 +474,7 @@ Save trace files to `{feature_folder}/simulate-spec/{YYYY-MM-DD}-trace.html` per
 
 **Atomic write (FR-10.2):** write `<date>-trace.html` and the companion `<date>-trace.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
+**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
 
 **Asset prefix (FR-10.1):** `simulate-spec/` is one level below the feature folder, so the per-folder relative asset prefix is `../assets/`.
 
@@ -484,7 +484,7 @@ Save trace files to `{feature_folder}/simulate-spec/{YYYY-MM-DD}-trace.html` per
 
 **Index regeneration (FR-22, §9.1):** after the trace write completes, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41). The trace lands under the `simulate-spec/` phase rank.
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `<date>-trace.md` by piping the freshly-written HTML through `bash node {feature_folder}/assets/html-to-md.js simulate-spec/<date>-trace.html > simulate-spec/<date>-trace.md`. The MD sidecar is read-only (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 Populate the doc from accumulated state:
 - §1 (Scope) ← from Phase 1

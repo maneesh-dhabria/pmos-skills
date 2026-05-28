@@ -2,7 +2,7 @@
 
 Shared substrate consumed by every pmos-toolkit pipeline skill that writes feature-folder artifacts (`/requirements`, `/spec`, `/plan`, `/msf-req`, `/msf-wf`, `/simulate-spec`, `/grill`, `/artifact`, `/verify`, `/design-crit`, plus `/feature-sdlc` orchestrator artifacts).
 
-Skills used to write Markdown directly. Now they author HTML — an HTML version of the artifact lives next to the legacy `.md` shape, surfaces inside a per-feature `index.html` viewer, and round-trips back to MD on demand via vendored `turndown.umd.js`.
+Skills used to write Markdown directly. Now they author HTML — an HTML version of the artifact lives next to the legacy `.md` shape and surfaces inside a per-feature `index.html` viewer.
 
 ## What's in this directory
 
@@ -11,7 +11,7 @@ Skills used to write Markdown directly. Now they author HTML — an HTML version
 | `README.md` | This file — entry point for skills consuming the substrate. |
 | `template.html` | Base scaffold a skill copies + slot-fills (`{{title}}`, `{{asset_prefix}}`, `{{plugin_version}}`, `{{content}}`). FR-02. |
 | `conventions.md` | Semantic structure rules every skill MUST follow when generating `{{content}}`. Heading-id contract lives here. FR-03 / FR-03.1. |
-| `assets/` | Per-folder runtime assets — `style.css`, `viewer.js`, `serve.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `html-to-md.js`, `build_sections_json.js`, `chrome-strip.js`. Skills copy this directory into `{feature_folder}/assets/` at write time (FR-10). |
+| `assets/` | Per-folder runtime assets — `style.css`, `viewer.js`, `serve.js`, `comments.js`, `comments.css`, `comments-open.command`, `comments-open.sh`, `comments-open.bat`, `build_sections_json.js`, `chrome-strip.js`, `svg-anchor.js`. Skills copy this directory into `{feature_folder}/assets/` at write time (FR-10). |
 
 ## The authoring contract (skill author's checklist)
 
@@ -22,7 +22,7 @@ When a pipeline skill writes its artifact, it MUST:
 3. **Write atomically** (FR-10.2): `<NN>_<artifact>.html` and `<NN>_<artifact>.sections.json` via temp-then-rename — both succeed or neither persists. Sections.json is built from the same section tree the skill just authored (FR-71); no post-write HTML parsing.
 4. **Copy `assets/*` idempotently** into `{feature_folder}/assets/` (skip if mtime/hash matches).
 5. **Regenerate `{feature_folder}/index.html` + `_index.json`** so the viewer surfaces the new artifact (FR-20–FR-22).
-6. **`output_format: both`?** Also derive `<NN>_<artifact>.md` by invoking `Bash('node {feature_folder}/assets/html-to-md.js <artifact>.html > <artifact>.md')` (FR-12). Never edit the `.md` directly — it is regenerated on every HTML rewrite.
+6. **`output_format: both`?** Retired (FR-12.1) — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 ## Heading-id enforcement (FR-03.1)
 

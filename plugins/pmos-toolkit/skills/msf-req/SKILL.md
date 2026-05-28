@@ -118,7 +118,7 @@ Save the consolidated MSF analysis matrix.
 
 **Atomic write (FR-10.2):** write `msf-findings.html` and the companion `msf-findings.sections.json` via temp-then-rename — never serve a half-written file.
 
-**Asset substrate (FR-10):** when writing into a feature folder, copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `html-to-md.js`, `turndown.umd.js`, `turndown-plugin-gfm.umd.js`, `build_sections_json.js`, and `LICENSE.turndown.txt`; new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files. Ad-hoc saves to `~/.pmos/msf/` write a self-contained HTML (substrate referenced via the `~/.pmos/msf/assets/` cache; first ad-hoc run seeds the cache).
+**Asset substrate (FR-10):** when writing into a feature folder, copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files. Ad-hoc saves to `~/.pmos/msf/` write a self-contained HTML (substrate referenced via the `~/.pmos/msf/assets/` cache; first ad-hoc run seeds the cache).
 
 **Asset prefix (FR-10.1):** `assets/` for top-level feature-folder writes; `../assets/` if nested.
 
@@ -128,7 +128,7 @@ Save the consolidated MSF analysis matrix.
 
 **Index regeneration (FR-22, §9.1):** when writing into a feature folder, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41).
 
-**Mixed-format sidecar (FR-12.1):** when `output_format` resolves to `both`, also emit `msf-findings.md` by piping the freshly-written HTML through `bash node {feature_folder}/assets/html-to-md.js msf-findings.html > msf-findings.md` (or via the ad-hoc `~/.pmos/msf/assets/html-to-md.js`). The MD sidecar is read-only — never the source of truth (FR-33).
+**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 **Overwrite protection (E4):** if a findings doc already exists at the save path (either `.html` or legacy `.md`), copy it to `<save_path>.bak` before overwriting. The `.bak` is preserved for one cycle (next run overwrites it). Skip the backup step if no prior file exists.
 

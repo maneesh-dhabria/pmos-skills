@@ -59,7 +59,7 @@ Skills MUST use this exact algorithm so that cross-document anchors (`02_spec.ht
 </figure>
 ```
 
-- Inline SVG only (no `<img>` for diagrams); SVG round-trips to MD as a fenced block via turndown.
+- Inline SVG only (no `<img>` for diagrams).
 - `<figcaption>` is required and human-readable.
 - For diagrams authored by `/diagram` subagent (FR-60), the parent skill reads the SVG file and inlines its contents inside `<figure>`.
 
@@ -127,17 +127,6 @@ Every `<a href="X.html#frag">` MUST resolve to a real `id` in `X`'s `sections.js
 
 When linking from `03_plan.html` to `02_spec.html#fr-html-authoring`, the skill computes the section id using the rule in §3 against the spec's heading text — not by scraping the spec at write time.
 
-## §7 Comments sidecar pair convention (T25, S7)
+## §7 Comments persistence (inline)
 
-The `/comments` skill writes a sidecar JSON file alongside every authored HTML artifact: `<artifact>.html` + `<artifact>.comments.json`. These two files form an inseparable pair.
-
-When renaming an artifact, the operator MUST `git mv` both files in lockstep:
-
-```
-git mv docs/pmos/old-name.html docs/pmos/new-name.html
-git mv docs/pmos/old-name.comments.json docs/pmos/new-name.comments.json
-```
-
-The pre-commit drift hook (FR-15) enforces this: any commit staging one half without the other is refused with grep-able stderr. The check can be bypassed via `git commit --no-verify` per S5 — used sparingly when the pairing is intentionally being broken (e.g., archiving the sidecar without the artifact, or vice versa).
-
-Install the hook locally via `bash scripts/install-comments-hooks.sh` (one-time per clone; idempotent).
+The `/comments` skill persists threads as an **inline JSON block inside the HTML itself** — `<script id="pmos-comments" type="application/json">` between `<!-- pmos-comments:start -->` / `<!-- pmos-comments:end -->` sentinels. No sidecar file; the artifact is the single source of truth. The legacy `<artifact>.comments.json` sidecar contract and its pre-commit drift hook were retired in v2.58.0 — see `docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html#fr-deletions` for the full inventory.
