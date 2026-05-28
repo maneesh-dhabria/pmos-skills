@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <title>Inline-everything HTML artifacts — /ideate</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Inline-everything HTML artifacts</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-md">Copy Markdown</button>
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+  <h2 id="tldr">TL;DR</h2>
+  <p>Pmos-emitted HTML artifacts currently load CSS, JS, and comments overlay from a sibling <code>assets/</code> directory. When opened standalone (Claude Code desktop preview, email, Dropbox, archived copies), the sibling fetches fail and the file renders unstyled with no overlay. Proposal: make every emitted artifact <strong>fully self-contained</strong> — inline CSS, inline JS, comments persisted as an embedded JSON block inside the HTML — and route the comments <em>write</em> path exclusively through a tiny <code>serve.js</code> running on <code>http://localhost</code>. <code>file://</code> viewing becomes a perfectly-styled read-only view; commenting requires the existing <code>comments-open.*</code> launcher trio. Sidecar <code>.comments.json</code> files are retired; the drift hook, FSA fallback, and DMP (80KB) get deleted along with them. Per-artifact overhead lands around 50KB; the 14 emit surfaces inherit the change through one template substitution.</p>
+  <p><strong>Validation gate before any implementation:</strong> a 10-minute spike confirming Claude Code desktop preview actually honors inline <code>&lt;style&gt;</code> blocks (the entire premise rests on this).</p>
+</section>
+
+<section id="hmw">
+  <h2 id="hmw">HMW</h2>
+  <p>How might we make pmos HTML artifacts fully functional (styling + comments) when opened standalone — desktop app, email, Dropbox — without an <code>assets/</code> sibling directory?</p>
+</section>
+
+<section id="target-user-and-jtbd">
+  <h2 id="target-user-and-jtbd">Target user &amp; JTBD</h2>
+  <p><strong>User:</strong> the plugin author (sole user today) plus any stakeholder who receives a pmos artifact by link or attachment.</p>
+  <p><strong>Job-to-be-done:</strong> when I open a pmos artifact anywhere — Claude Code desktop preview, Mail.app, a Dropbox preview, a downloaded copy — I want to see it properly styled and (when launched via the comments helper) be able to read and write annotations, so that I don't have to first remember to serve it from a local web server just to make the document usable.</p>
+</section>
+
+<section id="hypothesis">
+  <h2 id="hypothesis">Hypothesis</h2>
+  <p>Inlining CSS + JS + initial comments JSON into the emitted HTML — and routing all comment writes through a local node http server that rewrites the embedded JSON block in place — yields a single self-contained file that styles correctly under <code>file://</code> and supports full read/write under <code>http://localhost</code>, while eliminating the entire sidecar/drift-hook/FSA-fallback surface area.</p>
+</section>
+
+<section id="idea-variants-considered">
+  <h2 id="idea-variants-considered">Idea variants considered</h2>
+  <p>Twelve variants were generated across four groups using First Principles + SCAMPER. Group A inlined everything; Group B split rendering vs. interaction; Group C eliminated dependencies (DMP, turndown); Group D substituted the packaging layer (post-emit bundler, dual emit, data-URIs).</p>
+  <p>After clarification, the chosen finalist is a composite that combines: <strong>full inline at emit time</strong> (Group A) + <strong>dependency trimming</strong> (drop DMP, drop turndown in favor of optional MD sidecar; Group C) + <strong>switch comments persistence from sidecar JSON to inline JSON block read/written by <code>serve.js</code></strong>. The build-step bundler (#10) was rejected as needless indirection — inline-at-template-render is a 10-line glue change, not a build pipeline.</p>
+</section>
+
+<section id="how-it-works">
+  <h2 id="how-it-works">How it works</h2>
+  <p><strong>Emit shape.</strong> <code>_shared/html-authoring/template.html</code> grows three new tokens: <code>{{inline_css}}</code>, <code>{{inline_js}}</code>, <code>{{inline_comments_json}}</code>. The renderer reads <code>style.css</code> + <code>comments.css</code> from the authoring source, drops them into a single <code>&lt;style&gt;</code> block; reads <code>viewer.js</code> + a slimmed <code>comments.js</code> into a single <code>&lt;script&gt;</code> block; seeds the comments JSON with <code>{"schema":1,"threads":[]}</code> wrapped in <code>&lt;script id="pmos-comments" type="application/json"&gt;</code> delimited by sentinel comments (<code>&lt;!-- pmos-comments:start --&gt;</code> / <code>&lt;!-- pmos-comments:end --&gt;</code>) for unambiguous regex anchoring.</p>
+  <p><strong>Read path.</strong> Under <code>file://</code> (Claude desktop preview, email, Dropbox), the page loads with full styling; viewer.js renders existing comment threads from the inline JSON. Read-only mode is auto-detected by attempting a <code>HEAD /save</code> — if the fetch fails, the overlay shows threads but hides the compose UI.</p>
+  <p><strong>Write path.</strong> Under <code>http://localhost</code> served by the existing <code>comments-open.*</code> launcher trio invoking <code>serve.js</code>, the overlay is fully interactive. On submit, the client POSTs to <code>/save</code> with the full updated JSON + <code>expected_version</code>. The server reads the artifact file, regex-replaces the content between the sentinel comments, writes to <code>artifact.html.tmp</code>, and atomically renames to <code>artifact.html</code>. JSON strings are escaped so that any embedded <code>&lt;/script&gt;</code> sequences in comment bodies serialize as <code></script&gt;</code> and never break the script tag.</p>
+  <p><strong>What gets deleted.</strong> The <code>.comments.json</code> sidecar format; the pre-commit drift hook pairing artifact+sidecar; the FSA write path; the localStorage fallback; <code>diff-match-patch.js</code> (80KB, only needed because sidecar+artifact could drift — now they can't because they're one file); the per-skill <code>assets/</code> sibling directory under <code>{docs_path}/&lt;skill&gt;/</code>. Launchers + <code>serve.js</code> live in one known location (e.g. <code>~/.pmos/serve/</code>) invoked with the artifact path as argv.</p>
+  <p><strong>Re-emit handling.</strong> When <code>/spec --update</code> (or any other re-emit) regenerates the artifact, the renderer first reads the existing file's <code>&lt;script id="pmos-comments"&gt;</code> block, preserves it, and writes it back into the new emission. The existing quote-hash anchor resolver in <code>comments.js</code> ports forward unchanged: matched → preserve; near-match → <code>status: needs-review</code>; lost → <code>status: orphaned</code> with a visible bottom-of-page panel.</p>
+  <p><strong>Size profile.</strong> Inline CSS (style 15KB + comments 6KB ≈ 21KB) + inline JS (viewer 13KB + slimmed comments-js ~15KB ≈ 28KB) → ~50KB overhead per artifact. A typical <code>/spec</code> HTML goes from ~50KB to ~100KB. DMP and turndown (~110KB combined) are <strong>not</strong> inlined.</p>
+</section>
+
+<section id="alternatives-and-prior-art">
+  <h2 id="alternatives-and-prior-art">Alternatives &amp; prior art</h2>
+  <ul>
+    <li><strong>Post-emit bundler (#10).</strong> Keep authoring modular; add a <code>bundle-artifact.js</code> pass that inlines after emit. Rejected: adds a build step where template substitution suffices.</li>
+    <li><strong>Inline-CSS-only (#4/#5).</strong> Honest cheap fix — styling works everywhere, comments overlay silently no-ops without sibling assets. Worth keeping as a fallback if the desktop-preview spike fails for the JS path but passes for CSS.</li>
+    <li><strong>Dual emit (#12).</strong> Ship both current external-asset version and a <code>.standalone.html</code> sibling. Rejected: doubles disk; no advantage over making the standalone shape the only shape.</li>
+    <li><strong>Data-URI assets.</strong> Equivalent in effect to inline <code>&lt;style&gt;</code>/<code>&lt;script&gt;</code> but harder to debug. Rejected as obscure.</li>
+    <li><strong>FSA-only write path.</strong> Already partially implemented (T22). Browser-specific (Chrome), requires user-gesture file picker on every save, and doesn't work in Safari/Firefox at all. Local-http server is more uniform.</li>
+    <li><strong>Prior art:</strong> Jupyter notebooks (<code>.ipynb</code>) store everything (cells, outputs, metadata) in a single JSON file rendered to HTML on view. Observable notebooks ship as self-contained HTML for the same portability reason. Single-file SVG with embedded scripts is a well-established pattern.</li>
+  </ul>
+</section>
+
+<section id="premortem-failure-modes">
+  <h2 id="premortem-failure-modes">Premortem: failure modes</h2>
+  <table>
+    <thead><tr><th>#</th><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>&lt;/script&gt;</code> sequences inside comment bodies break the inline JSON block</td><td>H</td><td>Encode <code>&lt;</code> inside JSON strings as <code><</code>; fuzz test with <code>&lt;/script&gt;</code>, <code>&lt;!--</code>, <code>]]&gt;</code>, surrogate pairs.</td></tr>
+      <tr><td>2</td><td>Two browser tabs editing the same artifact → lost updates</td><td>M</td><td><code>version</code> field in JSON; server returns 409 on mismatch; client merges and retries. Or single-writer-tab lock via <code>BroadcastChannel</code>.</td></tr>
+      <tr><td>3</td><td>In-place rewrite corrupts file on crash (no sidecar to fall back to)</td><td>M</td><td>Write-temp-then-rename (atomic on POSIX). Startup scan for orphaned <code>.tmp</code> files.</td></tr>
+      <tr><td>4</td><td>Per-artifact size bloat (~2.5MB across <code>docs/pmos/</code>) inflates repo + makes diffs noisy</td><td>M</td><td>Accept the bytes. Mitigate diff ergonomics with <code>.gitattributes</code> marking <code>docs/pmos/**/*.html</code> as <code>linguist-generated</code> or <code>-diff</code>.</td></tr>
+      <tr><td>5</td><td>Comment anchors drift on artifact re-emit (paragraph rewritten or removed)</td><td>H</td><td>Port the existing quote-hash anchor resolver forward; matched/near-match/orphaned states; visible "Orphaned comments" panel at bottom of artifact.</td></tr>
+      <tr><td>6</td><td>Claude desktop preview blocks inline <code>&lt;style&gt;</code> too — premise was wrong</td><td>L</td><td>10-minute pre-implementation spike. If blocked, fall back to always-serve via http and skip the file:// optimization entirely.</td></tr>
+      <tr><td>7</td><td><code>serve.js</code> port collision on simultaneous artifact launches</td><td>L</td><td>Already picks a free port. Alternative: single persistent daemon serving <code>{docs_path}/</code> root.</td></tr>
+      <tr><td>8</td><td>Migration of existing sidecars is botched / partial</td><td>L</td><td>Idempotent <code>scripts/migrate-sidecars-to-inline.sh</code>: read each <code>*.comments.json</code>, inject into matching <code>*.html</code>'s <code>&lt;script id="pmos-comments"&gt;</code> block, delete sidecar.</td></tr>
+      <tr><td>9</td><td>Copy-Markdown button silently no-ops with turndown removed and no MD sidecar</td><td>M</td><td>Flip <code>output_format</code> default to <code>both</code>; button fetches sibling <code>.md</code>. When absent, button shows "Markdown sidecar not generated; re-emit with output_format=both."</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="riskiest-assumptions">
+  <h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+  <table>
+    <thead><tr><th>#</th><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Claude Code desktop preview renders inline <code>&lt;style&gt;</code> blocks</td><td>H</td><td>H</td><td>10-min spike: manually inline an existing artifact's <code>style.css</code> into a <code>&lt;style&gt;</code> block and open in the desktop preview. <strong>Do this first.</strong></td></tr>
+      <tr><td>2</td><td>You're OK with <code>http://localhost</code> being the only write path</td><td>H</td><td>L</td><td>Confirmed in the clarification turn.</td></tr>
+      <tr><td>3</td><td>In-place regex rewrite of the embedded JSON block is reliable across all 14 surfaces</td><td>H</td><td>L</td><td>Use sentinel comments (<code>&lt;!-- pmos-comments:start --&gt;</code>/<code>:end --&gt;</code>) around the block. Anchor regex on the sentinels, not the script tag.</td></tr>
+      <tr><td>4</td><td>Removing DMP doesn't break current comments-resolution flow</td><td>H</td><td>M</td><td>Grep <code>comments.js</code> + <code>anchor-resolver.js</code> for <code>diff_match_patch</code> call sites; if &lt;5 and all in anchor-resolver, move that logic server-side in <code>serve.js</code>.</td></tr>
+      <tr><td>5</td><td>~50KB per-artifact bloat is acceptable for ~50 artifacts</td><td>M</td><td>L</td><td>Math: 50 × 50KB = 2.5MB. User confirmed large blast radius is OK.</td></tr>
+      <tr><td>6</td><td><code>serve.js</code> can host POST <code>/save</code> without becoming sprawling</td><td>M</td><td>L</td><td>Current <code>serve.js</code> is ~150 LOC static-file server. Adding <code>/save</code> handler ≈ 30 LOC + atomic-rename helper.</td></tr>
+      <tr><td>7</td><td>All 14 emit surfaces use the same template renderer</td><td>H</td><td>L</td><td>Confirmed by inspection — all consume <code>_shared/html-authoring/template.html</code>. Single touchpoint.</td></tr>
+      <tr><td>8</td><td>Sidecar migration can be fully automated without per-artifact review</td><td>M</td><td>M</td><td>Run on a copy of <code>docs/pmos/</code>; diff result against originals+sidecars; spot-check 3-5.</td></tr>
+      <tr><td>9</td><td>Turndown removal is acceptable (Copy-MD rarely used or MD sidecar is fine)</td><td>L</td><td>M</td><td>Ask: do you ever click Copy-MD? If no → drop. If yes → flip <code>output_format</code> default to <code>both</code>.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="success-signals">
+  <h2 id="success-signals">Success signals</h2>
+  <ul>
+    <li><strong>Primary:</strong> opening any pmos-emitted HTML artifact in Claude Code desktop preview shows the toolbar, properly-styled prose, and existing comment threads (read-only) — no missing-asset visual artifacts.</li>
+    <li><strong>Secondary:</strong> launching via <code>comments-open.sh &lt;artifact&gt;</code> opens the same file at <code>http://localhost:PORT</code> with full read+write comments.</li>
+    <li><strong>Tertiary:</strong> total asset footprint under <code>docs/pmos/</code> drops to zero sibling <code>assets/</code> directories; per-artifact size increase ≤ 60KB; no <code>.comments.json</code> files remain after migration.</li>
+    <li><strong>Quality:</strong> drift hook removed from <code>scripts/install-comments-hooks.sh</code>; <code>diff-match-patch.js</code> deleted from authoring source; coverage gate in <code>/verify</code> shrinks accordingly.</li>
+    <li><strong>Negative signal to watch for:</strong> regression of comment anchor resolution accuracy after DMP removal — should be measurable against the existing calibration corpus at <code>plugins/pmos-toolkit/skills/comments/tests/fixtures/calibration-spans-2026.json</code>.</li>
+  </ul>
+</section>
+
+<section id="next-steps">
+  <h2 id="next-steps">Next steps</h2>
+  <ol>
+    <li><strong>10-minute desktop-preview spike</strong> against assumption #1. This is the precondition for everything else. If it fails, pivot to "always-serve via http" as the only path and skip the file:// inlining optimization.</li>
+    <li>If spike passes: kick off <code>/feature-sdlc</code> in a separate session, seeding it with this artifact path. The pipeline will produce a Tier-2 or Tier-3 requirements doc → spec → plan → execute, given the multi-surface blast radius (14 emit surfaces + serve.js + migration script + drift-hook removal + DMP/turndown deletion).</li>
+    <li>Before <code>/spec</code> runs, grep audit for DMP call sites (assumption #4 test) so the spec can either pin the server-side resolver design or descope DMP removal.</li>
+    <li>Decide the launcher home: keep <code>comments-open.*</code> per-feature folder, or relocate to a single <code>~/.pmos/serve/</code> install. (Recommend the latter — one fewer thing to copy per emit.)</li>
+  </ol>
+</section>
+
+<section id="open-questions">
+  <h2 id="open-questions">Open questions</h2>
+  <ul>
+    <li>Does Claude Code desktop preview honor inline <code>&lt;style&gt;</code> AND inline <code>&lt;script&gt;</code>, or just <code>&lt;style&gt;</code>? (Determines whether the overlay renders threads under <code>file://</code> or only styling works.)</li>
+    <li>Should <code>serve.js</code> be one-artifact-per-port or a persistent daemon serving the whole <code>docs/pmos/</code> root? Persistent daemon is friendlier; one-shot is simpler.</li>
+    <li>Is <code>output_format=both</code> an acceptable new default (resolves Copy-MD degradation cleanly), or should the button just disappear when turndown is removed?</li>
+    <li>What's the migration story for already-published / already-shared artifacts that still have sidecars on someone else's disk? (For solo-user today: not a concern. Flagging for future.)</li>
+    <li>Does the embedded JSON approach interact awkwardly with any HTML viewer that strips unknown <code>&lt;script&gt;</code> tags (e.g. email clients sanitizing the doc)? — likely yes, but those viewers also strip the overlay JS, so comments-in-email was never on the table anyway.</li>
+  </ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/ideate/2026-05-28_inline-html-artifacts.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution"
+       data-pmos-plugin="pmos-toolkit">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
