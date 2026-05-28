@@ -14,6 +14,17 @@ The Phase 4 drafter inlines this file when writing diagrams. Diagrams ship inlin
 - Recommended canvas: `viewBox="0 0 600 300"` for in-prose diagrams; `viewBox="0 0 600 500"` for 2×2 / quadrant layouts.
 - Stroke width: `1.5` for primary lines, `1` for secondary, `2.5` for emphasis.
 
+## Background isolation (mandatory)
+
+Diagrams MUST be self-contained — readable on any page background, including dark mode. The primer's `assets/style.css` flips `--pmos-bg` to `#0b0b0c` under `prefers-color-scheme: dark`; SVGs that rely on the page background showing through go invisible (dark strokes vanish on near-black). Reviewer rubrics (R10 et al.) read markup, not rendered output, so this cannot be caught after the fact — bake the background into every SVG.
+
+Two requirements, both mandatory:
+
+1. **First drawn child** of every `<svg>` (after `<defs>`/`<title>`/`<desc>` metadata) is a full-viewBox background rect: `<rect x="0" y="0" width="<W>" height="<H>" fill="#fbfaf6"/>` where `W`/`H` match the `viewBox` dimensions. This is what actually paints under the diagram contents.
+2. **CSS-style fallback** on the `<svg>` element itself: `style="background:#fbfaf6;border-radius:8px"`. This handles edge cases where the viewBox doesn't fully fill the rendered SVG box (aspect-ratio mismatch) and gives the diagram a subtle frame distinct from the page.
+
+The `#fbfaf6` value is the primer's light-mode page background — diagrams render identically in light and dark mode, looking intentional rather than pasted on.
+
 ## Accessibility
 
 - First child of every `<svg>`: `<title>Short label</title>` — mandatory.
@@ -47,11 +58,12 @@ The Phase 4 drafter inlines this file when writing diagrams. Diagrams ship inlin
 - Embedded raster (`<image href="data:image/png...">`) — bloats artifact, defeats accessibility.
 - Diagrams without `<title>` — inaccessible to screen readers; fails the contract.
 - Hardcoded text colors / fonts that fight the inherited prose CSS.
+- Diagrams without the mandatory background rect + `style="background:..."` fallback — render invisibly under `prefers-color-scheme: dark` (page bg becomes `#0b0b0c`, dark strokes disappear). See "Background isolation".
 
 ## Minimal worked example
 
 ```html
-<svg viewBox="0 0 600 200" role="img" aria-labelledby="rollout-flow-title">
+<svg viewBox="0 0 600 200" role="img" aria-labelledby="rollout-flow-title" style="background:#fbfaf6;border-radius:8px">
   <title id="rollout-flow-title">Percentage rollout lifecycle</title>
   <desc>Three stages: internal-only at 0%, beta cohort at 5%, full rollout at 100%, connected left-to-right by arrows.</desc>
   <defs>
@@ -59,6 +71,7 @@ The Phase 4 drafter inlines this file when writing diagrams. Diagrams ship inlin
       <path d="M0,0 L10,5 L0,10 z" fill="#222"/>
     </marker>
   </defs>
+  <rect x="0" y="0" width="600" height="200" fill="#fbfaf6"/>
   <rect x="20"  y="80" width="140" height="40" rx="4" fill="#f4f4f4" stroke="#222" stroke-width="1.5"/>
   <text x="90"  y="105" text-anchor="middle" font-size="14">Internal · 0%</text>
   <rect x="230" y="80" width="140" height="40" rx="4" fill="#fff8dc" stroke="#222" stroke-width="1.5"/>
