@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Requirements — primer skill fixes</title>
+  <meta name="pmos:skill" content="requirements">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Requirements — primer skill fixes</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+  <li><strong>Tier:</strong> 2 (auto-resolved from triage; cross-cutting touch across Phase 1/2/4/5 + 2 reference files; no new phases / subagents / MCP tools)</li>
+  <li><strong>Mode:</strong> skill-feedback (one combined doc with per-skill section)</li>
+  <li><strong>Source skill:</strong> <code>pmos-learnkit:primer</code> (v0.1.0)</li>
+  <li><strong>Feedback source:</strong> <code>2026-05-28_primer-skill-fixes.md</code></li>
+  <li><strong>Standing acceptance criteria:</strong> the revised skill MUST conform to <code>reference/skill-patterns.md §A–§F</code>. <code>/spec</code> will turn this conformance into concrete FRs.</li>
+</ul>
+
+<h2 id="problem">Problem</h2>
+<p>The <code>pmos-learnkit:primer</code> skill in v0.1.0 produces under-sourced (~7 sources), under-sized (~3K words) primers on senior-PM topics that warrant 20+ sources and 5K+ words. Five independent gaps surfaced in a side-by-side comparison against a hand-curated reference (40+ sources, ~40K words):</p>
+<ol>
+  <li><strong>Practitioner-blind research</strong> — Phase 2 query frames are topic-only (<code>&lt;topic&gt; overview</code>, <code>&lt;topic&gt; best practices</code>); canonical voices on a topic are never named or searched for.</li>
+  <li><strong>Order-of-magnitude wrong source floor</strong> — fixed at 4 across all topics; passes thin primers on rich topics.</li>
+  <li><strong>No richness check at intake</strong> — vagueness heuristic only catches under-specified topics, not topics too narrow to support multiple frameworks / decision guides / case studies.</li>
+  <li><strong>No worked-examples instruction</strong> — the curator-lens framing prompt never directs the writer to surface named-company examples, so primers come out as abstract synthesis.</li>
+  <li><strong>No depth control</strong> — the user cannot ask for a deeper or briefer primer; word target is implicit at ~3K.</li>
+</ol>
+<p>Constraint: keep <code>/primer</code>'s identity intact — single-pass, ramp-up-before-meeting, citation-clean. Changes are in-phase instruction tightening only. Anything that would push <code>/primer</code> toward <code>/rewrite</code>'s multi-pass architecture is out of scope.</p>
+
+<h2 id="proposed-solution">Proposed solution direction</h2>
+<p>Five focused edits across two phases and two reference files:</p>
+<ol>
+  <li>Phase 2 source discovery → two-step pattern (practitioners-and-books first, then queries per-practitioner / per-book free entry).</li>
+  <li>Source floor → depth-tier-scaled (brief=6 / standard=10 / deep=15).</li>
+  <li>Phase 1 intake → richness classifier added next to the vagueness heuristic (rich / thin / narrow-by-design).</li>
+  <li>Phase 4 curator-lens prompt → worked-examples instruction; Phase 5 reviewer emits informational <code>examples_per_h2_distribution</code> field (no new check_id, no hard-block).</li>
+  <li>New <code>--depth brief|standard|deep</code> flag + <code>.pmos/settings.yaml :: default_primer_depth</code> + first-run prompt. Word targets and source floors derive from the resolved depth tier.</li>
+</ol>
+
+<h2 id="user-journeys">User journeys</h2>
+<h3 id="j1">J1 — Senior PM rams up on a broad topic before a strategy review</h3>
+<p>User runs <code>/primer "monetization and pricing for PMs"</code>. First-run prompt asks default depth → user picks <code>standard</code>. Richness check returns <code>rich</code> → proceed. Phase 2 names 8 practitioners (Gurley, Campbell, Berman, …) and 4 canonical books; runs per-practitioner + per-book-free-entry queries; lands 22 usable sources (above the standard-tier floor of 10). Phase 4 draft surfaces ≥1 worked example per H2 where available. User opens the primer, sees per-camp framing with named voices, walks into the review oriented.</p>
+
+<h3 id="j2">J2 — PM wants a quick brief on a narrow topic</h3>
+<p>User runs <code>/primer "feature flag rollout strategies" --depth brief</code>. Richness check returns <code>narrow-by-design</code> → proceed with flag (outline phase notes no decision guide warranted). Phase 2 hits the brief-tier floor (6 sources) on a single retry. Ships ~2.5K words in &lt;10 min, citation-clean.</p>
+
+<h3 id="j3">J3 — PM tries an over-narrow topic</h3>
+<p>User runs <code>/primer "user authentication"</code> meaning something specific. Richness check returns <code>thin</code> with 3 broader reframings (e.g., "auth tradeoffs in B2B SaaS"). User picks a reframing → proceeds. Or user keeps as-is → logged to OQ buffer, run continues thin.</p>
+
+<h3 id="j4">J4 — Returning user, second invocation in same project</h3>
+<p><code>.pmos/settings.yaml</code> already has <code>default_primer_depth: standard</code>. No first-run prompt fires. User runs <code>/primer "growth loops" --depth deep</code> → CLI flag overrides settings. Phase 2 must hit floor=15 → may trigger one retry; if still under, source-floor gate surfaces (Abort / thin-disclosure).</p>
+
+<h2 id="functional-requirements">Functional requirements (per-fix)</h2>
+
+<h3 id="fix-1-fr">Fix 1 — Practitioner + book query generation (Phase 2)</h3>
+<ul>
+  <li><strong>FR-1.1</strong> — Phase 2 MUST run a practitioner+book naming step BEFORE URL generation. Prompt: list 6–10 named practitioners/authors/institutional voices canonically associated with the topic; plus 3–5 canonical books/courses/textbooks. Each item carries a one-line "why canonical" note.</li>
+  <li><strong>FR-1.2</strong> — Naming output MUST persist into a new <code>sources.json[].practitioner_index</code> field (schema additive; existing consumers unaffected).</li>
+  <li><strong>FR-1.3</strong> — Query generation MUST run two strands in parallel:
+    <ul>
+      <li><strong>Primary strand:</strong> per named practitioner → query <code>&lt;practitioner&gt; &lt;topic&gt;</code>. Per named book/course → query <code>&lt;book title&gt; free entry point</code> and <code>&lt;book author&gt; &lt;topic&gt;</code> (target: First Round Review, Lenny, podcast transcripts, author blogs, publisher excerpts).</li>
+      <li><strong>Secondary strand:</strong> existing topic-frame queries (<code>&lt;topic&gt; overview</code>, etc.) run but are demoted — their sources count toward the floor only after the primary strand settles.</li>
+    </ul>
+  </li>
+  <li><strong>FR-1.4</strong> — Books and paid courses MUST be cited via free entry point URL (e.g., First Round Review for <em>Monetizing Innovation</em>). The book/course is attributed in prose ("Ramanujam, <em>Monetizing Innovation</em> (Wiley, 2016)") with the free entry as the <code>&lt;a href&gt;</code>. No paid landing-page URLs in citations.</li>
+  <li><strong>FR-1.5</strong> — Robustness mitigation (from feedback OQ): if NO query for a named practitioner resolves to a usable source, the practitioner is silently dropped and logged to the OQ buffer. Prevents hallucinated-practitioner pollution.</li>
+</ul>
+
+<h3 id="fix-3-fr">Fix 3 — Source floor scales with depth tier</h3>
+<ul>
+  <li><strong>FR-3.1</strong> — The Phase-2 source-floor gate threshold MUST derive from the resolved depth tier: <code>brief=6, standard=10, deep=15</code>.</li>
+  <li><strong>FR-3.2</strong> — The existing retry-once-then-gate flow (<code>reference/source-floor.md</code> §"Retry-once protocol") is UNCHANGED — only the threshold moves.</li>
+  <li><strong>FR-3.3</strong> — The existing 3-option gate (Abort / Continue with thin-source disclosure / Retry alternate frame) is reused verbatim; banner text substitutes the per-tier floor value.</li>
+</ul>
+
+<h3 id="fix-5-fr">Fix 5 — Topic-richness check at Phase 1 intake</h3>
+<ul>
+  <li><strong>FR-5.1</strong> — Phase 1 MUST run a topic-richness LLM step IMMEDIATELY AFTER the existing vagueness check, returning one of <code>rich</code> / <code>thin</code> / <code>narrow-by-design</code>.</li>
+  <li><strong>FR-5.2</strong> — Prompt: "Is this topic broad enough to support (a) at least one named framework or model, (b) a meaningful decision-guide for practitioners, (c) at least one worked example or case study?"</li>
+  <li><strong>FR-5.3</strong> — On <code>rich</code> → proceed. On <code>narrow-by-design</code> → proceed; the outline phase notes the topic doesn't warrant a decision guide. On <code>thin</code> → surface a single <code>AskUserQuestion</code> offering 2–3 LLM-generated broader reframings + <code>Keep as-is</code> + <code>Abort</code>.</li>
+  <li><strong>FR-5.4</strong> — Under <code>--autonomous</code> the deferred default is <code>Keep as-is</code>, logged to OQ buffer with reason <code>topic-thin</code>.</li>
+  <li><strong>FR-5.5</strong> — This replaces the original-proposal Phase-3 topic-type classifier. NO frameworks/concept/methodology/process taxonomy is added — the outline phase remains shape-neutral.</li>
+</ul>
+
+<h3 id="fix-6-fr">Fix 6 — Worked-examples drafting instruction (Phase 4)</h3>
+<ul>
+  <li><strong>FR-6.1</strong> — <code>reference/curator-lens.md</code> §"Phase-4 framing prompt" MUST instruct: "For each H2 section, try to surface ≥1 worked example — a named company, named product, named incident, or a clearly-labeled hypothetical scenario. Skip when no canonical example exists (do not invent)."</li>
+  <li><strong>FR-6.2</strong> — Phase 5 reviewer output schema MUST add an INFORMATIONAL field <code>examples_per_h2_distribution</code> — an array reporting the count of named/hypothetical examples per H2. NO new <code>check_id</code>. NO pass/fail. Surfaced as a report-only signal at the write gate.</li>
+  <li><strong>FR-6.3</strong> — No hard-block on examples missing. The "try but don't force, then report" pattern prevents the worst-case failure mode (invented examples on topics that genuinely don't have them).</li>
+</ul>
+
+<h3 id="fix-8-fr">Fix 8 — Three-tier depth + settings persistence</h3>
+<ul>
+  <li><strong>FR-8.1</strong> — Three depth tiers:
+    <ul>
+      <li><code>brief</code>: word target 2,000–3,000; source floor 6.</li>
+      <li><code>standard</code>: word target 4,000–6,000; source floor 10.</li>
+      <li><code>deep</code>: word target 7,000–10,000; source floor 15.</li>
+    </ul>
+  </li>
+  <li><strong>FR-8.2</strong> — Resolution precedence: <code>--depth</code> CLI flag &gt; <code>.pmos/settings.yaml :: default_primer_depth</code> &gt; first-run prompt.</li>
+  <li><strong>FR-8.3</strong> — First <code>/primer</code> invocation in a project with no setting present: Phase 0.5 MUST surface a new <code>AskUserQuestion</code> "Preferred default depth for primers in this project?" with three tier options + descriptions. Recommended = <code>standard</code>.</li>
+  <li><strong>FR-8.4</strong> — On answer, MUST write <code>default_primer_depth: &lt;tier&gt;</code> to <code>.pmos/settings.yaml</code>.</li>
+  <li><strong>FR-8.5</strong> — Subsequent runs: read silently from settings; no prompt. <code>--depth</code> flag still overrides per-run.</li>
+  <li><strong>FR-8.6</strong> — <code>--depth</code> accepts <code>brief</code> / <code>standard</code> / <code>deep</code>. Unknown value → platform-aware error per Phase-1 conventions, exit 64.</li>
+  <li><strong>FR-8.7</strong> — Phase-4 word target floor/ceiling come from the resolved tier table; no continuous formula. Sizing precedence: tier table is authoritative.</li>
+  <li><strong>FR-8.8</strong> — <code>argument-hint</code> frontmatter MUST list <code>--depth</code> alongside existing flags.</li>
+  <li><strong>FR-8.9</strong> — <code>.pmos/settings.yaml</code> schema doc in <code>_shared/pipeline-setup.md</code> MUST document the new <code>default_primer_depth</code> field.</li>
+</ul>
+
+<h2 id="cross-cutting">Cross-cutting requirements</h2>
+<ul>
+  <li><strong>FR-X.1</strong> — Conformance: the revised <code>SKILL.md</code> MUST conform to <code>reference/skill-patterns.md §A–§F</code> (frontmatter; description &amp; triggering; structure &amp; progressive disclosure; body &amp; content; scripts &amp; tooling; platform-conditional frontmatter). Skill-eval (Phase 6a) is the gate.</li>
+  <li><strong>FR-X.2</strong> — Conformance: the revised skill MUST conform to this repo's <code>CLAUDE.md ## Skill-authoring conventions</code> (canonical path, plugin.json sync, /complete-dev as release entry).</li>
+  <li><strong>FR-X.3</strong> — Description trigger phrases: the SKILL.md <code>description</code> MUST add ≥1 depth-related trigger phrase (e.g., "deep primer on X", "brief primer on Y").</li>
+  <li><strong>FR-X.4</strong> — Backwards compatibility: existing <code>sources.json</code> consumers MUST be unaffected by the <code>practitioner_index</code> field addition (additive only).</li>
+  <li><strong>FR-X.5</strong> — Backwards compatibility: a settings file lacking <code>default_primer_depth</code> MUST NOT fail-fast; the first-run prompt path covers it.</li>
+  <li><strong>FR-X.6</strong> — Anti-patterns section in SKILL.md MUST gain an entry: "Do NOT invent practitioners or canonical books — drop unresolvable practitioners silently per FR-1.5 rather than letting them pollute citations."</li>
+</ul>
+
+<h2 id="out-of-scope">Out of scope</h2>
+<ul>
+  <li>Fix 2 (canonical books + free-entry pathway as a separate step) — merged into Fix 1.</li>
+  <li>Fix 4 (ingest existing project drafts) — out of scope per source doc; keeps <code>/primer</code> repo-agnostic.</li>
+  <li>Fix 7 (freshness query) — out of scope; Fix 1 practitioner queries cover recent commentary.</li>
+  <li>Phase-3 topic-type classifier (frameworks/concept/methodology/process) — explicitly rejected; richness check at Phase 1 supersedes.</li>
+  <li>Multi-pass drafting (any structure resembling <code>/rewrite</code>) — out of scope by the design constraint.</li>
+  <li>Word target as continuous formula — explicitly rejected per FR-8.7 (discrete tier table only).</li>
+</ul>
+
+<h2 id="constraints">Constraints</h2>
+<ul>
+  <li>No new phases.</li>
+  <li>No new subagent dispatches.</li>
+  <li>No new MCP tools.</li>
+  <li>~150 lines of <code>SKILL.md</code> edits + 1 new settings field + 2 reference-file edits.</li>
+  <li>Single PR (deviation from source doc's 3-PR rollout — confirmed by user at Phase 0c).</li>
+</ul>
+
+<h2 id="open-questions">Open questions for /spec</h2>
+<ul>
+  <li>Depth × audience cross-talk: should <code>all-pms × deep</code> be allowed? (source doc: likely yes — orthogonal axes; needs one-line note in <code>audience-presets.md</code>).</li>
+  <li>Practitioner naming step robustness on obscure topics: FR-1.5's drop-silently rule handles hallucination; <code>/spec</code> should pin the exact validation rule (e.g., "≥1 query for the practitioner returned a usable source").</li>
+  <li>Topic-richness false negatives on genuinely deep but specialized topics: FR-5.3's <code>narrow-by-design</code> path is the escape valve; <code>/spec</code> should pin the prompt wording so the classifier discriminates cleanly.</li>
+</ul>
+
+  </main>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>

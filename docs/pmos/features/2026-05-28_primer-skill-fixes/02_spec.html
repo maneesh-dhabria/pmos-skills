@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec — primer skill fixes</title>
+  <meta name="pmos:skill" content="spec">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec — primer skill fixes</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+  <li><strong>Tier:</strong> 2</li>
+  <li><strong>Source:</strong> <code>01_requirements.html</code> + <code>2026-05-28_primer-skill-fixes.md</code></li>
+  <li><strong>Target skill:</strong> <code>plugins/pmos-learnkit/skills/primer/</code></li>
+  <li><strong>Acceptance criteria:</strong> Functional FRs below + conformance to <code>reference/skill-patterns.md §A–§G</code></li>
+</ul>
+
+<h2 id="architecture">Architecture overview</h2>
+<p>No architectural change. Five edits in two SKILL.md files (<code>SKILL.md</code> + 2 reference files) + one settings-schema addition. Three new interactive prompts (richness gate, first-run depth, no other gates added). One new <code>sources.json</code> field (additive). One new <code>.pmos/settings.yaml</code> field (additive, optional).</p>
+
+<p><strong>Decision dependencies:</strong> Fix 8 (depth tiers) is the keystone — Fix 3 (source floor) reads from it; Fix 1 (practitioner count 6–10) is independent of depth but cited by source-floor sizing. Implementation order: 8 → 3 → 1 → 5 → 6 (Fix 6 last so its rubric field can reference final reviewer schema).</p>
+
+<h2 id="file-changes">File changes (authoritative list)</h2>
+<table>
+<thead><tr><th>File</th><th>Change type</th><th>LoC est.</th><th>Covered FRs</th></tr></thead>
+<tbody>
+<tr><td><code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></td><td>Edit (Phase 0, 0.5, 1, 2, 4, 5, anti-patterns; frontmatter description + argument-hint)</td><td>~120</td><td>FR-1.*, FR-5.*, FR-6.2/.3, FR-8.2/.3/.5/.6/.7/.8, FR-X.3/.6</td></tr>
+<tr><td><code>plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code></td><td>Rewrite §"Source floor = 4" → §"Source floor by depth tier"</td><td>~30</td><td>FR-3.*</td></tr>
+<tr><td><code>plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code></td><td>Edit §"Phase-4 framing prompt" (insert worked-examples paragraph)</td><td>~10</td><td>FR-6.1</td></tr>
+<tr><td><code>plugins/pmos-learnkit/skills/_shared/pipeline-setup.md</code></td><td>Edit settings-schema docs (add <code>default_primer_depth</code> field)</td><td>~10</td><td>FR-8.9, FR-X.5</td></tr>
+</tbody>
+</table>
+
+<p><strong>Out of file-changes (handled by /complete-dev only — per skill-patterns §G):</strong></p>
+<ul>
+  <li><code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> — version bump 0.1.0 → 0.2.0 (minor; adds capability per FR-8.*)</li>
+  <li><code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code> — synced version bump</li>
+  <li><code>CHANGELOG.md</code> — pmos-learnkit/v0.2.0 entry</li>
+  <li><code>~/.pmos/learnings.md</code> — header bootstrap if missing (idempotent)</li>
+</ul>
+
+<h2 id="api-contracts">API contracts</h2>
+
+<h3 id="contract-sources-json">sources.json schema delta (additive)</h3>
+<pre>{
+  "topic": "...",
+  "audience": "...",
+  "fetched_at": "...",
+  <strong>"practitioner_index": [                          // NEW</strong>
+<strong>    {</strong>
+<strong>      "name": "&lt;practitioner|author|institution&gt;",</strong>
+<strong>      "kind": "practitioner" | "book" | "course",</strong>
+<strong>      "why_canonical": "&lt;one-line note&gt;",</strong>
+<strong>      "queries_dispatched": ["&lt;q1&gt;", "&lt;q2&gt;"],</strong>
+<strong>      "usable_source_count": &lt;int&gt;,</strong>
+<strong>      "dropped": false                            // true iff usable_source_count == 0</strong>
+<strong>    }</strong>
+<strong>  ],</strong>
+  "sources": [ ... ],
+  "rejected": [ ... ]
+}</pre>
+<p>Dropped entries are RETAINED in <code>practitioner_index</code> with <code>dropped: true</code> for audit (NOT removed) — provides the OQ-log evidence trail per FR-1.5 / D1. Citations in HTML body still draw only from <code>sources[].url</code>.</p>
+
+<h3 id="contract-settings">settings.yaml schema delta (additive, optional)</h3>
+<pre>version: 1
+docs_path: ...
+output_format: ...
+<strong>default_primer_depth: brief | standard | deep      // NEW; absence triggers first-run prompt</strong></pre>
+
+<h3 id="contract-cli">CLI argument-hint delta</h3>
+<pre>argument-hint: &lt;topic&gt; [--audience &lt;senior-pms|all-pms&gt;] <strong>[--depth &lt;brief|standard|deep&gt;]</strong> [--autonomous] [--format &lt;html|md|both&gt;] [--non-interactive] [--interactive]</pre>
+
+<h3 id="contract-reviewer">Phase-5 reviewer output schema delta</h3>
+<pre>[
+  {"check_id": "R1", "verdict": "pass|fail", "evidence": "...", "quote": "..."},
+  ...
+  <strong>// NEW informational field on the R10 'primer-shaped' object only:</strong>
+  <strong>{</strong>
+<strong>    "check_id": "R10",</strong>
+<strong>    "verdict": "pass|fail",</strong>
+<strong>    "evidence": "...",</strong>
+<strong>    "quote": "...",</strong>
+<strong>    "examples_per_h2_distribution": [                // NEW</strong>
+<strong>      {"h2_id": "&lt;kebab-case&gt;", "h2_title": "...", "count": &lt;int&gt;}</strong>
+<strong>    ]</strong>
+<strong>  }</strong>
+]</pre>
+<p>Field is INFORMATIONAL ONLY — does not affect R10 verdict; reported at Phase-5 write gate.</p>
+
+<h2 id="implementation-fr">Implementation FRs (concrete, testable)</h2>
+
+<h3 id="depth">Fix 8 — Depth tier resolution (keystone)</h3>
+<ul>
+  <li><strong>S-FR-8.1</strong> — Add <code>depth</code> resolution to Phase 0.5 (executed after lastrun read). Order: <code>--depth</code> CLI &gt; <code>settings.default_primer_depth</code> &gt; lastrun.last_depth (new field) &gt; first-run prompt.</li>
+  <li><strong>S-FR-8.2</strong> — First-run prompt: <code>AskUserQuestion</code> "Preferred default depth for primers in this project?" with options <code>standard (Recommended)</code> / <code>brief</code> / <code>deep</code>. NO <code>defer-only</code> tag (has Recommended). Auto-picks <code>standard</code> in non-interactive.</li>
+  <li><strong>S-FR-8.3</strong> — On answer, write <code>default_primer_depth: &lt;tier&gt;</code> to <code>.pmos/settings.yaml</code> via atomic temp+rename. If the file is missing, NO-OP (settings file required to exist at Phase 0; first-run prompt only fires when file exists but key absent).</li>
+  <li><strong>S-FR-8.4</strong> — <code>--depth</code> flag parser: valid values <code>brief|standard|deep</code>. Unknown value → platform-aware error: <code>unknown depth '&lt;v&gt;'. Valid: brief, standard, deep.</code> Exit 64.</li>
+  <li><strong>S-FR-8.5</strong> — Phase 0 stderr line: <code>depth: &lt;tier&gt; (source: &lt;cli|settings|lastrun|prompt&gt;)</code>.</li>
+  <li><strong>S-FR-8.6</strong> — <code>lastrun.yaml</code> schema additive: <code>last_depth: &lt;tier&gt;</code> added to the file shape doc in SKILL.md Phase 0.5 + written in Phase 5 step 15.</li>
+  <li><strong>S-FR-8.7</strong> — Phase 4 word target: read from a hard-coded tier table inline in Phase 4 prose. Targets per FR-8.1: brief=2000–3000, standard=4000–6000, deep=7000–10000. Soft target per D3 — reviewer reports actual count as informational <code>word_count</code> field on R10; no hard-block.</li>
+  <li><strong>S-FR-8.8</strong> — Argument-hint frontmatter MUST list <code>[--depth &lt;brief|standard|deep&gt;]</code>.</li>
+</ul>
+
+<h3 id="source-floor">Fix 3 — Source floor by depth tier</h3>
+<ul>
+  <li><strong>S-FR-3.1</strong> — <code>reference/source-floor.md</code> §"Source floor = 4" renamed to §"Source floor by depth tier". Header changes; introductory prose changes; gate-fire logic changes to "If <code>count &lt; floor</code>" where <code>floor</code> resolves per tier table: brief=6, standard=10, deep=15.</li>
+  <li><strong>S-FR-3.2</strong> — Floor table inline in the §:
+    <pre>| Depth    | Floor |
+| brief    | 6     |
+| standard | 10    |
+| deep     | 15    |</pre>
+  </li>
+  <li><strong>S-FR-3.3</strong> — Short-circuit rule UNCHANGED (≥3 usable on one strand short-circuits the other — even at deep tier, since the secondary strand should still gather toward the floor).</li>
+  <li><strong>S-FR-3.4</strong> — Banner text in §"Thin-source disclosure" substitutes <code>{floor}</code> in place of literal "4". Updated banner: "Note: this primer was assembled from <code>&lt;N&gt;</code> sources (below the source-floor of <code>{floor}</code> for the <code>{depth}</code> tier). Treat conclusions as preliminary…"</li>
+  <li><strong>S-FR-3.5</strong> — SKILL.md Phase 2 FR-5.2 prose updated: link to the §"Source floor by depth tier" with the new heading anchor.</li>
+  <li><strong>S-FR-3.6</strong> — Retry-once protocol UNCHANGED. The retry counter behavior unchanged.</li>
+</ul>
+
+<h3 id="practitioner">Fix 1 — Practitioner + book query generation</h3>
+<ul>
+  <li><strong>S-FR-1.1</strong> — Phase 2 gains a new Step 0 BEFORE the existing try-both strand dispatch: "Practitioner+book naming". Prompt verbatim:
+    <blockquote>List 6–10 named practitioners, authors, or institutional voices canonically associated with this topic. Also list 3–5 canonical books, courses, or textbooks. For each item, include a one-line note on why it's canonical. Return as JSON: <code>[{"name": "...", "kind": "practitioner|book|course", "why_canonical": "..."}]</code>.</blockquote>
+  </li>
+  <li><strong>S-FR-1.2</strong> — Naming output validated: array length 9–15 (6–10 practitioners + 3–5 books); each item has all 3 fields; <code>kind</code> ∈ enum. On validation fail → retry naming once. On second fail → log warning to chat and proceed with an empty <code>practitioner_index</code> (degrades gracefully to existing topic-frame-only behavior).</li>
+  <li><strong>S-FR-1.3</strong> — Persisted to in-memory <code>sources.json.practitioner_index</code>; not yet written (Phase 5 atomic trio).</li>
+  <li><strong>S-FR-1.4</strong> — Strand (a) — primary practitioner strand. For each <code>practitioner_index[i]</code> where <code>kind==practitioner</code>: dispatch <code>WebFetch</code> queries: <code>"&lt;name&gt; &lt;topic&gt;"</code>. For <code>kind==book|course</code>: dispatch <code>"&lt;name&gt; free entry point"</code> AND <code>"&lt;author_or_name&gt; &lt;topic&gt;"</code>. Capture per-query usable-source count into <code>practitioner_index[i].usable_source_count</code>.</li>
+  <li><strong>S-FR-1.5</strong> — Strand (b) — secondary topic-frame strand (existing behavior): topic-frame queries (<code>&lt;topic&gt; overview</code>, etc.). Demoted: its sources contribute to the floor count ONLY AFTER strand (a) settles (no early short-circuit on strand (b)).</li>
+  <li><strong>S-FR-1.6</strong> — Drop-silently rule (D1, FR-1.5 req): if <code>practitioner_index[i].usable_source_count == 0</code>, set <code>dropped: true</code>, do NOT include in citations, append OQ-buffer entry: <code>{phase: "research", reason: "practitioner-unresolved", practitioner: "&lt;name&gt;"}</code>.</li>
+  <li><strong>S-FR-1.7</strong> — Context7 strand: UNCHANGED, runs in parallel with strands (a) + (b). The original try-both architecture is preserved.</li>
+  <li><strong>S-FR-1.8</strong> — Citation rule (FR-1.4 req): books/paid courses use the free-entry-point URL as <code>&lt;a href&gt;</code>; prose attribution is the canonical citation ("Ramanujam, <em>Monetizing Innovation</em> (Wiley, 2016)"). Reviewer R1 (cites-real-urls) check unchanged — every href must be in <code>sources[].url</code>; the free-entry URL belongs to <code>sources[]</code>.</li>
+</ul>
+
+<h3 id="richness">Fix 5 — Topic-richness check</h3>
+<ul>
+  <li><strong>S-FR-5.1</strong> — Phase 1 gains a richness step IMMEDIATELY after the existing vagueness heuristic (after the vagueness <code>AskUserQuestion</code> resolves, before audience resolve).</li>
+  <li><strong>S-FR-5.2</strong> — Prompt verbatim:
+    <blockquote>Is the topic "<code>&lt;topic&gt;</code>" broad enough to support (a) at least one named framework or model, (b) a meaningful decision-guide for practitioners, (c) at least one worked example or case study? Return one of: <code>rich</code>, <code>thin</code>, <code>narrow-by-design</code> with a one-line rationale.</blockquote>
+  </li>
+  <li><strong>S-FR-5.3</strong> — On <code>rich</code> → proceed silently to audience resolve. On <code>narrow-by-design</code> → proceed; set <code>state.richness = "narrow-by-design"</code> so Phase 3 outline-gen suppresses the decision-guide section.</li>
+  <li><strong>S-FR-5.4</strong> — On <code>thin</code> → <code>AskUserQuestion</code> tagged <code>&lt;!-- defer-only: ambiguous --&gt;</code> (no recommended; ambiguous classification):
+    <pre>question: "Topic '&lt;topic&gt;' looks too narrow to support a primer-shaped artifact. Pick a reframing or proceed:"
+options:
+  - &lt;reframing 1&gt;  (LLM-generated; unconstrained per D2)
+  - &lt;reframing 2&gt;
+  - &lt;reframing 3&gt;
+  - Keep as-is (will produce a thin primer)
+  - Abort</pre>
+    Under <code>--autonomous</code> / <code>--non-interactive</code>: deferred default <code>Keep as-is</code>; OQ log entry <code>{phase: "intake", reason: "topic-thin", topic: "&lt;v&gt;"}</code>.</li>
+  <li><strong>S-FR-5.5</strong> — Reframings are LLM-generated in the prompt-generation step (returned alongside the <code>thin</code> verdict). No structural constraint (per D2).</li>
+  <li><strong>S-FR-5.6</strong> — Phase-3 outline step reads <code>state.richness</code>: on <code>narrow-by-design</code>, the outline includes a one-line "Decision guide deferred — topic narrow-by-design" note in place of the usual decision-guide H2 (audience-presets §requirements unchanged for other sections).</li>
+</ul>
+
+<h3 id="examples">Fix 6 — Worked examples</h3>
+<ul>
+  <li><strong>S-FR-6.1</strong> — <code>reference/curator-lens.md</code> §"Phase-4 framing prompt" gains one paragraph inserted between the existing "Cite every empirical claim…" bullet and "Match the reader's vocabulary level…" bullet:
+    <blockquote>For each H2 section, try to surface ≥1 worked example — a named company, named product, named incident, or a clearly-labeled hypothetical scenario (prefix hypothetical examples with "Hypothetical: …"). Skip when no canonical example exists — do NOT invent. Examples make curation legible; without them, the section reads as abstract synthesis.</blockquote>
+  </li>
+  <li><strong>S-FR-6.2</strong> — Phase 5 reviewer output schema gains <code>examples_per_h2_distribution</code> on the R10 object only (per "Phase-5 reviewer output schema delta" above). Reviewer SHOULD count: any prose mention of a named company/product/incident OR a sentence prefixed "Hypothetical: ".</li>
+  <li><strong>S-FR-6.3</strong> — SKILL.md Phase 5 step 1 prose updated to note the new informational field. Step 7 (write gate) prose updated: if <code>examples_per_h2_distribution</code> shows ≥30% of H2s with <code>count == 0</code>, the gate description (not the options) prepends: <code>"Note: &lt;X&gt;/&lt;N&gt; H2s have zero worked examples."</code> — informational only, never blocks.</li>
+  <li><strong>S-FR-6.4</strong> — Curator-lens anti-patterns section gains a new bullet: "Don't invent named-company examples on topics that don't have them — leaving an H2 example-less is preferred to fabrication."</li>
+</ul>
+
+<h3 id="conformance">Conformance to skill-patterns.md §A–§G</h3>
+<ul>
+  <li><strong>S-FR-C.A1</strong> (§A frontmatter) — <code>name: primer</code> unchanged. <code>description</code> updated to add ≥1 depth-trigger phrase: "deep primer on X" / "brief primer on Y" / "primer at standard depth". Char count must stay ≤1024.</li>
+  <li><strong>S-FR-C.B1</strong> (§B triggering) — description retains existing 6 user-spoken triggers; ≥5 floor satisfied with margin.</li>
+  <li><strong>S-FR-C.D1</strong> (§D body) — new richness + first-run-depth prompts use imperative form. Each has either a <code>(Recommended)</code> option (depth prompt) or a <code>&lt;!-- defer-only: ambiguous --&gt;</code> tag (richness-thin prompt). Phase counts in "Track Progress" line updated only if total phase count changes — Phase 0 / 0.5 / 1 / 2 / 3 / 4 / 5 / 6 unchanged (the new checks are sub-steps, not new phases).</li>
+  <li><strong>S-FR-C.D2</strong> (§D) — new SKILL.md prose ends with no trailing newlines beyond 1; uses the same heading-level conventions as existing SKILL.md.</li>
+  <li><strong>S-FR-C.E1</strong> (§E scripts) — no new scripts/ files added. <code>reference/source-floor.md</code> rewrite is a doc-only edit. No <code>tools/</code> additions.</li>
+  <li><strong>S-FR-C.F1</strong> (§F platform-conditional) — argument-hint frontmatter updated per S-FR-8.8. No other platform fields change. <code>.codex-plugin/plugin.json</code> requires no per-skill changes (codex SKILL.md is the same file).</li>
+  <li><strong>S-FR-C.G1</strong> (§G release prereqs scope) — <code>03_plan</code> MUST NOT include version-bump, CHANGELOG, README, or manifest-sync tasks in <code>## Wave N</code> blocks. Those go under <code>## Release prerequisites</code> only. Phase-6a checks <code>g-release-prereqs-scope</code> + <code>g-plan-grep-clean</code> are the gate.</li>
+</ul>
+
+<h2 id="prompt-text">Verbatim prompt text (authoritative)</h2>
+
+<h3 id="prompt-naming">Practitioner+book naming prompt</h3>
+<pre>List 6–10 named practitioners, authors, or institutional voices canonically
+associated with the topic "&lt;topic&gt;". Also list 3–5 canonical books, courses,
+or textbooks on the same topic. For each item, include a one-line note on
+why it's canonical (their seminal work / well-known framework / etc.).
+
+Return as JSON only (no prose):
+[
+  {"name": "&lt;Full Name|Org|Book Title&gt;", "kind": "practitioner"|"book"|"course",
+   "why_canonical": "&lt;one line, ~10-25 words&gt;"}
+]
+
+Be specific — "industry experts" is not a practitioner. Prefer named
+individuals over publications. For books, give the book title (not the
+author) as the name; put the author in why_canonical.</pre>
+
+<h3 id="prompt-richness">Topic-richness prompt</h3>
+<pre>Topic: "&lt;topic&gt;"
+
+Is this topic broad enough to support all three of:
+(a) at least one named framework or model,
+(b) a meaningful decision-guide for practitioners (multiple valid paths),
+(c) at least one worked example or case study.
+
+Return one of:
+- "rich" — supports all three; a primer can be a useful map.
+- "narrow-by-design" — a real topic, but supports at most (a) or (c); no
+   meaningful decision-guide exists because there are no live tradeoffs.
+   A primer is still useful, just shape-different.
+- "thin" — too narrow to support any of the three; a primer would be
+   padding. If returning thin, ALSO return 2–3 broader reframings the
+   user could pick from (each must be a real, broader topic — not just
+   a rephrasing).
+
+Output format:
+{"verdict": "rich"|"narrow-by-design"|"thin",
+ "rationale": "&lt;1 sentence&gt;",
+ "reframings": ["...", "...", "..."]  // present only when verdict == "thin"
+}</pre>
+
+<h3 id="prompt-curator-insert">Curator-lens worked-examples paragraph</h3>
+<p>(Inserted between existing "Cite every empirical claim…" and "Match the reader's vocabulary level…" bullets.)</p>
+<pre>- For each H2 section, try to surface at least one worked example — a named
+  company, named product, named incident, or a clearly-labeled hypothetical
+  scenario (prefix hypothetical examples with "Hypothetical: "). Skip when
+  no canonical example exists — do NOT invent. Examples make curation
+  legible; without them, the section reads as abstract synthesis.</pre>
+
+<h2 id="testing">Testing strategy</h2>
+<ul>
+  <li><strong>T1 — Depth resolution unit test.</strong> Mock CLI flag, settings file, lastrun file in each combination; verify precedence order matches S-FR-8.1.</li>
+  <li><strong>T2 — Source-floor parametric test.</strong> 3 cases: brief×3-sources (gate fires, floor=6), standard×9-sources (gate fires, floor=10), deep×14-sources (gate fires, floor=15).</li>
+  <li><strong>T3 — Practitioner-drop test.</strong> Mock naming step returns 8 practitioners; mock WebFetch returns 0 usable for 2 of them. Assert: dropped=2 entries in practitioner_index have <code>dropped: true</code> + 2 OQ-buffer entries with <code>reason: practitioner-unresolved</code>.</li>
+  <li><strong>T4 — Richness-thin path.</strong> Mock richness step returns <code>{verdict: "thin", reframings: [...]}</code>. Assert: AskUserQuestion fires with 3 reframing options + Keep + Abort; under <code>--autonomous</code> auto-picks Keep + writes OQ entry.</li>
+  <li><strong>T5 — Worked-examples informational field.</strong> Mock reviewer returns R10 with <code>examples_per_h2_distribution</code>. Assert: write-gate description text contains the count when ≥30% H2s are zero-count.</li>
+  <li><strong>T6 — Skill-patterns conformance.</strong> Run <code>plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/primer/</code>. All [D] checks must pass.</li>
+  <li><strong>T7 — settings-additive BC.</strong> Run with <code>settings.yaml</code> missing <code>default_primer_depth</code>: first-run prompt fires; existing flows otherwise unchanged.</li>
+</ul>
+
+<h2 id="verification">Verification plan (Phase 7 /verify)</h2>
+<ul>
+  <li>Re-run <code>skill-eval-check.sh</code> + LLM-judge half of <code>skill-eval.md</code> (fresh).</li>
+  <li>Detectable-prereq checks: manifest version-sync (pmos-learnkit/.claude-plugin/plugin.json + .codex-plugin/plugin.json carry same version), CHANGELOG entry presence for pmos-learnkit/v0.2.0, README row for primer unchanged (no row addition required — depth is an enhancement, not a new skill).</li>
+  <li>Spot-test the new prompts inline (richness + first-run-depth) by invoking primer in interactive mode with a known-rich topic and a known-thin topic.</li>
+  <li>Smoke: re-run <code>/primer</code> against a small test topic with <code>--depth brief</code>; verify (a) Phase 0 stderr depth line; (b) sources.json carries practitioner_index; (c) reviewer JSON has <code>examples_per_h2_distribution</code> on R10.</li>
+</ul>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+  <li><strong>R1 — Hallucinated practitioners on obscure topics.</strong> Mitigated by S-FR-1.6 drop-silently rule + OQ log. Residual risk: a hallucinated name with a real but irrelevant URL slips through (e.g., another person of the same name). Mitigation deferred to R10 reviewer's on-topic judgement.</li>
+  <li><strong>R2 — Richness classifier false positives on niche topics.</strong> Mitigated by the <code>narrow-by-design</code> escape valve. Residual risk: a genuinely thin topic returns <code>narrow-by-design</code> and ships a thin primer; reviewer's R3 (no-hand-wavy-claims) is the catch.</li>
+  <li><strong>R3 — Deep-tier source-floor (15) unachievable on niche topics.</strong> Mitigated by existing retry-once + thin-source disclosure path; same as current behavior just at a higher threshold.</li>
+  <li><strong>R4 — Latency at deep tier.</strong> Naming step + per-practitioner queries multiply Phase-2 latency. Acceptable: deep tier is the explicit user choice for thoroughness over speed.</li>
+  <li><strong>R5 — practitioner_index audit clutter.</strong> Dropped entries retained per D1; if this proves noisy, future iteration can add a flag to suppress. Not in scope here.</li>
+</ul>
+
+<h2 id="release-prereqs">Release prerequisites (for /complete-dev — NOT for /plan waves)</h2>
+<ul>
+  <li>Minor version bump: <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> 0.1.0 → 0.2.0</li>
+  <li>Synced bump: <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code> 0.1.0 → 0.2.0</li>
+  <li><code>CHANGELOG.md</code>: pmos-learnkit/v0.2.0 entry describing the 5 fixes</li>
+  <li>No README row addition required (primer already listed)</li>
+  <li><code>~/.pmos/learnings.md</code>: <code>## /primer</code> header bootstrap if missing (idempotent)</li>
+</ul>
+
+  </main>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>

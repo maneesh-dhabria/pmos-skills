@@ -2,7 +2,7 @@
 
 **Contents**
 
-- [Source floor = 4](#source-floor--4)
+- [Source floor by depth tier](#source-floor-by-depth-tier)
 - [Retry-once protocol](#retry-once-protocol)
 - [sources.json schema](#sourcesjson-schema)
 - [Thin-source disclosure](#thin-source-disclosure)
@@ -10,14 +10,15 @@
 
 Phase-2 (Research) of `/primer` must accumulate enough usable sources before a draft is worth writing. This reference codifies the source-floor gate, the retry-once protocol, the `sources.json` schema the curator and reviewer both read, and the two degraded modes (thin-source disclosure, WebFetch unavailable). Depth-1 reference — self-contained, no chains to other `reference/*.md`.
 
-## Source floor = 4
+## Source floor by depth tier
 
-Phase 2 dispatches two source-discovery strands in parallel:
+Phase 2 dispatches up to three source-discovery strands in parallel:
 
-- `context7:resolve-library-id` (library/framework docs lookup).
-- `WebFetch` against 6–10 candidate URLs derived from the topic.
+- **(a) Primary practitioner+book strand** — for each named practitioner from the Phase-2 Step-0 naming step, queries `<practitioner> <topic>`. For each named book/course, queries `<book title> free entry point` and `<author> <topic>` (targets: First Round Review, Lenny, podcast transcripts, author blogs, publisher excerpts).
+- **(b) Secondary topic-frame strand** — `WebFetch` against 6–10 candidate URLs derived from topic frames (`<topic> overview`, `<topic> best practices`, etc.). Demoted relative to strand (a): its sources count toward the floor ONLY AFTER strand (a) settles. No early short-circuit on strand (b).
+- **(c) Context7 strand** — `context7:resolve-library-id` (library/framework docs lookup). Unchanged.
 
-**Short-circuit rule.** The first strand to return ≥3 usable sources short-circuits the other — the orchestrator cancels (or drops on arrival) the pending fetches from the slower strand. This keeps Phase-2 latency bounded on well-covered topics.
+**Short-circuit rule.** Strand (a) or strand (c) returning ≥3 usable sources before strand (b) settles does NOT short-circuit strand (b) when the resolved depth tier is `deep` — at deep tier the secondary strand always runs to completion. At `brief` / `standard`, the short-circuit rule applies as before to bound latency.
 
 **"Usable source" definition.** A source is usable iff all three hold:
 
@@ -25,7 +26,15 @@ Phase 2 dispatches two source-discovery strands in parallel:
 2. Response body > 500 chars of non-boilerplate text (strip nav/footer/cookie-banner chrome before measuring).
 3. Semantically on-topic — the orchestrator judges this against the resolved topic string; off-topic SEO pages and tangential hits are rejected.
 
-**Gate trigger.** After both strands settle (or one short-circuits the other), count usable sources. If `count < 4`, fire the source-floor gate.
+**Depth-tier floor table.** The threshold the gate compares against is depth-tier-dependent — read the resolved depth from `state.depth` (set by /primer Phase 0 resolution per S-FR-8.1):
+
+| Depth    | Floor | Rationale                                                  |
+|----------|-------|------------------------------------------------------------|
+| brief    | 6     | Above the legacy floor of 4; appropriate for narrow topics |
+| standard | 10    | Floor for typical senior-PM ramp-up topics                 |
+| deep     | 15    | Forces practitioner-by-practitioner coverage of broad topics |
+
+**Gate trigger.** After all strands settle (or strand (a)/(c) short-circuits strand (b) at brief/standard tier), count usable sources merged across strands. If `count < floor`, fire the source-floor gate.
 
 **Gate options (`AskUserQuestion`).**
 
@@ -54,7 +63,18 @@ Verbatim from FR-5.3:
 {
   "topic": "<resolved topic string>",
   "audience": "senior-pms" | "all-pms",
+  "depth": "brief" | "standard" | "deep",
   "fetched_at": "<ISO-8601 timestamp>",
+  "practitioner_index": [
+    {
+      "name": "<practitioner|author|institution|book title>",
+      "kind": "practitioner" | "book" | "course",
+      "why_canonical": "<one-line note>",
+      "queries_dispatched": ["<q1>", "<q2>"],
+      "usable_source_count": <int>,
+      "dropped": <bool>
+    }
+  ],
   "sources": [
     {
       "url": "<verbatim URL fetched>",
@@ -62,7 +82,8 @@ Verbatim from FR-5.3:
       "fetched_at": "<ISO-8601 per-source>",
       "byte_size": <int>,
       "takeaway": "<1-2 sentence summary the draft can cite>",
-      "tier": "primary" | "secondary"
+      "tier": "primary" | "secondary",
+      "source_strand": "practitioner" | "topic-frame" | "context7"
     }
   ],
   "rejected": [
@@ -70,6 +91,8 @@ Verbatim from FR-5.3:
   ]
 }
 ```
+
+**`practitioner_index` field semantics (new in v0.2.0).** The Phase-2 Step-0 practitioner+book naming step writes this array. Each entry that ended with zero usable resolved sources has `dropped: true` and is excluded from citations — its name MUST NOT appear in the draft prose or in any `<a href>` attribution. Dropped entries are RETAINED in the array (not removed) for audit, with their `queries_dispatched` preserved so the OQ-buffer log entry (`reason: practitioner-unresolved`) is reproducible. The `source_strand` field on each accepted source records which strand surfaced it — primary (`practitioner`), secondary (`topic-frame`), or `context7`.
 
 **Location and write semantics.** The file lives at `{docs_path}/primer/{date}_{slug}.sources.json` and is written atomically alongside the HTML artifact (write to temp path, then rename).
 
@@ -86,7 +109,7 @@ When the user chooses **Continue with thin-source disclosure**, the artifact shi
   `style="background:#fff8d6;border:1px solid #c8a800;padding:0.75rem 1rem;margin:1rem 0;border-radius:4px;"`
 - Banner text (substitute `<N>` with the actual usable-source count):
 
-  > Note: this primer was assembled from `<N>` sources (below the source-floor of 4). Treat conclusions as preliminary; the underlying topic may not yet have a stable knowledge base.
+  > Note: this primer was assembled from `<N>` sources (below the source-floor of `<floor>` for the `<depth>` tier). Treat conclusions as preliminary; the underlying topic may not yet have a stable knowledge base.
 
 - Placement: directly above the attribution footer, never above the article body.
 

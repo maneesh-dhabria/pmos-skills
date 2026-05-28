@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grill — 01_requirements</title>
+  <meta name="pmos:skill" content="grill">
+  <link rel="stylesheet" href="../assets/style.css?v=2.57.0">
+</head>
+<body>
+  <main class="pmos-artifact-body">
+<h2 id="run">Run</h2>
+<ul>
+  <li><strong>Target:</strong> <code>01_requirements.html</code></li>
+  <li><strong>Tier:</strong> 2 (3 high-leverage decisions surfaced; not --deep)</li>
+  <li><strong>Outcome:</strong> all 3 answered with Recommended; no requirements changes</li>
+</ul>
+
+<h2 id="decisions">Decisions</h2>
+<h3 id="d1-practitioner-drop">D1 — Practitioner with 0 usable sources: drop silently + OQ log</h3>
+<p>Confirms FR-1.5. Recommended to ship in spec; consider adding a max-drop threshold (e.g., if &gt;50% of named practitioners drop, treat as topic-richness fail) — defer to /spec.</p>
+
+<h3 id="d2-thin-reframing">D2 — Thin-topic reframing: LLM-generated, no structural constraint</h3>
+<p>Confirms FR-5.3 as written. Trust LLM to surface qualifiers naturally; over-constraining produces robotic suggestions.</p>
+
+<h3 id="d3-word-target">D3 — Word target: soft, reviewer informational</h3>
+<p>Confirms FR-8.1+FR-6 pattern. Both word-count and examples-per-h2 are informational signals to user, not gates. Avoids the failure mode where reviewer pads/truncates to hit numbers.</p>
+
+<h2 id="not-grilled">Not grilled (low-leverage)</h2>
+<ul>
+  <li>practitioner_index schema additive — trivially correct.</li>
+  <li>Source-floor numerical values (6/10/15) — empirically derived from feedback doc; not adjustable without new evidence.</li>
+  <li>argument-hint frontmatter — mechanical.</li>
+</ul>
+  </main>
+</body>
+</html>

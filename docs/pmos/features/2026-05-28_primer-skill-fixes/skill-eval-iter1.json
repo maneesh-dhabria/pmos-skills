@@ -1,0 +1,43 @@
+{
+  "iteration": 1,
+  "target_platform": "claude-code",
+  "skill_dir": "plugins/pmos-learnkit/skills/primer/",
+  "deterministic": {
+    "exit_code": 0,
+    "checks": 18,
+    "passed": 18,
+    "failed": 0
+  },
+  "g_plan_grep_clean": {"verdict": "pass", "evidence": "no release-prereq patterns in any wave block of 03_plan.html"},
+  "judge_checks": [
+    {"check_id": "a-name-verb-or-gerund", "verdict": "pass", "fix_note": "", "quote": "name: primer\ndescription: Produces a verified-source, audience-shaped HTML primer on any topic"},
+    {"check_id": "b-desc-has-when", "verdict": "pass", "fix_note": "", "quote": "Use to ramp-up before a meeting / a scope / a doc review, when the user needs to learn a topic quickly with citations they can trust."},
+    {"check_id": "b-desc-has-what", "verdict": "pass", "fix_note": "", "quote": "Produces a verified-source, audience-shaped HTML primer on any topic"},
+    {"check_id": "b-desc-third-person", "verdict": "pass", "fix_note": "", "quote": "Use to ramp-up before a meeting / a scope / a doc review, when the user needs to learn a topic quickly"},
+    {"check_id": "b-desc-trigger-phrases", "verdict": "pass", "fix_note": "", "quote": "\"write me a primer on X\", \"ramp me up on Y\", \"generate a primer\", \"I need to learn about Z before a meeting\", \"/primer\", \"create a teachable artifact on this topic\", \"deep primer on X\", or \"brief primer on Y\""},
+    {"check_id": "b-desc-no-step-list", "verdict": "pass", "fix_note": "", "quote": "Triggers when the user says \"write me a primer on X\", \"ramp me up on Y\", \"generate a primer\""},
+    {"check_id": "b-desc-pushy", "verdict": "pass", "fix_note": "", "quote": "Triggers when the user says \"write me a primer on X\", \"ramp me up on Y\", \"generate a primer\""},
+    {"check_id": "c-progressive-disclosure", "verdict": "pass", "fix_note": "", "quote": "See `reference/audience-presets.md` for the required-sections floor per preset"},
+    {"check_id": "c-context-economy", "verdict": "pass", "fix_note": "", "quote": "the canonical non-interactive block below handles `mode` resolution + per-checkpoint classifier + OQ buffer + end-of-skill summary"},
+    {"check_id": "d-imperative-form", "verdict": "pass", "fix_note": "", "quote": "Parse the argument string. Recognised tokens: positional `<topic>`"},
+    {"check_id": "d-explain-why", "verdict": "pass", "fix_note": "", "quote": "letting the name surface in citations or prose is the worst-case failure mode (fabricated authority is a trust violation worse than thin sourcing)"},
+    {"check_id": "d-examples-quality", "verdict": "pass", "fix_note": "", "quote": "Drop-silently fires for 1 practitioner (Saroyan — no on-topic queries resolved). Merged usable = 18, passes source-floor for `standard`"},
+    {"check_id": "d-body-skeleton", "verdict": "pass", "fix_note": "", "quote": "## Phase 0: Pipeline setup + Load Learnings"},
+    {"check_id": "f-cc-argument-hint-matches", "verdict": "pass", "fix_note": "", "quote": "argument-hint: <topic> [--audience <senior-pms|all-pms>] [--depth <brief|standard|deep>] [--autonomous] [--format <html|md|both>] [--non-interactive] [--interactive]"},
+    {"check_id": "g-release-prereqs-scope", "verdict": "pass", "fix_note": "", "quote": "Release prerequisites (handled by /complete-dev — NOT plan tasks)"}
+  ],
+  "summary": {
+    "total_applicable": 33,
+    "deterministic_passed": 18,
+    "judge_passed": 15,
+    "failed": 0,
+    "accepted_residuals": [],
+    "result": "pass — proceed to Phase 7"
+  },
+  "skipped_checks": {
+    "c-body-size-judge": "body=422 lines, ≤500 threshold",
+    "d-flowcharts-justified": "SKILL.md contains no flowchart/diagram",
+    "10.E (e-scripts-dir, e-deps-documented, e-script-selftest)": "skill bundles no scripts",
+    "f-codex-sidecar": "target_platform=claude-code"
+  }
+}

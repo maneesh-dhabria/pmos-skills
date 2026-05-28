@@ -25,6 +25,7 @@ The shift: the explainer answers the question; the curator names the question an
 - Don't promise the reader "the right answer" — promise them the right MAP.
 - Don't write conclusions in the body — leave conclusions to the reader's own context.
 - Don't flatten disagreement into false consensus — if the field is split, the primer must show the split.
+- Don't invent named-company examples on topics that don't have them — leaving an H2 example-less is preferred to fabrication. The reviewer reports per-H2 example counts informationally; an honest zero beats an invented case.
 
 ## Phase-4 framing prompt
 
@@ -41,6 +42,7 @@ Follow these curator-voice rules:
 - Do not write conclusions in the body. Surface the decision criteria; leave the conclusion to the reader.
 - Do not flatten disagreement into false consensus. If credible practitioners disagree, the primer must show the disagreement and attribute it.
 - Cite every empirical claim with an inline `<a href='URL'>` drawing only from the provided sources.json — never invent URLs.
+- For each H2 section, try to surface at least one worked example — a named company, named product, named incident, or a clearly-labeled hypothetical scenario (prefix hypothetical examples with "Hypothetical: "). Skip when no canonical example exists — do NOT invent. Examples make curation legible; without them, the section reads as abstract synthesis.
 - Match the reader's vocabulary level: <audience> preset (see audience-presets.md for the tone, jargon ceiling, and assumed-knowledge rules of this preset).
 
 Now write the draft following the approved outline.

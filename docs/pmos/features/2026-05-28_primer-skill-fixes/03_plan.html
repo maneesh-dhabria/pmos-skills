@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plan — primer skill fixes</title>
+  <meta name="pmos:skill" content="plan">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Plan — primer skill fixes</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h2 id="frontmatter">Frontmatter</h2>
+<ul>
+  <li><strong>Tier:</strong> 2</li>
+  <li><strong>Source spec:</strong> <code>02_spec.html</code></li>
+  <li><strong>Execution mode:</strong> <code>inline</code> (single-file scope; subagent-driven not warranted for ~150 LoC across 4 files)</li>
+  <li><strong>Task status legend:</strong> ⬜ pending · 🟦 in_progress · ✅ done · ❌ blocked</li>
+</ul>
+
+<h2 id="wave-1">Wave 1 — Parallel-safe edits (4 independent files / sections)</h2>
+
+<h3 id="t1">⬜ T1 — SKILL.md frontmatter: argument-hint + description</h3>
+<p><strong>Files:</strong> <code>plugins/pmos-learnkit/skills/primer/SKILL.md</code> (lines 1–6, frontmatter block).</p>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Insert <code>[--depth &lt;brief|standard|deep&gt;]</code> in <code>argument-hint</code> after <code>[--audience &lt;…&gt;]</code>.</li>
+  <li>Append to <code>description</code>: "Supports <code>--depth brief|standard|deep</code> for explicit sizing; the default depth tier is persisted per-project after the first run. Also triggers on 'deep primer on X', 'brief primer on Y'." (Verify final char count ≤1024.)</li>
+</ul>
+<p><strong>Verify:</strong> <code>head -6 plugins/pmos-learnkit/skills/primer/SKILL.md | grep -c -- '--depth'</code> returns ≥2 (argument-hint + description). Description char count ≤1024 via <code>awk '/^description:/{print length}'</code>.</p>
+
+<h3 id="t2">⬜ T2 — _shared/pipeline-setup.md: settings-schema docs</h3>
+<p><strong>Files:</strong> <code>plugins/pmos-learnkit/skills/_shared/pipeline-setup.md</code>.</p>
+<p><strong>Edit:</strong> Add to the settings-schema reference section a row documenting <code>default_primer_depth</code> as optional, valid values <code>brief|standard|deep</code>, "absence triggers first-run prompt in /primer Phase 0.5".</p>
+<p><strong>Verify:</strong> <code>grep -c default_primer_depth plugins/pmos-learnkit/skills/_shared/pipeline-setup.md</code> ≥1.</p>
+
+<h3 id="t3">⬜ T3 — reference/curator-lens.md: Phase-4 prompt + anti-patterns</h3>
+<p><strong>Files:</strong> <code>plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code>.</p>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>In §"Phase-4 framing prompt", insert the worked-examples bullet (verbatim from spec §"Curator-lens worked-examples paragraph") between the existing "Cite every empirical claim…" and "Match the reader's vocabulary level…" bullets.</li>
+  <li>In §"Anti-patterns", append the bullet: "Don't invent named-company examples on topics that don't have them — leaving an H2 example-less is preferred to fabrication."</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c 'worked example' plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code> ≥1; <code>grep -c "don't invent named-company" plugins/pmos-learnkit/skills/primer/reference/curator-lens.md</code> ≥0 (case-insensitive grep recommended).</p>
+
+<h3 id="t4">⬜ T4 — reference/source-floor.md: §rename + tier table</h3>
+<p><strong>Files:</strong> <code>plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code>.</p>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Rename §"Source floor = 4" → §"Source floor by depth tier". Update the ToC anchor at top (line 5).</li>
+  <li>Replace the "Gate trigger" prose to read floor from per-depth table:
+    <pre>| Depth    | Floor | Rationale                              |
+| brief    | 6     | Above old floor; narrow topics         |
+| standard | 10    | Default for senior-PM topics           |
+| deep     | 15    | Forces practitioner-by-practitioner    |</pre>
+  </li>
+  <li>Update §"Thin-source disclosure" banner text: substitute <code>{floor}</code> for literal "4" and add <code>{depth}</code> phrasing.</li>
+  <li>Add a new §"sources.json schema" subsection on <code>practitioner_index</code> documenting the additive field per spec §"sources.json schema delta".</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c 'Source floor by depth tier' plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code> ≥1; <code>grep -c practitioner_index plugins/pmos-learnkit/skills/primer/reference/source-floor.md</code> ≥1; <code>grep -E '^\| (brief|standard|deep)' plugins/pmos-learnkit/skills/primer/reference/source-floor.md | wc -l</code> ≥3.</p>
+
+<h2 id="wave-2">Wave 2 — SKILL.md prose edits (single file; sequential within wave)</h2>
+
+<h3 id="t5">⬜ T5 — Phase 0: depth resolution stderr line</h3>
+<p><strong>Edit:</strong> After the existing <code>output_format</code> stderr line (line 30), add: print to stderr <code>depth: &lt;tier&gt; (source: &lt;cli|settings|lastrun|prompt&gt;)</code> with same conventions.</p>
+<p><strong>Verify:</strong> <code>grep -c 'depth: &lt;tier&gt;' SKILL.md</code> ≥1.</p>
+
+<h3 id="t6">⬜ T6 — Phase 0.5: first-run depth prompt + last_depth lastrun</h3>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Add <code>last_depth</code> to the lastrun.yaml file shape block (line 127–133).</li>
+  <li>Add a new sub-section after the existing prompt: "First-run depth prompt — if <code>settings.default_primer_depth</code> is absent AND <code>--depth</code> is not given AND <code>lastrun.last_depth</code> is absent: surface <code>AskUserQuestion</code> 'Preferred default depth for primers in this project?' with options <code>standard (Recommended)</code> / <code>brief</code> / <code>deep</code> (no defer-only tag — has Recommended). On answer, write <code>default_primer_depth: &lt;tier&gt;</code> to <code>.pmos/settings.yaml</code> atomically."</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c 'last_depth' SKILL.md</code> ≥2 (file shape + Phase 5 write); <code>grep -c 'Preferred default depth' SKILL.md</code> ≥1.</p>
+
+<h3 id="t7">⬜ T7 — Phase 1: --depth parser + richness step + thin handler</h3>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Add <code>--depth &lt;v&gt;</code> to the recognised-tokens list (line 150). Validation: enum <code>brief|standard|deep</code>; unknown → platform-aware error + exit 64 (text per S-FR-8.4).</li>
+  <li>Add a new sub-section "Topic-richness check (FR-5.*)" AFTER the existing vagueness heuristic (after line 159). Contains: the verbatim richness prompt from spec; the rich/narrow-by-design/thin handlers per S-FR-5.3/5.4; the thin <code>AskUserQuestion</code> block (tagged <code>&lt;!-- defer-only: ambiguous --&gt;</code>) with LLM-generated reframings + Keep + Abort.</li>
+  <li>Update Phase-3 (line 195) outline-generation prose: "If <code>state.richness == 'narrow-by-design'</code>, the outline includes a one-line 'Decision guide deferred — topic narrow-by-design' note in place of the decision-guide H2."</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c -- '--depth' SKILL.md</code> ≥3 (frontmatter argument-hint + Phase 1 parser + description); <code>grep -c 'narrow-by-design' SKILL.md</code> ≥2; <code>grep -c 'Topic-richness' SKILL.md</code> ≥1; <code>grep -c 'defer-only: ambiguous' SKILL.md</code> increases by ≥1 from baseline.</p>
+
+<h3 id="t8">⬜ T8 — Phase 2: Step 0 naming + primary/secondary strands + drop rule</h3>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Insert "Step 0: Practitioner+book naming" BEFORE the existing try-both block (before line 180). Contains the verbatim naming prompt (spec §"Practitioner+book naming prompt") + validation (length 9–15, schema check, retry-once-then-degrade-to-empty per S-FR-1.2).</li>
+  <li>Restructure the existing parallel strands into 3 strands: <strong>(a) practitioner</strong> (new), <strong>(b) topic-frame</strong> (existing, demoted), <strong>(c) context7</strong> (existing).</li>
+  <li>Demotion rule for (b): "secondary strand sources count toward the floor ONLY AFTER strand (a) settles. No early short-circuit on strand (b)."</li>
+  <li>Drop-silently rule for (a) entries with <code>usable_source_count == 0</code>: set <code>dropped: true</code>, no citation use, OQ entry per S-FR-1.6.</li>
+  <li>Citation rule for books/courses: prose attribution + <code>&lt;a href&gt;</code> = free-entry URL per S-FR-1.8.</li>
+  <li>Update FR-5.2 prose anchor to <code>#source-floor-by-depth-tier</code>.</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c 'practitioner' SKILL.md</code> ≥3; <code>grep -c 'practitioner_index' SKILL.md</code> ≥1; <code>grep -c 'free entry point' SKILL.md</code> ≥1; <code>grep -c 'source-floor-by-depth-tier' SKILL.md</code> ≥1.</p>
+
+<h3 id="t9">⬜ T9 — Phase 4: word-target tier table</h3>
+<p><strong>Edit:</strong> Replace line 214 ("Target ~3000 words…") with the explicit tier table:
+<pre>**Word target by depth tier (S-FR-8.7).**
+
+| Depth    | Word target |
+| brief    | 2,000–3,000 |
+| standard | 4,000–6,000 |
+| deep     | 7,000–10,000 |
+
+These are SOFT targets — Phase 5 reviewer reports actual count as
+informational; no hard-block. Resolved depth comes from Phase 0 resolution.</pre>
+</p>
+<p><strong>Verify:</strong> <code>grep -c 'Word target by depth tier' SKILL.md</code> ≥1; <code>grep -c '2,000.3,000' SKILL.md</code> ≥1.</p>
+
+<h3 id="t10">⬜ T10 — Phase 5: reviewer schema + step 1 + step 7 write-gate</h3>
+<p><strong>Edit:</strong></p>
+<ul>
+  <li>Step 1 prose (line 230): note that R10 object now carries an informational <code>examples_per_h2_distribution</code> array per S-FR-6.2.</li>
+  <li>Add to reviewer output contract reference: link to <code>reference/rubric.md</code> R10 (will need a small rubric.md edit too — see T10b).</li>
+  <li>Step 7 write-gate (line 250–256): if <code>examples_per_h2_distribution</code> shows ≥30% H2s with <code>count == 0</code>, the gate <code>question:</code> text prepends "Note: &lt;X&gt;/&lt;N&gt; H2s have zero worked examples." Options unchanged. Informational ONLY, never blocks.</li>
+  <li>Step 15 (lastrun write, line 280–290): add <code>last_depth: &lt;resolved depth&gt;</code> line to the lastrun yaml block.</li>
+</ul>
+<p><strong>Verify:</strong> <code>grep -c 'examples_per_h2_distribution' SKILL.md</code> ≥2; <code>grep -c 'last_depth' SKILL.md</code> ≥2.</p>
+
+<h3 id="t10b">⬜ T10b — reference/rubric.md: R10 informational field annotation</h3>
+<p><strong>Files:</strong> <code>plugins/pmos-learnkit/skills/primer/reference/rubric.md</code>.</p>
+<p><strong>Edit:</strong> Locate R10 (primer-shaped) check definition. Append a paragraph: "Returns an additional informational field <code>examples_per_h2_distribution: [{h2_id, h2_title, count}]</code> reporting per-H2 worked-example counts. This field is informational ONLY — it does not affect the R10 verdict. The orchestrator surfaces it at the Phase-5 write gate when ≥30% of H2s have <code>count == 0</code>."</p>
+<p><strong>Verify:</strong> <code>grep -c 'examples_per_h2_distribution' plugins/pmos-learnkit/skills/primer/reference/rubric.md</code> ≥1.</p>
+
+<h3 id="t11">⬜ T11 — Anti-patterns: invented practitioners</h3>
+<p><strong>Edit:</strong> Append to SKILL.md Anti-Patterns section (after line 311, before "Worked example"): "Do NOT invent practitioners or canonical books — when a named practitioner's queries return zero usable sources, drop silently per Phase 2's drop-silently rule rather than allowing the name to surface in citations or prose."</p>
+<p><strong>Verify:</strong> <code>grep -c 'invent practitioners' SKILL.md</code> ≥1.</p>
+
+<h2 id="wave-3">Wave 3 — Worked example + skill-eval prep</h2>
+
+<h3 id="t12">⬜ T12 — Update worked example in SKILL.md (line 314+)</h3>
+<p><strong>Edit:</strong> Update the worked example to show a depth resolution line ("Phase 0.5 first-run prompt fires; user picks <code>standard</code>; written to settings.") + a practitioner-naming line in the Phase 2 description. Keep the rest of the example intact; this is a small addition for skill-patterns §D conformance ("excellent examples").</p>
+<p><strong>Verify:</strong> <code>grep -c 'practitioner' SKILL.md</code> ≥4 (Phase 2 + worked example).</p>
+
+<h2 id="wave-4">Wave 4 — Skill-eval (Phase 6a hard gate)</h2>
+
+<h3 id="t13">⬜ T13 — Deterministic half: skill-eval-check.sh</h3>
+<p><strong>Command:</strong>
+<pre>bash plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh \
+  --target claude-code \
+  plugins/pmos-learnkit/skills/primer/</pre>
+Exit 0 required (all [D] checks pass). Exit 1 → record failing check_ids; remediate via Wave 5.</p>
+
+<h3 id="t14">⬜ T14 — LLM-judge half: reviewer subagent</h3>
+<p>Reviewer reads <code>SKILL.md</code> + all <code>reference/*.md</code>; runs the [J] checks from <code>reference/skill-eval.md</code>. Returns JSON; orchestrator validates check_id set + quote substring per FR-43/44. Net result merges with T13 to form Phase 6a iteration-1 verdict.</p>
+
+<h2 id="release-prereqs">Release prerequisites (handled by /complete-dev — NOT plan tasks)</h2>
+<ul>
+  <li>Minor version bump: <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> 0.1.0 → 0.2.0</li>
+  <li>Synced bump: <code>plugins/pmos-learnkit/.codex-plugin/plugin.json</code> 0.1.0 → 0.2.0</li>
+  <li><code>CHANGELOG.md</code> pmos-learnkit/v0.2.0 entry</li>
+  <li><code>~/.pmos/learnings.md</code>: <code>## /primer</code> header bootstrap if missing</li>
+</ul>
+
+<h2 id="decisions-log">Decisions log</h2>
+<ul>
+  <li><strong>D-P1</strong>: Inline execution mode (no subagent-driven). Rationale: ~150 LoC across 4 files, mostly sequential within SKILL.md. Subagent overhead exceeds benefit at this scope.</li>
+  <li><strong>D-P2</strong>: Wave 2 tasks are sequential (single file). Wave 1 tasks are parallel (independent files). Waves themselves sequential.</li>
+  <li><strong>D-P3</strong>: Practitioner_index dropped entries retained (not removed) for audit. Resolves spec R5 with "keep for now; flag-suppress later if noisy".</li>
+  <li><strong>D-P4</strong>: 30% threshold for worked-examples informational note in write-gate. Chosen because below 30% reads as edge-case; above 30% reads as systemic gap worth surfacing.</li>
+</ul>
+
+<h2 id="final-verification-checklist">Final verification checklist (for /verify)</h2>
+<ol>
+  <li>All Wave-1/2/3 verify-grep commands return expected counts.</li>
+  <li>Skill-eval-check.sh exit 0 (deterministic half).</li>
+  <li>LLM-judge: zero failing [J] checks (or accepted residuals documented).</li>
+  <li>Spec FRs S-FR-1.*/3.*/5.*/6.*/8.*/C.* — every one has a concrete edit location and a verify command.</li>
+  <li>SKILL.md description char count ≤1024.</li>
+  <li>No version/changelog/README edits land in the feature branch — all deferred to /complete-dev.</li>
+  <li>Smoke: <code>/primer "test topic" --depth brief</code> runs end-to-end without errors, sources.json contains practitioner_index.</li>
+</ol>
+
+  </main>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>

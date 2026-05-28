@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedback triage — primer-skill-fixes</title>
+  <meta name="pmos:skill" content="feature-sdlc">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.57.0">
+  <script defer src="assets/viewer.js?v=2.57.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Feedback triage — primer-skill-fixes</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<h2 id="run">Run</h2>
+<ul>
+  <li><strong>Feedback source:</strong> <code>/Users/maneeshdhabria/Desktop/Projects/pmos/pmos-content/docs/pmos/fixes/2026-05-28_primer-skill-fixes.md</code></li>
+  <li><strong>Target skill:</strong> <code>pmos-learnkit:primer</code> (v0.1.0)</li>
+  <li><strong>Findings parsed:</strong> 8 (6 accept / 2 skip per source doc; 5 unique applied — Fix 2 was merged into Fix 1 upstream)</li>
+  <li><strong>Approved:</strong> 5 (all dispositions confirmed)</li>
+</ul>
+
+<h2 id="findings-parsed">Findings (parsed)</h2>
+<table>
+<thead><tr><th>ID</th><th>Skill</th><th>Severity</th><th>One-line</th><th>Source-doc disposition</th></tr></thead>
+<tbody>
+<tr><td>Fix 1</td><td>pmos-learnkit:primer</td><td>ux-friction</td><td>Phase 2 source discovery is practitioner-blind; missing canonical voices on senior-PM topics.</td><td>Accept</td></tr>
+<tr><td>Fix 2</td><td>pmos-learnkit:primer</td><td>—</td><td>Canonical books + free-entry pathway.</td><td>Merged into Fix 1</td></tr>
+<tr><td>Fix 3</td><td>pmos-learnkit:primer</td><td>bug</td><td>Source floor of 4 is order-of-magnitude wrong for senior-PM topics.</td><td>Accept</td></tr>
+<tr><td>Fix 4</td><td>pmos-learnkit:primer</td><td>—</td><td>Ingest existing project drafts.</td><td>Skip (keep /primer repo-agnostic)</td></tr>
+<tr><td>Fix 5</td><td>pmos-learnkit:primer</td><td>ux-friction</td><td>No heuristic for topics too narrow to support frameworks / decision guides / cases.</td><td>Accept</td></tr>
+<tr><td>Fix 6</td><td>pmos-learnkit:primer</td><td>ux-friction</td><td>No instruction to surface named-company worked examples.</td><td>Accept</td></tr>
+<tr><td>Fix 7</td><td>pmos-learnkit:primer</td><td>—</td><td>Freshness query in Phase 2.</td><td>Skip (Fix 1 covers it)</td></tr>
+<tr><td>Fix 8</td><td>pmos-learnkit:primer</td><td>new-capability</td><td>No depth flag; user has no way to ask for deeper/briefer artifact.</td><td>Accept</td></tr>
+</tbody>
+</table>
+
+<h2 id="critique">Critique (per applied finding)</h2>
+<table>
+<thead><tr><th>ID</th><th>already_handled</th><th>classification</th><th>recommendation</th><th>scope_hint</th><th>evidence in current SKILL.md</th></tr></thead>
+<tbody>
+<tr><td>Fix 1</td><td>partial</td><td>ux-friction</td><td>apply</td><td>medium</td><td>SKILL.md L183 — query frames are topic-only (<code>&lt;topic&gt; overview</code>, etc.); no practitioner / book naming step.</td></tr>
+<tr><td>Fix 3</td><td>no</td><td>bug</td><td>apply</td><td>small</td><td><code>reference/source-floor.md</code> L13–L28 hardcodes <code>count &lt; 4</code>; threshold is constant.</td></tr>
+<tr><td>Fix 5</td><td>partial</td><td>ux-friction</td><td>apply</td><td>medium</td><td>SKILL.md L156 — vagueness heuristic covers under-specified topics; no richness check for too-narrow topics.</td></tr>
+<tr><td>Fix 6</td><td>no</td><td>ux-friction</td><td>apply</td><td>small</td><td><code>reference/curator-lens.md</code> Phase-4 framing prompt L33–L46 — no worked-examples instruction.</td></tr>
+<tr><td>Fix 8</td><td>no</td><td>new-capability</td><td>apply</td><td>medium</td><td>SKILL.md L214 — explicit note: "a future <code>--depth</code> flag is a planned hook; not present in v1's argument-hint."</td></tr>
+</tbody>
+</table>
+
+<h2 id="disposition-log">Disposition log</h2>
+<table>
+<thead><tr><th>ID</th><th>Disposition</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>Fix 1</td><td>Apply as recommended</td><td>Practitioner+book naming step in Phase 2 + revised query generation per source doc §"Fix 1".</td></tr>
+<tr><td>Fix 2</td><td>Dropped (merged upstream)</td><td>Source doc merged Fix 2 into Fix 1.</td></tr>
+<tr><td>Fix 3</td><td>Apply as recommended</td><td>Scale source floor with depth tier (brief=6, standard=10, deep=15).</td></tr>
+<tr><td>Fix 4</td><td>Skip with reason</td><td>Out of scope per source doc: keeps /primer repo-agnostic. /rewrite is for prior-work starts.</td></tr>
+<tr><td>Fix 5</td><td>Apply as recommended</td><td>Extend Phase-1 vagueness heuristic with rich/thin/narrow-by-design classifier. No Phase-3 taxonomy.</td></tr>
+<tr><td>Fix 6</td><td>Apply as recommended</td><td>Add worked-examples instruction to curator-lens framing prompt + informational rubric field.</td></tr>
+<tr><td>Fix 7</td><td>Skip with reason</td><td>Source doc: Fix 1's practitioner queries naturally surface recent commentary.</td></tr>
+<tr><td>Fix 8</td><td>Apply as recommended</td><td>Three-tier depth (brief/standard/deep) + <code>--depth</code> + <code>.pmos/settings.yaml :: default_primer_depth</code> + first-run prompt.</td></tr>
+</tbody>
+</table>
+
+<h2 id="approved-changes-by-skill">Approved changes by skill</h2>
+<h3 id="pmos-learnkit-primer">pmos-learnkit:primer (5 fixes)</h3>
+<ol>
+  <li><strong>Fix 1 — Practitioner + book query generation (Phase 2).</strong> Edit location: <code>SKILL.md</code> Phase 2 strand-dispatch (~50 lines). New <code>practitioner_index</code> field in <code>sources.json</code>. Free-entry-only citation rule for books/courses.</li>
+  <li><strong>Fix 3 — Source floor scales with depth tier.</strong> Edit location: <code>SKILL.md</code> Phase 2 FR-5.2 + <code>reference/source-floor.md</code> §"Source floor = 4" → "Source floor by depth tier" (brief=6 / standard=10 / deep=15).</li>
+  <li><strong>Fix 5 — Topic-richness check at Phase 1 intake.</strong> Edit location: <code>SKILL.md</code> Phase 1 (~20 lines). Returns rich/thin/narrow-by-design. <code>thin</code> surfaces 2–3 broader reframings; <code>narrow-by-design</code> proceeds with flag.</li>
+  <li><strong>Fix 6 — Worked-examples drafting instruction (Phase 4).</strong> Edit location: <code>reference/curator-lens.md</code> §"Phase-4 framing prompt" + <code>SKILL.md</code> Phase 5 step 1 (reviewer output schema +<code>examples_per_h2_distribution</code>, informational only — no new check_id, no hard-block).</li>
+  <li><strong>Fix 8 — Three-tier depth + settings persistence.</strong> Edit location: <code>SKILL.md</code> Phase 0 (settings read) + Phase 0.5 (first-run prompt) + Phase 1 (flag parse) + Phase 4 (word target). New <code>default_primer_depth</code> field in <code>.pmos/settings.yaml</code> schema (documented in <code>_shared/pipeline-setup.md</code>).</li>
+</ol>
+
+<h2 id="per-skill-tier">Per-skill tier</h2>
+<table>
+<thead><tr><th>Skill</th><th>Approved changes</th><th>Tier estimate</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td>pmos-learnkit:primer</td><td>5</td><td><strong>Tier 2</strong></td><td>~150 lines of SKILL.md edits + 1 settings field + 1 reference-file edit + 1 curator-lens edit. No new phases, no new subagent dispatches, no new MCP tools. Cross-cutting touch across Phase 1 / Phase 2 / Phase 4 / Phase 5 plus 2 reference files. Larger than a Tier-1 bug fix; smaller than a Tier-3 architectural rewrite.</td></tr>
+</tbody>
+</table>
+
+<p><strong>Run tier (skill-feedback max-across):</strong> Tier 2.</p>
+
+<h2 id="hand-off">Hand-off to Phase 2 /requirements</h2>
+<p>Phase 2 will be seeded from <code>reference/seed-requirements-template.md</code> using the approved changes above plus a trimmed <code>SKILL.md</code> excerpt per fix. Combined output: a single <code>01_requirements.html</code> with one section per skill (here: one skill, one section). <code>reference/skill-patterns.md §A–§F</code> stands as the acceptance criteria.</p>
+
+  </main>
+  <script defer src="assets/comments.js?v=2.57.0"></script>
+</body>
+</html>

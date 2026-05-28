@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify — primer skill fixes</title>
+  <meta name="pmos:skill" content="verify">
+  <link rel="stylesheet" href="assets/style.css?v=2.57.0">
+</head>
+<body>
+  <main class="pmos-artifact-body">
+
+<h2 id="result">Result</h2>
+<p><strong>PASS</strong> — all gates clean. Branch ready for <code>/complete-dev</code>.</p>
+
+<h2 id="skill-eval-fresh">Skill-eval (fresh re-run per skill-mode /verify contract)</h2>
+<ul>
+  <li><strong>Deterministic [D]:</strong> 18/18 pass (exit 0). Same set as Phase 6a iteration 1; no drift.</li>
+  <li><strong>LLM-judge [J]:</strong> 15/15 pass. No new residuals.</li>
+  <li><strong>Accepted residuals from Phase 6a:</strong> 0. (Phase 6a iteration 1 was a clean pass.)</li>
+  <li><strong>Newly-failing residuals:</strong> 0.</li>
+  <li><strong>Previously-accepted now-passing:</strong> N/A (no residuals carried).</li>
+</ul>
+
+<h2 id="release-prereqs-grade">Detectable release-prereqs (best-effort, non-blocking)</h2>
+<table>
+<thead><tr><th>Check</th><th>Verdict</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Manifest sync (claude-plugin ↔ codex-plugin)</td><td>pass</td><td>both at <code>0.1.0</code> (in sync; to be bumped to <code>0.2.0</code> by /complete-dev)</td></tr>
+<tr><td>README row for primer</td><td>pass</td><td>primer already listed in README (1 reference); no row addition required (this is an enhancement, not a new skill)</td></tr>
+<tr><td>CHANGELOG entry presence</td><td>flagged</td><td>no <code>pmos-learnkit</code> entry exists yet (first release entry); /complete-dev will write the initial <code>pmos-learnkit/v0.2.0</code> entry</td></tr>
+<tr><td><code>~/.pmos/learnings.md</code> <code>## /primer</code> header</td><td>n/a</td><td>file-write deferred to /complete-dev per skill-patterns §G</td></tr>
+</tbody>
+</table>
+
+<h2 id="functional-smoke">Functional spot-checks</h2>
+<ul>
+  <li><strong>S1 — SKILL.md frontmatter parses.</strong> Verified: <code>head -6 SKILL.md</code> returns valid YAML; <code>name=primer</code>, <code>argument-hint</code> includes <code>--depth &lt;brief|standard|deep&gt;</code>.</li>
+  <li><strong>S2 — argument-hint matches body parsers.</strong> All 7 flags (audience/depth/format/autonomous/non-interactive/interactive + positional topic) are referenced in body prose.</li>
+  <li><strong>S3 — Reference files intact.</strong> Source-floor.md ToC updated to new heading; curator-lens.md worked-examples bullet inserted at right position; rubric.md R10 informational fields documented; pipeline-setup.md A.6 added.</li>
+  <li><strong>S4 — No reference→reference chains introduced.</strong> [D] check <code>c-references-one-level</code> passes.</li>
+  <li><strong>S5 — Spec FR traceability.</strong> Every FR in <code>02_spec.html</code> §"Implementation FRs" has a corresponding edit in the modified files; verify-grep table in <code>03_plan.html</code> §Wave-1/2 all pass.</li>
+</ul>
+
+<h2 id="spec-compliance">Spec FR coverage (S-FR-*)</h2>
+<table>
+<thead><tr><th>FR group</th><th>Count</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>S-FR-1.* (practitioner+book naming)</td><td>8</td><td>all implemented in Phase 2 Step 0 + strands restructure + source-floor.md schema</td></tr>
+<tr><td>S-FR-3.* (source floor by tier)</td><td>6</td><td>all implemented in source-floor.md § rewrite + Phase 2 gate</td></tr>
+<tr><td>S-FR-5.* (topic richness)</td><td>6</td><td>all implemented in Phase 1 richness step + Phase 3 narrow-by-design carve-out</td></tr>
+<tr><td>S-FR-6.* (worked examples)</td><td>4</td><td>all implemented in curator-lens.md insert + Phase 5 reviewer schema + step 7 gate note + curator-lens anti-pattern</td></tr>
+<tr><td>S-FR-8.* (depth tier + settings)</td><td>8</td><td>all implemented in frontmatter + Phase 0.5 first-run prompt + Phase 1 parser + Phase 4 tier table + Phase 5 step 15 lastrun + Phase 5 step 7 informational note</td></tr>
+<tr><td>S-FR-C.* (skill-patterns conformance)</td><td>7</td><td>all gated by skill-eval Phase 6a + verify re-run; all pass</td></tr>
+</tbody>
+</table>
+
+<h2 id="files-changed">Files changed</h2>
+<pre>M plugins/pmos-learnkit/skills/_shared/pipeline-setup.md       (+12 lines)
+M plugins/pmos-learnkit/skills/primer/SKILL.md                 (+104 lines, body 324→428)
+M plugins/pmos-learnkit/skills/primer/reference/curator-lens.md (+2 lines)
+M plugins/pmos-learnkit/skills/primer/reference/rubric.md      (+4 lines)
+M plugins/pmos-learnkit/skills/primer/reference/source-floor.md (~35 line net change: §rename + tier table + practitioner_index docs)</pre>
+
+<p>+1 new feature folder under <code>docs/pmos/features/2026-05-28_primer-skill-fixes/</code> (pipeline artifacts).</p>
+
+  </main>
+</body>
+</html>
