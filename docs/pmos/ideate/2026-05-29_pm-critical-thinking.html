@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="pm-critical-thinking">
+  <meta name="pmos:ideate-date" content="2026-05-29">
+  <title>PM Critical-Thinking Dojo — Ideation</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.0">
+  <script defer src="assets/viewer.js?v=2.60.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">PM Critical-Thinking Dojo</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p>A manually-triggered <strong>pmos-learnkit</strong> skill that runs a time-banded practice session in which a PM works through a <em>varied mix</em> of critical-thinking exercise shapes — each scoped to a real product-management problem domain, each carrying its own generation + evaluation spec — reasoning in their own words wherever possible, with feedback that grades the <em>reasoning moves</em> rather than the answer.</p>
+<p><strong>Recommendation:</strong> <strong>Go.</strong> Strong, well-scoped idea. The three differentiating bets are (1) grading reasoning-moves not answer-correctness, (2) a varied exercise-shape engine, (3) time-banded sessions sized to the user's available minutes. The two biggest risks — LLM grading reliability and scenario believability — are both cheaply testable before any real build.</p>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we give product managers a low-friction, repeatable way to <strong>practice</strong> and <strong>measurably improve</strong> critical thinking — sized to the minutes they have, scoped to problems they actually face, and forcing them to reason in their own words — without it feeling like homework?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> Product managers and product builders (IC to senior), and anyone who makes product judgment calls under ambiguity.</p>
+<p><strong>When / where:</strong> A spare 5–30 minutes — between meetings, commuting, or warming up before a real decision. Triggered manually inside a terminal/CLI session (often within a working repo).</p>
+<p><strong>JTBD:</strong> "When I've got a few spare minutes — or I'm staring at a hard product decision — help me sharpen my reasoning under ambiguity and show me I'm getting better, without it feeling like a test."</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe that <strong>a time-banded session of mixed, PM-scoped reasoning drills graded on critical-thinking moves (not answer correctness)</strong> will produce <strong>repeat voluntary practice and a rising, visible reasoning-quality / calibration score over sessions</strong> because <strong>PMs improve judgment through deliberate, varied reps with concrete feedback far faster than through passive reading, and a measurable signal sustains the habit</strong>.</p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via First Principles + Analogous Inspiration. Critical thinking decomposed into ~8 named PM muscles: surface assumptions · steelman alternatives · trace 2nd-order effects · evidence-vs-inference · falsifiability ("what would change your mind") · spot bias · reframe the question · causal reasoning. ★ = selected for the v1 exercise library (9 shapes, plus the mix-engine delivery).</p>
+<ol>
+<li>★ <strong>Scenario → pick &amp; defend</strong> — realistic PM dilemma + 3–4 defensible options; grade the <em>reasoning</em>, not the pick. (Seed.)</li>
+<li>★ <strong>Hard mode / open-response</strong> — no options; free-form decision + rationale, graded against a moves rubric.</li>
+<li>★ <strong>Assumption-hunt drill</strong> — show a confident memo; list the load-bearing assumptions + cheapest test for each.</li>
+<li><strong>Steelman-then-break</strong> — argue <em>for</em> a decision, then <em>against</em> it; kills first-idea anchoring. (Deferred to v2.)</li>
+<li><strong>Socratic interrogation</strong> — user states a position; skill asks one probing question at a time (practice-mode <code>/grill</code>). (Deferred to v2.)</li>
+<li>★ <strong>Calibration / forecasting</strong> — predict a probability + reasoning; track a <strong>Brier score</strong> over reps for objective improvement.</li>
+<li>★ <strong>Spot-the-bias gym</strong> — short reasoning snippet seeded with a fallacy (sunk cost, survivorship, confirmation); name the flaw.</li>
+<li>★ <strong>"What would change your mind?"</strong> — given a strong opinion, state the disconfirming evidence; trains falsifiability.</li>
+<li>★ <strong>Reframe-the-question</strong> — stakeholder says "build X"; reframe to the underlying problem before answering.</li>
+<li>★ <strong>Second-order consequence map</strong> — propose a change; trace 2nd/3rd-order effects; compare to a consequence tree.</li>
+<li><strong>Red-team a PRD</strong> — feed a flawed spec; find the reasoning gaps. Doubles as real-work practice. (Deferred to v2.)</li>
+<li>★ <strong>Daily-rep / time-banded session (delivery engine)</strong> — variable mix of the above, sized to the minutes the user picks.</li>
+<li>★ <strong>Bring-your-own-dilemma</strong> — paste a real decision you're stuck on; run the moves rubric live.</li>
+<li><strong>Decision-journal + retro loop</strong> — log a real call now with a prediction; structured retro later. Highest transfer.</li>
+<li><strong>Compare-to-expert trace</strong> — after answering, show how a pro reasoned. Learning by contrast (needs a corpus; v2).</li>
+</ol>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify: 11-star ladder</h2>
+<p>Brian Chesky's 11-star design exercise applied to the chosen finalist(s). The sweet spot (typically 7–8★) is the recommended reframe that feeds the pressure-test phase below; the original finalist is preserved alongside it.</p>
+<p><em>Skipped — user opted out at the Phase 2 gate (converged directly on a composite finalist). One ceiling-raising idea worth noting for later: adaptive difficulty that preferentially serves your <strong>weakest muscle</strong> and spaces repetition of past misses — folds the persistence/scorecard into the selection engine itself.</em></p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<ul>
+<li><strong>Surface:</strong> a Claude Code slash-command skill in <strong>pmos-learnkit</strong>, triggered manually (e.g. <code>/dojo</code> or <code>/critical-thinking</code>). Not app-like; persistence is a lightweight local scorecard, not a server.</li>
+<li><strong>Commitment band (first prompt, <code>AskUserQuestion</code>):</strong> Quick 5–10 min → 2–3 exercises · Standard 15–20 min → 4–5 · Deep ~30 min → 6–8 · Marathon 45 min+ → keep going until the user stops. Bands are proposed; user picks.</li>
+<li><strong>Mix engine:</strong> each session draws a <em>varied</em> set of exercise shapes from the v1 library (below); each shape is a spec with two halves — <em>how to generate the scenario</em> and <em>how to evaluate / probe the answer</em>. Rotation avoids repeating the same shape and weights toward under-practiced muscles.</li>
+<li><strong>v1 exercise library (9 shapes, user-selected):</strong>
+  <ul>
+    <li><em>Core loop</em> — Pick &amp; defend (MC via <code>AskUserQuestion</code> + own-words defense) · Hard mode (free-form open response) · Bring-your-own-dilemma (run the rubric on a real decision).</li>
+    <li><em>Targeted single-muscle drills</em> — Assumption-hunt · Spot-the-bias gym · "What would change your mind?" (falsifiability).</li>
+    <li><em>Analysis &amp; measurement</em> — Calibration / forecasting (accumulating Brier score = the objective progress signal) · Second-order consequence map · Reframe-the-question.</li>
+  </ul>
+  Deferred to v2 (need persistence/corpus, not selected): decision-journal + retro loop, compare-to-expert trace, Socratic interrogation, steelman-then-break, red-team-a-PRD.</li>
+<li><strong>Problem scope:</strong> PM / product-builder domains only — product design, prioritization &amp; tradeoffs, metrics &amp; experimentation, influence &amp; stakeholder management, strategy under ambiguity, GTM. Not "everything under the sun."</li>
+<li><strong>Reason in your own words:</strong> free-form answers are the default, with explicit instructions on the expected answer shape/length. <code>AskUserQuestion</code> is used only for genuinely multiple-choice shapes (pick-and-defend, spot-the-bias); when that tool is unavailable, fall back to numbered free-form prompts with clear instructions.</li>
+<li><strong>Repo-aware (don't force it):</strong> when run inside a repo, 1–2 exercises are generated from repo context <em>if</em> a clean product-decision framing is derivable; otherwise stay generic. Every session keeps at least 1–2 generic (non-repo) problems regardless.</li>
+<li><strong>Grading:</strong> feedback evaluates the <em>reasoning moves</em> (assumption surfaced? alternative steelmanned? 2nd-order effect traced? falsifiable claim stated?) and names what was <em>missing</em> — never just "great answer."</li>
+<li><strong>Progress signal:</strong> a per-session scorecard persisted locally (e.g. <code>~/.pmos/learnkit/</code>) tracks weakest muscle and accumulating calibration (Brier) over sessions — the visible "you're getting better" proof.</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td>Exponent / Lewis Lin PM interview prep</td><td>Practices PM case questions with example answers</td><td>Interview-shaped, human/static graded, one-off prep — not a repeatable, move-graded daily reasoning gym.</td></tr>
+<tr><td>Superforecasting / Good Judgment training</td><td>Brier-scored probability calibration on world events</td><td>We borrow calibration scoring but scope to PM scenarios and train multiple named muscles, not just forecasting.</td></tr>
+<tr><td>Chess.com puzzles / Duolingo</td><td>Rated, varied daily reps with streaks and adaptive difficulty</td><td>We borrow the habit + variety + rating engine; content is PM reasoning graded on structure, not a single correct move.</td></tr>
+<tr><td><code>/grill</code> (pmos-toolkit)</td><td>Adversarially interrogates <em>your committed plan</em>, one question at a time</td><td>Dojo interrogates synthetic/practice scenarios to <em>build</em> the muscle; /grill reviews a real artifact you've committed to.</td></tr>
+<tr><td>LeetCode</td><td>Auto-graded algorithmic problem drills</td><td>Same "rep + feedback" loop, but for PM judgment — graded on reasoning quality, not a deterministic correct output.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<p><em>It is 2027-05-29. This skill shipped 12 months ago and has failed. Why?</em></p>
+<table>
+<tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>The AI's grading is mushy praise — every answer gets "great reasoning!", so users learn nothing and churn after a few sessions.</td><td>H</td><td>Grade against a fixed per-shape <em>moves</em> rubric; require at least one concrete "you did NOT do X" critique per answer; never grade on the choice.</td></tr>
+<tr><td>Generated scenarios are generic "SaaS dashboard" pablum that no real PM finds believable, so engagement dies.</td><td>H</td><td>Curate a seed bank of PM problem archetypes per domain; generation riffs on archetypes (not a blank page); calibrate with worked examples in the spec.</td></tr>
+<tr><td>Stateless slash-command means no longitudinal "you improved" signal — the core motivation (measurable progress) is invisible.</td><td>H</td><td>Persist a per-session scorecard to <code>~/.pmos/learnkit/</code>; accumulate calibration + weakest-muscle trend across sessions.</td></tr>
+<tr><td>Free-form-everywhere makes a session feel like an exam; friction spikes and users bounce after one try.</td><td>M</td><td>Time-band sizing + interleave fast MC/spot-the-bias reps; cap each free-form answer at ~3 sentences; lead with low-stakes warm-ups.</td></tr>
+<tr><td>Repo-context generation misfires — pulls irrelevant code, feels forced, or surfaces sensitive detail.</td><td>M</td><td>Strict "only if a clean product-decision framing is derivable" gate; cap repo exercises at 1–2; never quote secrets; always keep generic problems too.</td></tr>
+<tr><td>The "mix it up" promise is unmet — the same 2 shapes appear every session.</td><td>M</td><td>Deterministic-with-rotation selector weighted to under-practiced shapes and difficulty; log shape history in the scorecard.</td></tr>
+</table>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>An LLM can reliably evaluate "critical-thinking moves" from a short free-form answer.</td><td>H</td><td>H</td><td>Hand-grade 10 sample answers against the rubric; compare to the LLM's grade; check agreement before building further.</td></tr>
+<tr><td>A finite bank of PM problem archetypes stays fresh enough across repeated sessions.</td><td>H</td><td>M</td><td>List the archetypes; have 2–3 PMs rate "would I hit an obvious repeat within 5 sessions?"</td></tr>
+<tr><td>PMs will actually reason in their own words rather than bounce to multiple-choice or quit.</td><td>H</td><td>M</td><td>Dry-run a 5-exercise session with 3 PMs; measure free-form completion rate.</td></tr>
+<tr><td>Repo context can be turned into a credible product-decision scenario often enough to justify the code path.</td><td>M</td><td>H</td><td>Run the generator against 5 real repos; count how many yield a clean, non-forced scenario.</td></tr>
+<tr><td>The time-band → exercise-count mapping matches real perceived effort.</td><td>M</td><td>M</td><td>Time 3 users through the "Standard / 4–5 exercises" set; compare actual minutes to the 15–20 min claim.</td></tr>
+<tr><td>Users value measurable progress enough to return for the scorecard.</td><td>M</td><td>L</td><td>Stated directly in the seed; low uncertainty — confirm with the same dry-run group.</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> session completion rate; share of answers given free-form vs. multiple-choice; repeat sessions within a week; actual exercises completed vs. the chosen band.</p>
+<p><strong>Lagging:</strong> calibration (Brier) score improving across sessions; per-muscle scores rising, especially the weakest; self-reported transfer ("I used a move from the dojo in a real decision").</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li>De-risk the load-bearing assumption first: hand-grade ~10 sample answers vs. a draft moves-rubric to confirm LLM grading agreement before committing to auto-grade.</li>
+<li>Draft the exercise-shape library spec for the <strong>9 selected v1 shapes</strong> (pick-and-defend, hard-mode open, bring-your-own, assumption-hunt, spot-the-bias, what-would-change-your-mind, calibration, second-order consequence map, reframe-the-question), each with a <em>generate</em> half and an <em>evaluate/probe</em> half. Defer Socratic, steelman, red-team-a-PRD, decision-journal, compare-to-expert to v2.</li>
+<li>Write the PM problem-archetype seed bank per domain (product design, prioritization, metrics, influence, strategy, GTM).</li>
+<li>Decide v1 scope for persistence (scorecard format + cross-session tracking) and the repo-context guardrails.</li>
+<li>Author the skill through the pipeline once shape is settled.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/feature-sdlc skill build a PM critical-thinking practice dojo for pmos-learnkit</code> — authors the skill end-to-end through requirements → spec → plan → execute → skill-eval → verify (recommended; this is a skill).</li>
+<li><code>/requirements pm-critical-thinking</code> — if you want to shape requirements manually first.</li>
+<li><code>/backlog add</code> — park it with this brief attached if not building now.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-05-29_pm-critical-thinking.html</code> — polish this brief before sharing.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Scorecard persistence: location/format (<code>~/.pmos/learnkit/</code>?), and is cross-session muscle/calibration tracking v1 or v2?</li>
+<li>Exact time-band → exercise-count mapping (needs a real timing test).</li>
+<li><s>Which exercise shapes ship in v1?</s> Decided: 9 shapes (3 core + 3 targeted + 3 analysis); meta-loops &amp; dialogue shapes deferred to v2.</li>
+<li>How is the PM problem-archetype bank sourced — hand-written, generated-and-reviewed, or seeded from real PM cases?</li>
+<li>Repo-context: which signals (README, recent commits, docs, issue titles) drive scenario generation, and what's the privacy/secrets guardrail?</li>
+<li>Skill name: <code>/dojo</code>, <code>/critical-thinking</code>, <code>/think</code>, or <code>/practice</code>?</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/ideate/2026-05-29_pm-critical-thinking.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
