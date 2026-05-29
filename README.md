@@ -31,6 +31,7 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | Skill | What it does |
 |---|---|
 | `/primer <topic>` | Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted with inline SVG diagrams where a visual aids comprehension, and self-evaluated into a single teachable artifact. Use before a meeting, a scope, or a doc review when you need citations you can trust. |
+| `/critical-thinking [quick\|standard\|deep\|marathon]` | Runs a low-friction, time-boxed critical-thinking practice session for PMs — a varied mix of reasoning exercises (pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing) generated fresh at runtime, graded on reasoning moves rather than the answer, with an accumulating per-muscle + calibration scorecard. Standalone; optionally pulls scenarios from the current repo (`--no-repo` to disable). |
 
 ## What do you want to do?
 

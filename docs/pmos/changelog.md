@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-05-29 — pmos-learnkit 0.6.0: `/critical-thinking` — PM reasoning practice
+
+New `/critical-thinking` skill: a low-friction, time-boxed practice session that drills the reasoning muscles product managers actually use. Each session generates a varied mix of PM-scoped exercises **fresh at runtime** — pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing, and more — across six PM domains (product design, prioritization/tradeoffs, metrics/experimentation, influence/stakeholder, strategy-under-ambiguity, GTM). There is no static scenario bank; every session is new.
+
+Exercises are **graded on reasoning moves, not the answer** — the grader names the moves you made well and always surfaces at least one gap (no pure praise). An accumulating scorecard tracks per-muscle performance plus calibration (Brier score) across sessions, persisted as a JSON file so you can watch yourself improve. Pick a time band — `quick` (2–3 exercises), `standard` (4–5), `deep` (6–8), or `marathon` (uncapped, "another? / wrap up" every ~3).
+
+The skill is standalone but can optionally pull scenarios from the current repo: if a `README` exists it frames product-decision scenarios from it; if not, it offers to study the code and propose a reusable `README.md`. Pass `--no-repo` to keep every exercise generic. Repo exercises are capped at 2 per session and never echo secrets.
+
+**Why**
+
+PM judgment is a practiced skill, but most "practice" is incidental and unscored. A repeatable drill that grades *how you reason* (not whether you picked the "right" option) and tracks calibration over time turns reasoning into something you can deliberately train.
+
 ## 2026-05-29 — pmos-learnkit 0.5.0: `/primer` sources tweets + LinkedIn posts
 
 `/primer` Phase 2 (Research) gains a fourth, social-primary strand: tweets/threads and LinkedIn posts are now valid **primary** sources when a framework or observation lives only there. Discovery is active+bounded — deliberate `site:x.com` / `site:linkedin.com` qualifier searches (≤2 topic-level + ≤1 per named practitioner) plus routing any social URL that surfaces from the existing strands through the same path. Fetching uses a free ladder, never the paid X API and never a bare `x.com` URL (the login wall returns an empty body): single tweet → `api.fxtwitter.com/<user>/status/<id>`; thread → `threadreaderapp.com/thread/<root-id>.html` (with a fxtwitter self-reply walk when not unrolled); LinkedIn → direct fetch → `r.jina.ai` reader fallback; Playwright MCP is last-resort only.
