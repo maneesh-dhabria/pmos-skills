@@ -12,11 +12,12 @@ Phase-2 (Research) of `/primer` must accumulate enough usable sources before a d
 
 ## Source floor by depth tier
 
-Phase 2 dispatches up to three source-discovery strands in parallel:
+Phase 2 dispatches up to four source-discovery strands in parallel:
 
 - **(a) Primary practitioner+book strand** — for each named practitioner from the Phase-2 Step-0 naming step, queries `<practitioner> <topic>`. For each named book/course, queries `<book title> free entry point` and `<author> <topic>` (targets: First Round Review, Lenny, podcast transcripts, author blogs, publisher excerpts).
 - **(b) Secondary topic-frame strand** — `WebFetch` against 6–10 candidate URLs derived from topic frames (`<topic> overview`, `<topic> best practices`, etc.). Demoted relative to strand (a): its sources count toward the floor ONLY AFTER strand (a) settles. No early short-circuit on strand (b).
 - **(c) Context7 strand** — `context7:resolve-library-id` (library/framework docs lookup). Unchanged.
+- **(d) Social-primary strand** — tweets/threads and LinkedIn posts as **primary** sources when a framework or observation lives only there; active+bounded `site:x.com` / `site:linkedin.com` discovery, fetched via the free ladder (fxtwitter / threadreaderapp / r.jina.ai), cited at the original canonical URL. Full protocol in `reference/social-sourcing.md`. Social sources count toward the floor like any other usable source.
 
 **Short-circuit rule.** Strand (a) or strand (c) returning ≥3 usable sources before strand (b) settles does NOT short-circuit strand (b) when the resolved depth tier is `deep` — at deep tier the secondary strand always runs to completion. At `brief` / `standard`, the short-circuit rule applies as before to bound latency.
 
@@ -25,6 +26,8 @@ Phase 2 dispatches up to three source-discovery strands in parallel:
 1. URL fetched successfully (HTTP 2xx, no fetch error).
 2. Response body > 500 chars of non-boilerplate text (strip nav/footer/cookie-banner chrome before measuring).
 3. Semantically on-topic — the orchestrator judges this against the resolved topic string; off-topic SEO pages and tangential hits are rejected.
+
+For **social** sources (strand (d)), the >500-char body is measured against the unrolled thread / full post text retrieved via the ladder, and the stored `takeaway` is always a **paraphrase** — never the verbatim post body (see `reference/social-sourcing.md` §Citation discipline).
 
 **Depth-tier floor table.** The threshold the gate compares against is depth-tier-dependent — read the resolved depth from `state.depth` (set by /primer Phase 0 resolution per S-FR-8.1):
 
@@ -83,7 +86,7 @@ Verbatim from FR-5.3:
       "byte_size": <int>,
       "takeaway": "<1-2 sentence summary the draft can cite>",
       "tier": "primary" | "secondary",
-      "source_strand": "practitioner" | "topic-frame" | "context7"
+      "source_strand": "practitioner" | "topic-frame" | "context7" | "social"
     }
   ],
   "rejected": [
@@ -92,7 +95,7 @@ Verbatim from FR-5.3:
 }
 ```
 
-**`practitioner_index` field semantics (new in v0.2.0).** The Phase-2 Step-0 practitioner+book naming step writes this array. Each entry that ended with zero usable resolved sources has `dropped: true` and is excluded from citations — its name MUST NOT appear in the draft prose or in any `<a href>` attribution. Dropped entries are RETAINED in the array (not removed) for audit, with their `queries_dispatched` preserved so the OQ-buffer log entry (`reason: practitioner-unresolved`) is reproducible. The `source_strand` field on each accepted source records which strand surfaced it — primary (`practitioner`), secondary (`topic-frame`), or `context7`.
+**`practitioner_index` field semantics (new in v0.2.0).** The Phase-2 Step-0 practitioner+book naming step writes this array. Each entry that ended with zero usable resolved sources has `dropped: true` and is excluded from citations — its name MUST NOT appear in the draft prose or in any `<a href>` attribution. Dropped entries are RETAINED in the array (not removed) for audit, with their `queries_dispatched` preserved so the OQ-buffer log entry (`reason: practitioner-unresolved`) is reproducible. The `source_strand` field on each accepted source records which strand surfaced it — primary (`practitioner`), secondary (`topic-frame`), `context7`, or `social` (tweets/threads/LinkedIn posts fetched via the ladder in `reference/social-sourcing.md`).
 
 **Location and write semantics.** The file lives at `{docs_path}/primer/{date}_{slug}.sources.json` and is written atomically alongside the HTML artifact (write to temp path, then rename).
 

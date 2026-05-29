@@ -18,6 +18,7 @@ These instructions use Claude Code tool names. In other environments:
 - **No `Task` subagent:** Research, drafting, and eval phases run inline in the host conversation; the try-both research pattern in Phase 2 collapses to a single sequential pass (web search first, then context7 if available).
 - **No `WebFetch`:** Phase 2 research falls back to context7 MCP (if available) plus any user-supplied URLs/snippets pasted into the conversation; surface the degraded-source warning in the eval phase (see `reference/source-floor.md` §WebFetch unavailable).
 - **No `context7` MCP:** Phase 2 research falls back to `WebFetch` plus user-supplied material; if neither is available, refuse with a clear message naming the missing tools and exit 64.
+- **No Playwright MCP:** The Phase-2 social-primary strand (`reference/social-sourcing.md`) loses only its **last-resort** rung (un-unrolled X threads; member-only LinkedIn posts). The free fetch ladder (fxtwitter, threadreaderapp, r.jina.ai) runs over `WebFetch` and is unaffected; social candidates that need Playwright are dropped silently rather than blocking the run.
 
 ## Track Progress
 
@@ -224,7 +225,7 @@ This prompt has a `(Recommended)` option (no `defer-only` tag needed); under non
 
 See `reference/audience-presets.md` for the full per-preset required-sections / vocab posture / closing-shape contract that downstream phases consume.
 
-## Phase 2: Research (three-strand)
+## Phase 2: Research (four-strand)
 
 **Step 0 — Practitioner+book naming (S-FR-1.1).** BEFORE any URL generation, run a single orchestrator-side LLM step. Prompt verbatim:
 
@@ -247,7 +248,7 @@ author) as the name; put the author in why_canonical.
 
 Validate the returned array: length 9–15 (6–10 practitioners + 3–5 books); each item has all 3 fields; `kind ∈ {practitioner, book, course}`. On validation failure → retry naming once. On second failure → log warning to chat and proceed with an empty `practitioner_index` (degrades gracefully to topic-frame-only behavior). Persist the validated array into in-memory `sources.json.practitioner_index` with each entry's `queries_dispatched` / `usable_source_count` / `dropped` fields initialized empty/0/false.
 
-**Strand dispatch (three strands in parallel).**
+**Strand dispatch (four strands in parallel).**
 
 - **(a) Primary practitioner strand.** For each `practitioner_index[i]`:
   - `kind == "practitioner"` → dispatch `WebFetch` query `"<name> <topic>"`.
@@ -255,10 +256,11 @@ Validate the returned array: length 9–15 (6–10 practitioners + 3–5 books);
   Capture `queries_dispatched` per entry. After each query, increment `practitioner_index[i].usable_source_count` for every usable result that resolves.
 - **(b) Secondary topic-frame strand (existing, demoted).** LLM-generate 6–10 candidate URLs by combining the topic with frames (`<topic> overview`, `<topic> best practices`, `<topic> architecture`, `<topic> tradeoffs`). Dispatch `WebFetch` against each. **Demotion rule:** strand (b) sources count toward the source-floor ONLY AFTER strand (a) settles — no early short-circuit on strand (b).
 - **(c) Context7 strand.** Call `mcp__plugin_context7_context7__resolve-library-id` with the topic verbatim. For each library match returned, follow up with `mcp__plugin_context7_context7__query-docs` to capture per-library takeaways. Unchanged from prior behavior.
+- **(d) Social-primary strand (S-FR-SOC).** Tweets/threads and LinkedIn posts are valid **primary** sources when a framework or observation lives only there. **Read `reference/social-sourcing.md` and follow it** — it carries the free fetch ladder (fxtwitter / threadreaderapp / r.jina.ai; Playwright last-resort), the never-do rules (no paid X API, no bare `x.com` fetch), and the citation discipline (cite the canonical post URL, paraphrase-only, LinkedIn body-only with year-resolved dates). Discovery is **active + bounded**: ≤2 topic-level `site:x.com`/`site:linkedin.com` qualifier searches + ≤1 per named practitioner from Step 0, plus any social URL surfaced by strand (a)/(b) routed through the same ladder; at `--depth deep` the social searches run to completion, at brief/standard they obey the same short-circuit/bounding as the other strands. Each accepted social source records `tier: "primary"`, `source_strand: "social"`.
 
-Each accepted source records `source_strand ∈ {practitioner, topic-frame, context7}` per `reference/source-floor.md` §"sources.json schema".
+Each accepted source records `source_strand ∈ {practitioner, topic-frame, context7, social}` per `reference/source-floor.md` §"sources.json schema".
 
-**Drop-silently rule (S-FR-1.6).** After all three strands settle, for each `practitioner_index[i]` where `usable_source_count == 0`: set `dropped: true`; the entry remains in `practitioner_index` for audit but its name MUST NOT appear in any citation or prose attribution. Append one OQ-buffer entry per dropped practitioner: `{phase: "research", reason: "practitioner-unresolved", practitioner: "<name>"}`.
+**Drop-silently rule (S-FR-1.6).** After all strands settle, for each `practitioner_index[i]` where `usable_source_count == 0`: set `dropped: true`; the entry remains in `practitioner_index` for audit but its name MUST NOT appear in any citation or prose attribution. Append one OQ-buffer entry per dropped practitioner: `{phase: "research", reason: "practitioner-unresolved", practitioner: "<name>"}`.
 
 **Citation rule for books/paid courses (S-FR-1.8).** Books and paid courses are cited with the **free entry point URL** (e.g., First Round Review for *Monetizing Innovation*, podcast transcript URL for paid books) as the `<a href>` value. The book/course itself is attributed in prose ("Ramanujam, *Monetizing Innovation* (Wiley, 2016)"). No paid landing-page URLs in citations. The free-entry URL MUST appear as a verbatim entry in `sources[].url` for the R1 (cites-real-urls) reviewer check to pass.
 
@@ -423,6 +425,9 @@ The substantive phase. Execute in order.
 - Do NOT force a diagram into every section. Inline SVG diagrams are an affordance for sections with a structural shape (loop, comparison, hierarchy, sequence, state machine, 2×2); using them as decoration or to displace citation density violates the Phase 4 framing (FR-D05). One well-chosen diagram saves a paragraph; a forced diagram is visual padding. The Phase-5 reviewer's R10 informational `diagrams_per_h2_distribution` lets the orchestrator observe drafter behavior over time, but the load-bearing prevention is the drafter picking diagrams that earn their place.
 - Do NOT invent practitioners or canonical books in Phase 2 Step 0. When a named practitioner's queries return zero usable sources, drop silently per the Phase-2 drop-silently rule and log to OQ buffer — letting the name surface in citations or prose is the worst-case failure mode (fabricated authority is a trust violation worse than thin sourcing).
 - Do NOT silently skip the Phase-1 topic-richness check on the assumption "the user knows their topic". `narrow-by-design` is a real outcome that downstream Phase-3 outline gen consumes; skipping the check makes a thin primer indistinguishable from a deliberately shape-different one.
+- Do NOT fetch tweets via the paid X API or a bare `x.com` / `twitter.com` `WebFetch` — the login wall returns an empty body and the API is paid. Use the free ladder in `reference/social-sourcing.md` (fxtwitter → threadreaderapp → self-reply walk) for every tweet/thread.
+- Do NOT reproduce tweet or LinkedIn post text verbatim in the draft — always paraphrase into the `takeaway` and cite the source. Verbatim social text is a trust-tier (rubric R2 `no-plagiarism`) violation just like lifting blog prose.
+- Do NOT cite the fetch-proxy URL (`api.fxtwitter.com`, `threadreaderapp.com`, `r.jina.ai`) for a social source — cite the original canonical post URL (`x.com/<user>/status/<id>` or the LinkedIn post URL). The proxy is a fetch mechanism only; citing it breaks the human-clickable link and the R1 trust contract.
 
 ## Worked example
 
