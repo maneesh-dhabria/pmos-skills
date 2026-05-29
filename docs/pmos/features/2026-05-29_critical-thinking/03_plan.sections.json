@@ -1,0 +1,38 @@
+[
+  {
+    "id": "plan-meta",
+    "level": 2,
+    "title": "Plan metadata",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — Foundation (independent)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — Exercise library (depends on T3, T4)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — The skill body (depends on T1–T5)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — Integration + self-check (depends on T6)",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites (NOT plan tasks — /complete-dev Phase 8 only)",
+    "parent_id": null
+  }
+]

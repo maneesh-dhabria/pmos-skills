@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="grill">
+  <title>/critical-thinking — Grill (resolved decisions)</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.60.0">
+  <script defer src="../assets/viewer.js?v=2.60.0"></script>
+</head>
+<body>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+<section id="resolved-decisions">
+<h2 id="resolved-decisions">Resolved decisions (grill of 01_requirements)</h2>
+<p>Focused grill on the four spec-blocking open questions (the idea itself was pressure-tested in /ideate: premortem + inversion + assumption-map). All four resolved by the user.</p>
+<table>
+<tr><th>#</th><th>Decision point</th><th>Resolution</th></tr>
+<tr><td>D1</td><td>Scorecard persistence + Brier math</td><td><strong>JSON + <code>scripts/scorecard.js</code></strong> — file at <code>~/.pmos/learnkit/critical-thinking/scorecard.json</code>; node-stdlib helper does atomic read/update + Brier. Deterministic, testable (§E).</td></tr>
+<tr><td>D2</td><td>Marathon band behaviour</td><td><strong>Uncapped</strong> — keep serving; "another? / wrap up" prompt every ~3 exercises; user stops when done.</td></tr>
+<tr><td>D3</td><td>Repo-context signals + secrets guardrail</td><td><strong>README-or-propose</strong> — use <code>README*</code> if present; else study the code and propose a reusable <code>README.md</code> for this + future sessions; skip if no clean framing derivable; never echo tokens/keys/.env; cap 2 repo exercises; ≥1–2 generic always.</td></tr>
+<tr><td>D4</td><td>Scenario-generation sourcing</td><td><strong>Runtime generation only</strong> — no static bank; each scenario is invented fresh at runtime from the chosen shape + one of the six PM domains (varies actors/constraints), with domain rotation across the session. (Reversed from the original hand-written-bank answer.)</td></tr>
+</table>
+<p>These feed /spec directly — D1 → scorecard schema + script contract; D2 → band table; D3 → repo-context phase + guardrail; D4 → runtime scenario-generation contract.</p>
+</section>
+  </main>
+</body>
+</html>

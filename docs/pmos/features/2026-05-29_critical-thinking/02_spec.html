@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>/critical-thinking — Technical Spec</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.0">
+  <script defer src="assets/viewer.js?v=2.60.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/critical-thinking — Technical Spec (Tier 3)</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p>A standalone, manually-triggered pmos-learnkit skill that runs a time-banded critical-thinking practice session for PMs: a varied mix of PM-scoped exercise shapes, own-words reasoning graded on <em>moves</em>, a calibration/per-muscle scorecard that accumulates across sessions, and optional repo-contextual scenarios. Builds on requirements <a href="01_requirements.html">01_requirements</a> + grill decisions D1–D4.</p>
+</section>
+
+<section id="file-layout">
+<h2 id="file-layout">File layout</h2>
+<pre>plugins/pmos-learnkit/skills/critical-thinking/
+  SKILL.md                         # control flow (lean; §C progressive disclosure)
+  reference/
+    exercise-shapes.md             # the 9 v1 shapes: generation half + evaluation half each
+    grading-rubrics.md             # the named critical-thinking "moves" + per-shape rubric mapping
+    scorecard-schema.md            # scorecard.json schema + Brier definition (D1)
+  scripts/
+    scorecard.js                   # node-stdlib: read/update/summarise + Brier (D1, §E)
+  tests/
+    scorecard.test.js              # unit tests for the helper
+</pre>
+</section>
+
+<section id="skill-phases">
+<h2 id="skill-phases">SKILL.md phase structure</h2>
+<ol>
+<li><strong>Announce + Phase 0 Setup</strong> — announce; resolve repo context (in-repo? derive signals per FR-8); load scorecard via <code>scripts/scorecard.js read</code> (seed if absent). No workstream load.</li>
+<li><strong>Phase 1 — Commitment band</strong> (<code>AskUserQuestion</code>, hard input): 4 bands → exercise count (FR-2).</li>
+<li><strong>Phase 2 — Plan the mix</strong>: mix-engine selects the session's shapes (FR-4) weighted by under-practiced muscles from the scorecard; assigns each a PM domain (FR-5); marks which 1–2 are repo-contextual when eligible (FR-8).
+<li><strong>Phase 3 — Run exercises (loop)</strong>: per exercise — generate scenario fresh at runtime from the assigned domain (or repo) → present with explicit answer instructions → capture own-words answer (or MC via <code>AskUserQuestion</code>) → grade on moves (FR-7) naming ≥1 gap → for calibration, log prediction/outcome. Marathon: "another? / wrap up" every ~3 (D2).</li>
+<li><strong>Phase 4 — Session summary + scorecard update</strong>: muscles practiced, per-muscle takeaways, weakest muscle, calibration (Brier) trend, streak; persist via <code>scripts/scorecard.js update</code> (FR-10/11).</li>
+<li><strong>Phase 5 — Capture Learnings</strong> (FR-13).</li>
+<li><strong>Anti-Patterns (DO NOT)</strong> (FR-14).</li>
+<li><strong>Platform Adaptation</strong> (FR-12).</li>
+</ol>
+</section>
+
+<section id="band-table">
+<h2 id="band-table">Time-band table (FR-2)</h2>
+<table>
+<tr><th>Band</th><th>Minutes</th><th>Exercises</th></tr>
+<tr><td>Quick</td><td>5–10</td><td>2–3</td></tr>
+<tr><td>Standard</td><td>15–20</td><td>4–5</td></tr>
+<tr><td>Deep</td><td>~30</td><td>6–8</td></tr>
+<tr><td>Marathon</td><td>45+</td><td>uncapped; "another? / wrap up" every ~3 (D2)</td></tr>
+</table>
+</section>
+
+<section id="exercise-shapes">
+<h2 id="exercise-shapes">Exercise-shape contract (reference/exercise-shapes.md)</h2>
+<p>Each of the 9 shapes is specified with a fixed two-part schema: <strong>Generate</strong> (how to construct the scenario; inputs: domain or repo context; output: prompt + explicit answer instructions + input mode free-form|MC) and <strong>Evaluate</strong> (the named moves to check; the probe/follow-up if a move is missing; what "good" looks like; the muscle(s) it scores). v1 shapes:</p>
+<table>
+<tr><th>Group</th><th>Shape</th><th>Input mode</th><th>Primary muscle(s)</th></tr>
+<tr><td>Core</td><td>pick-and-defend</td><td>MC + own-words defense</td><td>alternatives, assumptions</td></tr>
+<tr><td>Core</td><td>hard-mode open response</td><td>free-form</td><td>all moves (full rubric)</td></tr>
+<tr><td>Core</td><td>bring-your-own-dilemma</td><td>free-form (user-supplied)</td><td>all moves on a real decision</td></tr>
+<tr><td>Targeted</td><td>assumption-hunt</td><td>free-form list</td><td>surface assumptions</td></tr>
+<tr><td>Targeted</td><td>spot-the-bias</td><td>MC</td><td>spot bias</td></tr>
+<tr><td>Targeted</td><td>what-would-change-your-mind</td><td>free-form</td><td>falsifiability</td></tr>
+<tr><td>Analysis</td><td>calibration/forecasting</td><td>probability + reasoning</td><td>evidence-vs-inference; feeds Brier (FR-9)</td></tr>
+<tr><td>Analysis</td><td>second-order consequence map</td><td>free-form</td><td>2nd-order effects, causal reasoning</td></tr>
+<tr><td>Analysis</td><td>reframe-the-question</td><td>free-form</td><td>problem-framing</td></tr>
+</table>
+</section>
+
+<section id="grading">
+<h2 id="grading">Move-based grading (reference/grading-rubrics.md)</h2>
+<p>The 8 named moves: surface assumptions · steelman alternatives · trace 2nd-order effects · separate evidence from inference · state falsifiability ("what would change your mind") · spot bias · reframe the question · causal reasoning. Each shape's Evaluate half maps to a subset. Grading rule (FR-7): score the <em>presence/quality of moves</em>, never the chosen option; output a short verdict that MUST name ≥1 missing/weak move and one concrete way to strengthen it. No pure praise.</p>
+</section>
+
+<section id="scenario-generation">
+<h2 id="scenario-generation">Runtime scenario generation (D4)</h2>
+<p>Scenarios are generated fresh at runtime — there is no static template bank. For each exercise the skill invents a believable PM dilemma on the spot from the chosen shape + one of the six PM domains (product design, prioritization/tradeoffs, metrics/experimentation, influence/stakeholder, strategy-under-ambiguity, GTM), varying actors, constraint, and metric so no two sessions repeat. The mix engine rotates domains across the session (mirrors FR-4). (Decision D4 reversed the original "hand-written template bank" plan — the user wanted fresh runtime generation only.)</p>
+</section>
+
+<section id="repo-context">
+<h2 id="repo-context">Repo-context detection — README-or-propose (FR-8, D3)</h2>
+<p>Framing source is <strong>README-or-propose</strong> (read-only): if a <code>README*</code> exists, derive the product-decision framing from it; if none exists, study the codebase and <strong>propose a reusable <code>README.md</code></strong> (offer to write it) for this and future sessions. Hard rules: cap at 2 repo exercises/session; ≥1–2 generic always; never echo tokens/keys/credentials/.env contents; if no clean product-decision framing emerges (and no README can sensibly be proposed), all exercises are generic. (D3 reversed the original "README + docs/ headings + commit subjects" approach.)</p>
+</section>
+
+<section id="scorecard">
+<h2 id="scorecard">Scorecard + scripts/scorecard.js (FR-9/10, D1)</h2>
+<p><strong>File:</strong> <code>~/.pmos/learnkit/critical-thinking/scorecard.json</code> (created on first run).</p>
+<p><strong>Schema (scorecard-schema.md):</strong></p>
+<pre>{
+  "version": 1,
+  "sessions": [{ "date": "&lt;ISO&gt;", "band": "&lt;band&gt;", "shapes": ["..."], "muscles_practiced": {"&lt;muscle&gt;": &lt;count&gt;} }],
+  "muscle_scores": { "&lt;muscle&gt;": { "seen": &lt;n&gt;, "strong": &lt;n&gt; } },
+  "calibration": { "predictions": [{ "p": 0.7, "outcome": 0|1 }], "brier": &lt;float&gt; },
+  "streak": { "last_session_date": "&lt;ISO&gt;", "count": &lt;n&gt; }
+}</pre>
+<p><strong>CLI contract (node stdlib only; §E):</strong></p>
+<ul>
+<li><code>node scorecard.js read</code> → prints current scorecard JSON (seeds + prints empty if absent).</li>
+<li><code>node scorecard.js update &lt;session.json&gt;</code> → atomic temp-then-rename merge of a session delta; recomputes Brier = mean((p − outcome)²); updates streak; prints the updated rollup.</li>
+<li><code>node scorecard.js summary</code> → weakest muscle + Brier + streak (for Phase 4).</li>
+<li>Degradation (§E): if node is unavailable, the skill body falls back to reading/writing the JSON itself and computing Brier inline, logging a one-line note. Missing/corrupt file → reseed with a warning, never crash.</li>
+</ul>
+</section>
+
+<section id="mix-engine">
+<h2 id="mix-engine">Mix-engine selection (FR-4)</h2>
+<p>Deterministic-with-rotation: (1) rank muscles ascending by <code>muscle_scores.strong/seen</code> (under-practiced first; unseen = top priority); (2) pick shapes covering the top muscles for the band's count; (3) never repeat a shape until the pool is exhausted; (4) no two consecutive exercises share a shape; (5) tie-break by least-recently-used shape from <code>sessions[].shapes</code>. First-ever session (empty scorecard) → spread across all three groups.</p>
+</section>
+
+<section id="testing">
+<h2 id="testing">Testing strategy</h2>
+<ul>
+<li><code>tests/scorecard.test.js</code> — unit tests: seed-on-absent, atomic update merge, Brier math (known vectors), streak increment/reset, corrupt-file reseed. Run with <code>node tests/scorecard.test.js</code> (stdlib assert).</li>
+<li>Static skill checks via the skill-eval rubric (§A–§F): name-matches-dir, ≥5 triggers, reference files cited, Platform Adaptation present, Anti-Patterns present, scripts degrade.</li>
+<li>Manual smoke: run <code>/critical-thinking</code> in a repo and in a non-repo dir; verify band selection, a free-form grade names a gap, calibration logs, summary + scorecard write.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites (for /complete-dev — NOT plan tasks)</h2>
+<ul>
+<li>Bump BOTH <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> 0.5.0 → 0.6.0 (minor; new skill), in sync, one commit.</li>
+<li>Add a <code>/critical-thinking</code> row to <code>plugins/pmos-learnkit/README.md</code>.</li>
+<li>Changelog entry; no <code>marketplace.json</code> version field (per repo CLAUDE.md).</li>
+<li><code>~/.pmos/learnings.md</code> <code>## /critical-thinking</code> header bootstrap (idempotent).</li>
+</ul>
+</section>
+
+<section id="verification-plan">
+<h2 id="verification-plan">Verification plan</h2>
+<ul>
+<li>Skill registers: <code>ls plugins/pmos-learnkit/skills/</code> shows <code>critical-thinking</code>; frontmatter name matches dir.</li>
+<li>skill-eval rubric passes (binary, §A–§F) — Phase 6a + re-run in /verify.</li>
+<li><code>node tests/scorecard.test.js</code> exits 0.</li>
+<li>All 9 shapes present with both halves; band table, grading rule, repo guardrail, calibration, scorecard all in body/reference.</li>
+<li>Manual smoke in repo + non-repo.</li>
+</ul>
+</section>
+
+  </main>
+</body>
+</html>

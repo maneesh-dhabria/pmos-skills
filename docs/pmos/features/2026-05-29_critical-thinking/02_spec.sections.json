@@ -1,0 +1,80 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "file-layout",
+    "level": 2,
+    "title": "File layout",
+    "parent_id": null
+  },
+  {
+    "id": "skill-phases",
+    "level": 2,
+    "title": "SKILL.md phase structure",
+    "parent_id": null
+  },
+  {
+    "id": "band-table",
+    "level": 2,
+    "title": "Time-band table (FR-2)",
+    "parent_id": null
+  },
+  {
+    "id": "exercise-shapes",
+    "level": 2,
+    "title": "Exercise-shape contract (reference/exercise-shapes.md)",
+    "parent_id": null
+  },
+  {
+    "id": "grading",
+    "level": 2,
+    "title": "Move-based grading (reference/grading-rubrics.md)",
+    "parent_id": null
+  },
+  {
+    "id": "scenario-generation",
+    "level": 2,
+    "title": "Runtime scenario generation (D4)",
+    "parent_id": null
+  },
+  {
+    "id": "repo-context",
+    "level": 2,
+    "title": "Repo-context detection (FR-8, D3)",
+    "parent_id": null
+  },
+  {
+    "id": "scorecard",
+    "level": 2,
+    "title": "Scorecard + scripts/scorecard.js (FR-9/10, D1)",
+    "parent_id": null
+  },
+  {
+    "id": "mix-engine",
+    "level": 2,
+    "title": "Mix-engine selection (FR-4)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites (for /complete-dev — NOT plan tasks)",
+    "parent_id": null
+  },
+  {
+    "id": "verification-plan",
+    "level": 2,
+    "title": "Verification plan",
+    "parent_id": null
+  }
+]

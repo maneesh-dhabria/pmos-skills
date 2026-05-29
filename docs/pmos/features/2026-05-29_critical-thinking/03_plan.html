@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <meta name="pmos:execution-mode" content="inline">
+  <title>/critical-thinking — Plan</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.0">
+  <script defer src="assets/viewer.js?v=2.60.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/critical-thinking — Implementation Plan</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="plan-meta">
+<h2 id="plan-meta">Plan metadata</h2>
+<p><strong>execution_mode:</strong> inline · <strong>Tier:</strong> 3 · <strong>Target:</strong> <code>plugins/pmos-learnkit/skills/critical-thinking/</code> · <strong>Source:</strong> <a href="02_spec.html">02_spec</a>. TDD where there is executable code (the scorecard script); reference/SKILL.md content is authored + statically checked.</p>
+</section>
+
+<section id="wave-1">
+<h2 id="wave-1">Wave 1 — Foundation (independent)</h2>
+<ul>
+<li><strong>T1 — scorecard schema doc.</strong> Write <code>reference/scorecard-schema.md</code> (schema from spec §scorecard + Brier definition). Verify: file exists, documents all 5 top-level keys + Brier formula.</li>
+<li><strong>T2 — scorecard helper (TDD).</strong> (a) Write <code>tests/scorecard.test.js</code> first — cases: seed-on-absent, atomic update merge, Brier known vectors, streak increment + reset, corrupt-file reseed. (b) Implement <code>scripts/scorecard.js</code> (node stdlib: <code>read</code>/<code>update &lt;session.json&gt;</code>/<code>summary</code>; atomic temp-then-rename; Brier = mean((p−outcome)²)). Verify: <code>node tests/scorecard.test.js</code> exits 0.</li>
+<li><strong>T3 — grading rubrics.</strong> Write <code>reference/grading-rubrics.md</code> — the 8 named moves + the rule "grade moves not the choice; always name ≥1 gap; no pure praise" (FR-7).</li>
+<li><strong>T4 — runtime scenario-generation contract.</strong> No static bank. Document (in <code>SKILL.md</code> Phase 3 + <code>reference/exercise-shapes.md</code>) the contract that each scenario is invented fresh at runtime from the chosen shape + one of the six PM domains, varying actors/constraint/metric, with domain rotation across the session (D4 — reversed from the original static-template-bank plan).</li>
+</ul>
+</section>
+
+<section id="wave-2">
+<h2 id="wave-2">Wave 2 — Exercise library (depends on T3, T4)</h2>
+<ul>
+<li><strong>T5 — exercise shapes.</strong> Write <code>reference/exercise-shapes.md</code> — all 9 v1 shapes, each with a Generate half (inputs, prompt, answer instructions, input mode) and an Evaluate half (moves checked → from grading-rubrics; probe; muscle scored). Calibration shape specifies the prediction/outcome capture for Brier. Verify: 9 shapes × 2 halves present; each cites grading-rubrics by relative path and generates scenarios at runtime from the six domains (§C).</li>
+</ul>
+</section>
+
+<section id="wave-3">
+<h2 id="wave-3">Wave 3 — The skill body (depends on T1–T5)</h2>
+<ul>
+<li><strong>T6 — SKILL.md.</strong> Author <code>plugins/pmos-learnkit/skills/critical-thinking/SKILL.md</code>: frontmatter (<code>name: critical-thinking</code>, ≥5 trigger phrases, <code>user-invocable: true</code>, argument-hint); Announce line; Phases 0–5 per spec §skill-phases; mix-engine rule (spec §mix-engine); repo-context guardrail (spec §repo-context, D3); band table (D2); Platform Adaptation (FR-12); Anti-Patterns (FR-14); Capture Learnings (FR-13). Cite each reference file + the script by relative path. Verify: name matches dir; references + script cited; all §A–§F satisfied.</li>
+</ul>
+</section>
+
+<section id="wave-4">
+<h2 id="wave-4">Wave 4 — Integration + self-check (depends on T6)</h2>
+<ul>
+<li><strong>T7 — verification.</strong> Run <code>node tests/scorecard.test.js</code>; run the skill-eval deterministic checks against the skill dir; confirm <code>ls plugins/pmos-learnkit/skills/</code> shows <code>critical-thinking</code>. Fix any miss. Verify: tests green, skill-eval [D] green.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites (NOT plan tasks — /complete-dev Phase 8 only)</h2>
+<ul>
+<li>Bump <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> 0.5.0 → 0.6.0 (in sync).</li>
+<li>Add <code>/critical-thinking</code> row to <code>plugins/pmos-learnkit/README.md</code>.</li>
+<li>Changelog entry; bootstrap <code>## /critical-thinking</code> in <code>~/.pmos/learnings.md</code>.</li>
+</ul>
+</section>
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "frontmatter",
+    "level": 2,
+    "title": "Document frontmatter",
+    "parent_id": null
+  },
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem statement",
+    "parent_id": null
+  },
+  {
+    "id": "users-jtbd",
+    "level": 2,
+    "title": "Target users & JTBD",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "Goals & non-goals",
+    "parent_id": null
+  },
+  {
+    "id": "journeys",
+    "level": 2,
+    "title": "User journeys",
+    "parent_id": null
+  },
+  {
+    "id": "journey-quick",
+    "level": 3,
+    "title": "Journey 1 — Quick rep (5–10 min)",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-deep",
+    "level": 3,
+    "title": "Journey 2 — Deep session in a repo (~30 min)",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "journey-bring-own",
+    "level": 3,
+    "title": "Journey 3 — Bring your own dilemma",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance-criteria",
+    "level": 2,
+    "title": "Acceptance criteria (binary)",
+    "parent_id": null
+  },
+  {
+    "id": "constraints",
+    "level": 2,
+    "title": "Constraints",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions (for /spec)",
+    "parent_id": null
+  }
+]

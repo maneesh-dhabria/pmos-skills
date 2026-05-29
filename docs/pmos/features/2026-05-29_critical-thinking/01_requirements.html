@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="requirements">
+  <title>/critical-thinking — Requirements</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.0">
+  <script defer src="assets/viewer.js?v=2.60.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/critical-thinking — Requirements (Tier 3, skill-new)</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="frontmatter">
+<h2 id="frontmatter">Document frontmatter</h2>
+<p><strong>Tier:</strong> 3 · <strong>Mode:</strong> skill-new · <strong>Target:</strong> <code>plugins/pmos-learnkit/skills/critical-thinking/SKILL.md</code> · <strong>Platform:</strong> claude-code · <strong>Seed:</strong> ideate brief <a href="../../ideate/2026-05-29_pm-critical-thinking.html">2026-05-29_pm-critical-thinking</a>.</p>
+<p><strong>Standing acceptance criteria:</strong> the produced skill MUST conform to <code>skill-patterns.md §A–§F</code> (frontmatter; description &amp; triggering with ≥5 trigger phrases; progressive disclosure via <code>reference/</code>; numbered phases + Anti-Patterns body; scripts in <code>scripts/</code>; Platform Adaptation section). Scored by the binary skill-eval rubric before merge.</p>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem statement</h2>
+<p>Product managers make high-stakes judgment calls under ambiguity, but have no low-friction, repeatable way to <em>practice</em> the underlying critical-thinking muscles or to see whether they are improving. Reading about biases and frameworks does not transfer to better reasoning; deliberate, varied reps with concrete feedback do. Existing tools (PM interview prep, generic forecasting trainers) are one-off, human-graded, or off-domain.</p>
+<p><strong>HMW:</strong> How might we give PMs a low-friction, repeatable way to practice and measurably improve critical thinking — sized to the minutes they have, scoped to problems they actually face, and forcing them to reason in their own words — without it feeling like homework?</p>
+</section>
+
+<section id="users-jtbd">
+<h2 id="users-jtbd">Target users &amp; JTBD</h2>
+<p><strong>Who:</strong> Product managers and product builders (IC → senior); anyone making product judgment calls under ambiguity.</p>
+<p><strong>When/where:</strong> a spare 5–30 minutes in a terminal/CLI session, often inside a working repo; manually triggered.</p>
+<p><strong>JTBD:</strong> "When I've got a few spare minutes — or I'm staring at a hard product decision — help me sharpen my reasoning under ambiguity and show me I'm getting better, without it feeling like a test."</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">Goals &amp; non-goals</h2>
+<p><strong>Goals:</strong> (1) a manually-triggered practice session sized to a user-chosen time band; (2) a varied mix of PM-scoped reasoning exercises, each with its own generation + evaluation spec; (3) own-words reasoning graded on <em>moves</em>, not the answer; (4) an objective, accumulating progress signal (calibration + per-muscle); (5) optional repo-contextual scenarios without forcing it.</p>
+<p><strong>Non-goals:</strong> not an app/server (local files only); not a human-graded course; not a general-knowledge quiz; no auth/accounts; no backend; v1 excludes Socratic, steelman-then-break, red-team-a-PRD, decision-journal, and compare-to-expert shapes (deferred to v2 per the brief).</p>
+</section>
+
+<section id="journeys">
+<h2 id="journeys">User journeys</h2>
+<h3 id="journey-quick">Journey 1 — Quick rep (5–10 min)</h3>
+<p>User runs <code>/critical-thinking</code> → picks "Quick" band → skill assembles 2–3 mixed exercises (e.g. spot-the-bias + pick-and-defend) → user answers in their own words / picks an option → skill grades the reasoning moves, names one thing missing → session summary shows muscles touched + calibration nudge.</p>
+<h3 id="journey-deep">Journey 2 — Deep session in a repo (~30 min)</h3>
+<p>User runs <code>/critical-thinking</code> inside a product repo → picks "Deep" → skill derives 1–2 repo-contextual scenarios (if a clean product-decision framing exists) plus generic ones → 6–8 exercises across all 9 muscles → richer feedback + calibration prediction logged → summary highlights weakest muscle and updates the scorecard.</p>
+<h3 id="journey-bring-own">Journey 3 — Bring your own dilemma</h3>
+<p>User pastes a real decision they're stuck on → skill runs the moves rubric live (assumptions surfaced? alternatives steelmanned? 2nd-order effects? falsifiability?) → returns structured critique + the questions to resolve before deciding.</p>
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">Functional requirements</h2>
+<table>
+<tr><th>ID</th><th>Requirement</th></tr>
+<tr><td>FR-1</td><td><strong>Invocation.</strong> Manually triggered as <code>/critical-thinking</code> (and <code>/pmos-learnkit:critical-thinking</code>). Standalone utility — does NOT load workstream context. Announces at start.</td></tr>
+<tr><td>FR-2</td><td><strong>Time-band selection.</strong> First step: an <code>AskUserQuestion</code> offering 4 commitment bands → exercise counts: Quick 5–10 min (2–3), Standard 15–20 min (4–5), Deep ~30 min (6–8), Marathon 45 min+ (open — keep going until the user stops). Bands proposed; user picks.</td></tr>
+<tr><td>FR-3</td><td><strong>Exercise library.</strong> 9 shapes for v1, each a spec with two halves — <em>scenario generation</em> + <em>evaluation/probe</em> — stored in <code>reference/exercise-shapes.md</code>. Core: pick-and-defend, hard-mode open response, bring-your-own-dilemma. Targeted: assumption-hunt, spot-the-bias, what-would-change-your-mind. Analysis: calibration/forecasting, second-order consequence map, reframe-the-question.</td></tr>
+<tr><td>FR-4</td><td><strong>Mix engine.</strong> Each session draws a <em>varied</em> set (no shape repeated until others are used); deterministic-with-rotation selector weighted toward under-practiced muscles (read from the scorecard when present). Selection logic specified in the body; no two consecutive exercises share a shape.</td></tr>
+<tr><td>FR-5</td><td><strong>PM problem scope.</strong> Scenarios drawn only from PM/product-builder domains — product design, prioritization &amp; tradeoffs, metrics &amp; experimentation, influence &amp; stakeholder management, strategy under ambiguity, GTM. Scenarios are generated fresh at runtime from these domains (no static template bank) so they are believable and varied, not blank-page pablum.</td></tr>
+<tr><td>FR-6</td><td><strong>Own-words first.</strong> Free-form answers are the default, each with explicit instructions on the expected answer shape/length. <code>AskUserQuestion</code> is used ONLY for genuinely multiple-choice shapes (pick-and-defend option select, spot-the-bias). When <code>AskUserQuestion</code> is unavailable, degrade to numbered free-form prompts with clear answer instructions.</td></tr>
+<tr><td>FR-7</td><td><strong>Move-based grading.</strong> Feedback evaluates the reasoning <em>moves</em> per the shape's rubric (e.g. assumption surfaced? alternative steelmanned? 2nd-order effect traced? falsifiable claim stated?), NOT the choice. Every graded answer MUST name at least one concrete thing that was missing or weak — never pure praise.</td></tr>
+<tr><td>FR-8</td><td><strong>Repo-aware (don't force it).</strong> When run inside a git repo, generate 1–2 exercises from repo context only if a clean product-decision framing is derivable; otherwise stay generic. Every session keeps ≥1–2 generic (non-repo) problems regardless. Never quote secrets/credentials; cap repo exercises at 2.</td></tr>
+<tr><td>FR-9</td><td><strong>Calibration scoring.</strong> The calibration shape elicits a probability estimate + reasoning; the skill records prediction/outcome pairs and computes an accumulating Brier score across sessions — the objective "you're improving" signal.</td></tr>
+<tr><td>FR-10</td><td><strong>Scorecard persistence.</strong> A per-session scorecard persists locally under <code>~/.pmos/learnkit/critical-thinking/</code> (created on first run): per-muscle scores, weakest muscle, calibration history, and shape history (to drive FR-4 rotation). Format documented; absence handled gracefully (first run seeds it).</td></tr>
+<tr><td>FR-11</td><td><strong>Session flow + summary.</strong> intro → N exercises (generate → user answers → grade/probe) → session summary (muscles practiced, per-muscle takeaways, weakest muscle, calibration trend, optional streak). Summary written to chat; scorecard updated atomically.</td></tr>
+<tr><td>FR-12</td><td><strong>Platform Adaptation.</strong> Section covering AskUserQuestion degradation (FR-6), no-subagent operation (single-agent), and that the skill needs no <code>.pmos/settings.yaml</code> (standalone) — but follows pmos skill conventions.</td></tr>
+<tr><td>FR-13</td><td><strong>Capture Learnings.</strong> End-of-skill learnings reflection emitting exactly one line (learning written, or "no new learnings because &lt;reason&gt;").</td></tr>
+<tr><td>FR-14</td><td><strong>Anti-Patterns section.</strong> Documents the failure modes from the brief's premortem (mushy praise grading; blank-page unbelievable scenarios; forcing repo context; grading the choice not the reasoning; repeating the same 2 shapes).</td></tr>
+</table>
+</section>
+
+<section id="acceptance-criteria">
+<h2 id="acceptance-criteria">Acceptance criteria (binary)</h2>
+<ul>
+<li>AC-1 — <code>plugins/pmos-learnkit/skills/critical-thinking/SKILL.md</code> exists; frontmatter <code>name: critical-thinking</code> matches dir; <code>user-invocable: true</code>; <code>description</code> carries ≥5 trigger phrases (§A/§B).</li>
+<li>AC-2 — Body has an Announce line, numbered phases, hard/soft gates marked, and an Anti-Patterns section (§D).</li>
+<li>AC-3 — Detail pushed into <code>reference/</code> (≥<code>exercise-shapes.md</code> + <code>grading-rubrics.md</code>), cited by relative path (§C).</li>
+<li>AC-4 — A Platform Adaptation section names the AskUserQuestion fallback (§F).</li>
+<li>AC-5 — Any script lives in <code>scripts/</code>, is dependency-light, and degrades clearly if a dep is missing (§E).</li>
+<li>AC-6 — All 9 v1 exercise shapes are specified with a generation half AND an evaluation half (FR-3).</li>
+<li>AC-7 — Time bands (FR-2), move-based grading (FR-7), repo-aware-not-forced (FR-8), calibration (FR-9), and scorecard persistence (FR-10) are all present in the body/reference.</li>
+<li>AC-8 — Both <code>plugin.json</code> manifests bumped in sync at release; README updated (release prereqs — handled by /complete-dev).</li>
+</ul>
+</section>
+
+<section id="constraints">
+<h2 id="constraints">Constraints</h2>
+<ul>
+<li>Canonical path only: <code>plugins/pmos-learnkit/skills/critical-thinking/SKILL.md</code> (anywhere else silently fails to register).</li>
+<li>Conform to <code>skill-patterns.md §A–§F</code> and this repo's <code>CLAUDE.md</code> (canonical path, synced manifest bump, /complete-dev as release entry).</li>
+<li>Standalone — no workstream load; no pipeline coupling.</li>
+<li>Scripts dependency-light (bash/node/python stdlib only); document any dep.</li>
+<li>v1 ships 9 shapes; 5 shapes deferred to v2 (Socratic, steelman, red-team-PRD, decision-journal, compare-to-expert).</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions (for /spec)</h2>
+<ul>
+<li>Scorecard format — JSON vs YAML at <code>~/.pmos/learnkit/critical-thinking/scorecard.json</code>; one file vs per-session log + rollup?</li>
+<li>Is the Brier/scorecard math a <code>scripts/</code> helper (deterministic) or inline skill logic? (Leaning: a small <code>scripts/scorecard.<em>{js|py}</em></code> helper for atomic read/update + Brier, per §E.)</li>
+<li>Exact band→count table edges (does Marathon truly uncap, or cap at e.g. 12 with a continue prompt?).</li>
+<li>Repo-context signal set (README, recent commits, docs, issue titles) + the secrets guardrail.</li>
+<li>How runtime scenario generation rotates domains so a user doesn't see obvious repeats within ~5 sessions.</li>
+</ul>
+</section>
+
+  </main>
+</body>
+</html>
