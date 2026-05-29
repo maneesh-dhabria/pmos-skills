@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-29 — pmos-learnkit 0.5.0: `/primer` sources tweets + LinkedIn posts
+
+`/primer` Phase 2 (Research) gains a fourth, social-primary strand: tweets/threads and LinkedIn posts are now valid **primary** sources when a framework or observation lives only there. Discovery is active+bounded — deliberate `site:x.com` / `site:linkedin.com` qualifier searches (≤2 topic-level + ≤1 per named practitioner) plus routing any social URL that surfaces from the existing strands through the same path. Fetching uses a free ladder, never the paid X API and never a bare `x.com` URL (the login wall returns an empty body): single tweet → `api.fxtwitter.com/<user>/status/<id>`; thread → `threadreaderapp.com/thread/<root-id>.html` (with a fxtwitter self-reply walk when not unrolled); LinkedIn → direct fetch → `r.jina.ai` reader fallback; Playwright MCP is last-resort only.
+
+Citations point at the **original canonical post URL** (the proxy is a fetch mechanism, never the citation), and social content is always paraphrased into the source `takeaway`, never reproduced verbatim — which keeps the reviewer's R1 (cites-real-urls) and R2 (no-plagiarism) trust checks passing. LinkedIn posts are fetched body-only with relative dates resolved to the absolute year. New `reference/social-sourcing.md` carries the full ladder + never-do rules; `reference/source-floor.md` adds `social` to the `source_strand` enum and counts social sources toward the depth-tier floor like any other usable source.
+
 ## 2026-05-28 — pmos-learnkit 0.4.0: `/primer` SVG diagrams self-contained under dark mode
 
 `reference/diagram-style.md` now mandates that every inline SVG ship a full-viewBox background rect (`<rect x="0" y="0" width="<W>" height="<H>" fill="#fbfaf6"/>`) as its first drawn child, plus a CSS-style fallback (`style="background:#fbfaf6;border-radius:8px"`) on the `<svg>` element itself. The Phase 4 drafter inlines this file when authoring diagrams, so every new primer SVG inherits the rule.
