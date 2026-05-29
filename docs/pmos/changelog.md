@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-29 — pmos-learnkit 0.7.0: `/critical-thinking` — practice choosing the right metric
+
+`/critical-thinking` can now drill **metric choice**. A new *choose-the-metric* exercise hands you a goal or problem with no metric attached ("make onboarding feel effortless") and asks you to name the one metric that would tell you you're winning — then defend it as a faithful proxy for the goal, pair it with a guardrail, and call out how it could be gamed (Goodhart). Like every other drill it grades your *reasoning*, not a single "right" metric, and a new `metric-selection` muscle now accrues on your scorecard so you can watch it improve across sessions. Ask for it by name with "metric-choice drill," or just let a session mix it in.
+
+**Why**
+
+Choosing what to measure is one of the highest-leverage PM moves — pick a vanity metric and you optimize the wrong thing for a quarter. The existing drills exercised judgment about decisions; none trained the prior step of deciding *how you'd know you succeeded*. This closes that gap.
+
 ## 2026-05-29 — pmos-learnkit 0.6.0: `/critical-thinking` — PM reasoning practice
 
 New `/critical-thinking` skill: a low-friction, time-boxed practice session that drills the reasoning muscles product managers actually use. Each session generates a varied mix of PM-scoped exercises **fresh at runtime** — pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing, and more — across six PM domains (product design, prioritization/tradeoffs, metrics/experimentation, influence/stakeholder, strategy-under-ambiguity, GTM). There is no static scenario bank; every session is new.
