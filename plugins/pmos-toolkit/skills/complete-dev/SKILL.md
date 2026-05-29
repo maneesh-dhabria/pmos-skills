@@ -175,11 +175,11 @@ Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted
 
    - **Exit 0, stdout contains `Substrate-only change detected`** → only `plugins/<name>/skills/_shared/` files touched across multiple plugins (FR-53). Surface an `AskUserQuestion` listing each plugin and asking which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry will land under that plugin). Set `--plugin <chosen>` and continue.
 
-   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/${plugin_name}/` where `${plugin_name}` defaults to the sole entry under `plugins/`, or `pmos-toolkit` when ambiguous) and continue. This preserves pre-rollout single-plugin invocations.
+   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/${plugin_name}/` where `${plugin_name}` defaults to the sole entry under `plugins/`; when multiple plugins exist and the diff yields no `plugins/` path, surface an `AskUserQuestion` asking the user to pick the target plugin rather than guessing). This preserves pre-rollout single-plugin invocations.
 
 3. **Cross-check `## Release policy` in top-level `CLAUDE.md` (FR-55, E15).** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case (E15): warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
 
-The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 12), marketplace.json sync (Phase 14 pre-push), and changelog routing (Phase 8).
+The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 12), marketplace.json registration check (Phase 14 pre-push), and changelog routing (Phase 8).
 
 **Load lastrun defaults.** Read `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md`:
 
@@ -352,7 +352,7 @@ Probe and **enumerate ALL detected signals** (do not pick silently):
 2. `package.json` `scripts.deploy` / `scripts.release` / `scripts.publish`
 3. `Makefile` targets named `deploy`, `release`, `publish`
 4. `.github/workflows/` files that trigger on `push` to `main` (CI auto-deploy)
-5. Plugin manifest at `plugins/${plugin_name}/.claude-plugin/plugin.json` (this repo: deploy = push to remotes)
+5. Plugin manifest at `plugins/${plugin_name}/.claude-plugin/plugin.json` (for plugin-marketplace repos, "deploy" is typically just push-to-remotes)
 6. `pyproject.toml` with `[project]` metadata at `./pyproject.toml` or `./backend/pyproject.toml` (PyPI publish via `uv publish`)
 
 See `reference/deploy-norms.md` for the full detection rubric.
@@ -530,34 +530,25 @@ options:
 
 Where `<baseline_v>` is `main_v` (when pre-flight ran cleanly) or `local_v` with suffix `(pre-flight skipped — verify manually)` when `pre_flight_skipped=true`.
 
-Apply the bump to **all four manifest entries** (FR-57, paired-manifest + paired-marketplace invariant):
+Apply the bump to **both `plugin.json` manifests** (FR-57, paired-manifest invariant):
 
 1. `plugins/${plugin_name}/.claude-plugin/plugin.json` — top-level `.version`
 2. `plugins/${plugin_name}/.codex-plugin/plugin.json` — top-level `.version`
-3. `.claude-plugin/marketplace.json` — the `plugins[]` entry whose `.name == "${plugin_name}"`, field `.version`
-4. `.codex-plugin/marketplace.json` — the `plugins[]` entry whose `.name == "${plugin_name}"`, field `.version`
 
-The two marketplace.json entries are updated via jq (atomic write-and-rename):
+**Do NOT write a `version` into either `marketplace.json`.** Marketplace entries are catalogs (`name`, `description`, `source`, `category`, `homepage`); the effective version is resolved from each plugin's `plugin.json` at install time. Per the plugin-marketplace guidance, a `version` set in the marketplace entry is silently shadowed by `plugin.json` — keeping marketplace entries version-free eliminates a whole class of drift bug. (In this repo: see `CLAUDE.md ## Plugin manifest version sync`.)
 
-```bash
-new_version="<bumped semver>"
-for mp in .claude-plugin/marketplace.json .codex-plugin/marketplace.json; do
-  jq --arg p "$plugin_name" --arg v "$new_version" \
-     '(.plugins[] | select(.name==$p) | .version) = $v' \
-     "$mp" > "$mp.tmp" && mv "$mp.tmp" "$mp"
-done
-```
-
-Validate every manifest still parses:
+Validate both manifests still parse, and confirm the plugin is still registered (presence-only) in both marketplace files:
 
 ```bash
 python3 -c "import json; json.load(open('plugins/${plugin_name}/.claude-plugin/plugin.json'))"
 python3 -c "import json; json.load(open('plugins/${plugin_name}/.codex-plugin/plugin.json'))"
-python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
-python3 -c "import json; json.load(open('.codex-plugin/marketplace.json'))"
+for mp in .claude-plugin/marketplace.json .codex-plugin/marketplace.json; do
+  jq -e --arg p "$plugin_name" '.plugins[] | select(.name==$p)' "$mp" >/dev/null \
+    || echo "ERROR: $plugin_name not registered in $mp"
+done
 ```
 
-The pre-push 3-way-version-match hook (T4) enforces that all four entries agree before push lands.
+The pre-push hook enforces that BOTH `plugin.json` versions agree **and** that the plugin is registered in both marketplace files — it does **not** check a marketplace `version` (there is none).
 
 **Stale-bump recovery:** see `reference/version-bump-recovery.md`.
 
@@ -662,7 +653,7 @@ git tag -a "${plugin_name}/v<version>" -m "Release ${plugin_name} v<version>"
 
 ## Phase 14 — Dry-run summary
 
-Print a one-screen summary BEFORE pushing (FR-60). The summary must surface the detected plugin name, the four bump targets, the templated tag name, and every configured remote in the push-targets line:
+Print a one-screen summary BEFORE pushing (FR-60). The summary must surface the detected plugin name, the two bump targets, the templated tag name, and every configured remote in the push-targets line:
 
 ```
 === /complete-dev summary ===
@@ -670,11 +661,10 @@ Plugin:           ${plugin_name}
 Branch:           main
 Local commits:    <N> ahead of origin/main
 Last commit:      <hash> <message>
-Plugin version:   <X.Y.Z> (4 bump targets in-sync: <YES|NO>)
+Plugin version:   <X.Y.Z> (2 bump targets in-sync: <YES|NO>)
   - plugins/${plugin_name}/.claude-plugin/plugin.json
   - plugins/${plugin_name}/.codex-plugin/plugin.json
-  - .claude-plugin/marketplace.json (plugins[name=${plugin_name}].version)
-  - .codex-plugin/marketplace.json  (plugins[name=${plugin_name}].version)
+  (marketplace.json entries carry no version — presence-only registration check)
 Tag:              ${plugin_name}/v<X.Y.Z> (new | force-replaced | skipped)
 Deploy method:    <chosen Phase 5 path | skipped>
 Pushing to:       <remote-1>, <remote-2>, ... (every entry from `git remote`)
