@@ -1,6 +1,6 @@
 ---
 name: critical-thinking
-description: Run a low-friction, time-boxed critical-thinking practice session for product managers — a varied mix of PM-scoped reasoning exercises (pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing, and more), graded on reasoning moves rather than the answer, with an accumulating per-muscle + calibration scorecard so you can see yourself improve. Standalone utility; optionally pulls scenarios from the current repo. Use when the user says "practice critical thinking", "critical thinking exercise", "give me a PM scenario", "quiz me on a product decision", "sharpen my reasoning", "practice product judgment", "PM decision drill", "spot-the-bias drill", "calibration practice", or "/critical-thinking".
+description: Run a low-friction, time-boxed critical-thinking practice session for product managers — a varied mix of PM-scoped reasoning exercises (pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing, metric-choice, and more), graded on reasoning moves rather than the answer, with an accumulating per-muscle + calibration scorecard so you can see yourself improve. Standalone utility; optionally pulls scenarios from the current repo. Use when the user says "practice critical thinking", "critical thinking exercise", "give me a PM scenario", "quiz me on a product decision", "sharpen my reasoning", "practice product judgment", "PM decision drill", "spot-the-bias drill", "calibration practice", "metric-choice drill", or "/critical-thinking".
 user-invocable: true
 argument-hint: "[quick|standard|deep|marathon] [--no-repo]"
 ---
@@ -17,8 +17,8 @@ This skill loops over N exercises. Use your task tracker (e.g. `TaskCreate`) for
 
 ## Reference files (loaded on demand)
 
-- `reference/exercise-shapes.md` — the 9 v1 shapes (Generate + Evaluate halves).
-- `reference/grading-rubrics.md` — the 8 named moves + the universal grading rule.
+- `reference/exercise-shapes.md` — the 10 v1 shapes (Generate + Evaluate halves).
+- `reference/grading-rubrics.md` — the 9 named moves + the universal grading rule.
 - `reference/scorecard-schema.md` — the scorecard JSON + Brier definition.
 - `scripts/scorecard.js` — node-stdlib helper: `read` / `update <session.json>` / `summary`.
 

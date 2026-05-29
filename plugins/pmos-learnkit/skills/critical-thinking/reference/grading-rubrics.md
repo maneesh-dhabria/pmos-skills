@@ -2,7 +2,7 @@
 
 The skill grades the **reasoning**, never the **choice**. There is no right answer to most scenarios; there are stronger and weaker ways to reason about them. This file defines the named moves and the universal grading rule that every exercise's Evaluate half uses.
 
-## The 8 named moves
+## The 9 named moves
 
 | Move | What a strong answer does |
 |---|---|
@@ -14,6 +14,7 @@ The skill grades the **reasoning**, never the **choice**. There is no right answ
 | `spot-bias` | Identifies a cognitive bias or fallacy at work (sunk cost, survivorship, confirmation, base-rate neglect, etc.). |
 | `reframe-question` | Questions whether the stated question is the right one; reframes to the underlying decision/problem. |
 | `causal-reasoning` | Distinguishes correlation from causation; reasons about mechanism, not just association. |
+| `metric-selection` | Chooses a metric that faithfully proxies the goal (outcome over vanity/activity), pairs it with a guardrail, and is alert to how it can be gamed (Goodhart). |
 
 ## The universal grading rule (FR-7)
 

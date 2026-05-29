@@ -1,8 +1,8 @@
 # exercise-shapes.md — the v1 exercise library
 
-Nine exercise shapes. Each has a **Generate** half (how to build the scenario) and an **Evaluate** half (how to grade the answer). Generation invents a fresh PM scenario at runtime from one of the six PM domains (product design · prioritization/tradeoffs · metrics/experimentation · influence/stakeholder · strategy-under-ambiguity · GTM) — never from a static template bank; grading applies the moves + rule in [grading-rubrics.md](grading-rubrics.md) and updates the [scorecard](scorecard-schema.md). All free-form prompts MUST state the expected answer shape/length. Use `AskUserQuestion` only for the two MC shapes; otherwise present a numbered free-form prompt.
+Ten exercise shapes. Each has a **Generate** half (how to build the scenario) and an **Evaluate** half (how to grade the answer). Generation invents a fresh PM scenario at runtime from one of the six PM domains (product design · prioritization/tradeoffs · metrics/experimentation · influence/stakeholder · strategy-under-ambiguity · GTM) — never from a static template bank; grading applies the moves + rule in [grading-rubrics.md](grading-rubrics.md) and updates the [scorecard](scorecard-schema.md). All free-form prompts MUST state the expected answer shape/length. Use `AskUserQuestion` only for the two MC shapes; otherwise present a numbered free-form prompt.
 
-Groups: **Core** (pick-and-defend, hard-mode, bring-your-own) · **Targeted** (assumption-hunt, spot-the-bias, what-would-change-your-mind) · **Analysis** (calibration, second-order map, reframe).
+Groups: **Core** (pick-and-defend, hard-mode, bring-your-own) · **Targeted** (assumption-hunt, spot-the-bias, what-would-change-your-mind) · **Analysis** (calibration, second-order map, reframe, choose-the-metric).
 
 ---
 
@@ -45,3 +45,7 @@ Groups: **Core** (pick-and-defend, hard-mode, bring-your-own) · **Targeted** (a
 ## 9. reframe-the-question · Analysis · free-form
 **Generate.** Present a stakeholder request phrased as a solution ("Build feature X"), generated for a chosen domain. "Before answering — what's the underlying problem or decision? Reframe the question, then say how that changes the answer."
 **Evaluate.** Target move: `reframe-question`. Strong = surfaces the real job/decision behind the request and shows how the reframe changes what you'd build. Probe if they jump straight to executing the literal ask. Muscle: problem-framing.
+
+## 10. choose-the-metric · Analysis · free-form
+**Generate.** Present a goal, problem statement, or desired outcome in a chosen domain (bias toward metrics/experimentation, product design, GTM) with **no metric defined** ("We want onboarding to feel effortless" / "Make the marketplace feel trustworthy"). "What single metric would best tell you you're achieving this? In 3–5 sentences: name it, say why it's a faithful proxy for the goal, name one guardrail metric, and one way the metric could be gamed." Do NOT hand the user candidate metrics — they must generate the metric.
+**Evaluate.** Target move: `metric-selection` (+ `evidence-vs-inference`). Strong = picks a metric that proxies the *outcome* (not a vanity/activity count), justifies why it tracks the goal, pairs it with a guardrail against the obvious failure mode, and names a concrete gaming/Goodhart risk. Mark weak if the metric is vanity (e.g. raw signups for an "activation" goal) or if no guardrail is offered. Probe if either is absent: "How could that number go up while the goal gets *worse*?" Muscle: metric-selection.
