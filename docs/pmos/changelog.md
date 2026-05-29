@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-29 — pmos-toolkit 2.60.1: `/complete-dev` bumps only the two plugin manifests
+
+`/complete-dev`'s version-bump step now writes the new version to the two `plugin.json` manifests only (the `.claude-plugin` and `.codex-plugin` pair) and leaves both `marketplace.json` files untouched. Previously it also wrote the version into the two marketplace entries — which contradicts the repo invariant: marketplace entries are version-free catalogs, and the effective version is resolved from `plugin.json` at install time. The release dry-run summary and the pre-push-hook description were corrected to match (two bump targets; marketplace is a presence-only registration check). A couple of hard-coded references were also generalized so the skill reads cleanly for any plugin-marketplace repo.
+
+**Why**
+
+The old behavior would have written a `version` into `marketplace.json` entries that must stay version-free (per Anthropic's plugin guidance — `plugin.json` wins silently, so a marketplace version only invites drift). Aligning the skill with the actual pre-push hook removes a latent source of version-drift bugs at release time.
+
 ## 2026-05-29 — pmos-learnkit 0.7.0: `/critical-thinking` — practice choosing the right metric
 
 `/critical-thinking` can now drill **metric choice**. A new *choose-the-metric* exercise hands you a goal or problem with no metric attached ("make onboarding feel effortless") and asks you to name the one metric that would tell you you're winning — then defend it as a faithful proxy for the goal, pair it with a guardrail, and call out how it could be gamed (Goodhart). Like every other drill it grades your *reasoning*, not a single "right" metric, and a new `metric-selection` muscle now accrues on your scorecard so you can watch it improve across sessions. Ask for it by name with "metric-choice drill," or just let a session mix it in.
