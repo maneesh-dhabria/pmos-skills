@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.9.0: `/primer` + `/learn-list` share one topic-research front half
+
+`/primer` and `/learn-list` now run the **same research front half** — intake → canon discovery → topic outline → verified per-topic sourcing — extracted into a shared, skill-agnostic substrate at `_shared/topic-research/` that both skills inline. Each keeps its own back half: `/primer` synthesizes the verified sources into a teachable prose artifact; `/learn-list` ranks and annotates them into a curated list. Concretely:
+
+- **Unified controls.** Both skills now take `--depth brief|standard|deep` (one effort dial) and `--audience senior-pms|all-pms` (one reader axis). `/learn-list`'s old `--mode` and `--level` flags are **retired** — passing them returns a clear error naming the replacement (`--mode` → `--depth`, `--level` → `--audience`). `/learn-list` is now explicitly PM-shaped, like `/primer`.
+- **`/primer` gains** the anti-slop hard gate, rank-then-verify sourcing, curation harvest, outline **provenance**, and topic **dedupe** that previously lived only in `/learn-list` — plus a new closing **"Where this connects" adjacency-pointer section** (depth-scaled). Its source-floor is now an eval-time *coverage signal*, not a sourcing gate: `/primer` reads and synthesizes **every** verified source per topic (the old "≥3-source short-circuit" is gone), and each outline topic's verified shortlist becomes the evidence for the matching section.
+- **`/learn-list` gains** the unified intake and PM audience-shaping while keeping its list/annotation/follow-list/paste-block output unchanged.
+
+**Why**
+
+The two skills had independently grown the same front half with cosmetic differences, so every research-quality improvement had to be made twice and the two drifted. `/learn-list`'s output is really a precursor of the work `/primer` does — list the sources vs. read-and-synthesize them — so the front half should be one thing. Extracting a shared substrate (rather than merging the skills or having one call the other) lets provenance, dedupe, the anti-slop gate, and adjacency land in both at once, while the substrate stays strictly skill-agnostic: it emits typed outputs (a richness verdict, a ranked shortlist, an outline + provenance rung) and each skill owns how it reacts — a boundary enforced by a test that fails if the shared docs ever name a consuming skill.
+
 ## 2026-06-03 — pmos-learnkit 0.8.2: `/primer` — browse every primer from one sidebar page
 
 `/primer` now regenerates a single `docs/pmos/primer/primers.html` listing after each run, so every primer you've generated is reachable from one place. The page is a sidebar of all your primers (newest first), with the most recent auto-selected and its content loaded in place — click any entry to read it without leaving the page. Previously the skill regenerated a generic `index.html` built for feature-folder artifacts, which grouped primers under meaningless pipeline-phase headers (`00 Pipeline`, `01 Requirements`, …); the new listing puts them all under one "Primers" heading, ordered by date. Rejected drafts are never listed.
