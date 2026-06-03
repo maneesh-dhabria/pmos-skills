@@ -74,6 +74,26 @@ function selftest() {
   assert(looksPaywalled('Subscribe to continue reading') === true, 'paywall heuristic positive');
   assert(looksPaywalled(text) === false, 'clean article not flagged paywalled');
 
+  // Regression (FR-P1): a large body must survive a pipe-captured run without
+  // truncation. Drive this very script as a child with stdout captured (the
+  // exact pattern that lost the tail before the flush-before-exit fix).
+  const { execFileSync } = require('child_process');
+  const os = require('os');
+  const big = '<article>' + ('word '.repeat(20000)) + '</article>'; // ~100 KB
+  const bigFile = path.join(os.tmpdir(), 'mag-extract-big-' + process.pid + '.html');
+  fs.writeFileSync(bigFile, big);
+  try {
+    const captured = execFileSync(process.execPath, [__filename, '--file', bigFile], {
+      maxBuffer: 64 * 1024 * 1024,
+    }).toString();
+    const expected = stripToText(big).length;
+    assert(captured.trim().length === expected,
+      'piped run not truncated (got ' + captured.trim().length + ' want ' + expected + ')');
+    assert(expected > 64 * 1024, 'regression body exceeds the pipe buffer it used to truncate at');
+  } finally {
+    fs.unlinkSync(bigFile);
+  }
+
   console.log(ok ? 'extract-article.js --selftest: PASS' : 'extract-article.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
 }
@@ -102,9 +122,11 @@ if (require.main === module) {
         } catch (_e) { /* keep heuristic result */ }
       }
 
-      process.stdout.write(text + '\n');
-      if (looksPaywalled(text) || text.length < minChars) process.exit(2);
-      process.exit(0);
+      // Flush before exit: stdout to a pipe is async, so process.exit() right
+      // after write() drops the unflushed tail (truncates at the pipe buffer,
+      // ~8-64 KB). Exit from the write callback, after the buffer has drained.
+      const code = (looksPaywalled(text) || text.length < minChars) ? 2 : 0;
+      process.stdout.write(text + '\n', () => process.exit(code));
     } catch (e) {
       process.stderr.write('extract-article: ' + (file || url) + ': ' + e.message + '\n');
       process.exit(1);

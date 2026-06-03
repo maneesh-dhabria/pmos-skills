@@ -38,12 +38,24 @@ chk "scripts/fetch-feed.js"                 "[ -f '$DIR/scripts/fetch-feed.js' ]
 chk "scripts/extract-article.js"            "[ -f '$DIR/scripts/extract-article.js' ]"
 chk "scripts/transcribe.sh"                 "[ -f '$DIR/scripts/transcribe.sh' ]"
 chk "scripts/render-issue.js"               "[ -f '$DIR/scripts/render-issue.js' ]"
+chk "scripts/magazine-run.js"               "[ -f '$DIR/scripts/magazine-run.js' ]"
+chk "magazine-run.js executable"            "[ -x '$DIR/scripts/magazine-run.js' ]"
 
 chk "magazine-state --selftest"             "node '$DIR/scripts/magazine-state.js' --selftest >/dev/null"
 chk "fetch-feed --selftest"                 "node '$DIR/scripts/fetch-feed.js' --selftest >/dev/null"
 chk "extract-article --selftest"            "node '$DIR/scripts/extract-article.js' --selftest >/dev/null"
 chk "transcribe --selftest"                 "bash '$DIR/scripts/transcribe.sh' --selftest >/dev/null"
 chk "render-issue --selftest"               "node '$DIR/scripts/render-issue.js' --selftest >/dev/null"
+chk "magazine-run --selftest"               "node '$DIR/scripts/magazine-run.js' --selftest >/dev/null"
+
+# --- retro-fix regressions (FR-P1..P6) ---
+chk "P3: whisper probe via transcribe --selftest" "grep -q 'transcribe.sh --selftest' '$SKILL'"
+chk "P3: no bare 'which whisper' in SKILL"  "! grep -qE 'which whisper' '$SKILL'"
+chk "P4: SKILL references magazine-run.js"   "grep -q 'magazine-run.js' '$SKILL'"
+chk "P1: extract flush-before-exit"          "grep -q 'process.stdout.write(text' '$DIR/scripts/extract-article.js' && grep -q '() => process.exit' '$DIR/scripts/extract-article.js'"
+chk "P5: fetch-feed decodeEntities"          "grep -q 'decodeEntities' '$DIR/scripts/fetch-feed.js'"
+chk "P2: transcribe resolve_cpp_model"       "grep -q 'resolve_cpp_model' '$DIR/scripts/transcribe.sh'"
+chk "P6: transcribe safe_guid sanitize"      "grep -q 'safe_guid_of' '$DIR/scripts/transcribe.sh'"
 
 # --- no loose files in skill root (§C asset layout) ---
 loose="$(find "$DIR" -maxdepth 1 -type f ! -name 'SKILL.md' | wc -l | tr -d ' ')"
