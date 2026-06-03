@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="learn-list">
+  <meta name="pmos:ideate-date" content="2026-06-03">
+  <title>/learn-list — Ideation</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --bg:#fafafa; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    .attr { margin-left:auto; font-size:.8rem; color:var(--muted); text-decoration:none; }
+    main { max-width:860px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2.2rem; }
+    h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; margin:2rem 0 .8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.92rem; margin:.6rem 0; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .tldr { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:4px; }
+    .warn { color:var(--warn); font-weight:600; }
+    .star { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .sweet { background:#fffbea; }
+    em.skip { color:var(--muted); }
+    ol li, ul li { margin:.3rem 0; }
+    footer { max-width:860px; margin:0 auto; padding:1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/learn-list</h1>
+    <span class="pill">ideation · new skill · 2026-06-03</span>
+    <a class="attr" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main>
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<div class="tldr">
+<p><code>/learn-list &lt;topic&gt;</code> turns any topic into a <strong>verified, anti-slop, multi-format reading list</strong> organized by a canon-derived topic outline — each link annotated with a ≤2-sentence "why included" and ranked within its topic — closing with a follow-list of people, newsletters, books (with summaries) and practitioners' most-cited writings. Effort scales via <code>quick</code> / <code>standard</code> / <code>deep</code> modes (fan-out width + adjacency depth).</p>
+<p><strong>Recommendation:</strong> <strong>GO</strong> — but only if built as a <em>verification-first web pipeline</em>, not a generate-from-memory one. The two highest risks (dead/hallucinated links, stale canon) collapse into a single architectural commitment: fetch-verify every link and live-search the canon. Get that right and the rest is tuning.</p>
+</div>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we turn <em>any</em> topic into a high-signal, source-diverse reading list — anchored on canonical experts and their own taxonomy of the field — with effort the user can dial up or down, while filtering out SEO/AI slop?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> A curious operator/PM/engineer ramping fast on an unfamiliar topic (or going deeper on a familiar one).</p>
+<p><strong>When / where:</strong> Before a meeting, a new scope, a career pivot, or out of pure curiosity — at the point where Google/Perplexity return generic page-1 noise and they don't yet know who the real experts are.</p>
+<p><strong>JTBD:</strong> "When I'm ramping on a new topic, give me the best content across every format organized sensibly — <em>plus the people and sources to follow next</em> — so I can go from zero to conversant without drowning in slop."</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe that <strong>building the list canon-first (find the experts, harvest their taxonomy and their own recommendations) and verifying every link before emit</strong> will produce <strong>a list that demonstrably beats 2 hours of the user's own searching and earns ≥3 real source-follows</strong> because <strong>the unmet gap isn't "more links" — it's trust, non-obviousness, and curation that search engines and memory-based LLMs structurally cannot provide.</strong></p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via First Principles + Analogous Inspiration. Finalist ingredients flagged with ★.</p>
+<ol>
+<li>★ <strong>Canon-first cascade</strong> — find 3–5 canonical sources → extract <em>their</em> topic taxonomy → fan out subagents per topic. <span class="pill">spine</span></li>
+<li><strong>Practitioner-graph traversal</strong> — build the list from who the top practitioners cite/recommend (expert social proof).</li>
+<li>★ <strong>Curation-of-curations</strong> — harvest existing Top-N lists / syllabi / awesome-repos first, merge &amp; dedupe, then fill gaps.</li>
+<li><strong>Question-driven</strong> — organize by the key questions a learner must answer (learning-outcome, not topic).</li>
+<li><strong>Format-balanced quota</strong> — enforce ≥1 of each format per topic. <em>(Rejected — invites fabrication; coverage should be honest.)</em></li>
+<li><strong>Progressive-depth ladder</strong> — output as a path (primer→core→frontier→adjacent). <em>(Deferred — heavier than chosen scope.)</em></li>
+<li><strong>Credibility-scored &amp; ranked</strong> — rank within topic by author authority/recency. <span class="pill">folded into spine</span></li>
+<li>★ <strong>Adjacency as a dial</strong> — core list + separate "adjacent rabbit holes"; quick/standard/deep set how far the adjacency walk goes.</li>
+<li>★ <strong>Learner-shaped</strong> — short upfront level/goal/time signal so a beginner vs. practitioner gets a different list.</li>
+<li>★ <strong>Anti-slop filter pass</strong> — down-rank SEO/AI listicles, reward primary + practitioner sources. The core differentiator.</li>
+<li><strong>Living / re-runnable</strong> — dedupe against what you've saved; show only what's new. <em>(Deferred — needs state; out of scope for v1.)</em></li>
+<li>★ <strong>Book-summary + most-cited-writing sourcing</strong> — quality summary per canonical book; each practitioner's most-cited piece.</li>
+</ol>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify: 11-star ladder</h2>
+<p>Brian Chesky's 11-star exercise applied to the finalist. Baseline (5★) = the bundle as first described. The user selected <strong>6★ with a hard ≤2-sentence annotation cap</strong> as the chosen finalist — richer than baseline (annotated + ranked + dead-link-checked) but deliberately lighter than 7★'s sequenced learning-path.</p>
+<table>
+<tr><th class="star">★</th><th>Experience</th></tr>
+<tr><td class="star">1</td><td>Dumps 50 unranked links, half dead/SEO-slop. Worse than searching yourself.</td></tr>
+<tr><td class="star">2</td><td>Flat list of 20 links, no organization, no quality filter.</td></tr>
+<tr><td class="star">3</td><td>Organized by topic outline, but obvious links (Wikipedia, page-1 Google); no canon, no people-to-follow.</td></tr>
+<tr><td class="star">4</td><td>Canon-anchored outline + decent links, but no quality scoring, no adjacencies, articles-only.</td></tr>
+<tr><td class="star">5</td><td><strong>Baseline.</strong> Canon-first outline, anti-slop, multi-format, adjacency dial, level-shaped; ends with follow-list + book summaries + most-cited writings, harvested from curations.</td></tr>
+<tr class="sweet"><td class="star">6 ★</td><td><strong>CHOSEN.</strong> Every link annotated with a ≤2-sentence "why included," ranked within topic, dead-link-checked. The lean-but-trustworthy version.</td></tr>
+<tr><td class="star">7</td><td>A sequenced path honoring a time budget, per-section "you're done when you can answer these N questions," skip-if-you-know branching. <em>(Considered; rejected as too heavy for v1.)</em></td></tr>
+<tr><td class="star">8</td><td>Living + actionable: exports to Readwise/Notion, one-click subscribe, dedupe-against-read, "what's new since last run."</td></tr>
+<tr><td class="star">9</td><td>Pulls content not links: inline book/essay summaries + a synthesized "state of the field" that flags where experts disagree.</td></tr>
+<tr><td class="star">10</td><td>A tutor: curriculum with spaced-repetition prompts, quizzes, adapts to your gaps.</td></tr>
+<tr><td class="star">11</td><td>Flies the canonical practitioners to your house to mentor you over a weekend. <em>(Absurd by construction.)</em></td></tr>
+</table>
+<p><strong>Chosen finalist (6★):</strong> Canon-first topic outline · anti-slop-filtered · multi-format · level-shaped · adjacency dial by mode · <strong>each link annotated ≤2 sentences + ranked + dead-link-checked</strong> · closes with follow-list (people / newsletters / books-with-summaries / practitioners' most-cited). Book-summary &amp; most-cited sourcing (12★ ideas) retained from the 9★ rung as a cheap, high-value graft.</p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<p>A recommended <strong>verification-first pipeline</strong>. Modes set the dials at each fan-out point.</p>
+<ul>
+<li><strong>0 · Shape</strong> — parse topic; one short prompt for level / goal / time (skippable). Resolve mode: <code>quick</code> / <code>standard</code> / <code>deep</code>.</li>
+<li><strong>1 · Find the canon (live web search, not memory)</strong> — identify 3–5 canonical books, the top practitioners, and 2–4 existing curations (Top-N lists, syllabi, "awesome" repos, expert reading lists). Verify each exists and is current.</li>
+<li><strong>2 · Derive the outline</strong> — extract the topic taxonomy from the canon + curations (not the model's own guess), so an expert would recognize the structure. Dedupe topics before fan-out.</li>
+<li><strong>3 · Fan out per topic (subagents)</strong> — each subagent sources high-quality, multi-format content for one topic. Width capped by mode. <strong>Every candidate URL is fetched/verified; unverifiable links are dropped, never guessed.</strong></li>
+<li><strong>4 · Anti-slop &amp; rank</strong> — score each candidate on a source-tier rubric (primary &gt; practitioner &gt; reputable pub &gt; aggregator), named-author requirement, recency. Keep top-ranked per topic; annotate each with ≤2 sentences on why it's in.</li>
+<li><strong>5 · Adjacency walk</strong> — explore adjacent topics to widen coverage; depth set by mode (quick=none, standard=1 hop, deep=2 hops). Output as a clearly-separated "adjacent rabbit holes" section so it never dilutes the core.</li>
+<li><strong>6 · Follow-list + summaries</strong> — assemble people / newsletters / books (with sourced summaries) / practitioners' most-cited writings, each with a direct subscribe/source link.</li>
+<li><strong>7 · Emit</strong> — single HTML artifact: canon-derived outline → ranked annotated links per topic → adjacencies → follow-list. Dead-link sweep before write.</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td>Google / Perplexity / deep-research</td><td>Answer a query; surface ranked links or a synthesized answer.</td><td>No canon-derived taxonomy, no anti-slop curation bar, no "who to follow next." Optimizes for an answer, not a learning map.</td></tr>
+<tr><td>"Awesome" GitHub lists / syllabi</td><td>Human-curated topic link collections.</td><td>Static, uneven freshness, single-curator bias. <code>/learn-list</code> <em>harvests</em> these as input but verifies, ranks, and refreshes them.</td></tr>
+<tr><td>Readwise / Refind / Pocket</td><td>Save &amp; resurface content you already found.</td><td>Storage/recall, not discovery. <code>/learn-list</code> is the front of that funnel — it finds; they keep.</td></tr>
+<tr><td>Blinkist / getAbstract</td><td>Book summaries.</td><td>Books-only, paid, no topic map or practitioner graph. <code>/learn-list</code> sources summaries as one ingredient of a broader list.</td></tr>
+<tr><td><code>/primer</code> (pmos-learnkit)</td><td>Verified-source HTML primer that <em>teaches</em> a topic.</td><td>Sibling, not overlap: <code>/primer</code> writes the explainer; <code>/learn-list</code> hands you the curated <em>sources</em>. Natural handoff in both directions.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<table>
+<tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>Hallucinated / dead links (404s, remembered URLs)</td><td>H</td><td>Fetch-verify every link before emit; drop unverifiable; never output a URL from memory. The make-or-break rule.</td></tr>
+<tr><td>Stale canon from training cutoff</td><td>H</td><td>Live search ("best X 2026"); verify practitioners still active/relevant.</td></tr>
+<tr><td>Anti-slop filter is theater</td><td>M–H</td><td>Source-tier rubric + named-author requirement + domain reputation — not vibes.</td></tr>
+<tr><td>Generic output on popular topics</td><td>M</td><td>Lead with curation-of-curations + practitioner-graph; split "obvious starting points" vs. "deeper cuts."</td></tr>
+<tr><td>Faked format coverage</td><td>M</td><td>Only include formats actually found; no fixed quota — uneven coverage is honest.</td></tr>
+<tr><td>Deep mode unusably slow/expensive</td><td>M</td><td>Cap fan-out width per mode; dedupe topics pre-fan-out; budget guard.</td></tr>
+</table>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>Model + web search can reliably find &amp; verify real, live, high-quality links across formats</td><td>H</td><td>H</td><td>Run on 3 topics (incl. 1 niche); manually check 20 links for 404 + quality.</td></tr>
+<tr><td>Output beats the user's own 30-min search (non-obvious, practitioner-sourced)</td><td>H</td><td>H</td><td>Blind A/B vs. a user's manual list on 1 topic; user rates.</td></tr>
+<tr><td>Anti-slop heuristics actually discriminate signal/slop without a human</td><td>H</td><td>M</td><td>Hand-label 30 candidate links good/slop; check heuristic agreement.</td></tr>
+<tr><td>Book summaries &amp; "most-cited writing" are sourceable (real, legal, not paywalled/invented)</td><td>M</td><td>H</td><td>Source summaries for 5 canonical books; verify they exist &amp; are legit.</td></tr>
+<tr><td>3 modes are meaningfully distinct (not just a width slider)</td><td>M</td><td>M</td><td>Run quick/standard/deep on one topic; do they feel materially different?</td></tr>
+<tr><td>Adjacency exploration improves coverage rather than diluting focus</td><td>M</td><td>M</td><td>Diff with- vs. without-adjacency runs; does the user value the extra section?</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> &lt;1 dead/wrong link per 20 emitted; user opens ≥5 links per run; user re-runs on a second topic within the same session.</p>
+<p><strong>Lagging:</strong> User says it beat ≥2 hours of their own searching; user follows/subscribes to ≥3 recommended sources within a week; <code>/learn-list</code> becomes the default first step before a new scope.</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li>Validate the dominant H×H risk first: hand-run the pipeline on 3 topics (one niche), manually checking link reality + quality before writing any skill code.</li>
+<li>Define the anti-slop source-tier rubric concretely (it's the differentiator and the second-riskiest assumption).</li>
+<li>Pin the mode matrix: exact fan-out width + adjacency hops for quick/standard/deep, with a budget guard for deep.</li>
+<li>Decide v1 scope cut: defer "living/re-runnable" (#11) and the 7★ sequenced-path — ship the 6★ annotated list.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/feature-sdlc skill build /learn-list — a verification-first curated-reading-list skill (see this artifact)</code> — drive it through the full skill SDLC.</li>
+<li><code>/requirements learn-list</code> — shape acceptance criteria from this brief.</li>
+<li><code>/backlog add</code> — park it if not building now.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-03_learn-list.html</code> — polish this artifact for sharing.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Output target: standalone HTML artifact only, or also a paste-ready markdown block for Readwise/Notion import?</li>
+<li>Does <code>/learn-list</code> live in <strong>pmos-learnkit</strong> (alongside <code>/primer</code> and <code>/critical-thinking</code> — likely the right home) or pmos-toolkit?</li>
+<li>How tightly should it pair with <code>/primer</code> — auto-suggest <code>/primer &lt;topic&gt;</code> as a handoff, or stay independent?</li>
+<li>Annotation cap is ≤2 sentences — do we also enforce a per-link char ceiling to keep the list scannable?</li>
+<li>Paywalled canonical sources: include with a "paywalled" tag, or prefer a free alternative when one exists?</li>
+<li>How is "most-cited writing" actually determined without citation-graph access — proxy via repeated cross-referencing in the harvested curations?</li>
+</ul>
+</section>
+
+  </main>
+  <footer>
+    Source: docs/pmos/ideate/2026-06-03_learn-list.html · Created using pmos&#8209;toolkit
+  </footer>
+</body>
+</html>
