@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.11.0: `/playbook` — turn your own AI sessions into shareable PM case studies
+
+New **pmos-learnkit** skill. `/playbook` mines your own Claude Code session history for **one repo** and synthesizes focused, self-sufficient **case-study articles** that teach fellow PMs how you used AI to solve a real problem — the prompt you started with, how you refined the idea, the trade-offs you decided, and the skills you reached for. Each problem becomes a shareable HTML article + a tweet thread, every one gated behind a human safety review. Concretely:
+
+- **Repo-scoped, worktree-aware resolution.** A multi-signal resolver attributes sessions to a repo via three independent signals — nested-prefix cwd match, sibling-directory token-strip (so a `<repo>-<slug>` worktree still counts even after it's merged and deleted), and branch-in-merge-history. Branch-only matches are flagged ambiguous and excluded rather than mis-attributed; sibling-only matches are kept as low-confidence so the worktree undercount the resolver exists to prevent doesn't creep back.
+- **Interactive-only by default.** Headless/subprocess sessions (`claude -p`, the SDK, subagent transcripts) are filtered out using a `permission-mode` record-type discriminator; `--include-headless` overrides. The scout reads only flat top-level session transcripts and deliberately does not recurse into per-session `subagents/` subdirectories.
+- **Problem-clustering + article synthesis.** Attributed threads are clustered by topic into discrete problems; each cluster is mined for its starting prompt, refinement turns, load-bearing decisions (`AskUserQuestion` anchors + free-prose pushbacks), and the skills invoked, then written up as a teachable article with an accompanying tweet thread.
+- **Human is the share gate.** The skill **never posts anything** and never marks output "safe to share" on its own — every emitted article ships with a safety-review checklist, and publishing is always an explicit human step.
+
+**Why**
+
+PMs accumulate a lot of hard-won AI working knowledge inside their session logs, but it's locked in a format nobody revisits — scattered across worktrees, interleaved with headless noise, and shaped for the machine, not for a colleague. `/playbook` turns that exhaust into teaching material: it finds the real interactive work (even when it happened on a branch that's long since merged away), reconstructs the problem-solving arc, and produces something a peer can actually learn from — while keeping the author firmly in control of what, if anything, ever leaves their machine.
+
 ## 2026-06-03 — pmos-learnkit 0.9.0: `/primer` + `/learn-list` share one topic-research front half
 
 `/primer` and `/learn-list` now run the **same research front half** — intake → canon discovery → topic outline → verified per-topic sourcing — extracted into a shared, skill-agnostic substrate at `_shared/topic-research/` that both skills inline. Each keeps its own back half: `/primer` synthesizes the verified sources into a teachable prose artifact; `/learn-list` ranks and annotates them into a curated list. Concretely:
