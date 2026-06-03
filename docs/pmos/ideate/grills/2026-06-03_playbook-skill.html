@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="grill">
+  <meta name="pmos:grill-target" content="docs/pmos/ideate/2026-06-03_playbook-skill.html">
+  <meta name="pmos:grill-depth" content="deep">
+  <meta name="pmos:grill-date" content="2026-06-03">
+  <title>Grill Report — /playbook</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --ok:#2f855a; --bg:#fafafa; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    .attr { margin-left:auto; font-size:.8rem; color:var(--muted); text-decoration:none; }
+    main { max-width:900px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2.2rem; }
+    h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; margin:2rem 0 .8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.9rem; margin:.6rem 0; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    td.n { text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .meta { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); padding:.8rem 1.1rem; border-radius:4px; font-size:.92rem; }
+    .ovr { color:var(--warn); font-weight:600; }
+    ul li, ol li { margin:.3rem 0; }
+    footer { max-width:900px; margin:0 auto; padding:1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Grill Report — /playbook</h1>
+    <span class="pill">grill · deep · 2026-06-03</span>
+    <a class="attr" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main>
+
+<section id="summary">
+<h2 id="summary">Summary</h2>
+<div class="meta">
+<p><strong>Target:</strong> <code>docs/pmos/ideate/2026-06-03_playbook-skill.html</code> · <strong>Depth:</strong> deep · <strong>Questions asked:</strong> 12 · <strong>Resolved-by-design (no turn):</strong> 1 · <strong>Author overrides of the recommended option:</strong> 3 (home plugin, visual capture, screenshot gate).</p>
+<p>Two interrogation threads did the heavy lifting: (1) the <strong>clustering unit</strong> (what <em>is</em> a playbook) and (2) the <strong>session-source feasibility</strong> (worktree resolution + headless inflation). A log-grounded finding during the grill — interactive vs. headless sessions are separable by the <code>permission-mode</code> record type — collapsed the dominant scale risk and is now a default filter.</p>
+</div>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved decisions</h2>
+<table>
+<tr><th class="n">#</th><th>Decision</th><th>Outcome &amp; rationale</th></tr>
+<tr><td class="n">1</td><td>Clustering anchor</td><td><strong>Session-thread anchored.</strong> Process is the teaching payload; docs/folders are supporting evidence, not the unit.</td></tr>
+<tr><td class="n">2</td><td>Thread boundary</td><td><strong>Branch-then-topic fallback.</strong> Group by non-HEAD <code>gitBranch</code>; for HEAD work cluster on ai-title + first-prompt topic similarity + temporal gap; merge compaction continuations.</td></tr>
+<tr><td class="n">3</td><td>Instructiveness gate</td><td><strong>Composite score + hard floor</strong> (≥1 non-trivial decision AND ≥1 skill/tool beyond <code>/exit</code>). Kills <code>nidhi</code> (1 session) without killing a short-but-dense thread.</td></tr>
+<tr><td class="n">4</td><td>Anonymization</td><td><strong>Detect + forced human gate</strong>, never auto-scrub. Best-effort detection (NER, denylist, $/metric patterns) + flags every retained proper noun &amp; metric in <code>REVIEW-BEFORE-SHARING.md</code>; concreteness preserved, author signs off.</td></tr>
+<tr><td class="n">5</td><td>Self-sufficiency</td><td><strong>Embed everything inline.</strong> Verbatim prompts + decision-ledger + artifact excerpts + skill sequence; reader opens zero repo files.</td></tr>
+<tr><td class="n">6</td><td>Scale / volume</td><td><strong>Deterministic script-scout → compact summary</strong> + <strong>interactive-only by default</strong> (drop headless via <code>permission-mode</code> discriminator) + <code>--include-headless</code> escape; print kept/dropped counts. Collapses book-companion 3,839 → a handful.</td></tr>
+<tr><td class="n">7</td><td>Decision extraction</td><td><strong>Prose-first, AskUserQuestion as anchors.</strong> Data-driven reversal of the artifact's framing — AskUserQuestion is sparse (8 calls / 44 sessions in readme-skill); pushbacks live in free prose.</td></tr>
+<tr><td class="n">8</td><td>Multi-repo</td><td><strong>Defer to post-v1</strong>; v1 strictly repo-scoped (resolver already unifies one repo's sibling/worktree sprawl).</td></tr>
+<tr><td class="n">9</td><td>Home plugin</td><td><strong>pmos-learnkit</strong> <span class="ovr">(author override of pmos-toolkit rec)</span> — grouped with <code>/primer</code>/<code>/learn-list</code> by output-audience.</td></tr>
+<tr><td class="n">10</td><td>Default window</td><td><strong>Last 30 days + mandatory dry-run confirm</strong>; no silent unbounded run.</td></tr>
+<tr><td class="n">11</td><td>Visual artifacts</td><td><strong>Full screenshot pipeline in v1</strong> <span class="ovr">(author override of text-first rec)</span> — Playwright capture + embed.</td></tr>
+<tr><td class="n">12</td><td>Screenshot leak gate</td><td><strong>Author manually verifies before posting</strong> <span class="ovr">(author override of OCR-flag rec)</span> — images listed in the review file; human gate, no OCR.</td></tr>
+<tr><td class="n">RBD</td><td>Personal-repo exclusion</td><td><strong>Resolved-by-design.</strong> Repo-scoped + explicitly invoked + personal projects are valid teaching targets; nothing to auto-exclude.</td></tr>
+</table>
+</section>
+
+<section id="gaps">
+<h2 id="gaps">Gaps surfaced (fold into requirements)</h2>
+<ul>
+<li><strong>Topic-similarity over/under-merge</strong> — branch-then-topic clustering on title+first-prompt can mis-merge threads; extend the resolver's confirm-the-grouping step to thread boundaries.</li>
+<li><strong>"Starting prompt" detection</strong> — a stated requirement; with thread-merge it is <em>the first genuine human message of the earliest session in the thread</em>, skipping compaction-injected summaries and <code>&lt;command-name&gt;</code> wrappers. Spec it explicitly.</li>
+<li><strong>Candidate dedup</strong> — overlapping threads (a branch + its follow-up HEAD work) could surface as two candidates for one story; needs a merge affordance.</li>
+<li><strong>Cross-plugin coupling</strong> — in pmos-learnkit, <code>/playbook</code> depends on toolkit's <code>command-name</code>/session conventions; light (string/path coupling, not code) but worth an explicit note so it isn't a silent dependency.</li>
+<li><strong>Screenshot pipeline cost/leak</strong> — Playwright in v1 adds a heavy dep and an un-flaggable leak surface gated only by manual review; make the manual-review step a <em>hard, un-skippable</em> gate in the artifact schema.</li>
+</ul>
+</section>
+
+<section id="next-step">
+<h2 id="next-step">Recommended next step</h2>
+<p>Fold the 12 decisions into the ideate artifact (done in the same session), then promote — <strong>not auto-invoked</strong>:</p>
+<ul>
+<li><code>/feature-sdlc skill build /playbook — a pmos-learnkit repo-scoped skill that mines interactive session threads + generated docs into focused, self-sufficient PM case studies (see docs/pmos/ideate/2026-06-03_playbook-skill.html + this grill)</code></li>
+</ul>
+</section>
+
+  </main>
+  <footer>
+    Source: docs/pmos/ideate/grills/2026-06-03_playbook-skill.html · Grilled docs/pmos/ideate/2026-06-03_playbook-skill.html · Created using pmos&#8209;toolkit
+  </footer>
+</body>
+</html>

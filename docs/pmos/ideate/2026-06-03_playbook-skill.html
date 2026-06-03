@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="playbook-skill">
+  <meta name="pmos:ideate-date" content="2026-06-03">
+  <meta name="pmos:ideate-grilled" content="docs/pmos/ideate/grills/2026-06-03_playbook-skill.html">
+  <title>/playbook — Ideation</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --bg:#fafafa; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    .attr { margin-left:auto; font-size:.8rem; color:var(--muted); text-decoration:none; }
+    main { max-width:860px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2.2rem; }
+    h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; margin:2rem 0 .8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.92rem; margin:.6rem 0; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .tldr { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:4px; }
+    .warn { color:var(--warn); font-weight:600; }
+    em.skip { color:var(--muted); }
+    ol li, ul li { margin:.3rem 0; }
+    footer { max-width:860px; margin:0 auto; padding:1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/playbook</h1>
+    <span class="pill">ideation · new skill · pmos-learnkit · grilled (deep) · 2026-06-03</span>
+    <a class="attr" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main>
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<div class="tldr">
+<p><code>/playbook [--repo &lt;path&gt;] [--days N | --sessions N | --since &lt;date&gt;] [--include-headless]</code> is a <strong>repo-scoped</strong> skill (home: <strong>pmos-learnkit</strong>) that mines your own Claude Code session history <em>and</em> the repo's generated docs to produce <strong>focused, self-sufficient case-study articles</strong> that teach fellow PMs exactly how you used AI to solve a specific problem. It resolves <strong>all</strong> session dirs for a repo via a multi-signal worktree resolver, <strong>filters to interactive sessions by default</strong> (dropping Claude-as-subprocess/headless runs), clusters the remaining sessions into <strong>problem threads</strong> (the unit of a playbook), does a cheap deterministic scouting pass, and <strong>proposes a ranked top-N of candidate playbooks</strong> (one per coherent thread — not one generalized playbook). On the ones you pick it deep-reads only that cluster and writes a per-playbook folder containing an HTML article + a tweet / tweet-thread + screenshots. Each article captures your <strong>starting prompts, how ideas were refined, research done, load-bearing decisions &amp; trade-offs (extracted prose-first from the thread, with <code>AskUserQuestion</code> blocks as structured anchors), a steal-these-prompts gallery, and a skills-used provenance strip</strong>. A detect-and-flag anonymizer + an always-on human review gate (<code>REVIEW-BEFORE-SHARING.md</code>) precede any sharing; the skill never auto-marks "safe."</p>
+<p><strong>Recommendation:</strong> <strong>GO</strong> — pressure-tested via a deep grill (see <a href="grills/2026-06-03_playbook-skill.html">grill report</a>; 12 decisions resolved). Two commitments are load-bearing: (1) the resolver must be <strong>multi-signal</strong> (nested-prefix ∪ sibling-token-strip ∪ <code>gitBranch</code>∈merge-history) — <code>pm-docs</code>'s main dir has 2 sessions while the real work (345 artifacts) lived in worktrees, and merged-and-deleted sibling worktrees are only recoverable via merge history; (2) <strong>interactive-only filtering</strong> via the <code>permission-mode</code> record discriminator — it collapses book-companion from 3,839 inflated headless sessions to a handful of real ones and is what makes the scale tractable.</p>
+</div>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we turn a PM's buried, worktree-scattered Claude Code session history into short, focused, self-sufficient case studies — one per real problem they solved — that show <em>other</em> PMs concretely how to apply AI to their own day-to-day work?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who (author):</strong> An AI-native PM who has solved real problems across many repos/sessions and wants to teach peers — and build a reputation — without manually trawling logs or re-narrating from memory.</p>
+<p><strong>Who (reader):</strong> A fellow PM, often non-coding, who wants concrete, replicable examples of AI applied to PM work (research, concept notes, specs, surveys, features) — not abstract "how I use AI" advice.</p>
+<p><strong>JTBD:</strong> "When I've spent weeks solving real problems with AI inside a repo, give me a few focused, shareable articles — each anchored to one specific problem, showing the prompts I started with, how I refined, the trade-offs I decided, and the skills I used — so a peer can read one and replicate the approach on their own problem."</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe that <strong>mining a single repo's full session history (worktrees included) + its generated docs, and synthesizing focused per-problem articles that surface the actual prompts, refinements, and load-bearing decisions</strong> will produce <strong>case studies a peer PM can replicate on their own work</strong> because <strong>the teachable value isn't a generalized playbook — it's the concrete decision trail and real prompts behind one specific problem, which neither memory-based recall nor a generic "AI tips" post can reconstruct.</strong></p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via First Principles + Analogous Inspiration. Finalist ingredients flagged with ★. The composite was reshaped by user feedback away from a generalized cross-repo playbook toward focused, per-repo/per-folder articles.</p>
+<ol>
+<li>★ <strong>Index-first scout (ephemeral)</strong> — read only session titles + first prompts + command-tags + repo folder structure to <em>propose</em> candidates; deep-read only what's picked. <span class="pill">spine</span> <em>(index is internal/ephemeral, not persisted — its only benefit is "propose well + don't burn tokens").</em></li>
+<li><strong>Cross-repo theme clustering</strong> — group by problem theme across repos. <em>(Rejected — user wants focused per-repo articles, not generalized themes.)</em></li>
+<li>★ <strong>Repo-scoped, folder-aware candidates</strong> — run from a repo; large/multi-project repos propose multiple playbooks, one per coherent folder/project/research (e.g. each <code>pm-docs</code> folder → a candidate). <span class="pill">spine</span></li>
+<li>★ <strong>Worktree-complete session resolution</strong> — multi-signal: nested-prefix ∪ sibling-token-strip ∪ <code>gitBranch</code>∈merge-history (recovers merged-and-deleted siblings). <span class="pill">load-bearing</span></li>
+<li>★ <strong>Interactive-only filter (grilled-in)</strong> — drop Claude-as-subprocess/headless runs via the <code>permission-mode</code> record discriminator; <code>--include-headless</code> escape. <span class="pill">spine · scale</span></li>
+<li>★ <strong>Problem-thread clustering (grilled-in)</strong> — the playbook <em>unit</em> is a session-thread (branch-then-topic), not a folder. Folders/docs are supporting evidence. <span class="pill">anchor</span></li>
+<li>★ <strong>Decision-ledger extraction</strong> — mine <code>AskUserQuestion</code> proposals + your responses + your pushbacks into a "trade-offs I decided" table. The highest-value payload for PMs.</li>
+<li>★ <strong>Sample-prompt gallery</strong> — the actual starting prompts + refinement prompts + skill guidance you received, as a "steal these" box.</li>
+<li>★ <strong>Skills-used provenance strip</strong> — which skills/tools, in what order, with one-line "why this skill here," from <code>command-name</code> tags.</li>
+<li>★ <strong>Generated-docs mining</strong> — mine the repo's pmos-generated <code>docs/pmos/**</code> artifacts (and other docs) for interesting load-bearing choices/snippets, beyond the session logs.</li>
+<li>★ <strong>Additive scope window</strong> — <code>--repo &lt;path&gt;</code> combined with <code>--days N</code> / <code>--sessions N</code> / <code>--since &lt;date&gt;</code>; dry-run count before any heavy read.</li>
+<li>★ <strong>Ranked top-N candidate proposal</strong> — score candidates by instructiveness (decision density, # skills, session span, struggle→resolution arc); propose ranked top ~5 with "why teachable," user picks. <em>(User-chosen default.)</em></li>
+<li>★ <strong>Per-playbook output folder</strong> — each playbook → <code>{docs_path}/playbooks/{YYYY-MM-DD}_&lt;slug&gt;/</code> with HTML article + tweet/tweet-thread.</li>
+<li>★ <strong>Always-on anonymizer + review file</strong> — scrub repo/client names; emit <code>REVIEW-BEFORE-SHARING.md</code> listing redactions + remaining proper nouns for manual sign-off. Never auto-marks "safe."</li>
+<li><strong>For-non-coding-PMs translation framing</strong> — render engineering specifics into PM-language takeaways. <span class="pill">folded into article voice</span></li>
+</ol>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify: 11-star ladder</h2>
+<p><em class="skip">Skipped — the skill shape was well-resolved through user feedback (repo-scoped, focused-per-problem, fixed output contract); no UX ceiling to raise before pressure-testing. Re-run with <code>/ideate --amplify --resume &lt;this file&gt;</code> if a delight-stretch is wanted later.</em></p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<p>A repo-scoped, propose-then-deep-read pipeline. Scope is additive; the scouting pass is a deterministic script (the LLM never ingests raw logs at scout time). <em>Design grilled deep — see the <a href="grills/2026-06-03_playbook-skill.html">grill report</a>.</em></p>
+<ul>
+<li><strong>0 · Resolve scope (multi-signal worktree resolver)</strong> — default <code>--repo</code> = cwd; combine additively with <code>--days N</code> / <code>--sessions N</code> / <code>--since &lt;date&gt;</code> (<strong>default when none given: last 30 days</strong>). Session logs carry <code>cwd</code> + <code>gitBranch</code> per record. Attribute a session dir to the repo when ANY signal fires: (a) <strong>nested-prefix</strong> — decoded <code>cwd</code> starts with <code>repo + "/.claude/worktrees/"</code> (pm-docs style); (b) <strong>sibling token-strip</strong> — <code>cwd</code> is a sibling dir <code>&lt;repo&gt;-&lt;slug&gt;</code> whose name, with trailing slug tokens stripped, resolves to this repo (poker-coach style); (c) <strong>branch-in-merge-history</strong> — the session's <code>gitBranch</code> appears in the repo's <code>git log --merges</code> / reflog (recovers worktrees already merged AND deleted from disk). Confirm ambiguous attributions before any heavy read.</li>
+<li><strong>1 · Filter to interactive sessions (default)</strong> — drop Claude-as-subprocess/headless runs using the <code>permission-mode</code> record-type discriminator (interactive TUI emits it; SDK/<code>claude -p</code> runs don't), corroborated by secondary signals (very short + templated system-style opening + no <code>command-name</code>). <code>--include-headless</code> re-admits them. This is what makes scale tractable (book-companion 3,839 → handful).</li>
+<li><strong>2 · Deterministic script scout</strong> — a script (not the LLM) reads cheap fields (<code>ai-title</code> + first user prompt + <code>command-name</code> tags + <code>gitBranch</code> + mtime) across kept sessions, clusters into <strong>problem threads</strong> (branch-then-topic: group by non-HEAD branch, else topic-similarity + temporal gap; merge compaction continuations), enumerates the repo's folders + generated docs, scores each thread, and emits a compact ranked-candidate summary. Print <code>found N dirs (M via worktree/sibling/merged), K interactive sessions (H headless dropped), C candidate threads</code> — a dry-run confirm before deep-read.</li>
+<li><strong>3 · Propose ranked candidates</strong> — present ranked top ~5 threads with a one-line "why this is teachable," gated by the <strong>instructiveness floor</strong> (≥1 non-trivial decision AND ≥1 skill/tool beyond <code>/exit</code> — suppresses thin candidates like a 1-session nidhi). User picks which to build, and can merge/split.</li>
+<li><strong>4 · Deep-read picked clusters (subagent fan-out)</strong> — one subagent per chosen playbook, strict output contract; reads the full sessions + relevant docs only for that cluster. Extracts <strong>prose-first</strong>: the starting prompt (first genuine human message of the earliest session, skipping compaction summaries + <code>command-name</code> wrappers), refinement arc, research done, load-bearing decisions + your pushbacks/redirects (semantic extraction, with <code>AskUserQuestion</code> blocks as high-confidence structured anchors), skills-used sequence, interesting doc snippets.</li>
+<li><strong>5 · Synthesize the article (self-sufficient)</strong> — focused case study embedding <em>everything inline</em> so the reader opens zero repo files: problem → how you framed it → verbatim starting prompts (steal-these gallery) → refinement → research → decision-ledger table (choice · alternatives weighed · rationale) → text artifact excerpts → <strong>screenshots</strong> of visual artifacts (Playwright capture) → skills-used provenance strip → PM-language takeaway.</li>
+<li><strong>6 · Anonymizer detect + human gate</strong> — best-effort detection (NER, known repo/branch names, email/$/metric patterns, configurable <code>~/.pmos/playbook/sensitive.yaml</code> denylist); flag every retained proper noun + every quantitative claim in <code>REVIEW-BEFORE-SHARING.md</code>, and list every captured screenshot for mandatory manual verification. The skill never auto-marks "safe" — the author is the gate (hard, un-skippable).</li>
+<li><strong>7 · Emit per-playbook folder</strong> — <code>{docs_path}/playbooks/{YYYY-MM-DD}_&lt;slug&gt;/</code> containing <code>index.html</code> (article), screenshots, the tweet / tweet-thread, and <code>REVIEW-BEFORE-SHARING.md</code>. Existing-folder prompt (overwrite / suffix / cancel).</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td>Writing it up from memory</td><td>You recall the project and draft a post.</td><td>Memory loses the actual prompts, the rejected alternatives, and the decision trail — exactly the replicable parts. <code>/playbook</code> reconstructs them from the logs.</td></tr>
+<tr><td>Generic "how I use AI" thought-leadership</td><td>Abstract tips and frameworks.</td><td>Not replicable on a reader's own problem. <code>/playbook</code> is anchored to one concrete problem with real artifacts.</td></tr>
+<tr><td><code>/primer</code> · <code>/learn-list</code> (pmos-learnkit)</td><td>Teach a topic / curate sources from the open web.</td><td>Outward-facing on external knowledge. <code>/playbook</code> is inward-facing on <em>your own process</em> — different input (your logs) and output (a case study).</td></tr>
+<tr><td>Claude Code session viewers / log exporters</td><td>Render or export raw session transcripts.</td><td>Dump, not synthesis. <code>/playbook</code> selects, clusters, extracts decisions, and writes a shareable narrative.</td></tr>
+<tr><td><code>/memory-book</code> (pmos-toolkit)</td><td>Curates media into a narrative book artifact.</td><td>Adjacent shape (curate → narrative artifact) but different domain; useful prior art for the propose-then-build + per-folder-output pattern.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<table>
+<tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td><code>--repo</code> resolver misses worktree sessions → playbooks built on a fraction of real history. <strong>Confirmed worse than scoped:</strong> worktrees are mostly <em>sibling</em> dirs (<code>&lt;repo&gt;-&lt;slug&gt;</code>), not nested, and get <em>deleted on merge</em> while the session log persists — so path-prefix alone misses them (poker-coach: 10 of 29 sessions were in two deleted sibling worktrees).</td><td>H</td><td>Multi-signal resolver (nested-prefix ∪ sibling token-strip ∪ <code>gitBranch</code> ∈ repo merge-history/reflog); print a coverage line broken down by signal; confirm ambiguous attributions. The branch-in-merge-history signal is the only one that recovers merged-and-deleted worktrees.</td></tr>
+<tr><td>Scale: a repo like <code>book-companion</code> (3,839 sessions) blows context. <strong>Root cause found in grill:</strong> ~3,372 of those are Claude-as-subprocess/headless runs (book-summarization fan-out), not interactive work.</td><td>H</td><td><strong>Interactive-only filter by default</strong> via the <code>permission-mode</code> record discriminator (interactive 50/50 vs headless ~2/200) → 3,839 collapses to a handful. Scout is a deterministic script reading only cheap fields; deep-read fans out across subagents, one cluster per agent. <code>--include-headless</code> escape for the rare headless-was-the-story case.</td></tr>
+<tr><td>Posts read like generic "I used AI" fluff — PMs can't replicate</td><td>M</td><td>Mandate concrete artifacts per post: ≥3 real prompts, ≥1 decision table with the actual alternatives weighed, the real skill sequence. Missing the decision-ledger fails the quality gate.</td></tr>
+<tr><td>Leaks confidential client/repo/strategy detail into a public post</td><td>H</td><td>Anonymizer always-on (not opt-in); emit <code>REVIEW-BEFORE-SHARING.md</code> listing redactions + remaining proper nouns. Never auto-mark "safe."</td></tr>
+<tr><td>Candidate topics are junk — one per trivial folder, or one giant blob → you reject all proposals</td><td>M</td><td>Instructiveness scoring + ranked top-N + "why teachable" line + merge/split affordance (user-chosen default).</td></tr>
+<tr><td>Decision gold lives in prose, not <code>AskUserQuestion</code> tool calls → extractor misses it. <strong>Confirmed in grill:</strong> AskUserQuestion is sparse (readme-skill: 8 calls / 44 sessions); pushbacks live in free prose.</td><td>M</td><td><strong>Prose-first semantic extraction</strong> during deep-read (the choice + alternatives + rationale + your pushbacks/redirects), with <code>AskUserQuestion</code> blocks as high-confidence structured <em>anchors</em> — not the primary source. Reverses the original framing.</td></tr>
+<tr><td><strong>Screenshots leak</strong> what text can't be flagged — v1 embeds Playwright screenshots of artifacts, which bypass the proper-noun/metric anonymizer</td><td>M</td><td>Every captured screenshot is enumerated in <code>REVIEW-BEFORE-SHARING.md</code> as a hard, un-skippable manual-verification item; the author eyeballs each before posting (consistent with the detect-and-human-gate model). No image is published without sign-off.</td></tr>
+<tr><td>Stale-dated slug or overwrites a prior playbook on the same topic</td><td>L</td><td>Date-stamped slug folders; existing-folder prompt (overwrite / suffix / cancel).</td></tr>
+</table>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>The multi-signal resolver attributes worktree sessions (incl. merged-and-deleted ones) to the right repo without false positives</td><td>H</td><td>M</td><td><strong>Largely de-risked:</strong> confirmed <code>cwd</code>+<code>gitBranch</code> present (194/200 files), sibling token-strip works (poker-coach), and merged branches appear in <code>git log --merges</code>. Residual risk = ambiguous sibling names / branch-name collisions across repos → covered by the confirm step.</td></tr>
+<tr><td>Sibling worktree naming is regular enough that token-stripping resolves the parent repo reliably</td><td>M</td><td>M</td><td>Enumerate all sibling-style session dirs; check what fraction token-strip to an existing repo vs. need the gitBranch fallback or a manual prompt.</td></tr>
+<tr><td>Title + first-prompt + command-tags are rich enough to propose <em>good</em> candidates without reading bodies</td><td>H</td><td>M</td><td>On <code>pm-docs</code> worktree sessions, dump titles + first prompts and eyeball whether sensible candidates fall out.</td></tr>
+<tr><td><s>The decision/pushback gold reliably lives in <code>AskUserQuestion</code> blocks</s> — <strong>RESOLVED (grill): it does not.</strong></td><td>H</td><td>L</td><td><strong>Done:</strong> readme-skill had 8 AskUserQuestion calls across 44 sessions; the rich critical-thinking session had 4 calls but 3 additional free-prose pushbacks. Design reframed to prose-first + AskUserQuestion-as-anchors.</td></tr>
+<tr><td>The <code>permission-mode</code> discriminator cleanly separates interactive from headless across repos (no false drops of real interactive work)</td><td>H</td><td>L</td><td><strong>Largely de-risked (grill):</strong> interactive 50/50 carry it, headless ~2/200; the 2 positives were the genuine interactive book-companion sessions. Residual: corroborate with secondary signals (length, templated opening) at the margin.</td></tr>
+<tr><td>pmos-generated <code>docs/pmos/**</code> artifacts add signal beyond the session logs</td><td>M</td><td>L</td><td>Confirmed present (345 HTML, survey-design/analyses in <code>pm-docs</code>) — low risk.</td></tr>
+<tr><td>A focused per-folder/topic article is the right granularity (not too thin)</td><td>M</td><td>M</td><td>First real run on <code>pm-docs</code>: do the proposed candidates feel like "5 good articles" or "20 thin ones"?</td></tr>
+<tr><td>Anonymizer can catch sensitive names well enough to be trusted with a review backstop</td><td>H</td><td>M</td><td>Run on one real client-adjacent playbook; manually audit the review file for missed proper nouns.</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> A focused article is produced in &lt;10 min from <code>/playbook --days 30</code> without hand-curating logs; each post carries ≥3 real prompts + ≥1 decision table; worktree coverage line shows it found the scattered sessions, not just the 2 in the repo dir.</p>
+<p><strong>Lagging:</strong> A peer PM reads one post and replicates the approach on their own problem; you publish ≥3 playbooks from one repo run; <code>/playbook</code> becomes your default "write it up" step after finishing a body of work.</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li>✅ <em>Validated in grill:</em> worktree resolution signals (<code>cwd</code>+<code>gitBranch</code>, sibling-strip, merge-history), the <code>permission-mode</code> interactive/headless discriminator, and AskUserQuestion sparsity (→ prose-first extraction).</li>
+<li>Pin the <strong>multi-signal resolver</strong> contract as FR-1 (nested-prefix ∪ sibling-token-strip ∪ <code>gitBranch</code>∈merge-history) + the coverage/dry-run print line + ambiguous-attribution confirm.</li>
+<li>Pin the <strong>interactive-only filter</strong> (FR-2): <code>permission-mode</code> discriminator + secondary corroboration + <code>--include-headless</code> + kept/dropped counts.</li>
+<li>Pin the <strong>thread-clustering rule</strong> (branch-then-topic) and the <strong>instructiveness floor</strong> (≥1 non-trivial decision AND ≥1 skill beyond <code>/exit</code>).</li>
+<li>Pin the <strong>article schema</strong> (problem → framing → starting prompt → refinement → research → decision-ledger → text excerpts → screenshots → skills strip → PM takeaway) + tweet/thread format + per-playbook folder layout.</li>
+<li>Specify the <strong>detect + human-gate</strong> anonymizer + <code>REVIEW-BEFORE-SHARING.md</code> (flags proper nouns/metrics; enumerates every screenshot as a hard manual-verify item; never auto-marks safe) and the <strong>Playwright screenshot</strong> capture/embed pipeline.</li>
+<li>Resolve the open dedup + reader-artifact-spread questions during <code>/requirements</code>.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li>✅ <code>/grill --deep</code> — done; 12 decisions resolved (see <a href="grills/2026-06-03_playbook-skill.html">grill report</a>) and folded into this artifact.</li>
+<li><code>/feature-sdlc skill build /playbook — a pmos-learnkit repo-scoped skill that mines interactive session threads + generated docs into focused, self-sufficient PM case studies (see this artifact + its grill report)</code> — drive it through the full skill SDLC (the grilled design is ready).</li>
+<li><code>/requirements playbook</code> — shape acceptance criteria from this brief.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-03_playbook-skill.html</code> — polish this artifact for sharing.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<p><em>Resolved in the deep grill (2026-06-03):</em></p>
+<ul>
+<li><strong>Skill name:</strong> ✅ <code>/playbook</code>. (Considered: <code>/case-study</code> — ambiguous; <code>/field-notes</code>, <code>/show-your-work</code>.) Confirm no collision with an existing skill.</li>
+<li><strong>Home plugin:</strong> ✅ <strong>pmos-learnkit</strong> (grouped with <code>/primer</code>/<code>/learn-list</code> by output-audience). Note the light cross-plugin coupling to toolkit's <code>command-name</code>/session conventions.</li>
+<li><strong>Default scope:</strong> ✅ last 30 days + mandatory dry-run confirm (no silent unbounded run).</li>
+<li><strong>Multi-repo:</strong> ✅ deferred to post-v1; v1 strictly repo-scoped (resolver already unifies one repo's sibling/worktree sprawl).</li>
+<li><strong>"Starting prompts":</strong> ✅ first genuine human message of the earliest session in the thread, skipping compaction summaries + <code>command-name</code> wrappers.</li>
+<li><strong>Privacy default:</strong> ✅ resolved-by-design — repo-scoped + explicitly invoked + personal projects are valid teaching targets; nothing to auto-exclude.</li>
+</ul>
+<p><em>Still open (low-leverage; for requirements):</em></p>
+<ul>
+<li><strong>Reader artifact spread:</strong> is the self-sufficient HTML article + tweet thread enough, or also a markdown/Substack-ready export and a LinkedIn-shaped variant?</li>
+<li><strong>Candidate dedup:</strong> how to merge overlapping threads (a feature branch + its follow-up HEAD work) so one story isn't proposed as two candidates.</li>
+<li><strong>Thread-merge confirm:</strong> topic-similarity clustering can over/under-merge — extend the resolver's confirm step to thread boundaries.</li>
+<li><strong>Screenshot pipeline:</strong> Playwright dependency, capture targets (which artifacts), and how the hard manual-review gate is enforced in the schema.</li>
+</ul>
+</section>
+
+  </main>
+  <footer>
+    Source: docs/pmos/ideate/2026-06-03_playbook-skill.html · Created using pmos&#8209;toolkit
+  </footer>
+</body>
+</html>
