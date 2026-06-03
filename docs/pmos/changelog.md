@@ -13,6 +13,21 @@ New **pmos-learnkit** skill. `/playbook` mines your own Claude Code session hist
 
 PMs accumulate a lot of hard-won AI working knowledge inside their session logs, but it's locked in a format nobody revisits — scattered across worktrees, interleaved with headless noise, and shaped for the machine, not for a colleague. `/playbook` turns that exhaust into teaching material: it finds the real interactive work (even when it happened on a branch that's long since merged away), reconstructs the problem-solving arc, and produces something a peer can actually learn from — while keeping the author firmly in control of what, if anything, ever leaves their machine.
 
+## 2026-06-03 — pmos-learnkit 0.10.0: `/magazine` — your RSS backlog as one offline digest
+
+New **pmos-learnkit** skill. `/magazine` turns your scattered public RSS subscriptions — newsletters *and* podcasts — into one skimmable, filterable, self-contained HTML digest of what's new since last time. A resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane. Concretely:
+
+- **One digest, offline.** Each run produces a durable issue plus a searchable cross-issue library, all working from `file://` — no app-hopping, no server.
+- **Resumable local pipeline.** Crawl → transcribe → summarize → tag → rank runs in stages that resume where they left off, so a long backlog or a flaky network doesn't force a restart.
+- **Feed management built in.** `add <url>` / `add --from <file>` / `remove <name>` / `list`, with assisted import from CSV / OPML / screenshot. `--days N`, `--feed <name>`, and `--max-per-feed N` scope each run.
+- **Trust-first summaries.** Every item is condensed to 3–5 bullets with a link back to the source; auto-tags come from a closed registry rather than free-form invention. v1 is public feeds only.
+
+**Why**
+
+A feed backlog is read in a dozen apps or not at all. `/magazine` collapses the catch-up ritual into a single skimmable artifact you own and can re-open offline — surfacing what's worth your attention (the Top-picks lane) without asking you to trust a summary you can't trace back to its source.
+
+*(Backfilled 2026-06-03: the 0.10.0 release shipped its version bump, README row, and tag but omitted this changelog entry.)*
+
 ## 2026-06-03 — pmos-learnkit 0.9.0: `/primer` + `/learn-list` share one topic-research front half
 
 `/primer` and `/learn-list` now run the **same research front half** — intake → canon discovery → topic outline → verified per-topic sourcing — extracted into a shared, skill-agnostic substrate at `_shared/topic-research/` that both skills inline. Each keeps its own back half: `/primer` synthesizes the verified sources into a teachable prose artifact; `/learn-list` ranks and annotates them into a curated list. Concretely:
