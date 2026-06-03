@@ -1,0 +1,104 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "files",
+    "level": 2,
+    "title": "Files to create (skill structure)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-cli",
+    "level": 2,
+    "title": "FR — CLI & invocation",
+    "parent_id": null
+  },
+  {
+    "id": "fr-resolve",
+    "level": 2,
+    "title": "FR — Session resolution (multi-signal)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-filter",
+    "level": 2,
+    "title": "FR — Interactive-only filter",
+    "parent_id": null
+  },
+  {
+    "id": "fr-scout",
+    "level": 2,
+    "title": "FR — Scout, clustering & proposal",
+    "parent_id": null
+  },
+  {
+    "id": "fr-extract",
+    "level": 2,
+    "title": "FR — Deep-read & extraction",
+    "parent_id": null
+  },
+  {
+    "id": "fr-synth",
+    "level": 2,
+    "title": "FR — Article synthesis & outputs",
+    "parent_id": null
+  },
+  {
+    "id": "fr-safety",
+    "level": 2,
+    "title": "FR — Anonymizer & human gate",
+    "parent_id": null
+  },
+  {
+    "id": "fr-output",
+    "level": 2,
+    "title": "FR — Output layout",
+    "parent_id": null
+  },
+  {
+    "id": "fr-conformance",
+    "level": 2,
+    "title": "FR — skill-patterns.md §A–§F conformance",
+    "parent_id": null
+  },
+  {
+    "id": "nfr",
+    "level": 2,
+    "title": "Non-functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "data-contracts",
+    "level": 2,
+    "title": "Data contracts",
+    "parent_id": null
+  },
+  {
+    "id": "dc-candidate",
+    "level": 3,
+    "title": "Scout candidate JSON (scout.mjs stdout)",
+    "parent_id": "data-contracts"
+  },
+  {
+    "id": "dc-record",
+    "level": 3,
+    "title": "Session record fields consumed",
+    "parent_id": "data-contracts"
+  },
+  {
+    "id": "test-plan",
+    "level": 2,
+    "title": "Test plan",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (for /complete-dev)",
+    "parent_id": null
+  }
+]

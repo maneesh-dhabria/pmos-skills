@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>/playbook — Spec</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <style>
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#1a1a1a; background:#fafafa; margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid #e2e2e2; background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    main { max-width:900px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2rem; }
+    h2 { font-size:1.18rem; border-bottom:2px solid #e2e2e2; padding-bottom:.3rem; margin:2rem 0 .7rem; }
+    h3 { font-size:1.02rem; margin:1.2rem 0 .4rem; }
+    table { border-collapse:collapse; width:100%; font-size:.88rem; margin:.6rem 0; }
+    th,td { border:1px solid #e2e2e2; padding:.4rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.86em; }
+    pre { background:#f6f8fa; border:1px solid #e2e2e2; border-radius:5px; padding:.7rem .9rem; overflow:auto; font-size:.82rem; }
+    .meta { color:#666; font-size:.85rem; }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:#666; }
+    ol li, ul li { margin:.25rem 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/playbook — Spec</h1>
+    <span class="pill">Tier 3 · pmos-learnkit · feat/playbook</span>
+  </header>
+  <main>
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p class="meta"><strong>Date:</strong> 2026-06-03 · <strong>Status:</strong> Draft · <strong>Tier:</strong> 3 · <strong>Source:</strong> <code>01_requirements.html</code> (D1–D16) + grill gap (ambiguous-attribution).</p>
+<p><code>/playbook</code> is a standalone <strong>pmos-learnkit</strong> skill that mines the author's own interactive Claude Code session history for one repo and synthesizes focused, self-sufficient case-study articles. It is a propose-then-build pipeline: <em>resolve → filter → scout/cluster → propose → deep-read → synthesize → anonymize/gate → emit</em>. It does NOT load workstream context and does NOT feed the requirements→spec→plan pipeline (sibling-shaped with <code>/learn-list</code>, <code>/primer</code>).</p>
+<p>This spec turns <code>reference/skill-patterns.md §A–§F</code> into concrete FRs (FR-90..FR-96) so the produced skill is testable against the authoring standard, and resolves the grill's ambiguous-attribution gap (FR-22).</p>
+</section>
+
+<section id="files">
+<h2 id="files">Files to create (skill structure)</h2>
+<p>Canonical path per repo CLAUDE.md: <code>plugins/pmos-learnkit/skills/playbook/</code>.</p>
+<table>
+<tr><th>Path</th><th>Purpose</th></tr>
+<tr><td><code>SKILL.md</code></td><td>Skill body: frontmatter + phased instructions (Setup → Resolve → Filter → Scout/Propose → Deep-read → Synthesize → Anonymize/Gate → Emit → Capture Learnings) + Platform Adaptation + Anti-Patterns.</td></tr>
+<tr><td><code>reference/session-log-format.md</code></td><td>Progressive-disclosure ref: the JSONL record shapes, the fields used (<code>cwd</code>, <code>gitBranch</code>, <code>userType</code>, <code>type</code>, <code>aiTitle</code>, <code>permission-mode</code>), <code>&lt;command-name&gt;</code> tag extraction, path-encoding rule.</td></tr>
+<tr><td><code>reference/resolver.md</code></td><td>The multi-signal repo→sessions resolver algorithm + ambiguous-attribution rules + coverage-line format.</td></tr>
+<tr><td><code>reference/clustering.md</code></td><td>Interactive-filter discriminator, deterministic scout fields, thread-boundary (branch-then-topic) rules, instructiveness floor + scoring, merge/split UX.</td></tr>
+<tr><td><code>reference/article-schema.md</code></td><td>The self-sufficient article section schema + tweet/thread format + REVIEW-BEFORE-SHARING.md template.</td></tr>
+<tr><td><code>reference/anonymizer.md</code></td><td>Detect-and-flag rules (NER, denylist, $/metric patterns), the human-gate contract, screenshot review listing.</td></tr>
+<tr><td><code>reference/artifact-template.html</code></td><td>HTML template for the emitted playbook article (sibling to learn-list's template).</td></tr>
+<tr><td><code>scripts/scout.mjs</code></td><td>Zero-dep Node script: deterministic scout — resolves session dirs, filters interactive, clusters into threads, scores, emits compact candidate JSON to stdout. The LLM never reads raw logs at scout time.</td></tr>
+<tr><td><code>scripts/resolve_repo_sessions.mjs</code></td><td>Zero-dep Node helper used by scout.mjs (and unit-tested directly): given a repo path + window, return attributed session dirs with signal provenance.</td></tr>
+<tr><td><code>tests/structure.test.sh</code></td><td>Structure assertions (frontmatter keys, name==dir, required reference files exist).</td></tr>
+<tr><td><code>tests/resolver.test.mjs</code></td><td>Unit tests for the resolver (nested/sibling/merged signals; ambiguous-attribution; headless filter).</td></tr>
+<tr><td><code>tests/scout.test.mjs</code></td><td>Unit tests for clustering + instructiveness floor against fixture session dirs.</td></tr>
+<tr><td><code>tests/fixtures/</code></td><td>Synthetic JSONL session fixtures (interactive, headless, sibling-worktree, merged-branch).</td></tr>
+</table>
+</section>
+
+<section id="fr-cli">
+<h2 id="fr-cli">FR — CLI &amp; invocation</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-01</td><td>Invocation: <code>/playbook [--repo &lt;path&gt;] [--days N | --sessions N | --since &lt;date&gt;] [--include-headless] [--format &lt;html|md|both&gt;] [--non-interactive|--interactive]</code>. <code>--repo</code> defaults to cwd. Scope flags are additive; if none given, default window = last 30 days (D11).</td></tr>
+<tr><td>FR-02</td><td>Standalone utility: MUST NOT load workstream context; MUST NOT write into <code>docs/pmos/features/</code>. Announce-at-start line per skill-patterns.</td></tr>
+<tr><td>FR-03</td><td>Resolve <code>output_format</code> via <code>.pmos/settings.yaml</code> default html; <code>--format</code> overrides. Print the standard stderr line.</td></tr>
+<tr><td>FR-04</td><td>Non-interactive mode honored per the canonical <code>_shared/non-interactive.md</code> block; the dry-run confirm and all merge/boundary prompts defer to their Recommended option (auto-pick) and log deferrals.</td></tr>
+</table>
+</section>
+
+<section id="fr-resolve">
+<h2 id="fr-resolve">FR — Session resolution (multi-signal)</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-10</td><td>Session-log root discovery: enumerate <code>~/.claude/projects/</code> and <code>~/.claude-personal/projects/</code> (both; either may be absent). Each child dir name is a path with <code>/</code>→<code>-</code> encoding; decode via the recorded <code>cwd</code> field inside the sessions (authoritative), falling back to dir-name decode when no record carries <code>cwd</code>.</td></tr>
+<tr><td>FR-11</td><td>Attribute a session dir to <code>--repo</code> when ANY signal fires: <strong>(a) nested-prefix</strong> — decoded <code>cwd</code> starts with <code>&lt;repo&gt;/.claude/worktrees/</code> OR equals/starts-with <code>&lt;repo&gt;/</code>; <strong>(b) sibling-token-strip</strong> — <code>cwd</code> is a sibling dir <code>&lt;repo&gt;-&lt;slug&gt;</code> whose name, stripping trailing <code>-token</code> segments, resolves to an existing dir == <code>&lt;repo&gt;</code>; <strong>(c) branch-in-merge-history</strong> — the session's <code>gitBranch</code> appears in <code>git -C &lt;repo&gt; log --merges</code> or reflog (recovers merged-and-deleted worktrees).</td></tr>
+<tr><td>FR-12</td><td>Use realpath canonicalization for all path comparisons. A session dir matched by ≥1 signal is attributed once (dedupe).</td></tr>
+<tr><td>FR-22</td><td><strong>Ambiguous-attribution (grill gap):</strong> when a candidate session matches ONLY by sibling-token-strip OR ONLY by branch-in-merge-history AND the same <code>gitBranch</code>/sibling-name could plausibly belong to another repo (e.g. a generic branch name like <code>feat/ux-fix</code> present in multiple repos' histories), mark it <code>ambiguous</code> and surface a confirm (interactive) / record-and-skip (non-interactive). NEVER silently attribute an ambiguous session. Confident matches (nested-prefix, or sibling+branch agree) are never prompted.</td></tr>
+<tr><td>FR-13</td><td>Coverage line (printed before any heavy read): <code>found &lt;N&gt; session dirs (&lt;M&gt; via worktree/sibling/merged), &lt;K&gt; interactive sessions (&lt;H&gt; headless dropped), &lt;C&gt; candidate threads</code>. Provenance per dir available on request/in verbose.</td></tr>
+</table>
+</section>
+
+<section id="fr-filter">
+<h2 id="fr-filter">FR — Interactive-only filter</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-20</td><td>A session is <strong>interactive</strong> iff it contains ≥1 record of <code>type: permission-mode</code> (or <code>type: mode</code>). Headless/subprocess sessions (SDK / <code>claude -p</code>) lack these. This is the primary discriminator.</td></tr>
+<tr><td>FR-21</td><td>Corroborating secondary signals (used only to rescue edge cases near the boundary, never to override a clear permission-mode presence): very short session (≤ small line count) + templated system-style opening + absence of any <code>&lt;command-name&gt;</code> tag → treat as headless. <code>userType:external</code> is NOT a discriminator (present on all sessions).</td></tr>
+<tr><td>FR-23</td><td>Default behavior drops headless sessions; <code>--include-headless</code> re-admits them. The dropped count is reported in the coverage line (FR-13). If 0 interactive sessions remain, emit "0 interactive (N headless dropped); re-run with --include-headless if intended" and exit cleanly.</td></tr>
+</table>
+</section>
+
+<section id="fr-scout">
+<h2 id="fr-scout">FR — Scout, clustering &amp; proposal</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-30</td><td><strong>Deterministic script scout</strong> (<code>scripts/scout.mjs</code>): reads only cheap fields per in-window interactive session — <code>aiTitle</code>, first genuine human prompt (first <code>type:user</code> message that is not a compaction-injected summary nor a <code>&lt;command-name&gt;</code> wrapper), <code>&lt;command-name&gt;</code> tags, <code>gitBranch</code>, file mtime. Emits a compact ranked-candidate JSON to stdout. The LLM consumes ONLY this JSON at scout time (never raw logs).</td></tr>
+<tr><td>FR-31</td><td><strong>Thread boundary (branch-then-topic):</strong> group sessions by non-HEAD <code>gitBranch</code> first; for <code>gitBranch==HEAD</code> (or null) sessions, cluster by topic-similarity (over aiTitle + first-prompt tokens) + temporal contiguity (a new thread starts on topic shift AND a gap &gt; threshold). Merge adjacent same-topic sessions (compaction continuations).</td></tr>
+<tr><td>FR-32</td><td><strong>Instructiveness floor (D5):</strong> a candidate thread qualifies only if it has ≥1 non-trivial decision signal (an AskUserQuestion call OR a detected free-prose pushback/redirect) AND ≥1 skill/tool used beyond <code>/exit</code>. Below-floor threads are suppressed from the proposal (logged in verbose, not shown).</td></tr>
+<tr><td>FR-33</td><td><strong>Scoring &amp; ranking:</strong> score = f(decision density, distinct skills used, thread span, presence of a struggle→resolution arc). Present the ranked top ~5 qualifying threads with a one-line "why teachable" each.</td></tr>
+<tr><td>FR-34</td><td><strong>Merge/split UX (D14):</strong> auto-detect overlapping threads (a non-HEAD branch + a temporally-adjacent same-topic HEAD thread) and SUGGEST a merge the author accepts/rejects at the pick step. Thread-boundary confirm prompts fire ONLY when topic-similarity confidence is below threshold; confident clusters are never re-litigated.</td></tr>
+<tr><td>FR-35</td><td><strong>Dry-run confirm (D11):</strong> after the coverage line + ranked proposal, require an explicit confirm (interactive) before deep-read. Author picks which candidate(s) to build.</td></tr>
+</table>
+</section>
+
+<section id="fr-extract">
+<h2 id="fr-extract">FR — Deep-read &amp; extraction</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-40</td><td>Deep-read touches ONLY the picked thread's sessions + the repo docs referenced therein. Use subagent fan-out (one per chosen playbook) with a strict output contract when the platform has subagents; degrade to sequential single-agent otherwise.</td></tr>
+<tr><td>FR-41</td><td><strong>Prose-first extraction (D6):</strong> semantically extract decision points — the choice, the alternatives weighed, the rationale, and the author's pushbacks/redirects — from the full thread prose. Use <code>AskUserQuestion</code> tool_use blocks as high-confidence structured anchors (verbatim option text) that boost but do not bound the extraction.</td></tr>
+<tr><td>FR-42</td><td>Extract the <strong>starting prompt</strong> = the first genuine human message of the earliest session in the thread (skip compaction summaries + <code>&lt;command-name&gt;</code> wrappers), verbatim.</td></tr>
+<tr><td>FR-43</td><td>Extract the <strong>skills-used provenance</strong>: ordered list of <code>&lt;command-name&gt;</code> invocations + notable tools, each with a one-line "why this here."</td></tr>
+<tr><td>FR-44</td><td>Mine the repo's generated docs (<code>docs/pmos/**</code> + other referenced docs) for interesting load-bearing choices/snippets to embed as artifact excerpts.</td></tr>
+</table>
+</section>
+
+<section id="fr-synth">
+<h2 id="fr-synth">FR — Article synthesis &amp; outputs</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-50</td><td><strong>Self-sufficient article (D7)</strong> per <code>reference/article-schema.md</code>, sections: TL;DR · The problem · How I framed it · Starting prompts (steal-these gallery, verbatim) · How the idea was refined · Research done · Decision ledger (choice · alternatives · rationale) · Artifact excerpts · Screenshots · Skills-used strip · Takeaway for PMs. Reader opens zero repo files. PM-language voice; no unexplained jargon.</td></tr>
+<tr><td>FR-51</td><td><strong>Quality gate:</strong> a synthesized article MUST contain ≥3 real prompts AND ≥1 decision-ledger row with real alternatives; a draft missing either is rejected and regenerated (or the candidate flagged thin).</td></tr>
+<tr><td>FR-52</td><td><strong>Screenshots (D9, D15):</strong> capture visual artifacts referenced in the thread via Playwright (serve local HTML on localhost; <code>file://</code> is blocked). Capture only thread-referenced artifacts (author may add). When Playwright/browser is unavailable, degrade to an embedded text excerpt + a "screenshot unavailable" note — never hard-fail.</td></tr>
+<tr><td>FR-53</td><td><strong>Tweet/thread (D13):</strong> emit a succinct tweet + a numbered tweet-thread version distilling the article. v1 emits HTML article + tweet/thread only; markdown/LinkedIn variants deferred.</td></tr>
+</table>
+</section>
+
+<section id="fr-safety">
+<h2 id="fr-safety">FR — Anonymizer &amp; human gate</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-60</td><td><strong>Detect-and-flag (D8), always-on:</strong> best-effort detection of proper nouns (NER), known repo/branch names, emails, $/metric patterns, and entries in <code>~/.pmos/playbook/sensitive.yaml</code>. The skill NEVER auto-scrubs the concrete content and NEVER auto-marks "safe."</td></tr>
+<tr><td>FR-61</td><td><strong>REVIEW-BEFORE-SHARING.md</strong> per playbook folder: lists every retained proper noun + every quantitative claim (with location), AND enumerates every captured screenshot as a mandatory manual-verification item (D10). The author signs off (a hard, un-skippable gate before "shareable").</td></tr>
+<tr><td>FR-62</td><td><strong>Denylist seeding (D16):</strong> <code>~/.pmos/playbook/sensitive.yaml</code> ships absent/empty; on first run offer a one-time optional prompt to seed known client/repo/strategy names; persist for reuse.</td></tr>
+</table>
+</section>
+
+<section id="fr-output">
+<h2 id="fr-output">FR — Output layout</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td>FR-70</td><td>Each playbook → its own folder <code>{docs_path}/playbooks/{YYYY-MM-DD}_&lt;slug&gt;/</code> containing: <code>index.html</code> (article), <code>screenshots/</code>, <code>tweet-thread.md</code>, <code>REVIEW-BEFORE-SHARING.md</code>, plus <code>index.sections.json</code> + copied <code>assets/</code> (HTML substrate, atomic write, cache-bust).</td></tr>
+<tr><td>FR-71</td><td>Slug derived from the thread topic (kebab, ≤4 words). Existing-folder → prompt overwrite / suffix / cancel.</td></tr>
+</table>
+</section>
+
+<section id="fr-conformance">
+<h2 id="fr-conformance">FR — skill-patterns.md §A–§F conformance</h2>
+<table>
+<tr><th>FR</th><th>§</th><th>Requirement</th></tr>
+<tr><td>FR-90</td><td>§A Frontmatter</td><td><code>name: playbook</code> (== dir); <code>user-invocable: true</code>; <code>argument-hint</code> enumerating every flag in FR-01; rich <code>description</code> (see FR-91).</td></tr>
+<tr><td>FR-91</td><td>§B Description/triggering</td><td><code>description</code> carries ≥5 user-spoken trigger phrases, e.g. "turn my AI work into a case study", "write up how I used AI on this", "make a playbook from my sessions", "/playbook", "create a shareable case study from my Claude history", "show how I solved this with AI".</td></tr>
+<tr><td>FR-92</td><td>§C Progressive disclosure</td><td>SKILL.md body stays lean; deep mechanics live in <code>reference/*.md</code> loaded on demand. No reference file restated in the body.</td></tr>
+<tr><td>FR-93</td><td>§D Body/content</td><td>Phased structure with an Announce line, a Track-Progress note, explicit Anti-Patterns, and a mandatory Capture-Learnings phase emitting exactly one learnings line.</td></tr>
+<tr><td>FR-94</td><td>§E Scripts/tooling</td><td>Scout + resolver are zero-dep Node scripts under <code>scripts/</code>, each runnable standalone and unit-tested; SKILL.md invokes them by absolute path.</td></tr>
+<tr><td>FR-95</td><td>§F Platform-conditional</td><td>Platform Adaptation section: degrade AskUserQuestion → numbered prompts; subagents → sequential; Playwright absent → text-excerpt fallback (FR-52); no settings.yaml → first-run setup.</td></tr>
+<tr><td>FR-96</td><td>Repo policy</td><td>Lives at <code>plugins/pmos-learnkit/skills/playbook/</code>; learnkit <code>plugin.json</code> (both .claude + .codex) minor-bumped by <code>/complete-dev</code>; learnings header <code>## /playbook</code> bootstrapped.</td></tr>
+</table>
+</section>
+
+<section id="nfr">
+<h2 id="nfr">Non-functional requirements</h2>
+<table>
+<tr><th>NFR</th><th>Requirement</th></tr>
+<tr><td>NFR-01</td><td><strong>Scale:</strong> scout must handle a repo with thousands of session files without LLM ingestion of bodies; the script reads only cheap fields and streams. Interactive-only filter is applied before clustering.</td></tr>
+<tr><td>NFR-02</td><td><strong>Safety:</strong> no network/publishing side effects; the only writes are under <code>{docs_path}/playbooks/</code> and (with consent) <code>~/.pmos/playbook/sensitive.yaml</code>.</td></tr>
+<tr><td>NFR-03</td><td><strong>Portability:</strong> scripts are zero-dependency Node (ESM, Node ≥18); no npm install. Bash glue follows repo Bash-portability invariants (<code>${BASH_SOURCE[0]:-$0}</code> fallback).</td></tr>
+<tr><td>NFR-04</td><td><strong>Determinism:</strong> scout output is deterministic given the same logs + window (stable ordering; no wall-clock in ranking beyond mtime which is data).</td></tr>
+</table>
+</section>
+
+<section id="data-contracts">
+<h2 id="data-contracts">Data contracts</h2>
+<h3 id="dc-candidate">Scout candidate JSON (scout.mjs stdout)</h3>
+<pre>{
+  "coverage": { "session_dirs": N, "via_worktree": M, "interactive": K, "headless_dropped": H, "candidates": C },
+  "ambiguous": [ { "dir": "...", "reason": "branch-only|sibling-only", "gitBranch": "..." } ],
+  "candidates": [
+    {
+      "slug": "kebab-topic",
+      "title": "ai-title or derived",
+      "why_teachable": "one line",
+      "score": 0.0,
+      "session_ids": ["uuid", ...],
+      "branch": "feat/... | HEAD",
+      "skills": ["/feature-sdlc", "/grill", ...],
+      "decision_signals": N,
+      "span_days": N,
+      "merge_suggestion": { "with_slug": "...", "confidence": 0.0 } | null
+    }
+  ]
+}</pre>
+<h3 id="dc-record">Session record fields consumed</h3>
+<p><code>type</code> (user|assistant|permission-mode|mode|ai-title|…), <code>message.content</code> (string|blocks), <code>cwd</code>, <code>gitBranch</code>, <code>userType</code>, <code>aiTitle</code>; tool_use blocks with <code>name:"AskUserQuestion"</code>; <code>&lt;command-name&gt;…&lt;/command-name&gt;</code> tags inside user message text.</p>
+</section>
+
+<section id="test-plan">
+<h2 id="test-plan">Test plan</h2>
+<ul>
+<li><strong>tests/structure.test.sh</strong> — frontmatter has name/description/user-invocable/argument-hint; name==dir; required reference + script files exist; SKILL.md has Announce + Anti-Patterns + Capture-Learnings.</li>
+<li><strong>tests/resolver.test.mjs</strong> — fixtures prove: nested-prefix match, sibling-token-strip match, branch-in-merge-history match (merged-deleted), ambiguous-attribution flagged not attributed, dedupe.</li>
+<li><strong>tests/scout.test.mjs</strong> — interactive filter (permission-mode present/absent), thread boundary (branch + topic+gap), compaction-continuation merge, instructiveness floor suppresses thin, ranking order stable, merge-suggestion emitted for overlap.</li>
+<li><strong>skill-eval [D]+[J]</strong> — Phase 6a runs <code>skill-eval-check.sh</code> + reviewer against <code>skill-patterns.md §A–§F</code> (FR-90..FR-95).</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs">Release prerequisites (for /complete-dev)</h2>
+<ul>
+<li>Minor version bump in BOTH <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> (0.9.0 → 0.10.0), kept in sync; NO version in marketplace.json.</li>
+<li>README row for <code>/playbook</code> under pmos-learnkit skills.</li>
+<li><code>~/.pmos/learnings.md</code> — bootstrap a <code>## /playbook</code> header (idempotent).</li>
+<li>These are <code>/complete-dev</code>'s job — NOT <code>/plan</code> wave tasks (per skill-mode scope discipline).</li>
+</ul>
+</section>
+
+  </main>
+</body>
+</html>
