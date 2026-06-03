@@ -142,6 +142,9 @@ PM runs `/learn-list "X" --mode deep`. Skill rejects with a platform-aware error
 | D9 | `_shared/topic-research/` docs **stand alone** (no README/index) | (a) add a README; (b) stand alone | (b) — matches `_shared/html-authoring/` which has no top README; the four docs are self-describing. |
 | D10 | A shared **depth→coverage dial matrix** lives in `intake.md` | (a) shared matrix in intake.md; (b) per-skill overlay | (a) — both skills scale topics-per-outline + sources-per-topic identically off `--depth` (brief/standard/deep), re-expressing `modes.md`'s matrix against the unified dial. |
 | D11 | `brief` depth **still prompts `--audience`** | (a) prompt; (b) skip for speed (old `quick` behavior) | (a) — audience is one cheap prompt and shapes the whole artifact; resolved in `intake.md`. Non-interactive auto-picks `senior-pms`. |
+| D12 | Shared substrate is **fully skill-agnostic** (grill G3) | (a) substrate documents per-skill reactions in a table; (b) substrate knows nothing about any skill | (b), per user ruling — `_shared/topic-research/*.md` describe only the mechanism + the typed output they emit; **no** `primer`/`learn-list` mention, **no** per-skill reaction tables, **no** skill-name branching. Each `SKILL.md` owns its reaction. Enforced by a grep check (no `primer`/`learn-list` tokens in the substrate). Supersedes the weaker framing in earlier drafts. |
+| D13 | `/primer` deep-run cost governed by the depth dial + est-cost log (grill G1) | (a) dial only + est-cost line; (b) hard per-run read cap | (a) — no per-source cap; the `--depth` matrix bounds topics × sources; emit one est-cost line before sourcing (borrowed from `/learn-list` deep) so a big run isn't a silent surprise. |
+| D14 | Retired-flag breakage net = repo grep at execute time (grill G2) | (a) grep repo + fix callers; (b) rejection error only | (a) — `/execute` greps the repo for `/learn-list --mode/--level` callers (skills, READMEs, tests, examples) and updates them; the runtime rejection error covers ad-hoc human use. |
 
 ## Success Metrics
 
@@ -166,4 +169,4 @@ PM runs `/learn-list "X" --mode deep`. Skill rejects with a platform-aware error
 
 ## Open Questions
 
-None — the three open questions from the initial draft were resolved into decisions D9–D11 at requirements review.
+None — the three draft open questions were resolved into D9–D11 at requirements review; the focused grill (`grills/2026-06-03_01_requirements.md`) resolved 3 risky decisions into D12–D14 with no new open questions.
