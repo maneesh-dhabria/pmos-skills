@@ -73,9 +73,8 @@ the first that returns the real content:
 3. A cache/snapshot (search cache, web archive snapshot).
 
 If none of the rungs yield readable, identity-matching content, **drop the candidate**
-rather than emit an unverified social link. (This mirrors `/primer`'s social-sourcing
-approach; if a Playwright/browser tool is available it can serve as a last rung, but it
-is never required.)
+rather than emit an unverified social link. (If a Playwright/browser tool is available it
+can serve as a last rung, but it is never required.)
 
 ## Book summaries
 

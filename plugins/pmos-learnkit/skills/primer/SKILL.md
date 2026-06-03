@@ -18,7 +18,7 @@ These instructions use Claude Code tool names. In other environments:
 - **No `Task` subagent:** Research, drafting, and eval phases run inline in the host conversation; the try-both research pattern in Phase 2 collapses to a single sequential pass (web search first, then context7 if available).
 - **No `WebFetch`:** Phase 2 research falls back to context7 MCP (if available) plus any user-supplied URLs/snippets pasted into the conversation; surface the degraded-source warning in the eval phase (see `reference/source-floor.md` §WebFetch unavailable).
 - **No `context7` MCP:** Phase 2 research falls back to `WebFetch` plus user-supplied material; if neither is available, refuse with a clear message naming the missing tools and exit 64.
-- **No Playwright MCP:** The Phase-2 social-primary strand (`reference/social-sourcing.md`) loses only its **last-resort** rung (un-unrolled X threads; member-only LinkedIn posts). The free fetch ladder (fxtwitter, threadreaderapp, r.jina.ai) runs over `WebFetch` and is unaffected; social candidates that need Playwright are dropped silently rather than blocking the run.
+- **No Playwright MCP:** social sources are fetched through the shared free-fetch ladder in `_shared/topic-research/sourcing-ladder.md` (fxtwitter, threadreaderapp, r.jina.ai over `WebFetch`) with `reference/social-sourcing.md` carrying `/primer`'s citation discipline. Only the **last-resort** rung (un-unrolled X threads; member-only LinkedIn posts) is lost without Playwright; such candidates are dropped silently rather than blocking the run.
 
 ## Track Progress
 
@@ -176,34 +176,9 @@ Parse the argument string. Recognised tokens: positional `<topic>` (1st arg, may
 <!-- defer-only: ambiguous -->
 - `AskUserQuestion` — `"Topic looks ambiguous. Pick a refinement or write your own:"` with 3 LLM-generated candidate refinements + `Other (free-form)`. Under `--autonomous` the deferred default is to proceed with the topic as given (log to OQ buffer with reason `topic-vague`).
 
-**Topic-richness check (S-FR-5.1 / S-FR-5.2).** Run IMMEDIATELY after the vagueness heuristic resolves (whether or not vagueness fired), BEFORE audience resolve. Prompt verbatim:
+**Topic-richness check (S-FR-5.1 / S-FR-5.2).** Run IMMEDIATELY after the vagueness heuristic resolves (whether or not vagueness fired), BEFORE audience resolve. The classifier is the **shared topic-research substrate** — **inline `_shared/topic-research/intake.md` §"Topic-richness classifier"** and run its verbatim prompt; it returns the typed verdict `{verdict ∈ rich|narrow-by-design|thin, rationale, reframings[]}`. `intake.md` also carries the depth→coverage dial matrix that Phases 2–3 size against. The substrate is skill-agnostic — it only emits the verdict; the reaction below is `/primer`'s own.
 
-```
-Topic: "<topic>"
-
-Is this topic broad enough to support all three of:
-(a) at least one named framework or model,
-(b) a meaningful decision-guide for practitioners (multiple valid paths),
-(c) at least one worked example or case study.
-
-Return one of:
-- "rich" — supports all three; a primer can be a useful map.
-- "narrow-by-design" — a real topic, but supports at most (a) or (c); no
-   meaningful decision-guide exists because there are no live tradeoffs.
-   A primer is still useful, just shape-different.
-- "thin" — too narrow to support any of the three; a primer would be
-   padding. If returning thin, ALSO return 2–3 broader reframings the
-   user could pick from (each must be a real, broader topic — not just
-   a rephrasing).
-
-Output format:
-{"verdict": "rich"|"narrow-by-design"|"thin",
- "rationale": "<1 sentence>",
- "reframings": ["...", "...", "..."]  // present only when verdict == "thin"
-}
-```
-
-On `verdict == "rich"` → proceed silently to audience resolve. On `verdict == "narrow-by-design"` → set `state.richness = "narrow-by-design"` (consumed by Phase 3 outline gen) and proceed. On `verdict == "thin"`:
+`/primer`'s reaction to the verdict (this skill owns it, not the substrate): on `verdict == "rich"` → proceed silently to audience resolve. On `verdict == "narrow-by-design"` → set `state.richness = "narrow-by-design"` (consumed by Phase 3 outline gen) and proceed. On `verdict == "thin"`:
 
 <!-- defer-only: ambiguous -->
 - `AskUserQuestion` — `"Topic '<topic>' looks too narrow to support a primer-shaped artifact. Pick a reframing or proceed:"` with options: the 3 LLM-generated reframings (verbatim from the richness step), `Keep as-is (will produce a thin primer)`, `Abort`. Under `--autonomous` / `--non-interactive` the deferred default is `Keep as-is`, logged to OQ buffer with reason `topic-thin`.
@@ -225,73 +200,42 @@ This prompt has a `(Recommended)` option (no `defer-only` tag needed); under non
 
 See `reference/audience-presets.md` for the full per-preset required-sections / vocab posture / closing-shape contract that downstream phases consume.
 
-## Phase 2: Research (four-strand)
+## Phase 2: Canon & Outline (shared front half)
 
-**Step 0 — Practitioner+book naming (S-FR-1.1).** BEFORE any URL generation, run a single orchestrator-side LLM step. Prompt verbatim:
+This phase is the **shared topic-research substrate** — `/primer` inlines the substrate docs (which emit typed outputs) and applies its own reactions. The substrate is skill-agnostic; do not edit it to special-case `/primer`.
 
-```
-List 6–10 named practitioners, authors, or institutional voices canonically
-associated with the topic "<topic>". Also list 3–5 canonical books, courses,
-or textbooks on the same topic. For each item, include a one-line note on
-why it's canonical (their seminal work / well-known framework / etc.).
+**Step 1 — Canon discovery.** **Inline `_shared/topic-research/canon-discovery.md`** and follow it — find the field's practitioners + canonical books + 2–4 existing curations by live search (never from memory), sized to the resolved `--depth` (its dial matrix in `intake.md`). It emits the `canon` set `{practitioners[], books[], curations[]}`. Books are attributed in prose and cited later by their free entry-point URL (see Step 3).
 
-Return as JSON only (no prose):
-[
-  {"name": "<Full Name|Org|Book Title>", "kind": "practitioner"|"book"|"course",
-   "why_canonical": "<one line, ~10-25 words>"}
-]
+**Step 2 — Outline.** **Inline `_shared/topic-research/outline.md`** and follow it — derive the outline by cascade (canonical → curation → provisional), record the **provenance rung**, **dedupe topics before sourcing**, and run the confirm gate. The substrate emits `{topics[], provenance_rung}`. The provenance rung is surfaced in the artifact TL;DR (Phase 4).
 
-Be specific — "industry experts" is not a practitioner. Prefer named
-individuals over publications. For books, give the book title (not the
-author) as the name; put the author in why_canonical.
-```
+`/primer`'s reactions to the substrate output (this skill owns them):
 
-Validate the returned array: length 9–15 (6–10 practitioners + 3–5 books); each item has all 3 fields; `kind ∈ {practitioner, book, course}`. On validation failure → retry naming once. On second failure → log warning to chat and proceed with an empty `practitioner_index` (degrades gracefully to topic-frame-only behavior). Persist the validated array into in-memory `sources.json.practitioner_index` with each entry's `queries_dispatched` / `usable_source_count` / `dropped` fields initialized empty/0/false.
+- **Audience-preset shaping.** Bias the topic set toward the resolved audience preset's required-sections floor per `reference/audience-presets.md` (4 named H2s for both presets, plus 1–2 optional additions). The substrate gives the field's topic structure; the preset shapes which teach-sections `/primer` requires on top. Target a 10–14 H2 outline.
+- **Narrow-by-design carve-out (S-FR-5.6).** If `state.richness == "narrow-by-design"` (from the Phase-1 verdict), include a one-line `## Decision guide deferred — topic narrow-by-design` note in place of the usual decision-guide H2. All other required sections per `reference/audience-presets.md` remain present.
 
-**Strand dispatch (four strands in parallel).**
-
-- **(a) Primary practitioner strand.** For each `practitioner_index[i]`:
-  - `kind == "practitioner"` → dispatch `WebFetch` query `"<name> <topic>"`.
-  - `kind ∈ {"book", "course"}` → dispatch TWO queries: `"<name> free entry point"` AND `"<author_or_name> <topic>"` (the author comes from `why_canonical` for books).
-  Capture `queries_dispatched` per entry. After each query, increment `practitioner_index[i].usable_source_count` for every usable result that resolves.
-- **(b) Secondary topic-frame strand (existing, demoted).** LLM-generate 6–10 candidate URLs by combining the topic with frames (`<topic> overview`, `<topic> best practices`, `<topic> architecture`, `<topic> tradeoffs`). Dispatch `WebFetch` against each. **Demotion rule:** strand (b) sources count toward the source-floor ONLY AFTER strand (a) settles — no early short-circuit on strand (b).
-- **(c) Context7 strand.** Call `mcp__plugin_context7_context7__resolve-library-id` with the topic verbatim. For each library match returned, follow up with `mcp__plugin_context7_context7__query-docs` to capture per-library takeaways. Unchanged from prior behavior.
-- **(d) Social-primary strand (S-FR-SOC).** Tweets/threads and LinkedIn posts are valid **primary** sources when a framework or observation lives only there. **Read `reference/social-sourcing.md` and follow it** — it carries the free fetch ladder (fxtwitter / threadreaderapp / r.jina.ai; Playwright last-resort), the never-do rules (no paid X API, no bare `x.com` fetch), and the citation discipline (cite the canonical post URL, paraphrase-only, LinkedIn body-only with year-resolved dates). Discovery is **active + bounded**: ≤2 topic-level `site:x.com`/`site:linkedin.com` qualifier searches + ≤1 per named practitioner from Step 0, plus any social URL surfaced by strand (a)/(b) routed through the same ladder; at `--depth deep` the social searches run to completion, at brief/standard they obey the same short-circuit/bounding as the other strands. Each accepted social source records `tier: "primary"`, `source_strand: "social"`.
-
-Each accepted source records `source_strand ∈ {practitioner, topic-frame, context7, social}` per `reference/source-floor.md` §"sources.json schema".
-
-**Drop-silently rule (S-FR-1.6).** After all strands settle, for each `practitioner_index[i]` where `usable_source_count == 0`: set `dropped: true`; the entry remains in `practitioner_index` for audit but its name MUST NOT appear in any citation or prose attribution. Append one OQ-buffer entry per dropped practitioner: `{phase: "research", reason: "practitioner-unresolved", practitioner: "<name>"}`.
-
-**Citation rule for books/paid courses (S-FR-1.8).** Books and paid courses are cited with the **free entry point URL** (e.g., First Round Review for *Monetizing Innovation*, podcast transcript URL for paid books) as the `<a href>` value. The book/course itself is attributed in prose ("Ramanujam, *Monetizing Innovation* (Wiley, 2016)"). No paid landing-page URLs in citations. The free-entry URL MUST appear as a verbatim entry in `sources[].url` for the R1 (cites-real-urls) reviewer check to pass.
-
-**≥3-source short-circuit.** At `depth ∈ {brief, standard}`: if strand (a) OR strand (c) returns ≥3 usable sources BEFORE strand (b) settles, prefer the fast strand. Best-effort cancellation of strand (b) pending fetches; arriving-late results dropped. At `depth == deep`: NO short-circuit — all strands run to completion (depth is the explicit user choice for thoroughness over latency).
-
-**Source-floor gate (S-FR-3.1).** After all strands settle, count merged usable sources. If `count < floor` (where `floor` is read from the depth-tier table in `reference/source-floor.md` §"Source floor by depth tier" — brief=6, standard=10, deep=15), surface the source-floor gate exactly as specified there and in §"Retry-once protocol" — same options (`Abort (Recommended)` / `Continue with thin-source disclosure` / `Retry with alternate query frame`), same single-retry semantics, banner text now interpolates `<floor>` + `<depth>` per `reference/source-floor.md` §"Thin-source disclosure". This prompt MUST be tagged `<!-- defer-only: ambiguous -->`.
-
-**WebFetch unavailable (FR-5.4).** Before dispatching strand (b), check tool availability. If `WebFetch` is missing, follow the early-gate degraded path in `reference/source-floor.md` §"WebFetch unavailable (FR-5.4)".
-
-**`sources.json` schema (FR-5.3).** Persist accepted + rejected sources into the schema defined in `reference/source-floor.md` §"sources.json schema". Path: `{docs_path}/primer/{date}_{slug}.sources.json`. The actual write happens in Phase 5 as part of the atomic trio — Phase 2 only assembles the structure in memory (FR-RECOVERY path in Phase 5 may persist it earlier).
-
-**Per-source takeaway.** For each accepted source, record a 1–2 sentence on-topic summary the draft can cite. This `takeaway` field is what Phase 4 quotes from when it needs to avoid lifting source text verbatim (rubric R2: no-plagiarism).
-
-## Phase 3: Outline
-
-Generate a 10–14 H2 outline biased by the resolved audience preset. See `reference/audience-presets.md` for the required-sections floor per preset (4 named H2s for both presets, plus 1–2 optional additions).
-
-**Narrow-by-design carve-out (S-FR-5.6).** If `state.richness == "narrow-by-design"` (set by the Phase-1 topic-richness check), the outline includes a one-line `## Decision guide deferred — topic narrow-by-design` note in place of the usual decision-guide H2. All other required sections per `reference/audience-presets.md` remain present. This keeps the artifact shape-consistent with audience-presets while honouring the upstream verdict that the topic doesn't warrant a tradeoff guide.
-
-Inline the outline in chat as a markdown bulleted list of `## H2 title — short rationale` (one line per H2). No body prose yet — outline only.
-
-**Phase-3 interactive gate (FR-6.1).**
+**Outline confirm gate (FR-6.1).** The substrate's confirm gate is realized as `/primer`'s richer gate (it keeps the Re-prompt/Abort options primer relies on):
 
 <!-- defer-only: ambiguous -->
-- `AskUserQuestion` — `"Outline ready. Approve, edit, or re-prompt?"` options:
-  - `Approve outline (Recommended)` — proceed to Phase 4 with this outline as-is.
+- `AskUserQuestion` — `"Outline ready (provenance: <rung>). Approve, edit, or re-prompt?"` options:
+  - `Approve outline (Recommended)` — proceed to Phase 3 sourcing with this outline as-is.
   - `Edit` — accept a free-form user reply; apply the edits and re-render the outline once (if the user wants further edits, re-surface this gate).
   - `Re-prompt with feedback` — accept free-form guidance and regenerate the outline from scratch under the new framing.
-  - `Abort` — exit cleanly; Phase-2 work is preserved in working memory but no artifact is written.
+  - `Abort` — exit cleanly; canon work is preserved in working memory but no artifact is written.
 
 Under `--autonomous` (or non-interactive mode), the AUTO-PICK is `Approve outline`.
+
+## Phase 3: Verified per-topic sourcing (shared front half)
+
+Sourcing runs **after** the outline is confirmed (so we never source the wrong topics). **Inline `_shared/topic-research/sourcing.md`** and follow it — for each confirmed outline topic, run the rank-then-verify loop and emit one verified, ranked, annotated shortlist per topic (the candidate pool is pre-stocked from `canon.curations`). Emit the est-cost line before sourcing. The anti-slop hard gate + tier ranking live in `_shared/topic-research/source-tiers.md`; the verification pass-bar + free-fetch ladder + book summaries in `_shared/topic-research/sourcing-ladder.md`.
+
+`/primer`'s reactions to the substrate output (this skill owns them):
+
+- **Per-H2 evidence map (FR-15).** Each outline topic's verified shortlist is the **evidence set for the corresponding `<h2>`** in Phase 4. Keep the per-topic structure — do NOT flatten into an undifferentiated pool. `/primer` reads + synthesizes **every** verified source across all shortlists (there is no short-circuit; the `--depth` dial is the sole cost governor per the est-cost line).
+- **`sources.json` assembly (FR-5.3).** Assemble `sources.json` from the union of all per-topic shortlists — each entry carries `{url, takeaway, topic, tier, paywalled?, free_alt?, book_summary?}`. Persist to `{docs_path}/primer/{date}_{slug}.sources.json` (actual write happens in Phase 5 atomic trio; FR-RECOVERY may persist earlier). The `takeaway` is the grounded ≤2-sentence summary Phase 4 cites from (rubric R2: no-plagiarism).
+- **Citation rule for books/paid courses (S-FR-1.8).** Books/paid courses are cited with the **free entry-point URL** as the `<a href>`; the book itself is attributed in prose ("Ramanujam, *Monetizing Innovation* (Wiley, 2016)"). No paid landing-page URLs. The free-entry URL MUST be a verbatim `sources.json[].url` member for the R1 reviewer check.
+- **Source-floor as an eval-time coverage signal (FR-13).** The floor (brief=6, standard=10, deep=15 total verified sources across all topics) is **NOT a sourcing gate and never short-circuits or caps sourcing.** After sourcing settles, count the merged verified sources; if `count < floor`, surface a **thin-source disclosure** per `reference/source-floor.md` §"Thin-source disclosure" — informational, never blocking. (The retry-once protocol is preserved as an *option* in that disclosure, not a gate.)
+
+**WebFetch unavailable (FR-5.4).** If `WebFetch` is missing, follow the degraded path in `reference/source-floor.md` §"WebFetch unavailable (FR-5.4)" — verification is impossible, so surface the degraded-source warning rather than emitting unverified links.
 
 ## Phase 4: Draft
 
@@ -309,7 +253,9 @@ These are SOFT targets — the Phase-5 reviewer reports actual `word_count` on t
 
 **Curator-lens framing (FR-7).** Read `reference/curator-lens.md` and inline its §"Phase-4 framing prompt" verbatim into the draft-generation context, with `<topic>` and `<audience>` substituted. This framing prompt teaches the LLM to write as a curator (selects + frames + attributes named camps) rather than an explainer (argues a thesis). It is the load-bearing quality lever — if drafts come back as explainer-voice, edit `reference/curator-lens.md` first before any other part of the pipeline.
 
-**Citation discipline (FR-7.1).** Every `<a href="X">` URL X in the draft body MUST be a verbatim member of `sources.json[].url`. **No novel URLs introduced in Phase 4** — draw only from `sources.json[].url`. The Phase-5 reviewer's `cites-real-urls` (R1) check enforces this as a trust-tier hard-block; Phase 4 prevents the violation in the first place.
+**Per-H2 evidence (FR-15).** Each `<h2>` synthesizes from its outline topic's verified shortlist (Phase 3) — that shortlist is the section's evidence set. Read and synthesize **every** verified source in the shortlist; the per-topic size is already bounded by the `--depth` dial matrix.
+
+**Citation discipline (FR-7.1).** Every `<a href="X">` URL X in the draft body MUST be a verbatim member of `sources.json[].url` (assembled from the per-topic shortlists in Phase 3). **No novel URLs introduced in Phase 4** — draw only from `sources.json[].url`. The Phase-5 reviewer's `cites-real-urls` (R1) check enforces this as a trust-tier hard-block; Phase 4 prevents the violation in the first place.
 
 **Audience vocab posture.** Apply the posture from `reference/audience-presets.md` for the resolved preset: `senior-pms` writes without inline definitions of common PM terms; `all-pms` defines every term-of-art on first use.
 
@@ -321,6 +267,8 @@ These are SOFT targets — the Phase-5 reviewer reports actual `word_count` on t
 
 Diagrams are an **affordance**, not a per-section requirement. Pick them where they earn their place — one well-chosen diagram saves a paragraph; a forced diagram is decoration that displaces citation density (see Anti-patterns).
 
+**Adjacency pointer section (FR-16).** Close the draft with a `## Where this connects — adjacent topics` section of **pointers, not teaching** — one line per adjacent topic (what it is + why it's adjacent), so a reader knows where to go next without `/primer` expanding scope. Depth-scaled per the `intake.md` dial matrix (adjacency hops): `brief` = omit the section entirely; `standard` = a short list (~2–3 pointers, 1 hop); `deep` = a richer list (~4–6 pointers, up to 2 hops). These are pointers — do NOT source, verify, or teach them; a pointer that names a topic worth its own `/primer` or `/learn-list` run is exactly the right shape. (This is distinct from `/learn-list`'s verified "adjacent rabbit holes" — `/primer` only points.)
+
 **Non-goals (spec §3).** No separate diagram-pass — diagrams ship inline during the single-pass draft when a visual aids comprehension (see "Inline SVG diagrams" above). No persona-pass. No blind-primer. Single linear draft against the outline; reviewer enters in Phase 5.
 
 **Output.** Hold `{date}_{slug}.draft-prose` in working memory; the actual file write happens in Phase 5 (atomic trio).
@@ -329,7 +277,7 @@ Diagrams are an **affordance**, not a per-section requirement. Pick them where t
 
 The substantive phase. Execute in order.
 
-1. **Reviewer dispatch (FR-8).** Dispatch a fresh subagent via `Task` tool. The subagent prompt MUST inline `reference/rubric.md` **verbatim**. Inputs: the Phase-4 draft prose, the assembled `sources.json` structure (including the new `practitioner_index`), the resolved audience preset name, and the resolved depth tier. The subagent returns a single JSON array — one object per check_id with `{check_id, verdict: 'pass'|'fail', evidence, quote}` (schema per `reference/rubric.md` §"Output contract"). **The R10 (`primer-shaped`) object additionally carries two informational fields per S-FR-6.2 / S-FR-8.7:**
+1. **Reviewer dispatch (FR-8).** Dispatch a fresh subagent via `Task` tool. The subagent prompt MUST inline `reference/rubric.md` **verbatim**. Inputs: the Phase-4 draft prose, the assembled `sources.json` structure (the union of the per-topic verified shortlists, each entry carrying `{url, takeaway, topic, tier}`), the resolved audience preset name, and the resolved depth tier. The subagent returns a single JSON array — one object per check_id with `{check_id, verdict: 'pass'|'fail', evidence, quote}` (schema per `reference/rubric.md` §"Output contract"). **The R10 (`primer-shaped`) object additionally carries two informational fields per S-FR-6.2 / S-FR-8.7:**
 
    - `examples_per_h2_distribution: [{h2_id, h2_title, count}]` — per-H2 count of named-company / hypothetical worked examples.
    - `word_count: <int>` — actual draft word count (for soft comparison against the depth tier table).
@@ -425,23 +373,23 @@ The substantive phase. Execute in order.
 - Do NOT deep-fetch a single source repeatedly in Phase 2 — the source-floor (FR-5.2) targets breadth, not depth; multiple shallow on-topic sources beat one deep one when the gate counts usable sources.
 - Do NOT introduce novel URLs in Phase 4 — the draft draws only from `sources.json[].url`. The R1 rubric check catches this, but Phase 4 must avoid producing the violation in the first place rather than relying on the reviewer to catch it.
 - Do NOT conflate audience presets within one primer — `reference/audience-presets.md` §Anti-patterns covers this; half-defining terms confuses both audiences (senior PMs find it patronising; newer PMs lose trust in the doc).
-- Do NOT spawn subagents in Phases 2–4 — only Phase 5 dispatches the reviewer subagent. Phases 2–4 run inline in the host conversation (per spec D2 architectural decision); parallel Phase-2 strands are tool-level parallelism, not subagent dispatch.
+- Do NOT spawn subagents in Phases 2–4 — only Phase 5 dispatches the reviewer subagent. Phases 2–4 run inline in the host conversation (per spec D2 architectural decision); `/primer` runs the shared per-topic sourcing loop inline (sequential), using tool-level fetch parallelism, not subagent dispatch.
 - Do NOT mix curator and explainer voice — the Phase-4 framing prompt at `reference/curator-lens.md` is the load-bearing quality lever; deviating drops primer-quality below the rubric R10 (`primer-shaped`) floor.
 - Do NOT force a diagram into every section. Inline SVG diagrams are an affordance for sections with a structural shape (loop, comparison, hierarchy, sequence, state machine, 2×2); using them as decoration or to displace citation density violates the Phase 4 framing (FR-D05). One well-chosen diagram saves a paragraph; a forced diagram is visual padding. The Phase-5 reviewer's R10 informational `diagrams_per_h2_distribution` lets the orchestrator observe drafter behavior over time, but the load-bearing prevention is the drafter picking diagrams that earn their place.
-- Do NOT invent practitioners or canonical books in Phase 2 Step 0. When a named practitioner's queries return zero usable sources, drop silently per the Phase-2 drop-silently rule and log to OQ buffer — letting the name surface in citations or prose is the worst-case failure mode (fabricated authority is a trust violation worse than thin sourcing).
+- Do NOT invent practitioners or canonical books. Canon is found by live search via `_shared/topic-research/canon-discovery.md`; a practitioner or book whose sources do not clear the verification pass-bar (`_shared/topic-research/sourcing-ladder.md`) is dropped and MUST NOT surface in citations or prose — fabricated authority is a trust violation worse than thin sourcing.
 - Do NOT silently skip the Phase-1 topic-richness check on the assumption "the user knows their topic". `narrow-by-design` is a real outcome that downstream Phase-3 outline gen consumes; skipping the check makes a thin primer indistinguishable from a deliberately shape-different one.
-- Do NOT fetch tweets via the paid X API or a bare `x.com` / `twitter.com` `WebFetch` — the login wall returns an empty body and the API is paid. Use the free ladder in `reference/social-sourcing.md` (fxtwitter → threadreaderapp → self-reply walk) for every tweet/thread.
+- Do NOT fetch tweets via the paid X API or a bare `x.com` / `twitter.com` `WebFetch` — the login wall returns an empty body and the API is paid. Use the free-fetch ladder in `_shared/topic-research/sourcing-ladder.md` (fxtwitter → threadreaderapp → self-reply walk; `reference/social-sourcing.md` carries `/primer`'s citation discipline) for every tweet/thread.
 - Do NOT reproduce tweet or LinkedIn post text verbatim in the draft — always paraphrase into the `takeaway` and cite the source. Verbatim social text is a trust-tier (rubric R2 `no-plagiarism`) violation just like lifting blog prose.
 - Do NOT cite the fetch-proxy URL (`api.fxtwitter.com`, `threadreaderapp.com`, `r.jina.ai`) for a social source — cite the original canonical post URL (`x.com/<user>/status/<id>` or the LinkedIn post URL). The proxy is a fetch mechanism only; citing it breaks the human-clickable link and the R1 trust contract.
 
 ## Worked example
 
-Topic: `"feature flagging at scale"`. Walks Phases 0 → 5 in compact form.
+Topic: `"feature flagging at scale"`. Walks Phases 0 → 5 in compact form. Phases 2–3 are the shared topic-research substrate (canon → outline → verified per-topic sourcing); Phases 4–5 are `/primer`'s synthesis back half.
 
 - **Phase 0.** Read `.pmos/settings.yaml`: `version=1, docs_path=docs/pmos, output_format=html` (no `default_primer_depth` on first run). Stderr: `output_format: html (source: settings)`. Learnings `## /primer` section: empty.
 - **Phase 0.5.** `.pmos/primer.lastrun.yaml` absent on first run; defer the lastrun gate silently. First-run depth prompt fires: user picks `standard (Recommended)`; orchestrator writes `default_primer_depth: standard` to settings. Stderr: `depth: standard (source: prompt)`.
 - **Phase 1.** Topic = `"feature flagging at scale"` (4 tokens; not vague). Topic-richness check returns `rich` (named frameworks like percentage-rollouts, multiple decision-paths around build-vs-buy, named-incident worked examples available) → proceed silently. Slug = `feature-flagging-at-scale`. Path = `docs/pmos/primer/2026-05-23_feature-flagging-at-scale.html`. Audience AskUserQuestion auto-picks `senior-pms (Recommended)`. No path collision.
-- **Phase 2.** Step 0 names 7 practitioners (Birch, Cohen, Patton, Mantel, Sangu, Hsieh, Saroyan) and 3 books (*Effective Feature Management*, *Software Engineering at Google* ch. 24, *Release It*). Strand (a) per-practitioner queries land 11 usable sources; strand (b) topic-frame demoted, adds 4; strand (c) context7 returns LaunchDarkly + Unleash + Flagsmith docs (+3). Drop-silently fires for 1 practitioner (Saroyan — no on-topic queries resolved). Merged usable = 18, passes source-floor for `standard` (≥10).
-- **Phase 3.** 12-section outline including `## What this is`, `## Why it matters now`, `## How the smart teams are using it`, `## Tradeoffs we considered against`, `## Metrics calibration`, `## Open debates`, `## Where to dig deeper`. User approves.
+- **Phase 2 (canon & outline — shared).** `canon-discovery.md` names ~5 practitioners (Birch, Cohen, Patton, Mantel, Sangu) + 3 books (*Effective Feature Management*, *Software Engineering at Google* ch. 24, *Release It*) and harvests 3 curations (an "awesome-feature-flags" list, a LaunchDarkly syllabus, a practitioner "what to read" post). `outline.md` cascades a 12-topic outline from the curation consensus — provenance rung `curation-consensus` — dedupes, and presents the confirm gate. `/primer`'s audience-preset shaping adds the required teach-sections (`## What this is`, `## Why it matters now`, `## How the smart teams are using it`, `## Tradeoffs we considered against`, `## Metrics calibration`, `## Open debates`, `## Where to dig deeper`). Verdict was `rich`, so no carve-out. User approves.
+- **Phase 3 (verified sourcing — shared).** Est-cost line: `est. ~60 source verifications across 12 topics; proceeding`. Per-topic rank-then-verify yields verified shortlists (top-5 per topic at `standard`); LaunchDarkly/Unleash/Flagsmith docs + named-practitioner essays clear the hard gate; one content-farm listicle is dropped pre-fetch. Merged verified = 18 sources across the 12 topics; `sources.json` assembled from the shortlists. 18 ≥ floor (10) so no thin-source disclosure (floor is informational only).
 - **Phase 4.** Draft ~4800 words (within standard tier 4,000–6,000); 14 inline `<a href>` citations, all verbatim members of `sources.json[].url`. **Two inline SVG diagrams: a percentage-rollout flow under H2 "How the smart teams are using it" (3 lifecycle stages, arrows) and a build-vs-buy 2×2 under H2 "Tradeoffs we considered against" (axes: cost-of-ownership × control-of-roadmap). Both follow `reference/diagram-style.md` conventions — inline SVG with `<title>`/`<desc>`, `viewBox` sizing, neutral palette.** Curator voice: names the LaunchDarkly / Unleash / build-in-house camps rather than picking one. Most H2s surface ≥1 named-company example (LaunchDarkly's percentage rollouts, Etsy's flagging audit, Slack's incident postmortem).
 - **Phase 5.** Iteration-1 reviewer returns 1 fail (R3 `no-hand-wavy-claims` — the phrase "most teams use percentage rollouts" has no citation) plus R10 informational fields: `examples_per_h2_distribution` showing 10/12 H2s with ≥1 example, `diagrams_per_h2_distribution` showing 2/12 H2s with diagrams, `word_count: 4823` (SVG text excluded). Auto-apply patch adds a citation to the Unleash blog source. Re-dispatch reviewer; iteration-2 all-pass. Phase-5 interactive write gate AUTO-PICKs `Approve and write` (no prepended notes — example density and word count both within thresholds; diagram-density is informational-only with no note). Atomic write trio succeeds. Listing regen (`primers.html`) — the new primer appears as the first (newest) entry in the sidebar, auto-selected on open. Lastrun updated with `last_depth: standard`. Total wall-clock ~7 minutes.
