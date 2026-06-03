@@ -91,8 +91,24 @@ function cardHtml(it) {
 </article>`;
 }
 
+// Collapse items that share a link (or, lacking one, a title) to a single card.
+// Backstop to the ledger-level cross-feed dedup (FR-Q2/Q4): even if the agent
+// hands us un-deduped items, the grid never shows the same article twice. The
+// first occurrence wins, preserving order and any top_pick flag it carried.
+function dedupeItems(items) {
+  const seen = new Set();
+  const out = [];
+  for (const it of items) {
+    const key = it.link || it.guid || it.title;
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    out.push(it);
+  }
+  return out;
+}
+
 function renderIssue(data) {
-  const items = data.items || [];
+  const items = dedupeItems(data.items || []);
   const feeds = [...new Set(items.map((i) => i.feed).filter(Boolean))].sort();
   const tags = [...new Set(items.flatMap((i) => i.tags || []))].sort();
   const picks = items.filter((i) => i.top_pick);
@@ -175,6 +191,18 @@ function selftest() {
   assert(issue.includes('degraded'), 'degraded card rendered, not dropped');
   assert(issue.includes('meta name="pmos:skill" content="magazine"'), 'skill meta tag baked');
   assert(/Listen/.test(issue) && /Read/.test(issue), 'listen/read verbs by type');
+
+  // FR-Q4: the issue grid dedups by link even if the agent passes a dup
+  // (backstop to the ledger-level cross-feed dedup). Two items, same link →
+  // one card.
+  const dupIssue = renderIssue({
+    issue_date: '2026-06-03',
+    items: [
+      { guid: 'a', feed: 'Pod', type: 'podcast', title: 'Same ep', link: 'https://x/ep', bullets: [], tags: [] },
+      { guid: 'b', feed: 'Lenny', type: 'newsletter', title: 'Same ep cross-post', link: 'https://x/ep', bullets: [], tags: [] },
+    ],
+  });
+  assert((dupIssue.match(/<article /g) || []).length === 1, 'issue grid collapses a repeated link to one card');
 
   const lib = renderLibrary({
     issues: [

@@ -73,19 +73,31 @@ curation subagent. This is NOT an engagement-learned signal in v1.
 ```yaml
 topics: [pricing, plg, onboarding]
 priority_feeds: [lenny]
+defaults:                  # captured at first-run; the default build window
+  days: 7                  # lookback when no --days flag is passed
+  max_per_feed: 5          # per-feed cap when no --max-per-feed flag is passed
 ```
 
-Empty/sparse → Top-picks ranks on item-intrinsic importance instead, so the lane
-is never random.
+Empty/sparse `topics`/`priority_feeds` → Top-picks ranks on item-intrinsic
+importance instead, so the lane is never random.
+
+`defaults` (FR-Q3) stores the build window so a plain `/magazine` needs no
+interactive prompt: the lookback resolves `--days` flag → `defaults.days` →
+built-in `7`, and the cap resolves `--max-per-feed` flag → `defaults.max_per_feed`
+→ uncapped (see `pipeline.md` → Windowing). First-run setup captures both; a flag
+always overrides for a one-off run without rewriting the stored default. Absent
+`defaults` (pre-FR-Q3 configs) falls through to the built-ins.
 
 ## state.json
 
 The resume + dedup ledger. Managed exclusively through `scripts/magazine-state.js`
-(atomic temp-then-rename writes). Per-item records are keyed by GUID.
+(atomic temp-then-rename writes). Per-item records are keyed by GUID; a `links`
+index maps each item's canonicalized link to its first GUID for cross-feed dedup.
 
 ```json
 {
   "cursors": { "lenny": "2026-05-27T00:00:00.000Z" },
+  "links": { "example.com/ep?id=42": "substack:post:198591907" },
   "items": {
     "post-0001": {
       "feed": "lenny",
@@ -104,16 +116,26 @@ The resume + dedup ledger. Managed exclusively through `scripts/magazine-state.j
 ```
 
 **Lifecycle** (`status`): `discovered → downloaded → transcribed → summarized →
-rendered`, plus `failed` (carries `failed_reason`) from any state. A `failed` item
-that later succeeds clears its `failed_reason`.
+rendered`, plus `failed` (carries `failed_reason`) from any state, plus `duplicate`
+(carries `duplicate_of`, see Dedup below). A `failed` item that later succeeds
+clears its `failed_reason`.
 
 **Cursor rule:** `advanceCursors()` moves each feed cursor to the newest
 `published` among its `rendered` items, and is called **only when the whole issue
 completes** — so an interrupt + resume never drops or double-counts (FR-16, NFR-2).
 
-**Dedup:** `discover(guid, …)` is idempotent — re-discovering a known GUID is a
-no-op, so already-rendered items never reappear. v1 accepts duplicate GUIDs for the
-same article syndicated across two feeds (no URL canonicalization — grill decision).
+**Dedup (two layers):**
+- *GUID dedup* — `discover(guid, …)` is idempotent: re-discovering a known GUID is
+  a no-op, so already-rendered items never reappear.
+- *Cross-feed link dedup (FR-Q2)* — the same article syndicated across two feeds
+  arrives under **different** GUIDs, which GUID dedup can't catch. `discover()`
+  also keys a **canonical link** (lowercased host, `www.`/scheme/fragment dropped,
+  tracking params — `utm*`/`ref`/`fbclid`/… — stripped, remaining params sorted,
+  trailing slash trimmed). A second GUID landing on a known canonical link is
+  recorded as `status: duplicate` with `duplicate_of` → the first GUID, and is
+  kept out of the issue snapshot. It stays **catalogued, not dropped**. (This
+  supersedes the v1 "accept duplicate GUIDs / no URL canonicalization" grill
+  decision, which forced the agent to hand-dedupe overlapping feeds every run.)
 
 ## caches
 

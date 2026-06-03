@@ -86,16 +86,23 @@ function cmdDiscover(opts) {
   const file = statePath(root);
   const st = state.load(file);
   const snapshot = [];
+  let dupes = 0;
   for (const feed of feeds) {
     for (const it of fetchOne(feed, opts.since, opts.max)) {
       const meta = {
         feed, link: it.link, title: it.title,
         published: it.published, enclosure: it.enclosure,
       };
-      state.discover(st, it.guid, meta); // idempotent dedup
+      state.discover(st, it.guid, meta); // GUID + cross-feed link dedup
+      // Exclude cross-feed duplicates from the issue-defining snapshot — they
+      // are still catalogued in the ledger (status 'duplicate', duplicate_of),
+      // so nothing is silently dropped (FR-Q2).
+      const rec = st.items[it.guid];
+      if (rec && rec.status === 'duplicate') { dupes++; continue; }
       snapshot.push(Object.assign({ guid: it.guid }, meta));
     }
   }
+  if (dupes) process.stderr.write('magazine-run discover: collapsed ' + dupes + ' cross-feed duplicate(s)\n');
   state.save(file, st);
   return snapshot;
 }
@@ -201,6 +208,21 @@ function selftest() {
 
   const stat = cmdStatus({ root: tmp });
   assert(stat.total === before, 'status total matches ledger');
+
+  // FR-Q2: cross-feed dedup — sample-feed-2 re-publishes the episode under a
+  // different GUID. The snapshot collapses it; the ledger catalogues it.
+  const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-run-dedup-'));
+  const fixture2 = path.join(SCRIPTS, '..', 'tests', 'fixtures', 'sample-feed-2.xml');
+  const snap2 = cmdDiscover({ feeds: [fixture, fixture2], since: null, max: 0, root: tmp2 });
+  const epInSnap = snap2.filter((s) => /\/ep\?id=42/.test(s.link || ''));
+  assert(epInSnap.length === 1, 'episode appears exactly once in the snapshot, got ' + epInSnap.length);
+  const led2 = state.load(statePath(tmp2));
+  const dup = led2.items['lenny-news-555'];
+  assert(dup && dup.status === 'duplicate' && dup.duplicate_of === 'substack:post:198591907',
+    'cross-feed re-publish catalogued as duplicate_of the podcast GUID');
+  assert(led2.items['feed2-unique'] && led2.items['feed2-unique'].status === 'discovered',
+    "feed-2's unique item is still discovered (not collapsed)");
+  fs.rmSync(tmp2, { recursive: true, force: true });
 
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(ok ? 'magazine-run.js --selftest: PASS' : 'magazine-run.js --selftest: FAIL');

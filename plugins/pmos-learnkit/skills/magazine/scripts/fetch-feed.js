@@ -71,10 +71,14 @@ function parseItems(xml) {
     return {
       guid,
       link,
-      title: tagText(b, 'title'),
+      // title/description are plain-text fields the renderer re-escapes, so a
+      // raw `&apos;`/`&amp;` here renders literally in a card (FR-Q1). Decode
+      // them at parse time. `body` is deliberately NOT decoded — it is an HTML
+      // fragment (content:encoded) whose entities are real markup.
+      title: decodeEntities(tagText(b, 'title')),
       published,
       enclosure: enclosure || undefined,
-      description: tagText(b, 'description') || tagText(b, 'summary') || '',
+      description: decodeEntities(tagText(b, 'description') || tagText(b, 'summary') || ''),
       body: body || undefined,
     };
   });
@@ -126,6 +130,13 @@ function selftest() {
   assert(pod.link === 'https://example.com/ep?id=42&utm=rss', 'link &amp; decoded: ' + pod.link);
   assert(pod.enclosure && pod.enclosure.includes('&awCollectionId=') && !pod.enclosure.includes('&amp;'),
     'enclosure &amp; decoded: ' + pod.enclosure);
+
+  // Regression (FR-Q1): entities in the *title* are decoded, not left literal
+  // for the renderer to re-escape into garbled `&apos;`/`&amp;` text.
+  assert(pod.title === "Hugging Face's Clem Delangue & scaling teams",
+    'title entities decoded: ' + pod.title);
+  assert(!pod.title.includes('&apos;') && !pod.title.includes('&amp;'),
+    'no literal entity survives in title');
 
   console.log(ok ? 'fetch-feed.js --selftest: PASS' : 'fetch-feed.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);

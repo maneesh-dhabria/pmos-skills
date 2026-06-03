@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Second feed used to test cross-feed dedup (FR-Q2): it re-publishes the
+     podcast episode from sample-feed.xml under a different GUID and a different
+     tracking param, plus one item unique to this feed. -->
+<rss version="2.0">
+  <channel>
+    <title>Lenny's Newsletter</title>
+    <link>https://lennys.example.com</link>
+    <item>
+      <title>On scaling teams (cross-posted)</title>
+      <link>https://example.com/ep?id=42&amp;ref=lenny</link>
+      <guid isPermaLink="false">lenny-news-555</guid>
+      <pubDate>Wed, 28 May 2026 08:00:00 GMT</pubDate>
+      <description>Same episode, syndicated from the podcast feed.</description>
+    </item>
+    <item>
+      <title>A post only in this feed</title>
+      <link>https://example.com/posts/feed2-unique</link>
+      <guid isPermaLink="false">feed2-unique</guid>
+      <pubDate>Mon, 02 Jun 2026 08:00:00 GMT</pubDate>
+      <description>Unique to feed 2.</description>
+    </item>
+  </channel>
+</rss>
