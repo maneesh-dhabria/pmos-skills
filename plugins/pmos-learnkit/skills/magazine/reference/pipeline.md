@@ -16,12 +16,20 @@ runs resumably, and updates the issue as items complete.
 A run's scope is, in precedence order:
 
 1. `--feed <name>` — restrict to one feed.
-2. `--days N` — items published in the last N days.
-3. default — items newer than each feed's `state.json` cursor ("since last run").
-4. `--max-per-feed N` — cap items taken from any single feed.
+2. **Lookback (`--days N`)** — items published in the last N days. Resolution:
+   `--days` flag → else `interest.yaml :: defaults.days` (captured at first-run,
+   FR-Q3) → else built-in **7**. This bounds the window on a first run (no cursor
+   yet) and caps how far back a long-idle feed reaches.
+3. default time anchor — items newer than each feed's `state.json` cursor
+   ("since last run"), within the lookback above.
+4. **Per-feed cap (`--max-per-feed N`)** — cap items taken from any single feed.
+   Resolution: `--max-per-feed` flag → else `interest.yaml :: defaults.max_per_feed`
+   → else uncapped. Keeps a prolific feed from ballooning the issue.
 
-After windowing, subtract already-`rendered` GUIDs, then **snapshot the resulting
-item set** — that snapshot defines the issue and does not change mid-run.
+Because the lookback and cap default to the stored `interest.yaml` values, a plain
+`/magazine` build needs **no interactive window prompt** after first-run setup
+(FR-Q3). After windowing, subtract already-`rendered` GUIDs, then **snapshot the
+resulting item set** — that snapshot defines the issue and does not change mid-run.
 
 ## Stage A — deterministic prep
 
@@ -45,9 +53,15 @@ the **"redirect, don't pipe"** rule in step 2.
 1. **Discover** — `scripts/fetch-feed.js <url> --since <cursor> --max <N>` per feed,
    each in isolation. A dead/malformed feed exits non-zero with a reason; skip and
    report it, never abort the issue (FR-7). `discover()` each returned GUID
-   (idempotent dedup) → status `discovered`. URLs are returned with XML entities
-   already decoded (`&amp;`→`&`), so enclosure/link query params are curl-safe
-   (FR-P5).
+   (idempotent GUID dedup) → status `discovered`. URLs **and titles** are returned
+   with XML entities already decoded (`&amp;`→`&`, `&apos;`→`'`), so query params
+   are curl-safe and titles render cleanly instead of showing literal `&apos;`
+   (FR-P5, FR-Q1). **Cross-feed dedup (FR-Q2):** when the same article is
+   syndicated across two feeds under different GUIDs, `discover()` keys a
+   canonicalized link (scheme/`www.`/tracking-param/trailing-slash insensitive) and
+   records the second sighting as `status: duplicate` (`duplicate_of` set) —
+   catalogued in the ledger but kept out of the issue snapshot, so the agent no
+   longer hand-dedupes overlapping feeds each run.
 2. **Crawl** — for every item, `scripts/extract-article.js <link>` (status →
    `downloaded`). **Redirect stdout to a file, never capture it through a pipe**:
    `extract-article.js <link> > crawl-cache/<safe-guid>.txt` (FR-P1). A long article
@@ -63,7 +77,12 @@ the **"redirect, don't pipe"** rule in step 2.
    `config-schema.md` → `whisper_model`); exit 3 = no whisper **or** no resolvable
    model → keep the show-notes and attach an honest "install whisper / set
    `WHISPER_MODEL_DIR`" hint; never fabricate (FR-9, FR-P2, NFR-1). Audio is deleted
-   right after; the transcript caches forever.
+   right after; the transcript caches forever. **Known cost (FR-Q5):** each episode
+   spawns a fresh whisper process, so the model + backend (e.g. a ~1.4 GB ggml model
+   + Metal init) reload per episode — measurable overhead on a many-episode run. This
+   is accepted: **speed is explicitly not a goal** and the forever-cache means a
+   re-run never re-transcribes. A persistent `whisper-server` / batched invocation is
+   a deliberate future option, not a v1 commitment — see "Known limitations".
 
 ## Stage B — in-session agent
 
@@ -100,3 +119,15 @@ A per-item failure (paywall, download error, transcribe failure, summarize
 failure) becomes a **degraded, reason-flagged card** — `status: failed` with a
 `failed_reason`, rendered with a visible warning. Nothing is ever silently dropped
 (FR-15); failures stay in the ledger for a later retry.
+
+## Known limitations
+
+Accepted v1 trade-offs, recorded so a future run revisits them deliberately rather
+than rediscovering them:
+
+- **Per-episode whisper reload (FR-Q5).** `transcribe.sh` runs one whisper process
+  per episode, reloading the model + backend each time. Real overhead on a
+  many-episode catch-up, but accepted because speed is not a goal and transcripts
+  cache forever. *Future option:* a persistent `whisper-server` or a single batched
+  invocation over the run's audio set — opt-in, behind a flag, so the simple
+  one-shot path stays the default.

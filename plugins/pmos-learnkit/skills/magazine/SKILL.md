@@ -172,14 +172,20 @@ dispatch":
 **First-run setup** (when `~/.pmos/magazine/` is empty): walk the user through a
 short interview to seed `interest.yaml` (topics + priority feeds), then LLM-seed
 `tags.yaml` and present the ~8-tag registry for batch-approval. Always keep an
-`uncategorized` bucket. These gates carry a `(Recommended)` option so non-interactive
-runs auto-pick. Then prompt for an initial feed set (offer `add --from <file>`).
+`uncategorized` bucket. **Also capture the default build window** into
+`interest.yaml :: defaults` — `days` (lookback; recommend `7`) and `max_per_feed`
+(per-feed cap; recommend `5`) — so later builds need no window prompt (FR-Q3).
+These gates carry a `(Recommended)` option so non-interactive runs auto-pick. Then
+prompt for an initial feed set (offer `add --from <file>`).
 
 ## Phase 2: Discover (Stage A)
 
-Determine the window per `reference/pipeline.md` "Windowing" (`--feed`, `--days`,
-since-cursor default, `--max-per-feed`). **Drive discovery through the Stage-A
-entrypoint** — do not hand-write a per-feed driver:
+Determine the window per `reference/pipeline.md` "Windowing". Resolve the lookback
+as `--days` flag → `interest.yaml :: defaults.days` → built-in `7`, and the per-feed
+cap as `--max-per-feed` flag → `interest.yaml :: defaults.max_per_feed` → uncapped
+(FR-Q3) — so a plain `/magazine` build needs **no interactive window prompt** after
+first-run setup. **Drive discovery through the Stage-A entrypoint** — do not
+hand-write a per-feed driver:
 
 ```
 node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover [--since <cursor>] [--max <N>]
@@ -187,9 +193,12 @@ node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover [--since <cursor>] [--
 
 It reads `feeds.yaml`, runs `fetch-feed.js` per feed **each in isolation** (a feed
 that exits non-zero is skipped and reported, never aborting the issue), records each
-GUID in the ledger at `discovered` (idempotent dedup), and prints the snapshot item
-set as JSON. That snapshot **defines the issue**. (For an ad-hoc single feed, pass
-`--feed <url>`.)
+GUID in the ledger at `discovered`, and prints the snapshot item set as JSON. Dedup
+is two-layer: idempotent **GUID** dedup, plus **cross-feed link** dedup that
+collapses the same article syndicated under different GUIDs across feeds (catalogued
+as `duplicate`, kept out of the snapshot — FR-Q2), so you no longer hand-dedupe
+overlapping feeds. That snapshot **defines the issue**. (For an ad-hoc single feed,
+pass `--feed <url>`.)
 
 ## Phase 3: Prep — crawl + transcribe (Stage A)
 

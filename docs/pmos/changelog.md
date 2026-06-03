@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.12.0: `/magazine` second-retro fixes — output quality, cross-feed dedup, stored window
+
+Five more findings from `/magazine`'s first run — output-quality and design-gap issues the agent had quietly worked around (which is exactly why the prior retro missed them):
+
+- **Titles render cleanly.** The v0.11.1 entity-decode fix covered URLs but not the `title`, so a feed title like `Hugging Face&apos;s Clem Delangue` was re-escaped by the renderer into literal `&apos;` on the card. `fetch-feed.js` now decodes entities in `title` and `description` too (body stays raw HTML); a regression asserts the decoded title.
+- **Cross-feed duplicates collapse automatically.** The same article syndicated across two feeds (a newsletter re-publishing a podcast episode) arrives under different GUIDs, which GUID-keyed dedup can't catch — forcing the agent to hand-dedupe every run. `magazine-state.js` now keys a **canonical link** (scheme/`www.`/tracking-param/trailing-slash insensitive) and records the second sighting as `status: duplicate` (`duplicate_of` set) — catalogued in the ledger but kept out of the issue snapshot. This supersedes the v1 "no URL canonicalization" grill decision.
+- **The issue grid dedupes too.** `render-issue.js renderIssue()` previously deduped nothing (only the library view did), so an un-deduped pass rendered two cards. It now collapses by link as a backstop to the ledger-level dedup.
+- **The build window is stored, not asked.** First-run setup now captures `interest.yaml :: defaults` (`days`, `max_per_feed`), and a plain `/magazine` resolves the lookback/cap from those defaults — no interactive window prompt after setup. A flag still overrides for one-off runs.
+- **Whisper model-reload cost is documented.** Per-episode model + backend reload is recorded as an accepted known limitation (speed is not a goal; transcripts cache forever), with a persistent `whisper-server`/batched invocation noted as a deliberate future option — no code change.
+
+### Internal
+
+Authored via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias), Tier 2. Each code fix ships a regression in the owning script's `--selftest`; `structure.test.sh` grows from 41 to 50 checks (FR-Q1..Q5). Deterministic skill-eval 19/19 [D]. A second cross-feed fixture (`sample-feed-2.xml`) drives the dedup integration test.
+
+---
+
 ## 2026-06-03 — pmos-learnkit 0.11.1: `/magazine` reliability fixes from first-run retro
 
 Six fixes to `/magazine` surfaced by its first real end-to-end run — two of them silent-failure blockers that cut against the skill's "trust" promise:

@@ -57,6 +57,17 @@ chk "P5: fetch-feed decodeEntities"          "grep -q 'decodeEntities' '$DIR/scr
 chk "P2: transcribe resolve_cpp_model"       "grep -q 'resolve_cpp_model' '$DIR/scripts/transcribe.sh'"
 chk "P6: transcribe safe_guid sanitize"      "grep -q 'safe_guid_of' '$DIR/scripts/transcribe.sh'"
 
+# --- second-retro regressions (FR-Q1..Q5) ---
+chk "Q1: fetch-feed decodes title"           "grep -q 'title: decodeEntities' '$DIR/scripts/fetch-feed.js'"
+chk "Q2: state canonicalLink helper"         "grep -q 'function canonicalLink' '$DIR/scripts/magazine-state.js'"
+chk "Q2: state duplicate lifecycle"          "grep -q \"'duplicate'\" '$DIR/scripts/magazine-state.js' && grep -q 'duplicate_of' '$DIR/scripts/magazine-state.js'"
+chk "Q2: run excludes dupes from snapshot"   "grep -q \"status === 'duplicate'\" '$DIR/scripts/magazine-run.js'"
+chk "Q2: cross-feed dedup fixture"           "[ -f '$DIR/tests/fixtures/sample-feed-2.xml' ]"
+chk "Q3: interest.yaml defaults documented"  "grep -q 'defaults.days' '$DIR/reference/config-schema.md' && grep -q 'defaults' '$SKILL'"
+chk "Q3: pipeline windowing reads defaults"  "grep -q 'defaults.days' '$DIR/reference/pipeline.md'"
+chk "Q4: render-issue grid dedup"            "grep -q 'function dedupeItems' '$DIR/scripts/render-issue.js'"
+chk "Q5: whisper-reload limitation documented" "grep -qi 'whisper-server' '$DIR/reference/pipeline.md'"
+
 # --- no loose files in skill root (§C asset layout) ---
 loose="$(find "$DIR" -maxdepth 1 -type f ! -name 'SKILL.md' | wc -l | tr -d ' ')"
 chk "no loose files in skill root"          "[ \"$loose\" = '0' ]"
