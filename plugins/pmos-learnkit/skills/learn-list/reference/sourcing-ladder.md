@@ -79,11 +79,26 @@ is never required.)
 
 ## Book summaries
 
-For each canonical book, source a quality *summary* link so the user gets the gist
-without buying the book: the author's own précis or talk, a reputable long-form review,
-a well-known summary site entry, or a chapter-level breakdown by a practitioner. Verify
-it against the pass-bar like any link. Never invent a summary; if no good one exists,
-list the book without a summary link and say so.
+**Every emitted book that is not free carries a summary reference — wherever it appears**
+(reading-list-by-topic, adjacent rabbit holes, *and* the follow-list), not just the
+follow-list. This is the book-equivalent of the paywalled-source rule below: a paid book
+*is* a paywall, so the user gets a way to skim the high-level ideas without buying it.
+Attach the summary inline next to the book, the same shape as a paywalled source's
+free-alternative line.
+
+For each such book, source the **most authoritative** *summary* available and verify it
+against the pass-bar like any link — in rough priority order: the author's own précis or
+talk → a reputable long-form review or chapter-level breakdown by a named practitioner →
+a well-known summary-site entry. "Most authoritative" means closest to the author and the
+canonical framing, not merely the first summary search returns.
+
+Exemptions and the honest escape:
+- A genuinely **free** book (full text legitimately readable online) needs no summary
+  reference — link the book itself.
+- A cheap book is still not free: attach a summary if a good one exists.
+- Never invent a summary. If no quality summary exists, emit the book with an explicit
+  "no good summary found — read the book" note (e.g. *The Mom Test*, ~$15). Saying so is
+  the honest outcome, not a missing reference.
 
 ## Signature writings (no fabricated citation counts)
 

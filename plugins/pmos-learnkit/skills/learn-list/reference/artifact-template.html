@@ -19,6 +19,7 @@
     table.follow{border-collapse:collapse;width:100%;font-size:.9rem} .follow th{background:#f0f4f8}
     pre.paste{background:#1a1a1a;color:#e8e8e8;padding:1rem;border-radius:6px;overflow:auto;font-size:.82rem;line-height:1.45}
     .prov{color:#777;font-style:italic;font-size:.85rem}
+    .free,.summary{color:#2f855a;font-size:.85rem} <!-- free-alternative + paid-book summary line -->
   </style>
 </head>
 <body>
@@ -43,6 +44,7 @@
     <a href="{{url}}">{{title}}</a> <span class="tier">{{tier}}</span>{{paywalled_tag}}
     <div class="why">{{why_included_max_2_sentences}}</div>
     {{free_alt_line}} <!-- "Free alternative: <a href>…</a>" when paywalled -->
+    {{book_summary_line}} <!-- paid books only: <div class="summary">Summary: <a href>…</a></div> (most authoritative), or "no good summary found — read the book" -->
   </li>
   <!-- … more links … -->
 </ol>
@@ -53,7 +55,11 @@
 <h2 id="adjacencies">Adjacent rabbit holes</h2>
 <p class="meta">Separate from the core so they widen coverage without diluting focus. ({{adjacency_hops}} hop(s); omitted in quick mode.)</p>
 <ol class="links">
-  <li><a href="{{url}}">{{title}}</a> <span class="tier">{{tier}}</span><div class="why">{{why}}</div></li>
+  <li>
+    <a href="{{url}}">{{title}}</a> <span class="tier">{{tier}}</span>
+    <div class="why">{{why}}</div>
+    {{book_summary_line}} <!-- paid adjacency books only: <div class="summary">Summary: <a href>…</a></div>, or "no good summary found" -->
+  </li>
 </ol>
 </section>
 

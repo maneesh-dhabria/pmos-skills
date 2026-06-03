@@ -66,8 +66,9 @@ specificity is slop even if it's reachable — drop it.
 
 ## Per-format reputation notes
 
-- **Books** → prefer the canonical text; source a *summary* link separately (see
-  `sourcing-ladder.md`), don't pretend the book itself is a quick read.
+- **Books** → prefer the canonical text; for any book that isn't free, source the **most
+  authoritative** *summary* link separately and attach it wherever the book appears (see
+  `sourcing-ladder.md` → Book summaries), don't pretend the book itself is a quick read.
 - **X / tweets** → only threads/posts from a named practitioner with standing on the
   topic; never an anonymous viral take.
 - **LinkedIn** → practitioner posts only; skip engagement-bait.

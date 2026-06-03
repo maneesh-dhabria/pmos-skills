@@ -135,7 +135,11 @@ so verification spend scales with output, not with the candidate pool:
    thin (honest under-coverage beats padding).
 5. **Annotate** each survivor from what you actually read: ≤2 sentences, soft ~240-char
    ceiling, saying *why it's here / what you'll get*. Tag tier; tag `paywalled` and add a
-   free alternative when one exists.
+   free alternative when one exists. **For any emitted book that is not free, attach the
+   most authoritative summary reference inline** — the book-equivalent of the
+   free-alternative line — or an explicit "no good summary found — read the book" note,
+   per `reference/sourcing-ladder.md` (Book summaries). This applies wherever a paid book
+   appears, not only in the follow-list.
 
 Do not enforce a per-format quota — include only the formats actually found and verified.
 A fabricated podcast or video to fill a row is a hard failure.
@@ -145,12 +149,14 @@ A fabricated podcast or video to fill a row is a hard failure.
 1. **Adjacency walk.** Explore adjacent topics to widen coverage — `0` hops in `quick`,
    `1` in `standard`, `2` in `deep` (`reference/modes.md`). Source each via the same
    rank-then-verify loop. Place results in a **separate "adjacent rabbit holes" section**
-   so they never dilute the core list.
+   so they never dilute the core list. The paid-book-summary rule (Phase 4 step 5) applies
+   here too — an adjacency book that isn't free carries its most authoritative summary
+   reference inline, or the explicit "no good summary found" note.
 2. **Follow-list.** Assemble who/what to follow next: practitioners (with their
    **signature writing** — the piece search and the curations consistently surface,
    labeled "signature / most-referenced," never a fabricated citation count), newsletters
-   (subscribe link), podcasts, and books (with a **sourced summary** link per
-   `reference/sourcing-ladder.md`, or "no good summary found"). Deep mode adds book
+   (subscribe link), podcasts, and books (each with its **most authoritative summary** link
+   per `reference/sourcing-ladder.md`, or "no good summary found"). Deep mode adds book
    summaries + signature writings for the full practitioner set.
 
 ## Phase 6: Eval + Write
@@ -164,6 +170,10 @@ A fabricated podcast or video to fill a row is a hard failure.
      ~240-char ceiling.
    - **Coverage** — every outline topic has ≥1 link or an explicit "thin — little quality
      material found" note.
+   - **Book-summary parity** — every emitted book that isn't free carries a summary
+     reference (or an explicit "no good summary found" note), in the reading-list and
+     adjacencies as well as the follow-list. A paid book with no summary ref and no
+     none-note is a fail — fix before writing.
 2. **Render the artifact** from `reference/artifact-template.html` via the learnkit
    html-authoring substrate (`_shared/html-authoring/`): header → TL;DR (with outline
    provenance) → reading-list-by-topic → adjacent rabbit holes → follow-list →
