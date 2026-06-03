@@ -32,7 +32,7 @@
   <main>
 
 <section id="frontmatter">
-<p class="meta"><strong>Date:</strong> 2026-06-03 · <strong>Last updated:</strong> 2026-06-03 · <strong>Status:</strong> Draft · <strong>Tier:</strong> 3 — Feature (new skill)</p>
+<p class="meta"><strong>Date:</strong> 2026-06-03 · <strong>Last updated:</strong> 2026-06-03 · <strong>Status:</strong> Approved · <strong>Tier:</strong> 3 — Feature (new skill)</p>
 <p class="meta">Seed: deep-grilled ideate brief — <code>docs/pmos/ideate/2026-06-03_playbook-skill.html</code> + grill <code>docs/pmos/ideate/grills/2026-06-03_playbook-skill.html</code>. Standing acceptance criteria: <code>reference/skill-patterns.md §A–§F</code>.</p>
 </section>
 
@@ -156,6 +156,10 @@
 <tr><td>D10</td><td>Screenshots gated by author manual verification</td><td>(a) manual verify, (b) OCR-flag, (c) pre-marked-public only</td><td>Images can't be text-flagged; author eyeballs each via the review checklist (consistent with D8).</td></tr>
 <tr><td>D11</td><td>Default window = last 30 days + mandatory dry-run confirm</td><td>(a) 30d+confirm, (b) require explicit window, (c) all history</td><td>Low friction; no silent unbounded read.</td></tr>
 <tr><td>D12</td><td>Home plugin = pmos-learnkit</td><td>(a) pmos-learnkit, (b) pmos-toolkit</td><td>Grouped with <code>/primer</code>/<code>/learn-list</code> by output-audience; coupling to toolkit conventions is light (string/path).</td></tr>
+<tr><td>D13</td><td>v1 output formats = HTML article + tweet/thread</td><td>(a) HTML+tweet only, (b) +markdown export, (c) +LinkedIn variant</td><td>HTML is already self-sufficient; tweet-thread covers succinct sharing. Markdown/Substack + LinkedIn variants deferred post-v1 to keep scope tight (resolves OQ1).</td></tr>
+<tr><td>D14</td><td>Clustering UX = auto-suggest merges; confirm only low-confidence boundaries</td><td>(a) auto-suggest + low-confidence confirm, (b) always manual merge/split, (c) fully automatic</td><td>Auto-detects overlapping threads (branch + follow-up) and suggests a merge the author accepts/rejects; thread-boundary confirm fires only below a topic-similarity confidence threshold — confident clusters are never re-litigated (resolves OQ2+OQ3).</td></tr>
+<tr><td>D15</td><td>Screenshot target = thread-referenced artifacts; graceful degrade</td><td>(a) thread-referenced + degrade, (b) all repo artifacts, (c) author-selected only</td><td>Capture visual artifacts referenced in the chosen thread (author may add more); when Playwright/browser is unavailable, degrade to embedded text excerpt + a "screenshot unavailable" note rather than hard-failing (resolves OQ4).</td></tr>
+<tr><td>D16</td><td>Denylist seeding = ship empty; one-time first-run prompt</td><td>(a) empty + first-run prompt, (b) empty no prompt, (c) auto-seed from git metadata</td><td><code>~/.pmos/playbook/sensitive.yaml</code> ships empty; first run offers a one-time optional prompt to seed known client/repo/strategy names, stored for reuse. Balances zero-config with a useful head start (resolves OQ5).</td></tr>
 </table>
 </section>
 
@@ -185,14 +189,14 @@
 
 <section id="open-questions">
 <h2 id="open-questions">Open Questions</h2>
-<table>
-<tr><th>#</th><th>Question</th></tr>
-<tr><td>1</td><td>Reader-artifact spread: is the self-sufficient HTML article + tweet thread enough for v1, or also a markdown/Substack-ready export and a LinkedIn-shaped variant? (Lean: HTML + tweet thread in v1; defer others.)</td></tr>
-<tr><td>2</td><td>Candidate dedup UX: how does the author merge overlapping threads (a feature branch + its follow-up HEAD work) — auto-detect-and-suggest, or manual merge at the pick step?</td></tr>
-<tr><td>3</td><td>Thread-merge confirm: when topic-similarity clustering is uncertain, how/when is the author asked to confirm a thread boundary without adding friction to the common case?</td></tr>
-<tr><td>4</td><td>Screenshot capture-target selection: which artifacts get screenshotted (all HTML under the repo's docs? only those referenced in the thread? author-selected?), and how is the Playwright dependency handled when absent?</td></tr>
-<tr><td>5</td><td>Sensitive-denylist seeding: does <code>~/.pmos/playbook/sensitive.yaml</code> ship empty, or is the author prompted to seed known client/repo names on first run?</td></tr>
-</table>
+<p>All five open questions raised at draft were <strong>resolved during requirements review</strong> (2026-06-03) and folded into Design Decisions D13–D16:</p>
+<ul>
+<li>OQ1 → <strong>D13</strong> (v1 = HTML article + tweet/thread; markdown/LinkedIn deferred).</li>
+<li>OQ2 + OQ3 → <strong>D14</strong> (auto-suggest merges; confirm only low-confidence boundaries).</li>
+<li>OQ4 → <strong>D15</strong> (thread-referenced screenshots; graceful degrade when Playwright absent).</li>
+<li>OQ5 → <strong>D16</strong> (denylist ships empty; one-time first-run seed prompt).</li>
+</ul>
+<p><em>No open questions remain.</em></p>
 </section>
 
   </main>
