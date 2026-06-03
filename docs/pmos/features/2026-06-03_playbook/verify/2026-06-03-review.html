@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="verify">
+  <title>Verify Report — /playbook skill</title>
+  <link rel="stylesheet" href="../assets/style.css?v=0.9.0">
+</head>
+<body>
+<header>
+  <h1>Verify Report — /playbook (pmos-learnkit)</h1>
+  <p class="sub">Phase 7 of <code>/feature-sdlc skill</code> · branch <code>feat/playbook</code> · 2026-06-03 · <strong>Outcome: PASS</strong></p>
+</header>
+<main>
+
+<section id="summary"><h2 id="summary">Summary</h2>
+<p>Post-implementation verification of the <code>/playbook</code> skill (SKILL.md + 6 reference files + 2 zero-dep Node scripts + 3 test suites). This is a documentation-and-script skill with <strong>no UI / API / DB / deploy surface</strong>, so Phase 4 sub-steps 3a–3f (migrations, Docker, curl, Playwright, UX polish, wireframe diff) resolve to <em>NA — no runtime surface</em> and are documented as such below rather than skipped silently.</p>
+<ul>
+  <li><strong>Static verification:</strong> structure 22/22, resolver 12/12, scout 10/10 — all green.</li>
+  <li><strong>Multi-agent code review:</strong> 3 real defects found in the load-bearing resolver/clusterer; all fixed + regression-tested (commit <code>08066f8</code>).</li>
+  <li><strong>Fresh skill-eval re-run:</strong> 19 <code>[D]</code> + 18 applicable <code>[J]</code> = 37 checks pass, 0 fail; reconciled against <code>accepted_residuals</code> (empty). No newly-failing check.</li>
+  <li><strong>Phase 7 hard gate (comments-coverage):</strong> PASS.</li>
+  <li><strong>Release prerequisites:</strong> graded advisory — none block; all owned by <code>/complete-dev</code>.</li>
+</ul>
+</section>
+
+<section id="static-verification"><h2 id="static-verification">Static verification (Phase 2)</h2>
+<table>
+<tr><th>Suite</th><th>Result</th><th>Evidence</th></tr>
+<tr><td><code>tests/structure.test.sh</code></td><td>22/22 pass</td><td><code>ALL STRUCTURE CHECKS PASSED</code></td></tr>
+<tr><td><code>tests/resolver.test.mjs</code></td><td>12/12 pass</td><td><code>node --test</code> → <code># pass 12 / # fail 0</code> (10 original + 2 regression)</td></tr>
+<tr><td><code>tests/scout.test.mjs</code></td><td>10/10 pass</td><td><code>node --test</code> → <code># pass 10 / # fail 0</code> (9 original + 1 regression)</td></tr>
+<tr><td>zero-dependency check</td><td>pass</td><td>scripts import only <code>node:</code> builtins (<code>fs/path/os/child_process/url</code>)</td></tr>
+</table>
+</section>
+
+<section id="code-review"><h2 id="code-review">Multi-agent code review &amp; fixes (Phase 3 + Phase 6)</h2>
+<p>A reviewer subagent scanned both scripts for bugs, consistency, robustness, and CLAUDE.md compliance. Malformed-input isolation (per-line <code>JSON.parse</code> guarded) and absent-root handling were confirmed solid. Three findings in the load-bearing worktree-resolution / clustering code were verified firsthand and fixed with red-green regression tests (the Phase-3 75+ filter would have logged these as "noted"; they were promoted to fixes because they sit in the skill's core differentiator).</p>
+<table>
+<tr><th>#</th><th>Defect</th><th>Impact</th><th>Fix + test</th></tr>
+<tr><td>1a</td><td><code>gitMergeBranches</code> regex captured <code>remote-tracking</code> for <code>"Merge remote-tracking branch 'origin/x'"</code></td><td>Dropped the real branch from merge-history signal (c) → worktree sessions merged via <code>git pull</code> not recovered</td><td>Added <code>(?:remote-tracking\s+)?</code> alt; extracted pure <code>parseMergeSets()</code> seam; test <code>parseMergeSets recovers branch from a remote-tracking pull-merge subject</code></td></tr>
+<tr><td>1b</td><td>Pull-request subject used greedy <code>\S+\/</code>, capturing only the last path segment (<code>pr-thread</code> not <code>feat/pr-thread</code>)</td><td>Slash-bearing PR branches failed to match <code>gitBranch</code> → under-attribution</td><td>Made it lazy <code>\S+?\/</code>; same regression test (went red→green live)</td></tr>
+<tr><td>2</td><td><code>clusterThreads</code> aliased a session's own <code>topic</code> Set (<code>curTopic = m.topic</code>) and mutated it in place</td><td>Latent input-state mutation (current output impact ~nil; footgun for reuse)</td><td><code>curTopic = new Set(m.topic)</code> at both seed points; test <code>clusterThreads does not mutate the input metas topic Sets</code></td></tr>
+<tr><td>5</td><td>CLI guard <code>import.meta.url === \`file://${process.argv[1]}\`</code> mis-encoded paths with spaces/non-ASCII</td><td>Script silently becomes import-only when invoked by path from a home dir with a space</td><td><code>pathToFileURL(process.argv[1]).href</code> in both scripts</td></tr>
+</table>
+<p>Findings below 50 confidence (independent <code>gitBranch</code> re-read, reflog edge) were discarded per the Phase-3 filter.</p>
+</section>
+
+<section id="skill-eval"><h2 id="skill-eval">Fresh skill-eval re-run (skill-mode directive)</h2>
+<p>Re-ran <code>skill-eval.md</code> independently of Phase 6a: <code>skill-eval-check.sh --target claude-code</code> for the <code>[D]</code> half and a fresh reviewer pass for the <code>[J]</code> half.</p>
+<ul>
+  <li><strong>[D] deterministic:</strong> 19/19 pass, exit 0. (The earlier <code>c-portable-paths</code> miss on a <code>/Users/me/…</code> illustrative example in <code>session-log-format.md</code> was fixed in 6a; re-confirmed clean here.)</li>
+  <li><strong>[J] llm-judge:</strong> 18 applicable checks all pass. <code>c-body-size-judge</code> (body 153 lines, not an orchestrator) and <code>d-flowcharts-justified</code> (no flowcharts) are gated N/A — applicable set = 20 − 2 = 18, matching the reviewer's returned set (FR-44 set-equality holds; 0 fails → no quotes to substring-validate).</li>
+  <li><strong>Reconciliation:</strong> <code>state.yaml.phases.skill-eval.skill_eval.accepted_residuals[]</code> is empty (6a passed clean, iter 1). No previously-accepted check, no newly-failing check. Nothing blocks.</li>
+</ul>
+</section>
+
+<section id="spec-compliance"><h2 id="spec-compliance">Spec compliance (Phase 5)</h2>
+<p>39 FRs across 10 clusters. No UI/API/DB surface → evidence is the test suites, the deterministic structure/eval checks, the skill-eval reviewer, and a live CLI smoke. Each cluster's row cites its concrete evidence.</p>
+<table>
+<tr><th>FR cluster</th><th>Outcome</th><th>Evidence</th></tr>
+<tr><td>CLI &amp; invocation</td><td>Verified</td><td><code>argument-hint</code> ↔ parsed-flags reconciled (skill-eval <code>f-cc-argument-hint-matches</code>); CLI smoke executed end-to-end emitting valid JSON contract; <code>pathToFileURL</code> guard fix</td></tr>
+<tr><td>Session resolution (multi-signal)</td><td>Verified</td><td><code>resolver.test.mjs</code> — nested / sibling / branch-in-merge-history attribution, merged-and-deleted sibling recovery, ambiguity model (10 cases) + 2 merge-parse regressions. Real-data validation (poker-coach sibling recovery) during build.</td></tr>
+<tr><td>Interactive-only filter</td><td>Verified</td><td><code>resolver.test.mjs</code> — <code>permission-mode</code> discriminator (interactive vs headless), default-drop + <code>--include-headless</code> re-admit; <code>session-log-format.md</code> now documents the <code>subagents/</code> subdir the scout intentionally skips</td></tr>
+<tr><td>Scout, clustering &amp; proposal</td><td>Verified</td><td><code>scout.test.mjs</code> — branch-then-topic clustering, instructiveness floor, scoring, merge-suggestion (9 cases) + 1 clustering-purity regression; candidate JSON contract matches SKILL.md Phase 1/2 prose (reviewer-confirmed, no drift)</td></tr>
+<tr><td>Deep-read &amp; extraction</td><td>NA — alt-evidence</td><td>Agent-behavior phase (no script): governed by SKILL.md Phase 3 prose + <code>session-log-format.md §decision-signals</code>; quality enforced by the synthesis quality gate (≥3 prompts + ≥1 decision row)</td></tr>
+<tr><td>Article synthesis &amp; outputs</td><td>NA — alt-evidence</td><td><code>artifact-template.html</code> present (11 sections, <code>pmos:skill</code> meta, cache-bust); <code>article-schema.md</code> defines the quality gate; tweet-thread output specified. Rendering is agent-time, not a script — no runtime surface to Playwright in v1 (no completed session to capture; <strong>manual author verification is the by-design share gate</strong>).</td></tr>
+<tr><td>Anonymizer &amp; human gate</td><td>Verified (design) / NA (runtime)</td><td><code>anonymizer.md</code> specifies detect-and-flag (never auto-scrub), the mandatory <code>REVIEW-BEFORE-SHARING.md</code>, and denylist seeding. SKILL.md Anti-Pattern #4 + Phase 5 enforce "never marks safe". No runtime to exercise without a real session.</td></tr>
+<tr><td>Output layout</td><td>Verified</td><td><code>article-schema.md</code> + SKILL.md Phase 6 define <code>{docs_path}/playbooks/{YYYY-MM-DD}_&lt;slug&gt;/</code> with atomic temp-then-rename, <code>?v=</code> cache-bust, sections.json via substrate</td></tr>
+<tr><td>skill-patterns §A–§F conformance</td><td>Verified</td><td>37/37 skill-eval checks pass (19 [D] + 18 [J]); structure.test.sh 22/22</td></tr>
+<tr><td>Non-functional (cheap-scout, zero-dep, Node≥18)</td><td>Verified</td><td>scout never reads raw bodies at scout time (Anti-Pattern #1 + script design); zero-dep confirmed; Node≥18 documented in both script headers + Platform Adaptation</td></tr>
+</table>
+</section>
+
+<section id="phase4-na"><h2 id="phase4-na">Phase 4 (deploy / integration / UX) — documented NA</h2>
+<p>Per the Phase 4 entry gate's three-state model, every runtime-surface item resolves explicitly. This skill has zero runtime surface:</p>
+<table>
+<tr><th>Sub-step</th><th>Outcome</th><th>Reason</th></tr>
+<tr><td>3a Migrations</td><td>NA</td><td>No database</td></tr>
+<tr><td>3b Docker deploy</td><td>NA</td><td>No service</td></tr>
+<tr><td>3c API smoke</td><td>NA</td><td>No endpoints</td></tr>
+<tr><td>3d Frontend (Playwright)</td><td>NA — alt-evidence</td><td>No app UI. The skill <em>emits</em> HTML articles, but rendering them requires a real mined session (none on this fresh worktree); the screenshot step is a documented degrade-to-text in v1 with manual author verification as the share gate.</td></tr>
+<tr><td>3e Interactive spot checks</td><td>Verified (CLI)</td><td>Scout CLI driven end-to-end against this repo; emitted valid JSON coverage contract (correct-empty: in-flight session not yet flushed)</td></tr>
+<tr><td>3f UX polish / wireframe diff</td><td>NA</td><td>No UI surface; no <code>wireframes/</code> folder (skill mode suppresses 3b/3c)</td></tr>
+</table>
+</section>
+
+<section id="release-prereqs"><h2 id="release-prereqs">Release-prerequisite grading (advisory — owned by /complete-dev)</h2>
+<table>
+<tr><th>Item</th><th>State</th><th>Note</th></tr>
+<tr><td>Manifest version-sync</td><td>In sync</td><td>Both <code>pmos-learnkit</code> <code>plugin.json</code> files at <code>0.9.0</code>; <code>/complete-dev</code> bumps to <code>0.10.0</code></td></tr>
+<tr><td>README row for /playbook</td><td>Absent (expected)</td><td><code>/complete-dev</code> adds it — not an <code>/execute</code>/verify task (plan correctly quarantines this)</td></tr>
+<tr><td>Changelog entry</td><td>Absent (expected)</td><td><code>CHANGELOG.md</code> + <code>docs/pmos/changelog.md</code> exist; <code>/complete-dev</code> regenerates</td></tr>
+<tr><td>learnings.md <code>## /playbook</code> header</td><td>Bootstrap pending</td><td><code>/complete-dev</code> deliverable</td></tr>
+</table>
+<p>The plan's wave blocks (T1–T8) contain only skill-content tasks — verified by <code>g-plan-grep-clean</code> (clean) and the reviewer's <code>g-release-prereqs-scope</code> pass; all release items are isolated in the spec's <em>Release prerequisites</em> section.</p>
+</section>
+
+<section id="gaps"><h2 id="gaps">Gap report</h2>
+<p>No open gaps. All discovered defects were fixed and regression-tested this pass. No <code>Unverified — action required</code> rows. The screenshot/Playwright path is a documented v1 design decision (text-degrade + manual share gate), not an open gap.</p>
+</section>
+
+<section id="hardening"><h2 id="hardening">Test-suite hardening (Phase 6)</h2>
+<ul>
+  <li><code>parseMergeSets recovers branch from a remote-tracking pull-merge subject</code> — guards defects 1a + 1b (PR case verified red→green live).</li>
+  <li><code>parseMergeSets pulls slash-bearing refs from reflog</code> — guards the reflog path.</li>
+  <li><code>clusterThreads does not mutate the input metas topic Sets (no aliasing)</code> — guards defect 2.</li>
+</ul>
+<p>Suite totals after hardening: resolver 10→12, scout 9→10. Structure unchanged (22).</p>
+</section>
+
+<section id="verdict"><h2 id="verdict">Verdict</h2>
+<p><strong>PASS.</strong> The <code>/playbook</code> skill conforms to <code>skill-patterns.md §A–§F</code> (37/37 eval checks), all test suites are green after fixing three real defects in the load-bearing resolver/clusterer, and no requirement is left unverified. Ready for <code>/complete-dev</code> (Phase 8) pending the user's explicit go-ahead for the irreversible merge + version bump + push.</p>
+</section>
+
+</main>
+<footer>Generated by /verify (pmos-toolkit) · branch feat/playbook · 2026-06-03</footer>
+</body>
+</html>

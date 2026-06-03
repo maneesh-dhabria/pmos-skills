@@ -1,0 +1,62 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "static-verification",
+    "level": 2,
+    "title": "Static verification (Phase 2)",
+    "parent_id": null
+  },
+  {
+    "id": "code-review",
+    "level": 2,
+    "title": "Multi-agent code review & fixes (Phase 3 + Phase 6)",
+    "parent_id": null
+  },
+  {
+    "id": "skill-eval",
+    "level": 2,
+    "title": "Fresh skill-eval re-run (skill-mode directive)",
+    "parent_id": null
+  },
+  {
+    "id": "spec-compliance",
+    "level": 2,
+    "title": "Spec compliance (Phase 5)",
+    "parent_id": null
+  },
+  {
+    "id": "phase4-na",
+    "level": 2,
+    "title": "Phase 4 (deploy / integration / UX) — documented NA",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release-prerequisite grading (advisory — owned by /complete-dev)",
+    "parent_id": null
+  },
+  {
+    "id": "gaps",
+    "level": 2,
+    "title": "Gap report",
+    "parent_id": null
+  },
+  {
+    "id": "hardening",
+    "level": 2,
+    "title": "Test-suite hardening (Phase 6)",
+    "parent_id": null
+  },
+  {
+    "id": "verdict",
+    "level": 2,
+    "title": "Verdict",
+    "parent_id": null
+  }
+]
