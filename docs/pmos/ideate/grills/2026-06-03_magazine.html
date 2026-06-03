@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="grill">
+  <meta name="pmos:grill-target" content="docs/pmos/ideate/2026-06-03_magazine.html">
+  <meta name="pmos:grill-depth" content="deep">
+  <meta name="pmos:grill-date" content="2026-06-03">
+  <title>Grill Report — /magazine</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --ok:#2f855a; --bg:#fafafa; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    .attr { margin-left:auto; font-size:.8rem; color:var(--muted); text-decoration:none; }
+    main { max-width:900px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2.2rem; }
+    h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; margin:2rem 0 .8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.9rem; margin:.6rem 0; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    td.n { text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .meta { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); padding:.8rem 1.1rem; border-radius:4px; font-size:.92rem; }
+    .ovr { color:var(--warn); font-weight:600; }
+    ul li, ol li { margin:.3rem 0; }
+    footer { max-width:900px; margin:0 auto; padding:1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Grill Report — /magazine</h1>
+    <span class="pill">grill · deep · 2026-06-03</span>
+    <a class="attr" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main>
+
+<section id="summary">
+<h2 id="summary">Summary</h2>
+<div class="meta">
+<p><strong>Target:</strong> <code>docs/pmos/ideate/2026-06-03_magazine.html</code> · <strong>Depth:</strong> deep · <strong>Questions asked:</strong> 11 · <strong>Author overrides of the recommended option:</strong> 0 (but three answers materially reframed the design beyond the offered options).</p>
+<p>The grill shifted <code>/magazine</code> from a "fast, lightweight, on-demand digest skill" into a <strong>deterministic, resumable, parallelized local pipeline</strong> with an <strong>in-session agent curation/summarization</strong> phase. Two threads did the heavy lifting: (1) the <strong>execution-architecture fork</strong> (who summarizes, and which phases can run headless) and (2) the <strong>"full body" source-of-truth</strong> question, which became "always crawl the article via its link." A third reframe — making <strong>Top picks agent-curated rather than engagement-derived</strong> — dissolved a latent <code>file://</code>-write-back contradiction in the chosen 7★ scope.</p>
+</div>
+</section>
+
+<section id="resolved">
+<h2 id="resolved">Resolved (supersedes the brief)</h2>
+<table>
+<thead><tr><th class="n">#</th><th>Branch</th><th>Resolution</th></tr></thead>
+<tbody>
+<tr><td class="n">1</td><td>Execution architecture</td><td><strong>Hybrid.</strong> Deterministic crawler builds the work-list; <strong>one subagent per post</strong> fans out summarization. Not agent-does-all; not a pure API script.</td></tr>
+<tr><td class="n">2</td><td>Speed criterion</td><td><strong>"Fast weekly run" dropped.</strong> It's a deterministic, resumable, parallelized local pipeline; the issue is rendered <strong>incrementally</strong> as items complete.</td></tr>
+<tr><td class="n">3</td><td>Process boundary</td><td>Headless + resumable covers <strong>fetch → audio-download → whisper-transcribe</strong>. <strong>Summarize + tag + render</strong> runs <strong>in-session</strong> via subagents.</td></tr>
+<tr><td class="n">4</td><td>Source of truth</td><td><strong>Always follow each item's <code>&lt;link&gt;</code></strong> and readability-extract the full article; RSS-embedded body is fallback-only (crawl failure). Paywalled pages → <code>preview-only</code> flag.</td></tr>
+<tr><td class="n">5</td><td>Top picks mechanism</td><td><strong>Agent-curated, not engagement-derived.</strong> A subagent ranks items vs. declared interests at render time → zero browser write-back; "no server" holds. <strong>User-starred "to-revisit" shelf → deferred to v2.</strong></td></tr>
+<tr><td class="n">6</td><td>Run / issue / resume unit</td><td><strong>One issue per invocation;</strong> item set snapshotted at start; per-item lifecycle in state; <strong>"since last run" cursor advances only on full completion</strong> (resume never drops/double-counts).</td></tr>
+<tr><td class="n">7</td><td>Audio / transcript lifecycle</td><td><strong>Cache transcripts forever</strong> by GUID (resume + re-summarize never re-transcribe); <strong>delete audio immediately</strong> after a successful transcript.</td></tr>
+<tr><td class="n">8</td><td>Plugin home</td><td><strong><code>pmos-learnkit</code></strong> (beside <code>/primer</code>, <code>/learn-list</code>, <code>/critical-thinking</code>).</td></tr>
+<tr><td class="n">9</td><td>Interest signal seeding</td><td><strong>First-run interview</strong> captures declared topics/feeds; empty/sparse → curation falls back to <strong>item-intrinsic importance</strong> so Top-picks is never random.</td></tr>
+<tr><td class="n">10</td><td>Per-item failure handling</td><td><strong>Render a degraded, flagged card</strong> (reason badge: paywalled / transcript-failed / not-summarized); nothing silently dropped; failures logged for retry.</td></tr>
+<tr><td class="n">11</td><td>Cost posture</td><td><strong>Unconstrained — quality over cost.</strong> Strongest model, full context; no cost-driven downgrade/chunking. (<code>--max-per-feed</code> kept as a sanity knob.)</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="gaps">
+<h2 id="gaps">Gaps surfaced (push to /requirements or /plan)</h2>
+<ul>
+<li><strong>Richer state schema</strong> than the brief's "timestamp + seen-set" — needs a per-item lifecycle (<code>discovered → downloaded → transcribed → summarized → rendered → failed:&lt;reason&gt;</code>). Specify explicitly in the spec.</li>
+<li><strong>Incremental render on <code>file://</code></strong> won't auto-refresh an already-open issue (manual reload). Decide if acceptable or add a meta-refresh while a run is active.</li>
+<li><strong>Cross-feed cross-posting</strong> (same article in two feeds = two GUIDs) isn't deduped by GUID alone — consider URL-canonicalization dedup.</li>
+<li><strong>OPML bulk import</strong> for initial feed setup (still open in the brief).</li>
+<li><strong>Whisper model choice</strong> (base/small/medium) + long-episode time cap (still open).</li>
+<li><strong>Crawler politeness:</strong> always-crawl means more outbound requests — needs rate-limiting + per-GUID crawl cache to avoid re-fetching.</li>
+</ul>
+</section>
+
+<section id="next-step">
+<h2 id="next-step">Recommended next step</h2>
+<p>The brief's "How it works" no longer matches the agreed design — the architecture moved from a quick utility to a resumable pipeline + in-session curation. Before requirements, either:</p>
+<ol>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-03_magazine.html</code> — fold these 11 resolutions back into the artifact so it reflects the real design, <strong>then</strong></li>
+<li><code>/requirements magazine</code> (target <code>pmos-learnkit</code>) — capture acceptance criteria from the reshaped design + this report. Note the pipeline/in-session split as a first-class architectural requirement.</li>
+</ol>
+</section>
+
+  </main>
+  <footer>
+    Source: docs/pmos/ideate/grills/2026-06-03_magazine.html · Grill of docs/pmos/ideate/2026-06-03_magazine.html · Created using pmos&#8209;toolkit
+  </footer>
+</body>
+</html>

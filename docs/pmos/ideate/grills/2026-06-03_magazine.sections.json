@@ -1,0 +1,26 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved (supersedes the brief)",
+    "parent_id": null
+  },
+  {
+    "id": "gaps",
+    "level": 2,
+    "title": "Gaps surfaced (push to /requirements or /plan)",
+    "parent_id": null
+  },
+  {
+    "id": "next-step",
+    "level": 2,
+    "title": "Recommended next step",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="magazine">
+  <meta name="pmos:ideate-date" content="2026-06-03">
+  <title>/magazine — Ideation</title>
+  <style>
+    :root { --ink:#1a1a1a; --muted:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --bg:#fafafa; }
+    * { box-sizing:border-box; }
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid var(--line); background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    .attr { margin-left:auto; font-size:.8rem; color:var(--muted); text-decoration:none; }
+    main { max-width:860px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2.2rem; }
+    h2 { font-size:1.15rem; border-bottom:2px solid var(--line); padding-bottom:.3rem; margin:2rem 0 .8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.92rem; margin:.6rem 0; }
+    th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .tldr { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); padding:1rem 1.2rem; border-radius:4px; }
+    .warn { color:var(--warn); font-weight:600; }
+    .star { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .sweet { background:#fffbea; }
+    em.skip { color:var(--muted); }
+    ol li, ul li { margin:.3rem 0; }
+    footer { max-width:860px; margin:0 auto; padding:1.5rem 2rem; color:var(--muted); font-size:.8rem; border-top:1px solid var(--line); }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/magazine</h1>
+    <span class="pill">ideation · new skill · 2026-06-03</span>
+    <a class="attr" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main>
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<div class="tldr">
+<p class="warn">⟳ Updated 2026-06-03 after a deep <code>/grill</code> pass — see <a href="grills/2026-06-03_magazine.html">grill report</a>. The architecture below supersedes the original "fast lightweight utility" framing.</p>
+<p><code>/magazine</code> turns your scattered RSS subscriptions (newsletters + podcasts) into a <strong>self-contained, filterable HTML digest</strong>, built by a <strong>deterministic, resumable, parallelized local pipeline</strong>. Sources live in <code>~/.pmos/magazine/feeds.yaml</code> (managed via <code>/magazine add|remove|list</code>); each invocation opens <strong>one issue</strong> for its window (<em>since last run</em>; <code>--days N</code> / <code>--feed &lt;name&gt;</code> scope it) and <strong>fills it incrementally</strong> as items process. A background-capable stage does <strong>fetch → audio-download → whisper-transcribe</strong> (resumable); an in-session stage fans out <strong>one subagent per post</strong> to <strong>summarize + tag + render</strong>. Bodies are <strong>always crawled from each item's <code>&lt;link&gt;</code></strong> (not the RSS stub). Each item → <strong>3–5 bullet takeaways + a read/listen link</strong>, auto-tagged from a <strong>closed central tag registry</strong>; the issue opens with an <strong>agent-curated "Top picks" lane</strong>. One HTML file (card grid; filters: feed multi-select + date range + tag chips; works from <code>file://</code>, no server) + a <strong>cross-issue searchable library</strong> <code>index.html</code>.</p>
+<p><strong>Recommendation:</strong> <strong>GO</strong> — v1 = <em>public feeds only</em>, in <strong>pmos-learnkit</strong>. Speed is explicitly <em>not</em> a goal: the pipeline can run long, resume, and update the issue as topics complete; cost is unconstrained (quality over cost). The remaining risks are <em>source data quality</em> (always-crawl + whisper mitigate them) — a 10-minute pre-build fetch test settles them. The one irony to accept: <em>v1 public-only leaves Lenny's paid posts out, and even his podcast needs the deferred v2 auth-feed support.</em></p>
+</div>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we turn my scattered RSS subscriptions — newsletters <em>and</em> podcasts — into one skimmable, filterable HTML digest of what's new <em>since last time</em>, so I stay current without opening 20 apps, and actually keep doing it weekly?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> Me — an operator/PM subscribed to a dozen-plus newsletters and podcasts across RSS, drowning in a cross-app backlog.</p>
+<p><strong>When / where:</strong> Weekly (or whenever the backlog piles up), at the point where opening Substack + a podcast app + an RSS reader separately is enough friction that I just… don't, and fall behind.</p>
+<p><strong>JTBD:</strong> "When my cross-feed backlog piles up, give me a concise, tagged, link-out summary of what's new since last time — so I can decide in minutes what's worth my full attention, and feel caught up without the app-hopping tax."</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>If a single command produces a trustworthy 3–5-bullet summary per item with a one-click path to the full thing — windowed to <em>only what's new</em>, tagged for filtering, and saved as a durable HTML issue — then I'll triage my subscriptions in minutes instead of hours, and the habit will actually stick (re-run weekly) because the per-run cost is near-zero and the output compounds into a searchable library.</p>
+<p><strong>Load-bearing belief:</strong> the value is <em>trust + windowing</em>, not raw aggregation. An RSS reader already aggregates; what it doesn't do is tell me <em>what's worth my time since last time</em> in language I trust.</p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>14 variants were generated across 5 orthogonal axes (First Principles + Analogous Inspiration). They are a <em>composition</em>, not competing alternatives — the decisions below lock one option per axis.</p>
+<p><strong>Source &amp; config:</strong> (1) <code>feeds.yaml</code> + <code>add|remove|list</code> CRUD · (2) auto-discover <code>/feed</code> from a homepage URL · (3) Keychain credential vault for private feeds.<br>
+<strong>Trigger:</strong> (4) since-last-run + <code>--days</code> + <code>--feed</code> · (5) <code>--since &lt;date&gt;</code> + <code>--max-per-feed</code>.<br>
+<strong>Tagging:</strong> (6) closed registry + LLM auto-tag · (7) two-tier feed-default + per-post · (8) emergent → promote.<br>
+<strong>Summarization:</strong> (9) 3–5 bullets + link, show-notes for podcasts · (10) opt-in/auto whisper transcription · (11) issue-level theme synthesis.<br>
+<strong>Output:</strong> (12) self-contained HTML + client-side filters · (13) card grid w/ source badge + tag chips · (14) library index + per-issue dedup.</p>
+<p><strong>Locked v1 composition:</strong> <strong>1, 4, 6, 9, 12, 13, 14</strong> as the spine; <strong>10</strong> as a <em>dedicated transcription phase</em> (whisper-if-installed); <strong>3</strong> and issue-synthesis (<strong>11</strong>) deferred. <strong>Post-grill amendment:</strong> summarization sources from an <em>always-crawled full article</em> (not the RSS body); the whole thing is a <em>resumable deterministic pipeline + in-session subagent</em> phase, not a single quick pass. (See "How it works".)</p>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify — 11-star ladder</h2>
+<p>Stretching the <em>experience of opening a magazine issue</em>:</p>
+<table>
+<thead><tr><th class="star">★</th><th>Experience description</th></tr></thead>
+<tbody>
+<tr><td class="star">1</td><td>Raw RSS XML dumped to a file — worse than the source apps.</td></tr>
+<tr><td class="star">2</td><td>Flat list of titles + links. A glorified OPML export.</td></tr>
+<tr><td class="star">3</td><td>Titles + a dumb first-200-chars excerpt. No tags, no filtering.</td></tr>
+<tr><td class="star">4</td><td>Real 3–5-bullet summaries + links, but static: re-shows everything every run, no tags/filters/dedup.</td></tr>
+<tr class="sweet"><td class="star">5</td><td><strong>Baseline (finalist):</strong> since-last-run windowing, bullet takeaways + links, closed-registry auto-tags, self-contained filterable card grid, library index + dedup, whisper-if-installed.</td></tr>
+<tr><td class="star">6</td><td>+ each card shows reading-time / episode-length + a "why you'd care" microline; tag chips filter instantly; sorted by signal, not just date.</td></tr>
+<tr class="sweet"><td class="star">7</td><td><strong>Edited for you:</strong> issue opens with a "Top picks" lane ranked from a lightweight interest signal (feeds/tags you engage with); library searchable <em>across every past issue</em>; star items into a "to-revisit" shelf that carries forward.</td></tr>
+<tr><td class="star">8</td><td>Queryable corpus: "what did I read about pricing in the last 2 months?" across all issues; cross-issue trend chips. Still one HTML, zero server.</td></tr>
+<tr><td class="star">9</td><td>Self-assembles on a cron schedule, notifies you when an issue is ready, one-click "mark all read", export a subset to a share link.</td></tr>
+<tr><td class="star">10</td><td>Turns consumption into creation: "you've read 8 things on X — here's a synthesized note in your voice."</td></tr>
+<tr><td class="star">11</td><td>A full-time human editor reads everything, calls you each morning to debate it, ghostwrites your newsletter, books the authors. <em>(Absurd by construction.)</em></td></tr>
+</tbody>
+</table>
+<p><strong>Sweet spot — rung 7 (chosen):</strong> the v1 composite <strong>plus</strong> an <strong>agent-curated "Top picks" lane</strong> <strong>and</strong> a library <code>index.html</code> that's <em>searchable across every past issue</em> (client-side over a generated index). Rung 7 is the most experience-elevation per unit of cost while staying inside the "one self-contained HTML, no server" ethos.</p>
+<p class="warn">⟳ Grill amendment: "Top picks" is <strong>agent-curated at render time</strong> (a subagent ranks items against your <em>declared</em> interests in <code>interest.yaml</code>), <em>not</em> derived from in-browser click/engagement tracking — that would need <code>file://</code> write-back and break "no server." The original engagement-learned signal and the user-starred <strong>"to-revisit" carry-forward shelf are deferred to v2</strong> (with the localhost launcher). Full NL querying (8★) is also v2.</p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works</h2>
+<p class="warn">⟳ This section was rewritten after the <code>/grill</code> pass. The design is a two-stage pipeline: a <strong>headless, resumable, deterministic</strong> prep stage feeds an <strong>in-session agent</strong> stage.</p>
+<p><strong>Config &amp; state</strong> (under <code>~/.pmos/magazine/</code>)</p>
+<ul>
+<li><code>feeds.yaml</code> — each feed: <code>name</code>, <code>url</code>, <code>type</code> (newsletter|podcast), optional <code>default_tags</code>, <code>priority</code>. Mutated by <code>/magazine add &lt;url&gt;</code> · <code>remove &lt;name&gt;</code> · <code>list</code>.</li>
+<li><code>tags.yaml</code> — closed central tag registry; LLM-seeded on first run, batch-approved; always includes an <code>uncategorized</code> bucket.</li>
+<li><code>interest.yaml</code> — <strong>declared</strong> topics/feeds you care about (captured via a first-run interview), feeding the Top-picks curation subagent. <em>Not</em> an engagement-learned signal in v1.</li>
+<li><code>state.json</code> — per-feed last-run cursor + a <strong>per-item lifecycle</strong> record (<code>discovered → downloaded → transcribed → summarized → rendered → failed:&lt;reason&gt;</code>) keyed by GUID. This is the resume + dedup ledger.</li>
+<li><code>transcripts/</code> — whisper transcripts cached <strong>forever</strong> by GUID (resume + re-summarize never re-transcribe). Audio is downloaded to a temp path and <strong>deleted immediately after a successful transcript</strong>.</li>
+<li><code>crawl-cache/</code> — extracted article text by GUID, so a link is never re-crawled.</li>
+</ul>
+<p><strong>Stage A — deterministic prep</strong> (headless-capable, parallel, resumable; <code>/magazine</code> = since last run · <code>--days N</code> · <code>--feed &lt;name&gt;</code> · <code>--max-per-feed N</code>):</p>
+<ol>
+<li><strong>Discover.</strong> Fetch each feed XML in isolation (timeout; a dead/malformed feed is skipped + reported, never aborts the issue). Window to items newer than the cursor / inside <code>--days</code>, minus already-rendered GUIDs. <strong>Snapshot this item set</strong> — it defines the issue.</li>
+<li><strong>Crawl.</strong> For every item, follow its <code>&lt;link&gt;</code> and readability-extract the full article (cache by GUID). RSS body is fallback-only on crawl failure; paywalled pages → <code>preview-only</code> flag.</li>
+<li><strong>Transcribe.</strong> For podcast items, download the enclosure audio and transcribe via <code>whisper</code>/<code>whisper.cpp</code> if on PATH (cache transcript, delete audio). No whisper → use show-notes + an "install whisper" hint.</li>
+</ol>
+<p>Stage A is resumable from <code>state.json</code> at per-item granularity and can run long / in parallel — <strong>speed is not a goal</strong>.</p>
+<p><strong>Stage B — in-session agent</strong> (subagent fan-out; incremental):</p>
+<ol start="4">
+<li><strong>Summarize + tag.</strong> One subagent per ready item → 3–5 bullets + read/listen link (from the crawled article / transcript), tagged against the closed registry (only from the set; flags "no fit → suggest add"). Unconstrained cost — strongest model, full context.</li>
+<li><strong>Curate Top picks.</strong> A subagent ranks the summarized items against <code>interest.yaml</code> (falls back to item-intrinsic importance when interests are sparse).</li>
+<li><strong>Render incrementally.</strong> Re-emit the self-contained issue HTML as items complete — "Top picks" lane + card grid (title, source badge, date, tag chips, bullets, link); client-side filters (feed multi-select + date + tags). Failed items still render as <strong>degraded, reason-flagged cards</strong> (never silently dropped). Update the searchable library <code>index.html</code>.</li>
+<li><strong>Commit on completion.</strong> The "since last run" cursor advances <strong>only when the issue fully completes</strong>, so interrupt+resume never drops or double-counts.</li>
+</ol>
+<p><strong>Home:</strong> <strong>pmos-learnkit</strong> (a staying-current / learning surface beside <code>/primer</code>, <code>/learn-list</code>, <code>/critical-thinking</code>; no workstream context), reusing the <code>_shared/html-authoring</code> substrate.</p>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<thead><tr><th>Prior art</th><th>What to borrow</th><th>How /magazine differs</th></tr></thead>
+<tbody>
+<tr><td>RSS readers (Feedly, NetNewsWire, Reeder)</td><td>OPML/feed model, GUID dedup, unread state</td><td>They aggregate full text; they don't <em>summarize</em> or tell you what's worth your time since last time.</td></tr>
+<tr><td>Newsletter-digest tools (Meco, Stoop, Matter)</td><td>Single inbox for many newsletters; tag/triage</td><td>Hosted SaaS, not a local on-demand artifact you own; no podcast unification; no LLM key-takeaways.</td></tr>
+<tr><td>Podcast apps w/ private feeds (Castro, Pocket Casts, Metacast)</td><td>basic-auth / token-in-URL private feed handling (→ v2)</td><td>They play audio; <code>/magazine</code> summarizes show-notes/transcript into skimmable bullets next to your newsletters.</td></tr>
+<tr><td>"AI newsletter summarizer" scripts</td><td>The summarize-from-body pattern</td><td>Most are title/excerpt-only (low trust) and ephemeral; this caches, windows, tags, and builds a durable searchable library.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem — failure modes</h2>
+<p><em>It's 2027-06-03. <code>/magazine</code> shipped a year ago and failed. Why?</em></p>
+<table>
+<thead><tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td>Summaries read like the title restated → low trust → user reverts to source apps</td><td>H</td><td>Summarize from the <strong>full post body</strong> (<code>content:encoded</code>), not title/excerpt; show a source excerpt; bake a summary-quality check into the skill</td></tr>
+<tr><td>Podcast show-notes are one-liners and whisper isn't installed → empty/fake summaries</td><td>H</td><td>Detect thin notes; emit an honest "install whisper for a real summary" hint rather than fabricating; never fake</td></tr>
+<tr><td>RSS body is truncated → shallow "restated title" summaries → low trust</td><td>H</td><td><strong>Always crawl the article via its <code>&lt;link&gt;</code></strong> + readability-extract; RSS body fallback-only; flag paywalled <code>preview-only</code> cards honestly</td></tr>
+<tr><td><code>since-last-run</code> cursor drifts → repeats or gaps → completeness distrust</td><td>M</td><td>Per-item GUID lifecycle ledger; cursor advances <strong>only on issue completion</strong>; resume is per-item, so interrupts never drop/double-count</td></tr>
+<tr><td>Long pipeline crashes mid-run → lost progress / re-transcribe / re-crawl</td><td>M</td><td>Resumable per-item state; cache transcripts &amp; crawled text forever by GUID; delete only audio</td></tr>
+<tr><td>Per-item failure (paywall / download / transcribe / summarize) silently drops an item</td><td>M</td><td>Render a <strong>degraded, reason-flagged card</strong>; log failures for retry; nothing vanishes</td></tr>
+<tr><td>Closed tag registry friction — "no fit" fires constantly</td><td>M</td><td>LLM <strong>seeds</strong> the registry on first run (batch-approve); always keep an <code>uncategorized</code> bucket</td></tr>
+</tbody>
+</table>
+<p><strong>Inversion — choices that would guarantee failure:</strong> summarize from titles/excerpts only; make the tag registry mandatory &amp; rigid with no <code>uncategorized</code> escape; abort the run on the first feed error; re-summarize everything every run with weak state; fake podcast summaries from thin notes instead of admitting "not enough to summarize."</p>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<thead><tr><th>Assumption</th><th>Impact</th><th>Uncert.</th><th>Cheapest test</th></tr></thead>
+<tbody>
+<tr><td>Your podcast feeds have usable show-notes, OR you'll install whisper</td><td>H</td><td>H</td><td>Fetch 3 real podcast feeds, inspect <code>&lt;description&gt;</code> length; run <code>which whisper</code></td></tr>
+<tr><td>Newsletter RSS carries enough <strong>body text</strong> to summarize (not just title+link)</td><td>H</td><td>M</td><td>Fetch 5 real feeds, check <code>content:encoded</code> / <code>description</code> length</td></tr>
+<tr><td><code>since-last-run</code> + GUID dedup avoids gaps/repeats across feeds with odd date semantics</td><td>H</td><td>M</td><td>Run twice a day apart, diff the item sets</td></tr>
+<tr><td>Summarization cost/time at your real feed volume is tolerable weekly</td><td>M</td><td>M</td><td>Count items across all feeds over 7 days; estimate tokens</td></tr>
+<tr><td>Closed-registry auto-tagging is accurate enough to be the primary filter</td><td>M</td><td>M</td><td>Tag 10 real posts against an ~8-tag registry; eyeball precision</td></tr>
+<tr><td>A <strong>declared</strong>-interest <code>interest.yaml</code> (+ intrinsic fallback) makes agent-curated "Top picks" useful — resolved by design, no engagement data needed</td><td>L–M</td><td>L</td><td>First-run interview seeds it; empty → rank on item-intrinsic importance so it's never random</td></tr>
+<tr><td><code>file://</code> client-side filtering (multi-select + date + tags) is acceptable UX</td><td>M</td><td>L</td><td>Already proven by other pmos HTML artifacts</td></tr>
+</tbody>
+</table>
+<p>The two riskiest (H×H / H×M) are both <strong>source data quality</strong> — settle them with a 10-minute pre-build fetch test before writing any skill code.</p>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> I open an issue and skim 3–5 bullets per item; I click through ~10–20% of items; &lt;1 untrustworthy summary per 20; "Top picks" actually matches what I'd have chosen. <em>(Speed is explicitly not a success criterion — the pipeline may run long; it just has to resume cleanly and update the issue as it goes.)</em></p>
+<p><strong>Lagging:</strong> I re-run it regularly without being nagged; I stop opening Substack/podcast apps to "catch up"; the searchable library becomes where I go to recall "what did I read about X?"</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li><strong>Run the H×H test first (no code):</strong> fetch ~5 of your real newsletters + 3 podcasts; check crawled-article extraction works; <code>which whisper</code>. Confirms always-crawl + transcription are viable on your real feeds.</li>
+<li><strong>Spec the per-item state schema</strong> (<code>discovered → downloaded → transcribed → summarized → rendered → failed:&lt;reason&gt;</code>) — it's now the load-bearing resume + dedup ledger.</li>
+<li>Pin the <strong>Stage A / Stage B boundary</strong> (headless deterministic prep vs. in-session subagent summarize+render) and the incremental-render mechanics.</li>
+<li>Define the <strong>summary contract</strong> (3–5 bullets, crawled-article/transcript-sourced, link-out) + the whisper detect/fallback rule as the quality spine.</li>
+<li><code>/requirements magazine</code> against <strong>pmos-learnkit</strong> — capture the reshaped design + the grill report's gaps.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/feature-sdlc skill build /magazine — an on-demand filterable HTML digest of public RSS newsletters + podcasts (see this artifact)</code> — drive it through the full skill SDLC.</li>
+<li><code>/requirements magazine</code> — shape acceptance criteria from this brief.</li>
+<li><code>/backlog add</code> — park it if not building now.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-03_magazine.html</code> — polish this artifact for sharing.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<p class="warn">⟳ Resolved by the <code>/grill</code> pass: <strong>home plugin → pmos-learnkit</strong>; <strong>read-state persistence</strong> sidestepped (Top-picks is agent-curated, not engagement-learned — to-revisit shelf → v2). Remaining open:</p>
+<ul>
+<li><strong>Incremental render on <code>file://</code>:</strong> an open issue won't auto-refresh while the pipeline runs — acceptable manual reload, or add a meta-refresh during an active run?</li>
+<li><strong>Cross-feed cross-posting:</strong> the same article in two feeds is two GUIDs — add URL-canonicalization dedup, or accept duplicates?</li>
+<li><strong>Initial feed import:</strong> bulk-import from an OPML export so you don't <code>add</code> a dozen feeds one at a time?</li>
+<li><strong>Output also as markdown?</strong> A paste-ready MD block for Notion/Readwise import alongside the HTML issue?</li>
+<li><strong>Per-item char ceiling</strong> on bullets to keep cards scannable, beyond the 3–5 count?</li>
+<li><strong>Whisper model choice</strong> (base/small/medium) and how to cap transcription time on long episodes?</li>
+</ul>
+</section>
+
+  </main>
+  <footer>
+    Source: docs/pmos/ideate/2026-06-03_magazine.html · Created using pmos&#8209;toolkit
+  </footer>
+</body>
+</html>
