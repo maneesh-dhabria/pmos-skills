@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.8.0: `/learn-list` — verified, anti-slop curated reading lists
+
+New `/learn-list <topic>` skill: turns any topic into a curated, multi-format reading list organized by a **canon-derived topic outline** — find the field's canonical books, top practitioners, and existing curations by live search; derive the outline from where they agree (provenance always shown); then fan out one subagent per topic to source articles, newsletters, threads, talks, podcasts, and book summaries. Every emitted link is **fetched and verified this run** — the skill never ships a URL it hasn't confirmed is reachable, is the named content, and actually supports its ≤2-sentence "why included." It closes with a follow-list (people · newsletters · podcasts · books-with-summaries · practitioners' signature writings) and a copy-ready paste-block for Readwise/Notion. Effort scales via `--mode quick|standard|deep` (fan-out width + adjacency depth); `--level beginner|practitioner` shapes the sourcing. Standalone learnkit utility; suggests `/primer <topic>` as a follow-up but never invokes it.
+
+**Why**
+
+Ramping on a topic means drowning in SEO/AI slop and page-1 noise, not knowing who the real experts are. Google and Perplexity optimize for an *answer*, not a *learning map*; "Awesome" lists are static and single-curator. The unmet gap is trust, non-obviousness, and curation — which a memory-based LLM structurally cannot provide. So `/learn-list` is built as a verification-first web pipeline (rank candidates cheaply, then fetch-verify only the survivors that ship) with an explicit anti-slop source-tier rubric, rather than a generate-from-memory list that 404s on the first click.
+
 ## 2026-05-29 — pmos-toolkit 2.60.1: `/complete-dev` bumps only the two plugin manifests
 
 `/complete-dev`'s version-bump step now writes the new version to the two `plugin.json` manifests only (the `.claude-plugin` and `.codex-plugin` pair) and leaves both `marketplace.json` files untouched. Previously it also wrote the version into the two marketplace entries — which contradicts the repo invariant: marketplace entries are version-free catalogs, and the effective version is resolved from `plugin.json` at install time. The release dry-run summary and the pre-push-hook description were corrected to match (two bump targets; marketplace is a presence-only registration check). A couple of hard-coded references were also generalized so the skill reads cleanly for any plugin-marketplace repo.
