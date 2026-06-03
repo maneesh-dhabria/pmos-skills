@@ -72,5 +72,35 @@ else
   ok "no hard-coded absolute bundle paths"
 fi
 
+# 8. unified topic-research front half (FR-7..9, FR-22)
+# Materialize body/fm once — avoids `cmd | grep -q` SIGPIPE flakiness under pipefail.
+BODY="$(body)"; FM="$(fm)"
+arg_hint="$(grep -m1 '^argument-hint:' <<<"$FM")"
+grep -q -- '--depth'    <<<"$arg_hint" && ok "argument-hint has --depth"    || bad "argument-hint missing --depth"
+grep -q -- '--audience' <<<"$arg_hint" && ok "argument-hint has --audience" || bad "argument-hint missing --audience"
+grep -q -- '--mode'  <<<"$arg_hint" && bad "argument-hint still lists retired --mode"  || ok "argument-hint has no retired --mode"
+grep -q -- '--level' <<<"$arg_hint" && bad "argument-hint still lists retired --level" || ok "argument-hint has no retired --level"
+
+# retired-flag rejection wired in the body
+grep -qiF "unknown flag '--mode'"  <<<"$BODY" && ok "rejects retired --mode"  || bad "no --mode rejection string"
+grep -qiF "unknown flag '--level'" <<<"$BODY" && ok "rejects retired --level" || bad "no --level rejection string"
+
+# inlines the shared substrate (front half), not restated logic
+SHARED_TR="$SKILL_DIR/../_shared/topic-research"
+for doc in intake canon-discovery outline sourcing; do
+  grep -qF "_shared/topic-research/$doc.md" <<<"$BODY" \
+    && ok "inlines _shared/topic-research/$doc.md" || bad "does not inline $doc.md"
+done
+
+# the substrate docs (incl. relocated source-tiers/sourcing-ladder) exist on disk
+for f in intake canon-discovery outline sourcing source-tiers sourcing-ladder; do
+  [[ -f "$SHARED_TR/$f.md" ]] && ok "substrate $f.md exists" || bad "missing substrate $f.md"
+done
+
+# the relocated refs must NOT remain under learn-list/reference
+for f in source-tiers sourcing-ladder modes; do
+  [[ -e "$SKILL_DIR/reference/$f.md" ]] && bad "stale learn-list/reference/$f.md still present" || ok "no stale reference/$f.md"
+done
+
 echo "----"
 if [[ $fails -eq 0 ]]; then echo "ALL STRUCTURE CHECKS PASS"; exit 0; else echo "$fails FAILURE(S)"; exit 1; fi
