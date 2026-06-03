@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="grill"><meta name="pmos:grill-target" content="01_requirements.html">
+<title>Grill — /playbook requirements</title>
+<link rel="stylesheet" href="../assets/style.css?v=2.60.1">
+<style>body{font:16px/1.6 -apple-system,sans-serif;color:#1a1a1a;background:#fafafa;margin:0}main{max-width:860px;margin:0 auto;padding:2rem}h1{font-size:1.3rem}h2{font-size:1.1rem;border-bottom:2px solid #e2e2e2;padding-bottom:.3rem}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{border:1px solid #e2e2e2;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f0f4f8}code{background:#eef1f4;padding:.1rem .35rem;border-radius:3px}</style></head>
+<body><main>
+<h1>Grill — /playbook requirements (focused pass)</h1>
+<p><strong>Target:</strong> <code>01_requirements.html</code> · <strong>Depth:</strong> focused (source already deep-grilled at ideate stage — 12 decisions; full re-interrogation unwarranted).</p>
+<h2 id="verdict">Verdict</h2>
+<p>Requirements faithfully encode the grilled design. No re-litigation of D1–D16. One latent gap surfaced for <code>/spec</code>.</p>
+<h2 id="clean">Clean</h2>
+<table><tr><th>Lens</th><th>Result</th></tr>
+<tr><td>Problem/users</td><td>Sharp; author + reader personas distinct.</td></tr>
+<tr><td>Goals</td><td>All five measurable.</td></tr>
+<tr><td>Non-goals</td><td>All carry a "because".</td></tr>
+<tr><td>Decisions</td><td>D1–D16 complete with options + rationale.</td></tr>
+<tr><td>Journeys</td><td>Happy + alternate + error + empty all present.</td></tr></table>
+<h2 id="gap">Gap for /spec</h2>
+<table><tr><th>Gap</th><th>Recommendation</th></tr>
+<tr><td>Ambiguous-attribution / false-positive risk (a branch name colliding across repos → wrong session attributed) is only implicitly covered by D14's confirm step.</td><td>Make ambiguous-attribution handling an explicit FR in <code>/spec</code>: when a session's repo attribution is below confidence (sibling-name + branch both ambiguous), surface for confirm; never silently attribute.</td></tr></table>
+</main></body></html>

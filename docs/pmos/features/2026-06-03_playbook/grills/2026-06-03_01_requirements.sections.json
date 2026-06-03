@@ -1,0 +1,20 @@
+[
+  {
+    "id": "verdict",
+    "level": 2,
+    "title": "Verdict",
+    "parent_id": null
+  },
+  {
+    "id": "clean",
+    "level": 2,
+    "title": "Clean",
+    "parent_id": null
+  },
+  {
+    "id": "gap",
+    "level": 2,
+    "title": "Gap for /spec",
+    "parent_id": null
+  }
+]
