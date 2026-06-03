@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="requirements">
+  <title>/playbook — Requirements</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <style>
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#1a1a1a; background:#fafafa; margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid #e2e2e2; background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    main { max-width:880px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2rem; }
+    h2 { font-size:1.18rem; border-bottom:2px solid #e2e2e2; padding-bottom:.3rem; margin:2rem 0 .7rem; }
+    h3 { font-size:1.02rem; margin:1.2rem 0 .4rem; }
+    table { border-collapse:collapse; width:100%; font-size:.9rem; margin:.6rem 0; }
+    th,td { border:1px solid #e2e2e2; padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.88em; }
+    .meta { color:#666; font-size:.85rem; }
+    blockquote { border-left:3px solid #cbd5e0; margin:.6rem 0; padding:.2rem 0 .2rem 1rem; color:#444; }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:#666; }
+    ol li, ul li { margin:.25rem 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/playbook — Requirements</h1>
+    <span class="pill">Tier 3 · skill-new · pmos-learnkit</span>
+  </header>
+  <main>
+
+<section id="frontmatter">
+<p class="meta"><strong>Date:</strong> 2026-06-03 · <strong>Last updated:</strong> 2026-06-03 · <strong>Status:</strong> Draft · <strong>Tier:</strong> 3 — Feature (new skill)</p>
+<p class="meta">Seed: deep-grilled ideate brief — <code>docs/pmos/ideate/2026-06-03_playbook-skill.html</code> + grill <code>docs/pmos/ideate/grills/2026-06-03_playbook-skill.html</code>. Standing acceptance criteria: <code>reference/skill-patterns.md §A–§F</code>.</p>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem</h2>
+<p>A PM who works through real problems with AI accumulates a rich, instructive history — the prompts they started with, how they refined ideas, the trade-offs they decided — but that history is <strong>buried in Claude Code session logs that are scattered, voluminous, and unreadable</strong>. Today the only way to teach a peer "how I used AI to solve X" is to re-narrate from memory, which loses the exact prompts, the rejected alternatives, and the decision trail — precisely the parts a peer needs to replicate the approach. There is no tool that turns one's own AI-assisted work into focused, shareable, self-sufficient case studies.</p>
+
+<h3 id="who">Who experiences this?</h3>
+<p><strong>Author (primary user):</strong> an AI-native PM who has solved real problems across many repos/sessions and wants to teach peers — and build a reputation as an AI-native operator — without manually trawling logs.</p>
+<p><strong>Reader (beneficiary):</strong> a fellow PM, often non-coding, who wants concrete, <em>replicable</em> examples of AI applied to PM work (research, concept notes, specs, surveys, features) — not abstract "how I use AI" advice.</p>
+
+<h3 id="why-now">Why now?</h3>
+<p>The author has built up months of substantive AI-assisted work across ~45 repos and thousands of sessions (validated: 5,343 session files). The teaching value is real and perishable — and the logs already contain everything needed (prompts, decisions, generated artifacts), so the gap is purely synthesis, not data capture.</p>
+</section>
+
+<section id="goals">
+<h2 id="goals">Goals &amp; Non-Goals</h2>
+<h3 id="goals-list">Goals</h3>
+<ul>
+<li>From a single repo, produce one or more <strong>focused, self-sufficient case-study articles</strong>, each anchored to one specific problem — measured by: a peer PM can read one article and replicate the approach on their own problem without access to the author's repo.</li>
+<li>Surface the <strong>teaching payload</strong> a reader actually needs — the verbatim starting prompts, how ideas were refined, research done, and the load-bearing decisions &amp; trade-offs — measured by: every published article contains ≥3 real prompts and ≥1 decision table with the actual alternatives weighed.</li>
+<li><strong>Find the whole story</strong>, not a fraction — including work done in worktrees that were later merged and deleted — measured by: the coverage line reports sessions recovered via worktree/sibling/merge-history, not just the literal repo dir.</li>
+<li>Stay <strong>tractable and fast</strong> on large repos — measured by: a focused article is producible in &lt;10 min from one command without the author hand-curating logs.</li>
+<li>Be <strong>safe to share</strong> — measured by: no article reaches "shareable" state without the author signing off a per-item review of flagged sensitive content (proper nouns, metrics, screenshots).</li>
+</ul>
+<h3 id="non-goals">Non-Goals</h3>
+<ul>
+<li><strong>NOT</strong> a generalized cross-repo "how I use AI" playbook — because the teachable value is the concrete decision trail behind one specific problem; generalization produces the bland output this skill exists to avoid.</li>
+<li><strong>NOT</strong> multi-repo in v1 (<code>--repo a,b,c</code>) — because v1's per-repo resolver already unifies one repo's sibling/worktree sprawl, and a true cross-repo story is rare; deferred post-v1.</li>
+<li><strong>NOT</strong> a raw session-log viewer/exporter — because the value is selection + synthesis + a shareable narrative, not a transcript dump.</li>
+<li><strong>NOT</strong> an auto-publisher — because the author is the mandatory human gate for what gets shared; the skill produces a draft + a review checklist, never posts.</li>
+<li><strong>NOT</strong> a teacher of external topics (that is <code>/primer</code> / <code>/learn-list</code>) — <code>/playbook</code> is inward-facing on the author's own process.</li>
+</ul>
+</section>
+
+<section id="ux-analysis">
+<h2 id="ux-analysis">User Experience Analysis</h2>
+<h3 id="motivation">Motivation</h3>
+<ul>
+<li><strong>Job to be done:</strong> "Turn the AI-assisted work I just finished into a few shareable articles that teach peers how I did it."</li>
+<li><strong>Importance/Urgency:</strong> high for reputation-building and peer enablement; the alternative (write-up from memory) is effortful and lossy, so it usually doesn't happen at all.</li>
+<li><strong>Alternatives:</strong> writing from memory (lossy); generic AI-tips threads (not replicable); doing nothing (the status quo).</li>
+</ul>
+<h3 id="friction">Friction Points</h3>
+<table>
+<tr><th>Friction Point</th><th>Cause</th><th>Mitigation</th></tr>
+<tr><td>"Will it even find the work? I did most of it in worktrees that are now merged/gone."</td><td>Sessions scatter across sibling/nested worktree dirs; merged worktrees are deleted from disk.</td><td>Multi-signal session resolution + a visible coverage line reporting what was found and how.</td></tr>
+<tr><td>"This repo has thousands of sessions — will it choke or take forever?"</td><td>Volume is inflated by Claude-as-subprocess/headless runs.</td><td>Interactive-only filtering by default + a cheap deterministic scout + a dry-run count before any heavy read.</td></tr>
+<tr><td>"Will it leak client/strategy detail into something I post publicly?"</td><td>Concrete prompts/decisions/screenshots carry sensitive content.</td><td>Always-on detect-and-flag pass + a mandatory author review gate; nothing is auto-marked safe.</td></tr>
+<tr><td>"Will the article be vague fluff a peer can't actually use?"</td><td>Generic synthesis loses the replicable specifics.</td><td>Mandated concrete payload (real prompts + a decision ledger + the skill sequence); thin candidates suppressed.</td></tr>
+</table>
+<h3 id="satisfaction">Satisfaction Signals</h3>
+<ul>
+<li>The author recognizes their own work in the proposed candidates and thinks "yes, that's a good story."</li>
+<li>The draft reads like something they'd be proud to share, with their real prompts and decisions intact.</li>
+<li>The review checklist gives confidence that nothing sensitive slips through.</li>
+</ul>
+</section>
+
+<section id="solution-direction">
+<h2 id="solution-direction">Solution Direction</h2>
+<p><code>/playbook [--repo &lt;path&gt;] [--days N | --sessions N | --since &lt;date&gt;] [--include-headless]</code> — a repo-scoped skill that runs a <strong>propose-then-build</strong> flow:</p>
+<ol>
+<li><strong>Scope &amp; discover.</strong> Resolve all of a repo's session history (including worktree and merged-then-deleted work) within an additive time/count window (default: last 30 days), and filter to <em>interactive</em> sessions by default.</li>
+<li><strong>Propose.</strong> Cheaply cluster the sessions into <em>problem threads</em> and present a ranked shortlist of candidate playbooks, each with a one-line "why this is teachable." The author picks which to build (and may merge/split).</li>
+<li><strong>Build.</strong> For each chosen thread, deep-read only that cluster and synthesize a focused, self-sufficient article (verbatim prompts, refinement arc, research, decision ledger, skills-used strip, embedded artifact excerpts + screenshots), plus a tweet/tweet-thread.</li>
+<li><strong>Gate.</strong> Run a detect-and-flag anonymizer pass and emit a <code>REVIEW-BEFORE-SHARING.md</code>; the author signs off before anything is shareable.</li>
+<li><strong>Emit.</strong> Write each playbook to its own dated folder under <code>{docs_path}/playbooks/</code>.</li>
+</ol>
+<p>The user-observable contract is "point it at a repo, pick from a good shortlist, get a shareable draft + a safety checklist." The mechanics of resolution, clustering, and extraction are specified in <code>/spec</code>.</p>
+</section>
+
+<section id="journeys">
+<h2 id="journeys">User Journeys</h2>
+<h3 id="primary-journey">Primary Journey (happy path)</h3>
+<ol>
+<li>Author runs <code>/playbook</code> from inside a repo (or <code>--repo &lt;path&gt;</code>), optionally with a window flag.</li>
+<li>Skill prints a coverage line — e.g. <em>"found 4 session dirs (2 via merged worktrees), 41 interactive sessions (12 headless dropped), 6 candidate threads"</em> — and asks the author to confirm before any heavy read.</li>
+<li>Skill presents a ranked shortlist (~5) of candidate playbooks, each with a "why teachable" line.</li>
+<li>Author picks one or more (and may merge or split candidates).</li>
+<li>Skill deep-reads the chosen thread(s) and synthesizes a focused article + tweet/thread per pick, with screenshots of visual artifacts embedded.</li>
+<li>Skill runs the anonymizer pass and writes <code>REVIEW-BEFORE-SHARING.md</code> listing flagged proper nouns, metrics, and every captured screenshot.</li>
+<li>Author reviews the checklist, edits/redacts as needed, and signs off; the playbook folder is theirs to publish.</li>
+</ol>
+<h3 id="alternate-journeys">Alternate Journeys</h3>
+<ul>
+<li><strong>Headless-was-the-story:</strong> author passes <code>--include-headless</code> to re-admit subprocess sessions for a rare case where an automated pipeline they built is the teachable story.</li>
+<li><strong>Narrow window:</strong> author passes <code>--since</code> / <code>--days</code> / <code>--sessions</code> to scope to a specific body of work; the dry-run count lets them widen/narrow before committing.</li>
+<li><strong>Pick-and-defer:</strong> author builds one candidate now and re-runs later for others; each playbook is an independent dated folder.</li>
+</ul>
+<h3 id="error-journeys">Error Journeys</h3>
+<ul>
+<li><strong>Ambiguous attribution:</strong> a sibling/branch can't be confidently tied to the repo → skill surfaces the ambiguous attribution for the author to confirm or drop rather than guessing.</li>
+<li><strong>No teachable threads:</strong> the window yields only thin candidates (below the instructiveness floor) → skill reports "nothing teachable in this window" and suggests widening, rather than proposing hollow playbooks.</li>
+<li><strong>Overlapping candidates:</strong> a feature branch + its follow-up appear as two candidates for one story → skill offers to merge them.</li>
+</ul>
+<h3 id="empty-edge">Empty States &amp; Edge Cases</h3>
+<table>
+<tr><th>Scenario</th><th>Condition</th><th>Expected behavior</th></tr>
+<tr><td>No sessions in window</td><td>Window excludes all sessions</td><td>Report zero; suggest a wider window; exit cleanly.</td></tr>
+<tr><td>All sessions headless</td><td>Repo is subprocess-only (e.g. a summarization pipeline)</td><td>Report "0 interactive sessions (N headless dropped); re-run with --include-headless if intended."</td></tr>
+<tr><td>Repo not under session-log root</td><td>No session dirs resolve to the repo</td><td>Explain no history found for this repo path; exit cleanly.</td></tr>
+<tr><td>Playbook folder already exists</td><td>Same date+slug</td><td>Prompt overwrite / suffix / cancel.</td></tr>
+</table>
+</section>
+
+<section id="decisions">
+<h2 id="decisions">Design Decisions</h2>
+<p>All resolved in the deep grill (12 decisions); carried here as the binding direction for <code>/spec</code>.</p>
+<table>
+<tr><th>#</th><th>Decision</th><th>Options considered</th><th>Rationale</th></tr>
+<tr><td>D1</td><td>Playbook unit = session-thread (not folder)</td><td>(a) session-thread, (b) folder/doc, (c) branch</td><td>The process is the teaching payload; docs/folders are supporting evidence.</td></tr>
+<tr><td>D2</td><td>Thread boundary = branch-then-topic fallback</td><td>(a) branch-then-topic, (b) pure temporal windows, (c) user-draws</td><td>Handles both worktree work (branch) and main-branch work (topic+time); avoids manual burden.</td></tr>
+<tr><td>D3</td><td>Multi-signal session resolution</td><td>(a) path-prefix only, (b) multi-signal</td><td>Path-prefix misses sibling + merged-deleted worktrees (validated: 10/29 poker-coach sessions). Multi-signal recovers them.</td></tr>
+<tr><td>D4</td><td>Interactive-only by default; <code>--include-headless</code> escape</td><td>(a) interactive-only default, (b) keep+flag all, (c) hard-filter</td><td>Headless/subprocess runs inflate volume (book-companion 3,839→handful) and aren't teachable; escape covers the rare exception.</td></tr>
+<tr><td>D5</td><td>Instructiveness floor suppresses thin candidates</td><td>(a) composite score + hard floor, (b) LLM-judge each, (c) no gate</td><td>Floor (≥1 non-trivial decision AND ≥1 skill/tool beyond <code>/exit</code>) kills 1-session noise without killing short-but-dense threads.</td></tr>
+<tr><td>D6</td><td>Decision extraction = prose-first, AskUserQuestion as anchors</td><td>(a) prose-first, (b) AskUserQuestion-primary, (c) regex</td><td>AskUserQuestion is sparse (8/44 sessions); pushbacks live in free prose.</td></tr>
+<tr><td>D7</td><td>Self-sufficiency = embed everything inline</td><td>(a) embed all, (b) narrative+prompts only, (c) link out</td><td>Reader has no repo access; replicability needs inline prompts, decisions, excerpts, screenshots.</td></tr>
+<tr><td>D8</td><td>Anonymization = detect + forced human gate</td><td>(a) detect+gate, (b) aggressive auto-redact, (c) per-repo allowlist</td><td>Auto-redact guts concreteness; allowlist is burdensome. Detect-and-flag preserves value; author is the gate.</td></tr>
+<tr><td>D9</td><td>Full Playwright screenshot pipeline in v1</td><td>(a) screenshots v1, (b) text-first defer, (c) never</td><td>Author chose vivid visual artifacts; leak surface handled by D10.</td></tr>
+<tr><td>D10</td><td>Screenshots gated by author manual verification</td><td>(a) manual verify, (b) OCR-flag, (c) pre-marked-public only</td><td>Images can't be text-flagged; author eyeballs each via the review checklist (consistent with D8).</td></tr>
+<tr><td>D11</td><td>Default window = last 30 days + mandatory dry-run confirm</td><td>(a) 30d+confirm, (b) require explicit window, (c) all history</td><td>Low friction; no silent unbounded read.</td></tr>
+<tr><td>D12</td><td>Home plugin = pmos-learnkit</td><td>(a) pmos-learnkit, (b) pmos-toolkit</td><td>Grouped with <code>/primer</code>/<code>/learn-list</code> by output-audience; coupling to toolkit conventions is light (string/path).</td></tr>
+</table>
+</section>
+
+<section id="success-metrics">
+<h2 id="success-metrics">Success Metrics</h2>
+<table>
+<tr><th>Metric</th><th>Baseline</th><th>Target</th><th>Measurement</th></tr>
+<tr><td>Time to a shareable draft</td><td>~hours (manual) or never</td><td>&lt;10 min from one command</td><td>Author timing on a real run.</td></tr>
+<tr><td>Coverage completeness</td><td>path-prefix misses ~30%+ of worktree work</td><td>worktree/merged sessions recovered</td><td>Coverage line vs. a manual session audit on one repo.</td></tr>
+<tr><td>Replicability</td><td>memory-based write-ups omit prompts/decisions</td><td>≥3 real prompts + ≥1 decision table per article</td><td>Article content check (also a skill quality gate).</td></tr>
+<tr><td>Safety</td><td>n/a</td><td>0 unreviewed sensitive items reach "shareable"</td><td>Every shareable playbook has a signed-off REVIEW file.</td></tr>
+<tr><td>Adoption</td><td>n/a</td><td>≥3 playbooks published from one repo run; becomes the author's default "write it up" step</td><td>Author usage over time.</td></tr>
+</table>
+</section>
+
+<section id="research-sources">
+<h2 id="research-sources">Research Sources</h2>
+<table>
+<tr><th>Source</th><th>Type</th><th>Key takeaway</th></tr>
+<tr><td><code>docs/pmos/ideate/2026-06-03_playbook-skill.html</code></td><td>Ideation brief</td><td>Full design + 13 variants + premortem + assumptions.</td></tr>
+<tr><td><code>docs/pmos/ideate/grills/2026-06-03_playbook-skill.html</code></td><td>Grill report</td><td>12 resolved decisions; load-bearing commitments.</td></tr>
+<tr><td><code>~/.claude*/projects/**/*.jsonl</code></td><td>Existing data (validated)</td><td>cwd+gitBranch+userType per record; permission-mode discriminator; command-name tags; ai-title.</td></tr>
+<tr><td><code>plugins/pmos-learnkit/skills/{primer,learn-list,critical-thinking}</code></td><td>Sibling skills</td><td>Conventions for a learnkit output-producing skill (phasing, HTML artifact emit, learnings capture).</td></tr>
+<tr><td><code>reference/skill-patterns.md §A–§F</code></td><td>Authoring standard</td><td>Standing acceptance criteria for the produced skill.</td></tr>
+</table>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open Questions</h2>
+<table>
+<tr><th>#</th><th>Question</th></tr>
+<tr><td>1</td><td>Reader-artifact spread: is the self-sufficient HTML article + tweet thread enough for v1, or also a markdown/Substack-ready export and a LinkedIn-shaped variant? (Lean: HTML + tweet thread in v1; defer others.)</td></tr>
+<tr><td>2</td><td>Candidate dedup UX: how does the author merge overlapping threads (a feature branch + its follow-up HEAD work) — auto-detect-and-suggest, or manual merge at the pick step?</td></tr>
+<tr><td>3</td><td>Thread-merge confirm: when topic-similarity clustering is uncertain, how/when is the author asked to confirm a thread boundary without adding friction to the common case?</td></tr>
+<tr><td>4</td><td>Screenshot capture-target selection: which artifacts get screenshotted (all HTML under the repo's docs? only those referenced in the thread? author-selected?), and how is the Playwright dependency handled when absent?</td></tr>
+<tr><td>5</td><td>Sensitive-denylist seeding: does <code>~/.pmos/playbook/sensitive.yaml</code> ship empty, or is the author prompted to seed known client/repo names on first run?</td></tr>
+</table>
+</section>
+
+  </main>
+</body>
+</html>

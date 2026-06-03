@@ -1,0 +1,563 @@
+/* pmos-toolkit html-authoring substrate — vanilla CSS, ≤30 KB.
+   FR-04, FR-90, NFR-02, NFR-03. No Tailwind. No @import. */
+
+/* ---- 1. Design tokens ----------------------------------------------- */
+:root {
+  --pmos-bg:        #f5f5f7;
+  --pmos-surface:   #ffffff;
+  --pmos-surface-2: #fafafa;
+  --pmos-surface-3: #f0f0f3;
+  --pmos-border:    #d4d4d8;
+  --pmos-border-2:  #e4e4e7;
+  --pmos-text:      #18181b;
+  --pmos-muted:     #71717a;
+  --pmos-faint:     #a1a1aa;
+  --pmos-accent:        #2563eb;
+  --pmos-accent-strong: #1d4ed8;
+  --pmos-accent-bg:     #dbeafe;
+  --pmos-success:   #16a34a;
+  --pmos-warning:   #d97706;
+  --pmos-error:     #dc2626;
+
+  --pmos-radius:    6px;
+  --pmos-radius-lg: 12px;
+  --pmos-shadow:    0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+  --pmos-shadow-lg: 0 4px 14px rgba(0,0,0,.10), 0 12px 28px rgba(0,0,0,.08);
+
+  --pmos-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --pmos-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --pmos-fs-xs: 11px;
+  --pmos-fs-sm: 12px;
+  --pmos-fs-base: 14px;
+  --pmos-fs-md: 15px;
+  --pmos-fs-lg: 17px;
+  --pmos-fs-xl: 22px;
+  --pmos-fs-2xl: 28px;
+
+  --pmos-sp-1: 4px;
+  --pmos-sp-2: 8px;
+  --pmos-sp-3: 12px;
+  --pmos-sp-4: 16px;
+  --pmos-sp-5: 24px;
+  --pmos-sp-6: 32px;
+
+  --pmos-sidebar-w: 280px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pmos-bg:        #0b0b0c;
+    --pmos-surface:   #18181b;
+    --pmos-surface-2: #1f1f23;
+    --pmos-surface-3: #27272a;
+    --pmos-border:    #2c2c30;
+    --pmos-border-2:  #3a3a3f;
+    --pmos-text:      #f4f4f5;
+    --pmos-muted:     #a1a1aa;
+    --pmos-faint:     #71717a;
+    --pmos-accent:        #60a5fa;
+    --pmos-accent-strong: #3b82f6;
+    --pmos-accent-bg:     #1e3a8a;
+  }
+}
+
+/* ---- 2. Reset + base ------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--pmos-bg);
+  color: var(--pmos-text);
+  font-family: var(--pmos-font-sans);
+  font-size: var(--pmos-fs-base);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: var(--pmos-accent);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+a:focus-visible { outline: 2px solid var(--pmos-accent); outline-offset: 2px; border-radius: 2px; }
+
+img, svg { max-width: 100%; height: auto; }
+
+/* ---- 3. Typography -------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 var(--pmos-sp-3);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--pmos-text);
+}
+h1 { font-size: var(--pmos-fs-2xl); margin-top: 0; }
+h2 {
+  font-size: var(--pmos-fs-lg);
+  margin: var(--pmos-sp-6) 0 var(--pmos-sp-3);
+  padding-top: var(--pmos-sp-4);
+  border-top: 1px solid var(--pmos-border-2);
+  position: relative;
+}
+h3 { font-size: var(--pmos-fs-md); margin: var(--pmos-sp-5) 0 var(--pmos-sp-2); position: relative; }
+h4 { font-size: var(--pmos-fs-base); }
+h5, h6 { font-size: var(--pmos-fs-sm); color: var(--pmos-muted); }
+
+p { margin: 0 0 var(--pmos-sp-3); }
+
+pre, code, kbd, samp { font-family: var(--pmos-font-mono); font-size: 0.92em; }
+code {
+  background: var(--pmos-surface-3);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.88em;
+}
+pre {
+  background: var(--pmos-surface-2);
+  border: 1px solid var(--pmos-border-2);
+  border-radius: var(--pmos-radius);
+  padding: var(--pmos-sp-3) var(--pmos-sp-4);
+  overflow-x: auto;
+  margin: var(--pmos-sp-3) 0;
+  font-size: var(--pmos-fs-sm);
+  line-height: 1.5;
+}
+pre code { background: transparent; padding: 0; }
+
+blockquote {
+  margin: var(--pmos-sp-3) 0;
+  padding: var(--pmos-sp-2) var(--pmos-sp-4);
+  border-left: 3px solid var(--pmos-accent);
+  background: var(--pmos-surface-2);
+  color: var(--pmos-muted);
+}
+
+/* ---- 4. Tables ------------------------------------------------------ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--pmos-sp-3) 0;
+  font-size: var(--pmos-fs-sm);
+}
+caption { caption-side: top; text-align: left; font-style: italic; color: var(--pmos-muted); margin-bottom: var(--pmos-sp-2); }
+thead th {
+  background: var(--pmos-surface-2);
+  font-weight: 600;
+  text-align: left;
+}
+th, td {
+  border: 1px solid var(--pmos-border-2);
+  padding: var(--pmos-sp-2) var(--pmos-sp-3);
+  vertical-align: top;
+}
+tbody tr:nth-child(even) td { background: var(--pmos-surface-2); }
+
+/* ---- 5. Lists + DL -------------------------------------------------- */
+ul, ol { margin: 0 0 var(--pmos-sp-3); padding-left: var(--pmos-sp-5); }
+li { margin: var(--pmos-sp-1) 0; }
+li > ul, li > ol { margin: var(--pmos-sp-1) 0; }
+
+dl { margin: var(--pmos-sp-3) 0; }
+dt {
+  font-weight: 600;
+  margin-top: var(--pmos-sp-3);
+  color: var(--pmos-text);
+}
+dd { margin: var(--pmos-sp-1) 0 var(--pmos-sp-2) var(--pmos-sp-4); color: var(--pmos-muted); }
+
+/* ---- 6. Figures ----------------------------------------------------- */
+figure {
+  margin: var(--pmos-sp-4) 0;
+  background: var(--pmos-surface);
+  border: 1px solid var(--pmos-border-2);
+  border-radius: var(--pmos-radius);
+  padding: var(--pmos-sp-3);
+}
+figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+figcaption {
+  margin-top: var(--pmos-sp-2);
+  font-size: var(--pmos-fs-xs);
+  color: var(--pmos-muted);
+  font-style: italic;
+  text-align: center;
+}
+
+/* ---- 7. Viewer chrome (index.html) --------------------------------- */
+.pmos-viewer-shell {
+  display: grid;
+  grid-template-columns: var(--pmos-sidebar-w) 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  background: var(--pmos-bg);
+}
+
+.pmos-toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--pmos-sp-3);
+  padding: var(--pmos-sp-3) var(--pmos-sp-4);
+  background: var(--pmos-surface);
+  border-bottom: 1px solid var(--pmos-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.pmos-toolbar h1 {
+  margin: 0;
+  font-size: var(--pmos-fs-md);
+  font-weight: 600;
+}
+.pmos-toolbar .pmos-toolbar-meta {
+  margin-left: auto;
+  font-size: var(--pmos-fs-sm);
+  color: var(--pmos-muted);
+}
+
+.pmos-sidebar {
+  background: var(--pmos-surface-2);
+  border-right: 1px solid var(--pmos-border);
+  overflow-y: auto;
+  padding: var(--pmos-sp-3);
+  height: calc(100vh - 48px);
+  position: sticky;
+  top: 48px;
+}
+.pmos-sidebar-group {
+  margin-bottom: var(--pmos-sp-4);
+}
+.pmos-sidebar-group-h {
+  font-size: var(--pmos-fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pmos-muted);
+  margin: var(--pmos-sp-3) 0 var(--pmos-sp-2);
+  padding: 0 var(--pmos-sp-2);
+}
+.pmos-sidebar-item {
+  display: block;
+  padding: var(--pmos-sp-1) var(--pmos-sp-3);
+  border-radius: var(--pmos-radius);
+  font-size: var(--pmos-fs-sm);
+  color: var(--pmos-text);
+  text-decoration: none;
+  margin: 1px 0;
+}
+.pmos-sidebar-item:hover {
+  background: var(--pmos-surface-3);
+  text-decoration: none;
+}
+.pmos-sidebar-item.is-active {
+  background: var(--pmos-accent-bg);
+  color: var(--pmos-accent-strong);
+  font-weight: 500;
+}
+.pmos-sidebar-sub {
+  display: block;
+  padding: 2px var(--pmos-sp-3) 2px var(--pmos-sp-5);
+  font-size: var(--pmos-fs-xs);
+  color: var(--pmos-muted);
+  text-decoration: none;
+  border-radius: var(--pmos-radius);
+}
+.pmos-sidebar-sub:hover { color: var(--pmos-text); background: var(--pmos-surface-3); text-decoration: none; }
+.pmos-sidebar-sub.is-active { color: var(--pmos-accent-strong); }
+
+.pmos-main {
+  background: var(--pmos-surface);
+  border-left: 1px solid var(--pmos-border);
+  height: calc(100vh - 48px);
+  overflow: hidden;
+}
+.pmos-main iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.pmos-source-info {
+  font-size: var(--pmos-fs-xs);
+  color: var(--pmos-muted);
+}
+
+/* ---- 8. Per-artifact body (template.html) -------------------------- */
+.pmos-artifact-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--pmos-sp-3);
+  padding: var(--pmos-sp-3) var(--pmos-sp-5);
+  background: var(--pmos-surface);
+  border-bottom: 1px solid var(--pmos-border-2);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.pmos-artifact-title {
+  margin: 0;
+  font-size: var(--pmos-fs-lg);
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pmos-artifact-actions { display: flex; gap: var(--pmos-sp-2); }
+
+.pmos-btn {
+  background: var(--pmos-surface-2);
+  border: 1px solid var(--pmos-border);
+  color: var(--pmos-text);
+  font-family: inherit;
+  font-size: var(--pmos-fs-sm);
+  padding: 4px 10px;
+  border-radius: var(--pmos-radius);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.pmos-btn:hover { background: var(--pmos-surface-3); }
+.pmos-btn:focus-visible { outline: 2px solid var(--pmos-accent); outline-offset: 1px; }
+.pmos-btn:active { background: var(--pmos-border-2); }
+.pmos-btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.pmos-artifact-body {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--pmos-sp-5) var(--pmos-sp-5) var(--pmos-sp-6);
+}
+.pmos-artifact-body section {
+  margin-bottom: var(--pmos-sp-5);
+}
+
+/* Section anchor-icon hover state — per-section Copy MD (FR-24) */
+.pmos-artifact-body h2,
+.pmos-artifact-body h3 {
+  position: relative;
+}
+.pmos-section-anchor {
+  position: absolute;
+  left: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--pmos-faint);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+  font-size: 13px;
+  padding: 0;
+}
+.pmos-artifact-body h2:hover .pmos-section-anchor,
+.pmos-artifact-body h3:hover .pmos-section-anchor,
+.pmos-section-anchor:focus-visible {
+  opacity: 1;
+  color: var(--pmos-accent);
+  outline: none;
+}
+.pmos-section-anchor:hover { color: var(--pmos-accent-strong); }
+
+/* :target highlight for anchor-scroll (FR-90) */
+:target {
+  scroll-margin-top: 64px;
+  background: linear-gradient(transparent 0, var(--pmos-accent-bg) 0) no-repeat;
+  background-size: 100% 0;
+  animation: pmos-target-flash 1.4s ease-out;
+}
+@keyframes pmos-target-flash {
+  0%   { background-size: 100% 100%; }
+  60%  { background-size: 100% 100%; }
+  100% { background-size: 100% 0; }
+}
+
+.pmos-artifact-footer {
+  max-width: 880px;
+  margin: var(--pmos-sp-5) auto 0;
+  padding: var(--pmos-sp-3) var(--pmos-sp-5);
+  border-top: 1px solid var(--pmos-border-2);
+  font-size: var(--pmos-fs-xs);
+  color: var(--pmos-muted);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5ch;
+}
+
+/* Subtle attribution — toolbar (right-aligned, small) and footer (inline after source) */
+.pmos-attribution {
+  font-size: var(--pmos-fs-xs);
+  font-style: italic;
+  color: var(--pmos-muted);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  opacity: 0.65;
+  transition: opacity 120ms ease;
+}
+.pmos-attribution:hover,
+.pmos-attribution:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.pmos-attribution--toolbar {
+  margin-left: var(--pmos-sp-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pmos-attribution-sep {
+  color: var(--pmos-muted);
+  opacity: 0.5;
+}
+
+/* Toast (Copy confirmation) */
+.pmos-toast {
+  position: fixed;
+  bottom: var(--pmos-sp-4);
+  right: var(--pmos-sp-4);
+  background: var(--pmos-text);
+  color: var(--pmos-bg);
+  font-size: var(--pmos-fs-sm);
+  padding: var(--pmos-sp-2) var(--pmos-sp-4);
+  border-radius: var(--pmos-radius);
+  box-shadow: var(--pmos-shadow-lg);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.18s, transform 0.18s;
+  pointer-events: none;
+}
+.pmos-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- 9. Quickstart banner (W04, FR-26) ----------------------------- */
+.pmos-quickstart-banner {
+  margin: var(--pmos-sp-3) auto;
+  max-width: 880px;
+  padding: var(--pmos-sp-3) var(--pmos-sp-4);
+  background: var(--pmos-accent-bg);
+  border: 1px solid var(--pmos-accent);
+  border-radius: var(--pmos-radius);
+  display: flex;
+  align-items: center;
+  gap: var(--pmos-sp-3);
+  font-size: var(--pmos-fs-sm);
+}
+.pmos-quickstart-banner strong { color: var(--pmos-accent-strong); }
+.pmos-quickstart-banner .pmos-quickstart-dismiss {
+  margin-left: auto;
+}
+
+/* ---- 10. file:// fallback banner ----------------------------------- */
+.pmos-fallback-banner {
+  margin: 0;
+  padding: var(--pmos-sp-3) var(--pmos-sp-4);
+  background: #fff7ed;
+  border-bottom: 1px solid var(--pmos-warning);
+  color: #9a3412;
+  font-size: var(--pmos-fs-sm);
+}
+@media (prefers-color-scheme: dark) {
+  .pmos-fallback-banner {
+    background: #422006;
+    color: #fdba74;
+  }
+}
+.pmos-fallback-banner code {
+  background: rgba(0,0,0,0.06);
+  color: inherit;
+}
+
+/* ---- 11. Legacy MD shim (FR-22) ----------------------------------- */
+.pmos-legacy-md {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--pmos-font-mono);
+  font-size: var(--pmos-fs-sm);
+  line-height: 1.5;
+  background: var(--pmos-surface-2);
+  border: 1px solid var(--pmos-border-2);
+  border-radius: var(--pmos-radius);
+  padding: var(--pmos-sp-4);
+  margin: var(--pmos-sp-3);
+  max-width: calc(880px - 2 * var(--pmos-sp-3));
+  overflow-x: auto;
+}
+.pmos-legacy-md-banner {
+  background: var(--pmos-warning);
+  color: #fff;
+  padding: var(--pmos-sp-2) var(--pmos-sp-4);
+  font-size: var(--pmos-fs-sm);
+  font-weight: 500;
+}
+
+/* ---- 12. Focus ring + keyboard nav (NFR-03) ----------------------- */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--pmos-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--pmos-accent);
+  outline-offset: 2px;
+}
+
+/* Skip link (a11y) */
+.pmos-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.pmos-skip-link:focus {
+  position: fixed;
+  left: var(--pmos-sp-3);
+  top: var(--pmos-sp-3);
+  width: auto;
+  height: auto;
+  background: var(--pmos-surface);
+  color: var(--pmos-text);
+  padding: var(--pmos-sp-2) var(--pmos-sp-3);
+  border: 2px solid var(--pmos-accent);
+  border-radius: var(--pmos-radius);
+  z-index: 200;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print */
+@media print {
+  .pmos-artifact-toolbar,
+  .pmos-toolbar,
+  .pmos-sidebar,
+  .pmos-quickstart-banner,
+  .pmos-fallback-banner,
+  .pmos-toast,
+  .pmos-section-anchor,
+  .pmos-attribution--toolbar { display: none !important; }
+  .pmos-viewer-shell { display: block; }
+  .pmos-main { height: auto; }
+  body { background: white; color: black; }
+}
