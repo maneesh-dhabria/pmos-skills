@@ -1,0 +1,68 @@
+[
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — Reference docs (parallel-safe)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — Bundled scripts (parallel-safe; each self-tested)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — SKILL.md (depends on W1+W2 for accurate paths)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — Tests + integration gate",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & decisions",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Plan overview",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — Reference docs (parallel-safe)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — Bundled scripts (parallel-safe; each self-tested)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — SKILL.md (depends on W1+W2 for accurate paths)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — Tests + integration gate",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & decisions",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved decisions",
+    "parent_id": null
+  },
+  {
+    "id": "new-requirement",
+    "level": 2,
+    "title": "New requirement surfaced by the grill",
+    "parent_id": null
+  },
+  {
+    "id": "remaining-risk",
+    "level": 2,
+    "title": "Remaining risk to settle pre-build",
+    "parent_id": null
+  },
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Grill scope",
+    "parent_id": null
+  },
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved decisions",
+    "parent_id": null
+  },
+  {
+    "id": "new-requirement",
+    "level": 2,
+    "title": "New requirement surfaced by the grill",
+    "parent_id": null
+  },
+  {
+    "id": "remaining-risk",
+    "level": 2,
+    "title": "Remaining risk to settle pre-build",
+    "parent_id": null
+  }
+]

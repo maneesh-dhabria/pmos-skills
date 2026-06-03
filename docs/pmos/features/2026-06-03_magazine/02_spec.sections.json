@@ -1,0 +1,128 @@
+[
+  {
+    "id": "skill-layout",
+    "level": 2,
+    "title": "Skill directory layout",
+    "parent_id": null
+  },
+  {
+    "id": "fr-a-frontmatter",
+    "level": 2,
+    "title": "FR-A — Frontmatter (§A, §F)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-b-config",
+    "level": 2,
+    "title": "FR-B — Config & state model",
+    "parent_id": null
+  },
+  {
+    "id": "fr-c-stage-a",
+    "level": 2,
+    "title": "FR-C — Stage A deterministic prep (scripts)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-d-stage-b",
+    "level": 2,
+    "title": "FR-D — Stage B in-session agent",
+    "parent_id": null
+  },
+  {
+    "id": "fr-e-output",
+    "level": 2,
+    "title": "FR-E — Output contract (render-issue.js)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-f-commands",
+    "level": 2,
+    "title": "FR-F — Command surface & import",
+    "parent_id": null
+  },
+  {
+    "id": "fr-g-skill-conformance",
+    "level": 2,
+    "title": "FR-G — Body & conformance (§C, §D)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "skill-layout",
+    "level": 2,
+    "title": "Skill directory layout",
+    "parent_id": null
+  },
+  {
+    "id": "fr-a-frontmatter",
+    "level": 2,
+    "title": "FR-A — Frontmatter (§A, §F)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-b-config",
+    "level": 2,
+    "title": "FR-B — Config & state model",
+    "parent_id": null
+  },
+  {
+    "id": "fr-c-stage-a",
+    "level": 2,
+    "title": "FR-C — Stage A deterministic prep (scripts)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-d-stage-b",
+    "level": 2,
+    "title": "FR-D — Stage B in-session agent",
+    "parent_id": null
+  },
+  {
+    "id": "fr-e-output",
+    "level": 2,
+    "title": "FR-E — Output contract (render-issue.js)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-f-commands",
+    "level": 2,
+    "title": "FR-F — Command surface & import",
+    "parent_id": null
+  },
+  {
+    "id": "fr-g-skill-conformance",
+    "level": 2,
+    "title": "FR-G — Body & conformance (§C, §D)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  }
+]
