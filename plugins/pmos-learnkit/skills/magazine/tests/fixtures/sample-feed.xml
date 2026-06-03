@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Sample Newsletter</title>
+    <link>https://example.com</link>
+    <item>
+      <title>Pricing strategy for early-stage SaaS</title>
+      <link>https://example.com/posts/pricing</link>
+      <guid isPermaLink="false">post-0001</guid>
+      <pubDate>Mon, 02 Jun 2026 09:00:00 GMT</pubDate>
+      <description>A short stub.</description>
+      <content:encoded><![CDATA[<p>The full body of the pricing post with enough text to summarize.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title>Hiring your first PM</title>
+      <link>https://example.com/posts/first-pm</link>
+      <guid isPermaLink="false">post-0002</guid>
+      <pubDate>Fri, 30 May 2026 12:00:00 GMT</pubDate>
+      <description>Another stub.</description>
+    </item>
+    <item>
+      <title>Old archived post</title>
+      <link>https://example.com/posts/old</link>
+      <guid isPermaLink="false">post-0000</guid>
+      <pubDate>Tue, 01 Jan 2019 00:00:00 GMT</pubDate>
+      <description>Way out of window.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "solution-direction",
+    "level": 2,
+    "title": "Solution direction",
+    "parent_id": null
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-config",
+    "level": 3,
+    "title": "Config & state (FR-1…FR-6)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-stage-a",
+    "level": 3,
+    "title": "Stage A — deterministic prep (FR-7…FR-11)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-stage-b",
+    "level": 3,
+    "title": "Stage B — in-session agent (FR-12…FR-16)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-command-surface",
+    "level": 3,
+    "title": "Command surface & output (FR-17…FR-21)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "skill-conformance",
+    "level": 2,
+    "title": "Skill-conformance acceptance criteria (skill-patterns §A–§F)",
+    "parent_id": null
+  },
+  {
+    "id": "non-functional",
+    "level": 2,
+    "title": "Non-functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope / deferred to v2",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions (carried from the brief, for /grill)",
+    "parent_id": null
+  },
+  {
+    "id": "tier",
+    "level": 2,
+    "title": "Tier",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "solution-direction",
+    "level": 2,
+    "title": "Solution direction",
+    "parent_id": null
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-config",
+    "level": 3,
+    "title": "Config & state (FR-1…FR-6)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-stage-a",
+    "level": 3,
+    "title": "Stage A — deterministic prep (FR-7…FR-11)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-stage-b",
+    "level": 3,
+    "title": "Stage B — in-session agent (FR-12…FR-16)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "fr-command-surface",
+    "level": 3,
+    "title": "Command surface & output (FR-17…FR-21)",
+    "parent_id": "functional-requirements"
+  },
+  {
+    "id": "skill-conformance",
+    "level": 2,
+    "title": "Skill-conformance acceptance criteria (skill-patterns §A–§F)",
+    "parent_id": null
+  },
+  {
+    "id": "non-functional",
+    "level": 2,
+    "title": "Non-functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope / deferred to v2",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions (carried from the brief, for /grill)",
+    "parent_id": null
+  },
+  {
+    "id": "tier",
+    "level": 2,
+    "title": "Tier",
+    "parent_id": null
+  }
+]
