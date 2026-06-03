@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.11.1: `/magazine` reliability fixes from first-run retro
+
+Six fixes to `/magazine` surfaced by its first real end-to-end run — two of them silent-failure blockers that cut against the skill's "trust" promise:
+
+- **Crawls no longer silently truncate.** `extract-article.js` flushed stdout and exited in the same tick, so a long article captured through a pipe was cut at the pipe buffer (~8–64 KB) and summaries were built on a truncated tail. It now exits from the write callback, after the buffer drains. A &gt;64 KB piped-child regression guards it.
+- **whisper.cpp transcription works from a model name.** `whisper_model: base` was passed straight to `whisper-cli -m`, which needs a ggml *file path*, so whisper.cpp users silently fell back to show-notes. `transcribe.sh` now resolves a model name to `ggml-<name>.bin` across `$WHISPER_MODEL_DIR`, `~/.pmos/magazine/models`, the Homebrew share dir, and `./models` — or exits 3 with an actionable hint (still never fabricates).
+- **Capability is probed the way the script detects it.** The skill now tells the agent to probe via `transcribe.sh --selftest` (which detects whisper *and* whisper.cpp) rather than a bare on-PATH check, and to treat only exit 3 as "no transcription."
+- **A real Stage-A entrypoint.** New `magazine-run.js <discover|prep|status>` drives discovery and prep over the existing scripts, so the agent no longer hand-writes a throwaway driver per phase. `prep` redirects each crawl to a file (never a pipe), closing the truncation class at the call site too.
+- **URLs from feeds are decoded.** `fetch-feed.js` now decodes XML entities (`&amp;`→`&`, numeric refs) in link/enclosure/guid, so podcast enclosure query params are curl-safe.
+- **Podcast GUIDs are filesystem-safe.** `transcribe.sh` sanitizes GUIDs like `substack:post:198591907` for the transcript path while keeping the original as the ledger key.
+
+### Internal
+
+Authored end-to-end via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias), Tier 2. Each fix ships a regression in the owning script's `--selftest` (or `structure.test.sh`, now 41 checks). Requirements/spec/plan ship under `docs/pmos/features/2026-06-03_magazine-retro/`.
+
+---
+
 ## 2026-06-03 — pmos-learnkit 0.11.0: `/playbook` — turn your own AI sessions into shareable PM case studies
 
 New **pmos-learnkit** skill. `/playbook` mines your own Claude Code session history for **one repo** and synthesizes focused, self-sufficient **case-study articles** that teach fellow PMs how you used AI to solve a real problem — the prompt you started with, how you refined the idea, the trade-offs you decided, and the skills you reached for. Each problem becomes a shareable HTML article + a tweet thread, every one gated behind a human safety review. Concretely:

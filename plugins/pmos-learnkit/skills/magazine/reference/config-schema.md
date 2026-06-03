@@ -33,7 +33,17 @@ feeds:
 - `name` is the cursor key in `state.json` and the source badge on each card.
 - `type` decides Stage A: `podcast` items go through `transcribe.sh`; `newsletter`
   items skip transcription.
-- `whisper_model` defaults to `base` (fast, good-enough) when absent.
+- `whisper_model` defaults to `base` (fast, good-enough) when absent. It is a model
+  **name** (`base`/`small`/`medium`/…), not a path.
+  - **openai-whisper** takes the name directly.
+  - **whisper.cpp** (`whisper-cli`/`main`) needs a ggml model **file**, so
+    `transcribe.sh` resolves the name to `ggml-<name>.bin`, searching in order:
+    `$WHISPER_MODEL_DIR`, `~/.pmos/magazine/models/`,
+    `$(brew --prefix)/share/whisper-cpp/models/`, then `./models/`. whisper.cpp users
+    should drop their `ggml-*.bin` in one of those dirs or set `WHISPER_MODEL_DIR`.
+    You may also set `whisper_model` to an explicit `/path/to/ggml-*.bin`, which is
+    passed through unchanged. If no model resolves, transcription exits 3 and the item
+    keeps its show-notes with an honest hint (never a fabricated summary).
 
 ## tags.yaml
 

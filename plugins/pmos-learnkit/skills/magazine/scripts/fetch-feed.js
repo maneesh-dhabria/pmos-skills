@@ -40,6 +40,21 @@ function toISO(dateStr) {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+// Decode the XML entities feeds commonly leave in URLs (especially `&amp;` in
+// query strings). Without this, a link/enclosure like `…?a=1&amp;b=2` reaches
+// curl as a literal `&amp;` and corrupts the query params (FR-P5).
+function decodeEntities(s) {
+  if (s == null) return s;
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(parseInt(n, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_m, h) => String.fromCodePoint(parseInt(h, 16)));
+}
+
 function parseItems(xml) {
   const blocks = [];
   const itemRe = /<(item|entry)\b[\s\S]*?<\/\1>/gi;
@@ -48,10 +63,10 @@ function parseItems(xml) {
 
   return blocks.map((b) => {
     const isAtom = /^<entry\b/i.test(b);
-    const link = isAtom ? tagAttr(b, 'link', 'href') || tagText(b, 'link') : tagText(b, 'link');
-    const guid = tagText(b, 'guid') || tagText(b, 'id') || link;
+    const link = decodeEntities(isAtom ? tagAttr(b, 'link', 'href') || tagText(b, 'link') : tagText(b, 'link'));
+    const guid = decodeEntities(tagText(b, 'guid') || tagText(b, 'id') || link);
     const published = toISO(tagText(b, 'pubDate') || tagText(b, 'published') || tagText(b, 'updated'));
-    const enclosure = tagAttr(b, 'enclosure', 'url');
+    const enclosure = decodeEntities(tagAttr(b, 'enclosure', 'url'));
     const body = tagText(b, 'content:encoded') || tagText(b, 'content');
     return {
       guid,
@@ -97,13 +112,20 @@ function selftest() {
   let ok = true;
   const assert = (c, m) => { if (!c) { ok = false; console.error('FAIL:', m); } };
 
-  assert(items.length === 3, 'parsed 3 raw items, got ' + items.length);
+  assert(items.length === 4, 'parsed 4 raw items, got ' + items.length);
   const windowed = windowItems(items, '2026-05-01T00:00:00.000Z', 10);
-  assert(windowed.length === 2, 'windowing dropped the 2019 item, got ' + windowed.length);
+  assert(windowed.length === 3, 'windowing dropped the 2019 item, got ' + windowed.length);
   assert(windowed[0].guid === 'post-0001', 'newest first');
   assert(windowed[0].body && windowed[0].body.includes('full body'), 'content:encoded body captured');
   const capped = windowItems(items, null, 1);
   assert(capped.length === 1, '--max caps the set');
+
+  // Regression (FR-P5): XML entities in URLs are decoded, not passed through.
+  const pod = items.find((it) => it.guid === 'substack:post:198591907');
+  assert(pod, 'podcast fixture item present');
+  assert(pod.link === 'https://example.com/ep?id=42&utm=rss', 'link &amp; decoded: ' + pod.link);
+  assert(pod.enclosure && pod.enclosure.includes('&awCollectionId=') && !pod.enclosure.includes('&amp;'),
+    'enclosure &amp; decoded: ' + pod.enclosure);
 
   console.log(ok ? 'fetch-feed.js --selftest: PASS' : 'fetch-feed.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);

@@ -12,6 +12,14 @@
       <content:encoded><![CDATA[<p>The full body of the pricing post with enough text to summarize.</p>]]></content:encoded>
     </item>
     <item>
+      <title>Podcast: scaling teams</title>
+      <link>https://example.com/ep?id=42&amp;utm=rss</link>
+      <guid isPermaLink="false">substack:post:198591907</guid>
+      <pubDate>Wed, 28 May 2026 06:00:00 GMT</pubDate>
+      <description>Episode stub.</description>
+      <enclosure url="https://cdn.example.com/audio.mp3?aid=rss_feed&amp;awCollectionId=99" type="audio/mpeg"/>
+    </item>
+    <item>
       <title>Hiring your first PM</title>
       <link>https://example.com/posts/first-pm</link>
       <guid isPermaLink="false">post-0002</guid>

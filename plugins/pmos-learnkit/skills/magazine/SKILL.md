@@ -34,8 +34,13 @@ These instructions use Claude Code tool names. In other environments:
   (Recommended → AUTO-PICK) still applies.
 - **No `Task` subagent:** the Stage B summarize+tag fan-out runs sequentially in the
   host conversation — one item after another. Slower, identical output.
-- **No `whisper` on PATH:** `transcribe.sh` exits 3; fall back to show-notes plus an
-  honest "install whisper" hint on the card — never fabricate a summary.
+- **No transcription support:** do not probe with a bare on-PATH binary check —
+  that misses whisper.cpp (`whisper-cli`/`main`) and a documented model name that has
+  no ggml file. Probe by running `transcribe.sh --selftest` (it reports the detected
+  binary): `bash ${CLAUDE_SKILL_DIR}/scripts/transcribe.sh --selftest`. Treat
+  **exit 3 — and only exit 3** — from a real transcribe call as "no transcription":
+  fall back to show-notes plus an honest "install whisper / set `WHISPER_MODEL_DIR`"
+  hint on the card — never fabricate a summary.
 - **No reach to `r.jina.ai`:** `extract-article.js` keeps its heuristic-strip result;
   if that is thin, fall back to the RSS `body`/`description` and flag the card
   `preview-only`.
@@ -173,26 +178,40 @@ runs auto-pick. Then prompt for an initial feed set (offer `add --from <file>`).
 ## Phase 2: Discover (Stage A)
 
 Determine the window per `reference/pipeline.md` "Windowing" (`--feed`, `--days`,
-since-cursor default, `--max-per-feed`). For each in-scope feed run
-`node ${CLAUDE_SKILL_DIR}/scripts/fetch-feed.js <url> --since <cursor> --max <N>`,
-**each in isolation** — a feed that exits non-zero is skipped and reported, never
-aborting the issue. Record each returned GUID via `magazine-state.js` (idempotent
-dedup) at status `discovered`, then **snapshot the item set** — it defines the issue.
+since-cursor default, `--max-per-feed`). **Drive discovery through the Stage-A
+entrypoint** — do not hand-write a per-feed driver:
+
+```
+node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover [--since <cursor>] [--max <N>]
+```
+
+It reads `feeds.yaml`, runs `fetch-feed.js` per feed **each in isolation** (a feed
+that exits non-zero is skipped and reported, never aborting the issue), records each
+GUID in the ledger at `discovered` (idempotent dedup), and prints the snapshot item
+set as JSON. That snapshot **defines the issue**. (For an ad-hoc single feed, pass
+`--feed <url>`.)
 
 ## Phase 3: Prep — crawl + transcribe (Stage A)
 
-For every snapshot item, in any order (resumable per-item; cached results are never
-recomputed):
+Run the prep phase through the same entrypoint — it walks every `discovered` item
+(resumable per-item; cached results are never recomputed):
 
-- **Crawl:** `node ${CLAUDE_SKILL_DIR}/scripts/extract-article.js <link>` → cache to
-  `~/.pmos/magazine/crawl-cache/<guid>.txt`. Exit 2 → flag `preview-only`; exit 1 →
-  fall back to the RSS body. Always prefer the crawled article over the RSS stub.
-- **Transcribe (podcasts):** `bash ${CLAUDE_SKILL_DIR}/scripts/transcribe.sh
-  <enclosure> <guid> --model <feed.whisper_model|base>`. Exit 3 (no whisper) → keep
-  show-notes + attach an "install whisper" hint; never fabricate.
+```
+node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep
+```
 
-Update each item's status (`downloaded` / `transcribed`) as you go. This stage is
-deterministic (no LLM) and can run long in the background.
+For each item it crawls via `extract-article.js` **with output redirected to**
+`~/.pmos/magazine/crawl-cache/<safe-guid>.txt` (a file, never a pipe — a piped
+capture truncates a long article), flagging `preview-only` on exit 2 and falling
+back to the RSS body on exit 1; and transcribes podcasts via `transcribe.sh`
+(**exit 3 — no whisper *or* no resolvable model** → keep show-notes + an honest
+hint; never fabricate). Item status advances as it goes.
+
+If you must call a script directly (e.g. to re-crawl one item), **redirect crawl
+output to a file** — `extract-article.js <link> > <cache-file>` — never capture it
+through a pipe. See `reference/pipeline.md` for the entrypoint contract and the
+"redirect, don't pipe" rule. This stage is deterministic (no LLM) and can run long
+in the background.
 
 ## Phase 4: Summarize + tag (Stage B)
 
