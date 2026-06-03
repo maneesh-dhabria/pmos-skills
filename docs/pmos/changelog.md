@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.8.1: `/learn-list` — every paid book gets an authoritative summary
+
+`/learn-list` now attaches the **most authoritative summary reference** to every emitted book that isn't free — *wherever* the book appears (reading-list-by-topic and adjacent rabbit holes, not just the follow-list). Previously the book-summary contract only fired in the follow-list, so a paid book in the body of the list (e.g. *The Four Steps to the Epiphany*, *The Lean Product Playbook*) shipped with no way to skim its high-level ideas — even though paywalled *non-book* sources already got an inline "free alternative" line. The contract is now wired into Phase 4 sourcing and the Phase 5 adjacency walk, a Phase 6 "book-summary parity" eval check refuses to write a list where a paid book lacks a summary-or-explicit-none note, and the artifact template carries an inline summary slot so the renderer can't drop it. Genuinely-free books are exempt, and the honest "no good summary found — read the book" escape is preserved (so *The Mom Test* still reads correctly).
+
+**Why**
+
+A book is a paywall too. The list already treats paywalled articles as a skim-without-paying problem and surfaces a free alternative; paid books were the one source type left out, which made them the hardest items to grok at a glance. Closing the asymmetry makes the whole list skimmable by the same rule, while the explicit none-note escape keeps the verification-first "never fabricate a summary" discipline intact.
+
 ## 2026-06-03 — pmos-learnkit 0.8.0: `/learn-list` — verified, anti-slop curated reading lists
 
 New `/learn-list <topic>` skill: turns any topic into a curated, multi-format reading list organized by a **canon-derived topic outline** — find the field's canonical books, top practitioners, and existing curations by live search; derive the outline from where they agree (provenance always shown); then fan out one subagent per topic to source articles, newsletters, threads, talks, podcasts, and book summaries. Every emitted link is **fetched and verified this run** — the skill never ships a URL it hasn't confirmed is reachable, is the named content, and actually supports its ≤2-sentence "why included." It closes with a follow-list (people · newsletters · podcasts · books-with-summaries · practitioners' signature writings) and a copy-ready paste-block for Readwise/Notion. Effort scales via `--mode quick|standard|deep` (fan-out width + adjacency depth); `--level beginner|practitioner` shapes the sourcing. Standalone learnkit utility; suggests `/primer <topic>` as a follow-up but never invokes it.
