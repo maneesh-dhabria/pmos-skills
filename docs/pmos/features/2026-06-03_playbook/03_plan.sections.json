@@ -1,0 +1,74 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "dag",
+    "level": 2,
+    "title": "Wave DAG",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "t1",
+    "level": 3,
+    "title": "T1 — reference/session-log-format.md",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t2",
+    "level": 3,
+    "title": "T2 — tests/fixtures/",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t3",
+    "level": 3,
+    "title": "T3 — resolver (scripts/resolve_repo_sessions.mjs) + reference/resolver.md + tests/resolver.test.mjs",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t4",
+    "level": 3,
+    "title": "T4 — scout (scripts/scout.mjs) + reference/clustering.md + tests/scout.test.mjs",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t5",
+    "level": 3,
+    "title": "T5 — reference/article-schema.md + reference/artifact-template.html",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t6",
+    "level": 3,
+    "title": "T6 — reference/anonymizer.md",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t7",
+    "level": 3,
+    "title": "T7 — SKILL.md",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "t8",
+    "level": 3,
+    "title": "T8 — tests/structure.test.sh",
+    "parent_id": "tasks"
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (NOT wave tasks — /complete-dev owns these)",
+    "parent_id": null
+  }
+]

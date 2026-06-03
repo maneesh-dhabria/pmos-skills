@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <meta name="pmos:execution-mode" content="subagent-driven">
+  <title>/playbook — Plan</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <style>
+    body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#1a1a1a; background:#fafafa; margin:0; }
+    header { display:flex; align-items:baseline; gap:1rem; padding:1.2rem 2rem; border-bottom:1px solid #e2e2e2; background:#fff; flex-wrap:wrap; }
+    h1 { font-size:1.4rem; margin:0; }
+    main { max-width:900px; margin:0 auto; padding:2rem; }
+    section { margin:0 0 2rem; }
+    h2 { font-size:1.18rem; border-bottom:2px solid #e2e2e2; padding-bottom:.3rem; margin:2rem 0 .7rem; }
+    h3 { font-size:1.02rem; margin:1.3rem 0 .4rem; }
+    table { border-collapse:collapse; width:100%; font-size:.88rem; margin:.5rem 0; }
+    th,td { border:1px solid #e2e2e2; padding:.4rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f0f4f8; }
+    code { background:#eef1f4; padding:.1rem .35rem; border-radius:3px; font-size:.86em; }
+    .meta { color:#666; font-size:.85rem; }
+    .pill { display:inline-block; background:#eef1f4; border-radius:999px; padding:.05rem .55rem; font-size:.78rem; color:#666; }
+    ul li, ol li { margin:.25rem 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>/playbook — Plan</h1>
+    <span class="pill">Tier 3 · TDD · execution-mode: subagent-driven</span>
+  </header>
+  <main>
+
+<section id="overview">
+<h2 id="overview">Overview</h2>
+<p class="meta"><strong>Date:</strong> 2026-06-03 · <strong>Source:</strong> <code>02_spec.html</code> · <strong>Execution mode:</strong> subagent-driven (independent components fan out per wave). · <strong>Tier:</strong> 3.</p>
+<p>TDD throughout: each script task writes failing unit tests first, then implements to green. Reference-doc and template tasks have no unit tests (asserted by <code>structure.test.sh</code> + Phase 6a skill-eval). 5 waves; tasks within a wave are file-disjoint and parallelizable.</p>
+</section>
+
+<section id="dag">
+<h2 id="dag">Wave DAG</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>Depends on</th></tr>
+<tr><td>1</td><td>T1, T2, T5, T6</td><td>— (foundation: data-format ref, fixtures, article schema+template, anonymizer ref)</td></tr>
+<tr><td>2</td><td>T3</td><td>T1, T2 (resolver + tests)</td></tr>
+<tr><td>3</td><td>T4</td><td>T3 (scout uses resolver) + T1, T2</td></tr>
+<tr><td>4</td><td>T7</td><td>T1, T3, T4, T5, T6 (SKILL.md ties it together)</td></tr>
+<tr><td>5</td><td>T8</td><td>T7 (structure test over the finished skill)</td></tr>
+</table>
+</section>
+
+<section id="tasks">
+<h2 id="tasks">Tasks</h2>
+
+<h3 id="t1">T1 — reference/session-log-format.md</h3>
+<ul>
+<li>Document the JSONL record shapes and the exact fields consumed (FR-10, data contract §dc-record): <code>type</code>, <code>message.content</code>, <code>cwd</code>, <code>gitBranch</code>, <code>userType</code>, <code>aiTitle</code>, <code>permission-mode</code>/<code>mode</code> record types, <code>AskUserQuestion</code> tool_use blocks, <code>&lt;command-name&gt;</code> tag extraction, the <code>/</code>→<code>-</code> path-encoding rule, and the two session-log roots.</li>
+<li>Note the validated facts: <code>userType:external</code> is NOT a discriminator; <code>permission-mode</code> presence IS the interactive discriminator.</li>
+<li><strong>FRs:</strong> FR-10, FR-20, FR-21. <strong>Test:</strong> none (ref doc).</li>
+</ul>
+
+<h3 id="t2">T2 — tests/fixtures/</h3>
+<ul>
+<li>Synthetic JSONL session dirs covering: (a) interactive session (has <code>permission-mode</code>, command-name, AskUserQuestion, pushback prose); (b) headless session (no permission-mode, templated opening, short); (c) sibling-worktree session (<code>cwd</code> = <code>&lt;repo&gt;-feat-x</code>, gitBranch feat/x); (d) nested-worktree session; (e) a "merged-and-deleted" case (sibling dir whose path no longer exists but gitBranch ∈ merge-history) — paired with a tiny fixture git repo or a stubbed merge-history list the resolver can read.</li>
+<li><strong>FRs:</strong> supports FR-11/22/20/30-32. <strong>Test:</strong> consumed by T3/T4 tests.</li>
+</ul>
+
+<h3 id="t3">T3 — resolver (scripts/resolve_repo_sessions.mjs) + reference/resolver.md + tests/resolver.test.mjs</h3>
+<ul>
+<li>TEST FIRST: <code>resolver.test.mjs</code> asserts nested-prefix match, sibling-token-strip match, branch-in-merge-history match (merged-deleted), <strong>ambiguous-attribution flagged-not-attributed (FR-22)</strong>, realpath dedupe (FR-12).</li>
+<li>IMPLEMENT: zero-dep Node ESM. Input: repo path + window + include-headless. Output: attributed session dirs with signal provenance + ambiguous list. Reads git merge-history via <code>git -C &lt;repo&gt; log --merges</code>/reflog (spawned).</li>
+<li><code>resolver.md</code>: the algorithm + ambiguous rules + coverage-line format (FR-13).</li>
+<li><strong>FRs:</strong> FR-10, FR-11, FR-12, FR-13, FR-22.</li>
+</ul>
+
+<h3 id="t4">T4 — scout (scripts/scout.mjs) + reference/clustering.md + tests/scout.test.mjs</h3>
+<ul>
+<li>TEST FIRST: interactive filter (permission-mode present/absent → FR-20/21/23), thread boundary branch-then-topic (FR-31), compaction-continuation merge, instructiveness floor suppresses thin (FR-32), stable ranking (FR-33, NFR-04), merge-suggestion for overlap (FR-34).</li>
+<li>IMPLEMENT: zero-dep Node ESM. Calls resolver (T3), reads only cheap fields (FR-30), emits the candidate JSON contract (§dc-candidate) to stdout. Deterministic.</li>
+<li><code>clustering.md</code>: discriminator, scout fields, thread-boundary + scoring + floor + merge/split UX (FR-34, FR-35).</li>
+<li><strong>FRs:</strong> FR-20, FR-21, FR-23, FR-30–FR-35, NFR-01, NFR-04.</li>
+</ul>
+
+<h3 id="t5">T5 — reference/article-schema.md + reference/artifact-template.html</h3>
+<ul>
+<li>Article section schema (FR-50): TL;DR · problem · framing · starting-prompts gallery · refinement · research · decision ledger · artifact excerpts · screenshots · skills strip · PM takeaway. Quality gate ≥3 prompts + ≥1 decision row (FR-51). Tweet/thread format (FR-53). Output folder layout (FR-70/71). REVIEW-BEFORE-SHARING.md template stub referenced from anonymizer.md.</li>
+<li><code>artifact-template.html</code>: sibling to learn-list's; inline style, meta <code>pmos:skill=playbook</code>, asset links + cache-bust.</li>
+<li><strong>FRs:</strong> FR-50, FR-51, FR-53, FR-70, FR-71. <strong>Test:</strong> none (asserted by structure + skill-eval).</li>
+</ul>
+
+<h3 id="t6">T6 — reference/anonymizer.md</h3>
+<ul>
+<li>Detect-and-flag rules (FR-60): NER, denylist (<code>~/.pmos/playbook/sensitive.yaml</code>), email/$/metric patterns; never auto-scrub, never auto-mark-safe. REVIEW-BEFORE-SHARING.md contract (FR-61): proper-noun + metric listing with locations; screenshot enumeration as mandatory manual-verify items. Denylist seeding flow (FR-62).</li>
+<li><strong>FRs:</strong> FR-60, FR-61, FR-62. <strong>Test:</strong> none (ref doc).</li>
+</ul>
+
+<h3 id="t7">T7 — SKILL.md</h3>
+<ul>
+<li>Frontmatter (FR-90): <code>name: playbook</code>, <code>user-invocable: true</code>, <code>argument-hint</code> (all FR-01 flags), rich <code>description</code> with ≥5 trigger phrases (FR-91).</li>
+<li>Body (FR-92/93): Announce line; Platform Adaptation (FR-95); Track Progress; phases — Setup → Resolve (cites resolver.md, invokes resolver script by abs path) → Filter → Scout/Propose (invokes scout.mjs; coverage line FR-13; dry-run confirm FR-35; merge/split FR-34) → Deep-read (prose-first FR-41/42/43/44; subagent fan-out FR-40) → Synthesize (article-schema.md; quality gate FR-51; screenshots FR-52) → Anonymize/Gate (anonymizer.md; FR-60/61) → Emit (FR-70/71) → Capture Learnings (one-line, FR-93); Anti-Patterns.</li>
+<li>Standalone discipline (FR-02): no workstream load; not in the pipeline.</li>
+<li><strong>FRs:</strong> FR-01..FR-04, FR-40–FR-44, FR-52, FR-90–FR-95.</li>
+</ul>
+
+<h3 id="t8">T8 — tests/structure.test.sh</h3>
+<ul>
+<li>Assert: frontmatter has name/description/user-invocable/argument-hint; <code>name</code> == dir (<code>playbook</code>); required reference + script files exist; SKILL.md contains Announce + Anti-Patterns + Capture-Learnings; description contains ≥5 trigger phrases; Bash-portability (<code>${BASH_SOURCE[0]:-$0}</code> fallback) if the test sources anything.</li>
+<li><strong>FRs:</strong> FR-90, FR-93, FR-94, FR-96.</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs">Release prerequisites (NOT wave tasks — /complete-dev owns these)</h2>
+<ul>
+<li>Minor bump <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> 0.9.0 → 0.10.0 (synced; no marketplace version).</li>
+<li>README row for <code>/playbook</code>.</li>
+<li><code>## /playbook</code> header in <code>~/.pmos/learnings.md</code> (idempotent).</li>
+</ul>
+</section>
+
+  </main>
+</body>
+</html>
