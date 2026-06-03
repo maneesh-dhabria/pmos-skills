@@ -1,40 +1,48 @@
 ---
 name: learn-list
-description: Turns any topic into a verified, anti-slop, multi-format curated reading list — organized by a canon-derived topic outline, every link fetched and verified before it ships, each ranked and annotated with a ≤2-sentence why, closing with a follow-list of people, newsletters, books (with summaries) and practitioners' signature writings plus a copy-ready paste-block. Standalone learnkit utility; effort scales via --mode quick|standard|deep. Use when the user says "build me a reading list on X", "what should I read to learn Y", "curate the best sources on Z", "get me smart on this topic fast", "who should I follow to learn X", "give me a learning list for Y", or "/learn-list". Verification-first — it never emits a link it has not fetched this run.
+description: Turns any topic into a verified, anti-slop, multi-format curated reading list for product managers — organized by a canon-derived topic outline, every link fetched and verified before it ships, each ranked and annotated with a ≤2-sentence why, audience-shaped for senior vs all PMs, closing with a follow-list of people, newsletters, books (with summaries) and practitioners' signature writings plus a copy-ready paste-block. Standalone learnkit utility; effort scales via --depth brief|standard|deep. Use when a PM says "build me a reading list on X", "what should I read to learn Y", "curate the best sources on Z", "get me smart on this topic fast", "who should I follow to learn X", "give me a learning list for Y", or "/learn-list". Verification-first — it never emits a link it has not fetched this run.
 user-invocable: true
-argument-hint: <topic> [--mode <quick|standard|deep>] [--level <beginner|practitioner>] [--format <html|md|both>] [--non-interactive] [--interactive]
+argument-hint: <topic> [--depth <brief|standard|deep>] [--audience <senior-pms|all-pms>] [--format <html|md|both>] [--non-interactive] [--interactive]
 ---
 
 # /learn-list
 
 **Announce at start:** "Using /learn-list to curate a verified reading list on the requested topic."
 
-This is a standalone learnkit utility. It does NOT load workstream context and does NOT
-feed the requirements→spec→plan pipeline. It produces one HTML artifact per topic plus a
-copy-ready paste-block, and suggests `/primer <topic>` as a follow-up — it never invokes it.
+This is a standalone learnkit utility for product managers. It does NOT load workstream
+context and does NOT feed the requirements→spec→plan pipeline. It produces one HTML
+artifact per topic plus a copy-ready paste-block, and suggests `/primer <topic>` as a
+follow-up — it never invokes it.
 
 The one rule everything else serves: **this is a verification-first web pipeline, not a
 generate-from-memory one.** A reading list is only worth more than a search query if its
 links are real, current, and slop-free. Every emitted link is fetched and verified this
 run; the canon is found by live search, never recalled.
 
+The intake → canon → outline → verified-sourcing front half is the **shared
+topic-research substrate** under `_shared/topic-research/` (the same mechanism `/primer`
+uses). This skill inlines those docs and owns only the **back half**: ranking,
+annotation, the adjacency rabbit-holes section, the follow-list, and the paste-block.
+
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion`:** intake confirmation and the outline-confirm gate degrade to
+- **No `AskUserQuestion`:** intake (audience) and the outline-confirm gate degrade to
   numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive
-  auto-pick contract (Recommended → AUTO-PICK; outline gate auto-proceeds) still applies.
-- **No `Task` subagents:** Phase 4 fan-out collapses to a sequential in-context pass — one
-  topic at a time. Correctness is unchanged; only wall-clock grows.
+  auto-pick contract (Recommended → AUTO-PICK; outline gate auto-proceeds; audience
+  auto-picks senior-pms) still applies.
+- **No `Task` subagents:** Phase 4 fan-out collapses to a sequential in-context pass —
+  one topic at a time. Correctness is unchanged; only wall-clock grows.
 - **No `WebFetch`:** verification is impossible, so the skill cannot honor its core
   contract — refuse with a clear message naming the missing tool and exit 64. Do NOT
   fall back to emitting unverified links.
 - **No `WebSearch`:** fall back to `WebFetch` over user-supplied URLs/curations plus any
   context7 MCP available; warn that canon discovery is degraded.
-- **No browser/Playwright MCP:** the free-fetch ladder in `reference/sourcing-ladder.md`
-  still runs over `WebFetch`; only the optional last rung for JS-heavy social content is
-  lost. Such candidates are dropped, never emitted unverified.
+- **No browser/Playwright MCP:** the free-fetch ladder in
+  `_shared/topic-research/sourcing-ladder.md` still runs over `WebFetch`; only the
+  optional last rung for JS-heavy social content is lost. Such candidates are dropped,
+  never emitted unverified.
 
 ## Track Progress
 
@@ -60,112 +68,83 @@ completions.
    to this run (e.g., domains that proved sloppy, formats that sourced poorly for a topic
    class). Skill body wins on conflict; surface conflicts to the user.
 
-## Phase 1: Intake
+## Phase 1: Intake (shared)
 
-Goal: pin **topic + mode + level** in one short pass.
+Goal: pin **topic + depth + audience** in one short pass.
 
-1. **Parse arguments.** `<topic>` is required. `--mode` sets the effort dial (default
-   `standard`); `--level` shapes sourcing depth. See `reference/modes.md` for the full
-   dial matrix.
-2. **Resolve mode.** Honor `--mode` if passed; else `standard`. If the user's phrasing
-   signals effort ("quick list", "go deep / comprehensive"), suggest the matching mode.
-3. **Resolve level.** Honor `--level` if passed. Otherwise, in `standard`/`deep`, issue
-   one `AskUserQuestion` — **Practitioner (Recommended)** / **Beginner** — so a working
-   expert and a newcomer get materially different lists. In `quick`, skip the prompt and
-   produce a level-neutral list (speed is the point). Non-interactive auto-picks
-   Practitioner.
-4. **Confirm** topic + mode + level in a single line and proceed. Do not re-ask anything
-   the flags already settled (saving a turn is more polite than ceremony).
+1. **Parse arguments.** `<topic>` is required.
+2. **Retired-flag rejection.** If `--mode` is present → emit platform-aware error
+   `unknown flag '--mode'. Use --depth brief|standard|deep instead.` and exit 64. If
+   `--level` is present → `unknown flag '--level'. Use --audience senior-pms|all-pms
+   instead.` and exit 64. (These flags were retired when the front half unified with
+   `/primer`; there is no silent alias.)
+3. **Inline `_shared/topic-research/intake.md`** and follow it — it resolves
+   `--depth brief|standard|deep` (default `standard`) and `--audience senior-pms|all-pms`
+   (asked once if absent; audience is resolved at every depth, including `brief`), and
+   runs the topic-richness classifier. Honor effort phrasing to suggest a depth.
+4. **React to the richness verdict (this skill's reaction, FR-12).** `/learn-list`
+   consumes the verdict **softly**: any verdict proceeds. `rich` → full list. `thin` →
+   produce a smaller honest list and note "thin — little quality material found" rather
+   than padding; **never block** and do not force reframings on the user (a thin topic is
+   still a valid list, just shorter). `narrow-by-design` → proceed; the outline will be
+   shape-different but the list is still useful.
+5. **Confirm** topic + depth + audience in a single line and proceed. Do not re-ask
+   anything the flags already settled.
 
-## Phase 2: Canon &amp; curations (live search)
+## Phase 2: Canon & curations (shared)
 
-Goal: find the experts and the existing curations the field already trusts — by live
-search, never from memory. Per the depth set by mode (`reference/modes.md`).
+**Inline `_shared/topic-research/canon-discovery.md`** and follow it — find the field's
+canonical books, top practitioners, and 2–4 existing curations by live search (never from
+memory), sized to the resolved depth. Carry forward the emitted `canon` set (books +
+practitioners + curation entries) for the outline cascade and the candidate pool.
 
-1. **Canonical books** — search for the field's foundational/most-recommended books;
-   capture title + author. Verify each exists (a real catalog/author page resolves).
-2. **Top practitioners** — the people whose names recur as authorities on this topic.
-   Capture name + their primary home (site/newsletter/handle). Verify each is real and
-   still active.
-3. **Existing curations** — harvest 2–4 "best <topic> resources / reading list / syllabus
-   / awesome-<topic>" pages and practitioner "what to read" posts, per
-   `reference/sourcing-ladder.md` (Curation-of-curations). Extract their recurring
-   entries; an item that recurs across independent curations is strong signal and
-   pre-stocks the candidate pool (still subject to the pass-bar later).
+## Phase 3: Outline (shared)
 
-Carry forward: book list, practitioner list, curation entries.
+**Inline `_shared/topic-research/outline.md`** and follow it — derive the outline by
+cascade (canonical → curation → provisional), record the provenance rung, dedupe topics
+before fan-out, and run the confirm gate. The provenance rung goes in the artifact's
+TL;DR. In non-interactive mode the gate auto-proceeds.
 
-## Phase 3: Outline (cascade + confirm gate)
+## Phase 4: Source per topic (shared)
 
-Goal: a topic outline an expert would recognize — with its provenance always shown.
+**Inline `_shared/topic-research/sourcing.md`** and follow it — for each outline topic,
+run the rank-then-verify loop and emit a verified, ranked, annotated shortlist. Emit the
+est-cost line before sourcing. Fan out one subagent per topic in `standard`/`deep`
+(sequential in `brief`).
 
-1. **Derive the outline by cascade** (`reference/sourcing-ladder.md`, FR-8):
-   - Where ≥2 canonical sources/curations agree on a structure → use it.
-   - Else → the consensus structure across the harvested curations.
-   - Else → your own best-effort outline, explicitly tagged `provisional — no settled
-     canon found`.
-   Record which rung produced the outline; it goes in the artifact's TL;DR.
-2. **Dedupe topics** before any fan-out — never source the same topic twice.
-3. **Outline-confirm gate.** In `standard` and `deep`, present the derived outline and
-   let the user add / drop / reorder topics before fan-out — fan-out is the expensive
-   step, so confirming first is cheap insurance against sourcing the wrong topics:
+This skill's back-half use of each shortlist (its own reaction to the substrate output):
 
-   `AskUserQuestion` — **Looks good, source it (Recommended)** / **Edit the outline**
-   (user supplies changes next turn).
+- **Render the per-topic shortlist as a ranked list** — keep the substrate's tier tag,
+  paywall/free-alt, and the grounded ≤2-sentence annotation (soft ~240-char ceiling)
+  saying *why it's here / what you'll get*.
+- **Book-summary parity:** for any emitted book that is not free, attach its most
+  authoritative summary reference inline (or an explicit "no good summary found — read
+  the book" note), per `_shared/topic-research/sourcing-ladder.md` (Book summaries) —
+  wherever a paid book appears, not only in the follow-list.
+- Do not enforce a per-format quota — include only the formats actually found and
+  verified. A fabricated podcast or video to fill a row is a hard failure.
 
-   In `quick` mode and in non-interactive mode, auto-proceed (log
-   `outline-gate: auto-proceeded (<quick|non-interactive>)`).
+## Phase 5: Adjacencies & follow-list (back half)
 
-## Phase 4: Source per topic (fan-out + rank-then-verify)
-
-Goal: for each outline topic, produce a short ranked list of **verified** multi-format
-links. Fan out one subagent per topic in `standard`/`deep` (sequential in `quick`).
-
-Each topic's sourcing runs the **rank-then-verify loop** (`reference/sourcing-ladder.md`),
-so verification spend scales with output, not with the candidate pool:
-
-1. **Gather candidates** from live search + the harvested curations; cap the pool at ~3×
-   the links-to-emit for the mode.
-2. **Apply the hard gate** from `reference/source-tiers.md` (attributable + plausibly
-   real) — discard failures cheaply on metadata, before any fetch.
-3. **Tier-rank** survivors; take the top-N for the mode.
-4. **Fetch-verify only those top-N** against the pass-bar — reachable + identity-match +
-   annotation grounded in the fetched content. On a failure, pull the next-ranked
-   candidate and verify it. Stop at N verified links, or fewer if the topic is genuinely
-   thin (honest under-coverage beats padding).
-5. **Annotate** each survivor from what you actually read: ≤2 sentences, soft ~240-char
-   ceiling, saying *why it's here / what you'll get*. Tag tier; tag `paywalled` and add a
-   free alternative when one exists. **For any emitted book that is not free, attach the
-   most authoritative summary reference inline** — the book-equivalent of the
-   free-alternative line — or an explicit "no good summary found — read the book" note,
-   per `reference/sourcing-ladder.md` (Book summaries). This applies wherever a paid book
-   appears, not only in the follow-list.
-
-Do not enforce a per-format quota — include only the formats actually found and verified.
-A fabricated podcast or video to fill a row is a hard failure.
-
-## Phase 5: Adjacencies &amp; follow-list
-
-1. **Adjacency walk.** Explore adjacent topics to widen coverage — `0` hops in `quick`,
-   `1` in `standard`, `2` in `deep` (`reference/modes.md`). Source each via the same
-   rank-then-verify loop. Place results in a **separate "adjacent rabbit holes" section**
-   so they never dilute the core list. The paid-book-summary rule (Phase 4 step 5) applies
-   here too — an adjacency book that isn't free carries its most authoritative summary
-   reference inline, or the explicit "no good summary found" note.
+1. **Adjacency walk.** Explore adjacent topics to widen coverage — hops keyed to
+   `--depth` via the `intake.md` dial matrix (`brief` 0, `standard` 1, `deep` 2). Source
+   each via the same shared `sourcing.md` loop. Place results in a **separate "adjacent
+   rabbit holes" section** so they never dilute the core list. The paid-book-summary rule
+   (Phase 4) applies here too.
 2. **Follow-list.** Assemble who/what to follow next: practitioners (with their
    **signature writing** — the piece search and the curations consistently surface,
    labeled "signature / most-referenced," never a fabricated citation count), newsletters
-   (subscribe link), podcasts, and books (each with its **most authoritative summary** link
-   per `reference/sourcing-ladder.md`, or "no good summary found"). Deep mode adds book
-   summaries + signature writings for the full practitioner set.
+   (subscribe link), podcasts, and books (each with its **most authoritative summary**
+   link per `_shared/topic-research/sourcing-ladder.md`, or "no good summary found").
+   Deep depth adds book summaries + signature writings for the full practitioner set.
 
 ## Phase 6: Eval + Write
 
 1. **Self-review before writing** — a quick reviewer pass over the assembled list:
    - **Dead-link sweep** — re-confirm every emitted URL resolved this run; drop any that
      didn't.
-   - **Slop spot-check** — sample links against `reference/source-tiers.md`; drop any that
-     slipped the hard gate.
+   - **Slop spot-check** — sample links against `_shared/topic-research/source-tiers.md`;
+     drop any that slipped the hard gate.
    - **Grounding** — every annotation is supported by fetched content and within the
      ~240-char ceiling.
    - **Coverage** — every outline topic has ≥1 link or an explicit "thin — little quality
@@ -211,11 +190,11 @@ Empty reflection (no line) counts as unfinished work.
    list with a made-up row. Signature writings come from observed search/curation
    consensus, never a fake metric.
 3. **Verifying every candidate.** Rank first, then fetch-verify only the survivors that
-   will ship. Fetching the whole candidate pool blows the cost budget — especially in
-   deep mode — for no added output.
-4. **Anti-slop by gut feel.** Apply `reference/source-tiers.md` as written: the hard gate
-   (named author OR recognized publication) is binary; tiering only orders what already
-   passed. "It looks fine" is not a quality bar.
+   will ship (per `_shared/topic-research/sourcing.md`). Fetching the whole candidate pool
+   blows the cost budget — especially in deep depth — for no added output.
+4. **Anti-slop by gut feel.** Apply `_shared/topic-research/source-tiers.md` as written:
+   the hard gate (named author OR recognized publication) is binary; tiering only orders
+   what already passed. "It looks fine" is not a quality bar.
 5. **Loading workstream context.** This is a standalone utility — workstream pollution
    biases the canon and the outline. Do not call any workstream loader. (Same shape as
    `/primer`, `/diagram`, `/critical-thinking`.)
@@ -227,3 +206,7 @@ Empty reflection (no line) counts as unfinished work.
 8. **Hardcoding paths.** Reference bundled files by their relative path (`reference/…`,
    `_shared/…`); never an absolute `/Users/...` path — it breaks the instant the skill is
    installed elsewhere.
+9. **Reaching into the substrate to special-case `/learn-list`.** The
+   `_shared/topic-research/` docs are skill-agnostic — they emit typed outputs (richness
+   verdict, outline + provenance, per-topic shortlists). This skill's reactions live
+   HERE, in its own phases, never as edits to the shared docs.
