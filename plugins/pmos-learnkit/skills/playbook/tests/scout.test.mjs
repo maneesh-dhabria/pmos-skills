@@ -129,3 +129,19 @@ test('scoutRepo: end-to-end emits ranked candidates + coverage; suppresses thin'
 test('slugify: kebab, <=4 words, stopwords dropped', () => {
   assert.equal(slugify('How to build the survey designer skill'), 'survey-designer-skill');
 });
+
+// --- regression (verify Phase 6): clusterThreads must not mutate input metas' topic sets ---
+test('clusterThreads does not mutate the input metas topic Sets (no aliasing)', () => {
+  const mk = (file, topic, mtime) => ({
+    file, gitBranch: 'HEAD', topic: new Set(topic), mtime,
+    skills: new Set(['/spec']), decisionSignals: 2, aiTitle: file, firstPrompt: file,
+  });
+  // overlapping topics => jaccard >= TOPIC_THRESHOLD, close mtimes => same thread (merge path)
+  const m1 = mk('s1.jsonl', ['alpha', 'beta', 'gamma'], 1_000_000);
+  const m2 = mk('s2.jsonl', ['beta', 'gamma', 'delta'], 1_000_000 + 60_000);
+  const before = new Set(m1.topic);
+  clusterThreads([m1, m2]);
+  assert.deepEqual([...m1.topic].sort(), [...before].sort(),
+    'first session topic Set must be untouched after clustering (pre-fix it was widened in place)');
+  assert.equal(m1.topic.size, 3);
+});

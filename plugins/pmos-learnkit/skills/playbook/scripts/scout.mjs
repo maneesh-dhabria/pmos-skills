@@ -7,6 +7,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { resolveRepoSessions, readSession } from './resolve_repo_sessions.mjs';
 
 const TRIVIAL_SKILLS = new Set(['/exit', '/compact', '/clear', '/reload-plugins', '/reload-skills', '/login', '/doctor', '/mcp', '/plugin', '/remote-control', '/remote-env', '/effort']);
@@ -91,12 +92,12 @@ export function clusterThreads(metas) {
   // HEAD sessions -> topic+temporal clustering
   let cur = null, curTopic = null, curConf = 1;
   for (const m of headSessions) {
-    if (cur == null) { cur = [m]; curTopic = m.topic; continue; }
+    if (cur == null) { cur = [m]; curTopic = new Set(m.topic); continue; }
     const sim = jaccard(curTopic, m.topic);
     const gap = m.mtime - cur[cur.length - 1].mtime;
     if (sim < TOPIC_THRESHOLD || gap > MAX_GAP_MS) {
       threads.push(makeThread('HEAD', cur, curConf));
-      cur = [m]; curTopic = m.topic; curConf = 1;
+      cur = [m]; curTopic = new Set(m.topic); curConf = 1;
     } else {
       cur.push(m);
       curConf = Math.min(curConf, sim < TOPIC_THRESHOLD * 1.5 ? 0.5 : 1); // low-confidence boundary flag
@@ -186,7 +187,7 @@ export function scoutRepo(opts) {
 }
 
 // CLI
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const repo = args.find(a => !a.startsWith('--')) || process.cwd();
   const flag = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : undefined; };

@@ -10,13 +10,18 @@ Claude Code writes one directory per working-directory path under:
 - `~/.claude-personal/projects/`
 
 Either may be absent; read both. Each child directory name is the working-directory path
-with every `/` replaced by `-` (e.g. `/Users/me/Desktop/Projects/foo` →
-`-Users-me-Desktop-Projects-foo`). **Do not decode the directory name** to recover the path —
+with every `/` replaced by `-` (e.g. an absolute cwd like `/code/proj/foo` →
+`-code-proj-foo`; on macOS the real names begin `-Users-…`). **Do not decode the directory name** to recover the path —
 it is lossy (a real `-` in a path is indistinguishable from a separator). Instead read the
 authoritative `cwd` field recorded inside the session records; fall back to name-decode only
 when no record carries `cwd`.
 
-Each directory contains one `*.jsonl` file per session. One JSONL line = one record.
+Each directory contains one flat `*.jsonl` file per **main** session (named `<session-uuid>.jsonl`).
+One JSONL line = one record. The directory may also contain per-session subdirectories (e.g.
+`<session-uuid>/subagents/…`) holding **subagent** transcripts — these are subprocess/headless by
+nature and the scout deliberately does **not** recurse into them (only flat top-level `*.jsonl` are
+read). A live, in-progress session may have only its subdirectory present until its main transcript
+is flushed, so a brand-new worktree can legitimately resolve to zero candidates until the session ends.
 
 ## Record types used
 

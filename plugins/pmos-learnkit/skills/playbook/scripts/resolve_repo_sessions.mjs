@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 
 export const DEFAULT_ROOTS = [
   path.join(os.homedir(), '.claude', 'projects'),
@@ -99,24 +100,34 @@ export function attribute(repoCanon, cwd, gitBranch, mergeBranches) {
   return { signals, attributed, ambiguous, lowConfidence, reason };
 }
 
+/**
+ * Parse merged-branch names out of `git log --merges --pretty=%s` + `git reflog --pretty=%gs`
+ * output. Pure (no I/O) so it is unit-testable; handles the four merge-subject shapes:
+ * "Merge branch 'x'", "Merge remote-tracking branch 'origin/x'", "Merge pull request #N from u/x",
+ * and the bare "Merge x". The remote-tracking variant is the subject `git pull` writes — missing
+ * it silently drops a real branch from signal (c). See resolver.test.mjs.
+ */
+export function parseMergeSets(mergeLog = '', reflog = '') {
+  const set = new Set();
+  for (const line of mergeLog.split('\n')) {
+    const m = line.match(/Merge\s+(?:(?:remote-tracking\s+)?branch\s+'?|pull request.*?from\s+\S+?\/|)?([A-Za-z0-9._\/-]+)'?/);
+    if (m && m[1]) set.add(m[1].replace(/^['"]|['"]$/g, ''));
+  }
+  for (const line of reflog.split('\n')) {
+    const m = line.match(/(?:checkout|merge):.*?\b([A-Za-z0-9._\/-]+)$/);
+    if (m && m[1] && m[1].includes('/')) set.add(m[1]);
+  }
+  return set;
+}
+
 /** Compute the merged-branch set for a repo via git (best-effort; empty Set on failure). */
 export function gitMergeBranches(repo) {
-  const set = new Set();
-  try {
-    const log = execFileSync('git', ['-C', repo, 'log', '--merges', '--pretty=%s'], { encoding: 'utf-8' });
-    for (const line of log.split('\n')) {
-      const m = line.match(/Merge\s+(?:branch\s+'?|pull request.*?from\s+\S+\/|)?([A-Za-z0-9._\/-]+)'?/);
-      if (m && m[1]) set.add(m[1].replace(/^['"]|['"]$/g, ''));
-    }
-  } catch { /* not a repo / no merges */ }
-  try {
-    const rl = execFileSync('git', ['-C', repo, 'reflog', '--pretty=%gs'], { encoding: 'utf-8' });
-    for (const line of rl.split('\n')) {
-      const m = line.match(/(?:checkout|merge):.*?\b([A-Za-z0-9._\/-]+)$/);
-      if (m && m[1] && m[1].includes('/')) set.add(m[1]);
-    }
-  } catch { /* ignore */ }
-  return set;
+  let log = '', rl = '';
+  try { log = execFileSync('git', ['-C', repo, 'log', '--merges', '--pretty=%s'], { encoding: 'utf-8' }); }
+  catch { /* not a repo / no merges */ }
+  try { rl = execFileSync('git', ['-C', repo, 'reflog', '--pretty=%gs'], { encoding: 'utf-8' }); }
+  catch { /* ignore */ }
+  return parseMergeSets(log, rl);
 }
 
 function inWindow(file, { now, windowDays, since }) {
@@ -197,7 +208,7 @@ export function resolveRepoSessions(opts) {
 }
 
 // CLI: node resolve_repo_sessions.mjs <repo> [--days N] [--since ISO] [--sessions N] [--include-headless]
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const repo = args.find(a => !a.startsWith('--')) || process.cwd();
   const flag = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { attribute, classifySession, resolveRepoSessions, canon } from '../scripts/resolve_repo_sessions.mjs';
+import { attribute, classifySession, resolveRepoSessions, canon, parseMergeSets } from '../scripts/resolve_repo_sessions.mjs';
 
 function tmp() { return fs.mkdtempSync(path.join(os.tmpdir(), 'pb-')); }
 function writeSession(dir, name, records) {
@@ -109,4 +109,28 @@ test('resolveRepoSessions: ambiguous branch-only goes to ambiguous[], not attrib
   assert.equal(r.attributed.length, 0);
   assert.equal(r.ambiguous.length, 1);
   assert.equal(r.ambiguous[0].reason, 'branch-only');
+});
+
+// --- regression (verify Phase 6): merge-subject parsing must recover the real branch ---
+test('parseMergeSets recovers branch from a remote-tracking pull-merge subject', () => {
+  // "Merge remote-tracking branch 'origin/main'" is what `git pull` writes. The pre-fix
+  // regex captured 'remote-tracking' and DROPPED 'origin/main', losing merge-history signal.
+  const log = [
+    "Merge branch 'feat/widget'",
+    "Merge remote-tracking branch 'origin/feat/scatter'",
+    "Merge pull request #42 from someuser/feat/pr-thread",
+    "Merge feat/bare-branch",
+  ].join('\n');
+  const set = parseMergeSets(log, '');
+  assert.ok(set.has('feat/widget'), 'plain branch merge');
+  assert.ok(set.has('origin/feat/scatter'), 'remote-tracking merge branch must be recovered');
+  assert.ok(!set.has('remote-tracking'), 'must NOT capture the literal "remote-tracking"');
+  assert.ok(set.has('feat/pr-thread'), 'pull-request merge branch');
+  assert.ok(set.has('feat/bare-branch'), 'bare merge subject');
+});
+
+test('parseMergeSets pulls slash-bearing refs from reflog', () => {
+  const reflog = ['checkout: moving from main to feat/from-reflog', 'commit: noise'].join('\n');
+  const set = parseMergeSets('', reflog);
+  assert.ok(set.has('feat/from-reflog'));
 });
