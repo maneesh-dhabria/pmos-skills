@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="requirements">
+  <title>/learn-list — Requirements</title>
+  <style>
+    body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;max-width:860px;margin:0 auto;padding:2rem;background:#fafafa}
+    h1{font-size:1.5rem} h2{font-size:1.15rem;border-bottom:2px solid #e2e2e2;padding-bottom:.3rem;margin-top:2rem}
+    table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.6rem 0}
+    th,td{border:1px solid #e2e2e2;padding:.45rem .6rem;text-align:left;vertical-align:top} th{background:#f0f4f8}
+    code{background:#eef1f4;padding:.1rem .35rem;border-radius:3px;font-size:.88em}
+    .tier{display:inline-block;background:#2b6cb0;color:#fff;border-radius:999px;padding:.05rem .6rem;font-size:.8rem}
+  </style>
+</head>
+<body>
+<h1>/learn-list — Requirements <span class="tier">Tier 3</span></h1>
+<p><strong>Mode:</strong> skill-new · <strong>Plugin:</strong> pmos-learnkit · <strong>Seed:</strong> <code>docs/pmos/ideate/2026-06-03_learn-list.html</code> · <strong>Acceptance criteria:</strong> the produced skill must conform to <code>reference/skill-patterns.md §A–§F</code>.</p>
+
+<h2 id="problem">Problem</h2>
+<p>Ramping on an unfamiliar topic means drowning in SEO/AI slop and page-1 search noise, not knowing who the real experts are, and assembling a reading list by hand over hours. Google/Perplexity optimize for an <em>answer</em>, not a <em>learning map</em>; "Awesome" lists and syllabi are static, single-curator, and unevenly fresh.</p>
+
+<h2 id="solution">Solution direction</h2>
+<p><code>/learn-list &lt;topic&gt;</code> produces a <strong>verified, anti-slop, multi-format curated reading list</strong> organized by a canon-derived topic outline. Each link is ranked within its topic and annotated with a ≤2-sentence (~240-char) "why included." It closes with a follow-list (people · newsletters · books-with-summaries · practitioners' signature writings · podcasts) and a copy-ready paste-block. Effort scales by mode (<code>quick</code>/<code>standard</code>/<code>deep</code>).</p>
+<p><strong>Load-bearing architectural commitment (from the brief's H×H risk thread):</strong> this is a <em>verification-first web pipeline</em>, not a generate-from-memory one. Every link is fetched/verified before emit; the canon is found via live search. Get this wrong and nothing downstream matters.</p>
+
+<h2 id="journeys">User journeys</h2>
+<ol>
+<li><strong>Cold ramp.</strong> "<code>/learn-list prompt caching</code>" → outline + ranked annotated links per topic + follow-list. User opens ≥5 links, subscribes to ≥3 sources.</li>
+<li><strong>Deep dive.</strong> "<code>/learn-list mechanistic interpretability --mode deep --level practitioner</code>" → wider fan-out, 2-hop adjacencies, book summaries + signature writings, practitioner-graph sourcing.</li>
+<li><strong>Quick scan.</strong> "<code>/learn-list --mode quick</code>" → 3–5 topics, top-3 links each, no adjacencies; sub-2-minute.</li>
+<li><strong>Hand-off.</strong> User copies the paste-block into Readwise/Notion; optionally runs <code>/primer &lt;topic&gt;</code> for a taught explainer of the same topic.</li>
+</ol>
+
+<h2 id="decisions">Resolved decisions (from open questions)</h2>
+<table>
+<tr><th>#</th><th>Decision</th></tr>
+<tr><td>D1 Output</td><td>Primary HTML artifact + a copy-ready plain-markdown <strong>paste-block</strong> of all links at the end. <code>--format both</code> additionally emits a full <code>.md</code> sidecar.</td></tr>
+<tr><td>D2 Most-referenced</td><td>Do NOT infer citation counts (no citation-graph API). Surface each practitioner's <strong>signature writings</strong> via search-ranking/consensus; label "signature / most-referenced," never a fake metric.</td></tr>
+<tr><td>D3 Paywalled</td><td>Include the canonical source with a <code>paywalled</code> tag AND surface a free alternative (author blog post, talk, summary) when one exists.</td></tr>
+<tr><td>D4 /primer</td><td>Standalone; suggest <code>/primer &lt;topic&gt;</code> as a closing handoff. No coupling.</td></tr>
+<tr><td>D5 Annotation</td><td>≤2 sentences AND a soft ~240-char ceiling per link, for scannability.</td></tr>
+<tr><td>D6 Home</td><td>pmos-learnkit (alongside /primer, /critical-thinking), reusing its <code>_shared/</code> substrate.</td></tr>
+<tr><td>D7 No fabrication</td><td>No fixed per-format quota — only include formats actually found & verified. Uneven coverage is honest; a fabricated podcast/video is a hard failure.</td></tr>
+<tr><td>D8 Verification</td><td>Every emitted URL is fetched/verified; unverifiable links are dropped, never guessed. Dead-link sweep before write.</td></tr>
+</table>
+
+<h2 id="modes">Mode dial (effort × adjacency)</h2>
+<table>
+<tr><th>Mode</th><th>Topics</th><th>Links/topic</th><th>Adjacency hops</th><th>Fan-out</th><th>Follow-list depth</th></tr>
+<tr><td>quick</td><td>3–5</td><td>top 3</td><td>0</td><td>sequential</td><td>core only (≤5 people/sources)</td></tr>
+<tr><td>standard</td><td>5–8</td><td>top 5</td><td>1</td><td>subagent per topic</td><td>full follow-list</td></tr>
+<tr><td>deep</td><td>8–12</td><td>top 5–8</td><td>2</td><td>subagent per topic + adjacency</td><td>full + book summaries + signature writings</td></tr>
+</table>
+
+<h2 id="nonfunc">Non-functional</h2>
+<ul>
+<li><strong>Anti-slop is the differentiator</strong> — a source-tier rubric (primary &gt; practitioner &gt; reputable publication &gt; aggregator), named-author requirement, recency awareness. Not vibes.</li>
+<li><strong>Cost guard</strong> — fan-out width and adjacency hops capped per mode; topics deduped before fan-out; deep mode warns on cost.</li>
+<li><strong>Standalone utility</strong> — does NOT load workstream context (like /primer, /diagram). Lives outside requirements→spec→plan.</li>
+<li><strong>Reuse</strong> — learnkit <code>_shared/</code> (pipeline-setup, html-authoring, social-sourcing free-fetch ladder, resolve-input, non-interactive, interactive-prompts).</li>
+</ul>
+
+<h2 id="oos">Out of scope (v1)</h2>
+<ul>
+<li>Living / re-runnable dedup-against-saved (needs persistent state) — deferred.</li>
+<li>Direct one-click subscribe / Readwise API export — the paste-block is the integration surface.</li>
+<li>Sequenced learning-path with done-checks / quizzing (7★+ in the brief) — out; this ships the 6★ annotated list.</li>
+<li>Inline book/essay full summaries generated by fetching whole books — only sourced existing summaries.</li>
+</ul>
+
+<h2 id="success">Success signals</h2>
+<p><strong>Leading:</strong> &lt;1 dead/wrong link per 20 emitted; ≥5 links opened per run. <strong>Lagging:</strong> beats ≥2h of manual searching; ≥3 source-follows within a week.</p>
+</body>
+</html>

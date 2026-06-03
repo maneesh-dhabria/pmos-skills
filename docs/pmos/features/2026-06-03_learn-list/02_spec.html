@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>/learn-list — Spec</title>
+  <style>
+    body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;max-width:880px;margin:0 auto;padding:2rem;background:#fafafa}
+    h1{font-size:1.5rem} h2{font-size:1.15rem;border-bottom:2px solid #e2e2e2;padding-bottom:.3rem;margin-top:2rem} h3{font-size:1rem;margin-top:1.2rem}
+    table{border-collapse:collapse;width:100%;font-size:.9rem;margin:.6rem 0}
+    th,td{border:1px solid #e2e2e2;padding:.4rem .55rem;text-align:left;vertical-align:top} th{background:#f0f4f8}
+    code{background:#eef1f4;padding:.1rem .35rem;border-radius:3px;font-size:.88em}
+    .fr{font-weight:600;white-space:nowrap}
+  </style>
+</head>
+<body>
+<h1>/learn-list — Technical Spec (Tier 3)</h1>
+<p>Source: <code>01_requirements.html</code> + grill decisions G1–G4b. Acceptance: conforms to <code>skill-patterns.md §A–§F</code>; passes <code>skill-eval.md</code> (binary). Target platform <code>claude-code</code> (repo also mirrors <code>.codex-plugin</code> → author platform-agnostic with a Platform Adaptation section). Home: <code>plugins/pmos-learnkit/skills/learn-list/</code>.</p>
+
+<h2 id="architecture">Architecture &amp; phase flow</h2>
+<p>Single SKILL.md (~≤500 body lines) + 4 reference files + 1 HTML artifact template. Mirrors /primer's structure and reuses learnkit <code>_shared/</code>. No bundled executable scripts (verification is done via WebFetch inline) → skill-eval group 10.E skipped by design. Standalone utility: does NOT load workstream.</p>
+<table>
+<tr><th>Phase</th><th>Does</th></tr>
+<tr><td>0 · Setup + Load Learnings</td><td>Inline <code>_shared/pipeline-setup.md</code>; resolve <code>{docs_path}</code>, <code>{learn_list_dir}={docs_path}/learn-list/</code>; resolve <code>output_format</code>, <code>mode</code> (interactive/non-interactive); read <code>~/.pmos/learnings.md</code> entries under <code>## /learn-list</code>.</td></tr>
+<tr><td>1 · Intake</td><td>Parse <code>&lt;topic&gt;</code>, <code>--mode</code> (default standard), <code>--level</code> (ask once if absent; skip in quick). Consolidated confirm.</td></tr>
+<tr><td>2 · Canon &amp; curations (live search)</td><td>Find 3–5 canonical books, top practitioners, 2–4 existing curations/Top-N lists/awesome-repos. Verify each exists/active. Never from memory.</td></tr>
+<tr><td>3 · Outline (cascade + provenance)</td><td>Derive taxonomy: ≥2 sources agree → use; else curation consensus; else model best-effort tagged <em>provisional</em>. Dedupe topics. <strong>Confirm/edit gate in standard+deep; auto in quick</strong> (G4).</td></tr>
+<tr><td>4 · Source per topic (fan-out)</td><td>One subagent per topic (mode-gated width). Each: search candidates → anti-slop rank (<code>source-tiers.md</code>) → <strong>fetch-verify only the survivors</strong> (G1) → keep those that are reachable + real + annotation-grounded (G2). Return verified, ranked, annotated links.</td></tr>
+<tr><td>5 · Adjacencies + follow-list</td><td>Adjacency walk (hops by mode); separate "adjacent rabbit holes" section. Assemble follow-list: people, newsletters, podcasts, books-with-summaries, signature writings (search-consensus, no fake metrics).</td></tr>
+<tr><td>6 · Eval + Write</td><td>Reviewer pass: dead-link sweep, slop spot-check, coverage, annotation-grounding + ≤240-char. Emit HTML + paste-block (+ <code>.md</code> sidecar if <code>--format both</code>). Print path + <code>/primer</code> handoff.</td></tr>
+<tr><td>7 · Capture Learnings</td><td>Numbered phase; append to <code>~/.pmos/learnings.md</code> under <code>## /learn-list</code> or emit the "no new learnings" line.</td></tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<table>
+<tr><th>FR</th><th>Requirement</th></tr>
+<tr><td class="fr">FR-1</td><td>Frontmatter: <code>name: learn-list</code> (== dir), single-line quoted <code>description</code> (≤1024) carrying what + when + ≥5 user-spoken trigger phrases + assertive voice, <code>user-invocable: true</code>, <code>argument-hint</code> enumerating every parsed token. (§A,§B,§F)</td></tr>
+<tr><td class="fr">FR-2</td><td><code>--mode quick|standard|deep</code> drives the dial matrix in <code>reference/modes.md</code> (topics, links/topic, adjacency hops, fan-out, follow-list depth). Default <code>standard</code>.</td></tr>
+<tr><td class="fr">FR-3</td><td><code>--level beginner|practitioner</code> shapes sourcing; if absent ask once in intake (skipped in quick → level-neutral).</td></tr>
+<tr><td class="fr">FR-4</td><td><strong>Verification-first (load-bearing):</strong> no URL is emitted unless fetch-verified this run. Unverifiable links are dropped, never guessed/recalled. (Anti-pattern #1.)</td></tr>
+<tr><td class="fr">FR-5</td><td><strong>Rank-then-verify-survivors (G1):</strong> verify only the post-ranking top-N that will be emitted, not every candidate. Verification spend scales with output.</td></tr>
+<tr><td class="fr">FR-6</td><td><strong>Verified pass-bar (G2):</strong> reachable (not 404/parking/login-wall-without-alt) AND identity-matches the named content AND the ≤2-sentence annotation is grounded in the fetched content. Fail any → drop.</td></tr>
+<tr><td class="fr">FR-7</td><td><strong>Anti-slop rubric:</strong> <code>reference/source-tiers.md</code> — hard gate (named author OR recognized publication/practitioner) + tier ranking (primary &gt; practitioner &gt; reputable pub &gt; aggregator) + recency awareness.</td></tr>
+<tr><td class="fr">FR-8</td><td><strong>Outline cascade + provenance (G3):</strong> ≥2-source agreement → curation consensus → provisional model outline; always label where the outline came from.</td></tr>
+<tr><td class="fr">FR-9</td><td><strong>Outline-confirm gate (G4):</strong> show outline, allow add/drop/reorder before fan-out in standard+deep; auto-proceed in quick and non-interactive.</td></tr>
+<tr><td class="fr">FR-10</td><td>No fixed per-format quota; include only formats actually found+verified. Fabricating a source is a hard failure. (D7)</td></tr>
+<tr><td class="fr">FR-11</td><td>Each link: rank within topic + ≤2-sentence, ≤~240-char "why included" annotation (D5).</td></tr>
+<tr><td class="fr">FR-12</td><td>Paywalled canonical sources: include with a <code>paywalled</code> tag + free alternative when one exists (D3).</td></tr>
+<tr><td class="fr">FR-13</td><td>Follow-list: people · newsletters · podcasts · books-with-(sourced)-summaries · practitioners' signature writings (search-consensus, no fabricated citation counts — D2).</td></tr>
+<tr><td class="fr">FR-14</td><td>Adjacency walk hops by mode (0/1/2); output in a separate "adjacent rabbit holes" section so it never dilutes the core.</td></tr>
+<tr><td class="fr">FR-15</td><td>Output: HTML artifact at <code>{learn_list_dir}/{YYYY-MM-DD}_&lt;slug&gt;.html</code> via the learnkit html-authoring substrate, PLUS a copy-ready markdown <strong>paste-block</strong> of all links. <code>--format both</code> → full <code>.md</code> sidecar.</td></tr>
+<tr><td class="fr">FR-16</td><td>Closing chat: print artifact path + suggest <code>/primer &lt;topic&gt;</code> handoff (standalone — no auto-invoke, D4).</td></tr>
+<tr><td class="fr">FR-17</td><td>Cost guard: fan-out width + adjacency capped per mode; topics deduped before fan-out; deep mode logs an est-cost note.</td></tr>
+<tr><td class="fr">FR-18</td><td>Standalone: do NOT load workstream context. Body has <code>## Platform Adaptation</code>, <code>## Track Progress</code>, learnings load-line, numbered <code>## Phase 7: Capture Learnings</code>.</td></tr>
+<tr><td class="fr">FR-19</td><td>Non-interactive contract: degrade gates per <code>_shared/non-interactive.md</code> (Recommended → auto-pick; outline gate auto-proceeds).</td></tr>
+</table>
+
+<h2 id="refs">Reference files (progressive disclosure)</h2>
+<table>
+<tr><th>File</th><th>Holds</th></tr>
+<tr><td><code>reference/modes.md</code></td><td>quick/standard/deep dial matrix + cost caps.</td></tr>
+<tr><td><code>reference/source-tiers.md</code></td><td>Anti-slop rubric: tiers, hard gate, named-author rule, recency, slop-tells (SEO farms, AI listicles), per-format reputation notes.</td></tr>
+<tr><td><code>reference/sourcing-ladder.md</code></td><td>Per-format sourcing+verify (article, newsletter, book+summary, X/tweet, LinkedIn, podcast, YouTube); free-fetch ladder (reuse primer social-sourcing); curation-of-curations harvest+dedupe; signature-writing via search consensus.</td></tr>
+<tr><td><code>reference/artifact-template.html</code></td><td>Output schema: header → TL;DR → outline-with-ranked-annotated-links → adjacencies → follow-list → paste-block. ToC in first 15 lines if &gt;100 lines.</td></tr>
+</table>
+
+<h2 id="release-prereqs">Release prerequisites (/complete-dev deliverables — NOT /execute tasks)</h2>
+<p>Per <code>skill-patterns.md §G</code> + repo <code>CLAUDE.md</code>: the following are written by <code>/complete-dev</code> (Phase 8) only, never as plan waves:</p>
+<ul>
+<li>Minor version bump in BOTH <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> (in sync; bump <em>type</em> only — concrete numbers computed at merge).</li>
+<li>Changelog entry under <code>docs/pmos/changelog.md</code> (or the learnkit changelog location).</li>
+<li>README row for <code>/learn-list</code>.</li>
+<li><code>~/.pmos/learnings.md</code> <code>## /learn-list</code> header bootstrap (idempotent).</li>
+<li>No <code>marketplace.json</code> per-plugin version field (repo invariant).</li>
+</ul>
+
+<h2 id="testing">Testing &amp; verification plan</h2>
+<ul>
+<li><strong>Binary gate:</strong> <code>skill-eval-check.sh --target claude-code plugins/pmos-learnkit/skills/learn-list</code> (the 21 [D] checks) + reviewer for the 20 [J] checks. Must pass / residuals logged.</li>
+<li><strong>Structural:</strong> name==dir; reference dir named <code>reference/</code>; ToC on any reference file &gt;100 lines; no hard-coded absolute paths; no loose root files.</li>
+<li><strong>Eval-driven evidence (e-eval-driven):</strong> the skill-eval rubric run + this spec's verification plan + a tests/ assertion of frontmatter + phase-heading invariants.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <meta name="pmos:execution-mode" content="inline">
+  <title>/learn-list — Plan</title>
+  <style>
+    body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;max-width:880px;margin:0 auto;padding:2rem;background:#fafafa}
+    h1{font-size:1.5rem} h2{font-size:1.15rem;border-bottom:2px solid #e2e2e2;padding-bottom:.3rem;margin-top:2rem} h3{font-size:1rem;margin-top:1rem}
+    code{background:#eef1f4;padding:.1rem .35rem;border-radius:3px;font-size:.88em}
+    li{margin:.25rem 0}
+  </style>
+</head>
+<body>
+<h1>/learn-list — Implementation Plan (Tier 3)</h1>
+<p>Execution mode: <strong>inline</strong> (authored by the orchestrator in streamlined-inline mode). Source: <code>02_spec.html</code>. All tasks touch only the skill surface (<code>SKILL.md</code>, <code>reference/</code>, <code>tests/</code>) — release-prerequisite work is listed separately below and owned by <code>/complete-dev</code>.</p>
+
+<h2 id="wave-1">Wave 1 — Reference substrate</h2>
+<ul>
+<li><strong>T1</strong> · Create <code>plugins/pmos-learnkit/skills/learn-list/reference/modes.md</code> — the quick/standard/deep dial matrix + cost caps (FR-2, FR-17). ToC if &gt;100 lines.</li>
+<li><strong>T2</strong> · Create <code>reference/source-tiers.md</code> — anti-slop rubric, hard gate, named-author rule, tier ranking, slop-tells, recency (FR-7). Verify: opens with a ToC; states the hard gate explicitly.</li>
+<li><strong>T3</strong> · Create <code>reference/sourcing-ladder.md</code> — per-format source+verify, free-fetch ladder, curation harvest+dedupe, signature-writing via search consensus, book-summary sourcing (FR-5, FR-6, FR-12, FR-13). ToC required (&gt;100 lines).</li>
+<li><strong>T4</strong> · Create <code>reference/artifact-template.html</code> — output schema (TL;DR → outline+ranked annotated links → adjacencies → follow-list → paste-block) (FR-11, FR-14, FR-15).</li>
+<li><strong>Verify W1:</strong> <code>reference/</code> dir named correctly; every &gt;100-line file has a ToC in first 15 lines; no hard-coded <code>/Users/</code> paths; no reference→reference links.</li>
+</ul>
+
+<h2 id="wave-2">Wave 2 — SKILL.md body</h2>
+<ul>
+<li><strong>T5</strong> · Author frontmatter (FR-1): <code>name: learn-list</code>, single-line quoted <code>description</code> (≥5 trigger phrases, what+when, assertive), <code>user-invocable: true</code>, <code>argument-hint</code> enumerating <code>&lt;topic&gt; --mode --level --format --non-interactive --interactive</code>.</li>
+<li><strong>T6</strong> · Body sections: announce line; <code>## Platform Adaptation</code>; <code>## Track Progress</code>; Phases 0–7 per spec; <code>## Anti-Patterns (DO NOT)</code>. Phase 7 heading literally <code>## Phase 7: Capture Learnings</code>.</li>
+<li><strong>T7</strong> · Wire FR-4/5/6 (verification-first, rank-then-verify, grounded pass-bar) into Phase 4; FR-8/9 (outline cascade + confirm gate) into Phase 3; FR-13 follow-list into Phase 5; FR-15/16 output+handoff into Phase 6. Cite reference files (progressive disclosure).</li>
+<li><strong>T8</strong> · Anti-Patterns: emit-from-memory; fabricated source/quota; verify-everything cost blowout; slop-as-vibes; load workstream; auto-invoke /primer; 11★-style scope creep.</li>
+<li><strong>Verify W2:</strong> body ≤500 lines (target); <code>grep</code> learnings load-line + numbered Capture Learnings phase; <code>## Track Progress</code> present (≥3 Phase headings).</li>
+</ul>
+
+<h2 id="wave-3">Wave 3 — Tests</h2>
+<ul>
+<li><strong>T9</strong> · <code>tests/structure.test.sh</code> — assert: name==dir; frontmatter single-line description; <code>user-invocable: true</code> + argument-hint present; <code>## Phase 7: Capture Learnings</code> heading; every <code>reference/*.md</code> &gt;100 lines has a ToC. Include a <code>--selftest</code>-style self-check.</li>
+<li><strong>T10</strong> · Run <code>skill-eval-check.sh --target claude-code</code> against the skill dir; drive any [D] failures to green; dispatch a reviewer for the [J] half.</li>
+<li><strong>Verify W3:</strong> structure test exits 0; skill-eval [D] all pass.</li>
+</ul>
+
+<h2 id="release-prerequisites">Release prerequisites</h2>
+<p>Owned by <code>/complete-dev</code> (Phase 8) — explicitly excluded from the waves above per <code>skill-patterns.md §G</code>:</p>
+<ul>
+<li>Sync the two <code>plugin.json</code> manifests (minor bump; numbers computed at merge).</li>
+<li>Changelog entry; README row for <code>/learn-list</code>; <code>~/.pmos/learnings.md</code> header bootstrap.</li>
+</ul>
+
+<h2 id="final-verification">Final verification checklist</h2>
+<ul>
+<li>skill-eval binary gate passes (or residuals logged + accepted).</li>
+<li><code>/verify</code> clean.</li>
+<li>Skill loads as <code>/learn-list</code> after plugin reload.</li>
+</ul>
+</body>
+</html>
