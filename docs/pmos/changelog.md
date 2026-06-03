@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-03 — pmos-learnkit 0.8.2: `/primer` — browse every primer from one sidebar page
+
+`/primer` now regenerates a single `docs/pmos/primer/primers.html` listing after each run, so every primer you've generated is reachable from one place. The page is a sidebar of all your primers (newest first), with the most recent auto-selected and its content loaded in place — click any entry to read it without leaving the page. Previously the skill regenerated a generic `index.html` built for feature-folder artifacts, which grouped primers under meaningless pipeline-phase headers (`00 Pipeline`, `01 Requirements`, …); the new listing puts them all under one "Primers" heading, ordered by date. Rejected drafts are never listed.
+
+**Why**
+
+A primer is only useful if you can find it again. The old index reused the feature-pipeline viewer, so a growing primer library read like a half-built feature folder. A flat, newest-first sidebar that opens straight to your latest primer matches how the library is actually used — ramp up now, come back and browse later. No JS or CSS changes were needed; the existing HTML-authoring substrate already does sidebar nav, default-selection, and in-place loading.
+
 ## 2026-06-03 — pmos-learnkit 0.8.1: `/learn-list` — every paid book gets an authoritative summary
 
 `/learn-list` now attaches the **most authoritative summary reference** to every emitted book that isn't free — *wherever* the book appears (reading-list-by-topic and adjacent rabbit holes, not just the follow-list). Previously the book-summary contract only fired in the follow-list, so a paid book in the body of the list (e.g. *The Four Steps to the Epiphany*, *The Lean Product Playbook*) shipped with no way to skim its high-level ideas — even though paywalled *non-book* sources already got an inline "free alternative" line. The contract is now wired into Phase 4 sourcing and the Phase 5 adjacency walk, a Phase 6 "book-summary parity" eval check refuses to write a list where a paid book lacks a summary-or-explicit-none note, and the artifact template carries an inline summary slot so the renderer can't drop it. Genuinely-free books are exempt, and the honest "no good summary found — read the book" escape is preserved (so *The Mom Test* still reads correctly).
