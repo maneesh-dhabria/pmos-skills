@@ -775,7 +775,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 
 ## Phase 10: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/feature-sdlc` itself — gate prompts that misfired, resume-state edges, child-skill missing-dialog mistakes, places `--tier` propagation got confused, paused-state recovery friction. Proposing zero learnings is a valid outcome; the gate is that the reflection happens, not that an entry is written.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/feature-sdlc` itself — gate prompts that misfired, resume-state edges, child-skill missing-dialog mistakes, places `--tier` propagation got confused, paused-state recovery friction. Proposing zero learnings is a valid outcome; the gate is that the reflection happens, not that an entry is written.
 
 ## Release prerequisites
 

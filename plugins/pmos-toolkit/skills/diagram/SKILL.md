@@ -414,7 +414,7 @@ See `themes/editorial/infographic/editorial-v1.md` for the full layout spec.
 
 ## Phase 8 — Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory, i.e. `skills/diagram/learnings/learnings-capture.md` if present, else `~/.claude-personal/.../skills/learnings/learnings-capture.md` or the equivalent path in your environment).
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now.
 
 Reflect on this session — surprising rendering behaviors, repeated user corrections, eval-rubric drift, framings that worked unusually well or badly, refinement-loop budget calibration. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens.
 

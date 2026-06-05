@@ -650,11 +650,11 @@ This phase is mandatory whenever a workstream was loaded AND tier ≥ 2 — do n
 
 ## Phase 7: Capture Learnings
 
-**This skill is not complete until the learnings reflection has produced a one-line output.**
+**This skill is not complete until the learnings-capture process has run AND produced a one-line output.**
 
-Read `~/.pmos/learnings.md` if you haven't already (Phase 0 step 6). Reflect on whether this session surfaced anything worth capturing under `## /requirements`.
+Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now — the shared capture ceremony (read/summarize `~/.pmos/learnings.md`, reflect, propose 0–3 global + 0–3 repo-specific learnings, never auto-write). Reflect specifically on what this `/requirements` session surfaced under `## /requirements`.
 
-**You MUST emit exactly one of these two lines:**
+**On top of the shared ceremony, `/requirements` requires an explicit one-line output** — emit exactly one of these two lines:
 - `Learning: <new entry written to ~/.pmos/learnings.md under ## /requirements>` — when the session surfaced a non-obvious lesson worth keeping (repeated correction, surprising behavior, validated approach).
 - `No new learnings this session because <specific reason tied to this session>` — when the session was smooth and routine. The reason must be specific (e.g., "the tier was clear from the start and the user accepted all defaults"), not boilerplate.
 

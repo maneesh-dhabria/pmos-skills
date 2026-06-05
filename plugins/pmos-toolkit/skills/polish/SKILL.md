@@ -272,7 +272,7 @@ The `Before → After` "Words" delta is computed against the **original ingested
 
 **Run this BEFORE printing the Phase 7 summary block.** The summary's `Learnings captured: <N>` line cannot be filled honestly otherwise. The order is: Phase 6 apply → Phase 7 file write → Phase 8 reflection → Phase 7 summary block + replace prompt.
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `~/.pmos/learnings/learnings-capture.md` (if available) or these inline steps:
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) or these inline steps:
 
 Reflect on whether this session surfaced anything reusable:
 - False positives (legit uses flagged as violations) → candidate for soft-flag promotion or threshold adjustment

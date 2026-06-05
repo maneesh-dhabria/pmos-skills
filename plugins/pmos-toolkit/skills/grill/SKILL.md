@@ -203,4 +203,4 @@ After emitting the chat report, offer to persist it.
 
 ## Phase 4: Capture Learnings
 
-Read and follow `learnings/learnings-capture.md`. Reflect on whether this session surfaced anything worth capturing under `## /grill` — repeated friction (e.g., users overriding the Recommended option in the same way), question-tree shapes that worked well, depth-budget miscalibration. Zero learnings is a valid outcome.
+Read and follow `_shared/learnings-capture.md`. Reflect on whether this session surfaced anything worth capturing under `## /grill` — repeated friction (e.g., users overriding the Recommended option in the same way), question-tree shapes that worked well, depth-budget miscalibration. Zero learnings is a valid outcome.

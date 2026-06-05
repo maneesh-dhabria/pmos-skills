@@ -151,7 +151,7 @@ After saving and rendering the summary, the skill **terminates**. Do not edit th
 
 ## Phase 8: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing under `## /msf-req` in `~/.pmos/learnings.md` — surprising persona-conditional findings, repeated friction patterns, non-obvious assumptions. Proposing zero learnings is a valid outcome.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing under `## /msf-req` in `~/.pmos/learnings.md` — surprising persona-conditional findings, repeated friction patterns, non-obvious assumptions. Proposing zero learnings is a valid outcome.
 
 ---
 

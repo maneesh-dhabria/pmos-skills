@@ -285,7 +285,7 @@ After all blocks, print a one-paragraph **Session summary** that lists the skill
 
 ## Phase 6: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/reflect` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, output shapes that didn't paste cleanly. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/reflect` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, output shapes that didn't paste cleanly. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
 ## Anti-Patterns
 

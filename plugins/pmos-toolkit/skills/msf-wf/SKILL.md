@@ -260,7 +260,7 @@ Render the executive summary per `../_shared/msf-heuristics.md` "Executive Summa
 
 ## Phase 10: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing under `## /msf-wf` in `~/.pmos/learnings.md` — recurring PSYCH driver patterns, persona-conditional findings PSYCH alone missed, wireframe heuristics that fired repeatedly. Proposing zero learnings is a valid outcome.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing under `## /msf-wf` in `~/.pmos/learnings.md` — recurring PSYCH driver patterns, persona-conditional findings PSYCH alone missed, wireframe heuristics that fired repeatedly. Proposing zero learnings is a valid outcome.
 
 ---
 

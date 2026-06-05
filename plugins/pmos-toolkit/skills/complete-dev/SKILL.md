@@ -750,7 +750,7 @@ If anything failed in Phase 15-16, list the failed remote(s) + suggested manual 
 
 ## Phase 18: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory, i.e. `plugins/${plugin_name}/skills/learnings/learnings-capture.md`) now.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory, i.e. `plugins/${plugin_name}/skills/_shared/learnings-capture.md`) now.
 
 Reflect on whether this session surfaced anything worth capturing under `## /complete-dev` — surprising behaviors, repeated corrections, deploy-norm misdetections, push failures with non-obvious causes. Proposing zero learnings is a valid outcome.
 

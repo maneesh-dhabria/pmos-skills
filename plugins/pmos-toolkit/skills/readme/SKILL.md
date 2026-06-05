@@ -453,7 +453,7 @@ When `scripts/workspace-discovery.sh` reports composition=`monorepo`, §10 orche
 
 ## Phase N: Capture Learnings
 
-This skill is not complete until learnings-capture has run. Read `learnings/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, simulated-reader persona refinements, or platform-adaptation gotchas. Append entries to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill-body wins on conflict.
+This skill is not complete until learnings-capture has run. Read `_shared/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, simulated-reader persona refinements, or platform-adaptation gotchas. Append entries to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill-body wins on conflict.
 
 ---
 

@@ -581,7 +581,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 
 ## Phase 12: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising mock-data realism issues, latency calibration that worked, friction thresholds that need adjustment, a runtime pattern that broke in a specific browser, a `file://` portability gotcha, an atom that turned out to be reusable across features. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens.
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising mock-data realism issues, latency calibration that worked, friction thresholds that need adjustment, a runtime pattern that broke in a specific browser, a `file://` portability gotcha, an atom that turned out to be reusable across features. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens.
 
 ---
 

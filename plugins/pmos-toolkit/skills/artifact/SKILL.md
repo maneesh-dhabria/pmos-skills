@@ -312,7 +312,7 @@ If no workstream is active, skip this phase.
 
 ## Phase 6: Capture Learnings
 
-Read `../learnings/learnings-capture.md` (relative to this skill dir) and follow it. This phase is a **terminal gate** — the skill is not complete until learnings have been processed.
+Read `../_shared/learnings-capture.md` (relative to this skill dir) and follow it. This phase is a **terminal gate** — the skill is not complete until learnings have been processed.
 
 ## Refine Flow (`/artifact refine <path>`)
 
