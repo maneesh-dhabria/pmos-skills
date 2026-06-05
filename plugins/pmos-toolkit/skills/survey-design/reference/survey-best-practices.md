@@ -4,6 +4,14 @@ Loaded on demand by `/survey-design` (Phase 2–3 generation and Phase 4 reviewe
 
 Companion files: `question-antipatterns.md` (the catalog the generator must avoid and the reviewer applies) and `platform-export.md` (per-platform import recipes).
 
+## Contents
+
+- Product fit (evaluate this first) · Scoring rubric (0–100, informational)
+- 1. Survey structure & flow · 2. Question types · 3. Scale design · 4. Length & burden
+- 5. Sampling & audience · 6. Generative vs. evaluative · 7. Reducing bias & error
+- 8. Writing the questions · 9. Pre-testing / piloting · 10. Accessibility & mobile-first
+- 11. Ethics / consent / PII · Sources
+
 ---
 
 ## Product fit (evaluate this first)

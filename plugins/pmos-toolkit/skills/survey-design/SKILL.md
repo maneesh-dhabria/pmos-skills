@@ -22,6 +22,10 @@ These instructions use Claude Code tool names. In other environments:
 
 This skill is a **standalone utility** — it is not a pipeline stage. It writes into `{docs_path}/survey-design/{YYYY-MM-DD}_<slug>/`, never into the `/feature-sdlc` feature folders, and it does **not** run `_shared/pipeline-setup.md` first-run setup (see Phase 0).
 
+## Track Progress
+
+This skill runs many phases (0–9). Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task `in_progress` when you start it and `completed` when it finishes — never batch completions.
+
 ## Reference files (loaded on demand)
 
 The skill loads these from its own `reference/` directory only when the relevant phase needs them — keep them out of working context otherwise (progressive disclosure):
@@ -320,7 +324,7 @@ Write **`export/README.md`** with, per chosen platform: the import steps (Typefo
 
 `git commit -m "survey-design: add <platforms> export for <slug>"` (warn-and-continue if not a git repo). If the user names an unsupported platform: list the supported set and offer the closest match, or just `survey.json` + `survey.html`; Qualtrics is not offered unless the transformer is implemented (E12, FR-65).
 
-## Phase 9 — Summary + capture learnings
+## Phase 9: Summary + Capture Learnings
 
 Print: the run-folder path; the list of commits made (or one line noting commits were skipped because the cwd isn't a git repo); links to every artifact (`survey.json`, `survey.html`, `preview.html`, `index.html`, `survey-eval.md`, `question-eval.md`, `simulation.md`, `export/*`); the view command; and — if the simulated estimate exceeded `time_budget_min` and over-budget questions were kept — a prominent drop-off / overage flag (E10, FR-42). In non-interactive runs, note the `_open_questions.md` path (NFR-06).
 

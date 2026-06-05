@@ -9,6 +9,11 @@ Each entry has a uniform block: **category**, **harm** (why the data is biased o
 
 Category bands: **A** = question-stem framing defects · **B** = respondent-capability violations · **C** = response-option defects · **D** = format & cognitive-load bias · **E** = structure, length & logic.
 
+## Contents
+
+- A. Question-stem framing defects · B. Respondent-capability violations
+- C. Response-option defects · D. Format & cognitive-load bias · E. Structure, length & logic
+
 ---
 
 ## A. Question-stem framing defects

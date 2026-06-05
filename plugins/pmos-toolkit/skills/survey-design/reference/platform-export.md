@@ -4,6 +4,10 @@ Loaded on demand by `/survey-design` Phase 8. The per-platform **type-mapping ta
 
 `survey.json` question `type` enum referenced below: `single_select`, `multi_select`, `forced_choice_grid`, `rating`, `nps`, `dichotomous`, `open_short`, `open_long`, `ranking`, `matrix`, `constant_sum`, `multi_field_open`, `statement`.
 
+## Contents
+
+- Typeform · SurveyMonkey · Google Forms · Qualtrics (stretch) · Microsoft Forms (not supported) · Sources
+
 > **`multi_field_open` — labeled multi-input.** A shared stem + one single-line free-text input per `fields[]` entry (`{id,label,placeholder}`). Some platforms have a native "multiple textboxes" question that round-trips the field labels; others don't, and the canonical downgrade is **N short-answer items preceded by a section-header / statement block** naming the original grouped question, with each `field.label` becoming a separate item title. Per-platform: SurveyMonkey → **native** (`open_ended` / `multi`, `answers.rows[]` = the field labels); Qualtrics → **native** (`Matrix` / `TE` text-entry matrix, `Answers` = the field labels); Typeform → **downgrade** (no labeled-multi-input field); Google Forms → **downgrade** (no native multi-textbox item).
 
 > **Qualtrics is documented here for completeness, but the v1 transformer is a stretch.** If no `survey.qsf` transformer ships, the Phase-8 `AskUserQuestion` must not offer Qualtrics as a choice. The QSF section below lets a later iteration add it without re-researching. Microsoft Forms is intentionally **not** supported — no usable programmatic import path (see the note at the end).
