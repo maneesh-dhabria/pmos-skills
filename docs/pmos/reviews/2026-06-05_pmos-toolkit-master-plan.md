@@ -90,10 +90,10 @@ These get value from the binary `skill-eval` rubric. I implement; we run `skill-
 
 ## Wave 6 — Close-out
 
-| Task | Item | Owner |
-|---|---|---|
-| T6.1 | **W14** decide inline-block sync posture (add `tools/sync-inline-blocks.sh` or document the tax) | `[you-decide]` + `[me]` |
-| T6.2 | Final changelog + confirm both plugins' versions/tags pushed to all remotes | `[you-authorize]` |
+| Task | Item | Owner | Status |
+|---|---|---|---|
+| T6.1 | **W14** decide inline-block sync posture (add `tools/sync-inline-blocks.sh` or document the tax) | `[you-decide]` + `[me]` | ✅ DONE — **decided: document the tax, no propagate tool** (block is ~27 lines, sentinel-guarded, rarely changes; a body-rewriter risks more than the re-paste saves). Posture documented in `CLAUDE.md ## Skill-authoring conventions` + the lint header. Exemptions are now **self-documenting markers**: added `<!-- non-interactive: delegated … -->` (alias forwards to the owning skill) alongside the existing `refused`; taught `lint-non-interactive-inline.sh` to skip both → the 2 aliases (`skill-sdlc`, `prototype-sdlc`) are honestly exempt. **Also fixed the 3 real gaps the "baseline 5" was masking:** inserted the canonical block into `architecture`/`comments`/`ideate` (real `--non-interactive` support) and classified their 6 real prompts. Result: `lint-non-interactive-inline` **5→0 (PASS)**; `audit-recommended` **37→31** (remaining = the platform-adaptation "No `AskUserQuestion` tool" note in each skill — the accepted extractor false-positive, not real unclassified prompts). **Follow-up (noted):** mac-health (now in pmos-utilities) still carries the pmos-toolkit block verbatim with a wrong stderr prefix — the deferred non-interactive-framework-port decision from T4.1. |
+| T6.2 | Final changelog + confirm both plugins' versions/tags pushed to all remotes | `[you-authorize]` | ⏸ release-coupled — runs inside `/complete-dev` when you authorize the batched release (Waves 1–6). |
 
 ---
 

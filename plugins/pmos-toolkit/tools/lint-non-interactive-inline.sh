@@ -7,7 +7,17 @@
 # skill except those that carry a `<!-- non-interactive: refused` marker).
 #
 # Canonical source: skills/_shared/non-interactive.md (Section 0)
-# Required in:      every skills/<name>/SKILL.md unless refused.
+# Required in:      every skills/<name>/SKILL.md unless it carries a
+#                   `<!-- non-interactive: refused` or `<!-- non-interactive: delegated`
+#                   marker (refused = errors under --non-interactive; delegated = a thin
+#                   alias that forwards to another skill which owns the contract).
+#
+# W14 posture (DECIDED 2026-06-05, master-plan T6.1): the contract is HAND-MAINTAINED,
+# not auto-propagated. The block is ~27 lines, sentinel-guarded, and changes rarely; a
+# body-rewriting "sync" tool would carry more corruption risk than the small re-paste tax
+# it removes. This lint DETECTS drift; fixes are manual (copy the canonical block between
+# the sentinels). Exemptions are explicit, self-documenting markers in the skill files
+# (refused / delegated) — never a hidden allowlist in this script.
 #
 # Exit codes:
 #   0 — all supported skills match canonical
@@ -31,7 +41,9 @@ for d in "${PLUGIN_ROOT}"/skills/*/; do
     name=$(basename "$d")
     [[ "$name" == "_shared" || "$name" == "learnings" ]] && continue
     [[ ! -f "$d/SKILL.md" ]] && continue
-    grep -qE '^[[:space:]]*<!-- non-interactive: refused' "$d/SKILL.md" && continue
+    # Exempt (self-documenting markers in the skill file): refused = errors under
+    # --non-interactive; delegated = thin alias forwarding to a skill that owns the contract.
+    grep -qE '^[[:space:]]*<!-- non-interactive: (refused|delegated)' "$d/SKILL.md" && continue
     SUPPORTED_SKILLS+=("$name")
 done
 

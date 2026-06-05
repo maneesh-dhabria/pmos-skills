@@ -7,6 +7,8 @@ argument-hint: "[--tier N] [--resume] [--no-worktree] [--no-ideate] [--format ht
 
 # /prototype-sdlc
 
+<!-- non-interactive: delegated to /feature-sdlc — this alias issues no structured prompt of its own and carries no inline contract block; /feature-sdlc owns the non-interactive contract. -->
+
 This skill is a thin alias. It runs no logic of its own.
 
 Immediately invoke `/pmos-toolkit:feature-sdlc` with the arguments `prototype` followed by the verbatim arguments passed to `/prototype-sdlc` — e.g.

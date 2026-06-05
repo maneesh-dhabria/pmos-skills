@@ -72,20 +72,56 @@ These instructions use Claude Code tool names. In other environments:
 
 Phases 0 / 5 / 7 / 8 (setup, optional refine, handoff, capture-learnings) wrap the core loop. Phase 3 (Amplify) is opt-in for `new`/`extend` ideas and auto-skipped for `fix`.
 
+## Non-interactive mode
+
+This skill honours `--non-interactive` per the canonical contract inlined below (byte-identical to `_shared/non-interactive.md`; audited by `tools/lint-non-interactive-inline.sh`). The runtime classifier reads each structured prompt it is about to issue; static auditing lives in `tools/audit-recommended.sh`.
+
+<!-- non-interactive-block:start -->
+1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
+   - `cli_flag` is `--non-interactive` or `--interactive` parsed from this skill's argument string. Last flag wins on conflict (FR-01.1).
+   - `parent_marker` is set if the original prompt's first line matches `^\[mode: (interactive|non-interactive)\]$` (FR-06.1).
+   - `settings.default_mode` is `.pmos/settings.yaml :: default_mode` if present and one of `interactive`/`non-interactive`. Unknown values → warn on stderr `settings: invalid default_mode value '<v>'; ignoring` and fall through (FR-01.3).
+   - If `.pmos/settings.yaml` is malformed (not parseable as YAML, or missing `version`): print to stderr `settings.yaml malformed; fix and re-run` and exit 64 (FR-01.5).
+   - On Phase 0 entry, always print to stderr exactly: `mode: <mode> (source: <source>)` (FR-01.2).
+
+2. **Per-checkpoint classifier.** Before issuing any `AskUserQuestion` call, classify it (FR-02):
+   - The defer-only tag, if present, is the literal previous non-empty line: `<!-- defer-only: <reason> -->` where `<reason>` ∈ {`destructive`, `free-form`, `ambiguous`} (FR-02.5).
+   - Decision (in order): tag adjacent → DEFER; multiSelect with 0 Recommended → DEFER; 0 options OR no option label ends in `(Recommended)` → DEFER; else AUTO-PICK the (Recommended) option (FR-02.2).
+
+3. **Buffer + flush.** Maintain an append-only OQ buffer in conversation memory. On each AUTO-PICK or DEFER classification, append one entry per the schema in spec §11.2. At end-of-skill (or in a caught error before exit), flush (FR-03):
+   - Primary artifact is single Markdown → append `## Open Questions (Non-Interactive Run)` section with one fenced YAML block per entry; update prose frontmatter (`**Mode:**`, `**Run Outcome:**`, `**Open Questions:** N` where N counts deferred only — see FR-03.4) (FR-03.1).
+   - Skill produces multiple artifacts → write a single `_open_questions.md` aggregator at the artifact directory root; primary artifact's frontmatter `**Open Questions:** N — see _open_questions.md` (FR-03.5).
+   - Primary artifact is non-MD (SVG, etc.) → write sidecar `<artifact>.open-questions.md` (FR-03.2).
+   - No persistent artifact (chat-only) → emit buffer to stderr at end-of-run as a single block prefixed `--- OPEN QUESTIONS ---` (FR-03.3).
+   - Mid-skill error → flush partial buffer under heading `## Open Questions (Non-Interactive Run — partial; skill errored)`; set `**Run Outcome:** error`; exit 1 (E13).
+
+4. **Subagent dispatch.** When dispatching a child skill via Task tool or inline invocation, prepend the literal first line: `[mode: <current-mode>]\n` to the child's prompt (FR-06).
+
+5. **Call-site auditing (CI only).** This runtime classifier reads the call it is about to make — it does not run awk. Static/offline auditing of `AskUserQuestion` call sites across SKILL.md files is performed by `tools/audit-recommended.sh`, which sources the shared call-site extractor from Section D of this file (`_shared/non-interactive.md`). Runtime and audit therefore share one decision contract without inlining the extractor into every skill (FR-02.6).
+
+6. **Refusal check.** If this SKILL.md contains a `<!-- non-interactive: refused; ... -->` marker (regex: `<!--[[:space:]]*non-interactive:[[:space:]]*refused`), and `mode` resolved to `non-interactive`: emit refusal per Section A and exit 64 (FR-07).
+
+7. **Pre-rollout BC.** If the `--non-interactive` argument is present BUT this SKILL.md does NOT contain the `<!-- non-interactive-block:start -->` marker (i.e., this skill hasn't been rolled out yet): emit `WARNING: --non-interactive not yet supported by /<skill>; falling back to interactive.` to stderr; continue in interactive mode (FR-08).
+
+8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
+<!-- non-interactive-block:end -->
+
 ## Phase 0: Setup
 
 1. **Read `.pmos/settings.yaml`.** If missing → run `_shared/pipeline-setup.md` §A first-run setup before proceeding. Set `{docs_path}` from `settings.docs_path`.
 2. **Resolve `output_format`.** Default `html`. `--format <html|md|both>` overrides settings; last flag wins. Print to stderr exactly once: `output_format: <value> (source: <cli|settings|default>)`.
 3. **Read `~/.pmos/learnings.md`** if present; note any entries under `## /ideate` and factor them into your approach. Skill body wins on conflict; surface conflicts to the user.
 4. **Resolve mode** (interactive / non-interactive) per the canonical `_shared/non-interactive.md` contract — `cli_flag > parent_marker > settings.default_mode > "interactive"`. Print `mode: <m> (source: <s>)` to stderr.
-5. **Derive slug** from the seed per `reference/slug-derivation.md` (kebab-case, ≤4 words, drop stopwords). `--slug <custom>` overrides. Surface the derived slug via `AskUserQuestion` (Recommended: use it; alternative: edit; Cancel) — single-call confirmation, no chain.
+5. **Derive slug** from the seed per `reference/slug-derivation.md` (kebab-case, ≤4 words, drop stopwords). `--slug <custom>` overrides. Surface the derived slug via `AskUserQuestion` — **Use it (Recommended)** / Edit / Cancel — single-call confirmation, no chain.
 6. **Resume detection.** If `--resume <path>` was passed, read the artifact's `<meta name="pmos:ideate-phase" content="...">` tag; jump to that phase. If `--resume` was given but the file is missing → abort with `--resume specified but <path> does not exist`. Without `--resume`, if `{docs_path}/ideate/{YYYY-MM-DD}_<slug>.html` already exists, ask: Overwrite / Pick-new-slug-with-suffix / Cancel.
 
 ## Phase 1: Frame
 
 Goal: pin **HMW + JTBD + success signal** in one short pass, then classify the idea so the Expand phase auto-picks the right techniques.
 
+<!-- defer-only: free-form -->
 1. **Auto-derive from the seed.** If the seed contains a verb + object + audience signal, draft HMW + JTBD + success signal yourself. Otherwise emit one consolidated `AskUserQuestion` with up to 4 sub-questions to gather them — one question per missing field.
+<!-- defer-only: ambiguous -->
 2. **Classify idea-type** per `reference/idea-type-classifier.md` — first-match-wins regex on the seed: `new` / `extend` / `fix` / ambiguous. Ambiguous → issue one disambiguation `AskUserQuestion`.
 3. **Announce the technique pair** as a single chat line (no structured ask): `Using <technique1> + <technique2> because this looks like a <type> — override?`. User may reply with a free-form override naming a different pair from the supported set (HMW riffs, SCAMPER, Crazy 8s, First Principles, Analogous Inspiration, Premortem-as-generator, Inversion), or "ok" / no reply / continue to accept.
 
@@ -137,7 +173,7 @@ For **each finalist (or reframe)** (per `reference/pressure-test-battery.md`):
 
 ## Phase 5: Refine (optional)
 
-Default: skip. When `--refine` is passed OR the user opts in via an end-of-Phase-4 `AskUserQuestion` (Recommended Skip), rewrite the artifact for voice consistency, tighten the TL;DR, and cross-link failure-modes ↔ assumptions where they reinforce each other.
+Default: skip. When `--refine` is passed OR the user opts in via an end-of-Phase-4 `AskUserQuestion` — **Skip (Recommended)** / Refine — rewrite the artifact for voice consistency, tighten the TL;DR, and cross-link failure-modes ↔ assumptions where they reinforce each other.
 
 Most ideas don't earn the polish cost — the Phase-4 working artifact is itself shippable. Run this only when the artifact will be shared widely or attached to a written brief.
 
