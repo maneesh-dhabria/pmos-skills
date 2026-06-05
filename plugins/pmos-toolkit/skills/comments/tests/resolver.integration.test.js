@@ -53,16 +53,21 @@ assert.strictEqual(resolver.MAX_CLARIFY, 1, "MAX_CLARIFY must be 1 (FR-29)");
 assert.strictEqual(resolver.CURRENT_SCHEMA_VERSION, 1, "CURRENT_SCHEMA_VERSION must be 1");
 
 // ---- makeFixture ----
-// Clones artifact.html and sidecar.template.json into a fresh tmp dir.
-// Returns { artifactPath, sidecarPath } ready for the resolver.
+// v2.58.0 — sidecar retired; threads live inline in the artifact. sidecar.template.json
+// remains the thread DATA source: we embed its threads into the artifact's inline
+// pmos-comments block. Returns { artifactPath } ready for the resolver.
 function makeFixture(tmpDir) {
   const artifactPath = path.join(tmpDir, "artifact.html");
-  const sidecarPath = path.join(tmpDir, "artifact.comments.json");
-  const html = fs.readFileSync(FIXTURE_HTML, "utf8");
-  const template = fs.readFileSync(FIXTURE_SIDECAR_TEMPLATE, "utf8");
+  const baseHtml = fs.readFileSync(FIXTURE_HTML, "utf8");
+  const template = JSON.parse(fs.readFileSync(FIXTURE_SIDECAR_TEMPLATE, "utf8"));
+  const html = resolver._internal._injectCommentsBlock(baseHtml, {
+    schema: typeof template.schema_version === "number" ? template.schema_version : 1,
+    version: 0,
+    generated_at: "2026-05-24T00:00:00Z",
+    threads: Array.isArray(template.threads) ? template.threads : [],
+  });
   fs.writeFileSync(artifactPath, html, "utf8");
-  fs.writeFileSync(sidecarPath, template, "utf8");
-  return { artifactPath, sidecarPath };
+  return { artifactPath };
 }
 
 function makeTmp(prefix) {
@@ -194,7 +199,7 @@ function makeDispatch(originalHtml) {
 async function testConfirmEach() {
   const tmp = makeTmp("t17a");
   try {
-    const { artifactPath, sidecarPath } = makeFixture(tmp);
+    const { artifactPath } = makeFixture(tmp);
     const html = fs.readFileSync(artifactPath, "utf8");
     const { dispatchSubagent, calls, log } = makeDispatch(html);
     const { runGit, gitCalls } = makeRunGit(tmp);
@@ -258,13 +263,13 @@ async function testConfirmEach() {
     assert.strictEqual(addCalls.length, 1, "(a) git add called exactly once");
     assert.deepStrictEqual(
       addCalls[0],
-      ["add", artifactPath, sidecarPath],
-      "(a) git add args = [artifact, sidecar]"
+      ["add", artifactPath],
+      "(a) git add args = [artifact]"
     );
     assert.strictEqual(gitCalls.filter((a) => a[0] === "commit").length, 0, "(a) never git commit");
 
     // Final sidecar on disk
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const resolvedThreads = onDisk.threads.filter((t) => t.status === "resolved");
     const openThreads = onDisk.threads.filter((t) => t.status === "open");
     assert.strictEqual(resolvedThreads.length, 4, "(a) 4 threads resolved in final sidecar");
@@ -352,7 +357,7 @@ async function testConfirmEach() {
 async function testBatch() {
   const tmp = makeTmp("t17b");
   try {
-    const { artifactPath, sidecarPath } = makeFixture(tmp);
+    const { artifactPath } = makeFixture(tmp);
     const html = fs.readFileSync(artifactPath, "utf8");
     const { dispatchSubagent, calls, log } = makeDispatch(html);
     const { runGit, gitCalls } = makeRunGit(tmp);
@@ -416,7 +421,7 @@ async function testBatch() {
     );
 
     // Final sidecar: T_happy + T_idempotent resolved; T_already_resolved was already resolved
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const resolvedThreads = onDisk.threads.filter((t) => t.status === "resolved");
     assert.strictEqual(resolvedThreads.length, 3, "(b) 3 threads resolved in final sidecar (T_happy + T_idempotent + T_already_resolved)");
 
@@ -444,7 +449,7 @@ async function testBatch() {
 async function testAuto() {
   const tmp = makeTmp("t17c");
   try {
-    const { artifactPath, sidecarPath } = makeFixture(tmp);
+    const { artifactPath } = makeFixture(tmp);
     const html = fs.readFileSync(artifactPath, "utf8");
     const { dispatchSubagent, calls } = makeDispatch(html);
     const { runGit, gitCalls } = makeRunGit(tmp);
@@ -494,7 +499,7 @@ async function testAuto() {
     assert.strictEqual(out.total_open, 7, "(c) total_open = 7");
 
     // Final sidecar
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const resolvedIds = onDisk.threads.filter((t) => t.status === "resolved").map((t) => t.id).sort();
     assert.deepStrictEqual(
       resolvedIds,
@@ -530,7 +535,7 @@ async function testAuto() {
 async function testNonInteractive() {
   const tmp = makeTmp("t17d");
   try {
-    const { artifactPath, sidecarPath } = makeFixture(tmp);
+    const { artifactPath } = makeFixture(tmp);
     const html = fs.readFileSync(artifactPath, "utf8");
     const { dispatchSubagent, calls } = makeDispatch(html);
     const { runGit, gitCalls } = makeRunGit(tmp);
@@ -579,7 +584,7 @@ async function testNonInteractive() {
     assert.strictEqual(out.resolved, 2, "(d) resolved = 2 (T_happy + T_idempotent short-circuit)");
 
     // Final sidecar: T_clarify status stays "open"
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const tClarify = onDisk.threads.find((t) => t.id === "T_clarify");
     assert.strictEqual(tClarify.status, "open", "(d) T_clarify status stays open (deferred)");
 

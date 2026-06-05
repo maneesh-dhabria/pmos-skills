@@ -64,7 +64,6 @@ function makeRunGit(tmpDir) {
 // and a sidecar with the given threads.
 function makeFixture(tmpDir, threads) {
   const artifactPath = path.join(tmpDir, "02_spec_mini.html");
-  const sidecarPath = path.join(tmpDir, "02_spec_mini.comments.json");
 
   let html = fs.readFileSync(FIXTURE_HTML, "utf8");
   if (!/name=["']pmos:skill["']/.test(html)) {
@@ -73,15 +72,18 @@ function makeFixture(tmpDir, threads) {
       '<meta name="pmos:skill" content="$1">'
     );
   }
-  fs.writeFileSync(artifactPath, html, "utf8");
 
-  const sidecar = {
-    schema_version: 1,
-    lineage: "22222222-2222-4222-8222-222222222222",
+  // v2.58.0 — threads live inline in the artifact (sidecar retired). Embed the
+  // block and return the with-block html so dispatch mocks that echo it back
+  // as applied_artifact preserve the block.
+  html = resolver._internal._injectCommentsBlock(html, {
+    schema: 1,
+    version: 0,
+    generated_at: "2026-05-24T00:00:00Z",
     threads: threads,
-  };
-  fs.writeFileSync(sidecarPath, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
-  return { artifactPath, sidecarPath, html };
+  });
+  fs.writeFileSync(artifactPath, html, "utf8");
+  return { artifactPath, html };
 }
 
 // -----------------------------------------------------------------------
@@ -91,7 +93,7 @@ function makeFixture(tmpDir, threads) {
 async function testAutoAllConfident() {
   const tmp = makeTmp("t14a");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_A1",
         id_anchor: "problem",
@@ -154,7 +156,7 @@ async function testAutoAllConfident() {
     assert.strictEqual(out.resolved, 3, "(a) all 3 threads resolved");
     assert.strictEqual(out.skipped.length, 0, "(a) no skips");
 
-    const onDiskSidecar = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDiskSidecar = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     for (const t of onDiskSidecar.threads) {
       assert.strictEqual(t.status, "resolved", "(a) thread " + t.id + " status=resolved");
     }
@@ -180,7 +182,7 @@ async function testAutoAllConfident() {
 async function testAutoWithClarification() {
   const tmp = makeTmp("t14b");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_B1",
         id_anchor: "problem",
@@ -266,7 +268,7 @@ async function testAutoWithClarification() {
     assert.strictEqual(out.resolved, 2, "(b) both threads resolved");
     assert.strictEqual(out.skipped.length, 0, "(b) no skips");
 
-    const onDiskSidecar = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDiskSidecar = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     for (const t of onDiskSidecar.threads) {
       assert.strictEqual(t.status, "resolved", "(b) thread " + t.id + " status=resolved");
     }
@@ -287,7 +289,7 @@ async function testAutoWithClarification() {
 async function testNonInteractiveDeferAmbiguous() {
   const tmp = makeTmp("t14c");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_C1",
         id_anchor: "problem",
@@ -359,7 +361,7 @@ async function testNonInteractiveDeferAmbiguous() {
     assert.strictEqual(out.deferred.length, 1, "(c) exactly 1 deferred thread");
     assert.strictEqual(out.deferred[0], "T_C3", "(c) T_C3 is the deferred thread");
 
-    const onDiskSidecar = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDiskSidecar = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const t1 = onDiskSidecar.threads.find((t) => t.id === "T_C1");
     const t2 = onDiskSidecar.threads.find((t) => t.id === "T_C2");
     const t3 = onDiskSidecar.threads.find((t) => t.id === "T_C3");
@@ -390,7 +392,7 @@ async function testNonInteractiveDeferAmbiguous() {
 async function testNonInteractiveSummaryListsDeferred() {
   const tmp = makeTmp("t14d");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_D1",
         id_anchor: "problem",

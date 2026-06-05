@@ -25,10 +25,29 @@ const QUOTE_MIN_SCORE = 0.5;     // §14.1 acceptance floor for quote-fallback
 const PROXIMITY_WINDOW = 200;    // chars before/after for prefix/suffix bias
 const PROXIMITY_BONUS = 0.1;     // score bump per side when present
 
+// Inline comments block (v2.58.0). Threads — including each thread's own
+// quote_anchor.text — are persisted in this block INSIDE the artifact HTML.
+// Anchor search must exclude it: otherwise a thread's stored quote satisfies
+// its own anchor (a genuinely-orphaned thread would resolve onto the JSON
+// payload, not the prose). The block always sits after the body content.
+const COMMENTS_BLOCK_RE = /<!-- pmos-comments:start -->[\s\S]*?<!-- pmos-comments:end -->/;
+
 // ---------- helpers ----------
 
 function _escapeRegex(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Length-preserving mask of the inline comments block: replace it with spaces
+// so id-first, quote-fallback, and SVG scans never match its JSON payload,
+// while every byte offset outside the block stays valid for downstream slicing.
+// No-op when the artifact carries no block (in-memory test HTML, foreign files).
+function _maskCommentsBlock(html) {
+  const m = String(html).match(COMMENTS_BLOCK_RE);
+  if (!m) return String(html);
+  const start = m.index;
+  const len = m[0].length;
+  return html.slice(0, start) + " ".repeat(len) + html.slice(start + len);
 }
 
 // Find a containing <section> bounds for a hit offset, if any. Returns
@@ -271,7 +290,10 @@ function _resolveSvg(html, diagram) {
 
 function resolveAnchor(params) {
   const anchor = params && params.anchor;
-  const html = (params && params.artifactHtml) || "";
+  // Mask the inline comments block before any strategy runs (see
+  // _maskCommentsBlock). Length-preserving, so returned offsets index the real
+  // artifact identically — the resolver slices the unmasked HTML by them.
+  const html = _maskCommentsBlock((params && params.artifactHtml) || "");
   // `threshold`/`distance` params accepted for back-compat but unused — Bitap
   // dropped per T7. Substring-contains is the sole fuzzy path.
 

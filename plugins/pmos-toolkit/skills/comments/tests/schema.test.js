@@ -84,7 +84,6 @@ function makeRunGit(tmpDir) {
 
 function makeFixture(tmpDir, threads, schemaVersion) {
   const artifactPath = path.join(tmpDir, "02_spec_mini.html");
-  const sidecarPath = path.join(tmpDir, "02_spec_mini.comments.json");
 
   let html = fs.readFileSync(FIXTURE_HTML, "utf8");
   if (!/name=["']pmos:skill["']/.test(html)) {
@@ -93,16 +92,19 @@ function makeFixture(tmpDir, threads, schemaVersion) {
       '<meta name="pmos:skill" content="$1">'
     );
   }
-  fs.writeFileSync(artifactPath, html, "utf8");
 
+  // v2.58.0 — threads + schema live inline (sidecar retired). The inline
+  // `schema` field is what the resolver refuse-loads on (it is the old sidecar
+  // `schema_version`); the unrelated `version` field is the concurrency counter.
   const sv = typeof schemaVersion === "number" ? schemaVersion : 1;
-  const sidecar = {
-    schema_version: sv,
-    lineage: "44444444-4444-4444-8444-444444444444",
+  html = resolver._internal._injectCommentsBlock(html, {
+    schema: sv,
+    version: 0,
+    generated_at: "2026-05-24T00:00:00Z",
     threads: threads,
-  };
-  fs.writeFileSync(sidecarPath, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
-  return { artifactPath, sidecarPath, html };
+  });
+  fs.writeFileSync(artifactPath, html, "utf8");
+  return { artifactPath, html };
 }
 
 // -------------------------------------------------------------------------
@@ -141,7 +143,7 @@ function testSemanticMatchScoreUnit() {
 async function testAnchorOrphanedFromSubagent() {
   const tmp = makeTmp("t16a");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_AO",
         id_anchor: "nonexistent-anchor-xyz",
@@ -209,7 +211,7 @@ async function testAnchorOrphanedFromSubagent() {
     );
 
     // T_AO's thread status must stay "open" on disk.
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const aoThread = onDisk.threads.find((t) => t.id === "T_AO");
     assert.ok(aoThread, "(a) T_AO thread must exist on disk");
     assert.strictEqual(aoThread.status, "open", "(a) T_AO thread status must stay open");
@@ -245,7 +247,7 @@ async function testAnchorOrphanedFromSubagent() {
 async function testAgentJudgedInfeasible() {
   const tmp = makeTmp("t16b");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_JI",
         id_anchor: "problem",
@@ -295,7 +297,7 @@ async function testAgentJudgedInfeasible() {
     );
 
     // thread status stays open on disk.
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const jiThread = onDisk.threads.find((t) => t.id === "T_JI");
     assert.strictEqual(jiThread.status, "open", "(b) T_JI thread status must stay open");
 
@@ -321,7 +323,7 @@ async function testAgentJudgedInfeasible() {
 async function testAgentErrored() {
   const tmp = makeTmp("t16c");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_AE",
         id_anchor: "problem",
@@ -367,7 +369,7 @@ async function testAgentErrored() {
     );
 
     // thread status stays open on disk.
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const aeThread = onDisk.threads.find((t) => t.id === "T_AE");
     assert.strictEqual(aeThread.status, "open", "(c) T_AE thread status must stay open");
 
@@ -393,7 +395,7 @@ async function testAgentErrored() {
 async function testEditConflicted() {
   const tmp = makeTmp("t16d");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_EC",
         id_anchor: "problem",
@@ -459,7 +461,7 @@ async function testEditConflicted() {
     );
 
     // thread status stays open on disk.
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const ecThread = onDisk.threads.find((t) => t.id === "T_EC");
     assert.strictEqual(ecThread.status, "open", "(d) T_EC thread status must stay open");
 
@@ -482,7 +484,7 @@ async function testIdempotencyShortCircuit() {
     // The fixture's problem section contains:
     // "attach inline review comments to generated HTML artifacts"
     // quote_anchor strategy returns that exact text as the anchored region.
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_IDEM",
         id_anchor: null,
@@ -535,7 +537,7 @@ async function testIdempotencyShortCircuit() {
     assert.strictEqual(out.resolved, 1, "(e1) resolved count must be 1 (short-circuit no-op)");
 
     // Thread status must be "resolved" on disk.
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const t = onDisk.threads[0];
     assert.strictEqual(t.status, "resolved", "(e1) thread status must be 'resolved' after short-circuit");
 
@@ -565,7 +567,7 @@ async function testIdempotencyMidRange() {
     //   "attach"(present), "inline"(present), "review"(present),
     //   "missing1"(absent), "missing2"(absent)
     //   => 3/5 = 0.60, which is the 60% boundary → no short-circuit.
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_MID",
         id_anchor: null,
@@ -631,7 +633,7 @@ async function testIdempotencyLowScore() {
     // Anchored region = "attach inline review comments to generated HTML artifacts"
     // Body keywords: "refactor"(absent), "database"(absent), "schema"(absent),
     //   "migration"(absent), "strategy"(absent) → 0/5 = 0.0, well < 0.60.
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_LOW",
         id_anchor: null,
@@ -722,7 +724,7 @@ async function testSchemaVersionRefuse() {
 async function testSchemaVersionPassthrough() {
   const tmp = makeTmp("t16sv");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_SV",
         id_anchor: "problem",

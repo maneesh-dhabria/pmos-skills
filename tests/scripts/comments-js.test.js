@@ -17,21 +17,12 @@ const COMMENTS_PATH = path.join(
 const C = require(COMMENTS_PATH);
 
 let passed = 0, failed = 0;
-const _pending = [];
-function test(name, fn) {
-  try {
-    const r = fn();
-    if (r && typeof r.then === 'function') {
-      _pending.push(r.then(
-        () => { console.log(`  ok  ${name}`); passed++; },
-        (e) => { console.log(`  FAIL ${name}\n       ${e.stack || e.message}`); failed++; }
-      ));
-    } else {
-      console.log(`  ok  ${name}`); passed++;
-    }
-  }
-  catch (e) { console.log(`  FAIL ${name}\n       ${e.stack || e.message}`); failed++; }
-}
+// Tests are QUEUED and run sequentially (see runner at end of file). Sequential
+// execution is required: many cases mutate shared globals (document, window,
+// fetch, location) and clean them up at the end — running async cases
+// concurrently would interleave those mutations across tests.
+const _tests = [];
+function test(name, fn) { _tests.push({ name: name, fn: fn }); }
 
 const V4_UUID = '11111111-1111-4111-8111-111111111111';
 
@@ -192,6 +183,10 @@ class StubNode {
     this.dataset = {};
     this.value = '';
   }
+  // Mirror the real DOM: assigning .className syncs classList (and vice-versa),
+  // so `.pmos-foo` selectors find nodes created via `el.className = 'pmos-foo'`.
+  get className() { return Array.from(this.classList._set).join(' '); }
+  set className(v) { this.classList._set = new Set(String(v == null ? '' : v).split(/\s+/).filter(Boolean)); }
   appendChild(c) { c.parentNode = this; this.children.push(c); return c; }
   insertBefore(newNode, refNode) {
     if (refNode == null) { return this.appendChild(newNode); }
@@ -335,224 +330,117 @@ test('(T7-b) onFloatingButtonClick opens .pmos-side-panel', () => {
   delete global.document; delete global.window;
 });
 
-// ---------- (T7-c) submitThread calls writeSidecar with new thread appended ----------
-test('(T7-c) submitThread appends thread + invokes writeSidecar', () => {
+// ---------- (T7-c) postSubmit POSTs the appended thread to /save ----------
+// v2.58.0: the FSA writeSidecar path was removed — persistence is exclusively
+// the optimistic-concurrency POST /save flow (FR-16/FR-17).
+test('(T7-c) postSubmit POSTs appended thread to /save with expected_version', async () => {
   const doc = makeStubDom();
   global.document = doc;
   global.window = { document: doc, getSelection: () => null };
-  const Cx = freshC();
   let captured = null;
-  const fakeHandle = { __fake: true };
-  Cx.mount({
-    artifactPath: '/foo.html',
-    lineage: '11111111-1111-4111-8111-111111111111',
-    dirHandle: fakeHandle,
-    _writeSidecar: (sidecar, handle) => { captured = { sidecar, handle }; return Promise.resolve(); },
-    _fsaFallbackMode: false   // T7-c: force FSA-available path
-  });
-  const anchor = { quote_hash: 'deadbeefdeadbeef', context_before: 'p', context_after: 's' };
-  Cx.submitThread({
-    anchor: { id_anchor: 'overview', quote_anchor: anchor },
+  global.fetch = (url, opts) => {
+    captured = { url, opts };
+    return Promise.resolve({
+      status: 200, ok: true,
+      json: () => Promise.resolve({ version: 1, generated_at: '2026-01-02T00:00:00Z' })
+    });
+  };
+  const Cx = freshC();
+  const res = await Cx.postSubmit({
+    anchor: { id_anchor: 'overview', quote_anchor: { quote_hash: 'deadbeefdeadbeef', context_before: 'p', context_after: 's' } },
     body: 'New comment',
     author: 'tester'
   });
-  assert.ok(captured, 'writeSidecar invoked');
-  assert.strictEqual(captured.handle, fakeHandle, 'handle threaded through');
-  assert.ok(Array.isArray(captured.sidecar.threads), 'sidecar has threads');
-  assert.strictEqual(captured.sidecar.threads.length, 1, 'one thread appended');
-  assert.strictEqual(captured.sidecar.threads[0].messages[0].body, 'New comment');
-  assert.strictEqual(captured.sidecar.schema_version, 1);
-  delete global.document; delete global.window;
+  assert.ok(captured, 'fetch invoked');
+  assert.strictEqual(captured.url, '/save', 'POSTs to /save');
+  assert.strictEqual(captured.opts.method, 'POST', 'method is POST');
+  const sent = JSON.parse(captured.opts.body);
+  assert.strictEqual(sent.expected_version, 0, 'expected_version = current version (0)');
+  assert.ok(Array.isArray(sent.payload.threads), 'payload carries threads');
+  assert.strictEqual(sent.payload.threads.length, 1, 'one thread appended');
+  assert.strictEqual(sent.payload.threads[0].messages[0].body, 'New comment');
+  assert.strictEqual(sent.payload.schema, 1, 'payload schema = 1');
+  assert.ok(res.ok, 'postSubmit resolves ok on 200');
+  assert.strictEqual(res.version, 1, 'version advances to the server value');
+  delete global.document; delete global.window; delete global.fetch;
 });
 
-// ---------- (T7-d) writeSidecar call-order against fake FSA ----------
-test('(T7-d) writeSidecar invokes requestPermission → getFileHandle → createWritable → write → close in order', async () => {
+// ---------- (T7-d) postSubmit 409 → optimistic-concurrency conflict banner ----------
+// v2.58.0: replaces the FSA writeSidecar call-order test. The write path now
+// surfaces a stale-version conflict (FR-17) via the conflict banner.
+test('(T7-d) postSubmit 409 renders the conflict banner and returns ok:false', async () => {
   const doc = makeStubDom();
   global.document = doc;
   global.window = { document: doc, getSelection: () => null };
+  global.fetch = () => Promise.resolve({
+    status: 409, ok: false,
+    json: () => Promise.resolve({ current_version: 7 })
+  });
   const Cx = freshC();
-  const calls = [];
-  const writable = {
-    write: (data) => { calls.push(['write', data]); return Promise.resolve(); },
-    close: () => { calls.push(['close']); return Promise.resolve(); }
-  };
-  const fileHandle = {
-    createWritable: (opts) => { calls.push(['createWritable', opts]); return Promise.resolve(writable); }
-  };
-  const dirHandle = {
-    requestPermission: (opts) => { calls.push(['requestPermission', opts]); return Promise.resolve('granted'); },
-    getFileHandle: (name, opts) => { calls.push(['getFileHandle', name, opts]); return Promise.resolve(fileHandle); }
-  };
-  Cx.mount({ artifactPath: '/spec.html', _fsaFallbackMode: false }); // T7-d: force FSA-available path
-  // Pin the doc reference on state so _doc() sees it even after global.document is deleted.
+  // Pin the doc reference so _doc() renders the banner into our stub.
   Cx._state._docRef = doc;
-  const sidecar = {
-    schema_version: 1,
-    lineage: '11111111-1111-4111-8111-111111111111',
-    threads: []
-  };
-  await Cx.writeSidecar(sidecar, dirHandle);
-  const order = calls.map(c => c[0]);
-  assert.deepStrictEqual(order, ['requestPermission', 'getFileHandle', 'createWritable', 'write', 'close']);
-  assert.deepStrictEqual(calls[0][1], { mode: 'readwrite' }, 'requestPermission readwrite');
-  assert.strictEqual(calls[1][1], 'spec.comments.json', 'sidecar filename');
-  assert.deepStrictEqual(calls[1][2], { create: true });
-  assert.deepStrictEqual(calls[2][1], { keepExistingData: false });
-  assert.strictEqual(calls[3][1], Cx.serialize_sidecar(sidecar), 'write payload matches serialize_sidecar');
-  delete global.document; delete global.window;
+  const res = await Cx.postSubmit({
+    anchor: { id_anchor: 'overview' },
+    body: 'stale write',
+    author: 'tester'
+  });
+  assert.strictEqual(res.ok, false, 'postSubmit not ok on 409');
+  assert.strictEqual(res.status, 409, 'status surfaced');
+  assert.strictEqual(res.conflict_version, 7, 'server current_version surfaced');
+  const banner = doc.querySelector('.pmos-conflict-banner');
+  assert.ok(banner, 'conflict banner rendered');
+  assert.ok(/current version: 7/.test(banner.textContent), 'banner names the current server version');
+  delete global.document; delete global.window; delete global.fetch;
 });
 
-// ---------- (T7-e) revoked permission → banner + sidecar untouched ----------
-test('(T7-e) revoked permission surfaces banner + does NOT write', async () => {
-  const doc = makeStubDom();
-  global.document = doc;
-  global.window = { document: doc, getSelection: () => null };
+// ---------- (T7-e) detectMode FR-14 — read-write iff /save HEAD is 2xx ----------
+// v2.58.0: replaces the FSA permission-denied test. Whether comments are
+// writable is decided by a HEAD probe to /save (the launcher's serve.js), not
+// by a File System Access permission grant.
+test('(T7-e) detectMode → read-write on 2xx /save HEAD, read-only otherwise', async () => {
   const Cx = freshC();
-  let wrote = false;
-  const dirHandle = {
-    requestPermission: () => Promise.resolve('denied'),
-    getFileHandle: () => { wrote = true; return Promise.reject(new Error('should not call')); }
-  };
-  Cx.mount({ artifactPath: '/spec.html', _fsaFallbackMode: false }); // T7-e: force FSA-available path
-  // Pin the doc reference on state so _doc() sees it even after global.document is deleted.
-  Cx._state._docRef = doc;
-  await Cx.writeSidecar({ schema_version: 1, lineage: '11111111-1111-4111-8111-111111111111', threads: [] }, dirHandle);
-  assert.strictEqual(wrote, false, 'must not attempt to write');
-  const banner = doc.querySelector('.pmos-banner');
-  assert.ok(banner, 'banner mounted on denial');
-  assert.ok(/Click to grant write access/.test(banner.textContent), 'banner text');
-  delete global.document; delete global.window;
+
+  global.fetch = () => Promise.resolve({ status: 204, ok: true });
+  assert.strictEqual(await Cx.detectMode(), 'read-write', '2xx HEAD /save → read-write');
+
+  global.fetch = () => Promise.resolve({ status: 404, ok: false });
+  assert.strictEqual(await Cx.detectMode(), 'read-only', 'non-2xx HEAD /save → read-only');
+
+  global.fetch = () => Promise.reject(new Error('connection refused'));
+  assert.strictEqual(await Cx.detectMode(), 'read-only', 'no server (fetch rejects) → read-only');
+
+  delete global.fetch;
 });
 
 // ============================================================
-// T22 — Safari/Firefox FSA fallback: localStorage draft +
-//        "Save sidecar" download button.
+// T22 — write-path mode + the v2.58.0 retirement of the FSA/localStorage
+//        fallback. (Persistence is now exclusively POST /save; review/file
+//        gating decides read-only vs read-write.)
 // ============================================================
 
-// ---------- (T22-a) FSA unavailable → localStorage gets draft, Save button visible ----------
-// Synchronous: _lsDraftSave is called synchronously before the Promise resolves,
-// and triggerSidecarDownload is fully synchronous with mocked setTimeout.
-test('(T22-a) FSA unavailable: submitThread → localStorage draft + Save button rendered visible', () => {
-  const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
-  global.document = doc;
-  global.window = { document: doc, getSelection: () => null }; // no showDirectoryPicker / showSaveFilePicker
-  global.localStorage = ls;
+// ---------- (T22-a) detectMode read-only under file:// protocol ----------
+// v2.58.0: the Safari/Firefox localStorage-draft fallback was removed. Without
+// an HTTP server (e.g. opened from disk) the overlay is simply read-only.
+test('(T22-a) detectMode returns read-only under file:// protocol', async () => {
+  global.location = { protocol: 'file:' };
   const Cx = freshC();
-  // Force fallback mode (FSA absent since window has no showDirectoryPicker/showSaveFilePicker).
-  Cx.mount({
-    artifactPath: '/project/my-spec.html',
-    lineage: '22222222-2222-4222-8222-222222222222'
-  });
-  // submitThread: _lsDraftSave is called synchronously; Promise.resolve(true) is returned after.
-  Cx.submitThread({
-    anchor: { id_anchor: 'overview', quote_anchor: { quote_hash: 'aabbccddeeff0011', context_before: 'a', context_after: 'b' } },
-    body: 'Fallback comment',
-    author: 'safari-user'
-  });
-  // Assert localStorage has the draft (written synchronously before promise returned).
-  const key = Cx._lsKey('/project/my-spec.html');
-  const raw = ls.getItem(key);
-  assert.ok(raw, 'localStorage should contain the draft');
-  const parsed = JSON.parse(raw);
-  assert.strictEqual(parsed.threads.length, 1, 'one thread in draft');
-  assert.strictEqual(parsed.threads[0].messages[0].body, 'Fallback comment');
-  // Assert Save sidecar button is rendered and visible.
-  const btn = doc.querySelector('[data-pmos-save-sidecar]');
-  assert.ok(btn, 'Save sidecar button must be in the DOM');
-  assert.ok(btn.style.display !== 'none', 'Save sidecar button must be visible in fallback mode');
-  delete global.document; delete global.window; delete global.localStorage;
+  const mode = await Cx.detectMode();
+  assert.strictEqual(mode, 'read-only', 'file:// → read-only (no server to POST /save)');
+  delete global.location;
 });
 
-// ---------- (T22-b) Click "Save sidecar" → triggers <a download> with correct attrs + blob content ----------
-test('(T22-b) triggerSidecarDownload: <a> element has download attr + blob: href + correct JSON content', () => {
-  const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
-  global.document = doc;
-  global.window = { document: doc, getSelection: () => null };
-  global.localStorage = ls;
-
-  // Capture blob + URL creation.
-  let capturedBlob = null;
-  let capturedObjectUrl = null;
-  global.Blob = class MockBlob {
-    constructor(parts, opts) { this._parts = parts; this._opts = opts; }
-    get content() { return this._parts.join(''); }
-  };
-  global.URL = {
-    createObjectURL: (blob) => { capturedBlob = blob; capturedObjectUrl = 'blob:mock-url-1234'; return capturedObjectUrl; },
-    revokeObjectURL: () => {}
-  };
-  global.setTimeout = (fn) => fn(); // execute synchronously in tests
-
-  // Capture <a> element creation.
-  let capturedAnchor = null;
-  const origCreateElement = doc.createElement.bind(doc);
-  doc.createElement = (tag) => {
-    const el = origCreateElement(tag);
-    if (tag === 'a') capturedAnchor = el;
-    return el;
-  };
-
+// ---------- (T22-b/c/e) the FSA + localStorage fallback surface is gone ----------
+// One honest contract test replacing the retired triggerSidecarDownload / FSA
+// writeSidecar / localStorage-draft cases. Their behaviour was removed in
+// v2.58.0 (see comments.js mount() banner); this pins that they stay gone.
+test('(T22-b/c/e) retired FSA/localStorage write surface is absent; postSubmit is the sole write path', () => {
   const Cx = freshC();
-  Cx.mount({
-    artifactPath: '/project/my-spec.html',
-    lineage: '22222222-2222-4222-8222-222222222222'
-  });
-  // Seed in-memory sidecar directly (simulate prior submitThread).
-  Cx._state.sidecar = {
-    schema_version: 1,
-    lineage: '22222222-2222-4222-8222-222222222222',
-    threads: [{ id: 'abcd1234', anchor: {}, status: 'open', messages: [{ role: 'user', body: 'test', ts: '2026-01-01T00:00:00Z' }], created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' }]
-  };
-  Cx._state.artifactBaseName = 'my-spec';
-
-  Cx.triggerSidecarDownload();
-
-  assert.ok(capturedAnchor, '<a> element must have been created');
-  assert.strictEqual(capturedAnchor.getAttribute('download'), 'my-spec.comments.json', 'download attribute must be artifact.comments.json');
-  assert.strictEqual(capturedAnchor.href, capturedObjectUrl, 'href must be the blob: URL');
-  assert.ok(capturedObjectUrl && capturedObjectUrl.startsWith('blob:'), 'URL must start with blob:');
-  // Assert blob content matches serialize_sidecar output.
-  assert.ok(capturedBlob, 'Blob must have been created');
-  const blobContent = capturedBlob.content;
-  const expectedContent = Cx.serialize_sidecar(Cx._state.sidecar);
-  assert.strictEqual(blobContent, expectedContent, 'Blob content must match serialize_sidecar output');
-
-  delete global.document; delete global.window; delete global.localStorage;
-  delete global.Blob; delete global.URL; delete global.setTimeout;
-});
-
-// ---------- (T22-c) After download, localStorage draft cleared ----------
-test('(T22-c) After triggerSidecarDownload, localStorage draft for artifact is cleared', () => {
-  const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
-  global.document = doc;
-  global.window = { document: doc, getSelection: () => null };
-  global.localStorage = ls;
-  global.Blob = class MockBlob { constructor(parts, opts) { this._parts = parts; } };
-  global.URL = { createObjectURL: () => 'blob:x', revokeObjectURL: () => {} };
-  global.setTimeout = (fn) => fn();
-
-  const Cx = freshC();
-  Cx.mount({
-    artifactPath: '/project/my-spec.html',
-    lineage: '22222222-2222-4222-8222-222222222222'
-  });
-
-  // Seed localStorage with a draft.
-  const key = Cx._lsKey('/project/my-spec.html');
-  ls.setItem(key, '{"schema_version":1,"lineage":"22222222-2222-4222-8222-222222222222","threads":[]}');
-  assert.ok(ls.getItem(key) !== null, 'draft should exist before download');
-
-  Cx._state.sidecar = { schema_version: 1, lineage: '22222222-2222-4222-8222-222222222222', threads: [] };
-  Cx._state.artifactBaseName = 'my-spec';
-  Cx.triggerSidecarDownload();
-
-  assert.strictEqual(ls.getItem(key), null, 'localStorage draft must be cleared after download');
-
-  delete global.document; delete global.window; delete global.localStorage;
-  delete global.Blob; delete global.URL; delete global.setTimeout;
+  ['writeSidecar', 'triggerSidecarDownload', 'submitThread', '_lsKey', '_lsDraftSave', '_writeSidecar']
+    .forEach((fn) => {
+      assert.strictEqual(typeof Cx[fn], 'undefined', fn + ' must be removed (persistence is POST /save only)');
+    });
+  assert.strictEqual(typeof Cx.postSubmit, 'function', 'postSubmit is the sole write path');
+  assert.strictEqual(typeof Cx.detectMode, 'function', 'detectMode gates read-only vs read-write');
 });
 
 // ---------- (T22-d) Workflow file exists + two-bucket split shape ----------
@@ -572,44 +460,9 @@ test('(T22-d) .github/workflows/comments-bundle-size.yml exists with split AUTH/
   assert.ok(content.includes('exit 1') || content.includes('exit(1)'), 'workflow must exit 1 on size violation');
 });
 
-// ---------- (T22-e) LS rehydration validates schema ----------
-test('(T22-e) FSA fallback: invalid schema_version draft is NOT seeded into state and localStorage entry is cleared', () => {
-  const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
-  global.document = doc;
-  global.window = { document: doc, getSelection: () => null };
-  global.localStorage = ls;
-
-  const Cx = freshC();
-  const key = Cx._lsKey('/project/my-spec.html');
-
-  // Seed localStorage with a sidecar whose schema_version validate_sidecar will reject.
-  const badDraft = {
-    schema_version: 99,
-    lineage: '22222222-2222-4222-8222-222222222222',
-    threads: []
-  };
-  ls.setItem(key, JSON.stringify(badDraft));
-  assert.ok(ls.getItem(key) !== null, 'bad draft should be present before mount');
-
-  // Force FSA-fallback mode via the opts override (_fsaFallbackMode: true).
-  Cx.mount({
-    artifactPath: '/project/my-spec.html',
-    lineage: '22222222-2222-4222-8222-222222222222',
-    _fsaFallbackMode: true
-  });
-
-  // Assert: state.sidecar was NOT seeded from the invalid draft.
-  assert.ok(
-    !Cx._state.sidecar || Cx._state.sidecar.schema_version !== 99,
-    'state.sidecar must NOT be the bad draft (schema_version 99)'
-  );
-
-  // Assert: the bad localStorage entry was cleared.
-  assert.strictEqual(ls.getItem(key), null, 'localStorage entry must be cleared after rejected draft');
-
-  delete global.document; delete global.window; delete global.localStorage;
-});
+// (T22-e) removed in v2.58.0 — there is no localStorage draft to rehydrate or
+// schema-validate on mount anymore. Schema validation remains covered by the
+// validate_sidecar unit case (e) and the retired-surface case above.
 
 // ============================================================
 // T24 — Overlay UX surfaces: orphan banner, diagram markers,
@@ -910,64 +763,57 @@ test('(T24-c2 / FR-52) foreign-SVG bbox capture: click at (100,50) produces bbox
   delete global.document; delete global.window; delete global.localStorage;
 });
 
-// ---- (T24-d) reviewMode='off' → no #pmos-comments-overlay after mount ----
-test('(T24-d) reviewMode=off → no #pmos-comments-overlay element after mount()', () => {
+// ---- (T24-d) review-mode off (via toggle) removes overlay + gates re-mount ----
+// D14: review-mode is in-memory (no localStorage persistence). Default is 'on';
+// Ctrl/Cmd+Alt+R toggles it for the session only.
+test('(T24-d) review-mode toggled off removes overlay and gates re-mount', () => {
   const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
+  const docListeners = {};
+  doc.addEventListener = (ev, fn) => { (docListeners[ev] = docListeners[ev] || []).push(fn); };
+  doc.removeEventListener = () => {};
   global.document = doc;
   global.window = { document: doc, getSelection: () => null };
-  global.localStorage = ls;
-
-  // Set reviewMode to 'off'.
-  ls.setItem('pmos:reviewMode', 'off');
+  global.fetch = () => Promise.resolve({ status: 200, ok: true }); // detectMode resolves fast
 
   const Cx = freshC();
-  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+  Cx.mount({ artifactPath: '/foo.html' }); // review-mode defaults 'on' → overlay mounts
+  assert.ok(doc.querySelector('#pmos-comments-overlay'), 'overlay present after mount (review-mode on)');
 
-  const overlay = doc.querySelector('#pmos-comments-overlay');
-  assert.strictEqual(overlay, null, '#pmos-comments-overlay must NOT be mounted when reviewMode=off');
+  // Ctrl+Alt+R → review-mode off → overlay unmounts.
+  (docListeners['keydown'] || []).forEach(fn => fn({ ctrlKey: true, altKey: true, key: 'r', metaKey: false, preventDefault: () => {} }));
+  assert.strictEqual(doc.querySelector('#pmos-comments-overlay'), null, 'overlay removed when review-mode toggled off');
 
-  delete global.document; delete global.window; delete global.localStorage;
+  // A subsequent mount() while off must stay gated (no overlay).
+  Cx.mount({ artifactPath: '/foo.html' });
+  assert.strictEqual(doc.querySelector('#pmos-comments-overlay'), null, 'mount() is a no-op while review-mode off');
+
+  delete global.document; delete global.window; delete global.fetch;
 });
 
-// ---- (T24-e) Ctrl+Alt+R toggles reviewMode + mounts/unmounts overlay ----
-test('(T24-e) Ctrl+Alt+R toggle from off→on mounts #pmos-comments-overlay', () => {
+// ---- (T24-e) Ctrl+Alt+R toggles the overlay off then back on ----
+test('(T24-e) Ctrl+Alt+R toggles #pmos-comments-overlay off then on', () => {
   const doc = makeStubDom();
-  const ls = makeStubLocalStorage();
   const docListeners = {};
-  // Override doc.addEventListener to capture keyboard listener.
   doc.addEventListener = (ev, fn) => { (docListeners[ev] = docListeners[ev] || []).push(fn); };
-  doc.removeEventListener = (ev, fn) => {
-    const a = docListeners[ev] || [];
-    const i = a.indexOf(fn); if (i >= 0) a.splice(i, 1);
-  };
+  doc.removeEventListener = () => {};
   global.document = doc;
   global.window = { document: doc, getSelection: () => null };
-  global.localStorage = ls;
-
-  // Start with reviewMode='off'.
-  ls.setItem('pmos:reviewMode', 'off');
+  global.fetch = () => Promise.resolve({ status: 200, ok: true });
 
   const Cx = freshC();
-  Cx.mount({ artifactPath: '/foo.html', _fsaFallbackMode: true });
+  Cx.mount({ artifactPath: '/foo.html' });
+  assert.ok(doc.querySelector('#pmos-comments-overlay'), 'overlay mounted initially (review-mode on)');
 
-  // Overlay must NOT be mounted yet.
-  assert.strictEqual(doc.querySelector('#pmos-comments-overlay'), null,
-    'overlay must not be mounted before toggle');
+  const kb = docListeners['keydown'] || [];
+  assert.ok(kb.length > 0, 'mount() must attach a keydown listener');
+  const fire = () => kb.forEach(fn => fn({ ctrlKey: true, altKey: true, key: 'r', metaKey: false, preventDefault: () => {} }));
 
-  // Simulate Ctrl+Alt+R keydown.
-  const kbListeners = docListeners['keydown'] || [];
-  assert.ok(kbListeners.length > 0, 'mount() must attach a keydown listener');
-  kbListeners.forEach(fn => fn({ ctrlKey: true, altKey: true, key: 'r', metaKey: false, preventDefault: () => {} }));
+  fire(); // → off
+  assert.strictEqual(doc.querySelector('#pmos-comments-overlay'), null, 'overlay removed after first toggle (off)');
+  fire(); // → on
+  assert.ok(doc.querySelector('#pmos-comments-overlay'), 'overlay re-mounted after second toggle (on)');
 
-  // After toggle from 'off' to 'on', overlay should be mounted.
-  const overlay = doc.querySelector('#pmos-comments-overlay');
-  assert.ok(overlay, '#pmos-comments-overlay must be mounted after Ctrl+Alt+R toggle from off→on');
-
-  // LocalStorage flag should have been flipped to 'on'.
-  assert.strictEqual(ls.getItem('pmos:reviewMode'), 'on', 'pmos:reviewMode should be toggled to on');
-
-  delete global.document; delete global.window; delete global.localStorage;
+  delete global.document; delete global.window; delete global.fetch;
 });
 
 // ---- (T24-f) file:// protocol → blocking modal, no #pmos-comments-overlay ----
@@ -1002,7 +848,15 @@ test('(T24-f) file:// protocol → blocking modal [data-pmos-file-warning] prese
   delete global.location;
 });
 
-Promise.all(_pending).then(() => {
+(async () => {
+  for (const t of _tests) {
+    try {
+      await t.fn();
+      console.log(`  ok  ${t.name}`); passed++;
+    } catch (e) {
+      console.log(`  FAIL ${t.name}\n       ${e && e.stack ? e.stack : (e && e.message) || e}`); failed++;
+    }
+  }
   console.log(`\n  ${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
-});
+})();

@@ -44,7 +44,6 @@ function makeTmp() {
 (async () => {
   const tmp = makeTmp();
   const artifactPath = path.join(tmp, "02_spec_mini.html");
-  const sidecarPath = path.join(tmp, "02_spec_mini.comments.json");
 
   // Copy the T9 fixture artifact; ensure it carries the canonical
   // <meta name="pmos:skill"> tag (the fixture uses pmos-originating-skill;
@@ -57,32 +56,34 @@ function makeTmp() {
       '<meta name="pmos:skill" content="$1">'
     );
   }
-  fs.writeFileSync(artifactPath, html, "utf8");
 
-  // Author a 1-open-thread sidecar matching the T3 canonical shape
-  // (schema_version + lineage + threads). The resolver round-trips this
-  // via the same byte-for-byte serializer T3 uses.
-  const sidecar = {
-    schema_version: 1,
-    lineage: "11111111-1111-4111-8111-111111111111",
-    threads: [
-      {
-        id: "T_A",
-        id_anchor: "problem",
-        quote_anchor: null,
-        status: "open",
-        messages: [
-          {
-            role: "user",
-            author: "tester",
-            body: "tighten the wording",
-            ts: "2026-05-24T10:00:00Z",
-          },
-        ],
-      },
-    ],
-  };
-  fs.writeFileSync(sidecarPath, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
+  // Embed a 1-open-thread inline pmos-comments block (v2.58.0 — sidecar
+  // retired). The resolver reads/writes threads through this block, so the
+  // fixture must carry it inline. `html` below already contains the block,
+  // which `editedHtml` (the dispatch mock's applied_artifact) preserves.
+  const threads = [
+    {
+      id: "T_A",
+      id_anchor: "problem",
+      quote_anchor: null,
+      status: "open",
+      messages: [
+        {
+          role: "user",
+          author: "tester",
+          body: "tighten the wording",
+          ts: "2026-05-24T10:00:00Z",
+        },
+      ],
+    },
+  ];
+  html = resolver._internal._injectCommentsBlock(html, {
+    schema: 1,
+    version: 0,
+    generated_at: "2026-05-24T00:00:00Z",
+    threads: threads,
+  });
+  fs.writeFileSync(artifactPath, html, "utf8");
 
   // ---- mocks ----
   const APPLIED_MARKER = "Tightened wording in §problem.";
@@ -151,28 +152,30 @@ function makeTmp() {
       "(a) artifact on disk contains the applied edit marker"
     );
 
-    // (b) sidecar thread[0].status === "resolved".
-    const onDiskSidecar = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    // (b) inline thread[0].status === "resolved".
+    const onDiskComments = resolver._internal._parseInlineComments(
+      fs.readFileSync(artifactPath, "utf8")
+    );
     assert.strictEqual(
-      onDiskSidecar.threads[0].status,
+      onDiskComments.threads[0].status,
       "resolved",
       "(b) thread status flipped to resolved"
     );
 
-    // (c) sidecar carries a system message with the dispatched reply.
-    const sysMsgs = (onDiskSidecar.threads[0].messages || []).filter(
+    // (c) inline block carries a system message with the dispatched reply.
+    const sysMsgs = (onDiskComments.threads[0].messages || []).filter(
       (m) => m && m.role === "system"
     );
     assert.strictEqual(sysMsgs.length, 1, "(c) exactly one system message appended");
     assert.strictEqual(sysMsgs[0].body, SYSTEM_REPLY, "(c) system message body matches");
 
-    // (d) runGit called exactly once with ['add', artifact, sidecar].
+    // (d) runGit called exactly once with ['add', artifact] (no sidecar).
     const addCalls = gitCalls.filter((a) => a[0] === "add");
     assert.strictEqual(addCalls.length, 1, "(d) git add called exactly once");
     assert.deepStrictEqual(
       addCalls[0],
-      ["add", artifactPath, sidecarPath],
-      "(d) git add args match [artifact, sidecar]"
+      ["add", artifactPath],
+      "(d) git add args match [artifact]"
     );
 
     // (e) NEVER commit.

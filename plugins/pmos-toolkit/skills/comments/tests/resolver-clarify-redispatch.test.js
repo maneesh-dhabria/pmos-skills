@@ -74,7 +74,6 @@ function makeRunGit(tmpDir) {
 
 function makeFixture(tmpDir, threads) {
   const artifactPath = path.join(tmpDir, "02_spec_mini.html");
-  const sidecarPath = path.join(tmpDir, "02_spec_mini.comments.json");
 
   let html = fs.readFileSync(FIXTURE_HTML, "utf8");
   if (!/name=["']pmos:skill["']/.test(html)) {
@@ -83,15 +82,16 @@ function makeFixture(tmpDir, threads) {
       '<meta name="pmos:skill" content="$1">'
     );
   }
-  fs.writeFileSync(artifactPath, html, "utf8");
 
-  const sidecar = {
-    schema_version: 1,
-    lineage: "33333333-3333-4333-8333-333333333333",
+  // v2.58.0 — threads live inline in the artifact (sidecar retired).
+  html = resolver._internal._injectCommentsBlock(html, {
+    schema: 1,
+    version: 0,
+    generated_at: "2026-05-24T00:00:00Z",
     threads: threads,
-  };
-  fs.writeFileSync(sidecarPath, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
-  return { artifactPath, sidecarPath, html };
+  });
+  fs.writeFileSync(artifactPath, html, "utf8");
+  return { artifactPath, html };
 }
 
 // -----------------------------------------------------------------------
@@ -105,7 +105,7 @@ function makeFixture(tmpDir, threads) {
 async function testClarificationFlowConfirmEach() {
   const tmp = makeTmp("t15a");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_A",
         id_anchor: "problem",
@@ -188,7 +188,7 @@ async function testClarificationFlowConfirmEach() {
     assert.strictEqual(out.resolved, 1, "(a) thread resolved");
     assert.strictEqual(out.skipped.length, 0, "(a) no skips");
 
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     assert.strictEqual(onDisk.threads[0].status, "resolved", "(a) thread status=resolved on disk");
 
     console.log("PASS: (a) clarification → AskUserQuestion → re-dispatch with pick");
@@ -204,7 +204,7 @@ async function testClarificationFlowConfirmEach() {
 async function testRedispatchCapCollapseOptions() {
   const tmp = makeTmp("t15b");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_B",
         id_anchor: "problem",
@@ -314,7 +314,7 @@ async function testRedispatchCapCollapseOptions() {
 async function testClarifyCap() {
   const tmp = makeTmp("t15c");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_C",
         id_anchor: "problem",
@@ -376,7 +376,7 @@ async function testClarifyCap() {
     );
 
     // thread status stays "open" on disk
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     const thread = onDisk.threads[0];
     assert.strictEqual(thread.status, "open", "(c) thread status stays open");
 
@@ -405,7 +405,7 @@ async function testClarifyCap() {
 async function testRejectWithEmptyRefinementNote() {
   const tmp = makeTmp("t15d");
   try {
-    const { artifactPath, sidecarPath, html } = makeFixture(tmp, [
+    const { artifactPath, html } = makeFixture(tmp, [
       {
         id: "T_D",
         id_anchor: "problem",
@@ -470,7 +470,7 @@ async function testRejectWithEmptyRefinementNote() {
     assert.strictEqual(out.resolved, 0, "(d) resolved must be 0");
 
     // thread status stays "open" on disk
-    const onDisk = JSON.parse(fs.readFileSync(sidecarPath, "utf8"));
+    const onDisk = resolver._internal._parseInlineComments(fs.readFileSync(artifactPath, "utf8"));
     assert.strictEqual(onDisk.threads[0].status, "open", "(d) thread status stays open");
 
     console.log("PASS: (d) Reject with refinement + whitespace note → skipped(operator_reject_empty_refinement), dispatchSubagent=1");

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // T10 — /comments resolve controller (confirm-each mode).
 //
-// Walks open threads in <artifact>.comments.json, dispatches each thread
-// to the originating skill's apply-edit-at-anchor entrypoint (routed via
-// <meta name="pmos:skill">), presents the diff via AskUserQuestion, and
-// on Accept applies the edit + stages the files. Never commits.
+// Walks open threads in the artifact's inline <script id="pmos-comments">
+// block (v2.58.0 — the <artifact>.comments.json sidecar was retired),
+// dispatches each thread to the originating skill's apply-edit-at-anchor
+// entrypoint (routed via <meta name="pmos:skill">), presents the diff via
+// AskUserQuestion, and on Accept applies the edit + rewrites the inline block
+// (version bumped) + stages the artifact. Never commits.
 //
 // Spec refs: §6.1 (architecture), §9.1 (input/output), §9.2 (error_enum),
 // §9.3 (idempotency); FR-20, FR-22, FR-24, FR-27, FR-28, FR-31.
@@ -33,9 +35,15 @@ const MAX_CLARIFY = 1;
 // T15: re-dispatch cap per thread (S10).
 const MAX_REDISPATCH = 2;
 
-// T16: current sidecar schema version. Sidecar files with schema_version
-// greater than this value are refused at load time (E4 / S3).
+// T16: current inline-comments schema version. Artifacts whose inline block
+// declares a `schema` greater than this value are refused at load time (E4 / S3).
 const CURRENT_SCHEMA_VERSION = 1;
+
+// Inline comments block (v2.58.0 — sidecar retired). Threads live INSIDE the
+// artifact HTML between the sentinels, in a <script id="pmos-comments"> JSON
+// block. This RE + the write format below mirror serve.js (the browser write
+// path) and render.js (the emit path) so all three round-trip byte-identically.
+const COMMENTS_RE = /<!-- pmos-comments:start -->[\s\S]*?<script id="pmos-comments" type="application\/json">([\s\S]*?)<\/script>[\s\S]*?<!-- pmos-comments:end -->/;
 
 // T15: system message body when clarification cap is exceeded (pinned string for tests).
 const CLARIFY_CAP_EXCEEDED_BODY = "clarification cap exceeded — operator input required";
@@ -91,11 +99,65 @@ const STOPWORDS = new Set([
 
 // ---- helpers ----
 
-function _sidecarPathFor(artifactPath) {
-  // Convention: <artifact>.comments.json (FR-10 / FR-11 sidecar shape, T3).
-  const dir = path.dirname(artifactPath);
-  const base = path.basename(artifactPath).replace(/\.html?$/i, "");
-  return path.join(dir, base + ".comments.json");
+// JSON-inline escape (FR-04) — mirror of render.js / serve.js jsonInlineEscape.
+// Escaping every "<" as "<" defeats an embedded "</script>" closing the
+// inline block early. JSON.parse reverses it natively, so reads need no inverse.
+function _jsonInlineEscape(payload) {
+  return JSON.stringify(payload).replace(/</g, "\\u003c");
+}
+
+// Parse the inline pmos-comments block out of an artifact's HTML.
+// Returns the parsed payload ({schema, version, generated_at, threads}) or
+// null when the artifact carries no block (e.g. a pre-v2.58.0 / non-pmos file).
+function _parseInlineComments(html) {
+  const m = String(html).match(COMMENTS_RE);
+  if (!m) return null;
+  return JSON.parse(m[1]);
+}
+
+// Build the sentinel-bracketed inline block for a payload — byte-identical to
+// serve.js's write format so browser writes and resolver writes round-trip.
+function _buildCommentsBlock(payload) {
+  return (
+    "<!-- pmos-comments:start -->\n" +
+    '<script id="pmos-comments" type="application/json">\n' +
+    _jsonInlineEscape(payload) + "\n" +
+    "</script>\n" +
+    "<!-- pmos-comments:end -->"
+  );
+}
+
+// Replace the existing inline block in `html`, or inject one before </body>
+// (falling back to append) when none exists. Runtime artifacts always have a
+// block; the inject path exists for fixtures/tests built from block-less HTML.
+function _injectCommentsBlock(html, payload) {
+  const block = _buildCommentsBlock(payload);
+  if (COMMENTS_RE.test(html)) return html.replace(COMMENTS_RE, block);
+  if (html.indexOf("</body>") !== -1) return html.replace("</body>", block + "\n</body>");
+  return html + "\n" + block;
+}
+
+// Atomic write — temp-then-rename(2), mirroring serve.js. On crash the original
+// artifact is intact; an orphan .tmp is the only residue.
+function _writeArtifactAtomic(p, c) {
+  fs.writeFileSync(p + ".tmp", c);
+  fs.renameSync(p + ".tmp", p);
+}
+
+// Persist the (already body-edited) HTML with a refreshed inline block: bump
+// the version, stamp generated_at, write atomically, and stage the artifact.
+// The resolver never invokes the commit verb — operator commits after review.
+function _persistInline(artifactPath, finalHtml, threads, priorVersion, runGit) {
+  const newPayload = {
+    schema: 1,
+    version: priorVersion + 1,
+    generated_at: _isoNow(),
+    threads: threads,
+  };
+  const newHtml = _injectCommentsBlock(finalHtml, newPayload);
+  _writeArtifactAtomic(artifactPath, newHtml);
+  const repoRoot = _gitRepoRoot(artifactPath, runGit);
+  runGit(["add", artifactPath], { cwd: repoRoot });
 }
 
 function _readMetaSkill(html) {
@@ -120,12 +182,6 @@ function _lastUserBody(thread) {
 
 function _isoNow() {
   return new Date().toISOString();
-}
-
-// Serializer matches T3's `serialize_sidecar` byte-for-byte:
-//   JSON.stringify(obj, null, 2) + '\n'  (LF, trailing newline).
-function _serializeSidecar(obj) {
-  return JSON.stringify(obj, null, 2) + "\n";
 }
 
 // T16 §9.3 — semantic-match idempotency helper.
@@ -505,17 +561,25 @@ async function resolve(params) {
     );
   }
 
-  // 1. Read artifact + sidecar.
+  // 1. Read artifact + its inline comments block (v2.58.0 — sidecar retired).
   let html = fs.readFileSync(artifactPath, "utf8");
-  const sidecarPath = _sidecarPathFor(artifactPath);
-  const sidecarRaw = fs.readFileSync(sidecarPath, "utf8");
-  const sidecar = JSON.parse(sidecarRaw);
+  const comments = _parseInlineComments(html);
+  if (!comments) {
+    throw new Error(
+      "resolve: artifact has no inline pmos-comments block — not a pmos " +
+        "artifact, or pre-v2.58.0 (run scripts/migrate-sidecars-to-inline.sh)"
+    );
+  }
+  // Optimistic-concurrency counter carried by the block; bumped on persist.
+  const priorVersion = typeof comments.version === "number" ? comments.version : 0;
 
-  // T16 E4 / S3 — schema-version refuse-load.
-  if (typeof sidecar.schema_version === "number") {
-    if (sidecar.schema_version > CURRENT_SCHEMA_VERSION) {
+  // T16 E4 / S3 — schema refuse-load. The inline `schema` is the format
+  // version (the old sidecar `schema_version`); `version` is the concurrency
+  // counter and is unrelated to this gate.
+  if (typeof comments.schema === "number") {
+    if (comments.schema > CURRENT_SCHEMA_VERSION) {
       const err = new Error(
-        "schema_version=" + sidecar.schema_version +
+        "inline comments schema=" + comments.schema +
           " is newer than /comments (current=" + CURRENT_SCHEMA_VERSION +
           "); upgrade pmos-toolkit"
       );
@@ -523,7 +587,7 @@ async function resolve(params) {
       err.exitCode = 64;
       throw err;
     }
-    // schema_version < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
+    // schema < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
   }
 
   // 2. Read meta tag → originating skill slug.
@@ -535,7 +599,7 @@ async function resolve(params) {
   }
 
   // 3. Walk open threads.
-  const threads = Array.isArray(sidecar.threads) ? sidecar.threads : [];
+  const threads = Array.isArray(comments.threads) ? comments.threads : [];
   const openIdxs = threads
     .map((t, i) => (t && t.status === "open" ? i : -1))
     .filter((i) => i !== -1);
@@ -741,10 +805,10 @@ async function resolve(params) {
       }
     }
 
-    // Persist + stage, then short-circuit.
-    fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
-    const repoRoot = _gitRepoRoot(artifactPath, runGit);
-    runGit(["add", artifactPath, sidecarPath], { cwd: repoRoot });
+    // Persist the body edits + refreshed inline block, stage, short-circuit.
+    // `html` holds the latest applied_artifact (with body edits, stale block);
+    // _persistInline rewrites the block with the updated threads + bumped version.
+    _persistInline(artifactPath, html, threads, priorVersion, runGit);
 
     const summary =
       "Resolved " + resolvedCount + "/" + totalOpen +
@@ -760,7 +824,6 @@ async function resolve(params) {
 
     return {
       artifact: artifactPath,
-      sidecar: sidecarPath,
       skill: skillSlug,
       total_open: totalOpen,
       resolved: resolvedCount,
@@ -802,12 +865,10 @@ async function resolve(params) {
 
   resolvedCount = rcBox.value;
 
-  // 4. Persist sidecar; stage via `git add`. The resolver never invokes
-  //    the commit verb — operator commits after reviewing staged diff.
-  fs.writeFileSync(sidecarPath, _serializeSidecar(sidecar), "utf8");
-
-  const repoRoot = _gitRepoRoot(artifactPath, runGit);
-  runGit(["add", artifactPath, sidecarPath], { cwd: repoRoot });
+  // 4. Persist the body edits + refreshed inline block, stage via `git add`.
+  //    ctx.html (htmlRef) holds the latest applied_artifact across the per-thread
+  //    loop; _persistInline rewrites its block with the updated threads.
+  _persistInline(artifactPath, ctx.html, threads, priorVersion, runGit);
 
   const summary =
     "Resolved " + resolvedCount + "/" + totalOpen +
@@ -830,7 +891,6 @@ async function resolve(params) {
 
   const result = {
     artifact: artifactPath,
-    sidecar: sidecarPath,
     skill: skillSlug,
     total_open: totalOpen,
     resolved: resolvedCount,
@@ -866,10 +926,15 @@ module.exports = {
   CURRENT_SCHEMA_VERSION: CURRENT_SCHEMA_VERSION,
   STOPWORDS: STOPWORDS,
   _internal: {
-    _sidecarPathFor: _sidecarPathFor,
     _readMetaSkill: _readMetaSkill,
-    _serializeSidecar: _serializeSidecar,
     _buildPromptOptions: _buildPromptOptions,
     _semanticMatchScore: _semanticMatchScore,
+    // Inline-comments round-trip helpers (v2.58.0). Exported so tests build
+    // fixtures and read back final state through the same parser/writer the
+    // resolver uses — single-sourcing the byte format.
+    _parseInlineComments: _parseInlineComments,
+    _buildCommentsBlock: _buildCommentsBlock,
+    _injectCommentsBlock: _injectCommentsBlock,
+    _jsonInlineEscape: _jsonInlineEscape,
   },
 };

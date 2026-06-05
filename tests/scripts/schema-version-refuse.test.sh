@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# T16 out-of-process test — schema_version refuse-load.
+# T16 out-of-process test — inline-comments schema refuse-load.
 #
-# Writes a sidecar with schema_version: 99, invokes resolve() via `node -e`,
-# asserts:
+# Embeds an inline pmos-comments block with schema: 99 (v2.58.0 — sidecar
+# retired), invokes the CLI resolver, asserts:
 #   (f1) exit code is 64
-#   (f2) stderr matches /schema_version=99 is newer than \/comments/
+#   (f2) stderr matches /schema=99 is newer than \/comments/
 #
 # Spec refs: E4, S3, T16.
 
@@ -43,7 +43,7 @@ TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 ARTIFACT="$TMP_DIR/test.html"
-SIDECAR="$TMP_DIR/test.comments.json"
+RESOLVER="$REPO/plugins/pmos-toolkit/skills/comments/scripts/resolver.js"
 
 # Copy fixture HTML, inject pmos:skill meta if absent.
 cp "$FIXTURE_HTML" "$ARTIFACT"
@@ -52,14 +52,19 @@ if ! grep -q 'name="pmos:skill"' "$ARTIFACT"; then
   sed -i.bak 's/name="pmos-originating-skill"/name="pmos:skill"/g' "$ARTIFACT" && rm -f "$ARTIFACT.bak" || true
 fi
 
-# Write sidecar with schema_version: 99.
-cat > "$SIDECAR" <<'SIDECAR_EOF'
-{
-  "schema_version": 99,
-  "lineage": "99999999-9999-4999-8999-999999999999",
-  "threads": []
-}
-SIDECAR_EOF
+# v2.58.0 — sidecar retired; embed an inline pmos-comments block declaring
+# schema 99 (newer than the resolver's CURRENT_SCHEMA_VERSION) so the
+# refuse-load gate fires. Built through the resolver's own block writer.
+node -e '
+  const fs = require("fs");
+  const r = require(process.argv[1]);
+  const p = process.argv[2];
+  const html = fs.readFileSync(p, "utf8");
+  const out = r._internal._injectCommentsBlock(html, {
+    schema: 99, version: 0, generated_at: "2026-05-24T00:00:00Z", threads: [],
+  });
+  fs.writeFileSync(p, out);
+' "$RESOLVER" "$ARTIFACT"
 
 # Run cli.js end-to-end (exercises the cli.js catch handler → exitCode translation).
 STDERR_FILE="$TMP_DIR/stderr.txt"
@@ -77,8 +82,8 @@ if [ "$ACTUAL_EXIT" != "64" ]; then
 fi
 
 # (f2) stderr must match the required pattern.
-if ! echo "$STDERR_OUT" | grep -q "schema_version=99 is newer than /comments"; then
-  echo "FAIL (f2): stderr did not match 'schema_version=99 is newer than /comments'" >&2
+if ! echo "$STDERR_OUT" | grep -q "schema=99 is newer than /comments"; then
+  echo "FAIL (f2): stderr did not match 'schema=99 is newer than /comments'" >&2
   echo "  stderr was: $STDERR_OUT" >&2
   PASS=false
 fi
