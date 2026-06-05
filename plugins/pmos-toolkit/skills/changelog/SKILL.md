@@ -1,14 +1,40 @@
 ---
 name: changelog
-description: Use when merging to main or after a merge to main - generates user-facing changelog entries describing what the system can now do
+description: Use when merging to main, after a merge to main, or whenever the user wants to record what shipped — generates user-facing changelog entries (newest-first) describing what the system can now do, not how it was built. Use when the user says "update the changelog", "write a changelog entry", "what changed in this release", "document what's new", "add a changelog entry for this merge", or "/changelog".
 argument-hint: "[--non-interactive | --interactive]"
 ---
 
-# Changelog
+# /changelog
 
-Generate user-facing changelog entries, prepended (newest first).
+**Announce at start:** "Using /changelog to generate user-facing changelog entries."
 
-## Determine docs_path
+Generate user-facing changelog entries, prepended (newest first) to the project changelog. Describe *what the system can now do*, never implementation details.
+
+## When to use this
+
+- A branch just merged to main and the user-visible surface changed.
+- The user wants a dated, plain-language record of what shipped this release.
+- `/complete-dev` is preparing a release and needs the changelog refreshed before tagging.
+
+**When NOT to use:**
+- Internal-only refactors, test changes, or doc updates with no user-visible effect → skip; there is nothing to log.
+- The user wants design rationale or a decision record → that belongs in the feature folder, not the changelog.
+
+## Track Progress
+
+This skill has multiple phases. Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task `in_progress` when you start it and `completed` when it finishes — never batch completions.
+
+## Platform Adaptation
+
+These instructions use Claude Code tool names. In other environments:
+
+- **No `AskUserQuestion` tool:** Degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
+- **No subagents:** All phases run single-agent; there is no parallel work to degrade.
+- **No `.pmos/settings.yaml`:** Run `_shared/pipeline-setup.md` Section A first-run setup before resolving `{docs_path}`.
+- **TaskCreate / TodoWrite missing:** The skill body works without task tracking.
+- **Browser / Playwright:** Not used by this skill.
+
+## Determine changelog_path
 
 Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` from it. If not found, follow `_shared/pipeline-setup.md` Section A to run first-run setup (which writes settings.yaml and detects legacy `docs/` layout).
 
@@ -21,7 +47,7 @@ Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` 
   Do NOT block on `AskUserQuestion`; do NOT auto-edit `settings.yaml`.
 - Otherwise → resolve `{changelog_path}` to `{docs_path}/changelog.md` (current behavior, no advisory).
 
-`{changelog_path}` MUST be used consistently for both the scope read (Process step 1) and the prepend write (Process step 5) within a single run.
+`{changelog_path}` MUST be used consistently for both the scope read (Phase 1) and the prepend write (Phase 5) within a single run.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -53,13 +79,23 @@ Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` 
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Process
+## Phase 0: Setup
 
-1. **Determine scope** — Run `git log` to find commits since the last changelog entry date (read the top entry in `{changelog_path}` — resolved by the "Determine docs_path" section above — for the last date). If no changelog exists, use all commits on main.
+1. **Read `.pmos/settings.yaml`** and resolve `{changelog_path}` per the "Determine changelog_path" section above. If settings is missing → run `_shared/pipeline-setup.md` §A first-run setup first.
+2. **Read `~/.pmos/learnings.md`** if present; note any entries under `## /changelog` and factor them into your drafting (e.g., a recurring phrasing the user prefers, a category they always want surfaced). Skill body wins on conflict; surface conflicts to the user.
+3. **Resolve mode** (interactive / non-interactive) per the non-interactive contract above. Print `mode: <m> (source: <s>)` to stderr.
 
-2. **Analyze changes** — Read the commit messages and diffs to understand what was added, changed, or fixed. Focus on *what the system can now do*, not implementation details.
+## Phase 1: Determine scope
 
-3. **Draft entry** — Write a dated entry with user-facing bullets. Format:
+Run `git log` to find commits since the last changelog entry date — read the top entry in `{changelog_path}` for the last date. If no changelog exists, use all commits on main.
+
+## Phase 2: Analyze changes
+
+Read the commit messages and diffs to understand what was added, changed, or fixed. Focus on *what the system can now do*, not implementation details.
+
+## Phase 3: Draft entry
+
+Write a dated entry with user-facing bullets. Format:
 
 ```markdown
 ## YYYY-MM-DD — [Brief feature/theme title]
@@ -69,11 +105,22 @@ Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` 
 - Fixed: what broken thing now works
 ```
 
-No "Added/Changed/Fixed" prefixes required — use them only when they add clarity. Write in plain language a user of the tool would understand.
+No "Added/Changed/Fixed" prefixes required — use them only when they add clarity. Write in plain language a user of the tool would understand. Hold the prose to `_shared/writing-principles.md` as you draft.
 
-4. **Show draft to user** — Present the entry and ask for confirmation or edits before writing.
+## Phase 4: Confirm with user
 
-5. **Write** — Prepend the entry to `{changelog_path}` (resolved by the "Determine docs_path" section above). If the file doesn't exist, create it with a single H1 header `# Changelog` followed by the entry.
+Present the drafted entry and ask for confirmation or edits before writing. In non-interactive mode, this checkpoint follows the auto-pick contract above.
+
+## Phase 5: Write
+
+Prepend the entry to `{changelog_path}` (resolved in Phase 0). If the file doesn't exist, create it with a single H1 header `# Changelog` followed by the entry.
+
+## Phase 6: Capture Learnings
+
+Reflect on whether this run surfaced anything worth capturing under `## /changelog` in `~/.pmos/learnings.md` — e.g., a recurring category the user always wants pulled out, a phrasing convention, or a commit-grouping heuristic that worked well. Append a one-line entry only when the lesson is non-obvious and reusable; do not log routine runs.
+
+Report at close:
+- `Learning: <new entry written to ~/.pmos/learnings.md under ## /changelog>` — when the run surfaced a non-obvious lesson worth keeping.
 
 ## Rules
 
