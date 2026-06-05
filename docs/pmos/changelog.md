@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-06-05 — pmos-toolkit 2.61.0: architecture-review remediation (Waves 1–6) + `/comments` inline resolver
+
+The full remediation program from the 2026-06-05 pmos-toolkit architecture review — six waves of substrate consolidation, a visual-identity pass, and the close-out of the v2.58.0 inline-comments migration. User-facing highlights:
+
+- **`/feature-sdlc` Phase 0e — one consolidated soft-gate confirm (W3).** The five non-destructive soft gates (ideate, creativity, wireframes, prototype, retro) collapse into a single prompt seeded from `.pmos/feature-sdlc.lastrun.yaml` (main-repo-root anchored so it survives worktree cleanup), mirroring `/complete-dev` Phase 0a. Per-gate short-circuits; wireframes re-fires on a frontend-signal change; destructive/judgement prompts still fire. New `--reset-defaults`.
+- **Visual identity "Mono Minimal" across every HTML artifact (W11).** A single substrate change fans out to all 14 emitting surfaces: burnt-orange `#C2410C` accent + stone neutrals (light + dark), a bundled base64-inlined **JetBrains Mono 700** display face (no CDN), a `pmos` masthead wordmark with a CSS accent caret, and zero-padded `[NN]` section counters (CSS `::before`, not in the DOM — anchors/quotes unaffected). The `/diagram` **technical** theme reconverged on the same palette via a shared `_shared-palette.yaml` bridge; the `editorial` theme keeps its alternate palette by design.
+- **`/comments resolve` now reads & writes the inline thread block (sidecar fully retired).** The CLI resolver was the last piece still using the `<artifact>.comments.json` sidecar that v2.58.0 replaced with an inline `<script id="pmos-comments">` block. It now round-trips threads in that block (atomic temp-then-rename write, optimistic-concurrency `version` bump, `git add <artifact>` only). Fixing this exposed — and we fixed — a latent anchor bug where a thread's own stored `quote_anchor.text` could satisfy its own anchor; the anchor resolver now masks the inline block from its search corpus. The obsolete comments-drift pre-commit hook (whose installer was already removed in v2.58.0) is retired.
+- **Non-interactive contract, tightened (W2 + W14).** The inline non-interactive block shrank 83→27 lines across every block-carrying skill (the awk extractor moved out of the runtime prompt into Section D of `_shared/non-interactive.md`); the W14 posture documents the re-paste tax (no auto-propagate tool) and adds self-documenting exemption markers (`<!-- non-interactive: delegated … -->` for thin aliases alongside `refused`). Three real `--non-interactive` gaps (architecture, comments, ideate) were closed, not masked.
+
+### Internal
+
+Shared-substrate consolidation: new `_shared/tracker-crudl.md` (backlog/mytasks/people, W4), `_shared/persona-journey-alignment.md` (creativity/msf-req/msf-wf, W5), `_shared/writing-principles.md` (W5), and `learnings-capture.md` relocated into `_shared/` with 20 citations repointed (W13). Inline templates moved to `reference/` in `/spec` (1019→695) and `/plan` (861→636) to stay under the eval body cap (W8). First-class skill identity + structural gates for `/comments`, `/changelog`, `/session-log` (W9); persona theater-checks added to `/design-crit` + `/survey-design` (W10). `mac-health` left pmos-toolkit for the new `pmos-utilities` plugin (W6; released separately). Resolver migration carries 5 inline-fixture node tests + a schema-refuse shell test; the browser `comments.js` test suite (26 cases) and `template_comments_bake.test.sh` were updated to the v2.58.0 inline contract; full comments suite + `/verify` coverage gate green.
+
+---
+
 ## 2026-06-03 — pmos-learnkit 0.12.0: `/magazine` second-retro fixes — output quality, cross-feed dedup, stored window
 
 Five more findings from `/magazine`'s first run — output-quality and design-gap issues the agent had quietly worked around (which is exactly why the prior retro missed them):
