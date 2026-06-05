@@ -150,7 +150,7 @@ END { emit_pending() }
 
 ## Phase 1: Intake & Tier Detection
 
-1. **Locate the requirements.** Follow `../.shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`.
+1. **Locate the requirements.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`.
 2. **Read the requirements end-to-end.** Confirm understanding with the user — summarize the problem, goals, non-goals, and key decisions already made.
 3. **Check for existing spec.** Use `_shared/resolve-input.md` with `phase=spec`, `label="prior spec"` to locate either `{feature_folder}/02_spec.html` (preferred) or `{feature_folder}/02_spec.md` (legacy fallback).
    - If found: read it, ask the user if this is an update or fresh start.

@@ -185,7 +185,7 @@ END { emit_pending() }
 
 ## Phase 1: Locate Requirements
 
-1. **Find the requirements doc.** Follow `../.shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or inline feature description.
+1. **Find the requirements doc.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or inline feature description.
 2. **No requirements doc found?** Stop and trigger `/requirements` first:
    - Tell the user: "Wireframes need a requirements doc to anchor user journeys. Running `/requirements` first."
    - Hand off to `/pmos-toolkit:requirements` with the user's original ask.

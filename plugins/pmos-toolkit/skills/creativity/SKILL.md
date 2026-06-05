@@ -35,7 +35,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /creativity
 
 ## Locate Requirements
 
-Follow `../.shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Read the resolved file end-to-end before Phase 1.
+Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Read the resolved file end-to-end before Phase 1.
 
 ---
 

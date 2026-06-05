@@ -407,7 +407,7 @@ Write the seed (from Step 2) to `{feature_folder}/01_requirements.md`. If that f
 
 ### Step 5: Invoke the target skill
 
-Invoke the target skill (`/requirements` or `/spec`) with `--backlog {id}` so the pipeline-bridge consent gate opens. The target skill resolves its input from the current feature folder per `_shared/pipeline-setup.md` Section 0 + `.shared/resolve-input.md` (so the seeded `01_requirements.md` is picked up automatically). The user's session continues inside the target skill.
+Invoke the target skill (`/requirements` or `/spec`) with `--backlog {id}` so the pipeline-bridge consent gate opens. The target skill resolves its input from the current feature folder per `_shared/pipeline-setup.md` Section 0 + `_shared/resolve-input.md` (so the seeded `01_requirements.md` is picked up automatically). The user's session continues inside the target skill.
 
 ### Step 6: On return, report
 

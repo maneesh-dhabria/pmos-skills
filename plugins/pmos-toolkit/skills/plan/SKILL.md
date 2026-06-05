@@ -166,7 +166,7 @@ END { emit_pending() }
 
 ## Phase 1: Intake
 
-1. **Locate the spec.** Follow `../.shared/resolve-input.md` with `phase=spec`, `label="spec"`.
+1. **Locate the spec.** Follow `_shared/resolve-input.md` with `phase=spec`, `label="spec"`.
 <!-- defer-only: ambiguous -->
 2. **Read the spec end-to-end.** Summarize it back in 3-5 bullets and confirm understanding with the user via AskUserQuestion.
 3. **Read tier and type from spec frontmatter** (FR-01). Re-use the parse from Phase 0 step 9; set `{tier}` and `{type}` for downstream phases. Tier-N gating in Phase 3 / Phase 4 keys off `{tier}`; per-task TDD precedence (FR-104a) keys off `{type}`.

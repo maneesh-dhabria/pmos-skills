@@ -187,7 +187,7 @@ On completion, return a structured pass/fail result to the calling skill (/execu
 
 All other Phase 1+ behavior is unchanged. Standalone /verify invocations (without `--scope phase`) work exactly as before.
 
-1. **Locate upstream documents.** Resolve each of the three inputs by following `../.shared/resolve-input.md`:
+1. **Locate upstream documents.** Resolve each of the three inputs by following `_shared/resolve-input.md`:
    - Spec: `phase=spec`, `label="spec"` (user argument, if passed, applies to the spec)
    - Requirements: `phase=requirements`, `label="requirements doc"`
    - Plan: `phase=plan`, `label="plan"`

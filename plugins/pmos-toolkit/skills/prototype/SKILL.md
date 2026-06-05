@@ -140,7 +140,7 @@ END { emit_pending() }
 
 ## Phase 1: Locate Inputs
 
-1. **Find the requirements doc.** Follow `../.shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or inline feature description.
+1. **Find the requirements doc.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or inline feature description.
 2. **No requirements doc found?** Stop and trigger `/wireframes` (which will trigger `/requirements` if needed):
    - Tell the user: "Prototype needs requirements + wireframes. Running `/wireframes` first."
    - Hand off to `/pmos-toolkit:wireframes` with the user's original ask.
