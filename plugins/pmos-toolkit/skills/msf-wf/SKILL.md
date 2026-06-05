@@ -128,7 +128,7 @@ Follow `../_shared/msf-heuristics.md` "Persona Alignment" section. Behavior:
 ## Phase 4: Journey Confirmation
 
 <!-- defer-only: ambiguous -->
-List user journeys based on the wireframe screen-flow (entry points, navigation, completion screens) plus the requirements doc if available. Confirm via `AskUserQuestion` before proceeding.
+Follow `../_shared/persona-journey-alignment.md` Step 2, with `source` = the wireframe screen-flow (entry points, navigation, completion screens) + the requirements doc if available — list and confirm journeys via `AskUserQuestion` before proceeding.
 
 ---
 

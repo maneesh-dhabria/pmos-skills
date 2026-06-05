@@ -71,19 +71,17 @@ Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirement
 
 ## Phase 1: Identify & Align on Personas
 
-Propose user personas (minimum 2, maximum 5) and typical usage scenarios (maximum 2 per persona — these are usage contexts, not error cases).
-
-**Priority guidance:** Focus depth on **new users** and **power users**. Go lighter on others.
+Follow `_shared/persona-journey-alignment.md` Step 1, with `source` = the resolved requirements doc (proposes 2–5 personas, ≤2 scenarios each; priority on **new users** and **power users**).
 
 <!-- defer-only: ambiguous -->
-Present via AskUserQuestion for approval before proceeding.
+The persona confirmation (`AskUserQuestion`) is mandatory — never skipped.
 
 ---
 
 ## Phase 2: Identify & Confirm Journeys
 
 <!-- defer-only: ambiguous -->
-List the key user journeys from the requirements that should be analyzed. Confirm the list with the user via AskUserQuestion before proceeding.
+Follow `_shared/persona-journey-alignment.md` Step 2 (`source` = the resolved requirements doc) — list and confirm the journeys via `AskUserQuestion` before proceeding.
 
 ---
 

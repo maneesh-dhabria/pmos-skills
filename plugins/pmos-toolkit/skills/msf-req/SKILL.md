@@ -92,9 +92,7 @@ The confirmation step is mandatory — never skipped.
 
 ## Phase 4: Journey Confirmation
 
-List the key user journeys mentioned in the requirements doc. Confirm via `AskUserQuestion` before proceeding.
-
-If the requirements doc does not name discrete journeys, propose 2–4 inferred journeys based on the goals + functional sections, and confirm.
+Follow `../_shared/persona-journey-alignment.md` Step 2, with `source` = the requirements doc — list and confirm the key user journeys via `AskUserQuestion` (infer 2–4 from goals + functional sections if the doc names none).
 
 ---
 

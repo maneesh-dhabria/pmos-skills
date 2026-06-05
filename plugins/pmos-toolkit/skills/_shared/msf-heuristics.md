@@ -8,21 +8,7 @@ Scope: motivation, friction, and satisfaction analysis only. Wireframe-specific 
 
 ## Persona Alignment
 
-Propose user personas (minimum 2, maximum 5) and typical usage scenarios (maximum 2 per persona — these are usage contexts, not error cases).
-
-**Behavior:** First, extract any personas/journeys explicitly named in the source artifact (the requirements doc for `/msf-req`; the wireframes folder + sibling `01_requirements.md` for `/msf-wf`). Propose those for confirmation rather than inventing. If the source contains no explicit personas, propose 2–5 inferred personas (max 2 scenarios each).
-
-**Confirmation is mandatory** — the persona-alignment step is never skipped, in either standalone or parent-invoked modes.
-
-**Priority guidance:** Focus depth on **new users** and **power users**. Go lighter on others.
-
-Present via `AskUserQuestion` for approval before proceeding. Format:
-
-> **Proposed personas:**
-> 1. **[Name]** — [role, context, goal]. Scenarios: (a) [context 1], (b) [context 2]
-> 2. **[Name]** — [role, context, goal]. Scenarios: (a) [context 1], (b) [context 2]
->
-> **Approve these personas, or suggest changes?**
+Persona **and** journey alignment is the skill-agnostic ceremony in [`persona-journey-alignment.md`](persona-journey-alignment.md) — follow it with `source` bound per the calling skill (the requirements doc for `/msf-req`; the wireframes folder + sibling `01_requirements.{html,md}` + wireframe copy for `/msf-wf`). It covers proposing 2–5 personas (≤2 scenarios each, extract-before-invent, new/power-user priority), the mandatory `AskUserQuestion` confirmation, and journey confirmation. The MSF consideration questions below run once personas and journeys are confirmed.
 
 ---
 
