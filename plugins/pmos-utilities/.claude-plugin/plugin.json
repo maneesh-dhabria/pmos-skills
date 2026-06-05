@@ -1,0 +1,20 @@
+{
+  "name": "pmos-utilities",
+  "version": "0.1.0",
+  "description": "Environment utilities — keep your machine and working setup healthy. Standalone diagnostics and cleanup (e.g. Mac health) that aren't part of the delivery pipeline or the learning kit.",
+  "author": {
+    "name": "Maneesh Dhabria"
+  },
+  "homepage": "https://github.com/maneesh-dhabria/pmos-skills",
+  "repository": "https://github.com/maneesh-dhabria/pmos-skills",
+  "license": "MIT",
+  "keywords": [
+    "utilities",
+    "diagnostics",
+    "environment",
+    "mac-health",
+    "maintenance",
+    "cleanup"
+  ],
+  "skills": "./skills/"
+}

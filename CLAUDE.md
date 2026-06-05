@@ -2,6 +2,18 @@
 
 Project-level rules that aren't obvious from the directory structure. Skills and tools loaded from this repo trust these invariants; violating them produces silent failures (skills don't load, releases get stuck).
 
+## Plugin charters
+
+Each plugin answers one question. A new skill belongs to the plugin whose charter it serves — if it fits none, it probably needs a new plugin (see "## New-plugin scaffolding"), not a forced fit.
+
+| Plugin | Charter — "help me…" | Holds |
+|---|---|---|
+| **pmos-toolkit** | …**ship a feature** | the delivery pipeline (requirements → spec → plan → execute → verify → complete-dev) and its supporting authoring/release skills (artifact, diagram, wireframes, prototype, grill, polish, backlog, mytasks, people, changelog, session-log, retro, feature-sdlc, …). |
+| **pmos-learnkit** | …**learn a topic** | verified-source, audience-shaped teachable artifacts (primer, learn-list, magazine) and the shared topic-research substrate. |
+| **pmos-utilities** | …**maintain my environment** | standalone diagnostics and cleanup that aren't part of a feature pipeline or a learning artifact (mac-health). |
+
+The charters are the membership test, not just a description. `mac-health` lives in `pmos-utilities` (not `pmos-toolkit`) because diagnosing a hot Mac maintains your environment — it neither ships a feature nor teaches a topic.
+
 ## Canonical skill path
 
 Each plugin manifest loads skills from exactly one directory:
@@ -69,6 +81,7 @@ An unregistered plugin directory under `plugins/` is silently invisible to the m
 ### Plugins list
 - pmos-toolkit
 - pmos-learnkit
+- pmos-utilities
 
 ### Tag convention
 - Format: `<plugin>/v<semver>` (e.g. `pmos-toolkit/v2.50.0`).

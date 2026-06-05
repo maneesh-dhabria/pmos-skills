@@ -71,8 +71,10 @@ These get value from the binary `skill-eval` rubric. I implement; we run `skill-
 
 | Task | Item | Owner | Acceptance |
 |---|---|---|---|
-| T4.1 | **W6** scaffold `pmos-utilities` (2 manifests @0.1.0, marketplace entries, Plugins-list); move `mac-health`; add charters to CLAUDE.md | `[me]` | mac-health registers under utilities; removed from toolkit |
-| T4.2 | Release **pmos-utilities** (0.1.0) + pmos-toolkit (mac-health removal) | `[you-authorize]` | both plugins released per per-plugin policy |
+| T4.1 | **W6** scaffold `pmos-utilities` (2 manifests @0.1.0, marketplace entries, Plugins-list); move `mac-health`; add charters to CLAUDE.md | `[me]` | ✅ **DONE** — `git mv` mac-health → `plugins/pmos-utilities/skills/mac-health` (canonical path, name==dir); both `plugin.json` @0.1.0; both marketplace catalogs gain a `pmos-utilities` entry **with no `version` field**; CLAUDE.md gains a **## Plugin charters** table (ship-a-feature / learn-a-topic / maintain-my-environment) + Plugins-list entry. All 6 manifests valid JSON. Toolkit baselines unchanged (inline lint 5 fail, audit 37) — mac-health was a passing block-carrier with 0 audit call-sites. See note below. |
+| T4.2 | Release **pmos-utilities** (0.1.0) + pmos-toolkit (mac-health removal) | `[you-authorize]` | ⏸ awaiting go-ahead — two releases per per-plugin policy |
+
+**T4.1 note — deferred follow-up (non-interactive framework port):** mac-health carries the full pmos-toolkit non-interactive block verbatim (FR-01..08, `.pmos/settings.yaml`, the `pmos-toolkit: /<skill> finished` stderr prefix, and a CI-context line pointing at `tools/audit-recommended.sh` + Section D of `_shared/non-interactive.md`). pmos-utilities has none of that substrate/tooling. The block is **self-contained inline instructions** — it runs correctly standalone — so the move is a clean lift-and-shift. But the stderr prefix now names the wrong plugin and the CI-context references are dangling. Deciding whether pmos-utilities **adopts** the non-interactive framework (port the substrate + lint + audit, fix the prefix) or **drops** the block (mac-health is chat-only/read-only — arguably doesn't need it) is one coherent decision, deliberately **not** piecemeal-edited inside W6's move-and-register scope. Tracked for a future wave.
 
 ---
 
