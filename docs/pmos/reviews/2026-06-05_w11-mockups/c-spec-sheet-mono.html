@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C — Spec-Sheet Mono · PMOS visual-identity mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f5f3; --surface:#fff; --surface2:#faf8f6; --surface3:#f0ede9;
+    --border:#d9d4cd; --border2:#e7e2db; --text:#1C1917; --muted:#57534e; --faint:#a8a29e;
+    --accent:#C2410C; --accent-strong:#9A3412; --accent-bg:#FFEDD5;
+    --display:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:"JetBrains Mono", ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0c0a09;--surface:#1a1714;--surface2:#221e1a;--surface3:#2c2722;
+    --border:#3a342d;--border2:#4a433a;--text:#f0ece6;--muted:#b3aaa0;--faint:#7c736a;
+    --accent:#fb923c;--accent-strong:#fdba74;--accent-bg:#431c0a;
+  }}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .toolbar{display:flex;align-items:center;gap:12px;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:5}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.02em;color:var(--text);display:inline-flex;align-items:center}
+  .wordmark .caret{color:var(--accent);margin-left:1px}
+  .title{font-family:var(--display);font-weight:500;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);border-left:1px solid var(--border2);padding-left:12px}
+  .btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--display);font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer}
+  .body{max-width:880px;margin:0 auto;padding:24px 24px 40px;counter-reset:sec}
+  h1{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-.02em;margin:.2em 0 .15em}
+  .kicker{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+  h2{font-family:var(--display);font-weight:700;font-size:16px;text-transform:uppercase;letter-spacing:.02em;margin:40px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--accent)}
+  h2::before{counter-increment:sec;content:"[" counter(sec) "] ";color:var(--accent);font-weight:700}
+  h3{font-family:var(--display);font-weight:700;font-size:14px;margin:22px 0 8px;color:var(--text)}
+  p{margin:0 0 12px}
+  a{color:var(--accent-strong);text-decoration:none}a:hover{text-decoration:underline}
+  code{font-family:var(--mono);background:var(--surface3);padding:1px 5px;border-radius:3px;font-size:.88em}
+  pre{font-family:var(--mono);background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:12px 16px;overflow-x:auto;font-size:12px;line-height:1.5}
+  pre code{background:transparent;padding:0}
+  blockquote{margin:12px 0;padding:8px 16px;border-left:3px solid var(--accent);background:var(--surface2);color:var(--muted)}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
+  thead th{background:var(--surface2);text-align:left;font-weight:600;font-family:var(--display)}
+  th,td{border:1px solid var(--border2);padding:8px 12px;vertical-align:top}
+  tbody tr:nth-child(even) td{background:var(--surface2)}
+  figure{margin:16px 0;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:14px}
+  figcaption{margin-top:8px;font-size:11px;color:var(--muted);font-style:italic;text-align:center}
+  ul{margin:0 0 12px;padding-left:24px}li{margin:4px 0}
+  .footer{max-width:880px;margin:24px auto 0;padding:14px 24px;border-top:1px solid var(--accent);font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-family:var(--display)}
+  .footer .brand{font-weight:700;color:var(--text)}
+  .footer .brand .caret{color:var(--accent)}
+  .sep{color:var(--faint)}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <span class="wordmark">pmos<span class="caret">▍</span></span>
+  <span class="title">02 — spec: inline doc comments</span>
+  <button class="btn">copy link</button>
+</header>
+<main class="body">
+  <p class="kicker">Specification · Tier 3</p>
+  <h1>Inline doc comments</h1>
+  <p>Stakeholders annotate any PMOS-emitted HTML artifact in the browser. Comment threads persist as an inline JSON block inside the HTML itself — no sidecar files; the artifact is the single source of truth. This mockup shows <strong>Direction C — Spec-Sheet Mono</strong> applied to a representative spec page.</p>
+
+  <h2>Context &amp; goals</h2>
+  <p>The current substrate is clean but generic: Tailwind-blue accent, system fonts, a near-invisible footer. This direction leans into the spec/plan/diagram domain — a monospace display face for every heading and the wordmark, a burnt-orange signal accent, and bracketed <code>[N]</code> section tags as the repeated signature. It reads like a precise engineering spec-sheet.</p>
+  <blockquote>A signature structural detail repeated ~50×/doc compounds recognition.</blockquote>
+
+  <h2>Functional requirements</h2>
+  <h3>FR-1 — Masthead wordmark</h3>
+  <p>The toolbar carries <code>pmos▍</code> in JetBrains Mono with a block-caret accent — unmistakably developer-native. It appears on all 14 HTML surfaces.</p>
+  <h3>FR-2 — Section signature</h3>
+  <p>Each <code>&lt;h2&gt;</code> is an uppercase mono header prefixed with an auto-incrementing <code>[N]</code> tag and underlined by a thin orange rule.</p>
+
+  <h2>Shared palette (docs ↔ diagrams)</h2>
+  <p>Docs and diagrams converge on one accent so a PMOS diagram and a PMOS doc feel like one product:</p>
+  <figure>
+    <svg viewBox="0 0 420 120" width="100%" height="120" role="img" aria-label="palette bridge diagram">
+      <rect x="14" y="34" width="150" height="52" rx="6" fill="none" stroke="#C2410C" stroke-width="2"/>
+      <text x="89" y="58" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" fill="#1C1917">requirements</text>
+      <text x="89" y="76" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" fill="#57534e">tier 3</text>
+      <line x1="164" y1="60" x2="252" y2="60" stroke="#57534e" stroke-width="2" marker-end="url(#ah)"/>
+      <rect x="256" y="34" width="150" height="52" rx="6" fill="#FFEDD5" stroke="#C2410C" stroke-width="2"/>
+      <text x="331" y="64" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" fill="#9A3412">spec</text>
+      <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#57534e"/></marker></defs>
+    </svg>
+    <figcaption>The diagram's accent is the same burnt-orange token as the doc — one palette, not two.</figcaption>
+  </figure>
+
+  <h2>Non-functional requirements</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>NFR-1</td><td>Display face subset, base64-inlined</td><td>≤ 20 KB woff2</td></tr>
+      <tr><td>NFR-2</td><td>Artifact renders with no server, no internet</td><td>file:// safe</td></tr>
+      <tr><td>NFR-3</td><td>Body stays on system stack</td><td>0 added bytes</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>Accent <code>#C2410C</code> · strong <code>#9A3412</code> · bg <code>#FFEDD5</code></li>
+    <li>Display: JetBrains Mono 500/700 · Body: system sans</li>
+  </ul>
+</main>
+<footer class="footer">
+  <span>source: 02_spec.html</span>
+  <span class="sep">·</span>
+  <span>created using <span class="brand">pmos<span class="caret">▍</span>toolkit</span></span>
+</footer>
+</body>
+</html>

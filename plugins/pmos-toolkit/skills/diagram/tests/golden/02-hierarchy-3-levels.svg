@@ -9,43 +9,43 @@
     </marker>
   </defs>
   <rect x="540" y="80" width="200" height="48" rx="8" ry="8"
-        fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>
   <text x="640" y="104" text-anchor="middle" dominant-baseline="middle"
-        font-size="16" font-weight="600" fill="#0F172A">Root</text>
+        font-size="16" font-weight="600" fill="#1C1917">Root</text>
   <rect x="280" y="320" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="380" y="344" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Branch A</text>
+        font-size="14" fill="#1C1917">Branch A</text>
   <rect x="800" y="320" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="900" y="344" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Branch B</text>
+        font-size="14" fill="#1C1917">Branch B</text>
   <rect x="80" y="560" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="180" y="584" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Leaf 1</text>
+        font-size="14" fill="#1C1917">Leaf 1</text>
   <rect x="360" y="560" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="460" y="584" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Leaf 2</text>
+        font-size="14" fill="#1C1917">Leaf 2</text>
   <rect x="720" y="560" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="820" y="584" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Leaf 3</text>
+        font-size="14" fill="#1C1917">Leaf 3</text>
   <rect x="1000" y="560" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="1100" y="584" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Leaf 4</text>
-  <path d="M 600 128 L 380 320" fill="none" stroke="#475569" stroke-width="1.5"
+        font-size="14" fill="#1C1917">Leaf 4</text>
+  <path d="M 600 128 L 380 320" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 680 128 L 900 320" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 680 128 L 900 320" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 340 368 L 180 560" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 340 368 L 180 560" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 420 368 L 460 560" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 420 368 L 460 560" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 860 368 L 820 560" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 860 368 L 820 560" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 940 368 L 1100 560" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 940 368 L 1100 560" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
 </svg>

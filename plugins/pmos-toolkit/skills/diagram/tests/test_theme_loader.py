@@ -14,8 +14,8 @@ import run  # noqa: E402
 
 def test_load_theme_returns_palette_dict():
     theme = run.load_theme("technical")
-    assert "#2563EB" in {a["hex"].upper() for a in theme["palette"]["accents"]}
-    assert theme["palette"]["ink"].upper() == "#0F172A"
+    assert "#C2410C" in {a["hex"].upper() for a in theme["palette"]["accents"]}
+    assert theme["palette"]["ink"].upper() == "#1C1917"
 
 
 def test_load_unknown_theme_raises():
@@ -74,8 +74,8 @@ def test_build_palette_set_includes_all_token_layers():
     theme = run.load_theme("technical")
     pset = run.build_palette_set(theme)
     assert "#FFFFFF" in pset  # surface
-    assert "#F4F5F7" in pset  # surfaceMuted (palette block)
-    assert "#0F172A" in pset  # ink
-    assert "#475569" in pset  # inkMuted
-    assert "#2563EB" in pset  # accent
+    assert "#F6F5F3" in pset  # surfaceMuted (palette block)
+    assert "#1C1917" in pset  # ink
+    assert "#57534E" in pset  # inkMuted
+    assert "#C2410C" in pset  # accent
     assert "#B91C1C" in pset  # warn

@@ -9,13 +9,13 @@
     </marker>
   </defs>
   <rect x="40" y="40" width="120" height="40" rx="8" ry="8"
-        fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>
   <text x="100" y="60" text-anchor="middle" dominant-baseline="middle"
-        font-size="16" font-weight="600" fill="#0F172A">Source</text>
+        font-size="16" font-weight="600" fill="#1C1917">Source</text>
   <rect x="320" y="40" width="120" height="40" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="380" y="60" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Target</text>
-  <path d="M 160 60 L 316 60" fill="none" stroke="#2563EB" stroke-width="2"
+        font-size="14" fill="#1C1917">Target</text>
+  <path d="M 160 60 L 316 60" fill="none" stroke="#C2410C" stroke-width="2"
         marker-end="url(#arrow)"/>
 </svg>

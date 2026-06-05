@@ -9,19 +9,22 @@
 name: technical
 displayName: Technical
 
+# Palette converges on the doc substrate's shared tokens (W11) — see
+# themes/_shared-palette.yaml. A PMOS diagram and a PMOS doc share one accent
+# (burnt-orange) and one ink (stone), so they read as one product.
 surface:
   background: "#FFFFFF"
-  muted: "#F4F5F7"
+  muted: "#F6F5F3"
 
 palette:
-  ink: "#0F172A"
-  inkMuted: "#475569"
+  ink: "#1C1917"
+  inkMuted: "#57534E"
   warn: "#B91C1C"
   surface: "#FFFFFF"
-  surfaceMuted: "#F4F5F7"
+  surfaceMuted: "#F6F5F3"
   accents:
     - name: accent
-      hex: "#2563EB"
+      hex: "#C2410C"
 
 typography:
   body:

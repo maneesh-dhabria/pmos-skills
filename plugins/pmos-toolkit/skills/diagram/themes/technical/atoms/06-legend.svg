@@ -4,12 +4,12 @@
   <title>Legend block atom — 3 rows, 16x16 swatches, 12/400 labels.</title>
   <g class="legend">
     <rect x="32" y="32" width="176" height="96" rx="4" ry="4"
-          fill="#FFFFFF" stroke="#475569" stroke-width="1"/>
-    <rect x="48" y="48" width="16" height="16" rx="0" ry="0" fill="#0F172A"/>
-    <text x="72" y="56" dominant-baseline="middle" font-size="12" fill="#0F172A">Service</text>
-    <rect x="48" y="72" width="16" height="16" rx="0" ry="0" fill="#475569"/>
-    <text x="72" y="80" dominant-baseline="middle" font-size="12" fill="#0F172A">Data store</text>
-    <rect x="48" y="96" width="16" height="16" rx="0" ry="0" fill="#2563EB"/>
-    <text x="72" y="104" dominant-baseline="middle" font-size="12" fill="#0F172A">External</text>
+          fill="#FFFFFF" stroke="#57534E" stroke-width="1"/>
+    <rect x="48" y="48" width="16" height="16" rx="0" ry="0" fill="#1C1917"/>
+    <text x="72" y="56" dominant-baseline="middle" font-size="12" fill="#1C1917">Service</text>
+    <rect x="48" y="72" width="16" height="16" rx="0" ry="0" fill="#57534E"/>
+    <text x="72" y="80" dominant-baseline="middle" font-size="12" fill="#1C1917">Data store</text>
+    <rect x="48" y="96" width="16" height="16" rx="0" ry="0" fill="#C2410C"/>
+    <text x="72" y="104" dominant-baseline="middle" font-size="12" fill="#1C1917">External</text>
   </g>
 </svg>

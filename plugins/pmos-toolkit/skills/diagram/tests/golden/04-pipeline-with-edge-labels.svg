@@ -9,43 +9,43 @@
     </marker>
   </defs>
   <rect x="80" y="376" width="160" height="48" rx="8" ry="8"
-        fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>
   <text x="160" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="16" font-weight="600" fill="#0F172A">Source</text>
+        font-size="16" font-weight="600" fill="#1C1917">Source</text>
   <rect x="380" y="376" width="160" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="460" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Validate</text>
+        font-size="14" fill="#1C1917">Validate</text>
   <rect x="680" y="376" width="160" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="760" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Transform</text>
+        font-size="14" fill="#1C1917">Transform</text>
   <rect x="980" y="376" width="160" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="1060" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Sink</text>
-  <path d="M 240 400 L 376 400" fill="none" stroke="#475569" stroke-width="1.5"
+        font-size="14" fill="#1C1917">Sink</text>
+  <path d="M 240 400 L 376 400" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 540 400 L 676 400" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 540 400 L 676 400" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 840 400 L 976 400" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 840 400 L 976 400" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
   <g class="edge-pill">
     <rect x="272" y="376" width="72" height="24" rx="4" ry="4"
-          fill="#F4F5F7" stroke="#475569" stroke-width="1"/>
+          fill="#F6F5F3" stroke="#57534E" stroke-width="1"/>
     <text x="308" y="388" text-anchor="middle" dominant-baseline="middle"
-          font-size="12" fill="#475569">raw</text>
+          font-size="12" fill="#57534E">raw</text>
   </g>
   <g class="edge-pill">
     <rect x="572" y="376" width="72" height="24" rx="4" ry="4"
-          fill="#F4F5F7" stroke="#475569" stroke-width="1"/>
+          fill="#F6F5F3" stroke="#57534E" stroke-width="1"/>
     <text x="608" y="388" text-anchor="middle" dominant-baseline="middle"
-          font-size="12" fill="#475569">valid</text>
+          font-size="12" fill="#57534E">valid</text>
   </g>
   <g class="edge-pill">
     <rect x="872" y="376" width="72" height="24" rx="4" ry="4"
-          fill="#F4F5F7" stroke="#475569" stroke-width="1"/>
+          fill="#F6F5F3" stroke="#57534E" stroke-width="1"/>
     <text x="908" y="388" text-anchor="middle" dominant-baseline="middle"
-          font-size="12" fill="#475569">cleaned</text>
+          font-size="12" fill="#57534E">cleaned</text>
   </g>
 </svg>

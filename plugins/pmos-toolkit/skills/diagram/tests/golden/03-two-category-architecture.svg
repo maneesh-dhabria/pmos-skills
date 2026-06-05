@@ -9,39 +9,39 @@
     </marker>
   </defs>
   <rect x="160" y="320" width="200" height="48" rx="8" ry="8"
-        fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>
   <text x="260" y="344" text-anchor="middle" dominant-baseline="middle"
-        font-size="16" font-weight="600" fill="#0F172A">Gateway</text>
+        font-size="16" font-weight="600" fill="#1C1917">Gateway</text>
   <rect x="540" y="200" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="640" y="224" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Auth Service</text>
+        font-size="14" fill="#1C1917">Auth Service</text>
   <rect x="540" y="440" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="640" y="464" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Order Service</text>
+        font-size="14" fill="#1C1917">Order Service</text>
   <rect x="920" y="200" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#C2410C" stroke-width="1.5"/>
   <text x="1020" y="224" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">User DB</text>
+        font-size="14" fill="#1C1917">User DB</text>
   <rect x="920" y="440" width="200" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#C2410C" stroke-width="1.5"/>
   <text x="1020" y="464" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Order DB</text>
-  <path d="M 360 344 L 540 224" fill="none" stroke="#475569" stroke-width="1.5"
+        font-size="14" fill="#1C1917">Order DB</text>
+  <path d="M 360 344 L 540 224" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 360 344 L 540 464" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 360 344 L 540 464" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 740 224 L 916 224" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 740 224 L 916 224" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 740 464 L 916 464" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 740 464 L 916 464" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
   <g class="legend">
     <rect x="960" y="80" width="240" height="80" rx="4" ry="4"
-          fill="#FFFFFF" stroke="#475569" stroke-width="1"/>
-    <rect x="976" y="96" width="16" height="16" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-    <text x="1000" y="104" dominant-baseline="middle" font-size="12" fill="#0F172A">Service</text>
-    <rect x="976" y="124" width="16" height="16" fill="#FFFFFF" stroke="#2563EB" stroke-width="1.5"/>
-    <text x="1000" y="132" dominant-baseline="middle" font-size="12" fill="#0F172A">Data store</text>
+          fill="#FFFFFF" stroke="#57534E" stroke-width="1"/>
+    <rect x="976" y="96" width="16" height="16" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+    <text x="1000" y="104" dominant-baseline="middle" font-size="12" fill="#1C1917">Service</text>
+    <rect x="976" y="124" width="16" height="16" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.5"/>
+    <text x="1000" y="132" dominant-baseline="middle" font-size="12" fill="#1C1917">Data store</text>
   </g>
 </svg>

@@ -1,0 +1,47 @@
+# _shared-palette.yaml — the one palette docs and diagrams share (W11).
+#
+# This is NOT a diagram theme (the loader reads themes/<name>/theme.yaml by name;
+# this top-level file is never loaded as a theme). It is the canonical token
+# bridge: the same hexes live in the HTML substrate at
+# ../../_shared/html-authoring/assets/style.css (:root) and in the default
+# `technical` diagram theme (technical/theme.yaml). Keeping both in sync is what
+# makes "a PMOS diagram" and "a PMOS doc" feel like one product.
+#
+# When changing the brand palette, edit all three in one commit:
+#   1. this file (the documented source of truth)
+#   2. html-authoring/assets/style.css  :root  (--pmos-* tokens, light + dark)
+#   3. diagram/themes/technical/theme.yaml  (surface + palette)
+#
+# The `editorial` diagram theme is a deliberate alternate identity (cream canvas,
+# co-equal blue/red-orange accents) and intentionally does NOT track this palette.
+
+name: pmos-shared-palette
+appliesTo: [docs, diagram-technical]
+
+light:
+  accent:        "#C2410C"   # burnt-orange signal accent (--pmos-accent)
+  accentStrong:  "#9A3412"   # --pmos-accent-strong
+  accentBg:      "#FFEDD5"   # --pmos-accent-bg
+  ink:           "#1C1917"   # primary text (--pmos-text)
+  inkMuted:      "#57534E"   # secondary text (--pmos-muted)
+  surface:       "#FFFFFF"   # --pmos-surface
+  surfaceMuted:  "#F6F5F3"   # --pmos-surface-2
+  border:        "#E0DCD4"   # --pmos-border
+  warn:          "#B91C1C"
+
+dark:
+  accent:        "#FB923C"
+  accentStrong:  "#FDBA74"
+  accentBg:      "#3A1C0A"
+  ink:           "#F0ECE6"
+  inkMuted:      "#B3AAA0"
+  surface:       "#121110"
+  surfaceMuted:  "#1A1815"
+  border:        "#2A2622"
+
+typography:
+  # Docs use the bundled JetBrains Mono 700 for the DISPLAY role (headings, wordmark,
+  # section counters) and a system sans for body/labels. Diagram labels are body-class,
+  # so they stay on the sans stack — only color is unified, not the label face.
+  displayFace:  "JetBrains Mono"
+  bodyStack:    "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"

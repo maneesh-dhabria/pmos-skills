@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W11 visual-identity mockups — compare</title>
+<style>
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;background:#e9e9ec;color:#18181b;font-size:14px;line-height:1.55}
+  header{padding:20px 28px;background:#fff;border-bottom:1px solid #d4d4d8}
+  h1{margin:0 0 6px;font-size:22px}
+  header p{margin:0;color:#52525b;max-width:900px}
+  .grid{display:flex;flex-direction:column;gap:28px;padding:24px}
+  .card{background:#fff;border:1px solid #d4d4d8;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 18px rgba(0,0,0,.05)}
+  .card.pick{border-color:#C2410C;box-shadow:0 0 0 2px rgba(194,65,12,.18),0 6px 18px rgba(0,0,0,.05)}
+  .cap{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #e4e4e7;background:#fafafa}
+  .cap b{font-size:15px}
+  .cap span{color:#71717a;font-size:13px}
+  .cap .badge{background:#C2410C;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
+  .cap a{margin-left:auto;font-size:13px;color:#2563eb;text-decoration:none;border:1px solid #d4d4d8;padding:4px 10px;border-radius:6px}
+  .cap a:hover{background:#f0f0f3}
+  iframe{width:100%;height:720px;border:0;display:block;background:#fff}
+  .sectlabel{margin:8px 24px 0;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#71717a}
+  .note{padding:16px 28px;color:#52525b;font-size:13px;max-width:920px}
+  code{background:#f0f0f3;padding:1px 5px;border-radius:3px;font-size:.9em}
+</style>
+</head>
+<body>
+<header>
+  <h1>W11 — Visual identity: seven directions</h1>
+  <p>Each frame is a full, self-contained artifact mock (toolbar + wordmark, section signature repeated down the page, a shared docs↔diagram palette, branded footer). Display faces load from Google Fonts <em>for this preview only</em> — the shipped substrate would base64-inline a subset (no server, no internet) or use a system stack, per the delivery choice. Scroll each frame, or click <b>Open full</b>. <b>C is your current pick</b> — the three product-idiom directions (D/E/F) are below it for comparison. Tell me the winner + any tweaks (accent, face, and signature are mixable).</p>
+</header>
+
+<div class="sectlabel">Current shortlist</div>
+<div class="grid">
+  <div class="card pick">
+    <div class="cap"><b>C — Spec-Sheet Mono</b><span class="badge">YOUR PICK</span><span>burnt-orange #C2410C · JetBrains Mono · [N] tags · heavy rules</span><a href="c-spec-sheet-mono.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="c-spec-sheet-mono.html" title="Direction C"></iframe>
+  </div>
+  <div class="card pick">
+    <div class="cap"><b>G — Mono Minimal (C × F)</b><span class="badge">HYBRID</span><span>C's mono + orange, F's hairlines + whitespace · [01] zero-pad counters</span><a href="g-mono-minimal.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="g-mono-minimal.html" title="Direction G"></iframe>
+  </div>
+</div>
+
+<div class="sectlabel">New — product idioms</div>
+<div class="grid">
+  <div class="card">
+    <div class="cap"><b>D — Stripe Clean</b><span>blurple #635BFF · Inter + gradient wordmark · soft shadows</span><a href="d-stripe-clean.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="d-stripe-clean.html" title="Direction D"></iframe>
+  </div>
+  <div class="card">
+    <div class="cap"><b>E — Claude Warm</b><span>terracotta #C96442 · Newsreader serif · cream canvas</span><a href="e-claude-warm.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="e-claude-warm.html" title="Direction E"></iframe>
+  </div>
+  <div class="card">
+    <div class="cap"><b>F — Vercel / Geist Minimal</b><span>black &amp; white · Geist Sans + Mono · 01/02 counters · #0070F3</span><a href="f-vercel-geist.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="f-vercel-geist.html" title="Direction F"></iframe>
+  </div>
+</div>
+
+<div class="sectlabel">Earlier directions</div>
+<div class="grid">
+  <div class="card">
+    <div class="cap"><b>A — Slate &amp; Teal</b><span>teal #0F766E · Space Grotesk · §N + left-bar</span><a href="a-slate-teal.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="a-slate-teal.html" title="Direction A"></iframe>
+  </div>
+  <div class="card">
+    <div class="cap"><b>B — Editorial Aubergine</b><span>aubergine #86198F · Fraunces serif · oversized §N</span><a href="b-editorial-aubergine.html" target="_blank" rel="noopener">Open full ↗</a></div>
+    <iframe src="b-editorial-aubergine.html" title="Direction B"></iframe>
+  </div>
+</div>
+
+<p class="note">The accent, the display face, and the section-signature style are independent — you can mix (e.g. C's <code>[N]</code> tags with F's hairline-minimal layout, or D's gradient wordmark on C's mono). Throwaway decision artifacts under <code>docs/pmos/reviews/2026-06-05_w11-mockups/</code>; not part of the shipped substrate.</p>
+</body>
+</html>

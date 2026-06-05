@@ -55,7 +55,7 @@ def test_technical_theme_validates_against_schema():
     assert theme["infographic"]["supported"] is False
     assert theme["rubricOverrides"]["waive"] == []
     assert theme["rubricOverrides"]["add"] == []
-    assert theme["palette"]["ink"].upper() == "#0F172A"
-    assert theme["palette"]["inkMuted"].upper() == "#475569"
+    assert theme["palette"]["ink"].upper() == "#1C1917"
+    assert theme["palette"]["inkMuted"].upper() == "#57534E"
     assert theme["palette"]["warn"].upper() == "#B91C1C"
-    assert any(a["hex"].upper() == "#2563EB" for a in theme["palette"]["accents"])
+    assert any(a["hex"].upper() == "#C2410C" for a in theme["palette"]["accents"])

@@ -20,12 +20,12 @@ Common SVG gotchas the agent must respect. Treat this as a checklist before writ
     .node-primary { fill: #FFFFFF; stroke: #0F172A; stroke-width: 2; rx: 8; ry: 8; }
     .node-default { fill: #FFFFFF; stroke: #475569; stroke-width: 1.5; rx: 4; ry: 4; }
     .label-primary { font-size: 16px; font-weight: 600; fill: #0F172A; }
-    .label-default { font-size: 14px; font-weight: 400; fill: #0F172A; }
-    .label-edge { font-size: 12px; font-weight: 400; fill: #475569; }
-    .connector { stroke: #475569; stroke-width: 1.5; fill: none; }
-    .connector-emphasis { stroke: #2563EB; stroke-width: 2; fill: none; }
-    .legend-box { fill: #FFFFFF; stroke: #475569; stroke-width: 1; rx: 4; ry: 4; }
-    .edge-pill { fill: #F4F5F7; stroke: #475569; stroke-width: 1; rx: 4; ry: 4; }
+    .label-default { font-size: 14px; font-weight: 400; fill: #1C1917; }
+    .label-edge { font-size: 12px; font-weight: 400; fill: #57534E; }
+    .connector { stroke: #57534E; stroke-width: 1.5; fill: none; }
+    .connector-emphasis { stroke: #C2410C; stroke-width: 2; fill: none; }
+    .legend-box { fill: #FFFFFF; stroke: #57534E; stroke-width: 1; rx: 4; ry: 4; }
+    .edge-pill { fill: #F6F5F3; stroke: #57534E; stroke-width: 1; rx: 4; ry: 4; }
   </style>
   <!-- content -->
 </svg>

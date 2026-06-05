@@ -8,18 +8,18 @@
       <path d="M 0 0 L 8 3 L 0 6 z" fill="context-stroke"/>
     </marker>
   </defs>
-  <rect x="80" y="80" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-  <text x="140" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#0F172A">A</text>
-  <rect x="1080" y="80" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-  <text x="1140" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#0F172A">B</text>
-  <rect x="80" y="680" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-  <text x="140" y="700" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#0F172A">C</text>
-  <rect x="1080" y="680" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-  <text x="1140" y="700" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#0F172A">D</text>
-  <path d="M 200 100 L 1080 700" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 1080 100 L 200 700" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 200 100 L 1080 100" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 200 700 L 1080 700" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 200 100 L 200 700" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
-  <path d="M 1080 100 L 1080 700" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="80" y="80" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+  <text x="140" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#1C1917">A</text>
+  <rect x="1080" y="80" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+  <text x="1140" y="100" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#1C1917">B</text>
+  <rect x="80" y="680" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+  <text x="140" y="700" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#1C1917">C</text>
+  <rect x="1080" y="680" width="120" height="40" rx="4" ry="4" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+  <text x="1140" y="700" text-anchor="middle" dominant-baseline="middle" font-size="14" fill="#1C1917">D</text>
+  <path d="M 200 100 L 1080 700" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 1080 100 L 200 700" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 200 100 L 1080 100" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 200 700 L 1080 700" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 200 100 L 200 700" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 1080 100 L 1080 700" fill="none" stroke="#57534E" stroke-width="1.5" marker-end="url(#arrow)"/>
 </svg>

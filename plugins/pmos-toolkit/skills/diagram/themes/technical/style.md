@@ -13,10 +13,10 @@ When you generate a diagram you MUST cite back to the relevant subsections — f
 | Token | Hex | Purpose |
 |---|---|---|
 | `surface` | `#FFFFFF` | Page background, default node fill |
-| `surface-muted` | `#F4F5F7` | Pill backgrounds (edge labels), legend background, secondary surfaces |
-| `ink` | `#0F172A` | Primary text, primary node strokes/borders |
-| `ink-muted` | `#475569` | Secondary text, connector strokes, legend borders, edge label text |
-| `accent` | `#2563EB` | Single emphasis color — primary node highlight, "active" path |
+| `surface-muted` | `#F6F5F3` | Pill backgrounds (edge labels), legend background, secondary surfaces |
+| `ink` | `#1C1917` | Primary text, primary node strokes/borders |
+| `ink-muted` | `#57534E` | Secondary text, connector strokes, legend borders, edge label text |
+| `accent` | `#C2410C` | Single emphasis color — primary node highlight, "active" path |
 | `warn` | `#B91C1C` | Errors, warnings, "stop" states — use sparingly |
 
 **Contrast (WCAG AA verified):**

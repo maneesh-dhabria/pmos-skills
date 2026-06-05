@@ -17,6 +17,9 @@ __pycache__/
 # pmos-toolkit per-developer /complete-dev run-shaping defaults (lastrun memory)
 .pmos/complete-dev.lastrun.yaml
 
+# pmos-toolkit per-developer /feature-sdlc soft-gate defaults (lastrun memory)
+.pmos/feature-sdlc.lastrun.yaml
+
 # Playwright MCP scratch artifacts (snapshots/console logs from /verify runs)
 .playwright-mcp/
 

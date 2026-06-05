@@ -129,7 +129,7 @@ Resolve `fill` and `stroke` for every visual element. Allowed values:
 - `none`, `transparent`, `context-stroke`, `context-fill`, `currentColor`.
 - Hex values declared in the **active theme's `palette` block** (loaded from `themes/<theme>/theme.yaml` and validated against `themes/_schema.json`). The set is the union of `ink`, `inkMuted`, `warn`, `surface`, `surfaceMuted`, every `accents[].hex`, and every `categoryChips[].hex` (case-insensitive comparison).
 
-For the default `technical` theme this resolves to `#FFFFFF`, `#F4F5F7`, `#0F172A`, `#475569`, `#2563EB`, `#B91C1C`. Other themes (e.g. `editorial`) bring their own token set; the contrast metric below uses the same theme-derived set as ground truth.
+For the default `technical` theme this resolves to `#FFFFFF`, `#F6F5F3`, `#1C1917`, `#57534E`, `#C2410C`, `#B91C1C` (the W11 shared palette — see `themes/_shared-palette.yaml`). Other themes (e.g. `editorial`) bring their own token set; the contrast metric below uses the same theme-derived set as ground truth.
 
 Any other color → hard-fail `"palette: <color> not in token set on <element>"`.
 

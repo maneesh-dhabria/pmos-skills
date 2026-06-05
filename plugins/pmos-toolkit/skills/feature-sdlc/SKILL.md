@@ -2,7 +2,7 @@
 name: feature-sdlc
 description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an initial idea (text or doc) into a shipped feature by driving the pmos-toolkit pipeline — worktree, optional /ideate when the seed is fuzzy, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage and persisting resumable state. `/feature-sdlc skill <description>` and `/feature-sdlc skill --from-feedback <text|path|--from-reflect>` drive the same pipeline to author or revise skills, scored against a binary skill-eval rubric before merge. `/feature-sdlc prototype <seed>` drives the discovery half only (requirements → grill → creativity → spec → wireframes → prototype) and stops — no /plan/execute/verify/complete-dev; `/prototype-sdlc` is a thin alias. `/feature-sdlc list` shows in-flight worktrees. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "feature-sdlc this", "/feature-sdlc", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "I want to brainstorm this end-to-end", "prototype this idea end-to-end", "discovery pipeline only", "wireframes + prototype for", "stakeholder-walkable prototype".
 user-invocable: true
-argument-hint: "[skill [--from-feedback] | prototype] <description|idea> [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--no-ideate] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] | list"
+argument-hint: "[skill [--from-feedback] | prototype] <description|idea> [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--no-ideate] [--format html|md|both] [--non-interactive | --interactive] [--backlog <id>] [--minimal] [--reset-defaults] | list"
 ---
 
 # Feature SDLC
@@ -39,6 +39,7 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 |---|---|---|---|---|
 | `0c` /feedback-triage | — | — | ✓ (hard) | — |
 | `0d` /skill-tier-resolve | — | ✓ (infra) | ✓ (infra) | — |
+| `0e` confirm soft-gate defaults | ✓ (2nd-run) | ✓ (2nd-run) | ✓ (2nd-run) | — |
 | `1.5` /ideate gate | ✓ (soft) | ✓ (soft) | — | ✓ (soft) |
 | `2` /requirements | ✓ | ✓ | ✓ | ✓ |
 | `2a` /grill · `3a` /creativity | ✓ | ✓ | ✓ | ✓ |
@@ -58,7 +59,7 @@ In **`prototype` mode** the execution order is reordered: `requirements → gril
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No interactive prompt tool:** Slug confirmation, optional-stage gates, compact checkpoint, failure dialog, and resume status table all degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
+- **No interactive prompt tool:** Slug confirmation, the Phase 0e soft-gate-defaults confirm, optional-stage gates, compact checkpoint, failure dialog, and resume status table all degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
 - **No subagents:** Pipeline dispatch is sequential per-phase by design; no parallel work to degrade.
 - **No Playwright / MCP:** Not used by this skill — child skills handle their own browser automation.
 - **TaskCreate / TodoWrite missing:** Skill body works without task tracking; the pipeline-status table in `00_pipeline.{html,md}` is the canonical progress artifact.
@@ -127,6 +128,8 @@ Inline `_shared/pipeline-setup.md` (relative to the skills directory) to:
 5. Read `~/.pmos/learnings.md` if present; note any entries under `## /feature-sdlc` and factor them into your approach. Skill body wins on conflict; surface conflicts to user before applying.
 
 Workstream IS loaded — this is a feature-level orchestrator.
+
+**Load soft-gate defaults.** Read `.pmos/feature-sdlc.lastrun.yaml` from `<main-repo-root>` (resolved via git per `reference/soft-gate-lastrun-schema.md` § Path — NOT the per-feature worktree, so the memory survives worktree cleanup) into an in-memory `soft_gate_defaults` dict: present+valid → seed it (Phase 0e will fire); absent → leave unset (first run — each gate prompts individually); malformed/`version>1` → stderr warn `feature-sdlc.lastrun.yaml malformed or unknown version — falling back to per-gate prompts` and treat as absent; `--reset-defaults` flag → bypass the read, treat as absent. Never error out — this file is advisory.
 
 ### Phase 0a: output_format resolution (FR-12)
 
@@ -331,7 +334,7 @@ When state.yaml is present:
    `AskUserQuestion` — **Continue anyway (treat as orphaned)** / **Abort**.
 4. **Print status table** to chat from `00_pipeline.{html,md}` short-form (3 columns: phase | status | artifact). This table is **presentational, not interrogative** — see Anti-pattern below.
 5. **Resume cursor:** find the first `phases[]` entry whose status is in `{paused, failed, pending, in_progress}` and jump to that phase. The cursor is **mode-agnostic** — it scans whatever `phases[]` the original run wrote (which is mode-conditional per FR-11: `feature`, `skill-new`, `skill-feedback` each have their own `phases[]` set — see `reference/state-schema.md`); `pipeline_mode` is read back from `state.yaml`, not re-derived (FR-05). If a `paused` or `failed` entry is found first, surface the corresponding dialog (`reference/compact-checkpoint.md` for compact-paused; `reference/failure-dialog.md` for failed/failure-paused).
-6. **Skip Phases 0a and 1** (and Phase 0c/0d if the mode includes them — they are normal phases recorded in `phases[]`, so the cursor handles them) — worktree, slug, and state.yaml already exist.
+6. **Skip Phases 0a, 0e, and 1** (and Phase 0c/0d if the mode includes them — they are normal phases recorded in `phases[]`, so the cursor handles them) — worktree, slug, and state.yaml already exist; gate dispositions are already recorded per-phase in `state.yaml`, so the 0e consolidation has nothing to consolidate on resume.
 
 The resume status table is **presentational**, not interrogative — followed by at most a single structured ask (continue / abort) when needed. The orchestrator has no review/refinement loops of its own; every refinement is owned by a child skill. Per spec §15 G9.
 
@@ -400,6 +403,52 @@ If the repo has multiple candidate plugins for rung 2:
 
 On failure: surface the failure dialog (infra phase — Retry / Pause / Abort).
 
+## Phase 0e: Confirm soft-gate defaults (2nd-run consolidation; W3)
+
+Collapses the five non-destructive soft gates (`1a` ideate, `3a` creativity, `3b` wireframes, `3c` prototype, `8a` retro) into ONE confirm seeded from the prior run, so the 2nd+ run doesn't re-answer identical choices one at a time. Mirrors `/complete-dev` Phase 0a. Full read/write/field contract: `reference/soft-gate-lastrun-schema.md`.
+
+**Skip this phase entirely (proceed to Phase 1, gates fire individually) when ANY of:** Phase 0b entered resume mode (gate statuses already in `state.yaml`); `soft_gate_defaults` is unset (first run / malformed / `--reset-defaults`); `pipeline_mode == prototype` (its wireframes/prototype are hard, not gated); `--minimal` is active (it already force-skips 4 of the 5 gates — log `Phase 0e skipped (--minimal active)`); `mode == non-interactive` (the canonical block AUTO-PICKs each gate — log `Phase 0e auto-confirmed (non-interactive); defaults source: lastrun`).
+
+Otherwise present the gates that apply to this `pipeline_mode` (feature → all five; `skill-new` → ideate, creativity, retro; `skill-feedback` → creativity, retro — `3b`/`3c` are suppressed in skill modes and ideate is absent in `skill-feedback`):
+
+```
+Phase 0e — Confirm soft-gate defaults
+
+  /ideate:      skip
+  /creativity:  skip
+  /wireframes:  run
+  /prototype:   skip
+  /reflect:     skip
+
+(Source: .pmos/feature-sdlc.lastrun.yaml — last updated 2026-06-01)
+```
+
+```
+question: "Use these soft-gate choices? Destructive prompts (slug, base-drift, merge, push, failures) still fire as needed."
+options:
+  - Confirm all (Recommended)
+  - Edit one or more
+  - Cancel
+```
+
+**On "Confirm all":** set `soft_gates_confirmed = true`. Each gate phase consults `soft_gate_defaults` and short-circuits its prompt (see the "Short-circuit when Phase 0e confirmed" clause in Phases 1a/3a/3b/3c/8a). The destructive/judgement prompts in `reference/soft-gate-lastrun-schema.md` § "never consolidated" always fire.
+
+**On "Edit one or more":**
+<!-- defer-only: ambiguous -->
+```
+question: "Which gates do you want to change?"
+multiSelect: true
+options:        # present only the gates applicable to this mode
+  - /ideate
+  - /creativity
+  - /wireframes
+  - /prototype
+  - /reflect
+```
+For each selected gate, present that gate's own option list (reuse Phase 1a/3a/3b/3c/8a verbatim) to capture the new value, update `soft_gate_defaults`, then re-display the summary and re-ask "Use these soft-gate choices?" — loop until Confirm. Set `soft_gates_confirmed = true` on Confirm.
+
+**On "Cancel":** exit `/feature-sdlc` with no side effects (no worktree was created in this phase; Phase 0a's worktree, if already made, is left for the user — same as any pre-Phase-1 abort).
+
 ## Phase 1: Initialize state
 
 **Skip if Phase 0b entered resume mode.**
@@ -467,6 +516,8 @@ A failed update of any one of these three breaks the resume contract. Rolling ba
 
 <!-- defer-only: ambiguous -->
 `AskUserQuestion` — **Run /ideate (Recommended)** (brainstorm; brief seeds /requirements) / **Skip** (proceed straight to /requirements; pick this if the detector misfired). In `--non-interactive`: deferred per canonical block; default = Skip; `status = skipped-non-interactive` with a log line analogous to /grill's Anti-pattern #7 contract.
+
+**Short-circuit when Phase 0e confirmed (W3):** after the `--no-ideate` and `formed`-seed auto-skips are evaluated (they take precedence), if the gate would otherwise present (a `fuzzy` seed), apply `soft_gate_defaults.ideate` instead — `run` → run /ideate; `skip` → `status = skipped`, proceed. Log `[orchestrator] phase 1.5 ideate: auto-<run|skip> via Phase 0e`. Skip the prompt above.
 
 2. **Run `/ideate`** (Run-picked). Invoke `/pmos-toolkit:ideate` with the seed; prepend `[mode: <current-mode>]\n` + `[output_format: <resolved>]\n` first-lines (FR-06). Copy the brief into the feature folder as `00d_ideate.html` (+ `.md` sidecar when `output_format=both`) via the atomic-write substrate. Resolve path via `_shared/resolve-input.md` `phase=ideate`; on resolver-miss, fall back to `find {docs_path}/ideate -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path: 00d_ideate.html`. On `/ideate` failure: soft-phase failure dialog (Skip SHOWN — proceed without a brief).
 3. **Tier-3 auto-chain to `/grill --deep`.** Estimate — `ideate_tier_estimate = 3` iff **either** `--tier 3` was explicit **or** the brief satisfies one disjunct: ≥3 user-journey `<section>` blocks (IDs matching `#journey-` / `#scenario-` / `#user-`, case-insensitive) **or** ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test` / `#premortem`). Otherwise estimate ∈ {1, 2} (default 2). If `== 3`: invoke `/pmos-toolkit:grill --deep` against `00d_ideate.html`; capture to `00d-grill_ideate.html`; log `[orchestrator] phase 1.5 ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else: log `[orchestrator] phase 1.5 ideate: tier estimate <N>; grill --deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`); Phase 2 reads `artifact_path` + `grill_deep_artifact_path` and forwards them via `[ideate-brief: …]` / `[ideate-grill: …]` lines (see Phase 2 below). On any unexpected failure: soft-phase failure dialog (Skip SHOWN — the gate is non-blocking).
@@ -555,6 +606,8 @@ options:
 
 Always optional; Recommended is always Skip. User can opt in.
 
+**Short-circuit when Phase 0e confirmed (W3):** apply `soft_gate_defaults.creativity` — `run` → run /creativity; `skip` → proceed. Log `[orchestrator] phase 3a creativity: auto-<run|skip> via Phase 0e`. Skip the prompt above.
+
 On Run: invoke `/pmos-toolkit:creativity` with the requirements doc. On missing-skill: soft-variant missing-skill dialog.
 
 ## Phase 3b: /wireframes gate (feature mode soft / prototype mode hard / skill modes suppressed)
@@ -579,6 +632,8 @@ options:
   - Skip wireframes                    # (Recommended) on frontend-negative
 ```
 
+**Short-circuit when Phase 0e confirmed (W3):** compute the frontend heuristic class (`positive`/`negative`) as above. If it **equals** `soft_gate_defaults.detected_signals.frontend` (unchanged since lastrun), apply `soft_gate_defaults.wireframes` — `run` → run wireframes; `skip` → proceed — log `[orchestrator] phase 3b wireframes: auto-<run|skip> via Phase 0e (signal unchanged)` and skip the prompt. If the class **changed** (the requirements shifted), the gate **re-fires** normally — log `[orchestrator] phase 3b wireframes: frontend signal changed (<old>→<new>); re-presenting gate`. Tier-1's force-skip still wins regardless.
+
 Before invoking `/pmos-toolkit:wireframes`, run the **compact checkpoint** (the recurring micro-phase) — this is a heavy phase.
 
 On missing-skill: soft-variant missing-skill dialog.
@@ -600,6 +655,8 @@ options:
 ```
 
 Always optional; Recommended is always Skip.
+
+**Short-circuit when Phase 0e confirmed (W3):** apply `soft_gate_defaults.prototype` — `run` → run /prototype; `skip` → proceed. Log `[orchestrator] phase 3c prototype: auto-<run|skip> via Phase 0e`. Skip the prompt above. (The "3b was skipped → Recommended Skip" nuance is moot under a confirmed remembered choice.)
 
 Before invoking `/pmos-toolkit:prototype`, run the **compact checkpoint** (the recurring micro-phase).
 
@@ -750,6 +807,8 @@ options:
 
 **Auto-skip if `_minimal_active` is true** per Phase 0 `--minimal` directive. Log `[orchestrator] phase_minimal_skip: retro` to chat and proceed to Phase 9 final-summary without issuing the gate prompt.
 
+**Short-circuit when Phase 0e confirmed (W3):** apply `soft_gate_defaults.retro` — `skip` → proceed; `run` → `/reflect`; `run-last-5` → `/reflect --last 5`; `defer` → OQ stub. Log `[orchestrator] phase 8a retro: auto-<value> via Phase 0e`. Skip the prompt above.
+
 On Run: invoke `/pmos-toolkit:reflect` with the appropriate flags. The retro phase entry in `state.yaml.phases.retro` is initialized by Phase 1 fresh-init (per `reference/state-schema.md`). On Defer: append a stub entry to `state.yaml.open_questions_log[]` so /feature-sdlc Phase 9 surfaces the deferral.
 
 On missing-skill: soft-variant missing-skill dialog from `reference/failure-dialog.md`. Skip option is the Recommended default.
@@ -764,6 +823,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 - Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1a ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
 - If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Mixed-format sidecar emitted as `00_open_questions_index.md` when `output_format=both`. Link to the HTML primary in the chat summary.
   > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
+- **Write soft-gate lastrun (W3).** Atomically write `.pmos/feature-sdlc.lastrun.yaml` at `<main-repo-root>` (resolved via git per `reference/soft-gate-lastrun-schema.md` § Path — not the worktree cwd) per that file's § "Write contract": record each gate's resolved disposition this run (from a Phase 0e confirm/edit OR an individual gate fire) plus `detected_signals.frontend` (the Phase 3b heuristic class, or `unknown` if 3b never ran). temp-then-rename; on failure log `lastrun write failed: <error>; next run will use per-gate prompts` and continue (the pipeline already shipped). Reaching Phase 9 means the run completed — a failed/aborted/paused run never writes lastrun.
 - Final one-liner: `Pipeline complete for <slug>. Branch feat/<slug> merged to main and tagged via /complete-dev.`
 
 **In `prototype` mode (FR-PSDLC-08):** the summary block above is replaced with the discovery-mode variant:
@@ -771,6 +831,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 - **No branch + tag info** — no `/complete-dev` ran.
 - **Artifact list:** `01_requirements.{html,md}`, `02_spec.{html,md}` (written in prototype mode at the post-3a slot per `## Prototype-mode phase ordering`), `03_wireframes.{html,md}` (from `/wireframes`), `04_prototype.{html,md}` (from `/prototype`), plus the `grills/` subdir (if Phase 2a ran) and (if Phase 1a ran) `00d_ideate.{html,md}`. No `03_plan.*`, no `/execute`/`/verify`/`/complete-dev` artifacts.
 - **OQ index:** same rules as above when `state.yaml.open_questions_log[]` is non-empty.
+- **No soft-gate lastrun write** — prototype mode's wireframes/prototype are hard (not gated), so writing would memorialise non-choices (per `reference/soft-gate-lastrun-schema.md` § "Write contract").
 - **Final one-liner:** `Prototype-mode pipeline complete for <slug>. Branch feat/<slug> contains the discovery artifacts; not merged. To extend to full implementation: cd into the worktree, edit state.yaml.pipeline_mode from 'prototype' to 'feature', then run /feature-sdlc --resume. To discard: git worktree remove <path>.`
 
 ## Phase 10: Capture Learnings

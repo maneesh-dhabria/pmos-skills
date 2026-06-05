@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>F — Vercel / Geist Minimal · PMOS visual-identity mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fafafa; --surface:#fff; --surface2:#fafafa; --surface3:#f2f2f2;
+    --border:#eaeaea; --border2:#eaeaea; --text:#000; --muted:#666; --faint:#999;
+    --accent:#0070F3; --accent-strong:#0761d1; --accent-bg:#e5f0ff;
+    --display:"Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --sans:"Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono:"Geist Mono", ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#000;--surface:#0a0a0a;--surface2:#111;--surface3:#1a1a1a;
+    --border:#262626;--border2:#262626;--text:#ededed;--muted:#a1a1a1;--faint:#666;
+    --accent:#3b9eff;--accent-strong:#52a8ff;--accent-bg:#0a2540;
+  }}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .toolbar{display:flex;align-items:center;gap:14px;padding:13px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-.03em;color:var(--text)}
+  .wordmark .dot{color:var(--accent)}
+  .title{font-family:var(--display);font-weight:400;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+  .btn{background:var(--text);border:1px solid var(--text);color:var(--bg);font-family:inherit;font-weight:500;font-size:12px;padding:6px 13px;border-radius:6px;cursor:pointer}
+  .body{max-width:760px;margin:0 auto;padding:40px 28px 48px;counter-reset:sec}
+  h1{font-family:var(--display);font-weight:600;font-size:33px;letter-spacing:-.035em;line-height:1.08;margin:.2em 0 .25em}
+  .kicker{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+  h2{font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:-.02em;margin:48px 0 14px;padding-top:16px;border-top:1px solid var(--border);display:flex;align-items:baseline;gap:10px}
+  h2::before{counter-increment:sec;content:counter(sec,decimal-leading-zero);font-family:var(--mono);font-weight:500;font-size:12px;color:var(--accent);flex:0 0 auto}
+  h3{font-family:var(--display);font-weight:600;font-size:15px;margin:24px 0 8px}
+  p{margin:0 0 14px}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+  code{font-family:var(--mono);background:var(--surface3);padding:1px 5px;border-radius:4px;font-size:.85em}
+  pre{font-family:var(--mono);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 18px;overflow-x:auto;font-size:12px;line-height:1.5}
+  pre code{background:transparent;padding:0}
+  blockquote{margin:16px 0;padding:8px 18px;border-left:2px solid var(--text);background:transparent;color:var(--muted)}
+  table{width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;font-size:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  thead th{background:var(--surface2);text-align:left;font-weight:500;color:var(--muted);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+  th,td{border-bottom:1px solid var(--border);padding:10px 14px;vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  figure{margin:20px 0;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px}
+  figcaption{margin-top:10px;font-size:11px;color:var(--muted);text-align:center;font-family:var(--mono)}
+  ul{margin:0 0 14px;padding-left:22px}li{margin:5px 0}
+  .footer{max-width:760px;margin:28px auto 0;padding:18px 28px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:var(--mono)}
+  .footer .brand{font-family:var(--display);font-weight:700;color:var(--text)}
+  .footer .brand .dot{color:var(--accent)}
+  .sep{color:var(--faint)}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <span class="wordmark">pmos<span class="dot">.</span></span>
+  <span class="title">02 — Spec: Inline doc comments</span>
+  <button class="btn">Copy section link</button>
+</header>
+<main class="body">
+  <p class="kicker">Specification · Tier 3</p>
+  <h1>Inline doc comments</h1>
+  <p>Stakeholders annotate any PMOS-emitted HTML artifact in the browser. Comment threads persist as an inline JSON block inside the HTML itself — no sidecar files; the artifact is the single source of truth. This mockup shows <strong>Direction F — Vercel / Geist Minimal</strong> applied to a representative spec page.</p>
+
+  <h2>Context &amp; goals</h2>
+  <p>Pure black &amp; white, hairline borders, lots of negative space, Geist Sans for headings and Geist Mono for the structural marks — with a single Vercel-blue accent used sparingly. Reads as precise, modern, and confident. Closest in spirit to your favourite (C) but sans-first rather than mono-first.</p>
+  <blockquote>Restraint is the brand: one accent, hairlines, and type that gets out of the way.</blockquote>
+
+  <h2>Functional requirements</h2>
+  <h3>FR-1 — Masthead wordmark</h3>
+  <p>The toolbar carries <code>pmos.</code> in Geist with a blue accent dot. Minimal, geometric, unmistakably modern-tooling. It appears on all 14 HTML surfaces.</p>
+  <h3>FR-2 — Section signature</h3>
+  <p>Each <code>&lt;h2&gt;</code> sits under a hairline rule, prefixed by a zero-padded mono counter (<code>01</code>, <code>02</code>…) in accent blue. Quiet, systematic, repeats cleanly.</p>
+
+  <h2>Shared palette (docs ↔ diagrams)</h2>
+  <p>Docs and diagrams converge on one accent so a PMOS diagram and a PMOS doc feel like one product:</p>
+  <figure>
+    <svg viewBox="0 0 420 120" width="100%" height="120" role="img" aria-label="palette bridge diagram">
+      <rect x="14" y="34" width="150" height="52" rx="6" fill="#fff" stroke="#000" stroke-width="1.5"/>
+      <text x="89" y="58" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="13" fill="#000">Requirements</text>
+      <text x="89" y="76" text-anchor="middle" font-family="ui-monospace,monospace" font-size="10" fill="#666">tier 3</text>
+      <line x1="164" y1="60" x2="252" y2="60" stroke="#000" stroke-width="1.5" marker-end="url(#ah)"/>
+      <rect x="256" y="34" width="150" height="52" rx="6" fill="#e5f0ff" stroke="#0070F3" stroke-width="1.5"/>
+      <text x="331" y="64" text-anchor="middle" font-family="ui-sans-serif,sans-serif" font-size="13" fill="#0761d1">Spec</text>
+      <defs><marker id="ah" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 z" fill="#000"/></marker></defs>
+    </svg>
+    <figcaption>The single accent marks the active node; everything else is monochrome.</figcaption>
+  </figure>
+
+  <h2>Non-functional requirements</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Requirement</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td>NFR-1</td><td>Geist Sans + Mono subset, base64-inlined</td><td>≤ 34 KB woff2 (two faces)</td></tr>
+      <tr><td>NFR-2</td><td>Artifact renders with no server, no internet</td><td>file:// safe</td></tr>
+      <tr><td>NFR-3</td><td>Body on Geist (or system fallback)</td><td>shared face</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>Accent <code>#0070F3</code> · ink <code>#000</code> · borders <code>#eaeaea</code></li>
+    <li>Display: Geist 600 + Geist Mono marks · Body: Geist / system</li>
+  </ul>
+</main>
+<footer class="footer">
+  <span>Source: 02_spec.html</span>
+  <span class="sep">·</span>
+  <span>Created using <span class="brand">pmos<span class="dot">.</span></span> toolkit</span>
+</footer>
+</body>
+</html>

@@ -9,33 +9,33 @@
     </marker>
   </defs>
   <rect x="160" y="376" width="160" height="48" rx="8" ry="8"
-        fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+        fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>
   <text x="240" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="16" font-weight="600" fill="#0F172A">Draft</text>
+        font-size="16" font-weight="600" fill="#1C1917">Draft</text>
   <rect x="540" y="376" width="160" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="620" y="400" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Submitted</text>
+        font-size="14" fill="#1C1917">Submitted</text>
   <rect x="920" y="200" width="160" height="48" rx="4" ry="4"
-        fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
+        fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
   <text x="1000" y="224" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Approved</text>
+        font-size="14" fill="#1C1917">Approved</text>
   <rect x="920" y="560" width="160" height="48" rx="4" ry="4"
         fill="#FFFFFF" stroke="#B91C1C" stroke-width="1.5"/>
   <text x="1000" y="584" text-anchor="middle" dominant-baseline="middle"
-        font-size="14" fill="#0F172A">Rejected</text>
-  <path d="M 320 400 L 536 400" fill="none" stroke="#475569" stroke-width="1.5"
+        font-size="14" fill="#1C1917">Rejected</text>
+  <path d="M 320 400 L 536 400" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 700 400 L 916 224" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 700 400 L 916 224" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
-  <path d="M 700 400 L 916 584" fill="none" stroke="#475569" stroke-width="1.5"
+  <path d="M 700 400 L 916 584" fill="none" stroke="#57534E" stroke-width="1.5"
         marker-end="url(#arrow)"/>
   <g class="legend">
     <rect x="80" y="80" width="240" height="80" rx="4" ry="4"
-          fill="#FFFFFF" stroke="#475569" stroke-width="1"/>
-    <rect x="96" y="96" width="16" height="16" fill="#FFFFFF" stroke="#475569" stroke-width="1.5"/>
-    <text x="120" y="104" dominant-baseline="middle" font-size="12" fill="#0F172A">Normal state</text>
+          fill="#FFFFFF" stroke="#57534E" stroke-width="1"/>
+    <rect x="96" y="96" width="16" height="16" fill="#FFFFFF" stroke="#57534E" stroke-width="1.5"/>
+    <text x="120" y="104" dominant-baseline="middle" font-size="12" fill="#1C1917">Normal state</text>
     <rect x="96" y="124" width="16" height="16" fill="#FFFFFF" stroke="#B91C1C" stroke-width="1.5"/>
-    <text x="120" y="132" dominant-baseline="middle" font-size="12" fill="#0F172A">Error state</text>
+    <text x="120" y="132" dominant-baseline="middle" font-size="12" fill="#1C1917">Error state</text>
   </g>
 </svg>
