@@ -36,6 +36,8 @@ This is **not one feature.** It's 3 decisions + ~14 work items that route to dif
 **Decide:** merge into one `requirements-review` skill with `--mode friction|creativity|both`, OR keep both and tighten descriptions so they stop colliding. (Recommended: merge — they share input, slot, and the persona/journey ceremony.)
 **Gates:** W5.
 
+> **⚠️ SUPERSEDED (2026-06-05).** The "same slot" premise is stale: v2.34.0 already folded `/msf-req` into `/requirements` Phase 5a and `/simulate-spec` into `/spec` Phase 6a, leaving `/creativity` as the lone soft gate (feature-sdlc Phase 3a). Decision: **skip the merge** — do not create `requirements-review`; keep `/creativity` and `/msf-req` as-is. Descriptions were already disambiguated by earlier waves. See the master plan's "T3.4 note".
+
 ---
 
 ## Work items
@@ -67,6 +69,8 @@ This is **not one feature.** It's 3 decisions + ~14 work items that route to dif
 ### W5 — [P1] Discovery-cluster disambiguation (executes D3)
 **Route:** `/feature-sdlc skill --from-feedback` (per skill or as a cluster)
 **Scope:** grill/ideate/creativity/simulate-spec/msf-req/msf-wf collide on "stress-test"/"pressure-test"/"friction analysis" triggers; a user can't predict which fires.
+
+> **✅ RESOLVED (2026-06-05, T3.4).** The merge sub-item (D3) is **SUPERSEDED by v2.34.0** — see D3 above. The disambiguation sub-item was already satisfied by earlier waves: every cluster description leads with method + object and names its pipeline stage, so the trigger overlaps are separated by object (plan vs idea vs spec; requirements vs wireframes). No new edits were required.
 
 > **Feedback for the discovery/critique cluster (grill, ideate, simulate-spec, creativity, msf-req, msf-wf):** their descriptions compete for the same user phrasing ("stress-test", "pressure-test", "friction analysis"). **Why:** users can't tell which to invoke; creativity and msf-req are functionally redundant (same input, same pipeline slot). **How to apply:** (1) add an input-type/method disambiguator to each description's lead — grill "via interactive decision-tree interrogation of any artifact", ideate "of an uncommitted pre-requirements idea", simulate-spec "scenario-trace of a committed spec", creativity "technique-driven idea generation on a requirements doc", msf-req "end-user friction analysis of requirements text", msf-wf "PSYCH+friction scoring of wireframe screens". (2) Per D3 decision: either merge creativity+msf-req into `requirements-review --mode friction|creativity|both`, or keep both with the tightened descriptions. (3) Extract the copy-pasted persona-alignment + journey-confirmation prose (creativity Phase 1, msf-req Phase 3, msf-wf Phase 3–4) into `_shared/persona-journey-alignment.md` and cite it from all three.
 

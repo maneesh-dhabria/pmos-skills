@@ -58,10 +58,12 @@ These get value from the binary `skill-eval` rubric. I implement; we run `skill-
 | T3.1 | **W9a** changelog — triggers, learnings phase, track-progress, platform-adaptation, marker fix | `[me/skill]` | passes skill-eval |
 | T3.2 | **W9b** comments — resolve identity (recommend: first-class skill), add gates | `[me/skill]` | passes skill-eval |
 | T3.3 | **W9c** session-log — triggers, phases, fold instructions.md, clarify vs reflect | `[me/skill]` | passes skill-eval |
-| T3.4 | **W5** discovery-cluster description disambiguation (+ execute D3 outcome) | `[me/skill]` | no trigger collisions; eval green |
+| T3.4 | **W5** discovery-cluster description disambiguation (+ execute D3 outcome) | `[me/skill]` | ✅ **DONE (merge SUPERSEDED — your call 2026-06-05)** — see note below |
 | T3.5 | **W8** move inline templates → `reference/` in spec, plan, design-crit, survey-design | `[me/skill]` | bodies under ceiling; eval green |
 | T3.6 | **W10** extend theater-check to design-crit + survey-design | `[me/skill]` | anti-theater guard present |
 | T3.7 | `/verify` + release pmos-toolkit | `[you-authorize]` | green; released |
+
+**T3.4 note — D3 merge superseded (decision 2026-06-05):** investigation found the D3 premise ("creativity + msf-req are functionally redundant — same input, same pipeline slot") is stale. A deliberate **v2.34.0 pipeline-consolidation** already achieved D3's de-duplication goal: `/msf-req` is folded into `/requirements` Phase 5a (MSF friction via `_shared/msf-heuristics.md`, auto-apply loop, `msf-req-findings.md` contract consumed by `/verify` + `/complete-dev` FR-68), `/simulate-spec` is folded into `/spec` Phase 6a, and `/creativity` remains the lone soft gate (feature-sdlc Phase 3a). Post-v2.34.0 the two are **not** in the same slot, so the merge would re-litigate a working design across feature-sdlc/requirements/spec/verify + ~11 cross-refs. **Decision (you, 2026-06-05): skip the merge; do not create `requirements-review`; keep `/creativity` and `/msf-req` as-is.** The description-disambiguation half of W5 was already satisfied by earlier waves — every cluster description (grill, ideate, simulate-spec, creativity, msf-req, msf-wf) leads with method + object and names its pipeline stage; the remaining "stress-test"/"friction" trigger overlaps are separated by object (plan vs idea vs spec; requirements vs wireframes). No description edits were manufactured. The architecture review's D3 rationale should be treated as superseded by v2.34.0.
 
 ---
 
