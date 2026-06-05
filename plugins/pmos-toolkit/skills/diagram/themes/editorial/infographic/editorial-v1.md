@@ -72,7 +72,7 @@ The wrapper has three wrap modes, picked at runtime by renderer + capability:
 
 **Renderer policy** (D10): if the wrapper would use `foreignObject` AND the active renderer is rsvg/cairosvg, the wrapper **skips foreignObject and falls back to the heuristic**, emitting a console warning. Output ships either way. The wrapper rubric's `wrapper-text-fit` is the second line of defense.
 
-**`<foreignObject>` is permitted only inside Phase 6.6 wrapper text zones, never in the diagram interior.**
+**`<foreignObject>` is permitted only inside Phase 6b wrapper text zones, never in the diagram interior.**
 
 ## 7. Slim wrapper rubric (single pass, no refinement loop)
 
@@ -121,4 +121,4 @@ After composition, the wrapper renders the composite to PNG and runs a **4-item 
 
 ## 9. Extend-flow
 
-When the user picks **Extend** in Phase 1 against an existing infographic, the wrapper treats `wrappedText` as **fixed** (alongside `positions` and `colorAssignments`). Phase 6.6 step 1 (copy generation) and step 2 (user-review checkpoint) are skipped; composition + rubric run normally on the patched diagram. A future `--regenerate-copy` flag will let users opt back into copy refresh on Extend.
+When the user picks **Extend** in Phase 1 against an existing infographic, the wrapper treats `wrappedText` as **fixed** (alongside `positions` and `colorAssignments`). Phase 6b step 1 (copy generation) and step 2 (user-review checkpoint) are skipped; composition + rubric run normally on the patched diagram. A future `--regenerate-copy` flag will let users opt back into copy refresh on Extend.

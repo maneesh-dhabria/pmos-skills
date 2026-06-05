@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-phase-6-6-rerun-cascade.sh — T14 integration test for FR-23 (re-run
-# idempotency of /spec Phase 6.6).
+# idempotency of /spec Phase 6b).
 #
 # Asserts:
 #   1. /spec SKILL.md documents the re-run idempotency clause (FR-23)
@@ -32,7 +32,7 @@ assert() {
 }
 
 echo "[FR-23] re-run idempotency clause"
-assert "Phase 6.6 carries 'Re-run idempotency' subsection" \
+assert "Phase 6b carries 'Re-run idempotency' subsection" \
   "grep -qE 'Re-run idempotency' '$SKILL_MD'"
 assert "clause specifies re-runs internally on /spec re-invocation" \
   "grep -qE 'Re-invoking /spec.*re-runs Phase 6\.6 internally' '$SKILL_MD'"

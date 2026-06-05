@@ -79,7 +79,7 @@ Use workstream context (loaded by step 3 below) to verify that implementation al
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the **review-report write phase only** (Phase 8 step 2). Reading prior artifacts uses the resolver; the resolver returns whatever primary the upstream skill wrote, regardless of `output_format`.
 
@@ -125,7 +125,7 @@ When invoked with `--scope phase --feature <slug> --phase <N>`, /verify runs the
 2. **Evidence path is `{feature_folder}/verify/<YYYY-MM-DD>-phase-<N>/`** (not the default `{feature_folder}/verify/<YYYY-MM-DD>/`). Multiple phase-verify runs on the same day are namespaced by phase number, so they do not collide.
 3. **Phase 4 Entry Gate uses the markdown table in `review.{html,md}` as the structural enforcement** instead of `TodoWrite`. Per-task logs under `{feature_folder}/execute/task-NN.md` already carry evidence-typed FR coverage tables for this phase, so re-creating one `TodoWrite` task per FR-ID would duplicate that contract. The `review.{html,md}` table — with one row per FR-ID, the same outcome+evidence triple, and a `Status` column drawn from the three-state outcome model — IS the gate. `TodoWrite`-as-gate is reserved for standalone feature-scope invocations (where there is no upstream per-task log to consume).
 
-On completion, return a structured pass/fail result to the calling skill (/execute Phase 2.5):
+On completion, return a structured pass/fail result to the calling skill (/execute Phase 2a):
 - `ok: true|false`
 - `evidence_dir: <path>`
 - `failures: [...]` (when `ok == false`)
@@ -392,7 +392,7 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 
 ---
 
-## Phase 4.5: Folded-phase awareness (new in v2.34.0 per T19/W4/E14)
+## Phase 4a: Folded-phase awareness (new in v2.34.0 per T19/W4/E14)
 
 When verifying a feature folder produced by /feature-sdlc v2.34.0+, check folded-phase artifacts and state.yaml signals:
 
@@ -400,7 +400,7 @@ When verifying a feature folder produced by /feature-sdlc v2.34.0+, check folded
 
 For MSF artifacts, prefer the slug-distinct paths (the v2.34.0 convention):
 
-- `<feature_folder>/msf-req-findings.md` — written by /requirements Phase 5.5 folded MSF-req.
+- `<feature_folder>/msf-req-findings.md` — written by /requirements Phase 5a folded MSF-req.
 - `<feature_folder>/wireframes/msf-wf-findings/<wireframe-id>.md` — written by /wireframes Phase 6 folded MSF-wf (per-wireframe directory variant).
 
 **Legacy fallback:** if `msf-req-findings.md` is absent but `msf-findings.md` exists, /verify still passes the artifact check but emits a soft warning:
@@ -446,7 +446,7 @@ WARNING: <folded-skill> crashed in <phase> (advisory per D11): <error_excerpt>
 
 These are advisory (not blocking) per D11; /verify still PASSes if everything else is green. They surface so the user sees folded-phase health at every /verify run.
 
-## Phase 4.7: Folded /architecture --since (T2 scoped; T3 full; T1 skip)
+## Phase 4b: Folded /architecture --since (T2 scoped; T3 full; T1 skip)
 
 **Skip if `--skip-folded-arch` was passed** (FR-30 escape). This phase delegates to the `/architecture` skill's `--since` mode (shipped in Wave 4 / T11) to lint code changed on this branch against the architectural assertions baked into `02_spec.html`. Findings aggregate into /verify's report alongside lint, tests, and code-review output. Per FR-25..FR-30.
 
@@ -472,7 +472,7 @@ SINCE=$(git merge-base HEAD main)
 
 If the resolution fails (no `main` branch, detached HEAD, etc.), log the git error and proceed to Phase 5 — folded-phase failures are advisory; we do not block /verify on a baseline-resolution miss.
 
-Invoke `/architecture --since $SINCE` as a blocking Task subagent with **600s timeout** (longer than Phase 6.6's 300s — branch-wide scans are heavier than single-spec evaluations). The child resolves changed files, runs the judge, validates findings (file_path schema variant), and writes its triplet atomically. On the empty-diff path, /architecture emits the canonical `architecture: no changes since $SINCE; skipping` log line and exits 0 with no triplet — this is the expected success path on doc-only branches.
+Invoke `/architecture --since $SINCE` as a blocking Task subagent with **600s timeout** (longer than Phase 6b's 300s — branch-wide scans are heavier than single-spec evaluations). The child resolves changed files, runs the judge, validates findings (file_path schema variant), and writes its triplet atomically. On the empty-diff path, /architecture emits the canonical `architecture: no changes since $SINCE; skipping` log line and exits 0 with no triplet — this is the expected success path on doc-only branches.
 
 ### Aggregation (FR-28)
 
@@ -501,11 +501,11 @@ On dispatch failure (subagent crash, timeout, schema-conformance hard-fail, judg
 WARNING: architecture crashed in verify (advisory per D11): <error_excerpt>
 ```
 
-Continue to Phase 5 — folded-phase failures do NOT block /verify PASS. Phase 4.5 (folded-phase awareness) will re-surface these on the next /verify run.
+Continue to Phase 5 — folded-phase failures do NOT block /verify PASS. Phase 4a (folded-phase awareness) will re-surface these on the next /verify run.
 
 ### Flag handling (Phase 0 parser additions)
 
-`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `/spec`'s same-named flag for Phase 6.6).
+`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `/spec`'s same-named flag for Phase 6b).
 
 ## Phase 5: Spec Compliance Check
 
@@ -640,7 +640,7 @@ The following script checks must pass before Phase 8 (Commit & Report). A non-ze
 
 ---
 
-## Phase 7.5: Design-System Drift Check (advisory)
+## Phase 7a: Design-System Drift Check (advisory)
 
 Keeps `DESIGN.md` and `COMPONENTS.md` in sync with the codebase so the design-system files stay self-sufficient over time. Advisory — never blocks `/verify`.
 

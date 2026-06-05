@@ -1,8 +1,8 @@
 # Execute Resume Resolver Protocol
 
-> **<MUST READ END-TO-END>** Calling skills MUST open and read this file before implementing Phase 0.4 or Phase 0.5. Do not infer resolver behavior from the calling skill's text. The hash normalization rule below is **mandatory** — deviation causes false drift alarms (Risk R1 in the spec). If you're tempted to hash the full task body rather than just the goal line, STOP and re-read the Hash Normalization Rule. </MUST READ END-TO-END>
+> **<MUST READ END-TO-END>** Calling skills MUST open and read this file before implementing Phase 0b or Phase 0c. Do not infer resolver behavior from the calling skill's text. The hash normalization rule below is **mandatory** — deviation causes false drift alarms (Risk R1 in the spec). If you're tempted to hash the full task body rather than just the goal line, STOP and re-read the Hash Normalization Rule. </MUST READ END-TO-END>
 
-Shared resolver protocol for `/execute` Phase 0.4 (Feature Disambiguation) and Phase 0.5 (Resume Resolution). Describes the classification algorithm, the Resume Report format, the AskUserQuestion option list, and inlined edge cases.
+Shared resolver protocol for `/execute` Phase 0b (Feature Disambiguation) and Phase 0c (Resume Resolution). Describes the classification algorithm, the Resume Report format, the AskUserQuestion option list, and inlined edge cases.
 
 ---
 
@@ -25,9 +25,9 @@ The same 4-step normalization applies to `plan_phase_hash` (sha256 of the phase 
 
 ---
 
-## Phase 0.4: Feature Disambiguation
+## Phase 0b: Feature Disambiguation
 
-Runs after Phase 0 (workstream + feature folder resolution) and before Phase 0.5. Its purpose is to identify which feature folder to resolve when the user has not provided a plan path or `--feature` argument.
+Runs after Phase 0 (workstream + feature folder resolution) and before Phase 0c. Its purpose is to identify which feature folder to resolve when the user has not provided a plan path or `--feature` argument.
 
 ```
 function disambiguate_feature(plan_path_arg, feature_arg, repo_root):
@@ -58,15 +58,15 @@ Step-by-step prose:
 3. If neither is given, glob all subdirectories under `{docs_path}` that contain an `execute/` subdirectory. For each, count log files whose frontmatter `status` is not `done`. Collect any folder with at least one non-done log.
 4. If zero candidates: error out — there is nothing to resume and no plan path to start fresh.
 5. If exactly one candidate: use it automatically. No prompt needed.
-6. If multiple candidates: use `AskUserQuestion` to present each candidate with its feature slug and last-modified time. Wait for the user to pick one before proceeding to Phase 0.5.
+6. If multiple candidates: use `AskUserQuestion` to present each candidate with its feature slug and last-modified time. Wait for the user to pick one before proceeding to Phase 0c.
 
-**Consumers:** `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0.4.
+**Consumers:** `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0b.
 
 ---
 
-## Phase 0.5: Resume Resolution
+## Phase 0c: Resume Resolution
 
-Runs after Phase 0.4 has resolved a single feature folder. Classifies every task in the plan and produces a `ResumeReport` that drives the AskUserQuestion confirmation.
+Runs after Phase 0b has resolved a single feature folder. Classifies every task in the plan and produces a `ResumeReport` that drives the AskUserQuestion confirmation.
 
 ```
 function resolve_resume(plan_path, feature_folder):
@@ -142,7 +142,7 @@ function resolve_resume(plan_path, feature_folder):
 
 The `-with-commits` suffix is appended to `not-started` or `in-flight` when `git log <branch>` contains a `T<N>` reference for that task number, e.g. `in-flight-with-commits`, `not-started-with-commits`. This signals that real work landed on the branch even though the log was not finalized.
 
-**Consumers:** `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0.5.
+**Consumers:** `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0c.
 
 ---
 
@@ -237,7 +237,7 @@ Log exists with `status: done` but `task_goal_hash` in the log does not match `h
 `phase-N.md` exists with `verify_status: passed` but the current plan's phase hash does not match `plan_phase_hash` in the log. List the phase under "Drifted phases" in the report. Default: drop sealed status and fall back to per-task classification for every task in that phase. Do NOT trust the phase seal when the phase definition has changed.
 
 **E10 — worktree gone, branch exists**
-`check_worktree(branch)` returns `"missing-but-branch-exists"`. Recreate the worktree from the branch (`git worktree add <path> <branch>`). Note the recreation in the Resume Report's worktree line. Continue with Phase 0.5 and Phase 1 resume path normally.
+`check_worktree(branch)` returns `"missing-but-branch-exists"`. Recreate the worktree from the branch (`git worktree add <path> <branch>`). Note the recreation in the Resume Report's worktree line. Continue with Phase 0c and Phase 1 resume path normally.
 
 **E15 — plan path mismatch**
 The `plan_path` stored in the task logs' frontmatter does not match the `plan_path` the user passed as an argument. Refuse to resume. Error: "Plan path mismatch — logs reference `{log_plan_path}`, you passed `{arg_plan_path}`. Use `--restart` to discard prior logs or fix the path." Do not guess which plan is authoritative.
@@ -246,4 +246,4 @@ The `plan_path` stored in the task logs' frontmatter does not match the `plan_pa
 
 ## Consumers
 
-- `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0.4 (Feature Disambiguation) + Phase 0.5 (Resume Resolution)
+- `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 0b (Feature Disambiguation) + Phase 0c (Resume Resolution)

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://pmos-toolkit.local/schemas/polish-editor-notes.schema.json",
   "title": "Polish editorial-pass notes",
-  "description": "Output of the /polish Phase 2.5 editor subagent: a structured critique the rewriter subagent then applies. The editor never rewrites — it only emits this file.",
+  "description": "Output of the /polish Phase 2a editor subagent: a structured critique the rewriter subagent then applies. The editor never rewrites — it only emits this file.",
   "type": "object",
   "additionalProperties": false,
   "required": ["doc_format", "target", "reconciliation", "notes"],

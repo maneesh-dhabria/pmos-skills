@@ -22,9 +22,9 @@ Use this when the feature has meaningful UI surface and the team benefits from s
 
 ## `--bootstrap-design-only` mode
 
-Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` Phase 1.5 when DESIGN.md is missing but wireframes already exist). In this mode the skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no Phase 6 delegation, no Phase 7 polish, no Phase 9–10 enrichment. The user's existing wireframes are not touched.
+Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` Phase 1a when DESIGN.md is missing but wireframes already exist). In this mode the skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no Phase 6 delegation, no Phase 7 polish, no Phase 9–10 enrichment. The user's existing wireframes are not touched.
 
-**Phases that run in this mode:** Phase 0 (workstream context), Phase 2.5 (DESIGN.md, including 2.5c review gate — DO NOT skip the gate), Phase 2.6a (COMPONENTS.md load/create — including 2.6a accept/edit/skip gate). All other phases are skipped.
+**Phases that run in this mode:** Phase 0 (workstream context), Phase 2a (DESIGN.md, including 2.5c review gate — DO NOT skip the gate), Phase 2ba (COMPONENTS.md load/create — including 2.6a accept/edit/skip gate). All other phases are skipped.
 
 **COMPONENTS.md scope in bootstrap mode (mandatory):** enumerate ONLY components that exist in the host frontend (`<app_dir>/src/components/` or equivalent). Do NOT propose feature-specific or speculative new components — those belong to `/prototype`'s output (Phase 4c flags new variants in the components.js footer; `/verify` promotes them later). A bootstrap-mode COMPONENTS.md that names components not present in the host frontend is a contract violation.
 
@@ -50,14 +50,14 @@ This skill has multiple phases. Create one task per phase using your agent's tas
 
 ## Rigor & Corner-Cut Protocol
 
-This skill is permissive — several phases have a "cheap option" (skip Phase 2.5, fewer Phase 4 loops). Permissiveness is fine; **silent downgrades are not**. The protocol below makes rigor visible.
+This skill is permissive — several phases have a "cheap option" (skip Phase 2a, fewer Phase 4 loops). Permissiveness is fine; **silent downgrades are not**. The protocol below makes rigor visible.
 
 ### Rigor tiers
 
 Pick the tier that matches the work. The tier governs Phase 4 (review loops) and the default density of Phase 2 prompts. Phase 6 (MSF + PSYCH) is delegated to `/msf-wf` — its rigor is governed there, not here.
 
-- **High-rigor (default).** One reviewer subagent per file in parallel; full 2-loop protocol; full Phase 2.5 extraction.
-- **Medium-rigor (recommended for ≤ 6 files OR a focused enhancement).** ONE cross-file reviewer subagent (single message, multi-file critique); apply fixes; no second loop. Phase 2.5 still runs in full.
+- **High-rigor (default).** One reviewer subagent per file in parallel; full 2-loop protocol; full Phase 2a extraction.
+- **Medium-rigor (recommended for ≤ 6 files OR a focused enhancement).** ONE cross-file reviewer subagent (single message, multi-file critique); apply fixes; no second loop. Phase 2a still runs in full.
 - **Low-rigor (personal-tool, single-user, time-bound only).** Inline grep + read-aloud spot-check against the rubric headings PLUS one mandatory cross-file reviewer subagent (200-word brief: aria coverage on icon-only buttons, focus-visible styles, contrast against dark/light surfaces, high-variance findings across files). The cross-file pass is non-negotiable — it's cheap (~30s) and catches what grep misses.
 
 The user can override the chosen tier at any phase boundary. Default is high-rigor; recommend medium for ≤ 6 files; recommend low only when the user has signaled time-pressure or personal-tool context.
@@ -71,7 +71,7 @@ Whenever you choose the lighter option for a phase, **announce it before doing i
 The user gets one beat to redirect; if they don't, proceed. Phases that have cheap options and therefore require an announcement when downgraded:
 
 - **Phase 2 scope-triage** — items classified as "skip wireframe" or "comparison only"
-- **Phase 2.5** — when skipped despite a host frontend being present
+- **Phase 2a** — when skipped despite a host frontend being present
 - **Phase 3.5 screenshot ingestion** — when skipped despite screenshots being attached
 - **Phase 4 review loops** — when running medium- or low-rigor instead of full
 
@@ -226,7 +226,7 @@ The `Patterns` column lists the `patterns/<category>/<file>` references for each
 
 ---
 
-## Phase 2.5: Resolve DESIGN.md
+## Phase 2a: Resolve DESIGN.md
 
 > Decimal phase number is intentional — Phase 3 onward keeps existing numbering so external references (other skills, prior conversations) still resolve.
 
@@ -283,13 +283,13 @@ If this is the first DESIGN.md created for this workstream AND the workstream ha
 
 **Subagents:** if available, dispatch one read-only subagent for extraction. Otherwise inline.
 
-**Gate:** the user must confirm DESIGN.md before Phase 2.6 begins.
+**Gate:** the user must confirm DESIGN.md before Phase 2b begins.
 
 ---
 
-## Phase 2.6: Resolve Composition Context
+## Phase 2b: Resolve Composition Context
 
-DESIGN.md captures visual identity. Phase 2.6 captures **structural composition**: existing components, layout templates, and the decision log. Without this, Phase 3 would generate wireframes that *look* like the app but don't *fit* it.
+DESIGN.md captures visual identity. Phase 2b captures **structural composition**: existing components, layout templates, and the decision log. Without this, Phase 3 would generate wireframes that *look* like the app but don't *fit* it.
 
 Output of this phase is three in-memory blobs passed to Phase 3:
 - `components_inventory` — from COMPONENTS.md.
@@ -317,7 +317,7 @@ If DESIGN.md `x-information-architecture.layouts` has entries:
 
 The chosen layout name + skeleton (from `x-information-architecture.layouts.<name>.skeleton`) is the `layout_anchor` passed to Phase 3.
 
-**Persist the chosen layout name** to `{feature_folder}/wireframes/.layout-anchor` (single-line text file). This lets `/prototype` Phase 1.5 inherit the anchor without re-asking.
+**Persist the chosen layout name** to `{feature_folder}/wireframes/.layout-anchor` (single-line text file). This lets `/prototype` Phase 1a inherit the anchor without re-asking.
 
 If no layouts are declared, skip — generators infer from DESIGN.md `## Layout` prose.
 
@@ -329,9 +329,9 @@ Build a single text block by concatenating, in this order:
 3. DESIGN.md `## Do's and Don'ts`.
 4. Workstream `## Design System / UI Patterns` (only if migration in 2.5f was skipped).
 
-This is read-only — Phase 2.6 never writes to the workstream's `## Constraints & Scars` (that needs human judgment).
+This is read-only — Phase 2b never writes to the workstream's `## Constraints & Scars` (that needs human judgment).
 
-**Gate:** none — Phase 2.6 is data assembly. Proceed to Phase 3.
+**Gate:** none — Phase 2b is data assembly. Proceed to Phase 3.
 
 ---
 
@@ -366,9 +366,9 @@ If the copy fails (path not resolvable), `Read` the skill's `assets/wireframe.cs
 - **Only the pattern files tagged on this component's inventory row** (typically 1–3 files from `patterns/`). Do NOT pass the whole patterns library — it's too large and dilutes attention. The patterns are authoritative: each pattern's "best practices", "common mistakes", and "skeleton" must be respected
 - Workstream tech-stack hints if loaded (brand color, type stack — note: most of this now lives in DESIGN.md)
 - **The merged DESIGN.md (after `x-extends`) verbatim** as YAML, plus the instruction: "Link `./assets/design-overlay.css` immediately after `./assets/wireframe.css` in every generated file. The overlay handles tokens; honor `## Components` prose for shape patterns and `x-interaction` for behavior."
-- **The Phase 2.6 `components_inventory` (COMPONENTS.md content)** with the instruction: "When wireframing a button/input/card/modal/etc., prefer the variant names listed in COMPONENTS.md over inventing new ones. If no matching component exists in the inventory, mock the new component AND flag it in the file footer under 'New components proposed: <list>' so the reviewer can confirm."
-- **The Phase 2.6 `layout_anchor`** (named layout + skeleton) with the instruction: "Use this layout shell as the chrome for screen-level wireframes. Modals and overlays are exempt." If `layout_anchor` is "None — start fresh", omit this block.
-- **The Phase 2.6 `decision_context`** (workstream scars + DESIGN.md anti-patterns) with the instruction: "Honor every anti-pattern listed. If a wireframe needs to violate one, flag it in the file footer with rationale."
+- **The Phase 2b `components_inventory` (COMPONENTS.md content)** with the instruction: "When wireframing a button/input/card/modal/etc., prefer the variant names listed in COMPONENTS.md over inventing new ones. If no matching component exists in the inventory, mock the new component AND flag it in the file footer under 'New components proposed: <list>' so the reviewer can confirm."
+- **The Phase 2b `layout_anchor`** (named layout + skeleton) with the instruction: "Use this layout shell as the chrome for screen-level wireframes. Modals and overlays are exempt." If `layout_anchor` is "None — start fresh", omit this block.
+- **The Phase 2b `decision_context`** (workstream scars + DESIGN.md anti-patterns) with the instruction: "Honor every anti-pattern listed. If a wireframe needs to violate one, flag it in the file footer with rationale."
 - **If this component has at least one anchored screenshot** (per `source-screens.md`): include only that screenshot's description block (not the whole file) plus the absolute path to the original image. Include the IA-preservation instruction from `reference/screenshot-ingestion.md` ("match layout/IA, may improve states/a11y/copy, must NOT silently reorganize IA"). Components without anchored screenshots receive no screenshot context.
 - Strict instruction: produce ONLY the HTML file(s), no commentary
 
@@ -378,7 +378,7 @@ If the copy fails (path not resolvable), `Read` the skill's `assets/wireframe.cs
 
 - One `.html` file per `(component × device)` pair
 - Links the shared `./assets/wireframe.css` (copied in step 3a) — do NOT inline the rules from that stylesheet
-- Links `./assets/design-overlay.css` **immediately after** `wireframe.css` so DESIGN.md's `:root` overrides take effect (skip the link only if the user chose "Discard for this run" in Phase 2.5c)
+- Links `./assets/design-overlay.css` **immediately after** `wireframe.css` so DESIGN.md's `:root` overrides take effect (skip the link only if the user chose "Discard for this run" in Phase 2ac)
 - Tailwind via CDN: `<script src="https://cdn.tailwindcss.com"></script>` (used alongside the shared CSS for layout/spacing utilities)
 - State-switcher tabs at the top so reviewers flip between states without reload
 - Annotations layer (toggleable) explaining non-obvious interactions
@@ -643,7 +643,7 @@ last_extraction_sha: <SHA at extraction; only set/update on extract>
 
 **Device support decisions** still go to workstream `## Constraints & Scars` if they're new and reusable across features (e.g. "no iOS app — never wireframe ios-app"). One-off device choices stay local to the feature folder.
 
-`## Constraints & Scars` is otherwise read-only from this skill — Phase 2.6 reads it; nothing here writes to it automatically. (Migration of an existing `## Design System / UI Patterns` section is handled in Phase 2.5f, not here.)
+`## Constraints & Scars` is otherwise read-only from this skill — Phase 2b reads it; nothing here writes to it automatically. (Migration of an existing `## Design System / UI Patterns` section is handled in Phase 2af, not here.)
 
 This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the core deliverable is complete.
 
@@ -671,15 +671,15 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT auto-continue to Phase 8 if /msf-wf returned non-zero in Phase 6 — surface the error and let the user re-run /msf-wf manually
 - Do NOT enumerate identical elements separately (5 nav links each at -1) — collapse to one row ("Nav links (5), -5 total")
 - Do NOT default the entry-context to High (60) or Low (25) silently — Medium (40) is the unbiased default unless the req doc declares otherwise (this default lives in /msf-wf; if you find yourself overriding it from /wireframes, surface it as user-visible)
-- Do NOT blend tokens from multiple host frontends in Phase 2.5 — pick one (user-selected) so wireframes have a coherent visual language
+- Do NOT blend tokens from multiple host frontends in Phase 2a — pick one (user-selected) so wireframes have a coherent visual language
 - Do NOT use screenshots as the sole journey source — they augment the requirements doc, they don't replace it; trigger /requirements first if no req doc exists
 - Do NOT redesign IA away from an anchored screenshot without explicit user direction — generators may improve states, a11y, and copy, but moving primary actions or restructuring sections needs the user to ask for it
 - Do NOT silently downgrade rigor at any phase — the Rigor & Corner-Cut Protocol mandates announcement-with-rationale before choosing a lighter option (skipping subagents, fewer review loops). Silent downgrades compound across phases and erode user trust in the artifact
-- Do NOT skip Phase 2.5 (Resolve DESIGN.md) — even if you "know" the tokens. DESIGN.md is the durable artifact other tools (Stitch, Cursor, /verify) consume; not having it is technical debt. Cost is ~1 minute when the file exists; ~5 minutes on first creation
+- Do NOT skip Phase 2a (Resolve DESIGN.md) — even if you "know" the tokens. DESIGN.md is the durable artifact other tools (Stitch, Cursor, /verify) consume; not having it is technical debt. Cost is ~1 minute when the file exists; ~5 minutes on first creation
 - Do NOT write brand colors, typography, or component patterns into the workstream — those live in DESIGN.md / COMPONENTS.md. The workstream stores only the four navigation fields (`target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha`)
 - Do NOT bypass COMPONENTS.md by inventing button/input/card/modal variants — Phase 3 generators must prefer existing variants and flag novel ones explicitly in the file footer
-- Do NOT modify the workstream `## Constraints & Scars` from this skill — Phase 2.6 reads it; only humans (or `/verify` with explicit confirmation) write to it
-- Do NOT keep the legacy `house-style.json` / `house-style.css` artifacts alive in new feature folders — Phase 2.5 produces `design-overlay.css` from DESIGN.md instead. Old folders' artifacts are left in place but not consulted
+- Do NOT modify the workstream `## Constraints & Scars` from this skill — Phase 2b reads it; only humans (or `/verify` with explicit confirmation) write to it
+- Do NOT keep the legacy `house-style.json` / `house-style.css` artifacts alive in new feature folders — Phase 2a produces `design-overlay.css` from DESIGN.md instead. Old folders' artifacts are left in place but not consulted
 
 ---
 

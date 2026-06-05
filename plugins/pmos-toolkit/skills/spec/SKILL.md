@@ -57,7 +57,7 @@ Use workstream context (loaded by step 3 below) to inform technical decisions �
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 6).
 
@@ -340,7 +340,7 @@ type: bugfix
 feature: <slug>
 date: YYYY-MM-DD
 status: Draft
-requirements: <path-to-01_requirements.{html,md}>
+requirements_ref: <path-to-01_requirements.{html,md}>
 ---
 
 # <Bug/Fix Name> — Spec
@@ -380,7 +380,7 @@ type: enhancement
 feature: <slug>
 date: YYYY-MM-DD
 status: Draft
-requirements: <path-to-01_requirements.{html,md}>
+requirements_ref: <path-to-01_requirements.{html,md}>
 ---
 
 # <Feature Name> — Spec
@@ -428,7 +428,7 @@ requirements: <path-to-01_requirements.{html,md}>
 ## 10. Testing & Verification Strategy
 [What to test, how, exact commands]
 
-<!-- Required only when /spec Phase 6.6 auto-upgrade fires (a previously-unseen module was declared) -->
+<!-- Required only when /spec Phase 6b auto-upgrade fires (a previously-unseen module was declared) -->
 ## 11. Modules (optional at Tier-2)
 
 <section id="modules">
@@ -439,7 +439,7 @@ requirements: <path-to-01_requirements.{html,md}>
 
 </section>
 
-<!-- Required only when /spec Phase 6.6 auto-upgrade fires -->
+<!-- Required only when /spec Phase 6b auto-upgrade fires -->
 ## 12. Architectural Assertions (optional at Tier-2)
 
 <section id="architectural-assertions">
@@ -459,7 +459,7 @@ type: feature
 feature: <slug>
 date: YYYY-MM-DD
 status: Draft
-requirements: <path-to-01_requirements.{html,md}>
+requirements_ref: <path-to-01_requirements.{html,md}>
 ---
 
 # <Feature Name> — Spec
@@ -792,7 +792,7 @@ All items below must be `pass` or `N/A` (with a stated reason for N/A). Loop unt
 | 9 | Rollout strategy documented (flags, migration order, rollback) | Tier 1-2 with no deploy-time risk |
 | 10 | **Open Questions section is empty (no unresolved items)** | Never N/A — see below |
 | 10b | Frontmatter contract complete: tier, type, feature, date, status, requirements all present and non-empty | Never N/A |
-| 10c | §Modules and §Architectural Assertions present and non-empty (T3 mandatory; T2 only on auto-upgrade) | Tier 1 always; Tier 2 unless /spec Phase 6.6 auto-upgrade fired |
+| 10c | §Modules and §Architectural Assertions present and non-empty (T3 mandatory; T2 only on auto-upgrade) | Tier 1 always; Tier 2 unless /spec Phase 6b auto-upgrade fired |
 | 11 | Last loop produced only `[Nit]` findings or none | Never N/A |
 | 12 | User has explicitly confirmed no further concerns | Never N/A — do not self-declare exit |
 
@@ -800,7 +800,7 @@ All items below must be `pass` or `N/A` (with a stated reason for N/A). Loop unt
 
 ---
 
-## Phase 6.5: Folded simulate-spec (Tier 3 default-on; Tier 1/2 optional)
+## Phase 6a: Folded simulate-spec (Tier 3 default-on; Tier 1/2 optional)
 
 **Skip if `--skip-folded-sim-spec` was passed** (D15 escape). Skip if `{tier}` is 1 unless user opted in. Tier-3: default-on per D2.
 
@@ -847,7 +847,7 @@ The 4-pass scenario enumeration (Spec extraction → variant generation → adve
 
 ---
 
-## Phase 6.6: Folded /architecture --from-spec (T3 default-on; T2 conditional; T1 skip)
+## Phase 6b: Folded /architecture --from-spec (T3 default-on; T2 conditional; T1 skip)
 
 **Skip if `--skip-folded-arch` was passed** (FR-20 escape). This phase delegates to the `/architecture` skill's `--from-spec` mode (shipped in Waves 1-3 of the architecture-in-feature-sdlc feature) to evaluate `02_spec.html`'s §Architectural Assertions against the codebase via an LLM judge. Findings emit as a §13-conforming triplet (`<feature_folder>/architecture/02_spec.{json,html,md}`) cross-linked from /spec's output. Replaces the prior standalone `/architecture` orchestrator phase per D5 (fold-into-spec-and-verify).
 
@@ -873,7 +873,7 @@ options:
   - Run /architecture --from-spec (Recommended)
     description: Dispatch the judge subagent (~30-90s) and cross-link findings into the spec.
   - Skip
-    description: Defer architecture lint to /verify Phase 4.7 (--since mode against merge-base).
+    description: Defer architecture lint to /verify Phase 4b (--since mode against merge-base).
 ```
 
 The `(Recommended)` marker is computed per the tier gate table above — T2-no-new-modules and T1 do not present this prompt at all (Skip is logged automatically).
@@ -894,11 +894,11 @@ Continue to Phase 7 — folded-phase failures do NOT halt /spec. /feature-sdlc P
 
 ### Re-run idempotency (FR-23)
 
-Re-invoking /spec (e.g., after a Phase 6 revise loop) re-runs Phase 6.6 internally, overwriting the prior triplet at the same path. No new orchestrator phase ID is created — state.yaml mutation is confined to `phases.spec.folded_phase_failures[]` only. Operators expecting to see fresh findings after a spec revision get them automatically.
+Re-invoking /spec (e.g., after a Phase 6 revise loop) re-runs Phase 6b internally, overwriting the prior triplet at the same path. No new orchestrator phase ID is created — state.yaml mutation is confined to `phases.spec.folded_phase_failures[]` only. Operators expecting to see fresh findings after a spec revision get them automatically.
 
 ### Flag handling (Phase 0 parser additions)
 
-`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `--skip-folded-sim-spec` for Phase 6.5).
+`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `--skip-folded-sim-spec` for Phase 6a).
 
 ---
 

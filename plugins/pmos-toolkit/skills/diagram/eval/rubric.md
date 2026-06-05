@@ -159,11 +159,11 @@ The vision rubric **passes** when every gating item passes (advisory items may p
 If any gating item fails:
 - The reviewer's `top_priorities[]` list (stable IDs in order) seeds the Phase 6 Findings Presentation Protocol.
 - SKILL.md groups failures by category, presents up to 4 per `AskUserQuestion` call with options Apply / Modify / Skip / Defer.
-- Loop continues until pass OR loop budget exhausted (then Phase 6.5 terminal handler).
+- Loop continues until pass OR loop budget exhausted (then Phase 6a terminal handler).
 
 ---
 
-## Wrapper rubric (Phase 6.6, infographic mode only)
+## Wrapper rubric (Phase 6b, infographic mode only)
 
 When `--mode infographic` is active, after the wrapper composes the editorial-v1 layout, a separate **slim 4-item rubric** runs as a **single pass** (no refinement loop). It is INLINE regardless of `--rigor`.
 

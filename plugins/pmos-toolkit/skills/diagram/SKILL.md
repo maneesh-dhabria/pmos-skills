@@ -22,7 +22,7 @@ These instructions use Claude Code tool names. In other environments:
   - Phase 1 same-concept: default to `redraw`.
   - Phase 2 brainstorm: pick the first framing you'd recommend; record alternatives in the sidecar's `alternativesConsidered`.
   - Phase 6 refinement findings: present as a numbered findings table with disposition column; do NOT silently self-fix.
-  - Phase 6.5 terminal failure: default to `ship-with-warning`, prepend an XML comment to the SVG.
+  - Phase 6a terminal failure: default to `ship-with-warning`, prepend an XML comment to the SVG.
 - **No subagents:** for Phase 5 vision review, run the reviewer call inline rather than dispatching a `general-purpose` subagent.
 - **No Playwright MCP:** use `rsvg-convert` or `cairosvg` per `reference/render-to-raster.md`; refuse to run if none are available.
 
@@ -30,7 +30,7 @@ These instructions use Claude Code tool names. In other environments:
 
 ## Track Progress
 
-This skill has multiple phases (0, 1, 2, 3, 4, 5, 6, 6.6, 7, 8). Phase 6.6 runs only in `--mode infographic`. Create one task per phase you'll touch using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code, equivalent in other agents). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+This skill has multiple phases (0, 1, 2, 3, 4, 5, 6, 6.6, 7, 8). Phase 6b runs only in `--mode infographic`. Create one task per phase you'll touch using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code, equivalent in other agents). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
 
 ---
 
@@ -48,7 +48,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /diagram` a
    - `--on-failure` validation:
      - Accepted values: `drop`, `ship-with-warning`, `exit-nonzero`. Unknown value → print `error: --on-failure must be one of {drop, ship-with-warning, exit-nonzero}` to stderr, exit 64.
      - Default when `mode == non-interactive` and flag absent: `exit-nonzero`.
-     - When `mode == interactive`, the flag is parsed but advisory only — Phase 6.5's interactive prompt (the AUQ) remains the source of truth.
+     - When `mode == interactive`, the flag is parsed but advisory only — Phase 6a's interactive prompt (the AUQ) remains the source of truth.
    - Derive `<slug>` = first 5–6 content words of the description, kebab-cased.
    - **Resolve `{docs_path}`**: read `.pmos/settings.yaml` in the current repo; if present, use its `docs_path` value (default in that file is `.pmos`). If `.pmos/settings.yaml` does not exist, fall back to `docs/pmos/` (create on demand).
    - Default `--out` = `{docs_path}/diagrams/<slug>.svg`. Create the `diagrams/` subdirectory if it doesn't exist.
@@ -123,7 +123,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /diagram` a
      <!-- defer-only: destructive -->
      - `AskUserQuestion`: "Existing diagram is for the same concept. Extend with the new instruction, or redraw from scratch?"
        Options: **Extend** / **Redraw** / **Cancel**.
-     - On **Extend**: read the existing SVG. Treat sidecar `positions` and `colorAssignments` as fixed. **If the sidecar has `mode: "infographic"` and a populated `wrappedText`, also treat `wrappedText` as fixed** — Phase 6.6 will skip its copy-generation and user-review steps. Apply the new instruction as a minimal patch (e.g., recolor a single node, add a single connector, relabel a node). Skip Phase 2 (no new brainstorm). Proceed to Phase 4 with the patched SVG.
+     - On **Extend**: read the existing SVG. Treat sidecar `positions` and `colorAssignments` as fixed. **If the sidecar has `mode: "infographic"` and a populated `wrappedText`, also treat `wrappedText` as fixed** — Phase 6b will skip its copy-generation and user-review steps. Apply the new instruction as a minimal patch (e.g., recolor a single node, add a single connector, relabel a node). Skip Phase 2 (no new brainstorm). Proceed to Phase 4 with the patched SVG.
      - On **Redraw**: discard the existing SVG (don't delete yet — overwrite at Phase 7). Use the sidecar's `approach` as a starting hint to Phase 2 but allow new framings.
      - On **Cancel**: exit 0.
    - **Different concept** (or sidecar absent / unreadable):
@@ -289,11 +289,11 @@ For each refinement loop iteration:
 
 5. **Exit early on clean pass:** if `hard_fails == []` AND `code_score >= 0.8` AND `blocker_count == 0`, break the loop.
 
-6. **Loop exhausted with fails remaining** → enter Phase 6.5 (high/medium only) or proceed to Phase 7 with warning (low rigor).
+6. **Loop exhausted with fails remaining** → enter Phase 6a (high/medium only) or proceed to Phase 7 with warning (low rigor).
 
 ---
 
-## Phase 6.5 — Terminal failure handler (high / medium rigor only)
+## Phase 6a — Terminal failure handler (high / medium rigor only)
 
 Loops are exhausted and gating fails remain. Disposition depends on `mode`.
 
@@ -338,11 +338,11 @@ If user picks **alt framing** → restart at Phase 2 with the next brainstormed 
 
 ---
 
-## Phase 6.6 — Editorial wrapper (only if `--mode infographic`)
+## Phase 6b — Editorial wrapper (only if `--mode infographic`)
 
 Runs after Phase 6 produces a clean diagram. Skipped if `--mode diagram` or the active theme has `infographic.supported: false` (Phase 0 already rejects the latter combo with a clear error).
 
-> **Extend short-circuit.** If we entered Phase 6.6 via the Extend branch in Phase 1 and the existing sidecar has a populated `wrappedText`, skip step 1 (copy generation) and step 2 (user-review checkpoint). Reuse `wrappedText` directly. Steps 3–7 still run.
+> **Extend short-circuit.** If we entered Phase 6b via the Extend branch in Phase 1 and the existing sidecar has a populated `wrappedText`, skip step 1 (copy generation) and step 2 (user-review checkpoint). Reuse `wrappedText` directly. Steps 3–7 still run.
 
 1. **Generate copy.** Assemble a single inline LLM prompt with: original description, `--source` markdown if provided, the entity model + relationships, the chosen Phase 2 framing, and the color-to-element assignments captured in the working sidecar. Returns JSON `{eyebrow, headline, lede, figLabel, captions[], footer}`. The prompt is short and structured; **run inline** rather than via subagent (D7).
 
@@ -437,8 +437,8 @@ If a generic `learnings-capture.md` is not found, append entries directly to `~/
 - Do NOT write SVGs that include `<image>`, `<foreignObject>`, `<animate>`, `filter`, drop shadows, or gradients (themes' anti-patterns sections).
 - Do NOT exceed 30 primary nodes. At 21–30 you MUST prompt for a split before proceeding.
 - Do NOT mix connectors unless the active theme permits role-keyed mixing (`connectors.mixingPermitted: true`). Even then, mixing within a single role is forbidden.
-- Do NOT skip Phase 6.6 in infographic mode. Auto-generated copy + user-review checkpoint + slim wrapper rubric are mandatory; failures ship-with-warning, never silently.
-- Do NOT use `<foreignObject>` for diagram-interior content. It is permitted only inside Phase 6.6 wrapper text zones, and only when the renderer is Playwright.
+- Do NOT skip Phase 6b in infographic mode. Auto-generated copy + user-review checkpoint + slim wrapper rubric are mandatory; failures ship-with-warning, never silently.
+- Do NOT use `<foreignObject>` for diagram-interior content. It is permitted only inside Phase 6b wrapper text zones, and only when the renderer is Playwright.
 - Do NOT silently dump prose findings in Phase 6. Always use the Findings Presentation Protocol with structured options.
 - Do NOT delete `~/.pmos/diagram-cache/` files outside of the explicit `--clear-cache` flag.
 
@@ -460,7 +460,7 @@ skills/diagram/
 │       ├── style.md
 │       ├── atoms/                 # 5 visual primitives
 │       └── infographic/
-│           └── editorial-v1.md    # Phase 6.6 layout zones, caption grid, slim wrapper rubric
+│           └── editorial-v1.md    # Phase 6b layout zones, caption grid, slim wrapper rubric
 ├── eval/
 │   ├── rubric.md                  # 7-item diagram rubric + 4-item wrapper rubric (theme-aware waive/add)
 │   └── code-metrics.md            # xml.etree-based metric specs (impl in tests/run.py)
@@ -468,7 +468,7 @@ skills/diagram/
 │   ├── svg-primer.md              # SVG authoring scaffold + gotchas
 │   ├── render-to-raster.md        # detection + invocation for Playwright MCP / rsvg / cairosvg
 │   └── sidecar-schema.md          # v2 schema (theme/mode/role/wrappedText) + versioning policy
-├── wrapper/                       # Phase 6.6 composition module
+├── wrapper/                       # Phase 6b composition module
 │   ├── caption_grid.py            # auto-fit grid (3/4/5 captions) + clamp policy
 │   ├── anchors.py                 # color vs ordinal mode decision + ordinal-marker assignment
 │   └── compose.py                 # editorial-v1 wrapper SVG composition

@@ -43,7 +43,7 @@ This is **orthogonal to the pipeline** — not a stage. Use it on any artifact a
 
 3. **Summarize what you read** in 3–5 bullets so the user can confirm you've understood the artifact correctly. If the summary is wrong, fix it before grilling — interrogating a misread is wasted turns.
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 4. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the optional Phase 3b grill-report save only — chat output is unaffected.
 

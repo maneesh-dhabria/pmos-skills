@@ -371,7 +371,7 @@ Update-mode is destructive-by-default in spirit (it overwrites the user's existi
 where `<v1>` and `<v2>` are the resolved values (`true|false|absent`). The user can re-enable with:
 
 - `phase_7_6_hook_enabled`: `printf 'phase_7_6_hook_enabled: true\n' >> ~/.pmos/readme/config.yaml` (create the file if absent).
-- `readme_update_hook`: this is per-run, set by `/complete-dev`'s Phase 0.5 ask when the user opts in to the post-release README update hook (default off). It is NOT set manually.
+- `readme_update_hook`: this is per-run, set by `/complete-dev`'s Phase 0a ask when the user opts in to the post-release README update hook (default off). It is NOT set manually.
 
 **Why dual.** The user-global flag (`phase_7_6_hook_enabled`) is the one-time enablement: "yes, I want /readme to participate in /complete-dev's Phase 7.6 hook." The per-run flag (`readme_update_hook`) is the per-release confirmation: "yes, run the hook on THIS release." Either alone is insufficient — the global flag without the per-run confirmation would surprise users; the per-run flag without the global enablement would let /complete-dev silently fire a feature the user never opted into.
 

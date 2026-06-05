@@ -1,6 +1,6 @@
 # Prototype Design-Artifact Resolver
 
-How `/prototype` Phase 1.5 finds DESIGN.md, COMPONENTS.md, and produces both the CSS overlay and the JS tokens file the prototype runtime needs.
+How `/prototype` Phase 1a finds DESIGN.md, COMPONENTS.md, and produces both the CSS overlay and the JS tokens file the prototype runtime needs.
 
 This doc composes existing infrastructure — the heavy lifting lives in `wireframes/reference/design-md-resolver.md` and the two generators. This doc adds the prototype-specific glue: abort-when-missing, overlay reuse from wireframes folder, JS tokens generation.
 
@@ -96,7 +96,7 @@ Look for `<dirname design_md_path>/COMPONENTS.md`.
 
 If `merged_design_md.x-information-architecture.layouts` has entries:
 
-1. Check for `{feature_folder}/wireframes/.layout-anchor` marker file (a small text file containing the layout name chosen by `/wireframes` Phase 2.6).
+1. Check for `{feature_folder}/wireframes/.layout-anchor` marker file (a small text file containing the layout name chosen by `/wireframes` Phase 2b).
 2. **If marker exists and the named layout still exists in DESIGN.md** → reuse silently. Announce: "Inheriting layout anchor `<name>` from /wireframes."
 3. **If marker missing or stale** → AskUserQuestion (single-select): "Which layout does this prototype follow?" Options: each named layout + "None — start fresh". Cap 4.
 4. **Persist** the chosen layout to `{feature_folder}/prototype/.layout-anchor` for downstream skills.

@@ -19,7 +19,7 @@ How Phase 4d produces `assets/styles.css` from the wireframes' `house-style.json
 
 ## Inputs
 
-- `{feature_folder}/wireframes/assets/house-style.json` — produced by `/wireframes` Phase 2.5
+- `{feature_folder}/wireframes/assets/house-style.json` — produced by `/wireframes` Phase 2a
 - `{feature_folder}/prototype/assets/prototype.css` — base palette + tokens (already copied to output in Phase 4a)
 
 ## Cases

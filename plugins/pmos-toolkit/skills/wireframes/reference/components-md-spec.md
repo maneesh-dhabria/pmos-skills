@@ -104,7 +104,7 @@ Within each group, alphabetical.
 
 ## Extractor procedure
 
-The COMPONENTS.md extractor runs from `/wireframes` Phase 2.6 (and is re-runnable from `/verify`'s drift check).
+The COMPONENTS.md extractor runs from `/wireframes` Phase 2b (and is re-runnable from `/verify`'s drift check).
 
 ### Inputs
 
@@ -229,7 +229,7 @@ Extractor version: 1
 
 ## Lifecycle
 
-- **Created** by `/wireframes` Phase 2.6 (alongside DESIGN.md) on first run for an app.
+- **Created** by `/wireframes` Phase 2b (alongside DESIGN.md) on first run for an app.
 - **Read** by `/wireframes` Phase 3 (generator subagent prompt) on every run.
 - **Updated** by `/verify`'s drift check when new components or variants land.
 - **Hand-edited** freely by users — additions, notes, replacements. The drift check respects hand edits and only proposes additive changes.

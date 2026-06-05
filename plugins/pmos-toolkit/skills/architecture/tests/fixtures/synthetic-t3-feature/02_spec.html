@@ -32,7 +32,7 @@
           <tr>
             <td>spec</td>
             <td>(none)</td>
-            <td>Existing skill — owns spec authoring and Phase 6.6 dispatch into folded /architecture.</td>
+            <td>Existing skill — owns spec authoring and Phase 6b dispatch into folded /architecture.</td>
           </tr>
           <tr>
             <td>architecture</td>
@@ -42,7 +42,7 @@
           <tr>
             <td>verify</td>
             <td>architecture</td>
-            <td>Existing skill — Phase 4.7 invokes folded /architecture --since for branch-wide lint.</td>
+            <td>Existing skill — Phase 4b invokes folded /architecture --since for branch-wide lint.</td>
           </tr>
         </tbody>
       </table>
@@ -62,11 +62,11 @@
         <li>Module architecture must not declare any direct dependency on
         verify — architecture is consumed by verify (via folded /architecture
         --since) and the reverse coupling would invert the dependency
-        direction expected at Phase 4.7 dispatch time.</li>
+        direction expected at Phase 4b dispatch time.</li>
         <li>Module verify must remain advisory toward architecture findings
         per D11 — surfacing folded_phase_failures[] entries as WARNINGs but
         never blocking /verify PASS on a folded-architecture crash.</li>
-        <li>Module spec must confine its Phase 6.6 state mutations to
+        <li>Module spec must confine its Phase 6b state mutations to
         phases.spec.folded_phase_failures[] only — re-runs must overwrite
         the triplet at the same path without minting a new orchestrator
         phase ID (the invariance asserted by test-feature-sdlc-state-invariance).</li>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# auto-upgrade-detector.sh — T10 (FR-18) auto-upgrade detector for /spec Phase 6.6.
+# auto-upgrade-detector.sh — T10 (FR-18) auto-upgrade detector for /spec Phase 6b.
 #
 # Given a spec path, parses §Modules names, computes the repo's current top-level
 # module set via `git ls-tree --name-only HEAD -- <configured-roots>`, and emits

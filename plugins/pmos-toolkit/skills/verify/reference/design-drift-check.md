@@ -1,4 +1,4 @@
-# Design-System Drift Check (Phase 7.5)
+# Design-System Drift Check (Phase 7a)
 
 Detects drift between the current diff and the canonical `DESIGN.md` / `COMPONENTS.md` for the changed app, then offers per-item updates so the design-system files stay self-sufficient over time.
 
@@ -71,7 +71,7 @@ If routes/pages are introspectable:
 
 If total drift count > 20:
 - Skip per-item prompts.
-- Single AskUserQuestion: "Large design-system drift detected (N tokens, M components, K layouts). Re-run `/wireframes` Phase 2.5 + 2.6 extractors instead of per-item prompts?"
+- Single AskUserQuestion: "Large design-system drift detected (N tokens, M components, K layouts). Re-run `/wireframes` Phase 2a + 2.6 extractors instead of per-item prompts?"
 - **Re-extract** → invoke the extractor inline (writes new DESIGN.md + COMPONENTS.md), bump `last_extraction_sha`, done.
 - **Skip drift this run** → log items to `<dirname design_md_path>/.design-drift-deferred.md` for later review.
 - **Per-item anyway** → fall through to Step 4 (warn that this will be a lot of prompts).

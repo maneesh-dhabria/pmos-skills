@@ -1,4 +1,4 @@
-# Host Style Extraction (Phase 2.5) — SUPERSEDED
+# Host Style Extraction (Phase 2a) — SUPERSEDED
 
 ## Contents
 
@@ -8,7 +8,7 @@
 - [Confidence rules](#confidence-rules)
 - [Confirmation prompt](#confirmation-prompt)
 
-> **Superseded as of pmos-toolkit v2.7.0.** Phase 2.5 of `/wireframes` no longer follows this document. The new procedure is split across:
+> **Superseded as of pmos-toolkit v2.7.0.** Phase 2a of `/wireframes` no longer follows this document. The new procedure is split across:
 >
 > - `design-md-spec.md` — DESIGN.md schema (base + `x-*` extensions).
 > - `design-md-resolver.md` — file resolution + `x-extends` cascade + staleness check.
@@ -24,7 +24,7 @@ Extracts a "house style" from the host repo's frontend so generated wireframes l
 
 ## When this runs
 
-Phase 2.5 runs after the component matrix is confirmed (Phase 2) and before generation (Phase 3). Triggers when **all** of the following are true:
+Phase 2a runs after the component matrix is confirmed (Phase 2) and before generation (Phase 3). Triggers when **all** of the following are true:
 
 - Working directory is inside a git repo (`.git` exists at or above `cwd`)
 - A frontend signal is present in the repo. Any of:
@@ -159,7 +159,7 @@ Platform fallback (no `AskUserQuestion`): print the summary and the path; assume
 
 ## Screenshot fallback
 
-If Phase 2.5 finds no host frontend BUT screenshots were ingested in Phase 1 (`source-screens.md` exists with at least one entry), make a best-effort second pass:
+If Phase 2a finds no host frontend BUT screenshots were ingested in Phase 1 (`source-screens.md` exists with at least one entry), make a best-effort second pass:
 
 - Read the screenshot descriptions from `source-screens.md`.
 - If the descriptions confidently mention a brand color, header style, or component shapes, populate `house-style.json` with `"source": "screenshots"` and the inferred tokens.

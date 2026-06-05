@@ -59,7 +59,7 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 6).
 
@@ -106,7 +106,7 @@ The user's input can take several forms. Handle each via mode-specific phase rou
 | **Raw thoughts** | Rough observations, problem statement, or scattered ideas | Full flow (Phase 2 research → Phase 3 brainstorm → Phase 4 write) |
 | **Existing doc update** | Path to existing `01_requirements.{html,md}` + new observations (resolver picks the format that exists) | **Skip Phase 2 full research**; read prior Research Sources and refresh only delta-relevant areas (Phase 2 update-path). Phase 3 brainstorm runs on the delta only. |
 <!-- defer-only: ambiguous -->
-| **Multiple text inputs** | Several pasted texts, screenshots, or references | **Add Phase 1.5 synthesis step**: synthesize all inputs into a coherent problem statement; confirm understanding via `AskUserQuestion`; then proceed to Phase 2 |
+| **Multiple text inputs** | Several pasted texts, screenshots, or references | **Add Phase 1a synthesis step**: synthesize all inputs into a coherent problem statement; confirm understanding via `AskUserQuestion`; then proceed to Phase 2 |
 | **Spec or detailed brief** | Already well-formed requirements that need shaping | **Skip Phase 3 brainstorm**; structure inputs into the template; Phase 5 review applies a gap-analysis lens specifically |
 
 ### Steps
@@ -579,7 +579,7 @@ If any gate is unmet, run another loop. Do not self-declare exit.
 
 ---
 
-## Phase 5.5: Folded MSF-req (Tier 3 default-on; Tier 1/2 optional)
+## Phase 5a: Folded MSF-req (Tier 3 default-on; Tier 1/2 optional)
 
 **Skip if `--skip-folded-msf` was passed** (D13 escape). Skip if `{tier}` is 1 unless user opted in. Tier-3: default-on per D2.
 

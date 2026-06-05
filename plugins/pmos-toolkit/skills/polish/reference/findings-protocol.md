@@ -18,7 +18,7 @@ Custom checks default to high-risk unless they declare `risk: low` in YAML.
 
 Surfaced findings:
 - High-risk checks: **2, 3, 4, 7, 11, 12, 13, 14**
-- High-risk editorial-pass notes (Phase 2.5): any `risk: high` note in `editor_notes.json` (`reorder`, large `merge`) the rewriter declined to auto-apply, plus any `PRESERVE_VOICE_CONFLICT` the rewriter emitted. These enter this surface path exactly like a high-risk rubric finding; structural reorders follow the "Structural changes" rule below (individually surfaced, never bundled, never auto-applied). See `reference/editorial-pass.md`.
+- High-risk editorial-pass notes (Phase 2a): any `risk: high` note in `editor_notes.json` (`reorder`, large `merge`) the rewriter declined to auto-apply, plus any `PRESERVE_VOICE_CONFLICT` the rewriter emitted. These enter this surface path exactly like a high-risk rubric finding; structural reorders follow the "Structural changes" rule below (individually surfaced, never bundled, never auto-applied). See `reference/editorial-pass.md`.
 - Any patch that emitted `PRESERVE_VOICE_CONFLICT`
 - Any patch flagged `partial fix — introduces X`
 - All structural changes (lede moves, paragraph merges) — NEVER auto-applied regardless of underlying check risk

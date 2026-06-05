@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# test-phase-6-6-smoke.sh — T12 unit smoke for /spec Phase 6.6 (folded /architecture --from-spec).
+# test-phase-6-6-smoke.sh — T12 unit smoke for /spec Phase 6b (folded /architecture --from-spec).
 #
 # Five grep assertions per plan §T12 step 2:
-#   (1) SKILL.md has the literal Phase 6.6 heading
+#   (1) SKILL.md has the literal Phase 6b heading
 #   (2) SKILL.md mentions --skip-folded-arch
 #   (3) Tier-3 template carries <section id="modules">
 #   (4) Tier-3 template carries <section id="architectural-assertions">
@@ -30,8 +30,8 @@ assert() {
   fi
 }
 
-echo "[skill.md] Phase 6.6 + spec-template structural checks"
-assert "SKILL.md has '## Phase 6.6: Folded /architecture --from-spec' heading" \
+echo "[skill.md] Phase 6b + spec-template structural checks"
+assert "SKILL.md has '## Phase 6b: Folded /architecture --from-spec' heading" \
   "grep -qE '^## Phase 6\.6: Folded /architecture --from-spec' '$SKILL_MD'"
 assert "SKILL.md documents --skip-folded-arch flag" \
   "grep -qE -- '--skip-folded-arch' '$SKILL_MD'"

@@ -18,7 +18,7 @@ At Phase 0, the skill reads `~/.pmos/learnings.md` if present; entries under `##
 
 ## Track Progress
 
-This skill runs 7 phases sequentially against the resolved scan root (Phase 4.5 is the opt-in deepening pass). Use your agent's task-tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code) to create one task per phase, mark each in-progress when entered, and completed when its artifact lands. If no task tracker is available, the stderr summary line + the on-disk triplet are the durable progress record.
+This skill runs 7 phases sequentially against the resolved scan root (Phase 4a is the opt-in deepening pass). Use your agent's task-tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code) to create one task per phase, mark each in-progress when entered, and completed when its artifact lands. If no task tracker is available, the stderr summary line + the on-disk triplet are the durable progress record.
 
 ## When NOT to use
 
@@ -53,7 +53,7 @@ Parse the argument string:
 - Positional `[path]` is the scan root. Default: `.` (cwd).
 - `--label <slug>` — override the slug used in the output filename triplet (default: scan root basename).
 - `--non-interactive` — defer prompts; emit defaults.
-- `--deep` — opt into the Phase 4.5 deepening pass.
+- `--deep` — opt into the Phase 4a deepening pass.
 - `--include-info-comments` — keep `wont_fix` findings in the HTML and MD output (default: JSON-only).
 - `--monorepo` — fan out across detected stack subtrees and emit one triplet per stack plus an index.
 - `--since <ref>` — diff findings against a git ref; only new findings render.
@@ -98,7 +98,7 @@ Findings are sorted deterministically by disposition, then `rule_id`, then `file
 
 Vue SFC coverage gap: dependency-cruiser does not parse `<script setup>` blocks. The harness counts `.vue` files in the scan and emits a `coverage_gaps[]` entry (`vue_sfc_unanalyzed`) when any are skipped — the user sees the gap; the audit does not silently misreport.
 
-## Phase 4.5: Deepening Pass (opt-in)
+## Phase 4a: Deepening Pass (opt-in)
 
 `--deep` is off by default; mechanical evaluators (Phases 1–4) suffice for most runs. When set, the harness runs a deepening pass that classifies modules along a deep / shallow / leaky axis and proposes reshapes. The vocabulary (deep / shallow / leaky / deletion-test / seam / adapter / leverage / locality / module-interface-implementation) is defined in [`reference/deepening-vocabulary.md`](reference/deepening-vocabulary.md), which is read at runtime as the Task-subagent SYSTEM prompt.
 
@@ -124,7 +124,7 @@ L3 may carry `exemptions:` rows that whitelist a `(rule, file)` pair, optionally
 2. **Orphan exemptions** (an exemption row that matches no active finding): surfaced under `exemptions.orphan[]` (info-only — the exemption can be retired).
 3. **Expired exemptions** (`expires` date in the past): the finding re-emits as `should_fix` and the row is logged under `exemptions.expired[]`. Re-affirm in `principles.yaml` or remove the row.
 
-Size-class demotion (cross-link with Phase 4.5): when a deepening candidate's `module` overlaps with a U001/U002 mechanical finding, the mechanical finding's `disposition` is demoted one rank — not silently dropped.
+Size-class demotion (cross-link with Phase 4a): when a deepening candidate's `module` overlaps with a U001/U002 mechanical finding, the mechanical finding's `disposition` is demoted one rank — not silently dropped.
 
 ## Phase 6: Emit report (triplet)
 
@@ -186,7 +186,7 @@ After the report is emitted, reflect on whether this run surfaced anything worth
 
 ## Mode: --from-spec
 
-Audit a `/spec` artifact (instead of the repo source tree) against the loaded principles. Used by `/spec` Phase 6.6 (folded sub-step) and `/verify` Phase 4.7, but also runnable as a standalone CLI. Reads a spec HTML file's §Modules + §Architectural Assertions, dispatches a judge subagent against the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}`.
+Audit a `/spec` artifact (instead of the repo source tree) against the loaded principles. Used by `/spec` Phase 6b (folded sub-step) and `/verify` Phase 4b, but also runnable as a standalone CLI. Reads a spec HTML file's §Modules + §Architectural Assertions, dispatches a judge subagent against the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_from-spec.{html,md,json}`.
 
 **CLI signature (§9.1):**
 ```
@@ -214,13 +214,13 @@ Audit a `/spec` artifact (instead of the repo source tree) against the loaded pr
 - `64` — usage error (mutually exclusive flag combo, missing spec path, file not found).
 - `65` — spec-contract-violation (propagated from `parse-spec.js`).
 
-**When invoked by `/spec` Phase 6.6 or `/verify` Phase 4.7:** the parent passes the spec path and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §6.6 / §4.7 for parent-side handling of findings (escalate `must_fix` to spec FRs; surface `should_fix` to author).
+**When invoked by `/spec` Phase 6b or `/verify` Phase 4b:** the parent passes the spec path and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §6.6 / §4.7 for parent-side handling of findings (escalate `must_fix` to spec FRs; surface `should_fix` to author).
 
 ---
 
 ## Mode: --since
 
-Audit only the source-tree delta between two git refs against the loaded principles (instead of the full repo). Used by `/verify` Phase 4.7 alongside `--from-spec`, and runnable as a standalone CLI for PR-scoped review. Reads `git diff --name-only $SINCE..HEAD`, dispatches a judge subagent against the changed files with the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_since.{html,md,json}`. Findings carry `file_path` (not `spec_section_id`) per §13.
+Audit only the source-tree delta between two git refs against the loaded principles (instead of the full repo). Used by `/verify` Phase 4b alongside `--from-spec`, and runnable as a standalone CLI for PR-scoped review. Reads `git diff --name-only $SINCE..HEAD`, dispatches a judge subagent against the changed files with the merged L1+L2+L3 ruleset at `temperature: 0`, applies the FR-06 orchestrator-side validator + the 3 D8 knobs, and emits an HTML+MD+JSON triplet at `{docs_path}/architecture/{date}_<slug>_since.{html,md,json}`. Findings carry `file_path` (not `spec_section_id`) per §13.
 
 **CLI signature:**
 ```
@@ -259,7 +259,7 @@ When `CHANGED` is empty, the skill exits 0 with the skip log line on stderr and 
 - `1` — runtime error (judge dispatch failure, file IO error).
 - `64` — usage error (mutually exclusive flag combo, missing ref).
 
-**When invoked by `/verify` Phase 4.7:** the parent passes the merge-base ref and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §4.7 for parent-side handling.
+**When invoked by `/verify` Phase 4b:** the parent passes the merge-base ref and consumes the JSON output; HTML+MD triplet is still written for human review. See spec §4.7 for parent-side handling.
 
 ---
 

@@ -23,14 +23,14 @@ Use this when stakeholders need to experience the flow end-to-end before committ
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
-- **No interactive prompt tool:** State your assumption (default devices = wireframes' device list; default scope = all wireframe screens; mock data = use as generated; layout anchor = first declared in DESIGN.md or none if none exist), document it in the output's `index.html`, and proceed. For Phase 1.5 staleness prompts, default to "Use as-is" and note the staleness in the index footer.
+- **No interactive prompt tool:** State your assumption (default devices = wireframes' device list; default scope = all wireframe screens; mock data = use as generated; layout anchor = first declared in DESIGN.md or none if none exist), document it in the output's `index.html`, and proceed. For Phase 1a staleness prompts, default to "Use as-is" and note the staleness in the index footer.
 - **No subagents:** Generate sequentially in the main agent; run review and friction passes inline.
 - **No background processes:** Skip the local server and print the absolute `file://` path to `index.html`.
 - **No Playwright MCP:** Phase 5d runtime smoke runs in degraded analytical-only mode, AND the prototype's landing `index.html` MUST display a "not runtime-smoked — verify in a real browser before sharing" banner. Phase 7 friction pass also runs in analytical-only mode.
 
 ## Track Progress
 
-This skill has 14 phases (Phase 1.5 was added in v2.8.0 for DESIGN.md resolution; Phase 5d runtime smoke added in v2.9.0). Create one task per phase using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code, equivalent in other agents). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+This skill has 14 phases (Phase 1a was added in v2.8.0 for DESIGN.md resolution; Phase 5d runtime smoke added in v2.9.0). Create one task per phase using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code, equivalent in other agents). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
 
 ---
 
@@ -95,7 +95,7 @@ Use workstream context (loaded by step 3 below) — brand voice, design tokens, 
 5. **Read inputs end-to-end:**
    - Req doc: extract user journeys, business rules, entity model, tier tag
    - Wireframes: read `index.html` for the inventory matrix; read each `NN_*.html` for layout, copy, visible fields, state list
-   - `wireframes/assets/design-overlay.css` if present (reused as the prototype's CSS overlay in Phase 1.5; otherwise regenerated from DESIGN.md)
+   - `wireframes/assets/design-overlay.css` if present (reused as the prototype's CSS overlay in Phase 1a; otherwise regenerated from DESIGN.md)
 <!-- defer-only: ambiguous -->
 6. **Confirm understanding.** Summarize the journeys to be made interactive and the device list. Ask via `AskUserQuestion` (≤4 batched). Platform fallback: numbered list + free-text confirmation.
 
@@ -103,7 +103,7 @@ Use workstream context (loaded by step 3 below) — brand voice, design tokens, 
 
 ---
 
-## Phase 1.5: Resolve DESIGN.md & Composition Context
+## Phase 1a: Resolve DESIGN.md & Composition Context
 
 > Decimal phase number is intentional — Phase 2 onward keeps existing numbering so external references (other skills, prior conversations) still resolve.
 
@@ -119,7 +119,7 @@ Detailed procedure: `reference/design-artifact-resolver.md`. Summary:
    - **Wireframes EXIST:** offer a targeted bootstrap via `AskUserQuestion`:
      > **Question:** "DESIGN.md is missing but wireframes already exist. How do you want to bootstrap the design system?"
      > **Options:**
-     > - **Bootstrap DESIGN.md + COMPONENTS.md only via /wireframes targeted handoff (Recommended)** — runs only Phase 2.5 + 2.6 of /wireframes; no wireframe regen; takes ~2 min.
+     > - **Bootstrap DESIGN.md + COMPONENTS.md only via /wireframes targeted handoff (Recommended)** — runs only Phase 2a + 2.6 of /wireframes; no wireframe regen; takes ~2 min.
      > - **Re-run full /wireframes** — regenerates all wireframes too; takes ~30 min; use when wireframes are also stale.
      > - **Abort** — cancel /prototype; you'll bootstrap manually.
 
@@ -130,14 +130,14 @@ Detailed procedure: `reference/design-artifact-resolver.md`. Summary:
      Feature folder: {feature_folder}
      Existing wireframes: {feature_folder}/wireframes/
      Goal: produce {target_app}/DESIGN.md and {target_app}/COMPONENTS.md ONLY.
-     Skip Phases 1, 2, 3-8, 9-10. Run Phase 2.5 (DESIGN.md extraction)
-     and Phase 2.6 (COMPONENTS.md inventory) only. Honor the Phase 2.5c
+     Skip Phases 1, 2, 3-8, 9-10. Run Phase 2a (DESIGN.md extraction)
+     and Phase 2b (COMPONENTS.md inventory) only. Honor the Phase 2ac
      review gate. COMPONENTS.md MUST enumerate only components present
      in the host frontend; do NOT propose feature-specific components
      (those are /prototype's output).
      ```
 
-     Resume `/prototype` Phase 1.5 from step 2 once `/wireframes` returns.
+     Resume `/prototype` Phase 1a from step 2 once `/wireframes` returns.
 
    - **Wireframes do NOT exist:** abort with "DESIGN.md not found and no wireframes either. Run `/wireframes` first to produce wireframes + DESIGN.md, then re-run `/prototype`." Do NOT auto-bootstrap; that's `/wireframes`' responsibility.
 2. **Resolve `design-overlay.css`:**
@@ -260,7 +260,7 @@ Dispatch a subagent with `reference/runtime-template.md` as the spec. Inline gen
 
 Dispatch a subagent with `reference/components-template.md` as the spec. Inline generation follows the same exception criteria as Phase 3 — log to `.deviations.md` when bypassing the subagent. Output: `{feature_folder}/prototype/assets/components.js`. Must export the atoms listed in the template (Button, Input, Modal, Toast, Card, Table, EmptyState, Spinner, Badge, Avatar) on `window.__protoComponents`.
 
-In addition to the existing inputs, the subagent receives **four blocks from Phase 1.5**:
+In addition to the existing inputs, the subagent receives **four blocks from Phase 1a**:
 
 1. **The merged DESIGN.md verbatim** with the instruction: "Tokens are read at runtime via `window.__designTokens`; structural decisions (component variants, voice) read here."
 2. **COMPONENTS.md content** (from `components_inventory`) with the instruction: "When emitting an atom, use variant names from COMPONENTS.md. If a needed variant doesn't exist in the inventory, emit the atom anyway but flag in the file footer comment under `/* New variants: <list> */` so reviewer can confirm."
@@ -281,9 +281,9 @@ In addition to the existing inputs, the subagent receives **four blocks from Pha
 
 ### 4d. Apply design overlay + emit thin styles.css
 
-**Tokens are already produced in Phase 1.5.** `design-overlay.css` (CSS variables from DESIGN.md) and `design-tokens.js` (JS-shaped tokens) live at `{feature_folder}/prototype/assets/`. This phase:
+**Tokens are already produced in Phase 1a.** `design-overlay.css` (CSS variables from DESIGN.md) and `design-tokens.js` (JS-shaped tokens) live at `{feature_folder}/prototype/assets/`. This phase:
 
-1. **Confirm both files exist.** If either is missing, return to Phase 1.5 and regenerate.
+1. **Confirm both files exist.** If either is missing, return to Phase 1a and regenerate.
 2. **Emit a thin `styles.css`** (≤ 30 lines typical) containing ONLY prototype-only utility classes that aren't in `prototype.css` and don't belong in DESIGN.md:
    - Mock-data shimmer animations
    - Scroll-snap overrides for prototype-only carousels
@@ -402,7 +402,7 @@ For each per-device HTML file, run up to 2 refinement loops. Stop early when zer
 
 **Step 1 — Dispatch reviewer subagent (parallel where possible):**
 - One reviewer per device file
-- Prompt: load `reference/eval-rubric.md` AND the following from Phase 1.5:
+- Prompt: load `reference/eval-rubric.md` AND the following from Phase 1a:
   - DESIGN.md `## Anti-patterns` and `## Do's and Don'ts` (verbatim) — score the file against each.
   - The `x-interaction` block — score against the **mandatory contract checklist** below.
   - COMPONENTS.md content — flag use of variants not in the inventory.
@@ -565,7 +565,7 @@ Tell the user: "Prototype is ready. Open `{served_url_or_file_path}` to review. 
 
 **Skip if no workstream was loaded in Phase 0.**
 
-The four-field navigation contract under `## Wireframes & Design System` (`target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha`) is **managed by `/wireframes` and `/verify` only**. `/prototype` reads these fields in Phase 1.5 but never writes them.
+The four-field navigation contract under `## Wireframes & Design System` (`target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha`) is **managed by `/wireframes` and `/verify` only**. `/prototype` reads these fields in Phase 1a but never writes them.
 
 The only field `/prototype` may write to the workstream is `target_app.path` if it's missing entirely — that's a one-time bootstrap, never a re-write.
 
@@ -605,7 +605,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT add a separate interactive-prompt gate around per-finding fixes if Phase 8 already handled them
 - Do NOT use `@import url(...)` for fonts or any external resources — breaks `file://` portability
 - Do NOT use `console.log` / `console.error` / `console.warn` in generated screen code — debug logs are findings, not features
-- Do NOT bootstrap DESIGN.md from `/prototype` directly — when DESIGN.md is missing, Phase 1.5 either offers the targeted-bootstrap handoff to `/wireframes --bootstrap-design-only` (when wireframes exist) or aborts cleanly (when they don't). Bootstrap responsibility lives in `/wireframes` exclusively, but `/prototype` is allowed to invoke it via the codified handoff prompt
+- Do NOT bootstrap DESIGN.md from `/prototype` directly — when DESIGN.md is missing, Phase 1a either offers the targeted-bootstrap handoff to `/wireframes --bootstrap-design-only` (when wireframes exist) or aborts cleanly (when they don't). Bootstrap responsibility lives in `/wireframes` exclusively, but `/prototype` is allowed to invoke it via the codified handoff prompt
 - Do NOT regenerate `design-overlay.css` if a fresh one exists in the wireframes folder — copy it instead. Within a feature, wireframes and prototype must use the same overlay (avoids visual drift between the two artifacts)
 - Do NOT treat `x-interaction` as advisory — Phase 4c subagent and Phase 6 reviewer enforce it as a contract. Modal style, dismiss paths, destructive confirmation, focus trap, shortcuts must match literally
 - Do NOT write design-system content (colors, typography, modal style, interaction patterns) into the workstream — those live in DESIGN.md / COMPONENTS.md (canonical). Phase 11 only writes `target_app.path` if missing

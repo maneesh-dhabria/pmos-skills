@@ -53,11 +53,11 @@ Fallback when no workstream is linked: write to `./docs/{YYYY-MM-DD}_{feature_sl
 <!-- defer-only: ambiguous -->
 If `--feature <slug>` is not provided, propose a slug from the source (URL hostname or folder name) and confirm with the user via `AskUserQuestion`.
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of all four artifacts written under `{out_dir}/`: `source.{ext}`, `journeys.{ext}`, `psych-msf.{ext}`, and the main `design-crit.{ext}` recommendations report. The `eval-findings-review.md` platform-fallback artifact (Phase 4) is read-back-and-edited by the user, so it stays MD regardless of `output_format`.
 
-### Phase 0 addendum: depth resolution (FR-DC-DEPTH-01..03)
+### Phase 0b: depth resolution (FR-DC-DEPTH-01..03)
 
 **Resolve `depth` and `effective_cap`.** Parse `--depth <shallow|standard|deep>` from the argument string. Last flag wins on conflict. Unknown value → print to stderr `--depth must be one of: shallow, standard, deep (got '<v>')` and exit 64.
 

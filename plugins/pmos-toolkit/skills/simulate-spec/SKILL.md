@@ -40,7 +40,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /simulate-s
 
 Before any other work, follow `_shared/pipeline-setup.md` Section 0 (canonical inline block) to read `.pmos/settings.yaml`, resolve `{docs_path}`, load workstream context, and resolve `{feature_folder}` (with `skill_name=simulate-spec`, `feature_arg=<--feature value or empty>`, `feature_hint=<spec slug or topic>`). Use workstream context to inform critique — product constraints and tech-stack decisions shape what counts as a gap. Also note any entries under `## /simulate-spec` in `~/.pmos/learnings.md` and factor them into your approach for this session. This skill consumes `02_spec.{html,md}` (via resolve-input.md) and writes traces under `{feature_folder}/simulate-spec/`.
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 After the pipeline-setup block above, additionally:
 

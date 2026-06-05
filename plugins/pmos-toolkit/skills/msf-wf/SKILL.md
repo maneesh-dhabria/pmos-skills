@@ -45,7 +45,7 @@ Use workstream context to inform analysis — product constraints and tech-stack
 5. Read `~/.pmos/learnings.md` if present; note entries under `## /msf-wf` and factor them into approach.
 <!-- pipeline-setup-block:end -->
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 5). NOTE: this controls the format of the `msf-findings` sidecar only — wireframe HTML files emitted/edited by `--apply-edits` are never converted (per runbook edge case row 1: wireframes/prototype unmodified).
 

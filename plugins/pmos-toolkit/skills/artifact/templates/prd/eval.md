@@ -1,7 +1,7 @@
 # PRD — Eval Criteria
 
 Per-section evaluation items for the PRD template. Two consumers:
-- **Phase 2.5 Gap Interview:** filters `kind: precondition`; queues `gap_question` for items whose evidence is absent from auto-read files.
+- **Phase 2a Gap Interview:** filters `kind: precondition`; queues `gap_question` for items whose evidence is absent from auto-read files.
 - **Phase 3 Refinement Loop:** reviewer subagent checks ALL items (both kinds) against the generated draft.
 
 ---

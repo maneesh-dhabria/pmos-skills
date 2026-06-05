@@ -153,9 +153,9 @@ The `T<N>` prefix is required by `/execute`'s resume resolver.
 
 ## Per-skill addendum: /diagram `--on-failure`
 
-`/diagram` extends the standard non-interactive contract with a `--on-failure {drop|ship-with-warning|exit-nonzero}` flag that gates Phase 6.5 (Terminal failure handler) disposition deterministically when `mode == non-interactive`. Interactive mode is unchanged — the existing `AskUserQuestion` (`Ship-with-warning / Try-alt / Abandon`) remains the source of truth.
+`/diagram` extends the standard non-interactive contract with a `--on-failure {drop|ship-with-warning|exit-nonzero}` flag that gates Phase 6a (Terminal failure handler) disposition deterministically when `mode == non-interactive`. Interactive mode is unchanged — the existing `AskUserQuestion` (`Ship-with-warning / Try-alt / Abandon`) remains the source of truth.
 
-Exit-code contract (canonical source: `plugins/pmos-toolkit/skills/diagram/SKILL.md` Phase 6.5):
+Exit-code contract (canonical source: `plugins/pmos-toolkit/skills/diagram/SKILL.md` Phase 6a):
 
 | Exit | When |
 |---|---|

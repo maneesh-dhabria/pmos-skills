@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# test-phase-4-7-sub-step.sh — T14 integration test for /verify Phase 4.7.
+# test-phase-4-7-sub-step.sh — T14 integration test for /verify Phase 4b.
 #
-# Phase 4.7's tier-gate is documented in /verify SKILL.md prose; the underlying
+# Phase 4b's tier-gate is documented in /verify SKILL.md prose; the underlying
 # dispatch is a Task subagent (not script-shaped). bash cannot drive Task
 # dispatch, so this test verifies the contract is documented for each of the
 # three tiers (T1 skip; T2 scoped --since; T3 full --since) and that the
@@ -31,23 +31,23 @@ assert() {
 }
 
 echo "[T1] tier-1 skip path"
-assert "Phase 4.7 documents T1 skip behaviour" \
+assert "Phase 4b documents T1 skip behaviour" \
   "grep -qE 'tier 1.*skip|T1.*skip' '$SKILL_MD'"
-assert "Phase 4.7 emits 'arch sub-step: tier 1, skipping' log" \
+assert "Phase 4b emits 'arch sub-step: tier 1, skipping' log" \
   "grep -qE 'arch sub-step: tier 1, skipping' '$SKILL_MD'"
 
 echo
 echo "[T2] tier-2 scoped --since dispatch"
-assert "Phase 4.7 documents T2 scoped dispatch" \
+assert "Phase 4b documents T2 scoped dispatch" \
   "grep -qE 'Scoped run.*--since|T2.*Scoped' '$SKILL_MD'"
-assert "Phase 4.7 wires --since flag" \
+assert "Phase 4b wires --since flag" \
   "grep -qE -- '--since' '$SKILL_MD'"
 
 echo
 echo "[T3] tier-3 full --since dispatch"
-assert "Phase 4.7 documents T3 full dispatch" \
+assert "Phase 4b documents T3 full dispatch" \
   "grep -qE 'Full run.*--since|T3.*Full|tier 3.*full' '$SKILL_MD'"
-assert "Phase 4.7 wires git merge-base HEAD main baseline" \
+assert "Phase 4b wires git merge-base HEAD main baseline" \
   "grep -qE 'git merge-base HEAD main' '$SKILL_MD'"
 
 echo

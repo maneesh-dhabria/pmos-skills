@@ -1,4 +1,4 @@
-# Editorial reduction pass (Phase 2.5)
+# Editorial reduction pass (Phase 2a)
 
 ## Contents
 
@@ -18,7 +18,7 @@ Two subagents: an **editor** (critiques → `editor_notes.json`, never rewrites)
 
 ## (1) Resolving the reduction target
 
-1. `--reduce <value>` flag present → parse `<value>` as a single percent (`25` → `{kind: point, low: 25, high: 25}`) or a `low-high` range (`30-40` → `{kind: range, low: 30, high: 40}`). Valid only if `0 < low <= high <= 90`. Malformed → print `--reduce: invalid value '<v>'; skipping the editorial pass` and treat as **Skip** (do NOT abort, do NOT prompt). When `--reduce` is present the Phase 2.5 gate is **not** shown (parallels `--preset` suppressing the Phase 2 prompt).
+1. `--reduce <value>` flag present → parse `<value>` as a single percent (`25` → `{kind: point, low: 25, high: 25}`) or a `low-high` range (`30-40` → `{kind: range, low: 30, high: 40}`). Valid only if `0 < low <= high <= 90`. Malformed → print `--reduce: invalid value '<v>'; skipping the editorial pass` and treat as **Skip** (do NOT abort, do NOT prompt). When `--reduce` is present the Phase 2a gate is **not** shown (parallels `--preset` suppressing the Phase 2 prompt).
 2. Otherwise, `AskUserQuestion` (this gate **has a Recommended option — do NOT add a `<!-- defer-only: -->` tag**; it auto-picks Skip in `--non-interactive`):
    ```
    question: "Run an editorial reduction pass before polishing? Target reduction:"

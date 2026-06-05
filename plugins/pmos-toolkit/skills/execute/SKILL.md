@@ -90,7 +90,7 @@ Use workstream context (loaded by step 3 below) passively — it informs impleme
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-### Phase 0 addendum: execution-strategy resolution
+### Phase 0a: execution-strategy resolution
 
 Resolve `execution_strategy ∈ {inline, subagent-driven}` once, at Phase 0 entry:
 
@@ -98,23 +98,23 @@ Resolve `execution_strategy ∈ {inline, subagent-driven}` once, at Phase 0 entr
 - If `subagent-driven` resolved but the platform has **no subagent/Agent tool** (Codex, Gemini, or any harness without it): emit `WARNING: --subagent-driven requested but no subagent tool available; running inline.` to stderr and set `execution_strategy = inline`. Never error.
 - Print to stderr exactly once: `execution_strategy: <inline|subagent-driven> (source: cli|default)`.
 
-`execution_strategy` selects the Phase 2 path (see "Phase 2 — Execution Strategy" below). It does **not** change any other phase: Phase 0/0.4/0.5 setup + resume, Phase 1 setup, Phase 2.5 phase-boundary handling, the runtime-evidence gate, the per-task / per-phase logs, and Phases 3–7 all run identically in both strategies.
+`execution_strategy` selects the Phase 2 path (see "Phase 2 — Execution Strategy" below). It does **not** change any other phase: Phase 0/0.4/0.5 setup + resume, Phase 1 setup, Phase 2a phase-boundary handling, the runtime-evidence gate, the per-task / per-phase logs, and Phases 3–7 all run identically in both strategies.
 
-## Phase 0.4: Feature Disambiguation
+## Phase 0b: Feature Disambiguation
 
 <!-- defer-only: destructive -->
-**If `--restart` was passed:** before doing anything else, count the existing `done` task logs under `{feature_folder}/execute/` (or all candidate feature folders if no plan path was given). Issue `AskUserQuestion`: "Restart will discard prior progress logs (X tasks marked done across N feature(s)). Confirm restart from scratch?" with options **Confirm restart** / **Cancel**. On Cancel, abort the /execute invocation immediately. On Confirm, skip the rest of Phase 0.4 and Phase 0.5 entirely and proceed to Phase 1 as a fresh start.
+**If `--restart` was passed:** before doing anything else, count the existing `done` task logs under `{feature_folder}/execute/` (or all candidate feature folders if no plan path was given). Issue `AskUserQuestion`: "Restart will discard prior progress logs (X tasks marked done across N feature(s)). Confirm restart from scratch?" with options **Confirm restart** / **Cancel**. On Cancel, abort the /execute invocation immediately. On Confirm, skip the rest of Phase 0b and Phase 0c entirely and proceed to Phase 1 as a fresh start.
 
 <!-- defer-only: ambiguous -->
-Otherwise: if no `<path-to-plan-doc>` and no `--feature` were provided, follow `../_shared/execute-resume.md` Phase 0.4 to scan the repo for in-flight features (folders under `{docs_path}/` with non-`done` task logs in their `execute/` subdir). If multiple candidates exist, present them via `AskUserQuestion` and let the user pick. If exactly one, use it. If none, error out — there is nothing to resume and no plan to execute.
+Otherwise: if no `<path-to-plan-doc>` and no `--feature` were provided, follow `../_shared/execute-resume.md` Phase 0b to scan the repo for in-flight features (folders under `{docs_path}/` with non-`done` task logs in their `execute/` subdir). If multiple candidates exist, present them via `AskUserQuestion` and let the user pick. If exactly one, use it. If none, error out — there is nothing to resume and no plan to execute.
 
 Skip this phase entirely if the plan path was given (no ambiguity).
 
 ---
 
-## Phase 0.5: Resume Resolution
+## Phase 0c: Resume Resolution
 
-Follow `../_shared/execute-resume.md` Phase 0.5 to:
+Follow `../_shared/execute-resume.md` Phase 0c to:
 
 1. Parse the plan, extract `[T1...TN]` with their `Goal:` lines and any `## Phase N` groupings.
 2. Scan `{feature_folder}/execute/task-*.md` and `phase-*.md`, parse frontmatter.
@@ -131,9 +131,9 @@ Follow `../_shared/execute-resume.md` Phase 0.5 to:
 
 ## Phase 1: Setup
 
-**Branch on `resume_mode` from Phase 0.5:**
+**Branch on `resume_mode` from Phase 0c:**
 - **Fresh start** (`resume_mode` unset, or mode == `"restart"`): run all steps below.
-- **Resume** (mode in `{"resume", "manual"}`): skip steps 3, 4, and the baseline test run inside step 3. Worktree must be present (Phase 0.5 verified or recreated it). Cd into the worktree from the previous session's logs (`worktree_path` field). Skip directly to step 5 (verify verification tooling) — it must re-run, since dev servers / Playwright / type-checkers may not be running in this fresh shell.
+- **Resume** (mode in `{"resume", "manual"}`): skip steps 3, 4, and the baseline test run inside step 3. Worktree must be present (Phase 0c verified or recreated it). Cd into the worktree from the previous session's logs (`worktree_path` field). Skip directly to step 5 (verify verification tooling) — it must re-run, since dev servers / Playwright / type-checkers may not be running in this fresh shell.
 
 1. **Locate the plan.** Follow `_shared/resolve-input.md` with `phase=plan`, `label="plan"`.
 2. **Read the plan and its upstream spec end-to-end.** Understand the "Done when" criteria and final verification task.
@@ -175,7 +175,7 @@ Branch on `execution_strategy` (resolved in Phase 0):
 - **`inline`** (default) — run the **per-task loop** below as a single agent, in plan order. Optionally, when an Agent/subagent tool is available, you may use the lightweight per-task subagent variant under "Inline mode: optional per-task subagents" — but that is *not* the parallel mode.
 - **`subagent-driven`** (`--subagent-driven`) — skip the single-agent per-task loop and run the **"Parallel Subagent-Driven Execution"** section below instead. It dispatches a fresh implementer subagent per task, runs independent tasks in parallel waves, and puts every completed task through a two-stage review. Inspired by `superpowers:subagent-driven-development`, but **fully self-contained** — all wave logic, prompt templates, and review loops live in this skill (`SKILL.md` + the sibling `subagent-driven.md`); nothing outside `plugins/pmos-toolkit/skills/execute/` is required.
 
-Everything that is **not** the per-task implementation loop is shared by both strategies and runs identically: Phase 0/0.4/0.5 (setup + resume), Phase 1 (worktree, dependency install, **verification-tooling hard gate**, task list), the per-task fields contract and defect handoff (below), **Phase 2.5 phase-boundary `/verify` + `--no-halt`/`continue_through_phases`**, the per-task `task-NN.md` and per-phase `phase-N.md` logs, the runtime-evidence gate, and Phases 3–7. The subagent-driven path **must** keep producing the same `T<N>`-bearing commit subjects the Phase 0.5 resume resolver greps for — see its commit step below.
+Everything that is **not** the per-task implementation loop is shared by both strategies and runs identically: Phase 0/0.4/0.5 (setup + resume), Phase 1 (worktree, dependency install, **verification-tooling hard gate**, task list), the per-task fields contract and defect handoff (below), **Phase 2a phase-boundary `/verify` + `--no-halt`/`continue_through_phases`**, the per-task `task-NN.md` and per-phase `phase-N.md` logs, the runtime-evidence gate, and Phases 3–7. The subagent-driven path **must** keep producing the same `T<N>`-bearing commit subjects the Phase 0c resume resolver greps for — see its commit step below.
 
 ### Per-task fields consumed by /execute v2 (T35 — /plan v2 contract)
 
@@ -226,11 +226,11 @@ Work through the plan's tasks in order. For each task:
    - **API tasks:** curl every new/modified endpoint against the running dev server. Paste the output.
    - **UI tasks:** open the affected page in Playwright MCP (or fallback). Paste screenshot or programmatic output.
    - If you cannot produce runtime evidence for an API or UI task, the task is not done. Do not commit.
-6. **Commit** — small, focused commit per task. Not one giant commit at the end. **Commit subject MUST contain the task number in the form `T<N>`** (e.g., `feat(T5): add SOP migration` or `T5: add SOP migration`). The Phase 0.5 resolver greps `\bT[0-9]+\b` from `git log` to detect mid-task interruption — without `T<N>` in the subject, in-flight detection degrades.
+6. **Commit** — small, focused commit per task. Not one giant commit at the end. **Commit subject MUST contain the task number in the form `T<N>`** (e.g., `feat(T5): add SOP migration` or `T5: add SOP migration`). The Phase 0c resolver greps `\bT[0-9]+\b` from `git log` to detect mid-task interruption — without `T<N>` in the subject, in-flight detection degrades.
 7. **Maintain the per-task log** at `{feature_folder}/execute/task-{NN}.md` (zero-padded 2 digits). The log has a structured frontmatter and a free-form body. Lifecycle:
 
    - **At task start** (before TDD work begins): write the file with `status: in-flight`, populated frontmatter (see schema below), and an empty body. This is the "in-flight marker" that resume detects if the session crashes.
-   - **As files are touched:** append paths to `files_touched` in the frontmatter (used by phase-scoped /verify in Phase 2.5).
+   - **As files are touched:** append paths to `files_touched` in the frontmatter (used by phase-scoped /verify in Phase 2a).
    - **At task completion** (verify-fix loop passed AND runtime evidence produced): update `status: done`, set `completed_at`, and write the body (key decisions, deviations, runtime evidence, verification outcome).
    - **At task failure** (3-attempt budget exhausted): update `status: failed`, set `completed_at`, write the body with the failure mode.
 
@@ -255,9 +255,9 @@ Work through the plan's tasks in order. For each task:
 
    Overwrite the file's body on a re-run; preserve `started_at` from the first attempt.
 8. **Mark task as completed** in your task tracker.
-9. **Move to next task** — only after verification passes, evidence is produced, and task is marked complete. Before moving on, run **Phase 2.5: Phase Boundary Check** (below) — it may halt the session.
+9. **Move to next task** — only after verification passes, evidence is produced, and task is marked complete. Before moving on, run **Phase 2a: Phase Boundary Check** (below) — it may halt the session.
 
-### Phase 2.5: Phase Boundary Check
+### Phase 2a: Phase Boundary Check
 
 Skip this phase entirely if the plan has no `## Phase N` headings (flat plan). Otherwise, after each task's done-log is written, follow `../_shared/phase-boundary-handler.md`:
 
@@ -336,7 +336,7 @@ You (the controller) coordinate; subagents do the work. Implementer subagents **
 
 #### Step A — Wave planning (deterministic)
 
-1. **Collect tasks.** Reuse the Phase 0.5 parse: every `T<N>[<suffix>]` task with its `**Goal:**`, `**Files:**`, `**Depends on:**`, `**Requires state from:**`, and `## Phase N` grouping. **Exclude** tasks the resume resolver already classified `done` / `done-sealed`. If nothing remains → report "nothing to execute" and stop.
+1. **Collect tasks.** Reuse the Phase 0c parse: every `T<N>[<suffix>]` task with its `**Goal:**`, `**Files:**`, `**Depends on:**`, `**Requires state from:**`, and `## Phase N` grouping. **Exclude** tasks the resume resolver already classified `done` / `done-sealed`. If nothing remains → report "nothing to execute" and stop.
 2. **Dependency edges.** For each task `T`, add edge `D → T` for every task id `D` listed in `T`'s `**Depends on:**` *or* `**Requires state from:**`. (Absent fields ⇒ no edges from this rule — but see step 5.)
 3. **File-conflict relation.** Two tasks `A`, `B` *conflict* if their `**Files:**` path sets intersect (normalize paths; `Create` / `Modify` / `Test` entries all count). Conflicting tasks **must not** share a wave even when no dependency edge connects them — concurrent edits to the same file collide.
 4. **Layer into waves.** Kahn's algorithm over the dependency edges gives topological layers. Within each layer, greedily pack tasks into sub-waves (in task-index order) such that no sub-wave contains a conflicting pair — overflow tasks spill to the next sub-wave. The result is an ordered list of waves; every task in wave *k* has all its dependencies in waves `< k` and is pairwise file-disjoint from its wave-mates.
@@ -355,14 +355,14 @@ For each wave, in order:
    - **BLOCKED** — assess the blocker: more context → re-dispatch same model; needs more reasoning → re-dispatch a more capable model; too large → split into smaller tasks; plan is wrong → write the defect file (see "Defect handoff" above) and escalate. **Never** re-dispatch the same model with nothing changed. A blocked task stalls only its dependents — already-done tasks stay done.
    - **Stall** (no return / timeout) — re-dispatch that single task focused (focused single-file re-dispatches recover fast).
 3. **Per task, in task-index order — the CONTROLLER (not subagents):**
-   1. **Commit / stage.** `git add` the task's reported file-set, then — honoring the plan's `commit_cadence` — `commit_cadence: per-task` (default) ⇒ `git commit` now with a `T<N>`-bearing subject (`feat(T<N>): …` / `T<N>: …`); `per-phase` ⇒ leave it staged and commit the whole phase at the phase boundary; `manual` ⇒ leave it staged for the user. The `T<N>` subject (when a commit is made) is mandatory — the Phase 0.5 resolver greps `\bT[0-9]+\b` from `git log`. The diff handed to the reviewers in step 3 is the per-task commit (`git show <sha>`) when one exists, otherwise the task's staged/working-tree change for its file-set (`git diff --staged -- <files>` / `git diff -- <files>`).
+   1. **Commit / stage.** `git add` the task's reported file-set, then — honoring the plan's `commit_cadence` — `commit_cadence: per-task` (default) ⇒ `git commit` now with a `T<N>`-bearing subject (`feat(T<N>): …` / `T<N>: …`); `per-phase` ⇒ leave it staged and commit the whole phase at the phase boundary; `manual` ⇒ leave it staged for the user. The `T<N>` subject (when a commit is made) is mandatory — the Phase 0c resolver greps `\bT[0-9]+\b` from `git log`. The diff handed to the reviewers in step 3 is the per-task commit (`git show <sha>`) when one exists, otherwise the task's staged/working-tree change for its file-set (`git diff --staged -- <files>` / `git diff -- <files>`).
    2. **Write the per-task log** `{feature_folder}/execute/task-NN.md` per the schema above (`status: done`, `files_touched`, body = decisions / deviations / runtime evidence / verification outcome). Honor the runtime-evidence gate: an API/UI task with no runtime evidence is **not done** — re-dispatch the implementer to produce it.
    3. **Two-stage review (this order, no skipping):**
       - **(i) Spec-compliance reviewer subagent** — dispatch with the *spec-reviewer* template from `subagent-driven.md`: the task requirements + the implementer's claims + the diff (`git show <sha>` / base→head SHAs). It verifies by reading code, not by trusting the report. On `❌` → re-dispatch the **same implementer subagent** with the reviewer's findings to fix → controller commits (or, under `per-phase`/`manual` cadence, re-stages) the fix as `fix(T<N>): address spec-review gap` → re-review. Loop until `✅`.
       - **(ii) Code-quality reviewer subagent** — only after spec `✅`: dispatch with the *code-quality-reviewer* template from `subagent-driven.md`: the diff + project conventions (`CLAUDE.md`). On Critical/Important findings → implementer fixes → controller commits / re-stages `fix(T<N>): …` → re-review → loop until approved. Minor findings: note and proceed.
       - Reviewer subagents are read-only; you may dispatch the spec-reviewers for several wave tasks concurrently, but the spec→quality **order per task** is mandatory, and code-quality review never starts before that task's spec review is `✅`.
    4. **Mark the task complete** in your task tracker.
-4. **Phase 2.5 phase-boundary check.** If the wave's last task completes a `## Phase N` group, run **Phase 2.5** exactly as in inline mode (`/verify --scope phase`, `phase-N.md` log, `HALT_FOR_COMPACT` unless `--no-halt` / the session-sticky continuation flag). Unchanged.
+4. **Phase 2a phase-boundary check.** If the wave's last task completes a `## Phase N` group, run **Phase 2a** exactly as in inline mode (`/verify --scope phase`, `phase-N.md` log, `HALT_FOR_COMPACT` unless `--no-halt` / the session-sticky continuation flag). Unchanged.
 5. **Next wave.**
 
 #### Step C — Final review
@@ -498,7 +498,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT make one giant commit at the end — commit after each task
 - Do NOT stop at the first passing test run — re-read the spec for completeness
 - Do NOT silently re-do tasks marked `done` in `task-NN.md` without checking the `task_goal_hash` against the current plan — drift detection exists for a reason; surface `done-but-drifted` to the user instead of either skipping or quietly redoing
-- Do NOT skip the Phase 2.5 Phase Boundary Check when the plan has `## Phase N` headings — full /verify at boundaries is the design's purpose; suppressing it defeats the cross-session compact handshake
+- Do NOT skip the Phase 2a Phase Boundary Check when the plan has `## Phase N` headings — full /verify at boundaries is the design's purpose; suppressing it defeats the cross-session compact handshake
 - (subagent-driven) Do NOT put two tasks in the same parallel wave if they share a `**Files:**` entry or one `**Depends on:**`/`**Requires state from:**` the other — file races and wrong execution order. When in doubt, fall back to a singleton wave.
 - (subagent-driven) Do NOT let implementer subagents `git commit` — the controller commits, serially, after the wave, with `T<N>` subjects. Concurrent commits race on `.git/index` and break the resume resolver's `T<N>` grep.
 - (subagent-driven) Do NOT start the code-quality review before the spec-compliance review is `✅` — and never skip either review, or move to the next wave with a task's review still open.

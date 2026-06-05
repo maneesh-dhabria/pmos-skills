@@ -1,14 +1,14 @@
 # Phase Boundary Handler Protocol
 
-> **<MUST READ END-TO-END>** Calling skills MUST open and read this file before implementing Phase 2.5. Do not infer boundary-handler behavior from the calling skill's text. The HALT_FOR_COMPACT return is **mandatory on a green boundary** — skipping it defeats the compact discipline that phase boundaries exist to provide. If you're tempted to emit an advisory and continue executing, STOP and re-read the Compact Behavior section. </MUST READ END-TO-END>
+> **<MUST READ END-TO-END>** Calling skills MUST open and read this file before implementing Phase 2a. Do not infer boundary-handler behavior from the calling skill's text. The HALT_FOR_COMPACT return is **mandatory on a green boundary** — skipping it defeats the compact discipline that phase boundaries exist to provide. If you're tempted to emit an advisory and continue executing, STOP and re-read the Compact Behavior section. </MUST READ END-TO-END>
 
-Shared protocol for `/execute` Phase 2.5 (Phase Boundary Handler). Describes the gating conditions, the full algorithm (verbatim from spec §5.6), the phase log frontmatter format (verbatim from spec §5.2), the /verify invocation contract, and compact behavior.
+Shared protocol for `/execute` Phase 2a (Phase Boundary Handler). Describes the gating conditions, the full algorithm (verbatim from spec §5.6), the phase log frontmatter format (verbatim from spec §5.2), the /verify invocation contract, and compact behavior.
 
 ---
 
 ## When to Fire
 
-Phase 2.5 runs **after** each task's `done` log is written in Phase 2. It is a gate, not a loop — it fires at most once per completed task and skips immediately under either of these conditions:
+Phase 2a runs **after** each task's `done` log is written in Phase 2. It is a gate, not a loop — it fires at most once per completed task and skips immediately under either of these conditions:
 
 1. **No `## Phase N` headings in the plan.** If `plan.phases` is empty (flat T1…TN plan), return `CONTINUE` without reading any phase state. Flat plans incur zero overhead from this handler.
 
@@ -96,7 +96,7 @@ completed_at: 2026-05-02T15:14:00Z
 
 ## Verify Invocation Contract
 
-Phase 2.5 invokes /verify in a phase-scoped mode. The call mechanism is the implementer's choice — skill-call, subagent, or harness invocation — as long as the inputs and outputs below are honoured.
+Phase 2a invokes /verify in a phase-scoped mode. The call mechanism is the implementer's choice — skill-call, subagent, or harness invocation — as long as the inputs and outputs below are honoured.
 
 **Inputs to /verify (phase-scoped mode):**
 
@@ -123,7 +123,7 @@ Phase 2.5 invokes /verify in a phase-scoped mode. The call mechanism is the impl
 
 **Default: hard-stop (per spec Open Question O1 resolved as hard-stop).**
 
-When /verify passes at a phase boundary, Phase 2.5 MUST NOT continue executing. It MUST:
+When /verify passes at a phase boundary, Phase 2a MUST NOT continue executing. It MUST:
 
 1. Emit the `HALT_FOR_COMPACT` message to the user, e.g.:
 
@@ -137,7 +137,7 @@ When /verify passes at a phase boundary, Phase 2.5 MUST NOT continue executing. 
 
 1. User runs `/compact` (Claude Code built-in; cannot be triggered programmatically by the skill).
 2. User re-invokes `/execute --resume` (or `/execute <plan-path> --resume`).
-3. Phase 0.5 (resume resolver) reads the freshly-written `phase-N.md` with `verify_status: passed`, seals all tasks in that phase as `done-sealed`, and sets the resume point to the first task of the next phase.
+3. Phase 0c (resume resolver) reads the freshly-written `phase-N.md` with `verify_status: passed`, seals all tasks in that phase as `done-sealed`, and sets the resume point to the first task of the next phase.
 4. Execution continues from the next phase's first task in the fresh context.
 
 **Alternative (not the default):** advisory-continue — emit the same HALT_FOR_COMPACT message but keep executing. This is cheaper for the user but defeats the compact purpose. Do NOT implement the advisory-continue path unless the plan document or user explicitly overrides O1.
@@ -148,4 +148,4 @@ When /verify passes at a phase boundary, Phase 2.5 MUST NOT continue executing. 
 
 ## Consumers
 
-- `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 2.5 (Phase Boundary Check), invoked after step 9 of the Phase 2 task loop (after `status: done` is written to the per-task log).
+- `plugins/pmos-toolkit/skills/execute/SKILL.md` — Phase 2a (Phase Boundary Check), invoked after step 9 of the Phase 2 task loop (after `status: done` is written to the per-task log).

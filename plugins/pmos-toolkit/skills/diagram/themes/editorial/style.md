@@ -37,7 +37,7 @@ This file mirrors `themes/editorial/theme.yaml` for human reading. The YAML is t
 
 ## 5.3 Typography
 
-- **Display** — `Inter Tight`, 700 weight, sizes 28 / 36 / 44. Used for headlines in infographic mode (Phase 6.6).
+- **Display** — `Inter Tight`, 700 weight, sizes 28 / 36 / 44. Used for headlines in infographic mode (Phase 6b).
 - **Body** — `Inter`, 400 / 600 weight, sizes 12 / 14 / 16 / 20. Same scale as the technical theme.
 - **Eyebrow** — monospace (SFMono / Menlo / Consolas), 400 weight, **size 12**, **uppercase**, letter-spacing 0.08em. Replaces decorative section titles. Every major group inside the dashed container gets one (e.g. `EXTERNAL CONTEXT (objects we populate)`, `HARNESS · system of blocks`).
 

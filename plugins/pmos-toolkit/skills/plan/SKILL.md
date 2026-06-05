@@ -348,7 +348,7 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
 
 ## Tasks
 
-[For plans > ~12 tasks: group under `## Phase N: <name>` headings (FR-26, FR-27). Phases must be deployable slices of 5–10 tasks. Phase boundaries trigger full /verify + /compact handshake (FR-26a, see execute/SKILL.md Phase 2.5). Soft cap of 30k tokens per phase (FR-90). Last phase's verify IS the TN per FR-26.]
+[For plans > ~12 tasks: group under `## Phase N: <name>` headings (FR-26, FR-27). Phases must be deployable slices of 5–10 tasks. Phase boundaries trigger full /verify + /compact handshake (FR-26a, see execute/SKILL.md Phase 2a). Soft cap of 30k tokens per phase (FR-90). Last phase's verify IS the TN per FR-26.]
 
 ### T1: [Task Name]
 
@@ -474,7 +474,7 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
 
 #### Optional: `## Phase N` Groupings (for large plans)
 
-For plans with **more than ~12 tasks**, group tasks under `## Phase N: <name>` headings. Each phase boundary triggers full `/verify` + a `/compact` handshake when /execute reaches the end of the phase (see `execute/SKILL.md` Phase 2.5).
+For plans with **more than ~12 tasks**, group tasks under `## Phase N: <name>` headings. Each phase boundary triggers full `/verify` + a `/compact` handshake when /execute reaches the end of the phase (see `execute/SKILL.md` Phase 2a).
 
 **Template:**
 

@@ -128,7 +128,7 @@ Inline `_shared/pipeline-setup.md` (relative to the skills directory) to:
 
 Workstream IS loaded — this is a feature-level orchestrator.
 
-### Phase 0 addendum: output_format resolution (FR-12)
+### Phase 0a: output_format resolution (FR-12)
 
 6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Pass the resolved value through to every dispatched child skill via the `[mode: <current-mode>]\n` first-line convention plus an additional `[output_format: <resolved>]\n` line so children inherit without re-reading settings.
 
@@ -171,7 +171,7 @@ Workstream IS loaded — this is a feature-level orchestrator.
 3. After `/requirements` completes — read its auto-tier output.
 4. Until the above resolves, gate-recommendation logic uses Tier-3 conservative defaults.
 
-Per FR-TIER-SCOPE / spec §15 G8: `{tier}` drives BOTH child-skill `--tier` passthrough (only for children that accept it: `/requirements`, `/spec`, `/plan`) AND orchestrator gate logic (Phases 2a grill, 3a creativity, 3b wireframes, 3c prototype, 8a retro). The former `msf-req` and `simulate-spec` phases were removed in v2.34.0 — folded into /requirements (its Phase 5.5) and /spec (its Phase 6.5) respectively. Child skills retain the right to auto-tier-escalate; if a child reports a different tier, log to `state.yaml.phases.<X>.child_tier_divergence` and continue — do not override the child.
+Per FR-TIER-SCOPE / spec §15 G8: `{tier}` drives BOTH child-skill `--tier` passthrough (only for children that accept it: `/requirements`, `/spec`, `/plan`) AND orchestrator gate logic (Phases 2a grill, 3a creativity, 3b wireframes, 3c prototype, 8a retro). The former `msf-req` and `simulate-spec` phases were removed in v2.34.0 — folded into /requirements (its Phase 5a) and /spec (its Phase 6a) respectively. Child skills retain the right to auto-tier-escalate; if a child reports a different tier, log to `state.yaml.phases.<X>.child_tier_divergence` and continue — do not override the child.
 
 ### `--minimal` flag + `_minimal_active` sentinel (new in v2.34.0 per W17)
 
@@ -343,8 +343,8 @@ When emitting the Resume Status panel per `reference/compact-checkpoint.md` (T4 
 
 Two phase IDs were removed in v2.34.0:
 
-- `msf-req` — folded into `/requirements` as Phase 5.5 (W1).
-- `simulate-spec` — folded into `/spec` as Phase 6.5 (W3, delegating to `_shared/sim-spec-heuristics.md`).
+- `msf-req` — folded into `/requirements` as Phase 5a (W1).
+- `simulate-spec` — folded into `/spec` as Phase 6a (W3, delegating to `_shared/sim-spec-heuristics.md`).
 
 When `--resume` reads a pre-2.34.0 `state.yaml` carrying these phase entries, transparently elide them on read (do NOT block, do NOT prompt). The resume cursor advances to the next non-elided phase. See `reference/state-schema.md` Schema v2 auto-migration block for the exact 4-step idempotent migration contract. This back-compat handling is silent on a clean migration; if migration fails (e.g., `rename(2)` error per NFR-08), surface the failure dialog.
 
@@ -459,7 +459,7 @@ After every phase end (pass / fail / skip / pause), do all three atomically — 
 
 A failed update of any one of these three breaks the resume contract. Rolling back the partial write is the implementor's responsibility.
 
-## Phase 1.5: /ideate gate (soft; feature + skill-new only)
+## Phase 1a: /ideate gate (soft; feature + skill-new only)
 
 **Runs only when `pipeline_mode ∈ {feature, skill-new}`** — in `skill-feedback` it is a mode-conditional by-design non-presentation (per Anti-pattern #4 carve-out; triage doc is already structured). Phase id `ideate` is absent from `phases[]` in skill-feedback (see `reference/state-schema.md`). Hardness: **soft**. **Goal:** when the seed is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; if the brief reads as a big idea (Tier-3), auto-chain `/grill --deep`. Brief lands in the feature folder and seeds Phase 2.
 
@@ -481,7 +481,7 @@ Invoke `/pmos-toolkit:requirements` with the seed for this mode:
 
 Pass `[mode: <current-mode>]\n` and `[output_format: <resolved>]\n` as the first lines of the child prompt (per FR-06). Pass `--tier <N>` if `{tier}` is set (it is, in skill modes — Phase 0d resolved it). Pass `--backlog <id>` through if it was given to `/feature-sdlc`.
 
-**Ideate brief passthrough (feature + skill-new only, when Phase 1.5 produced a brief).** If `state.yaml.phases.ideate.artifact_path` is non-null, append `[ideate-brief: <path>]` after the `[output_format: …]` line; if `grill_deep_artifact_path` is also non-null, append `[ideate-grill: <path>]`. `/requirements` reads these as additional seed (brief = framed problem + journeys + pressure-test findings; grill artifact = resolved decisions). Skipped-* states write nothing.
+**Ideate brief passthrough (feature + skill-new only, when Phase 1a produced a brief).** If `state.yaml.phases.ideate.artifact_path` is non-null, append `[ideate-brief: <path>]` after the `[output_format: …]` line; if `grill_deep_artifact_path` is also non-null, append `[ideate-grill: <path>]`. `/requirements` reads these as additional seed (brief = framed problem + journeys + pressure-test findings; grill artifact = resolved decisions). Skipped-* states write nothing.
 
 **In skill modes** (FR-61 — fuller wiring in the citation pass): prepend a line citing `reference/skill-patterns.md` as the standing acceptance criteria — "the produced/revised skill must conform to `skill-patterns.md §A–§F`".
 
@@ -761,7 +761,7 @@ On missing-skill: soft-variant missing-skill dialog from `reference/failure-dial
 Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md` sidecar in mixed-format mode), plus:
 
 - Branch + tag info from `/complete-dev` output.
-- Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1.5 ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
+- Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1a ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
 - If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Mixed-format sidecar emitted as `00_open_questions_index.md` when `output_format=both`. Link to the HTML primary in the chat summary.
   > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
 - Final one-liner: `Pipeline complete for <slug>. Branch feat/<slug> merged to main and tagged via /complete-dev.`
@@ -769,7 +769,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 **In `prototype` mode (FR-PSDLC-08):** the summary block above is replaced with the discovery-mode variant:
 
 - **No branch + tag info** — no `/complete-dev` ran.
-- **Artifact list:** `01_requirements.{html,md}`, `02_spec.{html,md}` (written in prototype mode at the post-3a slot per `## Prototype-mode phase ordering`), `03_wireframes.{html,md}` (from `/wireframes`), `04_prototype.{html,md}` (from `/prototype`), plus the `grills/` subdir (if Phase 2a ran) and (if Phase 1.5 ran) `00d_ideate.{html,md}`. No `03_plan.*`, no `/execute`/`/verify`/`/complete-dev` artifacts.
+- **Artifact list:** `01_requirements.{html,md}`, `02_spec.{html,md}` (written in prototype mode at the post-3a slot per `## Prototype-mode phase ordering`), `03_wireframes.{html,md}` (from `/wireframes`), `04_prototype.{html,md}` (from `/prototype`), plus the `grills/` subdir (if Phase 2a ran) and (if Phase 1a ran) `00d_ideate.{html,md}`. No `03_plan.*`, no `/execute`/`/verify`/`/complete-dev` artifacts.
 - **OQ index:** same rules as above when `state.yaml.open_questions_log[]` is non-empty.
 - **Final one-liner:** `Prototype-mode pipeline complete for <slug>. Branch feat/<slug> contains the discovery artifacts; not merged. To extend to full implementation: cd into the worktree, edit state.yaml.pipeline_mode from 'prototype' to 'feature', then run /feature-sdlc --resume. To discard: git worktree remove <path>.`
 
@@ -795,7 +795,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 1. **Triggering `/compact` from the skill.** The harness does not allow it. Surface a checkpoint, write `paused-resumable` state if the user picks Pause, and exit cleanly. Pretending it auto-compacts is a lie that breaks the resume contract.
 2. **Skipping the worktree step "because the user knows what they're doing".** Worktree is mandatory unless `--no-worktree` is explicitly passed. Auto-skipping when the user is already on a branch loses isolation and corrupts the resume state file's location semantics. The four worktree edge cases (a) not-a-repo, (b) detached HEAD, (c) dirty tree, (d) branch already exists — all handled in Phase 0a — are non-bypassable; do not auto-stash, auto-rename, or auto-delete to make them go away.
 3. **Dispatching child skills with a "see the state file" prompt.** Each child gets a self-contained brief (initial context for `/requirements`; full requirements doc path for `/spec`; etc.). Child skills must not reach into `state.yaml` — that file is the orchestrator's private state.
-4. **Auto-running optional stages without the gate.** `/creativity`, `/wireframes`, `/prototype` each have an explicit interactive gate prompt. Recommended-default is fine; silent run is not. (`/msf-req` and `/simulate-spec` no longer have orchestrator gates — they are folded inside `/requirements` Phase 5.5 and `/spec` Phase 6.5 respectively, default-on at Tier 3.) Note: `--minimal`-driven Skip on the four soft gates (creativity, wireframes, prototype, retro) is user-explicit and does not violate this rule — see the `_minimal_active` directive. Likewise, skill-mode's **non-presentation** of Phases 3b/3c (a skill has no UI), and the fact that Phase 0c runs only in `skill-feedback` and Phases 0d/6a only in skill modes, are **mode-conditional by-design omissions** keyed off `pipeline_mode` — not silent skips of presented gates.
+4. **Auto-running optional stages without the gate.** `/creativity`, `/wireframes`, `/prototype` each have an explicit interactive gate prompt. Recommended-default is fine; silent run is not. (`/msf-req` and `/simulate-spec` no longer have orchestrator gates — they are folded inside `/requirements` Phase 5a and `/spec` Phase 6a respectively, default-on at Tier 3.) Note: `--minimal`-driven Skip on the four soft gates (creativity, wireframes, prototype, retro) is user-explicit and does not violate this rule — see the `_minimal_active` directive. Likewise, skill-mode's **non-presentation** of Phases 3b/3c (a skill has no UI), and the fact that Phase 0c runs only in `skill-feedback` and Phases 0d/6a only in skill modes, are **mode-conditional by-design omissions** keyed off `pipeline_mode` — not silent skips of presented gates.
 5. **Frontend-detection by LLM gut-feel.** Use `reference/frontend-detection.md` heuristics deterministically; surface uncertainty via a structured prompt rather than guessing. The gate is always presented (FR-FRONTEND-GATE).
 6. **Forgetting to update `state.yaml` after a child-skill completion.** Every phase end must atomically (a) update `state.yaml`, (b) regenerate `00_pipeline.html` (and the `.md` sidecar when `output_format=both`), (c) print the in-chat status table. Skipping any of these breaks resume.
 7. **Treating `--non-interactive` as "skip /grill silently".** The skill must log `phase: grill / status: skipped-non-interactive / reason: --non-interactive flag` so the user knows what was skipped on review.
@@ -805,7 +805,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 11. **Letting the Phase 6a reviewer make edits.** The reviewer **scores and reports only** — `/execute` (Phase 6) is the sole writer of the skill (D10). A reviewer that "fixes while reviewing" makes the eval result unreproducible and the writer/reviewer separation meaningless.
 12. **Treating Phase 6a's "accept residuals as known risk" as a silent pass.** Residuals are recorded in `state.yaml.phases.skill-eval.skill_eval.accepted_residuals[]`, re-checked by `/verify`, and surfaced loudly in both the `/verify` report and the `/complete-dev` summary. Accepting a residual is a logged decision, not a way to make the gate go away. And do not exceed the 2-iteration remediation cap — past it, the only exits are accept / iterate-manually / restore-iteration-1 / abort.
 13. **Inferring the run mode from the seed text.** `pipeline_mode` comes from the explicit `skill` subcommand (FR-02), never from sniffing whether the idea "sounds like a skill". A bare `/feature-sdlc <text>` is always `feature` mode, even if the text describes a skill.
-14. **Skipping the Phase 1.5 `/ideate` gate without running the fuzzy-detect classifier first.** `reference/fuzzy-idea-detection.md` runs deterministically on every feature / skill-new run (unless `--no-ideate`). `skipped-formed` is allowed only because the classifier ran; the presented gate (`seed_shape: fuzzy`) is non-bypassable interactive, defers per canonical block non-interactive. Tier-3 grill-chain (Step 4) is similarly deterministic — disjunctive heuristic OR `--tier 3`; no LLM gut-feel.
+14. **Skipping the Phase 1a `/ideate` gate without running the fuzzy-detect classifier first.** `reference/fuzzy-idea-detection.md` runs deterministically on every feature / skill-new run (unless `--no-ideate`). `skipped-formed` is allowed only because the classifier ran; the presented gate (`seed_shape: fuzzy`) is non-bypassable interactive, defers per canonical block non-interactive. Tier-3 grill-chain (Step 4) is similarly deterministic — disjunctive heuristic OR `--tier 3`; no LLM gut-feel.
 
 ---
 

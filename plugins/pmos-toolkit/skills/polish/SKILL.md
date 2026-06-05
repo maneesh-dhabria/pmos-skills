@@ -18,11 +18,11 @@ If you have already taken any other action (Read, Bash, interactive prompts, Wri
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
-- **No interactive prompt tool:** Print a numbered findings table with a disposition column. NEVER silently auto-apply high-risk fixes — they require explicit user input. For preset selection, state your assumption and proceed; the user reviews the polished output. For the Phase 2.5 editorial-pass gate, state the assumption "no `--reduce` flag → skipping the editorial pass" and proceed (the pass is opt-in).
+- **No interactive prompt tool:** Print a numbered findings table with a disposition column. NEVER silently auto-apply high-risk fixes — they require explicit user input. For preset selection, state your assumption and proceed; the user reviews the polished output. For the Phase 2a editorial-pass gate, state the assumption "no `--reduce` flag → skipping the editorial pass" and proceed (the pass is opt-in).
 - **No `TodoWrite`:** Print phase headers as you progress (`## Phase 3: Running rubric…`). Do not batch.
 - **No `WebFetch`:** Refuse URL input mode with a note; ask the user to paste the content.
 - **No Notion MCP:** Refuse `notion://` input with a note; ask the user to export the page first.
-- **No subagents:** Run all phases sequentially in the main agent — this includes the Phase 2.5 editor and rewriter passes (run them inline).
+- **No subagents:** Run all phases sequentially in the main agent — this includes the Phase 2a editor and rewriter passes (run them inline).
 - **Format detection is deterministic** (extension-based — see Phase 1) on every platform; it never requires a tool or a prompt.
 
 ## Load Learnings
@@ -119,7 +119,7 @@ Recommended preset: <name>
 Options: [<recommended> (Recommended) | <alternative 1> | <alternative 2> | Preserve voice]
 ```
 
-## Phase 2.5 — Editorial reduction (opt-in)
+## Phase 2a — Editorial reduction (opt-in)
 
 Runs after preset selection and before the rubric. **Opt-in — the default is Skip.** Full contract: `reference/editorial-pass.md`. Its output document (the *reduced doc* if the pass ran, else the ingested doc unchanged) becomes the **working document** for Phase 3 onward. **The editorial pass is not a polish iteration** — it runs once (plus at most one capped re-critique), independent of the Phase 6 two-iteration cap.
 
@@ -151,7 +151,7 @@ Runs after preset selection and before the rubric. **Opt-in — the default is S
 
 ## Phase 3 — Run binary eval rubric
 
-Follow `reference/rubric.md` — runs all 14 built-in checks plus any user-defined checks **on the working document** (the editor-reduced doc if Phase 2.5 ran, else the ingested doc). Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
+Follow `reference/rubric.md` — runs all 14 built-in checks plus any user-defined checks **on the working document** (the editor-reduced doc if Phase 2a ran, else the ingested doc). Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
 
 **LLM-judge determinism contract** (mandatory for every llm-judge call):
 - `temperature: 0`
@@ -190,7 +190,7 @@ Estimated work: ~<calls> LLM calls, ~<seconds>s
 Continue? [Y / Downscope / Dry-run only]
 ```
 
-`<N>` MUST equal `summary.total_failed` from the Phase 3 `rubric_results` block. Formula: `calls = (llm_judge_failures × 1.3 retries avg) + global_check_count + (×2 if iter-2 likely)`. **If the Phase 2.5 editorial pass produced output, add a line under the block: `+ ~2 LLM calls (editorial critique + rewrite)` — `+ ~1` under `--dry-run` (editor only, no rewrite), or `+ ~4` if a re-critique ran.** Cost intentionally NOT shown — pricing varies. If estimate >30 calls, prompt is mandatory (no default-Y). The Surgical/Comprehensive/Full/Findings-only shape is **not** a substitute — that's a preset decision (Phase 2), not a budget decision.
+`<N>` MUST equal `summary.total_failed` from the Phase 3 `rubric_results` block. Formula: `calls = (llm_judge_failures × 1.3 retries avg) + global_check_count + (×2 if iter-2 likely)`. **If the Phase 2a editorial pass produced output, add a line under the block: `+ ~2 LLM calls (editorial critique + rewrite)` — `+ ~1` under `--dry-run` (editor only, no rewrite), or `+ ~4` if a re-critique ran.** Cost intentionally NOT shown — pricing varies. If estimate >30 calls, prompt is mandatory (no default-Y). The Surgical/Comprehensive/Full/Findings-only shape is **not** a substitute — that's a preset decision (Phase 2), not a budget decision.
 
 If `--dry-run`, stop here and print the rubric report. Do not generate patches.
 
@@ -213,7 +213,7 @@ Follow `reference/findings-protocol.md`. Summary:
 
 **Auto-apply (low-risk: checks 1, 5, 6a, 6b, 8, 9, 10):** apply silently in a single batch. Record aggregate counts in summary.
 
-**Surface (high-risk: checks 2, 3, 4, 7, 11, 12, 13, 14, plus voice-conflict + partial-fix, plus any `risk: high` editorial-pass note and any rewriter voice-conflict from Phase 2.5):** group by check category, batch ≤4 per `AskUserQuestion` call. Each finding offers: **Fix as proposed (Recommended)** / **Modify** / **Skip** / **Defer**. Structural changes — including editorial-pass `reorder` notes — are always individually surfaced.
+**Surface (high-risk: checks 2, 3, 4, 7, 11, 12, 13, 14, plus voice-conflict + partial-fix, plus any `risk: high` editorial-pass note and any rewriter voice-conflict from Phase 2a):** group by check category, batch ≤4 per `AskUserQuestion` call. Each finding offers: **Fix as proposed (Recommended)** / **Modify** / **Skip** / **Defer**. Structural changes — including editorial-pass `reorder` notes — are always individually surfaced.
 
 **Defer comment format:** insert immediately above the deferred span:
 ```
@@ -231,7 +231,7 @@ No line numbers (they go stale).
 4. If NEW failures appear (excluding user-Skipped/Deferred):
    - Surface as a 2nd findings round (same auto-apply + ask split)
    - Apply approved 2nd-round patches
-5. **Hard cap: 2 polish iterations total.** If iter-2 still finds failures, write the file and list remaining failures in the summary — do NOT iterate further. (The Phase 2.5 editorial pass is **not** a polish iteration — it runs once before the rubric, with its own separate single capped re-critique.)
+5. **Hard cap: 2 polish iterations total.** If iter-2 still finds failures, write the file and list remaining failures in the summary — do NOT iterate further. (The Phase 2a editorial pass is **not** a polish iteration — it runs once before the rubric, with its own separate single capped re-critique.)
 
 ## Phase 7 — Write output + offer replace
 
@@ -303,7 +303,7 @@ Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero 
 - Do NOT charge ahead if the model emits `PRESERVE_VOICE_CONFLICT` — promote it to a high-risk finding for the user.
 - Do NOT exceed the 25,000 polishable-word ceiling. Refuse with split-and-retry guidance.
 - Do NOT skip Phase 8. Learning capture is mandatory; zero learnings is fine, but the reflection must happen.
-- Do NOT let the Phase 2.5 **editor subagent rewrite** anything — it only emits `editor_notes.json`; the **rewriter subagent** applies the notes. Two distinct roles.
+- Do NOT let the Phase 2a **editor subagent rewrite** anything — it only emits `editor_notes.json`; the **rewriter subagent** applies the notes. Two distinct roles.
 - Do NOT auto-apply `risk: high` editorial-pass notes (reorders, large merges). Surface them via the Phase 5 findings protocol; structural reorders individually.
 - Do NOT loop the editorial re-critique more than once. Cap is 1; after that the pipeline proceeds regardless of the achieved reduction.
 - Do NOT round-trip HTML through markdown — an `.html` input is polished as HTML and written as `.polished.html`; never emit markdown for an HTML input.
@@ -314,15 +314,15 @@ Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero 
 
 - `SKILL.md` — this orchestrator
 - `schemas/custom-checks.schema.json` — JSON schema for user check overrides
-- `schemas/editor-notes.schema.json` — JSON schema for the Phase 2.5 `editor_notes.json`
+- `schemas/editor-notes.schema.json` — JSON schema for the Phase 2a `editor_notes.json`
 - `reference/rubric.md` — 14 built-in checks: regex patterns + LLM-judge prompts
 - `reference/presets.md` — preset semantics + per-preset threshold defaults
 - `reference/voice-sampling.md` — voice marker extraction algorithm
 - `reference/chunking.md` — chunking algorithm + lock-zone rules (markdown + HTML) + size buckets
 - `reference/patch-contract.md` — patch prompt template, conflict protocol, retry logic
 - `reference/findings-protocol.md` — categorization, interactive-prompt shape, defer format
-- `reference/editorial-pass.md` — Phase 2.5: target gate, editor + rewriter subagent prompts, re-critique, HTML fidelity
-- `editor_notes.json` — run artifact written by Phase 2.5 (editor critique) next to the polished file
+- `reference/editorial-pass.md` — Phase 2a: target gate, editor + rewriter subagent prompts, re-critique, HTML fidelity
+- `editor_notes.json` — run artifact written by Phase 2a (editor critique) next to the polished file
 - `tests/fixtures/` — 11 fixtures (incl. `html-doc.html`, `bloated-doc.md`) with paired `expected.yaml` contracts
 - `example/custom-checks.yaml` — example user can copy to `~/.pmos/polish/`
 

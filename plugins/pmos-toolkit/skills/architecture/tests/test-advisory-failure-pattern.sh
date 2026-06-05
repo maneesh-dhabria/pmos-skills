@@ -2,7 +2,7 @@
 # test-advisory-failure-pattern.sh — T14 integration test for FR-22 + FR-29
 # (advisory failure pattern, D11).
 #
-# Both /spec Phase 6.6 and /verify Phase 4.7 invoke /architecture as a Task
+# Both /spec Phase 6b and /verify Phase 4b invoke /architecture as a Task
 # subagent. On dispatch failure (subagent crash, timeout, schema-conformance
 # hard-fail, judge API error), the failure is:
 #
@@ -34,7 +34,7 @@ assert() {
   else echo "  FAIL: $desc  (cond: $cond)"; FAIL=$((FAIL+1)); fi
 }
 
-echo "[spec/Phase 6.6] advisory failure contract"
+echo "[spec/Phase 6b] advisory failure contract"
 assert "advisory failure section labelled with FR-22 + D11" \
   "grep -qE 'Advisory failure.*FR-22|FR-22.*D11|D11' '$SPEC_MD'"
 assert "captures folded_skill: architecture" \
@@ -49,7 +49,7 @@ assert "documents continue (not blocking) per D11" \
   "grep -qE 'Continue to Phase 7|do NOT block|continues to PASS|continue to' '$SPEC_MD'"
 
 echo
-echo "[verify/Phase 4.7] advisory failure contract"
+echo "[verify/Phase 4b] advisory failure contract"
 assert "advisory failure section labelled with FR-29 + D11" \
   "grep -qE 'Advisory failure.*FR-29|FR-29.*D11' '$VERIFY_MD'"
 assert "captures folded_skill: architecture" \

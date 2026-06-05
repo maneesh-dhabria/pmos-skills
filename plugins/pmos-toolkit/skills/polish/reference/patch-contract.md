@@ -2,7 +2,7 @@
 
 For each failed check (per chunk if chunked), generate a patch using the template below.
 
-> **Reuse by the editorial rewriter.** The Phase 2.5 editorial-pass *rewriter* subagent (`reference/editorial-pass.md`) reuses the `PRESERVE_VOICE_CONFLICT` token, its JSON shape (`conflicting_marker` + `reason`), and its handling defined in this file: a conflict is never auto-applied — it is promoted to a high-risk finding and surfaced via `reference/findings-protocol.md`.
+> **Reuse by the editorial rewriter.** The Phase 2a editorial-pass *rewriter* subagent (`reference/editorial-pass.md`) reuses the `PRESERVE_VOICE_CONFLICT` token, its JSON shape (`conflicting_marker` + `reason`), and its handling defined in this file: a conflict is never auto-applied — it is promoted to a high-risk finding and surfaced via `reference/findings-protocol.md`.
 
 ## Patch prompt template
 

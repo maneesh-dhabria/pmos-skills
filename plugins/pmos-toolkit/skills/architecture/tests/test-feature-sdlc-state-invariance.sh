@@ -2,7 +2,7 @@
 # test-feature-sdlc-state-invariance.sh — T15 E2E invariance check.
 #
 # The architecture-in-feature-sdlc feature folds /architecture INTO /spec
-# (Phase 6.6) and /verify (Phase 4.7) as sub-steps — it does NOT add an
+# (Phase 6b) and /verify (Phase 4b) as sub-steps — it does NOT add an
 # orchestrator-level architecture phase. /feature-sdlc's state schema must
 # remain unchanged: no top-level `arch-spec`, `arch-verify`, or `architecture`
 # phase ids.

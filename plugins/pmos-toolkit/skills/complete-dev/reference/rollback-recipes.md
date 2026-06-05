@@ -16,7 +16,7 @@ Steps:
    - **Pre-push hook rejection** (e.g., manifest version mismatch) → fix the source issue, re-stage, amend the relevant commit OR add a fix commit.
    - **Non-fast-forward** → user pulls first: `git pull origin main --rebase`. Resolve conflicts if any.
    - **Auth failure** → user fixes credentials.
-3. Delete the local tag if Phase 13 created one (Phase 15.5 handles this): `git tag -d v<version>`.
+3. Delete the local tag if Phase 13 created one (Phase 15a handles this): `git tag -d v<version>`.
 4. Re-enter Phase 13 (if HEAD changed → re-tag), then Phase 14 (re-summarize), then Phase 15 (re-push).
 
 This path preserves all ceremony work (merge, README, changelog, version bump, learnings).

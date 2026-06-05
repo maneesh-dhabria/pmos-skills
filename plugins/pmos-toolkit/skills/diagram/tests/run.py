@@ -153,7 +153,7 @@ def build_wrapper_rubric_prompt() -> str:
     Single pass, no refinement loop. Run inline regardless of --rigor.
     """
     lines: list[str] = []
-    lines.append("# Wrapper rubric (Phase 6.6 — single pass, ship-with-warning on fail)")
+    lines.append("# Wrapper rubric (Phase 6b — single pass, ship-with-warning on fail)")
     lines.append("")
     lines.append("Score each item pass|fail with one-sentence concrete evidence (zone names,")
     lines.append("pixel coords, label text). Do NOT speculate. Output JSON only:")
