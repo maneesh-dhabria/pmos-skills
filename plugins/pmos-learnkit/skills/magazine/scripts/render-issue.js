@@ -61,10 +61,19 @@ body.js .viewsel{display:inline-flex}
 .viewsel button{border:0;background:#fff;padding:.25rem .6rem;font-size:.78rem;cursor:pointer;color:var(--ink)}
 .viewsel button.on{background:var(--accent);color:#fff}
 .budget{color:var(--muted)}
-.filters{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:.8rem 2rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;z-index:5}
-.filters .fl{font-size:.72rem;color:var(--muted);display:flex;flex-direction:column;gap:.15rem}
-.filters select,.filters input[type=date]{font-size:.78rem;border:1px solid var(--line);border-radius:6px;padding:.2rem}
-.count{color:var(--muted);font-size:.78rem;align-self:center}
+.filters{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:.7rem 2rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;z-index:5}
+.filters select{font-size:.78rem;border:1px solid var(--line);border-radius:6px;padding:.3rem .5rem;background:#fff;height:2rem}
+.dd{position:relative}
+.dd>summary{list-style:none;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:.3rem .6rem;font-size:.78rem;background:#fff;height:2rem;display:inline-flex;align-items:center;user-select:none;white-space:nowrap}
+.dd>summary::-webkit-details-marker{display:none}
+.dd>summary::after{content:"▾";color:var(--muted);margin-left:.35rem;font-size:.7rem}
+.dd[open]>summary{border-color:var(--accent);color:var(--accent)}
+.ddp{position:absolute;z-index:10;margin-top:.25rem;background:#fff;border:1px solid var(--line);border-radius:6px;padding:.4rem .6rem;box-shadow:0 6px 18px rgba(0,0,0,.12);max-height:230px;overflow:auto;min-width:150px}
+.ddp label{display:block;font-size:.8rem;white-space:nowrap;padding:.12rem 0;cursor:pointer}
+.ddp .none{color:var(--muted);font-size:.78rem}
+.datewrap{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;color:var(--muted)}
+.datewrap input[type=date]{font-size:.78rem;border:1px solid var(--line);border-radius:6px;padding:.25rem .4rem;height:2rem}
+.count{color:var(--muted);font-size:.78rem;margin-left:auto}
 .chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.1rem .6rem;margin:.1rem;font-size:.78rem;background:#eef1f4}
 main{max-width:1100px;margin:0 auto;padding:1.5rem 2rem}
 h2{font-size:1.05rem;border-bottom:2px solid var(--line);padding-bottom:.3rem}
@@ -114,7 +123,7 @@ const ISSUE_JS = `
   function vis(){return allCards.filter(function(c){return !c.classList.contains('hidden')});}
   // ---- read-state ----
   function readSet(){try{return new Set(JSON.parse(localStorage.getItem(RKEY)||'[]'));}catch(e){return new Set();}}
-  function saveRead(s){try{localStorage.setItem(RKEY,JSON.stringify([].slice.call(s)));}catch(e){}}
+  function saveRead(s){try{localStorage.setItem(RKEY,JSON.stringify(Array.from(s)));}catch(e){}}
   function applyRead(){var s=readSet();[].slice.call(document.querySelectorAll('.card')).forEach(function(c){c.classList.toggle('read',s.has(c.dataset.guid));});updateCount();}
   function toggleRead(g){if(!g)return;var s=readSet();if(s.has(g))s.delete(g);else s.add(g);saveRead(s);applyRead();}
   function updateCount(){
@@ -125,10 +134,10 @@ const ISSUE_JS = `
     var cnt=document.getElementById('count'); if(cnt)cnt.textContent='showing '+shown+' of '+total;
   }
   // ---- filter ----
-  function selVals(sel){return sel?[].slice.call(sel.selectedOptions).map(function(o){return o.value;}).filter(function(v){return v!=='';}):[];}
+  function updateDdLabels(){[].slice.call(document.querySelectorAll('.dd')).forEach(function(dd){var n=dd.querySelectorAll('input:checked').length;var s=dd.querySelector('summary');if(s)s.textContent=(s.dataset.label||'')+(n?' ('+n+')':'');});}
   function magFilter(){
-    var feeds=selVals(document.querySelector('.f-feed'));
-    var tags=selVals(document.querySelector('.f-tag'));
+    var feeds=[].slice.call(document.querySelectorAll('.f-feed:checked')).map(function(c){return c.value;});
+    var tags=[].slice.call(document.querySelectorAll('.f-tag:checked')).map(function(c){return c.value;});
     var typeEl=document.querySelector('.f-type'),readEl=document.querySelector('.f-read');
     var type=typeEl?typeEl.value:'',read=readEl?readEl.value:'';
     var fromEl=document.getElementById('f-from'),toEl=document.getElementById('f-to');
@@ -146,6 +155,7 @@ const ISSUE_JS = `
       card.classList.toggle('hidden',!(okFeed&&okTag&&okType&&okRead&&okDate));
     });
     updateCount();
+    updateDdLabels();
     if(body.dataset.view==='carousel')showCur(0);
   }
   // ---- view + carousel ----
@@ -162,6 +172,7 @@ const ISSUE_JS = `
     if(t.id==='hideRead'){body.classList.toggle('hide-read',t.checked);try{localStorage.setItem('mag:hideRead',t.checked?'1':'0');}catch(e2){}}
   });
   document.addEventListener('click',function(e){var t=e.target;
+    if(!(t.closest&&t.closest('.dd'))){[].slice.call(document.querySelectorAll('.dd[open]')).forEach(function(d){d.open=false;});}
     if(t.dataset&&t.dataset.view){setView(t.dataset.view);return;}
     if(t.classList&&t.classList.contains('more')){var c=t.closest('.card');if(c){c.classList.toggle('expanded');t.textContent=c.classList.contains('expanded')?'Show less':'Show more';}return;}
     if(t.classList&&t.classList.contains('mark')){var c2=t.closest('.card');if(c2)toggleRead(c2.dataset.guid);return;}
@@ -244,8 +255,8 @@ function renderIssue(data) {
   if (audio > 0) { const h = Math.floor(audio / 60), m = audio % 60; budgetParts.push(`${h ? h + 'h ' : ''}${m}m of audio`); }
   const budget = budgetParts.length ? `<span class="budget"> · ${budgetParts.join(' · ')}</span>` : '';
 
-  const feedOpts = feeds.map((f) => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
-  const tagOpts = tags.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  const feedChecks = feeds.map((f) => `<label><input type="checkbox" class="f-feed" value="${esc(f)}"> ${esc(f)}</label>`).join('');
+  const tagChecks = tags.map((t) => `<label><input type="checkbox" class="f-tag" value="${esc(t)}"> ${esc(t)}</label>`).join('');
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -261,12 +272,12 @@ function renderIssue(data) {
   </div>
 </div></header>
 <div class="filters">
-  <label class="fl">Feed<select multiple class="f-feed" size="3">${feedOpts || '<option disabled>none</option>'}</select></label>
-  <label class="fl">Tag<select multiple class="f-tag" size="3">${tagOpts || '<option disabled>none</option>'}</select></label>
-  <label class="fl">Type<select class="f-type"><option value="">all</option><option value="newsletter">newsletter</option><option value="podcast">podcast</option></select></label>
-  <label class="fl">Status<select class="f-read"><option value="">all</option><option value="unread">unread</option><option value="read">read</option></select></label>
-  <label class="fl">From<input type="date" id="f-from"></label>
-  <label class="fl">To<input type="date" id="f-to"></label>
+  <details class="dd"><summary data-label="Feed">Feed</summary><div class="ddp">${feedChecks || '<span class="none">no feeds</span>'}</div></details>
+  <details class="dd"><summary data-label="Tag">Tag</summary><div class="ddp">${tagChecks || '<span class="none">no tags</span>'}</div></details>
+  <select class="f-type" aria-label="Type"><option value="">Type: all</option><option value="newsletter">Newsletters</option><option value="podcast">Podcasts</option></select>
+  <select class="f-read" aria-label="Status"><option value="">Status: all</option><option value="unread">Unread</option><option value="read">Read</option></select>
+  <span class="datewrap">From <input type="date" id="f-from"></span>
+  <span class="datewrap">To <input type="date" id="f-to"></span>
   <span id="count" class="count"></span>
 </div>
 <div class="carnav"><button id="carprev" type="button">◀</button><span id="carpos"></span><button id="carnext" type="button">▶</button></div>
