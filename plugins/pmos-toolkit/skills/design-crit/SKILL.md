@@ -225,6 +225,12 @@ Dispatch a **reviewer subagent** (or run inline if subagents unavailable) per sc
 
 Save raw output to `{out_dir}/eval-findings.json`.
 
+**Theater-check escape (FR-SR-5 pattern — see `readme/reference/simulated-reader.md` §3).** A per-journey pass that surfaces **no friction** (zero J1-threshold hits, "the flow is smooth") while the per-screen / per-component passes produced **≥3 findings** on that journey's screens is suspect — it's the "I'm being helpful and the UX looks fine" theater the persona-simulation literature warns about. Re-dispatch that one journey's pass **ONCE** with this suffix appended — spec the impatient user's *constraints + bounce conditions*, not a biography:
+
+> You have alternatives and ~90 seconds to finish this task; other tabs are open. Where do you hesitate, mis-click, backtrack, or give up? If genuinely nothing in this journey would stall or lose you, say so explicitly — but first re-walk it as an impatient user with no goodwill toward this UI.
+
+Accept the second result as genuine even if it is still empty. **No second retry** (1-iteration cap — no convergence loop). Log: `design-crit: <journey> re-dispatched (theater-check); <N> friction findings on retry`.
+
 ### 4a. Findings Presentation Protocol
 
 <!-- defer-only: ambiguous -->
