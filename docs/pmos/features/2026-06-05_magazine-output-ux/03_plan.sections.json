@@ -1,0 +1,50 @@
+[
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — markup & CSS foundation",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — per-card affordances",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — interaction layer (ISSUE_JS)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — filter rework",
+    "parent_id": null
+  },
+  {
+    "id": "wave-5",
+    "level": 2,
+    "title": "Wave 5 — docs & final verification",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites (deferred to /complete-dev)",
+    "parent_id": null
+  }
+]

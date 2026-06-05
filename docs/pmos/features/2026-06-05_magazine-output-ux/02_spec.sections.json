@@ -1,0 +1,56 @@
+[
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "card-changes",
+    "level": 2,
+    "title": "cardHtml() changes",
+    "parent_id": null
+  },
+  {
+    "id": "header-changes",
+    "level": 2,
+    "title": "renderIssue() header changes",
+    "parent_id": null
+  },
+  {
+    "id": "filter-changes",
+    "level": 2,
+    "title": "Filter bar rework (FR-8)",
+    "parent_id": null
+  },
+  {
+    "id": "js-modules",
+    "level": 2,
+    "title": "ISSUE_JS additions",
+    "parent_id": null
+  },
+  {
+    "id": "css",
+    "level": 2,
+    "title": "ISSUE_CSS additions (restrained, FR-3 visual)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy (selftest additions)",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Verification plan",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites (for /complete-dev — NOT execute tasks)",
+    "parent_id": null
+  }
+]

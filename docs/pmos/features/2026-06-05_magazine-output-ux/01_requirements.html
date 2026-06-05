@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="requirements">
+  <title>Requirements — magazine-output-ux (Wave 1)</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <script defer src="assets/viewer.js?v=2.60.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Requirements — magazine output UX (Wave 1)</h1>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Meta</h2>
+<p><strong>Tier:</strong> 2 &middot; <strong>Mode:</strong> skill-feedback (streamlined-inline) &middot; <strong>Target:</strong> <code>/magazine</code> (pmos-learnkit) &middot; <strong>Surface:</strong> <code>scripts/render-issue.js</code> + <code>reference/issue-format.md</code>.</p>
+<p><strong>Acceptance standard:</strong> conforms to <code>reference/skill-patterns.md §A–§F</code> and this repo's <code>CLAUDE.md</code> skill-authoring conventions. Release prerequisites (version bump, changelog) are <code>/complete-dev</code>'s job, not implementation tasks.</p>
+</section>
+
+<section id="problem">
+<h2 id="problem">Problem</h2>
+<p>A magazine issue today is a single trustworthy-but-undifferentiated grid of text cards. The eye has no pre-attentive cues (newsletter vs podcast look identical), no sense of catch-up cost, no progress tracking, and no reading-shape choice. Long issues read like a wall, so the user skims less than they could and is tempted back to app-hopping. The fix is visual hierarchy + lightweight reading affordances — <em>without</em> breaking the digest's core promise: a self-contained file that works offline from <code>file://</code>.</p>
+</section>
+
+<section id="users">
+<h2 id="users">Target user &amp; JTBD</h2>
+<p><strong>Who:</strong> the magazine owner clearing a feed backlog in a dedicated catch-up session, opening the latest issue from disk (often offline).</p>
+<p><strong>JTBD:</strong> skim and move through an issue pleasantly and fast, finishing it and trusting what I read — instead of bouncing between apps.</p>
+</section>
+
+<section id="decisions">
+<h2 id="decisions">Resolved decisions</h2>
+<ul>
+<li><strong>D1 — Layout default:</strong> Grid is the default view; Grid/Carousel/Listicle all available at any width; the chosen view persists in <code>localStorage</code>. Grid is the no-JS fallback.</li>
+<li><strong>D2 — Filter bar:</strong> dropdowns replace the checkbox/chip wall (feed multi, tag multi, type, read-state) + a live result counter; date range retained.</li>
+<li><strong>D3 — Visual intensity:</strong> subtle/restrained — thin left-border accent + small feed dot for type/source; soft pastel tag tints; minimal chrome. Skim speed beats decoration.</li>
+<li><strong>D4 — Read-state storage:</strong> <code>localStorage</code> keyed by <code>issue_date + guid</code>; device-local is accepted (per the brief's open question).</li>
+<li><strong>D5 — Scope:</strong> Wave 1 only (8 render-only variants). Waves 2–3 deferred.</li>
+</ul>
+</section>
+
+<section id="functional-requirements">
+<h2 id="functional-requirements">Functional requirements</h2>
+<ul>
+<li><strong>FR-1 (View-switcher):</strong> the issue offers Grid / Carousel / Listicle via a header control. Carousel shows one card at a time with ◀▶ buttons and arrow-key nav. The selected view persists across reloads (<code>localStorage: mag:view</code>). Grid renders with no JS.</li>
+<li><strong>FR-2 (Read-state):</strong> every card carries a stable <code>data-guid</code>. The user can mark a card read (a per-card control and the <code>m</code> key); read cards are visually de-emphasized. A header counter shows "<em>N of M left</em>"; a "hide read" toggle removes read cards from view. State persists (<code>localStorage</code>, keyed by issue date + guid).</li>
+<li><strong>FR-3 (Keyboard skim):</strong> <code>j</code>/<code>k</code> move the focused card next/prev, <code>o</code> opens the focused card's link, <code>f</code> focuses the filter, <code>m</code> toggles read on the focused card. In Carousel, <code>←</code>/<code>→</code> navigate.</li>
+<li><strong>FR-4 (Type color-coding):</strong> each card carries <code>data-type</code>; newsletter and podcast get distinct subtle treatments (left-border accent). A small per-feed dot uses a deterministic hue derived from the feed name (stable across issues).</li>
+<li><strong>FR-5 (Catch-up budget):</strong> the header shows total skim time (sum of newsletter reading minutes) and total audio time (sum of podcast lengths), parsed from <code>reading_time</code>. Each portion is omitted gracefully when no data is present.</li>
+<li><strong>FR-6 (Consistent tag colors):</strong> each tag chip gets a deterministic pastel color (hash of the tag → hue), identical for the same tag across all issues.</li>
+<li><strong>FR-7 (Uniform cards):</strong> bullet lists show the first 3 by default with a "show more / show less" toggle, keeping grid card heights even. With JS off, all bullets show.</li>
+<li><strong>FR-8 (Dropdown filter + counter):</strong> the filter bar uses dropdowns — feed (multi), tag (multi), type, read/unread — plus the existing date range, and a live "showing X of Y" counter. Filtering preserves the current semantics: AND across dimensions, OR within a multi-select.</li>
+</ul>
+</section>
+
+<section id="non-functional-requirements">
+<h2 id="non-functional-requirements">Non-functional requirements</h2>
+<ul>
+<li><strong>NFR-1 (Offline/self-contained):</strong> the issue remains ONE self-contained HTML file with inline CSS+JS, zero npm deps, working from <code>file://</code> with no server (preserves the existing NFR-3). No external requests, no remote assets.</li>
+<li><strong>NFR-2 (Progressive enhancement):</strong> with JavaScript disabled, the grid renders, all cards + bullets are visible, and read/listen links work. All new affordances are enhancements layered on top.</li>
+<li><strong>NFR-3 (Tests):</strong> <code>render-issue.js --selftest</code> stays green; existing assertions are preserved or updated in lockstep with markup changes, and a new assertion is added per FR.</li>
+<li><strong>NFR-4 (No upstream contract change):</strong> the <code>items.json</code> input shape, the pipeline, fetch, and <code>state.json</code> are untouched. Library index unaffected except where it shares CSS.</li>
+<li><strong>NFR-5 (Restraint):</strong> the cumulative visual treatment must not slow skimming; default to subtle.</li>
+</ul>
+</section>
+
+<section id="out-of-scope">
+<h2 id="out-of-scope">Out of scope (later waves)</h2>
+<p>Thumbnails/hero images (9), background transcription cron (15), per-post diagrams (10), front-page hero (2), why-it-matters hook (11), pull-quotes (12), in-issue TOC + search (14), OPML-import discoverability. Each is deferred per the ideation brief's roadmap.</p>
+</section>
+
+<section id="acceptance">
+<h2 id="acceptance">Acceptance criteria</h2>
+<ul>
+<li><code>node render-issue.js --selftest</code> exits 0 with assertions covering FR-1…FR-8.</li>
+<li>Opening a rendered issue from <code>file://</code> shows a working view-switcher (persists on reload), per-card mark-read with a decrementing counter + hide-read, dropdown filters with a live counter, a catch-up budget line, type/tag/feed color cues, and collapsed bullets with show-more.</li>
+<li>With JS disabled, the grid + all bullets + read links still work.</li>
+<li>No external network requests; file opens with no server.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-05_magazine-output-ux/01_requirements.html</span>
+  </footer>
+</body>
+</html>

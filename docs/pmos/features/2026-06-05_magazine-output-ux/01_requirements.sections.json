@@ -1,0 +1,50 @@
+[
+  {
+    "id": "meta",
+    "level": 2,
+    "title": "Meta",
+    "parent_id": null
+  },
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "users",
+    "level": 2,
+    "title": "Target user & JTBD",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Resolved decisions",
+    "parent_id": null
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "non-functional-requirements",
+    "level": 2,
+    "title": "Non-functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (later waves)",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance",
+    "level": 2,
+    "title": "Acceptance criteria",
+    "parent_id": null
+  }
+]

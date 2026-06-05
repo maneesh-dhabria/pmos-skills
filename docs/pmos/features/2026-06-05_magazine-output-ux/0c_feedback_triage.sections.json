@@ -1,0 +1,38 @@
+[
+  {
+    "id": "source",
+    "level": 2,
+    "title": "Source",
+    "parent_id": null
+  },
+  {
+    "id": "findings",
+    "level": 2,
+    "title": "Findings (parsed)",
+    "parent_id": null
+  },
+  {
+    "id": "critique",
+    "level": 2,
+    "title": "Critique (against current render-issue.js)",
+    "parent_id": null
+  },
+  {
+    "id": "disposition-log",
+    "level": 2,
+    "title": "Disposition log",
+    "parent_id": null
+  },
+  {
+    "id": "approved-changes",
+    "level": 2,
+    "title": "Approved changes by skill",
+    "parent_id": null
+  },
+  {
+    "id": "per-skill-tier",
+    "level": 2,
+    "title": "Per-skill tier",
+    "parent_id": null
+  }
+]

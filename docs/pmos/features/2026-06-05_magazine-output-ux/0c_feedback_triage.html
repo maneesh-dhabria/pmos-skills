@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="feature-sdlc">
+  <title>Feedback triage — magazine-output-ux</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <script defer src="assets/viewer.js?v=2.60.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Feedback triage — magazine-output-ux (Wave 1)</h1>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="source">
+<h2 id="source">Source</h2>
+<p><strong>Feedback input:</strong> <code>docs/pmos/ideate/2026-06-05_magazine-output-ux.html</code> (ideation brief)</p>
+<p><strong>Target skill:</strong> <code>/magazine</code> — <code>plugins/pmos-learnkit/skills/magazine/</code></p>
+<p><strong>Run scope (user-selected):</strong> Wave 1 only — the 8 render-only variants. Waves 2–3 (thumbnails, transcription cron, per-post diagrams) are explicitly deferred per the brief's roadmap (blocked on probes / validation).</p>
+<p><strong>Surface touched:</strong> a single file — <code>scripts/render-issue.js</code> (its <code>ISSUE_CSS</code>, <code>ISSUE_JS</code>, <code>cardHtml</code>, <code>renderIssue</code>, and inline <code>--selftest</code>) — plus doc updates to <code>reference/issue-format.md</code>. The <code>items.json</code> input contract is unchanged; no pipeline/state/fetch changes.</p>
+</section>
+
+<section id="findings">
+<h2 id="findings">Findings (parsed)</h2>
+<table>
+<tr><th>ID</th><th>Variant</th><th>Finding</th><th>Severity</th></tr>
+<tr><td>F1</td><td>1</td><td>View-switcher: Grid / Carousel (In-shorts swipe + ◀▶) / Listicle, choice persisted in localStorage</td><td>ux-friction</td></tr>
+<tr><td>F2</td><td>3</td><td>Read-state tracking: mark-as-read per card, "N of M left" counter, hide-read toggle</td><td>ux-friction</td></tr>
+<tr><td>F3</td><td>4</td><td>Keyboard skim mode: j/k next/prev, o open, f focus filter</td><td>nit/ux</td></tr>
+<tr><td>F4</td><td>5</td><td>Type color-coding (newsletter vs podcast) + per-feed accent dot</td><td>ux-friction</td></tr>
+<tr><td>F5</td><td>6</td><td>Catch-up budget in header: "~N min to skim · Xh of audio" from reading_time</td><td>ux-friction</td></tr>
+<tr><td>F6</td><td>7</td><td>Consistent per-tag colors across issues (deterministic hue)</td><td>nit/ux</td></tr>
+<tr><td>F7</td><td>8</td><td>Uniform cards: collapse bullet list to 3 + "show more"</td><td>ux-friction</td></tr>
+<tr><td>F8</td><td>13</td><td>Dropdown filter bar (feed + tag + type + read/unread) with live result counter, replacing the chip/checkbox wall</td><td>ux-friction</td></tr>
+</table>
+</section>
+
+<section id="critique">
+<h2 id="critique">Critique (against current render-issue.js)</h2>
+<table>
+<tr><th>ID</th><th>Already handled?</th><th>Class</th><th>Recommendation</th><th>Scope</th><th>Note</th></tr>
+<tr><td>F1</td><td>No</td><td>new-capability</td><td>Apply</td><td>medium</td><td>New layout CSS (carousel/listicle) + a view toggle in header + localStorage. Grid stays the default + no-JS fallback.</td></tr>
+<tr><td>F2</td><td>No</td><td>new-capability</td><td>Apply</td><td>medium</td><td>Requires a stable per-card id — cards emit no <code>data-guid</code> today; add it in <code>cardHtml</code>. localStorage keyed by guid (device-local; accepted).</td></tr>
+<tr><td>F3</td><td>No</td><td>nit</td><td>Apply</td><td>small</td><td>Pure JS keydown handler; progressive enhancement.</td></tr>
+<tr><td>F4</td><td>No</td><td>ux-friction</td><td>Apply</td><td>small</td><td><code>type</code> already on the card as a badge; add <code>data-type</code>/class for CSS. Per-feed dot via deterministic hue.</td></tr>
+<tr><td>F5</td><td>No</td><td>new-capability</td><td>Apply</td><td>small</td><td>Parse <code>reading_time</code> ("6 min" / "101 min listen") → sum skim vs audio. Degrade gracefully when absent.</td></tr>
+<tr><td>F6</td><td>No</td><td>nit</td><td>Apply</td><td>small</td><td>Deterministic tag→hue (hash) so colors are stable across issues; applied to existing <code>.chip</code>.</td></tr>
+<tr><td>F7</td><td>No</td><td>ux-friction</td><td>Apply</td><td>small</td><td>CSS clamp + tiny "show more" toggle; keeps grid heights uniform.</td></tr>
+<tr><td>F8</td><td>No</td><td>ux-friction</td><td>Apply</td><td>medium</td><td>Reworks the filter bar markup + <code>magFilter()</code>; adds <code>type</code> + read/unread dimensions + counter. <strong>The inline <code>--selftest</code> asserts <code>f-feed</code>/<code>f-tag</code> — must update those assertions in lockstep.</strong> Preserve filter semantics (AND across dimensions, OR within a multi-select).</td></tr>
+</table>
+</section>
+
+<section id="disposition-log">
+<h2 id="disposition-log">Disposition log</h2>
+<p>All 8 findings: <strong>Apply</strong> (pending your approval below). None already handled. Out of scope for this run (deferred to later waves): thumbnails (9), transcription cron (15), per-post diagrams (10), front-page hero (2), why-it-matters hook (11), pull-quote (12), TOC+search (14), and OPML-discoverability.</p>
+</section>
+
+<section id="approved-changes">
+<h2 id="approved-changes">Approved changes by skill</h2>
+<p><strong>/magazine</strong> — all changes confined to <code>scripts/render-issue.js</code> (+ <code>reference/issue-format.md</code> doc + inline selftest assertions):</p>
+<ol>
+<li>F1 View-switcher (Grid/Carousel/Listicle) + localStorage persistence</li>
+<li>F2 Read-state (mark-as-read, N-left counter, hide-read) + <code>data-guid</code></li>
+<li>F3 Keyboard skim (j/k/o/f)</li>
+<li>F4 Type color-coding + per-feed accent dot</li>
+<li>F5 Catch-up budget header</li>
+<li>F6 Consistent per-tag colors</li>
+<li>F7 Uniform cards (collapse bullets to 3 + show more)</li>
+<li>F8 Dropdown filter bar + result counter</li>
+</ol>
+<p><strong>Standing acceptance criteria:</strong> conform to <code>reference/skill-patterns.md §A–§F</code>; preserve NFR-3 (zero-dep, self-contained, works offline from <code>file://</code>); grid + read links remain functional with JavaScript disabled (progressive enhancement); existing <code>--selftest</code> assertions continue to pass (updated where markup changes).</p>
+</section>
+
+<section id="per-skill-tier">
+<h2 id="per-skill-tier">Per-skill tier</h2>
+<p><strong>/magazine: Tier 2</strong> (run tier = 2). Rationale: a single-file enhancement bundling 8 cohesive UX features with non-trivial client-side JS + CSS and test updates — larger than a bug fix (Tier 1), smaller than a multi-surface feature (Tier 3). No new files, no API/schema/pipeline changes.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-05_magazine-output-ux/0c_feedback_triage.html</span>
+  </footer>
+</body>
+</html>

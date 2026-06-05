@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>Spec — magazine-output-ux (Wave 1)</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <script defer src="assets/viewer.js?v=2.60.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Spec — magazine output UX (Wave 1)</h1>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="architecture">
+<h2 id="architecture">Architecture</h2>
+<p>All changes are confined to <code>scripts/render-issue.js</code>: the <code>ISSUE_CSS</code> string, the <code>ISSUE_JS</code> string, the <code>cardHtml()</code> emitter, the <code>renderIssue()</code> assembler, and the inline <code>selftest()</code>. No new files; <code>renderLibrary()</code> is untouched except for shared CSS it already references. The output stays a single self-contained HTML document (inline <code>&lt;style&gt;</code> + <code>&lt;script&gt;</code>); no external assets, no server (NFR-1). All JS is loaded once at page end and attaches behavior to server-rendered DOM, so the grid is fully functional with JS off (NFR-2).</p>
+<p><strong>State model (client-side only):</strong> <code>localStorage</code> keys — <code>mag:view</code> (one of <code>grid|carousel|listicle</code>), <code>mag:hideRead</code> (<code>0|1</code>), and <code>mag:read:&lt;issue_date&gt;</code> (a JSON array of read guids). No server, no sidecar files.</p>
+</section>
+
+<section id="card-changes">
+<h2 id="card-changes">cardHtml() changes</h2>
+<ul>
+<li><strong>data-guid (FR-2):</strong> add <code>data-guid="${esc(it.guid||it.link||it.title)}"</code> to the <code>&lt;article&gt;</code> — the stable read-state key.</li>
+<li><strong>data-type (FR-4):</strong> add <code>data-type="${esc(it.type||'newsletter')}"</code> for CSS type styling.</li>
+<li><strong>data-feed-hue (FR-4):</strong> compute a deterministic hue from the feed name (<code>hashHue(it.feed)</code>) and emit a per-card feed dot <code>&lt;span class="feed-dot" style="--h:${hue}"&gt;&lt;/span&gt;</code> in the meta line.</li>
+<li><strong>Tag color (FR-6):</strong> emit each chip with <code>style="--h:${hashHue(tag)}"</code>; CSS turns <code>--h</code> into a soft pastel background.</li>
+<li><strong>Bullet clamp (FR-7):</strong> wrap bullets in <code>&lt;ul class="bullets" data-count="${n}"&gt;</code>; emit a <code>&lt;button class="more"&gt;</code> only when <code>n &gt; 3</code>. CSS hides bullets beyond the 3rd unless <code>.expanded</code>.</li>
+<li><strong>Mark-read control (FR-2):</strong> add a small <code>&lt;button class="mark"&gt;</code> (✓) to each card; JS toggles a <code>read</code> class + persists.</li>
+</ul>
+<p><code>hashHue(s)</code>: a tiny deterministic string hash → integer 0–359 (e.g. <code>djb2 % 360</code>). Pure function; same tag/feed → same hue across issues (FR-4/FR-6). Lives in both Node scope (for any server-side use) and the inline JS is not needed since hue is baked at render via inline <code>--h</code>.</p>
+</section>
+
+<section id="header-changes">
+<h2 id="header-changes">renderIssue() header changes</h2>
+<ul>
+<li><strong>Catch-up budget (FR-5):</strong> a <code>parseMinutes(reading_time)</code> helper extracts the leading integer ("6 min" → 6, "101 min listen" → 101). Sum newsletter minutes → skim total; sum podcast minutes → audio total. Render "~<em>S</em> min to skim · <em>H</em>h <em>M</em>m of audio" in the header, omitting either clause when its sum is 0.</li>
+<li><strong>View-switcher control (FR-1):</strong> a segmented control (<code>&lt;div class="viewsel"&gt;</code> with three <code>&lt;button data-view&gt;</code>) in the header.</li>
+<li><strong>Reading counter + hide-read (FR-2):</strong> a header span <code>&lt;span id="left"&gt;</code> ("N of M left") and a <code>&lt;label&gt;</code> checkbox <code>#hideRead</code>.</li>
+</ul>
+</section>
+
+<section id="filter-changes">
+<h2 id="filter-changes">Filter bar rework (FR-8)</h2>
+<p>Replace the <code>&lt;fieldset&gt;</code> feed-checkbox + tag-chip markup with compact controls:</p>
+<ul>
+<li>Feed: a <code>&lt;select multiple class="f-feed"&gt;</code> (or a button-dropdown of checkboxes) — keep class <code>f-feed</code> as the JS hook.</li>
+<li>Tag: a multi-select <code>&lt;select multiple class="f-tag"&gt;</code> — keep class <code>f-tag</code>.</li>
+<li>Type: a <code>&lt;select class="f-type"&gt;</code> (all / newsletter / podcast).</li>
+<li>Read-state: a <code>&lt;select class="f-read"&gt;</code> (all / unread / read).</li>
+<li>Date range: unchanged (<code>#f-from</code>/<code>#f-to</code>).</li>
+<li>Counter: <code>&lt;span id="count"&gt;</code> updated by <code>magFilter()</code> to "showing X of Y".</li>
+</ul>
+<p><code>magFilter()</code> is reworked to read the new controls but keeps the existing logic shape: a card is visible iff it matches feed (OR within selected) AND tag (OR within selected) AND type AND read-state AND date range. Hidden cards keep the <code>hidden</code> class. The counter is set to the visible count.</p>
+</section>
+
+<section id="js-modules">
+<h2 id="js-modules">ISSUE_JS additions</h2>
+<ul>
+<li><strong>View control:</strong> on load, read <code>mag:view</code> (default <code>grid</code>), apply <code>document.body.dataset.view</code>; clicking a <code>[data-view]</code> button updates it + persists. CSS keys off <code>body[data-view=...]</code>.</li>
+<li><strong>Carousel:</strong> when <code>view=carousel</code>, show one non-hidden card at a time; ◀▶ buttons + <code>←/→</code> keys move an index over the visible set.</li>
+<li><strong>Read-state:</strong> load read-set from <code>mag:read:&lt;date&gt;</code>; apply <code>read</code> class to matching cards; clicking <code>.mark</code> or pressing <code>m</code> toggles + persists + updates the counter; <code>#hideRead</code> toggles a body class + persists.</li>
+<li><strong>Keyboard:</strong> a single <code>keydown</code> handler implements j/k/o/f/m and arrows (carousel), ignoring events when focus is in an input/select.</li>
+<li><strong>Bullets:</strong> delegated click on <code>.more</code> toggles <code>.expanded</code> on the card.</li>
+<li>All handlers no-op safely if their target elements are absent (robust to empty issues).</li>
+</ul>
+</section>
+
+<section id="css">
+<h2 id="css">ISSUE_CSS additions (restrained, FR-3 visual)</h2>
+<ul>
+<li><code>.card[data-type=newsletter]{border-left:3px solid var(--accent)}</code> / <code>.card[data-type=podcast]{border-left:3px solid #7c3aed}</code> — subtle type accent.</li>
+<li><code>.feed-dot{width:.5rem;height:.5rem;border-radius:50%;background:hsl(var(--h),60%,55%)}</code>.</li>
+<li><code>.tags .chip{background:hsl(var(--h,210),70%,92%);color:#333}</code> — soft pastel tag tint.</li>
+<li>Bullet clamp: <code>.bullets li:nth-child(n+4){display:none}</code> / <code>.card.expanded .bullets li{display:list-item}</code>.</li>
+<li>View modes via <code>body[data-view=listicle] .grid{grid-template-columns:1fr}</code> and <code>body[data-view=carousel] .grid{display:block}</code> + carousel card visibility class.</li>
+<li><code>.card.read{opacity:.55}</code>; <code>body.hide-read .card.read{display:none}</code>.</li>
+<li>View-switcher + budget styles; all additive, no change to existing rules.</li>
+</ul>
+</section>
+
+<section id="testing">
+<h2 id="testing">Testing strategy (selftest additions)</h2>
+<p>Extend the inline <code>selftest()</code>. <strong>Update</strong> the existing filter assertions to the new markup (still assert <code>f-feed</code> + <code>f-tag</code> hooks exist; add <code>f-type</code>, <code>f-read</code>, <code>id="count"</code>). <strong>Add</strong> one assertion per FR:</p>
+<ul>
+<li>FR-1: output contains <code>data-view</code> buttons + <code>mag:view</code> persistence code.</li>
+<li>FR-2: a card has <code>data-guid</code>; output contains <code>id="left"</code> + <code>mag:read:</code>.</li>
+<li>FR-3: keydown handler references <code>'j'</code>/<code>'k'</code>.</li>
+<li>FR-4: a card has <code>data-type</code>; output contains <code>feed-dot</code>.</li>
+<li>FR-5: a two-item fixture (newsletter "6 min" + podcast "101 min listen") yields a header containing "skim" and "audio".</li>
+<li>FR-6: a tag chip carries a <code>--h</code> hue style.</li>
+<li>FR-7: a 5-bullet item emits a <code>class="more"</code> button; a 3-bullet item does not.</li>
+<li>FR-8: output contains <code>f-type</code>, <code>f-read</code>, and <code>id="count"</code>.</li>
+<li>Preserved: top-picks lane, pick/degraded classes, dedup, <code>pmos:skill</code> meta, Listen/Read verbs.</li>
+</ul>
+<p>NFR-2 is asserted indirectly: the grid markup (cards, bullets, links) is present in the static HTML independent of the script block.</p>
+</section>
+
+<section id="verification">
+<h2 id="verification">Verification plan</h2>
+<ul>
+<li><code>node render-issue.js --selftest</code> → PASS (exit 0).</li>
+<li>Render a real fixture issue, open from <code>file://</code>, manually confirm: view-switch persists; mark-read decrements + hides; dropdown filters + counter; budget line; collapsed bullets.</li>
+<li>Open with JS disabled → grid + bullets + links functional.</li>
+<li><code>node render-issue.js issue &lt;fixture&gt;</code> output contains no <code>http(s)://</code> asset/src references (only the read/listen links).</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites (for /complete-dev — NOT execute tasks)</h2>
+<ul>
+<li>Minor version bump in BOTH <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> (0.12.0 → next minor), kept in sync.</li>
+<li>Changelog entry describing the new issue UX.</li>
+<li>README row update if the magazine entry enumerates output features (best-effort).</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-05_magazine-output-ux/02_spec.html</span>
+  </footer>
+</body>
+</html>

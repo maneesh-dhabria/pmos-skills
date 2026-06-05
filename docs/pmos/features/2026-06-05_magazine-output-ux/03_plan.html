@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <title>Plan — magazine-output-ux (Wave 1)</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <script defer src="assets/viewer.js?v=2.60.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Plan — magazine output UX (Wave 1)</h1>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="approach">
+<h2 id="approach">Approach</h2>
+<p>One file (<code>scripts/render-issue.js</code>), so tasks are sequential. TDD-flavored: the inline <code>selftest()</code> is grown alongside each change and re-run after every task (<code>node render-issue.js --selftest</code>). <code>execution_mode: inline</code>. Each task is one focused commit where practical; tasks sharing the same file are batched when surgical overlap is high (documented deviation).</p>
+</section>
+
+<section id="wave-1">
+<h2 id="wave-1">Wave 1 — markup &amp; CSS foundation</h2>
+<ul>
+<li><strong>T1 (FR-2/FR-4 markup):</strong> in <code>cardHtml()</code> add <code>data-guid</code>, <code>data-type</code>, the <code>feed-dot</code> (deterministic <code>hashHue(feed)</code>), and a <code>.mark</code> ✓ button. Add <code>hashHue()</code> helper. Update selftest: a card has <code>data-guid</code> + <code>data-type</code>; output has <code>feed-dot</code>. <em>Verify:</em> --selftest PASS.</li>
+<li><strong>T2 (FR-1/FR-4/FR-6 CSS):</strong> extend <code>ISSUE_CSS</code> — type left-border accents, <code>.feed-dot</code>, pastel <code>.chip</code> via <code>--h</code>, <code>.card.read</code> dim, <code>body[data-view]</code> grid/carousel/listicle modes, <code>.viewsel</code>/budget styles. Additive only. <em>Verify:</em> --selftest PASS (CSS string present).</li>
+<li><strong>T3 (FR-6):</strong> bake <code>style="--h:${hashHue(tag)}"</code> into each tag chip in <code>cardHtml()</code>. Update selftest: a chip carries <code>--h</code>. <em>Verify:</em> PASS.</li>
+</ul>
+</section>
+
+<section id="wave-2">
+<h2 id="wave-2">Wave 2 — per-card affordances</h2>
+<ul>
+<li><strong>T4 (FR-7):</strong> wrap bullets in <code>ul.bullets data-count</code>; emit <code>button.more</code> only when &gt;3 bullets; CSS clamp + <code>.expanded</code>; delegated JS toggle. Update selftest: 5-bullet item has <code>more</code>, 3-bullet item does not. <em>Verify:</em> PASS.</li>
+<li><strong>T5 (FR-5):</strong> add <code>parseMinutes()</code>; compute skim/audio sums in <code>renderIssue()</code>; render the budget line in the header (omit empty clauses). Update selftest: mixed fixture header contains "skim" + "audio". <em>Verify:</em> PASS.</li>
+</ul>
+</section>
+
+<section id="wave-3">
+<h2 id="wave-3">Wave 3 — interaction layer (ISSUE_JS)</h2>
+<ul>
+<li><strong>T6 (FR-1):</strong> view-switcher control in header + <code>ISSUE_JS</code> view logic (read/persist <code>mag:view</code>, apply <code>body[data-view]</code>, carousel index + ◀▶). Update selftest: output has <code>data-view</code> + <code>mag:view</code>. <em>Verify:</em> PASS.</li>
+<li><strong>T7 (FR-2):</strong> read-state JS — load <code>mag:read:&lt;date&gt;</code>, apply <code>read</code>, <code>.mark</code>/<code>m</code> toggle + persist, header counter <code>#left</code>, <code>#hideRead</code> toggle. Update selftest: output has <code>id="left"</code> + <code>mag:read:</code>. <em>Verify:</em> PASS.</li>
+<li><strong>T8 (FR-3):</strong> single <code>keydown</code> handler (j/k/o/f/m + carousel arrows), ignoring input/select focus. Update selftest: handler references <code>'j'</code>/<code>'k'</code>. <em>Verify:</em> PASS.</li>
+</ul>
+</section>
+
+<section id="wave-4">
+<h2 id="wave-4">Wave 4 — filter rework</h2>
+<ul>
+<li><strong>T9 (FR-8):</strong> replace fieldset markup with dropdowns (feed/tag multi, type, read-state) + <code>#count</code>; rewrite <code>magFilter()</code> preserving AND/OR semantics + date range; live counter. <strong>Update the existing filter assertions</strong> + add <code>f-type</code>/<code>f-read</code>/<code>id="count"</code>. <em>Verify:</em> --selftest PASS (all preserved + new assertions).</li>
+</ul>
+</section>
+
+<section id="wave-5">
+<h2 id="wave-5">Wave 5 — docs &amp; final verification</h2>
+<ul>
+<li><strong>T10:</strong> update <code>reference/issue-format.md</code> — document the view-switcher, read-state, dropdown filter + counter, catch-up budget, type/tag/feed color cues, and the new <code>localStorage</code> keys. Note NFR-1/NFR-2 still hold.</li>
+<li><strong>T11 (final verify):</strong> run <code>node render-issue.js --selftest</code>; render a real fixture, open from <code>file://</code>, manual spot-check of all FRs + JS-off grid; grep the output for external asset/src URLs (expect none beyond read links).</li>
+</ul>
+</section>
+
+<section id="risks">
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+<li><strong>Filter rewrite breaks selftest (T9):</strong> update assertions in the same task; keep <code>f-feed</code>/<code>f-tag</code> class hooks.</li>
+<li><strong>JS regressions blank the issue:</strong> all handlers null-guard; grid is the no-JS fallback (NFR-2) — verified JS-off.</li>
+<li><strong>Visual clutter:</strong> restrained defaults (D3); re-check skim feel on the real fixture at T11.</li>
+<li><strong>Empty-issue / missing-field edge cases:</strong> handlers no-op on absent elements; <code>parseMinutes</code> returns 0 on unparseable input.</li>
+</ul>
+</section>
+
+<section id="release-prerequisites">
+<h2 id="release-prerequisites">Release prerequisites (deferred to /complete-dev)</h2>
+<p>NOT execute tasks: minor version bump in both <code>pmos-learnkit</code> manifests (0.12.0 → next minor, kept in sync), changelog entry, optional README row. <code>/complete-dev</code> is the sole writer of these per repo norms.</p>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-05_magazine-output-ux/03_plan.html</span>
+  </footer>
+</body>
+</html>
