@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="magazine-output-ux">
+  <meta name="pmos:ideate-date" content="2026-06-05">
+  <title>Magazine issue output UX — Ideation</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.60.1">
+  <script defer src="assets/viewer.js?v=2.60.1"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">Magazine issue output UX</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p>A portfolio of 11 UX upgrades to each <code>/magazine</code> issue, sorted by effort &times; value &times; offline-risk. The decisive insight: <strong>8 of the 11 are pure <code>render-issue.js</code> changes</strong> — no pipeline edits, no new data, zero risk to the offline/<code>file://</code> promise — so they should ship as one fast release. The other three (thumbnails, per-post diagrams, transcription cron) each carry a real cost or a real tension with the &quot;self-contained, trustworthy&quot; core and should be gated behind cheap probes, not bundled in.</p>
+<p><strong>Recommendation:</strong> GO now on the 8 render-only wins as Wave 1. GATE thumbnails &amp; the cron behind two 10-minute probes (Wave 2). VALIDATE per-post diagrams on a single hand-made sample before building anything (Wave 3). Do not big-bang all 11.</p>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we make each magazine issue more visually engaging and faster to skim and navigate &mdash; <em>without</em> breaking its core promise of a trustworthy, self-contained digest that works offline from <code>file://</code>?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> The magazine owner (you) &mdash; a PM with a dozen-plus newsletter + podcast subscriptions, catching up on a backlog.</p>
+<p><strong>When / where:</strong> A dedicated catch-up session, opening the latest issue from disk (often offline), wanting to triage and read in one sitting rather than app-hopping.</p>
+<p><strong>JTBD:</strong> When I sit down to clear my feed backlog, I want to skim and move through an issue in a way that is pleasant and fast, so I actually finish it and trust what I read &mdash; instead of bouncing between five apps.</p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe <strong>raising the visual hierarchy and adding lightweight reading affordances (layout choice, read-state, color-coding, dropdown filters, a catch-up budget)</strong> will produce <strong>more items actually read per issue and a stronger pull to use <code>/magazine</code> over a raw RSS app</strong> because <strong>the current single-grid-of-text issue is trustworthy but undifferentiated to scan &mdash; the eye has no pre-attentive cues and no sense of progress, so long issues feel like a wall.</strong></p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via SCAMPER + Analogous Inspiration (In-shorts, Apple News, Artifact, Readwise Reader, newspaper front-pages). Finalists carried into the pressure-test are flagged with &starf;. &quot;[yours]&quot; marks the seven you proposed.</p>
+<ol>
+<li>&starf; <strong>View-switcher</strong> &mdash; one issue, toggle Grid / Carousel (In-shorts swipe + &#9664;&#9654; arrows) / Listicle; choice persisted in <code>localStorage</code>, zero rebuild. [yours]</li>
+<li><strong>Front-page hero</strong> &mdash; top pick as a full-width lead story, the rest in a newspaper-style column grid. <em>(not selected)</em></li>
+<li>&starf; <strong>Read-state tracking</strong> &mdash; mark-as-read per card (<code>localStorage</code>), an &quot;12 of 32 left&quot; counter, and a &quot;hide read&quot; toggle so re-opening resumes where you stopped.</li>
+<li>&starf; <strong>Keyboard skim mode</strong> &mdash; <code>j</code>/<code>k</code> next/prev, <code>o</code> open, <code>f</code> focus filter; pairs with carousel arrows for power-reading.</li>
+<li>&starf; <strong>Type color-coding</strong> &mdash; distinct card treatment for newsletter vs podcast (already on every card as <code>type</code>) + a per-feed accent dot. [yours]</li>
+<li>&starf; <strong>Catch-up budget</strong> &mdash; header shows &quot;~46 min to skim &middot; 4h12m of audio&quot; from <code>reading_time</code> so you can size the session.</li>
+<li>&starf; <strong>Consistent tag colors</strong> &mdash; each tag chip keeps the same color across issues, so themes become recognizable at a glance.</li>
+<li>&starf; <strong>Uniform cards</strong> &mdash; collapse bullet lists to 3 + &quot;show more,&quot; keeping the grid tidy and scannable.</li>
+<li>&starf; <strong>Thumbnail / hero image</strong> &mdash; pull <code>media:thumbnail</code>/<code>itunes:image</code>/<code>og:image</code>, downloaded + cached locally (not hotlinked) to stay offline-durable. [yours]</li>
+<li>&starf; <strong>Auto-diagram, top-picks only</strong> &mdash; one SVG concept-map per <em>top pick</em> from its bullets; opt-in + cost-bounded, not per-item. [yours]</li>
+<li><strong>&quot;Why it matters to you&quot; hook</strong> &mdash; a one-line relevance line above the bullets, derived from <code>interest.yaml</code>. <em>(not selected)</em></li>
+<li><strong>Pull-quote</strong> &mdash; the single most striking sentence as a styled blockquote per card. <em>(not selected)</em></li>
+<li>&starf; <strong>Dropdown filter bar</strong> &mdash; compact dropdowns (feed + tag + type + read/unread) with a live result counter, replacing the chip wall. [yours]</li>
+<li><strong>Jump-to TOC + in-issue search</strong> &mdash; a sticky top-picks rail that scrolls to cards, plus full-text search within the issue. <em>(not selected)</em></li>
+<li>&starf; <strong>Background transcription cron</strong> &mdash; a scheduled job pre-transcribes new podcast episodes (transcripts already cache forever), so interactive builds stay fast. [yours]</li>
+</ol>
+<p><strong>Already shipped, not a variant:</strong> OPML import exists today (<code>import.md</code> handles OPML + CSV + screenshot). The live opportunity there is <em>discoverability</em> + a &quot;feeds health&quot; line flagging dead/empty feeds &mdash; worth a backlog note, not net-new build.</p>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify: 11-star ladder</h2>
+<p>Brian Chesky's 11-star design exercise applied to the chosen finalist(s). The sweet spot (typically 7&ndash;8&starf;) is the recommended reframe that feeds the pressure-test phase below; the original Phase-2 finalist is preserved alongside it.</p>
+<p><em>Skipped &mdash; the pick is a portfolio of 11 orthogonal improvements, not a single finalist with a UX ceiling to raise; a per-finalist ladder doesn't apply. The north-star reframe is folded into &quot;How it works&quot; below instead.</em></p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<p><strong>North-star reframe (the &quot;8&starf;&quot; issue):</strong> opening an issue feels like opening a well-designed digital magazine, not a text dump. The header tells you the catch-up cost (&quot;~46 min skim &middot; 4h audio&quot;). You pick a reading shape &mdash; a calm grid, an In-shorts card-by-card swipe, or a dense listicle. Newsletters and podcasts are instantly distinguishable; tags carry stable colors so themes pop; filtering is two dropdowns and a result count. As you go, cards mark themselves read and the counter ticks down, so a half-finished issue welcomes you back. Images and the occasional top-pick diagram add texture &mdash; but only where they earn their place, and never at the cost of opening the file offline.</p>
+<p><strong>The load-bearing constraint:</strong> every issue must stay self-contained and work from <code>file://</code> with inline CSS/JS (NFR-3). This cleanly splits the portfolio: the render-only wins respect it for free; the enrichment ideas (images, diagrams) are exactly the ones that strain it. Hence the sequencing below.</p>
+<p><strong>Prioritized roadmap</strong> (the only place this brief expresses a numerical opinion):</p>
+<table>
+<tr><th>#</th><th>Variant</th><th>Effort</th><th>Value</th><th>Offline-risk</th><th>Wave</th></tr>
+<tr><td>1</td><td>View-switcher (Grid/Carousel/Listicle)</td><td>M</td><td>High</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>3</td><td>Read-state tracking</td><td>S</td><td>High</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>4</td><td>Keyboard skim mode</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>5</td><td>Type color-coding + feed dot</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>6</td><td>Catch-up budget header</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>7</td><td>Consistent tag colors</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>8</td><td>Uniform cards (collapse bullets)</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>13</td><td>Dropdown filter bar + counter</td><td>S</td><td>Med</td><td>None</td><td><strong>1</strong></td></tr>
+<tr><td>9</td><td>Thumbnail / hero image (cached local)</td><td>M&ndash;L</td><td>High</td><td><strong>Med&ndash;High</strong></td><td>2</td></tr>
+<tr><td>15</td><td>Background transcription cron</td><td>M</td><td>Med*</td><td>Low</td><td>2</td></tr>
+<tr><td>10</td><td>Auto-diagram, top-picks only</td><td>L</td><td>Uncertain</td><td>Low</td><td>3</td></tr>
+</table>
+<p><em>*Cron value is high only if you're podcast-heavy and run whisper locally.</em></p>
+<ul>
+<li><strong>Wave 1 &mdash; one render-only release (8 items).</strong> Everything lives in <code>render-issue.js</code>; no <code>fetch-feed</code>/state/pipeline changes; the items.json contract is untouched. This is the bulk of the visual + UX lift at near-zero risk and ships independently.</li>
+<li><strong>Wave 2 &mdash; the two probe-gated features.</strong> Thumbnails (9) need a feed-image-yield probe and a single-file-vs-issue-folder decision first; the cron (15) is a separate ops feature needing a <code>state.json</code> lock + log + a footer health line.</li>
+<li><strong>Wave 3 &mdash; validate before building.</strong> Hand-make one diagram for one top pick; only build (10) if it reads as signal, not AI noise.</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td>In-shorts</td><td>Swipeable one-card-at-a-time news summaries</td><td>Magazine is offline, from your own trusted closed feed set &mdash; no infinite scroll, no algorithm; carousel is one of three optional modes.</td></tr>
+<tr><td>Apple News / Artifact (RIP)</td><td>Algorithmic personalized news feed with rich cards/images</td><td>Magazine is deterministic over a closed RSS set, runs from <code>file://</code>, no account, no server &mdash; trust comes from <em>your</em> sources, not a ranking engine.</td></tr>
+<tr><td>Readwise Reader / Matter</td><td>Read-later app with highlights, TTS, sync</td><td>Magazine is a windowed <em>digest</em> (what's new since last time), not a reader/library; no account, single self-contained file.</td></tr>
+<tr><td>Newspaper front-page</td><td>Visual hierarchy: hero lead + column grid</td><td>Magazine renders client-side with a personalized top-picks lane and user-chosen layout, not a fixed editor-set page.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<p>It is 2027-06-05. This redesign shipped 12 months ago and underwhelmed. Why?</p>
+<table>
+<tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td>The 8 cheap wins got held hostage by the 3 hard ones &mdash; bundled into one feature, nothing shipped for months.</td><td>High</td><td>Ship Wave 1 (render-only) as its own release; treat 9/10/15 as independent follow-ups.</td></tr>
+<tr><td>Offline promise quietly broke &mdash; thumbnails inlined as base64 ballooned issues to multi-MB, or a sibling <code>assets/</code> dir broke &quot;email the file.&quot;</td><td>Med&ndash;High</td><td>Default images off; cap dimensions/size; make the single-file-vs-folder call explicitly before building (9).</td></tr>
+<tr><td>Auto-diagrams from 4-bullet summaries look AI-generated and erode the &quot;trust&quot; the digest sells.</td><td>Med</td><td>Top-picks only, opt-in flag, glanceable-quality bar, trivially disableable; validate on one sample first.</td></tr>
+<tr><td>Three layouts + read-state + keyboard + dropdowns tangled into inline JS; one bug blanks the whole issue.</td><td>Med</td><td>Keep no-JS grid as the fallback; isolate state in one small module; progressive enhancement.</td></tr>
+<tr><td>Transcription cron failed silently (whisper broke / disk filled) or raced <code>state.json</code> with an interactive run &mdash; an issue came up mysteriously empty.</td><td>Med</td><td>File lock around state writes; a log file; <code>transcribe.sh --selftest</code> precheck; surface last-run status in the issue footer.</td></tr>
+<tr><td>Color + images + diagrams + chrome compounded into a <em>busy</em> page that skims slower than the plain grid &mdash; defeating the actual goal.</td><td>Med</td><td>One restrained accent system; measure skim-time before/after on a real issue; restraint over decoration.</td></tr>
+</table>
+<p><strong>Munger inversion &mdash; choices that would <em>guarantee</em> this fails:</strong></p>
+<ul>
+<li>Ship all 11 in one big-bang release, so nothing lands until everything is done.</li>
+<li>Hotlink remote images directly, so issues break the moment you're offline or a CDN rotates the URL.</li>
+<li>Generate a diagram for all 32 items regardless of whether it helps &mdash; maximizing token cost and visual noise.</li>
+<li>Build the layouts, keyboard nav, and read-state as tangled global JS with no no-JS fallback.</li>
+<li>Run the cron with no lock, no log, and no health surfacing, so failures are invisible until an issue is empty.</li>
+</ul>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr>
+<tr><td>You want richer <em>visuals</em>, not just denser text &mdash; images/diagrams won't actually slow skimming (the real value is &quot;trust + windowing&quot;).</td><td>High</td><td>High</td><td>Render your next issue two ways (current vs image+diagram) and time your own skim.</td></tr>
+<tr><td>Your feeds reliably carry usable per-item images (<code>itunes:image</code> is per-show, not per-episode; many newsletter RSS omit <code>og:image</code>).</td><td>High</td><td>High</td><td>Run <code>fetch-feed.js</code> on your 6 feeds, count items that yield a usable image URL. ~10 min.</td></tr>
+<tr><td>A single self-contained HTML file is a hard requirement (vs. an issue-folder with <code>assets/</code> being acceptable).</td><td>High</td><td>Med</td><td>Decide: would you ever email/AirDrop an issue, or always open from the repo? The answer reshapes (9).</td></tr>
+<tr><td>Per-post diagrams from bullet summaries are legible and useful, not decorative noise.</td><td>Med</td><td>High</td><td>Hand-generate one via <code>/diagram</code> for a single top pick and eyeball it.</td></tr>
+<tr><td><code>localStorage</code> read-state is acceptable (per-browser, lost on clear, not synced across devices).</td><td>Med</td><td>Low</td><td>Confirm it survives a reopen in your usual browser; accept the device-local limitation.</td></tr>
+<tr><td>You run whisper locally and have enough podcast volume to justify a scheduled job.</td><td>Med</td><td>Med</td><td><code>transcribe.sh --selftest</code> + count podcast items per week.</td></tr>
+</table>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> skim-time per issue drops; you open more read/listen links per issue; you actually use mark-as-read and the &quot;N left&quot; counter; you switch layouts at least once (proves the choice was wanted).</p>
+<p><strong>Lagging:</strong> you reach for <code>/magazine</code> over your RSS app across consecutive weeks; issues feel &quot;designed&quot; enough to share; the backlog gets <em>finished</em>, not abandoned half-read.</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li><strong>Ship Wave 1</strong> (variants 1,3,4,5,6,7,8,13) as one <code>render-issue.js</code>-only release &mdash; no pipeline or offline risk.</li>
+<li><strong>Run the two cheap probes</strong> before Wave 2: feed image-yield (<code>fetch-feed.js</code> across your feeds) and the single-file-vs-issue-folder decision for thumbnails (9).</li>
+<li><strong>Validate diagrams</strong> by hand-making one <code>/diagram</code> for a single top pick; build (10) only if it reads as signal.</li>
+<li><strong>Spec the cron (15)</strong> as a separate ops feature with a <code>state.json</code> lock, a log file, and a footer health line.</li>
+<li><strong>Backlog note:</strong> surface the existing OPML/CSV/screenshot import + add a &quot;feeds health&quot; (dead/empty feed) line.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/skill-sdlc --from-feedback docs/pmos/ideate/2026-06-05_magazine-output-ux.html</code> &mdash; drive Wave 1 through the skill SDLC (this targets the <code>/magazine</code> skill itself).</li>
+<li><code>/grill docs/pmos/ideate/2026-06-05_magazine-output-ux.html</code> &mdash; adversarially interrogate the offline/single-file decision before committing.</li>
+<li><code>/backlog add</code> &mdash; capture Waves 2&ndash;3 + the OPML-discoverability note.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-05_magazine-output-ux.html</code> &mdash; polish this brief if you'll share it.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Single self-contained HTML file vs. an issue-folder with <code>assets/</code> &mdash; which matters more to you: portability (email/AirDrop) or rich local images?</li>
+<li>Do your actual feeds carry per-<em>item</em> images, or only per-show art? (Determines whether thumbnails are worth it at all.)</li>
+<li>Is a per-post diagram signal or noise for a 4-bullet summary &mdash; and would it apply to podcasts too, or newsletters only?</li>
+<li>Is device-local <code>localStorage</code> read-state acceptable, or do you want read-state to survive across machines (which would need a sidecar / sync, breaking single-file)?</li>
+<li><code>launchd</code> (macOS-native) vs <code>cron</code> for the transcription job &mdash; and how should silent failures reach you?</li>
+<li>Carousel (In-shorts) default on mobile only, or a global default? Which layout should a fresh issue open in?</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/ideate/2026-06-05_magazine-output-ux.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
