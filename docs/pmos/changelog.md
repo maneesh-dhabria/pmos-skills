@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-06-05 — pmos-learnkit 0.13.0: `/magazine` issue output UX — layouts, read-state, color, dropdown filters
+
+The first wave of the `/magazine` issue output-UX upgrade: every issue is now a far more skimmable, navigable digest — without losing the core promise (one self-contained HTML file that works offline from `file://`, zero dependencies). Eight reader affordances, all in `render-issue.js`, all progressive enhancements (the grid + every bullet + the read/listen links still work with JavaScript disabled):
+
+- **Three reading layouts, switchable in-issue.** A header toggle picks Grid (default), Carousel (In-shorts-style — one card at a time with ◀▶ buttons + arrow keys), or Listicle; the choice persists in `localStorage`.
+- **Read-state tracking.** Mark any card read (a ✓ button or the `m` key); a header counter shows "N of M left"; a "hide read" toggle clears finished cards. State persists per issue (`localStorage`, keyed by issue date + GUID) and syncs across a top-pick's two card copies.
+- **Keyboard skim.** `j`/`k` move between cards, `o` opens the focused card's link, `f` jumps to the filter, `m` toggles read; `←`/`→` page the carousel.
+- **Source cues at a glance.** Newsletters and podcasts get a subtle distinct left-border accent; each feed gets a small deterministic color dot; tag chips carry a stable per-tag pastel color (same tag → same color across issues).
+- **Catch-up budget.** The header sums reading time into "~N min to skim · Xh Ym of audio" so you can size the session before diving in.
+- **Uniform cards.** Bullet lists collapse to 3 with a "show more" toggle, keeping the grid tidy.
+- **Dropdown filter bar.** The old checkbox/chip wall is replaced by compact dropdowns — Feed and Tag (multi-select with a count badge), Type, and Status (read/unread) — plus the date range and a live "showing X of Y" counter.
+
+### Internal
+
+Authored via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias) from a `/ideate` brief, Tier 2, streamlined-inline. Wave 1 of a 3-wave roadmap; Waves 2–3 (RSS thumbnails, a background transcription cron, per-post diagrams) are deferred pending cheap validation probes. All changes are confined to `scripts/render-issue.js` (+ `reference/issue-format.md`); the `items.json` input contract, the pipeline, and `state.json` are unchanged. The inline `--selftest` grows a per-feature assertion (now also covering the JS-off bullet clamp); `structure.test.sh` 50/0; deterministic skill-eval 19/19 [D] + 20/20 [J]. A Playwright browser pass caught two runtime issues the Node selftest can't see — read-state never persisting (`[].slice.call(Set)` returns `[]`; fixed with `Array.from`) and an ugly native-`<select multiple>` filter bar (replaced with `<details>` checkbox dropdowns) — both fixed and re-verified in-browser.
+
 ## 2026-06-05 — pmos-utilities 0.1.0: new plugin — `/mac-health` Mac diagnostics
 
 Debut of **pmos-utilities**, the third plugin in the `pmos-skills` marketplace. Its charter is the one the other two don't serve: *maintain my environment* — standalone diagnostics and cleanup that are neither a feature-delivery step (pmos-toolkit) nor a learning artifact (pmos-learnkit).
