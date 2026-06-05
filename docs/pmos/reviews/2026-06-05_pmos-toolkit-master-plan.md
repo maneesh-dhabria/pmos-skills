@@ -37,13 +37,15 @@ Each wave is one branch + one verify pass + (where noted) one release. Waves are
 
 | Task | Item | Owner | Acceptance |
 |---|---|---|---|
-| T2.1 | **W2** move awk extractor → `tools/`; shrink the inline block to the ~32-line contract across 29 skills; update `lint-non-interactive-inline.sh` | `[me]` | no awk in any SKILL.md; lint green; non-interactive behavior unchanged |
+| T2.1 | **W2** relocate awk extractor → **Section D** of `_shared/non-interactive.md` (NOT `tools/` — see note); shrink the inline block from 83→27 lines across 28 block-carrying skills | `[me]` | ✅ DONE — no awk in any SKILL.md; inline lint resolves all block drift (residual 5 = pre-existing missing-block); audit + 59 bats unchanged |
 | T2.2 | **W4** create `_shared/tracker-crudl.md`; refactor backlog/mytasks/people onto it; add schema-version field | `[me]` | 3 trackers share one CRUDL contract; tracker tests pass |
 | T2.3 | **W7** create `_shared/writing-principles.md`; cite from artifact-emitting skills; point polish's rubric at it | `[me]` | one source for prose principles; polish = enforcement |
 | T2.4 | **W5-prep** extract `_shared/persona-journey-alignment.md`; cite from creativity/msf-req/msf-wf | `[me]` | no copy-pasted persona ceremony |
 | T2.5 | **W13** move `learnings-capture.md` → `_shared/`; repoint 20 citations; make requirements cite (not inline) | `[me]` | uniform learnings contract |
 | T2.6 | **W12** standardize phase numbering (integer + lettered sub-phases) + `requirements_ref` frontmatter key | `[me]` | consistent across spine |
 | T2.7 | `/verify` Wave 2 + release pmos-toolkit (minor bump, changelog, tag, push) | `[you-authorize]` | green; released |
+
+**T2.1 design note (divergence from plan wording):** the awk was relocated to a new **Section D of `_shared/non-interactive.md`**, not to a standalone `tools/*.awk` file. Rationale: `audit-recommended.sh` and three bats suites (`classifier`, `perf`, `destructive`) already source the extractor from this file's `<!-- awk-extractor:start/end -->` markers. Keeping it in the same file (just outside the inlined block) removed it from all 28 runtime prompts **with zero changes to those 4 consumers** — strictly lower blast radius than a `tools/` move, same acceptance criteria met. One test (`structure.bats`) updated to assert the new layout (block references the auditor; extractor lives in Section D). Pre-existing, out-of-scope: 5 skills (architecture, comments, ideate, prototype-sdlc, skill-sdlc) carry no non-interactive block at all (FR-08 not-yet-rolled-out / aliases) — they keep the inline lint at exit 1 independent of W2.
 
 ---
 

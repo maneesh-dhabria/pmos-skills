@@ -20,9 +20,17 @@ load test_helper
     | grep -qE 'flag.*parent.*settings.*default|flag > parent_marker > settings'
 }
 
-@test "Section 0 references the awk extractor" {
+@test "Section 0 references the call-site auditor (not the inlined extractor)" {
   awk '/<!-- non-interactive-block:start -->/,/<!-- non-interactive-block:end -->/' "$SHARED_FILE" \
-    | grep -q 'awk-extractor'
+    | grep -q 'audit-recommended.sh'
+}
+
+@test "awk extractor lives outside the inlined Section 0 block (in Section D)" {
+  # The inlined block must NOT carry the extractor — it would bloat every skill.
+  ! { awk '/<!-- non-interactive-block:start -->/,/<!-- non-interactive-block:end -->/' "$SHARED_FILE" \
+      | grep -q 'awk-extractor:start'; }
+  # Section D must carry the extractor between its markers.
+  awk '/^## Section D/,0' "$SHARED_FILE" | grep -q '<!-- awk-extractor:start -->'
 }
 
 @test "Section A defines refusal regex and exit 64" {
