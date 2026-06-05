@@ -36,6 +36,14 @@ A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
 | `/magazine [add \<url\> \| add --from \<file\> \| remove \<name\> \| list] [--days N] [--feed \<name\>]` | Turns your scattered public RSS subscriptions (newsletters + podcasts) into one filterable, self-contained HTML digest of what's new since last time. A resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable cross-issue library, all offline from `file://`. Assisted import from CSV/OPML/screenshot. v1 public feeds only. |
 | `/playbook [--repo \<path>] [--days N \| --sessions N \| --since \<date>] [--include-headless] [--format \<html\|md\|both>]` | Turns your own Claude Code session history for one repo into focused, self-sufficient case-study articles that teach fellow PMs how you used AI to solve a real problem — mining your starting prompts, how you refined the idea, the trade-offs you decided, and the skills you used, then emitting a shareable HTML article + tweet thread per problem with a safety-review checklist. Repo-scoped; finds work scattered across worktrees (even merged-and-deleted ones); filters out headless/subprocess noise. Never posts anything — you are the share gate. |
 
+## PMOS Utilities
+
+Standalone environment diagnostics — neither a feature-delivery step nor a learning artifact. Skills namespaced `/pmos-utilities:<name>`.
+
+| Skill | What it does |
+|---|---|
+| `/mac-health [--non-interactive \| --interactive]` | Diagnoses a hot, slow, battery-hungry, or memory-pressured Mac before recommending cleanup — orphaned (`ppid 1`) processes, browser-extension/helper leaks, stale dev services, and sleep-assertion blockers — with a read-first, diagnose-then-confirm posture (never kills a process or stops a service without explicit confirmation) and a before/after impact summary. |
+
 ## What do you want to do?
 
 | I want to… | Use | Notes |

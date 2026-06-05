@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-05 — pmos-utilities 0.1.0: new plugin — `/mac-health` Mac diagnostics
+
+Debut of **pmos-utilities**, the third plugin in the `pmos-skills` marketplace. Its charter is the one the other two don't serve: *maintain my environment* — standalone diagnostics and cleanup that are neither a feature-delivery step (pmos-toolkit) nor a learning artifact (pmos-learnkit).
+
+- **`/mac-health`** moves here from pmos-toolkit (it diagnoses a hot/slow Mac — that maintains your environment; it neither ships a feature nor teaches a topic, so it failed both other charters). Read-first, diagnose-then-confirm: it surfaces orphaned (`ppid 1`) processes, browser-extension/helper leaks, stale dev services, and sleep-assertion blockers, and never kills a process or stops a service without explicit confirmation. It carries a right-sized, self-contained non-interactive contract (no dependency on pmos-toolkit's substrate): mode resolution, destructive-actions-defer, and a `pmos-utilities: /mac-health finished` summary.
+
+### Internal
+
+Scaffolded per the new-plugin contract: paired `.claude-plugin`/`.codex-plugin` manifests at 0.1.0, registered (version-free) in both `marketplace.json` catalogs, and added to `CLAUDE.md`'s plugin-charter table + release-policy plugins list. Skill lives at the canonical `plugins/pmos-utilities/skills/mac-health/SKILL.md`. The skill content shipped to `main` with the pmos-toolkit 2.61.0 release; this entry + the `pmos-utilities/v0.1.0` tag formalize the debut.
+
 ## 2026-06-05 — pmos-toolkit 2.61.0: architecture-review remediation (Waves 1–6) + `/comments` inline resolver
 
 The full remediation program from the 2026-06-05 pmos-toolkit architecture review — six waves of substrate consolidation, a visual-identity pass, and the close-out of the v2.58.0 inline-comments migration. User-facing highlights:
