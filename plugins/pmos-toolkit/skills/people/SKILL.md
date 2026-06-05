@@ -19,7 +19,8 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — record file shape, enum values, `INDEX.md` format
+- `schema.md` — record file shape, enum values, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
+- `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version`, INDEX regenerability; handle-keyed, no archive)
 - `lookup.md` — fuzzy-match algorithm, handle derivation rules
 - `_shared/interactive-prompts.md` — interactive prompting protocol
 

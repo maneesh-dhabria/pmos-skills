@@ -1,16 +1,18 @@
 # /mytasks Item Schema
 
+> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares mytasks's **bindings** (fields, enums, INDEX shape, archive root); the shared contract governs the **invariants** (id/slug rules, `created`/`updated`/`schema_version`, INDEX regenerability, archive convention).
+
 Every task is a markdown file at `~/.pmos/tasks/items/{id}-{slug}.md`.
 
 ## Filename
 
-- `id`: 4-digit zero-padded sequential integer (`0001`, `0002`, …). Per-skill counter; no global coordination.
-- `slug`: kebab-cased title, max 60 chars, ASCII letters/digits/hyphens only, no leading/trailing hyphens.
+Numeric-id store — `id`/`slug` rules per `../_shared/tracker-crudl.md` §2. Binding: a single per-skill `id` counter (the store is global to the user, not per-repo).
 
 ## Frontmatter
 
 ```yaml
 ---
+schema_version: 1                # shared §3; absent == 1
 id: 0042
 title: Draft Q3 OKRs for Platform team
 type: execution                  # enum
@@ -41,6 +43,7 @@ completed:                       # ISO date, set when status -> completed/droppe
 
 ### Defaults on quick-capture (`/mytasks <bare text>`)
 
+- `schema_version: 1` (shared §3)
 - `status: pending`
 - `importance: neutral`
 - `type:` per inference (see `inference-heuristics.md`); fallback `execution`
@@ -70,7 +73,7 @@ Tasks captured quickly typically have no body. The `## Check-ins` section is cre
 
 ## INDEX.md format
 
-`~/.pmos/tasks/INDEX.md` is regenerable, never the source of truth. Shape:
+`~/.pmos/tasks/INDEX.md` follows the regenerable-cache contract in `../_shared/tracker-crudl.md` §5 (never the source of truth; `Last regenerated:` line; empty cells, never `null`). Binding (grouping/sort/columns):
 
 ```markdown
 # My Tasks
@@ -94,12 +97,8 @@ Last regenerated: 2026-04-25
 | 0003 | execution | waiting |  |  | Fix coffee machine |  |
 ```
 
-Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc.
-
-`completed` and `dropped` items are NOT in INDEX.md. Archived items (in `archive/`) are also NOT in INDEX.md.
-
-Empty optional fields render as empty cells (no `null`, no dashes).
+Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc. Status-based exclusion (mytasks binding): `completed` and `dropped` items are NOT in INDEX.md (cell-rendering and archived-exclusion per shared §5).
 
 ## Archive
 
-Archived tasks live at `~/.pmos/tasks/archive/YYYY-QN/{id}-{slug}.md` with full content preserved. Archive structure mirrors `items/` and is never written to `INDEX.md`.
+mytasks archives, per `../_shared/tracker-crudl.md` §6. Binding: archive root `~/.pmos/tasks/archive/`, so tasks land at `~/.pmos/tasks/archive/YYYY-QN/{id}-{slug}.md` (full content preserved, mirrors `items/`, never in `INDEX.md`).

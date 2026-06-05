@@ -1,8 +1,12 @@
 # /people Record Schema
 
+> Binds the shared tracker contract in [`../_shared/tracker-crudl.md`](../_shared/tracker-crudl.md). This file declares people's **bindings** (fields, enums, INDEX shape); the shared contract governs the **invariants** (`created`/`updated`/`schema_version`, INDEX regenerability). Two deviations from the common case: people is **handle-keyed, not numeric-id** (so §2 does not apply — see below), and people **does not archive** (no §6 store).
+
 Every person record is a markdown file at `~/.pmos/people/{handle}.md`.
 
 ## Filename
+
+Handle-keyed store (the §2 numeric-id scheme does NOT apply here):
 
 - `handle`: kebab-case, unique key, used in cross-skill references. Derived from the person's name on create (see `lookup.md` for derivation rules).
 - No `.md`-less variants. The file extension is required.
@@ -11,6 +15,7 @@ Every person record is a markdown file at `~/.pmos/people/{handle}.md`.
 
 ```yaml
 ---
+schema_version: 1                   # shared §3; absent == 1
 handle: sarah-chen
 name: Sarah Chen
 designation: VP Engineering         # optional — formal title
@@ -36,7 +41,7 @@ updated: 2026-04-25
 - `name`: from the prompt that disambiguated the unknown person.
 - `handle`: auto-derived per `lookup.md`.
 - `aliases`: seeded with the original token from the task (e.g., `[sarah]`).
-- `created`, `updated`: today.
+- `schema_version: 1`; `created`, `updated`: today (shared §3).
 - All other fields: absent from frontmatter (bare keys not written).
 
 ### Defaults on proactive create (`/people add`)
@@ -44,7 +49,7 @@ updated: 2026-04-25
 - `name`: from the command argument or first prompt.
 - `handle`: auto-derived per `lookup.md`.
 - All other fields: prompted via `_shared/interactive-prompts.md`. Each skippable.
-- `created`, `updated`: today.
+- `schema_version: 1`; `created`, `updated`: today (shared §3).
 
 ## Body
 
@@ -57,7 +62,7 @@ The `## Notes` section is optional. The skill never auto-writes to the body; use
 
 ## INDEX.md format
 
-`~/.pmos/people/INDEX.md` is regenerable, never the source of truth. Shape:
+`~/.pmos/people/INDEX.md` follows the regenerable-cache contract in `../_shared/tracker-crudl.md` §5 (never the source of truth; `Last regenerated:` line; empty cells, never `null`). Binding (sort/columns):
 
 ```markdown
 # People
@@ -71,4 +76,4 @@ Last regenerated: 2026-04-25
 | sarah-patel | Sarah Patel | | Designer | team-member | design | |
 ```
 
-Sorted by `name` ascending. Empty optional fields render as empty cells (not `null` or dashes). Always include `Last regenerated: {today ISO date}` after the title.
+Sorted by `name` ascending (cell-rendering and `Last regenerated:` line per shared §5).

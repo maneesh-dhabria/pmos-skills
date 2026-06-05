@@ -38,7 +38,7 @@ Each wave is one branch + one verify pass + (where noted) one release. Waves are
 | Task | Item | Owner | Acceptance |
 |---|---|---|---|
 | T2.1 | **W2** relocate awk extractor → **Section D** of `_shared/non-interactive.md` (NOT `tools/` — see note); shrink the inline block from 83→27 lines across 28 block-carrying skills | `[me]` | ✅ DONE — no awk in any SKILL.md; inline lint resolves all block drift (residual 5 = pre-existing missing-block); audit + 59 bats unchanged |
-| T2.2 | **W4** create `_shared/tracker-crudl.md`; refactor backlog/mytasks/people onto it; add schema-version field | `[me]` | 3 trackers share one CRUDL contract; tracker tests pass |
+| T2.2 | **W4** create `_shared/tracker-crudl.md`; refactor backlog/mytasks/people onto it; add schema-version field | `[me]` | ✅ DONE — shared contract created; 3 `schema.md` cite it + drop duplicated invariants; `schema_version: 1` added (absent==1); SKILL refs updated; people declared as handle-keyed/no-archive deviation; scenarios markdown-only (no exec tests broken); inline lint unchanged (5 pre-existing) |
 | T2.3 | **W7** create `_shared/writing-principles.md`; cite from artifact-emitting skills; point polish's rubric at it | `[me]` | one source for prose principles; polish = enforcement |
 | T2.4 | **W5-prep** extract `_shared/persona-journey-alignment.md`; cite from creativity/msf-req/msf-wf | `[me]` | no copy-pasted persona ceremony |
 | T2.5 | **W13** move `learnings-capture.md` → `_shared/`; repoint 20 citations; make requirements cite (not inline) | `[me]` | uniform learnings contract |

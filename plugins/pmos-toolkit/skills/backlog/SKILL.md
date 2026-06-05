@@ -30,7 +30,8 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — item file shape, enum values, `INDEX.md` format
+- `schema.md` — item file shape, enum values, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
+- `_shared/tracker-crudl.md` — shared tracker contract (id/slug, `created`/`updated`/`schema_version`, INDEX regenerability, archive)
 - `inference-heuristics.md` — keyword → type table for quick-capture
 - `pipeline-bridge.md` — how `--backlog <id>` integrates with pipeline skills
 - `_shared/interactive-prompts.md` — interactive prompting protocol used by Phase 5
