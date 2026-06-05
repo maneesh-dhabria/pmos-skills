@@ -1,5 +1,7 @@
 # Polish rubric — 14 built-in checks
 
+> This rubric is the **enforcement** of `_shared/writing-principles.md` — the author-time prose principles every pmos artifact-emitting skill writes to. Each check below polices one or more of those principles; when a principle changes there, update its check here (and vice-versa).
+
 ## Contents
 
 - Implementation modes (regex vs llm-judge)

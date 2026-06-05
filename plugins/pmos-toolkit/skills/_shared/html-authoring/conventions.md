@@ -127,6 +127,10 @@ Every `<a href="X.html#frag">` MUST resolve to a real `id` in `X`'s `sections.js
 
 When linking from `03_plan.html` to `02_spec.html#fr-html-authoring`, the skill computes the section id using the rule in §3 against the spec's heading text — not by scraping the spec at write time.
 
+## 12. Prose quality
+
+The rules above govern document *structure*; the words inside the sections must also hold up. Author all human-readable prose to `../writing-principles.md` (lead with the claim, cut filler, active voice, no AI-slop vocabulary, ground every claim). Those are author-time principles; `/polish` is their binary enforcement (`polish/reference/rubric.md`). Writing to them at emit time means a later `/polish` pass has little to fix.
+
 ## §7 Comments persistence (inline)
 
 The `/comments` skill persists threads as an **inline JSON block inside the HTML itself** — `<script id="pmos-comments" type="application/json">` between `<!-- pmos-comments:start -->` / `<!-- pmos-comments:end -->` sentinels. No sidecar file; the artifact is the single source of truth. The legacy `<artifact>.comments.json` sidecar contract and its pre-commit drift hook were retired in v2.58.0 — see `docs/pmos/features/2026-05-28_inline-html-artifacts/02_spec.html#fr-deletions` for the full inventory.
