@@ -1,16 +1,38 @@
 ---
 name: session-log
-description: Use when the user invokes /session-log, or before ending a significant session where meaningful work was done - captures learnings, decisions, gotchas, and patterns
+description: Use when wrapping up a significant work session, or when the user says "log this session", "capture session learnings", "write a session log", "record what we did", "note the decisions from today", or "/session-log" — captures what you built, decided (with reasoning), the gotchas you hit, and the patterns that worked, as dated bullets. Distinct from /reflect, which critiques the tools and skills you used; session-log records the work itself.
 argument-hint: "[--non-interactive | --interactive]"
 ---
 
-# Session Log
+# /session-log
 
-Capture session learnings as concise bullet points, prepended (newest first).
+**Announce at start:** "Using /session-log to capture this session's learnings."
 
-## Load Workstream Context
+Capture session learnings as concise bullet points, prepended (newest first) to the project session log. The record is *what you built and decided this session* — the decisions and their reasoning are the most valuable part. This is distinct from `/reflect`, which critiques the pmos tools/skills you used; session-log is about the work, not the tooling.
 
-Before any other work, follow `_shared/pipeline-setup.md` Section 0 to read `.pmos/settings.yaml` and resolve `{docs_path}`. If settings.yaml is missing, run first-run setup per Section A. Use `{docs_path}/session-log.md` as the output path.
+## When to use this
+
+- A meaningful chunk of work just wrapped and the decisions + gotchas are still fresh.
+- The user wants a durable, dated record of what was built and why.
+- You're about to end a session where non-obvious choices were made worth teaching from later.
+
+**When NOT to use:**
+- The session was trivial (typo fixes, formatting) with nothing non-obvious to capture.
+- The user wants to critique *how the skills/tools performed* → that's `/reflect`.
+
+## Track Progress
+
+This skill has multiple phases. Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task `in_progress` when you start it and `completed` when it finishes — never batch completions.
+
+## Platform Adaptation
+
+These instructions use Claude Code tool names. In other environments:
+
+- **No `AskUserQuestion` tool:** Degrade the draft-confirmation prompt to a numbered free-form prompt per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies.
+- **No subagents:** All phases run single-agent; there is no parallel work to degrade.
+- **No `.pmos/settings.yaml`:** Run `_shared/pipeline-setup.md` Section A first-run setup before resolving `{docs_path}`.
+- **TaskCreate / TodoWrite missing:** The skill body works without task tracking.
+- **Browser / Playwright:** Not used by this skill.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -42,11 +64,19 @@ Before any other work, follow `_shared/pipeline-setup.md` Section 0 to read `.pm
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Process
+## Phase 0: Setup
 
-1. **Gather context** — Read the git diff (`git diff HEAD~` or appropriate range for the session's changes) and reflect on the conversation: what was built, what decisions were made and why, what was surprising, what patterns worked well.
+1. **Read `.pmos/settings.yaml`** per `_shared/pipeline-setup.md` Section 0 to resolve `{docs_path}`. If settings.yaml is missing, run first-run setup per Section A. Use `{docs_path}/session-log.md` as the output path.
+2. **Read `~/.pmos/learnings.md`** if present; note any entries under `## /session-log` and factor them into your approach (e.g., a recurring decision-type the user always wants captured, a phrasing convention). Skill body wins on conflict; surface conflicts to the user.
+3. **Resolve mode** (interactive / non-interactive) per the non-interactive contract above. Print `mode: <m> (source: <s>)` to stderr.
 
-2. **Draft entry** — Write a dated entry as flat bullet points. Format:
+## Phase 1: Gather context
+
+Read the git diff (`git diff HEAD~` or the appropriate range for the session's changes) and reflect on the conversation: what was built, what decisions were made and why, what was surprising, what patterns worked well.
+
+## Phase 2: Draft entry
+
+Write a dated entry as flat bullet points. Format:
 
 ```markdown
 ## YYYY-MM-DD — [Brief title]
@@ -56,15 +86,33 @@ Before any other work, follow `_shared/pipeline-setup.md` Section 0 to read `.pm
 - Gotchas or surprises encountered
 - Patterns or techniques that worked well
 - Takeaway: what you'd teach someone from this session
+
+**References:**
+- Spec: [`relative/path/to/spec.md`](relative/path/to/spec.md)
+- Plan: [`relative/path/to/plan.md`](relative/path/to/plan.md)
+- Requirements: [`relative/path/to/requirements.md`](relative/path/to/requirements.md)
 ```
 
-Only include bullets that apply. No empty sections, no headers within the entry. Keep each bullet concise — one line, direct.
+Only include bullets that apply. No empty sections, no headers within the entry. Keep each bullet concise — one line, direct. Always include a **References** section at the end linking to the relevant documents (spec, plan, requirements, or any other key docs produced or consumed during the session), matching the format used in the changelog.
 
-3. **Show draft to user** — Present the entry and ask for confirmation or edits before writing.
+## Phase 3: Confirm with user
 
-4. **Write** — Prepend the entry to `{docs_path}/session-log.md`. If the file doesn't exist, create it with a single H1 header `# Session Log` followed by the entry.
+Present the drafted entry and ask for confirmation or edits before writing. In non-interactive mode, this checkpoint follows the auto-pick contract above.
 
-5. **Workstream Enrichment** — If a workstream was loaded, follow `_shared/pipeline-setup.md` Section C. Session log signals: decisions with reasoning → workstream `## Key Decisions`; gotchas → workstream `## Constraints & Scars`.
+## Phase 4: Write
+
+Prepend the entry to `{docs_path}/session-log.md`. If the file doesn't exist, create it with a single H1 header `# Session Log` followed by the entry.
+
+## Phase 5: Workstream Enrichment
+
+If a workstream was loaded, follow `_shared/pipeline-setup.md` Section C. Session-log signals: decisions with reasoning → workstream `## Key Decisions`; gotchas → workstream `## Constraints & Scars`.
+
+## Phase 6: Capture Learnings
+
+Reflect on whether this run surfaced anything worth capturing under `## /session-log` in `~/.pmos/learnings.md` — e.g., a decision-category the user always wants logged, a git-range heuristic that worked, or a boundary call between session-log and reflect. Append a one-line entry only when the lesson is non-obvious and reusable.
+
+Report at close:
+- `Learning: <new entry written to ~/.pmos/learnings.md under ## /session-log>` — when the run surfaced a non-obvious lesson worth keeping.
 
 ## Rules
 
@@ -73,3 +121,4 @@ Only include bullets that apply. No empty sections, no headers within the entry.
 - Keep the full entry under 15 bullets. Aim for 4-8.
 - Do not include trivial changes (typo fixes, formatting) unless they revealed something non-obvious
 - Date must be the actual current date, not inferred from commits
+- Always include a **References** section linking to relevant documents (specs, plans, requirements, etc.) using relative paths, matching the format used in the changelog
