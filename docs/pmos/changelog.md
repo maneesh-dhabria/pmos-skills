@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-06 — pmos-learnkit 0.14.0: `/magazine` ships a verified PM feed catalog + starter bundles
+
+`/magazine` no longer assumes you already have a `feeds.yaml`. It now ships a **verified PM feed catalog** and **ready-made starter bundles**, so a new PM goes from an empty subscription list to a relevant, populated feed set in one command — and the research method that produced the catalog is baked into the skill so it can be re-run and refreshed.
+
+- **Verified catalog, bundled.** Ships `data/catalog/` — a 9-column TSV each for newsletters (174 active) and podcasts (129 active), every feed RSS-verified, plus a foldered `feeds.opml` of the active feeds. Each row carries Access, Cadence, Tags, Status, and Last Post date so staleness is honest, not hidden.
+- **8 starter bundles (4 newsletters + 4 podcasts).** `essentials` (the canon) plus thematic cuts — newsletters: `growth-monetization`, `ai-for-pms`, `strategy-leadership`; podcasts: `ai-and-tech`, `founders-business`, `leadership-career`. Each bundle is active-only (~12–18 feeds) with a documented inclusion rule, shipped as OPML under `data/bundles/` with a `bundles.yaml` manifest.
+- **Two new commands.** `/magazine bundles` lists what's available; `/magazine add --bundle <id> [--medium newsletter|podcast]` imports a bundle through the existing validate → dedup → batch-approve → `feeds.yaml` rail (the bundle's medium folder supplies the newsletter/podcast type that generic OPML import has to guess). Verification-first is preserved — a shipped feed that fails to fetch at import is reported, not silently added.
+- **First-run onboarding offers bundles.** New users are shown the bundle menu during setup, with the two `essentials` bundles as the recommended starter pick (so non-interactive runs auto-pick a sensible default). Skipping is allowed.
+- **Re-runnable curation.** The 4-phase, verification-first research method is bundled as `reference/feed-curation.md`, with a thin `/magazine curate [--audience <a>] [--media <m>] [--out <dir>]` wrapper. It never writes into the read-only plugin cache — installed runs write to `~/.pmos/magazine/curated/<date>/`; the maintainer refreshes shipped data with `--out plugins/pmos-learnkit/skills/magazine/data/` from the repo.
+
+### Breaking changes
+
+None. Existing `/magazine` builds, `add`/`remove`/`list`/`add --from`, the pipeline, and `state.json` are unchanged. The Phase 1 dispatch grows `bundles`, `add --bundle`, and `curate` as recognised selectors.
+
+### Internal
+
+Authored via `/feature-sdlc skill` (the `/skill-sdlc` alias), Tier 3. New `scripts/bundles.js` (zero-dep list/resolve/validate-data) + `tests/bundles.test.sh` (15 checks); `structure.test.sh` 62/0; deterministic skill-eval 19/19 [D] + 18/18 [J]. Catalog data generated deterministically from the verified research output; the generation rules are mirrored in `reference/feed-curation.md` Phase 5 so `curate` reproduces them. SDLC artifacts under `docs/pmos/features/2026-06-06_magazine-feed-bundles/`.
+
 ## 2026-06-05 — pmos-learnkit 0.13.0: `/magazine` issue output UX — layouts, read-state, color, dropdown filters
 
 The first wave of the `/magazine` issue output-UX upgrade: every issue is now a far more skimmable, navigable digest — without losing the core promise (one self-contained HTML file that works offline from `file://`, zero dependencies). Eight reader affordances, all in `render-issue.js`, all progressive enhancements (the grid + every bullet + the read/listen links still work with JavaScript disabled):
