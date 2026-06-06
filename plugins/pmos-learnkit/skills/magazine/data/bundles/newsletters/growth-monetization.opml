@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — growth-monetization (newsletters)</title></head>
+  <body>
+    <outline type="rss" text="Lenny's Newsletter — Lenny Rachitsky" title="Lenny's Newsletter" xmlUrl="https://www.lennysnewsletter.com/feed"/>
+    <outline type="rss" text="Product Growth — Aakash Gupta" title="Product Growth" xmlUrl="https://www.news.aakashg.com/feed"/>
+    <outline type="rss" text="The Looking Glass — Julie Zhuo" title="The Looking Glass" xmlUrl="https://lg.substack.com/feed"/>
+    <outline type="rss" text="Rich Mironov's Product Bytes — Rich Mironov" title="Rich Mironov's Product Bytes" xmlUrl="https://richmironov.substack.com/feed"/>
+    <outline type="rss" text="GTM Strategist — Maja Voje" title="GTM Strategist" xmlUrl="https://knowledge.gtmstrategist.com/feed"/>
+    <outline type="rss" text="Productify — Bandan Singh" title="Productify" xmlUrl="https://productify.substack.com/feed"/>
+    <outline type="rss" text="GoPractice — Oleg Yakubenkov" title="GoPractice" xmlUrl="https://gopractice.io/feed/"/>
+    <outline type="rss" text="Elena's Growth Scoop — Elena Verna" title="Elena's Growth Scoop" xmlUrl="https://www.elenaverna.com/feed"/>
+    <outline type="rss" text="Leah's ProducTea — Leah Tharin" title="Leah's ProducTea" xmlUrl="https://www.leahtharin.com/feed"/>
+    <outline type="rss" text="The Product-Led Geek — Ben Williams" title="The Product-Led Geek" xmlUrl="https://www.plg.news/feed"/>
+    <outline type="rss" text="ProductLed Newsletter — Wes Bush" title="ProductLed Newsletter" xmlUrl="https://productled.com/feed"/>
+    <outline type="rss" text="Forget The Funnel — Georgiana Laudi &amp; Claire Suellentrop" title="Forget The Funnel" xmlUrl="https://forgetthefunnel.com/feed"/>
+    <outline type="rss" text="Casey Accidental — Casey Winters" title="Casey Accidental" xmlUrl="https://www.caseyaccidental.com/feed"/>
+    <outline type="rss" text="PricingSaaS / Good Better Best — Rob Litterst" title="PricingSaaS / Good Better Best" xmlUrl="https://goodbetterbest.substack.com/feed"/>
+    <outline type="rss" text="Growth Gems — Sylvain Gauchet" title="Growth Gems" xmlUrl="https://growthgems.substack.com/feed"/>
+    <outline type="rss" text="Growthmates — Kate Syuma" title="Growthmates" xmlUrl="https://www.growthmates.news/feed"/>
+    <outline type="rss" text="Mobile Dev Memo — Eric Seufert" title="Mobile Dev Memo" xmlUrl="https://mobiledevmemo.com/feed/"/>
+    <outline type="rss" text="PeerSignal — Adam Schoenfeld" title="PeerSignal" xmlUrl="https://www.peersignal.org/feed"/>
+  </body>
+</opml>

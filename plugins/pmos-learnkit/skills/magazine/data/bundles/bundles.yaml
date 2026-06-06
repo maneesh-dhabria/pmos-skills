@@ -1,0 +1,59 @@
+version: 1
+generated_at: 2026-06-06
+bundles:
+  - id: essentials
+    medium: newsletter
+    title: "PM Essentials"
+    description: "The widely-recognized canon every PM should read."
+    rule: "Hand-picked top-signal newsletters."
+    file: newsletters/essentials.opml
+    count: 12
+  - id: growth-monetization
+    medium: newsletter
+    title: "Growth & Monetization"
+    description: "Growth, PLG, pricing, retention and monetization for PMs."
+    rule: "Active newsletters tagged growth|plg|monetization|pricing|retention (top 18 by prominence)."
+    file: newsletters/growth-monetization.opml
+    count: 18
+  - id: ai-for-pms
+    medium: newsletter
+    title: "AI for PMs"
+    description: "Building with and reasoning about AI/LLMs as a product manager."
+    rule: "Active newsletters tagged ai|genai|llms|ai-pm|ai-tools (top 18 by prominence)."
+    file: newsletters/ai-for-pms.opml
+    count: 18
+  - id: strategy-leadership
+    medium: newsletter
+    title: "Strategy & Leadership"
+    description: "Product strategy, leadership and career growth."
+    rule: "Active newsletters tagged strategy|product-strategy|leadership|career (top 18 by prominence)."
+    file: newsletters/strategy-leadership.opml
+    count: 18
+  - id: essentials
+    medium: podcast
+    title: "PM Essentials"
+    description: "The must-listen product podcasts."
+    rule: "Hand-picked top-signal podcasts."
+    file: podcasts/essentials.opml
+    count: 12
+  - id: ai-and-tech
+    medium: podcast
+    title: "AI & Tech"
+    description: "AI, machine learning and engineering for product people."
+    rule: "Active podcasts tagged ai|ai-news|tech|engineering|machine-learning (top 18 by prominence)."
+    file: podcasts/ai-and-tech.opml
+    count: 18
+  - id: founders-business
+    medium: podcast
+    title: "Founders & Business"
+    description: "Founders, startups, investing and how businesses really work."
+    rule: "Active podcasts tagged founders|startups|investing|markets|business|vc (top 18 by prominence)."
+    file: podcasts/founders-business.opml
+    count: 18
+  - id: leadership-career
+    medium: podcast
+    title: "Leadership & Career"
+    description: "Leading product teams and growing your career."
+    rule: "Active podcasts tagged leadership|career|management|communication (top 18 by prominence)."
+    file: podcasts/leadership-career.opml
+    count: 18

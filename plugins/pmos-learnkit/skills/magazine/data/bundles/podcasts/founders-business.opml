@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — founders-business (podcasts)</title></head>
+  <body>
+    <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://anchor.fm/s/f38497cc/podcast/rss"/>
+    <outline type="rss" text="My First Million — Sam Parr &amp; Shaan Puri" title="My First Million" xmlUrl="https://feeds.megaphone.fm/HS2300184645"/>
+    <outline type="rss" text="The Twenty Minute VC (20VC) — Harry Stebbings" title="The Twenty Minute VC (20VC)" xmlUrl="https://thetwentyminutevc.libsyn.com/rss"/>
+    <outline type="rss" text="How I Built This — Guy Raz" title="How I Built This" xmlUrl="https://rss.art19.com/how-i-built-this"/>
+    <outline type="rss" text="Masters of Scale — Reid Hoffman &amp; guest hosts" title="Masters of Scale" xmlUrl="https://rss.art19.com/masters-of-scale"/>
+    <outline type="rss" text="This Week in Startups — Jason Calacanis" title="This Week in Startups" xmlUrl="https://anchor.fm/s/7c624c84/podcast/rss"/>
+    <outline type="rss" text="Startups For the Rest of Us — Rob Walling &amp; Einar Vollset" title="Startups For the Rest of Us" xmlUrl="https://feeds.castos.com/mqv6"/>
+    <outline type="rss" text="The a16z Podcast — Andreessen Horowitz" title="The a16z Podcast" xmlUrl="https://feeds.simplecast.com/JGE3yC0V"/>
+    <outline type="rss" text="Y Combinator Startup Podcast — Y Combinator partners" title="Y Combinator Startup Podcast" xmlUrl="https://anchor.fm/s/8c1524bc/podcast/rss"/>
+    <outline type="rss" text="Invest Like the Best — Patrick O'Shaughnessy" title="Invest Like the Best" xmlUrl="https://feeds.megaphone.fm/investlikethebest"/>
+    <outline type="rss" text="All-In — Chamath Palihapitiya, Jason Calacanis, David Sacks &amp; David Friedberg" title="All-In" xmlUrl="https://allinchamathjason.libsyn.com/rss"/>
+    <outline type="rss" text="The Pitch — Josh Muccio" title="The Pitch" xmlUrl="https://feeds.megaphone.fm/thepitch"/>
+    <outline type="rss" text="Grit — Joubin Mirzadegan" title="Grit" xmlUrl="https://feeds.transistor.fm/go-to-market-grit"/>
+    <outline type="rss" text="The Diary of a CEO — Steven Bartlett" title="The Diary of a CEO" xmlUrl="https://rss2.flightcast.com/xmsftuzjjykcmqwolaqn6mdn"/>
+    <outline type="rss" text="BG2 Pod — Brad Gerstner &amp; Bill Gurley" title="BG2 Pod" xmlUrl="https://anchor.fm/s/f06c2370/podcast/rss"/>
+    <outline type="rss" text="In Depth — Brett Berson (First Round)" title="In Depth" xmlUrl="https://firstround.libsyn.com/rss"/>
+    <outline type="rss" text="The Generalist — Mario Gabriele" title="The Generalist" xmlUrl="https://anchor.fm/s/102eb9800/podcast/rss"/>
+    <outline type="rss" text="Cheeky Pint — John Collison (Stripe)" title="Cheeky Pint" xmlUrl="https://feeds.transistor.fm/cheeky-pint-with-john-collison"/>
+  </body>
+</opml>

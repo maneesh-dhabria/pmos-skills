@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — leadership-career (podcasts)</title></head>
+  <body>
+    <outline type="rss" text="Lenny's Podcast — Lenny Rachitsky" title="Lenny's Podcast" xmlUrl="https://api.substack.com/feed/podcast/10845.rss"/>
+    <outline type="rss" text="Product Thinking — Melissa Perri" title="Product Thinking" xmlUrl="https://anchor.fm/s/ff7e9014/podcast/rss"/>
+    <outline type="rss" text="The Product Experience — Lily Smith &amp; Randy Silver" title="The Product Experience" xmlUrl="https://rss.buzzsprout.com/1797429.rss"/>
+    <outline type="rss" text="The Product Podcast — Carlos González de Villaumbrosia" title="The Product Podcast" xmlUrl="https://rss.buzzsprout.com/90361.rss"/>
+    <outline type="rss" text="One Knight in Product — Jason Knight" title="One Knight in Product" xmlUrl="https://feed.podbean.com/oneknightinproduct/feed.xml"/>
+    <outline type="rss" text="The Product Manager — Hannah Clark" title="The Product Manager" xmlUrl="https://rss.buzzsprout.com/1779875.rss"/>
+    <outline type="rss" text="Product for Product Management — Matt Green &amp; Moshe Mikanovsky" title="Product for Product Management" xmlUrl="https://www.spreaker.com/show/4793261/episodes/feed"/>
+    <outline type="rss" text="Product Talk (Products That Count) — Sophie Charlotte Moatti" title="Product Talk (Products That Count)" xmlUrl="https://rss.libsyn.com/shows/71255/destinations/302280.xml"/>
+    <outline type="rss" text="The Growth Podcast (Product Growth) — Aakash Gupta" title="The Growth Podcast (Product Growth)" xmlUrl="https://api.substack.com/feed/podcast/454003/s/133669.rss"/>
+    <outline type="rss" text="Product Momentum — Sean Flaherty &amp; Paul Gebel (ITX)" title="Product Momentum" xmlUrl="https://itx.com/feed/podcast/"/>
+    <outline type="rss" text="Practical Product Management — Marilyn McDonald &amp; Leah Farmer" title="Practical Product Management" xmlUrl="https://media.rss.com/practicalproductmanagement/feed.xml"/>
+    <outline type="rss" text="Product Mastery Now — Chad McAllister" title="Product Mastery Now" xmlUrl="https://productmasterynow.com/feed/podcast/"/>
+    <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://anchor.fm/s/f38497cc/podcast/rss"/>
+    <outline type="rss" text="The Skip Podcast — Nikhyl Singhal" title="The Skip Podcast" xmlUrl="https://api.substack.com/feed/podcast/92860.rss"/>
+    <outline type="rss" text="All Things Product (Teresa &amp; Petra) — Teresa Torres &amp; Petra Wille" title="All Things Product (Teresa &amp; Petra)" xmlUrl="https://allthingsproduct.podigee.io/feed/mp3"/>
+    <outline type="rss" text="The Intentional Product Manager — Shobhit Chugh" title="The Intentional Product Manager" xmlUrl="https://rss.buzzsprout.com/2399157.rss"/>
+    <outline type="rss" text="Lessons in Product Management — Path2Product (Roman Roan)" title="Lessons in Product Management" xmlUrl="https://anchor.fm/s/12497db8/podcast/rss"/>
+    <outline type="rss" text="The Product Huddle — Anamarija Stojić &amp; Jeff Callan" title="The Product Huddle" xmlUrl="https://anchor.fm/s/10ab29b38/podcast/rss"/>
+  </body>
+</opml>

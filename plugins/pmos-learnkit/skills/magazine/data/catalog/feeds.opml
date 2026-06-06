@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>PM feeds — newsletters &amp; podcasts (active)</title></head>
+  <body>
+    <outline text="Newsletters" title="Newsletters">
+      <outline type="rss" text="Lenny's Newsletter — Lenny Rachitsky" title="Lenny's Newsletter" xmlUrl="https://www.lennysnewsletter.com/feed"/>
+      <outline type="rss" text="Silicon Valley Product Group (SVPG) — Marty Cagan &amp; SVPG partners" title="Silicon Valley Product Group (SVPG)" xmlUrl="https://www.svpg.com/articles/feed/"/>
+      <outline type="rss" text="The Beautiful Mess — John Cutler" title="The Beautiful Mess" xmlUrl="https://cutlefish.substack.com/feed"/>
+      <outline type="rss" text="Shreyas Doshi (Free Newsletter) — Shreyas Doshi" title="Shreyas Doshi (Free Newsletter)" xmlUrl="https://shreyasdoshi.substack.com/feed"/>
+      <outline type="rss" text="Product Growth — Aakash Gupta" title="Product Growth" xmlUrl="https://www.news.aakashg.com/feed"/>
+      <outline type="rss" text="The Product Compass — Pawel Huryn" title="The Product Compass" xmlUrl="https://www.productcompass.pm/feed"/>
+      <outline type="rss" text="Department of Product — Rich Holmes" title="Department of Product" xmlUrl="https://departmentofproduct.substack.com/feed"/>
+      <outline type="rss" text="Roman Pichler — Roman Pichler" title="Roman Pichler" xmlUrl="https://www.romanpichler.com/feed/"/>
+      <outline type="rss" text="Itamar Gilad's Newsletter — Itamar Gilad" title="Itamar Gilad's Newsletter" xmlUrl="https://itamargilad.com/feed/"/>
+      <outline type="rss" text="Product Talk — Teresa Torres" title="Product Talk" xmlUrl="https://www.producttalk.org/feed/"/>
+      <outline type="rss" text="Product Thoughts / Product Practice — Tim Herbig" title="Product Thoughts / Product Practice" xmlUrl="https://herbig.co/feed/"/>
+      <outline type="rss" text="Bring the Donuts — Ken Norton" title="Bring the Donuts" xmlUrl="https://www.bringthedonuts.com/feed.xml"/>
+      <outline type="rss" text="One Knight in Product — Jason Knight" title="One Knight in Product" xmlUrl="https://oneknightinproduct.substack.com/feed"/>
+      <outline type="rss" text="The Looking Glass — Julie Zhuo" title="The Looking Glass" xmlUrl="https://lg.substack.com/feed"/>
+      <outline type="rss" text="Rich Mironov's Product Bytes — Rich Mironov" title="Rich Mironov's Product Bytes" xmlUrl="https://richmironov.substack.com/feed"/>
+      <outline type="rss" text="The PBL Newsletter — Ant Murphy" title="The PBL Newsletter" xmlUrl="https://www.antmurphy.me/newsletter/rss.xml"/>
+      <outline type="rss" text="Product Management IRL — Amy Mitchell" title="Product Management IRL" xmlUrl="https://amycmitchell.substack.com/feed"/>
+      <outline type="rss" text="ONE THING — Bruce McCarthy" title="ONE THING" xmlUrl="https://www.productculture.org/archive?format=rss"/>
+      <outline type="rss" text="Food for Agile Thought — Stefan Wolpers" title="Food for Agile Thought" xmlUrl="https://age-of-product.com/feed/"/>
+      <outline type="rss" text="GTM Strategist — Maja Voje" title="GTM Strategist" xmlUrl="https://knowledge.gtmstrategist.com/feed"/>
+      <outline type="rss" text="The Outcome — ProdPad (Janna Bastow et al.)" title="The Outcome" xmlUrl="https://www.prodpad.com/feed/"/>
+      <outline type="rss" text="Ravi on Product — Ravi Mehta" title="Ravi on Product" xmlUrl="https://blog.ravi-mehta.com/feed"/>
+      <outline type="rss" text="Maarten's Newsletter — Maarten Dalmijn" title="Maarten's Newsletter" xmlUrl="https://www.mdalmijn.com/feed"/>
+      <outline type="rss" text="Behind Product Lines — Aatir Abdul Rauf" title="Behind Product Lines" xmlUrl="https://aatir.substack.com/feed"/>
+      <outline type="rss" text="Untrapping Product Teams — David Pereira" title="Untrapping Product Teams" xmlUrl="https://dpereira.substack.com/feed"/>
+      <outline type="rss" text="The Product Person — Richard Kong" title="The Product Person" xmlUrl="https://theproductperson.substack.com/feed"/>
+      <outline type="rss" text="The Uncommon Executive — Yue Zhao" title="The Uncommon Executive" xmlUrl="https://news.theuncommonexecutive.com/feed"/>
+      <outline type="rss" text="Focused Chaos — Ben Yoskovitz" title="Focused Chaos" xmlUrl="https://www.focusedchaos.co/feed"/>
+      <outline type="rss" text="Productify — Bandan Singh" title="Productify" xmlUrl="https://productify.substack.com/feed"/>
+      <outline type="rss" text="Product Manager HQ — Product Manager HQ team" title="Product Manager HQ" xmlUrl="https://www.producthq.org/feed/"/>
+      <outline type="rss" text="Product Management with Mani — Mani Grewal" title="Product Management with Mani" xmlUrl="https://productmanagementwithmani.substack.com/feed"/>
+      <outline type="rss" text="Productside Newsletter — Productside (Roger Snyder, Kayla Trail et al.)" title="Productside Newsletter" xmlUrl="https://productside.com/feed/"/>
+      <outline type="rss" text="Sachin Rekhi's Blog — Sachin Rekhi" title="Sachin Rekhi's Blog" xmlUrl="https://www.sachinrekhi.com/feed"/>
+      <outline type="rss" text="GoPractice — Oleg Yakubenkov" title="GoPractice" xmlUrl="https://gopractice.io/feed/"/>
+      <outline type="rss" text="Elena's Growth Scoop — Elena Verna" title="Elena's Growth Scoop" xmlUrl="https://www.elenaverna.com/feed"/>
+      <outline type="rss" text="Leah's ProducTea — Leah Tharin" title="Leah's ProducTea" xmlUrl="https://www.leahtharin.com/feed"/>
+      <outline type="rss" text="The Product-Led Geek — Ben Williams" title="The Product-Led Geek" xmlUrl="https://www.plg.news/feed"/>
+      <outline type="rss" text="ProductLed Newsletter — Wes Bush" title="ProductLed Newsletter" xmlUrl="https://productled.com/feed"/>
+      <outline type="rss" text="Forget The Funnel — Georgiana Laudi &amp; Claire Suellentrop" title="Forget The Funnel" xmlUrl="https://forgetthefunnel.com/feed"/>
+      <outline type="rss" text="Casey Accidental — Casey Winters" title="Casey Accidental" xmlUrl="https://www.caseyaccidental.com/feed"/>
+      <outline type="rss" text="PricingSaaS / Good Better Best — Rob Litterst" title="PricingSaaS / Good Better Best" xmlUrl="https://goodbetterbest.substack.com/feed"/>
+      <outline type="rss" text="Growth Gems — Sylvain Gauchet" title="Growth Gems" xmlUrl="https://growthgems.substack.com/feed"/>
+      <outline type="rss" text="Growthmates — Kate Syuma" title="Growthmates" xmlUrl="https://www.growthmates.news/feed"/>
+      <outline type="rss" text="Mobile Dev Memo — Eric Seufert" title="Mobile Dev Memo" xmlUrl="https://mobiledevmemo.com/feed/"/>
+      <outline type="rss" text="PeerSignal — Adam Schoenfeld" title="PeerSignal" xmlUrl="https://www.peersignal.org/feed"/>
+      <outline type="rss" text="Ben's Bites — Ben Tossell" title="Ben's Bites" xmlUrl="https://www.bensbites.com/feed"/>
+      <outline type="rss" text="The Rundown AI — Rowan Cheung" title="The Rundown AI" xmlUrl="https://rss.beehiiv.com/feeds/2R3C6Bt5wj.xml"/>
+      <outline type="rss" text="Latent Space — swyx (Shawn Wang) &amp; Alessio Fanelli" title="Latent Space" xmlUrl="https://www.latent.space/feed"/>
+      <outline type="rss" text="AI Tidbits — Sahar Mor" title="AI Tidbits" xmlUrl="https://www.aitidbits.ai/feed"/>
+      <outline type="rss" text="One Useful Thing — Ethan Mollick" title="One Useful Thing" xmlUrl="https://www.oneusefulthing.org/feed"/>
+      <outline type="rss" text="Marily Nika's AI Product Academy — Dr. Marily Nika" title="Marily Nika's AI Product Academy" xmlUrl="https://marily.substack.com/feed"/>
+      <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://creatoreconomy.so/feed"/>
+      <outline type="rss" text="The Neuron — Noah Edelman &amp; Pete Huang" title="The Neuron" xmlUrl="https://rss.beehiiv.com/feeds/N4eCstxvgX.xml"/>
+      <outline type="rss" text="TLDR AI — TLDR team (Dan Ni)" title="TLDR AI" xmlUrl="https://tldr.tech/api/rss/ai"/>
+      <outline type="rss" text="Exponential View — Azeem Azhar" title="Exponential View" xmlUrl="https://www.exponentialview.co/feed"/>
+      <outline type="rss" text="Interconnects — Nathan Lambert" title="Interconnects" xmlUrl="https://www.interconnects.ai/feed"/>
+      <outline type="rss" text="The Pragmatic Engineer — Gergely Orosz" title="The Pragmatic Engineer" xmlUrl="https://newsletter.pragmaticengineer.com/feed"/>
+      <outline type="rss" text="Import AI — Jack Clark" title="Import AI" xmlUrl="https://importai.substack.com/feed"/>
+      <outline type="rss" text="Every — Dan Shipper, Nathan Baschez &amp; team" title="Every" xmlUrl="https://every.to/feed.xml"/>
+      <outline type="rss" text="Last Week in AI — Andrey Kurenkov &amp; Jeremie Harris" title="Last Week in AI" xmlUrl="https://lastweekin.ai/feed"/>
+      <outline type="rss" text="Experimental Mind — Kevin Anderson" title="Experimental Mind" xmlUrl="https://kevinanderson.substack.com/feed"/>
+      <outline type="rss" text="CRO Weekly — Tom van den Berg" title="CRO Weekly" xmlUrl="https://tomvandenberg.substack.com/feed"/>
+      <outline type="rss" text="Data Analysis Journal — Olga Berezovsky" title="Data Analysis Journal" xmlUrl="https://dataanalysis.substack.com/feed"/>
+      <outline type="rss" text="Counting Stuff — Randy Au" title="Counting Stuff" xmlUrl="https://www.counting-stuff.com/rss/"/>
+      <outline type="rss" text="benn.substack — Benn Stancil" title="benn.substack" xmlUrl="https://benn.substack.com/feed"/>
+      <outline type="rss" text="Decision Intelligence — Cassie Kozyrkov" title="Decision Intelligence" xmlUrl="https://decision.substack.com/feed"/>
+      <outline type="rss" text="TheSequence — Jesus Rodriguez &amp; Ksenia Se" title="TheSequence" xmlUrl="https://thesequence.substack.com/feed"/>
+      <outline type="rss" text="UX Collective — Fabricio Teixeira &amp; Caio Braga" title="UX Collective" xmlUrl="https://newsletter.uxdesign.cc/feed"/>
+      <outline type="rss" text="Built for Mars — Peter Ramsey" title="Built for Mars" xmlUrl="https://builtformars.substack.com/feed"/>
+      <outline type="rss" text="Maggie Appleton — Maggie Appleton" title="Maggie Appleton" xmlUrl="https://maggieappleton.com/rss.xml"/>
+      <outline type="rss" text="Smashing Magazine — Vitaly Friedman &amp; team" title="Smashing Magazine" xmlUrl="https://www.smashingmagazine.com/feed/"/>
+      <outline type="rss" text="UX Design Weekly — Kenny Chen" title="UX Design Weekly" xmlUrl="https://uxdesignweekly.com/feed/"/>
+      <outline type="rss" text="Nielsen Norman Group (NN/g) — Jakob Nielsen, Don Norman &amp; NN/g researchers" title="Nielsen Norman Group (NN/g)" xmlUrl="https://www.nngroup.com/feed/rss/"/>
+      <outline type="rss" text="Growth.Design — Dan Benoni &amp; Louis-Xavier Lavallee" title="Growth.Design" xmlUrl="https://growth.design/feed"/>
+      <outline type="rss" text="Product Picnic — Pavel Samsonov" title="Product Picnic" xmlUrl="https://rss.beehiiv.com/feeds/aoQVhPNHQP.xml"/>
+      <outline type="rss" text="Jared Spool / UIE — Jared Spool" title="Jared Spool / UIE" xmlUrl="https://articles.centercentre.com/feed/"/>
+      <outline type="rss" text="Irrational Exuberance — Will Larson" title="Irrational Exuberance" xmlUrl="https://lethain.com/feeds.xml"/>
+      <outline type="rss" text="Wes Kao's Newsletter — Wes Kao" title="Wes Kao's Newsletter" xmlUrl="https://newsletter.weskao.com/feed"/>
+      <outline type="rss" text="Refactoring — Luca Rossi" title="Refactoring" xmlUrl="https://refactoring.fm/feed"/>
+      <outline type="rss" text="Lara Hogan / Wherewithall — Lara Hogan" title="Lara Hogan / Wherewithall" xmlUrl="https://larahogan.me/feed.xml"/>
+      <outline type="rss" text="Elided Branches — Camille Fournier" title="Elided Branches" xmlUrl="https://www.elidedbranches.com/feeds/posts/default"/>
+      <outline type="rss" text="charity.wtf — Charity Majors" title="charity.wtf" xmlUrl="https://charitydotwtf.substack.com/feed"/>
+      <outline type="rss" text="Radical Candor — Kim Scott (Radical Candor team)" title="Radical Candor" xmlUrl="https://www.radicalcandor.com/blog/rss.xml"/>
+      <outline type="rss" text="Level Up Newsletter — Ethan Evans" title="Level Up Newsletter" xmlUrl="https://levelupwithethanevans.substack.com/feed"/>
+      <outline type="rss" text="Implications — Scott Belsky" title="Implications" xmlUrl="https://www.implications.com/feed"/>
+      <outline type="rss" text="The Engineering Manager — James Stanier" title="The Engineering Manager" xmlUrl="https://theengineeringmanager.substack.com/feed"/>
+      <outline type="rss" text="Software Lead Weekly — Oren Ellenbogen" title="Software Lead Weekly" xmlUrl="https://swlw-rss.netlify.app/issues.rss"/>
+      <outline type="rss" text="Net Interest — Marc Rubinstein" title="Net Interest" xmlUrl="https://www.netinterest.co/feed"/>
+      <outline type="rss" text="Mostly Metrics — CJ Gustafson" title="Mostly Metrics" xmlUrl="https://cjgustafson.substack.com/feed"/>
+      <outline type="rss" text="Tomasz Tunguz — Tomasz Tunguz" title="Tomasz Tunguz" xmlUrl="https://tomtunguz.com/index.xml"/>
+      <outline type="rss" text="SaaStr — Jason Lemkin" title="SaaStr" xmlUrl="https://www.saastr.com/feed/"/>
+      <outline type="rss" text="Stratechery — Ben Thompson" title="Stratechery" xmlUrl="https://stratechery.com/feed/"/>
+      <outline type="rss" text="Platformer — Casey Newton" title="Platformer" xmlUrl="https://www.platformer.news/rss/"/>
+      <outline type="rss" text="This Week in Apps — Sarah Perez" title="This Week in Apps" xmlUrl="https://appfigures.com/resources/rss/this-week-in-apps"/>
+      <outline type="rss" text="The Generalist — Mario Gabriele" title="The Generalist" xmlUrl="https://www.generalist.com/feed"/>
+      <outline type="rss" text="Not Boring — Packy McCormick" title="Not Boring" xmlUrl="https://www.notboring.co/feed"/>
+      <outline type="rss" text="The GTMnow Newsletter — GTMfund (Scott Barker, Sophie Buonassisi)" title="The GTMnow Newsletter" xmlUrl="https://thegtmnewsletter.substack.com/feed"/>
+      <outline type="rss" text="Tanay's Newsletter — Tanay Jaipuria" title="Tanay's Newsletter" xmlUrl="https://www.tanayj.com/feed"/>
+      <outline type="rss" text="a16z Enterprise Newsletter — Andreessen Horowitz (enterprise team)" title="a16z Enterprise Newsletter" xmlUrl="https://www.a16z.news/feed"/>
+      <outline type="rss" text="Elad's Newsletter (Elad Blog) — Elad Gil" title="Elad's Newsletter (Elad Blog)" xmlUrl="https://blog.eladgil.com/feed"/>
+      <outline type="rss" text="The SaaS Baton — Krish Subramanian &amp; Rajaraman Santhanam (Chargebee)" title="The SaaS Baton" xmlUrl="https://pmfevals.substack.com/feed"/>
+      <outline type="rss" text="Blossom Street Ventures — Sammy Abdullah" title="Blossom Street Ventures" xmlUrl="https://www.blossomstreetventures.com/blog-feed.xml"/>
+      <outline type="rss" text="A Smart Bear (Longform) — Jason Cohen" title="A Smart Bear (Longform)" xmlUrl="https://longform.asmartbear.com/index.xml"/>
+      <outline type="rss" text="Dan Hock's Essays — Dan Hockenmaier" title="Dan Hock's Essays" xmlUrl="https://www.danhock.co/feed"/>
+      <outline type="rss" text="Greg's Letter (Late Checkout) — Greg Isenberg" title="Greg's Letter (Late Checkout)" xmlUrl="https://latecheckout.substack.com/feed"/>
+      <outline type="rss" text="The Curiosity Chronicle — Sahil Bloom" title="The Curiosity Chronicle" xmlUrl="https://sahilbloom.substack.com/feed"/>
+      <outline type="rss" text="Elizabeth Yin's Blog — Elizabeth Yin" title="Elizabeth Yin's Blog" xmlUrl="https://elizabethyin.com/feed/"/>
+      <outline type="rss" text="HEY World (DHH) — David Heinemeier Hansson" title="HEY World (DHH)" xmlUrl="https://world.hey.com/dhh/feed.atom"/>
+      <outline type="rss" text="HEY World (Jason Fried) — Jason Fried" title="HEY World (Jason Fried)" xmlUrl="https://world.hey.com/jason/feed.atom"/>
+      <outline type="rss" text="20VC Newsletter — Harry Stebbings" title="20VC Newsletter" xmlUrl="https://20vc.substack.com/feed"/>
+      <outline type="rss" text="Nathan Barry — Nathan Barry" title="Nathan Barry" xmlUrl="https://nathanbarry.com/feed"/>
+      <outline type="rss" text="levels.io — Pieter Levels" title="levels.io" xmlUrl="https://levels.io/rss/"/>
+      <outline type="rss" text="This Week in Startups — Jason Calacanis" title="This Week in Startups" xmlUrl="https://twistartups.substack.com/feed"/>
+      <outline type="rss" text="Bottom Up — David Sacks" title="Bottom Up" xmlUrl="https://sacks.substack.com/feed"/>
+      <outline type="rss" text="Sam Altman's Blog — Sam Altman" title="Sam Altman's Blog" xmlUrl="https://blog.samaltman.com/posts.atom"/>
+      <outline type="rss" text="Working Theorys — Anu Atluru" title="Working Theorys" xmlUrl="https://www.workingtheorys.com/feed"/>
+      <outline type="rss" text="Marketing Ideas — Tom Orbach" title="Marketing Ideas" xmlUrl="https://www.marketingideas.com/feed"/>
+      <outline type="rss" text="Small Bets — Daniel Vassallo" title="Small Bets" xmlUrl="https://newsletter.smallbets.co/feed"/>
+      <outline type="rss" text="App Economy Insights (How They Make Money) — Bertrand (App Economy Insights)" title="App Economy Insights (How They Make Money)" xmlUrl="https://www.appeconomyinsights.com/feed"/>
+      <outline type="rss" text="Money Stuff — Matt Levine (Bloomberg Opinion)" title="Money Stuff" xmlUrl="https://www.bloomberg.com/opinion/authors/ARbTQlRLRjE/matthew-s-levine.rss"/>
+      <outline type="rss" text="Capital Gains — Byrne Hobart" title="Capital Gains" xmlUrl="https://rss.beehiiv.com/feeds/JyXsSUwlAE.xml"/>
+      <outline type="rss" text="Noahpinion — Noah Smith" title="Noahpinion" xmlUrl="https://www.noahpinion.blog/feed"/>
+      <outline type="rss" text="Kyla's Newsletter — Kyla Scanlon" title="Kyla's Newsletter" xmlUrl="https://kyla.substack.com/feed"/>
+      <outline type="rss" text="Benedict Evans — Benedict Evans" title="Benedict Evans" xmlUrl="https://www.ben-evans.com/benedictevans?format=rss"/>
+      <outline type="rss" text="Doomberg — Doomberg team" title="Doomberg" xmlUrl="https://newsletter.doomberg.com/feed"/>
+      <outline type="rss" text="Spyglass — M.G. Siegler" title="Spyglass" xmlUrl="https://spyglass.org/feed/"/>
+      <outline type="rss" text="Where's Your Ed At — Ed Zitron" title="Where's Your Ed At" xmlUrl="https://www.wheresyoured.at/rss/"/>
+      <outline type="rss" text="Musings on Markets — Aswath Damodaran" title="Musings on Markets" xmlUrl="https://aswathdamodaran.blogspot.com/feeds/posts/default"/>
+      <outline type="rss" text="kwokchain — Kevin Kwok" title="kwokchain" xmlUrl="https://kwokchain.com/feed/"/>
+      <outline type="rss" text="The Information — Jessica Lessin &amp; team" title="The Information" xmlUrl="https://www.theinformation.com/feed"/>
+      <outline type="rss" text="Sub Club — RevenueCat (David Barnard, Jacob Eiting et al.)" title="Sub Club" xmlUrl="https://www.revenuecat.com/blog/rss.xml"/>
+      <outline type="rss" text="Ibbaka Market Blog — Steven Forth &amp; Ibbaka team" title="Ibbaka Market Blog" xmlUrl="https://www.ibbaka.com/ibbaka-market-blog?format=rss"/>
+      <outline type="rss" text="Press Gazette — Dominic Ponsford &amp; team" title="Press Gazette" xmlUrl="https://pressgazette.substack.com/feed"/>
+      <outline type="rss" text="A Media Operator — Jacob Cohen Donnelly" title="A Media Operator" xmlUrl="https://www.amediaoperator.com/feed/"/>
+      <outline type="rss" text="Subscription Insider — Kathy Greenler Sexton" title="Subscription Insider" xmlUrl="https://www.subscriptioninsider.com/feed"/>
+      <outline type="rss" text="SaaSletter — Matt Harney" title="SaaSletter" xmlUrl="https://www.saasletter.com/feed"/>
+      <outline type="rss" text="Platforms (Sangeet Paul Choudary) — Sangeet Paul Choudary" title="Platforms (Sangeet Paul Choudary)" xmlUrl="https://platforms.substack.com/feed"/>
+      <outline type="rss" text="Newcomer — Eric Newcomer" title="Newcomer" xmlUrl="https://www.newcomer.co/feed"/>
+      <outline type="rss" text="2PM — Web Smith" title="2PM" xmlUrl="https://2pml.com/feed/"/>
+      <outline type="rss" text="Modern Retail — Digiday Media" title="Modern Retail" xmlUrl="https://www.modernretail.co/feed/"/>
+      <outline type="rss" text="Practical Ecommerce — Practical Ecommerce team" title="Practical Ecommerce" xmlUrl="https://www.practicalecommerce.com/feed"/>
+      <outline type="rss" text="The Consumer VC — Mike Gelb" title="The Consumer VC" xmlUrl="https://www.theconsumervc.com/feed"/>
+      <outline type="rss" text="TSOH Investment Research — Alex Morris" title="TSOH Investment Research" xmlUrl="https://thescienceofhitting.com/feed"/>
+      <outline type="rss" text="All4Marketplaces — Jordi Ordóñez" title="All4Marketplaces" xmlUrl="https://all4marketplaces.com/feed"/>
+      <outline type="rss" text="API Evangelist — Kin Lane" title="API Evangelist" xmlUrl="https://apievangelist.com/feed.xml"/>
+      <outline type="rss" text="Eugene Yan — Eugene Yan" title="Eugene Yan" xmlUrl="https://eugeneyan.com/rss/"/>
+      <outline type="rss" text="Ahead of AI — Sebastian Raschka" title="Ahead of AI" xmlUrl="https://magazine.sebastianraschka.com/feed"/>
+      <outline type="rss" text="SwirlAI Newsletter — Aurimas Griciunas" title="SwirlAI Newsletter" xmlUrl="https://www.newsletter.swirlai.com/feed"/>
+      <outline type="rss" text="Deep (Learning) Focus — Cameron R. Wolfe" title="Deep (Learning) Focus" xmlUrl="https://cameronrwolfe.substack.com/feed"/>
+      <outline type="rss" text="Hamel's Blog — Hamel Husain" title="Hamel's Blog" xmlUrl="https://hamelhusain.substack.com/feed"/>
+      <outline type="rss" text="Normcore Tech — Vicki Boykis" title="Normcore Tech" xmlUrl="https://newsletter.vickiboykis.com/rss/"/>
+      <outline type="rss" text="Data Engineering Weekly — Ananth Packkildurai" title="Data Engineering Weekly" xmlUrl="https://www.dataengineeringweekly.com/feed"/>
+      <outline type="rss" text="Gradient Flow — Ben Lorica" title="Gradient Flow" xmlUrl="https://gradientflow.substack.com/feed"/>
+      <outline type="rss" text="Top Information Retrieval Papers of the Week — Sumit Kumar" title="Top Information Retrieval Papers of the Week" xmlUrl="https://recsys.substack.com/feed"/>
+      <outline type="rss" text="RecsysML + LLMs — Gaurav Chakravorty" title="RecsysML + LLMs" xmlUrl="https://recsysml.substack.com/feed"/>
+      <outline type="rss" text="MLOps Newsletter — Bugra Akyildiz" title="MLOps Newsletter" xmlUrl="https://mlops.substack.com/feed"/>
+      <outline type="rss" text="Marvelous MLOps — Maria Vechtomova &amp; Başak Tuğçe Eskili" title="Marvelous MLOps" xmlUrl="https://marvelousmlops.substack.com/feed"/>
+      <outline type="rss" text="Exploring Language Models — Maarten Grootendorst" title="Exploring Language Models" xmlUrl="https://newsletter.maartengrootendorst.com/feed"/>
+      <outline type="rss" text="Daily Dose of Data Science — Avi Chawla" title="Daily Dose of Data Science" xmlUrl="https://www.dailydoseofds.com/rss/"/>
+      <outline type="rss" text="amatria.in — Xavier Amatriain" title="amatria.in" xmlUrl="https://amatria.in/blog/feed.xml"/>
+      <outline type="rss" text="Below the Line — Kevin LaBuz" title="Below the Line" xmlUrl="https://kjlabuz.substack.com/feed"/>
+      <outline type="rss" text="Thought Sparks — Rita McGrath" title="Thought Sparks" xmlUrl="https://thoughtsparks.substack.com/feed"/>
+      <outline type="rss" text="Run the Business — Ibrahim Bashir" title="Run the Business" xmlUrl="https://runthebusiness.substack.com/feed"/>
+      <outline type="rss" text="Looking for Leverage — CJ Gustafson" title="Looking for Leverage" xmlUrl="https://lookingforleverage.substack.com/feed"/>
+      <outline type="rss" text="OnlyCFO's Newsletter — OnlyCFO" title="OnlyCFO's Newsletter" xmlUrl="https://www.onlycfo.io/feed"/>
+      <outline type="rss" text="Clouded Judgement — Jamin Ball" title="Clouded Judgement" xmlUrl="https://cloudedjudgement.substack.com/feed"/>
+      <outline type="rss" text="ByteByteGo — Alex Xu" title="ByteByteGo" xmlUrl="https://blog.bytebytego.com/feed"/>
+      <outline type="rss" text="MKT1 Newsletter — Emily Kramer &amp; Kathleen Estreich" title="MKT1 Newsletter" xmlUrl="https://mkt1.substack.com/feed"/>
+      <outline type="rss" text="The Down Round — Patrick Mathieson" title="The Down Round" xmlUrl="https://thedownround.substack.com/feed"/>
+      <outline type="rss" text="Wildfire Labs — Todd Gagne" title="Wildfire Labs" xmlUrl="https://wildfirelabs.substack.com/feed"/>
+      <outline type="rss" text="Innovation Unpacked (JTBD) — Mike Boysen" title="Innovation Unpacked (JTBD)" xmlUrl="https://jtbd.one/feed"/>
+      <outline type="rss" text="Investing in AI — Rob May" title="Investing in AI" xmlUrl="https://investinginai.substack.com/feed"/>
+      <outline type="rss" text="MRR Unlocked — Alexander Estner" title="MRR Unlocked" xmlUrl="https://www.mrrunlocked.com/feed"/>
+      <outline type="rss" text="Micro SaaS Idea — Upendra" title="Micro SaaS Idea" xmlUrl="https://microsaasidea.substack.com/feed"/>
+    </outline>
+    <outline text="Podcasts" title="Podcasts">
+      <outline type="rss" text="Lenny's Podcast — Lenny Rachitsky" title="Lenny's Podcast" xmlUrl="https://api.substack.com/feed/podcast/10845.rss"/>
+      <outline type="rss" text="Product Thinking — Melissa Perri" title="Product Thinking" xmlUrl="https://anchor.fm/s/ff7e9014/podcast/rss"/>
+      <outline type="rss" text="The Product Experience — Lily Smith &amp; Randy Silver" title="The Product Experience" xmlUrl="https://rss.buzzsprout.com/1797429.rss"/>
+      <outline type="rss" text="The Product Podcast — Carlos González de Villaumbrosia" title="The Product Podcast" xmlUrl="https://rss.buzzsprout.com/90361.rss"/>
+      <outline type="rss" text="One Knight in Product — Jason Knight" title="One Knight in Product" xmlUrl="https://feed.podbean.com/oneknightinproduct/feed.xml"/>
+      <outline type="rss" text="ProductLed Podcast — Wes Bush" title="ProductLed Podcast" xmlUrl="https://feed.pod.co/product-led-podcast"/>
+      <outline type="rss" text="The Product Manager — Hannah Clark" title="The Product Manager" xmlUrl="https://rss.buzzsprout.com/1779875.rss"/>
+      <outline type="rss" text="Product for Product Management — Matt Green &amp; Moshe Mikanovsky" title="Product for Product Management" xmlUrl="https://www.spreaker.com/show/4793261/episodes/feed"/>
+      <outline type="rss" text="Product Talk (Products That Count) — Sophie Charlotte Moatti" title="Product Talk (Products That Count)" xmlUrl="https://rss.libsyn.com/shows/71255/destinations/302280.xml"/>
+      <outline type="rss" text="The Growth Podcast (Product Growth) — Aakash Gupta" title="The Growth Podcast (Product Growth)" xmlUrl="https://api.substack.com/feed/podcast/454003/s/133669.rss"/>
+      <outline type="rss" text="Product Momentum — Sean Flaherty &amp; Paul Gebel (ITX)" title="Product Momentum" xmlUrl="https://itx.com/feed/podcast/"/>
+      <outline type="rss" text="Practical Product Management — Marilyn McDonald &amp; Leah Farmer" title="Practical Product Management" xmlUrl="https://media.rss.com/practicalproductmanagement/feed.xml"/>
+      <outline type="rss" text="Product Mastery Now — Chad McAllister" title="Product Mastery Now" xmlUrl="https://productmasterynow.com/feed/podcast/"/>
+      <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://anchor.fm/s/f38497cc/podcast/rss"/>
+      <outline type="rss" text="The Skip Podcast — Nikhyl Singhal" title="The Skip Podcast" xmlUrl="https://api.substack.com/feed/podcast/92860.rss"/>
+      <outline type="rss" text="All Things Product (Teresa &amp; Petra) — Teresa Torres &amp; Petra Wille" title="All Things Product (Teresa &amp; Petra)" xmlUrl="https://allthingsproduct.podigee.io/feed/mp3"/>
+      <outline type="rss" text="The Intentional Product Manager — Shobhit Chugh" title="The Intentional Product Manager" xmlUrl="https://rss.buzzsprout.com/2399157.rss"/>
+      <outline type="rss" text="Lessons in Product Management — Path2Product (Roman Roan)" title="Lessons in Product Management" xmlUrl="https://anchor.fm/s/12497db8/podcast/rss"/>
+      <outline type="rss" text="The Product Huddle — Anamarija Stojić &amp; Jeff Callan" title="The Product Huddle" xmlUrl="https://anchor.fm/s/10ab29b38/podcast/rss"/>
+      <outline type="rss" text="My First Million — Sam Parr &amp; Shaan Puri" title="My First Million" xmlUrl="https://feeds.megaphone.fm/HS2300184645"/>
+      <outline type="rss" text="The Twenty Minute VC (20VC) — Harry Stebbings" title="The Twenty Minute VC (20VC)" xmlUrl="https://thetwentyminutevc.libsyn.com/rss"/>
+      <outline type="rss" text="How I Built This — Guy Raz" title="How I Built This" xmlUrl="https://rss.art19.com/how-i-built-this"/>
+      <outline type="rss" text="Masters of Scale — Reid Hoffman &amp; guest hosts" title="Masters of Scale" xmlUrl="https://rss.art19.com/masters-of-scale"/>
+      <outline type="rss" text="This Week in Startups — Jason Calacanis" title="This Week in Startups" xmlUrl="https://anchor.fm/s/7c624c84/podcast/rss"/>
+      <outline type="rss" text="Startups For the Rest of Us — Rob Walling &amp; Einar Vollset" title="Startups For the Rest of Us" xmlUrl="https://feeds.castos.com/mqv6"/>
+      <outline type="rss" text="The a16z Podcast — Andreessen Horowitz" title="The a16z Podcast" xmlUrl="https://feeds.simplecast.com/JGE3yC0V"/>
+      <outline type="rss" text="The Official SaaStr Podcast — Jason Lemkin &amp; SaaStr team" title="The Official SaaStr Podcast" xmlUrl="https://saastr.libsyn.com/rss"/>
+      <outline type="rss" text="Y Combinator Startup Podcast — Y Combinator partners" title="Y Combinator Startup Podcast" xmlUrl="https://anchor.fm/s/8c1524bc/podcast/rss"/>
+      <outline type="rss" text="Invest Like the Best — Patrick O'Shaughnessy" title="Invest Like the Best" xmlUrl="https://feeds.megaphone.fm/investlikethebest"/>
+      <outline type="rss" text="The Knowledge Project — Shane Parrish" title="The Knowledge Project" xmlUrl="https://feeds.megaphone.fm/FSMI7575968096"/>
+      <outline type="rss" text="All-In — Chamath Palihapitiya, Jason Calacanis, David Sacks &amp; David Friedberg" title="All-In" xmlUrl="https://allinchamathjason.libsyn.com/rss"/>
+      <outline type="rss" text="The Pitch — Josh Muccio" title="The Pitch" xmlUrl="https://feeds.megaphone.fm/thepitch"/>
+      <outline type="rss" text="Grit — Joubin Mirzadegan" title="Grit" xmlUrl="https://feeds.transistor.fm/go-to-market-grit"/>
+      <outline type="rss" text="The Diary of a CEO — Steven Bartlett" title="The Diary of a CEO" xmlUrl="https://rss2.flightcast.com/xmsftuzjjykcmqwolaqn6mdn"/>
+      <outline type="rss" text="BG2 Pod — Brad Gerstner &amp; Bill Gurley" title="BG2 Pod" xmlUrl="https://anchor.fm/s/f06c2370/podcast/rss"/>
+      <outline type="rss" text="In Depth — Brett Berson (First Round)" title="In Depth" xmlUrl="https://firstround.libsyn.com/rss"/>
+      <outline type="rss" text="The Generalist — Mario Gabriele" title="The Generalist" xmlUrl="https://anchor.fm/s/102eb9800/podcast/rss"/>
+      <outline type="rss" text="Cheeky Pint — John Collison (Stripe)" title="Cheeky Pint" xmlUrl="https://feeds.transistor.fm/cheeky-pint-with-john-collison"/>
+      <outline type="rss" text="Latent Space — swyx (Shawn Wang) &amp; Alessio Fanelli" title="Latent Space" xmlUrl="https://api.substack.com/feed/podcast/1084089.rss"/>
+      <outline type="rss" text="No Priors — Sarah Guo &amp; Elad Gil" title="No Priors" xmlUrl="https://feeds.megaphone.fm/nopriors"/>
+      <outline type="rss" text="The Cognitive Revolution — Nathan Labenz &amp; Erik Torenberg" title="The Cognitive Revolution" xmlUrl="https://feeds.megaphone.fm/RINTP3108857801"/>
+      <outline type="rss" text="Practical AI — Daniel Whitenack &amp; Chris Benson" title="Practical AI" xmlUrl="https://feeds.transistor.fm/practical-ai-machine-learning-data-science-llm"/>
+      <outline type="rss" text="The TWIML AI Podcast — Sam Charrington" title="The TWIML AI Podcast" xmlUrl="https://feeds.megaphone.fm/MLN2155636147"/>
+      <outline type="rss" text="Dwarkesh Podcast — Dwarkesh Patel" title="Dwarkesh Podcast" xmlUrl="https://apple.dwarkesh-podcast.workers.dev/feed.rss"/>
+      <outline type="rss" text="Gradient Dissent — Lukas Biewald (Weights &amp; Biases)" title="Gradient Dissent" xmlUrl="https://feeds.captivate.fm/gradient-dissent/"/>
+      <outline type="rss" text="Hard Fork — Kevin Roose &amp; Casey Newton" title="Hard Fork" xmlUrl="https://feeds.simplecast.com/6HKOhNgS"/>
+      <outline type="rss" text="AI + a16z — Andreessen Horowitz" title="AI + a16z" xmlUrl="https://feeds.simplecast.com/Hb_IuXOo"/>
+      <outline type="rss" text="Lex Fridman Podcast — Lex Fridman" title="Lex Fridman Podcast" xmlUrl="https://lexfridman.com/feed/podcast/"/>
+      <outline type="rss" text="The AI Daily Brief — Nathaniel Whittemore" title="The AI Daily Brief" xmlUrl="https://anchor.fm/s/f7cac464/podcast/rss"/>
+      <outline type="rss" text="Last Week in AI — Andrey Kurenkov &amp; Jeremie Harris" title="Last Week in AI" xmlUrl="https://rss.art19.com/last-week-in-ai"/>
+      <outline type="rss" text="Machine Learning Street Talk — Tim Scarfe &amp; guests" title="Machine Learning Street Talk" xmlUrl="https://anchor.fm/s/1e4a0eac/podcast/rss"/>
+      <outline type="rss" text="Eye on A.I. — Craig S. Smith" title="Eye on A.I." xmlUrl="https://rss.libsyn.com/shows/123267/destinations/727317.xml"/>
+      <outline type="rss" text="Training Data — Sequoia Capital" title="Training Data" xmlUrl="https://feeds.megaphone.fm/trainingdata"/>
+      <outline type="rss" text="Unsupervised Learning — Jacob Effron (Redpoint)" title="Unsupervised Learning" xmlUrl="https://feeds.simplecast.com/dOSE_bdP"/>
+      <outline type="rss" text="This Day in AI — Michael Sharkey &amp; Chris Sharkey" title="This Day in AI" xmlUrl="https://feeds.transistor.fm/this-day-in-ai"/>
+      <outline type="rss" text="The Vergecast — Nilay Patel, David Pierce &amp; Alex Cranz" title="The Vergecast" xmlUrl="https://feeds.megaphone.fm/vergecast"/>
+      <outline type="rss" text="Decoder with Nilay Patel — Nilay Patel" title="Decoder with Nilay Patel" xmlUrl="https://feeds.megaphone.fm/recodedecode"/>
+      <outline type="rss" text="The MAD Podcast — Matt Turck (FirstMark)" title="The MAD Podcast" xmlUrl="https://anchor.fm/s/f2ee4948/podcast/rss"/>
+      <outline type="rss" text="ThursdAI — Alex Volkov" title="ThursdAI" xmlUrl="https://api.substack.com/feed/podcast/1801228.rss"/>
+      <outline type="rss" text="Big Technology Podcast — Alex Kantrowitz" title="Big Technology Podcast" xmlUrl="https://feeds.megaphone.fm/LI3617121267"/>
+      <outline type="rss" text="Possible — Reid Hoffman &amp; Aria Finger" title="Possible" xmlUrl="https://feeds.megaphone.fm/possible"/>
+      <outline type="rss" text="Google DeepMind: The Podcast — Hannah Fry" title="Google DeepMind: The Podcast" xmlUrl="https://feeds.simplecast.com/JT6pbPkg"/>
+      <outline type="rss" text="Mixture of Experts — Tim Hwang &amp; IBM panelists" title="Mixture of Experts" xmlUrl="https://feed.7f5afe5c.public.multi-containers.ibm.com/rss/1773841/403892542/1_x5yvmanw"/>
+      <outline type="rss" text="Super Data Science — Jon Krohn" title="Super Data Science" xmlUrl="https://feeds.megaphone.fm/SUPERDATASCIENCEPTYLTD9836501887"/>
+      <outline type="rss" text="The Artificial Intelligence Show — Paul Roetzer &amp; Mike Kaput" title="The Artificial Intelligence Show" xmlUrl="https://feeds.megaphone.fm/marketingai"/>
+      <outline type="rss" text="Leveraging AI — Isar Meitis" title="Leveraging AI" xmlUrl="https://rss.buzzsprout.com/2149574.rss"/>
+      <outline type="rss" text="The Neuron: AI Explained — Pete Huang &amp; Grant Harvey" title="The Neuron: AI Explained" xmlUrl="https://anchor.fm/s/f51d3fd0/podcast/rss"/>
+      <outline type="rss" text="AI Applied — Conor Grennan &amp; Jaeden Schafer" title="AI Applied" xmlUrl="https://rss.art19.com/ai-applied"/>
+      <outline type="rss" text="The AI Engineer Podcast — AI Engineer / Latent Space team" title="The AI Engineer Podcast" xmlUrl="https://rss.art19.com/the-ai-engineer-podcast"/>
+      <outline type="rss" text="Design Better — Eli Woolery &amp; Aarron Walter" title="Design Better" xmlUrl="https://feeds.megaphone.fm/designbetter"/>
+      <outline type="rss" text="NN/g UX Podcast — Therese Fessenden (Nielsen Norman Group)" title="NN/g UX Podcast" xmlUrl="https://anchor.fm/s/2125a62c/podcast/rss"/>
+      <outline type="rss" text="Honest UX Talks — Anfisa Bogomolova &amp; Ioana Teleanu" title="Honest UX Talks" xmlUrl="https://anchor.fm/s/46654ac8/podcast/rss"/>
+      <outline type="rss" text="Awkward Silences — Erin May &amp; John-Henry Forster (User Interviews)" title="Awkward Silences" xmlUrl="https://feeds.transistor.fm/awkward-silences"/>
+      <outline type="rss" text="The Futur — Chris Do" title="The Futur" xmlUrl="https://feeds.megaphone.fm/TFL6245334029/"/>
+      <outline type="rss" text="The Crazy One — Stephen Gates" title="The Crazy One" xmlUrl="https://rss.buzzsprout.com/539050.rss"/>
+      <outline type="rss" text="Finding Our Way — Peter Merholz &amp; Jesse James Garrett" title="Finding Our Way" xmlUrl="https://findingourway.design/category/podcast/feed/"/>
+      <outline type="rss" text="Design Systems Podcast (Patterns) — Chris Strahl (Knapsack)" title="Design Systems Podcast (Patterns)" xmlUrl="https://rss.buzzsprout.com/887923.rss"/>
+      <outline type="rss" text="Content Strategy Insights — Larry Swanson" title="Content Strategy Insights" xmlUrl="https://rss.libsyn.com/shows/109907/destinations/602258.xml"/>
+      <outline type="rss" text="UX Research Geeks — Tina Ličková (UXtweak)" title="UX Research Geeks" xmlUrl="https://anchor.fm/s/8f6fdeb8/podcast/rss"/>
+      <outline type="rss" text="User Defenders — Jason Ogle" title="User Defenders" xmlUrl="https://rss.libsyn.com/shows/73897/destinations/322283.xml"/>
+      <outline type="rss" text="Design System Office Hours — Davy Fung &amp; PJ Onori" title="Design System Office Hours" xmlUrl="https://anchor.fm/s/7e0ce6ac/podcast/rss"/>
+      <outline type="rss" text="Design Systems WTF — Luke Murphy &amp; Michelle Chin (zeroheight)" title="Design Systems WTF" xmlUrl="https://designsystemswtf.buzzsprout.com/rss"/>
+      <outline type="rss" text="The User Research Strategist — Nikki Anderson" title="The User Research Strategist" xmlUrl="https://api.substack.com/feed/podcast/1748076.rss"/>
+      <outline type="rss" text="Future of UX — Patricia Reiners" title="Future of UX" xmlUrl="https://anchor.fm/s/df826ec/podcast/rss"/>
+      <outline type="rss" text="Boagworld UX Show — Paul Boag &amp; Marcus Lillington" title="Boagworld UX Show" xmlUrl="https://feeds.simplecast.com/XJ3MbVN3"/>
+      <outline type="rss" text="On Theme: Design Systems in Depth — Elyse Holladay" title="On Theme: Design Systems in Depth" xmlUrl="https://rss.buzzsprout.com/2417527.rss"/>
+      <outline type="rss" text="Acquired — Ben Gilbert &amp; David Rosenthal" title="Acquired" xmlUrl="https://feeds.transistor.fm/acquired"/>
+      <outline type="rss" text="ACQ2 by Acquired — Ben Gilbert &amp; David Rosenthal" title="ACQ2 by Acquired" xmlUrl="https://feeds.transistor.fm/acq2"/>
+      <outline type="rss" text="Founders — David Senra" title="Founders" xmlUrl="https://feeds.megaphone.fm/DSLLC6297708582"/>
+      <outline type="rss" text="Business Breakdowns — Colossus (Zack Fuss, Matt Reustle &amp; guests)" title="Business Breakdowns" xmlUrl="https://feeds.megaphone.fm/breakdowns"/>
+      <outline type="rss" text="Pivot — Kara Swisher &amp; Scott Galloway" title="Pivot" xmlUrl="https://feeds.megaphone.fm/pivot"/>
+      <outline type="rss" text="Prof G Markets — Scott Galloway &amp; Ed Elson" title="Prof G Markets" xmlUrl="https://feeds.megaphone.fm/profgmarkets"/>
+      <outline type="rss" text="The Prof G Pod — Scott Galloway" title="The Prof G Pod" xmlUrl="https://feeds.megaphone.fm/WWO6655869236"/>
+      <outline type="rss" text="Odd Lots — Joe Weisenthal &amp; Tracy Alloway (Bloomberg)" title="Odd Lots" xmlUrl="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/8a94442e-5a74-4fa2-8b8d-ae27003a8d6b/982f5071-765c-403d-969d-ae27003a8d83/podcast.rss"/>
+      <outline type="rss" text="Money Stuff: The Podcast — Matt Levine &amp; Katie Greifeld (Bloomberg)" title="Money Stuff: The Podcast" xmlUrl="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/ee4336cb-155f-4488-90e0-b1400134e40e/77e6a3a7-290d-4a82-8164-b14001353ef2/podcast.rss"/>
+      <outline type="rss" text="Capital Allocators — Ted Seides" title="Capital Allocators" xmlUrl="https://rss.libsyn.com/shows/94820/destinations/482814.xml"/>
+      <outline type="rss" text="Masters in Business — Barry Ritholtz (Bloomberg)" title="Masters in Business" xmlUrl="https://www.omnycontent.com/d/playlist/e73c998e-6e60-432f-8610-ae210140c5b1/4e4cd910-40a1-4619-a5f3-ae2b0012ffff/5873a3cb-298f-40bc-b71f-ae2b0013000d/podcast.rss"/>
+      <outline type="rss" text="In Good Company — Nicolai Tangen" title="In Good Company" xmlUrl="https://feeds.acast.com/public/shows/622618c7057f3400120d15db"/>
+      <outline type="rss" text="The Compound and Friends — Josh Brown &amp; Michael Batnick" title="The Compound and Friends" xmlUrl="https://feeds.megaphone.fm/TCP4771071679"/>
+      <outline type="rss" text="Business Movers — Lindsay Graham (Wondery)" title="Business Movers" xmlUrl="https://rss.art19.com/business-movers"/>
+      <outline type="rss" text="Sharp Tech — Ben Thompson &amp; Andrew Sharp" title="Sharp Tech" xmlUrl="https://sharptech.fm/feed/podcast"/>
+      <outline type="rss" text="Patrick Boyle On Finance — Patrick Boyle" title="Patrick Boyle On Finance" xmlUrl="https://anchor.fm/s/fc0914e0/podcast/rss"/>
+      <outline type="rss" text="Coaching for Leaders — Dave Stachowiak" title="Coaching for Leaders" xmlUrl="https://feeds.podcastmirror.com/coaching-for-leaders"/>
+      <outline type="rss" text="The Pragmatic Engineer Podcast — Gergely Orosz" title="The Pragmatic Engineer Podcast" xmlUrl="https://api.substack.com/feed/podcast/458709.rss"/>
+      <outline type="rss" text="The Look &amp; Sound of Leadership — Tom Henschel" title="The Look &amp; Sound of Leadership" xmlUrl="https://rss.buzzsprout.com/1807501.rss"/>
+      <outline type="rss" text="Radical Candor — Kim Scott, Jason Rosoff &amp; Amy Sandler" title="Radical Candor" xmlUrl="https://feeds.megaphone.fm/radicalcandor"/>
+      <outline type="rss" text="Soft Skills Engineering — Jamison Dance &amp; Dave Smith" title="Soft Skills Engineering" xmlUrl="https://softskills.audio/feed.xml"/>
+      <outline type="rss" text="Engineering Enablement — Abi Noda (DX)" title="Engineering Enablement" xmlUrl="https://feeds.transistor.fm/the-engineering-enablement-podcast"/>
+      <outline type="rss" text="The Engineering Leadership Podcast — Engineering Leadership Community (ELC)" title="The Engineering Leadership Podcast" xmlUrl="https://feeds.simplecast.com/Z8Dl_qAv"/>
+      <outline type="rss" text="At The Table with Patrick Lencioni — Patrick Lencioni" title="At The Table with Patrick Lencioni" xmlUrl="https://feeds.captivate.fm/atthetablepodcast/"/>
+      <outline type="rss" text="HBR On Leadership — Harvard Business Review" title="HBR On Leadership" xmlUrl="https://feeds.feedburner.com/harvardbusiness/on-leadership"/>
+      <outline type="rss" text="HBR IdeaCast — Alison Beard &amp; Curt Nickisch (HBR)" title="HBR IdeaCast" xmlUrl="http://feeds.harvardbusiness.org/harvardbusiness/ideacast"/>
+      <outline type="rss" text="Hidden Brain — Shankar Vedantam" title="Hidden Brain" xmlUrl="https://feeds.simplecast.com/kwWc0lhf"/>
+      <outline type="rss" text="The Stack Overflow Podcast — Ben Popper &amp; guests" title="The Stack Overflow Podcast" xmlUrl="https://rss.art19.com/the-stack-overflow-podcast"/>
+      <outline type="rss" text="Developer Tea — Jonathan Cutrell" title="Developer Tea" xmlUrl="https://feeds.simplecast.com/dLRotFGk"/>
+      <outline type="rss" text="Negotiate Anything — Kwame Christian" title="Negotiate Anything" xmlUrl="https://feeds.megaphone.fm/LI9239874689"/>
+      <outline type="rss" text="Coaching Real Leaders — Muriel Wilkins" title="Coaching Real Leaders" xmlUrl="https://rss.art19.com/coaching-real-leaders"/>
+      <outline type="rss" text="Manager Tools — Mike Auzenne &amp; Mark Horstman" title="Manager Tools" xmlUrl="https://files.manager-tools.com/public/feeds/manager-tools-podcasts.xml"/>
+      <outline type="rss" text="Modern Mentor — Rachel Cooke" title="Modern Mentor" xmlUrl="https://feeds.acast.com/public/shows/69c148241a160b44db9c5126"/>
+      <outline type="rss" text="ReThinking with Adam Grant — Adam Grant" title="ReThinking with Adam Grant" xmlUrl="https://feeds.acast.com/public/shows/675858676d1777b3683ec351"/>
+      <outline type="rss" text="No Stupid Questions — Angela Duckworth &amp; Mike Maughan" title="No Stupid Questions" xmlUrl="https://feeds.simplecast.com/dfh_verV"/>
+      <outline type="rss" text="How to Be Awesome at Your Job — Pete Mockaitis" title="How to Be Awesome at Your Job" xmlUrl="https://rss.art19.com/how-to-be-awesome-at-your-job"/>
+      <outline type="rss" text="Tech Lead Journal — Henry Suryawirawan" title="Tech Lead Journal" xmlUrl="https://anchor.fm/s/265d7c64/podcast/rss"/>
+      <outline type="rss" text="Maintainable — Robby Russell" title="Maintainable" xmlUrl="https://feeds.simplecast.com/7y1CbAbN"/>
+      <outline type="rss" text="Dev Interrupted — Conor Bronsdon &amp; guests (LinearB)" title="Dev Interrupted" xmlUrl="https://rss.buzzsprout.com/1422892.rss"/>
+      <outline type="rss" text="Beyond Coding — Patrick Akil" title="Beyond Coding" xmlUrl="https://anchor.fm/s/5bb57eac/podcast/rss"/>
+      <outline type="rss" text="Boz To The Future — Andrew &quot;Boz&quot; Bosworth" title="Boz To The Future" xmlUrl="https://rss.buzzsprout.com/1801980.rss"/>
+      <outline type="rss" text="Impact Pricing — Mark Stiving" title="Impact Pricing" xmlUrl="https://impactpricing.libsyn.com/rss"/>
+      <outline type="rss" text="Future Commerce — Phillip Jackson &amp; Brian Lange" title="Future Commerce" xmlUrl="https://feeds.simplecast.com/hQ2eLzNW"/>
+    </outline>
+  </body>
+</opml>

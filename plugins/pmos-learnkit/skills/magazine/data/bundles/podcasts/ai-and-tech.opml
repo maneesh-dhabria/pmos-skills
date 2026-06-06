@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — ai-and-tech (podcasts)</title></head>
+  <body>
+    <outline type="rss" text="The Growth Podcast (Product Growth) — Aakash Gupta" title="The Growth Podcast (Product Growth)" xmlUrl="https://api.substack.com/feed/podcast/454003/s/133669.rss"/>
+    <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://anchor.fm/s/f38497cc/podcast/rss"/>
+    <outline type="rss" text="The a16z Podcast — Andreessen Horowitz" title="The a16z Podcast" xmlUrl="https://feeds.simplecast.com/JGE3yC0V"/>
+    <outline type="rss" text="All-In — Chamath Palihapitiya, Jason Calacanis, David Sacks &amp; David Friedberg" title="All-In" xmlUrl="https://allinchamathjason.libsyn.com/rss"/>
+    <outline type="rss" text="BG2 Pod — Brad Gerstner &amp; Bill Gurley" title="BG2 Pod" xmlUrl="https://anchor.fm/s/f06c2370/podcast/rss"/>
+    <outline type="rss" text="The Generalist — Mario Gabriele" title="The Generalist" xmlUrl="https://anchor.fm/s/102eb9800/podcast/rss"/>
+    <outline type="rss" text="Cheeky Pint — John Collison (Stripe)" title="Cheeky Pint" xmlUrl="https://feeds.transistor.fm/cheeky-pint-with-john-collison"/>
+    <outline type="rss" text="Latent Space — swyx (Shawn Wang) &amp; Alessio Fanelli" title="Latent Space" xmlUrl="https://api.substack.com/feed/podcast/1084089.rss"/>
+    <outline type="rss" text="No Priors — Sarah Guo &amp; Elad Gil" title="No Priors" xmlUrl="https://feeds.megaphone.fm/nopriors"/>
+    <outline type="rss" text="The Cognitive Revolution — Nathan Labenz &amp; Erik Torenberg" title="The Cognitive Revolution" xmlUrl="https://feeds.megaphone.fm/RINTP3108857801"/>
+    <outline type="rss" text="Practical AI — Daniel Whitenack &amp; Chris Benson" title="Practical AI" xmlUrl="https://feeds.transistor.fm/practical-ai-machine-learning-data-science-llm"/>
+    <outline type="rss" text="The TWIML AI Podcast — Sam Charrington" title="The TWIML AI Podcast" xmlUrl="https://feeds.megaphone.fm/MLN2155636147"/>
+    <outline type="rss" text="Dwarkesh Podcast — Dwarkesh Patel" title="Dwarkesh Podcast" xmlUrl="https://apple.dwarkesh-podcast.workers.dev/feed.rss"/>
+    <outline type="rss" text="Gradient Dissent — Lukas Biewald (Weights &amp; Biases)" title="Gradient Dissent" xmlUrl="https://feeds.captivate.fm/gradient-dissent/"/>
+    <outline type="rss" text="Hard Fork — Kevin Roose &amp; Casey Newton" title="Hard Fork" xmlUrl="https://feeds.simplecast.com/6HKOhNgS"/>
+    <outline type="rss" text="AI + a16z — Andreessen Horowitz" title="AI + a16z" xmlUrl="https://feeds.simplecast.com/Hb_IuXOo"/>
+    <outline type="rss" text="Lex Fridman Podcast — Lex Fridman" title="Lex Fridman Podcast" xmlUrl="https://lexfridman.com/feed/podcast/"/>
+    <outline type="rss" text="The AI Daily Brief — Nathaniel Whittemore" title="The AI Daily Brief" xmlUrl="https://anchor.fm/s/f7cac464/podcast/rss"/>
+  </body>
+</opml>

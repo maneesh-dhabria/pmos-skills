@@ -27,10 +27,22 @@ chk "no hard-coded /Users path"             "! grep -qE '/Users/|/home/' '$SKILL
 chk "portable CLAUDE_SKILL_DIR token"       "grep -q 'CLAUDE_SKILL_DIR' '$SKILL'"
 
 # --- reference files (§C) ---
-for r in config-schema pipeline issue-format import; do
+for r in config-schema pipeline issue-format import feed-curation; do
   chk "reference/$r.md exists"              "[ -f '$DIR/reference/$r.md' ]"
   chk "reference/$r.md has a ToC"           "grep -qiE '^## +(Contents|Table of contents)' '$DIR/reference/$r.md'"
 done
+
+# --- feed catalog + bundles (feed-bundles feature) ---
+chk "scripts/bundles.js exists"             "[ -f '$DIR/scripts/bundles.js' ]"
+chk "data/catalog/pm-newsletters.tsv"       "[ -f '$DIR/data/catalog/pm-newsletters.tsv' ]"
+chk "data/catalog/pm-podcasts.tsv"          "[ -f '$DIR/data/catalog/pm-podcasts.tsv' ]"
+chk "data/catalog/feeds.opml"               "[ -f '$DIR/data/catalog/feeds.opml' ]"
+chk "data/bundles/bundles.yaml"             "[ -f '$DIR/data/bundles/bundles.yaml' ]"
+chk "bundles.js validate-data passes"       "node '$DIR/scripts/bundles.js' validate-data >/dev/null"
+chk "SKILL references bundles.js"           "grep -q 'bundles.js' '$SKILL'"
+chk "SKILL documents add --bundle"          "grep -q 'add --bundle' '$SKILL'"
+chk "SKILL documents curate write-target"   "grep -q 'curated/' '$SKILL'"
+chk "bundles.test.sh suite passes"          "bash '$DIR/tests/bundles.test.sh' >/dev/null"
 
 # --- scripts present + self-test (§E) ---
 chk "scripts/magazine-state.js"             "[ -f '$DIR/scripts/magazine-state.js' ]"

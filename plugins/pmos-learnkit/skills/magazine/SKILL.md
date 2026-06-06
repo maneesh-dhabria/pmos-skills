@@ -1,8 +1,8 @@
 ---
 name: magazine
-description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time, built by a resumable local pipeline that crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags them from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable cross-issue library, all working offline from file://. Use whenever the user wants to catch up on their feed backlog without app-hopping. Triggers when the user says "digest my newsletters", "what's new in my feeds", "catch me up on my subscriptions", "summarize my podcasts", "build my reading digest", "/magazine", "add a feed to my magazine", or "what did I miss this week".
+description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time, built by a resumable local pipeline that crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags them from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable cross-issue library, all working offline from file://. Ships a verified PM feed catalog and ready-made starter bundles so a new user goes from zero to a populated feed list in one command. Use whenever the user wants to catch up on their feed backlog without app-hopping, or wants recommended feeds to start from. Triggers when the user says "digest my newsletters", "what's new in my feeds", "catch me up on my subscriptions", "summarize my podcasts", "build my reading digest", "/magazine", "add a feed to my magazine", "what did I miss this week", "starter feeds", "recommended PM newsletters", "recommended PM podcasts", "add a feed bundle", "get me started with feeds", or "curate a feed catalog".
 user-invocable: true
-argument-hint: "[add <url> | add --from <file> | remove <name> | list] [--days N] [--feed <name>] [--max-per-feed N] [--format <html|md|both>] [--non-interactive] [--interactive]"
+argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--format <html|md|both>] [--non-interactive] [--interactive]"
 ---
 
 # Magazine
@@ -22,7 +22,13 @@ orchestrator:
 - `${CLAUDE_SKILL_DIR}/reference/config-schema.md` — `feeds.yaml` / `tags.yaml` / `interest.yaml` / `state.json`.
 - `${CLAUDE_SKILL_DIR}/reference/pipeline.md` — Stage A + Stage B mechanics, lifecycle, cursor rule.
 - `${CLAUDE_SKILL_DIR}/reference/issue-format.md` — issue HTML + library contract.
-- `${CLAUDE_SKILL_DIR}/reference/import.md` — command dispatch + assisted import.
+- `${CLAUDE_SKILL_DIR}/reference/import.md` — command dispatch + assisted import + bundles + curate.
+- `${CLAUDE_SKILL_DIR}/reference/feed-curation.md` — the research methodology behind the shipped catalog + bundles (re-run via `curate`).
+
+The skill ships a verified PM feed catalog and starter bundles under
+`${CLAUDE_SKILL_DIR}/data/` (`catalog/` TSVs + `feeds.opml`; `bundles/` — 4 newsletter
++ 4 podcast OPML bundles + `bundles.yaml`). Read bundle data only through
+`${CLAUDE_SKILL_DIR}/scripts/bundles.js` — never hand-parse the manifest.
 
 ## Platform Adaptation
 
@@ -167,6 +173,17 @@ dispatch":
   fetching its XML first); end.
 - `add --from <file>` → run the assisted-import flow (CSV / OPML / image →
   resolve → validate → **batch-approve** → append). End.
+- `bundles` → list the shipped starter bundles
+  (`node ${CLAUDE_SKILL_DIR}/scripts/bundles.js list`); end.
+- `add --bundle <id> [--medium <m>]` → import a starter bundle: resolve via
+  `bundles.js resolve` → validate each feed (`fetch-feed.js`) → dedup against
+  `feeds.yaml` → **batch-approve** → append with the inferred `type`. See
+  `import.md` → "Bundles". End.
+- `curate [--audience <a>] [--media <m>] [--out <dir>]` → regenerate the catalog +
+  bundles via `reference/feed-curation.md`. Warn first (long, network/token-heavy).
+  **Never write into `${CLAUDE_SKILL_DIR}`** — default out is
+  `~/.pmos/magazine/curated/<date>/`; the maintainer passes
+  `--out plugins/pmos-learnkit/skills/magazine/data/` from the repo. End.
 - anything else (including bare `/magazine`) → a **build**; continue to Phase 2.
 
 **First-run setup** (when `~/.pmos/magazine/` is empty): walk the user through a
@@ -175,8 +192,16 @@ short interview to seed `interest.yaml` (topics + priority feeds), then LLM-seed
 `uncategorized` bucket. **Also capture the default build window** into
 `interest.yaml :: defaults` — `days` (lookback; recommend `7`) and `max_per_feed`
 (per-feed cap; recommend `5`) — so later builds need no window prompt (FR-Q3).
-These gates carry a `(Recommended)` option so non-interactive runs auto-pick. Then
-prompt for an initial feed set (offer `add --from <file>`).
+These gates carry a `(Recommended)` option so non-interactive runs auto-pick.
+
+**Initial feed set — offer starter bundles.** Because a new user starts with an
+empty `feeds.yaml`, present the shipped bundles before falling back to manual add.
+Show the menu (`node ${CLAUDE_SKILL_DIR}/scripts/bundles.js list`) and ask which to
+import as a **multi-select** with a `(Recommended)` default of the two `essentials`
+bundles (newsletters + podcasts) — so non-interactive runs auto-pick a sensible
+starter set. Chosen bundles import through the `add --bundle` flow above (validate →
+dedup → batch-approve). Also offer `add --from <file>` (existing subscriptions) and
+manual `add <url>`. Skipping all of them is allowed — the user can add feeds later.
 
 ## Phase 2: Discover (Stage A)
 

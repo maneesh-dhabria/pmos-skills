@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — strategy-leadership (newsletters)</title></head>
+  <body>
+    <outline type="rss" text="Lenny's Newsletter — Lenny Rachitsky" title="Lenny's Newsletter" xmlUrl="https://www.lennysnewsletter.com/feed"/>
+    <outline type="rss" text="Silicon Valley Product Group (SVPG) — Marty Cagan &amp; SVPG partners" title="Silicon Valley Product Group (SVPG)" xmlUrl="https://www.svpg.com/articles/feed/"/>
+    <outline type="rss" text="The Beautiful Mess — John Cutler" title="The Beautiful Mess" xmlUrl="https://cutlefish.substack.com/feed"/>
+    <outline type="rss" text="Shreyas Doshi (Free Newsletter) — Shreyas Doshi" title="Shreyas Doshi (Free Newsletter)" xmlUrl="https://shreyasdoshi.substack.com/feed"/>
+    <outline type="rss" text="Product Growth — Aakash Gupta" title="Product Growth" xmlUrl="https://www.news.aakashg.com/feed"/>
+    <outline type="rss" text="The Product Compass — Pawel Huryn" title="The Product Compass" xmlUrl="https://www.productcompass.pm/feed"/>
+    <outline type="rss" text="Department of Product — Rich Holmes" title="Department of Product" xmlUrl="https://departmentofproduct.substack.com/feed"/>
+    <outline type="rss" text="Roman Pichler — Roman Pichler" title="Roman Pichler" xmlUrl="https://www.romanpichler.com/feed/"/>
+    <outline type="rss" text="Itamar Gilad's Newsletter — Itamar Gilad" title="Itamar Gilad's Newsletter" xmlUrl="https://itamargilad.com/feed/"/>
+    <outline type="rss" text="Product Thoughts / Product Practice — Tim Herbig" title="Product Thoughts / Product Practice" xmlUrl="https://herbig.co/feed/"/>
+    <outline type="rss" text="Bring the Donuts — Ken Norton" title="Bring the Donuts" xmlUrl="https://www.bringthedonuts.com/feed.xml"/>
+    <outline type="rss" text="One Knight in Product — Jason Knight" title="One Knight in Product" xmlUrl="https://oneknightinproduct.substack.com/feed"/>
+    <outline type="rss" text="The Looking Glass — Julie Zhuo" title="The Looking Glass" xmlUrl="https://lg.substack.com/feed"/>
+    <outline type="rss" text="Rich Mironov's Product Bytes — Rich Mironov" title="Rich Mironov's Product Bytes" xmlUrl="https://richmironov.substack.com/feed"/>
+    <outline type="rss" text="The PBL Newsletter — Ant Murphy" title="The PBL Newsletter" xmlUrl="https://www.antmurphy.me/newsletter/rss.xml"/>
+    <outline type="rss" text="Product Management IRL — Amy Mitchell" title="Product Management IRL" xmlUrl="https://amycmitchell.substack.com/feed"/>
+    <outline type="rss" text="ONE THING — Bruce McCarthy" title="ONE THING" xmlUrl="https://www.productculture.org/archive?format=rss"/>
+    <outline type="rss" text="Ravi on Product — Ravi Mehta" title="Ravi on Product" xmlUrl="https://blog.ravi-mehta.com/feed"/>
+  </body>
+</opml>

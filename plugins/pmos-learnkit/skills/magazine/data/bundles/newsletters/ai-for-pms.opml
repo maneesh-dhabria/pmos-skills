@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <head><title>magazine bundle — ai-for-pms (newsletters)</title></head>
+  <body>
+    <outline type="rss" text="Product Growth — Aakash Gupta" title="Product Growth" xmlUrl="https://www.news.aakashg.com/feed"/>
+    <outline type="rss" text="The Product Compass — Pawel Huryn" title="The Product Compass" xmlUrl="https://www.productcompass.pm/feed"/>
+    <outline type="rss" text="Department of Product — Rich Holmes" title="Department of Product" xmlUrl="https://departmentofproduct.substack.com/feed"/>
+    <outline type="rss" text="Ravi on Product — Ravi Mehta" title="Ravi on Product" xmlUrl="https://blog.ravi-mehta.com/feed"/>
+    <outline type="rss" text="Untrapping Product Teams — David Pereira" title="Untrapping Product Teams" xmlUrl="https://dpereira.substack.com/feed"/>
+    <outline type="rss" text="The Product Person — Richard Kong" title="The Product Person" xmlUrl="https://theproductperson.substack.com/feed"/>
+    <outline type="rss" text="Ben's Bites — Ben Tossell" title="Ben's Bites" xmlUrl="https://www.bensbites.com/feed"/>
+    <outline type="rss" text="The Rundown AI — Rowan Cheung" title="The Rundown AI" xmlUrl="https://rss.beehiiv.com/feeds/2R3C6Bt5wj.xml"/>
+    <outline type="rss" text="Latent Space — swyx (Shawn Wang) &amp; Alessio Fanelli" title="Latent Space" xmlUrl="https://www.latent.space/feed"/>
+    <outline type="rss" text="AI Tidbits — Sahar Mor" title="AI Tidbits" xmlUrl="https://www.aitidbits.ai/feed"/>
+    <outline type="rss" text="One Useful Thing — Ethan Mollick" title="One Useful Thing" xmlUrl="https://www.oneusefulthing.org/feed"/>
+    <outline type="rss" text="Marily Nika's AI Product Academy — Dr. Marily Nika" title="Marily Nika's AI Product Academy" xmlUrl="https://marily.substack.com/feed"/>
+    <outline type="rss" text="Behind the Craft — Peter Yang" title="Behind the Craft" xmlUrl="https://creatoreconomy.so/feed"/>
+    <outline type="rss" text="The Neuron — Noah Edelman &amp; Pete Huang" title="The Neuron" xmlUrl="https://rss.beehiiv.com/feeds/N4eCstxvgX.xml"/>
+    <outline type="rss" text="TLDR AI — TLDR team (Dan Ni)" title="TLDR AI" xmlUrl="https://tldr.tech/api/rss/ai"/>
+    <outline type="rss" text="Exponential View — Azeem Azhar" title="Exponential View" xmlUrl="https://www.exponentialview.co/feed"/>
+    <outline type="rss" text="Interconnects — Nathan Lambert" title="Interconnects" xmlUrl="https://www.interconnects.ai/feed"/>
+    <outline type="rss" text="The Pragmatic Engineer — Gergely Orosz" title="The Pragmatic Engineer" xmlUrl="https://newsletter.pragmaticengineer.com/feed"/>
+  </body>
+</opml>
