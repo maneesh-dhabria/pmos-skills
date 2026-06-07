@@ -1,0 +1,56 @@
+[
+  {
+    "id": "waves-h",
+    "level": 2,
+    "title": "Task waves",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 3,
+    "title": "Wave 1 — foundation (independent; parallelizable)",
+    "parent_id": "waves"
+  },
+  {
+    "id": "wave-2",
+    "level": 3,
+    "title": "Wave 2 — run modes (depends on T1, T2)",
+    "parent_id": "waves"
+  },
+  {
+    "id": "wave-3",
+    "level": 3,
+    "title": "Wave 3 — watch surface + interactive integration (depends on Wave 2)",
+    "parent_id": "waves"
+  },
+  {
+    "id": "wave-4",
+    "level": 3,
+    "title": "Wave 4 — docs + dispatch wiring (depends on Wave 3)",
+    "parent_id": "waves"
+  },
+  {
+    "id": "decisions-plan-h",
+    "level": 2,
+    "title": "Plan-level decisions",
+    "parent_id": null
+  },
+  {
+    "id": "risks-h",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "final-checklist-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs-h",
+    "level": 2,
+    "title": "Release prerequisites (NOT pipeline tasks — /complete-dev owns these)",
+    "parent_id": null
+  }
+]
