@@ -29,6 +29,7 @@ const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const state = require('./magazine-state.js');
+const lock = require('./magazine-lock.js');
 
 const SCRIPTS = __dirname;
 const FETCH = path.join(SCRIPTS, 'fetch-feed.js');
@@ -56,6 +57,27 @@ function readFeeds(root) {
     if (m) out.push(m[2]);
   }
   return out;
+}
+
+// Typed feeds reader: parse feeds.yaml's block list into {url, type, name}.
+// readFeeds() above returns bare URLs (all the Stage-A crawl needs); the
+// transcription queue needs to know which feeds are podcasts, so this richer
+// reader tracks each `- ` list entry's name/url/type.
+function readFeedsTyped(root) {
+  const file = path.join(root, 'feeds.yaml');
+  if (!fs.existsSync(file)) return [];
+  const out = [];
+  let cur = null;
+  for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+    if (/^\s*-\s/.test(line)) { if (cur) out.push(cur); cur = { url: null, type: null, name: null }; }
+    if (!cur) continue;
+    let m;
+    if ((m = line.match(/\bname:\s*(['"]?)([\w.-]+)\1/))) cur.name = m[2];
+    if ((m = line.match(/\burl:\s*(['"]?)([^'"\s#]+)\1/))) cur.url = m[2];
+    if ((m = line.match(/\btype:\s*(['"]?)(newsletter|podcast)\1/))) cur.type = m[2];
+  }
+  if (cur) out.push(cur);
+  return out.filter((f) => f.url);
 }
 
 // Run fetch-feed.js for one feed. A local path is read with --file (used by the
@@ -157,6 +179,104 @@ function cmdPrep(opts) {
   return results;
 }
 
+// --- Transcription queue: enqueue (producer) + drain (consumer) ---
+// Both are headless and share the ledger-as-queue with any interactive run and
+// the background watcher. INVARIANT: neither advances cursors nor renders — they
+// only move podcast items along discovered -> transcribing -> transcribed.
+
+const DEFAULT_DRAIN_MAX = 5;
+const STALE_TTL_MS = 30 * 60 * 1000;
+
+// Producer: discover type:podcast feeds forward (per-feed cursor), recording new
+// episodes at `discovered`. --backfill <days> overrides the cursor to pull
+// history. Idempotent (discover dedups on GUID). Never advances cursors/renders.
+function cmdEnqueue(opts) {
+  const root = opts.root || defaultRoot();
+  const file = statePath(root);
+  const st = state.load(file);
+  const feeds = (opts._feeds || readFeedsTyped(root)).filter((f) => f.type === 'podcast');
+  if (!feeds.length) {
+    process.stderr.write('magazine-run enqueue: no podcast feeds (add one with /magazine add ... --type podcast)\n');
+    return { enqueued: 0, feeds: 0, alreadyQueued: 0 };
+  }
+  let enqueued = 0;
+  let already = 0;
+  for (const f of feeds) {
+    const feedKey = f.name || f.url;
+    const since = opts.backfill
+      ? new Date(Date.now() - opts.backfill * 86400000).toISOString()
+      : (st.cursors[feedKey] || null);
+    for (const it of fetchOne(f.url, since, opts.max)) {
+      const meta = { feed: feedKey, link: it.link, title: it.title, published: it.published, enclosure: it.enclosure };
+      const isNew = state.discover(st, it.guid, meta);
+      if (isNew) enqueued++; else already++;
+    }
+  }
+  state.save(file, st);
+  return { enqueued, feeds: feeds.length, alreadyQueued: already };
+}
+
+// Consumer: reclaim stale claims, then claim up to `max` pending podcast items,
+// transcribe each OUTSIDE the lock, and release per whisper exit (0=transcribed,
+// 3=no-whisper -> requeue + stop, else -> requeue as a retryable miss). The lock
+// is held only for the claim/release ledger mutation. opts.transcribeFn is an
+// injectable transcriber (default shells transcribe.sh) for hermetic tests.
+function cmdDrain(opts) {
+  const root = opts.root || defaultRoot();
+  const file = statePath(root);
+  const lockPath = path.join(root, '.watch.lock');
+  const transcriptsDir = path.join(root, 'transcripts');
+  const max = opts.max || DEFAULT_DRAIN_MAX;
+  const budgetMs = opts.budgetSec ? opts.budgetSec * 1000 : 0;
+  const transcribe = opts.transcribeFn || ((guid, enclosure) => {
+    try {
+      execFileSync('bash', [TRANSCRIBE, enclosure, guid, '--out-dir', transcriptsDir],
+        { stdio: ['ignore', 'inherit', 'inherit'] });
+      return 0;
+    } catch (e) { return e.status || 1; }
+  });
+
+  const start = Date.now();
+  const counts = { drained: 0, transcribed: 0, failed: 0, skippedClaimed: 0, reclaimed: 0 };
+
+  counts.reclaimed = lock.withLock(lockPath, () => {
+    const st = state.load(file);
+    const n = state.reclaimStale(st, Date.now(), STALE_TTL_MS, lock.isAlive);
+    if (n) state.save(file, st);
+    return n;
+  });
+
+  for (let i = 0; i < max; i++) {
+    if (budgetMs && Date.now() - start > budgetMs) break;
+
+    const job = lock.withLock(lockPath, () => {
+      const st = state.load(file);
+      const pend = state.pendingPodcasts(st, { limit: 1 });
+      if (!pend.length) return null;
+      const cand = pend[0];
+      if (state.claim(st, cand.guid, process.pid, new Date().toISOString())) {
+        state.save(file, st);
+        return { guid: cand.guid, enclosure: cand.enclosure };
+      }
+      counts.skippedClaimed++;
+      return null;
+    });
+    if (!job) break; // queue drained (or the only candidate was claimed elsewhere)
+
+    const exit = transcribe(job.guid, job.enclosure);
+
+    lock.withLock(lockPath, () => {
+      const st = state.load(file);
+      if (exit === 0) { state.release(st, job.guid, 'transcribed'); counts.transcribed++; }
+      else { state.release(st, job.guid, 'discovered'); if (exit !== 3) counts.failed++; }
+      state.save(file, st);
+    });
+    counts.drained++;
+    if (exit === 3) break; // no whisper this pass — pointless to keep trying
+  }
+  return counts;
+}
+
 function cmdStatus(opts) {
   const root = opts.root || defaultRoot();
   const st = state.load(statePath(root));
@@ -169,7 +289,7 @@ function cmdStatus(opts) {
 }
 
 function parseOpts(argv) {
-  const opts = { feeds: [], since: null, max: 0, root: null, minChars: 0 };
+  const opts = { feeds: [], since: null, max: 0, root: null, minChars: 0, backfill: 0, budgetSec: 0 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--feed') opts.feeds.push(argv[++i]);
@@ -183,6 +303,8 @@ function parseOpts(argv) {
     else if (a === '--max') opts.max = parseInt(argv[++i], 10) || 0;
     else if (a === '--root') opts.root = argv[++i];
     else if (a === '--min-chars') opts.minChars = parseInt(argv[++i], 10) || 0;
+    else if (a === '--backfill') opts.backfill = parseInt(argv[++i], 10) || 0;
+    else if (a === '--budget-sec') opts.budgetSec = parseInt(argv[++i], 10) || 0;
   }
   return opts;
 }
@@ -225,11 +347,70 @@ function selftest() {
   fs.rmSync(tmp2, { recursive: true, force: true });
 
   fs.rmSync(tmp, { recursive: true, force: true });
+
+  // --- Transcription queue: enqueue + drain (T3/T4) ---
+  const qroot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-queue-'));
+  fs.writeFileSync(path.join(qroot, 'feeds.yaml'),
+    'feeds:\n' +
+    '  - name: testpod\n    url: ' + fixture + '\n    type: podcast\n' +
+    '  - name: testnews\n    url: ' + fixture + '\n    type: newsletter\n');
+
+  // readFeedsTyped parses blocks + types
+  const typed = readFeedsTyped(qroot);
+  assert(typed.length === 2 && typed.filter((f) => f.type === 'podcast').length === 1,
+    'readFeedsTyped parses two typed feeds (one podcast)');
+
+  // enqueue: only the podcast feed; records discovered; idempotent
+  const enq = cmdEnqueue({ root: qroot });
+  assert(enq.feeds === 1, 'enqueue scopes to podcast feeds only');
+  const qst1 = state.load(statePath(qroot));
+  const podGuids = Object.keys(qst1.items).filter((g) => qst1.items[g].enclosure && qst1.items[g].status === 'discovered');
+  assert(podGuids.length >= 1, 'enqueue recorded >=1 discovered podcast item');
+  const enq2 = cmdEnqueue({ root: qroot });
+  assert(enq2.enqueued === 0, 'enqueue is idempotent (re-run enqueues nothing new)');
+
+  // drain with an injected transcriber (hermetic — no real whisper/network)
+  let transcribeCalls = 0;
+  const drained = cmdDrain({
+    root: qroot,
+    max: 10,
+    transcribeFn: (guid, enclosure) => {
+      transcribeCalls++;
+      assert(!!enclosure, 'drain passes an enclosure URL to the transcriber');
+      fs.mkdirSync(path.join(qroot, 'transcripts'), { recursive: true });
+      fs.writeFileSync(path.join(qroot, 'transcripts', safeGuid(guid) + '.txt'), 'stub transcript\n');
+      return 0;
+    },
+  });
+  assert(drained.transcribed === podGuids.length, 'drain transcribed every pending podcast');
+  assert(transcribeCalls === podGuids.length, 'transcriber called once per item (no double-transcribe)');
+  const qst2 = state.load(statePath(qroot));
+  assert(podGuids.every((g) => qst2.items[g].status === 'transcribed'), 'drained items are transcribed');
+
+  // FR-7 invariant: enqueue+drain never advance cursors and never render/summarize
+  assert(JSON.stringify(qst2.cursors) === JSON.stringify(qst1.cursors), 'FR-7: cursors unchanged by enqueue+drain');
+  assert(Object.values(qst2.items).every((it) => it.status !== 'rendered' && it.status !== 'summarized'),
+    'FR-7: no item rendered/summarized by enqueue+drain');
+
+  // exit-3 (no whisper) requeues and stops without failing
+  const qroot3 = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-queue3-'));
+  fs.writeFileSync(path.join(qroot3, 'feeds.yaml'),
+    'feeds:\n  - name: testpod\n    url: ' + fixture + '\n    type: podcast\n');
+  cmdEnqueue({ root: qroot3 });
+  const d3 = cmdDrain({ root: qroot3, max: 10, transcribeFn: () => 3 });
+  assert(d3.transcribed === 0 && d3.failed === 0, 'exit-3 drain transcribes/fails nothing');
+  const qst3 = state.load(statePath(qroot3));
+  assert(Object.values(qst3.items).some((it) => it.enclosure && it.status === 'discovered'),
+    'exit-3 requeues the item at discovered');
+
+  fs.rmSync(qroot, { recursive: true, force: true });
+  fs.rmSync(qroot3, { recursive: true, force: true });
+
   console.log(ok ? 'magazine-run.js --selftest: PASS' : 'magazine-run.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
 }
 
-module.exports = { cmdDiscover, cmdPrep, cmdStatus, safeGuid, readFeeds };
+module.exports = { cmdDiscover, cmdPrep, cmdStatus, cmdEnqueue, cmdDrain, safeGuid, readFeeds, readFeedsTyped };
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
@@ -240,8 +421,10 @@ if (require.main === module) {
     if (cmd === 'discover') process.stdout.write(JSON.stringify(cmdDiscover(opts), null, 2) + '\n');
     else if (cmd === 'prep') process.stdout.write(JSON.stringify(cmdPrep(opts), null, 2) + '\n');
     else if (cmd === 'status') process.stdout.write(JSON.stringify(cmdStatus(opts), null, 2) + '\n');
+    else if (cmd === 'enqueue') process.stdout.write(JSON.stringify(cmdEnqueue(opts), null, 2) + '\n');
+    else if (cmd === 'drain') process.stdout.write(JSON.stringify(cmdDrain(opts), null, 2) + '\n');
     else {
-      process.stderr.write('usage: magazine-run.js <discover|prep|status> [opts]  |  --selftest\n');
+      process.stderr.write('usage: magazine-run.js <discover|prep|status|enqueue|drain> [opts]  |  --selftest\n');
       process.exit(64);
     }
   }
