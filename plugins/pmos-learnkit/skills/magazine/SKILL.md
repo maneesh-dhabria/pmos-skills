@@ -192,13 +192,24 @@ dispatch":
   See `${CLAUDE_SKILL_DIR}/reference/watch.md` for the queue model + scheduler artifacts. End.
 - anything else (including bare `/magazine`) → a **build**; continue to Phase 2.
 
-**First-run setup** (when `~/.pmos/magazine/` is empty): walk the user through a
-short interview to seed `interest.yaml` (topics + priority feeds), then LLM-seed
-`tags.yaml` and present the ~8-tag registry for batch-approval. Always keep an
-`uncategorized` bucket. **Also capture the default build window** into
-`interest.yaml :: defaults` — `days` (lookback; recommend `7`) and `max_per_feed`
-(per-feed cap; recommend `5`) — so later builds need no window prompt (FR-Q3).
-These gates carry a `(Recommended)` option so non-interactive runs auto-pick.
+**First-run setup** (true first run = **no `state.json` AND no `feeds.yaml`** under
+`~/.pmos/magazine/` — do NOT infer "first run" from missing config YAMLs alone; a
+stale `state.json` from a prior run can be present and carry rendered items +
+cursors): walk the user through a short interview to seed `interest.yaml` (topics +
+priority feeds), then LLM-seed `tags.yaml` and present the ~8-tag registry for
+batch-approval. Always keep an `uncategorized` bucket. **Also capture the default
+build window** into `interest.yaml :: defaults` — `days` (lookback; recommend `7`)
+and `max_per_feed` (per-feed cap; recommend `5`) — so later builds need no window
+prompt (FR-Q3). These gates carry a `(Recommended)` option so non-interactive runs
+auto-pick.
+
+**Stale-ledger / orphan-cursor check.** When a `state.json` IS present, run
+`node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js status` and check its
+`orphanCursors` — cursor keys matching no current feed slug (a renamed/removed
+feed). Surface them to the user: re-importing a publication under a different slug
+resets its "since last run" anchor. The feed key is the slug (`name`) everywhere
+(ledger items, cursors, card badges); legacy URL-keyed cursors from older runs are
+remapped to the slug automatically on the next `discover`/`enqueue` (FR-R4/FR-R5).
 
 **Initial feed set — offer starter bundles.** Because a new user starts with an
 empty `feeds.yaml`, present the shipped bundles before falling back to manual add.
@@ -240,17 +251,26 @@ Run the prep phase through the same entrypoint — it walks every `discovered` i
 node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep
 ```
 
-For each item it crawls via `extract-article.js` **with output redirected to**
+Routing is by **feed `type`, not enclosure presence** (FR-R1): only `type:podcast`
+items go to the transcription queue. A newsletter that carries an audio enclosure
+(every Substack post does) is **crawled**, not transcribed — its content is the
+article text, right there in the post. `prep` prints a route summary and warns if a
+declared-newsletter feed lands in the transcribe queue (a feed-type
+misconfiguration signal).
+
+For each crawled item it uses `extract-article.js` **with output redirected to**
 `~/.pmos/magazine/crawl-cache/<safe-guid>.txt` (a file, never a pipe — a piped
 capture truncates a long article), flagging `preview-only` on exit 2 and falling
 back to the RSS body on exit 1. **Podcasts are transcribed through the shared
 queue, not inline:** `prep` foreground-drains a bounded number of episodes (claimed
 under the same lock an installed background watcher uses, so the two never
 double-transcribe), leaves the rest **queued** (rendered via show-notes fallback,
-picked up next run as cache hits), and treats exit 3 — no whisper *or* no
-resolvable model — as keep-show-notes (never fabricate). A user who installs
-`/magazine watch` keeps that queue warm so most episodes are already transcribed by
-issue time. Item status advances as it goes.
+picked up next run as cache hits). The drain threads each podcast feed's
+`whisper_model` (default `base`) into `transcribe.sh --model` and treats exit 3 — no
+whisper *or* no resolvable model — as keep-show-notes (never fabricate), logging the
+exit to `~/.pmos/magazine/watch.log` rather than requeuing silently. A user who
+installs `/magazine watch` keeps that queue warm so most episodes are already
+transcribed by issue time. Item status advances as it goes.
 
 If you must call a script directly (e.g. to re-crawl one item), **redirect crawl
 output to a file** — `extract-article.js <link> > <cache-file>` — never capture it

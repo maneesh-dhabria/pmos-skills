@@ -101,6 +101,22 @@ selftest() {
   fi
   rm -rf "$mdir"
 
+  # FR-R6: --check-model end-to-end pre-flight (exercised as a subprocess so the
+  # real arg dispatch runs). Environment-guarded: with no whisper installed the
+  # exit-3 path is correct; with whisper present a provided ggml must resolve.
+  local cmdir; cmdir="$(mktemp -d "${TMPDIR:-/tmp}/mag-cm-XXXXXX")"
+  : > "${cmdir}/ggml-base.bin"
+  if [ -z "$(detect_whisper)" ]; then
+    if WHISPER_MODEL_DIR="$cmdir" bash "$0" --check-model base >/dev/null 2>&1; then
+      echo "FAIL: --check-model should exit 3 when no whisper is installed"; ok=1
+    fi
+  else
+    if ! WHISPER_MODEL_DIR="$cmdir" bash "$0" --check-model base >/dev/null 2>&1; then
+      echo "FAIL: --check-model should exit 0 when whisper + a resolvable model are present"; ok=1
+    fi
+  fi
+  rm -rf "$cmdir"
+
   if [ "$ok" -eq 0 ]; then echo "transcribe.sh --selftest: PASS"; else echo "transcribe.sh --selftest: FAIL"; fi
   exit "$ok"
 }
@@ -114,6 +130,29 @@ main() {
   if [ "${1:-}" = "--detect" ]; then
     local bin; bin="$(detect_whisper)"
     if [ -n "$bin" ]; then echo "$bin"; exit 0; else echo "no whisper on PATH" >&2; exit 3; fi
+  fi
+
+  # --check-model [name]: end-to-end pre-flight WITHOUT downloading audio (FR-R6).
+  # Verifies whisper is on PATH AND the model resolves — the exact two things that
+  # silently failed for the scheduler (no PATH / unresolved ggml). `watch --install`
+  # runs this under the wrapper's simulated PATH so a broken install is caught at
+  # install time, not discovered as "transcribed nothing, forever". Exit 0 = ready,
+  # 3 = no whisper or no resolvable model.
+  if [ "${1:-}" = "--check-model" ]; then
+    local cm_model="${2:-base}"
+    local cm_bin; cm_bin="$(detect_whisper)"
+    if [ -z "$cm_bin" ]; then echo "no whisper on PATH" >&2; exit 3; fi
+    if [ "$cm_bin" = "whisper" ]; then
+      echo "found-whisper: yes (openai-whisper) · model '${cm_model}': used directly"
+      exit 0
+    fi
+    local cm_path
+    if cm_path="$(resolve_cpp_model "$cm_model")"; then
+      echo "found-whisper: yes (${cm_bin}) · model '${cm_model}': resolved -> ${cm_path}"
+      exit 0
+    fi
+    echo "found-whisper: yes (${cm_bin}) · model '${cm_model}': UNRESOLVED" >&2
+    exit 3
   fi
 
   local audio_url="${1:-}"

@@ -95,6 +95,22 @@ chk "Q3: pipeline windowing reads defaults"  "grep -q 'defaults.days' '$DIR/refe
 chk "Q4: render-issue grid dedup"            "grep -q 'function dedupeItems' '$DIR/scripts/render-issue.js'"
 chk "Q5: whisper-reload limitation documented" "grep -qi 'whisper-server' '$DIR/reference/pipeline.md'"
 
+# --- third-retro regressions: entrypoint fixes (FR-R1..R6) ---
+chk "R1: prep routes by feed type"           "grep -q \"ftype === 'podcast'\" '$DIR/scripts/magazine-run.js' && grep -q 'newsletterQueued' '$DIR/scripts/magazine-run.js'"
+chk "R1: SKILL documents type routing"       "grep -qi 'feed .type., not enclosure' '$SKILL'"
+chk "R2: drain threads whisper_model"        "grep -q 'modelByFeed' '$DIR/scripts/magazine-run.js' && grep -q 'whisper_model' '$DIR/scripts/magazine-run.js'"
+chk "R2: drain logs failures to watch.log"   "grep -q 'appendLog' '$DIR/scripts/magazine-run.js'"
+chk "R3: wrapper+plist carry PATH"           "grep -q 'function schedulerPath' '$DIR/scripts/magazine-watch.js' && grep -q 'EnvironmentVariables' '$DIR/scripts/magazine-watch.js'"
+chk "R3: watch resolves whisper dir"         "grep -q 'function whisperDir' '$DIR/scripts/magazine-watch.js'"
+chk "R4: state remap/orphan cursor helpers"  "grep -q 'function remapCursors' '$DIR/scripts/magazine-state.js' && grep -q 'function orphanCursors' '$DIR/scripts/magazine-state.js'"
+chk "R4: discover/enqueue remap cursors"     "grep -q 'remapCursors' '$DIR/scripts/magazine-run.js'"
+chk "R4: install seeds forward-only cursors" "grep -q 'function seedForwardCursors' '$DIR/scripts/magazine-watch.js'"
+chk "R4: config-schema documents single key" "grep -q 'single canonical key' '$DIR/reference/config-schema.md'"
+chk "R5: status reports orphanCursors"       "grep -q 'orphanCursors' '$DIR/scripts/magazine-run.js'"
+chk "R5: SKILL first-run uses state.json"    "grep -q 'no .state.json. AND no .feeds.yaml.' '$SKILL'"
+chk "R6: transcribe --check-model"           "grep -q -- '--check-model' '$DIR/scripts/transcribe.sh'"
+chk "R6: install runs smoke check"           "grep -q 'function smokeCheck' '$DIR/scripts/magazine-watch.js'"
+
 # --- no loose files in skill root (§C asset layout) ---
 loose="$(find "$DIR" -maxdepth 1 -type f ! -name 'SKILL.md' | wc -l | tr -d ' ')"
 chk "no loose files in skill root"          "[ \"$loose\" = '0' ]"
