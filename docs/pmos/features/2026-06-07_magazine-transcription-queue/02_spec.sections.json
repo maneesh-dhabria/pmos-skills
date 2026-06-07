@@ -1,0 +1,110 @@
+[
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "architecture-h",
+    "level": 2,
+    "title": "Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "data-model-h",
+    "level": 2,
+    "title": "Data model — ledger changes (magazine-state.js)",
+    "parent_id": null
+  },
+  {
+    "id": "locking-h",
+    "level": 2,
+    "title": "Concurrency & locking (new magazine-lock.js)",
+    "parent_id": null
+  },
+  {
+    "id": "run-modes-h",
+    "level": 2,
+    "title": "New run modes (magazine-run.js)",
+    "parent_id": null
+  },
+  {
+    "id": "enqueue-mode",
+    "level": 3,
+    "title": "enqueue",
+    "parent_id": "run-modes"
+  },
+  {
+    "id": "drain-mode",
+    "level": 3,
+    "title": "drain",
+    "parent_id": "run-modes"
+  },
+  {
+    "id": "invariant-tests",
+    "level": 3,
+    "title": "Tested invariants",
+    "parent_id": "run-modes"
+  },
+  {
+    "id": "foreground-h",
+    "level": 2,
+    "title": "Interactive integration (Stage A foreground drain)",
+    "parent_id": null
+  },
+  {
+    "id": "watch-surface-h",
+    "level": 2,
+    "title": "Management surface — /magazine watch …",
+    "parent_id": null
+  },
+  {
+    "id": "scheduler-h",
+    "level": 2,
+    "title": "Scheduler artifacts (generated per-OS)",
+    "parent_id": null
+  },
+  {
+    "id": "frs-h",
+    "level": 2,
+    "title": "Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "nfrs-h",
+    "level": 2,
+    "title": "Non-Functional Requirements",
+    "parent_id": null
+  },
+  {
+    "id": "file-map-h",
+    "level": 2,
+    "title": "File-by-file change map",
+    "parent_id": null
+  },
+  {
+    "id": "testing-h",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "verification-h",
+    "level": 2,
+    "title": "Verification plan",
+    "parent_id": null
+  },
+  {
+    "id": "resolved-h",
+    "level": 2,
+    "title": "Resolved open questions (from requirements)",
+    "parent_id": null
+  },
+  {
+    "id": "oos-h",
+    "level": 2,
+    "title": "Out of scope",
+    "parent_id": null
+  }
+]
