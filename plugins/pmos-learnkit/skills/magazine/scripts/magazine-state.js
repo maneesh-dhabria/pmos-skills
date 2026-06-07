@@ -8,8 +8,17 @@
 //
 // Lifecycle (per item, keyed by GUID):
 //   discovered -> downloaded -> transcribed -> summarized -> rendered
+//   discovered -> transcribing{by,at} -> transcribed   (the queue: claim/release)
 //   any -> failed (carries failed_reason)
 //   discovered -> duplicate (cross-feed link dup; carries duplicate_of)
+//
+// Transcription queue (background worker + interactive foreground share it):
+// podcast items at `discovered` with an enclosure are the pending queue. A
+// consumer atomically claim()s one (discovered -> transcribing{by,at}) under the
+// magazine-lock, transcribes it OUTSIDE the lock, then release()s it to
+// `transcribed` (success) / `failed` / back to `discovered` (retryable). A claim
+// whose owner died or went stale is reclaimStale()d so episodes are never
+// stranded. These ops are PURE (no lock inside) — the caller holds the lock.
 //
 // Cross-feed dedup (FR-Q2): the same article syndicated across two feeds
 // (e.g. a newsletter that re-publishes a podcast episode) arrives under two
@@ -30,7 +39,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const STATES = ['discovered', 'downloaded', 'transcribed', 'summarized', 'rendered', 'failed', 'duplicate'];
+const STATES = ['discovered', 'downloaded', 'transcribing', 'transcribed', 'summarized', 'rendered', 'failed', 'duplicate'];
 
 // Query params that identify a campaign/referrer, not the content. Stripped
 // before keying the dedup index so the same article tagged with two different
@@ -130,6 +139,67 @@ function advanceCursors(state) {
   return state.cursors;
 }
 
+// --- Transcription queue ops (PURE — caller wraps these in magazine-lock) ---
+
+// The pending queue: podcast items (have an enclosure) still at `discovered`,
+// oldest-published first, capped at limit. Items already `transcribing`/
+// `transcribed` are excluded, so the read is the set of episodes that still need
+// a consumer.
+function pendingPodcasts(state, opts) {
+  const limit = (opts && opts.limit) || Infinity;
+  const items = Object.keys(state.items)
+    .map((guid) => ({ guid, it: state.items[guid] }))
+    .filter(({ it }) => it.status === 'discovered' && it.enclosure)
+    .sort((a, b) => String(a.it.published || '').localeCompare(String(b.it.published || '')));
+  return items.slice(0, limit).map(({ guid, it }) => Object.assign({ guid }, it));
+}
+
+// Atomically (at the ledger level) claim a discovered item for transcription.
+// Returns true if it moved discovered -> transcribing{by,at}; false if it was
+// not claimable (already transcribing/transcribed/failed/duplicate, or absent).
+// The CALLER must hold the lock so two consumers cannot both observe `discovered`.
+function claim(state, guid, by, nowIso) {
+  const item = state.items[guid];
+  if (!item || item.status !== 'discovered') return false;
+  item.status = 'transcribing';
+  item.claim = { by, at: nowIso || new Date().toISOString() };
+  return item;
+}
+
+// Release a claimed item to a terminal/retryable status. `transcribed` on
+// success; `failed` (carries reason) for a hard miss; `discovered` to requeue a
+// retryable miss (e.g. no whisper this pass). Clears the claim record.
+function release(state, guid, status, reason) {
+  const item = state.items[guid];
+  if (!item) throw new Error('unknown guid: ' + guid);
+  if (!STATES.includes(status)) throw new Error('unknown status: ' + status);
+  item.status = status;
+  delete item.claim;
+  if (status === 'failed') item.failed_reason = reason || 'unknown';
+  else delete item.failed_reason;
+  return item;
+}
+
+// Revert claims whose owner is dead (isAlive(pid) === false) or whose `at` is
+// older than ttlMs back to `discovered`, so a crashed consumer never strands an
+// episode. Returns the number reclaimed. `isAlive` is injected for testability.
+function reclaimStale(state, nowMs, ttlMs, isAlive) {
+  let reclaimed = 0;
+  for (const guid of Object.keys(state.items)) {
+    const it = state.items[guid];
+    if (it.status !== 'transcribing') continue;
+    const claimAt = it.claim && it.claim.at ? Date.parse(it.claim.at) : 0;
+    const dead = !it.claim || typeof isAlive !== 'function' || !isAlive(it.claim.by);
+    const expired = !claimAt || (nowMs - claimAt > ttlMs);
+    if (dead || expired) {
+      it.status = 'discovered';
+      delete it.claim;
+      reclaimed++;
+    }
+  }
+  return reclaimed;
+}
+
 function selftest() {
   const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-state-'));
   const file = path.join(tmpdir, 'state.json');
@@ -178,12 +248,56 @@ function selftest() {
   try { transition(st, 'g1', 'bogus'); } catch (_e) { threw = true; }
   assert(threw, 'unknown status throws');
 
+  // --- Transcription queue ops ---
+  const q = { cursors: {}, items: {} };
+  discover(q, 'pod1', { feed: 'p', enclosure: 'http://x/a.mp3', published: '2026-06-02' });
+  discover(q, 'pod2', { feed: 'p', enclosure: 'http://x/b.mp3', published: '2026-06-01' });
+  discover(q, 'art1', { feed: 'n', link: 'http://x/post', published: '2026-06-03' }); // no enclosure
+
+  const pend = pendingPodcasts(q, { limit: 10 });
+  assert(pend.length === 2, 'pendingPodcasts returns only enclosure items, got ' + pend.length);
+  assert(pend[0].guid === 'pod2', 'pendingPodcasts is oldest-published first');
+  assert(pendingPodcasts(q, { limit: 1 }).length === 1, 'pendingPodcasts respects limit');
+
+  assert(claim(q, 'pod1', 1234, '2026-06-07T00:00:00Z') && q.items.pod1.status === 'transcribing',
+    'claim moves discovered -> transcribing');
+  assert(q.items.pod1.claim.by === 1234, 'claim records owner pid');
+  assert(claim(q, 'pod1', 5678) === false, 'second claim of a transcribing item is false');
+  assert(claim(q, 'art1', 1) && q.items.art1.status === 'transcribing', 'claim works on any discovered item');
+  release(q, 'art1', 'discovered'); // put the article back; not part of the podcast queue test
+
+  release(q, 'pod1', 'transcribed');
+  assert(q.items.pod1.status === 'transcribed' && q.items.pod1.claim === undefined,
+    'release -> transcribed clears claim');
+  assert(pendingPodcasts(q, {}).map((p) => p.guid).join() === 'pod2',
+    'transcribed item leaves the pending queue');
+
+  // reclaimStale: dead PID reclaimed; live fresh claim left intact
+  claim(q, 'pod2', 4000000, new Date().toISOString()); // dead pid
+  const aliveOf = (pid) => pid === process.pid;
+  let n = reclaimStale(q, Date.now(), 60 * 60 * 1000, aliveOf);
+  assert(n === 1 && q.items.pod2.status === 'discovered', 'reclaimStale reverts dead-PID claim');
+
+  claim(q, 'pod2', process.pid, new Date().toISOString()); // live, fresh
+  n = reclaimStale(q, Date.now(), 60 * 60 * 1000, aliveOf);
+  assert(n === 0 && q.items.pod2.status === 'transcribing', 'reclaimStale leaves a live fresh claim');
+
+  // reclaimStale: expired timestamp reclaimed even if PID alive
+  q.items.pod2.claim.at = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  n = reclaimStale(q, Date.now(), 60 * 60 * 1000, aliveOf);
+  assert(n === 1 && q.items.pod2.status === 'discovered', 'reclaimStale reverts expired claim');
+
+  assert(STATES.includes('transcribing'), 'transcribing is a known state');
+
   fs.rmSync(tmpdir, { recursive: true, force: true });
   console.log(ok ? 'magazine-state.js --selftest: PASS' : 'magazine-state.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
 }
 
-module.exports = { STATES, defaultPath, canonicalLink, load, save, discover, transition, advanceCursors };
+module.exports = {
+  STATES, defaultPath, canonicalLink, load, save, discover, transition, advanceCursors,
+  pendingPodcasts, claim, release, reclaimStale,
+};
 
 if (require.main === module) {
   const args = process.argv.slice(2);
