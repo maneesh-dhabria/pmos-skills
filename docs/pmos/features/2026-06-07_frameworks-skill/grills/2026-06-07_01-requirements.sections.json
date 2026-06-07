@@ -1,0 +1,26 @@
+[
+  {
+    "id": "grill-report",
+    "level": 2,
+    "title": "Grill Report — /frameworks requirements",
+    "parent_id": null
+  },
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved",
+    "parent_id": null
+  },
+  {
+    "id": "gaps",
+    "level": 2,
+    "title": "Gaps surfaced (resolve at /spec)",
+    "parent_id": null
+  },
+  {
+    "id": "next-step",
+    "level": 2,
+    "title": "Recommended next step",
+    "parent_id": null
+  }
+]

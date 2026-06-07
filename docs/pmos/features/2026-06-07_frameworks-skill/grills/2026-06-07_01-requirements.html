@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="grill">
+  <title>Grill Report — /frameworks requirements</title>
+  <link rel="stylesheet" href="../assets/style.css?v=2.61.0">
+  <link rel="stylesheet" href="../assets/comments.css?v=2.61.0">
+  <script defer src="../assets/viewer.js?v=2.61.0"></script>
+  <script defer src="../assets/comments.js?v=2.61.0"></script>
+</head>
+<body>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+<section id="grill-report">
+<h2 id="grill-report">Grill Report — /frameworks requirements</h2>
+<p><strong>Depth:</strong> standard · <strong>Questions asked:</strong> 2 (+1 resolved from code) · <strong>Date:</strong> 2026-06-07</p>
+</section>
+<section id="resolved">
+<h2 id="resolved">Resolved</h2>
+<ul>
+<li><strong>D5 feasibility — can <code>/diagram</code> run unattended 200×?</strong> → <strong>Yes</strong> (answered from <code>/diagram</code> SKILL.md): non-interactive block present (<code>--non-interactive</code> auto-picks framing #1), <code>--approach</code> skips the brainstorm, <code>--on-failure</code> isolates per-item failures.</li>
+<li><strong>Diagram cost/refresh policy</strong> → full <code>/diagram</code> rigor for every framework (quality over cost, accepted); <code>--changed-only</code> opt-in added for cheap re-syncs.</li>
+<li><strong><code>--json</code> consumer scope</strong> → ship the API standalone with a contract test harness; wiring a live consumer (e.g. <code>/ideate</code>) is a <code>/backlog</code> follow-up.</li>
+</ul>
+</section>
+<section id="gaps">
+<h2 id="gaps">Gaps surfaced (resolve at /spec)</h2>
+<ul>
+<li>Exact <code>/diagram</code> invocation contract per framework (<code>--non-interactive --approach "&lt;derived framing&gt;" --theme &lt;consistent&gt; --on-failure ship-with-warning</code>).</li>
+<li>Full-rigor × 200 sync cost — mitigations: <code>--changed-only</code> + pre-built shipped corpus.</li>
+<li>Confidence floor for "no strong match"; situation-taxonomy shape (flat vs small hierarchy).</li>
+</ul>
+</section>
+<section id="next-step">
+<h2 id="next-step">Recommended next step</h2>
+<ul>
+<li>Proceed to <code>/spec</code> — pin the corpus schema, the <code>/diagram</code> batch contract, the matching mechanism, and the <code>--json</code> shape + test harness.</li>
+</ul>
+</section>
+  </main>
+  <!-- pmos-comments:start -->
+  <script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+  <!-- pmos-comments:end -->
+</body>
+</html>
