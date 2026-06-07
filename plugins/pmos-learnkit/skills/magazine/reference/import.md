@@ -15,7 +15,8 @@ turns a messy subscription list into validated `feeds.yaml` entries.
 ## Token-1 dispatch
 
 Token 1 is a **subcommand selector** only when it is exactly `add`, `remove`,
-`list`, `bundles`, or `curate` AND the following token matches the expected shape:
+`list`, `bundles`, `curate`, or `watch` AND the following token matches the expected
+shape:
 
 | Token 1 | Selector when… | Else |
 |---|---|---|
@@ -24,6 +25,7 @@ Token 1 is a **subcommand selector** only when it is exactly `add`, `remove`,
 | `remove` | next token is an existing feed `name` | build invocation |
 | `bundles` | sole token | build invocation |
 | `curate` | token 1 == `curate` | build invocation |
+| `watch` | next token is `--install`, `--status`, `--run-now`, or `--uninstall` | build invocation |
 
 Anything else (including a bare `/magazine`) is a **build** of the current window.
 Never infer a subcommand from free text — the selector is explicit.
@@ -85,6 +87,14 @@ regenerate the catalog TSVs, `feeds.opml`, and the bundles. Rare / power-user pa
 - All mechanics (the 4-phase fan-out + Phase 5 bundle generation + hard rules +
   validation) live in `reference/feed-curation.md`; `curate` only parameterizes and
   dispatches it.
+
+## Watch (background transcription)
+
+`watch <--install|--status|--run-now|--uninstall>` manages the optional local
+background podcast-transcription worker. It is a thin dispatch to
+`scripts/magazine-watch.js`; all mechanics (the queue model, scheduler artifacts,
+the lock, troubleshooting) live in [`reference/watch.md`](watch.md). `--install`
+refuses unless whisper is detected and ≥1 podcast feed exists.
 
 ## Assisted import (--from)
 

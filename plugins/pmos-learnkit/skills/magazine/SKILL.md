@@ -1,8 +1,8 @@
 ---
 name: magazine
-description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time: a resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable library, offline from file://. Ships a verified PM feed catalog and ready-made starter bundles so a new user goes from zero to a populated feed list in one command. Use when the user wants to catch up on their feed backlog, or wants recommended feeds to start from. Triggers when the user says "digest my newsletters", "what's new in my feeds", "catch me up on my subscriptions", "summarize my podcasts", "/magazine", "add a feed", "starter feeds", "recommended PM newsletters", "add a feed bundle", "get me started with feeds", or "curate a feed catalog".
+description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time: a resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable library, offline from file://. Ships a verified PM feed catalog + starter bundles, and an optional local background worker that keeps podcasts transcribed so issues build fast. Use when the user wants to catch up on their feed backlog, wants recommended feeds, or wants podcasts pre-transcribed in the background. Triggers when the user says "digest my newsletters", "what's new in my feeds", "summarize my podcasts", "/magazine", "add a feed", "starter feeds", "add a feed bundle", "keep my podcasts transcribed", "/magazine watch", or "curate a feed catalog".
 user-invocable: true
-argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--format <html|md|both>] [--non-interactive] [--interactive]"
+argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list | watch <--install|--status|--run-now|--uninstall>] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--interval H] [--max K] [--ac-only] [--backfill DAYS] [--format <html|md|both>] [--non-interactive] [--interactive]"
 ---
 
 # Magazine
@@ -23,6 +23,7 @@ orchestrator:
 - `${CLAUDE_SKILL_DIR}/reference/pipeline.md` — Stage A + Stage B mechanics, lifecycle, cursor rule.
 - `${CLAUDE_SKILL_DIR}/reference/issue-format.md` — issue HTML + library contract.
 - `${CLAUDE_SKILL_DIR}/reference/import.md` — command dispatch + assisted import + bundles + curate.
+- `${CLAUDE_SKILL_DIR}/reference/watch.md` — the optional background transcription worker: queue model, `/magazine watch` surface, scheduler artifacts.
 - `${CLAUDE_SKILL_DIR}/reference/feed-curation.md` — the research methodology behind the shipped catalog + bundles (re-run via `curate`).
 
 The skill ships a verified PM feed catalog and starter bundles under
@@ -184,6 +185,11 @@ dispatch":
   **Never write into `${CLAUDE_SKILL_DIR}`** — default out is
   `~/.pmos/magazine/curated/<date>/`; the maintainer passes
   `--out plugins/pmos-learnkit/skills/magazine/data/` from the repo. End.
+- `watch <--install|--status|--run-now|--uninstall>` → manage the **optional local
+  background podcast-transcription worker**. Dispatch to
+  `node ${CLAUDE_SKILL_DIR}/scripts/magazine-watch.js <install|status|run-now|uninstall> [--interval H] [--max K] [--ac-only] [--backfill DAYS]`.
+  `--install` refuses unless whisper is detected **and** ≥1 podcast feed exists.
+  See `${CLAUDE_SKILL_DIR}/reference/watch.md` for the queue model + scheduler artifacts. End.
 - anything else (including bare `/magazine`) → a **build**; continue to Phase 2.
 
 **First-run setup** (when `~/.pmos/magazine/` is empty): walk the user through a
@@ -237,9 +243,14 @@ node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep
 For each item it crawls via `extract-article.js` **with output redirected to**
 `~/.pmos/magazine/crawl-cache/<safe-guid>.txt` (a file, never a pipe — a piped
 capture truncates a long article), flagging `preview-only` on exit 2 and falling
-back to the RSS body on exit 1; and transcribes podcasts via `transcribe.sh`
-(**exit 3 — no whisper *or* no resolvable model** → keep show-notes + an honest
-hint; never fabricate). Item status advances as it goes.
+back to the RSS body on exit 1. **Podcasts are transcribed through the shared
+queue, not inline:** `prep` foreground-drains a bounded number of episodes (claimed
+under the same lock an installed background watcher uses, so the two never
+double-transcribe), leaves the rest **queued** (rendered via show-notes fallback,
+picked up next run as cache hits), and treats exit 3 — no whisper *or* no
+resolvable model — as keep-show-notes (never fabricate). A user who installs
+`/magazine watch` keeps that queue warm so most episodes are already transcribed by
+issue time. Item status advances as it goes.
 
 If you must call a script directly (e.g. to re-crawl one item), **redirect crawl
 output to a file** — `extract-article.js <link> > <cache-file>` — never capture it

@@ -120,6 +120,19 @@ rendered`, plus `failed` (carries `failed_reason`) from any state, plus `duplica
 (carries `duplicate_of`, see Dedup below). A `failed` item that later succeeds
 clears its `failed_reason`.
 
+**Transcription queue (`transcribing`).** Podcast items (those with an
+`enclosure`) at `discovered` are the pending transcription queue. A consumer
+(background worker or interactive `prep`) atomically **claims** one
+(`discovered → transcribing`, recording `claim: {by: <pid>, at: <ISO>}`) under the
+`~/.pmos/magazine/.watch.lock`, transcribes it *outside* the lock, then **releases**
+it (`transcribing → transcribed` on success; back to `discovered` for a retryable
+miss). A claim whose owner PID is dead or whose `at` exceeds a 30-min TTL is
+auto-reclaimed to `discovered`. The lock is node-level (`O_EXCL`; macOS has no
+`flock`) and held only for the claim/release mutation. The background worker logs
+to `~/.pmos/magazine/watch.log`. See [`watch.md`](watch.md). **Back-compat:** a
+podcast left at `downloaded` by an older `prep` with a cached transcript is treated
+as already-done; the new state/field are additive.
+
 **Cursor rule:** `advanceCursors()` moves each feed cursor to the newest
 `published` among its `rendered` items, and is called **only when the whole issue
 completes** — so an interrupt + resume never drops or double-counts (FR-16, NFR-2).

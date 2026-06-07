@@ -130,4 +130,13 @@ than rediscovering them:
   many-episode catch-up, but accepted because speed is not a goal and transcripts
   cache forever. *Future option:* a persistent `whisper-server` or a single batched
   invocation over the run's audio set — opt-in, behind a flag, so the simple
-  one-shot path stays the default.
+  one-shot path stays the default. (Still future — distinct from the queue/worker
+  below, which amortizes latency by moving transcription *off the issue-build path*,
+  not by batching the model.)
+
+- **Cold transcription at issue time → optional background worker.** The latency of
+  transcribing a backlog at issue time is addressed by the optional
+  `/magazine watch` worker (the ledger reframed as a multi-producer/multi-consumer
+  queue; see [`watch.md`](watch.md)) — it keeps podcasts pre-transcribed in the
+  background so interactive builds are mostly cache hits. Opt-in and off by default;
+  the synchronous `prep` path still works without it.
