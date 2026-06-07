@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-06-07 — pmos-learnkit 0.15.0: `/magazine` keeps your podcasts transcribed in the background
+
+`/magazine`'s slowest step was always transcribing podcasts at the moment you asked for an issue. This release adds an **optional local background worker** that keeps your subscribed podcasts transcribed ahead of time, so building an issue becomes mostly cache hits instead of a long wait — opt-in, and fully reversible.
+
+- **`/magazine watch` — a background transcription worker.** `/magazine watch --install` sets up a local scheduled job (every 6h by default) that discovers new podcast episodes and transcribes them in the background at low priority. `--status` shows the queue and what's warm; `--run-now` forces a pass; `--uninstall` removes it cleanly (your cached transcripts are kept). Install **refuses** unless whisper is detected and you have at least one podcast feed — it won't set up a job that can't do anything.
+- **One queue, no surprises.** Your podcast ledger becomes a transcription queue that the background worker and your interactive `/magazine` runs share. Both enqueue (the worker forward across feeds; an issue request — including a backfill like "last 6 months" — for its window) and both drain it, but nothing transcribes the same episode twice, and the background activity can **never** change what counts as "new" in an issue.
+- **Issues build fast, even on a big backlog.** When you ask for an issue, `/magazine` transcribes a bounded number of episodes up front, renders those plus a show-notes fallback for the rest, and leaves the remainder queued for the worker — so you get your issue now and the backlog finishes itself.
+- **Safe by default.** Forward-only on first install (no transcribing your entire back-catalogue on day one; `--backfill <days>` pulls history on purpose), background/low-IO priority, an optional `--ac-only` battery guard, and a per-episode retry cap so a dead download never loops forever.
+
+### Platforms
+
+macOS (launchd) and Linux (systemd user timer, with a crontab fallback). Windows is not supported. Requires `whisper` or `whisper.cpp` for transcription (the feature refuses to install without it; it never auto-installs whisper).
+
+### Breaking changes
+
+None. The synchronous `/magazine` build still works with no watcher installed; `state.json`, cursors, dedup, and every existing command are unchanged. The ledger gains an additive `transcribing` state and Phase 1 dispatch grows a `watch` selector.
+
+### Internal
+
+Authored via `/feature-sdlc skill` (the `/skill-sdlc` alias), Tier 3. New `scripts/magazine-lock.js` (O_EXCL lockfile, PID-stale recovery — no `flock` dependency) and `scripts/magazine-watch.js` (pure launchd/systemd/cron generators + install/status/run-now/uninstall); queue ops in `magazine-state.js`; `enqueue`/`drain` modes in `magazine-run.js`; `transcribe.sh --detect`; new `reference/watch.md`. Tested: 4 script `--selftest`s, `structure.test.sh` 77/0, new `tests/watch.test.sh` 5/0, deterministic skill-eval exit 0, skill-eval [J] reviewer PASS, and a live launchd install/run/uninstall smoke (which caught and fixed a drain budget-burn bug). SDLC artifacts under `docs/pmos/features/2026-06-07_magazine-transcription-queue/`.
+
 ## 2026-06-06 — pmos-learnkit 0.14.0: `/magazine` ships a verified PM feed catalog + starter bundles
 
 `/magazine` no longer assumes you already have a `feeds.yaml`. It now ships a **verified PM feed catalog** and **ready-made starter bundles**, so a new PM goes from an empty subscription list to a relevant, populated feed set in one command — and the research method that produced the catalog is baked into the skill so it can be re-run and refreshed.
