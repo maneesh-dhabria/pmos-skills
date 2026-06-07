@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="pm-frameworks-skill">
+  <meta name="pmos:ideate-date" content="2026-06-07">
+  <title>/frameworks — PM framework finder skill — Ideation</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.61.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.61.0">
+  <script defer src="assets/viewer.js?v=2.61.0"></script>
+  <script defer src="assets/comments.js?v=2.61.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/frameworks — PM framework finder skill</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">TL;DR</h2>
+<p>A new <strong>pmos-learnkit</strong> skill, <code>/frameworks</code>, that turns the user's ~200-framework PM corpus (currently 22 prose category pages in Notion) into a structured, offline, filterable HTML library where a PM describes a problem and gets 3–5 ranked, best-fit frameworks with a one-line "why it fits" — and exposes a <code>--json</code> lookup so other pmos skills can pull relevant frameworks programmatically.</p>
+<p><strong>Recommendation:</strong> <strong>Proceed — but build it in two waves.</strong> Wave 1 (the spine): extract-once to a local offline corpus + lean schema + free-text matching + single-file filterable HTML that preserves the author's commentary. Wave 2 (the differentiators): LLM-cached match fields, a closed situation-taxonomy, the cross-skill <code>--json</code> API <em>with one real consumer</em>, and <code>/frameworks sync</code>. The two highest risks — lossy extraction and matching that erodes trust — are both retired in Wave 1, so the spine is shippable on its own.</p>
+</section>
+
+<section id="hmw">
+<h2 id="hmw">How Might We</h2>
+<p>How might we let a PM (or another pmos skill) describe a problem they're facing and surface the <em>right</em> proven framework(s) from a curated ~200-framework corpus — in a self-contained, filterable artifact they can read and act on offline?</p>
+</section>
+
+<section id="target-user-jtbd">
+<h2 id="target-user-jtbd">Target user &amp; job-to-be-done</h2>
+<p><strong>Who:</strong> A product manager (primary), and other pmos skills as a secondary "machine" consumer (<code>/ideate</code>, <code>/requirements</code>, <code>/grill</code>, <code>/spec</code>).</p>
+<p><strong>When / where:</strong> Mid-work, facing a concrete product problem — prioritizing a roadmap, making a hard/reversible decision, choosing a north-star metric, positioning, pricing — and wanting a proven lens rather than reinventing or googling.</p>
+<p><strong>JTBD:</strong> <em>When I'm facing a product problem, I want to surface and apply the best-fit proven framework, so I can reason better and faster without reinventing the wheel.</em></p>
+</section>
+
+<section id="hypothesis">
+<h2 id="hypothesis">Hypothesis</h2>
+<p>We believe <strong>extracting the corpus into a structured local index with problem-oriented matching and a filterable offline UI</strong> will produce <strong>faster, higher-trust framework selection for PMs (and reusable framework lookups for other skills)</strong> because <strong>the frameworks are already consistently structured and authoritative; the missing layer is problem→framework retrieval and a readable, filterable surface — not more content.</strong></p>
+</section>
+
+<section id="idea-variants">
+<h2 id="idea-variants">Idea variants considered</h2>
+<p>Generated via First Principles + Analogous Inspiration (cloning <code>/magazine</code>'s offline-HTML library + closed registry, and <code>/learn-list</code>'s verified-source/annotated/ranked pattern). The chosen composite finalist is flagged with ★.</p>
+<ol>
+<li><strong>★ Extract-once → local corpus.</strong> A script + one-time LLM pass converts the 22 Notion pages into a checked-in <code>frameworks.json</code> (+ markdown bodies). Notion becomes <em>upstream authoring</em>, not a runtime dependency; the skill runs fully offline.</li>
+<li>Live Notion-backed at runtime — query Notion MCP on every call. <em>(Foil — kills offline / portability / speed; rejected.)</em></li>
+<li><strong>★ <code>/frameworks sync</code> re-ingest.</strong> A command re-pulls from Notion to refresh the local corpus; each record carries <code>source_url</code> + <code>last_synced</code> provenance.</li>
+<li>Rich per-framework record (full analytic schema: <code>when_NOT_to_use</code>, <code>inputs_required</code>, <code>decision_type</code>, <code>related[]</code> …) built at extraction.</li>
+<li>Lean per-framework record only (<code>id, name, category, tags[], summary, body_md, references[]</code>) — defer rich fields.</li>
+<li><strong>★ Two-layer schema.</strong> Lean fields extracted deterministically; the rich <em>match</em> fields (<code>problem_tags</code>, <code>when_to_use</code>, <code>decision_type</code>) are LLM-derived <em>once at ingestion</em> and cached, so match quality costs zero runtime tokens.</li>
+<li>Closed tag/facet filter only (category · lifecycle-stage · decision-type · tag), like <code>/magazine</code>'s registry.</li>
+<li>Free-text semantic match — PM describes the problem in prose; in-session LLM ranks frameworks with a ≤1-sentence "why it fits."</li>
+<li><strong>★ Closed "situation" taxonomy + free-text fallback.</strong> A curated set of recognizable PM situations ("prioritize a roadmap", "stuck on a reversible decision", "choose a north-star metric") pre-mapped to frameworks; free-text falls back to variant 8.</li>
+<li><strong>★ Single self-contained <code>index.html</code> library.</strong> Faceted filter rail + search box + result cards; offline from <code>file://</code>. Clones <code>/magazine</code>.</li>
+<li>Master–detail SPA in one file — filter+list left, detail pane right; no reloads.</li>
+<li><strong>★ Inline expandable detail + "PM's take" block.</strong> Cards expand in place; detail renders body, steps, references <em>and the author's 💡 commentary as a distinct block</em> (the author's voice is the differentiator vs. a generic framework wiki).</li>
+<li><strong>★ <code>/frameworks --query "&lt;problem&gt;" --json</code></strong> returns ranked structured matches (<code>id, name, why, score</code>) consumable by other skills — frameworks-as-a-lookup-service.</li>
+<li>Named skill integrations — <code>/ideate</code> Expand pulls decision/creativity frameworks; <code>/requirements</code> pulls prioritization frameworks; <code>/grill</code> pulls decision frameworks. <em>(Folded into Wave 2 as the "one real consumer" proof.)</em></li>
+</ol>
+<p><strong>Chosen finalist (composite):</strong> 1 + 3 + 6 + 9 + 10 + 12 + 13, sequenced into two waves (see <a href="#how-it-works">How it works</a>).</p>
+</section>
+
+<section id="amplify-ladder">
+<h2 id="amplify-ladder">Amplify: 11-star ladder</h2>
+<p>Brian Chesky's 11-star design exercise applied to the chosen finalist(s). The sweet spot (typically 7–8★) is the recommended reframe that feeds the pressure-test phase below; the original Phase-2 finalist is preserved alongside it.</p>
+<p><em>Skipped — the finalist is a portfolio of architectural decisions (corpus + schema + matching + UX + API), not a single user experience with a UX ceiling to ladder. Per the Amplify gate, portfolio finalists auto-skip. (Resume with <code>--amplify</code> if you later want to ladder the search experience specifically.)</em></p>
+</section>
+
+<section id="how-it-works">
+<h2 id="how-it-works">How it works (chosen finalist)</h2>
+<ul>
+<li><strong>Wave 1 — the spine (ships standalone):</strong>
+  <ul>
+  <li><strong>Ingest once.</strong> A script walks the 22 Notion category pages via the Notion MCP, splits each on <code>### </code> framework headings, and writes a local <code>frameworks.json</code> + per-framework <code>body_md</code>. The 2-level category taxonomy is derived for free from the <code>2.x.y</code> numbering.</li>
+  <li><strong>Lean schema, deterministic.</strong> Each record: <code>id, name, aliases[], category, super_category, summary, body_md, references[{type,url}], author, commentary</code>. The author's 💡 callouts are captured verbatim as <code>commentary</code> — nothing prose is discarded.</li>
+  <li><strong>Vendor or drop images.</strong> Notion S3 image URLs are signed and expire (~1 hr) — download-and-vendor locally at ingestion, or fall back to text-only. Never hot-link S3.</li>
+  <li><strong>Free-text matching.</strong> PM describes a problem → in-session LLM ranks the corpus, returns top 3–5 with a ≤1-sentence "why it fits." Hard cap at 5; show the reasoning.</li>
+  <li><strong>Single-file filterable HTML.</strong> One <code>index.html</code> library: faceted filters (category · super-category · tag) + search box + result cards that expand inline to full detail with the "PM's take" commentary block. Offline from <code>file://</code>, cloning <code>/magazine</code>.</li>
+  </ul>
+</li>
+<li><strong>Wave 2 — the differentiators (build once the spine is trusted):</strong>
+  <ul>
+  <li><strong>LLM-cached match fields.</strong> Add <code>problem_tags[]</code>, <code>when_to_use</code>, <code>when_NOT_to_use</code>, <code>decision_type</code>, <code>lifecycle_stage[]</code>, <code>related[]</code> — derived once at ingestion, cached in the record so matching is sharper at zero runtime cost.</li>
+  <li><strong>Closed situation-taxonomy.</strong> ~15–25 recognizable PM situations, each pre-mapped to frameworks; free-text falls back to Wave-1 matching. (This is <em>designed</em>, not imported — the Notion Tags field is empty today.)</li>
+  <li><strong>Cross-skill API + one real consumer.</strong> <code>/frameworks --query "&lt;problem&gt;" --json</code> returns ranked <code>{id, name, why, score}</code>. Ship <em>one</em> consumer (e.g. <code>/ideate</code> Expand pulling decision frameworks) to prove the contract before generalizing.</li>
+  <li><strong><code>/frameworks sync</code>.</strong> Re-ingest from Notion; provenance + <code>last_synced</code> drive a staleness nudge.</li>
+  </ul>
+</li>
+</ul>
+</section>
+
+<section id="alternatives-prior-art">
+<h2 id="alternatives-prior-art">Alternatives &amp; prior art</h2>
+<table>
+<tr><th>Source</th><th>What it does</th><th>Difference from this idea</th></tr>
+<tr><td><code>/magazine</code> (pmos-learnkit)</td><td>Self-contained, filterable, offline-from-<code>file://</code> HTML issue + library backed by a closed tag registry; 2-stage deterministic-then-LLM pipeline.</td><td>Near-identical <em>UX + ingestion spine</em> — clone it. <code>/frameworks</code> adds problem→framework <em>retrieval</em> and a cross-skill lookup API, which <code>/magazine</code> has no analog for.</td></tr>
+<tr><td><code>/learn-list</code> (pmos-learnkit)</td><td>Verified-source, ranked, annotated curated reading lists with a "why" per item.</td><td>Same annotate-and-rank instinct, but <code>/frameworks</code> ranks an <em>owned, finite corpus</em> by problem-fit rather than fetching+verifying external links each run.</td></tr>
+<tr><td>Public framework libraries (Reforge, Lenny's, productplan.com, untools.co)</td><td>Browsable web catalogs of PM/decision frameworks.</td><td>Generic and external. <code>/frameworks</code> is <em>the author's curated 200</em>, carries the author's personal commentary, runs offline, and is callable by other skills — none of which a web catalog offers.</td></tr>
+<tr><td>The raw Notion database</td><td>The corpus as-is: 22 prose category pages.</td><td>Not searchable by problem, no per-framework structure, online-only, can't be called by a skill. <code>/frameworks</code> is the retrieval + structure layer on top.</td></tr>
+</table>
+</section>
+
+<section id="premortem">
+<h2 id="premortem">Premortem: failure modes</h2>
+<p><em>It is 2027-06-07. <code>/frameworks</code> shipped 12 months ago and failed. Why?</em></p>
+<table>
+<tr><th>Failure mode</th><th>Likelihood</th><th>Mitigation</th></tr>
+<tr><td><strong>Lossy / inconsistent extraction.</strong> The 200 frameworks vary (some have steps, some don't; images are expiring S3 links) — the corpus ended up sparse and matches felt random.</td><td>H</td><td>Keep <code>body_md</code> verbatim so nothing is lost even when structured fields are sparse; build an extraction validator; spot-check a sample per category; treat images as optional.</td></tr>
+<tr><td><strong>Matching erodes trust.</strong> "I need to prioritize" returned 30 frameworks or the wrong ones; PMs gave up after 2–3 bad results.</td><td>H</td><td>Hard-cap at 3–5 ranked results with a visible "why it fits" line; invest the Wave-2 cached <code>problem_tags</code>/<code>when_to_use</code> fields exactly to lift precision; let users see the reasoning.</td></tr>
+<tr><td><strong>Expiring S3 images break detail pages.</strong> Notion's signed image URLs (the ones sampled expire in ~1 hr) 404 in the artifact.</td><td>H</td><td>Download-and-vendor images locally at ingestion, or go text-only. Never hot-link S3. (Wave 1.)</td></tr>
+<tr><td><strong>Cross-skill API with no consumers.</strong> Built <code>--json</code>, no skill adopted it (integration cost &gt; perceived benefit).</td><td>M</td><td>Defer the API to Wave 2 and ship it <em>with</em> one real consumer; don't generalize a contract nobody calls.</td></tr>
+<tr><td><strong>Corpus drifts from Notion.</strong> The book kept getting edited; the local copy went stale; <code>sync</code> was never run.</td><td>M</td><td>Provenance + <code>last_synced</code> banner + a cheap staleness nudge; make <code>sync</code> idempotent and one-command.</td></tr>
+<tr><td><strong>Scope creep.</strong> Tried to ship rich schema + taxonomy + API + sync + great UX in v1 and never shipped.</td><td>M</td><td>The two-wave plan <em>is</em> the mitigation — Wave 1 is independently shippable and retires both H-risks.</td></tr>
+</table>
+</section>
+
+<section id="riskiest-assumptions">
+<h2 id="riskiest-assumptions">Riskiest assumptions</h2>
+<table>
+<tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test to validate</th></tr>
+<tr><td>The ~200 frameworks are consistent enough to extract into a uniform schema.</td><td>H</td><td>M</td><td>Already partially tested this run — 2 sampled pages share <code>### Name</code> / Reference / Author / Overview / 💡-commentary; steps &amp; images vary. Extract 2–3 more pages and eyeball field coverage before committing the schema.</td></tr>
+<tr><td>An LLM at ingestion can reliably derive <code>problem_tags</code> / <code>when_to_use</code> / <code>decision_type</code>.</td><td>H</td><td>M</td><td>Run the derivation on the 9 Decision-Making frameworks; have the author sanity-check the tags/fields for face validity.</td></tr>
+<tr><td>A closed situation-taxonomy can cover most real PM queries without ballooning.</td><td>H</td><td>H</td><td>Draft 15–20 situations from the 22 categories; throw 10 sample PM problems at it and measure clean mappings vs. free-text fallbacks.</td></tr>
+<tr><td>Free-text LLM matching over ~200 records returns a trustworthy top-5.</td><td>H</td><td>M</td><td>Once Wave-1 corpus exists, run 5 real problems and have the author rate the top-5 (precision@5).</td></tr>
+<tr><td>Other skills will actually call the <code>--json</code> API.</td><td>M</td><td>H</td><td>Wire ONE consumer in Wave 2 and judge whether it materially improves that skill's output before generalizing.</td></tr>
+<tr><td>A single self-contained HTML holds ~200 frameworks and filters fast.</td><td>M</td><td>L</td><td><code>/magazine</code> already proves this at comparable scale; render 200 cards and check filter latency once.</td></tr>
+<tr><td>Notion images can be vendored or dropped without hurting comprehension.</td><td>M</td><td>M</td><td>Count how many frameworks are image-dependent (several carry diagrams); decide vendor-vs-text-only per the count.</td></tr>
+</table>
+<h3 id="inversion">Munger inversion — choices that would guarantee failure</h3>
+<ul>
+<li>Hot-link Notion's expiring S3 image URLs and depend on the Notion MCP at runtime → broken, offline-hostile artifact.</li>
+<li>Re-derive <code>problem_tags</code> fresh on every query → slow, token-expensive, non-deterministic matches.</li>
+<li>Extract only structured fields and discard the prose body + 💡 commentary → throw away the actual differentiator (the author's voice).</li>
+<li>Ship the <code>--json</code> API with zero real consumers → dead weight nobody validates.</li>
+<li>Return everything weakly-related instead of a capped, ranked top-5 → instant trust erosion.</li>
+<li>Invent a giant tag taxonomy up front (the empty Tags field) ungrounded in real PM situations → unused filters.</li>
+</ul>
+</section>
+
+<section id="success-signals">
+<h2 id="success-signals">Success signals</h2>
+<p><strong>Leading:</strong> A PM types a real problem and rates ≥1 of the top-5 results as "I'd actually use this" (precision@5 the author trusts); the filterable library is opened and browsed offline; image/detail rendering holds up with no broken assets.</p>
+<p><strong>Lagging:</strong> The author reaches for <code>/frameworks</code> instead of scrolling Notion; at least one other pmos skill adopts the <code>--json</code> lookup and its output is measurably better with it; <code>sync</code> keeps the corpus current across book edits.</p>
+</section>
+
+<section id="next-steps">
+<h2 id="next-steps">Next steps</h2>
+<ol>
+<li><strong>Validate the two H/H–H/M assumptions cheaply</strong> before building: extract 2–3 more category pages to confirm schema uniformity, and run the match-field derivation on the 9 Decision frameworks for a face-validity check.</li>
+<li><strong>Author the skill via the SDLC.</strong> This is a new pmos-learnkit skill, so run it through <code>/skill-sdlc</code> (= <code>/feature-sdlc skill</code>) — requirements → spec → plan → execute → skill-eval. Scope <em>requirements</em> to Wave 1 only; capture Wave 2 as explicit backlog.</li>
+<li><strong>Lock the Wave-1 schema</strong> (lean fields + verbatim <code>body_md</code> + <code>commentary</code>) and the image-vendoring decision as the first spec decisions.</li>
+<li><strong>Capture Wave 2</strong> (cached match fields, situation-taxonomy, <code>--json</code> API + one consumer, <code>sync</code>) via <code>/backlog add</code> so it doesn't pull scope into v1.</li>
+</ol>
+<p><em>Suggested handoff commands (pick zero or more):</em></p>
+<ul>
+<li><code>/skill-sdlc frameworks — PM framework finder for pmos-learnkit (Wave 1 scope; see docs/pmos/ideate/2026-06-07_pm-frameworks-skill.html)</code></li>
+<li><code>/backlog add — /frameworks Wave 2: cached match fields, situation-taxonomy, --json cross-skill API + one consumer, /frameworks sync</code></li>
+<li><code>/grill docs/pmos/ideate/2026-06-07_pm-frameworks-skill.html</code> — stress-test the shape before committing.</li>
+<li><code>/ideate --refine --resume docs/pmos/ideate/2026-06-07_pm-frameworks-skill.html</code> — polish this brief for sharing.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li><strong>Matching engine in Wave 1:</strong> pure in-session LLM reasoning over the corpus (no index) is simplest, but does precision@5 hold at ~200 records, or do we need the Wave-2 cached match fields sooner than planned?</li>
+<li><strong>Corpus location:</strong> does <code>frameworks.json</code> live inside the plugin (versioned, shared with anyone who installs pmos-learnkit) or under <code>~/.pmos/</code> (user-private)? The author's commentary is personal voice — is this corpus shippable to other users, or author-only?</li>
+<li><strong>Image strategy:</strong> vendor images into the artifact (bigger files, fully offline) vs. text-only (smaller, loses diagrams). How many of the ~200 frameworks are genuinely image-dependent?</li>
+<li><strong>Situation-taxonomy ownership:</strong> the Notion Tags field is empty — who curates the ~15–25 situations, and do they get written back to Notion as the canonical tag set, or live only in the skill?</li>
+<li><strong>Refresh trigger:</strong> is <code>sync</code> manual-only, or should the skill detect a stale corpus and nudge on invocation?</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/ideate/2026-06-07_pm-frameworks-skill.html</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+  <!-- pmos-comments:start -->
+  <script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+  <!-- pmos-comments:end -->
+</body>
+</html>
