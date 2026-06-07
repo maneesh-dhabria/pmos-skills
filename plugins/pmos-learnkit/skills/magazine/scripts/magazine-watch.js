@@ -149,9 +149,9 @@ function install(opts) {
     nodePath: process.execPath, scriptsDir: __dirname, logPath, wrapperPath,
     intervalHours: plan.intervalHours, max: plan.max, acOnly: !!opts.acOnly,
   };
-  // Optional one-time backfill enqueue is left to the first tick / explicit run;
-  // forward-only is the default (FR-13). --backfill is recorded in the wrapper-less
-  // path: the installer runs an immediate backfilled enqueue when asked.
+  // Forward-only is the default (FR-13); the scheduled wrapper always enqueues
+  // forward. A --backfill at install time pulls history ONCE, via the immediate
+  // enqueue at the end of this function (not baked into the recurring wrapper).
   fs.writeFileSync(wrapperPath, wrapperFor(gen));
   fs.chmodSync(wrapperPath, 0o755);
 
@@ -215,7 +215,7 @@ function status(opts) {
   const platform = (opts && opts.platform) || process.platform;
   const installed = platform === 'darwin' ? fs.existsSync(plistPathOf())
     : (fs.existsSync(timerPathOf()) || cronInstalled());
-  const st = state.load(state.defaultPath ? path.join(root, 'state.json') : path.join(root, 'state.json'));
+  const st = state.load(path.join(root, 'state.json'));
   const counts = Object.fromEntries(state.STATES.map((s) => [s, 0]));
   let claims = [];
   for (const guid of Object.keys(st.items || {})) {
