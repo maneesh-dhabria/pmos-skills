@@ -139,6 +139,37 @@ function advanceCursors(state) {
   return state.cursors;
 }
 
+// Feed key unification (FR-R4/FR-R5). The cursor key + the ledger item's `feed`
+// must be ONE thing. The canonical key is the feed slug (`name`), matching the
+// documented config-schema and the card source-badge. Older ledgers wrote
+// cursors under the feed URL (the pre-fix interactive discover path); remap them
+// to the slug so a unified-key run does not lose the "since last run" anchor and
+// silently re-pull history. `feeds` is [{name, url}, ...]. Returns the count moved.
+function remapCursors(state, feeds) {
+  if (!state.cursors) state.cursors = {};
+  let moved = 0;
+  for (const f of feeds || []) {
+    if (!f || !f.name || !f.url || f.name === f.url) continue;
+    if (Object.prototype.hasOwnProperty.call(state.cursors, f.url)) {
+      const v = state.cursors[f.url];
+      const cur = state.cursors[f.name];
+      if (cur === undefined || String(v) > String(cur)) state.cursors[f.name] = v;
+      delete state.cursors[f.url];
+      moved++;
+    }
+  }
+  return moved;
+}
+
+// Cursor keys that match no current feed name OR url — orphans left behind by a
+// renamed/removed feed. Surfaced by `status` so a stale ledger is not mistaken
+// for a clean first run (FR-R5).
+function orphanCursors(state, feeds) {
+  const valid = new Set();
+  for (const f of feeds || []) { if (f && f.name) valid.add(f.name); if (f && f.url) valid.add(f.url); }
+  return Object.keys((state && state.cursors) || {}).filter((k) => !valid.has(k));
+}
+
 // --- Transcription queue ops (PURE — caller wraps these in magazine-lock) ---
 
 // The pending queue: podcast items (have an enclosure) still at `discovered`,
@@ -289,6 +320,25 @@ function selftest() {
 
   assert(STATES.includes('transcribing'), 'transcribing is a known state');
 
+  // --- FR-R4/FR-R5: cursor key unification (remap) + orphan detection ---
+  const feedsMeta = [{ name: 'acquired', url: 'https://feeds.transistor.fm/acquired' }];
+  // a legacy URL-keyed cursor remaps to the slug
+  const ck = { cursors: { 'https://feeds.transistor.fm/acquired': '2026-06-01' }, items: {} };
+  assert(remapCursors(ck, feedsMeta) === 1, 'remapCursors moves a URL-keyed cursor');
+  assert(ck.cursors.acquired === '2026-06-01' && ck.cursors['https://feeds.transistor.fm/acquired'] === undefined,
+    'remapCursors: value now under the slug, URL key removed');
+  // re-run is idempotent (nothing left to move)
+  assert(remapCursors(ck, feedsMeta) === 0, 'remapCursors is idempotent');
+  // when both keys exist, the newer value wins
+  const ck2 = { cursors: { acquired: '2026-05-01', 'https://feeds.transistor.fm/acquired': '2026-06-09' }, items: {} };
+  remapCursors(ck2, feedsMeta);
+  assert(ck2.cursors.acquired === '2026-06-09', 'remapCursors keeps the newer value when both keys exist');
+  // orphan detection: a cursor under a slug no current feed has
+  const ck3 = { cursors: { acquired: '2026-06-01', 'old-renamed-feed': '2026-05-01' }, items: {} };
+  const orph = orphanCursors(ck3, feedsMeta);
+  assert(orph.length === 1 && orph[0] === 'old-renamed-feed', 'orphanCursors flags a key matching no current feed');
+  assert(orphanCursors({ cursors: { acquired: '2026-06-01' } }, feedsMeta).length === 0, 'orphanCursors: a valid slug is not an orphan');
+
   fs.rmSync(tmpdir, { recursive: true, force: true });
   console.log(ok ? 'magazine-state.js --selftest: PASS' : 'magazine-state.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
@@ -296,7 +346,7 @@ function selftest() {
 
 module.exports = {
   STATES, defaultPath, canonicalLink, load, save, discover, transition, advanceCursors,
-  pendingPodcasts, claim, release, reclaimStale,
+  remapCursors, orphanCursors, pendingPodcasts, claim, release, reclaimStale,
 };
 
 if (require.main === module) {

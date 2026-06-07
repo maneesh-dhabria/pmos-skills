@@ -46,7 +46,7 @@ no background activity can change "what's new."
 
 | Command | What it does |
 |---|---|
-| `install [--interval H] [--max K] [--ac-only] [--backfill DAYS]` | **Refuses** (no artifact written) unless whisper is detected (`transcribe.sh --detect`) **and** ≥1 podcast feed exists. Otherwise writes the wrapper + the OS scheduler artifact, loads it, and prints cadence + log path. Defaults: interval 6h, K=5, forward-only. |
+| `install [--interval H] [--max K] [--ac-only] [--backfill DAYS]` | **Refuses** (no artifact written) unless whisper is detected (`transcribe.sh --detect`) **and** ≥1 podcast feed exists. Otherwise writes the wrapper + the OS scheduler artifact (both carrying an explicit **PATH** that includes the detected whisper dir — FR-R3), **seeds each podcast cursor to now** for forward-only (absent-only — an existing position is kept; FR-R4), runs a **launchd-simulated smoke check** (`transcribe.sh --check-model` under the scheduler's minimal PATH) and reports `found-whisper: yes · model <name>: resolved`, then loads the job. A failed smoke check warns loudly (PATH/model the likely cause) instead of a bare "Installed." Defaults: interval 6h, K=5, forward-only. |
 | `status` | Installed? · cadence · warm-transcript count · queue depth by state · in-flight claims · last run/error (tail of `watch.log`). |
 | `run-now` | Trigger one pass immediately (testing). |
 | `uninstall` | Unload + delete the artifact and wrapper. Cached transcripts and the ledger are **kept**. No-op if not installed. |
@@ -58,11 +58,18 @@ uniform AC condition, so the guard lives in the wrapper.
 ## Scheduler artifacts (per OS)
 
 The worker entrypoint is a generated wrapper (`~/.pmos/magazine/watch-run.sh`) that
-runs `enqueue` then `drain --max K`, appending to `~/.pmos/magazine/watch.log`.
+**first exports a `PATH`** including the detected whisper dir + the common
+Homebrew/local prefixes (FR-R3 — schedulers inherit only a minimal
+`/usr/bin:/bin:/usr/sbin:/sbin`, so `whisper-cli`/`ffmpeg` are otherwise
+unreachable), then runs `enqueue` then `drain --max K`, appending to
+`~/.pmos/magazine/watch.log`. The drain threads each podcast feed's `whisper_model`
+into `transcribe.sh --model` and logs any non-zero exit to `watch.log` (never a
+silent requeue).
 
 - **macOS — launchd.** `~/Library/LaunchAgents/com.pmos.magazine.watch.plist` with
   `StartInterval` (interval×3600, default 21600), `ProcessType=Background`,
-  `Nice=10`, `LowPriorityIO`. Loaded via `launchctl bootstrap` (fallback `load`);
+  `Nice=10`, `LowPriorityIO`, and an `EnvironmentVariables > PATH` carrying the same
+  whisper/Homebrew dirs (FR-R3). Loaded via `launchctl bootstrap` (fallback `load`);
   `run-now` via `launchctl kickstart`. launchd handles sleep/wake natively.
 - **Linux — systemd user units.** `~/.config/systemd/user/pmos-magazine-watch.{service,timer}`
   — a `oneshot` service (`Nice=10`, `IOSchedulingClass=idle`) + a timer
@@ -92,10 +99,22 @@ once, but the per-item claim guarantees they never pick the *same* one.
 - **`install` refuses "no podcast feeds".** Add one with
   `/magazine add <url> --type podcast` or `/magazine add --bundle <id> --medium podcast`.
 - **Whisper removed after install.** Ticks degrade to logged no-ops (per-episode
-  exit 3 requeues the item); the schedule never crashes.
-- **Nothing transcribed yet.** Check `status` — a fresh install is forward-only, so
-  it waits for new episodes; use `--backfill <days>` (at install) to pull recent
-  history, or `run-now` to force a pass.
+  exit 3 requeues the item, logged to `watch.log`); the schedule never crashes.
+- **Worker transcribes nothing (silently).** The install smoke check should catch
+  this up front. If it slipped through: the scheduler can't find `whisper-cli` (PATH)
+  or can't resolve the model. Check `watch.log` for `exit=3` lines, confirm the
+  wrapper/plist `PATH` includes your whisper dir, and ensure `ggml-<model>.bin` is in
+  a default search dir (`~/.pmos/magazine/models/`, `$(brew --prefix)/share/whisper-cpp/models/`,
+  `./models/`) — the scheduler does **not** inherit your shell's `WHISPER_MODEL_DIR`.
+  Re-run `install` to regenerate the artifacts.
+- **`status` shows `queue.discovered` in the thousands.** A misconfiguration signal
+  (e.g. a cursor was lost). A fresh forward-only install seeds cursors to now, so a
+  runaway back-catalogue pull should not happen; if it does, the queue can be drained
+  or the feed re-added. `status` also reports `orphanCursors` (keys matching no
+  current feed slug).
+- **Nothing transcribed yet (normal).** A fresh install is forward-only, so it waits
+  for new episodes; use `--backfill <days>` (at install) to pull recent history, or
+  `run-now` to force a pass.
 - **High CPU.** Lower `--max`, raise `--interval`, or add `--ac-only`.
 
 ## Out of scope (deliberately)

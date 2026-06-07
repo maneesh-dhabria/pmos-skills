@@ -1,0 +1,31 @@
+schema_version: 4
+pipeline_mode: skill-feedback
+mode: interactive
+slug: magazine-entrypoint-fixes
+started_at: 2026-06-07
+last_updated: 2026-06-07
+worktree_path: /Users/maneeshdhabria/Desktop/Projects/agent-skills-magazine-entrypoint-fixes
+branch: feat/magazine-entrypoint-fixes
+feature_folder: docs/pmos/features/2026-06-07_magazine-entrypoint-fixes
+tier: 2
+target_skills: [magazine]
+skill_location: plugins/pmos-learnkit/skills/magazine
+target_platform: generic
+current_phase: execute
+phases:
+  worktree: { status: completed }
+  init-state: { status: completed }
+  feedback-triage: { status: completed, artifact_path: 01_requirements.md, decision: "all 6 findings accepted (4 blocker, 1 friction, 1 nit); feed key = slug" }
+  skill-tier-resolve: { status: completed, tier: 2 }
+  requirements: { status: completed, artifact_path: 01_requirements.md }
+  grill: { status: skipped, reason: "findings already evidenced + corroborated in learnings; design decisions resolved at triage" }
+  creativity: { status: skipped }
+  spec: { status: completed, artifact_path: 02_spec.md }
+  plan: { status: completed, artifact_path: 03_plan.md }
+  execute: { status: in_progress }
+  skill-eval: { status: pending }
+  verify: { status: pending }
+  complete-dev: { status: pending }
+  retro: { status: pending }
+  final-summary: { status: pending }
+open_questions_log: []

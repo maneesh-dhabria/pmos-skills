@@ -55,5 +55,49 @@ chk "a transcript file was written"        "[ -n \"\$(ls -1 '$TMP/transcripts'/*
 RED="$(node "$SCRIPTS/magazine-run.js" drain --root "$TMP" 2>/dev/null)"
 chk "re-drain transcribes nothing (queue empty)" "[ \"\$(echo '$RED' | node -e 'let s=\"\";process.stdin.on(\"data\",d=>s+=d).on(\"end\",()=>process.exit(JSON.parse(s).transcribed===0?0:1))')\" = '' ]"
 
+# --- FR-R3: generated wrapper + plist carry a PATH including the whisper dir ---
+node -e '
+const w=require("'"$SCRIPTS"'/magazine-watch.js");
+const gen={nodePath:"/usr/bin/node",scriptsDir:"/s",logPath:"/l",wrapperPath:"/wp",intervalHours:6,max:5,whisperDir:"/opt/homebrew/bin"};
+const wrap=w.wrapperFor(gen), plist=w.plistFor(gen);
+if(!/\nPATH="[^"]*\/opt\/homebrew\/bin[^"]*"\nexport PATH\n/.test(wrap)){console.error("wrapper missing PATH export");process.exit(1);}
+if(!(plist.includes("EnvironmentVariables")&&plist.includes("/opt/homebrew/bin"))){console.error("plist missing PATH env");process.exit(1);}
+process.exit(0);
+'
+chk "FR-R3: wrapper+plist embed whisper-dir PATH" "[ $? -eq 0 ]"
+
+# --- FR-R4: forward-only seed sets a podcast cursor to now (absent-only) ---
+SEEDROOT="$(mktemp -d)"
+cat > "$SEEDROOT/feeds.yaml" <<EOF
+feeds:
+  - name: seedpod
+    url: $FIXTURE
+    type: podcast
+EOF
+node -e '
+const w=require("'"$SCRIPTS"'/magazine-watch.js");
+const state=require("'"$SCRIPTS"'/magazine-state.js");
+const root="'"$SEEDROOT"'";
+const n=w.seedForwardCursors(root);
+const st=state.load(root+"/state.json");
+if(n!==1){console.error("expected 1 seeded, got "+n);process.exit(1);}
+if(typeof st.cursors.seedpod!=="string"){console.error("podcast cursor not seeded");process.exit(1);}
+if(w.seedForwardCursors(root)!==0){console.error("re-seed should be a no-op");process.exit(1);}
+process.exit(0);
+'
+chk "FR-R4: install seeds forward-only cursor (absent-only)" "[ $? -eq 0 ]"
+rm -rf "$SEEDROOT"
+
+# --- FR-R6: --check-model exit codes (env-guarded on whisper presence) ---
+CMROOT="$(mktemp -d)"; : > "$CMROOT/ggml-base.bin"
+if [ -n "$(bash "$SCRIPTS/transcribe.sh" --detect 2>/dev/null)" ]; then
+  WHISPER_MODEL_DIR="$CMROOT" bash "$SCRIPTS/transcribe.sh" --check-model base >/dev/null 2>&1
+  chk "FR-R6: --check-model resolves a present model (exit 0)" "[ $? -eq 0 ]"
+else
+  bash "$SCRIPTS/transcribe.sh" --check-model base >/dev/null 2>&1
+  chk "FR-R6: --check-model exits 3 with no whisper" "[ $? -eq 3 ]"
+fi
+rm -rf "$CMROOT"
+
 echo "watch.test.sh: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

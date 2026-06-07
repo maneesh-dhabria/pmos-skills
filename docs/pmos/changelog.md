@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-06-07 — pmos-learnkit 0.16.0: `/magazine` prep + background worker now actually work end-to-end
+
+A real two-run shakeout (a mixed newsletter+podcast build, then a `watch --install`) revealed that `/magazine`'s documented `prep` and background-worker entrypoints were silently non-functional for a common setup (whisper.cpp + Homebrew + Substack bundles) — the right output only appeared because the work was done by hand around them. This release makes those entrypoints do what they promise, with loud self-checks instead of silent failure.
+
+- **Newsletters are crawled, not mis-queued for transcription.** `prep` now routes by feed `type` (only `podcast` feeds are transcribed), not by whether an item carries an audio file. Every Substack post ships an audio enclosure, so the old logic queued whole newsletters for a slow, wrong transcription pass and never crawled the article text. Now newsletters are crawled and podcasts are transcribed — and `prep` warns if a newsletter ever lands in the transcribe queue.
+- **The transcription worker no longer fails silently.** The drain now passes each podcast's configured `whisper_model` to the transcriber (it previously passed none, so a whisper.cpp model never resolved and episodes were quietly requeued with nothing transcribed). Any failure is now logged to `watch.log` instead of vanishing.
+- **`watch --install` makes whisper reachable from the scheduler.** The generated launchd/cron job now carries an explicit `PATH` that includes your whisper install (e.g. Homebrew's `/opt/homebrew/bin`), so the background worker can actually find `whisper-cli`/`ffmpeg` — previously it couldn't, and transcribed nothing forever.
+- **Install verifies itself before declaring success.** `watch --install` now runs a smoke check under the scheduler's own minimal environment and reports `found-whisper: yes · model …: resolved` — or warns loudly (naming PATH/model as the likely cause) rather than printing a bare "Installed."
+- **Forward-only really means forward-only.** A fresh `watch --install` seeds each podcast's "since last run" anchor to now, so the first background tick pulls only new episodes instead of the entire back catalogue (one real install had queued ~2,000 episodes back to 2021).
+- **One consistent feed key + a stale-ledger warning.** Feeds are now keyed by their slug everywhere (ledger, cursors, card badges); older URL-keyed positions are migrated automatically. `status` and first-run setup now surface orphaned cursors from renamed/removed feeds instead of mistaking a stale config dir for a clean first run.
+
+### Breaking changes
+
+None. Existing ledgers migrate on the next run (URL-keyed cursors → slug). All script self-tests and the structure/watch/bundles suites pass.
+
+### Internal
+
+- Authored via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias), Tier 2. Requirements/spec/plan ship under `docs/pmos/features/2026-06-07_magazine-entrypoint-fixes/`. New regression coverage: `structure.test.sh` FR-R1..R6 + extended `watch.test.sh`.
+
+---
+
 ## 2026-06-07 — pmos-toolkit 2.62.0: `/reflect` moves to pmos-utilities and reviews every plugin
 
 `/reflect` — the session retrospective that turns a working session into paste-back feedback for skill authors — used to live in `pmos-toolkit` and only noticed `pmos-toolkit:*` skills. It now lives in **pmos-utilities** (where cross-cutting, environment-level tooling belongs) and reviews invocations of **every** installed pmos plugin — toolkit, learnkit, and utilities — in one pass.
@@ -15,6 +36,8 @@ If you invoked the skill by its fully-qualified name `/pmos-toolkit:reflect`, us
 ### Internal
 
 `git mv` of the single-file skill from `pmos-toolkit` to `pmos-utilities`. Bumps both plugins: pmos-toolkit 2.61.0→2.62.0 (skill removal + `/feature-sdlc` retro-gate address fix) and pmos-utilities 0.1.0→0.2.0 (skill arrival, tagged separately via a follow-up `/complete-dev --plugin pmos-utilities`). Phase 2 detection broadened to all `pmos-*:*` namespaces (now captures the owning plugin per invocation); Phase 3 frontmatter resolution walks every `plugins/*/skills/<name>/`; Phase 6 learnings step inlined to drop the `_shared/learnings-capture.md` dependency, since pmos-utilities is self-contained (no `_shared/` substrate). Verified: deterministic skill-eval exit 0, non-interactive block byte-identical to canonical, both `/reflect` test fixtures repointed and green.
+
+---
 
 ## 2026-06-07 — pmos-learnkit 0.15.0: `/magazine` keeps your podcasts transcribed in the background
 

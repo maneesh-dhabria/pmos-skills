@@ -30,11 +30,19 @@ feeds:
     whisper_model: small   # optional per-feed override; default base
 ```
 
-- `name` is the cursor key in `state.json` and the source badge on each card.
-- `type` decides Stage A: `podcast` items go through `transcribe.sh`; `newsletter`
-  items skip transcription.
+- `name` is the **single canonical key** (FR-R4): the cursor key in `state.json`,
+  the ledger item's `feed`, and the source badge on each card — one slug everywhere.
+  Older ledgers that keyed cursors by feed URL are remapped to the slug automatically
+  on the next `discover`/`enqueue`. Re-importing a publication under a different slug
+  resets its "since last run" anchor (see [state.json → Cursor rule](#statejson)).
+- `type` decides Stage A routing (FR-R1): **only `podcast` items are transcribed**;
+  `newsletter` items are crawled — *even when they carry an audio enclosure* (every
+  Substack post does). An enclosure is necessary but not sufficient to transcribe.
 - `whisper_model` defaults to `base` (fast, good-enough) when absent. It is a model
-  **name** (`base`/`small`/`medium`/…), not a path.
+  **name** (`base`/`small`/`medium`/…), or an explicit ggml path. **The transcription
+  drain + the background watcher thread this value into `transcribe.sh --model`**
+  (FR-R2) — they no longer fall back to a bare `base` that a whisper.cpp user's model
+  dir may not contain.
   - **openai-whisper** takes the name directly.
   - **whisper.cpp** (`whisper-cli`/`main`) needs a ggml model **file**, so
     `transcribe.sh` resolves the name to `ggml-<name>.bin`, searching in order:
@@ -42,8 +50,11 @@ feeds:
     `$(brew --prefix)/share/whisper-cpp/models/`, then `./models/`. whisper.cpp users
     should drop their `ggml-*.bin` in one of those dirs or set `WHISPER_MODEL_DIR`.
     You may also set `whisper_model` to an explicit `/path/to/ggml-*.bin`, which is
-    passed through unchanged. If no model resolves, transcription exits 3 and the item
-    keeps its show-notes with an honest hint (never a fabricated summary).
+    passed through unchanged. **The background scheduler does NOT inherit your shell's
+    `WHISPER_MODEL_DIR`** — for the watcher, place the ggml in a default search dir
+    (or set an explicit path in `whisper_model`). If no model resolves, transcription
+    exits 3 and the item keeps its show-notes with an honest hint (never a fabricated
+    summary); the watcher logs the exit to `watch.log` rather than failing silently.
 
 ## tags.yaml
 
