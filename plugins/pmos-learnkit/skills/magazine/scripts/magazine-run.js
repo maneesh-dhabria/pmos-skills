@@ -142,6 +142,16 @@ function cmdPrep(opts) {
     if (item.status !== 'discovered') continue; // resumable: skip already-prepped
     const r = { guid, crawl: null, transcribe: null };
 
+    // Podcasts are transcribed through the shared queue (foreground drain below),
+    // not inline here — their content is the transcript, and routing them through
+    // the queue means an installed background worker and this session never
+    // double-transcribe the same episode. Leave them at `discovered` (queued).
+    if (item.enclosure) {
+      r.transcribe = 'queued';
+      results.push(r);
+      continue;
+    }
+
     // Crawl — redirect to a file (NOT a pipe). The fd write is what makes the
     // flush-before-exit fix moot at the call site: the OS owns the file.
     if (item.link) {
@@ -160,22 +170,22 @@ function cmdPrep(opts) {
       }
     }
 
-    // Transcribe podcasts (best-effort; exit 3 = no whisper/model -> show-notes).
-    if (item.enclosure) {
-      try {
-        execFileSync('bash', [TRANSCRIBE, item.enclosure, guid, '--out-dir', path.join(root, 'transcripts')],
-          { stdio: ['ignore', 'inherit', 'inherit'] });
-        r.transcribe = 'ok';
-      } catch (e) {
-        r.transcribe = e.status === 3 ? 'no-whisper' : 'failed';
-      }
-    }
-
-    state.transition(st, guid, r.crawl === 'failed' && !item.enclosure ? 'failed' : 'downloaded',
+    state.transition(st, guid, r.crawl === 'failed' ? 'failed' : 'downloaded',
       r.crawl === 'failed' ? 'crawl-failed' : undefined);
     results.push(r);
   }
   state.save(file, st);
+
+  // Foreground-drain a BOUNDED number of queued podcasts (FR-8). Shares the lock
+  // with any background watcher (no double-transcribe); items beyond the cap stay
+  // queued and render via the show-notes fallback, to be picked up next run.
+  const fg = cmdDrain({
+    root,
+    max: opts.max || FOREGROUND_TRANSCRIBE_CAP,
+    budgetSec: opts.budgetSec,
+    transcribeFn: opts.transcribeFn,
+  });
+  results.push({ foregroundDrain: fg });
   return results;
 }
 
@@ -184,7 +194,8 @@ function cmdPrep(opts) {
 // the background watcher. INVARIANT: neither advances cursors nor renders — they
 // only move podcast items along discovered -> transcribing -> transcribed.
 
-const DEFAULT_DRAIN_MAX = 5;
+const DEFAULT_DRAIN_MAX = 5;             // background worker: episodes per tick
+const FOREGROUND_TRANSCRIBE_CAP = 3;    // interactive prep: episodes transcribed in-session
 const STALE_TTL_MS = 30 * 60 * 1000;
 
 // Producer: discover type:podcast feeds forward (per-feed cursor), recording new
@@ -405,6 +416,26 @@ function selftest() {
 
   fs.rmSync(qroot, { recursive: true, force: true });
   fs.rmSync(qroot3, { recursive: true, force: true });
+
+  // --- T8: interactive prep foreground-drains a bounded number, queues the rest ---
+  const proot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-prep-'));
+  const pst = { cursors: {}, items: {} };
+  // two podcasts (enclosure) + one article (link) all discovered
+  state.discover(pst, 'p1', { feed: 'pod', enclosure: 'http://x/1.mp3', published: '2026-06-01' });
+  state.discover(pst, 'p2', { feed: 'pod', enclosure: 'http://x/2.mp3', published: '2026-06-02' });
+  state.save(statePath(proot), pst);
+  let calls = 0;
+  const prepRes = cmdPrep({
+    root: proot, max: 1, // foreground cap = 1
+    transcribeFn: (guid) => { calls++; fs.mkdirSync(path.join(proot, 'transcripts'), { recursive: true }); fs.writeFileSync(path.join(proot, 'transcripts', safeGuid(guid) + '.txt'), 'x'); return 0; },
+  });
+  assert(calls === 1, 'prep foreground-transcribes only up to the cap (1), got ' + calls);
+  const pfin = state.load(statePath(proot));
+  const transcribedN = Object.values(pfin.items).filter((it) => it.status === 'transcribed').length;
+  const queuedN = Object.values(pfin.items).filter((it) => it.status === 'discovered' && it.enclosure).length;
+  assert(transcribedN === 1 && queuedN === 1, 'prep leaves the over-cap podcast queued (discovered), got transcribed=' + transcribedN + ' queued=' + queuedN);
+  assert(JSON.stringify(pfin.cursors) === '{}', 'FR-7: prep foreground drain does not advance cursors');
+  fs.rmSync(proot, { recursive: true, force: true });
 
   console.log(ok ? 'magazine-run.js --selftest: PASS' : 'magazine-run.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
