@@ -337,8 +337,9 @@ if (require.main === module) {
       else if (a === '--max') o.max = parseInt(argv[++i], 10) || 0;
       else if (a === '--ac-only') o.acOnly = true;
       else if (a === '--backfill') o.backfill = parseInt(argv[++i], 10) || 0;
+      else if (a === '--root') o.root = argv[++i];
     }
-    if (cmd === 'install') install(o);
+    if (cmd === 'install') { const r = install(o); if (r && r.ok === false) process.exit(64); }
     else if (cmd === 'uninstall') uninstall(o);
     else if (cmd === 'status') process.stdout.write(JSON.stringify(status(o), null, 2) + '\n');
     else if (cmd === 'run-now') runNow(o);
