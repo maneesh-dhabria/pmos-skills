@@ -1,0 +1,122 @@
+[
+  {
+    "id": "problem-h",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "who",
+    "level": 3,
+    "title": "Who experiences this?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "why-now",
+    "level": 3,
+    "title": "Why now?",
+    "parent_id": "problem"
+  },
+  {
+    "id": "goals-h",
+    "level": 2,
+    "title": "Goals & Non-Goals",
+    "parent_id": null
+  },
+  {
+    "id": "goals-list",
+    "level": 3,
+    "title": "Goals",
+    "parent_id": "goals"
+  },
+  {
+    "id": "non-goals",
+    "level": 3,
+    "title": "Non-Goals (explicit scope cuts)",
+    "parent_id": "goals"
+  },
+  {
+    "id": "ux-h",
+    "level": 2,
+    "title": "User Experience Analysis",
+    "parent_id": null
+  },
+  {
+    "id": "motivation",
+    "level": 3,
+    "title": "Motivation",
+    "parent_id": "ux"
+  },
+  {
+    "id": "friction",
+    "level": 3,
+    "title": "Friction Points",
+    "parent_id": "ux"
+  },
+  {
+    "id": "satisfaction",
+    "level": 3,
+    "title": "Satisfaction Signals",
+    "parent_id": "ux"
+  },
+  {
+    "id": "solution-h",
+    "level": 2,
+    "title": "Solution Direction",
+    "parent_id": null
+  },
+  {
+    "id": "journeys-h",
+    "level": 2,
+    "title": "User Journeys",
+    "parent_id": null
+  },
+  {
+    "id": "primary-journey",
+    "level": 3,
+    "title": "Primary journey — install and benefit",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "alternate-journeys",
+    "level": 3,
+    "title": "Alternate journeys",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "error-journeys",
+    "level": 3,
+    "title": "Error journeys",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "empty-edge",
+    "level": 3,
+    "title": "Empty states & edge cases",
+    "parent_id": "journeys"
+  },
+  {
+    "id": "decisions-h",
+    "level": 2,
+    "title": "Design Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "metrics-h",
+    "level": 2,
+    "title": "Success Metrics",
+    "parent_id": null
+  },
+  {
+    "id": "sources-h",
+    "level": 2,
+    "title": "Research Sources",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions-h",
+    "level": 2,
+    "title": "Open Questions",
+    "parent_id": null
+  }
+]
