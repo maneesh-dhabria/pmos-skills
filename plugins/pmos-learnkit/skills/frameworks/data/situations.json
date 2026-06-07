@@ -52,45 +52,172 @@
   ],
   "situations": [
     {
+      "id": "prioritize-roadmap",
+      "label": "I need to prioritize features on my roadmap",
+      "super_category": "Product",
+      "tags": ["prioritization", "roadmap"],
+      "frameworks": ["feature-prioritization/rice-score", "feature-prioritization/ice-scoring", "feature-prioritization/kano-model", "feature-prioritization/moscow-method"]
+    },
+    {
+      "id": "define-success-metrics",
+      "label": "I need to define success metrics or a north-star metric",
+      "super_category": "Product",
+      "tags": ["metrics", "north-star-metric"],
+      "frameworks": ["metrics/north-star-metrics-nsm", "metrics/aarrr-pirate-metrics", "metrics/heart-framework", "metrics/product-metric-categories-by-shreyas-doshi"]
+    },
+    {
+      "id": "set-goals-okrs",
+      "label": "I need to set goals or OKRs for my team",
+      "super_category": "Product",
+      "tags": ["goal-setting"],
+      "frameworks": ["goal-setting/objectives-and-key-results-okrs", "goal-setting/v2mom", "goal-setting/mspot", "goal-setting/narrative-commitments-and-tasks-ncts"]
+    },
+    {
+      "id": "run-product-discovery",
+      "label": "I'm running product discovery or validating a new idea",
+      "super_category": "Product",
+      "tags": ["product-discovery", "experimentation"],
+      "frameworks": ["product-discovery-and-delivery/jobs-to-be-done-jtbd", "product-discovery-and-delivery/opportunity-solution-tree", "product-discovery-and-delivery/lean-startup", "product-discovery-and-delivery/minimum-viable-product"]
+    },
+    {
+      "id": "shape-product-strategy",
+      "label": "I need to craft or evaluate a product strategy",
+      "super_category": "Product",
+      "tags": ["product-strategy"],
+      "frameworks": ["product-strategy-and-roadmap/product-strategy-stack", "product-strategy-and-roadmap/good-vs-bad-product-strategy", "product-strategy-and-roadmap/gist", "product-strategy-and-roadmap/4-elements-of-effective-product-strategy"]
+    },
+    {
+      "id": "drive-engagement-habits",
+      "label": "I want to design for habit, motivation, or engagement",
+      "super_category": "Product",
+      "tags": ["behavioral-psychology", "activation", "retention"],
+      "frameworks": ["behavioral-psychology/hooked-model", "behavioral-psychology/tiny-habits", "behavioral-psychology/nudge-theory", "behavioral-psychology/octalysis-gamification-framework"]
+    },
+    {
+      "id": "grow-the-product",
+      "label": "I need to drive growth (activation, retention, loops)",
+      "super_category": "Product",
+      "tags": ["growth", "retention", "activation"],
+      "frameworks": ["product-strategy-and-roadmap/growth-loops", "metrics/power-user-curve", "product-strategy-and-roadmap/racecar-growth-framework"]
+    },
+    {
+      "id": "assess-competition-moat",
+      "label": "I'm assessing the competitive landscape or our moat",
+      "super_category": "Strategy & Business",
+      "tags": ["competitive-strategy", "moat-defensibility"],
+      "frameworks": ["business-strategy/porters-five-forces", "business-strategy/7-powers", "business-strategy/network-effects", "business-strategy/playing-to-win"]
+    },
+    {
+      "id": "size-a-market",
+      "label": "I need to size a market (TAM / SAM / SOM)",
+      "super_category": "Strategy & Business",
+      "tags": ["market-sizing"],
+      "frameworks": ["business-strategy/market-sizing-tam-sam-som", "business-strategy/5-tests-of-effective-customer-segmentation"]
+    },
+    {
+      "id": "find-product-market-fit",
+      "label": "I'm trying to find or measure product-market fit",
+      "super_category": "Strategy & Business",
+      "tags": ["product-market-fit"],
+      "frameworks": ["product-market-fit/4-fits-framework", "product-market-fit/superhuman-pmf-engine", "product-market-fit/pmf-scorecard", "product-market-fit/pmf-trifecta"]
+    },
+    {
+      "id": "choose-business-model",
+      "label": "I need to choose or map a business model",
+      "super_category": "Strategy & Business",
+      "tags": ["business-model"],
+      "frameworks": ["business-model/business-model-canvas", "business-model/use-case-map", "business-model/software-as-a-service-saas"]
+    },
+    {
+      "id": "set-pricing",
+      "label": "I need to set or test pricing",
+      "super_category": "Strategy & Business",
+      "tags": ["pricing", "monetization"],
+      "frameworks": ["pricing-and-monetization/value-based-pricing", "pricing-and-monetization/van-westendorp-price-sensitivity-model", "pricing-and-monetization/5-step-pricing-strategy"]
+    },
+    {
+      "id": "position-and-message",
+      "label": "I need to position or message my product",
+      "super_category": "Strategy & Business",
+      "tags": ["positioning", "marketing"],
+      "frameworks": ["marketing-and-sales/positioning", "marketing-and-sales/value-proposition-canvas", "marketing-and-sales/4questions-for-product-communication"]
+    },
+    {
+      "id": "improve-ux",
+      "label": "I'm improving the UX or usability of a flow",
+      "super_category": "Analytics, Design & Finance",
+      "tags": ["ux-design", "usability", "product-design"],
+      "frameworks": ["product-design/design-thinking", "product-design/10-usability-heuristics", "product-design/customer-journey-mapping", "product-design/customer-empathy-map"]
+    },
+    {
+      "id": "analyze-product-data",
+      "label": "I need to analyze product data or a funnel",
+      "super_category": "Analytics, Design & Finance",
+      "tags": ["analytics", "funnel-analysis", "metrics"],
+      "frameworks": ["analytics/cohort-analysis", "metrics/aarrr-pirate-metrics", "analytics/growth-accounting"]
+    },
+    {
+      "id": "evaluate-financials",
+      "label": "I need to evaluate financials or unit economics",
+      "super_category": "Analytics, Design & Finance",
+      "tags": ["finance", "unit-economics"],
+      "frameworks": ["finance/contribution-margin-cmx", "finance/discounted-cash-flows-dcf", "finance/net-present-value-npv", "finance/burn-multiple"]
+    },
+    {
+      "id": "align-stakeholders",
+      "label": "I need to align or influence stakeholders",
+      "super_category": "People, Personal & Career",
+      "tags": ["stakeholder-alignment", "communication"],
+      "frameworks": ["stakeholder-management/raci", "stakeholder-management/stakeholder-map", "stakeholder-management/6-drivers-of-influence", "stakeholder-management/batna"]
+    },
+    {
+      "id": "manage-my-time",
+      "label": "I'm overwhelmed and need to manage my time and tasks",
+      "super_category": "People, Personal & Career",
+      "tags": ["task-management", "personal-productivity"],
+      "frameworks": ["task-management/eisenhower-matrix", "task-management/getting-things-done-gtd", "task-management/lno-framework"]
+    },
+    {
+      "id": "grow-my-pm-career",
+      "label": "I want to grow my PM career or understand the ladder",
+      "super_category": "People, Personal & Career",
+      "tags": ["career-growth", "pm-evaluation"],
+      "frameworks": ["pm-evaluation-and-career-ladder/career-growth-scope-x-complexity-influence", "pm-evaluation-and-career-ladder/pm-scope-and-impact-matrix", "personal-skills-and-general-product-management/good-vs-great-product-managers"]
+    },
+    {
+      "id": "communicate-with-impact",
+      "label": "I need to communicate or write with impact",
+      "super_category": "People, Personal & Career",
+      "tags": ["communication", "stakeholder-alignment"],
+      "frameworks": ["communication-and-leadership/minto-pyramid-principle", "stakeholder-management/storytelling-frameworks", "communication-and-leadership/m-and-t-shaped-communication"]
+    },
+    {
+      "id": "lead-my-team",
+      "label": "I want to lead my team better",
+      "super_category": "People, Personal & Career",
+      "tags": ["leadership", "team-health"],
+      "frameworks": ["communication-and-leadership/radical-candor", "communication-and-leadership/five-dysfunctions-of-a-team", "communication-and-leadership/level-5-leadership"]
+    },
+    {
       "id": "reversible-decision",
       "label": "I'm stuck on a reversible (or irreversible) decision",
       "super_category": "People, Personal & Career",
       "tags": ["decision-making", "irreversible-decision"],
-      "frameworks": [
-        "decision-making/one-way-vs-two-way-doors",
-        "decision-making/regret-minimization-framework"
-      ]
+      "frameworks": ["decision-making/one-way-vs-two-way-doors", "decision-making/regret-minimization-framework"]
     },
     {
       "id": "weigh-options-structurally",
       "label": "I need to weigh options structurally before choosing",
       "super_category": "People, Personal & Career",
       "tags": ["decision-making", "high-stakes"],
-      "frameworks": [
-        "decision-making/pros-and-cons-list",
-        "decision-making/decision-trees",
-        "decision-making/six-thinking-hats"
-      ]
+      "frameworks": ["decision-making/pros-and-cons-list", "decision-making/decision-trees", "decision-making/six-thinking-hats"]
     },
     {
       "id": "model-uncertainty",
       "label": "I'm modeling uncertainty or risk in a forecast",
       "super_category": "People, Personal & Career",
       "tags": ["estimation", "decision-making", "high-stakes"],
-      "frameworks": [
-        "decision-making/monte-carlo-simulation",
-        "decision-making/sensitivity-and-what-if-analysis",
-        "decision-making/decision-trees"
-      ]
-    },
-    {
-      "id": "strategic-situation-assessment",
-      "label": "I'm doing a strategic situation assessment",
-      "super_category": "People, Personal & Career",
-      "tags": ["competitive-strategy", "decision-making"],
-      "frameworks": [
-        "decision-making/swot-analysis"
-      ]
+      "frameworks": ["decision-making/monte-carlo-simulation", "decision-making/sensitivity-and-what-if-analysis", "decision-making/decision-trees"]
     }
   ]
 }

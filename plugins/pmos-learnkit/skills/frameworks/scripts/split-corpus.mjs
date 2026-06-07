@@ -29,6 +29,16 @@ export function slugify(s) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Strip inline-markdown emphasis from a heading so the framework `name` is plain
+// text (Notion headings sometimes carry `**bold**` / `*italic*` / `` `code` ``).
+export function cleanName(s) {
+  return String(s)
+    .replace(/\*\*/g, '')
+    .replace(/[*`_]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function superCategory(code) {
   if (!code) return null;
   const m = /^2\.(\d)/.exec(String(code));
@@ -148,7 +158,7 @@ export function parseCategory(md, opts = {}) {
     const m = /^###\s+(.+?)\s*$/.exec(line);
     if (m) {
       if (cur) blocks.push(cur);
-      cur = { name: m[1].trim(), body: [] };
+      cur = { name: cleanName(m[1]), body: [] };
     } else if (cur) {
       cur.body.push(line);
     }
@@ -175,7 +185,7 @@ const SELFTEST_MD = `## Sample Frameworks
 <callout icon="💡" color="gray_bg">
 	Alpha take: use it early.
 </callout>
-### Beta Loop
+### **Beta Loop**
 - Reference - [Wikipedia](https://en.wikipedia.org/wiki/Beta)
 - Overview
 	- Beta loops back on itself.
@@ -218,6 +228,8 @@ function runSelftest() {
     assert(a.source_url === 'https://notion.so/page#alpha-model', `source_url: ${a.source_url}`);
 
     const b = recs[1];
+    assert(b.name === 'Beta Loop', `bold markers not stripped from name: ${b.name}`);
+    assert(b.id === 'decision-making/beta-loop', `bad beta id: ${b.id}`);
     assert(b.author === null, `beta author should be null, got ${b.author}`);
     assert(b.commentary === null, `beta commentary should be null, got ${b.commentary}`);
     assert(b.references.length === 1, `beta refs: ${b.references.length}`);
