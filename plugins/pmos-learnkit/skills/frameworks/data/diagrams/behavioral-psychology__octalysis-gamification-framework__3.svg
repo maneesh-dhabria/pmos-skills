@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Octalysis levels of application staged ladder diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="19" font-weight="700" fill="#1d2438">Levels of Octalysis Application</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11.5" fill="#5b6680">Each level adds a dimension of nuance to the eight core drives.</text>
+
+  <!-- Level 1 -->
+  <rect x="80" y="78" width="480" height="78" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="116" cy="117" r="20" fill="#2563eb"/>
+  <text x="116" y="123" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#ffffff">1</text>
+  <text x="152" y="106" font-family="Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">The Eight Core Drives</text>
+  <text x="152" y="126" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">The base octagon — which motivators a design engages</text>
+  <text x="152" y="143" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">and how strongly each one is activated.</text>
+
+  <!-- arrow -->
+  <line x1="320" y1="156" x2="320" y2="178" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="320,184 314,174 326,174" fill="#1d2438"/>
+
+  <!-- Level 2 -->
+  <rect x="80" y="186" width="480" height="78" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="116" cy="225" r="20" fill="#0ea5a4"/>
+  <text x="116" y="231" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#ffffff">2</text>
+  <text x="152" y="214" font-family="Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Player Journey Phases</text>
+  <text x="152" y="234" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Map the drives across Discovery → Onboarding →</text>
+  <text x="152" y="251" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Scaffolding → Endgame as engagement evolves.</text>
+
+  <!-- arrow -->
+  <line x1="320" y1="264" x2="320" y2="286" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="320,292 314,282 326,282" fill="#1d2438"/>
+
+  <!-- Level 3 -->
+  <rect x="80" y="294" width="480" height="78" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="116" cy="333" r="20" fill="#f59e0b"/>
+  <text x="116" y="339" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="700" fill="#ffffff">3</text>
+  <text x="152" y="322" font-family="Helvetica,Arial,sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Player Types</text>
+  <text x="152" y="342" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Tailor drives to distinct player segments, and account</text>
+  <text x="152" y="359" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">for the interaction of journey phase × player type.</text>
+</svg>

@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Fermi estimation of startup viability factor diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Fermi-Estimating the Viability Factor</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Each lens becomes a rough probability — multiply them into one score</text>
+
+  <!-- Anchor context strip -->
+  <rect x="24" y="72" width="592" height="30" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1" stroke-dasharray="4 3"/>
+  <text x="36" y="91" font-family="sans-serif" font-size="11" fill="#5b6680">Fixed for one estimate: specific buyer &#183; specific problem &#183; product trade-offs &#183; specific price</text>
+
+  <!-- Six factor inputs, two columns -->
+  <g font-family="sans-serif">
+    <rect x="40" y="120" width="190" height="34" rx="5" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="52" y="135" font-size="12" font-weight="700" fill="#2563eb">Plausible</text>
+    <text x="200" y="142" font-size="12" fill="#1d2438" text-anchor="end">P&#8321;</text>
+
+    <rect x="40" y="158" width="190" height="34" rx="5" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="52" y="173" font-size="12" font-weight="700" fill="#0ea5a4">Self-Aware</text>
+    <text x="200" y="180" font-size="12" fill="#1d2438" text-anchor="end">P&#8322;</text>
+
+    <rect x="40" y="196" width="190" height="34" rx="5" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="52" y="211" font-size="12" font-weight="700" fill="#f59e0b">Lucrative</text>
+    <text x="200" y="218" font-size="12" fill="#1d2438" text-anchor="end">P&#8323;</text>
+
+    <rect x="40" y="234" width="190" height="34" rx="5" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="52" y="249" font-size="12" font-weight="700" fill="#2563eb">Liquid</text>
+    <text x="200" y="256" font-size="12" fill="#1d2438" text-anchor="end">P&#8324;</text>
+
+    <rect x="40" y="272" width="190" height="34" rx="5" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="52" y="287" font-size="12" font-weight="700" fill="#0ea5a4">Eager</text>
+    <text x="200" y="294" font-size="12" fill="#1d2438" text-anchor="end">P&#8325;</text>
+
+    <rect x="40" y="310" width="190" height="34" rx="5" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="52" y="325" font-size="12" font-weight="700" fill="#ef4444">Enduring</text>
+    <text x="200" y="332" font-size="12" fill="#1d2438" text-anchor="end">P&#8326;</text>
+  </g>
+
+  <!-- Converging connectors to multiply node -->
+  <g stroke="#5b6680" stroke-width="1.2" fill="none">
+    <path d="M230 137 C 290 137, 300 220, 360 226"/>
+    <path d="M230 175 C 290 175, 305 222, 360 230"/>
+    <path d="M230 213 C 300 213, 320 224, 360 232"/>
+    <path d="M230 251 C 300 251, 320 236, 360 234"/>
+    <path d="M230 289 C 300 289, 310 246, 360 238"/>
+    <path d="M230 327 C 290 327, 300 250, 360 242"/>
+  </g>
+
+  <!-- Multiply node -->
+  <circle cx="392" cy="232" r="32" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="392" y="240" font-family="sans-serif" font-size="26" font-weight="700" fill="#2563eb" text-anchor="middle">&#215;</text>
+  <text x="392" y="282" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">multiply</text>
+
+  <!-- Arrow to result -->
+  <path d="M426 232 L 470 232" stroke="#1d2438" stroke-width="1.5" fill="none"/>
+  <path d="M470 232 l -8 -4 l 0 8 z" fill="#1d2438"/>
+
+  <!-- Result -->
+  <rect x="476" y="200" width="140" height="64" rx="8" fill="#2563eb"/>
+  <text x="546" y="224" font-family="sans-serif" font-size="12" fill="#ffffff" text-anchor="middle">Viability Factor</text>
+  <text x="546" y="246" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">P&#8321;&#183;P&#8322;&#183;P&#8323;&#183;P&#8324;&#183;P&#8325;&#183;P&#8326;</text>
+
+  <text x="320" y="384" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680" text-anchor="middle">The value is in reasoning through each estimate and its trade-offs — not the final number.</text>
+</svg>

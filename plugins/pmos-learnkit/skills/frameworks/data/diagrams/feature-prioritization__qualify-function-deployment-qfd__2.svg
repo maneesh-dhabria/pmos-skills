@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="QFD six-step process ladder diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The QFD Process — Six Steps</text>
+  <text x="32" y="62" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">From customer jobs to prioritized features, in sequence</text>
+
+  <!-- Step rows as a descending ladder -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <!-- Step 1 -->
+    <rect x="32" y="86" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="58" cy="107" r="14" fill="#2563eb"/>
+    <text x="58" y="112" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="84" y="103" font-size="13" font-weight="700" fill="#1d2438">Identify jobs &amp; pain points (the "What")</text>
+    <text x="84" y="120" font-size="11" fill="#5b6680">List what is potentially valuable to users and customers.</text>
+
+    <!-- Step 2 -->
+    <rect x="32" y="134" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="58" cy="155" r="14" fill="#2563eb"/>
+    <text x="58" y="160" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="84" y="151" font-size="13" font-weight="700" fill="#1d2438">Understand customer needs</text>
+    <text x="84" y="168" font-size="11" fill="#5b6680">Ask for top-5 picks; weight by % of people who chose each.</text>
+
+    <!-- Step 3 -->
+    <rect x="32" y="182" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="58" cy="203" r="14" fill="#2563eb"/>
+    <text x="58" y="208" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="84" y="199" font-size="13" font-weight="700" fill="#1d2438">Identify how to meet needs (the "How")</text>
+    <text x="84" y="216" font-size="11" fill="#5b6680">List improvements, features, and fixes that address the jobs.</text>
+
+    <!-- Step 4 -->
+    <rect x="32" y="230" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="58" cy="251" r="14" fill="#0ea5a4"/>
+    <text x="58" y="256" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+    <text x="84" y="247" font-size="13" font-weight="700" fill="#1d2438">Connect needs to solutions</text>
+    <text x="84" y="264" font-size="11" fill="#5b6680">Score each What×How relationship: 9 / 3 / 1 / blank.</text>
+
+    <!-- Step 5 -->
+    <rect x="32" y="278" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="58" cy="299" r="14" fill="#f59e0b"/>
+    <text x="58" y="304" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+    <text x="84" y="295" font-size="13" font-weight="700" fill="#1d2438">Prioritize tasks</text>
+    <text x="84" y="312" font-size="11" fill="#5b6680">Score = Σ (importance × impact); highest totals win.</text>
+
+    <!-- Step 6 -->
+    <rect x="32" y="326" width="576" height="42" rx="6" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+    <circle cx="58" cy="347" r="14" fill="#1d2438"/>
+    <text x="58" y="352" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">6</text>
+    <text x="84" y="343" font-size="13" font-weight="700" fill="#1d2438">Review priorities</text>
+    <text x="84" y="360" font-size="11" fill="#5b6680">Confirm top features; spot any customer need left unmet.</text>
+  </g>
+</svg>

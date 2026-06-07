@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Installation and Deployment turning-point S-curve diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">Installation &#8594; Deployment: the Turning Point</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Degree of diffusion of a technological revolution over time</text>
+
+  <!-- axes -->
+  <line x1="70" y1="330" x2="600" y2="330" stroke="#1d2438" stroke-width="1.5"/>
+  <line x1="70" y1="330" x2="70" y2="80" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="48" y="200" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 48 200)">Diffusion / adoption</text>
+  <text x="335" y="355" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Time (decades)</text>
+
+  <!-- mid gap (turning point) shaded band -->
+  <rect x="320" y="80" width="40" height="250" fill="#f4f7ff"/>
+  <line x1="340" y1="80" x2="340" y2="330" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="340" y="74" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ef4444">Turning point (gap)</text>
+
+  <!-- S-curve -->
+  <path d="M70 320 C 150 318, 200 250, 250 175 C 280 130, 300 110, 320 105 L 360 105 C 400 105, 440 130, 480 150 C 530 175, 560 165, 600 162" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+  <!-- installation label region -->
+  <text x="195" y="115" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">INSTALLATION</text>
+  <text x="195" y="132" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Irruption &#8594; Frenzy</text>
+  <text x="195" y="146" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#f59e0b">finance-led &#183; speculative</text>
+
+  <!-- deployment label region -->
+  <text x="490" y="230" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">DEPLOYMENT</text>
+  <text x="490" y="247" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Synergy &#8594; Maturity</text>
+  <text x="490" y="261" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0ea5a4">production-led &#183; coherent growth</text>
+
+  <!-- sub-phase markers -->
+  <circle cx="130" cy="305" r="4" fill="#f59e0b"/>
+  <text x="130" y="298" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#5b6680">Irruption</text>
+  <circle cx="250" cy="175" r="4" fill="#f59e0b"/>
+  <text x="252" y="168" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#5b6680">Frenzy</text>
+  <circle cx="430" cy="142" r="4" fill="#0ea5a4"/>
+  <text x="430" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#5b6680">Synergy</text>
+  <circle cx="585" cy="162" r="4" fill="#0ea5a4"/>
+  <text x="585" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#5b6680">Maturity</text>
+
+  <text x="335" y="392" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">A discontinuous gap separates the speculative installation half from the coherent deployment half.</text>
+</svg>

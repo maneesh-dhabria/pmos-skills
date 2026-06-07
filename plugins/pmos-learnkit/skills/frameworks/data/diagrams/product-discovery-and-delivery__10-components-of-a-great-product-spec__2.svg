@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Investigative Metrics three-question decision model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Investigative Metrics: Three Questions</text>
+  <text x="32" y="53" font-family="sans-serif" font-size="12" fill="#5b6680">Each post-launch question maps to a different decision about the feature</text>
+
+  <!-- Row 1: Usage -->
+  <g>
+    <rect x="32" y="78" width="276" height="86" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="58" cy="104" r="11" fill="#2563eb"/>
+    <text x="58" y="108" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="80" y="100" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Usage</text>
+    <text x="80" y="120" font-family="sans-serif" font-size="11" fill="#5b6680">"How often / how much is</text>
+    <text x="80" y="135" font-family="sans-serif" font-size="11" fill="#5b6680">this feature used?"</text>
+  </g>
+  <path d="M308 121 L356 121" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="360" y="86" width="248" height="70" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="376" y="110" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Decision</text>
+  <text x="376" y="130" font-family="sans-serif" font-size="11" fill="#1d2438">How many users benefit from</text>
+  <text x="376" y="145" font-family="sans-serif" font-size="11" fill="#1d2438">further improving this feature.</text>
+
+  <!-- Row 2: Functionality additions -->
+  <g>
+    <rect x="32" y="178" width="276" height="86" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="58" cy="204" r="11" fill="#0ea5a4"/>
+    <text x="58" y="208" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="80" y="200" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Functionality additions</text>
+    <text x="80" y="220" font-family="sans-serif" font-size="11" fill="#5b6680">"What do users want to do</text>
+    <text x="80" y="235" font-family="sans-serif" font-size="11" fill="#5b6680">that they can't do today?"</text>
+  </g>
+  <path d="M308 221 L356 221" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="360" y="186" width="248" height="70" rx="10" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="376" y="210" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Decision</text>
+  <text x="376" y="230" font-family="sans-serif" font-size="11" fill="#1d2438">Which functionality to</text>
+  <text x="376" y="245" font-family="sans-serif" font-size="11" fill="#1d2438">implement in the future.</text>
+
+  <!-- Row 3: UX improvements -->
+  <g>
+    <rect x="32" y="278" width="276" height="86" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="58" cy="304" r="11" fill="#f59e0b"/>
+    <text x="58" y="308" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="80" y="300" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">UX improvements</text>
+    <text x="80" y="320" font-family="sans-serif" font-size="11" fill="#5b6680">"Where can I improve</text>
+    <text x="80" y="335" font-family="sans-serif" font-size="11" fill="#5b6680">my UX?"</text>
+  </g>
+  <path d="M308 321 L356 321" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <rect x="360" y="286" width="248" height="70" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="376" y="310" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Decision</text>
+  <text x="376" y="330" font-family="sans-serif" font-size="11" fill="#1d2438">Targeted improvements to</text>
+  <text x="376" y="345" font-family="sans-serif" font-size="11" fill="#1d2438">the user experience.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

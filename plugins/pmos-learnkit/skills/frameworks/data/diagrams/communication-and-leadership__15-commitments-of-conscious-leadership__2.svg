@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Amygdala threat-response cycle diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Why We Default Below the Line</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">The evolutionary threat-response loop conscious leaders must interrupt</text>
+
+  <!-- Cycle nodes arranged as a loop -->
+  <!-- Node 1: Circumstance -->
+  <rect x="250" y="66" width="140" height="50" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="88" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Current circumstance</text>
+  <text x="320" y="105" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">feedback, conflict, change</text>
+
+  <!-- Node 2: Amygdala scan -->
+  <rect x="450" y="170" width="160" height="56" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="530" y="192" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ef4444">Amygdala scans</text>
+  <text x="530" y="208" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">filters for danger,</text>
+  <text x="530" y="220" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">reads threat as real</text>
+
+  <!-- Node 3: Fight/flight/freeze reaction -->
+  <rect x="250" y="290" width="140" height="56" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="320" y="312" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ef4444">Reactive response</text>
+  <text x="320" y="328" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">defend, blame, be right</text>
+  <text x="320" y="340" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">= drops below the line</text>
+
+  <!-- Node 4: Conscious pause -->
+  <rect x="30" y="170" width="160" height="56" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="110" y="192" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Conscious pause</text>
+  <text x="110" y="208" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">notice the trigger,</text>
+  <text x="110" y="220" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">name the fear</text>
+
+  <!-- Loop arrows (clockwise) -->
+  <!-- 1 -> 2 -->
+  <path d="M 392 100 Q 470 120 520 168" fill="none" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="520,168 510,158 524,156" fill="#5b6680"/>
+  <!-- 2 -> 3 -->
+  <path d="M 510 226 Q 470 290 392 312" fill="none" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="392,312 404,304 402,318" fill="#5b6680"/>
+  <!-- 3 -> back to circumstance (vicious loop) shown by dashed return up the left, intercepted by pause -->
+  <path d="M 248 312 Q 150 300 130 226" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="130,226 122,238 137,238" fill="#f59e0b"/>
+  <!-- pause -> circumstance (the conscious shift back up) -->
+  <path d="M 150 168 Q 200 110 248 100" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+  <polygon points="248,100 236,98 244,110" fill="#0ea5a4"/>
+
+  <text x="320" y="384" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Interrupting the loop at the pause is the conscious leader's daily practice.</text>
+</svg>

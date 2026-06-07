@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM archetypes mapped to product lifecycle stages diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Which Archetype Fits Each Product Stage</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">Hiring managers match the PM type to the product's stage and challenge</text>
+
+  <!-- lifecycle baseline arrow -->
+  <line x1="60" y1="330" x2="600" y2="330" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="600,330 588,324 588,336" fill="#5b6680"/>
+  <text x="60" y="356" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">New product</text>
+  <text x="600" y="356" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Mature product</text>
+
+  <!-- Stage 1: Innovator -->
+  <line x1="155" y1="330" x2="155" y2="120" stroke="#0ea5a4" stroke-width="2" stroke-dasharray="4 4"/>
+  <circle cx="155" cy="330" r="5" fill="#0ea5a4"/>
+  <rect x="80" y="86" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="155" y="110" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Innovator</text>
+  <text x="155" y="132" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#1d2438">Find product/market fit</text>
+  <text x="155" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Hypothesis-driven;</text>
+  <text x="155" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">prioritize by risk;</text>
+  <text x="155" y="182" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">pivot or iterate</text>
+
+  <!-- Stage 2: Builder -->
+  <line x1="330" y1="330" x2="330" y2="160" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 4"/>
+  <circle cx="330" cy="330" r="5" fill="#2563eb"/>
+  <rect x="255" y="126" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="330" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#2563eb">Builder</text>
+  <text x="330" y="172" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#1d2438">Drive the roadmap</text>
+  <text x="330" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Prioritize features;</text>
+  <text x="330" y="206" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">improve UX; solve</text>
+  <text x="330" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">pressing problems</text>
+
+  <!-- Stage 3: Tuner -->
+  <line x1="505" y1="330" x2="505" y2="120" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+  <circle cx="505" cy="330" r="5" fill="#f59e0b"/>
+  <rect x="430" y="86" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="505" y="110" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Tuner</text>
+  <text x="505" y="132" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#1d2438">Optimize a north star</text>
+  <text x="505" y="150" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Idea generation,</text>
+  <text x="505" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">A/B testing &amp;</text>
+  <text x="505" y="182" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">prioritization</text>
+</svg>

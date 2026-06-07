@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Work-type vs schedule-type fit matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Schedule–Work Fit Matrix</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Mismatching the work to the schedule creates friction</text>
+
+  <!-- axis labels -->
+  <text x="40" y="230" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#5b6680" transform="rotate(-90 40 230)">Schedule you are on</text>
+  <text x="370" y="386" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#5b6680">Type of work you are doing</text>
+
+  <!-- column headers -->
+  <text x="250" y="92" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Maker work</text>
+  <text x="490" y="92" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Manager work</text>
+
+  <!-- row headers -->
+  <text x="120" y="166" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Maker</text>
+  <text x="120" y="180" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">schedule</text>
+  <text x="120" y="296" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Manager</text>
+  <text x="120" y="310" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">schedule</text>
+
+  <!-- top-left: fit -->
+  <rect x="160" y="104" width="180" height="118" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="250" y="150" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">FIT</text>
+  <text x="250" y="174" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Long blocks for</text>
+  <text x="250" y="190" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">deep, complex work</text>
+
+  <!-- top-right: mismatch -->
+  <rect x="400" y="104" width="180" height="118" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="490" y="150" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#f59e0b">MISMATCH</text>
+  <text x="490" y="174" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Decisions stall</text>
+  <text x="490" y="190" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">waiting on a block</text>
+
+  <!-- bottom-left: mismatch -->
+  <rect x="160" y="234" width="180" height="118" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+  <text x="250" y="280" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#ef4444">MISMATCH</text>
+  <text x="250" y="304" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Meetings shatter</text>
+  <text x="250" y="320" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">flow; context lost</text>
+
+  <!-- bottom-right: fit -->
+  <rect x="400" y="234" width="180" height="118" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="490" y="280" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">FIT</text>
+  <text x="490" y="304" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Calendar drives</text>
+  <text x="490" y="320" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">quick decisions</text>
+</svg>

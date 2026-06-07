@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Maslow's expanded 8-stage hierarchy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">Maslow's Expanded 8-Stage Hierarchy</text>
+  <text x="24" y="55" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">The later model adds 3 stages — Cognitive, Aesthetic, and Transcendence — above the original five.</text>
+
+  <!-- Pyramid bands, widest (base) at bottom -->
+  <!-- Geometry: apex at (320,72), base from (96,360) to (544,360). 8 horizontal bands. -->
+
+  <!-- Stage 1: Physiological (base, widest) -->
+  <polygon points="96,360 544,360 516,324 124,324" fill="#1d2438"/>
+  <text x="320" y="346" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">1 · Physiological</text>
+
+  <!-- Stage 2: Safety -->
+  <polygon points="124,324 516,324 488,288 152,288" fill="#2563eb"/>
+  <text x="320" y="310" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">2 · Safety</text>
+
+  <!-- Stage 3: Love & Belonging -->
+  <polygon points="152,288 488,288 460,252 180,252" fill="#0ea5a4"/>
+  <text x="320" y="274" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">3 · Love &amp; Belonging</text>
+
+  <!-- Stage 4: Esteem -->
+  <polygon points="180,252 460,252 432,216 208,216" fill="#f59e0b"/>
+  <text x="320" y="238" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">4 · Esteem</text>
+
+  <!-- Stage 5: Cognitive (NEW) -->
+  <polygon points="208,216 432,216 404,180 236,180" fill="#2563eb" opacity="0.78"/>
+  <text x="320" y="202" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">5 · Cognitive ★</text>
+
+  <!-- Stage 6: Aesthetic (NEW) -->
+  <polygon points="236,180 404,180 376,144 264,144" fill="#0ea5a4" opacity="0.78"/>
+  <text x="320" y="166" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">6 · Aesthetic ★</text>
+
+  <!-- Stage 7: Self-actualization -->
+  <polygon points="264,144 376,144 348,108 292,108" fill="#f59e0b" opacity="0.85"/>
+  <text x="320" y="131" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#1d2438">7 · Self-actual.</text>
+
+  <!-- Stage 8: Transcendence (apex, NEW) -->
+  <polygon points="292,108 348,108 320,72" fill="#ef4444"/>
+  <text x="320" y="100" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="700" fill="#ffffff">8 ★</text>
+
+  <!-- Apex callout for Transcendence (label outside, since tip is small) -->
+  <line x1="348" y1="90" x2="430" y2="90" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="436" y="86" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ef4444">8 · Transcendence</text>
+  <text x="436" y="100" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">beyond self — altruism,</text>
+  <text x="436" y="113" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">a greater cause</text>
+
+  <!-- Legend -->
+  <rect x="436" y="320" width="12" height="12" fill="#2563eb" opacity="0.78"/>
+  <text x="454" y="330" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">★ = added in 8-stage model</text>
+  <text x="436" y="350" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Lower needs are usually met</text>
+  <text x="436" y="363" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">before ascending — but not</text>
+  <text x="436" y="376" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">strictly linear.</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Credit-card vs no-card free trial fork diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Two Kinds of Free Trial</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">The credit-card wall forks reach against conversion</text>
+
+  <!-- root node -->
+  <rect x="248" y="64" width="144" height="40" rx="8" fill="#eff4ff" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="320" y="82" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Free Trial</text>
+  <text x="320" y="96" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">time-boxed paid product</text>
+
+  <!-- fork lines -->
+  <g stroke="#cfd8e8" stroke-width="1.6" fill="none">
+    <path d="M300 104 L168 140"/>
+    <path d="M340 104 L472 140"/>
+  </g>
+
+  <!-- LEFT branch: credit card -->
+  <rect x="40" y="142" width="256" height="40" rx="8" fill="#fffaf0" stroke="#f59e0b" stroke-width="1.4"/>
+  <text x="168" y="160" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">Credit-card free trial</text>
+  <text x="168" y="174" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">card required up front · auto-charge at end</text>
+
+  <!-- RIGHT branch: no card -->
+  <rect x="344" y="142" width="256" height="40" rx="8" fill="#ecfeff" stroke="#0ea5a4" stroke-width="1.4"/>
+  <text x="472" y="160" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">No-card free trial</text>
+  <text x="472" y="174" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">enter free · no card asked</text>
+
+  <!-- attribute rows -->
+  <g font-family="sans-serif" font-size="10" fill="#1d2438">
+    <!-- Reach -->
+    <text x="168" y="218" text-anchor="middle" font-weight="700" fill="#5b6680">Reach</text>
+    <text x="168" y="234" text-anchor="middle" fill="#ef4444" font-weight="700">Low</text>
+    <text x="168" y="248" text-anchor="middle" font-size="9" fill="#5b6680">up to 80% drop at the</text>
+    <text x="168" y="259" text-anchor="middle" font-size="9" fill="#5b6680">credit-card screen</text>
+
+    <text x="472" y="218" text-anchor="middle" font-weight="700" fill="#5b6680">Reach</text>
+    <text x="472" y="234" text-anchor="middle" fill="#0ea5a4" font-weight="700">High</text>
+    <text x="472" y="248" text-anchor="middle" font-size="9" fill="#5b6680">low-friction entry pulls</text>
+    <text x="472" y="259" text-anchor="middle" font-size="9" fill="#5b6680">in more triers</text>
+
+    <!-- Conversion -->
+    <text x="168" y="290" text-anchor="middle" font-weight="700" fill="#5b6680">Conversion</text>
+    <text x="168" y="306" text-anchor="middle" fill="#0ea5a4" font-weight="700">High trial → paid</text>
+
+    <text x="472" y="290" text-anchor="middle" font-weight="700" fill="#5b6680">Conversion</text>
+    <text x="472" y="306" text-anchor="middle" fill="#ef4444" font-weight="700">Low — low-intent triers</text>
+
+    <!-- Cost -->
+    <text x="168" y="338" text-anchor="middle" font-weight="700" fill="#5b6680">Trade-off</text>
+    <text x="168" y="354" text-anchor="middle" font-size="9" fill="#5b6680">higher CAC, fewer triers</text>
+
+    <text x="472" y="338" text-anchor="middle" font-weight="700" fill="#5b6680">Trade-off</text>
+    <text x="472" y="354" text-anchor="middle" font-size="9" fill="#5b6680">many triers, weak intent</text>
+  </g>
+
+  <!-- divider -->
+  <line x1="320" y1="196" x2="320" y2="364" stroke="#e2e8f5" stroke-width="1"/>
+
+  <text x="320" y="386" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">Trials assume time as the usage metric — same 7/14/30 days for a startup and an enterprise</text>
+</svg>

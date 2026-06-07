@@ -37,7 +37,8 @@ need 'id="search"'
 need 'id="superFilter"'
 need 'id="dtFilter"'
 need '<svg'                             # the rice diagram inlined
-need 'Reach × Impact × Confidence'      # diagram content inlined
+need 'Reach × Impact × Confidence'      # primary diagram content inlined
+need 'Effort sizing sub-model'          # second-pass extra diagram (diagrams[]) inlined
 need "PM&#39;s take"                    # commentary block
 
 if [ "$fail" -ne 0 ]; then echo "build-library.test.sh: FAILED" >&2; exit 1; fi

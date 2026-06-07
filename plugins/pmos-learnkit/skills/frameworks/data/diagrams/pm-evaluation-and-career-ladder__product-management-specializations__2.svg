@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM sub-specialization vectors diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Sub-Specialization Vectors</text>
+  <text x="320" y="52" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Each PM category splits along its own distinct dimension</text>
+
+  <!-- Row: Core -->
+  <g>
+    <rect x="40" y="74" width="560" height="62" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="72" cy="105" r="14" fill="#2563eb"/>
+    <text x="72" y="110" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">C</text>
+    <text x="100" y="100" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Core PM</text>
+    <text x="100" y="120" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Vector: product type or industry category</text>
+    <text x="592" y="100" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#2563eb">Social</text>
+    <text x="592" y="120" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#2563eb">Enterprise</text>
+  </g>
+
+  <!-- Row: Growth -->
+  <g>
+    <rect x="40" y="146" width="560" height="62" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="72" cy="177" r="14" fill="#0ea5a4"/>
+    <text x="72" y="182" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">G</text>
+    <text x="100" y="172" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Growth PM</text>
+    <text x="100" y="192" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Vector: funnel stage</text>
+    <text x="592" y="172" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#0ea5a4">Acquisition / Activation</text>
+    <text x="592" y="192" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#0ea5a4">Monetization</text>
+  </g>
+
+  <!-- Row: Platform -->
+  <g>
+    <rect x="40" y="218" width="560" height="62" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="72" cy="249" r="14" fill="#f59e0b"/>
+    <text x="72" y="254" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">P</text>
+    <text x="100" y="244" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Platform PM</text>
+    <text x="100" y="264" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Vector: type of platform knowledge</text>
+    <text x="592" y="244" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#f59e0b">Security</text>
+    <text x="592" y="264" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#f59e0b">Personalization</text>
+  </g>
+
+  <!-- Row: Innovation -->
+  <g>
+    <rect x="40" y="290" width="560" height="62" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="72" cy="321" r="14" fill="#ef4444"/>
+    <text x="72" y="326" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">I</text>
+    <text x="100" y="316" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Innovation PM</text>
+    <text x="100" y="336" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Vector: stage of org</text>
+    <text x="592" y="316" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">0 &#8594; 1</text>
+    <text x="592" y="336" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">New Vertical</text>
+  </g>
+
+  <text x="320" y="378" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Specialization (left) and the dimension it sub-divides along (right)</text>
+</svg>

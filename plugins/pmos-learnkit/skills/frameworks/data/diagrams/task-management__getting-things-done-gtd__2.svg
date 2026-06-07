@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="GTD Clarify decision tree diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1d2438">Clarify: Processing Each Captured Item</text>
+  <text x="20" y="50" font-family="Arial, sans-serif" font-size="12" fill="#5b6680">A decision tree applied to every item in your inbox</text>
+
+  <!-- Start -->
+  <rect x="30" y="70" width="170" height="46" rx="8" fill="#2563eb"/>
+  <text x="115" y="92" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">Item from capture</text>
+  <text x="115" y="108" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">"What is it?"</text>
+
+  <!-- Decision: actionable? -->
+  <path d="M115 116 L115 138" stroke="#5b6680" stroke-width="1.5"/>
+  <polygon points="115,138 175,170 115,202 55,170" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="115" y="168" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1d2438" text-anchor="middle">Is it</text>
+  <text x="115" y="183" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1d2438" text-anchor="middle">actionable?</text>
+
+  <!-- NO branch -->
+  <path d="M55 170 L20 170 L20 240" stroke="#5b6680" stroke-width="1.5" fill="none"/>
+  <text x="34" y="164" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ef4444">No</text>
+  <rect x="10" y="240" width="120" height="120" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="70" y="262" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1d2438" text-anchor="middle">Non-actionable</text>
+  <line x1="22" y1="272" x2="118" y2="272" stroke="#f4f7ff" stroke-width="1"/>
+  <text x="22" y="292" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• Trash it</text>
+  <text x="22" y="312" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• Someday / maybe</text>
+  <text x="22" y="332" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• Reference file</text>
+
+  <!-- YES branch -->
+  <path d="M175 170 L210 170" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="182" y="164" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#0ea5a4">Yes</text>
+
+  <!-- Decision: < 2 min? -->
+  <polygon points="270,138 330,170 270,202 210,170" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="270" y="166" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1d2438" text-anchor="middle">&lt; 2 minutes</text>
+  <text x="270" y="181" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1d2438" text-anchor="middle">to do?</text>
+
+  <!-- 2-min YES -> do now -->
+  <path d="M270 202 L270 230" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="278" y="222" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#0ea5a4">Yes</text>
+  <rect x="205" y="230" width="130" height="44" rx="8" fill="#0ea5a4"/>
+  <text x="270" y="250" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">Do it now</text>
+  <text x="270" y="266" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">The 2-minute rule</text>
+
+  <!-- 2-min NO -> organize -->
+  <path d="M330 170 L370 170" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="338" y="164" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ef4444">No</text>
+
+  <rect x="370" y="120" width="250" height="100" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="495" y="142" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1d2438" text-anchor="middle">Then choose one:</text>
+  <line x1="382" y1="150" x2="608" y2="150" stroke="#f4f7ff" stroke-width="1"/>
+  <text x="382" y="170" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• <tspan font-weight="bold" fill="#1d2438">Defer</tspan> → put on a next-actions list</text>
+  <text x="382" y="190" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• <tspan font-weight="bold" fill="#1d2438">Delegate</tspan> → hand off, track waiting-for</text>
+  <text x="382" y="210" font-family="Arial, sans-serif" font-size="11" fill="#5b6680">• <tspan font-weight="bold" fill="#1d2438">Multi-step?</tspan> → make it a project</text>
+
+  <text x="320" y="388" font-family="Arial, sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">Every captured item is forced down exactly one path — nothing stays ambiguous.</text>
+</svg>

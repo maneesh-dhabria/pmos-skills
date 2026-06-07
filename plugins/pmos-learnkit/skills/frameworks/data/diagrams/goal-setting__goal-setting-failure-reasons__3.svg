@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Four types of goals by product stage diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Four Types of Goals by Product Stage</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Smart teams pick the goal type that fits the stage of development</text>
+
+  <defs>
+    <marker id="ah2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- staged ladder: four columns left to right -->
+  <!-- Discovery -->
+  <rect x="24" y="120" width="136" height="170" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="92" cy="152" r="16" fill="#0ea5a4"/>
+  <text x="92" y="157" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">1</text>
+  <text x="92" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Discovery</text>
+  <text x="92" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Deliver insights</text>
+  <text x="92" y="238" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">that inform an</text>
+  <text x="92" y="254" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">impactful strategy</text>
+
+  <!-- Input -->
+  <rect x="184" y="120" width="136" height="170" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="252" cy="152" r="16" fill="#2563eb"/>
+  <text x="252" y="157" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">2</text>
+  <text x="252" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Input</text>
+  <text x="252" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Secure reliable</text>
+  <text x="252" y="238" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">resources to make</text>
+  <text x="252" y="254" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">progress on strategy</text>
+
+  <!-- Output -->
+  <rect x="344" y="120" width="136" height="170" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="412" cy="152" r="16" fill="#f59e0b"/>
+  <text x="412" y="157" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">3</text>
+  <text x="412" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Output</text>
+  <text x="412" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Enable flawless</text>
+  <text x="412" y="238" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">execution of</text>
+  <text x="412" y="254" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">the strategy</text>
+
+  <!-- Outcome -->
+  <rect x="504" y="120" width="136" height="170" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="572" cy="152" r="16" fill="#ef4444"/>
+  <text x="572" y="157" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">4</text>
+  <text x="572" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#1d2438">Outcome</text>
+  <text x="572" y="222" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Prove the strategy</text>
+  <text x="572" y="238" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">had its intended</text>
+  <text x="572" y="254" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">impact</text>
+
+  <!-- connecting arrows -->
+  <line x1="160" y1="205" x2="182" y2="205" stroke="#5b6680" stroke-width="2" marker-end="url(#ah2)"/>
+  <line x1="320" y1="205" x2="342" y2="205" stroke="#5b6680" stroke-width="2" marker-end="url(#ah2)"/>
+  <line x1="480" y1="205" x2="502" y2="205" stroke="#5b6680" stroke-width="2" marker-end="url(#ah2)"/>
+
+  <text x="320" y="328" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#1d2438">Early stage</text>
+  <line x1="92" y1="340" x2="572" y2="340" stroke="#5b6680" stroke-width="1.5" marker-end="url(#ah2)"/>
+  <text x="320" y="362" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Choosing the wrong type = focusing on metrics rather than creating value</text>
+</svg>

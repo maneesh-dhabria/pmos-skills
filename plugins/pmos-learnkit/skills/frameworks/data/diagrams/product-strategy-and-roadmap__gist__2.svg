@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="GIST idea funnel and escalating step-project ladder diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">From Idea Bank to Validated Bets</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Many ideas funnel in; survivors climb escalating step-projects</text>
+
+  <g font-family="sans-serif">
+    <!-- LEFT: Idea funnel -->
+    <text x="160" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6680">IDEA FUNNEL</text>
+
+    <!-- funnel band 1: Idea Bank -->
+    <polygon points="40,92 280,92 248,134 72,134" fill="#0ea5a4"/>
+    <text x="160" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Idea Bank</text>
+    <text x="160" y="128" text-anchor="middle" font-size="10" fill="#d9faf8">collected continuously · no planning cycle</text>
+
+    <!-- funnel band 2: ICE prioritized -->
+    <polygon points="72,140 248,140 220,182 100,182" fill="#2563eb"/>
+    <text x="160" y="161" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">ICE-prioritized</text>
+    <text x="160" y="176" text-anchor="middle" font-size="10" fill="#dbe6ff">ranked by evidence</text>
+
+    <!-- funnel band 3: tested -->
+    <polygon points="100,188 220,188 196,230 124,230" fill="#f59e0b"/>
+    <text x="160" y="209" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Tested as</text>
+    <text x="160" y="223" text-anchor="middle" font-size="10" fill="#fff1d6">step-projects</text>
+
+    <!-- funnel band 4: winners -->
+    <polygon points="124,236 196,236 178,272 142,272" fill="#ef4444"/>
+    <text x="160" y="258" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Winners</text>
+
+    <text x="160" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#ef4444">~1 in 3 ideas</text>
+    <text x="160" y="312" text-anchor="middle" font-size="10" fill="#5b6680">delivers a positive result</text>
+    <text x="160" y="326" text-anchor="middle" font-size="10" fill="#5b6680">(often the ratio is worse)</text>
+
+    <!-- arrow across to ladder -->
+    <line x1="296" y1="200" x2="334" y2="200" stroke="#5b6680" stroke-width="2"/>
+    <polygon points="334,200 324,195 324,205" fill="#5b6680"/>
+
+    <!-- RIGHT: escalating step-project ladder -->
+    <text x="490" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#5b6680">STEP-PROJECT LADDER</text>
+    <text x="490" y="93" text-anchor="middle" font-size="10" fill="#5b6680">each step ≤ 10 weeks</text>
+
+    <!-- step 1 (lowest, smallest) -->
+    <rect x="356" y="262" width="120" height="34" rx="6" fill="#2563eb"/>
+    <text x="416" y="282" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Step 1</text>
+    <text x="416" y="293" text-anchor="middle" font-size="9" fill="#dbe6ff">few users · short</text>
+
+    <!-- step 2 -->
+    <rect x="386" y="216" width="150" height="34" rx="6" fill="#0ea5a4"/>
+    <text x="461" y="236" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Step 2</text>
+    <text x="461" y="247" text-anchor="middle" font-size="9" fill="#d9faf8">more users · longer</text>
+
+    <!-- step 3 -->
+    <rect x="416" y="170" width="180" height="34" rx="6" fill="#f59e0b"/>
+    <text x="506" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Step 3</text>
+    <text x="506" y="201" text-anchor="middle" font-size="9" fill="#fff1d6">wider · more complete</text>
+
+    <!-- step 4 (top, widest / full rollout) -->
+    <rect x="446" y="124" width="150" height="34" rx="6" fill="#ef4444"/>
+    <text x="521" y="144" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Full bet</text>
+    <text x="521" y="155" text-anchor="middle" font-size="9" fill="#ffe0e0">all users · scaled</text>
+
+    <!-- rising arrows between steps -->
+    <polygon points="416,262 410,250 422,250" fill="#5b6680"/>
+    <polygon points="461,216 455,204 467,204" fill="#5b6680"/>
+    <polygon points="506,170 500,158 512,158" fill="#5b6680"/>
+
+    <text x="476" y="324" text-anchor="middle" font-size="10" fill="#5b6680">Each successful step = a more complete version,</text>
+    <text x="476" y="338" text-anchor="middle" font-size="10" fill="#5b6680">in front of more users, for longer</text>
+  </g>
+</svg>

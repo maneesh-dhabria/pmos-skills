@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Differentiation spectrum: four value vectors by two approaches matrix diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">Differentiation Spectrum</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Each value vector × two ways to create 10x value</text>
+
+  <!-- Column headers: the two approaches -->
+  <rect x="200" y="68" width="200" height="30" rx="5" fill="#2563eb"/>
+  <text x="300" y="88" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">Solve a problem</text>
+  <rect x="410" y="68" width="200" height="30" rx="5" fill="#0ea5a4"/>
+  <text x="510" y="88" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#ffffff">Create delight</text>
+
+  <!-- Row: Pricing -->
+  <rect x="30" y="108" width="160" height="58" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="133" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Pricing</text>
+  <text x="48" y="151" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Lower the price barrier</text>
+  <rect x="200" y="108" width="200" height="58" rx="5" fill="#ffffff" stroke="#c7d2fe" stroke-width="1"/>
+  <text x="300" y="142" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Cut cost structurally;<tspan x="300" dy="13">serve an unserved segment</tspan></text>
+  <rect x="410" y="108" width="200" height="58" rx="5" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="510" y="142" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">A surprisingly cheap<tspan x="510" dy="13">anchor / trial SKU</tspan></text>
+
+  <!-- Row: Selection -->
+  <rect x="30" y="170" width="160" height="58" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="195" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Selection</text>
+  <text x="48" y="213" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Better alternates</text>
+  <rect x="200" y="170" width="200" height="58" rx="5" fill="#ffffff" stroke="#c7d2fe" stroke-width="1"/>
+  <text x="300" y="204" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Same result via new<tspan x="300" dy="13">tech / ingredients</tspan></text>
+  <rect x="410" y="170" width="200" height="58" rx="5" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="510" y="204" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">A delightful new way<tspan x="510" dy="13">to choose / bundle</tspan></text>
+
+  <!-- Row: Convenience -->
+  <rect x="30" y="232" width="160" height="58" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="257" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Convenience</text>
+  <text x="48" y="275" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Less friction</text>
+  <rect x="200" y="232" width="200" height="58" rx="5" fill="#ffffff" stroke="#c7d2fe" stroke-width="1"/>
+  <text x="300" y="266" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Remove steps / time in<tspan x="300" dy="13">the buying journey</tspan></text>
+  <rect x="410" y="232" width="200" height="58" rx="5" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="510" y="266" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Instant gratification</text>
+
+  <!-- Row: Quality -->
+  <rect x="30" y="294" width="160" height="58" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="319" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Quality</text>
+  <text x="48" y="337" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">More trust &amp; certainty</text>
+  <rect x="200" y="294" width="200" height="58" rx="5" fill="#ffffff" stroke="#c7d2fe" stroke-width="1"/>
+  <text x="300" y="328" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Higher reliability;<tspan x="300" dy="13">tangible standards</tspan></text>
+  <rect x="410" y="294" width="200" height="58" rx="5" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="510" y="328" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#5b6680">Guarantees that become<tspan x="510" dy="13">an offering of their own</tspan></text>
+
+  <text x="320" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Pick a cell to define how you will create 10x differentiation</text>
+</svg>

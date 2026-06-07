@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Model market fit animal categories diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">Model/Market Fit — Five Paths to $100M+</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Revenue per customer vs. customers needed; above the line = fit achieved</text>
+
+  <!-- Axes -->
+  <line x1="90" y1="80" x2="90" y2="340" stroke="#1d2438" stroke-width="1.5"/>
+  <line x1="90" y1="340" x2="600" y2="340" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="30" y="210" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 30 210)" text-anchor="middle">ARPU (revenue / customer / yr)</text>
+  <text x="345" y="372" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Customers needed for $100M+ →</text>
+
+  <!-- Threshold line -->
+  <line x1="90" y1="100" x2="600" y2="320" stroke="#ef4444" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="470" y="295" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#ef4444" transform="rotate(23 470 295)">model/market threshold</text>
+
+  <!-- Animal points (top-left high ARPU/few -> bottom-right low ARPU/many) -->
+  <!-- Elephants -->
+  <circle cx="140" cy="110" r="9" fill="#2563eb"/>
+  <text x="156" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Elephants</text>
+  <text x="156" y="124" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#5b6680">1K cust · $100K+ · enterprise (ServiceNow)</text>
+
+  <!-- Moose -->
+  <circle cx="240" cy="160" r="9" fill="#0ea5a4"/>
+  <text x="256" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Moose</text>
+  <text x="256" y="174" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#5b6680">10K cust · $10K+ · mid-market (HubSpot)</text>
+
+  <!-- Rabbits -->
+  <circle cx="340" cy="210" r="9" fill="#f59e0b"/>
+  <text x="356" y="208" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Rabbits</text>
+  <text x="356" y="224" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#5b6680">100K cust · $1K · SMB (Mailchimp, Gusto)</text>
+
+  <!-- Mice -->
+  <circle cx="430" cy="258" r="9" fill="#2563eb"/>
+  <text x="300" y="256" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Mice</text>
+  <text x="300" y="272" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#5b6680">1M cust · $100 · prosumer (Dropbox)</text>
+  <line x1="305" y1="256" x2="421" y2="258" stroke="#5b6680" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+  <!-- Flies -->
+  <circle cx="530" cy="306" r="9" fill="#0ea5a4"/>
+  <text x="400" y="320" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Flies</text>
+  <text x="400" y="336" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="10" fill="#5b6680">10M cust · $10 · ads (Facebook, Snapchat)</text>
+  <line x1="405" y1="312" x2="521" y2="306" stroke="#5b6680" stroke-width="0.8" stroke-dasharray="2 2"/>
+</svg>

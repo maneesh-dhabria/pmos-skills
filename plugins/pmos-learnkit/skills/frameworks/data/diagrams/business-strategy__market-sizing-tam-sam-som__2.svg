@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Top-down vs bottom-up market sizing diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Two Ways to Estimate Market Size</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Bottom-up is more convincing — its assumptions can be substantiated</text>
+
+  <!-- Top-down column -->
+  <rect x="40" y="80" width="260" height="280" rx="12" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="170" y="108" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#5b6680">Top-down</text>
+  <text x="170" y="128" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Start big, narrow down</text>
+
+  <rect x="64" y="146" width="212" height="44" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="170" y="173" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Total industry market</text>
+  <polygon points="170,196 162,206 178,206" fill="#5b6680"/>
+
+  <rect x="84" y="214" width="172" height="44" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="170" y="241" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Apply % proportion</text>
+  <polygon points="170,264 162,274 178,274" fill="#5b6680"/>
+
+  <rect x="104" y="282" width="132" height="44" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="170" y="309" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Your slice</text>
+  <text x="170" y="348" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#ef4444">Assumptions hard to defend</text>
+
+  <!-- Bottom-up column -->
+  <rect x="340" y="80" width="260" height="280" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="470" y="108" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#2563eb">Bottom-up &#9733;</text>
+  <text x="470" y="128" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Build up from customers</text>
+
+  <rect x="404" y="146" width="132" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="470" y="173" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438"># of customers</text>
+  <polygon points="470,196 462,186 478,186" fill="#2563eb"/>
+
+  <rect x="384" y="214" width="172" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="470" y="241" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">&#215; revenue per customer</text>
+  <polygon points="470,264 462,254 478,254" fill="#2563eb"/>
+
+  <rect x="364" y="282" width="212" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="470" y="309" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Grounded market size</text>
+  <text x="470" y="348" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#0ea5a4">Tied to customer, model &amp; GTM</text>
+</svg>

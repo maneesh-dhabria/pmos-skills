@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Priorities by stage matrix for the 3x framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Priorities Shift by Stage</text>
+  <text x="320" y="54" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">Where you are on the curve changes execution, strategy &amp; OKRs</text>
+
+  <!-- Column headers -->
+  <g font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="180" y="74" width="146" height="40" rx="8" fill="#2563eb"/>
+    <text x="253" y="100" fill="#ffffff">Explore</text>
+    <rect x="332" y="74" width="146" height="40" rx="8" fill="#0ea5a4"/>
+    <text x="405" y="100" fill="#ffffff">Expand</text>
+    <rect x="484" y="74" width="116" height="40" rx="8" fill="#f59e0b"/>
+    <text x="542" y="100" fill="#ffffff">Extract</text>
+  </g>
+
+  <!-- Row labels -->
+  <g font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="start">
+    <text x="40" y="150">Execution</text>
+    <text x="40" y="216">Strategy</text>
+    <text x="40" y="282">OKRs</text>
+  </g>
+
+  <!-- Grid cells -->
+  <g font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">
+    <!-- Execution row -->
+    <rect x="180" y="126" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="253" y="155">test &amp; learn fast</text>
+    <rect x="332" y="126" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="405" y="155">scale what works</text>
+    <rect x="484" y="126" width="116" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="542" y="155">optimize &amp; cut cost</text>
+
+    <!-- Strategy row -->
+    <rect x="180" y="192" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="253" y="221">find product fit</text>
+    <rect x="332" y="192" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="405" y="221">win market share</text>
+    <rect x="484" y="192" width="116" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="542" y="221">defend &amp; harvest</text>
+
+    <!-- OKR row -->
+    <rect x="180" y="258" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="253" y="287">validated learning</text>
+    <rect x="332" y="258" width="146" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="405" y="287">growth &amp; revenue</text>
+    <rect x="484" y="258" width="116" height="48" rx="6" fill="#f4f7ff" stroke="#cdd6ee"/>
+    <text x="542" y="287">profit &amp; margin</text>
+  </g>
+
+  <text x="320" y="344" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Each phase needs different equipment, technique &amp; training</text>
+</svg>

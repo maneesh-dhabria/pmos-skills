@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Context of use scale diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="44" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">Context of Use</text>
+  <text x="32" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">How much participants actually use the product during a study</text>
+
+  <!-- gradient bar -->
+  <defs>
+    <linearGradient id="ctxgrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="96" width="576" height="10" rx="5" fill="url(#ctxgrad)"/>
+  <text x="32" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Most contextual</text>
+  <text x="608" y="128" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Decontextualized</text>
+
+  <!-- four stage cards -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <!-- Natural -->
+    <rect x="32" y="152" width="132" height="200" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="98" cy="184" r="14" fill="#2563eb"/>
+    <text x="98" y="189" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+    <text x="98" y="222" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2438">Natural use</text>
+    <text x="98" y="252" text-anchor="middle" font-size="11" fill="#5b6680">Product is used</text>
+    <text x="98" y="268" text-anchor="middle" font-size="11" fill="#5b6680">as it normally</text>
+    <text x="98" y="284" text-anchor="middle" font-size="11" fill="#5b6680">would be</text>
+
+    <!-- Scripted -->
+    <rect x="178" y="152" width="132" height="200" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="244" cy="184" r="14" fill="#0ea5a4"/>
+    <text x="244" y="189" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+    <text x="244" y="222" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2438">Scripted use</text>
+    <text x="244" y="252" text-anchor="middle" font-size="11" fill="#5b6680">Participants are</text>
+    <text x="244" y="268" text-anchor="middle" font-size="11" fill="#5b6680">told what to do</text>
+    <text x="244" y="284" text-anchor="middle" font-size="11" fill="#5b6680">with the product</text>
+
+    <!-- Limited -->
+    <rect x="324" y="152" width="132" height="200" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="390" cy="184" r="14" fill="#f59e0b"/>
+    <text x="390" y="189" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+    <text x="390" y="222" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2438">Limited use</text>
+    <text x="390" y="252" text-anchor="middle" font-size="11" fill="#5b6680">Only a small part</text>
+    <text x="390" y="268" text-anchor="middle" font-size="11" fill="#5b6680">is used to study a</text>
+    <text x="390" y="284" text-anchor="middle" font-size="11" fill="#5b6680">specific aspect</text>
+
+    <!-- Not using -->
+    <rect x="470" y="152" width="138" height="200" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="539" cy="184" r="14" fill="#ef4444"/>
+    <text x="539" y="189" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+    <text x="539" y="222" text-anchor="middle" font-size="15" font-weight="700" fill="#1d2438">Not using</text>
+    <text x="539" y="252" text-anchor="middle" font-size="11" fill="#5b6680">Participants don't</text>
+    <text x="539" y="268" text-anchor="middle" font-size="11" fill="#5b6680">use the product</text>
+    <text x="539" y="284" text-anchor="middle" font-size="11" fill="#5b6680">during the study</text>
+  </g>
+</svg>

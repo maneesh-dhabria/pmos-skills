@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Given-When-Then acceptance criteria flow diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">Given–When–Then Acceptance Criteria</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">A three-part format that makes a story's "done" condition testable</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+      <path d="M0,0 L8,5 L0,10 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- GIVEN -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="40" y="110" width="160" height="120" rx="14" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="120" y="142" text-anchor="middle" font-size="18" font-weight="700" fill="#2563eb">GIVEN</text>
+    <text x="120" y="166" text-anchor="middle" font-size="12" fill="#1d2438">Initial context</text>
+    <text x="120" y="182" text-anchor="middle" font-size="12" fill="#1d2438">or setup</text>
+    <text x="120" y="210" text-anchor="middle" font-size="11" font-style="italic" fill="#5b6680">a logged-in user</text>
+  </g>
+
+  <!-- WHEN -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="240" y="110" width="160" height="120" rx="14" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="320" y="142" text-anchor="middle" font-size="18" font-weight="700" fill="#0ea5a4">WHEN</text>
+    <text x="320" y="166" text-anchor="middle" font-size="12" fill="#1d2438">The action or</text>
+    <text x="320" y="182" text-anchor="middle" font-size="12" fill="#1d2438">event triggers</text>
+    <text x="320" y="210" text-anchor="middle" font-size="11" font-style="italic" fill="#5b6680">they click "Submit"</text>
+  </g>
+
+  <!-- THEN -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="440" y="110" width="160" height="120" rx="14" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="520" y="142" text-anchor="middle" font-size="18" font-weight="700" fill="#f59e0b">THEN</text>
+    <text x="520" y="166" text-anchor="middle" font-size="12" fill="#1d2438">The expected</text>
+    <text x="520" y="182" text-anchor="middle" font-size="12" fill="#1d2438">outcome</text>
+    <text x="520" y="210" text-anchor="middle" font-size="11" font-style="italic" fill="#5b6680">data is saved</text>
+  </g>
+
+  <!-- arrows -->
+  <line x1="200" y1="170" x2="238" y2="170" stroke="#5b6680" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="170" x2="438" y2="170" stroke="#5b6680" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- note bar -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="40" y="270" width="560" height="86" rx="12" fill="#f4f7ff"/>
+    <text x="60" y="298" font-size="13" font-weight="700" fill="#1d2438">One story → many criteria</text>
+    <text x="60" y="320" font-size="12" fill="#5b6680">A single user story usually carries several Given–When–Then criteria; together they</text>
+    <text x="60" y="338" font-size="12" fill="#5b6680">define the QA and testing plan. Use "and" to chain multiple outcomes from one action.</text>
+  </g>
+</svg>

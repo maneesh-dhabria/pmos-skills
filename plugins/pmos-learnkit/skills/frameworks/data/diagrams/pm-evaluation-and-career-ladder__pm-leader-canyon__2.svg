@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Product career journey: ownership and influence rising diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Product Journey — Ownership &amp; Influence Rise</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">As you advance, ownership and influence grow — until the leap to Product Leader</text>
+
+  <!-- Axes -->
+  <line x1="80" y1="330" x2="600" y2="330" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="80" y1="330" x2="80" y2="90" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="68" y="200" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 68 200)">Ownership &amp; influence</text>
+  <text x="340" y="356" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Career progression →</text>
+
+  <!-- Rising step ladder of stages -->
+  <!-- Stage 1: APM -->
+  <rect x="100" y="278" width="110" height="52" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="155" y="300" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">APM / PM</text>
+  <text x="155" y="318" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Owns a feature</text>
+
+  <!-- Stage 2: Senior PM -->
+  <rect x="232" y="226" width="110" height="104" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="287" y="248" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Senior PM</text>
+  <text x="287" y="266" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Owns a product;</text>
+  <text x="287" y="280" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">influences peers</text>
+
+  <!-- Canyon gap marker -->
+  <line x1="360" y1="120" x2="360" y2="330" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="380" y="135" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ef4444">the canyon</text>
+  <text x="380" y="150" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="9" fill="#ef4444">new muscles needed</text>
+
+  <!-- Stage 3: Product Leader -->
+  <rect x="398" y="120" width="180" height="210" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.8"/>
+  <text x="488" y="144" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Product Leader</text>
+  <text x="488" y="166" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Owns multiple products</text>
+  <text x="488" y="182" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">&amp; the team's success</text>
+  <text x="488" y="198" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Allocates resources</text>
+  <text x="488" y="214" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Influences the org</text>
+  <text x="488" y="230" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Creates org-wide scope</text>
+
+  <!-- Rising influence arrow across stages -->
+  <path d="M 130 300 Q 300 280 360 200 T 540 150" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+  <polygon points="540,150 528,150 535,160" fill="#f59e0b"/>
+  <text x="250" y="160" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" font-style="italic" fill="#f59e0b">rising influence</text>
+</svg>

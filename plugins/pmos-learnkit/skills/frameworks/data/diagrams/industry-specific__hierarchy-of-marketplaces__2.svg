@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Level 2 symbiotic loops diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Level 2 — Two Symbiotic Loops</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Working together to push the market past its tipping point</text>
+
+  <!-- Growth loop (left) -->
+  <g>
+    <circle cx="180" cy="232" r="92" fill="none" stroke="#2563eb" stroke-width="3"/>
+    <!-- arrowheads along the circle -->
+    <path d="M 272 232 l -12 -7 l 2 14 z" fill="#2563eb"/>
+    <path d="M 88 232 l 12 7 l -2 -14 z" fill="#2563eb"/>
+    <text x="180" y="206" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#2563eb">Growth loop</text>
+    <text x="180" y="228" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Existing buyers &amp;</text>
+    <text x="180" y="244" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">sellers attract more</text>
+    <text x="180" y="262" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-style="italic" fill="#5b6680">drives down CAC</text>
+  </g>
+
+  <!-- Happiness loop (right) -->
+  <g>
+    <circle cx="460" cy="232" r="92" fill="none" stroke="#0ea5a4" stroke-width="3"/>
+    <path d="M 552 232 l -12 7 l 2 -14 z" fill="#0ea5a4"/>
+    <path d="M 368 232 l 12 -7 l -2 14 z" fill="#0ea5a4"/>
+    <text x="460" y="206" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Happiness loop</text>
+    <text x="460" y="228" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Sorts supply so buyers</text>
+    <text x="460" y="244" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">find the best sellers</text>
+    <text x="460" y="262" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-style="italic" fill="#5b6680">raises retention</text>
+  </g>
+
+  <!-- symbiosis link in the overlap zone -->
+  <g>
+    <path d="M 295 200 q 25 32 0 64" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M 345 264 q -25 -32 0 -64" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+    <path d="M 295 264 l 8 -3 l -7 -8 z" fill="#f59e0b"/>
+    <path d="M 345 200 l -8 3 l 7 8 z" fill="#f59e0b"/>
+    <text x="320" y="300" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#f59e0b">symbiotic</text>
+  </g>
+
+  <text x="320" y="360" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Reduce friction at every turn → reach a happiness threshold no substitute can match → market tips.</text>
+</svg>

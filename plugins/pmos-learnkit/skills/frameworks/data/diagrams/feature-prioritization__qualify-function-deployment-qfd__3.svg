@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="QFD relationship scoring scale diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">QFD Relationship Scoring Scale</text>
+  <text x="32" y="62" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">How strongly each feature (How) addresses each customer need (What)</text>
+
+  <g font-family="Helvetica, Arial, sans-serif">
+    <!-- Strong: 9 -->
+    <rect x="32" y="86" width="576" height="66" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="78" cy="119" r="26" fill="#2563eb"/>
+    <text x="78" y="127" font-size="24" font-weight="700" fill="#ffffff" text-anchor="middle">9</text>
+    <text x="124" y="113" font-size="15" font-weight="700" fill="#1d2438">Strong relationship</text>
+    <text x="124" y="134" font-size="12" fill="#5b6680">The feature directly and substantially satisfies the need.</text>
+
+    <!-- Moderate: 3 -->
+    <rect x="32" y="162" width="576" height="66" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="78" cy="195" r="22" fill="#0ea5a4"/>
+    <text x="78" y="202" font-size="20" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="124" y="189" font-size="15" font-weight="700" fill="#1d2438">Moderate relationship</text>
+    <text x="124" y="210" font-size="12" fill="#5b6680">The feature partially addresses the need.</text>
+
+    <!-- Weak: 1 -->
+    <rect x="32" y="238" width="576" height="66" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="78" cy="271" r="18" fill="#f59e0b"/>
+    <text x="78" y="277" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="124" y="265" font-size="15" font-weight="700" fill="#1d2438">Weak / indirect relationship</text>
+    <text x="124" y="286" font-size="12" fill="#5b6680">The feature touches the need only loosely.</text>
+
+    <!-- None: blank -->
+    <rect x="32" y="314" width="576" height="66" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <circle cx="78" cy="347" r="16" fill="#ffffff" stroke="#5b6680" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="124" y="341" font-size="15" font-weight="700" fill="#1d2438">No relationship — leave blank</text>
+    <text x="124" y="362" font-size="12" fill="#5b6680">The feature does nothing for this need.</text>
+  </g>
+
+  <text x="32" y="396" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Each cell's score × the need's importance feeds the feature's total priority.</text>
+</svg>

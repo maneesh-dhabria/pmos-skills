@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Asymptotic marketplace value curve diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Asymptotic Marketplace Curve</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Early supply adds huge demand-side value; later supply adds almost none</text>
+
+  <!-- axes -->
+  <line x1="90" y1="330" x2="600" y2="330" stroke="#1d2438" stroke-width="2"/>
+  <line x1="90" y1="330" x2="90" y2="90" stroke="#1d2438" stroke-width="2"/>
+  <text x="345" y="362" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Supply added (e.g. drivers) →</text>
+  <text x="66" y="210" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680" transform="rotate(-90 66 210)">Value to demand side →</text>
+
+  <!-- asymptote line -->
+  <line x1="90" y1="120" x2="600" y2="120" stroke="#5b6680" stroke-width="1" stroke-dasharray="5 4"/>
+  <text x="596" y="114" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">value ceiling</text>
+
+  <!-- asymptotic curve -->
+  <path d="M90 330 Q160 150 300 130 Q450 122 600 121" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+  <!-- steep zone marker -->
+  <line x1="170" y1="330" x2="170" y2="155" stroke="#0ea5a4" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="178" y="300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Steep zone</text>
+  <text x="178" y="316" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">first drivers slash wait times</text>
+
+  <!-- flat zone marker -->
+  <line x1="400" y1="330" x2="400" y2="125" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="408" y="225" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#ef4444">Flat zone</text>
+  <text x="408" y="241" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">extra drivers barely help</text>
+
+  <!-- caption -->
+  <text x="320" y="390" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Implication: defensibility is capped — rivals reach "good enough" supply too (Uber / Lyft)</text>
+</svg>

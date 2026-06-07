@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Preventable Problem Paradox decision tree diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Preventable Problem Paradox</text>
+  <text x="24" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">Orgs reward solving problems, not preventing them — so the incentive bends toward (B).</text>
+
+  <!-- Root node -->
+  <rect x="200" y="78" width="240" height="48" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="100" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#1d2438">A problem is about to happen</text>
+  <text x="320" y="117" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Motivated by appreciation, what do you do?</text>
+
+  <!-- branch lines -->
+  <path d="M260 126 L150 168" fill="none" stroke="#5b6680" stroke-width="1.5"/>
+  <path d="M380 126 L490 168" fill="none" stroke="#5b6680" stroke-width="1.5"/>
+
+  <!-- Option A -->
+  <rect x="40" y="170" width="230" height="54" rx="8" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="56" y="192" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">(A) Prevent it</text>
+  <text x="56" y="210" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Quietly stop the problem before</text>
+  <text x="56" y="223" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">it ever occurs.</text>
+
+  <!-- Option B -->
+  <rect x="372" y="170" width="230" height="54" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="388" y="192" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" fill="#f59e0b">(B) Let it happen, then rescue</text>
+  <text x="388" y="210" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Allow the crisis, then heroically</text>
+  <text x="388" y="223" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">save the day.</text>
+
+  <!-- outcome arrows -->
+  <path d="M155 224 L155 262" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M487 224 L487 262" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- outcome A -->
+  <rect x="40" y="266" width="230" height="50" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+  <text x="155" y="287" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d2438">No drama, no applause</text>
+  <text x="155" y="304" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Invisible work, goes unrewarded</text>
+
+  <!-- outcome B -->
+  <rect x="372" y="266" width="230" height="50" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="487" y="287" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d2438">Praise &amp; accolades</text>
+  <text x="487" y="304" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Visible heroism, gets rewarded</text>
+
+  <!-- paradox callout -->
+  <rect x="120" y="344" width="400" height="40" rx="8" fill="#1d2438"/>
+  <text x="320" y="362" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#ffffff">Paradox: incentives push people toward creating problems</text>
+  <text x="320" y="377" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#f4f7ff">to solve — not toward preventing them.</text>
+
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0 0 L6 3 L0 6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

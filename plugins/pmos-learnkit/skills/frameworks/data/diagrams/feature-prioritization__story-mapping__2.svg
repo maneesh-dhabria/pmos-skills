@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Story mapping three-level granularity hierarchy diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">The Three Levels of a Story Map</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Actions nest by granularity — most general at top, most specific at bottom</text>
+
+  <!-- granularity axis -->
+  <line x1="60" y1="80" x2="60" y2="350" stroke="#cdd6ec" stroke-width="1.5"/>
+  <text x="46" y="100" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#5b6680" transform="rotate(-90 46 215)">general → specific</text>
+  <polygon points="60,352 56,344 64,344" fill="#5b6680"/>
+
+  <!-- Level 1: Activity -->
+  <rect x="90" y="78" width="490" height="74" rx="6" fill="#2563eb"/>
+  <text x="110" y="104" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">1 · Activity</text>
+  <text x="110" y="124" font-family="sans-serif" font-size="10" fill="#dce6ff">High-level task the user wants to complete</text>
+  <text x="110" y="142" font-family="sans-serif" font-size="10" font-style="italic" fill="#ffffff">e.g. "Deposit a check"</text>
+
+  <!-- Level 2: Steps -->
+  <rect x="120" y="166" width="460" height="74" rx="6" fill="#0ea5a4"/>
+  <text x="140" y="192" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">2 · Steps</text>
+  <text x="140" y="212" font-family="sans-serif" font-size="10" fill="#d6f5f3">Sequential subtasks that complete the activity</text>
+  <text x="140" y="230" font-family="sans-serif" font-size="10" font-style="italic" fill="#ffffff">e.g. "Photograph front" → "Confirm amount"</text>
+
+  <!-- Level 3: Details -->
+  <rect x="150" y="254" width="430" height="74" rx="6" fill="#f59e0b"/>
+  <text x="170" y="280" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">3 · Details</text>
+  <text x="170" y="300" font-family="sans-serif" font-size="10" fill="#3d2f10">Lowest-granularity interactions, stacked by priority</text>
+  <text x="170" y="318" font-family="sans-serif" font-size="10" font-style="italic" fill="#1d2438">e.g. "Auto-detect edges" · "Show running total"</text>
+
+  <!-- nesting connectors -->
+  <line x1="105" y1="152" x2="135" y2="166" stroke="#1d2438" stroke-width="1" opacity="0.35"/>
+  <line x1="135" y1="240" x2="165" y2="254" stroke="#1d2438" stroke-width="1" opacity="0.35"/>
+
+  <text x="320" y="370" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Activities and steps run across the top of the map; details stack beneath each step.</text>
+</svg>

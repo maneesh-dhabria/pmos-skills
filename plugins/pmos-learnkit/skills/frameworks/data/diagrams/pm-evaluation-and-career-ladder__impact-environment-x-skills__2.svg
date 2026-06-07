@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Environment sub-variables diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="bold" fill="#1d2438">Environment — what enables you, outside your control</text>
+  <text x="320" y="52" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#5b6680">Six sub-variables to score; the weakest one is often the root constraint</text>
+
+  <!-- center node -->
+  <circle cx="320" cy="225" r="52" fill="#2563eb"/>
+  <text x="320" y="221" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="16" font-weight="bold" fill="#ffffff">Environment</text>
+  <text x="320" y="240" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#dbe6ff">(outside your control)</text>
+
+  <!-- six spokes around center -->
+  <!-- Manager -->
+  <line x1="320" y1="173" x2="320" y2="110" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="248" y="80" width="144" height="40" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="98" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" fill="#1d2438">Manager</text>
+  <text x="320" y="113" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">grows you, shapes output</text>
+
+  <!-- Resources -->
+  <line x1="368" y1="195" x2="470" y2="135" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="470" y="115" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="545" y="133" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" fill="#1d2438">Resources</text>
+  <text x="545" y="148" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">budget, process, room to risk</text>
+
+  <!-- Scope -->
+  <line x1="372" y1="225" x2="478" y2="225" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="478" y="205" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="553" y="223" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" fill="#1d2438">Scope</text>
+  <text x="553" y="238" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">runway for your best work</text>
+
+  <!-- Team -->
+  <line x1="368" y1="255" x2="470" y2="315" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="470" y="295" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="545" y="313" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" fill="#1d2438">Team</text>
+  <text x="545" y="328" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">enough, capable, high-functioning</text>
+
+  <!-- Compensation -->
+  <line x1="272" y1="255" x2="170" y2="315" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="20" y="295" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="95" y="313" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" fill="#1d2438">Compensation</text>
+  <text x="95" y="328" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">reflects the work; enables hiring</text>
+
+  <!-- Company Culture -->
+  <line x1="268" y1="225" x2="162" y2="135" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="12" y="115" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="87" y="129" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="bold" fill="#1d2438">Company Culture</text>
+  <text x="87" y="144" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">align with your beliefs / style</text>
+
+  <text x="320" y="388" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Sub-variables interact — a low "Team" score may trace back to Manager advocacy or your own communication.</text>
+</svg>

@@ -57,7 +57,15 @@ export function renderMarkdown(md) {
   return out.join('\n');
 }
 
-export function buildHtml(records, diagramFor) {
+// diagramsFor(r) → array of inlined SVG strings (primary first, then any extras).
+// Back-compat: a legacy diagramFor(r) returning a single string is wrapped to [string].
+export function buildHtml(records, diagramsFor) {
+  const svgsFor = (r) => {
+    if (!diagramsFor) return [];
+    const v = diagramsFor(r);
+    if (Array.isArray(v)) return v.filter(Boolean);
+    return v ? [v] : [];
+  };
   const enriched = records.map((r) => ({
     id: r.id,
     name: r.name,
@@ -73,7 +81,7 @@ export function buildHtml(records, diagramFor) {
     references: r.references || [],
     related: r.related || [],
     body_html: renderMarkdown(r.body_md || ''),
-    diagram_svg: diagramFor ? (diagramFor(r) || '') : '',
+    diagrams_svg: svgsFor(r),
   }));
   const data = JSON.stringify(enriched).replace(/<\/script>/gi, '<\\/script>');
   const superCats = [...new Set(enriched.map((e) => e.super_category))].sort();
@@ -171,7 +179,7 @@ function detail(f){
     +'<h2>'+esc(f.name)+'</h2><div class="meta">'+esc(f.category)+(f.author?' · '+esc(f.author):'')+' · '+esc(f.decision_type)+'</div>'
     +(f.commentary?'<div class="take"><b>PM&#39;s take:</b> '+esc(f.commentary)+'</div>':'')
     +'<div class="when">'+(f.when_to_use?'<div><h4>When to use</h4>'+esc(f.when_to_use)+'</div>':'')+(f.when_not_to_use?'<div><h4>When not to use</h4>'+esc(f.when_not_to_use)+'</div>':'')+'</div>'
-    +(f.diagram_svg?'<div class="diagram">'+f.diagram_svg+'</div>':'')
+    +((f.diagrams_svg||[]).length?'<div class="diagram">'+f.diagrams_svg.join('')+'</div>':'')
     +'<div class="body">'+f.body_html+'</div>'
     +(refs?'<div class="refs"><h4>References</h4>'+refs+'</div>':'');
   return d;
@@ -195,6 +203,7 @@ function runSelftest() {
   const recs = [
     { id: 'product/rice', name: 'RICE', category: 'Product', super_category: 'Product', decision_type: 'prioritization', summary: 'Score features.', problem_tags: ['prioritization'], when_to_use: 'Ranking features.', when_not_to_use: 'Few items.', commentary: 'Workhorse score.', references: [{ type: 'Article', url: 'https://x.com/a' }], body_md: '- RICE = Reach × Impact × Confidence ÷ Effort.\n\t- **Reach**: how many.' },
   ];
+  // back-compat: a legacy single-string diagram fn is wrapped to a one-element array.
   const html = buildHtml(recs, () => '<svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>');
   assert(html.includes('<svg'), 'diagram SVG inlined');
   assert(!/<img\s/i.test(html), 'no <img> tags (diagrams inlined)');
@@ -209,7 +218,18 @@ function runSelftest() {
   assert(html.includes('<li>'), 'markdown list rendered');
   // references render as links the user clicks (content links are allowed)
   assert(html.includes('https://x.com/a'), 'reference link present');
-  console.log('build-library --selftest: PASS (self-contained, inlined SVG, filters, take)');
+
+  // multi-diagram path: a record with N diagrams inlines all N SVGs in order.
+  const multi = buildHtml(recs, () => [
+    '<svg id="d-primary" viewBox="0 0 10 10"></svg>',
+    '<svg id="d-extra2" viewBox="0 0 10 10"></svg>',
+    '<svg id="d-extra3" viewBox="0 0 10 10"></svg>',
+  ]);
+  assert(multi.includes('d-primary') && multi.includes('d-extra2') && multi.includes('d-extra3'),
+    'all diagrams[] entries inlined');
+  // order preserved: primary appears before its extras in the embedded JSON.
+  assert(multi.indexOf('d-primary') < multi.indexOf('d-extra2'), 'primary precedes extras');
+  console.log('build-library --selftest: PASS (self-contained, inlined SVGs incl. multi-diagram, filters, take)');
 }
 
 function main() {
@@ -225,13 +245,18 @@ function main() {
   const out = flag('out');
   if (!out) { console.error('usage: build-library.mjs --out <index.html> [--corpus <json>] [--diagrams <dir>]'); process.exit(64); }
   const records = JSON.parse(readFileSync(corpus, 'utf8'));
-  const diagramFor = (r) => {
-    if (!r.diagram) return '';
-    const flat = r.id.replace(/\//g, '__') + '.svg';
-    const p = join(diagramsDir, flat);
+  const readSvg = (relOrName) => {
+    // accept either a repo-relative path ("data/diagrams/x.svg") or a bare filename.
+    const name = String(relOrName).split('/').pop();
+    const p = join(diagramsDir, name);
     return existsSync(p) ? readFileSync(p, 'utf8') : '';
   };
-  const html = buildHtml(records, diagramFor);
+  const diagramsFor = (r) => {
+    // prefer the diagrams[] array; fall back to the single diagram field (back-compat).
+    const list = Array.isArray(r.diagrams) && r.diagrams.length ? r.diagrams : (r.diagram ? [r.diagram] : []);
+    return list.map(readSvg).filter(Boolean);
+  };
+  const html = buildHtml(records, diagramsFor);
   const tmp = out + '.tmp';
   writeFileSync(tmp, html);
   renameSync(tmp, out);

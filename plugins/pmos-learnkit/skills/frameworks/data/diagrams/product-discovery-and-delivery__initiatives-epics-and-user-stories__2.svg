@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="INVEST user-story criteria diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">INVEST — Qualities of a Good User Story</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">Six tests every well-formed story should pass</text>
+
+  <!-- Row template: letter chip + label + description -->
+  <!-- I -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="78" width="36" height="36" rx="8" fill="#2563eb"/>
+    <text x="78" y="103" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">I</text>
+    <text x="110" y="95" font-size="15" font-weight="700" fill="#1d2438">Independent</text>
+    <text x="110" y="111" font-size="12" fill="#5b6680">Self-contained; not dependent on other stories.</text>
+  </g>
+  <!-- N -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="124" width="36" height="36" rx="8" fill="#0ea5a4"/>
+    <text x="78" y="149" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">N</text>
+    <text x="110" y="141" font-size="15" font-weight="700" fill="#1d2438">Negotiable</text>
+    <text x="110" y="157" font-size="12" fill="#5b6680">Details can be discussed; not set in stone.</text>
+  </g>
+  <!-- V -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="170" width="36" height="36" rx="8" fill="#f59e0b"/>
+    <text x="78" y="195" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">V</text>
+    <text x="110" y="187" font-size="15" font-weight="700" fill="#1d2438">Valuable</text>
+    <text x="110" y="203" font-size="12" fill="#5b6680">Delivers value to the end user or customer.</text>
+  </g>
+  <!-- E -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="216" width="36" height="36" rx="8" fill="#2563eb"/>
+    <text x="78" y="241" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">E</text>
+    <text x="110" y="233" font-size="15" font-weight="700" fill="#1d2438">Estimable</text>
+    <text x="110" y="249" font-size="12" fill="#5b6680">Effort to complete can be estimated.</text>
+  </g>
+  <!-- S -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="262" width="36" height="36" rx="8" fill="#0ea5a4"/>
+    <text x="78" y="287" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">S</text>
+    <text x="110" y="279" font-size="15" font-weight="700" fill="#1d2438">Small</text>
+    <text x="110" y="295" font-size="12" fill="#5b6680">Small enough to finish in a single iteration.</text>
+  </g>
+  <!-- T -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="60" y="308" width="36" height="36" rx="8" fill="#ef4444"/>
+    <text x="78" y="333" text-anchor="middle" font-size="20" font-weight="700" fill="#ffffff">T</text>
+    <text x="110" y="325" font-size="15" font-weight="700" fill="#1d2438">Testable</text>
+    <text x="110" y="341" font-size="12" fill="#5b6680">Clear acceptance criteria define "done".</text>
+  </g>
+
+  <!-- Right-side story format reminder -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="400" y="90" width="200" height="240" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="500" y="118" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">Story format</text>
+    <text x="500" y="160" text-anchor="middle" font-size="13" fill="#2563eb" font-weight="700">As a [user]</text>
+    <text x="500" y="200" text-anchor="middle" font-size="13" fill="#0ea5a4" font-weight="700">I want [goal]</text>
+    <text x="500" y="240" text-anchor="middle" font-size="13" fill="#f59e0b" font-weight="700">so that [benefit]</text>
+    <line x1="430" y1="270" x2="570" y2="270" stroke="#5b6680" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="500" y="294" text-anchor="middle" font-size="11" fill="#5b6680">Each story is then</text>
+    <text x="500" y="310" text-anchor="middle" font-size="11" fill="#5b6680">checked against INVEST.</text>
+  </g>
+</svg>

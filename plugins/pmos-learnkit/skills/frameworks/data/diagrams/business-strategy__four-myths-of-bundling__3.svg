@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="How a consumer values a bundle diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">How a Consumer Values a Bundle</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12" fill="#5b6680">Perceived value stacks four additive components &#8212; not just the a-la-carte total.</text>
+
+  <!-- additive stack: each layer adds to perceived value -->
+  <g font-family="sans-serif">
+    <!-- Layer 1: SuperFan a-la-carte -->
+    <rect x="64" y="70" width="512" height="58" rx="8" fill="#2563eb"/>
+    <text x="80" y="93" font-size="13" font-weight="700" fill="#ffffff">1 &#183; SuperFan a-la-carte value</text>
+    <text x="80" y="112" font-size="10.5" fill="#dbe6ff">&#931; retail prices of products you'd buy alone &#8212; &#8220;pay for X1+X2, get X3+X4 free.&#8221;</text>
+
+    <!-- Layer 2: CasualFan discount value -->
+    <rect x="64" y="134" width="512" height="58" rx="8" fill="#0ea5a4"/>
+    <text x="80" y="157" font-size="13" font-weight="700" fill="#ffffff">2 &#183; CasualFan discount value</text>
+    <text x="80" y="176" font-size="10.5" fill="#e3fbfa">Partial value (a &#8722;1&#8230;1 factor &#215; retail price) for products you only casually want.</text>
+
+    <!-- Layer 3: Visible vs invisible -->
+    <rect x="64" y="198" width="512" height="58" rx="8" fill="#f59e0b"/>
+    <text x="80" y="221" font-size="13" font-weight="700" fill="#1d2438">3 &#183; Visible vs invisible products</text>
+    <text x="80" y="240" font-size="10.5" fill="#3a2e10">Consumers aren't economists &#8212; what they see first reframes the whole bundle's worth.</text>
+
+    <!-- Layer 4: Integration value -->
+    <rect x="64" y="262" width="512" height="58" rx="8" fill="#1d2438"/>
+    <text x="80" y="285" font-size="13" font-weight="700" fill="#ffffff">4 &#183; Integration value</text>
+    <text x="80" y="304" font-size="10.5" fill="#c7cfe0">Bundler-added glue: one browse / pay / ship / return experience (Netflix, Amazon Prime).</text>
+  </g>
+
+  <!-- arrow showing accumulation -->
+  <text x="40" y="84" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">+</text>
+  <text x="40" y="148" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">+</text>
+  <text x="40" y="212" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">+</text>
+  <text x="40" y="276" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">+</text>
+  <line x1="40" y1="70" x2="40" y2="320" stroke="#cfe0df" stroke-width="1.4"/>
+
+  <!-- result -->
+  <rect x="64" y="332" width="512" height="44" rx="8" fill="#f4f7ff" stroke="#cfe0df" stroke-width="1.2"/>
+  <text x="80" y="352" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#1d2438">Perceived bundle value &#8805; price &#8594; it's a deal</text>
+  <text x="80" y="368" font-family="sans-serif" font-size="10.5" fill="#5b6680">Thesis 3: each product needs a transparent, reasonable a-la-carte price for this to compute.</text>
+</svg>

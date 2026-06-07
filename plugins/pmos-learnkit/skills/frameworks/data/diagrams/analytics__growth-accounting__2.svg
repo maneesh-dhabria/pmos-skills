@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Growth accounting revenue identities diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Three Revenue Identities</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">How prior-period revenue flows into the present period</text>
+
+  <!-- Prior period bar -->
+  <text x="120" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">PREVIOUS PERIOD</text>
+  <rect x="40" y="104" width="160" height="48" rx="4" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="120" y="133" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Prior revenue</text>
+
+  <!-- Identity 2: prior splits into churn/contract/retained -->
+  <line x1="200" y1="128" x2="248" y2="128" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="248" y="92" width="150" height="26" rx="4" fill="#fde8e8" stroke="#ef4444" stroke-width="1.2"/>
+  <text x="323" y="109" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Churned</text>
+  <rect x="248" y="122" width="150" height="26" rx="4" fill="#fef3e2" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="323" y="139" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Contraction</text>
+  <rect x="248" y="152" width="150" height="26" rx="4" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="323" y="169" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Retained</text>
+  <text x="323" y="196" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#5b6680">Identity 2: prior = churn + contract + retained</text>
+
+  <!-- Present period bar -->
+  <text x="120" y="244" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">PRESENT PERIOD</text>
+  <rect x="40" y="256" width="160" height="48" rx="4" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="120" y="285" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Present revenue</text>
+
+  <!-- Identity 1: present = gains + retained -->
+  <line x1="200" y1="280" x2="248" y2="280" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="248" y="244" width="150" height="26" rx="4" fill="#e0f5f4" stroke="#0ea5a4" stroke-width="1.2"/>
+  <text x="323" y="261" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">New + Resurrected + Expansion</text>
+  <rect x="248" y="274" width="150" height="26" rx="4" fill="#e6f0ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="323" y="291" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Retained</text>
+  <text x="323" y="318" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#5b6680">Identity 1: present = gains + retained</text>
+
+  <!-- Identity 3: net change -->
+  <rect x="430" y="150" width="180" height="100" rx="6" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="520" y="174" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Identity 3 — Net change</text>
+  <text x="520" y="198" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#0ea5a4">+ New + Expansion + Resurrected</text>
+  <text x="520" y="218" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#ef4444">− Churned − Contraction</text>
+  <line x1="446" y1="228" x2="594" y2="228" stroke="#5b6680" stroke-width="1"/>
+  <text x="520" y="244" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">= Δ revenue</text>
+
+  <text x="320" y="362" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Every dollar is conserved: gains and losses fully reconcile the two periods.</text>
+</svg>

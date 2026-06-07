@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="WSJF scoring procedure ladder diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">How to score a WSJF table</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Estimate one column at a time, normalize each to its smallest item, then divide.</text>
+
+  <!-- Step 1 -->
+  <rect x="24" y="78" width="592" height="48" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="52" cy="102" r="15" fill="#2563eb"/>
+  <text x="52" y="107" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="80" y="98" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Estimate each CoD column one at a time</text>
+  <text x="80" y="116" font-family="sans-serif" font-size="11" fill="#5b6680">User/business value, time criticality, risk-reduction / opportunity-enablement.</text>
+
+  <!-- Step 2 -->
+  <rect x="24" y="134" width="592" height="48" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="52" cy="158" r="15" fill="#0ea5a4"/>
+  <text x="52" y="163" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="80" y="154" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Set the smallest item in each column to 1</text>
+  <text x="80" y="172" font-family="sans-serif" font-size="11" fill="#5b6680">Estimate the others relative to it &#8212; this normalizes columns against each other.</text>
+
+  <!-- Step 3 -->
+  <rect x="24" y="190" width="592" height="48" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="52" cy="214" r="15" fill="#f59e0b"/>
+  <text x="52" y="219" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="80" y="210" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Sum the three components &#8594; Cost of Delay</text>
+  <text x="80" y="228" font-family="sans-serif" font-size="11" fill="#5b6680">CoD = value + time criticality + risk/opportunity.</text>
+
+  <!-- Step 4 -->
+  <rect x="24" y="246" width="592" height="48" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5"/>
+  <circle cx="52" cy="270" r="15" fill="#5b6680"/>
+  <text x="52" y="275" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="80" y="266" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Estimate job size (smallest job = 1)</text>
+  <text x="80" y="284" font-family="sans-serif" font-size="11" fill="#5b6680">Relative sizing, same normalization rule as the CoD columns.</text>
+
+  <!-- Step 5 -->
+  <rect x="24" y="302" width="592" height="50" rx="8" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="52" cy="327" r="15" fill="#1d2438"/>
+  <text x="52" y="332" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="80" y="322" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">WSJF = Cost of Delay &#247; Job Size</text>
+  <text x="80" y="340" font-family="sans-serif" font-size="11" fill="#5b6680">Sequence highest score first.</text>
+
+  <text x="24" y="378" font-family="sans-serif" font-size="11" fill="#5b6680">Each column must contain a &#8216;1&#8217; &#8212; the smallest item &#8212; or the relative estimates do not compare.</text>
+</svg>

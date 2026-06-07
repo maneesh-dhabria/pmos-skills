@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three layers of behavior change — identity-based habits diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Three Layers of Behavior Change</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Lasting habits start from identity, not outcomes</text>
+
+  <!-- Concentric rings -->
+  <circle cx="220" cy="230" r="135" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5"/>
+  <circle cx="220" cy="230" r="92" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="220" cy="230" r="48" fill="#2563eb"/>
+
+  <!-- Ring labels -->
+  <text x="220" y="120" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#5b6680">OUTCOMES</text>
+  <text x="220" y="136" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">what you get</text>
+
+  <text x="220" y="166" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">PROCESS</text>
+  <text x="220" y="181" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#0ea5a4">what you do</text>
+
+  <text x="220" y="227" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">IDENTITY</text>
+  <text x="220" y="243" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#ffffff">what you</text>
+  <text x="220" y="255" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#ffffff">believe</text>
+
+  <!-- Direction arrows -->
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b"/></marker>
+  </defs>
+  <line x1="390" y1="170" x2="450" y2="170" stroke="#f59e0b" stroke-width="2" marker-end="url(#ah)"/>
+  <text x="420" y="160" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Recommended</text>
+  <text x="500" y="158" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Identity</text>
+  <text x="500" y="173" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">→ process</text>
+  <text x="500" y="188" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">→ outcomes</text>
+
+  <line x1="450" y1="300" x2="390" y2="300" stroke="#ef4444" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="450" y1="300" x2="450" y2="300" stroke="#ef4444" stroke-width="2"/>
+  <text x="420" y="320" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#ef4444">Fragile</text>
+  <text x="500" y="290" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Outcome-</text>
+  <text x="500" y="305" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">first habits</text>
+  <text x="500" y="320" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">don't last</text>
+
+  <text x="320" y="384" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-style="italic" fill="#5b6680">"Every action is a vote for the type of person you wish to become."</text>
+</svg>

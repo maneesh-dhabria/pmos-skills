@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Acquisition and engagement loop coupling diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Acquisition + Engagement: Two Coupled Loops</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">A cohort flows from acquisition into engagement, then re-enters acquisition by referring others</text>
+
+  <!-- Acquisition loop (left) -->
+  <circle cx="180" cy="230" r="98" fill="#f4f7ff" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="180" y="150" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">ACQUISITION LOOP</text>
+  <text x="180" y="222" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">New cohort signs up</text>
+  <text x="180" y="244" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">via viral / UGC / paid</text>
+  <text x="180" y="262" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">/ sales</text>
+  <!-- circular arrow hint left -->
+  <path d="M 180 134 A 96 96 0 0 1 276 230" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <!-- Engagement loop (right) -->
+  <circle cx="460" cy="230" r="98" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2.5"/>
+  <text x="460" y="150" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">ENGAGEMENT LOOP</text>
+  <text x="460" y="222" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Users get value,</text>
+  <text x="460" y="244" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">return, deepen habit</text>
+  <path d="M 460 134 A 96 96 0 0 1 556 230" fill="none" stroke="#0ea5a4" stroke-width="2" marker-end="url(#arrowTeal)"/>
+
+  <!-- coupling: acquisition -> engagement (top) -->
+  <path d="M 270 200 C 310 178, 330 178, 370 200" fill="none" stroke="#5b6680" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+  <text x="320" y="178" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#5b6680">customers enter engagement</text>
+
+  <!-- coupling: engagement -> acquisition (bottom, refer friends) -->
+  <path d="M 370 282 C 330 308, 310 308, 270 282" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrowAmber)"/>
+  <text x="320" y="326" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#f59e0b">engaged users refer more friends</text>
+
+  <defs>
+    <marker id="arrowBlue" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#2563eb"/></marker>
+    <marker id="arrowTeal" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#0ea5a4"/></marker>
+    <marker id="arrowGray" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/></marker>
+    <marker id="arrowAmber" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b"/></marker>
+  </defs>
+</svg>

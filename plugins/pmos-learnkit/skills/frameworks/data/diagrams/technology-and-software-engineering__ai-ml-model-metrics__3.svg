@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Precision-recall trade-off diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Precision &#8211; Recall Trade-off</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Tune the threshold toward the cost you most want to avoid</text>
+
+  <!-- Center scale bar -->
+  <line x1="120" y1="120" x2="520" y2="120" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="112,120 124,114 124,126" fill="#2563eb"/>
+  <polygon points="528,120 516,114 516,126" fill="#0ea5a4"/>
+  <circle cx="320" cy="120" r="5" fill="#5b6680"/>
+  <text x="320" y="146" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Decision threshold slides</text>
+
+  <text x="118" y="100" text-anchor="start" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#2563eb">&#8592; Maximize Recall</text>
+  <text x="522" y="100" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Maximize Precision &#8594;</text>
+
+  <!-- Left panel: Recall -->
+  <rect x="60" y="180" width="250" height="170" rx="10" fill="#2563eb" fill-opacity="0.07" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="185" y="208" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">Favor Recall</text>
+  <text x="185" y="230" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Catch every real occurrence</text>
+  <text x="80" y="258" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">Example: lung-cancer X-ray</text>
+  <text x="80" y="278" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Recall near 1.0 &#8212; find all</text>
+  <text x="80" y="294" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">potential patients.</text>
+  <text x="80" y="318" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">Accepts: false positives</text>
+  <text x="80" y="334" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">(cheap follow-up exams).</text>
+
+  <!-- Right panel: Precision -->
+  <rect x="330" y="180" width="250" height="170" rx="10" fill="#0ea5a4" fill-opacity="0.08" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="455" y="208" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Favor Precision</text>
+  <text x="455" y="230" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Only flag when confident</text>
+  <text x="350" y="258" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">Example: credit-card default</text>
+  <text x="350" y="278" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">High precision &#8212; avoid wrongly</text>
+  <text x="350" y="294" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">denying good customers.</text>
+  <text x="350" y="318" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">Accepts: missed cases</text>
+  <text x="350" y="334" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">(some defaulters slip through).</text>
+
+  <text x="320" y="378" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">F1 score balances both when neither cost clearly dominates.</text>
+</svg>

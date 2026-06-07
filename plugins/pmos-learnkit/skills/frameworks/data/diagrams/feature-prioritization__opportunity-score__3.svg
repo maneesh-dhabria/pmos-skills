@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Opportunity Score interpretation bands diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="40" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#1d2438">Reading the Score: Opportunity Bands</text>
+  <text x="320" y="64" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#5b6680">Higher scores = bigger unmet need. Where each outcome falls tells you whether to build.</text>
+
+  <!-- Ladder, highest at top -->
+  <g font-family="Helvetica,Arial,sans-serif">
+    <!-- >15 -->
+    <rect x="120" y="92" width="400" height="58" rx="8" fill="#ef4444"/>
+    <text x="150" y="118" font-size="15" font-weight="700" fill="#ffffff">&gt; 15</text>
+    <text x="150" y="138" font-size="11" fill="#ffffff">Extreme opportunity</text>
+    <text x="508" y="125" text-anchor="end" font-size="12" fill="#ffffff">Do not ignore — build now</text>
+
+    <!-- 12–15 -->
+    <rect x="120" y="156" width="400" height="58" rx="8" fill="#f59e0b"/>
+    <text x="150" y="182" font-size="15" font-weight="700" fill="#1d2438">12 – 15</text>
+    <text x="150" y="202" font-size="11" fill="#1d2438">Low-hanging fruit</text>
+    <text x="508" y="189" text-anchor="end" font-size="12" fill="#1d2438">Ripe for improvement</text>
+
+    <!-- 10–12 -->
+    <rect x="120" y="220" width="400" height="58" rx="8" fill="#0ea5a4"/>
+    <text x="150" y="246" font-size="15" font-weight="700" fill="#ffffff">10 – 12</text>
+    <text x="150" y="266" font-size="11" fill="#ffffff">Worth considering</text>
+    <text x="508" y="253" text-anchor="end" font-size="12" fill="#ffffff">Esp. in a broad market</text>
+
+    <!-- <10 -->
+    <rect x="120" y="284" width="400" height="58" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5"/>
+    <text x="150" y="310" font-size="15" font-weight="700" fill="#5b6680">&lt; 10</text>
+    <text x="150" y="330" font-size="11" fill="#5b6680">Unattractive</text>
+    <text x="508" y="317" text-anchor="end" font-size="12" fill="#5b6680">Diminishing returns</text>
+  </g>
+
+  <!-- Direction arrow -->
+  <g font-family="Helvetica,Arial,sans-serif">
+    <line x1="96" y1="338" x2="96" y2="100" stroke="#1d2438" stroke-width="2"/>
+    <polygon points="96,92 91,104 101,104" fill="#1d2438"/>
+    <text x="78" y="220" text-anchor="middle" font-size="11" fill="#5b6680" transform="rotate(-90 78 220)">greater opportunity</text>
+  </g>
+</svg>

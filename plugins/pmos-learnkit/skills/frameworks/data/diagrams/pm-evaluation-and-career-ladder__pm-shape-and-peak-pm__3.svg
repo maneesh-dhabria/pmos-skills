@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM competency self-assessment scale diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Plotting Your Shape: The Assessment Scale</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Rate yourself on each of the 12 competencies along a three-tier scale</text>
+
+  <!-- scale track -->
+  <line x1="100" y1="150" x2="540" y2="150" stroke="#1d2438" stroke-width="3"/>
+
+  <!-- tier markers -->
+  <g>
+    <circle cx="120" cy="150" r="14" fill="#ef4444"/>
+    <text x="120" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">1</text>
+    <text x="120" y="195" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Needs Focus</text>
+    <text x="120" y="216" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">A development area</text>
+  </g>
+  <g>
+    <circle cx="320" cy="150" r="14" fill="#f59e0b"/>
+    <text x="320" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">2</text>
+    <text x="320" y="195" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">On Track</text>
+    <text x="320" y="216" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Meeting the bar for level</text>
+  </g>
+  <g>
+    <circle cx="520" cy="150" r="14" fill="#0ea5a4"/>
+    <text x="520" y="155" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">3</text>
+    <text x="520" y="195" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Outperform</text>
+    <text x="520" y="216" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">A signature strength</text>
+  </g>
+
+  <!-- in-between hint -->
+  <text x="220" y="130" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680" font-style="italic">…or somewhere between</text>
+  <text x="420" y="130" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680" font-style="italic">…or somewhere between</text>
+
+  <!-- footer: apply across 4 areas -->
+  <text x="320" y="278" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Applied across all 12 competencies in 4 areas</text>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#1d2438">
+    <rect x="76" y="300" width="116" height="46" rx="6" fill="#eef3ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="134" y="322" text-anchor="middle" font-weight="700">Product</text>
+    <text x="134" y="338" text-anchor="middle">Execution</text>
+
+    <rect x="208" y="300" width="116" height="46" rx="6" fill="#e7f7f6" stroke="#0ea5a4" stroke-width="1"/>
+    <text x="266" y="322" text-anchor="middle" font-weight="700">Customer</text>
+    <text x="266" y="338" text-anchor="middle">Insight</text>
+
+    <rect x="340" y="300" width="116" height="46" rx="6" fill="#fef6e7" stroke="#f59e0b" stroke-width="1"/>
+    <text x="398" y="322" text-anchor="middle" font-weight="700">Product</text>
+    <text x="398" y="338" text-anchor="middle">Strategy</text>
+
+    <rect x="472" y="300" width="116" height="46" rx="6" fill="#fdeeee" stroke="#ef4444" stroke-width="1"/>
+    <text x="530" y="322" text-anchor="middle" font-weight="700">Influencing</text>
+    <text x="530" y="338" text-anchor="middle">People</text>
+  </g>
+  <text x="320" y="372" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Your scores across all 12 trace the unique "shape" you bring to the team</text>
+</svg>

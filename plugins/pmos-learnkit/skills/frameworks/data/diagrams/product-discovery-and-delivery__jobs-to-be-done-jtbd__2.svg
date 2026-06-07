@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="ODI universal job map diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">ODI Universal Job Map — 8 sequential phases</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Every main job follows the same standard process, independent of any solution</text>
+
+  <!-- arrow marker -->
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- Row 1: phases 1-4 -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <!-- 1 Define -->
+    <rect x="36" y="92" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="96" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">1 · Define</text>
+    <text x="96" y="135" text-anchor="middle" font-size="10.5" fill="#5b6680">set objectives</text>
+    <!-- 2 Locate -->
+    <rect x="186" y="92" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="246" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">2 · Locate</text>
+    <text x="246" y="135" text-anchor="middle" font-size="10.5" fill="#5b6680">gather inputs</text>
+    <!-- 3 Prepare -->
+    <rect x="336" y="92" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="396" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">3 · Prepare</text>
+    <text x="396" y="135" text-anchor="middle" font-size="10.5" fill="#5b6680">organize setup</text>
+    <!-- 4 Confirm -->
+    <rect x="486" y="92" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="546" y="116" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">4 · Confirm</text>
+    <text x="546" y="135" text-anchor="middle" font-size="10.5" fill="#5b6680">ready check</text>
+
+    <line x1="156" y1="121" x2="184" y2="121" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="306" y1="121" x2="334" y2="121" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="456" y1="121" x2="484" y2="121" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- connector down the right side -->
+  <path d="M546,150 L546,176 L96,176 L96,202" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Row 2: phases 5-8 (Execute highlighted as the core) -->
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <!-- 5 Execute -->
+    <rect x="36" y="210" width="120" height="58" rx="8" fill="#2563eb" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="96" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">5 · Execute</text>
+    <text x="96" y="253" text-anchor="middle" font-size="10.5" fill="#dbe5ff">perform the job</text>
+    <!-- 6 Monitor -->
+    <rect x="186" y="210" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="246" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">6 · Monitor</text>
+    <text x="246" y="253" text-anchor="middle" font-size="10.5" fill="#5b6680">evaluate success</text>
+    <!-- 7 Modify -->
+    <rect x="336" y="210" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="396" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">7 · Modify</text>
+    <text x="396" y="253" text-anchor="middle" font-size="10.5" fill="#5b6680">iterate as needed</text>
+    <!-- 8 Conclude -->
+    <rect x="486" y="210" width="120" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="546" y="234" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">8 · Conclude</text>
+    <text x="546" y="253" text-anchor="middle" font-size="10.5" fill="#5b6680">end &amp; follow-up</text>
+
+    <line x1="156" y1="239" x2="184" y2="239" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="306" y1="239" x2="334" y2="239" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="456" y1="239" x2="484" y2="239" stroke="#5b6680" stroke-width="1.5" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- Monitor->Modify feedback loop note -->
+  <path d="M396,268 C396,300 246,300 246,270" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="321" y="318" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="10.5" fill="#f59e0b" font-style="italic">monitor &amp; modify form an in-job feedback loop</text>
+
+  <text x="320" y="358" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Jobs are stable over time — making the job map the unit of analysis makes innovation more predictable.</text>
+</svg>

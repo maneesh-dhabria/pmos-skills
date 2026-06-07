@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Color harmony geometry on the wheel diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Harmony Geometry on the Wheel</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12" fill="#5b6680">Each harmony is a fixed angular pattern of picks around the hue circle</text>
+
+  <!-- five mini-wheels, each showing the geometric pick pattern -->
+  <!-- helper: wheel ring r=40, picks as dots r=6 -->
+
+  <!-- 1. Analogous: 3 neighbors -->
+  <g transform="translate(80,200)" font-family="sans-serif">
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+    <!-- picks at 90, 60, 120 deg (top, top-right, top-left neighbors) -->
+    <circle cx="0" cy="-40" r="6" fill="#2563eb"/>
+    <circle cx="34.6" cy="-20" r="6" fill="#2563eb"/>
+    <circle cx="-34.6" cy="-20" r="6" fill="#2563eb"/>
+    <path d="M0 -40 L34.6 -20 M0 -40 L-34.6 -20" stroke="#2563eb" stroke-width="1.5" opacity="0.5"/>
+    <text x="0" y="62" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">Analogous</text>
+    <text x="0" y="78" font-size="10" fill="#5b6680" text-anchor="middle">neighbors</text>
+    <text x="0" y="91" font-size="10" fill="#5b6680" text-anchor="middle">low contrast</text>
+  </g>
+
+  <!-- 2. Complementary: opposite -->
+  <g transform="translate(220,200)" font-family="sans-serif">
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+    <circle cx="0" cy="-40" r="6" fill="#ef4444"/>
+    <circle cx="0" cy="40" r="6" fill="#ef4444"/>
+    <path d="M0 -40 L0 40" stroke="#ef4444" stroke-width="1.5" opacity="0.5"/>
+    <text x="0" y="62" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">Complementary</text>
+    <text x="0" y="78" font-size="10" fill="#5b6680" text-anchor="middle">opposite (180°)</text>
+    <text x="0" y="91" font-size="10" fill="#5b6680" text-anchor="middle">high contrast</text>
+  </g>
+
+  <!-- 3. Split-complementary -->
+  <g transform="translate(360,200)" font-family="sans-serif">
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+    <!-- base at top, two either side of its complement (bottom) -->
+    <circle cx="0" cy="-40" r="6" fill="#0ea5a4"/>
+    <circle cx="34.6" cy="20" r="6" fill="#0ea5a4"/>
+    <circle cx="-34.6" cy="20" r="6" fill="#0ea5a4"/>
+    <path d="M0 -40 L34.6 20 M0 -40 L-34.6 20" stroke="#0ea5a4" stroke-width="1.5" opacity="0.5"/>
+    <text x="0" y="62" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">Split-comp.</text>
+    <text x="0" y="78" font-size="10" fill="#5b6680" text-anchor="middle">both sides of</text>
+    <text x="0" y="91" font-size="10" fill="#5b6680" text-anchor="middle">the complement</text>
+  </g>
+
+  <!-- 4. Triadic: 120 apart -->
+  <g transform="translate(500,200)" font-family="sans-serif">
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+    <circle cx="0" cy="-40" r="6" fill="#f59e0b"/>
+    <circle cx="34.6" cy="20" r="6" fill="#f59e0b"/>
+    <circle cx="-34.6" cy="20" r="6" fill="#f59e0b"/>
+    <path d="M0 -40 L34.6 20 L-34.6 20 Z" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5"/>
+    <text x="0" y="62" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">Triadic</text>
+    <text x="0" y="78" font-size="10" fill="#5b6680" text-anchor="middle">three, evenly</text>
+    <text x="0" y="91" font-size="10" fill="#5b6680" text-anchor="middle">120° apart</text>
+  </g>
+
+  <!-- 5. Monochromatic: one hue, tones/shades -->
+  <g transform="translate(290,330)" font-family="sans-serif">
+    <text x="0" y="-6" font-size="12" font-weight="700" fill="#1d2438">Monochromatic — one hue, varied tones &amp; shades</text>
+    <rect x="0" y="2" width="48" height="22" fill="#bfdbfe"/>
+    <rect x="48" y="2" width="48" height="22" fill="#60a5fa"/>
+    <rect x="96" y="2" width="48" height="22" fill="#2563eb"/>
+    <rect x="144" y="2" width="48" height="22" fill="#1d4ed8"/>
+    <rect x="192" y="2" width="48" height="22" fill="#1e3a8a"/>
+    <text x="246" y="18" font-size="10" fill="#5b6680">single hue, light → dark</text>
+  </g>
+</svg>

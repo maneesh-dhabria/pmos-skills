@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three vectors to domination diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Level 3 — Three Vectors to Domination</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Expanding outward from your original niche (your "thimble")</text>
+
+  <!-- origin marker: the thimble -->
+  <circle cx="120" cy="250" r="34" fill="#f4f7ff" stroke="#1d2438" stroke-width="2"/>
+  <text x="120" y="246" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#1d2438">Your</text>
+  <text x="120" y="262" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#1d2438">thimble</text>
+
+  <!-- Vector 1 -->
+  <g>
+    <line x1="154" y1="238" x2="430" y2="120" stroke="#2563eb" stroke-width="3"/>
+    <path d="M 430 120 l -16 -1 l 9 13 z" fill="#2563eb"/>
+    <rect x="436" y="98" width="190" height="48" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="446" y="118" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#2563eb">1 · Outrun &amp; become #1</text>
+    <text x="446" y="135" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Win your original market by a wide margin</text>
+  </g>
+
+  <!-- Vector 2 -->
+  <g>
+    <line x1="158" y1="250" x2="430" y2="250" stroke="#0ea5a4" stroke-width="3"/>
+    <path d="M 430 250 l -14 -7 l 0 14 z" fill="#0ea5a4"/>
+    <rect x="436" y="226" width="190" height="48" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="446" y="246" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">2 · Expand the use cases</text>
+    <text x="446" y="263" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Broaden the buyer needs you solve for</text>
+  </g>
+
+  <!-- Vector 3 -->
+  <g>
+    <line x1="154" y1="262" x2="430" y2="380" stroke="#f59e0b" stroke-width="3"/>
+    <path d="M 430 380 l -9 -13 l -7 14 z" fill="#f59e0b"/>
+    <rect x="436" y="354" width="190" height="48" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="446" y="374" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#f59e0b">3 · Multi-thread the map</text>
+    <text x="446" y="391" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Re-run Level 1+2 playbooks everywhere</text>
+  </g>
+</svg>

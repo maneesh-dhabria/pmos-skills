@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Anatomy of a habit Venn diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Anatomy of a Habit</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">A habit forms only where knowledge, skill, and desire overlap — all three are required.</text>
+
+  <!-- Three overlapping circles -->
+  <circle cx="270" cy="190" r="115" fill="#2563eb" fill-opacity="0.16" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="370" cy="190" r="115" fill="#0ea5a4" fill-opacity="0.16" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="320" cy="278" r="115" fill="#f59e0b" fill-opacity="0.16" stroke="#f59e0b" stroke-width="1.5"/>
+
+  <!-- Circle labels -->
+  <text x="205" y="155" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">KNOWLEDGE</text>
+  <text x="205" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">what &amp; why to do</text>
+
+  <text x="435" y="155" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">SKILL</text>
+  <text x="435" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">how to do it</text>
+
+  <text x="320" y="345" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">DESIRE</text>
+  <text x="320" y="362" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">wanting to do it</text>
+
+  <!-- Center intersection -->
+  <text x="320" y="218" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">HABIT</text>
+  <text x="320" y="234" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">all three together</text>
+</svg>

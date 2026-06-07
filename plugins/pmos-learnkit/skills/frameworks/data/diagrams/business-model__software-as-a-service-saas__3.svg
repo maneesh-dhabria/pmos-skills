@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SaaS provider categorization by target customer diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">SaaS Provider Categories</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Categorized by the type of customer they target</text>
+
+  <!-- Column headers -->
+  <text x="120" y="92" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6680">Category</text>
+  <text x="320" y="92" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6680">Target customer</text>
+  <text x="520" y="92" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6680">Examples</text>
+  <line x1="40" y1="100" x2="600" y2="100" stroke="#2563eb" stroke-width="1.5"/>
+
+  <!-- Row 1: Consumer SaaS -->
+  <rect x="40" y="110" width="560" height="80" rx="8" fill="#f4f7ff"/>
+  <rect x="40" y="110" width="6" height="80" rx="3" fill="#0ea5a4"/>
+  <text x="120" y="148" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Consumer SaaS</text>
+  <text x="120" y="168" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">(B2C)</text>
+  <text x="320" y="155" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Individual end users</text>
+  <text x="520" y="155" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Dollar Shave Club, Blue Apron</text>
+
+  <!-- Row 2: B2B SaaS -->
+  <rect x="40" y="200" width="560" height="80" rx="8" fill="#eef2ff"/>
+  <rect x="40" y="200" width="6" height="80" rx="3" fill="#2563eb"/>
+  <text x="120" y="238" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">B2B SaaS</text>
+  <text x="120" y="258" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">(businesses)</text>
+  <text x="320" y="245" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Companies &amp; teams</text>
+  <text x="520" y="245" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">JIRA, Asana</text>
+
+  <text x="320" y="320" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#5b6680">A practical heuristic: who you sell to shapes pricing, sales motion, and target metrics.</text>
+
+  <line x1="40" y1="350" x2="600" y2="350" stroke="#eef2ff" stroke-width="2"/>
+  <text x="320" y="375" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">B2B tends toward higher ACV &amp; longer cycles; B2C toward volume &amp; freemium funnels.</text>
+</svg>

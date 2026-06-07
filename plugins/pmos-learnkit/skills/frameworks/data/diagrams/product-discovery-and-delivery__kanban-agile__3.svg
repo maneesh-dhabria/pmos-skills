@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Kanban versus Scrum comparison diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Kanban vs. Scrum</text>
+  <text x="320" y="53" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#5b6680">Two Agile delivery approaches, contrasted by cadence and control</text>
+
+  <!-- Column headers -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="190" y="68" width="215" height="34" rx="6" fill="#2563eb"/>
+    <text x="297" y="91" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Kanban</text>
+    <rect x="415" y="68" width="190" height="34" rx="6" fill="#0ea5a4"/>
+    <text x="510" y="91" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">Scrum</text>
+  </g>
+
+  <!-- Row label column header -->
+  <text x="40" y="91" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">Dimension</text>
+
+  <!-- Rows -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">
+    <!-- Cadence -->
+    <rect x="34" y="110" width="572" height="40" rx="5" fill="#f4f7ff"/>
+    <text x="46" y="134" font-weight="600" fill="#5b6680">Cadence</text>
+    <text x="200" y="134" fill="#1d2438">Continuous flow, no fixed iterations</text>
+    <text x="425" y="134" fill="#1d2438">Fixed-length sprints (e.g. 2 weeks)</text>
+
+    <!-- Roles -->
+    <rect x="34" y="154" width="572" height="40" rx="5" fill="#ffffff"/>
+    <text x="46" y="178" font-weight="600" fill="#5b6680">Roles</text>
+    <text x="200" y="178" fill="#1d2438">No prescribed roles</text>
+    <text x="425" y="178" fill="#1d2438">PO, Scrum Master, Dev Team</text>
+
+    <!-- Cadence of change -->
+    <rect x="34" y="198" width="572" height="40" rx="5" fill="#f4f7ff"/>
+    <text x="46" y="222" font-weight="600" fill="#5b6680">Change</text>
+    <text x="200" y="222" fill="#1d2438">Add or reprioritize work anytime</text>
+    <text x="425" y="222" fill="#1d2438">Scope locked within the sprint</text>
+
+    <!-- WIP / commitment -->
+    <rect x="34" y="242" width="572" height="40" rx="5" fill="#ffffff"/>
+    <text x="46" y="266" font-weight="600" fill="#5b6680">Limits</text>
+    <text x="200" y="266" fill="#1d2438">WIP limits per workflow stage</text>
+    <text x="425" y="266" fill="#1d2438">Sprint backlog commitment</text>
+
+    <!-- Cadence metrics -->
+    <rect x="34" y="286" width="572" height="40" rx="5" fill="#f4f7ff"/>
+    <text x="46" y="310" font-weight="600" fill="#5b6680">Key metric</text>
+    <text x="200" y="310" fill="#1d2438">Cycle time &amp; throughput</text>
+    <text x="425" y="310" fill="#1d2438">Velocity (points per sprint)</text>
+
+    <!-- Board reset -->
+    <rect x="34" y="330" width="572" height="40" rx="5" fill="#ffffff"/>
+    <text x="46" y="354" font-weight="600" fill="#5b6680">Board</text>
+    <text x="200" y="354" fill="#1d2438">Persistent, never reset</text>
+    <text x="425" y="354" fill="#1d2438">Reset each new sprint</text>
+  </g>
+
+  <line x1="412" y1="110" x2="412" y2="370" stroke="#5b6680" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+  <line x1="187" y1="110" x2="187" y2="370" stroke="#5b6680" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+</svg>

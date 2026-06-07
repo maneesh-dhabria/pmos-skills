@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="The 15 commitments overview diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">The 15 Commitments, Grouped</text>
+  <text x="320" y="44" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Each commitment is a vow to operate above the line</text>
+
+  <!-- Three themed columns -->
+  <!-- Column 1: Responsibility -->
+  <rect x="24" y="60" width="192" height="300" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="120" y="84" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Own Your World</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="40" y="112">1 &#183; Take radical responsibility</text>
+    <text x="40" y="138">2 &#183; Learn through curiosity</text>
+    <text x="40" y="164">3 &#183; Feel all feelings</text>
+    <text x="40" y="190">4 &#183; Speak candidly</text>
+    <text x="40" y="216">5 &#183; Eliminate gossip</text>
+    <text x="40" y="242">6 &#183; Practice integrity</text>
+  </g>
+  <text x="40" y="278" font-family="sans-serif" font-size="9.5" fill="#5b6680">Stop being a victim;</text>
+  <text x="40" y="292" font-family="sans-serif" font-size="9.5" fill="#5b6680">become the maker of</text>
+  <text x="40" y="306" font-family="sans-serif" font-size="9.5" fill="#5b6680">your experience.</text>
+
+  <!-- Column 2: Relating -->
+  <rect x="224" y="60" width="192" height="300" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="84" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Relate Generously</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="240" y="112">7 &#183; Generate appreciation</text>
+    <text x="240" y="138">8 &#183; Excel in your zone of genius</text>
+    <text x="240" y="164">9 &#183; Live a life of play &amp; rest</text>
+    <text x="240" y="190">10 &#183; Explore opposite of belief</text>
+    <text x="240" y="216">11 &#183; Source approval, control,</text>
+    <text x="256" y="230">security within</text>
+  </g>
+  <text x="240" y="278" font-family="sans-serif" font-size="9.5" fill="#5b6680">Replace defensiveness</text>
+  <text x="240" y="292" font-family="sans-serif" font-size="9.5" fill="#5b6680">with openness and</text>
+  <text x="240" y="306" font-family="sans-serif" font-size="9.5" fill="#5b6680">authentic connection.</text>
+
+  <!-- Column 3: Creating -->
+  <rect x="424" y="60" width="192" height="300" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="520" y="84" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Create Win-for-All</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="440" y="112">12 &#183; Have enough of everything</text>
+    <text x="440" y="138">13 &#183; Experience the world</text>
+    <text x="456" y="152">as an ally</text>
+    <text x="440" y="178">14 &#183; Be the resolution</text>
+    <text x="440" y="204">15 &#183; Live a life of</text>
+    <text x="456" y="218">win-for-all solutions</text>
+  </g>
+  <text x="440" y="278" font-family="sans-serif" font-size="9.5" fill="#5b6680">Move from scarcity</text>
+  <text x="440" y="292" font-family="sans-serif" font-size="9.5" fill="#5b6680">and opposition toward</text>
+  <text x="440" y="306" font-family="sans-serif" font-size="9.5" fill="#5b6680">shared abundance.</text>
+
+  <text x="320" y="388" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Themed grouping is illustrative; the framework lists all 15 as equal, ongoing commitments.</text>
+</svg>

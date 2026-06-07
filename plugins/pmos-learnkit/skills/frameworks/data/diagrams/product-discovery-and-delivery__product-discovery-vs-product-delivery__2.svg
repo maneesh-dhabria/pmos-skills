@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Discovery and delivery activity sequences diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">Activities Within Each Track</text>
+
+  <!-- Discovery row -->
+  <text x="30" y="78" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">Product Discovery — validate WHAT to build</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#1d2438">
+    <rect x="30" y="92" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.6"/>
+    <text x="90" y="114" text-anchor="middle" font-weight="600">User</text>
+    <text x="90" y="130" text-anchor="middle" font-weight="600">research</text>
+
+    <rect x="172" y="92" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.6"/>
+    <text x="232" y="114" text-anchor="middle" font-weight="600">Problem</text>
+    <text x="232" y="130" text-anchor="middle" font-weight="600">definition</text>
+
+    <rect x="314" y="92" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.6"/>
+    <text x="374" y="114" text-anchor="middle" font-weight="600">Solution</text>
+    <text x="374" y="130" text-anchor="middle" font-weight="600">ideation</text>
+
+    <rect x="456" y="92" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.6"/>
+    <text x="516" y="114" text-anchor="middle" font-weight="600">Solution</text>
+    <text x="516" y="130" text-anchor="middle" font-weight="600">validation</text>
+  </g>
+  <g fill="#2563eb">
+    <path d="M150 118 L172 118 M166 113 L172 118 L166 123 Z"/>
+    <path d="M292 118 L314 118 M308 113 L314 118 L308 123 Z"/>
+    <path d="M434 118 L456 118 M450 113 L456 118 L450 123 Z"/>
+  </g>
+
+  <!-- Delivery row -->
+  <text x="30" y="218" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Product Delivery — build it for real</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#1d2438">
+    <rect x="30" y="232" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+    <text x="90" y="254" text-anchor="middle" font-weight="600">Product</text>
+    <text x="90" y="270" text-anchor="middle" font-weight="600">development</text>
+
+    <rect x="172" y="232" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+    <text x="232" y="262" text-anchor="middle" font-weight="600">Testing</text>
+
+    <rect x="314" y="232" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+    <text x="374" y="262" text-anchor="middle" font-weight="600">Deployment</text>
+
+    <rect x="456" y="232" width="120" height="52" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+    <text x="516" y="254" text-anchor="middle" font-weight="600">Feedback</text>
+    <text x="516" y="270" text-anchor="middle" font-weight="600">gathering</text>
+  </g>
+  <g fill="#0ea5a4">
+    <path d="M150 258 L172 258 M166 253 L172 258 L166 263 Z"/>
+    <path d="M292 258 L314 258 M308 253 L314 258 L308 263 Z"/>
+    <path d="M434 258 L456 258 M450 253 L456 258 L450 263 Z"/>
+  </g>
+
+  <text x="320" y="340" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">Discovery ends with a well-validated plan; delivery turns that plan into a shipped, sustainable product.</text>
+</svg>

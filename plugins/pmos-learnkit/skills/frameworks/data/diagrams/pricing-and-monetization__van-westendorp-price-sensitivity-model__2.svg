@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Van Westendorp four-question survey instrument diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Four Survey Questions</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Each respondent names a price for four perceptions — ordered cheap &#8594; expensive</text>
+
+  <!-- price axis arrow -->
+  <line x1="44" y1="84" x2="44" y2="372" stroke="#5b6680" stroke-width="1.5"/>
+  <polygon points="44,80 40,90 48,90" fill="#5b6680"/>
+  <text x="38" y="230" font-family="sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 38 230)" text-anchor="middle">lower price &#8594; higher price</text>
+
+  <!-- Q1 too cheap -->
+  <rect x="70" y="84" width="540" height="62" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="98" cy="115" r="15" fill="#0ea5a4"/>
+  <text x="98" y="120" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="126" y="109" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Too cheap</text>
+  <text x="126" y="130" font-family="sans-serif" font-size="11" fill="#5b6680">So low you would question the product&#8217;s quality.</text>
+
+  <!-- Q2 bargain -->
+  <rect x="70" y="154" width="540" height="62" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="98" cy="185" r="15" fill="#2563eb"/>
+  <text x="98" y="190" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="126" y="179" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">A bargain</text>
+  <text x="126" y="200" font-family="sans-serif" font-size="11" fill="#5b6680">A really good deal — clearly worth the money.</text>
+
+  <!-- Q3 not a bargain -->
+  <rect x="70" y="224" width="540" height="62" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="98" cy="255" r="15" fill="#f59e0b"/>
+  <text x="98" y="260" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="126" y="249" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Expensive, not a bargain</text>
+  <text x="126" y="270" font-family="sans-serif" font-size="11" fill="#5b6680">Pricey, but you would still consider buying it.</text>
+
+  <!-- Q4 too expensive -->
+  <rect x="70" y="294" width="540" height="62" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="98" cy="325" r="15" fill="#ef4444"/>
+  <text x="98" y="330" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="126" y="319" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Too expensive</text>
+  <text x="126" y="340" font-family="sans-serif" font-size="11" fill="#5b6680">So high you would never consider purchasing it.</text>
+</svg>

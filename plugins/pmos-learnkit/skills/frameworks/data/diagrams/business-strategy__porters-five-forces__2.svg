@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Force strength to industry profitability diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">Five Forces &#8594; Industry Profitability</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Stronger forces compress margins; weaker forces leave profit on the table</text>
+
+  <!-- Column headers -->
+  <text x="150" y="90" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">FORCE</text>
+  <text x="360" y="90" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">WHEN STRONG, IT&#8230;</text>
+  <text x="575" y="90" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">PROFIT</text>
+
+  <!-- rows -->
+  <!-- Rivalry -->
+  <rect x="40" y="102" width="220" height="44" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="56" y="122" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Competitive rivalry</text>
+  <text x="56" y="138" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">price wars, many rivals</text>
+  <text x="280" y="128" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">drives down prices &amp; raises costs</text>
+  <text x="540" y="129" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ef4444">&#8595;</text>
+  <text x="558" y="129" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">lower</text>
+
+  <!-- New entrants -->
+  <rect x="40" y="152" width="220" height="44" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="56" y="172" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Threat of new entrants</text>
+  <text x="56" y="188" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">low barriers to entry</text>
+  <text x="280" y="178" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">caps prices, adds capacity</text>
+  <text x="540" y="179" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ef4444">&#8595;</text>
+  <text x="558" y="179" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">lower</text>
+
+  <!-- Supplier power -->
+  <rect x="40" y="202" width="220" height="44" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="56" y="222" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Supplier power</text>
+  <text x="56" y="238" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">few, unique suppliers</text>
+  <text x="280" y="228" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">raises input costs you pay</text>
+  <text x="540" y="229" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ef4444">&#8595;</text>
+  <text x="558" y="229" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">lower</text>
+
+  <!-- Buyer power -->
+  <rect x="40" y="252" width="220" height="44" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="56" y="272" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Buyer power</text>
+  <text x="56" y="288" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">few, price-sensitive buyers</text>
+  <text x="280" y="278" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">forces discounts &amp; more value</text>
+  <text x="540" y="279" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ef4444">&#8595;</text>
+  <text x="558" y="279" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">lower</text>
+
+  <!-- Substitutes -->
+  <rect x="40" y="302" width="220" height="44" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="56" y="322" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#1d2438">Threat of substitutes</text>
+  <text x="56" y="338" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">cheap alternatives exist</text>
+  <text x="280" y="328" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#1d2438">caps the price ceiling you can set</text>
+  <text x="540" y="329" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#ef4444">&#8595;</text>
+  <text x="558" y="329" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ef4444">lower</text>
+
+  <!-- takeaway bar -->
+  <rect x="40" y="360" width="560" height="28" rx="6" fill="#1d2438"/>
+  <text x="320" y="378" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">Weak forces overall = attractive, high-margin industry &#8231; Strong forces = thin, contested profit</text>
+</svg>

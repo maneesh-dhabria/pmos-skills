@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Confusion matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Confusion Matrix</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Predicted labels vs. true labels — rows sum to 100%</text>
+
+  <!-- Axis labels -->
+  <text x="330" y="92" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2563eb">Predicted label</text>
+  <text x="295" y="111" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Positive</text>
+  <text x="455" y="111" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Negative</text>
+
+  <text x="68" y="240" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#2563eb" transform="rotate(-90 68 240)">True label</text>
+  <text x="118" y="180" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680" transform="rotate(-90 118 180)">Positive</text>
+  <text x="118" y="300" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680" transform="rotate(-90 118 300)">Negative</text>
+
+  <!-- Grid cells -->
+  <rect x="140" y="120" width="310" height="240" fill="none" stroke="#1d2438" stroke-width="1.5"/>
+
+  <!-- TP -->
+  <rect x="140" y="120" width="155" height="120" fill="#0ea5a4" fill-opacity="0.16" stroke="#1d2438" stroke-width="1"/>
+  <text x="217" y="172" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">True Positive</text>
+  <text x="217" y="194" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Correct hit</text>
+
+  <!-- FN -->
+  <rect x="295" y="120" width="155" height="120" fill="#f59e0b" fill-opacity="0.16" stroke="#1d2438" stroke-width="1"/>
+  <text x="372" y="172" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">False Negative</text>
+  <text x="372" y="194" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Missed occurrence</text>
+
+  <!-- FP -->
+  <rect x="140" y="240" width="155" height="120" fill="#f59e0b" fill-opacity="0.16" stroke="#1d2438" stroke-width="1"/>
+  <text x="217" y="292" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">False Positive</text>
+  <text x="217" y="314" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">False alarm</text>
+
+  <!-- TN -->
+  <rect x="295" y="240" width="155" height="120" fill="#0ea5a4" fill-opacity="0.16" stroke="#1d2438" stroke-width="1"/>
+  <text x="372" y="292" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">True Negative</text>
+  <text x="372" y="314" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Correct reject</text>
+
+  <!-- Derived metrics legend -->
+  <text x="480" y="142" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Reads as</text>
+  <text x="480" y="166" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2563eb">Precision</text>
+  <text x="480" y="183" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#5b6680">TP / (TP + FP)</text>
+  <text x="480" y="210" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.5" fill="#2563eb">Recall</text>
+  <text x="480" y="227" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10.5" fill="#5b6680">TP / (TP + FN)</text>
+  <text x="480" y="258" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Surfaces class bias</text>
+  <text x="480" y="275" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">and where to focus</text>
+  <text x="480" y="292" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">future training.</text>
+</svg>

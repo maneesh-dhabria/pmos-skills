@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Content monetization methods diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">Four Monetization Methods</text>
+  <text x="32" y="62" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">How content or user attention is turned into revenue</text>
+
+  <!-- Subscriptions -->
+  <rect x="32" y="92" width="280" height="124" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="60" cy="120" r="10" fill="#2563eb"/>
+  <text x="80" y="125" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d2438">Subscriptions</text>
+  <text x="52" y="150" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">Recurring fee for access to content,</text>
+  <text x="52" y="168" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">like the SaaS model.</text>
+  <text x="52" y="196" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-style="italic" fill="#2563eb">e.g. Masterclass</text>
+
+  <!-- Advertising -->
+  <rect x="328" y="92" width="280" height="124" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="356" cy="120" r="10" fill="#0ea5a4"/>
+  <text x="376" y="125" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d2438">Advertising</text>
+  <text x="348" y="150" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">Sell user attention to advertisers</text>
+  <text x="348" y="168" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">via impressions and clicks.</text>
+  <text x="348" y="196" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-style="italic" fill="#0ea5a4">e.g. Facebook, X</text>
+
+  <!-- Transactional -->
+  <rect x="32" y="232" width="280" height="124" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="60" cy="260" r="10" fill="#f59e0b"/>
+  <text x="80" y="265" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d2438">Transactional</text>
+  <text x="52" y="290" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">One-off purchases: virtual goods,</text>
+  <text x="52" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">courses, in-game items.</text>
+  <text x="52" y="336" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-style="italic" fill="#f59e0b">e.g. Fortnite</text>
+
+  <!-- Hybrid -->
+  <rect x="328" y="232" width="280" height="124" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="356" cy="260" r="10" fill="#ef4444"/>
+  <text x="376" y="265" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#1d2438">Hybrid</text>
+  <text x="348" y="290" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">Blend of methods — typically ads</text>
+  <text x="348" y="308" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" fill="#5b6680">plus a paid subscription tier.</text>
+  <text x="348" y="336" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-style="italic" fill="#ef4444">e.g. Netflix, Spotify</text>
+</svg>

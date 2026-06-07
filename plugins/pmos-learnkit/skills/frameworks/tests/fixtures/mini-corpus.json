@@ -12,6 +12,7 @@
     "author": "Sean McBride",
     "commentary": "The workhorse prioritization score.",
     "diagram": "data/diagrams/product__rice.svg",
+    "diagrams": ["data/diagrams/product__rice.svg", "data/diagrams/product__rice__2.svg"],
     "source_url": "https://notion.so/x#rice",
     "last_synced": "2026-06-07",
     "problem_tags": ["prioritization", "roadmap"],

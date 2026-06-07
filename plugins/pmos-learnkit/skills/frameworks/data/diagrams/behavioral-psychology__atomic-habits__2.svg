@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Four Laws inversion — create vs break a habit diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Four Laws — Create vs. Break a Habit</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Each law that builds a good habit inverts to break a bad one</text>
+
+  <!-- column headers -->
+  <rect x="40" y="74" width="120" height="34" rx="6" fill="#f4f7ff"/>
+  <text x="100" y="96" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#5b6680">HABIT STEP</text>
+  <rect x="168" y="74" width="200" height="34" rx="6" fill="#2563eb"/>
+  <text x="268" y="96" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">Build a good habit</text>
+  <rect x="376" y="74" width="200" height="34" rx="6" fill="#ef4444"/>
+  <text x="476" y="96" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">Break a bad habit</text>
+
+  <!-- Row 1: Cue -->
+  <text x="100" y="142" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">1. Cue</text>
+  <rect x="168" y="118" width="200" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="268" y="145" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it obvious</text>
+  <rect x="376" y="118" width="200" height="44" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="476" y="145" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it invisible</text>
+
+  <!-- Row 2: Craving -->
+  <text x="100" y="194" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">2. Craving</text>
+  <rect x="168" y="170" width="200" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="268" y="197" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it attractive</text>
+  <rect x="376" y="170" width="200" height="44" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="476" y="197" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it unattractive</text>
+
+  <!-- Row 3: Response -->
+  <text x="100" y="246" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">3. Response</text>
+  <rect x="168" y="222" width="200" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="268" y="249" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it easy</text>
+  <rect x="376" y="222" width="200" height="44" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="476" y="249" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it difficult</text>
+
+  <!-- Row 4: Reward -->
+  <text x="100" y="298" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">4. Reward</text>
+  <rect x="168" y="274" width="200" height="44" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="268" y="301" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it satisfying</text>
+  <rect x="376" y="274" width="200" height="44" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="476" y="301" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#1d2438">Make it unsatisfying</text>
+
+  <text x="320" y="354" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Laws 1–3 make a behavior happen this time; Law 4 makes it repeat next time.</text>
+  <text x="320" y="376" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-style="italic" fill="#0ea5a4">To break a habit, invert every law.</text>
+</svg>

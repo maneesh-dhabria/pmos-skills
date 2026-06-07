@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Two ways to categorize databases diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Two Ways to Categorize Databases</text>
+  <text x="24" y="51" font-family="sans-serif" font-size="12" fill="#5b6680">The same engine can be classified along either axis</text>
+
+  <!-- Axis A: by Usage -->
+  <g font-family="sans-serif">
+    <rect x="24" y="74" width="288" height="300" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="40" y="100" font-size="14" font-weight="700" fill="#2563eb">Axis A · Type of Usage</text>
+    <text x="40" y="118" font-size="10.5" fill="#5b6680">What the workload is for</text>
+
+    <rect x="40" y="134" width="256" height="68" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+    <text x="54" y="156" font-size="12.5" font-weight="700" fill="#1d2438">User-Facing</text>
+    <text x="54" y="174" font-size="10" fill="#5b6680">Serves live app requests;</text>
+    <text x="54" y="189" font-size="10" fill="#5b6680">low latency, high read volume.</text>
+
+    <rect x="40" y="210" width="256" height="68" rx="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1"/>
+    <text x="54" y="232" font-size="12.5" font-weight="700" fill="#0ea5a4">Analytical</text>
+    <text x="54" y="250" font-size="10" fill="#5b6680">Aggregates &amp; reporting over</text>
+    <text x="54" y="265" font-size="10" fill="#5b6680">large datasets; warehousing.</text>
+
+    <rect x="40" y="286" width="256" height="68" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1"/>
+    <text x="54" y="308" font-size="12.5" font-weight="700" fill="#f59e0b">Operational</text>
+    <text x="54" y="326" font-size="10" fill="#5b6680">Runs the business processes;</text>
+    <text x="54" y="341" font-size="10" fill="#5b6680">transactional, internal systems.</text>
+  </g>
+
+  <!-- Axis B: by Technology & Features -->
+  <g font-family="sans-serif">
+    <rect x="328" y="74" width="288" height="300" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="344" y="100" font-size="14" font-weight="700" fill="#0ea5a4">Axis B · Technology &amp; Features</text>
+    <text x="344" y="118" font-size="10.5" fill="#5b6680">How the engine stores &amp; queries</text>
+
+    <rect x="344" y="134" width="256" height="58" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+    <text x="358" y="156" font-size="12.5" font-weight="700" fill="#1d2438">SQL</text>
+    <text x="358" y="178" font-size="10" fill="#5b6680">Relational, fixed schema, ACID.</text>
+
+    <rect x="344" y="200" width="256" height="84" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+    <text x="358" y="222" font-size="12.5" font-weight="700" fill="#1d2438">NoSQL (many types)</text>
+    <text x="358" y="244" font-size="10" fill="#5b6680">Key-value · document · column-</text>
+    <text x="358" y="259" font-size="10" fill="#5b6680">family · graph. Flexible schema,</text>
+    <text x="358" y="274" font-size="10" fill="#5b6680">scale-out, semi-structured data.</text>
+
+    <rect x="344" y="292" width="256" height="62" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1"/>
+    <text x="358" y="314" font-size="12.5" font-weight="700" fill="#f59e0b">Time-Series</text>
+    <text x="358" y="336" font-size="10" fill="#5b6680">Time-ordered writes; IoT,</text>
+    <text x="358" y="351" font-size="10" fill="#5b6680">monitoring, metrics.</text>
+  </g>
+</svg>

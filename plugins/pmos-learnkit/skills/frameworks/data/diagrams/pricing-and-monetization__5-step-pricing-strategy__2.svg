@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three ways to define a value metric diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Step One — Three Ways to Define Your Value Metric</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">Each packaging model ties price to a different scaling driver</text>
+
+  <!-- Feature card -->
+  <rect x="32" y="86" width="180" height="262" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="122" cy="124" r="20" fill="#2563eb"/>
+  <text x="122" y="130" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">1</text>
+  <text x="122" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">By Features</text>
+  <text x="122" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Feature-differentiated</text>
+  <text x="122" y="208" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">packaging</text>
+  <text x="122" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">Price scales as users</text>
+  <text x="122" y="260" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#2563eb">add more features</text>
+  <!-- step bars motif -->
+  <rect x="78" y="312" width="14" height="14" fill="#2563eb" opacity="0.4"/>
+  <rect x="98" y="300" width="14" height="26" fill="#2563eb" opacity="0.6"/>
+  <rect x="118" y="288" width="14" height="38" fill="#2563eb" opacity="0.8"/>
+  <rect x="138" y="276" width="14" height="50" fill="#2563eb"/>
+
+  <!-- Usage card -->
+  <rect x="230" y="86" width="180" height="262" rx="12" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="320" cy="124" r="20" fill="#0ea5a4"/>
+  <text x="320" y="130" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">2</text>
+  <text x="320" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">By Usage</text>
+  <text x="320" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Usage value metric</text>
+  <text x="320" y="208" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">packaging</text>
+  <text x="320" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Price scales the more</text>
+  <text x="320" y="260" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">a user uses the product</text>
+  <!-- ramp motif -->
+  <polyline points="276,326 296,312 316,296 336,282 356,276" fill="none" stroke="#0ea5a4" stroke-width="3"/>
+  <circle cx="356" cy="276" r="4" fill="#0ea5a4"/>
+
+  <!-- Outcome card -->
+  <rect x="428" y="86" width="180" height="262" rx="12" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="518" cy="124" r="20" fill="#f59e0b"/>
+  <text x="518" y="130" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">3</text>
+  <text x="518" y="166" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">By Outcome</text>
+  <text x="518" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">Outcome / impact</text>
+  <text x="518" y="208" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#5b6680">metric packaging</text>
+  <text x="518" y="244" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Price scales with the</text>
+  <text x="518" y="260" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#f59e0b">impact users realize</text>
+  <!-- target motif -->
+  <circle cx="518" cy="304" r="22" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="518" cy="304" r="13" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="518" cy="304" r="4" fill="#f59e0b"/>
+</svg>

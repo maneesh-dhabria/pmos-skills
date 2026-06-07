@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="LTV cohort chart diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">LTV Cohort Chart</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Each signup cohort drawn as its own cumulative-value curve, plotted by cohort age</text>
+
+  <!-- plot frame -->
+  <line x1="90" y1="90" x2="90" y2="320" stroke="#1d2438" stroke-width="1.5"/>
+  <line x1="90" y1="320" x2="600" y2="320" stroke="#1d2438" stroke-width="1.5"/>
+
+  <!-- y axis label -->
+  <text x="80" y="84" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">Cumulative LTV / customer ($)</text>
+  <text x="84" y="100" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">$240</text>
+  <text x="84" y="170" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">$180</text>
+  <text x="84" y="245" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">$90</text>
+  <text x="84" y="318" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">$0</text>
+
+  <!-- gridlines -->
+  <line x1="90" y1="95" x2="600" y2="95" stroke="#f4f7ff" stroke-width="1"/>
+  <line x1="90" y1="165" x2="600" y2="165" stroke="#f4f7ff" stroke-width="1"/>
+  <line x1="90" y1="240" x2="600" y2="240" stroke="#f4f7ff" stroke-width="1"/>
+
+  <!-- x axis ticks -->
+  <text x="90" y="338" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">M0</text>
+  <text x="190" y="338" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">M3</text>
+  <text x="290" y="338" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">M6</text>
+  <text x="390" y="338" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">M9</text>
+  <text x="490" y="338" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">M12</text>
+  <text x="345" y="362" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Cohort age &#8594;</text>
+
+  <!-- Jan cohort: highest cumulative, oldest -->
+  <polyline points="90,300 190,225 290,170 390,135 490,118 580,112" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+  <circle cx="580" cy="112" r="3" fill="#2563eb"/>
+  <text x="588" y="115" font-family="sans-serif" font-size="10" font-weight="700" fill="#2563eb">Jan</text>
+
+  <!-- Mar cohort: steeper early, mid total -->
+  <polyline points="90,300 190,210 290,160 390,138" fill="none" stroke="#0ea5a4" stroke-width="2.5"/>
+  <circle cx="390" cy="138" r="3" fill="#0ea5a4"/>
+  <text x="398" y="141" font-family="sans-serif" font-size="10" font-weight="700" fill="#0ea5a4">Mar</text>
+
+  <!-- May cohort: youngest, only a few months aged -->
+  <polyline points="90,300 190,200 290,158" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+  <circle cx="290" cy="158" r="3" fill="#f59e0b"/>
+  <text x="298" y="161" font-family="sans-serif" font-size="10" font-weight="700" fill="#f59e0b">May</text>
+
+  <!-- reading note -->
+  <text x="90" y="388" font-family="sans-serif" font-size="10" fill="#5b6680">Curves only reach as far right as a cohort has aged. Flattening slope = LTV saturating.</text>
+</svg>

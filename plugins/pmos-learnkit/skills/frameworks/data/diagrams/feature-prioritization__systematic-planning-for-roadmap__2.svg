@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Investment allocation across time horizons diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Investment Allocation by Time Horizon</text>
+  <text x="32" y="62" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">Split each horizon's resources across a few themes — % shifts as goals change.</text>
+
+  <!-- Three horizon columns as stacked 100% bars -->
+  <!-- Column 1: 12 months -->
+  <text x="120" y="98" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1d2438">12 months</text>
+  <g>
+    <rect x="72" y="112" width="96" height="120" fill="#2563eb"/>
+    <rect x="72" y="232" width="96" height="60" fill="#0ea5a4"/>
+    <rect x="72" y="292" width="96" height="40" fill="#f59e0b"/>
+    <text x="120" y="178" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">60%</text>
+    <text x="120" y="178" text-anchor="middle" dy="16" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ffffff">Differentiators</text>
+    <text x="120" y="266" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">30% Tech Foundation</text>
+    <text x="120" y="316" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#1d2438">10% Bets</text>
+  </g>
+
+  <!-- Column 2: 6 months -->
+  <text x="320" y="98" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1d2438">6 months</text>
+  <g>
+    <rect x="272" y="112" width="96" height="100" fill="#2563eb"/>
+    <rect x="272" y="212" width="96" height="80" fill="#0ea5a4"/>
+    <rect x="272" y="292" width="96" height="40" fill="#ef4444"/>
+    <text x="320" y="168" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">50%</text>
+    <text x="320" y="168" text-anchor="middle" dy="16" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ffffff">Differentiators</text>
+    <text x="320" y="258" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">40% Tech Foundation</text>
+    <text x="320" y="316" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">10% Embarrassments</text>
+  </g>
+
+  <!-- Column 3: 3 months -->
+  <text x="520" y="98" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#1d2438">3 months</text>
+  <g>
+    <rect x="472" y="112" width="96" height="70" fill="#2563eb"/>
+    <rect x="472" y="182" width="96" height="110" fill="#0ea5a4"/>
+    <rect x="472" y="292" width="96" height="40" fill="#f59e0b"/>
+    <text x="520" y="152" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">35% Diff.</text>
+    <text x="520" y="240" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">55%</text>
+    <text x="520" y="240" text-anchor="middle" dy="16" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#ffffff">Tech Foundation</text>
+    <text x="520" y="316" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#1d2438">10% Incrementals</text>
+  </g>
+
+  <text x="320" y="360" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-style="italic" fill="#5b6680">Rarely prioritize every theme in one period — pick the few that move the strategy.</text>
+  <text x="320" y="382" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Top-down %, then teams plan bottom-up ideas within each theme.</text>
+</svg>

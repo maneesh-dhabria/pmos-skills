@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Growth accounting derived statistics diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Three Derived Health Statistics</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Each ratio is built from the growth-accounting buckets</text>
+
+  <!-- Gross retention -->
+  <rect x="28" y="80" width="186" height="270" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="121" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#2563eb">Gross Retention</text>
+  <rect x="48" y="124" width="146" height="44" rx="4" fill="#e6f0ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="121" y="151" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Retained revenue</text>
+  <line x1="48" y1="180" x2="194" y2="180" stroke="#1d2438" stroke-width="1.5"/>
+  <rect x="48" y="192" width="146" height="44" rx="4" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="121" y="219" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Prior-period revenue</text>
+  <text x="121" y="270" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Share of last period's</text>
+  <text x="121" y="286" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">revenue still held.</text>
+
+  <!-- Quick ratio -->
+  <rect x="227" y="80" width="186" height="270" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Quick Ratio</text>
+  <rect x="247" y="124" width="146" height="44" rx="4" fill="#e0f5f4" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="320" y="146" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Gains (new +</text>
+  <text x="320" y="161" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">resurrected + expansion)</text>
+  <line x1="247" y1="180" x2="393" y2="180" stroke="#1d2438" stroke-width="1.5"/>
+  <rect x="247" y="192" width="146" height="44" rx="4" fill="#fde8e8" stroke="#ef4444" stroke-width="1"/>
+  <text x="320" y="214" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Losses (churned +</text>
+  <text x="320" y="229" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">contraction)</text>
+  <text x="320" y="270" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Revenue gained per unit</text>
+  <text x="320" y="286" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">lost. Below 1.0x = shrinking.</text>
+
+  <!-- Net churn -->
+  <rect x="426" y="80" width="186" height="270" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="519" y="106" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Net Churn</text>
+  <rect x="446" y="124" width="146" height="44" rx="4" fill="#fef3e2" stroke="#f59e0b" stroke-width="1"/>
+  <text x="519" y="146" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Existing-customer losses</text>
+  <text x="519" y="161" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">− existing-cust. gains</text>
+  <line x1="446" y1="180" x2="592" y2="180" stroke="#1d2438" stroke-width="1.5"/>
+  <rect x="446" y="192" width="146" height="44" rx="4" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="519" y="219" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438">Prior-period revenue</text>
+  <text x="519" y="270" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Net erosion of the base,</text>
+  <text x="519" y="286" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">excluding new customers.</text>
+
+  <text x="320" y="328" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680" opacity="0">.</text>
+</svg>

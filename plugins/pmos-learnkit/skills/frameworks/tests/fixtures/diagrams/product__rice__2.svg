@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" role="img" aria-label="RICE effort breakdown diagram">
+  <rect x="0" y="0" width="200" height="100" fill="#ffffff"/>
+  <text x="100" y="55" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#1d2438">Effort sizing sub-model</text>
+</svg>

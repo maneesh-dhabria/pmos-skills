@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="8 signs of a bad product strategy diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">8 Signs of a Bad Product Strategy</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Symptoms a team feels when no coherent strategy exists</text>
+
+  <!-- Column 1 -->
+  <!-- 1 -->
+  <rect x="24" y="74" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.3"/>
+  <circle cx="50" cy="108" r="13" fill="#ef4444"/>
+  <text x="50" y="113" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="72" y="102" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Insignificant work</text>
+  <text x="72" y="120" font-family="sans-serif" font-size="10.5" fill="#5b6680">Tasks with only marginal benefit.</text>
+
+  <!-- 2 -->
+  <rect x="24" y="150" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.3"/>
+  <circle cx="50" cy="184" r="13" fill="#ef4444"/>
+  <text x="50" y="189" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="72" y="178" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Randomness</text>
+  <text x="72" y="196" font-family="sans-serif" font-size="10.5" fill="#5b6680">Projects share no common theme.</text>
+
+  <!-- 3 -->
+  <rect x="24" y="226" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.3"/>
+  <circle cx="50" cy="260" r="13" fill="#ef4444"/>
+  <text x="50" y="265" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="72" y="254" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Thrashing</text>
+  <text x="72" y="272" font-family="sans-serif" font-size="10.5" fill="#5b6680">Constantly shifting goals → confusion.</text>
+
+  <!-- 4 -->
+  <rect x="24" y="302" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.3"/>
+  <circle cx="50" cy="336" r="13" fill="#ef4444"/>
+  <text x="50" y="341" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="72" y="330" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Lack of purpose</text>
+  <text x="72" y="348" font-family="sans-serif" font-size="10.5" fill="#5b6680">No one sees their place in the picture.</text>
+
+  <!-- Column 2 -->
+  <!-- 5 -->
+  <rect x="320" y="74" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.3"/>
+  <circle cx="346" cy="108" r="13" fill="#f59e0b"/>
+  <text x="346" y="113" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+  <text x="368" y="102" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Low understanding &amp; trust</text>
+  <text x="368" y="120" font-family="sans-serif" font-size="10.5" fill="#5b6680">Unclear why others do what they do.</text>
+
+  <!-- 6 -->
+  <rect x="320" y="150" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.3"/>
+  <circle cx="346" cy="184" r="13" fill="#f59e0b"/>
+  <text x="346" y="189" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">6</text>
+  <text x="368" y="178" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Inaccurate goals</text>
+  <text x="368" y="196" font-family="sans-serif" font-size="10.5" fill="#5b6680">Set too high or too low to motivate.</text>
+
+  <!-- 7 -->
+  <rect x="320" y="226" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.3"/>
+  <circle cx="346" cy="260" r="13" fill="#f59e0b"/>
+  <text x="346" y="265" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">7</text>
+  <text x="368" y="254" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Can't get buy-in</text>
+  <text x="368" y="272" font-family="sans-serif" font-size="10.5" fill="#5b6680">Hard to win support — and unclear why.</text>
+
+  <!-- 8 -->
+  <rect x="320" y="302" width="296" height="68" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.3"/>
+  <circle cx="346" cy="336" r="13" fill="#f59e0b"/>
+  <text x="346" y="341" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">8</text>
+  <text x="368" y="330" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Surprise ceilings</text>
+  <text x="368" y="348" font-family="sans-serif" font-size="10.5" fill="#5b6680">Unexpected limits when trying to improve.</text>
+</svg>

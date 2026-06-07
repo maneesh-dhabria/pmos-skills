@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Tiger / Paper Tiger / Elephant risk matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">The Risk-Worry Matrix</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">Classify each surfaced failure by who is worried about it.</text>
+
+  <!-- Axis labels -->
+  <text x="300" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680" text-anchor="middle">DO OTHERS WORRY?</text>
+  <text x="220" y="110" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">No</text>
+  <text x="450" y="110" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Yes</text>
+
+  <g font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">
+    <text x="86" y="180" text-anchor="middle" transform="rotate(-90 86 180)">DO YOU WORRY?</text>
+    <text x="118" y="170" text-anchor="middle" font-weight="400" font-size="11">Yes</text>
+    <text x="118" y="300" text-anchor="middle" font-weight="400" font-size="11">No</text>
+  </g>
+
+  <!-- Quadrants -->
+  <g font-family="sans-serif">
+    <!-- Top-left: you yes, others no = Elephant -->
+    <rect x="132" y="120" width="218" height="115" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="148" y="146" font-size="15" font-weight="700" fill="#2563eb">Elephant</text>
+    <text x="148" y="168" font-size="11.5" fill="#1d2438">You are concerned, but</text>
+    <text x="148" y="184" font-size="11.5" fill="#1d2438">no one is talking about it.</text>
+    <text x="148" y="210" font-size="10.5" fill="#5b6680">Name it out loud.</text>
+
+    <!-- Top-right: you yes, others yes = Tiger -->
+    <rect x="358" y="120" width="218" height="115" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <text x="374" y="146" font-size="15" font-weight="700" fill="#ef4444">Tiger</text>
+    <text x="374" y="168" font-size="11.5" fill="#1d2438">A real, shared threat that</text>
+    <text x="374" y="184" font-size="11.5" fill="#1d2438">hurts us if we don't act.</text>
+    <text x="374" y="210" font-size="10.5" fill="#5b6680">Mitigate now — find ≥2.</text>
+
+    <!-- Bottom-left: you no, others no = no signal -->
+    <rect x="132" y="240" width="218" height="115" rx="8" fill="#ffffff" stroke="#5b6680" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="148" y="266" font-size="14" font-weight="700" fill="#5b6680">(No signal)</text>
+    <text x="148" y="288" font-size="11.5" fill="#5b6680">Nobody is worried —</text>
+    <text x="148" y="304" font-size="11.5" fill="#5b6680">not raised in the premortem.</text>
+
+    <!-- Bottom-right: you no, others yes = Paper Tiger -->
+    <rect x="358" y="240" width="218" height="115" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="374" y="266" font-size="15" font-weight="700" fill="#f59e0b">Paper Tiger</text>
+    <text x="374" y="288" font-size="11.5" fill="#1d2438">Others are alarmed, but</text>
+    <text x="374" y="304" font-size="11.5" fill="#1d2438">you are not worried.</text>
+    <text x="374" y="330" font-size="10.5" fill="#5b6680">Defuse the false alarm.</text>
+  </g>
+</svg>

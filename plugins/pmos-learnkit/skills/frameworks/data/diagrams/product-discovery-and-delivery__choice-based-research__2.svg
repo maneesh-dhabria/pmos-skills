@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Conjoint Analysis mechanism diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Conjoint Analysis</text>
+  <text x="32" y="60" font-family="sans-serif" font-size="13" fill="#5b6680">Repeated forced choices over varied attribute levels reveal what drives purchase</text>
+
+  <g font-family="sans-serif">
+    <!-- Round panel -->
+    <rect x="32" y="80" width="356" height="170" rx="9" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="50" y="104" font-size="13" font-weight="700" fill="#2563eb">One round: show 3&#8211;6 product options</text>
+
+    <!-- option cards -->
+    <rect x="50" y="116" width="96" height="116" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+    <rect x="162" y="116" width="96" height="116" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+    <rect x="274" y="116" width="96" height="116" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+
+    <text x="98" y="134" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Option A</text>
+    <text x="210" y="134" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Option B</text>
+    <text x="322" y="134" font-size="11" font-weight="700" fill="#2563eb" text-anchor="middle">Option C</text>
+
+    <text x="98" y="156" font-size="10" fill="#5b6680" text-anchor="middle">Price: $9</text>
+    <text x="98" y="172" font-size="10" fill="#5b6680" text-anchor="middle">Speed: fast</text>
+    <text x="98" y="188" font-size="10" fill="#5b6680" text-anchor="middle">Size: S</text>
+
+    <text x="210" y="156" font-size="10" fill="#5b6680" text-anchor="middle">Price: $5</text>
+    <text x="210" y="172" font-size="10" fill="#5b6680" text-anchor="middle">Speed: slow</text>
+    <text x="210" y="188" font-size="10" fill="#5b6680" text-anchor="middle">Size: L</text>
+
+    <text x="322" y="156" font-size="10" fill="#1d2438" text-anchor="middle">Price: $7</text>
+    <text x="322" y="172" font-size="10" fill="#1d2438" text-anchor="middle">Speed: fast</text>
+    <text x="322" y="188" font-size="10" fill="#1d2438" text-anchor="middle">Size: M</text>
+
+    <text x="322" y="214" font-size="11" font-weight="700" fill="#2563eb" text-anchor="middle">&#10003; chosen</text>
+  </g>
+
+  <!-- loop arrow back -->
+  <g font-family="sans-serif">
+    <path d="M210 250 L210 274 L470 274" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <path d="M210 80 L210 56" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <path d="M470 274 L470 90 L392 90" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <polygon points="392,90 402,85 402,95" fill="#0ea5a4"/>
+    <text x="240" y="292" font-size="11" fill="#0ea5a4">Reset &#8594; new round, same attributes at different levels</text>
+  </g>
+
+  <!-- Result panel -->
+  <g font-family="sans-serif">
+    <rect x="408" y="80" width="200" height="170" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="424" y="104" font-size="13" font-weight="700" fill="#f59e0b">Analyze across rounds</text>
+    <text x="424" y="124" font-size="11" fill="#5b6680">Which attributes matter most:</text>
+
+    <rect x="424" y="134" width="150" height="14" rx="3" fill="#2563eb"/>
+    <text x="424" y="162" font-size="10" fill="#5b6680">Price</text>
+    <rect x="424" y="166" width="110" height="14" rx="3" fill="#0ea5a4"/>
+    <text x="424" y="194" font-size="10" fill="#5b6680">Speed</text>
+    <rect x="424" y="198" width="60" height="14" rx="3" fill="#ef4444"/>
+    <text x="424" y="226" font-size="10" fill="#5b6680">Size</text>
+    <text x="424" y="244" font-size="10" fill="#5b6680">&#8230; and best level within each</text>
+  </g>
+
+  <text x="32" y="328" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Output: attribute importance + part-worth of each level &#8212; what wins the purchase</text>
+  <text x="32" y="350" font-family="sans-serif" font-size="11" fill="#5b6680">Differs from the other methods: it decomposes a choice into its underlying attribute trade-offs,</text>
+  <text x="32" y="366" font-family="sans-serif" font-size="11" fill="#5b6680">not just which whole option is preferred.</text>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Flywheel versus Doom Loop diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Flywheel vs. Doom Loop</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Focused, sustained effort compounds; shifting objectives reverse the spin</text>
+
+  <!-- Flywheel (virtuous) -->
+  <text x="170" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">FLYWHEEL — momentum builds</text>
+  <circle cx="170" cy="218" r="92" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2.5"/>
+  <!-- clockwise arrows -->
+  <path d="M170 126 A92 92 0 0 1 262 218" fill="none" stroke="#0ea5a4" stroke-width="3" marker-end="url(#arrTeal)"/>
+  <path d="M262 218 A92 92 0 0 1 170 310" fill="none" stroke="#0ea5a4" stroke-width="3" marker-end="url(#arrTeal)"/>
+  <path d="M170 310 A92 92 0 0 1 78 218" fill="none" stroke="#0ea5a4" stroke-width="3" marker-end="url(#arrTeal)"/>
+  <path d="M78 218 A92 92 0 0 1 170 126" fill="none" stroke="#0ea5a4" stroke-width="3" marker-end="url(#arrTeal)"/>
+  <text x="170" y="150" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Small wins</text>
+  <text x="232" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Momentum</text>
+  <text x="170" y="296" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Rapid growth</text>
+  <text x="108" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">More effort</text>
+  <text x="170" y="224" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#0ea5a4">&#8635;</text>
+
+  <!-- Doom Loop (vicious) -->
+  <text x="470" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ef4444">DOOM LOOP — momentum decays</text>
+  <circle cx="470" cy="218" r="92" fill="#f4f7ff" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6 5"/>
+  <!-- counter-clockwise arrows -->
+  <path d="M470 126 A92 92 0 0 0 378 218" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrRed)"/>
+  <path d="M378 218 A92 92 0 0 0 470 310" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrRed)"/>
+  <path d="M470 310 A92 92 0 0 0 562 218" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrRed)"/>
+  <path d="M562 218 A92 92 0 0 0 470 126" fill="none" stroke="#ef4444" stroke-width="3" marker-end="url(#arrRed)"/>
+  <text x="470" y="150" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Objectives shift</text>
+  <text x="412" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Lost focus</text>
+  <text x="470" y="296" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Disappointing results</text>
+  <text x="532" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Reaction</text>
+  <text x="470" y="224" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#ef4444">&#8634;</text>
+
+  <text x="320" y="378" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Reallocating resources away from one direction stalls the wheel and tips it into the doom loop.</text>
+
+  <defs>
+    <marker id="arrTeal" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#0ea5a4"/></marker>
+    <marker id="arrRed" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#ef4444"/></marker>
+  </defs>
+</svg>

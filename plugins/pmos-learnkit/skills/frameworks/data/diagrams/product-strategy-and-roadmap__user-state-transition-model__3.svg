@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Engagement segmentation pyramid diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Engagement Segmentation</text>
+  <text x="32" y="62" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">Retained users split by depth of engagement — fewest at the top, most at the base.</text>
+
+  <!-- Pyramid -->
+  <!-- Power (top) -->
+  <polygon points="320,90 250,160 390,160" fill="#2563eb"/>
+  <text x="320" y="138" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">Power</text>
+
+  <!-- Core (middle) -->
+  <polygon points="250,164 390,164 430,234 210,234" fill="#0ea5a4"/>
+  <text x="320" y="206" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">Core</text>
+
+  <!-- Casual (base) -->
+  <polygon points="210,238 430,238 470,308 170,308" fill="#f59e0b"/>
+  <text x="320" y="280" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">Casual</text>
+
+  <!-- Descriptions on right -->
+  <line x1="392" y1="125" x2="500" y2="125" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="506" y="121" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Power Users</text>
+  <text x="506" y="138" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Highest engagement</text>
+
+  <line x1="432" y1="199" x2="500" y2="199" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="506" y="195" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Core Users</text>
+  <text x="506" y="212" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Near the natural use</text>
+  <text x="506" y="227" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">frequency of the problem</text>
+
+  <line x1="472" y1="273" x2="500" y2="273" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="506" y="269" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Casual Users</text>
+  <text x="506" y="286" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Low engagement, still</text>
+  <text x="506" y="301" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">finding value</text>
+
+  <!-- left axis label -->
+  <text x="150" y="200" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680" text-anchor="middle" transform="rotate(-90 150 200)">engagement depth</text>
+
+  <text x="32" y="356" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680" font-style="italic">All three tiers are retained users; the split guides where to deepen or rescue engagement.</text>
+</svg>

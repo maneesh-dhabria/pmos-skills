@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Discounted Payback Period diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#1d2438">Discounted Payback Period</text>
+  <text x="32" y="62" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#5b6680">Time for cumulative discounted cash flow to turn positive</text>
+
+  <!-- axes -->
+  <line x1="90" y1="100" x2="90" y2="320" stroke="#1d2438" stroke-width="2"/>
+  <line x1="90" y1="210" x2="600" y2="210" stroke="#1d2438" stroke-width="2"/>
+
+  <!-- y axis label -->
+  <text x="34" y="130" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Cumulative</text>
+  <text x="40" y="146" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">disc. CF</text>
+  <text x="50" y="120" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#0ea5a4">+</text>
+  <text x="52" y="300" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ef4444">&#8722;</text>
+
+  <!-- x axis label -->
+  <text x="520" y="232" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Time &#8594;</text>
+
+  <!-- rising cumulative curve crossing zero -->
+  <path d="M 100 300 C 180 295, 230 270, 290 240 C 350 212, 410 188, 470 160 C 520 138, 560 122, 595 112" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+  <!-- break-even crossing -->
+  <circle cx="370" cy="210" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+  <line x1="370" y1="210" x2="370" y2="320" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="382" y="300" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Payback</text>
+  <text x="382" y="316" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">investment recovered</text>
+
+  <!-- region labels -->
+  <text x="120" y="280" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ef4444">still underwater</text>
+  <text x="470" y="150" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#0ea5a4">net positive</text>
+
+  <text x="32" y="362" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#1d2438">Longer payback = riskier project; shorter recovery lowers risk.</text>
+</svg>

@@ -30,6 +30,7 @@ and **cached match-fields** derived once by an LLM at `sync` time and validated 
   "author": "Jeff Bezos",
   "commentary": "<verbatim 💡 callout text — the curator's 'PM's take'>",
   "diagram": "data/diagrams/decision-making__regret-minimization.svg",
+  "diagrams": ["data/diagrams/decision-making__regret-minimization.svg"],
   "source_url": "https://notion.so/<page>#<framework>",
   "last_synced": "2026-06-07",
 
@@ -57,7 +58,8 @@ and **cached match-fields** derived once by an LLM at `sync` time and validated 
 | `references` | lean | `- Reference - [Type](url)` lines | array of `{type, url}`; `[]` if none. |
 | `author` | lean | `- Author -` line | string or `null`. |
 | `commentary` | lean | trailing 💡 callout | verbatim string or `null`. The "PM's take" shown in the library. |
-| `diagram` | build | `/diagram` | repo-relative path to the owned SVG, or `null` (ship-with-warning). |
+| `diagram` | build | direct SVG gen | repo-relative path to the **primary** owned SVG, or `null` (ship-with-warning). Kept as the back-compat single-diagram field — the `--json` match contract returns this. |
+| `diagrams` | build | direct SVG gen | array of repo-relative SVG paths, `[primary, ...extras]`. Always starts with `diagram` when non-null. Extra entries (`<flat>__2.svg`, `<flat>__3.svg`) exist only for frameworks whose source carried **multiple distinct structural** sub-concepts (second pass — skips screenshots/photos/duplicate illustrations). `[]` when `diagram` is `null`. The library inlines **every** entry; `--json` consumers read `diagram` (primary) only. |
 | `source_url` | lean | Notion | deep link to the framework within its page. |
 | `last_synced` | lean | `sync` run | ISO date `YYYY-MM-DD`. |
 | `problem_tags` | cached | LLM | ⊆ the closed registry in `situations.json`. Drives matching weight ×3. |
@@ -109,4 +111,6 @@ spaces→`-`, punctuation dropped). The id is **stable**: a re-sync of the same 
 must produce the same id so diagrams, `related[]`, and situation mappings stay valid.
 The diagram filename flattens the id with `__` (slash→double-underscore) because a
 filesystem path can't carry the slash: `decision-making/regret-minimization` →
-`data/diagrams/decision-making__regret-minimization.svg`.
+`data/diagrams/decision-making__regret-minimization.svg`. Second-pass extra diagrams
+suffix the flattened id with `__2` / `__3` before `.svg` (e.g.
+`data/diagrams/decision-making__regret-minimization__2.svg`).

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Functionality vs information medium split of the five planes diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="19" font-weight="700" fill="#1d2438">The Dual Split: Functionality vs. Information Medium</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">The five planes divide down the middle into two parallel concerns</text>
+
+  <!-- Column headers -->
+  <rect x="60" y="70" width="245" height="34" rx="6" fill="#2563eb"/>
+  <text x="182" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Web as functionality platform</text>
+  <rect x="335" y="70" width="245" height="34" rx="6" fill="#0ea5a4"/>
+  <text x="457" y="92" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Web as information medium</text>
+
+  <!-- center divider -->
+  <line x1="320" y1="70" x2="320" y2="350" stroke="#1d2438" stroke-width="1.5" stroke-dasharray="5 4"/>
+
+  <!-- Strategy row (shared bottom -> drawn top here as abstract) -->
+  <!-- Plane labels down the left spine -->
+  <text x="20" y="135" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#5b6680" transform="rotate(-90 20 135)">Surface</text>
+  <text x="20" y="190" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#5b6680" transform="rotate(-90 20 190)">Skeleton</text>
+  <text x="20" y="245" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" font-weight="700" fill="#5b6680" transform="rotate(-90 20 245)">Structure</text>
+
+  <!-- Surface row (shared, spans both) -->
+  <rect x="60" y="118" width="520" height="30" rx="5" fill="#f4f7ff" stroke="#5b6680" stroke-width="0.8"/>
+  <text x="320" y="138" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Sensory / Visual Design  (shared across both)</text>
+
+  <!-- Skeleton row -->
+  <rect x="60" y="174" width="245" height="30" rx="5" fill="#eef3ff" stroke="#2563eb" stroke-width="0.8"/>
+  <text x="182" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Interface Design</text>
+  <rect x="335" y="174" width="245" height="30" rx="5" fill="#e8f7f6" stroke="#0ea5a4" stroke-width="0.8"/>
+  <text x="457" y="194" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Information Design</text>
+
+  <!-- Structure row -->
+  <rect x="60" y="230" width="245" height="30" rx="5" fill="#eef3ff" stroke="#2563eb" stroke-width="0.8"/>
+  <text x="182" y="250" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Interaction Design</text>
+  <rect x="335" y="230" width="245" height="30" rx="5" fill="#e8f7f6" stroke="#0ea5a4" stroke-width="0.8"/>
+  <text x="457" y="250" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Information Architecture</text>
+
+  <!-- Scope + Strategy shared rows -->
+  <rect x="60" y="286" width="520" height="28" rx="5" fill="#f4f7ff" stroke="#5b6680" stroke-width="0.8"/>
+  <text x="320" y="304" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Scope: functional specs  |  content requirements</text>
+  <rect x="60" y="320" width="520" height="28" rx="5" fill="#f4f7ff" stroke="#5b6680" stroke-width="0.8"/>
+  <text x="320" y="338" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="600" fill="#1d2438">Strategy: user needs &amp; site objectives  (shared foundation)</text>
+
+  <!-- abstract/concrete arrow -->
+  <text x="350" y="372" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">Lower planes are shared; the middle planes split into two parallel tracks</text>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Four types of product work diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Four Types of Product Work</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Each demands different tools, processes, skills, and success metrics</text>
+
+  <!-- Quadrant: Feature work -->
+  <g>
+    <rect x="40" y="70" width="270" height="140" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="60" y="98" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#2563eb">Feature Work</text>
+    <text x="60" y="122" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Solve a customer pain point</text>
+    <text x="60" y="140" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">or unmet need.</text>
+    <text x="60" y="178" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Metric: adoption, satisfaction</text>
+    <text x="60" y="196" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#2563eb">&#8594; Core PM</text>
+  </g>
+
+  <!-- Quadrant: Growth work -->
+  <g>
+    <rect x="330" y="70" width="270" height="140" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="350" y="98" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#0ea5a4">Growth Work</text>
+    <text x="350" y="122" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Optimize the customer journey</text>
+    <text x="350" y="140" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">through business growth metrics.</text>
+    <text x="350" y="178" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Metric: CAC, conversion, ARPU</text>
+    <text x="350" y="196" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#0ea5a4">&#8594; Growth PM</text>
+  </g>
+
+  <!-- Quadrant: Scaling work -->
+  <g>
+    <rect x="40" y="222" width="270" height="140" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="60" y="250" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#f59e0b">Scaling Work</text>
+    <text x="60" y="274" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Scale internal platforms and</text>
+    <text x="60" y="292" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">services for org growth.</text>
+    <text x="60" y="330" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Metric: internal-customer leverage</text>
+    <text x="60" y="348" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#f59e0b">&#8594; Platform PM</text>
+  </g>
+
+  <!-- Quadrant: PMF expansion work -->
+  <g>
+    <rect x="330" y="222" width="270" height="140" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="350" y="250" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#ef4444">PMF Expansion Work</text>
+    <text x="350" y="274" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">Experiment to reach and expand</text>
+    <text x="350" y="292" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#1d2438">product-market fit.</text>
+    <text x="350" y="330" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Metric: validated new opportunities</text>
+    <text x="350" y="348" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#ef4444">&#8594; Innovation PM</text>
+  </g>
+</svg>

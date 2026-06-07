@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Fitts's Law equation anatomy diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="38" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#1d2438">Fitts's Law — Index of Difficulty</text>
+  <text x="320" y="60" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">How movement time scales with distance and target size</text>
+
+  <!-- Equation -->
+  <rect x="120" y="90" width="400" height="78" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="128" text-anchor="middle" font-family="Georgia, serif" font-size="26" fill="#1d2438">
+    <tspan font-style="italic">MT</tspan>
+    <tspan> = a + b · log</tspan><tspan font-size="16" dy="6">2</tspan>
+    <tspan dy="-6"> ( 2</tspan><tspan font-style="italic" fill="#ef4444">D</tspan>
+    <tspan> / </tspan><tspan font-style="italic" fill="#0ea5a4">W</tspan>
+    <tspan> )</tspan>
+  </text>
+  <text x="320" y="152" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">MT = movement time · a, b = empirical constants</text>
+
+  <!-- Term breakdown: Distance -->
+  <g>
+    <line x1="232" y1="168" x2="200" y2="210" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="60" y="212" width="240" height="80" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="180" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#ef4444">D — Distance to target</text>
+    <text x="180" y="258" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Farther target → longer move time.</text>
+    <text x="180" y="276" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Closer targets are faster to acquire.</text>
+  </g>
+
+  <!-- Term breakdown: Width -->
+  <g>
+    <line x1="372" y1="168" x2="440" y2="210" stroke="#0ea5a4" stroke-width="1.5"/>
+    <rect x="340" y="212" width="240" height="80" rx="8" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="460" y="236" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#0ea5a4">W — Target size (smallest dim)</text>
+    <text x="460" y="258" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Larger target → shorter move time.</text>
+    <text x="460" y="276" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Bigger targets are better.</text>
+  </g>
+
+  <!-- Takeaway -->
+  <rect x="120" y="320" width="400" height="48" rx="8" fill="#1d2438"/>
+  <text x="320" y="343" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#ffffff">Difficulty rises as the D / W ratio grows —</text>
+  <text x="320" y="360" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#f59e0b">make targets bigger and closer to cut acquisition time.</text>
+</svg>

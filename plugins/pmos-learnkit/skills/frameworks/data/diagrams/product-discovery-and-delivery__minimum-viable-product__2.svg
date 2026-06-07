@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Common MVP mistakes diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Common MVP Mistakes</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Failure modes that turn an MVP back into a premature first release</text>
+
+  <defs>
+    <g id="xmark">
+      <circle r="11" fill="#ef4444"/>
+      <path d="M -4 -4 L 4 4 M 4 -4 L -4 4" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <g font-family="sans-serif">
+    <!-- Row 1 -->
+    <rect x="24" y="76" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="98"/>
+    <text x="70" y="96" font-size="13" font-weight="700" fill="#1d2438">Building too many features</text>
+    <text x="70" y="112" font-size="10.5" fill="#5b6680">Scope creep buries the one assumption you set out to test</text>
+
+    <!-- Row 2 -->
+    <rect x="24" y="126" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="148"/>
+    <text x="70" y="146" font-size="13" font-weight="700" fill="#1d2438">Failing to define the target audience</text>
+    <text x="70" y="162" font-size="10.5" fill="#5b6680">No clear early adopter means no one to learn from</text>
+
+    <!-- Row 3 -->
+    <rect x="24" y="176" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="198"/>
+    <text x="70" y="196" font-size="13" font-weight="700" fill="#1d2438">Not getting feedback from real users</text>
+    <text x="70" y="212" font-size="10.5" fill="#5b6680">Internal opinions are not validation</text>
+
+    <!-- Row 4 -->
+    <rect x="24" y="226" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="248"/>
+    <text x="70" y="246" font-size="13" font-weight="700" fill="#1d2438">Not iterating on the product</text>
+    <text x="70" y="262" font-size="10.5" fill="#5b6680">Treating the MVP as a one-shot launch instead of a loop</text>
+
+    <!-- Row 5 -->
+    <rect x="24" y="276" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="298"/>
+    <text x="70" y="296" font-size="13" font-weight="700" fill="#1d2438">Not launching the product</text>
+    <text x="70" y="312" font-size="10.5" fill="#5b6680">An MVP that never ships gathers no signal</text>
+
+    <!-- Row 6 -->
+    <rect x="24" y="326" width="592" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <use href="#xmark" x="48" y="348"/>
+    <text x="70" y="346" font-size="13" font-weight="700" fill="#1d2438">Failing to define success metrics &amp; KPIs</text>
+    <text x="70" y="362" font-size="10.5" fill="#5b6680">Without a target you cannot tell validation from noise</text>
+  </g>
+
+  <text x="616" y="392" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="end" font-style="italic">Avoid all six to keep the MVP a learning vehicle</text>
+</svg>

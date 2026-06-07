@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SaaS pricing and revenue model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">SaaS Pricing &amp; Revenue Models</text>
+
+  <!-- Left: revenue model split -->
+  <text x="150" y="70" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6680">How revenue is charged</text>
+
+  <rect x="40" y="86" width="220" height="70" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="150" y="110" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#2563eb">Recurring Subscription</text>
+  <text x="150" y="132" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Fixed fee, monthly or yearly</text>
+
+  <rect x="40" y="170" width="220" height="78" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="150" y="194" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Usage-based</text>
+  <text x="150" y="214" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Price per unit of usage</text>
+  <text x="150" y="232" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#5b6680">per API request / user / lead</text>
+
+  <!-- Right: tiered ladder + freemium base -->
+  <text x="470" y="70" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#5b6680">Tiered model (freemium base)</text>
+
+  <!-- ladder, widening upward -->
+  <rect x="392" y="226" width="156" height="34" rx="5" fill="#eef2ff" stroke="#5b6680" stroke-width="1.2"/>
+  <text x="470" y="248" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#5b6680">Free / Freemium</text>
+
+  <rect x="402" y="184" width="136" height="34" rx="5" fill="#dbe4ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="470" y="206" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="600" fill="#1d2438">Starter / Pro</text>
+
+  <rect x="412" y="142" width="116" height="34" rx="5" fill="#2563eb"/>
+  <text x="470" y="164" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#ffffff">Enterprise</text>
+
+  <!-- upgrade arrow -->
+  <line x1="360" y1="250" x2="360" y2="150" stroke="#f59e0b" stroke-width="2"/>
+  <polygon points="360,142 355,154 365,154" fill="#f59e0b"/>
+  <text x="346" y="200" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="10" fill="#f59e0b" transform="rotate(-90 346 200)">upgrade as usage grows</text>
+
+  <text x="320" y="300" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Free tier acquires customers; higher tiers unlock more features / capacity.</text>
+  <text x="320" y="322" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Either charging model can be layered across tiers.</text>
+
+  <line x1="40" y1="350" x2="600" y2="350" stroke="#eef2ff" stroke-width="2"/>
+  <text x="320" y="375" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#5b6680">Tracked via MRR / ARR; revenue eroded by Gross MRR Churn.</text>
+</svg>

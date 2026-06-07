@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Evolution of internet content through the social communication map quadrants diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="19" font-weight="700" fill="#1d2438">How Internet Content Evolved</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Each era shifts content source and sorting — a path across the 2x2</text>
+
+  <!-- Stage 1 -->
+  <rect x="30" y="80" width="120" height="240" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="60" cy="108" r="12" fill="#2563eb"/>
+  <text x="60" y="113" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">1</text>
+  <text x="90" y="113" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Early Web</text>
+  <text x="45" y="145" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">User-generated,</text>
+  <text x="45" y="161" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">decentralized</text>
+  <text x="45" y="185" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Source: UGC</text>
+  <text x="45" y="201" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Sort: search</text>
+  <text x="45" y="300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#2563eb">Google</text>
+
+  <!-- Stage 2 -->
+  <rect x="190" y="80" width="120" height="240" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="220" cy="108" r="12" fill="#0ea5a4"/>
+  <text x="220" y="113" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">2</text>
+  <text x="250" y="113" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">The Feed</text>
+  <text x="205" y="145" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Your network,</text>
+  <text x="205" y="161" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">one site, in time</text>
+  <text x="205" y="185" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Source: network</text>
+  <text x="205" y="201" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Sort: chrono</text>
+  <text x="205" y="300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">early Facebook</text>
+
+  <!-- Stage 3 -->
+  <rect x="350" y="80" width="120" height="240" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="380" cy="108" r="12" fill="#f59e0b"/>
+  <text x="380" y="113" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">3</text>
+  <text x="410" y="113" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">Ranked Feed</text>
+  <text x="365" y="145" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Network content,</text>
+  <text x="365" y="161" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">algorithm-ordered</text>
+  <text x="365" y="185" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Source: network</text>
+  <text x="365" y="201" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Sort: algo</text>
+  <text x="365" y="300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#f59e0b">Facebook News Feed</text>
+
+  <!-- Stage 4 -->
+  <rect x="510" y="80" width="120" height="240" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="540" cy="108" r="12" fill="#ef4444"/>
+  <text x="540" y="113" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">4</text>
+  <text x="570" y="113" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#1d2438">For You</text>
+  <text x="525" y="145" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Content from</text>
+  <text x="525" y="161" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">anywhere, ranked</text>
+  <text x="525" y="185" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Source: UGC</text>
+  <text x="525" y="201" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#1d2438">Sort: algo</text>
+  <text x="525" y="300" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#ef4444">TikTok</text>
+
+  <!-- arrows -->
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+  <line x1="152" y1="225" x2="188" y2="225" stroke="#5b6680" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="312" y1="225" x2="348" y2="225" stroke="#5b6680" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="472" y1="225" x2="508" y2="225" stroke="#5b6680" stroke-width="2" marker-end="url(#ar)"/>
+
+  <text x="320" y="360" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#5b6680">Time + search gave way to the algorithm; the network constraint gave way to all of UGC.</text>
+</svg>

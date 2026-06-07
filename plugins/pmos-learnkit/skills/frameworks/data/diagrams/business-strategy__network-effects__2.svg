@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Network theory scaling laws diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Network Theory Laws — How Value Scales with Users</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">The same N users can be worth wildly more depending on how they connect</text>
+
+  <!-- axes -->
+  <line x1="80" y1="330" x2="600" y2="330" stroke="#1d2438" stroke-width="2"/>
+  <line x1="80" y1="330" x2="80" y2="90" stroke="#1d2438" stroke-width="2"/>
+  <text x="340" y="362" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Number of users (N) →</text>
+  <text x="60" y="210" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680" transform="rotate(-90 60 210)">Network value →</text>
+
+  <!-- Sarnoff: linear N (amber) -->
+  <path d="M80 330 L600 250" fill="none" stroke="#f59e0b" stroke-width="3"/>
+  <!-- Metcalfe: N^2 (teal) -->
+  <path d="M80 330 Q360 300 560 110" fill="none" stroke="#0ea5a4" stroke-width="3"/>
+  <!-- Reed: 2^N (accent) -->
+  <path d="M80 330 Q300 328 430 250 Q520 195 470 100" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+  <!-- end labels -->
+  <text x="605" y="250" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#f59e0b">N</text>
+  <text x="566" y="106" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">N²</text>
+  <text x="445" y="92" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#2563eb">2^N</text>
+
+  <!-- legend -->
+  <g font-family="Helvetica,Arial,sans-serif" font-size="12">
+    <rect x="92" y="108" width="14" height="4" fill="#f59e0b"/>
+    <text x="112" y="113" fill="#1d2438" font-weight="700">Sarnoff's Law — value ∝ N</text>
+    <text x="112" y="128" fill="#5b6680">Broadcast / one-to-many (TV)</text>
+
+    <rect x="92" y="146" width="14" height="4" fill="#0ea5a4"/>
+    <text x="112" y="151" fill="#1d2438" font-weight="700">Metcalfe's Law — value ∝ N²</text>
+    <text x="112" y="166" fill="#5b6680">Pairwise connections (telephone)</text>
+
+    <rect x="92" y="184" width="14" height="4" fill="#2563eb"/>
+    <text x="112" y="189" fill="#1d2438" font-weight="700">Reed's Law — value ∝ 2^N</text>
+    <text x="112" y="204" fill="#5b6680">Subgroups within the network can form</text>
+  </g>
+</svg>

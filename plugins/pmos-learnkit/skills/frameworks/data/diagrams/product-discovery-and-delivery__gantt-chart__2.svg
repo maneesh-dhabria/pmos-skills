@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Task dependency types diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Four Task Dependency Types</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">How a successor task is constrained by its predecessor</text>
+
+  <!-- Finish-to-Start -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="30" y="92" font-size="13" font-weight="700" fill="#2563eb">Finish-to-Start (FS)</text>
+    <text x="30" y="108" font-size="10" fill="#5b6680">Most common - successor starts after predecessor finishes</text>
+    <rect x="30" y="118" width="120" height="20" rx="3" fill="#2563eb"/>
+    <text x="90" y="132" text-anchor="middle" font-size="10" fill="#ffffff">Task A</text>
+    <rect x="190" y="118" width="120" height="20" rx="3" fill="#0ea5a4"/>
+    <text x="250" y="132" text-anchor="middle" font-size="10" fill="#ffffff">Task B</text>
+    <path d="M150 128 L190 128" stroke="#1d2438" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Start-to-Start -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="350" y="92" font-size="13" font-weight="700" fill="#2563eb">Start-to-Start (SS)</text>
+    <text x="350" y="108" font-size="10" fill="#5b6680">Successor starts after predecessor starts</text>
+    <rect x="380" y="118" width="120" height="20" rx="3" fill="#2563eb"/>
+    <text x="440" y="132" text-anchor="middle" font-size="10" fill="#ffffff">Task A</text>
+    <rect x="380" y="148" width="120" height="20" rx="3" fill="#0ea5a4"/>
+    <text x="440" y="162" text-anchor="middle" font-size="10" fill="#ffffff">Task B</text>
+    <path d="M380 138 L380 148" stroke="#1d2438" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Finish-to-Finish -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="30" y="222" font-size="13" font-weight="700" fill="#2563eb">Finish-to-Finish (FF)</text>
+    <text x="30" y="238" font-size="10" fill="#5b6680">Successor finishes after predecessor finishes</text>
+    <rect x="30" y="248" width="120" height="20" rx="3" fill="#2563eb"/>
+    <text x="90" y="262" text-anchor="middle" font-size="10" fill="#ffffff">Task A</text>
+    <rect x="30" y="278" width="120" height="20" rx="3" fill="#0ea5a4"/>
+    <text x="90" y="292" text-anchor="middle" font-size="10" fill="#ffffff">Task B</text>
+    <path d="M150 258 L150 278" stroke="#1d2438" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <!-- Start-to-Finish -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <text x="350" y="222" font-size="13" font-weight="700" fill="#2563eb">Start-to-Finish (SF)</text>
+    <text x="350" y="238" font-size="10" fill="#5b6680">Least common - successor finishes after predecessor starts</text>
+    <rect x="380" y="248" width="120" height="20" rx="3" fill="#2563eb"/>
+    <text x="440" y="262" text-anchor="middle" font-size="10" fill="#ffffff">Task A</text>
+    <rect x="450" y="278" width="120" height="20" rx="3" fill="#0ea5a4"/>
+    <text x="510" y="292" text-anchor="middle" font-size="10" fill="#ffffff">Task B</text>
+    <path d="M380 258 L570 258 L570 278" fill="none" stroke="#1d2438" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <text x="320" y="350" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" fill="#5b6680">Each dependency links a predecessor (blue) to a successor (teal) at a specific edge.</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#1d2438"/>
+    </marker>
+  </defs>
+</svg>

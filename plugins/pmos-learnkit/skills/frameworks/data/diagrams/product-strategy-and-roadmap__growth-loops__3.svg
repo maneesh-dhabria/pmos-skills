@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Four acquisition growth loop types diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Four Types of Acquisition Loop</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Each reinvests one cohort's output to acquire the next</text>
+
+  <!-- Row 1: Viral -->
+  <rect x="40" y="76" width="560" height="68" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="74" cy="110" r="16" fill="#2563eb"/>
+  <text x="74" y="115" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">V</text>
+  <text x="106" y="104" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Viral loop</text>
+  <text x="106" y="124" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Users sign up &amp; invite friends, who sign up &amp; invite more.</text>
+  <text x="588" y="118" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#2563eb">PicNic · Netflix · LinkedIn</text>
+
+  <!-- Row 2: UGC -->
+  <rect x="40" y="154" width="560" height="68" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="74" cy="188" r="16" fill="#0ea5a4"/>
+  <text x="74" y="193" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">U</text>
+  <text x="106" y="182" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">User-generated content loop</text>
+  <text x="106" y="202" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Users create content that draws in more users.</text>
+  <text x="588" y="196" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#0ea5a4">Instagram · TikTok</text>
+
+  <!-- Row 3: Paid -->
+  <rect x="40" y="232" width="560" height="68" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="74" cy="266" r="16" fill="#f59e0b"/>
+  <text x="74" y="271" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">P</text>
+  <text x="106" y="260" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Paid loop</text>
+  <text x="106" y="280" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Paid ads acquire users; their revenue funds more ads.</text>
+  <text x="588" y="274" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#f59e0b">search · social</text>
+
+  <!-- Row 4: Sales -->
+  <rect x="40" y="310" width="560" height="68" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="74" cy="344" r="16" fill="#ef4444"/>
+  <text x="74" y="349" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff">S</text>
+  <text x="106" y="338" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Sales loop</text>
+  <text x="106" y="358" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Incentivized purchases generate revenue reinvested in acquisition.</text>
+  <text x="588" y="352" text-anchor="end" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" font-style="italic" fill="#ef4444">Groupon · Amazon</text>
+</svg>

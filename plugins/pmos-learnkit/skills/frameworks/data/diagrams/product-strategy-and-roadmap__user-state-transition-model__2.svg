@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three key moments of activation diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Three Moments of Activation</text>
+  <text x="32" y="62" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">A new user forms a habit only after passing through all three, in order.</text>
+
+  <!-- Step 1 -->
+  <g>
+    <rect x="32" y="100" width="172" height="120" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="58" cy="126" r="13" fill="#2563eb"/>
+    <text x="58" y="131" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="82" y="131" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Set-up Moment</text>
+    <text x="48" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">User enables core value:</text>
+    <text x="48" y="178" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">picks topics, follows</text>
+    <text x="48" y="196" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">people, adds payment.</text>
+  </g>
+
+  <!-- arrow -->
+  <path d="M210 160 H236" stroke="#5b6680" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+
+  <!-- Step 2 -->
+  <g>
+    <rect x="244" y="100" width="172" height="120" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="270" cy="126" r="13" fill="#0ea5a4"/>
+    <text x="270" y="131" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="294" y="131" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Aha Moment</text>
+    <text x="260" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">User experiences the</text>
+    <text x="260" y="178" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">core value proposition</text>
+    <text x="260" y="196" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">for the first time.</text>
+  </g>
+
+  <!-- arrow -->
+  <path d="M422 160 H448" stroke="#5b6680" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+
+  <!-- Step 3 -->
+  <g>
+    <rect x="456" y="100" width="172" height="120" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <circle cx="482" cy="126" r="13" fill="#f59e0b"/>
+    <text x="482" y="131" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="506" y="131" font-family="Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Habit Moment</text>
+    <text x="472" y="160" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">Habit is established;</text>
+    <text x="472" y="178" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">cohort retention</text>
+    <text x="472" y="196" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">curves flatten.</text>
+  </g>
+
+  <!-- signal callout -->
+  <line x1="32" y1="262" x2="608" y2="262" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="32" y="296" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#1d2438"><tspan font-weight="700">Signal that activation is complete:</tspan> the cohort retention curve flattens —</text>
+  <text x="32" y="316" font-family="Helvetica, Arial, sans-serif" font-size="13" fill="#5b6680">users stop dropping off and settle into a durable usage rhythm.</text>
+  <text x="32" y="352" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680" font-style="italic">B2B note: each persona can have its own distinct activation aha moment.</text>
+
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0 0 L6 3 L0 6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

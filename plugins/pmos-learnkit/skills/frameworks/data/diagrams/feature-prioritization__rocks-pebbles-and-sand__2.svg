@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sprint planning scheduling order diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">Sprint Planning: Schedule in This Order</text>
+  <text x="32" y="62" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">Fill top-down; skip a tier if there isn't capacity for meaningful progress.</text>
+
+  <!-- Tier 1 -->
+  <rect x="32" y="84" width="440" height="58" rx="8" fill="#ef4444" opacity="0.12" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="60" cy="113" r="15" fill="#ef4444"/>
+  <text x="60" y="118" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="88" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Time-critical items</text>
+  <text x="88" y="128" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Any size — security patches, customer-impacting bugs, immovable launch dates</text>
+
+  <!-- Tier 2 -->
+  <rect x="32" y="152" width="440" height="50" rx="8" fill="#2563eb" opacity="0.12" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="60" cy="177" r="15" fill="#2563eb"/>
+  <text x="60" y="182" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="88" y="173" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Story(ies) from the current Rock</text>
+  <text x="88" y="191" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">More than one — a single story starves the Rock</text>
+
+  <!-- Tier 3 -->
+  <rect x="32" y="212" width="440" height="50" rx="8" fill="#0ea5a4" opacity="0.12" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="60" cy="237" r="15" fill="#0ea5a4"/>
+  <text x="60" y="242" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="88" y="233" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Story(ies) from the current Pebble</text>
+  <text x="88" y="251" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Only one Pebble at a time — context-switching hurts morale</text>
+
+  <!-- Tier 4 -->
+  <rect x="32" y="272" width="440" height="50" rx="8" fill="#f59e0b" opacity="0.14" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="60" cy="297" r="15" fill="#f59e0b"/>
+  <text x="60" y="302" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="88" y="293" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" fill="#1d2438">Sand</text>
+  <text x="88" y="311" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Always fits — but never let it hit zero, or quality &amp; morale suffer</text>
+
+  <!-- Order arrow -->
+  <line x1="496" y1="100" x2="496" y2="306" stroke="#5b6680" stroke-width="2" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+      <path d="M0,0 L8,5 L0,10 z" fill="#5b6680"/>
+    </marker>
+  </defs>
+  <text x="512" y="180" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#5b6680" transform="rotate(90 512 180)">descending priority</text>
+
+  <!-- Footer note -->
+  <rect x="32" y="338" width="576" height="44" rx="8" fill="#f4f7ff"/>
+  <text x="48" y="358" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#1d2438">Balance over months, not every sprint.</text>
+  <text x="48" y="375" font-family="Segoe UI, Arial, sans-serif" font-size="11.5" fill="#5b6680">Imbalanced sprints can sharpen focus; sustained neglect of any tier is the real risk.</text>
+</svg>

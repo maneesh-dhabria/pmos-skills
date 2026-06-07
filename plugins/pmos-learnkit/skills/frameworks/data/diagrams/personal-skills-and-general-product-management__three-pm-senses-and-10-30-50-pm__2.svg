@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three elements of Product Sense diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Inside Product Sense: Three Elements</text>
+  <text x="320" y="55" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Make correct product decisions under major ambiguity — built from three capabilities</text>
+
+  <!-- Three overlapping circles forming Product Sense -->
+  <g opacity="0.9">
+    <circle cx="250" cy="200" r="92" fill="#2563eb" fill-opacity="0.16" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="390" cy="200" r="92" fill="#0ea5a4" fill-opacity="0.16" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="320" cy="300" r="92" fill="#f59e0b" fill-opacity="0.16" stroke="#f59e0b" stroke-width="2"/>
+  </g>
+
+  <!-- Center label -->
+  <text x="320" y="222" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Product</text>
+  <text x="320" y="238" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Sense</text>
+
+  <!-- Empathy -->
+  <text x="205" y="172" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Empathy</text>
+  <text x="205" y="189" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">anticipate how</text>
+  <text x="205" y="200" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">users react in</text>
+  <text x="205" y="211" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">varied situations</text>
+
+  <!-- Domain knowledge -->
+  <text x="435" y="172" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0a7c7b">Domain</text>
+  <text x="435" y="188" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0a7c7b">Knowledge</text>
+  <text x="435" y="205" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">industry, users,</text>
+  <text x="435" y="216" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">competition, tech</text>
+
+  <!-- Creativity -->
+  <text x="320" y="330" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#b3770a">Creativity</text>
+  <text x="320" y="347" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">think outside the box,</text>
+  <text x="320" y="358" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">generate innovative solutions</text>
+</svg>

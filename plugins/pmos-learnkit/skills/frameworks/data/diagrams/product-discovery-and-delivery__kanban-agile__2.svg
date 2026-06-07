@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Six core practices of Kanban diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Six Core Practices of Kanban</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#5b6680">Apply in order; each reinforces continuous flow and improvement</text>
+
+  <!-- Row template: number badge + label + sublabel -->
+  <!-- 1 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="76" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <circle cx="66" cy="98" r="15" fill="#2563eb"/>
+    <text x="66" y="103" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">1</text>
+    <text x="92" y="94" font-size="14.5" font-weight="600" fill="#1d2438">Visualize the workflow</text>
+    <text x="92" y="112" font-size="11.5" fill="#5b6680">Map every stage on a board so each work item's state is visible.</text>
+  </g>
+
+  <!-- 2 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="126" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+    <circle cx="66" cy="148" r="15" fill="#0ea5a4"/>
+    <text x="66" y="153" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">2</text>
+    <text x="92" y="144" font-size="14.5" font-weight="600" fill="#1d2438">Limit work in progress (WIP)</text>
+    <text x="92" y="162" font-size="11.5" fill="#5b6680">Cap items per stage to prevent overload and expose bottlenecks.</text>
+  </g>
+
+  <!-- 3 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="176" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1"/>
+    <circle cx="66" cy="198" r="15" fill="#f59e0b"/>
+    <text x="66" y="203" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">3</text>
+    <text x="92" y="194" font-size="14.5" font-weight="600" fill="#1d2438">Manage flow</text>
+    <text x="92" y="212" font-size="11.5" fill="#5b6680">Optimize throughput and minimize delays or interruptions.</text>
+  </g>
+
+  <!-- 4 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="226" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <circle cx="66" cy="248" r="15" fill="#2563eb"/>
+    <text x="66" y="253" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">4</text>
+    <text x="92" y="244" font-size="14.5" font-weight="600" fill="#1d2438">Make process policies explicit</text>
+    <text x="92" y="262" font-size="11.5" fill="#5b6680">Define clear rules and exit criteria for every stage.</text>
+  </g>
+
+  <!-- 5 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="276" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+    <circle cx="66" cy="298" r="15" fill="#0ea5a4"/>
+    <text x="66" y="303" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">5</text>
+    <text x="92" y="294" font-size="14.5" font-weight="600" fill="#1d2438">Implement feedback loops</text>
+    <text x="92" y="312" font-size="11.5" fill="#5b6680">Review regularly and adjust for continuous improvement.</text>
+  </g>
+
+  <!-- 6 -->
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <rect x="40" y="326" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1"/>
+    <circle cx="66" cy="348" r="15" fill="#ef4444"/>
+    <text x="66" y="353" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">6</text>
+    <text x="92" y="344" font-size="14.5" font-weight="600" fill="#1d2438">Improve collaboratively</text>
+    <text x="92" y="362" font-size="11.5" fill="#5b6680">Evolve the process together using shared models and metrics.</text>
+  </g>
+</svg>

@@ -34,6 +34,10 @@
     ],
     "related": [
       "analytics/growth-accounting"
+    ],
+    "diagrams": [
+      "data/diagrams/analytics__cohort-analysis.svg",
+      "data/diagrams/analytics__cohort-analysis__2.svg"
     ]
   },
   {
@@ -71,6 +75,9 @@
     ],
     "related": [
       "analytics/linear-regression"
+    ],
+    "diagrams": [
+      "data/diagrams/analytics__correlation-analysis.svg"
     ]
   },
   {
@@ -110,6 +117,11 @@
     ],
     "related": [
       "analytics/cohort-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/analytics__growth-accounting.svg",
+      "data/diagrams/analytics__growth-accounting__2.svg",
+      "data/diagrams/analytics__growth-accounting__3.svg"
     ]
   },
   {
@@ -147,6 +159,9 @@
     ],
     "related": [
       "analytics/correlation-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/analytics__linear-regression.svg"
     ]
   },
   {
@@ -177,7 +192,12 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/analytics__sql.svg",
+      "data/diagrams/analytics__sql__2.svg",
+      "data/diagrams/analytics__sql__3.svg"
+    ]
   },
   {
     "id": "behavioral-psychology/atomic-habits",
@@ -222,6 +242,11 @@
     "related": [
       "behavioral-psychology/tiny-habits",
       "behavioral-psychology/hooked-model"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__atomic-habits.svg",
+      "data/diagrams/behavioral-psychology__atomic-habits__2.svg",
+      "data/diagrams/behavioral-psychology__atomic-habits__3.svg"
     ]
   },
   {
@@ -265,6 +290,9 @@
     "related": [
       "behavioral-psychology/nudge-theory",
       "behavioral-psychology/elmr-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__cognitive-biases.svg"
     ]
   },
   {
@@ -308,6 +336,9 @@
     "related": [
       "behavioral-psychology/nudge-theory",
       "behavioral-psychology/cognitive-biases"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__elmr-framework.svg"
     ]
   },
   {
@@ -352,6 +383,9 @@
     "related": [
       "behavioral-psychology/octalysis-gamification-framework",
       "behavioral-psychology/hooked-model"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__flow.svg"
     ]
   },
   {
@@ -398,6 +432,9 @@
     ],
     "related": [
       "behavioral-psychology/nudge-theory"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__hicks-law.svg"
     ]
   },
   {
@@ -448,6 +485,9 @@
       "behavioral-psychology/atomic-habits",
       "behavioral-psychology/tiny-habits",
       "behavioral-psychology/octalysis-gamification-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__hooked-model.svg"
     ]
   },
   {
@@ -486,6 +526,10 @@
     ],
     "related": [
       "behavioral-psychology/three-factors-driving-motivation"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__maslows-hierarchy-of-needs.svg",
+      "data/diagrams/behavioral-psychology__maslows-hierarchy-of-needs__2.svg"
     ]
   },
   {
@@ -535,6 +579,9 @@
     "related": [
       "behavioral-psychology/cognitive-biases",
       "behavioral-psychology/hicks-law"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__nudge-theory.svg"
     ]
   },
   {
@@ -588,6 +635,11 @@
     "related": [
       "behavioral-psychology/hooked-model",
       "behavioral-psychology/flow"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__octalysis-gamification-framework.svg",
+      "data/diagrams/behavioral-psychology__octalysis-gamification-framework__2.svg",
+      "data/diagrams/behavioral-psychology__octalysis-gamification-framework__3.svg"
     ]
   },
   {
@@ -641,6 +693,9 @@
     "related": [
       "behavioral-psychology/maslows-hierarchy-of-needs",
       "behavioral-psychology/tiny-habits"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__three-factors-driving-motivation.svg"
     ]
   },
   {
@@ -689,6 +744,11 @@
     "related": [
       "behavioral-psychology/atomic-habits",
       "behavioral-psychology/three-factors-driving-motivation"
+    ],
+    "diagrams": [
+      "data/diagrams/behavioral-psychology__tiny-habits.svg",
+      "data/diagrams/behavioral-psychology__tiny-habits__2.svg",
+      "data/diagrams/behavioral-psychology__tiny-habits__3.svg"
     ]
   },
   {
@@ -735,6 +795,9 @@
     ],
     "related": [
       "business-model/use-case-map"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__business-model-canvas.svg"
     ]
   },
   {
@@ -784,6 +847,11 @@
     "related": [
       "business-model/software-as-a-service-saas",
       "business-model/business-model-canvas"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__content-monetization.svg",
+      "data/diagrams/business-model__content-monetization__2.svg",
+      "data/diagrams/business-model__content-monetization__3.svg"
     ]
   },
   {
@@ -819,6 +887,9 @@
     "related": [
       "business-model/marketplace",
       "business-model/business-model-canvas"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__e-commerce.svg"
     ]
   },
   {
@@ -879,6 +950,9 @@
     "related": [
       "business-model/e-commerce",
       "business-model/business-model-canvas"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__marketplace.svg"
     ]
   },
   {
@@ -932,6 +1006,11 @@
     "related": [
       "business-model/content-monetization",
       "business-model/business-model-canvas"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__software-as-a-service-saas.svg",
+      "data/diagrams/business-model__software-as-a-service-saas__2.svg",
+      "data/diagrams/business-model__software-as-a-service-saas__3.svg"
     ]
   },
   {
@@ -976,6 +1055,11 @@
     ],
     "related": [
       "business-model/business-model-canvas"
+    ],
+    "diagrams": [
+      "data/diagrams/business-model__use-case-map.svg",
+      "data/diagrams/business-model__use-case-map__2.svg",
+      "data/diagrams/business-model__use-case-map__3.svg"
     ]
   },
   {
@@ -1017,6 +1101,9 @@
     "related": [
       "business-strategy/dhm-model",
       "business-strategy/delta-4"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__30-elements-of-consumer-value.svg"
     ]
   },
   {
@@ -1053,6 +1140,11 @@
     "related": [
       "business-strategy/gle-model",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__3x-explore-expand-extract.svg",
+      "data/diagrams/business-strategy__3x-explore-expand-extract__2.svg",
+      "data/diagrams/business-strategy__3x-explore-expand-extract__3.svg"
     ]
   },
   {
@@ -1093,6 +1185,9 @@
     "related": [
       "business-strategy/market-sizing-tam-sam-som",
       "business-strategy/customer-problems-stack-rank-cpsr"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__5-tests-of-effective-customer-segmentation.svg"
     ]
   },
   {
@@ -1129,6 +1224,9 @@
       "business-strategy/dhm-model",
       "business-strategy/moat-map",
       "business-strategy/network-effects"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__7-powers.svg"
     ]
   },
   {
@@ -1178,6 +1276,9 @@
       "business-strategy/network-effects",
       "business-strategy/7-powers",
       "business-strategy/customer-value-chain-and-decoupling"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__aggregation-theory.svg"
     ]
   },
   {
@@ -1218,6 +1319,9 @@
     "related": [
       "business-strategy/blue-ocean-strategy",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__ansoff-matrix.svg"
     ]
   },
   {
@@ -1266,6 +1370,9 @@
     "related": [
       "business-strategy/ansoff-matrix",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__blue-ocean-strategy.svg"
     ]
   },
   {
@@ -1319,6 +1426,9 @@
       "business-strategy/disruptive-innovation",
       "business-strategy/gartner-hype-cycle",
       "business-strategy/technological-revolutions"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__crossing-the-chasm.svg"
     ]
   },
   {
@@ -1362,6 +1472,9 @@
     ],
     "related": [
       "business-strategy/30-elements-of-consumer-value"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__customer-problems-stack-rank-cpsr.svg"
     ]
   },
   {
@@ -1417,6 +1530,10 @@
       "business-strategy/value-chain-analysis",
       "business-strategy/delta-4",
       "business-strategy/aggregation-theory"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__customer-value-chain-and-decoupling.svg",
+      "data/diagrams/business-strategy__customer-value-chain-and-decoupling__2.svg"
     ]
   },
   {
@@ -1462,6 +1579,9 @@
     "related": [
       "business-strategy/customer-value-chain-and-decoupling",
       "business-strategy/30-elements-of-consumer-value"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__delta-4.svg"
     ]
   },
   {
@@ -1502,6 +1622,9 @@
       "business-strategy/7-powers",
       "business-strategy/gle-model",
       "business-strategy/gem-model"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__dhm-model.svg"
     ]
   },
   {
@@ -1556,6 +1679,9 @@
       "business-strategy/crossing-the-chasm",
       "business-strategy/technological-revolutions",
       "business-strategy/moat-map"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__disruptive-innovation.svg"
     ]
   },
   {
@@ -1596,6 +1722,9 @@
     "related": [
       "business-strategy/kernel-of-a-good-strategy",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__eigenquestions.svg"
     ]
   },
   {
@@ -1648,6 +1777,11 @@
     "related": [
       "business-strategy/network-effects",
       "business-strategy/hierarchy-of-engagement"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__flywheel-effect.svg",
+      "data/diagrams/business-strategy__flywheel-effect__2.svg",
+      "data/diagrams/business-strategy__flywheel-effect__3.svg"
     ]
   },
   {
@@ -1688,6 +1822,11 @@
     ],
     "related": [
       "business-strategy/30-elements-of-consumer-value"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__four-myths-of-bundling.svg",
+      "data/diagrams/business-strategy__four-myths-of-bundling__2.svg",
+      "data/diagrams/business-strategy__four-myths-of-bundling__3.svg"
     ]
   },
   {
@@ -1721,6 +1860,9 @@
     "related": [
       "business-strategy/technological-revolutions",
       "business-strategy/crossing-the-chasm"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__gartner-hype-cycle.svg"
     ]
   },
   {
@@ -1762,6 +1904,9 @@
       "business-strategy/gle-model",
       "business-strategy/dhm-model",
       "business-strategy/hierarchy-of-engagement"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__gem-model.svg"
     ]
   },
   {
@@ -1803,6 +1948,9 @@
       "business-strategy/dhm-model",
       "business-strategy/gem-model",
       "business-strategy/3x-explore-expand-extract"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__gle-model.svg"
     ]
   },
   {
@@ -1848,6 +1996,11 @@
       "business-strategy/network-effects",
       "business-strategy/flywheel-effect",
       "business-strategy/gem-model"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__hierarchy-of-engagement.svg",
+      "data/diagrams/business-strategy__hierarchy-of-engagement__2.svg",
+      "data/diagrams/business-strategy__hierarchy-of-engagement__3.svg"
     ]
   },
   {
@@ -1883,6 +2036,9 @@
     "related": [
       "business-strategy/symptoms-of-great-strategy",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__kernel-of-a-good-strategy.svg"
     ]
   },
   {
@@ -1922,6 +2078,11 @@
     ],
     "related": [
       "business-strategy/5-tests-of-effective-customer-segmentation"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__market-sizing-tam-sam-som.svg",
+      "data/diagrams/business-strategy__market-sizing-tam-sam-som__2.svg",
+      "data/diagrams/business-strategy__market-sizing-tam-sam-som__3.svg"
     ]
   },
   {
@@ -1962,6 +2123,9 @@
       "business-strategy/7-powers",
       "business-strategy/network-effects",
       "business-strategy/disruptive-innovation"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__moat-map.svg"
     ]
   },
   {
@@ -2015,6 +2179,11 @@
       "business-strategy/aggregation-theory",
       "business-strategy/7-powers",
       "business-strategy/flywheel-effect"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__network-effects.svg",
+      "data/diagrams/business-strategy__network-effects__2.svg",
+      "data/diagrams/business-strategy__network-effects__3.svg"
     ]
   },
   {
@@ -2063,6 +2232,9 @@
     "related": [
       "business-strategy/kernel-of-a-good-strategy",
       "business-strategy/porters-3-generic-strategies"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__playing-to-win.svg"
     ]
   },
   {
@@ -2115,6 +2287,9 @@
       "business-strategy/porters-five-forces",
       "business-strategy/playing-to-win",
       "business-strategy/value-chain-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__porters-3-generic-strategies.svg"
     ]
   },
   {
@@ -2149,6 +2324,10 @@
     "related": [
       "business-strategy/porters-3-generic-strategies",
       "business-strategy/value-chain-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__porters-five-forces.svg",
+      "data/diagrams/business-strategy__porters-five-forces__2.svg"
     ]
   },
   {
@@ -2189,6 +2368,9 @@
     "related": [
       "business-strategy/kernel-of-a-good-strategy",
       "business-strategy/playing-to-win"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__symptoms-of-great-strategy.svg"
     ]
   },
   {
@@ -2237,6 +2419,10 @@
       "business-strategy/gartner-hype-cycle",
       "business-strategy/disruptive-innovation",
       "business-strategy/crossing-the-chasm"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__technological-revolutions.svg",
+      "data/diagrams/business-strategy__technological-revolutions__2.svg"
     ]
   },
   {
@@ -2281,6 +2467,9 @@
     "related": [
       "business-strategy/porters-five-forces",
       "business-strategy/value-chain-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__the-grid.svg"
     ]
   },
   {
@@ -2337,6 +2526,9 @@
       "business-strategy/porters-five-forces",
       "business-strategy/customer-value-chain-and-decoupling",
       "business-strategy/porters-3-generic-strategies"
+    ],
+    "diagrams": [
+      "data/diagrams/business-strategy__value-chain-analysis.svg"
     ]
   },
   {
@@ -2372,7 +2564,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__14-point-pm-onboarding-plan.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/15-commitments-of-conscious-leadership",
@@ -2422,7 +2617,12 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__15-commitments-of-conscious-leadership.svg",
+      "data/diagrams/communication-and-leadership__15-commitments-of-conscious-leadership__2.svg",
+      "data/diagrams/communication-and-leadership__15-commitments-of-conscious-leadership__3.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/7-habits-of-highly-effective-people",
@@ -2466,7 +2666,12 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__7-habits-of-highly-effective-people.svg",
+      "data/diagrams/communication-and-leadership__7-habits-of-highly-effective-people__2.svg",
+      "data/diagrams/communication-and-leadership__7-habits-of-highly-effective-people__3.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/br-non-violent-communication-nvc",
@@ -2513,6 +2718,9 @@
     ],
     "related": [
       "communication-and-leadership/radical-candor"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__br-non-violent-communication-nvc.svg"
     ]
   },
   {
@@ -2564,6 +2772,9 @@
     ],
     "related": [
       "communication-and-leadership/project-aristotle-by-google"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__five-dysfunctions-of-a-team.svg"
     ]
   },
   {
@@ -2600,7 +2811,11 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__high-agency-mindset.svg",
+      "data/diagrams/communication-and-leadership__high-agency-mindset__2.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/ikigai",
@@ -2636,7 +2851,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__ikigai.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/imp-analysis",
@@ -2673,6 +2891,9 @@
     ],
     "related": [
       "communication-and-leadership/radical-delegation"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__imp-analysis.svg"
     ]
   },
   {
@@ -2705,7 +2926,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__level-5-leadership.svg"
+    ]
   },
   {
     "id": "communication-and-leadership/m-and-t-shaped-communication",
@@ -2736,6 +2960,11 @@
     ],
     "related": [
       "communication-and-leadership/minto-pyramid-principle"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__m-and-t-shaped-communication.svg",
+      "data/diagrams/communication-and-leadership__m-and-t-shaped-communication__2.svg",
+      "data/diagrams/communication-and-leadership__m-and-t-shaped-communication__3.svg"
     ]
   },
   {
@@ -2780,6 +3009,9 @@
     ],
     "related": [
       "communication-and-leadership/m-and-t-shaped-communication"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__minto-pyramid-principle.svg"
     ]
   },
   {
@@ -2816,6 +3048,9 @@
     ],
     "related": [
       "communication-and-leadership/five-dysfunctions-of-a-team"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__project-aristotle-by-google.svg"
     ]
   },
   {
@@ -2855,6 +3090,9 @@
     ],
     "related": [
       "communication-and-leadership/br-non-violent-communication-nvc"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__radical-candor.svg"
     ]
   },
   {
@@ -2894,6 +3132,9 @@
     ],
     "related": [
       "communication-and-leadership/imp-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/communication-and-leadership__radical-delegation.svg"
     ]
   },
   {
@@ -2933,6 +3174,9 @@
     "related": [
       "decision-making/monte-carlo-simulation",
       "decision-making/sensitivity-and-what-if-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__decision-trees.svg"
     ]
   },
   {
@@ -2971,7 +3215,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/decision-making__lindy-effect.svg"
+    ]
   },
   {
     "id": "decision-making/monte-carlo-simulation",
@@ -3023,6 +3270,9 @@
     "related": [
       "decision-making/sensitivity-and-what-if-analysis",
       "decision-making/decision-trees"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__monte-carlo-simulation.svg"
     ]
   },
   {
@@ -3061,6 +3311,9 @@
     ],
     "related": [
       "decision-making/regret-minimization-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__one-way-vs-two-way-doors.svg"
     ]
   },
   {
@@ -3098,6 +3351,9 @@
     "related": [
       "decision-making/decision-trees",
       "decision-making/six-thinking-hats"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__pros-and-cons-list.svg"
     ]
   },
   {
@@ -3140,6 +3396,9 @@
     ],
     "related": [
       "decision-making/one-way-vs-two-way-doors"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__regret-minimization-framework.svg"
     ]
   },
   {
@@ -3188,6 +3447,9 @@
     "related": [
       "decision-making/monte-carlo-simulation",
       "decision-making/decision-trees"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__sensitivity-and-what-if-analysis.svg"
     ]
   },
   {
@@ -3226,6 +3488,9 @@
     "related": [
       "decision-making/pros-and-cons-list",
       "decision-making/decision-trees"
+    ],
+    "diagrams": [
+      "data/diagrams/decision-making__six-thinking-hats.svg"
     ]
   },
   {
@@ -3263,7 +3528,10 @@
       "discovery",
       "definition"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/decision-making__swot-analysis.svg"
+    ]
   },
   {
     "id": "feature-prioritization/binstack-decisions",
@@ -3301,6 +3569,11 @@
     "related": [
       "feature-prioritization/rocks-pebbles-and-sand",
       "feature-prioritization/weighted-average-scorecard"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__binstack-decisions.svg",
+      "data/diagrams/feature-prioritization__binstack-decisions__2.svg",
+      "data/diagrams/feature-prioritization__binstack-decisions__3.svg"
     ]
   },
   {
@@ -3343,6 +3616,9 @@
     ],
     "related": [
       "feature-prioritization/opportunity-score"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__buy-a-feature.svg"
     ]
   },
   {
@@ -3383,6 +3659,9 @@
     "related": [
       "feature-prioritization/systematic-planning-for-roadmap",
       "feature-prioritization/moscow-method"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__feature-buckets.svg"
     ]
   },
   {
@@ -3421,6 +3700,9 @@
     "related": [
       "feature-prioritization/rocks-pebbles-and-sand",
       "feature-prioritization/financial-analysis"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__fermi-style-roi.svg"
     ]
   },
   {
@@ -3459,6 +3741,11 @@
     "related": [
       "feature-prioritization/weighted-shortest-job-first",
       "feature-prioritization/fermi-style-roi"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__financial-analysis.svg",
+      "data/diagrams/feature-prioritization__financial-analysis__2.svg",
+      "data/diagrams/feature-prioritization__financial-analysis__3.svg"
     ]
   },
   {
@@ -3499,6 +3786,11 @@
     ],
     "related": [
       "feature-prioritization/rice-score"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__ice-scoring.svg",
+      "data/diagrams/feature-prioritization__ice-scoring__2.svg",
+      "data/diagrams/feature-prioritization__ice-scoring__3.svg"
     ]
   },
   {
@@ -3553,6 +3845,11 @@
     ],
     "related": [
       "feature-prioritization/opportunity-score"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__kano-model.svg",
+      "data/diagrams/feature-prioritization__kano-model__2.svg",
+      "data/diagrams/feature-prioritization__kano-model__3.svg"
     ]
   },
   {
@@ -3590,6 +3887,9 @@
     ],
     "related": [
       "feature-prioritization/feature-buckets"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__moscow-method.svg"
     ]
   },
   {
@@ -3633,6 +3933,11 @@
     "related": [
       "feature-prioritization/kano-model",
       "feature-prioritization/qualify-function-deployment-qfd"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__opportunity-score.svg",
+      "data/diagrams/feature-prioritization__opportunity-score__2.svg",
+      "data/diagrams/feature-prioritization__opportunity-score__3.svg"
     ]
   },
   {
@@ -3677,6 +3982,11 @@
     "related": [
       "feature-prioritization/opportunity-score",
       "feature-prioritization/weighted-average-scorecard"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__qualify-function-deployment-qfd.svg",
+      "data/diagrams/feature-prioritization__qualify-function-deployment-qfd__2.svg",
+      "data/diagrams/feature-prioritization__qualify-function-deployment-qfd__3.svg"
     ]
   },
   {
@@ -3716,6 +4026,9 @@
     ],
     "related": [
       "feature-prioritization/ice-scoring"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__rice-score.svg"
     ]
   },
   {
@@ -3755,6 +4068,10 @@
     "related": [
       "feature-prioritization/binstack-decisions",
       "feature-prioritization/fermi-style-roi"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__rocks-pebbles-and-sand.svg",
+      "data/diagrams/feature-prioritization__rocks-pebbles-and-sand__2.svg"
     ]
   },
   {
@@ -3802,6 +4119,10 @@
     ],
     "related": [
       "feature-prioritization/moscow-method"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__story-mapping.svg",
+      "data/diagrams/feature-prioritization__story-mapping__2.svg"
     ]
   },
   {
@@ -3844,6 +4165,11 @@
     "related": [
       "feature-prioritization/binstack-decisions",
       "feature-prioritization/feature-buckets"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__systematic-planning-for-roadmap.svg",
+      "data/diagrams/feature-prioritization__systematic-planning-for-roadmap__2.svg",
+      "data/diagrams/feature-prioritization__systematic-planning-for-roadmap__3.svg"
     ]
   },
   {
@@ -3882,6 +4208,9 @@
     "related": [
       "feature-prioritization/binstack-decisions",
       "feature-prioritization/qualify-function-deployment-qfd"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__weighted-average-scorecard.svg"
     ]
   },
   {
@@ -3924,6 +4253,11 @@
     "related": [
       "feature-prioritization/financial-analysis",
       "feature-prioritization/fermi-style-roi"
+    ],
+    "diagrams": [
+      "data/diagrams/feature-prioritization__weighted-shortest-job-first.svg",
+      "data/diagrams/feature-prioritization__weighted-shortest-job-first__2.svg",
+      "data/diagrams/feature-prioritization__weighted-shortest-job-first__3.svg"
     ]
   },
   {
@@ -3958,6 +4292,9 @@
     "related": [
       "finance/depreciation",
       "finance/ebitda"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__amortization.svg"
     ]
   },
   {
@@ -3991,7 +4328,10 @@
     "lifecycle_stage": [
       "growth"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/finance__burn-multiple.svg"
+    ]
   },
   {
     "id": "finance/contribution-margin-cmx",
@@ -4041,6 +4381,9 @@
     "related": [
       "finance/profitability-ratios",
       "finance/revenue"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__contribution-margin-cmx.svg"
     ]
   },
   {
@@ -4076,6 +4419,9 @@
       "finance/amortization",
       "finance/ebitda",
       "finance/operating-income"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__depreciation.svg"
     ]
   },
   {
@@ -4115,6 +4461,9 @@
       "finance/net-present-value-npv",
       "finance/weighted-average-cost-of-capital-wacc",
       "finance/free-cash-flow-fcf"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__discounted-cash-flows-dcf.svg"
     ]
   },
   {
@@ -4155,6 +4504,9 @@
       "finance/depreciation",
       "finance/amortization",
       "finance/free-cash-flow-fcf"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__ebitda.svg"
     ]
   },
   {
@@ -4194,6 +4546,9 @@
       "finance/ebitda",
       "finance/three-financial-statements",
       "finance/net-present-value-npv"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__free-cash-flow-fcf.svg"
     ]
   },
   {
@@ -4230,6 +4585,9 @@
     ],
     "related": [
       "finance/revenue"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__gross-merchandise-value-gmv.svg"
     ]
   },
   {
@@ -4269,6 +4627,9 @@
       "finance/discounted-cash-flows-dcf",
       "finance/weighted-average-cost-of-capital-wacc",
       "finance/free-cash-flow-fcf"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__net-present-value-npv.svg"
     ]
   },
   {
@@ -4308,6 +4669,9 @@
       "finance/revenue",
       "finance/ebitda",
       "finance/profitability-ratios"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__operating-income.svg"
     ]
   },
   {
@@ -4352,6 +4716,9 @@
       "finance/revenue",
       "finance/operating-income",
       "finance/contribution-margin-cmx"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__profitability-ratios.svg"
     ]
   },
   {
@@ -4393,6 +4760,9 @@
       "finance/gross-merchandise-value-gmv",
       "finance/operating-income",
       "finance/profitability-ratios"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__revenue.svg"
     ]
   },
   {
@@ -4430,6 +4800,9 @@
       "finance/revenue",
       "finance/operating-income",
       "finance/free-cash-flow-fcf"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__three-financial-statements.svg"
     ]
   },
   {
@@ -4468,6 +4841,9 @@
     "related": [
       "finance/net-present-value-npv",
       "finance/discounted-cash-flows-dcf"
+    ],
+    "diagrams": [
+      "data/diagrams/finance__weighted-average-cost-of-capital-wacc.svg"
     ]
   },
   {
@@ -4506,6 +4882,9 @@
     ],
     "related": [
       "goal-setting/objectives-and-key-results-okrs"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__dream-mapping.svg"
     ]
   },
   {
@@ -4543,6 +4922,11 @@
     "related": [
       "goal-setting/objectives-and-key-results-okrs",
       "goal-setting/narrative-commitments-and-tasks-ncts"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__goal-setting-failure-reasons.svg",
+      "data/diagrams/goal-setting__goal-setting-failure-reasons__2.svg",
+      "data/diagrams/goal-setting__goal-setting-failure-reasons__3.svg"
     ]
   },
   {
@@ -4584,6 +4968,9 @@
     "related": [
       "goal-setting/objectives-and-key-results-okrs",
       "goal-setting/v2mom"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__mspot.svg"
     ]
   },
   {
@@ -4630,6 +5017,11 @@
     "related": [
       "goal-setting/objectives-and-key-results-okrs",
       "goal-setting/goal-setting-failure-reasons"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__narrative-commitments-and-tasks-ncts.svg",
+      "data/diagrams/goal-setting__narrative-commitments-and-tasks-ncts__2.svg",
+      "data/diagrams/goal-setting__narrative-commitments-and-tasks-ncts__3.svg"
     ]
   },
   {
@@ -4686,6 +5078,10 @@
       "goal-setting/v2mom",
       "goal-setting/mspot",
       "goal-setting/goal-setting-failure-reasons"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__objectives-and-key-results-okrs.svg",
+      "data/diagrams/goal-setting__objectives-and-key-results-okrs__2.svg"
     ]
   },
   {
@@ -4727,6 +5123,9 @@
     "related": [
       "goal-setting/objectives-and-key-results-okrs",
       "goal-setting/mspot"
+    ],
+    "diagrams": [
+      "data/diagrams/goal-setting__v2mom.svg"
     ]
   },
   {
@@ -4763,6 +5162,9 @@
       "industry-specific/hierarchy-of-marketplaces",
       "industry-specific/price-selection-and-convenience",
       "industry-specific/cold-start-theory"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__10-factors-for-marketplaces.svg"
     ]
   },
   {
@@ -4814,6 +5216,9 @@
     "related": [
       "industry-specific/hierarchy-of-marketplaces",
       "industry-specific/10-factors-for-marketplaces"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__cold-start-theory.svg"
     ]
   },
   {
@@ -4854,6 +5259,9 @@
     ],
     "related": [
       "industry-specific/entertainment-value-curve"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__creators-synthesizers-and-consumers-1-10-100-rule.svg"
     ]
   },
   {
@@ -4891,6 +5299,9 @@
     "related": [
       "industry-specific/social-communication-map",
       "industry-specific/creators-synthesizers-and-consumers-1-10-100-rule"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__entertainment-value-curve.svg"
     ]
   },
   {
@@ -4926,6 +5337,11 @@
       "industry-specific/10-factors-for-marketplaces",
       "industry-specific/cold-start-theory",
       "industry-specific/price-selection-and-convenience"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__hierarchy-of-marketplaces.svg",
+      "data/diagrams/industry-specific__hierarchy-of-marketplaces__2.svg",
+      "data/diagrams/industry-specific__hierarchy-of-marketplaces__3.svg"
     ]
   },
   {
@@ -4962,6 +5378,9 @@
     ],
     "related": [
       "industry-specific/where-to-fish-for-a-unicorn"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__platform-business-taxonomy.svg"
     ]
   },
   {
@@ -4994,6 +5413,9 @@
     "related": [
       "industry-specific/10-factors-for-marketplaces",
       "industry-specific/hierarchy-of-marketplaces"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__price-selection-and-convenience.svg"
     ]
   },
   {
@@ -5034,6 +5456,9 @@
     "related": [
       "industry-specific/entertainment-value-curve",
       "industry-specific/creators-synthesizers-and-consumers-1-10-100-rule"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__pyramid-of-communication-technology.svg"
     ]
   },
   {
@@ -5072,6 +5497,10 @@
     ],
     "related": [
       "industry-specific/status-as-a-service-staas"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__signalling-as-a-service.svg",
+      "data/diagrams/industry-specific__signalling-as-a-service__2.svg"
     ]
   },
   {
@@ -5111,6 +5540,10 @@
     "related": [
       "industry-specific/entertainment-value-curve",
       "industry-specific/status-as-a-service-staas"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__social-communication-map.svg",
+      "data/diagrams/industry-specific__social-communication-map__2.svg"
     ]
   },
   {
@@ -5156,6 +5589,9 @@
       "industry-specific/signalling-as-a-service",
       "industry-specific/social-communication-map",
       "industry-specific/entertainment-value-curve"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__status-as-a-service-staas.svg"
     ]
   },
   {
@@ -5194,6 +5630,10 @@
     ],
     "related": [
       "industry-specific/platform-business-taxonomy"
+    ],
+    "diagrams": [
+      "data/diagrams/industry-specific__where-to-fish-for-a-unicorn.svg",
+      "data/diagrams/industry-specific__where-to-fish-for-a-unicorn__2.svg"
     ]
   },
   {
@@ -5225,6 +5665,9 @@
     "related": [
       "marketing-and-sales/22-immutable-laws-of-marketing",
       "marketing-and-sales/positioning"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__22-immutable-laws-of-branding.svg"
     ]
   },
   {
@@ -5256,6 +5699,9 @@
     "related": [
       "marketing-and-sales/22-immutable-laws-of-branding",
       "marketing-and-sales/positioning"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__22-immutable-laws-of-marketing.svg"
     ]
   },
   {
@@ -5295,6 +5741,9 @@
     "related": [
       "marketing-and-sales/positioning",
       "marketing-and-sales/digital-marketing-channels"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__4ps-product-price-place-and-promotion.svg"
     ]
   },
   {
@@ -5330,6 +5779,9 @@
     "related": [
       "marketing-and-sales/aida-framework",
       "marketing-and-sales/lift-model"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__4questions-for-product-communication.svg"
     ]
   },
   {
@@ -5368,6 +5820,9 @@
     "related": [
       "marketing-and-sales/4questions-for-product-communication",
       "marketing-and-sales/principles-of-persuasion"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__aida-framework.svg"
     ]
   },
   {
@@ -5410,6 +5865,9 @@
     "related": [
       "marketing-and-sales/attribution-stack",
       "marketing-and-sales/return-on-ad-spend-roas"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__attribution-modelling.svg"
     ]
   },
   {
@@ -5450,6 +5908,9 @@
     "related": [
       "marketing-and-sales/attribution-modelling",
       "marketing-and-sales/return-on-ad-spend-roas"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__attribution-stack.svg"
     ]
   },
   {
@@ -5486,6 +5947,9 @@
     "related": [
       "marketing-and-sales/product-vs-growth-vs-brand-marketing",
       "marketing-and-sales/return-on-ad-spend-roas"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__digital-marketing-channels.svg"
     ]
   },
   {
@@ -5524,6 +5988,9 @@
     "related": [
       "marketing-and-sales/4questions-for-product-communication",
       "marketing-and-sales/principles-of-persuasion"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__lift-model.svg"
     ]
   },
   {
@@ -5580,6 +6047,10 @@
     "related": [
       "marketing-and-sales/value-proposition-canvas",
       "marketing-and-sales/4ps-product-price-place-and-promotion"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__positioning.svg",
+      "data/diagrams/marketing-and-sales__positioning__2.svg"
     ]
   },
   {
@@ -5627,6 +6098,9 @@
     "related": [
       "marketing-and-sales/aida-framework",
       "marketing-and-sales/lift-model"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__principles-of-persuasion.svg"
     ]
   },
   {
@@ -5663,6 +6137,9 @@
     "related": [
       "marketing-and-sales/digital-marketing-channels",
       "marketing-and-sales/4ps-product-price-place-and-promotion"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__product-vs-growth-vs-brand-marketing.svg"
     ]
   },
   {
@@ -5701,6 +6178,9 @@
     "related": [
       "marketing-and-sales/attribution-modelling",
       "marketing-and-sales/digital-marketing-channels"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__return-on-ad-spend-roas.svg"
     ]
   },
   {
@@ -5744,6 +6224,9 @@
     "related": [
       "marketing-and-sales/positioning",
       "marketing-and-sales/4questions-for-product-communication"
+    ],
+    "diagrams": [
+      "data/diagrams/marketing-and-sales__value-proposition-canvas.svg"
     ]
   },
   {
@@ -5784,6 +6267,9 @@
     "related": [
       "metrics/north-star-metrics-nsm",
       "metrics/product-metric-categories-by-shreyas-doshi"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__aarrr-pirate-metrics.svg"
     ]
   },
   {
@@ -5823,6 +6309,9 @@
     ],
     "related": [
       "metrics/product-metric-categories-by-shreyas-doshi"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__heart-framework.svg"
     ]
   },
   {
@@ -5864,6 +6353,9 @@
     ],
     "related": [
       "metrics/word-of-mouth-co-efficient"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__net-promoter-score-nps.svg"
     ]
   },
   {
@@ -5917,6 +6409,10 @@
     "related": [
       "metrics/product-metric-categories-by-shreyas-doshi",
       "metrics/aarrr-pirate-metrics"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__north-star-metrics-nsm.svg",
+      "data/diagrams/metrics__north-star-metrics-nsm__2.svg"
     ]
   },
   {
@@ -5957,6 +6453,9 @@
     ],
     "related": [
       "metrics/aarrr-pirate-metrics"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__power-user-curve.svg"
     ]
   },
   {
@@ -6001,6 +6500,9 @@
       "metrics/north-star-metrics-nsm",
       "metrics/aarrr-pirate-metrics",
       "metrics/heart-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__product-metric-categories-by-shreyas-doshi.svg"
     ]
   },
   {
@@ -6043,6 +6545,9 @@
     ],
     "related": [
       "metrics/net-promoter-score-nps"
+    ],
+    "diagrams": [
+      "data/diagrams/metrics__word-of-mouth-co-efficient.svg"
     ]
   },
   {
@@ -6087,6 +6592,9 @@
     "related": [
       "personal-skills-and-general-product-management/4-risks-of-product-management",
       "personal-skills-and-general-product-management/7-biases-of-product-teams"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__10-root-causes-of-product-failure.svg"
     ]
   },
   {
@@ -6124,6 +6632,9 @@
     ],
     "related": [
       "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__3-levels-of-product-work.svg"
     ]
   },
   {
@@ -6167,6 +6678,10 @@
     "related": [
       "personal-skills-and-general-product-management/3-pm-leader-archetype-operator-craftsperson-and-visionary",
       "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__3-pm-archetypes-builder-tuner-and-innovator.svg",
+      "data/diagrams/personal-skills-and-general-product-management__3-pm-archetypes-builder-tuner-and-innovator__2.svg"
     ]
   },
   {
@@ -6205,6 +6720,9 @@
     "related": [
       "personal-skills-and-general-product-management/3-pm-archetypes-builder-tuner-and-innovator",
       "personal-skills-and-general-product-management/pm-leadership-in-1-tweet"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__3-pm-leader-archetype-operator-craftsperson-and-visionary.svg"
     ]
   },
   {
@@ -6244,6 +6762,9 @@
     ],
     "related": [
       "personal-skills-and-general-product-management/10-root-causes-of-product-failure"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__4-risks-of-product-management.svg"
     ]
   },
   {
@@ -6297,6 +6818,9 @@
     "related": [
       "personal-skills-and-general-product-management/10-root-causes-of-product-failure",
       "personal-skills-and-general-product-management/7-myths-that-stymie-pm-impact"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__7-biases-of-product-teams.svg"
     ]
   },
   {
@@ -6337,6 +6861,10 @@
     "related": [
       "personal-skills-and-general-product-management/good-vs-great-product-managers",
       "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__7-myths-that-stymie-pm-impact.svg",
+      "data/diagrams/personal-skills-and-general-product-management__7-myths-that-stymie-pm-impact__2.svg"
     ]
   },
   {
@@ -6375,6 +6903,9 @@
     ],
     "related": [
       "personal-skills-and-general-product-management/good-vs-great-product-managers"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__agreed-target-quality-framework.svg"
     ]
   },
   {
@@ -6412,7 +6943,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__antithesis-principle.svg"
+    ]
   },
   {
     "id": "personal-skills-and-general-product-management/developing-product-intuition",
@@ -6448,6 +6982,9 @@
     ],
     "related": [
       "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__developing-product-intuition.svg"
     ]
   },
   {
@@ -6483,6 +7020,9 @@
     "related": [
       "personal-skills-and-general-product-management/7-myths-that-stymie-pm-impact",
       "personal-skills-and-general-product-management/agreed-target-quality-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__good-vs-great-product-managers.svg"
     ]
   },
   {
@@ -6518,6 +7058,9 @@
     "related": [
       "personal-skills-and-general-product-management/pm-leadership-in-1-tweet",
       "personal-skills-and-general-product-management/pm-skills-map"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__pm-in-1-tweet.svg"
     ]
   },
   {
@@ -6553,6 +7096,9 @@
     "related": [
       "personal-skills-and-general-product-management/pm-in-1-tweet",
       "personal-skills-and-general-product-management/3-pm-leader-archetype-operator-craftsperson-and-visionary"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__pm-leadership-in-1-tweet.svg"
     ]
   },
   {
@@ -6588,6 +7134,9 @@
     "related": [
       "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm",
       "personal-skills-and-general-product-management/pm-in-1-tweet"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__pm-skills-map.svg"
     ]
   },
   {
@@ -6621,7 +7170,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__pm-task-delegation-framework.svg"
+    ]
   },
   {
     "id": "personal-skills-and-general-product-management/product-vs-project-vs-program-managers",
@@ -6659,7 +7211,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__product-vs-project-vs-program-managers.svg"
+    ]
   },
   {
     "id": "personal-skills-and-general-product-management/smart-framework-for-pm-feedback",
@@ -6694,7 +7249,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__smart-framework-for-pm-feedback.svg"
+    ]
   },
   {
     "id": "personal-skills-and-general-product-management/three-pm-senses-and-10-30-50-pm",
@@ -6749,6 +7307,10 @@
     "related": [
       "personal-skills-and-general-product-management/pm-skills-map",
       "personal-skills-and-general-product-management/3-pm-archetypes-builder-tuner-and-innovator"
+    ],
+    "diagrams": [
+      "data/diagrams/personal-skills-and-general-product-management__three-pm-senses-and-10-30-50-pm.svg",
+      "data/diagrams/personal-skills-and-general-product-management__three-pm-senses-and-10-30-50-pm__2.svg"
     ]
   },
   {
@@ -6791,6 +7353,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/pm-shape-and-peak-pm",
       "pm-evaluation-and-career-ladder/pshe"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__br-insight-execution-and-impact-framework-for-pm-evaluation.svg"
     ]
   },
   {
@@ -6828,6 +7393,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/pm-scope-and-impact-matrix",
       "pm-evaluation-and-career-ladder/impact-environment-x-skills"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__career-growth-scope-x-complexity-influence.svg"
     ]
   },
   {
@@ -6868,6 +7436,9 @@
     ],
     "related": [
       "pm-evaluation-and-career-ladder/star-method"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__circles-method.svg"
     ]
   },
   {
@@ -6901,6 +7472,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/product-management-specializations",
       "pm-evaluation-and-career-ladder/pm-shape-and-peak-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__growth-competency-model.svg"
     ]
   },
   {
@@ -6938,6 +7512,11 @@
     "related": [
       "pm-evaluation-and-career-ladder/pm-leader-canyon",
       "pm-evaluation-and-career-ladder/career-growth-scope-x-complexity-influence"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__impact-environment-x-skills.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__impact-environment-x-skills__2.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__impact-environment-x-skills__3.svg"
     ]
   },
   {
@@ -6976,6 +7555,10 @@
     "related": [
       "pm-evaluation-and-career-ladder/product-management-specializations",
       "pm-evaluation-and-career-ladder/impact-environment-x-skills"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-leader-canyon.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-leader-canyon__2.svg"
     ]
   },
   {
@@ -7011,6 +7594,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/pshe",
       "pm-evaluation-and-career-ladder/career-growth-scope-x-complexity-influence"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-scope-and-impact-matrix.svg"
     ]
   },
   {
@@ -7054,6 +7640,11 @@
     "related": [
       "pm-evaluation-and-career-ladder/pshe",
       "pm-evaluation-and-career-ladder/br-insight-execution-and-impact-framework-for-pm-evaluation"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-shape-and-peak-pm.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-shape-and-peak-pm__2.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__pm-shape-and-peak-pm__3.svg"
     ]
   },
   {
@@ -7096,6 +7687,11 @@
     "related": [
       "pm-evaluation-and-career-ladder/pm-shape-and-peak-pm",
       "pm-evaluation-and-career-ladder/growth-competency-model"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__product-management-specializations.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__product-management-specializations__2.svg",
+      "data/diagrams/pm-evaluation-and-career-ladder__product-management-specializations__3.svg"
     ]
   },
   {
@@ -7137,6 +7733,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/pm-scope-and-impact-matrix",
       "pm-evaluation-and-career-ladder/pm-shape-and-peak-pm"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__pshe.svg"
     ]
   },
   {
@@ -7176,6 +7775,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/star-method",
       "pm-evaluation-and-career-ladder/impact-environment-x-skills"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__reverse-interview.svg"
     ]
   },
   {
@@ -7213,6 +7815,9 @@
     "related": [
       "pm-evaluation-and-career-ladder/circles-method",
       "pm-evaluation-and-career-ladder/reverse-interview"
+    ],
+    "diagrams": [
+      "data/diagrams/pm-evaluation-and-career-ladder__star-method.svg"
     ]
   },
   {
@@ -7261,6 +7866,9 @@
       "pricing-and-monetization/monetization-model",
       "pricing-and-monetization/van-westendorp-price-sensitivity-model",
       "pricing-and-monetization/5-step-pricing-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__4-types-of-monetization-failures.svg"
     ]
   },
   {
@@ -7300,6 +7908,11 @@
       "pricing-and-monetization/van-westendorp-price-sensitivity-model",
       "pricing-and-monetization/4-types-of-monetization-failures",
       "pricing-and-monetization/6-monetization-strategy-mistakes"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__5-step-pricing-strategy.svg",
+      "data/diagrams/pricing-and-monetization__5-step-pricing-strategy__2.svg",
+      "data/diagrams/pricing-and-monetization__5-step-pricing-strategy__3.svg"
     ]
   },
   {
@@ -7336,6 +7949,9 @@
     "related": [
       "pricing-and-monetization/monetization-model",
       "pricing-and-monetization/5-step-pricing-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__6-monetization-strategy-mistakes.svg"
     ]
   },
   {
@@ -7378,6 +7994,11 @@
       "pricing-and-monetization/6-monetization-strategy-mistakes",
       "pricing-and-monetization/5-step-pricing-strategy",
       "pricing-and-monetization/4-types-of-monetization-failures"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__monetization-model.svg",
+      "data/diagrams/pricing-and-monetization__monetization-model__2.svg",
+      "data/diagrams/pricing-and-monetization__monetization-model__3.svg"
     ]
   },
   {
@@ -7421,6 +8042,9 @@
     "related": [
       "pricing-and-monetization/van-westendorp-price-sensitivity-model",
       "pricing-and-monetization/monetization-model"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__value-based-pricing.svg"
     ]
   },
   {
@@ -7466,6 +8090,10 @@
       "pricing-and-monetization/4-types-of-monetization-failures",
       "pricing-and-monetization/value-based-pricing",
       "pricing-and-monetization/5-step-pricing-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/pricing-and-monetization__van-westendorp-price-sensitivity-model.svg",
+      "data/diagrams/pricing-and-monetization__van-westendorp-price-sensitivity-model__2.svg"
     ]
   },
   {
@@ -7505,6 +8133,9 @@
     "related": [
       "product-design/usability-testing",
       "product-design/visual-design-principles"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__10-usability-heuristics.svg"
     ]
   },
   {
@@ -7545,6 +8176,9 @@
     ],
     "related": [
       "product-design/customer-journey-mapping"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__11-star-experience.svg"
     ]
   },
   {
@@ -7588,6 +8222,10 @@
     "related": [
       "product-design/information-architecture",
       "product-design/visual-design-principles"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__5-planes-of-user-experience.svg",
+      "data/diagrams/product-design__5-planes-of-user-experience__2.svg"
     ]
   },
   {
@@ -7626,6 +8264,9 @@
     ],
     "related": [
       "product-design/5-planes-of-user-experience"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__5questions-for-product-rigour.svg"
     ]
   },
   {
@@ -7661,6 +8302,10 @@
     "related": [
       "product-design/visual-design-principles",
       "product-design/design-systems"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__color-theory.svg",
+      "data/diagrams/product-design__color-theory__2.svg"
     ]
   },
   {
@@ -7708,6 +8353,9 @@
     "related": [
       "product-design/pnip-for-activation",
       "product-design/psych-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__crafting-the-first-mile.svg"
     ]
   },
   {
@@ -7740,6 +8388,10 @@
     "related": [
       "product-design/user-persona",
       "product-design/customer-journey-mapping"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__customer-empathy-map.svg",
+      "data/diagrams/product-design__customer-empathy-map__2.svg"
     ]
   },
   {
@@ -7784,6 +8436,11 @@
     "related": [
       "product-design/customer-empathy-map",
       "product-design/user-persona"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__customer-journey-mapping.svg",
+      "data/diagrams/product-design__customer-journey-mapping__2.svg",
+      "data/diagrams/product-design__customer-journey-mapping__3.svg"
     ]
   },
   {
@@ -7821,6 +8478,9 @@
     "related": [
       "product-design/visual-design-principles",
       "product-design/typography-concepts"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__design-systems.svg"
     ]
   },
   {
@@ -7861,6 +8521,9 @@
     "related": [
       "product-design/customer-empathy-map",
       "product-design/ux-research-methods"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__design-thinking.svg"
     ]
   },
   {
@@ -7904,6 +8567,10 @@
     "related": [
       "product-design/10-usability-heuristics",
       "product-design/visual-design-principles"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__fitts-law.svg",
+      "data/diagrams/product-design__fitts-law__2.svg"
     ]
   },
   {
@@ -7941,6 +8608,10 @@
     "related": [
       "product-design/responsive-web-design",
       "product-design/visual-design-principles"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__grid-based-layouts.svg",
+      "data/diagrams/product-design__grid-based-layouts__2.svg"
     ]
   },
   {
@@ -7984,6 +8655,9 @@
     "related": [
       "product-design/5-planes-of-user-experience",
       "product-design/obvious-easy-possible"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__information-architecture.svg"
     ]
   },
   {
@@ -8026,6 +8700,9 @@
     ],
     "related": [
       "product-design/information-architecture"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__obvious-easy-possible.svg"
     ]
   },
   {
@@ -8069,6 +8746,9 @@
     "related": [
       "product-design/crafting-the-first-mile",
       "product-design/psych-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__pnip-for-activation.svg"
     ]
   },
   {
@@ -8108,6 +8788,9 @@
     "related": [
       "product-design/crafting-the-first-mile",
       "product-design/pnip-for-activation"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__psych-framework.svg"
     ]
   },
   {
@@ -8145,6 +8828,9 @@
     ],
     "related": [
       "product-design/grid-based-layouts"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__responsive-web-design.svg"
     ]
   },
   {
@@ -8186,6 +8872,9 @@
     "related": [
       "product-design/visual-design-principles",
       "product-design/design-systems"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__typography-concepts.svg"
     ]
   },
   {
@@ -8228,6 +8917,9 @@
     "related": [
       "product-design/10-usability-heuristics",
       "product-design/ux-research-methods"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__usability-testing.svg"
     ]
   },
   {
@@ -8266,6 +8958,9 @@
     "related": [
       "product-design/customer-empathy-map",
       "product-design/customer-journey-mapping"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__user-persona.svg"
     ]
   },
   {
@@ -8309,6 +9004,11 @@
     "related": [
       "product-design/usability-testing",
       "product-design/customer-empathy-map"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__ux-research-methods.svg",
+      "data/diagrams/product-design__ux-research-methods__2.svg",
+      "data/diagrams/product-design__ux-research-methods__3.svg"
     ]
   },
   {
@@ -8342,6 +9042,9 @@
     ],
     "related": [
       "product-design/11-star-experience"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__value-equation-for-irresistible-products.svg"
     ]
   },
   {
@@ -8377,6 +9080,10 @@
     "related": [
       "product-design/color-theory",
       "product-design/typography-concepts"
+    ],
+    "diagrams": [
+      "data/diagrams/product-design__visual-design-principles.svg",
+      "data/diagrams/product-design__visual-design-principles__2.svg"
     ]
   },
   {
@@ -8417,6 +9124,10 @@
     "related": [
       "product-discovery-and-delivery/amazon-six-page-memo-and-pr-faq",
       "product-discovery-and-delivery/initiatives-epics-and-user-stories"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__10-components-of-a-great-product-spec.svg",
+      "data/diagrams/product-discovery-and-delivery__10-components-of-a-great-product-spec__2.svg"
     ]
   },
   {
@@ -8462,6 +9173,11 @@
     "related": [
       "product-discovery-and-delivery/multi-armed-bandit-mab-testing",
       "product-discovery-and-delivery/xyz-hypothesis"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__a-b-testing.svg",
+      "data/diagrams/product-discovery-and-delivery__a-b-testing__2.svg",
+      "data/diagrams/product-discovery-and-delivery__a-b-testing__3.svg"
     ]
   },
   {
@@ -8503,6 +9219,9 @@
     "related": [
       "product-discovery-and-delivery/scrum-agile",
       "product-discovery-and-delivery/kanban-agile"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__agile-manifesto.svg"
     ]
   },
   {
@@ -8563,6 +9282,9 @@
     ],
     "related": [
       "product-discovery-and-delivery/10-components-of-a-great-product-spec"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__amazon-six-page-memo-and-pr-faq.svg"
     ]
   },
   {
@@ -8602,6 +9324,10 @@
     ],
     "related": [
       "product-discovery-and-delivery/jobs-to-be-done-jtbd"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__choice-based-research.svg",
+      "data/diagrams/product-discovery-and-delivery__choice-based-research__2.svg"
     ]
   },
   {
@@ -8645,6 +9371,9 @@
     "related": [
       "product-discovery-and-delivery/lean-startup",
       "product-discovery-and-delivery/jobs-to-be-done-jtbd"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__customer-development.svg"
     ]
   },
   {
@@ -8697,6 +9426,9 @@
     "related": [
       "product-discovery-and-delivery/double-diamond",
       "product-discovery-and-delivery/minimum-viable-product"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__design-sprint.svg"
     ]
   },
   {
@@ -8738,6 +9470,9 @@
     "related": [
       "product-discovery-and-delivery/design-sprint",
       "product-discovery-and-delivery/customer-development"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__double-diamond.svg"
     ]
   },
   {
@@ -8783,6 +9518,11 @@
     ],
     "related": [
       "product-discovery-and-delivery/scrum-agile"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__gantt-chart.svg",
+      "data/diagrams/product-discovery-and-delivery__gantt-chart__2.svg",
+      "data/diagrams/product-discovery-and-delivery__gantt-chart__3.svg"
     ]
   },
   {
@@ -8831,6 +9571,11 @@
     "related": [
       "product-discovery-and-delivery/scrum-agile",
       "product-discovery-and-delivery/10-components-of-a-great-product-spec"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__initiatives-epics-and-user-stories.svg",
+      "data/diagrams/product-discovery-and-delivery__initiatives-epics-and-user-stories__2.svg",
+      "data/diagrams/product-discovery-and-delivery__initiatives-epics-and-user-stories__3.svg"
     ]
   },
   {
@@ -8889,6 +9634,11 @@
     "related": [
       "product-discovery-and-delivery/customer-development",
       "product-discovery-and-delivery/opportunity-solution-tree"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__jobs-to-be-done-jtbd.svg",
+      "data/diagrams/product-discovery-and-delivery__jobs-to-be-done-jtbd__2.svg",
+      "data/diagrams/product-discovery-and-delivery__jobs-to-be-done-jtbd__3.svg"
     ]
   },
   {
@@ -8930,6 +9680,11 @@
     "related": [
       "product-discovery-and-delivery/scrum-agile",
       "product-discovery-and-delivery/agile-manifesto"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__kanban-agile.svg",
+      "data/diagrams/product-discovery-and-delivery__kanban-agile__2.svg",
+      "data/diagrams/product-discovery-and-delivery__kanban-agile__3.svg"
     ]
   },
   {
@@ -8977,6 +9732,9 @@
     "related": [
       "product-discovery-and-delivery/minimum-viable-product",
       "product-discovery-and-delivery/customer-development"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__lean-startup.svg"
     ]
   },
   {
@@ -9035,6 +9793,10 @@
     "related": [
       "product-discovery-and-delivery/lean-startup",
       "product-discovery-and-delivery/customer-development"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__minimum-viable-product.svg",
+      "data/diagrams/product-discovery-and-delivery__minimum-viable-product__2.svg"
     ]
   },
   {
@@ -9073,6 +9835,9 @@
     ],
     "related": [
       "product-discovery-and-delivery/a-b-testing"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__multi-armed-bandit-mab-testing.svg"
     ]
   },
   {
@@ -9124,6 +9889,10 @@
     "related": [
       "product-discovery-and-delivery/jobs-to-be-done-jtbd",
       "product-discovery-and-delivery/product-discovery-vs-product-delivery"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__opportunity-solution-tree.svg",
+      "data/diagrams/product-discovery-and-delivery__opportunity-solution-tree__2.svg"
     ]
   },
   {
@@ -9165,6 +9934,10 @@
     ],
     "related": [
       "product-discovery-and-delivery/gantt-chart"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__premortems.svg",
+      "data/diagrams/product-discovery-and-delivery__premortems__2.svg"
     ]
   },
   {
@@ -9212,6 +9985,11 @@
     "related": [
       "product-discovery-and-delivery/opportunity-solution-tree",
       "product-discovery-and-delivery/scrum-agile"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__product-discovery-vs-product-delivery.svg",
+      "data/diagrams/product-discovery-and-delivery__product-discovery-vs-product-delivery__2.svg",
+      "data/diagrams/product-discovery-and-delivery__product-discovery-vs-product-delivery__3.svg"
     ]
   },
   {
@@ -9266,6 +10044,9 @@
     "related": [
       "product-discovery-and-delivery/agile-manifesto",
       "product-discovery-and-delivery/kanban-agile"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__scrum-agile.svg"
     ]
   },
   {
@@ -9307,6 +10088,9 @@
     "related": [
       "product-discovery-and-delivery/scrum-agile",
       "product-discovery-and-delivery/initiatives-epics-and-user-stories"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__shape-up.svg"
     ]
   },
   {
@@ -9354,6 +10138,9 @@
     "related": [
       "product-discovery-and-delivery/minimum-viable-product",
       "product-discovery-and-delivery/lean-startup"
+    ],
+    "diagrams": [
+      "data/diagrams/product-discovery-and-delivery__xyz-hypothesis.svg"
     ]
   },
   {
@@ -9395,6 +10182,9 @@
     "related": [
       "product-market-fit/pmf-trifecta",
       "product-market-fit/4-fits-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__2-step-pmf-sprucr.svg"
     ]
   },
   {
@@ -9435,6 +10225,11 @@
     "related": [
       "product-market-fit/2-step-pmf-sprucr",
       "product-market-fit/pmf-trifecta"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__4-fits-framework.svg",
+      "data/diagrams/product-market-fit__4-fits-framework__2.svg",
+      "data/diagrams/product-market-fit__4-fits-framework__3.svg"
     ]
   },
   {
@@ -9488,6 +10283,9 @@
     "related": [
       "product-market-fit/startup-viability-factor",
       "product-market-fit/4-fits-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__pmf-hypothesis-document.svg"
     ]
   },
   {
@@ -9527,6 +10325,11 @@
     "related": [
       "product-market-fit/pmf-trifecta",
       "product-market-fit/superhuman-pmf-engine"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__pmf-scorecard.svg",
+      "data/diagrams/product-market-fit__pmf-scorecard__2.svg",
+      "data/diagrams/product-market-fit__pmf-scorecard__3.svg"
     ]
   },
   {
@@ -9569,6 +10372,11 @@
     "related": [
       "product-market-fit/superhuman-pmf-engine",
       "product-market-fit/4-fits-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__pmf-trifecta.svg",
+      "data/diagrams/product-market-fit__pmf-trifecta__2.svg",
+      "data/diagrams/product-market-fit__pmf-trifecta__3.svg"
     ]
   },
   {
@@ -9613,6 +10421,10 @@
     "related": [
       "product-market-fit/startup-viability-factor",
       "product-market-fit/4-fits-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__price-selection-convenience-and-quality-for-pmf.svg",
+      "data/diagrams/product-market-fit__price-selection-convenience-and-quality-for-pmf__2.svg"
     ]
   },
   {
@@ -9653,6 +10465,10 @@
     "related": [
       "product-market-fit/pmf-hypothesis-document",
       "product-market-fit/4-fits-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__startup-viability-factor.svg",
+      "data/diagrams/product-market-fit__startup-viability-factor__2.svg"
     ]
   },
   {
@@ -9698,6 +10514,10 @@
     "related": [
       "product-market-fit/pmf-trifecta",
       "product-market-fit/pmf-scorecard"
+    ],
+    "diagrams": [
+      "data/diagrams/product-market-fit__superhuman-pmf-engine.svg",
+      "data/diagrams/product-market-fit__superhuman-pmf-engine__2.svg"
     ]
   },
   {
@@ -9734,6 +10554,11 @@
     "related": [
       "product-strategy-and-roadmap/good-vs-bad-product-strategy",
       "product-strategy-and-roadmap/product-strategy-stack"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__4-elements-of-effective-product-strategy.svg",
+      "data/diagrams/product-strategy-and-roadmap__4-elements-of-effective-product-strategy__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__4-elements-of-effective-product-strategy__3.svg"
     ]
   },
   {
@@ -9783,6 +10608,9 @@
     "related": [
       "product-strategy-and-roadmap/product-opportunity-assessment",
       "product-strategy-and-roadmap/racecar-growth-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__4-types-of-product-work-for-strategy.svg"
     ]
   },
   {
@@ -9830,6 +10658,10 @@
     "related": [
       "product-strategy-and-roadmap/product-strategy-stack",
       "product-strategy-and-roadmap/7-steps-to-creating-a-product-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__4quarter-rolling-roadmap.svg",
+      "data/diagrams/product-strategy-and-roadmap__4quarter-rolling-roadmap__2.svg"
     ]
   },
   {
@@ -9868,6 +10700,11 @@
     "related": [
       "product-strategy-and-roadmap/product-strategy-stack",
       "product-strategy-and-roadmap/4-elements-of-effective-product-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__7-steps-to-creating-a-product-strategy.svg",
+      "data/diagrams/product-strategy-and-roadmap__7-steps-to-creating-a-product-strategy__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__7-steps-to-creating-a-product-strategy__3.svg"
     ]
   },
   {
@@ -9904,6 +10741,9 @@
     "related": [
       "product-strategy-and-roadmap/7-steps-to-creating-a-product-strategy",
       "product-strategy-and-roadmap/gist"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__fairytale-planning.svg"
     ]
   },
   {
@@ -9942,6 +10782,11 @@
     "related": [
       "product-strategy-and-roadmap/product-opportunity-assessment",
       "product-strategy-and-roadmap/good-vs-bad-product-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__getting-product-strategy-right.svg",
+      "data/diagrams/product-strategy-and-roadmap__getting-product-strategy-right__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__getting-product-strategy-right__3.svg"
     ]
   },
   {
@@ -9986,6 +10831,10 @@
     "related": [
       "product-strategy-and-roadmap/fairytale-planning",
       "product-strategy-and-roadmap/4quarter-rolling-roadmap"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__gist.svg",
+      "data/diagrams/product-strategy-and-roadmap__gist__2.svg"
     ]
   },
   {
@@ -10022,6 +10871,9 @@
     "related": [
       "product-strategy-and-roadmap/4-elements-of-effective-product-strategy",
       "product-strategy-and-roadmap/questions-for-crafting-and-evaluating-b2b-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__good-vs-bad-product-strategy.svg"
     ]
   },
   {
@@ -10066,6 +10918,11 @@
     "related": [
       "product-strategy-and-roadmap/racecar-growth-framework",
       "product-strategy-and-roadmap/user-state-transition-model"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__growth-loops.svg",
+      "data/diagrams/product-strategy-and-roadmap__growth-loops__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__growth-loops__3.svg"
     ]
   },
   {
@@ -10113,6 +10970,11 @@
     "related": [
       "product-strategy-and-roadmap/growth-loops",
       "product-strategy-and-roadmap/trials-free-trial-vs-freemium-vs-reverse-trials"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__growth-motions-plg-vs-slg.svg",
+      "data/diagrams/product-strategy-and-roadmap__growth-motions-plg-vs-slg__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__growth-motions-plg-vs-slg__3.svg"
     ]
   },
   {
@@ -10153,6 +11015,9 @@
     "related": [
       "product-strategy-and-roadmap/getting-product-strategy-right",
       "product-strategy-and-roadmap/4-types-of-product-work-for-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__product-opportunity-assessment.svg"
     ]
   },
   {
@@ -10190,6 +11055,11 @@
     "related": [
       "product-strategy-and-roadmap/4-elements-of-effective-product-strategy",
       "product-strategy-and-roadmap/4quarter-rolling-roadmap"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__product-strategy-stack.svg",
+      "data/diagrams/product-strategy-and-roadmap__product-strategy-stack__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__product-strategy-stack__3.svg"
     ]
   },
   {
@@ -10226,6 +11096,9 @@
     "related": [
       "product-strategy-and-roadmap/good-vs-bad-product-strategy",
       "product-strategy-and-roadmap/4-elements-of-effective-product-strategy"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__questions-for-crafting-and-evaluating-b2b-strategy.svg"
     ]
   },
   {
@@ -10266,6 +11139,9 @@
     "related": [
       "product-strategy-and-roadmap/growth-loops",
       "product-strategy-and-roadmap/growth-motions-plg-vs-slg"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__racecar-growth-framework.svg"
     ]
   },
   {
@@ -10313,6 +11189,11 @@
     "related": [
       "product-strategy-and-roadmap/growth-motions-plg-vs-slg",
       "product-strategy-and-roadmap/growth-loops"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__trials-free-trial-vs-freemium-vs-reverse-trials.svg",
+      "data/diagrams/product-strategy-and-roadmap__trials-free-trial-vs-freemium-vs-reverse-trials__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__trials-free-trial-vs-freemium-vs-reverse-trials__3.svg"
     ]
   },
   {
@@ -10354,6 +11235,11 @@
     "related": [
       "product-strategy-and-roadmap/growth-loops",
       "product-strategy-and-roadmap/growth-motions-plg-vs-slg"
+    ],
+    "diagrams": [
+      "data/diagrams/product-strategy-and-roadmap__user-state-transition-model.svg",
+      "data/diagrams/product-strategy-and-roadmap__user-state-transition-model__2.svg",
+      "data/diagrams/product-strategy-and-roadmap__user-state-transition-model__3.svg"
     ]
   },
   {
@@ -10384,7 +11270,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__10-high-leverage-meetings-for-pm-leaders.svg"
+    ]
   },
   {
     "id": "stakeholder-management/6-drivers-of-influence",
@@ -10418,6 +11307,10 @@
       "stakeholder-management/storytelling-frameworks",
       "stakeholder-management/ethos-pathos-logos",
       "stakeholder-management/stakeholder-map"
+    ],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__6-drivers-of-influence.svg",
+      "data/diagrams/stakeholder-management__6-drivers-of-influence__2.svg"
     ]
   },
   {
@@ -10455,7 +11348,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__apple-pie-positions.svg"
+    ]
   },
   {
     "id": "stakeholder-management/batna",
@@ -10498,7 +11394,10 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__batna.svg"
+    ]
   },
   {
     "id": "stakeholder-management/ethos-pathos-logos",
@@ -10536,6 +11435,9 @@
     "related": [
       "stakeholder-management/storytelling-frameworks",
       "stakeholder-management/6-drivers-of-influence"
+    ],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__ethos-pathos-logos.svg"
     ]
   },
   {
@@ -10574,6 +11476,9 @@
     ],
     "related": [
       "stakeholder-management/stakeholder-map"
+    ],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__raci.svg"
     ]
   },
   {
@@ -10613,6 +11518,9 @@
     "related": [
       "stakeholder-management/raci",
       "stakeholder-management/6-drivers-of-influence"
+    ],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__stakeholder-map.svg"
     ]
   },
   {
@@ -10659,6 +11567,11 @@
     "related": [
       "stakeholder-management/ethos-pathos-logos",
       "stakeholder-management/6-drivers-of-influence"
+    ],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__storytelling-frameworks.svg",
+      "data/diagrams/stakeholder-management__storytelling-frameworks__2.svg",
+      "data/diagrams/stakeholder-management__storytelling-frameworks__3.svg"
     ]
   },
   {
@@ -10694,7 +11607,11 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/stakeholder-management__two-way-writeups.svg",
+      "data/diagrams/stakeholder-management__two-way-writeups__2.svg"
+    ]
   },
   {
     "id": "task-management/3-5-7-for-execution",
@@ -10732,6 +11649,9 @@
     "related": [
       "task-management/lno-framework",
       "task-management/eisenhower-matrix"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__3-5-7-for-execution.svg"
     ]
   },
   {
@@ -10773,6 +11693,9 @@
     ],
     "related": [
       "task-management/getting-things-done-gtd"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__bullet-journal-bujo.svg"
     ]
   },
   {
@@ -10812,6 +11735,9 @@
     "related": [
       "task-management/lno-framework",
       "task-management/3-5-7-for-execution"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__eisenhower-matrix.svg"
     ]
   },
   {
@@ -10856,6 +11782,10 @@
     ],
     "related": [
       "task-management/bullet-journal-bujo"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__getting-things-done-gtd.svg",
+      "data/diagrams/task-management__getting-things-done-gtd__2.svg"
     ]
   },
   {
@@ -10900,6 +11830,9 @@
       "task-management/roi-vs-opportunity-cost-mindset",
       "task-management/eisenhower-matrix",
       "task-management/3-5-7-for-execution"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__lno-framework.svg"
     ]
   },
   {
@@ -10938,7 +11871,11 @@
     "lifecycle_stage": [
       "any"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/task-management__maker-vs-manager-schedule.svg",
+      "data/diagrams/task-management__maker-vs-manager-schedule__2.svg"
+    ]
   },
   {
     "id": "task-management/roi-vs-opportunity-cost-mindset",
@@ -10977,6 +11914,9 @@
     ],
     "related": [
       "task-management/lno-framework"
+    ],
+    "diagrams": [
+      "data/diagrams/task-management__roi-vs-opportunity-cost-mindset.svg"
     ]
   },
   {
@@ -11014,6 +11954,11 @@
     ],
     "related": [
       "technology-and-software-engineering/ai-vs-machine-learning-vs-data-science"
+    ],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__ai-ml-model-metrics.svg",
+      "data/diagrams/technology-and-software-engineering__ai-ml-model-metrics__2.svg",
+      "data/diagrams/technology-and-software-engineering__ai-ml-model-metrics__3.svg"
     ]
   },
   {
@@ -11050,6 +11995,9 @@
     ],
     "related": [
       "technology-and-software-engineering/ai-ml-model-metrics"
+    ],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__ai-vs-machine-learning-vs-data-science.svg"
     ]
   },
   {
@@ -11087,6 +12035,9 @@
     ],
     "related": [
       "technology-and-software-engineering/internet-protocols"
+    ],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__api-architectures-and-protocols.svg"
     ]
   },
   {
@@ -11117,7 +12068,12 @@
       "definition",
       "delivery"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__database-types.svg",
+      "data/diagrams/technology-and-software-engineering__database-types__2.svg",
+      "data/diagrams/technology-and-software-engineering__database-types__3.svg"
+    ]
   },
   {
     "id": "technology-and-software-engineering/internet-protocols",
@@ -11157,6 +12113,9 @@
     ],
     "related": [
       "technology-and-software-engineering/api-architectures-and-protocols"
+    ],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__internet-protocols.svg"
     ]
   },
   {
@@ -11195,7 +12154,10 @@
     "lifecycle_stage": [
       "definition"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__mobile-apps-native-vs-mobile-web-vs-hybrid.svg"
+    ]
   },
   {
     "id": "technology-and-software-engineering/software-testing",
@@ -11225,6 +12187,9 @@
     "lifecycle_stage": [
       "delivery"
     ],
-    "related": []
+    "related": [],
+    "diagrams": [
+      "data/diagrams/technology-and-software-engineering__software-testing.svg"
+    ]
   }
 ]

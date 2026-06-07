@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Cost of revenue and payback economics diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">Step Four — The Cost of Generating Revenue</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#5b6680">Net contribution margin must exceed the full cost of revenue</text>
+
+  <!-- Revenue side -->
+  <rect x="40" y="86" width="200" height="120" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="140" y="112" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Revenue Generated</text>
+  <line x1="60" y1="126" x2="220" y2="126" stroke="#0ea5a4" stroke-width="1" opacity="0.4"/>
+  <text x="60" y="150" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1d2438">Net revenue</text>
+  <text x="60" y="174" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1d2438">Net contribution margin</text>
+
+  <!-- vs -->
+  <text x="320" y="152" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#1d2438">&gt;</text>
+
+  <!-- Cost side -->
+  <rect x="400" y="86" width="200" height="120" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <text x="500" y="112" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#ef4444">Cost of Revenue</text>
+  <line x1="420" y1="126" x2="580" y2="126" stroke="#ef4444" stroke-width="1" opacity="0.4"/>
+  <text x="420" y="150" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1d2438">Acquisition: ads, sales,</text>
+  <text x="420" y="166" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1d2438">referral, marketing (CAC)</text>
+  <text x="420" y="188" font-family="Segoe UI, Arial, sans-serif" font-size="12" fill="#1d2438">Serve: dev, support, logistics</text>
+
+  <!-- arrows meeting in middle -->
+  <line x1="240" y1="146" x2="295" y2="146" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="295,146 287,142 287,150" fill="#5b6680"/>
+  <line x1="400" y1="146" x2="345" y2="146" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="345,146 353,142 353,150" fill="#5b6680"/>
+
+  <!-- Payback period gauge -->
+  <text x="320" y="248" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#1d2438">Payback Period</text>
+  <text x="320" y="268" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">How quickly you recoup the investment per customer</text>
+
+  <!-- timeline bar -->
+  <rect x="120" y="290" width="400" height="22" rx="11" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5"/>
+  <rect x="120" y="290" width="170" height="22" rx="11" fill="#2563eb"/>
+  <text x="205" y="306" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">Investment recouped</text>
+  <line x1="290" y1="282" x2="290" y2="320" stroke="#f59e0b" stroke-width="2"/>
+  <text x="290" y="338" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Break-even</text>
+  <text x="120" y="338" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Acquire</text>
+  <text x="520" y="338" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#5b6680">Funds for growth</text>
+  <line x1="290" y1="301" x2="520" y2="301" stroke="#0ea5a4" stroke-width="2" stroke-dasharray="4 3"/>
+</svg>

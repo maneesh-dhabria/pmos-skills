@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Persona segmentation diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="#1d2438">Persona Segmentation</text>
+  <text x="320" y="56" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#5b6680">Which segments you target now, next, and never</text>
+
+  <!-- Concentric targeting bands -->
+  <!-- Anti-personas band (outermost) -->
+  <ellipse cx="200" cy="240" rx="180" ry="120" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="200" y="135" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#ef4444">Anti-personas</text>
+  <text x="200" y="151" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">Explicitly NOT targeting</text>
+
+  <!-- Future band -->
+  <ellipse cx="200" cy="252" rx="128" ry="84" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="200" y="188" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Future segments</text>
+  <text x="200" y="203" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">Adjacent, next in line</text>
+
+  <!-- Focus band (core) -->
+  <ellipse cx="200" cy="262" rx="74" ry="48" fill="#2563eb"/>
+  <text x="200" y="258" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">Focus</text>
+  <text x="200" y="274" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#dbe6ff">Acquiring now</text>
+
+  <!-- Focus criteria callout -->
+  <line x1="274" y1="262" x2="430" y2="180" stroke="#5b6680" stroke-width="1"/>
+  <rect x="430" y="120" width="196" height="118" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="442" y="140" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#1d2438">Focus criteria</text>
+  <text x="442" y="159" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">• Problem severity</text>
+  <text x="442" y="176" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">• Value-prop resonance</text>
+  <text x="442" y="193" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">• Willingness to pay</text>
+  <text x="442" y="210" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">• Ease of targeting</text>
+  <text x="442" y="227" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">• Lock-in / advantage</text>
+
+  <!-- B2B split note -->
+  <rect x="430" y="252" width="196" height="62" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1"/>
+  <text x="442" y="272" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700" fill="#f59e0b">B2B: split each segment</text>
+  <text x="442" y="290" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">End users vs.</text>
+  <text x="442" y="305" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">Decision makers</text>
+
+  <text x="200" y="382" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#5b6680">Defined by demographic, psychographic &amp; position attributes</text>
+</svg>

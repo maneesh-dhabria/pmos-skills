@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Critical path diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Critical Path</text>
+  <text x="320" y="50" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#5b6680">The longest chain of dependent tasks - any slip here delays the whole project</text>
+
+  <!-- Critical path nodes (red) along the top spine -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <!-- Start -->
+    <circle cx="60" cy="160" r="22" fill="#1d2438"/>
+    <text x="60" y="164" text-anchor="middle" font-size="11" fill="#ffffff">Start</text>
+
+    <!-- A (critical) -->
+    <rect x="120" y="138" width="80" height="44" rx="6" fill="#ef4444"/>
+    <text x="160" y="158" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">A</text>
+    <text x="160" y="173" text-anchor="middle" font-size="9" fill="#ffffff">5 days</text>
+
+    <!-- C (critical) -->
+    <rect x="260" y="138" width="80" height="44" rx="6" fill="#ef4444"/>
+    <text x="300" y="158" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">C</text>
+    <text x="300" y="173" text-anchor="middle" font-size="9" fill="#ffffff">7 days</text>
+
+    <!-- E (critical) -->
+    <rect x="400" y="138" width="80" height="44" rx="6" fill="#ef4444"/>
+    <text x="440" y="158" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">E</text>
+    <text x="440" y="173" text-anchor="middle" font-size="9" fill="#ffffff">4 days</text>
+
+    <!-- End -->
+    <circle cx="560" cy="160" r="22" fill="#1d2438"/>
+    <text x="560" y="164" text-anchor="middle" font-size="11" fill="#ffffff">End</text>
+
+    <!-- Non-critical branch (slack) -->
+    <rect x="190" y="248" width="80" height="44" rx="6" fill="#0ea5a4"/>
+    <text x="230" y="268" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">B</text>
+    <text x="230" y="283" text-anchor="middle" font-size="9" fill="#ffffff">3 days</text>
+
+    <rect x="330" y="248" width="80" height="44" rx="6" fill="#0ea5a4"/>
+    <text x="370" y="268" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">D</text>
+    <text x="370" y="283" text-anchor="middle" font-size="9" fill="#ffffff">2 days</text>
+  </g>
+
+  <!-- Critical path edges (thick red) -->
+  <g stroke="#ef4444" stroke-width="3" fill="none" marker-end="url(#arrowC)">
+    <path d="M82 160 L120 160"/>
+    <path d="M200 160 L260 160"/>
+    <path d="M340 160 L400 160"/>
+    <path d="M480 160 L538 160"/>
+  </g>
+
+  <!-- Non-critical edges (thin muted) -->
+  <g stroke="#5b6680" stroke-width="1.5" fill="none" marker-end="url(#arrowM)">
+    <path d="M72 178 L190 250"/>
+    <path d="M270 270 L330 270"/>
+    <path d="M410 270 L545 178"/>
+  </g>
+
+  <!-- Legend -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <rect x="160" y="335" width="16" height="12" rx="2" fill="#ef4444"/>
+    <text x="184" y="345" font-size="11" fill="#1d2438">Critical path (zero slack)</text>
+    <rect x="370" y="335" width="16" height="12" rx="2" fill="#0ea5a4"/>
+    <text x="394" y="345" font-size="11" fill="#1d2438">Has slack (can flex)</text>
+  </g>
+
+  <defs>
+    <marker id="arrowC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowM" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

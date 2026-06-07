@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three phases of startup growth diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Three Phases of Growth</text>
+  <text x="24" y="51" font-family="sans-serif" font-size="12" fill="#5b6680">Each phase has a different goal &#8212; you advance only when the prior one is met</text>
+
+  <!-- progress baseline arrow -->
+  <line x1="40" y1="96" x2="600" y2="96" stroke="#d8e0f0" stroke-width="2"/>
+  <polygon points="600,90 616,96 600,102" fill="#5b6680"/>
+  <text x="616" y="92" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">time / maturity &#8594;</text>
+
+  <!-- Phase 1: Traction -->
+  <rect x="40" y="120" width="172" height="220" rx="11" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.6"/>
+  <circle cx="66" cy="150" r="13" fill="#2563eb"/>
+  <text x="66" y="155" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="90" y="148" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Traction</text>
+  <text x="90" y="164" font-family="sans-serif" font-size="10" fill="#5b6680">find product-market fit</text>
+  <line x1="58" y1="180" x2="194" y2="180" stroke="#d8e0f0" stroke-width="1"/>
+  <text x="58" y="202" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Goal</text>
+  <text x="58" y="220" font-family="sans-serif" font-size="10.5" fill="#5b6680">Build a product that</text>
+  <text x="58" y="234" font-family="sans-serif" font-size="10.5" fill="#5b6680">retains customers.</text>
+  <text x="58" y="262" font-family="sans-serif" font-size="10.5" fill="#5b6680">No retention &#8594; no</text>
+  <text x="58" y="276" font-family="sans-serif" font-size="10.5" fill="#5b6680">point growing the</text>
+  <text x="58" y="290" font-family="sans-serif" font-size="10.5" fill="#5b6680">user base.</text>
+  <text x="58" y="322" font-family="sans-serif" font-size="9.5" fill="#2563eb" font-style="italic">gate: retention holds</text>
+
+  <!-- arrow -->
+  <polygon points="218,230 234,222 234,238" fill="#1d2438"/>
+
+  <!-- Phase 2: Transition -->
+  <rect x="234" y="120" width="172" height="220" rx="11" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+  <circle cx="260" cy="150" r="13" fill="#0ea5a4"/>
+  <text x="260" y="155" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="284" y="148" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Transition</text>
+  <text x="284" y="164" font-family="sans-serif" font-size="10" fill="#5b6680">find a way to scale</text>
+  <line x1="252" y1="180" x2="388" y2="180" stroke="#d8e0f0" stroke-width="1"/>
+  <text x="252" y="202" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Goal</text>
+  <text x="252" y="220" font-family="sans-serif" font-size="10.5" fill="#5b6680">Identify, define, and</text>
+  <text x="252" y="234" font-family="sans-serif" font-size="10.5" fill="#5b6680">understand your</text>
+  <text x="252" y="248" font-family="sans-serif" font-size="10.5" fill="#5b6680">growth levers.</text>
+  <text x="252" y="276" font-family="sans-serif" font-size="10.5" fill="#5b6680">Find a scalable</text>
+  <text x="252" y="290" font-family="sans-serif" font-size="10.5" fill="#5b6680">channel of growth.</text>
+  <text x="252" y="322" font-family="sans-serif" font-size="9.5" fill="#0ea5a4" font-style="italic">gate: scalable channel</text>
+
+  <!-- arrow -->
+  <polygon points="412,230 428,222 428,238" fill="#1d2438"/>
+
+  <!-- Phase 3: Growth -->
+  <rect x="428" y="120" width="172" height="220" rx="11" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.6"/>
+  <circle cx="454" cy="150" r="13" fill="#f59e0b"/>
+  <text x="454" y="155" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="478" y="148" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Growth</text>
+  <text x="478" y="164" font-family="sans-serif" font-size="10" fill="#5b6680">optimize the engine</text>
+  <line x1="446" y1="180" x2="582" y2="180" stroke="#d8e0f0" stroke-width="1"/>
+  <text x="446" y="202" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Goal</text>
+  <text x="446" y="220" font-family="sans-serif" font-size="10.5" fill="#5b6680">Focus on your growth</text>
+  <text x="446" y="234" font-family="sans-serif" font-size="10.5" fill="#5b6680">levers and optimize</text>
+  <text x="446" y="248" font-family="sans-serif" font-size="10.5" fill="#5b6680">their effectiveness.</text>
+  <text x="446" y="322" font-family="sans-serif" font-size="9.5" fill="#f59e0b" font-style="italic">compounding scale</text>
+</svg>

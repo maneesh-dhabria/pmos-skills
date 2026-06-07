@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Reforge NSM definition matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Reforge — defining each North Star</text>
+  <text x="32" y="54" font-family="sans-serif" font-size="13" fill="#5b6680">Three components &#215; three metric types: Unit of Value &#183; Quality &#183; Frequency</text>
+
+  <!-- Column headers (the three primary North Stars) -->
+  <g font-family="sans-serif" font-size="12.5" font-weight="700" text-anchor="middle">
+    <rect x="208" y="70" width="132" height="30" rx="5" fill="#2563eb"/>
+    <text x="274" y="90" fill="#ffffff">Acquisition</text>
+    <rect x="348" y="70" width="132" height="30" rx="5" fill="#0ea5a4"/>
+    <text x="414" y="90" fill="#ffffff">Retention</text>
+    <rect x="488" y="70" width="120" height="30" rx="5" fill="#f59e0b"/>
+    <text x="548" y="90" fill="#ffffff">Monetization</text>
+  </g>
+
+  <!-- Row C1: Unit of Value -->
+  <rect x="32" y="108" width="170" height="84" rx="6" fill="#f4f7ff" stroke="#5b6680"/>
+  <text x="44" y="130" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">C1 &#183; Unit of Value</text>
+  <text x="44" y="150" font-family="sans-serif" font-size="11" fill="#5b6680">What "value" do we</text>
+  <text x="44" y="164" font-family="sans-serif" font-size="11" fill="#5b6680">create?</text>
+  <g font-family="sans-serif" font-size="11.5" fill="#1d2438" text-anchor="middle">
+    <rect x="208" y="108" width="132" height="84" rx="6" fill="#fff" stroke="#2563eb"/>
+    <text x="274" y="155">New users (volume)</text>
+    <rect x="348" y="108" width="132" height="84" rx="6" fill="#fff" stroke="#0ea5a4"/>
+    <text x="414" y="155">"Active" users</text>
+    <rect x="488" y="108" width="120" height="84" rx="6" fill="#fff" stroke="#f59e0b"/>
+    <text x="548" y="155">Dollars earned</text>
+  </g>
+
+  <!-- Row C2: Quality -->
+  <rect x="32" y="200" width="170" height="92" rx="6" fill="#f4f7ff" stroke="#5b6680"/>
+  <text x="44" y="222" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">C2 &#183; Quality</text>
+  <text x="44" y="242" font-family="sans-serif" font-size="11" fill="#5b6680">Which value actually</text>
+  <text x="44" y="256" font-family="sans-serif" font-size="11" fill="#5b6680">"counts"?</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438" text-anchor="middle">
+    <rect x="208" y="200" width="132" height="92" rx="6" fill="#fff" stroke="#2563eb"/>
+    <text x="274" y="232">User type &#183; Intent</text>
+    <text x="274" y="248">Behavior &#183; Level of</text>
+    <text x="274" y="264">monetization</text>
+    <rect x="348" y="200" width="132" height="92" rx="6" fill="#fff" stroke="#0ea5a4"/>
+    <text x="414" y="240">Core behavior +</text>
+    <text x="414" y="256">who is "active"</text>
+    <rect x="488" y="200" width="120" height="92" rx="6" fill="#fff" stroke="#f59e0b"/>
+    <text x="548" y="232">Recurring vs not;</text>
+    <text x="548" y="248">total, breadth</text>
+    <text x="548" y="264">or depth</text>
+  </g>
+
+  <!-- Row C3: Frequency -->
+  <rect x="32" y="300" width="170" height="76" rx="6" fill="#f4f7ff" stroke="#5b6680"/>
+  <text x="44" y="322" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">C3 &#183; Frequency</text>
+  <text x="44" y="342" font-family="sans-serif" font-size="11" fill="#5b6680">The relevant</text>
+  <text x="44" y="356" font-family="sans-serif" font-size="11" fill="#5b6680">timeframe</text>
+  <g font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">
+    <rect x="208" y="300" width="132" height="76" rx="6" fill="#fff" stroke="#2563eb"/>
+    <text x="274" y="335">Consideration</text>
+    <text x="274" y="351">cycle</text>
+    <rect x="348" y="300" width="132" height="76" rx="6" fill="#fff" stroke="#0ea5a4"/>
+    <text x="414" y="335">Product-use</text>
+    <text x="414" y="351">frequency</text>
+    <rect x="488" y="300" width="120" height="76" rx="6" fill="#fff" stroke="#f59e0b"/>
+    <text x="548" y="343">Billing cycle</text>
+  </g>
+</svg>
