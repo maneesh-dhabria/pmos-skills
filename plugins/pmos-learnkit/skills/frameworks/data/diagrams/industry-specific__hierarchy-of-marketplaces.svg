@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Hierarchy of Marketplaces diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Hierarchy of Marketplaces</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Sarah Tavel's three levels for building enduring marketplaces</text>
+
+  <!-- Pyramid: top = level 3 (apex), base = level 1 -->
+  <!-- apex centre x=330 -->
+  <!-- Level 3 (apex) -->
+  <polygon points="330,80 405,160 255,160" fill="#2563eb"/>
+  <text x="330" y="130" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Level 3</text>
+  <text x="330" y="148" font-family="sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">Domination</text>
+
+  <!-- Level 2 (middle trapezoid) -->
+  <polygon points="255,164 405,164 460,244 200,244" fill="#0ea5a4"/>
+  <text x="330" y="200" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Level 2</text>
+  <text x="330" y="218" font-family="sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">Tipping Point</text>
+
+  <!-- Level 1 (base trapezoid) -->
+  <polygon points="200,248 460,248 515,328 145,328" fill="#1d2438"/>
+  <text x="330" y="284" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Level 1</text>
+  <text x="330" y="302" font-family="sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">Minimum Viable Happiness</text>
+
+  <!-- direction arrow -->
+  <text x="330" y="356" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">build from the base up</text>
+
+  <!-- side annotations -->
+  <!-- L1 -->
+  <text x="530" y="296" font-family="sans-serif" font-size="11" fill="#5b6680">Happy GMV: delight both</text>
+  <text x="530" y="310" font-family="sans-serif" font-size="11" fill="#5b6680">buyers and sellers; retain</text>
+  <!-- L2 -->
+  <text x="476" y="212" font-family="sans-serif" font-size="11" fill="#5b6680">Growth + happiness loops</text>
+  <text x="476" y="226" font-family="sans-serif" font-size="11" fill="#5b6680">tip the market to you</text>
+  <!-- L3 -->
+  <text x="421" y="120" font-family="sans-serif" font-size="11" fill="#5b6680">Outrun #1, expand</text>
+  <text x="421" y="134" font-family="sans-serif" font-size="11" fill="#5b6680">the map, multi-thread</text>
+
+  <!-- Level 2 hurdles strip -->
+  <text x="24" y="378" font-family="sans-serif" font-size="10" fill="#5b6680">L2 hurdles: competition · low fragmentation · disequilibrium · regulation · buyer-need homogeneity · cornering the buy side</text>
+</svg>

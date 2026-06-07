@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Scrum Agile diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Scrum (Agile)</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">A time-boxed sprint loop turning a prioritized backlog into shippable increments.</text>
+
+  <!-- Backlog -->
+  <g font-family="sans-serif">
+    <rect x="32" y="120" width="120" height="160" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="92" y="142" font-size="12.5" font-weight="700" fill="#2563eb" text-anchor="middle">Product</text>
+    <text x="92" y="158" font-size="12.5" font-weight="700" fill="#2563eb" text-anchor="middle">Backlog</text>
+    <g font-size="9.5" fill="#1d2438" text-anchor="middle">
+      <rect x="44" y="170" width="96" height="16" rx="3" fill="#ffffff" stroke="#cdd5e8"/><text x="92" y="181">story</text>
+      <rect x="44" y="190" width="96" height="16" rx="3" fill="#ffffff" stroke="#cdd5e8"/><text x="92" y="201">story</text>
+      <rect x="44" y="210" width="96" height="16" rx="3" fill="#ffffff" stroke="#cdd5e8"/><text x="92" y="221">story</text>
+      <rect x="44" y="230" width="96" height="16" rx="3" fill="#ffffff" stroke="#cdd5e8"/><text x="92" y="241">story</text>
+    </g>
+    <text x="92" y="266" font-size="9.5" fill="#5b6680" text-anchor="middle">prioritized by value</text>
+  </g>
+
+  <!-- Sprint loop circle -->
+  <circle cx="365" cy="200" r="92" fill="none" stroke="#0ea5a4" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="365" y="196" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4" text-anchor="middle">Sprint</text>
+  <text x="365" y="214" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">2–4 weeks</text>
+
+  <!-- Loop nodes (events) -->
+  <g font-family="sans-serif" font-size="10" fill="#1d2438" text-anchor="middle">
+    <circle cx="365" cy="108" r="22" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="365" y="105">Sprint</text><text x="365" y="116">Planning</text>
+    <circle cx="457" cy="200" r="22" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="457" y="197">Daily</text><text x="457" y="208">Scrum</text>
+    <circle cx="365" cy="292" r="22" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="365" y="289">Sprint</text><text x="365" y="300">Review</text>
+    <circle cx="273" cy="200" r="22" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="273" y="203">Retro</text>
+  </g>
+  <!-- loop direction arrows -->
+  <g stroke="#0ea5a4" stroke-width="1.5" fill="none">
+    <path d="M388 116 A92 92 0 0 1 449 178" marker-end="url(#as)"/>
+    <path d="M449 222 A92 92 0 0 1 388 284" marker-end="url(#as)"/>
+    <path d="M342 284 A92 92 0 0 1 281 222" marker-end="url(#as)"/>
+    <path d="M281 178 A92 92 0 0 1 342 116" marker-end="url(#as)"/>
+  </g>
+
+  <!-- Backlog -> sprint -->
+  <path d="M152 200 L271 200" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#as2)"/>
+  <text x="212" y="192" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">sprint</text>
+  <text x="212" y="216" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">backlog</text>
+
+  <!-- Increment -->
+  <g font-family="sans-serif">
+    <rect x="488" y="120" width="120" height="160" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="548" y="195" font-size="12.5" font-weight="700" fill="#f59e0b" text-anchor="middle">Shippable</text>
+    <text x="548" y="211" font-size="12.5" font-weight="700" fill="#f59e0b" text-anchor="middle">Increment</text>
+  </g>
+  <path d="M459 200 L486 200" stroke="#f59e0b" stroke-width="2" fill="none" marker-end="url(#as3)"/>
+
+  <!-- Roles footer -->
+  <g font-family="sans-serif" font-size="11" fill="#1d2438">
+    <text x="32" y="318" font-size="11" font-weight="700" fill="#5b6680">ROLES</text>
+    <rect x="32" y="328" width="184" height="44" rx="6" fill="#ffffff" stroke="#cdd5e8"/><text x="124" y="346" text-anchor="middle" font-weight="700">Product Owner</text><text x="124" y="362" text-anchor="middle" font-size="9.5" fill="#5b6680">owns the backlog</text>
+    <rect x="228" y="328" width="184" height="44" rx="6" fill="#ffffff" stroke="#cdd5e8"/><text x="320" y="346" text-anchor="middle" font-weight="700">Scrum Master</text><text x="320" y="362" text-anchor="middle" font-size="9.5" fill="#5b6680">facilitates, unblocks</text>
+    <rect x="424" y="328" width="184" height="44" rx="6" fill="#ffffff" stroke="#cdd5e8"/><text x="516" y="346" text-anchor="middle" font-weight="700">Dev Team</text><text x="516" y="362" text-anchor="middle" font-size="9.5" fill="#5b6680">builds the increment</text>
+  </g>
+
+  <defs>
+    <marker id="as" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#0ea5a4"/></marker>
+    <marker id="as2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#2563eb"/></marker>
+    <marker id="as3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#f59e0b"/></marker>
+  </defs>
+</svg>

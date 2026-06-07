@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Profitability Ratios diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Profitability Ratios</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12" fill="#5b6680">Profit measured against sales, assets, equity, or invested capital. Higher = more efficient.</text>
+
+  <!-- header row -->
+  <rect x="24" y="64" width="592" height="28" fill="#1d2438"/>
+  <text x="36" y="83" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Ratio</text>
+  <text x="240" y="83" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Formula</text>
+  <text x="470" y="83" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Measures profit vs.</text>
+
+  <!-- rows -->
+  <!-- margins group accent: blue; returns group: teal -->
+  <g font-family="sans-serif">
+    <rect x="24" y="92" width="592" height="42" fill="#f4f7ff"/>
+    <rect x="24" y="92" width="5" height="42" fill="#2563eb"/>
+    <text x="36" y="118" font-size="12.5" font-weight="700" fill="#1d2438">Gross margin</text>
+    <text x="240" y="118" font-size="12" fill="#5b6680">Gross profit / Revenue</text>
+    <text x="470" y="118" font-size="12" fill="#1d2438">Sales (after COGS)</text>
+
+    <rect x="24" y="134" width="592" height="42" fill="#ffffff"/>
+    <rect x="24" y="134" width="5" height="42" fill="#2563eb"/>
+    <text x="36" y="160" font-size="12.5" font-weight="700" fill="#1d2438">Operating margin</text>
+    <text x="240" y="160" font-size="12" fill="#5b6680">Operating profit / Revenue</text>
+    <text x="470" y="160" font-size="12" fill="#1d2438">Sales (after opex)</text>
+
+    <rect x="24" y="176" width="592" height="42" fill="#f4f7ff"/>
+    <rect x="24" y="176" width="5" height="42" fill="#2563eb"/>
+    <text x="36" y="202" font-size="12.5" font-weight="700" fill="#1d2438">Net margin</text>
+    <text x="240" y="202" font-size="12" fill="#5b6680">Net profit / Revenue</text>
+    <text x="470" y="202" font-size="12" fill="#1d2438">Sales (after all costs)</text>
+
+    <rect x="24" y="218" width="592" height="42" fill="#ffffff"/>
+    <rect x="24" y="218" width="5" height="42" fill="#0ea5a4"/>
+    <text x="36" y="244" font-size="12.5" font-weight="700" fill="#1d2438">ROA</text>
+    <text x="240" y="244" font-size="12" fill="#5b6680">Net income / Avg. assets</text>
+    <text x="470" y="244" font-size="12" fill="#1d2438">Assets</text>
+
+    <rect x="24" y="260" width="592" height="42" fill="#f4f7ff"/>
+    <rect x="24" y="260" width="5" height="42" fill="#0ea5a4"/>
+    <text x="36" y="286" font-size="12.5" font-weight="700" fill="#1d2438">ROE</text>
+    <text x="240" y="286" font-size="12" fill="#5b6680">Net income / Avg. equity</text>
+    <text x="470" y="286" font-size="12" fill="#1d2438">Equity</text>
+
+    <rect x="24" y="302" width="592" height="42" fill="#ffffff"/>
+    <rect x="24" y="302" width="5" height="42" fill="#f59e0b"/>
+    <text x="36" y="328" font-size="12.5" font-weight="700" fill="#1d2438">ROI</text>
+    <text x="240" y="328" font-size="12" fill="#5b6680">Net profit / Cost of invest.</text>
+    <text x="470" y="328" font-size="12" fill="#1d2438">Invested capital</text>
+  </g>
+  <rect x="24" y="92" width="592" height="252" fill="none" stroke="#1d2438" stroke-width="1"/>
+
+  <!-- legend -->
+  <rect x="24" y="360" width="11" height="11" fill="#2563eb"/>
+  <text x="42" y="370" font-family="sans-serif" font-size="11" fill="#5b6680">Margins (vs. sales)</text>
+  <rect x="180" y="360" width="11" height="11" fill="#0ea5a4"/>
+  <text x="198" y="370" font-family="sans-serif" font-size="11" fill="#5b6680">Returns (vs. capital base)</text>
+  <rect x="380" y="360" width="11" height="11" fill="#f59e0b"/>
+  <text x="398" y="370" font-family="sans-serif" font-size="11" fill="#5b6680">Return on a specific investment</text>
+</svg>

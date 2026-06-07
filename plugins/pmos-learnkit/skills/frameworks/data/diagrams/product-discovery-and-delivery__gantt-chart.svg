@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Gantt Chart diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Gantt Chart</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Tasks, dependencies, milestones &amp; the critical path on a timeline</text>
+
+  <!-- week header -->
+  <g font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">
+    <text x="232" y="86">W1</text><text x="304" y="86">W2</text><text x="376" y="86">W3</text>
+    <text x="448" y="86">W4</text><text x="520" y="86">W5</text><text x="592" y="86">W6</text>
+  </g>
+  <!-- grid -->
+  <g stroke="#e7edf8" stroke-width="1">
+    <line x1="196" y1="92" x2="196" y2="320"/><line x1="268" y1="92" x2="268" y2="320"/>
+    <line x1="340" y1="92" x2="340" y2="320"/><line x1="412" y1="92" x2="412" y2="320"/>
+    <line x1="484" y1="92" x2="484" y2="320"/><line x1="556" y1="92" x2="556" y2="320"/>
+    <line x1="628" y1="92" x2="628" y2="320"/>
+  </g>
+  <line x1="196" y1="92" x2="196" y2="320" stroke="#1d2438" stroke-width="1.5"/>
+
+  <!-- task list + bars -->
+  <g font-family="sans-serif" font-size="11.5" fill="#1d2438">
+    <text x="32" y="113">Research</text>
+    <text x="32" y="145">Design</text>
+    <text x="32" y="177">Build API</text>
+    <text x="32" y="209">Build UI</text>
+    <text x="32" y="241">QA test</text>
+    <text x="32" y="273">Launch</text>
+  </g>
+
+  <!-- bars (red = critical path) -->
+  <rect x="196" y="103" width="72" height="14" rx="3" fill="#ef4444"/>
+  <rect x="268" y="135" width="72" height="14" rx="3" fill="#ef4444"/>
+  <rect x="340" y="167" width="144" height="14" rx="3" fill="#ef4444"/>
+  <rect x="340" y="199" width="108" height="14" rx="3" fill="#2563eb"/>
+  <rect x="484" y="231" width="72" height="14" rx="3" fill="#ef4444"/>
+
+  <!-- milestone diamond (Launch) -->
+  <polygon points="556,266 564,258 572,266 564,274" fill="#1d2438"/>
+
+  <!-- FS dependency arrows -->
+  <g stroke="#5b6680" stroke-width="1.2" fill="none">
+    <path d="M268,110 H278 V142 H268" marker-end="url(#ar)"/>
+    <path d="M340,142 H350 V174 H340" marker-end="url(#ar)"/>
+    <path d="M484,174 V206 H448" marker-end="url(#ar)"/>
+    <path d="M484,174 V238 H484" marker-end="url(#ar)"/>
+    <path d="M556,238 V266 H556" marker-end="url(#ar)"/>
+  </g>
+  <defs>
+    <marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- legend -->
+  <g font-family="sans-serif" font-size="10.5">
+    <rect x="32" y="345" width="16" height="10" rx="2" fill="#ef4444"/>
+    <text x="54" y="354" fill="#5b6680">Critical path (delay slips launch)</text>
+    <rect x="262" y="345" width="16" height="10" rx="2" fill="#2563eb"/>
+    <text x="284" y="354" fill="#5b6680">Task with slack</text>
+    <polygon points="430,350 437,343 444,350 437,357" fill="#1d2438"/>
+    <text x="452" y="354" fill="#5b6680">Milestone</text>
+  </g>
+</svg>

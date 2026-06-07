@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4 Questions for Product Communication diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">4 Questions for Product Communication</text>
+  <text x="320" y="54" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Answer these — in order — in any copy, page, or video</text>
+
+  <!-- Step 1 -->
+  <rect x="70" y="78" width="500" height="62" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="108" cy="109" r="20" fill="#2563eb"/>
+  <text x="108" y="115" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">1</text>
+  <text x="146" y="104" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">What does it do?</text>
+  <text x="146" y="124" font-family="sans-serif" font-size="11" fill="#5b6680">Make the core function obvious at a glance</text>
+
+  <!-- Step 2 -->
+  <rect x="70" y="155" width="500" height="62" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="108" cy="186" r="20" fill="#0ea5a4"/>
+  <text x="108" y="192" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">2</text>
+  <text x="146" y="181" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Is it for me?</text>
+  <text x="146" y="201" font-family="sans-serif" font-size="11" fill="#5b6680">Help the visitor self-identify as the audience</text>
+
+  <!-- Step 3 -->
+  <rect x="70" y="232" width="500" height="62" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="108" cy="263" r="20" fill="#f59e0b"/>
+  <text x="108" y="269" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">3</text>
+  <text x="146" y="258" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">How good is it?</text>
+  <text x="146" y="278" font-family="sans-serif" font-size="11" fill="#5b6680">Show proof: outcomes, social proof, credibility</text>
+
+  <!-- Step 4 -->
+  <rect x="70" y="309" width="500" height="62" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="108" cy="340" r="20" fill="#ef4444"/>
+  <text x="108" y="346" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">4</text>
+  <text x="146" y="335" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Should I act now?</text>
+  <text x="146" y="355" font-family="sans-serif" font-size="11" fill="#5b6680">Give a reason and a clear next step</text>
+
+  <!-- Down arrows between steps -->
+  <polygon points="590,140 585,150 595,150" fill="#5b6680"/>
+  <polygon points="590,217 585,227 595,227" fill="#5b6680"/>
+  <polygon points="590,294 585,304 595,304" fill="#5b6680"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Stakeholder Map diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Stakeholder Map</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Power vs Interest quadrant grid</text>
+
+  <!-- Axes labels -->
+  <text x="40" y="200" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="600" fill="#1d2438" transform="rotate(-90 40 200)">POWER / INFLUENCE</text>
+  <text x="350" y="392" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="600" fill="#1d2438">INTEREST</text>
+
+  <text x="70" y="90" font-family="sans-serif" font-size="11" fill="#5b6680">High</text>
+  <text x="70" y="345" font-family="sans-serif" font-size="11" fill="#5b6680">Low</text>
+  <text x="100" y="370" font-family="sans-serif" font-size="11" fill="#5b6680">Low</text>
+  <text x="585" y="370" font-family="sans-serif" font-size="11" fill="#5b6680">High</text>
+
+  <!-- Grid 80..620 x , 70..350 y -->
+  <!-- Quadrants: TL keep satisfied, TR manage closely, BL monitor, BR keep informed -->
+  <rect x="90" y="70" width="265" height="140" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <rect x="355" y="70" width="265" height="140" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+  <rect x="90" y="210" width="265" height="140" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <rect x="355" y="210" width="265" height="140" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+
+  <!-- Top-left: High power / Low interest -->
+  <text x="222" y="120" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Keep Satisfied</text>
+  <text x="222" y="142" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">High power · Low interest</text>
+  <text x="222" y="162" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Influential but disengaged</text>
+
+  <!-- Top-right: High power / High interest -->
+  <text x="487" y="120" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">Manage Closely</text>
+  <text x="487" y="142" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#dbe6ff">High power · High interest</text>
+  <text x="487" y="162" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#dbe6ff">Most important — engage fully</text>
+
+  <!-- Bottom-left: Low power / Low interest -->
+  <text x="222" y="270" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Monitor</text>
+  <text x="222" y="292" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Low power · Low interest</text>
+  <text x="222" y="312" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Minimal effort</text>
+
+  <!-- Bottom-right: Low power / High interest -->
+  <text x="487" y="270" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Keep Informed</text>
+  <text x="487" y="292" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Low power · High interest</text>
+  <text x="487" y="312" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Engaged allies — update them</text>
+</svg>

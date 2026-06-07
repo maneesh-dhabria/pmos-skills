@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Mobile Apps - Native Vs. Mobile Web Vs. Hybrid diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Native vs. Mobile Web vs. Hybrid</text>
+  <text x="20" y="49" font-family="sans-serif" font-size="12" fill="#5b6680">Three ways to deliver a mobile app, compared by capability and cost</text>
+
+  <!-- Column headers -->
+  <g font-family="sans-serif">
+    <rect x="200" y="62" width="140" height="34" rx="6" fill="#2563eb"/>
+    <text x="270" y="84" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Native</text>
+
+    <rect x="348" y="62" width="140" height="34" rx="6" fill="#0ea5a4"/>
+    <text x="418" y="84" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Mobile Web / PWA</text>
+
+    <rect x="496" y="62" width="124" height="34" rx="6" fill="#f59e0b"/>
+    <text x="558" y="84" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Hybrid</text>
+  </g>
+
+  <!-- Rows -->
+  <g font-family="sans-serif" font-size="12">
+    <!-- Row labels -->
+    <text x="20" y="123" font-weight="700" fill="#1d2438">In app store</text>
+    <text x="20" y="167" font-weight="700" fill="#1d2438">Full device access</text>
+    <text x="20" y="211" font-weight="700" fill="#1d2438">Works offline</text>
+    <text x="20" y="255" font-weight="700" fill="#1d2438">Push notifications</text>
+    <text x="20" y="299" font-weight="700" fill="#1d2438">Cross-platform</text>
+    <text x="20" y="343" font-weight="700" fill="#1d2438">Build cost</text>
+    <text x="20" y="138" font-size="10" fill="#5b6680">Distribution</text>
+    <text x="20" y="182" font-size="10" fill="#5b6680">Camera, GPS, sensors</text>
+
+    <!-- grid lines -->
+    <line x1="200" y1="104" x2="620" y2="104" stroke="#e2e8f5"/>
+    <line x1="200" y1="148" x2="620" y2="148" stroke="#e2e8f5"/>
+    <line x1="200" y1="192" x2="620" y2="192" stroke="#e2e8f5"/>
+    <line x1="200" y1="236" x2="620" y2="236" stroke="#e2e8f5"/>
+    <line x1="200" y1="280" x2="620" y2="280" stroke="#e2e8f5"/>
+    <line x1="200" y1="324" x2="620" y2="324" stroke="#e2e8f5"/>
+    <line x1="200" y1="368" x2="620" y2="368" stroke="#e2e8f5"/>
+    <line x1="200" y1="104" x2="200" y2="368" stroke="#e2e8f5"/>
+    <line x1="348" y1="104" x2="348" y2="368" stroke="#e2e8f5"/>
+    <line x1="496" y1="104" x2="496" y2="368" stroke="#e2e8f5"/>
+
+    <!-- Cell values: yes (filled dot), partial (ring), no (dash) -->
+    <!-- In app store -->
+    <circle cx="270" cy="123" r="6" fill="#2563eb"/>
+    <text x="287" y="127" font-size="11" fill="#5b6680">via bookmark</text>
+    <text x="378" y="127" font-size="13" fill="#ef4444" text-anchor="middle" font-weight="700">—</text>
+    <circle cx="558" cy="123" r="6" fill="#f59e0b"/>
+
+    <!-- Full device access -->
+    <circle cx="270" cy="167" r="6" fill="#2563eb"/>
+    <circle cx="418" cy="167" r="6" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="430" y="171" font-size="10" fill="#5b6680">limited</text>
+    <circle cx="558" cy="167" r="6" fill="#f59e0b"/>
+
+    <!-- Offline -->
+    <circle cx="270" cy="211" r="6" fill="#2563eb"/>
+    <circle cx="418" cy="211" r="6" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="430" y="215" font-size="10" fill="#5b6680">PWA only</text>
+    <circle cx="558" cy="211" r="6" fill="#f59e0b"/>
+
+    <!-- Push -->
+    <circle cx="270" cy="255" r="6" fill="#2563eb"/>
+    <circle cx="418" cy="255" r="6" fill="none" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="558" cy="255" r="6" fill="#f59e0b"/>
+
+    <!-- Cross-platform -->
+    <text x="270" y="299" font-size="13" fill="#ef4444" text-anchor="middle" font-weight="700">—</text>
+    <circle cx="418" cy="299" r="6" fill="#0ea5a4"/>
+    <circle cx="558" cy="299" r="6" fill="#f59e0b"/>
+
+    <!-- Build cost -->
+    <text x="270" y="347" font-size="11" fill="#1d2438" text-anchor="middle" font-weight="700">High</text>
+    <text x="270" y="358" font-size="9" fill="#5b6680" text-anchor="middle">per platform</text>
+    <text x="418" y="347" font-size="11" fill="#1d2438" text-anchor="middle" font-weight="700">Low</text>
+    <text x="558" y="347" font-size="11" fill="#1d2438" text-anchor="middle" font-weight="700">Medium</text>
+    <text x="558" y="358" font-size="9" fill="#5b6680" text-anchor="middle">reuse HTML</text>
+  </g>
+
+  <!-- Legend -->
+  <g font-family="sans-serif" font-size="10" fill="#5b6680">
+    <circle cx="210" cy="388" r="5" fill="#1d2438"/>
+    <text x="220" y="392">full</text>
+    <circle cx="262" cy="388" r="5" fill="none" stroke="#1d2438" stroke-width="2"/>
+    <text x="272" y="392">partial</text>
+    <text x="330" y="392" font-weight="700" fill="#ef4444">—</text>
+    <text x="342" y="392">none</text>
+  </g>
+</svg>

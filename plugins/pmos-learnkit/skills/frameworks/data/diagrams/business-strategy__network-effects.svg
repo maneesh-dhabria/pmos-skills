@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Network Effects diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Network Effects</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Types of NFX, ranked by defensibility (strongest at top)</text>
+
+  <!-- defensibility arrow -->
+  <line x1="20" y1="92" x2="20" y2="356" stroke="#5b6680" stroke-width="1.5"/>
+  <polygon points="20,86 16,96 24,96" fill="#5b6680"/>
+  <text x="14" y="240" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(-90 14 240)" text-anchor="middle">stronger defensibility</text>
+
+  <!-- rows -->
+  <g font-family="sans-serif">
+    <!-- Direct -->
+    <rect x="40" y="84" width="560" height="44" rx="6" fill="#2563eb"/>
+    <text x="56" y="104" font-size="14" font-weight="700" fill="#ffffff">1 · Direct Network Effects</text>
+    <text x="56" y="121" font-size="11" fill="#dbe6ff">Physical · Protocol · Personal Utility · Personal · Market · Hub-and-Spoke</text>
+
+    <!-- Two-sided -->
+    <rect x="40" y="134" width="560" height="44" rx="6" fill="#0ea5a4"/>
+    <text x="56" y="154" font-size="14" font-weight="700" fill="#ffffff">2 · Two-Sided Network Effects</text>
+    <text x="56" y="171" font-size="11" fill="#d6f5f4">Marketplace · Platform · Asymptotic marketplace · Expertise</text>
+
+    <!-- Data -->
+    <rect x="40" y="184" width="560" height="44" rx="6" fill="#f59e0b"/>
+    <text x="56" y="204" font-size="14" font-weight="700" fill="#ffffff">3 · Data Network Effects</text>
+    <text x="56" y="221" font-size="11" fill="#fff3dd">More usage yields data that makes the product better (Waze, Yelp)</text>
+
+    <!-- Tech -->
+    <rect x="40" y="234" width="560" height="44" rx="6" fill="#5b6680"/>
+    <text x="56" y="254" font-size="14" font-weight="700" fill="#ffffff">4 · Tech Performance NFX</text>
+    <text x="56" y="271" font-size="11" fill="#e4e8f0">Performance improves with more users (P2P, VPN)</text>
+
+    <!-- Social -->
+    <rect x="40" y="284" width="560" height="44" rx="6" fill="#ef4444"/>
+    <text x="56" y="304" font-size="14" font-weight="700" fill="#ffffff">5 · Social Network Effects</text>
+    <text x="56" y="321" font-size="11" fill="#ffe0e0">Language · Belief · Bandwagoning · Tribal — psychology-driven</text>
+  </g>
+
+  <text x="40" y="352" font-family="sans-serif" font-size="11" fill="#5b6680">NFX = defensibility (a moat), not virality (free user acquisition). A company can run several at once.</text>
+  <text x="40" y="368" font-family="sans-serif" font-size="10" fill="#5b6680">Laws of value: Sarnoff N · Metcalfe N² · Reed 2ᴺ</text>
+</svg>

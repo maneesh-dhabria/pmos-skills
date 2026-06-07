@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="7 Steps to Creating a Product Strategy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">7 Steps to Creating a Product Strategy</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Seven sections that build on each other into a complete strategy</text>
+
+  <g font-family="sans-serif">
+    <!-- Step template: numbered chevron rows -->
+    <!-- 1 Objective -->
+    <rect x="40" y="64" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="64" cy="83" r="13" fill="#2563eb"/>
+    <text x="64" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+    <text x="90" y="80" font-size="13" font-weight="700" fill="#1d2438">Objective</text>
+    <text x="90" y="95" font-size="10" fill="#5b6680">What challenge are we responding to?  (mission + measure)</text>
+
+    <!-- 2 Users -->
+    <rect x="40" y="108" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="64" cy="127" r="13" fill="#0ea5a4"/>
+    <text x="64" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+    <text x="90" y="124" font-size="13" font-weight="700" fill="#1d2438">Users</text>
+    <text x="90" y="139" font-size="10" fill="#5b6680">What does our audience need?  (JTBD + journey mapping)</text>
+
+    <!-- 3 Superpowers -->
+    <rect x="40" y="152" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="64" cy="171" r="13" fill="#f59e0b"/>
+    <text x="64" y="176" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+    <text x="90" y="168" font-size="13" font-weight="700" fill="#1d2438">Superpowers</text>
+    <text x="90" y="183" font-size="10" fill="#5b6680">Where can we create unique, hard-to-copy value?  (7 Powers)</text>
+
+    <!-- 4 Vision -->
+    <rect x="40" y="196" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="64" cy="215" r="13" fill="#2563eb"/>
+    <text x="64" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+    <text x="90" y="212" font-size="13" font-weight="700" fill="#1d2438">Vision</text>
+    <text x="90" y="227" font-size="10" fill="#5b6680">What future are we building?  (statement / principles / visiontype)</text>
+
+    <!-- 5 Pillars -->
+    <rect x="40" y="240" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="64" cy="259" r="13" fill="#0ea5a4"/>
+    <text x="64" y="264" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">5</text>
+    <text x="90" y="256" font-size="13" font-weight="700" fill="#1d2438">Pillars</text>
+    <text x="90" y="271" font-size="10" fill="#5b6680">2–4 main themes of work — and where you won't focus</text>
+
+    <!-- 6 Impact -->
+    <rect x="40" y="284" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="64" cy="303" r="13" fill="#f59e0b"/>
+    <text x="64" y="308" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">6</text>
+    <text x="90" y="300" font-size="13" font-weight="700" fill="#1d2438">Impact</text>
+    <text x="90" y="315" font-size="10" fill="#5b6680">Does the planned work meet our objective?</text>
+
+    <!-- 7 Roadmap -->
+    <rect x="40" y="328" width="560" height="38" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <circle cx="64" cy="347" r="13" fill="#ef4444"/>
+    <text x="64" y="352" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">7</text>
+    <text x="90" y="344" font-size="13" font-weight="700" fill="#1d2438">Roadmap</text>
+    <text x="90" y="359" font-size="10" fill="#5b6680">What's next, and how do we share progress?</text>
+
+    <!-- connecting flow arrows on left -->
+    <line x1="64" y1="96" x2="64" y2="114" stroke="#5b6680" stroke-width="1"/>
+    <line x1="64" y1="140" x2="64" y2="158" stroke="#5b6680" stroke-width="1"/>
+    <line x1="64" y1="184" x2="64" y2="202" stroke="#5b6680" stroke-width="1"/>
+    <line x1="64" y1="228" x2="64" y2="246" stroke="#5b6680" stroke-width="1"/>
+    <line x1="64" y1="272" x2="64" y2="290" stroke="#5b6680" stroke-width="1"/>
+    <line x1="64" y1="316" x2="64" y2="334" stroke="#5b6680" stroke-width="1"/>
+
+    <text x="590" y="394" text-anchor="end" font-size="10" fill="#5b6680">why → who → edge → future → focus → check → ship</text>
+  </g>
+</svg>

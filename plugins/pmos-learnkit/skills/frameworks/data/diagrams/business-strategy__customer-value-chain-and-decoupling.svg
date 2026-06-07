@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Customer Value Chain and Decoupling diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Customer Value Chain &amp; Decoupling</text>
+  <text x="32" y="60" font-family="sans-serif" font-size="13" fill="#5b6680">The activity chain a customer runs through — disrupt by decoupling its links.</text>
+
+  <!-- Chain of activities -->
+  <!-- Step 1 value-creating -->
+  <rect x="24" y="92" width="120" height="56" rx="8" fill="#e6faf9" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="84" y="116" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Research</text>
+  <text x="84" y="134" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">in store</text>
+
+  <!-- arrow -->
+  <polygon points="148,120 168,120 168,114 180,123 168,132 168,126 148,126" fill="#5b6680"/>
+
+  <!-- Step 2 charging -->
+  <rect x="184" y="92" width="120" height="56" rx="8" fill="#fef3e0" stroke="#f59e0b" stroke-width="2"/>
+  <text x="244" y="116" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Pay</text>
+  <text x="244" y="134" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">at checkout</text>
+
+  <polygon points="308,120 328,120 328,114 340,123 328,132 328,126 308,126" fill="#5b6680"/>
+
+  <!-- Step 3 value-eroding -->
+  <rect x="344" y="92" width="120" height="56" rx="8" fill="#fdeaea" stroke="#ef4444" stroke-width="2"/>
+  <text x="404" y="116" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Queue / hassle</text>
+  <text x="404" y="134" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">friction</text>
+
+  <polygon points="468,120 488,120 488,114 500,123 488,132 488,126 468,126" fill="#5b6680"/>
+
+  <!-- Step 4 value-creating -->
+  <rect x="504" y="92" width="112" height="56" rx="8" fill="#e6faf9" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="560" y="116" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Use</text>
+  <text x="560" y="134" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">product</text>
+
+  <!-- Decoupling scissors line -->
+  <line x1="324" y1="80" x2="324" y2="160" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="6 5"/>
+  <circle cx="324" cy="172" r="13" fill="#2563eb"/>
+  <text x="324" y="177" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">&#9986;</text>
+  <text x="324" y="200" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">DECOUPLE the chain</text>
+  <text x="324" y="216" font-family="sans-serif" font-size="11.5" fill="#5b6680" text-anchor="middle">capture one valuable link (e.g. research in store, buy online)</text>
+
+  <!-- Legend / three activity types -->
+  <text x="32" y="252" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680" letter-spacing="1">CLASSIFY EVERY ACTIVITY</text>
+
+  <rect x="32" y="262" width="16" height="16" rx="3" fill="#e6faf9" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="56" y="275" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Value-creating</text>
+  <text x="56" y="291" font-family="sans-serif" font-size="11.5" fill="#5b6680">&#8594; boost it</text>
+
+  <rect x="222" y="262" width="16" height="16" rx="3" fill="#fef3e0" stroke="#f59e0b" stroke-width="2"/>
+  <text x="246" y="275" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Charging</text>
+  <text x="246" y="291" font-family="sans-serif" font-size="11.5" fill="#5b6680">&#8594; reduce it</text>
+
+  <rect x="402" y="262" width="16" height="16" rx="3" fill="#fdeaea" stroke="#ef4444" stroke-width="2"/>
+  <text x="426" y="275" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Value-eroding</text>
+  <text x="426" y="291" font-family="sans-serif" font-size="11.5" fill="#5b6680">&#8594; remove it</text>
+
+  <!-- Three waves footer -->
+  <rect x="32" y="312" width="576" height="66" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="46" y="332" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Three internet waves:</text>
+  <text x="46" y="352" font-family="sans-serif" font-size="12" fill="#5b6680">1990s <tspan font-weight="700" fill="#2563eb">Unbundling</tspan>   &#183;   2000s <tspan font-weight="700" fill="#2563eb">Disintermediation</tspan>   &#183;   2012+ <tspan font-weight="700" fill="#2563eb">Decoupling</tspan></text>
+  <text x="46" y="370" font-family="sans-serif" font-size="11.5" fill="#5b6680">Each wave breaks more links between customer activities than the last.</text>
+</svg>

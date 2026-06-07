@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="AARRR (Pirate Metrics) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">AARRR — Pirate Metrics</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">The user lifecycle as a five-stage growth funnel</text>
+
+  <!-- Funnel: 5 trapezoid bands narrowing downward -->
+  <g font-family="sans-serif">
+    <!-- Acquisition -->
+    <polygon points="120,70 520,70 484,128 156,128" fill="#2563eb"/>
+    <text x="320" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Acquisition</text>
+    <text x="320" y="116" text-anchor="middle" font-size="11" fill="#dbe5ff">How are people discovering us?</text>
+
+    <!-- Activation -->
+    <polygon points="156,132 484,132 448,190 192,190" fill="#0ea5a4"/>
+    <text x="320" y="160" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Activation</text>
+    <text x="320" y="178" text-anchor="middle" font-size="11" fill="#d6f5f4">Are they taking the actions we want?</text>
+
+    <!-- Retention -->
+    <polygon points="192,194 448,194 412,252 228,252" fill="#2563eb" opacity="0.8"/>
+    <text x="320" y="222" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Retention</text>
+    <text x="320" y="240" text-anchor="middle" font-size="11" fill="#dbe5ff">Do activated users keep engaging?</text>
+
+    <!-- Referral -->
+    <polygon points="228,256 412,256 376,314 264,314" fill="#f59e0b"/>
+    <text x="320" y="284" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Referral</text>
+    <text x="320" y="302" text-anchor="middle" font-size="11" fill="#fff3da">Are users telling others?</text>
+
+    <!-- Revenue -->
+    <polygon points="264,318 376,318 348,372 292,372" fill="#ef4444"/>
+    <text x="320" y="344" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Revenue</text>
+    <text x="320" y="362" text-anchor="middle" font-size="10" fill="#ffe1e1">Why pay?</text>
+  </g>
+
+  <!-- side arrow -->
+  <g>
+    <line x1="552" y1="80" x2="552" y2="360" stroke="#9aa6c2" stroke-width="2" marker-end="url(#down)"/>
+    <text x="568" y="220" font-family="sans-serif" font-size="11" fill="#5b6680" transform="rotate(90 568 220)" text-anchor="middle">first touch → paying customer</text>
+    <defs>
+      <marker id="down" markerWidth="9" markerHeight="9" refX="4.5" refY="7" orient="auto"><path d="M0 0 L9 0 L4.5 9 z" fill="#9aa6c2"/></marker>
+    </defs>
+  </g>
+</svg>

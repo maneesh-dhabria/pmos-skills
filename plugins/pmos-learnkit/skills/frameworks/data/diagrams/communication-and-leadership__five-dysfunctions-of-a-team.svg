@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Five Dysfunctions of a Team diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Five Dysfunctions of a Team</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Each layer enables the one above it &#8212; build from the base up</text>
+
+  <!-- Pyramid: 5 horizontal bands, widest at base. apex top = dysfunction 5, base = trust -->
+  <!-- Band geometry centered at x=300, from y=90 (apex) to y=350 (base) -->
+
+  <!-- Layer 5 (apex) Inattention to Results -->
+  <polygon points="300,90 360,142 240,142" fill="#ef4444"/>
+  <text x="300" y="128" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">Results</text>
+
+  <!-- Layer 4 Avoidance of Accountability -->
+  <polygon points="240,146 360,146 392,198 208,198" fill="#f59e0b"/>
+  <text x="300" y="178" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Accountability</text>
+
+  <!-- Layer 3 Lack of Commitment -->
+  <polygon points="208,202 392,202 424,254 176,254" fill="#0ea5a4"/>
+  <text x="300" y="234" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Commitment</text>
+
+  <!-- Layer 2 Fear of Conflict -->
+  <polygon points="176,258 424,258 456,310 144,310" fill="#2563eb"/>
+  <text x="300" y="290" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Conflict</text>
+
+  <!-- Layer 1 (base) Absence of Trust -->
+  <polygon points="144,314 456,314 488,366 112,366" fill="#1d2438"/>
+  <text x="300" y="346" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Trust</text>
+
+  <!-- Right-side dysfunction callouts -->
+  <g font-family="sans-serif" font-size="11">
+    <text x="500" y="120" fill="#ef4444" font-weight="700">5. Inattention to Results</text>
+    <text x="500" y="135" fill="#5b6680">status &amp; ego over team wins</text>
+
+    <text x="500" y="176" fill="#f59e0b" font-weight="700">4. Avoidance of Accountability</text>
+    <text x="500" y="191" fill="#5b6680">won't call out peers</text>
+
+    <text x="500" y="232" fill="#0ea5a4" font-weight="700">3. Lack of Commitment</text>
+    <text x="500" y="247" fill="#5b6680">ambiguity, no buy-in</text>
+
+    <text x="500" y="288" fill="#2563eb" font-weight="700">2. Fear of Conflict</text>
+    <text x="500" y="303" fill="#5b6680">artificial harmony</text>
+
+    <text x="500" y="344" fill="#1d2438" font-weight="700">1. Absence of Trust</text>
+    <text x="500" y="359" fill="#5b6680">invulnerability, won't ask for help</text>
+  </g>
+
+  <!-- upward arrow on left -->
+  <line x1="70" y1="360" x2="70" y2="104" stroke="#5b6680" stroke-width="1.4"/>
+  <polygon points="70,90 64,104 76,104" fill="#5b6680"/>
+  <text x="58" y="230" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(-90 58 230)" text-anchor="middle">trust unlocks each layer above</text>
+</svg>

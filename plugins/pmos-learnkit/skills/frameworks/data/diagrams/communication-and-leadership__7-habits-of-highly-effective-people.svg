@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="7 Habits of Highly Effective People diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">7 Habits of Highly Effective People</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">A maturity continuum: dependence &#8594; independence &#8594; interdependence</text>
+
+  <!-- Continuum band labels -->
+  <text x="120" y="80" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ef4444">DEPENDENCE</text>
+  <text x="320" y="80" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">INDEPENDENCE</text>
+  <text x="520" y="80" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">INTERDEPENDENCE</text>
+  <text x="120" y="96" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">need others</text>
+  <text x="320" y="96" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">self-mastery (private victory)</text>
+  <text x="520" y="96" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">cooperate (public victory)</text>
+
+  <!-- arrow track -->
+  <line x1="40" y1="112" x2="600" y2="112" stroke="#5b6680" stroke-width="1.5"/>
+  <polygon points="600,112 590,107 590,117" fill="#5b6680"/>
+
+  <!-- Independence group: habits 1-3 -->
+  <rect x="210" y="130" width="220" height="100" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <g font-family="sans-serif">
+    <circle cx="232" cy="156" r="11" fill="#2563eb"/><text x="232" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">1</text>
+    <text x="250" y="160" font-size="12" fill="#1d2438">Be Proactive</text>
+    <circle cx="232" cy="186" r="11" fill="#2563eb"/><text x="232" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">2</text>
+    <text x="250" y="190" font-size="12" fill="#1d2438">Begin with the End in Mind</text>
+    <circle cx="232" cy="216" r="11" fill="#2563eb"/><text x="232" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">3</text>
+    <text x="250" y="220" font-size="12" fill="#1d2438">Put First Things First</text>
+  </g>
+
+  <!-- Interdependence group: habits 4-6 -->
+  <rect x="410" y="130" width="218" height="100" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+  <g font-family="sans-serif">
+    <circle cx="432" cy="156" r="11" fill="#0ea5a4"/><text x="432" y="160" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">4</text>
+    <text x="450" y="160" font-size="12" fill="#1d2438">Think Win&#8211;Win</text>
+    <circle cx="432" cy="186" r="11" fill="#0ea5a4"/><text x="432" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">5</text>
+    <text x="450" y="190" font-size="12" fill="#1d2438">Understand, then be understood</text>
+    <circle cx="432" cy="216" r="11" fill="#0ea5a4"/><text x="432" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">6</text>
+    <text x="450" y="220" font-size="12" fill="#1d2438">Synergize</text>
+  </g>
+
+  <!-- Habit 7 wraps around -->
+  <rect x="120" y="270" width="400" height="60" rx="8" fill="#fff7ec" stroke="#f59e0b" stroke-width="1.4"/>
+  <circle cx="148" cy="300" r="13" fill="#f59e0b"/><text x="148" y="305" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">7</text>
+  <text x="172" y="295" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Sharpen the Saw</text>
+  <text x="172" y="313" font-family="sans-serif" font-size="11" fill="#5b6680">Continuous renewal &#8212; sustains all six habits</text>
+
+  <!-- renewal arc arrows -->
+  <line x1="320" y1="230" x2="320" y2="266" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <polygon points="320,270 315,260 325,260" fill="#f59e0b"/>
+
+  <text x="320" y="358" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Habit = knowledge (what/why) + skill (how) + desire (want to)</text>
+  <text x="320" y="376" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Effectiveness = balancing P (results) and PC (capacity to produce)</text>
+</svg>

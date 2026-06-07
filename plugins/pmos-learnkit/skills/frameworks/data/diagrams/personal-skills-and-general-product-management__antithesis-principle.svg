@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Antithesis Principle diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Antithesis Principle</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Apply how the world works to be effective — adopt the opposite for yourself to be wiser</text>
+
+  <!-- observation node -->
+  <rect x="220" y="74" width="200" height="46" rx="8" fill="#1d2438"/>
+  <text x="320" y="93" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">OBSERVATION</text>
+  <text x="320" y="110" font-family="sans-serif" font-size="10" fill="#cbd5ef" text-anchor="middle">An aspect of how the world works</text>
+
+  <!-- split lines -->
+  <line x1="280" y1="120" x2="170" y2="156" stroke="#2563eb" stroke-width="2"/>
+  <line x1="360" y1="120" x2="470" y2="156" stroke="#0ea5a4" stroke-width="2"/>
+
+  <!-- left: obvious / apply to others -->
+  <rect x="40" y="158" width="260" height="60" rx="8" fill="#eff4ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="56" y="178" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">OBVIOUS — to be EFFECTIVE</text>
+  <text x="56" y="196" font-family="sans-serif" font-size="10" fill="#1d2438">Apply that aspect outward,</text>
+  <text x="56" y="210" font-family="sans-serif" font-size="10" fill="#1d2438">on the world &amp; other people</text>
+
+  <!-- right: non-obvious / opposite for self -->
+  <rect x="340" y="158" width="260" height="60" rx="8" fill="#e6fffb" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="356" y="178" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">NON-OBVIOUS — to be WISER</text>
+  <text x="356" y="196" font-family="sans-serif" font-size="10" fill="#1d2438">Adopt the opposite inward,</text>
+  <text x="356" y="210" font-family="sans-serif" font-size="10" fill="#1d2438">for your own self</text>
+
+  <!-- examples header -->
+  <text x="24" y="248" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">EXAMPLES</text>
+  <line x1="24" y1="256" x2="616" y2="256" stroke="#e2e8f5" stroke-width="1"/>
+
+  <!-- example 1 -->
+  <rect x="24" y="266" width="180" height="48" rx="6" fill="#f4f7ff"/>
+  <text x="34" y="284" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">Charisma</text>
+  <text x="34" y="299" font-family="sans-serif" font-size="9.5" fill="#5b6680">influences people strongly</text>
+  <rect x="216" y="266" width="186" height="48" rx="6" fill="#eff4ff"/>
+  <text x="226" y="284" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">DO: learn charisma</text>
+  <text x="226" y="299" font-family="sans-serif" font-size="9" fill="#1d2438">to grow your influence</text>
+  <rect x="414" y="266" width="202" height="48" rx="6" fill="#e6fffb"/>
+  <text x="424" y="284" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#0ea5a4">BE: hard to sway</text>
+  <text x="424" y="299" font-family="sans-serif" font-size="9" fill="#1d2438">by others' charisma</text>
+
+  <!-- example 2 -->
+  <rect x="24" y="320" width="180" height="48" rx="6" fill="#f4f7ff"/>
+  <text x="34" y="338" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">Entertainment</text>
+  <text x="34" y="353" font-family="sans-serif" font-size="9.5" fill="#5b6680">helps people learn</text>
+  <rect x="216" y="320" width="186" height="48" rx="6" fill="#eff4ff"/>
+  <text x="226" y="338" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">DO: make it engaging</text>
+  <text x="226" y="353" font-family="sans-serif" font-size="9" fill="#1d2438">to help others learn</text>
+  <rect x="414" y="320" width="202" height="48" rx="6" fill="#e6fffb"/>
+  <text x="424" y="338" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#0ea5a4">BE: able to learn</text>
+  <text x="424" y="353" font-family="sans-serif" font-size="9" fill="#1d2438">without entertainment</text>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="IMP Analysis diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">IMP Analysis</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Balance your time across three roles</text>
+
+  <!-- Triangle frame -->
+  <polygon points="320,90 110,330 530,330" fill="#f4f7ff" stroke="#1d2438" stroke-width="2"/>
+
+  <!-- Innovation (top) -->
+  <polygon points="320,90 235,188 405,188" fill="#2563eb"/>
+  <text x="320" y="150" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">Innovation</text>
+  <text x="320" y="170" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#ffffff">Where next?</text>
+
+  <!-- Management (left) -->
+  <polygon points="235,188 110,330 320,330 320,188" fill="#0ea5a4"/>
+  <text x="215" y="270" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">Management</text>
+  <text x="215" y="290" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#ffffff">Enable the team</text>
+
+  <!-- Production (right) -->
+  <polygon points="405,188 320,188 320,330 530,330" fill="#f59e0b"/>
+  <text x="425" y="270" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Production</text>
+  <text x="425" y="290" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Execute flawlessly</text>
+
+  <text x="320" y="372" text-anchor="middle" font-family="sans-serif" font-size="12" font-style="italic" fill="#5b6680">Ask: how much time is each slice getting right now?</text>
+</svg>

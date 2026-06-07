@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Flywheel Effect diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Flywheel Effect</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12.5" fill="#5b6680">Small wins compound into self-reinforcing momentum &#8212; pushed in one direction.</text>
+
+  <!-- circular momentum arc -->
+  <g fill="none" stroke="#2563eb" stroke-width="3">
+    <path d="M250 95 A130 130 0 1 1 248 95" />
+  </g>
+  <!-- arrowhead on loop -->
+  <path d="M248 95 l 14 -7 l -2 16 z" fill="#2563eb"/>
+
+  <!-- hub -->
+  <circle cx="250" cy="225" r="48" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="250" y="220" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438" text-anchor="middle">Compounding</text>
+  <text x="250" y="238" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438" text-anchor="middle">momentum</text>
+
+  <!-- four stage nodes around the loop -->
+  <g font-family="sans-serif">
+    <circle cx="250" cy="120" r="34" fill="#2563eb"/>
+    <text x="250" y="116" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Small</text>
+    <text x="250" y="130" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">effort</text>
+
+    <circle cx="355" cy="225" r="34" fill="#0ea5a4"/>
+    <text x="355" y="221" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Feedback</text>
+    <text x="355" y="235" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">loop</text>
+
+    <circle cx="250" cy="330" r="34" fill="#2563eb"/>
+    <text x="250" y="326" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Added</text>
+    <text x="250" y="340" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">speed</text>
+
+    <circle cx="145" cy="225" r="34" fill="#f59e0b"/>
+    <text x="145" y="221" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Bigger</text>
+    <text x="145" y="235" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">payoff</text>
+  </g>
+
+  <!-- side panel: components + doom loop -->
+  <g font-family="sans-serif">
+    <text x="430" y="105" font-size="13" font-weight="700" fill="#1d2438">Keeps spinning when:</text>
+    <text x="430" y="128" font-size="11.5" fill="#5b6680">&#8226; Momentum &#8212; motion stays in motion</text>
+    <text x="430" y="148" font-size="11.5" fill="#5b6680">&#8226; Feedback loops add energy</text>
+    <text x="430" y="168" font-size="11.5" fill="#5b6680">&#8226; Returns compound over time</text>
+    <text x="430" y="188" font-size="11.5" fill="#5b6680">&#8226; Effort focused in one direction</text>
+
+    <rect x="430" y="208" width="186" height="40" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+    <text x="442" y="226" font-size="11.5" font-weight="700" fill="#0ea5a4">Hedgehog principle</text>
+    <text x="442" y="242" font-size="10.5" fill="#5b6680">Excel at one focused direction.</text>
+
+    <rect x="430" y="258" width="186" height="44" rx="8" fill="#fff" stroke="#ef4444" stroke-width="1.3"/>
+    <text x="442" y="277" font-size="11.5" font-weight="700" fill="#ef4444">Doom loop (reversed)</text>
+    <text x="442" y="293" font-size="10.5" fill="#5b6680">Shifting goals drain momentum;</text>
+  </g>
+
+  <rect x="24" y="368" width="592" height="24" rx="6" fill="#f4f7ff"/>
+  <text x="36" y="384" font-family="sans-serif" font-size="11" fill="#5b6680">Examples: Amazon &#183; Uber &#183; Disney &#8212; built by years of accumulated small victories, not one big action.</text>
+</svg>

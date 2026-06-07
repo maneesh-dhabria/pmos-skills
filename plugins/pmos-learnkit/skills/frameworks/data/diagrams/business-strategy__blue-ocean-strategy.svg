@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Blue Ocean Strategy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Blue Ocean Strategy</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Create uncontested market space instead of fighting in saturated waters</text>
+
+  <!-- Red Ocean column -->
+  <rect x="24" y="74" width="288" height="306" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <rect x="24" y="74" width="288" height="40" rx="10" fill="#ef4444"/>
+  <rect x="24" y="100" width="288" height="14" fill="#ef4444"/>
+  <text x="168" y="100" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">RED OCEAN</text>
+  <text x="168" y="134" font-family="sans-serif" font-size="11" font-weight="700" fill="#ef4444" text-anchor="middle">Compete in existing markets</text>
+  <g font-family="sans-serif" font-size="12" fill="#1d2438">
+    <text x="48" y="166">&#8226; Known, saturated market space</text>
+    <text x="48" y="194">&#8226; Beat the competition head-on</text>
+    <text x="48" y="222">&#8226; Exploit existing demand</text>
+    <text x="48" y="250">&#8226; Value&#8211;cost trade-off accepted</text>
+    <text x="48" y="278">&#8226; Margins shrink as rivals pile in</text>
+    <text x="48" y="306">&#8226; "Bloody" price &amp; feature wars</text>
+  </g>
+
+  <!-- arrow between -->
+  <text x="320" y="232" font-family="sans-serif" font-size="22" fill="#5b6680" text-anchor="middle">&#8594;</text>
+
+  <!-- Blue Ocean column -->
+  <rect x="328" y="74" width="288" height="306" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="328" y="74" width="288" height="40" rx="10" fill="#2563eb"/>
+  <rect x="328" y="100" width="288" height="14" fill="#2563eb"/>
+  <text x="472" y="100" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">BLUE OCEAN</text>
+  <text x="472" y="134" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb" text-anchor="middle">Create uncontested space</text>
+  <g font-family="sans-serif" font-size="12" fill="#1d2438">
+    <text x="352" y="166">&#8226; Reconstruct market boundaries</text>
+    <text x="352" y="194">&#8226; Make competition irrelevant</text>
+    <text x="352" y="222">&#8226; Reach beyond existing demand</text>
+    <text x="352" y="250">&#8226; Break the value&#8211;cost trade-off</text>
+    <text x="352" y="278">&#8226; Right strategic sequence</text>
+    <text x="352" y="306">&#8226; Overcome organizational hurdles</text>
+  </g>
+</svg>

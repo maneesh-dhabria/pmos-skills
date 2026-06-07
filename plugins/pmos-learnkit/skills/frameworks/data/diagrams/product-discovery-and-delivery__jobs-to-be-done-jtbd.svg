@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Jobs to be Done diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Jobs to be Done (JTBD)</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">People hire products to get a job done — uncover the outcomes behind it</text>
+
+  <!-- central job hub -->
+  <circle cx="190" cy="200" r="64" fill="#1d2438"/>
+  <text x="190" y="194" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">The Job</text>
+  <text x="190" y="212" font-family="sans-serif" font-size="10.5" fill="#cdd6ec" text-anchor="middle">verb + object</text>
+  <text x="190" y="226" font-family="sans-serif" font-size="10.5" fill="#cdd6ec" text-anchor="middle">+ context</text>
+
+  <!-- performer label -->
+  <text x="190" y="108" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Job performer (who)</text>
+  <line x1="190" y1="114" x2="190" y2="134" stroke="#5b6680" stroke-width="1.2"/>
+
+  <!-- three outcome dimensions -->
+  <g font-family="sans-serif">
+    <!-- functional -->
+    <line x1="250" y1="172" x2="330" y2="138" stroke="#2563eb" stroke-width="1.5"/>
+    <rect x="330" y="118" width="200" height="44" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="344" y="138" font-size="13" font-weight="700" fill="#2563eb">Functional</text>
+    <text x="344" y="154" font-size="10.5" fill="#5b6680">The practical task to accomplish</text>
+
+    <!-- emotional -->
+    <line x1="254" y1="200" x2="330" y2="200" stroke="#0ea5a4" stroke-width="1.5"/>
+    <rect x="330" y="178" width="200" height="44" rx="8" fill="#f0fdfa" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="344" y="198" font-size="13" font-weight="700" fill="#0ea5a4">Emotional</text>
+    <text x="344" y="214" font-size="10.5" fill="#5b6680">How the performer wants to feel</text>
+
+    <!-- social -->
+    <line x1="250" y1="228" x2="330" y2="262" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="330" y="238" width="200" height="44" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="344" y="258" font-size="13" font-weight="700" fill="#f59e0b">Social</text>
+    <text x="344" y="274" font-size="10.5" fill="#5b6680">How others should perceive them</text>
+  </g>
+
+  <!-- job process ladder (8 ODI phases) -->
+  <rect x="32" y="306" width="576" height="70" rx="8" fill="#ffffff" stroke="#d6deef" stroke-width="1.5"/>
+  <text x="48" y="326" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">JOB PROCESS (ODI)</text>
+  <g font-family="sans-serif" font-size="10" fill="#1d2438" text-anchor="middle">
+    <text x="68" y="354">Define</text>
+    <text x="136" y="354">Locate</text>
+    <text x="204" y="354">Prepare</text>
+    <text x="272" y="354">Confirm</text>
+    <text x="340" y="354">Execute</text>
+    <text x="408" y="354">Monitor</text>
+    <text x="476" y="354">Modify</text>
+    <text x="552" y="354">Conclude</text>
+  </g>
+  <g stroke="#2563eb" stroke-width="1.4" fill="#2563eb">
+    <line x1="100" y1="364" x2="116" y2="364"/><polygon points="116,360 124,364 116,368"/>
+    <line x1="168" y1="364" x2="184" y2="364"/><polygon points="184,360 192,364 184,368"/>
+    <line x1="240" y1="364" x2="252" y2="364"/><polygon points="252,360 260,364 252,368"/>
+    <line x1="308" y1="364" x2="320" y2="364"/><polygon points="320,360 328,364 320,368"/>
+    <line x1="376" y1="364" x2="388" y2="364"/><polygon points="388,360 396,364 388,368"/>
+    <line x1="444" y1="364" x2="456" y2="364"/><polygon points="456,360 464,364 456,368"/>
+    <line x1="512" y1="364" x2="524" y2="364"/><polygon points="524,360 532,364 524,368"/>
+  </g>
+</svg>

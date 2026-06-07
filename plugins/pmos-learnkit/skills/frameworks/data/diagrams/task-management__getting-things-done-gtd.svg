@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Getting Things Done GTD diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Getting Things Done (GTD)</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Offload open loops into a trusted system — a five-step workflow</text>
+
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <!-- Five step nodes -->
+  <!-- 1 Capture -->
+  <g>
+    <rect x="40" y="100" width="100" height="90" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="62" cy="124" r="13" fill="#2563eb"/>
+    <text x="62" y="129" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">1</text>
+    <text x="90" y="129" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Capture</text>
+    <text x="90" y="158" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Collect what</text>
+    <text x="90" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">has your attention</text>
+  </g>
+  <line x1="142" y1="145" x2="166" y2="145" stroke="#2563eb" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- 2 Clarify -->
+  <g>
+    <rect x="170" y="100" width="100" height="90" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="192" cy="124" r="13" fill="#0ea5a4"/>
+    <text x="192" y="129" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">2</text>
+    <text x="222" y="129" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Clarify</text>
+    <text x="220" y="158" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Process what</text>
+    <text x="220" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">it means</text>
+  </g>
+  <line x1="272" y1="145" x2="296" y2="145" stroke="#2563eb" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- 3 Organize -->
+  <g>
+    <rect x="300" y="100" width="100" height="90" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <circle cx="322" cy="124" r="13" fill="#f59e0b"/>
+    <text x="322" y="129" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">3</text>
+    <text x="354" y="129" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Organize</text>
+    <text x="350" y="158" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Put it where</text>
+    <text x="350" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">it belongs</text>
+  </g>
+  <line x1="402" y1="145" x2="426" y2="145" stroke="#2563eb" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- 4 Reflect -->
+  <g>
+    <rect x="430" y="100" width="100" height="90" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="452" cy="124" r="13" fill="#2563eb"/>
+    <text x="452" y="129" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">4</text>
+    <text x="482" y="129" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Reflect</text>
+    <text x="480" y="158" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Review</text>
+    <text x="480" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">frequently</text>
+  </g>
+  <line x1="532" y1="145" x2="556" y2="145" stroke="#2563eb" stroke-width="2" marker-end="url(#arr)"/>
+
+  <!-- 5 Engage -->
+  <g>
+    <rect x="500" y="220" width="100" height="90" rx="10" fill="#2563eb" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="522" cy="244" r="13" fill="#ffffff"/>
+    <text x="522" y="249" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">5</text>
+    <text x="552" y="249" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">Engage</text>
+    <text x="550" y="278" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dbe6ff">Simply</text>
+    <text x="550" y="292" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dbe6ff">do</text>
+  </g>
+  <!-- elbow connector from Reflect down to Engage -->
+  <path d="M580 192 L580 220" stroke="#2563eb" stroke-width="2" fill="none" marker-end="url(#arr)"/>
+
+  <!-- Core principles bar -->
+  <rect x="40" y="232" width="430" height="70" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="56" y="252" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Core principles</text>
+  <text x="56" y="270" font-family="sans-serif" font-size="10" fill="#5b6680">• Every open loop lives in the system, not your head</text>
+  <text x="56" y="285" font-family="sans-serif" font-size="10" fill="#5b6680">• Few capture buckets; empty them regularly</text>
+  <text x="56" y="300" font-family="sans-serif" font-size="10" fill="#5b6680">• If an action takes &lt; 2 minutes, do it now</text>
+
+  <text x="320" y="345" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">A clear mind concentrates on the right task at the right time</text>
+</svg>

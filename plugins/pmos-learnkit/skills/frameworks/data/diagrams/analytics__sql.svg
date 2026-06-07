@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SQL query structure diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">SQL</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">A query reads top-to-bottom: pick columns, narrow rows, group, sort, limit</text>
+
+  <!-- Clause ladder -->
+  <g font-family="sans-serif">
+    <!-- SELECT -->
+    <rect x="24" y="76" width="380" height="40" rx="6" fill="#2563eb"/>
+    <text x="38" y="101" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">SELECT</text>
+    <text x="130" y="101" font-size="11" fill="#ffffff">which columns to return</text>
+    <text x="416" y="101" font-size="11" fill="#5b6680">Get data</text>
+
+    <!-- FROM -->
+    <rect x="24" y="120" width="380" height="40" rx="6" fill="#3f78ec"/>
+    <text x="38" y="145" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">FROM</text>
+    <text x="130" y="145" font-size="11" fill="#ffffff">which table(s) &#8212; JOIN to combine</text>
+    <text x="416" y="145" font-size="11" fill="#5b6680">Source</text>
+
+    <!-- WHERE -->
+    <rect x="24" y="164" width="380" height="40" rx="6" fill="#0ea5a4"/>
+    <text x="38" y="189" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">WHERE</text>
+    <text x="130" y="189" font-size="11" fill="#ffffff">filter rows &#160;(AND / OR)</text>
+    <text x="416" y="189" font-size="11" fill="#5b6680">Filter</text>
+
+    <!-- GROUP BY -->
+    <rect x="24" y="208" width="380" height="40" rx="6" fill="#0ea5a4" opacity="0.85"/>
+    <text x="38" y="233" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">GROUP BY</text>
+    <text x="150" y="233" font-size="11" fill="#ffffff">bucket rows + aggregate</text>
+    <text x="416" y="233" font-size="11" fill="#5b6680">SUM COUNT AVG</text>
+
+    <!-- ORDER BY -->
+    <rect x="24" y="252" width="380" height="40" rx="6" fill="#f59e0b"/>
+    <text x="38" y="277" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">ORDER BY</text>
+    <text x="150" y="277" font-size="11" fill="#ffffff">sort the result</text>
+    <text x="416" y="277" font-size="11" fill="#5b6680">Sort</text>
+
+    <!-- LIMIT -->
+    <rect x="24" y="296" width="380" height="40" rx="6" fill="#f59e0b" opacity="0.8"/>
+    <text x="38" y="321" font-size="14" font-weight="700" font-family="monospace" fill="#ffffff">LIMIT</text>
+    <text x="130" y="321" font-size="11" fill="#ffffff">cap rows returned</text>
+    <text x="416" y="321" font-size="11" fill="#5b6680">Trim</text>
+  </g>
+
+  <!-- flow arrow down -->
+  <line x1="500" y1="86" x2="500" y2="326" stroke="#c5d6f9" stroke-width="2"/>
+  <text x="510" y="200" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(90 510 200)" text-anchor="middle">execution flow</text>
+
+  <!-- JOIN mini-venn -->
+  <text x="540" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">JOIN</text>
+  <circle cx="525" cy="120" r="22" fill="#2563eb" opacity="0.35" stroke="#2563eb"/>
+  <circle cx="555" cy="120" r="22" fill="#0ea5a4" opacity="0.35" stroke="#0ea5a4"/>
+  <text x="540" y="160" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">combine tables</text>
+
+  <!-- window function note -->
+  <text x="540" y="230" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">Window fn</text>
+  <text x="540" y="248" font-family="monospace" font-size="8" fill="#5b6680" text-anchor="middle">fn() OVER</text>
+  <text x="540" y="260" font-family="monospace" font-size="8" fill="#5b6680" text-anchor="middle">(PARTITION BY</text>
+  <text x="540" y="272" font-family="monospace" font-size="8" fill="#5b6680" text-anchor="middle">ORDER BY)</text>
+  <text x="540" y="290" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">per-group calcs</text>
+
+  <text x="24" y="362" font-family="sans-serif" font-size="11" fill="#5b6680">CRUD on relational data; PMs mostly run SELECT to analyze product &amp; feature metrics.</text>
+</svg>

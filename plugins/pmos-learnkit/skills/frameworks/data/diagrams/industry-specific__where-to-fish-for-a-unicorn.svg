@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Where to Fish For a Unicorn diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Where to Fish For a Unicorn</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">B2B SaaS workflows by frequency × breadth — Oji Udezue</text>
+
+  <!-- axis labels -->
+  <text x="330" y="384" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Breadth of applicability</text>
+  <text x="148" y="370" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Niche (a dept)</text>
+  <text x="512" y="370" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Everyone</text>
+
+  <text x="22" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438" transform="rotate(-90 22 208)">Frequency / intensity</text>
+  <text x="46" y="120" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" transform="rotate(-90 46 120)">High</text>
+  <text x="46" y="300" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" transform="rotate(-90 46 300)">Low</text>
+
+  <!-- top-left: HiNi -->
+  <rect x="64" y="64" width="246" height="142" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="187" y="90" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">HiNi — High / Niche</text>
+  <text x="187" y="110" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">One dept, used intensely</text>
+  <text x="187" y="135" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Support, CS, eng, PM,</text>
+  <text x="187" y="151" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">marketing, inside sales</text>
+  <text x="187" y="184" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">Easy to start — then migrate up</text>
+
+  <!-- top-right: HiEv (best) -->
+  <rect x="310" y="64" width="246" height="142" fill="#f4f7ff" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="433" y="90" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">HiEv — High / Everyone</text>
+  <text x="540" y="80" text-anchor="end" font-family="sans-serif" font-size="10" font-weight="700" fill="#2563eb">★ most lucrative</text>
+  <text x="433" y="110" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Used by almost everyone</text>
+  <text x="433" y="135" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Comms, calendaring,</text>
+  <text x="433" y="151" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">writing, calling, meetings</text>
+  <text x="433" y="184" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">Capital-intensive, biggest moat</text>
+
+  <!-- bottom-left: LiNi -->
+  <rect x="64" y="206" width="246" height="142" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <text x="187" y="232" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">LiNi — Low / Niche</text>
+  <text x="187" y="252" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">One role, 1–2× a month</text>
+  <text x="187" y="277" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Surveys, auditing,</text>
+  <text x="187" y="293" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">archiving, help content</text>
+  <text x="187" y="326" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">Only wins with 5–10× efficiency</text>
+
+  <!-- bottom-right: LiEv -->
+  <rect x="310" y="206" width="246" height="142" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <text x="433" y="232" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">LiEv — Low / Everyone</text>
+  <text x="433" y="252" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Everyone, every 2–4 weeks</text>
+  <text x="433" y="277" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Payroll, HR, expenses,</text>
+  <text x="433" y="293" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">travel &amp; logistics</text>
+  <text x="433" y="326" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">Great if you can dominate it</text>
+
+  <!-- direction-of-travel arrow -->
+  <defs>
+    <marker id="fishArr" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <path d="M250 196 Q320 150 380 134" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#fishArr)"/>
+</svg>

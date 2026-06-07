@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Moat Map diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Moat Map</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Structural barriers to entry, organized by four basic sources of power</text>
+
+  <!-- Quadrant grid of the four sources -->
+  <!-- State Granted -->
+  <rect x="32" y="84" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="50" y="110" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">1 · State Granted</text>
+  <text x="50" y="134" font-family="sans-serif" font-size="11.5" fill="#1d2438">Government protection limits rivals</text>
+  <text x="50" y="152" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Patents (university / tech)</text>
+  <text x="50" y="170" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Licensing &amp; regulation</text>
+  <text x="50" y="188" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Tariffs, granted asset access</text>
+
+  <!-- Special Know-How -->
+  <rect x="328" y="84" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="346" y="110" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">2 · Special Know-How</text>
+  <text x="346" y="134" font-family="sans-serif" font-size="11.5" fill="#1d2438">Exclusive, hard-to-transfer knowledge</text>
+  <text x="346" y="152" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Proprietary trading algorithms</text>
+  <text x="346" y="170" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Secret recipes (KFC, Coca-Cola)</text>
+  <text x="346" y="188" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Tacit process / org routines</text>
+
+  <!-- Scale -->
+  <rect x="32" y="234" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="50" y="260" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">3 · Scale</text>
+  <text x="50" y="284" font-family="sans-serif" font-size="11.5" fill="#1d2438">Returns to scale lower cost &amp; risk</text>
+  <text x="50" y="302" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Economies of scale, lower unit cost</text>
+  <text x="50" y="320" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Supplier bargaining power</text>
+  <text x="50" y="338" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Network effects, lower variance</text>
+
+  <!-- System Rigidity -->
+  <rect x="328" y="234" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <text x="346" y="260" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">4 · System Rigidity</text>
+  <text x="346" y="284" font-family="sans-serif" font-size="11.5" fill="#1d2438">Status quo is hard to change</text>
+  <text x="346" y="302" font-family="sans-serif" font-size="11.5" fill="#1d2438">• High switching costs</text>
+  <text x="346" y="320" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Tight networks &amp; complements</text>
+  <text x="346" y="338" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Societal beliefs, lock-in</text>
+</svg>

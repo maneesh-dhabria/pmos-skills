@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Weighted Average Scorecard diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Weighted Average Scorecard</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Score features against weighted themes, then rank by weighted average</text>
+
+  <!-- Theme header weights row -->
+  <text x="40" y="92" font-family="sans-serif" font-size="11" fill="#5b6680">Feature</text>
+
+  <!-- Theme columns headers with weight -->
+  <g font-family="sans-serif" text-anchor="middle">
+    <rect x="200" y="76" width="110" height="22" rx="4" fill="#eaf0ff"/>
+    <text x="255" y="91" font-size="11" font-weight="600" fill="#2563eb">Growth  w=0.5</text>
+    <rect x="318" y="76" width="110" height="22" rx="4" fill="#e7faf9"/>
+    <text x="373" y="91" font-size="11" font-weight="600" fill="#0ea5a4">Retention w=0.3</text>
+    <rect x="436" y="76" width="100" height="22" rx="4" fill="#fef5e7"/>
+    <text x="486" y="91" font-size="11" font-weight="600" fill="#f59e0b">Cost  w=0.2</text>
+    <rect x="544" y="76" width="72" height="22" rx="4" fill="#1d2438"/>
+    <text x="580" y="91" font-size="11" font-weight="700" fill="#ffffff">Score</text>
+  </g>
+
+  <!-- Rows -->
+  <g font-family="sans-serif" font-size="13" fill="#1d2438" text-anchor="middle">
+    <!-- Row A -->
+    <text x="40" y="135" font-size="12" text-anchor="start" font-weight="600">Feature A</text>
+    <rect x="200" y="118" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="255" y="138">80</text>
+    <rect x="318" y="118" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="373" y="138">60</text>
+    <rect x="436" y="118" width="100" height="30" rx="4" fill="#f4f7ff"/><text x="486" y="138">40</text>
+    <rect x="544" y="118" width="72" height="30" rx="4" fill="#2563eb"/><text x="580" y="138" fill="#ffffff" font-weight="700">66</text>
+
+    <!-- Row B -->
+    <text x="40" y="183" font-size="12" text-anchor="start" font-weight="600">Feature B</text>
+    <rect x="200" y="166" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="255" y="186">50</text>
+    <rect x="318" y="166" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="373" y="186">90</text>
+    <rect x="436" y="166" width="100" height="30" rx="4" fill="#f4f7ff"/><text x="486" y="186">70</text>
+    <rect x="544" y="166" width="72" height="30" rx="4" fill="#0ea5a4"/><text x="580" y="186" fill="#ffffff" font-weight="700">66</text>
+
+    <!-- Row C -->
+    <text x="40" y="231" font-size="12" text-anchor="start" font-weight="600">Feature C</text>
+    <rect x="200" y="214" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="255" y="234">30</text>
+    <rect x="318" y="214" width="110" height="30" rx="4" fill="#f4f7ff"/><text x="373" y="234">40</text>
+    <rect x="436" y="214" width="100" height="30" rx="4" fill="#f4f7ff"/><text x="486" y="234">90</text>
+    <rect x="544" y="214" width="72" height="30" rx="4" fill="#9aa7c2"/><text x="580" y="234" fill="#ffffff" font-weight="700">45</text>
+  </g>
+
+  <!-- Formula band -->
+  <rect x="40" y="276" width="560" height="44" rx="8" fill="#f4f7ff" stroke="#dbe3f5"/>
+  <text x="60" y="303" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Score = &#931; (weight &#215; theme score)</text>
+  <text x="60" y="313" font-family="sans-serif" font-size="0" fill="#1d2438"> </text>
+  <text x="360" y="303" font-family="sans-serif" font-size="12" fill="#5b6680">A: .5&#215;80 + .3&#215;60 + .2&#215;40 = 66</text>
+
+  <!-- Ranking strip -->
+  <text x="40" y="352" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">Rank by score &#8594;</text>
+  <g font-family="sans-serif" font-size="12" font-weight="700">
+    <rect x="160" y="338" width="120" height="26" rx="13" fill="#2563eb"/><text x="220" y="355" fill="#ffffff" text-anchor="middle">1. A &#183; 66</text>
+    <rect x="296" y="338" width="120" height="26" rx="13" fill="#0ea5a4"/><text x="356" y="355" fill="#ffffff" text-anchor="middle">2. B &#183; 66</text>
+    <rect x="432" y="338" width="120" height="26" rx="13" fill="#9aa7c2"/><text x="492" y="355" fill="#ffffff" text-anchor="middle">3. C &#183; 45</text>
+  </g>
+</svg>

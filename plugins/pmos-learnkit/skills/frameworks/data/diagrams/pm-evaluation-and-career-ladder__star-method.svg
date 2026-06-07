@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="STAR Method diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">STAR Method</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Structure behavioral-interview answers as a story: Situation → Task → Action → Result (+ Learnings)</text>
+
+  <!-- 4 sequential blocks + bonus -->
+  <g font-family="sans-serif">
+    <!-- S -->
+    <rect x="24" y="80" width="290" height="92" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.4"/>
+    <circle cx="58" cy="126" r="22" fill="#2563eb"/><text x="58" y="133" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">S</text>
+    <text x="92" y="108" font-size="14" font-weight="700" fill="#1d2438">Situation</text>
+    <text x="92" y="130" font-size="10.5" fill="#5b6680">Set the scene — the specific</text>
+    <text x="92" y="146" font-size="10.5" fill="#5b6680">challenge and enough context</text>
+    <text x="92" y="162" font-size="10.5" fill="#5b6680">to understand the background.</text>
+
+    <!-- T -->
+    <rect x="326" y="80" width="290" height="92" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.4"/>
+    <circle cx="360" cy="126" r="22" fill="#0ea5a4"/><text x="360" y="133" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">T</text>
+    <text x="394" y="108" font-size="14" font-weight="700" fill="#1d2438">Task</text>
+    <text x="394" y="130" font-size="10.5" fill="#5b6680">The objective you owned —</text>
+    <text x="394" y="146" font-size="10.5" fill="#5b6680">clarify your role and</text>
+    <text x="394" y="162" font-size="10.5" fill="#5b6680">responsibilities.</text>
+
+    <!-- A -->
+    <rect x="24" y="200" width="290" height="92" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.4"/>
+    <circle cx="58" cy="246" r="22" fill="#f59e0b"/><text x="58" y="253" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">A</text>
+    <text x="92" y="228" font-size="14" font-weight="700" fill="#1d2438">Action</text>
+    <text x="92" y="250" font-size="10.5" fill="#5b6680">The steps you took and the</text>
+    <text x="92" y="266" font-size="10.5" fill="#5b6680">thinking behind your</text>
+    <text x="92" y="282" font-size="10.5" fill="#5b6680">decisions.</text>
+
+    <!-- R -->
+    <rect x="326" y="200" width="290" height="92" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="360" cy="246" r="22" fill="#ef4444"/><text x="360" y="253" text-anchor="middle" font-size="22" font-weight="700" fill="#ffffff">R</text>
+    <text x="394" y="228" font-size="14" font-weight="700" fill="#1d2438">Result</text>
+    <text x="394" y="250" font-size="10.5" fill="#5b6680">The outcome — quantify it,</text>
+    <text x="394" y="266" font-size="10.5" fill="#5b6680">explain the impact of your</text>
+    <text x="394" y="282" font-size="10.5" fill="#5b6680">actions.</text>
+
+    <!-- flow arrows S->T->A->R -->
+    <path d="M314 126 L326 126" stroke="#1d2438" stroke-width="1.5" marker-end="url(#tar)"/>
+    <path d="M462 172 C462 188, 200 188, 200 200" fill="none" stroke="#1d2438" stroke-width="1.5" marker-end="url(#tar)"/>
+    <path d="M314 246 L326 246" stroke="#1d2438" stroke-width="1.5" marker-end="url(#tar)"/>
+
+    <!-- Bonus: Learnings -->
+    <rect x="24" y="318" width="592" height="56" rx="8" fill="#1d2438"/>
+    <text x="44" y="342" font-size="13" font-weight="700" fill="#ffffff">+ Learnings <tspan font-weight="400" fill="#9aa6c0">(bonus)</tspan></text>
+    <text x="44" y="362" font-size="10.5" fill="#c9d4ea">What you took from the situation and applied in future — turns a story into demonstrated growth.</text>
+  </g>
+
+  <defs>
+    <marker id="tar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#1d2438"/></marker>
+  </defs>
+</svg>

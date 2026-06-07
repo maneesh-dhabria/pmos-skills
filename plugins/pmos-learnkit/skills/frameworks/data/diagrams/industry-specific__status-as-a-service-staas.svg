@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Status as a Service diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Status as a Service (StaaS)</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Proof of Work defines the scoreboard — Eugene Wei</text>
+
+  <defs>
+    <marker id="arr2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <!-- central Proof of Work -->
+  <circle cx="180" cy="220" r="74" fill="#f4f7ff" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="180" y="206" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Proof of Work</text>
+  <text x="180" y="228" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">enforces scarcity</text>
+  <text x="180" y="242" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">of status</text>
+
+  <!-- loop arrows around central -->
+  <path d="M180 134 A86 86 0 0 1 266 220" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr2)"/>
+  <path d="M266 220 A86 86 0 0 1 180 306" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr2)"/>
+  <path d="M180 306 A86 86 0 0 1 94 220" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr2)"/>
+  <path d="M94 220 A86 86 0 0 1 180 134" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr2)"/>
+
+  <text x="180" y="118" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">post effort</text>
+  <text x="300" y="224" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">earn status</text>
+  <text x="180" y="332" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">chase higher ROI</text>
+  <text x="58" y="224" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">climb ladder</text>
+
+  <!-- right column: three dimensions of advantage -->
+  <text x="350" y="92" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">Three dimensions of advantage</text>
+  <rect x="350" y="104" width="258" height="34" rx="7" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="364" y="125" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Social capital</text>
+  <text x="490" y="125" font-family="sans-serif" font-size="10.5" fill="#5b6680">status &amp; the graph</text>
+  <rect x="350" y="144" width="258" height="34" rx="7" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="364" y="165" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">Utility</text>
+  <text x="490" y="165" font-family="sans-serif" font-size="10.5" fill="#5b6680">does it get a job done</text>
+  <rect x="350" y="184" width="258" height="34" rx="7" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="364" y="205" font-family="sans-serif" font-size="12" font-weight="700" fill="#ef4444">Entertainment</text>
+  <text x="490" y="205" font-family="sans-serif" font-size="10.5" fill="#5b6680">is it fun to consume</text>
+
+  <!-- design rules -->
+  <text x="350" y="248" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">What makes the game durable</text>
+  <circle cx="358" cy="266" r="2.5" fill="#5b6680"/>
+  <text x="368" y="270" font-family="sans-serif" font-size="11" fill="#5b6680">Hard-to-fake PoW (the skill, not a filter)</text>
+  <circle cx="358" cy="288" r="2.5" fill="#5b6680"/>
+  <text x="368" y="292" font-family="sans-serif" font-size="11" fill="#5b6680">Reward new &amp; skilled users, not just veterans</text>
+  <circle cx="358" cy="310" r="2.5" fill="#5b6680"/>
+  <text x="368" y="314" font-family="sans-serif" font-size="11" fill="#5b6680">Copying PoW fails — token needs a real graph</text>
+  <circle cx="358" cy="332" r="2.5" fill="#5b6680"/>
+  <text x="368" y="336" font-family="sans-serif" font-size="11" fill="#5b6680">Adopted first by the young (time-rich, status-poor)</text>
+
+  <text x="180" y="374" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">People are status-seeking, ROI-sensitive monkeys</text>
+</svg>

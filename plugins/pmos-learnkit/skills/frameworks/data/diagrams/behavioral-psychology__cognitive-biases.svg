@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Cognitive Biases diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Cognitive Biases</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">~180 mental shortcuts cluster around four problems the brain is solving.</text>
+
+  <!-- Q1 Information -->
+  <g>
+    <rect x="32" y="76" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="48" y="98" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Information</text>
+    <text x="48" y="113" font-family="sans-serif" font-size="10" fill="#5b6680">Too much — what do we filter?</text>
+    <text x="48" y="134" font-family="sans-serif" font-size="11" fill="#1d2438">Anchoring · Framing Effect</text>
+    <text x="48" y="151" font-family="sans-serif" font-size="11" fill="#1d2438">Confirmation Bias</text>
+    <text x="48" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">Availability Heuristic</text>
+    <text x="48" y="185" font-family="sans-serif" font-size="11" fill="#1d2438">Negativity · Von Restorff</text>
+    <text x="48" y="202" font-family="sans-serif" font-size="11" fill="#1d2438">Frequency Illusion</text>
+  </g>
+
+  <!-- Q2 Meaning -->
+  <g>
+    <rect x="328" y="76" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="344" y="98" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Meaning</text>
+    <text x="344" y="113" font-family="sans-serif" font-size="10" fill="#5b6680">Not enough — we fill the gaps</text>
+    <text x="344" y="134" font-family="sans-serif" font-size="11" fill="#1d2438">Halo Effect · Authority Bias</text>
+    <text x="344" y="151" font-family="sans-serif" font-size="11" fill="#1d2438">Bandwagon · Survivorship</text>
+    <text x="344" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">Hindsight · Planning Fallacy</text>
+    <text x="344" y="185" font-family="sans-serif" font-size="11" fill="#1d2438">Curse of Knowledge</text>
+    <text x="344" y="202" font-family="sans-serif" font-size="11" fill="#1d2438">Gambler's Fallacy</text>
+  </g>
+
+  <!-- Q3 Speed -->
+  <g>
+    <rect x="32" y="226" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="48" y="248" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Speed</text>
+    <text x="48" y="263" font-family="sans-serif" font-size="10" fill="#5b6680">Must act fast — quick judgments</text>
+    <text x="48" y="284" font-family="sans-serif" font-size="11" fill="#1d2438">Sunk Cost · Loss Aversion</text>
+    <text x="48" y="301" font-family="sans-serif" font-size="11" fill="#1d2438">Endowment · Decoy Effect</text>
+    <text x="48" y="318" font-family="sans-serif" font-size="11" fill="#1d2438">Dunning-Kruger</text>
+    <text x="48" y="335" font-family="sans-serif" font-size="11" fill="#1d2438">Hyperbolic Discounting</text>
+    <text x="48" y="352" font-family="sans-serif" font-size="11" fill="#1d2438">Social Desirability</text>
+  </g>
+
+  <!-- Q4 Memory -->
+  <g>
+    <rect x="328" y="226" width="280" height="138" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <text x="344" y="248" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444">Memory</text>
+    <text x="344" y="263" font-family="sans-serif" font-size="10" fill="#5b6680">Can't store all — what we keep</text>
+    <text x="344" y="284" font-family="sans-serif" font-size="11" fill="#1d2438">Peak-End Rule</text>
+    <text x="344" y="301" font-family="sans-serif" font-size="11" fill="#1d2438">Primacy · Recency Effect</text>
+    <text x="344" y="318" font-family="sans-serif" font-size="11" fill="#1d2438">Spacing Effect</text>
+    <text x="344" y="335" font-family="sans-serif" font-size="11" fill="#1d2438">Suggestibility</text>
+  </g>
+
+  <text x="320" y="386" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Systematic errors from rules-of-thumb the brain uses to interpret information efficiently.</text>
+</svg>

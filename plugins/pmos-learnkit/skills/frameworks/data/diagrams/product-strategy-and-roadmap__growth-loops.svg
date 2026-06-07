@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Growth Loops diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <defs>
+    <marker id="arw" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1d2438">Growth Loops</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">One cohort's output is reinvested to acquire the next</text>
+
+  <!-- the self-reinforcing loop, 4 nodes in a circle -->
+  <g font-family="sans-serif">
+    <!-- center label -->
+    <circle cx="200" cy="225" r="52" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="200" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#1d2438">Growth</text>
+    <text x="200" y="236" text-anchor="middle" font-size="12" font-weight="700" fill="#1d2438">loop</text>
+
+    <!-- nodes -->
+    <g>
+      <rect x="150" y="108" width="100" height="34" rx="7" fill="#2563eb"/>
+      <text x="200" y="129" text-anchor="middle" font-size="11" font-weight="600" fill="#ffffff">New users sign up</text>
+    </g>
+    <g>
+      <rect x="290" y="195" width="100" height="34" rx="7" fill="#0ea5a4"/>
+      <text x="340" y="210" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">Use &amp; create</text>
+      <text x="340" y="222" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">value</text>
+    </g>
+    <g>
+      <rect x="150" y="308" width="100" height="34" rx="7" fill="#f59e0b"/>
+      <text x="200" y="323" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">Output: referral,</text>
+      <text x="200" y="335" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">content, revenue</text>
+    </g>
+    <g>
+      <rect x="10" y="195" width="100" height="34" rx="7" fill="#2563eb"/>
+      <text x="60" y="210" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">Reinvested to</text>
+      <text x="60" y="222" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffffff">attract more</text>
+    </g>
+
+    <!-- clockwise arrows around the loop -->
+    <path d="M252 132 Q300 150 330 192" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arw)"/>
+    <path d="M338 231 Q310 290 252 318" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arw)"/>
+    <path d="M148 322 Q92 290 62 231" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arw)"/>
+    <path d="M62 193 Q92 150 148 130" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arw)"/>
+  </g>
+
+  <!-- right panel: two objectives + 4 acquisition types -->
+  <g font-family="sans-serif">
+    <line x1="420" y1="80" x2="420" y2="360" stroke="#dbe2f0" stroke-width="1"/>
+    <text x="438" y="96" font-size="12" font-weight="700" fill="#1d2438">Two loop objectives</text>
+    <rect x="438" y="106" width="184" height="22" rx="5" fill="#eaf0ff"/>
+    <text x="448" y="121" font-size="10.5" fill="#1d2438"><tspan font-weight="700" fill="#2563eb">Acquisition</tspan>  →  bring new cohorts</text>
+    <rect x="438" y="132" width="184" height="22" rx="5" fill="#e7f6f5"/>
+    <text x="448" y="147" font-size="10.5" fill="#1d2438"><tspan font-weight="700" fill="#0ea5a4">Engagement</tspan>  →  retain &amp; re-refer</text>
+    <text x="438" y="168" font-size="9" fill="#5b6680" font-style="italic">Linked: engaged users re-enter acquisition</text>
+
+    <text x="438" y="196" font-size="12" font-weight="700" fill="#1d2438">4 acquisition loops</text>
+    <g font-size="10.5" fill="#1d2438">
+      <circle cx="444" cy="214" r="3" fill="#f59e0b"/>
+      <text x="454" y="217"><tspan font-weight="700">Viral</tspan> — invite friends (LinkedIn)</text>
+      <circle cx="444" cy="236" r="3" fill="#f59e0b"/>
+      <text x="454" y="239"><tspan font-weight="700">UGC</tspan> — content draws users (TikTok)</text>
+      <circle cx="444" cy="258" r="3" fill="#f59e0b"/>
+      <text x="454" y="261"><tspan font-weight="700">Paid</tspan> — revenue buys more users</text>
+      <circle cx="444" cy="280" r="3" fill="#f59e0b"/>
+      <text x="454" y="283"><tspan font-weight="700">Sales</tspan> — purchases fund acquisition</text>
+    </g>
+  </g>
+</svg>

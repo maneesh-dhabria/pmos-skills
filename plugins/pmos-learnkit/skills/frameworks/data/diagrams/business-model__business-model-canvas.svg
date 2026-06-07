@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Business Model Canvas diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="26" font-family="sans-serif" font-size="18" font-weight="700" fill="#1d2438">Business Model Canvas</text>
+  <text x="20" y="44" font-family="sans-serif" font-size="11" fill="#5b6680">Nine blocks describing how a business creates, delivers &amp; captures value</text>
+
+  <!-- Grid geometry: x 20..620 (width 600), top row y=56..196 (h140) split into 5 cols; bottom row y=200..300 cost/revenue -->
+  <g font-family="sans-serif">
+    <!-- Top band: 5 columns of value-creation. Some span 2 rows. -->
+    <!-- Key Partners (full height) -->
+    <rect x="20" y="56" width="116" height="244" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+    <text x="28" y="74" font-size="11" font-weight="700" fill="#2563eb">Key Partners</text>
+    <text x="28" y="92" font-size="9.5" fill="#5b6680">Suppliers, alliances,</text>
+    <text x="28" y="105" font-size="9.5" fill="#5b6680">joint ventures that</text>
+    <text x="28" y="118" font-size="9.5" fill="#5b6680">extend reach.</text>
+
+    <!-- Key Activities (top) -->
+    <rect x="140" y="56" width="116" height="120" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+    <text x="148" y="74" font-size="11" font-weight="700" fill="#0ea5a4">Key Activities</text>
+    <text x="148" y="92" font-size="9.5" fill="#5b6680">Production, marketing,</text>
+    <text x="148" y="105" font-size="9.5" fill="#5b6680">distribution, support.</text>
+
+    <!-- Key Resources (below activities) -->
+    <rect x="140" y="180" width="116" height="120" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+    <text x="148" y="198" font-size="11" font-weight="700" fill="#0ea5a4">Key Resources</text>
+    <text x="148" y="216" font-size="9.5" fill="#5b6680">People, IP, physical &amp;</text>
+    <text x="148" y="229" font-size="9.5" fill="#5b6680">financial assets.</text>
+
+    <!-- Value Proposition (full height, accent) -->
+    <rect x="260" y="56" width="116" height="244" rx="6" fill="#2563eb" stroke="#2563eb" stroke-width="1.2"/>
+    <text x="268" y="74" font-size="11" font-weight="700" fill="#ffffff">Value Proposition</text>
+    <text x="268" y="92" font-size="9.5" fill="#dbe6ff">The unique value /</text>
+    <text x="268" y="105" font-size="9.5" fill="#dbe6ff">product solving the</text>
+    <text x="268" y="118" font-size="9.5" fill="#dbe6ff">customer's need.</text>
+
+    <!-- Customer Relationships (top) -->
+    <rect x="380" y="56" width="116" height="120" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="388" y="74" font-size="11" font-weight="700" fill="#f59e0b">Cust. Relationships</text>
+    <text x="388" y="92" font-size="9.5" fill="#5b6680">Personal assistance</text>
+    <text x="388" y="105" font-size="9.5" fill="#5b6680">to self-service.</text>
+
+    <!-- Channels (below relationships) -->
+    <rect x="380" y="180" width="116" height="120" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="388" y="198" font-size="11" font-weight="700" fill="#f59e0b">Channels</text>
+    <text x="388" y="216" font-size="9.5" fill="#5b6680">How value reaches</text>
+    <text x="388" y="229" font-size="9.5" fill="#5b6680">customers.</text>
+
+    <!-- Customer Segments (full height) -->
+    <rect x="500" y="56" width="120" height="244" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.2"/>
+    <text x="508" y="74" font-size="11" font-weight="700" fill="#ef4444">Customer Segments</text>
+    <text x="508" y="92" font-size="9.5" fill="#5b6680">Who you serve;</text>
+    <text x="508" y="105" font-size="9.5" fill="#5b6680">their needs &amp;</text>
+    <text x="508" y="118" font-size="9.5" fill="#5b6680">preferences.</text>
+
+    <!-- Bottom band: Cost Structure | Revenue Streams -->
+    <rect x="20" y="306" width="296" height="78" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.2"/>
+    <text x="28" y="324" font-size="11" font-weight="700" fill="#1d2438">Cost Structure</text>
+    <text x="28" y="342" font-size="9.5" fill="#5b6680">Fixed + variable costs to run the model —</text>
+    <text x="28" y="355" font-size="9.5" fill="#5b6680">production, salaries, marketing, overhead.</text>
+
+    <rect x="324" y="306" width="296" height="78" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+    <text x="332" y="324" font-size="11" font-weight="700" fill="#0ea5a4">Revenue Streams</text>
+    <text x="332" y="342" font-size="9.5" fill="#5b6680">How income is captured — sales,</text>
+    <text x="332" y="355" font-size="9.5" fill="#5b6680">subscriptions, licensing, advertising.</text>
+  </g>
+</svg>

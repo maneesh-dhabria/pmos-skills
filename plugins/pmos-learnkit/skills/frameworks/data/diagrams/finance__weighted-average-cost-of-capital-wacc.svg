@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Weighted Average Cost of Capital (WACC) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Weighted Average Cost of Capital (WACC)</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Blend the cost of equity and debt by market-value weight → the hurdle rate</text>
+
+  <!-- Equity source -->
+  <rect x="32" y="92" width="250" height="86" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="116" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Equity (E)</text>
+  <text x="48" y="138" font-family="sans-serif" font-size="12" fill="#1d2438">Weight E/V = 0.67</text>
+  <text x="48" y="156" font-family="sans-serif" font-size="12" fill="#1d2438">Cost Ke = 10%</text>
+  <text x="48" y="172" font-family="sans-serif" font-size="12" fill="#5b6680">0.67 × 10% = 6.70%</text>
+
+  <!-- Debt source -->
+  <rect x="32" y="190" width="250" height="100" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="48" y="214" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Debt (D)</text>
+  <text x="48" y="236" font-family="sans-serif" font-size="12" fill="#1d2438">Weight D/V = 0.33</text>
+  <text x="48" y="254" font-family="sans-serif" font-size="12" fill="#1d2438">Cost Kd = 5%  ×  (1 − Tax 30%)</text>
+  <text x="48" y="272" font-family="sans-serif" font-size="12" fill="#5b6680">0.33 × 5% × 0.70 = 1.155%</text>
+
+  <!-- plus -->
+  <text x="296" y="200" font-family="sans-serif" font-size="28" font-weight="700" fill="#5b6680">+</text>
+
+  <!-- arrow to result -->
+  <line x1="318" y1="192" x2="372" y2="192" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="372,186 384,192 372,198" fill="#5b6680"/>
+
+  <!-- Gauge / hurdle result -->
+  <rect x="392" y="92" width="216" height="198" rx="12" fill="#1d2438"/>
+  <text x="500" y="124" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">WACC = HURDLE RATE</text>
+
+  <!-- gauge arc -->
+  <path d="M 430 232 A 70 70 0 0 1 570 232" fill="none" stroke="#5b6680" stroke-width="10" stroke-linecap="round"/>
+  <path d="M 430 232 A 70 70 0 0 1 520 167" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round"/>
+  <!-- needle -->
+  <line x1="500" y1="232" x2="513" y2="172" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="500" cy="232" r="6" fill="#ffffff"/>
+
+  <text x="500" y="262" font-family="sans-serif" font-size="26" font-weight="700" fill="#f59e0b" text-anchor="middle">7.855%</text>
+  <text x="500" y="282" font-family="sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">min return to satisfy investors</text>
+
+  <!-- formula footer -->
+  <rect x="32" y="312" width="576" height="56" rx="10" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="320" y="338" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438" text-anchor="middle">WACC = (E/V × Ke) + (D/V × Kd × (1 − Tax))</text>
+  <text x="320" y="358" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Projects must clear this rate to be worth funding</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="LNO Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">LNO Framework</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Match effort to expected return — not all tasks are equal</text>
+
+  <!-- column header -->
+  <text x="295" y="82" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#5b6680">RETURN ON EFFORT</text>
+  <text x="560" y="82" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#5b6680">HOW WELL TO DO IT</text>
+
+  <!-- Leverage row -->
+  <rect x="40" y="92" width="240" height="80" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="74" cy="132" r="18" fill="#2563eb"/>
+  <text x="74" y="138" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">L</text>
+  <text x="104" y="124" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Leverage</text>
+  <text x="104" y="144" font-family="sans-serif" font-size="10" fill="#5b6680">Most important tasks</text>
+  <text x="104" y="158" font-family="sans-serif" font-size="10" fill="#5b6680">(may not be urgent)</text>
+  <rect x="295" y="100" width="180" height="64" rx="6" fill="#2563eb"/>
+  <text x="385" y="128" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">10x+ return</text>
+  <text x="385" y="148" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dbe6ff">for the effort invested</text>
+  <rect x="490" y="100" width="110" height="64" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="545" y="128" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Do a</text>
+  <text x="545" y="146" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">great job</text>
+
+  <!-- Neutral row -->
+  <rect x="40" y="182" width="240" height="80" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="74" cy="222" r="18" fill="#0ea5a4"/>
+  <text x="74" y="228" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">N</text>
+  <text x="104" y="214" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Neutral</text>
+  <text x="104" y="234" font-family="sans-serif" font-size="10" fill="#5b6680">Returns roughly match</text>
+  <text x="104" y="248" font-family="sans-serif" font-size="10" fill="#5b6680">the effort you put in</text>
+  <rect x="295" y="190" width="140" height="64" rx="6" fill="#0ea5a4"/>
+  <text x="365" y="218" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">~1x return</text>
+  <text x="365" y="238" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#d3f4f3">a little more out</text>
+  <rect x="490" y="190" width="110" height="64" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="545" y="218" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Do a</text>
+  <text x="545" y="236" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">good job</text>
+
+  <!-- Overhead row -->
+  <rect x="40" y="272" width="240" height="80" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="74" cy="312" r="18" fill="#f59e0b"/>
+  <text x="74" y="318" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">O</text>
+  <text x="104" y="304" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Overhead</text>
+  <text x="104" y="324" font-family="sans-serif" font-size="10" fill="#5b6680">Returns much lower</text>
+  <text x="104" y="338" font-family="sans-serif" font-size="10" fill="#5b6680">than effort invested</text>
+  <rect x="295" y="280" width="100" height="64" rx="6" fill="#f59e0b"/>
+  <text x="345" y="308" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">&lt;1x</text>
+  <text x="345" y="328" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff3df">low return</text>
+  <rect x="490" y="280" width="110" height="64" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="545" y="308" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">Do an</text>
+  <text x="545" y="326" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">ok job</text>
+</svg>

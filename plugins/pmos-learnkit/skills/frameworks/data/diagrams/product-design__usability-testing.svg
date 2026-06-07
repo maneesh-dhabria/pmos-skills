@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Usability Testing diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Usability Testing</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Watch ~5 typical users do typical tasks to find the biggest usability problems</text>
+
+  <!-- Three-step process -->
+  <text x="24" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">THE METHOD — 3 STEPS</text>
+  <g font-family="sans-serif">
+    <rect x="24" y="90" width="186" height="58" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="40" y="114" font-size="13" font-weight="700" fill="#1d2438">1 · Find typical users</text>
+    <text x="40" y="133" font-size="10" fill="#5b6680">comparable to real users</text>
+
+    <rect x="227" y="90" width="186" height="58" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="243" y="114" font-size="13" font-weight="700" fill="#1d2438">2 · Typical tasks</text>
+    <text x="243" y="133" font-size="10" fill="#5b6680">representative of real use</text>
+
+    <rect x="430" y="90" width="186" height="58" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="446" y="114" font-size="13" font-weight="700" fill="#1d2438">3 · Watch &amp; stay quiet</text>
+    <text x="446" y="133" font-size="10" fill="#5b6680">think-aloud; note trouble</text>
+  </g>
+  <path d="M210 119 L227 119" stroke="#5b6680" stroke-width="1.5" marker-end="url(#u1)"/>
+  <path d="M413 119 L430 119" stroke="#5b6680" stroke-width="1.5" marker-end="url(#u1)"/>
+  <defs>
+    <marker id="u1" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- 5 quality components -->
+  <text x="24" y="184" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">USABILITY = 5 QUALITY COMPONENTS</text>
+  <g font-family="sans-serif">
+    <rect x="24" y="194" width="114" height="78" rx="8" fill="#2563eb"/>
+    <text x="81" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Learnability</text>
+    <text x="81" y="240" text-anchor="middle" font-size="9" fill="#dbe7ff">easy first time?</text>
+
+    <rect x="146" y="194" width="114" height="78" rx="8" fill="#0ea5a4"/>
+    <text x="203" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Efficiency</text>
+    <text x="203" y="240" text-anchor="middle" font-size="9" fill="#e6fffd">fast once learned?</text>
+
+    <rect x="268" y="194" width="114" height="78" rx="8" fill="#f59e0b"/>
+    <text x="325" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#1d2438">Memorability</text>
+    <text x="325" y="240" text-anchor="middle" font-size="9" fill="#3a2c08">easy to return to?</text>
+
+    <rect x="390" y="194" width="114" height="78" rx="8" fill="#ef4444"/>
+    <text x="447" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Errors</text>
+    <text x="447" y="240" text-anchor="middle" font-size="9" fill="#ffe3e3">few? recoverable?</text>
+
+    <rect x="512" y="194" width="104" height="78" rx="8" fill="#1d2438"/>
+    <text x="564" y="220" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">Satisfaction</text>
+    <text x="564" y="240" text-anchor="middle" font-size="9" fill="#cfd8ee">do they like it?</text>
+  </g>
+
+  <!-- 5 users insight -->
+  <rect x="24" y="296" width="350" height="88" rx="8" fill="#f4f7ff"/>
+  <text x="40" y="318" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">~5 users find the big problems</text>
+  <g>
+    <circle cx="46" cy="344" r="9" fill="#2563eb"/><circle cx="72" cy="344" r="9" fill="#2563eb"/>
+    <circle cx="98" cy="344" r="9" fill="#2563eb"/><circle cx="124" cy="344" r="9" fill="#2563eb"/>
+    <circle cx="150" cy="344" r="9" fill="#2563eb"/>
+  </g>
+  <text x="40" y="376" font-family="sans-serif" font-size="10" fill="#5b6680">Many small tests &gt; one big study — fix as you go.</text>
+
+  <rect x="386" y="296" width="230" height="88" rx="8" fill="#f4f7ff"/>
+  <text x="402" y="318" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Usability ≠ Utility</text>
+  <text x="402" y="340" font-family="sans-serif" font-size="10" fill="#5b6680">Usability: is it easy to use?</text>
+  <text x="402" y="358" font-family="sans-serif" font-size="10" fill="#5b6680">Utility: does it do what users need?</text>
+  <text x="402" y="376" font-family="sans-serif" font-size="10" fill="#5b6680">Both are needed to be useful.</text>
+</svg>

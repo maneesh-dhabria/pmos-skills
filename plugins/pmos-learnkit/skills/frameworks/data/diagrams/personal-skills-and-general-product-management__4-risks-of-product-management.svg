@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4 Risks of Product Management diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">4 Risks of Product Management</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Every product must clear four risks — each with a clear owner</text>
+
+  <!-- 2x2 quadrants -->
+  <!-- Value (top-left) -->
+  <rect x="40" y="70" width="280" height="130" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="58" y="98" font-family="sans-serif" font-size="16" font-weight="700" fill="#2563eb">Value risk</text>
+  <text x="58" y="120" font-family="sans-serif" font-size="11.5" fill="#1d2438">Will customers buy it /</text>
+  <text x="58" y="136" font-family="sans-serif" font-size="11.5" fill="#1d2438">users choose to use it?</text>
+  <rect x="58" y="156" width="150" height="26" rx="13" fill="#2563eb"/>
+  <text x="133" y="173" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Product Manager</text>
+
+  <!-- Usability (top-right) -->
+  <rect x="330" y="70" width="270" height="130" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="348" y="98" font-family="sans-serif" font-size="16" font-weight="700" fill="#0ea5a4">Usability risk</text>
+  <text x="348" y="120" font-family="sans-serif" font-size="11.5" fill="#1d2438">Can users figure out</text>
+  <text x="348" y="136" font-family="sans-serif" font-size="11.5" fill="#1d2438">how to use it?</text>
+  <rect x="348" y="156" width="150" height="26" rx="13" fill="#0ea5a4"/>
+  <text x="423" y="173" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Product Designer</text>
+
+  <!-- Feasibility (bottom-left) -->
+  <rect x="40" y="210" width="280" height="130" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="58" y="238" font-family="sans-serif" font-size="16" font-weight="700" fill="#f59e0b">Feasibility risk</text>
+  <text x="58" y="260" font-family="sans-serif" font-size="11.5" fill="#1d2438">Can engineers build it with</text>
+  <text x="58" y="276" font-family="sans-serif" font-size="11.5" fill="#1d2438">our time, skills &amp; tech?</text>
+  <rect x="58" y="296" width="170" height="26" rx="13" fill="#f59e0b"/>
+  <text x="143" y="313" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Lead Engineer</text>
+
+  <!-- Business viability (bottom-right) -->
+  <rect x="330" y="210" width="270" height="130" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="348" y="238" font-family="sans-serif" font-size="16" font-weight="700" fill="#ef4444">Business Viability risk</text>
+  <text x="348" y="260" font-family="sans-serif" font-size="11.5" fill="#1d2438">Does it also work across</text>
+  <text x="348" y="276" font-family="sans-serif" font-size="11.5" fill="#1d2438">our business (legal, sales…)?</text>
+  <rect x="348" y="296" width="150" height="26" rx="13" fill="#2563eb"/>
+  <text x="423" y="313" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Product Manager</text>
+
+  <text x="40" y="366" font-family="sans-serif" font-size="10.5" fill="#5b6680">PM owns value + viability and the product's outcomes · Designer owns the experience · Eng lead owns delivery.</text>
+  <text x="40" y="384" font-family="sans-serif" font-size="10" fill="#5b6680" font-style="italic">A bar fill on the owner pill = the same person (PM) carries two of the four risks.</text>
+</svg>

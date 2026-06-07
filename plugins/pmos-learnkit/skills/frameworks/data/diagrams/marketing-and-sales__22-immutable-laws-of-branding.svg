@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="22 Immutable Laws of Branding diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">22 Immutable Laws of Branding</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Grouped by theme — Al &amp; Laura Ries</text>
+
+  <!-- Column 1: Focus -->
+  <rect x="20" y="62" width="148" height="318" rx="9" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="94" y="84" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#2563eb">Focus &amp; scope</text>
+  <text x="32" y="110" font-family="sans-serif" font-size="9.6" fill="#1d2438">1 Expansion (dilutes)</text>
+  <text x="32" y="130" font-family="sans-serif" font-size="9.6" fill="#1d2438">2 Contraction (narrow)</text>
+  <text x="32" y="150" font-family="sans-serif" font-size="9.6" fill="#1d2438">8 Category (lead it)</text>
+  <text x="32" y="170" font-family="sans-serif" font-size="9.6" fill="#1d2438">10 Extensions (kill)</text>
+  <text x="32" y="190" font-family="sans-serif" font-size="9.6" fill="#1d2438">11 Fellowship</text>
+  <text x="32" y="210" font-family="sans-serif" font-size="9.6" fill="#1d2438">22 Singularity ★</text>
+
+  <!-- Column 2: Build & launch -->
+  <rect x="174" y="62" width="148" height="318" rx="9" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="248" y="84" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#0ea5a4">Build &amp; launch</text>
+  <text x="186" y="110" font-family="sans-serif" font-size="9.6" fill="#1d2438">3 Publicity (birth)</text>
+  <text x="186" y="130" font-family="sans-serif" font-size="9.6" fill="#1d2438">4 Advertising (sustain)</text>
+  <text x="186" y="150" font-family="sans-serif" font-size="9.6" fill="#1d2438">6 Credentials</text>
+  <text x="186" y="170" font-family="sans-serif" font-size="9.6" fill="#1d2438">7 Quality</text>
+  <text x="186" y="190" font-family="sans-serif" font-size="9.6" fill="#1d2438">13 Company ≠ brand</text>
+  <text x="186" y="210" font-family="sans-serif" font-size="9.6" fill="#1d2438">15 Siblings (timing)</text>
+  <text x="186" y="230" font-family="sans-serif" font-size="9.6" fill="#1d2438">18 Borders (global)</text>
+
+  <!-- Column 3: Name & word -->
+  <rect x="328" y="62" width="148" height="318" rx="9" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="402" y="84" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#f59e0b">Name &amp; the word</text>
+  <text x="340" y="110" font-family="sans-serif" font-size="9.6" fill="#1d2438">5 The Word (own one)</text>
+  <text x="340" y="130" font-family="sans-serif" font-size="9.6" fill="#1d2438">9 The Name (is all)</text>
+  <text x="340" y="150" font-family="sans-serif" font-size="9.6" fill="#1d2438">12 Generic (avoid)</text>
+  <text x="340" y="170" font-family="sans-serif" font-size="9.6" fill="#1d2438">14 Subbrands (destroy)</text>
+
+  <!-- Column 4: Identity & time -->
+  <rect x="482" y="62" width="148" height="318" rx="9" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="556" y="84" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#ef4444">Identity &amp; time</text>
+  <text x="494" y="110" font-family="sans-serif" font-size="9.6" fill="#1d2438">16 Shape (fit the eye)</text>
+  <text x="494" y="130" font-family="sans-serif" font-size="9.6" fill="#1d2438">17 Color (opposite)</text>
+  <text x="494" y="150" font-family="sans-serif" font-size="9.6" fill="#1d2438">19 Consistency</text>
+  <text x="494" y="170" font-family="sans-serif" font-size="9.6" fill="#1d2438">20 Change (rarely)</text>
+  <text x="494" y="190" font-family="sans-serif" font-size="9.6" fill="#1d2438">21 Mortality (all end)</text>
+
+  <text x="320" y="396" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680" font-style="italic">Core thread: a brand is a single word owned in the customer's mind</text>
+</svg>

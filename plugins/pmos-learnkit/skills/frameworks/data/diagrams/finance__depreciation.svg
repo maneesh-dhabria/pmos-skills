@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Depreciation diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Depreciation</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Spread an asset's cost over its useful life as a non-cash expense</text>
+
+  <!-- axes -->
+  <line x1="80" y1="320" x2="600" y2="320" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="80" y1="100" x2="80" y2="320" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="44" y="106" font-family="sans-serif" font-size="11" fill="#5b6680">$100k</text>
+  <text x="60" y="324" font-family="sans-serif" font-size="11" fill="#5b6680">$0</text>
+  <text x="300" y="356" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">Useful life (10 years), straight-line</text>
+
+  <!-- declining book-value bars: start 100k, drop 10k/yr -->
+  <!-- column area x:90..590 => 10 bars width ~44, gap 6; height scale: 220px = 100k -->
+  <g font-family="sans-serif" font-size="9" fill="#1d2438" text-anchor="middle">
+    <rect x="92"  y="100" width="40" height="220" fill="#2563eb"/>
+    <rect x="142" y="122" width="40" height="198" fill="#2563eb" opacity="0.92"/>
+    <rect x="192" y="144" width="40" height="176" fill="#2563eb" opacity="0.84"/>
+    <rect x="242" y="166" width="40" height="154" fill="#2563eb" opacity="0.76"/>
+    <rect x="292" y="188" width="40" height="132" fill="#2563eb" opacity="0.68"/>
+    <rect x="342" y="210" width="40" height="110" fill="#2563eb" opacity="0.60"/>
+    <rect x="392" y="232" width="40" height="88"  fill="#2563eb" opacity="0.52"/>
+    <rect x="442" y="254" width="40" height="66"  fill="#2563eb" opacity="0.44"/>
+    <rect x="492" y="276" width="40" height="44"  fill="#2563eb" opacity="0.36"/>
+    <rect x="542" y="298" width="40" height="22"  fill="#2563eb" opacity="0.28"/>
+  </g>
+  <g font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">
+    <text x="112" y="334">Y1</text><text x="162" y="334">Y2</text><text x="212" y="334">Y3</text>
+    <text x="262" y="334">Y4</text><text x="312" y="334">Y5</text><text x="362" y="334">Y6</text>
+    <text x="412" y="334">Y7</text><text x="462" y="334">Y8</text><text x="512" y="334">Y9</text>
+    <text x="562" y="334">Y10</text>
+  </g>
+
+  <!-- annual expense callout -->
+  <line x1="112" y1="100" x2="162" y2="122" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="180" y="88" width="150" height="34" rx="6" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="255" y="103" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">-$10k / year</text>
+  <text x="255" y="116" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">cost ÷ useful life</text>
+
+  <text x="32" y="388" font-family="sans-serif" font-size="11.5" fill="#5b6680">Book value falls each year &#8594; reaches $0 when fully depreciated. Non-cash; smooths reported profit.</text>
+</svg>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Good Vs. Bad Product Strategy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1d2438">Good vs. Bad Product Strategy</text>
+  <text x="320" y="44" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Same 14 themes, two opposite postures</text>
+
+  <!-- column headers -->
+  <rect x="208" y="56" width="206" height="26" rx="5" fill="#2563eb"/>
+  <text x="311" y="73" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">GOOD strategy</text>
+  <rect x="420" y="56" width="206" height="26" rx="5" fill="#ef4444"/>
+  <text x="523" y="73" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">BAD strategy</text>
+
+  <g font-family="sans-serif" font-size="9.5">
+    <!-- rows: theme | good | bad -->
+    <!-- row template: y baseline -->
+    <g fill="#1d2438">
+      <text x="14" y="98" font-weight="600" fill="#5b6680">Targeting</text>
+      <text x="214" y="98">Picks target &amp; non-target segments</text>
+      <text x="426" y="98" fill="#b91c1c">Caters to all segments</text>
+
+      <text x="14" y="118" font-weight="600" fill="#5b6680">Competition</text>
+      <text x="214" y="118">Honest market &amp; position read</text>
+      <text x="426" y="118" fill="#b91c1c">Downplays or ignores it</text>
+
+      <text x="14" y="138" font-weight="600" fill="#5b6680">Customer needs</text>
+      <text x="214" y="138">Solves a chosen subset</text>
+      <text x="426" y="138" fill="#b91c1c">Laundry list of priorities</text>
+
+      <text x="14" y="158" font-weight="600" fill="#5b6680">Where to play</text>
+      <text x="214" y="158">Deliberate turf choice</text>
+      <text x="426" y="158" fill="#b91c1c">Defaults without assessment</text>
+
+      <text x="14" y="178" font-weight="600" fill="#5b6680">Trade-offs</text>
+      <text x="214" y="178">Names them with rationale</text>
+      <text x="426" y="178" fill="#b91c1c">All things to all people</text>
+
+      <text x="14" y="198" font-weight="600" fill="#5b6680">Strengths</text>
+      <text x="214" y="198">Builds on durable advantages</text>
+      <text x="426" y="198" fill="#b91c1c">Ignores / overrates them</text>
+
+      <text x="14" y="218" font-weight="600" fill="#5b6680">Differentiation</text>
+      <text x="214" y="218">Concrete value-prop choices</text>
+      <text x="426" y="218" fill="#b91c1c">"Best / world-class" claims</text>
+
+      <text x="14" y="238" font-weight="600" fill="#5b6680">Success signals</text>
+      <text x="214" y="238">Leading &amp; lagging indicators</text>
+      <text x="426" y="238" fill="#b91c1c">Misses leading indicators</text>
+
+      <text x="14" y="258" font-weight="600" fill="#5b6680">Opportunity</text>
+      <text x="214" y="258">Weighs upside vs. opp. cost</text>
+      <text x="426" y="258" fill="#b91c1c">No view on company upside</text>
+
+      <text x="14" y="278" font-weight="600" fill="#5b6680">Execution</text>
+      <text x="214" y="278">Maps choices to a plan</text>
+      <text x="426" y="278" fill="#b91c1c">No cohesive actions</text>
+
+      <text x="14" y="298" font-weight="600" fill="#5b6680">Domain insight</text>
+      <text x="214" y="298">Offers a fresh perspective</text>
+      <text x="426" y="298" fill="#b91c1c">Conforms to exec opinion</text>
+
+      <text x="14" y="318" font-weight="600" fill="#5b6680">Inspiration</text>
+      <text x="214" y="318">Vivid, rigorous, actionable</text>
+      <text x="426" y="318" fill="#b91c1c">Rah-rah, apple-pie language</text>
+
+      <text x="14" y="338" font-weight="600" fill="#5b6680">Articulation</text>
+      <text x="214" y="338">Easy to remember &amp; repeat</text>
+      <text x="426" y="338" fill="#b91c1c">Fluffy or abstruse</text>
+
+      <text x="14" y="358" font-weight="600" fill="#5b6680">Goal</text>
+      <text x="214" y="358">Long-term business results</text>
+      <text x="426" y="358" fill="#b91c1c">Near-term consensus</text>
+    </g>
+  </g>
+
+  <!-- column separators -->
+  <line x1="206" y1="88" x2="206" y2="368" stroke="#dbe2f0" stroke-width="1"/>
+  <line x1="418" y1="88" x2="418" y2="368" stroke="#dbe2f0" stroke-width="1"/>
+  <text x="320" y="390" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">14 themes from targeting to articulation</text>
+</svg>

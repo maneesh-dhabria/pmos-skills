@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Visual Design Principles diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Visual Design Principles</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="12.5" fill="#5b6680">Five elements that make visuals well-rounded and thoughtful</text>
+
+  <!-- Row 1: Scale -->
+  <rect x="32" y="74" width="576" height="56" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <g>
+    <circle cx="78" cy="92" r="5" fill="#2563eb"/>
+    <circle cx="78" cy="108" r="9" fill="#2563eb"/>
+    <circle cx="98" cy="100" r="14" fill="#2563eb" opacity="0.5"/>
+  </g>
+  <text x="140" y="98" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Scale</text>
+  <text x="140" y="116" font-family="sans-serif" font-size="11.5" fill="#5b6680">Relative size signals importance — bigger = more important.</text>
+
+  <!-- Row 2: Visual hierarchy -->
+  <rect x="32" y="138" width="576" height="56" rx="10" fill="#ffffff" stroke="#0ea5a4" stroke-width="1"/>
+  <g fill="#0ea5a4">
+    <rect x="64" y="156" width="42" height="9" rx="2"/>
+    <rect x="64" y="170" width="32" height="6" rx="2" opacity="0.7"/>
+    <rect x="64" y="182" width="24" height="4" rx="2" opacity="0.5"/>
+  </g>
+  <text x="140" y="162" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Visual Hierarchy</text>
+  <text x="140" y="180" font-family="sans-serif" font-size="11.5" fill="#5b6680">Guides the eye — use 2–3 type sizes to rank content.</text>
+
+  <!-- Row 3: Balance -->
+  <rect x="32" y="202" width="576" height="56" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1"/>
+  <g>
+    <line x1="84" y1="214" x2="84" y2="246" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3 3"/>
+    <circle cx="70" cy="230" r="9" fill="#f59e0b"/>
+    <rect x="92" y="224" width="13" height="13" rx="2" fill="#f59e0b" opacity="0.7"/>
+  </g>
+  <text x="140" y="226" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Balance</text>
+  <text x="140" y="244" font-family="sans-serif" font-size="11.5" fill="#5b6680">Visual weight evenly distributed across an axis (not always symmetric).</text>
+
+  <!-- Row 4: Contrast -->
+  <rect x="32" y="266" width="576" height="56" rx="10" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>
+  <g>
+    <rect x="64" y="282" width="16" height="16" rx="3" fill="#1d2438"/>
+    <rect x="88" y="282" width="16" height="16" rx="3" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  </g>
+  <text x="140" y="290" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Contrast</text>
+  <text x="140" y="308" font-family="sans-serif" font-size="11.5" fill="#5b6680">Put different things together to show they aren't the same.</text>
+
+  <!-- Row 5: Gestalt -->
+  <rect x="32" y="330" width="576" height="56" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <g fill="#2563eb">
+    <circle cx="66" cy="350" r="3.5"/>
+    <circle cx="80" cy="350" r="3.5"/>
+    <circle cx="94" cy="350" r="3.5"/>
+    <circle cx="66" cy="364" r="3.5"/>
+    <circle cx="80" cy="364" r="3.5"/>
+    <circle cx="94" cy="364" r="3.5"/>
+  </g>
+  <text x="140" y="354" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Gestalt Principles</text>
+  <text x="140" y="372" font-family="sans-serif" font-size="11.5" fill="#5b6680">Proximity, similarity, closure, continuation — the mind sees a whole.</text>
+</svg>

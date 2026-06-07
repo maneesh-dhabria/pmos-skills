@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Opportunity Score diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Opportunity Score</text>
+  <text x="24" y="48" font-family="sans-serif" font-size="11.5" fill="#5b6680">Find outcomes that matter a lot but satisfy customers little</text>
+
+  <!-- plot area -->
+  <g font-family="sans-serif">
+    <!-- background quadrant tint: high importance / low satisfaction = opportunity -->
+    <rect x="90" y="70" width="225" height="135" fill="#f4f7ff"/>
+    <text x="100" y="92" font-size="10.5" font-weight="700" fill="#2563eb">OPPORTUNITY</text>
+    <text x="100" y="107" font-size="9.5" fill="#5b6680">important + unmet &#8594; build here</text>
+
+    <rect x="315" y="70" width="225" height="135" fill="#ffffff"/>
+    <text x="530" y="92" font-size="10" font-weight="600" fill="#5b6680" text-anchor="end">solid / maintain</text>
+    <rect x="90" y="205" width="225" height="135" fill="#ffffff"/>
+    <text x="100" y="332" font-size="10" fill="#5b6680">low priority</text>
+    <rect x="315" y="205" width="225" height="135" fill="#fdf6ec"/>
+    <text x="530" y="332" font-size="10" font-weight="600" fill="#f59e0b" text-anchor="end">over-served</text>
+
+    <!-- axes -->
+    <line x1="90" y1="70" x2="90" y2="340" stroke="#1d2438" stroke-width="1.5"/>
+    <line x1="90" y1="340" x2="540" y2="340" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="56" y="210" font-size="11" font-weight="700" fill="#1d2438" transform="rotate(-90 56 210)" text-anchor="middle">Importance &#8594;</text>
+    <text x="315" y="362" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Satisfaction &#8594;</text>
+
+    <!-- plotted outcome points -->
+    <circle cx="150" cy="110" r="7" fill="#2563eb"/>
+    <circle cx="200" cy="150" r="7" fill="#2563eb"/>
+    <circle cx="270" cy="125" r="7" fill="#2563eb"/>
+    <circle cx="400" cy="120" r="7" fill="#0ea5a4"/>
+    <circle cx="460" cy="240" r="7" fill="#f59e0b"/>
+    <circle cx="200" cy="280" r="7" fill="#5b6680"/>
+  </g>
+
+  <!-- formula + interpretation panel -->
+  <g font-family="sans-serif">
+    <rect x="566" y="64" width="0" height="0" fill="none"/>
+    <text x="320" y="382" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">OpScore = Importance + max(Importance &#8722; Satisfaction, 0)</text>
+  </g>
+
+  <!-- interpretation legend (right column) -->
+  <g font-family="sans-serif">
+    <text x="320" y="396" font-size="9.5" fill="#5b6680" text-anchor="middle"><tspan font-weight="700" fill="#2563eb">&gt;15</tspan> extreme &#183; <tspan font-weight="700" fill="#0ea5a4">12&#8211;15</tspan> easy win &#183; <tspan font-weight="700" fill="#f59e0b">10&#8211;12</tspan> consider &#183; <tspan font-weight="700" fill="#5b6680">&lt;10</tspan> skip</text>
+  </g>
+</svg>

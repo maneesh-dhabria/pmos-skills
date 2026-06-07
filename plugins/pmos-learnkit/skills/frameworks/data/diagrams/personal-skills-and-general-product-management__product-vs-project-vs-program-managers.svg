@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Product Vs. Project Vs. Program Managers diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Product vs Project vs Program Managers</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Three distinct mandates, three units of ownership</text>
+
+  <!-- Column 1: Product -->
+  <rect x="24" y="76" width="190" height="300" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="24" y="76" width="190" height="46" rx="10" fill="#2563eb"/>
+  <rect x="24" y="100" width="190" height="22" fill="#2563eb"/>
+  <text x="119" y="105" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Product Manager</text>
+  <text x="119" y="142" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Owns: the PRODUCT</text>
+  <text x="40" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">• Strategy, vision &amp; roadmap</text>
+  <text x="40" y="190" font-family="sans-serif" font-size="11" fill="#1d2438">• Defines &amp; prioritizes</text>
+  <text x="52" y="206" font-family="sans-serif" font-size="11" fill="#1d2438">features for the market</text>
+  <text x="40" y="228" font-family="sans-serif" font-size="11" fill="#1d2438">• Cross-functional align</text>
+  <text x="40" y="250" font-family="sans-serif" font-size="11" fill="#1d2438">• Drives market success</text>
+  <rect x="40" y="332" width="158" height="28" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+  <text x="119" y="350" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Ongoing lifecycle, no end</text>
+
+  <!-- Column 2: Project -->
+  <rect x="225" y="76" width="190" height="300" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <rect x="225" y="76" width="190" height="46" rx="10" fill="#0ea5a4"/>
+  <rect x="225" y="100" width="190" height="22" fill="#0ea5a4"/>
+  <text x="320" y="105" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Project Manager</text>
+  <text x="320" y="142" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Owns: a PROJECT</text>
+  <text x="241" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">• Delivers within set scope,</text>
+  <text x="253" y="184" font-family="sans-serif" font-size="11" fill="#1d2438">time &amp; budget</text>
+  <text x="241" y="206" font-family="sans-serif" font-size="11" fill="#1d2438">• Coordinates &amp; leads teams</text>
+  <text x="241" y="228" font-family="sans-serif" font-size="11" fill="#1d2438">• Timely, cost-effective</text>
+  <text x="253" y="244" font-family="sans-serif" font-size="11" fill="#1d2438">completion</text>
+  <rect x="241" y="332" width="158" height="28" rx="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="320" y="350" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Defined start &amp; end date</text>
+
+  <!-- Column 3: Program -->
+  <rect x="426" y="76" width="190" height="300" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <rect x="426" y="76" width="190" height="46" rx="10" fill="#f59e0b"/>
+  <rect x="426" y="100" width="190" height="22" fill="#f59e0b"/>
+  <text x="521" y="105" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Program Manager</text>
+  <text x="521" y="142" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#b3770a">Owns: a PROGRAM</text>
+  <text x="442" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">• Coordinates MULTIPLE</text>
+  <text x="454" y="184" font-family="sans-serif" font-size="11" fill="#1d2438">projects / initiatives</text>
+  <text x="442" y="206" font-family="sans-serif" font-size="11" fill="#1d2438">• Toward one strategic</text>
+  <text x="454" y="222" font-family="sans-serif" font-size="11" fill="#1d2438">business goal</text>
+  <text x="442" y="244" font-family="sans-serif" font-size="11" fill="#1d2438">• Tracks progress, budget</text>
+  <text x="454" y="260" font-family="sans-serif" font-size="11" fill="#1d2438">&amp; benefits</text>
+  <rect x="442" y="332" width="158" height="28" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1"/>
+  <text x="521" y="350" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#b3770a">Spans many projects</text>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Attribution Modelling diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Attribution Modelling</text>
+  <text x="320" y="49" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#5b6680">Crediting conversions across channels to estimate ROAS</text>
+
+  <!-- Root -->
+  <rect x="245" y="62" width="150" height="34" rx="8" fill="#1d2438"/>
+  <text x="320" y="84" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">Attribution methods</text>
+
+  <!-- connectors root to 3 branches -->
+  <line x1="320" y1="96" x2="130" y2="126" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="320" y1="96" x2="320" y2="126" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="320" y1="96" x2="510" y2="126" stroke="#5b6680" stroke-width="1.5"/>
+
+  <!-- Branch A: Conversion-level (per-user trail) -->
+  <rect x="20" y="126" width="270" height="30" rx="7" fill="#2563eb"/>
+  <text x="155" y="146" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Conversion-level (per-user trail)</text>
+
+  <!-- Single-touch -->
+  <rect x="28" y="166" width="254" height="62" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="38" y="184" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#1d2438">Single-touch</text>
+  <text x="38" y="201" font-family="sans-serif" font-size="9.5" fill="#5b6680">First-touch — all credit to first hit</text>
+  <text x="38" y="217" font-family="sans-serif" font-size="9.5" fill="#5b6680">Last-touch — all credit to final hit</text>
+
+  <!-- Multi-touch -->
+  <rect x="28" y="234" width="254" height="120" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="38" y="252" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#1d2438">Multi-touch (split credit)</text>
+  <text x="38" y="270" font-family="sans-serif" font-size="9.5" fill="#5b6680">Linear — equal across touches</text>
+  <text x="38" y="286" font-family="sans-serif" font-size="9.5" fill="#5b6680">Time-decay — recent weighted more</text>
+  <text x="38" y="302" font-family="sans-serif" font-size="9.5" fill="#5b6680">U-shaped — 40/40 first &amp; last</text>
+  <text x="38" y="318" font-family="sans-serif" font-size="9.5" fill="#5b6680">W-shaped — adds opportunity stage</text>
+  <text x="38" y="334" font-family="sans-serif" font-size="9.5" fill="#5b6680">Algorithmic — model-learned weights</text>
+  <text x="38" y="350" font-family="sans-serif" font-size="9.5" fill="#5b6680">+ cross-device tracking</text>
+
+  <!-- Branch B: Incrementality -->
+  <rect x="300" y="126" width="160" height="30" rx="7" fill="#0ea5a4"/>
+  <text x="380" y="146" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Incrementality</text>
+  <rect x="300" y="166" width="160" height="100" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="310" y="186" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#1d2438">Experiment to measure</text>
+  <text x="310" y="200" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#1d2438">true ROI</text>
+  <text x="310" y="220" font-family="sans-serif" font-size="9.5" fill="#5b6680">Geo hold-out test:</text>
+  <text x="310" y="234" font-family="sans-serif" font-size="9.5" fill="#5b6680">exclude a region, compare</text>
+  <text x="310" y="248" font-family="sans-serif" font-size="9.5" fill="#5b6680">revenue vs. exposed states.</text>
+  <text x="310" y="262" font-family="sans-serif" font-size="9.5" fill="#5b6680">High operational overhead.</text>
+
+  <!-- Branch C: Media-mix modelling -->
+  <rect x="470" y="126" width="152" height="30" rx="7" fill="#f59e0b"/>
+  <text x="546" y="146" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Media-mix model</text>
+  <rect x="470" y="166" width="152" height="100" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="480" y="186" font-family="sans-serif" font-size="9.5" font-weight="700" fill="#1d2438">Top-down statistics</text>
+  <text x="480" y="206" font-family="sans-serif" font-size="9.5" fill="#5b6680">Uses natural variation in</text>
+  <text x="480" y="220" font-family="sans-serif" font-size="9.5" fill="#5b6680">spend vs. response over</text>
+  <text x="480" y="234" font-family="sans-serif" font-size="9.5" fill="#5b6680">time to estimate marginal</text>
+  <text x="480" y="248" font-family="sans-serif" font-size="9.5" fill="#5b6680">channel impact. No user-</text>
+  <text x="480" y="262" font-family="sans-serif" font-size="9.5" fill="#5b6680">to-channel link needed.</text>
+</svg>

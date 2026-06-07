@@ -63,8 +63,10 @@ function cleanCallout(inner) {
   return inner
     .replace(/<br\s*\/?>/g, '\n')
     .replace(/<[^>]+>/g, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // markdown image embeds (usually dead S3 links)
     .split('\n')
     .map((l) => l.trim())
+    .filter((l) => !l.includes('amazonaws.com')) // drop any residual expiring-S3 line
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -184,6 +186,7 @@ const SELFTEST_MD = `## Sample Frameworks
 	- Closing prose for alpha.
 <callout icon="💡" color="gray_bg">
 	Alpha take: use it early.
+	![](https://prod-files-secure.s3.us-west-2.amazonaws.com/k/Untitled.png?X-Amz-Signature=z)
 </callout>
 ### **Beta Loop**
 - Reference - [Wikipedia](https://en.wikipedia.org/wiki/Beta)
@@ -219,6 +222,7 @@ function runSelftest() {
     assert(a.references.length === 2, `refs: ${a.references.length}`);
     assert(a.references[0].type === 'Article' && a.references[0].url === 'https://example.com/a', 'ref0');
     assert(a.commentary === 'Alpha take: use it early.', `commentary: ${a.commentary}`);
+    assert(!a.commentary.includes('amazonaws.com'), 'S3 image not stripped from commentary');
     assert(!a.body_md.includes('amazonaws.com'), 'S3 image line not stripped from body');
     assert(!a.body_md.includes('Alpha take'), 'commentary leaked into body');
     assert(!a.body_md.includes('Category intro'), 'category intro leaked into a framework');

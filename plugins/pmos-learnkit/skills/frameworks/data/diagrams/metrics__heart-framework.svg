@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="HEART Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">HEART Framework</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Google's five signals for measuring user-experience quality</text>
+
+  <!-- header row -->
+  <g font-family="sans-serif">
+    <rect x="28" y="66" width="64" height="30" rx="6" fill="#1d2438"/>
+    <text x="60" y="86" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">Letter</text>
+    <text x="150" y="86" font-size="11" font-weight="700" fill="#5b6680">Signal</text>
+    <text x="370" y="86" font-size="11" font-weight="700" fill="#5b6680">What it measures</text>
+  </g>
+
+  <!-- rows -->
+  <g font-family="sans-serif">
+    <!-- H -->
+    <rect x="28" y="104" width="584" height="52" rx="8" fill="#f4f7ff"/>
+    <rect x="28" y="104" width="6" height="52" rx="3" fill="#2563eb"/>
+    <text x="64" y="138" text-anchor="middle" font-size="24" font-weight="800" fill="#2563eb">H</text>
+    <text x="150" y="132" font-size="14" font-weight="700" fill="#1d2438">Happiness</text>
+    <text x="370" y="124" font-size="11" fill="#5b6680">Emotional impact — how satisfied</text>
+    <text x="370" y="142" font-size="11" fill="#5b6680">and delighted users feel.</text>
+
+    <!-- E -->
+    <rect x="28" y="162" width="584" height="52" rx="8" fill="#f4f7ff"/>
+    <rect x="28" y="162" width="6" height="52" rx="3" fill="#0ea5a4"/>
+    <text x="64" y="196" text-anchor="middle" font-size="24" font-weight="800" fill="#0ea5a4">E</text>
+    <text x="150" y="190" font-size="14" font-weight="700" fill="#1d2438">Engagement</text>
+    <text x="370" y="182" font-size="11" fill="#5b6680">Depth of involvement — clicks,</text>
+    <text x="370" y="200" font-size="11" fill="#5b6680">views, time spent.</text>
+
+    <!-- A -->
+    <rect x="28" y="220" width="584" height="52" rx="8" fill="#f4f7ff"/>
+    <rect x="28" y="220" width="6" height="52" rx="3" fill="#f59e0b"/>
+    <text x="64" y="254" text-anchor="middle" font-size="24" font-weight="800" fill="#f59e0b">A</text>
+    <text x="150" y="248" font-size="14" font-weight="700" fill="#1d2438">Adoption</text>
+    <text x="370" y="240" font-size="11" fill="#5b6680">New users embracing it —</text>
+    <text x="370" y="258" font-size="11" fill="#5b6680">onboarding &amp; first usage.</text>
+
+    <!-- R -->
+    <rect x="28" y="278" width="584" height="52" rx="8" fill="#f4f7ff"/>
+    <rect x="28" y="278" width="6" height="52" rx="3" fill="#ef4444"/>
+    <text x="64" y="312" text-anchor="middle" font-size="24" font-weight="800" fill="#ef4444">R</text>
+    <text x="150" y="306" font-size="14" font-weight="700" fill="#1d2438">Retention</text>
+    <text x="370" y="298" font-size="11" fill="#5b6680">Keeping users over time —</text>
+    <text x="370" y="316" font-size="11" fill="#5b6680">repeat &amp; returning use.</text>
+
+    <!-- T -->
+    <rect x="28" y="336" width="584" height="52" rx="8" fill="#f4f7ff"/>
+    <rect x="28" y="336" width="6" height="52" rx="3" fill="#1d2438"/>
+    <text x="64" y="370" text-anchor="middle" font-size="24" font-weight="800" fill="#1d2438">T</text>
+    <text x="150" y="364" font-size="14" font-weight="700" fill="#1d2438">Task success</text>
+    <text x="370" y="356" font-size="11" fill="#5b6680">Completing goals — ease,</text>
+    <text x="370" y="374" font-size="11" fill="#5b6680">efficiency, effectiveness.</text>
+  </g>
+</svg>

@@ -41,9 +41,11 @@ These instructions use Claude Code tool names. In other environments:
 - **No `Task` subagent:** the Stage-B match-field derivation and the `/diagram`
   batch run sequentially in the host conversation — one framework after another.
   Slower, identical output.
-- **No `/diagram` skill available:** `sync` still writes the corpus; it logs each
-  framework with `diagram: null` and a `ship-with-warning` note. The library renders
-  a text-only card for those — never a broken image.
+- **No diagram generation (or it fails for a framework):** `sync` still writes the
+  corpus; it logs each affected framework with `diagram: null` and a
+  `ship-with-warning` note. The library renders a clean text-only card for those —
+  never a broken image. (Diagrams are owned SVGs generated directly at sync time per
+  `reference/ingestion.md`; the `/diagram` skill is reserved for one-off hero diagrams.)
 - **No Notion MCP:** `sync` is unavailable (it fails cleanly with that reason); all
   runtime paths (`"<problem>"`, `browse`, `situations`, `--json`) keep working over
   the shipped corpus.
@@ -253,10 +255,12 @@ Then follow `${CLAUDE_SKILL_DIR}/reference/ingestion.md` end to end:
    `summary`; merge + validate via
    `node ${CLAUDE_SKILL_DIR}/scripts/derive-fields.mjs`. Fan out with parallel
    subagents (N frameworks each, strict output contract).
-4. **Diagrams** (Stage B, `/diagram` batch): one owned SVG per framework at full
-   rigor, `--non-interactive --approach "<framing>" --theme technical --on-failure
-   ship-with-warning`. `--changed-only` skips frameworks whose `body_md` content-hash
-   is unchanged (cache in `data/.diagram-hashes.json`).
+4. **Diagrams** (Stage B, direct generation): one owned, self-contained SVG per
+   framework, generated directly by Stage-B agents against the shared style guide in
+   `reference/ingestion.md` (the `/diagram` skill cannot run unattended at corpus
+   scale — see that file's mechanism note). `--changed-only` skips frameworks whose
+   `body_md` content-hash is unchanged (cache in `data/.diagram-hashes.json`); a
+   failed SVG logs + leaves `diagram: null` (ship-with-warning) and the batch continues.
 5. **Assemble + validate**: write `data/frameworks.json`; run
    `node ${CLAUDE_SKILL_DIR}/scripts/validate-corpus.mjs` (exit 1 on <95% coverage
    or any invalid tag).

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PSHE seniority spectrum diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">PSHE — PM Seniority Spectrum</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Problem · Solution · How · Execution — what's given vs. what you own grows with seniority</text>
+
+  <!-- Ascending staircase of 4 steps -->
+  <!-- Step 1: Manage Execution -->
+  <rect x="40" y="280" width="135" height="70" rx="6" fill="#2563eb"/>
+  <text x="107" y="308" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Manage</text>
+  <text x="107" y="326" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Execution</text>
+  <text x="107" y="368" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">Given P + S + H</text>
+
+  <!-- Step 2: Manage How -->
+  <rect x="185" y="230" width="135" height="120" rx="6" fill="#0ea5a4"/>
+  <text x="252" y="258" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Manage</text>
+  <text x="252" y="276" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">How</text>
+  <text x="252" y="368" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">Given P + S → owns H</text>
+
+  <!-- Step 3: Find Solution -->
+  <rect x="330" y="180" width="135" height="170" rx="6" fill="#f59e0b"/>
+  <text x="397" y="208" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Find</text>
+  <text x="397" y="226" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Solution</text>
+  <text x="397" y="368" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">Given P → owns S + H</text>
+
+  <!-- Step 4: Discover Problem -->
+  <rect x="475" y="130" width="135" height="220" rx="6" fill="#ef4444"/>
+  <text x="542" y="158" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Discover</text>
+  <text x="542" y="176" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Problem</text>
+  <text x="542" y="368" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">Given a Space → finds P</text>
+
+  <!-- seniority arrow -->
+  <path d="M40 110 L600 110" stroke="#1d2438" stroke-width="1.5" marker-end="url(#sar)"/>
+  <text x="40" y="100" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Junior PM</text>
+  <text x="600" y="100" text-anchor="end" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Senior PM — more ownership, more ambiguity</text>
+
+  <defs>
+    <marker id="sar" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#1d2438"/></marker>
+  </defs>
+</svg>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Developing Product Intuition diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Developing Product Intuition</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Julie Zhuo — two core habits, made practical as weekly cadence (~10-15% of your time)</text>
+
+  <!-- two core habits -->
+  <rect x="24" y="62" width="288" height="40" rx="8" fill="#2563eb"/>
+  <text x="40" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">CORE 1</text>
+  <text x="40" y="95" font-family="sans-serif" font-size="11" fill="#dbe7ff">Constantly USE your product as a real user</text>
+  <rect x="328" y="62" width="288" height="40" rx="8" fill="#0ea5a4"/>
+  <text x="344" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">CORE 2</text>
+  <text x="344" y="95" font-family="sans-serif" font-size="11" fill="#e6fffb">Constantly RESEARCH your target customer</text>
+
+  <!-- cadence columns -->
+  <g font-family="sans-serif">
+    <text x="120" y="124" font-size="11" font-weight="700" fill="#5b6680" text-anchor="middle">DAILY</text>
+    <text x="370" y="124" font-size="11" font-weight="700" fill="#5b6680" text-anchor="middle">WEEKLY</text>
+    <text x="560" y="124" font-size="11" font-weight="700" fill="#5b6680" text-anchor="middle">MONTHLY+</text>
+
+    <!-- DAILY column -->
+    <g font-size="9.5" fill="#1d2438">
+      <rect x="24" y="132" width="192" height="26" rx="4" fill="#eff4ff"/><text x="32" y="148">Use product as a real user</text><text x="206" y="148" text-anchor="end" fill="#2563eb">15m</text>
+      <rect x="24" y="162" width="192" height="26" rx="4" fill="#eff4ff"/><text x="32" y="178">Watch 1-2 research / replay sessions</text><text x="206" y="178" text-anchor="end" fill="#2563eb">10m</text>
+      <rect x="24" y="192" width="192" height="26" rx="4" fill="#eff4ff"/><text x="32" y="208">Check key usage metrics</text><text x="206" y="208" text-anchor="end" fill="#2563eb">5m</text>
+    </g>
+
+    <!-- WEEKLY column -->
+    <g font-size="9.5" fill="#1d2438">
+      <rect x="246" y="132" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="148">Interview a prospect on a workflow</text><text x="484" y="148" text-anchor="end" fill="#0ea5a4">30m</text>
+      <rect x="246" y="162" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="178">Ask 1-3 clients a feedback question</text><text x="484" y="178" text-anchor="end" fill="#0ea5a4">30m</text>
+      <rect x="246" y="192" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="208">Read notes from sales / interviews</text><text x="484" y="208" text-anchor="end" fill="#0ea5a4">30m</text>
+      <rect x="246" y="222" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="238">Read customer feedback tickets</text><text x="484" y="238" text-anchor="end" fill="#0ea5a4">30m</text>
+      <rect x="246" y="252" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="268">Read latest user-behavior analysis</text><text x="484" y="268" text-anchor="end" fill="#0ea5a4">30m</text>
+      <rect x="246" y="282" width="248" height="26" rx="4" fill="#e6fffb"/><text x="254" y="298">Read industry blogs (customer lens)</text><text x="484" y="298" text-anchor="end" fill="#0ea5a4">30m</text>
+    </g>
+
+    <!-- MONTHLY+ column -->
+    <g font-size="9.5" fill="#1d2438">
+      <rect x="500" y="132" width="116" height="40" rx="4" fill="#fff7e6"/><text x="508" y="148">Explore</text><text x="508" y="160">competitor products</text><text x="610" y="160" text-anchor="end" fill="#f59e0b">2h/mo</text>
+      <rect x="500" y="176" width="116" height="40" rx="4" fill="#fff7e6"/><text x="508" y="192">Sell / tag along</text><text x="508" y="204">on a sales call</text><text x="610" y="204" text-anchor="end" fill="#f59e0b">2h/mo</text>
+      <rect x="500" y="220" width="116" height="40" rx="4" fill="#fff7e6"/><text x="508" y="236">Read 3 books/yr</text><text x="508" y="248">on customer psychology</text><text x="610" y="248" text-anchor="end" fill="#f59e0b">3/yr</text>
+    </g>
+  </g>
+
+  <rect x="24" y="318" width="592" height="66" rx="6" fill="#f4f7ff"/>
+  <text x="38" y="340" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">THE PAYOFF</text>
+  <text x="38" y="358" font-family="sans-serif" font-size="10.5" fill="#5b6680">There is no shortcut: intuition is built by repeated, direct contact with the product and the customer.</text>
+  <text x="38" y="374" font-family="sans-serif" font-size="10.5" fill="#5b6680">All 12 habits ≈ 10-15% of working hours. Doing half of them ≈ 5% of your week.</text>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PNIP for Activation diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">PNIP for Activation</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Four layers to design a holistic activation experience</text>
+
+  <!-- Layer stack: Product is foundation (bottom), others stack to accelerate -->
+  <!-- Product (foundation) -->
+  <rect x="24" y="312" width="592" height="58" rx="8" fill="#2563eb"/>
+  <text x="44" y="338" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">1 · Product</text>
+  <text x="44" y="357" font-family="sans-serif" font-size="11" fill="#dbe7ff">Foundation: Do · Show · Tell · Motivational boosts</text>
+
+  <!-- Notifications -->
+  <rect x="60" y="246" width="520" height="56" rx="8" fill="#0ea5a4"/>
+  <text x="80" y="271" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">2 · Notifications</text>
+  <text x="80" y="289" font-family="sans-serif" font-size="11" fill="#e6fffd">Email · push · SMS — Action · Destination · Hook · Trigger</text>
+
+  <!-- Incentives -->
+  <rect x="96" y="180" width="448" height="56" rx="8" fill="#f59e0b"/>
+  <text x="116" y="205" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">3 · Incentives</text>
+  <text x="116" y="223" font-family="sans-serif" font-size="11" fill="#3a2c08">Accelerators: Money · Time · Status</text>
+
+  <!-- People -->
+  <rect x="132" y="114" width="376" height="56" rx="8" fill="#ef4444"/>
+  <text x="152" y="139" font-family="sans-serif" font-size="15" font-weight="700" fill="#ffffff">4 · People</text>
+  <text x="152" y="157" font-family="sans-serif" font-size="11" fill="#ffe3e3">Support &amp; success teams who help users activate</text>
+
+  <!-- accelerate arrow -->
+  <path d="M 600 312 L 600 130" stroke="#5b6680" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+  <text x="608" y="225" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(-90 608 225)">layers accelerate the foundation</text>
+
+  <text x="24" y="392" font-family="sans-serif" font-size="10" fill="#5b6680">Order of importance varies: B2B leans People &amp; Notifications; consumer leans Notifications &amp; Incentives.</text>
+</svg>

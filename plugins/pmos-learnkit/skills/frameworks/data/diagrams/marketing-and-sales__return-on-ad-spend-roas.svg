@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Return on Ad Spend (RoAS) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Return on Ad Spend (ROAS)</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Revenue earned per dollar of advertising spent</text>
+
+  <!-- Formula -->
+  <g font-family="sans-serif">
+    <rect x="80" y="84" width="200" height="58" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="180" y="110" text-anchor="middle" font-size="13" font-weight="600" fill="#0ea5a4">Revenue from campaign</text>
+    <text x="180" y="132" text-anchor="middle" font-size="11" fill="#5b6680">(or margin)</text>
+
+    <text x="298" y="120" text-anchor="middle" font-size="30" font-weight="700" fill="#1d2438">÷</text>
+
+    <rect x="316" y="84" width="200" height="58" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <text x="416" y="118" text-anchor="middle" font-size="13" font-weight="600" fill="#ef4444">Cost of campaign</text>
+
+    <text x="534" y="120" text-anchor="middle" font-size="30" font-weight="700" fill="#1d2438">=</text>
+    <text x="582" y="123" text-anchor="middle" font-size="26" font-weight="700" fill="#2563eb">ROAS</text>
+  </g>
+
+  <!-- Gauge / scale -->
+  <g font-family="sans-serif">
+    <text x="320" y="184" text-anchor="middle" font-size="12" fill="#5b6680">Example: $2,000 spend → $10,000 revenue  =  5:1  (500%)</text>
+
+    <!-- scale bar -->
+    <rect x="80" y="206" width="480" height="22" rx="11" fill="#f4f7ff" stroke="#cbd5e1"/>
+    <rect x="80" y="206" width="160" height="22" rx="11" fill="#ef4444" opacity="0.85"/>
+    <rect x="240" y="206" width="80" height="22" fill="#f59e0b" opacity="0.85"/>
+    <rect x="320" y="206" width="240" height="22" rx="11" fill="#0ea5a4" opacity="0.85"/>
+    <!-- marker at 5:1 -->
+    <line x1="400" y1="198" x2="400" y2="236" stroke="#2563eb" stroke-width="3"/>
+    <polygon points="400,196 392,184 408,184" fill="#2563eb"/>
+    <text x="400" y="178" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">5:1</text>
+
+    <text x="160" y="252" text-anchor="middle" font-size="11" fill="#ef4444" font-weight="600">&lt; 1:1  losing money</text>
+    <text x="280" y="252" text-anchor="middle" font-size="11" fill="#f59e0b" font-weight="600">~1–3:1</text>
+    <text x="440" y="252" text-anchor="middle" font-size="11" fill="#0ea5a4" font-weight="600">higher = more efficient</text>
+  </g>
+
+  <!-- Why it matters -->
+  <g font-family="sans-serif">
+    <text x="320" y="298" text-anchor="middle" font-size="13" font-weight="700" fill="#1d2438">Why measure ROAS</text>
+    <rect x="70" y="312" width="150" height="58" rx="10" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="145" y="338" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">Spot scaling</text>
+    <text x="145" y="356" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">opportunities</text>
+
+    <rect x="245" y="312" width="150" height="58" rx="10" fill="#f4f7ff" stroke="#0ea5a4"/>
+    <text x="320" y="338" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">Optimize</text>
+    <text x="320" y="356" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">ad spend</text>
+
+    <rect x="420" y="312" width="150" height="58" rx="10" fill="#f4f7ff" stroke="#f59e0b"/>
+    <text x="495" y="338" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">Improve overall</text>
+    <text x="495" y="356" text-anchor="middle" font-size="12" font-weight="600" fill="#1d2438">strategy</text>
+  </g>
+</svg>

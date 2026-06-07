@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="One-Way Vs. Two-Way Doors diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">One-Way vs. Two-Way Doors</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Match the decision process to its reversibility</text>
+
+  <!-- Two-way door panel -->
+  <rect x="40" y="80" width="265" height="285" rx="12" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="172" y="110" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#0ea5a4">Two-Way Door</text>
+  <text x="172" y="130" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Reversible · low consequence</text>
+
+  <!-- open door with bidirectional arrows -->
+  <rect x="132" y="150" width="80" height="120" rx="3" fill="#ffffff" stroke="#0ea5a4" stroke-width="2"/>
+  <line x1="172" y1="150" x2="172" y2="270" stroke="#0ea5a4" stroke-width="1.5"/>
+  <path d="M108 210 L132 210 M114 204 L108 210 L114 216" fill="none" stroke="#1d2438" stroke-width="2"/>
+  <path d="M236 210 L212 210 M230 204 L236 210 L230 216" fill="none" stroke="#1d2438" stroke-width="2"/>
+
+  <text x="172" y="303" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Decide fast — light process</text>
+  <text x="172" y="323" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">~70% of info · disagree &amp; commit</text>
+  <text x="172" y="342" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Course-correct if wrong</text>
+
+  <!-- One-way door panel -->
+  <rect x="335" y="80" width="265" height="285" rx="12" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <text x="467" y="110" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#ef4444">One-Way Door</text>
+  <text x="467" y="130" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Irreversible · high consequence</text>
+
+  <!-- closed/locked door, one-way arrow -->
+  <rect x="427" y="150" width="80" height="120" rx="3" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+  <circle cx="497" cy="210" r="3" fill="#ef4444"/>
+  <path d="M407 210 L427 210 M413 204 L407 210 L413 216" fill="none" stroke="#1d2438" stroke-width="2"/>
+  <line x1="535" y1="180" x2="535" y2="240" stroke="#ef4444" stroke-width="2"/>
+  <path d="M535 240 L527 232 M535 240 L543 232" fill="none" stroke="#ef4444" stroke-width="2"/>
+  <text x="556" y="214" font-family="sans-serif" font-size="10" fill="#ef4444">no return</text>
+
+  <text x="467" y="303" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Deliberate carefully</text>
+  <text x="467" y="323" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Research · consult · escalate early</text>
+  <text x="467" y="342" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Hard or impossible to undo</text>
+</svg>

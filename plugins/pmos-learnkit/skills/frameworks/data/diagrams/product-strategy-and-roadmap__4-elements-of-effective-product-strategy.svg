@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4 Elements of Effective Product Strategy diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">4 Elements of Effective Product Strategy</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">A great strategy is targeted, visible, fluent, and compounding — not goals, roadmaps, or budgets</text>
+
+  <!-- quadrant -->
+  <!-- Targeted -->
+  <rect x="24" y="74" width="296" height="118" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="40" y="100" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Targeted</text>
+  <text x="40" y="124" font-family="sans-serif" font-size="11" fill="#1d2438">Concentrate on points of leverage,</text>
+  <text x="40" y="139" font-family="sans-serif" font-size="11" fill="#1d2438">not a little of everything.</text>
+  <text x="40" y="166" font-family="sans-serif" font-size="10" fill="#ef4444">Bad: equal investment everywhere</text>
+
+  <!-- Visible -->
+  <rect x="320" y="74" width="296" height="118" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="336" y="100" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Visible</text>
+  <text x="336" y="124" font-family="sans-serif" font-size="11" fill="#1d2438">Know where the horizon / saturation is</text>
+  <text x="336" y="139" font-family="sans-serif" font-size="11" fill="#1d2438">— and have a plan for it.</text>
+  <text x="336" y="166" font-family="sans-serif" font-size="10" fill="#ef4444">Bad: blind to where it tops out</text>
+
+  <!-- Fluent -->
+  <rect x="24" y="200" width="296" height="118" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="40" y="226" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Fluent</text>
+  <text x="40" y="250" font-family="sans-serif" font-size="11" fill="#1d2438">Almost everyone can explain how</text>
+  <text x="40" y="265" font-family="sans-serif" font-size="11" fill="#1d2438">their work aligns to it.</text>
+  <text x="40" y="292" font-family="sans-serif" font-size="10" fill="#ef4444">Bad: lives in a few heads → BHAGs</text>
+
+  <!-- Compounding -->
+  <rect x="320" y="200" width="296" height="118" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="336" y="226" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">Compounding</text>
+  <text x="336" y="250" font-family="sans-serif" font-size="11" fill="#1d2438">Double down where returns</text>
+  <text x="336" y="265" font-family="sans-serif" font-size="11" fill="#1d2438">build on each other.</text>
+  <text x="336" y="292" font-family="sans-serif" font-size="10" fill="#ef4444">Bad: chasing isolated next wins</text>
+
+  <!-- 8 signs strip -->
+  <text x="24" y="342" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">8 signs of a bad strategy:</text>
+  <text x="24" y="360" font-family="sans-serif" font-size="10" fill="#5b6680">insignificant work · randomness · thrashing · lack of purpose · low trust</text>
+  <text x="24" y="376" font-family="sans-serif" font-size="10" fill="#5b6680">inaccurate goals · can't get buy-in · surprise ceilings</text>
+</svg>

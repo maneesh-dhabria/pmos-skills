@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Dream Mapping diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Dream Mapping</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Many paths from Start to the Dream — Milestones mark progress, Signs confirm it</text>
+
+  <!-- Start node -->
+  <circle cx="80" cy="220" r="30" fill="#1d2438"/>
+  <text x="80" y="216" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">START</text>
+  <text x="80" y="232" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">today</text>
+
+  <!-- Paths (curved) -->
+  <!-- direct path -->
+  <path d="M 110 215 C 200 150, 320 150, 400 175" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+  <!-- mid path -->
+  <path d="M 110 225 C 210 240, 320 240, 400 225" fill="none" stroke="#0ea5a4" stroke-width="2.5"/>
+  <!-- deviating / ending path (dashed) -->
+  <path d="M 108 235 C 190 320, 280 330, 330 300" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="332" y="312" font-family="sans-serif" font-size="10" fill="#ef4444">path ends</text>
+
+  <!-- Milestones -->
+  <g>
+    <rect x="186" y="146" width="74" height="34" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="223" y="167" font-family="sans-serif" font-size="11" font-weight="600" fill="#2563eb" text-anchor="middle">Milestone</text>
+  </g>
+  <g>
+    <rect x="200" y="222" width="74" height="34" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="237" y="243" font-family="sans-serif" font-size="11" font-weight="600" fill="#0ea5a4" text-anchor="middle">Milestone</text>
+  </g>
+
+  <!-- Signs (small diamonds along paths) -->
+  <g fill="#f59e0b">
+    <polygon points="330,158 340,168 330,178 320,168"/>
+    <polygon points="320,228 330,238 320,248 310,238"/>
+  </g>
+  <text x="352" y="150" font-family="sans-serif" font-size="10" fill="#f59e0b">◆ Signs = progress indicators</text>
+
+  <!-- Dream node -->
+  <g>
+    <polygon points="500,160 560,135 620,160 620,255 560,280 500,255" fill="#1d2438"/>
+    <text x="560" y="200" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b" text-anchor="middle">DREAM</text>
+    <text x="560" y="220" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">big ambitious</text>
+    <text x="560" y="234" font-family="sans-serif" font-size="10" fill="#ffffff" text-anchor="middle">end goal</text>
+  </g>
+  <!-- arrows into dream -->
+  <path d="M 400 175 L 495 185" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+  <polygon points="495,180 506,186 495,191" fill="#2563eb"/>
+  <path d="M 400 225 L 495 220" fill="none" stroke="#0ea5a4" stroke-width="2.5"/>
+  <polygon points="495,215 506,221 495,226" fill="#0ea5a4"/>
+
+  <!-- legend -->
+  <rect x="32" y="318" width="576" height="56" rx="10" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="48" y="340" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700" fill="#2563eb">━ Path</tspan>  different initiatives / projects toward the Dream</text>
+  <text x="48" y="360" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700" fill="#0ea5a4">▢ Milestone</tspan>  significant outcome     <tspan font-weight="700" fill="#f59e0b">◆ Sign</tspan>  progress signal     <tspan font-weight="700" fill="#ef4444">┈ Path may deviate or end</tspan></text>
+</svg>

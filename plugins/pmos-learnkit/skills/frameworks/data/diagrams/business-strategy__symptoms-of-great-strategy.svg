@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Symptoms of Great Strategy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Symptoms of Great Strategy</text>
+  <text x="32" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Six traits that signal a strategy worth betting on &#8212; format doesn&#8217;t matter</text>
+
+  <g font-family="sans-serif">
+    <!-- row 1 Simplicity -->
+    <rect x="32" y="74" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="74" width="6" height="46" rx="3" fill="#2563eb"/>
+    <text x="52" y="96" font-size="14" font-weight="700" fill="#1d2438">Simplicity</text>
+    <text x="52" y="113" font-size="11" fill="#5b6680">Clear and focused &#8212; easy to communicate, execute, and believe.</text>
+
+    <!-- row 2 Candor -->
+    <rect x="32" y="126" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="126" width="6" height="46" rx="3" fill="#0ea5a4"/>
+    <text x="52" y="148" font-size="14" font-weight="700" fill="#1d2438">Candor</text>
+    <text x="52" y="165" font-size="11" fill="#5b6680">Names the harsh, data-backed realities &#8212; real threats, not hypotheticals.</text>
+
+    <!-- row 3 Decisiveness -->
+    <rect x="32" y="178" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="178" width="6" height="46" rx="3" fill="#f59e0b"/>
+    <text x="52" y="200" font-size="14" font-weight="700" fill="#1d2438">Decisiveness</text>
+    <text x="52" y="217" font-size="11" fill="#5b6680">Makes clear choices &#8212; segments, positioning &#8212; and owns the trade-offs.</text>
+
+    <!-- row 4 Leverage -->
+    <rect x="32" y="230" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="230" width="6" height="46" rx="3" fill="#ef4444"/>
+    <text x="52" y="252" font-size="14" font-weight="700" fill="#1d2438">Leverage</text>
+    <text x="52" y="269" font-size="11" fill="#5b6680">Builds on durable, differentiating strengths &#8212; not on fixing weaknesses.</text>
+
+    <!-- row 5 Asymmetry -->
+    <rect x="32" y="282" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="282" width="6" height="46" rx="3" fill="#2563eb"/>
+    <text x="52" y="304" font-size="14" font-weight="700" fill="#1d2438">Asymmetry</text>
+    <text x="52" y="321" font-size="11" fill="#5b6680">Bets where the upside dwarfs the downside &#8212; doesn&#8217;t need everything to go right.</text>
+
+    <!-- row 6 Foresight -->
+    <rect x="32" y="334" width="576" height="46" rx="6" fill="#f4f7ff"/>
+    <rect x="32" y="334" width="6" height="46" rx="3" fill="#0ea5a4"/>
+    <text x="52" y="356" font-size="14" font-weight="700" fill="#1d2438">Foresight</text>
+    <text x="52" y="373" font-size="11" fill="#5b6680">Builds barriers that take competitors years to overcome &#8212; not month-long fixes.</text>
+  </g>
+</svg>

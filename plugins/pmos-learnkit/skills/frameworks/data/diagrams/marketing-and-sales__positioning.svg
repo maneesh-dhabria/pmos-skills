@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Positioning diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Positioning</text>
+  <text x="24" y="48" font-family="sans-serif" font-size="11" fill="#5b6680">Lead at something a well-defined set of customers cares a lot about</text>
+
+  <!-- Left: five interdependent components as a chained flow -->
+  <text x="24" y="78" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Five interdependent components</text>
+  <g font-family="sans-serif">
+    <rect x="24" y="88" width="300" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="36" y="105" font-size="10.5" font-weight="600" fill="#1d2438">1. Competitive alternatives</text>
+    <text x="36" y="120" font-size="8.5" fill="#5b6680">If you didn't exist, what would they use?</text>
+
+    <rect x="24" y="138" width="300" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="36" y="155" font-size="10.5" font-weight="600" fill="#1d2438">2. Differentiated features</text>
+    <text x="36" y="170" font-size="8.5" fill="#5b6680">What you have that alternatives don't</text>
+
+    <rect x="24" y="188" width="300" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="36" y="205" font-size="10.5" font-weight="600" fill="#1d2438">3. Value for customers</text>
+    <text x="36" y="220" font-size="8.5" fill="#5b6680">What those features enable</text>
+
+    <rect x="24" y="238" width="300" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="36" y="255" font-size="10.5" font-weight="600" fill="#1d2438">4. Target segment</text>
+    <text x="36" y="270" font-size="8.5" fill="#5b6680">Who cares a lot about that value</text>
+
+    <rect x="24" y="288" width="300" height="40" rx="8" fill="#2563eb"/>
+    <text x="36" y="305" font-size="10.5" font-weight="600" fill="#ffffff">5. Market category</text>
+    <text x="36" y="320" font-size="8.5" fill="#cfe0ff">Context that makes the value obvious</text>
+
+    <!-- chain connectors -->
+    <g stroke="#2563eb" stroke-width="1.5" fill="#2563eb">
+      <line x1="174" y1="128" x2="174" y2="138"/>
+      <line x1="174" y1="178" x2="174" y2="188"/>
+      <line x1="174" y1="228" x2="174" y2="238"/>
+      <line x1="174" y1="278" x2="174" y2="288"/>
+    </g>
+  </g>
+
+  <!-- Right: 10-step method as a numbered ladder -->
+  <text x="356" y="78" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">10-step method</text>
+  <g font-family="sans-serif" font-size="9.5" fill="#1d2438">
+    <g>
+      <circle cx="364" cy="93" r="8" fill="#0ea5a4"/><text x="364" y="96.5" font-size="9" fill="#fff" text-anchor="middle">1</text>
+      <text x="378" y="96">Identify passionate customers</text>
+    </g>
+    <g>
+      <circle cx="364" cy="116" r="8" fill="#0ea5a4"/><text x="364" y="119.5" font-size="9" fill="#fff" text-anchor="middle">2</text>
+      <text x="378" y="119">Form a cross-functional team</text>
+    </g>
+    <g>
+      <circle cx="364" cy="139" r="8" fill="#0ea5a4"/><text x="364" y="142.5" font-size="9" fill="#fff" text-anchor="middle">3</text>
+      <text x="378" y="142">Consistent positioning vocabulary</text>
+    </g>
+    <g>
+      <circle cx="364" cy="162" r="8" fill="#0ea5a4"/><text x="364" y="165.5" font-size="9" fill="#fff" text-anchor="middle">4</text>
+      <text x="378" y="165">List competitors</text>
+    </g>
+    <g>
+      <circle cx="364" cy="185" r="8" fill="#0ea5a4"/><text x="364" y="188.5" font-size="9" fill="#fff" text-anchor="middle">5</text>
+      <text x="378" y="188">Highlight unique features</text>
+    </g>
+    <g>
+      <circle cx="364" cy="208" r="8" fill="#0ea5a4"/><text x="364" y="211.5" font-size="9" fill="#fff" text-anchor="middle">6</text>
+      <text x="378" y="211">Define customer value</text>
+    </g>
+    <g>
+      <circle cx="364" cy="231" r="8" fill="#0ea5a4"/><text x="364" y="234.5" font-size="9" fill="#fff" text-anchor="middle">7</text>
+      <text x="378" y="234">Segment target customers</text>
+    </g>
+    <g>
+      <circle cx="364" cy="254" r="8" fill="#0ea5a4"/><text x="364" y="257.5" font-size="9" fill="#fff" text-anchor="middle">8</text>
+      <text x="378" y="257">Craft positioning statement</text>
+    </g>
+    <g>
+      <circle cx="364" cy="277" r="8" fill="#0ea5a4"/><text x="364" y="280.5" font-size="9" fill="#fff" text-anchor="middle">9</text>
+      <text x="378" y="280">Test and refine</text>
+    </g>
+    <g>
+      <circle cx="364" cy="300" r="8" fill="#f59e0b"/><text x="364" y="303.5" font-size="9" fill="#fff" text-anchor="middle">10</text>
+      <text x="378" y="303">Ensure organizational alignment</text>
+    </g>
+  </g>
+
+  <line x1="24" y1="346" x2="616" y2="346" stroke="#e2e8f0"/>
+  <text x="24" y="366" font-family="sans-serif" font-size="10" fill="#5b6680">Positioning is the input to messaging, tagline, branding &amp; story &#8212; it defines what market you intend to win and why you deserve to.</text>
+</svg>

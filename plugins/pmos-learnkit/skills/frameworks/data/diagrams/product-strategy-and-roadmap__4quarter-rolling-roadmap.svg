@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4Quarter Rolling Roadmap diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">4Quarter Rolling Roadmap</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">A rolling timeline that narrates how the strategy plays out, tracked by proxy metrics</text>
+
+  <!-- arrow timeline -->
+  <line x1="40" y1="88" x2="588" y2="88" stroke="#2563eb" stroke-width="2"/>
+  <polygon points="600,88 588,82 588,94" fill="#2563eb"/>
+  <text x="612" y="92" font-family="sans-serif" font-size="11" fill="#5b6680">time</text>
+
+  <!-- four quarter columns -->
+  <g font-family="sans-serif">
+    <!-- Q1 -->
+    <circle cx="100" cy="88" r="5" fill="#2563eb"/>
+    <rect x="50" y="110" width="120" height="160" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="110" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#2563eb">Q1 (now)</text>
+    <text x="110" y="156" text-anchor="middle" font-size="11" fill="#1d2438">Theme / bet</text>
+    <text x="110" y="186" text-anchor="middle" font-size="10" fill="#5b6680">Projects &amp;</text>
+    <text x="110" y="200" text-anchor="middle" font-size="10" fill="#5b6680">tactics</text>
+    <line x1="64" y1="218" x2="156" y2="218" stroke="#5b6680" stroke-width="0.5" stroke-dasharray="3 3"/>
+    <text x="110" y="238" text-anchor="middle" font-size="10" font-weight="700" fill="#0ea5a4">Proxy metric</text>
+    <text x="110" y="254" text-anchor="middle" font-size="10" fill="#5b6680">target ↑</text>
+
+    <!-- Q2 -->
+    <circle cx="240" cy="88" r="5" fill="#0ea5a4"/>
+    <rect x="190" y="110" width="120" height="150" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="250" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#0ea5a4">Q2</text>
+    <text x="250" y="156" text-anchor="middle" font-size="11" fill="#1d2438">Theme / bet</text>
+    <text x="250" y="186" text-anchor="middle" font-size="10" fill="#5b6680">Projects &amp;</text>
+    <text x="250" y="200" text-anchor="middle" font-size="10" fill="#5b6680">tactics</text>
+    <line x1="204" y1="218" x2="296" y2="218" stroke="#5b6680" stroke-width="0.5" stroke-dasharray="3 3"/>
+    <text x="250" y="238" text-anchor="middle" font-size="10" font-weight="700" fill="#0ea5a4">Proxy metric</text>
+
+    <!-- Q3 -->
+    <circle cx="380" cy="88" r="5" fill="#f59e0b"/>
+    <rect x="330" y="110" width="120" height="140" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="390" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#f59e0b">Q3</text>
+    <text x="390" y="156" text-anchor="middle" font-size="11" fill="#1d2438">Theme / bet</text>
+    <text x="390" y="186" text-anchor="middle" font-size="10" fill="#5b6680">Direction,</text>
+    <text x="390" y="200" text-anchor="middle" font-size="10" fill="#5b6680">looser detail</text>
+    <text x="390" y="230" text-anchor="middle" font-size="10" font-weight="700" fill="#f59e0b">Proxy metric</text>
+
+    <!-- Q4 -->
+    <circle cx="520" cy="88" r="5" fill="#ef4444"/>
+    <rect x="470" y="110" width="120" height="130" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <text x="530" y="132" text-anchor="middle" font-size="14" font-weight="700" fill="#ef4444">Q4</text>
+    <text x="530" y="156" text-anchor="middle" font-size="11" fill="#1d2438">Aspiration</text>
+    <text x="530" y="186" text-anchor="middle" font-size="10" fill="#5b6680">Where the</text>
+    <text x="530" y="200" text-anchor="middle" font-size="10" fill="#5b6680">story ends</text>
+    <text x="530" y="226" text-anchor="middle" font-size="10" font-weight="700" fill="#ef4444">Proxy metric</text>
+  </g>
+
+  <!-- confidence note -->
+  <text x="320" y="300" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Detail &amp; confidence taper as the horizon extends →</text>
+
+  <!-- rolling note -->
+  <g font-family="sans-serif">
+    <path d="M 50 340 q 270 40 540 0" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <polygon points="50,340 60,334 60,346" fill="#2563eb"/>
+    <text x="320" y="378" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">Rolling: every quarter, drop the past Q, add a new Q4</text>
+  </g>
+</svg>

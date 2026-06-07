@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Six thinking hats diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Six Thinking Hats</text>
+  <text x="320" y="55" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Cycle one mode of thinking at a time — Blue runs the session</text>
+
+  <!-- hat glyph reused via symbol -->
+  <defs>
+    <g id="hat">
+      <path d="M-13 6 Q-13 -8 0 -8 Q13 -8 13 6 Z" fill="currentColor"/>
+      <ellipse cx="0" cy="6" rx="20" ry="4" fill="currentColor"/>
+    </g>
+  </defs>
+
+  <!-- central process arc -->
+  <circle cx="320" cy="225" r="92" fill="none" stroke="#cdd7ef" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <circle cx="320" cy="225" r="48" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <g color="#2563eb"><use href="#hat" transform="translate(320 205)"/></g>
+  <text x="320" y="232" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Blue Hat</text>
+  <text x="320" y="248" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">manages process</text>
+
+  <!-- five surrounding hats around the loop -->
+  <!-- White: facts -->
+  <g color="#5b6680"><use href="#hat" transform="translate(320 110)"/></g>
+  <text x="320" y="132" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">White</text>
+  <text x="320" y="146" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">facts &amp; data</text>
+
+  <!-- Red: emotion -->
+  <g color="#ef4444"><use href="#hat" transform="translate(497 175)"/></g>
+  <text x="497" y="197" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Red</text>
+  <text x="497" y="211" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">emotion &amp; gut</text>
+
+  <!-- Black: caution -->
+  <g color="#1d2438"><use href="#hat" transform="translate(455 330)"/></g>
+  <text x="455" y="352" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Black</text>
+  <text x="455" y="366" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">risks &amp; caution</text>
+
+  <!-- Yellow: optimism -->
+  <g color="#f59e0b"><use href="#hat" transform="translate(185 330)"/></g>
+  <text x="185" y="352" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Yellow</text>
+  <text x="185" y="366" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">benefits &amp; value</text>
+
+  <!-- Green: creativity -->
+  <g color="#0ea5a4"><use href="#hat" transform="translate(143 175)"/></g>
+  <text x="143" y="197" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Green</text>
+  <text x="143" y="211" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">ideas &amp; options</text>
+
+  <!-- directional cycle arrows on the dashed loop -->
+  <path d="M404 200 L410 196 L411 204 Z" fill="#2563eb"/>
+  <path d="M398 295 L405 297 L399 303 Z" fill="#2563eb"/>
+  <path d="M236 295 L242 303 L235 297 Z" fill="#2563eb"/>
+  <path d="M229 204 L230 196 L236 200 Z" fill="#2563eb"/>
+</svg>

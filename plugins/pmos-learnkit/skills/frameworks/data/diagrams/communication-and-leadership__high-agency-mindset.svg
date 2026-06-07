@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="High Agency Mindset diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">High Agency Mindset</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Find a way to get what you want &#8212; without waiting for perfect conditions or blaming circumstances</text>
+
+  <!-- Matrix area: x 120..560 , y 80..320 -->
+  <!-- Quadrant fills -->
+  <rect x="120" y="80" width="220" height="120" fill="#fff7ec"/>     <!-- top-left: high talent low agency -->
+  <rect x="340" y="80" width="220" height="120" fill="#e8fbfa"/>     <!-- top-right: high talent high agency -->
+  <rect x="120" y="200" width="220" height="120" fill="#fdecec"/>    <!-- bottom-left: low/low -->
+  <rect x="340" y="200" width="220" height="120" fill="#f4f7ff"/>    <!-- bottom-right: low talent high agency -->
+
+  <!-- grid border + axes -->
+  <rect x="120" y="80" width="440" height="240" fill="none" stroke="#1d2438" stroke-width="1.4"/>
+  <line x1="340" y1="80" x2="340" y2="320" stroke="#1d2438" stroke-width="1.2"/>
+  <line x1="120" y1="200" x2="560" y2="200" stroke="#1d2438" stroke-width="1.2"/>
+
+  <!-- Axis labels -->
+  <text x="340" y="345" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">AGENCY &#8594;</text>
+  <text x="230" y="338" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">low</text>
+  <text x="450" y="338" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">high</text>
+  <text x="100" y="200" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438" transform="rotate(-90 100 200)">TALENT &#8593;</text>
+  <text x="112" y="260" text-anchor="end" font-family="sans-serif" font-size="10" fill="#5b6680">low</text>
+  <text x="112" y="140" text-anchor="end" font-family="sans-serif" font-size="10" fill="#5b6680">high</text>
+
+  <!-- Quadrant content -->
+  <g font-family="sans-serif">
+    <!-- top-left -->
+    <text x="230" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#f59e0b">Frustrated Genius</text>
+    <text x="230" y="142" text-anchor="middle" font-size="11" fill="#5b6680">High talent, low agency.</text>
+    <text x="230" y="158" text-anchor="middle" font-size="11" fill="#5b6680">A win or two, then</text>
+    <text x="230" y="174" text-anchor="middle" font-size="11" fill="#5b6680">capitulates to "the system".</text>
+
+    <!-- top-right -->
+    <text x="450" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#0ea5a4">Game Changer</text>
+    <text x="450" y="142" text-anchor="middle" font-size="11" fill="#5b6680">High talent + high agency.</text>
+    <text x="450" y="158" text-anchor="middle" font-size="11" fill="#5b6680">Compounds skill with drive</text>
+    <text x="450" y="174" text-anchor="middle" font-size="11" fill="#5b6680">to reshape outcomes.</text>
+
+    <!-- bottom-left -->
+    <text x="230" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#ef4444">Stuck / Blamer</text>
+    <text x="230" y="262" text-anchor="middle" font-size="11" fill="#5b6680">Waits for perfect conditions,</text>
+    <text x="230" y="278" text-anchor="middle" font-size="11" fill="#5b6680">blames circumstances.</text>
+
+    <!-- bottom-right -->
+    <text x="450" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#2563eb">Go-Getter</text>
+    <text x="450" y="262" text-anchor="middle" font-size="11" fill="#5b6680">High agency lifts raw talent</text>
+    <text x="450" y="278" text-anchor="middle" font-size="11" fill="#5b6680">over time toward Game Changer.</text>
+  </g>
+
+  <!-- growth arrow from go-getter to game changer -->
+  <line x1="475" y1="232" x2="475" y2="184" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <polygon points="475,178 470,190 480,190" fill="#2563eb"/>
+
+  <text x="20" y="378" font-family="sans-serif" font-size="11" fill="#5b6680">Raise agency: make self-talk proactive, build the skills &amp; traits that turn intent into action.</text>
+</svg>

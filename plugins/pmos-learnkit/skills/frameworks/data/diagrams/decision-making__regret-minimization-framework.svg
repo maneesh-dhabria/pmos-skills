@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Regret Minimization Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Regret Minimization Framework</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Project to age 80 — choose what you'd least regret not trying</text>
+
+  <!-- Life timeline -->
+  <line x1="70" y1="120" x2="570" y2="120" stroke="#5b6680" stroke-width="3"/>
+  <path d="M570 120 L560 114 M570 120 L560 126" fill="none" stroke="#5b6680" stroke-width="3"/>
+  <!-- Now marker -->
+  <circle cx="100" cy="120" r="7" fill="#2563eb"/>
+  <text x="100" y="100" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Now</text>
+  <text x="100" y="146" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">decision point</text>
+  <!-- Age 80 marker -->
+  <circle cx="540" cy="120" r="7" fill="#1d2438"/>
+  <text x="540" y="100" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Age 80</text>
+  <text x="540" y="146" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">looking back</text>
+
+  <!-- Two branching paths -->
+  <!-- Path A: take the chance -->
+  <path d="M100 120 Q300 150 540 120" fill="none" stroke="#0ea5a4" stroke-width="2.5"/>
+  <!-- Path B: don't try -->
+  <path d="M100 120 Q300 90 540 120" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4"/>
+
+  <!-- The question box -->
+  <rect x="170" y="186" width="300" height="46" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="206" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#2563eb">Which regret is worse at 80?</text>
+  <text x="320" y="224" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">tried &amp; failed   vs.   never tried at all</text>
+
+  <!-- Outcome cards -->
+  <rect x="40" y="252" width="270" height="120" rx="12" fill="#e0f2f1" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="175" y="278" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Take the chance</text>
+  <text x="175" y="302" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#1d2438">Failure fades — you learn,</text>
+  <text x="175" y="320" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#1d2438">adapt, and move on.</text>
+  <text x="175" y="350" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Low long-term regret</text>
+
+  <rect x="330" y="252" width="270" height="120" rx="12" fill="#fef3e2" stroke="#f59e0b" stroke-width="2"/>
+  <text x="465" y="278" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Don't try</text>
+  <text x="465" y="302" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#1d2438">The unanswered "what if"</text>
+  <text x="465" y="320" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#1d2438">lingers for decades.</text>
+  <text x="465" y="350" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">High long-term regret</text>
+</svg>

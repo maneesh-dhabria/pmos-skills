@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Decision Trees diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Decision Trees</text>
+  <text x="32" y="52" font-family="sans-serif" font-size="12" fill="#5b6680">Branch decisions &amp; chance, compute expected value, pick the best path</text>
+
+  <!-- legend -->
+  <g font-family="sans-serif" font-size="10.5" fill="#5b6680">
+    <rect x="360" y="22" width="12" height="12" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="377" y="32">Decision</text>
+    <circle cx="448" cy="28" r="6.5" fill="none" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="458" y="32">Chance</text>
+    <path d="M526 22 L534 34 L518 34 Z" fill="none" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="540" y="32">End</text>
+  </g>
+
+  <!-- branch lines -->
+  <g stroke="#5b6680" stroke-width="1.5" fill="none">
+    <line x1="92" y1="200" x2="178" y2="120"/>
+    <line x1="92" y1="200" x2="178" y2="280"/>
+    <line x1="222" y1="120" x2="330" y2="90"/>
+    <line x1="222" y1="120" x2="330" y2="170"/>
+    <line x1="222" y1="280" x2="330" y2="250"/>
+    <line x1="222" y1="280" x2="330" y2="330"/>
+  </g>
+
+  <!-- root decision node -->
+  <rect x="74" y="182" width="36" height="36" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="92" y="240" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Build vs</text>
+  <text x="92" y="254" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Upgrade?</text>
+
+  <!-- branch labels -->
+  <text x="124" y="150" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(-43 124 150)">Build new app</text>
+  <text x="124" y="262" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(43 124 262)">Upgrade app</text>
+
+  <!-- chance node top -->
+  <circle cx="207" cy="120" r="15" fill="#ccfbf1" stroke="#0ea5a4" stroke-width="2"/>
+  <!-- chance node bottom -->
+  <circle cx="207" cy="280" r="15" fill="#ccfbf1" stroke="#0ea5a4" stroke-width="2"/>
+
+  <!-- end nodes -->
+  <g>
+    <path d="M332 90 L348 116 L316 116 Z" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="358" y="89" font-family="sans-serif" font-size="11" fill="#1d2438">High rev  &#215; 60%</text>
+    <text x="358" y="104" font-family="sans-serif" font-size="10" fill="#5b6680">EV = $1.6M &#8722; cost</text>
+
+    <path d="M332 170 L348 196 L316 196 Z" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="358" y="169" font-family="sans-serif" font-size="11" fill="#1d2438">Low rev  &#215; 40%</text>
+    <text x="358" y="184" font-family="sans-serif" font-size="10" fill="#5b6680">EV = $0.3M &#8722; cost</text>
+
+    <path d="M332 250 L348 276 L316 276 Z" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="358" y="249" font-family="sans-serif" font-size="11" fill="#1d2438">High rev  &#215; 70%</text>
+    <text x="358" y="264" font-family="sans-serif" font-size="10" fill="#5b6680">EV = $0.9M &#8722; cost</text>
+
+    <path d="M332 330 L348 356 L316 356 Z" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+    <text x="358" y="329" font-family="sans-serif" font-size="11" fill="#1d2438">Low rev  &#215; 30%</text>
+    <text x="358" y="344" font-family="sans-serif" font-size="10" fill="#5b6680">EV = $0.2M &#8722; cost</text>
+  </g>
+
+  <!-- EV formula footer -->
+  <rect x="32" y="312" width="248" height="64" rx="6" fill="#f4f7ff"/>
+  <text x="44" y="334" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Expected Value (EV)</text>
+  <text x="44" y="353" font-family="sans-serif" font-size="10.5" fill="#5b6680">&#931; (outcome &#215; likelihood) &#8722; cost</text>
+  <text x="44" y="369" font-family="sans-serif" font-size="10.5" fill="#5b6680">Compare EVs &#8594; pick best, weigh risk</text>
+</svg>

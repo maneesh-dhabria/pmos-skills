@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Shape Up diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Shape Up</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">Basecamp's method — fixed time, variable scope, no backlog.</text>
+
+  <!-- Three stages -->
+  <g font-family="sans-serif">
+    <!-- Shape -->
+    <rect x="32" y="84" width="176" height="96" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="120" y="110" font-size="15" font-weight="700" fill="#2563eb" text-anchor="middle">1 · Shape</text>
+    <text x="120" y="132" font-size="11" fill="#5b6680" text-anchor="middle">Define problem,</text>
+    <text x="120" y="147" font-size="11" fill="#5b6680" text-anchor="middle">boundaries &amp; appetite</text>
+    <text x="120" y="167" font-size="11" fill="#1d2438" text-anchor="middle">→ a shaped pitch</text>
+
+    <!-- Bet -->
+    <rect x="232" y="84" width="176" height="96" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="320" y="110" font-size="15" font-weight="700" fill="#f59e0b" text-anchor="middle">2 · Bet</text>
+    <text x="320" y="132" font-size="11" fill="#5b6680" text-anchor="middle">Betting table picks</text>
+    <text x="320" y="147" font-size="11" fill="#5b6680" text-anchor="middle">pitches worth a cycle</text>
+    <text x="320" y="167" font-size="11" fill="#1d2438" text-anchor="middle">→ no backlog</text>
+
+    <!-- Build -->
+    <rect x="432" y="84" width="176" height="96" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="520" y="110" font-size="15" font-weight="700" fill="#0ea5a4" text-anchor="middle">3 · Build</text>
+    <text x="520" y="132" font-size="11" fill="#5b6680" text-anchor="middle">Small team, full</text>
+    <text x="520" y="147" font-size="11" fill="#5b6680" text-anchor="middle">autonomy, then handoff</text>
+    <text x="520" y="167" font-size="11" fill="#1d2438" text-anchor="middle">→ shipped work</text>
+
+    <g stroke="#5b6680" stroke-width="1.5" fill="none">
+      <path d="M208 132 L230 132" marker-end="url(#au)"/>
+      <path d="M408 132 L430 132" marker-end="url(#au)"/>
+    </g>
+  </g>
+
+  <!-- 6-week cycle bar -->
+  <rect x="432" y="190" width="176" height="22" rx="11" fill="#0ea5a4" opacity="0.15"/>
+  <text x="520" y="205" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4" text-anchor="middle">6-week work cycle</text>
+
+  <!-- Hill chart -->
+  <text x="32" y="232" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">HILL CHART — tracks progress instead of a backlog</text>
+  <rect x="32" y="244" width="576" height="118" rx="10" fill="#f4f7ff" stroke="#cdd5e8"/>
+  <!-- hill curve -->
+  <path d="M70 340 C150 340 175 268 320 268 C465 268 490 340 570 340" fill="none" stroke="#1d2438" stroke-width="2.5"/>
+  <line x1="320" y1="258" x2="320" y2="348" stroke="#5b6680" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="155" y="358" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Figuring it out (uphill)</text>
+  <text x="475" y="358" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Making it happen (downhill)</text>
+  <!-- dots on hill -->
+  <circle cx="150" cy="316" r="6" fill="#2563eb"/>
+  <circle cx="320" cy="268" r="6" fill="#f59e0b"/>
+  <circle cx="470" cy="316" r="6" fill="#0ea5a4"/>
+  <text x="320" y="262" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">unknowns solved</text>
+
+  <defs>
+    <marker id="au" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#5b6680"/></marker>
+  </defs>
+</svg>

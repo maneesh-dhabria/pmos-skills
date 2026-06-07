@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="M and T Shaped Communication diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">M vs. T Shaped Communication</text>
+
+  <!-- vertical axis labels -->
+  <text x="36" y="120" font-family="sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 36 120)">High level</text>
+  <text x="36" y="250" font-family="sans-serif" font-size="11" fill="#5b6680" transform="rotate(-90 36 250)">Detail</text>
+
+  <!-- ===== LEFT: M-shaped (bad) ===== -->
+  <text x="180" y="66" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">M-shaped &#10007;</text>
+  <text x="180" y="84" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Zig-zags detail &#8596; high level</text>
+  <!-- reference lines -->
+  <line x1="70" y1="100" x2="300" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="70" y1="230" x2="300" y2="230" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- M path: down-up-down-up -->
+  <polyline points="80,230 120,100 170,230 220,100 270,230" fill="none" stroke="#ef4444" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="80" cy="230" r="4" fill="#ef4444"/>
+  <circle cx="120" cy="100" r="4" fill="#ef4444"/>
+  <circle cx="170" cy="230" r="4" fill="#ef4444"/>
+  <circle cx="220" cy="100" r="4" fill="#ef4444"/>
+  <circle cx="270" cy="230" r="4" fill="#ef4444"/>
+  <text x="180" y="262" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Listener gets lost in the swings</text>
+
+  <!-- divider -->
+  <line x1="320" y1="56" x2="320" y2="290" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4 4"/>
+
+  <!-- ===== RIGHT: T-shaped (good) ===== -->
+  <text x="460" y="66" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">T-shaped &#10003;</text>
+  <text x="460" y="84" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Overview first, then depth where it matters</text>
+  <line x1="360" y1="100" x2="560" y2="100" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="360" y1="230" x2="560" y2="230" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- T shape: horizontal bar across the top, vertical stem -->
+  <line x1="370" y1="105" x2="550" y2="105" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+  <line x1="460" y1="105" x2="460" y2="235" stroke="#2563eb" stroke-width="6" stroke-linecap="round"/>
+  <text x="460" y="262" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Clear top line, one deep dive</text>
+
+  <!-- T steps legend -->
+  <text x="60" y="320" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">T-shaped recipe:</text>
+  <text x="60" y="342" font-family="sans-serif" font-size="12" fill="#1d2438">1. Overview of the relevant main points</text>
+  <text x="60" y="362" font-family="sans-serif" font-size="12" fill="#1d2438">2. Flag which issue needs the most discussion</text>
+  <text x="60" y="382" font-family="sans-serif" font-size="12" fill="#1d2438">3. Go deep on that one with background &amp; context</text>
+</svg>

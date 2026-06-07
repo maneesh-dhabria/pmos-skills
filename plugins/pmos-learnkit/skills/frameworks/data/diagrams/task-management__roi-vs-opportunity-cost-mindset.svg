@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="ROI vs Opportunity Cost Mindset diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">ROI vs. Opportunity Cost Mindset</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">In a high-leverage role, shift how you pick tasks</text>
+
+  <!-- LEFT: ROI mindset -->
+  <rect x="30" y="72" width="270" height="280" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="165" y="98" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Maximize ROI</text>
+  <text x="165" y="115" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">the default heuristic</text>
+
+  <!-- formula -->
+  <rect x="50" y="128" width="230" height="46" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1"/>
+  <text x="165" y="148" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Value created − Cost of time</text>
+  <line x1="86" y1="153" x2="244" y2="153" stroke="#1d2438" stroke-width="1"/>
+  <text x="165" y="168" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Cost of time</text>
+
+  <text x="50" y="196" font-family="sans-serif" font-size="10" fill="#5b6680">Easiest lever: shrink the cost.</text>
+  <text x="50" y="212" font-family="sans-serif" font-size="10" fill="#5b6680">Tiny-cost task = huge ROI even</text>
+  <text x="50" y="228" font-family="sans-serif" font-size="10" fill="#5b6680">if value is low.</text>
+
+  <!-- brownian motion -->
+  <text x="50" y="252" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">Result: Brownian motion</text>
+  <polyline points="50,300 70,288 84,306 104,292 116,312 138,296 152,314 174,300 190,318 214,302 232,316 256,304 272,318"
+            fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="50" cy="300" r="4" fill="#f59e0b"/>
+  <circle cx="272" cy="318" r="4" fill="#f59e0b"/>
+  <text x="165" y="340" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Quick incremental wins — by inches</text>
+
+  <!-- arrow shift -->
+  <defs>
+    <marker id="shift" markerWidth="11" markerHeight="11" refX="7" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <line x1="304" y1="212" x2="334" y2="212" stroke="#2563eb" stroke-width="3" marker-end="url(#shift)"/>
+  <text x="320" y="200" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#2563eb">shift</text>
+
+  <!-- RIGHT: Opportunity Cost mindset -->
+  <rect x="340" y="72" width="270" height="280" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="475" y="98" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Minimize Opportunity Cost</text>
+  <text x="475" y="115" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">the high-leverage move</text>
+
+  <!-- formula -->
+  <rect x="360" y="128" width="230" height="46" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+  <text x="475" y="156" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Value of optimal − Value of chosen</text>
+
+  <text x="360" y="196" font-family="sans-serif" font-size="10" fill="#5b6680">Forces you to weigh the best</text>
+  <text x="360" y="212" font-family="sans-serif" font-size="10" fill="#5b6680">alternative you'd otherwise</text>
+  <text x="360" y="228" font-family="sans-serif" font-size="10" fill="#5b6680">never consider.</text>
+
+  <text x="360" y="252" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">Result: intentional progress</text>
+  <line x1="360" y1="310" x2="582" y2="282" stroke="#2563eb" stroke-width="2.5"/>
+  <circle cx="360" cy="310" r="4" fill="#2563eb"/>
+  <circle cx="582" cy="282" r="4" fill="#2563eb"/>
+  <text x="475" y="340" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Move with intent — by miles</text>
+</svg>

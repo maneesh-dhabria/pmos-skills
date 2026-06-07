@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Gartner Hype Cycle diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Gartner Hype Cycle</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12.5" fill="#5b6680">Five phases of emerging-technology maturity over time.</text>
+
+  <!-- axes -->
+  <g stroke="#5b6680" stroke-width="1.4">
+    <line x1="60" y1="330" x2="616" y2="330"/>
+    <line x1="60" y1="330" x2="60" y2="80"/>
+  </g>
+  <text x="338" y="360" font-family="sans-serif" font-size="11.5" fill="#5b6680" text-anchor="middle">Time / maturity &#8594;</text>
+  <text x="44" y="205" font-family="sans-serif" font-size="11.5" fill="#5b6680" text-anchor="middle" transform="rotate(-90 44 205)">Expectations &#8594;</text>
+
+  <!-- the signature curve -->
+  <path d="M60 300
+           C 95 300, 110 120, 165 105
+           C 215 92, 235 290, 300 300
+           C 360 309, 380 250, 430 210
+           C 510 148, 560 138, 600 132"
+        fill="none" stroke="#2563eb" stroke-width="3.2"/>
+
+  <!-- peak marker -->
+  <circle cx="178" cy="103" r="5" fill="#f59e0b"/>
+  <!-- trough marker -->
+  <circle cx="300" cy="300" r="5" fill="#ef4444"/>
+  <!-- plateau marker -->
+  <circle cx="600" cy="132" r="5" fill="#0ea5a4"/>
+
+  <!-- phase labels with numbers -->
+  <g font-family="sans-serif">
+    <!-- 1 Innovation Trigger -->
+    <circle cx="66" cy="300" r="11" fill="#2563eb"/>
+    <text x="66" y="304" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+    <text x="88" y="324" font-size="10.5" font-weight="700" fill="#1d2438">Innovation</text>
+    <text x="88" y="337" font-size="10.5" font-weight="700" fill="#1d2438">Trigger</text>
+
+    <!-- 2 Peak -->
+    <circle cx="178" cy="103" r="11" fill="#f59e0b"/>
+    <text x="178" y="107" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+    <text x="178" y="80" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Peak of Inflated</text>
+    <text x="178" y="92" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Expectations</text>
+
+    <!-- 3 Trough -->
+    <circle cx="300" cy="300" r="11" fill="#ef4444"/>
+    <text x="300" y="304" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+    <text x="300" y="324" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Trough of</text>
+    <text x="300" y="337" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Disillusionment</text>
+
+    <!-- 4 Slope -->
+    <circle cx="430" cy="210" r="11" fill="#2563eb"/>
+    <text x="430" y="214" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">4</text>
+    <text x="430" y="188" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Slope of</text>
+    <text x="430" y="176" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Enlightenment</text>
+
+    <!-- 5 Plateau -->
+    <circle cx="600" cy="132" r="11" fill="#0ea5a4"/>
+    <text x="600" y="136" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">5</text>
+    <text x="600" y="110" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Plateau of</text>
+    <text x="600" y="122" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="middle">Productivity</text>
+  </g>
+
+  <!-- caption -->
+  <text x="338" y="388" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Hype spikes early, crashes, then real value matures into mainstream adoption.</text>
+</svg>

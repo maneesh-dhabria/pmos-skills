@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Agreed Target Quality Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Agreed Target Quality Framework</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Agree the target quality level upfront — not in last-minute launch fights</text>
+
+  <!-- gauge scale arrow on the left -->
+  <text x="44" y="92" font-family="sans-serif" font-size="10" font-weight="700" fill="#0ea5a4" text-anchor="middle">HIGH</text>
+  <line x1="44" y1="100" x2="44" y2="332" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="44,96 40,104 48,104" fill="#0ea5a4"/>
+  <polygon points="44,336 40,328 48,328" fill="#ef4444"/>
+  <text x="44" y="350" font-family="sans-serif" font-size="10" font-weight="700" fill="#ef4444" text-anchor="middle">LOW</text>
+
+  <!-- 5 quality rungs -->
+  <g font-family="sans-serif">
+    <rect x="80" y="100" width="532" height="40" rx="6" fill="#0ea5a4"/>
+    <text x="100" y="125" font-size="16" font-weight="700" fill="#ffffff">Exquisite</text>
+    <text x="300" y="125" font-size="11" fill="#e6fffb">Best-in-class; a signature, delightful experience</text>
+
+    <rect x="80" y="148" width="532" height="40" rx="6" fill="#2563eb"/>
+    <text x="100" y="173" font-size="16" font-weight="700" fill="#ffffff">Elegant</text>
+    <text x="300" y="173" font-size="11" fill="#dbe7ff">Polished and refined beyond the baseline</text>
+
+    <rect x="80" y="196" width="532" height="40" rx="6" fill="#5b6680"/>
+    <text x="100" y="221" font-size="16" font-weight="700" fill="#ffffff">Expected</text>
+    <text x="300" y="221" font-size="11" fill="#e7eaf1">Meets the standard users assume — solid, no surprises</text>
+
+    <rect x="80" y="244" width="532" height="40" rx="6" fill="#f59e0b"/>
+    <text x="100" y="269" font-size="16" font-weight="700" fill="#1d2438">Flawed</text>
+    <text x="300" y="269" font-size="11" fill="#1d2438">Knowingly ships with rough edges / gaps</text>
+
+    <rect x="80" y="292" width="532" height="40" rx="6" fill="#ef4444"/>
+    <text x="100" y="317" font-size="16" font-weight="700" fill="#ffffff">Broken</text>
+    <text x="300" y="317" font-size="11" fill="#ffe4e4">Does not reliably work; placeholder only</text>
+  </g>
+
+  <rect x="24" y="346" width="588" height="38" rx="6" fill="#f4f7ff"/>
+  <text x="38" y="363" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">WHY UPFRONT?</text>
+  <text x="38" y="378" font-family="sans-serif" font-size="10.5" fill="#5b6680">Picking the rung &amp; the reason early aligns design + engineering and pre-empts 100s of pre-launch debates.</text>
+</svg>

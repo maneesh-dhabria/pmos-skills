@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Entertainment Value Curve diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Entertainment Value Curve</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Mobile entertainment value = production value + social value (efficient PMF frontier)</text>
+
+  <!-- axes -->
+  <line x1="90" y1="90" x2="90" y2="350" stroke="#1d2438" stroke-width="2"/>
+  <line x1="90" y1="350" x2="600" y2="350" stroke="#1d2438" stroke-width="2"/>
+  <!-- arrow heads -->
+  <path d="M90 90 l-5 10 h10 z" fill="#1d2438"/>
+  <path d="M600 350 l-10 -5 v10 z" fill="#1d2438"/>
+
+  <!-- axis labels -->
+  <text x="40" y="225" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" transform="rotate(-90 40 225)">Social Value</text>
+  <text x="64" y="245" font-family="sans-serif" font-size="10" fill="#5b6680" transform="rotate(-90 64 245)">personal connection</text>
+  <text x="300" y="380" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Production Value</text>
+  <text x="300" y="394" font-family="sans-serif" font-size="10" fill="#5b6680">quality vs. best in genre</text>
+
+  <!-- efficient frontier curve (downward sloping concave): high social/low prod -> low social/high prod -->
+  <path d="M105 110 Q 230 150 350 250 T 585 335" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="2 0"/>
+  <text x="120" y="105" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">efficient frontier (product/market fit)</text>
+
+  <!-- products on / near frontier -->
+  <!-- Snapchat: high social, low production -->
+  <circle cx="120" cy="125" r="6" fill="#0ea5a4"/>
+  <text x="132" y="129" font-family="sans-serif" font-size="11" fill="#1d2438">Snapchat lenses</text>
+  <!-- Instagram -->
+  <circle cx="205" cy="160" r="6" fill="#0ea5a4"/>
+  <text x="217" y="164" font-family="sans-serif" font-size="11" fill="#1d2438">Instagram feed</text>
+  <!-- TikTok -->
+  <circle cx="300" cy="215" r="6" fill="#0ea5a4"/>
+  <text x="312" y="219" font-family="sans-serif" font-size="11" fill="#1d2438">TikTok For You</text>
+  <!-- YouTube -->
+  <circle cx="430" cy="295" r="6" fill="#0ea5a4"/>
+  <text x="442" y="299" font-family="sans-serif" font-size="11" fill="#1d2438">YouTube</text>
+  <!-- Netflix -->
+  <circle cx="560" cy="332" r="6" fill="#0ea5a4"/>
+  <text x="498" y="350" font-family="sans-serif" font-size="11" fill="#1d2438">Netflix</text>
+
+  <!-- failure zone marker below frontier -->
+  <circle cx="250" cy="320" r="5" fill="#ef4444"/>
+  <text x="262" y="324" font-family="sans-serif" font-size="11" fill="#ef4444">products that fall short of the frontier (fail)</text>
+</svg>

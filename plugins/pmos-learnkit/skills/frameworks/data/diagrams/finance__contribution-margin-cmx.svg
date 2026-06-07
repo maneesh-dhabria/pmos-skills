@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Contribution Margin CMx diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Contribution Margin (CMx)</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Peel cost layers off the selling price to reveal profit at each stage</text>
+
+  <!-- Waterfall ladder. Selling price bar full, each step subtracts a cost. -->
+  <!-- geometry: bars y from 90 step 60; left x scaled -->
+  <g font-family="sans-serif" font-size="12">
+    <!-- Selling price -->
+    <rect x="40" y="80" width="500" height="34" rx="5" fill="#1d2438"/>
+    <text x="52" y="102" fill="#ffffff" font-weight="700">Selling price</text>
+    <text x="528" y="102" fill="#ffffff" font-weight="700" text-anchor="end">$100</text>
+
+    <!-- minus COGS -->
+    <text x="40" y="138" fill="#ef4444" font-weight="700">&#8722; Variable COGS  ($40)</text>
+
+    <!-- CM1 -->
+    <rect x="40" y="146" width="300" height="34" rx="5" fill="#2563eb"/>
+    <text x="52" y="168" fill="#ffffff" font-weight="700">CM1 &#183; core product margin</text>
+    <text x="328" y="168" fill="#ffffff" font-weight="700" text-anchor="end">$60</text>
+
+    <!-- minus fulfillment -->
+    <text x="40" y="204" fill="#ef4444" font-weight="700">&#8722; Fulfillment: logistics, warehousing, fees  ($20)</text>
+
+    <!-- CM2 -->
+    <rect x="40" y="212" width="200" height="34" rx="5" fill="#0ea5a4"/>
+    <text x="52" y="234" fill="#ffffff" font-weight="700">CM2 &#183; order margin</text>
+    <text x="228" y="234" fill="#ffffff" font-weight="700" text-anchor="end">$40</text>
+
+    <!-- minus marketing -->
+    <text x="40" y="270" fill="#ef4444" font-weight="700">&#8722; Marketing spend  ($15)</text>
+
+    <!-- CM3 -->
+    <rect x="40" y="278" width="125" height="34" rx="5" fill="#f59e0b"/>
+    <text x="52" y="300" fill="#ffffff" font-weight="700">CM3</text>
+    <text x="153" y="300" fill="#ffffff" font-weight="700" text-anchor="end">$25</text>
+    <text x="178" y="300" fill="#1d2438">&#8592; pays salaries &amp; overhead; must stay positive</text>
+  </g>
+
+  <!-- legend / scale ladder summary -->
+  <rect x="40" y="332" width="500" height="48" rx="8" fill="#f4f7ff" stroke="#dbe3f5"/>
+  <g font-family="sans-serif" font-size="11" fill="#5b6680">
+    <circle cx="60" cy="350" r="6" fill="#2563eb"/><text x="74" y="354" fill="#1d2438" font-weight="700">CM1</text><text x="110" y="354">price &#8722; COGS</text>
+    <circle cx="240" cy="350" r="6" fill="#0ea5a4"/><text x="254" y="354" fill="#1d2438" font-weight="700">CM2</text><text x="290" y="354">CM1 &#8722; fulfillment</text>
+    <circle cx="60" cy="370" r="6" fill="#f59e0b"/><text x="74" y="374" fill="#1d2438" font-weight="700">CM3</text><text x="110" y="374">CM2 &#8722; marketing = true profit contribution</text>
+  </g>
+</svg>

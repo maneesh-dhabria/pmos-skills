@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Customer Development diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Customer Development</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Steve Blank's four steps &#8212; validate fit before you scale</text>
+
+  <!-- phase bands -->
+  <text x="180" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">SEARCH for the model</text>
+  <text x="480" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4" text-anchor="middle">EXECUTE the model</text>
+  <line x1="324" y1="100" x2="324" y2="320" stroke="#5b6680" stroke-width="1" stroke-dasharray="3 4"/>
+
+  <!-- 4 stage flow boxes -->
+  <g font-family="sans-serif">
+    <!-- 1 -->
+    <rect x="32" y="108" width="136" height="160" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="60" cy="136" r="15" fill="#2563eb"/>
+    <text x="60" y="142" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="48" y="180" font-size="13" font-weight="700" fill="#1d2438">Customer</text>
+    <text x="48" y="197" font-size="13" font-weight="700" fill="#1d2438">Discovery</text>
+    <text x="48" y="222" font-size="11" fill="#5b6680">Identify the</text>
+    <text x="48" y="237" font-size="11" fill="#5b6680">customer &amp; a</text>
+    <text x="48" y="252" font-size="11" fill="#5b6680">problem worth</text>
+    <text x="48" y="267" font-size="11" fill="#5b6680">solving</text>
+
+    <!-- 2 -->
+    <rect x="188" y="108" width="136" height="160" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="216" cy="136" r="15" fill="#2563eb"/>
+    <text x="216" y="142" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="204" y="180" font-size="13" font-weight="700" fill="#1d2438">Customer</text>
+    <text x="204" y="197" font-size="13" font-weight="700" fill="#1d2438">Validation</text>
+    <text x="204" y="222" font-size="11" fill="#5b6680">Test problem-</text>
+    <text x="204" y="237" font-size="11" fill="#5b6680">solution fit with</text>
+    <text x="204" y="252" font-size="11" fill="#5b6680">real customers</text>
+
+    <!-- 3 -->
+    <rect x="344" y="108" width="136" height="160" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="372" cy="136" r="15" fill="#0ea5a4"/>
+    <text x="372" y="142" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="360" y="180" font-size="13" font-weight="700" fill="#1d2438">Customer</text>
+    <text x="360" y="197" font-size="13" font-weight="700" fill="#1d2438">Creation</text>
+    <text x="360" y="222" font-size="11" fill="#5b6680">Build an MVP,</text>
+    <text x="360" y="237" font-size="11" fill="#5b6680">test with early</text>
+    <text x="360" y="252" font-size="11" fill="#5b6680">adopters; scale</text>
+    <text x="360" y="267" font-size="11" fill="#5b6680">demand</text>
+
+    <!-- 4 -->
+    <rect x="500" y="108" width="136" height="160" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="528" cy="136" r="15" fill="#0ea5a4"/>
+    <text x="528" y="142" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+    <text x="516" y="180" font-size="13" font-weight="700" fill="#1d2438">Company</text>
+    <text x="516" y="197" font-size="13" font-weight="700" fill="#1d2438">Building</text>
+    <text x="516" y="222" font-size="11" fill="#5b6680">Scale into a</text>
+    <text x="516" y="237" font-size="11" fill="#5b6680">sustainable,</text>
+    <text x="516" y="252" font-size="11" fill="#5b6680">profitable</text>
+    <text x="516" y="267" font-size="11" fill="#5b6680">business</text>
+  </g>
+
+  <!-- arrows -->
+  <g fill="#5b6680">
+    <path d="M168 188 l16 0 l0 -6 l10 9 l-10 9 l0 -6 l-16 0 z"/>
+    <path d="M324 188 l16 0 l0 -6 l10 9 l-10 9 l0 -6 l-16 0 z"/>
+    <path d="M480 188 l16 0 l0 -6 l10 9 l-10 9 l0 -6 l-16 0 z"/>
+  </g>
+
+  <!-- pivot loop -->
+  <path d="M256 290 q80 36 160 0" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>
+  <path d="M256 290 l-9 -2 l4 8 z" fill="#f59e0b"/>
+  <text x="336" y="320" font-family="sans-serif" font-size="11" fill="#f59e0b" text-anchor="middle">iterate &amp; pivot on new insight</text>
+
+  <text x="32" y="382" font-family="sans-serif" font-size="11" fill="#5b6680">"Get out of the building" &#8226; pair with agile &#8226; no business plan survives first customer contact</text>
+</svg>

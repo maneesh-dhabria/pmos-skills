@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PMF Hypothesis Document diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">PMF Hypothesis Document</text>
+  <text x="24" y="51" font-family="sans-serif" font-size="12" fill="#5b6680">Document hypotheses &#8594; validate the riskiest &#8594; iterate to PMF</text>
+
+  <!-- Stage 1: Document hypotheses -->
+  <rect x="24" y="70" width="236" height="300" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="40" y="92" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">STAGE 1 &#183; DOCUMENT</text>
+  <text x="40" y="108" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">Core PMF hypotheses</text>
+  <g font-family="sans-serif" font-size="11" fill="#1d2438">
+    <text x="40" y="134">&#8226; Target Audience</text>
+    <text x="40" y="156">&#8226; Problem You&#8217;re Solving</text>
+    <text x="40" y="178">&#8226; Value Propositions (max 3)</text>
+    <text x="40" y="200">&#8226; Strategic Differentiation</text>
+    <text x="40" y="222">&#8226; Competition / status quo</text>
+    <text x="40" y="244">&#8226; Acquisition Strategy</text>
+    <text x="40" y="266">&#8226; Monetization Strategy</text>
+    <text x="40" y="288">&#8226; KPIs (acq, engage, $, CSAT)</text>
+  </g>
+  <text x="40" y="320" font-family="sans-serif" font-size="10.5" fill="#5b6680">Balance a formal plan with</text>
+  <text x="40" y="334" font-family="sans-serif" font-size="10.5" fill="#5b6680">structured iteration &#8212; rank</text>
+  <text x="40" y="348" font-family="sans-serif" font-size="10.5" fill="#5b6680">the most uncertain elements.</text>
+
+  <!-- arrow 1->2 -->
+  <line x1="262" y1="220" x2="298" y2="220" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="298,214 310,220 298,226" fill="#1d2438"/>
+
+  <!-- Stage 2: Validate via interviews -->
+  <rect x="312" y="70" width="304" height="186" rx="12" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="328" y="92" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">STAGE 2 &#183; VALIDATE</text>
+  <text x="328" y="108" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">20+ customer interviews (45&#8211;60 min)</text>
+  <text x="328" y="124" font-family="sans-serif" font-size="10.5" fill="#5b6680">1-on-1 (avoid groupthink) &#183; lead + note-taker</text>
+
+  <g font-family="sans-serif" font-size="10.5">
+    <rect x="328" y="134" width="132" height="22" rx="6" fill="#f4f7ff"/>
+    <text x="394" y="149" fill="#1d2438" text-anchor="middle">Overview &amp; problems</text>
+    <rect x="468" y="134" width="132" height="22" rx="6" fill="#f4f7ff"/>
+    <text x="534" y="149" fill="#1d2438" text-anchor="middle">Value prop reaction</text>
+    <rect x="328" y="162" width="132" height="22" rx="6" fill="#f4f7ff"/>
+    <text x="394" y="177" fill="#1d2438" text-anchor="middle">Solution / mockups</text>
+    <rect x="468" y="162" width="132" height="22" rx="6" fill="#f4f7ff"/>
+    <text x="534" y="177" fill="#1d2438" text-anchor="middle">Competition / WTP</text>
+  </g>
+  <rect x="328" y="194" width="272" height="48" rx="8" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="340" y="212" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b">The key test: Vitamin or Painkiller?</text>
+  <text x="340" y="227" font-family="sans-serif" font-size="10.5" fill="#5b6680">Top-5 priority this quarter? Willing to join a</text>
+  <text x="340" y="239" font-family="sans-serif" font-size="10.5" fill="#5b6680">pilot? Theoretical &#8594; practical commitment.</text>
+
+  <!-- arrow 2->3 (down) -->
+  <line x1="464" y1="258" x2="464" y2="284" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="458,284 464,296 470,284" fill="#1d2438"/>
+
+  <!-- Stage 3: iterate / signal -->
+  <rect x="312" y="300" width="304" height="70" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="328" y="322" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">STAGE 3 &#183; CONCLUDE &amp; ITERATE</text>
+  <text x="328" y="340" font-family="sans-serif" font-size="11" fill="#1d2438">Summarize each hypothesis comparably. Re-run waves on</text>
+  <text x="328" y="355" font-family="sans-serif" font-size="11" fill="#1d2438">unclear ones.</text>
+  <text x="328" y="364" font-family="sans-serif" font-size="0" fill="#ffffff"> </text>
+
+  <!-- feedback loop arrow stage3 -> stage2 -->
+  <path d="M312 335 C 280 335 280 220 310 220" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <polygon points="310,220 300,214 300,226" fill="#2563eb"/>
+
+  <text x="468" y="389" font-family="sans-serif" font-size="10.5" fill="#0ea5a4" text-anchor="middle" font-weight="700">&#8805;50% ready to act &#8594; close to PMF</text>
+</svg>

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Fermi Style ROI diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Fermi Style ROI</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Pick impact &amp; time from a few order-of-magnitude values &#8212; ROI = Impact / Time</text>
+
+  <!-- Impact ladder -->
+  <text x="120" y="80" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Impact (powers of ten)</text>
+  <rect x="40" y="92" width="160" height="30" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="120" y="112" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">$1k / mo</text>
+  <rect x="40" y="128" width="160" height="30" rx="6" fill="#e7efff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="120" y="148" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">$10k / mo</text>
+  <rect x="40" y="164" width="160" height="30" rx="6" fill="#2563eb" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="120" y="184" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">$100k / mo</text>
+  <text x="120" y="212" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">wide spread &#8594; the right pick is obvious</text>
+
+  <!-- divide symbol -->
+  <text x="320" y="150" text-anchor="middle" font-family="sans-serif" font-size="40" font-weight="700" fill="#5b6680">/</text>
+
+  <!-- Time ladder -->
+  <text x="520" y="80" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Time (2-day / 2-wk / 2-mo)</text>
+  <rect x="440" y="92" width="160" height="30" rx="6" fill="#f0fbfa" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="520" y="112" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">2 days</text>
+  <rect x="440" y="128" width="160" height="30" rx="6" fill="#d9f5f3" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="520" y="148" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">2 weeks</text>
+  <rect x="440" y="164" width="160" height="30" rx="6" fill="#0ea5a4" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="520" y="184" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">2 months</text>
+  <text x="520" y="212" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">few chunks a human can relate to</text>
+
+  <!-- ROI equation result -->
+  <rect x="120" y="232" width="400" height="50" rx="10" fill="#fffaf0" stroke="#f59e0b" stroke-width="2"/>
+  <text x="320" y="263" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">ROI = $100k &#247; 2 mo &#8776; well-ordered, explainable score</text>
+
+  <!-- properties strip -->
+  <rect x="40" y="300" width="180" height="80" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="130" y="322" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb">Biased to impact</text>
+  <text x="130" y="344" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">more impact wins</text>
+  <text x="130" y="360" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">even at more time</text>
+
+  <rect x="230" y="300" width="180" height="80" rx="8" fill="#f0fbfa" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="322" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Robust ordering</text>
+  <text x="320" y="344" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">misjudge by 20-50%</text>
+  <text x="320" y="360" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">&amp; rank still holds</text>
+
+  <rect x="420" y="300" width="180" height="80" rx="8" fill="#fffaf0" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="510" y="322" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Easy to explain</text>
+  <text x="510" y="344" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">few unique values,</text>
+  <text x="510" y="360" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">uncontroversial</text>
+</svg>

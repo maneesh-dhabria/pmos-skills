@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="6 Drivers of Influence diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">6 Drivers of Influence</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Prioritize the right levers for your situation</text>
+
+  <!-- Radar centred at 250,235 r=130; 6 axes at -90,-30,30,90,150,210 deg -->
+  <!-- grid rings -->
+  <g fill="none" stroke="#e2e8f5" stroke-width="1">
+    <polygon points="250,148 287.5,170 287.5,213 250,235 212.5,213 212.5,170"/>
+    <polygon points="250,105 325,148 325,235 250,278 175,235 175,148"/>
+    <polygon points="250,61 362.5,126 362.5,278 250,343 137.5,278 137.5,126"/>
+  </g>
+  <!-- axes -->
+  <g stroke="#cbd5e8" stroke-width="1">
+    <line x1="250" y1="235" x2="250" y2="61"/>
+    <line x1="250" y1="235" x2="362.5" y2="126"/>
+    <line x1="250" y1="235" x2="362.5" y2="278"/>
+    <line x1="250" y1="235" x2="250" y2="343"/>
+    <line x1="250" y1="235" x2="137.5" y2="278"/>
+    <line x1="250" y1="235" x2="137.5" y2="126"/>
+  </g>
+  <!-- example profile (low authority/alignment -> high credibility & inspiration) -->
+  <polygon points="250,105 306,158 325,235 250,300 175,235 175,148"
+           fill="#2563eb" fill-opacity="0.15" stroke="#2563eb" stroke-width="2"/>
+  <g fill="#2563eb">
+    <circle cx="250" cy="105" r="3"/>
+    <circle cx="306" cy="158" r="3"/>
+    <circle cx="325" cy="235" r="3"/>
+    <circle cx="250" cy="300" r="3"/>
+    <circle cx="175" cy="235" r="3"/>
+    <circle cx="175" cy="148" r="3"/>
+  </g>
+  <!-- axis labels -->
+  <g font-family="sans-serif" font-size="12" font-weight="600" fill="#1d2438">
+    <text x="250" y="50" text-anchor="middle">Storytelling</text>
+    <text x="372" y="123" text-anchor="start">Alignment</text>
+    <text x="372" y="282" text-anchor="start">Trust</text>
+    <text x="250" y="362" text-anchor="middle">Authority</text>
+    <text x="128" y="282" text-anchor="end">Rigor</text>
+    <text x="128" y="123" text-anchor="end">Charisma</text>
+  </g>
+
+  <!-- legend / guidance -->
+  <g font-family="sans-serif">
+    <text x="470" y="120" font-size="13" font-weight="700" fill="#1d2438">Less in your control</text>
+    <rect x="470" y="130" width="12" height="12" rx="2" fill="#f59e0b"/>
+    <text x="488" y="140" font-size="12" fill="#5b6680">Authority &amp; Alignment</text>
+
+    <text x="470" y="180" font-size="13" font-weight="700" fill="#1d2438">High auth + high align</text>
+    <text x="470" y="198" font-size="12" fill="#5b6680">Lean less on credibility</text>
+    <text x="470" y="214" font-size="12" fill="#5b6680">&amp; inspiration drivers.</text>
+
+    <text x="470" y="256" font-size="13" font-weight="700" fill="#2563eb">Low auth + low align</text>
+    <text x="470" y="274" font-size="12" fill="#5b6680">Lean more on storytelling,</text>
+    <text x="470" y="290" font-size="12" fill="#5b6680">trust, rigor &amp; charisma.</text>
+  </g>
+</svg>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4Ps Marketing Mix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">The 4Ps — Marketing Mix</text>
+  <text x="320" y="51" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Four levers aligned around the target market</text>
+
+  <!-- Center hub -->
+  <circle cx="320" cy="225" r="52" fill="#f4f7ff" stroke="#1d2438" stroke-width="2"/>
+  <text x="320" y="220" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">Target</text>
+  <text x="320" y="237" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">Market</text>
+
+  <!-- Connectors -->
+  <line x1="320" y1="173" x2="200" y2="120" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="320" y1="173" x2="440" y2="120" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="320" y1="277" x2="200" y2="330" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="320" y1="277" x2="440" y2="330" stroke="#5b6680" stroke-width="1.5"/>
+
+  <!-- Product (top-left) -->
+  <rect x="55" y="78" width="200" height="84" rx="8" fill="#2563eb"/>
+  <text x="75" y="104" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Product</text>
+  <text x="75" y="124" font-family="sans-serif" font-size="10.5" fill="#e8eeff">What you offer: features,</text>
+  <text x="75" y="139" font-family="sans-serif" font-size="10.5" fill="#e8eeff">design, quality, packaging</text>
+
+  <!-- Price (top-right) -->
+  <rect x="385" y="78" width="200" height="84" rx="8" fill="#0ea5a4"/>
+  <text x="405" y="104" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Price</text>
+  <text x="405" y="124" font-family="sans-serif" font-size="10.5" fill="#e7fbfa">What they pay: cost,</text>
+  <text x="405" y="139" font-family="sans-serif" font-size="10.5" fill="#e7fbfa">competition, perceived value</text>
+
+  <!-- Place (bottom-left) -->
+  <rect x="55" y="288" width="200" height="84" rx="8" fill="#f59e0b"/>
+  <text x="75" y="314" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Place</text>
+  <text x="75" y="334" font-family="sans-serif" font-size="10.5" fill="#fff6e6">Where they buy: channels,</text>
+  <text x="75" y="349" font-family="sans-serif" font-size="10.5" fill="#fff6e6">distribution, availability</text>
+
+  <!-- Promotion (bottom-right) -->
+  <rect x="385" y="288" width="200" height="84" rx="8" fill="#ef4444"/>
+  <text x="405" y="314" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Promotion</text>
+  <text x="405" y="334" font-family="sans-serif" font-size="10.5" fill="#ffecec">How they hear: ads, PR,</text>
+  <text x="405" y="349" font-family="sans-serif" font-size="10.5" fill="#ffecec">sales promos, selling</text>
+</svg>

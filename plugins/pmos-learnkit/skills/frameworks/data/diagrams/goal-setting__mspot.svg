@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="MSPOT diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">MSPOT</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">A cascade from broad to narrow — each level informs the one below</text>
+
+  <!-- Mission -->
+  <polygon points="200,80 440,80 410,116 230,116" fill="#1d2438"/>
+  <text x="320" y="103" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">MISSION · big-picture vision (rarely changes)</text>
+
+  <!-- Strategy -->
+  <polygon points="180,124 460,124 430,160 210,160" fill="#2563eb"/>
+  <text x="320" y="147" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">STRATEGY · how we achieve the mission</text>
+
+  <!-- Plays -->
+  <polygon points="160,168 480,168 450,204 190,204" fill="#0ea5a4"/>
+  <text x="320" y="191" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">PLAYS · 4–5 big annual initiatives</text>
+
+  <!-- Omissions -->
+  <polygon points="140,212 500,212 470,248 170,248" fill="#f59e0b"/>
+  <text x="320" y="235" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438" text-anchor="middle">OMISSIONS · what we will NOT work on</text>
+
+  <!-- Targets -->
+  <polygon points="120,256 520,256 490,300 150,300" fill="#ef4444"/>
+  <text x="320" y="282" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">TARGETS · measurable, realistic accountability</text>
+
+  <!-- cascade arrow -->
+  <line x1="556" y1="92" x2="556" y2="290" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="550,290 556,302 562,290" fill="#5b6680"/>
+  <text x="572" y="180" font-family="sans-serif" font-size="11" fill="#5b6680" transform="rotate(90 572 180)" text-anchor="middle">broad → narrow</text>
+
+  <!-- footer -->
+  <text x="320" y="338" font-family="sans-serif" font-size="12" fill="#1d2438" text-anchor="middle">A way to communicate strategy — including what won't be done — without being prescriptive</text>
+  <text x="320" y="358" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Best when you need to unite a team around a strategic vision</text>
+</svg>

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Nudge Theory diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Nudge Theory</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Choice architecture steers behavior without removing choices</text>
+
+  <!-- Left column: levers of choice architecture -->
+  <rect x="28" y="70" width="200" height="300" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="128" y="92" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Choice architecture</text>
+  <text x="128" y="108" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">levers a nudge can pull</text>
+
+  <g font-family="sans-serif" font-size="11" fill="#1d2438">
+    <rect x="44" y="122" width="168" height="34" rx="7" fill="#ffffff" stroke="#cdd8f0"/>
+    <text x="56" y="138" font-weight="700">Default option</text>
+    <text x="56" y="151" font-size="9" fill="#5b6680">opt-in vs opt-out</text>
+
+    <rect x="44" y="164" width="168" height="34" rx="7" fill="#ffffff" stroke="#cdd8f0"/>
+    <text x="56" y="180" font-weight="700">Framing</text>
+    <text x="56" y="193" font-size="9" fill="#5b6680">how attributes are described</text>
+
+    <rect x="44" y="206" width="168" height="34" rx="7" fill="#ffffff" stroke="#cdd8f0"/>
+    <text x="56" y="222" font-weight="700">Ordering / placement</text>
+    <text x="56" y="235" font-size="9" fill="#5b6680">eye-level fruit vs junk</text>
+
+    <rect x="44" y="248" width="168" height="34" rx="7" fill="#ffffff" stroke="#cdd8f0"/>
+    <text x="56" y="264" font-weight="700">Number of choices</text>
+    <text x="56" y="277" font-size="9" fill="#5b6680">reduce overload</text>
+  </g>
+  <text x="128" y="304" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#0ea5a4">Rule: easy &amp; cheap to avoid</text>
+  <text x="128" y="320" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">no bans, taxes, or new incentives</text>
+  <text x="128" y="350" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">acts mostly on the fast,</text>
+  <text x="128" y="362" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">unthinking Automatic System</text>
+
+  <!-- arrow -->
+  <line x1="232" y1="220" x2="282" y2="220" stroke="#5b6680" stroke-width="2.5" marker-end="url(#na)"/>
+  <defs>
+    <marker id="na" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- Right: two systems being acted on -->
+  <text x="450" y="92" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Two thinking systems</text>
+
+  <rect x="300" y="106" width="312" height="110" rx="12" fill="#0ea5a4"/>
+  <text x="316" y="130" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Automatic System</text>
+  <text x="316" y="148" font-family="sans-serif" font-size="10" fill="#d6f5f4">fast, instinctive, effortless</text>
+  <text x="316" y="164" font-family="sans-serif" font-size="10" fill="#d6f5f4">accepts the default &#8594; nudges land here</text>
+  <text x="316" y="188" font-family="sans-serif" font-size="10" fill="#ffffff" font-weight="700">prone to: anchoring, framing, status-quo bias</text>
+
+  <rect x="300" y="226" width="312" height="100" rx="12" fill="#ffffff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="316" y="250" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Reflective System</text>
+  <text x="316" y="268" font-family="sans-serif" font-size="10" fill="#5b6680">slow, deliberate, effortful</text>
+  <text x="316" y="284" font-family="sans-serif" font-size="10" fill="#5b6680">engaged for big, rare decisions</text>
+  <text x="316" y="306" font-family="sans-serif" font-size="10" fill="#1d2438" font-weight="700">a good nudge can re-route choices here</text>
+
+  <text x="456" y="352" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Nudge most when: hard, infrequent, slow feedback, unfamiliar</text>
+</svg>

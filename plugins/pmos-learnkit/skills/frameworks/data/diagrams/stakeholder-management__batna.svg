@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="BATNA diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">BATNA</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Best Alternative To a Negotiated Agreement — your walk-away line</text>
+
+  <!-- value scale -->
+  <g font-family="sans-serif">
+    <line x1="90" y1="170" x2="560" y2="170" stroke="#cbd5e8" stroke-width="2"/>
+    <text x="90" y="200" font-size="11" fill="#5b6680">worse</text>
+    <text x="560" y="200" font-size="11" text-anchor="end" fill="#5b6680">better</text>
+
+    <!-- BATNA threshold marker -->
+    <line x1="300" y1="120" x2="300" y2="200" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6 4"/>
+    <rect x="232" y="96" width="136" height="22" rx="5" fill="#f59e0b"/>
+    <text x="300" y="111" text-anchor="middle" font-size="12" font-weight="700" fill="#1d2438">Your BATNA</text>
+    <text x="300" y="218" text-anchor="middle" font-size="10.5" fill="#5b6680">walk-away point</text>
+
+    <!-- reject zone -->
+    <rect x="90" y="158" width="210" height="24" rx="6" fill="#fde7e7"/>
+    <text x="195" y="174" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ef4444">Worse than BATNA &#8594; walk away</text>
+    <!-- accept zone -->
+    <rect x="300" y="158" width="260" height="24" rx="6" fill="#e6f6f5"/>
+    <text x="430" y="174" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0ea5a4">Better than BATNA &#8594; worth a deal</text>
+
+    <!-- proposed deal marker -->
+    <circle cx="430" cy="170" r="7" fill="#2563eb"/>
+    <text x="430" y="146" text-anchor="middle" font-size="11" fill="#2563eb">deal on table</text>
+  </g>
+
+  <!-- four uses -->
+  <g font-family="sans-serif">
+    <rect x="70" y="252" width="120" height="100" rx="9" fill="#f4f7ff" stroke="#cbd5e8"/>
+    <text x="130" y="276" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">1 Assess</text>
+    <text x="130" y="298" text-anchor="middle" font-size="10.5" fill="#5b6680">your real</text>
+    <text x="130" y="313" text-anchor="middle" font-size="10.5" fill="#5b6680">options to</text>
+    <text x="130" y="328" text-anchor="middle" font-size="10.5" fill="#5b6680">settle</text>
+
+    <rect x="208" y="252" width="120" height="100" rx="9" fill="#f4f7ff" stroke="#cbd5e8"/>
+    <text x="268" y="276" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">2 Prepare</text>
+    <text x="268" y="298" text-anchor="middle" font-size="10.5" fill="#5b6680">pick best</text>
+    <text x="268" y="313" text-anchor="middle" font-size="10.5" fill="#5b6680">alternative,</text>
+    <text x="268" y="328" text-anchor="middle" font-size="10.5" fill="#5b6680">set strategy</text>
+
+    <rect x="346" y="252" width="120" height="100" rx="9" fill="#f4f7ff" stroke="#cbd5e8"/>
+    <text x="406" y="276" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">3 Read them</text>
+    <text x="406" y="298" text-anchor="middle" font-size="10.5" fill="#5b6680">gauge their</text>
+    <text x="406" y="313" text-anchor="middle" font-size="10.5" fill="#5b6680">alternatives,</text>
+    <text x="406" y="328" text-anchor="middle" font-size="10.5" fill="#5b6680">find overlap</text>
+
+    <rect x="484" y="252" width="120" height="100" rx="9" fill="#f4f7ff" stroke="#cbd5e8"/>
+    <text x="544" y="276" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">4 Stay cool</text>
+    <text x="544" y="298" text-anchor="middle" font-size="10.5" fill="#5b6680">egos in</text>
+    <text x="544" y="313" text-anchor="middle" font-size="10.5" fill="#5b6680">check, ready</text>
+    <text x="544" y="328" text-anchor="middle" font-size="10.5" fill="#5b6680">to walk</text>
+  </g>
+</svg>

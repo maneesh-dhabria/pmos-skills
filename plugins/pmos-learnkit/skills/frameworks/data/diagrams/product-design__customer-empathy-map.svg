@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Customer Empathy Map diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Customer Empathy Map</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Four quadrants around the user — externalize what we know (not chronological)</text>
+
+  <!-- Quadrant grid -->
+  <g font-family="sans-serif">
+    <!-- Says (top-left) -->
+    <rect x="40" y="72" width="270" height="130" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="56" y="94" font-size="13" font-weight="700" fill="#2563eb">SAYS</text>
+    <text x="56" y="110" font-size="9.5" fill="#5b6680">Verbatim quotes from research</text>
+    <text x="56" y="132" font-size="10.5" fill="#1d2438">"This price doesn't match the site"</text>
+    <text x="56" y="150" font-size="10.5" fill="#1d2438">"I want a bigger screen"</text>
+    <text x="56" y="172" font-size="9.5" fill="#5b6680" font-style="italic">— what they say out loud</text>
+
+    <!-- Thinks (top-right) -->
+    <rect x="330" y="72" width="270" height="130" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="346" y="94" font-size="13" font-weight="700" fill="#0ea5a4">THINKS</text>
+    <text x="346" y="110" font-size="9.5" fill="#5b6680">What occupies their thoughts</text>
+    <text x="346" y="132" font-size="10.5" fill="#1d2438">"Am I getting the best deal?"</text>
+    <text x="346" y="150" font-size="10.5" fill="#1d2438">"Is this brand reliable?"</text>
+    <text x="346" y="172" font-size="9.5" fill="#5b6680" font-style="italic">— may not vocalize</text>
+
+    <!-- Does (bottom-left) -->
+    <rect x="40" y="244" width="270" height="130" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="56" y="266" font-size="13" font-weight="700" fill="#f59e0b">DOES</text>
+    <text x="56" y="282" font-size="9.5" fill="#5b6680">Actions &amp; how they do them</text>
+    <text x="56" y="304" font-size="10.5" fill="#1d2438">Refreshes the page repeatedly</text>
+    <text x="56" y="322" font-size="10.5" fill="#1d2438">Compares prices across sites</text>
+    <text x="56" y="344" font-size="9.5" fill="#5b6680" font-style="italic">— observed behavior</text>
+
+    <!-- Feels (bottom-right) -->
+    <rect x="330" y="244" width="270" height="130" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="346" y="266" font-size="13" font-weight="700" fill="#ef4444">FEELS</text>
+    <text x="346" y="282" font-size="9.5" fill="#5b6680">Emotional state (adj + context)</text>
+    <text x="346" y="304" font-size="10.5" fill="#1d2438">Impatient: pages load too slowly</text>
+    <text x="346" y="322" font-size="10.5" fill="#1d2438">Confused: contradictory prices</text>
+    <text x="346" y="344" font-size="10.5" fill="#1d2438">Worried: doing something wrong</text>
+  </g>
+
+  <!-- Center persona -->
+  <circle cx="320" cy="223" r="34" fill="#1d2438"/>
+  <circle cx="320" cy="213" r="11" fill="#ffffff"/>
+  <path d="M302 240 a18 14 0 0 1 36 0 Z" fill="#ffffff"/>
+  <text x="320" y="200" font-family="sans-serif" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">USER</text>
+
+  <text x="24" y="394" font-family="sans-serif" font-size="10" fill="#5b6680">Captures one user or an aggregate of many — a first step toward personas. Quadrants may overlap; pick one and move on.</text>
+</svg>

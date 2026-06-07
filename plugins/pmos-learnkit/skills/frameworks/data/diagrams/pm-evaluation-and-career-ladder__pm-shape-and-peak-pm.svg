@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM Shape and Peak PM diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">PM Shape &amp; Peak PM</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">12 competencies across 4 areas — know your shape, balance your team</text>
+
+  <!-- Axis labels -->
+  <text x="320" y="78" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#0ea5a4">PRODUCT MANAGERS  ·  execution-led</text>
+  <text x="320" y="372" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#0ea5a4">PRODUCT LEADERS  ·  influence-led</text>
+  <text x="22" y="225" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#f59e0b" transform="rotate(-90 22 225)">BUILDERS · get it done</text>
+  <text x="618" y="225" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="600" fill="#f59e0b" transform="rotate(90 618 225)">ARCHITECTS · design impact</text>
+
+  <!-- Quadrant 1: Product Execution (top-left, Builder x Manager) -->
+  <rect x="60" y="88" width="260" height="130" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="74" y="110" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Product Execution</text>
+  <text x="74" y="130" font-family="sans-serif" font-size="11" fill="#5b6680">Build exceptional products</text>
+  <text x="74" y="152" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Feature specification</text>
+  <text x="74" y="170" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Product delivery</text>
+  <text x="74" y="188" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Quality assurance</text>
+
+  <!-- Quadrant 2: Customer Insight (top-right, Architect x Manager) -->
+  <rect x="320" y="88" width="260" height="130" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="334" y="110" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Customer Insight</text>
+  <text x="334" y="130" font-family="sans-serif" font-size="11" fill="#5b6680">Understand &amp; deliver needs</text>
+  <text x="334" y="152" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Fluency with analytics</text>
+  <text x="334" y="170" font-family="sans-serif" font-size="10.5" fill="#1d2438">• User-centric design</text>
+  <text x="334" y="188" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Domain knowledge</text>
+
+  <!-- Quadrant 3: Influencing People (bottom-left, Builder x Leader) -->
+  <rect x="60" y="218" width="260" height="130" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="74" y="240" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Influencing People</text>
+  <text x="74" y="260" font-family="sans-serif" font-size="11" fill="#5b6680">Rally people around the work</text>
+  <text x="74" y="282" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Managing up</text>
+  <text x="74" y="300" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Team leadership</text>
+  <text x="74" y="318" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Stakeholder mgmt</text>
+
+  <!-- Quadrant 4: Product Strategy (bottom-right, Architect x Leader) -->
+  <rect x="320" y="218" width="260" height="130" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="334" y="240" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Product Strategy</text>
+  <text x="334" y="260" font-family="sans-serif" font-size="11" fill="#5b6680">Drive impact via innovation</text>
+  <text x="334" y="282" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Product vision</text>
+  <text x="334" y="300" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Strategic impact</text>
+  <text x="334" y="318" font-family="sans-serif" font-size="10.5" fill="#1d2438">• Roadmapping</text>
+
+  <!-- center dividers -->
+  <line x1="320" y1="88" x2="320" y2="348" stroke="#1d2438" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <line x1="60" y1="218" x2="580" y2="218" stroke="#1d2438" stroke-width="0.8" stroke-dasharray="3 3"/>
+  <text x="320" y="392" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">APM → CPO: weight shifts clockwise from Execution toward Strategy &amp; Influence</text>
+</svg>

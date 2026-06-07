@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Content Monetization diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Content Monetization</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Turn content or user attention into revenue — four monetization paths</text>
+
+  <!-- Source column -->
+  <g font-family="sans-serif">
+    <rect x="24" y="120" width="150" height="56" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="99" y="143" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">Company content</text>
+    <text x="99" y="160" font-size="10" fill="#5b6680" text-anchor="middle">e.g. Netflix</text>
+
+    <rect x="24" y="200" width="150" height="56" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="99" y="223" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">User content</text>
+    <text x="99" y="240" font-size="10" fill="#5b6680" text-anchor="middle">e.g. Facebook</text>
+
+    <text x="99" y="100" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">CONTENT + ATTENTION</text>
+  </g>
+
+  <!-- converging arrows to hub -->
+  <line x1="174" y1="148" x2="232" y2="188" stroke="#5b6680" stroke-width="1.5" marker-end="url(#cm)"/>
+  <line x1="174" y1="228" x2="232" y2="188" stroke="#5b6680" stroke-width="1.5" marker-end="url(#cm)"/>
+
+  <!-- Monetize hub -->
+  <rect x="236" y="158" width="90" height="60" rx="10" fill="#1d2438"/>
+  <text x="281" y="184" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Monetize</text>
+  <text x="281" y="200" font-size="9.5" fill="#9aa6c4" text-anchor="middle">or Hybrid</text>
+
+  <!-- Four paths fan out -->
+  <g font-family="sans-serif">
+    <!-- Subscriptions -->
+    <line x1="326" y1="172" x2="392" y2="92" stroke="#0ea5a4" stroke-width="1.5" marker-end="url(#cm)"/>
+    <rect x="396" y="68" width="220" height="48" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="408" y="88" font-size="12" font-weight="700" fill="#0ea5a4">Subscriptions</text>
+    <text x="408" y="106" font-size="10" fill="#5b6680">Recurring fee — Masterclass, Spotify</text>
+
+    <!-- Advertising -->
+    <line x1="326" y1="182" x2="392" y2="158" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#cm)"/>
+    <rect x="396" y="134" width="220" height="64" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="408" y="154" font-size="12" font-weight="700" fill="#f59e0b">Advertising</text>
+    <text x="408" y="171" font-size="10" fill="#5b6680">Display · PPC · Affiliate · Intent-targeted</text>
+    <text x="408" y="187" font-size="10" fill="#5b6680">Facebook, X</text>
+
+    <!-- Transactional -->
+    <line x1="326" y1="200" x2="392" y2="234" stroke="#ef4444" stroke-width="1.5" marker-end="url(#cm)"/>
+    <rect x="396" y="216" width="220" height="48" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="408" y="236" font-size="12" font-weight="700" fill="#ef4444">Transactional</text>
+    <text x="408" y="254" font-size="10" fill="#5b6680">Virtual goods, courses — Fortnite</text>
+
+    <!-- Hybrid -->
+    <line x1="326" y1="208" x2="392" y2="296" stroke="#2563eb" stroke-width="1.5" marker-end="url(#cm)"/>
+    <rect x="396" y="282" width="220" height="48" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="408" y="302" font-size="12" font-weight="700" fill="#2563eb">Hybrid (Ads + Sub)</text>
+    <text x="408" y="320" font-size="10" fill="#5b6680">Netflix, Spotify tiers</text>
+  </g>
+
+  <!-- Metrics footer -->
+  <rect x="24" y="288" width="302" height="86" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.2"/>
+  <text x="36" y="308" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Key metrics</text>
+  <text x="36" y="326" font-family="sans-serif" font-size="10" fill="#5b6680">Unique visitors · Avg time spent · Churn</text>
+  <text x="36" y="343" font-family="sans-serif" font-size="10" fill="#5b6680">Ad inventory · Ad rate (CPM/CPE)</text>
+  <text x="36" y="360" font-family="sans-serif" font-size="10" fill="#5b6680">Click-through rate (CTR)</text>
+
+  <defs>
+    <marker id="cm" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

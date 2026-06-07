@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Product Management Specializations diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Product Management Specializations</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Four types of product work map to four PM specializations — each with its own sub-vector</text>
+
+  <!-- Column headers -->
+  <text x="40" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">TYPE OF WORK</text>
+  <text x="250" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">SPECIALIZATION</text>
+  <text x="430" y="80" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">FOCUS &amp; SUB-VECTOR</text>
+
+  <!-- Row 1: Core -->
+  <rect x="36" y="92" width="180" height="62" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="46" y="116" font-family="sans-serif" font-size="12" font-weight="600" fill="#1d2438">Feature work</text>
+  <text x="46" y="134" font-family="sans-serif" font-size="10" fill="#5b6680">solve a customer pain</text>
+  <path d="M216 123 L240 123" stroke="#2563eb" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="240" y="92" width="150" height="62" rx="6" fill="#2563eb"/>
+  <text x="252" y="120" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Core PM</text>
+  <text x="252" y="140" font-family="sans-serif" font-size="10" fill="#dbe7ff">customer pain points</text>
+  <text x="404" y="118" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Product / industry</text>
+  <text x="404" y="135" font-family="sans-serif" font-size="10" fill="#5b6680">e.g. Social, Enterprise</text>
+
+  <!-- Row 2: Growth -->
+  <rect x="36" y="162" width="180" height="62" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.2"/>
+  <text x="46" y="186" font-family="sans-serif" font-size="12" font-weight="600" fill="#1d2438">Growth work</text>
+  <text x="46" y="204" font-family="sans-serif" font-size="10" fill="#5b6680">grow business metrics</text>
+  <path d="M216 193 L240 193" stroke="#0ea5a4" stroke-width="1.5" marker-end="url(#ar2)"/>
+  <rect x="240" y="162" width="150" height="62" rx="6" fill="#0ea5a4"/>
+  <text x="252" y="190" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Growth PM</text>
+  <text x="252" y="210" font-family="sans-serif" font-size="10" fill="#d3f4f3">acquisition→retention</text>
+  <text x="404" y="188" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Funnel stage</text>
+  <text x="404" y="205" font-family="sans-serif" font-size="10" fill="#5b6680">Acquisition, Monetization</text>
+
+  <!-- Row 3: Platform -->
+  <rect x="36" y="232" width="180" height="62" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.2"/>
+  <text x="46" y="256" font-family="sans-serif" font-size="12" font-weight="600" fill="#1d2438">Scaling work</text>
+  <text x="46" y="274" font-family="sans-serif" font-size="10" fill="#5b6680">scale internal platforms</text>
+  <path d="M216 263 L240 263" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#ar3)"/>
+  <rect x="240" y="232" width="150" height="62" rx="6" fill="#f59e0b"/>
+  <text x="252" y="260" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Platform PM</text>
+  <text x="252" y="280" font-family="sans-serif" font-size="10" fill="#fff4e0">internal customers</text>
+  <text x="404" y="258" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Platform knowledge</text>
+  <text x="404" y="275" font-family="sans-serif" font-size="10" fill="#5b6680">Security, Personalization</text>
+
+  <!-- Row 4: Innovation -->
+  <rect x="36" y="302" width="180" height="62" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.2"/>
+  <text x="46" y="326" font-family="sans-serif" font-size="12" font-weight="600" fill="#1d2438">PMF expansion</text>
+  <text x="46" y="344" font-family="sans-serif" font-size="10" fill="#5b6680">reach / expand PMF</text>
+  <path d="M216 333 L240 333" stroke="#ef4444" stroke-width="1.5" marker-end="url(#ar4)"/>
+  <rect x="240" y="302" width="150" height="62" rx="6" fill="#ef4444"/>
+  <text x="252" y="330" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Innovation PM</text>
+  <text x="252" y="350" font-family="sans-serif" font-size="10" fill="#ffe0e0">new opportunities</text>
+  <text x="404" y="328" font-family="sans-serif" font-size="11" font-weight="600" fill="#1d2438">Stage of org</text>
+  <text x="404" y="345" font-family="sans-serif" font-size="10" fill="#5b6680">0→1, New Vertical</text>
+
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#2563eb"/></marker>
+    <marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#0ea5a4"/></marker>
+    <marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#f59e0b"/></marker>
+    <marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#ef4444"/></marker>
+  </defs>
+</svg>

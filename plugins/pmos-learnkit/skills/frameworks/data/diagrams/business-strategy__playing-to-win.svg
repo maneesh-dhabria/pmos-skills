@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Playing To Win diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Playing To Win</text>
+  <text x="32" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Strategy as five cascading, reinforcing choices</text>
+
+  <!-- cascade arrow -->
+  <line x1="118" y1="86" x2="118" y2="356" stroke="#c7d2e6" stroke-width="2"/>
+
+  <g font-family="sans-serif">
+    <!-- step 1 -->
+    <circle cx="118" cy="100" r="9" fill="#2563eb"/>
+    <text x="118" y="104" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <rect x="148" y="82" width="452" height="40" rx="6" fill="#2563eb"/>
+    <text x="166" y="100" font-size="14" font-weight="700" fill="#ffffff">Winning Aspiration</text>
+    <text x="166" y="116" font-size="11" fill="#dbe6ff">What does winning look like? The purpose that guides every choice below.</text>
+
+    <!-- step 2 -->
+    <circle cx="118" cy="152" r="9" fill="#0ea5a4"/>
+    <text x="118" y="156" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <rect x="148" y="134" width="452" height="40" rx="6" fill="#0ea5a4"/>
+    <text x="166" y="152" font-size="14" font-weight="700" fill="#ffffff">Where To Play</text>
+    <text x="166" y="168" font-size="11" fill="#d6f5f4">Which markets, segments, geographies, channels — and which to skip.</text>
+
+    <!-- step 3 -->
+    <circle cx="118" cy="204" r="9" fill="#f59e0b"/>
+    <text x="118" y="208" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <rect x="148" y="186" width="452" height="40" rx="6" fill="#f59e0b"/>
+    <text x="166" y="204" font-size="14" font-weight="700" fill="#ffffff">How To Win</text>
+    <text x="166" y="220" font-size="11" fill="#fff3dd">The unique value proposition and competitive advantage in those arenas.</text>
+
+    <!-- step 4 -->
+    <circle cx="118" cy="256" r="9" fill="#5b6680"/>
+    <text x="118" y="260" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+    <rect x="148" y="238" width="452" height="40" rx="6" fill="#5b6680"/>
+    <text x="166" y="256" font-size="14" font-weight="700" fill="#ffffff">Capabilities Required</text>
+    <text x="166" y="272" font-size="11" fill="#e4e8f0">The activities and strengths that must be in place to win.</text>
+
+    <!-- step 5 -->
+    <circle cx="118" cy="308" r="9" fill="#1d2438"/>
+    <text x="118" y="312" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+    <rect x="148" y="290" width="452" height="40" rx="6" fill="#1d2438"/>
+    <text x="166" y="308" font-size="14" font-weight="700" fill="#ffffff">Management Systems</text>
+    <text x="166" y="324" font-size="11" fill="#cdd4e4">Structure, measures and processes that build and sustain the capabilities.</text>
+  </g>
+
+  <text x="148" y="356" font-family="sans-serif" font-size="11" fill="#5b6680">The choices cascade down and feed back up — each must reinforce the others.</text>
+  <text x="148" y="372" font-family="sans-serif" font-size="10" fill="#5b6680">Avoid the traps: do-it-all · Don Quixote · Waterloo · something-for-everyone · dreams · program-of-the-month</text>
+</svg>

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="GIST diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">GIST Planning</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Four nested layers — each with its own horizon and change cadence</text>
+
+  <!-- column header for horizon -->
+  <g font-family="sans-serif">
+    <text x="470" y="78" text-anchor="middle" font-size="11" font-weight="700" fill="#5b6680">PLANNING HORIZON</text>
+    <text x="600" y="78" text-anchor="middle" font-size="11" font-weight="700" fill="#5b6680">CHANGES</text>
+  </g>
+
+  <g font-family="sans-serif">
+    <!-- Goals (top, widest concept / longest horizon) -->
+    <rect x="40" y="86" width="360" height="60" rx="8" fill="#2563eb"/>
+    <text x="56" y="112" font-size="16" font-weight="700" fill="#ffffff">G — Goals</text>
+    <text x="56" y="132" font-size="11" fill="#dbe6ff">Desired outcomes / strategy (OKRs)</text>
+    <text x="470" y="120" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">1–2 years</text>
+    <text x="600" y="120" text-anchor="middle" font-size="11" fill="#5b6680">rarely</text>
+
+    <!-- Ideas -->
+    <rect x="40" y="154" width="360" height="60" rx="8" fill="#0ea5a4"/>
+    <text x="56" y="180" font-size="16" font-weight="700" fill="#ffffff">I — Ideas</text>
+    <text x="56" y="200" font-size="11" fill="#d9faf8">Ways to hit goals · Idea Bank · ICE-ranked</text>
+    <text x="470" y="188" text-anchor="middle" font-size="12" font-weight="700" fill="#0ea5a4">continuous</text>
+    <text x="600" y="188" text-anchor="middle" font-size="11" fill="#5b6680">always</text>
+
+    <!-- Step-Projects -->
+    <rect x="40" y="222" width="360" height="60" rx="8" fill="#f59e0b"/>
+    <text x="56" y="248" font-size="16" font-weight="700" fill="#ffffff">S — Step-Projects</text>
+    <text x="56" y="268" font-size="11" fill="#fff1d6">Experiments testing ideas · ≤10 weeks</text>
+    <text x="470" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b">quarterly</text>
+    <text x="600" y="256" text-anchor="middle" font-size="11" fill="#5b6680">often</text>
+
+    <!-- Tasks -->
+    <rect x="40" y="290" width="360" height="60" rx="8" fill="#ef4444"/>
+    <text x="56" y="316" font-size="16" font-weight="700" fill="#ffffff">T — Tasks</text>
+    <text x="56" y="336" font-size="11" fill="#ffe0e0">Bite-sized work · agile / scrum</text>
+    <text x="470" y="324" text-anchor="middle" font-size="12" font-weight="700" fill="#ef4444">weekly / sprint</text>
+    <text x="600" y="324" text-anchor="middle" font-size="11" fill="#5b6680">constantly</text>
+
+    <!-- nesting arrows (each layer breaks down into the next) -->
+    <polygon points="220,146 212,154 228,154" fill="#5b6680"/>
+    <polygon points="220,214 212,222 228,222" fill="#5b6680"/>
+    <polygon points="220,282 212,290 228,290" fill="#5b6680"/>
+
+    <text x="220" y="378" text-anchor="middle" font-size="11" fill="#5b6680">Lightweight alternative to strategy → roadmap → project plans → execution</text>
+  </g>
+</svg>

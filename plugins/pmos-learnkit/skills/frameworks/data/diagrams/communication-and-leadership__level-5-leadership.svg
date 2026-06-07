@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Level 5 Leadership diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Level 5 Leadership</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Each level builds on the one below</text>
+
+  <!-- Ladder steps, narrowing upward -->
+  <!-- L1 -->
+  <rect x="70" y="320" width="500" height="46" rx="4" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="92" y="343" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">1</text>
+  <text x="118" y="343" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Highly Capable Individual</text>
+  <text x="118" y="359" font-family="sans-serif" font-size="11" fill="#5b6680">Delivers high-quality work in their role</text>
+
+  <!-- L2 -->
+  <rect x="100" y="266" width="440" height="46" rx="4" fill="#e8effb" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="122" y="289" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">2</text>
+  <text x="148" y="289" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Contributing Team Member</text>
+  <text x="148" y="305" font-family="sans-serif" font-size="11" fill="#5b6680">Collaborates toward team goals</text>
+
+  <!-- L3 -->
+  <rect x="130" y="212" width="380" height="46" rx="4" fill="#0ea5a4" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="152" y="235" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">3</text>
+  <text x="178" y="235" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Competent Manager</text>
+  <text x="178" y="251" font-family="sans-serif" font-size="11" fill="#ffffff">Organizes, delegates, sets goals</text>
+
+  <!-- L4 -->
+  <rect x="160" y="158" width="320" height="46" rx="4" fill="#f59e0b" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="182" y="181" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">4</text>
+  <text x="208" y="181" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Effective Leader</text>
+  <text x="208" y="197" font-family="sans-serif" font-size="11" fill="#1d2438">Casts vision, inspires the team</text>
+
+  <!-- L5 -->
+  <rect x="190" y="104" width="260" height="46" rx="4" fill="#2563eb" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="212" y="127" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">5</text>
+  <text x="238" y="127" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Executive</text>
+  <text x="238" y="143" font-family="sans-serif" font-size="11" fill="#ffffff">Humility + indomitable will</text>
+
+  <!-- Two pillars of Level 5 -->
+  <text x="320" y="86" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Personal Humility  +  Indomitable Will</text>
+</svg>

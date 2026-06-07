@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Eisenhower Matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Eisenhower Matrix</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Sort tasks by urgency and importance</text>
+
+  <!-- Axis labels -->
+  <text x="200" y="78" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Urgent</text>
+  <text x="470" y="78" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Not Urgent</text>
+  <text x="58" y="160" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" transform="rotate(-90 58 160)">Important</text>
+  <text x="58" y="300" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" transform="rotate(-90 58 300)">Not Important</text>
+
+  <!-- Q1: Urgent + Important -> DO -->
+  <rect x="80" y="90" width="260" height="140" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <text x="100" y="118" font-family="sans-serif" font-size="16" font-weight="700" fill="#ef4444">DO</text>
+  <text x="100" y="140" font-family="sans-serif" font-size="11" fill="#5b6680">Do it now</text>
+  <text x="100" y="170" font-family="sans-serif" font-size="11" fill="#1d2438">Production bugs,</text>
+  <text x="100" y="186" font-family="sans-serif" font-size="11" fill="#1d2438">launch planning,</text>
+  <text x="100" y="202" font-family="sans-serif" font-size="11" fill="#1d2438">crises</text>
+
+  <!-- Q2: Not Urgent + Important -> SCHEDULE -->
+  <rect x="350" y="90" width="260" height="140" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="370" y="118" font-family="sans-serif" font-size="16" font-weight="700" fill="#2563eb">SCHEDULE</text>
+  <text x="370" y="140" font-family="sans-serif" font-size="11" fill="#5b6680">Plan time for it</text>
+  <text x="370" y="170" font-family="sans-serif" font-size="11" fill="#1d2438">Product strategy,</text>
+  <text x="370" y="186" font-family="sans-serif" font-size="11" fill="#1d2438">roadmap,</text>
+  <text x="370" y="202" font-family="sans-serif" font-size="11" fill="#1d2438">long-term goals</text>
+
+  <!-- Q3: Urgent + Not Important -> DELEGATE -->
+  <rect x="80" y="240" width="260" height="140" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="100" y="268" font-family="sans-serif" font-size="16" font-weight="700" fill="#f59e0b">DELEGATE</text>
+  <text x="100" y="290" font-family="sans-serif" font-size="11" fill="#5b6680">Hand it off</text>
+  <text x="100" y="320" font-family="sans-serif" font-size="11" fill="#1d2438">Unnecessary meetings,</text>
+  <text x="100" y="336" font-family="sans-serif" font-size="11" fill="#1d2438">non-essential emails,</text>
+  <text x="100" y="352" font-family="sans-serif" font-size="11" fill="#1d2438">interruptions</text>
+
+  <!-- Q4: Not Urgent + Not Important -> ELIMINATE -->
+  <rect x="350" y="240" width="260" height="140" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="2"/>
+  <text x="370" y="268" font-family="sans-serif" font-size="16" font-weight="700" fill="#5b6680">ELIMINATE</text>
+  <text x="370" y="290" font-family="sans-serif" font-size="11" fill="#5b6680">Drop it</text>
+  <text x="370" y="320" font-family="sans-serif" font-size="11" fill="#1d2438">Time-wasters,</text>
+  <text x="370" y="336" font-family="sans-serif" font-size="11" fill="#1d2438">distractions,</text>
+  <text x="370" y="352" font-family="sans-serif" font-size="11" fill="#1d2438">busywork</text>
+</svg>

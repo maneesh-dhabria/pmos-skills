@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM Scope and Impact Matrix diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">PM Scope &amp; Impact Matrix</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12.5" fill="#5b6680">Each ladder level is a cell — grow by alternately raising impact then scope</text>
+
+  <defs>
+    <marker id="step" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1d2438"/>
+    </marker>
+  </defs>
+
+  <g font-family="sans-serif">
+    <!-- axes -->
+    <line x1="120" y1="350" x2="600" y2="350" stroke="#1d2438" stroke-width="2"/>
+    <line x1="120" y1="350" x2="120" y2="80" stroke="#1d2438" stroke-width="2"/>
+    <text x="360" y="384" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Scope (breadth of product owned) →</text>
+    <text x="40" y="215" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle" transform="rotate(-90 40 215)">Impact &amp; credibility →</text>
+
+    <!-- grid -->
+    <line x1="360" y1="80" x2="360" y2="350" stroke="#cbd5e1" stroke-width="1"/>
+    <line x1="120" y1="215" x2="600" y2="215" stroke="#cbd5e1" stroke-width="1"/>
+
+    <!-- cells -->
+    <rect x="124" y="219" width="232" height="127" rx="6" fill="#f4f7ff"/>
+    <rect x="364" y="219" width="232" height="127" rx="6" fill="#f4f7ff"/>
+    <rect x="124" y="84" width="232" height="127" rx="6" fill="#f4f7ff"/>
+    <rect x="364" y="84" width="232" height="127" rx="6" fill="#eff6ff"/>
+
+    <!-- ladder cells (low-left -> high-right) -->
+    <g text-anchor="middle">
+      <circle cx="200" cy="300" r="22" fill="#2563eb"/>
+      <text x="200" y="296" font-size="11" font-weight="700" fill="#ffffff">APM</text>
+      <text x="200" y="309" font-size="9" fill="#ffffff">PM</text>
+
+      <circle cx="290" cy="255" r="22" fill="#2563eb"/>
+      <text x="290" y="259" font-size="10.5" font-weight="700" fill="#ffffff">Senior PM</text>
+
+      <circle cx="400" cy="190" r="24" fill="#0ea5a4"/>
+      <text x="400" y="194" font-size="10.5" font-weight="700" fill="#ffffff">Lead PM</text>
+
+      <circle cx="480" cy="145" r="24" fill="#0ea5a4"/>
+      <text x="480" y="142" font-size="10" font-weight="700" fill="#ffffff">Group</text>
+      <text x="480" y="153" font-size="10" font-weight="700" fill="#ffffff">PM</text>
+
+      <circle cx="545" cy="120" r="26" fill="#f59e0b"/>
+      <text x="545" y="117" font-size="10" font-weight="700" fill="#ffffff">PM</text>
+      <text x="545" y="128" font-size="10" font-weight="700" fill="#ffffff">Leader</text>
+    </g>
+
+    <!-- staircase progression path -->
+    <path d="M200 300 L290 255 L400 190 L480 145 L545 120" fill="none" stroke="#1d2438" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#step)"/>
+
+    <!-- annotations -->
+    <text x="240" y="100" font-size="11" fill="#5b6680" text-anchor="middle">raise impact, then scope —</text>
+    <text x="240" y="115" font-size="11" fill="#5b6680" text-anchor="middle">alternate to advance</text>
+    <text x="545" y="170" font-size="9.5" fill="#5b6680" text-anchor="middle">enough impact AND</text>
+    <text x="545" y="182" font-size="9.5" fill="#5b6680" text-anchor="middle">scope to lead</text>
+  </g>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Non-Violent Communication (NVC) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Non-Violent Communication (NVC)</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Four steps to express yourself and hear others without judgment or demands</text>
+
+  <!-- 4 chevron-flow steps -->
+  <!-- Step 1 -->
+  <g font-family="sans-serif">
+    <rect x="30" y="80" width="142" height="120" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.3"/>
+    <circle cx="55" cy="106" r="13" fill="#2563eb"/><text x="55" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">1</text>
+    <text x="76" y="111" font-size="14" font-weight="700" fill="#1d2438">Observation</text>
+    <text x="44" y="138" font-size="11" fill="#5b6680">State the facts</text>
+    <text x="44" y="154" font-size="11" fill="#5b6680">you see &#8212; no</text>
+    <text x="44" y="170" font-size="11" fill="#5b6680">evaluation or</text>
+    <text x="44" y="186" font-size="11" fill="#5b6680">interpretation.</text>
+  </g>
+  <!-- Step 2 -->
+  <g font-family="sans-serif">
+    <rect x="186" y="80" width="142" height="120" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.3"/>
+    <circle cx="211" cy="106" r="13" fill="#0ea5a4"/><text x="211" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">2</text>
+    <text x="232" y="111" font-size="14" font-weight="700" fill="#1d2438">Feelings</text>
+    <text x="200" y="138" font-size="11" fill="#5b6680">Name the emotion</text>
+    <text x="200" y="154" font-size="11" fill="#5b6680">the observation</text>
+    <text x="200" y="170" font-size="11" fill="#5b6680">stirs &#8212; without</text>
+    <text x="200" y="186" font-size="11" fill="#5b6680">blame.</text>
+  </g>
+  <!-- Step 3 -->
+  <g font-family="sans-serif">
+    <rect x="342" y="80" width="142" height="120" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.3"/>
+    <circle cx="367" cy="106" r="13" fill="#f59e0b"/><text x="367" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">3</text>
+    <text x="388" y="111" font-size="14" font-weight="700" fill="#1d2438">Needs</text>
+    <text x="356" y="138" font-size="11" fill="#5b6680">Connect feeling</text>
+    <text x="356" y="154" font-size="11" fill="#5b6680">to the universal</text>
+    <text x="356" y="170" font-size="11" fill="#5b6680">human need</text>
+    <text x="356" y="186" font-size="11" fill="#5b6680">behind it.</text>
+  </g>
+  <!-- Step 4 -->
+  <g font-family="sans-serif">
+    <rect x="498" y="80" width="142" height="120" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.3"/>
+    <circle cx="523" cy="106" r="13" fill="#ef4444"/><text x="523" y="111" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">4</text>
+    <text x="544" y="111" font-size="14" font-weight="700" fill="#1d2438">Requests</text>
+    <text x="512" y="138" font-size="11" fill="#5b6680">Ask for a</text>
+    <text x="512" y="154" font-size="11" fill="#5b6680">specific, positive,</text>
+    <text x="512" y="170" font-size="11" fill="#5b6680">doable action &#8212;</text>
+    <text x="512" y="186" font-size="11" fill="#5b6680">not a demand.</text>
+  </g>
+
+  <!-- arrows between -->
+  <g fill="#5b6680">
+    <polygon points="172,140 186,140 180,134 192,140 180,146 186,140"/>
+    <polygon points="328,140 342,140 336,134 348,140 336,146 342,140"/>
+    <polygon points="484,140 498,140 492,134 504,140 492,146 498,140"/>
+  </g>
+
+  <!-- Example walkthrough -->
+  <text x="20" y="244" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Example &#8212; conflict with a coworker</text>
+  <g font-family="sans-serif" font-size="11.5" fill="#1d2438">
+    <text x="20" y="270"><tspan fill="#2563eb" font-weight="700">Observe: </tspan>"You interrupted me while I was explaining my idea."</text>
+    <text x="20" y="294"><tspan fill="#0ea5a4" font-weight="700">Feel: </tspan>"I felt frustrated and a bit embarrassed when that happened."</text>
+    <text x="20" y="318"><tspan fill="#f59e0b" font-weight="700">Need: </tspan>"I value being heard in our team discussions."</text>
+    <text x="20" y="342"><tspan fill="#ef4444" font-weight="700">Request: </tspan>"Could we make sure everyone speaks without interruption?"</text>
+  </g>
+  <text x="20" y="376" font-family="sans-serif" font-size="11" fill="#5b6680" font-style="italic">Premise: people turn to harmful behavior only when they lack a better strategy to meet a need.</text>
+</svg>

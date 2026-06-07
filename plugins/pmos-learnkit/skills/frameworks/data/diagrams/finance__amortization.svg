@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Amortization diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Amortization</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Spread an intangible asset's cost (or a loan balance) evenly over its life</text>
+
+  <!-- Declining staircase: book value over 5 years -->
+  <!-- axes -->
+  <line x1="70" y1="90" x2="70" y2="300" stroke="#1d2438" stroke-width="1.5"/>
+  <line x1="70" y1="300" x2="600" y2="300" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="40" y="98" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">$50k</text>
+  <text x="40" y="300" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">$0</text>
+  <text x="335" y="324" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">5-year asset life</text>
+
+  <!-- staircase bars: book value each year (50,40,30,20,10) heights from y300 -->
+  <g font-family="sans-serif" font-size="11" text-anchor="middle">
+    <rect x="80"  y="90"  width="96" height="210" fill="#2563eb"/>
+    <text x="128" y="84" fill="#1d2438" font-weight="700">$50k</text>
+    <text x="128" y="316" fill="#5b6680">Y1</text>
+
+    <rect x="186" y="132" width="96" height="168" fill="#3b78f0"/>
+    <text x="234" y="126" fill="#1d2438" font-weight="700">$40k</text>
+    <text x="234" y="316" fill="#5b6680">Y2</text>
+
+    <rect x="292" y="174" width="96" height="126" fill="#5d8ff5"/>
+    <text x="340" y="168" fill="#1d2438" font-weight="700">$30k</text>
+    <text x="340" y="316" fill="#5b6680">Y3</text>
+
+    <rect x="398" y="216" width="96" height="84" fill="#86acf9"/>
+    <text x="446" y="210" fill="#1d2438" font-weight="700">$20k</text>
+    <text x="446" y="316" fill="#5b6680">Y4</text>
+
+    <rect x="504" y="258" width="96" height="42" fill="#b0c8fc"/>
+    <text x="552" y="252" fill="#1d2438" font-weight="700">$10k</text>
+    <text x="552" y="316" fill="#5b6680">Y5</text>
+  </g>
+
+  <!-- per-year expense annotation -->
+  <text x="335" y="356" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">Annual amortization = $50,000 &#247; 5 yrs = $10,000 / year</text>
+
+  <!-- two use cases -->
+  <g font-family="sans-serif" font-size="11">
+    <rect x="24" y="368" width="290" height="26" rx="6" fill="#eaf0ff"/>
+    <text x="36" y="385" fill="#2563eb" font-weight="700">Intangibles:</text>
+    <text x="118" y="385" fill="#5b6680">patents, licenses, trademarks</text>
+
+    <rect x="326" y="368" width="290" height="26" rx="6" fill="#fef5e7"/>
+    <text x="338" y="385" fill="#f59e0b" font-weight="700">Loans:</text>
+    <text x="392" y="385" fill="#5b6680">mortgage / car &#8212; balance paid down</text>
+  </g>
+</svg>

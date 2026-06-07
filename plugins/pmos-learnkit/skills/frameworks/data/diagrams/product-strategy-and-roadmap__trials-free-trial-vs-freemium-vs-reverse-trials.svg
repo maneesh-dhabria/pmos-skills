@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Free Trial vs Freemium vs Reverse Trial diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Free Trial · Freemium · Reverse Trial</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Same goal, different reach-vs-conversion trade-off</text>
+
+  <!-- column headers -->
+  <g font-family="sans-serif">
+    <rect x="150" y="60" width="156" height="34" rx="6" fill="#eff4ff" stroke="#2563eb" stroke-width="1.3"/>
+    <text x="228" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#2563eb">Free Trial</text>
+    <text x="228" y="90" text-anchor="middle" font-size="9" fill="#5b6680">paid product, time-boxed</text>
+
+    <rect x="314" y="60" width="156" height="34" rx="6" fill="#ecfeff" stroke="#0ea5a4" stroke-width="1.3"/>
+    <text x="392" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#0ea5a4">Freemium</text>
+    <text x="392" y="90" text-anchor="middle" font-size="9" fill="#5b6680">free forever, upgrade</text>
+
+    <rect x="478" y="60" width="156" height="34" rx="6" fill="#fffaf0" stroke="#f59e0b" stroke-width="1.3"/>
+    <text x="556" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#f59e0b">Reverse Trial</text>
+    <text x="556" y="90" text-anchor="middle" font-size="9" fill="#5b6680">trial then freemium</text>
+  </g>
+
+  <!-- row labels -->
+  <g font-family="sans-serif" font-size="10.5" font-weight="700" fill="#1d2438" text-anchor="end">
+    <text x="142" y="122">What you get</text>
+    <text x="142" y="170">Reach</text>
+    <text x="142" y="218">Conversion</text>
+    <text x="142" y="266">After it ends</text>
+    <text x="142" y="314">Example</text>
+  </g>
+
+  <!-- grid lines -->
+  <g stroke="#e2e8f5" stroke-width="1">
+    <line x1="150" y1="100" x2="634" y2="100"/>
+    <line x1="150" y1="146" x2="634" y2="146"/>
+    <line x1="150" y1="194" x2="634" y2="194"/>
+    <line x1="150" y1="242" x2="634" y2="242"/>
+    <line x1="150" y1="290" x2="634" y2="290"/>
+    <line x1="150" y1="338" x2="634" y2="338"/>
+    <line x1="314" y1="100" x2="314" y2="338" stroke="#cfd8e8"/>
+    <line x1="478" y1="100" x2="478" y2="338" stroke="#cfd8e8"/>
+  </g>
+
+  <!-- cells -->
+  <g font-family="sans-serif" font-size="9.7" fill="#1d2438">
+    <!-- What you get -->
+    <text x="228" y="120" text-anchor="middle">Full paid product,</text>
+    <text x="228" y="132" text-anchor="middle">limited time</text>
+    <text x="392" y="120" text-anchor="middle">Free tier indefinitely,</text>
+    <text x="392" y="132" text-anchor="middle">pay for more</text>
+    <text x="556" y="120" text-anchor="middle">Paid features on a</text>
+    <text x="556" y="132" text-anchor="middle">timer, in freemium</text>
+
+    <!-- Reach -->
+    <text x="228" y="168" text-anchor="middle" fill="#5b6680">CC trial: low (≤80%</text>
+    <text x="228" y="180" text-anchor="middle" fill="#5b6680">drop at card screen)</text>
+    <text x="392" y="174" text-anchor="middle" fill="#0ea5a4" font-weight="700">High — easy entry</text>
+    <text x="556" y="174" text-anchor="middle" fill="#f59e0b" font-weight="700">High — no card wall</text>
+
+    <!-- Conversion -->
+    <text x="228" y="216" text-anchor="middle">CC trial high;</text>
+    <text x="228" y="228" text-anchor="middle">no-card trial low</text>
+    <text x="392" y="222" text-anchor="middle">~5% free → paid</text>
+    <text x="556" y="216" text-anchor="middle" font-weight="700">~15% pay +</text>
+    <text x="556" y="228" text-anchor="middle">~25% stay free</text>
+
+    <!-- After it ends -->
+    <text x="228" y="266" text-anchor="middle">Pay or lose access</text>
+    <text x="392" y="266" text-anchor="middle">Keep using free tier</text>
+    <text x="556" y="260" text-anchor="middle">Reverts to freemium —</text>
+    <text x="556" y="272" text-anchor="middle">no hard cut-off</text>
+
+    <!-- Example -->
+    <text x="228" y="314" text-anchor="middle" font-style="italic" fill="#5b6680">Headspace</text>
+    <text x="392" y="314" text-anchor="middle" font-style="italic" fill="#5b6680">Duolingo</text>
+    <text x="556" y="314" text-anchor="middle" font-style="italic" fill="#5b6680">Airtable</text>
+  </g>
+
+  <!-- trade-off bar -->
+  <g font-family="sans-serif">
+    <text x="40" y="368" font-size="9.5" fill="#5b6680">Reach ▸</text>
+    <text x="600" y="368" font-size="9.5" fill="#5b6680" text-anchor="end">◂ Conversion</text>
+    <line x1="90" y1="364" x2="540" y2="364" stroke="#cfd8e8" stroke-width="3"/>
+  </g>
+</svg>

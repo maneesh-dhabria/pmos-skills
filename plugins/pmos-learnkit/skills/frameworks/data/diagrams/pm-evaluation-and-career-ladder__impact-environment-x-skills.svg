@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Impact equals Environment times Skills diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Impact = Environment × Skills</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12.5" fill="#5b6680">Score each sub-variable to find the root constraint on your impact</text>
+
+  <g font-family="sans-serif">
+    <!-- Equation header band -->
+    <rect x="24" y="66" width="280" height="34" rx="6" fill="#2563eb"/>
+    <text x="164" y="89" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">ENVIRONMENT</text>
+    <text x="316" y="90" font-size="22" font-weight="700" fill="#1d2438" text-anchor="middle">×</text>
+    <rect x="336" y="66" width="280" height="34" rx="6" fill="#0ea5a4"/>
+    <text x="476" y="89" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">SKILLS</text>
+
+    <text x="164" y="116" font-size="11" fill="#5b6680" text-anchor="middle">Outside your direct control</text>
+    <text x="476" y="116" font-size="11" fill="#5b6680" text-anchor="middle">Within your direct control</text>
+
+    <!-- Environment sub-variables (6) -->
+    <g>
+      <rect x="24" y="128" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="148" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Manager</tspan> — grows your career &amp; output</text>
+      <rect x="24" y="162" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="182" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Resources</tspan> — process, budget, room to risk</text>
+      <rect x="24" y="196" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="216" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Scope</tspan> — runway for your best work</text>
+      <rect x="24" y="230" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="250" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Team</tspan> — capable, high-functioning, sized</text>
+      <rect x="24" y="264" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="284" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Compensation</tspan> — reflects the work</text>
+      <rect x="24" y="298" width="280" height="30" rx="5" fill="#f4f7ff" stroke="#2563eb"/>
+      <text x="36" y="318" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Company Culture</tspan> — fits your style</text>
+    </g>
+
+    <!-- Skills sub-variables (4) -->
+    <g>
+      <rect x="336" y="128" width="280" height="46" rx="5" fill="#f4f7ff" stroke="#0ea5a4"/>
+      <text x="348" y="148" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Communication</tspan> — what / how / to whom</text>
+      <text x="348" y="165" font-size="11" fill="#5b6680">you communicate</text>
+      <rect x="336" y="178" width="280" height="46" rx="5" fill="#f4f7ff" stroke="#0ea5a4"/>
+      <text x="348" y="198" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Influence / Leadership</tspan> — direct →</text>
+      <text x="348" y="215" font-size="11" fill="#5b6680">indirect influence as you rise</text>
+      <rect x="336" y="228" width="280" height="46" rx="5" fill="#f4f7ff" stroke="#0ea5a4"/>
+      <text x="348" y="248" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Strategic Thinking</tspan> — see the bigger</text>
+      <text x="348" y="265" font-size="11" fill="#5b6680">system and anticipate the work</text>
+      <rect x="336" y="278" width="280" height="46" rx="5" fill="#f4f7ff" stroke="#0ea5a4"/>
+      <text x="348" y="298" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Execution</tspan> — core of the role; your</text>
+      <text x="348" y="315" font-size="11" fill="#5b6680">own, then your team's</text>
+    </g>
+
+    <!-- footer: find the constraint -->
+    <text x="320" y="352" font-size="12" fill="#5b6680" text-anchor="middle">Score each → find the lowest interrelated variable (root cause)</text>
+    <text x="320" y="372" font-size="12" font-weight="700" fill="#f59e0b" text-anchor="middle">→ focus your energy there</text>
+  </g>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Ikigai diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Ikigai &#8212; your reason for being</text>
+  <text x="20" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Purpose lives where four circles overlap</text>
+
+  <!-- Four overlapping circles centered around (320, 215). Offset so all four meet in the middle. -->
+  <g opacity="0.55">
+    <circle cx="320" cy="135" r="115" fill="#2563eb"/>   <!-- top: LOVE -->
+    <circle cx="240" cy="215" r="115" fill="#0ea5a4"/>   <!-- left: GOOD AT -->
+    <circle cx="400" cy="215" r="115" fill="#f59e0b"/>   <!-- right: WORLD NEEDS -->
+    <circle cx="320" cy="295" r="115" fill="#ef4444"/>   <!-- bottom: PAID FOR -->
+  </g>
+
+  <!-- Circle labels -->
+  <g font-family="sans-serif" font-weight="700" fill="#1d2438" text-anchor="middle">
+    <text x="320" y="78" font-size="13">What you LOVE</text>
+    <text x="150" y="218" font-size="13">What you're</text>
+    <text x="150" y="234" font-size="13">GOOD AT</text>
+    <text x="490" y="218" font-size="13">What the</text>
+    <text x="490" y="234" font-size="13">WORLD NEEDS</text>
+    <text x="320" y="362" font-size="13">What you can</text>
+    <text x="320" y="378" font-size="13">be PAID FOR</text>
+  </g>
+
+  <!-- pairwise intersection labels -->
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438" text-anchor="middle">
+    <text x="225" y="150">PASSION</text>
+    <text x="415" y="150">MISSION</text>
+    <text x="225" y="288">PROFESSION</text>
+    <text x="415" y="288">VOCATION</text>
+  </g>
+
+  <!-- center -->
+  <circle cx="320" cy="215" r="30" fill="#ffffff" stroke="#1d2438" stroke-width="1.4"/>
+  <text x="320" y="212" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">IKIGAI</text>
+  <text x="320" y="226" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">all four</text>
+
+  <text x="320" y="396" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Unique to you &#8212; may be simple or grand, and can change over time.</text>
+</svg>

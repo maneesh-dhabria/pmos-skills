@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Linear Regression diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Linear Regression</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Fit a line through the data to quantify effect and predict the outcome</text>
+
+  <!-- Plot frame -->
+  <line x1="80" y1="90" x2="80" y2="330" stroke="#1d2438" stroke-width="1.5"/>
+  <line x1="80" y1="330" x2="430" y2="330" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="48" y="200" font-family="sans-serif" font-size="12" fill="#5b6680" transform="rotate(-90 48 200)" text-anchor="middle">Outcome (Y) e.g. signups</text>
+  <text x="255" y="356" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">Input (X) e.g. page views</text>
+
+  <!-- gridlines -->
+  <g stroke="#d8e3fb" stroke-width="1">
+    <line x1="80" y1="270" x2="430" y2="270"/>
+    <line x1="80" y1="210" x2="430" y2="210"/>
+    <line x1="80" y1="150" x2="430" y2="150"/>
+    <line x1="167" y1="90" x2="167" y2="330"/>
+    <line x1="255" y1="90" x2="255" y2="330"/>
+    <line x1="342" y1="90" x2="342" y2="330"/>
+  </g>
+
+  <!-- scatter points -->
+  <g fill="#0ea5a4">
+    <circle cx="105" cy="300" r="4"/><circle cx="130" cy="288" r="4"/><circle cx="150" cy="296" r="4"/>
+    <circle cx="178" cy="262" r="4"/><circle cx="200" cy="270" r="4"/><circle cx="225" cy="244" r="4"/>
+    <circle cx="252" cy="232" r="4"/><circle cx="278" cy="238" r="4"/><circle cx="300" cy="206" r="4"/>
+    <circle cx="328" cy="196" r="4"/><circle cx="352" cy="178" r="4"/><circle cx="385" cy="160" r="4"/>
+    <circle cx="408" cy="150" r="4"/>
+  </g>
+
+  <!-- best-fit line (extends into prediction zone) -->
+  <line x1="90" y1="306" x2="420" y2="146" stroke="#2563eb" stroke-width="3"/>
+  <!-- prediction projection -->
+  <line x1="408" y1="330" x2="408" y2="151" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <line x1="80" y1="151" x2="408" y2="151" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle cx="408" cy="151" r="5" fill="#f59e0b"/>
+  <text x="414" y="145" font-family="sans-serif" font-size="10" fill="#f59e0b" font-weight="700">predicted Y</text>
+
+  <text x="300" y="270" font-family="sans-serif" font-size="11" fill="#2563eb" font-weight="700">best-fit line</text>
+  <text x="300" y="284" font-family="sans-serif" font-size="10" fill="#5b6680">Y = a + bX</text>
+
+  <!-- Right column: what the line tells you -->
+  <g font-family="sans-serif" font-size="11">
+    <rect x="455" y="92" width="165" height="60" rx="6" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="465" y="110" font-weight="700" fill="#2563eb">Slope (b)</text>
+    <text x="465" y="127" fill="#5b6680">How much Y changes</text>
+    <text x="465" y="141" fill="#5b6680">per unit of X &#8212; the effect</text>
+
+    <rect x="455" y="162" width="165" height="60" rx="6" fill="#f4f7ff" stroke="#0ea5a4"/>
+    <text x="465" y="180" font-weight="700" fill="#0ea5a4">Predict</text>
+    <text x="465" y="197" fill="#5b6680">Plug in a new X to</text>
+    <text x="465" y="211" fill="#5b6680">estimate the outcome</text>
+
+    <rect x="455" y="232" width="165" height="60" rx="6" fill="#fff7ed" stroke="#f59e0b"/>
+    <text x="465" y="250" font-weight="700" fill="#f59e0b">Stronger than r</text>
+    <text x="465" y="267" fill="#5b6680">Goes beyond correlation,</text>
+    <text x="465" y="281" fill="#5b6680">still not proof of cause</text>
+  </g>
+
+  <text x="455" y="316" font-family="sans-serif" font-size="11" fill="#1d2438" font-weight="700">Sheets: =LINEST(Y, X, true, true)</text>
+  <text x="80" y="380" font-family="sans-serif" font-size="11" fill="#5b6680">Ask: how much must page views rise to double signups?</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SMART framework for PM feedback diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">SMART — A Frame for PM Feedback</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Level-specific developmental guidance across five dimensions</text>
+
+  <!-- Row template: letter chip + label + description -->
+  <!-- S -->
+  <g>
+    <rect x="40" y="74" width="560" height="56" rx="8" fill="#f4f7ff"/>
+    <rect x="40" y="74" width="56" height="56" rx="8" fill="#2563eb"/>
+    <text x="68" y="112" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#ffffff">S</text>
+    <text x="112" y="98" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Skills</text>
+    <text x="112" y="118" font-family="sans-serif" font-size="12" fill="#5b6680">Capabilities to build or enhance at this level</text>
+  </g>
+  <!-- M -->
+  <g>
+    <rect x="40" y="136" width="560" height="56" rx="8" fill="#f4f7ff"/>
+    <rect x="40" y="136" width="56" height="56" rx="8" fill="#0ea5a4"/>
+    <text x="68" y="174" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#ffffff">M</text>
+    <text x="112" y="160" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Mindset</text>
+    <text x="112" y="180" font-family="sans-serif" font-size="12" fill="#5b6680">Ways of thinking to be more effective — e.g. high agency</text>
+  </g>
+  <!-- A -->
+  <g>
+    <rect x="40" y="198" width="560" height="56" rx="8" fill="#f4f7ff"/>
+    <rect x="40" y="198" width="56" height="56" rx="8" fill="#f59e0b"/>
+    <text x="68" y="236" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#ffffff">A</text>
+    <text x="112" y="222" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Activities</text>
+    <text x="112" y="242" font-family="sans-serif" font-size="12" fill="#5b6680">What to do to improve the product and the team</text>
+  </g>
+  <!-- R -->
+  <g>
+    <rect x="40" y="260" width="560" height="56" rx="8" fill="#f4f7ff"/>
+    <rect x="40" y="260" width="56" height="56" rx="8" fill="#ef4444"/>
+    <text x="68" y="298" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#ffffff">R</text>
+    <text x="112" y="284" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Results</text>
+    <text x="112" y="304" font-family="sans-serif" font-size="12" fill="#5b6680">Expected outputs + outcomes</text>
+  </g>
+  <!-- T -->
+  <g>
+    <rect x="40" y="322" width="560" height="56" rx="8" fill="#f4f7ff"/>
+    <rect x="40" y="322" width="56" height="56" rx="8" fill="#1d2438"/>
+    <text x="68" y="360" text-anchor="middle" font-family="sans-serif" font-size="30" font-weight="700" fill="#ffffff">T</text>
+    <text x="112" y="346" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Training</text>
+    <text x="112" y="366" font-family="sans-serif" font-size="12" fill="#5b6680">Resources to help achieve all of the above</text>
+  </g>
+</svg>

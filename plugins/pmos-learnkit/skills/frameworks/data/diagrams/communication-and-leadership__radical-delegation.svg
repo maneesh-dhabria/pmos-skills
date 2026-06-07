@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Radical Delegation diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Radical Delegation</text>
+  <text x="32" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Map each task by who can do it &#215; how high-leverage it is</text>
+
+  <!-- axis labels -->
+  <text x="48" y="230" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680" transform="rotate(-90 48 230)" text-anchor="middle">Leverage  &#8594;  High</text>
+  <text x="208" y="392" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680" text-anchor="middle">Various folks can do it</text>
+  <text x="477" y="392" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680" text-anchor="middle">Only you can do it</text>
+
+  <g stroke="#1d2438" stroke-width="1.5">
+    <line x1="72" y1="76" x2="72" y2="368"/>
+    <line x1="72" y1="368" x2="612" y2="368"/>
+  </g>
+
+  <!-- Top-left: high leverage, various -> Delegate to most suitable -->
+  <rect x="74" y="78" width="268" height="143" fill="#dbeafe"/>
+  <text x="208" y="118" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb" text-anchor="middle">Delegate to Most Suitable</text>
+  <text x="208" y="142" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Pick best person, monitor</text>
+  <text x="208" y="160" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">actively (no micromanaging)</text>
+
+  <!-- Top-right: high leverage, only you -> Focus Deeply -->
+  <rect x="344" y="78" width="266" height="143" fill="#ccfbf1" stroke="#0ea5a4" stroke-width="2.5"/>
+  <text x="477" y="118" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4" text-anchor="middle">Focus Deeply &#9733;</text>
+  <text x="477" y="142" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">Spend maximum time,</text>
+  <text x="477" y="160" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">do a great job yourself</text>
+
+  <!-- Bottom-left: low leverage, various -> Delegate and Forget -->
+  <rect x="74" y="223" width="268" height="143" fill="#f4f7ff"/>
+  <text x="208" y="270" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438" text-anchor="middle">Delegate and Forget</text>
+  <text x="208" y="294" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Hand off, set "I won't</text>
+  <text x="208" y="312" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">check in" expectation</text>
+
+  <!-- Bottom-right: low leverage, only you -> Set-up Foundation -->
+  <rect x="344" y="223" width="266" height="143" fill="#fef3c7"/>
+  <text x="477" y="270" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438" text-anchor="middle">Set up Foundation</text>
+  <text x="477" y="294" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Do it now, but coach</text>
+  <text x="477" y="312" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">someone for next time</text>
+</svg>

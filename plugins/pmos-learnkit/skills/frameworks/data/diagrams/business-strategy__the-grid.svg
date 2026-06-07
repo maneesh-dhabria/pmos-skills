@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="The Grid diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">The Grid</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">9 elements: three success conditions &#215; three evolving factors</text>
+
+  <!-- column headers (factors) -->
+  <text x="240" y="78" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Customers</text>
+  <text x="370" y="78" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Market</text>
+  <text x="500" y="78" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Organization</text>
+  <text x="500" y="92" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">(constantly evolving)</text>
+
+  <!-- row headers (conditions) rotated -->
+  <text x="98" y="148" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Desirability</text>
+  <text x="98" y="222" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Profitability</text>
+  <text x="98" y="296" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Longevity</text>
+  <text x="98" y="312" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">(necessary for success)</text>
+
+  <!-- 3x3 grid: cells start x=175 y=100, 130 wide, 68 tall -->
+  <!-- row 1 Desirability -->
+  <rect x="175" y="100" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="305" y="100" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="435" y="100" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="240" y="130" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">What people</text>
+  <text x="240" y="144" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">want &amp; need</text>
+  <text x="370" y="130" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Demand vs.</text>
+  <text x="370" y="144" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">rivals' offer</text>
+  <text x="500" y="130" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Can we make</text>
+  <text x="500" y="144" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">what's wanted</text>
+
+  <!-- row 2 Profitability -->
+  <rect x="175" y="168" width="130" height="68" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="305" y="168" width="130" height="68" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="435" y="168" width="130" height="68" fill="#ffffff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="240" y="198" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Willingness</text>
+  <text x="240" y="212" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">to pay</text>
+  <text x="370" y="198" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Pricing vs.</text>
+  <text x="370" y="212" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">competition</text>
+  <text x="500" y="198" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Cost &amp; margin</text>
+  <text x="500" y="212" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">structure</text>
+
+  <!-- row 3 Longevity -->
+  <rect x="175" y="236" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="305" y="236" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <rect x="435" y="236" width="130" height="68" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+  <text x="240" y="266" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Loyalty &amp;</text>
+  <text x="240" y="280" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">retention</text>
+  <text x="370" y="266" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Moat vs.</text>
+  <text x="370" y="280" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">new entrants</text>
+  <text x="500" y="266" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">Durable</text>
+  <text x="500" y="280" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#1d2438">capabilities</text>
+
+  <text x="320" y="340" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#f59e0b" font-weight="700">Evaluate all 9 boxes together &#8212; a change in one shifts the others</text>
+  <text x="320" y="362" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Use to vet a new venture or write a business performance review</text>
+</svg>

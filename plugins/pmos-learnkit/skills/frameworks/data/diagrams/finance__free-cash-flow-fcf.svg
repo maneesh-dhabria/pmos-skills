@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Free Cash Flow (FCF) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Free Cash Flow (FCF)</text>
+  <text x="32" y="60" font-family="sans-serif" font-size="13" fill="#5b6680">The discretionary cash left after running and reinvesting in the business</text>
+
+  <!-- Equation flow: OCF - CapEx = FCF -->
+  <g font-family="sans-serif" text-anchor="middle">
+    <!-- Operating cash flow -->
+    <rect x="48" y="120" width="170" height="90" rx="10" fill="#0ea5a4"/>
+    <text x="133" y="150" font-size="13" font-weight="700" fill="#ffffff">Operating</text>
+    <text x="133" y="170" font-size="13" font-weight="700" fill="#ffffff">Cash Flow</text>
+    <text x="133" y="194" font-size="10" fill="#e6fffb">cash from running the business</text>
+
+    <!-- minus -->
+    <text x="248" y="175" font-size="34" font-weight="700" fill="#5b6680">&#8722;</text>
+
+    <!-- CapEx -->
+    <rect x="278" y="120" width="170" height="90" rx="10" fill="#f59e0b"/>
+    <text x="363" y="150" font-size="13" font-weight="700" fill="#1d2438">Capital</text>
+    <text x="363" y="170" font-size="13" font-weight="700" fill="#1d2438">Expenditures</text>
+    <text x="363" y="194" font-size="10" fill="#7c4a03">spend on long-term assets</text>
+
+    <!-- equals -->
+    <text x="478" y="175" font-size="34" font-weight="700" fill="#5b6680">=</text>
+
+    <!-- FCF -->
+    <rect x="508" y="112" width="118" height="106" rx="10" fill="#2563eb"/>
+    <text x="567" y="150" font-size="15" font-weight="700" fill="#ffffff">FCF</text>
+    <text x="567" y="172" font-size="10" fill="#dbe6ff">discretionary</text>
+    <text x="567" y="186" font-size="10" fill="#dbe6ff">cash left over</text>
+  </g>
+
+  <!-- What FCF can fund -->
+  <text x="32" y="266" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">What free cash can fund</text>
+  <g font-family="sans-serif" font-size="11" text-anchor="middle" fill="#1d2438">
+    <rect x="48"  y="278" width="128" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="112" y="303">Pay down debt</text>
+    <rect x="190" y="278" width="128" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="254" y="303">Dividends</text>
+    <rect x="332" y="278" width="128" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="396" y="303">Buybacks</text>
+    <rect x="474" y="278" width="152" height="40" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="550" y="303">Reinvest / acquire</text>
+  </g>
+
+  <!-- alternate formula note -->
+  <rect x="48" y="340" width="578" height="46" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="0.8"/>
+  <text x="62" y="360" font-family="sans-serif" font-size="11.5" fill="#1d2438"><tspan font-weight="700">Also:</tspan> Net income + non-cash expenses &#8722; &#916;working capital &#8722; CapEx</text>
+  <text x="62" y="378" font-family="sans-serif" font-size="11" fill="#5b6680">High, growing FCF signals a business that funds itself and rewards owners.</text>
+</svg>

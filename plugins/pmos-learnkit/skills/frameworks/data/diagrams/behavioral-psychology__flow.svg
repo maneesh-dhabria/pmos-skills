@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Flow diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Flow — the Challenge/Skill Channel</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Immersion happens where challenge rises in step with skill.</text>
+
+  <!-- plot area -->
+  <!-- axes: x = skill (left->right), y = challenge (bottom->top). origin at (90,330) -->
+  <line x1="90" y1="330" x2="90" y2="80" stroke="#1d2438" stroke-width="2"/>
+  <line x1="90" y1="330" x2="600" y2="330" stroke="#1d2438" stroke-width="2"/>
+  <text x="60" y="200" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" transform="rotate(-90 60 200)" text-anchor="middle">Challenge ↑</text>
+  <text x="345" y="358" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Skill →</text>
+
+  <!-- Flow channel (diagonal band) -->
+  <polygon points="90,330 600,80 600,140 130,330" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="360" y="225" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="800" fill="#2563eb" transform="rotate(-26 360 225)">FLOW</text>
+
+  <!-- Anxiety zone (above channel: high challenge, low skill) -->
+  <text x="170" y="120" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Anxiety</text>
+  <text x="170" y="138" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">too hard →</text>
+  <text x="170" y="151" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">frustration</text>
+
+  <!-- Boredom zone (below channel: low challenge, high skill) -->
+  <text x="500" y="300" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Boredom</text>
+  <text x="500" y="318" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">too easy →</text>
+  <text x="500" y="331" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680" dy="0">disengaged</text>
+
+  <!-- conditions box -->
+  <text x="100" y="385" font-family="sans-serif" font-size="11" fill="#5b6680">Conditions for flow:</text>
+  <text x="232" y="385" font-family="sans-serif" font-size="11" fill="#1d2438">clear goals · immediate feedback · matched challenge &amp; skill · no distractions</text>
+</svg>

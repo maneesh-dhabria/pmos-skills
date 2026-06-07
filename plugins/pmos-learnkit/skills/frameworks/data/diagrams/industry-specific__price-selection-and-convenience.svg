@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Price Selection and Convenience diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Price, Selection &amp; Convenience</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12" fill="#5b6680">The three retail / e-commerce growth levers — capital forces a choice of where to differentiate</text>
+
+  <!-- Venn: three circles -->
+  <g fill-opacity="0.35">
+    <circle cx="270" cy="190" r="115" fill="#2563eb"/>
+    <circle cx="395" cy="190" r="115" fill="#0ea5a4"/>
+    <circle cx="332" cy="295" r="115" fill="#f59e0b"/>
+  </g>
+
+  <!-- circle labels -->
+  <text x="205" y="155" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438" text-anchor="middle">Price</text>
+  <text x="205" y="172" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">lower wins</text>
+  <text x="205" y="184" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">all else equal</text>
+
+  <text x="462" y="155" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438" text-anchor="middle">Selection</text>
+  <text x="462" y="172" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">breadth x depth</text>
+  <text x="462" y="184" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">(often a tradeoff)</text>
+
+  <text x="332" y="356" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438" text-anchor="middle">Convenience</text>
+  <text x="332" y="372" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="middle">delivery · UI · post-purchase</text>
+
+  <!-- center: rare all-three winner -->
+  <text x="332" y="222" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Amazon</text>
+  <text x="332" y="238" font-family="sans-serif" font-size="9" fill="#1d2438" text-anchor="middle">rare: all three</text>
+
+  <!-- capital note -->
+  <text x="560" y="300" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">Capital is finite —</text>
+  <text x="560" y="315" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">investing in one</text>
+  <text x="560" y="330" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">leaves less for the</text>
+  <text x="560" y="345" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">other two.</text>
+</svg>

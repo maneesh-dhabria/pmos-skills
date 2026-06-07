@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="EBITDA diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">EBITDA</text>
+  <text x="32" y="60" font-family="sans-serif" font-size="13" fill="#5b6680">Earnings Before Interest, Taxes, Depreciation &amp; Amortization &#8212; add the non-operating items back</text>
+
+  <!-- Waterfall build-up. Baseline y=300 (=$0). scale: 1k => 1.5px? net income 100k tall. Use 220px for 165k => 1.333px/k -->
+  <line x1="60" y1="300" x2="610" y2="300" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="48" y="304" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="end">$0</text>
+
+  <!-- Net income base: 100k -> 133px -->
+  <g font-family="sans-serif" text-anchor="middle">
+    <rect x="70"  y="167" width="80" height="133" fill="#5b6680"/>
+    <text x="110" y="190" font-size="10" fill="#ffffff">Net</text>
+    <text x="110" y="203" font-size="10" fill="#ffffff">Income</text>
+    <text x="110" y="318" font-size="11" font-weight="700" fill="#1d2438">$100k</text>
+
+    <!-- + Interest 10k -> 13px, sits on top of 133 (top=167) -->
+    <rect x="170" y="154" width="70" height="13" fill="#2563eb"/>
+    <text x="205" y="148" font-size="10" fill="#1d2438">+ Interest</text>
+    <text x="205" y="318" font-size="11" font-weight="700" fill="#2563eb">$10k</text>
+
+    <!-- + Taxes 20k -> 27px, top = 167-13-27 = 127 -->
+    <rect x="260" y="127" width="70" height="27" fill="#0ea5a4"/>
+    <text x="295" y="121" font-size="10" fill="#1d2438">+ Taxes</text>
+    <text x="295" y="318" font-size="11" font-weight="700" fill="#0ea5a4">$20k</text>
+
+    <!-- + Depreciation 30k -> 40px, top = 127-40 = 87 -->
+    <rect x="350" y="87" width="70" height="40" fill="#f59e0b"/>
+    <text x="385" y="81" font-size="10" fill="#1d2438">+ Deprec.</text>
+    <text x="385" y="318" font-size="11" font-weight="700" fill="#f59e0b">$30k</text>
+
+    <!-- + Amortization 5k -> 7px, top = 87-7 = 80 -->
+    <rect x="440" y="80" width="70" height="7" fill="#ef4444"/>
+    <text x="475" y="74" font-size="10" fill="#1d2438">+ Amort.</text>
+    <text x="475" y="318" font-size="11" font-weight="700" fill="#ef4444">$5k</text>
+
+    <!-- EBITDA total: 165k -> 220px, top = 300-220 = 80 -->
+    <rect x="530" y="80" width="80" height="220" fill="#1d2438"/>
+    <text x="570" y="100" font-size="11" font-weight="700" fill="#ffffff">EBITDA</text>
+    <text x="570" y="318" font-size="12" font-weight="700" fill="#1d2438">$165k</text>
+  </g>
+
+  <!-- connector dashes between tops -->
+  <g stroke="#5b6680" stroke-width="1" stroke-dasharray="3 3" opacity="0.6">
+    <line x1="150" y1="167" x2="170" y2="167"/>
+    <line x1="240" y1="154" x2="260" y2="154"/>
+    <line x1="330" y1="127" x2="350" y2="127"/>
+    <line x1="420" y1="87"  x2="440" y2="87"/>
+    <line x1="510" y1="80"  x2="530" y2="80"/>
+  </g>
+
+  <rect x="60" y="338" width="550" height="48" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="74" y="358" font-family="sans-serif" font-size="11.5" fill="#1d2438"><tspan font-weight="700">Why:</tspan> isolates operating profitability &#8212; ignores financing, tax rate, and asset write-downs.</text>
+  <text x="74" y="376" font-family="sans-serif" font-size="11" fill="#ef4444"><tspan font-weight="700">Caution:</tspan> easy to flatter &#8212; hides debt &amp; can overstate true cash flow.</text>
+</svg>

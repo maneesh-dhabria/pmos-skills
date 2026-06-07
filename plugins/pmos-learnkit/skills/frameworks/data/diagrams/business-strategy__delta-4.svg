@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Delta-4 diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Delta-4</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Beat the status quo by &#8805; 4 points (of 10) on efficiency to drive irreversible mass adoption.</text>
+
+  <!-- Efficiency scale 1..10 -->
+  <text x="32" y="100" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680" letter-spacing="1">EFFICIENCY SCALE (1 &#8594; 10)</text>
+
+  <!-- Axis -->
+  <line x1="60" y1="300" x2="600" y2="300" stroke="#1d2438" stroke-width="2"/>
+  <!-- ticks -->
+  <g font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">
+    <line x1="60" y1="300" x2="60" y2="306" stroke="#5b6680"/><text x="60" y="320">1</text>
+    <line x1="120" y1="300" x2="120" y2="306" stroke="#5b6680"/><text x="120" y="320">2</text>
+    <line x1="180" y1="300" x2="180" y2="306" stroke="#5b6680"/><text x="180" y="320">3</text>
+    <line x1="240" y1="300" x2="240" y2="306" stroke="#5b6680"/><text x="240" y="320">4</text>
+    <line x1="300" y1="300" x2="300" y2="306" stroke="#5b6680"/><text x="300" y="320">5</text>
+    <line x1="360" y1="300" x2="360" y2="306" stroke="#5b6680"/><text x="360" y="320">6</text>
+    <line x1="420" y1="300" x2="420" y2="306" stroke="#5b6680"/><text x="420" y="320">7</text>
+    <line x1="480" y1="300" x2="480" y2="306" stroke="#5b6680"/><text x="480" y="320">8</text>
+    <line x1="540" y1="300" x2="540" y2="306" stroke="#5b6680"/><text x="540" y="320">9</text>
+    <line x1="600" y1="300" x2="600" y2="306" stroke="#5b6680"/><text x="600" y="320">10</text>
+  </g>
+
+  <!-- Old process bar : score ~3.5 (x at 180->210) -->
+  <rect x="60" y="190" width="150" height="44" rx="6" fill="#fdeaea" stroke="#ef4444" stroke-width="2"/>
+  <text x="135" y="212" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Old process</text>
+  <text x="135" y="228" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">call, wait, pay cash</text>
+  <text x="210" y="180" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444" text-anchor="middle">~3.5</text>
+  <line x1="210" y1="234" x2="210" y2="300" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- New product bar : score ~8 (x to 540) -->
+  <rect x="60" y="130" width="480" height="44" rx="6" fill="#eaf0ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="300" y="152" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">New product (e.g. food-delivery app)</text>
+  <text x="300" y="168" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">instant discovery &#183; prices &#183; 2-3 click pay &#183; tracked delivery</text>
+  <text x="540" y="120" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb" text-anchor="middle">~8</text>
+  <line x1="540" y1="174" x2="540" y2="300" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4 4"/>
+
+  <!-- Delta bracket between 210 and 540 -->
+  <line x1="210" y1="270" x2="540" y2="270" stroke="#0ea5a4" stroke-width="2"/>
+  <polygon points="210,270 222,264 222,276" fill="#0ea5a4"/>
+  <polygon points="540,270 528,264 528,276" fill="#0ea5a4"/>
+  <rect x="330" y="256" width="90" height="28" rx="14" fill="#0ea5a4"/>
+  <text x="375" y="275" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">&#916; &#8776; 4.5</text>
+
+  <text x="624" y="270" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end" transform="translate(0,0)"></text>
+
+  <!-- Unlocks footer -->
+  <rect x="32" y="338" width="576" height="46" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="46" y="356" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">&#916; &#8805; 4 unlocks:</text>
+  <text x="150" y="356" font-family="sans-serif" font-size="12" fill="#5b6680">Irreversible behavior &#183; high stickiness &#183; brag-worthy word-of-mouth</text>
+  <text x="46" y="374" font-family="sans-serif" font-size="11.5" fill="#5b6680">A delta below 4 isn't enough to permanently shift consumer behavior.</text>
+</svg>

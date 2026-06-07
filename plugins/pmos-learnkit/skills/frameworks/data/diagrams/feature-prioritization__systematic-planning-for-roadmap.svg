@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Systematic Planning for Roadmap diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Systematic Planning for Roadmap</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Allocate roadmap investment % across strategic themes per time horizon (leader judgment)</text>
+
+  <!-- Theme legend / palette -->
+  <text x="40" y="78" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Themes (strategy → investment mix)</text>
+
+  <!-- 100% allocation stacked bars for 3 horizons -->
+  <!-- horizon labels -->
+  <text x="120" y="110" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Next 3 mo</text>
+  <text x="320" y="110" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Next 6 mo</text>
+  <text x="520" y="110" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Next 12 mo</text>
+
+  <!-- Bar geometry: x center, width 110, y from 120 to 300 (180px = 100%) -->
+  <!-- Horizon 1: 60 Diff, 30 Tech, 10 Bets -->
+  <g font-family="sans-serif" font-size="9" fill="#ffffff" text-anchor="middle">
+    <rect x="65" y="120" width="110" height="108" fill="#2563eb"/><text x="120" y="178" fill="#ffffff">60%</text>
+    <rect x="65" y="228" width="110" height="54" fill="#0ea5a4"/><text x="120" y="259" fill="#ffffff">30%</text>
+    <rect x="65" y="282" width="110" height="18" fill="#f59e0b"/><text x="120" y="295" fill="#1d2438">10%</text>
+  </g>
+  <!-- Horizon 2: 45 Diff, 20 Tablestakes, 20 Tech, 15 Bets -->
+  <g font-family="sans-serif" font-size="9" text-anchor="middle">
+    <rect x="265" y="120" width="110" height="81" fill="#2563eb"/><text x="320" y="164" fill="#ffffff">45%</text>
+    <rect x="265" y="201" width="110" height="36" fill="#5b6680"/><text x="320" y="223" fill="#ffffff">20%</text>
+    <rect x="265" y="237" width="110" height="36" fill="#0ea5a4"/><text x="320" y="259" fill="#ffffff">20%</text>
+    <rect x="265" y="273" width="110" height="27" fill="#f59e0b"/><text x="320" y="291" fill="#1d2438">15%</text>
+  </g>
+  <!-- Horizon 3: 35 Diff, 25 Tablestakes, 15 Tech, 15 Customer, 10 Bets -->
+  <g font-family="sans-serif" font-size="9" text-anchor="middle">
+    <rect x="465" y="120" width="110" height="63" fill="#2563eb"/><text x="520" y="156" fill="#ffffff">35%</text>
+    <rect x="465" y="183" width="110" height="45" fill="#5b6680"/><text x="520" y="210" fill="#ffffff">25%</text>
+    <rect x="465" y="228" width="110" height="27" fill="#0ea5a4"/><text x="520" y="245" fill="#ffffff">15%</text>
+    <rect x="465" y="255" width="110" height="27" fill="#ef4444"/><text x="520" y="272" fill="#ffffff">15%</text>
+    <rect x="465" y="282" width="110" height="18" fill="#f59e0b"/><text x="520" y="295" fill="#1d2438">10%</text>
+  </g>
+
+  <!-- 100% axis ticks -->
+  <text x="50" y="124" text-anchor="end" font-family="sans-serif" font-size="8" fill="#5b6680">100%</text>
+  <text x="50" y="303" text-anchor="end" font-family="sans-serif" font-size="8" fill="#5b6680">0%</text>
+
+  <!-- Legend of themes -->
+  <g font-family="sans-serif" font-size="9.5" fill="#1d2438">
+    <rect x="60" y="318" width="13" height="13" fill="#2563eb"/><text x="78" y="328">Differentiators</text>
+    <rect x="190" y="318" width="13" height="13" fill="#5b6680"/><text x="208" y="328">Tablestakes</text>
+    <rect x="300" y="318" width="13" height="13" fill="#0ea5a4"/><text x="318" y="328">Tech foundation</text>
+    <rect x="430" y="318" width="13" height="13" fill="#ef4444"/><text x="448" y="328">Customer specials</text>
+    <rect x="60" y="338" width="13" height="13" fill="#f59e0b"/><text x="78" y="348">Speculative bets</text>
+    <text x="200" y="348" fill="#5b6680">(also: incrementals, embarrassments / broken windows)</text>
+  </g>
+
+  <text x="320" y="372" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">Leader sets the % mix; teams then propose bottom-up ideas per theme</text>
+  <text x="320" y="388" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">Driven by: offense vs defense? explore vs exploit? growth vs protect? key risks to mitigate?</text>
+</svg>

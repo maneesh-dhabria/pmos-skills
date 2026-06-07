@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM Skills Map diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438" text-anchor="middle">PM Skills Map</text>
+  <text x="320" y="49" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">The landscape of skills a product manager develops, by cluster</text>
+
+  <!-- spokes -->
+  <g stroke="#cbd5ec" stroke-width="1.5">
+    <line x1="320" y1="225" x2="150" y2="135"/>
+    <line x1="320" y1="225" x2="490" y2="135"/>
+    <line x1="320" y1="225" x2="120" y2="300"/>
+    <line x1="320" y1="225" x2="520" y2="300"/>
+    <line x1="320" y1="225" x2="320" y2="350"/>
+  </g>
+
+  <!-- hub -->
+  <circle cx="320" cy="225" r="46" fill="#1d2438"/>
+  <text x="320" y="220" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">PM</text>
+  <text x="320" y="236" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Skills</text>
+
+  <g font-family="sans-serif">
+    <!-- Product Sense -->
+    <rect x="60" y="98" width="180" height="74" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="150" y="118" font-size="13" font-weight="700" fill="#2563eb" text-anchor="middle">Product Sense</text>
+    <text x="150" y="137" font-size="10" fill="#5b6680" text-anchor="middle">user empathy · taste</text>
+    <text x="150" y="152" font-size="10" fill="#5b6680" text-anchor="middle">judgment · vision</text>
+    <text x="150" y="167" font-size="10" fill="#5b6680" text-anchor="middle">problem framing</text>
+
+    <!-- Strategy -->
+    <rect x="400" y="98" width="180" height="74" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="490" y="118" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">Strategy</text>
+    <text x="490" y="137" font-size="10" fill="#5b6680" text-anchor="middle">market &amp; business</text>
+    <text x="490" y="152" font-size="10" fill="#5b6680" text-anchor="middle">prioritization · bets</text>
+    <text x="490" y="167" font-size="10" fill="#5b6680" text-anchor="middle">metrics &amp; goals</text>
+
+    <!-- Execution -->
+    <rect x="30" y="280" width="180" height="74" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="120" y="300" font-size="13" font-weight="700" fill="#f59e0b" text-anchor="middle">Execution</text>
+    <text x="120" y="319" font-size="10" fill="#5b6680" text-anchor="middle">specs · roadmaps</text>
+    <text x="120" y="334" font-size="10" fill="#5b6680" text-anchor="middle">delivery · quality</text>
+    <text x="120" y="349" font-size="10" fill="#5b6680" text-anchor="middle">shipping cadence</text>
+
+    <!-- People & Influence -->
+    <rect x="430" y="280" width="180" height="74" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="520" y="300" font-size="13" font-weight="700" fill="#ef4444" text-anchor="middle">People &amp; Influence</text>
+    <text x="520" y="319" font-size="10" fill="#5b6680" text-anchor="middle">communication</text>
+    <text x="520" y="334" font-size="10" fill="#5b6680" text-anchor="middle">stakeholders · trust</text>
+    <text x="520" y="349" font-size="10" fill="#5b6680" text-anchor="middle">leadership</text>
+
+    <!-- Foundations -->
+    <rect x="232" y="350" width="176" height="46" rx="10" fill="#1d2438"/>
+    <text x="320" y="370" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Foundations</text>
+    <text x="320" y="387" font-size="10" fill="#cbd5ec" text-anchor="middle">curiosity · grit · self-awareness</text>
+  </g>
+</svg>

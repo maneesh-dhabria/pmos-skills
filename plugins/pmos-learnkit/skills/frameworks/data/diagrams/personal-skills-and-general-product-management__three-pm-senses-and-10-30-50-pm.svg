@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Three PM Senses and 10-30-50 PM diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="32" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Three PM Senses &amp; the 10-30-50 PM</text>
+  <text x="320" y="52" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">The three senses that define PM capability — and how to aim them</text>
+
+  <!-- Venn: three overlapping circles -->
+  <g opacity="0.85">
+    <circle cx="230" cy="170" r="86" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="318" cy="170" r="86" fill="#0ea5a4" fill-opacity="0.18" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="274" cy="248" r="86" fill="#f59e0b" fill-opacity="0.18" stroke="#f59e0b" stroke-width="2"/>
+  </g>
+
+  <text x="196" y="146" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Product</text>
+  <text x="196" y="162" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Sense</text>
+  <text x="196" y="178" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">empathy · domain</text>
+  <text x="196" y="190" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">· creativity</text>
+
+  <text x="352" y="146" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0a7c7b">Analytical</text>
+  <text x="352" y="162" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0a7c7b">Sense</text>
+  <text x="352" y="178" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">frame · evaluate</text>
+  <text x="352" y="190" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">· simulate</text>
+
+  <text x="274" y="286" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#b3770a">Execution</text>
+  <text x="274" y="302" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#b3770a">Sense</text>
+  <text x="274" y="318" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">align · orchestrate</text>
+
+  <!-- 10-30-50 ladder panel -->
+  <rect x="430" y="80" width="186" height="276" rx="10" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="523" y="106" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Aim: 10-30-50</text>
+  <text x="523" y="124" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">be elite at one, strong</text>
+  <text x="523" y="136" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">at two, solid at three</text>
+
+  <rect x="448" y="150" width="150" height="46" rx="6" fill="#2563eb"/>
+  <text x="523" y="172" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">Top 10%</text>
+  <text x="523" y="188" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#dbe6ff">your default / superpower</text>
+
+  <rect x="448" y="206" width="150" height="46" rx="6" fill="#0ea5a4"/>
+  <text x="523" y="228" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">Top 30%</text>
+  <text x="523" y="244" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#d4f3f2">a second sense</text>
+
+  <rect x="448" y="262" width="150" height="46" rx="6" fill="#f59e0b"/>
+  <text x="523" y="284" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">Top 50%</text>
+  <text x="523" y="300" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff0d6">the third sense</text>
+
+  <text x="523" y="332" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">Grow strengths,</text>
+  <text x="523" y="345" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">address liabilities</text>
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Technological Revolutions diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Technological Revolutions</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Two phases, four sub-phases, separated by a turning-point gap</text>
+
+  <!-- baseline -->
+  <line x1="40" y1="330" x2="600" y2="330" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="40" y="350" font-family="sans-serif" font-size="11" fill="#5b6680">time / maturity &#8594;</text>
+
+  <!-- Installation S-curve start (rising) -->
+  <path d="M55 320 C 110 318, 150 250, 210 175 C 240 138, 270 120, 290 116" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <!-- gap / turning point -->
+  <line x1="320" y1="90" x2="320" y2="330" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <text x="320" y="80" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#ef4444">turning point</text>
+  <!-- Deployment curve -->
+  <path d="M350 116 C 380 112, 420 100, 480 92 C 530 85, 565 84, 590 84" fill="none" stroke="#0ea5a4" stroke-width="3"/>
+
+  <!-- Installation phase band -->
+  <rect x="55" y="356" width="245" height="0" />
+  <line x1="55" y1="362" x2="300" y2="362" stroke="#2563eb" stroke-width="4"/>
+  <text x="177" y="382" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Installation Phase</text>
+  <text x="177" y="396" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">new tech laid down, capital rushes in</text>
+
+  <!-- Deployment phase band -->
+  <line x1="340" y1="362" x2="590" y2="362" stroke="#0ea5a4" stroke-width="4"/>
+  <text x="465" y="382" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Deployment Phase</text>
+  <text x="465" y="396" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">broad adoption, productivity, stability</text>
+
+  <!-- sub-phase markers -->
+  <!-- Irruption -->
+  <circle cx="100" cy="305" r="6" fill="#2563eb"/>
+  <text x="100" y="290" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Irruption</text>
+  <text x="100" y="276" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">tech emerges,</text>
+  <text x="100" y="266" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">early investment</text>
+
+  <!-- Frenzy -->
+  <circle cx="225" cy="160" r="6" fill="#2563eb"/>
+  <text x="225" y="145" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Frenzy</text>
+  <text x="225" y="131" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">boom, bubble,</text>
+  <text x="225" y="121" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">infrastructure built</text>
+
+  <!-- Synergy -->
+  <circle cx="415" cy="103" r="6" fill="#0ea5a4"/>
+  <text x="415" y="135" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Synergy</text>
+  <text x="415" y="149" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">uses combine,</text>
+  <text x="415" y="159" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">golden age</text>
+
+  <!-- Maturity -->
+  <circle cx="565" cy="84" r="6" fill="#0ea5a4"/>
+  <text x="565" y="116" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Maturity</text>
+  <text x="565" y="130" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">full exploitation,</text>
+  <text x="565" y="140" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#5b6680">saturation</text>
+</svg>

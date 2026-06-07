@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Racecar Growth Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">Racecar Growth Framework</text>
+  <text x="320" y="49" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Growing a business is like running a high-performance race car</text>
+
+  <!-- Car body -->
+  <g>
+    <path d="M150 200 L210 165 L420 165 L470 200 Z" fill="#eff4ff" stroke="#2563eb" stroke-width="1.6"/>
+    <rect x="150" y="200" width="320" height="32" rx="6" fill="#dbe6ff" stroke="#2563eb" stroke-width="1.6"/>
+    <!-- wheels -->
+    <circle cx="210" cy="240" r="22" fill="#1d2438"/>
+    <circle cx="210" cy="240" r="9" fill="#5b6680"/>
+    <circle cx="410" cy="240" r="22" fill="#1d2438"/>
+    <circle cx="410" cy="240" r="9" fill="#5b6680"/>
+    <!-- cockpit -->
+    <path d="M270 200 L290 175 L350 175 L360 200 Z" fill="#ffffff" stroke="#2563eb" stroke-width="1.3"/>
+    <!-- engine block at rear -->
+    <rect x="430" y="172" width="48" height="56" rx="5" fill="#0ea5a4" opacity="0.9"/>
+    <!-- turbo flame -->
+    <path d="M478 188 l34 8 l-34 8 l16 -8 z" fill="#f59e0b"/>
+    <path d="M478 200 l30 6 l-30 6 l14 -6 z" fill="#ef4444"/>
+  </g>
+
+  <!-- Engine label -->
+  <g font-family="sans-serif">
+    <line x1="454" y1="172" x2="500" y2="112" stroke="#0ea5a4" stroke-width="1.2"/>
+    <rect x="500" y="92" width="128" height="42" rx="6" fill="#ecfeff" stroke="#0ea5a4" stroke-width="1.2"/>
+    <text x="510" y="108" font-size="11.5" font-weight="700" fill="#0ea5a4">Engine</text>
+    <text x="510" y="125" font-size="9.5" fill="#5b6680">Self-sustaining growth loops</text>
+  </g>
+
+  <!-- Turbo label -->
+  <g font-family="sans-serif">
+    <line x1="512" y1="200" x2="560" y2="200" stroke="#f59e0b" stroke-width="1.2"/>
+    <rect x="500" y="150" width="128" height="42" rx="6" fill="#fffaf0" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="510" y="166" font-size="11.5" font-weight="700" fill="#f59e0b">Turbo boosts</text>
+    <text x="510" y="183" font-size="9.5" fill="#5b6680">One-off spikes (PR, events)</text>
+  </g>
+
+  <!-- Fuel label -->
+  <g font-family="sans-serif">
+    <line x1="300" y1="176" x2="300" y2="120" stroke="#2563eb" stroke-width="1.2"/>
+    <rect x="180" y="92" width="240" height="30" rx="6" fill="#eff4ff" stroke="#2563eb" stroke-width="1.2"/>
+    <text x="192" y="106" font-size="11.5" font-weight="700" fill="#2563eb">Fuel</text>
+    <text x="232" y="106" font-size="9.5" fill="#5b6680">Inputs the engine burns</text>
+    <text x="232" y="117" font-size="9.5" fill="#5b6680">(capital, content, users)</text>
+  </g>
+
+  <!-- Lubricant label -->
+  <g font-family="sans-serif">
+    <line x1="290" y1="232" x2="290" y2="262" stroke="#2563eb" stroke-width="1.2"/>
+    <rect x="160" y="262" width="270" height="30" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.1"/>
+    <text x="172" y="276" font-size="11.5" font-weight="700" fill="#1d2438">Lubricants</text>
+    <text x="240" y="276" font-size="9.5" fill="#5b6680">Optimizations — conversion, brand, retention</text>
+  </g>
+
+  <!-- Kickstart label -->
+  <g font-family="sans-serif">
+    <line x1="150" y1="216" x2="118" y2="216" stroke="#5b6680" stroke-width="1.2"/>
+    <rect x="12" y="196" width="106" height="44" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.1"/>
+    <text x="22" y="212" font-size="11" font-weight="700" fill="#1d2438">Kickstarts</text>
+    <text x="22" y="227" font-size="9" fill="#5b6680">Unscalable tactics</text>
+    <text x="22" y="237" font-size="9" fill="#5b6680">→ first 1,000 users</text>
+  </g>
+
+  <!-- Stage timeline -->
+  <g font-family="sans-serif" font-size="9.5" fill="#1d2438">
+    <line x1="30" y1="335" x2="610" y2="335" stroke="#5b6680" stroke-width="1.4"/>
+    <polygon points="610,335 600,331 600,339" fill="#5b6680"/>
+    <circle cx="80" cy="335" r="4" fill="#5b6680"/>
+    <text x="80" y="356" text-anchor="middle">Kickstart +</text>
+    <text x="80" y="368" text-anchor="middle">turbo</text>
+    <circle cx="240" cy="335" r="4" fill="#0ea5a4"/>
+    <text x="240" y="356" text-anchor="middle">Engine works →</text>
+    <text x="240" y="368" text-anchor="middle">lubricate</text>
+    <circle cx="400" cy="335" r="4" fill="#2563eb"/>
+    <text x="400" y="356" text-anchor="middle">Scale → mid-stage</text>
+    <text x="400" y="368" text-anchor="middle">accelerants</text>
+    <circle cx="555" cy="335" r="4" fill="#f59e0b"/>
+    <text x="555" y="356" text-anchor="middle">New engine before</text>
+    <text x="555" y="368" text-anchor="middle">it asymptotes</text>
+  </g>
+</svg>

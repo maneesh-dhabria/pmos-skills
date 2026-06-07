@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Typography Concepts diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Typography Concepts</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Core vocabulary, shown on the letterforms themselves</text>
+
+  <!-- Big specimen letters: "Rg" with serif markers, baseline, leading -->
+  <!-- baseline -->
+  <line x1="40" y1="180" x2="300" y2="180" stroke="#0ea5a4" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="44" y="196" font-family="sans-serif" font-size="9" fill="#0ea5a4">baseline</text>
+  <!-- specimen -->
+  <text x="60" y="178" font-family="Georgia, 'Times New Roman', serif" font-size="120" font-weight="700" fill="#1d2438">Rg</text>
+  <!-- serif callout -->
+  <circle cx="74" cy="176" r="5" fill="none" stroke="#ef4444" stroke-width="1.5"/>
+  <line x1="74" y1="176" x2="74" y2="220" stroke="#ef4444" stroke-width="1"/>
+  <text x="60" y="234" font-family="sans-serif" font-size="10" fill="#ef4444">serif (foot stroke)</text>
+  <!-- kerning gap -->
+  <line x1="150" y1="92" x2="174" y2="92" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="150" y="84" font-family="sans-serif" font-size="10" fill="#f59e0b">kerning</text>
+
+  <!-- leading: second line -->
+  <line x1="40" y1="250" x2="300" y2="250" stroke="#0ea5a4" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="46" y1="180" x2="46" y2="250" stroke="#2563eb" stroke-width="1.5" marker-start="url(#a2)" marker-end="url(#a2)"/>
+  <defs>
+    <marker id="a2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M1,4 L7,1 M1,4 L7,7" stroke="#2563eb" stroke-width="1" fill="none"/>
+    </marker>
+  </defs>
+  <text x="52" y="220" font-family="sans-serif" font-size="10" fill="#2563eb">leading</text>
+  <text x="62" y="238" font-family="Georgia, serif" font-size="30" fill="#5b6680">next line</text>
+
+  <!-- tracking demo -->
+  <text x="40" y="290" font-family="sans-serif" font-size="10" fill="#f59e0b">tracking (letter spacing across a word)</text>
+  <text x="40" y="312" font-family="sans-serif" font-size="22" letter-spacing="8" fill="#1d2438">SPACE</text>
+
+  <!-- weight scale -->
+  <text x="40" y="350" font-family="sans-serif" font-size="10" fill="#5b6680">weight</text>
+  <text x="40" y="372" font-family="sans-serif" font-size="20" font-weight="300" fill="#1d2438">A</text>
+  <text x="64" y="372" font-family="sans-serif" font-size="20" font-weight="400" fill="#1d2438">A</text>
+  <text x="88" y="372" font-family="sans-serif" font-size="20" font-weight="600" fill="#1d2438">A</text>
+  <text x="112" y="372" font-family="sans-serif" font-size="20" font-weight="800" fill="#1d2438">A</text>
+  <text x="138" y="372" font-family="sans-serif" font-size="9" fill="#5b6680">thin → bold</text>
+
+  <!-- Right column: glossary rows -->
+  <line x1="330" y1="68" x2="330" y2="384" stroke="#e3e9f6" stroke-width="1.5"/>
+  <g font-family="sans-serif">
+    <text x="348" y="86" font-size="12" font-weight="700" fill="#2563eb">Typeface</text>
+    <text x="348" y="102" font-size="10" fill="#5b6680">family of characters (Arial, Helvetica)</text>
+    <text x="348" y="128" font-size="12" font-weight="700" fill="#2563eb">Font</text>
+    <text x="348" y="144" font-size="10" fill="#5b6680">one styled cut: Garamond Bold 12px</text>
+    <text x="348" y="170" font-size="12" font-weight="700" fill="#2563eb">Serif / Sans-serif</text>
+    <text x="348" y="186" font-size="10" fill="#5b6680">with vs. without foot strokes</text>
+    <text x="348" y="212" font-size="12" font-weight="700" fill="#2563eb">Weight · Width</text>
+    <text x="348" y="228" font-size="10" fill="#5b6680">thickness · letter width</text>
+    <text x="348" y="254" font-size="12" font-weight="700" fill="#2563eb">Tracking · Kerning</text>
+    <text x="348" y="270" font-size="10" fill="#5b6680">word/line spacing · pair spacing</text>
+    <text x="348" y="296" font-size="12" font-weight="700" fill="#2563eb">Leading</text>
+    <text x="348" y="312" font-size="10" fill="#5b6680">vertical space, baseline to baseline</text>
+    <text x="348" y="338" font-size="12" font-weight="700" fill="#2563eb">Line break</text>
+    <text x="348" y="354" font-size="10" fill="#5b6680">ends a line, starts the next</text>
+    <text x="348" y="380" font-size="12" font-weight="700" fill="#2563eb">Paragraph break</text>
+  </g>
+</svg>

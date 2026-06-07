@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PM Leadership in 1 Tweet diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="36" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438" text-anchor="middle">PM Leadership in 1 Tweet</text>
+  <text x="320" y="57" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">Shreyas Doshi — leadership multiplies through others, not output</text>
+
+  <!-- Quote card -->
+  <rect x="60" y="80" width="520" height="92" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="80" y="112" font-family="sans-serif" font-size="40" font-weight="700" fill="#2563eb">"</text>
+  <text x="320" y="120" font-family="sans-serif" font-size="14" font-weight="600" fill="#1d2438" text-anchor="middle">Great product leadership is less about making the calls</text>
+  <text x="320" y="142" font-family="sans-serif" font-size="14" font-weight="600" fill="#1d2438" text-anchor="middle">and more about raising the judgment of everyone around you.</text>
+
+  <!-- Three shift pillars -->
+  <g font-family="sans-serif">
+    <!-- Pillar 1 -->
+    <rect x="48" y="210" width="168" height="150" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+    <circle cx="132" cy="244" r="18" fill="#2563eb"/>
+    <text x="132" y="250" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="132" y="288" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Set the bar</text>
+    <text x="132" y="312" font-size="11" fill="#5b6680" text-anchor="middle">Define what</text>
+    <text x="132" y="328" font-size="11" fill="#5b6680" text-anchor="middle">"great" means</text>
+    <text x="132" y="344" font-size="11" fill="#5b6680" text-anchor="middle">so others aim higher</text>
+
+    <!-- Pillar 2 -->
+    <rect x="236" y="210" width="168" height="150" rx="10" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <circle cx="320" cy="244" r="18" fill="#0ea5a4"/>
+    <text x="320" y="250" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="320" y="288" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Create clarity</text>
+    <text x="320" y="312" font-size="11" fill="#5b6680" text-anchor="middle">Turn ambiguity</text>
+    <text x="320" y="328" font-size="11" fill="#5b6680" text-anchor="middle">into a narrative</text>
+    <text x="320" y="344" font-size="11" fill="#5b6680" text-anchor="middle">the team can run on</text>
+
+    <!-- Pillar 3 -->
+    <rect x="424" y="210" width="168" height="150" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+    <circle cx="508" cy="244" r="18" fill="#f59e0b"/>
+    <text x="508" y="250" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="508" y="288" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Multiply judgment</text>
+    <text x="508" y="312" font-size="11" fill="#5b6680" text-anchor="middle">Grow PMs who</text>
+    <text x="508" y="328" font-size="11" fill="#5b6680" text-anchor="middle">make great calls</text>
+    <text x="508" y="344" font-size="11" fill="#5b6680" text-anchor="middle">without you</text>
+  </g>
+
+  <text x="320" y="388" font-family="sans-serif" font-size="10" fill="#5b6680" text-anchor="middle">From doing the work well  →  making the team's work better</text>
+</svg>

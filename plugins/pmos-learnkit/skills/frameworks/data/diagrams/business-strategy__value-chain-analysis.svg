@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Value Chain Analysis diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Value Chain Analysis</text>
+  <text x="320" y="46" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Support activities enable five primary activities that drive value &amp; margin</text>
+
+  <!-- Support activities (top, stacked horizontal bands) -->
+  <text x="50" y="72" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Support Activities</text>
+  <rect x="50" y="80" width="500" height="24" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="60" y="96" font-family="sans-serif" font-size="11" fill="#1d2438">Firm Infrastructure &#8212; management, finance, legal, QA</text>
+  <rect x="50" y="104" width="500" height="24" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="60" y="120" font-family="sans-serif" font-size="11" fill="#1d2438">Human Resource Management &#8212; recruit, train, manage</text>
+  <rect x="50" y="128" width="500" height="24" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="60" y="144" font-family="sans-serif" font-size="11" fill="#1d2438">Technology Development &#8212; R&amp;D, innovation</text>
+  <rect x="50" y="152" width="500" height="24" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+  <text x="60" y="168" font-family="sans-serif" font-size="11" fill="#1d2438">Procurement &#8212; sourcing inputs &amp; resources</text>
+
+  <!-- Margin label on right -->
+  <text x="585" y="130" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b" transform="rotate(90 585 130)">MARGIN</text>
+  <line x1="558" y1="80" x2="558" y2="290" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3 3"/>
+
+  <!-- Primary activities as chevron arrows -->
+  <text x="50" y="210" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Primary Activities</text>
+
+  <!-- chevrons: 5 arrows pointing right -->
+  <g font-family="sans-serif" font-size="10.5" fill="#ffffff" text-anchor="middle">
+    <polygon points="50,222 145,222 165,262 145,302 50,302 70,262" fill="#2563eb"/>
+    <text x="105" y="258">Inbound</text>
+    <text x="105" y="272">Logistics</text>
+
+    <polygon points="155,222 250,222 270,262 250,302 155,302 175,262" fill="#2f6ef0"/>
+    <text x="210" y="265">Operations</text>
+
+    <polygon points="260,222 355,222 375,262 355,302 260,302 280,262" fill="#2563eb"/>
+    <text x="315" y="258">Outbound</text>
+    <text x="315" y="272">Logistics</text>
+
+    <polygon points="365,222 460,222 480,262 460,302 365,302 385,262" fill="#2f6ef0"/>
+    <text x="420" y="258">Marketing</text>
+    <text x="420" y="272">&amp; Sales</text>
+
+    <polygon points="470,222 558,222 558,302 470,302 490,262" fill="#2563eb"/>
+    <text x="518" y="265">Service</text>
+  </g>
+
+  <text x="50" y="330" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438">Flow of value &#8594;</text>
+  <text x="320" y="356" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Analyze each link to cut cost, differentiate, and find competitive advantage.</text>
+</svg>

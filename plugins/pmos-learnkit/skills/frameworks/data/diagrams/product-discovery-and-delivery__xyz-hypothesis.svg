@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="XYZ Hypothesis diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="38" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">XYZ Hypothesis</text>
+  <text x="32" y="58" font-family="sans-serif" font-size="13" fill="#5b6680">A falsifiable success criterion — cheap to validate before you invest.</text>
+
+  <!-- The formula -->
+  <g font-family="sans-serif" text-anchor="middle">
+    <!-- At least X% -->
+    <rect x="40" y="96" width="160" height="80" rx="10" fill="#2563eb"/>
+    <text x="120" y="132" font-size="20" font-weight="700" fill="#ffffff">At least X%</text>
+    <text x="120" y="158" font-size="12" fill="#dce6ff">Market share</text>
+
+    <!-- of Y -->
+    <rect x="240" y="96" width="160" height="80" rx="10" fill="#0ea5a4"/>
+    <text x="320" y="132" font-size="20" font-weight="700" fill="#ffffff">of Y</text>
+    <text x="320" y="158" font-size="12" fill="#d6f5f3">Target audience</text>
+
+    <!-- will do Z -->
+    <rect x="440" y="96" width="160" height="80" rx="10" fill="#f59e0b"/>
+    <text x="520" y="132" font-size="20" font-weight="700" fill="#ffffff">will do Z</text>
+    <text x="520" y="158" font-size="12" fill="#fff3dc">The key action</text>
+
+    <text x="220" y="142" font-size="22" font-weight="700" fill="#5b6680">+</text>
+    <text x="420" y="142" font-size="22" font-weight="700" fill="#5b6680">+</text>
+  </g>
+
+  <!-- Example card -->
+  <rect x="40" y="206" width="560" height="74" rx="10" fill="#f4f7ff" stroke="#cdd5e8"/>
+  <text x="56" y="230" font-family="sans-serif" font-size="11" font-weight="700" fill="#5b6680">EXAMPLE</text>
+  <text x="56" y="254" font-family="sans-serif" font-size="14" fill="#1d2438">
+    <tspan fill="#2563eb" font-weight="700">30%</tspan> of <tspan fill="#0ea5a4" font-weight="700">students aged 18–24</tspan> <tspan fill="#f59e0b" font-weight="700">will use our app</tspan>
+  </text>
+  <text x="56" y="272" font-family="sans-serif" font-size="13" fill="#1d2438">to find affordable housing near their campus.</text>
+
+  <!-- How to apply -->
+  <text x="40" y="312" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">HOW TO VALIDATE</text>
+  <g font-family="sans-serif" font-size="11.5" fill="#1d2438">
+    <rect x="40" y="322" width="172" height="50" rx="8" fill="#ffffff" stroke="#cdd5e8"/>
+    <text x="126" y="343" text-anchor="middle" font-weight="700">Write the claim</text>
+    <text x="126" y="360" text-anchor="middle" font-size="10" fill="#5b6680">refutable X/Y/Z statement</text>
+
+    <rect x="234" y="322" width="172" height="50" rx="8" fill="#ffffff" stroke="#cdd5e8"/>
+    <text x="320" y="343" text-anchor="middle" font-weight="700">Pretotype</text>
+    <text x="320" y="360" text-anchor="middle" font-size="10" fill="#5b6680">simple, low-cost test</text>
+
+    <rect x="428" y="322" width="172" height="50" rx="8" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="514" y="343" text-anchor="middle" font-weight="700">Measure vs. X%</text>
+    <text x="514" y="360" text-anchor="middle" font-size="10" fill="#5b6680">pass or fail the bar</text>
+
+    <g stroke="#5b6680" stroke-width="1.5" fill="none">
+      <path d="M212 347 L232 347" marker-end="url(#ax)"/>
+      <path d="M406 347 L426 347" marker-end="url(#ax)"/>
+    </g>
+  </g>
+
+  <defs>
+    <marker id="ax" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#5b6680"/></marker>
+  </defs>
+</svg>

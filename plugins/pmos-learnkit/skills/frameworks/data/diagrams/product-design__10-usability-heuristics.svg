@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="10 Usability Heuristics diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Nielsen&#8217;s 10 Usability Heuristics</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Broad rules of thumb for interaction design &#8212; a usability checklist</text>
+
+  <!-- two columns of 5 rows -->
+  <g font-family="sans-serif">
+    <!-- column 1 -->
+    <g>
+      <!-- row template: badge + title + sub -->
+      <g>
+        <circle cx="40" cy="80" r="13" fill="#2563eb"/>
+        <text x="40" y="84" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+        <text x="62" y="77" font-size="13" font-weight="700" fill="#1d2438">System status</text>
+        <text x="62" y="92" font-size="10" fill="#5b6680">Keep users informed, in time</text>
+      </g>
+      <g>
+        <circle cx="40" cy="138" r="13" fill="#2563eb"/>
+        <text x="40" y="142" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+        <text x="62" y="135" font-size="13" font-weight="700" fill="#1d2438">Real-world language</text>
+        <text x="62" y="150" font-size="10" fill="#5b6680">Familiar words, logical order</text>
+      </g>
+      <g>
+        <circle cx="40" cy="196" r="13" fill="#2563eb"/>
+        <text x="40" y="200" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+        <text x="62" y="193" font-size="13" font-weight="700" fill="#1d2438">Control &amp; freedom</text>
+        <text x="62" y="208" font-size="10" fill="#5b6680">Emergency exit, undo/redo</text>
+      </g>
+      <g>
+        <circle cx="40" cy="254" r="13" fill="#2563eb"/>
+        <text x="40" y="258" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+        <text x="62" y="251" font-size="13" font-weight="700" fill="#1d2438">Consistency</text>
+        <text x="62" y="266" font-size="10" fill="#5b6680">Follow platform conventions</text>
+      </g>
+      <g>
+        <circle cx="40" cy="312" r="13" fill="#2563eb"/>
+        <text x="40" y="316" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+        <text x="62" y="309" font-size="13" font-weight="700" fill="#1d2438">Error prevention</text>
+        <text x="62" y="324" font-size="10" fill="#5b6680">Stop problems before they occur</text>
+      </g>
+    </g>
+
+    <!-- divider -->
+    <line x1="330" y1="66" x2="330" y2="326" stroke="#e2e8f0" stroke-width="1"/>
+
+    <!-- column 2 -->
+    <g>
+      <g>
+        <circle cx="356" cy="80" r="13" fill="#0ea5a4"/>
+        <text x="356" y="84" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">6</text>
+        <text x="378" y="77" font-size="13" font-weight="700" fill="#1d2438">Recognition not recall</text>
+        <text x="378" y="92" font-size="10" fill="#5b6680">Keep options visible</text>
+      </g>
+      <g>
+        <circle cx="356" cy="138" r="13" fill="#0ea5a4"/>
+        <text x="356" y="142" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">7</text>
+        <text x="378" y="135" font-size="13" font-weight="700" fill="#1d2438">Flexibility &amp; efficiency</text>
+        <text x="378" y="150" font-size="10" fill="#5b6680">Novice and expert paths</text>
+      </g>
+      <g>
+        <circle cx="356" cy="196" r="13" fill="#0ea5a4"/>
+        <text x="356" y="200" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">8</text>
+        <text x="378" y="193" font-size="13" font-weight="700" fill="#1d2438">Minimalist design</text>
+        <text x="378" y="208" font-size="10" fill="#5b6680">Remove irrelevant clutter</text>
+      </g>
+      <g>
+        <circle cx="356" cy="254" r="13" fill="#0ea5a4"/>
+        <text x="356" y="258" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">9</text>
+        <text x="378" y="251" font-size="13" font-weight="700" fill="#1d2438">Error recovery</text>
+        <text x="378" y="266" font-size="10" fill="#5b6680">Plain-language fixes</text>
+      </g>
+      <g>
+        <circle cx="356" cy="312" r="13" fill="#0ea5a4"/>
+        <text x="356" y="316" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">10</text>
+        <text x="378" y="309" font-size="13" font-weight="700" fill="#1d2438">Help &amp; documentation</text>
+        <text x="378" y="324" font-size="10" fill="#5b6680">Searchable, task-focused</text>
+      </g>
+    </g>
+  </g>
+</svg>

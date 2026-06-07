@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="ELMR Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">ELMR Framework</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">How users decide — four layers, from felt impulse to reinforced action.</text>
+
+  <defs>
+    <marker id="el" markerWidth="11" markerHeight="11" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- Emotion -->
+  <g>
+    <rect x="40" y="120" width="124" height="150" rx="12" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <text x="102" y="152" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="800" fill="#ef4444">E</text>
+    <text x="102" y="178" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Emotion</text>
+    <text x="102" y="206" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Primary driver.</text>
+    <text x="102" y="221" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Gain or loss of</text>
+    <text x="102" y="236" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">a core desire</text>
+    <text x="102" y="251" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">sparks it.</text>
+  </g>
+  <line x1="166" y1="195" x2="194" y2="195" stroke="#5b6680" stroke-width="2" marker-end="url(#el)"/>
+
+  <!-- Logic -->
+  <g>
+    <rect x="196" y="120" width="124" height="150" rx="12" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="258" y="152" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="800" fill="#2563eb">L</text>
+    <text x="258" y="178" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Logic</text>
+    <text x="258" y="206" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Rationalizes the</text>
+    <text x="258" y="221" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">emotional choice.</text>
+    <text x="258" y="236" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Features, stats,</text>
+    <text x="258" y="251" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">price, reliability.</text>
+  </g>
+  <line x1="322" y1="195" x2="350" y2="195" stroke="#5b6680" stroke-width="2" marker-end="url(#el)"/>
+
+  <!-- Motivation -->
+  <g>
+    <rect x="352" y="120" width="124" height="150" rx="12" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="414" y="152" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="800" fill="#0ea5a4">M</text>
+    <text x="414" y="178" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Motivation</text>
+    <text x="414" y="206" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">The driving force</text>
+    <text x="414" y="221" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">behind action.</text>
+    <text x="414" y="236" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Design to their</text>
+    <text x="414" y="251" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">needs &amp; desires.</text>
+  </g>
+  <line x1="478" y1="195" x2="506" y2="195" stroke="#5b6680" stroke-width="2" marker-end="url(#el)"/>
+
+  <!-- Reward -->
+  <g>
+    <rect x="508" y="120" width="124" height="150" rx="12" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="570" y="152" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="800" fill="#f59e0b">R</text>
+    <text x="570" y="178" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Reward</text>
+    <text x="570" y="206" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">Positive outcome</text>
+    <text x="570" y="221" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">we seek. Final</text>
+    <text x="570" y="236" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">step — reinforces</text>
+    <text x="570" y="251" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">the decision.</text>
+  </g>
+
+  <text x="320" y="320" text-anchor="middle" font-family="sans-serif" font-size="12" font-style="italic" fill="#5b6680">Emotion decides · Logic justifies · Motivation propels · Reward reinforces</text>
+</svg>

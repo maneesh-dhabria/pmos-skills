@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="DHM Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">DHM Model</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Product strategy = delight customers in hard-to-copy, margin-enhancing ways.</text>
+
+  <!-- Venn three circles -->
+  <g opacity="0.85">
+    <circle cx="270" cy="190" r="100" fill="#2563eb" fill-opacity="0.14" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="400" cy="190" r="100" fill="#0ea5a4" fill-opacity="0.14" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="335" cy="285" r="100" fill="#f59e0b" fill-opacity="0.14" stroke="#f59e0b" stroke-width="2"/>
+  </g>
+
+  <!-- Labels -->
+  <text x="222" y="150" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb" text-anchor="middle">Delight</text>
+  <text x="222" y="168" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">customers</text>
+  <text x="200" y="184" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="middle">find the features</text>
+  <text x="200" y="197" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="middle">that delight</text>
+
+  <text x="448" y="150" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4" text-anchor="middle">Hard to copy</text>
+  <text x="470" y="184" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="middle">durable moat</text>
+  <text x="470" y="197" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="middle">(7 Powers)</text>
+
+  <text x="335" y="350" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b" text-anchor="middle">Margin enhancing</text>
+  <text x="335" y="332" font-family="sans-serif" font-size="10.5" fill="#5b6680" text-anchor="middle">improve profitability</text>
+
+  <!-- Center sweet spot -->
+  <circle cx="335" cy="225" r="34" fill="#ffffff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="335" y="222" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">Winning</text>
+  <text x="335" y="237" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">strategy</text>
+
+  <!-- Right side key -->
+  <text x="32" y="318" font-family="sans-serif" font-size="12" fill="#5b6680">Strategy lives where all three overlap — delight alone is</text>
+  <text x="32" y="334" font-family="sans-serif" font-size="12" fill="#5b6680">copied away; a moat with no delight wins no customers;</text>
+  <text x="32" y="350" font-family="sans-serif" font-size="12" fill="#5b6680">neither lasts without healthy margins.</text>
+</svg>

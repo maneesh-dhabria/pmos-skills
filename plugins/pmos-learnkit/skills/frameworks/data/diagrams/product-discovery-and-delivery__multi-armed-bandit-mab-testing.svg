@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Multi-Armed Bandit Testing diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438" text-anchor="middle">Multi-Armed Bandit Testing</text>
+  <text x="320" y="54" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">Shift traffic toward winners to minimize regret</text>
+
+  <defs>
+    <marker id="mabarr" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <!-- Traffic source -->
+  <g font-family="sans-serif">
+    <rect x="40" y="170" width="96" height="56" rx="8" fill="#2563eb"/>
+    <text x="88" y="194" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">Live</text>
+    <text x="88" y="210" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">traffic</text>
+  </g>
+
+  <!-- Three arms (variants) sized by allocation -->
+  <g font-family="sans-serif">
+    <!-- Arm A - winning, biggest -->
+    <line x1="136" y1="198" x2="300" y2="120" stroke="#0ea5a4" stroke-width="6" marker-end="url(#mabarr)"/>
+    <rect x="300" y="92" width="220" height="56" rx="8" fill="#ecfdf5" stroke="#0ea5a4" stroke-width="2"/>
+    <text x="314" y="116" font-size="13" font-weight="700" fill="#1d2438">Variant A</text>
+    <text x="314" y="134" font-size="11" fill="#0ea5a4">high reward &#8594; exploit</text>
+    <rect x="430" y="106" width="80" height="14" rx="7" fill="#d6fbf7"/>
+    <rect x="430" y="106" width="68" height="14" rx="7" fill="#0ea5a4"/>
+    <text x="514" y="117" font-size="10" fill="#0ea5a4" text-anchor="end">68%</text>
+
+    <!-- Arm B - medium -->
+    <line x1="136" y1="198" x2="300" y2="198" stroke="#f59e0b" stroke-width="3.5" marker-end="url(#mabarr)"/>
+    <rect x="300" y="172" width="220" height="52" rx="8" fill="#fff7ed" stroke="#f59e0b" stroke-width="2"/>
+    <text x="314" y="194" font-size="13" font-weight="700" fill="#1d2438">Variant B</text>
+    <text x="314" y="211" font-size="11" fill="#f59e0b">uncertain &#8594; explore</text>
+    <rect x="430" y="186" width="80" height="14" rx="7" fill="#fde9c8"/>
+    <rect x="430" y="186" width="26" height="14" rx="7" fill="#f59e0b"/>
+    <text x="514" y="197" font-size="10" fill="#f59e0b" text-anchor="end">22%</text>
+
+    <!-- Arm C - small, losing -->
+    <line x1="136" y1="198" x2="300" y2="276" stroke="#ef4444" stroke-width="1.5" marker-end="url(#mabarr)"/>
+    <rect x="300" y="250" width="220" height="52" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="314" y="272" font-size="13" font-weight="700" fill="#1d2438">Variant C</text>
+    <text x="314" y="289" font-size="11" fill="#ef4444">low reward &#8594; starved</text>
+    <rect x="430" y="264" width="80" height="14" rx="7" fill="#fbd5d5"/>
+    <rect x="430" y="264" width="12" height="14" rx="7" fill="#ef4444"/>
+    <text x="514" y="275" font-size="10" fill="#ef4444" text-anchor="end">10%</text>
+  </g>
+
+  <!-- Feedback loop -->
+  <path d="M 410 302 C 410 350, 88 350, 88 226" fill="none" stroke="#5b6680" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#mabarr)"/>
+  <text x="250" y="368" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">reallocate on observed reward (Thompson, UCB, &#949;-greedy)</text>
+
+  <!-- Exploration-Exploitation legend -->
+  <g font-family="sans-serif" font-size="11">
+    <text x="560" y="160" fill="#1d2438" font-weight="700" text-anchor="middle">Explore</text>
+    <text x="560" y="176" fill="#5b6680" text-anchor="middle">&#8597;</text>
+    <text x="560" y="192" fill="#1d2438" font-weight="700" text-anchor="middle">Exploit</text>
+  </g>
+</svg>

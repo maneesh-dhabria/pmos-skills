@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Growth Motions PLG vs SLG diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#1d2438">Growth Motions: PLG vs. SLG</text>
+  <text x="320" y="44" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Who drives acquisition — the product, or sales &amp; marketing?</text>
+
+  <!-- left: PLG -->
+  <rect x="20" y="58" width="290" height="320" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="20" y="58" width="290" height="34" rx="10" fill="#2563eb"/>
+  <text x="165" y="80" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">Product-Led Growth</text>
+  <g font-family="sans-serif" fill="#1d2438">
+    <text x="36" y="112" font-size="10.5" font-style="italic" fill="#5b6680">The product acquires, activates,</text>
+    <text x="36" y="126" font-size="10.5" font-style="italic" fill="#5b6680">retains &amp; monetizes — users "do".</text>
+
+    <text x="36" y="150" font-size="11" font-weight="700" fill="#2563eb">Engine</text>
+    <text x="36" y="166" font-size="10">Self-serve signup → growth loop</text>
+    <text x="36" y="180" font-size="10">Qualified on usage: <tspan font-weight="700">PQL / PQA</tspan></text>
+
+    <text x="36" y="206" font-size="11" font-weight="700" fill="#0ea5a4">When to choose</text>
+    <text x="36" y="222" font-size="10">Prosumers &amp; SMBs · low ACV ·</text>
+    <text x="36" y="236" font-size="10">large user base · land &amp; expand</text>
+
+    <text x="36" y="262" font-size="11" font-weight="700" fill="#1d2438">Benefits</text>
+    <text x="36" y="278" font-size="10">+ Lower sales/marketing spend</text>
+    <text x="36" y="292" font-size="10">+ Scales to many users fast</text>
+    <text x="36" y="306" font-size="10">+ Ship to optimize experience</text>
+
+    <text x="36" y="332" font-size="11" font-weight="700" fill="#ef4444">Drawback</text>
+    <text x="36" y="348" font-size="10">High upfront cost — must adopt</text>
+    <text x="36" y="362" font-size="10">with no human hand-holding</text>
+    <text x="36" y="376" font-size="9" fill="#5b6680" font-style="italic">e.g. Slack, Zoom, Atlassian, Dropbox</text>
+  </g>
+
+  <!-- right: SLG -->
+  <rect x="330" y="58" width="290" height="320" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5"/>
+  <rect x="330" y="58" width="290" height="34" rx="10" fill="#f59e0b"/>
+  <text x="475" y="80" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">Sales-Led Growth</text>
+  <g font-family="sans-serif" fill="#1d2438">
+    <text x="346" y="112" font-size="10.5" font-style="italic" fill="#5b6680">Marketing + sales funnel leads</text>
+    <text x="346" y="126" font-size="10.5" font-style="italic" fill="#5b6680">through the journey before they buy.</text>
+
+    <text x="346" y="150" font-size="11" font-weight="700" fill="#f59e0b">Engine</text>
+    <text x="346" y="166" font-size="10">Marketing fills funnel → nurture</text>
+    <text x="346" y="180" font-size="10">to <tspan font-weight="700">MQL</tspan> → handed to sales to close</text>
+
+    <text x="346" y="206" font-size="11" font-weight="700" fill="#0ea5a4">When to choose</text>
+    <text x="346" y="222" font-size="10">Enterprise accounts · high price ·</text>
+    <text x="346" y="236" font-size="10">heavy customization &amp; config</text>
+
+    <text x="346" y="262" font-size="11" font-weight="700" fill="#1d2438">Channels</text>
+    <text x="346" y="278" font-size="10">Websites, email, webinars,</text>
+    <text x="346" y="292" font-size="10">retargeting → engagement score</text>
+
+    <text x="346" y="332" font-size="11" font-weight="700" fill="#2563eb">Example</text>
+    <text x="346" y="348" font-size="10">Salesforce</text>
+    <text x="346" y="376" font-size="9" fill="#5b6680" font-style="italic">Most B2B winners eventually layer both</text>
+  </g>
+
+  <!-- vs badge -->
+  <circle cx="320" cy="218" r="18" fill="#1d2438"/>
+  <text x="320" y="223" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">vs</text>
+</svg>

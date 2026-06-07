@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Octalysis Gamification Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="26" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Octalysis Gamification Framework</text>
+  <text x="320" y="44" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">8 core drives on an octagon &#8212; top = White Hat, bottom = Black Hat</text>
+
+  <!-- top / bottom guide labels -->
+  <text x="320" y="62" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#0ea5a4">WHITE HAT (positive)</text>
+  <text x="320" y="392" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#ef4444">BLACK HAT (urgent / negative)</text>
+
+  <!-- left / right axis labels -->
+  <text x="60" y="225" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680" transform="rotate(-90 60 225)">LEFT BRAIN &#8212; logic, ownership</text>
+  <text x="592" y="225" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680" transform="rotate(90 592 225)">RIGHT BRAIN &#8212; creativity, social</text>
+
+  <!-- octagon outline, center (320,224) r=128 -->
+  <polygon points="320,96 410.5,133.5 448,224 410.5,314.5 320,352 229.5,314.5 192,224 229.5,133.5"
+           fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+
+  <!-- spokes -->
+  <g stroke="#cdd8f0" stroke-width="1">
+    <line x1="320" y1="224" x2="320" y2="96"/>
+    <line x1="320" y1="224" x2="410.5" y2="133.5"/>
+    <line x1="320" y1="224" x2="448" y2="224"/>
+    <line x1="320" y1="224" x2="410.5" y2="314.5"/>
+    <line x1="320" y1="224" x2="320" y2="352"/>
+    <line x1="320" y1="224" x2="229.5" y2="314.5"/>
+    <line x1="320" y1="224" x2="192" y2="224"/>
+    <line x1="320" y1="224" x2="229.5" y2="133.5"/>
+  </g>
+
+  <!-- center -->
+  <circle cx="320" cy="224" r="26" fill="#2563eb"/>
+  <text x="320" y="221" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#ffffff">CORE</text>
+  <text x="320" y="233" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#ffffff">DRIVES</text>
+
+  <!-- 8 drive nodes at vertices -->
+  <g font-family="sans-serif" font-size="9.5">
+    <!-- 1 Epic Meaning (top) -->
+    <circle cx="320" cy="96" r="13" fill="#0ea5a4"/><text x="320" y="100" text-anchor="middle" font-weight="700" fill="#fff">1</text>
+    <text x="320" y="84" text-anchor="middle" font-weight="700" fill="#1d2438">Epic Meaning &amp; Calling</text>
+
+    <!-- 2 Accomplishment (upper-right) -->
+    <circle cx="410.5" cy="133.5" r="13" fill="#0ea5a4"/><text x="410.5" y="137.5" text-anchor="middle" font-weight="700" fill="#fff">2</text>
+    <text x="430" y="124" text-anchor="start" font-weight="700" fill="#1d2438">Development &amp;</text>
+    <text x="430" y="135" text-anchor="start" fill="#5b6680">Accomplishment</text>
+
+    <!-- 3 Empowerment (right) -->
+    <circle cx="448" cy="224" r="13" fill="#2563eb"/><text x="448" y="228" text-anchor="middle" font-weight="700" fill="#fff">3</text>
+    <text x="464" y="220" text-anchor="start" font-weight="700" fill="#1d2438">Empowerment &amp;</text>
+    <text x="464" y="231" text-anchor="start" fill="#5b6680">Feedback</text>
+
+    <!-- 4 Ownership (lower-right) -->
+    <circle cx="410.5" cy="314.5" r="13" fill="#2563eb"/><text x="410.5" y="318.5" text-anchor="middle" font-weight="700" fill="#fff">4</text>
+    <text x="430" y="316" text-anchor="start" font-weight="700" fill="#1d2438">Ownership &amp;</text>
+    <text x="430" y="327" text-anchor="start" fill="#5b6680">Possession</text>
+
+    <!-- 5 Social (bottom) -->
+    <circle cx="320" cy="352" r="13" fill="#ef4444"/><text x="320" y="356" text-anchor="middle" font-weight="700" fill="#fff">5</text>
+    <text x="320" y="378" text-anchor="middle" font-weight="700" fill="#1d2438">Social Influence &amp; Relatedness</text>
+
+    <!-- 6 Scarcity (lower-left) -->
+    <circle cx="229.5" cy="314.5" r="13" fill="#ef4444"/><text x="229.5" y="318.5" text-anchor="middle" font-weight="700" fill="#fff">6</text>
+    <text x="210" y="316" text-anchor="end" font-weight="700" fill="#1d2438">Scarcity &amp;</text>
+    <text x="210" y="327" text-anchor="end" fill="#5b6680">Impatience</text>
+
+    <!-- 7 Unpredictability (left) -->
+    <circle cx="192" cy="224" r="13" fill="#f59e0b"/><text x="192" y="228" text-anchor="middle" font-weight="700" fill="#1d2438">7</text>
+    <text x="176" y="220" text-anchor="end" font-weight="700" fill="#1d2438">Unpredictability</text>
+    <text x="176" y="231" text-anchor="end" fill="#5b6680">&amp; Curiosity</text>
+
+    <!-- 8 Loss (upper-left) -->
+    <circle cx="229.5" cy="133.5" r="13" fill="#ef4444"/><text x="229.5" y="137.5" text-anchor="middle" font-weight="700" fill="#fff">8</text>
+    <text x="210" y="124" text-anchor="end" font-weight="700" fill="#1d2438">Loss &amp;</text>
+    <text x="210" y="135" text-anchor="end" fill="#5b6680">Avoidance</text>
+  </g>
+</svg>

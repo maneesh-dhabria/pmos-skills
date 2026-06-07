@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="3 PM Leader Archetypes Operator Craftsperson Visionary diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="28" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">3 PM Leader Archetypes</text>
+  <text x="20" y="47" font-family="sans-serif" font-size="12" fill="#5b6680">Hats, not boxes — most leaders carry one preferred mode; hire to cover the gap</text>
+
+  <!-- row labels column -->
+  <g font-family="sans-serif" font-size="10.5" font-weight="700" fill="#5b6680">
+    <text x="20" y="118">Superpower</text>
+    <text x="20" y="166">Excels at</text>
+    <text x="20" y="230">Weak at</text>
+    <text x="20" y="280">Time with</text>
+    <text x="20" y="316">Often</text>
+  </g>
+
+  <!-- Operator -->
+  <rect x="148" y="62" width="150" height="290" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <rect x="148" y="62" width="150" height="32" rx="10" fill="#2563eb"/><rect x="148" y="78" width="150" height="16" fill="#2563eb"/>
+  <text x="223" y="84" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">Operator</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="223" y="118" text-anchor="middle" font-weight="700" fill="#2563eb">Communication</text>
+    <text x="223" y="158" text-anchor="middle">Scaling teams,</text>
+    <text x="223" y="172" text-anchor="middle">cross-org align,</text>
+    <text x="223" y="186" text-anchor="middle">unblocking exec</text>
+    <text x="223" y="230" text-anchor="middle" fill="#ef4444">Original insight</text>
+    <text x="223" y="280" text-anchor="middle">peers &amp; execs</text>
+    <text x="223" y="316" text-anchor="middle">PM talent magnet</text>
+    <text x="223" y="332" text-anchor="middle">promoted on potential</text>
+  </g>
+
+  <!-- Craftsperson -->
+  <rect x="305" y="62" width="150" height="290" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <rect x="305" y="62" width="150" height="32" rx="10" fill="#0ea5a4"/><rect x="305" y="78" width="150" height="16" fill="#0ea5a4"/>
+  <text x="380" y="84" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">Craftsperson</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="380" y="118" text-anchor="middle" font-weight="700" fill="#0ea5a4">Product insight</text>
+    <text x="380" y="158" text-anchor="middle">Defining product</text>
+    <text x="380" y="172" text-anchor="middle">&amp; strategy,</text>
+    <text x="380" y="186" text-anchor="middle">mentoring PMs</text>
+    <text x="380" y="223" text-anchor="middle" fill="#ef4444">Large-org taxes</text>
+    <text x="380" y="237" text-anchor="middle" fill="#ef4444">&amp; scaling</text>
+    <text x="380" y="280" text-anchor="middle">team &amp; users</text>
+    <text x="380" y="316" text-anchor="middle">singular impact</text>
+    <text x="380" y="332" text-anchor="middle">promoted on talent</text>
+  </g>
+
+  <!-- Visionary -->
+  <rect x="462" y="62" width="150" height="290" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <rect x="462" y="62" width="150" height="32" rx="10" fill="#f59e0b"/><rect x="462" y="78" width="150" height="16" fill="#f59e0b"/>
+  <text x="537" y="84" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">Visionary</text>
+  <g font-family="sans-serif" font-size="10.5" fill="#1d2438">
+    <text x="537" y="113" text-anchor="middle" font-weight="700" fill="#f59e0b">Seeing what</text>
+    <text x="537" y="127" text-anchor="middle" font-weight="700" fill="#f59e0b">others can't</text>
+    <text x="537" y="158" text-anchor="middle">Big-picture,</text>
+    <text x="537" y="172" text-anchor="middle">inventing</text>
+    <text x="537" y="186" text-anchor="middle">what's next</text>
+    <text x="537" y="223" text-anchor="middle" fill="#ef4444">People issues,</text>
+    <text x="537" y="237" text-anchor="middle" fill="#ef4444">scaling solo</text>
+    <text x="537" y="280" text-anchor="middle">visionaries, users</text>
+    <text x="537" y="316" text-anchor="middle">founds a startup</text>
+    <text x="537" y="332" text-anchor="middle">"hard to manage"</text>
+  </g>
+
+  <line x1="20" y1="200" x2="620" y2="200" stroke="#e3e8f5" stroke-width="1"/>
+  <text x="20" y="378" font-family="sans-serif" font-size="10" fill="#5b6680">Be intentional about which leader you work for — admire trajectory, but pick for the skills you want to grow.</text>
+</svg>

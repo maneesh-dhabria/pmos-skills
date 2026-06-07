@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Choice Based Research diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Choice-Based Research</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Force a pick to reveal which options people truly value most</text>
+
+  <g font-family="sans-serif">
+    <!-- row 1 -->
+    <rect x="32" y="80" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="46" y="100" font-size="14" font-weight="700" fill="#2563eb">Pair-wise Comparison</text>
+    <text x="46" y="116" font-size="11" fill="#5b6680">Show two options at a time; count which is picked more often</text>
+    <text x="596" y="106" font-size="11" fill="#5b6680" text-anchor="end">A vs B</text>
+
+    <!-- row 2 -->
+    <rect x="32" y="126" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="46" y="146" font-size="14" font-weight="700" fill="#0ea5a4">Points Allocation</text>
+    <text x="46" y="162" font-size="11" fill="#5b6680">Spend a pool of credits across options &#8212; shows rank AND intensity</text>
+    <text x="596" y="152" font-size="11" fill="#5b6680" text-anchor="end">100 pts</text>
+
+    <!-- row 3 -->
+    <rect x="32" y="172" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="46" y="192" font-size="14" font-weight="700" fill="#f59e0b">Ranked Choice Voting</text>
+    <text x="46" y="208" font-size="11" fill="#5b6680">Order the full list by personal preference</text>
+    <text x="596" y="198" font-size="11" fill="#5b6680" text-anchor="end">1&#183;2&#183;3&#183;4</text>
+
+    <!-- row 4 -->
+    <rect x="32" y="218" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="46" y="238" font-size="14" font-weight="700" fill="#2563eb">MaxDiff Analysis</text>
+    <text x="46" y="254" font-size="11" fill="#5b6680">From 4&#8211;7 shown, pick the "best" and "worst"; list resets &amp; repeats</text>
+    <text x="596" y="244" font-size="11" fill="#5b6680" text-anchor="end">best/worst</text>
+
+    <!-- row 5 -->
+    <rect x="32" y="264" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="46" y="284" font-size="14" font-weight="700" fill="#0ea5a4">Agreement Voting</text>
+    <text x="46" y="300" font-size="11" fill="#5b6680">Measures which option has the highest consensus across voters</text>
+    <text x="596" y="290" font-size="11" fill="#5b6680" text-anchor="end">consensus</text>
+
+    <!-- row 6 -->
+    <rect x="32" y="310" width="576" height="42" rx="7" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="46" y="330" font-size="14" font-weight="700" fill="#ef4444">Conjoint Analysis</text>
+    <text x="46" y="346" font-size="11" fill="#5b6680">Pick among products with varied attributes; reveals attribute trade-offs</text>
+    <text x="596" y="336" font-size="11" fill="#5b6680" text-anchor="end">attributes</text>
+  </g>
+
+  <text x="32" y="380" font-family="sans-serif" font-size="11" fill="#5b6680">Imitates real-life trade-offs &#8226; informs strategy &amp; prioritization decisions</text>
+</svg>

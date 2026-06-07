@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Kernel of a Good Strategy diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Kernel of a Good Strategy</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">A coherent response to an important challenge — three linked elements</text>
+
+  <!-- Three chained boxes -->
+  <!-- Diagnosis -->
+  <rect x="32" y="96" width="180" height="120" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="50" y="124" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Diagnosis</text>
+  <text x="50" y="148" font-family="sans-serif" font-size="11.5" fill="#1d2438">Name the challenge;</text>
+  <text x="50" y="164" font-family="sans-serif" font-size="11.5" fill="#1d2438">simplify the complexity.</text>
+  <text x="50" y="190" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">"What's going on</text>
+  <text x="50" y="205" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">here?"</text>
+
+  <!-- Guiding Policy -->
+  <rect x="230" y="96" width="180" height="120" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="248" y="124" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Guiding Policy</text>
+  <text x="248" y="148" font-family="sans-serif" font-size="11.5" fill="#1d2438">Overall approach to</text>
+  <text x="248" y="164" font-family="sans-serif" font-size="11.5" fill="#1d2438">overcome the obstacle.</text>
+  <text x="248" y="190" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">Guardrails — directs</text>
+  <text x="248" y="205" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">&amp; constrains action.</text>
+
+  <!-- Coherent Actions -->
+  <rect x="428" y="96" width="180" height="120" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="446" y="124" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Coherent Actions</text>
+  <text x="446" y="148" font-family="sans-serif" font-size="11.5" fill="#1d2438">Coordinated steps &amp;</text>
+  <text x="446" y="164" font-family="sans-serif" font-size="11.5" fill="#1d2438">resource commitments</text>
+  <text x="446" y="190" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">that carry out the</text>
+  <text x="446" y="205" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">guiding policy.</text>
+
+  <!-- arrows between -->
+  <line x1="212" y1="156" x2="230" y2="156" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="230,156 221,151 221,161" fill="#5b6680"/>
+  <line x1="410" y1="156" x2="428" y2="156" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="428,156 419,151 419,161" fill="#5b6680"/>
+
+  <!-- contrast: bad strategy -->
+  <rect x="32" y="252" width="576" height="116" rx="10" fill="#fff" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="50" y="278" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444">Bad strategy — vague &amp; aspirational</text>
+  <text x="50" y="302" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Fluff masquerading as insight</text>
+  <text x="50" y="322" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Failure to face the challenge</text>
+  <text x="330" y="302" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Mistaking goals for strategy</text>
+  <text x="330" y="322" font-family="sans-serif" font-size="11.5" fill="#1d2438">• Bad / impracticable objectives</text>
+  <text x="50" y="350" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">Good strategy is rare — it demands hard choices and trade-offs.</text>
+</svg>

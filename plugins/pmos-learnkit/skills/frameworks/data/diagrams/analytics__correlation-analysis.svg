@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Correlation Analysis diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Correlation Analysis</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Strength of relationship between two variables, on a &#8722;1 to +1 scale</text>
+
+  <!-- The scale bar -->
+  <defs>
+    <linearGradient id="corrGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ef4444"/>
+      <stop offset="0.5" stop-color="#d8e3fb"/>
+      <stop offset="1" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect x="60" y="90" width="520" height="26" rx="13" fill="url(#corrGrad)"/>
+  <!-- ticks -->
+  <g font-family="sans-serif" font-size="12" text-anchor="middle">
+    <line x1="60" y1="116" x2="60" y2="128" stroke="#1d2438"/><text x="60" y="144" fill="#ef4444" font-weight="700">&#8722;1.0</text>
+    <line x1="190" y1="116" x2="190" y2="124" stroke="#5b6680"/><text x="190" y="142" fill="#5b6680">&#8722;0.5</text>
+    <line x1="320" y1="116" x2="320" y2="128" stroke="#1d2438"/><text x="320" y="144" fill="#1d2438" font-weight="700">0</text>
+    <line x1="450" y1="116" x2="450" y2="124" stroke="#5b6680"/><text x="450" y="142" fill="#5b6680">+0.5</text>
+    <line x1="580" y1="116" x2="580" y2="128" stroke="#1d2438"/><text x="580" y="144" fill="#2563eb" font-weight="700">+1.0</text>
+  </g>
+  <text x="60" y="162" font-family="sans-serif" font-size="11" fill="#ef4444">Strong negative</text>
+  <text x="320" y="162" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">No correlation</text>
+  <text x="580" y="162" font-family="sans-serif" font-size="11" fill="#2563eb" text-anchor="end">Strong positive</text>
+
+  <!-- Three mini scatterplots -->
+  <g font-family="sans-serif" font-size="11" text-anchor="middle">
+    <!-- negative -->
+    <rect x="48" y="200" width="156" height="120" rx="8" fill="#f4f7ff" stroke="#ef4444"/>
+    <line x1="64" y1="304" x2="190" y2="304" stroke="#c5d6f9"/><line x1="64" y1="304" x2="64" y2="214" stroke="#c5d6f9"/>
+    <circle cx="78" cy="226" r="3" fill="#ef4444"/><circle cx="98" cy="240" r="3" fill="#ef4444"/><circle cx="118" cy="252" r="3" fill="#ef4444"/><circle cx="138" cy="268" r="3" fill="#ef4444"/><circle cx="158" cy="282" r="3" fill="#ef4444"/><circle cx="176" cy="294" r="3" fill="#ef4444"/>
+    <line x1="72" y1="222" x2="182" y2="298" stroke="#ef4444" stroke-width="2"/>
+    <text x="126" y="338" fill="#1d2438" font-weight="700">r &#8776; &#8722;0.9</text>
+    <text x="126" y="190" fill="#5b6680">One up, other down</text>
+
+    <!-- none -->
+    <rect x="242" y="200" width="156" height="120" rx="8" fill="#f4f7ff" stroke="#5b6680"/>
+    <line x1="258" y1="304" x2="384" y2="304" stroke="#c5d6f9"/><line x1="258" y1="304" x2="258" y2="214" stroke="#c5d6f9"/>
+    <circle cx="276" cy="248" r="3" fill="#5b6680"/><circle cx="300" cy="226" r="3" fill="#5b6680"/><circle cx="288" cy="288" r="3" fill="#5b6680"/><circle cx="330" cy="262" r="3" fill="#5b6680"/><circle cx="350" cy="232" r="3" fill="#5b6680"/><circle cx="368" cy="286" r="3" fill="#5b6680"/><circle cx="320" cy="294" r="3" fill="#5b6680"/>
+    <text x="320" y="338" fill="#1d2438" font-weight="700">r &#8776; 0</text>
+    <text x="320" y="190" fill="#5b6680">No pattern</text>
+
+    <!-- positive -->
+    <rect x="436" y="200" width="156" height="120" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <line x1="452" y1="304" x2="578" y2="304" stroke="#c5d6f9"/><line x1="452" y1="304" x2="452" y2="214" stroke="#c5d6f9"/>
+    <circle cx="466" cy="294" r="3" fill="#2563eb"/><circle cx="486" cy="282" r="3" fill="#2563eb"/><circle cx="506" cy="268" r="3" fill="#2563eb"/><circle cx="526" cy="252" r="3" fill="#2563eb"/><circle cx="546" cy="240" r="3" fill="#2563eb"/><circle cx="566" cy="226" r="3" fill="#2563eb"/>
+    <line x1="460" y1="298" x2="572" y2="222" stroke="#2563eb" stroke-width="2"/>
+    <text x="514" y="338" fill="#1d2438" font-weight="700">r &#8776; +0.9</text>
+    <text x="514" y="190" fill="#5b6680">Move together</text>
+  </g>
+
+  <!-- caution -->
+  <rect x="48" y="356" width="544" height="32" rx="6" fill="#fff7ed" stroke="#f59e0b"/>
+  <text x="64" y="376" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700" fill="#f59e0b">Caution: </tspan>Correlation does not imply causation &#8212; it only flags which behaviors track engagement.</text>
+</svg>

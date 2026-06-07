@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="API Architectures and Protocols diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">API Architectures &amp; Protocols</text>
+  <text x="24" y="51" font-family="sans-serif" font-size="12" fill="#5b6680">Four styles for how apps exchange a request &amp; response (payload)</text>
+
+  <!-- Table header -->
+  <rect x="24" y="64" width="404" height="26" fill="#1d2438"/>
+  <text x="34" y="82" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">Style</text>
+  <text x="120" y="82" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">Transport / format</text>
+  <text x="288" y="82" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">Best for</text>
+
+  <!-- REST -->
+  <rect x="24" y="90" width="404" height="48" fill="#eff6ff" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="34" y="110" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">REST</text>
+  <text x="34" y="126" font-family="sans-serif" font-size="9" fill="#5b6680">most popular</text>
+  <text x="120" y="110" font-family="sans-serif" font-size="10" fill="#1d2438">HTTP verbs + JSON</text>
+  <text x="120" y="125" font-family="sans-serif" font-size="9" fill="#5b6680">stateless · cacheable · uniform</text>
+  <text x="288" y="116" font-family="sans-serif" font-size="10" fill="#1d2438">General web &amp; mobile APIs</text>
+
+  <!-- SOAP -->
+  <rect x="24" y="138" width="404" height="48" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="34" y="158" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">SOAP</text>
+  <text x="34" y="174" font-family="sans-serif" font-size="9" fill="#5b6680">protocol</text>
+  <text x="120" y="158" font-family="sans-serif" font-size="10" fill="#1d2438">XML over HTTP/SMTP…</text>
+  <text x="120" y="173" font-family="sans-serif" font-size="9" fill="#5b6680">strict spec · extensible</text>
+  <text x="288" y="164" font-family="sans-serif" font-size="10" fill="#1d2438">Enterprise, formal contracts</text>
+
+  <!-- GraphQL -->
+  <rect x="24" y="186" width="404" height="48" fill="#eff6ff" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="34" y="206" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">GraphQL</text>
+  <text x="34" y="222" font-family="sans-serif" font-size="9" fill="#5b6680">query lang</text>
+  <text x="120" y="206" font-family="sans-serif" font-size="10" fill="#1d2438">Typed schema, one endpoint</text>
+  <text x="120" y="221" font-family="sans-serif" font-size="9" fill="#5b6680">ask exactly what you need</text>
+  <text x="288" y="212" font-family="sans-serif" font-size="10" fill="#1d2438">No over-/under-fetching</text>
+
+  <!-- gRPC -->
+  <rect x="24" y="234" width="404" height="48" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.5"/>
+  <text x="34" y="254" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">gRPC</text>
+  <text x="34" y="270" font-family="sans-serif" font-size="9" fill="#5b6680">RPC (Google)</text>
+  <text x="120" y="254" font-family="sans-serif" font-size="10" fill="#1d2438">Protobuf over HTTP/2</text>
+  <text x="120" y="269" font-family="sans-serif" font-size="9" fill="#5b6680">binary · multiplexed · codegen</text>
+  <text x="288" y="260" font-family="sans-serif" font-size="10" fill="#1d2438">High-perf microservices</text>
+
+  <!-- Client-server mental model -->
+  <rect x="24" y="296" width="404" height="44" rx="6" fill="#f4f7ff" stroke="#1d2438" stroke-width="1"/>
+  <rect x="40" y="308" width="80" height="22" rx="4" fill="#2563eb"/>
+  <text x="80" y="323" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Client</text>
+  <rect x="332" y="308" width="80" height="22" rx="4" fill="#0ea5a4"/>
+  <text x="372" y="323" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Server</text>
+  <line x1="120" y1="313" x2="330" y2="313" stroke="#1d2438" stroke-width="1.5"/>
+  <polygon points="330,313 322,309 322,317" fill="#1d2438"/>
+  <text x="225" y="310" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">request</text>
+  <line x1="332" y1="326" x2="122" y2="326" stroke="#5b6680" stroke-width="1.5"/>
+  <polygon points="122,326 130,322 130,330" fill="#5b6680"/>
+  <text x="225" y="338" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">response (payload)</text>
+
+  <!-- API contract sidebar -->
+  <rect x="440" y="64" width="176" height="276" rx="8" fill="#1d2438"/>
+  <text x="528" y="86" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">API Contract</text>
+  <text x="528" y="100" font-family="sans-serif" font-size="9" fill="#cbd5e1" text-anchor="middle">what the API promises</text>
+  <text x="456" y="126" font-family="sans-serif" font-size="11" fill="#ffffff">1 · Endpoints (URLs)</text>
+  <text x="456" y="150" font-family="sans-serif" font-size="11" fill="#ffffff">2 · Operations (verbs)</text>
+  <text x="456" y="174" font-family="sans-serif" font-size="11" fill="#ffffff">3 · Parameters</text>
+  <text x="456" y="198" font-family="sans-serif" font-size="11" fill="#ffffff">4 · Responses + codes</text>
+  <text x="456" y="222" font-family="sans-serif" font-size="11" fill="#ffffff">5 · Auth &amp; authz</text>
+  <text x="456" y="246" font-family="sans-serif" font-size="11" fill="#ffffff">6 · Error handling</text>
+  <text x="456" y="270" font-family="sans-serif" font-size="11" fill="#ffffff">7 · Usage limits</text>
+  <line x1="456" y1="286" x2="600" y2="286" stroke="#5b6680" stroke-width="0.75"/>
+  <text x="456" y="306" font-family="sans-serif" font-size="9.5" fill="#94a3b8">REST verbs:</text>
+  <text x="456" y="322" font-family="sans-serif" font-size="10" font-weight="700" fill="#0ea5a4">GET · POST · PUT · DELETE</text>
+</svg>

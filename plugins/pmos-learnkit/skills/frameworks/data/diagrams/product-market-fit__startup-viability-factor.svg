@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Startup Viability Factor diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Startup Viability Factor</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">Six market lenses — Fermi-estimated for one specific buyer + problem + price</text>
+
+  <!-- 6 stacked gates, each narrows -->
+  <!-- Gate 1 -->
+  <g>
+    <rect x="60" y="74" width="520" height="44" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="76" y="95" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">1. Plausible</text>
+    <text x="76" y="111" font-family="sans-serif" font-size="11" fill="#5b6680">Do 10M people or 100k companies have the problem?</text>
+  </g>
+  <!-- Gate 2 -->
+  <g>
+    <rect x="80" y="122" width="480" height="44" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="96" y="143" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">2. Self-Aware</text>
+    <text x="96" y="159" font-family="sans-serif" font-size="11" fill="#5b6680">Do they know &amp; care they have the problem?</text>
+  </g>
+  <!-- Gate 3 -->
+  <g>
+    <rect x="100" y="170" width="440" height="44" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="116" y="191" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">3. Lucrative</text>
+    <text x="116" y="207" font-family="sans-serif" font-size="11" fill="#5b6680">Do they have substantial budget to solve it?</text>
+  </g>
+  <!-- Gate 4 -->
+  <g>
+    <rect x="120" y="218" width="400" height="44" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="136" y="239" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">4. Liquid</text>
+    <text x="136" y="255" font-family="sans-serif" font-size="11" fill="#5b6680">Are they willing &amp; able to buy right now?</text>
+  </g>
+  <!-- Gate 5 -->
+  <g>
+    <rect x="140" y="266" width="360" height="44" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="156" y="287" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">5. Eager</text>
+    <text x="156" y="303" font-family="sans-serif" font-size="11" fill="#5b6680">Do they want to buy from you, specifically?</text>
+  </g>
+  <!-- Gate 6 -->
+  <g>
+    <rect x="160" y="314" width="320" height="44" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="176" y="335" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444">6. Enduring</text>
+    <text x="176" y="351" font-family="sans-serif" font-size="11" fill="#5b6680">Still paying a year from now?</text>
+  </g>
+
+  <text x="320" y="384" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680" text-anchor="middle">Each lens multiplies into a viability factor — the value is in reasoning through the trade-offs.</text>
+</svg>

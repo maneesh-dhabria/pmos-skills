@@ -11,7 +11,7 @@ sync never disturbs the shipped corpus.
 - [Notion structure](#notion-structure)
 - [The split contract](#the-split-contract)
 - [The match-field derivation contract](#the-match-field-derivation-contract)
-- [The /diagram batch contract](#the-diagram-batch-contract)
+- [The diagram generation contract](#the-diagram-generation-contract)
 - [Assemble + validate](#assemble--validate)
 - [Failure handling](#failure-handling)
 
@@ -24,8 +24,8 @@ sync never disturbs the shipped corpus.
    raw records. See [the split contract](#the-split-contract).
 3. **Derive match-fields (Stage-B LLM + `derive-fields.mjs`)** — per framework emit the
    cached fields; validate + merge. See [the derivation contract](#the-match-field-derivation-contract).
-4. **Diagrams (Stage-B, `/diagram` batch)** — one owned SVG per framework at full
-   rigor. See [the /diagram batch contract](#the-diagram-batch-contract).
+4. **Diagrams (Stage-B, direct generation)** — one owned SVG per framework. See
+   [the diagram generation contract](#the-diagram-generation-contract).
 5. **Assemble + validate (Stage-A)** — write `frameworks.json`; `validate-corpus.mjs`
    coverage report; exit 1 on failure.
 6. **Build library (Stage-A, `build-library.mjs`)** — `frameworks.json` + diagrams →
@@ -74,23 +74,34 @@ values with a non-zero exit and a precise message), merges the cached fields int
 lean records, and emits the full records. Sparse records (LLM returned nothing for a
 field) still validate — only the four required lean fields are mandatory.
 
-## The /diagram batch contract
+## The diagram generation contract
 
-Per framework, at **full rigor**, unattended:
+Per framework, an **owned, self-contained SVG** is generated **directly** by a Stage-B
+agent (fanned out in waves, one small batch per agent). This is a deliberate
+mechanism choice (see the box below): the literal `/diagram` skill cannot run
+unattended at corpus scale — invoked from a subagent it only injects its 8-phase
+interactive instructions (it needs `AskUserQuestion` brainstorm/findings loops and a
+nested vision-review subagent a subagent cannot spawn). Direct generation meets every
+diagram **requirement** — owned, consistent, inlined, never hot-linked — at scale.
 
-```
-/diagram "<name>: <summary>" --source "<body_md>" \
-  --non-interactive --approach "<derived framing>" --theme technical \
-  --out data/diagrams/<id-flattened>.svg --on-failure ship-with-warning
-```
+> **Mechanism note (execute-time correction of D5).** The requirements/spec named
+> `/diagram --non-interactive` as the batch tool; a probe proved that infeasible
+> headless (structural interactive loops + nested subagent). The *intent* of D5 — an
+> owned SVG for every framework, generated automatically with no per-diagram approval
+> — is unchanged and fully satisfied. `/diagram` remains the right tool for a one-off
+> hero diagram a user elaborates by hand.
 
-- `--non-interactive` auto-picks framing #1; `--approach "<framing>"` skips the
-  brainstorm loop (the agent derives a one-line structural framing per framework —
-  e.g. "2×2 matrix", "funnel", "decision tree", "cycle").
-- `--theme technical` keeps a consistent visual language across all ~200 SVGs.
-- `--on-failure ship-with-warning` isolates a single failure: it logs, keeps the prior
-  SVG (or leaves `diagram: null`), and the batch continues (**FR-ING-2**).
-- Fan out in waves (one subagent per framework or small batch).
+**SVG style guide (keep all ~272 diagrams consistent):**
+
+- Root: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="<name> diagram">`. No `width`/`height` (responsive). The library renders SVGs on a **white** card, so design for a light background with dark ink.
+- Palette: background `#ffffff` or `#f4f7ff`; ink `#1d2438`; muted `#5b6680`; accent `#2563eb`; secondary accents `#0ea5a4`, `#f59e0b`, `#ef4444`. Stick to this set so the corpus reads as one family.
+- Pick the **structural archetype** that actually fits the framework, e.g.: 2×2 matrix, funnel, pyramid, cycle/loop, flow / decision tree, staged ladder, Venn, list-with-icon-rows, gauge/scale. Do not force every framework into a box list.
+- A short title (the framework name), legible labels on every part, and ≤ a few sentences of embedded text. Must read at small size.
+- **Self-contained:** inline shapes + text only. No `<image>`, no external/`http(s)` refs, **no `amazonaws.com`** (the source S3 images are dead). Target < 40 KB (most are 2–6 KB).
+- Write to `data/diagrams/<id-flattened>.svg` where `<id-flattened>` = the record `id` with `/` → `__` (e.g. `decision-making__one-way-vs-two-way-doors.svg`).
+
+- **Failure isolation (FR-ING-2):** if a single SVG can't be produced, log it, leave
+  `diagram: null` (ship-with-warning), and continue the batch — never abort.
 - **`--changed-only`** consults `data/.diagram-hashes.json` (a `{id: sha256(body_md)}`
   map) and **skips** any framework whose `body_md` hash is unchanged since last sync —
   the cheap re-sync path. A full sync regenerates everything and rewrites the cache.

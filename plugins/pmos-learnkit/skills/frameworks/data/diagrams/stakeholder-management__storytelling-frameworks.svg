@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Storytelling Frameworks diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Storytelling Frameworks</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Narrative structures to influence stakeholders</text>
+
+  <!-- Row 1: PAS -->
+  <rect x="40" y="68" width="560" height="56" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="60" y="92" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">PAS</text>
+  <text x="60" y="110" font-family="sans-serif" font-size="11" fill="#5b6680">Problem · Agitate · Solve</text>
+  <text x="200" y="92" font-family="sans-serif" font-size="12" fill="#1d2438">Surface the pain, deepen it, then deliver relief —</text>
+  <text x="200" y="110" font-family="sans-serif" font-size="12" fill="#1d2438">the audience thirsts for your solution.</text>
+
+  <!-- Row 2: CAR -->
+  <rect x="40" y="130" width="560" height="56" rx="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="60" y="154" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">CAR</text>
+  <text x="60" y="172" font-family="sans-serif" font-size="11" fill="#5b6680">Context · Action · Results</text>
+  <text x="200" y="154" font-family="sans-serif" font-size="12" fill="#1d2438">Set the hero's context, give a clear plan of</text>
+  <text x="200" y="172" font-family="sans-serif" font-size="12" fill="#1d2438">action, then show results + a call to action.</text>
+
+  <!-- Row 3: Pixar -->
+  <rect x="40" y="192" width="560" height="56" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="60" y="216" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Pixar</text>
+  <text x="60" y="234" font-family="sans-serif" font-size="11" fill="#5b6680">Once upon a time…</text>
+  <text x="200" y="216" font-family="sans-serif" font-size="12" fill="#1d2438">Once upon a time / every day / one day /</text>
+  <text x="200" y="234" font-family="sans-serif" font-size="12" fill="#1d2438">because of that… / until finally.</text>
+
+  <!-- Row 4: Hero's Journey -->
+  <rect x="40" y="254" width="560" height="56" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="60" y="278" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444">Hero's Journey</text>
+  <text x="60" y="296" font-family="sans-serif" font-size="11" fill="#5b6680">12 steps</text>
+  <text x="200" y="278" font-family="sans-serif" font-size="12" fill="#1d2438">Hero leaves the ordinary world, faces an ordeal,</text>
+  <text x="200" y="296" font-family="sans-serif" font-size="12" fill="#1d2438">wins the reward, returns transformed.</text>
+
+  <!-- Row 5: Story Cycle -->
+  <rect x="40" y="316" width="560" height="56" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="60" y="340" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Story Cycle</text>
+  <text x="60" y="358" font-family="sans-serif" font-size="11" fill="#5b6680">Business adaptation</text>
+  <text x="200" y="340" font-family="sans-serif" font-size="12" fill="#1d2438">Maps the Hero's Journey onto business logic to</text>
+  <text x="200" y="358" font-family="sans-serif" font-size="12" fill="#1d2438">connect with customers.</text>
+</svg>

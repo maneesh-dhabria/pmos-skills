@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="E-Commerce diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">E-Commerce</text>
+  <text x="24" y="50" font-family="sans-serif" font-size="12" fill="#5b6680">Online store sells products direct to buyers and owns fulfillment &amp; returns</text>
+
+  <!-- Flow nodes -->
+  <g font-family="sans-serif">
+    <!-- Customer -->
+    <rect x="24" y="130" width="120" height="64" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="84" y="158" font-size="13" font-weight="700" fill="#ef4444" text-anchor="middle">Customer</text>
+    <text x="84" y="176" font-size="10" fill="#5b6680" text-anchor="middle">B2C or B2B</text>
+
+    <!-- Online store -->
+    <rect x="192" y="120" width="140" height="84" rx="10" fill="#2563eb" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="262" y="150" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Online Store</text>
+    <text x="262" y="168" font-size="10" fill="#dbe6ff" text-anchor="middle">Website / app</text>
+    <text x="262" y="184" font-size="10" fill="#dbe6ff" text-anchor="middle">Browse · cart · pay</text>
+
+    <!-- Fulfillment -->
+    <rect x="380" y="120" width="140" height="84" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="450" y="150" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">Fulfillment</text>
+    <text x="450" y="168" font-size="10" fill="#5b6680" text-anchor="middle">Inventory · pick-pack</text>
+    <text x="450" y="184" font-size="10" fill="#5b6680" text-anchor="middle">Ship &amp; deliver</text>
+
+    <!-- Delivered goods back to customer -->
+    <rect x="560" y="130" width="60" height="64" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="590" y="160" font-size="11" font-weight="700" fill="#f59e0b" text-anchor="middle">Order</text>
+    <text x="590" y="176" font-size="10" fill="#5b6680" text-anchor="middle">to door</text>
+  </g>
+
+  <!-- Arrows: order forward -->
+  <g>
+    <line x1="144" y1="155" x2="188" y2="155" stroke="#5b6680" stroke-width="1.6" marker-end="url(#ec)"/>
+    <text x="166" y="147" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">order</text>
+    <line x1="332" y1="162" x2="376" y2="162" stroke="#5b6680" stroke-width="1.6" marker-end="url(#ec)"/>
+    <line x1="520" y1="162" x2="556" y2="162" stroke="#5b6680" stroke-width="1.6" marker-end="url(#ec)"/>
+  </g>
+
+  <!-- Returns loop back -->
+  <path d="M590 194 L590 244 L84 244 L84 198" fill="none" stroke="#ef4444" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ecr)"/>
+  <text x="337" y="240" font-family="sans-serif" font-size="10" fill="#ef4444" text-anchor="middle">returns flow back &amp; are handled by the store</text>
+
+  <!-- Metrics row -->
+  <g font-family="sans-serif">
+    <text x="24" y="290" font-size="11" font-weight="700" fill="#1d2438">Metrics that matter</text>
+    <rect x="24" y="300" width="142" height="40" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+    <text x="95" y="316" font-size="10" font-weight="700" fill="#2563eb" text-anchor="middle">Monthly Revenue</text>
+    <text x="95" y="331" font-size="9" fill="#5b6680" text-anchor="middle">+ Growth Rate</text>
+
+    <rect x="174" y="300" width="142" height="40" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1"/>
+    <text x="245" y="316" font-size="10" font-weight="700" fill="#0ea5a4" text-anchor="middle">Gross Margin</text>
+    <text x="245" y="331" font-size="9" fill="#5b6680" text-anchor="middle">Revenue − COGS</text>
+
+    <rect x="324" y="300" width="142" height="40" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1"/>
+    <text x="395" y="316" font-size="10" font-weight="700" fill="#f59e0b" text-anchor="middle">CAC</text>
+    <text x="395" y="331" font-size="9" fill="#5b6680" text-anchor="middle">Acquisition cost</text>
+
+    <rect x="474" y="300" width="146" height="40" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1"/>
+    <text x="547" y="316" font-size="10" font-weight="700" fill="#ef4444" text-anchor="middle">Conversion</text>
+    <text x="547" y="331" font-size="9" fill="#5b6680" text-anchor="middle">+ cart abandon, basket</text>
+  </g>
+  <text x="24" y="372" font-family="sans-serif" font-size="10" fill="#5b6680">Examples: Warby Parker, Bonobos</text>
+
+  <defs>
+    <marker id="ec" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#5b6680"/>
+    </marker>
+    <marker id="ecr" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+</svg>

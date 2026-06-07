@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Growth Competency Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Growth Competency Model</text>
+  <text x="24" y="52" font-family="sans-serif" font-size="12.5" fill="#5b6680">12 competencies across 4 quadrants (Adam Fishman / Reforge)</text>
+
+  <g font-family="sans-serif">
+    <!-- Quadrant: Growth Execution -->
+    <rect x="24" y="68" width="294" height="148" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="40" y="92" font-size="14.5" font-weight="700" fill="#2563eb">Growth Execution</text>
+    <text x="40" y="110" font-size="11" fill="#5b6680">Run and scale loops &amp; experiments</text>
+    <text x="40" y="134" font-size="12.5" fill="#1d2438">• Channel Fluency</text>
+    <text x="40" y="156" font-size="12.5" fill="#1d2438">• Experimentation</text>
+    <text x="40" y="178" font-size="12.5" fill="#1d2438">• Productizing Learning</text>
+
+    <!-- Quadrant: Customer Knowledge -->
+    <rect x="322" y="68" width="294" height="148" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="338" y="92" font-size="14.5" font-weight="700" fill="#0ea5a4">Customer Knowledge</text>
+    <text x="338" y="110" font-size="11" fill="#5b6680">Understand customers &amp; their motives</text>
+    <text x="338" y="134" font-size="12.5" fill="#1d2438">• Instrumentation &amp; Data Fluency</text>
+    <text x="338" y="156" font-size="12.5" fill="#1d2438">• User Psychology</text>
+    <text x="338" y="178" font-size="12.5" fill="#1d2438">• Creative &amp; Narrative Development</text>
+
+    <!-- Quadrant: Growth Strategy -->
+    <rect x="24" y="224" width="294" height="148" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="40" y="248" font-size="14.5" font-weight="700" fill="#f59e0b">Growth Strategy</text>
+    <text x="40" y="266" font-size="11" fill="#5b6680">Long-term view of how you grow</text>
+    <text x="40" y="290" font-size="12.5" fill="#1d2438">• Growth Loop Modeling</text>
+    <text x="40" y="312" font-size="12.5" fill="#1d2438">• Capital Allocation &amp; Forecasting</text>
+    <text x="40" y="334" font-size="12.5" fill="#1d2438">• Prioritization &amp; Roadmapping</text>
+
+    <!-- Quadrant: Communication & Influence -->
+    <rect x="322" y="224" width="294" height="148" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="338" y="248" font-size="14.5" font-weight="700" fill="#ef4444">Communication &amp; Influence</text>
+    <text x="338" y="266" font-size="11" fill="#5b6680">Align the org and rally support</text>
+    <text x="338" y="290" font-size="12.5" fill="#1d2438">• Strategic Communication</text>
+    <text x="338" y="312" font-size="12.5" fill="#1d2438">• Team Leadership</text>
+    <text x="338" y="334" font-size="12.5" fill="#1d2438">• Stakeholder Management</text>
+  </g>
+</svg>

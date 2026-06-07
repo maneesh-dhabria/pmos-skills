@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="4 Types of Product Work for Strategy diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">4 Types of Product Work for Strategy</text>
+  <text x="24" y="56" font-family="sans-serif" font-size="12" fill="#5b6680">After initial PMF, all product work falls into four categories</text>
+
+  <defs>
+    <marker id="a2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- root: PMF -->
+  <rect x="244" y="74" width="152" height="44" rx="10" fill="#1d2438"/>
+  <text x="320" y="100" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">Initial PMF achieved</text>
+
+  <!-- branch arrows -->
+  <path d="M300 118 L100 158" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a2)"/>
+  <path d="M310 118 L260 158" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a2)"/>
+  <path d="M330 118 L390 158" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a2)"/>
+  <path d="M340 118 L540 158" fill="none" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a2)"/>
+
+  <!-- 1 Feature -->
+  <rect x="24" y="162" width="146" height="208" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="97" y="186" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb" text-anchor="middle">1 · Feature</text>
+  <text x="97" y="202" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">Enhance core value</text>
+  <line x1="38" y1="212" x2="156" y2="212" stroke="#c3cfe6" stroke-width="1"/>
+  <text x="38" y="232" font-family="sans-serif" font-size="10" fill="#1d2438">Evaluate per feature:</text>
+  <text x="38" y="250" font-family="sans-serif" font-size="10" fill="#5b6680">Qual: who / value to</text>
+  <text x="38" y="263" font-family="sans-serif" font-size="10" fill="#5b6680">user / value to biz</text>
+  <text x="38" y="284" font-family="sans-serif" font-size="10" fill="#5b6680">Quant: Target →</text>
+  <text x="38" y="297" font-family="sans-serif" font-size="10" fill="#5b6680">Adoption → Retention</text>
+  <text x="38" y="310" font-family="sans-serif" font-size="10" fill="#5b6680">→ Satisfaction</text>
+  <text x="38" y="331" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">S/T score +</text>
+  <text x="38" y="344" font-family="sans-serif" font-size="10" font-weight="700" fill="#1d2438">strategic rank</text>
+
+  <!-- 2 Growth -->
+  <rect x="184" y="162" width="146" height="208" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="257" y="186" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">2 · Growth</text>
+  <text x="257" y="202" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">Maximize core value</text>
+  <line x1="198" y1="212" x2="316" y2="212" stroke="#c3cfe6" stroke-width="1"/>
+  <text x="198" y="234" font-family="sans-serif" font-size="11" fill="#1d2438">Stack-rank &amp; improve:</text>
+  <text x="198" y="258" font-family="sans-serif" font-size="11" fill="#5b6680">• Acquisition</text>
+  <text x="198" y="280" font-family="sans-serif" font-size="11" fill="#5b6680">• Retention (habit)</text>
+  <text x="198" y="302" font-family="sans-serif" font-size="11" fill="#5b6680">• Monetization</text>
+
+  <!-- 3 PMF Expansion -->
+  <rect x="344" y="162" width="146" height="208" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="417" y="186" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b" text-anchor="middle">3 · PMF Expansion</text>
+  <text x="417" y="202" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">Add new value prop</text>
+  <line x1="358" y1="212" x2="476" y2="212" stroke="#c3cfe6" stroke-width="1"/>
+  <text x="358" y="232" font-family="sans-serif" font-size="10" fill="#1d2438">Beat saturation:</text>
+  <text x="358" y="250" font-family="sans-serif" font-size="10" fill="#5b6680">market · product ·</text>
+  <text x="358" y="263" font-family="sans-serif" font-size="10" fill="#5b6680">PMF degradation</text>
+  <text x="358" y="287" font-family="sans-serif" font-size="10" fill="#1d2438">Two moves:</text>
+  <text x="358" y="305" font-family="sans-serif" font-size="10" fill="#5b6680">adapt to adjacent</text>
+  <text x="358" y="318" font-family="sans-serif" font-size="10" fill="#5b6680">market (Slack Ent.)</text>
+  <text x="358" y="338" font-family="sans-serif" font-size="10" fill="#5b6680">add new product</text>
+  <text x="358" y="351" font-family="sans-serif" font-size="10" fill="#5b6680">(Uber Eats)</text>
+
+  <!-- 4 Scaling -->
+  <rect x="504" y="162" width="112" height="208" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="560" y="186" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444" text-anchor="middle">4 · Scaling</text>
+  <text x="560" y="202" font-family="sans-serif" font-size="9" fill="#5b6680" text-anchor="middle">Enable core value</text>
+  <line x1="518" y1="212" x2="602" y2="212" stroke="#c3cfe6" stroke-width="1"/>
+  <text x="518" y="236" font-family="sans-serif" font-size="11" fill="#5b6680">• Technical</text>
+  <text x="518" y="260" font-family="sans-serif" font-size="11" fill="#5b6680">• Process</text>
+  <text x="518" y="284" font-family="sans-serif" font-size="11" fill="#5b6680">• User</text>
+  <text x="518" y="312" font-family="sans-serif" font-size="9" fill="#5b6680">infra, org &amp;</text>
+  <text x="518" y="324" font-family="sans-serif" font-size="9" fill="#5b6680">fraud/spam</text>
+  <text x="518" y="336" font-family="sans-serif" font-size="9" fill="#5b6680">as growth</text>
+  <text x="518" y="348" font-family="sans-serif" font-size="9" fill="#5b6680">accelerates</text>
+</svg>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="PMF Scorecard diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="32" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">PMF Scorecard</text>
+  <text x="24" y="51" font-family="sans-serif" font-size="12" fill="#5b6680">Six KPI clusters scored Weak / Unclear / Strong &#8594; stakeholder consensus on PMF</text>
+
+  <!-- table header -->
+  <rect x="24" y="66" width="592" height="26" fill="#1d2438"/>
+  <text x="40" y="84" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Cluster</text>
+  <text x="404" y="84" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff" text-anchor="middle">Caveats</text>
+  <text x="486" y="84" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#ef4444" text-anchor="middle">Weak</text>
+  <text x="540" y="84" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#f59e0b" text-anchor="middle">Unclear</text>
+  <text x="596" y="84" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#0ea5a4" text-anchor="middle">Strong</text>
+
+  <!-- rows -->
+  <g font-family="sans-serif">
+    <!-- helper: each row 40px tall starting at 92 -->
+    <!-- Row 1 -->
+    <rect x="24" y="92" width="592" height="40" fill="#f4f7ff"/>
+    <text x="40" y="110" font-size="12.5" font-weight="700" fill="#1d2438">1 &#183; Acquisition</text>
+    <text x="40" y="125" font-size="10" fill="#5b6680">Are new customers coming in efficiently?</text>
+    <circle cx="486" cy="112" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="112" r="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.4"/>
+    <circle cx="596" cy="112" r="6" fill="#0ea5a4"/>
+
+    <!-- Row 2 -->
+    <rect x="24" y="132" width="592" height="40" fill="#ffffff"/>
+    <text x="40" y="150" font-size="12.5" font-weight="700" fill="#1d2438">2 &#183; Revenue &amp; Customers</text>
+    <text x="40" y="165" font-size="10" fill="#5b6680">Growing logos and money in?</text>
+    <circle cx="486" cy="152" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="152" r="6" fill="#f59e0b"/>
+    <circle cx="596" cy="152" r="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.4"/>
+
+    <!-- Row 3 -->
+    <rect x="24" y="172" width="592" height="40" fill="#f4f7ff"/>
+    <text x="40" y="190" font-size="12.5" font-weight="700" fill="#1d2438">3 &#183; Retention &amp; Reinvestment</text>
+    <text x="40" y="205" font-size="10" fill="#5b6680">Split: decision-makers vs. users (B2B)</text>
+    <circle cx="486" cy="192" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="192" r="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.4"/>
+    <circle cx="596" cy="192" r="6" fill="#0ea5a4"/>
+
+    <!-- Row 4 -->
+    <rect x="24" y="212" width="592" height="40" fill="#ffffff"/>
+    <text x="40" y="230" font-size="12.5" font-weight="700" fill="#1d2438">4 &#183; Referrals</text>
+    <text x="40" y="245" font-size="10" fill="#5b6680">Do customers bring others in?</text>
+    <circle cx="486" cy="232" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="232" r="6" fill="#f59e0b"/>
+    <circle cx="596" cy="232" r="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.4"/>
+
+    <!-- Row 5 -->
+    <rect x="24" y="252" width="592" height="40" fill="#f4f7ff"/>
+    <text x="40" y="270" font-size="12.5" font-weight="700" fill="#1d2438">5 &#183; Separation Anxiety</text>
+    <text x="40" y="285" font-size="10" fill="#5b6680">How disappointed if it went away?</text>
+    <circle cx="486" cy="272" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="272" r="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.4"/>
+    <circle cx="596" cy="272" r="6" fill="#0ea5a4"/>
+
+    <!-- Row 6 -->
+    <rect x="24" y="292" width="592" height="40" fill="#ffffff"/>
+    <text x="40" y="310" font-size="12.5" font-weight="700" fill="#1d2438">6 &#183; &#8220;You just feel it&#8221;</text>
+    <text x="40" y="325" font-size="10" fill="#5b6680">Team intuition about current PMF</text>
+    <circle cx="486" cy="312" r="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.4"/>
+    <circle cx="540" cy="312" r="6" fill="#f59e0b"/>
+    <circle cx="596" cy="312" r="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.4"/>
+  </g>
+
+  <!-- column separators -->
+  <g stroke="#d8e0f0" stroke-width="1">
+    <line x1="356" y1="92" x2="356" y2="332"/>
+    <line x1="460" y1="66" x2="460" y2="332"/>
+  </g>
+  <rect x="24" y="66" width="592" height="266" fill="none" stroke="#d8e0f0" stroke-width="1"/>
+
+  <!-- footer -->
+  <text x="24" y="356" font-family="sans-serif" font-size="11" fill="#5b6680">Process:</text>
+  <text x="78" y="356" font-family="sans-serif" font-size="11" font-weight="600" fill="#2563eb">Strategy &#8594; Consensus &#8594; Measurement &#8594; Progress &#8594; Review</text>
+  <text x="24" y="376" font-family="sans-serif" font-size="11" fill="#5b6680" font-style="italic">B2B: longer cycles &#8212; expect 18&#8211;24 months to reach PMF.</text>
+</svg>

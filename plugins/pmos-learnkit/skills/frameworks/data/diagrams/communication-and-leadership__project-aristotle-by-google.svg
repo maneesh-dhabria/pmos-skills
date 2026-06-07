@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Project Aristotle by Google diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Project Aristotle (Google)</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">5 traits of effective teams — in order of importance</text>
+
+  <!-- Row 1: Psychological safety (most important, widest emphasis) -->
+  <rect x="60" y="68" width="520" height="48" rx="6" fill="#2563eb"/>
+  <circle cx="92" cy="92" r="14" fill="#ffffff"/>
+  <text x="92" y="97" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">1</text>
+  <text x="120" y="89" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">Psychological safety</text>
+  <text x="120" y="107" font-family="sans-serif" font-size="11" fill="#ffffff">Take risks &amp; speak up without fear of judgment</text>
+
+  <!-- Row 2: Dependability -->
+  <rect x="60" y="124" width="520" height="48" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="92" cy="148" r="14" fill="#0ea5a4"/>
+  <text x="92" y="153" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">2</text>
+  <text x="120" y="145" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Dependability</text>
+  <text x="120" y="163" font-family="sans-serif" font-size="11" fill="#5b6680">Quality work, delivered on agreed timelines</text>
+
+  <!-- Row 3: Structure &amp; clarity -->
+  <rect x="60" y="180" width="520" height="48" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="92" cy="204" r="14" fill="#0ea5a4"/>
+  <text x="92" y="209" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff">3</text>
+  <text x="120" y="201" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Structure &amp; clarity</text>
+  <text x="120" y="219" font-family="sans-serif" font-size="11" fill="#5b6680">Clear roles, goals &amp; expectations (e.g. OKRs)</text>
+
+  <!-- Row 4: Meaning -->
+  <rect x="60" y="236" width="520" height="48" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="92" cy="260" r="14" fill="#f59e0b"/>
+  <text x="92" y="265" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">4</text>
+  <text x="120" y="257" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Meaning</text>
+  <text x="120" y="275" font-family="sans-serif" font-size="11" fill="#5b6680">The work matters personally to each member</text>
+
+  <!-- Row 5: Impact -->
+  <rect x="60" y="292" width="520" height="48" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="92" cy="316" r="14" fill="#f59e0b"/>
+  <text x="92" y="321" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">5</text>
+  <text x="120" y="313" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Impact</text>
+  <text x="120" y="331" font-family="sans-serif" font-size="11" fill="#5b6680">Seeing the work contribute to larger goals</text>
+
+  <text x="320" y="364" text-anchor="middle" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680">Who is on the team matters less than how they work together</text>
+</svg>

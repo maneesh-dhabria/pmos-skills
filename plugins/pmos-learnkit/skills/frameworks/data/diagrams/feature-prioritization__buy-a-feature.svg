@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Buy a Feature diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="28" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Buy a Feature</text>
+  <text x="320" y="47" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Give buyers a budget too small to buy everything &#8212; what they spend reveals what matters</text>
+
+  <!-- Budget wallet -->
+  <rect x="40" y="70" width="190" height="120" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="135" y="96" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Buyer's budget</text>
+  <text x="135" y="135" text-anchor="middle" font-family="sans-serif" font-size="26" font-weight="700" fill="#1d2438">$50</text>
+  <text x="135" y="160" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">&#8776; 1/3 to 1/2 of</text>
+  <text x="135" y="174" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">total feature price</text>
+
+  <!-- arrow spend -->
+  <line x1="232" y1="130" x2="285" y2="130" stroke="#5b6680" stroke-width="2"/>
+  <path d="M285 130 l-9 -5 v10 z" fill="#5b6680"/>
+  <text x="258" y="120" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">spend</text>
+
+  <!-- Priced feature menu -->
+  <text x="300" y="84" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">Priced feature menu (price = effort / cost)</text>
+
+  <!-- Feature A bought -->
+  <rect x="300" y="92" width="300" height="36" rx="6" fill="#f0fbfa" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="315" y="115" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Feature A &#8226; SSO login</text>
+  <text x="585" y="115" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">$20 &#10003;</text>
+
+  <!-- Feature B bought -->
+  <rect x="300" y="134" width="300" height="36" rx="6" fill="#f0fbfa" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="315" y="157" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Feature B &#8226; Bulk export</text>
+  <text x="585" y="157" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">$25 &#10003;</text>
+
+  <!-- Feature C not bought -->
+  <rect x="300" y="176" width="300" height="36" rx="6" fill="#ffffff" stroke="#cbd2e0" stroke-width="2"/>
+  <text x="315" y="199" font-family="sans-serif" font-size="12" fill="#5b6680">Feature C &#8226; Custom themes</text>
+  <text x="585" y="199" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">$40</text>
+
+  <!-- Feature D not bought -->
+  <rect x="300" y="218" width="300" height="36" rx="6" fill="#ffffff" stroke="#cbd2e0" stroke-width="2"/>
+  <text x="315" y="241" font-family="sans-serif" font-size="12" fill="#5b6680">Feature D &#8226; AI assistant</text>
+  <text x="585" y="241" text-anchor="end" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">$60 &#8226; pool?</text>
+
+  <!-- Two ways to play -->
+  <rect x="40" y="204" width="190" height="50" rx="8" fill="#fffaf0" stroke="#f59e0b" stroke-width="2"/>
+  <text x="135" y="224" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b">Two ways to play</text>
+  <text x="135" y="240" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1d2438">Solo &#8226; or pool budgets</text>
+
+  <!-- Insight strip -->
+  <rect x="40" y="276" width="560" height="100" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="60" y="300" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">As they buy, collect the cash and ask "why this one?"</text>
+  <text x="60" y="324" font-family="sans-serif" font-size="11" fill="#1d2438">&#8226; Scarcity forces real trade-offs &#8212; popular buys signal true priorities.</text>
+  <text x="60" y="344" font-family="sans-serif" font-size="11" fill="#1d2438">&#8226; Pricey items get bought only when buyers pool money &#8212; revealing collective demand.</text>
+  <text x="60" y="364" font-family="sans-serif" font-size="11" fill="#1d2438">&#8226; Ends when money runs out or wanted features are bought; leftover cash is fine.</text>
+</svg>

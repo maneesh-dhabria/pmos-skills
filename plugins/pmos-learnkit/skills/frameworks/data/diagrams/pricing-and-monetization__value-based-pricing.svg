@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Value Based Pricing value stick diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="30" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Value-Based Pricing &#8212; The Value Stick</text>
+  <text x="320" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Price on perceived value, not cost &#8212; four ways to widen the margin</text>
+
+  <!-- The vertical stick: 4 points, top to bottom = WTP, Price, Cost, WTS -->
+  <!-- stick line -->
+  <line x1="220" y1="78" x2="220" y2="350" stroke="#1d2438" stroke-width="3"/>
+
+  <!-- WTP node (top) -->
+  <circle cx="220" cy="80" r="7" fill="#0ea5a4"/>
+  <text x="240" y="76" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Willingness to Pay (WTP)</text>
+  <text x="240" y="92" font-family="sans-serif" font-size="11" fill="#5b6680">Most a customer would pay</text>
+
+  <!-- Price node -->
+  <circle cx="220" cy="170" r="7" fill="#2563eb"/>
+  <text x="240" y="166" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Price</text>
+  <text x="240" y="182" font-family="sans-serif" font-size="11" fill="#5b6680">What the firm actually charges</text>
+
+  <!-- Cost node -->
+  <circle cx="220" cy="258" r="7" fill="#f59e0b"/>
+  <text x="240" y="254" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Cost</text>
+  <text x="240" y="270" font-family="sans-serif" font-size="11" fill="#5b6680">Cost to produce</text>
+
+  <!-- WTS node (bottom) -->
+  <circle cx="220" cy="348" r="7" fill="#ef4444"/>
+  <text x="240" y="344" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444">Willingness to Sell (WTS)</text>
+  <text x="240" y="360" font-family="sans-serif" font-size="11" fill="#5b6680">Least suppliers will accept</text>
+
+  <!-- value-split brackets on the left -->
+  <!-- Customer delight: WTP -> Price -->
+  <path d="M150 84 q-14 0 -14 14 v58 q0 14 -14 14 q14 0 14 14 v0" fill="none" stroke="#0ea5a4" stroke-width="1.5" transform="translate(60,0)"/>
+  <text x="120" y="128" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4" transform="rotate(-90 120 128)">Customer delight</text>
+
+  <!-- Firm margin: Price -> Cost -->
+  <text x="120" y="216" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#2563eb" transform="rotate(-90 120 216)">Firm margin</text>
+
+  <!-- Supplier surplus: Cost -> WTS -->
+  <text x="120" y="304" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#ef4444" transform="rotate(-90 120 304)">Supplier surplus</text>
+
+  <!-- left brace lines -->
+  <g stroke="#cbd3e8" stroke-width="1">
+    <line x1="150" y1="80" x2="138" y2="80"/>
+    <line x1="150" y1="170" x2="138" y2="170"/>
+    <line x1="150" y1="258" x2="138" y2="258"/>
+    <line x1="150" y1="348" x2="138" y2="348"/>
+    <line x1="138" y1="80" x2="138" y2="170"/>
+    <line x1="138" y1="170" x2="138" y2="258"/>
+    <line x1="138" y1="258" x2="138" y2="348"/>
+  </g>
+
+  <!-- Four levers panel on the right -->
+  <rect x="448" y="120" width="172" height="200" rx="8" fill="#f4f7ff" stroke="#cbd3e8" stroke-width="1"/>
+  <text x="534" y="142" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Widen the margin</text>
+
+  <g font-family="sans-serif">
+    <text x="466" y="170" font-size="11" fill="#0ea5a4">&#8593; Raise WTP</text>
+    <text x="466" y="172" font-size="11"></text>
+    <text x="466" y="208" font-size="11" fill="#2563eb">&#8593; Raise price</text>
+    <text x="466" y="246" font-size="11" fill="#f59e0b">&#8595; Lower cost</text>
+    <text x="466" y="284" font-size="11" fill="#ef4444">&#8595; Lower WTS</text>
+  </g>
+  <g stroke="#e0e6f5" stroke-width="1">
+    <line x1="462" y1="182" x2="606" y2="182"/>
+    <line x1="462" y1="220" x2="606" y2="220"/>
+    <line x1="462" y1="258" x2="606" y2="258"/>
+  </g>
+  <text x="534" y="306" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">vs. cost-plus markup</text>
+</svg>

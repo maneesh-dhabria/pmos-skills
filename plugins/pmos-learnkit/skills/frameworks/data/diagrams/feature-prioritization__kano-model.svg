@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Kano Model diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Kano Model</text>
+  <text x="24" y="48" font-family="sans-serif" font-size="11.5" fill="#5b6680">How a feature's presence maps to customer satisfaction</text>
+
+  <!-- axes -->
+  <g font-family="sans-serif">
+    <!-- vertical axis (satisfaction) -->
+    <line x1="320" y1="70" x2="320" y2="350" stroke="#1d2438" stroke-width="1.5"/>
+    <!-- horizontal axis (functionality) -->
+    <line x1="70" y1="210" x2="600" y2="210" stroke="#1d2438" stroke-width="1.5"/>
+    <!-- axis labels -->
+    <text x="324" y="80" font-size="11" font-weight="600" fill="#1d2438">Satisfied / Delight</text>
+    <text x="324" y="346" font-size="11" font-weight="600" fill="#1d2438">Dissatisfied</text>
+    <text x="600" y="226" font-size="11" font-weight="600" fill="#1d2438" text-anchor="end">Feature fully present &#8594;</text>
+    <text x="70" y="226" font-size="11" font-weight="600" fill="#1d2438">&#8592; Absent</text>
+  </g>
+
+  <!-- Attractive / Excitement curve (concave up, only positive) -->
+  <path d="M320 210 Q 470 205 600 90" fill="none" stroke="#0ea5a4" stroke-width="3"/>
+  <text x="540" y="110" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4" text-anchor="end">Attractive</text>
+  <text x="540" y="125" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="end">delights if present,</text>
+  <text x="540" y="137" font-family="sans-serif" font-size="9.5" fill="#5b6680" text-anchor="end">no harm if absent</text>
+
+  <!-- Performance / One-dimensional (linear through origin) -->
+  <line x1="80" y1="330" x2="595" y2="92" stroke="#2563eb" stroke-width="3"/>
+  <text x="430" y="150" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">Performance</text>
+  <text x="430" y="165" font-family="sans-serif" font-size="9.5" fill="#5b6680">more is better</text>
+  <text x="430" y="177" font-family="sans-serif" font-size="9.5" fill="#5b6680">(one-dimensional)</text>
+
+  <!-- Must-be / Threshold (concave, only negative side, saturates) -->
+  <path d="M80 320 Q 220 215 600 205" fill="none" stroke="#f59e0b" stroke-width="3"/>
+  <text x="90" y="305" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">Must-be</text>
+  <text x="90" y="320" font-family="sans-serif" font-size="9.5" fill="#5b6680">expected; absence</text>
+  <text x="90" y="332" font-family="sans-serif" font-size="9.5" fill="#5b6680">angers, presence</text>
+  <text x="90" y="344" font-family="sans-serif" font-size="9.5" fill="#5b6680">is just neutral</text>
+
+  <!-- Indifferent (flat near axis) -->
+  <line x1="335" y1="200" x2="560" y2="200" stroke="#5b6680" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="455" y="194" font-family="sans-serif" font-size="10" font-weight="600" fill="#5b6680">Indifferent &#8212; no effect either way</text>
+
+  <!-- footer: classification + priority -->
+  <g font-family="sans-serif">
+    <text x="24" y="376" font-size="11" fill="#1d2438"><tspan font-weight="700">Survey:</tspan> ask a functional + dysfunctional question per feature, then classify.</text>
+    <text x="24" y="393" font-size="11" fill="#1d2438"><tspan font-weight="700">Build order:</tspan> Must-be &#8594; Performance &#8594; Attractive  (categories decay to expected over time)</text>
+  </g>
+</svg>

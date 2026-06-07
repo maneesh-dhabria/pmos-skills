@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Attribution Stack diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="30" font-family="sans-serif" font-size="19" font-weight="700" fill="#1d2438">The Attribution Stack</text>
+  <text x="24" y="48" font-family="sans-serif" font-size="11" fill="#5b6680">Triangulate attribution across four pillars of media measurement</text>
+
+  <!-- axis hints -->
+  <text x="24" y="80" font-family="sans-serif" font-size="10" fill="#5b6680">More sophisticated &#8593;</text>
+  <text x="438" y="372" font-family="sans-serif" font-size="10" fill="#5b6680">Higher traffic required &#8594;</text>
+
+  <!-- four pillar columns; each column rises = more sophisticated bottom to top -->
+  <!-- Surveys -->
+  <g font-family="sans-serif">
+    <rect x="40" y="96" width="130" height="252" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <rect x="40" y="96" width="130" height="26" rx="8" fill="#2563eb"/>
+    <text x="105" y="114" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Surveys</text>
+    <text x="105" y="136" font-size="8.5" fill="#5b6680" text-anchor="middle">Ask customers directly</text>
+    <g font-size="9" fill="#1d2438" text-anchor="middle">
+      <text x="105" y="333">Sales / support calls</text>
+      <text x="105" y="313">Customer interviews</text>
+      <text x="105" y="293">HDYHAU surveys</text>
+      <text x="105" y="273">Panel / brand recall</text>
+      <text x="105" y="253">3rd-party data</text>
+    </g>
+  </g>
+  <!-- Tracking -->
+  <g font-family="sans-serif">
+    <rect x="184" y="96" width="130" height="252" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <rect x="184" y="96" width="130" height="26" rx="8" fill="#0ea5a4"/>
+    <text x="249" y="114" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Tracking</text>
+    <text x="249" y="136" font-size="8.5" fill="#5b6680" text-anchor="middle">Assign credit via telemetry</text>
+    <g font-size="9" fill="#1d2438" text-anchor="middle">
+      <text x="249" y="333">Tracking pixels</text>
+      <text x="249" y="313">URL parameters (UTM)</text>
+      <text x="249" y="293">Discount codes</text>
+      <text x="249" y="273">Server-side tracking</text>
+      <text x="249" y="253">Customer matching</text>
+    </g>
+  </g>
+  <!-- Modeling -->
+  <g font-family="sans-serif">
+    <rect x="328" y="96" width="130" height="252" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="328" y="96" width="130" height="26" rx="8" fill="#f59e0b"/>
+    <text x="393" y="114" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Modeling</text>
+    <text x="393" y="136" font-size="8.5" fill="#5b6680" text-anchor="middle">Probabilistic, statistical</text>
+    <g font-size="9" fill="#1d2438" text-anchor="middle">
+      <text x="393" y="333">Device fingerprinting</text>
+      <text x="393" y="313">Behavior-based attrib.</text>
+      <text x="393" y="293">Macro / competitor</text>
+      <text x="393" y="273">Causal inference</text>
+      <text x="393" y="253">Marketing mix model</text>
+    </g>
+  </g>
+  <!-- Experiments -->
+  <g font-family="sans-serif">
+    <rect x="472" y="96" width="130" height="252" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+    <rect x="472" y="96" width="130" height="26" rx="8" fill="#ef4444"/>
+    <text x="537" y="114" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Experiments</text>
+    <text x="537" y="136" font-size="8.5" fill="#5b6680" text-anchor="middle">Prove causation</text>
+    <g font-size="9" fill="#1d2438" text-anchor="middle">
+      <text x="537" y="333">A/B testing</text>
+      <text x="537" y="313">Server-side testing</text>
+      <text x="537" y="293">Geo experiments</text>
+      <text x="537" y="273">Deprivation testing</text>
+      <text x="537" y="253">Randomized trials (RCT)</text>
+    </g>
+  </g>
+
+  <!-- sophistication arrow within columns -->
+  <g font-family="sans-serif">
+    <text x="105" y="232" font-size="8" fill="#5b6680" text-anchor="middle" font-style="italic">simple &#8595; &#8593; advanced</text>
+  </g>
+</svg>

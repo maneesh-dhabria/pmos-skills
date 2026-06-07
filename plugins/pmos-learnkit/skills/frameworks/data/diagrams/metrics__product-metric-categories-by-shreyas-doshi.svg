@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Product Metric Categories by Shreyas Doshi diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="36" font-family="sans-serif" font-size="21" font-weight="700" fill="#1d2438">Product Metric Categories</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Shreyas Doshi — six lenses; a checklist to pick 3–5 Key Metrics</text>
+
+  <!-- 6 category cards in a 3x2 grid -->
+  <g font-family="sans-serif">
+    <!-- Row 1 -->
+    <rect x="32" y="74" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="96" font-size="14" font-weight="700" fill="#2563eb">Health</text>
+    <text x="44" y="116" font-size="11" fill="#1d2438">Available &amp; performing?</text>
+    <text x="44" y="134" font-size="10.5" fill="#5b6680">Latency, load time, uptime</text>
+
+    <rect x="227" y="74" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#0ea5a4"/>
+    <text x="239" y="96" font-size="14" font-weight="700" fill="#0ea5a4">Usage</text>
+    <text x="239" y="116" font-size="11" fill="#1d2438">How are users using it?</text>
+    <text x="239" y="134" font-size="10.5" fill="#5b6680">Top-N actions, funnels</text>
+
+    <rect x="422" y="74" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#f59e0b"/>
+    <text x="434" y="96" font-size="14" font-weight="700" fill="#f59e0b">Adoption</text>
+    <text x="434" y="116" font-size="11" fill="#1d2438">Used as much as hoped?</text>
+    <text x="434" y="134" font-size="10.5" fill="#5b6680">DAU/MAU, free&#8594;paid</text>
+
+    <!-- Row 2 -->
+    <rect x="32" y="176" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="198" font-size="14" font-weight="700" fill="#2563eb">Satisfaction</text>
+    <text x="44" y="218" font-size="11" fill="#1d2438">Customer sentiment?</text>
+    <text x="44" y="236" font-size="10.5" fill="#5b6680">CSAT, feature/support CSAT</text>
+
+    <rect x="227" y="176" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#0ea5a4"/>
+    <text x="239" y="198" font-size="14" font-weight="700" fill="#0ea5a4">Ecosystem</text>
+    <text x="239" y="218" font-size="11" fill="#1d2438">Macro state in domain?</text>
+    <text x="239" y="236" font-size="10.5" fill="#5b6680">Market share, industry rank</text>
+
+    <rect x="422" y="176" width="186" height="92" rx="8" fill="#f4f7ff" stroke="#f59e0b"/>
+    <text x="434" y="198" font-size="14" font-weight="700" fill="#f59e0b">Outcome</text>
+    <text x="434" y="218" font-size="11" fill="#1d2438">Business results?</text>
+    <text x="434" y="236" font-size="10.5" fill="#5b6680">Revenue, gross margin</text>
+  </g>
+
+  <text x="32" y="294" font-family="sans-serif" font-size="11" fill="#5b6680">A metric can span categories; skip a category if context allows.</text>
+
+  <!-- Distill into Key Metrics -->
+  <rect x="32" y="308" width="576" height="74" rx="8" fill="#ffffff" stroke="#1d2438"/>
+  <text x="46" y="330" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Distill &#8594; 3–5 Key Metrics (+ Leading Metrics when cycles are long)</text>
+  <text x="46" y="352" font-family="sans-serif" font-size="11.5" fill="#5b6680">Responsive to product changes &#183; aggregates user value &#183; tied to business &#183; lasts 2–3 yrs</text>
+  <text x="46" y="372" font-family="sans-serif" font-size="11.5" fill="#5b6680">Usually four: acquisition &#183; retention &#183; engagement &#183; monetization</text>
+</svg>

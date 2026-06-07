@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Software as a Service (SaaS) diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="20" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">Software as a Service (SaaS)</text>
+  <text x="20" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Subscription cloud software · acquire free, convert to paid, track recurring revenue</text>
+
+  <!-- Acquisition funnel: freemium -->
+  <text x="20" y="86" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Freemium acquisition</text>
+  <polygon points="24,98 196,98 168,128 52,128" fill="#dbe6ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="110" y="118" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">Free tier (acquire)</text>
+  <polygon points="52,134 168,134 148,164 72,164" fill="#bcd2ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="110" y="154" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">Consume capacity</text>
+  <polygon points="72,170 148,170 132,200 88,200" fill="#2563eb"/>
+  <text x="110" y="190" font-family="sans-serif" font-size="11" fill="#ffffff" text-anchor="middle">Convert to paid</text>
+
+  <!-- Tiered pricing -->
+  <text x="240" y="86" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Tiered pricing</text>
+  <g font-family="sans-serif" font-size="11">
+    <rect x="240" y="96" width="170" height="30" rx="4" fill="#f4f7ff" stroke="#5b6680"/>
+    <text x="252" y="115" fill="#1d2438">Free</text>
+    <text x="398" y="115" fill="#5b6680" text-anchor="end">$0</text>
+    <rect x="240" y="130" width="170" height="30" rx="4" fill="#f4f7ff" stroke="#5b6680"/>
+    <text x="252" y="149" fill="#1d2438">Pro · more features</text>
+    <text x="398" y="149" fill="#5b6680" text-anchor="end">$$</text>
+    <rect x="240" y="164" width="170" height="30" rx="4" fill="#eaf6f6" stroke="#0ea5a4"/>
+    <text x="252" y="183" fill="#1d2438">Enterprise · usage</text>
+    <text x="398" y="183" fill="#0ea5a4" text-anchor="end">$$$</text>
+  </g>
+
+  <!-- Revenue model -->
+  <text x="436" y="86" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Revenue model</text>
+  <g font-family="sans-serif" font-size="11">
+    <rect x="436" y="96" width="184" height="44" rx="4" fill="#fff7e8" stroke="#f59e0b"/>
+    <text x="446" y="114" fill="#1d2438" font-weight="700">Recurring subscription</text>
+    <text x="446" y="130" fill="#5b6680">Monthly / yearly</text>
+    <rect x="436" y="146" width="184" height="48" rx="4" fill="#fff7e8" stroke="#f59e0b"/>
+    <text x="446" y="164" fill="#1d2438" font-weight="700">Usage-based</text>
+    <text x="446" y="180" fill="#5b6680">Per user / API / lead</text>
+  </g>
+
+  <!-- arrows from funnel to metrics -->
+  <line x1="110" y1="206" x2="110" y2="240" stroke="#5b6680" stroke-width="1.5" marker-end="url(#ar)"/>
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <!-- Metrics band -->
+  <rect x="20" y="248" width="600" height="132" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1"/>
+  <text x="36" y="270" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Relevant metrics</text>
+  <g font-family="sans-serif">
+    <rect x="36" y="282" width="135" height="84" rx="4" fill="#ffffff" stroke="#5b6680"/>
+    <text x="48" y="302" font-size="12" font-weight="700" fill="#1d2438">MRR</text>
+    <text x="48" y="320" font-size="10" fill="#5b6680">Monthly recurring</text>
+    <text x="48" y="334" font-size="10" fill="#5b6680">revenue</text>
+
+    <rect x="181" y="282" width="135" height="84" rx="4" fill="#ffffff" stroke="#5b6680"/>
+    <text x="193" y="302" font-size="12" font-weight="700" fill="#1d2438">ARR</text>
+    <text x="193" y="320" font-size="10" fill="#5b6680">= MRR x 12</text>
+    <text x="193" y="334" font-size="10" fill="#5b6680">annual recurring</text>
+
+    <rect x="326" y="282" width="135" height="84" rx="4" fill="#ffffff" stroke="#ef4444"/>
+    <text x="338" y="302" font-size="12" font-weight="700" fill="#ef4444">Gross MRR churn</text>
+    <text x="338" y="320" font-size="10" fill="#5b6680">MRR lost / start MRR</text>
+    <text x="338" y="334" font-size="10" fill="#5b6680">in the month</text>
+
+    <rect x="471" y="282" width="135" height="84" rx="4" fill="#ffffff" stroke="#0ea5a4"/>
+    <text x="483" y="302" font-size="12" font-weight="700" fill="#0ea5a4">LTV · NDR · CAC</text>
+    <text x="483" y="320" font-size="10" fill="#5b6680">Lifetime value, net</text>
+    <text x="483" y="334" font-size="10" fill="#5b6680">retention, acq cost</text>
+  </g>
+</svg>

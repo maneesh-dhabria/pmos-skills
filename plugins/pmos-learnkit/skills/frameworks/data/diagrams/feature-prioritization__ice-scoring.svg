@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="ICE Scoring diagram">
+  <rect x="0" y="0" width="640" height="400" fill="#ffffff"/>
+  <text x="24" y="34" font-family="sans-serif" font-size="20" font-weight="700" fill="#1d2438">ICE Scoring</text>
+  <text x="24" y="54" font-family="sans-serif" font-size="12" fill="#5b6680">Rate each idea on three factors (1&#8211;10), combine into one score, then rank</text>
+
+  <!-- three input factor cards -->
+  <g font-family="sans-serif">
+    <!-- Impact -->
+    <rect x="40" y="92" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+    <text x="115" y="120" font-size="16" font-weight="700" fill="#2563eb" text-anchor="middle">Impact</text>
+    <text x="115" y="142" font-size="11" fill="#5b6680" text-anchor="middle">How much will this</text>
+    <text x="115" y="157" font-size="11" fill="#5b6680" text-anchor="middle">move the outcome?</text>
+    <rect x="60" y="172" width="110" height="22" rx="4" fill="#ffffff" stroke="#2563eb"/>
+    <text x="115" y="188" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">score 1 &#8211; 10</text>
+
+    <!-- Confidence -->
+    <rect x="245" y="92" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+    <text x="320" y="120" font-size="16" font-weight="700" fill="#0ea5a4" text-anchor="middle">Confidence</text>
+    <text x="320" y="142" font-size="11" fill="#5b6680" text-anchor="middle">How sure are we of</text>
+    <text x="320" y="157" font-size="11" fill="#5b6680" text-anchor="middle">that impact (evidence)?</text>
+    <rect x="265" y="172" width="110" height="22" rx="4" fill="#ffffff" stroke="#0ea5a4"/>
+    <text x="320" y="188" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">score 1 &#8211; 10</text>
+
+    <!-- Ease -->
+    <rect x="450" y="92" width="150" height="118" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="525" y="120" font-size="16" font-weight="700" fill="#f59e0b" text-anchor="middle">Ease</text>
+    <text x="525" y="142" font-size="11" fill="#5b6680" text-anchor="middle">How easy is it to</text>
+    <text x="525" y="157" font-size="11" fill="#5b6680" text-anchor="middle">build / implement?</text>
+    <rect x="470" y="172" width="110" height="22" rx="4" fill="#ffffff" stroke="#f59e0b"/>
+    <text x="525" y="188" font-size="12" font-weight="700" fill="#1d2438" text-anchor="middle">score 1 &#8211; 10</text>
+  </g>
+
+  <!-- combine arrows -->
+  <g stroke="#5b6680" stroke-width="1.5" fill="none">
+    <path d="M115 210 L290 252"/>
+    <path d="M320 210 L320 252"/>
+    <path d="M525 210 L350 252"/>
+  </g>
+
+  <!-- combined score -->
+  <g font-family="sans-serif">
+    <rect x="170" y="256" width="300" height="48" rx="10" fill="#1d2438"/>
+    <text x="320" y="280" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">ICE = Impact &#215; Confidence &#215; Ease</text>
+    <text x="320" y="297" font-size="10" fill="#9aa6c4" text-anchor="middle">(or summed) &#8212; one number per idea</text>
+  </g>
+
+  <!-- ranked output -->
+  <g font-family="sans-serif">
+    <text x="320" y="330" font-size="11" fill="#5b6680" text-anchor="middle">Sort descending &#8594; highest ICE = highest priority</text>
+    <rect x="150" y="342" width="340" height="20" rx="4" fill="#2563eb"/>
+    <rect x="170" y="366" width="300" height="18" rx="4" fill="#2563eb" opacity="0.7"/>
+    <rect x="190" y="388" width="260" height="0" fill="none"/>
+    <text x="495" y="356" font-size="9" fill="#5b6680">top</text>
+  </g>
+  <text x="320" y="397" font-family="sans-serif" font-size="9.5" fill="#ef4444" text-anchor="middle">Caveat: scores are subjective &#8212; watch confirmation bias</text>
+</svg>

@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Agile Manifesto diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="40" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Agile Manifesto</text>
+  <text x="32" y="62" font-family="sans-serif" font-size="13" fill="#5b6680">Four values &#8212; we value the left more, while still valuing the right</text>
+
+  <!-- column headers -->
+  <text x="200" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">VALUED MORE</text>
+  <text x="500" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680" text-anchor="middle">over</text>
+
+  <!-- 4 balance rows -->
+  <g font-family="sans-serif">
+    <!-- row 1 -->
+    <rect x="32" y="104" width="280" height="56" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="56" cy="132" r="13" fill="#2563eb"/>
+    <text x="56" y="137" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+    <text x="80" y="129" font-size="13" font-weight="700" fill="#1d2438">Individuals &amp; interactions</text>
+    <text x="332" y="137" font-size="12" fill="#5b6680">over</text>
+    <text x="368" y="129" font-size="13" fill="#5b6680">processes</text>
+    <text x="368" y="146" font-size="13" fill="#5b6680">&amp; tools</text>
+
+    <!-- row 2 -->
+    <rect x="32" y="170" width="280" height="56" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+    <circle cx="56" cy="198" r="13" fill="#0ea5a4"/>
+    <text x="56" y="203" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+    <text x="80" y="203" font-size="13" font-weight="700" fill="#1d2438">Working software</text>
+    <text x="332" y="203" font-size="12" fill="#5b6680">over</text>
+    <text x="368" y="195" font-size="13" fill="#5b6680">comprehensive</text>
+    <text x="368" y="212" font-size="13" fill="#5b6680">documentation</text>
+
+    <!-- row 3 -->
+    <rect x="32" y="236" width="280" height="56" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+    <circle cx="56" cy="264" r="13" fill="#f59e0b"/>
+    <text x="56" y="269" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+    <text x="80" y="269" font-size="13" font-weight="700" fill="#1d2438">Customer collaboration</text>
+    <text x="332" y="269" font-size="12" fill="#5b6680">over</text>
+    <text x="368" y="261" font-size="13" fill="#5b6680">contract</text>
+    <text x="368" y="278" font-size="13" fill="#5b6680">negotiation</text>
+
+    <!-- row 4 -->
+    <rect x="32" y="302" width="280" height="56" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="56" cy="330" r="13" fill="#ef4444"/>
+    <text x="56" y="335" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+    <text x="80" y="335" font-size="13" font-weight="700" fill="#1d2438">Responding to change</text>
+    <text x="332" y="335" font-size="12" fill="#5b6680">over</text>
+    <text x="368" y="327" font-size="13" fill="#5b6680">following</text>
+    <text x="368" y="344" font-size="13" fill="#5b6680">a plan</text>
+  </g>
+
+  <!-- principles side panel -->
+  <rect x="470" y="104" width="138" height="254" rx="8" fill="#1d2438"/>
+  <text x="539" y="150" font-family="sans-serif" font-size="40" font-weight="700" fill="#ffffff" text-anchor="middle">12</text>
+  <text x="539" y="172" font-family="sans-serif" font-size="13" fill="#ffffff" text-anchor="middle">principles</text>
+  <text x="539" y="205" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">early &amp; continuous</text>
+  <text x="539" y="222" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">delivery, welcome</text>
+  <text x="539" y="239" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">change, ship</text>
+  <text x="539" y="256" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">frequently, daily</text>
+  <text x="539" y="273" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">collaboration,</text>
+  <text x="539" y="290" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">sustainable pace,</text>
+  <text x="539" y="307" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">simplicity, self-</text>
+  <text x="539" y="324" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">organizing teams,</text>
+  <text x="539" y="341" font-family="sans-serif" font-size="11" fill="#94a3c8" text-anchor="middle">reflect &amp; tune</text>
+
+  <text x="32" y="385" font-family="sans-serif" font-size="11" fill="#5b6680">2001 &#8226; 17 practitioners &#8226; adaptive, customer-centric software delivery</text>
+</svg>
