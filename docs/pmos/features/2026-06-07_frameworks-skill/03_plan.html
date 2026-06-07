@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <title>/frameworks — Implementation Plan</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.61.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.61.0">
+  <script defer src="assets/viewer.js?v=2.61.0"></script>
+  <script defer src="assets/comments.js?v=2.61.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/frameworks — Implementation Plan</h1>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Plan — /frameworks</h2>
+<p><strong>Date:</strong> 2026-06-07 · <strong>Source:</strong> <code>02_spec.html</code> · <strong>Execution mode:</strong> inline (controller-driven; bulk Stage-B steps fan out to parallel subagents) · <strong>Tier:</strong> 3.</p>
+<p>Per skill-mode discipline: <strong>no version-bump / changelog / README / manifest tasks appear in any wave</strong> — those are <code>/complete-dev</code> release prerequisites (see spec §release-prereqs).</p>
+</section>
+
+<section id="wave-1">
+<h2 id="wave-1">Wave 1 — Skill scaffold (no corpus yet)</h2>
+<ul>
+<li><strong>T1 — SKILL.md.</strong> Frontmatter (single-line description w/ ≥5 triggers; <code>user-invocable: true</code>; full <code>argument-hint</code>) + body: intro, command surface, <code>## Platform Adaptation</code>, <code>## Track Progress</code>, <code>## When NOT to use</code>, the byte-identical non-interactive block, phase sections (Retrieve / Browse / Sync), <code>## Anti-Patterns</code>, and a final <code>## Phase 6: Capture Learnings</code> (literal heading) emitting the one-line learning. Acceptance: <code>skill-patterns §A/§B/§D</code> structural checks pass.</li>
+<li><strong>T2 — reference/ docs.</strong> <code>corpus-schema.md</code>, <code>situation-taxonomy.md</code>, <code>ingestion.md</code> (incl. the <code>/diagram</code> batch contract), <code>matching.md</code> (incl. <code>--json</code> shape). Each with a <code>## Contents</code> TOC (skill-patterns §C). Acceptance: SKILL.md links resolve to each.</li>
+</ul>
+</section>
+
+<section id="wave-2">
+<h2 id="wave-2">Wave 2 — Stage-A deterministic scripts (TDD: test first)</h2>
+<ul>
+<li><strong>T3 — split-corpus.mjs.</strong> Test first on a real Decision-Making fixture (the page already fetched): asserts 9 frameworks split with correct name/body_md/references/author/commentary. Zero-dep Node, <code>--selftest</code>.</li>
+<li><strong>T4 — derive-fields.mjs.</strong> Test: rejects unknown <code>problem_tags</code>/<code>decision_type</code>; merges LLM field JSON into records; sparse records still validate. <code>--selftest</code>.</li>
+<li><strong>T5 — validate-corpus.mjs.</strong> Test: coverage thresholds, dangling related/refs, exit codes (0 pass / 1 fail). <code>--selftest</code>.</li>
+<li><strong>T6 — match.mjs.</strong> Test: weighted scorer ranks an obvious problem to the right framework; confidence floor on nonsense; cap ≤5; deterministic ordering. <code>--selftest</code>.</li>
+<li><strong>T7 — build-library.mjs.</strong> Test (<code>.sh</code>, run ≥2×): emits self-contained <code>index.html</code> — no <code>http(s)://</code> asset refs, SVGs inlined, filter controls + search present, inline-expand detail with "PM's take" block.</li>
+<li><strong>T8 — json-contract.test.mjs.</strong> FR-JSON shape over a fixture corpus (the standalone-consumer proof): keys/types, cap≤5, score∈[0,1], JSON-only stdout.</li>
+</ul>
+</section>
+
+<section id="wave-3">
+<h2 id="wave-3">Wave 3 — Situation taxonomy authoring</h2>
+<ul>
+<li><strong>T9 — data/situations.json.</strong> Author the closed <code>problem_tags</code> registry + ~15–25 PM situations from the 22 Notion categories, each mapped to framework ids (grouped by super_category). Acceptance: <code>validate-corpus.mjs</code> finds 0 dangling situation→framework refs once the corpus exists.</li>
+</ul>
+</section>
+
+<section id="wave-4">
+<h2 id="wave-4">Wave 4 — Full corpus population (Stage-B; the heavy wave)</h2>
+<ul>
+<li><strong>T10 — Fetch.</strong> <code>notion-fetch</code> all 22 category pages → raw markdown temp files (slice large ones past the token cap).</li>
+<li><strong>T11 — Split.</strong> Run <code>split-corpus.mjs</code> over all 22 → ~200 raw records.</li>
+<li><strong>T12 — Derive fields.</strong> Parallel subagents (≈N frameworks each, strict output contract per the bulk-lookup learning) emit match-fields for all ~200; <code>derive-fields.mjs</code> validates + merges.</li>
+<li><strong>T13 — Diagrams.</strong> Generate ~200 owned SVGs via <code>/diagram … --non-interactive --approach "&lt;framing&gt;" --theme technical --out data/diagrams/&lt;id&gt;.svg --on-failure ship-with-warning</code>, fanned out in waves at full rigor. <code>--changed-only</code> cache seeded. <em>Cost checkpoint with the user before launching the full fan-out.</em></li>
+<li><strong>T14 — Assemble + validate.</strong> Write <code>data/frameworks.json</code>; <code>validate-corpus.mjs</code> → coverage report (≥95% name+body+refs, 100% diagram or logged exceptions, 0 invalid tags).</li>
+<li><strong>T15 — Build library.</strong> <code>build-library.mjs</code> → <code>data/</code>… → shipped <code>index.html</code>.</li>
+</ul>
+</section>
+
+<section id="wave-5">
+<h2 id="wave-5">Wave 5 — Verify the populated skill</h2>
+<ul>
+<li><strong>T16 — Browser smoke.</strong> Serve <code>index.html</code>; exercise filter + inline-expand + a search query with geometric/state assertions (offline, file://).</li>
+<li><strong>T17 — Precision check.</strong> <code>/frameworks "&lt;problem&gt;"</code> over ≥10 sample problems; author-judge apt top-5 (target ≥8/10).</li>
+<li><strong>T18 — Structural gate.</strong> <code>structure.test.sh</code> + a dry-run of the skill-eval rubric (skill-patterns §A–§F) before Phase 6a.</li>
+</ul>
+</section>
+
+<section id="risks">
+<h2 id="risks">Risks &amp; mitigations</h2>
+<ul>
+<li><strong>200 full-rigor /diagram runs is the dominant cost.</strong> Mitigation: fan out in parallel waves; <code>--changed-only</code> cache; <code>--on-failure ship-with-warning</code> so no single failure aborts; explicit cost checkpoint before T13.</li>
+<li><strong>Notion page token-cap on fetch.</strong> Mitigation: save-to-file + slice (the Feature-Prioritization page already exceeded the cap this session).</li>
+<li><strong>SIGPIPE-flaky <code>.sh</code> tests.</strong> Mitigation: materialize-then-here-string; run each ≥2×.</li>
+<li><strong>Worktree split-brain.</strong> Mitigation: all edits via worktree-absolute paths; already EnterWorktree'd.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-07_frameworks-skill/03_plan.html</span>
+  </footer>
+  <!-- pmos-comments:start -->
+  <script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+  <!-- pmos-comments:end -->
+</body>
+</html>

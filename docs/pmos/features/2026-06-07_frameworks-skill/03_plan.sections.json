@@ -1,0 +1,44 @@
+[
+  {
+    "id": "meta",
+    "level": 2,
+    "title": "Plan — /frameworks",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — Skill scaffold (no corpus yet)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — Stage-A deterministic scripts (TDD: test first)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — Situation taxonomy authoring",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — Full corpus population (Stage-B; the heavy wave)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-5",
+    "level": 2,
+    "title": "Wave 5 — Verify the populated skill",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  }
+]
