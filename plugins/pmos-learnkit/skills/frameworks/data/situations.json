@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "problem_tags": [
+    "business-model",
+    "product-market-fit",
+    "market-sizing",
+    "pricing",
+    "monetization",
+    "positioning",
+    "competitive-strategy",
+    "go-to-market",
+    "industry-analysis",
+    "moat-defensibility",
+    "product-discovery",
+    "product-delivery",
+    "behavioral-psychology",
+    "product-strategy",
+    "roadmap",
+    "prioritization",
+    "goal-setting",
+    "north-star-metric",
+    "metrics",
+    "experimentation",
+    "user-research",
+    "feature-adoption",
+    "user-satisfaction",
+    "product-design",
+    "ux-design",
+    "usability",
+    "technical-architecture",
+    "analytics",
+    "funnel-analysis",
+    "retention",
+    "activation",
+    "growth",
+    "marketing",
+    "sales",
+    "finance",
+    "unit-economics",
+    "personal-productivity",
+    "career-growth",
+    "pm-evaluation",
+    "task-management",
+    "decision-making",
+    "irreversible-decision",
+    "high-stakes",
+    "estimation",
+    "stakeholder-alignment",
+    "communication",
+    "leadership",
+    "team-health"
+  ],
+  "situations": [
+    {
+      "id": "reversible-decision",
+      "label": "I'm stuck on a reversible (or irreversible) decision",
+      "super_category": "People, Personal & Career",
+      "tags": ["decision-making", "irreversible-decision"],
+      "frameworks": [
+        "decision-making/one-way-vs-two-way-doors",
+        "decision-making/regret-minimization-framework"
+      ]
+    },
+    {
+      "id": "weigh-options-structurally",
+      "label": "I need to weigh options structurally before choosing",
+      "super_category": "People, Personal & Career",
+      "tags": ["decision-making", "high-stakes"],
+      "frameworks": [
+        "decision-making/pros-and-cons-list",
+        "decision-making/decision-trees",
+        "decision-making/six-thinking-hats"
+      ]
+    },
+    {
+      "id": "model-uncertainty",
+      "label": "I'm modeling uncertainty or risk in a forecast",
+      "super_category": "People, Personal & Career",
+      "tags": ["estimation", "decision-making", "high-stakes"],
+      "frameworks": [
+        "decision-making/monte-carlo-simulation",
+        "decision-making/sensitivity-and-what-if-analysis",
+        "decision-making/decision-trees"
+      ]
+    },
+    {
+      "id": "strategic-situation-assessment",
+      "label": "I'm doing a strategic situation assessment",
+      "super_category": "People, Personal & Career",
+      "tags": ["competitive-strategy", "decision-making"],
+      "frameworks": [
+        "decision-making/swot-analysis"
+      ]
+    }
+  ]
+}
