@@ -809,7 +809,7 @@ options:
 
 **Short-circuit when Phase 0e confirmed (W3):** apply `soft_gate_defaults.retro` — `skip` → proceed; `run` → `/reflect`; `run-last-5` → `/reflect --last 5`; `defer` → OQ stub. Log `[orchestrator] phase 8a retro: auto-<value> via Phase 0e`. Skip the prompt above.
 
-On Run: invoke `/pmos-toolkit:reflect` with the appropriate flags. The retro phase entry in `state.yaml.phases.retro` is initialized by Phase 1 fresh-init (per `reference/state-schema.md`). On Defer: append a stub entry to `state.yaml.open_questions_log[]` so /feature-sdlc Phase 9 surfaces the deferral.
+On Run: invoke `/pmos-utilities:reflect` with the appropriate flags (the `/reflect` skill lives in `pmos-utilities`). The retro phase entry in `state.yaml.phases.retro` is initialized by Phase 1 fresh-init (per `reference/state-schema.md`). On Defer: append a stub entry to `state.yaml.open_questions_log[]` so /feature-sdlc Phase 9 surfaces the deferral.
 
 On missing-skill: soft-variant missing-skill dialog from `reference/failure-dialog.md`. Skip option is the Recommended default.
 

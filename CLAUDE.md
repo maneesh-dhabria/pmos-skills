@@ -8,9 +8,9 @@ Each plugin answers one question. A new skill belongs to the plugin whose charte
 
 | Plugin | Charter — "help me…" | Holds |
 |---|---|---|
-| **pmos-toolkit** | …**ship a feature** | the delivery pipeline (requirements → spec → plan → execute → verify → complete-dev) and its supporting authoring/release skills (artifact, diagram, wireframes, prototype, grill, polish, backlog, mytasks, people, changelog, session-log, retro, feature-sdlc, …). |
+| **pmos-toolkit** | …**ship a feature** | the delivery pipeline (requirements → spec → plan → execute → verify → complete-dev) and its supporting authoring/release skills (artifact, diagram, wireframes, prototype, grill, polish, backlog, mytasks, people, changelog, session-log, feature-sdlc, …). |
 | **pmos-learnkit** | …**learn a topic** | verified-source, audience-shaped teachable artifacts (primer, learn-list, magazine) and the shared topic-research substrate. |
-| **pmos-utilities** | …**maintain my environment** | standalone diagnostics and cleanup that aren't part of a feature pipeline or a learning artifact (mac-health). |
+| **pmos-utilities** | …**maintain my environment** | standalone diagnostics, cleanup, and meta-tooling that aren't part of a feature pipeline or a learning artifact (mac-health, reflect — a cross-plugin session retrospective). |
 
 The charters are the membership test, not just a description. `mac-health` lives in `pmos-utilities` (not `pmos-toolkit`) because diagnosing a hot Mac maintains your environment — it neither ships a feature nor teaches a topic.
 

@@ -4,7 +4,7 @@
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
-f=plugins/pmos-toolkit/skills/reflect/SKILL.md
+f=plugins/pmos-utilities/skills/reflect/SKILL.md
 
 # T15: Phase 1 cap + 0-candidate handling + most-recent-20 default
 /usr/bin/grep -q "Phase 1 (multi-session prelude)" "$f"

@@ -1,13 +1,13 @@
 ---
 name: reflect
-description: Generate a paste-back retrospective for every pmos-toolkit skill invoked in the current session. Reads the session transcript (not the skill's source) to identify what went wrong, where the user pushed back, what got skipped, and where friction surfaced — emits one markdown block per skill, severity-tagged (blocker / friction / nit), ready to paste to the skill author. Use when the user says "/reflect", "what went wrong this session", "give feedback to the skill authors", "how did the pmos skills hold up", or "produce a session retro".
+description: Generate a paste-back retrospective for every pmos-skills skill (across all installed plugins — pmos-toolkit, pmos-learnkit, pmos-utilities) invoked in the current session. Reads the session transcript (not the skill's source) to identify what went wrong, where the user pushed back, what got skipped, and where friction surfaced — emits one markdown block per skill, severity-tagged (blocker / friction / nit), ready to paste to the skill author. Use when the user says "/reflect", "what went wrong this session", "give feedback to the skill authors", "how did the pmos skills hold up", or "produce a session retro".
 user-invocable: true
 argument-hint: "[skill-name to filter, optional] [--last N] [--days N] [--since YYYY-MM-DD] [--project current|all] [--skill <name>] [--scan-all] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
 ---
 
 # Reflect
 
-Produce a transcript-grounded retrospective on every `pmos-toolkit:*` skill that ran this session. The output is markdown the user can paste back to the skill author for improvement. **Critique is grounded in observed behavior — never in reading the skill's implementation.**
+Produce a transcript-grounded retrospective on every pmos-skills skill that ran this session — across every installed pmos plugin (`pmos-toolkit:*`, `pmos-learnkit:*`, `pmos-utilities:*`). The output is markdown the user can paste back to the skill author for improvement. **Critique is grounded in observed behavior — never in reading the skill's implementation.**
 
 **Announce at start:** "Using reflect to analyze pmos skill invocations in this session from the transcript."
 
@@ -112,7 +112,7 @@ When a multi-session flag is set:
 
 For each candidate transcript, dispatch a fresh subagent (per D7) with:
 
-- **Brief**: read the transcript jsonl, identify pmos-toolkit:* skill invocations, extract findings tagged `blocker|friction|nit` per Phase 4 standalone rubric. Return a compact YAML list `{skill, severity, finding, session-date}`.
+- **Brief**: read the transcript jsonl, identify pmos-skills skill invocations (any `pmos-*:*` namespace — toolkit, learnkit, utilities), extract findings tagged `blocker|friction|nit` per Phase 4 standalone rubric. Return a compact YAML list `{skill, severity, finding, session-date}`.
 - **Concurrency** (D18): 5 in-flight at any time. As one returns, dispatch the next.
 - **Timeout** (FR-42): 60s wall-clock per subagent. On timeout, mark the transcript `scanned-failed`, free the in-flight slot, and continue.
 - **Per-wave progress** to stderr (FR-49): `Wave i/N: <complete>/<in-flight> (T+<sec>s)`. Emit on each subagent return + on each new dispatch.
@@ -125,7 +125,7 @@ For each candidate transcript, dispatch a fresh subagent (per D7) with:
 
 The transcript is the source of truth — read it directly rather than relying on summarized in-context history (compaction may have dropped detail).
 
-1. Resolve the project slug: replace `/` with `-` in the current working directory's absolute path (e.g., `/Users/maneeshdhabria/Desktop/Projects/agent-skills` → `-Users-maneeshdhabria-Desktop-Projects-agent-skills`).
+1. Resolve the project slug: replace `/` with `-` in the current working directory's absolute path (e.g., a repo at `<home>/Projects/<repo>` → `-<home-with-slashes-replaced>-Projects-<repo>`).
 2. List `~/.claude/projects/<slug>/*.jsonl` (sorted by mtime, newest first). The newest file is almost always the current session.
 <!-- defer-only: ambiguous -->
 3. If multiple recent files exist or the slug doesn't resolve, ask the user via `AskUserQuestion` which file to use, or accept a path argument.
@@ -133,21 +133,21 @@ The transcript is the source of truth — read it directly rather than relying o
 
 ## Phase 2: Detect pmos Skill Invocations
 
-Scan the transcript for skill activations. Signals to look for:
-- `<command-name>pmos-toolkit:*</command-name>` tags (slash invocation)
-- `Skill` tool calls with `skill: "pmos-toolkit:*"` or `skill: "<name>"` where `<name>` matches a pmos skill
+Scan the transcript for skill activations across **every installed pmos plugin** — `pmos-toolkit`, `pmos-learnkit`, and `pmos-utilities`. Signals to look for:
+- `<command-name>pmos-toolkit:* | pmos-learnkit:* | pmos-utilities:*</command-name>` tags (slash invocation) — match any `pmos-*:*` namespace
+- `Skill` tool calls with `skill: "pmos-toolkit:*"`, `skill: "pmos-learnkit:*"`, `skill: "pmos-utilities:*"`, or `skill: "<name>"` where `<name>` matches a skill in any installed pmos plugin
 - Inline announcements like `Using <skill> to ...`
-- `SkillStart` system messages naming a pmos-toolkit skill
+- `SkillStart` system messages naming any pmos plugin skill
 
-Build an ordered list of `(skill_name, start_marker, end_marker)` tuples. The end marker is the next user turn after the skill claims completion, or the next skill invocation. If the same skill ran multiple times, treat each run as a separate entry.
+Build an ordered list of `(skill_name, plugin, start_marker, end_marker)` tuples — capture the owning plugin so Phase 3 can resolve the frontmatter and the retro block can name it. The end marker is the next user turn after the skill claims completion, or the next skill invocation. If the same skill ran multiple times, treat each run as a separate entry.
 
 If the user passed a skill name argument, filter to that skill only.
 
-**If zero pmos skills were invoked:** print `No pmos-toolkit skills were invoked in this session.` and exit. Do not fabricate findings.
+**If zero pmos skills were invoked:** print `No pmos-skills skills were invoked in this session.` and exit. Do not fabricate findings.
 
 ## Phase 3: Peek at Skill Frontmatter Only
 
-For each unique skill name detected, read **only the YAML frontmatter** of `plugins/pmos-toolkit/skills/<name>/SKILL.md` (or wherever the plugin is installed). You need:
+For each unique skill name detected, read **only the YAML frontmatter** of its `SKILL.md`. Resolve the path across every installed pmos plugin — prefer the plugin captured in Phase 2, otherwise try `plugins/pmos-toolkit/skills/<name>/SKILL.md`, `plugins/pmos-learnkit/skills/<name>/SKILL.md`, and `plugins/pmos-utilities/skills/<name>/SKILL.md` (or wherever the plugins are installed) and use the first that exists. You need:
 - `name`
 - `description`
 - `argument-hint` (if present)
@@ -285,7 +285,14 @@ After all blocks, print a one-paragraph **Session summary** that lists the skill
 
 ## Phase 6: Capture Learnings
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing about `/reflect` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, output shapes that didn't paste cleanly. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+**This skill is not complete until the learnings reflection has run.** `/reflect` lives in `pmos-utilities`, which is self-contained (no `_shared/` substrate), so the learnings step is inlined here rather than referenced.
+
+Reflect on whether this session surfaced anything worth capturing about `/reflect` itself — e.g., transcript-resolution edge cases, signals that turned out to be false positives, cross-plugin detection misses, output shapes that didn't paste cleanly. Then:
+
+1. **Global learnings →** `~/.pmos/learnings.md`. If the file is missing, create it with the header `# Pipeline Learnings` (one-line note + `Keep this file under 300 lines — summarize when exceeded.` + `---`). If it exceeds 300 lines, propose a per-section consolidation to the user before appending. Propose **0–3** actionable, novel bullets under a `## /reflect` section (create the section at end of file if absent).
+2. **Repo-specific learnings →** `CLAUDE.md` / `AGENTS.md` in the current repo root, **only if at least one already exists** (never create them). Propose **0–3** flat bullets appended at the bottom.
+
+**Rules:** never auto-write — always show the user the exact bullets and get approval (`y/n/edit`); each bullet must make sense to someone who wasn't in this session; flat bullets only. Proposing **zero** learnings is a valid outcome for a smooth session — the gate is that the reflection happens, not that an entry is written.
 
 ## Anti-Patterns
 

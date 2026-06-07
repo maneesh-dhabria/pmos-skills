@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-06-07 — pmos-toolkit 2.62.0: `/reflect` moves to pmos-utilities and reviews every plugin
+
+`/reflect` — the session retrospective that turns a working session into paste-back feedback for skill authors — used to live in `pmos-toolkit` and only noticed `pmos-toolkit:*` skills. It now lives in **pmos-utilities** (where cross-cutting, environment-level tooling belongs) and reviews invocations of **every** installed pmos plugin — toolkit, learnkit, and utilities — in one pass.
+
+- **Sees the whole marketplace.** A session that ran `/magazine`, `/primer`, and `/spec` now gets retro blocks for all three, not just the toolkit one. Detection matches any `pmos-*:*` namespace, and frontmatter lookup resolves each skill across whichever plugin owns it.
+- **New home.** Invoke it as `/pmos-utilities:reflect` (or just `/reflect`). The `/feature-sdlc` end-of-pipeline retro gate now calls it at its new address.
+- **Same output, same flags.** Single- and multi-session modes (`--last`, `--days`, `--since`, `--project`, `--skill`, `--scan-all`), severity tags, and the paste-back shape are unchanged.
+
+### Breaking changes
+
+If you invoked the skill by its fully-qualified name `/pmos-toolkit:reflect`, use `/pmos-utilities:reflect` instead. The bare `/reflect` trigger and all flags are unchanged.
+
+### Internal
+
+`git mv` of the single-file skill from `pmos-toolkit` to `pmos-utilities`. Bumps both plugins: pmos-toolkit 2.61.0→2.62.0 (skill removal + `/feature-sdlc` retro-gate address fix) and pmos-utilities 0.1.0→0.2.0 (skill arrival, tagged separately via a follow-up `/complete-dev --plugin pmos-utilities`). Phase 2 detection broadened to all `pmos-*:*` namespaces (now captures the owning plugin per invocation); Phase 3 frontmatter resolution walks every `plugins/*/skills/<name>/`; Phase 6 learnings step inlined to drop the `_shared/learnings-capture.md` dependency, since pmos-utilities is self-contained (no `_shared/` substrate). Verified: deterministic skill-eval exit 0, non-interactive block byte-identical to canonical, both `/reflect` test fixtures repointed and green.
+
 ## 2026-06-07 — pmos-learnkit 0.15.0: `/magazine` keeps your podcasts transcribed in the background
 
 `/magazine`'s slowest step was always transcribing podcasts at the moment you asked for an issue. This release adds an **optional local background worker** that keeps your subscribed podcasts transcribed ahead of time, so building an issue becomes mostly cache hits instead of a long wait — opt-in, and fully reversible.

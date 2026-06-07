@@ -3,7 +3,7 @@
 set -e
 cd "$(git rev-parse --show-toplevel)"
 
-f=plugins/pmos-toolkit/skills/reflect/SKILL.md
+f=plugins/pmos-utilities/skills/reflect/SKILL.md
 
 # All 7 new flags documented
 for flag in -- '--last' '--days' '--since' '--project' '--skill' '--scan-all' '--msf-auto-apply-threshold'; do

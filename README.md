@@ -215,7 +215,7 @@ cd ~/.codex/pmos-toolkit && git pull
 
 This is a solo-maintained project. To keep the surface area honest:
 
-- **Feedback is welcome** — open a GitHub issue, or run `/pmos-toolkit:reflect`
+- **Feedback is welcome** — open a GitHub issue, or run `/pmos-utilities:reflect`
   at the end of a session and paste the output. `/reflect` produces
   severity-tagged, per-skill feedback that's the easiest signal for me to act
   on.
