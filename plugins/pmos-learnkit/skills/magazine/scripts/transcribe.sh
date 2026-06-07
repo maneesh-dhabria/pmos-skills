@@ -108,6 +108,14 @@ selftest() {
 main() {
   if [ "${1:-}" = "--selftest" ]; then selftest; fi
 
+  # --detect: probe for a usable whisper without downloading anything. Exit 0 if
+  # found (echo the binary name), 3 if absent. Used by /magazine watch --install
+  # as a precondition check (a background transcriber is pointless without whisper).
+  if [ "${1:-}" = "--detect" ]; then
+    local bin; bin="$(detect_whisper)"
+    if [ -n "$bin" ]; then echo "$bin"; exit 0; else echo "no whisper on PATH" >&2; exit 3; fi
+  fi
+
   local audio_url="${1:-}"
   local guid="${2:-}"
   shift 2 || true
