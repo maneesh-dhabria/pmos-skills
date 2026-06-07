@@ -27,7 +27,7 @@ chk "no hard-coded /Users path"             "! grep -qE '/Users/|/home/' '$SKILL
 chk "portable CLAUDE_SKILL_DIR token"       "grep -q 'CLAUDE_SKILL_DIR' '$SKILL'"
 
 # --- reference files (§C) ---
-for r in config-schema pipeline issue-format import feed-curation; do
+for r in config-schema pipeline issue-format import feed-curation watch; do
   chk "reference/$r.md exists"              "[ -f '$DIR/reference/$r.md' ]"
   chk "reference/$r.md has a ToC"           "grep -qiE '^## +(Contents|Table of contents)' '$DIR/reference/$r.md'"
 done
@@ -52,6 +52,8 @@ chk "scripts/transcribe.sh"                 "[ -f '$DIR/scripts/transcribe.sh' ]
 chk "scripts/render-issue.js"               "[ -f '$DIR/scripts/render-issue.js' ]"
 chk "scripts/magazine-run.js"               "[ -f '$DIR/scripts/magazine-run.js' ]"
 chk "magazine-run.js executable"            "[ -x '$DIR/scripts/magazine-run.js' ]"
+chk "scripts/magazine-lock.js"              "[ -f '$DIR/scripts/magazine-lock.js' ]"
+chk "scripts/magazine-watch.js"             "[ -f '$DIR/scripts/magazine-watch.js' ]"
 
 chk "magazine-state --selftest"             "node '$DIR/scripts/magazine-state.js' --selftest >/dev/null"
 chk "fetch-feed --selftest"                 "node '$DIR/scripts/fetch-feed.js' --selftest >/dev/null"
@@ -59,6 +61,19 @@ chk "extract-article --selftest"            "node '$DIR/scripts/extract-article.
 chk "transcribe --selftest"                 "bash '$DIR/scripts/transcribe.sh' --selftest >/dev/null"
 chk "render-issue --selftest"               "node '$DIR/scripts/render-issue.js' --selftest >/dev/null"
 chk "magazine-run --selftest"               "node '$DIR/scripts/magazine-run.js' --selftest >/dev/null"
+chk "magazine-lock --selftest"              "node '$DIR/scripts/magazine-lock.js' --selftest >/dev/null"
+chk "magazine-watch --selftest"             "node '$DIR/scripts/magazine-watch.js' --selftest >/dev/null"
+
+# --- transcription queue / watch (background-worker feature) ---
+chk "state: transcribing in STATES"         "grep -q \"'transcribing'\" '$DIR/scripts/magazine-state.js'"
+chk "state: claim/release/reclaim/pending"  "grep -q 'function claim' '$DIR/scripts/magazine-state.js' && grep -q 'function release' '$DIR/scripts/magazine-state.js' && grep -q 'function reclaimStale' '$DIR/scripts/magazine-state.js' && grep -q 'function pendingPodcasts' '$DIR/scripts/magazine-state.js'"
+chk "run: enqueue + drain dispatch"         "grep -q \"cmd === 'enqueue'\" '$DIR/scripts/magazine-run.js' && grep -q \"cmd === 'drain'\" '$DIR/scripts/magazine-run.js'"
+chk "lock: O_EXCL wx + withLock"            "grep -q \"'wx'\" '$DIR/scripts/magazine-lock.js' && grep -q 'function withLock' '$DIR/scripts/magazine-lock.js'"
+chk "watch: generators + planInstall"       "grep -q 'function plistFor' '$DIR/scripts/magazine-watch.js' && grep -q 'function planInstall' '$DIR/scripts/magazine-watch.js'"
+chk "transcribe: --detect probe"            "grep -q -- '--detect' '$DIR/scripts/transcribe.sh'"
+chk "SKILL documents /magazine watch"       "grep -q 'magazine-watch.js' '$SKILL'"
+chk "reference/watch.md exists"             "[ -f '$DIR/reference/watch.md' ]"
+chk "watch.test.sh suite passes"            "bash '$DIR/tests/watch.test.sh' >/dev/null"
 
 # --- retro-fix regressions (FR-P1..P6) ---
 chk "P3: whisper probe via transcribe --selftest" "grep -q 'transcribe.sh --selftest' '$SKILL'"
