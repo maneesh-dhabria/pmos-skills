@@ -197,6 +197,7 @@ function cmdPrep(opts) {
 const DEFAULT_DRAIN_MAX = 5;             // background worker: episodes per tick
 const FOREGROUND_TRANSCRIBE_CAP = 3;    // interactive prep: episodes transcribed in-session
 const STALE_TTL_MS = 30 * 60 * 1000;
+const MAX_TRANSCRIBE_ATTEMPTS = 3;      // give up (-> failed) after this many failed tries
 
 // Producer: discover type:podcast feeds forward (per-feed cursor), recording new
 // episodes at `discovered`. --backfill <days> overrides the cursor to pull
@@ -257,29 +258,52 @@ function cmdDrain(opts) {
     return n;
   });
 
+  // Track GUIDs handled this run so a failing episode (released back to
+  // `discovered` for a future tick) is never re-picked within the SAME run —
+  // otherwise one dead enclosure would burn the whole --max budget on itself.
+  const attempted = new Set();
   for (let i = 0; i < max; i++) {
     if (budgetMs && Date.now() - start > budgetMs) break;
 
     const job = lock.withLock(lockPath, () => {
       const st = state.load(file);
-      const pend = state.pendingPodcasts(st, { limit: 1 });
-      if (!pend.length) return null;
-      const cand = pend[0];
+      const cand = state.pendingPodcasts(st, { limit: max + attempted.size + 1 })
+        .find((p) => !attempted.has(p.guid));
+      if (!cand) return null;
       if (state.claim(st, cand.guid, process.pid, new Date().toISOString())) {
         state.save(file, st);
         return { guid: cand.guid, enclosure: cand.enclosure };
       }
+      attempted.add(cand.guid); // lost the claim race — don't spin on it
       counts.skippedClaimed++;
-      return null;
+      return 'skip';
     });
-    if (!job) break; // queue drained (or the only candidate was claimed elsewhere)
+    if (job === null) break;        // nothing left to claim
+    if (job === 'skip') continue;   // claimed elsewhere; try the next candidate
 
+    attempted.add(job.guid);
     const exit = transcribe(job.guid, job.enclosure);
 
     lock.withLock(lockPath, () => {
       const st = state.load(file);
-      if (exit === 0) { state.release(st, job.guid, 'transcribed'); counts.transcribed++; }
-      else { state.release(st, job.guid, 'discovered'); if (exit !== 3) counts.failed++; }
+      if (exit === 0) {
+        state.release(st, job.guid, 'transcribed');
+        counts.transcribed++;
+      } else if (exit === 3) {
+        state.release(st, job.guid, 'discovered'); // no whisper — requeue untouched
+      } else {
+        // Retryable miss: requeue, but cap retries so a permanently-dead enclosure
+        // eventually leaves the queue as `failed` instead of retrying every tick.
+        const it = st.items[job.guid];
+        const n = (it && it.attempts ? it.attempts : 0) + 1;
+        if (n >= MAX_TRANSCRIBE_ATTEMPTS) {
+          state.release(st, job.guid, 'failed', 'transcribe failed after ' + n + ' attempts');
+        } else {
+          state.release(st, job.guid, 'discovered');
+          st.items[job.guid].attempts = n; // persists across ticks (release keeps it)
+        }
+        counts.failed++;
+      }
       state.save(file, st);
     });
     counts.drained++;
@@ -413,6 +437,23 @@ function selftest() {
   const qst3 = state.load(statePath(qroot3));
   assert(Object.values(qst3.items).some((it) => it.enclosure && it.status === 'discovered'),
     'exit-3 requeues the item at discovered');
+
+  // A persistently failing episode (exit 1) is attempted ONCE per run (not
+  // re-picked within the same tick), and gives up to `failed` after MAX attempts.
+  const rroot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-retry-'));
+  const rst = { cursors: {}, items: {} };
+  state.discover(rst, 'rp1', { feed: 'pod', enclosure: 'http://x/dead.mp3', published: '2026-06-01' });
+  state.save(statePath(rroot), rst);
+  const failFn = () => 1;
+  const r1 = cmdDrain({ root: rroot, max: 5, transcribeFn: failFn });
+  assert(r1.drained === 1 && r1.failed === 1, 'failing episode attempted once per run (not re-picked), got drained=' + r1.drained);
+  let rcur = state.load(statePath(rroot));
+  assert(rcur.items.rp1.status === 'discovered' && rcur.items.rp1.attempts === 1, 'after 1 fail: requeued with attempts=1');
+  cmdDrain({ root: rroot, max: 5, transcribeFn: failFn }); // attempts -> 2
+  cmdDrain({ root: rroot, max: 5, transcribeFn: failFn }); // attempts -> 3 => failed
+  rcur = state.load(statePath(rroot));
+  assert(rcur.items.rp1.status === 'failed', 'after MAX attempts the episode leaves the queue as failed');
+  fs.rmSync(rroot, { recursive: true, force: true });
 
   fs.rmSync(qroot, { recursive: true, force: true });
   fs.rmSync(qroot3, { recursive: true, force: true });
