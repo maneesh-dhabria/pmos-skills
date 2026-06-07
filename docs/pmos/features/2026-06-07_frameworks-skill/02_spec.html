@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>/frameworks — Technical Spec</title>
+  <link rel="stylesheet" href="assets/style.css?v=2.61.0">
+  <link rel="stylesheet" href="assets/comments.css?v=2.61.0">
+  <script defer src="assets/viewer.js?v=2.61.0"></script>
+  <script defer src="assets/comments.js?v=2.61.0"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">/frameworks — Technical Spec</h1>
+    <a class="pmos-attribution pmos-attribution--toolbar" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="meta">
+<h2 id="meta">Spec — /frameworks</h2>
+<p><strong>Date:</strong> 2026-06-07 · <strong>Status:</strong> Draft · <strong>Tier:</strong> 3 · <strong>Source:</strong> <code>01_requirements.html</code> + grill outcomes · <strong>Scope:</strong> Wave 1+2, full corpus population this build.</p>
+<p>Conforms to <code>skill-patterns.md §A–§F</code> and repo <code>CLAUDE.md ## Skill-authoring conventions</code>. Canonical path: <code>plugins/pmos-learnkit/skills/frameworks/SKILL.md</code>.</p>
+</section>
+
+<section id="architecture">
+<h2 id="architecture">Architecture</h2>
+<p>Two-stage pipeline mirroring <code>/magazine</code>: <strong>deterministic Stage-A scripts</strong> (zero-dep Node <code>.mjs</code>) + <strong>in-session Stage-B agent steps</strong> (Notion MCP fetch, LLM match-field derivation, <code>/diagram</code> generation). Runtime retrieval + browse are fully offline over the shipped corpus.</p>
+<h3 id="file-layout">File layout</h3>
+<pre>
+plugins/pmos-learnkit/skills/frameworks/
+  SKILL.md
+  reference/
+    corpus-schema.md        # the frameworks.json record contract
+    situation-taxonomy.md   # closed problem-tag registry + situations design
+    ingestion.md            # the sync pipeline + /diagram batch contract
+    matching.md             # ranking algorithm + --json contract
+  data/
+    frameworks.json         # shipped corpus (array of records)
+    situations.json         # closed situation taxonomy + tag registry
+    diagrams/&lt;id&gt;.svg        # one owned SVG per framework
+  scripts/
+    split-corpus.mjs        # raw Notion md (per category) → per-framework records  [--selftest]
+    derive-fields.mjs       # merges LLM-derived match-fields into records (validates vocab) [--selftest]
+    validate-corpus.mjs     # schema + coverage validator (exit 1 on fail)            [--selftest]
+    match.mjs               # problem → ranked candidates (deterministic scorer)       [--selftest]
+    build-library.mjs       # frameworks.json + diagrams → self-contained index.html   [--selftest]
+  assets/                   # html-authoring assets for the library (copied in)
+  tests/
+    *.test.mjs / *.test.sh
+</pre>
+<h3 id="runtime-vs-build">Runtime vs build boundary</h3>
+<ul>
+<li><strong>Build-time (<code>/frameworks sync</code>):</strong> Stage-B agent + Stage-A scripts produce <code>data/frameworks.json</code>, <code>data/diagrams/*.svg</code>, and <code>index.html</code>. Requires Notion MCP + LLM + <code>/diagram</code>.</li>
+<li><strong>Runtime (<code>/frameworks "&lt;problem&gt;"</code> / <code>browse</code> / <code>--json</code>):</strong> reads the shipped corpus only. Deterministic prefilter via <code>match.mjs</code> + an in-session LLM rank for free-text. No network.</li>
+</ul>
+</section>
+
+<section id="corpus-schema">
+<h2 id="corpus-schema">Corpus schema (frameworks.json)</h2>
+<p>Array of records. <strong>Lean fields</strong> (deterministic from Notion) + <strong>cached match-fields</strong> (LLM-derived once at sync). Full contract in <code>reference/corpus-schema.md</code>.</p>
+<pre>
+{
+  "id": "decision-making/regret-minimization",   // &lt;category-slug&gt;/&lt;name-slug&gt;, stable
+  "name": "Regret Minimization Framework",
+  "aliases": ["Regret Minimization"],
+  "category": "Decision Making",
+  "category_code": "2.4.4",
+  "super_category": "People, Personal & Career",  // derived from 2.x (see map)
+  "summary": "≤160-char one-liner (deterministic: first sentence of overview, or LLM-tightened)",
+  "body_md": "&lt;verbatim Overview markdown — nothing dropped&gt;",
+  "references": [{"type":"Article","url":"https://..."}],
+  "author": "Jeff Bezos",            // or null
+  "commentary": "&lt;verbatim 💡 callout text&gt;",   // or null  (the 'PM's take')
+  "diagram": "data/diagrams/decision-making__regret-minimization.svg",  // or null
+  "source_url": "https://notion.so/&lt;page&gt;#&lt;framework&gt;",
+  "last_synced": "2026-06-07",
+  // ---- cached match-fields (LLM-derived once; vocab-validated) ----
+  "problem_tags": ["irreversible-decision","high-stakes"],   // ⊆ closed registry
+  "when_to_use": "≤1 sentence",
+  "when_not_to_use": "≤1 sentence",
+  "decision_type": "judgment",       // enum: judgment|analysis|prioritization|framing|estimation|n/a
+  "lifecycle_stage": ["any"],        // enum: discovery|definition|delivery|growth|any
+  "related": ["decision-making/one-way-vs-two-way-doors"]
+}
+</pre>
+<p><strong>super_category map (from category_code 2.x):</strong> <code>2.1.x → Strategy &amp; Business</code> · <code>2.2.x → Product</code> · <code>2.3.x → Analytics, Design &amp; Finance</code> · <code>2.4.x → People, Personal &amp; Career</code>.</p>
+<p><strong>FR-SCHEMA-1:</strong> <code>body_md</code> is preserved verbatim — extraction never drops prose. <strong>FR-SCHEMA-2:</strong> records with a sparse source still validate (only <code>id</code>, <code>name</code>, <code>category</code>, <code>body_md</code> are required; the rest may be null/empty). <strong>FR-SCHEMA-3:</strong> <code>problem_tags</code> must be a subset of the closed registry in <code>situations.json</code>; <code>derive-fields.mjs</code> rejects unknown tags.</p>
+</section>
+
+<section id="situation-taxonomy">
+<h2 id="situation-taxonomy">Situation taxonomy &amp; tag registry (situations.json)</h2>
+<p>Skill-owned (not written to Notion). Closed <code>problem_tags</code> registry + ~15–25 recognizable PM situations, each pre-mapped to framework ids. Flat tags; situations grouped under the 4 super-categories for display (resolves OQ3).</p>
+<pre>
+{
+  "version": 1,
+  "problem_tags": ["prioritization","north-star-metric","irreversible-decision",
+                   "pricing","positioning","stakeholder-alignment","estimation", ...],
+  "situations": [
+    {"id":"prioritize-roadmap","label":"I need to prioritize a roadmap",
+     "super_category":"Product","tags":["prioritization"],
+     "frameworks":["product/rice","product/kano","product/moscow"]},
+    {"id":"reversible-decision","label":"I'm stuck on a reversible decision",
+     "super_category":"People, Personal & Career","tags":["irreversible-decision"],
+     "frameworks":["decision-making/one-way-vs-two-way-doors","decision-making/regret-minimization"]}
+  ]
+}
+</pre>
+<p><strong>FR-TAX-1:</strong> situations are authored from the 22 Notion categories; every situation's <code>frameworks[]</code> must reference existing corpus ids (validated). <strong>FR-TAX-2:</strong> <code>/frameworks situations</code> lists them grouped by super_category.</p>
+</section>
+
+<section id="ingestion">
+<h2 id="ingestion">Ingestion pipeline (/frameworks sync)</h2>
+<ol>
+<li><strong>Fetch (Stage-B, MCP):</strong> for each of the 22 category pages, <code>notion-fetch</code> → raw enhanced-markdown. Large pages exceed the tool token cap → fetch saves to a temp file; the agent slices it.</li>
+<li><strong>Split (Stage-A, <code>split-corpus.mjs</code>):</strong> split each category's markdown on <code>### </code> headings → per-framework raw records. Deterministically extract <code>name</code>, <code>body_md</code> (the Overview bullets verbatim), <code>references[]</code> (parse the <code>- Reference - [Type](url)</code> line), <code>author</code> (the <code>- Author -</code> line), <code>commentary</code> (the trailing 💡 callout), <code>category</code>/<code>category_code</code> (from the page title), <code>source_url</code>.</li>
+<li><strong>Derive match-fields (Stage-B, LLM + <code>derive-fields.mjs</code>):</strong> per framework, the agent emits <code>problem_tags</code> (⊆ registry), <code>when_to_use</code>, <code>when_not_to_use</code>, <code>decision_type</code>, <code>lifecycle_stage</code>, <code>related</code>, <code>summary</code>. <code>derive-fields.mjs</code> validates the enums/registry and merges into records. Bulk fan-out: parallel subagents, N frameworks each, strict output contract (per the bulk-lookup learning).</li>
+<li><strong>Diagrams (Stage-B, <code>/diagram</code> batch):</strong> per framework, at <strong>full rigor</strong>: <code>/diagram "&lt;name&gt;: &lt;summary&gt;" --source &lt;body&gt; --non-interactive --approach "&lt;derived framing&gt;" --theme technical --out data/diagrams/&lt;id&gt;.svg --on-failure ship-with-warning</code>. Fan out in waves. <code>--changed-only</code> skips frameworks whose <code>body_md</code> content-hash is unchanged since last sync (cache in <code>data/.diagram-hashes.json</code>).</li>
+<li><strong>Assemble + validate (Stage-A):</strong> write <code>data/frameworks.json</code>; <code>validate-corpus.mjs</code> emits a coverage report (count, field coverage %, diagram coverage %, dangling related/refs); exit 1 if &lt;95% name+body+references or any invalid tag.</li>
+<li><strong>Build library (Stage-A, <code>build-library.mjs</code>):</strong> <code>frameworks.json</code> + diagrams → self-contained <code>index.html</code> (diagrams inlined as <code>&lt;svg&gt;</code>; offline from <code>file://</code>).</li>
+</ol>
+<p><strong>FR-ING-1:</strong> sync never hot-links S3; diagrams are owned SVGs inlined into the library. <strong>FR-ING-2:</strong> one <code>/diagram</code> failure logs + keeps the prior SVG (or text-only) and continues the batch. <strong>FR-ING-3:</strong> Notion unreachable → sync fails cleanly; the existing shipped corpus is untouched.</p>
+</section>
+
+<section id="matching">
+<h2 id="matching">Matching &amp; --json contract</h2>
+<p><strong>Two-stage rank</strong> (full contract in <code>reference/matching.md</code>):</p>
+<ul>
+<li><strong>Situation path:</strong> input is a known situation id (or fuzzy-matches a situation label) → return that situation's <code>frameworks[]</code>, ranked by tag overlap.</li>
+<li><strong>Free-text path:</strong> (1) <code>match.mjs</code> deterministic prefilter — tokenize the problem, score each record by weighted overlap with <code>problem_tags</code> (×3), <code>name</code>/<code>aliases</code> (×2), <code>when_to_use</code> + <code>summary</code> keywords (×1) → top ~15 candidates + scores. (2) In-session LLM re-ranks the candidates against the problem and writes a ≤1-sentence "why it fits" per pick. Cap output at 5.</li>
+<li><strong>Confidence floor:</strong> if the top deterministic score &lt; threshold (default 0.15, tunable via <code>--floor</code>), mark <code>low_confidence</code> and return ≤2 closest with an explicit caveat rather than padding to 5 (resolves OQ2).</li>
+</ul>
+<p><strong>--json shape (FR-JSON-1):</strong></p>
+<pre>
+/frameworks --query "&lt;problem&gt;" --json
+→ {"query":"&lt;problem&gt;","count":N,"low_confidence":false,
+   "matches":[{"id","name","why","score","category","decision_type","diagram"}]}
+</pre>
+<p><strong>FR-JSON-2:</strong> a contract test (<code>tests/json-contract.test.mjs</code>) asserts the shape (keys, types, cap≤5, score∈[0,1]) against <code>match.mjs</code> output over a fixture corpus — this is the "proven contract" that stands in for a live consumer (wiring <code>/ideate</code> is a backlog follow-up). <strong>FR-JSON-3:</strong> <code>--json</code> emits only JSON to stdout (no chat prose), single object, parseable.</p>
+</section>
+
+<section id="command-surface">
+<h2 id="command-surface">Command surface &amp; frontmatter (skill-patterns §A/§B)</h2>
+<pre>
+/frameworks "&lt;problem&gt;"              → ranked top-5 in chat + opens library focused on them
+/frameworks "&lt;problem&gt;" --json       → structured matches (no UI/prose)  [--floor N]
+/frameworks browse | list            → open the full filterable library (index.html)
+/frameworks situations               → list the closed situation taxonomy
+/frameworks sync [--changed-only]    → re-ingest from Notion → corpus + diagrams + library
+</pre>
+<p><strong>FR-FM-1 (§A):</strong> single-line quoted <code>description</code> with ≥5 user-spoken triggers incl. "/frameworks", "which framework should I use", "find a PM framework for", "frameworks for prioritization/decisions", "build my framework library". <code>user-invocable: true</code>. <strong>FR-FM-2:</strong> <code>argument-hint</code> enumerates every token/flag above + <code>--json --floor --changed-only --format --non-interactive --interactive</code>. <strong>FR-FM-3 (§F):</strong> codex manifest mirror carries the interface block.</p>
+</section>
+
+<section id="skill-body">
+<h2 id="skill-body">SKILL.md body requirements (skill-patterns §C/§D)</h2>
+<ul>
+<li><strong>FR-BODY-1 (§C):</strong> progressive disclosure — heavy detail lives in the 4 <code>reference/</code> files; SKILL.md body stays lean and points to them.</li>
+<li><strong>FR-BODY-2 (§D):</strong> body includes <code>## Platform Adaptation</code>, <code>## Track Progress</code>, a <code>## When NOT to use</code> section, the non-interactive contract block (byte-identical to <code>_shared/non-interactive.md</code>), and a final <code>## Phase N: Capture Learnings</code> (literal — colon after N, capital "Learnings") that emits the one-line learning output.</li>
+<li><strong>FR-BODY-3 (§E):</strong> every script is zero-dep Node <code>.mjs</code> with a <code>--selftest</code> mode; <code>BASH_SOURCE</code>-style path fallbacks in any <code>.sh</code>.</li>
+<li><strong>FR-BODY-4:</strong> Anti-Patterns section (DO NOT hot-link S3; DO NOT block runtime on Notion; DO NOT pad matches past the confidence floor; DO NOT regenerate unchanged diagrams under <code>--changed-only</code>; DO NOT write derived tags back to Notion).</li>
+</ul>
+</section>
+
+<section id="testing">
+<h2 id="testing">Testing strategy</h2>
+<table>
+<tr><th>Test</th><th>Asserts</th></tr>
+<tr><td><code>split-corpus.test.mjs</code></td><td>A real category fixture (Decision-Making) splits into the right N frameworks with correct name/body/refs/author/commentary extraction.</td></tr>
+<tr><td><code>derive-fields.test.mjs</code></td><td>Vocab validation rejects unknown problem_tags / decision_type; merges cleanly; sparse records still validate.</td></tr>
+<tr><td><code>validate-corpus.test.mjs</code></td><td>Coverage thresholds; dangling related/refs detection; exit codes.</td></tr>
+<tr><td><code>match.test.mjs</code></td><td>Deterministic scorer ranks an obvious problem to the right framework; confidence floor triggers on nonsense input; cap ≤5.</td></tr>
+<tr><td><code>json-contract.test.mjs</code></td><td>FR-JSON shape over fixture corpus (the standalone consumer proof).</td></tr>
+<tr><td><code>build-library.test.sh</code></td><td>index.html is self-contained (no http(s):// asset refs in diagrams), opens, filters present; SVGs inlined.</td></tr>
+<tr><td><code>structure.test.sh</code></td><td>skill-patterns structural checks (frontmatter single-line desc, argument-hint, Capture Learnings heading, reference TOC).</td></tr>
+</table>
+<p><strong>Browser verify (FR-TEST-1):</strong> serve <code>index.html</code> and exercise filter + inline-expand + a search query with Playwright (geometric/state assertions, not just "loaded") — per the magazine render-JS learning.</p>
+</section>
+
+<section id="verification-plan">
+<h2 id="verification-plan">Verification plan</h2>
+<ul>
+<li>All <code>--selftest</code> + <code>tests/*</code> green (run each new <code>.sh</code> ≥2× for SIGPIPE flakiness).</li>
+<li><code>validate-corpus.mjs</code> report: ≥95% name+body+refs coverage, 100% diagram coverage (or logged ship-with-warning exceptions), 0 invalid tags, 0 dangling situation→framework refs.</li>
+<li>Browser smoke on the built library (offline, file://) — filters + detail + search.</li>
+<li><code>/frameworks "&lt;real problem&gt;"</code> returns an apt top-5 with why-lines on ≥8/10 sample problems (author-judged).</li>
+<li>Fresh <code>reference/skill-eval.md</code> pass (skill-patterns §A–§F).</li>
+</ul>
+</section>
+
+<section id="release-prereqs">
+<h2 id="release-prereqs">Release prerequisites (for /complete-dev — NOT /execute)</h2>
+<ul>
+<li>Bump BOTH <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> 0.15.0 → 0.16.0 (minor), in sync.</li>
+<li>Changelog entry at <code>docs/pmos/changelog.md</code>.</li>
+<li>README row for <code>/frameworks</code>.</li>
+<li><code>~/.pmos/learnings.md</code> <code>## /frameworks</code> header bootstrap (idempotent).</li>
+<li><strong>These are NOT <code>/execute</code> tasks</strong> — surfaced here per skill-mode release-prereq scope discipline.</li>
+</ul>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions (carried)</h2>
+<ul>
+<li>Situation taxonomy final count (~15–25) — settle during authoring from the 22 categories.</li>
+<li>Whether the in-session LLM re-rank is always run or only when the deterministic top-score is ambiguous (cost tuning) — default: always run for the human path, deterministic-only acceptable for <code>--json</code> when no LLM context.</li>
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-07_frameworks-skill/02_spec.html</span>
+  </footer>
+  <!-- pmos-comments:start -->
+  <script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+  <!-- pmos-comments:end -->
+</body>
+</html>

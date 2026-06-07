@@ -1,0 +1,86 @@
+[
+  {
+    "id": "meta",
+    "level": 2,
+    "title": "Spec — /frameworks",
+    "parent_id": null
+  },
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "file-layout",
+    "level": 3,
+    "title": "File layout",
+    "parent_id": "architecture"
+  },
+  {
+    "id": "runtime-vs-build",
+    "level": 3,
+    "title": "Runtime vs build boundary",
+    "parent_id": "architecture"
+  },
+  {
+    "id": "corpus-schema",
+    "level": 2,
+    "title": "Corpus schema (frameworks.json)",
+    "parent_id": null
+  },
+  {
+    "id": "situation-taxonomy",
+    "level": 2,
+    "title": "Situation taxonomy & tag registry (situations.json)",
+    "parent_id": null
+  },
+  {
+    "id": "ingestion",
+    "level": 2,
+    "title": "Ingestion pipeline (/frameworks sync)",
+    "parent_id": null
+  },
+  {
+    "id": "matching",
+    "level": 2,
+    "title": "Matching & --json contract",
+    "parent_id": null
+  },
+  {
+    "id": "command-surface",
+    "level": 2,
+    "title": "Command surface & frontmatter (skill-patterns §A/§B)",
+    "parent_id": null
+  },
+  {
+    "id": "skill-body",
+    "level": 2,
+    "title": "SKILL.md body requirements (skill-patterns §C/§D)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "verification-plan",
+    "level": 2,
+    "title": "Verification plan",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (for /complete-dev — NOT /execute)",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions (carried)",
+    "parent_id": null
+  }
+]
