@@ -89,7 +89,7 @@
 <h2 id="solution-direction">Solution Direction</h2>
 <p>A two-stage skill that mirrors <code>/magazine</code>'s deterministic-then-LLM pipeline and offline-HTML spine:</p>
 <ul>
-<li><strong>Ingestion (build-time, run via <code>/frameworks sync</code>):</strong> walk the 22 Notion category pages through the Notion MCP, split each on <code>### </code> framework headings, and produce a shipped <code>data/frameworks.json</code> corpus — lean fields extracted deterministically, rich match-fields LLM-derived once and cached, body preserved verbatim, commentary captured as a distinct field, images handled per D5.</li>
+<li><strong>Ingestion (build-time, run via <code>/frameworks sync</code>):</strong> walk the 22 Notion category pages through the Notion MCP, split each on <code>### </code> framework headings, and produce a shipped <code>data/frameworks.json</code> corpus — lean fields extracted deterministically, rich match-fields LLM-derived once and cached, body preserved verbatim, commentary captured as a distinct field. <strong>Every framework also gets an owned, theme-consistent SVG diagram auto-generated via <code>/diagram</code></strong> (no approval gate; one unattended pass), with re-sync regenerating only changed frameworks (per D5).</li>
 <li><strong>Retrieval (runtime, offline):</strong> a PM picks a situation from the closed taxonomy <em>or</em> types a free-text problem → the skill ranks the corpus and returns a capped top-3–5 with a "why it fits" line. A <code>--json</code> mode returns the same ranked matches structured for other skills.</li>
 <li><strong>Browse (runtime, offline):</strong> a single self-contained <code>index.html</code> library — faceted filter rail (category · super-category · lifecycle stage · decision type · problem tag) + search box + result cards that expand inline to full detail, including the "PM's take" commentary block. Works from <code>file://</code>.</li>
 </ul>
@@ -135,7 +135,8 @@
 <tr><td>No good match</td><td>Free-text problem matches nothing above a confidence floor</td><td>Say so plainly ("no strong match — here are the 2 closest, low confidence") rather than padding to 5</td></tr>
 <tr><td>Notion unreachable on sync</td><td>MCP/network down during <code>sync</code></td><td>Fail the sync with a clear message; the existing shipped corpus stays intact and usable (offline retrieval unaffected)</td></tr>
 <tr><td>Corpus missing</td><td><code>data/frameworks.json</code> absent (fresh clone, never synced)</td><td>Skill ships a pre-built corpus so retrieval works out-of-the-box; if truly absent, instruct to run <code>/frameworks sync</code></td></tr>
-<tr><td>Framework has no commentary/image</td><td>Sparse source record</td><td>Render gracefully — omit the "PM's take" block and figure; never show an empty block or broken image</td></tr>
+<tr><td>Framework has no commentary</td><td>Sparse source record</td><td>Render gracefully — omit the "PM's take" block; never show an empty block. (Diagrams are always present — auto-generated per D5.)</td></tr>
+<tr><td>/diagram fails for one framework during sync</td><td>Generation error on a single record</td><td>Log it, keep the prior owned SVG (or a text-only fallback for that one), and continue the batch — one failure never aborts the whole sync</td></tr>
 </table>
 </section>
 
@@ -147,7 +148,7 @@
 <tr><td>D2</td><td>Extract-once corpus; Notion is upstream authoring, not a runtime dependency</td><td>(a) extract-once offline, (b) live Notion at runtime</td><td>Offline, fast, portable; retires the brief's premortem H-risk on Notion availability.</td></tr>
 <tr><td>D3</td><td>Two-layer schema: lean fields deterministic + rich match-fields (<code>problem_tags</code>, <code>when_to_use</code>, <code>when_NOT_to_use</code>, <code>decision_type</code>, <code>lifecycle_stage</code>, <code>related</code>) LLM-derived once at ingestion and cached</td><td>(a) lean only, (b) rich now, (c) two-layer</td><td>Match quality without runtime token cost or non-determinism.</td></tr>
 <tr><td>D4</td><td>Preserve <code>body_md</code> verbatim + capture 💡 commentary as a distinct field; nothing prose dropped</td><td>(a) structured-only, (b) verbatim+structured</td><td>Voice differentiator; extraction robustness when structured fields are sparse.</td></tr>
-<tr><td>D5</td><td>Images: download originals for reference; <strong>regenerate informative diagrams as owned, theme-consistent SVGs via <code>/diagram</code></strong>; drop decorative; never hot-link S3</td><td>(a) vendor raw, (b) text-only, (c) vendor informative, (d) regenerate via /diagram</td><td>Expiring S3 URLs forbid hot-linking; owned SVGs give consistent, durable, on-brand visuals. (Volume/scope of regeneration is an open question — see OQ2.)</td></tr>
+<tr><td>D5</td><td>Images: <strong>auto-generate an owned, theme-consistent SVG diagram for <em>every</em> framework via <code>/diagram</code> at ingestion — unattended, no per-diagram approval gate</strong>; download Notion originals only as a generation reference; never hot-link S3</td><td>(a) vendor raw, (b) text-only, (c) vendor informative only, (d) regenerate via /diagram with approval, (e) auto-regenerate all via /diagram</td><td>Expiring S3 URLs forbid hot-linking; owned SVGs give consistent, durable, on-brand visuals across the whole corpus. Auto-generating for all frameworks (no approval gate) keeps <code>/frameworks sync</code> a single unattended pass and guarantees 100% visual coverage.</td></tr>
 <tr><td>D6</td><td>Matching: closed situation-taxonomy + free-text fallback, both over cached match-fields; capped ranked top-3–5 with a "why it fits" line</td><td>(a) tag-filter only, (b) free-text only, (c) taxonomy + free-text</td><td>Trust + precision; the cap and the why-line are the anti-erosion mitigations.</td></tr>
 <tr><td>D7</td><td>Situation taxonomy (~15–25) + problem-tag registry are skill-owned (<code>data/situations.json</code> + closed registry); not written back to Notion</td><td>(a) skill-owned, (b) write back to Notion, (c) skill-owned + optional write-back</td><td>Self-contained, fast to iterate; the Notion Tags field is empty today so there is nothing to import.</td></tr>
 <tr><td>D8</td><td>Browse UX: single self-contained filterable <code>index.html</code> with inline-expand detail + "PM's take" block; offline from <code>file://</code></td><td>(a) single-file inline, (b) master-detail SPA, (c) multi-page</td><td>Clones <code>/magazine</code>'s proven offline spine; lowest-risk, highest-reuse.</td></tr>
@@ -164,6 +165,7 @@
 <tr><td>Retrieval precision@5 (author-judged "I'd use this")</td><td>n/a (no retrieval today)</td><td>≥1 apt result in top-5 on ≥8/10 real problems</td><td>Author rates top-5 for 10 sample problems post-build</td></tr>
 <tr><td>Offline integrity</td><td>n/a</td><td>Library filters + detail render with 0 network, 0 broken assets</td><td>Open <code>index.html</code> from <code>file://</code> with network off; browser smoke test</td></tr>
 <tr><td>Corpus coverage</td><td>~200 frameworks in Notion</td><td>≥95% of frameworks extracted with name + body + references</td><td>Ingestion validator report (count + field coverage)</td></tr>
+<tr><td>Diagram coverage</td><td>0 owned diagrams</td><td>100% of frameworks carry an owned, auto-generated SVG</td><td>Ingestion validator counts frameworks with a generated <code>diagram.svg</code></td></tr>
 <tr><td>Cross-skill adoption</td><td>0 consumers</td><td>≥1 skill uses <code>--json</code> and is better with it</td><td>Wire one consumer; A/B its output with vs without</td></tr>
 <tr><td>Author reach-for-it</td><td>Scrolls Notion</td><td>Author uses <code>/frameworks</code> instead</td><td>Self-report after 2 weeks</td></tr>
 </table>
@@ -186,9 +188,9 @@
 <table>
 <tr><th>#</th><th>Question</th></tr>
 <tr><td>1</td><td>Which single skill is the first <code>--json</code> consumer? Leading candidate: <code>/ideate</code> Expand pulling decision/creativity frameworks. Decide concretely at <code>/spec</code>.</td></tr>
-<tr><td>2</td><td>Diagram regeneration via <code>/diagram</code> is a partly-assisted pass — how many of the ~200 frameworks warrant an owned SVG, and is that volume in-scope for v1 or a follow-up enrichment? (Candidate to scope down or backlog.)</td></tr>
-<tr><td>3</td><td>Confidence floor for "no strong match" — what threshold, and is it tunable?</td></tr>
-<tr><td>4</td><td>Does the situation-taxonomy ship as flat tags or a small hierarchy (super-situation → situation)? Resolve during <code>/spec</code> from the 22-category structure.</td></tr>
+<tr><td>2</td><td>Confidence floor for "no strong match" — what threshold, and is it tunable?</td></tr>
+<tr><td>3</td><td>Does the situation-taxonomy ship as flat tags or a small hierarchy (super-situation → situation)? Resolve during <code>/spec</code> from the 22-category structure.</td></tr>
+<tr><td>4</td><td>Diagram auto-generation cost: ~200 <code>/diagram</code> runs at <code>sync</code> time is a long unattended pass — what batching/caching keeps re-sync cheap (only regenerate changed frameworks)? Resolve mechanics at <code>/spec</code>; the <em>policy</em> (auto-generate all, no approval) is decided per D5.</td></tr>
 </table>
 </section>
 
