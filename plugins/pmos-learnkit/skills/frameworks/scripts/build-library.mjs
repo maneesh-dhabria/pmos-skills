@@ -113,20 +113,24 @@ export function renderBody(md, diagrams) {
   return out.join('\n');
 }
 
-// diagramsFor(r) → array of inlined SVG strings (primary first, then any extras). Each is
-// zipped with the record's diagram_anchors[] to drive inline placement.
+// diagramsFor(r) → array of inlined SVG strings (primary first, then any extras), index-aligned
+// with the record's diagram_anchors[] (a missing/unreadable SVG must be a falsy slot, NOT dropped —
+// dropping it here would re-index the survivors and pair them with the wrong anchor). buildHtml
+// zips by index, then drops the falsy slots, so anchor alignment is preserved across gaps.
 // Back-compat: a legacy diagramFor(r) returning a single string is wrapped to [string].
 export function buildHtml(records, diagramsFor) {
   const svgsFor = (r) => {
     if (!diagramsFor) return [];
     const v = diagramsFor(r);
-    if (Array.isArray(v)) return v.filter(Boolean);
+    if (Array.isArray(v)) return v;            // keep index alignment with diagram_anchors; falsy slots dropped after the zip
     return v ? [v] : [];
   };
   const enriched = records.map((r) => {
     const svgs = svgsFor(r);
     const anchors = Array.isArray(r.diagram_anchors) ? r.diagram_anchors : [];
-    const diagrams = svgs.map((svg, i) => ({ svg, anchor: anchors[i] != null ? anchors[i] : null }));
+    const diagrams = svgs
+      .map((svg, i) => ({ svg, anchor: anchors[i] != null ? anchors[i] : null }))
+      .filter((d) => d.svg);                   // drop missing SVGs AFTER pairing — never before (keeps anchor alignment)
     return {
       id: r.id,
       name: r.name,
@@ -492,7 +496,18 @@ function runSelftest() {
   assert(ah.indexOf('lead-null') < ah.indexOf('after-anchor'), 'leading group precedes the anchored diagram');
   assert(ah.indexOf('after-anchor') > ah.lastIndexOf(aTxt.slice(0, 40)), 'anchored diagram placed after its anchor block');
 
-  console.log('build-library --selftest: PASS (views, group-by, sidebar, tags, share, masthead, inline-anchor diagrams, self-contained)');
+  // --- regression: a missing/falsy SVG must not shift a later diagram onto the wrong anchor ---
+  // 3 diagrams, anchors [null, null, aTxt]; the MIDDLE file is missing (''). The third diagram must
+  // still pair with anchors[2]=aTxt (placed after its block). Under the old filter-before-zip bug the
+  // survivor would re-index to anchors[1]=null and land in the leading group, before the aTxt block.
+  // (diagrams[0] is present so it — not the survivor — becomes the card thumbnail, keeping the
+  // index-based assertion below honest.)
+  const gapRec = [{ ...anchorRec[0], diagram_anchors: [null, null, aTxt] }];
+  const gapH = buildHtml(gapRec, () => ['<svg id="thumb0"></svg>', '', '<svg id="survivor-after"></svg>']);
+  assert(gapH.indexOf('survivor-after') >= 0, 'surviving diagram still rendered when an earlier one is missing');
+  assert(gapH.indexOf('survivor-after') > gapH.lastIndexOf(aTxt.slice(0, 40)), 'survivor pairs with its OWN anchor (after the block), not the missing diagram\'s null anchor');
+
+  console.log('build-library --selftest: PASS (views, group-by, sidebar, tags, share, masthead, inline-anchor diagrams, missing-svg alignment, self-contained)');
 }
 
 function main() {
@@ -517,7 +532,7 @@ function main() {
   const diagramsFor = (r) => {
     // prefer the diagrams[] array; fall back to the single diagram field (back-compat).
     const list = Array.isArray(r.diagrams) && r.diagrams.length ? r.diagrams : (r.diagram ? [r.diagram] : []);
-    return list.map(readSvg).filter(Boolean);
+    return list.map(readSvg);   // keep '' for missing files — index must stay aligned with diagram_anchors; buildHtml drops the gaps after zipping
   };
   const html = buildHtml(records, diagramsFor);
   const tmp = out + '.tmp';
