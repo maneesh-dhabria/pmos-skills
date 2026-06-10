@@ -2,7 +2,7 @@
 name: plan
 description: Create an execution plan from a spec — deep code study, TDD tasks with inline verification, decision logging, risk assessment, and a concrete final verification checklist. Third stage in the requirements -> spec -> plan pipeline. Always full format. Use when the user says "break this into tasks", "create the implementation steps", "how do we implement this", or has a spec ready for task breakdown.
 user-invocable: true
-argument-hint: "<path-to-spec-doc> [--backlog <id>] [--feature <slug>] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> [--feature <slug>] [--backlog <id>] [--fix-from <task-id>] [--non-interactive | --interactive]"
 ---
 
 # Implementation Plan Generator
@@ -15,6 +15,8 @@ Create a comprehensive, engineer-ready implementation plan from a spec. The plan
 ```
 
 The plan translates a spec into **bite-sized, TDD-driven tasks** with exact file paths, exact commands, and inline verification at every step. It inherits architecture decisions from the spec and adds implementation-specific decisions.
+
+Natural language is the primary interface: every option below has a natural-language equivalent ("re-plan from T5 onward" ≡ `--fix-from T5`, "add tasks without renumbering" ≡ Append mode) — infer the option from the request; an explicit flag overrides inference.
 
 **Announce at start:** "Using the plan skill to create an implementation plan."
 
@@ -47,7 +49,7 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 
 ---
 
-## Phase 0: Pipeline Setup (inline — do not skip)
+## Phase 0: Pipeline Setup (inline — do not skip) {#pipeline-setup}
 
 Use workstream context (loaded by step 3 below) to inform task design — tech stack, constraints, and deployment patterns shape implementation planning.
 
@@ -66,16 +68,11 @@ Use workstream context (loaded by step 3 below) to inform task design — tech s
 
 ### Phase 0 — additional /plan steps (after the canonical block above)
 
-7. **Acquire `.plan.lock`** (FR-66). Write `{feature_folder}/.plan.lock` with `pid + ISO timestamp + skill_version`. If the file already exists, refuse with a platform-aware error sourced via `_shared/platform-strings.md` citing the existing pid (e.g., `[/plan] Another plan run is in progress (pid=<n>, started <time>). Re-run with --force-lock if you are sure no other plan run is active.`). Release the lock on completion or on any fatal error. The `--force-lock` flag clears a stale lock without prompting.
-
-8. **Back up existing plan** (FR-67). If `{feature_folder}/03_plan.html` (or legacy `03_plan.md`) exists, copy it to `{feature_folder}/03_plan_pre-cap-abandon_<ISO>.<ext>` preserving the original extension. The backup is removed on successful exit; restored to its original path on the Cap-Hit Abandon disposition (FR-40).
-
-9. **Validate spec frontmatter** (FR-50, FR-50a, E1). Locate the spec via `_shared/resolve-input.md` with `phase=spec`, `label="spec"`:
-   - **Spec missing** (FR-50) → resolver raises a platform-aware error with `Run /spec first.` appended.
-   - **Frontmatter parse** (FR-50a, *deviation per Decision Log P9*): parse via regex — extract YAML between leading `---` markers, line-by-line `^([a-z_]+):\s*(.*)$`. On a malformed line refuse with: `Spec frontmatter parse error at line N: <observed-token>. Fix YAML syntax and re-run.` (Wording differs from spec FR-50a's `<yaml-lib message>` because skills have no YAML library; refuse-on-malformed behavior is preserved.)
-   - **Missing `tier`** (E1) → refuse with: `Spec at {feature_folder}/02_spec.{html,md} missing required tier: frontmatter — re-run /spec to add it.`
-
-10. **Resolve `output_format`** (FR-12). Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the /plan addendum above (steps 7-9).
+7. **Concurrency guard.** If `{feature_folder}/.plan.lock` exists, warn the user that another /plan run may be in progress and confirm before proceeding (in `--non-interactive` mode, note the stale lock in `03_plan_auto.md` and proceed). Write the lockfile on entry; delete it on exit.
+8. **Validate the spec.** Locate it via `_shared/resolve-input.md` with `phase=spec`, `label="spec"` — missing spec → platform-aware error (via `_shared/platform-strings.md`) with `Run /spec first.` appended. Refuse if the spec frontmatter is malformed YAML or missing `tier:` — tell the user to fix the frontmatter or re-run /spec.
+9. **Resolve `output_format`** from `.pmos/settings.yaml` (default `html`; `both` is retired — treat it as `html`). State the resolved format and its source (cli / settings / default) once at Phase 0 entry.
+   <!-- nl-sugar -->
+   `--format <html|md>` (or "emit markdown too") overrides settings; last flag wins on conflict.
 
 ---
 
@@ -109,22 +106,20 @@ Use workstream context (loaded by step 3 below) to inform task design — tech s
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Intake
+## Phase 1: Intake {#intake}
 
-1. **Locate the spec.** Follow `_shared/resolve-input.md` with `phase=spec`, `label="spec"`.
+1. **Use the spec located in Phase 0 step 8.**
 <!-- defer-only: ambiguous -->
 2. **Read the spec end-to-end.** Summarize it back in 3-5 bullets and confirm understanding with the user via AskUserQuestion.
-3. **Read tier and type from spec frontmatter** (FR-01). Re-use the parse from Phase 0 step 9; set `{tier}` and `{type}` for downstream phases. Tier-N gating in Phase 3 / Phase 4 keys off `{tier}`; per-task TDD precedence (FR-104a) keys off `{type}`.
+3. **Read `tier` and `type` from the spec frontmatter.** The tier was detected upstream and carries forward per `_shared/tier-matrix.md` — announce it, don't re-ask. Tier gating in Phase 3 / Phase 4 keys off `{tier}`; per-task TDD precedence keys off `{type}`.
 <!-- defer-only: ambiguous -->
-4. **Surface simulate-spec findings** (FR-51). Glob `{feature_folder}/02_simulate-spec_*.md`. If a file exists with unresolved findings, run a §8.6 batched `AskUserQuestion` per finding before proceeding — options: **Update spec to address before planning** / **Treat as Open Question in plan** / **Accept as risk** / **Skip — already resolved upstream**.
+4. **Surface simulate-spec findings.** Glob `{feature_folder}/02_simulate-spec_*.md`. If a file exists with unresolved findings, run a batched `AskUserQuestion` per finding before proceeding — options: **Update spec to address before planning** / **Treat as Open Question in plan** / **Accept as risk** / **Skip — already resolved upstream**.
 5. **Check for an existing plan.** Use `_shared/resolve-input.md` with `phase=plan`, `label="prior plan"` to locate either `{feature_folder}/03_plan.html` (preferred) or `{feature_folder}/03_plan.md` (legacy fallback).
    - If found: read it, ask if this is an update or fresh start.
    - If not found: proceed.
-6. **`--fix-from <task-id>` branch** (FR-56, FR-67a, FR-67b, E10). When `--fix-from <task-id>` is passed:
-   - Read `{feature_folder}/03_plan_defect_<task-id>.md` per spec §7.5. If the defect file does not exist, refuse with platform-aware error: `No defect file found at {path}. /execute writes this file on planning defect; nothing to fix from.`
-   - `--widen-to <upstream-task-id>` (FR-67a) widens the rewrite scope to start at the upstream task.
-   - `--cross-phase-downstream` (FR-67b) extends the rewrite into downstream phases when the defect changes a contract that downstream tasks depend on.
-   - Enter Edit mode (FR-60) scoped per the flags; do not regenerate untouched tasks.
+6. **Defect-driven re-plan (`--fix-from <task-id>`).** /execute writes `{feature_folder}/03_plan_defect_<task-id>.md` when a task fails for plan reasons, and names this invocation. Read the defect file; if it does not exist, refuse with a platform-aware error: `No defect file found at {path}. /execute writes this file on planning defect; nothing to fix from.` Enter Edit mode scoped to the named task; do not regenerate untouched tasks. Widen the scope when the user asks — "the root cause is upstream, re-plan from T3" moves the rewrite start upstream; "this contract change ripples into later phases" extends the rewrite into downstream phases.
+   <!-- nl-sugar -->
+   (`--widen-to <upstream-task-id>` and `--cross-phase-downstream` are parsed as explicit spellings of those two requests.)
 
 **Scope check:** If the spec covers multiple independent subsystems, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
@@ -132,7 +127,7 @@ Use workstream context (loaded by step 3 below) to inform task design — tech s
 
 ---
 
-## Phase 2: Deep Code Study
+## Phase 2: Deep Code Study {#code-study}
 
 Study the existing code that will be impacted. This is NOT a skim — you must read the actual files.
 
@@ -150,25 +145,23 @@ Study the existing code that will be impacted. This is NOT a skim — you must r
    - **Authoritative for:** IA, screen inventory, component presence, copy and labels, state coverage (loading/empty/error/success), navigation entry/exit, journey shape. Tasks must implement these.
    - **NOT authoritative for:** visual style, color, typography, spacing, iconography, component library. Tasks should adapt the wireframe to the host app's existing design system and conventions — never copy visual treatment verbatim when it conflicts with the host app.
 
-   Every UI task in Phase 3 must cite the wireframe(s) it implements via a `**Wireframe refs:**` field — same discipline as `**Spec refs:**`. This preserves the wireframe→implementation→verification chain for /verify Phase 4 sub-step 4f. If the host app has established patterns (Tailwind tokens, component library, layout conventions) that differ from the wireframe's visual treatment, the task should explicitly say "follow host-app convention X" rather than "match wireframe."
-7. **Identify the tracer-bullet candidate** (see Phase 3 §Vertical-Slice Decomposition). Scan the spec for the narrowest user-observable behavior — the smallest end-to-end path through every layer the feature touches. Earmark it as the candidate for T1, the tracer bullet. If the spec offers multiple candidate narrowest paths, pick the one that exercises the riskiest unproven integration point (a new protocol, an unfamiliar library, a cross-service handshake). The result is a one-line note in Code Study Notes, format: `Tracer-bullet candidate: <narrowest behavior> — exercises <layers>; risk it derisks: <unproven integration>.` Phase 3 builds T1 against this candidate.
-8. **Detect stack signals** (FR-10). Glob host-repo root for manifest files: `package.json`, `Gemfile`, `go.mod`, `requirements.txt`, `pyproject.toml`, `Cargo.toml`, `pom.xml`, `composer.json`, `docker-compose.yml`, `Makefile`, `Dockerfile`. Compute file-count weight per stack. Log signals to a "Stack signals" subsection of Code Study Notes (FR-100).
+   Every UI task in Phase 3 must cite the wireframe(s) it implements via a `**Wireframe refs:**` field — same discipline as `**Spec refs:**`. This preserves the wireframe→implementation→verification chain for /verify Phase 4 sub-step 4f. If the host app has established patterns that differ from the wireframe's visual treatment, the task should explicitly say "follow host-app convention X" rather than "match wireframe."
+7. **Identify the tracer-bullet candidate.** Scan the spec for the narrowest user-observable behavior — the smallest end-to-end path through every layer the feature touches; if several qualify, pick the one through the riskiest unproven integration point (a new protocol, an unfamiliar library, a cross-service handshake). Record a one-line note in Code Study Notes: `Tracer-bullet candidate: <narrowest behavior> — exercises <layers>; risk it derisks: <unproven integration>.` Phase 3 builds T1 against this candidate (see §Vertical-Slice Decomposition).
+8. **Detect stack signals.** Glob host-repo root for manifest files: `package.json`, `Gemfile`, `go.mod`, `requirements.txt`, `pyproject.toml`, `Cargo.toml`, `pom.xml`, `composer.json`, `docker-compose.yml`, `Makefile`, `Dockerfile`. Compute file-count weight per stack; ties break alphabetically (in `--non-interactive` mode, log the tiebreak to `03_plan_auto.md`). Log signals to a "Stack signals" subsection of Code Study Notes.
 
-   **JS-stack lockfile disambiguation** (FR-10a): map lockfile presence → stack: `package-lock.json` → npm; `pnpm-lock.yaml` → pnpm; `yarn.lock` + no `.yarnrc.yml` → yarn-classic; `yarn.lock` + `.yarnrc.yml` → yarn-berry; `bun.lockb` → bun. When `package.json` is present with no lockfile, default to npm and surface as a low-risk Phase 4 finding.
-
-   **Tiebreak** (FR-14a): equal weights → alphabetical. In `--non-interactive` mode the tiebreak is logged to `03_plan_auto.md`.
+   **JS-stack lockfile disambiguation:** `package-lock.json` → npm; `pnpm-lock.yaml` → pnpm; `yarn.lock` + no `.yarnrc.yml` → yarn-classic; `yarn.lock` + `.yarnrc.yml` → yarn-berry; `bun.lockb` → bun. When `package.json` is present with no lockfile, default to npm and surface as a low-risk Phase 4 finding.
 
    <!-- defer-only: ambiguous -->
-   **Stack-ambiguity prompt** (§8.4) — interactive mode only: if signals are mixed (e.g., monorepo with both npm and python), surface via `AskUserQuestion`: `Detected mixed stack signals. Pick the primary for plan generation:` with options `<stack-1>` / `<stack-2>` / `Mono-repo: pick all` / `Other` (FR-14).
+   **Stack-ambiguity prompt** — interactive mode only: if signals are mixed (e.g., monorepo with both npm and python), surface via `AskUserQuestion`: `Detected mixed stack signals. Pick the primary for plan generation:` with options `<stack-1>` / `<stack-2>` / `Mono-repo: pick all` / `Other`.
 
-   **Greenfield substitute** (FR-91, E2). When no signals are observed, do NOT skip the gate — choose a reference system (the closest existing system the planner can cite) and record the choice in Code Study Notes. **Phase 2 gate:** structural choices must be justified against ≥1 reference system; absence of stack signals is not a license to invent.
+   **Greenfield substitute.** When no signals are observed, choose a reference system — the closest existing system you can cite — and record the choice in Code Study Notes. Structural choices should be justified against ≥1 reference system; absence of stack signals is not a license to invent.
 
-9. **Peer-plan conflict scan** (FR-54, FR-54a). Glob `{docs_path}/features/*/03_plan.{html,md}` (excluding the current feature folder). Filter by frontmatter `status` ∈ {`Draft`, `Planned`, `Executing`}. Grep each peer plan for impacted file paths from step 1. On match, add a Risks-table row + an Open Question.
+9. **Peer-plan conflict scan.** Glob `{docs_path}/features/*/03_plan.{html,md}` (excluding the current feature folder). Filter by frontmatter `status` ∈ {`Draft`, `Planned`, `Executing`}. Grep each peer plan for impacted file paths from step 1. On match, add a Risks-table row + an Open Question.
 
-10. **Wireframe coverage** (FR-16, FR-16a). If `{feature_folder}/wireframes/` exists, every `*.html` file under it must be referenced by ≥1 task's `**Wireframe refs:**` field OR listed in a `## Wireframes Out of Scope` subsection of the plan. **Vestigial wireframes** (FR-16a): when no UI signal is detected (no UI tasks in the spec) but the wireframes folder exists, auto-emit `## Wireframes Out of Scope` with all wireframes listed.
+10. **Wireframe coverage.** If `{feature_folder}/wireframes/` exists, every `*.html` file under it must be referenced by ≥1 task's `**Wireframe refs:**` field OR listed in a `## Wireframes Out of Scope` subsection of the plan. When no UI signal is detected (no UI tasks in the spec) but the wireframes folder exists, auto-emit `## Wireframes Out of Scope` with all wireframes listed.
 
 <!-- defer-only: ambiguous -->
-11. **Spec re-open during planning** (§8.7, E13). When Phase 2 code study contradicts a spec decision (e.g., spec says "use Postgres" but `docker-compose.yml` shows MySQL), halt via `AskUserQuestion`: `Spec decision conflicts with repo standard. {Spec text} vs {observed standard}. How to resolve?` Options: **Halt /plan and update spec** (terminates this run; user re-runs /spec then /plan) / **Document override in spec via Decision Log entry** (open spec, add Decision Log entry citing the divergence with rationale, save, continue planning) / **Accept spec as-is despite divergence** (record decision in plan's Decision Log; proceed with spec's choice) / **Skip — not actually a conflict** (spec was correct; observation was misread). In `--non-interactive` mode this is a high-risk decision with no Recommended option → trigger FR-61a halt protocol (exit code 2 + write `03_plan_blocked.md`).
+11. **Spec re-open during planning.** When Phase 2 code study contradicts a spec decision (e.g., spec says "use Postgres" but `docker-compose.yml` shows MySQL), halt via `AskUserQuestion`: `Spec decision conflicts with repo standard. {Spec text} vs {observed standard}. How to resolve?` Options: **Halt /plan and update spec** (terminates this run; user re-runs /spec then /plan) / **Document override in spec via Decision Log entry** (open spec, add the entry citing the divergence with rationale, save, continue planning) / **Accept spec as-is despite divergence** (record decision in plan's Decision Log; proceed with spec's choice) / **Skip — not actually a conflict**. In `--non-interactive` mode this is a high-risk decision with no Recommended option → follow the non-interactive halt protocol (see "Operational Modes").
 
 12. **Summarize findings** in a "Code Study Notes" section for the plan.
 
@@ -176,37 +169,21 @@ Study the existing code that will be impacted. This is NOT a skim — you must r
 
 ---
 
-## Phase 3: Write the Plan
+## Phase 3: Write the Plan {#write-plan}
 
-Save to `{feature_folder}/03_plan.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. Overwrite if it already exists.
-
-**Atomic write (FR-10.2):** write `03_plan.html` and the companion `03_plan.sections.json` via temp-then-rename — never serve a half-written file.
-
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically without per-skill prose updates. Idempotent — `cp -n` (no-clobber) or `rsync --update` skips identical files.
-
-**Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `plan` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="plan">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
-
-**Asset prefix (FR-10.1):** the per-folder relative asset prefix for top-level feature-folder artifacts is `assets/`.
-
-**Cache-bust (FR-10.3):** append `?v=<plugin-version>` to all asset URL references emitted into the HTML (substrate `template.html` already does this for the loader pair; skill-emitted inline `<link>` / `<script>` references must follow suit).
-
-**Heading IDs (FR-03.1):** every `<h2>` and `<h3>` MUST carry a stable kebab-case `id`. Compute via `_shared/html-authoring/conventions.md` §3 — lowercase, replace non-alphanumeric runs with `-`, trim, dedupe collisions with `-2`/`-3`/... suffixes. Stable IDs let cross-doc anchors (`02_spec.html#fr-10`, `03_plan.html#t8`) resolve deterministically across regenerations. `assert_heading_ids.sh` (T22) blocks any artifact missing an id.
-
-**Index regeneration (FR-22, §9.1):** after the artifact write completes, regenerate `{feature_folder}/index.html` by inlining the manifest per `_shared/html-authoring/index-generator.md` (no on-disk `_index.json` is written; the manifest is inlined as `<script type="application/json" id="pmos-index">`, FR-41).
-
-**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
+**Emit per `_shared/html-authoring/README.md` checklist.** Deltas: artifact = `03_plan.html` (+ companion `03_plan.sections.json`), `{{pmos_skill}}` = `plan`, save path = `{feature_folder}/`, asset prefix = `assets/`. Overwrite an existing plan in place. The checklist's asset copy ships the inline-comments overlay (`comments.js` + launchers) along with the viewer assets — the checklist owns that list; do not restate it here.
 
 ### Tier Gates (Phase 3 emission rules per `{tier}` from Phase 1)
 
-Each tier gates which sections / how much rigor the plan must include (FR-02, FR-03, FR-04):
+Tier boundary semantics and the detect-once rule live in `_shared/tier-matrix.md`; the bullets below are /plan's per-artifact reaction:
 
-- **Tier 1 (bugfix):** ≥1 task floor; **no Decision-Log floor** (skip the table when there is exactly one obvious fix); **no Phase 5** for plans this small (Phase 4 review is sufficient); reduced TN = `T0 + lint + test + Done-when walkthrough`.
+- **Tier 1 (bugfix):** ≥1 task floor; **no Decision-Log floor** (skip the table when there is exactly one obvious fix); reduced TN = `T0 + lint + test + Done-when walkthrough`.
 - **Tier 2 (enhancement):** ≥1 Decision-Log entry; 1 review loop; Risks and Rollback are optional unless triggered by content; full TN.
-- **Tier 3 (feature):** ≥3 Decision-Log entries; 2–4 review loops (cap-of-4 per FR-40); mandatory Risks table; Rollback is conditional on data/deploy involvement; full TN.
+- **Tier 3 (feature):** ≥3 Decision-Log entries; 2–4 review loops; mandatory Risks table; Rollback is conditional on data/deploy involvement; full TN.
 
-**Done-when rules (all tiers):** the `**Done when:**` line states lower bounds and qualitative gates only (FR-22). Plans MUST include ≥1 quantitative or executable assertion in Done-when (FR-22a) — e.g., "all 17 tests pass", "lint exits 0", "p95 < 500ms". The plan MUST include a "Done-when walkthrough" — a concrete narrative tracing the Done-when line through the system (FR-22b). Replaces the legacy "Manual spot check" line.
+**Done-when rules (all tiers):** the `**Done when:**` line states lower bounds and qualitative gates only, and MUST include ≥1 quantitative or executable assertion — e.g., "all 17 tests pass", "lint exits 0", "p95 < 500ms". The plan MUST include a "Done-when walkthrough" — a concrete narrative tracing the Done-when line through the system (replaces the legacy "Manual spot check" line).
 
-### Code Study Notes structure (FR-100)
+### Code Study Notes structure
 
 The `## Code Study Notes` section MUST contain four subsections — each may be marked "None observed" but cannot be omitted:
 
@@ -215,21 +192,21 @@ The `## Code Study Notes` section MUST contain four subsections — each may be 
 - `### Constraints discovered` — gotchas, hidden invariants
 - `### Stack signals` — the per-stack signals from Phase 2 step 8
 
-### Readability promise (FR-101)
+### Readability promise
 
 The plan must be executable by a developer with the codebase open but no prior conversation context. The plan inlines decisions and exact paths; the codebase remains source of truth for conventions.
 
-### Glossary inheritance (FR-102)
+### Glossary inheritance
 
-The plan inherits its glossary from the spec via citation (`see 02_spec.{html,md} §X for glossary`); the plan introduces no new domain terms not already in the spec. Phase 4 review check: a novel domain term is a finding — low-risk if a re-word fits existing vocabulary; high-risk if the concept is genuinely new (route through spec, halt).
+The plan inherits its glossary from the spec via citation (`see 02_spec.{html,md} §X for glossary`) and introduces no new domain terms. Phase 4 treats a novel domain term as a finding — low-risk if a re-word fits existing vocabulary; high-risk if the concept is genuinely new (route through spec).
 
-### Tests are illustrative (FR-103)
+### Tests are illustrative
 
 Plan-emitted tests are illustrative reference shape, not literal. /execute may adapt to host conventions (fixture names, framework version, helper signatures). Phase 4 checks shape preservation (same inputs/outputs/assertions), not literal text match.
 
 ### Plan Document Structure
 
-The full plan document skeleton — including the per-task (T1 / TN) templates — lives in [`reference/plan-templates.md`](reference/plan-templates.md). **Read that file and emit the structure** as the plan body, applying the Tier Gates below (which sections are mandatory per `{tier}`). Do not re-derive the skeleton from memory — the reference file is the source of truth.
+The full plan document skeleton — including the per-task (T1 / TN) templates — lives in [`reference/plan-templates.md`](reference/plan-templates.md). **Read that file and emit the structure** as the plan body, applying the Tier Gates above. Do not re-derive the skeleton from memory — the reference file is the source of truth.
 
 ### Task Design Rules
 
@@ -245,7 +222,9 @@ The full plan document skeleton — including the per-task (T1 / TN) templates �
 
 **Exception path.** Refactors, schema-only spikes, pure-CSS changes, and config/IaC tasks cannot be vertical — there is no end-to-end behavior to deliver. Such tasks MUST declare the exception with a one-line rationale in the **Slice shape** field (see below). A task without an explicit exception declaration is assumed to be a vertical slice.
 
-**Slice shape field.** Each task MAY include a `**Slice shape:** vertical | refactor-prep | spike | css-only | config` field. When omitted, `vertical` is assumed. Non-vertical tasks MUST include the field with a one-line rationale, e.g., `**Slice shape:** refactor-prep — extracts the auth helper T3's vertical cut depends on.` Phase 4 review (item 13) enforces this.
+**Slice shape field.** Each task MAY include a `**Slice shape:** vertical | refactor-prep | spike | css-only | config` field. When omitted, `vertical` is assumed. Non-vertical tasks MUST include the field with a one-line rationale, e.g., `**Slice shape:** refactor-prep — extracts the auth helper T3's vertical cut depends on.` Phase 4 review enforces this.
+
+This section is the single home of the vertical-slice rule — every other mention (Phase 2 step 7, structural checklist, anti-patterns, phase groupings) points here.
 
 #### Optional: `## Phase N` Groupings (for large plans)
 
@@ -257,25 +236,20 @@ For plans with **more than ~12 tasks**, group tasks under `## Phase N: <name>` h
 ## Tasks
 
 ## Phase 1: Tracer bullet — single record end-to-end
-[Phase rationale: prove the full request → persistence → render path for one record with hardcoded inputs. Riskiest integration points (new auth handshake, new ORM mapping) are inside this slice. Demoable: a user can create-and-see one record by the end of the phase.]
+[Phase rationale: prove the full request → persistence → render path for one record with hardcoded inputs; riskiest integration points inside this slice; demoable at phase end.]
 
 ### T1: ... (tracer bullet — minimal end-to-end path)
 ### T2: ... (widen T1 with realistic input validation)
-### T3: ... (add the first non-trivial relationship to T1's record)
 
 ## Phase 2: Widen — list, filter, edit
-[Phase rationale: with the end-to-end skeleton proven in Phase 1, widen read and mutate paths. Each task remains a vertical slice that ships a user-observable improvement (list view, filter, edit form).]
-
-### T4: ... (list view of records)
-### T5: ... (filter by status — still end-to-end)
+[Phase rationale: with the skeleton proven, widen read and mutate paths — each task still a user-observable vertical slice.]
 ```
 
 **Rules:**
 - Phases are **optional**. Plans ≤ 8 tasks should skip them.
 - Each phase boundary triggers **full /verify** (multi-agent code review + interactive QA) — slow. Make phases **deployable slices** of 5–10 tasks. Avoid 1–2 task phases (verify cost dwarfs the work).
-- Phases are contiguous: a task belongs to exactly one phase; phase numbering starts at 1; no gaps.
-- Phase 1 always begins at T1.
-- Phases group **vertical slices**, not layers — see §Vertical-Slice Decomposition above. Horizontal phase names ("all migrations", "all endpoints", "all UI") are an anti-pattern: every phase must be a deployable, user-observable slice on its own. Phase 1 is the tracer bullet — narrow but end-to-end through the riskiest unproven integration points.
+- Phases are contiguous: a task belongs to exactly one phase; phase numbering starts at 1; no gaps. Phase 1 always begins at T1.
+- Phases group **vertical slices**, not layers — see §Vertical-Slice Decomposition.
 
 Plans without `## Phase N` headings continue to work — /execute treats them as a single implicit phase verified once at the end.
 
@@ -298,7 +272,7 @@ Plans without `## Phase N` headings continue to work — /execute treats them as
 
 **Prescribe the interface, leave the implementation:** Specify function names, signatures, test assertions, file paths, and commands. Leave internal algorithm details and refactoring decisions to the implementor.
 
-**Task code block size:** if a single task's pasted code block exceeds ~80 lines, choose one of: (a) split the task into smaller tasks, (b) reference an external scratch file the implementor opens, or (c) prescribe the interface (function signatures, test assertions, expected behavior) and let the implementor write the body. Long pasted code blocks bias plan length and substitute for engineering judgment.
+**Task code block size:** if a single task's pasted code block exceeds ~80 lines, choose one of: (a) split the task into smaller tasks, (b) reference an external scratch file the implementor opens, or (c) prescribe the interface and let the implementor write the body. Long pasted code blocks bias plan length and substitute for engineering judgment.
 
 ### Verification Must Prove Behavior
 
@@ -325,7 +299,7 @@ When writing a task's test step, check: does the test use realistic data and ass
 
 ### Decision Log Rules
 
-The Decision Log is mandatory. Minimum 3 entries. Capture every non-trivial implementation choice:
+Capture every non-trivial implementation choice (entry floors per Tier Gates above):
 - Task ordering decisions
 - TDD vs implement-then-test for specific areas
 - Where to put functions/files
@@ -336,72 +310,41 @@ Each entry MUST have "Options Considered" and "Rationale."
 
 ---
 
-## Phase 4: Review Loops
+## Phase 4: Review Loops {#review-loops}
 
-After writing the initial plan, run iterative review loops with a **hard cap of 4 loops** (FR-40; replaces the legacy "minimum 2 loops" rule). Tier-2 plans typically converge in 1 loop; Tier-3 plans run 2–4. The cap exists to prevent indefinite churn.
+After writing the initial plan, review it in iterative loops. Tier-2 plans typically converge in 1 loop; Tier-3 in 2–4. The loop bound of 4 is a **cost governor, not a quality gate** (a call-site delta to `_shared/reviewer-protocol.md`'s default 2-loop cap): stop looping when a pass finds only cosmetic issues. The final loop doubles as the conciseness / spec-coverage / coherence pass — there is no separate review phase after this one.
 
 <!-- defer-only: ambiguous -->
-**Cap-hit interactive (FR-40):** when loop 4 still produces findings, surface via `AskUserQuestion`: `Review-loop cap reached (4 loops). Findings still open. How to proceed?` Options:
-- **Continue** — extend by 1 loop (single-shot override; cap effectively becomes 5).
-- **Accept and proceed** — fold remaining findings into Open Questions, ship the plan as-is.
-- **Abandon** — restore the pre-cap-abandon backup (FR-67), exit with no plan written.
+**Bound hit (interactive):** if loop 4 still produces findings, surface via `AskUserQuestion`: `Review-loop bound reached (4 loops). Findings still open. How to proceed?` Options: **Continue** (one more loop) / **Accept and proceed** (fold remaining findings into Open Questions, ship as-is) / **Abandon** (stop without declaring the plan ready; tell the user what state the file is in).
 
-**Cap-hit non-interactive (FR-40a):** auto **Accept and proceed**, AND insert a `## Convergence Warning` section at the **TOP of the `03_plan.{html,md}` body** (NOT in a sidecar — visibility to /verify and humans is the priority). The warning lists the open findings the cap dropped.
+**Bound hit (non-interactive):** auto **Accept and proceed**, AND insert a `## Convergence Warning` section at the **top of the plan body** (not a sidecar — visibility to /verify and humans is the priority) listing the open findings that were dropped.
 
-### Auto-classification of findings (FR-41, FR-41a, FR-41b)
+### What may be auto-applied
 
-Each finding is classified low-risk or high-risk before being surfaced to the user:
+Auto-apply only mechanical fixes: typos, formatting, a missing command in a verification step where the answer is unambiguous, a wireframe-ref addition when the file is unambiguous. Anything that changes task structure, dependencies, scope, sections, or decisions goes to the user. **When unsure, escalate** — never auto-apply an ambiguous finding. Re-check auto-applied fixes in the next loop, not within the same one.
 
-**Low-risk classes (auto-applyable when interactive ergonomics allow it):**
-- (a) typos / grammar
-- (b) missing exact command in a verification step that already has expected output
-- (c) lint-style suggestions (whitespace, formatting)
-- (d) section-presence completions where the content already exists elsewhere in the plan
-- (e) wireframe-ref additions when the wireframe file is unambiguous
-- (f) cosmetic clarifications
+### Loop 2 — blind subagent review
 
-**High-risk classes (always escalate, never auto-apply):**
-- (a) task split or merge
-- (b) dependency-graph changes
-- (c) new sections
-- (d) decision-log reversals
-- (e) TN-scope changes
-- (f) tier-gated mandate shifts
-- (g) frontmatter-contract or cross-skill-handshake changes
+Loop 1 is self-review (both checklists below). Loop 2, if reached, dispatches a fresh reviewer subagent given **only** the plan + spec, per `_shared/reviewer-protocol.md` (chrome-strip input, `sections_found` + quote-grounded findings, parent-side validation; call-site delta: /plan's loop bound is 4, not the default 2). The dispatch inherits the parent model — blind design review is genuine judgment, not mechanical extraction. On platforms without subagents, or when /plan is itself running as a subagent, fall back to a self-review with the prompt "review as if seeing this for the first time."
 
-**Default for ambiguous findings: high-risk** (escalate). Never auto-apply when classification is uncertain.
+### Skip list
 
-**FR-41b:** post-auto-apply re-validation is deferred to Loop N+1 (avoids infinite-loop risk within a single loop iteration).
+When the user picks `Skip` or `Defer` on a finding, append a one-line summary (finding + disposition + date) to `{feature_folder}/03_plan_skip-list.md` — a plain accumulating bullet list. On later runs, read it first and don't re-raise findings that match a skipped entry (best-effort text match — a false re-raise costs the user one click). The list is preserved across Edit / Replan / Append runs; clear it only when the user asks.
+<!-- nl-sugar -->
+(`--reset-skip-list` is the explicit spelling of "clear the skip list".)
 
-### Loop 2 — blind subagent dispatch (FR-42)
+### Review log sidecar
 
-Loop 1 is self-review (structural + design checklists below). Loop 2, if reached, dispatches a fresh subagent (Explore or general-purpose, no shared context) given **only** the plan + spec for blind-review findings. On platforms without subagents, Loop 2 falls back to a self-review with the prompt "review as if seeing this for the first time."
+Detailed loop-by-loop findings live in `{feature_folder}/03_plan_review.md`, appending a `## Loop N` block per loop across runs. The plan body's `## Review Log` table is a summary index pointing at the sidecar.
 
-**Timeout (FR-42a):** 5-minute wall-clock cap on the subagent dispatch. On timeout, skip subagent findings and emit a low-risk note in the Review Log: `Loop 2 subagent timed out; no blind-review findings consumed.`
+### Mechanical hard-fails
 
-**Nested-subagent gating (FR-42b):** when /plan itself runs as a subagent (detection: env marker `PMOS_NESTED=1`), do NOT dispatch the Loop-2 blind-review subagent — fall back to self-review on Loop 2. Avoids unbounded subagent recursion.
+Two checks are cheap, deterministic, and hard-fail the loop:
 
-### Skip List sidecar (FR-43, FR-43a, FR-43b, FR-43c, FR-43d)
+1. **Broken refs:** any task's `**Spec refs:**` citing a `02_spec.{html,md}#anchor` that does not resolve against the spec's heading ids is a high-risk finding. This check feeds /verify's re-check downstream.
+2. **Unmitigated High risks:** any High-severity row in the Risks table that lacks a per-task Mitigation citation.
 
-When the user picks `Skip` or `Defer` on a finding, persist it to `{feature_folder}/03_plan_skip-list.md`. The Skip List is a sidecar (FR-45 family); it accumulates across runs (FR-44) and is not regenerated from scratch on `/plan` re-invocation.
-
-- **FR-43:** entries are keyed by a stable `finding_hash = sha256(finding_text + proposed_fix + classification)`. The plan itself does not embed Skip List content — it cites the sidecar.
-- **FR-43a (hash integrity):** on re-invocation, /plan recomputes the hash for each existing finding and reconciles against the sidecar; mismatches surface as a Phase 4 finding ("Skip List entry no longer matches current finding text").
-- **FR-43b (mode-aware preservation):** in Edit / Replan / Append modes (see "Operational Modes" below), Skip List entries are preserved unless the user explicitly removes them via `/plan --reset-skip-list`.
-- **FR-43c (atomic write):** sidecar writes use a same-directory tempfile + `mv` rename to keep the rename intra-device (R1 mitigation). The tempfile name is `03_plan_skip-list.md.tmp.<pid>` to avoid collision with concurrent runs.
-- **FR-43d (re-validation cadence):** at the start of each subsequent /plan run, re-validate Skip List entries against the current plan; entries whose underlying finding no longer applies are pruned with a note in the Review Log.
-
-### Sidecar review log (FR-45) and Phase 5 fold (FR-46)
-
-Detailed loop-by-loop findings live in a sidecar file `{feature_folder}/03_plan_review.md`. The plan body's `## Review Log` table is a summary index pointing at the sidecar. Sidecar entries follow the same `## Loop N` shape and accumulate across runs.
-
-**Phase 5 fold (FR-46):** the legacy Phase 5 ("Final Review") is **folded into Phase 4** as Loop N's exit checklist. There is no separate Phase 5 in v2 — the conciseness / spec-coverage / coherence pass that used to live there now runs inside the cap-of-4 loop budget. This avoids an unbounded "phase 5" review that previously sat outside the loop discipline.
-
-### Broken-ref and drift checks (FR-31a, FR-31b)
-
-**Broken-ref hard-fail (FR-31a):** Phase 4 hard-fails the loop if any task's `**Spec refs:**` cites a `02_spec.{html,md}#anchor` that does not resolve. For HTML primary, extract `<h[23][^>]*\sid="([^"]+)"`; for legacy MD, extract `^## .* {#kebab}` and `^### .* {#kebab}`. Cross-reference each `02_spec.{html,md}#anchor` cited in the plan; surface each unresolved anchor as a high-risk finding.
-
-**Drift detection (FR-31b):** Phase 4 detects spec-doc drift. Compute `sha256` of the spec frontmatter `date` + section count; compare to a stored value in `03_plan.{html,md}` frontmatter (`spec_hash` extension key). On drift, emit a high-risk finding `Spec has changed since plan was generated. Re-run /plan or accept divergence as a Decision Log entry.`
+**Spec drift (advisory):** at review time, re-read the spec's frontmatter date and section list; if the spec changed since Phase 1, raise a high-risk finding — re-run /plan or record the divergence as a Decision Log entry.
 
 ### Two Types of Review
 
@@ -416,11 +359,11 @@ Each loop runs BOTH checks:
 6. No placeholder language anywhere?
 7. **Type consistency:** Do types, method signatures, and property names used in later tasks match what was defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a plan bug.
 8. Final verification task is concrete and complete?
-9. **Verification quality:** Does every task's test assert on behavioral output with realistic data — not just status codes, exit codes, or "it compiles"? Apply the litmus test: could a subtly broken implementation still pass this verification?
+9. **Verification quality:** Does every task's test assert on behavioral output with realistic data — not just status codes, exit codes, or "it compiles"? Apply the litmus test: could a subtly broken implementation still pass?
 10. **Wireframe linkage:** If `{feature_folder}/wireframes/` exists, does every UI-touching task cite a `**Wireframe refs:**` line? Tasks without wireframe refs are gaps unless the task is non-UI.
 11. **Final-verification polish coverage:** Does TN include the hard-reload-every-route step, the force-an-error-path step, the UX polish checklist line, and (if wireframes exist) the wireframe diff line?
 12. **Refactor-before-modify:** Does any task modify a function whose existing structure isn't preserved by the modification? If yes, the prerequisite refactor must be its own numbered sub-step before the additive change.
-13. **Vertical-slice shape:** Is each task a vertical slice (end-to-end through all layers it touches), or does it declare its `**Slice shape:**` as `refactor-prep | spike | css-only | config` with a one-line rationale? A task that is a pure single-layer cut with no declared exception is a finding (propose splitting it into a vertical slice or adding the exception declaration). For phase-grouped plans, every `## Phase N` MUST be a deployable vertical slice — phase names like "Schema Layer" or "API Layer" are findings (see Anti-Pattern: "Do NOT decompose by layer"). The first task (T1) MUST be a tracer bullet (narrowest end-to-end path through the risky integration points); a T1 that is not end-to-end is a finding. See Phase 3 §Vertical-Slice Decomposition.
+13. **Vertical-slice shape:** Is each task a vertical slice or a declared `**Slice shape:**` exception, is every `## Phase N` grouping a deployable slice (not a layer), and is T1 a tracer bullet? Any miss is a finding — the rule and its exception taxonomy live in Phase 3 §Vertical-Slice Decomposition.
 
 **B. Design-Level Self-Critique** (catches wrong/shallow task decomposition):
 1. **Reviewer perspective:** If you were sent this plan for review, what comments would you add? Read it as a critical reviewer, not the author — flag tasks with unclear scope, missing verification steps, implicit dependencies, and assumptions about what's "obvious."
@@ -433,38 +376,14 @@ Each loop runs BOTH checks:
 1. Run BOTH checklists above
 2. Log findings in the Review Log table
 <!-- defer-only: ambiguous -->
-3. **Present findings via `AskUserQuestion` — do NOT dump them as prose.** Findings shown as text force the user to hand-write dispositions; batching them as structured questions is faster, clearer, and produces a reviewable audit trail. See "Findings Presentation Protocol" below.
-4. Apply the user's dispositions (Fix as proposed / Modify / Skip / Defer) — see protocol below
-5. Fix issues inline — do NOT create a new file
-6. Commit: `git commit -m "docs: plan review loop N for <feature>"`
-
-### Findings Presentation Protocol
-
-For every loop that produces findings (structural or design-critique):
-
-1. **Group findings by category** (e.g., "Missing verification commands", "Oversized tasks", "Type inconsistencies across tasks"). Small categories can be merged; never present more than 4 findings in a single batch.
-<!-- defer-only: ambiguous -->
-2. **One question per finding** via `AskUserQuestion`. Use this shape:
-   - `question`: one-sentence restatement of the finding + the proposed fix (concrete — e.g., "Split Task 4 (migration + backfill + flag flip) into three tasks" not "break up task 4")
-   - `options` (up to 4):
-     - **Fix as proposed** — agent applies the stated change via `Edit`
-     - **Modify** — user edits the proposal (free-form reply expected next turn)
-     - **Skip** — not an issue; drop it (note briefly in Review Log)
-     - **Defer** — log in Open Questions with rationale
-3. **Batch up to 4 questions per interactive-prompt call.** If there are more findings, issue multiple calls sequentially, one category per call.
-4. **Skip the interactive prompt only for findings that need open-ended input** (e.g., "what's the right rollback trigger?"). For those, ask inline as a normal follow-up after the batch — do not shoehorn into options.
-5. **After dispositions arrive,** apply them in order, update the Review Log row to cite dispositions, then ask the user if they see additional gaps before declaring the loop complete.
-
-**Platform fallback (no interactive prompt tool):** list findings as a numbered table with columns [Finding | Proposed Fix | Options: Fix/Modify/Skip/Defer]; ask the user to reply with the disposition numbers. Do NOT silently self-fix.
-
-**Anti-pattern:** A wall of prose ending in "Let me know what you'd like to fix." This forces the user to re-state each finding in their reply. Always structure the ask.
-
-**Edge cases of structured asks:** when a user reply slips outside the offered options (free-form text, a non-recommended pick that may break an invariant, or leftover findings that don't share a category), follow `../_shared/structured-ask-edge-cases.md`.
+3. **Present findings per `_shared/findings-dispositions.md`** (severity tags, ≤4-finding batches via `AskUserQuestion`, the four dispositions, platform fallback). /plan deltas: Skip/Defer dispositions also append to the skip list above; mechanical fixes within "What may be auto-applied" may be applied without a prompt and reported in the loop summary.
+4. Apply the user's dispositions, fix issues inline — do NOT create a new file
+5. Commit: `git commit -m "docs: plan review loop N for <feature>"`
 
 ### Exit Criteria (ALL must be true)
 
 - Every spec section / FR-ID maps to a task (zero gaps)
-- Decision log has 3+ entries with rationale
+- Decision log meets its tier floor, every entry with rationale
 - No placeholder language exists anywhere
 - Every task has inline verification with exact commands
 - Final verification task includes all applicable items
@@ -473,49 +392,62 @@ For every loop that produces findings (structural or design-critique):
 
 ---
 
-## Phase 5: (folded into Phase 4 per FR-46)
+## Operational Modes
 
-Phase 5 in /plan v1 ran a separate "Final Review" pass *outside* the loop discipline. v2 folds this into Phase 4's last loop (FR-46) — the conciseness / spec-coverage / coherence pass runs as Loop N's exit checklist. This section is retained as a back-compat marker; no work happens here.
-
----
-
-## Operational Modes (FR-60, FR-60a, FR-61, FR-61a, FR-64)
-
-/plan v2 supports four operational modes. Mode is auto-detected from CLI flags + existing-plan state:
+Mode is auto-detected from the existing-plan state plus the Phase 1 step 5 prompt; say what you want in plain language ("update T4", "throw the tasks away and re-plan", "add tasks for the spec amendment without renumbering"):
 
 - **Fresh** — no existing `03_plan.{html,md}`. Generate from scratch.
-- **Edit (FR-60)** — `--edit` flag OR `--fix-from <task-id>`. Re-write a bounded scope (single task or task-range); preserve untouched tasks verbatim including their step bodies.
-- **Replan (FR-60)** — `--replan` flag. Discard existing tasks; preserve Decision Log + Risks unless `--reset-decisions` is also passed. Skip List preserved per FR-43b.
-- **Append (FR-60a)** — `--append` flag. Add new tasks at the bottom (TN+1, TN+2, …) without renumbering existing tasks. Existing TN moves to be the last new task; the old TN is renamed to its task-number identity. Useful for spec amendments mid-execution.
+- **Edit** — bounded re-write of a single task or task-range (also entered via `--fix-from`); preserve untouched tasks verbatim including their step bodies.
+- **Replan** — discard existing tasks; preserve Decision Log + Risks (discard them too only when the user says so). Skip list preserved.
+- **Append** — add new tasks at the bottom (TN+1, TN+2, …) without renumbering existing tasks; the final-verification task moves to stay last. Useful for spec amendments mid-execution.
+<!-- nl-sugar -->
+(`--edit`, `--replan`, `--append`, and `--reset-decisions` are parsed as explicit spellings of the above.)
 
-### Non-interactive mode (FR-61, FR-61a)
+### Non-interactive halt protocol
 
 <!-- defer-only: ambiguous -->
-`--non-interactive` runs the entire skill without `AskUserQuestion`. Choices follow Recommended (Recommended option). For high-risk decisions with no Recommended option (FR-61a halt protocol):
+Under `--non-interactive` (resolved by the Phase 0 block, which owns mode resolution and routing), choices follow `(Recommended)` options via `AskUserQuestion` classification. /plan's layer on top: when a **high-risk decision has no Recommended option** —
 - **Halt** with exit code 2.
 - Write `{feature_folder}/03_plan_blocked.md` containing the question, options considered, and a one-line "what changed" hint.
 - The user resumes by re-running /plan interactively and answering the blocked question.
 
-`--non-interactive` writes an audit sidecar `{feature_folder}/03_plan_auto.md` listing every Recommended pick the run made, so a human can audit the choices retrospectively.
+`--non-interactive` also writes an audit sidecar `{feature_folder}/03_plan_auto.md` listing every Recommended pick the run made.
 
-> **Cross-cutting non-interactive contract.** The Phase 0 `<!-- non-interactive-block -->` above (FR-01..FR-09 from the cross-cutting non-interactive-mode feature) is the canonical mode-resolver, classifier, and OQ-buffer protocol shared across all 26 user-invokable skills. /plan's FR-61/FR-61a halt-and-write-blocked-doc behavior layers on top of that contract: the cross-cutting block determines `mode` and routes calls; FR-61a defines /plan's per-domain halt response when a high-risk choice has no `(Recommended)` option.
+### Sidecars
 
-### Folder picker (FR-65)
+/plan writes up to four sidecar files in `{feature_folder}/` (write each whole-file via temp-then-rename so a crash never leaves a half-written sidecar):
 
-<!-- defer-only: ambiguous -->
-Per `_shared/pipeline-setup.md` Section B.4 cross-reference (FR-65): when no `--feature` is given and `settings.current_feature` is unset, present folder options via `AskUserQuestion`:
-- **Recently-modified feature** (most-recent mtime under `{docs_path}/features/`).
-- **Best slug-match** (closest existing folder by slug similarity to the user's argument, if any).
-- **Create new** (with the derived slug from `_shared/pipeline-setup.md` Section A.3).
-- **Other** — free-form path.
+| Sidecar | When written | Lifecycle |
+|---------|--------------|-----------|
+| `03_plan_review.md` | Always | Accumulates `## Loop N` blocks across runs |
+| `03_plan_skip-list.md` | On Skip/Defer dispositions | Accumulates across runs; cleared only on user request |
+| `03_plan_auto.md` | `--non-interactive` only | Overwritten per run (audit of Recommended picks) |
+| `03_plan_blocked.md` | Non-interactive halt | Overwritten per run; deleted on next successful interactive resume |
 
-### Learnings consumption (FR-64)
+### Learnings consumption
 
-`~/.pmos/learnings.md` entries under `## /plan` are loaded in Phase 0 step 6 (canonical block). When a learnings entry conflicts with this skill body, the skill body wins; surface the conflict to the user before applying the skill rule. In `--non-interactive` mode, the conflict is logged to `03_plan_auto.md` and the skill rule is applied without prompting.
+`~/.pmos/learnings.md` entries under `## /plan` are loaded in Phase 0 step 6 (canonical block). When a learnings entry conflicts with this skill body, the skill body wins; surface the conflict to the user before applying the skill rule. In `--non-interactive` mode, log the conflict to `03_plan_auto.md` and apply the skill rule without prompting.
 
 ---
 
-## Closing Report (FR-71, FR-72, /backlog write-back)
+## Phase 5: Workstream Enrichment {#workstream-enrichment}
+
+**Skip if no workstream was loaded in Phase 0.** Otherwise, follow `_shared/pipeline-setup.md` Section C. For this skill, the signals to look for are:
+
+- Technical dependencies discovered → workstream `## Tech Stack`
+- Infrastructure details → workstream technical context sections
+
+This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the core deliverable is complete.
+
+---
+
+## Phase 6: Capture Learnings {#capture-learnings}
+
+**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+
+---
+
+## Phase 7: Closing Report {#closing-report}
 
 After the plan is written and reviewed:
 
@@ -552,45 +484,7 @@ options:
 
 Record the choice in the plan doc's frontmatter `execution_mode:` (`inline` or `subagent-driven`; default `inline`) and re-commit the plan if it changed. `/execute` reads this (it also accepts an explicit `--subagent-driven | --inline` override), and `/feature-sdlc` Phase 6 reads it to decide whether to pass `--subagent-driven`. In `--non-interactive` mode the Recommended option (`inline`) is auto-picked per the non-interactive classifier.
 
-**Closing offer (platform-aware via `_shared/platform-strings.md`):** read `execute_invocation` for the active platform and emit the offer with that string substituted; **append ` --subagent-driven` to the invocation when `execution_mode == subagent-driven`**. e.g. (with `execution_mode: inline`):
-
-> claude-code: `Plan complete and saved. Run /pmos-toolkit:execute to implement it, or review the plan first?`
-> gemini: `Plan complete and saved. Activate the execute skill to implement it, or review the plan first?`
-> codex: `Plan complete and saved. Run the execute skill to implement it, or review the plan first?`
-
-With `execution_mode: subagent-driven`, the claude-code form reads `Run /pmos-toolkit:execute --subagent-driven to implement it, or review the plan first?` (and analogously for the other platforms). The offer wording is otherwise identical across platforms (FR-72).
-
----
-
-## Sidecar Contracts (FR-43c, FR-45)
-
-/plan v2 writes up to four sidecar files in `{feature_folder}/`:
-
-| Sidecar | When written | Lifecycle |
-|---------|--------------|-----------|
-| `03_plan_review.md` | Always (per FR-45) | Accumulates across runs; never overwritten — appends `## Loop N` blocks |
-| `03_plan_skip-list.md` | When user picks Skip/Defer (per FR-43) | Accumulates across runs; reconciled by hash on re-invocation (FR-43a) |
-| `03_plan_auto.md` | `--non-interactive` only | Overwritten per run (audit of Recommended picks for THAT run) |
-| `03_plan_blocked.md` | `--non-interactive` halt (FR-61a) | Overwritten per run; deleted on next successful interactive resume |
-
-**Atomic-write contract (FR-43c):** all sidecar writes use a same-directory tempfile + `mv` rename to keep the rename intra-device (R1 mitigation). Tempfile naming: `<sidecar>.tmp.<pid>`. On crash mid-write, the tempfile is left behind; /plan removes stale tempfiles older than 1 hour at startup.
-
----
-
-## Phase 6: Workstream Enrichment
-
-**Skip if no workstream was loaded in Phase 0.** Otherwise, follow `_shared/pipeline-setup.md` Section C. For this skill, the signals to look for are:
-
-- Technical dependencies discovered → workstream `## Tech Stack`
-- Infrastructure details → workstream technical context sections
-
-This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the core deliverable is complete.
-
----
-
-## Phase 7: Capture Learnings
-
-**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+**Closing offer (platform-aware via `_shared/platform-strings.md`):** read `execute_invocation` for the active platform and emit the offer with that string substituted; **append ` --subagent-driven` to the invocation when `execution_mode == subagent-driven`**. e.g. claude-code with `execution_mode: inline`: `Plan complete and saved. Run /pmos-toolkit:execute to implement it, or review the plan first?` — and with `execution_mode: subagent-driven`: `Run /pmos-toolkit:execute --subagent-driven to implement it, or review the plan first?`. The offer wording is otherwise identical across platforms.
 
 ---
 
@@ -599,44 +493,36 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT write the plan without reading impacted code first
 - Do NOT skip the decision log or write entries without rationale
 - Do NOT create a new plan file in each review loop — update the original
-- Do NOT write verification steps without exact commands and expected output
 - Do NOT claim the plan is complete without sharing review findings with the user
-- Do NOT batch all testing into the final task — each task must have inline verification
-- Do NOT write tests that only check error paths (404, empty results) — every task needs enough behavioral tests with realistic data to prove its functionality works, not just that routes exist
-- Do NOT specify exact implementation code line-by-line — prescribe interfaces and test shapes, leave internals to judgment
+- Do NOT violate the Task Design Rules above — exact commands with expected output, inline verification per task (never batched to the end), behavioral tests with realistic data, interfaces prescribed and internals left to judgment
 - Do NOT combine unrelated changes into a single task — each task should be independently committable
 - Do NOT forget the "Done when" one-liner — it defines what success looks like for the whole plan
 - Do NOT skip the Cleanup subsection in final verification — temp files, containers, and debug logging accumulate
-- Do NOT omit `**Wireframe refs:**` on UI tasks when wireframes exist — the link is what carries polish/consistency expectations into /verify Phase 4 sub-step 4f
-- Do NOT instruct tasks to copy the wireframe's visual style verbatim. Wireframes are reference for IA / copy / states / journeys; visual style follows the host app's design system. Tasks should say "follow host-app pattern X" rather than "match wireframe pixel-for-pixel."
+- Do NOT omit `**Wireframe refs:**` on UI tasks when wireframes exist, and do NOT instruct tasks to copy the wireframe's visual style verbatim — the authoritative/not-authoritative split is in Phase 2 step 6; the ref is what carries polish expectations into /verify Phase 4 sub-step 4f
 - Do NOT let TN's frontend smoke test stop at "renders correctly" — it must include hard-reload, an error-path probe, the UX polish checklist, and (if wireframes exist) a wireframe diff. Polish belongs in the plan, not as a verify afterthought.
-- Do NOT create `## Phase N` groupings of 1–2 tasks — each phase boundary triggers full /verify (multi-agent code review + interactive QA), which dwarfs the implementation cost of a tiny phase. Target 5–10 tasks per phase, or skip phases entirely for small plans.
+- Do NOT create `## Phase N` groupings of 1–2 tasks — each phase boundary triggers full /verify, which dwarfs the implementation cost of a tiny phase. Target 5–10 tasks per phase, or skip phases entirely for small plans.
 - Do NOT skip the execution-mode selection question (Inline vs Subagent-driven) at close — the recorded `execution_mode:` frontmatter value is what `/execute` and `/feature-sdlc` Phase 6 read; omitting it silently forces inline everywhere.
-- Do NOT decompose by layer — "all migrations first, then all endpoints, then all UI." Each task is a thin **vertical slice** that cuts through every layer it needs to deliver one user-observable behavior. T1 is a **tracer bullet**: the narrowest end-to-end path that proves the architecture. Refactors, schema-only spikes, CSS-only, and config-only tasks are the only legitimate exceptions and MUST declare `**Slice shape:**` with a one-line rationale. See Phase 3 §Vertical-Slice Decomposition.
+- Do NOT decompose by layer — see Phase 3 §Vertical-Slice Decomposition for the rule, the tracer bullet, and the only legitimate exceptions.
 
 ---
 
-## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+## Apply comment-resolver edit
 
-This phase is the `/plan` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a plan artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This is the `/plan` entrypoint that `/comments resolve` dispatches into when walking open threads in a plan artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
-- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`.
 
-Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/plan`-specific implementation guidance only.
+This section MUST cite that file rather than restate the contract. Anything below is `/plan`-specific implementation guidance only.
 
 ### When invoked
 
-The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
-
-- **Shim:** `plugins/pmos-toolkit/skills/plan/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
-
-### Resolution order
-
-1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="t1"`, `id="overview"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
-3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
+The resolver dispatches a subagent with the contract's input JSON. The subagent's tools include this skill's Node shim, `plugins/pmos-toolkit/skills/plan/scripts/apply-edit-at-anchor.js` — `apply(input)` returns the contract's three output shapes; its anchor resolution (id-first, then ≥40-char substring-contains quote-fallback, else `anchor_orphaned` with no mutation) is documented in the shim's own header. The shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to a future feature.
 
 ### Tests
 
 - Per-skill contract: `plugins/pmos-toolkit/skills/plan/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
 - Wrapper: `tests/scripts/assert_apply_edit_at_anchor_plan.sh`.
+
+---
+
+*Spec lineage: `docs/pmos/features/2026-05-08_plan-skill-redesign` (v2 redesign — tier gates, review loops, operational modes, sidecars, fix-from), `2026-05-13_plan-vertical-slices` (vertical-slice decomposition), `2026-05-08_non-interactive-mode` (inline block + halt protocol), `2026-05-23_inline-doc-comments` / `2026-05-28_inline-html-artifacts` (comment resolver, inline comments), `2026-05-09_html-artifacts` (emit substrate). Traceability for individual rules lives in those feature folders, not inline here.*

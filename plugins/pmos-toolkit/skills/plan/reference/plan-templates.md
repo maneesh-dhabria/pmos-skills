@@ -30,17 +30,17 @@ execution_mode: inline | subagent-driven   # set in the closing phase (default: 
 
 [2-4 sentences: what this builds, the approach, and the execution order]
 
-**Done when:** [One sentence defining completion for the entire plan. State lower-bounds + qualitative gates ONLY (FR-22). MUST include ≥1 quantitative or executable assertion (FR-22a). e.g., "SOP Editor renders remediated images on all 110 routes, 0 same-step duplicates in DB, all 17 tests pass, Docker stack healthy, p95 render < 800ms."]
+**Done when:** [One sentence defining completion for the entire plan. State lower-bounds + qualitative gates ONLY. MUST include ≥1 quantitative or executable assertion. e.g., "SOP Editor renders remediated images on all 110 routes, 0 same-step duplicates in DB, all 17 tests pass, Docker stack healthy, p95 render < 800ms."]
 
-**Done-when walkthrough:** [REQUIRED at all tiers (FR-22b). Concrete narrative tracing each clause of the Done-when line through the system — what command, what response shape, what users see. Replaces the legacy Manual spot check line.]
+**Done-when walkthrough:** [REQUIRED at all tiers. Concrete narrative tracing each clause of the Done-when line through the system — what command, what response shape, what users see. Replaces the legacy Manual spot check line.]
 
 **Execution order:**
 [ASCII diagram or numbered list showing task dependencies.
  Mark parallelizable tasks with [P].]
 
-[For plans with ≥ ~12 tasks, also include a Mermaid block (FR-25) auto-rendered from per-task `**Depends on:**` lines. GitHub renders ```mermaid blocks natively.]
+[For plans with ≥ ~12 tasks, also include a Mermaid block auto-rendered from per-task `**Depends on:**` lines. GitHub renders ```mermaid blocks natively.]
 
-**Diagram emission via `/diagram` subagent (FR-60..FR-65, D2).** /plan rarely emits diagrams beyond the FR-25 dependency graph. When it does (rendering the dep-graph to SVG instead of inline Mermaid), follow the canonical pattern documented in `/spec/SKILL.md` § "Diagram Emission via `/diagram` Subagent": dispatch `/pmos-toolkit:diagram` as a **blocking Task subagent** with `--theme technical --rigor medium --out {docs_path}/diagrams/<slug>.svg --on-failure exit-nonzero`; per-call timeout 300s; up to 2 retries (3 attempts total); inline-SVG fallback after 3 failures; per-skill-run wall-clock cap 30 min via `diagram_subagent_state`; figcaption provenance per attempt or fallback. Inline Mermaid in markdown remains acceptable for the standard dep-graph (GitHub renders it natively); the subagent path applies only when the plan elects to emit pre-rendered SVG instead.
+[Inline Mermaid is the standard dep-graph. In the rare case the plan elects to emit a pre-rendered SVG instead, follow the canonical `/diagram`-subagent dispatch pattern in `/spec`'s `#diagrams` section — do not re-derive the dispatch parameters here.]
 
 ---
 
@@ -88,7 +88,7 @@ execution_mode: inline | subagent-driven   # set in the closing phase (default: 
 
 ## File Map
 
-> Generated index pointing back to per-task **Files:** sections — tasks are source of truth (FR-23).
+> Generated index pointing back to per-task **Files:** sections — tasks are source of truth.
 
 | Action | File | Responsibility | Task |
 |--------|------|---------------|------|
@@ -99,15 +99,15 @@ execution_mode: inline | subagent-driven   # set in the closing phase (default: 
 | Rename | `old_name.py` → `new_name.py` | [Why renamed] | T4 |
 | Delete | `obsolete/path.py` | [Why removed] | T5 |
 
-File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test`. Move/Rename rows MUST show source AND destination.
+File-action verbs: `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test`. Move/Rename rows MUST show source AND destination.
 
 ---
 
 ## Risks
 
-> 5-column Risks table. Severity is **derived** from Likelihood + Impact (FR-80):
+> 5-column Risks table. Severity is **derived** from Likelihood + Impact:
 > any-H + no-L → High; any-H + any-L → Medium; both M → Medium; M + L → Low; both L → Low.
-> Phase 4 hard-fails any High-severity risk that lacks a per-task Mitigation citation (FR-81).
+> Phase 4 hard-fails any High-severity risk that lacks a per-task Mitigation citation.
 
 | # | Risk | Likelihood | Impact | Severity | Mitigation | Mitigation in: |
 |---|------|-----------|--------|----------|------------|----------------|
@@ -127,18 +127,18 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
 
 ## Tasks
 
-[For plans > ~12 tasks: group under `## Phase N: <name>` headings (FR-26, FR-27). Phases must be deployable slices of 5–10 tasks. Phase boundaries trigger full /verify + /compact handshake (FR-26a, see execute/SKILL.md Phase 2a). Soft cap of 30k tokens per phase (FR-90). Last phase's verify IS the TN per FR-26.]
+[For plans > ~12 tasks: group under `## Phase N: <name>` headings. Phases must be deployable slices of 5–10 tasks. Phase boundaries trigger full /verify + /compact handshake (see execute/SKILL.md Phase 2a). Soft cap of ~30k tokens per phase. The last phase's verify IS the TN.]
 
 ### T1: [Task Name]
 
 **Goal:** [One sentence]
-**Spec refs:** [Which spec sections/FR-IDs this implements; for spec headings cite `02_spec.html#kebab-anchor` per FR-31 (or `02_spec.md#kebab-anchor` against legacy MD-primary specs)]
+**Spec refs:** [Which spec sections/FR-IDs this implements; for spec headings cite `02_spec.html#kebab-anchor` (or `02_spec.md#kebab-anchor` against legacy MD-primary specs)]
 **Wireframe refs:** [If wireframes exist and this task touches UI: which screens (e.g., `wireframes/01_dashboard.html`). Omit field for non-UI tasks.]
 
 **Depends on:** [Task IDs (e.g., `T2, T3`) or `none`]
-**Idempotent:** [`yes` | `no — recovery: <substep>`. If `no`, FR-35 mandates a recovery substep; Phase 4 hard-fails non-idempotent without it.]
+**Idempotent:** [`yes` | `no — recovery: <substep>`. If `no`, include a recovery substep so /execute can resume after a mid-task failure.]
 **Requires state from:** [Tasks whose runtime artifacts (e.g., generated files, DB rows) this task consumes. Omit when independent.]
-**TDD:** [`yes — new-feature` | `yes — bug-fix` | `no — <reason>`. Three-valued enum per FR-37 (replaces the legacy 2-state rule). FR-104a precedence: per-task override → spec frontmatter `type:` → /backlog item `type=`. On override, emit a Decision-Log entry. FR-105 TDD-optional types: pure refactors, config/IaC, CSS-only, prototype spikes, file moves — author states the reason; Phase 4 reviews justification.]
+**TDD:** [`yes — new-feature` | `yes — bug-fix` | `no — <reason>`. Three-valued enum. Precedence: per-task override → spec frontmatter `type:` → /backlog item `type=`; on override, emit a Decision-Log entry. TDD-optional task types: pure refactors, config/IaC, CSS-only, prototype spikes, file moves — author states the reason; Phase 4 reviews the justification.]
 **Data:** [Test data the task consumes (fixtures, seed rows, mock payloads). Omit when none.]
 
 **Files:**
@@ -154,7 +154,7 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
       result = function(input)
       assert result == expected
   ```
-  [Tests are illustrative reference shape per FR-103, not literal. /execute may adapt fixture names / helper signatures to host conventions while preserving the same inputs/outputs/assertions.]
+  [Tests are illustrative reference shape, not literal. /execute may adapt fixture names / helper signatures to host conventions while preserving the same inputs/outputs/assertions.]
 
 - [ ] Step 2: Run test to verify it fails
   Run: `<test-command-from-stack-file> tests/path/test.py::test_name -v`
@@ -176,9 +176,9 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
   git commit -m "feat(T1): add specific feature"
   ```
 
-**Bug-fix TDD shape (when `**TDD:** yes — bug-fix`):** Step 1 writes a regression test reproducing the bug; Step 2 confirms the test fails on pre-fix HEAD; Step 3 implements the fix; Step 4 confirms the test passes (FR-104).
+**Bug-fix TDD shape (when `**TDD:** yes — bug-fix`):** Step 1 writes a regression test reproducing the bug; Step 2 confirms the test fails on pre-fix HEAD; Step 3 implements the fix; Step 4 confirms the test passes.
 
-**T0 (Prerequisite Check) — auto-generated, mandatory at all tiers (FR-12, FR-12a):**
+**T0 (Prerequisite Check) — auto-generated, mandatory at all tiers:**
 
 - [ ] Run prereqs from the detected stack file (`_shared/stacks/<stack>.md` `## Prereq Commands`).
 - [ ] Confirm dev-server / DB / queue is running (cite the actual commands from the stack file).
@@ -199,7 +199,7 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
 - [ ] **Full test suite:** [exact command per stack file] — expect no regressions
 - [ ] **Database migrations:** `<migration-up-command-from-stack-file>` [emit only if migrations were added]
 - [ ] **Docker deploy:** `docker compose build <services> && docker compose up -d <services>` [emit only if Docker is in scope]
-- [ ] **API smoke test:** [emit verbatim from the detected stack file's `## API Smoke Patterns` section — do not hardcode language-specific defaults; FR-13]
+- [ ] **API smoke test:** [emit verbatim from the detected stack file's `## API Smoke Patterns` section — do not hardcode language-specific defaults]
 - [ ] **Frontend smoke test (Playwright MCP):**
   1. Authenticate first (if auth enabled)
   2. Navigate to the relevant page
@@ -210,10 +210,10 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
   7. **Force at least one error path** (bad input, broken backend) and confirm the UI surfaces the failure with a recoverable CTA — not silent.
 - [ ] **UX polish checklist** (any UI-touching change): `document.title` set per route, no internal IDs/enum keys leaked into copy, casing/date-format consistency, meaningful image `alt`, no dead disabled affordances, zero uncaught console errors during the journey, navigation labels match destination titles. Full checklist enforced in `/verify` Phase 4 sub-step 4f.
 - [ ] **Wireframe diff** (if `{feature_folder}/wireframes/` exists): for each affected screen, open the wireframe and the live implementation side-by-side. Diff **only on the authoritative dimensions** (IA, copy, states, journeys) — NOT visual style, color, typography, spacing, or component library, which are expected to follow the host app. Classify every delta as `intentional — style adaptation`, `intentional — decision` (with rationale), or `regression` (fix before completion). Empty diff with no dimensions named is not acceptable.
-- [ ] **Done-when walkthrough:** [trace each clause of the plan's Done-when line through the running system — replaces the legacy Manual spot check line per FR-22b]
+- [ ] **Done-when walkthrough:** [trace each clause of the plan's Done-when line through the running system — replaces the legacy Manual spot check line]
 - [ ] **Seed data:** `python scripts/seed_sop_db.py --reset` [emit only if data files changed]
 
-**Cleanup (FR-92 — trigger-based emission; do NOT decorate with conditional caveats in the rendered plan):**
+**Cleanup (trigger-based emission; do NOT decorate with conditional caveats in the rendered plan):**
 
 [Cleanup items are emitted only when their trigger fires — when the trigger does NOT fire, the line is OMITTED entirely from the rendered plan. Triggers:
 - Any task creates files outside `src/`/`tests/` → emit "Remove temporary files and debug logging".
@@ -227,7 +227,7 @@ File-action verbs (FR-24): `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test
 
 ## Review Log
 
-> Sidecar: detailed loop-by-loop findings live in `03_plan_review.md` (FR-45). This table is the summary index.
+> Sidecar: detailed loop-by-loop findings live in `03_plan_review.md`. This table is the summary index.
 
 | Loop | Findings | Changes Made |
 |------|----------|-------------|

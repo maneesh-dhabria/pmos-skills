@@ -24,7 +24,9 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
 cd "$REPO_ROOT"
 
 SPEC_MD="plugins/pmos-toolkit/skills/spec/SKILL.md"
-VERIFY_MD="plugins/pmos-toolkit/skills/verify/SKILL.md"
+# verify's folded-phase contract lives in its reference file since the
+# design-review P1/P2 extraction (verify/SKILL.md Phase 4a/4b are stubs).
+VERIFY_MD="plugins/pmos-toolkit/skills/verify/reference/folded-phases.md"
 
 PASS=0
 FAIL=0
@@ -50,12 +52,12 @@ assert "documents continue (not blocking) per D11" \
 
 echo
 echo "[verify/Phase 4b] advisory failure contract"
-assert "advisory failure section labelled with FR-29 + D11" \
-  "grep -qE 'Advisory failure.*FR-29|FR-29.*D11' '$VERIFY_MD'"
+assert "advisory failure section present, advisory per D11" \
+  "grep -qE 'Advisory failure' '$VERIFY_MD' && grep -qE 'advisory per D11' '$VERIFY_MD'"
 assert "captures folded_skill: architecture" \
   "grep -qE 'folded_skill.*architecture' '$VERIFY_MD'"
 assert "captures error_excerpt (first-200-chars)" \
-  "grep -qE 'error_excerpt.*first-200-chars' '$VERIFY_MD'"
+  "grep -qE 'error_excerpt' '$VERIFY_MD' && grep -qE 'first-200-chars' '$VERIFY_MD'"
 assert "appends to phases.verify.folded_phase_failures" \
   "grep -qE 'phases\.verify\.folded_phase_failures' '$VERIFY_MD'"
 assert "emits chat WARNING at moment-of-append" \
