@@ -1,6 +1,6 @@
 # Spec Templates (Tier 1 / 2 / 3)
 
-The three spec body templates referenced by `/spec` Phase 5. Phase 1 detects the tier; Phase 5 reads this file and emits the matching template (rendered to HTML via the html-authoring substrate when `output_format=html`). All templates start at `**Status:** Draft`; the frontmatter `requirements_ref` points at the committed `01_requirements.{html,md}`.
+The three spec body templates referenced by `/spec` Phase 5 (`#write-spec`). Phase 1 detects the tier; Phase 5 reads this file and emits the matching template (rendered to HTML via the html-authoring substrate when `output_format=html`). All templates start at frontmatter `status: Draft`; the frontmatter `requirements_ref` points at the committed `01_requirements.{html,md}`.
 
 ## Contents
 
@@ -107,7 +107,7 @@ requirements_ref: <path-to-01_requirements.{html,md}>
 ## 10. Testing & Verification Strategy
 [What to test, how, exact commands]
 
-<!-- Required only when /spec Phase 6b auto-upgrade fires (a previously-unseen module was declared) -->
+<!-- Required only when /spec's folded-architecture phase (#folded-arch) auto-upgrade fires (a previously-unseen module was declared) -->
 ## 11. Modules (optional at Tier-2)
 
 <section id="modules">
@@ -118,7 +118,7 @@ requirements_ref: <path-to-01_requirements.{html,md}>
 
 </section>
 
-<!-- Required only when /spec Phase 6b auto-upgrade fires -->
+<!-- Required only when /spec's folded-architecture phase (#folded-arch) auto-upgrade fires -->
 ## 12. Architectural Assertions (optional at Tier-2)
 
 <section id="architectural-assertions">

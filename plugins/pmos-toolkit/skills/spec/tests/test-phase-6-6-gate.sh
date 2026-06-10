@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# test-phase-6-6-gate.sh — T14 integration test for /spec Phase 6b tier gate.
+# test-phase-6-6-gate.sh — T14 integration test for /spec's folded-architecture
+# phase tier gate (slug: #folded-arch).
 #
-# Phase 6b's tier-gate is documented in /spec SKILL.md prose and driven at
+# The tier-gate is documented in /spec SKILL.md prose and driven at
 # decision time by auto-upgrade-detector.sh (the only script-shaped piece of
 # the gate). bash cannot drive AskUserQuestion, so this test verifies the
 # contract via the two surfaces that ARE testable:
@@ -36,15 +37,15 @@ assert() {
 }
 
 echo "[A] /spec SKILL.md tier-gate documentation"
-assert "Phase 6b heading present" \
-  "grep -qE '^## Phase 6\.6: Folded /architecture --from-spec' '$SKILL_MD'"
-assert "Phase 6b documents T1 skip" \
-  "grep -qE 'T1.*skip|tier 1.*skip|T1 skip' '$SKILL_MD'"
-assert "Phase 6b documents T2 conditional auto-upgrade" \
+assert "folded-arch phase heading present (slug-addressed, renumber-proof)" \
+  "grep -qE '^## Phase [0-9]+: Folded /architecture --from-spec \{#folded-arch\}' '$SKILL_MD'"
+assert "folded-arch phase documents T1 skip" \
+  "grep -qE 'T1.*skip|tier 1.*skip|T1 skip|1 \| n/a — skipped' '$SKILL_MD'"
+assert "folded-arch phase documents T2 conditional auto-upgrade" \
   "grep -qE 'auto-upgrade|T2.*conditional|conditional.*T2' '$SKILL_MD'"
-assert "Phase 6b documents T3 default-on" \
-  "grep -qE 'T3.*default-on|default-on.*T3|tier 3.*default-on' '$SKILL_MD'"
-assert "Phase 6b cites auto-upgrade-detector" \
+assert "folded-arch phase documents T3 default-on" \
+  "grep -qE 'T3.*default-on|default-on.*T3|tier 3.*default-on|3 \| Run \| Default-on' '$SKILL_MD'"
+assert "folded-arch phase cites auto-upgrade-detector" \
   "grep -qE 'auto-upgrade-detector' '$SKILL_MD'"
 
 echo
