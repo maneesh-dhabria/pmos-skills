@@ -2,7 +2,7 @@
 
 For each failed check (per chunk if chunked), generate a patch using the template below.
 
-> **Reuse by the editorial rewriter.** The Phase 2a editorial-pass *rewriter* subagent (`reference/editorial-pass.md`) reuses the `PRESERVE_VOICE_CONFLICT` token, its JSON shape (`conflicting_marker` + `reason`), and its handling defined in this file: a conflict is never auto-applied — it is promoted to a high-risk finding and surfaced via `reference/findings-protocol.md`.
+> **Reuse by the editorial rewriter.** The Phase 3 editorial-pass *rewriter* subagent (`reference/editorial-pass.md`) reuses the `PRESERVE_VOICE_CONFLICT` token, its JSON shape (`conflicting_marker` + `reason`), and its handling defined in this file: a conflict is never auto-applied — it is promoted to a high-risk finding and surfaced via `reference/findings-protocol.md`.
 
 ## Patch prompt template
 
@@ -34,12 +34,9 @@ CONSTRAINTS:
 - If preserving the voice markers conflicts with fixing the violation, output the literal token PRESERVE_VOICE_CONFLICT followed by JSON:
   PRESERVE_VOICE_CONFLICT
   {"conflicting_marker": "<one of: avg_sentence_length | sentence_length_stddev | register | person | idiomatic_phrases | contraction_rate>", "reason": "<one-sentence justification>"}
-- Use temperature 0.
 
 Output:
 ```
-
-Use `temperature: 0` on the call.
 
 ## Per-patch QA flow
 
@@ -48,7 +45,7 @@ Use `temperature: 0` on the call.
    - Regenerate the patch, adding the new failure to the prompt's CONSTRAINTS list as an additional cited violation
    - Cap at **2 retries**
    - If still failing after retries → mark patch as `partial fix — introduces <check id>` and surface to user, even if the original check was low-risk
-3. **Global checks NOT re-run.** They run once per iteration in Phase 6 on the whole doc.
+3. **Global checks NOT re-run.** They run once per iteration in Phase 7 on the whole doc.
 4. **`PRESERVE_VOICE_CONFLICT` handling.**
    - Validate the JSON justification (must include `conflicting_marker` from the allowed set + `reason` ≤ 200 chars)
    - Malformed → treat as patch failure, retry once

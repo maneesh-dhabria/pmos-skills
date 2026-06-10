@@ -1,6 +1,6 @@
 # Voice sampling
 
-The voice marker block is the author's stylistic fingerprint. It's sampled ONCE in Phase 1 from the original document and prepended to every patch prompt in Phase 4. It is NEVER re-sampled between iterations — anchoring to the original prevents iterative voice drift.
+The voice marker block is the author's stylistic fingerprint. It's sampled ONCE in Phase 1 from the original document and prepended to every patch prompt in Phase 5. It is NEVER re-sampled between iterations — anchoring to the original prevents iterative voice drift.
 
 ## Algorithm
 
@@ -16,11 +16,11 @@ The voice marker block is the author's stylistic fingerprint. It's sampled ONCE 
 |-------------------------|------------------------------------------------------------------------|----------------------------------------|
 | `avg_sentence_length`   | Word count ÷ sentence count                                            | Use simple `[.!?]` boundary heuristic  |
 | `sentence_length_stddev`| StdDev across sentences in the sample                                  | 0 if <2 sentences                      |
-| `register`              | LLM tag (single call, temp 0)                                          | `formal | conversational | technical | casual` |
+| `register`              | LLM tag (single call)                                                  | `formal | conversational | technical | casual` |
 | `person`                | Dominant pronoun usage in the sample                                   | `first | second | third`               |
 | `idiomatic_phrases`     | LLM extracts up to 5 distinctive author phrases (verbatim, ≤6 words)   | Empty array if none distinctive        |
 | `contraction_rate`      | Contractions ("don't", "we're", etc.) ÷ total verbs                    | 0.0 if no verbs                        |
-| `low_confidence`        | `true` if <200 polishable words; `false` otherwise                     | Affects conflict-cap exemption (§4.5)  |
+| `low_confidence`        | `true` if <200 polishable words; `false` otherwise                     | Exempts the run from the voice-conflict abort cap (`reference/patch-contract.md`) |
 
 ## Marker extraction LLM prompt (single call, returns JSON)
 
@@ -37,7 +37,7 @@ Passage:
 <200-word sample>
 ```
 
-Use `temperature: 0`. Reject malformed responses; on second failure, fall back to defaults: `{register: "conversational", person: "third", idiomatic_phrases: []}`.
+Reject malformed responses; on second failure, fall back to defaults: `{register: "conversational", person: "third", idiomatic_phrases: []}`.
 
 ## Final voice marker block (example)
 
@@ -68,5 +68,5 @@ The patch generator receives the JSON above and instruction:
 
 When `low_confidence: true`:
 - The patch prompt receives an additional caveat: *"Voice markers are derived from a small sample and may not fully represent author style."*
-- `PRESERVE_VOICE_CONFLICT` emissions in this run do NOT count toward the 30% abort cap (per §4.5 of spec).
+- `PRESERVE_VOICE_CONFLICT` emissions in this run do NOT count toward the 30% abort cap (see `reference/patch-contract.md` — the markers are unreliable on small samples).
 - Test fixtures use `low_confidence: true` to assert the exemption works.

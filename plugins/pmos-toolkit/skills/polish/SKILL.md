@@ -9,35 +9,25 @@ argument-hint: "<file-path (.md or .html — round-trips the source format) | UR
 
 **Announce at start:** "Using /polish to critique and refactor this document."
 
-## Track Progress (do this FIRST)
+Single-doc only — subagents cannot invoke skills, so multi-doc parallelization is the caller's responsibility.
 
-**This is the first action of the skill, before any other tool call.** Before you read any input, load any context, or run any phase, create one `TodoWrite` task for each of the 10 phases (0, 1, 2, 2.5, 3, 4, 5, 6, 7, 8). Mark each task `in_progress` when you start it, `completed` when it finishes — never batch completions. Phase 4 (patch generation) gets one sub-task per surfaced finding so the user sees concrete progress.
+**Flags are NL-first.** Infer options from the request — "shorten this by ~30%" ≡ `--reduce 30`, "polish this as a technical doc" ≡ `--preset technical`, "just critique it / findings only" ≡ `--dry-run`; an explicit flag overrides the inferred intent.
 
-If you have already taken any other action (Read, Bash, interactive prompts, Write, Edit) before creating the 10 phase tasks, you have skipped this step. Stop, create the tasks now, and resume.
+**Track progress:** create one todo per phase (0–8) before any other action; Phase 6 gets one sub-task per surfaced finding.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
-- **No interactive prompt tool:** Print a numbered findings table with a disposition column. NEVER silently auto-apply high-risk fixes — they require explicit user input. For preset selection, state your assumption and proceed; the user reviews the polished output. For the Phase 2a editorial-pass gate, state the assumption "no `--reduce` flag → skipping the editorial pass" and proceed (the pass is opt-in).
-- **No `TodoWrite`:** Print phase headers as you progress (`## Phase 3: Running rubric…`). Do not batch.
-- **No `WebFetch`:** Refuse URL input mode with a note; ask the user to paste the content.
-- **No Notion MCP:** Refuse `notion://` input with a note; ask the user to export the page first.
-- **No subagents:** Run all phases sequentially in the main agent — this includes the Phase 2a editor and rewriter passes (run them inline).
-- **Format detection is deterministic** (extension-based — see Phase 1) on every platform; it never requires a tool or a prompt.
+- **No interactive prompt tool:** Print a numbered findings table with a disposition column. NEVER silently auto-apply high-risk fixes — they require explicit user input. For preset selection, state your assumption and proceed. For the Phase 3 editorial-pass gate, state "no `--reduce` flag → skipping the editorial pass" and proceed (the pass is opt-in).
+- **No `TodoWrite`:** Print phase headers as you progress. Do not batch.
+- **No `WebFetch` / no Notion MCP:** Refuse URL / `notion://` input with a note; ask the user to paste or export the content.
+- **No subagents:** Run all phases sequentially in the main agent, including the Phase 3 editor and rewriter passes.
 
-## Load Learnings
+## Phase 0: Context, custom checks, thresholds {#context}
 
-Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /polish` and factor them into your approach for this session (e.g., known false-positive checks, user-preferred preset for a doc type, custom phrases).
-
----
-
-## Phase 0 — Context, custom checks, thresholds
-
-1. Load `~/.pmos/learnings.md` `## /polish` section if present.
-2. Resolve checks file:
-   - If `--checks <path>` was passed → load ONLY that file. Ignore the default.
-   - Otherwise → load `~/.pmos/polish/custom-checks.yaml` if it exists.
-3. Validate the loaded file against `schemas/custom-checks.schema.json`. On schema error: print the offending entries and continue with built-ins only — do NOT silently skip.
+1. Read `~/.pmos/learnings.md` `## /polish` if present (known false-positive checks, preferred presets, custom phrases) and factor it in.
+2. Resolve checks file: `--checks <path>` → load ONLY that file; otherwise `~/.pmos/polish/custom-checks.yaml` if it exists.
+3. Validate against `schemas/custom-checks.schema.json`. On schema error: print the offending entries and continue with built-ins only — never silently skip.
 4. Merge user threshold overrides on top of preset defaults from `reference/presets.md`.
 
 There is no workstream load. `/polish` operates on derivatives.
@@ -72,43 +62,21 @@ There is no workstream load. `/polish` operates on derivatives.
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1 — Ingest + classify
+## Phase 1: Ingest + classify {#ingest}
 
-**Resolve input source from argument:**
+**Resolve input source:** local file path → `Read`; `http(s)://` → `WebFetch`, strip to markdown; `notion://<id>` → Notion MCP (read-only); quoted inline text → the argument is the document. If a required tool isn't available, refuse the input mode with a one-line note.
 
-| Argument shape       | Handler                                                     |
-|----------------------|-------------------------------------------------------------|
-| Local file path      | `Read` tool                                                  |
-| `http(s)://...`      | `WebFetch` → strip HTML to markdown                          |
-| `notion://<id>`      | Notion MCP `mcp__plugin_Notion_notion__*` (read-only)        |
-| Quoted inline text   | Treat the argument as the document content                   |
+**Detect `doc_format`** — deterministic, extension-based, no LLM call: local `.html`/`.htm` → `html`; everything else (including all URL/Notion/inline inputs — their HTML is page chrome, normalized to markdown) → `markdown`. Carry `doc_format` through to Phase 8: it governs the lock-zone set, the chunk anchors, and the output extension. **Never round-trip HTML through markdown** — an `.html` input is polished as HTML and written as `.polished.html`.
 
-If a required tool isn't available, refuse the input mode with a one-line note.
+Then, per `reference/chunking.md`: compute the **lock zones** (markdown set always; the HTML set additionally when `doc_format == html` — patches intersecting a lock are rejected, the rubric never fires inside one), the **polishable word count** (`total − locked`; drives all size decisions), and the **size bucket** (<4,000 → no chunking; 4,000–25,000 → chunked patch generation on H1/H2; >25,000 → refuse with split-and-retry guidance). Iteration count is independent of size.
 
-**Detect `doc_format`.** Deterministic, extension-based — no LLM call, no prompt:
-- Local file whose extension (case-insensitive) is `.html` or `.htm` → `doc_format = html`.
-- Everything else — local file with `.md` / `.markdown` / `.txt` / no recognized extension, **and** all URL / Notion / inline-text inputs (their HTML is page chrome, not an authored artifact, so it is normalized to markdown) → `doc_format = markdown`.
+**Voice sample** per `reference/voice-sampling.md` — extract the marker JSON once, from the original doc; `low_confidence: true` if <200 polishable words.
 
-Carry `doc_format` through to Phase 7. It governs the lock-zone set (below), the chunk anchors, and the output file extension.
+**Doc-type classifier:** cheap signals first (filename prefix, frontmatter `type:`); a single LLM classifier call only if no signal matches.
 
-**Compute lock zones.** Per `reference/chunking.md` lock-zone rules: code fences, inline code, HTML blocks, frontmatter, link URLs, footnote refs/defs, table cells with <8 words, Notion non-prose placeholders. **When `doc_format == html`, also apply the HTML lock zones** in `reference/chunking.md` ("Format-aware lock zones": tags + attributes, `<script>`/`<style>`/`<pre>`/`<code>` contents, HTML comments, `<head>`/doctype, short `<td>`/`<th>` cells). Patches that intersect locked zones are rejected; the rubric never fires inside them.
+## Phase 2: Pick preset {#preset}
 
-**Compute polishable word count.** `polishable_words = total_words − words_inside_locked_zones`. This count drives all size/chunking decisions and the `low_confidence` flag. Total word count is misleading for table-heavy docs — see `reference/chunking.md` for the definition.
-
-**Voice sample.** Follow `reference/voice-sampling.md`. Extract the marker JSON (avg sentence length, stddev, register, person, idiomatic phrases, contraction rate). Set `low_confidence: true` if <200 polishable words.
-
-**Doc-type classifier.** Cheap signals first (filename prefix, frontmatter `type:`). Only fall back to a single LLM classifier call if no signal matches.
-
-**Size bucketing + chunking.** Apply `reference/chunking.md` thresholds:
-- <4,000 polishable words → no chunking
-- 4,000–25,000 → chunked patch generation on H1/H2 headings (`<h1>`/`<h2>` open tags when `doc_format == html`)
-- >25,000 → refuse with split-and-retry guidance
-
-**Iteration count is independent of size.** A small dense doc gets the same 2-iteration loop as a large one.
-
-## Phase 2 — Pick preset (detect + ask)
-
-Skip if `--preset` was passed.
+Skip if `--preset` was passed (or inferred from the request).
 
 <!-- defer-only: ambiguous -->
 Otherwise, surface preset options via `AskUserQuestion`. Preset semantics live in `reference/presets.md`. The recommended option is the classifier output; if classifier confidence <0.6, recommend **preserve voice**.
@@ -119,58 +87,31 @@ Recommended preset: <name>
 Options: [<recommended> (Recommended) | <alternative 1> | <alternative 2> | Preserve voice]
 ```
 
-## Phase 2a — Editorial reduction (opt-in)
+## Phase 3: Editorial reduction (opt-in) {#editorial-pass}
 
-Runs after preset selection and before the rubric. **Opt-in — the default is Skip.** Full contract: `reference/editorial-pass.md`. Its output document (the *reduced doc* if the pass ran, else the ingested doc unchanged) becomes the **working document** for Phase 3 onward. **The editorial pass is not a polish iteration** — it runs once (plus at most one capped re-critique), independent of the Phase 6 two-iteration cap.
+Runs between preset selection and the rubric. **Opt-in — the default is Skip.** Full contract — target resolution (`--reduce` parsing, the gate `AskUserQuestion` whose Skip option is `(Recommended)` and auto-picks under `--non-interactive`), the editor and rewriter subagent prompts, validation/prune, the single capped re-critique, HTML fidelity, `--dry-run` and chunking interplay — lives in `reference/editorial-pass.md`. Follow it.
 
-1. **Resolve the reduction target.** If `--reduce <value>` was passed, parse it: a single percent (`25`) or a `low-high` range (`30-40`); valid only if `0 < low ≤ high ≤ 90`; malformed → print `--reduce: invalid value '<v>'; skipping the editorial pass` and treat as Skip (do not abort, do not prompt). When `--reduce` is present the gate below is **not** shown (parallels `--preset`).
+What the rest of the pipeline needs to know:
+- Its output (the reduced doc if it ran, else the ingested doc unchanged) is the **working document** for Phase 4 onward.
+- The **editor critiques only** (emits `editor_notes.json`); the **rewriter applies** — two distinct roles. `risk: high` notes and rewriter voice-conflicts are never auto-applied; they surface via Phase 6.
+- It is **not a polish iteration** — it runs once (plus at most one re-critique), independent of Phase 7's two-iteration cap.
 
-   Otherwise, surface the gate via `AskUserQuestion` (this gate has a `(Recommended)` option — it auto-picks Skip in `--non-interactive`; do NOT add a `defer-only` tag):
+## Phase 4: Run binary eval rubric {#rubric}
 
-   ```
-   question: "Run an editorial reduction pass before polishing? Target reduction:"
-   options:
-     - "Skip — no reduction (Recommended)"   # → no-op
-     - "~10-20% (light trim)"
-     - "~30-40% (substantial cut)"
-     - "~50%+ (aggressive)"
-   ```
-   An "Other"/out-of-options reply is parsed as a custom target by the `--reduce` rule; unparseable → Skip-with-note.
+Follow `reference/rubric.md` — all 15 built-in checks plus any user-defined checks, on the working document. Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
 
-2. **Skip ⇒ no-op.** No subagents, no `editor_notes.json`, the ingested doc is the working doc, Phase 3+ behaves exactly as before. Phase 7's `Editorial pass:` line reads `skipped`.
+**Metric checks are scripted.** Run `node scripts/metrics.js <working-doc>` once; checks 2, 3, and 11 compare its output against the preset thresholds deterministically — the judge never computes a number (verdicts from LLM arithmetic flap across model versions).
 
-3. **Non-Skip target ⇒ run the two subagents** (per `reference/editorial-pass.md`):
-   - **Editor subagent** — given the verbatim ingested doc (chunked on H1/H2 / `<h1>`/`<h2>` if ≥4,000 polishable words), the Phase-1 voice markers, the lock-zone map, `doc_format`, and the target. It **critiques only — never rewrites**: returns a JSON object conforming to `schemas/editor-notes.schema.json` (notes with `kind`, `locator.heading_path`+`locator.quote` (≥20-char verbatim, no line numbers), `rationale`, `est_words_saved`, `risk`; plus a target reconciliation). `temperature: 0`.
-   - **Validate & prune** — schema-validate the editor output (on schema error, print offending entries and proceed with the valid ones); drop any `cut`/`tighten` note whose `quote` isn't a verbatim substring of the source; write `editor_notes.json` next to the run's other artifacts (written even on `--dry-run`).
-   - **Rewriter subagent** — given the verbatim original doc, the pruned `editor_notes.json`, voice markers, lock-zone map, `doc_format`. Applies `risk: low` notes (honoring locks; skip-and-log unlocatable/locked), does **not** apply `risk: high` notes, emits the reduced doc + an applied/skipped log; a `PRESERVE_VOICE_CONFLICT` is handled per `reference/patch-contract.md`. `temperature: 0`.
-   - **High-risk notes → Phase 5.** Every `risk: high` note (reorders, large merges) and any rewriter voice-conflict is surfaced via the Phase 5 findings protocol (`reference/findings-protocol.md`); structural reorders are individually surfaced. Approved ones are then applied.
-   - **Capped re-critique (1×).** If the rewriter's actual reduction lands below `target.low` and the editor hasn't already re-critiqued, dispatch the editor once more (given the rewriter output, the applied/skipped log, and the shortfall); it returns delta notes appended to `editor_notes.json` with `recritique: {ran: true, …}`; the rewriter re-applies once; then the pass is done — never loop further.
-   - **HTML fidelity.** After an HTML rewrite, verify all non-prose bytes are byte-identical to the original. If not, keep the output anyway (best-effort) but surface `⚠ markup outside prose nodes may have shifted — review before replacing` in Phase 7 and the chat output, and show the replace prompt with no default-yes. Never refuse, never hard-fail.
+**LLM-judge contract** (checks 4, 6b, 7, 12, 13, 14 + `prompt`-mode custom checks): determinism comes from structure, not sampling parameters — every call uses the output schema `{verdict: "pass" | "fail", cited_spans: [{line, excerpt}], rationale: string}`, and a `fail` with no `cited_spans` is treated as `pass` (no evidence → no action).
 
-4. **`--dry-run` interplay.** With a non-Skip target: the editor subagent runs and `editor_notes.json` is written; the rewriter and the re-critique do **not** run. Phase 4 stops as usual; the dry-run report includes the editor notes + reconciliation above the rubric results. Phase 7's line reads `dry-run — N notes drafted (est ~X%), not applied`.
-
-## Phase 3 — Run binary eval rubric
-
-Follow `reference/rubric.md` — runs all 15 built-in checks plus any user-defined checks **on the working document** (the editor-reduced doc if Phase 2a ran, else the ingested doc). Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
-
-**LLM-judge determinism contract** (mandatory for every llm-judge call):
-- `temperature: 0`
-- Structured output schema: `{verdict: "pass" | "fail", cited_spans: [{line, excerpt}], rationale: string}`
-- A `fail` verdict with no `cited_spans` is treated as `pass` (no evidence → no action)
-
-**Output of this phase: emit a structured rubric block inline in the response.** This block is a hard pre-condition for Phase 4 — if it does not exist, Phase 4 cannot start. Format:
+**Output: emit a `rubric_results` YAML block inline** — a hard precondition for Phase 5 (no block → no patches):
 
 ```yaml
 rubric_results:
-  - check: 1-em-dash-density
-    verdict: fail
-    scope: local
-    cited_spans:
-      - {line: 42, excerpt: "...the system — which was — designed..."}
-      - {line: 78, excerpt: "..."}
-  - check: 2-lede-buried
-    verdict: pass
-    scope: global
+  - check: <id>
+    verdict: pass | fail
+    scope: local | global
+    cited_spans: [{line: <n>, excerpt: "..."}]   # required on fail
   # ... one entry per check (15 built-in + any custom)
 summary:
   failed_local: <N>
@@ -178,67 +119,41 @@ summary:
   total_failed: <N>
 ```
 
-The `total_failed` value feeds the Phase 4 budget formula directly. No `rubric_results` block → no patches.
+## Phase 5: Estimate budget + targeted refactor passes {#budget-patches}
 
-## Phase 4 — Estimate budget + targeted refactor passes
+**Budget estimate first.** Before generating any patches, show the user what fixing costs and get consent: how many checks failed (`<N>` MUST equal `summary.total_failed`), roughly how many LLM calls the patch passes will take (patch generation + judge re-checks, doubled if a 2nd iteration looks likely, plus the editorial pass's calls if it ran), and a rough duration — then `Continue? [Y / Downscope / Dry-run only]`. Cost in dollars is intentionally NOT shown — pricing varies. **If the estimate exceeds ~30 calls the prompt is mandatory (no default-Y).** A bulk-scope question ("Surgical / Comprehensive / Full") is not a substitute — that's a preset decision, not a budget decision.
 
-**Budget estimate first.** Emit this block **verbatim** (substitute values only — do not reword the labels or replace the prompt with a custom shape) before generating any patches:
+If `--dry-run`, stop here and print the rubric report (plus editor notes if Phase 3 drafted them). Do not generate patches.
 
-```
-Rubric run: <N> of 15 checks failed
-Estimated work: ~<calls> LLM calls, ~<seconds>s
-Continue? [Y / Downscope / Dry-run only]
-```
+**Patch generation.** Per failed check (per chunk if chunked), follow `reference/patch-contract.md`: locate spans → rewrite with voice markers + preset thresholds injected → reject lock-zone intersections → per-patch QA on LOCAL checks only (2-retry cap; still failing → mark "partial fix — introduces X"). Global checks re-run once per iteration in Phase 7, never per patch. **Never rewrite technical/factual claims** — flag them as "verify" findings instead.
 
-`<N>` MUST equal `summary.total_failed` from the Phase 3 `rubric_results` block. Formula: `calls = (llm_judge_failures × 1.3 retries avg) + global_check_count + (×2 if iter-2 likely)`. **If the Phase 2a editorial pass produced output, add a line under the block: `+ ~2 LLM calls (editorial critique + rewrite)` — `+ ~1` under `--dry-run` (editor only, no rewrite), or `+ ~4` if a re-critique ran.** Cost intentionally NOT shown — pricing varies. If estimate >30 calls, prompt is mandatory (no default-Y). The Surgical/Comprehensive/Full/Findings-only shape is **not** a substitute — that's a preset decision (Phase 2), not a budget decision.
+`PRESERVE_VOICE_CONFLICT` emissions are promoted to high-risk findings (protocol in `reference/patch-contract.md`). **Abort cap:** if conflicts exceed 30% of attempted patches in a non-low-confidence run, abort with: *"Voice constraints too strict for this doc — re-run with `--preset concise` or `--preset narrative`."*
 
-If `--dry-run`, stop here and print the rubric report. Do not generate patches.
+## Phase 6: Findings presentation {#findings}
 
-**Patch generation.** Per failed check (per chunk if chunked), follow `reference/patch-contract.md`:
+**Hard rule — Phase 6 is a write-gate.** No `Write`/`Edit` to the polished file until at least one prompt round on surfaced high-risk findings has been answered (exception: zero high-risk findings → straight to Phase 7). A bulk-scope question is not a substitute for per-finding disposition.
 
-1. Locate offending span(s)
-2. Generate rewrite via patch prompt (voice markers injected, threshold set included)
-3. Reject if patch intersects a locked zone
-4. **Per-patch QA — LOCAL checks only.** Re-run local checks on patched span. New local failure → regenerate with the new failure cited. Cap 2 retries; mark "partial fix — introduces X" if still failing
-5. If model emits `PRESERVE_VOICE_CONFLICT` → validate JSON `{conflicting_marker, reason}`; promote to high-risk finding; track conflict count
-6. **Global checks NOT re-run per patch.** They run once at end of iteration (Phase 6)
+Present findings per `_shared/findings-dispositions.md` — four dispositions, ≤4 per batch, platform fallback table, all canonical there. `/polish` deltas (full detail in `reference/findings-protocol.md`):
 
-**Voice-conflict abort.** If conflicts >30% of attempted patches in a non-low-confidence run → abort with: *"Voice constraints too strict for this doc — re-run with `--preset concise` or `--preset narrative`."*
+- **Auto-apply lane (low-risk: checks 1, 5, 6a, 6b, 9, 10):** apply silently in a single batch; aggregate counts in the summary. Nothing else skips the prompt.
+- **Surfaced lane (high-risk: checks 2, 3, 4, 7, 8, 11, 12, 13, 14; plus voice-conflicts, partial fixes, and `risk: high` editorial notes):** per-finding `Fix as proposed (Recommended)` / Modify / Skip / Defer. Check 8's patch deletes a claim, not just rhetoric — that's why it is surfaced despite regex detection.
+- **Defer target** is an in-document marker comment inserted above the span (exact format in `reference/findings-protocol.md`) — never line numbers, they go stale.
+- **Structural changes** (lede moves, merges, reorders) are always individually surfaced, never bundled, never auto-applied.
 
-## Phase 5 — Findings Presentation Protocol
+## Phase 7: Apply, re-run, optional 2nd iteration {#apply-iterate}
 
-**Hard rule — Phase 5 is a write-gate.** Do NOT emit any `Write` or `Edit` to the polished file (or to `<original>.polished.md`) until at least one interactive-prompt round on surfaced high-risk findings has been answered. The only exception: if the surfaced-findings list is empty (zero high-risk findings — all auto-apply category), proceed directly to Phase 6. A bulk-scope question ("Surgical / Comprehensive / Full") is **not** a substitute for per-finding surfacing — that's preset selection, not finding disposition.
+1. Apply auto-fixes + approved patches to a working copy (per chunk if chunked).
+2. Re-run the FULL rubric on the polished output (whole doc, including the metrics script).
+3. Compute before/after metrics: word count, avg sentence length, passive %, AI-vocab hits, em-dash count, hedging hits.
+4. NEW failures on the regex checks (1, 5, 6a, 8, 9, 10; excluding user-Skipped/Deferred) → one 2nd findings round (same lanes), apply approved patches. New llm-judge or script-metric failures do NOT trigger a 2nd iteration — list them as residuals (a second pass on those has not been observed to converge).
+5. **Hard cap: 2 polish iterations total** — a cost governor, not a quality gate. If iter-2 still finds failures, write the file and list the residuals in the summary; never iterate further.
 
-Follow `reference/findings-protocol.md`. Summary:
+## Phase 8: Write output, capture learnings, offer replace {#write-output}
 
-**Auto-apply (low-risk: checks 1, 5, 6a, 6b, 8, 9, 10):** apply silently in a single batch. Record aggregate counts in summary.
-
-**Surface (high-risk: checks 2, 3, 4, 7, 11, 12, 13, 14, plus voice-conflict + partial-fix, plus any `risk: high` editorial-pass note and any rewriter voice-conflict from Phase 2a):** group by check category, batch ≤4 per `AskUserQuestion` call. Each finding offers: **Fix as proposed (Recommended)** / **Modify** / **Skip** / **Defer**. Structural changes — including editorial-pass `reorder` notes — are always individually surfaced.
-
-**Defer comment format:** insert immediately above the deferred span:
-```
-<!-- POLISH: <check-id> kept by user — "<one-line excerpt>" -->
-```
-No line numbers (they go stale).
-
-**Anti-pattern to avoid:** dumping all findings as prose ending in "let me know what you'd like to fix."
-
-## Phase 6 — Apply, re-run, optional 2nd iteration
-
-1. Apply auto-fixes + approved patches to a working copy (per chunk if chunked)
-2. **Re-run the FULL rubric on the polished output** (both local and global checks, whole doc)
-3. Compute before/after metrics: word count, avg sentence length, passive %, AI-vocab hits, em-dash count, hedging hits
-4. If NEW failures appear on the deterministic checks (the regex/metric-computed ones — 1, 5, 6a, 8, 9, 10; excluding user-Skipped/Deferred):
-   - Surface as a 2nd findings round (same auto-apply + ask split)
-   - Apply approved 2nd-round patches
-   - New llm-judge failures do NOT trigger a 2nd iteration — list them in the summary as residuals (a second pass on judge nits has not been observed to converge)
-5. **Hard cap: 2 polish iterations total.** If iter-2 still finds failures, write the file and list remaining failures in the summary — do NOT iterate further. (The Phase 2a editorial pass is **not** a polish iteration — it runs once before the rubric, with its own separate single capped re-critique.)
-
-## Phase 7 — Write output + offer replace
-
-1. Stitch chunks back together if chunked. Verify chunk boundary lines are byte-identical to original; when `doc_format == html`, additionally verify all non-prose bytes are byte-identical (best-effort-warn fallback per `reference/editorial-pass.md` §6 if not).
-2. Write the polished file with the **source-format extension**: `<original-basename>.polished.html` when `doc_format == html`, else `<original-basename>.polished.md`. (Print the polished text instead — as markdown — if the input was inline/URL/Notion.) Never emit markdown for an HTML input.
-3. Print summary block:
+1. **Stitch** chunks back together if chunked; verify boundary lines are byte-identical (markdown: fail the run if not; HTML: additionally verify all non-prose bytes, best-effort-warn per `reference/editorial-pass.md` §6).
+2. **Write** the polished file with the source-format extension: `<basename>.polished.html` for HTML, else `<basename>.polished.md`. (Inline/URL/Notion input → print the polished text instead.)
+3. **Capture learnings** before printing the summary (its `Learnings captured:` line must be honest). Follow `_shared/learnings-capture.md`; polish-specific candidates worth checking: false-positive checks, repeated user `Skip` on the same check, phrases the user flags themselves (→ their `custom-checks.yaml`), preset misclassification, repeated threshold overrides. Zero learnings is a valid outcome; the gate is that the reflection happens.
+4. **Print the summary block:**
 
 ```
 Polish complete: <input> → <output>
@@ -249,111 +164,35 @@ Findings: 15 checks run, <N> failed, <auto> auto-fixed, <user> user-fixed, <defe
 Iterations: <N> of 2 (max)
 Learnings captured: <N> (see ~/.pmos/learnings.md ## /polish)
 
-Before → After:   (anchored to the ORIGINAL ingested doc — the % includes the editorial cut + rubric tightening)
-  Words:                 1,842 → 1,310  (-29%)
-  Avg sentence length:   24.1  → 16.8
-  Passive voice:         18%   → 7%
-  AI-vocab hits:         11    → 0
-  Em-dashes:             34    → 8
-  Hedging stack hits:    9     → 2
+Before → After:   (anchored to the ORIGINAL ingested doc — includes editorial cut + rubric tightening)
+  Words / avg sentence length / passive % / AI-vocab hits / em-dashes / hedging hits
 
-[⚠ markup outside prose nodes may have shifted — review before replacing]   ← only when the HTML fidelity check failed
+[⚠ markup outside prose nodes may have shifted — review before replacing]   ← only when HTML fidelity failed
 Replace <original> with the polished version? [y/N]
 ```
 
-The `Before → After` "Words" delta is computed against the **original ingested document**, not the editor-reduced doc, so the headline % reflects the full reduction.
-
-4. **Replace prompt** (only if input was a local file):
-   - On `y`: if file is in a git repo (check via `git -C <dir> rev-parse --is-inside-work-tree`), `mv` polished over original (git is the safety net). If NOT in a repo, first move original to `<original>.bak`, then write polished to original path. The `.polished.<ext>` and `.bak` both use the source-format extension.
-   - On `N`: leave both files in place.
-   - URL/inline/Notion inputs: skip the replace prompt.
-   - If the HTML fidelity check failed (best-effort HTML), do **not** default the prompt to yes — print the `⚠` warning and let the user decide explicitly.
-
-## Phase 8: Capture Learnings
-
-**Run this BEFORE printing the Phase 7 summary block.** The summary's `Learnings captured: <N>` line cannot be filled honestly otherwise. The order is: Phase 6 apply → Phase 7 file write → Phase 8 reflection → Phase 7 summary block + replace prompt.
-
-**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) or these inline steps:
-
-Reflect on whether this session surfaced anything reusable:
-- False positives (legit uses flagged as violations) → candidate for soft-flag promotion or threshold adjustment
-- Repeated user `Skip` on the same check → candidate for preset-specific tuning
-- Words/phrases the user repeatedly flags themselves → candidate for the user's `~/.pmos/polish/custom-checks.yaml`
-- Preset misclassification → candidate for classifier signal expansion
-- Threshold drift (user repeatedly overrides the same threshold) → recommend they persist it in custom-checks.yaml
-
-Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero learnings is a valid outcome for a smooth session — the gate is that the reflection happens.
-
----
-
-## Anti-Patterns (DO NOT)
-
-- Do NOT silently apply high-risk fixes. They require user approval (or platform-fallback printed disposition).
-- Do NOT touch locked zones — code, frontmatter, link URLs, footnote refs, short table cells, Notion placeholders, and (for HTML inputs) all tags/attributes, `<script>`/`<style>`/`<pre>`/`<code>` contents, HTML comments, and the `<head>`.
-- Do NOT rewrite technical/factual claims. Flag as "verify" findings; never auto-rewrite.
-- Do NOT re-sample voice markers between iterations. Anchor to the original doc.
-- Do NOT skip the budget estimate when failed_checks > 0. The user needs to see the cost before patches generate.
-- Do NOT re-outline the document. Structural changes are limited to lede moves and adjacent-paragraph merges, always individually approved.
-- Do NOT write line numbers into defer comments — they go stale immediately.
-- Do NOT iterate beyond 2 polish iterations. The cap is hard.
-- Do NOT batch findings into prose dumps ending in "let me know what to fix." Use the interactive prompt tool or the platform fallback table.
-- Do NOT emit any `Write` or `Edit` to the polished file before the Phase 5 interactive-prompt round has completed (unless zero high-risk findings exist). A bulk-scope question is NOT a substitute for per-finding surfacing.
-- Do NOT skip Phase 3's `rubric_results` YAML block. No structured rubric output → Phase 4 cannot start.
-- Do NOT attempt to polish multiple docs in one invocation. `/polish` is single-doc; subagents cannot invoke skills (SUBAGENT-STOP), so multi-doc parallelization is the caller's responsibility.
-- Do NOT begin Phase 0 (or any other phase) before creating the 10 per-phase `TodoWrite` tasks. Per-phase task tracking is the first action of the skill, not an afterthought.
-- Do NOT charge ahead if the model emits `PRESERVE_VOICE_CONFLICT` — promote it to a high-risk finding for the user.
-- Do NOT exceed the 25,000 polishable-word ceiling. Refuse with split-and-retry guidance.
-- Do NOT skip Phase 8. Learning capture is mandatory; zero learnings is fine, but the reflection must happen.
-- Do NOT let the Phase 2a **editor subagent rewrite** anything — it only emits `editor_notes.json`; the **rewriter subagent** applies the notes. Two distinct roles.
-- Do NOT auto-apply `risk: high` editorial-pass notes (reorders, large merges). Surface them via the Phase 5 findings protocol; structural reorders individually.
-- Do NOT loop the editorial re-critique more than once. Cap is 1; after that the pipeline proceeds regardless of the achieved reduction.
-- Do NOT round-trip HTML through markdown — an `.html` input is polished as HTML and written as `.polished.html`; never emit markdown for an HTML input.
-
----
+5. **Replace prompt** (local-file input only): on `y` — inside a git repo (`git -C <dir> rev-parse --is-inside-work-tree`) `mv` polished over original (git is the safety net); outside a repo, move original to `<original>.bak` first. On `N`, leave both files. If HTML fidelity failed, never default the prompt to yes.
 
 ## File map
 
-- `SKILL.md` — this orchestrator
-- `schemas/custom-checks.schema.json` — JSON schema for user check overrides
-- `schemas/editor-notes.schema.json` — JSON schema for the Phase 2a `editor_notes.json`
-- `reference/rubric.md` — 15 built-in checks: regex patterns + LLM-judge prompts
+- `reference/rubric.md` — the 15 checks: modes, risk classes, patterns, judge prompts, thresholds hook
 - `reference/presets.md` — preset semantics + per-preset threshold defaults
-- `reference/voice-sampling.md` — voice marker extraction algorithm
-- `reference/chunking.md` — chunking algorithm + lock-zone rules (markdown + HTML) + size buckets
-- `reference/patch-contract.md` — patch prompt template, conflict protocol, retry logic
-- `reference/findings-protocol.md` — categorization, interactive-prompt shape, defer format
-- `reference/editorial-pass.md` — Phase 2a: target gate, editor + rewriter subagent prompts, re-critique, HTML fidelity
-- `editor_notes.json` — run artifact written by Phase 2a (editor critique) next to the polished file
-- `tests/fixtures/` — 11 fixtures (incl. `html-doc.html`, `bloated-doc.md`) with paired `expected.yaml` contracts
-- `example/custom-checks.yaml` — example user can copy to `~/.pmos/polish/`
+- `reference/voice-sampling.md` / `reference/chunking.md` / `reference/patch-contract.md` — voice markers · lock zones + size buckets · patch prompt + conflict protocol
+- `reference/findings-protocol.md` — polish's deltas on `_shared/findings-dispositions.md`
+- `reference/editorial-pass.md` — Phase 3 contract (gate, editor/rewriter prompts, re-critique, HTML fidelity)
+- `scripts/metrics.js` — deterministic metrics for checks 2/3/11; `scripts/apply-edit-at-anchor.js` — comment-resolver shim
+- `schemas/` — custom-checks + editor-notes JSON schemas; `example/custom-checks.yaml` — copy to `~/.pmos/polish/`
+- `tests/fixtures/` + `tests/expected.yaml` — 11 fixtures with property-based detection contracts
+
+## Apply comment-resolver edit {#apply-comment-resolver-edit}
+
+The `/polish` entrypoint that `/comments resolve` dispatches into when walking open threads in a polished artifact's inline `pmos-comments` JSON block.
+
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` — input/output JSON shapes, resolution order (id-first, then ≥40-char quote-substring fallback), the closed `error_enum`, idempotency rules, subagent invocation convention. Cite it; never restate it.
+- **Shim:** `scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns the contract's success / failure / clarification shapes; success includes the optional `applied_artifact` field. The shim's minimal edit inserts an HTML annotation comment before the resolved anchor; neither anchor strategy hitting → `{ success: false, error_enum: "anchor_orphaned" }`, no mutation.
+- **Emit obligations (Phase 8):** `.polished.html` MUST carry `<meta name="pmos:skill" content="polish">` in the `<head>` (the resolver routes by this tag, byte-exact), and the `assets/` directory gets `comments.js`, `comments.css`, and the launcher trio copied from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` via `cp -n`.
+- **Tests:** `tests/apply-edit-at-anchor.test.js` (5 cases) + wrapper `tests/scripts/assert_apply_edit_at_anchor_polish.sh`.
 
 ---
 
-## Apply comment-resolver edit (FR-22, FR-30, FR-60)
-
-This phase is the `/polish` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a polish artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
-
-- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
-
-Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/polish`-specific implementation guidance only.
-
-**Comments meta tag (FR-01, FR-40):** the polished HTML artifact (`.polished.html`) MUST carry `<meta name="pmos:skill" content="polish">` in the `<head>`. This meta tag is written at Phase 7 (write output). The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
-
-**Asset substrate (FR-40):** when writing `.polished.html`, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) in the same `assets/` directory as the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
-
-### When invoked
-
-The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
-
-- **Shim:** `plugins/pmos-toolkit/skills/polish/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
-
-### Resolution order
-
-1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
-3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
-
-### Tests
-
-- Per-skill contract: `plugins/pmos-toolkit/skills/polish/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
-- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_polish.sh`.
+*Spec lineage: `2026-05-04_polish-skill` (rubric, voice preservation, iteration caps, chunking), `2026-05-13_polish-editorial-pass` (Phase 3 reduction pass, doc_format round-trip), `2026-05-23_inline-doc-comments` + `2026-05-28_inline-html-artifacts` (comment resolver, inline persistence), `2026-05-08_non-interactive-mode` (mode contract).*

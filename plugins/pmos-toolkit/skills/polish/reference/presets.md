@@ -25,7 +25,7 @@ These are starting-point defaults. Users override per-preset in `~/.pmos/polish/
 
 ## Patch-prompt instructions per preset
 
-When generating patches (Phase 4), include a preset-specific instruction in the prompt:
+When generating patches (Phase 5), include a preset-specific instruction in the prompt:
 
 - **`preserve`** — *"Keep the author's voice markers as the primary constraint. Fix violations only when you can do so without flattening the markers. Emit `PRESERVE_VOICE_CONFLICT` if you cannot."*
 - **`concise`** — *"Bottom Line Up Front. Definition-dense. Prefer short sentences. Cut anything that doesn't advance the claim."*

@@ -86,7 +86,7 @@ bloated-doc.md:
   expected_failures: [1, 4, 5, 9]
   preset: concise
   editorial_pass:
-    invoked_with: "--reduce 30-40"                    # or the Phase 2a gate picking ~30-40%
+    invoked_with: "--reduce 30-40"                    # or the Phase 3 gate picking ~30-40%
     editor_notes_written: true                        # editor_notes.json produced next to the polished file
     editor_notes_valid_against: "schemas/editor-notes.schema.json"
     editor_does_not_rewrite: true                     # editor emits notes only; rewriter applies

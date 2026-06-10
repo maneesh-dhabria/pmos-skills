@@ -1,88 +1,33 @@
-# Findings Presentation Protocol
+# Findings protocol — /polish deltas
 
-Two paths after Phase 4: auto-apply (silent) and surface (per-finding approval). The split is determined by check risk classification.
+Present surfaced findings per `_shared/findings-dispositions.md` — the four dispositions (Fix as proposed / Modify / Skip / Defer), ≤4 per batch grouped by category, the structural-finding escape, non-interactive classification, and the platform-fallback table are all canonical there. This file holds only what `/polish` does differently.
 
-## Auto-apply path (low-risk)
+## Two lanes (risk classification per `reference/rubric.md`)
 
-Low-risk checks: **1, 5, 6a, 6b, 8, 9, 10**.
+- **Auto-apply (low-risk: checks 1, 5, 6a, 6b, 9, 10):** applied silently in a single batch per iteration — these findings never reach the dispositions protocol. Record aggregate counts in the Phase 8 summary, e.g. `Auto-fixed: 8 clutter words, 3 em-dashes, 2 hedging stacks`. Custom checks default to high-risk unless they declare `risk: low`.
+- **Surface (everything else):**
+  - High-risk checks **2, 3, 4, 7, 8, 11, 12, 13, 14** (check 8 is regex-detected but its patch deletes a claim — meaning-altering, so it is surfaced, never silent)
+  - Any patch that emitted `PRESERVE_VOICE_CONFLICT` (shown with the conflict reason)
+  - Any patch flagged `partial fix — introduces X` — even if the original check was low-risk
+  - Any `risk: high` editorial-pass note (`reorder`, large `merge`) and any rewriter voice-conflict from Phase 3 (`reference/editorial-pass.md`) — these enter exactly like high-risk rubric findings
+  - All structural changes (lede moves, paragraph merges) — NEVER auto-applied regardless of underlying check risk
 
-Apply silently in a single batch per iteration. Do NOT prompt the user for each fix. Record aggregate counts in the Phase 7 summary:
+## Question shape
 
-```
-Auto-fixed: 8 clutter words, 3 em-dashes, 2 hedging stacks, 4 AI-vocab terms
-```
+`header` is `<check-id> L<line>` (max 12 chars). The **Fix as proposed** option carries `(Recommended)` because every surfaced patch has already passed local rubric re-check (the substrate's "deterministic, safe fix" branch). **Modify** triggers the substrate's free-form follow-up: *"What's your preferred wording for the span at line N?"*
 
-Custom checks default to high-risk unless they declare `risk: low` in YAML.
+## Defer target (delta from the substrate default)
 
-## Surface path (high-risk + voice-conflict + partial-fix)
-
-Surfaced findings:
-- High-risk checks: **2, 3, 4, 7, 11, 12, 13, 14**
-- High-risk editorial-pass notes (Phase 2a): any `risk: high` note in `editor_notes.json` (`reorder`, large `merge`) the rewriter declined to auto-apply, plus any `PRESERVE_VOICE_CONFLICT` the rewriter emitted. These enter this surface path exactly like a high-risk rubric finding; structural reorders follow the "Structural changes" rule below (individually surfaced, never bundled, never auto-applied). See `reference/editorial-pass.md`.
-- Any patch that emitted `PRESERVE_VOICE_CONFLICT`
-- Any patch flagged `partial fix — introduces X`
-- All structural changes (lede moves, paragraph merges) — NEVER auto-applied regardless of underlying check risk
-
-### AskUserQuestion shape
-
-Group findings by check category. Batch ≤4 questions per `AskUserQuestion` call. For each finding:
-
-```
-question: "<one-sentence finding> → <one-sentence proposed fix>"
-header: "<check-id> L<line>"  (max 12 chars)
-multiSelect: false
-options:
-  - label: "Fix as proposed (Recommended)"
-    description: "Apply the rewrite shown above. Patch has passed local rubric re-check."
-  - label: "Modify"
-    description: "I'll write the replacement myself in a follow-up."
-  - label: "Skip — keep as-is"
-    description: "Leave the original text untouched. Will not surface again."
-  - label: "Defer — leave a comment for me"
-    description: "Insert a marker comment above the span so I can revisit later."
-```
-
-If user picks **Modify** → follow-up open-ended ask: *"What's your preferred wording for the span at line N?"*
-
-If user picks **Defer** → insert this comment immediately above the deferred span:
+`/polish` does not defer to Open Questions. **Defer** inserts a marker comment immediately above the deferred span:
 
 ```
 <!-- POLISH: <check-id> kept by user — "<one-line excerpt of the deferred prose>" -->
 ```
 
-NO line numbers in the comment — they go stale immediately. The excerpt makes the comment self-locating.
+NO line numbers in the comment — they go stale immediately. The excerpt makes the comment self-locating. (For HTML inputs the comment is itself a lock zone on later runs, so it stays put.)
 
 ## Structural changes
 
-Special handling for checks 4 (throat-clearing), 11 (header inflation), 12 (bullet abuse), 14 (weak lede) when the proposed patch involves moving or merging content (not just rewording in place):
+When the proposed patch for checks 4 (throat-clearing), 11 (header inflation), 12 (bullet abuse), or 14 (weak lede) moves or merges content (not just rewording in place): always surface individually, never bundle, never auto-apply, and state explicitly what moves — *"Lede 'X is Y because Z' is buried at line 42. Move it to paragraph 1?"*
 
-- ALWAYS surface individually as a high-risk finding
-- NEVER bundle with other findings in a single approval
-- NEVER auto-apply
-- The `question` should explicitly state what's being moved/merged: *"Lede 'X is Y because Z' is buried at line 42. Move it to paragraph 1?"*
-
-## Platform fallback (no `AskUserQuestion`)
-
-When `AskUserQuestion` is unavailable, print a numbered findings table:
-
-```markdown
-## Findings requiring your input
-
-| # | Check | Line | Finding | Proposed fix | Disposition (default) |
-|---|-------|------|---------|--------------|------------------------|
-| 1 | weak-lede | 12 | Buried lede | Move "X is Y because Z" to ¶1 | Fix |
-| 2 | tricolon | 47 | 4 tricolons in 200 words | Replace 2 with prose | Fix |
-| 3 | bullet-abuse | 78 | List of full sentences | Convert to prose | Fix |
-
-Reply with: `1=fix, 2=skip, 3=defer "stays as bullets for emphasis"` etc.
-```
-
-Do NOT silently apply high-risk fixes. Wait for user input.
-
-## Anti-patterns
-
-- ❌ Dumping findings as prose ending in *"Let me know what you'd like to fix."*
-- ❌ Applying any high-risk fix without explicit approval
-- ❌ Bundling structural changes with rewording fixes in a single approval
-- ❌ Embedding line numbers in defer comments
-- ❌ Asking the user to disposition more than 4 findings in one `AskUserQuestion` call
+Platform fallback (no `AskUserQuestion`) and the prose-dump anti-pattern: per the substrate. Never silently apply high-risk fixes — wait for user input.

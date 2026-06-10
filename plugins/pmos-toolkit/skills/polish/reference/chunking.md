@@ -14,7 +14,7 @@ Record byte ranges that must remain byte-identical after polish:
 | Footnote references and definitions              | `[^id]` and `[^id]: ...`                                     |
 | Short table cells (<8 words)                     | Cells in markdown tables with word count <8                 |
 | Polishable table cells (≥8 words)                | Polished as prose; cell boundaries (`|`) stay locked        |
-| Notion non-prose placeholders                    | `<!-- NOTION_BLOCK type=... id=... -->` (see SKILL.md §5.2) |
+| Notion non-prose placeholders                    | `<!-- NOTION_BLOCK type=... id=... -->`                     |
 
 **Two consequences:**
 1. **Detection skips locked zones** — the rubric never fires inside a lock. No false positives the user can't act on.
@@ -54,7 +54,7 @@ Measured on **polishable prose only** — lock-zone bytes are excluded from the 
 | 4,000 – 25,000    | Chunked patch generation; global checks always run on whole doc            |
 | > 25,000          | Refuse with: *"Doc too large for a single polish run. Split into sections and polish individually, or use `--dry-run` for a rubric report only."* |
 
-**Iteration depth is uniform across all sizes.** A small dense doc gets the same 2-iteration convergence loop (§4.7 of spec) as a large doc. Size only governs chunking.
+**Iteration depth is uniform across all sizes.** A small dense doc gets the same 2-iteration convergence loop (the Phase 7 cap) as a large doc. Size only governs chunking.
 
 ## Chunking algorithm
 
@@ -67,7 +67,7 @@ When polishable words ≥ 4,000:
 5. **Local checks** (1, 5, 6a, 6b, 8, 9, 10, 13) run per-chunk and may run in parallel.
 6. **Global checks** (2, 3, 4, 7, 11, 12, 14) ALWAYS run on the whole doc — never per-chunk — because they need full-doc context (lede, header structure, density-per-N-words).
 7. **Patch generation** is per-chunk; patches from different chunks never overlap by construction.
-8. **Stitch-back** (Phase 7): reassemble chunks in original order. Verify chunk boundary lines are byte-identical to the original. For HTML, additionally verify that *all* non-prose bytes (the whole markup skeleton + locked-zone contents) are byte-identical — if not, keep the output but surface the best-effort-HTML warning (see `reference/editorial-pass.md` §6). For markdown, if a boundary line was modified, fail the run with a clear error rather than corrupt the doc.
+8. **Stitch-back** (Phase 8): reassemble chunks in original order. Verify chunk boundary lines are byte-identical to the original. For HTML, additionally verify that *all* non-prose bytes (the whole markup skeleton + locked-zone contents) are byte-identical — if not, keep the output but surface the best-effort-HTML warning (see `reference/editorial-pass.md` §6). For markdown, if a boundary line was modified, fail the run with a clear error rather than corrupt the doc.
 
 > **Editorial pass + chunking ordering.** When the [editorial reduction pass](editorial-pass.md) runs on a doc with ≥ 4,000 polishable words, it chunks and reduces *first*; the resulting reduced doc is then re-measured against the size buckets above for the rubric / patch phase (it may now be small enough to skip chunking). Voice markers are still sampled once, from the original doc, in Phase 1.
 
@@ -81,7 +81,7 @@ calls = chunks × per_chunk_local_calls
 
 For sub-4,000-word docs, `chunks = 1` (the trivial case).
 
-## Final-Write sizing (Phase 7)
+## Final-Write sizing (Phase 8)
 
 Chunked **patch generation** is one concern; the **final Write** of the polished file is another. Use this table to decide whether to write the polished file in one shot or to stitch via multiple Edits per H1:
 
