@@ -2,7 +2,7 @@
 name: verify
 description: Post-implementation verification gate — ALWAYS run after /execute completes. Lint, test, deploy, spec compliance, multi-agent code review, interactive QA, and regression test hardening. Also run after manual coding or partial work. Works with git commits, no PR required. Use when the user says "check my work", "is this done", "verify the implementation", "did I miss anything", or "review and test everything".
 user-invocable: true
-argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folder if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--skip-folded-arch] [--scope phase --phase <N>] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folder if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--skip-folded-arch] [--scope phase --phase <N> — internal, passed by /execute] [--format <html|md|both>] [--non-interactive | --interactive]"
 ---
 
 # Implementation Verification Gate
@@ -10,6 +10,8 @@ argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folde
 Systematically verify that an implementation matches its spec, requirements, and plan. This is a **standalone verification gate** — run it anytime after implementation is done, regardless of how the code was written.
 
 This is an **operational workflow** — a structured sequence of verification steps with evidence collection.
+
+Natural-language phrasings map to the flags — "skip the architecture check" ≡ `--skip-folded-arch`, "skip the design-drift check" ≡ `--skip-design-drift`; an explicit flag overrides the inferred reading.
 
 **Announce at start:** "Using the verify skill to run post-implementation verification."
 
@@ -42,6 +44,7 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 2. Static Verification (lint, types, tests)
 3. Code Quality Review
 4. Deploy & Integration Verification
+4a/4b. Folded-Phase Checks (feature-sdlc folders only)
 5. Spec Compliance Check
 6. Harden Test Suite
 7. Final Compliance Pass
@@ -62,7 +65,7 @@ Mark each as in-progress when starting and completed when done. Skip tasks that 
 
 ---
 
-## Phase 0: Pipeline Setup (inline — do not skip)
+## Phase 0: Pipeline Setup (inline — do not skip) {#pipeline-setup}
 
 Use workstream context (loaded by step 3 below) to verify that implementation aligns with product goals, not just spec compliance. This skill reads all prior artifacts (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, `execute/`) and writes review reports under `{feature_folder}/verify/`.
 
@@ -79,9 +82,9 @@ Use workstream context (loaded by step 3 below) to verify that implementation al
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-### Phase 0a: output_format resolution (FR-12)
+### output_format resolution {#output-format}
 
-7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the **review-report write phase only** (Phase 8 step 2). Reading prior artifacts uses the resolver; the resolver returns whatever primary the upstream skill wrote, regardless of `output_format`.
+7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the **review-report write phase only** (Phase 8 step 2). Reading prior artifacts uses the resolver; the resolver returns whatever primary the upstream skill wrote, regardless of `output_format`.
 
 ---
 
@@ -115,22 +118,14 @@ Use workstream context (loaded by step 3 below) to verify that implementation al
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Gather Context
+## Phase 1: Gather Context {#gather-context}
 
-### Invocation Mode: Phase-Scoped (called from /execute)
+### Caller contracts (when another skill invokes /verify)
 
-When invoked with `--scope phase --feature <slug> --phase <N>`, /verify runs the full checklist (Phases 2–7) but with three changes:
+- **Phase-scoped mode** — `/execute` Phase 2a invokes `/verify --scope phase --feature <slug> --phase <N>` at plan-phase boundaries: the full checklist runs against a phase-restricted changed-files set, evidence lands in a per-phase dir, and a structured `ok / evidence_dir / failures` result is returned to the caller. Follow `reference/invocation-contracts.md` §1.
+- **Reviewer-subagent mode** — a parent orchestrator (currently `/feature-sdlc`) can dispatch this skill as a reviewer over a single artifact's chrome-stripped HTML. The shared contract is `_shared/reviewer-protocol.md`; the call-site delta: that contract covers ONLY the artifact-review path — the Phase 3 code-diff reviewers below consume git diffs, not artifact HTML, and are outside it (no chrome-strip, no quote validation there). Follow `reference/invocation-contracts.md` §2.
 
-1. **Changed-files set is restricted to files touched by tasks in the named phase only.** Read `{feature_folder}/execute/task-NN.md` for each `T<N>` listed in the plan's `## Phase <N>` group; union their `files_touched` frontmatter lists.
-2. **Evidence path is `{feature_folder}/verify/<YYYY-MM-DD>-phase-<N>/`** (not the default `{feature_folder}/verify/<YYYY-MM-DD>/`). Multiple phase-verify runs on the same day are namespaced by phase number, so they do not collide.
-3. **Phase 4 Entry Gate uses the markdown table in `review.{html,md}` as the structural enforcement** instead of `TodoWrite`. Per-task logs under `{feature_folder}/execute/task-NN.md` already carry evidence-typed FR coverage tables for this phase, so re-creating one `TodoWrite` task per FR-ID would duplicate that contract. The `review.{html,md}` table — with one row per FR-ID, the same outcome+evidence triple, and a `Status` column drawn from the three-state outcome model — IS the gate. `TodoWrite`-as-gate is reserved for standalone feature-scope invocations (where there is no upstream per-task log to consume).
-
-On completion, return a structured pass/fail result to the calling skill (/execute Phase 2a):
-- `ok: true|false`
-- `evidence_dir: <path>`
-- `failures: [...]` (when `ok == false`)
-
-All other Phase 1+ behavior is unchanged. Standalone /verify invocations (without `--scope phase`) work exactly as before.
+Standalone invocations: neither contract applies — proceed.
 
 1. **Locate upstream documents.** Resolve each of the three inputs by following `_shared/resolve-input.md`:
    - Spec: `phase=spec`, `label="spec"` (user argument, if passed, applies to the spec)
@@ -143,118 +138,46 @@ All other Phase 1+ behavior is unchanged. Standalone /verify invocations (withou
 
    **Wireframes are NOT authoritative for:** visual style, color palette, typography choice, exact spacing, component library, iconography, or pixel-level layout. Those follow the host application's existing design system and conventions — even when the wireframe shows something different. The /wireframes skill itself produces a `DESIGN.md` (canonical brand contract) and a `design-overlay.css` (generated CSS variable overlay) precisely because wireframes are intended to be adapted to the host app's style, not copied verbatim. Visual fidelity comes from DESIGN.md; the wireframe's role is information architecture and state coverage.
 
-   When there's a conflict between a wireframe's visual treatment and the host app's established patterns, **the host app wins** unless the spec explicitly calls out a visual-style change as a goal. This shapes how Phase 4 sub-step 4f and Phase 5 sub-step 5d classify deltas.
+   When there's a conflict between a wireframe's visual treatment and the host app's established patterns, **the host app wins** unless the spec explicitly calls out a visual-style change as a goal. This shapes how Phase 4 sub-step 4f and Phase 5 sub-step 5d classify deltas. (This sub-step is the canonical statement of the wireframe-authority principle — everything else in this skill cites "per 2a".)
 3. **Identify what changed.** Run `git diff main...HEAD --stat` (or appropriate base) to see which files were modified. This scopes the verification.
 4. **Check if lint/type/tests were already run.** Ask the user or check recent terminal history. Skip steps already completed — but re-run if you're not confident they were clean.
 
-### Input Contract (when invoked as reviewer subagent)
-
-**Scope:** this contract applies ONLY to the artifact-review path (FR-72 smoke + FR-92 cross-doc anchor scan when /verify is invoked as a reviewer over a single artifact's HTML). The Phase 3 "Multi-Agent Code Quality Review" block below is explicitly carved out per FR-50.1 — those reviewers consume git diffs not artifact HTML and are NOT covered by this contract. Do not apply chrome-strip or FR-52 validation to the Phase 3 code-diff path.
-
-When a parent orchestrator (currently `/feature-sdlc`) invokes this skill as a reviewer subagent over a single artifact, the parent has chrome-stripped the artifact via `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js` (FR-50, T12) and passes the stripped slice (`<h1>` + `<main>`) inline as the prompt body. In that mode, this skill skips its own resolver (`_shared/resolve-input.md`) and operates directly on the stripped HTML.
-
-**Output shape (FR-51 canonical):** the skill MUST first enumerate every `<section>` id and every `<h2>`/`<h3>` id it can locate in the stripped slice, returning them as `sections_found: [...]`. It then evaluates against its own rubric and emits findings as `{section_id, severity, message, quote: "<≥40-char verbatim from source>"}`.
-
-**Parent-side validation (FR-52, the skill MUST NOT self-validate):** the parent will (a) set-equality-check `sections_found` against `<artifact>.sections.json`, (b) substring-grep every `quote` against the original (un-stripped) source HTML, (c) hard-fail on any miss. This skill does not duplicate that validation; the contract lives in the parent.
-
 ---
 
-## Phase 2: Static Verification (fast, run first)
+## Phase 2: Static Verification (fast, run first) {#static-verification}
 
 Run in this order. Each step must pass before proceeding to the next. If a step fails, fix the issue, then re-run.
 
-### 1a. Lint & Format
-
-```bash
-ruff check . && ruff format --check .
-```
-(Or project-appropriate linter. Check `CLAUDE.md` for the correct commands.)
-
-**If issues found:** Fix them. Re-run. Do not proceed until clean.
-
-### 1b. Type Checks
-
-```bash
-# Python: pyright or mypy
-# TypeScript: tsc --noEmit
-# Frontend: npm run lint (if it includes type checking)
-```
-
-**If issues found:** Fix them. Re-run.
-
-### 1c. Unit Tests
-
-```bash
-pytest tests/ -v  # or project-appropriate test command
-```
-
-**Evidence required:** Paste the summary line showing pass/fail counts. "X passed, 0 failed" is the minimum bar.
-
-**If failures:** Fix them. Do NOT skip failing tests. Do NOT mark tests as `@pytest.mark.skip` to make the suite pass.
-
-### 1d. Frontend Tests & Lint (if applicable)
-
-```bash
-cd apps/<frontend-app> && npm run lint && npm test
-```
+1. **Lint & format** — e.g., `ruff check . && ruff format --check .` (or the project-appropriate linter; check `CLAUDE.md` for the correct commands). If issues found: fix them, re-run. Do not proceed until clean.
+2. **Type checks** — Python: pyright or mypy; TypeScript: `tsc --noEmit`; frontend: `npm run lint` if it includes type checking. If issues found: fix them, re-run.
+3. **Unit tests** — e.g., `pytest tests/ -v` (or the project-appropriate test command). **Evidence required:** paste the summary line showing pass/fail counts — "X passed, 0 failed" is the minimum bar. If failures: fix them. Do NOT skip failing tests. Do NOT mark tests as `@pytest.mark.skip` to make the suite pass.
+4. **Frontend tests & lint (if applicable)** — e.g., `cd apps/<frontend-app> && npm run lint && npm test`.
 
 ---
 
-## Phase 3: Multi-Agent Code Quality Review
+## Phase 3: Multi-Agent Code Quality Review {#code-quality-review}
 
-Dispatch parallel subagents to review the diff from multiple angles. This catches code quality issues that static analysis and tests miss. Works against `git diff` — no PR required.
+Review the diff from five angles — this catches code quality issues that static analysis and tests miss. Works against `git diff` (`main...HEAD` on a feature branch; `HEAD~N` when the commits are on main) — no PR required. Identify all CLAUDE.md files relevant to the changed directories (root + any directory-level ones), then dispatch 3–5 parallel Task subagents (`model: sonnet` — rubric-guided review behind a deterministic confidence filter), one angle each:
 
-### Setup
+1. **CLAUDE.md compliance** — violations of project conventions, naming patterns, code style rules, or architectural constraints, with file:line and the specific CLAUDE.md rule.
+2. **Bug scan** — changed lines only: off-by-one errors, null/undefined access, missing error handling at system boundaries, race conditions, resource leaks. Ignore style issues.
+3. **Git history context** — `git blame` / `git log` on modified files: do the changes break assumptions from previous work (renamed functions still referenced elsewhere, removed code other modules depend on, changed behavior tests don't cover)?
+4. **Comment compliance** — do the changes violate guidance in the modified files' comments (TODOs, invariants, "do not change" warnings, API contracts in docstrings)?
+5. **Cross-file consistency** — signature, type, and config-key changes propagated to every caller and usage.
 
-```bash
-# Get the diff to review
-git diff main...HEAD          # if on a feature branch
-git diff HEAD~N               # if commits are on main (N = number of commits in this feature)
-```
+Each finding returns file:line, reasoning, and a confidence score (0–100). **Act only on findings scoring 75+** (verified real, will directly impact functionality, or explicitly violates CLAUDE.md). Log 50–74 as "noted but not blocking." Discard below 50 (likely false positives, nitpicks, or pre-existing issues).
 
-Identify all CLAUDE.md files relevant to the changed directories (root + any directory-level CLAUDE.md files).
-
-### Parallel Review Agents (dispatch simultaneously)
-
-Launch 3-5 subagents depending on the scope of changes:
-
-| Agent | Focus | What to return |
-|-------|-------|---------------|
-| **CLAUDE.md compliance** | Read the diff + all relevant CLAUDE.md files. Flag any violations of project conventions, naming patterns, code style rules, or architectural constraints. | List of violations with file:line and the specific CLAUDE.md rule. |
-| **Bug scan** | Read only the changed lines (shallow scan). Look for obvious bugs: off-by-one errors, null/undefined access, missing error handling at system boundaries, race conditions, resource leaks. Ignore style issues. | List of potential bugs with severity and reasoning. |
-| **Git history context** | Run `git blame` and `git log` on modified files. Check if changes break assumptions from previous work — renamed functions still referenced elsewhere, removed code that other modules depend on, changed behavior that tests don't cover. | List of issues with historical context. |
-| **Comment compliance** | Read code comments in modified files (TODOs, invariants, "do not change" warnings, API contracts documented in docstrings). Check if the changes violate any guidance in those comments. | List of violated comments with file:line. |
-| **Cross-file consistency** | Check that changes are consistent across files — if a function signature changed, are all callers updated? If a type changed, are all usages updated? If a config key was renamed, is it renamed everywhere? | List of inconsistencies. |
-
-### Confidence Scoring
-
-For each issue found, score confidence (0-100):
-
-| Score | Meaning |
-|-------|---------|
-| 0-25 | Likely false positive — doesn't stand up to scrutiny, or pre-existing issue |
-| 25-50 | Might be real but could be a nitpick. Not explicitly called out in CLAUDE.md. |
-| 50-75 | Verified real issue but minor — won't happen often in practice |
-| 75-100 | Verified real issue, will directly impact functionality, or explicitly violates CLAUDE.md |
-
-**Filter:** Only act on issues scoring 75+. Log issues scoring 50-74 as "noted but not blocking." Discard below 50.
-
-### Fix & Re-verify
-
-For each issue scoring 75+:
-1. Fix the issue
-2. Re-run the relevant static verification step from Phase 1
-3. If the fix changes behavior, add a regression test (Phase 5)
+For each issue acted on: fix it, re-run the relevant Phase 2 static step, and — if the fix changes behavior — add a regression test (Phase 6).
 
 ---
 
-## Phase 4: Deploy & Integration Verification
+## Phase 4: Deploy & Integration Verification {#deploy-verification}
 
 ### Phase 4 Entry Gate — Enumerate the Verification Surface
 
-Before running any Phase 4 sub-step, enumerate every upstream requirement that has a runtime surface and create one `TodoWrite` task per item. This list is the gate — Phase 4 is not complete until every todo is closed with evidence or explicitly resolved to `Unverified — action required` with a named blocker. A plain bullet list in prose does not substitute for `TodoWrite` todos; the todos are the structural enforcement.
+Before running any Phase 4 sub-step, enumerate every upstream requirement that has a runtime surface and create one tracked task per item via your task tracking tool (`TodoWrite` in Claude Code). This list is the gate — Phase 4 is not complete until every todo is closed with evidence or explicitly resolved to `Unverified — action required` with a named blocker. A plain bullet list in prose does not substitute for tracked tasks; the tasks are the structural enforcement. Where no task tool exists, the Phase 5 compliance table — one row per enumerated item — IS the gate (the same degradation phase-scoped mode uses).
 
-> **Phase-scoped exception:** When invoked with `--scope phase --feature <slug> --phase <N>` (see "Invocation Mode: Phase-Scoped" above, change #3), the markdown table in the phase's `review.{html,md}` IS the gate. Do not create `TodoWrite` tasks per FR-ID for phase-scoped runs — the per-task logs already carry the same outcome+evidence contract.
+> **Phase-scoped exception:** When invoked with `--scope phase --feature <slug> --phase <N>` (see `reference/invocation-contracts.md` §1, change #3), the markdown table in the phase's `review.{html,md}` IS the gate. Do not create tracked tasks per FR-ID for phase-scoped runs — the per-task logs already carry the same outcome+evidence contract.
 
 **How to build the list:**
 
@@ -264,7 +187,7 @@ Before running any Phase 4 sub-step, enumerate every upstream requirement that h
    - **Data surface** (migration, schema change, background job output) → todo required
    - **Pure internal logic** (algorithm verified by unit test only) → NOT on the list; cite the test in Phase 5 compliance instead
 2. Read the requirements doc's user journeys. Every end-to-end journey with UI or API touchpoints gets one todo.
-3. For each enumerated item, create a `TodoWrite` task formatted as:
+3. For each enumerated item, create a tracked task formatted as:
    `Verify <FR-ID or Journey-ID>: <one-line description> [evidence: <type from table below>]`
 
 **Browser-mandatory trigger (deterministic — not a judgment call):**
@@ -305,8 +228,8 @@ If any of these thoughts surface during Phase 4, stop and re-read the entry gate
 | "The happy path worked; good enough" | The spec's edge cases are explicit. Test at least one error/edge path per affected flow — the entry gate names this in 4e's evidence row. |
 | "I'll note it as a gap" | A gap you could have verified but didn't is not a gap — it's a skip. Either produce evidence (close as Verified), cite alternative evidence (close as NA), or name the blocker (leave open as Unverified-action-required). There is no fourth state. |
 | "Polish is cosmetic — out of scope for verification" | Polish *is* the user-facing product. Sub-step 4f is mandatory for any change with a UI surface. If the user has to push you to check polish, the skill failed. |
-| "Wireframes were just sketches — implementation is allowed to drift" | Style drift is *expected* — wireframes are not authoritative for visual style (see 2a). But unexamined drift on the authoritative dimensions (IA, copy, states, journeys) is a skip. Classify every delta on those dimensions as `intentional — style adaptation`, `intentional — decision`, or `regression`. A wireframe-diff with zero deltas listed is suspicious. |
-| "I should make the implementation look exactly like the wireframe" | No. Visual style follows the host app's design system, not the wireframe. The wireframe's color/typography/spacing/iconography is reference-only. Forcing pixel-fidelity over the host app's conventions is a different failure mode — flag it as a `regression` against the host app's design system, not the wireframe. |
+| "Wireframes were just sketches — implementation is allowed to drift" | Style drift is *expected* (per 2a), but unexamined drift on the authoritative dimensions is a skip. Classify every delta as `intentional — style adaptation`, `intentional — decision`, or `regression`. A wireframe-diff with zero deltas listed is suspicious. |
+| "I should make the implementation look exactly like the wireframe" | No — visual style follows the host app's design system, not the wireframe (per 2a). Forcing pixel-fidelity over host-app conventions is itself a `regression` against the host app's design system. |
 | "Hard-reload / deep-link works in-app, that's enough" | Parameterized routes must be hard-reloaded (open URL fresh in a new tab via Playwright) for every affected route. In-app navigation hides router-resolver bugs. |
 | "There's no dev server / it's just an HTML file — nothing to deploy" | The HTML file IS the runtime surface. Serve it or open it via `file://`; the browser-mandatory trigger already fired. |
 | "The e2e suite already drives a browser" | Headless specs verify what they assert; they don't see rendering, copy, polish, or your new bug. The interactive walk (4e) still runs. |
@@ -376,17 +299,15 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 
 **Skip only if** the change has zero UI surface (pure backend, infra, or library-internal). Document the skip with one sentence. Otherwise this sub-step runs.
 
-**Part 1 — Wireframe diff (only if `{feature_folder}/wireframes/` exists from Phase 1).** Wireframes are a *reference*, not a spec — see Phase 1 sub-step 2a for what they are and aren't authoritative for. For each affected screen:
+**Part 1 — Wireframe diff (only if `{feature_folder}/wireframes/` exists from Phase 1).** Wireframes are a *reference*, not a spec (per 2a). For each affected screen:
 
 1. Open the wireframe HTML and the live implementation side-by-side via Playwright MCP.
-2. Compare **only on the dimensions wireframes are authoritative for** (per 2a): IA, screen inventory, component presence, copy and labels, state coverage (loading/empty/error/success), affordances (CTAs, disabled states), navigation entry/exit. Do NOT diff visual style, color, typography, spacing, iconography, or component library — those are expected to follow the host app and will differ from the wireframe by design.
+2. Compare **only on the dimensions wireframes are authoritative for** (per 2a): IA, screen inventory, component presence, copy and labels, state coverage, affordances (CTAs, disabled states), navigation entry/exit. Do NOT diff visual style — it is expected to follow the host app and differ from the wireframe by design.
 3. Record every delta on the authoritative dimensions in the wireframe-diff table (Phase 5 sub-step 5d). Classify each as one of:
    - **`intentional — style adaptation`**: wireframe showed something the host app's design system handles differently. No fix needed; this is the expected adaptation. Cite the host-app convention.
    - **`intentional — decision`**: a deliberate departure recorded during /execute or earlier (cite the decision record).
    - **`regression`**: a missed requirement on an authoritative dimension (e.g., an empty state in the wireframe is missing from the implementation, copy is wrong, a journey step was dropped). Must be fixed in this verify pass, then re-verified.
 4. "Wireframe and implementation match" with no deltas listed is not acceptable evidence — name at least the authoritative dimensions checked.
-
-**The bar:** does the implementation cover what the wireframe specified at the IA/copy/states/journeys level, *adapted to the host app's design system*? Not: does it look pixel-identical to the wireframe.
 
 **Part 2 — UX polish checklist (always runs).** Walk the changed UI surface in Playwright and check every item below. Each becomes a row in the Phase 5 sub-step 5d table.
 
@@ -409,122 +330,21 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 
 ---
 
-## Phase 4a: Folded-phase awareness (new in v2.34.0 per T19/W4/E14)
+## Phase 4a: Folded-phase awareness {#folded-phase-awareness}
 
-When verifying a feature folder produced by /feature-sdlc v2.34.0+, check folded-phase artifacts and state.yaml signals:
+Only when the feature folder was produced by /feature-sdlc (a worktree `state.yaml` exists) — otherwise skip silently. Follow `reference/folded-phases.md` §A: prefer the slug-distinct MSF artifact paths (legacy `msf-findings.md` still passes, with a soft warning), emit the affirmative completion line when every folded phase was skipped via documented flags, warn when a Tier-3 feature shows no folded artifacts AND no documented skips, and re-emit one advisory warning per `folded_phase_failures[]` entry. Advisory throughout — never blocks PASS. Shared folding mechanics: `_shared/folded-phase.md`.
 
-### Slug-distinct artifact preference (FR-20, D4)
+## Phase 4b: Folded /architecture --since (T2 scoped; T3 full; T1 skip) {#folded-arch}
 
-For MSF artifacts, prefer the slug-distinct paths (the v2.34.0 convention):
+Delegates to `/architecture --since` to lint this branch's code changes against the architectural assertions baked into `02_spec.html`. **Skip entirely if `--skip-folded-arch` was passed** (the folding's escape flag per `_shared/folded-phase.md`): emit `architecture: --skip-folded-arch flag; skipping` to stderr and proceed to Phase 5 — no dispatch, no state mutation.
 
-- `<feature_folder>/msf-req-findings.md` — written by /requirements Phase 5a folded MSF-req.
-- `<feature_folder>/wireframes/msf-wf-findings/<wireframe-id>.md` — written by /wireframes Phase 6 folded MSF-wf (per-wireframe directory variant).
+- **Tier 1** — emit `arch sub-step: tier 1, skipping` to chat; no dispatch.
+- **Tier 2** — Scoped run: dispatch with `--since` against the changed file set only.
+- **Tier 3** — Full run: dispatch with `--since $(git merge-base HEAD main)`.
 
-**Legacy fallback:** if `msf-req-findings.md` is absent but `msf-findings.md` exists, /verify still passes the artifact check but emits a soft warning:
+Dispatch, timeout, and aggregation mechanics: `reference/folded-phases.md` §B. Findings aggregate into the report as the `### Architecture findings` section; dispatch failures append to `state.yaml.phases.verify.folded_phase_failures[]` and emit an advisory warning — folded-phase failures never block /verify PASS.
 
-```
-legacy slug detected at <path>; new writes use msf-req-findings.md (D3 / pipeline-consolidation v2.34.0). No action required for this run.
-```
-
-### Affirmative folded-phase-completion signal (E14)
-
-When BOTH conditions hold for a Tier-3 feature:
-
-1. All folded phases were Skipped (state.yaml.phases.<x>.notes records `--skip-folded-{msf,msf-wf,sim-spec}` flags)
-2. `state.yaml.phases.<x>.folded_phase_failures[]` is empty for all phases
-
-…emit an affirmative line in the compliance summary:
-
-```
-✓ folded phases skipped per documented flags
-```
-
-### Advisory warning — Tier-3 feature with no folded artifacts and no documented skip (E1 softened, F4)
-
-When a Tier-3 feature has:
-
-- NO `msf-req-findings.md`, NO per-wireframe MSF-wf findings, NO simulate-spec patches in `02_spec.md` git history
-- NO `--skip-folded-*` flags documented in state.yaml.phases.<x>.notes
-- NO entries in `folded_phase_failures[]`
-
-…emit ADVISORY (not blocking):
-
-```
-WARNING: Tier-3 feature has no folded MSF artifacts and no documented skips; folded phases may have been bypassed silently. Verify intentional.
-```
-
-### Per-failure advisory emit (FR-52, F4)
-
-For every entry in any phase's `folded_phase_failures[]`, emit:
-
-```
-WARNING: <folded-skill> crashed in <phase> (advisory per D11): <error_excerpt>
-```
-
-These are advisory (not blocking) per D11; /verify still PASSes if everything else is green. They surface so the user sees folded-phase health at every /verify run.
-
-## Phase 4b: Folded /architecture --since (T2 scoped; T3 full; T1 skip)
-
-**Skip if `--skip-folded-arch` was passed** (FR-30 escape). This phase delegates to the `/architecture` skill's `--since` mode (shipped in Wave 4 / T11) to lint code changed on this branch against the architectural assertions baked into `02_spec.html`. Findings aggregate into /verify's report alongside lint, tests, and code-review output. Per FR-25..FR-30.
-
-### Tier gate (FR-26)
-
-| Tier | Behavior |
-|------|----------|
-| 1    | Emit `arch sub-step: tier 1, skipping` to chat. No dispatch. Proceed to Phase 5. |
-| 2    | Scoped run — dispatch with `--since` against the changed file set only. /architecture's pre-flight already short-circuits on empty diff. |
-| 3    | Full run — dispatch with `--since` against `git merge-base HEAD main`. Larger scope but same skill invocation. |
-
-### Pre-flight short-circuit (FR-30)
-
-If the argument string carries `--skip-folded-arch`, emit `architecture: --skip-folded-arch flag; skipping` to stderr and proceed to Phase 5 without further work. No dispatch, no state.yaml mutation.
-
-### Dispatch (FR-27)
-
-Compute the since-base:
-
-```bash
-SINCE=$(git merge-base HEAD main)
-```
-
-If the resolution fails (no `main` branch, detached HEAD, etc.), log the git error and proceed to Phase 5 — folded-phase failures are advisory; we do not block /verify on a baseline-resolution miss.
-
-Invoke `/architecture --since $SINCE` as a blocking Task subagent with **600s timeout** (longer than Phase 6b's 300s — branch-wide scans are heavier than single-spec evaluations). The child resolves changed files, runs the judge, validates findings (file_path schema variant), and writes its triplet atomically. On the empty-diff path, /architecture emits the canonical `architecture: no changes since $SINCE; skipping` log line and exits 0 with no triplet — this is the expected success path on doc-only branches.
-
-### Aggregation (FR-28)
-
-On success with findings: read the triplet's `<triplet>.json` and emit a new section in /verify's primary output report:
-
-```
-### Architecture findings
-
-Source: <triplet-path>.html
-<N> findings (M must-fix, K should-fix).
-
-| # | rule_id | severity | file_path | finding |
-|---|---------|----------|-----------|---------|
-| 1 | <rule>  | <sev>    | <path>    | <one-line restatement> |
-```
-
-Each row is one finding from the triplet's JSON, sorted by severity (`must_fix` → `should_fix` → `consider`). The aggregated table sits alongside the existing lint / tests / code-review aggregators (no schema conflict — these are siblings, not merges).
-
-On success with no findings: emit `Architecture findings: 0` as a one-line aggregator entry — keeps the section's presence visible so absence of findings is distinguishable from absence of the phase.
-
-### Advisory failure (FR-29, D11)
-
-On dispatch failure (subagent crash, timeout, schema-conformance hard-fail, judge API error), capture `{folded_skill: "architecture", error_excerpt: <first-200-chars>, ts: <ISO-8601>}` and append to `state.yaml.phases.verify.folded_phase_failures[]` per the dedup rule in `feature-sdlc/reference/state-schema.md`. Emit at moment-of-append:
-
-```
-WARNING: architecture crashed in verify (advisory per D11): <error_excerpt>
-```
-
-Continue to Phase 5 — folded-phase failures do NOT block /verify PASS. Phase 4a (folded-phase awareness) will re-surface these on the next /verify run.
-
-### Flag handling (Phase 0 parser additions)
-
-`--skip-folded-arch` (boolean) — short-circuits this phase entirely (mirrors `/spec`'s same-named flag for Phase 6b).
-
-## Phase 5: Spec Compliance Check
+## Phase 5: Spec Compliance Check {#spec-compliance}
 
 This is the most important phase. Re-read each upstream document and verify every requirement is implemented.
 
@@ -551,15 +371,7 @@ Read `{feature_folder}/01_requirements.{html,md}` (resolved in Phase 1 via the r
 
 ### 5b. Spec Compliance
 
-Read `{feature_folder}/02_spec.{html,md}` (resolved in Phase 1 via the resolver). For every FR-ID and edge case:
-
-| ID | Requirement | Outcome | Evidence |
-|----|-------------|---------|----------|
-| FR-01 | [From spec] | Verified / NA / Unverified | [Per the three-state model — e.g., `test_orders.py::test_checkout_flow`, or `screenshots/fr-01-checkout.png`, or `Unverified — Stripe webhook endpoint requires live deploy`] |
-| FR-02 | ... | ... | ... |
-| E1 | [Edge case] | Verified / NA / Unverified | [Evidence for the edge case specifically, not the happy path] |
-
-**Copy-pasteable template (use this verbatim — do not freelance the `Outcome` column):**
+Read `{feature_folder}/02_spec.{html,md}` (resolved in Phase 1 via the resolver). One row per FR-ID and edge case, using this template **verbatim — do not freelance the `Outcome` column:**
 
 ```markdown
 | ID | Requirement | Outcome | Evidence |
@@ -570,7 +382,7 @@ Read `{feature_folder}/02_spec.{html,md}` (resolved in Phase 1 via the resolver)
 | E1 | <edge case from spec> | Verified | <evidence for the edge case, not the happy path> |
 ```
 
-Allowed `Outcome` values are exactly `Verified`, `NA — alt-evidence`, and `Unverified — action required`. Bare `Pass`, `Fail`, `Complete`, `Partial`, `✓`, or `❌` are not valid — they collapse into the three above. Every `Unverified — action required` row also appears in the Phase 8 final report as an open item.
+Allowed `Outcome` values are exactly `Verified`, `NA — alt-evidence`, and `Unverified — action required`. Bare `Pass`, `Fail`, `Complete`, `Partial`, `✓`, or `❌` are not valid — they collapse into the three above. Edge-case rows need evidence for the edge case specifically, not the happy path. Every `Unverified — action required` row also appears in the Phase 8 final report as an open item.
 
 ### 5c. Plan Compliance
 
@@ -596,9 +408,7 @@ This table consolidates the output of Phase 4 sub-step 4f. Skip only if the chan
 |--------|--------------------------------------|---------------|---------------------|
 | `01_dashboard.html` vs `/dashboard` | [What differs on IA / copy / states / journeys — NOT visual style] | `intentional — style adaptation` / `intentional — decision` / `regression` | [Screenshot pair, decision record reference, host-app convention reference, or fix commit] |
 
-Reminder: only diff on the dimensions wireframes are authoritative for (Phase 1 sub-step 2a). Visual-style differences (color, typography, spacing, iconography, component library) are expected and not listed as deltas — the implementation is meant to adapt the wireframe to the host app's design system.
-
-If a screen had zero deltas on the authoritative dimensions, write one row stating that explicitly and naming the dimensions checked (IA, copy, states, journeys) — empty tables are not acceptable evidence.
+Diff only the dimensions wireframes are authoritative for (per 2a) — visual-style differences are expected and not listed as deltas. If a screen had zero deltas on the authoritative dimensions, write one row stating that explicitly and naming the dimensions checked (IA, copy, states, journeys) — empty tables are not acceptable evidence.
 
 **Part 2 — UX polish checklist results:**
 
@@ -622,7 +432,7 @@ List every gap found:
 
 ---
 
-## Phase 6: Harden the Test Suite
+## Phase 6: Harden the Test Suite {#harden-tests}
 
 For every issue discovered during verification:
 
@@ -639,7 +449,7 @@ Also check for coverage gaps:
 
 ---
 
-## Phase 7: Final Compliance Pass
+## Phase 7: Final Compliance Pass {#final-compliance}
 
 One last check before committing:
 
@@ -649,18 +459,18 @@ One last check before committing:
 4. **Check for hardcoded values** that should be configuration.
 5. **Verify documentation is updated** (CLAUDE.md, changelogs, API docs).
 
-### Phase 7 Hard Gates
+### Phase 7 Hard Gates {#hard-gates}
 
 The following script checks must pass before Phase 8 (Commit & Report). A non-zero exit blocks `/verify` completion for this feature.
 
 **Existence guard:** the repo-root gate scripts (e.g., the comments coverage check) are agent-skills-repo-specific. Before running each one, check that the script exists at the repo root (e.g., `[ -f scripts/check-comments-coverage.sh ]`). If it does not exist in the host repo, skip the gate and note in the Phase 8 report: "comments-coverage gate skipped — agent-skills-repo-specific gate, script not present in this repo." Where the script exists, the gate remains hard.
 
-- **Comments coverage check** (FR-62): `bash scripts/check-comments-coverage.sh` — refuses /verify completion if any of the 14 `apply-edit-at-anchor` contract tests are missing (13 originating skills + 1 orchestrator), if any of the 15 emit references are absent (13 skill-level `comments.js` refs + 2 orchestrator surface refs for `00_pipeline.html` and `00_open_questions_index.html`), or if the resolver integration test or calibration tests (`scorer.test.js`, `reanchor.integration.test.js`) are missing. Bypassable only via documented spec amendment.
+- **Comments coverage check:** `bash scripts/check-comments-coverage.sh` — refuses /verify completion if any of the 14 `apply-edit-at-anchor` contract tests are missing (13 originating skills + 1 orchestrator), if any of the 15 emit references are absent (13 skill-level `comments.js` refs + 2 orchestrator surface refs for `00_pipeline.html` and `00_open_questions_index.html`), or if the resolver integration test or calibration tests (`scorer.test.js`, `reanchor.integration.test.js`) are missing. Bypassable only via documented spec amendment.
 - **Browser evidence check:** `bash "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/check-browser-evidence.sh" "{feature_folder}" <changed_files_list>` — write the Phase 1 changed-files list to a file first (e.g., `git diff --name-only main...HEAD > /tmp/verify-changed-files.txt`), or omit the second argument to let the script derive it from `git merge-base HEAD main`. Exits non-zero when the changed files match the browser-mandatory trigger patterns (Phase 4 entry gate) but no screenshot (`*.png`/`*.jpg`/`*.jpeg`/`*.webp`) exists under `{feature_folder}/verify/`. A failure here means the verdict cannot be bare `PASS` (Phase 8 verdict rule) — either produce the Phase 4d–4f evidence now, or downgrade to `PASS-WITH-GAPS` with every gap enumerated. Ships with this skill (host-repo-agnostic — it reads the feature folder, not repo internals), so the existence guard above does not apply: this gate runs in every host repo.
 
 ---
 
-## Phase 7a: Design-System Drift Check (advisory)
+## Phase 7a: Design-System Drift Check (advisory) {#design-drift}
 
 Keeps `DESIGN.md` and `COMPONENTS.md` in sync with the codebase so the design-system files stay self-sufficient over time. Advisory — never blocks `/verify`.
 
@@ -679,7 +489,7 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
 
 ---
 
-## Phase 8: Commit & Report
+## Phase 8: Commit & Report {#commit-report}
 
 **Verdict rule (deterministic — compute before writing the report):** the final report carries exactly one verdict line: `PASS`, `PASS-WITH-GAPS`, or `FAIL`.
 
@@ -694,7 +504,7 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
    ```
    If there are multiple logical changes, use multiple commits.
 
-2. **Write the review report** to `{feature_folder}/verify/{YYYY-MM-DD}-review.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. If a report with that name already exists from an earlier run today, append `-2`, `-3`, etc. (e.g., `2026-04-30-review-2.html`). The report contains the same content delivered to the user in step 3. For phase-scoped invocations (Phase-Scoped Mode above), the path becomes `{feature_folder}/verify/{YYYY-MM-DD}-phase-<N>/review.html`.
+2. **Write the review report** to `{feature_folder}/verify/{YYYY-MM-DD}-review.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. If a report with that name already exists from an earlier run today, append `-2`, `-3`, etc. (e.g., `2026-04-30-review-2.html`). The report contains the same content delivered to the user in step 3. For phase-scoped invocations (`reference/invocation-contracts.md` §1), the path becomes `{feature_folder}/verify/{YYYY-MM-DD}-phase-<N>/review.html`.
 
    - **Atomic write (FR-10.2):** write `<name>.html` and the companion `<name>.sections.json` via temp-then-rename.
    - **Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
@@ -714,7 +524,7 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
 
 ---
 
-## Phase 9: Workstream Enrichment
+## Phase 9: Workstream Enrichment {#workstream-enrichment}
 
 **Skip if no workstream was loaded in Phase 0.** Otherwise, follow `_shared/pipeline-setup.md` Section C. For this skill, the signals to look for are:
 
@@ -725,13 +535,13 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 
 ---
 
-## Phase 10: Capture Learnings
+## Phase 10: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
 ---
 
-## Evidence Standards
+## Evidence Standards {#evidence-standards}
 
 Every claim must have evidence. No exceptions:
 
@@ -750,7 +560,7 @@ Every claim must have evidence. No exceptions:
 
 ## Anti-Patterns (DO NOT)
 
-For Phase 4 skip rationalizations specifically, see the **Phase 4 Red Flags** table — those six thoughts are the most common skips and are named individually there. This section covers general-purpose anti-patterns that apply across phases.
+For Phase 4 skip rationalizations specifically, see the **Phase 4 Red Flags** table — the thoughts named there are the most common skips. This section covers general-purpose anti-patterns that apply across phases.
 
 - Do NOT mark failing tests as skip to make the suite pass
 - Do NOT claim "tests pass" without showing the output
@@ -761,5 +571,8 @@ For Phase 4 skip rationalizations specifically, see the **Phase 4 Red Flags** ta
 - Do NOT assume the previous verification run is still valid — re-run after every fix
 - Do NOT skip the Phase 6 hardening phase — converting bugs to tests is what prevents regressions
 - Do NOT skip Phase 4 sub-step 4f for any change with a UI surface — polish + wireframe consistency is mandatory, not "if there's time." If the user has to ask "did you check polish?", the skill failed.
-- Do NOT mark wireframe drift as acceptable without classifying it. Every delta on an authoritative dimension is `intentional — style adaptation`, `intentional — decision`, or `regression`. "Close enough" is not a state.
-- Do NOT diff visual style (color, typography, spacing, iconography, component library) against the wireframe. Those follow the host app's design system, not the wireframe. Pushing pixel-fidelity to the wireframe over host-app conventions is itself a failure mode.
+- Do NOT mark wireframe drift as acceptable without classifying it (`intentional — style adaptation`, `intentional — decision`, or `regression` — "close enough" is not a state), and do NOT diff visual style against the wireframe: visual style follows the host app's design system (per 2a), and pushing pixel-fidelity to the wireframe over host-app conventions is itself a failure mode.
+
+---
+
+*Spec lineage: `2026-05-03_verify-skill-teeth` (Phase 4 entry gate, three-state outcome model, Red Flags table, Evidence Standards), `2026-05-13_plan-vertical-slices` (phase-scoped invocation), `2026-05-10_pipeline-consolidation` + `2026-05-28_architecture-in-feature-sdlc` (folded phases), `2026-05-09_html-artifacts` + `2026-05-28_inline-html-artifacts` (HTML emit contract, reviewer input contract, comments-coverage gate FR-62), `2026-05-08_non-interactive-mode` (mode contract), `docs/pmos/reviews/2026-06-10_ops-observations/07_verify-browser.md` (browser-tool ladder, browser-mandatory trigger, verdict rule, browser-evidence gate).*
