@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-06-10 — pmos-learnkit 0.18.0: `/frameworks` browse revamp — three views, inline diagrams, sidebar reader, sharper decision-types
+
+A reading-experience overhaul of the `/frameworks` library, shaped from seven pieces of feedback. The corpus is the same 272 frameworks; what changed is how you browse, read, and slice them — and how the diagrams sit inside each framework.
+
+- **Three listing views.** `browse` now offers **Compact** (areas → comma-separated framework links), **Detailed** (cards with the framework's primary diagram as a thumbnail), and **List** (one bulleted row per framework with its description). Group-by is configurable — **area** (default) or **tag** — in the Detailed and List views.
+- **Diagrams render inline, where they belong.** A new `diagram_anchors[]` field (a ≥40-char verbatim substring of the framework's body, parallel and equal-length to `diagrams[]`) places each diagram immediately after the block it illustrates instead of stacking them all at the top; an unanchored diagram falls back to a leading group. **418 of 421** diagrams are anchored to a specific block.
+- **A sidebar reader that shifts the layout, not an overlay.** Opening a framework slides the listing aside and shows the detail in a sticky right-hand reader (≤720px it stacks) — no modal, no backdrop, no "where did the list go?" disorientation.
+- **Decision-types regrouped into cognitive jobs.** The old vague enum (`judgment` / `analysis` / `prioritization` / `framing` / `estimation`) is retired and hard-rejected. The new 8-value taxonomy classifies each framework by the *thinking job* it does: **prioritize · decide · diagnose · estimate · strategize · design · communicate · frame** (+ `n/a`). A `validate-corpus` distribution gate keeps any one value from re-forming a mega-bucket (no value > 30%, `n/a` ≤ 5%). All 272 frameworks were re-derived; the live spread tops out at `strategize` 27.2%.
+- **Tag-based filtering.** Filter the library by problem-tag chips (OR within the facet), composable with the area filter and free-text search.
+- **Share + copy-markdown per framework.** The detail reader gains a share button and a copy-as-markdown button (with an `execCommand` clipboard fallback).
+- **PMOS masthead** at the top of the library.
+
+### Internal
+
+- New `scripts/apply-rederive.mjs` — an incremental, idempotent **offline** re-derive path: re-classify a shipped corpus over its own `body_md` (no Notion round-trip), applying only valid `{decision_type, diagram_anchors}` entries and exiting non-zero on any invalid one. `build-library.mjs` rewritten with `parseBlocks`/`renderBody` (inline-anchor placement) and the three-view client app; `validateAnchors` is shared from `derive-fields.mjs`; the distribution gate lives in `validate-corpus.mjs`.
+- A `/verify` code-review pass caught and fixed a latent diagram↔anchor index-misalignment in `build-library.mjs` (a missing SVG could shift a later diagram onto the wrong anchor); the fix zips by original index before dropping missing slots, with a red-green regression test.
+- **Known / accepted residual:** the skill-eval check `a-name-verb-or-gerund` fails — `frameworks` is a library noun, not a verb/gerund. Accepted in skill-eval and reconfirmed in `/verify`: renaming would break the public `/frameworks` command, its directory, and the marketplace entry, and is out of scope for a browse-UX revision; sibling skills (`/primer`, `/magazine`, `/backlog`) share the noun convention.
+- Authored end-to-end via `/feature-sdlc skill --from-feedback` (the `/skill-sdlc` alias), Tier 3. Triage / requirements / grill / spec / plan / verify artifacts ship under `docs/pmos/features/2026-06-10_frameworks-library-revamp/`.
+
+### Breaking changes
+
+None for users. Internally, the `decision_type` enum is a clean break — the five pre-0.18 values are rejected by `validate-corpus`/`derive-fields`; any out-of-tree corpus must re-derive. The shipped corpus is already migrated.
+
+---
+
 ## 2026-06-07 — pmos-learnkit 0.17.0: `/frameworks` — your searchable offline library of ~270 PM frameworks
 
 A new learnkit skill that turns "I'm stuck on this decision — what thinking tool fits?" into a ranked shortlist. Describe a problem and `/frameworks` returns the 2–5 most relevant frameworks (RICE, JTBD, Kano, regret-minimization, …), each with a one-line "why it fits", the curator's PM's-take, and an owned inline SVG diagram — or browse the whole filterable collection offline from `file://`. It ships a pre-built, verified corpus so there's nothing to fetch on first use.
