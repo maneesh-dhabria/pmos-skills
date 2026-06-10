@@ -4,9 +4,9 @@ Opinionated, lightweight pattern references the `/wireframes` skill loads on dem
 
 ## How the skill uses this library
 
-- **Phase 2a (component inventory):** for each component, find a matching pattern below. Tag the inventory row with `pattern: <category>/<file>`. If no match → tag `pattern: novel` and flag for human review.
-- **Phase 3 (generation):** each subagent receives ONLY the pattern files for its assigned components (typically 1–3 files), not the whole library.
-- **Phase 4 (review):** reviewer subagent receives the same pattern files + `eval-rubric.md`. Findings cite both: "violates `forms/inline-validation.md` rule 4 + heuristic N5".
+- **`#component-breakdown` step 2 (component inventory):** for each component, find a matching pattern below. Tag the inventory row with `pattern: <category>/<file>`. If no match → tag `pattern: novel` and flag for human review.
+- **`#generate` (generation):** each subagent receives ONLY the pattern files for its assigned components (typically 1–3 files), not the whole library.
+- **`#review` (review):** reviewer subagent receives the same pattern files + `eval-rubric.md`. Findings cite both: "violates `forms/inline-validation.md` rule 4 + heuristic N5".
 
 ## Pattern index
 

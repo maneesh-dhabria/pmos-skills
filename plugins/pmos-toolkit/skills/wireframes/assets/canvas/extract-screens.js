@@ -1,5 +1,5 @@
 // extract-screens.js — extract a screen descriptor from a per-device
-// wireframe HTML file. Each file produced by /wireframes Phase 3 is one
+// wireframe HTML file. Each file produced by /wireframes `#generate` is one
 // (component × device) pair = one screen on the canvas.
 //
 // Two extraction strategies, tried in order:

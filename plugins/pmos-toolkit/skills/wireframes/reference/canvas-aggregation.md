@@ -1,6 +1,6 @@
-# Phase 7 — Canvas Aggregation
+# Canvas Aggregation (`#canvas`)
 
-Reference for the always-on Phase 7 step that aggregates per-device wireframes into a single Figma-like canvas viewer. Consumed by `SKILL.md` Phase 7.
+Reference for the always-on `#canvas` phase that aggregates per-device wireframes into a single Figma-like canvas viewer. Consumed by `SKILL.md` `#canvas`.
 
 ## Contents
 
@@ -16,7 +16,7 @@ Reference for the always-on Phase 7 step that aggregates per-device wireframes i
 
 ## Invocation
 
-From Phase 7 in `SKILL.md`:
+From `#canvas` in `SKILL.md`:
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/wireframes/assets/canvas/build-canvas.js \
@@ -135,4 +135,4 @@ The aggregator is "additive": its job is to enrich `/wireframes` output, never t
 
 ## Bootstrap-only mode carve-out
 
-When `/wireframes` is invoked as `--bootstrap-design-only`, Phase 5 (Index & Serve) does not run; only DESIGN.md and COMPONENTS.md are produced. Phase 7 therefore also does not run (there are no per-device files to aggregate). This is by-design and not a silent skip: it follows directly from the bootstrap-mode contract documented in `SKILL.md`'s `## --bootstrap-design-only mode` section.
+When `/wireframes` is invoked as `--bootstrap-design-only`, `#index-serve` does not run; only DESIGN.md and COMPONENTS.md are produced. `#canvas` therefore also does not run (there are no per-device files to aggregate). This is by-design and not a silent skip: it follows directly from the bootstrap-mode contract documented in `SKILL.md`'s `## --bootstrap-design-only mode` section.

@@ -128,9 +128,9 @@ Compare `x-source` against current HEAD.
 
 ### What to do with staleness
 
-The resolver doesn't act on staleness — it just reports it. The caller (`/wireframes` Phase 2a or `/verify` drift check) decides:
+The resolver doesn't act on staleness — it just reports it. The caller (`/wireframes` `#resolve-design-md` or `/verify` drift check) decides:
 
-- `/wireframes` Phase 2a: AskUserQuestion: **Re-extract** / **Use as-is** / **Abort**.
+- `/wireframes` `#resolve-design-md`: AskUserQuestion: **Re-extract** / **Use as-is** / **Abort**.
 - `/verify` drift check: include stale files in the drift detection scope.
 
 ---

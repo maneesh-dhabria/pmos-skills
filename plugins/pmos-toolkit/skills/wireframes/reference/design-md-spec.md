@@ -221,7 +221,7 @@ x-information-architecture:
         <main class="max-w-2xl mx-auto">…</main>
 ```
 
-`layouts` entries are referenced by name from Phase 2b of `/wireframes` (the layout anchor).
+`layouts` entries are referenced by name from `#composition-context` of `/wireframes` (the layout anchor).
 
 ### `x-content` — voice, tone, conventions
 

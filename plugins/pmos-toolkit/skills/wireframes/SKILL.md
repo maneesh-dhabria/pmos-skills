@@ -1,85 +1,68 @@
 ---
 name: wireframes
-description: Generate static HTML wireframes (single-file, mid-fi, Tailwind) for a user-facing feature — covers all screens, components, states, and target devices. Optional bridge between /requirements and /spec (run before /spec when the feature is user-facing). Auto-triggers /requirements if no req doc exists. Extracts a "house style" from the host repo's frontend so wireframes match the app, accepts screenshots (`--screenshots`) as IA anchors, and self-evaluates each file via a reviewer subagent with up to 2 refinement loops. Also emits a single-file Figma-like canvas viewer (`canvas.html`) aggregating every screen of every device on an infinite pan/zoom surface, with flow arrows from DESIGN.md journeys and drag-positionable screens persisted to `canvas.json`. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "show all screens on a canvas", "Figma-like view", "extend this existing flow", or has a requirements doc ready and wants visuals before the spec.
+description: Generate static HTML wireframes (single-file, mid-fi, Tailwind) for a user-facing feature — every screen, component, state, and target device, matched to the host repo's house style (DESIGN.md), plus a single-file Figma-like canvas viewer (canvas.html) aggregating all screens. Optional bridge between /requirements and /spec; auto-triggers /requirements if no req doc exists. Use when the user says "create wireframes", "mock up the UI", "wireframe this feature", "show all screens on a canvas", "Figma-like view", or "extend this existing flow".
 user-invocable: true
-argument-hint: "<path-to-requirements-doc or feature description> [--devices=desktop-web,mobile-web,...] [--feature <slug>] [--screenshots <path>] [--bootstrap-design-only] [--skip-folded-msf-wf] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
+argument-hint: "<path-to-requirements-doc or feature description> [--feature <slug>] [--screenshots <path>] [--bootstrap-design-only] [--skip-folded-msf-wf] [--non-interactive | --interactive]"
 ---
 
 # Wireframe Generator
 
-Produce static HTML wireframes that visualize every screen, component, and state needed to fulfill a feature's user journeys. Output is mid-fidelity (Tailwind via CDN, neutral palette, real typography, no real images) — looks polished enough to review with stakeholders but clearly not final design. This is an OPTIONAL stage that sits between requirements and spec for user-facing features:
+Produce static HTML wireframes that visualize every screen, component, and state needed to fulfill a feature's user journeys. Output is mid-fidelity (Tailwind via CDN, neutral palette, real typography, no real images) — polished enough to review with stakeholders but clearly not final design. This is an OPTIONAL stage between requirements and spec for user-facing features; skip it for backend-only or API-only work:
 
 ```
 /requirements  →  [/wireframes]  →  /spec  →  [/simulate-spec]  →  /plan  →  /execute  →  /verify
                   (this skill, optional)
 ```
 
-Use this when the feature has meaningful UI surface and the team benefits from seeing the flow before writing technical design. Skip for backend-only or API-only features.
-
-**Design vocabulary** is shared across every wireframe in a feature folder via `assets/wireframe.css` (theme tokens, state-switcher, annotations layer, device frames, and `mock-*` primitives — vocabulary borrowed from `superpowers:brainstorming/visual-companion`; CSS-variable theme discipline borrowed from `claude-plugins-official:frontend-design`). The CSS is copied into each output folder at the start of generation so wireframes remain portable and consistent.
+**Design vocabulary** is shared across every wireframe via `assets/wireframe.css` (theme tokens, state-switcher, annotations layer, device frames, `mock-*` primitives), copied into each output folder so wireframes stay portable and consistent.
 
 **Announce at start:** "Using the wireframes skill to generate HTML wireframes for this feature."
 
+## Flags & natural language
+
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "desktop and mobile" ≡ device pre-selection, "skip the UX pass" ≡ `--skip-folded-msf-wf`. Two flags stay parsed for back-compat but are deliberately not advertised:
+
+<!-- nl-sugar -->
+- `--devices=desktop-web,mobile-web,...` — pre-selects target devices; `#component-breakdown` step 4 confirms (or infers) the device list anyway.
+<!-- nl-sugar -->
+- `--msf-auto-apply-threshold N` — confidence override for the folded-MSF-wf apply-loop (default 80; semantics in `_shared/folded-phase.md`).
+
 ## `--bootstrap-design-only` mode
 
-Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` Phase 1a when DESIGN.md is missing but wireframes already exist). In this mode the skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no Phase 6 delegation, no Phase 7 canvas aggregation, no Phase 9–10 enrichment. The user's existing wireframes are not touched.
+Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` when DESIGN.md is missing but wireframes already exist). The skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no folded MSF-wf, no canvas, no enrichment. Existing wireframes are not touched.
 
-**Phases that run in this mode:** Phase 0 (workstream context), Phase 2a (DESIGN.md, including 2.5c review gate — DO NOT skip the gate), Phase 2b (COMPONENTS.md load/create — including 2.6a accept/edit/skip gate). All other phases are skipped.
+**Phases that run in this mode:** `#pipeline-setup`, `#resolve-design-md` (including its confirm gate — DO NOT skip it), `#composition-context` (COMPONENTS.md load/create). All other phases are skipped.
 
-**COMPONENTS.md scope in bootstrap mode (mandatory):** enumerate ONLY components that exist in the host frontend (`<app_dir>/src/components/` or equivalent). Do NOT propose feature-specific or speculative new components — those belong to `/prototype`'s output (Phase 4c flags new variants in the components.js footer; `/verify` promotes them later). A bootstrap-mode COMPONENTS.md that names components not present in the host frontend is a contract violation.
+**COMPONENTS.md scope in this mode (mandatory):** enumerate ONLY components that exist in the host frontend (`<app_dir>/src/components/` or equivalent). Do NOT propose feature-specific or speculative new components — those belong to `/prototype`'s output (its components.js generator flags new variants in the footer; `/verify` promotes them later). A bootstrap-mode COMPONENTS.md naming components not present in the host frontend is a contract violation.
 
-**Announce at start in this mode:** "Bootstrap-design-only: skipping wireframe regen. Producing DESIGN.md + COMPONENTS.md from the host frontend."
-
-**Exit:** announce path to the two files and return; do NOT trigger downstream phases or commit anything beyond the two files.
-
-For all other invocations, proceed through every phase below as usual.
+**Announce at start in this mode:** "Bootstrap-design-only: skipping wireframe regen. Producing DESIGN.md + COMPONENTS.md from the host frontend." **Exit:** announce the path to the two files and return; do NOT trigger downstream phases or commit anything beyond the two files.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
-- **No interactive prompt tool:** State your assumption (default device = desktop-web; default scope = all components from the req doc), document it in the output's README, and proceed. The user reviews after completion.
-- **No subagents:** Generate wireframes sequentially in the main agent; run the reviewer critique inline rather than dispatching a separate reviewer agent.
-- **No background processes:** Skip the local server and print the absolute `file://` path to `index.html` instead.
+- **No interactive prompt tool:** State your assumption (default device = desktop-web; default scope = all components from the req doc), document it in the output's README, and proceed.
+- **No subagents:** Generate wireframes sequentially in the main agent; run reviewer critiques inline.
+- **No background processes:** Skip the local server and print the absolute `file://` path to `index.html`.
 - **No Playwright MCP:** Note browser-based verification as a manual step for the user.
+- **No git or `state.yaml` (outside /feature-sdlc):** in `#folded-msf-wf`, skip per-finding commits and failure capture; record applied findings in the findings doc instead — or skip the phase via `--skip-folded-msf-wf`.
 
 ## Track Progress
 
-This skill has multiple phases. Create one task per phase using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code, equivalent in other agents). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
-
----
+Create one task per phase using your agent's task-tracking tool (e.g., `TodoWrite` in Claude Code). Mark each in-progress when started and completed as soon as it finishes — do not batch completions.
 
 ## Rigor & Corner-Cut Protocol
 
-This skill is permissive — several phases have a "cheap option" (skip Phase 2a, fewer Phase 4 loops). Permissiveness is fine; **silent downgrades are not**. The protocol below makes rigor visible.
+This skill is permissive — several phases have a "cheap option". Permissiveness is fine; **silent downgrades are not**. The rigor tiers below are defined once, here; `#review` picks one, it does not redefine them.
 
-### Rigor tiers
+- **High-rigor (default).** One reviewer subagent per file in parallel; one review pass, second loop only on unresolved hard-fails; full `#resolve-design-md` extraction.
+- **Medium-rigor (recommended for ≤ 6 files or a focused enhancement).** ONE cross-file reviewer subagent (single message, multi-file critique); apply fixes; no second loop. `#resolve-design-md` still runs in full.
+- **Low-rigor (personal-tool, single-user, time-bound only).** Inline grep + rubric spot-check PLUS one mandatory cross-file reviewer subagent (200-word brief: aria coverage on icon-only buttons, focus-visible styles, contrast, high-variance findings). The cross-file pass is non-negotiable — it's cheap and catches what grep misses.
 
-Pick the tier that matches the work. The tier governs Phase 4 (review loops) and the default density of Phase 2 prompts. Phase 6 (MSF + PSYCH) is delegated to `/msf-wf` — its rigor is governed there, not here.
-
-- **High-rigor (default).** One reviewer subagent per file in parallel; one review pass, second loop only on unresolved hard-fails (Phase 4b); full Phase 2a extraction.
-- **Medium-rigor (recommended for ≤ 6 files OR a focused enhancement).** ONE cross-file reviewer subagent (single message, multi-file critique); apply fixes; no second loop. Phase 2a still runs in full.
-- **Low-rigor (personal-tool, single-user, time-bound only).** Inline grep + read-aloud spot-check against the rubric headings PLUS one mandatory cross-file reviewer subagent (200-word brief: aria coverage on icon-only buttons, focus-visible styles, contrast against dark/light surfaces, high-variance findings across files). The cross-file pass is non-negotiable — it's cheap (~30s) and catches what grep misses.
-
-The user can override the chosen tier at any phase boundary. Default is high-rigor; recommend medium for ≤ 6 files; recommend low only when the user has signaled time-pressure or personal-tool context.
-
-### Announcement rule (non-negotiable)
-
-Whenever you choose the lighter option for a phase, **announce it before doing it** with this format:
-
-> "Choosing [lighter option] for [phase] because [rationale]. Trade-off: [what we lose]. Override?"
-
-The user gets one beat to redirect; if they don't, proceed. Phases that have cheap options and therefore require an announcement when downgraded:
-
-- **Phase 2 scope-triage** — items classified as "skip wireframe" or "comparison only"
-- **Phase 2a** — when skipped despite a host frontend being present
-- **Phase 3.5 screenshot ingestion** — when skipped despite screenshots being attached
-- **Phase 4 review loops** — when running medium- or low-rigor instead of full
-
-Silently downgrading rigor is a small integrity leak that compounds across phases.
+**Announcement rule (non-negotiable):** whenever you choose the lighter option for a phase, announce it first — "Choosing [lighter option] for [phase] because [rationale]. Trade-off: [what we lose]. Override?" — and give the user one beat to redirect. Applies to: scope-triage skips (`#component-breakdown` step 1), skipping `#resolve-design-md` despite a host frontend, skipping screenshot ingestion (`#locate-requirements` step 4) despite attached screenshots, and `#review` running below high-rigor.
 
 ---
 
-## Phase 0: Pipeline Setup (inline — do not skip)
+## Phase 0: Pipeline Setup (inline — do not skip) {#pipeline-setup}
 
 Use workstream context (loaded by step 3 below) — design tokens, brand voice, and prior wireframe conventions live here. Wireframes are commonly produced before /spec, so this skill may create the feature folder.
 
@@ -128,226 +111,101 @@ Use workstream context (loaded by step 3 below) — design tokens, brand voice, 
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Locate Requirements
+## Phase 1: Locate Requirements {#locate-requirements}
 
-1. **Find the requirements doc.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or inline feature description.
-2. **No requirements doc found?** Stop and trigger `/requirements` first:
-   - Tell the user: "Wireframes need a requirements doc to anchor user journeys. Running `/requirements` first."
-   - Hand off to `/pmos-toolkit:requirements` with the user's original ask.
-   - Resume `/wireframes` once the req doc is written.
-3. **Read the req doc end-to-end.** Extract:
-   - User journeys (each step the user takes)
-   - Functional requirements that imply UI
-   - Non-goals (so you do NOT wireframe out-of-scope flows)
-   - Any explicit UX constraints (brand, accessibility tier, device support already declared)
-3.5. **Ingest screenshots, if provided.** If the user passed `--screenshots <path>` (one or more times) OR attached images inline, follow `reference/screenshot-ingestion.md`:
-   - Copy each image to `{feature_folder}/wireframes/assets/source-screens/`
-   - Run vision-extraction per the prompt template in that file
-   - Append a section per screenshot to `{feature_folder}/wireframes/assets/source-screens.md`
-   <!-- defer-only: ambiguous -->
-   - Defer the journey-anchoring `AskUserQuestion` step to the journey-confirmation gate below (so the user reviews journeys and screenshot mappings together)
-   - If no screenshots provided, skip this step entirely.
+1. **Find the requirements doc.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Accept either a path or an inline feature description.
+2. **No requirements doc found?** Stop and trigger `/requirements` first: tell the user "Wireframes need a requirements doc to anchor user journeys. Running `/requirements` first.", hand off to `/pmos-toolkit:requirements` with the original ask, and resume once the doc is written.
+3. **Read the req doc end-to-end.** Extract: user journeys, functional requirements that imply UI, non-goals (so you do NOT wireframe out-of-scope flows), and explicit UX constraints (brand, accessibility tier, declared device support).
+4. **Ingest screenshots, if provided.** If the user passed `--screenshots <path>` (one or more times) OR attached images inline, follow `reference/screenshot-ingestion.md`: copy each image to `{feature_folder}/wireframes/assets/source-screens/`, run vision-extraction per that file's prompt template, append a section per screenshot to `{feature_folder}/wireframes/assets/source-screens.md`. Defer the journey-anchoring question to the gate below so the user reviews journeys and screenshot mappings together. No screenshots → skip this step.
 <!-- defer-only: ambiguous -->
-4. **Confirm understanding.** Summarize the journeys you'll wireframe AND (if step 3.5 ran) propose anchor mappings between each screenshot and a journey step. Ask the user to confirm both via `AskUserQuestion` (batch ≤ 4 per call, screenshots first then journey list, sequential calls if needed). Update `source-screens.md` "Anchored to" lines per the user's answers. Platform fallback: present journeys + proposed mappings as a numbered list and ask for confirmation in free text.
+5. **Confirm understanding.** Summarize the journeys you'll wireframe AND (if step 4 ran) propose anchor mappings between each screenshot and a journey step. Ask the user to confirm both via `AskUserQuestion` (batch ≤ 4 per call, screenshots first then journeys). Update `source-screens.md` "Anchored to" lines per the answers. Platform fallback: numbered list + free-text confirmation.
 
-**Gate:** Do not proceed until the user confirms the journey list.
+**Gate:** do not proceed until the user confirms the journey list.
 
 ---
 
-## Phase 2: Component & Device Breakdown
+## Phase 2: Component & Device Breakdown {#component-breakdown}
 
-### 2a-pre. Scope Triage (do this first)
+1. **Scope triage (first).** Classify every req-doc item:
 
-Read every item in the requirements doc. For each, classify into one of three treatments:
+   | Class | Symptom | Treatment |
+   |---|---|---|
+   | **Net-new IA / flow** | new screen, tab, modal, reshaped chrome | Full wireframe with state matrix |
+   | **Comparison / before-after** | restyle, change a single visual property | One file, 2 states ("before / after") |
+   | **Trivially specifiable** | data fix, label change, link wiring | Skip wireframe — note in handoff that /spec proceeds directly |
 
-| Class | Symptom | Treatment |
-|---|---|---|
-| **Net-new IA / flow** | new screen, new tab, new modal, reshaped chrome | Full wireframe with state matrix |
-| **Comparison / before-after** | restyle, remove stripes, change a single visual property | Single-screen "before / after" wireframe (1 file, 2 states) |
-| **Trivially specifiable** | data fix, label change, link wiring, refactor | Skip wireframe — note in handoff that /spec proceeds directly |
+   <!-- defer-only: ambiguous -->
+   Present the triage table via `AskUserQuestion` (one question per row OR a single multiSelect) so the user confirms classifications before inventory work; show default recommendations. Per the Rigor & Corner-Cut Protocol, **announce every "skip wireframe" and "comparison only" classification with rationale**. Only the first two classes enter the inventory; skipped items are listed in the `#spec-handoff` under "Skipped from wireframing".
 
-<!-- defer-only: ambiguous -->
-Present the triage table via `AskUserQuestion` (one question per row OR a single multiSelect with labeled rows) so the user confirms classifications before any inventory work. Default recommendations should be visible. Per the Rigor & Corner-Cut Protocol, **announce every "skip wireframe" and "comparison only" classification with rationale** — these are scope-cuts, not silent omissions.
+2. **Component inventory.** From the journeys, derive the design surface, grouped into screens/pages, modals/overlays, reusable components, and layouts (only when multiple screens share non-trivial chrome). Number each item and give it a lowercase-hyphenated `slug` (becomes the filename). **For each item, look up matching patterns** in `patterns/README.md` — a screen is typically a composition of patterns — and tag the row `patterns: [<category>/<file>, ...]`. No match → tag `patterns: novel` and flag for extra reviewer attention.
 
-After triage, only the items classed "Net-new IA / flow" or "Comparison / before-after" enter the inventory below. Skipped items get listed in the Phase 8 spec handoff under "Skipped from wireframing — proceed directly to /spec".
-
-### 2a. Component Inventory
-
-From the journeys, derive the design surface. Group into:
-
-- **Screens / pages** — full-viewport destinations (e.g., "Dashboard", "Settings", "Onboarding step 2")
-- **Modals / overlays** — temporary surfaces (e.g., "Confirm delete", "Image picker")
-- **Reusable components** — surfaces that appear in multiple screens (e.g., "Top nav", "Empty-state card", "Toast")
-- **Layouts** — only if multiple screens share a non-trivial chrome that's worth wireframing once
-
-Write the inventory as a numbered list. Each item gets a `slug` (lowercase, hyphenated) — this becomes the filename later.
-
-**For each item, look up matching patterns** in `patterns/README.md`. A screen is typically a composition of patterns (e.g., a "Deals dashboard" = `layout/page-header` + `data-display/stats-dashboard` + `data-display/table` + `feedback/empty-state`). Tag the inventory row with `patterns: [<category>/<file>, ...]`. If no pattern matches a component → tag `patterns: novel` and flag it for explicit human review (the generator should still produce it, but the reviewer subagent should pay extra attention).
-
-### 2b. State Coverage
-
-For each component, enumerate the states it must show. Standard checklist:
-
-- Default / loaded
-- Empty (no data yet)
-- Loading
-- Error / failure
-- Success / confirmation
-- Edge cases the req doc explicitly calls out (over-limit, partial-permission, etc.)
-
-A wireframe file MUST cover every state for its component — use a state-switcher tab pattern (see `reference/html-template.md`) so reviewers can flip between states in one file.
-
-### 2c. Device Selection
+3. **State coverage.** For each component, enumerate the states it must show: default/loaded, empty, loading, error, success, plus edge cases the req doc calls out. Every wireframe file MUST cover all its states via the state-switcher tab pattern (`reference/html-template.md`) — one file, switchable states.
 
 <!-- defer-only: ambiguous -->
-Ask the user (`AskUserQuestion`, multiSelect=true) which devices to target:
-
-- desktop-web
-- mobile-web
-- desktop-app (Electron-like, treat as desktop-web with frame chrome)
-- android-app (native patterns: bottom nav, FAB, system bar)
-- ios-app (native patterns: tab bar, sheet, large title)
-
-Default offered: whatever the req doc declared. If silent, recommend `desktop-web` + `mobile-web` for any consumer-facing feature.
-
-### 2d. Clarifying Questions
+4. **Device selection.** Ask via `AskUserQuestion` (multiSelect): desktop-web, mobile-web, desktop-app (desktop-web + window chrome), android-app (bottom nav, FAB, system bar), ios-app (tab bar, sheet, large title). Default: whatever the req doc declared; if silent, recommend desktop-web + mobile-web for consumer-facing features. An explicit `--devices` value or natural-language pre-selection seeds the default.
 
 <!-- defer-only: ambiguous -->
-Use `AskUserQuestion` (max 4 per call) to resolve genuine ambiguities about scope, IA, or interaction model. Do NOT ask cosmetic questions — those are reviewer-loop concerns. If you have no genuine ambiguities, skip and announce why.
+5. **Clarifying questions.** `AskUserQuestion` (max 4 per call) for genuine ambiguities about scope, IA, or interaction model only — cosmetic questions are reviewer-loop concerns. None → skip and announce why.
 
-**Gate:** Do not proceed until the user confirms the component inventory, state matrix, and device list. Print the matrix as a table:
+**Gate:** do not proceed until the user confirms the inventory, state matrix, and device list. Print the matrix:
 
 ```
 | # | Component | Slug | Type | States | Devices | Patterns |
-|---|-----------|------|------|--------|---------|----------|
 ```
 
-The `Patterns` column lists the `patterns/<category>/<file>` references for each component. This drives what the generator and reviewer subagents load in Phases 3 and 4 — keep it accurate.
+The `Patterns` column drives what the generator and reviewer subagents load in `#generate` and `#review` — keep it accurate.
 
 ---
 
-## Phase 2a: Resolve DESIGN.md
+## Phase 3: Resolve DESIGN.md {#resolve-design-md}
 
-> Decimal phase number is intentional — Phase 3 onward keeps existing numbering so external references (other skills, prior conversations) still resolve.
-
-DESIGN.md is the durable, repo-resident brand contract for the target app. This phase **finds** it, or **creates** it on first run, then merges it (resolving `x-extends`) into an in-memory object that the rest of the skill consumes. The legacy in-folder `house-style.json` / `house-style.css` artifacts are gone — DESIGN.md replaces them.
-
-Detailed procedure lives in three reference docs:
-- `reference/design-md-spec.md` — schema (base + `x-*` extensions).
-- `reference/design-md-resolver.md` — the resolution walk + `x-extends` cascade + staleness check + workstream persistence.
-- `reference/design-md-extractor.md` — auto-extraction from a host frontend; interactive elicitation for greenfield.
-
-### 2.5a — Resolve target app
+DESIGN.md is the durable, repo-resident brand contract for the target app. This phase **finds** it, or **creates** it on first run, then merges it (resolving `x-extends`) into an in-memory object the rest of the skill consumes. It replaced the legacy in-folder `house-style.json` / `house-style.css` artifacts. The procedure lives in three reference docs — `reference/design-md-spec.md` (schema), `reference/design-md-resolver.md` (resolution walk, `x-extends` cascade, staleness check, workstream persistence), `reference/design-md-extractor.md` (auto-extraction / greenfield elicitation):
 
 <!-- defer-only: ambiguous -->
-Follow `reference/design-md-resolver.md` Step 1 (workstream-first, then frontend detection, then AskUserQuestion if ambiguous). The chosen `app_dir` persists to the workstream `## Wireframes & Design System` section as `target_app.path`.
-
-### 2.5b — Find or create DESIGN.md
-
-Follow `reference/design-md-resolver.md` Step 2 (walk: `<app>/DESIGN.md` → `packages/ui/DESIGN.md` → `<repo-root>/DESIGN.md`).
-
-- **Found** → load it. Resolve `x-extends` per resolver Step 3. Run staleness check per resolver Step 4.
-  - **Fresh** → proceed to 2.5c.
-  <!-- defer-only: destructive -->
-  - **Stale** → AskUserQuestion: **Re-extract** / **Use as-is** / **Abort**. Re-extract runs `reference/design-md-extractor.md` Branch A and rewrites the file (preserving any hand-edited `## Anti-patterns` and `x-content.voice` — diff and confirm before overwrite).
-- **Not found** → run `reference/design-md-extractor.md`:
-  - **Frontend present** → Branch A (auto-extract).
-  - **Greenfield** → Branch B (interactive elicitation, 4 questions).
-  <!-- defer-only: ambiguous -->
-  - **Monorepo with shared `packages/ui/`** → AskUserQuestion: write to **shared base** (`packages/ui/DESIGN.md`) or **app-specific** (`<app_dir>/DESIGN.md`, with `x-extends` to the shared base if one exists). Recommend shared.
-
-### 2.5c — Confirm with user
-
+1. **Resolve target app** per resolver Step 1 (workstream-first, then frontend detection, then `AskUserQuestion` if ambiguous). The chosen `app_dir` persists to the workstream as `target_app.path`.
+2. **Find or create DESIGN.md** per resolver Step 2 (walk: `<app>/DESIGN.md` → `packages/ui/DESIGN.md` → `<repo-root>/DESIGN.md`).
+   - **Found** → load; resolve `x-extends` (resolver Step 3); staleness check (Step 4). Fresh → step 3.
+     <!-- defer-only: destructive -->
+     Stale → `AskUserQuestion`: **Re-extract** / **Use as-is** / **Abort**. Re-extract runs extractor Branch A and rewrites the file (preserving hand-edited `## Anti-patterns` and `x-content.voice` — diff and confirm before overwrite).
+   - **Not found** → run the extractor: frontend present → Branch A (auto-extract, via one read-only subagent if available — `model: sonnet`, schema-bound extraction); greenfield → Branch B (interactive elicitation, 4 questions).
+     <!-- defer-only: ambiguous -->
+     Monorepo with shared `packages/ui/` → `AskUserQuestion`: write to **shared base** or **app-specific** (with `x-extends` to the shared base). Recommend shared.
 <!-- defer-only: ambiguous -->
-After load/create, AskUserQuestion:
-- **Question:** "Use this DESIGN.md for wireframes?"
-- **Options:** **Use as-is** / **Edit before continuing** / **Discard for this run**
-- "Edit" → print absolute path; wait for user signal; re-read.
-- "Discard" → set `x-source.applied: false` in the file; proceed with `wireframe.css` defaults only (no overlay).
+3. **Confirm with user.** `AskUserQuestion`: "Use this DESIGN.md for wireframes?" — **Use as-is** / **Edit before continuing** / **Discard for this run**. Edit → print absolute path, wait, re-read. Discard → set `x-source.applied: false`; proceed with `wireframe.css` defaults only (no overlay).
+4. **Generate `design-overlay.css`** per `reference/design-md-to-css.md` into `{feature_folder}/wireframes/assets/design-overlay.css` (regenerated every run).
+5. **Workstream persistence** per resolver Step 5: `target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha` (set only on extract/re-extract).
+6. **Migration from legacy `## Design System / UI Patterns`.** First DESIGN.md for a workstream that has a non-empty legacy section → show existing patterns + proposed DESIGN.md additions, then
+   <!-- defer-only: ambiguous -->
+   `AskUserQuestion`: **Migrate (recommended)** / **Skip migration**. On migrate: append patterns to DESIGN.md, replace the workstream section's body with `→ See DESIGN.md at <path>`.
 
-### 2.5d — Generate `design-overlay.css`
-
-Once confirmed, follow `reference/design-md-to-css.md` to produce `{feature_folder}/wireframes/assets/design-overlay.css` from the merged DESIGN.md. This file is regenerated every run.
-
-### 2.5e — Workstream persistence
-
-Update the workstream `## Wireframes & Design System` section per resolver Step 5: `target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha` (only set on extract/re-extract).
-
-### 2.5f — Migration from legacy `## Design System / UI Patterns`
-
-If this is the first DESIGN.md created for this workstream AND the workstream has a non-empty `## Design System / UI Patterns` section (legacy from older `/wireframes` runs):
-1. Show the user the existing patterns and the proposed DESIGN.md additions (into `## Anti-patterns` / `## Do's and Don'ts`).
-<!-- defer-only: ambiguous -->
-2. AskUserQuestion: **Migrate (recommended)** / **Skip migration**.
-3. On migrate: append patterns to DESIGN.md, replace the workstream section's body with `→ See DESIGN.md at <path>`.
-
-**Subagents:** if available, dispatch one read-only subagent for extraction. Otherwise inline.
-
-**Gate:** the user must confirm DESIGN.md before Phase 2b begins.
+**Gate:** the user must confirm DESIGN.md (step 3) before `#composition-context` begins.
 
 ---
 
-## Phase 2b: Resolve Composition Context
+## Phase 4: Resolve Composition Context {#composition-context}
 
-DESIGN.md captures visual identity. Phase 2b captures **structural composition**: existing components, layout templates, and the decision log. Without this, Phase 3 would generate wireframes that *look* like the app but don't *fit* it.
+DESIGN.md captures visual identity; this phase captures **structural composition** — without it, wireframes *look* like the app but don't *fit* it. Output is three in-memory blobs passed to `#generate`: `components_inventory`, `layout_anchor`, `decision_context`.
 
-Output of this phase is three in-memory blobs passed to Phase 3:
-- `components_inventory` — from COMPONENTS.md.
-- `layout_anchor` — chosen named layout from `x-information-architecture.layouts`.
-- `decision_context` — concatenated workstream scars + DESIGN.md anti-patterns.
+1. **Load or create COMPONENTS.md** (same dir as DESIGN.md; procedure per `reference/components-md-spec.md` "Extractor procedure"):
+   - **Found and fresh** (commit SHA matches DESIGN.md's `x-source.sha` ± any `/verify` updates) → load.
+   <!-- defer-only: destructive -->
+   - **Found but stale** → `AskUserQuestion`: **Re-extract** / **Use as-is**.
+   - **Missing AND host frontend exists** → run the extractor, write `<dirname design_md_path>/COMPONENTS.md`, announce the path, and auto-accept the fresh extraction (print a one-line summary; the user can edit the file at any time). Prompt only if extraction confidence is low or results look partial.
+   - **Missing AND greenfield** → write a stub (header + `_No components yet._`). Don't block.
+2. **Pick a layout anchor.** If DESIGN.md `x-information-architecture.layouts` has entries:
+   <!-- defer-only: ambiguous -->
+   `AskUserQuestion` (single-select): "Which existing layout does this feature follow?" — each named layout + "None — start fresh" (cap 4; if more, recommend the 3 most common). **Persist the chosen layout name** to `{feature_folder}/wireframes/.layout-anchor` (single-line text file) so `/prototype` inherits it without re-asking. No declared layouts → skip; generators infer from DESIGN.md `## Layout` prose.
+3. **Assemble decision context.** Concatenate, in order: workstream `## Constraints & Scars` (read-only — this skill never writes it), DESIGN.md `## Anti-patterns`, DESIGN.md `## Do's and Don'ts`, workstream `## Design System / UI Patterns` (only if migration was skipped).
 
-### 2.6a — Load or create COMPONENTS.md
-
-COMPONENTS.md lives in the same dir as DESIGN.md. Procedure per `reference/components-md-spec.md` ("Extractor procedure"):
-
-- **Found and fresh** (commit SHA matches DESIGN.md's `x-source.sha` ± any `/verify` updates) → load.
-<!-- defer-only: destructive -->
-- **Found but stale** → offer re-extract via AskUserQuestion: **Re-extract** / **Use as-is**.
-<!-- defer-only: ambiguous -->
-- **Missing AND host frontend exists** → run the extractor; write to `<dirname design_md_path>/COMPONENTS.md`; AskUserQuestion accept/edit/skip gate (same shape as 2.5c).
-- **Missing AND greenfield** → write a stub COMPONENTS.md (header + `_No components yet._`). Don't block.
-
-### 2.6b — Pick a layout anchor
-
-If DESIGN.md `x-information-architecture.layouts` has entries:
-<!-- defer-only: ambiguous -->
-- AskUserQuestion (single-select): "Which existing layout does this feature follow?"
-- Options: each named layout + "None — start fresh"
-- Cap at 4; if more, recommend the 3 most common (by call-site count if available, else alphabetical).
-
-The chosen layout name + skeleton (from `x-information-architecture.layouts.<name>.skeleton`) is the `layout_anchor` passed to Phase 3.
-
-**Persist the chosen layout name** to `{feature_folder}/wireframes/.layout-anchor` (single-line text file). This lets `/prototype` Phase 1a inherit the anchor without re-asking.
-
-If no layouts are declared, skip — generators infer from DESIGN.md `## Layout` prose.
-
-### 2.6c — Assemble decision context
-
-Build a single text block by concatenating, in this order:
-1. Workstream `## Constraints & Scars` (if loaded in Phase 0).
-2. DESIGN.md `## Anti-patterns` (if present).
-3. DESIGN.md `## Do's and Don'ts`.
-4. Workstream `## Design System / UI Patterns` (only if migration in 2.5f was skipped).
-
-This is read-only — Phase 2b never writes to the workstream's `## Constraints & Scars` (that needs human judgment).
-
-**Gate:** none — Phase 2b is data assembly. Proceed to Phase 3.
+**Gate:** none — data assembly only.
 
 ---
 
-## Phase 3: Generate Wireframes (Parallel Subagents)
+## Phase 5: Generate Wireframes (Parallel Subagents) {#generate}
 
-For each `(component × device)` pair in the matrix, generate one HTML file at:
+For each `(component × device)` pair in the matrix, generate one HTML file at `{feature_folder}/wireframes/{NN}_{screen-slug}.html` — `NN` is a 2-digit sequence in intended viewing order starting at `01`; `{screen-slug}` combines component slug and device (e.g., `01_dashboard_desktop-web.html`). Supporting assets live in `{feature_folder}/wireframes/assets/`.
 
-```
-{feature_folder}/wireframes/{NN}_{screen-slug}.html
-```
-
-Where `NN` is a 2-digit zero-padded sequence number reflecting intended viewing order. The skill controls numbering — start at `01` and increment per screen, following the inventory order. Use a `{screen-slug}` that combines the component slug and device (e.g., `01_dashboard_desktop-web.html`). Supporting assets (CSS, images, thumbnails) live in `{feature_folder}/wireframes/assets/`.
-
-### 3a. Copy shared stylesheet (do this BEFORE any wireframe is generated)
-
-Copy `assets/wireframe.css` from this skill into the output folder so every wireframe can link `./assets/wireframe.css` (relative). Resolve the skill path from `${CLAUDE_PLUGIN_ROOT}` when available; otherwise fall back to the cached plugin path:
+**Step 1 — Copy the shared stylesheet BEFORE generating anything:**
 
 ```bash
 mkdir -p "{feature_folder}/wireframes/assets"
@@ -355,246 +213,88 @@ cp "${CLAUDE_PLUGIN_ROOT:-$HOME/.claude-personal/plugins/cache/pmos-toolkit/pmos
    "{feature_folder}/wireframes/assets/wireframe.css"
 ```
 
-If the copy fails (path not resolvable), `Read` the skill's `assets/wireframe.css` and `Write` it to the destination. Do NOT inline the contents into individual wireframe files.
+If the copy fails, `Read` the skill's `assets/wireframe.css` and `Write` it to the destination. Do NOT inline its contents into wireframe files. Also copy the comments substrate per "Comments instrumentation" below.
 
-### 3b. Generation Protocol
+**Step 2 — Dispatch generators.** With subagents available, dispatch `general-purpose` subagents in parallel (`model: sonnet` — bounded, template-bound generation; `#review` validates the output), one per **component** (not per file — one subagent generates all device variants of its component for visual consistency), up to ~5 per message. Each subagent receives:
 
-**If subagents are available** (Claude Code): dispatch `general-purpose` subagents in parallel — one per component (NOT per file; a single subagent generates all device variants for its component to keep them visually consistent). Send up to ~5 subagents in a single message. Each subagent receives:
-- The component's inventory entry, states, and assigned devices
-- Relevant excerpts from the req doc (journeys this component participates in)
-- The full HTML template from `reference/html-template.md`
-- **Only the pattern files tagged on this component's inventory row** (typically 1–3 files from `patterns/`). Do NOT pass the whole patterns library — it's too large and dilutes attention. The patterns are authoritative: each pattern's "best practices", "common mistakes", and "skeleton" must be respected
-- Workstream tech-stack hints if loaded (brand color, type stack — note: most of this now lives in DESIGN.md)
-- **The merged DESIGN.md (after `x-extends`) verbatim** as YAML, plus the instruction: "Link `./assets/design-overlay.css` immediately after `./assets/wireframe.css` in every generated file. The overlay handles tokens; honor `## Components` prose for shape patterns and `x-interaction` for behavior."
-- **The Phase 2b `components_inventory` (COMPONENTS.md content)** with the instruction: "When wireframing a button/input/card/modal/etc., prefer the variant names listed in COMPONENTS.md over inventing new ones. If no matching component exists in the inventory, mock the new component AND flag it in the file footer under 'New components proposed: <list>' so the reviewer can confirm."
-- **The Phase 2b `layout_anchor`** (named layout + skeleton) with the instruction: "Use this layout shell as the chrome for screen-level wireframes. Modals and overlays are exempt." If `layout_anchor` is "None — start fresh", omit this block.
-- **The Phase 2b `decision_context`** (workstream scars + DESIGN.md anti-patterns) with the instruction: "Honor every anti-pattern listed. If a wireframe needs to violate one, flag it in the file footer with rationale."
-- **If this component has at least one anchored screenshot** (per `source-screens.md`): include only that screenshot's description block (not the whole file) plus the absolute path to the original image. Include the IA-preservation instruction from `reference/screenshot-ingestion.md` ("match layout/IA, may improve states/a11y/copy, must NOT silently reorganize IA"). Components without anchored screenshots receive no screenshot context.
-- Strict instruction: produce ONLY the HTML file(s), no commentary
+- The component's inventory entry, states, and assigned devices; relevant req-doc journey excerpts; the full template from `reference/html-template.md`.
+- **Only the pattern files tagged on this component's row** (typically 1–3 from `patterns/`) — never the whole library; it dilutes attention. Patterns are authoritative: best practices, common mistakes, and skeletons must be respected.
+- **The merged DESIGN.md verbatim** as YAML + instruction: "Link `./assets/design-overlay.css` immediately after `./assets/wireframe.css` in every file. The overlay handles tokens; honor `## Components` prose for shape patterns and `x-interaction` for behavior."
+- **`components_inventory`** + instruction: prefer COMPONENTS.md variant names over inventing new ones; mock genuinely new components AND flag them in the file footer under "New components proposed: <list>".
+- **`layout_anchor`** (name + skeleton) + instruction: use as the chrome for screen-level wireframes; modals/overlays exempt. Omit when "None — start fresh".
+- **`decision_context`** + instruction: honor every anti-pattern; a wireframe that must violate one flags it in the footer with rationale.
+- **If the component has an anchored screenshot:** only that screenshot's description block + the original image's absolute path, plus the IA-preservation instruction from `reference/screenshot-ingestion.md` (match layout/IA; may improve states/a11y/copy; must NOT silently reorganize IA).
+- Strict instruction: produce ONLY the HTML file(s), no commentary.
 
-**If subagents are unavailable**: generate sequentially in the main agent.
+No subagents → generate sequentially in the main agent.
 
-### File Requirements (every wireframe MUST satisfy)
-
-- One `.html` file per `(component × device)` pair
-- Links the shared `./assets/wireframe.css` (copied in step 3a) — do NOT inline the rules from that stylesheet
-- Links `./assets/design-overlay.css` **immediately after** `wireframe.css` so DESIGN.md's `:root` overrides take effect (skip the link only if the user chose "Discard for this run" in Phase 2a step 2.5c)
-- Tailwind via CDN: `<script src="https://cdn.tailwindcss.com"></script>` (used alongside the shared CSS for layout/spacing utilities)
-- State-switcher tabs at the top so reviewers flip between states without reload
-- Annotations layer (toggleable) explaining non-obvious interactions
-- Realistic placeholder copy (not "Lorem ipsum") drawn from the req doc's domain
-- Device frame:
-  - desktop-web → 1280×800 viewport hint, no chrome
-  - mobile-web → 375×812 frame with rounded corners
-  - android-app → status bar + bottom nav chrome
-  - ios-app → status bar + home indicator + tab bar chrome
-  - desktop-app → window chrome with traffic-light buttons
-- Accessibility baseline: semantic HTML, focus-visible styles, aria labels on icon-only buttons, contrast ≥ 4.5:1 for text
-- Touch targets ≥ 44×44px on mobile/native variants
-- A bottom footer with: component name, device, file index, generation date
-
-The full template lives in `reference/html-template.md` — do not deviate from its structure unless the component genuinely needs it.
+**File requirements (every wireframe MUST satisfy):** one `.html` per `(component × device)` pair; links `./assets/wireframe.css` then `./assets/design-overlay.css` (overlay link skipped only on "Discard for this run"); Tailwind via CDN; state-switcher tabs; toggleable annotations layer; realistic domain copy (no "Lorem ipsum"); the per-device frame, accessibility baseline (semantic HTML, focus-visible, aria labels on icon-only buttons, contrast ≥ 4.5:1), ≥ 44×44px touch targets on mobile/native, and footer — all exactly per `reference/html-template.md`. Do not deviate from the template unless the component genuinely needs it.
 
 ---
 
-## Phase 4: Self-Refinement (Reviewer Subagent + Loops)
+## Phase 6: Self-Refinement (Reviewer Subagent + Loops) {#review}
 
-### 4a. Loop-rigor decision (do this before dispatching anything)
+Pick a rigor tier per the **Rigor & Corner-Cut Protocol** at the top of this skill (the tier ladder lives there, only there) and announce it with rationale. The protocol below is high-rigor; medium/low reduce the fan-out as the ladder describes.
 
-Pick the rigor tier per the **Rigor & Corner-Cut Protocol** at the top of this skill:
+**Loop structure** — one review pass per file by default; a second loop ONLY when loop 1 surfaced hard-fails (deterministically checkable: contrast below threshold, missing aria coverage, a missing required state) that the applied fixes did not resolve. Advisory/judgment findings (layout taste, copy, IA) never trigger loop 2. Hard cap: 2 loops per file — the cap is a cost governor; on cap-hit, surface residuals and continue.
 
-- **High-rigor (default):** one reviewer subagent per file in parallel; one review pass per file, with a second loop only on unresolved hard-fails (cap 2).
-- **Medium-rigor:** ONE reviewer subagent across all files (single message, multi-file critique); apply fixes; no second loop. Recommend for ≤ 6 files or a focused enhancement.
-- **Low-rigor:** inline grep + spot-check PLUS one mandatory cross-file reviewer subagent (200-word brief: aria-label coverage on icon-only buttons, focus-visible styles, color contrast against dark/light surfaces, high-variance findings across files). The cross-file pass is **non-negotiable** even in low-rigor — grep alone misses contrast, focus-visible rendering, and "wireframe 01 didn't actually change relative to current state" type findings.
+1. **Dispatch one reviewer subagent per file, in parallel** (`model: sonnet` — rubric-guided review with explicit acceptance criteria). Prompt: load `reference/eval-rubric.md` AND the pattern files tagged on this component's row (same files the generator got); score against BOTH; return findings as JSON `[{source: "rubric:<id>" | "pattern:<file>:<rule>", severity, finding, suggested_fix}]`. Cross-referencing catches what pure heuristics miss.
+2. **Apply fixes:** high/medium severity → apply via `Edit` (or a generator re-emit); low → log in the wireframe footer as "Known minor issues". Track changes in a `Review Log` HTML comment at the top of the file.
+3. **Decide continuation** per the loop structure above.
 
-**Announce the chosen tier with rationale before proceeding.** Format: "Choosing [tier] for Phase 4 because [reason]. Trade-off: [what we lose]. Override?"
+Platform fallback (no subagents): run the reviewer pass inline.
 
-The remainder of this phase describes the high-rigor protocol. Medium- and low-rigor variants follow the same loop structure but with the subagent fan-out reduced as described above.
-
-### 4b. Loop Structure (high-rigor)
-
-For each generated wireframe file, run ONE review pass by default. A second loop runs only when loop 1 surfaced hard-fails — deterministically checkable failures (contrast ratio below threshold, missing aria-label coverage, a missing required state) that the applied fixes did not resolve — never for advisory judgment findings (observed yield: a second pass on judgment nits finds nothing new). Hard cap: 2 loops.
-
-**Step 1 — Dispatch reviewer subagent (parallel where possible):**
-- One reviewer subagent per wireframe file
-- Prompt: load `reference/eval-rubric.md` AND the pattern files tagged on this component's inventory row (the same files the generator received). Score the file against BOTH the rubric heuristics and the pattern's "best practices" / "common mistakes". Return findings as JSON: `[{source: "rubric:<id>" | "pattern:<file>:<rule>", severity: high|medium|low, finding, suggested_fix}]`. Cross-referencing both sources catches issues that pure heuristics miss (e.g., "destructive action in middle of dropdown menu" is a `dropdown-menu.md` rule, not a generic heuristic).
-
-**Step 2 — Apply fixes:**
-- For findings at severity `high` or `medium`: apply the suggested fix via `Edit` (or have a generator subagent re-emit the fixed section)
-- For severity `low`: log in the wireframe footer as "Known minor issues" and skip
-- Track every change in a `Review Log` HTML comment block at the top of the file
-
-**Step 3 — Decide loop continuation:**
-- If hard-fails remain after the applied fixes (deterministically checkable failures — contrast, aria coverage, missing states) → run loop 2
-- Advisory/judgment findings (layout taste, copy, IA) never trigger loop 2 — log them for the cross-file rollup and exit
-- Hard cap: 2 loops per file regardless
-
-**Platform fallback (no subagents):** run the reviewer pass inline — read the file, mentally apply the rubric, log findings, fix.
-
-### Findings Presentation Protocol (cross-file rollup)
-
-<!-- defer-only: ambiguous -->
-After all per-file refinement is done, present a cross-file rollup of any unresolved high/medium findings to the user via `AskUserQuestion`:
-
-1. **Group findings by heuristic category** (max 4 per batch — respects the 4-question limit).
-2. **One question per finding**:
-   - `question`: one-sentence finding + which file(s) it affects + proposed fix
-   - `options`: **Fix as proposed** / **Modify** / **Skip** / **Defer**
-3. **Batch up to 4 questions per call**; sequential calls for more.
-4. **Open-ended findings** (free-form fixes): ask inline as a follow-up.
-5. **Platform fallback** (no interactive prompt tool): present findings as a numbered table with disposition column; do NOT silently self-fix.
-
-**Anti-pattern:** A wall of prose ending in "Let me know what you'd like to fix." Always structure the ask.
-
-**Edge cases of structured asks:** when a user reply slips outside the offered options (free-form text, a non-recommended pick that may break an invariant, or leftover findings that don't share a category), follow `../_shared/structured-ask-edge-cases.md`.
+**Cross-file rollup:** after per-file refinement, present unresolved high/medium findings per `_shared/findings-dispositions.md` (severity tags, the four dispositions, ≤4-per-batch, non-interactive classification, platform fallback, edge cases). Delta for this skill: deferrals are logged in the affected wireframe's `Review Log` comment, not a doc-level Open Questions section.
 
 ---
 
-## Phase 5: Index & Serve
+## Phase 7: Index & Serve {#index-serve}
 
-### 5a. Generate `index.html`
+**Generate `{feature_folder}/wireframes/index.html`** — a navigation-only surface: a card grid linking every `(component × device)` file (name, device chip, state-count badge, small preview), filterable by device and by name, working offline from `file://`, using Tailwind CDN + the shared `./assets/wireframe.css`. Header links back to the req doc and to `canvas.html` ("Canvas view (all devices)") — rendered unconditionally; `#canvas` always emits the file moments later. With a single target device, omit the device-filter row (a one-tab control is noise) and note the omission in the footer.
 
-Create `{feature_folder}/wireframes/index.html` with:
+**The index does NOT include** state-switcher tabs or annotations toggles — those live inside each wireframe (per `reference/html-template.md`). To flip states, reviewers open the wireframe itself.
 
-- Header: feature name, generation date, link back to req doc, and a prominent link to `canvas.html` ("Canvas view (all devices)") which is added by Phase 7 after this index is generated. The link is rendered unconditionally (Phase 7 always emits the file); if a reviewer opens the index before Phase 7 lands, the link 404s briefly — acceptable since Phase 7 follows immediately.
-- **Device tabs** at the top — one tab per device targeted; clicking filters the card grid. **When only one device is targeted, omit the device-tabs row entirely** (a single-tab control is visual noise). Document the omission in the index footer ("All wireframes target desktop-web — device filter omitted") so the user knows it was intentional, not forgotten.
-- **Card grid** — one card per `(component × device)` pair showing:
-  - Component name + device chip
-  - State count badge ("4 states")
-  - 200×140 px iframe preview of the wireframe (scaled), or a static thumbnail block if iframes prove flaky
-  - Click → opens the wireframe in a new tab
-- Search box that filters cards by component name
-- Footer: total file count, file path of the folder
-
-**The index does NOT include:** state-switcher tabs or annotations toggles. Those live inside each wireframe file (per `reference/html-template.md`). The index is purely a navigation surface — a card grid + filter, nothing else. If a reviewer wants to flip states or toggle annotations, they open the wireframe in a new tab.
-
-Use the same Tailwind CDN approach AND link the shared `./assets/wireframe.css` so the index inherits the same theme tokens, typography, and chrome styles as the wireframe files. The index must work offline as a `file://` URL.
-
-### 5b. Serve
-
-Detect Node:
-
-```bash
-command -v node && command -v npx
-```
-
-- **Node available**: start a static server in the background:
-  ```bash
-  cd {feature_folder}/wireframes && npx --yes http-server -p 0 -c-1 --silent
-  ```
-  Capture the printed port and report `http://localhost:<port>/index.html` to the user.
-- **Node missing**: print the absolute `file://` path to `index.html` and tell the user to open it in Chrome. Note that some browsers restrict iframe loading from `file://` — the cards may need to be opened in new tabs instead.
-
-Always print BOTH the served URL (if any) AND the file path so the user has a fallback.
+**Serve:** if `command -v node && command -v npx` succeeds, start `cd {feature_folder}/wireframes && npx --yes http-server -p 0 -c-1 --silent` in the background and report `http://localhost:<port>/index.html`. Otherwise print the absolute `file://` path (noting some browsers restrict `file://` iframes). Always print BOTH the served URL (if any) and the file path.
 
 ---
 
-## Phase 6: MSF + PSYCH (delegated to /msf-wf)
+## Phase 8: Folded MSF-wf {#folded-msf-wf}
 
-Wireframes are now generated. Phase 6 hands off to `/msf-wf` for combined MSF + PSYCH analysis with inline edit application.
+This phase folds `/msf-wf` (combined MSF + PSYCH analysis with inline edit application) into the pipeline as an apply-loop folding. **All mechanics — escape flag, tier gating, pre-apply clobber guard, auto-apply threshold, per-finding commits, failure capture + advisory continue, resume-via-git-log — follow `_shared/folded-phase.md`.** This folding's parameters:
 
-**Invocation:**
-```
-/msf-wf {feature_folder}/wireframes --apply-edits
-```
+- **Folded skill:** msf-wf, invoked as `/msf-wf {feature_folder}/wireframes --apply-edits`. **Escape flag:** `--skip-folded-msf-wf` (machine-coupled; never renamed). Threshold override: `--msf-auto-apply-threshold N`.
+- **Tier gating:** substrate default (Tier 1 skip, Tier 2 opt-in, Tier 3 default-on; boundary semantics in `_shared/tier-matrix.md`).
+- **Host artifacts** (apply-loop edit and clobber-guard target): the per-wireframe HTML files — guard each `{feature_folder}/wireframes/<NN>_<slug>.html` individually; a dirty wireframe skips auto-apply for that file only (critique + findings doc still emit) while clean siblings proceed.
+- **Per-finding commit message:** `wireframes: auto-apply msf-wf finding F<N>`.
+- **State key:** `state.yaml.phases.wireframes.folded_phase_failures[]`.
+- **Findings docs:** `{feature_folder}/wireframes/msf-wf-findings/<wireframe-id>.md` — one per reviewed wireframe; never the legacy combined `msf-findings.md`.
+- **Reviewer dispatch + parent-side validation:** per-wireframe chrome-strip and quote-grounded validation per `_shared/reviewer-protocol.md`, with this skill's deltas (no `sections.json` set-equality — `/wireframes` emits no such companions; per-wireframe hard-fail strings; post-return verification) in `reference/folded-msf-wf.md`.
 
-**Reviewer-subagent contract (FR-50/51/52, T13a):** /msf-wf reviews each wireframe HTML in the folder. Before passing each wireframe to the subagent, chrome-strip it: `Bash('node ${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js {feature_folder}/wireframes/<NN>_<slug>.html > /tmp/msf-wf-<NN>-stripped.html')` (loop over every `*.html` in the wireframes folder). Each subagent invocation receives the stripped HTML inline with the canonical FR-51 template: *"Read this HTML content (the document's `<main>` body — chrome already stripped). First, enumerate every `<section>` id and every `<h2>`/`<h3>` id you can locate — return as `sections_found: [...]`. Then evaluate against the rubric below. For every finding, return `{section_id, severity, message, quote: \"<≥40-char verbatim from source>\"}`."* After each return, run FR-52 validation (hard-fail on per-wireframe miss): (1) for each finding, substring-grep `quote` against the un-stripped source HTML — any miss → hard-fail with `[/wireframes] reviewer msf-wf returned a quote not found in <NN>_<slug>.html`; (2) "no findings" is allowed per-wireframe only if `sections_found` is non-empty AND the rubric permits it. There is NO sections.json set-equality check — /wireframes does not emit per-wireframe `sections.json` companions (the html-artifacts migration excluded wireframes per FR-15); `sections_found` is grounding evidence that the reviewer read the document, not a file-validated contract. On any hard-fail, abort the wireframe iteration and surface the failure to the user (do NOT silently continue to the next wireframe).
-
-**Behavior:**
-- `/msf-wf` runs persona alignment, MSF Pass A (grounded in wireframe DOM), and PSYCH Pass B (per-screen scoring with directional thresholds).
-<!-- defer-only: ambiguous -->
-- With `--apply-edits`, each finding is presented via `AskUserQuestion` for Fix / Modify / Skip / Defer disposition. Approved findings are applied as inline `Edit` calls to the relevant `.html` files.
-- Output: per-wireframe findings docs at `{feature_folder}/wireframes/msf-wf-findings/<wireframe-id>.md` (see "Output slug (D3)" below), each containing the MSF analysis matrix and the PSYCH scoring tables for that wireframe.
-
-**Tier gating:**
-- **Tier 1**: skip Phase 6 entirely → jump to Phase 8 (Spec Handoff). Tier 1 wireframes are usually 1–2 screens; MSF/PSYCH overkill.
-- **Tier 2 / Tier 3**: Phase 6 is **default-on per D2** (Tier 3) / optional (Tier 2). Skip explicitly via `--skip-folded-msf-wf` (D13).
-
-### Folded-phase contract (per pipeline-consolidation v2.34.0)
-
-This phase is the canonical "folded MSF-wf inside /wireframes" contract per W2. The standalone `/msf-wf` skill remains available; the folded path here is the default trigger when /wireframes runs at Tier 2/3.
-
-#### Pre-apply guard (FR-65)
-
-Before opening the apply-loop on each wireframe HTML:
-
-```bash
-git status --porcelain {feature_folder}/wireframes/<NN>_<slug>.html
-```
-
-If non-empty: emit `WARNING: <NN>_<slug>.html has uncommitted edits — folded MSF-wf apply-loop will skip auto-apply (per FR-65) for this wireframe to avoid clobbering. Run /wireframes --skip-folded-msf-wf OR commit your edits first.` Skip auto-apply for that wireframe (fall through to manual disposition); continue with critique + per-wireframe finding emission for advisory value.
-
-#### Output slug (D3)
-
-Per-wireframe findings doc is written to `{feature_folder}/wireframes/msf-wf-findings/<wireframe-id>.md` (directory variant of the slug-distinct convention). The legacy combined `msf-findings.md` is no longer written.
-
-#### Per-finding commits (D16)
-
-Each auto-applied finding is its own git commit:
-
-```
-wireframes: auto-apply msf-wf finding F<N>
-```
-
-Commit body includes `Depends-on: F<M>` when finding F<N> requires F<M> to land first. /complete-dev release-notes recipe (FR-68) consumes this. Commits-as-state is the resume cursor (FR-57).
-
-#### Failure capture (FR-50, M1, D35)
-
-On apply failure, capture `{folded_skill: msf-wf, error_excerpt: <first-200-chars>, ts: <ISO-8601>}` and append to `state.yaml.phases.wireframes.folded_phase_failures[]` per the dedup rule in `feature-sdlc/reference/state-schema.md`. Emit chat line at moment-of-append:
-
-```
-WARNING: msf-wf crashed (advisory continue per D11): <error_excerpt>
-```
-
-Continue per D11 advisory — folded-phase failures do NOT halt /wireframes. /feature-sdlc Phase 11 surfaces the failures (T12b).
-
-#### Flag handling (Phase 0 parser additions)
-
-`--skip-folded-msf-wf` (boolean) — short-circuits this phase entirely.
-`--msf-auto-apply-threshold N` (int, default 80) — overrides the apply threshold.
-
-**Failure handling:**
-If `/msf-wf` returns a non-zero state or the user terminates it, this Phase aborts. /wireframes MUST NOT auto-continue to Phase 8. Surface the underlying error to the user; the user can re-run `/msf-wf` manually and then continue with `/spec`.
-
-**Post-delegation verification:**
-After /msf-wf returns:
-1. Spot-check any wireframes modified during /msf-wf's apply-edits phase against `reference/eval-rubric.md` — do NOT trigger another Phase 4 review-loop.
-2. Confirm `{feature_folder}/wireframes/msf-wf-findings/` exists and contains one `<wireframe-id>.md` per reviewed wireframe (per the D3 output slug above).
+**Delta from the substrate's advisory-continue:** a non-zero `/msf-wf` exit or user termination aborts this phase — do NOT auto-continue to `#spec-handoff`; surface the error (the user can re-run `/msf-wf` manually, then `/spec`).
 
 ---
 
-## Phase 7: Canvas Aggregation (always-on)
+## Phase 9: Canvas Aggregation (always-on) {#canvas}
 
-Aggregate every per-device wireframe into a single Figma-like canvas viewer so stakeholders can see the whole feature laid out spatially with flow arrows. Reads the per-device HTML files written by Phase 3 (and any inline edits from Phase 6 /msf-wf), parses DESIGN.md journeys for arrow derivation, and emits two files alongside the existing wireframes:
+Aggregate every per-device wireframe into a single Figma-like viewer so stakeholders see the whole feature spatially with flow arrows. Reads the `#generate` HTML files (plus any `#folded-msf-wf` edits), parses DESIGN.md journeys for arrows, and emits:
 
-- `canvas.html` — self-contained viewer (CDN-loaded panzoom + leader-line with SRI). Inlines a `<script type="application/json" id="canvas-data">` block so the viewer works under `file://` without a fetch. Each screen rendered as a sandboxed `<iframe src="<device-file>#<anchor>" sandbox="allow-same-origin" loading="lazy">` — no content duplication; the per-device files remain the source of truth.
-- `canvas.json` — canonical layout (positions, dimensions, journey labels) + DESIGN.md-derived arrows. Schema-versioned (`version: 1`). User drags update positions in-memory; the **Save layout** button serializes the current state and triggers a browser download (no dev-server write needed). Commit `canvas.json` to preserve the curated layout across re-runs.
-
-**Invocation:**
+- `canvas.html` — self-contained viewer (CDN panzoom + leader-line with SRI; inline JSON data block so it works from `file://`). Screens render as sandboxed lazy iframes — the per-device files remain the source of truth.
+- `canvas.json` — canonical layout (positions, dimensions, journey labels) + DESIGN.md-derived arrows, schema-versioned. The viewer's **Save layout** button downloads the current state; commit `canvas.json` to keep curated layouts.
 
 ```bash
 node ${CLAUDE_PLUGIN_ROOT}/skills/wireframes/assets/canvas/build-canvas.js \
-  {feature_folder}/wireframes \
-  {feature_folder}/wireframes/DESIGN.md
+  {feature_folder}/wireframes {feature_folder}/wireframes/DESIGN.md
 ```
 
-Pass an empty string `""` for the second argument when DESIGN.md is not present — arrows fall back to empty; screens still render.
+Pass `""` as the second argument when DESIGN.md is absent — arrows fall back to empty; screens still render.
 
-**Success criteria:** `canvas.html` and `canvas.json` exist in `{feature_folder}/wireframes/` after the script returns. The script logs `canvas-aggregator: wrote ... (N screens, M arrows)` to stdout on success.
+**Success:** both files exist; the script logs `canvas-aggregator: wrote ... (N screens, M arrows)` on stdout. **Failure handling:** the aggregator is additive — it logs to stderr and exits 0 on any non-fatal condition; it must never block `/wireframes`. On exit 64 (bad CLI args), surface the error but proceed to `#spec-handoff`. **Re-run idempotency:** existing `canvas.json` positions are preserved for surviving screens; new screens auto-layout below; arrows always regenerate from DESIGN.md. Full schema, extraction rules, journey parser, and auto-layout: `reference/canvas-aggregation.md`.
 
-**Failure handling:** The aggregator is additive — it logs to stderr and exits 0 on any non-fatal condition (missing DESIGN.md, no per-device files, no extractable screens, malformed existing canvas.json). It must never block `/wireframes` from completing. If exit 64 (bad CLI args), surface the error to the user but proceed to Phase 8.
-
-**Idempotency on re-run:** if `canvas.json` already exists, the aggregator preserves user-curated `(x, y)` positions for screens still present; newly-added screens (post-regen) are auto-laid-out below the existing layout; removed screens are dropped. Arrows are always regenerated from DESIGN.md (canonical source).
-
-**Bootstrap-only mode carve-out:** when `/wireframes --bootstrap-design-only` is invoked, Phase 5 does not run (no per-device files produced); Phase 7 therefore also does not run. This is a by-design mode-conditional non-presentation, not a silent skip — it follows directly from the bootstrap-mode contract.
-
-See `reference/canvas-aggregation.md` for the full `canvas.json` schema, the screen-extraction rules, the DESIGN.md journey parser, and the auto-layout algorithm.
-
-**Index link:** also append a row to `{feature_folder}/wireframes/index.html` (generated in Phase 5) linking to `canvas.html` with the label "Canvas view (all devices)" so reviewers find it from the index.
+(In `--bootstrap-design-only` mode no per-device files exist, so this phase doesn't run — a by-design mode-conditional non-presentation. The index's canvas link was already rendered in `#index-serve`; do not append a second one.)
 
 ---
 
-## Phase 8: Spec Handoff
+## Phase 10: Spec Handoff {#spec-handoff}
 
 Append a `## Wireframes` section to the requirements doc:
 
@@ -604,31 +304,26 @@ Append a `## Wireframes` section to the requirements doc:
 Generated: {YYYY-MM-DD}
 Folder: `{relative_path_to_folder}`
 Index: `{relative_path}/index.html`
-Canvas view: `{relative_path}/canvas.html` (Figma-like infinite-canvas aggregator; layout in `canvas.json`)
-MSF + PSYCH: `{relative_path}/msf-wf-findings/` (if Phase 6 ran)
+Canvas view: `{relative_path}/canvas.html` (layout in `canvas.json`)
+MSF + PSYCH: `{relative_path}/msf-wf-findings/` (if the folded MSF-wf phase ran)
 
 | # | Component | Devices | States | File |
-|---|-----------|---------|--------|------|
-| 01 | … | … | … | `01_…_desktop-web.html` |
 ```
 
-Commit:
+Commit (`canvas.json` included so curated layouts persist):
 
 ```bash
 git add {feature_folder}/wireframes/ {requirements_doc_path}
-# Includes canvas.html + canvas.json from Phase 7 and msf-wf-findings/ from Phase 6 — commit canvas.json so curated layouts persist across re-runs.
 git commit -m "docs: add wireframes for <feature>"
 ```
 
-Tell the user: "Wireframes are ready. Open `{served_url_or_file_path}` to review. When you're satisfied, run `/pmos-toolkit:spec` — it will pick up the wireframes and (if Phase 6 ran) the MSF + PSYCH findings from the requirements doc automatically."
+Tell the user: "Wireframes are ready. Open `{served_url_or_file_path}` to review. When you're satisfied, run `/pmos-toolkit:spec` — it picks up the wireframes (and any MSF + PSYCH findings) from the requirements doc automatically."
 
 ---
 
-## Phase 9: Workstream Enrichment
+## Phase 11: Workstream Enrichment {#workstream-enrichment}
 
-**Skip if no workstream was loaded in Phase 0.** Otherwise, this phase writes only the **navigation pointers** for the Wireframes & Design System contract — visual content lives canonically in `DESIGN.md` and `COMPONENTS.md`, not the workstream.
-
-Update (or create) the workstream's `## Wireframes & Design System` section with these four fields exactly:
+**Skip if no workstream was loaded in `#pipeline-setup`.** Otherwise mandatory — and pointer-only: visual content lives canonically in DESIGN.md and COMPONENTS.md, never the workstream. Update the workstream's `## Wireframes & Design System` section with exactly these four fields:
 
 ```yaml
 target_app:
@@ -639,120 +334,45 @@ components_md_path: <relative path>
 last_extraction_sha: <SHA at extraction; only set/update on extract>
 ```
 
-**Do NOT write** brand color, typography, or recurring component patterns into `## Tech Stack` / `## Design System / UI Patterns` — those facts are canonical in DESIGN.md/COMPONENTS.md. Duplicating them creates drift.
-
-**Device support decisions** still go to workstream `## Constraints & Scars` if they're new and reusable across features (e.g. "no iOS app — never wireframe ios-app"). One-off device choices stay local to the feature folder.
-
-`## Constraints & Scars` is otherwise read-only from this skill — Phase 2b reads it; nothing here writes to it automatically. (Migration of an existing `## Design System / UI Patterns` section is handled in Phase 2a step 2.5f, not here.)
-
-This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the core deliverable is complete.
+**Do NOT write** brand color, typography, or component patterns into the workstream — duplicating DESIGN.md/COMPONENTS.md facts creates drift. New, reusable device-support decisions (e.g., "no iOS app — never wireframe ios-app") may go to `## Constraints & Scars`; one-off device choices stay in the feature folder. `## Constraints & Scars` is otherwise read-only from this skill.
 
 ---
 
-## Phase 10: Capture Learnings
+## Phase 12: Capture Learnings {#capture-learnings}
 
-**This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions (e.g., a heuristic that fired repeatedly, a Tailwind pattern that broke on iOS Safari, a device the user always wants but never declares upfront). Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
+Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — a heuristic that fired repeatedly, a Tailwind pattern that broke on iOS Safari, a device the user always wants but never declares. Proposing zero learnings is valid for a smooth session; the gate is that the reflection happens.
 
 ---
 
 ## Anti-Patterns (DO NOT)
 
-- Do NOT generate wireframes without a confirmed user-journey list — you'll miss flows or invent ones
 - Do NOT use `Lorem ipsum` — it makes reviewers debate the layout instead of the content
 - Do NOT use real photographs or finished iconography — wireframes are not visual design
-- Do NOT skip the state matrix — a wireframe that shows only the happy path hides the hard work
 - Do NOT split a single component across multiple files per state — use the state-switcher tab pattern
-- Do NOT exceed 2 refinement loops per file — diminishing returns; defer to user review
-- Do NOT silently self-fix high-severity findings without the cross-file rollup question
-- Do NOT skip `index.html` even for a single-component feature — it documents the artifact set
 - Do NOT generate wireframes for non-user-facing features (cron jobs, internal APIs) — recommend skipping the skill
-- Do NOT commit half-finished wireframes — finish all phases before the git commit in Phase 8
-- Do NOT skip Phase 6 on Tier 2 or Tier 3 — Phase 6 (delegated to /msf-wf) is mandatory for both (Tier 1 only is exempt)
-- Do NOT auto-continue to Phase 8 if /msf-wf returned non-zero in Phase 6 — surface the error and let the user re-run /msf-wf manually
-- Do NOT enumerate identical elements separately (5 nav links each at -1) — collapse to one row ("Nav links (5), -5 total")
-- Do NOT default the entry-context to High (60) or Low (25) silently — Medium (40) is the unbiased default unless the req doc declares otherwise (this default lives in /msf-wf; if you find yourself overriding it from /wireframes, surface it as user-visible)
-- Do NOT blend tokens from multiple host frontends in Phase 2a — pick one (user-selected) so wireframes have a coherent visual language
-- Do NOT use screenshots as the sole journey source — they augment the requirements doc, they don't replace it; trigger /requirements first if no req doc exists
-- Do NOT redesign IA away from an anchored screenshot without explicit user direction — generators may improve states, a11y, and copy, but moving primary actions or restructuring sections needs the user to ask for it
-- Do NOT silently downgrade rigor at any phase — the Rigor & Corner-Cut Protocol mandates announcement-with-rationale before choosing a lighter option (skipping subagents, fewer review loops). Silent downgrades compound across phases and erode user trust in the artifact
-- Do NOT skip Phase 2a (Resolve DESIGN.md) — even if you "know" the tokens. DESIGN.md is the durable artifact other tools (Stitch, Cursor, /verify) consume; not having it is technical debt. Cost is ~1 minute when the file exists; ~5 minutes on first creation
-- Do NOT write brand colors, typography, or component patterns into the workstream — those live in DESIGN.md / COMPONENTS.md. The workstream stores only the four navigation fields (`target_app`, `design_md_path`, `components_md_path`, `last_extraction_sha`)
-- Do NOT bypass COMPONENTS.md by inventing button/input/card/modal variants — Phase 3 generators must prefer existing variants and flag novel ones explicitly in the file footer
-- Do NOT modify the workstream `## Constraints & Scars` from this skill — Phase 2b reads it; only humans (or `/verify` with explicit confirmation) write to it
-- Do NOT keep the legacy `house-style.json` / `house-style.css` artifacts alive in new feature folders — Phase 2a produces `design-overlay.css` from DESIGN.md instead. Old folders' artifacts are left in place but not consulted
+- Do NOT use screenshots as the sole journey source — they augment the requirements doc, not replace it
+- Do NOT redesign IA away from an anchored screenshot without explicit user direction — improving states, a11y, and copy is fine; moving primary actions or restructuring sections needs the user to ask
+- Do NOT blend tokens from multiple host frontends — pick one (user-selected) so wireframes have a coherent visual language
+- Do NOT bypass COMPONENTS.md by inventing button/input/card/modal variants — prefer existing variants; flag novel ones explicitly in the file footer
+- Do NOT write brand colors, typography, or component patterns into the workstream — it stores only the four navigation fields
 
 ---
 
-## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+## Apply comment-resolver edit
 
-This phase is the `/wireframes` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a wireframe artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This is the `/wireframes` entrypoint that `/comments resolve` dispatches into when walking open threads in a wireframe artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum`, idempotency rules, anchor-resolution order (id-first → ≥40-char quote substring → `anchor_orphaned`, never mutating on a miss) — lives in the shared contract doc and is the single source of truth:
 
-- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`.
 
-Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/wireframes`-specific implementation guidance only.
+This section MUST cite that file rather than restate the contract. `/wireframes`-specific implementation only:
 
-### When invoked
+- **Shim:** `plugins/pmos-toolkit/skills/wireframes/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three contract output shapes (success / failure / clarification). No-ops use the `diff_ref` substring form (`"no-op: edit already applied"`).
+- **Applyable vs infeasible:** edits to section content, copy, annotations, or state descriptions inside a per-screen `.html` file apply; edits to `index.html` structure (nav, screen list, card grid, reordering) return `agent_judged_infeasible` with `system_reply: "Cannot apply: edit targets index.html navigation or screen-list structure. Regenerate via /wireframes to restructure across-screen layout."`.
+- **Two emit references (one instrumentation surface):** both the per-screen template (`reference/html-template.md` `<head>`) AND the `#index-serve` index template MUST include `<meta name="pmos:skill" content="wireframes">` plus the comments.js/css asset links — the `/comments` resolver routes apply-edit dispatches via this meta tag.
+- **Asset substrate** (copied alongside `wireframe.css` in `#generate` step 1): from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/`, `cp -n` `comments.js`, `comments.css`, and `comments-open.bat` into `{feature_folder}/wireframes/assets/`; `install -m 0755` the `comments-open.command` and `comments-open.sh` launchers there too. (`/wireframes` does not use the html-authoring emit substrate otherwise — no `template.html` slot-fill and no `.sections.json` companions; its own template is `reference/html-template.md`.)
+- **SVG data-anchor retrofit:** when a per-screen file contains inline `<svg>`, pass the HTML through `retrofitSvg()` from `skills/_shared/html-authoring/assets/svg-anchor.js` before writing — injects `data-anchor` slugs on `<g>` and top-level `<rect>`/`<path>` (idempotent; no-op without SVG). Consumed by `/comments resolve`'s svg-data-anchor strategy.
+- **Tests:** `plugins/pmos-toolkit/skills/wireframes/tests/apply-edit-at-anchor.test.js` (5 cases); wrapper `tests/scripts/assert_apply_edit_at_anchor_wireframes.sh`.
 
-The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
+---
 
-- **Shim:** `plugins/pmos-toolkit/skills/wireframes/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1.
-
-### Applyable vs infeasible edits (wireframes-specific)
-
-/wireframes emits a subfolder of N per-screen HTML files plus `index.html`. The apply-edit shim only handles textual/HTML edits inside an individual screen file.
-
-- **Applyable:** edits to section content, copy, annotations, state descriptions inside a per-screen `.html` file.
-- **Infeasible:** edits to `index.html` structure (`<nav>`, screen list, card grid, reordering screens) — those require regeneration via `/wireframes`. The shim returns `agent_judged_infeasible` with `system_reply: "Cannot apply: edit targets index.html navigation or screen-list structure. Regenerate via /wireframes to restructure across-screen layout."`.
-
-### Comments instrumentation (FR-21) — two emit references
-
-FR-21 counts wireframes as ONE instrumentation surface but with TWO emit references:
-
-1. **Per-screen template** (`reference/html-template.md` skeleton `<head>`): must include `<meta name="pmos:skill" content="wireframes">` and the comments.js/css asset links.
-2. **`index.html` template** (Phase 5a generation): must also include `<meta name="pmos:skill" content="wireframes">` and the comments.js/css asset links so threads can be opened on the index too.
-
-**Asset substrate (FR-10):** in addition to the existing `wireframe.css` copy, copy the inline-doc-comments substrate for BOTH the wireframes folder and the index:
-
-```bash
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.js"          "{feature_folder}/wireframes/assets/"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments.css"         "{feature_folder}/wireframes/assets/"
-install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.command" "{feature_folder}/wireframes/assets/comments-open.command"
-install -m 0755 "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.sh"      "{feature_folder}/wireframes/assets/comments-open.sh"
-cp -n  "${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/comments-open.bat"    "{feature_folder}/wireframes/assets/comments-open.bat"
-```
-
-**Comments meta tag (FR-01, FR-40):** every generated wireframe file (per-screen AND `index.html`) MUST include `<meta name="pmos:skill" content="wireframes">` in `<head>`. The `/comments` resolver routes apply-edit dispatches via this meta tag.
-
-**SVG data-anchor retrofit (FR-51, S15):** When a per-screen wireframe HTML file contains inline `<svg>` blocks (e.g., flow diagrams, component sketches), pass the full HTML string through the shared helper before writing:
-```js
-const { retrofitSvg } = require('skills/_shared/html-authoring/assets/svg-anchor.js');
-htmlContent = retrofitSvg(htmlContent);
-```
-This injects `data-anchor="<slug>"` on every `<g>`, top-level `<rect>`, and top-level `<path>` in any inline SVG. Slug derivation order: `kebab(id)` → `kebab(aria-label)` → `kebab(first <text> child)` → `shape-<N>` ordinal. Duplicates get `-2`/`-3` suffixes per SVG block. Idempotent. These anchors are consumed by `/comments resolve`'s svg-data-anchor strategy (T12/T23). If a wireframe screen has no inline SVG, the call is a safe no-op.
-
-### Resolution order
-
-Per the contract:
-
-1. **id-first.** If `anchor.id_anchor` is set, locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
-3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
-
-### Closed error_enum
-
-Authoritative list in [§9.2](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#api-error-enum) / the contract doc:
-
-`anchor_orphaned`, `edit_conflicted`, `agent_judged_infeasible`, `agent_errored`.
-
-### Idempotency (§9.3) — local choice
-
-The shim returns the **`diff_ref` substring** form for no-ops:
-
-```json
-{ "success": true, "diff_ref": "no-op: edit already applied", "system_reply": "Edit already present in artifact; marking resolved without changes." }
-```
-
-### Tests
-
-- Per-skill contract: `plugins/pmos-toolkit/skills/wireframes/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
-- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_wireframes.sh`.
+*Spec lineage: `docs/pmos/features/2026-04-30_wireframes-style-and-screenshot-input` (house style, screenshots-as-IA-anchors), `2026-05-02_design-md-integration` (DESIGN.md/COMPONENTS.md contract, `--bootstrap-design-only`), `2026-05-08_msf-skill-split` (PSYCH → /msf-wf), `2026-05-10_pipeline-consolidation` (folded MSF-wf, escape flag, per-finding commits), `2026-05-09_html-artifacts` (wireframes excluded from the `sections.json` emit), `2026-05-23_inline-doc-comments` (comment resolver, emit references, SVG anchors), `2026-05-24_wireframes-canvas` (canvas viewer), `2026-05-08_non-interactive-mode` (mode block).*

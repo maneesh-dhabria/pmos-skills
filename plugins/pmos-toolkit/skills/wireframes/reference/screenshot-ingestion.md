@@ -84,7 +84,7 @@ Also copy the original image into `{feature_folder}/wireframes/assets/source-scr
 
 ## Journey anchoring protocol
 
-After ingestion AND after the requirements doc has been read (Phase 1 step 3), but BEFORE the journey-confirmation gate (Phase 1 step 4):
+After ingestion AND after the requirements doc has been read (`#locate-requirements` step 3), but BEFORE the journey-confirmation gate (`#locate-requirements` step 5):
 
 1. For each screenshot, propose a candidate journey-step mapping:
    - Match the screenshot's `inferred_name` and `purpose` against the journey steps in the req doc.
@@ -102,13 +102,13 @@ For each anchored screenshot, fill the **Anchored to** line in its `source-scree
 **Anchored to:** journey "New user signup", step 2 → component slug `email-verify`
 ```
 
-The mapping connects screenshot → component slug from the inventory matrix, NOT just journey step number — this is what Phase 3 generators key off of.
+The mapping connects screenshot → component slug from the inventory matrix, NOT just journey step number — this is what `#generate` generators key off of.
 
 **Platform fallback (no `AskUserQuestion`):** print the proposed mappings as a numbered list and ask the user to confirm or correct in free text. Update `source-screens.md` accordingly.
 
 ## Generator briefing
 
-When Phase 3 dispatches a generator subagent for a component that has at least one anchored screenshot:
+When `#generate` dispatches a generator subagent for a component that has at least one anchored screenshot:
 
 - Pass **only** the `source-screens.md` section(s) for the screenshot(s) anchored to this component (not the whole file). Keep token budget lean.
 - Pass the absolute path to the original image so the generator can re-open it if needed.
@@ -116,7 +116,7 @@ When Phase 3 dispatches a generator subagent for a component that has at least o
 
 > A source screenshot is provided as the IA anchor for this component. Match the layout regions, navigation pattern, and overall information architecture. You MAY improve states, accessibility, copy clarity, and visual rhythm. You MUST NOT reorganize the IA (move primary actions, change the screen's purpose, drop sections) without explicit user direction. If you spot a meaningful IA improvement, leave it as a `<!-- TODO: -->` comment in the HTML — do not apply it silently.
 
-Components without an anchored screenshot are generated normally per the existing Phase 3 protocol — no screenshot context is passed to them.
+Components without an anchored screenshot are generated normally per the existing `#generate` protocol — no screenshot context is passed to them.
 
 ## Failure modes
 

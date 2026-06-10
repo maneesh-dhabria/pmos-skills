@@ -89,7 +89,7 @@ If routes/pages can be enumerated (Next.js `app/` or `pages/`, React Router conf
 - Emit named templates under `x-information-architecture.layouts` (e.g. `left-rail-dashboard`, `single-column-form`).
 - Cap at 5 templates. More gets noisy.
 
-If routes can't be enumerated, skip — a single layout entry is fine. The Phase 2b layout-anchor question handles selection.
+If routes can't be enumerated, skip — a single layout entry is fine. The `#composition-context` layout-anchor question handles selection.
 
 ### A.8. Build the DESIGN.md
 
@@ -213,9 +213,9 @@ When writing app-specific in a monorepo with a shared base, set `x-extends` to t
 
 ## Confirmation gate (caller's responsibility)
 
-After write, the caller (`/wireframes` Phase 2a) shows the result via AskUserQuestion:
+After write, the caller (`/wireframes` `#resolve-design-md`) shows the result via AskUserQuestion:
 
-- **Use as extracted** → proceed to Phase 2b.
+- **Use as extracted** → proceed to `#composition-context`.
 - **Edit before applying** → print absolute path, wait for user to edit and signal done, re-read.
 - **Discard for this run** → set `x-source.applied: false` in the file (keep for audit), proceed with default style for this run only. Future runs respect `applied: false` and skip the file (resolver treats it as not found).
 
