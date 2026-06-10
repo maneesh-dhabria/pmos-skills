@@ -135,18 +135,23 @@ Each persona subagent MUST return exactly this JSON shape (spec §9.2.1):
 ```
 
 **FR-SR-1 — persona name.** MUST equal the dispatched persona string exactly
-(`evaluator`, `adopter`, `contributor`, or `returning-user-navigator`). Any
-mismatch → parent hard-fail.
+(`evaluator`, `adopter`, `contributor`, or `returning-user-navigator`). On
+mismatch the parent drops that return with a warn
+(`simulated-reader persona label mismatch: dispatched=<X>, returned=<Y>`).
 
 **FR-SR-3 — quote contract.** Every `quote` MUST be a **≥40-character verbatim
 substring** of the un-stripped README markdown source (the file at the path the
 parent passed into the subagent prompt). No paraphrase, no ellipsis, no whitespace-normalisation, no
 markdown-stripping. The parent performs a literal **substring-grep** of each
-`quote` against the source; any miss → hard-fail with:
+`quote` against the source; any miss rejects that entry with a warn:
 
 > `simulated-reader returned quote not found in README: <prefix-30>…`
 
-and the parent pauses with a failure dialog (no silent recovery).
+(sub-40 quotes are rejected the same way: `simulated-reader returned quote
+shorter than 40 chars: <quote>`). Rejected entries are dropped — never patched
+up, never merged — and the surviving entries proceed; persona validation is
+advisory, so a subagent formatting slip costs one finding, not the run. (The
+*reviewer* return is the hard half — see `reference/reviewer.md` §3.)
 
 **Severity vocabulary** (FR-SR-4): `blocker` = persona bounces here; `friction` =
 persona keeps reading but is annoyed; `nit` = persona notices but proceeds. Findings
@@ -182,27 +187,22 @@ Per /grill D6.
 
 ## §4 Parent-side validation reference
 
-Validation lives in the **parent skill** (`plugins/pmos-toolkit/skills/readme/SKILL.md`
-§2), **NOT** in this reference doc and **NOT** self-validated by the
-subagent. This mirrors `/grill`'s FR-50/51/52 pattern exactly.
+Validation lives in the **parent skill** (`SKILL.md` `#simulated-reader`),
+**NOT** in this reference doc and **NOT** self-validated by the subagent. The
+quote contract is the shared one in
+`plugins/pmos-toolkit/skills/_shared/reviewer-protocol.md` — ≥40-char verbatim
+quotes, parent-side substring-grep against the parent's own read of the source,
+never self-validated. Call-site deltas for this pass: the source is the raw
+README **markdown** (no chrome-strip, no `sections.json` set-equality), returns
+carry a `persona` label instead of section ids, and rejected persona entries are
+**dropped with a warn** rather than failing the run (§2 above).
 
-See `plugins/pmos-toolkit/skills/grill/SKILL.md` § "Input Contract (when invoked as
-reviewer subagent)", which establishes the durable cross-skill pattern:
+**Skip path (FR-SR-6).** The user can ask to "skip the reader pass" (the
+`--skip-simulated-reader` flag is a silent alias); logged as
+`simulated-reader: skipped`. Documented as not-recommended-for-final-runs.
 
-> "Parent-side validation (FR-52, the skill MUST NOT self-validate): the parent
-> will (a) set-equality-check `sections_found` against `<artifact>.sections.json`,
-> (b) substring-grep every `quote` against the original (un-stripped) source HTML,
-> (c) hard-fail on any miss. This skill does not duplicate that validation; the
-> contract lives in the parent."
-
-**Mapping to /readme simulated-reader (FR-SR-3):**
-
-| /grill FR | /readme analogue                                    | Parent action                                        |
-|-----------|-----------------------------------------------------|------------------------------------------------------|
-| FR-50     | Parent passes the un-stripped README path to subagent | `SKILL.md` passes the path; subagent reads the file  |
-| FR-51     | Subagent returns `{persona, friction[]}` (§2 shape) | Persona prompt enforces shape; subagent emits JSON   |
-| FR-52     | Substring-grep every `quote` against README source  | `SKILL.md` greps each `quote`; any miss → hard-fail  |
-
-**Skip path (FR-SR-6).** The `--skip-simulated-reader` CLI flag bypasses this entire
-pass; logged as `simulated-reader: skipped (--skip-simulated-reader)`. Documented as
-not-recommended-for-final-runs.
+**Test stubs.** `READMER_PERSONA_STUB` (receives `--persona=<name> <readme-path>`,
+stdout = the §2 persona JSON) and `READMER_REVIEWER_STUB` (receives
+`<readme-path>`, stdout = the reviewer JSON array) replace the Task dispatches
+in the contract tests under `tests/integration/` + `tests/mocks/`. Never set in
+production — both are unset in the default skill prompt.

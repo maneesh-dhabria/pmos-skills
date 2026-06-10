@@ -2,26 +2,30 @@
 name: readme
 description: Audit, scaffold, or update READMEs against a binary rubric and a multi-persona simulated reader. Use this whenever the user asks to "audit my README", "scaffold a README", "fix my README", "generate a README", "review my README structure", or invokes /readme. Three modes share one substrate (--audit, --scaffold, --update <commit-range>); monorepo-aware (8 workspace manifests + multi-stack); voice work delegated to /polish; never auto-commits.
 user-invocable: true
-argument-hint: "[--audit|--scaffold|--update <commit-range>] [--scope <audit-all|audit-one <pkg>|scaffold-missing|root-only>] [--skip-simulated-reader] [--non-interactive|--interactive] [<repo-path>]"
+argument-hint: "[--audit|--scaffold|--update <commit-range>] [--scope <audit-all|audit-one <pkg>|scaffold-missing|root-only>] [--non-interactive|--interactive] [<repo-path>]"
 ---
 
 # /readme
 
-Using /readme to audit, scaffold, or update a repository's README against the binary rubric in `reference/rubric.yaml` and the simulated-reader persona pass in `reference/simulated-reader.md` — surfacing exactly which sections are missing, stale, or weak so the user (or /polish) can close the gap.
+/readme audits, scaffolds, or updates a repository's README. Two judges decide what's wrong: a deterministic rubric (`reference/rubric.yaml`, run by `scripts/rubric.sh`) catches structural failures — missing hero or install, broken links, marketing slop — and a simulated-reader pass catches what no regex can: real readers bouncing. The output is findings (audit), a draft README (scaffold), or a staged patch (update). /readme never auto-commits (commits belong to /complete-dev) and never rewrites voice (prose belongs to /polish).
 
 ## When to Use
 
-Three modes share a single substrate. **`--audit`** runs the rubric (and optionally the simulated-reader pass) against an existing README and reports findings without writing — use this when the user asks to "review my README" or "is my README any good". **`--scaffold`** generates a fresh README skeleton driven by repo discovery (manifests, languages, scripts, top-level structure) — use when there is no README, or when starting over. **`--update <commit-range>`** diffs the commit range, locates README-affecting changes (new commands, new env vars, new dependencies, removed features), and produces a targeted patch proposal — use when the user asks "what does the README need given these commits". All three modes are monorepo-aware: they discover workspaces across 8 manifest types (`package.json` workspaces, `pnpm-workspace.yaml`, `turbo.json`, `lerna.json`, Cargo workspaces, Go modules, Python `pyproject.toml`/`setup.py`, Maven `pom.xml`) and can target the root only, a single package, or all workspaces.
+- **Audit** — "review my README", "is my README any good". Rubric + reader pass against the existing README; reports findings; writes nothing.
+- **Scaffold** — "generate a README", or no README exists. Mines the repo (manifests, entry points, license, structure) and drafts a skeleton grounded in evidence.
+- **Update** — "what does the README need given these commits" (`--update <commit-range>`). Maps the range's Conventional Commits onto impacted README sections and proposes targeted patches.
+
+All three are monorepo-aware: `scripts/workspace-discovery.sh` probes 8 workspace-manifest families and a run can target the root, one package, or every workspace ([the monorepo phase](#monorepo)).
 
 ## Platform Adaptation
 
-Claude Code is the primary target platform. The canonical non-interactive contract (inlined below) governs how this skill behaves under `--non-interactive` invocation, including on platforms where AskUserQuestion is not available — the classifier defers any question without a `(Recommended)` option and auto-picks otherwise, so the same SKILL.md works across Claude Code, Codex, and headless CI agents without per-platform branching.
+Claude Code is the primary target platform. The canonical non-interactive contract (inlined below) governs behavior under `--non-interactive`, including on platforms where AskUserQuestion is not available — the classifier defers any question without a `(Recommended)` option and auto-picks otherwise. On platforms that cannot dispatch Task subagents in parallel, run the reader-pass dispatches sequentially — the per-call timeout bounds the cost either way.
 
 ## Track Progress
 
-For multi-task runs (e.g., audit-all across a monorepo, or update-mode producing N patches), use the agent's task-tracking tool (`TaskCreate` in Claude Code; equivalent on other platforms) to surface progress to the user — one task per workspace or per patch.
+For multi-step runs (audit-all across a monorepo; update mode producing N patches), use the agent's task-tracking tool (`TaskCreate` in Claude Code; equivalent on other platforms) — one task per workspace or per patch.
 
-## Phase 0: Pipeline setup
+## Phase 0: Pipeline setup {#pipeline-setup}
 
 <!-- pipeline-setup-block:start -->
 1. **Read `.pmos/settings.yaml`.**
@@ -36,7 +40,7 @@ For multi-task runs (e.g., audit-all across a monorepo, or update-mode producing
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-## Phase 0b: Non-interactive contract
+## Phase 0b: Non-interactive contract {#non-interactive}
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -68,390 +72,145 @@ For multi-task runs (e.g., audit-all across a monorepo, or update-mode producing
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Core Pattern
+## Dependencies & script contracts {#scripts}
 
-Three modes share a single substrate: a deterministic rubric (the checks in `reference/rubric.yaml`), a workspace-discovery scanner, and a simulated-reader pass. /readme audits or scaffolds the README; voice rewriting is delegated to /polish; commits happen only via /complete-dev.
+Bundled scripts live at `${CLAUDE_PLUGIN_ROOT}/skills/readme/scripts/` — always invoke via that root, never an absolute path. Environment: **bash 3.2+** (every script is Bash-3.2-safe per the repo's portability invariant — the macOS default shell works as-is), **python3 ≥ 3.8 with PyYAML**, **jq ≥ 1.6**, and **git**. node is needed only by the shared HTML substrate (`chrome-strip.js` / `build_sections_json.js`), never by a bundled shell script. Each script's `--selftest` exits non-zero with a clear diagnostic on a missing dependency — run once after install to verify the environment.
 
-## Implementation
+Each script contract, stated once:
 
-### Dependencies
+| Script | Invocation | Contract |
+|---|---|---|
+| `rubric.sh` | `bash scripts/rubric.sh <readme-path> [--variant <repo-type>]` | One TSV row `check-id \t verdict \t commit \t line \t message` per check declared in `reference/rubric.yaml`. Exit 0 = all pass, 1 = ≥1 fail, 2 = script error (refuse the run: `rubric.sh exited 2 — see stderr above. Aborting audit.`). |
+| `workspace-discovery.sh` | `bash scripts/workspace-discovery.sh <repo-root>` | JSON: primary manifest, secondaries, enumerated `packages`, `repo_type`. Owns manifest precedence across the 8 supported families — never re-derive precedence in prose. |
+| `commit-classifier.sh` | `bash scripts/commit-classifier.sh <repo-root> <range>` | JSON `commits[]` (type, breaking, section affinity) + `sections[]` (deduped union), driven by the `commit_affinity` table in `reference/section-schema.yaml`; adds a `warn` field when the range has no Conventional-Commit subjects. |
+| `voice-diff.sh` | `bash scripts/voice-diff.sh <pre.md> <post.md>` | JSON `{"sentence_len_delta_pct": <n>, "jaccard_new_tokens": <n>}` (pure bash + awk). |
+| `_reviewer_validate.sh` | source it, then `readme::reviewer_validate <json> <readme-path>` | 0 = clean, 1 = violation with stderr message. Enforces the reviewer `check_id` set-equality against the `[J]` rows of `reference/rubric.yaml` plus the quote contract. |
+| `apply-edit-at-anchor.js` | comment-resolver shim — see [the comment-resolver phase](#apply-comment-edit) | success / failure / clarification JSON per `_shared/apply-edit-at-anchor.md`. |
 
-Bundled scripts under `scripts/` and the orchestrator body assume:
+## Phase 1: Mode resolution {#mode-resolution}
 
-- **bash 3.2+** — `scripts/_lib.sh` and all `scripts/*.sh` are Bash-3.2-safe (no associative arrays, no `${var^^}` — per the repo's Bash-portability invariant), so the macOS default shell works as-is.
-- **python3 ≥ 3.8** with **PyYAML** — `rubric.sh`, `workspace-discovery.sh`, and `commit-classifier.sh` invoke `python3 -c 'import yaml; ...'` to parse `reference/rubric.yaml` and `reference/section-schema.yaml`. Install with `pip install pyyaml` or `python3 -m pip install --user pyyaml`.
-- **jq ≥ 1.6** — workspace-discovery parses `package.json` / `pnpm-workspace.yaml` derivatives via jq.
-- **node ≥ 18** — only for the HTML substrate's `chrome-strip.js` / `build_sections_json.js` (consumed by the artifact pipeline). The bundled shell scripts need no node (`voice-diff.sh` is pure bash + awk).
-- **git** — every flow reads commit history (`--update <range>` and the §7 update-mode flow) and never auto-commits (commit work is delegated to `/complete-dev`).
+Infer the mode from the request — "review my README" → audit, "generate/start over" → scaffold, "what changed since `<range>`" → update; an explicit `--audit` / `--scaffold` / `--update <range>` flag overrides inference. With no flag and no stated intent: an existing `README.md` defaults to audit (`mode: audit (existing README detected)`); no README defaults to scaffold (`mode: scaffold (no README found)`).
 
-Each script's `--selftest` exits non-zero with a clear diagnostic if any of the above is missing — run `bash scripts/<name>.sh --selftest` once after install to verify the environment.
+Refusals, all exit 64: two mode flags together (`Modes are mutually exclusive: --audit / --scaffold / --update <range>. Pick one.`); `--update` with `--audit` or `--scaffold` (`--update is mutually exclusive with --audit/--scaffold`); `--update` without a range (`--update requires a commit range (e.g. main..HEAD)`); `--audit` with no README (`--audit requires a README; pass --scaffold or omit flags`).
 
-### Single-file audit flow
+In monorepos where some packages have a README and some don't, resolve the composition `audit+scaffold` — audit the present, scaffold the absent — in one invocation. Emit one log line per run, `mode: <resolved> (source: cli|default-readme-present|default-readme-absent)`; for the composition, the multi-line form:
 
-This subsection documents the procedure /readme follows when invoked at a repo with an existing `README.md` and no monorepo signal. Mode resolution for `--scaffold` and `--update <range>` lives in §4; cross-file rules for monorepo workspaces in §9.
-
-**1. Argv parsing — mode resolver.** Parse `--audit | --scaffold | --update <range>` as **mutually exclusive**. If two are present, refuse with platform-aware error: `Modes are mutually exclusive: --audit / --scaffold / --update <range>. Pick one.` (FR-MODE-1.) If none is passed and `README.md` exists at the resolved repo-path → default to `--audit` and log: `mode: audit (existing README detected)`. If none is passed and no `README.md` exists → default to `--scaffold` and log: `mode: scaffold (no README found)`. (FR-MODE-4.)
-
-**2. Shell the rubric.** From SKILL.md, invoke the bundled rubric script via the portable plugin root:
-```
-bash "${CLAUDE_PLUGIN_ROOT}/skills/readme/scripts/rubric.sh" "${repo_path}/README.md"
-```
-Capture stdout (TSV: `check-id\tverdict\tcommit\tline\tmessage` per row) and exit code. Exit 0 ⇒ all pass; exit 1 ⇒ ≥1 fail; exit 2 ⇒ script error (refuse with `rubric.sh exited 2 — see stderr above. Aborting audit.`).
-
-**3. Aggregate findings.** Tally `PASS` / `FAIL` rows from the TSV. Emit one summary line to chat: `rubric: <P> pass / <F> fail`. (FR-OUT-1.) Empty `FAIL` set ⇒ no diff preview, no AskUserQuestion: close with `README clean against rubric. Nothing to fix.` (FR-OUT-5 — no findings, no diff path.)
-
-**4. Findings presentation — mode-branch (FR-OUT-2, FR-15/FR-16/FR-17).**
-   - **Audit mode** (read-only contract): if `<F> > 0`, emit a single Markdown table to chat with columns `Source | Severity | Check/Persona | Line | Message | Suggested fix`, sorted severity-desc then source. Source ∈ {`rubric`, `reviewer`, `persona`}. **Do NOT fire `AskUserQuestion`** — audit is a read-only audit pass; the user runs `/readme` again with `--scaffold` or edits the README directly to apply.
-   - **Scaffold / update mode**: group failing findings into batches of ≤4 per `AskUserQuestion` call (existing batched-ask behavior). Each finding's question shape: `[<check-id>] <message>. Suggested fix: <one-line>.` Options: **Apply suggested fix (Recommended)** / **Modify** / **Skip — leave as-is** / **Defer**. Canonical (Recommended) labelling per the non-interactive contract.
-
-**5. Atomic write.** For every Apply-or-Modify disposition, compute the proposed README content in memory, then write via temp + rename:
-```
-tmp="${target}.tmp.$$"
-printf '%s' "${new_content}" > "${tmp}"
-mv -- "${tmp}" "${target}"
-```
-Never write to `${target}` directly. (FR-OUT-4.) On any write error, refuse with `Atomic write failed: ${err}. Original README preserved at ${target}.` and exit 1 without modifying the file. The integration test at `tests/integration/tracer_audit.sh` exercises this contract end-to-end.
-
-**6. Close-out — mode-branch (FR-V-2, FR-OUT-4).**
-   - **Audit mode** (no write happened): emit `rubric: <P> pass / <F> fail` + optional bracketed sub-counts `[+ <R> reviewer findings + <N> persona friction]` (omit a bracket when its bucket is zero).
-   - **Scaffold / update mode** (write happened): emit `README written to ${target}. Run /complete-dev to include it in the release commit.` (never auto-commit.)
-   - **Both modes additionally emit on a separate final line:** `Suggest: /polish <readme-path> — tighten prose without changing meaning.` (FR-V-2 — unconditional on successful run.)
-
-All script paths use `${CLAUDE_PLUGIN_ROOT}/skills/readme/scripts/…` — no absolute paths. (FR-C1.)
-
-### §2: Simulated-reader pass
-
-This subsection documents the protocol /readme follows after `rubric.sh` returns its findings (§1 step 3) and before the AskUserQuestion batching (§1 step 4, whose batches carry an `Apply suggested fix (Recommended)` option). It implements FR-SR-1 / FR-SR-2 / FR-SR-3 and decision-log entries D13 + P3. Skip entirely when `--skip-simulated-reader` is set (advisory log: `simulated-reader: skipped via --skip-simulated-reader`).
-
-**1. Parallel Task dispatch (FR-SR-1, FR-09/FR-10/FR-13 — 5 concurrent calls).** Issue **5 `Task` tool calls in ONE assistant response** — 4 personas + 1 reviewer. Dispatch every call with `model: sonnet` — persona simulation and the [J] rubric review are bounded roles whose returns are deterministically validated parent-side (FR-SR-3 quote grep, FR-11 set-equality), which is what makes the cheaper tier safe:
-   - Persona Task calls (4): `evaluator`, `adopter`, `contributor`, `returning-user-navigator`. Each body inlines, in order:
-     - The persona-specific prompt block from `reference/simulated-reader.md §1` (load the file and paste the matching `### 1.x` section verbatim — do not re-author).
-     - The absolute path of the **un-stripped** README (the user-supplied input file), with an instruction to read that file before judging. Do NOT paste the README body into the prompt — subagents share the filesystem, and the FR-SR-3 substring grep stays sound because step 2 validates quotes against the parent's own read of the same file.
-     - The return-shape contract from `reference/simulated-reader.md §2` (JSON schema: `persona`, `friction[]` with `quote`/`line`/`severity`/`message`).
-   - Reviewer Task call (1): IA-fit reviewer scoring the 2 [J] checks. Body inlines, in order:
-     - The reviewer prompt block from `reference/reviewer.md §1` verbatim.
-     - The same absolute README path (same read-it-yourself instruction as the personas).
-     - The return-shape contract from `reference/reviewer.md §2` (JSON array, one object per declared [J] `check_id`).
-   - Sequential dispatch is forbidden (P3); the parallel-scheduling requirement is what makes the 120s-per-call wall budget tractable.
-   - A per-call timeout of **120s**. On persona timeout, emit `simulated-reader: persona <name> timed out (120s); skipping` (NFR-4) and proceed with whichever of the other personas returned in time. On reviewer timeout, emit `reviewer: timed out (120s); dropping [J] findings (soft-failure E4)` and proceed without [J] entries.
-   - **Stub escape (P9).** When `READMER_PERSONA_STUB` is set, the persona Task calls are replaced by `bash "$READMER_PERSONA_STUB" --persona=<name> <readme-path>` (per §3). When `READMER_REVIEWER_STUB` is set, the reviewer Task call is replaced by `bash "$READMER_REVIEWER_STUB" <readme-path>` (per §3). Both env vars are unset in the default skill prompt — test-only.
-
-**2. Substring validation on return (FR-SR-3 personas; FR-11/FR-12 reviewer).** For each returned JSON payload, parse `friction[]` (personas) OR the JSON array (reviewer) and validate every entry against the un-stripped README source:
-   - **Persona quote length:** if `len(quote) < 40` → hard-fail with `simulated-reader returned quote shorter than 40 chars: <quote>` and pause with the failure dialog.
-   - **Persona substring grep:** if `quote NOT IN readme_source_text` (exact substring, byte-for-byte) → hard-fail with `simulated-reader returned quote not found in README: <prefix-30>…` and pause with the failure dialog.
-   - **Persona label match:** the returned `persona` field MUST exactly equal the dispatched persona label (one of `evaluator|adopter|contributor|returning-user-navigator`). Mismatch → hard-fail with `simulated-reader persona label mismatch: dispatched=<X>, returned=<Y>`.
-   - **Reviewer validation (FR-11/FR-12 — symmetric).** Delegate to `scripts/_reviewer_validate.sh::readme::reviewer_validate <json> <readme-path>` which enforces:
-     - **`check_id` set-equality** vs the declared [J] set (read from `rubric.yaml` rows where `type: "[J]"`). On miss/extra → hard-fail with `reviewer returned check_ids that do not match rubric.yaml: missing=[…], extra=[…]` and pause.
-     - **Reviewer quote length:** if `len(quote) < 40` → hard-fail with `reviewer returned quote shorter than 40 chars: <quote>` and pause.
-     - **Reviewer substring grep:** if `quote NOT IN readme_source_text` → hard-fail with `reviewer returned quote not found in README: <prefix-30>…` and pause.
-
-**3. Merge into rubric stream.** Every entry from a persona that passes all FR-SR-3 checks merges into the rubric findings as a severity-tagged item — using the `severity` field from the persona return (default `friction` when omitted). Annotate each merged entry with `source: simulated-reader/<persona>` so the §1 step-3 aggregator and the §1 step-4 AskUserQuestion batcher (its `Apply suggested fix (Recommended)` default applies) can distinguish persona findings from `rubric.sh` checks.
-
-**4. Dedupe near-duplicates.** After merge, dedupe across the combined findings list. Two findings are duplicates iff `abs(line_a - line_b) ≤ 2` AND they target the same section heading (use the parsed section spine from `reference/section-schema.yaml`). Keep the higher-severity entry; drop the lower. On equal severity, keep the `rubric.sh` entry over the persona entry (rubric findings are deterministic; persona findings are probabilistic).
-
-> See [reference/simulated-reader.md](reference/simulated-reader.md) for the full persona prompts and return-shape JSON schema (per §C "references one level deep" of skill-patterns.md).
-
-### §3: Theater-check + skip flag
-
-**FR-SR-5 — Theater-check.** After §2's parallel dispatch + substring validation completes, examine the returns per persona:
-
-- If persona `P` returned `friction[]` is **empty** AND the rubric.sh pass (§1) scored **≥3 findings**, treat this as suspected theater (the persona may have rubber-stamped the README to avoid friction). **Re-dispatch persona P ONCE** with the same body as §2 but appending this bounce-suffix to the prompt:
-  > "You have alternatives and 90 seconds. What makes you bounce?"
-- Re-dispatch is **single-shot**: even if the second-pass still returns empty, accept it as a genuine pass (a persona that bounces on nothing twice has earned the empty return).
-- Re-dispatch validation: still subject to FR-SR-3 substring-grep + persona-label match. Hard-fail on miss, same dialog as §2.
-- Log to chat: `simulated-reader: theater-check re-dispatched persona <P> (rubric≥3, empty first-pass)`.
-
-**FR-SR-6 — Skip flag.** The CLI flag `--skip-simulated-reader` short-circuits §2 + §3 entirely:
-
-- When present, skip the §2 persona + reviewer Task dispatches; emit chat log `simulated-reader: skipped (--skip-simulated-reader)`; the aggregator pass receives ONLY rubric.sh findings.
-- The flag is parsed by §1's argv loop alongside `--variant`, `--auto-apply`, etc. (mutex with `--selftest`).
-- Intended use: speed up CI runs against pre-vetted READMEs; not the default user path.
-
-**Contract-test escape (P9).** The `READMER_PERSONA_STUB` environment variable, if set to a path, REPLACES the persona Task-tool dispatch with a shell invocation of that path:
-- The script receives `--persona=<name>` and the README path as args.
-- Stdout = the per-persona JSON return (same shape as a real Task return).
-- Used exclusively by `tests/mocks/simulated_reader_stub.sh` for the FR-SR-3 contract test (verifies the parent substring-grep correctly hard-fails on a deliberately altered quote).
-- DO NOT use in production — the env var is unset in the default skill prompt.
-
-**Reviewer-subagent contract-test escape (FR-11).** The `READMER_REVIEWER_STUB` environment variable, if set to a path, REPLACES the reviewer Task-tool dispatch (§2 step 1, the 5th concurrent Task call) with a shell invocation of that path:
-- The script receives the README path as a single arg.
-- Stdout = the reviewer JSON array (same shape as a real Task return, per `reference/reviewer.md §2`).
-- Used by `tests/mocks/reviewer_stub.sh` for the FR-11/FR-12 reviewer contract tests (parent-side validation of `check_id` set-equality + `quote≥40` substring-grep).
-- DO NOT use in production — the env var is unset in the default skill prompt.
-
-### §4: Mode resolution
-
-Modes drive the top-level flow of `/readme`: which subagent dispatches fire, what artifacts get written, how the user is prompted. The resolver runs **after** §1's argv loop has parsed flags.
-
-**FR-MODE-1 — Three primary modes:** `audit` / `scaffold` / `update`. Exactly one mode (or a composition — see FR-MODE-3) is active per invocation.
-
-**FR-MODE-2 — Resolution truth table.**
-
-| Input | README present? | Flags | Resolved mode | Source label |
-|---|---|---|---|---|
-| `/readme path/to/file.md` | yes | none | `audit` | `default-readme-present` |
-| `/readme` (no path, monorepo root) | depends per package | none | per-package — see FR-MODE-3 | `default-readme-absent` (where absent) |
-| `/readme` (greenfield repo) | no | none | `scaffold` | `default-readme-absent` |
-| `/readme` | yes | `--scaffold` | `audit+scaffold` (composition, D16) | `cli` |
-| `/readme` | no | `--audit` | exit 64: `--audit requires a README; pass --scaffold or omit flags` | — |
-| `/readme` | any | `--update <range>` | `update` | `cli` |
-| `/readme` | any | `--update <range> --audit` (or `--scaffold`) | exit 64: `--update is mutually exclusive with --audit/--scaffold` | — |
-
-**FR-MODE-3 — Audit+scaffold composition (D16).** In monorepos where SOME packages have a README and SOME do not, the runtime resolves `audit` for present packages and `scaffold` for absent ones, in a single invocation. Per-package modes are emitted to the chat log:
 ```
 mode: audit+scaffold (source: cli)
   - packages/foo: audit (README present)
   - packages/bar: scaffold (README absent)
 ```
-The per-package loop processes each in declared order (per `workspace-discovery.sh` output). `--scope` may narrow the loop to specific packages (see §10).
 
-**FR-MODE-4 — Observability.** Emit ONE chat-log line per invocation, format: `mode: <resolved> (source: cli|default-readme-present|default-readme-absent)`. For audit+scaffold composition, emit the multi-line form above. Resolution decisions are auditable in chat without verbose logging.
+The full input × flags × README-presence resolution table lives in [reference/modes.md](reference/modes.md#mode-resolution-table).
 
-**Error cases.**
-- `--audit` + no README → exit 64 with the message in the table.
-- `--update` + `--audit` or `--scaffold` → exit 64 with the mutex message.
-- `--update` without a `<range>` arg → exit 64: `--update requires a commit range (e.g. main..HEAD)`.
+## Phase 2: Audit {#audit}
 
-See [§1: Single-file audit flow](#single-file-audit-flow) for argv parsing and [§5: Repo-miner subagent](#5-repo-miner-subagent) for scaffold-mode data gathering.
+Audit is **read-only**: it reports, the user acts. Run `rubric.sh` (contract above), then the [reader pass](#simulated-reader) unless skipped. The rubric is a hard gate because a script decides it deterministically; the reader pass is advisory because bouncing is a judgment call — surfaced, never blocking.
 
-### §5: Repo-miner subagent
+1. Tally PASS/FAIL rows; emit `rubric: <P> pass / <F> fail`. Zero fails → close with `README clean against rubric. Nothing to fix.` — no findings table, no prompts.
+2. With findings, emit one Markdown table — `Source | Severity | Check/Persona | Line | Message | Suggested fix`, severity-desc, Source ∈ {`rubric`, `reviewer`, `persona`}. **Do NOT fire `AskUserQuestion`** — the user re-runs with `--scaffold` or edits directly to apply fixes.
+3. Close-out: audit emits the count line plus bracketed sub-counts `[+ <R> reviewer findings + <N> persona friction]` (omit zero buckets); write modes emit `README written to <target>. Run /complete-dev to include it in the release commit.` **Both modes additionally emit**, on a separate final line: `Suggest: /polish <readme-path> — tighten prose without changing meaning.`
 
-In `scaffold` mode (per §4 FR-MODE-2), the runtime dispatches a Task subagent to gather raw repo data before any user prompts fire. The repo-miner reads manifests, code entry points, license files, and contributor history; returns a structured JSON for §6's draft-assembly phase.
+## Phase 3: Simulated reader {#simulated-reader}
 
-**Dispatch protocol.**
+The rubric can't see a reader's job; the personas can. Each is a *reader who can leave*, not a reviewer — the prompts in `reference/simulated-reader.md` engineer against LLM helpfulness bias, and quote-grounding makes every finding mechanically checkable.
 
-1. After §4 resolves mode to `scaffold` (or `audit+scaffold` for the absent-README packages), dispatch ONE Task call:
-   - **Prompt body:** the supported-manifest list (from `reference/section-schema.yaml` if a manifest registry surfaces there; otherwise inline the 8-manifest set from `scripts/workspace-discovery.sh`), the repo-root absolute path, and the return-shape contract below.
-   <!-- defer-only: free-form -->
-   - **Timeout:** 90s. On timeout, log `repo-miner: timed out (90s); falling back to AskUserQuestion for all required fields` and skip to the §6 prompt-fallback path.
+**Dispatch.** Issue 5 `Task` tool calls in ONE assistant response (sequentially only where the platform can't parallelize — see Platform Adaptation): 4 personas (`evaluator`, `adopter`, `contributor`, `returning-user-navigator`) + 1 IA-fit reviewer scoring the `[J]` rubric checks. Every call uses `model: sonnet` — these are bounded roles whose returns are validated deterministically parent-side, which is what makes the cheaper tier safe. Each Task body pastes, verbatim: the matching prompt block (`reference/simulated-reader.md` §1 per persona; `reference/reviewer.md` §1 for the reviewer), the absolute path of the un-stripped README with an instruction to read it (paths over pastes — subagents share the filesystem), and the return-shape contract (§2 of the respective file). Per-call timeout 120s, advisory: a timed-out persona is skipped with `simulated-reader: persona <name> timed out (120s); skipping`; a timed-out reviewer drops the `[J]` findings with a warn.
 
-2. **Return shape (spec §9.2.2).** The subagent MUST return JSON matching:
-```json
-{
-  "name": "<package-name>",
-  "entry_point": "<bin path | importable module | null>",
-  "license": "<SPDX-id | UNLICENSED | null>",
-  "contributors": ["<gh-handle>", ...],
-  "repo_type_hint": "library|cli|plugin|app|monorepo-root|monorepo-package|unknown",
-  "manifest_source": "<one-of-the-8-supported>",
-  "evidence": {
-    "name_from": "<file:line>",
-    "entry_point_from": "<file:line | null>",
-    "license_from": "<file:line | null>"
-  }
-}
-```
+**Validation (parent-side).** The quote contract is `_shared/reviewer-protocol.md` — ≥40-char verbatim quotes, substring-grepped by the parent against its own read of the source, never self-validated. Call-site deltas here: the source is the raw README markdown (no chrome-strip, no `sections.json`), and persona returns carry a `persona` label instead of section ids.
 
-3. **Parent-side validation.** For each required field that is non-null:
-   - Field types match the schema (string/array/object). Type mismatch → hard-fail: `repo-miner: field <name> has wrong type (expected <T>, got <U>)`. Pause with failure dialog.
-   - `name` non-empty after `.strip()`.
-   - `repo_type_hint` ∈ the 7-value enum above. Otherwise → hard-fail: `repo-miner: unknown repo_type_hint '<value>'`.
-   - `evidence.*_from` paths exist on disk when the corresponding field is non-null (substring-grep the named file for the field value). Miss → hard-fail: `repo-miner: evidence missing — <field>='<value>' not found in <file>`. Pause.
+- **Personas — advisory, drop-with-warn.** An entry with a sub-40-char quote, a quote not found verbatim in the README, or a `persona` label that doesn't match the dispatched one is **dropped with a warn** (e.g. `simulated-reader returned quote shorter than 40 chars: <quote>`; `simulated-reader returned quote not found in README: <prefix-30>…`); surviving entries proceed. The grep grounding still guarantees nothing fabricated merges — a formatting slip costs one finding, not the run.
+- **Reviewer — hard.** Delegate to `readme::reviewer_validate` (contract above). Its `check_id` set-equality feeds scored rubric rows, so a violation hard-fails and pauses with the failure dialog.
 
-<!-- defer-only: ambiguous -->
-4. **AskUserQuestion fallback.** For each required field that the repo-miner returned as `null` (genuinely couldn't infer):
-   - Issue a single `AskUserQuestion` with sensible defaults from the repo context (e.g., for `license: null`, propose `MIT (Recommended)` / `Apache-2.0` / `Other` / `UNLICENSED`).
-   - Defer-tag with `<!-- defer-only: ambiguous -->` so the non-interactive contract's classifier (Phase 0b) DEFERS rather than auto-picks — license choice is too consequential to auto-pick.
+**Merge + dedupe.** Accepted persona entries merge into the rubric findings stream tagged `source: simulated-reader/<persona>`, severity from the return (default `friction`). Dedupe near-duplicates — same section (per the spine in `reference/section-schema.yaml`), line ±2 — keeping the higher severity; on ties keep the rubric entry (deterministic beats probabilistic).
 
-5. **Cross-reference.** §6 consumes this validated `RepoMinerResult` as the seed for the scaffold draft. The `evidence.*_from` paths flow into the README's footnote section so the user can audit where each fact came from.
+**Theater-check.** A persona returning empty `friction[]` while the rubric scored ≥3 findings is re-dispatched ONCE with the bounce-suffix in `reference/simulated-reader.md` §3; a second empty return is accepted as genuine. Log `simulated-reader: theater-check re-dispatched persona <P> (rubric≥3, empty first-pass)`.
 
-See [§4: Mode resolution](#4-mode-resolution) for the upstream gate and [§6: Scaffold flow](#6-scaffold-flow) for the downstream consumer.
+**Skipping.** The user can say "skip the reader pass" (CI against pre-vetted READMEs is the intended case); log `simulated-reader: skipped`.
+<!-- nl-sugar -->
+`--skip-simulated-reader` is still parsed as a silent alias for that request.
 
-### §6: Scaffold flow
+**Test stubs.** `READMER_PERSONA_STUB` / `READMER_REVIEWER_STUB` replace the Task dispatches with shell stubs for the contract tests — documented in `reference/simulated-reader.md` §4 and `reference/reviewer.md` §4; never set in production.
 
-When §4 resolves mode to `scaffold` (or per-package `scaffold` within `audit+scaffold` composition), the runtime follows the steps below. The terminal output is a draft README (or a stub with TODO markers if data is insufficient), atomically written next to the manifest (per `scripts/workspace-discovery.sh` package paths).
+## Phase 4: Scaffold {#scaffold}
 
-**Steps (per package).**
+The one rule that matters most: **never invent commands, APIs, or facts not present in the code — emit `<!-- TODO(/readme): <field> — <reason> -->` markers instead.** A wrong install command is worse than a visible gap.
 
-1. **Repo-miner dispatch (§5).** Get the validated `RepoMinerResult`.
+Per package:
 
-2. **Workspace-discovery (`scripts/workspace-discovery.sh`).** Resolve `repo_type` from the manifest set (refines §5's `repo_type_hint`). For per-package scaffold (composition mode), pass the package path; for top-level greenfield, pass repo root.
+1. **Repo-miner.** Dispatch ONE Task call (`model: sonnet`, timeout 90s — on timeout fall back to user questions): prompt body = the supported-manifest set from `scripts/workspace-discovery.sh`, the repo-root absolute path, and the return-shape contract in [reference/modes.md](reference/modes.md#repo-miner-contract). Validate the return per that contract — every non-null fact must carry an `evidence` pointer that greps true on disk; a validation miss hard-fails and pauses.
+2. **Workspace discovery.** `workspace-discovery.sh` refines `repo_type` (it owns precedence).
+   <!-- defer-only: ambiguous -->
+3. **Fill gaps by asking — capped.** For fields the miner returned `null` and discovery can't infer, `AskUserQuestion` with repo-derived defaults; never auto-pick a license — the license prompt is always deferred-or-asked, never assumed. Hard cap **6 questions per package**; at the cap, emit a stub with TODO markers and log `scaffold: question cap reached (6/6); emitting stub with N TODO markers — re-run /readme after filling in`.
+4. **Assemble.** Opening shape per `repo_type` from `reference/opening-shapes.md` (library shape + a TODO marker for `unknown`); section order from the spine in `reference/section-schema.yaml`, skipping sections the repo-type variant drops.
+5. **Self-check, advisory.** Run the draft through `rubric.sh --variant <repo_type>`; below ~80% of declared checks passing, inline TODO warnings and continue — a scaffold is a starting point, never blocked on polish. Then run the [reader pass](#simulated-reader) against the draft; friction lands in the diff preview as comments, not in the README content.
+6. **Diff preview + confirm.** Show the full draft, a `Rubric: <passes>/<total checks>` line, and a 1-line-per-persona `Simulated-reader:` block, then ask: **Write README.md (Recommended)** / **Edit before writing** / **Discard**.
+   <!-- defer-only: destructive -->
+   (Writing a file is non-reversible from the skill's perspective.)
+7. **Atomic write.** Temp-then-rename next to the package manifest — never write the target directly; on write error, refuse with the original file intact. Log `scaffold: wrote <path> (<bytes> bytes; <lines> lines; rubric <passes>/<total>)`.
 
-<!-- defer-only: free-form -->
-3. **≤6 Q user cap (FR-OUT-3).** For required fields the repo-miner returned `null` for AND that workspace-discovery can't infer, prompt the user via `AskUserQuestion`. Hard cap: **6 questions total** across the entire scaffold flow. If unresolved fields remain after 6 Q:
-   - Emit a **stub README** with `<!-- TODO(/readme): <field> — <reason> -->` markers at the points the missing data should go.
-   - Log: `scaffold: question cap reached (6/6); emitting stub with N TODO markers — re-run /readme after filling in`.
-   - This is the E2 path (empty repo, manifest only, no callable entry). Per spec §16 E2: never invent commands; never fabricate APIs.
+In `audit+scaffold` composition, repeat per absent-README package; the question cap is per-package.
 
-4. **Per-type opening shape.** Read `reference/opening-shapes.md`; select the shape matching `repo_type` (one of library / cli / plugin / app / monorepo-root / monorepo-package). Apply: hero line, what-it-does-in-60s, install-or-quickstart, runnable example, links. For `unknown` repo_type (long-tail repos with no supported manifest), use the library shape as a default and append `<!-- TODO(/readme): repo_type unresolved — verify scaffold defaults -->`.
+## Phase 5: Update {#update}
 
-5. **Section spine.** Read `reference/section-schema.yaml`; emit sections in spine order (Title → Description/TLDR → Install → Quickstart → Usage → Contributing → License). For each section, fill from `RepoMinerResult`, workspace-discovery output, or user answers. Skip sections the repo-type variant drops (e.g., `cli` drops `## Use as a library`).
+Update mode is patch-only and self-gated: typing `--update <range>` IS the consent — no external hook, config flag, or other enablement. Every patch passes the per-section prompts, and the patch-fail guard makes auto-patching safe.
 
-6. **Rubric pass (§1).** Run the assembled draft through `rubric.sh --variant <repo_type>`. If fewer than 80% of the checks in `reference/rubric.yaml` pass on a draft we're about to land, log warnings inline as TODO markers and continue (do not block — scaffold output is a starting point, not a polished README).
-
-7. **Simulated-reader pass (§2 + §3).** Dispatch the persona + reviewer pass against the draft. Friction items merge into the diff preview (step 8) as inline comments, NOT into the README content (the user decides whether to act on persona feedback after the diff).
-
-8. **Diff preview + confirm.** Emit the proposed README content to chat: ` ```markdown\n<full draft>\n``` ` followed by:
-   - A `Rubric:` line showing the `<passes>/<total checks>` score per the rubric pass.
-   - A `Simulated-reader:` block summarising friction per persona (1-line each).
-   - An `AskUserQuestion`: **Write README.md (Recommended)** / **Edit before writing** / **Discard**.
-   - Defer-tag this prompt with `<!-- defer-only: destructive -->` — writing a file is non-reversible from the skill's perspective.
-
-9. **Atomic write (FR-OUT-4).** On confirm, write `<package-path>/README.md` via temp-then-rename. Log to chat: `scaffold: wrote <path> (<bytes> bytes; <line> lines; rubric <passes>/<total>)`.
-
-10. **Per-package iteration.** In `audit+scaffold` composition (D16), repeat steps 1-9 for each absent-README package. Question cap is **per-package** (each gets its own 6-Q budget), not shared across the run.
-
-**Anti-patterns specific to scaffold.** See [## Anti-Patterns](#anti-patterns) for the cross-cutting list; scaffold-specific rules:
-- Never invent commands or APIs not present in the code. Use TODO markers instead.
-- Never auto-pick a license — always defer to the user (per §5 step 4).
-- Never write the README without the diff-preview gate, even with `--auto-apply` (which mechanizes only banned-phrase strikethrough in audit mode, per `reference/rubric.yaml`).
-
-See [§4: Mode resolution](#4-mode-resolution), [§5: Repo-miner subagent](#5-repo-miner-subagent), and the rubric workflow in [§1: Single-file audit flow](#single-file-audit-flow).
-
-### §7: Update-mode flow
-
-When `--update <range>` is passed (per §4 FR-MODE-2), the runtime patches an EXISTING README based on commits that landed since the range's base. Update-mode is patch-only — never destructive: every patch is gated by the per-section Apply/Skip prompts (step 2 below), and the FR-UP-3 patch-fail guard (step 5) ensures a regression cannot ship. Staging rules live in §8.
-
-**Steps.**
-
-1. **Classify the commit range.** Invoke `scripts/commit-classifier.sh <repo-root> <range>`. Parse the JSON output: `commits[]` (per-commit type + breaking flag + section affinity) and `sections[]` (union of impacted sections, deduped).
-
-   - **E12 path** (FR-UP-2): if `sections[]` is empty AND a `warn` field is present (`"no conventional-commit subjects"`), short-circuit with chat log `update-mode: README update skipped — commit signal ambiguous (no conventional-commit subjects in <range>)`. No patch attempted; exit 0.
-
-2. **Per-section ask.** For each impacted section in `sections[]`, issue an `AskUserQuestion`:
+1. **Classify.** `commit-classifier.sh <repo-root> <range>`. If `sections[]` is empty with a `warn` (no Conventional-Commit subjects), or the range has zero commits: log `update-mode: README update skipped — commit signal ambiguous (no conventional-commit subjects in <range>)` and exit 0 — no patch attempted.
+2. **Per-section ask.** For each impacted section (batch ≤4 per call), draft a patch from the commit subjects + `commit_affinity`, then:
    ```
    question: "Section <Name> impacted by <N> commits. Apply suggested patch?"
    options:
-     - Apply (Recommended) — apply the LLM-drafted patch verbatim
+     - Apply (Recommended) — apply the drafted patch verbatim
      - Modify              — user supplies replacement text next turn
      - Skip                — drop the patch for this section
      - Defer               — log to /reflect for later
    ```
-   Batch ≤4 sections per call (per §8.6 of the spec's batching convention). The LLM drafts the per-section patch using the commit subjects + commit_affinity from `reference/section-schema.yaml`.
+3. **Patch + re-check.** Write accepted patches to the working tree (no `git add` yet), then re-run `rubric.sh` against the patched README.
+4. **Patch-fail guard (hard).** If any blocker check fails on the patched file: revert (`git checkout -- <readme-path>`, or restore the pre-patch buffer if untracked); append to `.pmos/readme/update.log` (JSONL) `{"event":"patch_dropped","reason":"rubric_blocker_fail","range":"<range>","failed_checks":[…],"timestamp":"<ISO-8601>"}`; queue a /reflect finding; log `update-mode: patch dropped (rubric blockers: <ids>); README unchanged; finding logged for /reflect`. The release proceeds unpatched — the failure never blocks /complete-dev.
+5. **Stage only.** On rubric pass, `git add <readme-path>` (one path per package in composition mode) — never `git commit`, never `git push`; the user's release flow owns those. Log `update-mode: README patched + staged at <path> (rubric <passes>/<total> pass); /complete-dev will pick it up in the release commit`.
 
-3. **Stage patches in working tree.** On Apply / Modify, write the patched README to disk (overwriting the existing file). DO NOT git add yet — staging is §8's responsibility.
+## Phase 6: Monorepo runs {#monorepo}
 
-4. **Re-run rubric on patched README** (per §1). The rubric.sh pass produces a fresh verdict across every check in `reference/rubric.yaml` against the patched file.
-
-5. **FR-UP-3 patch-fail guard.** If ANY blocker check fails in the rubric pass on the patched README:
-   - **Revert the working tree**: `git checkout -- <readme-path>` (or restore the pre-patch buffer if the file was untracked).
-   - **Log to `.pmos/readme/update.log`** (append, JSONL):
-     ```json
-     {"event":"patch_dropped","reason":"rubric_blocker_fail","range":"<range>","failed_checks":["<id>",...],"timestamp":"<ISO-8601>"}
-     ```
-   - **Emit /reflect finding** via the `/reflect` skill's pending-findings queue (chat log entry + JSON to the retro buffer per the retro skill's contract).
-   - **Release proceeds unpatched** — the existing README ships as-is. The patch failure does NOT block `/complete-dev`.
-   - **Chat log:** `update-mode: patch dropped (rubric blockers: <ids>); README unchanged; finding logged for /reflect`.
-
-6. **On rubric pass.** The patched README remains on disk; staging deferred to §8 (`git add` only — no commit by /readme per FR-UP-5).
-
-**E13 path** — Range contains zero commits (e.g., `HEAD..HEAD`): treat same as E12 — chat warn, exit 0, no patch.
-
-See [§1: Single-file audit flow](#single-file-audit-flow) for the rubric pass that gates this flow, and [§8: Update-mode gating + staging contract](#8-update-mode-gating--staging-contract) for the gating and staging rules.
-
-### §8: Update-mode gating + staging contract
-
-**Gating (FR-UP-4).** Manual `/readme --update <range>` needs no opt-in beyond the invocation itself — typing the flag IS the consent. The flow is gated entirely by its own controls: §7 step 2's per-section Apply / Modify / Skip / Defer prompts decide what lands, and the FR-UP-3 patch-fail guard (§7 step 5) reverts any patch that regresses the rubric. Update-mode has no dependency on any `/complete-dev` hook, config flag, or other external enablement.
-
-**FR-UP-5 — Staging-only contract.** On a successful patch (after §7 step 6 confirms rubric pass on the patched README), `/readme --update`:
-
-1. **Stages** the patched README via `git add <readme-path>` — exactly one path per package in monorepo composition mode.
-2. **Does NOT** call `git commit`. The patched file enters /complete-dev's existing commit machinery alongside the release commit.
-3. **Does NOT** call `git push`. Same reason — push is /complete-dev's job.
-4. Logs to chat: `update-mode: README patched + staged at <path> (rubric <passes>/<total> pass); /complete-dev will pick it up in the release commit`.
-
-This contract makes `/readme --update` a **patch generator**, not a commit author. The user's release workflow (manual or `/complete-dev`) owns the commit message and branch state.
-
-See [§7: Update-mode flow](#7-update-mode-flow) for the upstream flow gated by this section, and [§4: Mode resolution](#4-mode-resolution) for `--update`'s mutex with `--audit`/`--scaffold`.
-
-### §9: Cross-file rules (monorepo)
-
-When composition is `monorepo` (per §5 repo-miner output), the audit pass runs four cross-file rules **after** per-file rubric scoring and **before** synthesis. Each rule emits a finding into the same rubric stream (`severity`, `rule_id`, `path`, `auto_fix_path`) so §1 audit and §6 scaffold both consume it uniformly. Full detection contracts, edge cases, and fixture mappings live in [reference/cross-file-rules.md](reference/cross-file-rules.md).
-
-| Rule | Scope | Detection | Auto-fix path |
-|---|---|---|---|
-| **R1** — root contents-table refs every workspace pkg ([#r1-link-existence](reference/cross-file-rules.md#r1-link-existence)) | root README only | Resolve workspace pkgs via `scripts/workspace-discovery.sh`; scan root README for a contents/packages table; assert each pkg path is referenced. | If table exists → append missing entries inline. If absent → AskUserQuestion "root README has no contents-table — add one? [show preview]" `<!-- defer-only: ambiguous -->` (structural rewrite, user must confirm). |
-| **R2** — each pkg README links back to root ([#r2-link-up-presence](reference/cross-file-rules.md#r2-link-up-presence)) | every workspace pkg README | Scan pkg README for a relative link resolving to root README (`../README.md`, `../../README.md`, etc., per pkg depth). | Append a link-up line at end-of-readme under the configurable section (default: appended bare; section name overridable via `.pmos/readme.config.yaml :: link_up_section`). |
-| **R3** — Install/Contributing/License root-only ([#r3-install-contributing-license-root-only](reference/cross-file-rules.md#r3-install-contributing-license-root-only)) | every workspace pkg README | Scan pkg README headings for `Install`, `Contributing`, `License` (case-insensitive, H2/H3). Emit WARN per hit. | Offer two options: (a) replace section body with a link-up to the root README's corresponding section; (b) mark as legitimate variance → persist in `.pmos/readme.config.yaml :: package_variance` keyed by `<pkg_path>:<section>`. Variance prompt is `<!-- defer-only: free-form -->` (override reason is user-typed). Subsequent runs skip the WARN when a matching variance entry exists. |
-| **R4** — no duplicate hero text ([#r4-no-duplicate-hero-text](reference/cross-file-rules.md#r4-no-duplicate-hero-text)) | root vs each pkg README | Extract hero line = first non-empty, non-heading line after H1. Cross-compare root hero against each pkg hero; flag exact or near-duplicate (normalized whitespace + case). | **No auto-fix** — voice-sensitive. Surface as friction-only finding; user resolves via /polish or manual edit. |
-
-The cross-file pass slots in as a single post-per-file phase: §1 audit invokes it after rubric scoring and includes its findings in the rubric-stream summary; §6 scaffold invokes it after writing the per-pkg READMEs so the generated tree is internally consistent on first emit. Both flows respect the `package_variance` ledger from R3, so confirmed variances persist across runs without re-prompting.
-
-### §10: Monorepo audit-all flow
-
-When `scripts/workspace-discovery.sh` reports composition=`monorepo`, §10 orchestrates the workspace-scope flow that wraps §1 audit, §6 scaffold, and §7 update into a single cross-package run with one unified diff (FR-OUT-1) and one final approval. This section closes the monorepo integration contract — it is invoked from §1/§6/§7 once workspace composition is confirmed, and supersedes their per-file flows for the duration of the run.
+When `workspace-discovery.sh` reports a monorepo, this phase wraps the per-file flows of [audit](#audit) / [scaffold](#scaffold) / [update](#update) into one cross-package run with one unified diff and one final approval. Single-repo runs never enter it.
 
 <!-- defer-only: ambiguous -->
-**argv parsing.** The non-interactive surface is `--scope <audit-all|audit-one|scaffold-missing|root-only>` (FR-MODE-3). When `--scope` is present, §10 bypasses the workspace-scope AskUserQuestion below and dispatches directly. `--scope audit-one` requires a positional pkg path (`--scope audit-one packages/web`); missing path → hard error, no prompt fallback. Absent `--scope`, the interactive prompt fires.
+**Scope.** `--scope <audit-all|audit-one <pkg>|scaffold-missing|root-only>` pins the scope for headless runs (`audit-one` requires its package path — hard error without it, no prompt fallback); otherwise ask once via `AskUserQuestion`: **audit-all (Recommended for non-empty workspaces)** / audit-one (follow-up pick from discovered paths) / scaffold-missing (shown when ≥1 package lacks a README) / root-only / "Include all stacks" (shown for multi-stack workspaces; makes each package use its own `repo_type` rubric variant).
 
-**Workspace-scope prompt** (interactive surface, fires once after workspace-discovery returns). `<!-- defer-only: ambiguous -->` — choice surface, no destructive write yet.
+**Iterate.** Per package in discovery order: rubric with the package's variant, then the four cross-file rules of [reference/cross-file-rules.md](reference/cross-file-rules.md) — R1 root contents-table references every package, R2 each package links back to root, R3 Install/Contributing/License live root-only (with a persistent `package_variance` ledger for confirmed exceptions), R4 no duplicate hero text (friction-only; voice-sensitive, so no auto-fix). Findings join one stream keyed by package path; the root README iterates as a synthetic package so R1/R4 land in the same stream.
 
-| Option | When shown | Behavior |
-|---|---|---|
-| `audit-all` (Recommended for non-empty workspaces) | always | Run rubric + cross-file pass against every discovered pkg + root. |
-| `audit-one <pick>` | always | Follow-up AskUserQuestion lists discovered pkg paths; run rubric on that pkg only (cross-file pass skipped — single-pkg scope). <!-- defer-only: ambiguous --> |
-| `scaffold-missing` | only when ≥1 pkg has no README | Run §6 scaffold against pkgs missing README; existing READMEs untouched. |
-| `root-only` | always | Audit root README only; skip pkg iteration. Cross-file R1 still fires (root contents-table check). |
-| `Include all stacks (JS + Go + …)` | only when repo-miner emits MS01 (multi-stack workspace) | Forces per-pkg rubric variant to follow each pkg's detected `repo_type` rather than the workspace-default; otherwise pkgs inherit root `repo_type`. |
+**Roll up and approve.** Summarize per severity then per package; offer drill-down before proceeding (a read-only navigation prompt — defer-tagged `ambiguous`). Render ONE unified diff covering every file (per-file headers + ordering per [reference/modes.md](reference/modes.md#monorepo-overlay)), then the final gate:
+<!-- defer-only: destructive -->
+**Apply all (Recommended)** / **Reject all** / **Cancel** — Apply writes every file atomically **all-or-nothing** (any mid-batch failure reverts every written file from its `.bak`; no partial state on disk) and stages via `git add` per the update-mode staging contract; Reject/Cancel exits with `monorepo audit complete — no files written`.
 
-**Per-package iteration.** For `audit-all` and `Include all stacks`, iterate pkgs in discovery order. Per pkg: load rubric variant per its `repo_type` (from repo-miner per-pkg output — see §5), run the rubric (§1), run the §9 cross-file rule pass scoped to that pkg, append findings to a shared rubric stream keyed by `<pkg_path>`. Root README is iterated as a synthetic pkg with `path=.` so R1/R4 land in the same stream.
+## Phase 7: Voice delegation {#voice-delegation}
 
-**Findings roll-up.** First-pass output groups by severity across the whole workspace (blockers first, then friction, then nits), then within each severity a per-package one-liner: `<pkg_path>: N blockers, M friction, K nits` (zero-counts omitted from the line, omitted entirely if all-zero). After the roll-up, fire a follow-up `AskUserQuestion` — `Show findings for <pkg>` / `Proceed to diff` / `Cancel` — drill-down lists every finding for that pkg with `rule_id`, `path`, `severity`, `auto_fix_path` (matches §1 audit format). User can drill multiple pkgs before proceeding. `<!-- defer-only: ambiguous -->` (read-only navigation).
+Voice, tone, and prose-tightening are /polish's job — that is why every successful run ends with the Suggest line in the [audit close-out](#audit), and why /readme never rewrites prose in-skill.
 
-**Unified diff (D15 / FR-OUT-1).** A single diff body covers every patched file across every pkg + root. Per-file headers use the form `=== package: <pkg_path> (audit|scaffold) ===` immediately before the standard unified-diff `--- a/<path>` / `+++ b/<path>` header. `audit` = update-mode patch against an existing README; `scaffold` = new-file create against `/dev/null`. Diff body is emitted in pkg-discovery order; root last so reviewers land on the highest-level file at end-of-scroll.
-
-**Atomic multi-write contract.** On `Apply all`, every patched file is written via `temp+rename` per §6's atomic-write contract. If any rename fails mid-batch, every successfully-renamed file is reverted to its pre-write content (captured to per-file `.bak` paths before any rename); failure surfaces to chat as `monorepo write rolled back: <failed-path> — <N> files reverted, no partial state on disk`. The contract is all-or-nothing — workspace consistency wins over partial progress.
-
-**Final approval** (single AskUserQuestion, fires after diff render). `<!-- defer-only: destructive -->` — writes to disk.
-
-| Option | Behavior |
-|---|---|
-| `Apply all` (Recommended) | Atomic multi-write per above; stages all paths via `git add` (§8 contract); does NOT commit. |
-| `Reject all` | Discard diff; exit with `monorepo audit complete — no files written`. |
-| `Cancel` | Same as Reject all (alias for muscle-memory). |
-
-**Composition wiring.** §10 is the entry point for §1 audit / §6 scaffold / §7 update whenever composition=`monorepo`: §1 delegates the iteration + roll-up + diff phases here and consumes the unified diff as its audit output; §6 delegates the missing-pkg detection + scaffold-emit phases here and reuses the same approval gate; §7 update applies §10's diff-and-stage contract per-pkg so workspace-scope update lands as one staged batch for /complete-dev to commit. Per-file flows in §1/§6/§7 remain the contract for `composition=single` repos — §10 is the monorepo overlay, not a replacement.
-
-### §11: Voice delegation
-
-**FR-V-2 — follow-up Suggest line.** After every successful /readme audit-or-scaffold run (§6, §7), emit exactly one chat line on the final turn: `Suggest: /polish <path-to-README.md> — tighten prose without changing meaning.` Non-blocking advisory — exit 0, no AskUserQuestion, no gate. Voice and prose-tightening are /polish's job (see Anti-Patterns); /readme is structure-only. Cite FR-V-2.
-
-**FR-V-3 — voice-drift gate on /polish round-trip.** When the user runs /polish and re-invokes /readme in update mode (§7), gate re-acceptance with `scripts/voice-diff.sh README.md.pre-polish README.md`. Accept iff `sentence_len_delta_pct < 15` AND `jaccard_new_tokens >= 0.7`. On fail, emit `voice-drift detected: /polish materially changed meaning — review diff before accepting`, then AskUserQuestion (prefix `<!-- defer-only: ambiguous -->` so §0b's non-interactive block defers rather than auto-picks). Options: **Accept polished version (Recommended)** / **Reject — keep pre-polish** / **Show diff**. Cite FR-V-3.
-
-**FR-V-4 — substrate-absent graceful warn.** If `find plugins/pmos-toolkit/skills/polish/ -name 'voice*'` returns empty, `voice-diff.sh` writes a stderr warn and falls back to its built-in tokenizer — gate still runs, with chat note `voice-diff: /polish substrate unavailable; using built-in heuristic`. Never block on missing substrate. Cite FR-V-4.
-
+When the user runs /polish on the README and re-enters update mode, check the round-trip with `voice-diff.sh README.md.pre-polish README.md`. The thresholds (sentence-length delta < 15%, token Jaccard ≥ 0.7) are heuristics, so the result is advisory: surface the numbers, and when they indicate drift, say `voice-drift detected: /polish materially changed meaning — review diff before accepting` and ask —
 <!-- defer-only: ambiguous -->
-**Worked example** — update-mode + /polish round-trip: `voice-diff.sh` emits `{"sentence_len_delta_pct": 22.4, "jaccard_new_tokens": 0.61, "verdict": "drift"}` → chat renders `voice-drift detected: /polish materially changed meaning — review diff before accepting` → AskUserQuestion (Accept/Reject/Show diff) → final turn appends `Suggest: /polish README.md — tighten prose without changing meaning.`
-
-**Cross-cites.** §11 fires on the success edge of §6 and §7 (both emit FR-V-2 Suggest as final turn); only §7 can trigger the FR-V-3 drift gate (scaffold has no pre-polish baseline).
+**Accept polished version (Recommended)** / **Reject — keep pre-polish** / **Show diff**. If the /polish substrate is absent, `voice-diff.sh` falls back to its built-in tokenizer with a stderr warn (`voice-diff: /polish substrate unavailable; using built-in heuristic`) — never block on missing substrate.
 
 ## Anti-Patterns
 
-- **Do NOT auto-commit.** /readme writes to the working tree (or stdout for audit); /complete-dev owns the release commit. Auto-committing breaks the user's ability to review the patch before it lands.
-- **Do NOT skip the simulated-reader pass** except via the explicit `--skip-simulated-reader` flag (advisory, not silent). The persona pass catches gaps the rubric misses — skipping it is a user choice, never a default.
-- **Do NOT bypass /polish for voice work.** /readme produces structural output; voice, tone, and prose-tightening are /polish's job. If the user asks for "make this README sound better", invoke /polish on the output rather than rewriting in-skill.
+- **Do NOT auto-commit.** /readme writes to the working tree (or stdout for audit); /complete-dev owns the release commit.
+- **Do NOT invent README facts.** No commands, APIs, env vars, or claims that aren't evidenced in the repo — TODO markers mark the gaps.
+- **Do NOT skip the simulated-reader pass silently.** Skipping is an explicit user choice (logged), never a default — the personas catch what the rubric can't.
+- **Do NOT bypass /polish for voice work.** "Make this README sound better" → invoke /polish on the output, don't rewrite in-skill.
 
-## Phase N: Capture Learnings
+## Phase 8: Capture learnings {#capture-learnings}
 
-This skill is not complete until learnings-capture has run. Read `_shared/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, simulated-reader persona refinements, or platform-adaptation gotchas. Append entries to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill-body wins on conflict.
+This skill is not complete until learnings-capture has run. Read `_shared/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, persona refinements, platform gotchas. Append to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill body wins on conflict.
 
 ---
 
-## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+## Apply comment-resolver edit {#apply-comment-edit}
 
-This phase is the `/readme` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a readme audit artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/readme` entrypoint that `/comments resolve` dispatches into when walking open threads in a readme artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`, which this phase MUST cite rather than restate. Below is `/readme`-specific guidance only.
 
-- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+- **Meta tag:** any HTML artifact emitted by `/readme` carries `<meta name="pmos:skill" content="readme">` in `<head>` (set `{{pmos_skill}}` byte-exact — the resolver routes on it).
+- **Assets:** ship `comments.js`, `comments.css`, and the launcher trio alongside HTML artifacts, copied from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` with `cp -n`.
+- **Shim:** `scripts/apply-edit-at-anchor.js` exports `apply(input)`; resolution order is id-first (`strategy: "id-first"`, `score: 1.0`), then substring-contains on the ≥40-char `quote_anchor.text`, else `{ success: false, error_enum: "anchor_orphaned" }` with no mutation. Tests: `tests/apply-edit-at-anchor.test.js` (id-first happy, orphan, idempotent, infeasible, clarification) + the wrapper at `tests/scripts/assert_apply_edit_at_anchor_readme.sh`.
 
-Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/readme`-specific implementation guidance only.
+---
 
-**Comments meta tag (FR-01, FR-40):** any HTML artifact emitted by `/readme` (scaffold output rendered to HTML, audit report) MUST carry `<meta name="pmos:skill" content="readme">` in the `<head>`. Set `{{pmos_skill}}` to `readme` when expanding the substrate template. The `/comments` resolver routes apply-edit dispatches via this tag, so it MUST be set byte-exact.
-
-**Asset substrate (FR-40):** when writing HTML artifacts, include `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`) alongside the rest of the HTML substrate assets. Copy from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` using `cp -n` (idempotent).
-
-### When invoked
-
-The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
-
-- **Shim:** `plugins/pmos-toolkit/skills/readme/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
-
-### Resolution order
-
-1. **id-first.** Locate `id="<id>"` in the artifact HTML. Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
-3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
-
-### Tests
-
-- Per-skill contract: `plugins/pmos-toolkit/skills/readme/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
-- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_readme.sh`.
+*Spec lineage: `docs/pmos/features/2026-05-13_readme-skill/02_spec.html` (modes, rubric, scaffold/update flows, FR-* ids) and `docs/pmos/features/2026-05-15_readme-audit-fixes/` (4th persona, `[J]` reviewer checks). Requirement-level detail lives there; this file states the operating contract.*

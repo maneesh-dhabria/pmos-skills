@@ -4,8 +4,9 @@
 #   1. evaluator's valid quote substring-matches the fixture README → pass.
 #   2. adopter's empty friction is parseable (theater-check input).
 #   3. contributor's altered quote does NOT substring-match the fixture README.
-# (The parent-side hard-fail on (3) is documented in SKILL.md §2/§3; this harness
-# verifies the stub itself produces the contract-triggering shape.)
+# (The parent-side rejection of (3) — drop-with-warn — is documented in
+# SKILL.md #simulated-reader; this harness verifies the stub itself produces
+# the contract-triggering shape.)
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STUB="$HERE/../mocks/simulated_reader_stub.sh"
@@ -68,7 +69,7 @@ else
   echo "FAIL: reviewer dispatch returned $reviewer_count findings (expected 2)"; exit 1
 fi
 
-# Test 6 (T9): SKILL.md §2 step 1 declares 5-Task dispatch + 4th persona.
+# Test 6: SKILL.md #simulated-reader declares 5-Task dispatch + 4th persona.
 SKILL_MD="$HERE/../../SKILL.md"
 grep -qF '5 `Task` tool calls in ONE assistant response' "$SKILL_MD" \
   || { echo "FAIL: SKILL.md missing 5-Task dispatch declaration"; exit 1; }

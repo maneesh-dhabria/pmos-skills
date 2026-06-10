@@ -2,7 +2,7 @@
 
 Canonical reference for the `/readme` reviewer-subagent pass (FR-03, FR-11, FR-14,
 spec §9.2.2). One reviewer Task call is dispatched in parallel with the persona
-Task calls (FR-SR-2 — widened to 5 concurrent calls in SKILL.md §2 step 1).
+Task calls (FR-SR-2 — 5 concurrent calls total; see `SKILL.md` `#simulated-reader`).
 `SKILL.md` inlines this file's `§1` prompt and `§2` return-shape contract into
 the Task body, along with the absolute path of the un-stripped README (the
 subagent reads the file itself).
@@ -79,9 +79,11 @@ Return the JSON array to stdout. Do not emit prose around the JSON.
 
 ## §3 Parent-side validation reference
 
-Informative — the reviewer does NOT self-validate. The parent skill (`SKILL.md`
-§2 step 2) runs the following hard-fail checks against the reviewer's return,
-delegating to `scripts/_reviewer_validate.sh::readme::reviewer_validate`:
+Informative — the reviewer does NOT self-validate (the shared quote contract is
+`plugins/pmos-toolkit/skills/_shared/reviewer-protocol.md`). The parent skill
+(`SKILL.md` `#simulated-reader`) runs the following hard-fail checks against the
+reviewer's return, delegating to
+`scripts/_reviewer_validate.sh::readme::reviewer_validate`:
 
 1. **`check_id` set-equality** vs the declared [J] set (read from `rubric.yaml`
    rows where `type: "[J]"`). On miss or extra:
@@ -91,17 +93,19 @@ delegating to `scripts/_reviewer_validate.sh::readme::reviewer_validate`:
 3. **`quote` substring-grep** against the README source. Not-found → hard-fail:
    `reviewer returned quote not found in README: <prefix-30>…`
 
-On any hard-fail the skill pauses via the standard failure dialog (matching
-the persona-subagent validation path — symmetric per FR-12).
+On any hard-fail the skill pauses via the standard failure dialog. The reviewer
+is the *hard* half of the pass: its `check_id` set-equality feeds scored rubric
+rows, so a violation stops the run — unlike persona validation, which drops
+invalid entries with a warn (`reference/simulated-reader.md` §2).
 
 ## §4 Operational notes
 
 - **Temperature: 0** expected; LLM-judge non-determinism is mitigated by the
   tight rule + pass-condition + evidence-grounded quote requirement.
-- **Stub escape:** when `READMER_REVIEWER_STUB` is set, SKILL.md §2 step 1
-  replaces the reviewer Task call with `bash "$READMER_REVIEWER_STUB"
-  <readme-path>` and consumes stdout as the JSON array. Mirrors the existing
-  `READMER_PERSONA_STUB` pattern (SKILL.md §3).
+- **Stub escape:** when `READMER_REVIEWER_STUB` is set, the parent replaces the
+  reviewer Task call with `bash "$READMER_REVIEWER_STUB" <readme-path>` and
+  consumes stdout as the JSON array. Mirrors the `READMER_PERSONA_STUB` pattern
+  (`reference/simulated-reader.md` §4). Test-only; never set in production.
 - **No edits, ever** — the reviewer scores; `/execute` (or the user, post-
   audit) writes. If the reviewer returns suggested rewrites, they live in
   `fix_note` strings, not as side-channel file edits.

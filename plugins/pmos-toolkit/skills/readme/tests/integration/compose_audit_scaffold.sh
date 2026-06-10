@@ -14,10 +14,10 @@
 #
 #   (a) ≥1 package resolves to `audit` AND ≥1 resolves to `scaffold`
 #       (composition is meaningful — both lists non-empty per FR-MODE-3).
-#   (b) The mutex case from SKILL.md §4 (FR-MODE-2) is documented:
+#   (b) The mutex case from SKILL.md #mode-resolution is documented:
 #       --update is mutually exclusive with --audit/--scaffold (exit 64).
-#   (c) The composition mode label is documented in SKILL.md §4
-#       (FR-MODE-3, D16): `audit+scaffold` with per-package source labels.
+#   (c) The composition mode label is documented in SKILL.md #mode-resolution:
+#       `audit+scaffold` with per-package source labels.
 #
 # Bash 3.2-safe.
 set -euo pipefail

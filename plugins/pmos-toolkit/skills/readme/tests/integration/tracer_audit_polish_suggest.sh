@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# T9 tracer: assert SKILL.md §1 step 6 audit-mode close-out wires the
+# Tracer: assert SKILL.md #audit close-out wires the
 # FR-V-2 Suggest:/polish line in the documented shape, and that the count
 # of "Suggest: /polish" occurrences across SKILL.md is in [1, 3].
 #

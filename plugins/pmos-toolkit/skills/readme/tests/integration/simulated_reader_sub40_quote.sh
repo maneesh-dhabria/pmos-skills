@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# T7: regression test for FR-SR-3 sub-40-char quote hard-fail.
+# Regression test for FR-SR-3 sub-40-char quote rejection.
 #
-# The skill MUST hard-fail when a persona subagent returns a quote shorter
-# than 40 chars; this test locks that contract structurally so a future
-# silent-relax can't sneak back in.
+# The skill MUST reject (drop-with-warn, SKILL.md #simulated-reader) any
+# persona entry whose quote is shorter than 40 chars; this test locks the
+# rejection + warn-message contract structurally so a future silent-relax
+# (accepting the short quote into the findings stream) can't sneak back in.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -24,8 +25,8 @@ print(len(d['friction'][0]['quote']))
 ")
 [[ "$LEN" -lt 40 ]] || { echo "FAIL: stub did not return sub-40 quote (got len=$LEN)"; exit 1; }
 
-# Exercise the parent-side validation logic — same shape as SKILL.md §2 step 2
-# enforces. Expect hard-fail with the documented message.
+# Exercise the parent-side validation logic — same rejection SKILL.md
+# #simulated-reader enforces. Expect the entry rejected with the documented message.
 set +e
 ERR=$(python3 - "$RAW" "$FIXTURE" <<'PYEOF' 2>&1
 import sys, json
@@ -42,8 +43,8 @@ PYEOF
 EXIT_CODE=$?
 set -e
 
-[[ "$EXIT_CODE" -ne 0 ]] || { echo "FAIL: sub-40 quote did not hard-fail (exit=$EXIT_CODE)"; exit 1; }
+[[ "$EXIT_CODE" -ne 0 ]] || { echo "FAIL: sub-40 quote was not rejected (exit=$EXIT_CODE)"; exit 1; }
 echo "$ERR" | grep -q "simulated-reader returned quote shorter than 40 chars" \
-  || { echo "FAIL: hard-fail message missing or wrong"; echo "$ERR"; exit 1; }
+  || { echo "FAIL: rejection warn message missing or wrong"; echo "$ERR"; exit 1; }
 
-echo "PASS: FR-SR-3 sub-40 quote hard-fail enforced (quote len=$LEN)"
+echo "PASS: FR-SR-3 sub-40 quote rejected with warn (quote len=$LEN)"

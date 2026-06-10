@@ -4,8 +4,8 @@
 #
 # Exercises:
 #   (a) FR-UP-2 — empty/no-conv-commit range emits warn + zero sections.
-#   (b) FR-UP-3 — patch-fail guard documented in SKILL.md §7 step 5 with
-#       atomic-write + revert + patch_dropped JSONL contract.
+#   (b) FR-UP-3 — patch-fail guard documented in SKILL.md #update with
+#       revert + patch_dropped JSONL contract.
 #
 # (The former case (c) asserted the FR-UP-4 dual-gate prose; that gate was
 # removed — manual --update is gated only by its per-section prompts and the
@@ -58,7 +58,7 @@ if [ "$empty_secs" != "yes" ] || [ "$has_warn" != "yes" ]; then
 fi
 
 # --- (b) FR-UP-3 — patch-fail guard documented + JSONL event shape ----------
-# SKILL.md §7 step 5 must document: revert via git checkout, append JSONL
+# SKILL.md #update must document: revert via git checkout, append JSONL
 # `patch_dropped` event with `failed_checks`, /reflect finding, release proceeds.
 if ! grep -q '"event":"patch_dropped"' "$SKILL_MD"; then
   echo "FAIL: SKILL.md missing FR-UP-3 patch_dropped JSONL event contract"

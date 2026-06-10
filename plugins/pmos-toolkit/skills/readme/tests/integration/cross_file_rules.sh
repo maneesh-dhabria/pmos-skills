@@ -3,7 +3,7 @@
 # monorepo-mixed-readmes fixture; R3 produces warn-with-override
 # (not blocker) per FR-CF-3 / FR-CF-5 / A9.
 #
-# /readme's cross-file rule pass is documented in SKILL.md §9 and lives at
+# /readme's cross-file rule pass is documented in SKILL.md #monorepo and lives at
 # reference/cross-file-rules.md. The slash-command itself is un-mockable; we
 # exercise the detection logic directly:
 #

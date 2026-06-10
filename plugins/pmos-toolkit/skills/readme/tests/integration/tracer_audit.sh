@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
-# tracer_audit.sh — Phase 1 tracer-bullet end-to-end smoke
+# tracer_audit.sh — tracer-bullet end-to-end smoke (rubric.sh + atomic-write contract)
 set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SKILL_DIR="$(cd "$HERE/../.." && pwd)"
 tmp=$(mktemp -d); trap "rm -rf $tmp" EXIT
-cp plugins/pmos-toolkit/skills/readme/tests/fixtures/rubric/slop/01_no-hero.md "$tmp/README.md"
+cp "$SKILL_DIR/tests/fixtures/rubric/slop/01_no-hero.md" "$tmp/README.md"
 cd "$tmp"
-# At this point /readme is a skill — invoked via slash command, not directly. Per /plan Loop-1 F3
-# disposition: tracer_audit.sh is a CONTRACT TEST (atomic-write + rubric.sh integration); real
-# /readme slash-command dispatch is exercised only in T26's dogfood pass, which is the canonical
-# end-to-end /readme test. Splitting into 2 scripts (contract + manual smoke) is explicitly NOT done
-# (over-engineering for a tracer slice).
-bash "$OLDPWD/plugins/pmos-toolkit/skills/readme/scripts/rubric.sh" README.md && { echo "expected fail on slop"; exit 1; } || true
+# /readme is a skill — invoked via slash command, not directly. This is a CONTRACT TEST
+# (atomic-write + rubric.sh integration); real /readme slash-command dispatch is exercised
+# only in the dogfood pass (tests/dogfood/run-dogfood.sh), which is the canonical
+# end-to-end /readme test. Splitting into 2 scripts (contract + manual smoke) is explicitly
+# NOT done (over-engineering for a tracer slice).
+bash "$SKILL_DIR/scripts/rubric.sh" README.md && { echo "expected fail on slop"; exit 1; } || true
 # Atomic write contract: rubric.sh produced a finding; the *skill* (not the script) would
 # emit a diff preview and offer to apply. We simulate the write here.
 cp README.md README.md.orig
