@@ -38,9 +38,9 @@ These instructions use Claude Code tool names. In other environments:
 - **No `AskUserQuestion`:** the `sync` confirmation and any disambiguation prompt
   degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The
   non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
-- **No `Task` subagent:** the Stage-B match-field derivation and the `/diagram`
-  batch run sequentially in the host conversation — one framework after another.
-  Slower, identical output.
+- **No `Task` subagent:** the Stage-B match-field derivation, the `diagram_anchors` /
+  `decision_type` (re-)derivation, and the `/diagram` batch run sequentially in the
+  host conversation — one framework after another. Slower, identical output.
 - **No diagram generation (or it fails for a framework):** `sync` still writes the
   corpus; it logs each affected framework with `diagram: null` and a
   `ship-with-warning` note. The library renders a clean text-only card for those —
@@ -231,10 +231,22 @@ node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/frameworks/
 ```
 
 `build-library.mjs` reads `data/frameworks.json` + `data/diagrams/*.svg` and emits a
-single self-contained `index.html` (diagrams inlined as `<svg>`, filter controls +
-search, inline-expand detail with the "PM's take" block) that works offline from
-`file://`. Print the `file://` path. Diagrams are owned SVGs inlined into the page —
-**never** hot-linked S3 URLs.
+single self-contained `index.html` that works offline from `file://`. Print the
+`file://` path. Diagrams are owned SVGs inlined into the page — **never** hot-linked
+S3 URLs. The library offers:
+
+- **Three listing views** — Compact List (Product Areas → comma-separated framework
+  links), Detailed (grouped cards with a primary-diagram thumbnail; the default), and
+  List (one bullet per framework). A **group-by** control switches the Detailed/List
+  axis between Product Areas (default) and Tags.
+- **A sidebar reader** — clicking a framework opens a two-pane reader that shifts the
+  listing aside (not an overlay); diagrams render **inline** next to the prose they
+  illustrate (placed at each framework's `diagram_anchors`), with **Copy markdown** and
+  **Share** buttons (clipboard, offline).
+- **Filters** — search · area · a multi-select **tag chip row** · and a decision-type
+  filter demoted into a "More filters" disclosure (the balanced 8-value cognitive-job
+  taxonomy — see `reference/corpus-schema.md`).
+- **A PMOS masthead** at the top.
 
 ## Phase 5: Sync — re-ingest from Notion
 
@@ -251,8 +263,10 @@ Then follow `${CLAUDE_SKILL_DIR}/reference/ingestion.md` end to end:
 2. **Split** each category markdown into per-framework records:
    `node ${CLAUDE_SKILL_DIR}/scripts/split-corpus.mjs <category.md> ...`.
 3. **Derive match-fields** (Stage B): per framework emit `problem_tags` (⊆ registry),
-   `when_to_use`, `when_not_to_use`, `decision_type`, `lifecycle_stage`, `related`,
-   `summary`; merge + validate via
+   `when_to_use`, `when_not_to_use`, `decision_type` (one of the **8-value
+   cognitive-job taxonomy** — `prioritize·decide·diagnose·estimate·strategize·design·
+   communicate·frame` + `n/a`; see `reference/corpus-schema.md`), `lifecycle_stage`,
+   `related`, `summary`; merge + validate via
    `node ${CLAUDE_SKILL_DIR}/scripts/derive-fields.mjs`. Fan out with parallel
    subagents (N frameworks each, strict output contract).
 4. **Diagrams** (Stage B, direct generation): one owned, self-contained SVG per
@@ -261,10 +275,17 @@ Then follow `${CLAUDE_SKILL_DIR}/reference/ingestion.md` end to end:
    scale — see that file's mechanism note). `--changed-only` skips frameworks whose
    `body_md` content-hash is unchanged (cache in `data/.diagram-hashes.json`); a
    failed SVG logs + leaves `diagram: null` (ship-with-warning) and the batch continues.
-5. **Assemble + validate**: write `data/frameworks.json`; run
-   `node ${CLAUDE_SKILL_DIR}/scripts/validate-corpus.mjs` (exit 1 on <95% coverage
-   or any invalid tag).
-6. **Build library**: `build-library.mjs` → shipped `index.html`.
+5. **Derive `diagram_anchors`** (Stage B): once `diagrams[]` is known, pick, per
+   diagram, a **≥40-char verbatim `body_md` substring** marking where it belongs inline
+   (or `null` for top-of-body fallback) — array parallel + equal-length to `diagrams[]`.
+   Merge into the corpus via
+   `node ${CLAUDE_SKILL_DIR}/scripts/apply-rederive.mjs --in <derived.json>` (the same
+   path used to re-derive an existing corpus offline — see `reference/ingestion.md`).
+6. **Assemble + validate**: write `data/frameworks.json`; run
+   `node ${CLAUDE_SKILL_DIR}/scripts/validate-corpus.mjs` (exit 1 on <95% coverage, any
+   invalid tag, a `diagram_anchors` length/substring violation, or a `decision_type`
+   **distribution-gate** breach — no value > 30% of the corpus, `n/a` ≤ 5%).
+7. **Build library**: `build-library.mjs` → shipped `index.html`.
 
 `sync` never writes derived fields back to Notion, never hot-links S3, and on a
 Notion-unreachable error fails cleanly leaving the shipped corpus untouched.
@@ -283,6 +304,11 @@ Notion-unreachable error fails cleanly leaving the shipped corpus untouched.
   Notion is the source of framework prose only.
 - **DO NOT hand-parse `frameworks.json` or the Notion markdown** — go through the
   Stage-A `.mjs` scripts so extraction stays deterministic and tested.
+- **DO NOT let one `decision_type` value become a mega-bucket.** The facet only earns
+  its place in the UI if it partitions the corpus; a value that swallows most records
+  (the old `framing` was 45%) is dead weight. `validate-corpus.mjs` enforces this with
+  a hard distribution gate (no value > 30%, `n/a` ≤ 5%) — classify by the framework's
+  *primary* cognitive job, preferring the more specific value, not a catch-all.
 
 ## Phase 6: Capture Learnings
 

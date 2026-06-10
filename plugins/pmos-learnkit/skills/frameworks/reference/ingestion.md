@@ -12,6 +12,7 @@ sync never disturbs the shipped corpus.
 - [The split contract](#the-split-contract)
 - [The match-field derivation contract](#the-match-field-derivation-contract)
 - [The diagram generation contract](#the-diagram-generation-contract)
+- [The diagram_anchors derivation contract](#the-diagram_anchors-derivation-contract)
 - [Assemble + validate](#assemble--validate)
 - [Failure handling](#failure-handling)
 
@@ -26,9 +27,11 @@ sync never disturbs the shipped corpus.
    cached fields; validate + merge. See [the derivation contract](#the-match-field-derivation-contract).
 4. **Diagrams (Stage-B, direct generation)** — one owned SVG per framework. See
    [the diagram generation contract](#the-diagram-generation-contract).
-5. **Assemble + validate (Stage-A)** — write `frameworks.json`; `validate-corpus.mjs`
-   coverage report; exit 1 on failure.
-6. **Build library (Stage-A, `build-library.mjs`)** — `frameworks.json` + diagrams →
+5. **Derive `diagram_anchors` (Stage-B + `apply-rederive.mjs`)** — per diagram, the
+   `body_md` substring it sits next to. See [the diagram_anchors derivation contract](#the-diagram_anchors-derivation-contract).
+6. **Assemble + validate (Stage-A)** — write `frameworks.json`; `validate-corpus.mjs`
+   coverage + distribution + anchor report; exit 1 on failure.
+7. **Build library (Stage-A, `build-library.mjs`)** — `frameworks.json` + diagrams →
    self-contained `index.html`.
 
 ## Notion structure
@@ -74,6 +77,14 @@ values with a non-zero exit and a precise message), merges the cached fields int
 lean records, and emits the full records. Sparse records (LLM returned nothing for a
 field) still validate — only the four required lean fields are mandatory.
 
+**`decision_type` is the 8-value cognitive-job taxonomy** (`prioritize·decide·diagnose·
+estimate·strategize·design·communicate·frame` + `n/a`) — classify by each framework's
+*primary* job, preferring the more specific value (a pricing framework is `strategize`,
+not `frame`; a metric is `diagnose`, not `frame`). The pre-v0.18 enum
+(`judgment`/`analysis`/`prioritization`/`framing`/`estimation`) is retired and rejected.
+`validate-corpus.mjs` enforces a **distribution gate** (no value > 30%, `n/a` ≤ 5%) so
+no value re-forms a mega-bucket — see `reference/corpus-schema.md`.
+
 ## The diagram generation contract
 
 Per framework, an **owned, self-contained SVG** is generated **directly** by a Stage-B
@@ -109,6 +120,45 @@ diagram **requirement** — owned, consistent, inlined, never hot-linked — at 
 Diagrams are written as owned SVG files and inlined into the library at build time —
 **FR-ING-1: sync never hot-links S3.**
 
+## The diagram_anchors derivation contract
+
+`diagram_anchors[]` tells the library **where inside `body_md`** each diagram belongs,
+so the renderer can place it inline next to the prose it illustrates instead of dumping
+all diagrams at the top. It runs **after** `diagrams[]` is known (the anchors array is
+parallel + equal-length to it).
+
+Stage-B fans out **parallel subagents, a slice of frameworks each** (strict output
+contract, no chat prose). Each subagent receives, per framework, `id`, `name`,
+`body_md`, and `diagrams[]` (filenames, for count + order), and returns:
+
+```json
+{ "id": "...", "decision_type": "<one of 8 | n/a>",
+  "diagram_anchors": ["<≥40-char verbatim body_md substring>" | null, ...] }
+```
+
+Rules (the subagent prompt enforces these; `apply-rederive.mjs` re-checks them):
+
+- `diagram_anchors.length` MUST equal `diagrams.length`.
+- Each non-null entry is a **verbatim ≥40-char substring** of that record's `body_md` —
+  copied exactly (preserve unicode like `×` `÷` and curly quotes). Pick the sentence /
+  bullet the diagram illustrates; the primary (`diagrams[0]`) usually anchors to the
+  framework's defining block, extras to the distinct later blocks they depict.
+- Use `null` only when no block fits — the renderer falls back to top-of-body for it.
+
+Merge + validate with:
+
+```
+node ${CLAUDE_SKILL_DIR}/scripts/apply-rederive.mjs --in <derived.json>
+```
+
+`apply-rederive.mjs` is **incremental + idempotent**: it applies the valid entries and
+exits 1 listing any record whose anchor isn't a real substring or whose enum is invalid,
+so you fix just those ids and re-run until clean. It is also the **offline re-derive
+path** — to re-classify an existing shipped corpus over its own `body_md` (no Notion),
+slice `data/frameworks.json` into per-framework `{id, name, body_md, diagrams}` inputs,
+run the Stage-B classification, collect to a scratch JSON, and apply it. (Platform note:
+with no `Task` subagent, the slices run sequentially in-session — identical output.)
+
 ## Assemble + validate
 
 Write `data/frameworks.json` (the merged full records), then:
@@ -117,9 +167,11 @@ Write `data/frameworks.json` (the merged full records), then:
 node ${CLAUDE_SKILL_DIR}/scripts/validate-corpus.mjs data/frameworks.json data/situations.json
 ```
 
-Coverage gate (exit 1 on any miss): ≥95% name+body+references coverage, 100% diagram
-coverage or logged ship-with-warning exceptions, 0 invalid tags, 0 dangling
-`related`/situation refs. The report prints counts + per-field coverage %.
+Coverage gate (exit 1 on any miss): ≥95% name+body coverage, 100% diagram coverage or
+logged ship-with-warning exceptions, 0 invalid tags, 0 dangling `related`/situation
+refs, every `diagram_anchors` present + length-matched + substring-valid, and the
+`decision_type` distribution gate (no value > 30%, `n/a` ≤ 5%). The report prints counts
++ per-field coverage % + the decision_type distribution.
 
 ## Failure handling
 

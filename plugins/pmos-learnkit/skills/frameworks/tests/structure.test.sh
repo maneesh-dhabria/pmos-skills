@@ -57,7 +57,7 @@ for ref in corpus-schema situation-taxonomy ingestion matching; do
 done
 
 # §E every script has a --selftest mode
-for s in split-corpus derive-fields validate-corpus match build-library; do
+for s in split-corpus derive-fields validate-corpus apply-rederive match build-library; do
   f="$SK/scripts/$s.mjs"
   [ -f "$f" ] || { bad "missing scripts/$s.mjs"; continue; }
   grep -qF -- '--selftest' "$f" && ok "scripts/$s.mjs --selftest" || bad "scripts/$s.mjs missing --selftest"
