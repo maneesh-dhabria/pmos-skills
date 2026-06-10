@@ -1,0 +1,62 @@
+[
+  {
+    "id": "findings-parsed",
+    "level": 2,
+    "title": "Findings (parsed)",
+    "parent_id": null
+  },
+  {
+    "id": "critique",
+    "level": 2,
+    "title": "Critique (against current skill)",
+    "parent_id": null
+  },
+  {
+    "id": "c-renderer",
+    "level": 3,
+    "title": "Renderer state today",
+    "parent_id": null
+  },
+  {
+    "id": "c-corpus",
+    "level": 3,
+    "title": "Corpus state today",
+    "parent_id": null
+  },
+  {
+    "id": "disposition-log",
+    "level": 2,
+    "title": "Disposition log",
+    "parent_id": null
+  },
+  {
+    "id": "d-f5",
+    "level": 3,
+    "title": "F5 — decision_type strategy → Rebalance the taxonomy now (re-derive 272)",
+    "parent_id": null
+  },
+  {
+    "id": "d-f3",
+    "level": 3,
+    "title": "F3 — diagram inline positioning → Schema anchors + re-derive 272",
+    "parent_id": null
+  },
+  {
+    "id": "d-f7",
+    "level": 3,
+    "title": "F7 — share semantics → Copy content to clipboard (no file:// deep-link)",
+    "parent_id": null
+  },
+  {
+    "id": "approved-changes-by-skill",
+    "level": 2,
+    "title": "Approved changes by skill",
+    "parent_id": null
+  },
+  {
+    "id": "per-skill-tier",
+    "level": 2,
+    "title": "Per-skill tier",
+    "parent_id": null
+  }
+]

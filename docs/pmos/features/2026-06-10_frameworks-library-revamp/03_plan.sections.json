@@ -1,0 +1,44 @@
+[
+  {
+    "id": "wave-1",
+    "level": 2,
+    "title": "Wave 1 — schema & script foundation",
+    "parent_id": null
+  },
+  {
+    "id": "wave-2",
+    "level": 2,
+    "title": "Wave 2 — re-derive the 272 (data migration)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-3",
+    "level": 2,
+    "title": "Wave 3 — renderer (build-library.mjs)",
+    "parent_id": null
+  },
+  {
+    "id": "wave-4",
+    "level": 2,
+    "title": "Wave 4 — integration & docs",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (NOT wave tasks — /complete-dev owns)",
+    "parent_id": null
+  }
+]

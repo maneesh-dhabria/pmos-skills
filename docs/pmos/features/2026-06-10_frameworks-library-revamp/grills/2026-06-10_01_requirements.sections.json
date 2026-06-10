@@ -1,0 +1,14 @@
+[
+  {
+    "id": "resolved-decisions",
+    "level": 2,
+    "title": "Resolved decisions",
+    "parent_id": null
+  },
+  {
+    "id": "taxonomy-mapping",
+    "level": 2,
+    "title": "Old → new decision_type mapping guidance (for re-derive)",
+    "parent_id": null
+  }
+]

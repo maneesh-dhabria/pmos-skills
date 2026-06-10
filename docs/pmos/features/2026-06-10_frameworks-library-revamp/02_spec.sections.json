@@ -1,0 +1,104 @@
+[
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture & change map",
+    "parent_id": null
+  },
+  {
+    "id": "schema",
+    "level": 2,
+    "title": "Schema changes (corpus-schema.md)",
+    "parent_id": null
+  },
+  {
+    "id": "s-decision-type",
+    "level": 3,
+    "title": "decision_type — new 8-value enum (clean break)",
+    "parent_id": null
+  },
+  {
+    "id": "s-anchors",
+    "level": 3,
+    "title": "diagram_anchors[] — new field",
+    "parent_id": null
+  },
+  {
+    "id": "rederive",
+    "level": 2,
+    "title": "Re-derive mechanism (offline, no Notion)",
+    "parent_id": null
+  },
+  {
+    "id": "renderer",
+    "level": 2,
+    "title": "Renderer design (build-library.mjs)",
+    "parent_id": null
+  },
+  {
+    "id": "r-data",
+    "level": 3,
+    "title": "Embedded record additions",
+    "parent_id": null
+  },
+  {
+    "id": "r-body",
+    "level": 3,
+    "title": "Inline diagram placement",
+    "parent_id": null
+  },
+  {
+    "id": "r-views",
+    "level": 3,
+    "title": "Views & group-by",
+    "parent_id": null
+  },
+  {
+    "id": "r-reader",
+    "level": 3,
+    "title": "Sidebar reader (two-pane, layout-shifting)",
+    "parent_id": null
+  },
+  {
+    "id": "r-filters",
+    "level": 3,
+    "title": "Filters (search · area · tags · decision-type)",
+    "parent_id": null
+  },
+  {
+    "id": "r-share",
+    "level": 3,
+    "title": "Share & copy-markdown",
+    "parent_id": null
+  },
+  {
+    "id": "r-masthead",
+    "level": 3,
+    "title": "Masthead",
+    "parent_id": null
+  },
+  {
+    "id": "skill-patterns-conformance",
+    "level": 2,
+    "title": "skill-patterns.md conformance (§A–§F)",
+    "parent_id": null
+  },
+  {
+    "id": "testing",
+    "level": 2,
+    "title": "Testing strategy",
+    "parent_id": null
+  },
+  {
+    "id": "verification-plan",
+    "level": 2,
+    "title": "Verification plan",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  }
+]

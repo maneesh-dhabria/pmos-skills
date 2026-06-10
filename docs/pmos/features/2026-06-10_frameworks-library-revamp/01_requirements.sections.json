@@ -1,0 +1,110 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "goals",
+    "level": 2,
+    "title": "Goals & non-goals",
+    "parent_id": null
+  },
+  {
+    "id": "user-journeys",
+    "level": 2,
+    "title": "User journeys",
+    "parent_id": null
+  },
+  {
+    "id": "j-scan",
+    "level": 3,
+    "title": "J1 — Scan to orient",
+    "parent_id": null
+  },
+  {
+    "id": "j-group",
+    "level": 3,
+    "title": "J2 — Browse a Product Area in depth",
+    "parent_id": null
+  },
+  {
+    "id": "j-read",
+    "level": 3,
+    "title": "J3 — Read a framework without losing place",
+    "parent_id": null
+  },
+  {
+    "id": "j-filter",
+    "level": 3,
+    "title": "J4 — Narrow by problem",
+    "parent_id": null
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-views",
+    "level": 3,
+    "title": "Views & grouping (F1, F2)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-reader",
+    "level": 3,
+    "title": "Sidebar reader (F4)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-diagrams",
+    "level": 3,
+    "title": "Inline diagrams (F3)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-decision-type",
+    "level": 3,
+    "title": "Decision-type rebalance (F5)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-filter",
+    "level": 3,
+    "title": "Tag filtering (F6)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-share",
+    "level": 3,
+    "title": "Share & copy (F7)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-masthead",
+    "level": 3,
+    "title": "Masthead (F8)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-invariants",
+    "level": 3,
+    "title": "Preserved invariants",
+    "parent_id": null
+  },
+  {
+    "id": "open-design-questions",
+    "level": 2,
+    "title": "Open design questions (for /grill → /spec)",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope",
+    "parent_id": null
+  }
+]
