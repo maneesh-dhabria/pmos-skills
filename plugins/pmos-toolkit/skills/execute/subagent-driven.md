@@ -1,24 +1,10 @@
 # Subagent-Driven Execution — prompt templates & model selection
 
 Loaded by `execute/SKILL.md` → "Parallel Subagent-Driven Execution (`--subagent-driven`)".
-**Self-contained:** everything the subagent-driven path needs is here or in `SKILL.md` — no
-`../_shared/*` and no `superpowers:*` reference is load-bearing. This design is *inspired by*
-`superpowers:subagent-driven-development`, but `/execute` works with that skill absent.
-
-Conventions: written with Claude Code tool names (`Task` for subagent dispatch, `Agent` /
-general-purpose). On platforms with no subagent tool, the `--subagent-driven` path degrades to
-inline execution per `SKILL.md` Phase 0 — these templates are not used there.
-
-## Contents
-
-- Model selection — picking the cheapest model that can do each role
-- 1. Implementer subagent — dispatched in parallel, one per wave task; implements + tests, does NOT commit
-- 2. Spec-compliance reviewer subagent — verifies code matches the task spec
-- 3. Code-quality reviewer subagent — runs only after spec compliance is ✅
-- 4. Final whole-implementation reviewer subagent — one pass after the last wave
-- Red flags — the subagent-driven path's "never do this" list
-
----
+**Self-contained:** no `../_shared/*` or `superpowers:*` reference is load-bearing. Written
+with Claude Code tool names (`Task` dispatch, general-purpose agent); on platforms with no
+subagent tool the path degrades to inline per `SKILL.md` Phase 0a and these templates are
+not used.
 
 ## Model selection
 
@@ -66,17 +52,21 @@ Task tool (general-purpose, model per the table above):
     ## Before you begin
 
     If anything about the requirements, approach, dependencies, or assumptions is unclear,
-    **ask now** — raise concerns before you start. It is always OK to pause and clarify.
+    ask now (report NEEDS_CONTEXT) rather than guessing.
 
     ## Your job
 
-    1. Implement exactly what the task specifies — nothing more (YAGNI), nothing less.
+    1. Implement exactly what the task specifies — nothing more (YAGNI), nothing less. Follow
+       the file structure the task specifies and the codebase's established patterns; do not
+       restructure things outside your task.
     2. Follow TDD per the task's `**TDD:**` value:
-       - `yes — new-feature`: write the failing test → run it, see it fail → minimal
-         implementation → run it, see it pass → refactor if needed.
-       - `yes — bug-fix`: write a regression test that reproduces the bug → run it, see it
-         fail → fix → run it, see it pass.
+       - `yes — new-feature`: failing test → see it fail → minimal implementation → see it pass.
+       - `yes — bug-fix`: regression test reproducing the bug → see it fail → fix → see it pass.
        - `no — <reason>`: no test-first; still verify behavior however the task says.
+
+       ## Test quality
+
+       <PASTE the "Test quality" block from execute/SKILL.md verbatim>
     3. Run the task's verification (the `Steps:` commands). If it fails, diagnose the root
        cause and fix — bounded to 3 attempts; each attempt must change something. If still
        failing after 3 attempts, stop and report BLOCKED with what you tried.
@@ -85,31 +75,18 @@ Task tool (general-purpose, model per the table above):
        evidence for an API/UI task ⇒ the task is not done.
     5. **Do NOT `git commit`.** Leave your changes in the working tree. The controller commits
        after the wave. Report the exact list of files you created/modified.
-    6. Self-review with fresh eyes (checklist below), fix anything you find, then report.
-
-    ## Code organization
-
-    - Follow the file structure the task specifies. One clear responsibility per file.
-    - If a file you're creating is growing well beyond the task's intent, stop and report
-      DONE_WITH_CONCERNS — do not split files on your own without plan guidance.
-    - In an existing codebase, follow established patterns; improve code you touch the way a
-      good developer would, but do not restructure things outside your task.
+    6. Self-review before reporting — completeness (every requirement, edge cases), discipline
+       (no overbuilding, existing patterns followed), tests (verify real behavior, not just
+       mocks). Fix what you find first.
 
     ## When you're in over your head
 
-    Bad work is worse than no work. You will not be penalized for escalating. STOP and report
-    BLOCKED or NEEDS_CONTEXT when: the task needs an architectural decision with multiple valid
-    approaches; you need to understand code beyond what was provided and can't get clarity;
-    you're uncertain your approach is correct; the task involves restructuring the plan didn't
-    anticipate; you've been reading file after file without progress.
-
-    ## Self-review checklist (before reporting)
-
-    - Completeness: did I implement everything in the task? miss any requirement? handle edge cases?
-    - Quality: is this my best work? are names accurate (what things do, not how)? clean, maintainable?
-    - Discipline: did I avoid overbuilding? build only what was requested? follow existing patterns?
-    - Testing: do tests verify real behavior (not just mocks)? did I follow TDD if required? comprehensive?
-    Fix issues you find now, before reporting.
+    Bad work is worse than no work — you will not be penalized for escalating. STOP and report
+    BLOCKED or NEEDS_CONTEXT when the task needs an architectural decision with multiple valid
+    approaches, you can't get clarity on code beyond what was provided, the task involves
+    restructuring the plan didn't anticipate, or you're churning without progress. If a file
+    you're creating is growing well beyond the task's intent, report DONE_WITH_CONCERNS — do
+    not split files on your own without plan guidance.
 
     ## Report format
 
@@ -156,12 +133,10 @@ Task tool (general-purpose, model: sonnet):
 
     ## Your job — verify by reading the actual code
 
-    - Missing requirements: did they implement everything requested? anything skipped or only
-      claimed-but-not-actually-implemented?
-    - Extra / unrequested work: did they build things not in the task? over-engineer? add
-      "nice to haves"?
-    - Misunderstandings: did they interpret a requirement differently than intended? solve the
-      wrong problem? right feature, wrong way?
+    - Missing requirements: anything skipped, or claimed-but-not-actually-implemented?
+    - Extra / unrequested work: things not in the task, over-engineering, "nice to haves"?
+    - Misunderstandings: a requirement interpreted differently than intended — right
+      feature, wrong way?
 
     ## Report
 
@@ -170,8 +145,7 @@ Task tool (general-purpose, model: sonnet):
       it's "missing" or "extra".
 ```
 
-If `❌`: re-dispatch the **same implementer subagent** with the findings to fix; the controller
-commits the fix (`fix(T<N>): address spec-review gap`); then re-run this reviewer. Loop until `✅`.
+The `❌` → fix → re-review loop is owned by `SKILL.md` Step B (3.iii).
 
 ---
 
@@ -212,8 +186,7 @@ Task tool (general-purpose, inherit — omit `model`):
     - **Assessment:** Approved | Changes required.
 ```
 
-If Critical/Important issues: implementer subagent fixes them; controller commits (`fix(T<N>): …`);
-re-run this reviewer. Loop until Approved. Minor issues: note them, proceed.
+The Critical/Important → fix → re-review loop is owned by `SKILL.md` Step B (3.iii).
 
 ---
 
@@ -251,7 +224,7 @@ Task tool (general-purpose, inherit — omit `model`):
     - Overall: ready to hand to /verify | needs fixes first.
 ```
 
-Address gaps (implementer subagent fixes; controller commits), then proceed to Phase 3 / Phase 5.
+Gap handling and the hand-off to Phases 3/5 are owned by `SKILL.md` Step C.
 
 ---
 

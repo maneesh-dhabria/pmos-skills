@@ -2,14 +2,14 @@
 name: execute
 description: Execute an implementation plan end-to-end — task-by-task TDD implementation with deploy verification, frontend testing, and manual spot checks. Supports git worktree isolation. Use when the user says "implement the plan", "start building", "execute this", "code this up", or has a plan doc ready for implementation.
 user-invocable: true
-argument-hint: "<path-to-plan-doc> [--feature <slug>] [--backlog <id>] [--resume | --restart | --from T<N>] [--no-halt] [--subagent-driven | --inline] [--non-interactive | --interactive]"
+argument-hint: "<path-to-plan-doc> [--feature <slug>] [--backlog <id>] [--resume | --restart | --from T<N>] [--no-halt] [--subagent-driven] [--non-interactive | --interactive]"
 ---
 
 # Plan Executor
 
 Execute an implementation plan end-to-end with strict verification. Supports git worktree isolation when available, but works without it.
 
-Follow the inline instructions below — they are self-contained.
+Infer options from the request; an explicit `--flag` overrides. "Run the tasks in parallel with subagents" ≡ `--subagent-driven`; "pick up where we left off" ≡ `--resume`.
 
 **Announce at start:** "Using the execute skill to implement the plan in an isolated worktree."
 
@@ -19,13 +19,7 @@ These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption, document it in the output, and proceed. The user reviews after completion.
 - **No subagents:** Perform research and analysis sequentially as a single agent. If `--subagent-driven` was passed on a platform with no subagent tool, emit `WARNING: --subagent-driven requested but no subagent tool available; running inline.` and proceed with inline execution — never error out.
 - **No Playwright MCP:** Note browser-based verification as a manual step for the user.
-- **Task tracking:** Use your available task tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code, `update_plan` in Codex, or equivalent). If none is available, track progress via commit messages and report status verbally.
-
----
-
-## Track Progress
-
-This skill runs many phases over a potentially long execution. Track progress with your agent's task-tracking tool: in Phase 1, create one tracked task per **plan task** (the live progress view the user watches); update each to in-progress when you start it and completed as soon as it's done — do not batch completions. For multi-session runs, the per-task `{feature_folder}/execute/task-NN.md` logs and per-phase `phase-N.md` logs are the canonical, durable progress record (the resume resolver reads them). If no task-tracking tool is available, track via the `T<N>`-bearing commit subjects and the per-task logs, and report status verbally.
+- **Task tracking:** Use your available task tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code, `update_plan` in Codex, or equivalent). If none is available, track via the `T<N>`-bearing commit subjects and the per-task logs, and report status verbally.
 
 ---
 
@@ -90,17 +84,18 @@ Use workstream context (loaded by step 3 below) passively — it informs impleme
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-### Phase 0a: execution-strategy resolution
+### Phase 0a: execution-strategy resolution {#execution-strategy}
 
 Resolve `execution_strategy ∈ {inline, subagent-driven}` once, at Phase 0 entry:
 
-- `--subagent-driven` and `--inline` are parsed from this skill's argument string. They are mutually exclusive; **last flag wins** on conflict; **neither present ⇒ `inline`** (today's behavior — zero regression).
+<!-- nl-sugar -->
+- `--subagent-driven` and `--inline` are parsed from this skill's argument string (`--inline` is back-compat sugar, absent from the argument-hint). They are mutually exclusive; **last flag wins** on conflict; **neither present ⇒ `inline`**.
 - If `subagent-driven` resolved but the platform has **no subagent/Agent tool** (Codex, Gemini, or any harness without it): emit `WARNING: --subagent-driven requested but no subagent tool available; running inline.` to stderr and set `execution_strategy = inline`. Never error.
 - Print to stderr exactly once: `execution_strategy: <inline|subagent-driven> (source: cli|default)`.
 
-`execution_strategy` selects the Phase 2 path (see "Phase 2 — Execution Strategy" below). It does **not** change any other phase: Phase 0/0.4/0.5 setup + resume, Phase 1 setup, Phase 2a phase-boundary handling, the runtime-evidence gate, the per-task / per-phase logs, and Phases 3–7 all run identically in both strategies.
+`execution_strategy` selects the Phase 2 path (see "Phase 2 — Execution Strategy" below). It does **not** change any other phase: Phase 0/0b/0c setup + resume, Phase 1 setup, Phase 2a phase-boundary handling, the runtime-evidence gate, the per-task / per-phase logs, and Phases 3–7 all run identically in both strategies.
 
-## Phase 0b: Feature Disambiguation
+## Phase 0b: Feature Disambiguation {#feature-disambiguation}
 
 <!-- defer-only: destructive -->
 **If `--restart` was passed:** before doing anything else, count the existing `done` task logs under `{feature_folder}/execute/` (or all candidate feature folders if no plan path was given). Issue `AskUserQuestion`: "Restart will discard prior progress logs (X tasks marked done across N feature(s)). Confirm restart from scratch?" with options **Confirm restart** / **Cancel**. On Cancel, abort the /execute invocation immediately. On Confirm, skip the rest of Phase 0b and Phase 0c entirely and proceed to Phase 1 as a fresh start.
@@ -112,24 +107,19 @@ Skip this phase entirely if the plan path was given (no ambiguity).
 
 ---
 
-## Phase 0c: Resume Resolution
+## Phase 0c: Resume Resolution {#resume-resolution}
 
-Follow `../_shared/execute-resume.md` Phase 0c to:
+Follow `../_shared/execute-resume.md` Phase 0c end-to-end — it owns the algorithm: parse the plan's `[T1...TN]`, scan the `task-*.md` / `phase-*.md` logs, classify every task (`not-started` → `failed`, with the git-log and `task_goal_hash` drift cross-checks), pick the resume point, and check worktree liveness. Then:
 
-1. Parse the plan, extract `[T1...TN]` with their `Goal:` lines and any `## Phase N` groupings.
-2. Scan `{feature_folder}/execute/task-*.md` and `phase-*.md`, parse frontmatter.
-3. Classify each task: `not-started` | `done` | `done-sealed` | `done-but-drifted` | `in-flight` | `failed`, plus `-with-commits` annotation from the git-log cross-check.
-4. Pick the resume point: lowest-N task whose state is not `done` and not `done-sealed`.
-5. Check worktree liveness — present, recreate-from-branch, or fresh-start.
 <!-- defer-only: destructive -->
-6. Render the **Resume Report** to chat (markdown table from `../_shared/execute-resume.md` "Resume Report Rendering"), then confirm via `AskUserQuestion` (Resume / Restart task / Jump to specific / Restart from T1 / Cancel).
-7. Set `resume_mode = (mode, resume_task_index)` for Phase 1.
+1. Render the **Resume Report** to chat (markdown table per the substrate's "Resume Report Rendering"), then confirm via `AskUserQuestion` (Resume / Restart task / Jump to specific / Restart from T1 / Cancel).
+2. Set `resume_mode = (mode, resume_task_index)` for Phase 1.
 
 **Skip this phase entirely** if `--restart` was passed, or if no logs exist under `{feature_folder}/execute/` (fresh execution). If `--from T<N>` was passed, skip the resolver and set `resume_mode = ("manual", N)` directly. Tasks in phases entirely before T<N> are treated as implicitly sealed by the manual override — no retroactive phase verify is run. If `--resume` was passed, force this phase even if the resolver would otherwise skip.
 
 ---
 
-## Phase 1: Setup
+## Phase 1: Setup {#setup}
 
 **Branch on `resume_mode` from Phase 0c:**
 - **Fresh start** (`resume_mode` unset, or mode == `"restart"`): run all steps below.
@@ -138,9 +128,7 @@ Follow `../_shared/execute-resume.md` Phase 0c to:
 1. **Locate the plan.** Follow `_shared/resolve-input.md` with `phase=plan`, `label="plan"`.
 2. **Read the plan and its upstream spec end-to-end.** Understand the "Done when" criteria and final verification task.
 
-   **Read plan frontmatter** (T34 — /plan v2 contract):
-   - `commit_cadence` — defaults to `per-task`. Other recognized values: `per-phase` (commit only at phase boundary), `manual` (defer commits to user). Honor whichever is set.
-   - `contract_version` (T37 — /plan v2): if absent OR < 1, the plan was written by /plan v1 — emit a per-run `WARN:` line on stderr: `[/execute] Plan contract_version missing or < 1 — running back-compat shim. Some new task fields will be ignored. Re-generate plan with /plan v2 to consume the full contract.` Continue execution; do not halt. If `contract_version` > the highest version this /execute knows, halt with platform-aware error: `[/execute] Plan contract_version=<n> is newer than this skill supports (max=<m>). Upgrade the pmos-toolkit plugin.`
+   **Read plan frontmatter:** `commit_cadence` (defaults to `per-task`; also `per-phase`, `manual` — honor whichever is set) and `contract_version` (warn-and-continue on v1 plans, halt if newer than this skill supports — exact shim messages in `reference/plan-contract.md`).
 3. **Isolate the work:**
    - **Worktree (preferred):** Check for existing `.worktrees/` or `worktrees/` directory. If neither exists, create `.worktrees/`. Verify the directory is gitignored (`git check-ignore -q .worktrees`); if not, add it to `.gitignore` and commit. Then:
      ```bash
@@ -156,77 +144,42 @@ Follow `../_shared/execute-resume.md` Phase 0c to:
    - If any tool is unavailable, document the failure and the alternative.
 
    Do NOT proceed to Task 1 without this evidence. This is a gate, not a checklist item.
-6. **Create task list.** Extract every task from the plan and create a tracked task for each, using your available task tracking tool. Include:
-   - Task name and number from the plan
-   - Key files to be modified
-   - Dependencies on other tasks (if any)
-   - The task's verification criteria as its "done" signal
-
-   This gives the user (and you) a live progress view throughout execution.
+6. **Create task list.** Extract every task from the plan and create a tracked task for each, using your available task tracking tool: task name/number, key files, dependencies, and the task's verification criteria as its "done" signal. Update each to in-progress when you start it and completed as soon as it's done — do not batch completions. This is the live progress view the user watches; for multi-session runs, the per-task `task-NN.md` and per-phase `phase-N.md` logs are the canonical durable record (the resume resolver reads them).
 
 ---
 
-## Phase 2: Execute Tasks
+## Phase 2: Execute Tasks {#execute-tasks}
 
 ### Phase 2 — Execution Strategy
 
 Branch on `execution_strategy` (resolved in Phase 0):
 
-- **`inline`** (default) — run the **per-task loop** below as a single agent, in plan order. Optionally, when an Agent/subagent tool is available, you may use the lightweight per-task subagent variant under "Inline mode: optional per-task subagents" — but that is *not* the parallel mode.
-- **`subagent-driven`** (`--subagent-driven`) — skip the single-agent per-task loop and run the **"Parallel Subagent-Driven Execution"** section below instead. It dispatches a fresh implementer subagent per task, runs independent tasks in parallel waves, and puts every completed task through a two-stage review. Inspired by `superpowers:subagent-driven-development`, but **fully self-contained** — all wave logic, prompt templates, and review loops live in this skill (`SKILL.md` + the sibling `subagent-driven.md`); nothing outside `plugins/pmos-toolkit/skills/execute/` is required.
+- **`inline`** (default) — run the **per-task loop** below as a single agent, in plan order. Optionally, when an Agent/subagent tool is available, use the lightweight per-task subagent variant under "Inline mode: optional per-task subagents" — that is *not* the parallel mode.
+- **`subagent-driven`** (`--subagent-driven`) — skip the single-agent per-task loop and run **"Parallel Subagent-Driven Execution"** below instead: a fresh implementer subagent per task, independent tasks in parallel waves, every completed task through a two-stage review. Fully self-contained (`SKILL.md` + the sibling `subagent-driven.md`); `superpowers:subagent-driven-development` is the inspiration, not a dependency.
 
-Everything that is **not** the per-task implementation loop is shared by both strategies and runs identically: Phase 0/0.4/0.5 (setup + resume), Phase 1 (worktree, dependency install, **verification-tooling hard gate**, task list), the per-task fields contract and defect handoff (below), **Phase 2a phase-boundary `/verify` + `--no-halt`/`continue_through_phases`**, the per-task `task-NN.md` and per-phase `phase-N.md` logs, the runtime-evidence gate, and Phases 3–7. The subagent-driven path **must** keep producing the same `T<N>`-bearing commit subjects the Phase 0c resume resolver greps for — see its commit step below.
+Everything that is **not** the per-task implementation loop is shared by both strategies and runs identically: Phase 0/0b/0c (setup + resume), Phase 1 (worktree, dependency install, **verification-tooling hard gate**, task list), the plan contract and defect handoff (below), **Phase 2a phase-boundary `/verify` + its opt-outs**, the per-task `task-NN.md` and per-phase `phase-N.md` logs, the runtime-evidence gate, and Phases 3–7. The subagent-driven path **must** keep producing the same `T<N>`-bearing commit subjects the Phase 0c resume resolver greps for — see its commit step below.
 
-### Per-task fields consumed by /execute v2 (T35 — /plan v2 contract)
+### Plan contract (/plan v2) {#plan-contract}
 
-/plan v2 emits per-task fields beyond the legacy `**Goal:** / **Spec refs:** / **Files:** / **Steps:**`. /execute reads them as follows; on missing-but-optional fields, emit a per-task `WARN:` line on stderr (back-compat shim per FR-110, decision P5) and continue:
+Plans may carry per-task fields that gate ordering, TDD shape, and state dependencies — `**Depends on:**`, `**Idempotent:**`, `**Requires state from:**`, `**TDD:**`, `**Data:**`, `**Wireframe refs:**` — plus suffixed task IDs (`T26a`). When you see them, read `reference/plan-contract.md` for the full semantics (field-by-field behavior, the back-compat WARN shim, suffixed-ID parsing, the defect-file template). The facts the loop needs:
 
-- `**Depends on:**` — task IDs whose completion gates this task. /execute refuses to start the task while any dependency is `not-started` / `in-flight` / `failed`. (If absent, /execute assumes sequential ordering by task index.)
-- `**Idempotent:**` — `yes` or `no — recovery: <substep>`. `no` without a recovery substep → halt with error citing FR-35.
-- `**Requires state from:**` — task IDs whose runtime artifacts (DB rows, generated files) this task consumes. /execute refuses to run the task if any cited task lacks a `done` log.
-- `**TDD:**` — three-valued `yes — new-feature` / `yes — bug-fix` / `no — <reason>`. Bug-fix path uses the FR-104 4-step shape (regression test → fail → fix → pass). The plan body's `**Bug-fix TDD shape**` paragraph is informational; /execute follows the per-task value.
-- `**Data:**` — fixtures / seed rows / mock payloads the task consumes; /execute surfaces these as part of the in-flight log's `body` section.
-- `**Wireframe refs:**` — UI screens this task implements; /execute uses them in the runtime-evidence step (Playwright navigation targets).
+- Do not start a task while any task it `**Depends on:**` / `**Requires state from:**` has not completed (no `done`/`done-sealed` log) — exact refusal conditions in the contract.
+- `**TDD:**` is three-valued (`yes — new-feature` / `yes — bug-fix` / `no — <reason>`); follow the per-task value.
+- A defective plan (broken `Files:` refs, unconsumable upstream contract) gets a defect file at `{feature_folder}/03_plan_defect_<task-id>.md` per that contract and a `/plan --fix-from <task-id>` handoff.
 
-**Suffixed task IDs** (decision P11): /plan v2 may emit suffixed IDs like `T26a`, `T29c`, `T43a` (split history from review loops). /execute v2 parses the regex `T([0-9]+)([a-z]?)` against task headings; per-task log files use `task-<N><suffix>.md` (e.g., `task-26a.md`); the frontmatter `task_number` accepts a string when a suffix is present and an integer otherwise.
-
-### Defect handoff (T36 — §7.5)
-
-When a task cannot be implemented because the plan itself is defective (e.g., file `Files:` references don't exist, prerequisite task produced a contract that this task can't consume), /execute v2 writes a defect file at `{feature_folder}/03_plan_defect_<task-id>.md` per spec §7.5. Defect file contents:
-
-```markdown
----
-task_id: T<N>[<suffix>]
-detected_at: <ISO timestamp>
-detected_by: /execute (this run)
----
-
-## Defect
-
-[One paragraph stating what the plan got wrong.]
-
-## Suggested fix
-
-[What /plan should do differently. Be specific — file paths, function signatures, the contract that needs to change.]
-
-## Reproducer
-
-[Bash command(s) that show the contradiction.]
-```
-
-The user resumes by running `/plan --fix-from <task-id>` (FR-56). /execute deletes the defect file (FR-100b lifecycle) when the previously-defective task succeeds in a subsequent /execute run — the deletion confirms the fix landed.
+### Per-task loop {#per-task-loop}
 
 Work through the plan's tasks in order. For each task:
 
 1. **Mark task as in-progress** in your task tracker.
 2. **Read the task** — understand goal, files, spec refs, and steps.
-3. **Follow TDD** — write failing test, verify it fails, implement, verify it passes.
+3. **Follow TDD** — write failing test, verify it fails, implement, verify it passes. Test quality per the "Test quality" block below.
 4. **Run the verify-fix loop** (see below).
 5. **Produce runtime evidence before committing:**
    - **API tasks:** curl every new/modified endpoint against the running dev server. Paste the output.
    - **UI tasks:** open the affected page in Playwright MCP (or fallback). Paste screenshot or programmatic output.
    - If you cannot produce runtime evidence for an API or UI task, the task is not done. Do not commit.
-6. **Commit** — small, focused commit per task. Not one giant commit at the end. **Commit subject MUST contain the task number in the form `T<N>`** (e.g., `feat(T5): add SOP migration` or `T5: add SOP migration`). The Phase 0c resolver greps `\bT[0-9]+\b` from `git log` to detect mid-task interruption — without `T<N>` in the subject, in-flight detection degrades.
+6. **Commit** — small, focused commit per task. Not one giant commit at the end. **Commit subject MUST contain the task number in the form `T<N>`** (e.g., `feat(T5): add audit-log migration` or `T5: add audit-log migration`). The Phase 0c resolver greps `\bT[0-9]+\b` from `git log` to detect mid-task interruption — without `T<N>` in the subject, in-flight detection degrades.
 7. **Maintain the per-task log** at `{feature_folder}/execute/task-{NN}.md` (zero-padded 2 digits). The log has a structured frontmatter and a free-form body. Lifecycle:
 
    - **At task start** (before TDD work begins): write the file with `status: in-flight`, populated frontmatter (see schema below), and an empty body. This is the "in-flight marker" that resume detects if the session crashes.
@@ -239,17 +192,17 @@ Work through the plan's tasks in order. For each task:
    ```yaml
    ---
    task_number: 5
-   task_name: "Add SOP migration"
+   task_name: "Add audit-log migration"
    task_goal_hash: <sha256 of plan T<N> Goal: line, normalized — see ../_shared/execute-resume.md "Hash Normalization Rule">
    plan_path: "{feature_folder}/03_plan.md"
-   branch: "feature/sop-editor"
-   worktree_path: ".worktrees/sop-editor"
+   branch: "feature/audit-log"
+   worktree_path: ".worktrees/audit-log"
    status: in-flight | done | failed
    started_at: 2026-05-02T14:32:11Z
    completed_at: 2026-05-02T14:48:30Z   # only when status != in-flight
    files_touched:
-     - src/sop/migrations/0042_add_remediation.py
-     - tests/sop/test_migration_0042.py
+     - src/migrations/0042_add_audit_log.py
+     - tests/test_migration_0042.py
    ---
    ```
 
@@ -257,31 +210,32 @@ Work through the plan's tasks in order. For each task:
 8. **Mark task as completed** in your task tracker.
 9. **Move to next task** — only after verification passes, evidence is produced, and task is marked complete. Before moving on, run **Phase 2a: Phase Boundary Check** (below) — it may halt the session.
 
-### Phase 2a: Phase Boundary Check
+### Test quality {#test-quality}
 
-Skip this phase entirely if the plan has no `## Phase N` headings (flat plan). Otherwise, after each task's done-log is written, follow `../_shared/phase-boundary-handler.md`:
+The TDD loop above is mechanics; this is what makes a test worth writing. (The subagent-driven implementer template pastes this block verbatim — one home, two consumers.)
 
-1. Determine whether the just-completed task is the last in its `## Phase N` group.
-2. If yes: invoke /verify with `--scope phase --feature <slug> --phase <N>` (see `verify/SKILL.md` for the invocation contract). Evidence is written to `{feature_folder}/verify/<YYYY-MM-DD>-phase-<N>/`.
-3. Write `{feature_folder}/execute/phase-N.md` with the phase log frontmatter (schema in `../_shared/phase-boundary-handler.md`).
-4. **If verify failed:** do NOT compact, do NOT continue. Escalate to the user with the failure summary. The phase-N.md log is left with `verify_status: failed` so the next session's resolver can pick up at the failed task.
-5. **If verify passed:** emit the `HALT_FOR_COMPACT` message ("Phase N verified green. Run `/compact` to clear context, then re-invoke `/execute --resume` to continue with phase N+1.") and end the /execute turn. The resolver in the next session sees the sealed phase log and picks up at the next phase's first task.
+- Test behavior through public interfaces, not implementation. A test that breaks when you rename a private function or reorder internals was testing implementation — it would not survive a refactor, so it protects nothing.
+- Build vertically: one behavior end-to-end (test → minimal implementation → pass), then the next. The horizontal-slice anti-pattern — scaffolding all the mocks/shapes first — produces many green tests and no working feature.
+- A mock-verifying or shape-asserting test that passes while the feature is broken is worse than no test: it launders a false claim. Assert observable outcomes.
+- Never refactor while red. Get back to green first, then improve structure with the tests as the net.
 
-   **Halt suppression — opt-out semantics.** Skip the HALT message AND continue directly into Phase N+1's first task when EITHER of the following is true:
+### Phase 2a: Phase Boundary Check {#phase-boundary-check}
 
-   - `--no-halt` was passed at this /execute invocation (per-invocation; does NOT persist across runs).
-   - The session-sticky `continue_through_phases` flag was set earlier in this conversation. The flag is set when the user emits an unambiguous continuation directive — recognized forms (case-insensitive, imperative context):
-     - The literal escape token `[continue_through_phases]` anywhere in a user message.
-     - Plain-language patterns: "continue without compacting", "no halts", "skip compacts", "skip the compact", "don't halt at phase boundaries".
+Skip this phase entirely if the plan has no `## Phase N` headings (flat plan). Otherwise, after each task's done-log is written, follow `../_shared/phase-boundary-handler.md` — it owns the algorithm and the `phase-N.md` log schema: detect whether the just-completed task closes its `## Phase N` group; if so, invoke /verify with `--scope phase --feature <slug> --phase <N>` (evidence to `{feature_folder}/verify/<YYYY-MM-DD>-phase-<N>/`), write `{feature_folder}/execute/phase-N.md`, then on **failure** ESCALATE (do NOT compact, do NOT continue — the `verify_status: failed` log lets the next session's resolver pick up at the failed task), and on **green** emit `HALT_FOR_COMPACT` and end the /execute turn — the next session's resolver sees the sealed phase log and resumes at the next phase's first task.
 
-     <!-- defer-only: ambiguous -->
-     The flag is per-session (it resets when the conversation ends; it is NOT persisted to settings or session-state files). When the directive's interpretation is ambiguous (descriptive prose vs. imperative directive), the executing agent confirms via a single `AskUserQuestion` before flipping the flag rather than silently assuming.
+**Halt suppression — opt-out semantics** (the user-explicit override the handler's hard-stop rule reserves). Skip the HALT message AND continue directly into Phase N+1's first task when EITHER:
 
-   When halt is suppressed, log a one-line summary instead: `Phase N verified green; --no-halt set (or session-sticky continuation directive honored), continuing to Phase N+1.`
+- `--no-halt` was passed at this /execute invocation (per-invocation; does NOT persist across runs). This is the headless/orchestrated form — interactively, the directive below covers the same ground.
+- The session-sticky `continue_through_phases` flag was set earlier in this conversation. Any unambiguous imperative to continue without halting sets it ("no halts", "continue without compacting", …); the literal escape token `[continue_through_phases]` anywhere in a user message also sets it (kept for programmatic callers). The flag is per-session — it resets when the conversation ends and is NOT persisted to settings or session-state files.
 
-   **Failure escalation is unaffected by either opt-out.** If verify fails, escalate per step 4 regardless of `--no-halt` or the session flag — neither suppresses the failure path.
+  <!-- defer-only: ambiguous -->
+  When a directive's interpretation is ambiguous (descriptive prose vs. imperative directive), confirm via a single `AskUserQuestion` before flipping the flag rather than silently assuming.
 
-This is a hard-stop on green by default (spec O1 default). The opt-outs above let the user trade context-cache freshness for end-to-end throughput when they explicitly choose to.
+When halt is suppressed, log a one-line summary instead: `Phase N verified green; --no-halt set (or session-sticky continuation directive honored), continuing to Phase N+1.`
+
+**Failure escalation is unaffected by either opt-out.** If verify fails, escalate regardless of `--no-halt` or the session flag — neither suppresses the failure path.
+
+This is a hard-stop on green by default. The opt-outs above let the user trade context-cache freshness for end-to-end throughput when they explicitly choose to.
 
 ### Verify-Fix Loop (per task)
 
@@ -311,38 +265,23 @@ if still failing after 3 attempts:
 
 ### Inline mode: optional per-task subagents (lightweight, sequential)
 
-This is part of **`inline`** mode — not the parallel mode. When an Agent/subagent tool is available you may dispatch a fresh subagent per task, **one at a time**: fresh context prevents confusion from accumulated state. After each task, run a **two-stage review**:
-
-1. **Spec compliance review** — dispatch a reviewer subagent with the task's spec requirements and the implementer's diff. Question: does the code match the spec? Flag missing requirements or scope creep.
-2. **Code quality review** — dispatch a second reviewer with the diff and project conventions (CLAUDE.md). Question: is the code well-built? Flag bugs, inconsistencies, convention violations.
-
-If either reviewer finds issues, the implementer fixes them and the reviewer re-reviews. Do not proceed to the next task with open issues.
-
-**Handling implementer status:**
-- **Done** — proceed to review.
-- **Needs context** — provide the missing information and re-dispatch.
-- **Blocked** — assess: provide more context, use a more capable model, break the task smaller, or escalate to the user. Never retry without changing something.
+Part of **`inline`** mode — not the parallel mode. When an Agent/subagent tool is available you may dispatch a fresh subagent per task, **one at a time** (fresh context prevents confusion from accumulated state), then run the same **two-stage review** as the parallel path: spec-compliance first (does the code match the spec? missing requirements, scope creep), then code quality (bugs, inconsistencies, conventions per CLAUDE.md). If either reviewer finds issues, the implementer fixes and the reviewer re-reviews — do not proceed to the next task with open issues. Implementer status: Done → review; Needs context → provide it and re-dispatch; Blocked → change something (context, model, task size) or escalate — never retry unchanged.
 
 > For the **parallel** variant — fan independent tasks out across subagents in waves, with the same two-stage review — run `/execute --subagent-driven` and follow "Parallel Subagent-Driven Execution" below instead.
 
-### Sequential Execution (no subagents)
+### Parallel Subagent-Driven Execution (`--subagent-driven`) {#subagent-driven}
 
-Execute tasks in order. After each task, self-review against the spec before proceeding.
-
-### Parallel Subagent-Driven Execution (`--subagent-driven`)
-
-Selected when `execution_strategy == subagent-driven` (see Phase 0). This **replaces** the per-task single-agent loop above; all the *shared* machinery from "Phase 2 — Execution Strategy" still applies. Self-contained: the four subagent prompt templates live in `subagent-driven.md` (sibling to this file) — read it before dispatching. No external skill is required; `superpowers:subagent-driven-development` is the inspiration, not a dependency.
+Selected when `execution_strategy == subagent-driven` (see Phase 0). This **replaces** the per-task single-agent loop above; all the *shared* machinery from "Phase 2 — Execution Strategy" still applies. The four subagent prompt templates live in `subagent-driven.md` (sibling to this file) — read it, including its **Red flags** list (the single home for this path's never-do rules), before dispatching.
 
 You (the controller) coordinate; subagents do the work. Implementer subagents **never inherit your context** — you hand them exactly the task text + scene-setting context they need. Implementer subagents **implement and test but never `git commit`** — the controller commits, serially, after the wave (this avoids `.git/index` races between concurrent subagents and keeps the `T<N>` commit subjects the resume resolver depends on).
 
 #### Step A — Wave planning (deterministic)
 
 1. **Collect tasks.** Reuse the Phase 0c parse: every `T<N>[<suffix>]` task with its `**Goal:**`, `**Files:**`, `**Depends on:**`, `**Requires state from:**`, and `## Phase N` grouping. **Exclude** tasks the resume resolver already classified `done` / `done-sealed`. If nothing remains → report "nothing to execute" and stop.
-2. **Dependency edges.** For each task `T`, add edge `D → T` for every task id `D` listed in `T`'s `**Depends on:**` *or* `**Requires state from:**`. (Absent fields ⇒ no edges from this rule — but see step 5.)
-3. **File-conflict relation.** Two tasks `A`, `B` *conflict* if their `**Files:**` path sets intersect (normalize paths; `Create` / `Modify` / `Test` entries all count). Conflicting tasks **must not** share a wave even when no dependency edge connects them — concurrent edits to the same file collide.
-4. **Layer into waves.** Kahn's algorithm over the dependency edges gives topological layers. Within each layer, greedily pack tasks into sub-waves (in task-index order) such that no sub-wave contains a conflicting pair — overflow tasks spill to the next sub-wave. The result is an ordered list of waves; every task in wave *k* has all its dependencies in waves `< k` and is pairwise file-disjoint from its wave-mates.
-5. **Degenerate-case fallback.** If there is a dependency cycle, a reference to an unknown task id, or the plan's tasks lack the v2 per-task fields entirely (legacy plan) ⇒ fall back to **all-singleton waves** (= fully sequential) and log: `[/execute] subagent-driven: wave planning fell back to sequential (<reason>).` Do not halt.
-6. **Print the wave plan** to chat before starting, e.g.: `Wave 1: T1, T3, T4 | Wave 2: T2 | Wave 3: T5, T6`.
+2. **Compute any wave schedule that satisfies both hard constraints**, then **print it to chat** before starting (e.g. `Wave 1: T1, T3, T4 | Wave 2: T2 | Wave 3: T5, T6`):
+   - **Dependency order** — a task's dependencies (every task id in its `**Depends on:**` *or* `**Requires state from:**`) are all in earlier waves. Violation = wrong execution order.
+   - **File-disjointness** — no wave contains two tasks whose `**Files:**` path sets intersect (normalize paths; `Create` / `Modify` / `Test` entries all count), even when no dependency connects them. Violation = concurrent edits colliding.
+3. **Degenerate-case fallback.** If there is a dependency cycle, a reference to an unknown task id, or the plan's tasks lack the v2 per-task fields entirely (legacy plan) ⇒ fall back to **all-singleton waves** (= fully sequential) and log: `[/execute] subagent-driven: wave planning fell back to sequential (<reason>).` Do not halt.
 
 #### Step B — Per-wave loop
 
@@ -378,23 +317,18 @@ After the last wave: dispatch one **whole-implementation reviewer subagent** (th
 
 ---
 
-## Phase 3: Deploy & Verify
+## Phase 3: Deploy & Verify {#deploy-verify}
 
-After all tasks are complete, run the plan's final verification task. If the plan doesn't have one, construct it from this checklist:
+After all tasks are complete, run the plan's final verification task. If the plan doesn't have one, construct it from this checklist — each item is an intent; use the host repo's own commands (read its README/CLAUDE.md/CI config for the conventions):
 
 ### Verification Checklist
 
 Run every applicable item. Do NOT skip verification steps. Do NOT rely solely on tests passing.
 
-- [ ] **Lint & format:** `ruff check . && ruff format --check .`
-- [ ] **Full test suite:** `pytest` — expect no regressions
-- [ ] **Database migrations:** `alembic upgrade head` (if migrations added)
-- [ ] **Docker deploy to worktree stack:**
-  ```bash
-  cd .worktrees/<branch>
-  docker compose -f docker-compose.worktree.yml -p <project> up --build -d
-  ```
-  Ensure port offsets don't collide with other running stacks.
+- [ ] **Lint & format:** run the repo's linter and format check; expect zero errors.
+- [ ] **Full test suite:** run it end-to-end — expect no regressions, not just "my new tests pass".
+- [ ] **Database migrations:** if any were added, apply them with the repo's migration tool against the dev database.
+- [ ] **Deploy to an isolated stack:** bring the app up from the worktree (compose stack, dev server, whatever the repo uses) with ports/project names that don't collide with other running stacks.
 - [ ] **API verification:** Use `curl` or CLI commands to verify every new/modified endpoint returns the expected payload shape as defined in the spec.
 - [ ] **Frontend verification** (fallback ladder — use the first level that works):
   1. **Playwright MCP** (preferred): authenticate, navigate to each affected page, walk through every user journey from the spec, check for console errors, take screenshots.
@@ -404,7 +338,7 @@ Run every applicable item. Do NOT skip verification steps. Do NOT rely solely on
 
   Never skip frontend verification entirely. Never fall back to "please check manually."
 - [ ] **Manual spot check:** Run actual scenarios in the development environment. Verify functionality by interacting with the system as a user would. Do NOT only rely on automated tests.
-- [ ] **Seed data:** Re-seed if data files changed: `python scripts/seed_sop_db.py --reset`
+- [ ] **Seed data:** if seed/fixture data files changed, re-seed per the repo's conventions before spot-checking.
 
 ### Verification Failures
 
@@ -416,7 +350,7 @@ When verification reveals issues:
 
 ---
 
-## Phase 4: Spec Compliance Review
+## Phase 4: Spec Compliance Review {#spec-compliance}
 
 After verification passes, do a final compliance check:
 
@@ -426,7 +360,7 @@ After verification passes, do a final compliance check:
 
 ---
 
-## Phase 5: Commit & Report
+## Phase 5: Commit & Report {#commit-report}
 
 1. **Commit all changes** with a clear commit message referencing the plan.
 2. **Report to the user:**
@@ -434,12 +368,9 @@ After verification passes, do a final compliance check:
    - Verification results (which checks passed)
    - Any gaps found and how they were resolved
    - Any new tests added from discovered issues
-   - Worktree location and Docker stack status
+   - Worktree location and deployed-stack status
 
-Do NOT tear down the worktree stack — the user may want to inspect it. Remind them to clean up when done:
-```bash
-docker compose -f docker-compose.worktree.yml -p <project> down
-```
+Do NOT tear down the worktree's stack — the user may want to inspect it. Include the exact teardown command for the stack you brought up in the report.
 
 3. **Invoke `/pmos-toolkit:verify`** to run the full post-implementation verification gate. This is the next pipeline stage (`/execute → /verify`). Do NOT consider execution complete until /verify has run.
 
@@ -473,7 +404,7 @@ Every verification claim must have fresh evidence. Run the command, read the out
 
 ---
 
-## Phase 6: Workstream Enrichment
+## Phase 6: Workstream Enrichment {#workstream-enrichment}
 
 **Skip if no workstream was loaded in Phase 0.** Otherwise, follow `_shared/pipeline-setup.md` Section C. For this skill, the signals to look for are:
 
@@ -483,7 +414,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 
 ---
 
-## Phase 7: Capture Learnings
+## Phase 7: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
@@ -494,14 +425,13 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT claim implementation is complete without running ALL verification steps
 - Do NOT rely only on tests passing — manual verification is mandatory
 - Do NOT skip Playwright MCP frontend testing when there are UI changes
-- Do NOT deploy to the main Docker stack — use the worktree's isolated stack
+- Do NOT deploy to the shared/main stack — use the worktree's isolated stack
 - Do NOT leave discovered issues as "known gaps" — fix them and add tests
-- Do NOT make one giant commit at the end — commit after each task
 - Do NOT stop at the first passing test run — re-read the spec for completeness
 - Do NOT silently re-do tasks marked `done` in `task-NN.md` without checking the `task_goal_hash` against the current plan — drift detection exists for a reason; surface `done-but-drifted` to the user instead of either skipping or quietly redoing
-- Do NOT skip the Phase 2a Phase Boundary Check when the plan has `## Phase N` headings — full /verify at boundaries is the design's purpose; suppressing it defeats the cross-session compact handshake
-- (subagent-driven) Do NOT put two tasks in the same parallel wave if they share a `**Files:**` entry or one `**Depends on:**`/`**Requires state from:**` the other — file races and wrong execution order. When in doubt, fall back to a singleton wave.
-- (subagent-driven) Do NOT let implementer subagents `git commit` — the controller commits, serially, after the wave, with `T<N>` subjects. Concurrent commits race on `.git/index` and break the resume resolver's `T<N>` grep.
-- (subagent-driven) Do NOT start the code-quality review before the spec-compliance review is `✅` — and never skip either review, or move to the next wave with a task's review still open.
-- (subagent-driven) Do NOT make a subagent read the plan file or inherit your context — paste the task's full text plus the scene-setting context it needs; that's the point of fresh-context subagents.
-- (subagent-driven) Do NOT treat `--subagent-driven` as a hard requirement — on a platform with no subagent tool it degrades to a warning + inline execution, not an error.
+
+The subagent-driven path's never-do rules live in one place: `subagent-driven.md` → "Red flags".
+
+---
+
+*Spec lineage: the resume resolver and per-task/phase log schemas trace to `docs/pmos/features/2026-05-02_execute-resume-resolver/`; the phase-boundary `/verify` + compact handshake to `docs/pmos/features/2026-05-08_update-skills-retro-pipeline-friction/`; the /plan v2 contract (fields, shim, defect handoff) to `docs/pmos/features/2026-05-08_plan-skill-redesign/` (see `reference/plan-contract.md`); the wave planner, two-stage review, and controller-commits rules to `docs/pmos/features/2026-05-13_execute-subagent-mode/`.*
