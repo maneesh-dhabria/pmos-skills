@@ -17,6 +17,10 @@ and the recorded disagreements are below.
 - **§E — Scripts & tooling** — when to bundle a script, documented dependencies, script self-tests, eval-driven development.
 - **§F — Platform-conditional frontmatter** — `[claude-code]` slash-command fields, `[codex]` sidecar; `--target generic` skips this group.
 - **§G — Release-prerequisites scope** — what `/execute` writes vs what `/complete-dev` writes; `/plan` MUST NOT enumerate version bumps, changelog entries, README rows, or manifest version-sync as execute-phase tasks.
+- **§H — Gates & rubrics** — deterministic = hard gate, judgment = advisory, arithmetic = script; loop caps are cost governors; every hard gate runs green at HEAD.
+- **§I — Flags** — hybrid NL-first; the 4-test a flag must pass to stay a documented contract; everything else is a silent alias marked `<!-- nl-sugar -->`; `argument-hint` shows contract flags only.
+- **§J — Phases & anchors** — integer top-level phases only; stable kebab slug anchors on every phase heading; all cross-references cite the slug, never a bare number.
+- **§K — One fact, one home** — every fact has exactly one canonical home; every other mention is a pointer; duplication without a lint is drift waiting to be found.
 
 Three points in this guide record a genuine disagreement between the published
 sources (Anthropic's skills docs, the Codex/`agents.md` ecosystem, `agentskills.io`,
@@ -242,10 +246,11 @@ intersection of platform requirements applies.
 
 - **`[claude-code]`** — a skill meant to be invoked as a slash command needs
   `user-invocable: true` in the frontmatter *and* an `argument-hint` string. The
-  `argument-hint` must enumerate the flags and positional arguments the body
-  actually parses — if the body branches on `--from-feedback` and `--tier N`, the
-  hint says so. A stale `argument-hint` (lists flags the body dropped, or omits
-  flags the body parses) is the failure case.
+  `argument-hint` must enumerate the *contract* flags and positional arguments the
+  body actually parses — those passing §I's 4-test; NL-sugar aliases (§I) are parsed
+  but deliberately absent. If the body branches on `--from-feedback` and `--tier N`,
+  the hint says so. A stale `argument-hint` (lists flags the body dropped, omits
+  contract flags the body parses, or advertises an NL-sugar alias) is the failure case.
 - **`[codex]`** — a Codex skill carries an `agents/openai.yaml` sidecar alongside
   `SKILL.md` with the Codex-required fields.
 - **`--target generic`** — neither the `f-cc-*` checks nor `f-codex-sidecar` apply.
@@ -314,9 +319,129 @@ Checks: g-release-prereqs-scope, g-plan-grep-clean.
 
 ---
 
+## §H — Gates & rubrics
+
+**The rule.** Classify every check by what decides it; the class picks the enforcement:
+
+- **Deterministic → hard gate, enforced by a script.** If a script can decide it — file
+  exists, count matches, string present, schema validates — it is a hard gate and a
+  script enforces it, never prose, never a judge. Precedent: `/magazine`'s
+  `structure.test.sh` heading assertions and hermetic script `--selftest`s — loader and
+  contract drift fail deterministically.
+- **Judgment → advisory.** If deciding requires judgment — is this prose clear? is the
+  emphasis right? — the check is advisory: surfaced with severity and a cited span,
+  disposed by the user or recorded as an accepted residual. Reported, never blocking.
+  Precedent: `/diagram`'s vision-gate rebalance — the deterministic SVG metrics
+  (contrast, overlap, out-of-palette) stay hard-fail while the taste-grade vision items
+  (style gestalt, visual balance) report and ship.
+- **Arithmetic → script, judge consumes the output.** If the check is arithmetic over
+  extractable data — a percentage, a stddev, a count — the computation moves into a
+  bundled script and the LLM judge consumes the script's output; it never computes the
+  number itself. Precedent: `/polish`'s metric checks 2/3/11 (passive-%, sentence-length
+  stddev, heading metrics) — asking a judge to "compute at temperature 0" yields
+  nondeterministic, model-coupled verdicts; the same numbers from a script are exact.
+
+**Why.** Binary-failing a judgment call triggers a full remediation loop over a wording
+nit, and the verdict shifts with the judging model. Two corollaries: every hard gate
+runs green at HEAD — a gate that is red and ignored trains everyone to ignore all gates
+— and loop caps are cost governors, not quality gates: cap-hit means surface residuals
+and continue, never block.
+
+Checks: h-gates-deterministic-hard, h-gates-judgment-advisory, h-gates-arithmetic-scripted.
+
+---
+
+## §I — Flags
+
+**NL-first, flags as sugar.** Every user-invocable skill honors natural-language
+equivalents of its options — "go deep on this" ≡ `--depth deep`, "shorten it by ~30%" ≡
+`--reduce 30`. The body states the rule once ("infer <option> from the request; an
+explicit `--flag` overrides") and names the canonical phrasings.
+
+**The 4-test.** A flag stays a *documented contract* — defined in the body AND listed in
+the frontmatter `argument-hint` — only if at least one holds:
+
+1. **Machine coupling** — another skill, script, or CI passes it as a literal string
+   (`--feature`, `--backlog`).
+2. **Destructive opt-in** — it authorizes something irreversible (`--restart`,
+   `--clear-cache`). Explicitness is the feature; never naturalize these.
+3. **Typed value** — it carries a value too precise for prose: a path, an id, a commit
+   range, a count.
+4. **Headless determinism** — a `--non-interactive` run needs it to pin an answer the
+   skill would otherwise prompt for.
+
+**Everything else is a silent alias:** still parsed (back-compat), removed from
+`argument-hint`, marked in the body with an adjacent `<!-- nl-sugar -->` comment.
+`argument-hint` shows contract flags only — a hint advertising NL-sugar is the failure
+case. (The 2026-06-10 review found 137 user-facing flags where ~35 pass the 4-test; the
+gap is exactly where dead flags, vocabulary collisions, and broken cross-skill calls
+accumulated.)
+
+Checks: i-nl-first-stated, i-flags-4test, i-hint-contract-only, i-nl-sugar-marked.
+
+---
+
+## §J — Phases & anchors
+
+**Integer top-level phases only.** A fractional or lettered top-level phase (`Phase
+7.5`, `Phase 0c`) is an accretion smell — a phase was inserted and the file was never
+renumbered. When restructuring, renumber. Sub-structure inside a phase is "step N"
+prose ("Phase 4, step 3"), never a pseudo-phase label ("4c").
+
+**Every phase heading carries a stable kebab slug anchor:**
+
+```markdown
+## Phase 7: Version bump {#version-bump}
+```
+
+The number is ordering sugar for human readers within the file; the slug is the address.
+
+**ALL cross-references cite the slug, never a bare number** — references from other
+skills, log-line string contracts, sidecar/state schemas, Track Progress enumerations,
+tests, and reference files. A renumber that only fixes headings orphans every other
+surface: one such commit (`a76a5da`) renamed headings tree-wide and left non-heading
+surfaces — a Track Progress enumeration, a schema, mandated log-line strings — pointing
+at phases that no longer existed (22 in-file ghost references + 7 cross-skill phantoms
+at the 2026-06-10 review). Slug-addressed references survive any renumber. Cross-skill
+references additionally carry the skill qualifier ("`/spec`'s `#folded-arch` phase") —
+a bare "Phase N" may only refer to the current file.
+
+Lint: `tools/lint-phase-refs.sh` resolves every phase reference against the target
+file's headings and fails on misses — renumbering is safe because the lint catches the
+stragglers, not discipline.
+
+Checks: j-phases-integer, j-phase-slug-anchors, j-phase-refs-resolve.
+
+---
+
+## §K — One fact, one home
+
+**The rule.** A fact — a count, a path, an enum, a contract, a phase list — has exactly
+one canonical home; every other mention is a pointer to it. When writing a skill, if
+you find yourself restating something a reference file, a script, or a `_shared/`
+contract already states, cite it instead.
+
+**Why.** Facts stated in two places with no lint binding them is the root cause behind
+~35 verified contradictions in the 2026-06-10 design review: dead flags documented but
+never parsed, ghost phase references left behind by a renumber, rubric headers lying
+about their own check counts, retired-contract residue surviving in skills that cite
+it. None was carelessness — each was a fact maintained by hand in ≥2 places, where one
+copy moved and the other didn't.
+
+**How to apply.** Pick the home by ownership: a script's behavior lives in the script's
+header; a rubric's count is asserted by its selftest, not restated in its prose header;
+a cross-skill contract lives in the owning skill (or `_shared/`) and consumers cite it.
+A pointer is 1–3 lines: intent + citation + the one genuine local delta. Where a fact
+genuinely must be physically duplicated (the inline non-interactive block), a lint
+binds the copies — duplication without a lint is drift waiting to be found.
+
+Checks: k-one-fact-one-home.
+
+---
+
 ## Mutual cross-reference
 
-`skill-eval.md` is the 1:1 binary mirror of §A–§F: every §-rule above lists ≥1
+`skill-eval.md` is the 1:1 binary mirror of §A–§K: every §-rule above lists ≥1
 `check_id` in its closing `Checks:` line, and every check in `skill-eval.md` names
 exactly one §-rule here. `skill-eval-check.sh --selftest` asserts the
 deterministic-check half of that bijection (every `[D]` check ↔ a code branch in the
