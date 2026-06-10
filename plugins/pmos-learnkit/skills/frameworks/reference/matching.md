@@ -74,7 +74,7 @@ emits **only** this object to stdout (no chat prose, single object, parseable â€
   "matches": [
     {"id": "product/rice", "name": "RICE", "why": "...",
      "score": 0.82, "category": "Product",
-     "decision_type": "prioritization",
+     "decision_type": "prioritize",
      "diagram": "data/diagrams/product__rice.svg"}
   ]
 }
