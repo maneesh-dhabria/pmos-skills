@@ -17,8 +17,28 @@ import { argv } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-export const DECISION_TYPES = ['judgment', 'analysis', 'prioritization', 'framing', 'estimation', 'n/a'];
+// Cognitive-job taxonomy (v0.18 clean break — the pre-v0.18 enum
+// judgment/analysis/prioritization/framing/estimation is retired and rejected).
+export const DECISION_TYPES = ['prioritize', 'decide', 'diagnose', 'estimate', 'strategize', 'design', 'communicate', 'frame', 'n/a'];
 export const LIFECYCLE_STAGES = ['discovery', 'definition', 'delivery', 'growth', 'any'];
+
+// Validate a record's diagram_anchors[] against its diagrams[] + body_md.
+// Returns an array of error strings ([] when valid). Shared by derive-fields +
+// apply-rederive so the two stay in lockstep.
+export function validateAnchors(id, diagrams, anchors, body_md) {
+  const errs = [];
+  const diagLen = Array.isArray(diagrams) ? diagrams.length : 0;
+  if (!Array.isArray(anchors)) { errs.push(`${id}: diagram_anchors must be an array`); return errs; }
+  if (anchors.length !== diagLen) errs.push(`${id}: diagram_anchors length ${anchors.length} != diagrams length ${diagLen}`);
+  const body = String(body_md || '');
+  anchors.forEach((a, i) => {
+    if (a == null) return; // null = top-of-body fallback, always valid
+    if (typeof a !== 'string') { errs.push(`${id}: diagram_anchors[${i}] must be a string or null`); return; }
+    if (a.length < 40) errs.push(`${id}: diagram_anchors[${i}] is ${a.length} chars (need ≥40)`);
+    else if (!body.includes(a)) errs.push(`${id}: diagram_anchors[${i}] not a verbatim substring of body_md`);
+  });
+  return errs;
+}
 
 function firstSentence(body, max = 160) {
   if (!body) return '';
@@ -50,6 +70,13 @@ export function deriveMerge(lean, derived, registry) {
     for (const s of lifecycle_stage) {
       if (!LIFECYCLE_STAGES.includes(s)) errors.push(`${rec.id}: invalid lifecycle_stage "${s}"`);
     }
+    // diagram_anchors — parallel to the record's diagrams[]. Default to an all-null
+    // array of the right length when the derive step ran before anchors were picked.
+    const diagrams = Array.isArray(rec.diagrams) ? rec.diagrams : [];
+    let diagram_anchors = Array.isArray(d.diagram_anchors)
+      ? d.diagram_anchors
+      : (Array.isArray(rec.diagram_anchors) ? rec.diagram_anchors : diagrams.map(() => null));
+    for (const e of validateAnchors(rec.id, diagrams, diagram_anchors, rec.body_md)) errors.push(e);
     return {
       ...rec,
       summary: (d.summary && String(d.summary).trim()) || firstSentence(rec.body_md),
@@ -60,6 +87,7 @@ export function deriveMerge(lean, derived, registry) {
       decision_type,
       lifecycle_stage,
       related: Array.isArray(d.related) ? d.related : [],
+      diagram_anchors,
     };
   });
   return { records: out, errors };
@@ -76,25 +104,31 @@ function assert(cond, msg) { if (!cond) { throw new Error(msg); } }
 function runSelftest() {
   const registry = ['prioritization', 'irreversible-decision', 'high-stakes'];
   const lean = [
-    { id: 'a/x', name: 'X', category: 'A', body_md: 'X helps you decide. More prose.' },
+    { id: 'a/x', name: 'X', category: 'A', body_md: 'X helps you decide between options. More prose here.', diagrams: ['data/diagrams/a__x.svg'] },
     { id: 'a/y', name: 'Y', category: 'A', body_md: 'Y is sparse.' },
   ];
-  // valid merge
+  // valid merge — new cognitive-job enum + a valid ≥40-char anchor substring of body_md
   const okDerived = [
-    { id: 'a/x', problem_tags: ['prioritization'], decision_type: 'prioritization', lifecycle_stage: ['any'], summary: 'X tightened.', related: ['a/y'], aliases: ['Ex'], when_to_use: 'When deciding.' },
+    { id: 'a/x', problem_tags: ['prioritization'], decision_type: 'prioritize', lifecycle_stage: ['any'], summary: 'X tightened.', related: ['a/y'], aliases: ['Ex'], when_to_use: 'When deciding.', diagram_anchors: ['X helps you decide between options. More prose here.'] },
   ];
   let { records, errors } = deriveMerge(lean, okDerived, registry);
   assert(errors.length === 0, `unexpected errors: ${errors.join('; ')}`);
   assert(records[0].summary === 'X tightened.', 'summary merge');
   assert(records[0].problem_tags[0] === 'prioritization', 'tag merge');
-  assert(records[0].decision_type === 'prioritization', 'decision_type merge');
+  assert(records[0].decision_type === 'prioritize', 'decision_type merge (new enum)');
+  assert(records[0].diagram_anchors.length === 1, 'diagram_anchors merged');
   assert(records[1].summary === 'Y is sparse.', `sparse summary fallback: ${records[1].summary}`);
   assert(records[1].problem_tags.length === 0, 'sparse record validates with empty tags');
   assert(records[1].decision_type === 'n/a', 'sparse decision_type default');
+  assert(Array.isArray(records[1].diagram_anchors) && records[1].diagram_anchors.length === 0, 'no-diagram record gets [] anchors');
 
   // invalid tag → error
   const badTag = deriveMerge(lean, [{ id: 'a/x', problem_tags: ['not-a-tag'] }], registry);
   assert(badTag.errors.some((e) => /unknown problem_tag "not-a-tag"/.test(e)), 'unknown tag rejected');
+
+  // OLD enum value is now rejected (clean break)
+  const oldEnum = deriveMerge(lean, [{ id: 'a/x', decision_type: 'framing' }], registry);
+  assert(oldEnum.errors.some((e) => /invalid decision_type "framing"/.test(e)), 'retired enum value rejected');
 
   // invalid decision_type → error
   const badEnum = deriveMerge(lean, [{ id: 'a/x', decision_type: 'vibes' }], registry);
@@ -104,7 +138,19 @@ function runSelftest() {
   const badStage = deriveMerge(lean, [{ id: 'a/x', lifecycle_stage: ['someday'] }], registry);
   assert(badStage.errors.some((e) => /invalid lifecycle_stage "someday"/.test(e)), 'bad stage rejected');
 
-  console.log('derive-fields --selftest: PASS (merge + vocab validation)');
+  // anchor not a substring of body_md → error
+  const badAnchor = deriveMerge(lean, [{ id: 'a/x', diagram_anchors: ['this string of forty-plus characters is not in body'] }], registry);
+  assert(badAnchor.errors.some((e) => /not a verbatim substring of body_md/.test(e)), 'non-substring anchor rejected');
+
+  // anchor too short (<40 chars) → error
+  const shortAnchor = deriveMerge(lean, [{ id: 'a/x', diagram_anchors: ['X helps you'] }], registry);
+  assert(shortAnchor.errors.some((e) => /need ≥40/.test(e)), 'short anchor rejected');
+
+  // anchor length mismatch vs diagrams → error
+  const lenMismatch = deriveMerge(lean, [{ id: 'a/x', diagram_anchors: [null, null] }], registry);
+  assert(lenMismatch.errors.some((e) => /diagram_anchors length 2 != diagrams length 1/.test(e)), 'anchor length mismatch caught');
+
+  console.log('derive-fields --selftest: PASS (merge + vocab + anchors validation)');
 }
 
 function main() {

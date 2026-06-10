@@ -16,9 +16,12 @@
 import { readFileSync } from 'node:fs';
 import { argv } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { DECISION_TYPES, LIFECYCLE_STAGES } from './derive-fields.mjs';
+import { DECISION_TYPES, LIFECYCLE_STAGES, validateAnchors } from './derive-fields.mjs';
 
 const REQUIRED = ['id', 'name', 'category', 'body_md'];
+// decision_type distribution gate — guards against a mega-bucket facet re-forming.
+const DT_MAX_SHARE = 0.30; // no single value may exceed 30% of records
+const NA_MAX_SHARE = 0.05; // n/a residual capped at 5%
 
 export function validate(records, situations) {
   const errors = [];
@@ -30,6 +33,7 @@ export function validate(records, situations) {
   let nameBodyRefOk = 0;
   let diagramOk = 0;
   let diagramException = 0;
+  const dtCounts = {}; // decision_type → count, for the distribution gate
 
   for (const r of records) {
     for (const f of REQUIRED) {
@@ -41,12 +45,16 @@ export function validate(records, situations) {
       }
     }
     if (r.decision_type && !DECISION_TYPES.includes(r.decision_type)) errors.push(`${r.id}: invalid decision_type "${r.decision_type}"`);
+    if (r.decision_type) dtCounts[r.decision_type] = (dtCounts[r.decision_type] || 0) + 1;
     for (const s of r.lifecycle_stage || []) {
       if (!LIFECYCLE_STAGES.includes(s)) errors.push(`${r.id}: invalid lifecycle_stage "${s}"`);
     }
     for (const rel of r.related || []) {
       if (!ids.has(rel)) errors.push(`${r.id}: related id "${rel}" does not resolve`);
     }
+    // diagram_anchors — required on every record; parallel + substring-valid (FR-SCHEMA-5).
+    if (!('diagram_anchors' in r)) errors.push(`${r.id}: missing required field "diagram_anchors"`);
+    else for (const e of validateAnchors(r.id, r.diagrams, r.diagram_anchors, r.body_md)) errors.push(e);
     const hasName = r.name && String(r.name).trim();
     const hasBody = r.body_md && String(r.body_md).trim();
     const hasRefs = Array.isArray(r.references) && r.references.length > 0;
@@ -54,6 +62,19 @@ export function validate(records, situations) {
     if (hasName && hasBody && hasRefs) nameBodyRefOk++;
     if (r.diagram) diagramOk++;
     else { diagramException++; warnings.push(`${r.id}: no diagram (ship-with-warning)`); }
+  }
+
+  // decision_type distribution gate (FR-SCHEMA-4) — no mega-bucket, capped n/a residual.
+  const dtTotal = Object.values(dtCounts).reduce((a, b) => a + b, 0);
+  if (dtTotal > 0) {
+    for (const [val, c] of Object.entries(dtCounts)) {
+      const share = c / dtTotal;
+      if (val !== 'n/a' && share > DT_MAX_SHARE) {
+        errors.push(`decision_type "${val}" is ${(share * 100).toFixed(1)}% of corpus (> ${(DT_MAX_SHARE * 100)}% gate)`);
+      }
+    }
+    const naShare = (dtCounts['n/a'] || 0) / dtTotal;
+    if (naShare > NA_MAX_SHARE) errors.push(`decision_type "n/a" is ${(naShare * 100).toFixed(1)}% of corpus (> ${(NA_MAX_SHARE * 100)}% gate)`);
   }
 
   if (situations && Array.isArray(situations.situations)) {
@@ -87,6 +108,7 @@ export function validate(records, situations) {
       name_body_ref_coverage: +(nbrCoverage * 100).toFixed(1),
       diagram_coverage: +((diagramOk / n) * 100).toFixed(1),
       diagram_exceptions: diagramException,
+      decision_type_distribution: dtCounts,
     },
   };
 }
@@ -95,22 +117,58 @@ export function validate(records, situations) {
 function assert(cond, msg) { if (!cond) throw new Error(msg); }
 
 function runSelftest() {
-  const good = [
-    { id: 'a/x', name: 'X', category: 'A', body_md: 'prose', references: [{ type: 'Article', url: 'u' }], problem_tags: ['t1'], decision_type: 'analysis', lifecycle_stage: ['any'], related: ['a/y'], diagram: 'd.svg' },
-    { id: 'a/y', name: 'Y', category: 'A', body_md: 'prose', references: [{ type: 'Article', url: 'u' }], problem_tags: [], decision_type: 'n/a', lifecycle_stage: [], related: [], diagram: null },
-  ];
-  const sit = { problem_tags: ['t1'], situations: [{ id: 's', tags: ['t1'], frameworks: ['a/x'] }] };
+  // a balanced good corpus: 8 records spanning distinct decision_types (no value > 30%),
+  // each carrying a present (possibly empty) diagram_anchors array.
+  const DT8 = ['prioritize', 'decide', 'diagnose', 'estimate', 'strategize', 'design', 'communicate', 'frame'];
+  const good = DT8.map((dt, i) => ({
+    id: `a/${i}`, name: `F${i}`, category: 'A', body_md: 'prose body for the framework',
+    references: [{ type: 'Article', url: 'u' }], problem_tags: i === 0 ? ['t1'] : [],
+    decision_type: dt, lifecycle_stage: ['any'], related: [],
+    diagram: i === 7 ? null : 'd.svg', diagrams: i === 7 ? [] : ['d.svg'],
+    diagram_anchors: i === 7 ? [] : [null],
+  }));
+  const sit = { problem_tags: ['t1'], situations: [{ id: 's', tags: ['t1'], frameworks: ['a/0'] }] };
   let res = validate(good, sit);
   assert(res.ok, `good corpus should pass: ${res.errors.join('; ')}`);
   assert(res.report.diagram_exceptions === 1, 'one diagram exception counted');
-  assert(res.warnings.length === 1, 'ship-with-warning recorded');
+
+  // a valid ≥40-char substring anchor passes (no decision_type → distribution gate inert)
+  const anchored = [{ id: 'a/x', name: 'X', category: 'A', body_md: 'Reach × Impact × Confidence ÷ Effort is the core formula here.', references: [{ type: 'A', url: 'u' }], diagram: 'd.svg', diagrams: ['d.svg'], diagram_anchors: ['Reach × Impact × Confidence ÷ Effort is the core formula'] }];
+  assert(validate(anchored, { problem_tags: [] }).ok, `valid substring anchor passes: ${validate(anchored, { problem_tags: [] }).errors.join('; ')}`);
+
+  // OLD enum value rejected (clean break)
+  const oldEnum = [{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], decision_type: 'framing', diagram_anchors: [] }];
+  let rOld = validate(oldEnum, { problem_tags: [] });
+  assert(!rOld.ok && rOld.errors.some((e) => /invalid decision_type "framing"/.test(e)), 'retired enum value rejected');
+
+  // distribution gate: a value > 30% fails
+  const skewed = [];
+  for (let i = 0; i < 10; i++) skewed.push({ id: `s/${i}`, name: 'N', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], decision_type: i < 5 ? 'frame' : DT8[i], diagram_anchors: [] });
+  let rSkew = validate(skewed, { problem_tags: [] });
+  assert(!rSkew.ok && rSkew.errors.some((e) => /decision_type "frame" is .*> 30% gate/.test(e)), 'distribution gate fires on mega-bucket');
+
+  // n/a residual > 5% fails
+  const naHeavy = [];
+  for (let i = 0; i < 20; i++) naHeavy.push({ id: `na/${i}`, name: 'N', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], decision_type: i < 2 ? 'n/a' : DT8[i % 8], diagram_anchors: [] });
+  let rNa = validate(naHeavy, { problem_tags: [] });
+  assert(!rNa.ok && rNa.errors.some((e) => /decision_type "n\/a" is .*> 5% gate/.test(e)), 'n/a residual gate fires');
+
+  // missing diagram_anchors field rejected (clean break — required on every record)
+  const noAnchorField = [{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], decision_type: 'frame', diagrams: ['d.svg'] }];
+  let rNoAnc = validate(noAnchorField, { problem_tags: [] });
+  assert(!rNoAnc.ok && rNoAnc.errors.some((e) => /missing required field "diagram_anchors"/.test(e)), 'missing diagram_anchors caught');
+
+  // anchor length mismatch vs diagrams rejected
+  const badLen = [{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], decision_type: 'frame', diagrams: ['d.svg'], diagram_anchors: [] }];
+  let rBadLen = validate(badLen, { problem_tags: [] });
+  assert(!rBadLen.ok && rBadLen.errors.some((e) => /diagram_anchors length 0 != diagrams length 1/.test(e)), 'anchor length mismatch caught');
 
   // dangling related
-  let r2 = validate([{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], related: ['a/zzz'] }], { problem_tags: [] });
+  let r2 = validate([{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], related: ['a/zzz'], diagram_anchors: [] }], { problem_tags: [] });
   assert(!r2.ok && r2.errors.some((e) => /related id "a\/zzz"/.test(e)), 'dangling related caught');
 
   // bad tag
-  let r3 = validate([{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], problem_tags: ['nope'] }], { problem_tags: ['t1'] });
+  let r3 = validate([{ id: 'a/x', name: 'X', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], problem_tags: ['nope'], diagram_anchors: [] }], { problem_tags: ['t1'] });
   assert(!r3.ok && r3.errors.some((e) => /problem_tag "nope"/.test(e)), 'bad tag caught');
 
   // dangling situation ref
@@ -118,23 +176,23 @@ function runSelftest() {
   assert(!r4.ok && r4.errors.some((e) => /framework "a\/ghost"/.test(e)), 'dangling situation ref caught');
 
   // missing required field
-  let r5 = validate([{ id: 'a/x', name: '', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }] }], { problem_tags: [] });
+  let r5 = validate([{ id: 'a/x', name: '', category: 'A', body_md: 'p', references: [{ type: 'A', url: 'u' }], diagram_anchors: [] }], { problem_tags: [] });
   assert(!r5.ok && r5.errors.some((e) => /missing required field "name"/.test(e)), 'missing field caught');
 
   // hard coverage gate fires on missing required fields (name+body), not on refs
   const lowCov = [];
-  for (let i = 0; i < 20; i++) lowCov.push({ id: `a/${i}`, name: 'N', category: 'A', body_md: i < 10 ? 'p' : '', references: [{ type: 'A', url: 'u' }] });
+  for (let i = 0; i < 20; i++) lowCov.push({ id: `a/${i}`, name: 'N', category: 'A', body_md: i < 10 ? 'p' : '', references: [{ type: 'A', url: 'u' }], diagram_anchors: [] });
   let r6 = validate(lowCov, { problem_tags: [] });
   assert(!r6.ok && r6.errors.some((e) => /name\+body coverage .* < 95%/.test(e)), 'name+body gate fires');
 
   // missing references alone is a WARNING, not a hard failure (schema-optional)
   const noRefs = [];
-  for (let i = 0; i < 20; i++) noRefs.push({ id: `b/${i}`, name: 'N', category: 'B', body_md: 'p', references: i < 5 ? [{ type: 'A', url: 'u' }] : [] });
+  for (let i = 0; i < 20; i++) noRefs.push({ id: `b/${i}`, name: 'N', category: 'B', body_md: 'p', references: i < 5 ? [{ type: 'A', url: 'u' }] : [], decision_type: DT8[i % 8], diagram_anchors: [] });
   let r7 = validate(noRefs, { problem_tags: [] });
-  assert(r7.ok, 'ref-less corpus passes the hard gate');
+  assert(r7.ok, `ref-less corpus passes the hard gate: ${r7.errors.join('; ')}`);
   assert(r7.warnings.some((w) => /references coverage/.test(w)), 'low ref coverage warned');
 
-  console.log('validate-corpus --selftest: PASS (schema + coverage + xref)');
+  console.log('validate-corpus --selftest: PASS (schema + coverage + xref + dist + anchors)');
 }
 
 function main() {
