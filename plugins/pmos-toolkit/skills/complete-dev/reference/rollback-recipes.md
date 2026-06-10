@@ -1,6 +1,6 @@
 # Rollback recipes
 
-Used by `/complete-dev` Phase 15 (push failure) and Phase 16a (worktree recovery). Tag names follow FR-58: always `<plugin>/v<version>` (e.g. `pmos-toolkit/v2.50.0`), never bare `v<version>`.
+Used by `/complete-dev` Phase 15 (push failure) and Phase 16a (worktree recovery). Tag names follow the release tag convention: always `<plugin>/v<version>` (e.g. `pmos-toolkit/v2.50.0`), never bare `v<version>`.
 
 ## Rule of thumb
 

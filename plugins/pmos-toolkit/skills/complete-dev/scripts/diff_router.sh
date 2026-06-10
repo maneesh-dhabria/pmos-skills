@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 # diff_router.sh — auto-detect / refuse-ambiguous / substrate-smart-detect
 # for /complete-dev Phase 0 --plugin resolution. FR-51, FR-52, FR-53, FR-54.
+#
+# Diff sources: staged + working tree + branch scope (merge-base..HEAD against
+# origin/main, falling back to local main). The branch union matters in the
+# canonical post-/verify flow, where all feature work is already committed and
+# the staged/working diffs are empty — without it, auto-detect silently
+# degrades to the ask-the-user fallback exactly when it is most useful
+# (2026-06-10 skill-design review, complete-dev finding 7).
 set -euo pipefail
-files=$( { git diff --cached --name-only; git diff --name-only HEAD; } 2>/dev/null | sort -u || true)
+base=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD main 2>/dev/null || true)
+files=$( { git diff --cached --name-only; git diff --name-only HEAD; [ -n "$base" ] && git diff --name-only "$base" HEAD; } 2>/dev/null | sort -u || true)
 [ -z "$files" ] && exit 0
 plugin_paths=$(printf '%s\n' "$files" | grep -oE '^plugins/[^/]+/[^[:space:]]*' || true)
 [ -z "$plugin_paths" ] && exit 0

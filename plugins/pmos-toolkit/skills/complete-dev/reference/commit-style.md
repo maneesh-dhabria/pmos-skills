@@ -14,7 +14,7 @@ Used by `/complete-dev` Phase 11. Always run `git log --oneline -3` first to mat
 
 <optional body — what and why, not how>
 
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+<co-author trailer — see "Trailer" below>
 ```
 
 ### Type cheat-sheet
@@ -39,7 +39,7 @@ feat(scope): summary — pmos-toolkit X.Y.Z
 
 <body>
 
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+<co-author trailer — see "Trailer" below>
 ```
 
 The `— pmos-toolkit X.Y.Z` suffix is appended on version-bump commits. Skip the suffix if the commit is unrelated to a version change.
@@ -61,13 +61,11 @@ The `— pmos-toolkit X.Y.Z` suffix is appended on version-bump commits. Skip th
 
 ## Trailer
 
-Always append the co-author trailer for this repo:
+Always append a `Co-Authored-By:` trailer. Use the model identity your host environment specifies (most platforms mandate the exact line in their git guidance); if the user specifies a different identity in their personal settings, that wins. Never hardcode a model name here — model identities rot:
 
 ```
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+Co-Authored-By: <identity your host environment specifies> <noreply@anthropic.com>
 ```
-
-If the user specifies a different model identity in their personal settings, use that; otherwise use the line above.
 
 ## $ARGUMENTS hint handling
 

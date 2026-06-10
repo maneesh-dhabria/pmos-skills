@@ -22,7 +22,16 @@ Standalone-ish: invokes `/changelog` (Phase 8) and optionally `/verify` (Phase 1
 
 ## Track Progress
 
-This skill has 23 phases (Phase 0, 0a, 1, 2, 3, 4, 5, 6, 7, 7a, 8, 9, 10, 11, 12, 13, 14, 15, 15a, 16, 16a, 17, 18 — Phase 4 is a one-line deferral stub; the substantive worktree-cleanup body lives at Phase 16a). Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code, equivalent elsewhere). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+Phases run 0–18 in order, with three conditional sub-phases (0a defaults confirm, 15a push-retry cleanup, 16a worktree cleanup) and a one-line deferral stub at Phase 4 (the cleanup body lives at Phase 16a). Do NOT create one task per phase — track 8 task groups with your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code), marking each in-progress when started and completed as soon as it finishes:
+
+1. Preflight + run defaults (Phases 0–2)
+2. Merge (Phases 3–4)
+3. Deploy detection + repo learnings (Phases 5–6)
+4. README + changelog + version bump (Phases 7–10)
+5. Commit + branch cleanup (Phases 11–12)
+6. Tag + dry-run summary (Phases 13–14)
+7. Deploy + push + push tag (Phases 15–16, incl. the 15a retry loop)
+8. Worktree cleanup + finalize + lastrun + learnings capture (Phases 16a–18)
 
 ## Platform Adaptation
 
@@ -49,6 +58,8 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /complete-d
 - `--force-cleanup` — pass through to Phase 16a worktree-cleanup's dirty-branch handling (allows `git worktree remove --force`)
 - `--reset-defaults` — ignore `.pmos/complete-dev.lastrun.yaml` and seed Phase 0a from built-in defaults instead. The lastrun file is not deleted; Phase 17 will overwrite it with this run's choices as usual.
 - Free-form text — used as the commit-message hint draft in Phase 11
+
+Every flag has a natural-language equivalent — "skip the changelog this run" ≡ `--skip-changelog`, "don't tag" ≡ `--no-tag`, "ignore my last run's defaults" ≡ `--reset-defaults`; infer the option from the request, and an explicit flag overrides inference. The flags stay documented contracts because each is a destructive opt-in (`--force-cleanup`), a typed machine-coupled value (`--plugin`), or pins an answer a `--non-interactive` run can't be prompted for (`--skip-*`, `--no-tag`, `--reset-defaults`).
 
 ---
 
@@ -82,7 +93,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /complete-d
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 0 — Sanity & state
+## Phase 0 — Sanity & state {#sanity-state}
 
 Run in parallel:
 - `git status --porcelain` (uncommitted state)
@@ -96,49 +107,31 @@ Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted
 
 **Resolve `--plugin <name>` (multi-plugin marketplace).** In a multi-plugin repo (multiple `plugins/<name>/` directories under the repo root), Phase 0 must scope the release to exactly one plugin before any version-bump / tag / push work begins.
 
-1. **Parse argument (FR-50).** If the invocation includes `--plugin <name>`, capture `<name>` and validate against `ls plugins/`. If `<name>` does not match any directory under `plugins/`, emit `ERROR: --plugin <name> does not match any directory under plugins/. Known: <list>. Exit 64.` to stderr and abort.
+1. **Parse argument.** If the invocation includes `--plugin <name>`, capture `<name>` and validate against `ls plugins/`. If `<name>` does not match any directory under `plugins/`, emit `ERROR: --plugin <name> does not match any directory under plugins/. Known: <list>. Exit 64.` to stderr and abort.
 
-2. **Auto-detect / refuse / substrate-smart-detect.** If `--plugin` is unset, invoke the runtime helper (a Bash tool call):
+2. **Auto-detect / refuse / substrate-smart-detect.** If `--plugin` is unset, invoke the runtime helper (a Bash tool call; if `CLAUDE_PLUGIN_ROOT` is unset on your platform, resolve the script relative to this SKILL.md — `scripts/diff_router.sh`):
 
    ```
    bash ${CLAUDE_PLUGIN_ROOT}/skills/complete-dev/scripts/diff_router.sh
    ```
 
-   Branch on its exit code + output:
+   The script is the routing contract — relay its own message rather than re-deriving it. Four dispositions:
 
-   - **Exit 0, stdout contains `Auto-detected --plugin <name> from diff`** → single-plugin diff (FR-51). Surface an `AskUserQuestion`:
-     ```
-     question: "Auto-detected --plugin <name> from diff. Proceed?"
-     options:
-       - Proceed (Recommended)
-       - Pass --plugin explicitly (let me retype)
-       - Abort /complete-dev
-     ```
-     On Proceed → set `--plugin <name>` and continue. On explicit retype → re-run this substep with the new value. On Abort → exit 0.
-
-   - **Exit 64, stderr contains `spans plugins/.* AND plugins/`** → multi-plugin diff with non-`_shared` changes (FR-52). Surface the helper's stderr message verbatim to the user and abort with exit 64. Do not proceed.
-
+   - **Auto-detected** (stdout `Auto-detected --plugin <name> from diff`) → confirm via `AskUserQuestion` — Proceed (Recommended) / pass `--plugin` explicitly (retype) / abort — then set `--plugin <name>` and continue.
+   - **Refused** (exit 64, stderr `spans plugins/.* AND plugins/` — multi-plugin diff with non-`_shared` changes) → surface the stderr verbatim and abort with exit 64. Do not proceed.
    <!-- defer-only: ambiguous -->
-   - **Exit 0, stdout contains `Substrate-only change detected`** → only `plugins/<name>/skills/_shared/` files touched across multiple plugins (FR-53). Surface an `AskUserQuestion` listing each plugin and asking which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry will land under that plugin). Set `--plugin <chosen>` and continue.
-
+   - **Substrate-only** (stdout `Substrate-only change detected`) → ask via `AskUserQuestion` which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry land under that plugin); set `--plugin <chosen>`.
    <!-- defer-only: ambiguous -->
-   - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/${plugin_name}/` where `${plugin_name}` defaults to the sole entry under `plugins/`; when multiple plugins exist and the diff yields no `plugins/` path, surface an `AskUserQuestion` asking the user to pick the target plugin rather than guessing). This preserves pre-rollout single-plugin invocations.
+   - **Silent exit 0** (empty diff or no `plugins/` paths) → legacy fallback: when exactly one plugin exists under `plugins/`, assume it; when several exist, ask the user to pick via `AskUserQuestion` — never guess.
 
 <!-- defer-only: ambiguous -->
-3. **Cross-check `## Release policy` in top-level `CLAUDE.md` (FR-55, E15).** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case (E15): warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
+3. **Cross-check `## Release policy` in top-level `CLAUDE.md`.** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case: warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
 
-The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 12), marketplace.json registration check (Phase 14 pre-push), and changelog routing (Phase 8).
+The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 13), marketplace.json registration check (Phase 14 pre-push), and changelog routing (Phase 8).
 
-**Load lastrun defaults.** Read `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md`:
+**Load lastrun defaults.** Seed `run_defaults` from `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md` § "Read contract" (absent → built-ins; malformed → stderr warn `lastrun.yaml malformed or unknown version — falling back to built-in defaults`, never error out; `--reset-defaults` → bypass the read, seed from built-ins). Then apply CLI-flag overrides: `--skip-changelog` → `changelog_disposition: skip`; `--skip-deploy` → `deploy_path: skip-deploy`; `--no-tag` is orthogonal (not stored in lastrun). Phase 0a surfaces overrides with a `(overridden by --flag)` annotation.
 
-- File absent → seed `run_defaults` from built-in defaults (see `reference/lastrun-schema.md` § "Built-in defaults").
-- File present + valid → seed `run_defaults` from the file.
-- File present but malformed → stderr warn `lastrun.yaml malformed or unknown version — falling back to built-in defaults`; seed from built-ins. Never error out (FR-LR03).
-- `--reset-defaults` flag → bypass the read; seed from built-ins.
-
-Apply CLI-flag overrides to `run_defaults`: `--skip-changelog` → `changelog_disposition: skip`; `--skip-deploy` → `deploy_path: skip-deploy`. `--no-tag` is orthogonal (not stored in lastrun). Phase 0a's confirm prompt surfaces overrides with a `(overridden by --flag)` annotation.
-
-## Phase 0a — Confirm run defaults
+## Phase 0a — Confirm run defaults {#confirm-run-defaults}
 
 **Skip if `mode == non-interactive`** — the AUTO-PICK-Recommended contract in the inlined non-interactive block already handles every prompt; Phase 0a's confirm is redundant there. Log to chat: `Phase 0a auto-confirmed (non-interactive); defaults source: <lastrun|built-in>`.
 
@@ -166,7 +159,7 @@ options:
   - Cancel
 ```
 
-**On "Confirm all":** mark `run_defaults_confirmed = true`. Downstream phases consult `run_defaults` and short-circuit their non-destructive prompts (Phase 1, Phase 3 guard-PASS, Phase 5 unchanged-signals, Phase 8 accept-path, Phase 9 step 5 bump, Phase 14 push). The destructive-prompt allowlist in `reference/lastrun-schema.md` still fires.
+**On "Confirm all":** mark `run_defaults_confirmed = true`, which arms **the short-circuit rule — stated once, applied pipeline-wide:** every phase marked "(0a-short-circuitable)" below consults its `run_defaults` field, applies it per the field-reference table in `reference/lastrun-schema.md` (which enumerates each seeded prompt and its effect), skips its own prompt, and logs one line: `Phase <N>: <field> '<value>' auto-selected via Phase 0a`. The destructive-prompt allowlist in `reference/lastrun-schema.md` is never short-circuited. Two conditions are not memorizable and always re-prompt: Phase 3 when the shared-branch guard FAILs (rebase would rewrite SHAs others may have pulled), and Phase 5 when detected deploy signals differ from lastrun's `detected_signals.deploy` (the environment has shifted).
 
 **On "Edit one or more":**
 
@@ -188,9 +181,9 @@ For each selected field, present the per-field prompt (reuse Phase 1 / 3 / 5 / 8
 
 **On "Cancel":** exit /complete-dev with no side effects.
 
-## Phase 1 — /verify gate
+## Phase 1 — /verify gate {#verify-gate}
 
-**Short-circuit when Phase 0a confirmed `run_defaults.verify_already_ran: true`** — log `Phase 1: /verify gate auto-confirmed via Phase 0a (verify_already_ran: true)` and proceed to Phase 2. The PASS-WITH-GAPS check below still runs — it is never short-circuited.
+(0a-short-circuitable: `verify_already_ran: true` → proceed to Phase 2. The PASS-WITH-GAPS check below still runs — it is never short-circuited.)
 
 Otherwise (Phase 0a's edit path set it to `false`, OR running in non-interactive mode which already AUTO-PICKs the Recommended option):
 
@@ -221,7 +214,7 @@ options:
 
 If "Resolve the gaps first" → invoke `/pmos-toolkit:verify` inline, then re-run this check on the fresh report. If "Proceed despite gaps" → continue, and list the accepted gaps in the Phase 17 success summary. If "Cancel" → exit with no side effects.
 
-## Phase 2 — Worktree + branch detection
+## Phase 2 — Worktree + branch detection {#worktree-detection}
 
 Determine:
 - Is the current cwd a worktree? (`git rev-parse --git-common-dir` differs from `git rev-parse --git-dir` when in a worktree)
@@ -230,7 +223,7 @@ Determine:
 
 If on `main` already: skip to Phase 5 (no merge needed; treat as direct-to-main flow).
 
-## Phase 3 — Merge feature → main
+## Phase 3 — Merge feature → main {#merge}
 
 If on a feature branch:
 
@@ -252,9 +245,7 @@ fi
 
 **Step B — Show the prompt.** Annotation flips based on guard.
 
-**Short-circuit when Phase 0a confirmed AND `guard=PASS`:** map `run_defaults.merge_style` → action (`rebase-then-ff` → rebase; `merge-ff-or-noff` → merge; `branch-only` → stay on feature). Log `Phase 3 (guard PASS): merge style '<style>' auto-selected via Phase 0a`. Skip the prompt; proceed to Step C with the chosen action.
-
-**Guard FAIL ALWAYS re-prompts** (destructive escape hatch — see `reference/lastrun-schema.md` § "Destructive-prompt allowlist"). Phase 0a's `merge_style` is ignored on guard-FAIL; the prompt below is shown with merge as Recommended.
+(0a-short-circuitable on guard PASS only: `merge_style` → its action per the field table; proceed to Step C. **Guard FAIL ALWAYS re-prompts** — destructive escape hatch — with merge as Recommended; Phase 0a's `merge_style` is ignored.)
 
 - **Guard PASS** (default — solo branch or unpushed):
 
@@ -299,28 +290,17 @@ If **merge** chosen, the existing sequence:
 5. `git merge <feature-branch>` (fast-forward where possible; `--no-ff` if explicitly chosen)
 6. **Conflicts → STOP and ask user. Do NOT auto-resolve.**
 
-## Phase 4 — Worktree cleanup (stub — runs at Phase 16a)
+## Phase 4 — Worktree cleanup (stub — runs at Phase 16a) {#cleanup-stub}
 
-**No-op stub.** Worktree cleanup (FR-CD01–CD06) runs at **Phase 16a**, after push tag succeeds — see Anti-pattern #4 for why.
+No-op stub — see Anti-pattern #4 for why cleanup runs after push tag. Log to chat: `Phase 4: worktree retained through release; cleanup deferred to Phase 16a.` Proceed to Phase 5.
 
-Log to chat: `Phase 4: worktree retained through release; cleanup deferred to Phase 16a.` Proceed to Phase 5.
+## Phase 5 — Detect deployment norms {#deploy-norms}
 
-## Phase 5 — Detect deployment norms
+Probe the six signal classes per `reference/deploy-norms.md` (the detection rubric and recommendation table live there): CLAUDE.md/AGENTS.md deploy sections, `package.json` deploy/release/publish scripts, Makefile targets, CI push-to-main workflows, plugin manifests (deploy = push-to-remotes), and `pyproject.toml` `[project]` metadata (PyPI via `uv publish`). **Enumerate ALL detected signals — do not pick silently.**
 
-Probe and **enumerate ALL detected signals** (do not pick silently):
+(0a-short-circuitable — **only when detected signals match lastrun's `detected_signals.deploy`**; record the chosen path for Phase 14's dry-run summary and Phase 17's lastrun write. If signals differ from lastrun, the prompt below ALWAYS fires — the environment has shifted and the prior default may be wrong.)
 
-1. `CLAUDE.md` / `AGENTS.md` for explicit "Deploy:" or "Release:" sections
-2. `package.json` `scripts.deploy` / `scripts.release` / `scripts.publish`
-3. `Makefile` targets named `deploy`, `release`, `publish`
-4. `.github/workflows/` files that trigger on `push` to `main` (CI auto-deploy)
-5. Plugin manifest at `plugins/${plugin_name}/.claude-plugin/plugin.json` (for plugin-marketplace repos, "deploy" is typically just push-to-remotes)
-6. `pyproject.toml` with `[project]` metadata at `./pyproject.toml` or `./backend/pyproject.toml` (PyPI publish via `uv publish`)
-
-See `reference/deploy-norms.md` for the full detection rubric.
-
-**Short-circuit when Phase 0a confirmed AND detected signals match lastrun's `detected_signals.deploy`:** map `run_defaults.deploy_path` → action; log `Phase 5: deploy path '<path>' auto-selected via Phase 0a (signals unchanged from lastrun)`; skip the prompt; record the chosen path for Phase 14's dry-run summary and Phase 17's lastrun write. If detected signals **differ from lastrun** (new CI workflow appeared, package.json gained a deploy script, plugin manifest path changed) the prompt below ALWAYS fires — the environment has shifted and the prior default may be wrong.
-
-Present detected signals + a recommendation. Example:
+Present detected signals + the rubric's recommendation. Example:
 
 ```
 Detected deploy signals:
@@ -337,47 +317,21 @@ options:
   - Skip deploy entirely (--skip-deploy effect)
 ```
 
-When signal #6 fires alone (no other deploy signals), present:
-
-```
-Detected deploy signals:
-  (1) pyproject.toml at ./pyproject.toml — package "<name>" v<version>
-
-Recommendation: build + publish to PyPI via `uv publish`.
-
-question: "Which deploy path?"
-options:
-  - Build + publish to PyPI via `uv publish` (Recommended)
-  - Skip deploy entirely (--skip-deploy effect)
-```
+When the pyproject signal fires alone, the menu narrows to `Build + publish to PyPI via `uv publish` (Recommended)` / `Skip deploy entirely`, showing the package name + version being shipped.
 
 If `--skip-deploy` flag: still show this menu but pre-pick the skip option in the dry-run summary.
 
-## Phase 6 — Capture learnings
+## Phase 6 — Propose repo learnings {#repo-learnings}
 
 Scan `git diff main..HEAD` (or `git diff origin/main..HEAD` post-merge) plus the last N feature-branch commit messages. **Do NOT scan conversation transcript.** See `reference/learnings-scan.md` for the heuristics.
 
-Generate up to 8 candidate learnings. Group by target file (CLAUDE.md, AGENTS.md, ~/.pmos/learnings.md). Present via the **Findings Presentation Protocol**:
-
-<!-- defer-only: ambiguous -->
-For each candidate, ask via `AskUserQuestion` (batched ≤4 per call):
-
-```
-question: "<one-sentence finding> — propose adding to <file>: '<text>'"
-options:
-  - Add as proposed (Recommended)
-  - Edit text — I'll dictate the replacement
-  - Skip this entry
-  - Defer to manual edit later
-```
+Generate up to 8 candidate learnings, grouped by target file (CLAUDE.md, AGENTS.md, ~/.pmos/learnings.md). Present them per `_shared/findings-dispositions.md` (four dispositions, ≤4 per batch, platform fallback included), with these deltas: batch by target file instead of severity (candidates are uniform proposals — no severity vocabulary); question shape is `"<one-sentence finding> — propose adding to <file>: '<text>'"`; "Defer" means leave for manual edit later. Every candidate is a judgment call (`defer-only: ambiguous` class) — under `--non-interactive` all candidates DEFER; never auto-write learnings.
 
 Apply approved entries inline. Stage the edited files for the Phase 11 commit.
 
-**Platform fallback** (no interactive prompt tool): print numbered findings table with disposition column; user replies with disposition list; never auto-write.
+## Phase 7 — README freshness check {#readme-freshness}
 
-## Phase 7 — README freshness check
-
-Detect skill inventory drift (per /push Phase 1a logic):
+Detect skill inventory drift:
 
 - Skill directories on disk: `/bin/ls plugins/${plugin_name}/skills/ | grep -vE "^(_shared|\.shared|\.system)$"`
 - Skill rows in README: `/usr/bin/grep -oE "/${plugin_name}:[a-z-]+" README.md | sort -u`
@@ -394,17 +348,15 @@ options:
 
 If "Update": read each new skill's `SKILL.md` `description:` and add a categorized row (Pipeline / Enhancers / Artifacts & docs / Tracking & context / Utilities — ask if unclear). Remove rows for deleted skills. Show diff before staging.
 
-## Phase 7a — Release-notes recipes
-
-When generating the release notes section (consumed by /changelog in Phase 8 OR included directly in the merge commit body), apply the recipes in `reference/release-recipes.md` — four `git log` filters and anti-patterns for navigating folded-phase commits and the v2.34.0 flag surface (skip-auto-apply filter, Depends-on graph, no-mid-pipeline-rebase, --help flag table).
-
-## Phase 8 — Run /changelog (unless --skip-changelog)
+## Phase 8 — Run /changelog (unless --skip-changelog) {#changelog}
 
 If `--skip-changelog`: skip with a one-line warning.
 
 Otherwise: invoke `/pmos-toolkit:changelog` inline. /changelog writes to `{docs_path}/changelog.md` (resolved via `.pmos/settings.yaml`).
 
-**Short-circuit when Phase 0a confirmed AND `run_defaults.changelog_disposition: accept`:** log `Phase 8: changelog auto-accepted as drafted via Phase 0a`; skip the prompt below; stage the entry for the Phase 11 commit. The `edit / rerun / skip` paths ALWAYS fire the prompt (edit needs free-form input; rerun is non-default; skip is destructive).
+**Drafting release notes** (for /changelog or the merge-commit body) on a branch with folded-phase commits: filter the per-finding auto-apply noise with `git log --invert-grep --grep='auto-apply' main..HEAD`, and recover finding ordering from auto-apply bodies with `git log --grep='Depends-on:' --pretty=format:'%h %s%n%b%n---' main..HEAD`. Never `git rebase -i` mid-/feature-sdlc-run to "clean up" history first — the orchestrator's resume cursor matches commit timestamps + SHAs; rebase only in a fresh /complete-dev session after the pipeline completes.
+
+(0a-short-circuitable: `changelog_disposition: accept` → stage the drafted entry for the Phase 11 commit. The `edit / rerun / skip` paths ALWAYS fire the prompt — edit needs free-form input; rerun is non-default; skip is destructive.)
 
 After /changelog completes, surface the diff to the user:
 
@@ -417,7 +369,7 @@ options:
   - Skip changelog this run
 ```
 
-## Phase 9 — Version bump
+## Phase 9 — Version bump {#version-bump}
 
 If skill content changed (Phase 0 detected new/modified files under `plugins/${plugin_name}/skills/` or `plugins/${plugin_name}/agents/`), bump is **mandatory** — pre-push hook enforces.
 
@@ -426,7 +378,7 @@ If skill content changed (Phase 0 detected new/modified files under `plugins/${p
 **Step 1 — Pre-flight: sync main reference.**
 
 ```bash
-git fetch origin main 2>&1   # NFR-01: 10s hard timeout via `timeout 10 git fetch origin main` if available
+git fetch origin main 2>&1   # 10s hard timeout via `timeout 10 git fetch origin main` if available
 ```
 
 On non-zero exit, log `pre-flight skipped: could not fetch origin/main; pre-push hook will catch any version collision` and set `pre_flight_skipped=true`. Skip to Step 5.
@@ -478,7 +430,7 @@ If "Revert and re-bump", run the recipe in `reference/version-bump-recovery.md`,
 
 **Step 5 — Bump prompt.**
 
-**Short-circuit when Phase 0a confirmed AND `run_defaults.version_bump ∈ {patch, minor, major, skip}`:** apply the bump per `run_defaults.version_bump`; log `Phase 9 step 5: bump '<kind>' auto-selected via Phase 0a (baseline: <baseline_v>)`; skip the prompt below. **Step 4a's stale-bump recovery prompt always fires when triggered** — it's destructive.
+(0a-short-circuitable: `version_bump ∈ {patch, minor, major, skip}` applied against `<baseline_v>`. **Step 4a's stale-bump recovery prompt always fires when triggered** — it's destructive.)
 
 ```
 question: "Current version is <baseline_v>. What kind of bump?"
@@ -491,12 +443,12 @@ options:
 
 Where `<baseline_v>` is `main_v` (when pre-flight ran cleanly) or `local_v` with suffix `(pre-flight skipped — verify manually)` when `pre_flight_skipped=true`.
 
-Apply the bump to **both `plugin.json` manifests** (FR-57, paired-manifest invariant):
+Apply the bump to **both `plugin.json` manifests** (paired-manifest invariant):
 
 1. `plugins/${plugin_name}/.claude-plugin/plugin.json` — top-level `.version`
 2. `plugins/${plugin_name}/.codex-plugin/plugin.json` — top-level `.version`
 
-**Do NOT write a `version` into either `marketplace.json`.** Marketplace entries are catalogs (`name`, `description`, `source`, `category`, `homepage`); the effective version is resolved from each plugin's `plugin.json` at install time. Per the plugin-marketplace guidance, a `version` set in the marketplace entry is silently shadowed by `plugin.json` — keeping marketplace entries version-free eliminates a whole class of drift bug. (In this repo: see `CLAUDE.md ## Plugin manifest version sync`.)
+**Do NOT write a `version` into either `marketplace.json`** — marketplace entries are catalogs; a marketplace `version` is silently shadowed by `plugin.json`. (In this repo: see `CLAUDE.md ## Plugin manifest version sync`.)
 
 Validate both manifests still parse, and confirm the plugin is still registered (presence-only) in both marketplace files:
 
@@ -511,27 +463,13 @@ done
 
 The pre-push hook enforces that BOTH `plugin.json` versions agree **and** that the plugin is registered in both marketplace files — it does **not** check a marketplace `version` (there is none).
 
-**Stale-bump recovery:** see `reference/version-bump-recovery.md`.
-
 **For other monorepo cases**: detect via multiple `package.json` files; only offer bumps for paths that actually changed (`git diff --name-only main..HEAD` mapped to package roots).
 
-## Phase 10 — JSON schema validation
+## Phase 10 — JSON schema validation {#schema-validation}
 
-For any `.json` schema files in `plugins/${plugin_name}/skills/*/schemas/` that changed:
+For any changed `.json` schema files in `plugins/${plugin_name}/skills/*/schemas/`: validate each parses (`python3 -c "import json; json.load(open('<schema-path>'))"`), and validate any paired YAML example against its schema (`python3 -c "import json, yaml, jsonschema; jsonschema.validate(yaml.safe_load(open('<example>')), json.load(open('<schema>')))"`). Abort and surface errors if anything fails.
 
-```bash
-python3 -c "import json; json.load(open('<schema-path>'))"
-```
-
-For paired YAML examples:
-
-```bash
-python3 -c "import json, yaml, jsonschema; jsonschema.validate(yaml.safe_load(open('<example>')), json.load(open('<schema>')))"
-```
-
-Abort and surface errors if anything fails.
-
-## Phase 11 — Stage + commit
+## Phase 11 — Stage + commit {#stage-commit}
 
 If uncommitted changes exist (and there will be — version bump, README, changelog, learnings):
 
@@ -555,14 +493,14 @@ options:
 git commit -m "$(cat <<'EOF'
 <message>
 
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
+<co-author trailer — the identity your host environment specifies; see reference/commit-style.md>
 EOF
 )"
 ```
 
 6. Verify: `git log --oneline -1`.
 
-## Phase 12 — Stale branch cleanup
+## Phase 12 — Stale branch cleanup {#stale-branches}
 
 ```bash
 git branch --merged main | grep -vE "^\*|^\s*main$" || true
@@ -584,11 +522,11 @@ options:
 
 Delete only selected branches with `git branch -d` (NEVER `-D`).
 
-## Phase 13 — Tag release (unless --no-tag)
+## Phase 13 — Tag release (unless --no-tag) {#tag-release}
 
 If `--no-tag`: skip.
 
-**Tag format (FR-58):** the tag MUST be `${plugin_name}/v<version>` (e.g., `pmos-toolkit/v2.42.0`, `my-other-plugin/v0.3.1`). The repo-root namespace is shared across all plugins, so the per-plugin prefix is what keeps tags unique. This also satisfies the pre-push hook (T4), which rejects unprefixed `v<version>` tags in a multi-plugin repo.
+**Tag format:** the tag MUST be `${plugin_name}/v<version>` (e.g., `pmos-toolkit/v2.42.0`, `my-other-plugin/v0.3.1`). The repo-root namespace is shared across all plugins, so the per-plugin prefix is what keeps tags unique. This also satisfies the pre-push hook, which rejects unprefixed `v<version>` tags in a multi-plugin repo.
 
 Pre-check tag existence:
 
@@ -612,9 +550,9 @@ Otherwise create annotated tag:
 git tag -a "${plugin_name}/v<version>" -m "Release ${plugin_name} v<version>"
 ```
 
-## Phase 14 — Dry-run summary
+## Phase 14 — Dry-run summary {#dry-run-summary}
 
-Print a one-screen summary BEFORE pushing (FR-60). The summary must surface the detected plugin name, the two bump targets, the templated tag name, and every configured remote in the push-targets line:
+Print a one-screen summary BEFORE pushing. The summary must surface the detected plugin name, the two bump targets, the templated tag name, and every configured remote in the push-targets line:
 
 ```
 === /complete-dev summary ===
@@ -632,7 +570,7 @@ Pushing to:       <remote-1>, <remote-2>, ... (every entry from `git remote`)
 =============================
 ```
 
-**Short-circuit when Phase 0a confirmed:** apply `run_defaults.push_target` (`all-remotes` → push all; `origin-only` → push origin only); log `Phase 14: push target '<target>' auto-selected via Phase 0a`; skip the prompt below; the dry-run summary above is ALWAYS printed regardless. (Push **failure** in Phase 15 still re-prompts — destructive.)
+(0a-short-circuitable: `push_target`. The dry-run summary above is ALWAYS printed regardless; push **failure** in Phase 15 still re-prompts — destructive.)
 
 ```
 question: "Push to <N> remotes?"
@@ -642,12 +580,12 @@ options:
   - Cancel
 ```
 
-## Phase 15 — Deploy + push
+## Phase 15 — Deploy + push {#deploy-push}
 
 **Step 1 — Deploy** (skipped if `--skip-deploy` or user picked skip in Phase 5):
 Run the chosen deploy command. If it fails, abort BEFORE push and surface the error. Do not retry automatically.
 
-**Step 2 — Push**, sequentially to **every** remote enumerated by `git remote` (FR-59). Origin first (pre-push hook runs once):
+**Step 2 — Push**, sequentially to **every** remote enumerated by `git remote`. Origin first (pre-push hook runs once):
 
 ```bash
 git push origin main 2>&1
@@ -668,7 +606,7 @@ options:
 
 If "Fix and retry" → proceed to Phase 15a.
 
-If origin succeeds, continue with **every** other remote returned by `git remote` (FR-59):
+If origin succeeds, continue with **every** other remote returned by `git remote`:
 
 ```bash
 for remote in $(git remote | grep -v '^origin$'); do
@@ -680,7 +618,7 @@ Each runs sequentially; report each result. Failures on non-origin remotes don't
 
 See `reference/rollback-recipes.md` for the destructive rollback procedure.
 
-## Phase 15a — Push retry cleanup
+## Phase 15a — Push retry cleanup {#push-retry}
 
 If user picked "Fix and retry" in Phase 15:
 
@@ -688,9 +626,9 @@ If user picked "Fix and retry" in Phase 15:
 2. Pause and tell the user: "Tag deleted. Address the push failure (auth, hook, conflict), then tell me to resume."
 3. On resume, loop back to Phase 13 (re-create tag) → Phase 14 (re-summary) → Phase 15 (re-push).
 
-## Phase 16 — Push tag
+## Phase 16 — Push tag {#push-tag}
 
-After Phase 15 push success, push the tag to **every** remote that accepted main (FR-59):
+After Phase 15 push success, push the tag to **every** remote that accepted main:
 
 ```bash
 for remote in $(git remote); do
@@ -700,13 +638,13 @@ done
 
 Skip if `--no-tag` was used.
 
-## Phase 16a — Worktree cleanup (FR-CD01–CD06)
+## Phase 16a — Worktree cleanup {#worktree-cleanup}
 
-**Skip Phase 16a entirely** (chat: `Phase 16a skipped: not in a worktree.`) when Phase 2 detected `--no-worktree` mode or a non-worktree session (FR-CD06).
+**Skip Phase 16a entirely** (chat: `Phase 16a skipped: not in a worktree.`) when Phase 2 detected `--no-worktree` mode or a non-worktree session.
 
-**Skip when Phase 15 push failed and the user picked anything except a fully-completed retry** — the worktree must remain available for re-push attempts and `/feature-sdlc --resume`. The Phase 15a push-retry loop returns control to Phase 13 → 14 → 15 → 16 → 16a; only when 16 push tag succeeds does this phase run.
+**Skip when Phase 15 push failed and the user picked anything except a fully-completed retry** — the worktree must remain available for re-push attempts and `/feature-sdlc --resume` (Anti-pattern #4). The Phase 15a push-retry loop returns control to Phase 13 → 14 → 15 → 16 → 16a; only when 16 push tag succeeds does this phase run.
 
-**Short-circuit when Phase 0a confirmed AND `run_defaults.worktree_disposition: remove`:** log `Phase 16a: worktree removal auto-selected via Phase 0a`; skip the prompt below; proceed to step 1 of the Remove sequence. When `run_defaults.worktree_disposition: keep`, log `Phase 16a: worktree retained via Phase 0a`; skip the prompt; skip the Remove sequence; proceed to Phase 17.
+(0a-short-circuitable: `worktree_disposition` — `remove` → step 1 of the Remove sequence; `keep` → skip the Remove sequence, proceed to Phase 17.)
 
 Otherwise (Phase 0a edit-path or non-interactive Recommended-AUTO-PICK already covered):
 
@@ -720,31 +658,29 @@ options:
 
 On **Remove**:
 
-1. **Compute dirty status excluding `.pmos/feature-sdlc/`** (FR-CD03). Query the worktree's tracked + untracked status, **excluding the entire `.pmos/feature-sdlc/` subtree** (state.yaml is gitignored but exists on disk and would otherwise count as untracked). Non-empty result set = dirty. The exact git invocation (porcelain flags, pathspec syntax, or two-step `git ls-files --others --exclude-standard` + `git diff --name-only`) is left to the implementor to pin against the installed git version; the contract is the exclusion + the boolean result.
+1. **Compute dirty status excluding `.pmos/feature-sdlc/`.** Query the worktree's tracked + untracked status, **excluding the entire `.pmos/feature-sdlc/` subtree** (state.yaml is gitignored but exists on disk and would otherwise count as untracked). Non-empty result set = dirty. The exact git invocation (porcelain flags, pathspec syntax, or two-step `git ls-files --others --exclude-standard` + `git diff --name-only`) is left to the implementor to pin against the installed git version; the contract is the exclusion + the boolean result.
 
-2. **Dirty branch (FR-CD01 step 2 + FR-CD02):**
+2. **Dirty branch:**
    - With `--force-cleanup` flag: `git worktree remove --force <path>`; proceed to step 4.
    - Without `--force-cleanup`: surface the raw git error and stop. The user decides whether to commit, stash, or rerun with `--force-cleanup`. No auto-stash.
 
-3. **Clean branch (FR-CD01 steps 3–5):**
-   - Call `ExitWorktree(action=keep)` (FR-CD04).
+3. **Clean branch:**
+   - Call `ExitWorktree(action=keep)`.
      - Success → cwd is restored to the launch session's root; proceed.
-     - No-op (any non-success return — typically "Must not already be in a worktree" / "Must have entered the worktree this session") → print fallback (FR-CD05): `Worktree removed. After this session ends, run: cd <root-main-path>` where `<root-main-path>` is the first entry of `git worktree list` (canonical realpath per `_shared/canonical-path.md`); proceed.
+     - No-op (any non-success return — typically "Must not already be in a worktree" / "Must have entered the worktree this session") → print fallback: `Worktree removed. After this session ends, run: cd <root-main-path>` where `<root-main-path>` is the first entry of `git worktree list` (canonical realpath per `_shared/canonical-path.md`); proceed.
    - Run `git worktree remove <path>` (no `--force`).
    - Run `git branch -D feat/<slug>`.
 
 4. **Confirm.** `git worktree list` no longer contains the feature's worktree; `git branch --list "feat/<slug>"` is empty. Print confirmation to chat.
 
-**Note:** Removal happens **AFTER push tag succeeds** — a Phase 15 push failure leaves the worktree (and its `/feature-sdlc --resume` state) intact. See Anti-pattern #4.
-
-## Phase 17 — Final verification
+## Phase 17 — Final verification {#final-verification}
 
 Run in parallel:
 - `git status -sb` — confirm clean working tree, main in sync
 - `git log --oneline -3` — show committed history
 - `pwd` — confirm cwd is root main checkout (not a deleted worktree, when Phase 16a ran the Remove path)
 
-**Write lastrun (FR-LR04).** Atomically update `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md` § "Write contract":
+**Write lastrun.** Atomically update `.pmos/complete-dev.lastrun.yaml` per `reference/lastrun-schema.md` § "Write contract":
 
 1. Build the `defaults` dict from THIS run's chosen values (the `run_defaults` modified by Phase 0a edits AND any destructive-allowlist re-prompts that overrode them mid-run).
 2. Record `detected_signals.deploy` from Phase 5's emission (so the next run's Phase 5 short-circuit can compare).
@@ -764,7 +700,7 @@ Print success summary:
 
 If anything failed in Phase 15-16, list the failed remote(s) + suggested manual retry: `git push <remote> main && git push <remote> "${plugin_name}/v<version>"`.
 
-## Phase 18: Capture Learnings
+## Phase 18: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory, i.e. `plugins/${plugin_name}/skills/_shared/learnings-capture.md`) now.
 
@@ -788,3 +724,7 @@ Reflect on whether this session surfaced anything worth capturing under `## /com
 12. **Treating `--skip-deploy` as `--skip-everything-deploy-related`** — push, tag, dry-run summary all still happen. Only the deploy-method invocation is skipped.
 13. **Scanning the conversation transcript for learnings** — too noisy. Phase 6 is scoped to `git diff main..HEAD` + commit messages only.
 14. **Trusting the shared-branch guard's `local==remote SHA` test as proof no one has based work on this branch.** It's necessary-but-not-sufficient — a coworker who pulled before our last fixup could have based work, and we'd never know. The pre-push hook is the only authoritative line of defence; use the merge fallback for any branch you've shared for review.
+
+---
+
+*Spec lineage: multi-plugin release scoping, diff routing, tag convention, stale-bump pre-flight, and dry-run + multi-remote push contracts (FR-50–FR-60, E15, NFR-01, T4–T5) per `docs/pmos/features/2026-05-20_multi-plugin-marketplace/`; worktree-cleanup contract (FR-CD01–CD06) per `docs/pmos/features/2026-05-10_feature-sdlc-worktree-resume/`; lastrun run-defaults memory (FR-LR01–LR04) per `docs/pmos/features/2026-05-13_complete-dev-run-defaults/DESIGN.md`.*

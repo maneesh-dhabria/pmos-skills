@@ -8,8 +8,8 @@ Triggered by `/complete-dev` Phase 9 when the pre-flight detects a stale specula
 
    ```bash
    git checkout origin/main -- \
-     plugins/pmos-toolkit/.claude-plugin/plugin.json \
-     plugins/pmos-toolkit/.codex-plugin/plugin.json
+     plugins/${plugin_name}/.claude-plugin/plugin.json \
+     plugins/${plugin_name}/.codex-plugin/plugin.json
    ```
 
 2. **Re-run the bump prompt** (Phase 9 Step 5) — baseline now reads correctly as `main_v`. Pick the bump kind (Patch / Minor / Major) on top of the new baseline.
@@ -17,8 +17,8 @@ Triggered by `/complete-dev` Phase 9 when the pre-flight detects a stale specula
 3. **Validate JSON** parses for both files (Phase 9 already does this):
 
    ```bash
-   python3 -c "import json; json.load(open('plugins/pmos-toolkit/.claude-plugin/plugin.json'))"
-   python3 -c "import json; json.load(open('plugins/pmos-toolkit/.codex-plugin/plugin.json'))"
+   python3 -c "import json; json.load(open('plugins/${plugin_name}/.claude-plugin/plugin.json'))"
+   python3 -c "import json; json.load(open('plugins/${plugin_name}/.codex-plugin/plugin.json'))"
    ```
 
 Phase 11 commits the corrected bump alongside the rest of the ceremony.
