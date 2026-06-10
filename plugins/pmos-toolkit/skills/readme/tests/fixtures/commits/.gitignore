@@ -2,3 +2,5 @@
 # (setup.sh re-creates them deterministically). Never check them in — they'd
 # nest inside the outer worktree's git index.
 */.git/
+# Working files the setup.sh commits touch (generated at test time).
+*/f.txt

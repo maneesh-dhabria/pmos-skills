@@ -1,8 +1,8 @@
 ---
 name: design-crit
-description: Critique an existing application, wireframes, or prototype on overall user experience — identifies journeys, captures flow screenshots via packaged Playwright script, evaluates against a Nielsen + WCAG 2.2 + visual-hierarchy + Gestalt + journey-friction rubric, then runs a PSYCH/MSF pass and synthesises prioritized UX recommendations. Standalone utility — does not require the requirements→spec→plan pipeline. Use when the user says "critique this UI", "design review", "audit this app", "UX review", "review the wireframes", "evaluate this prototype", "what's wrong with this UX", or provides a URL/HTML files and asks for a design crit.
+description: Critique an existing application, wireframes, or prototype on overall user experience — identifies journeys, captures flow screenshots via packaged Playwright script, evaluates against a Nielsen + WCAG 2.2 + visual-hierarchy + Gestalt + journey-friction rubric, then runs a PSYCH pass and synthesises prioritized UX recommendations. Standalone utility — does not require the requirements→spec→plan pipeline. Use when the user says "critique this UI", "design review", "audit this app", "UX review", "review the wireframes", "evaluate this prototype", "what's wrong with this UX", or provides a URL/HTML files and asks for a design crit.
 user-invocable: true
-argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--format <html|md|both>] [--depth shallow|standard|deep] [--non-interactive | --interactive]"
+argument-hint: "<URL or path-to-wireframes-folder or path-to-prototype-folder> [--feature <slug>] [--journeys <id1,id2>] [--storage-state <path>] [--out <dir>] [--depth shallow|standard|deep] [--non-interactive | --interactive]"
 ---
 
 # Design Crit
@@ -15,7 +15,7 @@ The skill is **standalone**. It works on three source types:
 2. **Wireframes folder** (HTML files produced by `/wireframes` or hand-authored)
 3. **Prototype folder** (HTML files produced by `/prototype` or any single-file React prototype)
 
-It captures screenshots, applies a hybrid rubric (`reference/eval.md`), runs a lightweight PSYCH + MSF pass on captured journeys, and writes a single recommendations report.
+It captures screenshots, applies a hybrid rubric (`reference/eval.md`), runs a PSYCH pass on captured journeys per `../_shared/psych-scoring.md`, and writes a single recommendations report.
 
 ```
                           (standalone utility — runs independently of the pipeline)
@@ -26,11 +26,18 @@ It captures screenshots, applies a hybrid rubric (`reference/eval.md`), runs a l
 
 **Announce at start:** "Using design-crit to evaluate the source, capture flow screenshots, and produce a UX recommendations report."
 
+## Flags & natural language
+
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "go deep / show me everything" ≡ `--depth deep`, "quick pass / top issues only" ≡ `--depth shallow`. `--journeys` takes journey ids — the kebab-cased labels of the journeys proposed in Phase 2 and saved in `journeys.{ext}` — so re-runs and parent invocations can skip the approval prompt. One flag stays parsed for back-compat but is deliberately not advertised:
+
+<!-- nl-sugar -->
+- `--format <html|md|both>` — output-format override; `md`/`both` are retired values, treated as `html` (see Phase 0).
+
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No interactive prompt tool:** State your assumption (default = critique top 3 inferred journeys), document it in the report, and proceed. Findings dispositions fall back to a numbered table the user reviews after. Depth defaults to `standard` (cap=12 high+medium findings) unless `--depth` was explicitly set on CLI.
+- **No interactive prompt tool:** State your assumption (default = critique top 3 inferred journeys), document it in the report, and proceed. Findings dispositions fall back to a numbered table the user reviews after. Depth defaults to `standard` (cap 12) unless `--depth` was explicitly set on CLI.
 - **No subagents:** Run the heuristic eval, PSYCH pass, and friction pass sequentially in the main agent rather than dispatching parallel reviewers.
 - **No Playwright:** If `playwright` is missing on the host (`assets/capture.mjs` exits with code 3), instruct the user to install via `npm i -g playwright && npx playwright install chromium`, then resume. If install isn't possible, ask the user to take screenshots manually and place them in the screenshots folder; proceed with eval-only mode and label the report accordingly.
 
@@ -44,33 +51,16 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /design-cri
 
 ---
 
-## Phase 0: Load workstream context (optional)
+## Phase 0: Resolve context, output, and depth {#resolve-context}
 
-If the user has linked a workstream for this repo via `/product-context`, load it. Specifically resolve `docs_path` — the report will be written to `{docs_path}/{YYYY-MM-DD}_{feature_slug}/design-crit/`.
-
-Fallback when no workstream is linked: write to `./docs/{YYYY-MM-DD}_{feature_slug}/design-crit/` in the current repo root. If the user passed `--out <path>`, honour that and skip workstream resolution.
+**Workstream (optional).** If the user has linked a workstream for this repo via `/product-context`, load it and resolve `docs_path` — the report is written to `{docs_path}/{YYYY-MM-DD}_{feature_slug}/design-crit/`. Fallback when no workstream is linked: `./docs/{YYYY-MM-DD}_{feature_slug}/design-crit/` in the current repo root. If the user passed `--out <path>`, honour that and skip workstream resolution.
 
 <!-- defer-only: ambiguous -->
 If `--feature <slug>` is not provided, propose a slug from the source (URL hostname or folder name) and confirm with the user via `AskUserQuestion`.
 
-### Phase 0a: output_format resolution (FR-12)
+**Output format.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format` argument-string flag overrides settings (last flag wins on conflict). `md` and `both` are retired values — treat either as `html`. Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of all four artifacts under `{out_dir}/`: `source.{ext}`, `journeys.{ext}`, `psych.{ext}`, and the main `design-crit.{ext}` report. The `eval-findings-review.md` platform-fallback artifact (Phase 4) is read-back-and-edited by the user, so it stays MD regardless.
 
-**Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of all four artifacts written under `{out_dir}/`: `source.{ext}`, `journeys.{ext}`, `psych-msf.{ext}`, and the main `design-crit.{ext}` recommendations report. The `eval-findings-review.md` platform-fallback artifact (Phase 4) is read-back-and-edited by the user, so it stays MD regardless of `output_format`.
-
-### Phase 0b: depth resolution (FR-DC-DEPTH-01..03)
-
-**Resolve `depth` and `effective_cap`.** Parse `--depth <shallow|standard|deep>` from the argument string. Last flag wins on conflict. Unknown value → print to stderr `--depth must be one of: shallow, standard, deep (got '<v>')` and exit 64.
-
-Map the resolved value to `effective_cap`:
-
-- `shallow` → `effective_cap = 5`
-- `standard` → `effective_cap = 12`
-- `deep` → `effective_cap = null` (sentinel: uncapped; reviewer-side safety bound of 50 still applies per FR-DC-DEPTH-05)
-- *(absent on CLI)* → `depth_source = "default"`, `effective_cap = null` for now; the adaptive gate in Phase 4 (FR-DC-DEPTH-04) resolves it after the reviewer returns
-
-Set `depth_source` to `"cli"` if the flag was present, else `"default"`. Carry both `depth_source` and `effective_cap` through to Phase 4.
-
-Print to stderr exactly: `depth: <value|unset> (source: <cli|default>) -> cap=<N|uncapped|deferred-to-gate>` once at Phase 0 entry.
+**Depth — the whole contract.** `--depth` maps `shallow` → cap 5, `standard` → cap 12, `deep` → uncapped (a reviewer-side safety bound of 50 high+medium findings always applies). If `--depth` is unset and the Phase 4 reviewer returns more than 5 findings, ask the user how many to disposition — Top 5 / **Top 12 (Recommended)** / all N; under non-interactive mode, auto-pick standard (12) per the canonical Recommended-pick contract and record the auto-pick in the OQ buffer (FR-DC-DEPTH-04). Never cap silently — after the disposition loop, the surfaced/unsurfaced chat line in Phase 4 MUST fire in all modes (FR-DC-DEPTH-07). Unknown `--depth` value → print `--depth must be one of: shallow, standard, deep (got '<v>')` to stderr and exit 64; echo the resolution once at Phase 0 entry: `depth: <value|unset> (source: <cli|default>)`.
 
 ---
 
@@ -104,7 +94,7 @@ Print to stderr exactly: `depth: <value|unset> (source: <cli|default>) -> cap=<N
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Identify and access the source
+## Phase 1: Identify and access the source {#identify-source}
 
 Determine the source type from the argument:
 
@@ -118,7 +108,7 @@ Validate access:
 - **URL mode:** `curl -sSI <url> | head -1` to confirm reachability. If 401/403, ask the user via `AskUserQuestion` for auth method (storage-state JSON / basic-auth / cookies). If unreachable, abort with a clear message.
 - **HTML mode:** confirm the folder exists and contains at least one HTML file. List the discovered files for the user.
 
-Save what you found to `{out_dir}/source.{ext}` (extension follows `output_format`: `.html` when html/both, `.md` when md):
+Save what you found to `{out_dir}/source.{ext}` (extension follows `output_format`):
 
 ```markdown
 # Source
@@ -130,7 +120,7 @@ Save what you found to `{out_dir}/source.{ext}` (extension follows `output_forma
 
 ---
 
-## Phase 2: Discover and approve journeys
+## Phase 2: Discover and approve journeys {#discover-journeys}
 
 Identify candidate user journeys to critique. The strategy depends on source type:
 
@@ -153,7 +143,7 @@ Present candidates and capture which to critique:
 ```
 <!-- defer-only: ambiguous -->
 AskUserQuestion (multiSelect):
-  question: "Which journeys should I critique? (Pick up to 5 — more produces shallow output.)"
+  question: "Which journeys should I critique? (Recommend ≤5 — more produces shallow output.)"
   header: "Journeys"
   options:
     - <journey-1 label> — <one-line description>
@@ -161,17 +151,17 @@ AskUserQuestion (multiSelect):
     - ...
 ```
 
-If `--journeys <id1,id2>` was passed, skip the question and use those.
+If `--journeys <id1,id2>` was passed (ids = the kebab-cased journey labels recorded in `journeys.{ext}`), skip the question and use those.
 
-**Cap: 5 journeys per session.** More dilutes the rubric pass.
+**Recommend ≤5 journeys per session** — more dilutes the rubric pass; if the user insists on more, warn once and proceed.
 
 For each selected journey, define the step-by-step click path (URL or selector per step). For URL mode this becomes a journey-config JSON consumed by the capture script in Phase 3; for HTML mode it's just the ordered list of files.
 
-Save to `{out_dir}/journeys.{ext}` with one section per chosen journey, including step path and entry context (cold visitor / signed-in user / error recovering).
+Save to `{out_dir}/journeys.{ext}` with one section per chosen journey, including the journey's id (kebab-cased label), step path, and entry context (cold visitor / signed-in user / error recovering).
 
 ---
 
-## Phase 3: Capture flow screenshots
+## Phase 3: Capture flow screenshots {#capture-screenshots}
 
 Run the packaged Playwright script `assets/capture.mjs` (full usage in the file header). Output goes to `{out_dir}/screenshots/`.
 
@@ -213,129 +203,55 @@ If anything failed, surface the error to the user and decide together: retry wit
 
 ---
 
-## Phase 4: Heuristic evaluation against the rubric
+## Phase 4: Heuristic evaluation against the rubric {#heuristic-eval}
 
 Read `reference/eval.md` (canonical rubric) into context.
 
 Dispatch a **reviewer subagent** (or run inline if subagents unavailable) per scope:
 
-1. **Per-screen pass** — one subagent receives all screenshots + the rubric, returns the JSON array described in `eval.md`. Cap the reviewer's output per FR-DC-DEPTH-05: when `depth_source == "cli"`, instruct the reviewer to cap at `effective_cap` high+medium findings (or 50 when `effective_cap == null`, i.e. `--depth deep`); when `depth_source == "default"`, instruct the reviewer to cap at 50 high+medium findings as a safety bound (the orchestrator slices further after the FR-DC-DEPTH-04 gate fires). Low findings go in an "unsurfaced" appendix regardless of depth.
+1. **Per-screen pass** — one subagent receives all screenshots + the rubric, returns the JSON array described in `eval.md`. Instruct the reviewer to cap its output at the cap resolved in Phase 0 when `--depth` was set, else at the 50-finding safety bound (the gate below slices further). Low findings go in an "unsurfaced" appendix regardless of depth.
 2. **Per-component pass** — one subagent identifies recurring components (button, card, input, modal) across all screens and scores once per component class.
 3. **Per-journey pass** — one subagent per journey walks the screenshot sequence step-by-step, counts clicks / keystrokes / decisions / modal interrupts, and applies J1 thresholds.
 
 Save raw output to `{out_dir}/eval-findings.json`.
 
-**Theater-check escape (FR-SR-5 pattern — see `readme/reference/simulated-reader.md` §3).** A per-journey pass that surfaces **no friction** (zero J1-threshold hits, "the flow is smooth") while the per-screen / per-component passes produced **≥3 findings** on that journey's screens is suspect — it's the "I'm being helpful and the UX looks fine" theater the persona-simulation literature warns about. Re-dispatch that one journey's pass **ONCE** with this suffix appended — spec the impatient user's *constraints + bounce conditions*, not a biography:
+**Theater-check escape.** A per-journey pass that reports **no friction** while the per-screen / per-component passes produced ≥3 findings on that journey's screens is suspect — sycophantic "the flow is smooth" theater. Re-dispatch that one journey's pass **once**, instructing the reviewer to re-walk it as an impatient user with alternatives, seconds to spare, and no goodwill toward this UI — where do they hesitate, mis-click, backtrack, or give up? Accept the second result as genuine even if still empty; no second retry.
 
-> You have alternatives and ~90 seconds to finish this task; other tabs are open. Where do you hesitate, mis-click, backtrack, or give up? If genuinely nothing in this journey would stall or lose you, say so explicitly — but first re-walk it as an impatient user with no goodwill toward this UI.
+### Findings dispositions
 
-Accept the second result as genuine even if it is still empty. **No second retry** (1-iteration cap — no convergence loop). Log: `design-crit: <journey> re-dispatched (theater-check); <N> friction findings on retry`.
-
-### 4a. Findings Presentation Protocol
+After the reviewer returns, resolve the cap: if `--depth` was set, it applies as-is; if `N_returned ≤ 5`, nothing would be capped; otherwise run the depth gate from Phase 0 (one `AskUserQuestion` — Top 5 / **Top 12 (Recommended)** / all N; non-interactive auto-picks standard).
 
 <!-- defer-only: ambiguous -->
-**Do not dump findings as prose.** Group findings by category and present each via `AskUserQuestion` so the user can disposition each one structurally.
+Sort findings by `severity desc, then file-order`, take the first `cap` entries, and present them per `_shared/findings-dispositions.md` — severity-tagged question per finding, four canonical dispositions, batches of ≤4. Deltas for this skill: dispositions shape the **report**, not the source — **Fix as proposed** enters the report as a high-confidence recommendation; **Skip** is marked "won't-fix" and excluded; **Defer** moves to the report's "Deferred" section. Findings beyond the cap are logged in `eval-findings.json` as unsurfaced.
 
-<!-- defer-only: ambiguous -->
-For every batch of up to 4 findings (the `AskUserQuestion` per-call cap):
+After the disposition loop completes, print to chat exactly: `<N_surfaced> findings surfaced for disposition, <M_unsurfaced> unsurfaced — see {out_dir}/eval-findings.json` (substitute actual counts). This line MUST fire in all modes including `--non-interactive` — silent capping is forbidden (FR-DC-DEPTH-07; see Anti-patterns).
 
-```
-<!-- defer-only: ambiguous -->
-AskUserQuestion:
-  question: "<one-sentence finding> — proposed fix: <one-sentence concrete fix>"
-  header: "<short category — e.g., 'A1 contrast'>"
-  options:
-    - "Apply as proposed" — recommendation enters the report as a high-confidence fix
-    - "Modify" — recommendation enters with the user's edit; capture in notes
-    - "Skip" — finding is marked "won't-fix" and excluded from the report's recommendations
-    - "Defer" — finding moves to a "Deferred" section as known-but-not-now
-```
-
-#### Adaptive depth gate (FR-DC-DEPTH-04)
-
-After the Phase 4 reviewer subagent returns and before the disposition loop begins, resolve the final `effective_cap`:
-
-- If `depth_source == "cli"` → skip the gate; the Phase 0 `effective_cap` applies as-is.
-- If `N_returned ≤ 5` → skip the gate; set `effective_cap = N_returned` (nothing would be capped).
-- Else (gate fires):
-  - If `mode == non-interactive` → auto-pick **Top 12 (standard) (Recommended)** per the canonical Recommended-pick contract. Append one entry to the OQ buffer recording `{question, chosen: "standard", N_returned}` so the wrapping skill or script can audit what was capped.
-  - Else → issue one `AskUserQuestion` (default pick: `Top 12 (standard) (Recommended)`):
-    ```
-    AskUserQuestion:
-      question: "Reviewer surfaced <N_returned> findings. How many to disposition?"
-      header: "Depth"
-      options:
-        - "Top 5 (shallow)" — disposition the 5 highest-severity findings; rest logged as unsurfaced
-        - "Top 12 (standard) (Recommended)" — current default behaviour; preserves no-regression path
-        - "All <N_returned> (deep)" — disposition every high+medium finding the reviewer returned
-    ```
-  - Map the user pick: `shallow → effective_cap = 5`, `standard → effective_cap = 12`, `deep → effective_cap = null`.
-
-#### Disposition loop (FR-DC-DEPTH-06)
-
-<!-- defer-only: ambiguous -->
-Sort the returned findings by `severity desc, then file-order`. Take the first `effective_cap` entries (or all entries when `effective_cap == null`, i.e. deep). Issue multiple sequential `AskUserQuestion` calls until all selected findings are dispositioned. Findings beyond `effective_cap` are logged in `eval-findings.json` as unsurfaced.
-
-#### Surfaced/unsurfaced report (FR-DC-DEPTH-07)
-
-After the disposition loop completes, print to chat exactly: `<N_surfaced> findings surfaced for disposition, <M_unsurfaced> unsurfaced — see {out_dir}/eval-findings.json` (substitute the actual counts and `{out_dir}` value). `M_unsurfaced` is 0 in deep mode and whenever `N_returned ≤ effective_cap`. This line MUST fire in all modes including `--non-interactive` — silent capping is forbidden (see Anti-patterns).
-
-**Platform fallback** (no interactive prompt tool): emit a numbered findings table with `disposition` column blank, save to `{out_dir}/eval-findings-review.md`, and ask the user to fill it in. Do NOT silently auto-apply. The depth resolution still applies — the table's row count respects `effective_cap` (default `standard`/12 in this fallback unless `--depth` was set).
-
-**Anti-pattern:** A wall of prose ending in "Let me know what you'd like to fix." Always structure the ask.
+**Platform fallback** (no interactive prompt tool): emit a numbered findings table with `disposition` column blank, save to `{out_dir}/eval-findings-review.md`, and ask the user to fill it in. Do NOT silently auto-apply. The row count still respects the resolved cap (default `standard`/12 in this fallback unless `--depth` was set).
 
 ---
 
-## Phase 5: PSYCH and MSF pass
+## Phase 5: PSYCH pass {#psych-pass}
 
-Apply a lightweight psychology + Motivation/Satisfaction/Friction pass to the captured journeys. Format mirrors `/wireframes` and `/prototype`:
+Run the PSYCH walkthrough per `../_shared/psych-scoring.md` on each chosen journey — attention-path walk, driver palette, ±1..10 element scores, judgment-assigned severity bands (OK / Watch / Bounce risk / Cliff), and the dual-table output format all live there.
 
-### 5a. PSYCH walkthrough
+Deltas for this skill:
 
-For each chosen journey, assign each visible element an integer in [+1..+10] or [-10..-1] indicating its psychological pull. Sum to a screen Δ; track cumulative from an entry-context default (40 = medium-intent). Use the table format in `../msf-wf/reference/psych-output-format.md` (the canonical PSYCH output reference, owned by `/msf-wf`) if you have access; otherwise:
+- Entry context comes from each journey's entry-context line in `journeys.{ext}` (cold visitor → Low 25, signed-in → High 60, otherwise Medium 40 default).
+- Save to `{out_dir}/psych.{ext}` (extension follows `output_format`).
+- Route every screen banded **Watch**, **Bounce risk**, or **Cliff** through the Phase 4 findings-dispositions flow.
 
-```markdown
-## Journey: <name> (start: 40, Medium-intent)
-
-| Step | Screen          | Previous | Δ   | Cumulative | Severity | Top 2 Drivers                  |
-| ---- | --------------- | -------- | --- | ---------- | -------- | ------------------------------ |
-| 1    | 01-landing      | 40       | -3  | 37         | OK       | -3 (form density)              |
-| 2    | 02-signup       | 37       | -8  | 29         | Watch    | -8 (5 required fields)         |
-```
-
-Severity legend: cumulative `< 0` → Bounce risk; `< 20` → Watch; single-step Δ `< -20` → Cliff.
-
-### 5b. MSF pass
-
-For each journey, score on a 1-5 scale:
-
-- **Motivation** — does the entry point clearly answer "why am I here, why now"?
-- **Satisfaction** — does the journey deliver a clear payoff, with confirmation moments?
-- **Friction** — interaction (clicks/keystrokes), cognitive (decisions/jargon), emotional (interruptions/mode switches). Quote the click/keystroke totals from Phase 4's per-journey pass.
-
-Save both passes to `{out_dir}/psych-msf.{ext}` (extension follows `output_format`). Apply Phase 4a's Findings Presentation Protocol to any "Watch", "Cliff", or score ≤ 2 finding.
+There is no separate MSF scoring pass — journey friction is already covered with evidence by the rubric's J7 (friction map) and J8 (drop-off candidates) checks in Phase 4; unanchored 1–5 scores added no information over them.
 
 ---
 
-## Phase 6: Synthesise the recommendations report
+## Phase 6: Synthesise the recommendations report {#synthesise-report}
 
-Write `{out_dir}/design-crit.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/` — the single-source report. Keep it concise; recommendations are the deliverable, raw findings are appendices.
+**Emit `{out_dir}/design-crit.html` per the `_shared/html-authoring/README.md` checklist** (template slot-fill, atomic write with the `.sections.json` companion, idempotent asset copy — which carries the inline-comments substrate, `comments.js` et al. — cache-busted asset URLs, heading ids per `conventions.md` §3). Deltas for this skill:
 
-**Atomic write (FR-10.2):** write `design-crit.html` and the companion `design-crit.sections.json` via temp-then-rename — never serve a half-written file.
+- **Asset prefix:** `assets/` when `{out_dir}` is a top-level feature-folder write; `../assets/` when nested under a feature folder (`{feature_folder}/design-crit/` shares the substrate with sibling artifacts).
+- **Index regeneration:** only when `{out_dir}` is a sub-folder of a pipeline feature folder, regenerate `{feature_folder}/index.html` per `index-generator.md`. Standalone `--out` invocations outside the pipeline do NOT regenerate an index.
 
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{out_dir}/assets/` (or `{feature_folder}/assets/` if `{out_dir}` resolves under a pipeline feature folder, sharing the substrate with sibling artifacts) if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
-
-**Asset prefix (FR-10.1):** when `{out_dir}` is a top-level feature-folder write, `assets/`; when nested under a feature folder (`{feature_folder}/design-crit/`), `../assets/`.
-
-**Cache-bust (FR-10.3):** append `?v=<plugin-version>` to all asset URL references emitted into the HTML.
-
-**Heading IDs (FR-03.1, enforced by `/verify`):** every `<h2>` and `<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md` §3.
-
-**Index regeneration (FR-22, §9.1):** when `{out_dir}` is a sub-folder of a pipeline feature folder, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41). Standalone `--out` invocations outside the pipeline do NOT regenerate an index.
-
-**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
-
-Structure:
+Keep the report concise; recommendations are the deliverable, raw findings are appendices. Structure:
 
 ```markdown
 # Design Crit — <feature slug>
@@ -356,14 +272,12 @@ Screens captured: <count>
 
 - **[high] <finding> ([N5])** — <evidence>. Fix: <concrete fix>.
 - **[medium] <finding> ([V1])** — <evidence>. Fix: <concrete fix>.
-- ...
 
 (Friction stats: clicks=N, keystrokes=N, decisions=N, est. time=Ns, threshold breach=<yes/no>)
 
 ## Recommendations by component
 
 - **Primary button** — <finding(s)>. Fix: <concrete fix>.
-- ...
 
 ## Cross-cutting patterns
 
@@ -375,7 +289,7 @@ Findings the user chose to defer; logged for future review.
 
 ## Appendix A — PSYCH journey scores
 
-(Tables from psych-msf.{html,md})
+(Tables from psych.{html,md})
 
 ## Appendix B — Raw findings
 
@@ -392,20 +306,20 @@ Cap the body at ~400 lines; if there are more findings than that, push the long 
 
 ---
 
-## Phase 7: Workstream Enrichment
+## Phase 7: Workstream Enrichment {#workstream-enrichment}
 
 **Skip if no workstream was loaded in Phase 0.** Otherwise, follow `_shared/pipeline-setup.md` Section C. For this skill, the signals to look for are:
 
 - Recurring high-severity heuristic IDs across journeys → workstream `## Known UX Friction`
 - Validated journeys + their entry contexts → workstream `## Journeys` (extend, don't replace)
 - Component classes flagged for rework → workstream `## Design System Debt`
-- PSYCH/MSF "Cliff" or "Bounce risk" steps → workstream `## Drop-off Risks`
+- PSYCH "Cliff" or "Bounce risk" screens → workstream `## Drop-off Risks`
 
 This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the report is written.
 
 ---
 
-## Phase 8: Capture Learnings
+## Phase 8: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions about journey selection, capture failures, or rubric blind spots. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
@@ -418,8 +332,12 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - **Padding the findings list.** An empty heuristic finding is fine — pad-to-look-thorough produces noise the user has to triage.
 - **"Improve hierarchy" / "make it cleaner" / "consider better UX"** — vague recommendations the user can't act on. Every recommendation must reference the offending element/region and propose a concrete change.
 <!-- defer-only: ambiguous -->
-- **Dumping findings as prose.** Always structure dispositions via `AskUserQuestion` (Phase 4a); prose dumps force the user to hand-write triage and lose structure.
+- **Dumping findings as prose.** Always structure dispositions via `AskUserQuestion` per `_shared/findings-dispositions.md` (Phase 4); prose dumps force the user to hand-write triage and lose structure.
 - **Inventing measurements.** If you didn't compute the contrast ratio or click count, don't state one. Cite "Stark says 3.2:1" only if Stark actually returned that value.
-- **Critiquing > 5 journeys.** Output dilutes; rubric becomes shallow. Cap at 5 per session.
+- **Critiquing many journeys at once.** Beyond ~5 the rubric pass goes shallow — recommend splitting into sessions.
 - **Treating analytical-only friction as live-walk friction.** If Playwright capture failed and you're inferring friction from the HTML alone, label the report accordingly and warn the user the numbers are estimates.
-- **Silently capping findings.** Even at `standard` depth, the FR-DC-DEPTH-07 surfaced/unsurfaced chat line MUST fire so the user can decide whether to re-run at `deep`. Treating the cap as a quiet truncation hides medium-severity friction that the rubric explicitly flagged — the original design's silent cap-at-12 is what motivated the depth control in the first place.
+- **Silently capping findings.** Even at `standard` depth, the FR-DC-DEPTH-07 surfaced/unsurfaced chat line MUST fire so the user can decide whether to re-run at `deep` — the original design's silent cap-at-12 is what motivated the depth control in the first place.
+
+---
+
+*Spec lineage: `2026-05-23_design-crit-depth-control` (FR-DC-DEPTH-01..07 — flag mapping, adaptive gate, non-interactive auto-pick, surfaced/unsurfaced echo; the state-machine prose was compressed to the Phase 0 contract in the 2026-06-10 skill-design review), `2026-05-09_html-artifacts` + `2026-05-28_inline-html-artifacts` (FR-10/12/22 emit contract — now cited via `_shared/html-authoring/README.md`; `md`/`both` format retirement per FR-12.1), `2026-05-08_msf-skill-split` via the 2026-06-10 review (PSYCH consumption moved to `_shared/psych-scoring.md`; the inline PSYCH re-implementation and the unanchored MSF 1–5 pass were removed — J7/J8 carry the friction evidence), theater-check pattern from `readme/reference/simulated-reader.md` §3 (FR-SR-5).*

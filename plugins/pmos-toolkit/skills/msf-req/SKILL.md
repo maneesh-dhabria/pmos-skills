@@ -2,7 +2,7 @@
 name: msf-req
 description: Evaluate a requirements document from the end-user perspective using Motivation/Satisfaction/Friction analysis. Produces a recommendations-only findings doc; never edits the source. Use when the user says "evaluate UX of the requirements", "will the proposed solution work for users", "persona check on this PRD", or "friction analysis on requirements".
 user-invocable: true
-argument-hint: "<path-to-requirements-doc> [--format <html|md|both>]"
+argument-hint: "<path-to-requirements-doc> [--feature <slug>]"
 ---
 
 # /msf-req — Motivation / Friction / Satisfaction on a Requirements Doc
@@ -20,6 +20,15 @@ Best applied to **Tier 3 requirements** (features / product launches) after `/re
 
 **Announce at start:** "Using the /msf-req skill to evaluate user motivation, friction, and satisfaction on the requirements doc."
 
+## Flags & natural language
+
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. `--feature <slug>` resolves the feature folder when the path argument alone is ambiguous. One flag stays parsed for back-compat but is deliberately not advertised:
+
+<!-- nl-sugar -->
+- `--format <html|md|both>` — output-format override; `md`/`both` are retired values, treated as `html` (see Phase 0 step 6).
+
+The retired pre-split `/msf` flags (`--apply-edits`, `--wireframes`, `--skip-psych`, `--default-scope`) are rejected with a pointer to this argument-hint.
+
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
@@ -28,7 +37,7 @@ These instructions use Claude Code tool names. In other environments:
 
 ---
 
-## Phase 0: Pipeline Setup (inline — do not skip)
+## Phase 0: Pipeline Setup (inline — do not skip) {#pipeline-setup}
 
 Use workstream context (loaded by step 3 below) to inform analysis — product constraints and stakeholder concerns shape what counts as friction.
 
@@ -44,13 +53,11 @@ Use workstream context (loaded by step 3 below) to inform analysis — product c
 5. Read `~/.pmos/learnings.md` if present; note entries under `## /msf-req` and factor them into approach (skill body wins on conflict).
 <!-- pipeline-setup-block:end -->
 
-### Phase 0a: output_format resolution (FR-12)
-
-6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 5 in this skill).
+6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format` argument-string flag overrides settings (last flag wins on conflict). `md` and `both` are retired values — treat either as `html`. Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
 
 ---
 
-## Phase 1: Wrong-input Guard
+## Phase 1: Wrong-input Guard {#wrong-input-guard}
 
 Before any other phase, inspect the argument:
 
@@ -62,41 +69,25 @@ This guard runs before persona alignment, learnings load, or any analysis.
 
 ### Input Contract (when invoked as reviewer subagent)
 
-When a parent orchestrator (currently `/requirements`, which folds this skill in as its Phase 5a) invokes this skill as a reviewer subagent, the parent has chrome-stripped the artifact via `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js` (FR-50, T12) and passes the stripped slice (`<h1>` + `<main>`) inline as the prompt body. In that mode, this skill skips its own resolver (`_shared/resolve-input.md`) and operates directly on the stripped HTML.
-
-**Output shape (FR-51 canonical):** the skill MUST first enumerate every `<section>` id and every `<h2>`/`<h3>` id it can locate in the stripped slice, returning them as `sections_found: [...]`. It then evaluates against its own rubric and emits findings as `{section_id, severity, message, quote: "<≥40-char verbatim from source>"}`.
-
-**Parent-side validation (FR-52, the skill MUST NOT self-validate):** the parent will (a) set-equality-check `sections_found` against `<artifact>.sections.json`, (b) substring-grep every `quote` against the original (un-stripped) source HTML, (c) hard-fail on any miss. This skill does not duplicate that validation; the contract lives in the parent.
+When a parent orchestrator (currently `/requirements`' folded MSF phase, `requirements/SKILL.md#folded-msf`) invokes this skill as a reviewer subagent, follow the reviewer side of `_shared/reviewer-protocol.md` — chrome-stripped slice as prompt body, `sections_found` enumeration first, `{section_id, severity, message, quote}` findings with ≥40-char verbatim quotes, and no self-validation (the validation contract lives in the parent). In this mode skip the Phase 2 resolver and operate directly on the stripped HTML.
 
 ---
 
-## Phase 2: Locate Requirements
+## Phase 2: Locate Requirements {#locate-requirements}
 
 Follow `../_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Read the resolved file end-to-end before Phase 3.
 
-**Tier check (E1):** if the requirements doc has a `Tier:` tag in frontmatter or header and the value is `Tier 1`, emit a one-line warning before continuing: `Note: MSF analysis is best-suited to Tier 3 features. This doc is tagged Tier 1 — proceeding anyway, but findings may be over-engineered for the scope.` Continue regardless of tier.
+**Tier check:** if the requirements doc has a `Tier:` tag in frontmatter or header and the value is `Tier 1`, emit a one-line warning before continuing: `Note: MSF analysis is best-suited to Tier 3 features. This doc is tagged Tier 1 — proceeding anyway, but findings may be over-engineered for the scope.` Continue regardless of tier.
 
 ---
 
-## Phase 3: Persona Alignment
+## Phase 3: Persona & Journey Alignment {#persona-journey-alignment}
 
-Follow `../_shared/msf-heuristics.md` "Persona Alignment" section. Behavior:
-
-- First, extract any personas/journeys explicitly named in the requirements doc (sections like "Users", "Personas", "Stakeholders", or named in user journeys).
-- Propose those for confirmation.
-- If the requirements doc names no personas, propose 2–5 inferred personas (max 2 scenarios each) and confirm via `AskUserQuestion`.
-
-The confirmation step is mandatory — never skipped.
+Follow `../_shared/persona-journey-alignment.md` Steps 1–2 (extract-before-invent, 2–5 personas with ≤2 scenarios each, journey proposal — infer 2–4 from goals + functional sections if the doc names none, `AskUserQuestion` confirmation), with `source` = the requirements doc. The confirmation step is mandatory — never skipped.
 
 ---
 
-## Phase 4: Journey Confirmation
-
-Follow `../_shared/persona-journey-alignment.md` Step 2, with `source` = the requirements doc — list and confirm the key user journeys via `AskUserQuestion` (infer 2–4 from goals + functional sections if the doc names none).
-
----
-
-## Phase 5: MSF Pass A
+## Phase 4: MSF Pass {#msf-pass}
 
 For each persona × scenario × journey, walk the M / F / S consideration questions in `../_shared/msf-heuristics.md` (Motivation Considerations, Friction Considerations, Satisfaction Considerations).
 
@@ -106,29 +97,12 @@ If a question isn't applicable for a given persona/scenario, say so briefly rath
 
 ---
 
-## Phase 6: Save Findings
+## Phase 5: Save Findings {#save-findings}
 
-Save the consolidated MSF analysis matrix.
+**Emit per the `_shared/html-authoring/README.md` checklist** (template slot-fill, atomic write with the `.sections.json` companion, idempotent asset copy — which carries the inline-comments substrate, `comments.js` et al. — cache-busted asset URLs, heading ids per `conventions.md` §3, index regeneration per `index-generator.md` when writing into a feature folder). Deltas for this skill:
 
-**Save path:**
-- If invoked inside a pipeline feature folder (`{feature_folder}` resolved in Phase 0 step 4) → `{feature_folder}/msf-req-findings.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. (Slug-distinct from /msf-wf's `msf-wf-findings.html` — running both on one feature must not overwrite.)
-- Else (ad-hoc) → `~/.pmos/msf/YYYY-MM-DD_<slug>.html`, where `<slug>` is derived from the argument's filename (lowercase, hyphenated).
-
-**Atomic write (FR-10.2):** write `msf-req-findings.html` and the companion `msf-req-findings.sections.json` via temp-then-rename — never serve a half-written file.
-
-**Asset substrate (FR-10):** when writing into a feature folder, copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files. Ad-hoc saves to `~/.pmos/msf/` write a self-contained HTML (substrate referenced via the `~/.pmos/msf/assets/` cache; first ad-hoc run seeds the cache).
-
-**Asset prefix (FR-10.1):** `assets/` for top-level feature-folder writes; `../assets/` if nested.
-
-**Cache-bust (FR-10.3):** append `?v=<plugin-version>` to all asset URL references emitted into the HTML.
-
-**Heading IDs (FR-03.1, enforced by `/verify`):** every `<h2>` and `<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md` §3 (lowercase, non-alphanumeric runs → `-`, trim, dedupe collisions with `-2`/`-3`/...). `assert_heading_ids.sh` (T22) blocks any artifact missing an id.
-
-**Index regeneration (FR-22, §9.1):** when writing into a feature folder, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41).
-
-**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
-
-**Overwrite protection (E4):** if a findings doc already exists at the save path (either `.html` or legacy `.md`), copy it to `<save_path>.bak` before overwriting. The `.bak` is preserved for one cycle (next run overwrites it). Skip the backup step if no prior file exists.
+- **Save path:** pipeline runs (`{feature_folder}` resolved in Phase 0 step 4) → `{feature_folder}/msf-req-findings.html` — slug-distinct from /msf-wf's `msf-wf-findings.html`; running both on one feature must not overwrite. Ad-hoc runs → `~/.pmos/msf/YYYY-MM-DD_<slug>.html` (`<slug>` from the argument's filename, lowercase-hyphenated; substrate referenced via the `~/.pmos/msf/assets/` cache, seeded on first ad-hoc run).
+- **Overwrite protection:** if a findings doc already exists at the save path (`.html` or legacy `.md`), copy it to `<save_path>.bak` before overwriting. The `.bak` lasts one cycle. Skip if no prior file exists.
 
 The findings doc has **no line cap**. Contains the full persona × scenario × journey × consideration matrix plus the prioritized Must / Should / Nice recommendations table per `../_shared/msf-heuristics.md` "Executive Summary Template".
 
@@ -136,7 +110,7 @@ The findings doc has **no line cap**. Contains the full persona × scenario × j
 
 ---
 
-## Phase 7: Executive Summary in Chat
+## Phase 6: Executive Summary in Chat {#executive-summary}
 
 Render the executive summary per `../_shared/msf-heuristics.md` "Executive Summary Template". Cap chat output at **200 lines**.
 
@@ -149,7 +123,7 @@ After saving and rendering the summary, the skill **terminates**. Do not edit th
 
 ---
 
-## Phase 8: Capture Learnings
+## Phase 7: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing under `## /msf-req` in `~/.pmos/learnings.md` — surprising persona-conditional findings, repeated friction patterns, non-obvious assumptions. Proposing zero learnings is a valid outcome.
 
@@ -159,8 +133,11 @@ After saving and rendering the summary, the skill **terminates**. Do not edit th
 
 - Do NOT skip the persona-alignment confirmation step — analyzing without confirmed personas produces generic findings.
 - Do NOT modify the requirements doc, ever. /msf-req is recommendations-only.
-- Do NOT accept the flags `--apply-edits`, `--wireframes`, `--skip-psych`, or `--default-scope`. The argument-hint advertises only `<path-to-requirements-doc>` and `--format <html|md|both>`.
-- Do NOT run PSYCH scoring — there is no UI to score. PSYCH lives in `/msf-wf`.
+- Do NOT run PSYCH scoring — there is no UI to score. PSYCH lives in `/msf-wf` (via `_shared/psych-scoring.md`).
 - Do NOT silently skip the wrong-input guard — a directory argument means the user wanted `/msf-wf`.
 - Do NOT pad recommendations to fill the Must / Should / Nice template — emit "no actionable findings" instead.
 - Do NOT present recommendations as a wall of text — use tables with severity and effort.
+
+---
+
+*Spec lineage: `2026-05-08_msf-skill-split` (skill boundary, recommendations-only contract, retired-flag rejections, tier check E1, overwrite protection E4), `2026-05-10_pipeline-consolidation` W1/W4 (folded invocation from /requirements, `msf-req-findings` slug-distinct rename), `2026-05-09_html-artifacts` + `2026-05-28_inline-html-artifacts` (FR-10/12/22 emit contract, FR-50/51/52 reviewer contract — now cited via `_shared/reviewer-protocol.md` and `_shared/html-authoring/README.md`; `md`/`both` format retirement per FR-12.1), `2026-05-08_non-interactive-mode` (refusal marker).*
