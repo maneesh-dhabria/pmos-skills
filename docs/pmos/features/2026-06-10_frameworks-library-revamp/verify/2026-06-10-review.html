@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="verify">
+<title>/frameworks library revamp — Verification Report</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --ok:#0a7c4a; --warn:#b45309; --bg:#fff; --line:#e3e8f0; }
+  * { box-sizing:border-box; }
+  body { font:15px/1.6 -apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:#f4f7fb; margin:0; }
+  main { max-width:980px; margin:0 auto; padding:32px 24px 80px; background:var(--bg); }
+  h1 { font-size:26px; margin:0 0 4px; }
+  h2 { font-size:20px; margin:34px 0 10px; padding-top:10px; border-top:2px solid var(--line); }
+  h3 { font-size:16px; margin:22px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 18px; }
+  table { border-collapse:collapse; width:100%; margin:10px 0 18px; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  th { background:#f0f4fb; }
+  code { background:#f0f3f8; padding:1px 5px; border-radius:4px; font-size:13px; }
+  .v { color:var(--ok); font-weight:600; }
+  .w { color:var(--warn); font-weight:600; }
+  .pill { display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; }
+  .pass { background:#e3f5ec; color:var(--ok); }
+  .known { background:#fef3e2; color:var(--warn); }
+  .verdict { font-size:18px; padding:14px 18px; border-radius:10px; background:#e3f5ec; color:var(--ok); border:1px solid #b7e3cd; }
+  ul { margin:6px 0 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">/frameworks library revamp — Verification Report</h1>
+  <p class="sub">Feature: <code>2026-06-10_frameworks-library-revamp</code> · Skill: <code>/frameworks</code> (pmos-learnkit) · Mode: skill-feedback · Tier 3 · 2026-06-10</p>
+
+  <p class="verdict" id="verdict">✅ VERIFY PASS — implementation matches spec; 1 known/accepted residual carried to /complete-dev; 1 latent bug found &amp; fixed in this pass.</p>
+
+  <h2 id="summary">Summary</h2>
+  <ul>
+    <li><strong>Static (Phase 2):</strong> 6/6 script <code>--selftest</code>, <code>structure.test.sh</code>, <code>build-library.test.sh</code>, <code>json-contract.test.mjs</code>, <code>split-corpus.test.mjs</code> — all PASS. <code>validate-corpus</code> on the live 272-record corpus PASS (100% name+body, 100% diagram coverage, distribution gate satisfied).</li>
+    <li><strong>Code review (Phase 3):</strong> 1 real latent bug (confidence 90, medium) — SVG↔anchor index misalignment when a diagram file is missing. Fixed + regression test added (commit <code>7985e3d</code>). All other areas clean (enum consistency, atomic writes, no XSS, no dropped/duplicated diagrams).</li>
+    <li><strong>UI surface (Phase 4):</strong> library rebuilt (272 frameworks, 4.5&nbsp;MB, fully offline — 0 amazonaws / 0 external src-href / 0 <code>&lt;image&gt;</code>); all 7 feedback surfaces present + boot. Headless smoke (this session, :8743) confirmed live interactions.</li>
+    <li><strong>Skill-eval re-run (Phase 6a-equivalent, fresh):</strong> 19/19 <code>[D]</code> PASS; <code>[J]</code> all PASS except <code>a-name-verb-or-gerund</code> = the Phase-6a accepted residual. No newly-failing check.</li>
+  </ul>
+
+  <h2 id="spec-compliance">Spec Compliance — the 7 feedback ideas</h2>
+  <table>
+    <tr><th>FR (feedback idea)</th><th>Outcome</th><th>Evidence</th></tr>
+    <tr><td>1 — Three listing views (Compact List / Detailed / List)</td><td class="v">Verified</td><td><code>build-library.mjs</code> state machine <code>view: 'detailed'</code> + <code>view==='compact'|'list'</code>; built HTML carries all 3 view labels; <code>--selftest</code> asserts each view renders; headless smoke drove view switching.</td></tr>
+    <tr><td>2 — Inline diagrams at the right place (not top)</td><td class="v">Verified</td><td><code>diagram_anchors[]</code> (≥40-char verbatim body substring, parallel to <code>diagrams[]</code>); <code>renderBody</code>/<code>parseBlocks</code> place each diagram after its anchor block, null→leading group; <code>--selftest</code> inline-anchor + missing-svg-alignment cases. 418/421 diagrams anchored.</td></tr>
+    <tr><td>3 — Sidebar reader that shifts the layout (not overlay)</td><td class="v">Verified</td><td><code>aside.reader</code> + <code>.layout.reader-open .reader{width:min(440px,42%)}</code> (sticky, no fixed/backdrop; ≤720px stacks); <code>reader-open</code> marker present; headless smoke confirmed layout shift + inline diagrams in reader.</td></tr>
+    <tr><td>4 — Rebalanced decision_type taxonomy</td><td class="v">Verified</td><td>8-value cognitive-job enum (<code>prioritize·decide·diagnose·estimate·strategize·design·communicate·frame</code> + n/a); old enum hard-rejected; distribution gate (no value &gt;30%, n/a ≤5%); live max <code>strategize</code> 27.2%, n/a 1.1% — gate PASS. All 272 re-derived.</td></tr>
+    <tr><td>5 — Tag-based filtering</td><td class="v">Verified</td><td>tag chip row (OR within facet) in <code>state.tags{}</code>; chips present in built HTML; headless smoke filtered 272→7→272.</td></tr>
+    <tr><td>6 — Share + copy-markdown buttons</td><td class="v">Verified</td><td><code>toShare</code> + <code>toMarkdown</code> + <code>copyText</code> (execCommand fallback) present in built HTML; headless smoke exercised copy/share on a detail.</td></tr>
+    <tr><td>7 — PMOS masthead</td><td class="v">Verified</td><td><code>.wordmark</code> masthead present in built HTML.</td></tr>
+  </table>
+
+  <h2 id="phase3-code-review">Phase 3 — Code Quality Review</h2>
+  <table>
+    <tr><th>Finding</th><th>Sev / Conf</th><th>Disposition</th></tr>
+    <tr><td>SVG↔anchor index misalignment: <code>build-library.mjs</code> filtered missing SVGs before zipping with <code>diagram_anchors[]</code> by index → survivor paired with wrong anchor on a multi-diagram record with a missing file.</td><td>medium / 90</td><td class="v">Fixed (<code>7985e3d</code>): zip-by-index then drop falsy slots; <code>diagramsFor</code> keeps <code>''</code> placeholders. Red-green regression added to <code>--selftest</code>. Latent today (0/272 affected).</td></tr>
+    <tr><td>validateAnchors signature consistency; 8-value enum single-sourced; distribution-gate regex/escaping; renderBody no drop/dup; atomic temp-then-rename; client esc()/XSS.</td><td>—</td><td class="v">Clean — no action.</td></tr>
+    <tr><td>Unguarded <code>JSON.parse</code> in build-tool <code>main()</code>s; fixed <code>.tmp</code> name under concurrency.</td><td>low / &lt;50</td><td>Noted, not blocking (operator-controlled local inputs; single-shot build scripts).</td></tr>
+  </table>
+
+  <h2 id="skill-eval">Fresh Skill-Eval Re-run &amp; Residual Reconciliation</h2>
+  <p>Independent final gate (separate from Phase 6a). Deterministic <code>skill-eval-check.sh --target claude-code</code>: <span class="v">19/19 [D] PASS</span>. LLM-judge <code>[J]</code>: all applicable PASS (4 correctly skipped-gated), one fail:</p>
+  <table>
+    <tr><th>Check</th><th>Outcome</th><th>Reconciliation</th></tr>
+    <tr><td><code>a-name-verb-or-gerund</code></td><td><span class="pill known">KNOWN / accepted</span></td><td>Name <code>frameworks</code> is a library noun, not a verb/gerund. Accepted in Phase 6a as a known residual — renaming would break the public <code>/frameworks</code> command, its directory, and the marketplace entry; out of scope for this browse-UX revision; sibling skills (<code>/primer</code>, <code>/magazine</code>, <code>/backlog</code>) share the noun convention. <strong>Non-blocking; carried to /complete-dev summary.</strong></td></tr>
+    <tr><td>All other [J] (b-*, c-*, d-*, e-*, f-cc-argument-hint-matches)</td><td class="v">Verified</td><td>No newly-failing check. Previously-accepted residual still the only fail — residual set unchanged.</td></tr>
+  </table>
+
+  <h2 id="release-prereqs">Release Prerequisites (best-effort; enforced at /complete-dev)</h2>
+  <table>
+    <tr><th>Item</th><th>State</th></tr>
+    <tr><td>Manifest version-sync (both <code>.claude-plugin</code> + <code>.codex-plugin</code> plugin.json)</td><td>Both present at <code>0.17.0</code>, in sync → synced <strong>minor</strong> bump to <code>0.18.0</code> at /complete-dev.</td></tr>
+    <tr><td><code>marketplace.json</code> version field</td><td class="v">Correctly absent (per repo invariant).</td></tr>
+    <tr><td>README <code>/frameworks</code> row</td><td>Present (line 36); description predates new views/sidebar/tag-filter — minor refresh candidate at /complete-dev.</td></tr>
+    <tr><td>Changelog</td><td>Regenerated by /complete-dev (<code>0.18.0</code> entry).</td></tr>
+  </table>
+
+  <h2 id="gaps">Gap Report</h2>
+  <p>No unresolved gaps. One latent bug found and fixed in this pass (with regression test). One known/accepted residual (skill name), non-blocking, carried forward. No <code>Unverified — action required</code> rows.</p>
+</main>
+</body>
+</html>
