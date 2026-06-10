@@ -2,12 +2,13 @@
 
 > Authoritative source for the `--non-interactive` flag. Pipeline and supporting skills inline **Section 0** verbatim into their own SKILL.md (Phase 0). They must `Read` this file when an edge case named in Section 0 fires.
 
-This file has four sections:
+This file has five sections:
 
 - **Section 0** — Canonical inline non-interactive block (copy-pasted into each supporting SKILL.md)
 - **Section A** — Refusal pattern + exit-64 contract
 - **Section B** — Downstream Open-Questions parser snippet
 - **Section C** — Subagent propagation prefix recipe
+- **Section D** — Call-site extractor (CI/audit only; NOT inlined into skills)
 
 ---
 
@@ -24,7 +25,6 @@ Supporting skills paste the block between the markers below into their own Phase
    - On Phase 0 entry, always print to stderr exactly: `mode: <mode> (source: <source>)` (FR-01.2).
 
 2. **Per-checkpoint classifier.** Before issuing any `AskUserQuestion` call, classify it (FR-02):
-   - Use the awk extractor below to find the line of this call's `question:` key in the live SKILL.md (FR-02.6).
    - The defer-only tag, if present, is the literal previous non-empty line: `<!-- defer-only: <reason> -->` where `<reason>` ∈ {`destructive`, `free-form`, `ambiguous`} (FR-02.5).
    - Decision (in order): tag adjacent → DEFER; multiSelect with 0 Recommended → DEFER; 0 options OR no option label ends in `(Recommended)` → DEFER; else AUTO-PICK the (Recommended) option (FR-02.2).
 
@@ -37,61 +37,7 @@ Supporting skills paste the block between the markers below into their own Phase
 
 4. **Subagent dispatch.** When dispatching a child skill via Task tool or inline invocation, prepend the literal first line: `[mode: <current-mode>]\n` to the child's prompt (FR-06).
 
-5. **Awk extractor.** The classifier and `tools/audit-recommended.sh` MUST both use the function below. Loaded at script init time; sourcing differs per consumer.
-
-<!-- awk-extractor:start -->
-```awk
-# Find AskUserQuestion call sites and their adjacent defer-only tags.
-# Input: a SKILL.md file (stdin or argv).
-# Output (TSV): <line_no>\t<has_recommended:0|1>\t<defer_only_reason or "-">
-# A "call site" is a line referencing `AskUserQuestion` in the SKILL's own prose
-# (backtick mentions, prose instructions, multi-line invocation hints).
-# `(Recommended)` is detected on the call site line OR any subsequent non-blank
-# line (the option-list block) until a blank line, defer-only tag, or another
-# AskUserQuestion call closes the pending call. Lines inside the inlined
-# `<!-- non-interactive-block:... -->` region are canonical contract text and
-# never count as call sites.
-function emit_pending() {
-  if (pending_call > 0) {
-    out_tag = (pending_call_tag != "") ? pending_call_tag : "-";
-    printf "%d\t%d\t%s\n", pending_call, pending_has_recc, out_tag;
-    pending_call = 0;
-    pending_has_recc = 0;
-    pending_call_tag = "";
-  }
-}
-/^<!-- non-interactive-block:start -->$/ { in_inlined=1; next }
-/^<!-- non-interactive-block:end -->$/   { in_inlined=0; next }
-in_inlined { next }
-/^[[:space:]]*<!--[[:space:]]*defer-only:[[:space:]]*([a-z-]+)[[:space:]]*-->/ {
-  emit_pending();
-  match($0, /defer-only:[[:space:]]*[a-z-]+/);
-  pending_tag = substr($0, RSTART + 12, RLENGTH - 12);
-  sub(/^[[:space:]]+/, "", pending_tag);
-  pending_line = NR;
-  next;
-}
-/^[[:space:]]*$/ {
-  emit_pending();
-  pending_tag = "";
-  next;
-}
-/AskUserQuestion/ {
-  emit_pending();
-  pending_call = NR;
-  pending_has_recc = ($0 ~ /\(Recommended\)/) ? 1 : 0;
-  pending_call_tag = (pending_tag != "" && NR == pending_line + 1) ? pending_tag : "";
-  pending_tag = "";
-  next;
-}
-{
-  if (pending_call > 0 && $0 ~ /\(Recommended\)/) {
-    pending_has_recc = 1;
-  }
-}
-END { emit_pending() }
-```
-<!-- awk-extractor:end -->
+5. **Call-site auditing (CI only).** This runtime classifier reads the call it is about to make — it does not run awk. Static/offline auditing of `AskUserQuestion` call sites across SKILL.md files is performed by `tools/audit-recommended.sh`, which sources the shared call-site extractor from Section D of this file (`_shared/non-interactive.md`). Runtime and audit therefore share one decision contract without inlining the extractor into every skill (FR-02.6).
 
 6. **Refusal check.** If this SKILL.md contains a `<!-- non-interactive: refused; ... -->` marker (regex: `<!--[[:space:]]*non-interactive:[[:space:]]*refused`), and `mode` resolved to `non-interactive`: emit refusal per Section A and exit 64 (FR-07).
 
@@ -164,3 +110,63 @@ The child's Phase 0 (instruction below) scans the original prompt's first 256 by
 Child entries merged into the parent's OQ buffer use id format `OQ-<child-skill-name>-NNN` (FR-06.2).
 
 Anti-pattern: parent passes mode via natural-language argument ("invoke /verify in non-interactive mode"). Forbidden — depends on LLM faithfulness; use the marker.
+
+---
+
+## Section D — Call-site extractor (CI/audit only)
+
+This awk function finds `AskUserQuestion` call sites and adjacent `defer-only` tags in a SKILL.md. It is **CI/audit tooling, not a runtime instruction** — the live classifier (Section 0, step 2) reads the call it is about to make and never runs awk. The extractor is kept here, out of the inlined block, so it does not bloat every skill's prompt; `tools/audit-recommended.sh` and the `tests/non-interactive/*.bats` suite source it from the markers below (FR-02.6 — runtime and audit share one decision contract by construction).
+
+<!-- awk-extractor:start -->
+```awk
+# Find AskUserQuestion call sites and their adjacent defer-only tags.
+# Input: a SKILL.md file (stdin or argv).
+# Output (TSV): <line_no>\t<has_recommended:0|1>\t<defer_only_reason or "-">
+# A "call site" is a line referencing `AskUserQuestion` in the SKILL's own prose
+# (backtick mentions, prose instructions, multi-line invocation hints).
+# `(Recommended)` is detected on the call site line OR any subsequent non-blank
+# line (the option-list block) until a blank line, defer-only tag, or another
+# AskUserQuestion call closes the pending call. Lines inside the inlined
+# `<!-- non-interactive-block:... -->` region are canonical contract text and
+# never count as call sites.
+function emit_pending() {
+  if (pending_call > 0) {
+    out_tag = (pending_call_tag != "") ? pending_call_tag : "-";
+    printf "%d\t%d\t%s\n", pending_call, pending_has_recc, out_tag;
+    pending_call = 0;
+    pending_has_recc = 0;
+    pending_call_tag = "";
+  }
+}
+/^<!-- non-interactive-block:start -->$/ { in_inlined=1; next }
+/^<!-- non-interactive-block:end -->$/   { in_inlined=0; next }
+in_inlined { next }
+/^[[:space:]]*<!--[[:space:]]*defer-only:[[:space:]]*([a-z-]+)[[:space:]]*-->/ {
+  emit_pending();
+  match($0, /defer-only:[[:space:]]*[a-z-]+/);
+  pending_tag = substr($0, RSTART + 12, RLENGTH - 12);
+  sub(/^[[:space:]]+/, "", pending_tag);
+  pending_line = NR;
+  next;
+}
+/^[[:space:]]*$/ {
+  emit_pending();
+  pending_tag = "";
+  next;
+}
+/AskUserQuestion/ {
+  emit_pending();
+  pending_call = NR;
+  pending_has_recc = ($0 ~ /\(Recommended\)/) ? 1 : 0;
+  pending_call_tag = (pending_tag != "" && NR == pending_line + 1) ? pending_tag : "";
+  pending_tag = "";
+  next;
+}
+{
+  if (pending_call > 0 && $0 ~ /\(Recommended\)/) {
+    pending_has_recc = 1;
+  }
+}
+END { emit_pending() }
+```
+<!-- awk-extractor:end -->

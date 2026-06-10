@@ -7,6 +7,8 @@ argument-hint: "[quick|standard|deep|marathon] [--no-repo]"
 
 # /critical-thinking
 
+<!-- non-interactive: refused; reason: a live practice session graded on the user's own-words reasoning cannot run unattended; alternative: run /critical-thinking interactively -->
+
 **Announce at start:** "Using /critical-thinking to run a critical-thinking practice session."
 
 A standalone practice gym for PMs. Each session serves a varied mix of PM reasoning exercises sized to the time you have, makes you reason in your own words, grades the *reasoning moves* (not the choice), and tracks per-muscle + calibration progress across sessions. It is **not** part of the requirements→spec→plan pipeline and does **not** load workstream context.

@@ -6,8 +6,11 @@
 # is present and identical across all supported skills (every user-invokable
 # skill except those that carry a `<!-- non-interactive: refused` marker).
 #
-# Canonical source: skills/_shared/non-interactive.md (Section 0)
-# Required in:      every skills/<name>/SKILL.md unless it carries a
+# Scope: ALL plugins — plugins/*/skills/<name>/SKILL.md (extended from
+# pmos-toolkit-only on 2026-06-10; the canonical source remains pmos-toolkit's).
+#
+# Canonical source: plugins/pmos-toolkit/skills/_shared/non-interactive.md (Section 0)
+# Required in:      every plugins/<plugin>/skills/<name>/SKILL.md unless it carries a
 #                   `<!-- non-interactive: refused` or `<!-- non-interactive: delegated`
 #                   marker (refused = errors under --non-interactive; delegated = a thin
 #                   alias that forwards to another skill which owns the contract).
@@ -28,23 +31,27 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PLUGIN_ROOT="$( cd -- "${SCRIPT_DIR}/.." &> /dev/null && pwd )"
+REPO_ROOT="$( cd -- "${PLUGIN_ROOT}/../.." &> /dev/null && pwd )"
 
 CANONICAL_FILE="${PLUGIN_ROOT}/skills/_shared/non-interactive.md"
 
 START_MARKER='<!-- non-interactive-block:start -->'
 END_MARKER='<!-- non-interactive-block:end -->'
 
-# Build the list of supported skills: every skills/<dir>/SKILL.md except _shared,
-# learnings, or any skill carrying a `<!-- non-interactive: refused` marker.
+# Build the list of supported skills across ALL plugins: every
+# plugins/<plugin>/skills/<dir>/SKILL.md except _shared, learnings, or any skill
+# carrying a `<!-- non-interactive: refused` / `delegated` marker.
+# Entries are "<plugin>/<skill>" relative names.
 SUPPORTED_SKILLS=()
-for d in "${PLUGIN_ROOT}"/skills/*/; do
+for d in "${REPO_ROOT}"/plugins/*/skills/*/; do
     name=$(basename "$d")
+    plugin=$(basename "$(dirname "$(dirname "$d")")")
     [[ "$name" == "_shared" || "$name" == "learnings" ]] && continue
     [[ ! -f "$d/SKILL.md" ]] && continue
     # Exempt (self-documenting markers in the skill file): refused = errors under
     # --non-interactive; delegated = thin alias forwarding to a skill that owns the contract.
     grep -qE '^[[:space:]]*<!-- non-interactive: (refused|delegated)' "$d/SKILL.md" && continue
-    SUPPORTED_SKILLS+=("$name")
+    SUPPORTED_SKILLS+=("${plugin}/${name}")
 done
 
 # Extract content between markers (exclusive of marker lines).
@@ -82,7 +89,7 @@ DRIFT_COUNT=0
 MISSING_COUNT=0
 
 for skill in "${SUPPORTED_SKILLS[@]}"; do
-    skill_file="${PLUGIN_ROOT}/skills/${skill}/SKILL.md"
+    skill_file="${REPO_ROOT}/plugins/${skill%%/*}/skills/${skill#*/}/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         echo "MISSING: ${skill}/SKILL.md not found at ${skill_file}"
@@ -101,7 +108,7 @@ for skill in "${SUPPORTED_SKILLS[@]}"; do
         echo "OK:      ${skill}/SKILL.md"
     else
         echo "DRIFT:   ${skill}/SKILL.md"
-        echo "  --- canonical (from ${CANONICAL_FILE#"${PLUGIN_ROOT}"/}) ---"
+        echo "  --- canonical (from ${CANONICAL_FILE#"${REPO_ROOT}"/}) ---"
         echo "  +++ ${skill}/SKILL.md +++"
         diff <(printf '%s\n' "$CANONICAL") <(printf '%s\n' "$actual") \
             | sed 's/^/  /' || true
