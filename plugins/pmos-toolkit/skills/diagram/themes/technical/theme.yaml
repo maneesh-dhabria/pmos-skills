@@ -1,7 +1,7 @@
 # Technical theme — codifies the original /diagram house style as theme tokens.
 # This file is the canonical source for palette, typography, stroke, connector,
 # and arrowhead choices for the default theme. Layout decisions (direction,
-# canvas, placement) are NOT theme tokens and live in SKILL.md Phase 2.
+# canvas, placement) are NOT theme tokens and live in SKILL.md Phase 3 + style.md.
 #
 # See themes/_schema.json for the strict positive-list schema.
 # See themes/technical/style.md for the human-readable spec mirroring this file.

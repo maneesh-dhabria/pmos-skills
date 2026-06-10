@@ -3,7 +3,6 @@
   "hard_fails": [],
   "soft_metrics": {
     "edge_crossings": 1.0,
-    "grid_snap": 1.0,
     "node_count": 1.0,
     "angular_resolution": 1.0
   }

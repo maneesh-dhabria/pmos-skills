@@ -1,12 +1,14 @@
 # Code Metrics — Deterministic SVG Eval
 
-This file specifies the deterministic eval that `/diagram` runs in Phase 4. All metrics are implemented in **`tests/run.py`** (function `evaluate(svg_path) -> dict`); reuse that function rather than re-implementing inline.
+This file specifies the deterministic eval that `/diagram` runs in Phase 4. All metrics are implemented in **`tests/run.py`** (function `evaluate(svg_path, theme=..., sidecar_path=...) -> dict`); reuse that function rather than re-implementing inline.
 
 For ad-hoc invocation from SKILL.md, call:
 
 ```bash
-python3 -c "import sys; sys.path.insert(0, 'skills/diagram/tests'); import run; import json; print(json.dumps(run.evaluate('PATH/TO/file.svg'), indent=2))"
+python3 -c "import sys; sys.path.insert(0, '${CLAUDE_PLUGIN_ROOT}/skills/diagram/tests'); import run; import json; print(json.dumps(run.evaluate('PATH/TO/file.svg', theme='technical', sidecar_path='PATH/TO/file.diagram.json.tmp'), indent=2))"
 ```
+
+Pass `sidecar_path` explicitly when evaluating a draft (`<out>.svg.tmp`) — the default suffix-derived sidecar path only resolves for finalized SVGs, and `role-style-consistency` silently passes when no sidecar is found.
 
 The function returns:
 
@@ -16,7 +18,6 @@ The function returns:
   "hard_fails": ["palette: #FF00AA not in token set"],
   "soft_metrics": {
     "edge_crossings": 1.0,
-    "grid_snap": 0.97,
     "node_count": 1.0,
     "angular_resolution": 0.81
   },
@@ -24,6 +25,7 @@ The function returns:
     "edge_crossings_count": 0,
     "node_count": 8,
     "min_font_size": 12,
+    "grid_snap": 0.97,
     "off_grid_coords": ["text@(411,200)"],
     ...
   }
@@ -151,11 +153,11 @@ Threshold:
 
 If any pairing falls below → hard-fail.
 
-### 7. Grid snap (soft)
+### 7. Grid snap (diagnostic only — not in `code_score`)
 
 For every position-bearing attribute (`x`, `y`, `cx`, `cy`, `x1`, `y1`, `x2`, `y2`, polyline waypoints, `transform translate`, path `M/L/H/V` operands) on nodes, connectors, and `<text>` elements: post-transform coordinate must be an integer multiple of 4.
 
-`score = (snapped / total)`. Threshold: ≥ 0.95.
+`diagnostics.grid_snap = (snapped / total)`, with offenders in `diagnostics.off_grid_coords`. Reported for the drafting agent's benefit, but excluded from the `code_score` mean (2026-06-10): a 2px offset is invisible taste and must not trigger refinement loops.
 
 ### 8. Node count (soft + HARD-FAIL at >30)
 
@@ -180,6 +182,14 @@ If no node has degree ≥ 3, this metric is omitted from the soft-metric mean.
 
 Threshold: ≥ 0.5.
 
+### 10. Arrowhead mix (HARD-FAIL)
+
+Moved from the vision rubric (2026-06-10) — deterministic from SVG source. Classify every non-`defs` `<line>`/`<path>`/`<polyline>` outside legend/chrome/rule classes (`legend`, `edge-label`, `bg`, `container`, `caption-rule`, `divider`, …) that has a stroke and no fill as connector-shaped. If some connector-shaped elements carry `marker-start`/`marker-end` and others don't → hard-fail `"arrowhead-mix: N stroked connector(s) lack arrowheads while M have them"`. A diagram with *no* markered connectors at all (undirected) does not trip this.
+
+### 11. Legend presence (HARD-FAIL)
+
+Legend *presence* moved from the vision rubric (2026-06-10); legend *meaning* remains the advisory `legend-coverage` vision item. Count distinct **categorical** colors — the active theme's `accents[].hex` ∪ `categoryChips[].hex`, minus any hex coinciding with a base token (ink/inkMuted/warn/surface/surfaceMuted) — used as fill or stroke on detected nodes. If ≥ 2 and no element carries a `legend` class or a `legend`-containing id → hard-fail `"legend-missing: …"`. Tuned to under-report: base-token category styling (e.g. inkMuted-vs-accent strokes) does not trigger it.
+
 ---
 
 ## Side-effect — node-count split prompt
@@ -200,13 +210,13 @@ When `n > 30`: hard-fail terminates this draft; refinement must reduce node coun
     "hard_fails": list[str],        # human-readable failure messages
     "soft_metrics": {
         "edge_crossings": float,
-        "grid_snap": float,
         "node_count": float,
         "angular_resolution": float | None,  # None if no degree>=3 nodes
     },
     "diagnostics": {
         "edge_crossings_count": int,
         "node_count": int,
+        "grid_snap": float,            # diagnostic only — not in code_score
         "off_grid_coords": list[str],
         "min_font_size": int,
         "title": str | None,
@@ -215,4 +225,4 @@ When `n > 30`: hard-fail terminates this draft; refinement must reduce node coun
 }
 ```
 
-`hard_fails` is the source of truth for refinement targets. SKILL.md serializes this list into the Phase 6 Findings Presentation Protocol.
+`hard_fails` is the source of truth for refinement targets. SKILL.md serializes this list into the Phase 6 findings flow (`_shared/findings-dispositions.md`).

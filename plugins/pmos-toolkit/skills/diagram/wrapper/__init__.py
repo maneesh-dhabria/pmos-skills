@@ -1,1 +1,1 @@
-"""Phase 6b wrapper composition utilities for /diagram --mode infographic."""
+"""Phase 8 (editorial-wrapper) composition utilities for /diagram --mode infographic."""

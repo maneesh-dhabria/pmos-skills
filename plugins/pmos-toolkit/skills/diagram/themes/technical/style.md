@@ -1,8 +1,6 @@
 # Diagram House Style
 
-This file is the single source of truth for `/diagram` visual style. Every section here is enforced by code metrics (`eval/code-metrics.md`), the binary vision rubric (`eval/rubric.md`), or both. Do not deviate.
-
-When you generate a diagram you MUST cite back to the relevant subsections — for example: "Using token `accent` per §5.1; legend per §5.6; canvas 16:10 per §5.7."
+This file mirrors `themes/technical/theme.yaml` for human reading. The YAML is the source of truth for tokens (palette, typography, strokes, radii, connectors, arrowheads); this doc explains the why and carries the layout guidance (§5.2, §5.7) that isn't a theme token. Token-touching sections are enforced by code metrics (`eval/code-metrics.md`) and the vision rubric (`eval/rubric.md`).
 
 ---
 

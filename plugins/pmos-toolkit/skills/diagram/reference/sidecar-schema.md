@@ -1,6 +1,6 @@
 # Sidecar Schema — `<slug>.diagram.json`
 
-Written next to every successful SVG in Phase 7. Read in Phase 1 to power the extend-vs-redraw flow.
+Written next to every successful SVG in Phase 9 (a working copy exists from Phase 3 onward at `<out>.diagram.json.tmp`). Read in Phase 1 to power the extend-vs-redraw flow.
 
 ## Current schema (v2)
 
@@ -44,22 +44,21 @@ Written next to every successful SVG in Phase 7. Read in Phase 1 to power the ex
     "codeHardFails": [],
     "softMetrics": {
       "edge_crossings": 1.0,
-      "grid_snap": 0.97,
       "node_count": 1.0,
       "angular_resolution": 0.81
     },
     "visionItems": {
+      "legibility": "pass",
       "primary-emphasis": "pass",
       "clear-entry": "pass",
-      "legibility": "pass",
       "legend-coverage": "pass",
-      "arrowhead-consistency": "pass",
       "style-atom-match": "pass",
       "visual-balance": "pass"
     },
     "loopsRun": 1,
     "shippedWithWarning": false,
-    "userOverrides": []
+    "userOverrides": [],
+    "dispositions": []
   },
   "createdAt": "2026-05-03T12:00:00Z",
   "createdBy": "pmos-toolkit:diagram@v2"
@@ -112,8 +111,9 @@ These fields are absent (not `null`) when `mode: "diagram"`.
 - **`relationships[]._svgId`** — plan-level binding field. Underscore prefix signals it is NOT a semantic property of the relationship; it exists so the `role-style-consistency` rubric add-item can map sidecar role tags to SVG element IDs without re-clustering strokes.
 - **`positions`** — post-transform absolute bboxes. Used by extend-mode to keep geometry stable when only colors/labels change.
 - **`colorAssignments`** — category→token mapping. Token names should be valid within the active theme's palette.
-- **`evalSummary.visionItems`** — keyed by stable rubric IDs (see `eval/rubric.md`). v1's numeric keys (`"1".."7"`) are not supported.
+- **`evalSummary.visionItems`** — keyed by stable rubric IDs (see `eval/rubric.md`). v1's numeric keys (`"1".."7"`) are not supported. Pre-2026-06-10 sidecars may carry an `arrowhead-consistency` key (now a deterministic code check) and a `grid_snap` entry in `softMetrics` (now diagnostic-only) — tolerated on read, never written.
 - **`userOverrides`** — strings recording any user override during the run.
+- **`evalSummary.dispositions[]`** — `{finding, disposition, source: user|auto}` entries from the Phase 6 refinement loop (`_shared/findings-dispositions.md`); `source: auto` records non-interactive self-fixes.
 
 ## Versioning policy
 

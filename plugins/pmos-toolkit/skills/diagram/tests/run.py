@@ -74,22 +74,16 @@ SIDECAR_SCHEMA_VERSION = 2
 
 # ---------- Rubric prompt assembly ----------
 
-# Stable IDs map to the 7 core rubric items. The mapping is fixed; theme files
+# Stable IDs map to the core rubric items. The mapping is fixed; theme files
 # refer to these IDs by string. Kept in code (not config) because the IDs are
 # part of the sidecar schema.
+#
+# Gating rebalance (2026-06-10 design review): only `legibility` (the one
+# genuinely raster-only check) plus theme rubricOverrides.add items gate.
+# Everything else is advisory — reported, never blocking. The former
+# `arrowhead-consistency` vision item moved to the deterministic
+# `arrowhead-mix` code check; legend *presence* moved to `legend-missing`.
 RUBRIC_CORE_ITEMS: list[dict[str, str]] = [
-    {
-        "id": "primary-emphasis",
-        "title": "Primary node emphasis",
-        "gating": "true",
-        "prompt": "Is there exactly one visually-emphasized 'primary' node, distinguished by size OR weight OR position OR color (theme accent)?",
-    },
-    {
-        "id": "clear-entry",
-        "title": "Clear starting point",
-        "gating": "true",
-        "prompt": "Does the diagram have a clear starting point — top-left node for left-right flows, top-center for top-down hierarchies, an explicitly labeled start/input/user, or the primary node if it doubles as the entry?",
-    },
     {
         "id": "legibility",
         "title": "Label legibility at 50% scale",
@@ -97,22 +91,28 @@ RUBRIC_CORE_ITEMS: list[dict[str, str]] = [
         "prompt": "Is every text label fully legible at 50% raster scale (no clipping, no occlusion by other elements, no overlap with connectors)?",
     },
     {
-        "id": "legend-coverage",
-        "title": "Legend coverage",
-        "gating": "true",
-        "prompt": "Does each color used in the diagram appear in the legend with a clear meaning? Auto-pass when only ink plus at most one accent is used.",
+        "id": "primary-emphasis",
+        "title": "Primary node emphasis",
+        "gating": "false",
+        "prompt": "Advisory: is there exactly one visually-emphasized 'primary' node, distinguished by size OR weight OR position OR color (theme accent)?",
     },
     {
-        "id": "arrowhead-consistency",
-        "title": "Arrowhead consistency",
-        "gating": "true",
-        "prompt": "Are arrowheads consistently directional? No mix of bidirectional and directional without a legend explanation; no connectors missing arrowheads where direction is implied.",
+        "id": "clear-entry",
+        "title": "Clear starting point",
+        "gating": "false",
+        "prompt": "Advisory: does the diagram have a clear starting point — top-left node for left-right flows, top-center for top-down hierarchies, an explicitly labeled start/input/user, or the primary node if it doubles as the entry?",
+    },
+    {
+        "id": "legend-coverage",
+        "title": "Legend coverage (meaning)",
+        "gating": "false",
+        "prompt": "Advisory: do the legend labels correctly describe what each color actually encodes in the diagram? (Legend presence is enforced by the deterministic legend-missing check; this judges meaning only.) Auto-pass when only ink plus at most one accent is used.",
     },
     {
         "id": "style-atom-match",
         "title": "Style atoms match",
-        "gating": "true",
-        "prompt": "Does the diagram match the active theme's reference atoms (palette tokens, stroke weights, type scale, corner radii, edge label pill, legend block)?",
+        "gating": "false",
+        "prompt": "Advisory: does the diagram match the active theme's reference atoms (palette tokens, stroke weights, type scale, corner radii, edge label pill, legend block)? Palette/typography/contrast are already hard-failed deterministically — judge the remaining gestalt only.",
     },
     {
         "id": "visual-balance",
@@ -153,7 +153,7 @@ def build_wrapper_rubric_prompt() -> str:
     Single pass, no refinement loop. Run inline regardless of --rigor.
     """
     lines: list[str] = []
-    lines.append("# Wrapper rubric (Phase 6b — single pass, ship-with-warning on fail)")
+    lines.append("# Wrapper rubric (editorial-wrapper phase — single pass, ship-with-warning on fail)")
     lines.append("")
     lines.append("Score each item pass|fail with one-sentence concrete evidence (zone names,")
     lines.append("pixel coords, label text). Do NOT speculate. Output JSON only:")
@@ -555,7 +555,11 @@ def check_role_style_consistency(
     return True, ""
 
 
-def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str, Any]:
+def evaluate(
+    svg_path: str | pathlib.Path,
+    theme: str = "technical",
+    sidecar_path: str | pathlib.Path | None = None,
+) -> dict[str, Any]:
     svg_path = pathlib.Path(svg_path)
     theme_dict = load_theme(theme)
     palette = build_palette_set(theme_dict)
@@ -566,8 +570,12 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
     hard_fails: list[str] = []
     diagnostics: dict[str, Any] = {"off_grid_coords": []}
 
-    # Role-style-consistency hard-fail (themes with mixingPermitted: true only)
-    sidecar_path = svg_path.with_suffix(".diagram.json")
+    # Role-style-consistency hard-fail (themes with mixingPermitted: true only).
+    # Callers evaluating a draft (`<out>.svg.tmp`) MUST pass sidecar_path
+    # explicitly — the suffix-derived default only resolves for finalized SVGs.
+    if sidecar_path is None:
+        sidecar_path = svg_path.with_suffix(".diagram.json")
+    sidecar_path = pathlib.Path(sidecar_path)
     if theme_dict["connectors"].get("mixingPermitted"):
         ok, reason = check_role_style_consistency(svg_path, sidecar_path)
         if not ok:
@@ -594,8 +602,9 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
         if entry[0] == "__unsupported_transform__":
             hard_fails.append("transform: unsupported (e.g. matrix/skew) — use translate/scale/rotate only")
 
-    nodes: list[dict[str, Any]] = []        # [{id, bbox, el}]
+    nodes: list[dict[str, Any]] = []        # [{id, bbox, el, fill, stroke}]
     connectors: list[dict[str, Any]] = []   # [{waypoints, el}]
+    bare_connectorish: list[str] = []       # stroked line/path/polyline without arrowheads
     text_records: list[dict[str, Any]] = [] # [{x, y, text, font_size, fill, el}]
     coords_for_grid: list[tuple[str, float, float]] = []  # (label, x, y)
     palette_violations: list[str] = []
@@ -668,7 +677,9 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
                 # Apply translation portion of transform (we don't support scaled nodes here)
                 x += m[4]; y += m[5]
                 nodes.append({"bbox": (x, y, w, h), "el": el, "tag": local_tag,
-                              "id": el.get("id", f"{local_tag}@{x},{y}")})
+                              "id": el.get("id", f"{local_tag}@{x},{y}"),
+                              "fill": resolve_attr(el, "fill", styles, inh),
+                              "stroke": resolve_attr(el, "stroke", styles, inh)})
             except ValueError:
                 continue
 
@@ -676,6 +687,23 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
         marker_end = el.get("marker-end") or inh.get("marker-end")
         marker_start = el.get("marker-start") or inh.get("marker-start")
         is_connector = bool(marker_end or marker_start) and local_tag in ("line", "path", "polyline")
+        if (
+            local_tag in ("line", "path", "polyline")
+            and not (marker_end or marker_start)
+            and not has_legend_class(path_cls)
+            and not is_chrome_class(path_cls)
+            # wrapper / decorative rules are not connectors
+            and not any(c in {"caption-rule", "rule", "divider", "separator"} for c in path_cls)
+        ):
+            # Arrowhead-mix accounting: a stroked, unfilled line/path/polyline
+            # outside defs/legend/chrome is connector-shaped but has no arrowhead.
+            fill_v = resolve_attr(el, "fill", styles, inh)
+            stroke_v = resolve_attr(el, "stroke", styles, inh)
+            if (
+                stroke_v and stroke_v.strip().lower() not in ("none", "transparent")
+                and (fill_v is None or fill_v.strip().lower() in ("none", "transparent"))
+            ):
+                bare_connectorish.append(el.get("id") or f"<{local_tag}>")
         if is_connector:
             waypoints: list[tuple[float, float]] = []
             if local_tag == "line":
@@ -810,6 +838,45 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
     if n_nodes > 30:
         hard_fails.append(f"node-count: {n_nodes} nodes exceeds maximum 30")
 
+    # arrowhead-mix hard-fail (moved from the vision rubric, 2026-06-10):
+    # some connectors carry arrowheads while other connector-shaped strokes
+    # don't — direction is ambiguous. Deterministic from SVG source.
+    if connectors and bare_connectorish:
+        diagnostics["bare_connectors"] = bare_connectorish
+        hard_fails.append(
+            f"arrowhead-mix: {len(bare_connectorish)} stroked connector(s) "
+            f"({', '.join(bare_connectorish[:4])}) lack arrowheads while "
+            f"{len(connectors)} connector(s) have them"
+        )
+
+    # legend-missing hard-fail (legend *presence* moved from the vision rubric,
+    # 2026-06-10; legend *meaning* stays an advisory vision item): ≥2 distinct
+    # categorical colors (theme accents + categoryChips) on nodes require a
+    # legend block (class or id containing 'legend').
+    base_hexes = {
+        (theme_dict["palette"].get(k) or "").upper()
+        for k in ("ink", "inkMuted", "warn", "surface", "surfaceMuted")
+    }
+    categorical_hexes = (
+        {a["hex"].upper() for a in theme_dict["palette"].get("accents", [])}
+        | {c["hex"].upper() for c in theme_dict["palette"].get("categoryChips", [])}
+    ) - base_hexes  # ink-coincident chips (editorial chip-ink) are not categorical signals
+    categorical_used: set[str] = set()
+    for n in nodes:
+        for v in (n.get("fill"), n.get("stroke")):
+            if v and v.strip().upper() in categorical_hexes:
+                categorical_used.add(v.strip().upper())
+    has_legend_block = any(
+        "legend" in (el.get("class") or "").split()
+        or "legend" in (el.get("id") or "").lower()
+        for el in root.iter()
+    )
+    if len(categorical_used) >= 2 and not has_legend_block:
+        hard_fails.append(
+            f"legend-missing: {len(categorical_used)} categorical colors "
+            f"({', '.join(sorted(categorical_used))}) used but no legend block found"
+        )
+
     # ---------- Soft metrics ----------
 
     # edge crossings
@@ -879,9 +946,12 @@ def evaluate(svg_path: str | pathlib.Path, theme: str = "technical") -> dict[str
     else:
         angular_score = None
 
+    # grid snap is a diagnostic only (2026-06-10): 2px offsets are invisible
+    # taste — it must not drag code_score below 0.8 and trigger refinement loops.
+    diagnostics["grid_snap"] = round(grid_snap_score, 4)
+
     soft_metrics = {
         "edge_crossings": round(edge_crossings_score, 4),
-        "grid_snap": round(grid_snap_score, 4),
         "node_count": round(node_count_score, 4),
     }
     if angular_score is not None:
@@ -959,11 +1029,12 @@ def run_corpus(update_snapshots: bool = False) -> int:
         "font-too-small":           ("hard", "font:"),
         "low-contrast":             ("hard", "contrast:"),
         "palette-violation":        ("hard", "palette:"),
-        "off-grid":                 ("soft", "grid_snap"),
+        "off-grid":                 ("diag", "grid_snap"),
         "over-30-nodes":            ("hard", "node-count:"),
         "mixed-reading-direction":  ("vision", None),  # not detectable by code; documented
         "crossing-storm":           ("soft", "edge_crossings"),
-        "arrowhead-inconsistent":   ("vision", None),  # not detectable by code; documented
+        "arrowhead-inconsistent":   ("hard", "arrowhead-mix"),
+        "legend-missing-two-chip-colors": ("hard", "legend-missing"),
         "cream-but-mixed-connectors-within-one-role": ("hard", "role-style-consistency"),
         "eyebrow-not-uppercase":    ("vision", None),  # editorial-specific vision check
         "infographic-caption-color-not-in-diagram": ("hard", "caption-color-not-in-diagram"),
@@ -990,6 +1061,13 @@ def run_corpus(update_snapshots: bool = False) -> int:
             if not ok:
                 failures.append(f"{svg.name}: expected soft metric '{needle}' < 0.95, got {score}")
             print(f"  {status}  {svg.name}  {needle}={score}")
+        elif kind == "diag":
+            score = result["diagnostics"].get(needle, 1.0)
+            ok = score < 0.95
+            status = "PASS" if ok else "FAIL"
+            if not ok:
+                failures.append(f"{svg.name}: expected diagnostic '{needle}' < 0.95, got {score}")
+            print(f"  {status}  {svg.name}  diagnostics.{needle}={score}")
         elif kind == "vision":
             print(f"  SKIP  {svg.name}  (vision-only defect; not gated by code metrics)")
 

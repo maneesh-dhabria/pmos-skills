@@ -1,8 +1,10 @@
-# Vision Rubric — 7-Item Binary Review
+# Vision Rubric — Binary Review
 
-This is the rubric the vision-reviewer subagent (or inline reviewer call) applies to the rendered PNG of a `/diagram` output.
+This is the rubric the vision reviewer (subagent or inline call) applies to the rendered PNG of a `/diagram` output. The item list and gating flags live in `tests/run.py:RUBRIC_CORE_ITEMS` (one home); this doc explains each item.
 
 **No 0–5 scoring.** Each item is binary `pass | fail` plus a one-sentence justification grounded in concrete pixel/element evidence (coordinates, label text, or quadrant references).
+
+**Gating vs advisory (2026-06-10 rebalance):** only `legibility` — the one genuinely raster-only check — plus any theme `rubricOverrides.add` items **gate**. Every other core item is **advisory**: reported with evidence, surfaced as findings, never blocking. Arrowhead consistency and legend *presence* are no longer vision items at all — they are deterministic code checks (`arrowhead-mix`, `legend-missing` in `eval/code-metrics.md`).
 
 Each item has a **stable ID** (kebab-case). Stable IDs are used in:
 - `evalSummary.visionItems` keys in the v2 sidecar (e.g. `"primary-emphasis": "pass"`).
@@ -15,7 +17,7 @@ Each item has a **stable ID** (kebab-case). Stable IDs are used in:
 
 Themes can customize the rubric via `theme.yaml` `rubricOverrides`:
 
-- `waive: ["<stable-id>", ...]` — drop these items from the reviewer prompt for this theme. Use sparingly; the 7 items are the gate.
+- `waive: ["<stable-id>", ...]` — drop these items from the reviewer prompt for this theme. Use sparingly.
 - `add: [{id, prompt, evidenceHint}, ...]` — append theme-specific items. Each entry produces a new pass/fail item with the same evidence-citation contract.
 
 Examples:
@@ -28,7 +30,7 @@ The runtime `build_rubric_prompt(theme)` (in `tests/run.py`) materializes the pr
 
 ## Reviewer prompt template
 
-When `high`-rigor: dispatch a `general-purpose` subagent. When `medium`/`low`-rigor: run inline. Either way the prompt is:
+Dispatch is a runtime capability check (SKILL.md Phase 5): subagent tool available AND `high`-rigor → dispatch with `model: sonnet`; otherwise run inline. Either way the prompt is:
 
 ```
 You are reviewing a rendered diagram against a fixed rubric. You will be given:
@@ -64,11 +66,20 @@ ambiguous, lean toward "pass" but state the ambiguity in evidence.
 
 ---
 
-## The 7 items (stable IDs)
+## The core items (stable IDs)
 
-Mapping note (one-time migration from numeric keys): `1 → primary-emphasis`, `2 → clear-entry`, `3 → legibility`, `4 → legend-coverage`, `5 → arrowhead-consistency`, `6 → style-atom-match`, `7 → visual-balance`. Behavioral content is unchanged.
+Mapping notes: numeric keys migrated once (`1 → primary-emphasis`, … `7 → visual-balance`); `arrowhead-consistency` was removed 2026-06-10 — its check lives on as the deterministic `arrowhead-mix` hard-fail.
 
-### `primary-emphasis` — Primary node emphasis (gating)
+### `legibility` — Label legibility at 50% scale (GATING)
+
+> Is every text label fully legible at 50% raster scale (no clipping, no occlusion by other elements, no overlap with connectors)?
+
+**Pass** if every word reads at half-size.
+**Fail** if any label is clipped, hidden, or runs together with another label/connector.
+
+The 12px-min font rule is enforced separately by the code metric; this item catches occlusion and rendered-text overflow that code can't see — which is exactly why it is the one core item that gates.
+
+### `primary-emphasis` — Primary node emphasis (advisory)
 
 > Is there exactly one visually-emphasized "primary" node, distinguished by size OR weight OR position OR color (theme accent)?
 
@@ -77,7 +88,7 @@ Mapping note (one-time migration from numeric keys): `1 → primary-emphasis`, `
 
 Edge case: monochrome diagrams of fully symmetric content (e.g. a 4-node round-trip) may have no primary by design — agent must declare this in the sidecar `approach` field, in which case auto-pass.
 
-### `clear-entry` — Clear starting point (gating)
+### `clear-entry` — Clear starting point (advisory)
 
 > Does the diagram have a clear starting point — top-left node for left-right flows, top-center node for top-down hierarchies, an explicitly labeled "start" / "input" / "user", or the primary node from `primary-emphasis` if it doubles as the entry?
 
@@ -86,39 +97,22 @@ Edge case: monochrome diagrams of fully symmetric content (e.g. a 4-node round-t
 
 Mind-map / radial diagrams pass automatically if the center node is the starting point.
 
-### `legibility` — Label legibility at 50% scale (gating)
+### `legend-coverage` — Legend coverage: meaning (advisory, N/A in monochrome)
 
-> Is every text label fully legible at 50% raster scale (no clipping, no occlusion by other elements, no overlap with connectors)?
+> Do the legend labels correctly describe what each color actually encodes? (Auto-pass if only ink + at most one accent is used.)
 
-**Pass** if every word reads at half-size.
-**Fail** if any label is clipped, hidden, or runs together with another label/connector.
+Legend *presence* when ≥2 categorical colors are used is enforced deterministically by the `legend-missing` code check; this item judges only whether the legend's stated meanings match the diagram.
 
-The 12px-min font rule is enforced separately by the code metric; this item catches occlusion that code can't see.
-
-### `legend-coverage` — Legend coverage (gating, N/A in monochrome)
-
-> Does each color used in the diagram appear in the legend with a clear meaning? (Auto-pass if only ink + at most one accent is used.)
-
-**Pass** if the legend explains every category color.
-**Fail** if a color appears in the diagram but not the legend, OR the legend lists colors not actually used.
-
-### `arrowhead-consistency` — Arrowhead consistency (gating)
-
-> Are arrowheads consistently directional? (No mix of bidirectional + directional connectors without a legend explanation. No connectors lacking arrowheads where direction is implied.)
-
-**Pass** if all connectors use the same arrowhead style and direction is obvious.
-**Fail** if some connectors are arrowed and others aren't (without legend), or some are double-headed and others single-headed inconsistently.
-
-### `style-atom-match` — Style atoms match (gating)
+### `style-atom-match` — Style atoms match (advisory)
 
 > Does the diagram match the active theme's reference style atoms in `themes/<theme>/atoms/` — palette tokens, stroke weights, type scale, corner radii, edge label pill style, legend block style?
 
 **Pass** if a side-by-side with the active theme's atoms shows the same visual vocabulary.
 **Fail** if shapes have wrong corner radii, stroke weights deviate, type sizes are off-scale, or legend formatting differs from the reference.
 
-This is the theme's primary gate: when a theme defines additional palette/connector rules (pinned roles, mixingPermitted), they ride on this check via the active atoms.
+Palette, typography, strokes, and radii are already hard-failed deterministically; this item judges the remaining gestalt. A theme's defining moves gate via its `rubricOverrides.add` items, not via this check.
 
-### `visual-balance` — Visual balance (advisory only)
+### `visual-balance` — Visual balance (advisory)
 
 > Is the largest empty quadrant ≤ 35% of canvas area AND the densest 25% region ≤ 60% of nodes?
 
@@ -154,16 +148,15 @@ Vision-only check. Used by editorial-theme defects.
 
 ## Pass condition
 
-The vision rubric **passes** when every gating item passes (advisory items may pass or fail). For the default 7, that's items 1–6 (`primary-emphasis` through `style-atom-match`); items injected by `rubricOverrides.add` are gating unless their definition says otherwise.
+The vision rubric **passes** when every gating item passes — `legibility` plus items injected by `rubricOverrides.add` (gating unless their definition says otherwise). Advisory items may pass or fail; failures are reported as findings.
 
 If any gating item fails:
-- The reviewer's `top_priorities[]` list (stable IDs in order) seeds the Phase 6 Findings Presentation Protocol.
-- SKILL.md groups failures by category, presents up to 4 per `AskUserQuestion` call with options Apply / Modify / Skip / Defer.
-- Loop continues until pass OR loop budget exhausted (then Phase 6a terminal handler).
+- The reviewer's `top_priorities[]` list (stable IDs in order) seeds the Phase 6 findings flow (`_shared/findings-dispositions.md`: Fix as proposed / Modify / Skip / Defer).
+- Loop continues until pass OR loop budget exhausted (then the Phase 7 terminal handler).
 
 ---
 
-## Wrapper rubric (Phase 6b, infographic mode only)
+## Wrapper rubric (Phase 8, infographic mode only)
 
 When `--mode infographic` is active, after the wrapper composes the editorial-v1 layout, a separate **slim 4-item rubric** runs as a **single pass** (no refinement loop). It is INLINE regardless of `--rigor`.
 
@@ -176,7 +169,7 @@ When `--mode infographic` is active, after the wrapper composes the editorial-v1
 
 **Pass condition:** all 4 items pass.
 
-**Failure handling:** ship-with-warning. Prepend `<!-- WRAPPER QUALITY WARNING: <ids> -->` to the composite SVG immediately after `<?xml`. **Wrapper rubric failures DO NOT GATE.** The full 7-item diagram rubric in Phase 5 has already gated; this wrapper pass is supplementary insurance, not a second hard gate.
+**Failure handling:** ship-with-warning. Prepend `<!-- WRAPPER QUALITY WARNING: <ids> -->` to the composite SVG immediately after `<?xml`. **Wrapper rubric failures DO NOT GATE.** The Phase 4 code metrics and Phase 5 vision gate have already gated the diagram; this wrapper pass is supplementary insurance, not a second hard gate.
 
 The reviewer prompt is materialized by `tests/run.py:build_wrapper_rubric_prompt()` and uses the JSON shape `{wrapper_items: {<id>: {verdict, evidence}}, wrapper_blocker_count}` — distinct from the diagram rubric's `items` / `blocker_count` keys so callers don't conflate them.
 
