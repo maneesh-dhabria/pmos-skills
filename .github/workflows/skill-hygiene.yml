@@ -1,0 +1,28 @@
+name: Skill hygiene (flags + phase refs)
+
+# Two repo-wide hygiene lints from the 2026-06-10 skill-design review:
+#   - tools/lint-flags-vs-hints.sh  — argument-hint <-> body flag-doc sync
+#   - tools/lint-phase-refs.sh      — every "Phase <N>" reference resolves to a real heading
+#
+# NOTE: both lints are EXPECTED RED until the design-review P1/P2 campaign
+# (branch refactor/skill-design-p1p2) fully merges — they were introduced with
+# known baseline violations (flags: 40, phase-refs: 37 at creation) that
+# Waves 2–3 of that campaign burn down. A failing run on main before that
+# merge is intended, not a regression.
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/*/skills/**/*.md'
+      - 'tools/lint-flags-vs-hints.sh'
+      - 'tools/lint-phase-refs.sh'
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint-flags-vs-hints
+        run: bash tools/lint-flags-vs-hints.sh
+      - name: Run lint-phase-refs
+        run: bash tools/lint-phase-refs.sh
