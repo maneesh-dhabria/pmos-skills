@@ -1,11 +1,12 @@
 # skill-eval.md — the binary skill-quality rubric
 
-52 binary pass/fail checks — 46 gated (24 `[D]` + 22 `[J]`) + 6 advisory `[J]` — pass floor 42 (gated − 4); a 1:1 mirror of `skill-patterns.md` §A–§K. `/feature-sdlc`
-Phase 6a (and `/verify` on a skill) runs this rubric: the `[D]` (deterministic)
+53 binary pass/fail checks — 47 gated (24 `[D]` + 23 `[J]`) + 6 advisory `[J]` — pass floor 43 (gated − 4); a 1:1 mirror of `skill-patterns.md` §A–§L. `/feature-sdlc`
+Phase 6a runs this rubric: the `[D]` (deterministic)
 checks are implemented in `tools/skill-eval-check.sh`; the `[J]` (llm-judge) checks
-are run by a reviewer subagent; the six advisory `[J]` checks (final section) are
-evaluated and reported but never gate. Each check carries a stable `check_id` (kebab,
-prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `k-…`), a `tag`,
+are run by a reviewer subagent — once, at 6a (`/verify` on a skill re-runs only the
+`[D]` half and reconciles accepted residuals); the six advisory `[J]` checks (final
+section) are evaluated and reported but never gate. Each check carries a stable `check_id` (kebab,
+prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `l-…`), a `tag`,
 an `applies_when` gate, a `check`/`pass-condition`, a `why`, a `how-to-verify`, and a
 back-reference to its `skill-patterns.md` §-rule. This file is the contract; the
 `/execute` implementation may refine the prose and re-tag an individual `[D]`/`[J]`
@@ -27,6 +28,7 @@ by `skill-eval-check.sh --selftest`).
 - **10.I — Flags** (4 checks: 2 `[D]`, 2 `[J]`)
 - **10.J — Phases & anchors** (3 checks: 1 `[D]`, 2 `[J]`)
 - **10.K — One fact, one home** (1 check, `[J]`)
+- **10.L — Subagent dispatch & model selection** (1 check, `[J]`; gated — skills that specify subagent dispatches)
 - **Advisory signals (reported, not gated)** (6 checks, all `[J]`)
 - **Totals & group-skip rules**
 - **LLM-judge determinism contract**
@@ -38,6 +40,7 @@ by `skill-eval-check.sh --selftest`).
 - **`--target generic`** → group 10.F (`f-cc-user-invocable`, `f-cc-argument-hint-matches`, `f-codex-sidecar`) is skipped entirely — only the platform-intersection requirements apply.
 - **No `03_plan.{html,md}` artifact present** (or skill is not being authored under the pmos-toolkit pipeline) → group 10.G (`g-release-prereqs-scope`, `g-plan-grep-clean`) is skipped entirely. The two checks only run when `/feature-sdlc skill …` has produced a plan artifact and `/verify` / Phase 6a is grading the plan-to-scope discipline.
 - **Skill defines no gate, rubric, or eval loop** → group 10.H is N/A (not a failure).
+- **Skill specifies no subagent (Task) dispatches** → group 10.L is N/A (not a failure).
 - **Skill parses no flags/options** → the `[J]` group-10.I checks (`i-nl-first-stated`, `i-flags-4test`) are N/A; the `[D]` lint-backed checks still run (they pass trivially on a flagless skill).
 - **No phase headings in the body** → `j-phases-integer` and `j-phase-slug-anchors` are N/A; `j-phase-refs-resolve` still runs (it passes trivially when there are no phase references).
 - **Repo-root lint missing** — the three lint-backed `[D]` checks (`i-hint-contract-only`, `i-nl-sugar-marked` → `tools/lint-flags-vs-hints.sh`; `j-phase-refs-resolve` → `tools/lint-phase-refs.sh`, both resolved by walking up from the script's own location) are **skipped with a stderr `WARN:`**, not failed, when the lint file cannot be found or errors. This rubric may be synced into a plugin/repo that lacks the host repo-root `tools/`; a missing lint must never crash the eval.
@@ -50,7 +53,7 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 
 - `temperature: 0`.
 - Output schema, per check: `{check_id, verdict: "pass" | "fail", fix_note: string, quote: string}` — where `quote` is a ≥40-character verbatim span from the skill source that grounds a `fail`.
-- A `fail` with an empty `quote`, or a `quote` that is not a substring of the skill source, is treated as `pass` (an unsubstantiated fail does not count). The parent (`/feature-sdlc` Phase 6a or `/verify`) substring-validates every `quote` against the un-stripped source and downgrades unverifiable fails.
+- A `fail` with an empty `quote`, or a `quote` that is not a substring of the skill source, is treated as `pass` (an unsubstantiated fail does not count). The parent (`/feature-sdlc` Phase 6a — or whichever parent dispatched the reviewer) substring-validates every `quote` against the un-stripped source and downgrades unverifiable fails.
 - Advisory checks use the same contract and the same quote-grounding; their verdicts are reported with the `fix_note` + `quote` but are excluded from the pass floor.
 
 ---
@@ -259,6 +262,18 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 
 ---
 
+## 10.L — Subagent dispatch & model selection (1 check, `[J]`; gated — skills that specify subagent dispatches)
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| l-dispatch-model-tier | [J] | skill specifies ≥1 subagent (Task) dispatch | Every subagent dispatch the skill specifies assigns a model tier per `skill-patterns.md` §L's model-selection policy — the dispatch spec names the Task tool's `model` parameter (`haiku` / `sonnet`) — or explicitly justifies inheriting the session model (a genuine-judgment role); pass iff every dispatch does one or the other. | skill-patterns.md §L |
+
+**why & how-to-verify (10.L):**
+
+- **l-dispatch-model-tier** — *why:* an unsized dispatch inherits the frontier session model — observed: 0 of 640 real dispatches over 15 days were pinned by skill prose, paying frontier prices for haiku/sonnet-shaped work; most pmos reviewers sit behind deterministic parent-side validators, which is exactly what makes cheaper models safe. *how-to-verify:* for each Task dispatch the body or reference files specify, confirm it names a `model:` tier or carries an explicit inherit justification (a judgment role per §L).
+
+---
+
 ## Advisory signals (reported, not gated)
 
 Per `skill-patterns.md` §H's judgment→advisory policy, the six judgment-call checks below are evaluated under the same `[J]` contract (temperature 0, quote-grounded) and reported in the eval output with severity + `fix_note` + `quote`, but they never count toward the pass floor and never block — the user disposes of each finding or records it as an accepted residual.
@@ -285,7 +300,7 @@ Per `skill-patterns.md` §H's judgment→advisory policy, the six judgment-call 
 
 ## Totals & group-skip rules
 
-The check counts and the pass floor are stated **once**, in this file's opening line, and asserted by `skill-eval-check.sh --selftest` (opening-line counts vs table reality; floor = gated − 4) — they are deliberately not restated here. The `[D]` checks, all gated and all implemented in `tools/skill-eval-check.sh`: `a-frontmatter-present`, `a-name-present`, `a-name-lowercase-hyphen`, `a-name-len`, `a-name-matches-dir`, `a-desc-present`, `a-desc-len`, `c-body-size`, `c-references-dir-name`, `c-references-one-level`, `c-reference-toc`, `c-portable-paths`, `c-asset-layout`, `d-platform-adaptation`, `d-learnings-load-line`, `d-capture-learnings-phase`, `d-progress-tracking`, `e-scripts-dir`, `f-cc-user-invocable`, `f-codex-sidecar`, `g-plan-grep-clean`, `i-hint-contract-only`, `i-nl-sugar-marked`, `j-phase-refs-resolve`. Every other gated check is `[J]` (reviewer subagent), and the final section's checks are advisory `[J]` — evaluated and reported, never counted toward the pass floor. This table set is the baseline contract; `/execute` may refine prose and adjust an individual `[D]`/`[J]` where clearly mis-tagged, but must keep the gated set at or above the pass floor stated in the opening line, the bijective patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script (FR-71). The group-skip rules (no `scripts/` → skip 10.E; no `reference/` → 10.C reference-only checks N/A; `--target generic` → skip 10.F; no `03_plan.{html,md}` / non-pmos-pipeline skill → skip 10.G; no gates/rubrics → 10.H N/A; missing repo-root lint → lint-backed checks skip with a `WARN:`) are part of the contract — see the top of this file.
+The check counts and the pass floor are stated **once**, in this file's opening line, and asserted by `skill-eval-check.sh --selftest` (opening-line counts vs table reality; floor = gated − 4) — they are deliberately not restated here. The `[D]` checks, all gated and all implemented in `tools/skill-eval-check.sh`: `a-frontmatter-present`, `a-name-present`, `a-name-lowercase-hyphen`, `a-name-len`, `a-name-matches-dir`, `a-desc-present`, `a-desc-len`, `c-body-size`, `c-references-dir-name`, `c-references-one-level`, `c-reference-toc`, `c-portable-paths`, `c-asset-layout`, `d-platform-adaptation`, `d-learnings-load-line`, `d-capture-learnings-phase`, `d-progress-tracking`, `e-scripts-dir`, `f-cc-user-invocable`, `f-codex-sidecar`, `g-plan-grep-clean`, `i-hint-contract-only`, `i-nl-sugar-marked`, `j-phase-refs-resolve`. Every other gated check is `[J]` (reviewer subagent), and the final section's checks are advisory `[J]` — evaluated and reported, never counted toward the pass floor. This table set is the baseline contract; `/execute` may refine prose and adjust an individual `[D]`/`[J]` where clearly mis-tagged, but must keep the gated set at or above the pass floor stated in the opening line, the bijective patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script (FR-71). The group-skip rules (no `scripts/` → skip 10.E; no `reference/` → 10.C reference-only checks N/A; `--target generic` → skip 10.F; no `03_plan.{html,md}` / non-pmos-pipeline skill → skip 10.G; no gates/rubrics → 10.H N/A; no subagent dispatches → 10.L N/A; missing repo-root lint → lint-backed checks skip with a `WARN:`) are part of the contract — see the top of this file.
 
 ## Cross-reference to skill-patterns.md
 

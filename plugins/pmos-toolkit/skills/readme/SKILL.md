@@ -123,14 +123,14 @@ All script paths use `${CLAUDE_PLUGIN_ROOT}/skills/readme/scripts/…` — no ab
 
 This subsection documents the protocol /readme follows after `rubric.sh` returns its findings (§1 step 3) and before the AskUserQuestion batching (§1 step 4, whose batches carry an `Apply suggested fix (Recommended)` option). It implements FR-SR-1 / FR-SR-2 / FR-SR-3 and decision-log entries D13 + P3. Skip entirely when `--skip-simulated-reader` is set (advisory log: `simulated-reader: skipped via --skip-simulated-reader`).
 
-**1. Parallel Task dispatch (FR-SR-1, FR-09/FR-10/FR-13 — 5 concurrent calls).** Issue **5 `Task` tool calls in ONE assistant response** — 4 personas + 1 reviewer:
+**1. Parallel Task dispatch (FR-SR-1, FR-09/FR-10/FR-13 — 5 concurrent calls).** Issue **5 `Task` tool calls in ONE assistant response** — 4 personas + 1 reviewer. Dispatch every call with `model: sonnet` — persona simulation and the [J] rubric review are bounded roles whose returns are deterministically validated parent-side (FR-SR-3 quote grep, FR-11 set-equality), which is what makes the cheaper tier safe:
    - Persona Task calls (4): `evaluator`, `adopter`, `contributor`, `returning-user-navigator`. Each body inlines, in order:
      - The persona-specific prompt block from `reference/simulated-reader.md §1` (load the file and paste the matching `### 1.x` section verbatim — do not re-author).
-     - The full **un-stripped** README markdown source (the user-supplied input file, byte-for-byte — required for FR-SR-3 substring grep to be sound).
+     - The absolute path of the **un-stripped** README (the user-supplied input file), with an instruction to read that file before judging. Do NOT paste the README body into the prompt — subagents share the filesystem, and the FR-SR-3 substring grep stays sound because step 2 validates quotes against the parent's own read of the same file.
      - The return-shape contract from `reference/simulated-reader.md §2` (JSON schema: `persona`, `friction[]` with `quote`/`line`/`severity`/`message`).
    - Reviewer Task call (1): IA-fit reviewer scoring the 2 [J] checks. Body inlines, in order:
      - The reviewer prompt block from `reference/reviewer.md §1` verbatim.
-     - The full **un-stripped** README markdown source (same byte-for-byte source as the personas).
+     - The same absolute README path (same read-it-yourself instruction as the personas).
      - The return-shape contract from `reference/reviewer.md §2` (JSON array, one object per declared [J] `check_id`).
    - Sequential dispatch is forbidden (P3); the parallel-scheduling requirement is what makes the 120s-per-call wall budget tractable.
    - A per-call timeout of **120s**. On persona timeout, emit `simulated-reader: persona <name> timed out (120s); skipping` (NFR-4) and proceed with whichever of the other personas returned in time. On reviewer timeout, emit `reviewer: timed out (120s); dropping [J] findings (soft-failure E4)` and proceed without [J] entries.
@@ -429,7 +429,7 @@ This skill is not complete until learnings-capture has run. Read `_shared/learni
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/readme` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a readme audit artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/readme` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a readme audit artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

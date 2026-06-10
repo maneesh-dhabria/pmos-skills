@@ -6,7 +6,7 @@ Spec anchors: [§9.1](../../../docs/pmos/features/2026-05-23_inline-doc-comments
 
 ## Purpose
 
-`/comments resolve` walks each open thread in an artifact's `.comments.json` sidecar and dispatches a generic subagent to apply the requested edit. The subagent's identity and tools are routed by a meta-tag on the artifact (one of the 14 originating skills). The function it calls — uniformly named **"Apply comment-resolver edit"** in every skill — has the contract defined below. The contract is prose + JSON shape (not an executable interface) because each skill's apply logic is genuinely different (e.g., `/requirements` re-renders frontmatter, `/diagram` regenerates an SVG), so a shared script does not fit. See [S13](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#decisions-h).
+`/comments resolve` walks each open thread in an artifact's inline `pmos-comments` JSON block (`<script id="pmos-comments" type="application/json">` in the HTML itself) and dispatches a generic subagent to apply the requested edit. The subagent's identity and tools are routed by a meta-tag on the artifact (one of the 14 originating skills). The function it calls — uniformly named **"Apply comment-resolver edit"** in every skill — has the contract defined below. The contract is prose + JSON shape (not an executable interface) because each skill's apply logic is genuinely different (e.g., `/requirements` re-renders frontmatter, `/diagram` regenerates an SVG), so a shared script does not fit. See [S13](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#decisions-h).
 
 ## Input schema
 
@@ -40,7 +40,7 @@ The subagent receives the following JSON in its prompt body (verbatim from [§9.
 }
 ```
 
-- `thread` — the full thread object from the sidecar (id + dual-anchor + status + messages).
+- `thread` — the full thread object from the artifact's inline `pmos-comments` block (id + dual-anchor + status + messages).
 - `artifact_path` — absolute filesystem path to the target HTML artifact.
 - `anchor_resolved` — result of the resolver's anchor-resolution pass: which strategy hit (`id-first` or `quote-fallback`), the resolved DOM range, and the match score (1.0 for id-first; Bitap score for quote-fallback).
 - `body` — the current request text, extracted from the **last user message** in `thread.messages`. Convenience field; identical to `thread.messages[last_user].body`.

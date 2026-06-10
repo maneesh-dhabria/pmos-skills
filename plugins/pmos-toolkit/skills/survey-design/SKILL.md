@@ -340,7 +340,7 @@ Then run **## Capture Learnings** (below).
 
 ## Apply comment-resolver edit
 
-This phase is the `/survey-design` entrypoint that `/comments resolve` dispatches into when walking open threads in a survey artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/survey-design` entrypoint that `/comments resolve` dispatches into when walking open threads in a survey artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`
 

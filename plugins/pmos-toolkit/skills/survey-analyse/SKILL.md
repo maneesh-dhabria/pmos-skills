@@ -117,7 +117,7 @@ This skill runs 8 sequential phases. Create one task per phase using `TaskCreate
 
 For each column with `type: open_text` and `n ≥ 5` non-null responses:
 
-1. **Dispatch a fresh subagent** with the verbatim prompt template from `reference/text-analysis.md` — includes the question wording, the verbatims (chunked at ≤200 per call; multi-call concatenation if needed), and the Braun & Clarke 6-phase contract.
+1. **Dispatch a fresh subagent** with `model: sonnet` (bounded thematic coding against the Braun & Clarke contract; step 2 validates every returned `response_id` parent-side — the cheaper tier is safe) and the verbatim prompt template from `reference/text-analysis.md` — includes the question wording, the verbatims (chunked at ≤200 per call; multi-call concatenation if needed), and the Braun & Clarke 6-phase contract.
 2. **Subagent returns** `{themes: [{name, definition, response_ids, representative_quote_ids, sentiment_lean}], uncoded_response_ids}`. The skill validates: every `response_id` appears in the input; every `representative_quote_id` is a subset of `response_ids` for that theme.
 3. **PII detection.** For every selected representative quote, run `pii.detect_pii(text)`. Count matches; surface a chat-side warning before Phase 7 if any match: `survey-analyse: <N> verbatim quotes contain potential PII (emails/phones/names) — review the report before sharing externally. (No auto-redaction.)`.
 4. **Write `<run_folder>/themes.json`** — one entry per open-text column.
@@ -155,7 +155,7 @@ Render `<run_folder>/report.html` via the `_shared/html-authoring/` substrate at
 
 ## Apply comment-resolver edit
 
-This phase is the `/survey-analyse` entrypoint that `/comments resolve` dispatches into when walking open threads in a report artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/survey-analyse` entrypoint that `/comments resolve` dispatches into when walking open threads in a report artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`
 

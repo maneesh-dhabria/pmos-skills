@@ -63,7 +63,8 @@ or the page title), `source_url`, and the derived stable `id`. It emits a JSON a
 ## The match-field derivation contract
 
 Stage-B fans out **parallel subagents, N frameworks each** (per the bulk-lookup
-learning: strict output contract, no chat prose). Each subagent receives a batch of
+learning: strict output contract, no chat prose; `model: haiku` — `derive-fields.mjs`
+validates every enum + tag). Each subagent receives a batch of
 lean records and the registry, and returns, per framework: `problem_tags` (⊆ registry),
 `when_to_use`, `when_not_to_use`, `decision_type`, `lifecycle_stage`, `related`,
 `summary`, `aliases`. The JSON is piped to:
@@ -128,7 +129,8 @@ all diagrams at the top. It runs **after** `diagrams[]` is known (the anchors ar
 parallel + equal-length to it).
 
 Stage-B fans out **parallel subagents, a slice of frameworks each** (strict output
-contract, no chat prose). Each subagent receives, per framework, `id`, `name`,
+contract, no chat prose; `model: haiku` — `apply-rederive.mjs` re-checks every anchor
++ enum). Each subagent receives, per framework, `id`, `name`,
 `body_md`, and `diagrams[]` (filenames, for count + order), and returns:
 
 ```json

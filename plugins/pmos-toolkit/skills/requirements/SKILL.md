@@ -697,7 +697,7 @@ If `--backlog <id>` was set and the doc + commit succeeded, invoke `/backlog set
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/requirements` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a requirements artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/requirements` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a requirements artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

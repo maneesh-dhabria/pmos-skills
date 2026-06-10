@@ -141,7 +141,8 @@ TL;DR. In non-interactive mode the gate auto-proceeds.
 **Inline `_shared/topic-research/sourcing.md`** and follow it — for each outline topic,
 run the rank-then-verify loop and emit a verified, ranked, annotated shortlist. Emit the
 est-cost line before sourcing. Fan out one subagent per topic in `standard`/`deep`
-(sequential in `brief`).
+(sequential in `brief`), with `model: haiku` — fetch+verify+annotate work that the
+Phase-6 self-review re-checks (dead links, slop gate, grounding).
 
 This skill's back-half use of each shortlist (its own reaction to the substrate output):
 

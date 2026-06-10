@@ -213,7 +213,7 @@ Empty reflection (no line emitted) counts as unfinished work.
 
 ## Apply comment-resolver edit
 
-This phase is the `/ideate` entrypoint that `/comments resolve` dispatches into when walking open threads in an ideate artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/ideate` entrypoint that `/comments resolve` dispatches into when walking open threads in an ideate artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`
 

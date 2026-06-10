@@ -3,7 +3,8 @@
 Canonical reference for the `/readme` simulated-reader pass (FR-SR-1..6, spec §9.2.1).
 The personas defined in §1 below are dispatched in PARALLEL via concurrent Task subagent
 calls (FR-SR-2); the parent skill (`SKILL.md`) inlines this file's persona prompt + the
-un-stripped README markdown into each Task body.
+absolute path of the un-stripped README (the subagent reads the file itself —
+subagents share the filesystem) into each Task body.
 
 ## Table of contents
 
@@ -138,8 +139,8 @@ Each persona subagent MUST return exactly this JSON shape (spec §9.2.1):
 mismatch → parent hard-fail.
 
 **FR-SR-3 — quote contract.** Every `quote` MUST be a **≥40-character verbatim
-substring** of the un-stripped README markdown source the parent passed into the
-subagent prompt. No paraphrase, no ellipsis, no whitespace-normalisation, no
+substring** of the un-stripped README markdown source (the file at the path the
+parent passed into the subagent prompt). No paraphrase, no ellipsis, no whitespace-normalisation, no
 markdown-stripping. The parent performs a literal **substring-grep** of each
 `quote` against the source; any miss → hard-fail with:
 
@@ -198,7 +199,7 @@ reviewer subagent)", which establishes the durable cross-skill pattern:
 
 | /grill FR | /readme analogue                                    | Parent action                                        |
 |-----------|-----------------------------------------------------|------------------------------------------------------|
-| FR-50     | Parent inlines un-stripped README into subagent     | `SKILL.md` reads README + passes verbatim            |
+| FR-50     | Parent passes the un-stripped README path to subagent | `SKILL.md` passes the path; subagent reads the file  |
 | FR-51     | Subagent returns `{persona, friction[]}` (§2 shape) | Persona prompt enforces shape; subagent emits JSON   |
 | FR-52     | Substring-grep every `quote` against README source  | `SKILL.md` greps each `quote`; any miss → hard-fail  |
 

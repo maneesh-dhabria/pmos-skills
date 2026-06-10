@@ -56,7 +56,7 @@ This skill is permissive — several phases have a "cheap option" (skip Phase 2a
 
 Pick the tier that matches the work. The tier governs Phase 4 (review loops) and the default density of Phase 2 prompts. Phase 6 (MSF + PSYCH) is delegated to `/msf-wf` — its rigor is governed there, not here.
 
-- **High-rigor (default).** One reviewer subagent per file in parallel; full 2-loop protocol; full Phase 2a extraction.
+- **High-rigor (default).** One reviewer subagent per file in parallel; one review pass, second loop only on unresolved hard-fails (Phase 4b); full Phase 2a extraction.
 - **Medium-rigor (recommended for ≤ 6 files OR a focused enhancement).** ONE cross-file reviewer subagent (single message, multi-file critique); apply fixes; no second loop. Phase 2a still runs in full.
 - **Low-rigor (personal-tool, single-user, time-bound only).** Inline grep + read-aloud spot-check against the rubric headings PLUS one mandatory cross-file reviewer subagent (200-word brief: aria coverage on icon-only buttons, focus-visible styles, contrast against dark/light surfaces, high-variance findings across files). The cross-file pass is non-negotiable — it's cheap (~30s) and catches what grep misses.
 
@@ -403,7 +403,7 @@ The full template lives in `reference/html-template.md` — do not deviate from 
 
 Pick the rigor tier per the **Rigor & Corner-Cut Protocol** at the top of this skill:
 
-- **High-rigor (default):** one reviewer subagent per file in parallel; up to 2 refinement loops per file.
+- **High-rigor (default):** one reviewer subagent per file in parallel; one review pass per file, with a second loop only on unresolved hard-fails (cap 2).
 - **Medium-rigor:** ONE reviewer subagent across all files (single message, multi-file critique); apply fixes; no second loop. Recommend for ≤ 6 files or a focused enhancement.
 - **Low-rigor:** inline grep + spot-check PLUS one mandatory cross-file reviewer subagent (200-word brief: aria-label coverage on icon-only buttons, focus-visible styles, color contrast against dark/light surfaces, high-variance findings across files). The cross-file pass is **non-negotiable** even in low-rigor — grep alone misses contrast, focus-visible rendering, and "wireframe 01 didn't actually change relative to current state" type findings.
 
@@ -413,7 +413,7 @@ The remainder of this phase describes the high-rigor protocol. Medium- and low-r
 
 ### 4b. Loop Structure (high-rigor)
 
-For each generated wireframe file, run up to 2 refinement loops. Stop early when the reviewer reports zero issues at severity ≥ medium.
+For each generated wireframe file, run ONE review pass by default. A second loop runs only when loop 1 surfaced hard-fails — deterministically checkable failures (contrast ratio below threshold, missing aria-label coverage, a missing required state) that the applied fixes did not resolve — never for advisory judgment findings (observed yield: a second pass on judgment nits finds nothing new). Hard cap: 2 loops.
 
 **Step 1 — Dispatch reviewer subagent (parallel where possible):**
 - One reviewer subagent per wireframe file
@@ -425,8 +425,8 @@ For each generated wireframe file, run up to 2 refinement loops. Stop early when
 - Track every change in a `Review Log` HTML comment block at the top of the file
 
 **Step 3 — Decide loop continuation:**
-- If high/medium findings remain → run loop 2
-- If only low findings or none → exit
+- If hard-fails remain after the applied fixes (deterministically checkable failures — contrast, aria coverage, missing states) → run loop 2
+- Advisory/judgment findings (layout taste, copy, IA) never trigger loop 2 — log them for the cross-file rollup and exit
 - Hard cap: 2 loops per file regardless
 
 **Platform fallback (no subagents):** run the reviewer pass inline — read the file, mentally apply the rubric, log findings, fix.
@@ -685,7 +685,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/wireframes` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a wireframe artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/wireframes` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a wireframe artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

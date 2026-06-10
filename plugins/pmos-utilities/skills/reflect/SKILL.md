@@ -110,7 +110,7 @@ When a multi-session flag is set:
 
 **Skip if not in multi-session mode.**
 
-For each candidate transcript, dispatch a fresh subagent (per D7) with:
+For each candidate transcript, dispatch a fresh subagent (per D7; `model: haiku` — mechanical extraction, the judgment synthesis stays parent-side in Phase 4 aggregation) with:
 
 - **Brief**: read the transcript jsonl, identify pmos-skills skill invocations (any `pmos-*:*` namespace — toolkit, learnkit, utilities), extract findings tagged `blocker|friction|nit` per Phase 4 standalone rubric. Return a compact YAML list `{skill, severity, finding, session-date}`.
 - **Concurrency** (D18): 5 in-flight at any time. As one returns, dispatch the next.

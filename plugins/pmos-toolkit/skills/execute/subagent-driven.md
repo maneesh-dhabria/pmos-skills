@@ -23,15 +23,19 @@ inline execution per `SKILL.md` Phase 0 — these templates are not used there.
 ## Model selection
 
 Use the least powerful model that can do the job — conserves cost, increases throughput.
+Name the tier explicitly via the Task tool's `model` parameter — qualitative sizing with no
+pin converts to inherit-frontier in practice.
 
-| Task shape | Model |
+| Task shape | `model` |
 |---|---|
-| Touches 1–2 files, complete spec, mechanical (most well-specified plan tasks) | fast / cheap |
-| Multiple files, integration concerns, pattern-matching, debugging | standard |
-| Architecture / design judgement / broad codebase understanding / any review role | most capable |
+| Touches 1–2 files, complete spec, mechanical (most well-specified plan tasks) | `haiku` |
+| Multiple files, integration concerns, pattern-matching, debugging | `sonnet` |
+| Architecture / design judgement / broad codebase understanding | inherit (omit the param) |
 
-Reviewer subagents (spec-compliance, code-quality, final) are judgement roles → most-capable
-model. Implementer subagents are sized per the task.
+Review roles split by what checks them: the spec-compliance reviewer verifies code against a
+written task spec — bounded, rubric-guided → `sonnet`; the code-quality and final
+whole-implementation reviewers are design judgement over a full diff → inherit. Implementer
+subagents are sized per the task.
 
 ---
 
@@ -127,10 +131,10 @@ Task tool (general-purpose, model per the table above):
 ## 2. Spec-compliance reviewer subagent
 
 Dispatch **after** the implementer reports DONE/DONE_WITH_CONCERNS and the controller has
-committed the task. Read-only. Most-capable model.
+committed the task. Read-only. `model: sonnet` — bounded review against a written task spec.
 
 ```
-Task tool (general-purpose, most-capable model):
+Task tool (general-purpose, model: sonnet):
   description: "Spec-compliance review — Task <N>"
   prompt: |
     You are reviewing whether an implementation matches its specification. Verify everything
@@ -173,10 +177,11 @@ commits the fix (`fix(T<N>): address spec-review gap`); then re-run this reviewe
 
 ## 3. Code-quality reviewer subagent
 
-Dispatch **only after spec-compliance is `✅`**. Read-only. Most-capable model.
+Dispatch **only after spec-compliance is `✅`**. Read-only. Judgement over a full diff →
+inherit the session model (omit `model`).
 
 ```
-Task tool (general-purpose, most-capable model):
+Task tool (general-purpose, inherit — omit `model`):
   description: "Code-quality review — Task <N>"
   prompt: |
     You are reviewing the quality of an implementation. Read the actual diff.
@@ -214,11 +219,12 @@ re-run this reviewer. Loop until Approved. Minor issues: note them, proceed.
 
 ## 4. Final whole-implementation reviewer subagent
 
-Dispatch once, after the last wave. Read-only. Most-capable model. This is the subagent form of
+Dispatch once, after the last wave. Read-only. Whole-implementation judgement → inherit the
+session model (omit `model`). This is the subagent form of
 `SKILL.md` Phase 4 (spec compliance review).
 
 ```
-Task tool (general-purpose, most-capable model):
+Task tool (general-purpose, inherit — omit `model`):
   description: "Final review — whole implementation"
   prompt: |
     You are doing a final review of a completed implementation against its spec.

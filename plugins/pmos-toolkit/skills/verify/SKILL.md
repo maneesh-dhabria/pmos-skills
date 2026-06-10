@@ -18,7 +18,7 @@ This is an **operational workflow** — a structured sequence of verification st
 These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption, document it in the output, and proceed. The user reviews after completion.
 - **No subagents:** Perform research and analysis sequentially as a single agent.
-- **No Playwright MCP:** State the specific blocker and the setup the user must complete before browser-based verification can run. Do NOT mark any UI-surface FR verified without either Playwright evidence or an explicitly declared alternative (a specific test file that covers the rendered output). Offloading verification to the user is not a valid completion state — it resolves to `Unverified — action required` on the Phase 5 compliance tables, and Phase 4 stays open.
+- **No Playwright MCP:** "Unavailable" must be proven, not assumed — walk the browser-tool resolution ladder in Phase 4 sub-step 4d and paste the failed call/command output for each rung. Only after ALL rungs demonstrably fail may a specific test file covering the rendered output count as alternative evidence for a UI-surface FR, and that downgrade caps the final verdict at `PASS-WITH-GAPS` (Phase 8 verdict rule). Offloading verification to the user is not a valid completion state — it resolves to `Unverified — action required` on the Phase 5 compliance tables, and Phase 4 stays open.
 - **Task tracking:** Use your available task tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code, `update_plan` in Codex, or equivalent). If none is available, announce phase transitions verbally.
 
 ---
@@ -267,6 +267,12 @@ Before running any Phase 4 sub-step, enumerate every upstream requirement that h
 3. For each enumerated item, create a `TodoWrite` task formatted as:
    `Verify <FR-ID or Journey-ID>: <one-line description> [evidence: <type from table below>]`
 
+**Browser-mandatory trigger (deterministic — not a judgment call):**
+
+Compute from the Phase 1 changed-files list. If ANY changed file matches `*.html`, `*.tsx`, `*.jsx`, `*.vue`, `*.svelte`, `*.css`, `*.scss`, lives under a `frontend/`, `static/`, `public/`, `app/`, `components/`, `pages/`, or `src/ui/` directory, OR the feature emits/regenerates any `.html` artifact (check the spec's deliverables and `{feature_folder}/` outputs) — then the browser sub-steps (4d, 4e, 4f) are MANDATORY. The classification "no UI surface" is NOT available for this run, regardless of whether a dev server, Docker stack, or deploy step exists.
+
+**A browser surface does not require a server.** If the deliverable is an HTML file, that file IS the UI surface: serve it (`python3 -m http.server`, `npx serve`) or load it directly — Playwright MCP opens `file://` URLs. "No deploy surface" describes 4b/4c, never 4d–4f.
+
 **Evidence-type allowlist by sub-step:**
 
 | Sub-step | Acceptable evidence |
@@ -302,6 +308,8 @@ If any of these thoughts surface during Phase 4, stop and re-read the entry gate
 | "Wireframes were just sketches — implementation is allowed to drift" | Style drift is *expected* — wireframes are not authoritative for visual style (see 2a). But unexamined drift on the authoritative dimensions (IA, copy, states, journeys) is a skip. Classify every delta on those dimensions as `intentional — style adaptation`, `intentional — decision`, or `regression`. A wireframe-diff with zero deltas listed is suspicious. |
 | "I should make the implementation look exactly like the wireframe" | No. Visual style follows the host app's design system, not the wireframe. The wireframe's color/typography/spacing/iconography is reference-only. Forcing pixel-fidelity over the host app's conventions is a different failure mode — flag it as a `regression` against the host app's design system, not the wireframe. |
 | "Hard-reload / deep-link works in-app, that's enough" | Parameterized routes must be hard-reloaded (open URL fresh in a new tab via Playwright) for every affected route. In-app navigation hides router-resolver bugs. |
+| "There's no dev server / it's just an HTML file — nothing to deploy" | The HTML file IS the runtime surface. Serve it or open it via `file://`; the browser-mandatory trigger already fired. |
+| "The e2e suite already drives a browser" | Headless specs verify what they assert; they don't see rendering, copy, polish, or your new bug. The interactive walk (4e) still runs. |
 
 ### 4a. Database Migrations (if applicable)
 
@@ -333,13 +341,22 @@ curl -sf <endpoint> | python3 -m json.tool
 
 ### 4d. Frontend Verification (Playwright MCP)
 
+**Resolve your browser tool first (in order; stop at the first rung that works):**
+
+1. **Playwright MCP** — if `browser_*` tools are not in your immediate tool schema, they may be DEFERRED: load them first (e.g., ToolSearch `select:browser_navigate,browser_snapshot,browser_take_screenshot,browser_console_messages`). Then prove liveness: `browser_navigate` to the target URL.
+2. **Chrome DevTools MCP** (`chrome-devtools` tools) — same liveness probe.
+3. **Headless scripted fallback** — `npx playwright screenshot <url> out.png`, or a ~10-line playwright/puppeteer Node script; attach the screenshot.
+4. **None worked** → paste the FAILED tool-call/command output for each rung (a pasted failure is the only valid evidence of unavailability — "the tool seems unavailable" without a failed call is not a blocker, it's a skip), mark every browser todo `Unverified — action required`, and cap the final verdict at `PASS-WITH-GAPS` (Phase 8 verdict rule).
+
+Automated test suites (headless e2e specs, RTL/vitest component tests) are alternative evidence ONLY after rung 4 — never while a browser tool works. A test-runner's missing chromium download (`npx playwright install`) says nothing about the MCP browser; they are different browsers.
+
 For every affected UI flow:
 
 1. **Authenticate first** (if auth is enabled)
 2. **Navigate** to each affected page
 3. **Walk through** every user journey from the spec
 4. **Check** for console errors/warnings
-5. **Take screenshots** for evidence
+5. **Take screenshots** for evidence — save them under `{feature_folder}/verify/<YYYY-MM-DD>/` (the evidence dir; the Phase 7 browser-evidence gate and the Phase 8 verdict rule look for them there)
 6. **Verify** that UI matches spec's frontend design section
 
 ### 4e. Interactive Spot Checks
@@ -636,9 +653,10 @@ One last check before committing:
 
 The following script checks must pass before Phase 8 (Commit & Report). A non-zero exit blocks `/verify` completion for this feature.
 
-**Existence guard:** these gate scripts are agent-skills-repo-specific. Before running each one, check that the script exists at the repo root (e.g., `[ -f scripts/check-comments-coverage.sh ]`). If it does not exist in the host repo, skip the gate and note in the Phase 8 report: "comments-coverage gate skipped — agent-skills-repo-specific gate, script not present in this repo." Where the script exists, the gate remains hard.
+**Existence guard:** the repo-root gate scripts (e.g., the comments coverage check) are agent-skills-repo-specific. Before running each one, check that the script exists at the repo root (e.g., `[ -f scripts/check-comments-coverage.sh ]`). If it does not exist in the host repo, skip the gate and note in the Phase 8 report: "comments-coverage gate skipped — agent-skills-repo-specific gate, script not present in this repo." Where the script exists, the gate remains hard.
 
 - **Comments coverage check** (FR-62): `bash scripts/check-comments-coverage.sh` — refuses /verify completion if any of the 14 `apply-edit-at-anchor` contract tests are missing (13 originating skills + 1 orchestrator), if any of the 15 emit references are absent (13 skill-level `comments.js` refs + 2 orchestrator surface refs for `00_pipeline.html` and `00_open_questions_index.html`), or if the resolver integration test or calibration tests (`scorer.test.js`, `reanchor.integration.test.js`) are missing. Bypassable only via documented spec amendment.
+- **Browser evidence check:** `bash "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/check-browser-evidence.sh" "{feature_folder}" <changed_files_list>` — write the Phase 1 changed-files list to a file first (e.g., `git diff --name-only main...HEAD > /tmp/verify-changed-files.txt`), or omit the second argument to let the script derive it from `git merge-base HEAD main`. Exits non-zero when the changed files match the browser-mandatory trigger patterns (Phase 4 entry gate) but no screenshot (`*.png`/`*.jpg`/`*.jpeg`/`*.webp`) exists under `{feature_folder}/verify/`. A failure here means the verdict cannot be bare `PASS` (Phase 8 verdict rule) — either produce the Phase 4d–4f evidence now, or downgrade to `PASS-WITH-GAPS` with every gap enumerated. Ships with this skill (host-repo-agnostic — it reads the feature folder, not repo internals), so the existence guard above does not apply: this gate runs in every host repo.
 
 ---
 
@@ -663,6 +681,12 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
 
 ## Phase 8: Commit & Report
 
+**Verdict rule (deterministic — compute before writing the report):** the final report carries exactly one verdict line: `PASS`, `PASS-WITH-GAPS`, or `FAIL`.
+
+- **`PASS`** — every compliance row resolved `Verified` or `NA — alt-evidence`, all Phase 7 hard gates green, AND — whenever the browser-mandatory trigger (Phase 4 entry gate) fired — at least one screenshot file from this run exists under `{feature_folder}/verify/` AND zero UI-affecting FRs sit at `Unverified — action required`. Bare `PASS` without that browser evidence is not available.
+- **`PASS-WITH-GAPS`** — verification is materially complete but enumerated gaps remain: all browser-tool rungs failed (4d ladder, rung 4), UI-surface rows left `Unverified — action required`, or a sub-step skipped with a named blocker. The verdict block MUST enumerate each gap — one line per gap naming the row ID, the blocker, and the user action required. Never collapse these into a bare `PASS`. `/complete-dev` treats `PASS-WITH-GAPS` as confirmation-required, not a green light.
+- **`FAIL`** — a Phase 7 hard gate failed, or a critical 5e gap remains unfixed.
+
 1. **Commit all changes** (fixes, new tests, documentation updates):
    ```bash
    git add <specific-files>
@@ -681,6 +705,7 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
    - **Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
 
 3. **Report to the user:**
+   - Verdict line (per the verdict rule above) — with the per-gap enumeration when `PASS-WITH-GAPS`
    - Verification summary (which phases passed/failed)
    - Compliance tables (requirements, spec FR-IDs, plan tasks)
    - Gaps found and how they were resolved

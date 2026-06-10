@@ -41,8 +41,19 @@ Per-skill reviewers can't see repo-wide patterns. Dispatch three more agents:
 1. **Substrate map** — what lives in each `_shared/`, what's duplicated across skills that should be shared (quantify lines, list consumers, cite one concrete drift per pattern), what's shared-but-rotted, and whether the sync tooling is safe to run.
 2. **Flags + phases inventory** — every documented flag (dead? discoverable? naming collisions across skills?); every phase heading (numbering scheme, ghost references — a ~30-line resolver script that checks every "Phase N" cross-reference against actual headings finds these deterministically).
 3. **Platform + gates inventory** — Claude-Code-only tool dependencies and whether degradation notes are followable; every rubric/gate/lint with hard-vs-soft verdicts; **run the repo's own audit scripts and report whether they actually pass** — a red gate everyone ignores is itself a top finding.
+4. **Seam map** — every place skill A names, invokes, or narrates skill B. Classify each seam's mechanism (typed file contract / flag passthrough / Skill-tool call / prose narration) and check every prose-narrated claim against B's current contract. Evidence from the 2026-06-10 ops review: typed seams had zero defects across ~30 seams; every phantom contract found lived at a prose seam.
 
 Feed these agents the per-skill reviewers' relevant claims to verify — independent confirmation is the point.
+
+## 3b. Operations passes (when session transcripts are available)
+
+Design-reading answers "is this well built?"; only real usage answers "is this machinery worth it?". When the user's Claude home dir is reachable (transcripts at `$CLAUDE_CONFIG_DIR/projects/<path-slug>/<session-uuid>.jsonl`, subagents under `<session-uuid>/subagents/`), dispatch up to three more agents over a recent window (~15 days). Files reach 15 MB — agents must sample with grep/python, never read whole transcripts.
+
+1. **Subagent/model economics** — every dispatch the skills specify vs what real runs did: model pins (or their absence — count them), subagent transcript sizes as token-cost proxies, paste-vs-path prompt hygiene, work in main context that should be a subagent and vice versa.
+2. **Loop value tally** — for each self-verification loop, count across real runs: caught-something-real vs pure pass-through vs never-executed. Iteration-2 yield is the killer stat (2026-06-10: 0 new findings in 27 observed runs). A reviewer that has never failed anything is latency, not quality.
+3. **Instruction adherence** — for steps skills mandate (browser verification, deploy checks, eval gates): how often did real runs do them unprompted vs after user pushback vs never? Quote the smoking-gun sessions where the user had to ask.
+
+Prior art for all three: `docs/pmos/reviews/2026-06-10_ops-observations/` (methodology, grep recipes, and tally formats in files 01/06/07).
 
 ## 4. Consolidate and decide
 
@@ -71,3 +82,4 @@ After the wave: fix the stragglers yourself, re-run every gate the repo ships (l
 - A long skill whose **domain** is complex is not the same as a long skill that doesn't trust the model. Reviewers must say which; so must the report.
 - The most valuable findings are usually not style — they're **facts stated in two places that drifted** (dead flags, ghost phase references, contracts one side retired). Hunt those first; they're also the cheapest to fix and the easiest to prevent (one fact, one home, plus a small lint).
 - Grade honestly. If the newest skills grade best, say so — it means the lessons are landing and tells the user where the debt actually is.
+- **Revealed preference is design feedback.** When transcripts show defaults consistently overridden in one direction (rigor tiers always picked low, fan-outs never run at spec size, reviewers economized below spec), the finding is "move the defaults", not "users are holding it wrong".

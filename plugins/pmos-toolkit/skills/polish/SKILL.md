@@ -228,9 +228,10 @@ No line numbers (they go stale).
 1. Apply auto-fixes + approved patches to a working copy (per chunk if chunked)
 2. **Re-run the FULL rubric on the polished output** (both local and global checks, whole doc)
 3. Compute before/after metrics: word count, avg sentence length, passive %, AI-vocab hits, em-dash count, hedging hits
-4. If NEW failures appear (excluding user-Skipped/Deferred):
+4. If NEW failures appear on the deterministic checks (the regex/metric-computed ones — 1, 5, 6a, 8, 9, 10; excluding user-Skipped/Deferred):
    - Surface as a 2nd findings round (same auto-apply + ask split)
    - Apply approved 2nd-round patches
+   - New llm-judge failures do NOT trigger a 2nd iteration — list them in the summary as residuals (a second pass on judge nits has not been observed to converge)
 5. **Hard cap: 2 polish iterations total.** If iter-2 still finds failures, write the file and list remaining failures in the summary — do NOT iterate further. (The Phase 2a editorial pass is **not** a polish iteration — it runs once before the rubric, with its own separate single capped re-critique.)
 
 ## Phase 7 — Write output + offer replace
@@ -330,7 +331,7 @@ Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero 
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/polish` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a polish artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/polish` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a polish artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

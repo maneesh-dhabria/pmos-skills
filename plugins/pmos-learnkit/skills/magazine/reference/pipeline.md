@@ -88,7 +88,8 @@ the **"redirect, don't pipe"** rule in step 2.
 
 Subagent fan-out, incremental. Runs in the host session because it is LLM work.
 
-4. **Summarize + tag** — one subagent per ready item. Input: the crawled article
+4. **Summarize + tag** — one subagent per ready item (`model: haiku` — mechanical,
+   parent-validated). Input: the crawled article
    (`crawl-cache/`) or transcript (`transcripts/`), never the RSS stub alone.
    Output: 3–5 bullet takeaways (soft ≤240 chars each), a read/listen link, and
    tags chosen **only** from `tags.yaml`. No fitting tag → `uncategorized` +

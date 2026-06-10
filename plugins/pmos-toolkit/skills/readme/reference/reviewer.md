@@ -4,7 +4,8 @@ Canonical reference for the `/readme` reviewer-subagent pass (FR-03, FR-11, FR-1
 spec §9.2.2). One reviewer Task call is dispatched in parallel with the persona
 Task calls (FR-SR-2 — widened to 5 concurrent calls in SKILL.md §2 step 1).
 `SKILL.md` inlines this file's `§1` prompt and `§2` return-shape contract into
-the Task body, along with the un-stripped README markdown.
+the Task body, along with the absolute path of the un-stripped README (the
+subagent reads the file itself).
 
 ## Table of contents
 
@@ -18,7 +19,7 @@ the Task body, along with the un-stripped README markdown.
 ## §1 Reviewer prompt
 
 Inject the block below verbatim into the reviewer Task body, followed by the
-README markdown:
+absolute path of the README (with an instruction to read it before scoring):
 
 > You are evaluating a README against 2 information-architecture (IA) fit
 > checks declared in `reference/rubric.yaml` as `type: "[J]"`. For each declared

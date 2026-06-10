@@ -213,7 +213,8 @@ Then follow `${CLAUDE_SKILL_DIR}/reference/ingestion.md` end to end:
    communicate·frame` + `n/a`; see `reference/corpus-schema.md`), `lifecycle_stage`,
    `related`, `summary`; merge + validate via
    `node ${CLAUDE_SKILL_DIR}/scripts/derive-fields.mjs`. Fan out with parallel
-   subagents (N frameworks each, strict output contract).
+   subagents (N frameworks each, strict output contract; `model: haiku` — every
+   field is registry-validated by the merge script).
 4. **Diagrams** (Stage B, direct generation): one owned, self-contained SVG per
    framework, generated directly by Stage-B agents against the shared style guide in
    `reference/ingestion.md` (the `/diagram` skill cannot run unattended at corpus

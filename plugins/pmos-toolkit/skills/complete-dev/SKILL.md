@@ -190,7 +190,7 @@ For each selected field, present the per-field prompt (reuse Phase 1 / 3 / 5 / 8
 
 ## Phase 1 — /verify gate
 
-**Short-circuit when Phase 0a confirmed `run_defaults.verify_already_ran: true`** — log `Phase 1: /verify gate auto-confirmed via Phase 0a (verify_already_ran: true)` and proceed to Phase 2.
+**Short-circuit when Phase 0a confirmed `run_defaults.verify_already_ran: true`** — log `Phase 1: /verify gate auto-confirmed via Phase 0a (verify_already_ran: true)` and proceed to Phase 2. The PASS-WITH-GAPS check below still runs — it is never short-circuited.
 
 Otherwise (Phase 0a's edit path set it to `false`, OR running in non-interactive mode which already AUTO-PICKs the Recommended option):
 
@@ -207,6 +207,19 @@ options:
 ```
 
 If "Run /verify now" → invoke `/pmos-toolkit:verify` inline. If verify fails, abort /complete-dev.
+
+**PASS-WITH-GAPS check (always runs — confirmation-required, never auto-confirmed).** Before proceeding to Phase 2, read the verdict line of the most recent verify report: resolve `{docs_path}` and `current_feature` from `.pmos/settings.yaml`, then take the latest `{docs_path}/features/{current_feature}/verify/*-review.{html,md}` by date. If no settings, feature folder, or report resolves, skip this check silently. If the verdict is `PASS-WITH-GAPS`, surface every enumerated gap from the report's verdict block verbatim, then ask — this prompt is in the same class as the destructive-prompt allowlist (`reference/lastrun-schema.md`): the Phase 0a "Confirm all" short-circuit does NOT suppress it, and in non-interactive mode it classifies DEFER — record the open question and abort rather than merging past unverified gaps.
+
+<!-- defer-only: destructive -->
+```
+question: "/verify finished PASS-WITH-GAPS — the gaps above are unverified. Merge and release anyway?"
+options:
+  - Resolve the gaps first — re-run /verify, then resume
+  - Proceed despite gaps — I accept the risk for this release
+  - Cancel /complete-dev
+```
+
+If "Resolve the gaps first" → invoke `/pmos-toolkit:verify` inline, then re-run this check on the fresh report. If "Proceed despite gaps" → continue, and list the accepted gaps in the Phase 17 success summary. If "Cancel" → exit with no side effects.
 
 ## Phase 2 — Worktree + branch detection
 

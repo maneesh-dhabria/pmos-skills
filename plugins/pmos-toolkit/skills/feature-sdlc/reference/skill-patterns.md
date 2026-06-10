@@ -21,6 +21,7 @@ and the recorded disagreements are below.
 - **§I — Flags** — hybrid NL-first; the 4-test a flag must pass to stay a documented contract; everything else is a silent alias marked `<!-- nl-sugar -->`; `argument-hint` shows contract flags only.
 - **§J — Phases & anchors** — integer top-level phases only; stable kebab slug anchors on every phase heading; all cross-references cite the slug, never a bare number.
 - **§K — One fact, one home** — every fact has exactly one canonical home; every other mention is a pointer; duplication without a lint is drift waiting to be found.
+- **§L — Subagent dispatch & model selection** — every specified Task dispatch names a model tier (`haiku` for validator-checked mechanical work, `sonnet` for bounded generation / rubric review, inherit only for genuine judgment); dispatch-vs-inline economics; paths over pasted bodies.
 
 Three points in this guide record a genuine disagreement between the published
 sources (Anthropic's skills docs, the Codex/`agents.md` ecosystem, `agentskills.io`,
@@ -439,9 +440,44 @@ Checks: k-one-fact-one-home.
 
 ---
 
+## §L — Subagent dispatch & model selection
+
+**The rule.** When a skill specifies a subagent (Task-tool) dispatch, it assigns a model
+tier, named explicitly via the Task tool's `model` parameter:
+
+- **`haiku`** — mechanical or batch work whose output a deterministic parent-side
+  validator checks: extraction with quote-grounding greps, per-item summarization at
+  scale, caption batches, format transforms. The validator catches a cheap model's
+  characteristic failure — a sloppy or hallucinated finding — so the frontier model
+  buys nothing.
+- **`sonnet`** — bounded single-artifact generation against a template or contract,
+  and rubric-guided review with clear acceptance criteria (per-item summarizers,
+  simulated personas, thematic coding, vision rubric checks).
+- **Inherit (omit the param)** — only for genuine judgment: adversarial or blind
+  design review, architecture judging, ambiguous open-ended synthesis. A dispatch
+  that inherits where a cheaper tier would do states why.
+
+**Why.** Most pmos reviewers sit behind deterministic validators (quote
+substring-greps, set-equality, schema conformance) — which is exactly what makes
+cheaper models safe. And qualitative sizing prose ("fast/cheap" vs "most capable")
+demonstrably converts to zero pins in practice; only a named `model:` on the
+dispatch spec does.
+
+**Dispatch-vs-inline; paths over pastes.** Dispatch-vs-inline follows `/diagram`'s D7
+economics: a short structured prompt with a small output runs inline; dispatch when
+the work would otherwise pull bulk content (files, images, fetched pages) into the
+parent context, or when fresh-eyes isolation is the point. Pass file paths, not
+pasted file bodies — subagents share the filesystem, and parent-side quote validators
+grep the parent's *own* read of the file; paste only what the subagent must reproduce
+verbatim or what doesn't exist as a file.
+
+Checks: l-dispatch-model-tier.
+
+---
+
 ## Mutual cross-reference
 
-`skill-eval.md` is the 1:1 binary mirror of §A–§K: every §-rule above lists ≥1
+`skill-eval.md` is the 1:1 binary mirror of §A–§L: every §-rule above lists ≥1
 `check_id` in its closing `Checks:` line, and every check in `skill-eval.md` names
 exactly one §-rule here. `skill-eval-check.sh --selftest` asserts the
 deterministic-check half of that bijection (every `[D]` check ↔ a code branch in the

@@ -225,7 +225,9 @@ in the background.
 
 ## Phase 4: Summarize + tag (Stage B)
 
-Fan out **one subagent per ready item** (sequential if no subagent tool). Each reads
+Fan out **one subagent per ready item** via the Task tool with `model: haiku`
+(mechanical summarize+tag against a closed registry, validated downstream; sequential
+if no subagent tool). Each reads
 the crawled article or transcript (never the RSS stub alone) and returns 3–5 bullet
 takeaways (soft ≤240 chars each), a read/listen link, and tags chosen **only** from
 `tags.yaml`. No fitting tag → `uncategorized` plus a `suggest-add` note — never

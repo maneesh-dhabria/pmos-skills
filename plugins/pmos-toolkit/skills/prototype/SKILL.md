@@ -396,7 +396,7 @@ Analytical mode is a known-degraded fallback. It catches the IIFE-wrap omission 
 
 ## Phase 6: Refinement Loop (Reviewer Subagent + ≤2 Loops Per File)
 
-For each per-device HTML file, run up to 2 refinement loops. Stop early when zero high/medium findings remain.
+For each per-device HTML file, run ONE review pass by default. A second loop runs only when loop 1 produced hard-fails — contract violations checkable against the Phase 1a blocks (the `x-interaction` checklist, missing mandatory empty/loading/error states, off-inventory COMPONENTS.md variants) that the applied fixes did not resolve — never for advisory judgment findings. Hard cap: 2 loops.
 
 ### Loop Structure
 
@@ -424,8 +424,8 @@ For each per-device HTML file, run up to 2 refinement loops. Stop early when zer
 - Track changes in a `<!-- Review Log -->` HTML comment block at top
 
 **Step 3 — Loop continuation:**
-- Remaining high/medium → run loop 2
-- Otherwise exit
+- Unresolved hard-fails (x-interaction contract violations, missing mandatory states, off-inventory variants) → run loop 2
+- Advisory/judgment findings never trigger loop 2 — log and exit
 - Hard cap: 2 loops per file
 
 **Platform fallback:** run reviewer pass inline.
@@ -616,7 +616,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/prototype` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a prototype artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/prototype` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a prototype artifact's inline `pmos-comments` JSON block. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

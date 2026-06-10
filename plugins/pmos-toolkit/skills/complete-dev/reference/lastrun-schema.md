@@ -83,6 +83,7 @@ defaults:
 
 Phase 0a confirmation NEVER short-circuits these — they involve destructive operations or free-form input that lastrun cannot meaningfully memorize:
 
+- Phase 1 PASS-WITH-GAPS verify verdict — confirmation-required (merging past enumerated unverified gaps is destructive-adjacent); fires even when `verify_already_ran: true` was confirmed
 - Phase 3 Step A: shared-branch guard FAIL → re-prompt with merge Recommended (rebase becomes a "WARNING: rewrites SHAs" option)
 - Phase 6 learnings findings — content review, batched per finding
 - Phase 9 step 4a stale-bump recovery — destructive (revert + re-bump)
