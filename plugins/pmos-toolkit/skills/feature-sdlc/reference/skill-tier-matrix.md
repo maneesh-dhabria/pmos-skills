@@ -20,8 +20,8 @@ the pipeline-integration depth.
 If `--tier N` was passed on the CLI it wins over the matrix result. Record the
 divergence in the `skill-tier-resolve` phase entry as a
 `child_tier_divergence`-style note (`matrix=<M>, override=<N>`) and proceed with the
-override (E19 / FR-33) — do not silently drop the matrix recommendation; surface
-both in the Phase 0d confirmation prompt (FR-34).
+override — do not silently drop the matrix recommendation; surface
+both in the Phase 0d confirmation prompt.
 
 ## skill-feedback (multi-skill) tier rule
 
@@ -35,7 +35,7 @@ compute a **per-skill tier** from that skill's approved-change-set size — reus
 
 The **run tier = max** of the per-skill tiers (the run is as heavy as its heaviest
 skill). Show the per-skill breakdown alongside the resolved max in the single Phase 0d
-confirmation prompt (G11) so the user can override the run tier knowingly.
+confirmation prompt so the user can override the run tier knowingly.
 
 ## Notes
 

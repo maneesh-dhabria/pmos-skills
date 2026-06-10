@@ -1,6 +1,6 @@
 # Frontend detection heuristic (`/feature-sdlc`)
 
-Used in Phase 4.c (the `/wireframes` gate) to bias the `(Recommended)` option of the `AskUserQuestion`. **The gate is always presented** (per FR-FRONTEND-GATE / spec §15 G6) — this heuristic only chooses which side carries the `(Recommended)` tag. **Never silently skip the gate.**
+Used in Phase 3b (the `/wireframes` gate) to bias the `(Recommended)` option of the `AskUserQuestion`. **The gate is always presented** — this heuristic only chooses which side carries the `(Recommended)` tag. **Never silently skip the gate.**
 
 Inputs the heuristic reads, in order of precedence:
 

@@ -15,7 +15,7 @@ skill-path rule).
    path" section: `plugins/pmos-toolkit/skills/<name>/SKILL.md`.)
 2. **A `plugins/<p>/.claude-plugin/plugin.json` is present** → the skill goes to
    `plugins/<p>/skills/<name>/SKILL.md`. If more than one plugin directory matches,
-   `AskUserQuestion` which plugin (E18): one option per plugin (path + last-modified
+   `AskUserQuestion` which plugin: one option per plugin (path + last-modified
    time), plus `Other…`; carry `(Recommended)` on the most-recently-modified plugin.
 3. **A `.agents/` dir is present** → `.agents/skills/<name>/SKILL.md`.
 4. **Else** (a `.claude/skills/` dir, or nothing) → `.claude/skills/<name>/SKILL.md`,
@@ -27,14 +27,14 @@ skill-path rule).
 - A `plugins/<p>/.claude-plugin/` shape, or a `.claude/` shape → `claude-code`.
 - A `.agents/` dir plus an `agents/openai.yaml` (or a Codex-style `agents.md`
   convention) → `codex`.
-- Ambiguous, or a bare repo with none of the above → `generic` (E5).
+- Ambiguous, or a bare repo with none of the above → `generic`.
 
 The resolved `target_platform` is mirrored into the `--target` flag passed down to
 `skill-eval-check.sh` and gates `skill-eval.md` group 10.F: `claude-code` → the
 `f-cc-*` checks apply; `codex` → `f-codex-sidecar` applies; `generic` → group 10.F is
 skipped entirely (intersection-only).
 
-## Dogfooding note (E6)
+## Dogfooding note
 
 Inside the pmos-toolkit repo the probe sees both signals: `CLAUDE.md` carries the
 explicit canonical-path rule (rung 1 wins) → `plugins/pmos-toolkit/skills/<name>/SKILL.md`,
@@ -46,6 +46,6 @@ conflict — rung 1 (the explicit `CLAUDE.md` rule) and the plugin-manifest prob
 ## Output
 
 Both resolved values — skill-location path and `target_platform` — are recorded in the
-`skill-tier-resolve` phase entry of `state.yaml` (FR-14), and surfaced together with
-the resolved tier in the single Phase-0d confirmation prompt (FR-34). The user can
+`skill-tier-resolve` phase entry of `state.yaml`, and surfaced together with
+the resolved tier in the single Phase-0d confirmation prompt. The user can
 override either in that prompt.

@@ -22,7 +22,7 @@ Triggered after the child skill's invocation returns with an error or exits with
 
 ### Hard phases — Skip option HIDDEN
 
-Per FR-PHASE-TAGS (spec §15 G5). Hard phases: `requirements`, `spec`, `plan`, `execute`, `verify`, `complete-dev`.
+Which phases are hard is NOT enumerated here — read each phase's `hardness` tag from `state-schema.md` § "Phase identifiers + hardness" (the single source; note some phases are hard only in certain modes, e.g. `wireframes`/`prototype` in prototype mode).
 
 ```
 question: "<phase> failed: <one-line error>. How to proceed?"
@@ -39,7 +39,7 @@ options:
 
 ### Soft phases — Skip option SHOWN
 
-Soft phases: `grill`, `msf-req`, `creativity`, `wireframes`, `prototype`, `simulate-spec`.
+(Soft per the phase's `hardness` tag in `state-schema.md` — same lookup as above.)
 
 ```
 question: "<phase> failed: <one-line error>. How to proceed?"
@@ -58,15 +58,13 @@ options:
 
 ### Infra phases
 
-Infra phases (`setup`, `worktree`, `init-state`, `final-summary`, `capture-learnings`) do not use this dialog — failures here are bugs in `/feature-sdlc` itself or in the host environment (e.g., git not installed). Surface the underlying error directly and abort with a fix-it-and-retry message; do not present a multi-option dialog.
+Infra phases (per the same `state-schema.md` hardness column) do not use this dialog — failures here are bugs in `/feature-sdlc` itself or in the host environment (e.g., git not installed). Surface the underlying error directly and abort with a fix-it-and-retry message; do not present a multi-option dialog.
 
 ---
 
 ## Missing-skill dialog (child skill not installed)
 
 Detected via the platform's "skill not found" / "unknown skill" error after attempting to invoke the child. Pre-flight detection at Phase 0 is best-effort only — the source of truth is the invocation-time response.
-
-Per FR-MISSING-SKILL / spec §15 G10.
 
 ### Hard phase missing — no Skip
 
@@ -127,3 +125,7 @@ Out-of-options replies (user picks `Other` or types a free-form reply) are handl
 - **Don't show the Skip option on hard phases.** That's the silent-skip footgun the contract was designed to prevent.
 - **Don't auto-skip a missing soft skill** without surfacing the dialog. Even on `Recommended=Skip`, the user must see the choice (the auto-pick path applies only in `--non-interactive` mode and is logged with reason).
 - **Don't omit `last_error`** when writing `status: failed` or `paused_reason: failure`. Resume needs it to re-present the dialog meaningfully.
+
+---
+
+*Spec lineage: `docs/pmos/features/2026-05-09_feature-sdlc-skill/` (hardness-driven dialog construction, silent-skip prohibition, missing-skill contract).*

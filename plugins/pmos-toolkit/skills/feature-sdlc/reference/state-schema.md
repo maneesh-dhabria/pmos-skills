@@ -8,7 +8,7 @@ Single source of truth for the resumable pipeline state file written at `<worktr
 
 `schema_version: 5` is the current version (added with the `/feature-sdlc prototype` mode — `pipeline_mode = prototype` is the new valid value; phases[] gains a prototype-mode entry set). Older files are auto-migrated on read, in order, through the chain `v1 → v2 → v3 → v4 → v5` (each step additive/idempotent — see the per-version "auto-migration block" sections below). Files written by /feature-sdlc < 2.34.0 carry `schema_version: 1`; files from the 2.34.0–2.37.x cohort carry `2` or `3`; files from the 2.38.0+ cohort carry `4`.
 
-**Migration policy** (per FR-SCHEMA / FR-13 / spec §15 G3):
+**Migration policy**:
 
 - `state.schema_version > current code's max supported` (i.e., `> 5`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
 - `state.schema_version < current code's max` → run each migration step in version order; each is additive (default-fill new fields, never remove/rename/reshape) and idempotent; log every step to chat as `migration: state.schema vM → vN (added: <fields>)`. The pre-2.34.0 phase-id elision (`msf-req`/`simulate-spec` dropped on read — see "Auto-migration of pre-2.34.0 state files" in SKILL.md) runs *before* the v4 step.
@@ -24,7 +24,7 @@ Pipeline runs are short-lived (days, not years) so destructive migrations are no
 |-------|------|----------|-------------|
 | `schema_version` | int | yes | `1` in v1 … `5` in v5 (the current version). |
 | `slug` | string | yes | LLM-derived kebab-case identifier (per `slug-derivation.md`). |
-| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, `skill-feedback`, or `prototype` (the last added in v5). Resolved by the Phase 0 subcommand dispatch (FR-02). **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
+| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, `skill-feedback`, or `prototype` (the last added in v5). Resolved by the Phase 0 subcommand dispatch. **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
 | `tier` | int (1\|2\|3) \| null | yes | Set when known: `--tier` flag, or — in skill modes — Phase 0d `/skill-tier-resolve`, or — otherwise — after `/requirements` auto-tier. `null` until then. |
 | `mode` | string | yes | `interactive` or `non-interactive`. Resolved per the canonical non-interactive block at Phase 0. (Untouched by v4 — see `pipeline_mode` above for the run-kind selector.) |
 | `started_at` | string (ISO-8601) | yes | First creation timestamp. Never updated. |
@@ -32,11 +32,11 @@ Pipeline runs are short-lived (days, not years) so destructive migrations are no
 | `current_phase` | string | yes | The phase id currently being executed or the most recent paused/failed one. Matches one of the `phases[].id` values below. |
 | `worktree_path` | string (abs path) \| null | yes | Absolute path of the worktree directory. `null` only when `--no-worktree` was passed. |
 | `branch` | string \| null | yes | Branch name (typically `feat/<slug>`). `null` only when `--no-worktree`. |
-| `base` | string \| null | no | Base branch the worktree forked from (typically `main`). Captured at Phase 0a Step 2.5 from the cwd's current branch; `null` when not resolved or `--no-worktree`. Used by Phase 0b origin-moved check (FR-R06). |
+| `base` | string \| null | no | Base branch the worktree forked from (typically `main`). Captured at Phase 0a Step 2.5 from the cwd's current branch; `null` when not resolved or `--no-worktree`. Used by Phase 0b origin-moved check. |
 | `remote` | string \| null | no | Tracking remote for `base` (e.g. `origin`). Captured at Phase 0a Step 2.5 from `<base>@{upstream}`; `null` when `base` has no upstream. Pairs with `base`. |
-| `base_drift` | object \| null | no | (FR-PA05/FR-R06) Recorded when local base is behind remote at branch time, or when origin advances after the worktree is created. Shape: `{ behind: <int>, fetched_at: <ISO-8601>, remote: <string>, base: <string>, remote_sha: <short-sha>, local_sha: <short-sha> }`. Absent / `null` when no drift observed. Informational record only — kept for the run's audit trail; no other skill reads it. |
+| `base_drift` | object \| null | no | Recorded when local base is behind remote at branch time, or when origin advances after the worktree is created. Shape: `{ behind: <int>, fetched_at: <ISO-8601>, remote: <string>, base: <string>, remote_sha: <short-sha>, local_sha: <short-sha> }`. Absent / `null` when no drift observed. Informational record only — kept for the run's audit trail; no other skill reads it. |
 | `feature_folder` | string (abs path) | yes | Resolved per `_shared/pipeline-setup.md` Section A — `<docs_path>/features/<YYYY-MM-DD>_<slug>/`. Child skills' artifacts land here. |
-| `phases` | list | yes | One entry per pipeline phase, in declared order — **membership is mode-conditional** (per `pipeline_mode`, FR-11; see "Mode-conditional `phases[]` membership (v4)" below). See entry shape below. |
+| `phases` | list | yes | One entry per pipeline phase, in declared order — **membership is mode-conditional** (per `pipeline_mode`; see "Mode-conditional `phases[]` membership (v4)" below). See entry shape below. |
 | `open_questions_log` | list | yes | Initialized `[]`. Appended to in `--non-interactive` mode after each child phase. See entry shape below. |
 
 ---
@@ -53,10 +53,10 @@ Every entry has at minimum:
 | `artifact_path` | string (rel path) \| null | Path of the canonical artifact this phase produced (relative to `feature_folder`). `null` when no artifact (e.g., phase `setup`, phase `compact-checkpoint`). |
 | `started_at` | string (ISO-8601) \| null | When `status` first became `in_progress`. |
 | `completed_at` | string (ISO-8601) \| null | When `status` became `completed`. |
-| `paused_at` | string (ISO-8601) \| null | When `status` became `paused` (per FR-PAUSE / spec §15 G1). |
+| `paused_at` | string (ISO-8601) \| null | When `status` became `paused`. |
 | `paused_reason` | string \| null | Why paused. See enum below. |
 | `last_error` | string \| null | One-line error captured on failure-pause. |
-| `child_tier` | int \| null | Child-skill auto-tier when it differs from the orchestrator tier (per spec §15 G8). |
+| `child_tier` | int \| null | Child-skill auto-tier when it differs from the orchestrator tier. |
 | `child_tier_divergence` | string \| null | Free-form note when child reports a different tier. |
 | `missing_skill` | string \| null | Set when `paused_reason: missing_skill` — names the missing child skill. |
 | `folded_phase_failures` | list | (v2) Append-only list of folded-skill failure records — `{folded_skill, error_excerpt, ts}`. Empty `[]` until a folded child crashes. See "Schema v2" below for dedup rule. |
@@ -75,8 +75,8 @@ In declared execution order. Membership is mode-conditional (see below); a `—`
 | `setup` | infra | ✓ | ✓ | ✓ | ✓ | always run; no failure dialog beyond pipeline-setup's own |
 | `worktree` | infra | ✓ | ✓ | ✓ | ✓ | worktree creation; G7 dialog inline |
 | `init-state` | infra | ✓ | ✓ | ✓ | ✓ | write state.yaml + 00_pipeline.{html,md} |
-| `feedback-triage` | **hard** | — | — | ✓ | — | **new in v4 (D22).** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
-| `skill-tier-resolve` | **infra** | — | ✓ | ✓ | — | **new in v4 (D22).** A setup/detection phase like `worktree`/`init-state`. |
+| `feedback-triage` | **hard** | — | — | ✓ | — | **new in v4.** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
+| `skill-tier-resolve` | **infra** | — | ✓ | ✓ | — | **new in v4.** A setup/detection phase like `worktree`/`init-state`. |
 | `ideate` | **soft** | ✓ | ✓ | — | ✓ | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --depth deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
 | `requirements` | hard | ✓ | ✓ | ✓ | ✓ | Skip HIDDEN in failure dialog |
 | `grill` | soft | ✓ | ✓ | ✓ | ✓ | Skip SHOWN; auto-skipped in `--non-interactive` |
@@ -86,18 +86,18 @@ In declared execution order. Membership is mode-conditional (see below); a `—`
 | `spec` | hard | ✓ | ✓ | ✓ | ✓ | in prototype mode, runs **before** `wireframes`/`prototype` (post-3a). |
 | `plan` | hard | ✓ | ✓ | ✓ | — | not in prototype mode |
 | `execute` | hard | ✓ | ✓ | ✓ | — | not in prototype mode |
-| `skill-eval` | **hard** | — | ✓ | ✓ | — | **new in v4 (D22).** A non-skippable quality gate; "accept residuals as known risk" is a documented exit, not a skip; peer of `verify`. |
+| `skill-eval` | **hard** | — | ✓ | ✓ | — | **new in v4.** A non-skippable quality gate; "accept residuals as known risk" is a documented exit, not a skip; peer of `verify`. |
 | `verify` | hard | ✓ | ✓ | ✓ | — | non-skippable in feature/skill modes; not in prototype mode (nothing implemented to verify) |
 | `complete-dev` | hard | ✓ | ✓ | ✓ | — | not in prototype mode (nothing to ship) |
 | `retro` | soft | ✓ | ✓ | ✓ | — | gate, Recommended=Skip; not in prototype mode (no merge happened) |
-| `final-summary` | infra | ✓ | ✓ | ✓ | ✓ | prototype-mode variant per SKILL.md FR-PSDLC-08 |
+| `final-summary` | infra | ✓ | ✓ | ✓ | ✓ | prototype-mode variant per SKILL.md Phase 9 |
 | `capture-learnings` | infra | ✓ | ✓ | ✓ | ✓ | |
 
 (The removed `msf-req` and `simulate-spec` phase ids — present in pre-2.34.0 state files — are elided on read before the v4 migration step; they are not in any mode's fresh-init `phases[]`.)
 
 #### Mode-conditional `phases[]` membership (v4)
 
-At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode` (D21/FR-11):
+At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode`:
 
 - **`feature`** — the 2.52.0 set (with `ideate` inserted after `init-state`):
   `setup, worktree, init-state, ideate, requirements, grill, creativity, wireframes, prototype, spec, plan, execute, verify, complete-dev, retro, final-summary, capture-learnings`.
@@ -110,13 +110,13 @@ At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode`
 
 **Back-compat for pre-2.52.0 state files (additive, no `schema_version` bump):** state files written before 2.52.0 have no `ideate` entry in `phases[]`. The resume cursor scans whatever phases the file declares — a missing `ideate` entry is treated as "this phase did not exist when the run started; advance past it" (the same shape as the elision of `msf-req`/`simulate-spec` for pre-2.34.0 files). No on-read migration step is required; runs are not retroactively re-ideated.
 
-The resume cursor scans whatever `phases[]` contains — it is **mode-agnostic** (`pipeline_mode` is read back from the state file, never re-derived from a subcommand on `--resume` — FR-05). `current_phase` at fresh init is the first phase of the mode's set (`requirements` in feature; `skill-tier-resolve` in `skill-new`; `feedback-triage` in `skill-feedback`).
+The resume cursor scans whatever `phases[]` contains — it is **mode-agnostic** (`pipeline_mode` is read back from the state file, never re-derived from a subcommand on `--resume`). `current_phase` at fresh init is the first phase of the mode's set (`requirements` in feature; `skill-tier-resolve` in `skill-new`; `feedback-triage` in `skill-feedback`).
 
-The compact checkpoint (`compact-checkpoint.md`) is a recurring micro-phase, not a `phases[]` entry. It is invoked before `wireframes`, `prototype`, `execute`, `verify` in feature mode; before `execute` and `verify` only in skill modes (3b/3c not present; `skill-eval` is light — no checkpoint before it). It writes its pause record into the *next* phase's entry (see `compact-checkpoint.md`).
+The compact checkpoint (`compact-checkpoint.md`) is a recurring micro-phase, not a `phases[]` entry — when it fires is defined in `compact-checkpoint.md` § "When the checkpoint fires" (the single source). It writes its pause record into the *next* phase's entry (see `compact-checkpoint.md`).
 
 #### `skill_eval` substructure (v4)
 
-On the `skill-eval` phase entry only (FR-12):
+On the `skill-eval` phase entry only:
 
 ```yaml
 skill_eval:
@@ -137,7 +137,7 @@ skill_eval:
       acked_at: <ISO-8601>
 ```
 
-`iterations[0]` is implicit (the initial `/execute` Phase 6 build); the first recorded entry is `n: 1`. `iterations[n].pre_ref` is HEAD *before* iteration n's remediation commits — so "Restore iteration 1" (offered only when iteration 2 was net-worse) `git reset`s the skill files to `iterations[2].pre_ref`. All writes to this substructure use the atomic temp-then-rename protocol (D31).
+`iterations[0]` is implicit (the initial `/execute` Phase 6 build); the first recorded entry is `n: 1`. `iterations[n].pre_ref` is HEAD *before* iteration n's remediation commits — so "Restore iteration 1" (offered only when iteration 2 was net-worse) `git reset`s the skill files to `iterations[2].pre_ref`. All writes to this substructure use the atomic temp-then-rename protocol.
 
 #### `ideate` substructure (2.52.0)
 
@@ -158,7 +158,7 @@ ideate:
 - `pending` — declared but not started.
 - `in_progress` — currently executing.
 - `completed` — finished cleanly (child skill returned success).
-- `paused` — exited cleanly mid-phase per FR-PAUSE; resumable via `--resume`.
+- `paused` — exited cleanly mid-phase per the pause contract (`compact-checkpoint.md`); resumable via `--resume`.
 - `failed` — errored; failure dialog will be re-presented on `--resume`.
 - `skipped` — user picked Skip at the gate (soft phases only) or `--non-interactive` auto-recommendation chose Skip.
 - `skipped-on-failure` — user picked Skip in the failure dialog after an error (soft phases only).
@@ -172,13 +172,13 @@ ideate:
 - `compact` — user chose Pause-resumable at a compact checkpoint.
 - `failure` — user chose Pause-resumable in a failure dialog.
 - `user` — user chose Pause-resumable outside a dialog (e.g., interrupted between phases).
-- `missing_skill` — user chose Pause-to-install in the missing-skill dialog (per FR-MISSING-SKILL / spec §15 G10). `missing_skill` field captures the child skill name.
+- `missing_skill` — user chose Pause-to-install in the missing-skill dialog. `missing_skill` field captures the child skill name.
 
 ---
 
 ## `open_questions_log[]` entry shape
 
-Per FR-OQ-INDEX / spec §15 G4. Append-only; written after each `--non-interactive` child phase that flushed deferred questions.
+Append-only; written after each `--non-interactive` child phase that flushed deferred questions.
 
 ```yaml
 - phase: <phase id>
@@ -199,7 +199,7 @@ v2 is additive over v1 — no field removals, no rename, no reshape. v1 files ar
 ### What's new in v2
 
 1. **`phases[].folded_phase_failures: []`** — empty list initialized on every phase entry. Appended to by parent skills (`/requirements`, `/wireframes`, `/spec`) when a folded child phase (msf-req, msf-wf, simulate-spec) crashes. Each entry: `{folded_skill: <name>, error_excerpt: <first-200-chars>, ts: <ISO-8601>}`.
-2. **`phases[].started_at`** — timestamp written on the first `pending → in_progress` transition (FR-57). Already documented in v1 phase entries; v2 makes the write contract explicit (only set if currently null; never overwritten).
+2. **`phases[].started_at`** — timestamp written on the first `pending → in_progress` transition. Already documented in v1 phase entries; v2 makes the write contract explicit (only set if currently null; never overwritten).
 3. **`phases[]` includes `retro`** entry — appended after `complete-dev`, before `final-summary`.
 
 ### `folded_phase_failures[]` append-dedup rule
@@ -215,9 +215,9 @@ Performed on read whenever `state.schema_version < 2`:
 3. **Append the `retro` phase entry** between `complete-dev` and `final-summary` if not already present. Default: `{id: retro, hardness: soft, status: pending, artifact_path: null}`.
 4. **Emit chat log line:** `migration: state.schema v1 → v2 (added: folded_phase_failures, started_at on N entries, retro phase)`.
 
-### Atomicity (D31)
+### Atomicity
 
-State writes use **same-directory write-temp-then-rename**: write to `<state.yaml>.tmp` in `.pmos/feature-sdlc/`, then `rename(2)` to `state.yaml` (POSIX atomic on same filesystem). On rename(2) failure, the `.tmp` file is removed and the operation is reported as a hard error per NFR-08 — never leave a `.tmp` orphan that a future run could mistake for in-progress state. /plan startup runs a stale-tempfile reaper.
+State writes use **same-directory write-temp-then-rename**: write to `<state.yaml>.tmp` in `.pmos/feature-sdlc/`, then `rename(2)` to `state.yaml` (POSIX atomic on same filesystem). On rename(2) failure, the `.tmp` file is removed and the operation is reported as a hard error — never leave a `.tmp` orphan that a future run could mistake for in-progress state. /plan startup runs a stale-tempfile reaper.
 
 ---
 
@@ -249,10 +249,10 @@ v4 is **additive over v3** — no field removals, no renames, no reshape. It is 
 
 ### What's new in v4
 
-1. **Top-level `pipeline_mode`** — `feature` / `skill-new` / `skill-feedback` (D16). Distinct from `mode ∈ {interactive, non-interactive}` — the naming-collision resolution.
-2. **Mode-conditional `phases[]` membership** (FR-11) — see "Mode-conditional `phases[]` membership (v4)" above. The skill-dev phase ids (`feedback-triage`, `skill-tier-resolve`, `skill-eval`) are only ever added by a fresh skill-mode init — never retrofitted onto an older file.
-3. **Three new phase ids + hardness** (D22) — `feedback-triage` (hard), `skill-tier-resolve` (infra), `skill-eval` (hard). Only present when the run mode includes them.
-4. **New optional per-phase fields** — `feedback_source` / `target_skills` (on `feedback-triage`); `resolved_tier` / `skill_location` / `target_platform` / `per_skill_tiers` (on `skill-tier-resolve`); the `skill_eval` substructure (on `skill-eval`). The existing `child_tier_divergence` field is reused for the `--tier`-vs-matrix divergence (E19).
+1. **Top-level `pipeline_mode`** — `feature` / `skill-new` / `skill-feedback`. Distinct from `mode ∈ {interactive, non-interactive}` — the naming-collision resolution.
+2. **Mode-conditional `phases[]` membership** — see "Mode-conditional `phases[]` membership (v4)" above. The skill-dev phase ids (`feedback-triage`, `skill-tier-resolve`, `skill-eval`) are only ever added by a fresh skill-mode init — never retrofitted onto an older file.
+3. **Three new phase ids + hardness** — `feedback-triage` (hard), `skill-tier-resolve` (infra), `skill-eval` (hard). Only present when the run mode includes them.
+4. **New optional per-phase fields** — `feedback_source` / `target_skills` (on `feedback-triage`); `resolved_tier` / `skill_location` / `target_platform` / `per_skill_tiers` (on `skill-tier-resolve`); the `skill_eval` substructure (on `skill-eval`). The existing `child_tier_divergence` field is reused for the `--tier`-vs-matrix divergence.
 
 ### v3 → v4 auto-migration block (4 steps, idempotent)
 
@@ -273,7 +273,7 @@ v5 is **additive over v4** — no field removals, no renames, no reshape. It is 
 
 ### What's new in v5
 
-1. **`pipeline_mode` enum widens** — `prototype` becomes a valid value alongside `feature`/`skill-new`/`skill-feedback` (D16-extended).
+1. **`pipeline_mode` enum widens** — `prototype` becomes a valid value alongside `feature`/`skill-new`/`skill-feedback`.
 2. **New mode-conditional `phases[]` membership** — the `prototype` mode's `phases[]` set (see "Mode-conditional `phases[]` membership (v4)" above, the `prototype` bullet). The phase entries are declared in *execution order*, so the resume cursor walks them correctly without special-casing.
 3. **No new top-level fields, no new per-phase fields, no new substructures.** All `prototype`-mode metadata is captured in existing fields (`current_phase`, `phases[].status`, etc.).
 
@@ -506,3 +506,7 @@ phases:
     status: pending
 open_questions_log: []
 ```
+
+---
+
+*Spec lineage: `docs/pmos/features/2026-05-09_feature-sdlc-skill/` (v1), `2026-05-10_pipeline-consolidation/` (v2), `2026-05-10_feature-sdlc-worktree-resume/` (v3), `2026-05-11_feature-sdlc-skill-mode/` (v4), `2026-05-23_feature-sdlc-ideate-phase/` (ideate substructure), `2026-05-24_prototype-sdlc-skill/` (v5).*

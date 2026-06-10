@@ -238,13 +238,13 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 
 | id | tag | applies-when | check / pass-condition | § |
 |---|---|---|---|---|
-| j-phases-integer | [J] | skill body has phase headings | Top-level phases are integers only — no fractional (`Phase 7.5`) or lettered (`Phase 0c`) top-level phases; sub-structure inside a phase is "step N" prose, never a pseudo-phase label; pass iff every top-level phase label is an integer. | skill-patterns.md §J |
+| j-phases-integer | [J] | skill body has phase headings | Top-level phases are integers only — no fractional (7.5-style) or lettered (0c-style) top-level phases; sub-structure inside a phase is "step N" prose, never a pseudo-phase label; pass iff every top-level phase label is an integer. | skill-patterns.md §J |
 | j-phase-slug-anchors | [J] | skill body has phase headings | Every phase heading carries a stable kebab `{#slug}` anchor, and cross-references cite the slug (cross-skill refs additionally carry the skill qualifier) rather than a bare number on non-heading surfaces (schemas, log-line contracts, Track Progress enumerations, tests); pass iff anchors are present and slug-addressing is the norm. | skill-patterns.md §J |
 | j-phase-refs-resolve | [D] | always (skipped with a stderr `WARN:` when repo-root `tools/lint-phase-refs.sh` is absent) | `tools/lint-phase-refs.sh <skill-dir>` exits 0 — every textual `Phase <label>` / `#slug` reference in the skill's markdown resolves to a heading/anchor that exists (cross-skill refs resolve against the named skill); pass iff exit 0. | skill-patterns.md §J |
 
 **why & how-to-verify (10.J):**
 
-- **j-phases-integer** — *why:* a fractional/lettered top-level phase is an accretion smell — a phase was inserted and the file never renumbered. *how-to-verify:* judge the phase headings; `Phase 7.5` / `Phase 0c` at top level is the fail, "Phase 4, step 3" prose sub-structure is fine.
+- **j-phases-integer** — *why:* a fractional/lettered top-level phase is an accretion smell — a phase was inserted and the file never renumbered. *how-to-verify:* judge the phase headings; a 7.5-style or 0c-style top-level label is the fail, "Phase 4, step 3" prose sub-structure is fine.
 - **j-phase-slug-anchors** — *why:* the number is ordering sugar; the slug is the address. A renumber that only fixes headings orphans every other surface — one such commit (`a76a5da`) left 22 in-file ghost references + 7 cross-skill phantoms. *how-to-verify:* judge whether phase headings carry `{#slug}` anchors and whether non-heading references cite slugs (with skill qualifiers cross-skill).
 - **j-phase-refs-resolve** — *why:* renumbering is safe because a lint catches the stragglers, not discipline. *how-to-verify:* the script runs `tools/lint-phase-refs.sh <skill-dir>`; exit 0 passes, exit 1 fails with the first ghost reference as evidence.
 

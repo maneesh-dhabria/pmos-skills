@@ -46,7 +46,7 @@ Markdown skeleton for the human-readable pipeline-status doc written at `<worktr
 
 ## Folded-phase failures (N)
 
-Emitted ABOVE the Deferred questions section when ≥1 phase has a non-empty `state.yaml.phases.<x>.folded_phase_failures[]` (per FR-29 / D34). When N=0 across all phases, **omit this subsection entirely** — no decoration, no "_(none)_", no header.
+Emitted ABOVE the Deferred questions section when ≥1 phase has a non-empty `state.yaml.phases.<x>.folded_phase_failures[]`. When N=0 across all phases, **omit this subsection entirely** — no decoration, no "_(none)_", no header.
 
 Format (one line per failure record across all phases):
 

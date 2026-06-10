@@ -8,7 +8,7 @@ This mirrors `complete-dev/reference/lastrun-schema.md` (the `.pmos/complete-dev
 
 ## Path
 
-`<main-repo-root>/.pmos/feature-sdlc.lastrun.yaml` — anchored to the **main checkout's root**, NOT the per-feature worktree (which `/complete-dev` deletes at Phase 16a). This is what makes the memory persist across worktrees.
+`<main-repo-root>/.pmos/feature-sdlc.lastrun.yaml` — anchored to the **main checkout's root**, NOT the per-feature worktree (deleted by `/complete-dev` Phase 16a, its worktree-cleanup phase). This is what makes the memory persist across worktrees.
 
 **Resolve `<main-repo-root>` via git (do not rely on cwd — after `EnterWorktree`, cwd is the linked worktree):**
 

@@ -2,7 +2,7 @@
 name: skill-sdlc
 description: Create or revise a skill via the full SDLC pipeline — a thin alias for `/feature-sdlc skill …`. Triggers — "create a skill", "build me a slash command", "author a new skill", "turn this workflow into a skill", "apply this retro feedback to the skill", "/skill-sdlc".
 user-invocable: true
-argument-hint: "[--from-feedback] <description|feedback> [--from-reflect] [--tier N] [--no-worktree] [--format html|md|both] [--non-interactive|--interactive] [--backlog id] [--minimal]"
+argument-hint: "<description> | --from-feedback <text|path|--from-reflect>  (all other /feature-sdlc flags forward verbatim)"
 ---
 
 # /skill-sdlc
@@ -11,7 +11,7 @@ argument-hint: "[--from-feedback] <description|feedback> [--from-reflect] [--tie
 
 This skill is a thin alias. It runs no logic of its own.
 
-Immediately invoke `/pmos-toolkit:feature-sdlc` with the arguments `skill` followed by the verbatim arguments passed to `/skill-sdlc` — e.g. `/skill-sdlc "a skill that lints YAML"` → `/pmos-toolkit:feature-sdlc skill "a skill that lints YAML"`; `/skill-sdlc --from-feedback path/to/reflect.md` → `/pmos-toolkit:feature-sdlc skill --from-feedback path/to/reflect.md`. Do nothing else — all skill-dev logic, the worktree, the resume model, the eval loop, and the learnings capture live in `/feature-sdlc`.
+Immediately invoke `/pmos-toolkit:feature-sdlc` with the arguments `skill` followed by the verbatim arguments passed to `/skill-sdlc` — e.g. `/skill-sdlc a skill that lints YAML` → `/pmos-toolkit:feature-sdlc skill "a skill that lints YAML"` (quoting is not required on input; the whole remainder is the seed); `/skill-sdlc --from-feedback path/to/reflect.md` → `/pmos-toolkit:feature-sdlc skill --from-feedback path/to/reflect.md`. A feedback source of `--from-reflect` forwards the same way. Every other flag (`--tier`, `--resume`, `--no-worktree`, `--format`, `--backlog`, `--non-interactive`/`--interactive`, `--reset-defaults`, …) forwards verbatim — `/feature-sdlc`'s frontmatter is the single home for the flag surface; this hint lists only what the alias itself adds. Exception: on `--resume`, forward WITHOUT the `skill` prefix (`/skill-sdlc --resume` → `/pmos-toolkit:feature-sdlc --resume`) — the run mode is read back from `state.yaml`, and a subcommand alongside `--resume` triggers a spurious warning by contract. Do nothing else — all skill-dev logic, the worktree, the resume model, the eval loop, and the learnings capture live in `/feature-sdlc`.
 
 ## Platform Adaptation
 

@@ -30,7 +30,7 @@ git branch --list "feat/<slug>" "feat/<slug>-*"
 ```
 
 - **No matches:** create `feat/<slug>` and proceed.
-- **Match on `feat/<slug>` exactly:** trigger the spec §15 G7 (d) prompt — `Use existing branch (Recommended)` / `Pick new slug` / `Abort`. "Use existing" enters resume mode if the worktree's `state.yaml` is present; otherwise initializes state.yaml fresh on top of the existing branch with a warning logged.
+- **Match on `feat/<slug>` exactly:** trigger the branch-collision prompt — `Use existing branch (Recommended)` / `Pick new slug` / `Abort`. "Use existing" enters resume mode if the worktree's `state.yaml` is present; otherwise initializes state.yaml fresh on top of the existing branch with a warning logged.
 - **Match on numbered variants only:** propose `feat/<slug>-2` (or next free integer); show the user via `AskUserQuestion` to confirm.
 
 ---
