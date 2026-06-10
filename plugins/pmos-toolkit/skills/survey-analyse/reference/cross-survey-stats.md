@@ -80,14 +80,9 @@ The skill currently defaults to **suppress MoE** unless the user explicitly tagg
 
 ## Weighting
 
-If `--weight-col <col>` was passed, the helper applies the per-respondent weight column when computing percentages:
+**Respondent weighting is not supported.** None of the stats helpers accepts a weight column; every number in the report is unweighted, and the methodology section MUST say so. Do NOT improvise weighting inside the per-run `analysis.py` — that breaks the reproducibility contract (Anti-Pattern #1 / FR-R03). If the user needs weighted estimates, tell them plainly and point them to a dedicated stats tool.
 
-- Numeric weights ≥0; rows with non-numeric or missing weights are dropped from weighted estimates (counted unweighted separately).
-- Helpers report **both** unweighted n (the actual headcount) and weighted percentages.
-- **Trim extreme weights** at the 1st/99th percentile to limit variance inflation (helper does this automatically; logged in methodology).
-- The methodology section MUST state the weight column name, the variables weighted on (the user has to provide context), and the unweighted n.
-
-Weighting **cannot** fix a sample that systematically excludes a group (no internet, didn't see the email). State who's missing.
+Weighting also **cannot** fix a sample that systematically excludes a group (no internet, didn't see the email). State who's missing in the methodology section.
 
 ## Response-rate / completion context
 

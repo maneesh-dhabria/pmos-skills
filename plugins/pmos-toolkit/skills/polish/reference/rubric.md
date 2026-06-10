@@ -1,4 +1,4 @@
-# Polish rubric — 14 built-in checks
+# Polish rubric — 15 built-in checks
 
 > This rubric is the **enforcement** of `_shared/writing-principles.md` — the author-time prose principles every pmos artifact-emitting skill writes to. Each check below polices one or more of those principles; when a principle changes there, update its check here (and vice-versa).
 
@@ -6,7 +6,7 @@
 
 - Implementation modes (regex vs llm-judge)
 - Local vs global checks
-- The 14 built-in checks (1–14, with patterns / judge prompts)
+- The 15 built-in checks (numbered 1–14, check 6 split into 6a/6b; with patterns / judge prompts)
 - Custom checks (user-defined, merged on top)
 
 Each check returns `pass` or `fail` plus cited spans. No subjective scoring.

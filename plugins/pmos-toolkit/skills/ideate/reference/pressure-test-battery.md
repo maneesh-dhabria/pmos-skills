@@ -1,6 +1,6 @@
-# pressure-test-battery.md — Phase 3 prompts
+# pressure-test-battery.md — Phase 4 prompts
 
-The three sub-batteries Phase 3 runs against each chosen finalist, in one non-interactive batch pass. Schemas are fixed — downstream tooling (and the `/grill` handoff) reads these table shapes.
+The three sub-batteries Phase 4 runs against each chosen finalist, in one non-interactive batch pass. Schemas are fixed — downstream tooling (and the `/grill` handoff) reads these table shapes.
 
 ## Contents
 
@@ -105,8 +105,8 @@ Scoring rules:
 
 ## Operating rules
 
-1. **No clarifying questions in Phase 3.** This is a batch pass. If something is genuinely unanswerable from the framed-idea context, log it in the artifact's Open Questions section and continue — do NOT interrupt the user mid-battery.
-2. **Each sub-battery is independent.** Don't make the assumption table reference premortem rows or vice versa — they are scored separately. (The artifact's Phase 4 Refine optionally cross-links them.)
+1. **No clarifying questions in Phase 4.** This is a batch pass. If something is genuinely unanswerable from the framed-idea context, log it in the artifact's Open Questions section and continue — do NOT interrupt the user mid-battery.
+2. **Each sub-battery is independent.** Don't make the assumption table reference premortem rows or vice versa — they are scored separately. (The artifact's Phase 5 Refine optionally cross-links them.)
 3. **Run all three sub-batteries even when their outputs would overlap.** Overlap is a signal that the failure space is concentrated — that's informative.
-4. **Always emit all three sections in the artifact**, even with `--no-stress-test`. The section heading stays; the body becomes a single line: `<em>Skipped — see TL;DR warning. Re-run with /ideation --refine --resume to populate.</em>`. Downstream tooling (and human readers) expect the 12-section schema to be complete.
+4. **Always emit all three sections in the artifact**, even with `--no-stress-test`. The section heading stays; the body becomes a single line: `<em>Skipped — see TL;DR warning. Re-run with /ideate --refine --resume to populate.</em>`. Downstream tooling (and human readers) expect the 13-section schema to be complete.
 5. **Do NOT score across multiple finalists inside any sub-battery** — the cross-cutting table is the only place cross-comparison happens.

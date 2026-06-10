@@ -32,9 +32,9 @@ Pipeline runs are short-lived (days, not years) so destructive migrations are no
 | `current_phase` | string | yes | The phase id currently being executed or the most recent paused/failed one. Matches one of the `phases[].id` values below. |
 | `worktree_path` | string (abs path) \| null | yes | Absolute path of the worktree directory. `null` only when `--no-worktree` was passed. |
 | `branch` | string \| null | yes | Branch name (typically `feat/<slug>`). `null` only when `--no-worktree`. |
-| `base` | string \| null | no | Base branch the worktree forked from (typically `main`). Captured at Phase 0a Step 2.5 from the cwd's current branch; `null` when not resolved or `--no-worktree`. Used by Phase 0b origin-moved check (FR-R06) and `/complete-dev` merge-time drift surfacing. |
+| `base` | string \| null | no | Base branch the worktree forked from (typically `main`). Captured at Phase 0a Step 2.5 from the cwd's current branch; `null` when not resolved or `--no-worktree`. Used by Phase 0b origin-moved check (FR-R06). |
 | `remote` | string \| null | no | Tracking remote for `base` (e.g. `origin`). Captured at Phase 0a Step 2.5 from `<base>@{upstream}`; `null` when `base` has no upstream. Pairs with `base`. |
-| `base_drift` | object \| null | no | (FR-PA05/FR-R06) Recorded when local base is behind remote at branch time, or when origin advances after the worktree is created. Shape: `{ behind: <int>, fetched_at: <ISO-8601>, remote: <string>, base: <string>, remote_sha: <short-sha>, local_sha: <short-sha> }`. Absent / `null` when no drift observed. `/complete-dev` reads this and surfaces the gap at merge time so it can pull-then-replay before committing release artifacts. |
+| `base_drift` | object \| null | no | (FR-PA05/FR-R06) Recorded when local base is behind remote at branch time, or when origin advances after the worktree is created. Shape: `{ behind: <int>, fetched_at: <ISO-8601>, remote: <string>, base: <string>, remote_sha: <short-sha>, local_sha: <short-sha> }`. Absent / `null` when no drift observed. Informational record only — kept for the run's audit trail; no other skill reads it. |
 | `feature_folder` | string (abs path) | yes | Resolved per `_shared/pipeline-setup.md` Section A — `<docs_path>/features/<YYYY-MM-DD>_<slug>/`. Child skills' artifacts land here. |
 | `phases` | list | yes | One entry per pipeline phase, in declared order — **membership is mode-conditional** (per `pipeline_mode`, FR-11; see "Mode-conditional `phases[]` membership (v4)" below). See entry shape below. |
 | `open_questions_log` | list | yes | Initialized `[]`. Appended to in `--non-interactive` mode after each child phase. See entry shape below. |
@@ -77,7 +77,7 @@ In declared execution order. Membership is mode-conditional (see below); a `—`
 | `init-state` | infra | ✓ | ✓ | ✓ | ✓ | write state.yaml + 00_pipeline.{html,md} |
 | `feedback-triage` | **hard** | — | — | ✓ | — | **new in v4 (D22).** Only clean exit is "no actionable findings / no in-scope skills"; the approval gate is mandatory → hard. |
 | `skill-tier-resolve` | **infra** | — | ✓ | ✓ | — | **new in v4 (D22).** A setup/detection phase like `worktree`/`init-state`. |
-| `ideate` | **soft** | ✓ | ✓ | — | ✓ | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
+| `ideate` | **soft** | ✓ | ✓ | — | ✓ | **new in v4.1 (2.52.0).** Auto-detects fuzzy-vs-formed seed via `reference/fuzzy-idea-detection.md`; on formed → silent skip with log line; on fuzzy → AskUserQuestion. Tier-3 brief auto-chains `/grill --depth deep`. Mode-conditional non-presentation in `skill-feedback` (the seed is already a structured per-skill finding set). |
 | `requirements` | hard | ✓ | ✓ | ✓ | ✓ | Skip HIDDEN in failure dialog |
 | `grill` | soft | ✓ | ✓ | ✓ | ✓ | Skip SHOWN; auto-skipped in `--non-interactive` |
 | `creativity` | soft | ✓ | ✓ | ✓ | ✓ | gate, Recommended=Skip |
@@ -147,7 +147,7 @@ On the `ideate` phase entry only (feature + skill-new modes):
 ideate:
   seed_shape: fuzzy | formed | null              # null until classified by reference/fuzzy-idea-detection.md
   ideate_tier_estimate: null | 1 | 2 | 3          # set after /ideate runs; --tier flag wins
-  grill_deep_chained: false | true                # true iff /grill --deep auto-ran on the brief
+  grill_deep_chained: false | true                # true iff /grill --depth deep auto-ran on the brief
   grill_deep_artifact_path: null | "<feature_folder>/00d-grill_ideate.html"
 ```
 

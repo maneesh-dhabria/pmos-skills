@@ -30,7 +30,7 @@ Span (lines <start>-<end>):
 CONSTRAINTS:
 - Output the rewritten span ONLY. Do not add commentary.
 - Do not modify text outside the cited span.
-- Do not introduce any check listed below as a NEW failure: <list of all 14 check ids>
+- Do not introduce any check listed below as a NEW failure: <list of all 15 check ids>
 - If preserving the voice markers conflicts with fixing the violation, output the literal token PRESERVE_VOICE_CONFLICT followed by JSON:
   PRESERVE_VOICE_CONFLICT
   {"conflicting_marker": "<one of: avg_sentence_length | sentence_length_stddev | register | person | idiomatic_phrases | contraction_rate>", "reason": "<one-sentence justification>"}

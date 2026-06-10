@@ -3,7 +3,8 @@
 > Used by `/architecture` (both `--from-spec` and `--from-code` modes) to dispatch
 > the rule-evaluation judge as a fresh subagent. The dispatcher loads this file,
 > substitutes the four `{{token}}` slots below, and sends the result to the
-> judge with `temperature: 0`.
+> judge. Determinism is enforced downstream by `validate-findings.js`
+> (rule-id whitelist + verbatim-quote checks), not by sampling settings.
 >
 > Spec refs: FR-32 (judge contract), FR-33 (output schema), FR-35 (verbatim quote rule).
 
@@ -16,7 +17,7 @@ artifact and report which rules from the supplied principles list it violates.
 
 Operating contract:
 
-- `temperature: 0` — deterministic. Do not paraphrase or improvise.
+- **Deterministic.** Do not paraphrase or improvise; quote evidence verbatim — your findings are validated downstream and non-verbatim quotes are dropped.
 - **Read-only.** You MUST NOT edit, rewrite, or suggest in-place changes to the
   artifact under review. Your only output is the JSON array described below.
 - Evaluate against **every applicable rule** in `{{rule_id_set}}`. Skip rules

@@ -172,7 +172,7 @@ Read tier from req doc. If absent, ask via `AskUserQuestion`:
 
 **Tier gating:**
 
-- **Tier 1:** Stop. Tell the user: "Tier 1 features rarely need a prototype. Recommend running `/spec` directly. Re-run with `--force` to override." Exit cleanly.
+- **Tier 1:** Stop. Tell the user: "Tier 1 features rarely need a prototype. Recommend running `/spec` directly." Exit cleanly. (If the user explicitly insists on a prototype anyway, proceed.)
 <!-- defer-only: ambiguous -->
 - **Tier 2:** Ask via `AskUserQuestion`:
   - **Question:** "Tier 2 detected. Run /prototype now? Adds ~1 hr; produces interactive prototype for stakeholder review."
@@ -294,7 +294,7 @@ In addition to the existing inputs, the subagent receives **four blocks from Pha
 
 `reference/styles-derivation.md` is **superseded** as of v2.8.0 — the legacy `house-style.json` codepath is gone. See the banner at the top of that file.
 
-**Subagent dispatch:** 4b, 4c are independent — fire 2 parallel subagents in one message when available. 4d runs inline (it's small) after 1.5 confirms the overlay and tokens are present.
+**Subagent dispatch:** 4b, 4c are independent — fire 2 parallel subagents in one message when available. 4d runs inline (it's small) after Phase 1a confirms the overlay and tokens are present.
 
 **Validation after 4d:**
 - `design-overlay.css` exists and is non-empty (or contains only a header comment if DESIGN.md had no tokens)

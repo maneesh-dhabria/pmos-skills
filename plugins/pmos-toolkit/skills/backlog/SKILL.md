@@ -1,6 +1,6 @@
 ---
 name: backlog
-description: Maintain a lightweight, AI-readable backlog of features, bugs, tech-debt, and ideas inside the repo. Zero-friction quick-capture (`/backlog add ...`) plus structured tracking with status, priority, and acceptance criteria. Integrates with the requirements -> spec -> plan -> execute -> verify pipeline via explicit `--backlog <id>` linkage. Use when the user says "add to backlog", "capture this idea", "track this bug", "show the backlog", "promote a backlog item", or "what's in the backlog".
+description: Maintain a lightweight, AI-readable backlog of features, bugs, tech-debt, ideas, and other work items inside the repo. Zero-friction quick-capture (`/backlog add ...`) plus structured tracking with status, priority, and acceptance criteria. Integrates with the requirements -> spec -> plan -> execute -> verify pipeline via explicit `--backlog <id>` linkage. Use when the user says "add to backlog", "capture this idea", "track this bug", "show the backlog", "promote a backlog item", or "what's in the backlog".
 user-invocable: true
 argument-hint: "[<text> | add <text> | list [filters] | show <id> | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | link <id> <doc> | archive | rebuild-index] [--non-interactive | --interactive]"
 ---
@@ -147,6 +147,7 @@ Content (frontmatter only, no body):
 
 ```yaml
 ---
+schema_version: 1
 id: {id}
 title: {original text, unchanged}
 type: {inferred type}
@@ -188,9 +189,9 @@ Recognized flags (all optional, all combinable; AND semantics):
 
 | Flag | Effect |
 |---|---|
-| `--type <feature\|bug\|tech-debt\|idea>` | Filter by type |
-| `--status <inbox\|ready\|spec'd\|planned\|in-progress\|done\|wontfix>` | Filter by status |
-| `--priority <must\|should\|could\|maybe>` | Filter by priority |
+| `--type <type>` | Filter by type (enum values per `schema.md`) |
+| `--status <status>` | Filter by status (enum values per `schema.md`) |
+| `--priority <priority>` | Filter by priority (enum values per `schema.md`) |
 | `--label <name>` | Item must include this label |
 | `--repo <name>` | (Workstream mode only) restrict to one linked repo |
 | `--workstream` | Aggregate across all repos linked to the active workstream |
@@ -203,7 +204,7 @@ Recognized flags (all optional, all combinable; AND semantics):
 
 ### Step 2: Validate flag values against enums
 
-Reject unknown flag values with the allowed list. Example: `Unknown status 'open'. Allowed: inbox, ready, spec'd, planned, in-progress, done, wontfix.`
+Validate against the enums in `schema.md` (the single source for enum values). Reject unknown flag values with the allowed list. Example: `Unknown status 'open'. Allowed: inbox, ready, spec'd, planned, in-progress, done, wontfix.`
 
 ### Step 3: Apply filters and sort
 
@@ -294,9 +295,9 @@ Disallowed (skill-managed only): `id`, `created`, `updated`. Reject with: `Field
 
 | Field | Validation |
 |---|---|
-| `type` | Must be in `feature, bug, tech-debt, idea` |
-| `status` | Must be in `inbox, ready, spec'd, planned, in-progress, done, wontfix` |
-| `priority` | Must be in `must, should, could, maybe` |
+| `type` | Must be in the `type` enum in `schema.md` |
+| `status` | Must be in the `status` enum in `schema.md` |
+| `priority` | Must be in the `priority` enum in `schema.md` |
 | `score` | Integer, 1 <= n <= 1000, or empty (to clear) |
 | `labels` | Comma-separated; written as a YAML list |
 | `dependencies` | Comma-separated ids; validate each exists in `items/` (warn on missing, but proceed) |

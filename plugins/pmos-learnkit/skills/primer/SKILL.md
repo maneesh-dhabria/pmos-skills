@@ -2,7 +2,7 @@
 name: primer
 description: Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted, and self-evaluated into a single teachable artifact. Use to ramp-up before a meeting / a scope / a doc review, when the user needs to learn a topic quickly with citations they can trust. Triggers when the user says "write me a primer on X", "ramp me up on Y", "generate a primer", "I need to learn about Z before a meeting", "/primer", "create a teachable artifact on this topic", "deep primer on X", or "brief primer on Y". Shapes depth, jargon, and examples to the chosen audience (senior-pms vs all-pms) and supports explicit sizing via --depth brief|standard|deep (the default depth tier is persisted per-project after the first run). Prefers primary sources over secondary commentary.
 user-invocable: true
-argument-hint: <topic> [--audience <senior-pms|all-pms>] [--depth <brief|standard|deep>] [--autonomous] [--format <html|md|both>] [--non-interactive] [--interactive]
+argument-hint: <topic> [--audience <senior-pms|all-pms>] [--depth <brief|standard|deep>] [--autonomous] [--non-interactive] [--interactive]
 ---
 
 # Primer
@@ -28,7 +28,7 @@ This skill has 5 sequential phases (Intake, Research, Outline, Draft, Eval + Wri
 
 Inline `_shared/pipeline-setup.md` to: read `.pmos/settings.yaml` (REQUIRE `version` and `docs_path`; default `output_format` to `html` when absent), resolve `{docs_path}`, and resolve the per-run artifact folder `{primer_dir} = {docs_path}/primer/` (mkdir -p if missing).
 
-Resolve `output_format` with precedence `cli --format > settings.output_format > default "html"`. On Phase 0 entry, print to stderr: `output_format: <v> (source: <cli|settings|default>)`.
+Resolve `output_format` with precedence `settings.output_format > default "html"`. On Phase 0 entry, print to stderr: `output_format: <v> (source: <settings|default>)`. (html is the only emitted format — MD export retired, FR-12.1.)
 
 Read `~/.pmos/learnings.md` if present; note any entries under `## /primer` heading and factor them into your approach. **The skill body wins on conflict** — surface any conflict between a learning and the skill body to the user before applying the learning.
 
@@ -128,7 +128,7 @@ Read `.pmos/primer.lastrun.yaml` if present. The file shape:
 ```yaml
 last_topic: "<string>"
 last_audience: senior-pms | all-pms
-last_output_format: html | md | both
+last_output_format: html   # html is the only emitted format (MD export retired, FR-12.1)
 last_depth: brief | standard | deep
 last_artifact_path: "<path>"
 last_elapsed_seconds: <int>
@@ -139,7 +139,6 @@ If the file is present AND `--autonomous` is NOT set, surface a single prompt se
 - `AskUserQuestion` — `"Use last-run defaults? audience=<v>, output_format=<v>, depth=<v>"` options:
   - `Use last values (Recommended)` — apply lastrun `audience` + `output_format` + `depth` for this run.
   - `Edit audience` — re-prompt later in Phase 1 for audience (senior-pms / all-pms).
-  - `Edit output_format` — re-prompt later in Phase 1 for output_format (html / md / both).
   - `Edit depth` — re-prompt later in Phase 1 for depth (brief / standard / deep).
 
 This prompt carries a `(Recommended)` option, so it auto-picks under `--non-interactive` and does not need a `defer-only` tag.
@@ -163,7 +162,7 @@ Under `--autonomous` with no prior signal: apply `depth=standard` silently; do N
 
 ## Phase 1: Intake
 
-Parse the argument string. Recognised tokens: positional `<topic>` (1st arg, may be multi-word — strip surrounding quotes); flags `--audience <v>`, `--depth <v>`, `--format <v>`, `--autonomous`, `--non-interactive`, `--interactive`. Any unknown flag → emit a platform-aware error listing the valid set (per `_shared/platform-strings.md`) and exit 64.
+Parse the argument string. Recognised tokens: positional `<topic>` (1st arg, may be multi-word — strip surrounding quotes); flags `--audience <v>`, `--depth <v>`, `--autonomous`, `--non-interactive`, `--interactive`. Any unknown flag → emit a platform-aware error listing the valid set (per `_shared/platform-strings.md`) and exit 64.
 
 **Unknown depth value (S-FR-8.4).** If `--depth` is given but is not one of `{brief, standard, deep}` (e.g., `--depth quick`), reject with platform-aware error: `unknown depth '<v>'. Valid: brief, standard, deep.` Exit 64.
 

@@ -6,12 +6,14 @@
 #   (a) FR-UP-2 — empty/no-conv-commit range emits warn + zero sections.
 #   (b) FR-UP-3 — patch-fail guard documented in SKILL.md §7 step 5 with
 #       atomic-write + revert + patch_dropped JSONL contract.
-#   (c) FR-UP-4 — no-op when opt-in absent: SKILL.md §8 dual-flag table +
-#       commit-classifier short-circuit on warn.
+#
+# (The former case (c) asserted the FR-UP-4 dual-gate prose; that gate was
+# removed — manual --update is gated only by its per-section prompts and the
+# FR-UP-3 guard — so the case was deleted with it.)
 #
 # /readme itself is un-mockable from bash; we substitute SKILL.md contract
-# greps (FR-UP-3/4) for the runtime patch-drop and dual-gate paths and run
-# the commit-classifier substrate directly for FR-UP-2.
+# greps (FR-UP-3) for the runtime patch-drop path and run the
+# commit-classifier substrate directly for FR-UP-2.
 #
 # Bash 3.2-safe.
 set -euo pipefail
@@ -71,21 +73,5 @@ if ! grep -q 'git checkout -- .*readme-path' "$SKILL_MD"; then
   exit 1
 fi
 
-# --- (c) FR-UP-4 — dual-flag no-op when opt-in absent ------------------------
-# SKILL.md §8 must document both flags and the no-op + warn behavior.
-if ! grep -q 'phase_7_6_hook_enabled' "$SKILL_MD"; then
-  echo "FAIL: SKILL.md missing FR-UP-4 phase_7_6_hook_enabled flag name"
-  exit 1
-fi
-if ! grep -q 'readme_update_hook' "$SKILL_MD"; then
-  echo "FAIL: SKILL.md missing FR-UP-4 readme_update_hook flag name"
-  exit 1
-fi
-# Dual-flag table: both-true -> proceed, otherwise no-op.
-if ! grep -q '/readme --update skipped: opt-in not set' "$SKILL_MD"; then
-  echo "FAIL: SKILL.md missing FR-UP-4 no-op warn message"
-  exit 1
-fi
-
-echo "PASS: update_hook_dry_run — FR-UP-2 warn+empty-sections, FR-UP-3 patch-drop contract, FR-UP-4 dual-flag no-op contract all hold"
+echo "PASS: update_hook_dry_run — FR-UP-2 warn+empty-sections and FR-UP-3 patch-drop contract hold"
 exit 0

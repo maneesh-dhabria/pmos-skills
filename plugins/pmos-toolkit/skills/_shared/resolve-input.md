@@ -43,7 +43,7 @@ For non-numbered artifacts, callers pass `phase=<key>` where `<key>` is one of:
 
 | `phase` key | Path pattern | Notes |
 |---|---|---|
-| `msf-findings` | `{feature_folder}/msf-findings.{html,md}` | One per feature folder. |
+| `msf-req-findings` | `{feature_folder}/msf-req-findings.{html,md}` | One per feature folder. |
 | `grills` | `{feature_folder}/grills/<YYYY-MM-DD>_<target>.{html,md}` | Caller passes `target=<artifact-stem>`; latest date wins on multi-match. |
 | `simulate-spec` | `{feature_folder}/simulate-spec/<YYYY-MM-DD>-trace.{html,md}` | Latest date wins on multi-match. |
 | `verify` | `{feature_folder}/verify/<YYYY-MM-DD>-<scope>/review.{html,md}` | `<scope>` is `phase-<N>` or `final`; caller specifies. |

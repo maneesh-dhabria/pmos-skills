@@ -70,8 +70,8 @@ defaults:
 | `merge_style: rebase-then-ff` | 3 | When shared-branch guard PASSes, Phase 3 prompt suppressed; rebase-then-ff executed. **Guard-FAIL re-prompts** with safer Recommended (destructive escape hatch). |
 | `merge_style: merge-ff-or-noff` | 3 | Merge into main (ff if possible, --no-ff otherwise). |
 | `merge_style: branch-only` | 3 | Stay on feature branch; push only this branch. |
-| `worktree_disposition: remove` | 16.5 | Phase 16a prompt suppressed; worktree removed after push-tag succeeds. |
-| `worktree_disposition: keep` | 16.5 | Worktree retained; user manually removes later. |
+| `worktree_disposition: remove` | 16a | Phase 16a prompt suppressed; worktree removed after push-tag succeeds. |
+| `worktree_disposition: keep` | 16a | Worktree retained; user manually removes later. |
 | `deploy_path` | 5 | Phase 5 prompt suppressed if detected signals are unchanged from lastrun (`detected_signals.deploy` matches). If signals changed, Phase 5 re-prompts — environment has shifted. |
 | `version_bump` | 9 step 5 | Phase 9 step 5 prompt suppressed. **Stale-bump recovery (step 4a) still prompts** — destructive. |
 | `changelog_disposition: accept` | 8 | Phase 8 "Use this entry?" prompt suppressed; entry committed as drafted. |

@@ -8,7 +8,6 @@ How `/wireframes` (and `/verify`'s drift check) finds, loads, and merges a DESIG
 
 - Current working directory.
 - Workstream context (if loaded), specifically the `## Wireframes & Design System` section.
-- Optional `--app <path>` override (not yet exposed; reserved).
 
 ---
 

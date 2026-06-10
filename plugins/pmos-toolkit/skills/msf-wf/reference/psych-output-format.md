@@ -1,10 +1,10 @@
 # PSYCH Output Format
 
-The reference for the PSYCH section embedded in `msf-findings.md` produced by `/msf-wf` Phase 7 (Section B). Output is two tables per journey plus an ASCII sparkline. (Pre-2.22 the PSYCH artifact was a separate `psych-findings.md` produced by `/wireframes` Phase 6; the artifact was unified when PSYCH moved into `/msf-wf`.)
+The reference for the PSYCH section embedded in `msf-wf-findings.{html,md}` produced by `/msf-wf` Phase 7 (Section B). Output is two tables per journey plus an ASCII sparkline. (Pre-2.22 the PSYCH artifact was a separate `psych-findings.md` produced by `/wireframes` Phase 6; the artifact was unified when PSYCH moved into `/msf-wf`.)
 
 ## File header
 
-Every `psych-findings.md` starts with:
+The PSYCH section of every `msf-wf-findings` doc starts with:
 
 ```markdown
 # PSYCH Walkthrough — <feature slug>
@@ -101,7 +101,7 @@ ASCII sparkline uses the eight Unicode block characters `▁▂▃▄▅▆▇�
 
 ## Applied changes section
 
-After dispositions are applied (Phase 6g), append at the end of the file:
+After dispositions are applied (SKILL.md Phase 8: Apply Edits), append at the end of the file:
 
 ```markdown
 ## Applied changes

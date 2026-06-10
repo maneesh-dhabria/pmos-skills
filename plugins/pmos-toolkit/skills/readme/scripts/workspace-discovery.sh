@@ -11,10 +11,10 @@
 # nx.json and turbo.json are descriptors only — never enumeration sources;
 # they appear as secondaries when present alongside a real source.
 #
-# T8 scope: detects the `primary` field (the T8 deliverable) and lists
-# `secondaries`. `packages: []` is intentionally a stub — T9 will fill in
-# glob resolution. `repo_type` is `monorepo-root` when any workspace
-# manifest is present, else `unknown` (T10 will refine).
+# Detects the `primary` manifest, lists `secondaries`, and enumerates
+# `packages` for the primary manifest via glob resolution (FR-WS-2).
+# `repo_type` is `monorepo-root` when any workspace manifest is present,
+# else `unknown`.
 #
 # Bash 3.2 portable (macOS default): no associative arrays, no mapfile,
 # no `${var^^}`, no `read -d`, no `[[ -v ]]`.

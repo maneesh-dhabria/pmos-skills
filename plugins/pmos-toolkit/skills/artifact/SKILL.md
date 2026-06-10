@@ -2,7 +2,7 @@
 name: artifact
 description: Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) from existing context plus targeted gap-filling questions. Each artifact passes through a reviewer-subagent + auto-apply loop (max 2 iters) governed by per-section eval criteria. Ships with 4 built-in templates and 4 writing-style presets (Concise, Tabular, Narrative, Executive); users can author their own at ~/.pmos/artifacts/. Use when the user says "draft a PRD", "create an experiment design", "write a design doc", "generate a discovery doc", "/artifact", or names an artifact type to produce.
 user-invocable: true
-argument-hint: "[ | <type> [--tier lite|full] [--preset <slug>] | create <type> [...] | refine <path> | update <path> | template add|list|remove [<slug>] | preset add|list|remove [<slug>]] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "[ | <type> [--tier lite|full] [--preset <slug>] | create <type> [...] | refine <path> | update <path> | template add|list|remove [<slug>] | preset add|list|remove [<slug>]] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # /artifact
@@ -36,7 +36,7 @@ This skill has multiple phases per flow. For the Create flow, create one task pe
 
 ### Phase 0a: output_format resolution (FR-12)
 
-5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (per runbook edge case row 4 — template-store carve-out).
+5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — `both` is retired per FR-12.1 and treated as `html`). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (per runbook edge case row 4 — template-store carve-out).
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -283,7 +283,7 @@ After loop 2 (or loop 1 if no high remain):
 
 ## Phase 4 — Save & Confirm
 
-1. The artifact file at `{feature_folder}/{slug}.html` (plus `{slug}.sections.json` companion, plus `{slug}.md` sidecar when `output_format=both`) already exists from Phase 2.7 and was edited in Phase 3.
+1. The artifact file at `{feature_folder}/{slug}.html` (plus `{slug}.sections.json` companion) already exists from Phase 2.7 and was edited in Phase 3.
 2. Show the user a one-paragraph summary:
    - Artifact type + tier
    - Preset used
@@ -322,7 +322,7 @@ Re-run the eval-loop judge on an existing artifact. **Internal QA only — does 
 1. Read the artifact at `<path>`. Parse its frontmatter to determine `type`. If frontmatter is missing or `type` cannot be inferred, ask the user via `AskUserQuestion`.
 2. Resolve the template (same 2.1 logic) and load `eval.md`.
 <!-- defer-only: destructive -->
-3. **Detect primary extension (FR-7):** `EXT=$(basename "$path" | awk -F. '{print $NF}')` — `html` or `md`. Ask the user via `AskUserQuestion`: "Overwrite `<path>` or write to `<path>.refined.<EXT>`?" Default = `.refined.<EXT>` (safer; mirrors primary format). The refined sibling carries the same shape contract as the primary — `prd.refined.html` gets its own `prd.refined.sections.json` companion and (when `output_format=both`) a `prd.refined.md` sidecar; `prd.refined.md` is the legacy path.
+3. **Detect primary extension (FR-7):** `EXT=$(basename "$path" | awk -F. '{print $NF}')` — `html` or `md`. Ask the user via `AskUserQuestion`: "Overwrite `<path>` or write to `<path>.refined.<EXT>`?" Default = `.refined.<EXT>` (safer; mirrors primary format). The refined sibling carries the same shape contract as the primary — `prd.refined.html` gets its own `prd.refined.sections.json` companion; `prd.refined.md` is the legacy path.
 4. Run Phase 3 refinement loop against the artifact (or its `.refined.<EXT>` copy).
 5. Run Phase 4 save & confirm — point at the chosen output path.
 6. Skip Phase 5 (no new workstream signals from a re-run).
@@ -550,7 +550,7 @@ Symmetric to `template remove`. Reject if built-in.
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/artifact` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in an artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/artifact` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in an artifact's inline `pmos-comments` JSON block (`<script id="pmos-comments" type="application/json">`). The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

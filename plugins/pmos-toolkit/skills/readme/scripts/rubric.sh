@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # rubric.sh <readme-path> [--variant <type>] [--auto-apply] | --selftest
-# Runs 15 binary checks defined in reference/rubric.yaml against a README.
+# Runs the binary checks defined in reference/rubric.yaml against a README.
 # Exit 0 (all active checks pass), 1 (any fail / selftest agreement <85%), 2 (script error).
 #
 # Bash 3.2-safe (macOS default). No associative arrays, no ${var^^}, no `read -d ''`.

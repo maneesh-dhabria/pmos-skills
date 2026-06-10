@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// T10 — /comments CLI entry. argv parser → resolver.js
+// /comments CLI entry. argv parser → resolver.js
 //
 // Usage:
 //   node cli.js resolve <path> [--confirm-each|--batch|--auto|--non-interactive]
 //
-// Only --confirm-each (default) is wired in T10. Other modes exit 64
-// ("usage error, not implemented yet") with a pointer to T13/T14.
+// All four modes route to resolver.js, which validates the mode itself
+// (VALID_MODES) and owns each mode's prompting/defer strategy.
 
 "use strict";
 
@@ -61,12 +61,6 @@ function makeReadlineAsker() {
   const parsed = parseArgs(process.argv);
   if (parsed.error) {
     usage();
-    process.exit(64);
-  }
-  if (parsed.mode !== "confirm-each") {
-    process.stderr.write(
-      "mode=" + parsed.mode + " — not implemented in T10. See T13/T14.\n"
-    );
     process.exit(64);
   }
   const ask = makeReadlineAsker();

@@ -32,7 +32,7 @@ assert() {
 
 echo "[skill.md] Phase 4b structural checks"
 assert "SKILL.md has '## Phase 4b: Folded /architecture --since' heading" \
-  "grep -qE '^## Phase 4\.7: Folded /architecture --since' '$SKILL_MD'"
+  "grep -qE '^## Phase 4b: Folded /architecture --since' '$SKILL_MD'"
 assert "SKILL.md documents --skip-folded-arch flag" \
   "grep -qE -- '--skip-folded-arch' '$SKILL_MD'"
 assert "SKILL.md mentions folded_phase_failures in the Phase 4b body" \

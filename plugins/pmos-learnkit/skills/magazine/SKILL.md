@@ -2,7 +2,7 @@
 name: magazine
 description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time: a resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable library, offline from file://. Ships a verified PM feed catalog + starter bundles, and an optional local background worker that keeps podcasts transcribed so issues build fast. Use when the user wants to catch up on their feed backlog, wants recommended feeds, or wants podcasts pre-transcribed in the background. Triggers when the user says "digest my newsletters", "what's new in my feeds", "summarize my podcasts", "/magazine", "add a feed", "starter feeds", "add a feed bundle", "keep my podcasts transcribed", "/magazine watch", or "curate a feed catalog".
 user-invocable: true
-argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list | watch <--install|--status|--run-now|--uninstall>] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--interval H] [--max K] [--ac-only] [--backfill DAYS] [--format <html|md|both>] [--non-interactive] [--interactive]"
+argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list | watch <--install|--status|--run-now|--uninstall>] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--interval H] [--max K] [--ac-only] [--backfill DAYS] [--non-interactive] [--interactive]"
 ---
 
 # Magazine
@@ -67,9 +67,9 @@ default `output_format` to `html` when absent) and resolve `{docs_path}`. The is
 output dir is `{docs_path}/magazine/` (`mkdir -p` if missing). All feed config/state
 lives under `~/.pmos/magazine/` (create on first run).
 
-Resolve `output_format` with precedence `cli --format > settings.output_format >
-default "html"`. On Phase 0 entry, print to stderr `output_format: <v> (source:
-<cli|settings|default>)`. v1 emits HTML only; `--format both` is reserved.
+Resolve `output_format` with precedence `settings.output_format > default "html"`.
+On Phase 0 entry, print to stderr `output_format: <v> (source: <settings|default>)`.
+v1 emits HTML only.
 
 Read `~/.pmos/learnings.md` if present; note any entries under the `## /magazine`
 heading and factor them into your approach. **The skill body wins on conflict** —

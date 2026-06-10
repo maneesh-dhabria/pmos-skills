@@ -274,6 +274,7 @@ Skip this phase entirely if the plan has no `## Phase N` headings (flat plan). O
      - The literal escape token `[continue_through_phases]` anywhere in a user message.
      - Plain-language patterns: "continue without compacting", "no halts", "skip compacts", "skip the compact", "don't halt at phase boundaries".
 
+     <!-- defer-only: ambiguous -->
      The flag is per-session (it resets when the conversation ends; it is NOT persisted to settings or session-state files). When the directive's interpretation is ambiguous (descriptive prose vs. imperative directive), the executing agent confirms via a single `AskUserQuestion` before flipping the flag rather than silently assuming.
 
    When halt is suppressed, log a one-line summary instead: `Phase N verified green; --no-halt set (or session-sticky continuation directive honored), continuing to Phase N+1.`

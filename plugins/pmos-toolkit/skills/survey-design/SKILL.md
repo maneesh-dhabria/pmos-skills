@@ -2,7 +2,7 @@
 name: survey-design
 description: Design a methodologically sound survey from a rough intent, or refine an existing one — generates a sectioned survey.json, runs a reviewer-critique pass and a simulated-respondent friction walk, renders a fillable preview, and emits import files for Typeform / SurveyMonkey / Google Forms. Triggers on "design a survey", "create a survey", "build a questionnaire", "review my survey", "refine this survey", "make a survey ready to field", "/survey-design".
 user-invocable: true
-argument-hint: "<survey intent | path to an existing survey> [--export <platform[,platform]>] [--skip-export] [--format html|md|both] [--non-interactive | --interactive]"
+argument-hint: "<survey intent | path to an existing survey> [--export <platform[,platform]>] [--skip-export] [--non-interactive | --interactive]"
 ---
 
 # Survey Design
@@ -39,8 +39,8 @@ The skill loads these from its own `reference/` directory only when the relevant
 ## Phase 0 — Setup
 
 1. **Read `.pmos/settings.yaml`.** Take `docs_path` from it. If the file or the key is absent, default `docs_path = docs/pmos/` and print one warning to stderr (`survey-design: no .pmos/settings.yaml; using docs_path=docs/pmos/`). **Do NOT run `_shared/pipeline-setup.md` Section A first-run setup** — this skill is not a pipeline stage and must work in any repo (E13, FR-07).
-2. **Parse flags** from the argument string: `--export <platform[,platform]>` (pre-select export targets), `--skip-export` (skip Phase 8), `--format <html|md|both>` (only affects any feature-folder doc the skill writes — it normally writes none; the runtime survey folder is always HTML + JSON), `--non-interactive` / `--interactive` (the mode contract below).
-3. **`output_format` note.** Resolve `output_format` from `.pmos/settings.yaml :: output_format` (default `html`), `--format` overrides (last flag wins); print to stderr once: `output_format: <value> (source: <cli|settings|default>)`. It governs only feature-folder docs (none here); the survey folder's artifacts are always `survey.json` + `survey.html` (substrate-compliant) + `preview.html` (standalone) + the eval/simulation markdown.
+2. **Parse flags** from the argument string: `--export <platform[,platform]>` (pre-select export targets), `--skip-export` (skip Phase 8), `--non-interactive` / `--interactive` (the mode contract below).
+3. **`output_format` note.** Resolve `output_format` from `.pmos/settings.yaml :: output_format` (default `html`); print to stderr once: `output_format: <value> (source: <settings|default>)`. It governs only feature-folder docs (none here); the survey folder's artifacts are always `survey.json` + `survey.html` (substrate-compliant) + `preview.html` (standalone) + the eval/simulation markdown.
 4. **Resolve the run folder.** Derive `<slug>` (lowercase-hyphenated, ASCII) from the survey title or intent; the run folder is `{docs_path}/survey-design/{YYYY-MM-DD}_<slug>/`. If that folder already exists, append `-2`, `-3`, … until unique — **never overwrite** an existing survey folder (E4, FR-24).
 5. **Phase tracking.** If `TaskCreate`/`TodoWrite` is available, create one task per phase (0–9); otherwise announce each phase verbally (FR-08).
 6. **Learnings.** Read `~/.pmos/learnings.md` if present; note any entries under `## /survey-design` and factor them in (skill body wins on conflict; surface conflicts before applying).
@@ -281,7 +281,7 @@ recommended_edits: [ ]     # the flat list of {id, action, proposed_fix} the gen
 
 **Open with the loop summary.** State plainly: "the refinement loop ran N iteration(s)", summarize each iteration from the `## Refinement loop changelog`, and say whether it exited on the categorical condition or hit the 2-iteration cap.
 
-Then present the remaining findings as batched interactive questions (per the `_shared/interactive-prompts.md` findings/dispositions protocol), in this order:
+Then present the remaining findings as batched interactive questions (findings/dispositions protocol: severity-ordered batches of ≤4 questions per call, one finding per question, each offering `Fix as proposed (Recommended)` / `Modify` / `Skip` / `Defer`), in this order:
 
 1. **Product-fit FAILs first** — one `AskUserQuestion` per residual product-fit FAIL (the items the loop couldn't/didn't auto-resolve, plus any author-supplied question the loop only rewrote):
    - `question`: `Kill or rewrite Q<id>? — <which checks FAILed + the predicted answer / collapsing theme>`

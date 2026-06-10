@@ -10,7 +10,7 @@ This is a discipline document, not an executable. Skills implement the steps inl
 
 - `feature_folder` — absolute path to `{docs_path}/features/<YYYY-MM-DD>_<slug>/`.
 - Glob results:
-  - `{feature_folder}/*.html` — top-level HTML artifacts (`00_pipeline.html`, `01_requirements.html`, `02_spec.html`, `03_plan.html`, `msf-findings.html`, `00_open_questions_index.html`).
+  - `{feature_folder}/*.html` — top-level HTML artifacts (`00_pipeline.html`, `01_requirements.html`, `02_spec.html`, `03_plan.html`, `msf-req-findings.html`, `00_open_questions_index.html`).
   - `{feature_folder}/*.md` — top-level legacy MD artifacts (FR-22 legacy entries; G11). Excludes any `*.md` that has a sibling `*.html` (sidecars from `output_format: both` are NOT legacy entries).
   - `{feature_folder}/{wireframes,prototype,grills,simulate-spec,verify}/index.html` — externally-indexed nested directories (one entry each, `external_index: true`).
   - `{feature_folder}/{grills,simulate-spec}/<YYYY-MM-DD>*.{html,md}` — flat date-stamped artifacts (no nested index.html); each gets its own entry.
@@ -45,7 +45,7 @@ Sort `artifacts[]` by `(phase_rank, filename_ascending)`. Phase ranks (lower = e
 | 1 | `01 Requirements` | `01_requirements.html` |
 | 2 | `02 Spec` | `02_spec.html` |
 | 3 | `03 Plan` | `03_plan.html` |
-| 4 | `MSF Findings` | `msf-findings.html` |
+| 4 | `MSF Findings` | `msf-req-findings.html` |
 | 5 | `Wireframes` | `wireframes/index.html` (external) |
 | 6 | `Prototype` | `prototype/index.html` (external) |
 | 7 | `Grills` | `grills/<date>_<target>.html` |

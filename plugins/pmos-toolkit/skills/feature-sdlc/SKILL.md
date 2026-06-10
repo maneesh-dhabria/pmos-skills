@@ -133,7 +133,7 @@ Workstream IS loaded — this is a feature-level orchestrator.
 
 ### Phase 0a: output_format resolution (FR-12)
 
-6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Pass the resolved value through to every dispatched child skill via the `[mode: <current-mode>]\n` first-line convention plus an additional `[output_format: <resolved>]\n` line so children inherit without re-reading settings.
+6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both` — `both` is accepted but treated as `html`; the mixed-format MD sidecar is retired per FR-12.1, see Phase 1 step 2). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Pass the resolved value through to every dispatched child skill via the `[mode: <current-mode>]\n` first-line convention plus an additional `[output_format: <resolved>]\n` line so children inherit without re-reading settings.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -245,7 +245,7 @@ Before `git worktree add` (Step 3), check whether the local base branch is behin
 
 3. **If `behind == 0`** → log `base-drift: <base> up-to-date with <remote>/<base>; proceeding` and continue to Step 3 unchanged.
 
-4. **If `behind > 0`** → surface a single `AskUserQuestion` BEFORE creating the worktree:
+4. **If `behind > 0`** → surface a single `AskUserQuestion` BEFORE creating the worktree (default pick: `Pull latest then branch (Recommended)`):
 
    ```
    question: "Local <base> is <N> commits behind <remote>/<base>. Pull latest before branching?"
@@ -253,7 +253,7 @@ Before `git worktree add` (Step 3), check whether the local base branch is behin
      - Pull latest then branch (Recommended)
          description: git pull --ff-only <remote> <base>, then create the worktree off the updated base.
      - Branch from current local <base> (record drift)
-         description: Continue off the stale base; state.yaml.base_drift records the gap so /complete-dev can surface it at merge time.
+         description: Continue off the stale base; state.yaml.base_drift records the gap for the run's audit trail.
      - Abort
          description: Exit 64; resolve manually.
    ```
@@ -323,12 +323,12 @@ When state.yaml is present:
 
    **Observability (NFR-06):** before the comparison, log to chat the line `drift check: realpath(pwd)=<a> realpath(state.worktree_path)=<b> result=<pass|fail>` so users can debug unexpected refusals.
 
-   **Origin-moved check (FR-R06).** After the worktree-path drift check passes, re-run the Phase 0a Step 2.5 fetch+behind logic for the recorded base branch — origin may have advanced since the worktree was created. Resolve `<base>` and `<remote>` from `state.base` and `state.remote` if recorded (Phase 1 writes them); otherwise re-derive via `git rev-parse --abbrev-ref <current-branch>@{upstream}` of the *parent* branch the worktree forked from (`state.base` is authoritative when present). Compute `behind_now = git rev-list --count <base>..<remote>/<base>`. If `behind_now > (state.base_drift.behind || 0)`, log `origin-moved-since-worktree-created: behind_now=<N>, behind_at_create=<M>` and update `state.base_drift = { behind: <N>, fetched_at: now, remote, base, remote_sha, local_sha }` (or insert if absent). This is observability-only on resume — do NOT prompt mid-resume; the user already chose to continue this branch. `/complete-dev` reads `state.base_drift` and surfaces the gap at merge time. On `git fetch` failure: log and proceed (mirrors Phase 0a Step 2.5 behaviour).
+   **Origin-moved check (FR-R06).** After the worktree-path drift check passes, re-run the Phase 0a Step 2.5 fetch+behind logic for the recorded base branch — origin may have advanced since the worktree was created. Resolve `<base>` and `<remote>` from `state.base` and `state.remote` if recorded (Phase 1 writes them); otherwise re-derive via `git rev-parse --abbrev-ref <current-branch>@{upstream}` of the *parent* branch the worktree forked from (`state.base` is authoritative when present). Compute `behind_now = git rev-list --count <base>..<remote>/<base>`. If `behind_now > (state.base_drift.behind || 0)`, log `origin-moved-since-worktree-created: behind_now=<N>, behind_at_create=<M>` and update `state.base_drift = { behind: <N>, fetched_at: now, remote, base, remote_sha, local_sha }` (or insert if absent). This is observability-only on resume — do NOT prompt mid-resume; the user already chose to continue this branch. On `git fetch` failure: log and proceed (mirrors Phase 0a Step 2.5 behaviour).
 
-2. **Schema-version check (FR-R04, FR-R05, FR-13, see `reference/state-schema.md`):**
-   - `state.schema_version > 4` → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`. Exit 64.
-   - `state.schema_version < 4` AND drift check passed → run the v1→v2→v3→v4 migration chain in order (each step additive/idempotent; pre-2.34.0 files still elide the `msf-req`/`simulate-spec` phase ids before the v4 step — see "Auto-migration of pre-2.34.0 state files" below). The v3→v4 step sets `schema_version: 4` and `pipeline_mode: feature` if absent (D16) and emits the chat log line `migration: state.schema v3 → v4 (added: pipeline_mode=feature; cohort-marker bump)`. Apply the atomic temp-then-rename write protocol; on `rename(2)` failure surface the failure dialog (NFR-08).
-   - `state.schema_version == 4` → no migration.
+2. **Schema-version check (FR-R04, FR-R05, FR-13):** the current schema version, the abort-on-newer rule, and the full migration chain are defined in `reference/state-schema.md ## schema_version` — that file is the single source of truth; do not hardcode version numbers here.
+   - `state.schema_version` newer than the current version → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`. Exit 64.
+   - `state.schema_version` older than the current version AND drift check passed → run the migration chain in version order per `state-schema.md` (each step additive/idempotent and emits its own chat log line; pre-2.34.0 files still elide the `msf-req`/`simulate-spec` phase ids before the v4 step — see "Auto-migration of pre-2.34.0 state files" below). Apply the atomic temp-then-rename write protocol; on `rename(2)` failure surface the failure dialog (NFR-08).
+   - Same version → no migration.
 3. **Validate recorded artifact paths.** For every `phases[].artifact_path` that's non-null, check that the file exists. On any missing required artifact, print the list to chat and ask the user how to proceed.
 <!-- defer-only: ambiguous -->
    `AskUserQuestion` — **Continue anyway (treat as orphaned)** / **Abort**.
@@ -375,7 +375,7 @@ When `--resume` reads a pre-2.34.0 `state.yaml` carrying these phase entries, tr
 <!-- defer-only: ambiguous -->
    `AskUserQuestion` — **Filter to blockers + friction only (Recommended)** / **Review all N**. Platform fallback (no interactive tool): emit a numbered findings table with a `disposition` column for the user to fill in.
 
-5. **Persist the triage doc (FR-25).** Write `{feature_folder}/0c_feedback_triage.html` via the HTML substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/` — companion `0c_feedback_triage.sections.json`, asset prefix `assets/`, `?v=<plugin-version>` cache-bust, kebab-case `<h2>`/`<h3>` IDs, index regen — reusing the structure of `reference/triage-doc-template.md`: sections **Findings (parsed)** / **Critique** / **Disposition log** / **Approved changes by skill** / **Per-skill tier**. Record `feedback_source` (resolved input path or `<inline-text>`) and `target_skills: [<name>,…]` on the `feedback-triage` entry in `state.yaml`, with `artifact_path: 0c_feedback_triage.html`. Mixed-format `.md` sidecar when `output_format=both`.
+5. **Persist the triage doc (FR-25).** Write `{feature_folder}/0c_feedback_triage.html` via the HTML substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/` — companion `0c_feedback_triage.sections.json`, asset prefix `assets/`, `?v=<plugin-version>` cache-bust, kebab-case `<h2>`/`<h3>` IDs, index regen — reusing the structure of `reference/triage-doc-template.md`: sections **Findings (parsed)** / **Critique** / **Disposition log** / **Approved changes by skill** / **Per-skill tier**. Record `feedback_source` (resolved input path or `<inline-text>`) and `target_skills: [<name>,…]` on the `feedback-triage` entry in `state.yaml`, with `artifact_path: 0c_feedback_triage.html`.
 
 6. **Hand-off to Phase 2 (FR-27).** The Phase 2 `/requirements` invocation in skill-feedback mode is seeded from `reference/seed-requirements-template.md` — **self-contained, per-skill** (approved findings verbatim + trimmed current-`SKILL.md` excerpts + a one-paragraph proposed direction + out-of-scope + constraints, with `reference/skill-patterns.md` cited as the standing acceptance criteria) — producing **one combined `01_requirements.{html,md}` with a per-skill section**, not one doc per skill.
 
@@ -456,8 +456,8 @@ For each selected gate, present that gate's own option list (reuse Phase 1a/3a/3
 Atomically (per `reference/pipeline-status-template.md` Update protocol):
 
 1. Write `.pmos/feature-sdlc/state.yaml` from the schema in `reference/state-schema.md`:
-   - `schema_version: 4` (FR-10 — adds `pipeline_mode`, the `skill_eval` substructure, and mode-conditional `phases[]`; additive over v3).
-   - `pipeline_mode: <feature | skill-new | skill-feedback>` — the value resolved by the Phase 0 subcommand dispatch (D16). Distinct from `mode ∈ {interactive, non-interactive}`, which is also set here.
+   - `schema_version: <the current version — defined in `reference/state-schema.md ## schema_version`>` (FR-10; that file is the single source — never hardcode the number here).
+   - `pipeline_mode: <feature | skill-new | skill-feedback | prototype>` — the value resolved by the Phase 0 subcommand dispatch (D16). Distinct from `mode ∈ {interactive, non-interactive}`, which is also set here.
    - top-level fields populated from Phases 0/0a (slug, mode, started_at = now, last_updated = now, worktree_path = realpath(<abs-worktree-path>) per `_shared/canonical-path.md` — `null` when `--no-worktree` (FR-S02), branch — `null` when `--no-worktree`, feature_folder).
    - `tier: null` (set after Phase 2 `/requirements` — or, in skill modes, after Phase 0d `/skill-tier-resolve` — unless `--tier` was passed).
    - `current_phase: <first phase of this mode's `phases[]`>` (the next phase to run — `requirements` in feature mode; `skill-tier-resolve` in `skill-new`; `feedback-triage` in `skill-feedback`).
@@ -503,14 +503,14 @@ Skills cannot trigger `/compact` directly — only the user can. The checkpoint 
 After every phase end (pass / fail / skip / pause), do all three atomically — never partial:
 
 1. Update `state.yaml`.
-2. Regenerate `00_pipeline.html` (and `00_pipeline.md` sidecar when `output_format=both`) via the atomic-write + cache-bust + asset-prefix rules from Phase 1 step 2. The index regen on each phase-end picks up any sibling artifacts emitted by the just-completed child phase.
+2. Regenerate `00_pipeline.html` via the atomic-write + cache-bust + asset-prefix rules from Phase 1 step 2. The index regen on each phase-end picks up any sibling artifacts emitted by the just-completed child phase.
 3. Print the in-chat short-form status table.
 
 A failed update of any one of these three breaks the resume contract. Rolling back the partial write is the implementor's responsibility.
 
 ## Phase 1a: /ideate gate (soft; feature + skill-new only)
 
-**Runs only when `pipeline_mode ∈ {feature, skill-new}`** — in `skill-feedback` it is a mode-conditional by-design non-presentation (per Anti-pattern #4 carve-out; triage doc is already structured). Phase id `ideate` is absent from `phases[]` in skill-feedback (see `reference/state-schema.md`). Hardness: **soft**. **Goal:** when the seed is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; if the brief reads as a big idea (Tier-3), auto-chain `/grill --deep`. Brief lands in the feature folder and seeds Phase 2.
+**Runs only when `pipeline_mode ∈ {feature, skill-new}`** — in `skill-feedback` it is a mode-conditional by-design non-presentation (per Anti-pattern #4 carve-out; triage doc is already structured). Phase id `ideate` is absent from `phases[]` in skill-feedback (see `reference/state-schema.md`). Hardness: **soft**. **Goal:** when the seed is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; if the brief reads as a big idea (Tier-3), auto-chain `/grill --depth deep`. Brief lands in the feature folder and seeds Phase 2.
 
 1. **`--no-ideate` short-circuit.** If passed, log `[orchestrator] phase 1.5 ideate: --no-ideate flag; skipping`, set `status = skipped-flag`, proceed. Else: apply `reference/fuzzy-idea-detection.md` to the seed text + `doc_attached` flag → `seed_shape ∈ {fuzzy, formed}` (record on `state.yaml.phases.ideate.seed_shape`). `formed` → log `[orchestrator] phase 1.5 ideate: formed seed detected; skipping`, set `status = skipped-formed`, **do NOT present the gate** (auto-skip-on-formed is allowed because the classifier ran — Anti-pattern #14; distinct from `skipped`, explicit user pick at a presented gate). `fuzzy` → present a single gate:
 
@@ -519,8 +519,8 @@ A failed update of any one of these three breaks the resume contract. Rolling ba
 
 **Short-circuit when Phase 0e confirmed (W3):** after the `--no-ideate` and `formed`-seed auto-skips are evaluated (they take precedence), if the gate would otherwise present (a `fuzzy` seed), apply `soft_gate_defaults.ideate` instead — `run` → run /ideate; `skip` → `status = skipped`, proceed. Log `[orchestrator] phase 1.5 ideate: auto-<run|skip> via Phase 0e`. Skip the prompt above.
 
-2. **Run `/ideate`** (Run-picked). Invoke `/pmos-toolkit:ideate` with the seed; prepend `[mode: <current-mode>]\n` + `[output_format: <resolved>]\n` first-lines (FR-06). Copy the brief into the feature folder as `00d_ideate.html` (+ `.md` sidecar when `output_format=both`) via the atomic-write substrate. Resolve path via `_shared/resolve-input.md` `phase=ideate`; on resolver-miss, fall back to `find {docs_path}/ideate -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path: 00d_ideate.html`. On `/ideate` failure: soft-phase failure dialog (Skip SHOWN — proceed without a brief).
-3. **Tier-3 auto-chain to `/grill --deep`.** Estimate — `ideate_tier_estimate = 3` iff **either** `--tier 3` was explicit **or** the brief satisfies one disjunct: ≥3 user-journey `<section>` blocks (IDs matching `#journey-` / `#scenario-` / `#user-`, case-insensitive) **or** ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test` / `#premortem`). Otherwise estimate ∈ {1, 2} (default 2). If `== 3`: invoke `/pmos-toolkit:grill --deep` against `00d_ideate.html`; capture to `00d-grill_ideate.html`; log `[orchestrator] phase 1.5 ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else: log `[orchestrator] phase 1.5 ideate: tier estimate <N>; grill --deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`); Phase 2 reads `artifact_path` + `grill_deep_artifact_path` and forwards them via `[ideate-brief: …]` / `[ideate-grill: …]` lines (see Phase 2 below). On any unexpected failure: soft-phase failure dialog (Skip SHOWN — the gate is non-blocking).
+2. **Run `/ideate`** (Run-picked). Invoke `/pmos-toolkit:ideate` with the seed; prepend `[mode: <current-mode>]\n` + `[output_format: <resolved>]\n` first-lines (FR-06). Copy the brief into the feature folder as `00d_ideate.html` via the atomic-write substrate. Resolve path via `_shared/resolve-input.md` `phase=ideate`; on resolver-miss, fall back to `find {docs_path}/ideate -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path: 00d_ideate.html`. On `/ideate` failure: soft-phase failure dialog (Skip SHOWN — proceed without a brief).
+3. **Tier-3 auto-chain to `/grill --depth deep`.** Estimate — `ideate_tier_estimate = 3` iff **either** `--tier 3` was explicit **or** the brief satisfies one disjunct: ≥3 user-journey `<section>` blocks (IDs matching `#journey-` / `#scenario-` / `#user-`, case-insensitive) **or** ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test` / `#premortem`). Otherwise estimate ∈ {1, 2} (default 2). If `== 3`: invoke `/pmos-toolkit:grill --depth deep` against `00d_ideate.html`; capture to `00d-grill_ideate.html`; log `[orchestrator] phase 1.5 ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --depth deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else: log `[orchestrator] phase 1.5 ideate: tier estimate <N>; grill --depth deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`); Phase 2 reads `artifact_path` + `grill_deep_artifact_path` and forwards them via `[ideate-brief: …]` / `[ideate-grill: …]` lines (see Phase 2 below). On any unexpected failure: soft-phase failure dialog (Skip SHOWN — the gate is non-blocking).
 
 ## Phase 2: /requirements (hard)
 
@@ -592,7 +592,7 @@ i.e. `/spec` (normally Phase 4, post-3c) runs *immediately after* `/creativity` 
 3. Then run Phase 3c (/prototype) — hard per FR-PSDLC-04.
 4. Then jump to Phase 9 (final-summary). Phases 5–8a (`/plan`, `/execute`, `/skill-eval`, `/verify`, `/complete-dev`, `/reflect`) are skipped wholesale; each phase section below has a `pipeline_mode == prototype: skip` directive.
 
-The state.yaml `phases[]` for prototype mode lists the entries in *execution order* (per `reference/state-schema.md` schema v5 prototype-mode block), so Phase 0b resume cursor naturally advances correctly without special-casing.
+The state.yaml `phases[]` for prototype mode lists the entries in *execution order* (per `reference/state-schema.md`'s prototype-mode `phases[]` block), so Phase 0b resume cursor naturally advances correctly without special-casing.
 
 ## Phase 3a: /creativity gate (soft, all modes)
 
@@ -817,11 +817,11 @@ On missing-skill: soft-variant missing-skill dialog from `reference/failure-dial
 
 **Folded-phase failure surfacing (FR-29, FR-52, D17, D34, T12b):** read every `state.yaml.phases.<x>.folded_phase_failures[]`. If any non-empty across all phases: emit a `## Folded-phase failures (N)` subsection per `reference/pipeline-status-template.md` (T3 deliverable) BEFORE the OQ index, where N is the total count across all phases. Format per spec §11.3: `[<phase>] <folded-skill> crashed: <error_excerpt> (ts: <ts>)` — one line per failure entry. If all `folded_phase_failures[]` arrays are empty: omit the subsection entirely (no decoration, no "_(none)_").
 
-Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md` sidecar in mixed-format mode), plus:
+Print the full pipeline-status table from `00_pipeline.html`, plus:
 
 - Branch + tag info from `/complete-dev` output.
 - Links to every artifact (`01_requirements.{html,md}`, `02_spec.{html,md}`, `03_plan.{html,md}`, plus, in `skill-feedback` mode, `0c_feedback_triage.{html,md}`, plus — when Phase 1a ran — `00d_ideate.{html,md}` and (when Tier-3 chained) `00d-grill_ideate.{html,md}`, plus child-skill sidecars). Use the resolver substrate (or `<feature_folder>/index.html`'s inlined manifest) to find each artifact's actual on-disk extension.
-- If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Mixed-format sidecar emitted as `00_open_questions_index.md` when `output_format=both`. Link to the HTML primary in the chat summary.
+- If `state.yaml.open_questions_log[]` is non-empty: write `<feature_folder>/00_open_questions_index.html` with one section per logged child skill (path + deferred count) per FR-OQ-INDEX / spec §15 G4. Apply the same write-phase rules as `00_pipeline.html` (atomic write, asset prefix `assets/`, cache-bust, heading IDs, no `sections.json` companion per runbook edge case row 3, index regen). Link to the HTML primary in the chat summary.
   > See "Apply comment-resolver edit" for the required `<meta name="pmos:skill">` bake.
 - **Write soft-gate lastrun (W3).** Atomically write `.pmos/feature-sdlc.lastrun.yaml` at `<main-repo-root>` (resolved via git per `reference/soft-gate-lastrun-schema.md` § Path — not the worktree cwd) per that file's § "Write contract": record each gate's resolved disposition this run (from a Phase 0e confirm/edit OR an individual gate fire) plus `detected_signals.frontend` (the Phase 3b heuristic class, or `unknown` if 3b never ran). temp-then-rename; on failure log `lastrun write failed: <error>; next run will use per-gate prompts` and continue (the pipeline already shipped). Reaching Phase 9 means the run completed — a failed/aborted/paused run never writes lastrun.
 - Final one-liner: `Pipeline complete for <slug>. Branch feat/<slug> merged to main and tagged via /complete-dev.`
@@ -858,7 +858,7 @@ Print the full pipeline-status table from `00_pipeline.html` (or `00_pipeline.md
 3. **Dispatching child skills with a "see the state file" prompt.** Each child gets a self-contained brief (initial context for `/requirements`; full requirements doc path for `/spec`; etc.). Child skills must not reach into `state.yaml` — that file is the orchestrator's private state.
 4. **Auto-running optional stages without the gate.** `/creativity`, `/wireframes`, `/prototype` each have an explicit interactive gate prompt. Recommended-default is fine; silent run is not. (`/msf-req` and `/simulate-spec` no longer have orchestrator gates — they are folded inside `/requirements` Phase 5a and `/spec` Phase 6a respectively, default-on at Tier 3.) Note: `--minimal`-driven Skip on the four soft gates (creativity, wireframes, prototype, retro) is user-explicit and does not violate this rule — see the `_minimal_active` directive. Likewise, skill-mode's **non-presentation** of Phases 3b/3c (a skill has no UI), and the fact that Phase 0c runs only in `skill-feedback` and Phases 0d/6a only in skill modes, are **mode-conditional by-design omissions** keyed off `pipeline_mode` — not silent skips of presented gates.
 5. **Frontend-detection by LLM gut-feel.** Use `reference/frontend-detection.md` heuristics deterministically; surface uncertainty via a structured prompt rather than guessing. The gate is always presented (FR-FRONTEND-GATE).
-6. **Forgetting to update `state.yaml` after a child-skill completion.** Every phase end must atomically (a) update `state.yaml`, (b) regenerate `00_pipeline.html` (and the `.md` sidecar when `output_format=both`), (c) print the in-chat status table. Skipping any of these breaks resume.
+6. **Forgetting to update `state.yaml` after a child-skill completion.** Every phase end must atomically (a) update `state.yaml`, (b) regenerate `00_pipeline.html`, (c) print the in-chat status table. Skipping any of these breaks resume.
 7. **Treating `--non-interactive` as "skip /grill silently".** The skill must log `phase: grill / status: skipped-non-interactive / reason: --non-interactive flag` so the user knows what was skipped on review.
 8. **Resuming from a state file with stale artifact paths.** On resume (Phase 0b), validate every recorded artifact path still exists; if any required artifact is missing, surface to user before continuing — do not re-invoke a phase silently.
 9. **Conflating `--tier` override with per-child auto-tiering.** `--tier` sets the orchestrator's expected scope (drives gates) AND is passed to children that accept it (`/requirements`, `/spec`, `/plan`). Children may auto-tier-escalate; log divergence in `child_tier_divergence` rather than overriding.

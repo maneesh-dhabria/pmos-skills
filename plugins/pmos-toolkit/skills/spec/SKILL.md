@@ -484,17 +484,17 @@ All items below must be `pass` or `N/A` (with a stated reason for N/A). Loop unt
 
 **Skip if `--skip-folded-sim-spec` was passed** (D15 escape). Skip if `{tier}` is 1 unless user opted in. Tier-3: default-on per D2.
 
-This phase delegates to `_shared/sim-spec-heuristics.md` (created in T5; canonical scenario-trace + apply-loop substrate) to pressure-test `02_spec.md` against adversarial scenarios and apply auto-fix patches. Findings ≥ confidence threshold (default 80) auto-apply as inline edits to `02_spec.md` with per-finding git commits; sub-threshold findings surface via `AskUserQuestion` with `Recommended=Defer to OQ` (D14). Replaces the obsolete `/feature-sdlc` Phase 6 gate (W3).
+This phase delegates to `_shared/sim-spec-heuristics.md` (created in T5; canonical scenario-trace + apply-loop substrate) to pressure-test `02_spec.html` against adversarial scenarios and apply auto-fix patches. Findings ≥ confidence threshold (default 80) auto-apply as inline edits to `02_spec.html` with per-finding git commits; sub-threshold findings surface via `AskUserQuestion` with a `Defer to OQ (Recommended)` option (D14). Replaces the obsolete `/feature-sdlc` Phase 6 gate (W3).
 
 ### Pre-apply guard (FR-66)
 
 Before opening the apply-loop:
 
 ```bash
-git status --porcelain 02_spec.md
+git status --porcelain "{feature_folder}/02_spec.html"
 ```
 
-If non-empty: emit `WARNING: 02_spec.md has uncommitted edits — folded simulate-spec apply-loop will skip auto-apply (per FR-66) to avoid clobbering. Run /spec --skip-folded-sim-spec OR commit your edits first.` Skip auto-apply (fall through to manual disposition); continue with critique + gap-register emission for advisory value.
+If non-empty: emit `WARNING: 02_spec.html has uncommitted edits — folded simulate-spec apply-loop will skip auto-apply (per FR-66) to avoid clobbering. Run /spec --skip-folded-sim-spec OR commit your edits first.` Skip auto-apply (fall through to manual disposition); continue with critique + gap-register emission for advisory value.
 
 ### Per-finding commits (D16)
 
@@ -518,7 +518,7 @@ Continue per D11 advisory — folded-phase failures do NOT halt /spec. /feature-
 
 ### Substrate delegation
 
-The 4-pass scenario enumeration (Spec extraction → variant generation → adversarial checklist → model-driven), scenario trace + Gap Register, 4-bucket artifact-fitness critique, and apply-loop logic are all canonical in `_shared/sim-spec-heuristics.md`. This folded phase invokes the substrate's sections 1-5 against `02_spec.md`; spec critique findings populate the Gap Register; auto-apply patches edit `02_spec.md` in-place per the per-finding-commit cadence above.
+The 4-pass scenario enumeration (Spec extraction → variant generation → adversarial checklist → model-driven), scenario trace + Gap Register, 4-bucket artifact-fitness critique, and apply-loop logic are all canonical in `_shared/sim-spec-heuristics.md`. This folded phase invokes the substrate's sections 1-5 against `02_spec.html`; spec critique findings populate the Gap Register; auto-apply patches edit `02_spec.html` in-place per the per-finding-commit cadence above.
 
 ### Flag handling (Phase 0 parser additions)
 
@@ -661,7 +661,7 @@ For this skill, evaluate whether anything from this session is worth writing bac
 
 ## Apply comment-resolver edit (FR-22, FR-30, FR-60)
 
-This phase is the `/spec` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a spec artifact's `.comments.json` sidecar. The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This phase is the `/spec` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in a spec artifact's inline `pmos-comments` JSON block (`<script id="pmos-comments" type="application/json">`). The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
 
 - **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
 

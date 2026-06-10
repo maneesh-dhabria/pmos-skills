@@ -150,7 +150,7 @@ Study the existing code that will be impacted. This is NOT a skim — you must r
    - **Authoritative for:** IA, screen inventory, component presence, copy and labels, state coverage (loading/empty/error/success), navigation entry/exit, journey shape. Tasks must implement these.
    - **NOT authoritative for:** visual style, color, typography, spacing, iconography, component library. Tasks should adapt the wireframe to the host app's existing design system and conventions — never copy visual treatment verbatim when it conflicts with the host app.
 
-   Every UI task in Phase 3 must cite the wireframe(s) it implements via a `**Wireframe refs:**` field — same discipline as `**Spec refs:**`. This preserves the wireframe→implementation→verification chain for /verify Phase 4 sub-step 3f. If the host app has established patterns (Tailwind tokens, component library, layout conventions) that differ from the wireframe's visual treatment, the task should explicitly say "follow host-app convention X" rather than "match wireframe."
+   Every UI task in Phase 3 must cite the wireframe(s) it implements via a `**Wireframe refs:**` field — same discipline as `**Spec refs:**`. This preserves the wireframe→implementation→verification chain for /verify Phase 4 sub-step 4f. If the host app has established patterns (Tailwind tokens, component library, layout conventions) that differ from the wireframe's visual treatment, the task should explicitly say "follow host-app convention X" rather than "match wireframe."
 7. **Identify the tracer-bullet candidate** (see Phase 3 §Vertical-Slice Decomposition). Scan the spec for the narrowest user-observable behavior — the smallest end-to-end path through every layer the feature touches. Earmark it as the candidate for T1, the tracer bullet. If the spec offers multiple candidate narrowest paths, pick the one that exercises the riskiest unproven integration point (a new protocol, an unfamiliar library, a cross-service handshake). The result is a one-line note in Code Study Notes, format: `Tracer-bullet candidate: <narrowest behavior> — exercises <layers>; risk it derisks: <unproven integration>.` Phase 3 builds T1 against this candidate.
 8. **Detect stack signals** (FR-10). Glob host-repo root for manifest files: `package.json`, `Gemfile`, `go.mod`, `requirements.txt`, `pyproject.toml`, `Cargo.toml`, `pom.xml`, `composer.json`, `docker-compose.yml`, `Makefile`, `Dockerfile`. Compute file-count weight per stack. Log signals to a "Stack signals" subsection of Code Study Notes (FR-100).
 
@@ -494,7 +494,7 @@ Phase 5 in /plan v1 ran a separate "Final Review" pass *outside* the loop discip
 `--non-interactive` runs the entire skill without `AskUserQuestion`. Choices follow Recommended (Recommended option). For high-risk decisions with no Recommended option (FR-61a halt protocol):
 - **Halt** with exit code 2.
 - Write `{feature_folder}/03_plan_blocked.md` containing the question, options considered, and a one-line "what changed" hint.
-- The user resumes by re-running /plan interactively or with explicit `--decide <option>` flags.
+- The user resumes by re-running /plan interactively and answering the blocked question.
 
 `--non-interactive` writes an audit sidecar `{feature_folder}/03_plan_auto.md` listing every Recommended pick the run made, so a human can audit the choices retrospectively.
 
@@ -607,7 +607,7 @@ This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it 
 - Do NOT combine unrelated changes into a single task — each task should be independently committable
 - Do NOT forget the "Done when" one-liner — it defines what success looks like for the whole plan
 - Do NOT skip the Cleanup subsection in final verification — temp files, containers, and debug logging accumulate
-- Do NOT omit `**Wireframe refs:**` on UI tasks when wireframes exist — the link is what carries polish/consistency expectations into /verify Phase 4 sub-step 3f
+- Do NOT omit `**Wireframe refs:**` on UI tasks when wireframes exist — the link is what carries polish/consistency expectations into /verify Phase 4 sub-step 4f
 - Do NOT instruct tasks to copy the wireframe's visual style verbatim. Wireframes are reference for IA / copy / states / journeys; visual style follows the host app's design system. Tasks should say "follow host-app pattern X" rather than "match wireframe pixel-for-pixel."
 - Do NOT let TN's frontend smoke test stop at "renders correctly" — it must include hard-reload, an error-path probe, the UX polish checklist, and (if wireframes exist) a wireframe diff. Polish belongs in the plan, not as a verify afterthought.
 - Do NOT create `## Phase N` groupings of 1–2 tasks — each phase boundary triggers full /verify (multi-agent code review + interactive QA), which dwarfs the implementation cost of a tiny phase. Target 5–10 tasks per phase, or skip phases entirely for small plans.

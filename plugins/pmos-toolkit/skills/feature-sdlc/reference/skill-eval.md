@@ -1,14 +1,14 @@
 # skill-eval.md — the binary skill-quality rubric
 
-39 binary pass/fail checks, a 1:1 mirror of `skill-patterns.md` §A–§F. `/feature-sdlc`
-Phase 6a (and `/verify` on a skill) runs this rubric: the 20 `[D]` (deterministic)
-checks are implemented in `tools/skill-eval-check.sh`; the 19 `[J]` (llm-judge) checks
+41 binary pass/fail checks, a 1:1 mirror of `skill-patterns.md` §A–§G. `/feature-sdlc`
+Phase 6a (and `/verify` on a skill) runs this rubric: the 21 `[D]` (deterministic)
+checks are implemented in `tools/skill-eval-check.sh`; the 20 `[J]` (llm-judge) checks
 are run by a reviewer subagent. Each check carries a stable `check_id` (kebab,
 prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `f-…`), a `tag`,
 an `applies_when` gate, a `check`/`pass-condition`, a `why`, a `how-to-verify`, and a
 back-reference to its `skill-patterns.md` §-rule. This file is the contract; the
 `/execute` implementation may refine the prose and re-tag an individual `[D]`/`[J]`
-where clearly mis-tagged, but MUST keep the total ≥35, the bijective
+where clearly mis-tagged, but MUST keep the total ≥37, the bijective
 patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script
 (FR-71).
 

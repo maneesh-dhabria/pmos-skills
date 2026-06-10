@@ -2,7 +2,7 @@
 name: verify
 description: Post-implementation verification gate — ALWAYS run after /execute completes. Lint, test, deploy, spec compliance, multi-agent code review, interactive QA, and regression test hardening. Also run after manual coding or partial work. Works with git commits, no PR required. Use when the user says "check my work", "is this done", "verify the implementation", "did I miss anything", or "review and test everything".
 user-invocable: true
-argument-hint: "<path-to-spec-doc> (optional — will search {docs_path}/specs/ if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--scope phase --phase <N>] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folder if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--skip-folded-arch] [--scope phase --phase <N>] [--format <html|md|both>] [--non-interactive | --interactive]"
 ---
 
 # Implementation Verification Gate
@@ -45,7 +45,7 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 5. Spec Compliance Check
 6. Harden Test Suite
 7. Final Compliance Pass
-7.5. Design-System Drift Check (advisory)
+7a. Design-System Drift Check (advisory)
 8. Commit & Report
 
 Mark each as in-progress when starting and completed when done. Skip tasks that don't apply (e.g., skip deploy if no deployment is involved).
@@ -143,7 +143,7 @@ All other Phase 1+ behavior is unchanged. Standalone /verify invocations (withou
 
    **Wireframes are NOT authoritative for:** visual style, color palette, typography choice, exact spacing, component library, iconography, or pixel-level layout. Those follow the host application's existing design system and conventions — even when the wireframe shows something different. The /wireframes skill itself produces a `DESIGN.md` (canonical brand contract) and a `design-overlay.css` (generated CSS variable overlay) precisely because wireframes are intended to be adapted to the host app's style, not copied verbatim. Visual fidelity comes from DESIGN.md; the wireframe's role is information architecture and state coverage.
 
-   When there's a conflict between a wireframe's visual treatment and the host app's established patterns, **the host app wins** unless the spec explicitly calls out a visual-style change as a goal. This shapes how Phase 4 sub-step 3f and Phase 5 sub-step 4d classify deltas.
+   When there's a conflict between a wireframe's visual treatment and the host app's established patterns, **the host app wins** unless the spec explicitly calls out a visual-style change as a goal. This shapes how Phase 4 sub-step 4f and Phase 5 sub-step 5d classify deltas.
 3. **Identify what changed.** Run `git diff main...HEAD --stat` (or appropriate base) to see which files were modified. This scopes the verification.
 4. **Check if lint/type/tests were already run.** Ask the user or check recent terminal history. Skip steps already completed — but re-run if you're not confident they were clean.
 
@@ -271,18 +271,18 @@ Before running any Phase 4 sub-step, enumerate every upstream requirement that h
 
 | Sub-step | Acceptable evidence |
 |----------|--------------------|
-| 3a. Database Migrations | Migration command output + DB schema query confirming the new shape |
-| 3b. Docker Deployment | Service health check output + startup log snippet showing no errors |
-| 3c. API Smoke Tests | `curl` response body compared row-by-row to the spec's API contract |
-| 3d. Frontend Verification | Playwright MCP screenshot, `browser_evaluate` DOM assertion, or a specific test file covering the rendered output. **Synthesized `KeyboardEvent`s must use `bubbles: true` to reach document-level listeners; otherwise the listener won't fire and you'll log a false negative.** |
-| 3e. Interactive Spot Checks | Playwright MCP interaction trace covering a user journey end-to-end, including at least one error/edge path |
-| 3f. UX Polish & Wireframe Consistency | Per-page checklist results (see 3f) AND, if wireframes exist, a wireframe-vs-implementation diff note per affected screen classifying each delta as `intentional` or `regression` |
+| 4a. Database Migrations | Migration command output + DB schema query confirming the new shape |
+| 4b. Docker Deployment | Service health check output + startup log snippet showing no errors |
+| 4c. API Smoke Tests | `curl` response body compared row-by-row to the spec's API contract |
+| 4d. Frontend Verification | Playwright MCP screenshot, `browser_evaluate` DOM assertion, or a specific test file covering the rendered output. **Synthesized `KeyboardEvent`s must use `bubbles: true` to reach document-level listeners; otherwise the listener won't fire and you'll log a false negative.** |
+| 4e. Interactive Spot Checks | Playwright MCP interaction trace covering a user journey end-to-end, including at least one error/edge path |
+| 4f. UX Polish & Wireframe Consistency | Per-page checklist results (see 4f) AND, if wireframes exist, a wireframe-vs-implementation diff note per affected screen classifying each delta as `intentional` or `regression` |
 
 **Every enumerated todo resolves to exactly one of three outcomes:**
 
 1. **Verified** — evidence produced and cited. The evidence type must match the allowlist row for the sub-step. Close the todo.
 2. **NA — alternative evidence cited** — the runtime surface doesn't exist for this item (e.g., FR is a pure calculation change). Cite the alternative (e.g., `test_pricing.py::test_discount_applied`) or the specific reason tied to the FR text. Bare "NA" is not valid. Close the todo with the alternative recorded.
-3. **Unverified — action required** — you attempted verification and were blocked. State the specific blocker and the user action needed (e.g., "user must run `make seed-dev-db` before 3e can proceed"). Leave the todo OPEN and surface it in the Phase 8 final report.
+3. **Unverified — action required** — you attempted verification and were blocked. State the specific blocker and the user action needed (e.g., "user must run `make seed-dev-db` before 4e can proceed"). Leave the todo OPEN and surface it in the Phase 8 final report.
 
 **Setup is part of Phase 4, not a prerequisite.** Starting the dev server, seeding the DB, running migrations, authenticating — all Phase 4 work. If setup is complex, write down the exact commands, execute them, and proceed. Only escalate to the user when a genuine decision is required (e.g., "which dev DB to use"), not to offload execution. "Setup would take too long" is a Phase 4 red flag, not a reason.
 
@@ -296,14 +296,14 @@ If any of these thoughts surface during Phase 4, stop and re-read the entry gate
 | "This is out of scope for /verify" | Phase 4 is a numbered phase in this skill. Verification cannot be out of scope for the verification skill. |
 | "The user can verify this at their desk" | Playwright MCP, `curl`, and DB queries are agent-owned tools. Offloading interactive verification to the user resolves to `Unverified — action required`, not `Verified`. |
 | "Setup would take too long" | Setup is Phase 4 work. If you have time to write the final report, you have time to start the server. |
-| "The happy path worked; good enough" | The spec's edge cases are explicit. Test at least one error/edge path per affected flow — the entry gate names this in 3e's evidence row. |
+| "The happy path worked; good enough" | The spec's edge cases are explicit. Test at least one error/edge path per affected flow — the entry gate names this in 4e's evidence row. |
 | "I'll note it as a gap" | A gap you could have verified but didn't is not a gap — it's a skip. Either produce evidence (close as Verified), cite alternative evidence (close as NA), or name the blocker (leave open as Unverified-action-required). There is no fourth state. |
-| "Polish is cosmetic — out of scope for verification" | Polish *is* the user-facing product. Sub-step 3f is mandatory for any change with a UI surface. If the user has to push you to check polish, the skill failed. |
+| "Polish is cosmetic — out of scope for verification" | Polish *is* the user-facing product. Sub-step 4f is mandatory for any change with a UI surface. If the user has to push you to check polish, the skill failed. |
 | "Wireframes were just sketches — implementation is allowed to drift" | Style drift is *expected* — wireframes are not authoritative for visual style (see 2a). But unexamined drift on the authoritative dimensions (IA, copy, states, journeys) is a skip. Classify every delta on those dimensions as `intentional — style adaptation`, `intentional — decision`, or `regression`. A wireframe-diff with zero deltas listed is suspicious. |
 | "I should make the implementation look exactly like the wireframe" | No. Visual style follows the host app's design system, not the wireframe. The wireframe's color/typography/spacing/iconography is reference-only. Forcing pixel-fidelity over the host app's conventions is a different failure mode — flag it as a `regression` against the host app's design system, not the wireframe. |
 | "Hard-reload / deep-link works in-app, that's enough" | Parameterized routes must be hard-reloaded (open URL fresh in a new tab via Playwright) for every affected route. In-app navigation hides router-resolver bugs. |
 
-### 3a. Database Migrations (if applicable)
+### 4a. Database Migrations (if applicable)
 
 ```bash
 alembic upgrade head
@@ -311,7 +311,7 @@ alembic upgrade head
 
 Verify the migration applied cleanly. Check for errors in output.
 
-### 3b. Docker Deployment
+### 4b. Docker Deployment
 
 Deploy to the appropriate environment (main stack or worktree stack):
 
@@ -321,7 +321,7 @@ docker compose build <affected-services> && docker compose up -d <affected-servi
 
 Wait for services to be healthy. Check logs for startup errors.
 
-### 3c. API Smoke Tests
+### 4c. API Smoke Tests
 
 For every new or modified API endpoint, verify the response shape matches the spec:
 
@@ -331,7 +331,7 @@ curl -sf <endpoint> | python3 -m json.tool
 
 **Evidence required:** Show the actual response and compare it to the spec's API contract. Flag any mismatches.
 
-### 3d. Frontend Verification (Playwright MCP)
+### 4d. Frontend Verification (Playwright MCP)
 
 For every affected UI flow:
 
@@ -342,7 +342,7 @@ For every affected UI flow:
 5. **Take screenshots** for evidence
 6. **Verify** that UI matches spec's frontend design section
 
-### 3e. Interactive Spot Checks
+### 4e. Interactive Spot Checks
 
 Run actual scenarios in the development environment. Interact with the system as a user would. Specifically:
 
@@ -353,7 +353,7 @@ Run actual scenarios in the development environment. Interact with the system as
 
 **Do NOT rely only on automated tests.** Interactive verification (Playwright MCP driving real user journeys) catches issues that tests miss: rendering glitches, confusing UX, wrong copy, timing issues. "Interactive" means you operate the browser via MCP — not that a human operates it for you.
 
-### 3f. UX Polish & Wireframe Consistency (mandatory for any UI-touching change)
+### 4f. UX Polish & Wireframe Consistency (mandatory for any UI-touching change)
 
 This sub-step exists because automated tests, API smoke tests, and happy-path Playwright walks all pass while the product still ships with `<title>Vite App</title>`, `alt="image"`, leaked internal IDs in user-facing copy, and broken hard-reload. Polish is the product — it is not optional, and it is not a follow-up.
 
@@ -363,7 +363,7 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 
 1. Open the wireframe HTML and the live implementation side-by-side via Playwright MCP.
 2. Compare **only on the dimensions wireframes are authoritative for** (per 2a): IA, screen inventory, component presence, copy and labels, state coverage (loading/empty/error/success), affordances (CTAs, disabled states), navigation entry/exit. Do NOT diff visual style, color, typography, spacing, iconography, or component library — those are expected to follow the host app and will differ from the wireframe by design.
-3. Record every delta on the authoritative dimensions in the wireframe-diff table (Phase 5 sub-step 4d). Classify each as one of:
+3. Record every delta on the authoritative dimensions in the wireframe-diff table (Phase 5 sub-step 5d). Classify each as one of:
    - **`intentional — style adaptation`**: wireframe showed something the host app's design system handles differently. No fix needed; this is the expected adaptation. Cite the host-app convention.
    - **`intentional — decision`**: a deliberate departure recorded during /execute or earlier (cite the decision record).
    - **`regression`**: a missed requirement on an authoritative dimension (e.g., an empty state in the wireframe is missing from the implementation, copy is wrong, a journey step was dropped). Must be fixed in this verify pass, then re-verified.
@@ -371,7 +371,7 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 
 **The bar:** does the implementation cover what the wireframe specified at the IA/copy/states/journeys level, *adapted to the host app's design system*? Not: does it look pixel-identical to the wireframe.
 
-**Part 2 — UX polish checklist (always runs).** Walk the changed UI surface in Playwright and check every item below. Each becomes a row in the Phase 5 sub-step 4d table.
+**Part 2 — UX polish checklist (always runs).** Walk the changed UI surface in Playwright and check every item below. Each becomes a row in the Phase 5 sub-step 5d table.
 
 | # | Check | How |
 |---|-------|-----|
@@ -388,7 +388,7 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 | P11 | Failure paths are visibly recoverable — if a backend operation fails, the user sees a retry CTA, not silence | Force at least one failure (network kill, bad input) and observe the UI |
 | P12 | No raw external/internal anchors leak into rendered content (e.g., EPUB `#filepos2205`, file-system paths, dev-only URLs) | `browser_evaluate` `[...document.querySelectorAll('a')].map(a=>a.href)` and inspect for non-app schemes/paths |
 
-**Evidence required (per the entry gate's 3f row):** the polished-checklist table with one outcome per row (`pass` / `fail` / `NA — reason`) AND, if wireframes existed, a wireframe-diff entry per affected screen. Failures become Phase 5 4d gaps and Phase 6 regression tests.
+**Evidence required (per the entry gate's 4f row):** the polished-checklist table with one outcome per row (`pass` / `fail` / `NA — reason`) AND, if wireframes existed, a wireframe-diff entry per affected screen. Failures become Phase 5 5d gaps and Phase 6 regression tests.
 
 ---
 
@@ -511,7 +511,7 @@ Continue to Phase 5 — folded-phase failures do NOT block /verify PASS. Phase 4
 
 This is the most important phase. Re-read each upstream document and verify every requirement is implemented.
 
-**Three-state outcome model (applies to 4a, 4b, 4c):**
+**Three-state outcome model (applies to 5a, 5b, 5c):**
 
 Every row in every compliance table resolves to exactly one of three outcomes. Bare "Pass", "Fail", "Complete", or "Partial" are not valid — they collapse into the three below, and every row's `Evidence` column must cite a concrete artifact.
 
@@ -519,20 +519,20 @@ Every row in every compliance table resolves to exactly one of three outcomes. B
 |---------|---------|----------------------------|
 | **Verified** | Requirement/task met; evidence produced during Phase 2–4. | Test file + function, screenshot path, `curl` output excerpt, DB query result, or commit SHA. The evidence type must match what was declared in the Phase 4 entry gate allowlist if the row has a runtime surface. |
 | **NA (alt-evidence)** | No runtime surface for this row, OR the row was intentionally out of scope and covered indirectly. | Named alternative: e.g., "covered by `test_pricing.py::test_discount_applied`", or the specific reason tied to the requirement text (e.g., "FR narrative change only — no code path"). Bare "NA" or "N/A" is not valid. |
-| **Unverified — action required** | Verification was attempted and blocked. The row is NOT resolved. | The specific blocker and the user action needed to unblock (e.g., "Playwright MCP unavailable in this environment — user must install; re-run 3d after"). Unverified rows must also appear in the Phase 8 final report as open items. |
+| **Unverified — action required** | Verification was attempted and blocked. The row is NOT resolved. | The specific blocker and the user action needed to unblock (e.g., "Playwright MCP unavailable in this environment — user must install; re-run 4d after"). Unverified rows must also appear in the Phase 8 final report as open items. |
 
 Every row also cross-references the todo it closed (or left open) from the Phase 4 entry gate, if applicable. If no Phase 4 todo was created (pure internal logic), the Evidence column names the unit test that covered it.
 
-### 4a. Requirements Compliance
+### 5a. Requirements Compliance
 
 Read `{feature_folder}/01_requirements.{html,md}` (resolved in Phase 1 via the resolver). For every goal, user journey, and acceptance criterion:
 
 | # | Requirement | Outcome | Evidence |
 |---|-------------|---------|----------|
 | Goal 1 | [From requirements] | Verified / NA / Unverified | [Per the three-state model: test file, screenshot path, curl excerpt, DB query, alt-evidence citation, or blocker + user action] |
-| Journey 1, Step 3 | [Specific step] | Verified / NA / Unverified | [e.g., `screenshots/j1-s3.png` from Phase 4 3d, or `Unverified — dev server wouldn't start; user must run docker compose up`] |
+| Journey 1, Step 3 | [Specific step] | Verified / NA / Unverified | [e.g., `screenshots/j1-s3.png` from Phase 4 4d, or `Unverified — dev server wouldn't start; user must run docker compose up`] |
 
-### 4b. Spec Compliance
+### 5b. Spec Compliance
 
 Read `{feature_folder}/02_spec.{html,md}` (resolved in Phase 1 via the resolver). For every FR-ID and edge case:
 
@@ -549,13 +549,13 @@ Read `{feature_folder}/02_spec.{html,md}` (resolved in Phase 1 via the resolver)
 |----|-------------|---------|----------|
 | FR-01 | <one-line restatement of the FR from the spec> | Verified | <test file::function, screenshot path, curl excerpt, DB query, or commit SHA> |
 | FR-02 | <one-line restatement> | NA — alt-evidence | <named alternative — e.g., `test_pricing.py::test_discount_applied`, OR specific reason tied to FR text> |
-| FR-03 | <one-line restatement> | Unverified — action required | <specific blocker + user action — e.g., `Playwright MCP unavailable; user must install; re-run 3d after`> |
+| FR-03 | <one-line restatement> | Unverified — action required | <specific blocker + user action — e.g., `Playwright MCP unavailable; user must install; re-run 4d after`> |
 | E1 | <edge case from spec> | Verified | <evidence for the edge case, not the happy path> |
 ```
 
 Allowed `Outcome` values are exactly `Verified`, `NA — alt-evidence`, and `Unverified — action required`. Bare `Pass`, `Fail`, `Complete`, `Partial`, `✓`, or `❌` are not valid — they collapse into the three above. Every `Unverified — action required` row also appears in the Phase 8 final report as an open item.
 
-### 4c. Plan Compliance
+### 5c. Plan Compliance
 
 Read `{feature_folder}/03_plan.{html,md}` (resolved in Phase 1 via the resolver). For every task:
 
@@ -567,11 +567,11 @@ Read `{feature_folder}/03_plan.{html,md}` (resolved in Phase 1 via the resolver)
 **For plan-task outcomes:**
 - `Verified-complete` requires BOTH a commit reference AND a verification artifact (test, screenshot, curl excerpt). A commit alone is not evidence of correctness — only of existence.
 - `NA-skipped-with-reason` requires naming the decision AND where it was recorded (plan update, session log, commit message). "NA" without a reason is not valid.
-- `Unverified` means the task was claimed done but the verification couldn't be produced. This is a gap — surface it in the 4d Gap Report.
+- `Unverified` means the task was claimed done but the verification couldn't be produced. This is a gap — surface it in the 5e Gap Report.
 
-### 4d. Wireframe & UX Polish Compliance
+### 5d. Wireframe & UX Polish Compliance
 
-This table consolidates the output of Phase 4 sub-step 3f. Skip only if the change had zero UI surface (note the skip and proceed to 4e).
+This table consolidates the output of Phase 4 sub-step 4f. Skip only if the change had zero UI surface (note the skip and proceed to 5e).
 
 **Part 1 — Wireframe deltas (only if `{feature_folder}/wireframes/` was loaded in Phase 1):**
 
@@ -589,11 +589,11 @@ If a screen had zero deltas on the authoritative dimensions, write one row stati
 |---|-------|---------|----------|
 | P1 | `document.title` set per route | Verified / Failed / NA | [`browser_evaluate` output, or fix commit if it failed and was repaired this pass] |
 | P2 | No internal IDs / enum keys in user copy | ... | ... |
-| ...P3–P12 | (one row per checklist item from 3f) | ... | ... |
+| ...P3–P12 | (one row per checklist item from 4f) | ... | ... |
 
-Every `Failed` row in either part becomes a Phase 5 4e Gap Report entry AND a Phase 6 regression test.
+Every `Failed` row in either part becomes a Phase 5 5e Gap Report entry AND a Phase 6 regression test.
 
-### 4e. Gap Report
+### 5e. Gap Report
 
 List every gap found:
 
@@ -635,6 +635,8 @@ One last check before committing:
 ### Phase 7 Hard Gates
 
 The following script checks must pass before Phase 8 (Commit & Report). A non-zero exit blocks `/verify` completion for this feature.
+
+**Existence guard:** these gate scripts are agent-skills-repo-specific. Before running each one, check that the script exists at the repo root (e.g., `[ -f scripts/check-comments-coverage.sh ]`). If it does not exist in the host repo, skip the gate and note in the Phase 8 report: "comments-coverage gate skipped — agent-skills-repo-specific gate, script not present in this repo." Where the script exists, the gate remains hard.
 
 - **Comments coverage check** (FR-62): `bash scripts/check-comments-coverage.sh` — refuses /verify completion if any of the 14 `apply-edit-at-anchor` contract tests are missing (13 originating skills + 1 orchestrator), if any of the 15 emit references are absent (13 skill-level `comments.js` refs + 2 orchestrator surface refs for `00_pipeline.html` and `00_open_questions_index.html`), or if the resolver integration test or calibration tests (`scorer.test.js`, `reanchor.integration.test.js`) are missing. Bypassable only via documented spec amendment.
 
@@ -730,9 +732,9 @@ For Phase 4 skip rationalizations specifically, see the **Phase 4 Red Flags** ta
 - Do NOT skip the Phase 5 spec compliance check — this is the most valuable phase
 - Do NOT leave discovered issues as "known gaps" — every item resolves to one of the three Phase 5 states (Verified, NA-with-alt-evidence, or Unverified-action-required with a named blocker). There is no fourth state.
 - Do NOT commit debug logging, TODOs, or temporary workarounds
-- Do NOT verify only the happy path — every affected flow gets at least one error/edge case per the Phase 4 entry gate's 3e evidence row
+- Do NOT verify only the happy path — every affected flow gets at least one error/edge case per the Phase 4 entry gate's 4e evidence row
 - Do NOT assume the previous verification run is still valid — re-run after every fix
 - Do NOT skip the Phase 6 hardening phase — converting bugs to tests is what prevents regressions
-- Do NOT skip Phase 4 sub-step 3f for any change with a UI surface — polish + wireframe consistency is mandatory, not "if there's time." If the user has to ask "did you check polish?", the skill failed.
+- Do NOT skip Phase 4 sub-step 4f for any change with a UI surface — polish + wireframe consistency is mandatory, not "if there's time." If the user has to ask "did you check polish?", the skill failed.
 - Do NOT mark wireframe drift as acceptable without classifying it. Every delta on an authoritative dimension is `intentional — style adaptation`, `intentional — decision`, or `regression`. "Close enough" is not a state.
 - Do NOT diff visual style (color, typography, spacing, iconography, component library) against the wireframe. Those follow the host app's design system, not the wireframe. Pushing pixel-fidelity to the wireframe over host-app conventions is itself a failure mode.

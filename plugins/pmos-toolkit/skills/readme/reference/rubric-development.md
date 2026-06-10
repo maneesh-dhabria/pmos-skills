@@ -59,7 +59,7 @@ re-submitting.
 1. Add a key under `variants:` in `rubric.yaml` keyed by repo-type
    slug (e.g., `firmware`, `data-pipeline`).
 2. Declare `overrides:` as a list of `drop:`, `swap:`, or `add:`
-   directives against the base 15-check list.
+   directives against the base check list in `rubric.yaml`.
 3. Add one strong + one slop fixture under
    `tests/fixtures/rubric/variants/<slug>/` and re-run the A2 gate
    against the variant-specific corpus.

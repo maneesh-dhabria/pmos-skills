@@ -1,0 +1,81 @@
+# execute — review
+
+**Grade:** C+ (would a thoughtful reviewer call this well-designed for its job? The bones are right — gates with named failure modes, real substrate use, sane degradation paths — but accreted insertions, a host-project-specific checklist, and a 70-line inline /plan-contract block mean a meaningful rewrite pays off.)
+**Size:** SKILL.md 506 lines (477 excluding non-interactive block); references 1 file / 264 lines (`subagent-driven.md`), plus 2 shared-substrate protocols it loads (`_shared/execute-resume.md` 249, `_shared/phase-boundary-handler.md` 151); target ~300 lines SKILL.md with the /plan-v2 contract, defect template, and subagent red-flag list moved/consolidated into references.
+
+## TL;DR
+
+- **Biggest win available:** Phase 2 is structurally incoherent from insertion — the /plan-v2 fields contract, suffixed-ID parsing, and 20-line defect-file template sit between the strategy branch and the actual per-task loop (which has lost its heading and floats at line 219). Extracting the contract to a reference and restoring the loop as the visible spine cuts ~120 lines and makes the skill readable again.
+- **Biggest risk in current design:** the Phase 3 Verification Checklist is a fossil from a specific host project — `python scripts/seed_sop_db.py --reset`, `ruff`, `pytest`, `alembic`, `docker-compose.worktree.yml`, `vue-tsc` as literal checklist items. On any other repo the model must silently decide these don't apply, which trains it to treat the whole checklist as advisory — including the parts that matter (runtime evidence, never-skip-frontend).
+- **One thing done well worth keeping:** every hard gate names the failure it prevents. The verify-fix loop's 3-attempt bound ("prevents thrashing"), the `T<N>` commit-subject mandate (resume resolver greps `\bT[0-9]+\b`), controller-commits-not-subagents (`.git/index` races), the runtime-evidence gate ("tests pass but the endpoint 500s"). This is exactly the Pocock standard — prescribe HOW only where deviation is a known failure mode, and say why.
+
+## Findings
+
+1. **[R] Host-project leakage in Phase 3 "Verification Checklist" (lines 384–406).** `Re-seed if data files changed: python scripts/seed_sop_db.py --reset` will exist in exactly one repo on earth; `ruff`/`pytest`/`alembic`/`docker-compose.worktree.yml`/`vue-tsc` are one stack's commands presented as universal checklist items. This is a durability violation (north-star rule 4) and an authority-erosion risk: once the model learns some checklist lines are inapplicable noise, it discounts the load-bearing ones. The fallback ladder for frontend verification (lines 398–404) is genuinely good and stack-neutral — keep it. **Fix:** rewrite the checklist as stack-neutral intents ("run the repo's lint + full test suite; apply migrations if any were added; deploy to an isolated stack with non-colliding ports; curl every new/modified endpoint against the spec's payload shape; walk every spec user journey in the browser; re-seed if seed data changed — per repo conventions"). Examples `feat(T5): add SOP migration` / `task_name: "Add SOP migration"` (lines 229, 242) are the same leak in miniature; harmless but worth genericizing in the same pass.
+
+2. **[V][Ph] The /plan-v2 contract block (lines 180–217) buries the per-task loop.** ~70 lines of per-task field semantics (`Depends on` / `Idempotent` / `Requires state from` / `TDD` / `Data` / `Wireframe refs`), suffixed-ID regex (`T([0-9]+)([a-z]?)`), and the full defect-file markdown template sit inline between "Phase 2 — Execution Strategy" and the actual task loop — which now starts at line 219 as an unheaded paragraph ("Work through the plan's tasks in order"). A colleague skimming Phase 2 cannot find the loop. The fields only matter when a v2 plan supplies them; the defect template only matters when a plan is defective. Classic progressive-disclosure candidates. **Fix:** move both to `execute/plan-contract.md` (or fold into the existing reference), leave 4–5 lines in SKILL.md ("plans may carry per-task fields that gate ordering, TDD shape, and state dependencies — read `plan-contract.md` when you see them; a defective plan gets a defect file per that contract and a `/plan --fix-from` handoff"), and give the per-task loop back its `###` heading.
+
+3. **[V] The subagent-mode rules are stated three times.** Wave constraints, controller-commits, spec-before-quality ordering, paste-don't-make-them-read-the-plan, and degrade-to-inline each appear in (a) Step A/B prose, (b) SKILL.md Anti-Patterns — five `(subagent-driven)` bullets, lines 502–506, and (c) `subagent-driven.md` "Red flags" — eight bullets, lines 252–264. Triplication is how drift starts (the three lists are already not identical: "Starting implementation on main without consent" exists only in the reference). **Fix:** one home — keep the rules where the templates live (`subagent-driven.md`), delete the five SKILL.md anti-pattern bullets, and have Step B end with "before dispatching, re-read the Red flags list."
+
+4. **[R] Orphaned phase references: "Phase 0/0.4/0.5" (lines 101 and 178).** No Phase 0.4 or 0.5 exists in this file — the phases are 0, 0a, 0b, 0c. This is spec-internal numbering (2026-05-13_execute-subagent-mode) leaking into the shipped skill, and it's repeated, so it survived at least one revision unread. Together with the lettered 0a/0b/0c ladder it's the criteria's insertion smell verbatim. **Fix:** s/0.4\/0.5/0b\/0c/; longer-term, fold 0a (3 bullets of flag parsing) into Phase 0 and consider renaming 0b/0c to "Phase 0 — steps 7–8" or just "Resume resolution" since they're one logical unit already delegated to `_shared/execute-resume.md`.
+
+5. **[G] TDD is ceremony without philosophy — the inverse of Pocock's tdd skill.** /execute enforces the red-green mechanics in three places (Phase 2 step 3 "write failing test, verify it fails, implement, verify it passes"; the `**TDD:**` three-valued field; the implementer template's step 2) but says nothing anywhere about what a *good* test is. Pocock spends his entire TDD budget on the opposite: behavior-through-public-interfaces, the horizontal-slice anti-pattern, "test would survive internal refactor", and a refactor step — and leaves the loop itself to four lines. The division of labor here is defensible (/plan decides the TDD shape per task; /execute follows), but the result is a gate a shape-testing, mock-verifying test passes cleanly — the implementer subagent's self-review line "do tests verify real behavior (not just mocks)?" is the only trace of test-quality judgment in 770 lines. **Fix:** add ~8 lines of philosophy once (behavior via public interfaces; one test → one implementation, vertically; never refactor while red; a test that breaks on rename was testing implementation) — ideally as `_shared/tdd-principles.md` consumed by /plan, /execute, and the implementer template, since /plan authors the `**TDD:**` values.
+
+6. **[S] Phase 2a half-duplicates and half-contradicts `_shared/phase-boundary-handler.md`.** The handler file owns the algorithm, the phase-log schema, and Compact Behavior — and says "MUST NOT continue… Do NOT implement the advisory-continue path unless the plan document or user explicitly overrides O1." The `--no-halt` flag and the session-sticky `continue_through_phases` directive (SKILL.md lines 270–283) are exactly that override, but they exist *only* in SKILL.md — a reader of the shared protocol alone gets a flat prohibition the skill then relaxes for ~14 lines. Split-brain between a protocol file and its sole-ish consumers (only /execute and /feature-sdlc read it) is how the next edit diverges them. **Fix:** move the opt-out semantics into the handler (it's the protocol owner), shrink SKILL.md Phase 2a to fire-conditions + invocation + "opt-outs per the handler."
+
+7. **[P] Wave planner — appropriate in substance, mildly over-specified in mechanism.** The load-bearing parts are the two constraints and the fallback, and all three are provenance-backed (FR-3 of `docs/pmos/features/2026-05-13_execute-subagent-mode/02_spec.md`): dependency edges from `Depends on` + `Requires state from` (wrong execution order), file-disjointness within a wave (concurrent-edit races), all-singleton fallback on cycles/unknown-ids/legacy plans (never halt on a planning failure). Those should stay hard — they name real failure modes, exactly per criteria dimension 8. What's over-specified is the mechanism: "Kahn's algorithm… greedily pack tasks into sub-waves (in task-index order)… overflow tasks spill" is HOW any capable model derives from the constraints, and nothing downstream depends on wave-plan determinism — resume is task-granular (logs + `T<N>` commits), and waves are recomputed each run excluding done tasks. **Fix:** restate as "compute any schedule where every task's dependencies are in earlier waves and no wave contains two tasks sharing a file; print the plan before starting" (~4 lines instead of ~14). Keep the degenerate-case fallback verbatim. Verdict: *not* over-specified as a concept — over-specified by about ten lines.
+
+8. **[P] `continue_through_phases` enumerates exact trigger phrases.** Lines 273–277 hardcode recognized utterances ("continue without compacting", "no halts", "skip compacts"…) plus a literal escape token. The principle — "an unambiguous imperative to continue without halting sets a session-sticky flag; confirm via one question when ambiguous" — is two lines and survives model upgrades; the phrase list invites both false negatives (unlisted phrasings) and lawyer-y matching. The escape token is fine to keep for programmatic callers. **Fix:** keep the token + the ambiguity-confirm rule, delete the phrase enumeration.
+
+9. **[V] Residual ballast (~40 lines total):** "Sequential Execution (no subagents)" is a 2-line section restating the inline default; "Track Progress" (lines 26–28) restates Phase 1 step 6 and the Platform Adaptation task-tracking bullet; several Anti-Patterns bullets restate gates already stated as gates ("Do NOT skip the Phase 2a check", "Do NOT make one giant commit") — the Anti-Patterns list earns its keep only for rules *not* already adjacent to their phase. "Evidence Before Claims" and "When to Stop" are compact, principle-shaped, and worth keeping as-is.
+
+10. **[X] Cross-platform posture is good — minor nit.** Platform Adaptation covers no-prompt / no-subagent / no-Playwright / task-tracking with concrete degradations, and `--subagent-driven` degrades to a warning + inline (stated in Phase 0a, the Anti-Patterns, *and* the reference — same triplication as finding 3). Playwright MCP is named throughout but always with a fallback ladder. No hard Claude-Code-only dependency without a path.
+
+## Flags inventory
+
+| flag | purpose | verdict |
+|---|---|---|
+| `<path-to-plan-doc>` (positional) | locate the plan | keep |
+| `--feature <slug>` | feature-folder disambiguation; passed by /feature-sdlc | keep (pipeline coupling) |
+| `--backlog <id>` | backlog status bridge; passed by /backlog promotion | keep (pipeline coupling) |
+| `--resume` | force the Phase 0c resolver; passed programmatically by /feature-sdlc after HALT_FOR_COMPACT | keep (pipeline coupling) |
+| `--restart` | destructive fresh start, double-confirmed | keep — explicitness is right for a destructive op |
+| `--from T<N>` | manual resume-point override | keep — cheap, no NL equivalent is less ambiguous |
+| `--no-halt` | per-invocation phase-halt opt-out | keep but note redundancy — the session-sticky NL directive already covers interactive use; the flag earns its keep only for non-interactive / orchestrated runs. Document that division. |
+| `--subagent-driven` | select parallel mode; /plan asks at close, /feature-sdlc Phase 6 passes it | keep (pipeline coupling); NL trigger ("run the tasks in parallel with subagents") should also work and mostly would |
+| `--inline` | negation of the above; exists only to override a sticky choice | fold into natural language — "neither present ⇒ inline" already makes it the default; an explicit negation flag for a non-persisted setting is dead weight unless /feature-sdlc passes it (it passes the positive form) |
+| `--non-interactive` / `--interactive` | global mode contract | assess globally per criteria (excluded here) |
+
+## Gates & rubrics inventory
+
+| check | hard or soft | failure it catches | verdict |
+|---|---|---|---|
+| Phase 1 step 5 — verification-tooling evidence before T1 | hard | discovering a dead dev server / Playwright mid-task-5, after work is stacked on unverifiable claims | keep-hard |
+| Runtime-evidence gate (curl / screenshot before commit, per task) | hard | "tests pass" while the endpoint 500s or the page white-screens | keep-hard — this is the skill's signature discipline |
+| Verify-fix loop, 3-attempt bound + "each retry must change something" | hard | infinite thrash on the same failing command | keep-hard; failure mode stated in-text |
+| `T<N>` in commit subject | hard | resume resolver loses in-flight detection (greps `\bT[0-9]+\b`) | keep-hard (contract with `_shared/execute-resume.md`) |
+| Phase 2a phase-boundary /verify + HALT_FOR_COMPACT | hard (with 2 opt-outs) | context bloat across long plans; cross-phase regressions sealed too late | keep-hard; move opt-out semantics into the shared handler (finding 6) |
+| `task_goal_hash` drift detection / `done-but-drifted` | hard | silently re-running or silently skipping tasks after the plan was edited | keep-hard (substrate-owned) |
+| `contract_version` warn/halt shim | hard on newer-than-supported | version-skew between /plan and /execute | keep |
+| `Idempotent: no` without recovery substep → halt | hard | un-resumable task crashing mid-way with no recovery path | keep (plan-v2 contract, FR-35) |
+| Two-stage review, spec-✅ before quality (subagent mode) | hard ordering | quality-approving code that doesn't match the spec; review effort wasted on doomed diffs | keep the ordering; the "never dispatch quality concurrently" elaboration can soften to the one-line rationale |
+| Wave constraints (dep edges + file-disjoint) | hard | file races, dependency-order violations | keep-hard; soften only the Kahn/greedy mechanism (finding 7) |
+| Implementer-never-commits | hard | `.git/index` races; lost `T<N>` subjects | keep-hard |
+| Evidence Before Claims table | soft (norm) | "should pass" claims without fresh output | keep — compact and durable |
+| Phase 7 learnings reflection | soft (reflection mandatory, entry optional) | none directly; hygiene | keep |
+| Anti-Patterns list (13 bullets) | soft | mixed — half restate hard gates | trim per finding 9 |
+
+## Fix list
+
+| fix | type | impact | risk |
+|---|---|---|---|
+| Rewrite Phase 3 checklist stack-neutral; genericize SOP examples | quick-win | high | low — intent unchanged; keep the frontend fallback ladder verbatim |
+| Extract /plan-v2 fields + defect template to `execute/plan-contract.md`; re-head the per-task loop | structural | high | low-med — /plan's emit side references these fields; keep field names byte-identical |
+| Fix "Phase 0/0.4/0.5" → "Phase 0b/0c" (2 sites) | quick-win | med | none |
+| Consolidate subagent rules into `subagent-driven.md` Red flags only; delete 5 SKILL.md anti-pattern bullets | quick-win | med | low |
+| Add ~8-line TDD philosophy (shared `_shared/tdd-principles.md`, referenced by /plan + /execute + implementer template) | structural | med-high | low — additive; aligns test quality with the runtime-evidence discipline |
+| Move `--no-halt` / `continue_through_phases` semantics into `_shared/phase-boundary-handler.md`; shrink SKILL.md Phase 2a to invocation + pointer | structural | med | med — /feature-sdlc also reads the handler; update both consumers in one commit |
+| Soften wave-planner mechanism to constraint statement (keep constraints + fallback hard) | quick-win | low-med | low |
+| Replace `continue_through_phases` phrase enumeration with the 2-line principle + escape token | quick-win | low | low |
+| Delete "Sequential Execution" section; fold "Track Progress" into Phase 1 step 6 | quick-win | low | none |
+| Drop `--inline` (keep "neither ⇒ inline" default) — after confirming no orchestrator passes it | quick-win | low | low — grep /feature-sdlc first; it passes only the positive form today |

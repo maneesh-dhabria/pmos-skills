@@ -125,7 +125,7 @@ Runs after preset selection and before the rubric. **Opt-in — the default is S
 
 1. **Resolve the reduction target.** If `--reduce <value>` was passed, parse it: a single percent (`25`) or a `low-high` range (`30-40`); valid only if `0 < low ≤ high ≤ 90`; malformed → print `--reduce: invalid value '<v>'; skipping the editorial pass` and treat as Skip (do not abort, do not prompt). When `--reduce` is present the gate below is **not** shown (parallels `--preset`).
 
-   Otherwise, surface the gate via `AskUserQuestion` (this gate has a Recommended option — it auto-picks Skip in `--non-interactive`; do NOT add a `defer-only` tag):
+   Otherwise, surface the gate via `AskUserQuestion` (this gate has a `(Recommended)` option — it auto-picks Skip in `--non-interactive`; do NOT add a `defer-only` tag):
 
    ```
    question: "Run an editorial reduction pass before polishing? Target reduction:"
@@ -151,7 +151,7 @@ Runs after preset selection and before the rubric. **Opt-in — the default is S
 
 ## Phase 3 — Run binary eval rubric
 
-Follow `reference/rubric.md` — runs all 14 built-in checks plus any user-defined checks **on the working document** (the editor-reduced doc if Phase 2a ran, else the ingested doc). Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
+Follow `reference/rubric.md` — runs all 15 built-in checks plus any user-defined checks **on the working document** (the editor-reduced doc if Phase 2a ran, else the ingested doc). Each check returns `pass | fail` with cited spans (line + excerpt). Detection skips locked zones.
 
 **LLM-judge determinism contract** (mandatory for every llm-judge call):
 - `temperature: 0`
@@ -171,7 +171,7 @@ rubric_results:
   - check: 2-lede-buried
     verdict: pass
     scope: global
-  # ... one entry per check (14 built-in + any custom)
+  # ... one entry per check (15 built-in + any custom)
 summary:
   failed_local: <N>
   failed_global: <N>
@@ -185,7 +185,7 @@ The `total_failed` value feeds the Phase 4 budget formula directly. No `rubric_r
 **Budget estimate first.** Emit this block **verbatim** (substitute values only — do not reword the labels or replace the prompt with a custom shape) before generating any patches:
 
 ```
-Rubric run: <N> of 14 checks failed
+Rubric run: <N> of 15 checks failed
 Estimated work: ~<calls> LLM calls, ~<seconds>s
 Continue? [Y / Downscope / Dry-run only]
 ```
@@ -244,7 +244,7 @@ Polish complete: <input> → <output>
 
 Voice: <detected> → applied "<preset>"
 Editorial pass: <skipped | target ~30-40% · est ~36% · actual ~33% · 19 applied / 2 skipped / 3 surfaced (2 approved) | dry-run — N notes drafted (est ~X%), not applied>
-Findings: 14 checks run, <N> failed, <auto> auto-fixed, <user> user-fixed, <deferred> deferred
+Findings: 15 checks run, <N> failed, <auto> auto-fixed, <user> user-fixed, <deferred> deferred
 Iterations: <N> of 2 (max)
 Learnings captured: <N> (see ~/.pmos/learnings.md ## /polish)
 
@@ -315,7 +315,7 @@ Append new entries to `~/.pmos/learnings.md` under `## /polish`. Proposing zero 
 - `SKILL.md` — this orchestrator
 - `schemas/custom-checks.schema.json` — JSON schema for user check overrides
 - `schemas/editor-notes.schema.json` — JSON schema for the Phase 2a `editor_notes.json`
-- `reference/rubric.md` — 14 built-in checks: regex patterns + LLM-judge prompts
+- `reference/rubric.md` — 15 built-in checks: regex patterns + LLM-judge prompts
 - `reference/presets.md` — preset semantics + per-preset threshold defaults
 - `reference/voice-sampling.md` — voice marker extraction algorithm
 - `reference/chunking.md` — chunking algorithm + lock-zone rules (markdown + HTML) + size buckets

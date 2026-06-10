@@ -62,7 +62,7 @@ This guard runs before persona alignment, learnings load, or any analysis.
 
 ### Input Contract (when invoked as reviewer subagent)
 
-When a parent orchestrator (currently `/feature-sdlc`) invokes this skill as a reviewer subagent, the parent has chrome-stripped the artifact via `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js` (FR-50, T12) and passes the stripped slice (`<h1>` + `<main>`) inline as the prompt body. In that mode, this skill skips its own resolver (`_shared/resolve-input.md`) and operates directly on the stripped HTML.
+When a parent orchestrator (currently `/requirements`, which folds this skill in as its Phase 5a) invokes this skill as a reviewer subagent, the parent has chrome-stripped the artifact via `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js` (FR-50, T12) and passes the stripped slice (`<h1>` + `<main>`) inline as the prompt body. In that mode, this skill skips its own resolver (`_shared/resolve-input.md`) and operates directly on the stripped HTML.
 
 **Output shape (FR-51 canonical):** the skill MUST first enumerate every `<section>` id and every `<h2>`/`<h3>` id it can locate in the stripped slice, returning them as `sections_found: [...]`. It then evaluates against its own rubric and emits findings as `{section_id, severity, message, quote: "<≥40-char verbatim from source>"}`.
 
@@ -111,10 +111,10 @@ If a question isn't applicable for a given persona/scenario, say so briefly rath
 Save the consolidated MSF analysis matrix.
 
 **Save path:**
-- If invoked inside a pipeline feature folder (`{feature_folder}` resolved in Phase 0 step 4) → `{feature_folder}/msf-findings.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`.
+- If invoked inside a pipeline feature folder (`{feature_folder}` resolved in Phase 0 step 4) → `{feature_folder}/msf-req-findings.html` per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. (Slug-distinct from /msf-wf's `msf-wf-findings.html` — running both on one feature must not overwrite.)
 - Else (ad-hoc) → `~/.pmos/msf/YYYY-MM-DD_<slug>.html`, where `<slug>` is derived from the argument's filename (lowercase, hyphenated).
 
-**Atomic write (FR-10.2):** write `msf-findings.html` and the companion `msf-findings.sections.json` via temp-then-rename — never serve a half-written file.
+**Atomic write (FR-10.2):** write `msf-req-findings.html` and the companion `msf-req-findings.sections.json` via temp-then-rename — never serve a half-written file.
 
 **Asset substrate (FR-10):** when writing into a feature folder, copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files. Ad-hoc saves to `~/.pmos/msf/` write a self-contained HTML (substrate referenced via the `~/.pmos/msf/assets/` cache; first ad-hoc run seeds the cache).
 

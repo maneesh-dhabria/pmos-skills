@@ -22,9 +22,9 @@ Use this when the feature has meaningful UI surface and the team benefits from s
 
 ## `--bootstrap-design-only` mode
 
-Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` Phase 1a when DESIGN.md is missing but wireframes already exist). In this mode the skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no Phase 6 delegation, no Phase 7 polish, no Phase 9–10 enrichment. The user's existing wireframes are not touched.
+Invoked as `/wireframes --bootstrap-design-only` (typically by `/prototype` Phase 1a when DESIGN.md is missing but wireframes already exist). In this mode the skill produces ONLY DESIGN.md and COMPONENTS.md — no wireframe HTML, no review loops, no Phase 6 delegation, no Phase 7 canvas aggregation, no Phase 9–10 enrichment. The user's existing wireframes are not touched.
 
-**Phases that run in this mode:** Phase 0 (workstream context), Phase 2a (DESIGN.md, including 2.5c review gate — DO NOT skip the gate), Phase 2ba (COMPONENTS.md load/create — including 2.6a accept/edit/skip gate). All other phases are skipped.
+**Phases that run in this mode:** Phase 0 (workstream context), Phase 2a (DESIGN.md, including 2.5c review gate — DO NOT skip the gate), Phase 2b (COMPONENTS.md load/create — including 2.6a accept/edit/skip gate). All other phases are skipped.
 
 **COMPONENTS.md scope in bootstrap mode (mandatory):** enumerate ONLY components that exist in the host frontend (`<app_dir>/src/components/` or equivalent). Do NOT propose feature-specific or speculative new components — those belong to `/prototype`'s output (Phase 4c flags new variants in the components.js footer; `/verify` promotes them later). A bootstrap-mode COMPONENTS.md that names components not present in the host frontend is a contract violation.
 
@@ -378,7 +378,7 @@ If the copy fails (path not resolvable), `Read` the skill's `assets/wireframe.cs
 
 - One `.html` file per `(component × device)` pair
 - Links the shared `./assets/wireframe.css` (copied in step 3a) — do NOT inline the rules from that stylesheet
-- Links `./assets/design-overlay.css` **immediately after** `wireframe.css` so DESIGN.md's `:root` overrides take effect (skip the link only if the user chose "Discard for this run" in Phase 2ac)
+- Links `./assets/design-overlay.css` **immediately after** `wireframe.css` so DESIGN.md's `:root` overrides take effect (skip the link only if the user chose "Discard for this run" in Phase 2a step 2.5c)
 - Tailwind via CDN: `<script src="https://cdn.tailwindcss.com"></script>` (used alongside the shared CSS for layout/spacing utilities)
 - State-switcher tabs at the top so reviewers flip between states without reload
 - Annotations layer (toggleable) explaining non-obvious interactions
@@ -498,13 +498,13 @@ Wireframes are now generated. Phase 6 hands off to `/msf-wf` for combined MSF + 
 /msf-wf {feature_folder}/wireframes --apply-edits
 ```
 
-**Reviewer-subagent contract (FR-50/51/52, T13a):** /msf-wf reviews each wireframe HTML in the folder. Before passing each wireframe to the subagent, chrome-strip it: `Bash('node ${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js {feature_folder}/wireframes/<NN>_<slug>.html > /tmp/msf-wf-<NN>-stripped.html')` (loop over every `*.html` in the wireframes folder). Each subagent invocation receives the stripped HTML inline with the canonical FR-51 template: *"Read this HTML content (the document's `<main>` body — chrome already stripped). First, enumerate every `<section>` id and every `<h2>`/`<h3>` id you can locate — return as `sections_found: [...]`. Then evaluate against the rubric below. For every finding, return `{section_id, severity, message, quote: \"<≥40-char verbatim from source>\"}`."* After each return, run FR-52 validation (hard-fail on per-wireframe miss): (1) read `{feature_folder}/wireframes/<NN>_<slug>.sections.json`; (2) assert `sections_found` set-equality with sections.json `ids[]` — any miss/extra → hard-fail with `[/wireframes] reviewer msf-wf returned sections_found that do not match <NN>_<slug>.sections.json`; (3) for each finding, substring-grep `quote` against the un-stripped source HTML — any miss → hard-fail; (4) "no findings" allowed per-wireframe only if `sections_found` matches AND the rubric permits it. On any hard-fail, abort the wireframe iteration and surface the failure to the user (do NOT silently continue to the next wireframe).
+**Reviewer-subagent contract (FR-50/51/52, T13a):** /msf-wf reviews each wireframe HTML in the folder. Before passing each wireframe to the subagent, chrome-strip it: `Bash('node ${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js {feature_folder}/wireframes/<NN>_<slug>.html > /tmp/msf-wf-<NN>-stripped.html')` (loop over every `*.html` in the wireframes folder). Each subagent invocation receives the stripped HTML inline with the canonical FR-51 template: *"Read this HTML content (the document's `<main>` body — chrome already stripped). First, enumerate every `<section>` id and every `<h2>`/`<h3>` id you can locate — return as `sections_found: [...]`. Then evaluate against the rubric below. For every finding, return `{section_id, severity, message, quote: \"<≥40-char verbatim from source>\"}`."* After each return, run FR-52 validation (hard-fail on per-wireframe miss): (1) for each finding, substring-grep `quote` against the un-stripped source HTML — any miss → hard-fail with `[/wireframes] reviewer msf-wf returned a quote not found in <NN>_<slug>.html`; (2) "no findings" is allowed per-wireframe only if `sections_found` is non-empty AND the rubric permits it. There is NO sections.json set-equality check — /wireframes does not emit per-wireframe `sections.json` companions (the html-artifacts migration excluded wireframes per FR-15); `sections_found` is grounding evidence that the reviewer read the document, not a file-validated contract. On any hard-fail, abort the wireframe iteration and surface the failure to the user (do NOT silently continue to the next wireframe).
 
 **Behavior:**
 - `/msf-wf` runs persona alignment, MSF Pass A (grounded in wireframe DOM), and PSYCH Pass B (per-screen scoring with directional thresholds).
 <!-- defer-only: ambiguous -->
 - With `--apply-edits`, each finding is presented via `AskUserQuestion` for Fix / Modify / Skip / Defer disposition. Approved findings are applied as inline `Edit` calls to the relevant `.html` files.
-- Output: a single `msf-findings.md` co-located with the wireframes folder, containing both the MSF analysis matrix and the PSYCH scoring tables.
+- Output: per-wireframe findings docs at `{feature_folder}/wireframes/msf-wf-findings/<wireframe-id>.md` (see "Output slug (D3)" below), each containing the MSF analysis matrix and the PSYCH scoring tables for that wireframe.
 
 **Tier gating:**
 - **Tier 1**: skip Phase 6 entirely → jump to Phase 8 (Spec Handoff). Tier 1 wireframes are usually 1–2 screens; MSF/PSYCH overkill.
@@ -559,7 +559,7 @@ If `/msf-wf` returns a non-zero state or the user terminates it, this Phase abor
 **Post-delegation verification:**
 After /msf-wf returns:
 1. Spot-check any wireframes modified during /msf-wf's apply-edits phase against `reference/eval-rubric.md` — do NOT trigger another Phase 4 review-loop.
-2. Confirm `{feature_folder}/wireframes/msf-findings.md` exists.
+2. Confirm `{feature_folder}/wireframes/msf-wf-findings/` exists and contains one `<wireframe-id>.md` per reviewed wireframe (per the D3 output slug above).
 
 ---
 
@@ -605,7 +605,7 @@ Generated: {YYYY-MM-DD}
 Folder: `{relative_path_to_folder}`
 Index: `{relative_path}/index.html`
 Canvas view: `{relative_path}/canvas.html` (Figma-like infinite-canvas aggregator; layout in `canvas.json`)
-MSF + PSYCH: `{relative_path}/msf-findings.md` (if Phase 6 ran)
+MSF + PSYCH: `{relative_path}/msf-wf-findings/` (if Phase 6 ran)
 
 | # | Component | Devices | States | File |
 |---|-----------|---------|--------|------|
@@ -615,8 +615,8 @@ MSF + PSYCH: `{relative_path}/msf-findings.md` (if Phase 6 ran)
 Commit:
 
 ```bash
-git add {feature_folder}/wireframes/ {feature_folder}/msf-findings.md {requirements_doc_path}
-# Includes canvas.html + canvas.json from Phase 7 — commit canvas.json so curated layouts persist across re-runs.
+git add {feature_folder}/wireframes/ {requirements_doc_path}
+# Includes canvas.html + canvas.json from Phase 7 and msf-wf-findings/ from Phase 6 — commit canvas.json so curated layouts persist across re-runs.
 git commit -m "docs: add wireframes for <feature>"
 ```
 
@@ -643,7 +643,7 @@ last_extraction_sha: <SHA at extraction; only set/update on extract>
 
 **Device support decisions** still go to workstream `## Constraints & Scars` if they're new and reusable across features (e.g. "no iOS app — never wireframe ios-app"). One-off device choices stay local to the feature folder.
 
-`## Constraints & Scars` is otherwise read-only from this skill — Phase 2b reads it; nothing here writes to it automatically. (Migration of an existing `## Design System / UI Patterns` section is handled in Phase 2af, not here.)
+`## Constraints & Scars` is otherwise read-only from this skill — Phase 2b reads it; nothing here writes to it automatically. (Migration of an existing `## Design System / UI Patterns` section is handled in Phase 2a step 2.5f, not here.)
 
 This phase is mandatory whenever Phase 0 loaded a workstream — do not skip it just because the core deliverable is complete.
 

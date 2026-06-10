@@ -54,6 +54,28 @@ fi
 
 DESTRUCTIVE_KEYWORDS='overwrite|restart|discard|drift|delete|force|reset|wipe'
 
+# --- Extractor false-positive filters (post-extraction, line-content based) ---
+# The canonical awk extractor (PD6) over-approximates "call site" to any line
+# mentioning AskUserQuestion. Two line shapes are provably never a prompt and
+# are skipped here (the shared extractor stays untouched):
+#
+#   1. Platform-adaptation degradation bullets — the canonical
+#      "- **No `AskUserQuestion` tool:**" bullet (and its
+#      "- **Codex / no `AskUserQuestion`:**" variant) describes how the skill
+#      degrades when the tool is ABSENT; it cannot issue a prompt.
+#   2. Negative prose — "Do NOT … AskUserQuestion" (negation before the tool
+#      name, same sentence) or "no AskUserQuestion" explicitly asserts that no
+#      prompt fires at that point.
+#
+# Keep these tight: anything not matching exactly stays flagged (conservative).
+SKIP_DEGRADATION_RE='^[[:space:]]*-[[:space:]]+\*\*(No `AskUserQuestion` tool|Codex / no `AskUserQuestion`):\*\*'
+SKIP_NEGATIVE_RE='(Do NOT[^.]*|(^|[[:space:]])no )`?AskUserQuestion'
+
+# Inline defer-only tags: a markdown table row cannot host the standalone tag
+# line the extractor recognizes (a non-pipe line terminates the table), so a
+# valid tag placed on the call line itself also satisfies "adjacent".
+INLINE_TAG_RE='<!--[[:space:]]*defer-only:[[:space:]]*(destructive|free-form|ambiguous)[[:space:]]*-->'
+
 TOTAL_FAIL=0
 
 for skill_file in "${TARGETS[@]}"; do
@@ -74,7 +96,19 @@ for skill_file in "${TARGETS[@]}"; do
   if [[ -n "$rows" ]]; then
     while IFS=$'\t' read -r line has_recc tag; do
       [[ -z "${line:-}" ]] && continue
+      src="$(sed -n "${line}p" "$skill_file")"
+      # Skip known never-a-prompt line shapes (see filter rationale above).
+      if printf '%s\n' "$src" | grep -qE "$SKIP_DEGRADATION_RE"; then continue; fi
+      if printf '%s\n' "$src" | grep -qE "$SKIP_NEGATIVE_RE"; then continue; fi
       n_calls=$((n_calls+1))
+      # Honor a valid defer-only tag inlined on the call line itself
+      # (table-row-safe form of "adjacent").
+      if [[ "$tag" == "-" ]]; then
+        inline_tag="$(printf '%s\n' "$src" | grep -oE "$INLINE_TAG_RE" | head -1 || true)"
+        if [[ -n "$inline_tag" ]]; then
+          tag="$(printf '%s\n' "$inline_tag" | sed -E 's/.*defer-only:[[:space:]]*([a-z-]+).*/\1/')"
+        fi
+      fi
       if [[ "$tag" != "-" ]]; then
         if [[ ! "$tag" =~ ^(destructive|free-form|ambiguous)$ ]]; then
           n_unmarked=$((n_unmarked+1))

@@ -7,7 +7,7 @@ argument-hint: "<path-to-wireframes-folder> [--apply-edits] [--format <html|md|b
 
 # /msf-wf — MSF + PSYCH on a Wireframes Folder
 
-Evaluate a generated wireframes folder by walking each screen with persona-conditional MSF analysis and per-screen PSYCH scoring. Output is a single `msf-findings.html` (with `.md` sidecar when `output_format: both`) with embedded PSYCH section. Standalone runs are recommendations-only; pass `--apply-edits` (typically when invoked from `/wireframes` Phase 6) to apply user-approved HTML edits inline.
+Evaluate a generated wireframes folder by walking each screen with persona-conditional MSF analysis and per-screen PSYCH scoring. Output is a single `msf-wf-findings.html` (with `.md` sidecar when `output_format: both`) with embedded PSYCH section. Standalone runs are recommendations-only; pass `--apply-edits` (typically when invoked from `/wireframes` Phase 6) to apply user-approved HTML edits inline.
 
 For requirements-doc-only analysis without wireframes, use `/msf-req` instead.
 
@@ -47,7 +47,7 @@ Use workstream context to inform analysis — product constraints and tech-stack
 
 ### Phase 0a: output_format resolution (FR-12)
 
-6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 5). NOTE: this controls the format of the `msf-findings` sidecar only — wireframe HTML files emitted/edited by `--apply-edits` are never converted (per runbook edge case row 1: wireframes/prototype unmodified).
+6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. The numbering continues from the pipeline-setup-block above (which ends at step 5). NOTE: this controls the format of the `msf-wf-findings` sidecar only — wireframe HTML files emitted/edited by `--apply-edits` are never converted (per runbook edge case row 1: wireframes/prototype unmodified).
 
 ---
 
@@ -167,7 +167,7 @@ Walk through each screen following the user's attention path (left-to-right, top
 - Medium-intent (exploring): 40
 - Low-intent (casual/first-time): 25
 
-**Default entry context:** Medium (40). Document the assumption as a header line at the top of `msf-findings.{html,md}` (rendered as a paragraph immediately after `<h1>` in the HTML primary):
+**Default entry context:** Medium (40). Document the assumption as a header line at the top of `msf-wf-findings.{html,md}` (rendered as a paragraph immediately after `<h1>` in the HTML primary):
 
 ```
 Entry context: Medium (40, default). Override by editing this line and re-running.
@@ -188,10 +188,10 @@ Focus on elements that stand out as clearly positive or negative. Skip neutral /
 Save a **single** consolidated findings doc per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. The wireframe HTML files themselves are never converted — only the findings sidecar is governed by this runbook (per runbook edge case row 1).
 
 **Save path:**
-- If invoked inside a pipeline feature folder (`{feature_folder}` resolved in Phase 0) → `{feature_folder}/msf-findings.html`.
+- If invoked inside a pipeline feature folder (`{feature_folder}` resolved in Phase 0) → `{feature_folder}/msf-wf-findings.html`. (Slug-distinct from /msf-req's `msf-req-findings.html` — running both on one feature must not overwrite.)
 - Else (ad-hoc) → `~/.pmos/msf/YYYY-MM-DD_<slug>.html`, where `<slug>` is derived from the wireframes folder name (lowercase, hyphenated).
 
-**Atomic write (FR-10.2):** write `msf-findings.html` and the companion `msf-findings.sections.json` via temp-then-rename — never serve a half-written file.
+**Atomic write (FR-10.2):** write `msf-wf-findings.html` and the companion `msf-wf-findings.sections.json` via temp-then-rename — never serve a half-written file.
 
 **Asset substrate (FR-10):** when writing into a feature folder, copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, `comments.js`, `comments.css`, and the launcher trio (`comments-open.command`, `comments-open.sh`, `comments-open.bat`); new substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files. Ad-hoc saves to `~/.pmos/msf/` write a self-contained HTML referencing `~/.pmos/msf/assets/` (first ad-hoc run seeds the cache).
 

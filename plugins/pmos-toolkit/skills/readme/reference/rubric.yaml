@@ -1,6 +1,6 @@
 # rubric.yaml — /readme audit rubric.
-# 15 binary checks. Severity buckets: blocker (gates publish), friction (degrades UX), nit (polish).
-# Consumed at runtime by scripts/rubric.sh (T7 widens the script to read this file).
+# Binary checks ([D] deterministic + [J] LLM-judge). Severity buckets: blocker (gates publish), friction (degrades UX), nit (polish).
+# Consumed at runtime by scripts/rubric.sh.
 
 version: 1
 
@@ -183,7 +183,7 @@ variants:
   plugin:
     overrides:
       - drop: install-or-quickstart-presence  # plugins install via marketplace, not user command
-      - add: plugin-manifest-mentioned        # bonus check (deferred impl to T21)
+      - add: plugin-manifest-mentioned        # bonus check (declared only — not yet implemented in rubric.sh)
   app:
     overrides:
       - drop: code-example-runnable-as-shown  # apps rarely show inline code in README

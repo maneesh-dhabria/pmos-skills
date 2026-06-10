@@ -36,7 +36,7 @@ Deterministic heuristic used by `/feature-sdlc` Phase 1a to classify the run's s
 | `"I have a half-formed idea about a Notion sync"` | 9 | `idea`, `half-formed` | no | 3 | **fuzzy** |
 | `"explore what we could do for survey response analysis"` | 9 | `explore`, `could` | no | 3 | **fuzzy** |
 | `"Build a survey-analyse skill that reads CSV/XLSX/PDF exports, runs per-question-type Python helpers, dispatches a fresh open-end-coding subagent per text column, applies Holm correction by default with plain-language framing..."` | 35+ | none | no | 5 | **formed** |
-| `"Fix the BSD-awk \\b portability bug in scripts/rubric.sh"` | 8 | none | no | 5 | **formed** (concrete bug, no vagueness marker) |
+| `"Fix the BSD-awk \\b portability bug in scripts/rubric.sh"` | 8 | none | no | 4 | **fuzzy** (concrete but sparse — rule 4 fires before rule 5; the gate presents and the user picks Skip if the detector misfired) |
 | Any seed | — | — | yes | 1 | **formed** |
 
 ## Why these thresholds

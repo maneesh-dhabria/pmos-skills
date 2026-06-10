@@ -2,7 +2,7 @@
 name: survey-analyse
 description: Analyse fielded survey responses (CSV / TSV / XLSX / XLS / PDF) and produce a methodologically defensible HTML report — executive summary, per-question deep dives, open-end thematic coding, cross-tab synthesis. Bundled per-question-type Python helpers compute the numbers; the LLM authors a per-run analysis.py that imports them, runs it via Bash, and narrates on top. Open-end coding dispatches a fresh subagent per text column (Braun & Clarke 6-phase). Cross-tabs apply Holm correction by default with plain-language framing. Triggers — "analyse this survey", "analyze survey responses", "what does this survey say", "write me a survey report", "make sense of these responses", "summarise the survey", "/survey-analyse". Use whenever the user hands you a response export and wants insight beyond eyeballing the CSV. Sister to /survey-design.
 user-invocable: true
-argument-hint: "--responses <path> [--context <path|url>] [--survey-json <path>] [--sheet <name|N>] [--weight-col <col>] [--raw-p-only] [--skip-cleaning] [--format html|md|both] [--non-interactive | --interactive]"
+argument-hint: "--responses <path> [--survey-json <path>] [--sheet <name|N>] [--raw-p-only] [--skip-cleaning] [--non-interactive | --interactive]"
 ---
 
 # survey-analyse
@@ -40,9 +40,9 @@ This skill runs 8 sequential phases. Create one task per phase using `TaskCreate
 ## Phase 0 — Setup
 
 1. **Read `.pmos/settings.yaml`.** Take `docs_path` from it. If the file or the key is absent, default `docs_path = docs/pmos/` and warn once: `survey-analyse: no .pmos/settings.yaml; using docs_path=docs/pmos/`. Do NOT run `_shared/pipeline-setup.md` Section A — this skill is not a pipeline stage and must work in any repo.
-2. **Parse flags** from the argument string: `--responses <path>` (required), `--context <path|url>`, `--survey-json <path>`, `--sheet <name|N>`, `--weight-col <col>`, `--raw-p-only`, `--skip-cleaning`, `--format html|md|both`, `--non-interactive | --interactive`. Missing `--responses` → stderr usage line; exit 64.
-3. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml :: output_format` (default `html`); `--format` overrides (last flag wins). Print to stderr once: `output_format: <value> (source: <cli|settings|default>)`.
-4. **Resolve the run folder.** Derive `<slug>` (lowercase-hyphenated ASCII) from the survey title / context doc / responses-filename stem. Run folder is `{docs_path}/survey-analyses/{YYYY-MM-DD}_<slug>/`. If it already exists, append `-2`, `-3`, … until unique — **never overwrite** an existing analysis folder.
+2. **Parse flags** from the argument string: `--responses <path>` (required), `--survey-json <path>`, `--sheet <name|N>`, `--raw-p-only`, `--skip-cleaning`, `--non-interactive | --interactive`. Missing `--responses` → stderr usage line; exit 64.
+3. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml :: output_format` (default `html`). Print to stderr once: `output_format: <value> (source: <settings|default>)`.
+4. **Resolve the run folder.** Derive `<slug>` (lowercase-hyphenated ASCII) from the survey title / responses-filename stem. Run folder is `{docs_path}/survey-analyses/{YYYY-MM-DD}_<slug>/`. If it already exists, append `-2`, `-3`, … until unique — **never overwrite** an existing analysis folder.
 5. **Phase tracking.** Create one task per phase via `TaskCreate` if available; otherwise announce verbally.
 6. **Learnings.** Read `~/.pmos/learnings.md` if present; note any entries under `## /survey-analyse` and factor them in (skill body wins on conflict; surface conflicts to user before applying).
 
@@ -80,6 +80,7 @@ This skill runs 8 sequential phases. Create one task per phase using `TaskCreate
 
 1. **Read the input file** via `scripts/helpers/ingest.py::read_responses(path, sheet=...)`:
    - `.csv` / `.tsv` → stdlib `csv` module (auto-detect delimiter on TSV);
+   <!-- defer-only: ambiguous -->
    - `.xlsx` / `.xls` → `openpyxl`. Multi-sheet: prompt `AskUserQuestion` with the sheet names unless `--sheet` was set.
    - `.pdf` → best-effort text extraction then heuristic table parsing. If extraction returns ≥1 plausible table with row count consistent with the survey: proceed with a chat-side warning ("PDF ingestion is best-effort; verify the normalised responses.csv before committing"). If not: fall back to a Read-tool LLM-tabulation pass. If still ambiguous: stop and ask the user to export CSV/XLSX from their survey platform.
 2. **Normalise** to `<run_folder>/responses.csv` (header row preserved as `header_order`). Strip BOMs, trim cells, leave values as strings (the schema phase decides types).
@@ -89,6 +90,7 @@ This skill runs 8 sequential phases. Create one task per phase using `TaskCreate
 
 1. **If `--survey-json` was passed:** read it; treat `sections[].questions[]` as the proposed schema (column = question; type = the question's `type` field). Match columns by question wording (fuzzy) or question id.
 2. **Else:** call `schema.infer(rows, header_order)` for a column-by-column heuristic type inference (cardinality, value patterns, numeric vs categorical, 0–10 + "recommend" wording → NPS).
+<!-- defer-only: free-form -->
 3. **Surface the schema for confirmation.** Group columns into batches of ≤4 and issue one `AskUserQuestion` per batch — each option per column lets the user keep the proposed type, change it from a dropdown of valid types, or mark the column "skip" (ignore in Phase 4). On the same prompt sequence ask, once, in a separate batch: survey purpose; key decision(s) the analysis should inform; segment columns of interest (multi-select from columns whose type is `single_select` with low cardinality); any context the user wants to flag.
 4. **Write `<run_folder>/schema.json`** — `{ "columns": { <col>: { "type": ..., "scale_size": ..., "delimiter": ..., "skip": false } }, "segments": [...], "purpose": "...", "decisions": [...] }`.
 5. **Why column-by-column:** the LLM-narrates-deterministic-numbers contract is only safe if the schema is right. Silent miscategorisation (Likert vs numeric; multi-select vs free-text) cascades into wrong analysis the user might trust because the report looks clean.
@@ -134,7 +136,7 @@ Render `<run_folder>/report.html` via the `_shared/html-authoring/` substrate at
 
 1. **Sections, in order, each a `<section id="…">` with kebab-case `<h2>`/`<h3>` ids:**
    - `executive-summary` — headline finding + business impact + 3–5 supporting findings (descending importance) + brief context + recommended actions.
-   - `methodology` — sample, mode, dates if known, response & completion counts, cleaning rules + counts, Holm-correction note in plain language, weighting status (and `--weight-col` if used), small-N caveats, probability-vs-non-probability framing, **PII warning summary**.
+   - `methodology` — sample, mode, dates if known, response & completion counts, cleaning rules + counts, Holm-correction note in plain language, weighting status (always unweighted — weighting is not supported; see `reference/cross-survey-stats.md` §Weighting), small-N caveats, probability-vs-non-probability framing, **PII warning summary**.
    - `key-findings` — same as exec summary but expanded; each finding cites its supporting question(s).
    - `per-question` — one `<h3>` per closed question with the helper's stats rendered as the right chart (inline SVG): bar (categorical); horizontal bar with "% of respondents (multiple answers allowed)" label (multi-select); diverging stacked bar (Likert / matrix rows); headline NPS number + distribution stack; ranked bar (ranking); histogram (numeric).
    - `open-end-themes` — one `<h3>` per open-text column with theme cards (name, definition, count + %, 1–3 verbatim quotes, sentiment lean).
@@ -145,13 +147,11 @@ Render `<run_folder>/report.html` via the `_shared/html-authoring/` substrate at
 4. **Regenerate `<run_folder>/index.html`** via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`; no on-disk `_index.json`).
 5. **`output_format: both`** → retired (FR-12.1); treated as `html` until a future feature re-introduces MD export.
 
-## Phase 8 — Workstream / Learnings / Handoff
+## Phase 8 — Workstream / Handoff
 
 - **No workstream enrichment** (the skill does not load workstream context — by design).
-- **Emit the learnings reflection line.** Either:
-  - `Learning: <new entry written to ~/.pmos/learnings.md under ## /survey-analyse>` — when this session surfaced a non-obvious lesson (e.g., user's data shape, a recurring schema-inference miss, a question-type the helpers handled poorly).
-  - `No new learnings this session because <specific reason>`.
 - **Handoff line.** Print the path to `report.html` + the run-folder root; suggest opening the report in a browser.
+- The learnings reflection is emitted once, in Phase 9 (Capture Learnings) — not here.
 
 ## Apply comment-resolver edit
 

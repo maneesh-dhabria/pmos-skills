@@ -1,23 +1,24 @@
-# simulated-reader.md — 3 persona prompts + return-shape contract
+# simulated-reader.md — persona prompts + return-shape contract
 
 Canonical reference for the `/readme` simulated-reader pass (FR-SR-1..6, spec §9.2.1).
-Three personas are dispatched in PARALLEL via 3 concurrent Task subagent calls (FR-SR-2);
-the parent skill (`SKILL.md`) inlines this file's persona prompt + the un-stripped
-README markdown into each Task body.
+The personas defined in §1 below are dispatched in PARALLEL via concurrent Task subagent
+calls (FR-SR-2); the parent skill (`SKILL.md`) inlines this file's persona prompt + the
+un-stripped README markdown into each Task body.
 
 ## Table of contents
 
-- [§1 — The three personas](#1-the-three-personas)
+- [§1 — The personas](#1-the-personas)
   - [1.1 evaluator (60s scan)](#11-evaluator-60s-scan)
   - [1.2 adopter (5-min first-success)](#12-adopter-5min-first-success)
   - [1.3 contributor (30-min extend/contribute)](#13-contributor-30min-extendcontribute)
+  - [1.4 returning-user-navigator (intent → skill mapping, 2-min orient)](#14-returning-user-navigator-intent--skill-mapping-2-min-orient)
 - [§2 — Return shape & FR-SR-3 quote contract](#2-return-shape--fr-sr-3-quote-contract)
 - [§3 — Theater-check escape (FR-SR-5)](#3-theater-check-escape-fr-sr-5)
 - [§4 — Parent-side validation reference](#4-parent-side-validation-reference)
 
 ---
 
-## §1 The three personas
+## §1 The personas
 
 Each persona reads the README **top-to-bottom**, in character, on a single pass.
 They are NOT reviewers. They are readers who can leave.
@@ -180,8 +181,8 @@ Per /grill D6.
 
 ## §4 Parent-side validation reference
 
-Validation lives in the **parent skill** (`plugins/pmos-toolkit/skills/readme/SKILL.md`,
-wired by T12), **NOT** in this reference doc and **NOT** self-validated by the
+Validation lives in the **parent skill** (`plugins/pmos-toolkit/skills/readme/SKILL.md`
+§2), **NOT** in this reference doc and **NOT** self-validated by the
 subagent. This mirrors `/grill`'s FR-50/51/52 pattern exactly.
 
 See `plugins/pmos-toolkit/skills/grill/SKILL.md` § "Input Contract (when invoked as

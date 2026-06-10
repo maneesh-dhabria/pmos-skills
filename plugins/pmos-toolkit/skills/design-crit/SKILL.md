@@ -258,16 +258,15 @@ After the Phase 4 reviewer subagent returns and before the disposition loop begi
 - If `depth_source == "cli"` → skip the gate; the Phase 0 `effective_cap` applies as-is.
 - If `N_returned ≤ 5` → skip the gate; set `effective_cap = N_returned` (nothing would be capped).
 - Else (gate fires):
-  - If `mode == non-interactive` → auto-pick **Top 12 (standard, Recommended)** per the canonical Recommended-pick contract. Append one entry to the OQ buffer recording `{question, chosen: "standard", N_returned}` so the wrapping skill or script can audit what was capped.
-  - Else → issue one `AskUserQuestion`:
-<!-- defer-only: ambiguous -->
+  - If `mode == non-interactive` → auto-pick **Top 12 (standard) (Recommended)** per the canonical Recommended-pick contract. Append one entry to the OQ buffer recording `{question, chosen: "standard", N_returned}` so the wrapping skill or script can audit what was capped.
+  - Else → issue one `AskUserQuestion` (default pick: `Top 12 (standard) (Recommended)`):
     ```
     AskUserQuestion:
       question: "Reviewer surfaced <N_returned> findings. How many to disposition?"
       header: "Depth"
       options:
         - "Top 5 (shallow)" — disposition the 5 highest-severity findings; rest logged as unsurfaced
-        - "Top 12 (standard, Recommended)" — current default behaviour; preserves no-regression path
+        - "Top 12 (standard) (Recommended)" — current default behaviour; preserves no-regression path
         - "All <N_returned> (deep)" — disposition every high+medium finding the reviewer returned
     ```
   - Map the user pick: `shallow → effective_cap = 5`, `standard → effective_cap = 12`, `deep → effective_cap = null`.
@@ -293,7 +292,7 @@ Apply a lightweight psychology + Motivation/Satisfaction/Friction pass to the ca
 
 ### 5a. PSYCH walkthrough
 
-For each chosen journey, assign each visible element an integer in [+1..+10] or [-10..-1] indicating its psychological pull. Sum to a screen Δ; track cumulative from an entry-context default (40 = medium-intent). Use the table format in `/wireframes/reference/psych-output-format.md` if you have access; otherwise:
+For each chosen journey, assign each visible element an integer in [+1..+10] or [-10..-1] indicating its psychological pull. Sum to a screen Δ; track cumulative from an entry-context default (40 = medium-intent). Use the table format in `../msf-wf/reference/psych-output-format.md` (the canonical PSYCH output reference, owned by `/msf-wf`) if you have access; otherwise:
 
 ```markdown
 ## Journey: <name> (start: 40, Medium-intent)

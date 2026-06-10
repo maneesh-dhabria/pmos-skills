@@ -22,7 +22,7 @@ Standalone-ish: invokes `/changelog` (Phase 8) and optionally `/verify` (Phase 1
 
 ## Track Progress
 
-This skill has 23 phases (Phase 0, 0.5, 1, 2, 3, 4, 5, 6, 7, 7.5, 8, 9, 10, 11, 12, 13, 14, 15, 15.5, 16, 16.5, 17, 18 — Phase 4 is a one-line deferral stub since v2.41.0; the substantive worktree-cleanup body lives at Phase 16a). Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code, equivalent elsewhere). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+This skill has 23 phases (Phase 0, 0a, 1, 2, 3, 4, 5, 6, 7, 7a, 8, 9, 10, 11, 12, 13, 14, 15, 15a, 16, 16a, 17, 18 — Phase 4 is a one-line deferral stub; the substantive worktree-cleanup body lives at Phase 16a). Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code, equivalent elsewhere). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
 
 ## Platform Adaptation
 
@@ -118,10 +118,13 @@ Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted
 
    - **Exit 64, stderr contains `spans plugins/.* AND plugins/`** → multi-plugin diff with non-`_shared` changes (FR-52). Surface the helper's stderr message verbatim to the user and abort with exit 64. Do not proceed.
 
+   <!-- defer-only: ambiguous -->
    - **Exit 0, stdout contains `Substrate-only change detected`** → only `plugins/<name>/skills/_shared/` files touched across multiple plugins (FR-53). Surface an `AskUserQuestion` listing each plugin and asking which plugin's next release should "ride" the substrate change (the version bump + tag + marketplace.json entry will land under that plugin). Set `--plugin <chosen>` and continue.
 
+   <!-- defer-only: ambiguous -->
    - **Exit 0 with no recognizable output** → empty diff or no `plugins/` paths in diff (FR-54). Fall back to legacy single-plugin behavior (assume `plugins/${plugin_name}/` where `${plugin_name}` defaults to the sole entry under `plugins/`; when multiple plugins exist and the diff yields no `plugins/` path, surface an `AskUserQuestion` asking the user to pick the target plugin rather than guessing). This preserves pre-rollout single-plugin invocations.
 
+<!-- defer-only: ambiguous -->
 3. **Cross-check `## Release policy` in top-level `CLAUDE.md` (FR-55, E15).** Read the repo-root `CLAUDE.md`. If it contains a `## Release policy` section with a `plugins:` list, parse the list and compare against the actual directory list under `plugins/`. On any mismatch (missing entry, extra entry, name drift) emit `WARNING: CLAUDE.md ## Release policy plugins list disagrees with plugins/ directory layout: <diff>. Proceeding anyway.` to stderr and continue (warn-but-proceed; this is advisory only). If `CLAUDE.md` lacks a `## Release policy` section, skip silently. If the diff is `CLAUDE.md`-only (no `plugins/` paths at all in the cached or working diff), treat as a substrate-like case (E15): warn the user and ask via `AskUserQuestion` which plugin's next release should ride the policy edit.
 
 The resolved `--plugin <name>` value is the scope key for every downstream phase — version bump (Phase 9), tag prefix (Phase 12), marketplace.json registration check (Phase 14 pre-push), and changelog routing (Phase 8).
@@ -283,9 +286,9 @@ If **merge** chosen, the existing sequence:
 5. `git merge <feature-branch>` (fast-forward where possible; `--no-ff` if explicitly chosen)
 6. **Conflicts → STOP and ask user. Do NOT auto-resolve.**
 
-## Phase 4 — Worktree cleanup (deferred to Phase 16a since v2.41.0)
+## Phase 4 — Worktree cleanup (stub — runs at Phase 16a)
 
-**No-op stub.** The worktree-cleanup logic (FR-CD01–CD06) used to live here, but was relocated to **Phase 16a** in v2.41.0 to preserve the `/feature-sdlc` resume contract: `state.yaml` lives in `<worktree>/.pmos/feature-sdlc/`, so removing the worktree before push tag (Phase 16) succeeds severs the user's ability to `/feature-sdlc --resume` if a later phase fails. See Anti-pattern #4 below and `reference/lastrun-schema.md` for the full rationale.
+**No-op stub.** Worktree cleanup (FR-CD01–CD06) runs at **Phase 16a**, after push tag succeeds — see Anti-pattern #4 for why.
 
 Log to chat: `Phase 4: worktree retained through release; cleanup deferred to Phase 16a.` Proceed to Phase 5.
 
@@ -684,11 +687,11 @@ done
 
 Skip if `--no-tag` was used.
 
-## Phase 16a — Worktree cleanup (FR-CD01–CD06) — moved here from Phase 4 in v2.41.0
+## Phase 16a — Worktree cleanup (FR-CD01–CD06)
 
 **Skip Phase 16a entirely** (chat: `Phase 16a skipped: not in a worktree.`) when Phase 2 detected `--no-worktree` mode or a non-worktree session (FR-CD06).
 
-**Skip when Phase 15 push failed and the user picked anything except a fully-completed retry** — the worktree must remain available for re-push attempts and `/feature-sdlc --resume`. The Phase 15a push-retry loop returns control to Phase 13 → 14 → 15 → 16 → 16.5; only when 16 push tag succeeds does this phase run.
+**Skip when Phase 15 push failed and the user picked anything except a fully-completed retry** — the worktree must remain available for re-push attempts and `/feature-sdlc --resume`. The Phase 15a push-retry loop returns control to Phase 13 → 14 → 15 → 16 → 16a; only when 16 push tag succeeds does this phase run.
 
 **Short-circuit when Phase 0a confirmed AND `run_defaults.worktree_disposition: remove`:** log `Phase 16a: worktree removal auto-selected via Phase 0a`; skip the prompt below; proceed to step 1 of the Remove sequence. When `run_defaults.worktree_disposition: keep`, log `Phase 16a: worktree retained via Phase 0a`; skip the prompt; skip the Remove sequence; proceed to Phase 17.
 
@@ -719,7 +722,7 @@ On **Remove**:
 
 4. **Confirm.** `git worktree list` no longer contains the feature's worktree; `git branch --list "feat/<slug>"` is empty. Print confirmation to chat.
 
-**Note:** Removal happens **AFTER push tag succeeds** by design (v2.41.0 change — was Phase 4 pre-push). This preserves the `/feature-sdlc` resume contract: `state.yaml` lives in `<worktree>/.pmos/feature-sdlc/`, so a Phase 15 push failure leaves the worktree intact AND the user can `/feature-sdlc --resume` to retry. See Anti-pattern #4.
+**Note:** Removal happens **AFTER push tag succeeds** — a Phase 15 push failure leaves the worktree (and its `/feature-sdlc --resume` state) intact. See Anti-pattern #4.
 
 ## Phase 17 — Final verification
 

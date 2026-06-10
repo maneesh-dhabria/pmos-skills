@@ -24,7 +24,7 @@
 </head>
 <body>
 <h1>{{topic}} — Learning List</h1>
-<p class="meta">Mode: {{mode}} · Level: {{level}} · {{date}} · {{link_count}} verified links across {{topic_count}} topics. Every link was fetched and verified this run.</p>
+<p class="meta">Depth: {{depth}} · Audience: {{audience}} · {{date}} · {{link_count}} verified links across {{topic_count}} topics. Every link was fetched and verified this run.</p>
 
 <section id="tldr">
 <h2 id="tldr">TL;DR</h2>
@@ -53,7 +53,7 @@
 
 <section id="adjacencies" class="adj">
 <h2 id="adjacencies">Adjacent rabbit holes</h2>
-<p class="meta">Separate from the core so they widen coverage without diluting focus. ({{adjacency_hops}} hop(s); omitted in quick mode.)</p>
+<p class="meta">Separate from the core so they widen coverage without diluting focus. ({{adjacency_hops}} hop(s); omitted at brief depth.)</p>
 <ol class="links">
   <li>
     <a href="{{url}}">{{title}}</a> <span class="tier">{{tier}}</span>
@@ -77,7 +77,7 @@
 <section id="paste-block">
 <h2 id="paste-block">Copy-ready list (paste into Readwise / Notion / Pocket)</h2>
 <pre class="paste">
-# {{topic}} — learning list ({{mode}})
+# {{topic}} — learning list ({{depth}})
 
 ## {{topic_1_title}}
 - {{title}} — {{url}}

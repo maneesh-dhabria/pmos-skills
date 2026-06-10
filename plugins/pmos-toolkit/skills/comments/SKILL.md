@@ -106,11 +106,12 @@ The subagent returns one of three shapes ([§9.1](../../../../docs/pmos/features
 ## Phase 3: Diff presentation + Accept/Reject/Modify/Skip
 
 <!-- defer-only: ambiguous -->
-On a successful dispatch the resolver presents a 4-option `AskUserQuestion`:
+On a successful dispatch the resolver presents a 5-option `AskUserQuestion` (after `MAX_REDISPATCH=2` 'Reject with refinement' loops, the prompt collapses to `{Modify, Skip}` only):
 
 - **Accept** — apply the edit to disk (Phase 4), append the subagent's `system_reply` as a `system` message, set `status: "resolved"`.
 - **Reject** — leave the artifact untouched, leave the thread `open`, record `skipped` with reason `operator_reject`.
-- **Modify** — inline edit-then-resubmit (T13). Until wired, the thread stays `open` with reason `operator_modify_deferred`.
+- **Reject with refinement** — the operator supplies a refinement note; it is appended to the thread as a user message and the subagent re-dispatched (an empty note degrades to a plain Reject without burning a re-dispatch slot).
+- **Modify** — not yet implemented; choosing it leaves the thread `open` with reason `operator_modify_deferred`.
 - **Skip** — same as Reject but explicit (operator wants to defer judgment).
 
 The diff body shown is the subagent's `diff_ref` + `system_reply`. The resolver does not compute its own diff — staging via `git add` (Phase 4) is what makes the change reviewable via `git diff --cached`.
@@ -136,10 +137,13 @@ Report at close:
 
 | Mode | Flag | Status | Description |
 |---|---|---|---|
-| confirm-each | `--confirm-each` (default) | **Implemented** | Prompt operator per thread with Accept/Reject/Modify/Skip. |
-| batch | `--batch` | TODO(T13) — stub; CLI exits 64. | Prompt once per dispatched-skill group; apply all in the group on a single Accept. |
-| auto | `--auto` | TODO(T14) — stub; CLI exits 64. | Apply every successful dispatch without prompting. Failures still surface. |
-| non-interactive | `--non-interactive` | TODO(T14) — stub; CLI exits 64. | Headless mode for CI. Honors the canonical non-interactive defer contract (no prompts; defers any operator choice). |
+| confirm-each | `--confirm-each` (default) | **Implemented** | Prompt operator per thread with the 5-option prompt (Phase 3). |
+| batch | `--batch` | **Implemented** | Wave-planned group prompting: dispatch each wave's subagents in parallel, one Accept/Reject/Defer prompt per wave, apply right-to-left within the wave. |
+| auto | `--auto` | **Implemented** | Apply every successful dispatch without prompting. Failures still surface; clarifications still prompt. |
+| non-interactive | `--non-interactive` | **Implemented** | Headless mode for CI. No prompts; clarifications and operator choices are deferred into the run summary (`deferred[]`) for an interactive re-run. |
+
+<!-- defer-only: ambiguous -->
+Note: the resolver's `--non-interactive` CLI mode is distinct from the harness-level `--non-interactive` contract inlined above — the harness contract governs how *this skill's own* `AskUserQuestion` prompts are auto-picked/deferred into the OQ buffer, while the CLI mode tells `resolver.js` to defer per-thread operator decisions instead of prompting.
 
 ## Configuration
 
@@ -164,6 +168,6 @@ Future: per-workstream defaults under `.pmos/settings.yaml :: comments` (default
 ## Implementation pointers
 
 - Controller: `scripts/resolver.js` — exports `async resolve({path, mode, askUser, dispatchSubagent, runGit})`. The last three are injectable test seams; defaults are real implementations.
-- CLI: `scripts/cli.js` — argv parser; exits 64 for non-`--confirm-each` modes pending T13/T14.
+- CLI: `scripts/cli.js` — argv parser; routes all four modes to the resolver, which validates the mode itself.
 - Tests: `tests/resolver-confirm-each.test.js` (happy path), `tests/resolver.integration.test.js`, plus anchor/schema/scorer suites.
 - Wrapper: `tests/scripts/assert_resolver_confirm_each.sh` — BSD-portable, BASH_SOURCE fallback per [CLAUDE.md](../../../../CLAUDE.md#bash-portability).

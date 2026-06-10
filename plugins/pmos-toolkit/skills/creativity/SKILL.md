@@ -165,6 +165,8 @@ Ask the user whether to update:
 
 Only proceed with what the user approves.
 
+**Companion re-emit:** when this phase edits `01_requirements.html`, re-emit the sibling `01_requirements.sections.json` from the post-edit section tree, atomically via temp-then-rename (the HTML and its sections.json are an atomic pair per `_shared/html-authoring/README.md` FR-71 — both succeed or neither persists).
+
 **Wireframe guidance:** Update only `-final.html` wireframes (not iterations). Add visual elements for layout-affecting changes. Copy/label changes can be text annotations only.
 
 ---

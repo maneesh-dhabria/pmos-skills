@@ -163,7 +163,7 @@ Goal: run a structured battery against the chosen finalist(s) — premortem + Mu
 
 For **each finalist (or reframe)** (per `reference/pressure-test-battery.md`):
 
-1. **Premortem.** Frame: "It is 2027-05-13. This idea, shipped 12 months ago, has failed. Why?" Produce a 3–6-row table: `mode | likelihood (H/M/L) | mitigation`.
+1. **Premortem.** Frame: "It is one year from today. This idea, shipped 12 months ago, has failed. Why?" Produce a 3–6-row table: `mode | likelihood (H/M/L) | mitigation`.
 2. **Munger Inversion.** Frame: "What set of choices would *guarantee* this idea fails?" Produce 3–5 inverted-action bullets — concrete, actionable inversions, not platitudes.
 3. **Assumption Mapping.** Enumerate the load-bearing assumptions of the idea. Rank by `impact × uncertainty`. Produce a 4–8-row table: `assumption | impact (H/M/L) | uncertainty (H/M/L) | cheapest test to validate`.
 
