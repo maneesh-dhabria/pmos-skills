@@ -1,6 +1,6 @@
 # Per-Device HTML Template
 
-Each `index.<device>.html` follows this structure. Generated once per device by the Phase 5 subagent.
+Each `index.<device>.html` follows this structure. Generated once per device by the `#generate-devices` subagent.
 
 ## Skeleton
 
@@ -137,7 +137,7 @@ CSS for these lives in `prototype.css` keyed off `body.device-<name>`. Subagent 
 9. **Forms must call `mockApi.post / put` and handle the resolved Promise** (loading → success/error toast → optional navigate).
 10. **Every async render must show a loading state** (Spinner or skeleton) until data is available.
 11. **NotFoundScreen must always exist** so the router has a fallback.
-12. **GlobalToasts must always exist** even if not used immediately — Phase 6 reviewers expect it.
+12. **GlobalToasts must always exist** even if not used immediately — `#review` reviewers expect it.
 
 ## Sizing
 

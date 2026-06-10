@@ -1,6 +1,6 @@
 # Prototype Design-Artifact Resolver
 
-How `/prototype` Phase 1a finds DESIGN.md, COMPONENTS.md, and produces both the CSS overlay and the JS tokens file the prototype runtime needs.
+How `/prototype`'s `#design-context` phase finds DESIGN.md, COMPONENTS.md, and produces both the CSS overlay and the JS tokens file the prototype runtime needs.
 
 This doc composes existing infrastructure — the heavy lifting lives in `wireframes/reference/design-md-resolver.md` and the two generators. This doc adds the prototype-specific glue: abort-when-missing, overlay reuse from wireframes folder, JS tokens generation.
 
@@ -8,7 +8,7 @@ This doc composes existing infrastructure — the heavy lifting lives in `wirefr
 
 ## Inputs
 
-- `{feature_folder}` — resolved by the `/prototype` skill in Phase 0.
+- `{feature_folder}` — resolved by the `/prototype` skill in `#pipeline-setup`.
 - Workstream context (if loaded).
 - Subagent budget if available; else inline.
 
@@ -18,7 +18,7 @@ Six in-memory / on-disk artifacts:
 
 | Artifact | Where | Notes |
 |---|---|---|
-| `merged_design_md` | in-memory | Object after `x-extends` cascade. Passed to Phase 4c, 5, 6. |
+| `merged_design_md` | in-memory | Object after `x-extends` cascade. Passed to `#shared-runtime`, `#generate-devices`, `#review`. |
 | `components_inventory` | in-memory | COMPONENTS.md content (or empty if absent). |
 | `layout_anchor` | in-memory | Chosen named layout from `x-information-architecture.layouts` (or null). |
 | `decision_context` | in-memory | Concatenated workstream scars + DESIGN.md anti-patterns + Do's and Don'ts. |
@@ -86,7 +86,7 @@ JS tokens are cheap to produce and consistency wins over reuse. Never reused fro
 
 Look for `<dirname design_md_path>/COMPONENTS.md`.
 
-- **Found** → load. Pass content to Phase 4c as `components_inventory`.
+- **Found** → load. Pass content to the `#shared-runtime` components.js generator as `components_inventory`.
 - **Missing** → set `components_inventory = null` and emit a warning: "COMPONENTS.md not found at <path>. Prototype generators will infer component variants without inventory grounding. Run `/verify` after the next implementation pass to populate it via the drift check."
 - Do NOT extract from `/prototype`. That's `/verify`'s job. Keeping prototype lightweight.
 
@@ -96,7 +96,7 @@ Look for `<dirname design_md_path>/COMPONENTS.md`.
 
 If `merged_design_md.x-information-architecture.layouts` has entries:
 
-1. Check for `{feature_folder}/wireframes/.layout-anchor` marker file (a small text file containing the layout name chosen by `/wireframes` Phase 2b).
+1. Check for `{feature_folder}/wireframes/.layout-anchor` marker file (a small text file containing the layout name chosen by `/wireframes`' `#composition-context` phase).
 2. **If marker exists and the named layout still exists in DESIGN.md** → reuse silently. Announce: "Inheriting layout anchor `<name>` from /wireframes."
 3. **If marker missing or stale** → AskUserQuestion (single-select): "Which layout does this prototype follow?" Options: each named layout + "None — start fresh". Cap 4.
 4. **Persist** the chosen layout to `{feature_folder}/prototype/.layout-anchor` for downstream skills.

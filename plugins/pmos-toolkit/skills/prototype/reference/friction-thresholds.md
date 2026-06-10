@@ -1,6 +1,6 @@
 # Interactive Friction Thresholds
 
-Used by Phase 7 (Interactive Friction Pass). MSF + PSYCH analysis lives in `/msf-wf` (which `/wireframes` Phase 6 delegates to) — this is a lighter pass that measures *operational cost* of completing each user journey through the running prototype.
+Used by the `#friction-pass` phase. MSF + PSYCH analysis lives in `/msf-wf` (which `/wireframes`' `#folded-msf-wf` phase delegates to) — this is a lighter pass that measures *operational cost* of completing each user journey through the running prototype.
 
 The friction subagent walks each journey end-to-end and counts measurable interactions. It does NOT score motivation or satisfaction — that's `/msf-req` and `/msf-wf`'s job.
 
@@ -12,21 +12,21 @@ There are two walk modes. **Live walk is the default whenever Playwright MCP is 
 
 The subagent uses Playwright MCP to actually open the prototype in a headless browser, click through each journey step, and observe what happens:
 
-1. Start the static server (or use the URL captured in Phase 5d / 9b).
+1. Start the static server (or use the URL captured by the `#generate-devices` runtime smoke / `#index-serve`).
 2. For each journey step, perform the actual click / keystroke and wait for the next screen to render.
 3. Record real metrics: actual clicks issued, actual keystrokes typed, actual screens reached, actual modal interruptions encountered, actual `mockApi` latency observed (from `Date.now()` deltas around `await` boundaries).
 4. **Capture a per-step screenshot** when feasible — attached to `interactive-friction.md` so flagged steps are reviewable.
 5. Watch console for errors during the walk. A console error during journey traversal is a high-severity flag (the analytical pass cannot detect this).
 
 The live walk is the only way to detect:
-- Journey steps that look fine in code but fail in the browser (Phase 5d issues that slipped through).
+- Journey steps that look fine in code but fail in the browser (runtime-smoke issues that slipped through).
 - Actual latency vs. nominal latency.
 - Race conditions where the next screen mounts before data is ready.
 - Modals that intercept clicks invisibly.
 
 ### Analytical-only walk (degraded fallback — Playwright MCP unavailable)
 
-The subagent reads the route table from `runtime.js` and the screen components from the device file, then *analytically* counts what a user would have to do. This is the v2.7.0 mode.
+The subagent reads the route table from `runtime.js` and the screen components from the device file, then *analytically* counts what a user would have to do.
 
 Limitations of analytical mode (state these honestly in the friction output):
 - **Cannot detect "page didn't render"** — analytical mode counts clicks against code that may be broken.

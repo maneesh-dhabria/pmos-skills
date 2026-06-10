@@ -57,12 +57,14 @@ The reviewer subagent uses this rubric to score a single per-device prototype HT
 
 ### A — Accessibility
 
+A1/A3/A4 are **advisory**: the reviewer may note them, but they never drive a refinement loop — a prototype is throwaway demo code, and stakeholders walking it won't exercise screen readers or measure contrast. A2/A5 remain loop-driving because they overlap the x-interaction contract (focus visibility, keyboard-reachable CTAs).
+
 | ID | Heuristic | What to check |
 |----|-----------|---------------|
-| A1 | Semantic HTML | Headings hierarchical, `<button>` for actions (not `<div onClick>`), `<nav>` for navigation, `<form>` for forms. |
+| A1 (advisory) | Semantic HTML | Headings hierarchical, `<button>` for actions (not `<div onClick>`), `<nav>` for navigation, `<form>` for forms. |
 | A2 | Focus-visible | Keyboard focus produces a visible outline on interactive elements. |
-| A3 | Aria labels on icon-only buttons | `<button aria-label="Close">×</button>` pattern applied. |
-| A4 | Contrast ≥ 4.5:1 | Body text and primary actions hit the threshold against their background. |
+| A3 (advisory) | Aria labels on icon-only buttons | `<button aria-label="Close">×</button>` pattern applied. |
+| A4 (advisory) | Contrast ≥ 4.5:1 | Body text and primary actions hit the threshold against their background. |
 | A5 | Keyboard nav for primary CTAs | Tab order reaches primary actions; Enter activates them. |
 
 ### V — Visual Consistency
@@ -84,7 +86,11 @@ Every visible data field on a screen must anchor a decision the user actually ma
 | F2 | Pre-computed metrics that have no cost-of-display rationale | Flag indicators that imply expensive precomputation (coverage bars, freshness scores, completeness rings) when the underlying data is generate-on-demand or trivially recomputable in the user's mental model. These mislead about system cost. Severity: medium. Suggested fix: replace with on-demand action ("Generate now" button) or remove. |
 | F3 | Schema-driven decoration | Fields displayed solely because they exist in the entity (created_at, last_modified, internal IDs, audit metadata) without a user-facing decision tied to them. Severity: low–medium. Suggested fix: hide on list/card surfaces; expose only in admin/debug views. |
 
-This category was added in v2.9.0 after a retro flagged a library-card audio-coverage bar that misrepresented the system (audio was generate-on-the-fly, not pre-computed) and added no decision value. The reviewer should ask for each visible field: *what does the user do with this number?* If the answer is "nothing", flag it.
+This category exists because a retro flagged a library-card audio-coverage bar that misrepresented the system (audio was generate-on-the-fly, not pre-computed) and added no decision value. The reviewer should ask for each visible field: *what does the user do with this number?* If the answer is "nothing", flag it.
+
+### X — x-interaction contract
+
+Score the file against the key-by-key mapping in `components-template.md` §"x-interaction contract" (the single home for it) using the DESIGN.md `x-interaction` / `x-content` blocks the dispatcher provides. Violations are severity ≥ medium and are hard-fails (loop-driving). Tag findings `x-interaction:<key>`.
 
 ### R — Runtime
 

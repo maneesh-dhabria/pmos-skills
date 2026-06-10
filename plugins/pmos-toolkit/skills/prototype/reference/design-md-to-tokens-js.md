@@ -2,7 +2,7 @@
 
 Converts a merged DESIGN.md (after `x-extends` cascade) into a JS-shaped tokens file the prototype's JSX can import for inline styles, conditional logic, chart palettes, and any value not naturally expressed as a CSS variable.
 
-This is the JS counterpart of `wireframes/reference/design-md-to-css.md`. Both run in `/prototype` Phase 1a.
+This is the JS counterpart of `wireframes/reference/design-md-to-css.md`. Both run in `/prototype`'s `#design-context` phase.
 
 ---
 
@@ -143,7 +143,7 @@ Consistent with the prototype's existing global-shape (`window.__protoComponents
 
 | Failure | Behavior |
 |---|---|
-| `colors` missing or empty | Emit a header-only file with a warning comment + `window.__designTokens = Object.freeze({});`. Consumers should null-check (Phase 4c generator instructed accordingly). |
+| `colors` missing or empty | Emit a header-only file with a warning comment + `window.__designTokens = Object.freeze({});`. Consumers should null-check (the `#shared-runtime` components.js generator is instructed accordingly). |
 | Reference cycle / missing reference | Comment in file, value left as `{…}` literal. |
 | Output path unwritable | Hard error — tell user, abort phase. |
 | Hyphenated key in `colors` (rare) | Quote it: `"primary-foreground": "#…"`. |

@@ -1,6 +1,6 @@
 # Mock Data Generation Prompt
 
-Used by Phase 3. Dispatch ONE subagent with this prompt template, the requirements doc, the wireframes, and any workstream domain hint.
+Used by the `#mock-data` phase. Dispatch ONE subagent with this prompt template, the requirements doc, the wireframes, and any workstream domain hint.
 
 ## Inputs to the subagent
 
@@ -8,7 +8,7 @@ Used by Phase 3. Dispatch ONE subagent with this prompt template, the requiremen
 2. **Wireframes visible-field summary** — extracted by main agent before dispatch:
    - Run grep across `wireframes/*.html` for `<th>`, `<label>`, `<dt>` text and any `data-field` attributes
    - Build a structured list: `{screen, fieldsShown: [name1, name2, …], approxRowCount: N (from wireframe row visible)}`
-3. **Workstream domain hint** — if Phase 0 loaded one, pass the `## Tech Stack` and `## Domain Notes` sections verbatim
+3. **Workstream domain hint** — if `#pipeline-setup` loaded one, pass the `## Tech Stack` and `## Domain Notes` sections verbatim
 4. **Output folder path** — `{feature_folder}/prototype/assets/`
 
 ## Prompt template (sent to subagent verbatim)

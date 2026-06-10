@@ -10,19 +10,20 @@ End-to-end verification needs a real feature folder with `/wireframes` output. R
 
 | Phase | Verification |
 |-------|--------------|
-| 0 | Skill loads workstream + learnings without error; feature folder resolves |
-| 1 | Detects existing wireframes; auto-triggers `/wireframes` if missing |
-| 2 | Honors tier gating (Tier 1 exits, Tier 2 prompts, Tier 3 announces mandatory) |
-| 3 | Generates `assets/<entity>.json` with domain-real data; user review prompt fires |
-| 4 | Generates `runtime.js`, `components.js`, `styles.css` (parallel where possible); `prototype.css` copied |
-| 5 | Produces one `index.<device>.html` per device that opens cleanly in a browser; all screens reachable |
-| 6 | Reviewer subagent runs ≤2 loops per file; review log appears as HTML comment at top of each device file |
-| 7 | Friction pass produces `interactive-friction.md` (capped at 5 journeys) |
-| 8 | Findings surface via `AskUserQuestion` (≤4 per batch, capped at 12 total) |
-| 9 | Landing `index.html` generated; both URL + file path printed |
-| 10 | Req doc gets `## Prototype` section appended; commit succeeds |
-| 11 | Workstream enriched if loaded in Phase 0 |
-| 12 | Capture-learnings reflection runs |
+| `#pipeline-setup` | Skill loads workstream + learnings without error; feature folder resolves |
+| `#locate-inputs` | Detects existing wireframes; auto-triggers `/wireframes` if missing; the prototype's question is stated and confirmed at the gate |
+| `#design-context` | DESIGN.md resolved (or targeted bootstrap offered); `design-overlay.css` + `design-tokens.js` land in `prototype/assets/` |
+| `#tier-gate` | Honors tier gating (Tier 1 exits, Tier 2 prompts, Tier 3 announces mandatory) |
+| `#mock-data` | Generates `assets/<entity>.json` with domain-real data; user review prompt fires |
+| `#shared-runtime` | Generates `runtime.js`, `components.js`, `styles.css` (parallel where possible); `prototype.css` copied |
+| `#generate-devices` | Produces one `index.<device>.html` per device; runtime smoke passes (or degraded banner emitted); all screens reachable |
+| `#review` | Reviewer subagent runs ≤2 loops per file; review log appears as HTML comment at top of each device file |
+| `#friction-pass` | Friction pass produces `interactive-friction.md` (capped at 5 journeys) |
+| `#findings` | Findings surface via `AskUserQuestion` (≤4 per batch, capped at 12 total) |
+| `#index-serve` | Landing `index.html` generated; both URL + file path printed |
+| `#spec-handoff` | Req doc gets `## Prototype` section appended (incl. `Question:` + `Verdict:` lines); commit succeeds |
+| `#workstream-enrichment` | Workstream enriched if loaded in `#pipeline-setup` |
+| `#capture-learnings` | Capture-learnings reflection runs |
 
 ## Browser checks (after generation)
 

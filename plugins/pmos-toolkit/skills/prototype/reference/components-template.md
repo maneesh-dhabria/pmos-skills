@@ -4,16 +4,7 @@
 
 ## Loading strategy
 
-The device HTML loads scripts in this order:
-
-```html
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="./assets/runtime.js"></script>
-<!-- components.js is Babel-compiled at runtime -->
-<script type="text/babel" src="./assets/components.js" data-presets="react"></script>
-```
+The device HTML loads `components.js` last, as `<script type="text/babel" src="./assets/components.js" data-presets="react">` — the canonical CSS/JS load order (and why it matters) is `device-html-template.md` strict rule 1; do not restate it here.
 
 `<script type="text/babel" src="…">` works with Babel Standalone — it fetches and compiles JSX. This lets components.js use JSX directly, matching how authors will write screens. (Note: this requires the file to be fetchable; the same fetch-fallback that mock-data uses does NOT apply here, so on `file://` browsers must allow cross-origin fetch of local JS. If this proves flaky, the subagent inlines components.js into a `<script type="text/babel">` block in each device file instead — this is the failsafe.)
 
@@ -187,9 +178,26 @@ const TableSkeleton = ({ rows, columns }) => (
 );
 ```
 
+## x-interaction contract (mandatory)
+
+DESIGN.md's `x-interaction` and `x-content` blocks are a **contract, not advisory** — the components.js generator implements this mapping literally, and the `#review` reviewer scores against it (violations are severity ≥ medium). This section is the single home for the key-by-key mapping; the SKILL.md generator and reviewer steps cite it.
+
+- `modals.style` (centered / drawer-right / drawer-bottom / fullscreen) controls Modal positioning. Hard-code the matching class string.
+- `modals.dismiss` (backdrop-click / explicit-button / esc-key) controls which dismiss handlers Modal wires up. Wire ONLY the listed dismiss paths — no extras.
+- `destructiveActions.confirmation`: `always` → simple confirm modal; `double-click` → first click arms a 3-second visual countdown ring on the button; `type-to-confirm` → confirm modal with a text input that must match the resource name to enable the confirm button.
+- `focus.trapInModals: true` → Modal traps Tab/Shift-Tab within itself when open.
+- `focus.visibleStyle` → applied as the `:focus-visible` class on Button, Input, Select, etc.
+- `defaultStates.empty` (illustrated / minimal / none) → EmptyState atom default variant.
+- `defaultStates.loading` (skeleton / spinner / progress) → default Loading variant in components like Table.
+- `defaultStates.error` (inline-banner / full-page / toast) → default error rendering in components.
+- `shortcuts` → wire as global keydown handlers in runtime.js; advertise in a `?` keyboard-shortcut modal.
+- `x-content.buttonVerbs` → use these exact verbs in default Button labels ('Save', 'Create', 'Delete'). Don't invent 'Submit' or 'Add'. Date and currency formats come from `window.__designTokens.content.formats`.
+
+Pull values from `window.__designTokens.interaction.*` / `.content.*` at runtime; do not duplicate the values inline.
+
 ## File structure (MANDATORY IIFE wrap)
 
-`components.js` is loaded as `<script type="text/babel" src="./assets/components.js">`. Babel-standalone compiles every Babel block into the SAME shared global scope as inline `<script type="text/babel">` blocks in the device HTML — so top-level `const Button = …` here collides with `const { Button } = window.__protoComponents` in screen blocks ("Identifier 'Button' has already been declared" — fatal on first load).
+`components.js` is loaded as `<script type="text/babel" src="./assets/components.js">`, so Babel-standalone compiles it into the same shared global scope as the device HTML's inline Babel blocks — top-level bindings collide fatally on first load (failure-mode rationale: `device-html-template.md` strict rule 0, the single home for it).
 
 The entire file body MUST be wrapped in an IIFE:
 
