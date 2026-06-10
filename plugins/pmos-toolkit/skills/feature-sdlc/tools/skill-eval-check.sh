@@ -2,8 +2,14 @@
 # skill-eval-check.sh
 #
 # Runs the *deterministic* half of the skill-eval.md rubric against a skill
-# directory. The 21 [D]-tagged checks in ../reference/skill-eval.md are implemented
-# here; the 20 [J] (llm-judge) checks are run separately by a reviewer subagent.
+# directory. The [D]-tagged checks in ../reference/skill-eval.md are implemented
+# here (DET_CHECKS below is the authoritative set, asserted against the rubric by
+# --selftest); the gated [J] (llm-judge) checks and the advisory [J] signals are
+# run separately by a reviewer subagent. Three [D] checks shell out to the host
+# repo's root tools/ lints (lint-flags-vs-hints.sh, lint-phase-refs.sh), resolved
+# by walking up from this script; when a lint is missing the check is skipped
+# with a stderr WARN, never crashed (the rubric may be synced into a plugin that
+# lacks the repo-root tools/).
 #
 # Exit codes: 0 = all applicable [D] checks pass (or bijection holds in --selftest);
 #             1 = a [D] check failed (or the bijection is broken); 2 = invocation /
@@ -20,10 +26,14 @@
 # Modes:
 #   scoring  (<skill_dir> given)  — emit one TSV line per applicable [D] check:
 #                                   <check_id>\t<pass|fail>\t<evidence>  (on stdout)
-#   selftest (--selftest)         — assert the [D] check set in skill-eval.md equals
-#                                   this script's DET_CHECKS array, and that every
+#   selftest (--selftest)         — assert (1) the [D] check set in skill-eval.md
+#                                   equals this script's DET_CHECKS array, (2) every
 #                                   check row in skill-eval.md names a skill-patterns
-#                                   §-rule (the FR-72 bijection). Prints PASS/FAIL on
+#                                   §-rule (the FR-72 bijection), and (3) the rubric's
+#                                   opening-line counts (total / gated / [D] / gated
+#                                   [J] / advisory / pass floor = gated − 4) equal the
+#                                   table reality — no hard-coded numbers; both sides
+#                                   are parsed from skill-eval.md. Prints PASS/FAIL on
 #                                   stderr. <skill_dir> is still required (it locates
 #                                   ../reference/skill-eval.md is relative to this
 #                                   script, but a target dir keeps the CLI uniform).
@@ -41,6 +51,11 @@
 #                                                          still runs
 #   - --target generic                                  → group F checks skipped
 #   - no --plan <path> given (or path missing)           → group G checks skipped
+#   - repo-root tools/lint-flags-vs-hints.sh missing     → i-hint-contract-only +
+#                                                          i-nl-sugar-marked skipped
+#                                                          (stderr WARN, no fail)
+#   - repo-root tools/lint-phase-refs.sh missing         → j-phase-refs-resolve
+#                                                          skipped (stderr WARN)
 #
 # Dependencies: bash >= 3.2, coreutils (grep, sed, awk, wc, head, find, basename).
 #               No Node, no jq.
@@ -50,7 +65,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 SKILL_EVAL_MD="${SCRIPT_DIR}/../reference/skill-eval.md"
 
-# The 21 deterministic checks this script implements. MUST equal the set of
+# The deterministic checks this script implements. MUST equal the set of
 # [D]-tagged rows in skill-eval.md (asserted by --selftest).
 DET_CHECKS=(
   a-frontmatter-present a-name-present a-name-lowercase-hyphen a-name-len
@@ -62,7 +77,23 @@ DET_CHECKS=(
   e-scripts-dir
   f-cc-user-invocable f-codex-sidecar
   g-plan-grep-clean
+  i-hint-contract-only i-nl-sugar-marked
+  j-phase-refs-resolve
 )
+
+# Walk up from this script's directory looking for a repo-relative tool path
+# (e.g. tools/lint-flags-vs-hints.sh). Prints the absolute path on success.
+# Walking up (instead of a fixed ../../../../..) keeps the lookup correct when
+# the skill tree is synced to a different depth, and returns non-zero (→ skip
+# with WARN) when the host repo has no root tools/.
+find_repo_tool() {
+  local rel="$1" d="$SCRIPT_DIR"
+  while [[ -n "$d" && "$d" != "/" ]]; do
+    if [[ -f "$d/$rel" ]]; then printf '%s\n' "$d/$rel"; return 0; fi
+    d="$(dirname "$d")"
+  done
+  return 1
+}
 
 die() { echo "ERROR: $*" >&2; exit 2; }
 
@@ -115,7 +146,49 @@ if [[ $SELFTEST -eq 1 ]]; then
     n="$(printf '%s' "$row" | grep -oE 'skill-patterns\.md §[A-Z]' | sort -u | wc -l | tr -d ' ')"
     if [[ "$n" != "1" ]]; then echo "SELFTEST FAIL: check '$id' names $n skill-patterns §-rules (expected 1)" >&2; fail=1; fi
   done <<< "$(eval_md_all_rows)"
-  if [[ $fail -eq 0 ]]; then echo "SELFTEST PASS: ${#DET_CHECKS[@]} [D] checks ↔ skill-eval.md; every check names one §-rule." >&2; exit 0; fi
+
+  # ---- count assertions: opening counts line vs table reality ----
+  # The rubric states its counts exactly once (opening line); nothing here is
+  # hard-coded — both sides are parsed from skill-eval.md so the assertion can't
+  # go stale when the rubric grows.
+  counts_line="$(grep -m1 'binary pass/fail checks' "$SKILL_EVAL_MD" || true)"
+  adv_line="$(grep -nE -m1 '^##[[:space:]]+Advisory signals' "$SKILL_EVAL_MD" | cut -d: -f1 || true)"
+  if [[ -z "$counts_line" ]]; then
+    echo "SELFTEST FAIL: no '<N> binary pass/fail checks' counts line in skill-eval.md header" >&2; fail=1
+  elif [[ -z "$adv_line" ]]; then
+    echo "SELFTEST FAIL: no '## Advisory signals' section in skill-eval.md" >&2; fail=1
+  else
+    h_total="$(printf '%s' "$counts_line" | grep -oE '[0-9]+ binary pass/fail checks' | grep -oE '^[0-9]+' || true)"
+    h_gated="$(printf '%s' "$counts_line" | grep -oE '[0-9]+ gated' | head -1 | grep -oE '^[0-9]+' || true)"
+    h_d="$(printf '%s' "$counts_line" | grep -oE '[0-9]+ `\[D\]`' | head -1 | grep -oE '^[0-9]+' || true)"
+    h_j="$(printf '%s' "$counts_line" | grep -oE '[0-9]+ `\[J\]`' | head -1 | grep -oE '^[0-9]+' || true)"
+    h_adv="$(printf '%s' "$counts_line" | grep -oE '[0-9]+ advisory' | head -1 | grep -oE '^[0-9]+' || true)"
+    h_floor="$(printf '%s' "$counts_line" | grep -oE 'pass floor [0-9]+' | grep -oE '[0-9]+' || true)"
+    # table reality: rows above the advisory heading are gated, below are advisory
+    row_re='^\|[[:space:]]*[a-z][a-z0-9-]*[[:space:]]*\|[[:space:]]*\[[DJ]\][[:space:]]*\|'
+    t_total="$(eval_md_all_rows | wc -l | tr -d ' ')"
+    t_adv="$(sed -n "${adv_line},\$p" "$SKILL_EVAL_MD" | grep -cE "$row_re" || true)"
+    t_gated=$((t_total - t_adv))
+    t_d="$(eval_md_det_ids | wc -l | tr -d ' ')"
+    t_j=$((t_gated - t_d))
+    adv_d="$(sed -n "${adv_line},\$p" "$SKILL_EVAL_MD" | grep -cE '^\|[[:space:]]*[a-z][a-z0-9-]*[[:space:]]*\|[[:space:]]*\[D\][[:space:]]*\|' || true)"
+    if [[ "$adv_d" != "0" ]]; then echo "SELFTEST FAIL: advisory section contains $adv_d [D] row(s) — advisory checks must be [J]" >&2; fail=1; fi
+    assert_count() { # label header table
+      if [[ -z "$2" ]]; then echo "SELFTEST FAIL: could not parse '$1' from the counts line" >&2; fail=1
+      elif [[ "$2" != "$3" ]]; then echo "SELFTEST FAIL: $1 — header says $2, table reality is $3" >&2; fail=1; fi
+    }
+    assert_count "total checks"      "$h_total" "$t_total"
+    assert_count "gated checks"      "$h_gated" "$t_gated"
+    assert_count "[D] checks"        "$h_d"     "$t_d"
+    assert_count "gated [J] checks"  "$h_j"     "$t_j"
+    assert_count "advisory checks"   "$h_adv"   "$t_adv"
+    assert_count "pass floor (gated − 4)" "$h_floor" "$((t_gated - 4))"
+  fi
+
+  if [[ $fail -eq 0 ]]; then
+    echo "SELFTEST PASS: ${#DET_CHECKS[@]} [D] checks ↔ skill-eval.md; every check names one §-rule; header counts match table (total=$t_total gated=$t_gated D=$t_d J=$t_j advisory=$t_adv floor=$((t_gated - 4)))." >&2
+    exit 0
+  fi
   exit 1
 fi
 
@@ -259,6 +332,55 @@ if [[ -n "$PLAN_FILE" && -f "$PLAN_FILE" ]]; then
       first_hit="$(printf '%s' "$hits" | head -1 | tr '\t' ' ')"
       emit g-plan-grep-clean fail "wave block(s) contain release-prereq marker(s): $first_hit"
     fi
+  fi
+fi
+
+# --- 10.I (deterministic half — i-hint-contract-only + i-nl-sugar-marked) ---
+# One shared invocation of the repo-root flags-vs-hints lint: HINT-DEAD lines
+# fail i-hint-contract-only, BODY-ONLY lines fail i-nl-sugar-marked. The lint
+# resolves the repo root from its own location, so it runs correctly from any
+# cwd. Missing/erroring lint → both checks skipped with a stderr WARN (N/A).
+FLAGS_LINT="$(find_repo_tool tools/lint-flags-vs-hints.sh || true)"
+if [[ -z "$FLAGS_LINT" ]]; then
+  echo "WARN: tools/lint-flags-vs-hints.sh not found above $SCRIPT_DIR; skipping i-hint-contract-only / i-nl-sugar-marked" >&2
+else
+  flags_out="$(bash "$FLAGS_LINT" "$SKILL_DIR" 2>/dev/null)" && flags_rc=0 || flags_rc=$?
+  if [[ "$flags_rc" -gt 1 ]]; then
+    echo "WARN: lint-flags-vs-hints.sh exited $flags_rc (invocation error); skipping i-hint-contract-only / i-nl-sugar-marked" >&2
+  else
+    hint_dead="$(grep -E '^FAIL .*HINT-DEAD' <<<"$flags_out" || true)"
+    body_only="$(grep -E '^FAIL .*BODY-ONLY' <<<"$flags_out" || true)"
+    if [[ -z "$hint_dead" ]]; then
+      emit i-hint-contract-only pass "no HINT-DEAD flags (every hinted flag is handled by the body)"
+    else
+      n_hd="$(printf '%s\n' "$hint_dead" | grep -c . || true)"
+      emit i-hint-contract-only fail "$n_hd HINT-DEAD flag(s): $(printf '%s\n' "$hint_dead" | head -1 | tr '\t' ' ')"
+    fi
+    if [[ -z "$body_only" ]]; then
+      emit i-nl-sugar-marked pass "no BODY-ONLY flags (body-defined flags are hinted or nl-sugar-marked)"
+    else
+      n_bo="$(printf '%s\n' "$body_only" | grep -c . || true)"
+      emit i-nl-sugar-marked fail "$n_bo BODY-ONLY flag(s): $(printf '%s\n' "$body_only" | head -1 | tr '\t' ' ')"
+    fi
+  fi
+fi
+
+# --- 10.J (deterministic half — j-phase-refs-resolve) ---
+# Repo-root phase-reference lint: exit 0 = every "Phase <label>" / #slug
+# reference resolves; exit 1 = ghost reference(s). Missing/erroring lint →
+# check skipped with a stderr WARN (N/A).
+PHASE_LINT="$(find_repo_tool tools/lint-phase-refs.sh || true)"
+if [[ -z "$PHASE_LINT" ]]; then
+  echo "WARN: tools/lint-phase-refs.sh not found above $SCRIPT_DIR; skipping j-phase-refs-resolve" >&2
+else
+  phase_out="$(bash "$PHASE_LINT" "$SKILL_DIR" 2>/dev/null)" && phase_rc=0 || phase_rc=$?
+  if [[ "$phase_rc" -eq 0 ]]; then
+    emit j-phase-refs-resolve pass "every phase reference resolves"
+  elif [[ "$phase_rc" -eq 1 ]]; then
+    first_ghost="$(grep -E '^FAIL' <<<"$phase_out" | head -1 | tr '\t' ' ' || true)"
+    emit j-phase-refs-resolve fail "ghost phase reference(s): ${first_ghost:-see tools/lint-phase-refs.sh output}"
+  else
+    echo "WARN: lint-phase-refs.sh exited $phase_rc (invocation error); skipping j-phase-refs-resolve" >&2
   fi
 fi
 

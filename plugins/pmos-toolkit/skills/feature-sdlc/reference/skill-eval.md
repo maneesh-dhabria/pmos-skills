@@ -1,26 +1,33 @@
 # skill-eval.md — the binary skill-quality rubric
 
-41 binary pass/fail checks, a 1:1 mirror of `skill-patterns.md` §A–§G. `/feature-sdlc`
-Phase 6a (and `/verify` on a skill) runs this rubric: the 21 `[D]` (deterministic)
-checks are implemented in `tools/skill-eval-check.sh`; the 20 `[J]` (llm-judge) checks
-are run by a reviewer subagent. Each check carries a stable `check_id` (kebab,
-prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `f-…`), a `tag`,
+52 binary pass/fail checks — 46 gated (24 `[D]` + 22 `[J]`) + 6 advisory `[J]` — pass floor 42 (gated − 4); a 1:1 mirror of `skill-patterns.md` §A–§K. `/feature-sdlc`
+Phase 6a (and `/verify` on a skill) runs this rubric: the `[D]` (deterministic)
+checks are implemented in `tools/skill-eval-check.sh`; the `[J]` (llm-judge) checks
+are run by a reviewer subagent; the six advisory `[J]` checks (final section) are
+evaluated and reported but never gate. Each check carries a stable `check_id` (kebab,
+prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `k-…`), a `tag`,
 an `applies_when` gate, a `check`/`pass-condition`, a `why`, a `how-to-verify`, and a
 back-reference to its `skill-patterns.md` §-rule. This file is the contract; the
 `/execute` implementation may refine the prose and re-tag an individual `[D]`/`[J]`
-where clearly mis-tagged, but MUST keep the total ≥37, the bijective
-patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script
-(FR-71).
+where clearly mis-tagged, but MUST keep the gated set at or above the pass floor, the
+bijective patterns↔eval mapping (FR-72), every `[D]`-tagged check implemented in the
+script (FR-71), and the opening-line counts equal to the table reality (both asserted
+by `skill-eval-check.sh --selftest`).
 
 ## Table of contents
 
 - **10.A — Frontmatter** (8 checks: 7 `[D]`, 1 `[J]`)
-- **10.B — Description & triggering** (6 checks, all `[J]`)
-- **10.C — Structure & progressive disclosure** (9 checks: 6 `[D]`, 3 `[J]`)
-- **10.D — Body & content** (9 checks: 4 `[D]`, 5 `[J]`)
+- **10.B — Description & triggering** (5 checks, all `[J]`)
+- **10.C — Structure & progressive disclosure** (8 checks: 6 `[D]`, 2 `[J]`)
+- **10.D — Body & content** (5 checks: 4 `[D]`, 1 `[J]`)
 - **10.E — Scripts & tooling** (4 checks: 1 `[D]`, 3 `[J]`)
 - **10.F — Platform-conditional frontmatter** (3 checks: 2 `[D]`, 1 `[J]`; gated by `target_platform`)
 - **10.G — Release-prerequisites scope** (2 checks: 1 `[D]`, 1 `[J]`; gated — pmos-toolkit pipeline plans only)
+- **10.H — Gates & rubrics** (3 checks, all `[J]`; gated — skills that define gates/rubrics/eval loops)
+- **10.I — Flags** (4 checks: 2 `[D]`, 2 `[J]`)
+- **10.J — Phases & anchors** (3 checks: 1 `[D]`, 2 `[J]`)
+- **10.K — One fact, one home** (1 check, `[J]`)
+- **Advisory signals (reported, not gated)** (6 checks, all `[J]`)
 - **Totals & group-skip rules**
 - **LLM-judge determinism contract**
 
@@ -30,6 +37,11 @@ patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the
 - **No `reference/` (or `references/`) dir** → the reference-only group-10.C checks (`c-references-dir-name`, `c-references-one-level`, `c-reference-toc`, `c-progressive-disclosure`) are N/A when no reference dir exists; `c-body-size` still applies.
 - **`--target generic`** → group 10.F (`f-cc-user-invocable`, `f-cc-argument-hint-matches`, `f-codex-sidecar`) is skipped entirely — only the platform-intersection requirements apply.
 - **No `03_plan.{html,md}` artifact present** (or skill is not being authored under the pmos-toolkit pipeline) → group 10.G (`g-release-prereqs-scope`, `g-plan-grep-clean`) is skipped entirely. The two checks only run when `/feature-sdlc skill …` has produced a plan artifact and `/verify` / Phase 6a is grading the plan-to-scope discipline.
+- **Skill defines no gate, rubric, or eval loop** → group 10.H is N/A (not a failure).
+- **Skill parses no flags/options** → the `[J]` group-10.I checks (`i-nl-first-stated`, `i-flags-4test`) are N/A; the `[D]` lint-backed checks still run (they pass trivially on a flagless skill).
+- **No phase headings in the body** → `j-phases-integer` and `j-phase-slug-anchors` are N/A; `j-phase-refs-resolve` still runs (it passes trivially when there are no phase references).
+- **Repo-root lint missing** — the three lint-backed `[D]` checks (`i-hint-contract-only`, `i-nl-sugar-marked` → `tools/lint-flags-vs-hints.sh`; `j-phase-refs-resolve` → `tools/lint-phase-refs.sh`, both resolved by walking up from the script's own location) are **skipped with a stderr `WARN:`**, not failed, when the lint file cannot be found or errors. This rubric may be synced into a plugin/repo that lacks the host repo-root `tools/`; a missing lint must never crash the eval.
+- **Advisory checks** (final section) are evaluated whenever their `applies_when` holds and reported in the eval output, but they never count toward the pass floor and never block.
 - An N/A check counts as neither pass nor fail; it is omitted from the script's TSV output and from the reviewer's findings.
 
 ## LLM-judge determinism contract
@@ -39,6 +51,7 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 - `temperature: 0`.
 - Output schema, per check: `{check_id, verdict: "pass" | "fail", fix_note: string, quote: string}` — where `quote` is a ≥40-character verbatim span from the skill source that grounds a `fail`.
 - A `fail` with an empty `quote`, or a `quote` that is not a substring of the skill source, is treated as `pass` (an unsubstantiated fail does not count). The parent (`/feature-sdlc` Phase 6a or `/verify`) substring-validates every `quote` against the un-stripped source and downgrades unverifiable fails.
+- Advisory checks use the same contract and the same quote-grounding; their verdicts are reported with the `fix_note` + `quote` but are excluded from the pass floor.
 
 ---
 
@@ -68,7 +81,7 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 
 ---
 
-## 10.B — Description & triggering (6 checks, all `[J]`)
+## 10.B — Description & triggering (5 checks, all `[J]`)
 
 | id | tag | applies-when | check / pass-condition | § |
 |---|---|---|---|---|
@@ -77,7 +90,6 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 | b-desc-third-person | [J] | always | The `description` is third person ("Use when…"), not "I will…" / "You should…"; pass iff third person. | skill-patterns.md §B |
 | b-desc-trigger-phrases | [J] | always | The skill body or description supplies ≥5 user-spoken trigger phrases, written the way users actually ask; pass iff ≥5 are present. | skill-patterns.md §B |
 | b-desc-no-step-list | [J] | always | The `description` does NOT embed a numbered/bulleted step list or workflow (the "workflow-in-description bug"); pass iff no embedded workflow. | skill-patterns.md §B |
-| b-desc-pushy | [J] | always | The `description` is assertive enough to combat under-triggering — not hedged into invisibility; pass iff it reads as a confident trigger. | skill-patterns.md §B |
 
 **why & how-to-verify (10.B):**
 
@@ -86,11 +98,10 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 - **b-desc-third-person** — *why:* first/second person reads as a chat reply, not a registry entry. *how-to-verify:* no "I will" / "I'll" / "you should" framing; "Use when…", "Create…", etc.
 - **b-desc-trigger-phrases** — *why:* trigger phrases are how users who don't know the slash name reach the skill. *how-to-verify:* count distinct quoted user-spoken phrases ("write the technical design", "create the spec", …) in the description or body — ≥5.
 - **b-desc-no-step-list** — *why:* a phase list pasted into the description bloats the picker and teaches the agent nothing about *when*. *how-to-verify:* no `1.`/`2.`/`-` enumerated workflow inside the `description:` value.
-- **b-desc-pushy** — *why:* a hedged description ("can optionally help with…") under-triggers — the skill exists but never fires. *how-to-verify:* the trigger language is assertive ("Use this whenever…"), not timid.
 
 ---
 
-## 10.C — Structure & progressive disclosure (9 checks)
+## 10.C — Structure & progressive disclosure (8 checks)
 
 | id | tag | applies-when | check / pass-condition | § |
 |---|---|---|---|---|
@@ -102,7 +113,6 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 | c-portable-paths | [D] | `SKILL.md` or reference files reference bundled files by path | Bundled-file paths use a portable token (`${CLAUDE_SKILL_DIR}` / `${CLAUDE_PLUGIN_ROOT}` / the platform equivalent), not a hard-coded absolute path; pass iff no hard-coded absolute bundle paths. | skill-patterns.md §C |
 | c-asset-layout | [D] | skill bundles non-doc files | Bundled files live under `scripts/` / `references/`(or `reference/`) / `assets/`, not loose in the skill root; pass iff layout conforms. | skill-patterns.md §C |
 | c-progressive-disclosure | [J] | skill has `reference/` files | Detailed/optional material is in reference files; `SKILL.md` stays the lean entry point pointing to them; pass iff disclosure is genuinely progressive (not all inline, not all hidden). | skill-patterns.md §C |
-| c-context-economy | [J] | always | The skill respects "context window is a public good" — no gratuitous restatement, no copy-pasted boilerplate a reference could carry; pass iff lean. | skill-patterns.md §C |
 
 **why & how-to-verify (10.C):**
 
@@ -114,11 +124,10 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 - **c-portable-paths** — *why:* a hard-coded `/Users/alice/...` breaks the instant the skill is installed elsewhere. *how-to-verify:* grep the body + reference files for `/Users/` / `/home/` / leading-`/` bundle paths; portable tokens (`${CLAUDE_SKILL_DIR}`) are fine.
 - **c-asset-layout** — *why:* loose files in the skill root clutter the entry point and confuse the loader. *how-to-verify:* every non-`SKILL.md`, non-sidecar bundled file lives under `scripts/`, `references/`/`reference/`, or `assets/`.
 - **c-progressive-disclosure** — *why:* dumping everything inline defeats the entry-point role; hiding everything makes the skill opaque. *how-to-verify:* judge whether `SKILL.md` reads as a lean orchestrator that points at depth, vs a wall.
-- **c-context-economy** — *why:* restatement and boilerplate are pure context tax. *how-to-verify:* judge whether the doc repeats itself or carries copy-pasted blocks a reference could hold.
 
 ---
 
-## 10.D — Body & content (9 checks)
+## 10.D — Body & content (5 checks)
 
 | id | tag | applies-when | check / pass-condition | § |
 |---|---|---|---|---|
@@ -126,10 +135,6 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 | d-learnings-load-line | [D] | skill is not a thin alias | `SKILL.md` instructs reading `~/.pmos/learnings.md` (entries under `## /<name>`) at startup; pass iff present. (N/A for thin aliases — FR-81.) | skill-patterns.md §D |
 | d-capture-learnings-phase | [D] | skill is not a thin alias | `SKILL.md` has a numbered Capture-Learnings phase (not a trailing un-numbered section); pass iff present and numbered. | skill-patterns.md §D |
 | d-progress-tracking | [D] | skill has ≥3 sequential phases/steps | `SKILL.md` has a `## Track Progress` (or equivalent) instruction to create one task per phase; pass iff present. | skill-patterns.md §D |
-| d-imperative-form | [J] | always | Instructions are imperative ("Read X", "Write Y"), not narrated ("the skill will read X"); pass iff predominantly imperative. | skill-patterns.md §D |
-| d-explain-why | [J] | always | Non-obvious instructions explain the rationale; the doc avoids all-caps shouting (gratuitous MUST/NEVER); pass iff rationale is given where needed and shouting is restrained. | skill-patterns.md §D |
-| d-flowcharts-justified | [J] | `SKILL.md` contains a flowchart/diagram | Flowcharts appear only for genuinely non-obvious decision logic, not to decorate linear steps; pass iff every flowchart earns its place. | skill-patterns.md §D |
-| d-examples-quality | [J] | `SKILL.md` or reference files contain examples | Examples are few and excellent rather than many and mediocre; each one teaches something; pass iff so. | skill-patterns.md §D |
 | d-body-skeleton | [J] | skill is not a thin alias | The body covers the essentials (overview / when-to-use / core pattern / implementation / common mistakes) in spirit — not as a rigid template, but nothing critical is missing; pass iff the essentials are present. | skill-patterns.md §D |
 
 **why & how-to-verify (10.D):**
@@ -138,10 +143,6 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 - **d-learnings-load-line** — *why:* without it the skill never participates in the feedback loop. *how-to-verify:* (non-alias skills) `grep -i 'learnings.md'` plus a `## /<name>` reference in the body.
 - **d-capture-learnings-phase** — *why:* an *un-numbered* tail section gets skipped; only a numbered phase reliably runs. *how-to-verify:* (non-alias skills) `grep -E '^##+ +Phase [0-9N].*Capture Learnings'` hits.
 - **d-progress-tracking** — *why:* a multi-phase skill the agent can't see the progress of leaves the user blind. *how-to-verify:* if the body has ≥3 `^##+ +Phase ` headings, `grep -E '^##+ +Track Progress'` hits.
-- **d-imperative-form** — *why:* narrated instructions read as description, not direction; the agent follows commands better. *how-to-verify:* judge whether the body addresses the agent in the imperative.
-- **d-explain-why** — *why:* an agent that understands a rule follows it more reliably; all-caps shouting is noise the agent tunes out. *how-to-verify:* judge whether non-obvious steps carry a one-line rationale and whether emphasis is reserved for the load-bearing constraint.
-- **d-flowcharts-justified** — *why:* a flowchart of linear steps is decoration that costs context. *how-to-verify:* for each diagram, judge whether the control flow has real branches the prose can't carry.
-- **d-examples-quality** — *why:* a gallery of half-examples teaches less than one worked example. *how-to-verify:* judge whether each example earns its place.
 - **d-body-skeleton** — *why:* a body missing "when to use" or "common mistakes" leaves the agent guessing. *how-to-verify:* judge whether the essentials are present in spirit (not as a rigid layout).
 
 ---
@@ -169,13 +170,13 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 | id | tag | applies-when | check / pass-condition | § |
 |---|---|---|---|---|
 | f-cc-user-invocable | [D] | `target_platform == claude-code` AND skill is meant to be a slash command | Frontmatter has `user-invocable: true` and an `argument-hint`; pass iff both present. | skill-patterns.md §F |
-| f-cc-argument-hint-matches | [J] | `target_platform == claude-code` AND `argument-hint` present | The `argument-hint` enumerates the flags/positional args the body actually parses; pass iff it matches. | skill-patterns.md §F |
+| f-cc-argument-hint-matches | [J] | `target_platform == claude-code` AND `argument-hint` present | The `argument-hint` enumerates the *contract* flags/positional args the body actually parses — those passing the 4-test (see 10.I). NL-sugar aliases (marked `<!-- nl-sugar -->` in the body) are parsed but deliberately absent and exempt from the hint requirement; pass iff the hint lists exactly the contract surface. | skill-patterns.md §F |
 | f-codex-sidecar | [D] | `target_platform == codex` | An `agents/openai.yaml` sidecar exists alongside `SKILL.md` with the required Codex fields; pass iff present. | skill-patterns.md §F |
 
 **why & how-to-verify (10.F):**
 
 - **f-cc-user-invocable** — *why:* on Claude Code a skill without `user-invocable: true` + an `argument-hint` can't be invoked as `/name`. *how-to-verify:* both keys present in the frontmatter, when `--target claude-code` and the skill has a non-trivial phased body.
-- **f-cc-argument-hint-matches** — *why:* a stale `argument-hint` (lists dropped flags, or omits parsed ones) misleads the user. *how-to-verify:* judge whether every flag/arg the body parses appears in the hint and vice-versa.
+- **f-cc-argument-hint-matches** — *why:* a stale `argument-hint` (lists flags the body dropped, omits contract flags the body parses, or advertises an NL-sugar alias) misleads the user — the hint is the contract surface, not the alias surface. *how-to-verify:* judge whether every *contract* flag/arg the body parses appears in the hint and vice-versa; a body-parsed flag marked `<!-- nl-sugar -->` is exempt from the hint requirement (its absence is correct, its presence is the failure). Semantics align with `tools/lint-flags-vs-hints.sh` (HINT-DEAD / BODY-ONLY), whose deterministic halves are `i-hint-contract-only` / `i-nl-sugar-marked` in 10.I.
 - **f-codex-sidecar** — *why:* a Codex skill without `agents/openai.yaml` is incomplete on that platform. *how-to-verify:* the sidecar file exists alongside `SKILL.md`, when `--target codex`.
 
 **Note:** `--target generic` skips this entire group — neither the `f-cc-*` checks nor `f-codex-sidecar` apply (intersection-only).
@@ -196,14 +197,101 @@ Every `[J]` check call (copied from the `polish/reference/rubric.md` shape):
 
 ---
 
+## 10.H — Gates & rubrics (3 checks, all `[J]`; gated — skills that define gates/rubrics/eval loops)
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| h-gates-deterministic-hard | [J] | skill defines a gate, rubric, or eval loop | Every check a script can decide (file exists, count matches, string present, schema validates) is wired as a hard gate enforced by a bundled script — never left to prose discipline or a judge; pass iff no deterministically-decidable check is enforced by prose or judge. | skill-patterns.md §H |
+| h-gates-judgment-advisory | [J] | skill defines a gate, rubric, or eval loop | Every judgment-call check (prose clarity, emphasis, taste, style gestalt) is advisory — surfaced with severity and a cited span, disposed by the user or recorded as an accepted residual — never wired as a blocking gate; pass iff no judgment call blocks. | skill-patterns.md §H |
+| h-gates-arithmetic-scripted | [J] | skill's checks include arithmetic over extractable data | Arithmetic checks (a percentage, a stddev, a count) are computed by a bundled script whose output the LLM judge consumes — the judge never computes the number itself; pass iff every arithmetic check is script-computed. | skill-patterns.md §H |
+
+**why & how-to-verify (10.H):**
+
+- **h-gates-deterministic-hard** — *why:* loader and contract drift fail deterministically when a script asserts them; prose-enforced structure rots silently (precedent: `/magazine`'s `structure.test.sh` heading assertions and hermetic script `--selftest`s). *how-to-verify:* for each gate the skill defines, judge whether a script could decide it; if yes, confirm a script does — a prose- or judge-enforced deterministic check is the fail.
+- **h-gates-judgment-advisory** — *why:* binary-failing a judgment call triggers a full remediation loop over a wording nit, and the verdict shifts with the judging model (precedent: `/diagram`'s vision-gate rebalance — deterministic SVG metrics stay hard-fail, taste-grade vision items report and ship). *how-to-verify:* for each judgment-decided check, confirm the skill surfaces it (severity + cited span, user-disposed or accepted-residual) rather than blocking on it.
+- **h-gates-arithmetic-scripted** — *why:* asking a judge to "compute at temperature 0" yields nondeterministic, model-coupled numbers; the same numbers from a script are exact (precedent: `/polish`'s metric checks — passive-%, sentence-length stddev, heading metrics). *how-to-verify:* for each numeric threshold in the skill's rubric, confirm the number comes from a bundled script and the judge only consumes it.
+
+---
+
+## 10.I — Flags (4 checks: 2 `[D]`, 2 `[J]`)
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| i-nl-first-stated | [J] | skill is user-invocable AND parses flags/options | The body states the NL-first rule once ("infer <option> from the request; an explicit `--flag` overrides") and names the canonical natural-language phrasings for its options; pass iff the rule is stated and phrasings are named. | skill-patterns.md §I |
+| i-flags-4test | [J] | skill documents flags as contract (body + `argument-hint`) | Every contract flag passes ≥1 prong of the 4-test: (1) machine coupling, (2) destructive opt-in, (3) typed value, (4) headless determinism. Flags passing none are silent aliases — parsed, removed from the hint, `<!-- nl-sugar -->`-marked; pass iff no contract flag fails all four prongs. | skill-patterns.md §I |
+| i-hint-contract-only | [D] | always (skipped with a stderr `WARN:` when repo-root `tools/lint-flags-vs-hints.sh` is absent) | `tools/lint-flags-vs-hints.sh <skill-dir>` reports no `HINT-DEAD` finding — no flag advertised in `argument-hint` that the body never mentions; pass iff zero HINT-DEAD lines. | skill-patterns.md §I |
+| i-nl-sugar-marked | [D] | always (skipped with a stderr `WARN:` when repo-root `tools/lint-flags-vs-hints.sh` is absent) | The same lint reports no `BODY-ONLY` finding — every body-*defined* flag is either listed in `argument-hint` or carries an `<!-- nl-sugar -->` marker within 2 lines of its definition site; pass iff zero BODY-ONLY lines. | skill-patterns.md §I |
+
+**why & how-to-verify (10.I):**
+
+- **i-nl-first-stated** — *why:* flags users must memorize are friction; "go deep on this" should work without knowing `--depth deep` exists. *how-to-verify:* judge whether the body states the infer-from-request rule once and names the canonical phrasings.
+- **i-flags-4test** — *why:* the 2026-06-10 review found 137 user-facing flags where ~35 pass the 4-test; the gap is exactly where dead flags, vocabulary collisions, and broken cross-skill calls accumulated. *how-to-verify:* for each flag in the `argument-hint`, judge which prong it passes; a contract flag passing none should be demoted to NL-sugar.
+- **i-hint-contract-only** — *why:* a hint advertising a flag the body never handles is a promise the skill doesn't keep (the HINT-DEAD class). *how-to-verify:* the script runs `tools/lint-flags-vs-hints.sh <skill-dir>` (one invocation shared with `i-nl-sugar-marked`) and fails this check on any `HINT-DEAD` line.
+- **i-nl-sugar-marked** — *why:* a body-defined flag absent from the hint and unmarked is either an undiscoverable contract or an unmarked alias — both drift (the BODY-ONLY class). *how-to-verify:* the same lint invocation; fails this check on any `BODY-ONLY` line. The marker exemption (`<!-- nl-sugar -->` within 2 lines) is the lint's, not re-implemented here.
+
+---
+
+## 10.J — Phases & anchors (3 checks: 1 `[D]`, 2 `[J]`)
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| j-phases-integer | [J] | skill body has phase headings | Top-level phases are integers only — no fractional (`Phase 7.5`) or lettered (`Phase 0c`) top-level phases; sub-structure inside a phase is "step N" prose, never a pseudo-phase label; pass iff every top-level phase label is an integer. | skill-patterns.md §J |
+| j-phase-slug-anchors | [J] | skill body has phase headings | Every phase heading carries a stable kebab `{#slug}` anchor, and cross-references cite the slug (cross-skill refs additionally carry the skill qualifier) rather than a bare number on non-heading surfaces (schemas, log-line contracts, Track Progress enumerations, tests); pass iff anchors are present and slug-addressing is the norm. | skill-patterns.md §J |
+| j-phase-refs-resolve | [D] | always (skipped with a stderr `WARN:` when repo-root `tools/lint-phase-refs.sh` is absent) | `tools/lint-phase-refs.sh <skill-dir>` exits 0 — every textual `Phase <label>` / `#slug` reference in the skill's markdown resolves to a heading/anchor that exists (cross-skill refs resolve against the named skill); pass iff exit 0. | skill-patterns.md §J |
+
+**why & how-to-verify (10.J):**
+
+- **j-phases-integer** — *why:* a fractional/lettered top-level phase is an accretion smell — a phase was inserted and the file never renumbered. *how-to-verify:* judge the phase headings; `Phase 7.5` / `Phase 0c` at top level is the fail, "Phase 4, step 3" prose sub-structure is fine.
+- **j-phase-slug-anchors** — *why:* the number is ordering sugar; the slug is the address. A renumber that only fixes headings orphans every other surface — one such commit (`a76a5da`) left 22 in-file ghost references + 7 cross-skill phantoms. *how-to-verify:* judge whether phase headings carry `{#slug}` anchors and whether non-heading references cite slugs (with skill qualifiers cross-skill).
+- **j-phase-refs-resolve** — *why:* renumbering is safe because a lint catches the stragglers, not discipline. *how-to-verify:* the script runs `tools/lint-phase-refs.sh <skill-dir>`; exit 0 passes, exit 1 fails with the first ghost reference as evidence.
+
+---
+
+## 10.K — One fact, one home (1 check)
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| k-one-fact-one-home | [J] | always | Every fact (a count, a path, an enum, a contract, a phase list) has exactly one canonical home picked by ownership; every other mention is a 1–3-line pointer (intent + citation + the one genuine local delta). Where physical duplication is genuinely required, a lint binds the copies; pass iff no fact is restated in ≥2 places without a binding lint. | skill-patterns.md §K |
+
+**why & how-to-verify (10.K):**
+
+- **k-one-fact-one-home** — *why:* facts stated in two places with no lint binding them are the root cause behind ~35 verified contradictions in the 2026-06-10 design review — dead flags, ghost phase refs, rubric headers lying about their own check counts. *how-to-verify:* judge whether the skill restates anything a reference file, a script header, or a `_shared/` contract already states; a restatement is a fail unless it is a ≤3-line pointer or carries a binding lint (e.g., the inline non-interactive block).
+
+---
+
+## Advisory signals (reported, not gated)
+
+Per `skill-patterns.md` §H's judgment→advisory policy, the six judgment-call checks below are evaluated under the same `[J]` contract (temperature 0, quote-grounded) and reported in the eval output with severity + `fix_note` + `quote`, but they never count toward the pass floor and never block — the user disposes of each finding or records it as an accepted residual.
+
+| id | tag | applies-when | check / pass-condition | § |
+|---|---|---|---|---|
+| b-desc-pushy | [J] | always | The `description` is assertive enough to combat under-triggering — not hedged into invisibility; pass iff it reads as a confident trigger. | skill-patterns.md §B |
+| c-context-economy | [J] | always | The skill respects "context window is a public good" — no gratuitous restatement, no copy-pasted boilerplate a reference could carry; pass iff lean. | skill-patterns.md §C |
+| d-imperative-form | [J] | always | Instructions are imperative ("Read X", "Write Y"), not narrated ("the skill will read X"); pass iff predominantly imperative. | skill-patterns.md §D |
+| d-explain-why | [J] | always | Non-obvious instructions explain the rationale; the doc avoids all-caps shouting (gratuitous MUST/NEVER); pass iff rationale is given where needed and shouting is restrained. | skill-patterns.md §D |
+| d-flowcharts-justified | [J] | `SKILL.md` contains a flowchart/diagram | Flowcharts appear only for genuinely non-obvious decision logic, not to decorate linear steps; pass iff every flowchart earns its place. | skill-patterns.md §D |
+| d-examples-quality | [J] | `SKILL.md` or reference files contain examples | Examples are few and excellent rather than many and mediocre; each one teaches something; pass iff so. | skill-patterns.md §D |
+
+**why & how-to-verify (advisory):**
+
+- **b-desc-pushy** — *why:* a hedged description ("can optionally help with…") under-triggers — the skill exists but never fires. *how-to-verify:* the trigger language is assertive ("Use this whenever…"), not timid.
+- **c-context-economy** — *why:* restatement and boilerplate are pure context tax. *how-to-verify:* judge whether the doc repeats itself or carries copy-pasted blocks a reference could hold.
+- **d-imperative-form** — *why:* narrated instructions read as description, not direction; the agent follows commands better. *how-to-verify:* judge whether the body addresses the agent in the imperative.
+- **d-explain-why** — *why:* an agent that understands a rule follows it more reliably; all-caps shouting is noise the agent tunes out. *how-to-verify:* judge whether non-obvious steps carry a one-line rationale and whether emphasis is reserved for the load-bearing constraint.
+- **d-flowcharts-justified** — *why:* a flowchart of linear steps is decoration that costs context. *how-to-verify:* for each diagram, judge whether the control flow has real branches the prose can't carry.
+- **d-examples-quality** — *why:* a gallery of half-examples teaches less than one worked example. *how-to-verify:* judge whether each example earns its place.
+
+---
+
 ## Totals & group-skip rules
 
-41 checks — **21 `[D]`** (implemented in `tools/skill-eval-check.sh`: `a-frontmatter-present`, `a-name-present`, `a-name-lowercase-hyphen`, `a-name-len`, `a-name-matches-dir`, `a-desc-present`, `a-desc-len`, `c-body-size`, `c-references-dir-name`, `c-references-one-level`, `c-reference-toc`, `c-portable-paths`, `c-asset-layout`, `d-platform-adaptation`, `d-learnings-load-line`, `d-capture-learnings-phase`, `d-progress-tracking`, `e-scripts-dir`, `f-cc-user-invocable`, `f-codex-sidecar`, `g-plan-grep-clean`) — **20 `[J]`** (reviewer subagent: the rest). This table is the baseline contract; `/execute` may refine prose and adjust an individual `[D]`/`[J]` where clearly mis-tagged, but must keep the total ≥37, the bijective patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script (FR-71). The group-skip rules (no `scripts/` → skip 10.E; no `reference/` → 10.C reference-only checks N/A; `--target generic` → skip 10.F; no `03_plan.{html,md}` / non-pmos-pipeline skill → skip 10.G) are part of the contract — see the top of this file.
+The check counts and the pass floor are stated **once**, in this file's opening line, and asserted by `skill-eval-check.sh --selftest` (opening-line counts vs table reality; floor = gated − 4) — they are deliberately not restated here. The `[D]` checks, all gated and all implemented in `tools/skill-eval-check.sh`: `a-frontmatter-present`, `a-name-present`, `a-name-lowercase-hyphen`, `a-name-len`, `a-name-matches-dir`, `a-desc-present`, `a-desc-len`, `c-body-size`, `c-references-dir-name`, `c-references-one-level`, `c-reference-toc`, `c-portable-paths`, `c-asset-layout`, `d-platform-adaptation`, `d-learnings-load-line`, `d-capture-learnings-phase`, `d-progress-tracking`, `e-scripts-dir`, `f-cc-user-invocable`, `f-codex-sidecar`, `g-plan-grep-clean`, `i-hint-contract-only`, `i-nl-sugar-marked`, `j-phase-refs-resolve`. Every other gated check is `[J]` (reviewer subagent), and the final section's checks are advisory `[J]` — evaluated and reported, never counted toward the pass floor. This table set is the baseline contract; `/execute` may refine prose and adjust an individual `[D]`/`[J]` where clearly mis-tagged, but must keep the gated set at or above the pass floor stated in the opening line, the bijective patterns↔eval mapping (FR-72), and every `[D]`-tagged check implemented in the script (FR-71). The group-skip rules (no `scripts/` → skip 10.E; no `reference/` → 10.C reference-only checks N/A; `--target generic` → skip 10.F; no `03_plan.{html,md}` / non-pmos-pipeline skill → skip 10.G; no gates/rubrics → 10.H N/A; missing repo-root lint → lint-backed checks skip with a `WARN:`) are part of the contract — see the top of this file.
 
 ## Cross-reference to skill-patterns.md
 
-Every check above names exactly one `skill-patterns.md` §-rule in its `§` column, and
-every §-rule there lists ≥1 `check_id` here in its closing `Checks:` line. The
-bijection is asserted by `skill-eval-check.sh --selftest` (every `[D]` check ↔ a code
-branch, and every check names a `§[A-Z]` rule) plus a `/verify` structural check
+Every check above — gated and advisory alike — names exactly one `skill-patterns.md`
+§-rule in its `§` column, and every §-rule there lists ≥1 `check_id` here in its
+closing `Checks:` line. The bijection is asserted by `skill-eval-check.sh --selftest`
+(every `[D]` check ↔ a code branch, every check names a `§[A-Z]` rule, and the
+opening-line counts equal the table reality) plus a `/verify` structural check
 (FR-72). Change a rule there and the matching check here in the same commit.
