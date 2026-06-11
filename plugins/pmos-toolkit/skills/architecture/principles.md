@@ -1,12 +1,13 @@
 # Architecture Principles — Prose Layer
 
-This document is the **judge-readable prose layer** companion to `principles.yaml`. The YAML is the machine-readable source of truth (rule IDs, dispositions, static-tool delegates, regex/AST checks); this file explains the *why*, shows concrete violations and compliant alternatives, and names the static tool each rule delegates to.
+This document is the **single prose source** for the rule corpus, companion to `principles.yaml`. The YAML is the machine-readable source of truth (rule IDs, dispositions, static-tool delegates, regex/AST checks); this file explains the *why*, cites each rule's external source, shows concrete violations and compliant alternatives, and names the static tool each rule delegates to. `load-principles.sh` embeds it verbatim in the judge prompt, and the YAML's per-rule `source:` fields point at the `## <id>` anchors below.
 
-Every rule ID in `principles.yaml` has a matching `## <id>` heading below. The pairing is enforced by `tests/test-principles-md-coverage.sh` (run on every commit via the drift hook).
+Every rule ID in `principles.yaml` has a matching `## <id>` heading below. Keep the two files aligned when editing rules — the rule prose was consolidated here from `reference/l1-rationales.md` in the 2026-06-10 design-review cleanup, and the drift-police scripts retired with the duplication.
 
 Conventions per rule:
 - **Summary** — one-sentence restatement of the rule's intent.
 - **Why** — architectural rationale, with concrete consequences of violation.
+- **Source** — the external citation (book / OWASP / CWE) the rule derives from (L1 rules).
 - **Example violation** — a small snippet showing the rule broken.
 - **Example compliance** — the same snippet refactored to satisfy the rule.
 - **Static tools** — the YAML's `delegate_to` value verbatim; `judge-only` means no automated tool, so the LLM judge applies it directly.
@@ -18,6 +19,8 @@ Conventions per rule:
 **Summary:** No source file exceeds 500 lines of code (excluding generated files).
 
 **Why:** A file past ~500 LOC is a cognitive cliff — readers can no longer hold the whole module in working memory, so they pattern-match on neighbouring lines instead of reasoning about the design. Long files tend to accrete unrelated responsibilities (helpers, types, side-effects, glue) because adding "one more thing" is always cheaper than introducing a new file. Splitting forces an explicit naming decision that surfaces the latent module boundary.
+
+**Source:** "A Philosophy of Software Design" (Ousterhout, 2018) §4 — small files compose; large files calcify. Mirrored by the SOLID-S principle (single responsibility).
 
 **Example violation:**
 ```
@@ -42,6 +45,8 @@ src/orders/notifications.ts       (95 lines)
 **Summary:** No single function exceeds 100 lines.
 
 **Why:** A 100-line function almost always does more than one thing — it has implicit phases (validate, transform, persist, notify) that should be named, extracted, and unit-tested individually. Long functions hide branches deep in the body where they are easy to miss during review. They also defeat code-completion and stack-trace navigation: the line number alone tells you nothing.
+
+**Source:** "Clean Code" (Martin, 2008) §3 — functions should fit on a screen. Refactoring catalog: "Extract Function" (Fowler, 1999).
 
 **Example violation:**
 ```python
@@ -73,6 +78,8 @@ def process_order(order):
 
 **Why:** Long positional lists are call-site bugs waiting to happen — readers cannot tell `f(true, false, null, 0, "x")` from `f(false, true, null, 0, "x")` without jumping to the definition. They also make adding a new parameter a breaking change because every call site shifts. An options object (or named keyword arguments) makes intent self-documenting and additive.
 
+**Source:** "Clean Code" §3 — "the ideal number of arguments is zero; three is the maximum"; mirrored by Python PEP 8 and the "introduce parameter object" refactoring (Fowler).
+
 **Example violation:**
 ```typescript
 function createUser(name, email, age, role, isAdmin, region, locale) { ... }
@@ -94,6 +101,8 @@ createUser({ name: "A", email: "a@x", age: 30, role: "u" });
 **Summary:** No `console.log` / `print()` statements in production source paths (`src/`); allowed in `scripts/` and `tests/`.
 
 **Why:** Stray debug prints leak into production logs as noise, masking the signal when something actually breaks. They also signal abandoned debugging sessions — a developer was poking at the code, learned what they needed, and forgot to clean up. Real diagnostics belong behind a structured logger with a level and a category.
+
+**Source:** OWASP A09:2021 (Security Logging and Monitoring Failures); 12-factor app §XI — treat logs as event streams.
 
 **Example violation:**
 ```typescript
@@ -123,6 +132,8 @@ export function login(user) {
 
 **Why:** A TODO older than a quarter is no longer a reminder — it is a decision the team has made implicitly to not do the thing. Leaving it inline creates ambient noise that trains everyone to ignore TODOs, including the urgent ones. Either file it as a tracked issue or delete it; the comment itself has zero accountability.
 
+**Source:** "Clean Code" §17 — comment smells: "TODO comments are not an excuse to leave bad code".
+
 **Example violation:**
 ```python
 # TODO: handle timezone properly  (added 2024-01-03, today is 2026-05-28)
@@ -147,6 +158,8 @@ Or just delete the comment and live with the current behaviour.
 
 **Why:** Deep nesting (`src/a/b/c/d/e/f.ts`) is almost always evidence of scope creep — each new level was added to "organise" code that should have been promoted to a sibling module instead. Deeply nested paths also break editor fuzzy-search and make imports long and brittle. Flat-is-better-than-nested forces the team to name boundaries explicitly.
 
+**Source:** "Screaming Architecture" (Martin, 2011) — directory structure should communicate intent at a glance; mirrored by Hexagonal Architecture's "package by feature" guidance.
+
 **Example violation:**
 ```
 src/features/billing/invoices/templates/pdf/footer.ts
@@ -166,6 +179,8 @@ src/billing/invoice-pdf.ts
 **Summary:** Every source file should carry a top-of-file purpose comment (warn-only — disposition is `wont_fix`).
 
 **Why:** A single-line header (`// Renders the cart sidebar; owns the line-item totals.`) gives a cold reader the file's job in 5 seconds — without it they have to scroll-and-infer from the first export. This rule is warn-only because not every file genuinely needs one (one-line barrel re-exports, generated code), but the general posture is: when in doubt, leave a breadcrumb.
+
+**Source:** "A Philosophy of Software Design" §13 — comments should describe what the code does at a higher level than the code itself.
 
 **Example violation:**
 ```typescript
@@ -189,6 +204,8 @@ export function CartSidebar(props: { cart: Cart }) { /* 200 lines */ }
 **Summary:** No commented-out code blocks longer than 5 lines.
 
 **Why:** Dead code in comments rots — types drift, APIs change, and the next reader cannot tell whether the block is a future feature, a rollback fallback, or just forgotten. Git remembers every previous version of the file; commenting code out instead of deleting it is a non-trust in version control. Either delete it (and recover from git if needed) or move it behind a feature flag.
+
+**Source:** "Clean Code" §17 — "Commented-out code is an abomination". Mirrored by Refactoring catalog: "Remove Dead Code".
 
 **Example violation:**
 ```python
@@ -218,6 +235,8 @@ def checkout(cart):
 
 **Why:** Secrets in source are a security incident — once committed, they live in git history forever, get mirrored to every clone and CI cache, and rotate-after-leak takes hours or days of cleanup. They also defeat the principle that prod credentials should never touch a developer machine. Use a secret manager (Vault, AWS Secrets Manager, 1Password, environment variables in CI) so the source has only the *reference* to the secret.
 
+**Source:** OWASP A02:2021 (Cryptographic Failures) + A07:2021 (Identification and Auth Failures); CWE-798 (Use of Hard-coded Credentials).
+
 **Example violation:**
 ```python
 AWS_KEY = "AKIAIOSFODNN7EXAMPLE"
@@ -240,6 +259,8 @@ api_key = secrets.get("stripe_api_key")
 **Summary:** No `NotImplementedError` or `throw new Error("TBD")` on a main code path (allowed in tests).
 
 **Why:** A stub on a main code path ships as a 500 the moment a user hits it — the rule exists because "I'll get to it next sprint" routinely ships to production. Either implement the path, remove the call site, or gate it behind a feature flag that defaults to off. Stubs are acceptable inside tests (mocking an unused dependency) but never in production-reachable code.
+
+**Source:** "Defensive Programming" (McConnell, "Code Complete" §8) — fail fast, but at boundaries, not in the middle of a request.
 
 **Example violation:**
 ```python
@@ -264,6 +285,8 @@ def refund(order):
 **Summary:** No cross-file duplicate function signatures.
 
 **Why:** When the same signature appears in multiple files, one of two things is happening — either there is a missing abstraction (both call sites want the same behaviour and should share an implementation), or the two implementations are diverging and will eventually disagree in subtle ways. Both lead to bugs: the first via copy-paste drift, the second via "which one runs?" ambiguity. Consolidating up-front prevents both.
+
+**Source:** "Refactoring" (Fowler, 1999) §3 — "Duplicated Code" listed as the first and most pervasive code smell. Mirrored by DRY (Hunt & Thomas, *The Pragmatic Programmer*, 1999).
 
 **Example violation:**
 ```typescript

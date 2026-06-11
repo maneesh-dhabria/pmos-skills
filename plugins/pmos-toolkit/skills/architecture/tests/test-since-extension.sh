@@ -2,7 +2,7 @@
 # test-since-extension.sh — T11 unit tests for the --since mode extension.
 #
 # What this verifies:
-#   (1) SKILL.md authors a ## Mode: --since section
+#   (1) SKILL.md authors the merged judge-modes section ({#judge-modes}) covering --since
 #   (2) SKILL.md documents the empty-diff skip log line
 #   (3) SKILL.md wires the emitter with --mode since
 #   (4) Empty-diff pre-flight bash semantic returns empty CHANGED in a temp repo
@@ -39,8 +39,8 @@ assert() {
 
 # ── SKILL.md content checks (FR-09/FR-10/FR-11 surfaces) ─────────────────────
 echo "[skill.md] structural checks"
-assert "SKILL.md has '## Mode: --since' heading" \
-  "grep -qE '^## Mode: --since' '$SKILL_MD'"
+assert "SKILL.md has the merged judge-modes heading covering --since" \
+  "grep -qE '^## Judge modes: --from-spec / --since \{#judge-modes\}' '$SKILL_MD'"
 assert "SKILL.md documents the empty-diff skip log" \
   "grep -qE 'architecture: no changes since' '$SKILL_MD'"
 assert "SKILL.md wires the emitter with --mode since" \

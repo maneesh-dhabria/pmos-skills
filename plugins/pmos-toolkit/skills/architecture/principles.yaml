@@ -17,7 +17,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "file_loc_gt:500;exclude_generated"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u001"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u001"
     message: "No file > 500 LOC (excluding generated)."
     why: "Files past ~500 LOC are hard to load mentally — split by responsibility."
 
@@ -27,7 +27,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "function_loc_gt:100"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u002"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u002"
     message: "No function > 100 LOC."
     why: "100-LOC functions almost always do >1 thing; extract collaborators."
 
@@ -37,7 +37,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "positional_args_gt:4"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u003"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u003"
     message: "No constructor / function with > 4 positional args."
     why: "Long positional lists are call-site bugs waiting to happen — use an options object."
 
@@ -47,7 +47,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "regex:console\\.log|print\\(;paths:src/;exclude:tests/,scripts/"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u004"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u004"
     message: "No console.log / print() in src/ (allowed in scripts/, tests/)."
     why: "Stray print/log statements leak in prod and signal abandoned debugging."
 
@@ -57,7 +57,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "regex:TODO|FIXME|XXX;blame_older_than_days:90"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u005"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u005"
     message: "No TODO / FIXME / XXX older than 90 days."
     why: "TODOs older than a quarter are decisions, not reminders — file or delete them."
 
@@ -67,7 +67,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "path_depth_from_src_gt:4"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u006"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u006"
     message: "No file path > 4 directory levels deep from src/."
     why: "Deep nesting hides scope creep; flatten or reorganise."
 
@@ -77,7 +77,7 @@ rules:
     disposition: wont_fix
     delegate_to: grep
     check: "missing_top_of_file_purpose_comment"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u007"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u007"
     message: "Every file should carry a top-of-file purpose comment (warn-only)."
     why: "A 1-line purpose at the top makes the file's job legible to a cold reader."
 
@@ -87,7 +87,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "commented_code_block_gt:5_lines"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u008"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u008"
     message: "No commented-out code blocks > 5 lines."
     why: "Dead code in comments rots; git remembers — delete it."
 
@@ -97,7 +97,7 @@ rules:
     disposition: must_fix
     delegate_to: grep
     check: "regex:(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]+PRIVATE KEY-----|api[_-]?key\\s*=\\s*['\"][A-Za-z0-9_\\-]{16,}['\"])"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u009"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u009"
     message: "No hardcoded credentials / API-key patterns."
     why: "Secrets in source are an incident; use a secret manager."
 
@@ -107,7 +107,7 @@ rules:
     disposition: must_fix
     delegate_to: grep
     check: "regex:NotImplementedError|throw\\s+new\\s+Error\\(['\"]TBD['\"];exclude:tests/"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u010"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u010"
     message: "No NotImplementedError / throw new Error('TBD') on a main code path."
     why: "Stubs on main paths ship as 500s; either implement or remove the call site."
 
@@ -117,7 +117,7 @@ rules:
     disposition: should_fix
     delegate_to: grep
     check: "ast:dup_signature_cross_file"
-    source: "plugins/pmos-toolkit/skills/architecture/reference/l1-rationales.md#u011"
+    source: "plugins/pmos-toolkit/skills/architecture/principles.md#u011"
     message: "No cross-file duplicate function signatures."
     why: "Cross-file duplicates suggest a missing abstraction; consolidating prevents drift."
 

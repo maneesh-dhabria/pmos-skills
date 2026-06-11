@@ -2,7 +2,7 @@
 
 The `delegate_to:` field on every rule names the evaluator that produces findings for that rule. v2 ships 24 rules: 11 L1 (universal, all `grep` — U001–U010 plus U011's AST-aware grep special case), 4 L2 TypeScript (all `dependency-cruiser`), 8 L2 Python (PY001–PY008, all `ruff`), and 1 L2 Python cycle rule (PY009, `cycle-py`). That yields `delegated_pct = 13/24 = 0.542` — below the 70% G2 stretch goal, which is documented as a stretch in spec §7.4 (not a release blocker).
 
-`scripts/check-gap-map.sh` reports the ratio to stderr but exits 0 always — report-only, not gating (FR-24, G2 stretch framing).
+The ratio is a documentation-time observation, not a gate — nothing computes or enforces it at runtime (the report-only `check-gap-map.sh` was retired in the 2026-06-10 design-review cleanup).
 
 This file justifies each rule's evaluator choice. The decision tree is roughly:
 
@@ -79,5 +79,3 @@ This file justifies each rule's evaluator choice. The decision tree is roughly:
 ## Delegation ratio — why 0.542 is fine for v1
 
 L1 rules are universal; they cannot delegate to a stack-bound linter without losing the universality. The ratio is mechanically capped by the L1 set size — even with U011 added, L1 stays on grep-family evaluators by construction. As more L2 stacks land (Rust → clippy, Go → staticcheck, Ruby → rubocop, …) the ratio rises automatically. The 70% G2 goal is a long-run target measured across the full L1 + L2 set, not a v1 gate.
-
-`scripts/check-gap-map.sh` reports the live ratio to stderr; CI does not enforce it.
