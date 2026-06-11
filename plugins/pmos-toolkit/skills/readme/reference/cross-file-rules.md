@@ -54,7 +54,8 @@ checked.
 **A9 result.** **PASS** (binary-decidable).
 
 **Tier on fail.** Friction. Auto-fix appends the link-up line at end-of-readme
-(target section configurable via `.pmos/readme.config.yaml`).
+(default: appended bare; target section name overridable via
+`.pmos/readme.config.yaml :: link_up_section`).
 
 **Fixture tested.** `tests/fixtures/workspaces/03_lerna` — `packages/foo`
 contained `[root](../../README.md)` (PASS); `packages/bar` had no upward
