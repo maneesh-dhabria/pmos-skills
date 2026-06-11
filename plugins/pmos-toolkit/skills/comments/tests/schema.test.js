@@ -770,6 +770,74 @@ async function testSchemaVersionPassthrough() {
 }
 
 // -------------------------------------------------------------------------
+// Public parse/persist API: loadThreads / persistThreads round-trip.
+// The model-orchestration seam (SKILL.md Phases 1/4): loadThreads applies the
+// same schema gate as resolve(); persistThreads bumps the concurrency version,
+// writes atomically, and stages (git add) — never commits.
+// -------------------------------------------------------------------------
+async function testLoadPersistThreadsPublicApi() {
+  assert.ok(typeof resolver.loadThreads === "function", "loadThreads must be a public export");
+  assert.ok(typeof resolver.persistThreads === "function", "persistThreads must be a public export");
+
+  const tmp = makeTmp("t16pub");
+  const tmpRefuse = makeTmp("t16pub-refuse");
+  try {
+    const thread = {
+      id: "T_PUB",
+      id_anchor: "problem",
+      quote_anchor: null,
+      status: "open",
+      messages: [{ role: "user", author: "tester", body: "update this", ts: "2026-05-24T10:00:00Z" }],
+    };
+    const { artifactPath } = makeFixture(tmp, [thread], 1);
+
+    // loadThreads: returns threads + version + routing slug.
+    const loaded = resolver.loadThreads(artifactPath);
+    assert.ok(Array.isArray(loaded.threads) && loaded.threads.length === 1, "loadThreads must return the fixture thread");
+    assert.ok(loaded.threads[0].id === "T_PUB", "loadThreads thread id round-trips");
+    assert.ok(loaded.version === 0, "loadThreads must surface the concurrency version (got " + loaded.version + ")");
+    assert.ok(typeof loaded.skill === "string" && loaded.skill.length > 0, "loadThreads must surface the pmos:skill slug");
+    assert.ok(typeof loaded.html === "string" && loaded.html.length > 0, "loadThreads must return the artifact html");
+
+    // loadThreads: same schema refuse-load gate as resolve().
+    const refused = makeFixture(tmpRefuse, [], 99);
+    assert.throws(
+      () => resolver.loadThreads(refused.artifactPath),
+      (err) => err.code === "ESCHEMA_NEWER" && err.exitCode === 64,
+      "loadThreads must refuse a newer schema with ESCHEMA_NEWER + exitCode=64"
+    );
+
+    // persistThreads: status persisted, version bumped, artifact staged.
+    const gitCalls = [];
+    function runGit(args) {
+      gitCalls.push(args.slice());
+      if (args[0] === "rev-parse" && args[1] === "--show-toplevel") return tmp + "\n";
+      if (args[0] === "add") return "";
+      throw new Error("runGit: unexpected args " + JSON.stringify(args));
+    }
+    const updated = loaded.threads.map((t) => Object.assign({}, t, { status: "resolved" }));
+    resolver.persistThreads(artifactPath, updated, { runGit });
+
+    const reloaded = resolver.loadThreads(artifactPath);
+    assert.ok(reloaded.threads[0].status === "resolved", "persistThreads must persist the updated thread status");
+    assert.ok(reloaded.version === 1, "persistThreads must bump the concurrency version (got " + reloaded.version + ")");
+    assert.ok(
+      gitCalls.some((c) => c[0] === "add"),
+      "persistThreads must stage via git add"
+    );
+    assert.ok(
+      !gitCalls.some((c) => c[0] === "commit"),
+      "persistThreads must never git commit"
+    );
+
+    console.log("PASS: loadThreads/persistThreads public API round-trip (schema gate, version bump, stage-only)");
+  } finally {
+    try { fs.rmSync(tmp, { recursive: true, force: true }); } catch (_) { /* swallow */ }
+    try { fs.rmSync(tmpRefuse, { recursive: true, force: true }); } catch (_) { /* swallow */ }
+  }
+}
+
+// -------------------------------------------------------------------------
 // Run all sub-cases.
 // -------------------------------------------------------------------------
 (async () => {
@@ -784,6 +852,7 @@ async function testSchemaVersionPassthrough() {
     await testIdempotencyLowScore();
     await testSchemaVersionRefuse();
     await testSchemaVersionPassthrough();
+    await testLoadPersistThreadsPublicApi();
     console.log("\nPASS: /comments resolver schema + error_enum + idempotency — all sub-cases (T16)");
   } catch (e) {
     console.error("\nFAIL: " + (e && e.stack ? e.stack : e));

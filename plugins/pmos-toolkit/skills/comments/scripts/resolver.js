@@ -160,6 +160,73 @@ function _persistInline(artifactPath, finalHtml, threads, priorVersion, runGit) 
   runGit(["add", artifactPath], { cwd: repoRoot });
 }
 
+// T16 E4 / S3 — schema refuse-load. The inline `schema` is the format
+// version (the old sidecar `schema_version`); `version` is the concurrency
+// counter and is unrelated to this gate. Shared by resolve() and loadThreads().
+function _assertSchemaReadable(comments) {
+  if (typeof comments.schema === "number") {
+    if (comments.schema > CURRENT_SCHEMA_VERSION) {
+      const err = new Error(
+        "inline comments schema=" + comments.schema +
+          " is newer than /comments (current=" + CURRENT_SCHEMA_VERSION +
+          "); upgrade pmos-toolkit"
+      );
+      err.code = "ESCHEMA_NEWER";
+      err.exitCode = 64;
+      throw err;
+    }
+    // schema < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
+  }
+}
+
+// ---- public parse/persist API (model-orchestrated runs) ----
+//
+// SKILL.md's division of labor: the model orchestrates per-thread dispatch
+// (subagents run in the harness, not in this process), while the controller
+// owns parse/serialize/stage. These two functions are that seam — an
+// in-session run calls loadThreads, dispatches + collects operator decisions
+// itself, then hands the updated threads back to persistThreads. The CLI
+// lane (cli.js → resolve()) drives the whole loop instead.
+
+// Read an artifact's inline pmos-comments block. Applies the same
+// schema refuse-load gate as resolve(). Returns
+// { html, threads, version, skill } — `version` is the optimistic-concurrency
+// counter (bumped by persistThreads), `skill` the pmos:skill routing slug
+// (null when the meta tag is absent; callers must refuse to dispatch then).
+function loadThreads(artifactPath) {
+  const p = path.resolve(artifactPath);
+  const html = fs.readFileSync(p, "utf8");
+  const comments = _parseInlineComments(html);
+  if (!comments) {
+    throw new Error(
+      "loadThreads: artifact has no inline pmos-comments block — not a pmos " +
+        "artifact, or pre-v2.58.0 (run scripts/migrate-sidecars-to-inline.sh)"
+    );
+  }
+  _assertSchemaReadable(comments);
+  return {
+    html: html,
+    threads: Array.isArray(comments.threads) ? comments.threads : [],
+    version: typeof comments.version === "number" ? comments.version : 0,
+    skill: _readMetaSkill(html),
+  };
+}
+
+// Persist updated threads back into the artifact's inline block: version bump,
+// generated_at stamp, atomic temp-then-rename write, `git add` — never commit
+// (same _persistInline path resolve() uses). opts.html supplies already
+// body-edited artifact text (defaults to current on-disk bytes); opts.runGit
+// is the injectable git seam (defaults to the real implementation).
+function persistThreads(artifactPath, threads, opts) {
+  opts = opts || {};
+  const p = path.resolve(artifactPath);
+  const runGit = opts.runGit || _defaultRunGit;
+  const html = typeof opts.html === "string" ? opts.html : fs.readFileSync(p, "utf8");
+  const prior = _parseInlineComments(html);
+  const priorVersion = prior && typeof prior.version === "number" ? prior.version : 0;
+  _persistInline(p, html, threads, priorVersion, runGit);
+}
+
 function _readMetaSkill(html) {
   // Accept the canonical `pmos:skill` (spec §6.1 / FR-01) and the legacy
   // `pmos-originating-skill` (used by some early fixtures). Either resolves.
@@ -573,22 +640,8 @@ async function resolve(params) {
   // Optimistic-concurrency counter carried by the block; bumped on persist.
   const priorVersion = typeof comments.version === "number" ? comments.version : 0;
 
-  // T16 E4 / S3 — schema refuse-load. The inline `schema` is the format
-  // version (the old sidecar `schema_version`); `version` is the concurrency
-  // counter and is unrelated to this gate.
-  if (typeof comments.schema === "number") {
-    if (comments.schema > CURRENT_SCHEMA_VERSION) {
-      const err = new Error(
-        "inline comments schema=" + comments.schema +
-          " is newer than /comments (current=" + CURRENT_SCHEMA_VERSION +
-          "); upgrade pmos-toolkit"
-      );
-      err.code = "ESCHEMA_NEWER";
-      err.exitCode = 64;
-      throw err;
-    }
-    // schema < CURRENT_SCHEMA_VERSION → back-compat shim slot (empty for v1).
-  }
+  // T16 E4 / S3 — schema refuse-load (shared gate, see _assertSchemaReadable).
+  _assertSchemaReadable(comments);
 
   // 2. Read meta tag → originating skill slug.
   const skillSlug = _readMetaSkill(html);
@@ -919,6 +972,8 @@ function _gitRepoRoot(seedPath, runGit) {
 
 module.exports = {
   resolve: resolve,
+  loadThreads: loadThreads,
+  persistThreads: persistThreads,
   ERROR_ENUM: ERROR_ENUM,
   MAX_CLARIFY: MAX_CLARIFY,
   MAX_REDISPATCH: MAX_REDISPATCH,
