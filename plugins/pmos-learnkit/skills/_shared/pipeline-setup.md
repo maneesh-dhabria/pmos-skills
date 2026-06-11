@@ -96,7 +96,7 @@ Skills MAY persist their own keys in `.pmos/settings.yaml` alongside the canonic
 
 | Key                    | Owning skill | Valid values             | Behavior when absent                                  |
 |------------------------|--------------|--------------------------|-------------------------------------------------------|
-| `default_primer_depth` | `/primer`    | `brief`, `standard`, `deep` | `/primer` Phase 0.5 surfaces a first-run depth prompt and writes the answer back to this file. Subsequent runs read silently. `--depth` CLI flag always overrides per-run. |
+| `default_primer_depth` | `/primer`    | `brief`, `standard`, `deep` | `/primer`'s intake phase (`primer/SKILL.md#intake`) surfaces a first-run depth prompt and writes the answer back to this file. Subsequent runs read silently. `--depth` CLI flag always overrides per-run. |
 
 ### A.5 Tell the user
 
