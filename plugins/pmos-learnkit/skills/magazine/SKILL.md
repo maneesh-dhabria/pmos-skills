@@ -16,6 +16,14 @@ reader already aggregates; this tells the user what's worth their time, in langu
 they trust. Speed is explicitly **not** a goal — the pipeline may run long, resumes
 cleanly, and fills the issue incrementally.
 
+**The trust rule — this is the skill:** every card is either grounded in a crawled
+article or a real transcript, or **visibly degraded with an honest reason**
+(`preview-only`, show-notes fallback, `failed`). Never a fabricated summary, never an
+invented tag, never a silently dropped item. No third option.
+
+Options are NL-first: infer them from the request ("catch me up on the last two
+weeks" ≡ `--days 14`); an explicit flag overrides the inference.
+
 The deep mechanics live one hop away in `reference/` — keep this body as the lean
 orchestrator:
 
@@ -41,13 +49,11 @@ These instructions use Claude Code tool names. In other environments:
   (Recommended → AUTO-PICK) still applies.
 - **No `Task` subagent:** the Stage B summarize+tag fan-out runs sequentially in the
   host conversation — one item after another. Slower, identical output.
-- **No transcription support:** do not probe with a bare on-PATH binary check —
-  that misses whisper.cpp (`whisper-cli`/`main`) and a documented model name that has
-  no ggml file. Probe by running `transcribe.sh --selftest` (it reports the detected
-  binary): `bash ${CLAUDE_SKILL_DIR}/scripts/transcribe.sh --selftest`. Treat
-  **exit 3 — and only exit 3** — from a real transcribe call as "no transcription":
-  fall back to show-notes plus an honest "install whisper / set `WHISPER_MODEL_DIR`"
-  hint on the card — never fabricate a summary.
+- **No transcription support:** probe via
+  `bash ${CLAUDE_SKILL_DIR}/scripts/transcribe.sh --selftest` (it reports the
+  detected binary). Treat **exit 3 — and only exit 3** — from a real transcribe call
+  as "no transcription": keep show-notes plus an honest "install whisper / set
+  `WHISPER_MODEL_DIR`" hint on the card.
 - **No reach to `r.jina.ai`:** `extract-article.js` keeps its heuristic-strip result;
   if that is thin, fall back to the RSS `body`/`description` and flag the card
   `preview-only`.
@@ -60,7 +66,7 @@ per phase using your agent's task-tracking tool (e.g. `TaskCreate` in Claude Cod
 Mark each in-progress when you start it and completed as soon as it finishes — do
 not batch completions.
 
-## Phase 0: Pipeline setup + Load Learnings
+## Phase 0: Pipeline setup + Load Learnings {#pipeline-setup}
 
 Inline `_shared/pipeline-setup.md` to read `.pmos/settings.yaml` (require `version`;
 default `output_format` to `html` when absent) and resolve `{docs_path}`. The issue
@@ -109,132 +115,80 @@ paraphrase or move it.
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Resolve command + first-run setup
+## Phase 1: Resolve command + first-run setup {#resolve-command}
 
-Dispatch the argument string per `${CLAUDE_SKILL_DIR}/reference/import.md` "Token-1
-dispatch":
+Dispatch on token 1; `${CLAUDE_SKILL_DIR}/reference/import.md` §"Token-1 dispatch"
+owns each flow's mechanics — trust it, don't re-derive them here:
 
-- `list` → print the current feeds (name, type, url, last-run cursor); end.
-- `add <url>` / `remove <name>` → mutate `feeds.yaml` (validate a new feed by
-  fetching its XML first); end.
-- `add --from <file>` → run the assisted-import flow (CSV / OPML / image →
-  resolve → validate → **batch-approve** → append). End.
-- `bundles` → list the shipped starter bundles
-  (`node ${CLAUDE_SKILL_DIR}/scripts/bundles.js list`); end.
-- `add --bundle <id> [--medium <m>]` → import a starter bundle: resolve via
-  `bundles.js resolve` → validate each feed (`fetch-feed.js`) → dedup against
-  `feeds.yaml` → **batch-approve** → append with the inferred `type`. See
-  `import.md` → "Bundles". End.
-- `curate [--audience <a>] [--media <m>] [--out <dir>]` → regenerate the catalog +
-  bundles via `reference/feed-curation.md`. Warn first (long, network/token-heavy).
-  **Never write into `${CLAUDE_SKILL_DIR}`** — default out is
-  `~/.pmos/magazine/curated/<date>/`; the maintainer passes
-  `--out plugins/pmos-learnkit/skills/magazine/data/` from the repo. End.
-- `watch <--install|--status|--run-now|--uninstall>` → manage the **optional local
-  background podcast-transcription worker**. Dispatch to
-  `node ${CLAUDE_SKILL_DIR}/scripts/magazine-watch.js <install|status|run-now|uninstall> [--interval H] [--max K] [--ac-only] [--backfill DAYS]`.
-  `--install` refuses unless whisper is detected **and** ≥1 podcast feed exists.
-  See `${CLAUDE_SKILL_DIR}/reference/watch.md` for the queue model + scheduler artifacts. End.
-- anything else (including bare `/magazine`) → a **build**; continue to Phase 2.
+| Token 1 | Behavior | Owner |
+|---|---|---|
+| `list` / `add <url>` / `remove <name>` | print / mutate `feeds.yaml` (validate a new feed by fetching its XML first); end | `import.md` |
+| `add --from <file>` | assisted import (CSV / OPML / image): resolve → validate → **batch-approve** → append; end | `import.md` §Assisted import |
+| `bundles` / `add --bundle <id> [--medium <m>]` | list / import starter bundles via `${CLAUDE_SKILL_DIR}/scripts/bundles.js`; **batch-approve** before any append; end | `import.md` §Bundles |
+| `curate [--audience <a>] [--media <m>] [--out <dir>]` | regenerate catalog + bundles; warn first (long, network/token-heavy); **never write into `${CLAUDE_SKILL_DIR}`** — default out is `~/.pmos/magazine/curated/<date>/`; end | `feed-curation.md` |
+| `watch <--install\|--status\|--run-now\|--uninstall>` | optional background transcription worker → `node ${CLAUDE_SKILL_DIR}/scripts/magazine-watch.js <install\|status\|run-now\|uninstall> [--interval H] [--max K] [--ac-only] [--backfill DAYS]`; install refuses unless whisper is detected **and** ≥1 podcast feed exists; end | `watch.md` |
+| anything else (incl. bare `/magazine`) | a **build** — continue to Phase 2 | — |
 
 **First-run setup** (true first run = **no `state.json` AND no `feeds.yaml`** under
-`~/.pmos/magazine/` — do NOT infer "first run" from missing config YAMLs alone; a
-stale `state.json` from a prior run can be present and carry rendered items +
-cursors): walk the user through a short interview to seed `interest.yaml` (topics +
-priority feeds), then LLM-seed `tags.yaml` and present the ~8-tag registry for
-batch-approval. Always keep an `uncategorized` bucket. **Also capture the default
-build window** into `interest.yaml :: defaults` — `days` (lookback; recommend `7`)
-and `max_per_feed` (per-feed cap; recommend `5`) — so later builds need no window
-prompt (FR-Q3). These gates carry a `(Recommended)` option so non-interactive runs
-auto-pick.
+`~/.pmos/magazine/` — a stale `state.json` alone is not a first run): short interview
+to seed `interest.yaml` — topics, priority feeds, and the default build window under
+`defaults` (`days`, recommend `7`; `max_per_feed`, recommend `5`) so later builds
+need no window prompt — then LLM-seed `tags.yaml` (~8 tags, always an
+`uncategorized` bucket) and batch-approve the registry. These gates carry a
+`(Recommended)` option so non-interactive runs auto-pick. Offer the shipped starter
+bundles before manual add: show `bundles.js list` as a **multi-select** with the two
+`essentials` bundles `(Recommended)`; chosen bundles import through the
+`add --bundle` flow above. Also offer `add --from <file>` and manual `add <url>`;
+skipping all of them is allowed.
 
-**Stale-ledger / orphan-cursor check.** When a `state.json` IS present, run
-`node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js status` and check its
-`orphanCursors` — cursor keys matching no current feed slug (a renamed/removed
-feed). Surface them to the user: re-importing a publication under a different slug
-resets its "since last run" anchor. The feed key is the slug (`name`) everywhere
-(ledger items, cursors, card badges); legacy URL-keyed cursors from older runs are
-remapped to the slug automatically on the next `discover`/`enqueue` (FR-R4/FR-R5).
+**Stale-ledger check.** When a `state.json` IS present, run
+`node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js status` and surface its
+`orphanCursors` to the user — cursor keys matching no current feed slug; re-importing
+a publication under a different slug resets its "since last run" anchor. (Legacy
+URL-keyed cursors are remapped to the slug automatically on the next run.)
 
-**Initial feed set — offer starter bundles.** Because a new user starts with an
-empty `feeds.yaml`, present the shipped bundles before falling back to manual add.
-Show the menu (`node ${CLAUDE_SKILL_DIR}/scripts/bundles.js list`) and ask which to
-import as a **multi-select** with a `(Recommended)` default of the two `essentials`
-bundles (newsletters + podcasts) — so non-interactive runs auto-pick a sensible
-starter set. Chosen bundles import through the `add --bundle` flow above (validate →
-dedup → batch-approve). Also offer `add --from <file>` (existing subscriptions) and
-manual `add <url>`. Skipping all of them is allowed — the user can add feeds later.
+## Phase 2: Discover (Stage A) {#discover}
 
-## Phase 2: Discover (Stage A)
-
-Determine the window per `reference/pipeline.md` "Windowing". Resolve the lookback
-as `--days` flag → `interest.yaml :: defaults.days` → built-in `7`, and the per-feed
-cap as `--max-per-feed` flag → `interest.yaml :: defaults.max_per_feed` → uncapped
-(FR-Q3) — so a plain `/magazine` build needs **no interactive window prompt** after
-first-run setup. **Drive discovery through the Stage-A entrypoint** — do not
-hand-write a per-feed driver:
+Resolve the window per `reference/pipeline.md` §Windowing — lookback: `--days` flag →
+`interest.yaml :: defaults.days` → built-in `7`; per-feed cap: `--max-per-feed` flag
+→ `interest.yaml :: defaults.max_per_feed` → uncapped — so a plain `/magazine` build
+needs **no window prompt** after first-run setup. Then drive discovery through the
+Stage-A entrypoint — never hand-write a per-feed driver:
 
 ```
 node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover [--since <cursor>] [--max <N>]
 ```
 
-It reads `feeds.yaml`, runs `fetch-feed.js` per feed **each in isolation** (a feed
-that exits non-zero is skipped and reported, never aborting the issue), records each
-GUID in the ledger at `discovered`, and prints the snapshot item set as JSON. Dedup
-is two-layer: idempotent **GUID** dedup, plus **cross-feed link** dedup that
-collapses the same article syndicated under different GUIDs across feeds (catalogued
-as `duplicate`, kept out of the snapshot — FR-Q2), so you no longer hand-dedupe
-overlapping feeds. That snapshot **defines the issue**. (For an ad-hoc single feed,
-pass `--feed <url>`.)
+It fetches every feed in isolation (a failing feed is skipped and reported, never
+aborting the issue), dedups two-layer (idempotent GUID + cross-feed link), records
+GUIDs in the ledger, and prints the snapshot item set as JSON. **That snapshot
+defines the issue.** For an ad-hoc single feed, pass `--feed <url>`.
 
-## Phase 3: Prep — crawl + transcribe (Stage A)
+## Phase 3: Prep — crawl + transcribe (Stage A) {#prep}
 
-Run the prep phase through the same entrypoint — it walks every `discovered` item
-(resumable per-item; cached results are never recomputed):
+Run `node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep` — deterministic (no
+LLM), resumable per-item, may run long; cached results are never recomputed. It
+routes by **feed `type`, not enclosure presence**: newsletters are crawled to
+`~/.pmos/magazine/crawl-cache/`, podcasts go through the shared transcription queue
+(a bounded foreground drain, claimed under the same lock an installed background
+watcher uses). Episodes the drain doesn't reach stay queued and render via
+show-notes fallback — picked up as cache hits next run; `/magazine watch` keeps that
+queue warm. If you ever call `extract-article.js` directly, **redirect output to a
+file, never a pipe** — `reference/pipeline.md` owns the entrypoint contract and the
+"redirect, don't pipe" rule.
 
-```
-node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep
-```
-
-Routing is by **feed `type`, not enclosure presence** (FR-R1): only `type:podcast`
-items go to the transcription queue. A newsletter that carries an audio enclosure
-(every Substack post does) is **crawled**, not transcribed — its content is the
-article text, right there in the post. `prep` prints a route summary and warns if a
-declared-newsletter feed lands in the transcribe queue (a feed-type
-misconfiguration signal).
-
-For each crawled item it uses `extract-article.js` **with output redirected to**
-`~/.pmos/magazine/crawl-cache/<safe-guid>.txt` (a file, never a pipe — a piped
-capture truncates a long article), flagging `preview-only` on exit 2 and falling
-back to the RSS body on exit 1. **Podcasts are transcribed through the shared
-queue, not inline:** `prep` foreground-drains a bounded number of episodes (claimed
-under the same lock an installed background watcher uses, so the two never
-double-transcribe), leaves the rest **queued** (rendered via show-notes fallback,
-picked up next run as cache hits). The drain threads each podcast feed's
-`whisper_model` (default `base`) into `transcribe.sh --model` and treats exit 3 — no
-whisper *or* no resolvable model — as keep-show-notes (never fabricate), logging the
-exit to `~/.pmos/magazine/watch.log` rather than requeuing silently. A user who
-installs `/magazine watch` keeps that queue warm so most episodes are already
-transcribed by issue time. Item status advances as it goes.
-
-If you must call a script directly (e.g. to re-crawl one item), **redirect crawl
-output to a file** — `extract-article.js <link> > <cache-file>` — never capture it
-through a pipe. See `reference/pipeline.md` for the entrypoint contract and the
-"redirect, don't pipe" rule. This stage is deterministic (no LLM) and can run long
-in the background.
-
-## Phase 4: Summarize + tag (Stage B)
+## Phase 4: Summarize + tag (Stage B) {#summarize-tag}
 
 Fan out **one subagent per ready item** via the Task tool with `model: haiku`
 (mechanical summarize+tag against a closed registry, validated downstream; sequential
 if no subagent tool). Each reads
 the crawled article or transcript (never the RSS stub alone) and returns 3–5 bullet
 takeaways (soft ≤240 chars each), a read/listen link, and tags chosen **only** from
-`tags.yaml`. No fitting tag → `uncategorized` plus a `suggest-add` note — never
-invent a tag. A thin/empty source → a **degraded card** with an honest reason, never
-a fabricated summary (this is the load-bearing trust rule). Status → `summarized`.
+`tags.yaml` — no fitting tag → `uncategorized` plus a `suggest-add` note. A
+thin/empty source → a **degraded card** with the reason (the trust rule above).
+Status → `summarized`.
 
-## Phase 5: Curate Top picks + render incrementally (Stage B)
+## Phase 5: Curate Top picks + render incrementally (Stage B) {#curate-render}
 
 Rank the summarized items against `interest.yaml` (sparse interests → rank on
 item-intrinsic importance, never random); mark the top items `top_pick`. After each
@@ -245,11 +199,11 @@ node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js issue  <items.json>  > {docs_pa
 node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js library <issues.json> > {docs_path}/magazine/index.html
 ```
 
-Failed items still render as degraded, reason-flagged cards — nothing is silently
-dropped. On `file://` the user reloads to see new cards (no meta-refresh in v1).
-Mark each rendered item `rendered`.
+Failed items still render as degraded cards (status `failed`, per the trust rule).
+On `file://` the user reloads to see new cards (no meta-refresh in v1). Mark each
+rendered item `rendered`.
 
-## Phase 6: Commit cursor
+## Phase 6: Commit cursor {#commit-cursor}
 
 Only when every snapshot item is `rendered` or `failed`, advance the per-feed
 cursors via `magazine-state.js advanceCursors()`, so the next "since last run"
@@ -257,7 +211,7 @@ starts cleanly. Advancing earlier would risk dropping items on an interrupt — 
 cursor is the completeness guarantee. Report the issue path and any skipped feeds /
 degraded items to the user.
 
-## Phase 7: Capture Learnings
+## Phase 7: Capture Learnings {#capture-learnings}
 
 This skill is not complete until learnings capture has run. Reflect on whether this
 session surfaced anything worth recording about `/magazine` itself — a feed that
@@ -265,3 +219,16 @@ broke discovery, a tagging miss, an extraction fallback that fired often, a resu
 edge. If so, append it under the `## /magazine` heading in `~/.pmos/learnings.md`
 (create the heading if missing). Proposing zero learnings is valid — the gate is
 that the reflection happens, not that an entry is written.
+
+---
+
+*Spec lineage: `docs/pmos/features/2026-06-03_magazine/` (founding two-stage
+pipeline, 3–5 bullet / soft ≤240-char caps, closed tag registry, cursor rule);
+`2026-06-03_magazine-retro/` (whisper `--selftest` / exit-3 contract — P-series
+regressions); `2026-06-05_magazine-output-ux/` (issue-UX affordances);
+`2026-06-06_magazine-feed-bundles/` (catalog, bundles, curate);
+`2026-06-07_magazine-transcription-queue/` (watch worker, claim TTL, O_EXCL lock);
+`2026-06-07_magazine-entrypoint-fixes/` (Q/R-series: windowing defaults, cross-feed
+dedup, type routing, cursor remap); `2026-05-08_non-interactive-mode/` (mode
+contract). Per-rule traceability lives in those folders and in
+`tests/structure.test.sh`, not inline here.*
