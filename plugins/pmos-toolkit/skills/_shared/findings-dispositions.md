@@ -46,7 +46,7 @@ List findings as a numbered table with columns [Finding | Proposed Fix | Options
 
 ## Consumers
 
-requirements, spec, plan, wireframes, prototype, verify, msf-req, msf-wf, design-crit, polish, survey-design, diagram, complete-dev, feature-sdlc
+requirements, spec, plan, wireframes, prototype, verify, msf-req, msf-wf, design-crit, polish, survey-design, diagram, complete-dev, feature-sdlc, artifact
 
 ---
 

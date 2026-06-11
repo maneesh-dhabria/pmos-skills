@@ -66,7 +66,7 @@ When the consumer is running in a platform without `AskUserQuestion` (Codex, Gem
 - **`/simulate-spec`** — Phase 7 gap resolution batches.
 - **`/plan`** — Findings Presentation Protocol (review loops, design-level self-critique).
 - **`/wireframes`** — Findings Presentation Protocol (cross-file rollup).
-- **`/prototype`** — Phase 8 Findings Presentation Protocol.
+- **`/prototype`** — findings presentation (`#findings` phase).
 
 Each consumer references this file via the relative path `../_shared/structured-ask-edge-cases.md`. Do not duplicate the protocol's content into the consumer files — link to it.
 
