@@ -1,12 +1,12 @@
 # Survey design — best practices reference
 
-Loaded on demand by `/survey-design` (Phase 2–3 generation and Phase 4 reviewer critique). This file is the methodological backbone the skill applies when it builds `survey.json` and when the reviewer subagent grades it. Keep `survey.json`'s control-flow and the time-cost constants in `SKILL.md`; this file is the "why / how" the agent reasons from.
+Loaded on demand by `/survey-design` (Phase 2–3 generation and Phase 4 reviewer critique). This file is the methodological backbone the skill applies when it builds `survey.json` and when the reviewer subagent grades it. The `survey.json` shape, invariants, and time-cost constants live in `survey-json-schema.md`; this file is the "why / how" the agent reasons from.
 
 Companion files: `question-antipatterns.md` (the catalog the generator must avoid and the reviewer applies) and `platform-export.md` (per-platform import recipes).
 
 ## Contents
 
-- Product fit (evaluate this first) · Scoring rubric (0–100, informational)
+- Product fit (evaluate this first)
 - 1. Survey structure & flow · 2. Question types · 3. Scale design · 4. Length & burden
 - 5. Sampling & audience · 6. Generative vs. evaluative · 7. Reducing bias & error
 - 8. Writing the questions · 9. Pre-testing / piloting · 10. Accessibility & mobile-first
@@ -38,37 +38,6 @@ All checks are **binary** (PASS / FAIL) and **contextual to `purpose` and `audie
 
 ---
 
-## Scoring rubric (0–100, informational)
-
-The Phase-4 reviewer also computes a single 0–100 composite as a **progress signal** for the refinement loop — it lets the loop and the user see "did iteration 2 actually improve things" at a glance. **It never gates the loop.** Loop exit is *categorical*: zero product-fit FAILs **and** zero blocker-severity methodology findings, **or** the 2-iteration cap — the composite score is reported alongside but is not a threshold.
-
-**Eight dimensions, weights sum to 100:**
-
-| Dimension | Weight | What it scores |
-|---|---|---|
-| product-fit | **30** | the three binary checks above + the survey-wide coverage check (a single product-fit FAIL is a large deduction here) |
-| structure / funnel | **15** | general→specific order, screening first, demographics last, signposting, no clustered hard items |
-| length vs. budget | **10** | `estimated_minutes` vs. `time_budget_min`; question count vs. `max_questions` |
-| mode fit | **10** | type mix matches `mode` (generative→open-heavy, evaluative→closed-comparable) |
-| scale balance | **10** | balanced scales, labeled poles/midpoint, separate opt-out, construct-specific (not agree/disagree) |
-| accessibility | **10** | label-adjacent controls, text progress, no color-only meaning, mobile-first, keyboard/SR |
-| ethics / PII | **10** | consent before collection, anonymous≠confidential honesty, PII minimization, opt-outs on sensitive items |
-| intro / consent | **5** | sponsor/purpose/accurate-time/what's-collected/voluntary + the persuasive WIIFM line (see §1 intro guidance) |
-
-**Per-dimension deduction sizes** (applied to that dimension's sub-score, before weighting):
-
-| Finding severity in a dimension | Deduction off that dimension |
-|---|---|
-| `blocker` | −60% (large) |
-| `should-fix` | −25% (medium) |
-| `nit` | −8% (small) |
-
-Multiple findings in one dimension compound multiplicatively (`(1−d₁)(1−d₂)…`), floored at 0. A product-fit FAIL on any question counts as a `blocker` for the product-fit dimension.
-
-**Composite formula:** `composite = round( Σ over dimensions [ weight_d × (1 − total_deduction_d) ] )`. Example: a survey with one product-fit FAIL (product-fit dim → 30 × 0.40 = 12), one `should-fix` scale issue (scale-balance → 10 × 0.75 = 7.5), everything else clean → composite = 12 + 15 + 10 + 10 + 7.5 + 10 + 10 + 5 ≈ **80**. The number is informational only — the loop keeps going because there's a product-fit FAIL, not because 80 < some bar; it would stop at the same 80 if that FAIL were instead, say, a coverage gap the user accepted.
-
----
-
 ## 1. Survey structure & flow
 
 **Intro / consent screen.** State sponsor, purpose, an *accurate* completion-time estimate, what's collected / how it's used / how it's stored, whether responses are anonymous or merely confidential (do not conflate — see §11), that participation is voluntary and can be stopped, and a contact. For research, require an affirmative consent action before any data is collected.
@@ -89,7 +58,7 @@ Multiple findings in one dimension compound multiplicatively (`(1−d₁)(1−d�
 
 ## 2. Question types — and when to use each
 
-Map to the `survey.json` `type` enum (see `SKILL.md` §schema). Brief decision guidance:
+Map to the `survey.json` `type` enum (see `survey-json-schema.md`). Brief decision guidance:
 
 | Type (`survey.json`) | Use when | Watch out for |
 |---|---|---|
@@ -129,7 +98,7 @@ Star ratings are quick but coarse (ceiling effects). Sliders are interactive but
 - **Progress indicator:** prefer text "**Question X of Y**" (screen-reader-friendly; see §10) over a graphical bar — and state the total up front. Don't show a "% complete" bar when heavy skip logic makes the denominator misleading.
 - **Pagination:** one question per page on mobile; logical section breaks; one-per-page also helps screen readers and skip logic, at the cost of more clicks.
 
-**Time budgeting in this skill.** `survey.json` carries `time_budget_min` (target) and `estimated_minutes` (Σ per-question cost using the constants in `SKILL.md`). If the estimate exceeds the budget (or `max_questions` if set), trim — keep screening and the highest-value items, cut nice-to-haves — *before* rendering. If the user insists on keeping over-budget items, the Phase-9 summary must prominently flag the expected over-run and drop-off risk.
+**Time budgeting in this skill.** `survey.json` carries `time_budget_min` (target) and `estimated_minutes` (Σ per-question cost using the constants in `survey-json-schema.md`). If the estimate exceeds the budget (or `max_questions` if set), trim — keep screening and the highest-value items, cut nice-to-haves — *before* rendering. If the user insists on keeping over-budget items, the Phase-9 summary must prominently flag the expected over-run and drop-off risk.
 
 ---
 
