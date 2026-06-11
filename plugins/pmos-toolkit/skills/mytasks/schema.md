@@ -50,8 +50,8 @@ completed:                       # ISO date, set when status -> completed/droppe
 - `created`, `updated`: today
 - `workstream:` from current repo's `.pmos/settings.yaml` if present and contains `workstream:`, else absent
 - `people:` from `@handle` tokens (resolved via `/people find`); unresolved tokens flagged in capture report
-- `due:` from natural-language date parse if present, else absent
-- All other optional fields: absent
+- `due:` from natural-language date parse if present, else empty
+- All other optional fields: written as bare keys with no value (e.g., `start:`), never omitted — the file shape stays consistent (this is mytasks's §4 empty-optional binding)
 
 ### Defaults on rich-capture (`/mytasks add`)
 
@@ -97,7 +97,7 @@ Last regenerated: 2026-04-25
 | 0003 | execution | waiting |  |  | Fix coffee machine |  |
 ```
 
-Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc. Status-based exclusion (mytasks binding): `completed` and `dropped` items are NOT in INDEX.md (cell-rendering and archived-exclusion per shared §5).
+Items grouped by `importance` (`leverage`, `neutral`, `overhead`). Within each group, sorted by `due` asc (no-due last) → `updated` desc. A bucket with zero items still gets its `## {bucket}` header and column row (never omit the bucket). Status-based exclusion (mytasks binding): `completed` and `dropped` items are NOT in INDEX.md (cell-rendering and archived-exclusion per shared §5).
 
 ## Archive
 

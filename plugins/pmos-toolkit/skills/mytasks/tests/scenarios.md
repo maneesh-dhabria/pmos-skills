@@ -104,6 +104,19 @@ Expected:
 2. Title: `Buy birthday gift`.
 3. Output: `Captured #0006 (execution, neutral): "Buy birthday gift".` (No due, no people, no workstream — minimal report.)
 
+### Scenario: `/mytasks what's due this week` (query-shaped free text — intent routing)
+
+Expected (Phase 0 "route by intent" principle):
+1. The text reads as a view request, not a thing-to-do → route to the `week` named view (`list --due this-week`).
+2. NO task is created; no item file is written.
+3. Output: the filtered table (or `No items match.`).
+
+### Scenario: `/mytasks what's on my plate` (query-shaped free text)
+
+Expected:
+1. Reads as a view request → route to the default daily view (Phase 1).
+2. NO task is created.
+
 ### Scenario: `/mytasks add Prep board deck` (empty fixture)
 
 Expected interactive flow per `_shared/interactive-prompts.md`:

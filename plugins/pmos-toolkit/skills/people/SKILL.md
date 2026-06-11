@@ -19,14 +19,14 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — record file shape, enum values, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
-- `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version`, INDEX regenerability; handle-keyed, no archive)
-- `lookup.md` — fuzzy-match algorithm, handle derivation rules
+- `schema.md` — record file shape, **single source for enum values**, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
+- `_shared/tracker-crudl.md` — shared tracker contract (`created`/`updated`/`schema_version` §3, INDEX regenerability §5; handle-keyed, no archive)
+- `lookup.md` — fuzzy-match algorithm, handle derivation rules, caller behavior on multi-match
 - `_shared/interactive-prompts.md` — interactive prompting protocol
 
 ---
 
-## Phase 0: Subcommand Routing
+## Phase 0: Subcommand Routing {#routing}
 
 Parse the user's argument to determine the subcommand.
 
@@ -40,8 +40,9 @@ Parse the user's argument to determine the subcommand.
 | `set <handle> <field>=<value>` | Phase 6 (single-field edit) |
 | `refine <handle>` | Phase 7 (interactive multi-field refine) |
 | `rebuild-index` | Phase 8 (regenerate INDEX.md) |
+| (any other free text) | Phase 2 — treat as `find <text>` |
 
-Unknown verbs error: `Unknown subcommand '{verb}'. Run /people for the default list, or see argument hint for valid forms.`
+**Route queries to `find`, never to a write.** Free text matching no verb is a lookup: strip leading query scaffolding ("who is", "who's", "do I know") and run `find` on the rest — `find` is read-only, so the fall-through is safe. A query never creates or edits a record; `add` is the only create path.
 
 ---
 
@@ -75,118 +76,54 @@ Unknown verbs error: `Unknown subcommand '{verb}'. Run /people for the default l
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Show INDEX
+## Phase 1: Show INDEX {#show-index}
 
 Triggered by `/people` with no arguments.
 
-### Step 1: Resolve `~/.pmos/people/`
-
-If `~/.pmos/people/INDEX.md` does not exist (or `~/.pmos/people/` is missing entirely), output:
-
-`No people yet. Add a person with /people add <name>.`
-
-Then exit.
-
-### Step 2: Validate freshness
-
-Compare `INDEX.md`'s `Last regenerated:` date against the most recent mtime of any `~/.pmos/people/*.md` (excluding `INDEX.md` itself). If any record is more recent, regenerate INDEX.md (apply Phase 8) before rendering.
-
-### Step 3: Render
-
-Output the contents of `~/.pmos/people/INDEX.md` to the user.
+1. If `~/.pmos/people/INDEX.md` does not exist (or `~/.pmos/people/` is missing entirely), output `No people yet. Add a person with /people add <name>.` and exit.
+2. Freshness check per `_shared/tracker-crudl.md` §5: if any `~/.pmos/people/*.md` (excluding `INDEX.md` itself) has a newer mtime than INDEX's `Last regenerated:` date, regenerate (`#rebuild-index`) before rendering.
+3. Output the contents of `~/.pmos/people/INDEX.md` to the user.
 
 ---
 
-## Phase 8: Rebuild Index
+## Phase 8: Rebuild Index {#rebuild-index}
 
-Triggered by `/people rebuild-index`. Also invoked internally by Phases 3, 6, 7 after any write.
+Triggered by `/people rebuild-index`. Defined early because every write phase (3, 6, 7) applies it.
 
-### Step 1: Read records
-
-Glob `~/.pmos/people/*.md` (excluding `INDEX.md`). For each, parse frontmatter. Skip files with malformed frontmatter (emit a one-line warning per skip; do not abort).
-
-### Step 2: Sort
-
-Sort by `name` ascending (case-insensitive).
-
-### Step 3: Write INDEX.md
-
-Overwrite `~/.pmos/people/INDEX.md` with the format defined in `schema.md` (### INDEX.md format section):
-
-```markdown
-# People
-
-Last regenerated: {today ISO date}
-
-| handle | name | designation | role | working_relationship | team | email |
-|--------|------|-------------|------|----------------------|------|-------|
-| {handle} | {name} | {designation or empty} | {role or empty} | {working_relationship or empty} | {team or empty} | {email or empty} |
-```
-
-Empty optional fields render as empty cells (no `null`, no dashes).
-
-### Step 4: Report
-
-If invoked directly (Phase 8 entered as `rebuild-index`): `Regenerated INDEX.md: {count} people.`
-If invoked from another phase: silent on success, warn on failure.
+1. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter. Skip files with malformed frontmatter (one-line warning per skip; do not abort).
+2. Overwrite `~/.pmos/people/INDEX.md` with the exact format, sort (`name` ascending, case-insensitive), and columns defined in `schema.md` "INDEX.md format" (empty cells per `_shared/tracker-crudl.md` §5).
+3. Report — if invoked directly: `Regenerated INDEX.md: {count} people.` If invoked from another phase: silent on success, warn on failure.
 
 ---
 
-## Phase 2: Fuzzy-Match Find
+## Phase 2: Fuzzy-Match Find {#find}
 
-Triggered by `/people find <text>`. Read-only lookup. Used by `/mytasks` capture and by users directly.
+Triggered by `/people find <text>` (or query-shaped free text per `#routing`). Read-only lookup. Used by `/mytasks` capture and by users directly.
 
-Algorithm and tier definitions: see `lookup.md`.
+1. If `~/.pmos/people/` does not exist or contains no records, output: `No people in directory. Add one with /people add <name>.` Exit.
+2. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter; skip malformed files with a one-line warning.
+3. Apply the 5-tier match algorithm in `lookup.md` — stop at the first tier that produces matches; within-tier ordering per `lookup.md` (`updated:` desc, then handle).
+4. Render:
+   - **0 matches:** `No matches for '{input}'.`
+   - **1 match:** `1 match: {handle} ({name}){match-note}`
+   - **N matches:**
+     ```
+     {N} matches:
+       {handle} ({name}){match-note}
+       ...
+     ```
 
-### Step 1: Resolve and read
-
-If `~/.pmos/people/` does not exist or contains no records, output: `No people in directory. Add one with /people add <name>.` Exit.
-
-Otherwise, glob `~/.pmos/people/*.md` (excluding `INDEX.md`). Parse frontmatter for each. Skip malformed files with a one-line warning.
-
-### Step 2: Match in priority order
-
-Apply the 5-tier match algorithm from `lookup.md`. Stop at the first tier that produces matches; do not collect from lower tiers if a higher tier hit.
-
-For each record, evaluate match tiers in order:
-1. Exact handle (case-insensitive on `handle:`).
-2. Exact alias (case-insensitive on any entry in `aliases:`).
-3. Exact name (case-insensitive on `name:`).
-4. Substring on handle / name / aliases.
-5. Initials of `name:` (only if input length ≤ 3 AND input is all letters).
-
-Within the matching tier, sort by `updated:` desc; break ties alphabetically by handle.
-
-### Step 3: Render
-
-- **0 matches:** `No matches for '{input}'.`
-- **1 match:** `1 match: {handle} ({name}){match-note}.`
-  - `{match-note}` is empty for tier 1, ` — matched alias '{alias}'` for tier 2, omitted for tier 3, ` — substring match` for tier 4, ` — initials match` for tier 5.
-- **N matches:**
-  ```
-  {N} matches:
-    {handle} ({name}){match-note}
-    ...
-  ```
-
-### Step 4: Caller integration
-
-When `find` is invoked programmatically by `/mytasks` (not a user-typed command), the caller reads the rendered output and parses out handles. The output format above is contract — do not change without updating callers.
+**The caller contract is exactly this shape:** the match count first, then each match as `{handle} ({name})`, one per line. `/mytasks` parses handles out of that shape — do not change it without updating callers. `{match-note}` is an advisory why-it-matched annotation (e.g., ` — matched alias '{alias}'`, ` — substring match`, ` — initials match`; omit for exact handle/name matches); callers never parse it.
 
 ---
 
-## Phase 3: Proactive Create (`add`)
+## Phase 3: Proactive Create (`add`) {#add}
 
 Triggered by `/people add <name>`. Interactive — collects rich attributes upfront.
 
 ### Step 1: Derive handle
 
-Apply the handle derivation rules from `lookup.md` against the provided `<name>`:
-1. Tokenize on whitespace, lowercase, drop pure-punctuation tokens.
-2. Single-token name: try `<firstname>`, then `<firstname>-2`, etc.
-3. Multi-token name: try `<firstname>-<lastinitial>`, then `<firstname>-<lastname>`, then `<firstname>-<lastname>-N`.
-
-A "collision" means a file with that handle already exists at `~/.pmos/people/{handle}.md`.
+Apply the handle derivation rules in `lookup.md` (collision ladder included) against the provided `<name>`.
 
 ### Step 2: Collect attributes via `_shared/interactive-prompts.md`
 
@@ -194,7 +131,7 @@ Ask in this order, ONE field at a time per the shared protocol:
 
 1. **`designation`** — free string. Prompt: `Designation? (formal title, e.g., 'VP Engineering')`. Skippable.
 2. **`role`** — free string. Prompt: `Role? (informal day-to-day, e.g., 'Eng Manager')`. Skippable.
-3. **`working_relationship`** — enum. Prompt: `Working relationship?` Options: `boss`, `direct-report`, `peer`, `team-member`, `stakeholder`, `external`, `other`. Skippable (no default).
+3. **`working_relationship`** — enum per `schema.md`. Prompt: `Working relationship?`. Skippable (no default).
 4. **`team`** — free string. Prompt: `Team?`. Skippable.
 5. **`email`** — free string. Prompt: `Email?`. Skippable.
 6. **`workstreams`** — comma-separated list. Prompt: `Workstreams? (comma-separated slugs from ~/.pmos/workstreams/)`. Skippable.
@@ -202,50 +139,21 @@ Ask in this order, ONE field at a time per the shared protocol:
 
 ### Step 3: Write the record file
 
-Path: `~/.pmos/people/{handle}.md`.
+Write `~/.pmos/people/{handle}.md` with the frontmatter shape in `schema.md`. Skipped fields are written as bare keys with no value (e.g., `email:`, not absent); list fields as YAML lists (empty list as `[]`). No body section is auto-written — `schema.md`: the skill never writes the body; users add `## Notes` via direct edit or `/people refine`.
 
-Frontmatter (skipped fields are written as bare keys with no value, e.g., `email:` not absent):
+### Step 4: Regenerate INDEX, report
 
-```yaml
----
-handle: {derived-handle}
-name: {original name argument}
-designation: {value or empty}
-role: {value or empty}
-working_relationship: {value or empty}
-team: {value or empty}
-email: {value or empty}
-workstreams: [{values}]   # written as YAML list, even if single item; empty list as []
-aliases: [{values}]
-created: {today}
-updated: {today}
----
-```
-
-No body section is auto-written. The user can add `## Notes` later via direct file edit or via `/people refine`.
-
-### Step 4: Regenerate INDEX
-
-Apply Phase 8 (rebuild-index) inline. If regeneration fails, the record file is still written — emit a warning suggesting `/people rebuild-index`, but DO NOT roll back the record write.
-
-### Step 5: Report
-
-Output: `Added {handle} ({name}).`
+Apply `#rebuild-index` inline. If regeneration fails, the record file is still written — warn suggesting `/people rebuild-index`, but DO NOT roll back the record write. Output: `Added {handle} ({name}).`
 
 ### Reactive create entry point (called by `/mytasks`, not user-invoked)
 
-When `/mytasks` rich-capture hits an unknown person and the user picks "(a) create new person 'X'", `/mytasks` invokes a minimal create variant of this phase that:
-- Skips Step 2 (no prompts).
-- Sets `name:` to the disambiguated name.
-- Sets `aliases:` to `[<original-token>]` (e.g., `[sarah]` if the user wrote `@sarah`).
-- All other fields absent.
-- Returns the derived handle to the caller.
+When `/mytasks` rich-capture hits an unknown person and the user picks "(a) create new person 'X'", `/mytasks` invokes a minimal create variant of this phase that skips Step 2 (no prompts), writes the record per `schema.md` "Defaults on reactive create" (`name:` from the disambiguated name; `aliases:` seeded with the original token, e.g. `[sarah]` for `@sarah`; all other fields absent), and returns the derived handle to the caller.
 
 This entry point has no user-facing slash command — `/mytasks` invokes it directly via shared instruction reference.
 
 ---
 
-## Phase 4: Show Record
+## Phase 4: Show Record {#show}
 
 Triggered by `/people show <handle-or-name>`.
 
@@ -253,7 +161,7 @@ Triggered by `/people show <handle-or-name>`.
 
 If `<handle-or-name>` looks like a kebab-case handle (lowercase + hyphens only) AND `~/.pmos/people/{input}.md` exists, use it directly.
 
-Otherwise, apply Phase 2 (find) to the input. Then:
+Otherwise, apply `#find` to the input. Then:
 - **0 matches:** `No matches for '{input}'. Run /people for the full list.`
 - **1 match:** proceed with that handle.
 - **N matches:** `Multiple matches: {comma-separated handles}. Run /people show <handle> with the exact handle.`
@@ -264,46 +172,32 @@ Output the file contents verbatim, fenced as markdown.
 
 ---
 
-## Phase 5: Filtered List
+## Phase 5: Filtered List {#list}
 
-Triggered by `/people list [flags]`.
+Triggered by `/people list ...` or any list-shaped request. Filters are inferred from the request ("people on platform-q3" ⇒ workstream filter; "list my direct reports" ⇒ relationship filter); an explicit flag overrides inference. Filters are optional and combinable with AND semantics. The flag spellings stay parsed:
 
-### Recognized flags (all optional, all combinable; AND semantics)
+<!-- nl-sugar -->
+- `--workstream <slug>` — records whose `workstreams:` contains `<slug>` (free-text; any string accepted)
+<!-- nl-sugar -->
+- `--relationship <enum>` — records whose `working_relationship:` equals the value; enum per `schema.md`
 
-| Flag | Effect |
-|---|---|
-| `--workstream <slug>` | Records whose `workstreams:` contains `<slug>` |
-| `--relationship <enum>` | Records whose `working_relationship:` equals the enum value |
-
-### Step 1: Read records
-
-Glob `~/.pmos/people/*.md` (excluding `INDEX.md`). Parse frontmatter for each. Skip malformed files with a one-line warning.
-
-### Step 2: Validate flag values
-
-For `--relationship`: must be in the enum. Reject with `Unknown relationship '{value}'. Allowed: boss, direct-report, peer, team-member, stakeholder, external, other.`
-
-For `--workstream`: any string accepted (workstreams are free-text).
-
-### Step 3: Filter and sort
-
-Apply filters with AND semantics. Sort survivors by `name` ascending.
-
-### Step 4: Render
-
-Render the same table as INDEX.md (columns: handle, name, designation, role, working_relationship, team, email).
-
-If 0 matches: `No people match.`
+1. Glob `~/.pmos/people/*.md` (excluding `INDEX.md`); parse frontmatter; skip malformed files with a one-line warning.
+2. Validate relationship values against the `schema.md` enum. Reject with `Unknown relationship '{value}'. Allowed: boss, direct-report, peer, team-member, stakeholder, external, other.`
+3. Filter (AND semantics); sort survivors by `name` ascending.
+4. Render the same table as INDEX.md (columns per `schema.md`). If 0 matches: `No people match.`
 
 ---
 
-## Phase 6: Set Field
+## Phase 6: Set Field {#set}
 
-Triggered by `/people set <handle> <field>=<value>`.
+Triggered by `/people set <handle-or-text> <field>=<value>`.
 
-### Step 1: Locate the record
+### Step 1: Resolve the record
 
-`~/.pmos/people/{handle}.md` must exist. If not: `No record with handle '{handle}'. Run /people find {handle} for suggestions.`
+Resolve as in `#show` Step 1 (exact handle file → use directly; otherwise `#find`), but **refuse instead of proceeding on multi-match** — disambiguating writes per `lookup.md` "Caller behavior" (otherwise edits go to the wrong record):
+- **0 matches:** `No matches for '{input}'. Run /people for the full list.`
+- **1 match:** proceed with that handle.
+- **N matches:** refuse with the ranked list: `Multiple matches: {comma-separated handles}. Run /people set <handle> ... with the exact handle.` No write.
 
 ### Step 2: Parse and validate field name
 
@@ -315,36 +209,21 @@ Unknown fields: `Field '{field}' is not recognized. Allowed: {comma-separated li
 
 ### Step 3: Validate value
 
-| Field | Validation |
-|---|---|
-| `working_relationship` | Must be in enum |
-| `workstreams`, `aliases` | Comma-separated; written as YAML list. Empty value clears the list. |
-| `name`, `designation`, `role`, `team`, `email` | Free string. Empty value clears the field. |
-
-On enum violation: `Unknown {field} '{value}'. Allowed: {comma-separated list}.` No write.
+- `working_relationship` — enum per `schema.md`. On violation: `Unknown {field} '{value}'. Allowed: {comma-separated list}.` No write.
+- `workstreams`, `aliases` — comma-separated; written as YAML list. Empty value clears the list.
+- `name`, `designation`, `role`, `team`, `email` — free string. Empty value clears the field.
 
 ### Step 4: Edit and report
 
-Load record, update only the named field, set `updated:` to today, write back. Apply Phase 8 (regenerate INDEX). Output: `Updated {handle}: {field} = {value}.`
+Load record, update only the named field, set `updated:` to today, write back. Apply `#rebuild-index`. Output: `Updated {handle}: {field} = {value}.`
 
 ---
 
-## Phase 7: Refine
+## Phase 7: Refine {#refine}
 
-Triggered by `/people refine <handle>`. Interactive — pre-filled walk through all editable fields.
+Triggered by `/people refine <handle-or-text>`. Interactive — pre-filled walk through all editable fields.
 
-### Step 1: Locate the record
-
-`~/.pmos/people/{handle}.md` must exist. If not: `No record with handle '{handle}'. Run /people find {handle} for suggestions.`
-
-### Step 2: Walk through fields per `_shared/interactive-prompts.md`
-
-Same field order as Phase 3 (designation → role → working_relationship → team → email → workstreams → aliases). Each prompt shows the current value as default; `<enter>` keeps it; explicit new value replaces; `clear` (for list fields) empties.
-
-### Step 3: Write back
-
-Replace each field with the new value (only if changed). Set `updated:` to today. Body is untouched.
-
-### Step 4: Regenerate INDEX, report
-
-Apply Phase 8. Output: `Refined {handle}.`
+1. Resolve the record exactly as in `#set` Step 1 (fuzzy resolve; refuse with the ranked list on multi-match).
+2. Walk the same field order as `#add` Step 2 (designation → role → working_relationship → team → email → workstreams → aliases), each prompt pre-filled with the current value. Refine-flow defaults and `<enter>`/`clear` semantics per `_shared/interactive-prompts.md`.
+3. Replace each field with the new value (only if changed). Set `updated:` to today. Body is untouched.
+4. Apply `#rebuild-index`. Output: `Refined {handle}.`

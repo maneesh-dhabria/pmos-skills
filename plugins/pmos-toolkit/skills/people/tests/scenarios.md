@@ -54,7 +54,7 @@ Expected (exact handle match, priority 1):
 
 Expected (alias match for sarah-chen, priority 2):
 - Single result: `sarah-chen`.
-- Render: `1 match: sarah-chen (Sarah Chen) — matched alias 'sc'`.
+- Render: `1 match: sarah-chen (Sarah Chen)` — the count + `{handle} ({name})` shape is the caller contract; an advisory match note (e.g., `— matched alias 'sc'`) may follow.
 
 ### Scenario: `/people find Sarah Chen` (with-people fixture)
 
@@ -65,7 +65,7 @@ Expected (exact name match, priority 3):
 
 Expected (alias match for sarah-chen, priority 2 — beats substring tier):
 - Single result: `sarah-chen` (alias `sarah` matches before substring tier fires).
-- Render: `1 match: sarah-chen (Sarah Chen) — matched alias 'sarah'`.
+- Render: `1 match: sarah-chen (Sarah Chen)` plus optional advisory match note.
 
 ### Scenario: `/people find sara` (with-people fixture)
 
@@ -73,24 +73,31 @@ Expected (substring match — `sara` is not an exact alias, so tier 4 fires):
 - Two results, both Sarah-named records:
   - sarah-chen (updated 2026-04-22)
   - sarah-patel (updated 2026-04-22)
-- Tie on date; alphabetical by handle.
-- Render:
+- Tie on date; alphabetical by handle (per `lookup.md`).
+- Render (count first, then `{handle} ({name})` one per line — the caller contract; match notes advisory):
   ```
   2 matches:
-    sarah-chen (Sarah Chen) — substring match
-    sarah-patel (Sarah Patel) — substring match
+    sarah-chen (Sarah Chen)
+    sarah-patel (Sarah Patel)
   ```
 
 ### Scenario: `/people find SP` (with-people fixture)
 
 Expected (initials match for Sarah Patel, priority 5; input length 2, all letters):
 - Single result: `sarah-patel`.
-- Render: `1 match: sarah-patel (Sarah Patel) — initials match`.
+- Render: `1 match: sarah-patel (Sarah Patel)` plus optional advisory match note.
 
 ### Scenario: `/people find xyz` (with-people fixture)
 
 Expected (no match):
 - Render: `No matches for 'xyz'.`
+
+### Scenario: `/people who is sarah` (query-shaped free text — intent routing)
+
+Expected (Phase 0 routes free text to `find`, never to a write):
+- `who` is not a recognized verb; strip the query scaffolding ("who is") → `find sarah`.
+- Alias match → `1 match: sarah-chen (Sarah Chen)`.
+- NO record is created or modified.
 
 ## Fixture: empty-people (continued)
 
@@ -200,6 +207,24 @@ Expected:
 - `handle` is skill-managed; not editable directly.
 - Output: `Field 'handle' cannot be set directly. The skill manages it.`
 - No write.
+
+### Scenario: `/people set sarah team=infra` (fuzzy input, unique match)
+
+Expected (Phase 6 Step 1 resolves like `show`, per `lookup.md` "Caller behavior"):
+- `sarah` is not an existing handle file → apply find → tier 2 alias match → unique → `sarah-chen`.
+- Proceed: update `team: infra` on sarah-chen, set `updated:`, regenerate INDEX.
+- Output: `Updated sarah-chen: team = infra.`
+
+### Scenario: `/people set sara team=infra` (fuzzy input, multi-match)
+
+Expected (disambiguate-before-write — refuse on multi-match):
+- Find → tier 4 substring → 2 matches (sarah-chen, sarah-patel).
+- Refuse with the ranked list: `Multiple matches: sarah-chen, sarah-patel. Run /people set <handle> ... with the exact handle.`
+- No write.
+
+### Scenario: `/people refine sara` (fuzzy input, multi-match)
+
+Expected: same refusal as `set` — ranked list, no prompts, no write.
 
 ### Scenario: `/people refine sarah-chen`
 

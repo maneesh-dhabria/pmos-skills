@@ -4,7 +4,7 @@
 
 Used by `/mytasks` quick-capture and rich-capture, and by users directly via `/people find <text>`.
 
-Match priority — return on first hit; ties resolved by `updated:` desc:
+Match priority — return on first hit (stop at the first tier that produces matches; never collect from lower tiers); within-tier ties resolved by `updated:` desc, then alphabetically by handle:
 
 1. **Exact handle** match (case-insensitive, against `handle:`).
 2. **Exact alias** match (case-insensitive, against any entry in `aliases:`).
@@ -16,7 +16,7 @@ Match priority — return on first hit; ties resolved by `updated:` desc:
 
 - **0 matches:** empty list.
 - **1 match:** single result.
-- **N matches:** ranked list (priority tier first, then `updated:` desc within a tier).
+- **N matches:** ranked list (priority tier first, then `updated:` desc, then handle, within a tier).
 
 ### Caller behavior
 
@@ -43,4 +43,4 @@ Given a `name` (e.g., `Sarah Chen`):
 
 A "collision" means a file with that handle already exists at `~/.pmos/people/{handle}.md`.
 
-The handle, once written, is immutable. Renaming a person updates `name:` only; `handle:` stays. To change a handle, the user creates a new record and migrates references manually (rare; not a v1 feature).
+The handle, once written, is immutable. Renaming a person updates `name:` only; `handle:` stays. To change a handle, the user creates a new record and migrates references manually (rare, deliberately unautomated).
