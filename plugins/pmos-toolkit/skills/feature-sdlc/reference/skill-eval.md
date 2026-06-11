@@ -1,20 +1,5 @@
 # skill-eval.md — the binary skill-quality rubric
 
-53 binary pass/fail checks — 47 gated (24 `[D]` + 23 `[J]`) + 6 advisory `[J]` — pass floor 43 (gated − 4); a 1:1 mirror of `skill-patterns.md` §A–§L. `/feature-sdlc`
-Phase 6a runs this rubric: the `[D]` (deterministic)
-checks are implemented in `tools/skill-eval-check.sh`; the `[J]` (llm-judge) checks
-are run by a reviewer subagent — once, at 6a (`/verify` on a skill re-runs only the
-`[D]` half and reconciles accepted residuals); the six advisory `[J]` checks (final
-section) are evaluated and reported but never gate. Each check carries a stable `check_id` (kebab,
-prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `l-…`), a `tag`,
-an `applies_when` gate, a `check`/`pass-condition`, a `why`, a `how-to-verify`, and a
-back-reference to its `skill-patterns.md` §-rule. This file is the contract; the
-`/execute` implementation may refine the prose and re-tag an individual `[D]`/`[J]`
-where clearly mis-tagged, but MUST keep the gated set at or above the pass floor, the
-bijective patterns↔eval mapping (FR-72), every `[D]`-tagged check implemented in the
-script (FR-71), and the opening-line counts equal to the table reality (both asserted
-by `skill-eval-check.sh --selftest`).
-
 ## Table of contents
 
 - **10.A — Frontmatter** (8 checks: 7 `[D]`, 1 `[J]`)
@@ -32,6 +17,21 @@ by `skill-eval-check.sh --selftest`).
 - **Advisory signals (reported, not gated)** (6 checks, all `[J]`)
 - **Totals & group-skip rules**
 - **LLM-judge determinism contract**
+
+53 binary pass/fail checks — 47 gated (24 `[D]` + 23 `[J]`) + 6 advisory `[J]` — pass floor 43 (gated − 4); a 1:1 mirror of `skill-patterns.md` §A–§L. `/feature-sdlc`
+Phase 6a runs this rubric: the `[D]` (deterministic)
+checks are implemented in `tools/skill-eval-check.sh`; the `[J]` (llm-judge) checks
+are run by a reviewer subagent — once, at 6a (`/verify` on a skill re-runs only the
+`[D]` half and reconciles accepted residuals); the six advisory `[J]` checks (final
+section) are evaluated and reported but never gate. Each check carries a stable `check_id` (kebab,
+prefixed by the `skill-patterns.md` § it mirrors — `a-…`, `b-…`, … `l-…`), a `tag`,
+an `applies_when` gate, a `check`/`pass-condition`, a `why`, a `how-to-verify`, and a
+back-reference to its `skill-patterns.md` §-rule. This file is the contract; the
+`/execute` implementation may refine the prose and re-tag an individual `[D]`/`[J]`
+where clearly mis-tagged, but MUST keep the gated set at or above the pass floor, the
+bijective patterns↔eval mapping (FR-72), every `[D]`-tagged check implemented in the
+script (FR-71), and the opening-line counts equal to the table reality (both asserted
+by `skill-eval-check.sh --selftest`).
 
 ## Group-skip rules (part of the contract)
 

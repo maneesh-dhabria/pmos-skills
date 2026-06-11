@@ -197,7 +197,7 @@ When the user runs /polish on the README and re-enters update mode, check the ro
 - **Do NOT skip the simulated-reader pass silently.** Skipping is an explicit user choice (logged), never a default — the personas catch what the rubric can't.
 - **Do NOT bypass /polish for voice work.** "Make this README sound better" → invoke /polish on the output, don't rewrite in-skill.
 
-## Phase 8: Capture learnings {#capture-learnings}
+## Phase 8: Capture Learnings {#capture-learnings}
 
 This skill is not complete until learnings-capture has run. Read `_shared/learnings-capture.md` (relative to this skill's directory) and reflect on whether this session surfaced anything worth capturing — new rubric checks, manifest-discovery edge cases, persona refinements, platform gotchas. Append to `~/.pmos/learnings.md` under `## /readme` only when the lesson generalizes; skill body wins on conflict.
 

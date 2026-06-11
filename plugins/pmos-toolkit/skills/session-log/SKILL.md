@@ -88,7 +88,7 @@ Present the drafted entry and ask for confirmation or edits. In non-interactive 
 
 If Phase 0 loaded a workstream, follow `_shared/pipeline-setup.md` Section C. Session-log signals: decisions with reasoning → workstream `## Key Decisions`; gotchas → workstream `## Constraints & Scars`.
 
-## Phase 5: Capture learnings {#capture-learnings}
+## Phase 5: Capture Learnings {#capture-learnings}
 
 Read and follow `_shared/learnings-capture.md` for the `## /session-log` section — e.g., a decision-category the user always wants logged, a git-range heuristic that worked, a boundary call between session-log and reflect.
 

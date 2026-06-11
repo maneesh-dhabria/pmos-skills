@@ -144,7 +144,7 @@ options:
 
 On Explore: list the shallow/leaky candidates, let the user pick one, then walk the reshape proposal — what the module's interface would become, what callers change, what the deletion test says — and interrogate the trade-offs with the user (hand off to `/grill` when available). Under `--non-interactive` the classifier auto-picks Finish, so headless runs end exactly as before.
 
-## Phase 3: Capture learnings {#capture-learnings}
+## Phase 3: Capture Learnings {#capture-learnings}
 
 After the report is emitted, reflect on whether this run surfaced anything worth capturing about `/architecture` itself — false-positive rules, missed coverage gaps, exemption-row gotchas, deep-pass validation friction. Append entries under `## /architecture` in `~/.pmos/learnings.md`. Proposing zero learnings is a valid outcome; the gate is that the reflection happens.
 

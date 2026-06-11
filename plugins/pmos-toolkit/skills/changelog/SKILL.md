@@ -82,7 +82,7 @@ Present the drafted entry and ask for confirmation or edits before writing. In n
 
 Prepend the entry to `{changelog_path}` (resolved in Phase 0). If the file doesn't exist, create it with a single H1 header `# Changelog` followed by the entry.
 
-## Phase 5: Capture learnings {#capture-learnings}
+## Phase 5: Capture Learnings {#capture-learnings}
 
 Read and follow `_shared/learnings-capture.md` for the `## /changelog` section — e.g., a recurring category the user always wants pulled out, a phrasing convention, a commit-grouping heuristic that worked well.
 
