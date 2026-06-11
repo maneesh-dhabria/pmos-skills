@@ -14,6 +14,8 @@ description: TL;DR-heavy, scannable; bolded key takeaways; dense exec summary; l
 
 # Voice
 
+Baseline: `_shared/writing-principles.md`; the rules below override on conflict.
+
 - Direct. No hedging ("might", "could potentially").
 - Front-load the conclusion in every section.
 - One claim per sentence. Long sentences = unread sentences.

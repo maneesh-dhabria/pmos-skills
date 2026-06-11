@@ -1,15 +1,17 @@
 ---
 name: artifact
-description: Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) from existing context plus targeted gap-filling questions. Each artifact passes through a reviewer-subagent + auto-apply loop (max 2 iters) governed by per-section eval criteria. Ships with 4 built-in templates and 4 writing-style presets (Concise, Tabular, Narrative, Executive); users can author their own at ~/.pmos/artifacts/. Use when the user says "draft a PRD", "create an experiment design", "write a design doc", "generate a discovery doc", "/artifact", or names an artifact type to produce.
+description: Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) from existing context plus targeted gap-filling questions. Each artifact passes through a reviewer-subagent + auto-apply loop governed by per-section eval criteria. Ships with 4 built-in templates and 4 writing-style presets (Concise, Tabular, Narrative, Executive); users can author their own at ~/.pmos/artifacts/. Use when the user says "draft a PRD", "create an experiment design", "write a design doc", "generate a discovery doc", "/artifact", or names an artifact type to produce.
 user-invocable: true
-argument-hint: "[ | <type> [--tier lite|full] [--preset <slug>] | create <type> [...] | refine <path> | update <path> | template add|list|remove [<slug>] | preset add|list|remove [<slug>]] [--format <html|md>] [--non-interactive | --interactive]"
+argument-hint: "[<type> [--tier lite|full] [--preset <slug>] [--feature <slug>] | refine <path> | update <path> | template add [--quick]|list|remove <slug> | preset add|list|remove <slug>] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # /artifact
 
-Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) with section-level eval criteria, a reviewer-subagent refinement loop (max 2 iterations), and writing-style presets. Templates ship in this skill; user-defined templates and presets live at `~/.pmos/artifacts/` and survive plugin upgrades.
+Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) with section-level eval criteria, a reviewer-subagent refinement loop, and writing-style presets. Templates ship in this skill; user-defined templates and presets live at `~/.pmos/artifacts/` and survive plugin upgrades.
 
 **Announce at start:** "Using /artifact to {create|refine|update} a {type}."
+
+**Flags are NL-first.** Infer options from the request — "make it lite" ≡ `--tier lite`, "use the tabular preset" ≡ `--preset tabular`, "markdown output" ≡ `--format md`, "quick template scaffold" ≡ `template add --quick`; an explicit flag overrides the inferred intent. `create <type>` is an accepted synonym of bare `<type>`.
 
 ## Platform Adaptation
 
@@ -20,23 +22,15 @@ These instructions use Claude Code tool names. In other environments:
 
 ## Track Progress
 
-This skill has multiple phases per flow. For the Create flow, create one task per phase using your agent's task-tracking tool (`TaskCreate` in Claude Code, equivalents elsewhere): Phase 0 Load Context, Phase 1 Subcommand Routing, Phase 2 Create (with 2.0–2.7 sub-phases), Phase 3 Self-Refinement Loop, Phase 4 Save & Confirm, Phase 5 Workstream Enrichment, Phase 6 Capture Learnings. Refine Flow and Update Flow have their own phase tasks (see flow sections below). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+Multi-phase flows (Create: Phases 0–6; Refine; Update each have their own). Create one task per phase with your agent's task-tracking tool; mark each completed as soon as it finishes.
 
-## Phase 0 — Load Context
+## Phase 0: Load Context {#load-context}
 
 1. Follow `../_shared/pipeline-setup.md` Section 0 (canonical inline block) to read `.pmos/settings.yaml`, resolve `{docs_path}`, and load workstream context. If settings.yaml is missing, run first-run setup per Section A.
 2. Read `~/.pmos/learnings.md` if it exists. Note entries under `## /artifact` and factor them into this session.
-3. Ensure `~/.pmos/artifacts/` exists. If not, create the empty tree:
-   ```
-   ~/.pmos/artifacts/
-     templates/
-     presets/
-   ```
+3. Ensure `~/.pmos/artifacts/` exists. If not, create the empty tree `~/.pmos/artifacts/{templates,presets}/`.
 4. Determine the subcommand and route to the appropriate phase. Default subcommand is `create`.
-
-### Phase 0a: output_format resolution (FR-12)
-
-5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — `both` is retired per FR-12.1 and treated as `html`). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict, per FR-12). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (per runbook edge case row 4 — template-store carve-out).
+5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — a legacy `both` value is treated as `html`; the mixed-format MD sidecar is retired, see lineage). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (template-store carve-out).
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -68,42 +62,38 @@ This skill has multiple phases per flow. For the Create flow, create one task pe
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1 — Subcommand Routing
+## Phase 1: Subcommand Routing {#routing}
 
 | Argument shape | Route to |
 |---|---|
-| `(empty)` | Phase 2.0 — type picker |
-| `<type>` (one word matching a template slug) | Phase 2 — Create flow with `<type>` |
-| `create <type> [flags]` | Phase 2 — Create flow |
-| `refine <path>` | Refine flow |
-| `update <path>` | Update flow |
-| `template add` | Template Add flow |
-| `template list` | Template List flow |
-| `template remove <slug>` | Template Remove flow |
-| `preset add` | Preset Add flow |
-| `preset list` | Preset List flow |
-| `preset remove <slug>` | Preset Remove flow |
+| `(empty)` | Phase 2 (`#create`), step 1 — type picker |
+| `<type>` (one word matching a template slug; `create <type>` accepted as synonym) | Phase 2 (`#create`) |
+| `refine <path>` | Refine flow (`#refine`) |
+| `update <path>` | Update flow (`#update`) |
+| `template add` \| `list` \| `remove <slug>` | Template Management (`#template-management`) |
+| `preset add` \| `list` \| `remove <slug>` | Preset Management (`#preset-management`) |
 
 If `<type>` doesn't match any template slug (built-in or user), list available templates and offer fuzzy match before erroring.
 
-Recognized flags on `create`:
+Recognized flags on create:
 - `--tier lite|full` — bypass tier auto-detection
 - `--preset <slug>` — bypass default preset selection
+- `--feature <slug>` — feature-folder selection (pipeline-wide contract; consumed in step 4)
 
-## Phase 2 — Create Flow
+## Phase 2: Create Flow {#create}
 
-The same 7-step flow applies to every artifact type — built-in or user-defined.
+The same 8-step flow applies to every artifact type — built-in or user-defined.
 
-### 2.0 — Type picker (only when invoked with no `<type>` argument)
+### Step 1 — Type picker (only when invoked with no `<type>` argument)
 
 <!-- defer-only: free-form -->
 Use `AskUserQuestion` to ask which type to create. Build options dynamically by listing all templates from:
 - `templates/` in this skill dir (built-in)
 - `~/.pmos/artifacts/templates/` (user)
 
-Show source label `[built-in]` / `[user]` next to each. After selection, set `<type>` and proceed to 2.1.
+Show source label `[built-in]` / `[user]` next to each. After selection, set `<type>` and proceed to step 2.
 
-### 2.1 — Resolve & validate template
+### Step 2 — Resolve & validate template
 
 1. Look up `<type>` in built-in templates first; if not found, in `~/.pmos/artifacts/templates/`. (Built-in always wins on slug — user templates use unique slugs by construction.)
 2. Read `template.md` frontmatter and `eval.md`.
@@ -113,7 +103,7 @@ Show source label `[built-in]` / `[user]` next to each. After selection, set `<t
    - Every section ID referenced in `eval.md` (e.g., `## §2`) exists in `template.md`.
    - If validation fails: stop, surface the specific error, do not proceed.
 
-### 2.2 — Tier detection
+### Step 3 — Tier detection
 
 If `template.md` frontmatter `tiers: [lite, full]`:
 1. If `--tier <value>` flag was given, use it.
@@ -126,7 +116,7 @@ If `template.md` frontmatter `tiers: [lite, full]`:
 
 If `tiers: [single]`, skip this step.
 
-### 2.3 — Resolve feature folder
+### Step 4 — Resolve feature folder
 
 Follow `../_shared/pipeline-setup.md` Section B (feature-folder rules) with:
 - `skill_name=artifact`
@@ -135,7 +125,7 @@ Follow `../_shared/pipeline-setup.md` Section B (feature-folder rules) with:
 
 Returned path becomes `{feature_folder}` for the rest of this run.
 
-### 2.4 — Auto-consume upstream artifacts
+### Step 5 — Auto-consume upstream artifacts
 
 For each entry in `template.md` frontmatter `files_to_read`:
 - If `pattern:`, expand `{feature_folder}` and glob; read every match.
@@ -144,7 +134,7 @@ For each entry in `template.md` frontmatter `files_to_read`:
 
 Concatenate all read content into a `gathered_context` block, tagged by source label.
 
-### 2.5 — Gap interview
+### Step 6 — Gap interview
 
 1. Filter `eval.md` items where `kind: precondition` AND the item's `tier:` includes the selected tier (or includes `single`).
 2. For each precondition item, do a semantic check: does anything in `gathered_context` satisfy the item's `check`?
@@ -154,148 +144,82 @@ Concatenate all read content into a `gathered_context` block, tagged by source l
 4. Batch queued questions ≤4 per `AskUserQuestion` call. Use multiple sequential calls if >4.
 5. Append answers to `gathered_context` tagged `gap_answer:<criterion_id>`.
 
-### 2.6 — Preset selection
+### Step 7 — Preset selection
 
 1. If `--preset <slug>` flag, use it.
 2. Otherwise read `template.md` frontmatter `default_preset`.
 <!-- defer-only: ambiguous -->
 3. Confirm with the user via `AskUserQuestion` showing the 4 built-in presets + any user presets, with `default_preset` marked `(default)`.
 
-Load the chosen preset's rendering rules and voice notes for use in 2.7.
+Load the chosen preset's rendering rules and voice notes for use in step 8.
 
-### 2.7 — Generate draft
+### Step 8 — Generate draft
 
-Generate the artifact section-by-section using:
-- `template.md` section ordering and per-section guidance comments
-- The selected preset's rendering rules (per section type)
-- `gathered_context` (auto-read + gap answers)
+Generate the artifact section-by-section using `template.md` section ordering and per-section guidance comments, the selected preset's rendering rules, and `gathered_context` (auto-read + gap answers).
 
-Write the draft to `{feature_folder}/{slug}.html` (e.g., `prd.html`, `experiment-design.html`) per the substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`. The template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains its MD shape and is rendered via the substrate at write time (per runbook edge case row 4).
+**Author the HTML body directly** — no MD→HTML conversion step happens at write time, identical to how `/spec` and `/plan` author HTML from outline. Wrap each `## §N` section as `<section id="...">` containing `<h2 id="...">` per `_shared/html-authoring/conventions.md` §3 (kebab-case ids; level-3 subsections become `<h3 id="...">` inside the same `<section>`). The MD template is the *structural* guide, not a rendered source.
 
-**Authoring path (FR-1):** author the HTML body directly using `template.md` for section ordering and per-section guidance comments. Wrap each `## §N` section as `<section id="...">` containing `<h2 id="...">` per `_shared/html-authoring/conventions.md` §3 (kebab-case ids; level-3 subsections become `<h3 id="...">` inside the same `<section>`). **No MD→HTML conversion step happens at write time** — the LLM emits substantive HTML directly, identical to how `/spec` and `/plan` author HTML from outline. The MD template is the *structural* guide, not the rendered source.
+**Emit per the `_shared/html-authoring/README.md` checklist** (substrate at `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/`). Deltas: artifact = `{feature_folder}/{slug}.html` (e.g. `prd.html`, `experiment-design.html`) + companion `{slug}.sections.json` built via `node {feature_folder}/assets/build_sections_json.js {slug}.html.tmp > {slug}.sections.json.tmp`, both written atomic temp-then-rename; `{{pmos_skill}}` = `artifact` — the emitted `<meta name="pmos:skill" content="artifact">` routes `/comments` resolver dispatches, so it MUST be set; save path = `{feature_folder}/`, asset prefix `assets/`. The checklist's idempotent asset copy ships the inline-comments overlay (`comments.js`, `comments.css`, launcher trio) along with the viewer assets — the checklist owns that list; regenerate `{feature_folder}/index.html` per `index-generator.md` after the write.
 
-**Pre-rename assertion (FR-2):** before the `rename(2)` step of the atomic write, run inline checks on `{slug}.html.tmp`:
+**Pre-rename assertion:** before the `rename(2)` step of the atomic write, verify every `<h2>`/`<h3>` and every `<section>` wrapper in `{slug}.html.tmp` carries an `id` attribute — heading ids are load-bearing (sections.json, comment anchoring, and `/verify`'s heading-id smoke all depend on them). On a miss: hard-fail the step-8 write and surface the soft-phase failure dialog (Retry / Pause / Abort); Retry re-invokes the LLM with an explicit reminder of conventions.md §3.
 
-```bash
-# Every <h2>/<h3> carries an id="..." attr
-grep -oE '<h[23][^>]*>' {slug}.html.tmp | grep -v 'id="' && \
-  { echo "[/artifact] FR-2 violation: <h2>/<h3> without id in {slug}.html.tmp"; exit 1; }
-# Every <section> wrapper carries an id="..." attr
-grep -oE '<section[^>]*>' {slug}.html.tmp | grep -v 'id="' && \
-  { echo "[/artifact] FR-2 violation: <section> without id in {slug}.html.tmp"; exit 1; }
-```
-
-On either fail: hard-fail the Phase 2.7 write; surface the soft-phase failure dialog (Retry / Pause / Abort). The Retry path re-invokes the LLM with an explicit reminder of conventions.md §3.
-
-**Atomic write (FR-10.2):** write `{slug}.html` and the companion `{slug}.sections.json` via temp-then-rename — never serve a half-written file. The `sections.json` companion is built by running `node {feature_folder}/assets/build_sections_json.js {slug}.html.tmp > {slug}.sections.json.tmp` and renamed alongside.
-
-**Asset substrate (FR-10):** copy `assets/*` from `${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/` to `{feature_folder}/assets/` if not already present. The substrate currently includes `style.css`, `viewer.js`, `serve.js`, `build_sections_json.js`, and the inline-doc-comments substrate (FR-01, FR-40): `comments.js`, `comments.css`, plus the launcher trio `comments-open.command` and `comments-open.sh` (both via `install -m 0755`) and `comments-open.bat` (`cp -n`). New substrate files added in future releases ride along automatically. Idempotent — `cp -n` skips identical files.
-
-**Comments meta tag (FR-01, FR-40):** set `{{pmos_skill}}` to `artifact` when expanding `template.html` so the emitted artifact carries `<meta name="pmos:skill" content="artifact">`. The `/comments` resolver routes apply-edit dispatches via this meta tag, so it MUST be set per-skill.
-
-**Asset prefix (FR-10.1):** `assets/` for top-level feature-folder writes.
-
-**Cache-bust (FR-10.3):** append `?v=<plugin-version>` to all asset URL references emitted into the HTML.
-
-**Heading IDs (FR-03.1, enforced by `/verify`):** every `<h2>` and `<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md` §3.
-
-**Index regeneration (FR-22, §9.1):** after the artifact write completes, regenerate `{feature_folder}/index.html` via `_shared/html-authoring/index-generator.md` (manifest inlined as `<script type="application/json" id="pmos-index">`, no on-disk `_index.json`, FR-41).
-
-**Mixed-format sidecar (FR-12.1):** retired — `output_format=both` is treated as `html` until a future feature re-introduces MD export.
-
-Include a frontmatter block at the top of the HTML `<main>` body as a `<script type="application/json" id="pmos-frontmatter">` element carrying the artifact's metadata (FR-3):
-
-```html
-<script type="application/json" id="pmos-frontmatter">
-{
-  "type": "prd",
-  "tier": "full",
-  "preset": "narrative",
-  "generated_at": "2026-05-02",
-  "template_version": "pmos-toolkit@2.41.0",
-  "sources": ["01_requirements.html", "workstream:product-x"]
-}
-</script>
-```
-
-(Legacy MD-only mode: a YAML triple-dash frontmatter block at the top of the .md file with the same fields.)
+Include a frontmatter block at the top of the HTML `<main>` body as a `<script type="application/json" id="pmos-frontmatter">` element carrying the artifact's metadata — fields: `type`, `tier`, `preset`, `generated_at` (`<YYYY-MM-DD>`), `template_version` (`pmos-toolkit@<plugin-version>`), `sources` (e.g. `["01_requirements.html", "workstream:product-x"]`). Legacy MD-only mode: a YAML triple-dash frontmatter block at the top of the .md file with the same fields.
 
 Then proceed to Phase 3.
 
-## Phase 3 — Self-Refinement Loop (max 2 iterations)
+## Phase 3: Self-Refinement Loop {#refinement-loop}
 
-Mirrors `/wireframes` Phase 4 pattern.
+Dispatcher side of `_shared/reviewer-protocol.md` (chrome-strip input, quote-grounded findings, parent-side validation, 2-loop cap). Mirrors the `/wireframes` refinement-loop pattern.
 
 ### Loop iteration
 
-0. **Pre-dispatch input prep (FR-4).** When primary is HTML, chrome-strip the draft before dispatch so the reviewer receives only the substantive body (no toolbar, no footer, no `<head>` chrome):
+1. **Pre-dispatch input prep.** When primary is HTML, chrome-strip the draft so the reviewer spends its tokens on substance, not toolbar/footer/`<head>` chrome — algorithm and edge cases in `_shared/html-authoring/chrome-strip.md`:
    ```bash
-   node {feature_folder}/assets/chrome-strip.js {slug}.html > /tmp/artifact-reviewer-input.html
+   node ${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/assets/chrome-strip.js {slug}.html > /tmp/artifact-reviewer-input.html
    ```
-   Pass the stripped HTML inline as the reviewer's draft body. When primary is legacy MD (`output_format=md`), skip this step and pass the raw `.md` file contents instead.
+   When primary is legacy MD (`output_format=md`), skip this step and pass the raw `.md` file contents instead.
 
-1. **Dispatch reviewer subagent.**
-   - Subagent type: `general-purpose`.
-   - Inputs: `reviewer-prompt.md` (system instructions), the full `eval.md` for this template, the companion `{slug}.sections.json`, and the chrome-stripped draft (or raw MD for legacy mode).
-   - Background: false (this is a foreground call; we need findings before proceeding).
-   - Subagent returns JSON of the shape defined in `reviewer-prompt.md` — each finding has `section, criterion_id, severity, finding, suggested_fix, quote`.
+2. **Dispatch reviewer subagent** (`general-purpose`, foreground — findings are needed before proceeding). Inputs: `reviewer-prompt.md` (system instructions — it enforces the JSON contract; never invoke the reviewer with a different prompt), the full `eval.md` for this template, the companion `{slug}.sections.json`, and the chrome-stripped draft (or raw MD for legacy mode). The subagent returns JSON findings, each shaped `{section, criterion_id, severity, finding, suggested_fix, quote}`.
 
-1a. **Validate reviewer return (FR-5, FR-50/51/52 parity).** Before applying any fix:
+3. **Validate the reviewer return before applying any fix** (parent-side, per `_shared/reviewer-protocol.md`):
    1. Load `{slug}.sections.json`; collect ids into `known_ids`.
-   2. For every finding, assert `finding.section` ∈ `known_ids` (kebab-case match; tolerate trivial §N-stem derivation). On miss: hard-fail `[/artifact] FR-5 violation: reviewer returned section "{section}" not in sections.json: missing=[…]`.
-   3. For every finding, substring-grep `finding.quote` against the raw `{slug}.html` (un-stripped) source — `quote` must be ≥40 chars and a verbatim substring. On miss: hard-fail `[/artifact] FR-5 violation: reviewer quote not found in {slug}.html: {quote-prefix-30char}…`.
+   2. Every `finding.section` ∈ `known_ids` (kebab-case match; tolerate trivial §N-stem derivation). On miss: hard-fail `[/artifact] reviewer-return violation: section "{section}" not in sections.json: missing=[…]`.
+   3. Every `finding.quote` is a ≥40-char **verbatim substring** of the raw (un-stripped) `{slug}.html` source — substring-grep it. On miss: hard-fail `[/artifact] reviewer-return violation: quote not found in {slug}.html: {quote-prefix-30char}…`.
 
-   On any FR-5 hard-fail: surface the soft-phase failure dialog (Retry / Pause / Abort). Retry re-dispatches the reviewer with the same prompt (idempotent — the reviewer-prompt.md contract is stable).
+   On any hard-fail: surface the soft-phase failure dialog (Retry / Pause / Abort). Retry re-dispatches the reviewer with the same prompt (idempotent — the reviewer-prompt.md contract is stable).
 
-2. **Parse findings.** Each finding has `section, criterion_id, severity, finding, suggested_fix, quote` (post-validation).
+4. **Auto-apply** all `high` and `medium` findings via `Edit` against the draft file — the reviewer prompt requires fixes specific enough to apply literally (use the `quote` field as the `old_string` anchor when applicable). **Log** all `low` findings to an in-memory `_residuals` accumulator — never silently fix them.
 
-3. **Auto-apply** all `high` and `medium` findings via `Edit` against the draft file. Apply the `suggested_fix` literally — the reviewer prompt requires fixes specific enough to apply directly. (Use the `quote` field as the `old_string` anchor for the Edit when applicable.)
-4. **Log** all `low` findings to a `_residuals` accumulator (in-memory).
-
-5. **Post-loop companion re-emit (FR-6).** After all fixes for this iteration have been applied (and again after all iterations conclude — once is sufficient), re-emit the companions from the live (post-edit) HTML:
+5. **Post-loop companion re-emit.** After all fixes for this iteration have been applied (and again after all iterations conclude — once is sufficient), re-emit the companion from the live (post-edit) HTML:
    ```bash
    node {feature_folder}/assets/build_sections_json.js {slug}.html > {slug}.sections.json.tmp
    mv {slug}.sections.json.tmp {slug}.sections.json
-   # output_format=both MD-sidecar re-emit retired (FR-12.1).
    ```
-   Atomic via temp-then-rename. Failures fall through to the soft-phase failure dialog. (Legacy `output_format=md` path skips both re-emits — sections.json is HTML-specific; MD primary has no sidecar.)
+   Atomic via temp-then-rename. Failures fall through to the soft-phase failure dialog. (Legacy `output_format=md` path skips this — sections.json is HTML-specific.)
 
 ### Loop continuation
 
-- If any `high` findings remained AFTER applying loop-1 (i.e., the auto-fix didn't fully resolve them — should be rare; reviewer should regenerate the section), run loop 2.
-- Hard cap: **2 loops total.** No third loop, ever.
+If any `high` findings remained AFTER applying loop-1 fixes (should be rare; the reviewer should regenerate the section), run loop 2. Hard cap: **2 loops total** — the protocol default, a cost governor, not a quality gate: cap-hit means surface residuals to the user, never a 3rd loop "just in case".
 
 ### Residual presentation
 
 After loop 2 (or loop 1 if no high remain):
 
-- Surface any `high` still remaining + all `medium` from loop 2 + any `low` deemed worth raising via the **Findings Presentation Protocol**:
-  <!-- defer-only: ambiguous -->
-  - Batch ≤4 findings per `AskUserQuestion` call.
-  - Per finding, options: **Apply as proposed** / **Modify** / **Skip** / **Defer**.
-  - Apply user-confirmed fixes via `Edit`. "Defer" appends the finding to a `## Deferred Improvements` section at the end of the artifact.
+<!-- defer-only: ambiguous -->
+Present any `high` still remaining + all `medium` from loop 2 + any `low` deemed worth raising per `_shared/findings-dispositions.md` (severity tags, ≤4 findings per `AskUserQuestion` batch, the four dispositions, platform fallback — all canonical there). `/artifact` delta: **Defer** appends the finding to a `## Deferred Improvements` section at the end of the artifact. Apply user-confirmed fixes via `Edit`.
 
-### Anti-patterns (do NOT)
+## Phase 4: Save & Confirm {#save-confirm}
 
-- Run a 3rd loop "just in case." Diminishing returns are real; surface to user instead.
-- Silently fix `low` findings without user input — log them, surface only on request or at handoff.
-- Invoke the reviewer with a different prompt than `reviewer-prompt.md`. The prompt enforces the JSON contract.
-
-## Phase 4 — Save & Confirm
-
-1. The artifact file at `{feature_folder}/{slug}.html` (plus `{slug}.sections.json` companion) already exists from Phase 2.7 and was edited in Phase 3.
+1. The artifact file at `{feature_folder}/{slug}.html` (plus `{slug}.sections.json` companion) already exists from Phase 2 (`#create`) step 8 and was edited in Phase 3.
 2. Show the user a one-paragraph summary:
    - Artifact type + tier
    - Preset used
    - Sections written
    - Refinement-loop iterations (1 or 2) and counts: `N high resolved, M medium resolved, K low logged`
    - Residuals deferred (count + names)
-3. Offer to `git add` + commit. Do NOT auto-commit. Suggested commit message:
-   ```
-   docs({type}): add {tier} {type} for {feature-slug}
-   ```
+3. Offer to `git add` + commit. Do NOT auto-commit. Suggested commit message: `docs({type}): add {tier} {type} for {feature-slug}`.
 
-## Phase 5 — Workstream Enrichment
+## Phase 5: Workstream Enrichment {#workstream-enrichment}
 
 If a workstream was loaded in Phase 0:
 
@@ -310,25 +234,25 @@ If a workstream was loaded in Phase 0:
 
 If no workstream is active, skip this phase.
 
-## Phase 6: Capture Learnings
+## Phase 6: Capture Learnings {#capture-learnings}
 
 Read `../_shared/learnings-capture.md` (relative to this skill dir) and follow it. This phase is a **terminal gate** — the skill is not complete until learnings have been processed.
 
-## Refine Flow (`/artifact refine <path>`)
+## Refine Flow (`/artifact refine <path>`) {#refine}
 
-Re-run the eval-loop judge on an existing artifact. **Internal QA only — does NOT accept new external feedback.**
+Re-run the eval-loop judge on an existing artifact. **Internal QA only — does NOT accept new external feedback.** Refine re-judges *structure and content* against the template's eval.md; for prose/style work (slop, concision, voice), route to `/polish` instead.
 
 <!-- defer-only: ambiguous -->
 1. Read the artifact at `<path>`. Parse its frontmatter to determine `type`. If frontmatter is missing or `type` cannot be inferred, ask the user via `AskUserQuestion`.
-2. Resolve the template (same 2.1 logic) and load `eval.md`.
+2. Resolve the template (same lookup + validation as Phase 2 step 2) and load `eval.md`.
 <!-- defer-only: destructive -->
-3. **Detect primary extension (FR-7):** `EXT=$(basename "$path" | awk -F. '{print $NF}')` — `html` or `md`. Ask the user via `AskUserQuestion`: "Overwrite `<path>` or write to `<path>.refined.<EXT>`?" Default = `.refined.<EXT>` (safer; mirrors primary format). The refined sibling carries the same shape contract as the primary — `prd.refined.html` gets its own `prd.refined.sections.json` companion; `prd.refined.md` is the legacy path.
-4. Run Phase 3 refinement loop against the artifact (or its `.refined.<EXT>` copy).
+3. **Detect primary extension:** `html` or `md` from the filename. Ask the user via `AskUserQuestion`: "Overwrite `<path>` or write to `<path>.refined.<ext>`?" Default = `.refined.<ext>` (safer; mirrors primary format). The refined sibling carries the same shape contract as the primary — `prd.refined.html` gets its own `prd.refined.sections.json` companion; `prd.refined.md` is the legacy path.
+4. Run Phase 3 (`#refinement-loop`) against the artifact (or its `.refined.<ext>` copy).
 5. Run Phase 4 save & confirm — point at the chosen output path.
 6. Skip Phase 5 (no new workstream signals from a re-run).
 7. Run Phase 6 learnings capture (terminal gate).
 
-## Update Flow (`/artifact update <path>`)
+## Update Flow (`/artifact update <path>`) {#update}
 
 Apply stakeholder feedback to an existing artifact. **Distinct from refine — this is a stakeholder loop, not internal QA.**
 
@@ -342,66 +266,34 @@ Ask the user via `AskUserQuestion`:
 
 ### Phase U.2 — Parse into structured items
 
-Extract each feedback item into the shape:
-
-```json
-{
-  "section": "§2 Problem & Customer",
-  "type": "edit | expand | trim | question | accept | reject",
-  "content": "verbatim feedback or summary"
-}
-```
+Extract each feedback item into the shape `{section, type, content}` — `section` names a `## §N` section, `type` ∈ `edit | expand | trim | question | accept | reject`, `content` is the verbatim feedback or a summary.
 
 <!-- defer-only: free-form -->
 For ambiguous items (no clear section, or unclear intent), batch clarifying questions via `AskUserQuestion` (≤4 per call).
 
 For un-mappable items (don't fit any section), append them to a `## General Feedback` section in the artifact and continue.
 
-### Phase U.3 — Apply via Findings Presentation Protocol
+### Phase U.3 — Apply dispositions
 
 <!-- defer-only: ambiguous -->
-Per parsed item, batch ≤4 per `AskUserQuestion`. Options: **Apply as proposed** / **Modify** / **Skip** / **Defer**. Apply approvals via `Edit`. "Defer" appends to `## Deferred Improvements`.
+Present parsed items per `_shared/findings-dispositions.md` (≤4 per `AskUserQuestion` batch, the four dispositions). Apply approvals via `Edit`. `/artifact` delta: **Defer** appends to `## Deferred Improvements`.
 
 ### Phase U.4 — Append Comment Resolution Log
 
-At the bottom of the artifact (inside `<main>`, before any existing `<section id="deferred-improvements">`), append or extend a `<section id="comment-resolution-log">` with one row per resolved item (FR-8 — HTML primary path):
+At the bottom of the artifact (inside `<main>`, before any existing `<section id="deferred-improvements">`), append or extend a `<section id="comment-resolution-log">` containing an `<h2 id="comment-resolution-log">Comment Resolution Log</h2>` and a `<table>` with one row per resolved item, columns `Date | Reviewer | Section | Feedback | Resolution` (Resolution = the disposition chosen: Applied / Modified / Skipped / Deferred).
 
-```html
-<section id="comment-resolution-log">
-  <h2 id="comment-resolution-log">Comment Resolution Log</h2>
-  <table>
-    <thead><tr><th>Date</th><th>Reviewer</th><th>Section</th><th>Feedback</th><th>Resolution</th></tr></thead>
-    <tbody>
-      <tr><td>2026-05-02</td><td>(paste)</td><td>problem</td><td>Add competitor benchmark</td><td>Applied</td></tr>
-      <tr><td>2026-05-02</td><td>sarah@</td><td>guardrails</td><td>Tighten guardrails</td><td>Modified</td></tr>
-    </tbody>
-  </table>
-</section>
-```
-
-Apply via `Edit` against the HTML file; the post-edit re-emit step (Phase 3 step 5) regenerates `sections.json` to include the new id.
-
-When primary is legacy MD (`output_format=md`), fall back to the markdown table emission:
-
-```markdown
-## Comment Resolution Log
-
-| Date | Reviewer | Section | Feedback | Resolution |
-|---|---|---|---|---|
-| 2026-05-02 | (paste) | §2 | Add competitor benchmark | Applied |
-| 2026-05-02 | sarah@ | §5 | Tighten guardrails | Modified |
-```
+Apply via `Edit` against the HTML file; the post-edit re-emit (Phase 3, step 5) regenerates `sections.json` to include the new id. When primary is legacy MD (`output_format=md`), emit the same table as a markdown `## Comment Resolution Log` section instead.
 
 ### Phase U.5 — Optional re-run of refinement loop
 
 <!-- defer-only: ambiguous -->
-Ask: "Run the eval loop on the updated artifact?" via `AskUserQuestion`. If yes, run Phase 3.
+Ask: "Run the eval loop on the updated artifact?" via `AskUserQuestion`. If yes, run Phase 3 (`#refinement-loop`).
 
-### Phase U.6 — Save, then Phase 6 learnings capture (terminal gate)
+### Phase U.6 — Save, then learnings capture
 
-Same as Phase 4 + Phase 6 from the create flow.
+Same as Phase 4 + Phase 6 from the create flow (terminal gate).
 
-## Template Management
+## Template Management {#template-management}
 
 ### `/artifact template add` — research-grounded authoring
 
@@ -470,23 +362,11 @@ Validate on write:
 #### T.6 — Optional dry-run
 
 <!-- defer-only: ambiguous -->
-Ask: "Run a dry-run by creating one artifact with this template?" via `AskUserQuestion`. If yes, prompt for a feature folder (or use the most recent), then execute Phase 2 with the new template. User can iterate on sections/evals based on what the dry-run produces.
+Ask: "Run a dry-run by creating one artifact with this template?" via `AskUserQuestion`. If yes, prompt for a feature folder (or use the most recent), then execute Phase 2 (`#create`) with the new template. User can iterate on sections/evals based on what the dry-run produces.
 
 ### `/artifact template list`
 
-Read both built-in (`templates/`) and user (`~/.pmos/artifacts/templates/`) directories. Render a table:
-
-```
-| Slug              | Name                      | Tiers       | Source     |
-|-------------------|---------------------------|-------------|------------|
-| prd               | PRD                       | lite, full  | built-in   |
-| experiment-design | Experiment Design Doc     | lite, full  | built-in   |
-| eng-design        | Engineering Design Doc    | lite, full  | built-in   |
-| discovery         | Discovery Doc             | single      | built-in   |
-| okr-doc           | OKR Document              | single      | user       |
-```
-
-Read-only.
+Read both built-in (`templates/`) and user (`~/.pmos/artifacts/templates/`) directories. Render a read-only table with columns `Slug | Name | Tiers | Source` (Source = `built-in` / `user`).
 
 ### `/artifact template remove <slug>`
 
@@ -495,7 +375,7 @@ Read-only.
 2. If `<slug>` is a user template: confirm via `AskUserQuestion` (Yes/No), then `rm -rf ~/.pmos/artifacts/templates/<slug>/`. Show the path that was removed.
 3. If `<slug>` doesn't exist: list available user templates.
 
-## Preset Management
+## Preset Management {#preset-management}
 
 ### `/artifact preset add`
 
@@ -521,22 +401,7 @@ Ask: 3-5 voice rules (active vs passive, sentence length cap, hedging, etc.). Fr
 
 #### P.4 — Generate file
 
-Write to `~/.pmos/artifacts/presets/<slug>.md`:
-
-```markdown
----
-name: <slug>
-description: <line>
----
-
-# Rendering rules
-
-<rules from P.2>
-
-# Voice
-
-<rules from P.3>
-```
+Write `~/.pmos/artifacts/presets/<slug>.md`: YAML frontmatter (`name`, `description`), then a `# Rendering rules` section (rules from P.2) and a `# Voice` section (rules from P.3) — same shape as the built-in presets in `presets/`.
 
 ### `/artifact preset list`
 
@@ -548,27 +413,14 @@ Symmetric to `template remove`. Reject if built-in.
 
 ---
 
-## Apply comment-resolver edit (FR-22, FR-30, FR-60)
+## Apply comment-resolver edit {#apply-comment-resolver-edit}
 
-This phase is the `/artifact` entrypoint that `/comments resolve` (T10) dispatches into when walking open threads in an artifact's inline `pmos-comments` JSON block (`<script id="pmos-comments" type="application/json">`). The contract — input/output JSON shapes, closed `error_enum` set, idempotency rules, subagent invocation convention — lives in the shared contract doc and is the single source of truth:
+This is the `/artifact` entrypoint that `/comments resolve` dispatches into when walking open threads in an artifact's inline `pmos-comments` JSON block (`<script id="pmos-comments" type="application/json">`). The resolver dispatches a subagent whose tools include this skill's Node shim.
 
-- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` (T6).
+- **Contract (normative):** `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md` — input/output JSON shapes, resolution order (id-first, then ≥40-char quote-substring fallback), the closed `error_enum`, idempotency rules, subagent invocation convention. Cite it; never restate it.
+- **Shim:** `scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns the contract's success / failure / clarification shapes. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to a later feature.
+- **Tests:** `tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification) + wrapper `tests/scripts/assert_apply_edit_at_anchor_artifact.sh`.
 
-Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.html#nfr-h), this phase MUST cite that file rather than restate the contract. Anything below is `/artifact`-specific implementation guidance only.
+---
 
-### When invoked
-
-The resolver dispatches a subagent with the §9.1 input JSON. The subagent's tools include this skill's Node shim:
-
-- **Shim:** `plugins/pmos-toolkit/skills/artifact/scripts/apply-edit-at-anchor.js` — exports `apply(input)`, returns one of the three output shapes (success / failure / clarification) per §9.1. Success responses include the optional `applied_artifact` field (full post-edit HTML); the shim's minimal edit inserts an HTML annotation comment immediately before the resolved anchor element — real prose rewriting is deferred to T12+.
-
-### Resolution order
-
-1. **id-first.** Locate `id="<id>"` in the artifact HTML (e.g., `id="problem"`, `id="goals"`). Match → success path, `strategy: "id-first"`, `score: 1.0`.
-2. **quote-fallback.** Otherwise (or on id miss), substring-contains match `anchor.quote_anchor.text` (≥40 chars) against the candidate's text content. First exact substring hit wins.
-3. **Neither hits** → emit `{ success: false, error_enum: "anchor_orphaned" }`; do NOT mutate the artifact.
-
-### Tests
-
-- Per-skill contract: `plugins/pmos-toolkit/skills/artifact/tests/apply-edit-at-anchor.test.js` (5 cases: id-first happy, orphan, idempotent, infeasible, clarification).
-- Wrapper: `tests/scripts/assert_apply_edit_at_anchor_artifact.sh`.
+*Spec lineage: `docs/pmos/features/2026-05-02_artifact-skill` (template/eval/preset engine, gap interview, 2-loop cap), `2026-05-13_artifact-html-output` (HTML-output parity FR-1–FR-8 + FR-12 output_format; the pre-rename assertion and reviewer-return validation are grill hardenings D1/D2 there), `2026-05-09_html-artifacts` (emit substrate, index regeneration — that folder's FR-22), `2026-05-23_inline-doc-comments` + `2026-05-28_inline-html-artifacts` (comment resolver — that folder's distinct FR-22, plus FR-30/FR-60 — inline comment persistence, and the retirement of the `output_format=both` MD sidecar per FR-12.1), `2026-05-08_non-interactive-mode` (mode contract). Traceability for individual rules lives in those feature folders, not inline here.*

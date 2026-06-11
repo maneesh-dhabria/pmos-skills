@@ -13,6 +13,8 @@ description: Tight nested bullets; minimal prose; tables only when comparative d
 
 # Voice
 
+Baseline: `_shared/writing-principles.md`; the rules below override on conflict.
+
 - Active voice. Present tense.
 - Concrete nouns over abstractions ("Sarah" beats "the user").
 - Sentences ≤25 words; aim for 12-18.

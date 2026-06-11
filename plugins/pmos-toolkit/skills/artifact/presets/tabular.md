@@ -15,6 +15,8 @@ description: Tables-by-default for any list-of-objects; short prose for narrativ
 
 # Voice
 
+Baseline: `_shared/writing-principles.md`; the rules below override on conflict.
+
 - Concise; same baseline as the Concise preset.
 - Table cell content ≤8 words where possible.
 - Use status emojis sparingly: ✅ ⚠️ ❌ — and only in dedicated status columns.

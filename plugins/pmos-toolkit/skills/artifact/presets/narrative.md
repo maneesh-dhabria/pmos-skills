@@ -13,6 +13,8 @@ description: Amazon PR/FAQ-style flowing prose; complete sentences; bullets only
 
 # Voice
 
+Baseline: `_shared/writing-principles.md`; the rules below override on conflict.
+
 - Active voice. Past or present tense as fits.
 - Customer-first phrasing ("Sarah, a senior PM, struggles to..." not "Senior PMs struggle...").
 - Specific over generic ("by 23%" beats "significantly").
