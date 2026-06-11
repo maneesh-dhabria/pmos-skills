@@ -1,6 +1,6 @@
 # idea-type-classifier.md — seed → idea-type rules
 
-Classify the seed into one of `new` / `extend` / `fix` / ambiguous. First-match-wins on the ordered rules below. Drives Phase 2's auto-pick of technique pair.
+Classify the seed into one of `new` / `extend` / `fix` / ambiguous. First-match-wins on the ordered rules below. Drives the Expand phase's auto-pick of technique pair.
 
 ## Rules (first-match-wins)
 
@@ -32,7 +32,7 @@ The recommended option is computed by counting which rule had the *most* near-mi
 
 ## Override
 
-After auto-pick, the Phase-1 announce-line lets the user override the technique pair directly:
+After auto-pick, the Frame-phase announce-line lets the user override the technique pair directly:
 
 ```
 Using SCAMPER + Analogous Inspiration because this looks like an extension — override?

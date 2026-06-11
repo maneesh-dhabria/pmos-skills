@@ -50,13 +50,13 @@ How does industry X solve a structurally similar problem? LLMs are exceptionally
 
 ## Premortem-as-generator
 
-Not the same as the Phase-3 premortem (which scores a chosen idea). As a generator, use the *failure-modes* of an existing thing as the seed for variants — best for `fix` ideas where the problem statement is "this is broken in way X".
+Not the same as the pressure-test battery premortem (which scores a chosen idea). As a generator, use the *failure-modes* of an existing thing as the seed for variants — best for `fix` ideas where the problem statement is "this is broken in way X".
 
 **Prompt:** "The user describes the failure modes: <seed>. Generate 6 variants that each target a *different* root cause of the failure (not all paraphrases of the loudest cause). Each variant ≤120 chars."
 
 ## Inversion
 
-Munger inversion as a generator (also used in Phase 3 as a scorer). "What is the opposite of the framed idea?" then "what's interesting about the opposite?" Best paired with Premortem-as-generator for `fix` ideas.
+Munger inversion as a generator (the pressure-test battery also uses it as a scorer). "What is the opposite of the framed idea?" then "what's interesting about the opposite?" Best paired with Premortem-as-generator for `fix` ideas.
 
 **Prompt:** "State the framed idea in one sentence. State its conceptual opposite in one sentence. Then generate 4 variants that take the opposite seriously as a design direction — each ≤120 chars. Goal: surface the design space the user reflexively excluded."
 

@@ -1,4 +1,4 @@
-# 11-Star Ladder (Phase 3: Amplify)
+# 11-Star Ladder (Amplify)
 
 The 1→11-star ladder is Brian Chesky's design exercise for stretching a chosen idea past its obvious shape. Take one user-facing moment, sketch what it looks like from terrible (1) through expected (5) and then keep pushing — 6, 7, 8, 9, 10, 11 — until you've designed something deliberately infeasible. The sweet spot you actually ship lives in the *walk back* from 11, not at 11 itself.
 

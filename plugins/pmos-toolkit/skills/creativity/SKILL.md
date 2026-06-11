@@ -7,7 +7,7 @@ argument-hint: "<path-to-requirements-doc> [--non-interactive | --interactive]"
 
 # Creativity Analysis
 
-Evaluate requirements and proposed solutions through structured creativity techniques to generate non-obvious improvement ideas. Quality over quantity — each technique should produce 0 or 1 strong idea per journey. Don't pad.
+Evaluate requirements and proposed solutions through structured creativity techniques to generate non-obvious improvement ideas. Quality over quantity, always.
 
 Best applied to **Tier 3 requirements** (features / product launches) after `/requirements` and before `/spec`. Can be combined with `/msf-req`.
 
@@ -23,19 +23,13 @@ Best applied to **Tier 3 requirements** (features / product launches) after `/re
 These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption, document it in the output, and proceed. The user reviews after completion.
 - **No subagents:** Perform research and analysis sequentially as a single agent.
-- **No Playwright MCP:** Note browser-based verification as a manual step for the user.
 
 ---
 
-## Load Learnings
+## Phase 0: Setup {#setup}
 
-Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /creativity` and factor them into your approach for this session.
-
----
-
-## Locate Requirements
-
-Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Read the resolved file end-to-end before Phase 1.
+1. **Load learnings.** Read `~/.pmos/learnings.md` if it exists; note any entries under `## /creativity` and factor them into your approach for this session.
+2. **Locate the requirements doc.** Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirements doc"`. Read the resolved file end-to-end before Phase 1.
 
 ---
 
@@ -69,29 +63,27 @@ Follow `_shared/resolve-input.md` with `phase=requirements`, `label="requirement
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Identify & Align on Personas
+## Phase 1: Identify & Align on Personas {#personas}
 
 Follow `_shared/persona-journey-alignment.md` Step 1, with `source` = the resolved requirements doc (proposes 2–5 personas, ≤2 scenarios each; priority on **new users** and **power users**).
 
 <!-- defer-only: ambiguous -->
-The persona confirmation (`AskUserQuestion`) is mandatory — never skipped.
+The persona confirmation (`AskUserQuestion`) is mandatory — never skipped. (In non-interactive mode it DEFERs per the standard contract and the proposed personas carry forward as documented assumptions.)
 
 ---
 
-## Phase 2: Identify & Confirm Journeys
+## Phase 2: Identify & Confirm Journeys {#journeys}
 
 <!-- defer-only: ambiguous -->
 Follow `_shared/persona-journey-alignment.md` Step 2 (`source` = the resolved requirements doc) — list and confirm the journeys via `AskUserQuestion` before proceeding.
 
 ---
 
-## Phase 3: Analyze
+## Phase 3: Analyze {#analyze}
 
-Use subagents to analyze each journey from the approved personas and scenarios. For each journey, apply each creativity technique and generate improvement ideas.
+For each confirmed journey, apply the creativity lenses below from the approved personas and scenarios. When there are multiple journeys, analyze them in parallel — one subagent per journey, capturing both journey-level and aggregate findings — but serialize edits to any shared file: never let two agents edit the same file concurrently.
 
-**Quality over coverage:** Each technique should produce 0 or 1 idea per journey. Skip freely if nothing strong — don't pad.
-
-### Creativity Techniques
+### Creativity lenses
 
 **Tier 1 — Prioritize (spend more thought here):**
 
@@ -104,34 +96,17 @@ Use subagents to analyze each journey from the approved personas and scenarios. 
 | **Make it unnecessary** | What if the user didn't need to do this step at all? Can the system do it for them? |
 | **Do the opposite** | What if we reversed the expected flow, the default, or the convention? |
 
-**Tier 2 — Apply but don't force:**
+**Tier 2 — Apply but don't force:** the broader repertoire (12 lenses) lives in `reference/techniques.md` — read it when you reach this pass and give each lens a quick pass only.
 
-| Technique | Prompt |
-|-----------|--------|
-| **Add constraints** | What if we restricted options to simplify the experience? |
-| **Remove constraints** | What if we removed a limit that seemed necessary? |
-| **Combine 2 unrelated things** | What if we merged this with something from a different domain? |
-| **Solve multiple problems at once** | Can one change address several pain points simultaneously? |
-| **Make it much bigger** | What if this was 10x the scope — what would we do differently? |
-| **Make it much smaller** | What's the absolute smallest version that still delivers value? |
-| **Make it the only thing** | What if this was the ONLY feature — how would we make it perfect? |
-| **Add friction** | Where would deliberate friction improve outcomes (e.g., confirmation, cooling-off)? |
-| **Make them feel better & smarter** | How can we make the user feel competent, capable, and good about themselves? |
-| **Build distribution within** | How can the product spread through its own use? |
-| **Surprise** | Where can we exceed expectations in a delightful, unexpected way? |
-| **Bundle** | What complementary experiences could we combine? |
-| **Unbundle** | What should be separated into its own focused experience? |
-| **Make it skeuomorphic** | What real-world analog could we mirror to make this instantly familiar? |
+**Floor, not ceiling:** the lenses are a floor — if a stronger idea comes from outside the catalog, include it and name your own lens.
 
-### Parallelization
-
-If there are multiple flows and screens, analyze each independently using subagents. Capture analysis at both journey level and aggregate level. Serialize edits to any shared file — do not have multiple agents edit the same file concurrently.
+**Quality over coverage:** each technique should produce 0 or 1 strong idea per journey. Skip freely if nothing strong — don't pad.
 
 ### Save Analysis
 
 Save consolidated findings to `docs/creativity/YYYY-MM-DD-<feature-name>-creativity-analysis.md`. Commit.
 
-**Report format:** Table-heavy, minimal prose. Keep the report under 300 lines.
+**Report format:** Table-heavy, minimal prose.
 
 Per-journey output table:
 
@@ -140,25 +115,24 @@ Per-journey output table:
 
 ---
 
-## Phase 4: Prioritize & Agree on Recommendations
+## Phase 4: Prioritize & Agree on Recommendations {#prioritize}
 
-Present recommendations individually for accept/reject via multi-select (not group-level accept/reject). Group by priority:
+Collect a **per-recommendation verdict with grouped display**: group by priority, present each group's recommendations together, and let the user accept/reject each one individually — never a single group-level accept/reject. Priority groups:
 - **Must** — High-impact ideas that fundamentally improve the experience
 - **Should** — Strong improvements worth the effort
 - **Nice-to-Have** — Polish and delight items
 
-Each recommendation must include:
-- Severity (Must / Should / Nice-to-Have)
-- Affected screens/journeys
-- Implementation effort (Low / Medium / High)
+<!-- defer-only: ambiguous -->
+Present each group via `AskUserQuestion` (multiSelect across the group's recommendations; selected = accepted). Each recommendation states its severity, affected screens/journeys, and implementation effort (Low / Medium / High).
 
 **Dropped items stay in the analysis doc as ~~strikethrough~~ with "DROPPED" label**, for future reconsideration. Capture both agreed and dropped recommendations.
 
 ---
 
-## Phase 5: Check Scope of Changes
+## Phase 5: Check Scope of Changes {#apply-scope}
 
-Ask the user whether to update:
+<!-- defer-only: ambiguous -->
+Ask the user (`AskUserQuestion`) whether to update:
 - (a) The requirements doc
 - (b) Wireframes
 - (c) Both
@@ -167,11 +141,11 @@ Only proceed with what the user approves.
 
 **Companion re-emit:** when this phase edits `01_requirements.html`, re-emit the sibling `01_requirements.sections.json` from the post-edit section tree, atomically via temp-then-rename (the HTML and its sections.json are an atomic pair per `_shared/html-authoring/README.md` FR-71 — both succeed or neither persists).
 
-**Wireframe guidance:** Update only `-final.html` wireframes (not iterations). Add visual elements for layout-affecting changes. Copy/label changes can be text annotations only.
+**Wireframe guidance:** Update the current wireframe files per /wireframes' output layout — never rewrite iteration history. Add visual elements for layout-affecting changes. Copy/label changes can be text annotations only.
 
 ---
 
-## Phase 6: Consistency Pass
+## Phase 6: Consistency Pass {#consistency}
 
 After any updates, run a final check:
 
@@ -183,7 +157,7 @@ Report any discrepancies found.
 
 ---
 
-## Phase 7: Capture Learnings
+## Phase 7: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings-capture process has run.** Read and follow `_shared/learnings-capture.md` (relative to the skills directory) now. Reflect on whether this session surfaced anything worth capturing — surprising behaviors, repeated corrections, non-obvious decisions. Proposing zero learnings is a valid outcome for a smooth session; the gate is that the reflection happens, not that an entry is written.
 
@@ -193,7 +167,11 @@ Report any discrepancies found.
 
 - Do NOT skip persona alignment — creativity without user context produces generic ideas
 - Do NOT force ideas from every technique — 0 ideas from a technique is fine
-- Do NOT present a wall of ideas — group by priority, present individually for accept/reject
+- Do NOT present a wall of ideas — grouped display, individual verdicts (Phase 4)
 - Do NOT modify requirements or wireframes without user approval in Phase 5
 - Do NOT spend equal time on all techniques — Tier 1 gets deep thought, Tier 2 gets a quick pass
 - Do NOT remove dropped items from the doc — strikethrough with DROPPED label preserves them for future reconsideration
+
+---
+
+*Spec lineage: founding catalog `727504e`; non-interactive rollout `364d1eb` (mode contract); persona/journey alignment extracted to `_shared/persona-journey-alignment.md` in `73675d7`; sections.json companion re-emit per `2026-05-28_inline-html-artifacts`; Tier-2 catalog moved to `reference/techniques.md` per the 2026-06-10 skill-design review (write-side modernization deliberately deferred — P3).*
