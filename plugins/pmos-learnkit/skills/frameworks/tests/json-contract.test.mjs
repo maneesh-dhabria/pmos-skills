@@ -11,13 +11,14 @@ const corpus = JSON.parse(readFileSync(join(here, 'fixtures', 'mini-corpus.json'
 let failures = 0;
 const check = (cond, msg) => { if (!cond) { console.error(`  FAIL: ${msg}`); failures++; } };
 
-const TOP_KEYS = ['query', 'count', 'low_confidence', 'matches'];
+const TOP_KEYS = ['query', 'count', 'low_confidence', 'reranked', 'matches'];
 const MATCH_KEYS = ['id', 'name', 'why', 'score', 'category', 'decision_type', 'diagram'];
 
 function assertShape(obj, query) {
   check(TOP_KEYS.every((k) => k in obj), `top-level keys present for "${query}"`);
   check(obj.query === query, 'query echoed');
   check(typeof obj.low_confidence === 'boolean', 'low_confidence boolean');
+  check(obj.reranked === false, 'deterministic path emits reranked:false');
   check(Array.isArray(obj.matches), 'matches is array');
   check(obj.count === obj.matches.length, 'count == matches.length');
   check(obj.matches.length <= 5, `cap ≤5 (got ${obj.matches.length})`);
@@ -40,6 +41,7 @@ check(!a.low_confidence, 'roadmap query confident');
 const b = toJsonContract('xyzzy plugh frobnicate', corpus, {});
 assertShape(b, 'xyzzy plugh frobnicate');
 check(b.low_confidence, 'nonsense low_confidence');
+check(b.count === 0, `zero-score records excluded — pure nonsense returns 0 matches, got ${b.count}`);
 
 // JSON-only / round-trips cleanly through JSON.parse(JSON.stringify(...))
 const c = toJsonContract('irreversible decision', corpus, {});

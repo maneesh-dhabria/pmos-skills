@@ -6,13 +6,14 @@
 //   node match.mjs --query "<problem>" [--floor N] [--json] [--corpus <path>] [--top N]
 //   node match.mjs --selftest
 //
-// Without --json: prints the top ~15 candidates (id, score) for an LLM re-rank.
-// With --json: emits the FR-JSON contract object (cap ≤5) and nothing else to stdout.
+// Without --json: prints the full nonzero candidate pool (≤ --top) for an LLM re-rank.
+// With --json: emits the FR-JSON contract object (cap ≤5; reranked:false) and nothing
+// else to stdout. Diagram paths are emitted absolute (resolved against the corpus dir).
 
 import { readFileSync } from 'node:fs';
 import { argv } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
 const STOPWORDS = new Set(('a an the of to for and or but in on at by with from is are be do does how what which '
   + 'when should i my we our you your this that it its as need want help me about into over under can could '
@@ -37,8 +38,11 @@ export function scoreRecord(queryTokens, rec) {
     else if (nameTokens.has(t)) score += 2;
     else if (ctxTokens.has(t)) score += 1;
   }
-  // normalize by the max achievable for this query (every token a ×3 tag hit).
-  return score / (q.size * 3);
+  // normalize by the max achievable for an *effective* query of ≤6 tokens (every
+  // token a ×3 tag hit), clamped to [0,1]. Capping the denominator keeps verbose,
+  // natural problem statements — the input style the skill invites — from being
+  // punished for their length.
+  return Math.min(1, score / (Math.min(q.size, 6) * 3));
 }
 
 export function match(query, records, { floor = 0.15, top = 15 } = {}) {
@@ -47,10 +51,13 @@ export function match(query, records, { floor = 0.15, top = 15 } = {}) {
     .map((r) => ({ rec: r, score: scoreRecord(qt, r) }))
     .sort((a, b) => (b.score - a.score) || (a.rec.id < b.rec.id ? -1 : 1));
   const nonzero = scored.filter((s) => s.score > 0);
-  const topScore = scored.length ? scored[0].score : 0;
+  const topScore = nonzero.length ? nonzero[0].score : 0;
   const low_confidence = topScore < floor;
-  const pool = low_confidence ? scored.slice(0, 2) : nonzero.slice(0, top);
-  return { low_confidence, topScore, candidates: pool };
+  // low_confidence caps the *output* (≤2, applied by callers / toJsonContract),
+  // never the candidate pool — the LLM re-rank must see the full pool to rescue a
+  // verbose query the bag-of-words scorer under-rated. Zero-score records are never
+  // returned: pure-nonsense input yields an empty pool, not fabricated matches.
+  return { low_confidence, topScore, candidates: nonzero.slice(0, top) };
 }
 
 function signalsFor(queryTokens, rec) {
@@ -60,7 +67,7 @@ function signalsFor(queryTokens, rec) {
   return hits.length ? `tags: ${hits.join(', ')}` : `name/context overlap`;
 }
 
-export function toJsonContract(query, records, { floor = 0.15 } = {}) {
+export function toJsonContract(query, records, { floor = 0.15, diagramBase = null } = {}) {
   const qt = tokenize(query);
   const { low_confidence, candidates } = match(query, records, { floor, top: 15 });
   const cap = low_confidence ? 2 : 5;
@@ -72,10 +79,12 @@ export function toJsonContract(query, records, { floor = 0.15 } = {}) {
       : `matched on ${signalsFor(qt, rec)}`,
     score: +score.toFixed(4),
     category: rec.category || null,
-    decision_type: rec.decision_type || 'n/a',
-    diagram: rec.diagram || null,
+    decision_type: rec.decision_type || null,
+    diagram: rec.diagram ? (diagramBase ? resolve(diagramBase, rec.diagram) : rec.diagram) : null,
   }));
-  return { query, count: matches.length, low_confidence, matches };
+  // reranked:false = deterministic prefilter answer. An in-session agent that
+  // re-ranks before returning the object sets reranked:true (see reference/matching.md).
+  return { query, count: matches.length, low_confidence, reranked: false, matches };
 }
 
 // ---- selftest -------------------------------------------------------------
@@ -93,14 +102,27 @@ function runSelftest() {
   assert(!r.low_confidence, 'prioritization query should be confident');
   assert(['product/rice', 'product/kano'].includes(r.candidates[0].rec.id), `top should be a prioritization framework, got ${r.candidates[0].rec.id}`);
 
-  // nonsense query → low confidence, ≤2 returned, never padded to 5
+  // nonsense query → low confidence, zero-score records excluded — count 0, never fabricated
   const j = toJsonContract('zxqw flibber nonsense gibberish', FIXTURE, {});
   assert(j.low_confidence, 'nonsense should be low_confidence');
-  assert(j.count <= 2, `low-confidence cap ≤2, got ${j.count}`);
+  assert(j.count === 0, `zero-score records must be excluded — nonsense returns 0 matches, got ${j.count}`);
+
+  // verbose natural problem statement → still clears the floor (length-insensitive denominator)
+  const v = match('my ceo keeps pushing pet features and i do not know how to rank what goes on the roadmap next quarter', FIXTURE, {});
+  assert(!v.low_confidence, 'verbose realistic query should not trip the confidence floor');
+  assert(v.candidates[0].rec.id === 'product/rice', `verbose roadmap query should top RICE, got ${v.candidates[0].rec.id}`);
+
+  // low_confidence keeps the full nonzero pool for the re-rank; only the JSON output is capped
+  const lc = match('roadmap features satisfaction decision', FIXTURE, { floor: 0.9 });
+  assert(lc.low_confidence, 'high floor should flag low_confidence');
+  assert(lc.candidates.length === 3, `low_confidence must keep the full nonzero pool (3), got ${lc.candidates.length}`);
+  const lcj = toJsonContract('roadmap features satisfaction decision', FIXTURE, { floor: 0.9 });
+  assert(lcj.count <= 2, `json output cap ≤2 under low confidence, got ${lcj.count}`);
 
   // json contract shape + cap ≤5 + score range
   const j2 = toJsonContract('irreversible high-stakes decision', FIXTURE, {});
   assert(j2.matches.length >= 1 && j2.matches.length <= 5, 'cap ≤5');
+  assert(j2.reranked === false, 'deterministic path emits reranked:false');
   assert(j2.matches[0].id === 'decision-making/regret-minimization', `regret-min should top, got ${j2.matches[0].id}`);
   for (const m of j2.matches) {
     assert(typeof m.id === 'string' && typeof m.name === 'string' && typeof m.why === 'string', 'match field types');
@@ -129,7 +151,10 @@ function main() {
   const records = JSON.parse(readFileSync(corpusPath, 'utf8'));
   const floor = flag('floor') != null ? parseFloat(flag('floor')) : 0.15;
   if (args.includes('--json')) {
-    process.stdout.write(JSON.stringify(toJsonContract(query, records, { floor })) + '\n');
+    // emit diagram paths absolute, resolved against the corpus's skill dir —
+    // consumers don't know ${CLAUDE_SKILL_DIR}.
+    const diagramBase = resolve(dirname(corpusPath), '..');
+    process.stdout.write(JSON.stringify(toJsonContract(query, records, { floor, diagramBase })) + '\n');
   } else {
     const top = flag('top') != null ? parseInt(flag('top'), 10) : 15;
     const { low_confidence, candidates } = match(query, records, { floor, top });

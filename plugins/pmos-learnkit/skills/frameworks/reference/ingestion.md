@@ -1,7 +1,7 @@
 # Ingestion pipeline — `/frameworks sync`
 
 Two stages: deterministic **Stage-A scripts** (zero-dep Node) and in-session
-**Stage-B agent** steps (Notion fetch, LLM field derivation, `/diagram`). The output
+**Stage-B agent** steps (Notion fetch, LLM field derivation, direct SVG generation). The output
 is `data/frameworks.json`, `data/diagrams/*.svg`, and a rebuilt `index.html`. A failed
 sync never disturbs the shipped corpus.
 
@@ -177,7 +177,7 @@ refs, every `diagram_anchors` present + length-matched + substring-valid, and th
 
 ## Failure handling
 
-- **One `/diagram` fails** → log + keep prior SVG / `null`, continue the batch (FR-ING-2).
+- **One diagram generation fails** → log + keep prior SVG / `null`, continue the batch (FR-ING-2).
 - **Notion unreachable** → sync fails cleanly; the existing shipped `frameworks.json`
   and diagrams are untouched (FR-ING-3). Never half-write the corpus.
 - **A category page won't split** (unexpected structure) → report which page, skip it,
