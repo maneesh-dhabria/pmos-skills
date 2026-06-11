@@ -1,5 +1,13 @@
 # P1/P2 campaign — stragglers log (controller-maintained)
 
+## CAMPAIGN STATE (updated 2026-06-11, pre-Wave-3 compact)
+
+Branch `refactor/skill-design-p1p2`. Waves P/0/1 and Wave 2 Batches A/B/C complete and committed (see `git log --oneline main..HEAD`). Batch D: D1 primer+learn-list (dd9f1ba), D2 magazine (a6cf727), D3 frameworks (5fc1758) committed; **D4 (critical-thinking + playbook) agent still in flight** — when it reports, verify its render-fix evidence + run its listed gates, commit `plugins/pmos-learnkit/skills/{critical-thinking,playbook}` (+ fanout test if it registered playbook).
+
+THEN Wave 3 per `p1-p2-plan.md` (§Wave 3): 3.1 repo-wide lint repair (remaining known reds listed in this file: verify design-drift-check wireframes slugs, mac-health Phase 0 ghost, assert_unsupported_format ×7, 5 old pipeline fixtures); 3.2 full gate sweep (command list in the plan); 3.3 four adversarial behavior-preservation reviewers over `git diff main...HEAD` per batch; 3.4 skill-eval-check [D] on readme/spec/plan/feature-sdlc/wireframes; 3.5 CLAUDE.md + report.md + auto-memory updates; 3.6 final commit, NO push.
+
+Notes: other concurrent session owns `docs/pmos/reviews/2026-06-10_ops-observations/**` + `.pmos/grills/*` (untracked/modified — never commit those). Subagent stalls: keep ≤3 concurrent agents. `ls` is aliased/broken in sandbox — use `/bin/ls` or `find`.
+
 Cross-boundary items reported by Wave 2 package agents, to be resolved by the
 owning package if still in flight, else by Wave 3.1 central repair. Strike
 through when resolved.
@@ -48,6 +56,17 @@ Old 2a → `#resolve-design-md` (Phase 3) · old 2b/2.6 → `#composition-contex
 
 - [ ] `_shared/structured-ask-edge-cases.md:69` cites "/prototype — Phase 8 Findings Presentation Protocol" — semantically stale (findings is now Phase 9 {#findings}); lint-invisible (a Phase 8 exists). Controller one-liner, Wave 3.
 - [ ] §L follow-up: prototype's 4 dispatch sites (mock-data/runtime/components/reviewer) and polish's editor/rewriter dispatches have no model pins; `sonnet` would fit. Optional, post-campaign.
+
+## From C6 (grill group) — Wave 3 test-red sweep items
+
+- [ ] `tests/scripts/assert_unsupported_format.sh` red for requirements/spec/plan/msf-req/artifact/msf-wf/design-crit — rewrites dropped the "valid values" --format enumeration the test greps. Wave 3 decision: restore a one-line valid-values mention per skill OR relax the test (prefer whichever preserves the actual headless contract).
+- [ ] 5 pipeline-consolidation fixtures red (pre-existing on branch): resume-idempotency, t12b, t19, w5-fsdlc-gates, w7-fold-retro — feature-sdlc/verify grep surfaces. Wave 3: convert to slug-form greps like w1/w2/w3 where the behavior is intact.
+- [ ] Untracked `.pmos/grills/*` artifacts in worktree — not the campaign's; leave.
+
+## From D3 (frameworks) — cross-plugin gaps
+
+- [ ] `audit-recommended.sh` default scope is pmos-toolkit only — learnkit/utilities prompts unaudited (0.3 agent also flagged 5 near-miss skip-pattern lines in learnkit). Wave 3.5 or post-campaign: extend scope + fix the three "No `AskUserQuestion`:" bullets to the skip-pattern phrasing.
+- [ ] `_shared/non-interactive.md` end-of-skill summary hardcodes `pmos-toolkit:` prefix — wrong for learnkit/utilities; byte-identical contract forbids local fixes. Needs a canonical-block revision (parameterize the prefix), separate change.
 
 ## From B7 (design-crit + msf)
 
