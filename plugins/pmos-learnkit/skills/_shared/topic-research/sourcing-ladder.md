@@ -1,13 +1,13 @@
 # sourcing-ladder.md — finding & verifying content per format
 
-How to turn a topic into real, verified links across formats. The governing rule:
-**rank first, then verify only the survivors** (verification spend scales with output,
-not with the candidate pool), and **never emit a URL you have not fetched this run.**
+What "verified" means and how to fetch each format. The governing rule:
+**never emit a URL you have not fetched this run.** The rank-then-verify loop that
+orchestrates these rules (gather → hard-gate → tier-rank → fetch-verify → annotate)
+lives in `sourcing.md`; this file owns the pass-bar and the per-format mechanics.
 
 ## Contents
 
 - The verification pass-bar (what "verified" means)
-- Rank-then-verify loop
 - Curation-of-curations harvest
 - Per-format sourcing
 - The free-fetch ladder (X / LinkedIn / paywalled)
@@ -31,19 +31,7 @@ actual fetch this run:
 Failing any of the three → drop the link. Dropping is always preferable to emitting a
 plausible-but-unverified link.
 
-## Rank-then-verify loop (per topic, Phase 4)
-
-1. **Gather candidates** from live web search (and the harvested curations) — cap the
-   pool at ~3× the links-to-emit for the mode.
-2. **Apply the hard gate** from `source-tiers.md` (attributable + plausibly real);
-   discard failures cheaply, on metadata, before any fetch.
-3. **Tier-rank** the survivors; take the top-N for the mode.
-4. **Fetch-verify** only those top-N against the pass-bar above. For each that fails,
-   pull up the next-ranked candidate and verify it. Stop at N verified links (or fewer
-   if the topic is genuinely thin — honest under-coverage beats padding).
-5. **Annotate** each survivor from the fetched content (≤2 sentences, ~≤240 chars).
-
-## Curation-of-curations harvest (Phase 2)
+## Curation-of-curations harvest
 
 Before deriving the outline, search for material other curators already built:
 "best <topic> resources / reading list / syllabus", "awesome-<topic>", "<topic> from
@@ -78,9 +66,9 @@ can serve as a last rung, but it is never required.)
 
 ## Book summaries
 
-**Every emitted book that is not free carries a summary reference — wherever it appears**
-(reading-list-by-topic, adjacent rabbit holes, *and* the follow-list), not just the
-follow-list. This is the book-equivalent of the paywalled-source rule below: a paid book
+**Every emitted book that is not free carries a summary reference — wherever it appears
+in the consuming artifact** (core sections, adjacency sections, and follow/closing
+sections alike). This is the book-equivalent of the paywalled-source rule below: a paid book
 *is* a paywall, so the user gets a way to skim the high-level ideas without buying it.
 Attach the summary inline next to the book, the same shape as a paywalled source's
 free-alternative line.

@@ -15,7 +15,7 @@
 
 This rubric is inlined verbatim into the Phase-5 reviewer subagent prompt. The reviewer makes no edits — it scores. Each check returns one JSON object: `{check_id, verdict: 'pass'|'fail', evidence: '<≤2-line excerpt or pointer>', quote: '<≥40-char verbatim substring of the draft>'}`. Output contract details below.
 
-Tier convention (D-RUBRIC): **trust** checks are mechanically verifiable (URL match, structural match, citation present) — failures hard-fail the run. **taste** checks are subjective quality (reading level, voice, uncertainty handling) — failures surface as known-risk with a user override gate.
+Tier convention: **trust** checks are mechanically verifiable (URL match, structural match, citation present) — failures hard-fail the run. **taste** checks are subjective quality (reading level, voice, uncertainty handling) — failures surface as known-risk with a user override gate.
 
 ### R1: cites-real-urls
 
@@ -96,13 +96,15 @@ Tier convention (D-RUBRIC): **trust** checks are mechanically verifiable (URL ma
 - **Evidence shape:** the advocacy passage + the H2 it appears under + which sources were available but not contrasted.
 - **Quote requirement:** ≥40-char verbatim substring of the draft containing the advocacy passage. Example: `I strongly believe that continuous discovery is the only correct way to do product management, full stop.`
 - **Fail example:** an entire H2 section that argues one framework is correct and dismisses alternatives, rather than presenting the landscape with attribution.
-- **Informational fields (new in v0.2.0; extended in v0.3.0).** The R10 object additionally returns three fields used by the orchestrator at the Phase-5 write gate; none affect the R10 verdict:
-  - `examples_per_h2_distribution: [{h2_id, h2_title, count}]` — count of named-company / named-product / named-incident mentions plus any sentence prefixed `"Hypothetical: "` per H2 section. The orchestrator surfaces a one-line note at the write gate when ≥30% of H2s have `count == 0`. Per S-FR-6.2.
-  - `word_count: <int>` — actual draft word count. The orchestrator surfaces a one-line note at the write gate when this falls outside the resolved depth tier's target range (brief 2,000–3,000 / standard 4,000–6,000 / deep 7,000–10,000). Per S-FR-8.7. **`word_count` excludes text inside `<svg>` subtrees** — depth-tier thresholds compare against prose only, so inline diagrams do not inflate the count (FR-D02 grill-Q3, v0.3.0).
-  - `diagrams_per_h2_distribution: [{h2_id, h2_title, count}]` — count of inline `<svg>` elements per H2 section. Informational only; does NOT affect the R10 verdict. The orchestrator does NOT surface a note based on this field at the write gate (per spec D7 / grill-Q1, v0.3.0) — it exists for audit and longitudinal observation of drafter behavior. New in v0.3.0 per FR-D06.
+- **Informational fields.** The R10 object additionally returns three fields used by the orchestrator at the Phase-5 write gate; none affect the R10 verdict:
+  - `examples_per_h2_distribution: [{h2_id, h2_title, count}]` — count of named-company / named-product / named-incident mentions plus any sentence prefixed `"Hypothetical: "` per H2 section. The orchestrator surfaces a one-line note at the write gate when ≥30% of H2s have `count == 0`.
+  - `word_count: <int>` — actual draft word count. The orchestrator surfaces a one-line note at the write gate when this falls outside the resolved depth tier's target range (brief 2,000–3,000 / standard 4,000–6,000 / deep 7,000–10,000). **`word_count` excludes text inside `<svg>` subtrees** — depth-tier thresholds compare against prose only, so inline diagrams do not inflate the count.
+  - `diagrams_per_h2_distribution: [{h2_id, h2_title, count}]` — count of inline `<svg>` elements per H2 section. Informational only; does NOT affect the R10 verdict and triggers no write-gate note — it exists for audit and longitudinal observation of drafter behavior.
 
 ## Output contract
 
-- Reviewer returns one JSON array, exactly 10 objects, one per check_id above. The check_id set must equal the rubric's set — orchestrator hard-fails on mismatch (FR-44).
-- Per FR-8.2 / FR-43: a fail whose `quote` field is empty or not a verbatim substring of the draft is **treated as pass** by the orchestrator (defense against hallucinated quotes).
+- Reviewer returns one JSON array, exactly 10 objects, one per check_id above. The check_id set must equal the rubric's set — the orchestrator hard-fails on mismatch.
+- A fail whose `quote` field is empty or not a verbatim substring of the draft is **treated as pass** by the orchestrator (defense against hallucinated quotes).
 - Trust-tier fails (R1, R2, R3, R6, R7) hard-fail the run and require a re-draft. Taste-tier fails (R4, R5, R8, R9, R10) surface as known-risk and gate on explicit user override.
+
+*Spec lineage: FR/S-FR/D tags for these contracts live in `docs/pmos/features/2026-05-23_pmos-learnkit-primer/` and `2026-05-28_primer-inline-diagrams/`.*

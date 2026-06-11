@@ -52,7 +52,7 @@ agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task
 in-progress when you start it and completed as soon as it finishes — do not batch
 completions.
 
-## Phase 0: Setup + Load Learnings
+## Phase 0: Setup + Load Learnings {#setup}
 
 1. Inline `_shared/pipeline-setup.md`: read `.pmos/settings.yaml` (require `version` and
    `docs_path`; default `output_format` to `html` when absent), resolve `{docs_path}`, and
@@ -99,7 +99,7 @@ The canonical non-interactive block below handles `mode` resolution + per-checkp
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Intake (shared)
+## Phase 1: Intake (shared) {#intake}
 
 Goal: pin **topic + depth + audience** in one short pass.
 
@@ -108,12 +108,14 @@ Goal: pin **topic + depth + audience** in one short pass.
    `unknown flag '--mode'. Use --depth brief|standard|deep instead.` and exit 64. If
    `--level` is present → `unknown flag '--level'. Use --audience senior-pms|all-pms
    instead.` and exit 64. (These flags were retired when the front half unified with
-   `/primer`; there is no silent alias.)
+   `/primer`; there is no silent alias. Migration shim — remove two minor releases
+   after 0.9.0; `tests/structure.test.sh` pins these strings, so drop its checks in
+   the same commit.)
 3. **Inline `_shared/topic-research/intake.md`** and follow it — it resolves
    `--depth brief|standard|deep` (default `standard`) and `--audience senior-pms|all-pms`
    (asked once if absent; audience is resolved at every depth, including `brief`), and
    runs the topic-richness classifier. Honor effort phrasing to suggest a depth.
-4. **React to the richness verdict (this skill's reaction, FR-12).** `/learn-list`
+4. **React to the richness verdict (this skill's reaction).** `/learn-list`
    consumes the verdict **softly**: any verdict proceeds. `rich` → full list. `thin` →
    produce a smaller honest list and note "thin — little quality material found" rather
    than padding; **never block** and do not force reframings on the user (a thin topic is
@@ -122,27 +124,29 @@ Goal: pin **topic + depth + audience** in one short pass.
 5. **Confirm** topic + depth + audience in a single line and proceed. Do not re-ask
    anything the flags already settled.
 
-## Phase 2: Canon & curations (shared)
+## Phase 2: Canon & curations (shared) {#canon}
 
 **Inline `_shared/topic-research/canon-discovery.md`** and follow it — find the field's
 canonical books, top practitioners, and 2–4 existing curations by live search (never from
 memory), sized to the resolved depth. Carry forward the emitted `canon` set (books +
 practitioners + curation entries) for the outline cascade and the candidate pool.
 
-## Phase 3: Outline (shared)
+## Phase 3: Outline (shared) {#outline}
 
 **Inline `_shared/topic-research/outline.md`** and follow it — derive the outline by
 cascade (canonical → curation → provisional), record the provenance rung, dedupe topics
 before fan-out, and run the confirm gate. The provenance rung goes in the artifact's
 TL;DR. In non-interactive mode the gate auto-proceeds.
 
-## Phase 4: Source per topic (shared)
+## Phase 4: Source per topic (shared) {#source}
 
 **Inline `_shared/topic-research/sourcing.md`** and follow it — for each outline topic,
 run the rank-then-verify loop and emit a verified, ranked, annotated shortlist. Emit the
-est-cost line before sourcing. Fan out one subagent per topic in `standard`/`deep`
-(sequential in `brief`), with `model: haiku` — fetch+verify+annotate work that the
-Phase-6 self-review re-checks (dead links, slop gate, grounding).
+est-cost line before sourcing. Parallelize per-topic sourcing when the host supports
+subagents — one `Task` per topic at `standard`/`deep` (sequential at `brief`), with
+`model: haiku` (fetch+verify+annotate work whose output the Phase 6 self-review
+re-checks: dead links, slop gate, grounding). Degradation when subagents are missing:
+see Platform Adaptation.
 
 This skill's back-half use of each shortlist (its own reaction to the substrate output):
 
@@ -156,7 +160,7 @@ This skill's back-half use of each shortlist (its own reaction to the substrate 
 - Do not enforce a per-format quota — include only the formats actually found and
   verified. A fabricated podcast or video to fill a row is a hard failure.
 
-## Phase 5: Adjacencies & follow-list (back half)
+## Phase 5: Adjacencies & follow-list (back half) {#adjacencies-follow-list}
 
 1. **Adjacency walk.** Explore adjacent topics to widen coverage — hops keyed to
    `--depth` via the `intake.md` dial matrix (`brief` 0, `standard` 1, `deep` 2). Source
@@ -170,7 +174,7 @@ This skill's back-half use of each shortlist (its own reaction to the substrate 
    link per `_shared/topic-research/sourcing-ladder.md`, or "no good summary found").
    Deep depth adds book summaries + signature writings for the full practitioner set.
 
-## Phase 6: Eval + Write
+## Phase 6: Eval + Write {#eval-write}
 
 1. **Self-review before writing** — a quick reviewer pass over the assembled list:
    - **Dead-link sweep** — re-confirm every emitted URL resolved this run; drop any that
@@ -195,7 +199,7 @@ This skill's back-half use of each shortlist (its own reaction to the substrate 
 3. **Print the absolute artifact path** in the chat summary, plus a one-line
    `/primer <topic>` handoff suggestion (standalone — never auto-invoke).
 
-## Phase 7: Capture Learnings
+## Phase 7: Capture Learnings {#capture-learnings}
 
 **This skill is not complete until the learnings reflection has produced a one-line
 output.** Reflect on whether this session surfaced anything worth keeping under
@@ -228,17 +232,21 @@ Empty reflection (no line) counts as unfinished work.
    the hard gate (named author OR recognized publication) is binary; tiering only orders
    what already passed. "It looks fine" is not a quality bar.
 5. **Loading workstream context.** This is a standalone utility — workstream pollution
-   biases the canon and the outline. Do not call any workstream loader. (Same shape as
-   `/primer`, `/diagram`, `/critical-thinking`.)
+   biases the canon and the outline. Do not call any workstream loader.
 6. **Auto-invoking `/primer` or any follow-up.** The handoff is a suggestion in the chat
    summary, never a dispatch. The user decides.
 7. **Scope-creeping into a course.** This ships a lean annotated list (the 6★ shape), not
    a sequenced learning path with quizzes, time budgets, or spaced repetition. Keep
    annotations to ≤2 sentences; resist turning the list into a curriculum.
-8. **Hardcoding paths.** Reference bundled files by their relative path (`reference/…`,
-   `_shared/…`); never an absolute `/Users/...` path — it breaks the instant the skill is
-   installed elsewhere.
-9. **Reaching into the substrate to special-case `/learn-list`.** The
+8. **Reaching into the substrate to special-case `/learn-list`.** The
    `_shared/topic-research/` docs are skill-agnostic — they emit typed outputs (richness
    verdict, outline + provenance, per-topic shortlists). This skill's reactions live
    HERE, in its own phases, never as edits to the shared docs.
+
+---
+
+*Spec lineage: this skill's behavior contracts originated in
+`docs/pmos/features/2026-06-03_learn-list/` and the front-half unification in
+`docs/pmos/features/2026-06-03_unify-primer-learnlist/`. FR/D tags live there, not in
+this body (the inline non-interactive block keeps its tags — it is canonical and
+lint-pinned).*

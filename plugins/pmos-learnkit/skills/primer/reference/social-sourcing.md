@@ -11,23 +11,23 @@
 - [Recording in sources.json](#recording-in-sourcesjson)
 - [Never do this](#never-do-this)
 
-Phase-2 (Research) of `/primer` treats tweets/threads and LinkedIn posts as valid **primary** sources when a framework or observation lives only there — many practitioners publish their sharpest thinking as a thread or a post and never write it up anywhere fetchable by a normal web crawl. This reference codifies how to discover and fetch that material for free, what URL to cite, and the paraphrase-only rule that keeps the artifact inside the rubric's trust tier. Depth-1 reference — self-contained, no chains to other `reference/*.md`.
+`/primer`'s sourcing (SKILL.md Phase 3, via the shared substrate) treats tweets/threads and LinkedIn posts as valid **primary** sources when a framework or observation lives only there — many practitioners publish their sharpest thinking as a thread or a post and never write it up anywhere fetchable by a normal web crawl. This reference codifies how to discover and fetch that material for free, what URL to cite, and the paraphrase-only rule that keeps the artifact inside the rubric's trust tier. Depth-1 reference — self-contained, no chains to other `reference/*.md`.
 
 ## When social counts as a primary source
 
-A tweet/thread or LinkedIn post is a primary source when **the framework, observation, or data lives only there** — i.e., the canonical articulation is the post itself, not a blog/podcast that merely links to it. Treat it exactly like any other primary source: it must clear the usable-source definition in `source-floor.md` (fetched successfully, >500 chars of non-boilerplate text once unrolled, semantically on-topic), and it counts toward the depth-tier source-floor.
+A tweet/thread or LinkedIn post is a primary source when **the framework, observation, or data lives only there** — i.e., the canonical articulation is the post itself, not a blog/podcast that merely links to it. Treat it exactly like any other primary source: it must clear the verification pass-bar in `_shared/topic-research/sourcing-ladder.md` (reachable, identity-matched, takeaway grounded — judged against the unrolled thread / full post text), and it counts toward the floor signal in `source-floor.md` like any other verified source.
 
 Do **not** reach for social when an equally-canonical long-form source exists — a practitioner's own blog post or a podcast transcript is easier to fetch and quote. Social is for the material that has no long-form home.
 
 ## Active + bounded discovery
 
-Plain web search deprioritizes social posts, so social-only frameworks rarely surface on their own. Phase 2 therefore searches for them deliberately, but bounded so it does not add noise on topics where social contributes nothing:
+Plain web search deprioritizes social posts, so social-only frameworks rarely surface on their own. Search for them deliberately during sourcing, but bounded so they add no noise on topics where social contributes nothing:
 
 - **Topic-level (≤2 searches).** `WebSearch` for `<topic> framework (site:x.com OR site:linkedin.com)` and `<topic> (site:linkedin.com/posts)`.
-- **Per named practitioner (≤1 search each).** For each practitioner from the Phase-2 Step-0 naming step, `WebSearch` for `<name> <topic> (site:x.com OR site:linkedin.com)`.
-- **Opportunistic.** Any `x.com` / `twitter.com` / `linkedin.com` URL that surfaces from a normal strand-(a) or strand-(b) query is also a social candidate — route it through the ladder below rather than a bare `WebFetch`.
+- **Per named practitioner (≤1 search each).** For each practitioner the canon discovery (`_shared/topic-research/canon-discovery.md`) named, `WebSearch` for `<name> <topic> (site:x.com OR site:linkedin.com)`.
+- **Opportunistic.** Any `x.com` / `twitter.com` / `linkedin.com` URL that surfaces from any other search is also a social candidate — route it through the ladder below rather than a bare `WebFetch`.
 
-**Depth-tier behavior.** At `--depth deep`, the social searches run to completion (thoroughness over latency, matching the deep-tier no-short-circuit rule in `source-floor.md`). At `brief` / `standard`, social discovery obeys the same short-circuit/bounding as the other strands — once the source-floor is comfortably met by faster strands, pending social searches may be best-effort cancelled.
+**Depth-tier behavior.** At `--depth deep`, run the social searches to completion (thoroughness over latency). At `brief` / `standard`, stay within the bounded search counts above — the depth dial matrix in `_shared/topic-research/intake.md` is the cost governor; the floor never caps or cancels sourcing.
 
 ## Tweet fetch ladder
 
@@ -64,13 +64,12 @@ It is slow and may require an interactive session; never reach for it before the
 
 ## Recording in sources.json
 
-Each accepted social source records, per the `source-floor.md` §"sources.json schema":
+Each accepted social source records, per the canonical `sources.json` schema in SKILL.md Phase 3:
 
 - `url` — the **original canonical** post URL (not the proxy).
-- `tier: "primary"`.
-- `source_strand: "social"`.
-- `takeaway` — the paraphrased 1–2 sentence summary (never the verbatim post body).
-- `title` — author + short descriptor where derivable (e.g., `"Shreyas Doshi — X thread on LNO framework"`), else null.
+- `takeaway` — the paraphrased 1–2 sentence summary (never the verbatim post body), attributing author + platform.
+- `topic` — the outline topic whose shortlist it belongs to.
+- `tier` — per `_shared/topic-research/source-tiers.md` (a named practitioner's own thread/post is typically T1–T2).
 
 ## Never do this
 

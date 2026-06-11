@@ -1,6 +1,6 @@
 # Audience presets
 
-Two audience presets. Pick one per primer; do not mix within a single artifact. The /primer skill's Phase 1 resolves the audience from `--audience <senior-pms|all-pms>` or, when the flag is absent, via an interactive AskUserQuestion prompt (Recommended = `senior-pms`). Once resolved, the chosen preset governs the H2 section list the Draft phase emits, the vocabulary posture the prose adopts, and the closing-shape the reviewer enforces.
+Two audience presets. Pick one per primer; do not mix within a single artifact. Audience is resolved at intake — `_shared/topic-research/intake.md` owns the dial and its prompt. Once resolved, the chosen preset governs the H2 section list the Draft phase emits, the vocabulary posture the prose adopts, and the closing-shape the reviewer enforces.
 
 ## senior-pms
 
@@ -47,5 +47,5 @@ Concrete actions — 3–5 numbered next steps. Each step names a thing the read
 ## Anti-patterns
 
 - **Do NOT mix presets within one primer.** A primer either trusts the reader's vocab or it doesn't — half-defining terms (some inline, some not) confuses both audiences. Senior PMs find it patronising; newer PMs can't predict which terms will be explained and lose trust in the doc. Pick one preset per artifact and apply it consistently from first paragraph to last.
-- **Do NOT add a third preset in v1.** Per spec §3 non-goals, only `senior-pms` and `all-pms` ship in v1. Resist requests to add "engineer-friendly", "exec-summary", or "intern-onboarding" variants — they fragment the rubric, complicate Phase 5 evaluation, and dilute the two presets that already exist. Revisit only after v1 ships and usage data justifies the surface-area expansion.
+- **Do NOT add a third preset.** Only `senior-pms` and `all-pms` ship (a deliberate non-goal). Resist requests to add "engineer-friendly", "exec-summary", or "intern-onboarding" variants — they fragment the rubric, complicate Phase 5 evaluation, and dilute the two presets that already exist. Revisit only after v1 ships and usage data justifies the surface-area expansion.
 - **Do NOT silently drop a required H2** to keep the primer short. If a required section has nothing to say for a given topic, that's a signal the topic is wrong for the preset, not that the section is optional. Either reframe the topic or switch presets.
