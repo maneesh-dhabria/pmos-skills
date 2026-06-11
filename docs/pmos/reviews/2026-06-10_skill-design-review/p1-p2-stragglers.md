@@ -1,73 +1,48 @@
 # P1/P2 campaign — stragglers log (controller-maintained)
 
-## CAMPAIGN STATE (updated 2026-06-11, pre-Wave-3 compact)
+## CAMPAIGN STATE (final, 2026-06-11)
 
-Branch `refactor/skill-design-p1p2`. **ALL of Wave 2 is complete — 28/28 packages committed (36 commits)**, ending with D4 critical-thinking+playbook (3945db8: resolvable calibration; playbook renders through the html-authoring substrate with a new skill-local render-surface test — deliberately NOT added to the synced fanout list, rationale in the test header).
+**CAMPAIGN COMPLETE.** Branch `refactor/skill-design-p1p2` — all waves done: P/0/1/2 (28/28 packages) + Wave 3 (3.1 reference repair, 3.2 gate sweep, 3.3 four adversarial reviews, 3.4 skill-eval, 3.5 docs/memory, 3.6 handoff). Final gate run: audit-recommended PASS (32 skills), non-interactive inline PASS (36 skills, all plugins), lint-flags-vs-hints PASS (40 skills), lint-phase-refs PASS (40 skills), skill-eval selftest PASS (53 = 47 gated [24 D + 23 J] + 6 advisory, floor 43), comments-coverage PASS, fanout PASS (both plugins), verify smoke 5/5, 12/12 pipeline fixtures, comments 10/10, readme 17/17, architecture 46/47 (`ts-circular` pre-existing on main), all learnkit suites green.
 
-REMAINING: Wave 3 per `p1-p2-plan.md` (§Wave 3): 3.1 repo-wide lint repair — known reds: verify/reference/design-drift-check.md:74 (cites /wireframes Phase 2a → use #resolve-design-md + #composition-context), mac-health SKILL.md:22 Phase 0 ghost, assert_unsupported_format ×7 (decision needed), 5 old pipeline fixtures (resume-idempotency, t12b, t19, w5-fsdlc-gates, w7-fold-retro → slug-form greps), plus every unchecked item in this file; 3.2 full gate sweep (command list in the plan); 3.3 four adversarial behavior-preservation reviewers over `git diff main...HEAD` per batch (≤3 concurrent); 3.4 skill-eval-check [D] on readme/spec/plan/feature-sdlc/wireframes; 3.5 CLAUDE.md + report.md + auto-memory updates; 3.6 final commit, NO push. Also noted by D4: learnkit html-authoring/template.html drifts from toolkit (missing pmos-wordmark) — pre-existing, consider sync-shared in 3.1.
+**Adversarial review (3.3):** 4 reviewers over `git diff main...HEAD` per batch. A (pipeline core): zero findings — only deletions were review-mandated `/plan --force-lock` + `--decide`, zero callers. B (authoring/visual): one confirmed finding — readme `link_up_section` config key name lost; fixed at its surviving citation (cross-file-rules.md R2). C (utilities): zero findings. D (learnkit): zero findings — no dangling refs to the Wave-0.3 deleted `_shared` cargo, resynced html-authoring md5-identical to toolkit, all anchors resolve.
 
-Notes: other concurrent session owns `docs/pmos/reviews/2026-06-10_ops-observations/**` + `.pmos/grills/*` (untracked/modified — never commit those). Subagent stalls: keep ≤3 concurrent agents. `ls` is aliased/broken in sandbox — use `/bin/ls` or `find`.
+**NOT done — releases and merge are the maintainer's:** `/complete-dev --plugin pmos-toolkit` and `/complete-dev --plugin pmos-learnkit` (and the merge decision). Do not push from this branch without review.
 
-Cross-boundary items reported by Wave 2 package agents, to be resolved by the
-owning package if still in flight, else by Wave 3.1 central repair. Strike
-through when resolved.
+All historical per-item sections below are resolved (struck) except the post-campaign follow-ups, which remain open by design.
 
-## From A4 (execute)
+## Post-campaign follow-ups (open, deliberate — not campaign defects)
 
-- [ ] `plan/SKILL.md:553` claims "/execute reads this [`execution_mode` frontmatter]" — execute's Phase 0a resolves mode from flags only; /feature-sdlc is the frontmatter reader. → A3 (plan) owns; verify A3 fixed it, else Wave 3.
+- [ ] **audit-recommended.sh scope** — default scope is pmos-toolkit only; learnkit/utilities prompts unaudited (0.3 agent flagged 5 near-miss skip-pattern lines in learnkit). Extend scope + fix the three "No `AskUserQuestion`:" bullets to the skip-pattern phrasing.
+- [ ] **`_shared/non-interactive.md` prefix** — end-of-skill summary hardcodes `pmos-toolkit:`; wrong for learnkit/utilities; byte-identical contract forbids local fixes. Needs a canonical-block revision (parameterize the prefix) — P3-adjacent, separate change.
+- [ ] **§L model pins** — prototype's 4 dispatch sites (mock-data/runtime/components/reviewer) and polish's editor/rewriter dispatches have no model pins; `sonnet` would fit.
+- [ ] **Stale release-snapshot asserts (pre-existing reds on main):** `assert_marketplace_json_schema.sh` + `assert_pre_push_3_way_version_match.sh` assert the retired marketplace-version policy (CLAUDE.md now mandates NO version field in marketplace.json); `assert_survey_design_skill.sh` pins v2.36.0 + a since-removed 'Release prerequisites' section. Update or retire these three.
+- [ ] **Environment-dependent tests (pre-existing):** `comments-detect.test.js` / `assert_viewer_js_unit.sh` / `assert_diff_match_patch.sh` need jsdom at `/tmp/pmos-jsdom`; `assert_launcher.sh` / `launcher.test.sh` case (b) needs a spawnable serve.js (sandbox-blocked); `assert_t39/t40/t41` need a live plan-producing run; `assert_fsa_write_e2e.sh` expects a test file that doesn't exist on main either. All fail identically on main.
+- [ ] **Pre-existing test red:** architecture `ts-circular` fixture fails on main and HEAD identically (not campaign-caused; not investigated further).
+- [ ] **feature-sdlc accepted residual:** skill-eval `e-scripts-dir` — `tools/skill-eval-check.sh` deliberately lives outside `scripts/` (path cited repo-wide incl. CLAUDE.md).
+- [ ] **diff_router.sh** branch-scope diff source has no dedicated test under `tests/scripts/` (A6 noted; optional).
+- [ ] **`--format <html|md|both>` in ideate + learn-list + playbook argument-hints** — these three still advertise `both`; their per-skill contracts were not in the 10-skill convergence set. Verify whether `both` is real for them or stale, then align.
+- [ ] **Wireframes follow-ups (B1, not this campaign):** DESIGN.md cluster → `_shared/design-md/`; canvas extraction-priority doc/script drift.
 
-## From A5 (verify)
+## Resolved during Wave 3 (history)
 
-- [ ] `scripts/check-comments-coverage.sh:2` header still says "/verify Phase 5 gate set" — should say Phase 7. Repo-root file; controller fixes in Wave 3.
-- [ ] `verify/reference/design-drift-check.md:74` cites "/wireframes Phase 2a + 2.6" — resolves today but ghosts if B1 renumbers wireframes. B1 or Wave 3 slug-ifies.
-- [ ] `architecture/SKILL.md:223,251` ("/spec Phase 6b") and `prototype/SKILL.md:134` ("Phase 2ac") fail lint-phase-refs after A2's spec renumber → C4 (architecture) + B2 (prototype) own; else Wave 3.
-
-## From A2 (spec)
-
-- [ ] `feature-sdlc/SKILL.md:859` "/spec Phase 6a" → `{#folded-sim-spec}`; `:177/:350` possessive "its Phase 6a" prose-stale → A7 owns (in its brief).
-- [ ] `verify/SKILL.md:525` "mirrors /spec's same-named flag for Phase 6b" — semantically stale → should cite `{#folded-arch}`. Wave 3 (A5 already committed).
-- [ ] `tests/fixtures/pipeline-consolidation/test-w3-fold-sim-spec.sh` greps `^## Phase 6\.5: Folded simulate-spec` — pre-existing red at HEAD; needs slug-form update. Controller/Wave 3.
-- [ ] `_shared/html-authoring/conventions.md` §10 still mandates on-disk `_index.json` — contradicts README step 5 (inline manifest). Frozen substrate; post-campaign or Wave 3 controller fix.
-
-## From A1 (requirements)
-
-- [ ] `msf-req/SKILL.md:65` "its Phase 5a" prose-stale (folded MSF-req is now requirements Phase 6 {#folded-msf}) → B7 owns msf-req.
-- [ ] feature-sdlc:177 claims /spec and /plan also accept `--tier` — A2/A3 didn't implement passthrough; reconcile in Wave 3 (either feature-sdlc drops the claim or it's accurate already — verify).
-
-## From A3 (plan)
-
-- [ ] `spec/SKILL.md` cites "/plan Phase 4" by bare number ×2 — resolves but should be slug form per §J. Wave 3.
-
-## From A6 (complete-dev)
-
-- [ ] diff_router.sh's new branch-scope diff source has no dedicated test under `tests/scripts/` (outside A6 ownership). Wave 3 optional.
-- [ ] Finding 3 phantom contracts (`readme_update_hook`, `state.base_drift`): P0 deleted the readme/feature-sdlc sides; Wave 3 must grep for any complete-dev-side residue and confirm zero mentions remain.
-
-## From B1 (wireframes renumber — old→new slug map for cross-skill repair)
-
-Old 2a → `#resolve-design-md` (Phase 3) · old 2b/2.6 → `#composition-context` (Phase 4) · old Phase 3 generate → `#generate` (Phase 5) · old Phase 4 review → `#review` (Phase 6) · old Phase 6 folded → `#folded-msf-wf` (Phase 8) · old Phase 7 canvas → `#canvas` (Phase 9).
-
-- [ ] `verify/reference/design-drift-check.md:74` "Re-run /wireframes Phase 2a + 2.6 extractors" → `#resolve-design-md` + `#composition-context`. Wave 3 (verify already committed).
-- [ ] `prototype/SKILL.md:122,126-140` "Phase 2a + 2.6 of /wireframes" + ghost "Phase 2ac" in the --bootstrap-design-only handoff → same slugs. → B2 brief includes this.
-- [x] msf-wf stragglers — already resolved by B7's rewrite (verified post-commit).
-- Follow-ups (not this campaign): DESIGN.md cluster → _shared/design-md/; canvas extraction-priority doc/script drift.
-
-## From B2 (prototype)
-
-- [ ] `_shared/structured-ask-edge-cases.md:69` cites "/prototype — Phase 8 Findings Presentation Protocol" — semantically stale (findings is now Phase 9 {#findings}); lint-invisible (a Phase 8 exists). Controller one-liner, Wave 3.
-- [ ] §L follow-up: prototype's 4 dispatch sites (mock-data/runtime/components/reviewer) and polish's editor/rewriter dispatches have no model pins; `sonnet` would fit. Optional, post-campaign.
-
-## From C6 (grill group) — Wave 3 test-red sweep items
-
-- [ ] `tests/scripts/assert_unsupported_format.sh` red for requirements/spec/plan/msf-req/artifact/msf-wf/design-crit — rewrites dropped the "valid values" --format enumeration the test greps. Wave 3 decision: restore a one-line valid-values mention per skill OR relax the test (prefer whichever preserves the actual headless contract).
-- [ ] 5 pipeline-consolidation fixtures red (pre-existing on branch): resume-idempotency, t12b, t19, w5-fsdlc-gates, w7-fold-retro — feature-sdlc/verify grep surfaces. Wave 3: convert to slug-form greps like w1/w2/w3 where the behavior is intact.
-- [ ] Untracked `.pmos/grills/*` artifacts in worktree — not the campaign's; leave.
-
-## From D3 (frameworks) — cross-plugin gaps
-
-- [ ] `audit-recommended.sh` default scope is pmos-toolkit only — learnkit/utilities prompts unaudited (0.3 agent also flagged 5 near-miss skip-pattern lines in learnkit). Wave 3.5 or post-campaign: extend scope + fix the three "No `AskUserQuestion`:" bullets to the skip-pattern phrasing.
-- [ ] `_shared/non-interactive.md` end-of-skill summary hardcodes `pmos-toolkit:` prefix — wrong for learnkit/utilities; byte-identical contract forbids local fixes. Needs a canonical-block revision (parameterize the prefix), separate change.
-
-## From B7 (design-crit + msf)
-
-- [ ] Pre-existing (requirements-owned): the folded MSF-req path writes `msf-req-findings.md` (MD) while standalone msf-req writes `.html` — same W4 slug, different extension by route. Wave 3: verify which is correct and align.
+- [x] plan:553 execution_mode reader claim — fixed 3.1 (execute resolves from flags; /feature-sdlc + closing offer read the frontmatter).
+- [x] check-comments-coverage.sh header Phase 5 → Phase 7 ({#final-compliance}) — 3.1.
+- [x] design-drift-check.md:74 wireframes slugs — 3.1.
+- [x] architecture/prototype/feature-sdlc/verify/msf-req stale phase refs — fixed by their Wave-2 packages, verified 3.1.
+- [x] feature-sdlc `--tier` passthrough claim — made true: spec + plan now document the machine passthrough (argument-hint + tier step), 3.1.
+- [x] mac-health Phase 0 ghost — lint-phase-refs now exempts the frozen non-interactive block (its "Phase 0" is the block's own vocabulary), 3.1.
+- [x] assert_unsupported_format ×7 — all 10 skills converged on the post-FR-12.1 enumeration (valid {html, md}, legacy `both`→html); 4 rewrites had over-retired `md` (lost `--format md`) — restored; test updated; 10/10, 3.1.
+- [x] 5 pipeline fixtures (resume-idempotency, t12b, t19, w5, w7) → slug/semantic-form greps at content's new homes; 12/12, 3.1.
+- [x] state-schema.md:14 ghost pointer to removed SKILL.md section — repointed, 3.1.
+- [x] conventions.md §10 `_index.json` contradiction — aligned to README step 5 (inline manifest), fanned to learnkit, 3.1.
+- [x] learnkit html-authoring drift (pmos-wordmark, style.css, resolve-input msf slug) — `sync-shared.sh --from=pmos-toolkit`, 3.1; D-batch reviewer verified md5-identical + render tests green.
+- [x] msf-req findings `.md` (folded) vs `.html` (standalone) — verified intentional (working log vs emit contract), documented at the requirements call site, 3.1.
+- [x] structured-ask-edge-cases.md:69 prototype findings slug — already fixed by B2 (`#findings` phase), verified.
+- [x] complete-dev phantom contracts (readme_update_hook, state.base_drift) — zero residue, verified 3.1.
+- [x] sync-shared fixture tests ×3 — updated to the intersection-only + self-rooted contract, 3.2.
+- [x] assert_skill_substrate_refs_unchanged — floor 28→20 (legit de-dup), excluded test scripts + gitignored fixture outputs, 3.2.
+- [x] assert_claude_md_generalized — CLAUDE.md de-hardcoded (3 refs reworded), PASS (was red on main), 3.5.
+- [x] readme `link_up_section` key name — restored at cross-file-rules.md R2 (Batch-B reviewer finding), 3.3.
+- [x] skill-eval [D] on 5 biggest rewrites — readme casing, feature-sdlc desc ≤1024, skill-eval.md ToC into 15-line window; spec/plan/wireframes/readme 21/21, 3.4.
+- [x] `_shared/html-authoring/conventions.md` §10 — same as above (A2 straggler).
+- [x] test-w3-fold-sim-spec.sh — converted with w1/w2 during Wave 2 (verified green).
