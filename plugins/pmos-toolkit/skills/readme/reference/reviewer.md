@@ -80,7 +80,7 @@ Return the JSON array to stdout. Do not emit prose around the JSON.
 ## §3 Parent-side validation reference
 
 Informative — the reviewer does NOT self-validate (the shared quote contract is
-`plugins/pmos-toolkit/skills/_shared/reviewer-protocol.md`). The parent skill
+`_shared/reviewer-protocol.md`). The parent skill
 (`SKILL.md` `#simulated-reader`) runs the following hard-fail checks against the
 reviewer's return, delegating to
 `scripts/_reviewer_validate.sh::readme::reviewer_validate`:

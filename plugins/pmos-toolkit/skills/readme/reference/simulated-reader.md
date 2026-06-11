@@ -190,7 +190,7 @@ Per /grill D6.
 Validation lives in the **parent skill** (`SKILL.md` `#simulated-reader`),
 **NOT** in this reference doc and **NOT** self-validated by the subagent. The
 quote contract is the shared one in
-`plugins/pmos-toolkit/skills/_shared/reviewer-protocol.md` — ≥40-char verbatim
+`_shared/reviewer-protocol.md` — ≥40-char verbatim
 quotes, parent-side substring-grep against the parent's own read of the source,
 never self-validated. Call-site deltas for this pass: the source is the raw
 README **markdown** (no chrome-strip, no `sections.json` set-equality), returns

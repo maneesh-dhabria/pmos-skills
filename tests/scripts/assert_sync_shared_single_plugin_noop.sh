@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Assert: sync-shared.sh with only one plugin exits 0 and mentions no peers.
-# FR-24; spec §14.1.
+# FR-24; spec §14.1. Updated 2026-06-11 (design-review P1/P2 Wave 3): the
+# script resolves the repo root from its own location, so the test copies it
+# INTO the fixture tree.
 set -e
 SCRIPT=${SCRIPT:-scripts/sync-shared.sh}
 FIX=${FIX:-tests/fixtures/multi-plugin/sync-shared/single-plugin}
@@ -8,9 +10,11 @@ ROOT=$(pwd)
 TMP=$(mktemp -d)
 trap "rm -rf $TMP" EXIT
 cp -R "$FIX"/. "$TMP"/
+mkdir -p "$TMP/scripts"
+cp "$ROOT/$SCRIPT" "$TMP/scripts/sync-shared.sh"
 cd "$TMP"
 set +e
-err=$(bash "$ROOT/$SCRIPT" --from=plugin-a 2>&1 >/dev/null)
+err=$(bash "$TMP/scripts/sync-shared.sh" --from=plugin-a 2>&1 >/dev/null)
 status=$?
 set -e
 if [ "$status" -ne 0 ]; then
