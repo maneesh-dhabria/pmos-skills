@@ -2,7 +2,7 @@
 name: verify
 description: Post-implementation verification gate — ALWAYS run after /execute completes. Lint, test, deploy, spec compliance, multi-agent code review, interactive QA, and regression test hardening. Also run after manual coding or partial work. Works with git commits, no PR required. Use when the user says "check my work", "is this done", "verify the implementation", "did I miss anything", or "review and test everything".
 user-invocable: true
-argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folder if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--skip-folded-arch] [--scope phase --phase <N> — internal, passed by /execute] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> (optional — resolved from the feature folder if omitted) [--feature <slug>] [--backlog <id>] [--skip-design-drift] [--skip-folded-arch] [--scope phase --phase <N> — internal, passed by /execute] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # Implementation Verification Gate
@@ -84,7 +84,7 @@ Use workstream context (loaded by step 3 below) to verify that implementation al
 
 ### output_format resolution {#output-format}
 
-7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the **review-report write phase only** (Phase 8 step 2). Reading prior artifacts uses the resolver; the resolver returns whatever primary the upstream skill wrote, regardless of `output_format`.
+7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the **review-report write phase only** (Phase 8 step 2). Reading prior artifacts uses the resolver; the resolver returns whatever primary the upstream skill wrote, regardless of `output_format`.
 
 ---
 

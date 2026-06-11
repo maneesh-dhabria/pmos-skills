@@ -119,13 +119,17 @@ The `language-*` class hints round-trip to a fenced MD block (` ```bash `). No s
 
 - `<NN>_<artifact>.sections.json` — companion file enumerating every `<section>`/`<h2>`/`<h3>` id with `{id, level, title, parent_id_or_null}` (FR-70/71). Built from the same in-memory section tree the skill authored; do NOT post-parse the HTML.
 - `assets/*` — copied idempotently into `{feature_folder}/assets/` (FR-10).
-- `index.html` + `_index.json` — regenerated at the feature-folder root (FR-20/21).
+- `index.html` — regenerated at the feature-folder root with the manifest inlined as `<script type="application/json" id="pmos-index">` per `index-generator.md`; no on-disk `_index.json` is written (FR-20–FR-22, FR-41 — see README step 5).
 
 ## 11. Cross-doc anchor rule
 
 Every `<a href="X.html#frag">` MUST resolve to a real `id` in `X`'s `sections.json`. `tests/scripts/assert_cross_doc_anchors.sh` (Phase 4) enforces this.
 
 When linking from `03_plan.html` to `02_spec.html#fr-html-authoring`, the skill computes the section id using the rule in §3 against the spec's heading text — not by scraping the spec at write time.
+
+## 12. Prose quality
+
+The rules above govern document *structure*; the words inside the sections must also hold up. Author all human-readable prose to `../writing-principles.md` (lead with the claim, cut filler, active voice, no AI-slop vocabulary, ground every claim). Those are author-time principles; `/polish` is their binary enforcement (`polish/reference/rubric.md`). Writing to them at emit time means a later `/polish` pass has little to fix.
 
 ## §7 Comments persistence (inline)
 

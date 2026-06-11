@@ -68,7 +68,7 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format` argument-string flag overrides settings (last flag wins on conflict). `md` and `both` are retired values — treat either as `html` (`output_format=both` ⇒ `html`; retirement note in `_shared/html-authoring/README.md`). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
+7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html`, retirement note in `_shared/html-authoring/README.md`). A `--format` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -346,7 +346,7 @@ This phase folds `/msf-req` into the pipeline as an apply-loop folding. **All me
 - **Host artifact** (apply-loop edit target and clobber-guard target): `{feature_folder}/01_requirements.html` — the just-written artifact, never a legacy `.md` path.
 - **Per-finding commit message:** `requirements: auto-apply msf-req finding F<N>`.
 - **State key:** `state.yaml.phases.requirements.folded_phase_failures[]`.
-- **Findings doc:** `<feature_folder>/msf-req-findings.md` — never the legacy `msf-findings.md` slug.
+- **Findings doc:** `<feature_folder>/msf-req-findings.md` — never the legacy `msf-findings.md` slug. Deliberately Markdown: the folded run's findings are applied to the host artifact in-loop and this doc is a working log, while standalone `/msf-req` emits the reviewable `msf-req-findings.html` artifact (its own emit contract).
 
 ---
 

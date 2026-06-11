@@ -2,7 +2,7 @@
 name: grill
 description: Adversarially interview the user about a plan, spec, requirements doc, ADR, design, or code change to surface unresolved decisions and shaky assumptions. Walks the decision tree branch by branch — one question at a time, each with a recommended answer. Use when the user says "grill me", "stress-test this plan", "poke holes in my design", "interview me about X", or wants an adversarial review before committing to a direction.
 user-invocable: true
-argument-hint: "[<path-to-artifact-or-topic>] [--depth brief|standard|deep] [--save|--no-save] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "[<path-to-artifact-or-topic>] [--depth brief|standard|deep] [--save|--no-save] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # Grill
@@ -39,7 +39,7 @@ This is **orthogonal to the pipeline** — not a stage. Use it on any artifact a
 
 3. **Summarize what you read** in 3–5 bullets so the user can confirm you've understood the artifact correctly. If the summary is wrong, fix it before grilling — interrogating a misread is wasted turns.
 
-4. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the optional Phase 4 save only — chat output is unaffected.
+4. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the format of the optional Phase 4 save only — chat output is unaffected.
 
 ---
 

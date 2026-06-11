@@ -2,7 +2,7 @@
 name: plan
 description: Create an execution plan from a spec — deep code study, TDD tasks with inline verification, decision logging, risk assessment, and a concrete final verification checklist. Third stage in the requirements -> spec -> plan pipeline. Always full format. Use when the user says "break this into tasks", "create the implementation steps", "how do we implement this", or has a spec ready for task breakdown.
 user-invocable: true
-argument-hint: "<path-to-spec-doc> [--feature <slug>] [--backlog <id>] [--fix-from <task-id>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> [--feature <slug>] [--backlog <id>] [--tier <N>] [--fix-from <task-id>] [--non-interactive | --interactive]"
 ---
 
 # Implementation Plan Generator
@@ -70,7 +70,7 @@ Use workstream context (loaded by step 3 below) to inform task design — tech s
 
 7. **Concurrency guard.** If `{feature_folder}/.plan.lock` exists, warn the user that another /plan run may be in progress and confirm before proceeding (in `--non-interactive` mode, note the stale lock in `03_plan_auto.md` and proceed). Write the lockfile on entry; delete it on exit.
 8. **Validate the spec.** Locate it via `_shared/resolve-input.md` with `phase=spec`, `label="spec"` — missing spec → platform-aware error (via `_shared/platform-strings.md`) with `Run /spec first.` appended. Refuse if the spec frontmatter is malformed YAML or missing `tier:` — tell the user to fix the frontmatter or re-run /spec.
-9. **Resolve `output_format`** from `.pmos/settings.yaml` (default `html`; `both` is retired — treat it as `html`). State the resolved format and its source (cli / settings / default) once at Phase 0 entry.
+9. **Resolve `output_format`** from `.pmos/settings.yaml` (default `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format` argument-string flag overrides settings. State the resolved format and its source (cli / settings / default) once at Phase 0 entry.
    <!-- nl-sugar -->
    `--format <html|md>` (or "emit markdown too") overrides settings; last flag wins on conflict.
 
@@ -111,7 +111,7 @@ Use workstream context (loaded by step 3 below) to inform task design — tech s
 1. **Use the spec located in Phase 0 step 8.**
 <!-- defer-only: ambiguous -->
 2. **Read the spec end-to-end.** Summarize it back in 3-5 bullets and confirm understanding with the user via AskUserQuestion.
-3. **Read `tier` and `type` from the spec frontmatter.** The tier was detected upstream and carries forward per `_shared/tier-matrix.md` — announce it, don't re-ask. Tier gating in Phase 3 / Phase 4 keys off `{tier}`; per-task TDD precedence keys off `{type}`.
+3. **Read `tier` and `type` from the spec frontmatter.** The tier was detected upstream and carries forward per `_shared/tier-matrix.md` — announce it, don't re-ask. `--tier <N>` (the machine passthrough `/feature-sdlc` sends) is honored the same way and wins over a missing frontmatter value; on conflict with the spec frontmatter, prefer the frontmatter and note the divergence. Tier gating in Phase 3 / Phase 4 keys off `{tier}`; per-task TDD precedence keys off `{type}`.
 <!-- defer-only: ambiguous -->
 4. **Surface simulate-spec findings.** Glob `{feature_folder}/02_simulate-spec_*.md`. If a file exists with unresolved findings, run a batched `AskUserQuestion` per finding before proceeding — options: **Update spec to address before planning** / **Treat as Open Question in plan** / **Accept as risk** / **Skip — already resolved upstream**.
 5. **Check for an existing plan.** Use `_shared/resolve-input.md` with `phase=plan`, `label="prior plan"` to locate either `{feature_folder}/03_plan.html` (preferred) or `{feature_folder}/03_plan.md` (legacy fallback).
@@ -482,7 +482,7 @@ options:
     description: A fresh subagent per task; independent tasks run in parallel waves; each task gets a spec + code-quality review — faster on wide plans, higher token cost.
 ```
 
-Record the choice in the plan doc's frontmatter `execution_mode:` (`inline` or `subagent-driven`; default `inline`) and re-commit the plan if it changed. `/execute` reads this (it also accepts an explicit `--subagent-driven | --inline` override), and `/feature-sdlc` Phase 6 reads it to decide whether to pass `--subagent-driven`. In `--non-interactive` mode the Recommended option (`inline`) is auto-picked per the non-interactive classifier.
+Record the choice in the plan doc's frontmatter `execution_mode:` (`inline` or `subagent-driven`; default `inline`) and re-commit the plan if it changed. `/execute` itself resolves its strategy from flags only (`--subagent-driven | --inline`, neither ⇒ inline) — the frontmatter reaches it via its readers: `/feature-sdlc` Phase 6 reads it to decide whether to pass `--subagent-driven`, and this skill's closing offer (below) appends the flag to the suggested direct invocation. In `--non-interactive` mode the Recommended option (`inline`) is auto-picked per the non-interactive classifier.
 
 **Closing offer (platform-aware via `_shared/platform-strings.md`):** read `execute_invocation` for the active platform and emit the offer with that string substituted; **append ` --subagent-driven` to the invocation when `execution_mode == subagent-driven`**. e.g. claude-code with `execution_mode: inline`: `Plan complete and saved. Run /pmos-toolkit:execute to implement it, or review the plan first?` — and with `execution_mode: subagent-driven`: `Run /pmos-toolkit:execute --subagent-driven to implement it, or review the plan first?`. The offer wording is otherwise identical across platforms.
 
@@ -501,7 +501,7 @@ Record the choice in the plan doc's frontmatter `execution_mode:` (`inline` or `
 - Do NOT omit `**Wireframe refs:**` on UI tasks when wireframes exist, and do NOT instruct tasks to copy the wireframe's visual style verbatim — the authoritative/not-authoritative split is in Phase 2 step 6; the ref is what carries polish expectations into /verify Phase 4 sub-step 4f
 - Do NOT let TN's frontend smoke test stop at "renders correctly" — it must include hard-reload, an error-path probe, the UX polish checklist, and (if wireframes exist) a wireframe diff. Polish belongs in the plan, not as a verify afterthought.
 - Do NOT create `## Phase N` groupings of 1–2 tasks — each phase boundary triggers full /verify, which dwarfs the implementation cost of a tiny phase. Target 5–10 tasks per phase, or skip phases entirely for small plans.
-- Do NOT skip the execution-mode selection question (Inline vs Subagent-driven) at close — the recorded `execution_mode:` frontmatter value is what `/execute` and `/feature-sdlc` Phase 6 read; omitting it silently forces inline everywhere.
+- Do NOT skip the execution-mode selection question (Inline vs Subagent-driven) at close — the recorded `execution_mode:` frontmatter value is what `/feature-sdlc` Phase 6 reads (and what shapes the closing offer's `/execute` invocation); omitting it silently forces inline everywhere.
 - Do NOT decompose by layer — see Phase 3 §Vertical-Slice Decomposition for the rule, the tracer bullet, and the only legitimate exceptions.
 
 ---

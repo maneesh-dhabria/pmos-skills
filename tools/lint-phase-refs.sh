@@ -213,6 +213,15 @@ function check(line, lab, mstart,    pfx, tok, changed) {
 }
 FNR == NR { defs[$1 "\t" $2] = 1; isskill[$1] = 1; next }
 {
+    # The canonical inline non-interactive block (byte-identical across every
+    # prompting skill, enforced by lint-non-interactive-inline.sh) says "On
+    # Phase 0 entry" as its OWN vocabulary (= skill entry). Skills without a
+    # literal Phase 0 heading cannot fix that without breaking byte-identity,
+    # so the frozen block is exempt from reference resolution.
+    if (FNR == 1) niblock = 0
+    if ($0 ~ /<!-- non-interactive-block:start -->/) { niblock = 1; next }
+    if ($0 ~ /<!-- non-interactive-block:end -->/)   { niblock = 0; next }
+    if (niblock) next
     line = $0
     if (line ~ /^[ \t]*```/) next   # fence delimiters carry no refs; fenced CONTENT is scanned
     pos = 1

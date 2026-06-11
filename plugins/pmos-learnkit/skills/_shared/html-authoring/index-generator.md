@@ -10,7 +10,7 @@ This is a discipline document, not an executable. Skills implement the steps inl
 
 - `feature_folder` — absolute path to `{docs_path}/features/<YYYY-MM-DD>_<slug>/`.
 - Glob results:
-  - `{feature_folder}/*.html` — top-level HTML artifacts (`00_pipeline.html`, `01_requirements.html`, `02_spec.html`, `03_plan.html`, `msf-findings.html`, `00_open_questions_index.html`).
+  - `{feature_folder}/*.html` — top-level HTML artifacts (`00_pipeline.html`, `01_requirements.html`, `02_spec.html`, `03_plan.html`, `msf-req-findings.html`, `00_open_questions_index.html`).
   - `{feature_folder}/*.md` — top-level legacy MD artifacts (FR-22 legacy entries; G11). Excludes any `*.md` that has a sibling `*.html` (sidecars from `output_format: both` are NOT legacy entries).
   - `{feature_folder}/{wireframes,prototype,grills,simulate-spec,verify}/index.html` — externally-indexed nested directories (one entry each, `external_index: true`).
   - `{feature_folder}/{grills,simulate-spec}/<YYYY-MM-DD>*.{html,md}` — flat date-stamped artifacts (no nested index.html); each gets its own entry.
@@ -45,7 +45,7 @@ Sort `artifacts[]` by `(phase_rank, filename_ascending)`. Phase ranks (lower = e
 | 1 | `01 Requirements` | `01_requirements.html` |
 | 2 | `02 Spec` | `02_spec.html` |
 | 3 | `03 Plan` | `03_plan.html` |
-| 4 | `MSF Findings` | `msf-findings.html` |
+| 4 | `MSF Findings` | `msf-req-findings.html` |
 | 5 | `Wireframes` | `wireframes/index.html` (external) |
 | 6 | `Prototype` | `prototype/index.html` (external) |
 | 7 | `Grills` | `grills/<date>_<target>.html` |
@@ -81,7 +81,7 @@ Use the substrate's `_shared/html-authoring/template.html`. The generator fills:
 - `{{asset_prefix}}` — `assets/` (root-feature-folder relative; nested-dir indexes compute their own).
 - `{{plugin_version}}` — current pmos-toolkit version (FR-10.3 cache-bust).
 - `{{source_path}}` — `index.html`.
-- `{{content}}` — the chrome HTML: header toolbar (W01 mast), `<aside class="pmos-sidebar">` with per-phase group headers (collapse-to-summary chevron, W01), `<main class="pmos-main">` with the iframe slot (`<iframe class="pmos-artifact-frame">` under serve.js / `<a class="pmos-artifact-link" target="_blank">` on file://, per FR-40), and the `<script type="application/json" id="pmos-index">` block from §4.
+- `{{content}}` — the chrome HTML: header toolbar (W01 mast) — the mast MUST lead with the masthead wordmark `<a class="pmos-wordmark" href="<plugin_url>" data-pmos-role="wordmark" aria-label="pmos">pmos</a>` (W11 visual identity; the accent block-caret is drawn by CSS), followed by the `<h1>` feature title — then `<aside class="pmos-sidebar">` with per-phase group headers (collapse-to-summary chevron, W01), `<main class="pmos-main">` with the iframe slot (`<iframe class="pmos-artifact-frame">` under serve.js / `<a class="pmos-artifact-link" target="_blank">` on file://, per FR-40), and the `<script type="application/json" id="pmos-index">` block from §4.
 
 `viewer.js` is loaded by `template.html`'s `<head>` (`<script defer src="assets/viewer.js?v=<plugin-version>">`); it consumes the inlined manifest and builds the sidebar at boot.
 

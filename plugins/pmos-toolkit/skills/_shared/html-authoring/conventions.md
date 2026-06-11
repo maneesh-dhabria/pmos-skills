@@ -119,7 +119,7 @@ The `language-*` class hints round-trip to a fenced MD block (` ```bash `). No s
 
 - `<NN>_<artifact>.sections.json` — companion file enumerating every `<section>`/`<h2>`/`<h3>` id with `{id, level, title, parent_id_or_null}` (FR-70/71). Built from the same in-memory section tree the skill authored; do NOT post-parse the HTML.
 - `assets/*` — copied idempotently into `{feature_folder}/assets/` (FR-10).
-- `index.html` + `_index.json` — regenerated at the feature-folder root (FR-20/21).
+- `index.html` — regenerated at the feature-folder root with the manifest inlined as `<script type="application/json" id="pmos-index">` per `index-generator.md`; no on-disk `_index.json` is written (FR-20–FR-22, FR-41 — see README step 5).
 
 ## 11. Cross-doc anchor rule
 

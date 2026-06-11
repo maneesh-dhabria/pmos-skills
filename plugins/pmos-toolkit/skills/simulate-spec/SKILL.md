@@ -2,7 +2,7 @@
 name: simulate-spec
 description: Pressure-test a spec against realistic and adversarial scenarios before implementation — scenario trace, artifact fitness critique, interface cross-reference, targeted pseudocode. Optional validator between /spec and /plan in the requirements -> spec -> plan pipeline. Use when the user says "simulate the design", "validate this spec", "will this design actually work", "check for gaps in the design", or has a spec ready for end-to-end scrutiny before implementation.
 user-invocable: true
-argument-hint: "<path-to-spec-doc> [--feature <slug>] [--force] [--format <html|md|both>] [--non-interactive | --interactive]"
+argument-hint: "<path-to-spec-doc> [--feature <slug>] [--force] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # Spec Simulation Generator
@@ -33,7 +33,7 @@ This skill has multiple phases. Create one task per phase using your agent's tas
 
 1. Follow `_shared/pipeline-setup.md` Section 0 (canonical inline block) to read `.pmos/settings.yaml`, resolve `{docs_path}`, load workstream context, and resolve `{feature_folder}` (with `skill_name=simulate-spec`, `feature_arg=<--feature value or empty>`, `feature_hint=<spec slug or topic>`). Use workstream context to inform critique — product constraints and tech-stack decisions shape what counts as a gap. This skill consumes `02_spec.{html,md}` (via resolve-input.md) and writes traces under `{feature_folder}/simulate-spec/`.
 2. Read `~/.pmos/learnings.md` if it exists; note any entries under `## /simulate-spec` and factor them into your approach for this session.
-3. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md`, `both`). A `--format <html|md|both>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. This controls the **trace artifact** only — spec patches applied via `Edit` in Phase 7 are unchanged (the spec is already in its primary format by the time this skill runs).
+3. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. This controls the **trace artifact** only — spec patches applied via `Edit` in Phase 7 are unchanged (the spec is already in its primary format by the time this skill runs).
 
 ---
 

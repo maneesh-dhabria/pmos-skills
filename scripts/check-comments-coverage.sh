@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/check-comments-coverage.sh — invoked by /verify Phase 5 gate set
+# scripts/check-comments-coverage.sh — invoked by /verify Phase 7 hard gates ({#final-compliance})
 # Spec ref: FR-62, §14.4 (extended for /feature-sdlc orchestrator in T27).
 #
 # Checks (in order):

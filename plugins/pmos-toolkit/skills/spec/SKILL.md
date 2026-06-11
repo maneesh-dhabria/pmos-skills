@@ -2,7 +2,7 @@
 name: spec
 description: Create a detailed technical specification from a requirements document — architecture, API contracts, DB schema, frontend design, testing strategy, verification plan. Second stage in the requirements -> spec -> plan pipeline. Auto-tiers by scope. Use when the user says "write the technical design", "design the system", "create the spec", "how should this work technically", or has a requirements doc ready for detailed design.
 user-invocable: true
-argument-hint: "<path-to-requirements-doc or requirements text> [--feature <slug>] [--backlog <id>] [--format <html|md>] [--skip-folded-sim-spec] [--skip-folded-arch] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
+argument-hint: "<path-to-requirements-doc or requirements text> [--feature <slug>] [--backlog <id>] [--tier <N>] [--format <html|md>] [--skip-folded-sim-spec] [--skip-folded-arch] [--msf-auto-apply-threshold N] [--non-interactive | --interactive]"
 ---
 
 # Technical Specification Generator
@@ -63,7 +63,7 @@ Use workstream context (loaded by step 3 below) to inform technical decisions �
 6. Read `~/.pmos/learnings.md` if present; note entries under `## /<this-skill-name>` and factor them into approach (skill body wins on conflict; surface conflicts to user before applying).
 <!-- pipeline-setup-block:end -->
 
-7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format <html|md>` flag overrides settings (last flag wins on conflict). `both` is retired — treat it as `html` per `_shared/html-authoring/README.md`. Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
+7. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
 
 ---
 
@@ -103,7 +103,7 @@ Use workstream context (loaded by step 3 below) to inform technical decisions �
 2. **Read the requirements end-to-end.** Confirm understanding with the user — summarize the problem, goals, non-goals, and key decisions already made.
 3. **Check for existing spec.** Use `_shared/resolve-input.md` with `phase=spec`, `label="prior spec"` to locate either `{feature_folder}/02_spec.html` (preferred) or `{feature_folder}/02_spec.md` (legacy fallback). If found: read it, ask the user if this is an update or fresh start.
 <!-- defer-only: ambiguous -->
-4. **Detect the tier.** Tier semantics, detection signals, and carry-forward rules are canonical in `_shared/tier-matrix.md`: a `Tier:` tag in the requirements doc is carried forward without asking (announce only); an untagged or mid-pipeline entry is assessed from the signal table and confirmed via `AskUserQuestion` (recommend the assessed tier). What the tier means *for this artifact*:
+4. **Detect the tier.** Tier semantics, detection signals, and carry-forward rules are canonical in `_shared/tier-matrix.md`: a `Tier:` tag in the requirements doc is carried forward without asking (announce only); `--tier <N>` (the machine passthrough `/feature-sdlc` sends when its tier is already resolved) is honored the same way — use it without re-asking, announce "Tier N carried forward from the orchestrator", and if a strictly higher tier fires from the signal table, escalate and note the divergence in the spec frontmatter (the orchestrator logs `child_tier_divergence`, it does not override). An untagged, flagless, or mid-pipeline entry is assessed from the signal table and confirmed via `AskUserQuestion` (recommend the assessed tier). What the tier means *for this artifact*:
 
 | Tier | Sections | Length |
 |------|----------|--------|

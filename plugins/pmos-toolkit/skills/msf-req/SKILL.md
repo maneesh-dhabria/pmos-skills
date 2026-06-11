@@ -53,7 +53,7 @@ Use workstream context (loaded by step 3 below) to inform analysis — product c
 5. Read `~/.pmos/learnings.md` if present; note entries under `## /msf-req` and factor them into approach (skill body wins on conflict).
 <!-- pipeline-setup-block:end -->
 
-6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format` argument-string flag overrides settings (last flag wins on conflict). `md` and `both` are retired values — treat either as `html`. Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
+6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry.
 
 ---
 

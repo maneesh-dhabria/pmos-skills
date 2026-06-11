@@ -54,7 +54,7 @@ Use workstream context to inform analysis — product constraints and tech-stack
 5. Read `~/.pmos/learnings.md` if present; note entries under `## /msf-wf` and factor them into approach.
 <!-- pipeline-setup-block:end -->
 
-6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`). A `--format` argument-string flag overrides settings (last flag wins on conflict). `md` and `both` are retired values — treat either as `html`. Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. NOTE: this governs the findings artifact only — wireframe HTML files emitted/edited by `--apply-edits` are never converted.
+6. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — legacy `both` is treated as `html` per `_shared/html-authoring/README.md`). A `--format` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. NOTE: this governs the findings artifact only — wireframe HTML files emitted/edited by `--apply-edits` are never converted.
 
 ---
 

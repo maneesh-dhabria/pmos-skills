@@ -11,7 +11,7 @@ Single source of truth for the resumable pipeline state file written at `<worktr
 **Migration policy**:
 
 - `state.schema_version > current code's max supported` (i.e., `> 5`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
-- `state.schema_version < current code's max` → run each migration step in version order; each is additive (default-fill new fields, never remove/rename/reshape) and idempotent; log every step to chat as `migration: state.schema vM → vN (added: <fields>)`. The pre-2.34.0 phase-id elision (`msf-req`/`simulate-spec` dropped on read — see "Auto-migration of pre-2.34.0 state files" in SKILL.md) runs *before* the v4 step.
+- `state.schema_version < current code's max` → run each migration step in version order; each is additive (default-fill new fields, never remove/rename/reshape) and idempotent; log every step to chat as `migration: state.schema vM → vN (added: <fields>)`. The pre-2.34.0 phase-id elision (`msf-req`/`simulate-spec` dropped on read — see the note under the phase-id table below, and `SKILL.md#resume` step 2) runs *before* the v4 step.
 - Same version → no migration.
 
 Pipeline runs are short-lived (days, not years) so destructive migrations are not anticipated; if ever needed, bump the major schema number and refuse-not-migrate from that boundary.
