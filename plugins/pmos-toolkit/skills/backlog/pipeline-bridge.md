@@ -10,17 +10,17 @@ Pipeline skills mutate backlog item state ONLY when `--backlog <id>` is explicit
 
 | Pipeline event | Item update | Trigger |
 |---|---|---|
-| `/requirements --backlog <id>` writes its doc | item `source:` set to the requirements doc path | The `/requirements` skill invokes Phase 6 (set) on `/backlog` after writing its output |
-| `/spec --backlog <id>` writes its doc | item `spec_doc:` set; status: `inbox`/`ready` -> `spec'd`; `planned`+ unchanged | `/spec` invokes Phase 6 (set) twice (one for spec_doc, one for status if applicable) |
-| `/plan --backlog <id>` writes its doc | item `plan_doc:` set; status -> `planned` | `/plan` invokes Phase 6 (set) |
-| `/execute --backlog <id>` starts | status -> `in-progress` | `/execute` invokes Phase 6 (set) at the start of execution |
-| `/verify --backlog <id>` reports pass | status -> `done`; `pr:` filled if available from git context | `/verify` invokes Phase 6 (set) |
+| `/requirements --backlog <id>` writes its doc | item `source:` set to the requirements doc path | The `/requirements` skill invokes `/backlog set` (`SKILL.md#set`) after writing its output |
+| `/spec --backlog <id>` writes its doc | item `spec_doc:` set; status: `inbox`/`ready` -> `spec'd`; `planned`+ unchanged | `/spec` invokes `/backlog set` twice (one for spec_doc, one for status if applicable) |
+| `/plan --backlog <id>` writes its doc | item `plan_doc:` set; status -> `planned` | `/plan` invokes `/backlog set` |
+| `/execute --backlog <id>` starts | status -> `in-progress` | `/execute` invokes `/backlog set` at the start of execution |
+| `/verify --backlog <id>` reports pass | status -> `done`; `pr:` filled if available from git context | `/verify` invokes `/backlog set` |
 
 ## Auto-prompt (offered seeds)
 
 When `/requirements` or `/spec` is invoked with an empty argument string AND `--backlog` is not provided AND a `<repo>/backlog/items/` directory exists:
 
-1. Read items via Phase 11 if a workstream is linked, else local items only.
+1. Read items via the workstream aggregator (`SKILL.md#workstream-aggregator`) if a workstream is linked, else local items only.
 2. Filter to candidate statuses: `/requirements` -> `inbox` or `ready`; `/spec` -> `ready`.
 3. Sort by priority bucket (must>should>could>maybe), then `score` desc, then `updated` desc.
 4. Take the top 5.
@@ -55,7 +55,7 @@ This auto-prompt is a one-shot at the start of the skill; it does NOT recur.
      2. Pick which to capture
      3. Skip
    ```
-4. On confirm, invoke Phase 2 (`/backlog add ...`) for each, with the `source:` field pre-filled.
+4. On confirm, invoke `/backlog add ...` (`SKILL.md#add`) for each, with the `source:` field pre-filled.
 
 ## Implementation pattern for pipeline skills
 

@@ -2,7 +2,7 @@
 name: backlog
 description: Maintain a lightweight, AI-readable backlog of features, bugs, tech-debt, ideas, and other work items inside the repo. Zero-friction quick-capture (`/backlog add ...`) plus structured tracking with status, priority, and acceptance criteria. Integrates with the requirements -> spec -> plan -> execute -> verify pipeline via explicit `--backlog <id>` linkage. Use when the user says "add to backlog", "capture this idea", "track this bug", "show the backlog", "promote a backlog item", or "what's in the backlog".
 user-invocable: true
-argument-hint: "[<text> | add <text> | list [filters] | show <id> | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | link <id> <doc> | archive | rebuild-index] [--non-interactive | --interactive]"
+argument-hint: "[<text> | add <text> | list | show <id> | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | link <id> <doc> | archive | rebuild-index] [--non-interactive | --interactive]"
 ---
 
 # Backlog
@@ -30,32 +30,36 @@ These instructions use Claude Code tool names. In other environments:
 
 ## References
 
-- `schema.md` — item file shape, enum values, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
-- `_shared/tracker-crudl.md` — shared tracker contract (id/slug, `created`/`updated`/`schema_version`, INDEX regenerability, archive)
+- `schema.md` — backlog's bindings: fields, enums, defaults-on-create, body sections, INDEX format, archive root
+- `_shared/tracker-crudl.md` — shared tracker invariants: id/slug (§2), universal fields (§3), INDEX-as-cache (§5), archive (§6)
 - `inference-heuristics.md` — keyword → type table for quick-capture
-- `pipeline-bridge.md` — how `--backlog <id>` integrates with pipeline skills
-- `_shared/interactive-prompts.md` — interactive prompting protocol used by Phase 5
+- `pipeline-bridge.md` — the `--backlog <id>` contract with pipeline skills
+- `_shared/interactive-prompts.md` — prompting protocol for refine
+
+## Flags & natural language
+
+Options are NL-first: infer filters and destinations from the request ("list must-priority bugs", "across the workstream", "archive into 2026-Q1"); an explicit flag overrides. Contract flags, kept literal: `--feature <slug>` (promote → `_shared/pipeline-setup.md` §B), `--non-interactive`/`--interactive` (mode contract), and the `--backlog <id>` this skill's consumers pass per `pipeline-bridge.md`. Everything else stays parsed as back-compat sugar, marked `<!-- nl-sugar -->` at its definition site.
 
 ---
 
-## Phase 0: Subcommand Routing
+## Phase 0: routing {#routing}
 
-Parse the user's argument to determine the subcommand. Be liberal with the form — both `/backlog add foo` and `/backlog "foo"` work for capture.
+Parse the user's argument to pick a handler. Be liberal with the form — both `/backlog add foo` and `/backlog "foo"` work for capture. The numbered phases below are independent verb handlers behind this dispatch table, not a sequence.
 
-| Argument shape | Subcommand |
+| Argument shape | Handler |
 |---|---|
-| empty | Phase 1 (show local INDEX.md) |
-| `add <text>` or any free text not matching another verb | Phase 2 (quick-capture) |
-| `list [flags]` | Phase 3 (filtered list) |
-| `show <id>` | Phase 4 (render item) |
-| `refine <id>` | Phase 5 (interactive refine) |
-| `set <id> <field>=<value>` | Phase 6 (single-field edit) |
-| `promote <id>` | Phase 7 (hand off to pipeline) |
-| `link <id> <doc-or-pr>` | Phase 8 (manual linkage) |
-| `archive [--quarter Q]` | Phase 9 (archive done/wontfix) |
-| `rebuild-index` | Phase 10 (regenerate INDEX.md) |
+| empty | `#show-index` |
+| `add <text>` or free text not matching another verb | `#add` |
+| `list [filters]` | `#list` |
+| `show <id>` | `#show` |
+| `refine <id>` | `#refine` |
+| `set <id> <field>=<value>` | `#set` |
+| `promote <id>` | `#promote` |
+| `link <id> <doc-or-pr>` | `#link` |
+| `archive` | `#archive` |
+| `rebuild-index` | `#rebuild-index` |
 
-If the first token is not a recognized verb AND the argument is non-empty, treat the whole argument as `add <text>` (frictionless capture is the priority).
+If the first token is not a recognized verb AND the argument is non-empty, treat the whole argument as `add <text>` (frictionless capture is the priority) — **unless the text is query-shaped**. A question or read request about the backlog ("what's in my backlog for auth?", "do we have anything on rate limits?", "show me the bugs") routes to `#list`/`#show` with the constraint interpreted as a filter. Never create an item from a question about the backlog.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -89,378 +93,168 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 
 ---
 
-## Phase 1: Show Local INDEX
+## Phase 1: show INDEX {#show-index}
 
-Triggered by `/backlog` with no arguments.
+`/backlog` with no arguments.
 
-### Step 1: Resolve `backlog/`
+1. If `<repo>/backlog/INDEX.md` does not exist (or `backlog/` is missing entirely), output `No backlog yet. Capture an item with /backlog add <text>.` and exit.
+2. Freshness per `_shared/tracker-crudl.md` §5: if any file under `backlog/items/` has an mtime newer than INDEX's `Last regenerated:` date, regenerate (`#rebuild-index`) before rendering.
+3. Output the contents of `backlog/INDEX.md`.
 
-If `<repo>/backlog/INDEX.md` does not exist (or `<repo>/backlog/` is missing entirely), output:
+(`<repo>` = git repo root via `git rev-parse --show-toplevel`; if not in a git repo, the current working directory. Applies to every handler below.)
 
-`No backlog yet. Capture an item with /backlog add <text>.`
+## Phase 2: add — quick-capture {#add}
 
-Then exit.
+`/backlog add <text>` OR bare non-query text (per `#routing`).
 
-### Step 2: Validate freshness
+**This handler MUST complete in a single tool-call sequence with NO clarifying questions.** Wrong inference is acceptable; capture friction is not.
 
-Compare `backlog/INDEX.md`'s "Last regenerated:" date against `git log -1 --format=%cI -- backlog/items/`. If items have been modified more recently than INDEX, regenerate (apply Phase 10) before rendering.
+1. Ensure `<repo>/backlog/items/` exists (`mkdir -p`).
+2. Allocate id + slug per `_shared/tracker-crudl.md` §2 — scan both `items/` and `archive/**/` for the max id prefix (empty store → `0001`). The counter is per-repo per `schema.md`.
+3. Infer `type` from `<text>` per `inference-heuristics.md` (case-insensitive, first-match-by-order; no match → `idea`, and remember the fallback notice for step 5).
+4. Write `backlog/items/{id}-{slug}.md` — frontmatter only, no body, per `schema.md` "Defaults on create". `title` = the original text, unchanged; `type` = the inferred type.
+5. Regenerate INDEX inline (`#rebuild-index`). If regeneration fails, the item file is still written — warn suggesting `/backlog rebuild-index`, but DO NOT roll back the item write.
+6. Output exactly one line:
 
-### Step 3: Render
+   `Captured #{id} ({type}, should): "{title}"`
 
-Output the contents of `backlog/INDEX.md` to the user.
+   If `type` was the fallback, append: ` — type inferred as 'idea' (no strong signal); use /backlog set {id} type=... to correct.`
 
----
+## Phase 3: list {#list}
 
-## Phase 2: Quick-Capture (`add` or bare text)
+`/backlog list ...` or any read-shaped request. Filters — type, status, priority, label, single repo, archive inclusion, workstream scope — are inferred from the request; combinations AND together. The legacy flag spellings stay parsed:
 
-Triggered by `/backlog add <text>` OR `/backlog <any free text>` (no recognized verb).
+<!-- nl-sugar -->
+- `--type <t>` · `--status <s>` · `--priority <p>` · `--label <name>` — enum/label filters
+<!-- nl-sugar -->
+- `--repo <name>` (one linked repo) · `--workstream` (aggregate via `#workstream-aggregator`) · `--include-archive` (include `backlog/archive/**/`)
 
-**This phase MUST complete in a single tool-call sequence with NO clarifying questions.** Wrong inference is acceptable; capture friction is not.
+1. **Scope.** Local `items/` (plus `archive/**/` when asked). Workstream requests go through `#workstream-aggregator`.
+2. **Validate filter values** against the enums in `schema.md` (the single source for enum values). Reject unknown values with the allowed list. Example: `Unknown status 'open'. Allowed: inbox, ready, spec'd, planned, in-progress, done, wontfix.`
+3. **Sort** per `schema.md`'s INDEX rules: priority bucket (must > should > could > maybe) → score desc (nulls last) → updated desc.
+4. **Render** a flat markdown table (no priority grouping). Columns: `id | type | status | priority | title | spec | plan | pr`; prepend a `repo` column in workstream mode. Zero matches: `No items match.`
 
-### Step 1: Resolve `backlog/` location
+## Phase 4: show {#show}
 
-- If `<repo>/backlog/items/` exists, use it.
-- Else, create `<repo>/backlog/items/` with `mkdir -p`.
+`/backlog show <id>`.
 
-(`<repo>` = git repo root, found via `git rev-parse --show-toplevel`. If not in a git repo, use the current working directory.)
+1. Normalize the id: accept `42`, `0042`, or `repo-name#0042` (workstream form → route via `#workstream-aggregator`). Local form: zero-pad to 4 digits.
+2. Search `<repo>/backlog/items/{id}-*.md`, then `<repo>/backlog/archive/**/{id}-*.md`.
+3. Still not found → list existing items sharing the digit prefix and output: `No item with id {id}. Closest matches by prefix: {list or "(none)"}. Run /backlog list to see all items.`
+4. Output the file contents verbatim, fenced as markdown.
 
-### Step 2: Allocate id
+## Phase 5: refine {#refine}
 
-Scan `backlog/items/` and `backlog/archive/**/` for filenames matching `^([0-9]{4})-`. Take the max numeric prefix; allocate `id = max + 1`. If neither directory exists or is empty, `id = 1`. Format as 4-digit zero-padded.
-
-### Step 3: Infer type
-
-Apply `inference-heuristics.md` to `<text>` (case-insensitive, first-match-by-order). If no keyword matches, set `type: idea` and remember to emit the fallback notice in Step 6.
-
-### Step 4: Build slug
-
-- Lowercase the title.
-- Replace any run of non-alphanumeric chars with a single hyphen.
-- Trim leading/trailing hyphens.
-- Truncate to 60 characters at a hyphen boundary if possible, otherwise hard-truncate.
-
-### Step 5: Write the item file
-
-Path: `backlog/items/{id}-{slug}.md`
-
-Content (frontmatter only, no body):
-
-```yaml
----
-schema_version: 1
-id: {id}
-title: {original text, unchanged}
-type: {inferred type}
-status: inbox
-priority: should
-labels: []
-created: {today YYYY-MM-DD}
-updated: {today YYYY-MM-DD}
-source:
-spec_doc:
-plan_doc:
-pr:
-parent:
-dependencies: []
----
-```
-
-### Step 6: Regenerate `INDEX.md`
-
-Apply Phase 10 (rebuild-index) inline. If regeneration fails, the item file is still written — emit a warning suggesting `/backlog rebuild-index`, but DO NOT roll back the item write.
-
-### Step 7: Report
-
-Output exactly one line:
-
-`Captured #{id} ({type}, should): "{title}"`
-
-If `type` was the fallback (`idea` from rule 4 of `inference-heuristics.md`), append:
-
-` — type inferred as 'idea' (no strong signal); use /backlog set {id} type=... to correct.`
-
----
-
-## Phase 3: Filtered List
-
-Triggered by `/backlog list [flags]`.
-
-Recognized flags (all optional, all combinable; AND semantics):
-
-| Flag | Effect |
-|---|---|
-| `--type <type>` | Filter by type (enum values per `schema.md`) |
-| `--status <status>` | Filter by status (enum values per `schema.md`) |
-| `--priority <priority>` | Filter by priority (enum values per `schema.md`) |
-| `--label <name>` | Item must include this label |
-| `--repo <name>` | (Workstream mode only) restrict to one linked repo |
-| `--workstream` | Aggregate across all repos linked to the active workstream |
-| `--include-archive` | Include items in `backlog/archive/**/` |
-
-### Step 1: Resolve scope
-
-- Without `--workstream`: read items from `<repo>/backlog/items/` (and `archive/**/` if `--include-archive`).
-- With `--workstream`: apply the workstream aggregator from Phase 11.
-
-### Step 2: Validate flag values against enums
-
-Validate against the enums in `schema.md` (the single source for enum values). Reject unknown flag values with the allowed list. Example: `Unknown status 'open'. Allowed: inbox, ready, spec'd, planned, in-progress, done, wontfix.`
-
-### Step 3: Apply filters and sort
-
-Sort: priority bucket (must > should > could > maybe) → score desc (nulls last) → updated desc.
-
-### Step 4: Render
-
-Render a markdown table identical in shape to a single section of `INDEX.md`, but with no priority grouping (sorted flat list). Columns: `id | type | status | priority | title | spec | plan | pr`. In `--workstream` mode, prepend a `repo` column.
-
-If zero matches: `No items match.`
-
----
-
-## Phase 4: Show Item
-
-Triggered by `/backlog show <id>`.
-
-### Step 1: Normalize id
-
-Accept `42`, `0042`, or `repo-name#0042` (workstream form). For local form, zero-pad to 4 digits.
-
-### Step 2: Locate the file
-
-Search `<repo>/backlog/items/{id}-*.md`. If not found, search `<repo>/backlog/archive/**/{id}-*.md`.
-
-### Step 3: Handle missing
-
-If still not found:
-
-1. Find existing items whose id starts with the same digit prefix.
-2. Output: `No item with id {id}. Closest matches by prefix: {list or "(none)"}. Run /backlog list to see all items.`
-
-### Step 4: Render
-
-Output the file contents verbatim, fenced as markdown.
-
----
-
-## Phase 5: Refine
-
-Triggered by `/backlog refine <id>`. Interactive — follow `_shared/interactive-prompts.md` for the prompting protocol (primary path: the interactive prompt tool; fallback: one question at a time with numbered responses).
-
-### Step 1: Load the item
-
-Locate via Phase 4's lookup. If not found, error and exit (same message as Phase 4 Step 3).
-
-### Step 2: Collect updates
+`/backlog refine <id>`. Interactive — follow `_shared/interactive-prompts.md` (primary: the interactive prompt tool; fallback: one question at a time, numbered responses). Locate the item via `#show`'s lookup; if missing, emit the same error and exit.
 
 <!-- defer-only: free-form -->
-Ask in this order, ONE field at a time when `AskUserQuestion` is available:
+Ask via `AskUserQuestion` when available, ONE field at a time, in this order:
 
-1. **Title** — show current; ask "Edit the title? (enter to keep)"
-2. **Context** — multi-line free text; allow "skip"
-3. **Acceptance criteria** — one per line; "done" to finish; allow zero
-4. **Priority** — multi-choice from the enum; default to current
-5. **Score (optional)** — integer 1-1000 or "skip"
-6. **Labels (optional)** — comma-separated or "skip"
+1. **Title** — show current; "Edit the title? (enter to keep)"
+2. **Context** — multi-line free text; "skip" allowed
+3. **Acceptance criteria** — one per line; "done" to finish; zero is fine
+4. **Priority** — choice from the enum; default current
+5. **Score** — integer 1–1000 or "skip"
+6. **Labels** — comma-separated or "skip"
 
-### Step 3: Write body
+Write the body per `schema.md`'s section order: always `## Context` (use "_TBD_" if skipped — refine is iterative), `## Acceptance Criteria` only if any were given, never `## Notes` (that stays free-form for later edits). Replace the entire body; keep frontmatter intact except `updated:` → today, `status:` → `ready` if currently `inbox`, and `priority:`/`score:`/`labels:` if changed.
 
-Build the body from collected values:
-- Always write `## Context` (with content or "_TBD_" placeholder if user skipped — placeholder is fine here because refine is iterative)
-- Always write `## Acceptance Criteria` if any were provided; omit the H2 if empty
-- Omit `## Notes` (refine never collects notes — that's free-form for later edits)
+Regenerate INDEX (`#rebuild-index`). Confirm in one line: id + old → new status (omit the arrow if status is unchanged).
 
-Replace the entire body of the item file with the new sections. Keep frontmatter intact except:
-- `updated:` -> today
-- `status:` -> `ready` if currently `inbox`; otherwise unchanged
-- `priority:`, `score:`, `labels:` if changed
+## Phase 6: set {#set}
 
-### Step 4: Regenerate INDEX, report
+`/backlog set <id> <field>=<value>` — the machine API. `/requirements`, `/spec`, `/plan`, `/execute`, and `/verify` invoke this literal form per `pipeline-bridge.md`; keep its surface exact.
 
-Apply Phase 10. Output: `Refined #{id}. Status: {old_status} -> {new_status}.` (omit the arrow if status unchanged).
+1. **Field name.** Allowed: `title`, `type`, `status`, `priority`, `score`, `labels`, `parent`, `dependencies`, `source`, `spec_doc`, `plan_doc`, `pr`. Disallowed (skill-managed): `id`, `created`, `updated` — reject with `Field '{field}' cannot be set directly. The skill manages it.`
+2. **Value.**
 
----
+   | Field | Validation |
+   |---|---|
+   | `type`, `status`, `priority` | Must be in the matching enum in `schema.md` |
+   | `score` | Integer, 1 <= n <= 1000, or empty (to clear) |
+   | `labels` | Comma-separated; written as a YAML list |
+   | `dependencies` | Comma-separated ids; validate each exists in `items/` (warn on missing, but proceed) |
+   | `parent` | Single id; validate exists |
+   | `title`, `source`, `spec_doc`, `plan_doc`, `pr` | Free string |
 
-## Phase 6: Set Field
+   On enum violation: `Unknown {field} '{value}'. Allowed: {comma-separated list}.` No write.
+3. **Edit.** Update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to match the new slug (preserve the id prefix). Regenerate INDEX (`#rebuild-index`). Confirm in one line: id + field + new value (note the rename if one occurred).
 
-Triggered by `/backlog set <id> <field>=<value>`.
+## Phase 7: promote {#promote}
 
-### Step 1: Parse and validate field name
+`/backlog promote <id> [--feature <slug>]`. Seeds a feature folder from the item and hands off to the pipeline.
 
-Allowed fields: `title`, `type`, `status`, `priority`, `score`, `labels`, `parent`, `dependencies`, `source`, `spec_doc`, `plan_doc`, `pr`.
+1. **Status routing.** Locate the item, then:
 
-Disallowed (skill-managed only): `id`, `created`, `updated`. Reject with: `Field '{field}' cannot be set directly. The skill manages it.`
+   | Current status | Target | Notes |
+   |---|---|---|
+   | `inbox` | `/requirements` | Item likely lacks ACs |
+   | `ready` | `/spec` | Item has ACs already |
+   | `spec'd` | refuse | Use `/plan --backlog <id>` directly |
+   | `planned` | refuse | Use `/execute --backlog <id>` directly |
+   | `in-progress` | refuse | Already running |
+   | `done`, `wontfix` | refuse | Use `/backlog set` to revive first |
 
-### Step 2: Validate value
+   On refuse: `#{id} is already at status '{status}'. {next_step_message}.` No further action.
+2. **Build the seed:**
 
-| Field | Validation |
-|---|---|
-| `type` | Must be in the `type` enum in `schema.md` |
-| `status` | Must be in the `status` enum in `schema.md` |
-| `priority` | Must be in the `priority` enum in `schema.md` |
-| `score` | Integer, 1 <= n <= 1000, or empty (to clear) |
-| `labels` | Comma-separated; written as a YAML list |
-| `dependencies` | Comma-separated ids; validate each exists in `items/` (warn on missing, but proceed) |
-| `parent` | Single id; validate exists |
-| `title`, `source`, `spec_doc`, `plan_doc`, `pr` | Free string |
+   ```
+   [Backlog #{id} | {type} | priority {priority}]
+   Title: {title}
 
-On enum violation: `Unknown {field} '{value}'. Allowed: {comma-separated list}.` No write.
+   {body if present, otherwise just the title}
 
-### Step 3: Edit and report
+   Source: backlog/items/{id}-{slug}.md
+   ```
+3. **Resolve the feature folder** per `../_shared/pipeline-setup.md` Section B with `skill_name=backlog`, `feature_arg=<--feature value or empty>`, `feature_hint=<item title>`. Default to **Create new** with the derived slug; folder creation updates `settings.current_feature` so downstream skills pick up the same folder.
+4. **Seed it.** Write the seed to `{feature_folder}/01_requirements.md`. If that file already exists, do NOT overwrite — abort with: `#{id}: {feature_folder}/01_requirements.md already exists. Re-run with --feature <new-slug> or remove the existing file.`
+5. **Invoke the target** (`/requirements` or `/spec`) with `--backlog {id}` so the pipeline-bridge consent gate opens; it resolves its input from the feature folder per `_shared/pipeline-setup.md` Section 0 + `_shared/resolve-input.md`. The frontmatter write-back (`source:`, `spec_doc:`, status) is the target skill's responsibility per `pipeline-bridge.md` — promote does NOT mutate the item.
+6. **On return,** confirm in one line: id → target, seeded path, and whether the target linked a doc.
 
-Load item, update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to match the new slug (preserve id prefix). Apply Phase 10. Output: `Updated #{id}: {field} = {value}.` (or `... renamed to {new-filename}.` if a rename occurred).
+## Phase 8: link {#link}
 
----
+`/backlog link <id> <doc-path-or-url>`.
 
-## Phase 7: Promote
+1. Infer the target field:
 
-Triggered by `/backlog promote <id> [--feature <slug>]`. Seeds a feature folder from the backlog item and hands off to the appropriate pipeline skill.
+   | Pattern | Field |
+   |---|---|
+   | URL matching `https?://github\.com/[^/]+/[^/]+/pull/\d+` | `pr` |
+   | Path ending in `-spec.md` | `spec_doc` |
+   | Path ending in `-plan.md` | `plan_doc` |
+   | Path ending in `-requirements.md` or under `requirements/` | `source` |
+   | Anything else | error: `Cannot infer link type from '{value}'. Use /backlog set {id} <field>=<value>.` |
 
-### Step 1: Load and check status
+2. Delegate to `#set` with the inferred `field=value`. Confirm in one line: id + field + value.
 
-Locate the item. Map status to target skill:
+## Phase 9: archive {#archive}
 
-| Current status | Target | Notes |
-|---|---|---|
-| `inbox` | `/requirements` | Item likely lacks ACs |
-| `ready` | `/spec` | Item has ACs already |
-| `spec'd` | refuse | Use `/plan --backlog <id>` directly |
-| `planned` | refuse | Use `/execute --backlog <id>` directly |
-| `in-progress` | refuse | Already running |
-| `done`, `wontfix` | refuse | Use `/backlog set` to revive first |
+`/backlog archive`.
 
-On refuse, output: `#{id} is already at status '{status}'. {next_step_message}.` No further action.
+1. **Destination quarter.** Per-item from its `updated:` date (`{year}-Q{quarter}`) — unless the user names one ("archive into 2026-Q1"), which forces that destination for all.
+   <!-- nl-sugar -->
+   `--quarter YYYY-QN` stays parsed as the explicit spelling.
+2. **Eligibility.** `status` in `done, wontfix` AND age (today − `updated:`) > 30 days. Everything else stays.
+3. **Move** per `_shared/tracker-crudl.md` §6: `git mv backlog/items/{file} backlog/archive/{quarter}/{file}` (create the quarter dir; fall back to a plain move outside git).
+4. Regenerate INDEX (`#rebuild-index` — archived items are excluded). Report one line: count + `#{id} -> {quarter}` per item, or `0 items: nothing eligible.`
 
-### Step 2: Build the seed
+## Phase 10: rebuild-index {#rebuild-index}
 
-Construct a seed string from the item:
+`/backlog rebuild-index`. Also invoked internally by every mutating handler, per the regenerable-cache contract in `_shared/tracker-crudl.md` §5.
 
-```
-[Backlog #{id} | {type} | priority {priority}]
-Title: {title}
+1. Glob `<repo>/backlog/items/*.md`; parse frontmatter; skip files with malformed frontmatter (one-line warning per skip; never abort).
+2. Overwrite `<repo>/backlog/INDEX.md` per `schema.md`'s "INDEX.md format" section — grouping, sort, columns, and the `Last regenerated:` line are all specified there.
+3. Invoked directly: `Regenerated INDEX.md: {count} items.` Invoked internally: silent on success, warn on failure.
 
-{body if present, otherwise just the title}
+## Phase 11: workstream aggregator {#workstream-aggregator}
 
-Source: backlog/items/{id}-{slug}.md
-```
+Used by `#list` (workstream scope) and `#show` (`repo#id` form). Read-only — never writes items, `~/.pmos/workstreams/{slug}.md`, or any `.pmos/settings.yaml` (linked-repo management is `/product-context`'s job).
 
-### Step 3: Resolve feature folder
-
-Follow `../_shared/pipeline-setup.md` Section B (feature-folder rules) with `skill_name=backlog`, `feature_arg=<--feature value or empty>`, and `feature_hint=<title of the backlog item being promoted>`. The protocol typically creates a new folder for the promoted item (default to **Create new** with the derived slug). Use the returned `{feature_folder}` for the output path. Folder creation also updates `settings.current_feature` in `.pmos/settings.yaml` so subsequent pipeline skills pick up the same folder.
-
-### Step 4: Seed the feature folder
-
-Write the seed (from Step 2) to `{feature_folder}/01_requirements.md`. If that file already exists in the resolved folder, do NOT overwrite — instead, abort with: `#{id}: {feature_folder}/01_requirements.md already exists. Re-run with --feature <new-slug> or remove the existing file.`
-
-### Step 5: Invoke the target skill
-
-Invoke the target skill (`/requirements` or `/spec`) with `--backlog {id}` so the pipeline-bridge consent gate opens. The target skill resolves its input from the current feature folder per `_shared/pipeline-setup.md` Section 0 + `_shared/resolve-input.md` (so the seeded `01_requirements.md` is picked up automatically). The user's session continues inside the target skill.
-
-### Step 6: On return, report
-
-Once the target skill exits, output: `Promoted #{id} -> {target}. Seeded {feature_folder}/01_requirements.md.` Append `(source linked)` if the target wrote a downstream doc, or `(target did not write a doc — re-invoke when ready.)` otherwise.
-
-The actual frontmatter update on the item (e.g., `source:` or `spec_doc:`) is the target skill's responsibility per `pipeline-bridge.md`. Phase 7 does NOT mutate item frontmatter — it only seeds the feature folder and invokes.
-
----
-
-## Phase 8: Link Doc or PR
-
-Triggered by `/backlog link <id> <doc-path-or-url>`.
-
-### Step 1: Infer target field
-
-| Pattern | Target field |
-|---|---|
-| URL matching `https?://github\.com/[^/]+/[^/]+/pull/\d+` | `pr` |
-| Path ending in `-spec.md` or matching `*-{anything}-spec.md` | `spec_doc` |
-| Path ending in `-plan.md` | `plan_doc` |
-| Path ending in `-requirements.md` or under `requirements/` | `source` (treated as originating doc) |
-| Anything else | error: `Cannot infer link type from '{value}'. Use /backlog set {id} <field>=<value>.` |
-
-### Step 2: Apply
-
-Delegate to Phase 6 (set) with the inferred `field=value`. Output: `Linked #{id}: {field} = {value}.`
+1. Read `<repo>/.pmos/settings.yaml :: workstream`. Absent → error: `Current repo has no workstream link. Run /product-context init or use /backlog list without --workstream.`
+2. Read `~/.pmos/workstreams/{slug}.md` frontmatter `linked_repos:`. Absent/empty → error: `Workstream '{slug}' has no linked_repos. Add them via /product-context update.`
+3. For each linked repo: skip paths not on disk (warn `Skipping {path} (not on disk).`); otherwise read `{path}/backlog/items/*.md`, tagging each item with its repo basename.
+4. Render ids as `{repo-basename}#{id}` (e.g., `repo-a#0001`); `show repo-a#0001` parses the prefix to route to the right repo.
 
 ---
 
-## Phase 9: Archive
-
-Triggered by `/backlog archive [--quarter Q]`.
-
-### Step 1: Determine target quarter
-
-If `--quarter <Q>` is provided (format `YYYY-QN`), use it for the destination directory.
-Otherwise, derive per-item: for each eligible item, target = `{year-of-updated}-Q{quarter-of-updated}` based on the item's `updated:` date.
-
-### Step 2: Collect eligible items
-
-For each file in `backlog/items/*.md`:
-- Parse frontmatter.
-- Eligible if `status` in `done, wontfix` AND age (today - `updated:`) > 30 days.
-
-### Step 3: Move
-
-For each eligible item:
-- Create `backlog/archive/{quarter}/` if absent.
-- `git mv backlog/items/{file} backlog/archive/{quarter}/{file}` (preserves history).
-- If git mv fails (e.g., not in a git repo), fall back to a regular file move.
-
-### Step 4: Regenerate and report
-
-Apply Phase 10 (rebuild-index — archive items are excluded from INDEX). Output:
-
-`Archived {N} items: {list of "#{id} -> {quarter}"} (or "0 items: nothing eligible.").`
-
----
-
-## Phase 10: Rebuild Index
-
-Triggered by `/backlog rebuild-index`. Also invoked internally by Phases 2, 5, 6, 7, 8, 9 after any item write.
-
-### Step 1: Read items
-
-Glob `<repo>/backlog/items/*.md`. For each, parse frontmatter. Skip files with malformed frontmatter (emit one-line warning per skip; do not abort).
-
-### Step 2: Group and sort
-
-Group by `priority`. Within each group, sort by `score` desc (nulls last), then `updated` desc.
-
-### Step 3: Write `INDEX.md`
-
-Overwrite `<repo>/backlog/INDEX.md` with the format defined in `schema.md` (### INDEX.md format section). Include `Last regenerated: {today}` after the title.
-
-### Step 4: Report
-
-If invoked directly: `Regenerated INDEX.md: {count} items.`
-If invoked from another phase: silent on success, warn on failure.
-
----
-
-## Phase 11: Workstream Aggregator
-
-Used by Phases 3 (`list --workstream`) and 4 (`show repo#id`). Not user-invoked directly.
-
-### Step 1: Find the workstream slug
-
-Read `<repo>/.pmos/settings.yaml`. Extract `workstream:`. If absent, error: `Current repo has no workstream link. Run /product-context init or use /backlog list without --workstream.`
-
-### Step 2: Find linked repos
-
-Read `~/.pmos/workstreams/{slug}.md`. Parse frontmatter. Extract `linked_repos:` list. If absent or empty, error: `Workstream '{slug}' has no linked_repos. Add them via /product-context update.`
-
-### Step 3: For each linked repo
-
-For each path in `linked_repos`:
-- If the path does not exist on disk, emit a one-line warning: `Skipping {path} (not on disk).`
-- Otherwise, read items from `{path}/backlog/items/*.md`. Tag each item with its repo basename for disambiguation.
-
-### Step 4: Merge
-
-Return the merged list (or the located file, for `show repo#id`). Never write — the aggregator is read-only.
-
-### Step 5: ID disambiguation
-
-When listing, render each item's id as `{repo-basename}#{id}` (e.g., `repo-a#0001`). When the user invokes `/backlog show repo-a#0001`, parse the prefix to route to the right repo.
-
-The Phase 11 aggregator does NOT mutate `~/.pmos/workstreams/{slug}.md` or any `.pmos/settings.yaml`. Linked-repo management is `/product-context`'s responsibility.
+*Spec lineage: `docs/pmos/features/2026-04-25_backlog-skill/02_spec.md` (capture contract, score bounds, archive eligibility, promote routing, auto-prompt), `2026-05-08_non-interactive-mode/` (inline mode block). Shared tracker invariants extracted to `_shared/tracker-crudl.md` in the 2026-05 tracker consolidation; enum/INDEX/defaults ownership moved to `schema.md` in the 2026-06-10 skill-design review. Traceability for individual rules lives there, not inline here.*
