@@ -8,46 +8,14 @@ argument-hint: "[--non-interactive | --interactive]"
 
 **Announce at start:** "Using /changelog to generate user-facing changelog entries."
 
-Generate user-facing changelog entries, prepended (newest first) to the project changelog. Describe *what the system can now do*, never implementation details.
-
-## When to use this
-
-- A branch just merged to main and the user-visible surface changed.
-- The user wants a dated, plain-language record of what shipped this release.
-- `/complete-dev` is preparing a release and needs the changelog refreshed before tagging.
-
-**When NOT to use:**
-- Internal-only refactors, test changes, or doc updates with no user-visible effect → skip; there is nothing to log.
-- The user wants design rationale or a decision record → that belongs in the feature folder, not the changelog.
-
-## Track Progress
-
-This skill has multiple phases. Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task `in_progress` when you start it and `completed` when it finishes — never batch completions.
+Generate user-facing changelog entries, prepended (newest first) to the project changelog. Describe *what the system can now do*, never implementation details. `/complete-dev` invokes this skill inline when preparing a release (its `#changelog` phase). Internal-only refactors, test changes, and doc updates with no user-visible effect have nothing to log; design rationale belongs in the feature folder, not here. No skill-specific flags — "what changed in this release" is natural language all the way down; `--non-interactive`/`--interactive` are the repo mode contract.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
 - **No `AskUserQuestion` tool:** Degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
-- **No subagents:** All phases run single-agent; there is no parallel work to degrade.
 - **No `.pmos/settings.yaml`:** Run `_shared/pipeline-setup.md` Section A first-run setup before resolving `{docs_path}`.
-- **TaskCreate / TodoWrite missing:** The skill body works without task tracking.
-- **Browser / Playwright:** Not used by this skill.
-
-## Determine changelog_path
-
-Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` from it. If not found, follow `_shared/pipeline-setup.md` Section A to run first-run setup (which writes settings.yaml and detects legacy `docs/` layout).
-
-**Sibling-prefer probe (observed-convention override).** After resolving `docs_path` from settings, normalize it (strip trailing `/`) and probe `{repo_root}/docs/changelog.md`:
-
-- If `docs_path` (normalized) is **not** `docs` AND `{repo_root}/docs/changelog.md` exists → resolve `{changelog_path}` to `docs/changelog.md` (prefer the existing sibling) AND emit exactly one non-blocking advisory line to the user before any read or write:
-  ```
-  /changelog: settings.yaml says docs_path=<value> but docs/changelog.md already exists; preferring the sibling. Consider reconciling settings.yaml.
-  ```
-  Do NOT block on `AskUserQuestion`; do NOT auto-edit `settings.yaml`.
-- Otherwise → resolve `{changelog_path}` to `{docs_path}/changelog.md` (current behavior, no advisory).
-
-`{changelog_path}` MUST be used consistently for both the scope read (Phase 1) and the prepend write (Phase 5) within a single run.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -79,21 +47,17 @@ Check for `.pmos/settings.yaml` in the current repo. If found, read `docs_path` 
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 0: Setup
+## Phase 0: Setup {#setup}
 
-1. **Read `.pmos/settings.yaml`** and resolve `{changelog_path}` per the "Determine changelog_path" section above. If settings is missing → run `_shared/pipeline-setup.md` §A first-run setup first.
-2. **Read `~/.pmos/learnings.md`** if present; note any entries under `## /changelog` and factor them into your drafting (e.g., a recurring phrasing the user prefers, a category they always want surfaced). Skill body wins on conflict; surface conflicts to the user.
+1. **Resolve `{changelog_path}`.** Read `.pmos/settings.yaml` for `docs_path` (missing → run `_shared/pipeline-setup.md` Section A first-run setup first). Default: `{changelog_path}` = `{docs_path}/changelog.md`. **Sibling-prefer override** (observed convention beats settings): if `docs_path` — normalized, trailing `/` stripped — is not `docs` AND `{repo_root}/docs/changelog.md` already exists, resolve to `docs/changelog.md` instead and emit one non-blocking advisory line: `/changelog: settings.yaml says docs_path=<value> but docs/changelog.md already exists; preferring the sibling. Consider reconciling settings.yaml.` Never prompt on this; never auto-edit settings.yaml. Whichever wins, use the same `{changelog_path}` for both the scope read (Phase 1) and the prepend write (Phase 4) within a run.
+2. **Read `~/.pmos/learnings.md`** if present; factor `## /changelog` entries into your drafting. Skill body wins on conflict; surface conflicts to the user.
 3. **Resolve mode** (interactive / non-interactive) per the non-interactive contract above. Print `mode: <m> (source: <s>)` to stderr.
 
-## Phase 1: Determine scope
+## Phase 1: Determine scope {#scope}
 
-Run `git log` to find commits since the last changelog entry date — read the top entry in `{changelog_path}` for the last date. If no changelog exists, use all commits on main.
+Run `git log` for commits since the last changelog entry's date — read the top entry in `{changelog_path}` for it (entries are newest-first, so the top date is the high-water mark; if the file looks unordered, ask). If no changelog exists, use all commits on main. Read the commit messages and diffs to understand what was added, changed, or fixed.
 
-## Phase 2: Analyze changes
-
-Read the commit messages and diffs to understand what was added, changed, or fixed. Focus on *what the system can now do*, not implementation details.
-
-## Phase 3: Draft entry
+## Phase 2: Draft entry {#draft}
 
 Write a dated entry with user-facing bullets. Format:
 
@@ -103,24 +67,24 @@ Write a dated entry with user-facing bullets. Format:
 - Added: what new capability exists
 - Changed: what behaves differently
 - Fixed: what broken thing now works
+
+**References:**
+- [`relative/path/to/spec.md`](relative/path/to/spec.md)
 ```
 
 No "Added/Changed/Fixed" prefixes required — use them only when they add clarity. Write in plain language a user of the tool would understand. Hold the prose to `_shared/writing-principles.md` as you draft.
 
-## Phase 4: Confirm with user
+## Phase 3: Confirm with user {#confirm}
 
 Present the drafted entry and ask for confirmation or edits before writing. In non-interactive mode, this checkpoint follows the auto-pick contract above.
 
-## Phase 5: Write
+## Phase 4: Write {#write}
 
 Prepend the entry to `{changelog_path}` (resolved in Phase 0). If the file doesn't exist, create it with a single H1 header `# Changelog` followed by the entry.
 
-## Phase 6: Capture Learnings
+## Phase 5: Capture learnings {#capture-learnings}
 
-Reflect on whether this run surfaced anything worth capturing under `## /changelog` in `~/.pmos/learnings.md` — e.g., a recurring category the user always wants pulled out, a phrasing convention, or a commit-grouping heuristic that worked well. Append a one-line entry only when the lesson is non-obvious and reusable; do not log routine runs.
-
-Report at close:
-- `Learning: <new entry written to ~/.pmos/learnings.md under ## /changelog>` — when the run surfaced a non-obvious lesson worth keeping.
+Read and follow `_shared/learnings-capture.md` for the `## /changelog` section — e.g., a recurring category the user always wants pulled out, a phrasing convention, a commit-grouping heuristic that worked well.
 
 ## Rules
 
@@ -128,5 +92,9 @@ Report at close:
 - Group related changes under one bullet rather than listing every commit
 - Skip internal refactors, test changes, and doc updates unless they affect user-visible behavior
 - Keep entries concise: aim for 3-7 bullets per merge
-- Date must be the actual current date
-- Include a **References** section at the end of each entry linking to relevant plans, specs, requirements, or other docs (relative paths from repo root). Only include references that exist in the repo.
+- Date must be the actual current date, not inferred from commit timestamps
+- References (format in the Phase 2 template): relative paths from repo root; only link docs that exist in the repo
+
+---
+
+*Spec lineage: sibling-prefer probe per `2026-05-08_update-skills-retro-pipeline-friction` (repo kept `docs/changelog.md` while settings said otherwise — a second changelog landed in the wrong place); mode contract per `2026-05-08_non-interactive-mode`; ceremony trim, path-resolution merge into Phase 0, and learnings-capture pointer per the 2026-06-10 skill-design review.*

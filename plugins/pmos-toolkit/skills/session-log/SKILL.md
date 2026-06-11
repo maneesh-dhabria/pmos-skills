@@ -8,31 +8,16 @@ argument-hint: "[--non-interactive | --interactive]"
 
 **Announce at start:** "Using /session-log to capture this session's learnings."
 
-Capture session learnings as concise bullet points, prepended (newest first) to the project session log. The record is *what you built and decided this session* — the decisions and their reasoning are the most valuable part. This is distinct from `/reflect`, which critiques the pmos tools/skills you used; session-log is about the work, not the tooling.
+Capture session learnings as concise bullet points, prepended (newest first) to `{docs_path}/session-log.md`. The record is *what you built and decided this session* — the decisions and their reasoning are the most valuable part.
 
-## When to use this
-
-- A meaningful chunk of work just wrapped and the decisions + gotchas are still fresh.
-- The user wants a durable, dated record of what was built and why.
-- You're about to end a session where non-obvious choices were made worth teaching from later.
-
-**When NOT to use:**
-- The session was trivial (typo fixes, formatting) with nothing non-obvious to capture.
-- The user wants to critique *how the skills/tools performed* → that's `/reflect`.
-
-## Track Progress
-
-This skill has multiple phases. Create one task per phase using your agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task `in_progress` when you start it and `completed` when it finishes — never batch completions.
+**When NOT to use:** the session was trivial (typo fixes, formatting) with nothing non-obvious to capture; or the user wants to critique *how the skills/tools performed* → that's `/reflect`.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion` tool:** Degrade the draft-confirmation prompt to a numbered free-form prompt per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies.
-- **No subagents:** All phases run single-agent; there is no parallel work to degrade.
+- **No `AskUserQuestion` tool:** Degrade the draft-confirmation prompt to a numbered free-form prompt per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
 - **No `.pmos/settings.yaml`:** Run `_shared/pipeline-setup.md` Section A first-run setup before resolving `{docs_path}`.
-- **TaskCreate / TodoWrite missing:** The skill body works without task tracking.
-- **Browser / Playwright:** Not used by this skill.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -64,17 +49,17 @@ These instructions use Claude Code tool names. In other environments:
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 0: Setup
+## Phase 0: Setup {#setup}
 
-1. **Read `.pmos/settings.yaml`** per `_shared/pipeline-setup.md` Section 0 to resolve `{docs_path}`. If settings.yaml is missing, run first-run setup per Section A. Use `{docs_path}/session-log.md` as the output path.
-2. **Read `~/.pmos/learnings.md`** if present; note any entries under `## /session-log` and factor them into your approach (e.g., a recurring decision-type the user always wants captured, a phrasing convention). Skill body wins on conflict; surface conflicts to the user.
+1. **Run `_shared/pipeline-setup.md` Section 0 steps 1–3** — reads `.pmos/settings.yaml` (missing → Section A first-run setup), resolves `{docs_path}`, and loads the workstream if one is linked (Phase 4 depends on that load). Output path: `{docs_path}/session-log.md`.
+2. **Read `~/.pmos/learnings.md`** if present; factor `## /session-log` entries into your approach. Skill body wins on conflict; surface conflicts to the user.
 3. **Resolve mode** (interactive / non-interactive) per the non-interactive contract above. Print `mode: <m> (source: <s>)` to stderr.
 
-## Phase 1: Gather context
+## Phase 1: Gather context {#gather}
 
 Read the git diff (`git diff HEAD~` or the appropriate range for the session's changes) and reflect on the conversation: what was built, what decisions were made and why, what was surprising, what patterns worked well.
 
-## Phase 2: Draft entry
+## Phase 2: Draft entry {#draft}
 
 Write a dated entry as flat bullet points. Format:
 
@@ -93,26 +78,19 @@ Write a dated entry as flat bullet points. Format:
 - Requirements: [`relative/path/to/requirements.md`](relative/path/to/requirements.md)
 ```
 
-Only include bullets that apply. No empty sections, no headers within the entry. Keep each bullet concise — one line, direct. Always include a **References** section at the end linking to the relevant documents (spec, plan, requirements, or any other key docs produced or consumed during the session), matching the format used in the changelog.
+Only include bullets that apply. No empty sections, no headers within the entry. Keep each bullet concise — one line, direct.
 
-## Phase 3: Confirm with user
+## Phase 3: Confirm and write {#confirm-write}
 
-Present the drafted entry and ask for confirmation or edits before writing. In non-interactive mode, this checkpoint follows the auto-pick contract above.
+Present the drafted entry and ask for confirmation or edits. In non-interactive mode, this checkpoint follows the auto-pick contract above. Then prepend the entry to `{docs_path}/session-log.md`; if the file doesn't exist, create it with a single H1 header `# Session Log` followed by the entry.
 
-## Phase 4: Write
+## Phase 4: Workstream enrichment {#workstream-enrichment}
 
-Prepend the entry to `{docs_path}/session-log.md`. If the file doesn't exist, create it with a single H1 header `# Session Log` followed by the entry.
+If Phase 0 loaded a workstream, follow `_shared/pipeline-setup.md` Section C. Session-log signals: decisions with reasoning → workstream `## Key Decisions`; gotchas → workstream `## Constraints & Scars`.
 
-## Phase 5: Workstream Enrichment
+## Phase 5: Capture learnings {#capture-learnings}
 
-If a workstream was loaded, follow `_shared/pipeline-setup.md` Section C. Session-log signals: decisions with reasoning → workstream `## Key Decisions`; gotchas → workstream `## Constraints & Scars`.
-
-## Phase 6: Capture Learnings
-
-Reflect on whether this run surfaced anything worth capturing under `## /session-log` in `~/.pmos/learnings.md` — e.g., a decision-category the user always wants logged, a git-range heuristic that worked, or a boundary call between session-log and reflect. Append a one-line entry only when the lesson is non-obvious and reusable.
-
-Report at close:
-- `Learning: <new entry written to ~/.pmos/learnings.md under ## /session-log>` — when the run surfaced a non-obvious lesson worth keeping.
+Read and follow `_shared/learnings-capture.md` for the `## /session-log` section — e.g., a decision-category the user always wants logged, a git-range heuristic that worked, a boundary call between session-log and reflect.
 
 ## Rules
 
@@ -121,4 +99,8 @@ Report at close:
 - Keep the full entry under 15 bullets. Aim for 4-8.
 - Do not include trivial changes (typo fixes, formatting) unless they revealed something non-obvious
 - Date must be the actual current date, not inferred from commits
-- Always include a **References** section linking to relevant documents (specs, plans, requirements, etc.) using relative paths, matching the format used in the changelog
+- References (format in the Phase 2 template): relative paths from repo root; only link docs that exist in the repo
+
+---
+
+*Spec lineage: mode contract per `2026-05-08_non-interactive-mode`; workstream enrichment owned by `_shared/pipeline-setup.md` Section C since the context-skill consolidation (`2026-04-11_context-skill`); de-triplication (References, /reflect boundary), Phases 3+4 merge, and learnings-capture pointer per the 2026-06-10 skill-design review.*
