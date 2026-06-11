@@ -9,23 +9,22 @@ argument-hint: "[--repo <path>] [--days N | --sessions N | --since <date>] [--in
 
 **Announce at start:** "Using /playbook to mine my sessions for this repo and propose shareable case studies."
 
-This is a standalone **pmos-learnkit** utility for product managers. It does NOT load workstream
-context and does NOT feed the requirements→spec→plan pipeline (sibling-shaped with `/learn-list`
-and `/primer`). It mines *your own* interactive Claude Code session history for **one repo** and
-synthesizes focused, self-sufficient case-study articles — one per problem you actually solved —
-that a peer PM can read and replicate without access to your repo.
+A standalone **pmos-learnkit** utility (sibling-shaped with `/learn-list` and `/primer`; no
+workstream context, no pipeline coupling). It mines *your own* interactive Claude Code session
+history for **one repo** and synthesizes self-sufficient case-study articles — one per problem
+actually solved — that a peer PM can replicate without access to your repo.
 
 The one rule everything else serves: **this skill never posts anything and never marks output
-"safe" — you are the share gate.** It produces a draft article + a `REVIEW-BEFORE-SHARING.md`
-checklist; clearing it for sharing is always a human decision.
+"safe" — you are the share gate.** Clearing the `REVIEW-BEFORE-SHARING.md` checklist is always
+a human decision.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion`:** degrade to numbered free-form prompts per `_shared/interactive-prompts.md`; the non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
+- **No `AskUserQuestion` tool:** degrade to numbered free-form prompts per `_shared/interactive-prompts.md`; the non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
 - **No subagents:** the per-playbook deep-read runs sequentially instead of fanning out — no behavioural change, just slower.
-- **No Playwright / browser:** the screenshot step (FR-52) degrades to an embedded text excerpt + a "screenshot unavailable" note; it never hard-fails.
+- **No Playwright / browser:** the screenshot step degrades to an embedded text excerpt + a "screenshot unavailable" note; it never hard-fails.
 - **No `.pmos/settings.yaml`:** run `_shared/pipeline-setup.md` Section A first-run setup before resolving `{docs_path}`.
 - **Node absent:** the scout/resolver scripts require Node ≥18; if missing, report it and stop (the cheap-scout contract cannot be met by hand on real-scale logs).
 
@@ -35,7 +34,7 @@ This skill has multiple phases. Create one task per phase using your task-tracki
 (`TaskCreate` in Claude Code). Mark each in-progress when you start and completed when done —
 never batch completions.
 
-## Phase 0: Setup
+## Phase 0: Setup {#setup}
 
 1. **Read `.pmos/settings.yaml`** (run `_shared/pipeline-setup.md` §A if missing). Set `{docs_path}`.
 2. **Resolve `output_format`** (default `html`; `--format` overrides). Print the stderr line.
@@ -43,8 +42,9 @@ never batch completions.
 4. **Resolve mode** (interactive / non-interactive) per the canonical non-interactive block
    below (edge cases: `_shared/non-interactive.md`).
 5. **Resolve `--repo`** (default: cwd). Resolve scope window: `--days N` / `--sessions N` /
-   `--since <date>` are additive; **default when none given = last 30 days** (D11).
-6. **Denylist (FR-62):** if `~/.pmos/playbook/sensitive.yaml` is absent, offer a one-time prompt
+   `--since <date>` are additive; **default when none given = last 30 days**. All options also
+   work in plain English ("last two weeks", "this repo only") — an explicit flag overrides.
+6. **Denylist:** if `~/.pmos/playbook/sensitive.yaml` is absent, offer a one-time prompt
    to seed known client/repo names (skippable). See `reference/anonymizer.md`.
 
 The canonical non-interactive block below handles `mode` resolution + per-checkpoint classifier + OQ buffer + end-of-skill summary. Do not paraphrase or move this block.
@@ -79,114 +79,114 @@ The canonical non-interactive block below handles `mode` resolution + per-checkp
 8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
 <!-- non-interactive-block:end -->
 
-## Phase 1: Resolve & Filter (cheap, deterministic)
+## Phase 1: Resolve & Filter (cheap, deterministic) {#resolve-filter}
 
-Run the scout — it resolves sessions (multi-signal) AND filters to interactive AND clusters, in
-one deterministic pass. **Never read raw session bodies yourself at this stage.**
+Run the scout — one deterministic pass that resolves sessions (multi-signal, finds even
+merged-and-deleted worktree work — `reference/resolver.md`), filters to interactive
+(`reference/session-log-format.md`), and clusters. **Never read raw session bodies at this stage.**
 
 ```
 node {skill}/scripts/scout.mjs <repo> [--days N|--since ISO|--sessions N] [--include-headless]
 ```
 
-- Session resolution is multi-signal (nested ∪ sibling ∪ branch-in-merge-history) — see
-  `reference/resolver.md`. It finds worktree work, including merged-and-deleted worktrees.
-- Interactive-only by default; headless/subprocess runs are dropped (`--include-headless` to
-  re-admit). Discriminator + record shapes: `reference/session-log-format.md`.
-- **Print the coverage line** from the script's `coverage` object (FR-13), e.g.
-  *"found 4 session dirs (2 via worktree/sibling/merged), 41 interactive (12 headless dropped, 1 low-confidence), 6 candidate threads"*.
-- **Ambiguous attributions (FR-22):** if `ambiguous[]` is non-empty, surface each (branch-only
-  matches that could belong to another repo) and ask the author to confirm-include or skip.
-  Never silently attribute. Low-confidence (sibling-only) sessions ARE included but noted.
+- **Print the coverage line** from the script's `coverage` object — silent undercount is the
+  failure the resolver exists to prevent.
+- **Ambiguous attributions:** if `ambiguous[]` is non-empty, surface each for confirm-include or
+  skip — never silently attribute. Low-confidence (sibling-only) sessions ARE included but noted.
 
-## Phase 2: Propose (ranked candidates)
+## Phase 2: Propose (ranked candidates) {#propose}
 
-From the scout's `candidates[]` (already floored + ranked — `reference/clustering.md`):
+Present the scout's `candidates[]` (already floored + ranked — `reference/clustering.md`): the
+top ~5 threads, each with its one-line `why_teachable`, branch, decision count, and skills.
+Surface any `merge_suggestion`; confirm only low-`boundary_confidence` clusters. The inviolable
+rule: **the author picks which candidate(s) to build (and may merge/split) before anything is
+deep-read.** Zero qualifying candidates → report "nothing teachable in this window", suggest a
+wider window, and stop — never invent thin playbooks. Under non-interactive mode the pick
+auto-resolves to the top-ranked candidate, ambiguous attributions are skipped (never
+auto-included), and both are logged as open questions.
 
-1. Present the ranked top ~5 threads, each with its one-line `why_teachable`, branch, decision
-   count, and skills.
-2. For any candidate carrying a `merge_suggestion`, surface it ("looks like the follow-up HEAD
-   work belongs with this branch thread — merge?"). For low `boundary_confidence` clusters, offer
-   a confirm. Confident clusters are not re-litigated.
-3. **Dry-run confirm (FR-35):** the author picks which candidate(s) to build (and may merge/split).
-   Do not deep-read anything until this pick. If zero candidates qualified, report "nothing
-   teachable in this window" and suggest a wider window — do not invent thin playbooks.
-
-## Phase 3: Deep-read (only the picked threads)
+## Phase 3: Deep-read (only the picked threads) {#deep-read}
 
 For **each** chosen candidate, read the full sessions in that thread (only) + the repo docs they
-reference. With subagents, fan out one per playbook (strict output contract); otherwise sequential.
-Extract **prose-first** (`reference/session-log-format.md` §decision-signals):
+reference. With subagents, fan out one per playbook (strict output contract); otherwise
+sequential. Extract **prose-first** per `reference/session-log-format.md` §decision-signals — the
+raw material for every article section (`reference/article-schema.md`): verbatim starting
+prompt(s), the refinement arc, research done, decisions (choice + alternatives weighed +
+rationale + your pushbacks), ordered skills-used provenance, and load-bearing artifact excerpts.
 
-- **Starting prompt(s)** — the verbatim first genuine human message of the earliest session.
-- **Refinement arc** — what changed and why across the thread.
-- **Research / exploration** done.
-- **Decisions** — the choice, the alternatives weighed, the rationale, and your pushbacks/
-  redirects (from prose; `AskUserQuestion` blocks are high-confidence anchors, not the only source).
-- **Skills-used provenance** — ordered `<command-name>` invocations + notable tools.
-- **Artifact excerpts** — interesting load-bearing snippets from generated docs.
+## Phase 4: Synthesize (self-sufficient article + tweet thread) {#synthesize}
 
-## Phase 4: Synthesize (self-sufficient article + tweet thread)
+Compose each article body from `reference/artifact-template.html` (a `{{content}}` fragment —
+sections + article CSS) per `reference/article-schema.md`, then render it through the shared
+substrate — `_shared/html-authoring/template.html` + `render.js` `renderArtifact()` with
+`pmosSkill: 'playbook'`, the pmos-learnkit token values, and `pluginVersion` from the plugin
+manifest — which bakes in the inline CSS/JS overlay, the `pmos-comments` block, and the
+`pmos:skill` meta. **Strip the substrate template's leading doc-comment before calling
+`renderArtifact()`** — the literal tokens inside it get substituted too and the body duplicates
+(regression-tested by `tests/render-surface.test.sh`). **Embed everything inline** — the reader
+opens zero repo files.
 
-Render each playbook from `reference/artifact-template.html` per the schema in
-`reference/article-schema.md`. **Embed everything inline** — the reader opens zero repo files.
+- **Quality gate:** ≥3 real prompts AND ≥1 decision-ledger row with real alternatives
+  (`reference/article-schema.md` §Quality gate). Thin threads are reported thin — never padded.
+- **Screenshots:** capture visual artifacts via Playwright (serve local HTML on
+  `http://localhost`; `file://` is blocked); degrade per Platform Adaptation.
+- Also emit `tweet-thread.md` (a standalone tweet + a numbered thread — see article-schema.md).
 
-- **Quality gate (FR-51):** the article MUST carry ≥3 real prompts AND ≥1 decision-ledger row
-  with real alternatives. If the thread genuinely lacks the material, report it as thin — never
-  pad with invented prompts/decisions.
-- **Screenshots (FR-52):** capture the visual artifacts referenced in the thread via Playwright
-  (serve local HTML on `http://localhost`; `file://` is blocked). When Playwright is unavailable,
-  degrade to a text excerpt + a "screenshot unavailable" note.
-- **Tweet thread (FR-53):** also emit `tweet-thread.md` (a standalone tweet + a numbered thread).
+## Phase 5: Anonymize & gate (always-on) {#anonymize-gate}
 
-## Phase 5: Anonymize & gate (always-on)
+Run the detect-and-flag pass and write `REVIEW-BEFORE-SHARING.md` into the playbook folder, both
+exactly per `reference/anonymizer.md`. The inviolable rule: **never auto-scrub the content;
+never mark it "safe."** State plainly in the summary that the playbook is NOT cleared for
+sharing until the author completes the checklist.
 
-Run the detect-and-flag pass per `reference/anonymizer.md` and write
-`REVIEW-BEFORE-SHARING.md` into the playbook folder: every retained proper noun + quantitative
-claim flagged with location, and every screenshot enumerated as a mandatory manual-verify item.
-**Never auto-scrub the content; never mark it "safe."** State plainly in the summary that the
-playbook is NOT cleared for sharing until the author completes the checklist.
+## Phase 6: Emit {#emit}
 
-## Phase 6: Emit
+Write each playbook to its own folder `{docs_path}/playbooks/{YYYY-MM-DD}_<slug>/` per the
+layout in `reference/article-schema.md` §Output layout: `index.html` (rendered in Phase 4
+(#synthesize)) + `index.sections.json` (via `_shared/html-authoring/assets/build_sections_json.js`)
++ `screenshots/` + `tweet-thread.md` + `REVIEW-BEFORE-SHARING.md` + copied substrate `assets/`
+(launchers + `serve.js` enable write-mode comments; CSS/JS are already inlined). Atomic
+temp-then-rename writes; `?v=<plugin-version>` cache-bust. Existing folder → prompt overwrite /
+suffix / cancel. Print the absolute path(s).
 
-Write each playbook to its own folder `{docs_path}/playbooks/{YYYY-MM-DD}_<slug>/` (FR-70/71):
-`index.html` + `index.sections.json` (via `_shared/html-authoring/assets/build_sections_json.js`)
-+ `screenshots/` + `tweet-thread.md` + `REVIEW-BEFORE-SHARING.md` + copied `assets/`. Atomic
-temp-then-rename writes; `?v=<plugin-version>` cache-bust; `<meta name="pmos:skill" content="playbook">`.
-Existing folder → prompt overwrite / suffix / cancel. Print the absolute path(s).
+## Phase 7: Capture Learnings {#capture-learnings}
 
-## Phase 7: Capture Learnings
-
-**This skill is not complete until the learnings reflection has produced a one-line output.**
-Reflect on whether this session surfaced anything worth keeping under `## /playbook` in
-`~/.pmos/learnings.md` (e.g. a resolver edge case, a clustering miss, a teaching pattern).
-
-**Emit exactly one:**
-- `Learning: <entry written under ## /playbook>` — a non-obvious lesson worth keeping.
+Not complete until the reflection emits exactly one line — reflect on anything worth keeping
+under `## /playbook` in `~/.pmos/learnings.md` (a resolver edge case, a clustering miss, a
+teaching pattern), then print either:
+- `Learning: <entry written under ## /playbook>`, or
 - `No new learnings this session because <specific reason tied to this session>`.
 
 ## Anti-Patterns (DO NOT)
 
-1. **Reading raw session bodies at scout time.** The scout script reads only cheap fields and
-   emits a compact summary; deep-read ONLY the threads the author picks. Loading bodies up front
-   blows context on real-scale repos (thousands of sessions).
-2. **Path-prefix-only resolution.** Sessions scatter across sibling/nested worktrees and
-   merged-deleted dirs. Always use the multi-signal resolver; print the coverage line so
-   undercount is never silent.
-3. **Keeping headless/subprocess sessions by default.** They inflate volume and aren't teachable.
-   Filter via the `permission-mode` discriminator; `--include-headless` is the explicit escape.
-4. **Auto-scrubbing or auto-marking "safe".** The anonymizer flags; the author clears. Never post;
-   never declare a playbook shareable.
-5. **Padding a thin thread.** If a thread lacks ≥3 real prompts + a real decision, report it thin —
-   do not invent prompts/decisions to clear the quality gate.
-6. **Generalizing across repos / into one "how I use AI" post.** v1 is repo-scoped and one article
-   per problem thread. The teachable value is the concrete decision trail, not a generic playbook.
-7. **Silently attributing ambiguous (branch-only) sessions.** Surface them for confirm; a generic
-   branch name can belong to another repo.
-8. **Loading workstream context.** Standalone utility — workstream pollution biases synthesis.
+1. **Reading raw session bodies at scout time** — blows context on real-scale repos (thousands
+   of sessions). Deep-read ONLY the threads the author picks.
+2. **Path-prefix-only resolution** — silently misses sibling/nested/merged-deleted worktree
+   sessions (10 of ~29 on the validation repo). Always the multi-signal resolver + coverage line.
+3. **Keeping headless/subprocess sessions by default** — they inflate volume and aren't
+   teachable; `--include-headless` is the explicit escape.
+4. **Auto-scrubbing or auto-marking "safe"** — the anonymizer flags; the author clears. Never
+   post; never declare a playbook shareable.
+5. **Padding a thin thread** — report it thin; never invent prompts/decisions to clear the
+   quality gate.
+6. **Generalizing across repos into one "how I use AI" post** — the teachable value is the
+   concrete decision trail; v1 is repo-scoped, one article per problem thread.
+7. **Silently attributing ambiguous (branch-only) sessions** — a generic branch name can belong
+   to another repo; surface for confirm.
+8. **Loading workstream context** — standalone utility; workstream pollution biases synthesis.
 
 ## Apply comment-resolver edit
 
-Emitted playbook articles carry `<meta name="pmos:skill" content="playbook">`; `/comments resolve`
-routes here. Anchor resolution is id-first then quote-substring (≥40 chars) per the shared
-contract `plugins/pmos-toolkit/skills/_shared/apply-edit-at-anchor.md`. All article prose sections
-are editable; the `REVIEW-BEFORE-SHARING.md` checklist is not an HTML artifact and is out of scope.
+Articles render through the shared substrate (Phase 4 (#synthesize)), so every emit carries the
+inline `pmos-comments` block + overlay and `<meta name="pmos:skill" content="playbook">` —
+`/comments resolve` routes here. Anchor resolution is id-first (the fragment's stable `<h2 id>`
+values) then quote-substring (≥40 chars) per `_shared/apply-edit-at-anchor.md`. All article
+prose sections are editable; `REVIEW-BEFORE-SHARING.md` is not an HTML artifact and is out of
+scope. After applying an edit, re-emit `index.sections.json`.
+
+---
+
+*Spec lineage: `docs/pmos/features/2026-06-03_playbook/02_spec.html` — home of every FR/D
+contract cited in `reference/` (resolver, cheap-scout, article, safety, emit; D10/D11);
+shared-substrate rendering, phase thinning, and the non-interactive pick rule per the
+2026-06-10 skill-design review.*

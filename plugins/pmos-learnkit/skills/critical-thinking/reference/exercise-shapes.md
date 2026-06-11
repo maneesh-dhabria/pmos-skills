@@ -35,8 +35,8 @@ Groups: **Core** (pick-and-defend, hard-mode, bring-your-own) · **Targeted** (a
 ---
 
 ## 7. calibration / forecasting · Analysis · probability + reasoning
-**Generate.** Present a generated scenario framed as a near-future yes/no outcome ("Will this experiment beat control by launch?"). Ask: "Give a probability (0–100%) and one sentence of reasoning." Record the elicited `p`. (Outcome is the user's own later judgment or a stated resolution; capture `{p, outcome}` when known — see scorecard.)
-**Evaluate.** Target move: `evidence-vs-inference`. Strong = a probability that reflects stated evidence, not 50% hedging or 99% overconfidence; reasoning cites a base rate or signal. Feed `{p, outcome}` to the Brier calculation. Muscle: evidence-vs-inference (+ calibration trend).
+**Generate.** Present a generated scenario framed as a near-future yes/no outcome ("Will this experiment beat control by launch?"). While generating, **pre-commit a hidden resolution**: decide `outcome` ∈ {0,1} plus a one-line mechanism, grounded in the evidence planted in the scenario — and do NOT reveal or hint at it in the scenario text or in any follow-up until the user has stated their probability. Ask: "Give a probability (0–100%) and one sentence of reasoning." Record the elicited `p`.
+**Evaluate.** Only after the user commits `p`: reveal the pre-committed resolution + mechanism, then grade. Target move: `evidence-vs-inference`. Strong = a probability that reflects stated evidence, not 50% hedging or 99% overconfidence; reasoning cites a base rate or signal. Feed `{p, outcome}` to the Brier calculation — every shape-7 exercise resolves in-session, so calibration always accumulates. Muscle: evidence-vs-inference (+ calibration trend).
 
 ## 8. second-order consequence map · Analysis · free-form
 **Generate.** Present a proposed change in a chosen domain. "Trace the 2nd- and 3rd-order effects — what happens after the obvious first effect, and after that?"

@@ -44,7 +44,7 @@ grep -q 'No new learnings this session because' "$SKILL" && ok "has learnings on
 for f in reference/session-log-format.md reference/resolver.md reference/clustering.md \
          reference/article-schema.md reference/anonymizer.md reference/artifact-template.html \
          scripts/resolve_repo_sessions.mjs scripts/scout.mjs \
-         tests/resolver.test.mjs tests/scout.test.mjs; do
+         tests/resolver.test.mjs tests/scout.test.mjs tests/render-surface.test.sh; do
   [ -f "$SKILL_DIR/$f" ] && ok "exists: $f" || bad "missing: $f"
 done
 

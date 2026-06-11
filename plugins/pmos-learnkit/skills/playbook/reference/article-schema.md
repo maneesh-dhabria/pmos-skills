@@ -50,14 +50,18 @@ One folder per playbook:
 
 ```
 {docs_path}/playbooks/{YYYY-MM-DD}_<slug>/
-  index.html              # the article (from artifact-template.html)
+  index.html              # artifact-template.html fragment rendered through
+                          # _shared/html-authoring/template.html + render.js
+                          # (inlines CSS/JS overlay + pmos-comments block)
   index.sections.json     # built via _shared/html-authoring/assets/build_sections_json.js
   screenshots/            # captured images (or empty if degraded)
   tweet-thread.md
   REVIEW-BEFORE-SHARING.md
-  assets/                 # copied HTML substrate (style.css, viewer.js, comments.*, launchers)
+  assets/                 # copied substrate launchers + serve.js (write-mode
+                          # comments); CSS/JS are already inlined by render.js
 ```
 
 Slug = kebab of the thread topic (≤4 words). If the folder exists → prompt overwrite / suffix /
 cancel. Atomic temp-then-rename writes; `?v=<plugin-version>` cache-bust on asset URLs;
-`<meta name="pmos:skill" content="playbook">` in `<head>`.
+`<meta name="pmos:skill" content="playbook">` is supplied by the substrate's `pmos_skill` token
+(pass `pmosSkill: 'playbook'`).

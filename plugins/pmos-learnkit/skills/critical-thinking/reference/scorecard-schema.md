@@ -51,4 +51,4 @@ The scorecard tracks a PM's critical-thinking practice across sessions so the sk
 
 ## Degradation
 
-If `node` is unavailable, the skill body reads/writes this JSON itself and computes Brier inline (logging a one-line note). A missing or corrupt file is reseeded with a stderr warning — the skill never crashes on scorecard I/O.
+Owned by SKILL.md §Platform Adaptation (the "No `node`" bullet) — the skill never crashes on scorecard I/O.
