@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Story 0017 — /frameworks browse-UI fixes — Plan</title>
+<style>
+:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:900px;padding:32px 24px;font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:23px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sub{color:var(--muted);margin:0 0 16px}
+code{background:var(--card);padding:1px 5px;border-radius:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--muted)}
+.t{font-weight:700;color:var(--accent)}
+ul{padding-left:20px}li{margin:4px 0}
+</style>
+</head>
+<body>
+<h1>Story 0017 — <code>/frameworks</code> browse-UI fixes · Plan</h1>
+<p class="sub">Epic 0016 · route: skill · pmos-learnkit · machine-readable queue: <code>tasks.yaml</code> (sibling) · design: <a href="../../02_design.html">02_design.html</a></p>
+
+<h2 id="approach">Approach</h2>
+<p>All UI is emitted by <code>buildHtml()</code> in <code>plugins/pmos-learnkit/skills/frameworks/scripts/build-library.mjs</code>; <code>index.html</code> is a build artifact. The change set is one <code>/execute</code> run on that one file plus its <code>--selftest</code>, the structure/build tests, and SKILL.md prose, finishing with an <code>index.html</code> re-derive. TDD: update the selftest/structure assertions to the <i>new</i> contract first (they encode old UI today — list isn't default, <code>dtFilter</code> lives in a <code>More filters</code> disclosure, the inline <code>tagrow</code> cloud exists), then implement to green.</p>
+
+<h2 id="tasks">Task queue</h2>
+<table>
+<tr><th>Task</th><th>ACs</th><th>Deps</th><th>Summary</th></tr>
+<tr><td class="t">T1</td><td>AC7</td><td>—</td><td>Presentation-only <code>SUPER_CATEGORY_LABELS</code> rename map (option label only; value/state stay raw).</td></tr>
+<tr><td class="t">T2</td><td>AC2</td><td>—</td><td>Default <code>state.view='list'</code>; move <code>active</code> to the list button.</td></tr>
+<tr><td class="t">T3</td><td>AC3</td><td>T2</td><td>Decorative inline-SVG glyph per view-toggle button; keep accessible names; offline-safe.</td></tr>
+<tr><td class="t">T4</td><td>AC1</td><td>T2</td><td><code>.selected</code> in list+compact renderers; save/restore <code>window.scrollY</code> around the reader rebuild.</td></tr>
+<tr><td class="t">T5</td><td>AC4,AC6</td><td>T1</td><td>Decision-type + tags dropdown multi-selects (tags: type-to-filter); remove tag cloud + More-filters; <code>state.dt</code>→set; OR-within/AND-across; Escape closes+restores focus; aria-live count.</td></tr>
+<tr><td class="t">T6</td><td>AC5</td><td>T5</td><td>Applied-filters bar: facet-labeled removable ✕ chips + Clear all; chips ↔ checkboxes synced; area chip uses renamed label.</td></tr>
+<tr><td class="t">T7</td><td>AC8</td><td>T5</td><td>Per-option counts in dropdowns (should; deferrable as carried residual).</td></tr>
+<tr><td class="t">T8</td><td>AC9</td><td>T2,T4,T5,T6</td><td>Doc-sync: build-library header comment + SKILL.md browse-UI prose.</td></tr>
+<tr><td class="t">T9</td><td>AC9</td><td>all</td><td>Re-derive <code>index.html</code>; selftest + structure + build tests green; offline file:// smoke.</td></tr>
+</table>
+<p class="sub">Sequential (single file, shared emit string → file-conflict on every task; no parallel wave).</p>
+
+<h2 id="risks">Risks &amp; verification</h2>
+<ul>
+<li><b>Selftest drift.</b> Several existing assertions encode the old UI (<code>data-view="detailed" class="active"</code> implicit, <code>More filters</code> holds <code>dtFilter</code>, <code>tagrow</code> cloud). These are <b>rewritten</b> to the new contract (T2/T5), not deleted — the gate stays meaningful (design § invariants).</li>
+<li><b>Rename leakage.</b> Verify <code>match.mjs</code> / <code>--json</code> / <code>frameworks.json</code> still emit raw <code>super_category</code> (AC7 is presentation-only) — add a guard assertion.</li>
+<li><b>Offline a11y.</b> file:// smoke must confirm: list default, view icons render, dropdowns open and stay open across picks, Escape closes, applied chips remove individually + Clear all, renamed areas, selection highlight with no page scroll.</li>
+<li><b>Per-option counts (T7)</b> is a <i>should</i>; if it complicates the tag search input, defer and carry as a non-blocking residual into <code>/verify</code>.</li>
+</ul>
+
+<h2 id="final-checklist">Final verification checklist</h2>
+<ul>
+<li><code>node scripts/build-library.mjs --selftest</code> → PASS</li>
+<li><code>tests/structure.test.sh</code>, <code>tests/build-library.test.sh</code> → green</li>
+<li><code>index.html</code> re-derived from the new generator (no stale hand-state)</li>
+<li>file:// smoke covers AC1–AC7 visually; AC8 present or carried-residual; AC9 doc-sync done</li>
+</ul>
+</body>
+</html>
