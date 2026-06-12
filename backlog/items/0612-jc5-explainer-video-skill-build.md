@@ -9,10 +9,11 @@ priority: should
 route: skill
 parent: 0612-gd0
 dependencies: []
-worktree:
+worktree: ../agent-skills-0612-jc5
 plan_doc: docs/pmos/features/2026-06-12_explainer-video/stories/0612-jc5-explainer-video-skill-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_explainer-video/stories/0612-jc5-explainer-video-skill-build/tasks.yaml
-claimed_by:
+claimed_by: build:3e313489-a624-4b93-b86e-c56f8eb34df6
+driver_holder: build:3e313489-a624-4b93-b86e-c56f8eb34df6
 labels: [pmos-toolkit, explainer-video, artifact-authoring, local-first]
 created: 2026-06-13
 updated: 2026-06-13
