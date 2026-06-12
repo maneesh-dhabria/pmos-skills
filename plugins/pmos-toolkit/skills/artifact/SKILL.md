@@ -83,9 +83,11 @@ Multi-phase flows (Create: Phases 0–6, with depth-gated post-draft stages 3.5/
 If `<type>` doesn't match any template slug (built-in or user), list available templates and offer fuzzy match before erroring.
 
 Recognized flags on create:
-- `--tier lite|full` — bypass tier auto-detection
+- `--depth brief|standard|deep` — the master dial (stage gating + section count); default `standard`
 - `--preset <slug>` — bypass default preset selection
 - `--feature <slug>` — feature-folder selection (pipeline-wide contract; consumed in step 4)
+<!-- nl-sugar -->
+- `--tier lite|full` — retired back-compat alias of `--depth` (`lite`→`brief`, `full`→`standard`); parsed, not advertised
 
 ## Phase 2: Create Flow {#create}
 
