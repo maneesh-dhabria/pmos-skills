@@ -1,0 +1,32 @@
+[
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "resolved-h",
+    "level": 2,
+    "title": "Resolved decisions",
+    "parent_id": null
+  },
+  {
+    "id": "gaps-surfaced-h",
+    "level": 2,
+    "title": "Gaps surfaced",
+    "parent_id": null
+  },
+  {
+    "id": "open-deferred-h",
+    "level": 2,
+    "title": "Open / deferred",
+    "parent_id": null
+  },
+  {
+    "id": "next-step-h",
+    "level": 2,
+    "title": "Recommended next step",
+    "parent_id": null
+  }
+]
