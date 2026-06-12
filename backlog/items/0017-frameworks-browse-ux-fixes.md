@@ -5,8 +5,9 @@ kind: story
 title: /frameworks browse-UI fixes — selection highlight + no auto-scroll, list-default, view icons, multi-select filters + applied bar, area rename
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 parent: 0016
+claimed_by: feature-sdlc-build-loop
 route: skill
 plugin: pmos-learnkit
 feature_folder: docs/pmos/features/2026-06-12_frameworks-browse-ux/
