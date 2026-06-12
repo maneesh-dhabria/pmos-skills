@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-12 — pmos-learnkit 0.20.0: /frameworks browse UI — clearer selection, list-first, multi-select filters
+
+The `/frameworks` library browser gets a round of browse-UI fixes so scanning and filtering the collection feels right.
+
+- **Selection that stays put.** Picking a framework highlights it in place without yanking the page — no more auto-scroll stealing your spot in the list.
+- **List view by default, with one-click layout switches.** The library opens in a scannable list; icons let you flip between compact, detailed-card, and list layouts.
+- **Multi-select filters with an applied bar.** Filter by more than one area/tag at once; the active filters show in an applied bar you can clear at a glance.
+- **Clearer area labels.** The category rename makes the grouping read the way PMs actually think about it — display-only, so the underlying corpus and the programmatic `--json` contract are unchanged.
+
 ## 2026-06-12 — pmos-toolkit 2.68.0: concurrency-safe backlog ids (no more duplicate-id corruption)
 
 Two parallel `define` sessions branched off the same backlog could mint the *same* id — both grabbed `0016` — silently corrupting the tracker: slug-suffixed filenames give no git path conflict, and the hand-merged `INDEX.md` gained duplicate rows. Backlog ids are now coordination-free, the define merge refuses colliding ids, and `INDEX.md` is a regenerated artifact.
