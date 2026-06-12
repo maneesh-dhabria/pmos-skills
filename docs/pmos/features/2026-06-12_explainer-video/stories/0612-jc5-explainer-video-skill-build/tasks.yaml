@@ -1,0 +1,84 @@
+story: 0612-jc5
+spec: ../../02_design.html
+# Implementation reference: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md (§A–§L)
+# Eval rubric (Phase 6a hard gate): plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md (floor 43/47)
+# Host-repo policy: CLAUDE.md (canonical skill path, manifest version-sync, release entry point)
+tasks:
+  - id: T1
+    title: "Scaffold the explainer-video skill dir + SKILL.md structural skeleton"
+    deps: []
+    parallel: false
+    acceptance:
+      - "plugins/pmos-toolkit/skills/explainer-video/SKILL.md created; frontmatter name: explainer-video matches dir (a-name-matches-dir), description has what + when + >=5 user-spoken triggers (b-*), user-invocable: true (f-cc-user-invocable), argument-hint lists contract flags only: --length, --voice, --captions, --non-interactive/--interactive (i-hint-contract-only)"
+      - "Body carries: ## Platform Adaptation (d-platform-adaptation), ## Track Progress (d-progress-tracking, >=3 phases), a learnings-load line reading ~/.pmos/learnings.md (d-learnings-load-line), and a numbered Capture-Learnings phase (d-capture-learnings-phase)"
+      - "Canonical non-interactive inline block pasted byte-identical to plugins/pmos-toolkit/skills/_shared/non-interactive.md between <!-- non-interactive-block:start --> / :end (enforced by lint-non-interactive-inline.sh)"
+      - "Seven integer top-level phases each with a stable kebab {#slug} anchor (j-phases-integer, j-phase-slug-anchors); body <= 800 lines (c-body-size)"
+      - "Any non-contract flag (e.g. --kokoro, --voice listing sugar) marked <!-- nl-sugar --> (i-nl-sugar-marked); machine-coupled flags never renamed"
+  - id: T2
+    title: "Author reference/distillation-contract.md (deck.json schema + one-idea-per-slide + length calibration)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Specifies the deck.json schema per design #distillation-contract: per-slide {idea, bullets[<=3], notes, figure?}; the one-idea-per-slide HARD rule; bullets prefer 0-1"
+      - "Encodes the length-calibration table (quick 5-8 slides/25-35 words; standard 10-16/30-45; deep 18-30/35-50; ~140 wpm) as a STARTING POINT the distiller adapts to source structure, not a hard quota"
+      - "Specifies figure-reference resolution: a slide's figure points into the ingest figure inventory by id; unresolved references fail the self-check"
+      - "Includes >=1 excellent worked example slide object (d-examples-quality); one level deep (c-references-one-level); leading ToC if sectioned (c-reference-toc); portable paths (c-portable-paths)"
+  - id: T3
+    title: "Author reference/narration-engines.md (say voice selection + Enhanced nudge + Kokoro detect + non-Mac degradation)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "macOS say: best-available built-in voice default, auto-prefer an installed Enhanced/Premium voice, one-line install nudge, NEVER auto-download, --voice override (grill resolution 2026-06-13)"
+      - "Kokoro kokoro-onnx: whisper-if-installed detection (patterned on magazine/scripts/transcribe.sh), MIT/Apache, auto-upgrade when present; documents the exact detection probe (CLI vs python -m) and install nudge string"
+      - "Hard constraint stated: NO cloud TTS path exists, ever (epic constraint). Non-Mac without Kokoro errors clearly with the install path"
+      - "One level deep; portable paths; leading ToC if sectioned"
+  - id: T4
+    title: "Author reference/figure-inventory.md (pmos/local/web figure extraction + web size/role filter)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Specifies the figure inventory shape (id, source-ref, alt/caption, intrinsic size) drawn from pmos artifact SVGs, local HTML/MD images, and fetched web-page images"
+      - "Encodes the web size/role filter heuristics (grill resolution): drop nav/tracking/spacer/decorative images; resolve relative URLs against the page base; min-dimension + role/alt/path signals"
+      - "States the figure-reuse rule (design D-figure): place the original asset when it illustrates a slide's idea rather than paraphrasing"
+      - "One level deep; portable paths; leading ToC if sectioned"
+  - id: T5
+    title: "Author reference/eval-rubric.md (binary self-check: parity, duration, audio, figures)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Binary checks per design: frame count == slide count; total video duration ~= sum of narration durations (durations.json); every audio segment non-silent; every deck.json figure reference resolved; output dir contains all six artifacts"
+      - "Each check is binary pass/fail with a how-to-verify line (h-gates-deterministic-hard / advisory split per §H); arithmetic done by script, never the model (§H)"
+      - "Consumed by SKILL.md Phase 6 self-check; cites _shared/reviewer-protocol.md for any reviewer-subagent framing"
+  - id: T6
+    title: "Packaged scripts — ingest.mjs (asset + relative-URL resolution) + render-slides.mjs (Playwright capture)"
+    deps: [T1]
+    parallel: true
+    acceptance:
+      - "scripts/ingest.mjs: deterministic asset extraction + relative-URL resolution against page base + web size/role figure filter; emits the figure inventory JSON. Text extraction is NOT bundled — native Read/WebFetch (in-session subagent) does text, incl. PDF (grill resolution: no poppler/pdftotext/JS PDF lib)"
+      - "scripts/render-slides.mjs: Playwright headless capture of deck.html, one 1920x1080 PNG per <section> into frames/, patterned on design-crit/assets/capture.mjs; zero-config Chromium launch; deterministic frame ordering + naming"
+      - "Both scripts are bash-3.2 / node-portable, BASH_SOURCE-safe where shell is involved (repo Bash portability invariant); fail loudly with actionable messages"
+  - id: T7
+    title: "Packaged scripts — narrate.sh (say/Kokoro) + assemble.sh (ffmpeg per-slide + concat + caption burn + self-check)"
+    deps: [T1]
+    parallel: true
+    acceptance:
+      - "scripts/narrate.sh: one WAV per slide from speaker notes; say best-available voice (+ Enhanced detect/nudge) default, Kokoro auto-upgrade when detected; writes audio/ + durations.json (per-WAV ffprobe duration); non-Mac-without-Kokoro hard error with install path; NO cloud path"
+      - "scripts/assemble.sh: per-slide ffmpeg segment (-loop 1 still image + WAV, yuv420p, even-dimension scale, -shortest) held for ffprobe duration, then concat -c copy to 16:9 H.264/AAC video.mp4; optional burned-in .srt captions; ffmpeg presence is a HARD gate with brew/apt install hint"
+      - "assemble.sh (or a sibling check) runs the reference/eval-rubric.md self-check (frame/slide parity, duration, non-silent audio, figure resolution) and exits non-zero on failure"
+  - id: T8
+    title: "SKILL.md Phases 1-3 — Setup; Ingest (in-session); Distill to deck.json"
+    deps: [T1, T2, T4, T6]
+    parallel: false
+    acceptance:
+      - "Phase 1 {#setup}: inline _shared/pipeline-setup.md (settings + docs_path); read ~/.pmos/learnings.md; resolve --length quick|standard|deep (AskUserQuestion with a (Recommended) option for the length range per the user's calibration ask), --voice, --captions, interactive/non-interactive mode"
+      - "Phase 2 {#ingest}: dispatch an in-session distiller subagent (§L model tier named) that reads the source via native Read (incl. PDF pages) / WebFetch to clean text + runs ingest.mjs for the figure inventory; NO bundled PDF parser; web figures size/role-filtered; cites reference/figure-inventory.md"
+      - "Phase 3 {#distill}: produce deck.json validated against reference/distillation-contract.md — one idea per slide, bullets<=3, length-calibrated to --length adapting to source structure, figure refs resolved against the inventory"
+  - id: T9
+    title: "SKILL.md Phases 4-7 — Author+capture deck; Narrate; Assemble+self-check; Capture learnings"
+    deps: [T1, T3, T5, T6, T7, T8]
+    parallel: false
+    acceptance:
+      - "Phase 4 {#author-capture}: author deck.html via _shared/html-authoring (one <section>/slide, speaker notes per slide, figures placed) per README.md checklist ({{pmos_skill}}=explainer-video, assets copied, cache-bust, kebab ids, comments overlay); run render-slides.mjs -> frames/. v1 mp4-only (deck.html is the silent source)"
+      - "Phase 5 {#narrate}: run narrate.sh -> audio/ WAVs + durations.json; surface the Enhanced-voice nudge once; Kokoro auto-upgrade note"
+      - "Phase 6 {#assemble}: run assemble.sh -> video.mp4 (ffmpeg hard gate w/ install hint); run the eval-rubric self-check; land all six artifacts at {docs_path}/explainer-video/{YYYY-MM-DD}_{slug}/; regenerate an explainer-videos.html library listing via index-generator.md"
+      - "Phase 7 {#capture-learnings}: follow _shared/learnings-capture.md; reflect on explainer-video-specific friction. (T9 edits the same SKILL.md as T8 -> sequential, never parallel)"
