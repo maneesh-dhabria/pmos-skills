@@ -2,14 +2,14 @@
 
 Last regenerated: 2026-06-12
 
-1 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+0 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
 |----|--------|-------|--------|----------------------|-------|
 | 0010 | released |  | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline |
 | 0011 | released | skill | pmos-toolkit | 2/2 | compact-mode setting for /compact checkpoints |
-| 0015 | defined | skill | pmos-toolkit | 1/1 | define-mode worktree exit/cleanup at terminal docs-only merge |
+| 0015 | released | skill | pmos-toolkit | 1/1 | define-mode worktree exit/cleanup at terminal docs-only merge |
 
 ## should
 
@@ -20,7 +20,7 @@ Last regenerated: 2026-06-12
 | 0009 | story | enhancement | wontfix |  | /feature-sdlc has no mid-flight base-drift check — origin can advance during a long single-session run, surfacing only at /complete-dev Phase 9 stale-bump |  |  |  |
 | 0012 | story | enhancement | done | 0011 | compact-checkpoint auto-mode support |  | 03_plan.html |  |
 | 0013 | story | enhancement | done | 0011 | phase-boundary-handler auto-mode support |  | 03_plan.html |  |
-| 0014 | story | tech-debt | done | 0015 | /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree |  | 03_plan.html |  |
+| 0014 | story | tech-debt | released | 0015 | /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree |  | 03_plan.html |  |
 
 ## could
 

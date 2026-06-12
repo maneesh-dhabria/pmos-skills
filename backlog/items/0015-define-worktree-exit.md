@@ -5,7 +5,7 @@ kind: epic
 title: define-mode worktree exit/cleanup at terminal docs-only merge
 type: tech-debt
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-12_define-worktree-exit/
 requirements_doc:
@@ -14,7 +14,7 @@ design_doc: docs/pmos/features/2026-06-12_define-worktree-exit/02_design.html
 labels: [feature-sdlc, define, worktree, three-loop]
 created: 2026-06-12
 updated: 2026-06-12
-released:
+released: 2.67.1
 ---
 
 ## Context
