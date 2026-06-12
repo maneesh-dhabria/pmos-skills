@@ -1,0 +1,38 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "task-graph",
+    "level": 2,
+    "title": "Task graph & waves",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "grill-resolutions",
+    "level": 2,
+    "title": "Grill resolutions baked into the plan (2026-06-13)",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (NOT in /execute waves)",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & open items for build",
+    "parent_id": null
+  }
+]

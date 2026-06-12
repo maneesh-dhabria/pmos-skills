@@ -1,0 +1,62 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "constraints",
+    "level": 2,
+    "title": "Constraints (hard)",
+    "parent_id": null
+  },
+  {
+    "id": "crux-finding",
+    "level": 2,
+    "title": "Crux finding from research",
+    "parent_id": null
+  },
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture — six stages",
+    "parent_id": null
+  },
+  {
+    "id": "distillation-contract",
+    "level": 2,
+    "title": "Distillation contract (Stage 2)",
+    "parent_id": null
+  },
+  {
+    "id": "key-decisions",
+    "level": 2,
+    "title": "Key decisions",
+    "parent_id": null
+  },
+  {
+    "id": "packaged-scripts",
+    "level": 2,
+    "title": "Packaged scripts",
+    "parent_id": null
+  },
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Scope / YAGNI",
+    "parent_id": null
+  },
+  {
+    "id": "open-questions",
+    "level": 2,
+    "title": "Open questions for build",
+    "parent_id": null
+  },
+  {
+    "id": "build-path",
+    "level": 2,
+    "title": "Build path",
+    "parent_id": null
+  }
+]
