@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="requirements">
+  <title>Requirements — Deepen /artifact into a document pipeline</title>
+  <style>
+    body { background:#fbfaf6; color:#1a1a1a; font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; margin:0; }
+    main { max-width:920px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    h1 { font-size:1.7rem; } h2 { font-size:1.25rem; border-top:1px solid #e4e2da; padding-top:1rem; margin-top:1.9rem; }
+    h3 { font-size:1.05rem; margin-top:1.3rem; }
+    table { border-collapse:collapse; width:100%; font-size:.88rem; margin:.6rem 0; }
+    th,td { border:1px solid #e4e2da; padding:.45rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f1efe8; }
+    code { background:#efeee8; padding:.05em .3em; border-radius:4px; }
+    .fr { font-weight:600; color:#2563eb; } .nfr { font-weight:600; color:#7c3aed; }
+    ul,ol { padding-left:1.25rem; }
+    .meta { color:#5b5b58; font-size:.92rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Requirements — Deepen <code>/artifact</code> into a document pipeline</h1>
+  <p class="meta"><strong>Tier:</strong> 3 · <strong>Mode:</strong> skill-feedback · <strong>Target:</strong> <code>plugins/pmos-toolkit/skills/artifact</code> · <strong>Manifest:</strong> 2.64.0 → 2.65.0 · <strong>Epic:</strong> #0010 · <strong>Source brief:</strong> <code>docs/pmos/ideate/2026-06-12_deepen-artifact-pipeline.html</code></p>
+  <p class="meta"><strong>Standing acceptance criteria:</strong> the revised skill MUST conform to <code>reference/skill-patterns.md §A–§L</code> (frontmatter, triggering, structure/progressive-disclosure, gates §H, flags §I, phases §J, one-fact-one-home §K, subagent dispatch & model selection §L) and the repo <code>CLAUDE.md</code> (canonical skill path, manifest version-sync, <code>/complete-dev</code> as release entry point).</p>
+
+  <h2 id="problem">1. Problem</h2>
+  <p>Producing a high-stakes document (PRD, strategy memo, RFC, postmortem) today means hand-chaining five skills in the right order: <code>/artifact</code> to draft, then <code>/diagram</code>, then <code>/polish</code>, then <code>/grill</code> — and remembering to research first and to get stakeholder critique. Most users skip the steps that matter (research, critique, stress-test) because they're separate, manual, and easy to forget. <code>/artifact</code> already owns drafting, templating, context-gathering, and a single reviewer loop; it is the natural home for the missing front-end (research), the missing critique depth (multi-stakeholder), and the orchestration of the finishing skills.</p>
+
+  <h2 id="goals">2. Goals &amp; non-goals</h2>
+  <h3>Goals</h3>
+  <ul>
+    <li>One <code>/artifact</code> run can take a document from context → researched → drafted → multi-persona-critiqued → diagrammed → polished → grilled, scaled by a single <code>--depth</code> dial.</li>
+    <li>Preserve the fast-draft path: a quick draft must not pay the full pipeline tax.</li>
+    <li>Reuse existing machinery (<code>template add</code> research flow, the reviewer loop, the HTML substrate) rather than reimplementing.</li>
+    <li>Every new heavy stage degrades cleanly in <code>--non-interactive</code> so <code>/artifact</code> stays headless-safe and usable as a <code>/feature-sdlc</code> sub-step.</li>
+  </ul>
+  <h3>Non-goals</h3>
+  <ul>
+    <li>A separate <code>/doc-pipeline</code> skill (rejected in <code>/ideate</code> — deepen <code>/artifact</code> instead).</li>
+    <li>Folding <code>/diagram</code>, <code>/polish</code>, <code>/grill</code> source into <code>/artifact</code> — they stay standalone; <code>/artifact</code> orchestrates them.</li>
+    <li>Real prose rewriting in the comment-resolver shim (still deferred).</li>
+    <li>Re-grilling on every <code>refine</code>/<code>update</code> run by default (see OQ).</li>
+  </ul>
+
+  <h2 id="depth-dial">3. The <code>--depth</code> master dial (the spine — F8)</h2>
+  <p><span class="fr">FR-1</span> Introduce <code>--depth brief|standard|deep</code> as the master dial gating which pipeline stages run. <strong>Default = <code>standard</code></strong> (resolved decision D1). Print <code>depth: &lt;value&gt; (source: cli|default)</code> to stderr once at Phase 0.</p>
+  <table>
+    <thead><tr><th>Stage</th><th>brief</th><th>standard (default)</th><th>deep</th></tr></thead>
+    <tbody>
+      <tr><td>Research phase (F3)</td><td>—</td><td>—</td><td>✓ (warranted+approved)</td></tr>
+      <tr><td>Draft (existing)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Eval reviewer loop (existing Phase 3)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Multi-persona critique (F4)</td><td>—</td><td>✓</td><td>✓</td></tr>
+      <tr><td>Diagram pass (F5)</td><td>—</td><td>—</td><td>✓ (proposed+approved)</td></tr>
+      <tr><td>/polish (F6)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+      <tr><td>/grill (F7)</td><td>light (1 set)</td><td>standard</td><td>deep</td></tr>
+    </tbody>
+  </table>
+  <p><span class="fr">FR-2</span> Reconcile with the existing <code>--tier lite|full</code> (which controls artifact <em>section</em> depth, not stage gating). The two are orthogonal dials: <code>--depth</code> gates stages, <code>--tier</code> gates sections. When <code>--depth</code> is given and <code>--tier</code> is not, default <code>--tier</code> from depth (<code>brief</code>→<code>lite</code>; <code>standard</code>/<code>deep</code>→<code>full</code>). <code>--tier</code> stays a back-compat, machine-coupled flag — never renamed (§I). NL-first: "deep doc pipeline" ≡ <code>--depth deep</code>.</p>
+
+  <h2 id="capabilities">4. Per-capability requirements</h2>
+
+  <h3>F1 — Template proposal when none matches</h3>
+  <p><span class="fr">FR-3</span> In the create flow, add a no-template-match branch: when the requested doc type resolves to no built-in or user template, offer to <strong>propose a template</strong> by invoking the existing <code>template add</code> research-grounded flow (T.1–T.6) inline (research subagent + section alignment + eval-gen).</p>
+  <p><span class="fr">FR-4</span> After a successful create with a proposed template, offer to <strong>save it</strong> to <code>~/.pmos/artifacts/templates/</code>. <strong>Default = No</strong> (premortem: avoid a junk template library); the save offer is gated on the new-template best-practice checklist passing.</p>
+  <p><span class="fr">FR-5</span> Add <code>reference/new-template-guidelines.md</code> — generic best practices for template authoring (section design, eval-criteria design, persona set, length target) used by the proposal flow and the save-checklist.</p>
+
+  <h3>F2 — Document-length target</h3>
+  <p><span class="fr">FR-6</span> Templates carry an optional <code>length_target</code> in frontmatter (e.g. <code>~1500 words</code> / <code>2–3 pages</code> / <code>tight</code>). When proposing a NEW template, ask the user for one (gap-question). Pass it to generation as <strong>informational steering, never a hard gate</strong> (per /primer word-target learnings — word targets are routinely missed; don't pad).</p>
+
+  <h3>F3 — Research phase (deep only)</h3>
+  <p><span class="fr">FR-7</span> Before drafting, when <code>--depth deep</code>: first decide <strong>"is external research warranted?"</strong> — auto-skip for internal/template-backed docs with sufficient gathered context; log the decision. <span class="fr">FR-8</span> If warranted, propose a <strong>research plan</strong> (3–6 questions/areas) and get user approval before any fan-out. <span class="fr">FR-9</span> On approval, fan out <code>general-purpose</code> subagents (per the /ideate music-coach learning: stable idx per item, strict output contract, "omit rather than guess; mark low-confidence", validating+tolerant merge). <span class="fr">FR-10</span> Save the synthesized research as a standalone doc under <code>&lt;feature_folder&gt;/research/&lt;slug&gt;-research.html</code> with <strong>source provenance — verifiable URLs only; no source, no claim</strong>. <span class="fr">FR-11</span> The draft consumes the research doc as additional <code>gathered_context</code>.</p>
+
+  <h3>F4 — Multi-persona critique (standard + deep)</h3>
+  <p><span class="fr">FR-12</span> Add a persona-panel phase, distinct from the existing eval reviewer (which checks template eval.md criteria). <span class="fr">FR-13</span> Personas are <strong>template-defined</strong> (a template's frontmatter may carry a <code>personas:</code> list, e.g. PRD → eng-lead, design, GTM, exec) OR <strong>recommended from context</strong> (3–4) when the template defines none. <span class="fr">FR-14</span> Each persona critiques the draft in a parallel <code>general-purpose</code> subagent, returning grounded findings (≥40-char quote anchors per <code>_shared/reviewer-protocol.md</code>). <span class="fr">FR-15</span> Findings are <strong>reconciled with the user</strong> (per <code>_shared/findings-dispositions.md</code>, ≤4/batch) before the draft is updated. <span class="nfr">NFR-1</span> The panel must demonstrably add findings the eval reviewer doesn't (assumption test in brief) — if it routinely duplicates, that's a signal to reconsider.</p>
+
+  <h3>F5 — Diagram pass (deep only)</h3>
+  <p><span class="fr">FR-16</span> When <code>--depth deep</code>, after the draft stabilizes, <strong>propose</strong> a short list of candidate diagrams (type + what it clarifies + target section). <span class="fr">FR-17</span> On user approval, run each via a <code>/diagram</code> subagent in <strong>non-interactive mode</strong> with: mandated full-viewBox background <code>&lt;rect&gt;</code> (dark-mode safety, per /primer learning), a fixed insertion anchor. <span class="fr">FR-18</span> <strong>Validate each SVG before inline insert</strong> — heading-id + sections.json + comments-coverage smoke must stay green; skip-on-failure with a logged note (never blind-insert, per premortem). <span class="fr">FR-19</span> Remember "always run diagram pass" as a per-project preference (e.g. <code>.pmos/settings.yaml :: artifact.diagram_pass</code>).</p>
+
+  <h3>F6 — <code>/polish</code> always (all depths)</h3>
+  <p><span class="fr">FR-20</span> Run <code>/polish</code> as a finishing pass on every create. <span class="fr">FR-21</span> <strong>Auto-apply mechanical findings only</strong>; route any voice-risk / high-risk finding through per-finding confirm (premortem: "always run" ≠ "always auto-apply"). <span class="fr">FR-22</span> Invoke via the <strong>main-agent path</strong> (verify in /spec — <code>/polish</code> warns subagents can't invoke it; <code>/artifact</code>'s create flow runs in the main agent, so this should hold, but the spec must confirm and document the constraint, including what happens when <code>/artifact</code> itself is dispatched as a subagent by <code>/feature-sdlc</code>).</p>
+
+  <h3>F7 — <code>/grill</code> mandatory (all depths, scaled)</h3>
+  <p><span class="fr">FR-23</span> Run <code>/grill</code> on every create, scaled by <code>--depth</code> (light/standard/deep). <span class="fr">FR-24</span> <strong>Mode-aware</strong>: interactive turn-by-turn interrogation when a human is present; in <code>--non-interactive</code>, degrade to a written adversarial findings pass (no turn-by-turn) so <code>/artifact</code> stays headless-safe (premortem H-risk). Log the degradation explicitly.</p>
+
+  <h2 id="forks">5. Resolved design forks (from pressure-test)</h2>
+  <ul>
+    <li><strong>D1 — Default depth = <code>standard</code></strong> (user decision). The full battery is earned by <code>--depth deep</code>; <code>brief</code> is the explicit fast-path. Honors "grill+polish always" (both run even at brief) while protecting the fast-draft case.</li>
+    <li><strong>D10 — Non-interactive composition is a hard requirement</strong> (FR-22, FR-24). The /spec must include a spike confirming each child skill (<code>/grill</code>, <code>/polish</code>, <code>/diagram</code>) can be invoked from <code>/artifact</code> and degrades headless; this is the #1 build risk.</li>
+  </ul>
+
+  <h2 id="journeys">6. User journeys</h2>
+  <ol>
+    <li><strong>Quick draft (#journey-fast):</strong> <code>/artifact prd --depth brief</code> → gathered context → draft → /polish (mechanical) → light /grill → save. Fast, today's speed preserved.</li>
+    <li><strong>Default doc (#journey-standard):</strong> <code>/artifact prd</code> → draft → persona panel (reconcile findings) → /polish → /grill → save.</li>
+    <li><strong>High-stakes doc (#journey-deep):</strong> <code>/artifact "board strategy memo" --depth deep</code> → "no template matches → propose one?" → research-warranted? → plan+approve → fan-out → research/ doc → draft → persona panel → diagram pass (propose+approve+validate+insert) → /polish → deep /grill → offer-save-template → save.</li>
+    <li><strong>Headless (#journey-headless):</strong> <code>/artifact prd --non-interactive</code> (e.g. from /feature-sdlc) → draft → persona panel (auto-reconcile, buffer OQ) → /polish (mechanical only) → /grill (written-findings) → save. No hard-block.</li>
+  </ol>
+
+  <h2 id="acceptance">7. Acceptance criteria</h2>
+  <ul>
+    <li>All FR-1…FR-24 implemented; <code>--depth</code> default = standard; fast path (brief) demonstrably skips personas/research/diagram.</li>
+    <li>Each child-skill invocation (<code>/grill</code>, <code>/polish</code>, <code>/diagram</code>) works in <code>--non-interactive</code> with documented degradation; verified by a spike + a test.</li>
+    <li>Research saved to <code>research/</code> with verifiable URLs; diagrams validated before insert (smoke green).</li>
+    <li>Persona panel produces grounded (quote-anchored) findings reconciled before draft update.</li>
+    <li>Revised <code>SKILL.md</code> conforms to <code>skill-patterns.md §A–§L</code> and passes <code>skill-eval.md</code> (the Phase 6a/7 gate).</li>
+    <li>No version-bump / changelog / README / manifest tasks in <code>/execute</code> waves — those are <code>/complete-dev</code> prerequisites (§G).</li>
+  </ul>
+
+  <h2 id="open-questions">8. Open questions (for /spec)</h2>
+  <ul>
+    <li>Do <code>refine</code> / <code>update</code> flows re-run the new heavy phases, or only <code>create</code>? (Lean: create-only by default; <code>update</code> may re-grill on request.)</li>
+    <li>Is the <code>research/</code> doc a first-class commented artifact (in the feature index) or a loose sidecar? (Lean: first-class, indexed.)</li>
+    <li>Persona-panel concurrency + model tier (§L): haiku vs sonnet per persona? (Lean: sonnet — critique needs judgment.)</li>
+    <li>Exact <code>--tier</code>↔<code>--depth</code> coupling: keep both as separate user-facing flags, or alias <code>--tier</code> under <code>--depth</code>? (FR-2 keeps both; confirm in /spec.)</li>
+    <li>How does mandatory <code>/grill</code> interact with the existing 2-loop eval reviewer — sequential (eval → personas → grill) ordering confirmed?</li>
+  </ul>
+</main>
+</body>
+</html>

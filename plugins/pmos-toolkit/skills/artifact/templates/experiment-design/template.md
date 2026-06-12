@@ -4,6 +4,8 @@ slug: experiment-design
 description: Pre-registered experiment design — hypothesis, variants, metrics, decision criteria
 tiers: [lite, full]
 default_preset: tabular
+personas: [data-scientist, eng-lead, pm]
+length_target: "~1000 words"
 files_to_read:
   - label: requirements doc
     pattern: "{feature_folder}/01_requirements*.md"

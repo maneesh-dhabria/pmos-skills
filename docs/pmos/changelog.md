@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.65.0: /artifact becomes a depth-scaled document pipeline
+
+`/artifact` grows from a draft-and-review tool into an end-to-end document pipeline you dial up or down with one flag — so a high-stakes doc arrives researched, stakeholder-critiqued, diagrammed, polished, and stress-tested in a single run, while a quick draft stays quick.
+
+- **One dial: `--depth brief|standard|deep`.** It controls both how much pipeline runs and how many sections the doc has. Default is `standard`. `brief` is the fast path (draft + polish + a light grill); `deep` adds research and diagrams. The old `--tier lite|full` still works as a quiet alias.
+- **Stakeholder critique, not just a rubric check.** At `standard` and `deep`, a panel of 3–4 stakeholder personas (defined per template, or recommended from context) reviews the draft in parallel and you reconcile their findings before it's final — distinct from the existing eval-criteria reviewer.
+- **Research before drafting (`deep`).** `/artifact` decides whether external research is even warranted, proposes a research plan for your approval, fans out to gather verified sources, and saves them alongside the doc — every research-backed claim keeps its citation.
+- **Diagrams that get checked before they land (`deep`).** It proposes diagrams, generates them via `/diagram`, validates each one, and only then inlines it — never inserting a broken visual. You can remember the preference per project.
+- **Always finishes with polish and a grill.** Every run ends with a `/polish` pass (mechanical fixes auto-applied, voice-risky edits surfaced for your call) and a `/grill` stress-test scaled to the depth.
+- **Proposes a template when none fits.** Ask for a doc type with no matching template and `/artifact` offers to research and author one for you — and to save it for next time (you opt in; it won't clutter your library by default).
+- **Stays headless-safe.** The whole pipeline degrades cleanly in non-interactive runs and when `/artifact` is driven by another skill.
+
 ## 2026-06-12 — pmos-toolkit 2.64.0: three-loop backlog (define · build · release)
 
 The backlog grows from a flat capture buffer into a three-loop system over **epics** and **stories**, so captured work actually moves.

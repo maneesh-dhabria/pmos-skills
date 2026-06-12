@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="spec">
+  <title>Spec — Deepen /artifact into a document pipeline</title>
+  <style>
+    body { background:#fbfaf6; color:#1a1a1a; font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; margin:0; }
+    main { max-width:960px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    h1 { font-size:1.7rem; } h2 { font-size:1.25rem; border-top:1px solid #e4e2da; padding-top:1rem; margin-top:1.9rem; }
+    h3 { font-size:1.05rem; margin-top:1.3rem; }
+    table { border-collapse:collapse; width:100%; font-size:.86rem; margin:.6rem 0; }
+    th,td { border:1px solid #e4e2da; padding:.45rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f1efe8; }
+    code { background:#efeee8; padding:.05em .3em; border-radius:4px; }
+    pre { background:#f4f2ec; padding:.7rem .9rem; border-radius:6px; overflow:auto; font-size:.82rem; }
+    .meta { color:#5b5b58; font-size:.92rem; }
+    ul,ol { padding-left:1.25rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Spec — Deepen <code>/artifact</code> into a document pipeline</h1>
+  <p class="meta"><strong>Tier 3</strong> · target <code>plugins/pmos-toolkit/skills/artifact</code> · manifest 2.64.0 → <strong>2.65.0</strong> · implements <code>01_requirements.html</code> FR-1…FR-24 · conforms to <code>skill-patterns.md §A–§L</code> + repo <code>CLAUDE.md</code>.</p>
+
+  <h2 id="architecture">1. Architecture — depth-gated create flow</h2>
+  <p>The deepened create flow keeps <code>/artifact</code>'s existing phases and inserts depth-gated stages using <strong>fractional phase numbers</strong> (per the 2026-05-13 learning — avoid renumbering Phase 3..6 and its cross-refs). Execution order, with the gate that admits each:</p>
+  <table>
+    <thead><tr><th>Phase</th><th>What</th><th>Gate</th><th>F#</th></tr></thead>
+    <tbody>
+      <tr><td>0 Load Context</td><td>settings, workstream, learnings, <strong>resolve <code>--depth</code></strong></td><td>always</td><td>F8</td></tr>
+      <tr><td>2 Create — Step 1</td><td>type picker</td><td>always</td><td>—</td></tr>
+      <tr><td>2 — Step 1.5 <em>(new)</em></td><td>no-template-match → propose template (inline <code>template add</code> T.1–T.6) + ask <code>length_target</code></td><td>when no template resolves</td><td>F1,F2</td></tr>
+      <tr><td>2 — Steps 2–7</td><td>resolve template, <strong>depth→section tier</strong>, feature folder, auto-consume, gap interview, preset</td><td>always</td><td>F8</td></tr>
+      <tr><td>2 — Step 7.5 <em>(new)</em></td><td>research phase: warranted? → plan → approve → fan-out → <code>research/</code> sidecar</td><td><code>--depth deep</code></td><td>F3</td></tr>
+      <tr><td>2 — Step 8</td><td>generate draft (+ research context + <code>length_target</code> steering)</td><td>always</td><td>F2</td></tr>
+      <tr><td>3 Eval-reviewer loop</td><td>existing reviewer subagent vs <code>eval.md</code>, 2-loop cap</td><td>always</td><td>—</td></tr>
+      <tr><td>3.5 Persona panel <em>(new)</em></td><td>3–4 personas critique in parallel (sonnet); reconcile with user</td><td><code>standard</code> + <code>deep</code></td><td>F4</td></tr>
+      <tr><td>3.7 Diagram pass <em>(new)</em></td><td>propose → approve → <code>/diagram</code> subagents → validate → inline insert; remember pref</td><td><code>deep</code> (or saved pref)</td><td>F5</td></tr>
+      <tr><td>3.8 Polish <em>(new)</em></td><td><code>/polish</code> finish — mechanical auto-apply, voice-risk gated</td><td>always</td><td>F6</td></tr>
+      <tr><td>3.9 Grill <em>(new)</em></td><td><code>/grill --depth &lt;mapped&gt;</code> — interactive / headless-degraded</td><td>always</td><td>F7</td></tr>
+      <tr><td>4–6</td><td>save &amp; confirm · workstream enrichment · capture learnings (existing)</td><td>always</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p><strong>refine / update</strong> (OQ1): the new 2.x/3.x phases run on <strong>create only</strong>. <code>refine</code> stays internal-QA (eval loop). <code>update</code> may re-run <code>/grill</code> or <code>/polish</code> when the user asks (a new opt-in prompt in Phase U.5), but never auto-runs research/personas/diagram.</p>
+
+  <h2 id="depth">2. The <code>--depth</code> dial (F8, OQ4 — single dial)</h2>
+  <p><code>--depth brief|standard|deep</code> is the <strong>sole</strong> user-facing dial. It controls BOTH stage gating (table above) AND artifact section count (the old <code>--tier</code> job).</p>
+  <ul>
+    <li><strong>Resolution:</strong> <code>--depth &lt;v&gt;</code> flag &gt; <code>.pmos/settings.yaml :: artifact.default_depth</code> &gt; builtin default <code>standard</code>. Print <code>depth: &lt;v&gt; (source: cli|settings|default)</code> to stderr once.</li>
+    <li><strong>Section mapping</strong> (replaces template tier-detection Step 3): <code>brief</code>→template's <code>lite</code> section set; <code>standard</code>/<code>deep</code>→<code>full</code> set. Single-tier templates ignore this.</li>
+    <li><strong><code>--tier lite|full</code> retired as documented flag → kept as a back-compat silent alias</strong> (<code>nl-sugar</code>): <code>--tier lite</code>≡<code>--depth brief</code>, <code>--tier full</code>≡<code>--depth standard</code>. Not machine-coupled (the orchestrator never passes <code>--tier</code> to <code>/artifact</code>), so retiring the documented surface is §I-safe; the alias prevents muscle-memory breakage. Update <code>argument-hint</code> to advertise <code>--depth</code>.</li>
+    <li>NL-first: "deep doc pipeline" / "full battery" ≡ <code>--depth deep</code>; "quick draft" ≡ <code>--depth brief</code>.</li>
+  </ul>
+
+  <h2 id="child-orchestration">3. Child-skill orchestration constraint (resolves FR-22, the #1 risk)</h2>
+  <p>Verified: <code>/polish</code>, <code>/grill</code>, <code>/diagram</code> all ship a <code>--non-interactive</code> block and degrade headless. <code>/grill</code> already takes <code>--depth brief|standard|deep</code>; <code>/diagram</code> already takes <code>--non-interactive --on-failure drop|ship-with-warning|exit-nonzero --out &lt;path&gt;</code>. <strong>But skills cannot be invoked by a subagent</strong> (<code>/polish</code> states this explicitly; it is true for all three). Therefore:</p>
+  <ul>
+    <li><strong>Main-agent run</strong> (the normal <code>/artifact …</code> case): Phases 3.5/3.7/3.8/3.9 invoke the child skills via the <code>Skill</code> tool normally.</li>
+    <li><strong>Subagent-dispatched run</strong> (e.g. <code>/feature-sdlc</code> dispatches <code>/artifact</code> as a child): the child-skill phases CANNOT run. They <strong>degrade to skip-with-note</strong> — emit a <code>&lt;!-- pmos:deferred-pass &gt;</code> note in the artifact + a chat line recommending a manual <code>/artifact refine</code> or direct <code>/polish</code>/<code>/grill</code> run, and log the degradation. Detection: the Platform-Adaptation "No subagents" clause + a runtime check ("am I able to call Skill?"). This is documented in a new <code>## Platform Adaptation</code> bullet.</li>
+    <li><strong>Non-interactive (but main-agent)</strong>: child skills run with <code>--non-interactive</code>; <code>/grill</code> → written-findings, <code>/diagram</code> → <code>--on-failure drop</code>, <code>/polish</code> → mechanical-only; persona reconciliation AUTO-PICKs + buffers OQ.</li>
+  </ul>
+
+  <h2 id="phase-specs">4. New-phase contracts (→ reference files)</h2>
+  <p>Per progressive disclosure (§structure), each new phase's detailed contract lives in a <code>reference/</code> file; SKILL.md carries the gate + a one-paragraph summary + the citation.</p>
+
+  <h3>4.1 Research phase — <code>reference/research-phase.md</code> (F3)</h3>
+  <ul>
+    <li><strong>Warrant check:</strong> skip when the doc is internal/template-backed AND <code>gathered_context</code> already covers the template's preconditions. Log <code>research: skipped (sufficient context)</code> or <code>research: warranted (&lt;reason&gt;)</code>.</li>
+    <li><strong>Plan:</strong> propose 3–6 research questions/areas; <code>AskUserQuestion</code> approve/edit (Recommended = Approve). Non-interactive AUTO-PICKs.</li>
+    <li><strong>Fan-out:</strong> <code>general-purpose</code> subagents, one per area, strict output contract (stable <code>idx</code>, verifiable URLs, <code>confidence</code> field, "omit rather than guess"); validating+tolerant merge (per the /ideate music-coach learning). Concurrency cap ~4.</li>
+    <li><strong>Output:</strong> <code>&lt;feature_folder&gt;/research/&lt;slug&gt;-research.md</code> — <strong>loose sidecar</strong> (OQ2), plain markdown, source-attributed; NOT indexed/commentable. The draft reads it as tagged <code>gathered_context</code>.</li>
+  </ul>
+
+  <h3>4.2 Persona panel — <code>reference/persona-panel.md</code> (F4)</h3>
+  <ul>
+    <li><strong>Persona source:</strong> template frontmatter <code>personas:</code> list if present; else recommend 3–4 from doc type + context, confirm via one <code>AskUserQuestion</code>.</li>
+    <li><strong>Dispatch:</strong> one <strong>sonnet</strong> (OQ3) <code>general-purpose</code> subagent per persona, parallel (cap 4). Each gets the chrome-stripped draft + a persona brief (role, what they care about, what would make them reject the doc) + the <code>_shared/reviewer-protocol.md</code> contract (≥40-char verbatim quote per finding; section ids from <code>sections.json</code>).</li>
+    <li><strong>Validation:</strong> parent-side per reviewer-protocol (quote substring-grep, section-id set check). Invalid finding → dropped.</li>
+    <li><strong>Reconcile:</strong> present findings per <code>_shared/findings-dispositions.md</code> (≤4/batch, four dispositions) BEFORE editing the draft. Apply approved via <code>Edit</code>; re-emit <code>sections.json</code>. NFR-1: log a one-line "panel surfaced N findings the eval reviewer did not" so duplication is visible.</li>
+  </ul>
+
+  <h3>4.3 Diagram pass — <code>reference/diagram-pass.md</code> (F5)</h3>
+  <ul>
+    <li><strong>Propose:</strong> 1–3 candidate diagrams (type + clarified concept + target <code>section id</code>). <code>AskUserQuestion</code> multiSelect which to generate (or none). Recommended = the single highest-value one.</li>
+    <li><strong>Generate:</strong> per approved diagram, a <code>/diagram</code> subagent — but since subagents can't invoke <code>/diagram</code>, the <strong>main agent</strong> invokes <code>/diagram --non-interactive --on-failure drop --out &lt;feature_folder&gt;/assets/diagrams/&lt;n&gt;.svg --source &lt;draft excerpt&gt;</code> sequentially (or via the Skill tool). Mandate the dark-mode background <code>&lt;rect&gt;</code> in the diagram brief.</li>
+    <li><strong>Validate before insert:</strong> SVG parses; has the bg-rect; after inline insertion at the target section anchor, re-run the heading-id + <code>build_sections_json.js</code> + comments-coverage smoke. Any failure → <strong>skip that diagram</strong>, log <code>diagram: dropped &lt;n&gt; (&lt;reason&gt;)</code>, leave the draft unchanged.</li>
+    <li><strong>Preference:</strong> after a successful pass, offer "always run the diagram pass for this project?" → persist <code>.pmos/settings.yaml :: artifact.diagram_pass: true</code>. When set, the pass runs at <code>standard</code> too (still propose+approve).</li>
+  </ul>
+
+  <h3>4.4 New-template guidelines — <code>reference/new-template-guidelines.md</code> (F1/F5-support)</h3>
+  <p>Generic best practices the proposal flow + save-checklist read: 8–15 sections with single-purpose each; eval items split precondition/judgment; a sensible <code>personas:</code> set; a <code>length_target</code>; a <code>default_preset</code>. The save offer (FR-4) is gated on this checklist passing; default = No.</p>
+
+  <h2 id="polish-grill">5. /polish + /grill specifics</h2>
+  <ul>
+    <li><strong>/polish (3.8):</strong> main agent calls <code>Skill /polish &lt;artifact&gt; [--non-interactive]</code> on the saved HTML. <code>/polish</code> round-trips HTML and auto-applies mechanical fixes; its existing per-finding surface handles voice-risk. <code>/artifact</code> just invokes it and reports the polish summary. No new logic beyond the invocation + the subagent-degradation note.</li>
+    <li><strong>/grill (3.9):</strong> main agent calls <code>Skill /grill &lt;artifact&gt; --depth &lt;brief|standard|deep mapped from --depth&gt; [--non-interactive]</code>. Interactive → turn-by-turn; non-interactive → written findings. Grill's findings are surfaced; high-severity ones offered as edits via findings-dispositions. <code>--no-stress-test</code>-style escape NOT added (grill is mandatory per F7); but a <code>brief</code> depth keeps it to one light pass.</li>
+  </ul>
+
+  <h2 id="files">6. File map</h2>
+  <table>
+    <thead><tr><th>File</th><th>Change</th></tr></thead>
+    <tbody>
+      <tr><td><code>artifact/SKILL.md</code></td><td>add <code>--depth</code> resolution (Phase 0); Step 1.5 (template-propose+length); Step 7.5 (research gate); Phases 3.5/3.7/3.8/3.9; update <code>argument-hint</code>, <code>## Platform Adaptation</code> (subagent-degradation), Anti-Patterns, <code>## Track Progress</code> count; NL-sugar <code>--tier</code> alias note. ~250–350 added lines.</td></tr>
+      <tr><td><code>artifact/reference/research-phase.md</code> <em>(new)</em></td><td>§4.1 contract + leading ToC (§c-reference-toc).</td></tr>
+      <tr><td><code>artifact/reference/persona-panel.md</code> <em>(new)</em></td><td>§4.2 contract + ToC.</td></tr>
+      <tr><td><code>artifact/reference/diagram-pass.md</code> <em>(new)</em></td><td>§4.3 contract + ToC.</td></tr>
+      <tr><td><code>artifact/reference/new-template-guidelines.md</code> <em>(new)</em></td><td>§4.4 + ToC.</td></tr>
+      <tr><td><code>artifact/templates/*/template.md</code></td><td>add optional <code>personas:</code> + <code>length_target:</code> frontmatter to the 4 built-ins (PRD gets a real persona set as the worked example).</td></tr>
+      <tr><td><code>artifact/tests/*</code></td><td>depth-gating test (brief skips personas/research/diagram); non-interactive degradation test; diagram-validation smoke; <code>--tier</code>-alias test.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="testing">7. Testing strategy</h2>
+  <ul>
+    <li><strong>Structure tests</strong> (bash, materialize-then-here-string to avoid the SIGPIPE flake): SKILL.md declares <code>--depth</code> in argument-hint; each new phase heading present; Platform-Adaptation subagent-degradation bullet present; <code>--tier</code> alias marked <code>nl-sugar</code>.</li>
+    <li><strong>Depth-gating logic test</strong>: a fixture asserting brief omits personas/research/diagram; standard adds personas; deep adds research+diagram.</li>
+    <li><strong>Repo lints</strong>: <code>tools/lint-non-interactive-inline.sh</code>, <code>tools/audit-recommended.sh</code>, <code>tools/lint-flags-vs-hints.sh</code>, <code>tools/lint-phase-refs.sh</code> all green (every new <code>AskUserQuestion</code> gets a Recommended or a <code>defer-only</code> tag; every new flag hinted or nl-sugar-marked; phase cross-refs resolve).</li>
+    <li><strong>skill-eval</strong>: <code>skill-eval-check.sh</code> [D] + [J] pass (Phase 6a/7).</li>
+  </ul>
+
+  <h2 id="release-prereqs">8. Release prerequisites (for /complete-dev, NOT /execute tasks)</h2>
+  <p>Per §G + the 2026-05-13 learning, <code>/execute</code> must NOT author these — they are <code>/complete-dev</code>'s job: version bump 2.64.0 → 2.65.0 in <strong>both</strong> <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code>; changelog entry; README row if the skill list shows per-skill rows; manifest version-sync. <code>/plan</code> lists these under a <code>## Release prerequisites</code> section only.</p>
+
+  <h2 id="risks">9. Risks &amp; open items</h2>
+  <ul>
+    <li>Diagram inline-insert + comments-coverage interaction is the most fragile integration — the validate-before-insert gate (4.3) is the mitigation; if it proves flaky, fall back to saving diagrams to <code>assets/diagrams/</code> and linking rather than inlining.</li>
+    <li>Persona-panel value (NFR-1) is unproven — the "N findings beyond eval reviewer" log line is the in-flight signal; if it's routinely 0, a follow-up may merge it into the eval loop.</li>
+    <li>SKILL.md size: adding ~300 lines may push the body over the skill-eval body-size advisory — keep phase bodies tight, push detail to reference/.</li>
+  </ul>
+</main>
+</body>
+</html>

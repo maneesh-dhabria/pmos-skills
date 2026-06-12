@@ -4,6 +4,8 @@ slug: discovery
 description: Decision-first discovery — what we're deciding, evidence gap, assumption tests
 tiers: [single]
 default_preset: narrative
+personas: [pm, design, user-researcher]
+length_target: "~1200 words"
 files_to_read:
   - label: workstream
     source: product-context
