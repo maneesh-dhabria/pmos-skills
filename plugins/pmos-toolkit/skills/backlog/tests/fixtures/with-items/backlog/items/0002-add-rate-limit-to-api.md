@@ -2,7 +2,7 @@
 id: 0002
 title: Add rate limit to API
 type: feature
-status: spec'd
+status: planned
 priority: must
 score: 720
 labels: [api, security]

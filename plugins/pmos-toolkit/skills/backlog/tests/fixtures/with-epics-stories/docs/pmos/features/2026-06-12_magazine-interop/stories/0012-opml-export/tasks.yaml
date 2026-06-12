@@ -1,0 +1,20 @@
+story: 0012
+spec: ../../02_spec.html
+tasks:
+  - id: T1
+    title: exporter script opml-export.js
+    deps: []
+    parallel: true
+    acceptance:
+      - "node opml-export.js fixtures/feeds.json emits OPML that xmllint validates"
+    status: pending
+    evidence:
+  - id: T2
+    title: wire /magazine export --opml
+    deps: [T1]
+    status: pending
+  - id: T3
+    title: exporter tests
+    deps: [T1]
+    parallel: true
+    status: pending

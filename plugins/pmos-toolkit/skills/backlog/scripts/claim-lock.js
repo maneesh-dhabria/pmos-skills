@@ -13,9 +13,14 @@
 // binary, so the lock lives here in node, not in bash.
 //
 // Mechanism: O_EXCL lockfile at <claims-dir>/<id>.lock holding {id, holder, pid,
-// at}. A holder whose PID is dead OR whose timestamp is older than staleMs is
-// reclaimable: `acquire` steals it automatically (one retry); a fresh live
-// holder is reported as contended. Default stale-lease TTL is 4h (design D13).
+// at}. Reclaim is **purely time-based** (design D13: "stale-lease TTL with
+// steal-on-warning"): a holder whose timestamp is older than staleMs is
+// reclaimed by `acquire` automatically (one retry); a fresh holder is reported
+// as contended. Default TTL is 4h. NOTE: unlike the magazine worker (which holds
+// its lock for one live process), a backlog claim must SURVIVE the claiming
+// process's exit — the story stays claimed across many CLI invocations until
+// `unclaim` or the TTL — so PID-liveness is NOT a reclaim trigger here; `pid` is
+// audit-only. `steal` is the manual override.
 //
 // CLI:
 //   node claim-lock.js acquire <claims-dir> <id> [--holder <s>] [--stale-ms <n>]
@@ -59,10 +64,11 @@ function readHolder(lockPath) {
   }
 }
 
-// True when the recorded holder is dead (PID gone) or expired (older than staleMs).
+// True when the recorded holder is missing or expired (timestamp older than
+// staleMs). Time-based ONLY — a backlog claim outlives the process that made it,
+// so PID liveness is deliberately not consulted (see the header note).
 function reclaimable(holder, staleMs) {
   if (!holder) return true;
-  if (!isAlive(holder.pid)) return true;
   if (holder.at && Date.now() - Date.parse(holder.at) > staleMs) return true;
   return false;
 }
@@ -138,20 +144,21 @@ function selftest() {
   assert(b1 && b2, 'distinct ids acquire independently');
   release(dir, '0012'); release(dir, '0013');
 
-  // dead-PID holder is reclaimed
+  // a claim by a now-dead process is NOT reclaimed on PID-death — it persists
+  // until the TTL (a backlog claim outlives the claiming process).
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(lockPathFor(dir, '0014'), JSON.stringify({ id: '0014', pid: 4000000, at: new Date().toISOString() }));
-  assert(acquire(dir, '0014') !== null, 'dead-PID holder reclaimed');
+  assert(acquire(dir, '0014', { staleMs: 4 * 60 * 60 * 1000 }) === null, 'fresh claim from a dead PID is NOT reclaimed (persists, contended)');
   release(dir, '0014');
 
-  // expired holder (alive PID, stale timestamp) is reclaimed
-  fs.writeFileSync(lockPathFor(dir, '0015'), JSON.stringify({ id: '0015', pid: process.pid, at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() }));
+  // expired holder (stale timestamp) is reclaimed regardless of PID
+  fs.writeFileSync(lockPathFor(dir, '0015'), JSON.stringify({ id: '0015', pid: 4000000, at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() }));
   assert(acquire(dir, '0015', { staleMs: 4 * 60 * 60 * 1000 }) !== null, 'expired holder reclaimed past 4h TTL');
   release(dir, '0015');
 
-  // live, fresh holder is NOT reclaimed
+  // fresh holder is NOT reclaimed within the TTL (contended)
   fs.writeFileSync(lockPathFor(dir, '0016'), JSON.stringify({ id: '0016', pid: process.pid, at: new Date().toISOString() }));
-  assert(acquire(dir, '0016', { staleMs: 4 * 60 * 60 * 1000 }) === null, 'live fresh holder not reclaimed (contended)');
+  assert(acquire(dir, '0016', { staleMs: 4 * 60 * 60 * 1000 }) === null, 'fresh holder not reclaimed within TTL (contended)');
 
   // steal force-takes a live fresh holder
   assert(steal(dir, '0016', { holder: 'manual' }).holder === 'manual', 'steal force-takes a live holder');
