@@ -206,7 +206,7 @@ Dispatcher side of `_shared/reviewer-protocol.md` (chrome-strip input, quote-gro
    ```
    When primary is legacy MD (`output_format=md`), skip this step and pass the raw `.md` file contents instead.
 
-2. **Dispatch reviewer subagent** (`general-purpose`, foreground — findings are needed before proceeding). Inputs: `reviewer-prompt.md` (system instructions — it enforces the JSON contract; never invoke the reviewer with a different prompt), the full `eval.md` for this template, the companion `{slug}.sections.json`, and the chrome-stripped draft (or raw MD for legacy mode). The subagent returns JSON findings, each shaped `{section, criterion_id, severity, finding, suggested_fix, quote}`.
+2. **Dispatch reviewer subagent** (`general-purpose`, **model `sonnet`** — eval-criteria critique is judgment work, the same tier as the Phase 3.5 persona panel per `_shared/tier-matrix.md` §L; foreground — findings are needed before proceeding). Inputs: `reviewer-prompt.md` (system instructions — it enforces the JSON contract; never invoke the reviewer with a different prompt), the full `eval.md` for this template, the companion `{slug}.sections.json`, and the chrome-stripped draft (or raw MD for legacy mode). The subagent returns JSON findings, each shaped `{section, criterion_id, severity, finding, suggested_fix, quote}`.
 
 3. **Validate the reviewer return before applying any fix** (parent-side, per `_shared/reviewer-protocol.md`):
    1. Load `{slug}.sections.json`; collect ids into `known_ids`.
