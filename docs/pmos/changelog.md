@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.66.0: the three-loop now drives skill work too (`route: skill`)
+
+The define → build → release loops — until now only for features — extend to skill work, so a batch of skill changes becomes an epic of one-skill-at-a-time stories you can grind through and ship as a single release.
+
+- **`/skill-sdlc define` and `/skill-sdlc build`.** The skill SDLC gains the same two-door loop the feature pipeline has: `define` shapes a batch of skill changes into an epic and splits it into per-skill stories; `build` picks the next ready skill story, resolves its tier, builds it, scores it against the skill rubric, verifies it, and writes it back `done` or `blocked`. Run `build` on a loop or schedule for unattended throughput.
+- **`/skill-sdlc --from-feedback` now offers the loop instead of always running one giant pass.** Hand it a design doc and it routes straight into a skill epic; hand it raw feedback and, once triage finds 3+ skills in scope, it offers to define an epic and grind per-skill — or stay a single batch (`--monolithic` forces the old behaviour). Small fixes still run in one shot.
+- **Every skill is gated on its own.** Each skill story runs the full skill-eval rubric (deterministic + judge) before it can reach `done`, so a skill that regresses goes back to you `blocked` — it never silently ships. A skill epic shares one design doc its stories cite, keeping a multi-skill batch coherent.
+- **One coherence check before a skill epic ships.** `/complete-dev --epic` now runs the deterministic skill-eval pass across the merged skills plus a single cross-skill coherence review (do aliases and the skills they forward to still agree? do shared contracts still hold?) — the one judgement gate over the assembled batch. Its changelog separates real new capabilities from internal quality work, so a pure-refactor epic reads as one "skill quality & internals" line, not a wall of how-it-was-built noise.
+
 ## 2026-06-12 — pmos-toolkit 2.65.0: /artifact becomes a depth-scaled document pipeline
 
 `/artifact` grows from a draft-and-review tool into an end-to-end document pipeline you dial up or down with one flag — so a high-stakes doc arrives researched, stakeholder-critiqued, diagrammed, polished, and stress-tested in a single run, while a quick draft stays quick.
