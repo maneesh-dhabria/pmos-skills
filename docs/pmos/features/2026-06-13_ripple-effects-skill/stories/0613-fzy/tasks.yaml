@@ -4,9 +4,9 @@ epic: 0613-dnv
 route: skill
 plugin: pmos-toolkit
 spec: ../../02_design.html
-# New pmos-toolkit skill /consequences — sibling to /grill. Sequenced as one SKILL.md authored
+# New pmos-toolkit skill /ripple-effects — sibling to /grill. Sequenced as one SKILL.md authored
 # in phase order: scaffold → intake → simulate+score → present+grill → report → conventions/selftest.
-# /consequences is the sole writer; cites /grill as prior art (NO /grill edits, NO _shared extraction
+# /ripple-effects is the sole writer; cites /grill as prior art (NO /grill edits, NO _shared extraction
 # per D3). DELIBERATELY LEAN (D6): high-level method, model-driven simulation — NOT a transcribed
 # algorithm. Tasks edit one SKILL.md so they run sequentially. NO release-prereq tasks here
 # (see ## Release prerequisites in the design doc).
@@ -17,7 +17,7 @@ tasks:
     deps: []
     parallel: false
     detail: >
-      Create plugins/pmos-toolkit/skills/consequences/SKILL.md. Frontmatter: name: consequences
+      Create plugins/pmos-toolkit/skills/ripple-effects/SKILL.md. Frontmatter: name: ripple-effects
       (matches dir), user-invocable: true, description with trigger phrases ("what are the knock-on
       effects", "second-order effects of this", "what could go wrong downstream", "simulate the
       consequences", "ripple effects of this proposal", "and then what"), argument-hint listing ONLY
@@ -26,7 +26,7 @@ tasks:
       Inline the canonical ~27-line non-interactive block byte-identical to
       skills/_shared/non-interactive.md. Add Platform Adaptation + Track Progress + Load Learnings.
       Declare integer phases 0–5 with stable {#kebab} anchors (intake, simulate, score, present,
-      grill, report). Announce line ("Using /consequences to simulate the downstream effects of
+      grill, report). Announce line ("Using /ripple-effects to simulate the downstream effects of
       {artifact}."). Mirror /grill's brevity — this skeleton sets the lean tone for D6.
 
   - id: T2
@@ -82,10 +82,10 @@ tasks:
       Implement Phase 5 {#report}: optional save honoring --save/--no-save + output_format. Author a
       single self-contained HTML doc with three sections — scored consequence tree, interrogation
       transcript, refinements & residual-risks — per the _shared/html-authoring/README.md checklist
-      (cite it; deltas only: artifact name, pmos_skill=consequences, save path under
-      {docs_path}/consequences/<run-slug>/). Strip template's leading doc-comment before render
+      (cite it; deltas only: artifact name, pmos_skill=ripple-effects, save path under
+      {docs_path}/ripple-effects/<run-slug>/). Strip template's leading doc-comment before render
       (known gotcha). TREE-ONLY — no SVG diagram (D2). kebab heading ids, sections.json, asset cp -n,
-      cache-bust, index regen, <meta name="pmos:skill" content="consequences">.
+      cache-bust, index regen, <meta name="pmos:skill" content="ripple-effects">.
 
   - id: T6
     title: "Conventions pass + lean-body check + selftest + lints"

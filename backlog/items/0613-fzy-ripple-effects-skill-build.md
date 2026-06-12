@@ -3,19 +3,19 @@ schema_version: 1
 id: 0613-fzy
 kind: story
 parent: 0613-dnv
-title: Author the /consequences skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report
+title: Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report
 type: feature
 priority: should
 status: planned
 route: skill
 dependencies: []
-feature_folder: docs/pmos/features/2026-06-13_consequences-skill/
-plan_doc: docs/pmos/features/2026-06-13_consequences-skill/stories/0613-fzy/03_plan.html
-tasks: docs/pmos/features/2026-06-13_consequences-skill/stories/0613-fzy/tasks.yaml
+feature_folder: docs/pmos/features/2026-06-13_ripple-effects-skill/
+plan_doc: docs/pmos/features/2026-06-13_ripple-effects-skill/stories/0613-fzy/03_plan.html
+tasks: docs/pmos/features/2026-06-13_ripple-effects-skill/stories/0613-fzy/tasks.yaml
 worktree:
 claimed_by:
 driver_holder:
-labels: [pmos-toolkit, consequences, grill-family]
+labels: [pmos-toolkit, ripple-effects, grill-family]
 created: 2026-06-13
 updated: 2026-06-13
 released:
@@ -26,7 +26,7 @@ released:
 
 ## Context
 
-The single build story for epic `0613-dnv`. Authors the new pmos-toolkit `/consequences` skill against the design contract `docs/pmos/features/2026-06-13_consequences-skill/02_design.html` and the standing skill-authoring criteria (`feature-sdlc/reference/skill-patterns.md §A–§L`, repo `CLAUDE.md` conventions). One `/execute` run = one PR.
+The single build story for epic `0613-dnv`. Authors the new pmos-toolkit `/ripple-effects` skill against the design contract `docs/pmos/features/2026-06-13_ripple-effects-skill/02_design.html` and the standing skill-authoring criteria (`feature-sdlc/reference/skill-patterns.md §A–§L`, repo `CLAUDE.md` conventions). One `/execute` run = one PR.
 
 **Leanness is a first-class constraint (D6):** the skill body must stay as simple and short as `/grill`'s (~184 lines). The design doc holds the rationale; the SKILL.md describes the method at a high level and relies on model intelligence to simulate — no transcribed algorithm, scoring formula, or enumerated procedure.
 
@@ -34,7 +34,7 @@ The single build story for epic `0613-dnv`. Authors the new pmos-toolkit `/conse
 
 (Inherited verbatim from epic `0613-dnv` — they are the change-set for this story.)
 
-- [ ] AC1 — A registered, eval-passing `/consequences` skill exists at `plugins/pmos-toolkit/skills/consequences/SKILL.md` (passes `skill-eval.md`, floor 43/47; frontmatter `name: consequences` matches dir; argument-hint flags all handled in the body).
+- [ ] AC1 — A registered, eval-passing `/ripple-effects` skill exists at `plugins/pmos-toolkit/skills/ripple-effects/SKILL.md` (passes `skill-eval.md`, floor 43/47; frontmatter `name: ripple-effects` matches dir; argument-hint flags all handled in the body).
 - [ ] AC2 — **Intake** accepts a file path, a pipeline-doc stem (resolved via `_shared/resolve-input.md`), or inline text/URL (ask-for-paste fallback); summarizes the proposal in 3–5 bullets and confirms the read before simulating.
 - [ ] AC3 — **Simulation** (Futures Wheel + "and then what?"): first-order effects across the adapted-STEEP product lens set (Users, Business, Team/Org, Technical, Market, Ethics/Risk), recursively expanded to second- and third-order, capped by `--orders` (default 3) with breadth by `--depth` (brief/standard/deep, same semantics as `/grill`); convergent chains merged. Described at a high level — model-driven, not a prescribed algorithm (D6).
 - [ ] AC4 — **Scoring**: every notable effect tagged likelihood (H/M/L) × impact (H/M/L) × desirability (good/bad/mixed); interrogation ordered by leverage (high-impact + uncertain/negative first) but surfaces every notable effect, not a filtered top-N (D1). Qualitative tags only — no arithmetic.

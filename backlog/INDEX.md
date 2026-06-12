@@ -18,7 +18,7 @@ Last regenerated: 2026-06-13
 | 0612-jjs | defined | skill | pmos-toolkit | 1/1 | Year-prefixed backlog ids — extend the <MMDD>-<rand3> scheme to <YYMMDD>-<rand3> |
 | 0612-gd0 | defined | skill | pmos-toolkit | 0/1 | /explainer-video — turn a doc/artifact/URL into a narrated slideshow video (local, $0) |
 | 0613-kr0 | defined | skill | pmos-toolkit | 0/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
-| 0613-dnv | defined | skill | pmos-toolkit | 0/1 | /consequences — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
+| 0613-dnv | defined | skill | pmos-toolkit | 0/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
 
 ## should
 
@@ -38,7 +38,7 @@ Last regenerated: 2026-06-13
 | 0612-d14 | story | enhancement | done | 0612-jjs | Extend the backlog id scheme to <YYMMDD>-<rand3> — year-prefixed mint + triple-accept validator across /backlog and /mytasks | 02_design.html | 03_plan.html |  |
 | 0612-jc5 | story | feature | planned | 0612-gd0 | Build the /explainer-video pmos-toolkit skill — doc/artifact/URL → narrated slideshow .mp4 ($0, local) | 02_design.html | 03_plan.html |  |
 | 0613-36f | story | feature | planned | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
-| 0613-fzy | story | feature | planned | 0613-dnv | Author the /consequences skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
+| 0613-fzy | story | feature | planned | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
 
 ## could
 

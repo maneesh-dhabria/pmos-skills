@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Plan — /consequences (story 0613-fzy)</title>
-  <meta name="pmos:skill" content="consequences">
+  <title>Design — /ripple-effects (epic 0613-dnv)</title>
+  <meta name="pmos:skill" content="ripple-effects">
   <style>
 /* pmos-toolkit html-authoring substrate — vanilla CSS, ≤30 KB.
    FR-04, FR-90, NFR-02, NFR-03. No Tailwind. No @import. */
@@ -908,7 +908,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 <body>
   <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
     <a class="pmos-wordmark" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-    <h1 class="pmos-artifact-title">Plan — /consequences (story 0613-fzy)</h1>
+    <h1 class="pmos-artifact-title">Design — /ripple-effects (epic 0613-dnv)</h1>
     <div class="pmos-artifact-actions">
       <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
     </div>
@@ -920,88 +920,146 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   </header>
   <main class="pmos-artifact-body" data-pmos-role="body">
 
-<section id="overview-sec">
-<h2 id="overview">Overview</h2>
-<p>Build the new pmos-toolkit skill <strong>/consequences</strong> (epic <code>0613-dnv</code>, story <code>0613-fzy</code>, route: skill) against the design contract <code>../../02_design.html</code> and the standing skill-authoring criteria (<code>skill-patterns.md &sect;A&ndash;&sect;L</code>, repo <code>CLAUDE.md</code>). One <code>/execute</code> run = one PR. Six sequential tasks authoring a single <code>SKILL.md</code> in phase order. <strong>The governing constraint is leanness (D6)</strong>: the body stays as short and simple as <code>/grill</code>'s (~184 lines), describing the method at a high level and relying on model intelligence to simulate &mdash; not a transcribed algorithm.</p>
+<section id="summary-sec">
+<h2 id="summary">Summary</h2>
+<p><strong>/ripple-effects</strong> is a new pmos-toolkit skill in the same adversarial-review family as <code>/grill</code>. Given a proposal document (a path, a pipeline-doc stem, or inline text), it <strong>simulates the downstream effects of the proposal</strong> &mdash; first-order, second-order, and third-order &mdash; using the <em>Futures&nbsp;Wheel</em> / Implications&nbsp;Wheel method (Jerome Glenn, 1971), then <strong>uses the surfaced consequences to interrogate the user</strong> one question at a time (grill-style, each with a recommended answer) to help them refine and de-risk the proposal.</p>
+<p>The mental model: <code>/grill</code> asks &ldquo;is this decision defensible?&rdquo; by walking the proposal's <em>internal</em> decision tree. <code>/ripple-effects</code> asks &ldquo;<strong>and then what?</strong>&rdquo; by walking the proposal's <em>external</em> ripple tree &mdash; what the proposal sets in motion in the world, the org, the system, and the market once it ships. They are siblings, orthogonal to the pipeline, usable on any artifact at any time.</p>
+<p>Singleton epic (D18) wrapping one build story &mdash; a single brand-new skill. Route: skill. Design contract: this document.</p>
 </section>
 
-<section id="waves-sec">
-<h2 id="waves">Waves</h2>
-<p>All six tasks edit the same <code>SKILL.md</code>, so they run <strong>sequentially</strong> (no parallel wave). T1 scaffolds; T2&ndash;T5 fill phases 0&ndash;5 in order; T6 is the conformance + lean-body + selftest gate.</p>
-<table>
-<thead><tr><th>Wave</th><th>Tasks</th><th>Theme</th></tr></thead>
-<tbody>
-<tr><td>1</td><td>T1 &rarr; T2 &rarr; T3 &rarr; T4 &rarr; T5 &rarr; T6</td><td>Single serial chain: scaffold &rarr; intake &rarr; simulate+score &rarr; present+grill &rarr; report &rarr; conform.</td></tr>
-</tbody>
-</table>
+<section id="charter-sec">
+<h2 id="charter-fit">Charter fit &amp; coherence</h2>
+<p>pmos-toolkit's charter is &ldquo;help me <strong>ship a feature</strong>&rdquo; &mdash; it holds the delivery pipeline plus its supporting authoring/review skills (<code>/grill</code>, <code>/creativity</code>, <code>/polish</code>, <code>/ideate</code>&hellip;). <code>/ripple-effects</code> is a <strong>pre-commitment review</strong> aid in exactly that family: it makes a proposal better <em>before</em> it is built, by exposing the ripple effects that naive first-order thinking misses. It sits beside <code>/grill</code>, not inside the linear pipeline &mdash; invoke it on a half-formed idea, a <code>01_requirements</code>, a draft <code>02_spec</code>, an ADR, or a Slack proposal.</p>
+<p><strong>No cross-skill substrate is extracted in v1</strong> (maintainer decision D3): <code>/ripple-effects</code> implements its own grill-style interrogation loop and cites <code>/grill</code> as prior art. This keeps a one-skill epic a one-skill epic and avoids the <code>_shared/</code> bootstrap/sync overhead a shared loop would impose. A future DRY pass could extract a shared <code>interrogation-loop.md</code> &mdash; noted as out-of-scope, not done here.</p>
 </section>
 
-<section id="tasks-sec">
-<h2 id="tasks">Task detail</h2>
-<p>Authoritative task definitions (id, ACs, deps, detail) live in the sibling <code>tasks.yaml</code> &mdash; <code>/execute</code>'s work queue and sole status writer. Summary:</p>
+<section id="research-sec">
+<h2 id="research">Research grounding</h2>
+<p>The simulation method is not invented here &mdash; it adopts established foresight and decision-analysis practice:</p>
 <dl>
-<dt><strong>T1</strong> &mdash; Scaffold skill + SKILL.md skeleton (AC1, AC9)</dt>
-<dd>Canonical path <code>plugins/pmos-toolkit/skills/consequences/SKILL.md</code>; frontmatter <code>name: consequences</code>, triggers, contract-only argument-hint; inline non-interactive block byte-identical; phases 0&ndash;5 with <code>{#kebab}</code> anchors; announce line. Sets the lean tone.</dd>
-<dt><strong>T2</strong> &mdash; Phase 0 intake &amp; scope (AC2)</dt>
-<dd>Resolve target (path / pipeline-stem / paste); summarize + confirm read before simulating; <code>--depth</code>/<code>--orders</code>/<code>output_format</code>. Reuse <code>/grill</code> intake shape.</dd>
-<dt><strong>T3</strong> &mdash; Phase 1+2 simulate + score (AC3, AC4)</dt>
-<dd>High-level Futures-Wheel simulation across the product lens set + recursive &ldquo;and then what?&rdquo;; qualitative likelihood&times;impact&times;desirability tags; define notable/leverage. Model-driven, terse (D6).</dd>
-<dt><strong>T4</strong> &mdash; Phase 3+4 present + grill (AC5, AC6)</dt>
-<dd>Emit scored tree before questioning; one <code>AskUserQuestion</code> per notable effect in leverage order tying ripple&rarr;refinement; defer-only; branch/insert; code-answerable&rarr;grep; <code>/grill</code> stop rules.</dd>
-<dt><strong>T5</strong> &mdash; Phase 5 report (AC7)</dt>
-<dd>Optional HTML save via <code>_shared/html-authoring/</code> (cite checklist; deltas only). Tree-only, no SVG (D2).</dd>
-<dt><strong>T6</strong> &mdash; Conventions + lean-body + selftest (AC8, AC9, AC10, AC11)</dt>
-<dd>No <code>/grill</code> edits / no <code>_shared</code> extraction (D3); &sect;H&ndash;&sect;L; flags&harr;hints; <strong>lean-body check vs ~184 lines</strong>; <code>skill-eval-check.sh</code> floor 43/47; repo hygiene lints; no release-prereq tasks leaked.</dd>
+<dt><strong>Futures Wheel / Implications Wheel</strong> (Jerome C. Glenn, 1971)</dt>
+<dd>A structured-foresight method that graphically maps the primary, secondary, and tertiary consequences of a change as concentric rings radiating from a central hub. You enter each direct consequence around the change, then for each one repeat the process to find second-order consequences, then third-order, building &ldquo;if-then&rdquo; causal chains. This is the canonical technique for exactly what the user asked for. <code>/ripple-effects</code> implements it as a nested text tree (visual wheel is out of scope per D2).</dd>
+<dt><strong>Second-order thinking</strong> (&ldquo;and then what?&rdquo;)</dt>
+<dd>Start with the most immediate effects (first order); for each, ask &ldquo;and then what?&rdquo; to reach the second order, and again for the third. Failing to consider second- and third-order consequences is a leading cause of bad decisions &mdash; especially when the first-order effect confirms a bias. The recursive &ldquo;and then what?&rdquo; prompt is the engine of each ring.</dd>
+<dt><strong>Impact-lens coverage</strong> (cascade thinking)</dt>
+<dd>To avoid tunnel vision, structured facilitation forces exploration across multiple impact categories rather than one. Classic foresight uses STEEP (social, technological, economic, environmental, political); <code>/ripple-effects</code> adapts this to a <strong>product/PM lens set</strong> (see <a href="#simulation">Simulation</a>) so a proposal's effects on users, the business, the team, the system, the market, and ethics/risk are each probed.</dd>
+<dt><strong>Likelihood &times; impact scoring</strong> (cascading-effects risk analysis)</dt>
+<dd>Strategic-foresight and risk practice scores each surfaced effect so attention flows to high-impact, uncertain ripples rather than every leaf equally. <code>/ripple-effects</code> tags each effect with likelihood, impact, and desirability (D1) and uses those tags to order the interrogation.</dd>
 </dl>
+<p>Sources consulted at define: the Futures Wheel (Mindtools, SessionLab, KnowledgeWorks, Jerome Glenn via Toolshero), second-order thinking (fs.blog, Farnam Street; untools.co; Wes Kao), and cascading-effects analysis (Red Team Analysis Society; MDPI <em>Land</em> compound-crises).</p>
+</section>
+
+<section id="pipeline-sec">
+<h2 id="pipeline">Pipeline (the process)</h2>
+<p>Six phases. Phases 0&ndash;3 build and present the consequence map; Phases 4&ndash;5 interrogate and report. Mirrors <code>/grill</code>'s shape (intake &rarr; build tree &rarr; loop &rarr; report) with a simulation front-half inserted.</p>
+<ol>
+<li><strong>Phase 0 &mdash; Intake &amp; scope.</strong> Resolve the target the same way <code>/grill</code> does (file path; pipeline-doc stem via <code>_shared/resolve-input.md</code>; URL/topic &rarr; ask for paste/path). Summarize the proposal in 3&ndash;5 bullets and confirm the read before simulating &mdash; simulating a misread wastes the whole run. Pick depth (<code>--depth brief|standard|deep</code>, default standard) and the order ceiling (<code>--orders 1|2|3</code>, default 3). Resolve <code>output_format</code>.</li>
+<li><strong>Phase 1 &mdash; Simulate (Futures Wheel).</strong> Place the proposal at the center. Generate first-order effects across the lens set; for each, ask &ldquo;and then what?&rdquo; to derive second-order; repeat to the order ceiling. Effects branch as an if-then tree, deduped where chains converge. (Detail: <a href="#simulation">Simulation</a>.)</li>
+<li><strong>Phase 2 &mdash; Score.</strong> Tag every effect with likelihood (H/M/L) &times; impact (H/M/L) &times; desirability (good/bad/mixed). Scoring is applied to <em>every</em> notable effect, not just a filtered top-N (D1). (Detail: <a href="#scoring">Scoring</a>.)</li>
+<li><strong>Phase 3 &mdash; Present the consequence map.</strong> Emit the scored nested tree to chat (and persist the HTML report, Phase 5) so the user sees the full ripple picture <em>before</em> being questioned. This is the artifact the grill loop draws from.</li>
+<li><strong>Phase 4 &mdash; Grill loop.</strong> Walk the notable effects, ordered by leverage (high-impact + uncertain/negative first), and interrogate one question at a time, each with a recommended answer (grill-style). Each question ties a specific consequence back to a refinement of the proposal: mitigate, accept, design-around, or invalidate the chain. (Detail: <a href="#grill-loop">Grill loop</a>.)</li>
+<li><strong>Phase 5 &mdash; Report.</strong> Optional save (honoring <code>--save</code>/<code>--no-save</code> + <code>output_format</code>): a self-contained HTML report &mdash; the scored consequence tree + the Q&amp;A transcript + the resulting refinements/open-risks &mdash; authored through the html-authoring substrate.</li>
+</ol>
+</section>
+
+<section id="simulation-sec">
+<h2 id="simulation">Simulation method (the orders &amp; lenses)</h2>
+<p><strong>The recursion.</strong> Order&nbsp;1 = direct effects of the proposal. Order&nbsp;2 = effects of each order-1 effect (&ldquo;and then what?&rdquo;). Order&nbsp;3 = effects of each order-2 effect. The <code>--orders</code> ceiling (default 3) caps recursion; <code>--depth</code> governs branching breadth at each order (brief = top branches only; standard = top + immediate sub-branches; deep = exhaust the tree, no cap &mdash; same dial semantics as <code>/grill</code>).</p>
+<p><strong>The lens set</strong> (adapted STEEP &rarr; product). Each order-1 pass is run across these lenses so effects are not all of one flavor:</p>
+<ul>
+<li><strong>Users / customers</strong> &mdash; behavior change, adoption, trust, edge-case segments.</li>
+<li><strong>Business / economics</strong> &mdash; revenue, cost, unit economics, pricing pressure.</li>
+<li><strong>Team / org</strong> &mdash; workload, ownership, incentives, support burden, morale.</li>
+<li><strong>Technical / system</strong> &mdash; load, coupling, data, reliability, tech-debt, security.</li>
+<li><strong>Market / competitive</strong> &mdash; competitor response, partners, ecosystem, positioning.</li>
+<li><strong>Ethics / risk / second-order incentives</strong> &mdash; misuse, gaming, fairness, regulatory, reputational.</li>
+</ul>
+<p>The lens set is a <strong>default the skill adapts</strong> to the proposal &mdash; a pure-infra change leans technical/team; a pricing change leans business/users/market. Lenses that produce nothing for a given proposal are dropped (and the drop is noted), never padded.</p>
+<p><strong>Convergence &amp; honesty.</strong> When two chains lead to the same downstream effect, merge them and note the multiple drivers (a convergent effect is usually higher-leverage). The skill is explicit that this is a <em>structured brainstorm of plausible</em> consequences, not a prediction &mdash; effects carry likelihood tags precisely because they are uncertain.</p>
+</section>
+
+<section id="scoring-sec">
+<h2 id="scoring">Scoring &amp; prioritization</h2>
+<p>Each effect node carries three tags (D1 &mdash; score everything notable, then grill broadly rather than aggressively filtering):</p>
+<ul>
+<li><strong>Likelihood</strong>: High / Medium / Low &mdash; how plausible the chain is.</li>
+<li><strong>Impact</strong>: High / Medium / Low &mdash; how much it would matter if it occurred.</li>
+<li><strong>Desirability</strong>: Good / Bad / Mixed &mdash; whether it helps or hurts the proposal's intent.</li>
+</ul>
+<p><strong>Leverage</strong> (the grill-ordering key) = high impact &times; uncertain likelihood &times; negative/mixed desirability rises to the top; a high-likelihood high-impact <em>good</em> effect is reinforced (&ldquo;protect this&rdquo;) but rarely needs interrogation. Per D1 the loop still surfaces every <em>notable</em> effect (anything not Low-impact <em>and</em> Low-likelihood), not just the top risks &mdash; the scoring orders the conversation, it does not silently truncate it. Scoring is LLM-judgment, not arithmetic; there is no numeric score to compute (per &sect;H, never have the model do arithmetic a script could &mdash; here there simply is none).</p>
+</section>
+
+<section id="grill-loop-sec">
+<h2 id="grill-loop">Grill loop (interrogation)</h2>
+<p>Sibling to <code>/grill</code>'s Phase 2, drawing its questions from the scored consequence tree rather than the proposal's internal decisions. For each notable effect, in leverage order:</p>
+<ol>
+<li><strong>One <code>AskUserQuestion</code> per consequence.</strong> The question ties the ripple to a decision: e.g. &ldquo;Your proposal's order-2 effect &lsquo;support tickets spike as power users hit the new rate limit&rsquo; is High-impact / Medium-likelihood. How do you want to handle it?&rdquo;
+  <ul>
+  <li><strong>[Recommended]</strong> a concrete mitigation/design-around, reasoning compressed into the label.</li>
+  <li>1&ndash;2 alternatives (accept-the-risk; redesign to invalidate the chain).</li>
+  <li><strong>Elaborate</strong> &mdash; free-form answer next turn.</li>
+  <li><strong>Skip / not relevant</strong> &mdash; user judges the chain implausible.</li>
+  </ul>
+</li>
+<li><strong>Branch on the answer.</strong> A mitigation may spawn its own new consequence (&ldquo;and then what?&rdquo; on the fix) &mdash; queue it. &ldquo;Not relevant&rdquo; prunes the chain (and is recorded). A surprising answer can reveal an effect the simulation missed &mdash; insert and re-prioritize.</li>
+<li><strong>Stop conditions</strong> (any): all notable effects at the chosen depth addressed; user says stop; or (brief/standard only) the depth budget is hit and the next effect is low-leverage. Deep has no budget &mdash; only the user or an exhausted tree stops it (same rule as <code>/grill</code>).</li>
+</ol>
+<p>Codebase-answerable questions are <em>not</em> asked &mdash; if a consequence hinges on &ldquo;what does the current rate limiter do?&rdquo;, the skill greps/reads and reports, exactly like <code>/grill</code> Phase 1's &ldquo;answerable from code&rdquo; class.</p>
+</section>
+
+<section id="output-sec">
+<h2 id="output">Output structure</h2>
+<p><strong>Chat:</strong> the scored consequence tree (Phase 3) then the live Q&amp;A (Phase 4). <strong>Saved report</strong> (optional, <code>--save</code> default per the same convention as <code>/grill</code>): a single self-contained HTML doc with three sections &mdash; (1) the scored nested consequence tree (1st&rarr;2nd&rarr;3rd order, lens-tagged, with likelihood/impact/desirability badges); (2) the interrogation transcript (each question, the chosen disposition, any new chains spawned); (3) a <strong>refinements &amp; residual-risks</strong> summary the user carries back into the proposal. <strong>Tree-only &mdash; no SVG Futures-Wheel diagram</strong> (D2): the nested list is the reliable primary; no fragile headless SVG generation. Authored through <code>_shared/html-authoring/</code> (inline-comments overlay, <code>pmos:skill</code> meta, asset prefix, cache-bust, kebab heading ids, sections.json, index regen).</p>
+</section>
+
+<section id="dispatch-sec">
+<h2 id="dispatch">Subagent dispatch (&sect;L)</h2>
+<p>The skill is mostly an in-session reasoning + interrogation loop, so it runs <strong>inline</strong> by default (no subagent fan-out) &mdash; the simulation, scoring, and grill loop all need the live conversation. One optional exception mirrors <code>/grill</code>: a <strong>codebase-exploration helper</strong> (sonnet/inherit) may be dispatched to answer a code-answerable consequence question without polluting the main context. When invoked <em>as a reviewer subagent</em> by an orchestrator (e.g. a future <code>/feature-sdlc</code> phase), it follows the reviewer side of <code>_shared/reviewer-protocol.md</code> &mdash; enumerate sections, emit <code>{section_id, severity, message, quote &ge;40-char}</code> findings, never self-validate.</p>
 </section>
 
 <section id="decisions-sec">
-<h2 id="decisions">Decision log (delta from design)</h2>
-<p>No new decisions beyond the design doc's D0&ndash;D6. The plan adds only the <strong>execution shape</strong>: one serial chain over a single <code>SKILL.md</code> (no parallel waves, no scripts/tests beyond a headless selftest + repo lints, since <code>/consequences</code> is an in-session reasoning skill with no runtime tooling).</p>
-</section>
-
-<section id="risks-sec">
-<h2 id="risks">Risks &amp; mitigations</h2>
+<h2 id="decisions">Decisions (captured at define, 2026-06-13)</h2>
 <table>
-<thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+<thead><tr><th>ID</th><th>Decision</th><th>Rationale</th></tr></thead>
 <tbody>
-<tr><td><strong>Over-specification</strong> &mdash; the build transcribes a verbose simulation algorithm, violating D6.</td><td>T6's explicit lean-body check (length vs <code>/grill</code>); D6 is an AC (AC10) that fails the story even if functionally complete. Author T3 as &ldquo;a handful of sentences&rdquo;, not a procedure.</td></tr>
-<tr><td>Accidental coupling to <code>/grill</code> (editing it or extracting shared substrate).</td><td>AC8 + T6 assert standalone sibling; cite <code>/grill</code> as prior art only. The route:skill epic coherence <code>[J]</code> gate at release backstops cross-skill drift.</td></tr>
-<tr><td>Interrogation never converges (too many 3rd-order effects).</td><td><code>--orders</code> ceiling (default 3), <code>--depth</code> breadth budget, leverage ordering, and the <code>/grill</code> stop conditions; non-interactive AUTO-PICKs + buffers.</td></tr>
-<tr><td>Non-interactive run blocks on the per-consequence questions.</td><td>Each is <code>defer-only</code> (free-form/ambiguous) per the W14 contract &mdash; AUTO-defer + buffer to the report, never block.</td></tr>
+<tr><td>D0</td><td><strong>Name = <code>/ripple-effects</code></strong> (over the original <code>/nth-order-effects</code>, and over <code>/consequences</code>, bare <code>/ripple</code>, <code>/and-then-what</code>).</td><td>Names the differentiator from <code>/grill</code>: the <em>downstream cascade</em> (2nd/3rd-order ripples), not just direct outcomes. Maps to the Futures-Wheel concentric-ring metaphor, stays self-explanatory cold, and fits the hyphenated analysis-skill family (<code>/book-summary</code>, <code>/survey-design</code>). Reconsidered from an initial <code>/consequences</code> pick (2026-06-13) &mdash; <code>consequences</code> read too close to what <code>/grill</code> already probes.</td></tr>
+<tr><td>D1</td><td><strong>Score every notable effect (likelihood &times; impact &times; desirability), then grill broadly</strong> &mdash; order by leverage but do not aggressively filter to a top-N.</td><td>Most rigorous; mirrors risk-analysis practice. Maintainer chose breadth (&ldquo;score, but grill everything notable&rdquo;) over both raw LLM-judgment and top-risk-only filtering.</td></tr>
+<tr><td>D2</td><td><strong>Tree-only report &mdash; no SVG Futures-Wheel diagram.</strong></td><td>Nested list is fully reliable; headless SVG generation/gating is fragile (per prior <code>/logos</code>, <code>/frameworks</code> learnings). Simplicity over visual flourish.</td></tr>
+<tr><td>D3</td><td><strong>Standalone sibling &mdash; own interrogation loop, no <code>_shared/</code> extraction in v1.</strong></td><td>Keeps a 1-skill epic a 1-skill epic; avoids the cross-plugin <code>_shared</code> bootstrap/sync overhead. Cites <code>/grill</code> as prior art; future DRY extraction noted out-of-scope.</td></tr>
+<tr><td>D4</td><td><strong>Method = Futures Wheel + second-order &ldquo;and then what?&rdquo; across an adapted-STEEP product lens set.</strong></td><td>Established foresight technique that maps exactly onto the 1st/2nd/3rd-order ask; lenses prevent single-flavor tunnel vision.</td></tr>
+<tr><td>D5</td><td><strong>Depth dial reuses <code>/grill</code>'s <code>--depth brief|standard|deep</code>, plus <code>--orders 1|2|3</code> (default 3) as the recursion ceiling.</strong></td><td>Familiar vocabulary; <code>--depth</code> = branching breadth, <code>--orders</code> = recursion depth &mdash; two independent knobs the user expects.</td></tr>
+<tr><td>D6</td><td><strong>Keep <code>SKILL.md</code> lean and model-driven, like <code>/grill</code> (~184 lines).</strong> Describe the method at a high level; rely on model intelligence to simulate the effects. NO verbose step-by-step simulation recipe, NO scoring formula, NO enumerated procedure transcribed into the skill body.</td><td>Maintainer directive (2026-06-13). The model already knows how to reason through ripple effects when told to. This design doc captures intent/rationale; the skill body stays as short and readable as <code>/grill</code>'s. Over-specification is the failure mode to avoid.</td></tr>
 </tbody>
 </table>
 </section>
 
-<section id="release-sec">
-<h2 id="release-prereqs">Release prerequisites</h2>
-<p>Handled by <code>/complete-dev</code> (Phase 8) at release, NOT as <code>/execute</code> wave tasks (skill-mode scope rule, AC11):</p>
+<section id="oos-sec">
+<h2 id="out-of-scope">Out of scope (v1)</h2>
 <ul>
-<li>Version bump: <code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> (same version).</li>
-<li>Changelog regeneration for the new skill.</li>
-<li>README row / skill listing for <code>/consequences</code>.</li>
-<li>Manifest version-sync (both <code>plugin.json</code> manifests).</li>
-<li><code>~/.pmos/learnings.md</code> <code>## /consequences</code> header bootstrap.</li>
-<li>Tag <code>pmos-toolkit/v&lt;next&gt;</code>; push to origin + gitlab-mirror.</li>
+<li>A visual SVG Futures-Wheel diagram (D2 &mdash; tree-only).</li>
+<li>Extracting a shared interrogation substrate consumed by both <code>/grill</code> and <code>/ripple-effects</code> (D3 &mdash; future DRY pass).</li>
+<li>Quantitative probability/EV modelling &mdash; tags are qualitative H/M/L, not numbers.</li>
+<li>Orders beyond 3 by default (deep mode may go further only when the tree genuinely warrants and the user drives it).</li>
+<li>A standing <code>/feature-sdlc</code> pipeline phase &mdash; v1 is orthogonal/on-demand like <code>/grill</code>; orchestrator integration is a later consideration.</li>
 </ul>
 </section>
 
-<section id="final-sec">
-<h2 id="final-verification">Final verification checklist</h2>
+<section id="conformance-sec">
+<h2 id="conformance">Skill-authoring conformance</h2>
+<p>The build story must produce a skill that passes <code>reference/skill-eval.md</code> (floor 43/47) and honors the repo conventions:</p>
 <ul>
-<li>All 11 ACs (AC1&ndash;AC11) satisfied; <code>skill-eval.md</code> floor 43/47.</li>
-<li>SKILL.md length/simplicity comparable to <code>/grill</code> (D6/AC10).</li>
-<li>Registered as a slash command (canonical path, <code>name</code> matches dir).</li>
-<li>Repo hygiene lints green (flags-vs-hints, phase-refs, non-interactive-inline, audit-recommended).</li>
-<li><code>--non-interactive</code> smoke: simulates + buffers deferred questions, writes report, no block.</li>
-<li>No <code>/grill</code> or <code>_shared/</code> changes in the diff (standalone sibling).</li>
+<li>Canonical path <code>plugins/pmos-toolkit/skills/ripple-effects/SKILL.md</code>; frontmatter <code>name: ripple-effects</code> matches dir.</li>
+<li>Non-interactive W14 contract: inline the canonical <code>&lt;!-- non-interactive-block --&gt;</code> byte-identical; every <code>AskUserQuestion</code> carries a <code>(Recommended)</code> option or a <code>defer-only</code> tag (the per-consequence grill questions are <code>free-form</code>/<code>ambiguous</code> defer-only, like <code>/grill</code>'s).</li>
+<li>&sect;H&ndash;&sect;L: deterministic resolution = hard gates; the simulation/scoring/grill judgments are advisory by nature; no arithmetic for a script to do; integer top-level phases with stable <code>{#slug}</code> anchors; &sect;L dispatch tiers documented (inline default + optional code-explore helper).</li>
+<li>&sect;I flags: <code>--depth</code>, <code>--orders</code>, <code>--save</code>/<code>--no-save</code>, <code>--format</code>, <code>--non-interactive</code>/<code>--interactive</code> in argument-hint; NL-first; <code>--depth</code> machine-coupling note (never rename if an orchestrator passes it literally).</li>
+<li>Release prerequisites (version bump, changelog, README row, manifest sync, learnings header) listed under the spec's <code>## Release prerequisites</code> only &mdash; never as <code>/execute</code> wave tasks (<code>/complete-dev</code> is the sole writer).</li>
 </ul>
 </section>
 
   </main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
     <a class="pmos-wordmark pmos-wordmark--footer" href="https://github.com/maneesh-dhabria/pmos-toolkit#readme" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-13_consequences-skill/stories/0613-fzy/03_plan.html</span>
+    <span class="pmos-artifact-source">Source: docs/pmos/features/2026-06-13_ripple-effects-skill/02_design.html</span>
     <span class="pmos-attribution-sep" aria-hidden="true">·</span>
     <a class="pmos-attribution pmos-attribution--footer"
        href="https://github.com/maneesh-dhabria/pmos-toolkit#readme"
@@ -1997,7 +2055,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 </script>
   <!-- pmos-comments:start -->
 <script id="pmos-comments" type="application/json">
-{"schema":1,"version":0,"generated_at":"2026-06-12T19:30:11.645Z","threads":[]}
+{"schema":1,"version":0,"generated_at":"2026-06-12T19:26:24.828Z","threads":[]}
 </script>
 <!-- pmos-comments:end -->
 </body>
