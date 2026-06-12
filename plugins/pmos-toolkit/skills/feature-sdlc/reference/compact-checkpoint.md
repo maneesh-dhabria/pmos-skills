@@ -6,6 +6,36 @@ The exit contract is precise — without that precision, resume can't be tested 
 
 ---
 
+## Reading `compact_mode` {#reading-compact-mode}
+
+Before firing, callers read `compact_mode` from the settings dict resolved at Phase 0 (no second file read):
+
+```
+compact_mode = settings.get("compact_mode", "manual")
+# valid values: "manual" | "auto" (lowercase only; case-sensitive)
+# invalid / unrecognised → treat as "manual" + emit visible chat warning:
+#   compact_mode: unrecognised value '<v>'; treating as manual
+# file absent → settings is empty dict; compact_mode resolves to "manual"
+```
+
+| Property | Detail |
+|---|---|
+| Field | `compact_mode` in `.pmos/settings.yaml` |
+| Type | string |
+| Valid values | `manual` \| `auto` — lowercase only, case-sensitive |
+| Default | `manual` — absent field OR absent `.pmos/settings.yaml` file |
+| Scope | repo-level only; no CLI flag, no workstream override |
+
+**Call convention:** read settings once at Phase 0 and pass the resolved value forward; the checkpoint never re-reads `settings.yaml` mid-pipeline.
+
+**Log channel:** the auto-mode skip line and the unrecognised-value warning both emit to visible chat (same channel as Phase 0 diagnostics).
+
+### Failure mode (`auto`) {#auto-failure-mode}
+
+`compact_mode: auto` is a trust declaration — the skill trusts that autocompact is configured and active; it does not verify at runtime. If autocompact is not active when `compact_mode: auto` is set, context growth across heavy phases is unmanaged. This is the user's responsibility to configure correctly; the skill cannot detect the absence of autocompact.
+
+---
+
 ## When the checkpoint fires
 
 Mode- and tier-dependent:
@@ -16,11 +46,22 @@ Mode- and tier-dependent:
 
 (The former `simulate-spec` phase was a trigger pre-v2.34.0; it has since been folded into `/spec`.)
 
+**`compact_mode` determines the checkpoint behavior for Tier 2+ runs:**
+
+- **`manual` (default):** surface the `AskUserQuestion` below.
+- **`auto`:** skip the `AskUserQuestion` entirely; emit a standalone log line to chat BEFORE the heavy phase runs:
+  ```
+  compact_mode: auto — checkpoint at <phase-label> skipped; autocompact active
+  ```
+  `<phase-label>` is caller-supplied — the human-readable phase name (e.g., `execute`, `verify`, `wireframes`, `prototype`). Example in full: `compact_mode: auto — checkpoint at execute skipped; autocompact active`.
+
+Evaluation order: (1) Tier 1 → skip checkpoint entirely (no log line); (2) `compact_mode: auto` → skip `AskUserQuestion`, emit log line; (3) `compact_mode: manual` (or default) → surface `AskUserQuestion`.
+
 Phases not listed here run without a checkpoint — their context cost is light enough that interrupting flow is the bigger cost.
 
 ---
 
-## The `AskUserQuestion`
+## The `AskUserQuestion` (manual mode)
 
 ```
 question: "About to enter <phase>. This phase is context-heavy. Compact your context window before continuing, continue without compacting, or pause to compact and resume later?"

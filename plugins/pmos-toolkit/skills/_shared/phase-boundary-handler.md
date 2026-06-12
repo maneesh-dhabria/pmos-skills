@@ -45,13 +45,17 @@ function handle_phase_boundary(completed_task, plan, feature_folder):
         # 3a. Failure path: do NOT compact, escalate
         return ESCALATE(verify_result.failures)
 
-    # 3b. Success path: hard-stop and instruct user to /compact + re-invoke --resume
-    # (hard-stop default per O1 resolution; see Compact Behavior section)
-    return HALT_FOR_COMPACT(
-        message = f"Phase {phase.number} verified green. "
-                  f"Run `/compact` to clear context, then re-invoke "
-                  f"`/execute --resume` to continue with phase {phase.number + 1}."
-    )
+    # 3b. Success path: HALT_FOR_COMPACT in both compact_mode values — only the message differs
+    # (hard-stop per O1 resolution; see Reading compact_mode + Compact Behavior sections)
+    if compact_mode == "auto":
+        msg = (f"Phase {phase.number} verified green. "
+               f"Re-invoke `/execute --resume` to continue with phase {phase.number + 1} "
+               f"(autocompact handles context).")
+    else:  # "manual" (default)
+        msg = (f"Phase {phase.number} verified green. "
+               f"Run `/compact` to clear context, then re-invoke "
+               f"`/execute --resume` to continue with phase {phase.number + 1}.")
+    return HALT_FOR_COMPACT(message = msg)
 ```
 
 **Return values:**
@@ -119,15 +123,47 @@ Phase 2a invokes /verify in a phase-scoped mode. The call mechanism is the imple
 
 ---
 
+## Reading `compact_mode` {#reading-compact-mode}
+
+Before emitting `HALT_FOR_COMPACT`, callers read `compact_mode` from the settings dict resolved at Phase 0 (no second file read):
+
+```
+compact_mode = settings.get("compact_mode", "manual")
+# valid values: "manual" | "auto" (lowercase only; case-sensitive)
+# invalid / unrecognised → treat as "manual" + emit visible chat warning:
+#   compact_mode: unrecognised value '<v>'; treating as manual
+# file absent → settings is empty dict; compact_mode resolves to "manual"
+```
+
+| Property | Detail |
+|---|---|
+| Field | `compact_mode` in `.pmos/settings.yaml` |
+| Type | string |
+| Valid values | `manual` \| `auto` — lowercase only, case-sensitive |
+| Default | `manual` — absent field OR absent `.pmos/settings.yaml` file |
+| Scope | repo-level only; no CLI flag, no workstream override |
+
+**Call convention:** read settings once at Phase 0 and pass the resolved value forward; the handler never re-reads `settings.yaml` mid-pipeline.
+
+**Log channel:** the unrecognised-value warning emits to visible chat (same channel as Phase 0 diagnostics).
+
+**Trust-based:** in `auto` mode the skill trusts that autocompact is configured and active; it does not verify at runtime. If autocompact is not active, the user re-invokes `/execute --resume` and context may already be full — configuring autocompact correctly is the user's responsibility.
+
+---
+
 ## Compact Behavior
 
 **Default: hard-stop (per spec Open Question O1 resolved as hard-stop).**
 
 When /verify passes at a phase boundary, Phase 2a MUST NOT continue executing. It MUST:
 
-1. Emit the `HALT_FOR_COMPACT` message to the user, e.g.:
+1. Emit the `HALT_FOR_COMPACT` message to the user. The message text depends on `compact_mode` (see "Reading `compact_mode`"):
 
+   **`manual` (default):**
    > Phase 1 verified green. Run `/compact` to clear context, then re-invoke `/execute --resume` to continue with phase 2.
+
+   **`auto`:**
+   > Phase 1 verified green. Re-invoke `/execute --resume` to continue with phase 2 (autocompact handles context).
 
 2. End the current /execute turn immediately. No further tasks are executed in this session.
 
@@ -135,7 +171,7 @@ When /verify passes at a phase boundary, Phase 2a MUST NOT continue executing. I
 
 **User flow after HALT_FOR_COMPACT:**
 
-1. User runs `/compact` (Claude Code built-in; cannot be triggered programmatically by the skill).
+1. (`compact_mode: manual`) User runs `/compact` (Claude Code built-in; cannot be triggered programmatically by the skill). (`compact_mode: auto`) Autocompact handles context — user proceeds directly to step 2.
 2. User re-invokes `/execute --resume` (or `/execute <plan-path> --resume`).
 3. Phase 0c (resume resolver) reads the freshly-written `phase-N.md` with `verify_status: passed`, seals all tasks in that phase as `done-sealed`, and sets the resume point to the first task of the next phase.
 4. Execution continues from the next phase's first task in the fresh context.

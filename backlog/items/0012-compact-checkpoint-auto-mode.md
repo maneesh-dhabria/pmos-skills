@@ -5,14 +5,14 @@ kind: story
 title: compact-checkpoint auto-mode support
 type: enhancement
 priority: should
-status: planned
+status: done
 route: skill
 parent: 0011
 dependencies: []
 worktree:
 plan_doc: docs/pmos/features/2026-06-12_compact-mode-setting/stories/0012-compact-checkpoint-auto-mode/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_compact-mode-setting/stories/0012-compact-checkpoint-auto-mode/tasks.yaml
-claimed_by:
+claimed_by: null
 pr:
 labels: [compact, feature-sdlc]
 created: 2026-06-12
