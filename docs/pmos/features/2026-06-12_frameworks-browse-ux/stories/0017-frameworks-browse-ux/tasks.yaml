@@ -1,0 +1,127 @@
+schema_version: 1
+story: 0017
+epic: 0016
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/frameworks
+# Single-file change set: all UI edits land in scripts/build-library.mjs's buildHtml() emit.
+# Tasks are TDD-ordered: update the selftest/structure assertions to the new contract (red),
+# then make the generator changes (green), then doc-sync + re-derive.
+tasks:
+  - id: T1
+    title: "Rename map (D5) — SUPER_CATEGORY_LABELS, presentation-only"
+    ac: [AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Add a SUPER_CATEGORY_LABELS const in build-library.mjs mapping the 4 raw super_category
+      values to display labels (Analytics, Design & Finance → Cross Functional Skills; People,
+      Personal & Career → PM Skills & Mindset; Product → Product Management; Strategy & Business
+      → Business & Strategy). Apply to the area-filter <option> LABEL only; the option VALUE
+      and state.area comparison stay the raw super_category so passes()/grouping are unchanged.
+      Unmapped value → raw fallback. Add a selftest assertion that the renamed label renders in
+      an <option> while the raw value is the option value, and that match.mjs/--json are untouched.
+
+  - id: T2
+    title: "List view default (D2)"
+    ac: [AC2]
+    deps: []
+    parallel: false
+    detail: >
+      state.view='list'; move the `active` class from the detailed button to the list button in
+      the emitted markup. Update the selftest (it currently encodes detailed-active only via the
+      three-buttons-present check; add an assertion that the list button carries class="active"
+      and detailed does not).
+
+  - id: T3
+    title: "View-toggle icons (D3)"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add a decorative inline-SVG glyph (aria-hidden) before each toggle button's text label —
+      compact (dense rows), detailed (card grid), list (lines). Keep each button's aria-label /
+      accessible name. No external asset refs (selftest's no-<img>/no-external-asset assertions
+      must still pass). Add a selftest assertion that each data-view button contains an <svg>.
+
+  - id: T4
+    title: "Selection highlight in all 3 views + no page auto-scroll (D1)"
+    ac: [AC1]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add a `.selected` class (accent treatment) to the active item's element in the list and
+      compact renderers (card already gets `.open`). In openReader(), capture window.scrollY
+      before the render() rebuild and restore it after so selecting a deep item does not scroll
+      the page; reader.scrollTop=0 stays (panel-local). Add selftest assertions: list/compact
+      item markup carries the selected class when f.id===state.openId, and openReader saves/
+      restores scroll (grep for the scrollY capture/restore).
+
+  - id: T5
+    title: "Decision-type + tags multi-select dropdowns; remove tag cloud + More-filters (D4, D4a, D4c)"
+    ac: [AC4, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Replace the inline tagrow chip cloud and the <details class=morefilters> single-select
+      dtFilter with two disclosure dropdowns: (a) Decision type — button[aria-expanded/aria-controls]
+      opening a panel of native checkboxes (one per decision_type); (b) Tags — same, with a
+      type-to-filter <input> at the top live-filtering the checkbox list. state.dt becomes a set
+      (object map like state.tags); passes() uses OR-within for dt (membership) and keeps AND-across.
+      Dropdowns stay open across selections; Escape closes + returns focus to the trigger; wrap the
+      count in an aria-live="polite" region. Update selftest: assert the two dropdown triggers
+      (aria-expanded), native checkboxes for dt + tags, the tag search input, NO tagrow cloud, NO
+      morefilters disclosure; assert OR-within dt in passes().
+
+  - id: T6
+    title: "Applied-filters bar — removable facet-labeled chips + Clear all (D4b)"
+    ac: [AC5]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Render an always-visible applied-filters bar above #groups listing each active filter as a
+      removable <button> chip labeled with its facet (Area: <renamed> ✕, Decision: <dt> ✕,
+      Tag: <tag> ✕) with an accessible name (Remove filter: <value>), plus a Clear all control.
+      Removing a chip clears that one filter and unchecks the matching dropdown checkbox (chips ↔
+      checkboxes synced); Clear all resets area+dt+tags. Use the SUPER_CATEGORY_LABELS display
+      label for the area chip. Add selftest assertions for chip rendering, per-chip remove, and
+      Clear all.
+
+  - id: T7
+    title: "Per-option counts in dropdowns (D4d, should)"
+    ac: [AC8]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Compute per-value counts from the corpus and render them in the dt + tag dropdown option
+      labels (e.g. "pricing (34)"). Keep cheap; if it materially complicates the tag type-to-filter
+      input, defer and record as a carried residual in /verify (should-AC, non-blocking).
+
+  - id: T8
+    title: "Doc-sync SKILL.md + build-library.mjs header comment"
+    ac: [AC9]
+    deps: [T2, T4, T5, T6]
+    parallel: false
+    detail: >
+      Update the build-library.mjs top-of-file header comment (it currently says "tag-chip + area +
+      decision-type filters" and "three listing views (compact/detailed/list)") to describe the new
+      default (list), the view icons, the dropdown multi-select filters, and the applied-filters bar.
+      Update SKILL.md prose describing the browse UI (default view + filter model). No version-bump /
+      CHANGELOG / README-row / manifest tasks here — those belong to /complete-dev per repo norms
+      (skill-patterns.md §G); list them under the design doc's Release prerequisites only if needed.
+
+  - id: T9
+    title: "Re-derive index.html + full green gate"
+    ac: [AC9]
+    deps: [T1, T2, T3, T4, T5, T6, T7, T8]
+    parallel: false
+    detail: >
+      Run `node scripts/build-library.mjs --selftest` (must PASS), `tests/structure.test.sh`,
+      `tests/build-library.test.sh` (all green), then rebuild the shipped library
+      (build-library.mjs --out <index.html> per the skill's build path / apply-rederive.mjs) so the
+      committed index.html reflects the new UI. Verify offline (file://) load shows list-default,
+      icons, dropdowns, applied bar, renamed areas, and selection highlight with no page scroll.
+
+# Release prerequisites (NOT execute tasks — /complete-dev owns these per skill-patterns.md §G):
+#   - pmos-learnkit version bump (plugin.json x2) + CHANGELOG entry + README row if applicable.

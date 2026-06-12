@@ -2,7 +2,7 @@
 
 Last regenerated: 2026-06-12
 
-0 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+1 open item. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -10,6 +10,7 @@ Last regenerated: 2026-06-12
 | 0010 | released |  | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline |
 | 0011 | released | skill | pmos-toolkit | 2/2 | compact-mode setting for /compact checkpoints |
 | 0015 | released | skill | pmos-toolkit | 1/1 | define-mode worktree exit/cleanup at terminal docs-only merge |
+| 0016 | defined | skill | pmos-learnkit | 0/1 | /frameworks browse-UI fixes — selection, default view, view icons, multi-select filters, area rename |
 
 ## should
 
@@ -21,6 +22,7 @@ Last regenerated: 2026-06-12
 | 0012 | story | enhancement | done | 0011 | compact-checkpoint auto-mode support |  | 03_plan.html |  |
 | 0013 | story | enhancement | done | 0011 | phase-boundary-handler auto-mode support |  | 03_plan.html |  |
 | 0014 | story | tech-debt | released | 0015 | /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree |  | 03_plan.html |  |
+| 0017 | story | enhancement | planned | 0016 | /frameworks browse-UI fixes — selection highlight + no auto-scroll, list-default, view icons, multi-select filters + applied bar, area rename | 02_design.html | 03_plan.html |  |
 
 ## could
 
