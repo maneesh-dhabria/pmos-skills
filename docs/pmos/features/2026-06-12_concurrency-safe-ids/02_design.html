@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Epic 0020 — Concurrency-safe backlog ids — Design</title>
+<style>
+:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252;--good:#9fe0b8;--warn:#f0b86e}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:920px;padding:32px 24px;font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:20px 0 6px;color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 18px}
+code{background:var(--card);padding:1px 5px;border-radius:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--muted)}
+.d{background:var(--card);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0}
+.d b{color:var(--accent)}
+.ac{background:#14241a;border-left:3px solid var(--good);padding:8px 12px;border-radius:6px;margin:6px 0;color:#cfeede}
+.warn{background:#2a2113;border-left:3px solid var(--warn);padding:8px 12px;border-radius:6px;margin:8px 0}
+ul{margin:6px 0;padding-left:22px}li{margin:4px 0}
+.scope-out{color:var(--muted)}
+</style>
+</head>
+<body>
+<h1>Epic 0020 — Concurrency-safe backlog ids</h1>
+<p class="sub">Define-loop design contract · route: skill · pmos-toolkit · 2026-06-12 · date+short-rand ids + merge-time uniqueness gate + derived INDEX</p>
+
+<h2 id="incident">The incident (root cause, observed live)</h2>
+<p>Two <code>/skill-sdlc define</code> sessions ran in parallel, both branched off the same <code>main</code> at <code>137b929</code> (where <code>max(id) == 0015</code>). Each allocated ids independently per <code>_shared/tracker-crudl.md §2</code>:</p>
+<div class="warn"><code>id</code>: 4-digit zero-padded sequential integer. <b>Per-store counter; no global coordination. Allocate <code>max(existing id) + 1</code>.</b></div>
+<p>So both minted <b>epic 0016 + story 0017</b> — one for <code>/frameworks</code> browse-UI fixes, one for the <code>/book-summary</code> skill. The collision is <b>silent</b> because of two compounding facts:</p>
+<ol>
+<li><b>Slug-suffixed filenames mask the clash.</b> <code>0016-frameworks-browse-ux.md</code> vs <code>0016-book-summary-skill.md</code> are <i>different paths</i> — git sees two new files, no path conflict, clean merge. Two items then both declare <code>id: 0016</code> and nothing flags it.</li>
+<li><b><code>INDEX.md</code> is hand-edited</b>, so it is the only artifact that <i>can</i> conflict — but it conflicts as noisy adjacent-row text, or merges cleanly into a duplicate <code>0016</code> row. Either way the index stops bijecting to ids.</li>
+</ol>
+<p>A third latent failure: the branch name <code>define/&lt;id&gt;</code> is id-derived, so two non-harness defines both want <code>define/0016</code> (the second <code>git worktree add</code> errors). The book-summary run dodged only because it used a harness-native worktree with a different branch name. <b>This epic was itself allocated 0020 by hand</b> (skipping book-summary's in-flight 0018/0019) — the exact manual coordination this fix is meant to remove.</p>
+
+<h2 id="invariants">Coherence invariants</h2>
+<ul>
+<li><b>No global counter, no central coordinator.</b> The fix must work for N parallel worktrees AND separate clones (the <code>origin</code> + <code>gitlab-mirror</code> topology) without a shared lock.</li>
+<li><b>Existing ids are immutable.</b> Legacy 4-digit serials (<code>0001</code>–<code>0019</code>) are <b>grandfathered, never rewritten</b> — they are referenced by <code>parent:</code>, <code>dependencies:</code>, branch names, claim locks, and released changelog entries.</li>
+<li><b>Ids stay filename-, branch-, and lock-safe.</b> Any new id must be valid in <code>{id}-{slug}.md</code>, <code>define/{id}</code> / <code>feat/{id}</code>, and <code>backlog/claims/{id}</code>.</li>
+<li><b>Human-readable + roughly chronological.</b> The maintainer reasons in spoken ids ("0017"); the replacement must stay speakable and time-orderable.</li>
+</ul>
+
+<h2 id="layers">The fix — three independent layers</h2>
+<p>UUID-style ids alone are necessary but not sufficient; the durable fix is three layers, each useful on its own.</p>
+
+<h3 id="l1">Layer 1 — collision-free id scheme (<code>date + short-rand</code>)</h3>
+<div class="d"><b>D1 — id format.</b> New ids are <code>&lt;MMDD&gt;-&lt;rand&gt;</code> where <code>&lt;rand&gt;</code> is <b>3 lowercase Crockford-base32 chars</b> (alphabet <code>0-9 a-z</code> minus <code>i l o u</code> to avoid look-alikes). Example: <code>0612-k3f</code>. Per-day space = 28³ ≈ 22 000 — ample for a personal backlog; the merge-time gate (Layer 2) is the backstop against the astronomically rare same-day collision. The embedded <code>MMDD</code> is a <i>human hint</i>, not a sort key (year wraps); true chronology comes from the existing <code>created:</code> field.</div>
+<ul>
+<li><b>Coordination-free:</b> each session mints its own id from the date + randomness — no <code>max+1</code>, no counter, no shared lock. Works across worktrees AND clones.</li>
+<li><b>Unambiguous vs legacy:</b> the <code>-</code> separator distinguishes new ids from grandfathered 4-digit serials at a glance and in regexes.</li>
+<li><b>Generation must avoid <code>Math.random()</code> in skill scripts</b> where that is banned (resume determinism) — generate from a seeded/process source in a tiny tool, or accept the id as an input. Pin the exact generator in build.</li>
+<li><b>Allocation sites updated:</b> <code>backlog/SKILL.md #add</code> step 2 and the <code>define</code>/<code>build</code> id mints stop calling "Allocate <code>max+1</code>"; <code>_shared/tracker-crudl.md §2</code> becomes the single home of the new format (cross-plugin sync via <code>scripts/sync-shared.sh --from=pmos-toolkit</code>).</li>
+</ul>
+
+<h3 id="l2">Layer 2 — merge-time id-uniqueness hard gate</h3>
+<div class="d"><b>D2.</b> The <code>define</code> definition-merge (<code>feature-sdlc/SKILL.md #define-mode</code> step 5) already runs a deterministic <b>path-scope</b> check. Add an adjacent <b>id-uniqueness</b> hard gate: before merging, refuse if any item <code>id</code> introduced on the branch already exists on <code>main</code>; after merge, assert <code>INDEX</code> has no duplicate ids. Converts <i>silent corruption</i> → <i>loud refusal with the offending ids</i>. Worth having <b>regardless of the id scheme</b> — a backstop for any future allocator bug (and for the same-day random collision).</div>
+
+<h3 id="l3">Layer 3 — <code>INDEX.md</code> as a derived artifact</h3>
+<div class="d"><b>D3.</b> Stop hand-editing <code>INDEX.md</code> in the define merge. The <code>/backlog rebuild-index</code> verb already regenerates it by scanning <code>backlog/items/*.md</code>; make the define merge (and <code>#add</code>) <b>regenerate</b> rather than hand-append rows. This removes <code>INDEX</code> as an independent corruption/merge-conflict surface. It cannot invent uniqueness (Layer 1's job) but it makes the index always reconcilable from the items, and it should <b>sort by <code>created:</code> desc</b> so chronology survives the non-monotonic ids.</div>
+
+<h2 id="ripple">Ripple surface (all id-consuming sites — verify scheme-agnostic)</h2>
+<table>
+<tr><th>Site</th><th>Form</th><th>Status under new scheme</th></tr>
+<tr><td>Item filename</td><td><code>{id}-{slug}.md</code></td><td>OK — <code>0612-k3f-foo.md</code> is valid</td></tr>
+<tr><td>Define branch</td><td><code>define/{id}</code></td><td>OK — <code>define/0612-k3f</code></td></tr>
+<tr><td>Build branch</td><td><code>feat/{id}</code></td><td>OK</td></tr>
+<tr><td>Claim lock</td><td><code>backlog/claims/{id}</code></td><td>OK (O_EXCL file name)</td></tr>
+<tr><td><code>parent:</code> / <code>dependencies:</code></td><td>id strings</td><td>OK — opaque string refs</td></tr>
+<tr><td>Feature folder</td><td><code>{date}_{slug}/</code></td><td>Unaffected — slug-based, not id-based</td></tr>
+<tr><td><code>/backlog next</code> ordering</td><td>priority→score→updated</td><td>Already not id-ordered; confirm no lexical id sort assumed</td></tr>
+</table>
+
+<h2 id="migration">Migration stance</h2>
+<ul>
+<li><b>No rewrite of existing ids.</b> Legacy serials and new date+rand ids <b>coexist</b>; readers accept both (<code>^(\d{4}|\d{4}-[0-9a-hj-km-np-tv-z]{3})$</code>).</li>
+<li>The <b>book-summary 0018/0019</b> renumber already done in its session stays as legacy serials — no back-conversion.</li>
+<li>First post-fix <code>rebuild-index</code> run normalizes INDEX sort to <code>created:</code> desc.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story (0021). Layers 2 and 3 are independent of Layer 1, but all three are small, cohesive, and a partial ship leaves the clash window open — so they ride one <code>/execute</code> run / one PR. (Splittable into L1 / L2 / L3 if build finds the diff too large; the D24 litmus permits it since the layers don't depend on each other.)</p>
+<table>
+<tr><th>Story</th><th>Route</th><th>Plugin</th><th>Covers</th></tr>
+<tr><td>0021 — concurrency-safe ids</td><td>skill</td><td>pmos-toolkit</td><td>L1 id scheme (tracker-crudl §2 + backlog allocation) · L2 define merge uniqueness gate · L3 derived INDEX · tests · _shared sync</td></tr>
+</table>
+
+<h2 id="acs">Acceptance criteria (story 0021)</h2>
+<div class="ac">AC1 — New backlog ids are minted as <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> (Crockford base32, no <code>i/l/o/u</code>); no allocation reads <code>max+1</code> or any shared counter. Two simulated parallel mints off the same baseline produce different ids.</div>
+<div class="ac">AC2 — Legacy 4-digit ids still parse and are never rewritten; the id validator accepts both forms.</div>
+<div class="ac">AC3 — The <code>define</code> definition-merge refuses (loud, lists offending ids) if a branch id already exists on main; post-merge it asserts INDEX has no duplicate ids.</div>
+<div class="ac">AC4 — <code>INDEX.md</code> is regenerated (not hand-appended) by the define merge and by <code>#add</code>, sorted by <code>created:</code> desc; no merge-conflict-prone hand edits remain.</div>
+<div class="ac">AC5 — All id-consuming sites (filename, define/feat branch, claim lock, parent/deps) verified scheme-agnostic; <code>scripts/sync-shared.sh --from=pmos-toolkit</code> propagates the tracker-crudl change.</div>
+<div class="ac">AC6 — Skill rubric green (skill-eval) + backlog skill tests updated to the new id format; <code>/backlog add</code> still single-tool-call frictionless.</div>
+
+<h2 id="out-of-scope">Out of scope</h2>
+<ul class="scope-out">
+<li>Back-converting existing serial ids to the new scheme (grandfathered).</li>
+<li>A cross-clone distributed counter / ref-CAS allocator (rejected — see D-rejected).</li>
+<li>Changing <code>/backlog next</code> prioritization logic.</li>
+</ul>
+
+<h2 id="decisions">Decision log</h2>
+<table>
+<tr><th>id</th><th>Decision</th><th>Why</th></tr>
+<tr><td>D1</td><td><code>&lt;MMDD&gt;-&lt;rand3&gt;</code> Crockford-base32 id</td><td>Coordination-free + readable + roughly chronological; <code>-</code> disambiguates from legacy serials.</td></tr>
+<tr><td>D2</td><td>Merge-time id-uniqueness hard gate</td><td>Silent→loud; scheme-independent backstop incl. same-day random collisions.</td></tr>
+<tr><td>D3</td><td>INDEX is derived (regenerate, sort by created)</td><td>Removes the hand-edit corruption/conflict surface; chronology survives non-monotonic ids.</td></tr>
+<tr><td>D-rejected-A</td><td>Reject full UUID</td><td>Destroys the maintainer's speakable-id workflow.</td></tr>
+<tr><td>D-rejected-B</td><td>Reject serial-via-<code>git update-ref</code> CAS</td><td>Only coordinates within one clone's shared <code>.git</code>; silently fails across the origin+mirror clone topology — too fragile a load-bearing invariant.</td></tr>
+<tr><td>D-lean</td><td>No epic <code>/requirements</code>; this design page + AC are the contract</td><td>Single-skill-family substrate change with a concrete, researched cause; mirrors epic 0015/0016 lean define.</td></tr>
+</table>
+</body>
+</html>
