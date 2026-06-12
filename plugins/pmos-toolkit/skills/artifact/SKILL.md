@@ -88,7 +88,7 @@ Recognized flags on create:
 
 ## Phase 2: Create Flow {#create}
 
-The same 8-step flow applies to every artifact type — built-in or user-defined.
+The same core flow applies to every artifact type — built-in or user-defined. Steps 1.5 (propose-template) and 7.5 (research) are conditional; the post-draft pipeline stages (Phases 3.5 persona panel, 3.7 diagram pass, 3.8 /polish, 3.9 /grill) are gated by `{depth}`.
 
 ### Step 1 — Type picker (only when invoked with no `<type>` argument)
 
@@ -99,9 +99,26 @@ Use `AskUserQuestion` to ask which type to create. Build options dynamically by 
 
 Show source label `[built-in]` / `[user]` next to each. After selection, set `<type>` and proceed to step 2.
 
+### Step 1.5 — Propose a template when none matches
+
+If `<type>` resolves to **no** built-in or user template (the Step 2 lookup would fail), offer to author one instead of erroring:
+
+<!-- defer-only: ambiguous -->
+```
+question: "No template matches '<type>'. Propose one, or pick an existing template?"
+options:
+  - Propose a new template (Recommended)
+  - Pick an existing template
+  - Cancel
+```
+
+`(Recommended)` = Propose. On Propose, run the research-grounded authoring flow from `#template-management` (T.1–T.6) **inline** — research subagent + section alignment + eval-gen — graded against `reference/new-template-guidelines.md`. When proposing, also ask for the **`length_target`** (one of the T.4 frontmatter questions; e.g. `~1500 words` / `tight`). The proposed template is used for this run regardless; **saving** it to `~/.pmos/artifacts/templates/` is offered only if it clears the guidelines' save-checklist, and that save prompt's Recommended option is **No** (avoid a junk template library — `new-template-guidelines.md` §save-checklist). On Pick-existing, return to the Step 1 picker; on Cancel, exit.
+
+`--quick` short-circuits the research subagent (scaffold-only), as in `#template-management`.
+
 ### Step 2 — Resolve & validate template
 
-1. Look up `<type>` in built-in templates first; if not found, in `~/.pmos/artifacts/templates/`. (Built-in always wins on slug — user templates use unique slugs by construction.)
+1. Look up `<type>` in built-in templates first; if not found, in `~/.pmos/artifacts/templates/`. (Built-in always wins on slug — user templates use unique slugs by construction.) **No match → route to Step 1.5** (propose) rather than erroring.
 2. Read `template.md` frontmatter and `eval.md`.
 3. **Validate:**
    - Both files exist.
@@ -156,9 +173,13 @@ Concatenate all read content into a `gathered_context` block, tagged by source l
 
 Load the chosen preset's rendering rules and voice notes for use in step 8.
 
+### Step 7.5 — Research phase (gated on `--depth deep`)
+
+When `{depth} == deep`, run the research stage before drafting per `reference/research-phase.md` — it owns the warrant check (auto-skip when internal context suffices), the user-approved research plan, the `general-purpose` subagent fan-out (verifiable-URLs-only, omit-rather-than-guess), and the save to `<feature_folder>/research/<slug>-research.md` (a loose markdown sidecar — not indexed/commentable). At `brief`/`standard`, skip with `research: skipped (depth=<d>)`. The synthesized research doc is folded into `gathered_context` for Step 8.
+
 ### Step 8 — Generate draft
 
-Generate the artifact section-by-section using `template.md` section ordering and per-section guidance comments, the selected preset's rendering rules, and `gathered_context` (auto-read + gap answers).
+Generate the artifact section-by-section using `template.md` section ordering and per-section guidance comments, the selected preset's rendering rules, and `gathered_context` (auto-read + gap answers + any `research/<slug>-research.md` from Step 7.5, with per-claim citations preserved). When the template carries a `length_target`, treat it as **informational steering** — aim for it but never pad or truncate to hit it (per the /primer word-target learnings; the natural length wins).
 
 **Author the HTML body directly** — no MD→HTML conversion step happens at write time, identical to how `/spec` and `/plan` author HTML from outline. Wrap each `## §N` section as `<section id="...">` containing `<h2 id="...">` per `_shared/html-authoring/conventions.md` §3 (kebab-case ids; level-3 subsections become `<h3 id="...">` inside the same `<section>`). The MD template is the *structural* guide, not a rendered source.
 
