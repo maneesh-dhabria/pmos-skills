@@ -130,6 +130,22 @@ Expected (`#releases`): epic `#0010` is **in-flight** (`1/2 done` — `#0011` do
 
 Expected: if `#0011` were `wontfix`, the picker treats `#0012`'s dep on it as permanently unsatisfiable → `#0012` flips `blocked` with `blocked: depends on wontfix #0011` and surfaces in `groom`. Never silently skipped.
 
+## Build-loop reconcile-in-flight (epic 0612-w4e)
+
+Behavioral expectations for the `--status in-progress` reconcile sweep and the skill-managed poison-guard fields. Mechanical coverage of the own-holder reclaim primitive is `tests/claim-lock.test.sh` + `scripts/claim-lock.js --selftest`.
+
+### Scenario: `/backlog next --kind story --status in-progress --json` reconcile sweep
+
+Expected (`#next` sweep mode): with two `in-progress` stories — `#A` whose `backlog/claims/A.lock` is **absent / stale / held by the requesting driver holder**, and `#B` whose lock is **fresh and held by a different holder** — the sweep returns **both** in D22 order as a JSON array, each annotated `{claim_holder, claim_at, claim_stale, resume_attempts, last_progress, driver_holder}`. `dependencies:` are NOT gated (the stories are already in flight). The caller (reconcile step 0) applies the ownership guard: `#A` is **resumable** (absent/stale/own-holder), `#B` is **skipped** (fresh foreign claim — another executor is on it). No `in-progress` story → `[]` (the clean-backlog fall-through, D1).
+
+### Scenario: reconcile poison cap → blocked with diagnosable note (D4/D5)
+
+Expected: a story resumed twice with **no new commits between attempts** has `resume_attempts` reach the cap (2); the third reconcile sets `status: blocked`, runs `/backlog unclaim`, and appends a diagnosable note to `## Notes` (attempts, last completed task id + commit sha, the in-flight `current_phase`, timestamps). A story that **commits new work** between attempts resets `resume_attempts` to 0 (forward-progress reset) and is never falsely abandoned.
+
+### Scenario: `/backlog set <id> resume_attempts=5` rejected (D7)
+
+Expected: `/backlog set` rejects each of `resume_attempts`, `last_progress`, and `driver_holder` with `Field '{field}' cannot be set directly. The skill manages it.` — same protection posture as `id`/`created`/`updated`. Only the build-loop reconcile step writes them (via the main-checkout skill write, not `/backlog set`).
+
 ## Fixture: with-archive
 
 ### Scenario: `/backlog archive` (today = 2026-04-25)

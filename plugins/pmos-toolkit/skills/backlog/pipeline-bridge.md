@@ -16,6 +16,8 @@ Pipeline skills mutate backlog item state ONLY when `--backlog <id>` is explicit
 | `/execute --backlog <id>` starts | status -> `in-progress` | `/execute` invokes `/backlog set` at the start of execution |
 | `/verify --backlog <id>` reports PASS | status -> `done`; `pr:` filled if available from git context | `/verify` invokes `/backlog set` |
 | `/verify --backlog <id>` reports FAIL / PASS-WITH-GAPS | status -> `blocked`; gap lines appended to the item's `## Notes` body | `/verify` invokes `/backlog set` + appends the gap text (D11/the return-to-human channel) |
+| `/feature-sdlc build` reconcile resumes an `in-progress` story | `resume_attempts`/`last_progress`/`driver_holder` updated; claim re-held with the driver holder | reconcile-in-flight step 0 writes the skill-managed fields directly (epic 0612-w4e D3/D4; not via `/backlog set`, which rejects them) |
+| `/feature-sdlc build` reconcile hits the resume cap | status -> `blocked`; a diagnosable note (attempts, last task/sha, in-flight phase, timestamps) appended to `## Notes`; `/backlog unclaim <id>` | reconcile-in-flight step 0 (epic 0612-w4e D5 — same return-to-human channel as PASS-WITH-GAPS) |
 | `/complete-dev --epic <id>` ships | `released: vX.Y.Z` on every shipped story + the epic | `/complete-dev` is the SOLE writer of `released:` (D6) |
 
 ## Three-loop write-back rules (stories — D11/D12)

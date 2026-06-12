@@ -13,7 +13,8 @@ chk() { # name, command
 chk "claim-lock.js exists"            "[ -f '$LOCK' ]"
 chk "uses O_EXCL ('wx') open"         "grep -q \"'wx'\" '$LOCK'"
 chk "default 4h stale-lease TTL"      "grep -q 'DEFAULT_STALE_MS = 4 \* 60 \* 60 \* 1000' '$LOCK'"
-chk "exposes acquire/release/status/steal" "grep -q 'module.exports = { lockPathFor, isAlive, reclaimable, acquire, steal, release, status' '$LOCK'"
+chk "exposes acquire/release/status/steal" "grep -q 'module.exports = {' '$LOCK' && grep -q 'acquire, steal, release, status' '$LOCK'"
+chk "exposes reclaimableByHolder (own-holder reclaim)" "grep -q 'reclaimableByHolder' '$LOCK'"
 chk "--selftest passes"               "node '$LOCK' --selftest"
 
 # CLI smoke: acquire is exit 0, second acquire is exit 3 (contended), release is exit 0.
@@ -24,5 +25,15 @@ node "$LOCK" acquire "$TMP/claims" 0099 >/dev/null 2>&1; rc=$?
 chk "CLI second acquire exits 3 (contended)" "[ $rc -eq 3 ]"
 node "$LOCK" release "$TMP/claims" 0099 >/dev/null 2>&1
 chk "CLI release exits 0"             "[ \$? -eq 0 ]"
+
+# CLI smoke: own-holder reclaim (epic 0612-w4e D3). A fresh lock held by MY OWN
+# holder is reclaimed immediately (exit 0, no TTL wait — the crashed-loop-tick
+# self-resume); a fresh lock held by a FOREIGN holder is still contended (exit 3).
+node "$LOCK" acquire "$TMP/claims" 0100 --holder loop:sess-1 >/dev/null 2>&1
+node "$LOCK" acquire "$TMP/claims" 0100 --holder loop:sess-1 >/dev/null 2>&1; rc=$?
+chk "CLI own-holder re-acquire exits 0 (reclaimed, no TTL wait)" "[ $rc -eq 0 ]"
+node "$LOCK" acquire "$TMP/claims" 0100 --holder loop:sess-OTHER >/dev/null 2>&1; rc=$?
+chk "CLI foreign-holder acquire exits 3 (contended)" "[ $rc -eq 3 ]"
+node "$LOCK" release "$TMP/claims" 0100 >/dev/null 2>&1
 
 if [ "$fail" -eq 0 ]; then echo "claim-lock.test.sh: PASS"; else echo "claim-lock.test.sh: FAIL"; exit 1; fi
