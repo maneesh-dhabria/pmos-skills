@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.66.1: skill feedback always goes through the loop
+
+`/skill-sdlc --from-feedback` now routes into the skill three-loop **every time**, not just for multi-skill batches. The earlier "offer the loop once 3+ skills are in scope" threshold is gone — a single-skill fix is a perfectly valid one-story epic, so the loop is the uniform path. Pass `--monolithic` for the old single-pass behaviour when you just want a quick one-shot fix.
+
 ## 2026-06-12 — pmos-toolkit 2.66.0: the three-loop now drives skill work too (`route: skill`)
 
 The define → build → release loops — until now only for features — extend to skill work, so a batch of skill changes becomes an epic of one-skill-at-a-time stories you can grind through and ship as a single release.
