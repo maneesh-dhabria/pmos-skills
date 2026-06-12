@@ -70,7 +70,8 @@ Standalone environment diagnostics — neither a feature-delivery step nor a lea
 | Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs; `--from-spec` mode audits spec architectural assertions against code (folded into `/spec` Phase 6.6 + `/verify` Phase 4.7) |
 | Track personal tasks (LNO, due dates, people) | `/mytasks` | Lives at `~/.pmos/tasks/` |
 | Maintain a shared person / contact directory | `/people` | Handle, name, role, working relationship; consumed by `/mytasks` |
-| Track a lightweight repo backlog | `/backlog` | Hybrid quick-capture + structured tracker |
+| Track a lightweight repo backlog | `/backlog` | Hybrid quick-capture + a three-queue tracker (`groom` / `next` / `releases`) over epics and stories |
+| Run the three-loop backlog (define → build → release) | `/feature-sdlc define <epic>` → `/feature-sdlc build --next` → `/complete-dev --epic <id>` | Loop 1 shapes an epic into ready stories; Loop 2 builds one story per (optionally unattended) iteration — `/backlog next` picks, an O_EXCL lock claims; Loop 3 merges the epic's story branches as one release train |
 | Persist context across sessions and repos | `/product-context` | Workstream / product / feature scope |
 | Capture session learnings | `/session-log` | Decisions, gotchas, patterns |
 | Send feedback to skill authors | `/reflect` | Severity-tagged, per-skill, from the session transcript |

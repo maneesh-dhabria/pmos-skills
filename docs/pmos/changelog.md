@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.64.0: three-loop backlog (define · build · release)
+
+The backlog grows from a flat capture buffer into a three-loop system over **epics** and **stories**, so captured work actually moves.
+
+- **Capture still costs one sentence.** `/backlog add "<title>"` is the whole required input; it silently wraps the new story in a same-titled epic so nothing needs structure up front. Acceptance criteria are required before the machine touches a story, never before you write the idea down.
+- **Three queues, one dashboard.** Bare `/backlog` now shows what's waiting on **you** (`groom`), what the machine can pick up next (`next`), and what's ready to ship (`releases`). Each row comes with the exact next command to run.
+- **Define a feature once, build its stories independently.** `/feature-sdlc define <epic>` shapes an epic's requirements + spec, splits it into stories, and plans each — then merges the docs to main. `/feature-sdlc build --next` then picks the next ready story (dependencies satisfied, in-flight epics first), claims it with a crash-safe lock, builds and verifies it, and writes it back `done` — or `blocked` with the gaps, for you to pick up. Run it on a loop or a schedule for unattended throughput; multiple drivers are safe.
+- **Ship a whole epic as one release train.** `/complete-dev --epic <id>` merges an epic's finished story branches in dependency order, runs the repo's deterministic test/lint gate on the merged tree, then assembles one changelog and one version bump + tag for the epic. Bare `/complete-dev --epic` shows you what's release-ready first.
+- **Tasks live in one place.** `/plan` now emits a `tasks.yaml` beside each plan; `/execute` reads it as its work queue and is the sole writer of task status, so progress is never smeared across two files. Work discovered mid-build is routed automatically — needed for the story's criteria → done inline; beyond them → captured as a new draft story.
+- **Ideas stop evaporating.** At the close of `/ideate`, one keystroke captures a promising idea straight into the backlog (and never auto-captures one the pressure-test killed).
+- **Sharper `/backlog`.** The read and maintenance commands (`list`, `show`, `archive`, …) now take plain natural language; the long-standing type-enum drift is fixed (all eight types are recognised everywhere).
+
 ## 2026-06-12 — pmos-utilities 0.2.1: skill-design P1/P2 — mac-health non-interactive block resync
 
 The utilities share of the P1/P2 campaign (shipped alongside pmos-toolkit 2.63.0 and pmos-learnkit 0.19.0). `/mac-health`'s third-generation non-interactive block variant is replaced with the canonical byte-identical block (the all-plugins inline lint now covers it), plus a one-line `/reflect` touch-up. Patch release — content fixes, no new capability.
