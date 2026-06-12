@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-12 — pmos-learnkit 0.21.0: /book-summary — verified public takeaways from any book, PM-framed
+
+A new `/book-summary` skill turns the public conversation around a book into durable, product-ready takeaways — without reproducing the book or making you read it cover-to-cover.
+
+- **Verified public sources only.** It curates author interviews, podcasts, talks, reputable reviews, and corroborating posts about a named book — every source fetched and identity-matched at runtime, nothing pulled from memory.
+- **Theme-grouped, PM-framed takeaways.** The big ideas are distilled into themed takeaways translated into product practice, in a single self-contained HTML artifact.
+- **Audience- and depth-shaped.** Tune vocabulary for senior vs all PMs and size the run with `--depth brief|standard|deep` (persisted per project).
+- **Stays in its lane.** It summarizes public material *about* a book — it does not summarize a user-supplied PDF, reproduce the book's text, or transcribe audio.
+
 ## 2026-06-12 — pmos-learnkit 0.20.0: /frameworks browse UI — clearer selection, list-first, multi-select filters
 
 The `/frameworks` library browser gets a round of browse-UI fixes so scanning and filtering the collection feels right.
