@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.68.0: concurrency-safe backlog ids (no more duplicate-id corruption)
+
+Two parallel `define` sessions branched off the same backlog could mint the *same* id — both grabbed `0016` — silently corrupting the tracker: slug-suffixed filenames give no git path conflict, and the hand-merged `INDEX.md` gained duplicate rows. Backlog ids are now coordination-free, the define merge refuses colliding ids, and `INDEX.md` is a regenerated artifact.
+
+- **New id format: `<MMDD>-<rand3>`.** New backlog items get ids like `0612-k3f` — today's month-day plus three random characters minted from `crypto` randomness with no shared counter — so two people (or two worktrees) creating items at the same moment can't collide. Existing 4-digit ids (`0001`…`0019`) stay valid forever and are never rewritten; everything that reads an id accepts both forms.
+- **The define merge refuses duplicate ids.** `/feature-sdlc define` now runs an id-uniqueness gate beside its path-scope check: if a definition branch introduces an id that already exists on main, the merge stops loudly and names the offending id — the exact `0016` collision that slipped through before is now caught before it lands.
+- **`INDEX.md` is a derived artifact.** The backlog index is regenerated from the item files (the only sanctioned writer is `rebuild-index`), never hand-merged, and its sort never keys on the id — so non-monotonic ids order correctly and a stale hand-edit can't reintroduce a duplicate row.
+
 ## 2026-06-12 — pmos-toolkit 2.67.1: Skill quality & internals
 
 - **`/feature-sdlc define` cleans up after itself.** The Define loop now exits its worktree and tears down the redundant `define/<epic-id>` branch the moment the docs-only definition merge lands — so the next `build` starts from your main checkout instead of a stale define worktree, stories spin fresh per-story branches, and the `/complete-dev --epic` release train fast-forwards cleanly (no more stray `--no-ff` merge). Paused (un-merged) define runs still keep their worktree for `--resume`. Teardown ownership is now documented in one place: define owns its own worktree; the release train touches per-story worktrees only.
