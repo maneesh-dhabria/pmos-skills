@@ -6,11 +6,11 @@ Single source of truth for the resumable pipeline state file written at `<worktr
 
 ## schema_version
 
-`schema_version: 5` is the current version (added with the `/feature-sdlc prototype` mode — `pipeline_mode = prototype` is the new valid value; phases[] gains a prototype-mode entry set). Older files are auto-migrated on read, in order, through the chain `v1 → v2 → v3 → v4 → v5` (each step additive/idempotent — see the per-version "auto-migration block" sections below). Files written by /feature-sdlc < 2.34.0 carry `schema_version: 1`; files from the 2.34.0–2.37.x cohort carry `2` or `3`; files from the 2.38.0+ cohort carry `4`.
+`schema_version: 6` is the current version (added with the three-loop backlog `/feature-sdlc define` and `build` modes — `pipeline_mode ∈ {define, build}` are the new valid values; phases[] gains a define-mode and a build-mode entry set; `epic_id` and `story_id` top-level pointers are added). Older files are auto-migrated on read, in order, through the chain `v1 → v2 → v3 → v4 → v5 → v6` (each step additive/idempotent — see the per-version "auto-migration block" sections below). Files written by /feature-sdlc < 2.34.0 carry `schema_version: 1`; files from the 2.34.0–2.37.x cohort carry `2` or `3`; files from the 2.38.0+ cohort carry `4`; the prototype cohort carries `5`.
 
 **Migration policy**:
 
-- `state.schema_version > current code's max supported` (i.e., `> 5`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
+- `state.schema_version > current code's max supported` (i.e., `> 6`) → abort with: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`.
 - `state.schema_version < current code's max` → run each migration step in version order; each is additive (default-fill new fields, never remove/rename/reshape) and idempotent; log every step to chat as `migration: state.schema vM → vN (added: <fields>)`. The pre-2.34.0 phase-id elision (`msf-req`/`simulate-spec` dropped on read — see the note under the phase-id table below, and `SKILL.md#resume` step 2) runs *before* the v4 step.
 - Same version → no migration.
 
@@ -22,9 +22,11 @@ Pipeline runs are short-lived (days, not years) so destructive migrations are no
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | int | yes | `1` in v1 … `5` in v5 (the current version). |
+| `schema_version` | int | yes | `1` in v1 … `6` in v6 (the current version). |
 | `slug` | string | yes | LLM-derived kebab-case identifier (per `slug-derivation.md`). |
-| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, `skill-feedback`, or `prototype` (the last added in v5). Resolved by the Phase 0 subcommand dispatch. **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
+| `pipeline_mode` | string | yes (v4+) | `feature`, `skill-new`, `skill-feedback`, `prototype` (v5), `define`, or `build` (v6 — the three-loop backlog loops). Resolved by the Phase 0 subcommand dispatch. **Distinct from `mode`** — the naming-collision resolution: `mode` keeps its `interactive`/`non-interactive` meaning; `pipeline_mode` is the run-kind selector. Drives the mode-conditional `phases[]` membership (below). Defaults to `feature` when reading a v1–v3 file. |
+| `epic_id` | string \| null | v6, define/build only | The backlog epic id this run defines (define mode) or whose story it builds (build mode). `null` in other modes. |
+| `story_id` | string \| null | v6, build only | The backlog story id this build iteration claimed. `null` until Phase `pick`/`claim` set it; `null` in non-build modes. |
 | `tier` | int (1\|2\|3) \| null | yes | Set when known: `--tier` flag, or — in skill modes — Phase 0d `/skill-tier-resolve`, or — otherwise — after `/requirements` auto-tier. `null` until then. |
 | `mode` | string | yes | `interactive` or `non-interactive`. Resolved per the canonical non-interactive block at Phase 0. (Untouched by v4 — see `pipeline_mode` above for the run-kind selector.) |
 | `started_at` | string (ISO-8601) | yes | First creation timestamp. Never updated. |
@@ -107,6 +109,12 @@ At fresh init (`/feature-sdlc` Phase 1), `phases[]` is built per `pipeline_mode`
   `setup, worktree, init-state, feedback-triage, skill-tier-resolve, requirements, grill, creativity, spec, plan, execute, skill-eval, verify, complete-dev, retro, final-summary, capture-learnings`.
 - **`prototype`** (new in v5) — discovery-half only; declared in *execution* order (the Phase 0b resume cursor walks `phases[]` in order so this matches the SKILL.md `## Prototype-mode phase ordering`); `/spec` sits between `creativity` and `wireframes`; `plan`/`execute`/`skill-eval`/`verify`/`complete-dev`/`retro` are all omitted; `final-summary` is the prototype-mode variant:
   `setup, worktree, init-state, ideate, requirements, grill, creativity, spec, wireframes, prototype, final-summary, capture-learnings`.
+- **`define`** (new in v6 — Loop 1) — epic-level discovery + story split + per-story plan + docs-only merge (SKILL.md `#define-mode`); declared in execution order; `worktree` is the `define/<epic>` branch; `ideate` may auto-skip on an attached brief (D28); `wireframes`/`prototype`/`creativity` stay tier-gated; new phase ids `resolve-epic` (infra), `story-split` (hard), `definition-merge` (hard); `execute`/`verify`/`complete-dev`/`skill-eval`/`retro` omitted (no code ships in Loop 1):
+  `setup, worktree, init-state, resolve-epic, ideate, requirements, grill, creativity, wireframes, prototype, spec, story-split, plan, definition-merge, final-summary, capture-learnings`.
+- **`build`** (new in v6 — Loop 2) — one bounded iteration over one story (SKILL.md `#build-mode`); declared in execution order; new phase ids `pick` (infra), `claim` (infra), `build-worktree` (infra — create-or-reuse + transitive dep-merge, D9/D10/D19), `write-back` (hard — the done/blocked main-checkout write, D11); `requirements`/`grill`/`spec`/`plan` omitted (the epic already defined them); `complete-dev` omitted (release is Loop 3):
+  `setup, init-state, pick, claim, build-worktree, execute, verify, write-back, final-summary, capture-learnings`.
+
+  Build's `init-state` writes the state file in the **main checkout's** `.pmos/feature-sdlc/` until `build-worktree` creates/enters the story worktree, after which state lives in the worktree (the standard location); a `--resume` reads from whichever exists (worktree first). `epic_id`/`story_id` (above) are stamped at `pick`/`claim`.
 
 **Back-compat for pre-2.52.0 state files (additive, no `schema_version` bump):** state files written before 2.52.0 have no `ideate` entry in `phases[]`. The resume cursor scans whatever phases the file declares — a missing `ideate` entry is treated as "this phase did not exist when the run started; advance past it" (the same shape as the elision of `msf-req`/`simulate-spec` for pre-2.34.0 files). No on-read migration step is required; runs are not retroactively re-ideated.
 
@@ -263,7 +271,7 @@ Performed on read whenever `state.schema_version < 4` AND the drift check has pa
 3. **`phases[]` unchanged** — the skill-dev phase ids are only ever added by a fresh skill-mode init, never retrofitted; a migrated v3 file keeps its existing feature-mode phase set.
 4. **Emit chat log line:** `migration: state.schema v3 → v4 (added: pipeline_mode=feature; cohort-marker bump)`.
 
-`schema_version > 4` → fall through to v5 check below. On a v1 file, the full `v1 → v2 → v3 → v4 → v5` chain runs in order (each step's block above + the v5 step below).
+`schema_version > 4` → fall through to the v5 then v6 checks below. On a v1 file, the full `v1 → v2 → v3 → v4 → v5 → v6` chain runs in order (each step's block above + the v5 and v6 steps below).
 
 ---
 
@@ -286,7 +294,17 @@ Performed on read whenever `state.schema_version < 5` AND the drift check has pa
 
 (`phases[]` is unchanged — the `prototype`-mode phase set is only ever produced by a fresh `prototype`-mode init; never retrofitted onto an older feature/skill-mode run.)
 
-`schema_version > 5` → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`, exit 64.
+### v5 → v6 auto-migration block (3 steps, idempotent)
+
+Performed on read whenever `state.schema_version < 6` AND the drift check has passed:
+
+1. **Set `schema_version: 6`.**
+2. **Default-fill** `epic_id: null` and `story_id: null` if absent.
+3. **Emit chat log line:** `migration: state.schema v5 → v6 (added: pipeline_mode=define|build valid values; epic_id/story_id pointers; cohort-marker bump)`.
+
+(`phases[]` is unchanged — the `define`/`build` phase sets are only ever produced by a fresh `define`/`build` init; never retrofitted onto an older run.)
+
+`schema_version > 6` → abort: `state file from newer /feature-sdlc version (vN); upgrade pmos-toolkit and retry`, exit 64.
 
 ---
 

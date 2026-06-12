@@ -1,8 +1,8 @@
 ---
 name: feature-sdlc
-description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an idea into a shipped feature via the pmos-toolkit pipeline — worktree, optional /ideate, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage with resumable state. `/feature-sdlc skill <description>` / `skill --from-feedback <text|path|--from-reflect>` authors or revises skills the same way, scored against the binary skill-eval rubric before merge. `/feature-sdlc prototype <seed>` runs the discovery half only. `/feature-sdlc list` shows in-flight worktrees. `/skill-sdlc` and `/prototype-sdlc` are thin aliases. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "prototype this idea end-to-end", "stakeholder-walkable prototype".
+description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` turns an idea into a shipped feature via the pmos-toolkit pipeline — worktree, optional /ideate, requirements, grill, optional creativity/wireframes/prototype, spec, plan, execute, verify, complete-dev — auto-tiering each stage with resumable state. `/feature-sdlc skill <description>` / `skill --from-feedback <text|path|--from-reflect>` authors or revises skills the same way, scored against the binary skill-eval rubric before merge. `/feature-sdlc prototype <seed>` runs the discovery half only. `/feature-sdlc define <epic-id|idea>` runs the three-loop Define loop (epic requirements+spec, story split, per-story plan, docs-only merge); `/feature-sdlc build [--next|--story <id>]` runs one Build iteration (pick→claim→execute→verify→done/blocked). `/feature-sdlc list` shows in-flight worktrees. `/skill-sdlc` and `/prototype-sdlc` are thin aliases. Triggers — "build this feature end-to-end", "run the full SDLC", "take this idea through to ship", "drive the pipeline for me", "create a skill", "author a new skill", "build me a slash command", "turn this workflow into a skill", "apply this retro feedback to the skill", "I have a half-formed idea", "prototype this idea end-to-end", "stakeholder-walkable prototype", "define this epic", "groom this into stories", "build the next story", "what's next to build", "run an unattended build pass".
 user-invocable: true
-argument-hint: "[skill [--from-feedback] | prototype] <description|idea> [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--format html|md] [--non-interactive | --interactive] [--backlog <id>] [--minimal] [--reset-defaults] | list"
+argument-hint: "[skill [--from-feedback] | prototype | define | build] <description|idea|epic-id> [--next] [--story <id>] [--epic <id>] [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--format html|md] [--non-interactive | --interactive] [--backlog <id>] [--minimal] [--reset-defaults] | list"
 ---
 
 # Feature SDLC
@@ -41,6 +41,8 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 
 (`/msf-req` and `/simulate-spec` are folded inside `/requirements` (`#folded-msf`) and `/spec` (`#folded-sim-spec`) — no longer orchestrator phases.)
 
+Two further modes — `define` and `build` (the three-loop backlog loops) — reuse this machinery with their own phase orderings; they are documented in `#define-mode` and `#build-mode` rather than the table above (their phases are not a 1:1 overlay on the feature columns). Their `phases[]` sets live in `reference/state-schema.md`.
+
 `/feature-sdlc` is a top-level orchestrator, not a pipeline stage. Standalone — invoke at the moment you have an idea (or a skill to author/revise) and want to ship it end-to-end.
 
 ## Flags & natural language
@@ -74,9 +76,9 @@ This skill has multiple phases. Create one task per phase using your agent's tas
 
 ### Subcommand dispatch {#dispatch}
 
-Before running pipeline-setup, resolve `pipeline_mode ∈ {feature, skill-new, skill-feedback, prototype}` from the argument string. This is independent of the `mode ∈ {interactive, non-interactive}` resolution in the non-interactive block below — both are computed at Phase 0 entry; do not conflate them.
+Before running pipeline-setup, resolve `pipeline_mode ∈ {feature, skill-new, skill-feedback, prototype, define, build}` from the argument string. This is independent of the `mode ∈ {interactive, non-interactive}` resolution in the non-interactive block below — both are computed at Phase 0 entry; do not conflate them. `define` and `build` are the three-loop backlog modes (Loop 1 and Loop 2) — see `#define-mode` and `#build-mode`.
 
-**The dispatch principle:** the first token selects the mode **only** when it is exactly `skill`, `prototype`, or `list`; everything after the selector is the seed (quoting is not required — the whole remainder is one seed). Never infer the run mode from seed *content* — a bare description is always `feature` mode, even if the text describes a skill or says "prototype". The genuinely tricky cases:
+**The dispatch principle:** the first token selects the mode **only** when it is exactly `skill`, `prototype`, `define`, `build`, or `list`; everything after the selector is the seed (quoting is not required — the whole remainder is one seed). Never infer the run mode from seed *content* — a bare description is always `feature` mode, even if the text describes a skill or says "prototype". The genuinely tricky cases:
 
 - `/feature-sdlc prototype this in detail` → `prototype` mode, seed = `this in detail` (token 1 is a selector; the rest is the seed — if the user meant a feature *about* prototyping, they rephrase or quote the whole string).
 - `/feature-sdlc list of recently changed files` → token 1 is `list` but a seed follows; `list` takes no seed → treat as `feature` mode with the whole string as seed. `list` selects only when it is the sole token.
@@ -91,6 +93,9 @@ Before running pipeline-setup, resolve `pipeline_mode ∈ {feature, skill-new, s
 - **`skill <description>`:** `pipeline_mode = skill-new`; the description is the seed for Phase 2.
 - **`prototype` with no seed:** stderr `usage: /feature-sdlc prototype <seed>`; exit 64.
 - **`prototype <seed>`:** `pipeline_mode = prototype`. Execution stops after Phase 3c (see `#prototype-ordering`); the worktree and branch are left intact to extend manually (edit `state.yaml.pipeline_mode` → `feature` and `--resume`) or discard.
+- **`define` with no seed:** stderr `usage: /feature-sdlc define <epic-id | idea>`; exit 64.
+- **`define <epic-id | idea>`:** `pipeline_mode = define` (Loop 1). If the seed resolves to an existing epic id, that epic is the unit; otherwise the seed is a fresh idea that becomes a new epic. Runs the define loop in `#define-mode` and stops at the docs-only definition merge. The worktree (branch `define/<epic-id>`) is left for the next loop.
+- **`build` (optionally `--next` or `--story <id>`):** `pipeline_mode = build` (Loop 2). `--next` (default when neither flag is present) picks via `/backlog next`; `--story <id>` builds that specific story. One bounded iteration = one story; runs the build loop in `#build-mode` and stops after the verify write-back. `--non-interactive` makes it unattended-safe (the W14 contract).
 - **bare (no selector):** `pipeline_mode = feature`; the whole argument string (minus recognised flags — the list lives in `reference/fuzzy-idea-detection.md` § Inputs) is the feature seed.
 
 On Phase 0 entry, log to chat `pipeline_mode: <m> (source: cli|state)` (`cli` fresh, `state` on `--resume`) — alongside the `mode: <mode> (source: …)` line from the non-interactive block; keep both lines.
@@ -392,6 +397,46 @@ worktree → init-state → ideate → requirements → grill → creativity →
 - **Phases 5–8a never run.** After 3c, jump to Phase 9 final-summary, logging one line per skipped phase, exactly: `[orchestrator] prototype mode: Phase 5 /plan skipped (discovery-only pipeline)` · `[orchestrator] prototype mode: Phase 6 /execute skipped (discovery-only pipeline)` · `[orchestrator] prototype mode: Phase 7 /verify skipped (discovery-only pipeline; nothing implemented)` · `[orchestrator] prototype mode: Phase 8 /complete-dev skipped (discovery-only pipeline; nothing to ship)` · `[orchestrator] prototype mode: Phase 8a /reflect skipped (discovery-only pipeline)`. ("Non-skippable /verify" is scoped to modes that ship code; nothing was implemented here.)
 
 The discovery branch is left unmerged — extend via `state.yaml.pipeline_mode` → `feature` + `--resume`, or discard.
+
+## Define mode — Loop 1 of the three-loop backlog {#define-mode}
+
+`/feature-sdlc define <epic-id | idea>` shapes an epic until its stories are execution-ready, then merges the definition (docs only) to main and stops. It reuses the discovery half of the pipeline at **epic** level, then adds a story-split + per-story-plan tail. Full rationale + decision log: `docs/pmos/reviews/2026-06-10_ops-observations/backlog-three-loop-design.md` (D2–D5, D7, D10, D15–D20, D24, D28). `phases[]` for `define` lives in `reference/state-schema.md` (declared in execution order; the Phase 0b resume cursor walks it unchanged).
+
+Execution order:
+
+```
+worktree(define/<epic>) → init-state → resolve-epic → [ideate-brief detect] →
+requirements → grill → [creativity/wireframes/prototype per tier] → spec →
+story-split → per-story /plan → definition-merge(docs-only) → final-summary
+```
+
+1. **Resolve the epic**. Existing id → load it (`/backlog show`), status → `defining`. A fresh idea → `/backlog add --kind epic "<title>"` (or pre-wrapped singleton epic per D18), status `defining`. Epics stay open for story additions after `defined` (D16).
+2. **Epic-level discovery.** Create the worktree on branch `define/<epic-id>`. **Ideate-brief detect (D28):** if the epic's `source:` points at an `/ideate` brief, Phase 1a skips re-ideating and feeds the brief into `/requirements` as the seed (`[ideate-brief: <path>]`); else the normal Phase 1a gate runs. Then `/requirements` → `/grill` → (`/creativity`, `/wireframes`, `/prototype` per the usual tier gates) → `/spec`, all at epic level. The backlog bridge stamps `requirements_doc:` / `spec_doc:` on the epic.
+3. **Story-split step**. Carve the spec into stories *with the maintainer* — each gets title, ≥1 AC, `dependencies:`, `route:`. Create them as `kind: story` children (`/backlog add --epic <epic-id>`), `draft` → `ready` once ACs land. Sizing rule: **a story is what one `/execute` run can carry** (one session, one PR); default to vertical slices, and apply the **D24 litmus** — if a task in one story would depend on a task in another, fix the split. **Validate every story targets the epic's single plugin / release unit (D17).** Non-interactive: defer the split (it needs human judgement) and surface it in the OQ log.
+4. **Per ready story: `/plan` in the definition worktree (D10).** Invoke `/plan` scoped by (epic-spec anchors + story ACs) → emits `stories/<story>/03_plan.html` + `tasks.yaml` → story `planned`. `route: lite` stories skip the plan HTML; grooming authored their `tasks.yaml` (D15). **No story worktrees are created here** — all plans ride the definition merge.
+5. **Definition merge (docs-only, D20).** Before merging `define/<epic-id>` to main, run a deterministic path-scope check: the branch diff must touch nothing outside `{docs_path}/features/**` and `backlog/**` — any other path ⇒ refuse with the offending file list (code reaches main only through Loop 3). No version bump, no tag. On pass, merge; epic → `defined`. **STOP** — log `[orchestrator] define mode: definition merged; epic <id> → defined. Build stories with /feature-sdlc build --next.`
+
+On a hard-phase failure: the standard failure dialog (`reference/failure-dialog.md`). The story-split and definition-merge are define-specific hard phases.
+
+## Build mode — Loop 2 of the three-loop backlog {#build-mode}
+
+`/feature-sdlc build [--next | --story <id>] [--non-interactive]` runs **one bounded iteration = one story**, then stops. Designed to be driven repeatedly by the harness (`/loop`, cron) for unattended throughput; multiple drivers are safe via O_EXCL claims. Decisions: D1, D9–D14, D19, D21, D22, D29, D30. `phases[]` for `build` is in `reference/state-schema.md`.
+
+Execution order:
+
+```
+init-state → pick → claim → worktree(create-or-reuse + dep-merge) →
+/execute(tasks.yaml) → /verify → write-back(done|blocked) → final-summary
+```
+
+1. **Pick**. `--story <id>` → that story (must be `planned`/`blocked`). `--next` (default) → `/backlog next --kind story --status planned --json`: deps all `done`/`released`, unclaimed, **in-flight-epic-first** then priority→score→updated (D22); a dep on a `wontfix` story poisons the dependent to `blocked` (D30). No candidate → log `[orchestrator] build mode: nothing ready; run /backlog groom` and exit 0.
+2. **Claim**. `/backlog claim <id>` — O_EXCL lock under `backlog/claims/` (D13); stamp `claimed_by:` in the **main checkout** + auto-commit path-scoped (D11/D12). Contended → report the holder and exit 0 (another driver has it).
+3. **Worktree + dep-merge**. If the story's `worktree:` names an existing worktree, **re-enter and refresh** it (resume case, D19); else create `feat/<story-id>` **fresh from current main** and set the field (D10). Either way, **merge every `done` dep story's branch (transitive closure, D9)** into the worktree so the dependent builds against real dependency code, not a sibling branch's unmerged work.
+4. **/execute** consumes the story's `tasks.yaml` as its work queue (wave planner reads `deps`+`parallel`, derives readiness per D21; sole status writer; discovered-work routing per D29 — see `execute/SKILL.md#task-queue`, `#discovered-work`). Pass `--backlog <story-id>` so the bridge stamps `in-progress`.
+5. **/verify** — the story's ACs join the spec-compliance table; the browser-evidence hard gate applies (`verify/SKILL.md#spec-compliance`).
+6. **Write-back (main checkout, D11; auto-commit, D12).** PASS → story `done`; FAIL / PASS-WITH-GAPS → story `blocked` + gaps appended to the item `## Notes` (the bridge does this — `backlog/pipeline-bridge.md`). **Remove the claim lock either way** (`/backlog unclaim <id>`). **STOP.**
+
+**Unattended posture:** under `--non-interactive`, the W14 contract applies (AUTO-PICK Recommended; buffer open questions into the item). Driver: `/loop 1h "/feature-sdlc build --next --non-interactive"` or a scheduled run.
 
 ## Phase 3a: /creativity gate (soft, all modes) {#creativity-gate}
 
