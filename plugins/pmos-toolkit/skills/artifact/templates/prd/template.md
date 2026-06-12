@@ -4,6 +4,8 @@ slug: prd
 description: Product Requirements Document — problem, customers, metrics, scope, risks
 tiers: [lite, full]
 default_preset: narrative
+personas: [eng-lead, design, gtm, exec]
+length_target: "~1500 words"
 files_to_read:
   - label: requirements doc
     pattern: "{feature_folder}/01_requirements*.md"

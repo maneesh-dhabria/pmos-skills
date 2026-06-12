@@ -4,6 +4,8 @@ slug: eng-design
 description: RFC/design doc — proposal, alternatives, cross-cutting concerns, operational readiness
 tiers: [lite, full]
 default_preset: tabular
+personas: [staff-eng, eng-lead, sre]
+length_target: "~2000 words"
 files_to_read:
   - label: requirements doc
     pattern: "{feature_folder}/01_requirements*.md"
