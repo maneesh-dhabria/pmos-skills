@@ -5,7 +5,8 @@ kind: epic
 title: /frameworks browse-UI fixes — selection, default view, view icons, multi-select filters, area rename
 type: enhancement
 priority: should
-status: defined
+status: released
+released: pmos-learnkit/v0.20.0
 route: skill
 plugin: pmos-learnkit
 feature_folder: docs/pmos/features/2026-06-12_frameworks-browse-ux/

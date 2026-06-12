@@ -10,7 +10,7 @@ Last regenerated: 2026-06-12
 | 0010 | released |  | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline |
 | 0011 | released | skill | pmos-toolkit | 2/2 | compact-mode setting for /compact checkpoints |
 | 0015 | released | skill | pmos-toolkit | 1/1 | define-mode worktree exit/cleanup at terminal docs-only merge |
-| 0016 | defined | skill | pmos-learnkit | 1/1 | /frameworks browse-UI fixes — selection, default view, view icons, multi-select filters, area rename |
+| 0016 | released | skill | pmos-learnkit | 1/1 | /frameworks browse-UI fixes — selection, default view, view icons, multi-select filters, area rename |
 | 0018 | defined | skill | pmos-learnkit | 1/1 | /book-summary — verified public summaries → PM-framed themed takeaways |
 | 0020 | released | skill | pmos-toolkit | 1/1 | Concurrency-safe backlog ids — date+short-rand scheme + define merge id-uniqueness gate + derived INDEX |
 | 0612-h2j | defined | skill | pmos-toolkit | 0/1 | /summary-tldr — faithful, grounded TL;DR of any user-supplied content (text/PDF/image/URL/email/tweet/podcast/video) |
@@ -27,7 +27,7 @@ Last regenerated: 2026-06-12
 | 0012 | story | enhancement | done | 0011 | compact-checkpoint auto-mode support |  | 03_plan.html |  |
 | 0013 | story | enhancement | done | 0011 | phase-boundary-handler auto-mode support |  | 03_plan.html |  |
 | 0014 | story | tech-debt | released | 0015 | /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree |  | 03_plan.html |  |
-| 0017 | story | enhancement | done | 0016 | /frameworks browse-UI fixes — selection highlight + no auto-scroll, list-default, view icons, multi-select filters + applied bar, area rename | 02_design.html | 03_plan.html |  |
+| 0017 | story | enhancement | released | 0016 | /frameworks browse-UI fixes — selection highlight + no auto-scroll, list-default, view icons, multi-select filters + applied bar, area rename | 02_design.html | 03_plan.html |  |
 | 0019 | story | feature | done | 0018 | Build the /book-summary pmos-learnkit skill — verified multi-source curation → PM-framed themed takeaways |  | 03_plan.html |  |
 | 0021 | story | tech-debt | released | 0020 | Implement concurrency-safe ids — date+short-rand scheme, define merge id-uniqueness gate, derived INDEX | 02_design.html | 03_plan.html |  |
 | 0612-ejq | story | feature | planned | 0612-h2j | Build the /summary-tldr pmos-toolkit skill — multi-input, grounded, compression-confirmed summaries with a first-time-reader review pass | 02_design.html | 03_plan.html |  |
