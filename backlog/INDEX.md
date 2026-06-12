@@ -2,7 +2,7 @@
 
 Last regenerated: 2026-06-12
 
-2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+3 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -13,6 +13,7 @@ Last regenerated: 2026-06-12
 | 0016 | defined | skill | pmos-learnkit | 0/1 | /frameworks browse-UI fixes — selection, default view, view icons, multi-select filters, area rename |
 | 0018 | defined | skill | pmos-learnkit | 0/1 | /book-summary — verified public summaries → PM-framed themed takeaways |
 | 0020 | released | skill | pmos-toolkit | 1/1 | Concurrency-safe backlog ids — date+short-rand scheme + define merge id-uniqueness gate + derived INDEX |
+| 0612-h2j | defined | skill | pmos-toolkit | 0/1 | /summary-tldr — faithful, grounded TL;DR of any user-supplied content (text/PDF/image/URL/email/tweet/podcast/video) |
 
 ## should
 
@@ -27,6 +28,7 @@ Last regenerated: 2026-06-12
 | 0017 | story | enhancement | planned | 0016 | /frameworks browse-UI fixes — selection highlight + no auto-scroll, list-default, view icons, multi-select filters + applied bar, area rename | 02_design.html | 03_plan.html |  |
 | 0019 | story | feature | planned | 0018 | Build the /book-summary pmos-learnkit skill — verified multi-source curation → PM-framed themed takeaways |  | 03_plan.html |  |
 | 0021 | story | tech-debt | released | 0020 | Implement concurrency-safe ids — date+short-rand scheme, define merge id-uniqueness gate, derived INDEX | 02_design.html | 03_plan.html |  |
+| 0612-ejq | story | feature | planned | 0612-h2j | Build the /summary-tldr pmos-toolkit skill — multi-input, grounded, compression-confirmed summaries with a first-time-reader review pass | 02_design.html | 03_plan.html |  |
 
 ## could
 

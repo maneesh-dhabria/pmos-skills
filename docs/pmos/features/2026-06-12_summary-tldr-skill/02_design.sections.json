@@ -1,0 +1,110 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Maintainer decisions captured at define (2026-06-12)",
+    "parent_id": null
+  },
+  {
+    "id": "invocation",
+    "level": 2,
+    "title": "Invocation",
+    "parent_id": null
+  },
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture — reuse vs new",
+    "parent_id": null
+  },
+  {
+    "id": "arch-reuse",
+    "level": 3,
+    "title": "Reuse (cite, do not fork)",
+    "parent_id": "sec-architecture"
+  },
+  {
+    "id": "arch-new",
+    "level": 3,
+    "title": "New (genuinely this skill's)",
+    "parent_id": "sec-architecture"
+  },
+  {
+    "id": "input-ingestion",
+    "level": 2,
+    "title": "Input ingestion (tiered, honest degradation)",
+    "parent_id": null
+  },
+  {
+    "id": "compression",
+    "level": 2,
+    "title": "Compression model (D2)",
+    "parent_id": null
+  },
+  {
+    "id": "pipeline",
+    "level": 2,
+    "title": "Summarization pipeline (hybrid extract-then-generate)",
+    "parent_id": null
+  },
+  {
+    "id": "output-styles",
+    "level": 2,
+    "title": "Output styles",
+    "parent_id": null
+  },
+  {
+    "id": "grounding",
+    "level": 2,
+    "title": "Grounding rules (no meta-description)",
+    "parent_id": null
+  },
+  {
+    "id": "writing-quality",
+    "level": 2,
+    "title": "Writing quality (inlined /polish checks — D4)",
+    "parent_id": null
+  },
+  {
+    "id": "review",
+    "level": 2,
+    "title": "First-time-reader review pass",
+    "parent_id": null
+  },
+  {
+    "id": "diagram",
+    "level": 2,
+    "title": "Optional diagram step",
+    "parent_id": null
+  },
+  {
+    "id": "output",
+    "level": 2,
+    "title": "Output artifact & save location",
+    "parent_id": null
+  },
+  {
+    "id": "degradation",
+    "level": 2,
+    "title": "Honest degradation",
+    "parent_id": null
+  },
+  {
+    "id": "invariants",
+    "level": 2,
+    "title": "Cross-cutting invariants (the contract stories cite)",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  }
+]

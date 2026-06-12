@@ -1,0 +1,100 @@
+story: 0612-ejq
+spec: ../../02_design.html
+# Implementation reference: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md (§A–§L)
+# Eval rubric (Phase 6a hard gate): plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md (floor 43/47)
+# Host-repo policy: CLAUDE.md (canonical skill path, manifest version-sync, release entry point)
+tasks:
+  - id: T1
+    title: "Scaffold the summary-tldr skill dir + SKILL.md structural skeleton"
+    deps: []
+    parallel: false
+    acceptance:
+      - "plugins/pmos-toolkit/skills/summary-tldr/SKILL.md created; frontmatter name: summary-tldr matches dir (a-name-matches-dir); description has what + when + >=5 user-spoken triggers (b-*); user-invocable: true (f-cc-user-invocable); argument-hint lists contract flags only: --compression, --style, --audience, --diagram, --out, --non-interactive/--interactive (i-hint-contract-only)"
+      - "Body carries: ## Platform Adaptation (d-platform-adaptation), ## Track Progress (d-progress-tracking, >=3 phases), a learnings-load line reading ~/.pmos/learnings.md (d-learnings-load-line), and a numbered Capture-Learnings phase (d-capture-learnings-phase)"
+      - "Canonical non-interactive inline block pasted byte-identical to plugins/pmos-toolkit/skills/_shared/non-interactive.md between <!-- non-interactive-block:start --> / :end (enforced by lint-non-interactive-inline.sh)"
+      - "Eight integer top-level phases each with a stable kebab {#slug} anchor (j-phases-integer, j-phase-slug-anchors): setup, ingest, compress, summarize, review, diagram, emit, capture-learnings; body <= 800 lines (c-body-size)"
+      - "Every AskUserQuestion call has a (Recommended) option OR an adjacent <!-- defer-only: ... --> tag (audit-recommended.sh); any non-contract flag marked <!-- nl-sugar --> (i-nl-sugar-marked)"
+  - id: T2
+    title: "Author reference/input-dispatcher.md (per-kind detection + preprocessing + honest degradation)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Covers every declared source kind per design #input-ingestion: raw text, markdown, web/doc URL (WebFetch), PDF (native Read), image (vision Read), email thread (quote-dedup + chronological), tweet/Twitter thread (stitch in posting order), podcast (transcribe), video URL (transcript/captions or audio)"
+      - "Cites /polish Phase 1 input-resolver pattern and /magazine scripts/transcribe.sh contract (exit-3 no-whisper -> honest hint, never fabricate; crawl redirected to file never piped) and states only the summary-tldr deltas (§K one-fact-one-home)"
+      - "Encodes the cross-plugin resolution (D1): transcribe.sh lives in pmos-learnkit; resolve path at runtime; if absent, podcast/video degrade to 'paste a transcript' inputs"
+      - "Encodes I5 honest degradation: low-confidence/absent extraction is flagged or refused with guidance, never fabricated; records source_kind + extraction_confidence"
+      - "Reference file is one level deep, no links to other reference files (c-references-one-level); leading ToC if it has sections (c-reference-toc); portable paths (c-portable-paths)"
+  - id: T3
+    title: "Author reference/compression-model.md + scripts/compression.js (bands + length-scaled cap; arithmetic in script)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Defines the three intent bands (Tight ~10-20% / Standard ~20-30% default / Detailed ~30-40% with a long-output nudge) per design #compression (D2); Detailed carries the 'this will be long' nudge"
+      - "Specifies the length-scaled absolute word cap so long sources stay TL;DRs; non-text sources propose a target length directly (no ratio)"
+      - "scripts/compression.js does the arithmetic (source word count -> proposed target range + cap) — the model never computes the numbers (§H arithmetic-is-a-script); script has a --selftest"
+      - "Encodes I3: target proposed + confirmed (or --compression) before generating; one level deep; portable paths; leading ToC"
+  - id: T4
+    title: "Author reference/summary-pipeline.md (hybrid extract-then-generate + map-reduce chunking)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Specifies the grounded pipeline per design #pipeline: preprocess -> map-reduce chunk if long -> extract keyfact list -> generate to cover & assert keyfacts at band/style"
+      - "Encodes I1/I2 grounding: assert-not-describe; every claim traces to source extracted this run; exact numbers/entities/named conclusions preserved; meta-description is a hard fail (design #grounding)"
+      - "Names a model tier for any subagent dispatch (§L; sonnet for bounded chunk-summarize); includes >=1 worked before/after example (meta-description -> grounded assertion) (d-examples-quality)"
+      - "One level deep; portable paths; leading ToC"
+  - id: T5
+    title: "Author reference/output-styles.md (the 4 styles, all front-loading the conclusion)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Defines key-takeaways bullets (default), executive narrative, nested/hierarchical bullets, layered/progressive per design #output-styles; each maps to suited content types"
+      - "All styles front-load the conclusion (inverted pyramid); >=1 worked example per style or a representative subset (d-examples-quality)"
+      - "One level deep; portable paths; leading ToC"
+  - id: T6
+    title: "Author reference/review-rubric.md (first-time-reader checks + inlined /polish checks)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Binary first-time-reader checks per design #review: coverage (keyfacts present), faithfulness (7 error types), standalone (no dangling refs/pronouns), asserts-not-describes (meta-description = fail), coherence"
+      - "Inlines the applicable /polish checks (concision, de-AI-slop, active voice, reframed no-throat-clearing) and CITES polish/reference/rubric.md as source; states the no-author-voice delta (D4, §K)"
+      - "Each check binary pass/fail with a how-to-verify line; deterministic vs judge split per §H; reviewer grounding requires >=40-char source quotes; consumed by SKILL.md Phase 5 (<=2 loops, cites _shared/reviewer-protocol.md)"
+      - "One level deep; portable paths; leading ToC"
+  - id: T7
+    title: "SKILL.md Phases 1-2 — Setup & load learnings; Ingest (input dispatcher)"
+    deps: [T1, T2]
+    parallel: false
+    acceptance:
+      - "Phase 1 {#setup}: inline _shared/pipeline-setup.md (settings + docs_path); read ~/.pmos/learnings.md; resolve --compression/--style/--audience flags + interactive/non-interactive mode; --compression/--style persisted defaults optional (lastrun pattern)"
+      - "Phase 2 {#ingest}: detect source_kind, preprocess to clean text per reference/input-dispatcher.md, record extraction_confidence; low-confidence/absent -> flag or refuse with guidance (I5); ambiguous input -> AskUserQuestion 'what is this input?' marked (Recommended) or <!-- defer-only: ambiguous -->"
+      - "Cross-plugin transcribe.sh path resolved at runtime with graceful degradation if pmos-learnkit absent"
+  - id: T8
+    title: "SKILL.md Phases 3-4 — Compress (propose+confirm target); Summarize (extract-then-generate)"
+    deps: [T1, T3, T4, T5]
+    parallel: false
+    acceptance:
+      - "Phase 3 {#compress}: run scripts/compression.js for the proposed band+cap (model does no arithmetic); confirm target via AskUserQuestion (Recommended = Standard) or honor --compression; non-text sources propose a target length; cites reference/compression-model.md (I3)"
+      - "Phase 4 {#summarize}: map-reduce chunk if long; extract keyfact list; generate to cover & assert keyfacts in the chosen --style (default key-takeaways); front-load the conclusion; cites reference/summary-pipeline.md + reference/output-styles.md; any subagent names a model tier (§L)"
+      - "Grounding hard rule restated: assert-not-describe; no claim absent from source (I1/I2)"
+  - id: T9
+    title: "SKILL.md Phases 5-6 — Review (first-time-reader pass); Diagram (optional handoff)"
+    deps: [T1, T6]
+    parallel: false
+    acceptance:
+      - "Phase 5 {#review}: reviewer pass (<=2 loops, _shared/reviewer-protocol.md, names a model tier) against reference/review-rubric.md; meta-description = hard fail -> rewrite; surface a coverage/faithfulness signal; residual gaps surfaced not hidden; apply inlined /polish checks (deterministic auto-apply, judgment per findings-dispositions.md) (I4)"
+      - "Phase 6 {#diagram}: optional gate (Recommended = Skip) or --diagram; main-agent /diagram --source <md> --theme editorial --non-interactive --on-failure drop; validate SVG (parses, dark-mode bg rect, heading-id smoke) before embed; failure -> continue without it (never from a subagent)"
+  - id: T10
+    title: "SKILL.md Phases 7-8 — Emit (html-authoring + library); Capture learnings"
+    deps: [T1, T7, T8, T9]
+    parallel: false
+    acceptance:
+      - "Phase 7 {#emit}: emit per _shared/html-authoring/README.md checklist -> {docs_path}/summary-tldr/{YYYY-MM-DD}-<slug>.html + .sections.json + provenance block (source_kind, url/filename, extraction_confidence, retrieved_at); {{pmos_skill}}=summary-tldr; --out override; regenerate summary-tldr library listing via index-generator.md (I6)"
+      - "Phase 8 {#capture-learnings}: follow _shared/learnings-capture.md; reflect on summary-tldr-specific friction (false-positive checks, degradation edges, cross-plugin transcribe gaps)"
+      - "Gates correctly typed per §H: heading-id/sections.json/compression-arithmetic = deterministic hard; coverage/faithfulness/coherence = judge (reviewer-loop)"
+  - id: T11
+    title: "Registration + green lints/eval (no release-prereq tasks here — §G)"
+    deps: [T7, T8, T9, T10]
+    parallel: false
+    acceptance:
+      - "Skill dir present under plugins/pmos-toolkit/skills/ so the existing ./skills/ manifest glob picks it up; add the [codex] argument-hint sidecar if pmos-toolkit skills carry one (f-codex-sidecar)"
+      - "skill-eval-check.sh --target claude-code on the skill dir: [D] half green (or documented residuals); lint-phase-refs.sh, lint-flags-vs-hints.sh, lint-non-interactive-inline.sh, scripts/compression.js --selftest all exit 0"
+      - "NO version bump, CHANGELOG, README row, manifest version-sync, or learnings-header task appears in any wave (g-plan-grep-clean) — those are owned by /complete-dev (design #invariants I6)"

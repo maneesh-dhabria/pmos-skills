@@ -1,0 +1,38 @@
+[
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Scope",
+    "parent_id": null
+  },
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "waves",
+    "level": 2,
+    "title": "Task waves",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Key decisions carried from define",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]
