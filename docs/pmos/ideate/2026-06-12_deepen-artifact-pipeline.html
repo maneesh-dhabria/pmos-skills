@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="ideate">
+  <meta name="pmos:ideate-phase" content="complete">
+  <meta name="pmos:ideate-slug" content="deepen-artifact-pipeline">
+  <meta name="pmos:ideate-date" content="2026-06-12">
+  <title>Deepen /artifact into a Document Pipeline — Ideation</title>
+  <style>
+    :root { --bg:#fbfaf6; --ink:#1a1a1a; --muted:#5b5b58; --accent:#2563eb; --line:#e4e2da; --warn:#b45309; }
+    * { box-sizing: border-box; }
+    body { background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; margin:0; }
+    main { max-width: 880px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+    h1 { font-size: 1.9rem; line-height:1.2; margin:0 0 .3rem; }
+    .sub { color:var(--muted); margin:0 0 2rem; font-size:.95rem; }
+    h2 { font-size:1.25rem; margin:2.4rem 0 .6rem; padding-top:1rem; border-top:1px solid var(--line); }
+    section:first-of-type h2 { border-top:none; }
+    h3 { font-size:1.02rem; margin:1.2rem 0 .3rem; }
+    p, li { margin:.4rem 0; }
+    code { background:#efeee8; padding:.08em .35em; border-radius:4px; font-size:.88em; }
+    table { border-collapse:collapse; width:100%; margin:.8rem 0; font-size:.92rem; }
+    th, td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+    th { background:#f1efe8; font-weight:600; }
+    .tldr { background:#fff; border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:8px; padding:1rem 1.2rem; }
+    .warn { color:var(--warn); font-weight:600; }
+    .verdict { background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:.8rem 1rem; }
+    .pill { display:inline-block; background:#eef2ff; color:var(--accent); border-radius:999px; padding:.1rem .6rem; font-size:.8rem; font-weight:600; }
+    em.skip { color:var(--muted); }
+    ul { padding-left:1.2rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Deepen <code>/artifact</code> into a Document Pipeline</h1>
+  <p class="sub">Ideation brief · 2026-06-12 · idea-type: <span class="pill">extend</span> · slug <code>deepen-artifact-pipeline</code></p>
+
+  <section id="tldr">
+    <h2 id="tldr-h">TL;DR</h2>
+    <div class="tldr">
+      <p>Rather than build a new <code>/doc-pipeline</code> skill, <strong>deepen <code>/artifact</code></strong> so one run can take any document — template-backed or proposed-from-scratch — from context to a researched, multi-stakeholder-critiqued, diagrammed, polished, and grilled final. This honours the repo's anti-reimplementation norm: <code>/artifact</code> already owns context-gathering, templating, drafting, and a reviewer loop; the net-new surface is <strong>research, multi-persona critique, a from-scratch template path, and orchestration of <code>/diagram</code> + <code>/polish</code> + <code>/grill</code></strong>.</p>
+      <p>Pressure-test verdict: <strong>build — conditionally.</strong> Every "always / mandatory" in the spec is a premortem trigger. Make <code>--depth</code> the master dial and convert "always <em>do</em>" into "always <em>offer / run-in-safe-mode</em>."</p>
+    </div>
+  </section>
+
+  <section id="hmw">
+    <h2 id="hmw-h">How might we…</h2>
+    <p>How might we let a PM produce <em>any</em> document — template-backed or from-scratch — that arrives already researched, critiqued through real stakeholder lenses, diagrammed, polished, and stress-tested, in one guided pass instead of hand-chaining five skills?</p>
+  </section>
+
+  <section id="jtbd">
+    <h2 id="jtbd-h">Target user &amp; JTBD</h2>
+    <p><strong>User:</strong> a PM (or eng lead) authoring a high-stakes document — PRD, strategy memo, proposal, RFC, postmortem.</p>
+    <p><strong>JTBD:</strong> "When I have a high-stakes doc to write, I want a workflow that takes me from context → defensible draft → hardened final, so I ship something that survives scrutiny without remembering to run <code>/artifact</code>, then <code>/diagram</code>, then <code>/polish</code>, then <code>/grill</code> in the right order."</p>
+  </section>
+
+  <section id="hypothesis">
+    <h2 id="hypothesis-h">Hypothesis</h2>
+    <p>If <code>/artifact</code> absorbs the missing front-end (research), the missing critique depth (multi-persona), the missing from-scratch path (propose+save template), and orchestrates the existing finishing skills, then users will stop manually chaining and the output will survive real stakeholder review with fewer surprises — <em>provided</em> the heavy machinery is earned by stakes (via <code>--depth</code>) rather than imposed on every run.</p>
+  </section>
+
+  <section id="variants">
+    <h2 id="variants-h">Idea variants considered</h2>
+    <p>15 shape-variants were generated across five families: orchestrator-shaped (thin conductor, stage-gated, reuse <code>/feature-sdlc</code>), config-driven (template-defines-pipeline, doc-type registry, personas-ride-template), differentiator-first (build only research / persona-sim / from-scratch), effort-scaled (<code>--depth</code> dial, review-room loop), and minimal-footprint (handoff-chain, MVP cut).</p>
+    <p><strong>Selected:</strong> <em>Deepen <code>/artifact</code></em> (variants #2 + #9 + #15 + #5) — enrich the existing skill, tier-scale the effort, keep the smallest footprint, and add a self-growing from-scratch template path. Rejected a standalone <code>/doc-pipeline</code> orchestrator: a whole new surface to maintain plus skill-coupling/release-cycle cost, when only ~4 capabilities are genuinely new.</p>
+  </section>
+
+  <section id="amplify-ladder">
+    <h2 id="amplify-ladder-h">Amplify: 11-star ladder</h2>
+    <p><em class="skip">Skipped — the user converged on a concrete design directly; no UX ceiling to raise via amplification.</em></p>
+  </section>
+
+  <section id="how-it-works">
+    <h2 id="how-it-works-h">How it works (the deepened flow)</h2>
+    <p>Layered onto <code>/artifact</code>'s existing 8-step Create flow, gated by <code>--depth brief|standard|deep</code>:</p>
+    <ol>
+      <li><strong>Template proposal (when none match).</strong> Propose a new template from context; if the template warrants external research, do it <em>alongside</em> eval generation; offer to <strong>save as a reusable template</strong> (default <em>No</em>, checklist-gated). Ship <strong>new-template best-practice guidelines</strong> (section design, eval criteria, persona set, length target).</li>
+      <li><strong>Document-length target.</strong> Templates carry a length target; when proposing a <em>new</em> template, ask the user for one.</li>
+      <li><strong>Research phase (approval-gated).</strong> First decide "is external research warranted?" (auto-skip for internal/template-backed docs). If yes: <strong>propose a research plan → user approves → fan out subagents</strong> → save output as a separate doc under <code>&lt;feature_folder&gt;/research/</code> with source provenance (verifiable URLs only).</li>
+      <li><strong>Draft</strong> (existing Step 8).</li>
+      <li><strong>Multi-persona critique.</strong> 3–4 stakeholder personas (template-defined, or recommended from context) read the draft in parallel subagents; findings reconciled <em>with the user</em> before the draft updates.</li>
+      <li><strong>Diagram pass (recommended).</strong> Propose a diagram list → user approves → subagents run <code>/diagram</code> (non-interactive, mandated background-rect, fixed insertion anchor) → <strong>validate each SVG before inline insert</strong>. Remember "always run diagram pass" as a per-project preference.</li>
+      <li><strong>Polish (always-on).</strong> Run <code>/polish</code> at the end — auto-apply mechanical findings, route voice-risk findings through per-finding confirm.</li>
+      <li><strong>Grill (mandatory, depth-scaled).</strong> Run <code>/grill</code> on every artifact, scaled by <code>--depth</code>; interactive interrogation when a human is present, written-findings degradation when headless.</li>
+    </ol>
+  </section>
+
+  <section id="alternatives">
+    <h2 id="alternatives-h">Alternatives &amp; prior art</h2>
+    <ul>
+      <li><strong><code>/feature-sdlc</code></strong> — the in-repo precedent for an orchestrator that sequences existing skills without reimplementing them. The rejected "thin <code>/doc-pipeline</code>" variant is structurally this, for docs.</li>
+      <li><strong><code>/artifact</code> reviewer subagent</strong> — already does single-reviewer eval-criteria critique; multi-persona critique must prove it adds value <em>beyond</em> this (see assumptions).</li>
+      <li><strong><code>/ideate</code> gating</strong> — precedent for "most runs don't earn the full battery"; the <code>--depth</code> dial here mirrors it.</li>
+      <li><strong><code>/primer</code> word-floor learnings</strong> — caution that document-length targets are routinely missed; treat the length target as informational steering, not a hard gate.</li>
+    </ul>
+  </section>
+
+  <section id="premortem">
+    <h2 id="premortem-h">Premortem: failure modes</h2>
+    <p><em>"It's June 2027; this shipped 12 months ago and failed. Why?"</em></p>
+    <table>
+      <thead><tr><th>Mode</th><th>Likelihood</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td><code>/artifact</code> stopped being the <em>fast</em> draft tool — every run triggers research+grill+diagram+polish, so a 2-min draft became a 15-min saga and users routed around it.</td><td>H</td><td>Full battery = <code>deep</code> tier only; default/<code>lite</code> = draft + polish + single grill set; research/diagram strictly opt-in.</td></tr>
+        <tr><td>Mandatory <code>/grill</code> broke non-interactive / batch use — its turn-by-turn interrogation made <code>/artifact</code> impossible to run headlessly or as a <code>/feature-sdlc</code> sub-step.</td><td>H</td><td>Interactive interrogation only when a human is present; degrade to a written adversarial findings pass in <code>--non-interactive</code>.</td></tr>
+        <tr><td>Always-on <code>/polish</code> mangled careful prose — a deliberately-voiced exec memo got silently rewritten; trust eroded.</td><td>M</td><td>Run polish in mechanical/surface-safe mode by default; route voice-risk findings through per-finding confirm. "Always run" ≠ "always auto-apply."</td></tr>
+        <tr><td>Inline diagram fan-out produced unreadable/garbage SVGs — dark-mode bg-rect gap + anchoring drift + <code>/diagram</code>'s own pick-loop don't compose with headless subagents.</td><td>M</td><td>Subagents run <code>/diagram</code> non-interactive with mandated bg-rect + fixed anchor; validate each SVG before insert; skip on failure with a logged note.</td></tr>
+        <tr><td>Template-proposal created a junk template library — users said "save" reflexively; <code>~/.pmos/artifacts/templates/</code> filled with thin-eval near-duplicates.</td><td>M</td><td>Save prompt defaults to <em>No</em>; offer only after the doc completes; require the new-template best-practice checklist to pass before persisting.</td></tr>
+        <tr><td>Research fan-out burned tokens/latency on docs needing no external research, or invented "sources."</td><td>M</td><td>Gate on "is research warranted?" (auto-skip internal/template docs); subagents return verifiable URLs only, saved with provenance — no source, no claim.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="assumptions">
+    <h2 id="assumptions-h">Riskiest assumptions</h2>
+    <table>
+      <thead><tr><th>Assumption</th><th>Impact</th><th>Uncertainty</th><th>Cheapest test</th></tr></thead>
+      <tbody>
+        <tr><td>Users want the heavyweight pipeline often enough to justify it as the default (vs. a <code>deep</code>-only opt-in).</td><td>H</td><td>H</td><td>Instrument 10 real runs: how many would want research+grill+diagram? If &lt;half → opt-in.</td></tr>
+        <tr><td><code>/grill</code>, <code>/polish</code>, <code>/diagram</code> can be invoked from inside <code>/artifact</code> and degrade cleanly in non-interactive mode.</td><td>H</td><td>H</td><td>1-hour spike: call each from a test <code>/artifact</code> run in <code>--non-interactive</code>; confirm none hard-block. (<code>/polish</code> warns subagents can't invoke it — verify the main-agent path.)</td></tr>
+        <tr><td>Multi-persona critique adds value beyond <code>/artifact</code>'s existing eval-criteria reviewer.</td><td>H</td><td>M</td><td>Run one PRD through the current single reviewer and a 3-persona panel; diff findings. If ≈ equal, the new machinery isn't earning its cost.</td></tr>
+        <tr><td>A useful template (sections + eval + personas + length) can be auto-proposed and researched in one pass without a human authoring it.</td><td>M</td><td>H</td><td>Auto-propose a template for one unusual doc-type; have a human grade the generated eval against the best-practice checklist.</td></tr>
+        <tr><td>Inline-inserted SVGs survive the HTML substrate (dark-mode, comment anchoring, <code>sections.json</code>) without corrupting the artifact.</td><td>M</td><td>M</td><td>Insert one generated diagram into a real artifact; run <code>/verify</code>'s heading-id + comments-coverage smoke; confirm green.</td></tr>
+        <tr><td>A user-set document-length target meaningfully steers generation (vs. being ignored like <code>/primer</code>'s word-floor).</td><td>M</td><td>M</td><td>Generate the same doc at 2 length targets; measure whether output word-count tracks the target.</td></tr>
+      </tbody>
+    </table>
+    <h3>Munger inversion — choices that would guarantee failure</h3>
+    <ul>
+      <li>Make the full pipeline mandatory on every run regardless of <code>--depth</code>.</li>
+      <li>Run <code>/grill</code>'s turn-by-turn interrogation inline with no non-interactive degradation.</li>
+      <li>Auto-apply <code>/polish</code> rewrites without the per-finding voice-conflict gate.</li>
+      <li>Insert diagram-subagent SVGs inline without validating them.</li>
+      <li>Default "save as template" to <em>Yes</em>, and persist before the doc is finished.</li>
+    </ul>
+  </section>
+
+  <section id="success-signals">
+    <h2 id="success-signals-h">Success signals</h2>
+    <ul>
+      <li>Users run the deepened <code>/artifact</code> once and stop manually chaining <code>/diagram</code> / <code>/polish</code> / <code>/grill</code>.</li>
+      <li>Default/<code>lite</code> runs stay fast (no regression in time-to-first-draft for quick docs).</li>
+      <li>Artifacts survive real stakeholder review with fewer surprises (persona critique catches what the single reviewer missed).</li>
+      <li>The template library grows in quality, not junk — saved templates pass the best-practice checklist.</li>
+    </ul>
+  </section>
+
+  <section id="next-steps">
+    <h2 id="next-steps-h">Next steps</h2>
+    <div class="verdict"><strong>Verdict: Lead (build) — conditionally.</strong> Resolve the two H×H risks in <code>/spec</code> before building: (1) non-interactive composition of <code>/grill</code>+<code>/polish</code>+<code>/diagram</code> inside <code>/artifact</code>; (2) whether the heavy pipeline is default or <code>deep</code>-only.</div>
+    <ul>
+      <li><code>/skill-sdlc --from-feedback &lt;this brief&gt;</code> — author the <code>/artifact</code> deepening through the full skill pipeline (this is an <em>extend</em> of an existing skill, so revise-existing).</li>
+      <li><code>/backlog add --kind epic "Deepen /artifact into a document pipeline"</code> — capture as an epic, source = this brief.</li>
+    </ul>
+  </section>
+
+  <section id="open-questions">
+    <h2 id="open-questions-h">Open questions</h2>
+    <ul>
+      <li>Is the heavy pipeline the default, or strictly <code>deep</code>-tier opt-in? (Pressure-test leans opt-in; user leaned "always" for grill/polish — reconcile in spec.)</li>
+      <li>Do personas live on the template (variant #14) or get recommended per-run from context — or both?</li>
+      <li>Should the research output under <code>research/</code> be a first-class artifact (commented, in the index) or a loose sidecar?</li>
+      <li>How does mandatory <code>/grill</code> reconcile with <code>/artifact refine</code> and <code>update</code> flows — re-grill on every refine, or only on create?</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>
