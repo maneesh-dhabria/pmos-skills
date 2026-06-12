@@ -63,7 +63,8 @@ tasks:
     parallel: true
     acceptance:
       - "scripts/narrate.sh: one WAV per slide from speaker notes; say best-available voice (+ Enhanced detect/nudge) default, Kokoro auto-upgrade when detected; writes audio/ + durations.json (per-WAV ffprobe duration); non-Mac-without-Kokoro hard error with install path; NO cloud path"
-      - "scripts/assemble.sh: per-slide ffmpeg segment (-loop 1 still image + WAV, yuv420p, even-dimension scale, -shortest) held for ffprobe duration, then concat -c copy to 16:9 H.264/AAC video.mp4; optional burned-in .srt captions; ffmpeg presence is a HARD gate with brew/apt install hint"
+      - "scripts/assemble.sh: per-slide ffmpeg segment (-loop 1 still image + WAV, yuv420p, even-dimension scale, -shortest) held for ffprobe duration, then concat -c copy to 16:9 H.264/AAC video.mp4; optional burned-in .srt captions"
+      - "ffmpeg AND ffprobe are a single up-front HARD gate (a shared probe both narrate.sh and assemble.sh source/call before doing work, since narrate.sh's durations.json needs ffprobe in Phase 5) — brew/apt install hint names whichever binary is missing; ffprobe can be absent even when ffmpeg is present"
       - "assemble.sh (or a sibling check) runs the reference/eval-rubric.md self-check (frame/slide parity, duration, non-silent audio, figure resolution) and exits non-zero on failure"
   - id: T8
     title: "SKILL.md Phases 1-3 — Setup; Ingest (in-session); Distill to deck.json"
@@ -79,6 +80,6 @@ tasks:
     parallel: false
     acceptance:
       - "Phase 4 {#author-capture}: author deck.html via _shared/html-authoring (one <section>/slide, speaker notes per slide, figures placed) per README.md checklist ({{pmos_skill}}=explainer-video, assets copied, cache-bust, kebab ids, comments overlay); run render-slides.mjs -> frames/. v1 mp4-only (deck.html is the silent source)"
-      - "Phase 5 {#narrate}: run narrate.sh -> audio/ WAVs + durations.json; surface the Enhanced-voice nudge once; Kokoro auto-upgrade note"
-      - "Phase 6 {#assemble}: run assemble.sh -> video.mp4 (ffmpeg hard gate w/ install hint); run the eval-rubric self-check; land all six artifacts at {docs_path}/explainer-video/{YYYY-MM-DD}_{slug}/; regenerate an explainer-videos.html library listing via index-generator.md"
+      - "Phase 5 {#narrate}: run the shared ffmpeg+ffprobe hard-gate probe up front (install hint names the missing binary), then narrate.sh -> audio/ WAVs + durations.json (ffprobe); surface the Enhanced-voice nudge once; Kokoro auto-upgrade note"
+      - "Phase 6 {#assemble}: run assemble.sh -> video.mp4 (gate already satisfied in Phase 5); run the eval-rubric self-check; land all six artifacts at {docs_path}/explainer-video/{YYYY-MM-DD}_{slug}/; regenerate an explainer-videos.html library listing via index-generator.md"
       - "Phase 7 {#capture-learnings}: follow _shared/learnings-capture.md; reflect on explainer-video-specific friction. (T9 edits the same SKILL.md as T8 -> sequential, never parallel)"
