@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="plan">
+  <title>Plan — Deepen /artifact into a document pipeline</title>
+  <style>
+    body { background:#fbfaf6; color:#1a1a1a; font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; margin:0; }
+    main { max-width:960px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    h1 { font-size:1.7rem; } h2 { font-size:1.2rem; border-top:1px solid #e4e2da; padding-top:1rem; margin-top:1.8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.86rem; margin:.6rem 0; }
+    th,td { border:1px solid #e4e2da; padding:.45rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f1efe8; }
+    code { background:#efeee8; padding:.05em .3em; border-radius:4px; }
+    .meta { color:#5b5b58; font-size:.92rem; }
+    ul,ol { padding-left:1.25rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Plan — Deepen <code>/artifact</code></h1>
+  <p class="meta">Implements <code>02_spec.html</code>. <code>execution_mode: inline</code>. Per-task commits. Frontend: none (skill authoring). Manifest 2.64.0 → 2.65.0.</p>
+
+  <h2 id="frontmatter">Plan frontmatter</h2>
+  <pre>execution_mode: inline
+tier: 3
+skill_location: plugins/pmos-toolkit/skills/artifact
+target_platform: claude-code
+release_target: pmos-toolkit 2.65.0</pre>
+
+  <h2 id="wave1">Wave 1 — Spine (the <code>--depth</code> dial, F8)</h2>
+  <ol>
+    <li><strong>T1</strong> — SKILL.md: update <code>argument-hint</code> to advertise <code>--depth brief|standard|deep</code>; demote <code>--tier lite|full</code> to a <code>&lt;!-- nl-sugar --&gt;</code> alias note in the flags section (lite→brief, full→standard). <em>Verify:</em> <code>grep -- '--depth brief|standard|deep' SKILL.md</code>; lint-flags-vs-hints green.</li>
+    <li><strong>T2</strong> — SKILL.md Phase 0: add depth resolution (flag &gt; <code>settings.artifact.default_depth</code> &gt; <code>standard</code>) + the <code>depth: &lt;v&gt; (source:…)</code> stderr line; map <code>--tier</code> alias here. <em>Verify:</em> structure test asserts the resolution block + default standard.</li>
+    <li><strong>T3</strong> — SKILL.md Step 3 (tier detection) → rewrite as <strong>depth→section</strong> mapping (brief→lite set, standard/deep→full set); keep single-tier short-circuit. <em>Verify:</em> the create-flow references depth, not a standalone tier prompt.</li>
+  </ol>
+
+  <h2 id="wave2">Wave 2 — Reference contracts (independent files, parallel-safe)</h2>
+  <ol start="4">
+    <li><strong>T4</strong> — <code>reference/research-phase.md</code> (§4.1) with leading <code>## Contents</code> ToC.</li>
+    <li><strong>T5</strong> — <code>reference/persona-panel.md</code> (§4.2) + ToC.</li>
+    <li><strong>T6</strong> — <code>reference/diagram-pass.md</code> (§4.3) + ToC.</li>
+    <li><strong>T7</strong> — <code>reference/new-template-guidelines.md</code> (§4.4) + ToC.</li>
+    <li><em>Verify (T4–T7):</em> each file parses; <code>lint-phase-refs.sh</code> resolves any <code>#anchor</code> cites; <code>c-reference-toc</code> satisfied.</li>
+  </ol>
+
+  <h2 id="wave3">Wave 3 — Create-flow inserts (depend on Wave 1+2)</h2>
+  <ol start="8">
+    <li><strong>T8</strong> — Step 1.5: no-template-match → propose template (cite existing <code>template add</code> T.1–T.6) + ask <code>length_target</code> (F1/F2). New <code>AskUserQuestion</code>: get a Recommended option (default-No save). <em>Verify:</em> audit-recommended green.</li>
+    <li><strong>T9</strong> — Step 7.5: research gate (<code>--depth deep</code>) — summary + cite <code>research-phase.md</code> (F3). <em>Verify:</em> phase-ref resolves.</li>
+    <li><strong>T10</strong> — Step 8: thread <code>length_target</code> steering + research-context consumption into draft generation (F2).</li>
+  </ol>
+
+  <h2 id="wave4">Wave 4 — Post-draft phases (depend on Wave 2)</h2>
+  <ol start="11">
+    <li><strong>T11</strong> — Phase 3.5 persona panel — gate (standard+deep) + summary + cite <code>persona-panel.md</code> (F4). <code>AskUserQuestion</code> persona-confirm gets Recommended.</li>
+    <li><strong>T12</strong> — Phase 3.7 diagram pass — gate (deep / saved pref) + summary + cite <code>diagram-pass.md</code> (F5). multiSelect propose-ask gets Recommended.</li>
+    <li><strong>T13</strong> — Phase 3.8 /polish — always; main-agent invoke; mechanical-auto / voice-gate (F6).</li>
+    <li><strong>T14</strong> — Phase 3.9 /grill — always; <code>--depth</code> mapped; mode-aware (F7).</li>
+    <li><strong>T15</strong> — <code>## Platform Adaptation</code>: add the <strong>subagent-degradation</strong> bullet (child phases skip-with-note when /artifact runs as a subagent — resolves FR-22); update <code>## Track Progress</code> phase count; add/adjust Anti-Patterns for the new phases.</li>
+  </ol>
+
+  <h2 id="wave5">Wave 5 — Templates + tests</h2>
+  <ol start="16">
+    <li><strong>T16</strong> — add optional <code>personas:</code> + <code>length_target:</code> frontmatter to the 4 built-in templates; PRD gets a real worked persona set (eng-lead, design, GTM, exec).</li>
+    <li><strong>T17</strong> — <code>tests/depth-gating.sh</code> (brief omits personas/research/diagram; standard adds personas; deep adds all) — materialize-then-here-string.</li>
+    <li><strong>T18</strong> — <code>tests/structure.sh</code> additions: argument-hint has <code>--depth</code>; each new phase heading; subagent-degradation bullet; <code>--tier</code> nl-sugar marked. Run each new test ≥2× (SIGPIPE flush).</li>
+    <li><strong>T19</strong> — run repo lints (<code>lint-non-interactive-inline.sh</code>, <code>audit-recommended.sh</code>, <code>lint-flags-vs-hints.sh</code>, <code>lint-phase-refs.sh</code>) + <code>skill-eval-check.sh --target claude-code plugins/pmos-toolkit/skills/artifact</code>; fix to green.</li>
+  </ol>
+
+  <h2 id="final-verify">Final verification checklist</h2>
+  <ul>
+    <li><code>skill-eval-check.sh</code> [D] all pass; [J] reviewer pass (Phase 6a/7).</li>
+    <li>All 4 repo lints green.</li>
+    <li>Depth-gating test proves brief ≠ standard ≠ deep stage sets.</li>
+    <li>SKILL.md still loads (frontmatter parses; single-line description; <code>## Phase 6: ... Capture Learnings</code> heading intact).</li>
+    <li>No version-bump/changelog/README/manifest edits in any wave (those are /complete-dev's).</li>
+  </ul>
+
+  <h2 id="release-prereqs">Release prerequisites (NOT execute tasks — /complete-dev owns)</h2>
+  <ul>
+    <li>Bump 2.64.0 → 2.65.0 in both <code>plugin.json</code> manifests.</li>
+    <li>Changelog entry (user-facing: "/artifact now runs a depth-scaled document pipeline…").</li>
+    <li>README per-skill row update if present; manifest version-sync check.</li>
+  </ul>
+</main>
+</body>
+</html>
