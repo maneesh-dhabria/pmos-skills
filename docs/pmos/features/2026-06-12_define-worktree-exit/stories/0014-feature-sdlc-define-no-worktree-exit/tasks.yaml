@@ -10,8 +10,8 @@ tasks:
       - "Worktree removal mirrors the /complete-dev Phase 16a discipline (ExitWorktree → git worktree remove; --force only on dirty, surfaced not auto-forced)"
       - "Guarded to the terminal COMPLETED merge only (invariant I1): a paused/un-merged define run never reaches step 5, so the resume worktree is untouched — state this explicitly in the step text"
       - "Applies to BOTH route variants via the shared-semantics note at line 423 (invariant I2): the change lands once in step 5; the route:skill delta section is not duplicated, and the line-423 note is updated to confirm worktree teardown is shared"
-    status: pending
-    evidence:
+    status: done
+    evidence: "feature-sdlc/SKILL.md #define-mode step 5: added Exit + teardown paragraph (ExitWorktree → git worktree remove, --force surfaced not auto-forced, mirrors /complete-dev Phase 16a); guarded to terminal completed merge (I1) with explicit paused-run retention note; line-423 note updated to confirm shared teardown (I2)"
 
   - id: T2
     title: "Rewrite the #define-mode step 5 STOP log line to a platform-correct root nudge"
@@ -21,8 +21,8 @@ tasks:
       - "STOP log line nudges to root: e.g. '[orchestrator] define mode: definition merged; epic <id> → defined. cd <root> && /feature-sdlc build --next' (invariant I4)"
       - "The build invocation uses the per-platform execute_invocation mapping from _shared/platform-strings.md (not a hardcoded /feature-sdlc string) — cite the reference inline"
       - "<root> resolves to the main checkout path (git worktree list first entry), not the removed define worktree"
-    status: pending
-    evidence:
+    status: done
+    evidence: "feature-sdlc/SKILL.md #define-mode step 5 STOP log rewritten to 'cd <root> && <execute_invocation> build --next' citing _shared/platform-strings.md execute_invocation mapping (I4); <root> = git worktree list first entry"
 
   - id: T3
     title: "Document the single owner of define-worktree teardown (cross-ref note in complete-dev #epic-train step 6)"
@@ -32,5 +32,5 @@ tasks:
       - "complete-dev/SKILL.md #epic-train step 6 (line ~251) gains a one-line note: it removes per-STORY worktrees only; the define/<epic-id> worktree is owned and removed by /feature-sdlc define #define-mode step 5 (invariant I3)"
       - "feature-sdlc/SKILL.md #define-mode step 5 reciprocally notes it owns its own worktree teardown (no train dependency)"
       - "No behavior change to the epic-train per-story cleanup loop — documentation/cross-reference only"
-    status: pending
-    evidence:
+    status: done
+    evidence: "complete-dev/SKILL.md #epic-train step 6: added one-line note (owns per-story worktrees only; define worktree owned by define step 5, I3); feature-sdlc step 5 carries the reciprocal ownership sentence; no behavior change to the cleanup loop"
