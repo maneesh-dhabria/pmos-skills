@@ -4,15 +4,15 @@ id: 0014
 kind: story
 title: /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree
 type: tech-debt
-status: planned
+status: in-progress
 priority: should
 route: skill
 parent: 0015
 dependencies: []
-worktree:
+worktree: ../agent-skills-0014-feature-sdlc-define-no-worktree-exit
 plan_doc: docs/pmos/features/2026-06-12_define-worktree-exit/stories/0014-feature-sdlc-define-no-worktree-exit/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_define-worktree-exit/stories/0014-feature-sdlc-define-no-worktree-exit/tasks.yaml
-claimed_by: null
+claimed_by: feature-sdlc-build-loop
 labels: [feature-sdlc, define, worktree, three-loop]
 created: 2026-06-12
 updated: 2026-06-12
