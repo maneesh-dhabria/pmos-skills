@@ -1,0 +1,134 @@
+schema_version: 1
+story: 0613-36f
+epic: 0613-kr0
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# New pmos-toolkit skill /logos. Sequenced: scaffold → Phase 0 renderer gate + bundled themes →
+# intake/style-profile + decomposition → generation + hybrid evaluator → deliverables + logos.html →
+# tests/selftest. /logos is the sole writer; cites diagram's render-to-raster + eval shape and the
+# _shared/html-authoring substrate. NO release-prereq tasks here (see ## Release prerequisites in design).
+tasks:
+  - id: T1
+    title: "Scaffold skill at canonical path + SKILL.md skeleton"
+    ac: [AC1, AC9]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/logos/SKILL.md. Frontmatter: name: logos (matches dir),
+      description with trigger phrases ("create a logo", "design a logo", "make an SVG logo",
+      "brand mark", "favicon", "logo for this feature/brand/nav"), user-invocable: true,
+      argument-hint listing ONLY contract flags (§I 4-test): e.g. [--out <dir>] [--theme <name>]
+      [--ref <url|path>] [--types <list>] [--renderer playwright|rsvg|cairosvg]
+      [--non-interactive|--interactive] [--selftest] [--clear-cache]. Inline the canonical
+      ~27-line non-interactive block byte-identical to skills/_shared/non-interactive.md. Add
+      Platform Adaptation + Track Progress + Load Learnings sections. Declare integer phases 0–5
+      with {#kebab} anchors (setup, intake, decompose, generate, evaluate, deliver). Announce line.
+
+  - id: T2
+    title: "Phase 0 — args + renderer hard-gate detection"
+    ac: [AC1, AC5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Implement Phase 0 {#setup}: parse args/flags (validate enum flags → stderr+exit 64 on bad
+      value); resolve {docs_path} from .pmos/settings.yaml (fallback docs/pmos/); default --out
+      {docs_path}/logos/<run-slug>/. Renderer HARD GATE: detect Playwright MCP → rsvg-convert →
+      cairosvg (reuse diagram/reference/render-to-raster.md §Detection — cite, do not fork the
+      logic); none present ⇒ REFUSE TO RUN, print install hint, exit 2. --selftest / --clear-cache
+      shortcuts. Honor mode resolution from the non-interactive block.
+
+  - id: T3
+    title: "Bundled theme set (themes/)"
+    ac: [AC7]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Author plugins/pmos-toolkit/skills/logos/themes/ with one definition per starter theme:
+      flat-minimal (default), line-outline, geometric-monogram, gradient-duotone, badge-emblem,
+      dimensional-flat. Each theme states its SVG technique palette, color/stroke constraints,
+      and (for non-flat themes) the mandatory flat+mono fallback rule. Machine-readable theme.yaml
+      per theme + a themes/_schema.json, mirroring diagram/themes/ shape. dimensional-flat encodes
+      the feGaussianBlur+feOffset soft-shadow recipe and the "depth dies at favicon/mono" caveat.
+
+  - id: T4
+    title: "Phase 1 — intake + style-profile extraction"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Implement Phase 1 {#intake}: read text brief; fetch URL(s) (Playwright screenshot + scrape
+      declared CSS colors / <meta theme-color>); read asset file(s) — SVG → parse fills/strokes +
+      corner radii + stroke-width + path geometry directly; raster (png/jpg) → k-means palette
+      quantization (provide scripts/extract-palette.mjs, zero/util-dep). Build the style-profile
+      JSON { palette[], corner_style, stroke_ratio, type_feel, mood_adjectives[] }; text-only
+      brief derives it from adjectives. Profile is persisted and threaded into Phases 3–4.
+
+  - id: T5
+    title: "Phase 2 — decompose brief into logo needs"
+    ac: [AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Implement Phase 2 {#decompose}: carve the brief into N named logo needs, each with a
+      recommended mark type (of the seven), intended usage/size (nav/toolbar vs feature vs brand),
+      and a suggested theme. Interactive: AskUserQuestion confirm/edit the decomposition (must
+      carry a (Recommended) option). Non-interactive: AUTO-PICK + record the decomposition in the
+      logos.json sidecar + open-questions buffer. Mascot/detailed-pictorial flagged best-effort.
+
+  - id: T6
+    title: "Phase 3 — divergent generation (2–3 SVG variants per need)"
+    ac: [AC4, AC6]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      Implement Phase 3 {#generate}: per need, author 2–3 concept variants as standalone
+      self-contained .svg (valid XML, single root <svg viewBox>, no <image>/data:image, no
+      <script>, unique/NAMESPACED gradient+clip ids — critical for inlining many on one page),
+      conditioned on the style-profile + chosen theme. Wordmarks use system-font <text> +
+      geometric letterforms. Emit required deliverable variants: icon-only for
+      combination/emblem/wordmark; flat MONOCHROME fallback for every non-flat theme. §L dispatch:
+      fan out per need/variant via parallel subagents when a renderer is available; inline
+      sequential fallback otherwise.
+
+  - id: T7
+    title: "Phase 4 — hybrid evaluator + ≤2 refine loop"
+    ac: [AC5]
+    deps: [T2, T6]
+    parallel: false
+    detail: >
+      Implement Phase 4 {#evaluate} + eval/ (mirror diagram/eval shape). Deterministic
+      code-metrics SCRIPT (eval/code-metrics + scripts/svg-metrics.mjs) as hard gates: no raster
+      embed; ≤N distinct colors; min effective stroke ≥~1px at 16px (stroke-width×16/viewBox-h);
+      square-ish icon viewBox 0.8–1.25; path-data budget + node cap; unique-id check; fake
+      negative-space (page-colored fill) flag. Renderer-backed VISION rubric: favicon-16px
+      legibility, monochrome-still-reads (mandatory), brief-fit vs style-profile. Auto-reject
+      hard-gate fails; refine survivors ≤2 loops. Arithmetic in the script, not the model (§H).
+
+  - id: T8
+    title: "Phase 5 — deliverables + logos.html showcase + json sidecar"
+    ac: [AC4, AC6, AC8]
+    deps: [T7]
+    parallel: false
+    detail: >
+      Implement Phase 5 {#deliver}: write every .svg (+ *-icon.svg, *-mono.svg) under the run
+      folder. Assemble logos.html via _shared/html-authoring/ (render.js path; strip template's
+      leading doc-comment before render — known gotcha): embed every need×variant INLINE, on light
+      + dark backgrounds, at full + favicon (16/24px) size, with per-file download links, the eval
+      verdict per candidate, and the style-profile. asset prefix assets/, ?v=<plugin-version>
+      cache-bust, kebab heading ids, <meta name="pmos:skill" content="logos">, copy assets cp -n.
+      Write <run-slug>.logos.json sidecar (decomposition, style-profile, per-candidate scores,
+      rationale). Verify gradient/clip ids do not collide across inlined SVGs.
+
+  - id: T9
+    title: "Tests + selftest + sample run fixture"
+    ac: [AC1, AC5]
+    deps: [T8]
+    parallel: false
+    detail: >
+      Add plugins/pmos-toolkit/skills/logos/tests/: unit tests for svg-metrics.mjs (each hard gate
+      pass/fail fixture) and extract-palette.mjs; a --selftest entry runnable headlessly; a small
+      sample brief → fixture run asserting (a) decomposition emits ≥1 need, (b) each need has 2–3
+      .svg variants that pass deterministic gates, (c) logos.html embeds them with unique ids, (d)
+      renderer-absent path REFUSES with exit 2. Run skill-eval.md self-check (floor 43/47) and the
+      repo hygiene lints (lint-flags-vs-hints.sh, lint-phase-refs.sh, lint-non-interactive-inline.sh).

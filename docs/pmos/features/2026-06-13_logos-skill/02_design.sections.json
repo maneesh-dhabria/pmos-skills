@@ -1,0 +1,86 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "charter-fit",
+    "level": 2,
+    "title": "Charter fit & coherence",
+    "parent_id": null
+  },
+  {
+    "id": "research",
+    "level": 2,
+    "title": "Research grounding",
+    "parent_id": null
+  },
+  {
+    "id": "pipeline",
+    "level": 2,
+    "title": "Pipeline (the process)",
+    "parent_id": null
+  },
+  {
+    "id": "evaluator",
+    "level": 2,
+    "title": "Hybrid evaluator",
+    "parent_id": null
+  },
+  {
+    "id": "eval-deterministic",
+    "level": 3,
+    "title": "Deterministic hard gates (SVG markup)",
+    "parent_id": null
+  },
+  {
+    "id": "eval-vision",
+    "level": 3,
+    "title": "Renderer-backed vision checks (raster)",
+    "parent_id": null
+  },
+  {
+    "id": "themes",
+    "level": 2,
+    "title": "Bundled theme set",
+    "parent_id": null
+  },
+  {
+    "id": "mark-types",
+    "level": 2,
+    "title": "Mark types & references",
+    "parent_id": null
+  },
+  {
+    "id": "output",
+    "level": 2,
+    "title": "Output structure",
+    "parent_id": null
+  },
+  {
+    "id": "dispatch",
+    "level": 2,
+    "title": "Subagent dispatch (§L)",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  },
+  {
+    "id": "conformance",
+    "level": 2,
+    "title": "Skill-authoring conformance",
+    "parent_id": null
+  }
+]
