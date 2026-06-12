@@ -5,7 +5,7 @@ kind: story
 title: phase-boundary-handler auto-mode support
 type: enhancement
 priority: should
-status: planned
+status: done
 route: skill
 parent: 0011
 dependencies: []
