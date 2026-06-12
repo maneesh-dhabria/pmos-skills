@@ -2,11 +2,11 @@
 id: 1
 title: "/feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths)"
 type: tech-debt
-status: inbox
+status: wontfix
 priority: should
 labels: [skill-eval, dogfooding, feature-sdlc]
 created: 2026-05-12
-updated: 2026-05-12
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/verify/2026-05-12-review.html
 spec_doc:
 plan_doc:

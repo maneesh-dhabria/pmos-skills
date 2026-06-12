@@ -2,11 +2,11 @@
 id: 6
 title: "/polish — optionally honor HTML for URL / Notion inputs (currently always normalized to markdown)"
 type: feature
-status: inbox
+status: wontfix
 priority: could
 labels: [polish, format-honoring, future]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-13_polish-editorial-pass/01_requirements.html (explicit non-goal §non-goals)
 spec_doc:
 plan_doc:

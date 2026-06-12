@@ -2,11 +2,11 @@
 id: 0008
 title: skill-eval-check.sh --selftest failure surfacing — bijection break (e.g., §[A-F] vs §G) exits 1 with no stdout; stderr alone is easy to lose
 type: tech-debt
-status: inbox
+status: wontfix
 priority: could
 labels: [feature-sdlc, skill-eval, dev-ergonomics]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: 2026-05-13 /complete-dev session for feat/fsdlc-base-drift-and-release-scope
 spec_doc:
 plan_doc:

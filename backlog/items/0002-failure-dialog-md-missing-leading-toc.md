@@ -2,11 +2,11 @@
 id: 2
 title: "feature-sdlc/reference/failure-dialog.md has no leading ToC (119 lines) → fails c-reference-toc"
 type: tech-debt
-status: inbox
+status: wontfix
 priority: could
 labels: [skill-eval, feature-sdlc, docs]
 created: 2026-05-12
-updated: 2026-05-12
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-11_feature-sdlc-skill-mode/verify/2026-05-12-review.html
 spec_doc:
 plan_doc:

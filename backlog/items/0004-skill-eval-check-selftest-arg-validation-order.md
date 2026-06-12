@@ -2,11 +2,11 @@
 id: 4
 title: "skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug)"
 type: bug
-status: inbox
+status: wontfix
 priority: should
 labels: [skill-eval, feature-sdlc, tooling]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-13_polish-editorial-pass/ (caught while debugging the [D]-body-check race during /skill-sdlc for /polish)
 spec_doc:
 plan_doc:

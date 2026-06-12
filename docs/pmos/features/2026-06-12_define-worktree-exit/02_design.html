@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — define-worktree-exit</title>
+<link rel="stylesheet" href="assets/comments.css?v=2.66.1">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem; color: #222; line-height: 1.6; }
+h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.5rem; }
+h2 { margin-top: 2.5rem; color: #111; border-left: 4px solid #0070f3; padding-left: 0.75rem; }
+h3 { margin-top: 1.5rem; color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; font-weight: 600; }
+code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.9em; }
+.decision { background: #f0f4ff; border: 1px solid #c5d3f7; border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+.decision strong { color: #0040c0; }
+.note { background: #fff8e1; border-left: 3px solid #ffc107; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+.invariant { background: #e8f5e9; border-left: 3px solid #4caf50; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"threads":[]}</script>
+<!-- pmos-comments:end -->
+
+<h1 id="design-define-worktree-exit">Design — define-worktree-exit</h1>
+
+<p><strong>Epic:</strong> #0015 · <strong>Route:</strong> skill · <strong>Plugin:</strong> pmos-toolkit ·
+<strong>Define depth:</strong> lean (the contract is story #0014's acceptance criteria, adopted verbatim — no fresh requirements/grill pass).</p>
+
+<div class="note">
+This is a <strong>singleton epic</strong> wrapping one well-specified story (#0014). It exists only to give the
+three-loop machinery a release unit. The real design contract is story #0014's acceptance criteria; this page
+records the cross-skill coherence invariants the story's <code>/plan</code> cites by anchor, nothing more.
+</div>
+
+<h2 id="problem">Problem</h2>
+<p>The <code>define</code> loop (<code>feature-sdlc/SKILL.md</code> <code>#define-mode</code> step 5) ends a
+<em>completed</em> definition with: path-scope check → docs-only merge of <code>define/&lt;epic-id&gt;</code> to
+main → epic → <code>defined</code> → <strong>STOP</strong>. There is no <code>ExitWorktree</code> and no worktree
+removal. The session is left parked inside <code>define/&lt;epic-id&gt;</code>, so the next loop
+(<code>build</code>) runs from the stale define worktree, stories build on the define branch instead of fresh
+<code>feat/&lt;story-id&gt;</code> worktrees, and <code>/complete-dev --epic</code> can no longer fast-forward
+(observed live on epic 0011 — recovered with <code>--no-ff</code>). A secondary gap: no documented owner removes
+the <code>define/&lt;epic-id&gt;</code> worktree (the <code>#epic-train</code> cleanup removes only per-<em>story</em>
+worktrees).</p>
+
+<h2 id="approach">Approach</h2>
+<p>Mirror the pattern <code>define</code> already lacks but <code>/complete-dev</code> Phase 16a has:
+exit-then-remove at the terminal completed step. The fix is localized to <code>#define-mode</code> step 5, applies
+to both route variants (their worktree/merge/STOP semantics are shared per the line-423 note), and adds a
+documentation cross-reference so worktree teardown has exactly one named owner.</p>
+
+<h2 id="invariants">Cross-skill invariants (cited by the story plan)</h2>
+<div class="invariant"><strong>I1 — terminal-only teardown.</strong> Exit + remove fire <em>only</em> on the
+completed docs-only merge. A <em>paused</em> define run (not merged) still retains its worktree for
+<code>--resume</code>. Step 5 is by definition the completed-merge path; paused runs never reach it.</div>
+<div class="invariant"><strong>I2 — both route variants.</strong> The <code>route: feature</code> and
+<code>route: skill</code> define flows share worktree/merge/STOP semantics (SKILL.md line 423), so the new
+exit/cleanup lands once in the shared step 5 and covers both.</div>
+<div class="invariant"><strong>I3 — single owner.</strong> <code>define</code> step 5 owns
+<code>define/&lt;epic-id&gt;</code> teardown (preferred per AC). <code>complete-dev</code> <code>#epic-train</code>
+step 6 keeps owning per-<em>story</em> worktrees only, and gains a cross-reference note stating the define worktree
+is not its responsibility.</div>
+<div class="invariant"><strong>I4 — platform-correct nudge.</strong> The STOP log line uses the per-platform
+<code>execute_invocation</code> mapping (<code>_shared/platform-strings.md</code>), e.g.
+<code>cd &lt;root&gt; &amp;&amp; /feature-sdlc build --next</code>.</div>
+
+<h2 id="acceptance">Acceptance contract (verbatim from story #0014)</h2>
+<ul>
+<li>After the docs-only definition merge in <code>#define-mode</code> step 5 (both route variants),
+<code>define</code> calls <code>ExitWorktree</code> back to the root/main checkout before the STOP log line.</li>
+<li>The redundant <code>define/&lt;epic-id&gt;</code> worktree is removed (output already on main) — or, if retained,
+the STOP line says it's safe to remove and where to <code>cd</code>. Pick one and document it.</li>
+<li>A documented owner exists for <code>define/&lt;epic-id&gt;</code> teardown — define removes it at step 5
+(preferred), or <code>#epic-train</code> step 6 is extended to also remove it.</li>
+<li>The STOP log line nudges toward root (platform-correct invocation).</li>
+<li>Resume safety preserved: only the terminal <em>completed</em> merge triggers exit/cleanup.</li>
+</ul>
+
+<div class="decision"><strong>D-lean:</strong> No epic <code>/requirements</code>/<code>/grill</code> ran — story
+#0014 arrived fully groomed (5 ACs, root-cause trace, single-skill scope). The lean define adopts those ACs as the
+design contract and proceeds straight to the per-story <code>/plan</code>.</div>
+
+</body>
+</html>

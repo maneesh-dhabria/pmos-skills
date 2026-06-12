@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 0014 define-worktree-exit</title>
+<link rel="stylesheet" href="../../assets/comments.css?v=2.66.1">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem; color: #222; line-height: 1.6; }
+h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.5rem; }
+h2 { margin-top: 2.5rem; color: #111; border-left: 4px solid #0070f3; padding-left: 0.75rem; }
+h3 { margin-top: 1.5rem; color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; font-weight: 600; }
+code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.9em; }
+.decision { background: #f0f4ff; border: 1px solid #c5d3f7; border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+.decision strong { color: #0040c0; }
+.note { background: #fff8e1; border-left: 3px solid #ffc107; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"threads":[]}</script>
+<!-- pmos-comments:end -->
+
+<h1 id="plan-0014-define-worktree-exit">Plan — story #0014 (define-worktree-exit)</h1>
+
+<p><strong>Epic:</strong> #0015 · <strong>Route:</strong> skill · <strong>Design contract:</strong>
+<code>../../02_design.html</code> · <strong>execution_mode:</strong> inline.</p>
+
+<div class="note">Lean-define plan. Story #0014 arrived fully groomed, so no epic discovery ran; the tasks below
+are grounded directly in the ACs and the live SKILL.md anchors. Build with
+<code>/feature-sdlc build --story 0014</code>.</div>
+
+<h2 id="targets">Edit targets</h2>
+<table>
+<tr><th>File</th><th>Anchor</th><th>Change</th></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/feature-sdlc/SKILL.md</code></td><td><code>#define-mode</code> step 5 (~L419) + the route-variant note (~L423)</td><td>Insert ExitWorktree + worktree removal before STOP; rewrite the STOP log line; confirm shared across both route variants.</td></tr>
+<tr><td><code>plugins/pmos-toolkit/skills/complete-dev/SKILL.md</code></td><td><code>#epic-train</code> step 6 (~L251)</td><td>One-line cross-ref note: per-story worktrees only; define worktree owned by define step 5.</td></tr>
+</table>
+
+<h2 id="waves">Tasks (single wave — see tasks.yaml)</h2>
+<table>
+<tr><th>id</th><th>title</th><th>deps</th><th>parallel</th></tr>
+<tr><td>T1</td><td>ExitWorktree + define-worktree removal at #define-mode step 5, before STOP</td><td>—</td><td>no</td></tr>
+<tr><td>T2</td><td>Platform-correct root-nudge STOP log line</td><td>T1</td><td>no</td></tr>
+<tr><td>T3</td><td>Document teardown owner (complete-dev #epic-train cross-ref)</td><td>T1</td><td>yes</td></tr>
+</table>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<div class="decision"><strong>D1 — exit before remove.</strong> Call <code>ExitWorktree</code> (return to root) <em>before</em>
+<code>git worktree remove</code>; removing the cwd you're standing in is the failure mode <code>/complete-dev</code>
+Phase 16a already guards against — reuse that ordering.</div>
+<div class="decision"><strong>D2 — terminal-only.</strong> The teardown lives in step 5 (the completed-merge path);
+paused runs exit earlier and keep their worktree for <code>--resume</code>. No new flag needed.</div>
+<div class="decision"><strong>D3 — single skill story, two files.</strong> Both edits are pmos-toolkit (D17 single
+release unit). The complete-dev touch is documentation-only — no behavior change to the epic-train loop.</div>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+<li>Grep <code>#define-mode</code> step 5 for <code>ExitWorktree</code> and <code>git worktree remove</code> present before the STOP log line.</li>
+<li>STOP log line contains a <code>cd &lt;root&gt;</code> nudge and references <code>platform-strings.md</code>.</li>
+<li>complete-dev <code>#epic-train</code> step 6 names define step 5 as the define-worktree owner.</li>
+<li>SKILL.md still passes <code>skill-patterns.md §A–§L</code> (phase-ref + flags lints clean).</li>
+</ul>
+
+</body>
+</html>

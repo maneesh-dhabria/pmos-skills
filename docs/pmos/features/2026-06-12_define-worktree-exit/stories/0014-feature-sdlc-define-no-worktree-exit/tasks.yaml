@@ -1,0 +1,36 @@
+story: 0014
+spec: ../../02_design.html
+tasks:
+  - id: T1
+    title: "Add ExitWorktree + define-worktree removal to #define-mode step 5, before the STOP log line"
+    deps: []
+    parallel: false
+    acceptance:
+      - "feature-sdlc/SKILL.md #define-mode step 5 (line ~419), after the docs-only merge and epic→defined, calls ExitWorktree back to the root/main checkout, THEN removes the define/<epic-id> worktree (git worktree remove), THEN emits the STOP log line"
+      - "Worktree removal mirrors the /complete-dev Phase 16a discipline (ExitWorktree → git worktree remove; --force only on dirty, surfaced not auto-forced)"
+      - "Guarded to the terminal COMPLETED merge only (invariant I1): a paused/un-merged define run never reaches step 5, so the resume worktree is untouched — state this explicitly in the step text"
+      - "Applies to BOTH route variants via the shared-semantics note at line 423 (invariant I2): the change lands once in step 5; the route:skill delta section is not duplicated, and the line-423 note is updated to confirm worktree teardown is shared"
+    status: pending
+    evidence:
+
+  - id: T2
+    title: "Rewrite the #define-mode step 5 STOP log line to a platform-correct root nudge"
+    deps: [T1]
+    parallel: false
+    acceptance:
+      - "STOP log line nudges to root: e.g. '[orchestrator] define mode: definition merged; epic <id> → defined. cd <root> && /feature-sdlc build --next' (invariant I4)"
+      - "The build invocation uses the per-platform execute_invocation mapping from _shared/platform-strings.md (not a hardcoded /feature-sdlc string) — cite the reference inline"
+      - "<root> resolves to the main checkout path (git worktree list first entry), not the removed define worktree"
+    status: pending
+    evidence:
+
+  - id: T3
+    title: "Document the single owner of define-worktree teardown (cross-ref note in complete-dev #epic-train step 6)"
+    deps: [T1]
+    parallel: true
+    acceptance:
+      - "complete-dev/SKILL.md #epic-train step 6 (line ~251) gains a one-line note: it removes per-STORY worktrees only; the define/<epic-id> worktree is owned and removed by /feature-sdlc define #define-mode step 5 (invariant I3)"
+      - "feature-sdlc/SKILL.md #define-mode step 5 reciprocally notes it owns its own worktree teardown (no train dependency)"
+      - "No behavior change to the epic-train per-story cleanup loop — documentation/cross-reference only"
+    status: pending
+    evidence:

@@ -2,11 +2,11 @@
 id: 5
 title: "skill-eval-check.sh HAS_SCRIPTS detection uses `find … | grep -q .` — same SIGPIPE/pipefail pattern as the body-check race"
 type: tech-debt
-status: inbox
+status: wontfix
 priority: could
 labels: [skill-eval, feature-sdlc, tooling, robustness]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-13_polish-editorial-pass/ (sibling of the `body | grep -q` race fixed in pmos-toolkit 2.40.0)
 spec_doc:
 plan_doc:

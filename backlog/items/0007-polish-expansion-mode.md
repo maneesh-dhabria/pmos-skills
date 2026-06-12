@@ -2,11 +2,11 @@
 id: 7
 title: "/polish — symmetric \"expansion\" mode (grow a doc that's too thin)"
 type: feature
-status: inbox
+status: wontfix
 priority: could
 labels: [polish, editorial-pass, idea]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: docs/pmos/features/2026-05-13_polish-editorial-pass/01_requirements.html (explicit non-goal §non-goals)
 spec_doc:
 plan_doc:

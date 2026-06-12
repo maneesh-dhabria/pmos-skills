@@ -2,11 +2,11 @@
 id: 0009
 title: /feature-sdlc has no mid-flight base-drift check — origin can advance during a long single-session run, surfacing only at /complete-dev Phase 9 stale-bump
 type: enhancement
-status: inbox
+status: wontfix
 priority: should
 labels: [feature-sdlc, complete-dev, base-drift]
 created: 2026-05-13
-updated: 2026-05-13
+updated: 2026-06-12
 source: 2026-05-13 /complete-dev session for feat/fsdlc-base-drift-and-release-scope (the session that just landed 2.46.0)
 spec_doc:
 plan_doc:
