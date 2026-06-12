@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.67.1: Skill quality & internals
+
+- **`/feature-sdlc define` cleans up after itself.** The Define loop now exits its worktree and tears down the redundant `define/<epic-id>` branch the moment the docs-only definition merge lands — so the next `build` starts from your main checkout instead of a stale define worktree, stories spin fresh per-story branches, and the `/complete-dev --epic` release train fast-forwards cleanly (no more stray `--no-ff` merge). Paused (un-merged) define runs still keep their worktree for `--resume`. Teardown ownership is now documented in one place: define owns its own worktree; the release train touches per-story worktrees only.
+
 ## 2026-06-12 — pmos-toolkit 2.67.0: `compact_mode` setting — skip `/compact` prompts when autocompact is on
 
 Add `compact_mode: manual | auto` to `.pmos/settings.yaml`. Set it to `auto` when you have autocompact configured — the pipeline stops asking you to run `/compact` and instead trusts autocompact to handle context between phases. Default is `manual`, so existing installs are unaffected.
