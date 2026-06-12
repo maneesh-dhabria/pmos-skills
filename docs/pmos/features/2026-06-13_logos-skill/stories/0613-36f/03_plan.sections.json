@@ -1,0 +1,44 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "waves",
+    "level": 2,
+    "title": "Waves",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Task detail",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decision log (delta from design)",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]
