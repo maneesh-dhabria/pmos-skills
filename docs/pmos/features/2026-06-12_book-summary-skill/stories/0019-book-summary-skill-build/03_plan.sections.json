@@ -1,0 +1,56 @@
+[
+  {
+    "id": "plan-overview",
+    "level": 2,
+    "title": "Plan overview",
+    "parent_id": null
+  },
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "waves",
+    "level": 2,
+    "title": "Waves",
+    "parent_id": null
+  },
+  {
+    "id": "wave-1a",
+    "level": 3,
+    "title": "Wave 1a — scaffold (T1)",
+    "parent_id": "sec-waves"
+  },
+  {
+    "id": "wave-1b",
+    "level": 3,
+    "title": "Wave 1b — reference files, parallel (T2–T5)",
+    "parent_id": "sec-waves"
+  },
+  {
+    "id": "wave-2",
+    "level": 3,
+    "title": "Wave 2 — phase bodies, serial (T6–T9)",
+    "parent_id": "sec-waves"
+  },
+  {
+    "id": "wave-3",
+    "level": 3,
+    "title": "Wave 3 — register + green (T10)",
+    "parent_id": "sec-waves"
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,89 @@
+story: 0019
+spec: ../../02_design.html
+# Implementation reference: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md (§A–§L)
+# Eval rubric (Phase 6a hard gate): plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md (floor 43/47)
+# Host-repo policy: CLAUDE.md (canonical skill path, manifest version-sync, release entry point)
+tasks:
+  - id: T1
+    title: "Scaffold the book-summary skill dir + SKILL.md structural skeleton"
+    deps: []
+    parallel: false
+    acceptance:
+      - "plugins/pmos-learnkit/skills/book-summary/SKILL.md created; frontmatter name: book-summary matches dir (a-name-matches-dir), description has what + when + >=5 user-spoken triggers (b-*), user-invocable: true (f-cc-user-invocable), argument-hint lists contract flags only: --depth, --audience, --non-interactive/--interactive (i-hint-contract-only)"
+      - "Body carries: ## Platform Adaptation (d-platform-adaptation), ## Track Progress (d-progress-tracking, >=3 phases), a learnings-load line reading ~/.pmos/learnings.md (d-learnings-load-line), and a numbered Capture-Learnings phase (d-capture-learnings-phase)"
+      - "Canonical non-interactive inline block pasted byte-identical to plugins/pmos-learnkit/skills/_shared/non-interactive.md between <!-- non-interactive-block:start --> / :end (enforced by lint-non-interactive-inline.sh)"
+      - "Eight integer top-level phases each with a stable kebab {#slug} anchor (j-phases-integer, j-phase-slug-anchors); body <= 800 lines (c-body-size)"
+      - "by <author> documented as nl-sugar; any non-contract flag marked <!-- nl-sugar --> (i-nl-sugar-marked)"
+  - id: T2
+    title: "Author reference/source-taxonomy.md (T1/T2/T3 tiers + anti-slop gate + AV text-proxy rule)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Defines T1 primary / T2 reputable-secondary / T3 corroborating-social per design #source-taxonomy; cites _shared/topic-research/source-tiers.md for the anti-slop hard gate and states only the book-specific delta (§K one-fact-one-home)"
+      - "Encodes the grounding rule: every shipped takeaway grounded in >=1 fetched T1/T2 source; T3-only claims flagged or dropped (D2)"
+      - "Encodes the AV text-proxy rule (D6): podcasts/YouTube enter via show notes / published transcripts / captions only; no audio transcription; AV item with no usable text is skipped + logged"
+      - "Reference file is one level deep, no links to other reference files (c-references-one-level); has a leading ToC if it has sections (c-reference-toc)"
+  - id: T3
+    title: "Author reference/takeaway-contract.md (PM-lens 5-part shape + organic theme clustering)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Specifies the five-part PM-lens takeaway shape (idea -> why it matters -> product decision/tradeoff -> concrete PM application -> evidence+trust label) per design #pm-lens (D1)"
+      - "Specifies organic theme clustering + importance ranking with NO caps on theme count or takeaways-per-theme (D3); --depth scales extraction depth, not a hard ceiling"
+      - "Includes >=1 excellent worked example takeaway (d-examples-quality)"
+      - "Portable paths only (c-portable-paths); one level deep (c-references-one-level)"
+  - id: T4
+    title: "Author reference/audience-presets.md (senior-pms / all-pms shaping)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Defines senior-pms (default, fluent PM dialect) and all-pms (define terms, spell out product context) shaping per design #dials; cites the /primer audience-presets pattern and states book-summary deltas only (§K)"
+      - "Maps each audience x depth combination to expected takeaway verbosity + vocab posture"
+      - "Portable paths; one level deep"
+  - id: T5
+    title: "Author reference/eval-rubric.md (binary self-review checks)"
+    deps: []
+    parallel: true
+    acceptance:
+      - "Binary checks per design #eval: every emitted source fetched-this-run + identity-matched; every takeaway grounded in >=1 T1/T2 source; every takeaway carries full 5-part PM-lens shape; no-caps honored; themes coherent + importance-ranked; heading-id + sections.json gates pass"
+      - "Each check is binary pass/fail with a how-to-verify line (h-gates-deterministic-hard / advisory split per §H)"
+      - "Consumed by SKILL.md Phase 7 reviewer pass (<=2 loops, cites _shared/reviewer-protocol.md)"
+  - id: T6
+    title: "SKILL.md Phases 1-2 — Setup & load learnings; Resolve the book"
+    deps: [T1]
+    parallel: false
+    acceptance:
+      - "Phase 1 {#setup}: inline _shared/pipeline-setup.md (settings + docs_path); read ~/.pmos/learnings.md; resolve --depth (persisted per-project to .pmos/book-summary.lastrun.yaml, /primer pattern) + --audience; resolve interactive/non-interactive mode"
+      - "Phase 2 {#resolve-book}: establish canonical {title, author(s), year, publisher}; ambiguous title -> AskUserQuestion disambiguation marked (Recommended) or <!-- defer-only: ambiguous -->; non-interactive AUTO-PICKs best-match + records the assumption in the OQ buffer"
+      - "Canonical identity is stated as the anchor for all later identity-match verification (design #verification)"
+  - id: T7
+    title: "SKILL.md Phases 3-4 — Discover sources; Verify"
+    deps: [T1, T2]
+    parallel: false
+    acceptance:
+      - "Phase 3 {#discover}: multi-channel WebSearch across author-primary / reputable-secondary / corroborating-social (interviews, podcasts via text-proxy, YouTube, articles, LinkedIn, Twitter); apply the anti-slop gate pre-fetch; rank by tier; select top survivors per channel scaled by --depth; cites reference/source-taxonomy.md"
+      - "Phase 4 {#verify}: fetch survivors (rank-then-verify, never the whole pool); identity-match to the canonical book; ground each supporting idea in fetched content; write the *.sources.json ledger; cites _shared/topic-research/sourcing-ladder.md for the pass-bar + free-fetch ladder"
+      - "Verification-first stated as a hard rule: no source link emitted that was not fetched this run"
+  - id: T8
+    title: "SKILL.md Phases 5-6 — Extract & theme; Distil PM-framed takeaways"
+    deps: [T1, T3]
+    parallel: false
+    acceptance:
+      - "Phase 5 {#extract}: extract the book's distinct big ideas from verified material; cluster into organic themes; rank themes + takeaways by importance; NO caps (D3); cites reference/takeaway-contract.md"
+      - "Phase 6 {#distil}: apply the five-part PM-lens contract to each takeaway; flag or drop T3-only claims (never silently ship); subagent dispatch (if any) names a model tier (§L, sonnet for bounded extraction)"
+  - id: T9
+    title: "SKILL.md Phases 7-8 — Eval & write; Capture learnings"
+    deps: [T1, T4, T5]
+    parallel: false
+    acceptance:
+      - "Phase 7 {#eval-write}: reviewer subagent pass (<=2 loops, _shared/reviewer-protocol.md, names a model tier) against reference/eval-rubric.md; emit per _shared/html-authoring/README.md checklist -> {docs_path}/book-summary/{YYYY-MM-DD}_{slug}.html + .sections.json + .sources.json; {{pmos_skill}}=book-summary; regenerate book-summaries.html library via index-generator.md; honest-degradation banner for thin sourcing (D5)"
+      - "Phase 8 {#capture-learnings}: follow _shared/learnings-capture.md; reflect on book-summary-specific friction"
+      - "Gates are correctly typed per §H: heading-id/sections.json = deterministic hard; PM-lens completeness/theme coherence = judge (advisory or reviewer-loop)"
+  - id: T10
+    title: "Registration + green lints/eval (no release-prereq tasks here — §G)"
+    deps: [T6, T7, T8, T9]
+    parallel: false
+    acceptance:
+      - "Skill dir present under plugins/pmos-learnkit/skills/ so the existing ./skills/ manifest glob picks it up; add the [codex] argument-hint sidecar if learnkit skills carry one (f-codex-sidecar)"
+      - "skill-eval-check.sh --target claude-code on the skill dir: [D] half green (or documented residuals); lint-phase-refs.sh, lint-flags-vs-hints.sh, lint-non-interactive-inline.sh all exit 0"
+      - "NO version bump, CHANGELOG, README row, manifest version-sync, or learnings-header task appears in any wave (g-plan-grep-clean) — those are listed in the design #invariants I4 and owned by /complete-dev"

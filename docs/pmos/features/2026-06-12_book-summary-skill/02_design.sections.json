@@ -1,0 +1,104 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview & problem",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Maintainer decisions (define, 2026-06-12)",
+    "parent_id": null
+  },
+  {
+    "id": "invocation",
+    "level": 2,
+    "title": "Skill shape & invocation",
+    "parent_id": null
+  },
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture — reuse vs. new",
+    "parent_id": null
+  },
+  {
+    "id": "arch-reuse",
+    "level": 3,
+    "title": "Reused as-is (cite, state deltas only)",
+    "parent_id": "sec-architecture"
+  },
+  {
+    "id": "arch-new",
+    "level": 3,
+    "title": "New (book-specific)",
+    "parent_id": "sec-architecture"
+  },
+  {
+    "id": "source-taxonomy",
+    "level": 2,
+    "title": "Source taxonomy & trust tiers",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Verification-first contract",
+    "parent_id": null
+  },
+  {
+    "id": "takeaways",
+    "level": 2,
+    "title": "Themes & takeaways model (D3)",
+    "parent_id": null
+  },
+  {
+    "id": "pm-lens",
+    "level": 2,
+    "title": "PM-lens contract (D1)",
+    "parent_id": null
+  },
+  {
+    "id": "phases",
+    "level": 2,
+    "title": "Phase structure",
+    "parent_id": null
+  },
+  {
+    "id": "output",
+    "level": 2,
+    "title": "Output & artifact",
+    "parent_id": null
+  },
+  {
+    "id": "dials",
+    "level": 2,
+    "title": "Depth & audience dials",
+    "parent_id": null
+  },
+  {
+    "id": "eval",
+    "level": 2,
+    "title": "Self-review (eval)",
+    "parent_id": null
+  },
+  {
+    "id": "degradation",
+    "level": 2,
+    "title": "Honest degradation (D5)",
+    "parent_id": null
+  },
+  {
+    "id": "invariants",
+    "level": 2,
+    "title": "Conformance & invariants",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope",
+    "parent_id": null
+  }
+]
