@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan — S2: phase-boundary-handler auto-mode (0013)</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; color: #222; line-height: 1.6; }
+h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.5rem; }
+h2 { margin-top: 2rem; color: #333; border-left: 4px solid #0070f3; padding-left: 0.75rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; }
+code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<h1 id="plan">Plan — S2: phase-boundary-handler auto-mode (0013)</h1>
+
+<p><strong>Story:</strong> 0013 &nbsp;|&nbsp; <strong>Route:</strong> skill &nbsp;|&nbsp; <strong>Parent epic:</strong> 0011</p>
+<p><strong>Design doc:</strong> <a href="../../02_design.html">02_design.html</a></p>
+<p><strong>Target file:</strong> <code>plugins/pmos-toolkit/skills/_shared/phase-boundary-handler.md</code></p>
+
+<h2 id="approach">Approach</h2>
+
+<p>Reference file change — human-authored Markdown consumed by <code>/execute</code>'s Phase 2a. The key change is in the "Compact Behavior" section and the Algorithm pseudocode. The HALT_FOR_COMPACT return type and the ESCALATE/CONTINUE branches are untouched.</p>
+
+<p>Execution order: T1 (new "Reading compact_mode" section) → T2 (update Compact Behavior + Algorithm). T2 references the section added in T1.</p>
+
+<h2 id="tasks">Tasks</h2>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Title</th><th>Deps</th><th>Key outcome</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>Add 'Reading compact_mode' section to phase-boundary-handler.md</td>
+<td>—</td>
+<td>New section: field values, default (absent = manual), case-sensitivity, call convention, log channel, unrecognised-value fallback, file-absent case, trust-based failure mode, settings.yaml snippet</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Update 'Compact Behavior' section + Algorithm pseudocode</td>
+<td>T1</td>
+<td>Algorithm shows conditional HALT message per compact_mode. "Compact Behavior" section documents both messages. Hard-stop preserved in both modes. RETURN value type unchanged.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="design-anchors">Design Anchors Cited</h2>
+<ul>
+<li><a href="../../02_design.html#surface-phase-boundary">Surface 2 behavioral contract</a> (D5, D5a)</li>
+<li><a href="../../02_design.html#the-setting">The setting</a> (D1; field contract table; file-absent + case-sensitivity notes)</li>
+<li><a href="../../02_design.html#reading-the-setting">Reading the setting</a> (I2, call convention, log channel)</li>
+<li><a href="../../02_design.html#invariants-summary">Invariants</a> (I1, I3, I4, I5, I6)</li>
+<li><a href="../../02_design.html#acs-s2">ACs S2</a></li>
+</ul>
+
+<h2 id="risks">Risks</h2>
+<ul>
+<li>The "MUST NOT continue executing" hard-stop constraint from the existing Compact Behavior section must remain fully intact for <code>manual</code> mode. The edit must not weaken that guarantee.</li>
+<li>Algorithm pseudocode is read by implementers literally — the conditional must be unambiguous so both branches are clear.</li>
+</ul>
+
+<h2 id="release-prerequisites">Release Prerequisites</h2>
+<ul>
+<li>Version bump (<code>plugins/pmos-toolkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code>) — handled by <code>/complete-dev</code></li>
+<li>CHANGELOG entry — handled by <code>/complete-dev</code></li>
+</ul>
+
+</body>
+</html>
