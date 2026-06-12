@@ -127,9 +127,9 @@ Triggered by `/mytasks <text>` where `<text>` does not start with a recognized v
 **This phase MUST complete in a single tool-call sequence with NO clarifying questions.** Wrong inference is acceptable; capture friction is not.
 
 1. Ensure `~/.pmos/tasks/items/` exists (`mkdir -p`).
-2. Allocate id per `_shared/tracker-crudl.md` §2 — scan both `items/` and `archive/**/` for the max `^([0-9]{4})-` filename prefix; empty store → `0001`.
+2. Allocate id per `_shared/tracker-crudl.md` §2 — `/mytasks` is single-store, single-user with no concurrent-allocation surface, so it takes §2.3's legacy-serial path: scan both `items/` and `archive/**/` for the max `^([0-9]{4})-` filename prefix and allocate `max+1`; empty store → `0001`. (Serials stay valid under the §2.1 dual validator; the coordination-free `<MMDD>-<rand3>` scheme is required only for concurrently-minted stores like `/backlog`.)
 3. Apply `inference-heuristics.md` in order: **type** (keyword; fallback `execution` — the keyword is NOT stripped from the title), **due** (natural-language date; matched substring IS stripped), **people** (`@handle` tokens via `/people find` — resolved tokens stripped and added to `people:`; multi-match and no-match tokens stay in the title, collected for the report), **workstream** (current repo's `.pmos/settings.yaml`).
-4. Build the slug from the final title per `_shared/tracker-crudl.md` §2; prefer truncating at a hyphen boundary.
+4. Build the slug from the final title per `_shared/tracker-crudl.md` §2.2; prefer truncating at a hyphen boundary.
 5. Write `~/.pmos/tasks/items/{id}-{slug}.md` — frontmatter only, no body, per `schema.md` "Defaults on quick-capture". Optional fields with no value are written as bare keys (e.g., `start:`), not omitted.
 6. Regenerate INDEX inline (`#rebuild-index`). If regeneration fails, the item file is still written — warn suggesting `/mytasks rebuild-index`, but DO NOT roll back.
 7. Report per `output-formats.md` "Quick-capture report" — one line with id, type, importance, final title, and any inferred fields; one indented `⚠ unresolved:` line per unresolved `@token` with the exact fix command.

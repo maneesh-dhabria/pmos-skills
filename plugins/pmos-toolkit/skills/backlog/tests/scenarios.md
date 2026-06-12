@@ -18,24 +18,26 @@ A repo with no `backlog/` directory yet.
 
 Expected agent behavior (single round-trip, no clarifying questions):
 1. Create `backlog/`, `backlog/items/`.
-2. Allocate id `0001` for the story; infer `type: bug` (keyword "flaky"); `kind: story`, `status: draft`, `priority: should`.
-3. **Auto-wrap (D18):** also create a same-titled singleton **epic** `0002` (`status: inbox`); set the story's `parent: 0002`.
+2. **Mint** the story id coordination-free via `node scripts/mint-id.mjs` — a `<MMDD>-<rand3>` id (e.g. `0612-k3f`), **never** `max+1` or `0001` (`_shared/tracker-crudl.md` §2.3). Infer `type: bug` (keyword "flaky"); `kind: story`, `status: draft`, `priority: should`.
+3. **Auto-wrap (D18):** also mint a second id for a same-titled singleton **epic** (`status: inbox`); set the story's `parent:` to the epic id. The two minted ids differ (independent mints).
 4. Write both item files (frontmatter only, no body), `created`/`updated` = today.
-5. Generate `backlog/INDEX.md`.
-6. Output: `Captured #0001 (bug, story, should): "ssl renewal cron is flaky" in epic #0002`.
+5. Generate `backlog/INDEX.md` (regenerated, never hand-appended — §5 / schema.md).
+6. Output (ids are the minted values): `Captured #<story-id> (bug, story, should): "ssl renewal cron is flaky" in epic #<epic-id>`.
 7. Do NOT ask any clarifying questions. Do NOT load workstream context.
+
+> **Id scheme note (epic 0020).** Minted ids are non-deterministic by design, so these scenarios assert the **format** (`^[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}$`) and the **relationships** (story `parent:` = the auto-wrapped epic id), never literal id values. Legacy 4-digit ids in older fixtures (`0001`–`0019`) stay valid and are never rewritten (dual validator, §2.1). Mechanical coverage lives in `tests/id-scheme.test.sh`.
 
 ### Scenario: `/backlog add --kind epic "Magazine interop"`
 
-Expected: a single **epic** item (`kind: epic`, `status: inbox`), no auto-wrapped story, no `parent:`. Output: `Captured #0001 (feature, epic, should): "Magazine interop"`.
+Expected: a single **epic** item (`kind: epic`, `status: inbox`), no auto-wrapped story, no `parent:`. Output: `Captured #<epic-id> (feature, epic, should): "Magazine interop"` where `<epic-id>` matches `^[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}$`.
 
-### Scenario: `/backlog add --epic 0002 "export as OPML"`
+### Scenario: `/backlog add --epic <existing-epic-id> "export as OPML"`
 
-Expected: a story with `parent: 0002` attached to the existing epic (no new epic created). Validate epic `0002` exists; if missing, warn and fall through to auto-wrap.
+Expected: a story with `parent: <existing-epic-id>` attached to the existing epic (no new epic created). Validate the epic exists (by id, opaque-string match — both legacy and new id forms accepted); if missing, warn and fall through to auto-wrap.
 
 ### Scenario: `/backlog add something completely vague`
 
-Expected: story + auto-wrapped epic; `type: idea` (no keyword match → fallback); output includes the inference fallback notice: `Captured #0001 (idea, story, should): "something completely vague" in epic #0002 — type inferred as 'idea' (no strong signal); use /backlog set 0001 type=... to correct.`
+Expected: story + auto-wrapped epic; `type: idea` (no keyword match → fallback); output includes the inference fallback notice: `Captured #<story-id> (idea, story, should): "something completely vague" in epic #<epic-id> — type inferred as 'idea' (no strong signal); use /backlog set <story-id> type=... to correct.`
 
 ### Scenario: `/backlog what's in my backlog for auth?` (with-items fixture)
 
@@ -147,3 +149,19 @@ Expected: the `#workstream-aggregator` reads `linked_repos`, reads items from ea
 ### Scenario: `/backlog show repo-b#0001`
 
 Expected: render `tests/fixtures/multi-repo-workstream/repo-b/backlog/items/0001-thing-in-b.md`.
+
+## Id scheme & define-merge uniqueness gate (epic 0020)
+
+Behavioral expectations for the concurrency-safe id scheme. Mechanical coverage is `tests/id-scheme.test.sh` (run: `bash tests/id-scheme.test.sh`).
+
+### Scenario: two parallel `define` sessions mint coordination-free
+
+Expected: two sessions branched off the same `main` each `/backlog add` an epic; because ids are minted as `<MMDD>-<rand3>` from date+`crypto` randomness (no `max+1`, no counter), the two minted ids **differ by construction** — no silent duplicate. (This is the exact incident in `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`, now prevented.)
+
+### Scenario: define definition-merge with a colliding id → loud refusal (AC3)
+
+Expected: at `/feature-sdlc define` step 5, `check-id-uniqueness.mjs pre-merge <root> --base main` runs beside the path-scope check. If an item id **added** on the define branch already exists on `main`, the merge is **refused loudly** with the offending id(s) listed (exit 3) — never a silent merge into a duplicate row. Post-merge, `post-merge <root>/backlog/items` asserts no two item files share an id; INDEX is regenerated (not the hand-merged text).
+
+### Scenario: legacy + new id coexistence (AC2)
+
+Expected: a store containing both `0019-book-summary.md` (legacy serial) and `0612-k3f-foo.md` (new scheme) validates cleanly — the dual validator defined in `_shared/tracker-crudl.md` §2.1 accepts both forms; legacy ids are never rewritten.

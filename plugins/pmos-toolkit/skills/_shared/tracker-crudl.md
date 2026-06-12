@@ -13,11 +13,27 @@ Each tracker's own `schema.md` declares only its **bindings** — its field set,
 
 ## 2. Keying & filenames (numeric-id stores only)
 
-Not every tracker uses a numeric id — some key by a derived handle. For stores that DO use a sequential id:
+Not every tracker uses a numeric id — some key by a derived handle. **This section is the single home of the id-format and validator rules** — a numeric-id store cites it and never restates the format (§K canonical-home). For stores that DO key by an `id`:
 
-- `id`: 4-digit zero-padded sequential integer (`0001`, `0002`, …). Per-store counter; no global coordination. Allocate `max(existing id) + 1`; never reuse a freed id.
+### 2.1 Id format — two permanently-valid forms
+
+A record's `id` is exactly one of:
+
+- **Current scheme — `<MMDD>-<rand3>` (coordination-free).** Two-digit month + two-digit day, a hyphen, then **3 lowercase Crockford-base32 chars** — alphabet `0-9 a-z` **minus `i l o u`** (look-alike removal), i.e. `0123456789abcdefghjkmnpqrstvwxyz`. Example: `0612-k3f`. The `MMDD` is a **human hint, not a sort key** (the year wraps) — true chronology comes from the `created:` field (§3). Per-day key space = 32³ ≈ 32 768, ample for a personal tracker; the rare same-day collision is caught by the consumer's merge-time uniqueness gate, never by a counter.
+- **Legacy serial — 4-digit zero-padded integer** (`0001`, `0002`, … `0019`). **Grandfathered: still valid, never rewritten, never reused** — legacy serials are referenced by `parent:`, `dependencies:`, branch names, claim locks, and released changelog entries, so rewriting one is a corruption. No *new* ids are minted in this form by a coordination-sensitive store (see §2.3).
+
+**Dual-accepting validator** (every reader MUST accept both forms): `^([0-9]{4}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3})$`. The two arms are unambiguous — a legacy id is exactly 4 digits; a current id is 4 digits + `-` + 3 base32 chars. The `-` separator distinguishes the schemes at a glance and in regexes.
+
+### 2.2 Slug + filename
+
 - `slug`: kebab-cased title, max 60 chars, ASCII letters/digits/hyphens only, no leading or trailing hyphens.
-- Filename: `{id}-{slug}.md`.
+- Filename: `{id}-{slug}.md` — `id` is treated as an **opaque string** by every consumer (filename, `define/{id}` & `feat/{id}` branches, `claims/{id}.lock`, `parent:`/`dependencies:` refs). Both id forms are valid in all of these. **No consumer may lexical-sort ids** as a chronology proxy — ids are non-monotonic; sort on `created:` instead (§5).
+
+### 2.3 Allocation — coordination-free, no global counter
+
+- **A store with a concurrent-allocation surface** — writable from more than one worktree or clone at once (e.g. `/backlog`, minted in parallel `define` sessions across the `origin` + mirror clone topology) — **MUST mint `<MMDD>-<rand3>` ids**: derive from the local date + a random suffix, with **no `max(existing)+1`, no per-store counter, and no shared lock**. Collisions are prevented by construction and backstopped by the consumer's merge-time uniqueness gate. The randomness source must not be a call banned in resume-sensitive skill scripts (`Math.random()` / `Date.now()`) — mint via a dedicated tool sourcing `crypto`, or accept the id as an input.
+- **A single-store, single-user tracker with no concurrent-allocation surface** (e.g. `/mytasks`) MAY continue minting legacy 4-digit serials (`max(existing)+1`); those remain valid under the §2.1 dual validator. **Minting strategy is the store's per-skill binding** (§1); the id *format* and *validator* above are the shared invariant.
+- The former universal "per-store counter; allocate `max(existing id)+1`" rule is **retired as the default** — it is the root cause of the parallel-mint duplicate-id corruption this scheme replaces.
 
 ## 3. Universal frontmatter fields
 

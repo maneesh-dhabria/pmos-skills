@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+// mint-id.mjs — coordination-free backlog id minter + dual-form validator.
+//
+// The id FORMAT and VALIDATOR are owned by _shared/tracker-crudl.md §2 (the
+// single home, §K). This script is the *minting* implementation cited by
+// /backlog #add (and the define/build epic+story mints): it produces ids with
+// NO max+1, NO counter, NO shared lock — safe for parallel worktrees and
+// separate clones. Randomness comes from `crypto.randomBytes` — the harness
+// bans the non-deterministic JS PRNG in resume-sensitive skill scripts; this
+// CLI is a one-shot mint, but we source crypto regardless so the entropy call
+// is never the banned one.
+//
+// Usage:
+//   node mint-id.mjs                 # print one new id: <MMDD>-<rand3>
+//   node mint-id.mjs --date 06-12    # mint with an explicit MM-DD (testing)
+//   node mint-id.mjs validate <id>   # exit 0 if <id> is a valid id (either form), 1 otherwise
+//   node mint-id.mjs --help
+//
+// Dependencies: node >= 16 (crypto.randomBytes, ESM). No external packages.
+
+import { randomBytes } from 'node:crypto';
+
+// Crockford base32, lowercased, minus look-alikes i l o u → 32 symbols.
+// 256 % 32 === 0, so `byte % 32` selects uniformly (no modulo bias).
+const ALPHABET = '0123456789abcdefghjkmnpqrstvwxyz';
+
+// Dual-accepting validator — MUST stay byte-identical to tracker-crudl.md §2.1.
+const ID_RE = /^([0-9]{4}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3})$/;
+
+export function isValidId(id) {
+  return typeof id === 'string' && ID_RE.test(id);
+}
+
+export function rand3() {
+  const b = randomBytes(3);
+  let s = '';
+  for (let i = 0; i < 3; i++) s += ALPHABET[b[i] % 32];
+  return s;
+}
+
+// mmdd: optional "MM-DD" or "MMDD" override (testing); else today (local time).
+export function mintId(mmdd) {
+  let MMDD;
+  if (mmdd) {
+    const digits = String(mmdd).replace(/-/g, '');
+    if (!/^[0-9]{4}$/.test(digits)) throw new Error(`--date must be MM-DD or MMDD, got '${mmdd}'`);
+    MMDD = digits;
+  } else {
+    const d = new Date();
+    MMDD = String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+  }
+  return `${MMDD}-${rand3()}`;
+}
+
+function main(argv) {
+  const args = argv.slice(2);
+  if (args[0] === '--help' || args[0] === '-h') {
+    process.stdout.write(
+      'Usage: mint-id.mjs [--date MM-DD] | validate <id>\n' +
+      '  (no args)        print a new <MMDD>-<rand3> id\n' +
+      '  --date MM-DD     mint with an explicit month/day (testing)\n' +
+      '  validate <id>    exit 0 if <id> is valid (legacy 4-digit OR <MMDD>-<rand3>), else 1\n'
+    );
+    return 0;
+  }
+  if (args[0] === 'validate') {
+    const id = args[1];
+    if (isValidId(id)) { process.stdout.write(`valid: ${id}\n`); return 0; }
+    process.stderr.write(`invalid id: ${id === undefined ? '(none)' : id}\n`);
+    return 1;
+  }
+  let mmdd;
+  const di = args.indexOf('--date');
+  if (di !== -1) mmdd = args[di + 1];
+  try {
+    process.stdout.write(mintId(mmdd) + '\n');
+    return 0;
+  } catch (e) {
+    process.stderr.write(String(e.message || e) + '\n');
+    return 2;
+  }
+}
+
+// Run as CLI only when invoked directly (not when imported by a test).
+if (import.meta.url === `file://${process.argv[1]}`) {
+  process.exit(main(process.argv));
+}

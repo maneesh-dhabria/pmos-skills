@@ -5,7 +5,7 @@ kind: story
 title: Implement concurrency-safe ids — date+short-rand scheme, define merge id-uniqueness gate, derived INDEX
 type: tech-debt
 priority: should
-status: planned
+status: done
 parent: 0020
 route: skill
 plugin: pmos-toolkit
