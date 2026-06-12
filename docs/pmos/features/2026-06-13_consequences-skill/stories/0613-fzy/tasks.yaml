@@ -1,0 +1,104 @@
+schema_version: 1
+story: 0613-fzy
+epic: 0613-dnv
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# New pmos-toolkit skill /consequences — sibling to /grill. Sequenced as one SKILL.md authored
+# in phase order: scaffold → intake → simulate+score → present+grill → report → conventions/selftest.
+# /consequences is the sole writer; cites /grill as prior art (NO /grill edits, NO _shared extraction
+# per D3). DELIBERATELY LEAN (D6): high-level method, model-driven simulation — NOT a transcribed
+# algorithm. Tasks edit one SKILL.md so they run sequentially. NO release-prereq tasks here
+# (see ## Release prerequisites in the design doc).
+tasks:
+  - id: T1
+    title: "Scaffold skill at canonical path + SKILL.md skeleton"
+    ac: [AC1, AC9]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/consequences/SKILL.md. Frontmatter: name: consequences
+      (matches dir), user-invocable: true, description with trigger phrases ("what are the knock-on
+      effects", "second-order effects of this", "what could go wrong downstream", "simulate the
+      consequences", "ripple effects of this proposal", "and then what"), argument-hint listing ONLY
+      contract flags (§I 4-test): [<path-to-artifact-or-topic>] [--depth brief|standard|deep]
+      [--orders 1|2|3] [--save|--no-save] [--format <html|md>] [--non-interactive|--interactive].
+      Inline the canonical ~27-line non-interactive block byte-identical to
+      skills/_shared/non-interactive.md. Add Platform Adaptation + Track Progress + Load Learnings.
+      Declare integer phases 0–5 with stable {#kebab} anchors (intake, simulate, score, present,
+      grill, report). Announce line ("Using /consequences to simulate the downstream effects of
+      {artifact}."). Mirror /grill's brevity — this skeleton sets the lean tone for D6.
+
+  - id: T2
+    title: "Phase 0 — intake & scope"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Implement Phase 0 {#intake}, reusing /grill's intake shape (cite, don't fork): resolve target
+      (file path; pipeline-doc stem via _shared/resolve-input.md; URL/topic → ask for paste/path).
+      Summarize the proposal in 3–5 bullets and confirm the read BEFORE simulating. Pick --depth
+      (default standard) and --orders (default 3); resolve output_format from .pmos/settings.yaml
+      (--format overrides). Validate enum flags → stderr + exit 64 on bad value. Keep it short.
+
+  - id: T3
+    title: "Phase 1+2 — simulate (Futures Wheel) + score"
+    ac: [AC3, AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Implement Phase 1 {#simulate} + Phase 2 {#score} at a HIGH LEVEL (D6 — model-driven, no
+      algorithm). Phase 1: place the proposal at center; generate first-order effects across the
+      product lens set (Users, Business, Team/Org, Technical, Market, Ethics/Risk — adapt/drop
+      lenses to the proposal, note drops); recursively ask "and then what?" to second- and
+      third-order, capped by --orders, breadth by --depth (same dial as /grill); merge convergent
+      chains. State plainly it is a structured brainstorm of plausible (not predicted) effects.
+      Phase 2: tag each notable effect likelihood (H/M/L) × impact (H/M/L) × desirability
+      (good/bad/mixed); these are qualitative judgments (no arithmetic, §H). Define "notable" =
+      not (Low-impact AND Low-likelihood) and "leverage" ordering. A handful of sentences each —
+      trust the model to actually simulate.
+
+  - id: T4
+    title: "Phase 3+4 — present consequence map + grill loop"
+    ac: [AC5, AC6]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Implement Phase 3 {#present} (emit the scored nested 1st→2nd→3rd-order tree to chat before
+      questioning) and Phase 4 {#grill} (the interrogation, sibling to /grill Phase 2 — cite it).
+      One AskUserQuestion per notable effect in leverage order, tying the ripple to a refinement
+      (mitigate / accept / design-around / invalidate) with a (Recommended) answer + 1–2
+      alternatives + Elaborate + Skip; mark these as defer-only (free-form/ambiguous) per the
+      non-interactive contract. Branch on the answer (a mitigation may spawn a new chain; a surprise
+      inserts a missed effect). Code-answerable questions → grep/read, don't ask. Stop conditions
+      mirror /grill (deep has no question budget). Keep the prose terse.
+
+  - id: T5
+    title: "Phase 5 — report via html-authoring substrate"
+    ac: [AC7]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Implement Phase 5 {#report}: optional save honoring --save/--no-save + output_format. Author a
+      single self-contained HTML doc with three sections — scored consequence tree, interrogation
+      transcript, refinements & residual-risks — per the _shared/html-authoring/README.md checklist
+      (cite it; deltas only: artifact name, pmos_skill=consequences, save path under
+      {docs_path}/consequences/<run-slug>/). Strip template's leading doc-comment before render
+      (known gotcha). TREE-ONLY — no SVG diagram (D2). kebab heading ids, sections.json, asset cp -n,
+      cache-bust, index regen, <meta name="pmos:skill" content="consequences">.
+
+  - id: T6
+    title: "Conventions pass + lean-body check + selftest + lints"
+    ac: [AC8, AC9, AC10, AC11]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Final conformance pass. Confirm: standalone sibling — NO /grill edits, NO _shared extraction
+      (D3, AC8); §H–§L satisfied; §L dispatch documented (inline default + optional code-explore
+      helper); every argument-hint flag handled in the body and vice-versa. LEAN-BODY CHECK (D6,
+      AC10): SKILL.md length/complexity comparable to /grill's (~184 lines) — if materially longer,
+      cut transcribed procedure back to high-level method. Run skill-eval.md self-check
+      (skill-eval-check.sh, floor 43/47) and repo hygiene lints (lint-flags-vs-hints.sh,
+      lint-phase-refs.sh, lint-non-interactive-inline.sh, audit-recommended.sh). Confirm NO
+      release-prereq tasks leaked into waves (AC11) — those live in the design's ## Release
+      prerequisites for /complete-dev only.
