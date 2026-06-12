@@ -1,0 +1,73 @@
+schema_version: 1
+story: 0021
+epic: 0020
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Substrate + multi-skill change. Sequenced: spec the format (canonical home) → update allocation
+# call-sites → add the merge gate → make INDEX derived → tests → cross-plugin sync.
+tasks:
+  - id: T1
+    title: "L1 — id format in _shared/tracker-crudl.md §2 (canonical home)"
+    ac: [AC1, AC2]
+    deps: []
+    detail: >
+      Rewrite §2 "Keying & filenames": new ids are <MMDD>-<rand3> Crockford base32 (alphabet
+      0-9 a-z minus i,l,o,u). Remove the "Allocate max(existing id)+1; per-store counter" rule.
+      Define the dual-accepting validator regex: ^(\d{4}|\d{2}\d{2}-[0-9a-hj-km-np-tv-z]{3})$.
+      State: legacy 4-digit serials are grandfathered, never rewritten; both forms coexist.
+      This file is the SINGLE source — do not restate the format elsewhere; cite §2.
+
+  - id: T2
+    title: "L1 — id generator + allocation call-sites in /backlog"
+    ac: [AC1, AC6]
+    deps: [T1]
+    detail: >
+      Update backlog/SKILL.md #add step 2 (and any define/build mint) to call the new generator
+      instead of max+1, citing tracker-crudl §2. Provide a tiny zero-dep generator (e.g.
+      scripts/mint-id.mjs) sourcing date + a non-banned randomness source (NOT Math.random() in
+      resume-sensitive paths — read from crypto or accept id as input; pin in build). Keep
+      /backlog add a single-tool-call frictionless flow (D26).
+
+  - id: T3
+    title: "L2 — define merge id-uniqueness hard gate"
+    ac: [AC3]
+    deps: [T1]
+    detail: >
+      In feature-sdlc/SKILL.md #define-mode step 5, beside the path-scope check, add the
+      id-uniqueness gate: before merge, refuse (list offending ids) if any item id introduced on
+      the branch already exists on main; after merge, assert INDEX has no duplicate ids. Loud
+      refusal, not silent. Mirror the wording/shape of the existing path-scope refusal.
+
+  - id: T4
+    title: "L3 — INDEX as derived artifact (regenerate, sort by created desc)"
+    ac: [AC4]
+    deps: [T1]
+    detail: >
+      Make the define merge and #add REGENERATE INDEX.md via the existing /backlog rebuild-index
+      logic (scan backlog/items/*.md) instead of hand-appending rows; sort epics/stories by
+      created: desc so chronology survives non-monotonic ids. Remove hand-edit INDEX steps from
+      the define merge path.
+
+  - id: T5
+    title: "Ripple verification — id-consuming sites scheme-agnostic"
+    ac: [AC5]
+    deps: [T2, T3, T4]
+    detail: >
+      Audit + (if needed) fix every id-consumer to treat the id as an opaque string: {id}-{slug}.md,
+      define/{id} + feat/{id} branches, backlog/claims/{id} lock, parent:/dependencies: refs,
+      /backlog next ordering (must not lexical-sort ids). Add a test that a date+rand id round-trips
+      through add → claim → branch-name.
+
+  - id: T6
+    title: "Tests + cross-plugin _shared sync"
+    ac: [AC2, AC5, AC6]
+    deps: [T1, T2, T3, T4, T5]
+    detail: >
+      Update backlog skill tests + any tracker-crudl fixtures for the new id format (incl. a
+      legacy+new coexistence case and a duplicate-id merge-gate case). Run
+      scripts/sync-shared.sh --from=pmos-toolkit to propagate the tracker-crudl §2 change to other
+      plugins (never hand-copy). Run the skill-eval rubric to green.
+
+# Release prerequisites (NOT execute tasks — /complete-dev owns these per skill-patterns.md §G):
+#   - pmos-toolkit version bump (plugin.json x2) + CHANGELOG entry.

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Story 0021 — Concurrency-safe ids — Plan</title>
+<style>
+:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:900px;padding:32px 24px;font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:23px;margin:0 0 4px}h2{font-size:18px;margin:26px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sub{color:var(--muted);margin:0 0 16px}
+code{background:var(--card);padding:1px 5px;border-radius:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--muted)}
+.t{font-weight:700;color:var(--accent)}
+ul{padding-left:20px}li{margin:4px 0}
+</style>
+</head>
+<body>
+<h1>Story 0021 — Concurrency-safe backlog ids · Plan</h1>
+<p class="sub">Epic 0020 · route: skill · pmos-toolkit · machine queue: <code>tasks.yaml</code> (sibling) · design + ripple surface: <a href="../../02_design.html">02_design.html</a></p>
+
+<h2 id="approach">Approach</h2>
+<p>Three layers across the substrate and two skills. <code>_shared/tracker-crudl.md §2</code> is the canonical home of the id format (T1) — every other site cites it. Then the allocation call-sites stop computing <code>max+1</code> (T2), the define merge gains a loud id-uniqueness gate (T3), and <code>INDEX.md</code> becomes a regenerated artifact (T4). Ripple-audit every id consumer (T5), then tests + cross-plugin <code>_shared</code> sync (T6).</p>
+
+<h2 id="tasks">Task queue</h2>
+<table>
+<tr><th>Task</th><th>ACs</th><th>Deps</th><th>Summary</th></tr>
+<tr><td class="t">T1</td><td>AC1,AC2</td><td>—</td><td><code>tracker-crudl §2</code> — new <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> format + dual-accepting validator; drop <code>max+1</code>. Canonical home.</td></tr>
+<tr><td class="t">T2</td><td>AC1,AC6</td><td>T1</td><td>Generator (<code>mint-id.mjs</code>, non-banned randomness) + <code>/backlog #add</code>/define/build mint call-sites; keep add frictionless.</td></tr>
+<tr><td class="t">T3</td><td>AC3</td><td>T1</td><td><code>feature-sdlc #define-mode</code> step 5 — id-uniqueness hard gate beside path-scope; loud refusal + post-merge dup assert.</td></tr>
+<tr><td class="t">T4</td><td>AC4</td><td>T1</td><td>INDEX regenerated via <code>rebuild-index</code> on merge/add; sort by <code>created:</code> desc; remove hand-edits.</td></tr>
+<tr><td class="t">T5</td><td>AC5</td><td>T2,T3,T4</td><td>Ripple audit — filename / <code>define</code>+<code>feat</code> branch / claim lock / parent+deps / <code>next</code> ordering are opaque-string-safe; round-trip test.</td></tr>
+<tr><td class="t">T6</td><td>AC2,AC5,AC6</td><td>all</td><td>Tests (legacy+new coexistence, dup-id merge-gate) + <code>sync-shared.sh --from=pmos-toolkit</code>; skill-eval green.</td></tr>
+</table>
+<p class="sub">Mostly sequential off T1 (the format spec). T2/T3/T4 are independent once T1 lands and could parallelize; build's wave planner decides from <code>deps</code>.</p>
+
+<h2 id="risks">Risks &amp; verification</h2>
+<ul>
+<li><b>Randomness ban.</b> Skill scripts forbid <code>Math.random()</code>/<code>Date.now()</code> in resume-sensitive paths. The generator must source entropy from <code>crypto</code> or accept the id as an input — pin the exact mechanism in build; don't smuggle a banned call.</li>
+<li><b>Canonical-home discipline (§K).</b> The id format lives only in <code>tracker-crudl §2</code>; allocation sites cite it. A duplicated format string is a review fail.</li>
+<li><b>_shared sync.</b> <code>tracker-crudl.md</code> is shared substrate — the change must flow through <code>scripts/sync-shared.sh --from=pmos-toolkit</code>, never a hand-copy (the drift hook guards this).</li>
+<li><b>Don't lexical-sort ids anywhere.</b> Non-monotonic ids break any code assuming <code>id</code> ordering ≈ chronology — that's why <code>INDEX</code> sorts on <code>created:</code> and <code>next</code> must be audited (T5).</li>
+<li><b>Back-compat.</b> Legacy 4-digit ids (0001–0019, incl. book-summary's 0018/0019) must keep parsing and never be rewritten (AC2).</li>
+</ul>
+
+<h2 id="final-checklist">Final verification checklist</h2>
+<ul>
+<li>Two simulated parallel mints off one baseline → different ids (AC1)</li>
+<li>Duplicate-id define merge → loud refusal listing the id (AC3)</li>
+<li>Legacy + new id coexistence test green (AC2)</li>
+<li>INDEX regenerated, sorted by <code>created:</code>, no hand-edit step remains (AC4)</li>
+<li><code>sync-shared.sh</code> clean; skill-eval rubric green (AC5/AC6)</li>
+</ul>
+</body>
+</html>
