@@ -7,7 +7,7 @@ Last regenerated: 2026-06-12
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
 |----|--------|-------|--------|----------------------|-------|
-| 0010 | inbox | | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline |
+| 0010 | released | | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline (pmos-toolkit/v2.65.0) |
 
 ## should
 

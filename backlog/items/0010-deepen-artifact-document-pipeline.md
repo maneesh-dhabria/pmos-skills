@@ -4,14 +4,15 @@ id: 10
 title: "Deepen /artifact into a document pipeline"
 type: feature
 kind: epic
-status: inbox
+status: released
 priority: should
 labels: [artifact, pmos-toolkit, doc-pipeline, idea]
 created: 2026-06-12
 updated: 2026-06-12
+released: pmos-toolkit/v2.65.0
 source: docs/pmos/ideate/2026-06-12_deepen-artifact-pipeline.html
-spec_doc:
-plan_doc:
+spec_doc: docs/pmos/features/2026-06-12_deepen-artifact-pipeline/02_spec.html
+plan_doc: docs/pmos/features/2026-06-12_deepen-artifact-pipeline/03_plan.html
 pr:
 parent:
 dependencies: []
