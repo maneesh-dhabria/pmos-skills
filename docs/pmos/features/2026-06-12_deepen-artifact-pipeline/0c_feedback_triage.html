@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="feature-sdlc">
+  <title>Feedback Triage — deepen /artifact</title>
+  <style>
+    body { background:#fbfaf6; color:#1a1a1a; font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; margin:0; }
+    main { max-width:920px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+    h1 { font-size:1.6rem; } h2 { font-size:1.2rem; border-top:1px solid #e4e2da; padding-top:1rem; margin-top:1.8rem; }
+    table { border-collapse:collapse; width:100%; font-size:.88rem; margin:.6rem 0; }
+    th,td { border:1px solid #e4e2da; padding:.45rem .55rem; text-align:left; vertical-align:top; }
+    th { background:#f1efe8; }
+    code { background:#efeee8; padding:.05em .3em; border-radius:4px; }
+    .new { color:#b45309; font-weight:600; } .partial { color:#2563eb; font-weight:600; } .none { color:#9a9a93; }
+    .tag { display:inline-block; border-radius:999px; padding:.05rem .5rem; font-size:.78rem; font-weight:600; }
+    .small { background:#dcfce7; color:#15803d; } .medium { background:#fef9c3; color:#a16207; } .large { background:#fee2e2; color:#b91c1c; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Feedback Triage — deepen <code>/artifact</code></h1>
+  <p><strong>Source:</strong> <code>docs/pmos/ideate/2026-06-12_deepen-artifact-pipeline.html</code> · <strong>Target skill:</strong> <code>/artifact</code> (single) · <strong>Run tier:</strong> 3 (max of per-finding scope) · <strong>Mode:</strong> skill-feedback</p>
+  <p>The feedback source is an <em>approved, pressure-tested design brief</em> — not raw findings. The maintainer already ratified all 8 capabilities and 6 design decisions in the <code>/ideate</code> session, so dispositions below default to <strong>build</strong>; the open decision is <strong>scope/staging</strong>, surfaced after the table.</p>
+
+  <h2 id="already-vs-new">What /artifact already owns vs. net-new</h2>
+  <p>Key finding from reading the current 426-line <code>SKILL.md</code>: the create flow (Phase 2, 8 steps) already owns context-gathering, template resolution, gap-interview, draft generation, and a <strong>single reviewer-subagent eval loop</strong> (Phase 3, 2-loop cap). Separately, <code>/artifact template add</code> already has a <strong>research-grounded authoring flow</strong> (T.1–T.6) with a research subagent, section-by-section alignment, eval-gen, save-to-<code>~/.pmos/artifacts/templates/</code>, and an optional dry-run. Two brief capabilities therefore shrink from "build" to "wire-up/extend."</p>
+
+  <h2 id="findings">Per-finding triage</h2>
+  <table>
+    <thead><tr><th>#</th><th>Capability (from brief AC)</th><th>Already handled?</th><th>Classification</th><th>Recommendation</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>F1</td>
+        <td>Template <strong>proposal when none matches</strong> + research-during-eval-gen + save-for-future + new-template best-practice guidelines</td>
+        <td class="partial">partial — <code>template add</code> T.1–T.6 already does research+eval+save+dry-run, but only as an explicit command, never auto-invoked from create</td>
+        <td>new-capability (auto-trigger) + enhancement</td>
+        <td><strong>Modify</strong> — add a create-flow branch (Step 1.5) that detects no-template-match → offers the existing <code>template add</code> flow inline; default save = No, checklist-gated; add a <code>reference/new-template-guidelines.md</code></td>
+        <td><span class="tag medium">medium</span></td>
+      </tr>
+      <tr>
+        <td>F2</td>
+        <td><strong>Document-length target</strong> (template-carried; asked when proposing new)</td>
+        <td class="none">no</td>
+        <td>new-capability</td>
+        <td><strong>Fix as proposed</strong> — add <code>length_target</code> to template frontmatter + a gap-question on new-template; pass to generation as <em>informational steering</em> (per /primer word-target learnings, never a hard gate)</td>
+        <td><span class="tag small">small</span></td>
+      </tr>
+      <tr>
+        <td>F3</td>
+        <td><strong>Research phase</strong> — approval-gated plan → subagent fan-out → save to <code>&lt;feature_folder&gt;/research/</code> with provenance</td>
+        <td class="none">no (create flow has none; the template-add research subagent is for authoring templates, not framing a doc)</td>
+        <td>new-capability</td>
+        <td><strong>Fix as proposed</strong> + the pressure-test guard: an "is research warranted?" gate (auto-skip internal/template-backed docs) before the approval gate; verifiable-URLs-only</td>
+        <td><span class="tag large">large</span></td>
+      </tr>
+      <tr>
+        <td>F4</td>
+        <td><strong>Multi-persona critique</strong> — 3–4 stakeholder personas in parallel subagents; findings reconciled with user</td>
+        <td class="partial">partial — Phase 3 has ONE reviewer vs eval.md criteria; not persona-based</td>
+        <td>new-capability</td>
+        <td><strong>Modify</strong> — add a persona-panel phase distinct from the eval reviewer; personas template-defined or recommended-from-context; must prove value beyond the existing reviewer (assumption test in brief)</td>
+        <td><span class="tag large">large</span></td>
+      </tr>
+      <tr>
+        <td>F5</td>
+        <td><strong>Diagram pass</strong> — propose → approve → subagent <code>/diagram</code> → validate → inline insert; remember preference</td>
+        <td class="none">no</td>
+        <td>new-capability</td>
+        <td><strong>Fix as proposed</strong> + guards: <code>/diagram</code> non-interactive, mandated bg-rect (dark-mode), fixed anchor, validate each SVG (heading-id + sections.json smoke) before insert, skip-on-failure with logged note</td>
+        <td><span class="tag large">large</span></td>
+      </tr>
+      <tr>
+        <td>F6</td>
+        <td><strong>/polish always</strong> at the end</td>
+        <td class="none">no (Phase 3 routes prose work to /polish by reference, never invokes it)</td>
+        <td>new-capability</td>
+        <td><strong>Modify</strong> — run always, but auto-apply <em>mechanical</em> findings only; route voice-risk findings through per-finding confirm (pressure-test premortem: "always run" ≠ "always auto-apply"); verify main-agent invocation path (/polish warns subagents can't invoke it)</td>
+        <td><span class="tag medium">medium</span></td>
+      </tr>
+      <tr>
+        <td>F7</td>
+        <td><strong>/grill mandatory</strong>, scaled by <code>--depth</code></td>
+        <td class="none">no</td>
+        <td>new-capability</td>
+        <td><strong>Modify</strong> — mandatory but mode-aware: interactive interrogation when a human is present; written-findings degradation in <code>--non-interactive</code> (else /artifact can't run headless or as a /feature-sdlc sub-step)</td>
+        <td><span class="tag medium">medium</span></td>
+      </tr>
+      <tr>
+        <td>F8</td>
+        <td><strong>--depth master dial</strong> — full battery earned by stakes, not imposed</td>
+        <td class="partial">partial — /artifact already has <code>--tier lite|full</code></td>
+        <td>enhancement (architectural)</td>
+        <td><strong>Modify</strong> — reconcile <code>--depth brief|standard|deep</code> with the existing <code>--tier lite|full</code>; the dial gates which of F3–F7 run. <strong>This is the spine; resolve "default vs deep-only" in /spec.</strong></td>
+        <td><span class="tag medium">medium</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 id="forks">Two H×H decisions for /requirements + /spec</h2>
+  <ol>
+    <li><strong>Heavy-pipeline posture:</strong> is the full battery (F3–F7) the <em>default</em>, or strictly <code>deep</code>-only with lighter tiers opt-in? (Pressure-test leans opt-in; brief decisions lean "always" for grill+polish.) — resolve in /requirements.</li>
+    <li><strong>Non-interactive composition:</strong> can <code>/grill</code> + <code>/polish</code> + <code>/diagram</code> be invoked from inside <code>/artifact</code> and degrade cleanly headless? <code>/polish</code> explicitly warns subagents can't invoke it — the main-agent path must be verified in /spec (a 1-hour spike).</li>
+  </ol>
+
+  <h2 id="disposition">Disposition</h2>
+  <p>All 8 findings → <strong>build</strong> (Fix-as-proposed: F2, F3, F5; Modify with pressure-test safe-mode guards: F1, F4, F6, F7, F8). None skipped or deferred at triage — the maintainer ratified the design. The remaining choice is whether to ship all 8 in one pass or stage them, decided at the approval gate.</p>
+</main>
+</body>
+</html>
