@@ -5,7 +5,8 @@ kind: epic
 title: Concurrency-safe backlog ids — date+short-rand scheme + define merge id-uniqueness gate + derived INDEX
 type: tech-debt
 priority: should
-status: defined
+status: released
+released: pmos-toolkit/v2.68.0
 route: skill
 plugin: pmos-toolkit
 feature_folder: docs/pmos/features/2026-06-12_concurrency-safe-ids/
