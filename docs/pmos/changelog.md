@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-12 — pmos-utilities 0.2.1: skill-design P1/P2 — mac-health non-interactive block resync
+
+The utilities share of the P1/P2 campaign (shipped alongside pmos-toolkit 2.63.0 and pmos-learnkit 0.19.0). `/mac-health`'s third-generation non-interactive block variant is replaced with the canonical byte-identical block (the all-plugins inline lint now covers it), plus a one-line `/reflect` touch-up. Patch release — content fixes, no new capability.
+
 ## 2026-06-12 — pmos-learnkit 0.19.0: skill-design P1/P2 — learnkit skills rewritten, `_shared` resynced to toolkit
 
 The learnkit share of the 2026-06-10 skill-design review's P1/P2 campaign (shipped alongside pmos-toolkit 2.63.0). Behavior-preserving: the Batch-D adversarial review over the full diff confirmed zero lost contracts — every magazine verb, the GUID lifecycle (incl. the `transcribing` claim state), frameworks' `--json`, and the unified `--depth`/`--audience` dial all survive verbatim.
