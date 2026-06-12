@@ -2,7 +2,7 @@
 name: artifact
 description: Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design Doc, Engineering Design Doc, Discovery Doc) from existing context plus targeted gap-filling questions. Each artifact passes through a reviewer-subagent + auto-apply loop governed by per-section eval criteria. Ships with 4 built-in templates and 4 writing-style presets (Concise, Tabular, Narrative, Executive); users can author their own at ~/.pmos/artifacts/. Use when the user says "draft a PRD", "create an experiment design", "write a design doc", "generate a discovery doc", "/artifact", or names an artifact type to produce.
 user-invocable: true
-argument-hint: "[<type> [--tier lite|full] [--preset <slug>] [--feature <slug>] | refine <path> | update <path> | template add [--quick]|list|remove <slug> | preset add|list|remove <slug>] [--format <html|md>] [--non-interactive | --interactive]"
+argument-hint: "[<type> [--depth brief|standard|deep] [--preset <slug>] [--feature <slug>] | refine <path> | update <path> | template add [--quick]|list|remove <slug> | preset add|list|remove <slug>] [--format <html|md>] [--non-interactive | --interactive]"
 ---
 
 # /artifact
@@ -11,7 +11,12 @@ Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design
 
 **Announce at start:** "Using /artifact to {create|refine|update} a {type}."
 
-**Flags are NL-first.** Infer options from the request — "make it lite" ≡ `--tier lite`, "use the tabular preset" ≡ `--preset tabular`, "markdown output" ≡ `--format md`, "quick template scaffold" ≡ `template add --quick`; an explicit flag overrides the inferred intent. `create <type>` is an accepted synonym of bare `<type>`.
+**Flags are NL-first.** Infer options from the request — "quick draft" ≡ `--depth brief`, "deep doc pipeline" / "full battery" ≡ `--depth deep`, "use the tabular preset" ≡ `--preset tabular`, "markdown output" ≡ `--format md`, "quick template scaffold" ≡ `template add --quick`; an explicit flag overrides the inferred intent. `create <type>` is an accepted synonym of bare `<type>`.
+
+`--depth brief|standard|deep` is the **master dial** — it gates which pipeline stages run (research / persona panel / diagram pass) AND the artifact's section count (the old `--tier` job). Default `standard`. See `#load-context` for resolution and `#create` for the per-stage gates.
+
+<!-- nl-sugar -->
+`--tier lite|full` is a retired-but-parsed back-compat alias (not advertised in the hint): `--tier lite` ≡ `--depth brief`, `--tier full` ≡ `--depth standard`. It was never machine-coupled (the orchestrator never passes `--tier` to `/artifact`), so demoting the documented surface is §I-safe; the alias only prevents muscle-memory breakage.
 
 ## Platform Adaptation
 
@@ -31,6 +36,7 @@ Multi-phase flows (Create: Phases 0–6; Refine; Update each have their own). Cr
 3. Ensure `~/.pmos/artifacts/` exists. If not, create the empty tree `~/.pmos/artifacts/{templates,presets}/`.
 4. Determine the subcommand and route to the appropriate phase. Default subcommand is `create`.
 5. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default: `html`; valid values: `html`, `md` — a legacy `both` value is treated as `html`; the mixed-format MD sidecar is retired, see lineage). A `--format <html|md>` argument-string flag overrides settings (last flag wins on conflict). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the **feature-folder write phase only**; the template store at `~/.pmos/artifacts/templates/<slug>/template.md` retains MD shape regardless of output_format (template-store carve-out).
+6. **Resolve `{depth}`** (the master dial — gates pipeline stages AND section count). Precedence: `--depth brief|standard|deep` flag > `--tier` back-compat alias (`lite`→`brief`, `full`→`standard`) > `.pmos/settings.yaml :: artifact.default_depth` > builtin default **`standard`**. Print to stderr exactly: `depth: <value> (source: <cli|alias|settings|default>)` once at Phase 0 entry. `{depth}` drives: Step 3 section mapping (`brief`→template `lite` set; `standard`/`deep`→`full` set), the Step 7.5 research gate (`deep`), the Phase 3.5 persona gate (`standard`+`deep`), the Phase 3.7 diagram gate (`deep`, or the saved `artifact.diagram_pass` preference), and the Phase 3.9 `/grill --depth` passthrough. The post-draft `/polish` (3.8) and `/grill` (3.9) run at **every** depth.
 
 <!-- non-interactive-block:start -->
 1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
@@ -103,16 +109,13 @@ Show source label `[built-in]` / `[user]` next to each. After selection, set `<t
    - Every section ID referenced in `eval.md` (e.g., `## §2`) exists in `template.md`.
    - If validation fails: stop, surface the specific error, do not proceed.
 
-### Step 3 — Tier detection
+### Step 3 — Section set (from `{depth}`)
 
-If `template.md` frontmatter `tiers: [lite, full]`:
-1. If `--tier <value>` flag was given, use it.
-2. Otherwise auto-suggest based on signals:
-   - Requirements doc richness: word count of `01_requirements*.md` if present (>1500 → suggest Full; <500 → suggest Lite).
-   - User input length and tone (>200 chars with strategic terms like "OKR", "rollout", "stakeholders" → Full).
-   - Default to Full when ambiguous.
-<!-- defer-only: ambiguous -->
-3. Confirm with user via `AskUserQuestion` (preview shows the section list per tier).
+The section count is derived from `{depth}` (resolved in `#load-context` step 6) — there is no separate tier prompt. If `template.md` frontmatter `tiers: [lite, full]`:
+- `{depth} == brief` → use the template's **`lite`** section set.
+- `{depth} ∈ {standard, deep}` → use the **`full`** section set.
+
+This is deterministic — no `AskUserQuestion` (the user already chose via `--depth`, or accepted the `standard` default). If a child auto-detect signal (e.g. a `>1500`-word `01_requirements*` doc with a `brief` depth) strongly contradicts the chosen depth, surface a one-line note (`depth brief but rich upstream context — consider --depth standard`) and proceed with the chosen depth; never override the user's dial.
 
 If `tiers: [single]`, skip this step.
 
