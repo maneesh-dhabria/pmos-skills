@@ -4,15 +4,16 @@ id: 0612-d14
 kind: story
 title: Extend the backlog id scheme to <YYMMDD>-<rand3> — year-prefixed mint + triple-accept validator across /backlog and /mytasks
 type: enhancement
-status: planned
+status: in-progress
 priority: should
 route: skill
 parent: 0612-jjs
 dependencies: []
-worktree:
+worktree: ../agent-skills-0612-d14
 plan_doc: docs/pmos/features/2026-06-12_yymmdd-ids/stories/0612-d14-yymmdd-ids-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_yymmdd-ids/stories/0612-d14-yymmdd-ids-build/tasks.yaml
-claimed_by:
+claimed_by: build:3e313489-a624-4b93-b86e-c56f8eb34df6
+driver_holder: build:3e313489-a624-4b93-b86e-c56f8eb34df6
 released:
 labels: [backlog, mytasks, ids, tracker-crudl]
 created: 2026-06-12
