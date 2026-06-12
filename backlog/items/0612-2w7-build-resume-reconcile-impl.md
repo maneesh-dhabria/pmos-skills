@@ -5,7 +5,7 @@ kind: story
 title: Implement build-loop reconcile-in-flight — resume-first step 0, claim-ownership, forward-progress poison guard
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 plugin: pmos-toolkit
 parent: 0612-w4e
