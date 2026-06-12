@@ -1,6 +1,18 @@
 # Changelog
 
-## 2026-06-12 — pmos-toolkit 2.63.0: skill-design P1/P2 — every skill rewritten against the codified design policies
+## 2026-06-12 — pmos-learnkit 0.19.0: skill-design P1/P2 — learnkit skills rewritten, `_shared` resynced to toolkit
+
+The learnkit share of the 2026-06-10 skill-design review's P1/P2 campaign (shipped alongside pmos-toolkit 2.63.0). Behavior-preserving: the Batch-D adversarial review over the full diff confirmed zero lost contracts — every magazine verb, the GUID lifecycle (incl. the `transcribing` claim state), frameworks' `--json`, and the unified `--depth`/`--audience` dial all survive verbatim.
+
+- **`_shared` resynced and de-fossilized.** The canonical non-interactive block is now byte-identical across all plugins (lint scope extended to every plugin); ~1,360 lines of dead substrate cargo deleted (execute-resume, phase-boundary-handler, msf/sim-spec heuristics, stacks/ — zero learnkit consumers, verified per file); html-authoring resynced from toolkit via `sync-shared.sh` (pmos-wordmark in `template.html`, current `style.css`, `resolve-input.md` msf slug fix) — all nine key files md5-identical to toolkit's.
+- **/primer + /learn-list** — `source-floor.md` rewritten 141→36 lines to honor the shipped non-blocking design (the old four-strands blocking gate contradicted it); dial resolution now lives once in `_shared/topic-research/intake.md`; `sourcing-ladder.md`'s skill-naming leaks fixed (the substrate is skill-agnostic again, test-pinned).
+- **/magazine** — the trust rule ("never fabricate; degrade honestly") hoisted to one prominent home; Phase 1 dispatch is a 7-line routing table; Phases 2–3 de-narrated; reserved `--format` dropped until implemented.
+- **/frameworks** — `match.mjs` scoring fixes verified empirically against v0.18.0 (length-insensitive floor normalization, full-pool re-rank below floor, zero-score exclusion) + `--json` hardening (reranked flag, absolute diagram paths, null convention); stale `/diagram` anti-pattern bullet corrected.
+- **/critical-thinking** — calibration exercises are now actually resolvable: the shape-7 generator pre-commits a hidden resolution and reveals it only after you state your probability.
+- **/playbook** — articles render through the shared html-authoring template + `render.js`, so emitted articles are genuinely annotatable (inline pmos-comments, `pmos:skill` meta); guarded by a new skill-local render-surface test.
+- **FR-tag soup stripped** across all six skills (each keeps one "Spec lineage" footnote); phase headings carry stable `{#kebab-slug}` anchors; both new repo hygiene lints PASS on every learnkit skill.
+
+
 
 The full execution of the 2026-06-10 skill-design review's P1 (systemic hygiene) and P2 (design changes) across the plugin — one coordinated multi-wave campaign, behavior-preserving by contract (machine-coupled flags, log-line strings, state fields, output filenames all kept or explicitly aliased; verified by a repo-wide gate sweep plus four adversarial batch reviews over the full `main...HEAD` diff).
 
