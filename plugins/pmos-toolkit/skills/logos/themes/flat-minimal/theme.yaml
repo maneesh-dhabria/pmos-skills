@@ -1,0 +1,18 @@
+name: flat-minimal
+displayName: Flat Minimal
+technique: Flat solid fills, no gradients — geometric shapes filled with one ink and at most one accent.
+palette:
+  max_colors: 3
+  ink: "#1C1917"
+  accents:
+    - hex: "#C2410C"
+      name: ember
+stroke:
+  single_weight: true
+  min_effective_px: 1.0
+fallback:
+  requires_mono: false
+  forces_icon_only: false
+notes: >
+  Default theme. Already monochrome-clean: the flat fills collapse to a single
+  ink with no information loss, so no separate mono variant is mandated.

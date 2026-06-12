@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>brand-mark v1 — clean flat-minimal icon</title>
+  <defs>
+    <linearGradient id="brand-mark-v1-grad">
+      <stop offset="0" stop-color="#1C1917"/>
+      <stop offset="1" stop-color="#1C1917"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="8" fill="#1C1917"/>
+  <circle cx="32" cy="32" r="16" fill="#C2410C"/>
+</svg>

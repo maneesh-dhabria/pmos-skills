@@ -1,0 +1,21 @@
+name: dimensional-flat
+displayName: Dimensional Flat
+technique: Flat shapes with a soft depth cue — a feGaussianBlur + feOffset drop-shadow filter, NOT real 3D.
+palette:
+  max_colors: 5
+  ink: "#1C1917"
+  accents:
+    - hex: "#2563EB"
+      name: azure
+    - hex: "#0891B2"
+      name: cyan
+stroke:
+  single_weight: false
+  min_effective_px: 1.0
+fallback:
+  requires_mono: true
+  forces_icon_only: false
+notes: >
+  Depth is a soft drop-shadow filter (feGaussianBlur + feOffset), not real 3D
+  (D1). Depth dies at favicon and mono, so a flat + mono fallback is mandatory —
+  requires_mono is true. Filter ids are namespaced by need+variant.
