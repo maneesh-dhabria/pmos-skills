@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Epic 0612-w4e — Build-loop resume-first reconcile — Design</title>
+<style>
+:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252;--good:#9fe0b8;--warn:#f0b86e}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:920px;padding:32px 24px;font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;margin:30px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:20px 0 6px;color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 18px}
+code{background:var(--card);padding:1px 5px;border-radius:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--muted)}
+.d{background:var(--card);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0}
+.d b{color:var(--accent)}
+.ac{background:#14241a;border-left:3px solid var(--good);padding:8px 12px;border-radius:6px;margin:6px 0;color:#cfeede}
+.warn{background:#2a2113;border-left:3px solid var(--warn);padding:8px 12px;border-radius:6px;margin:8px 0}
+ul{margin:6px 0;padding-left:22px}li{margin:4px 0}
+.scope-out{color:var(--muted)}
+</style>
+</head>
+<body>
+<h1>Epic 0612-w4e — Build-loop resume-first reconcile-in-flight</h1>
+<p class="sub">Define-loop design contract · route: skill · pmos-toolkit · 2026-06-12 · self-heal stories that crash mid-build under an unattended <code>/loop</code></p>
+
+<h2 id="problem">The problem (observed gap)</h2>
+<p><code>/feature-sdlc build --next</code> runs one story per iteration: <code>pick → claim → worktree → /execute → /verify → write-back → STOP</code>, driven repeatedly by a single unattended <code>/loop</code>. Two writes land <i>before</i> any cleanup runs:</p>
+<ul>
+<li>the <b>claim lock</b> (<code>backlog/claims/&lt;id&gt;.lock</code>, O_EXCL) + <code>claimed_by:</code> — removed only by the final write-back's <code>/backlog unclaim</code>;</li>
+<li>the story status flip <code>planned → in-progress</code> (stamped by <code>/execute</code> via <code>--backlog &lt;id&gt;</code>).</li>
+</ul>
+<p>An API error (or any crash) during <code>/execute</code> never reaches write-back, leaving the story at <b><code>status: in-progress</code>, claim held, partial work in <code>feat/&lt;id&gt;</code>, no write-back</b> — neither <code>done</code> nor <code>blocked</code>.</p>
+<div class="warn"><b>The rot.</b> <code>build --next</code> calls <code>/backlog next --status planned</code> + unclaimed. The crashed story fails <i>both</i> filters (it is <code>in-progress</code> AND claimed), so the picker skips it forever. Even after the 4h claim TTL frees the lock, the status is still <code>in-progress</code>, so <code>--next</code> never re-picks it. It surfaces in <code>/backlog groom</code> as a stale claim only after 4h, and never auto-recovers. The loop marches on to new work while the crashed story is silently abandoned.</div>
+
+<h2 id="invariants">Coherence invariants</h2>
+<ul>
+<li><b>Zero behavior change when nothing crashed.</b> A clean backlog (no <code>in-progress</code> stories) must pick exactly as today — reconcile is a no-op fall-through.</li>
+<li><b>One story per iteration, unchanged.</b> Reconcile resumes <i>one</i> story and STOPs, or falls through to <i>one</i> planned pick. The bounded-iteration contract (<code>#build-mode</code>) is preserved.</li>
+<li><b>Never head-of-line-block on a poison story.</b> A story that crashes every time must eventually exit the auto-loop (→ <code>blocked</code>) so other ready work proceeds.</li>
+<li><b>Never corrupt a correct result.</b> Resuming a story whose work is already complete-and-verified must not re-run a gate that could flip it to <code>blocked</code> on flake.</li>
+<li><b>Single-driver model.</b> One <code>/loop</code> at a time; a concurrent <i>manual</i> <code>build --story &lt;id&gt;</code> is the only other executor we must not stomp. Multi-driver/cron concurrency (heartbeat) is explicitly <span class="scope-out">out of scope</span> — deferred.</li>
+</ul>
+
+<h2 id="decisions">Design — the reconcile-in-flight step</h2>
+<p>Add a <b>step 0 <code>reconcile-in-flight</code></b> at the top of <code>#build-mode</code>, before <code>pick</code>. It runs every iteration: resume a resumable in-progress story (then STOP), else fall through to today's planned pick. Decisions below; all five were grilled (standard depth, 2026-06-12) and landed on these answers.</p>
+
+<div class="d"><b>D1 — reconcile-first, fall-through-clean.</b> Step 0 queries <code>status: in-progress</code> stories (D22 order). None → fall straight through to the existing <code>--next</code> planned pick (zero-change path). One resumable → resume it and STOP. The bounded one-story-per-iteration contract is untouched.</div>
+
+<div class="d"><b>D2 — claim-guarded resumability (NOT pure "in-progress = crashed").</b> A story at <code>in-progress</code> is <b>resumable iff its claim lock is ABSENT, STALE (&gt;TTL), or held by MY OWN driver id</b>. A <i>fresh</i> claim held by a <i>different</i> holder means another executor (a concurrent manual <code>build --story &lt;id&gt;</code>) is actively on it → skip, do not resume. This is what keeps single-driver signal A safe against the one realistic concurrent case.
+<br><br>Rationale: claim <i>freshness</i> alone is the wrong liveness signal — a story that crashed 2 min ago has a 2-min-old (fresh) claim, so "skip if fresh" would defeat fast self-resume. Ownership is the discriminator.</div>
+
+<div class="d"><b>D3 — stable per-loop driver identity.</b> The build driver claims with a <b>stable <code>--holder</code> string across loop ticks</b> (e.g. <code>loop:&lt;root-session-id&gt;</code> or a loop-run uuid), so tick N+1 recognizes tick N's abandoned claim as "mine" and resumes <i>immediately</i> — no waiting out the 4h TTL. <code>claim-lock.js</code> gains a holder-ownership comparison (<code>acquire</code> may reclaim a same-holder lock without the staleness wait); <code>backlog</code> <code>claim</code>/<code>next</code> thread the holder through.</div>
+
+<div class="d"><b>D4 — poison guard with forward-progress reset.</b> Track <code>resume_attempts</code> AND a <b>last-progress marker</b> (last completed task index or the commit sha at attempt start). On resume, if new work was committed since the prior attempt, <b>reset <code>resume_attempts</code> to 0</b>. The cap (default <b>2</b>) fires only on consecutive <i>unproductive</i> resumes (crash with zero new progress) — the true stuck/poison signal. A flaky API that still advances the story each tick is never falsely abandoned. (Mirrors the skill-eval ≤2-iteration cap philosophy.)</div>
+
+<div class="d"><b>D5 — cap → blocked, with a diagnosable note.</b> On hitting the cap: set <code>status: blocked</code>, <code>unclaim</code>, fall through to a fresh planned pick (never head-of-line-block). The crash killed the process before it could record the error, so the blocked note captures the <b>observable facts</b>: <code>resume_attempts</code>, last completed task / commit sha, in-flight phase (from <code>state.yaml current_phase</code>), timestamps — honest that the raw error is unrecoverable post-hoc; points the human at the worktree + <code>git reflog</code>.</div>
+
+<div class="d"><b>D6 — re-entry via the Phase 0b cursor, not a blind restart.</b> Resume reuses the existing Phase 0b resume cursor: jump to the first inner <code>phases[]</code> entry not yet complete. A crash <i>after</i> <code>/verify</code> wrote PASS but before write-back resumes <b>straight to write-back</b> (idempotent finalize) — it must NOT re-run <code>/verify</code> (a flaky re-run, or a moved <code>main</code>, could wrongly flip a correct result to <code>blocked</code>). Requires the build inner pipeline's <code>phases[]</code> to expose <b>per-inner-phase status</b> (<code>execute</code> / <code>skill-eval</code> / <code>verify</code> / <code>write-back</code>) so the cursor re-enters precisely.</div>
+
+<div class="d"><b>D7 — skill-managed fields; reconcile scope.</b> <code>resume_attempts</code> and the last-progress marker are <b>skill-managed</b> backlog fields — rejected by <code>/backlog set</code> as direct edits (same posture as <code>id</code>/<code>created</code>/<code>updated</code>). <code>reconcile-in-flight</code> only ever considers <code>in-progress</code> stories — it never touches <code>blocked</code>/<code>done</code>/<code>released</code>; a resume-capped <code>blocked</code> story correctly exits the auto-loop until human grooming.</div>
+
+<h2 id="signal-map">Resumability decision table</h2>
+<table>
+<tr><th>Story state seen at tick start</th><th>Claim</th><th>Action</th></tr>
+<tr><td>no <code>in-progress</code> story</td><td>—</td><td>fall through to <code>--next</code> planned pick (today's path)</td></tr>
+<tr><td><code>in-progress</code></td><td>absent / stale / <b>mine</b></td><td><b>resume</b> (D2/D3) via Phase 0b cursor (D6); poison-check first (D4/D5)</td></tr>
+<tr><td><code>in-progress</code></td><td>fresh, <b>different holder</b></td><td>skip — another executor is on it (D2); fall through to planned pick</td></tr>
+<tr><td><code>in-progress</code>, <code>resume_attempts ≥ 2</code>, no new progress</td><td>mine</td><td>→ <code>blocked</code> + diagnosable note, <code>unclaim</code>, fall through (D5)</td></tr>
+</table>
+
+<h2 id="scope">Scope — touch points (single plugin: pmos-toolkit)</h2>
+<table>
+<tr><th>File</th><th>Change</th></tr>
+<tr><td><code>feature-sdlc/SKILL.md</code></td><td><code>#build-mode</code> step 0 <code>reconcile-in-flight</code> + decision-log entries + the driver-identity contract; renumber the existing pick/claim/… steps.</td></tr>
+<tr><td><code>backlog/SKILL.md</code></td><td>a <code>--status in-progress</code> query path for the sweep; thread <code>--holder</code> through <code>claim</code>/<code>next</code>; declare <code>resume_attempts</code> + last-progress marker as skill-managed fields (reject in <code>set</code>).</td></tr>
+<tr><td><code>backlog/scripts/claim-lock.js</code></td><td>holder-ownership comparison in <code>acquire</code> (same-holder lock is reclaimable without the staleness wait); preserve TTL semantics for foreign holders.</td></tr>
+<tr><td><code>reference/state-schema.md</code></td><td>build <code>phases[]</code> gains the <code>reconcile</code> step + per-inner-phase status entries (execute/skill-eval/verify/write-back) so the Phase 0b cursor re-enters precisely.</td></tr>
+</table>
+
+<h2 id="out-of-scope">Explicitly out of scope</h2>
+<ul class="scope-out">
+<li><b>Heartbeat / multi-driver liveness.</b> Distinguishing "ongoing" from "stuck" across <i>concurrent</i> drivers needs a positive heartbeat (executor touches <code>heartbeat_at</code> per wave). Deferred — single-driver is the committed model; the claim-ownership guard (D2/D3) covers the one concurrent manual-<code>--story</code> case.</li>
+<li><b>Recovering the raw crash error.</b> Not possible post-hoc (the crash killed the process); D5 records observable facts instead.</li>
+<li><b>Reviving <code>blocked</code> stories automatically.</b> A resume-capped story stays <code>blocked</code> until human grooming (<code>/backlog set status=planned</code>).</li>
+</ul>
+
+<h2 id="acs">Epic acceptance criteria</h2>
+<div class="ac">AC1 — <code>build --next</code> gains a <code>reconcile-in-flight</code> step 0 that resumes a resumable in-progress story before picking new work; a clean backlog picks exactly as today (D1).</div>
+<div class="ac">AC2 — resumability is claim-guarded: resume iff claim absent/stale/own-holder; a fresh foreign-held claim is skipped (D2).</div>
+<div class="ac">AC3 — the build driver claims with a stable per-loop holder id; <code>claim-lock.js</code> reclaims a same-holder lock without the TTL wait; foreign-holder TTL semantics preserved (D3).</div>
+<div class="ac">AC4 — <code>resume_attempts</code> + last-progress marker tracked; counter resets on forward progress; cap (2) fires only on consecutive unproductive resumes (D4).</div>
+<div class="ac">AC5 — cap → <code>blocked</code> + <code>unclaim</code> + diagnosable note (attempts, last task/sha, phase, timestamps); loop is never head-of-line-blocked (D5).</div>
+<div class="ac">AC6 — resume re-enters via the Phase 0b cursor; a post-verify-PASS crash finalizes (write-back) without re-running <code>/verify</code>; build <code>phases[]</code> exposes per-inner-phase status (D6).</div>
+<div class="ac">AC7 — <code>resume_attempts</code> + marker are skill-managed (rejected by <code>/backlog set</code>); reconcile touches only <code>in-progress</code> stories (D7).</div>
+<div class="ac">AC8 — skill-eval green; backlog + claim-lock tests updated to cover holder-ownership + reconcile selection; no regression to the zero-crash pick path.</div>
+</body>
+</html>

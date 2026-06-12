@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Story 0612-2w7 — build-loop reconcile-in-flight — Plan</title>
+<style>
+:root{--bg:#0f1320;--panel:#171c2e;--card:#1d2438;--ink:#e7ecf5;--muted:#9aa6bf;--accent:#6ea8fe;--line:#2a3252;--good:#9fe0b8;--warn:#f0b86e}
+*{box-sizing:border-box}
+body{margin:0 auto;max-width:920px;padding:32px 24px;font:15px/1.6 -apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+h1{font-size:23px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:15px;margin:18px 0 6px;color:var(--accent)}
+.sub{color:var(--muted);margin:0 0 18px}
+code{background:var(--card);padding:1px 5px;border-radius:5px;font-size:13px}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--panel);color:var(--muted)}
+.t{background:var(--card);border-left:3px solid var(--accent);padding:10px 14px;border-radius:6px;margin:10px 0}
+.t b{color:var(--accent)}
+.warn{background:#2a2113;border-left:3px solid var(--warn);padding:8px 12px;border-radius:6px;margin:8px 0}
+ul{margin:6px 0;padding-left:22px}li{margin:4px 0}
+</style>
+</head>
+<body>
+<h1>Story 0612-2w7 — Implement build-loop reconcile-in-flight</h1>
+<p class="sub">route: skill · pmos-toolkit · epic 0612-w4e · plan derived from <code>../../02_design.html</code> + the 8 story ACs</p>
+
+<h2 id="approach">Approach</h2>
+<p>One coherent change to the build loop, sequenced bottom-up so the consumer (<code>#build-mode</code> step 0) lands last against a settled substrate. The <code>tasks.yaml</code> sibling is the executable work queue; this page is the human-readable rationale.</p>
+<ul>
+<li><b>Foundation (T1):</b> the <code>state-schema.md</code> build <code>phases[]</code> shape — the reconcile entry + per-inner-phase status the Phase 0b cursor reads, plus the new story-state fields. Everything else cites it.</li>
+<li><b>Substrate (T2, T3 — parallel):</b> <code>claim-lock.js</code> holder-ownership reclaim; <code>backlog/SKILL.md</code> in-progress query + holder threading + skill-managed fields.</li>
+<li><b>Consumer (T4):</b> <code>feature-sdlc/SKILL.md #build-mode</code> step 0 — the reconcile algorithm + driver-identity contract + decision log.</li>
+<li><b>Proof (T5, T6):</b> claim-lock + reconcile-selection tests; skill-eval + repo lints; zero-crash pick path unregressed.</li>
+</ul>
+
+<h2 id="waves">Wave plan</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>Parallel?</th><th>Gates ACs</th></tr>
+<tr><td>1</td><td>T1 — state-schema phases[] + fields</td><td>—</td><td>AC1, AC6</td></tr>
+<tr><td>2</td><td>T2 — claim-lock holder-ownership · T3 — backlog query/holder/fields</td><td>T2 ∥ T3 (both dep T1)</td><td>AC2, AC3, AC7</td></tr>
+<tr><td>3</td><td>T4 — feature-sdlc #build-mode step 0</td><td>— (dep T1,T2,T3)</td><td>AC1, AC2, AC4, AC5, AC6</td></tr>
+<tr><td>4</td><td>T5 — tests (dep T2,T3) · T6 — skill-eval + lints (dep T4)</td><td>T5 ∥ T6 after their deps</td><td>AC3, AC8</td></tr>
+</table>
+
+<h2 id="risks">Risks &amp; decisions carried from design</h2>
+<div class="t"><b>Claim-freshness is the wrong liveness signal.</b> A just-crashed story has a fresh claim. T2/T4 must key resume on holder <i>ownership</i> (D2/D3), never on freshness alone — else self-resume regresses to the 4h wait.</div>
+<div class="t"><b>Don't corrupt a correct result.</b> T1+T4 must let a post-verify-PASS crash finalize via write-back without re-running <code>/verify</code> (D6). The per-inner-phase status in <code>phases[]</code> is what makes this precise.</div>
+<div class="t"><b>Forward-progress reset, not raw attempt count.</b> T4's poison guard resets <code>resume_attempts</code> on new commits (D4) so a flaky-but-progressing story is not falsely abandoned — the exact API-flake trigger this epic exists for.</div>
+<div class="warn"><b>claim-lock.js header invariant.</b> The file documents "PID-liveness is NOT a reclaim trigger." T2 <i>extends</i> (own-holder identity is a new trigger alongside TTL) — it must not contradict the TTL-for-foreign-holders rule. Keep zero-dep; keep <code>--selftest</code> green.</div>
+
+<h2 id="verify">Final verification checklist</h2>
+<ul>
+<li><code>claim-lock.js --selftest</code> passes; new own-holder + foreign-holder cases asserted.</li>
+<li>Reconcile-selection test: own/stale-claim in-progress story chosen; fresh-foreign-claim skipped.</li>
+<li><code>/backlog set</code> rejects <code>resume_attempts</code> + last-progress marker.</li>
+<li><code>skill-eval-check.sh</code> + <code>lint-phase-refs.sh</code> + <code>lint-flags-vs-hints.sh</code> + non-interactive lint + audit-recommended all green.</li>
+<li>With zero in-progress stories, <code>build --next</code> picks byte-identically to pre-change behaviour.</li>
+</ul>
+</body>
+</html>
