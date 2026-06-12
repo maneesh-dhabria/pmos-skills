@@ -83,3 +83,12 @@ tasks:
       - "Phase 5 {#narrate}: run the shared ffmpeg+ffprobe hard-gate probe up front (install hint names the missing binary), then narrate.sh -> audio/ WAVs + durations.json (ffprobe); surface the Enhanced-voice nudge once; Kokoro auto-upgrade note"
       - "Phase 6 {#assemble}: run assemble.sh -> video.mp4 (gate already satisfied in Phase 5); run the eval-rubric self-check; land all six artifacts at {docs_path}/explainer-video/{YYYY-MM-DD}_{slug}/; regenerate an explainer-videos.html library listing via index-generator.md"
       - "Phase 7 {#capture-learnings}: follow _shared/learnings-capture.md; reflect on explainer-video-specific friction. (T9 edits the same SKILL.md as T8 -> sequential, never parallel)"
+  - id: T10
+    title: "Live end-to-end smoke — run /explainer-video against the MSR research PDF and verify the real video"
+    deps: [T9]
+    parallel: false
+    acceptance:
+      - "Run end-to-end: /explainer-video https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/main-14.pdf --length standard — a dense, multi-section, figure-bearing research PDF that exercises every stage (PDF ingest via native Read pages, figure inventory, dense->one-idea-per-slide distillation, narration, assembly)"
+      - "Assert the Phase 6 self-check PASSES: frames == slides; total video duration ~= sum(durations.json); every audio segment non-silent; every deck.json figure reference resolved; the emitted video.mp4 plays (H.264/AAC, 16:9)"
+      - "Spot-check quality and record it: slides readable at 1920x1080, narration audible and faithful to the speaker notes, >=1 figure reused from the paper, no slide crams multiple ideas. Capture findings + output path in stories/0612-jc5-explainer-video-skill-build/smoke-msr-pdf.md"
+      - "Dep-guarded (no silent skip): requires ffmpeg+ffprobe + a narration engine (say or Kokoro) + Playwright on the host. If any is absent, write the smoke log as DEFERRED-TO-RELEASE naming the missing binary and the exact re-run command; do NOT mark T10 passed on a host that cannot run the pipeline. /verify treats AC7 as satisfied by either a PASS smoke log or a DEFERRED-TO-RELEASE log (which /complete-dev must clear before shipping)"

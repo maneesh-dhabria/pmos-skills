@@ -932,6 +932,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
     <li><strong>Wave 1 (parallel):</strong> T1 scaffold · T2 distillation-contract · T3 narration-engines · T4 figure-inventory · T5 eval-rubric. <em>(T2–T5 deps [] run alongside T1; T1 is the only structural prerequisite for later waves.)</em></li>
     <li><strong>Wave 2 (parallel, dep T1):</strong> T6 ingest.mjs + render-slides.mjs · T7 narrate.sh + assemble.sh. Disjoint script files.</li>
     <li><strong>Wave 3 (sequential):</strong> T8 SKILL.md Phases 1–3 (dep T1,T2,T4,T6) → T9 SKILL.md Phases 4–7 (dep T1,T3,T5,T6,T7,T8). Same file ⇒ ordered.</li>
+    <li><strong>Wave 4 (verification, dep T9):</strong> T10 live end-to-end smoke — run the finished skill against the MSR research PDF and verify the real <code>video.mp4</code>. Dep-guarded (ffmpeg+ffprobe / say|Kokoro / Playwright); absent deps ⇒ DEFERRED-TO-RELEASE log, never a silent skip.</li>
   </ul>
 </section>
 
@@ -950,8 +951,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
       <tr><td>T7</td><td>scripts/narrate.sh (say/Kokoro) + assemble.sh (ffmpeg + concat + captions + self-check)</td><td>T1</td><td>yes</td></tr>
       <tr><td>T8</td><td>SKILL.md Phases 1–3 — Setup; Ingest (in-session); Distill to deck.json</td><td>T1,T2,T4,T6</td><td>no</td></tr>
       <tr><td>T9</td><td>SKILL.md Phases 4–7 — Author+capture; Narrate; Assemble+self-check; Capture learnings</td><td>T1,T3,T5,T6,T7,T8</td><td>no</td></tr>
+      <tr><td>T10</td><td>Live end-to-end smoke — run /explainer-video against the MSR research PDF, verify the real video.mp4 (AC7); dep-guarded DEFERRED-TO-RELEASE if host lacks ffmpeg/say/Playwright</td><td>T9</td><td>no</td></tr>
     </tbody>
   </table>
+  <p><strong>T10 smoke target:</strong> <code>https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/main-14.pdf</code> — a dense, multi-section, figure-bearing research paper chosen to exercise PDF ingest (native Read <code>pages</code>), the figure inventory, dense→one-idea-per-slide distillation, narration, and ffmpeg assembly in one real run. Output + spot-check land in <code>smoke-msr-pdf.md</code>.</p>
 </section>
 
 <section id="sec-grill-resolutions">
