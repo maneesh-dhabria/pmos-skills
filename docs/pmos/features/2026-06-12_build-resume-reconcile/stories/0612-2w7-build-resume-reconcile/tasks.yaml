@@ -1,0 +1,90 @@
+schema_version: 1
+story: 0612-2w7
+epic: 0612-w4e
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# One coherent build-loop change, multi-file but cohesive. Sequenced: state-schema first (the
+# phases[] shape the cursor reads) → claim-lock holder-ownership substrate + backlog query/fields
+# in parallel → feature-sdlc #build-mode step 0 consumes all three → tests → skill-eval/lints.
+tasks:
+  - id: T1
+    title: "state-schema — build phases[] gains reconcile + per-inner-phase status"
+    ac: [AC1, AC6]
+    deps: []
+    detail: >
+      In reference/state-schema.md, extend the build-mode phases[] block: add a `reconcile`
+      entry as the first build phase (before pick), and split the inner pipeline into
+      per-inner-phase status entries (execute / skill-eval / verify / write-back) so the Phase 0b
+      resume cursor can re-enter precisely (D6). Document `resume_attempts` and the
+      `last_progress` marker (last completed task id or commit sha) as story-state fields, and
+      `driver_holder` as the stable per-loop holder id recorded at claim time. Cite
+      02_design.html#decisions; do not restate the format elsewhere.
+
+  - id: T2
+    title: "claim-lock.js — holder-ownership reclaim (own-holder bypasses TTL wait)"
+    ac: [AC3]
+    deps: [T1]
+    detail: >
+      In backlog/scripts/claim-lock.js, extend acquire() so a lock whose recorded holder EQUALS
+      the requesting --holder is reclaimable immediately (own abandoned claim), while a DIFFERENT
+      holder still obeys the existing time-based (4h TTL) staleness rule. Preserve all current
+      behaviour for foreign holders and the --selftest. Add a reclaimableByHolder()/ownership
+      helper; keep the file zero-dep and the header doc-comment accurate (it currently states
+      PID-liveness is NOT a trigger — extend, don't contradict: own-holder identity is a new
+      reclaim trigger alongside TTL).
+
+  - id: T3
+    title: "backlog/SKILL.md — in-progress query, holder threading, skill-managed fields"
+    ac: [AC2, AC3, AC7]
+    deps: [T1]
+    detail: >
+      (a) Add a query path the reconcile sweep uses to list status:in-progress stories in D22
+      order (e.g. `/backlog next --status in-progress` or a documented internal query); per-story
+      it must surface claim holder + staleness so the caller can apply the D2 ownership guard.
+      (b) Thread a stable `--holder` through `claim` (and `next --claim`) into claim-lock.js.
+      (c) Declare `resume_attempts` and the last-progress marker as skill-managed fields —
+      rejected by `/backlog set` with the standard "the skill manages it" message (D7). Keep
+      `/backlog add` frictionless; cite tracker-crudl + 02_design.html where relevant.
+
+  - id: T4
+    title: "feature-sdlc #build-mode — reconcile-in-flight step 0 + driver-identity contract"
+    ac: [AC1, AC2, AC4, AC5, AC6]
+    deps: [T1, T2, T3]
+    detail: >
+      Insert step 0 `reconcile-in-flight` before pick in #build-mode and renumber the existing
+      pick/claim/worktree/inner/verify/write-back steps. Logic per 02_design.html#decisions:
+      query in-progress (T3) → claim-ownership resumability guard (D2/D3) → poison guard with
+      forward-progress reset (D4: resume_attempts + last_progress; cap 2 on unproductive) →
+      cap→blocked+unclaim+diagnosable note (D5) → resume via Phase 0b cursor, finalize-only on a
+      post-verify-PASS crash (D6) → STOP; else fall through to the existing planned pick (D1,
+      zero-change path). Add the driver-identity contract (stable per-loop --holder, e.g.
+      loop:<root-session-id>). Add decision-log entries D-ids and update the unattended-posture
+      note + the execution-order diagram. Keep argument-hint/flags + phase anchors lint-clean.
+
+  - id: T5
+    title: "Tests — claim-lock holder-ownership + reconcile selection"
+    ac: [AC3, AC8]
+    deps: [T2, T3]
+    detail: >
+      Extend backlog/tests (claim-lock.test.sh + the backlog scenarios): own-holder lock is
+      reclaimed immediately; foreign fresh holder is contended; foreign stale holder reclaimed at
+      TTL (unchanged). Add a selection test: given an in-progress story with an own-holder/stale
+      claim it is chosen by the reconcile query, and a fresh-foreign-claim in-progress story is
+      skipped. Assert /backlog set rejects resume_attempts + last-progress.
+
+  - id: T6
+    title: "skill-eval + repo lints green; zero-crash pick path unregressed"
+    ac: [AC8]
+    deps: [T4]
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh on the touched skills; satisfy [D] checks
+      (name-matches-dir, phase anchors resolve, flags hinted/handled). Run tools/lint-phase-refs.sh
+      + tools/lint-flags-vs-hints.sh + lint-non-interactive-inline.sh + audit-recommended.sh.
+      Confirm: with no in-progress stories the picker behaves byte-identically to today (the
+      reconcile no-op fall-through). Address [J] findings in the eval loop (≤2 iterations).
+
+# Release prerequisites (NOT execute waves — /complete-dev owns these):
+#   - version bump (plugins/pmos-toolkit/.claude-plugin/plugin.json + .codex-plugin/plugin.json)
+#   - CHANGELOG entry; README skill-row if surface changed
+#   - ~/.pmos/learnings.md header bootstrap if first run
