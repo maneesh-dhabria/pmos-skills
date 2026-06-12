@@ -4,7 +4,7 @@ id: 0014
 kind: story
 title: /feature-sdlc define mode has no exit/cleanup step at its terminal docs-only merge — leaves the session parked in the define/<epic-id> worktree
 type: tech-debt
-status: in-progress
+status: done
 priority: should
 route: skill
 parent: 0015
@@ -12,7 +12,7 @@ dependencies: []
 worktree: ../agent-skills-0014-feature-sdlc-define-no-worktree-exit
 plan_doc: docs/pmos/features/2026-06-12_define-worktree-exit/stories/0014-feature-sdlc-define-no-worktree-exit/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_define-worktree-exit/stories/0014-feature-sdlc-define-no-worktree-exit/tasks.yaml
-claimed_by: feature-sdlc-build-loop
+claimed_by: null
 labels: [feature-sdlc, define, worktree, three-loop]
 created: 2026-06-12
 updated: 2026-06-12
@@ -48,3 +48,13 @@ Observed live on epic 0011: stories 0012 + 0013 were built on `define/compact-mo
 - Related: `#build-mode` step 3 (creates `feat/<story-id>` fresh from main), `#epic-train` step 6 (per-story worktree cleanup), `/complete-dev` Phase 16a (feature-pipeline worktree teardown — the pattern define lacks).
 - Interim workaround (captured as a `## /feature-sdlc` learning candidate): after `define`, `cd` to the root checkout before running `build`.
 - This is a workflow-correctness gap, not a data-loss bug — the release still ships correctly; the cost is the avoidable `--no-ff` merge and the orphan worktree.
+
+## Build log — 2026-06-12 (`/feature-sdlc build --next --non-interactive`)
+
+**Verdict: PASS** — all 5 ACs satisfied. Built on `feat/0014` (commit `7ae2076`); not merged (rides the `/complete-dev --epic 0015` release train).
+
+- **T1** — `feature-sdlc/SKILL.md` `#define-mode` step 5: added Exit + teardown paragraph (`ExitWorktree` → `git worktree remove`, `--force` surfaced not auto-forced, mirrors `/complete-dev` Phase 16a); guarded to the terminal completed merge with an explicit paused-run-retention sentence (I1); line-423 note updated to confirm teardown is shared across both route variants (I2).
+- **T2** — step-5 STOP log rewritten to `cd <root> && <execute_invocation> build --next`, citing `_shared/platform-strings.md` (I4); `<root>` = `git worktree list` first entry.
+- **T3** — `complete-dev/SKILL.md` `#epic-train` step 6: one-line cross-ref note (owns per-story worktrees only; define worktree owned by define step 5, I3); reciprocal ownership sentence in feature-sdlc step 5.
+
+**Accepted residuals (pre-existing, zero regressions — identical on main baseline):** `skill-eval-check.sh` `[D]` half reports 3 fails unrelated to this change — `feature-sdlc` `c-reference-toc` (compact-checkpoint.md) + `e-scripts-dir` (tools/ vs scripts/), `complete-dev` `c-reference-toc` (lastrun-schema.md). Tracked as wontfix backlog items 0001/0002/0005/0008. Hygiene lints (phase-refs, flags-vs-hints, non-interactive-inline) all PASS.
