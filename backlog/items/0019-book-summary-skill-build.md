@@ -4,12 +4,13 @@ id: 0019
 kind: story
 title: Build the /book-summary pmos-learnkit skill — verified multi-source curation → PM-framed themed takeaways
 type: feature
-status: done
+status: released
+released: pmos-learnkit/v0.21.0
 priority: should
 route: skill
 parent: 0018
 dependencies: []
-worktree: feat/0019
+worktree:
 plan_doc: docs/pmos/features/2026-06-12_book-summary-skill/stories/0019-book-summary-skill-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_book-summary-skill/stories/0019-book-summary-skill-build/tasks.yaml
 claimed_by:

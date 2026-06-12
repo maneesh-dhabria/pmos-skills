@@ -5,7 +5,8 @@ kind: epic
 title: /book-summary — curate verified public summaries of a book into PM-framed, themed takeaways
 type: feature
 priority: should
-status: defined
+status: released
+released: pmos-learnkit/v0.21.0
 route: skill
 feature_folder: docs/pmos/features/2026-06-12_book-summary-skill/
 requirements_doc:
