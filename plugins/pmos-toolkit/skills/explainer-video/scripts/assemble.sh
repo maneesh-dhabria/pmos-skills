@@ -136,7 +136,8 @@ while [ "$i" -lt "$NA" ]; do
   idx=$((i+1)); nn="$(printf '%02d' "$idx")"; wav="$AUDIO/slide_${nn}.wav"
   [ -f "$wav" ] || { i=$idx; continue; }
   mv="$(ffmpeg -nostdin -hide_banner -i "$wav" -af volumedetect -f null /dev/null 2>&1 | grep -o 'mean_volume: [-0-9.]* dB' | grep -o '[-0-9.]*' | head -1 || echo -91)"
-  SIL="$(node -e 'console.log((+process.argv[1] <= -90)?"1":"0")' "${mv:--91}")"
+  # mean_volume is negative (e.g. -18.6); pass via env so node doesn't read it as a flag.
+  SIL="$(EV_MV="${mv:--91}" node -e 'console.log((+process.env.EV_MV <= -90)?"1":"0")')"
   if [ "$SIL" = "1" ]; then echo "audio-non-silent	FAIL	slide_${nn}.wav mean=${mv}dB" >&2; fail=1; fi
   i=$idx
 done

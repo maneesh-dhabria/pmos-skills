@@ -77,7 +77,10 @@ synth_one() {
   local engine="$1" notes="$2" outwav="$3"
   case "$engine" in
     say)
-      local args=(-o "$outwav" --file-format=WAVE --data-format=LEI16@44100 --file="$notes")
+      # macOS `say`: input text via -f (NOT --file=), output WAVE/LPCM. The
+      # WAVE file-format REQUIRES an explicit lpcm data-format (LEI16@44100) —
+      # without it, say errors `Opening output file failed: fmt?`.
+      local args=(-f "$notes" -o "$outwav" --file-format=WAVE --data-format=LEI16@44100)
       [ -n "$VOICE" ] && args=(-v "$VOICE" "${args[@]}")
       [ -n "$RATE" ]  && args=("${args[@]}" -r "$RATE")
       say "${args[@]}"

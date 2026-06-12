@@ -21,9 +21,27 @@
  */
 'use strict';
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve, join, dirname } from 'node:path';
+import { mkdir, readFile } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
+
+// Resolve Playwright whether it's installed LOCALLY or GLOBALLY (the documented
+// `npm i -g playwright` path). ESM `import('playwright')` ignores NODE_PATH and
+// won't see a global install, so on failure we `require` it from `npm root -g`.
+async function loadChromium() {
+  try {
+    return (await import('playwright')).chromium;
+  } catch { /* try global */ }
+  try {
+    const globalRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim();
+    const req = createRequire(join(globalRoot, 'noop.js'));
+    return req('playwright').chromium;
+  } catch {
+    return null;
+  }
+}
 
 function parseArgs(argv) {
   const out = {};
@@ -81,10 +99,8 @@ async function main() {
   const nSlides = countSlides(html);
   if (nSlides === 0) { process.stderr.write(`render: no <section> slides found in ${deckPath}\n`); process.exit(2); }
 
-  let chromium;
-  try {
-    ({ chromium } = await import('playwright'));
-  } catch {
+  const chromium = await loadChromium();
+  if (!chromium) {
     process.stderr.write('[render-slides] playwright is not installed. Install with:\n  npm i -g playwright && npx playwright install chromium\n');
     process.exit(3);
   }

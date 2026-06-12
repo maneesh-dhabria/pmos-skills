@@ -39,3 +39,6 @@ plugins/pmos-toolkit/skills/architecture/tests/fixtures/adr-reconcile/*/docs/adr
 
 # Backlog claim locks are transient, machine-local O_EXCL lockfiles (D13) — never committed.
 backlog/claims/
+
+# /explainer-video live-smoke binary artifacts (runtime output, not source)
+docs/pmos/explainer-video/*_msr-smoke/
