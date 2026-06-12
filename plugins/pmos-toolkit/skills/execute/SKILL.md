@@ -31,7 +31,9 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 - If `--backlog <id>` was passed: invoke `/backlog set {id} status=in-progress`. On failure, warn and continue.
 
 **At skill end:**
-- No automatic status change here; `/verify` is responsible for the `done` transition.
+- No automatic status change here; `/verify` owns the `done`/`blocked` transition (unchanged).
+
+**Three-loop posture (story items):** under `--backlog`, the backlog item file is mutated in the **main checkout**, never the worktree — per `backlog/pipeline-bridge.md` "Three-loop write-back rules". This skill only writes the start-of-run `in-progress` stamp through that bridge; the story's `tasks.yaml` (see "Task Queue" below) is the branch-local, in-worktree artifact this skill reads and writes directly.
 
 ---
 
@@ -167,11 +169,29 @@ Plans may carry per-task fields that gate ordering, TDD shape, and state depende
 - `**TDD:**` is three-valued (`yes — new-feature` / `yes — bug-fix` / `no — <reason>`); follow the per-task value.
 - A defective plan (broken `Files:` refs, unconsumable upstream contract) gets a defect file at `{feature_folder}/03_plan_defect_<task-id>.md` per that contract and a `/plan --fix-from <task-id>` handoff.
 
+### Task queue: tasks.yaml {#task-queue}
+
+When the plan was emitted by /plan ≥ the three-loop change, a sibling `tasks.yaml` is the **single home of task state** (the story's `tasks_file`; shape owned by `backlog/schema.md` §"tasks.yaml — single home of task state"). It is the work queue this skill consumes, and **/execute is its sole `status:` writer**.
+
+- **Source of truth, with fallback.** If a `tasks.yaml` exists beside the plan (or at the story's `tasks_file`), read `id`/`title`/`deps`/`parallel`/`acceptance`/`status` from it — both the per-task loop and the wave planner take their task list and ordering from it. If it is **absent** (legacy plans), fall back to the prose-parse of the plan's `T<N>` headings (Plan contract above) and emit `[/execute] no tasks.yaml; falling back to prose-parsed plan tasks` to stderr. Never require both.
+- **Readiness is derived, never stored (D21).** A task is "ready" when its `status` is `pending` AND every id in its `deps` is `done`. Compute this at read time — both here and in the wave planner. Do not write a `ready` status; the enum is exactly `pending | in-progress | done | skipped`.
+- **Sole status writer.** As each task moves `pending → in-progress → done` (or `skipped`), write the new `status` back to `tasks.yaml` (branch-local, in the worktree — never the main checkout; that rule is for the backlog *item*, per `backlog/pipeline-bridge.md`). Record `evidence:` (test name / commit sha / screenshot path) when the task completes. Whole-file temp-then-rename write so a crash never half-writes the queue.
+- **Resume.** On a re-pickup (build-mode worktree reuse, D19), `tasks.yaml` status IS the resume state — `done` tasks stay done; start at the first `pending` task whose deps are satisfied. This composes with the per-task log resume (Phase 0c): the logs and `tasks.yaml` agree because /execute writes both.
+
+### Discovered-work routing {#discovered-work}
+
+Work that surfaces mid-execution is routed by ONE deterministic test — **is it needed to satisfy the story's existing acceptance criteria?** (D29)
+
+- **(a) Needed for the existing ACs** → /execute MAY append a `discovered: true` task to `tasks.yaml` and continue (the one exception to "/plan is the only creator"; /execute remains the sole status writer; the append is self-logging via the `discovered:` flag). Give it the next free `T<N>` id, set its `deps` to whatever it actually needs, `status: pending`. No prompt — the AC test is deterministic.
+- **(b) Beyond the ACs** → never built inline. Auto-capture it as a `draft` story in the **same epic** via `/backlog add --epic <parent-id> "<title>"` (D16/D29b), so it lands in `/backlog groom` for a human to triage. Do not gold-plate the current story with it.
+
+The AC boundary makes the call without a judgement prompt; when genuinely unsure whether a discovery is in-scope, prefer (b) (capture, don't build) — a missed task resurfaces at /verify; silent scope creep doesn't.
+
 ### Per-task loop {#per-task-loop}
 
-Work through the plan's tasks in order. For each task:
+Work through the queue's tasks in order (from `tasks.yaml` when present, else the prose-parsed plan — see `#task-queue`). For each task:
 
-1. **Mark task as in-progress** in your task tracker.
+1. **Mark task as in-progress** — in your task tracker AND, when reading from `tasks.yaml`, write its `status: in-progress` (sole-writer rule, `#task-queue`).
 2. **Read the task** — understand goal, files, spec refs, and steps.
 3. **Follow TDD** — write failing test, verify it fails, implement, verify it passes. Test quality per the "Test quality" block below.
 4. **Run the verify-fix loop** (see below).
@@ -207,7 +227,7 @@ Work through the plan's tasks in order. For each task:
    ```
 
    Overwrite the file's body on a re-run; preserve `started_at` from the first attempt.
-8. **Mark task as completed** in your task tracker.
+8. **Mark task as completed** in your task tracker AND, when reading from `tasks.yaml`, write its `status: done` + `evidence:` (sole-writer rule, `#task-queue`). A task abandoned as out-of-scope gets `status: skipped`.
 9. **Move to next task** — only after verification passes, evidence is produced, and task is marked complete. Before moving on, run **Phase 2a: Phase Boundary Check** (below) — it may halt the session.
 
 ### Test quality {#test-quality}
@@ -277,7 +297,7 @@ You (the controller) coordinate; subagents do the work. Implementer subagents **
 
 #### Step A — Wave planning (deterministic)
 
-1. **Collect tasks.** Reuse the Phase 0c parse: every `T<N>[<suffix>]` task with its `**Goal:**`, `**Files:**`, `**Depends on:**`, `**Requires state from:**`, and `## Phase N` grouping. **Exclude** tasks the resume resolver already classified `done` / `done-sealed`. If nothing remains → report "nothing to execute" and stop.
+1. **Collect tasks.** From `tasks.yaml` when present (`id`/`deps`/`parallel`/`status` — see `#task-queue`), else the Phase 0c prose-parse: every `T<N>[<suffix>]` task with its `**Goal:**`, `**Files:**`, `**Depends on:**`, `**Requires state from:**`, and `## Phase N` grouping. **Exclude** tasks already `done` / `done-sealed` (resume resolver, or `status: done` in `tasks.yaml`). If nothing remains → report "nothing to execute" and stop.
 2. **Compute any wave schedule that satisfies both hard constraints**, then **print it to chat** before starting (e.g. `Wave 1: T1, T3, T4 | Wave 2: T2 | Wave 3: T5, T6`):
    - **Dependency order** — a task's dependencies (every task id in its `**Depends on:**` *or* `**Requires state from:**`) are all in earlier waves. Violation = wrong execution order.
    - **File-disjointness** — no wave contains two tasks whose `**Files:**` path sets intersect (normalize paths; `Create` / `Modify` / `Test` entries all count), even when no dependency connects them. Violation = concurrent edits colliding.

@@ -129,6 +129,8 @@ File-action verbs: `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test`. Move/
 
 [For plans > ~12 tasks: group under `## Phase N: <name>` headings. Phases must be deployable slices of 5–10 tasks. Phase boundaries trigger full /verify + /compact handshake (see execute/SKILL.md Phase 2a). Soft cap of ~30k tokens per phase. The last phase's verify IS the TN.]
 
+> **Task status lives in `tasks.yaml`, not here.** This section is narrative — it cites task IDs (`T1`…`TN`) and describes approach/risks. The live `pending|in-progress|done|skipped` state is the sibling `tasks.yaml` (the single home of task state, D4/D21), emitted by /plan and written only by /execute. Do not add a status field to a task block here.
+
 ### T1: [Task Name]
 
 **Goal:** [One sentence]

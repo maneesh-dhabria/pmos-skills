@@ -42,8 +42,8 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 **At skill start:**
 - If `--backlog <id>` was passed: load the item file as supplementary context.
 
-**At skill end (after writing the plan doc):**
-- If `<id>` was set, invoke `/backlog set {id} plan_doc={doc_path}`, then `/backlog set {id} status=planned`. On failure, warn and continue.
+**At skill end (after writing the plan doc AND its `tasks.yaml`):**
+- If `<id>` was set, invoke `/backlog set {id} plan_doc={doc_path}`, `/backlog set {id} tasks_file={tasks_yaml_path}`, then `/backlog set {id} status=planned`. (For `route: lite` stories, only `tasks_file` is set — there is no plan doc, D15.) On failure, warn and continue.
 <!-- defer-only: ambiguous -->
 - Run the auto-capture flow per `pipeline-bridge.md`: detect deferred-work bullets in the plan output, propose them as new backlog items via `AskUserQuestion`. On user confirmation, invoke `/backlog add` for each with `source:` pre-filled.
 
@@ -172,6 +172,20 @@ Study the existing code that will be impacted. This is NOT a skim — you must r
 ## Phase 3: Write the Plan {#write-plan}
 
 **Emit per `_shared/html-authoring/README.md` checklist.** Deltas: artifact = `03_plan.html` (+ companion `03_plan.sections.json`), `{{pmos_skill}}` = `plan`, save path = `{feature_folder}/`, asset prefix = `assets/`. Overwrite an existing plan in place. The checklist's asset copy ships the inline-comments overlay (`comments.js` + launchers) along with the viewer assets — the checklist owns that list; do not restate it here.
+
+After the plan doc is written, emit `tasks.yaml` beside it per §Emit tasks.yaml below.
+
+### Emit tasks.yaml {#emit-tasks-yaml}
+
+The plan HTML is narrative; `tasks.yaml` is the **single home of task state** that `/execute` consumes as its work queue. After writing the plan doc, serialize the same T1..TN breakdown into a `tasks.yaml` sibling. This is a **derived projection** of the breakdown already in the plan — not a second source; regenerating it on a plan revision is safe and expected.
+
+- **Shape — do not re-specify it here:** the exact `tasks.yaml` schema (top-level `story:` / `spec:`, the per-task fields, the 4-state enum, derived readiness) is the single source of truth in `plugins/pmos-toolkit/skills/backlog/schema.md` §"tasks.yaml — single home of task state (D4)". Author against that file.
+- **Map the breakdown** the plan already produced onto the schema: each `### T<N>: <name>` → one task with `id: T<N>`, `title: <name>`; `**Depends on:**` → `deps` (intra-story task ids only; `none` → `[]`); the `[P]` / parallelizable marker in the Execution order → `parallel: true`; the task's Inline-verification / Done-when assertions → the `acceptance` list (one string per executable check); `status: pending` for every task (a fresh plan has no progress — `/execute` is the sole status writer per D21); `evidence:` empty. Never write `status: ready` — readiness is derived by readers from `deps`, never stored (D21).
+- **Top-level keys:** `story:` = the story id (the `--backlog <id>` when present, else the feature slug); `spec:` = the relative path to the epic spec — `../../02_spec.html` under the per-epic `stories/{story}/` layout, or the local `02_spec.html` when the feature folder is flat.
+- **Path:** write `tasks.yaml` to the same dir as the plan doc — `{feature_folder}/tasks.yaml` (flat layout), or `{epic_folder}/stories/{story}/tasks.yaml` (per-epic layout). Write whole-file via temp-then-rename so a crash never leaves a half-written file.
+- **`route: lite` (D15):** when invoked for a lite-route story, skip the plan HTML entirely and author `tasks.yaml` directly (1–3 tasks) from the story's acceptance criteria — the `planned` gate requires only `tasks_file` for lite stories. The Phase 4 review loops and the plan-doc structure above do not apply; emit the file and proceed to the Backlog Bridge.
+
+The plan body cites task IDs and **never holds task status** (D4) — status lives only in `tasks.yaml`. See `reference/plan-templates.md` for where that note sits in the emitted plan.
 
 ### Tier Gates (Phase 3 emission rules per `{tier}` from Phase 1)
 
@@ -454,7 +468,7 @@ After the plan is written and reviewed:
 **Commit:**
 
 ```
-git add {feature_folder}/03_plan.html {feature_folder}/03_plan.sections.json {feature_folder}/03_plan.md {feature_folder}/03_plan_review.md {feature_folder}/03_plan_skip-list.md {feature_folder}/index.html {feature_folder}/assets
+git add {feature_folder}/03_plan.html {feature_folder}/03_plan.sections.json {feature_folder}/03_plan.md {feature_folder}/tasks.yaml {feature_folder}/03_plan_review.md {feature_folder}/03_plan_skip-list.md {feature_folder}/index.html {feature_folder}/assets
 git commit -m "docs: add implementation plan for <feature>"
 ```
 
@@ -462,13 +476,13 @@ git commit -m "docs: add implementation plan for <feature>"
 
 **Report to user:**
 
-- Plan location
+- Plan location + `tasks.yaml` location (the work queue `/execute` reads)
 - Task count + tier
 - Key decisions (top 3 from decision log)
 - Open risks flagged
 - Sidecar paths if non-empty (`03_plan_review.md`, `03_plan_skip-list.md`, `03_plan_auto.md`, `03_plan_blocked.md`)
 
-**/backlog write-back:** if the plan was generated with `--backlog <id>`, set the backlog item's status to `planned` and write `plan: <feature_folder>/03_plan.{html,md}` (whichever was the primary write) per `backlog/pipeline-bridge.md` (the bridge contract owns the write-back, /plan invokes it).
+**/backlog write-back:** if the plan was generated with `--backlog <id>`, set the backlog item's status to `planned` and write both `plan_doc:` (the primary plan write) and `tasks_file:` (the emitted `tasks.yaml`) per `backlog/pipeline-bridge.md` (the bridge contract owns the write-back, /plan invokes it). The `planned` gate requires both files to exist — for `route: lite` stories only `tasks_file` (D15).
 
 **Execution-mode selection.** Before the closing offer, ask the user how `/execute` should run, with a one-line description of each option:
 

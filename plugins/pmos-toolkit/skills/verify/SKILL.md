@@ -30,10 +30,12 @@ These instructions use Claude Code tool names. In other environments:
 This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skills/backlog/pipeline-bridge.md`.
 
 **At skill start:**
-- If `--backlog <id>` was passed: load the item file as supplementary context.
+- If `--backlog <id>` was passed: load the item file as supplementary context. Note its `kind` (`epic` vs `story`) — a **story** item drives the write-back below and joins its acceptance criteria into Phase 5a (see `#spec-compliance`).
 
-**At skill end (only if the verify pass is reported successful):**
-- If `<id>` was set, invoke `/backlog set {id} status=done`. If the active branch has an associated PR (detect via `gh pr view --json url`), also invoke `/backlog set {id} pr={url}`. On failure, warn and continue.
+**At skill end — write-back keyed off the Phase 8 verdict (`#commit-report`):**
+- **Story item** (`kind: story`): map the verdict to status per `pipeline-bridge.md` ("Three-loop write-back rules"). **PASS** → `/backlog set {id} status=done` (+ `pr=` if the branch has a PR via `gh pr view --json url`). **PASS-WITH-GAPS or FAIL** → `/backlog set {id} status=blocked` AND append the enumerated verdict gaps to the item's `## Notes` body — this is the return-to-human channel that resurfaces the story in `/backlog groom`. All item mutations happen in the **main checkout** (never the worktree) and auto-commit path-scoped — the mechanics live in `pipeline-bridge.md`; do not restate them here.
+- **Non-story / legacy item** (or no `kind`): only on a successful pass, `/backlog set {id} status=done` (+ `pr=` if available) — the pre-three-loop behavior, unchanged.
+- On any `/backlog` failure, warn and continue.
 - Run the auto-capture flow per `pipeline-bridge.md`: scan the verify output for "Known issues" / "Follow-up" sections and propose new backlog items.
 
 ---
@@ -363,6 +365,8 @@ Every row also cross-references the todo it closed (or left open) from the Phase
 ### 5a. Requirements Compliance
 
 Read `{feature_folder}/01_requirements.{html,md}` (resolved in Phase 1 via the resolver). For every goal, user journey, and acceptance criterion:
+
+**Story acceptance criteria (three-loop build).** When `--backlog <id>` names a `kind: story` item, add each of the story's `## Acceptance Criteria` as its own compliance row (same three-state model). A story does not reach `done` unless every AC row resolves `Verified` or `NA — alt-evidence`; an `Unverified — action required` AC forces the Phase 8 verdict to PASS-WITH-GAPS (or FAIL), which the Backlog Bridge writes back as `blocked` (see `#commit-report` and the Backlog Bridge above).
 
 | # | Requirement | Outcome | Evidence |
 |---|-------------|---------|----------|

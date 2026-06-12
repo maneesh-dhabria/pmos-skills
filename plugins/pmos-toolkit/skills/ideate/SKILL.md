@@ -159,14 +159,22 @@ Goal: emit `{docs_path}/ideate/{YYYY-MM-DD}_<slug>.html` (plus `.md` sidecar whe
 
 ## Phase 7: Handoff {#handoff}
 
-Print 1–3 candidate follow-up commands in the chat summary, named by exact slash-command syntax:
+**Capture-at-close (D27 — "never silently drops").** First, present ONE keystroke, default-on, **verdict-aligned** capture gate, then print the remaining suggestions as text. Resolve the pressure-test verdict from Phase 4 (per `reference/pressure-test-battery.md`): the multi-finalist cross-cutting table's `Verdict` column (`Lead`/`Backup`/`Drop`); for a single finalist with the battery run, the implicit verdict is `Lead`. Map `Lead`/`Backup` → **build-aligned** (Recommended = capture); `Drop` → **kill-aligned** (Recommended = don't capture). If `--no-stress-test` skipped the battery (no verdict), treat as build-aligned (the user kept the idea).
 
-- Idea-type `new`: suggest `/requirements <slug>` + `/backlog add`.
+Issue one `AskUserQuestion` whose Recommended option is the verdict-aligned one:
+- **Build-aligned verdict** (`Lead`/`Backup`, or no battery) — options: **Capture as epic (Recommended)** / Don't capture. On **Capture**, invoke `/backlog add --kind epic "<finalist title>"` (creating an epic at status `inbox`), read the new epic id from its one-line confirmation, then invoke `/backlog set <id> source=<absolute brief path>` (status stays `inbox`). The brief path is the Phase 6 artifact path.
+- **Kill-aligned verdict** (`Drop`) — options: **Don't capture (Recommended)** / Capture as `wontfix` for the record. On **Capture as wontfix**, run the same two invocations, then `/backlog set <id> status=wontfix`.
+
+Non-interactive mode AUTO-PICKs the verdict-aligned Recommended option per the inlined non-interactive block — captures on a build verdict, skips on a kill verdict. This is exactly the desired behavior (it closes the 0-of-14 leak without polluting the backlog with correctly-killed ideas).
+
+Then print 1–3 candidate follow-up commands in the chat summary, named by exact slash-command syntax:
+
+- Idea-type `new`: suggest `/requirements <slug>`.
 - Idea-type `extend`: suggest `/requirements <slug>` + `/grill <artifact-path>`.
-- Idea-type `fix`: suggest `/grill <artifact-path>` + `/backlog add`.
+- Idea-type `fix`: suggest `/grill <artifact-path>`.
 - All cases: include `/ideate --refine --resume <artifact-path>` when Phase 5 was skipped.
 
-The skill does NOT auto-invoke any of these. Promotion is explicit.
+The skill auto-invokes `/backlog` only on an accepted capture above; the follow-up commands are printed text — promotion to `/requirements` / `/grill` stays explicit.
 
 ## Phase 8: Capture Learnings {#capture-learnings}
 
@@ -195,7 +203,7 @@ Per [NFR-08](../../../docs/pmos/features/2026-05-23_inline-doc-comments/02_spec.
 3. **Folding `/creativity` in as a sub-phase.** `/creativity` stays standalone (Tier-3-requirements enhancer per its own surface). Tight coupling would erase its standalone use case and couple release cycles. The Expand phase has its own auto-picked techniques (the closed set, with the named exclusions and reasons, lives in `reference/techniques.md`).
 4. **Acting like `/grill`.** `/grill` is a *decision-tree interrogation* of a committed plan (one question per turn, branch walking). Pressure-test is a *batch structured battery* against an uncommitted idea (premortem + inversion + assumption-map in one pass). Different inputs, cadence, outputs. Do NOT issue turn-by-turn questions in Phase 4.
 5. **Loading workstream context.** This is a standalone utility — workstream pollution biases variant generation. Do NOT call any workstream-loader. (`/diagram`, `/polish`, `/design-crit`, `/survey-design` all skip workstream — same shape.)
-6. **Auto-promoting to `/backlog` or `/requirements`.** Handoff is explicit. Auto-promotion floods `/backlog` with half-baked ideas; manual promotion preserves the bar. Suggest, don't dispatch.
+6. **Auto-promoting to `/requirements`, or capturing a killed idea by default.** Promotion to the pipeline (`/requirements` / `/grill`) is always explicit — suggest, don't dispatch. The Phase 7 capture gate (D27) is the one sanctioned `/backlog` write, and it is *verdict-aligned*: a `Drop` verdict makes "don't capture" the Recommended/AUTO-PICK default, so the premortem-killed ideas the bar exists to filter never auto-land. Capture "never silently drops"; it does not "always add".
 7. **Re-asking locked decisions.** If the seed already contains HMW + JTBD signal, do NOT ask the user to confirm — auto-derive and present as a single confirm prompt. Saving a turn is more polite than ceremony.
 8. **Treating Amplify as default-on, or breaking its ladder rules.** Amplify is opt-in even when the idea-type gate passes — the only force-runs are `--amplify` or an explicit gate pick. Ladder discipline (never 11★ as sweet spot, always recommend a concrete reframe, never dump raw rungs) lives in `reference/eleven-star-ladder.md`.
 
