@@ -1,0 +1,29 @@
+story: 0013
+spec: ../../02_design.html
+tasks:
+  - id: T1
+    title: "Add 'Reading compact_mode' section to phase-boundary-handler.md"
+    deps: []
+    parallel: false
+    acceptance:
+      - "Section 'Reading compact_mode' exists in phase-boundary-handler.md"
+      - "Documents: field values (manual|auto), default (absent field/file = manual), case-sensitivity (lowercase only), call convention (caller reads at Phase 0, applies inline), log channel (visible chat)"
+      - "Documents unrecognised value handling: fall through to manual with chat warning"
+      - "Documents trust-based nature of auto mode: skill trusts autocompact is configured; documents failure mode"
+      - "Includes settings.yaml snippet showing the field"
+    status: pending
+    evidence:
+
+  - id: T2
+    title: "Update 'Compact Behavior' section + Algorithm for compact_mode"
+    deps: [T1]
+    parallel: false
+    acceptance:
+      - "Algorithm pseudocode shows conditional HALT_FOR_COMPACT message based on compact_mode"
+      - "In auto mode: HALT_FOR_COMPACT message = 'Phase N verified green. Re-invoke /execute --resume to continue with phase N+1 (autocompact handles context).'"
+      - "In manual mode: existing HALT_FOR_COMPACT message unchanged"
+      - "Hard-stop (HALT_FOR_COMPACT return value) preserved in both modes — only message string differs"
+      - "RETURN CONTINUE and RETURN ESCALATE are unaffected"
+      - "'Compact Behavior' section documents both modes with a comparison table or clear conditional block"
+    status: pending
+    evidence:

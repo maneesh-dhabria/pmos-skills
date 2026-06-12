@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — compact-mode-setting</title>
+<link rel="stylesheet" href="assets/comments.css?v=2.66.1">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 960px; margin: 0 auto; padding: 2rem; color: #222; line-height: 1.6; }
+h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.5rem; }
+h2 { margin-top: 2.5rem; color: #111; border-left: 4px solid #0070f3; padding-left: 0.75rem; }
+h3 { margin-top: 1.5rem; color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; font-weight: 600; }
+code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; }
+pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.9em; }
+.decision { background: #f0f4ff; border: 1px solid #c5d3f7; border-radius: 6px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+.decision strong { color: #0040c0; }
+.note { background: #fff8e1; border-left: 3px solid #ffc107; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+.invariant { background: #e8f5e9; border-left: 3px solid #4caf50; padding: 0.5rem 1rem; margin: 0.75rem 0; }
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"threads":[]}</script>
+<!-- pmos-comments:end -->
+
+<h1 id="design-compact-mode-setting">Design — compact-mode-setting</h1>
+
+<p><strong>Epic route:</strong> skill &nbsp;|&nbsp; <strong>Triage source:</strong> <a href="0c_feedback_triage.html">0c_feedback_triage.html</a></p>
+
+<p>This design introduces a repo-level <code>compact_mode</code> setting that lets users who have configured an autocompact window skip the manual <code>/compact</code> instruction at every pipeline checkpoint. Two surfaces are affected: the <code>/feature-sdlc</code> compact checkpoint and the <code>/execute</code> phase-boundary HALT.</p>
+
+<h2 id="the-problem">The Problem</h2>
+
+<p>Both pipeline checkpoints currently require the user to manually run <code>/compact</code> when they want to compact their context window:</p>
+
+<ol>
+<li><strong><code>reference/compact-checkpoint.md</code></strong> — surfaces "Pause to /compact, then resume" before each heavy phase in <code>/feature-sdlc</code>. User picks Pause → types <code>/compact</code> → types <code>/feature-sdlc --resume</code>.</li>
+<li><strong><code>_shared/phase-boundary-handler.md</code></strong> — emits "Run <code>/compact</code> to clear context, then re-invoke <code>/execute --resume</code>" at every passing phase boundary.</li>
+</ol>
+
+<p>Claude Code supports configuring an autocompact window that compacts context automatically when the threshold is reached. When this is active, the manual <code>/compact</code> instruction is unnecessary — the user only needs to re-invoke with <code>--resume</code>.</p>
+
+<h2 id="the-setting">The Setting</h2>
+
+<div class="invariant">
+<strong>Cross-skill invariant (I1):</strong> Both stories read <code>compact_mode</code> from <code>.pmos/settings.yaml</code>. The field is absent from first-run setup — users add it manually when they configure autocompact. Both surfaces treat <strong>absent = <code>manual</code></strong> for backward compatibility.
+</div>
+
+<pre><code># .pmos/settings.yaml — new field
+compact_mode: manual   # or: auto  (values are case-sensitive; only lowercase 'manual' and 'auto' are valid)
+</code></pre>
+
+<div class="note">
+<strong>Case-sensitivity:</strong> Values are case-sensitive. Only lowercase <code>manual</code> and <code>auto</code> are valid. <code>Auto</code>, <code>AUTO</code>, <code>Manual</code> etc. are treated as unrecognised and fall through to <code>manual</code> with a log warning.
+</div>
+
+<h3 id="field-contract">Field contract</h3>
+
+<table>
+<thead>
+<tr><th>Field</th><th>Type</th><th>Default</th><th>Values</th><th>Scope</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><code>compact_mode</code></td>
+<td>string</td>
+<td><code>manual</code> (absent field or absent file)</td>
+<td><code>manual</code> | <code>auto</code> (lowercase only)</td>
+<td>repo-level only; no CLI flag, no workstream override</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note">
+<strong>File-absent case:</strong> If <code>.pmos/settings.yaml</code> does not exist, settings is treated as an empty dict; <code>compact_mode</code> defaults to <code>manual</code>. The reading pattern below applies regardless of whether the file is present.
+</div>
+
+<div class="decision">
+<strong>D1.</strong> Default is <code>manual</code> (absent field = manual). This preserves backward compatibility — existing runs behave identically without any settings change.
+</div>
+
+<div class="decision">
+<strong>D2.</strong> Repo-level only — no <code>--compact-mode</code> CLI flag. The autocompact window is a persistent user environment preference, not a per-run choice. A settings field is the right granularity.
+</div>
+
+<div class="decision">
+<strong>D3.</strong> Not prompted at first-run setup. <code>compact_mode</code> is an advanced setting that only matters once the user has configured an autocompact window. Adding it to the first-run prompt would confuse new users. Users who want <code>auto</code> add the field manually.
+</div>
+
+<h2 id="behavioral-contract">Behavioral Contract per Surface</h2>
+
+<h3 id="surface-compact-checkpoint">Surface 1 — <code>reference/compact-checkpoint.md</code> (owned by story S1)</h3>
+
+<table>
+<thead>
+<tr><th>compact_mode</th><th>Behavior at checkpoint</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><code>manual</code> (default)</td>
+<td>Current behavior unchanged: fire AskUserQuestion with Continue (Recommended) / Pause to /compact, then resume / Continue without compacting.</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>Skip the AskUserQuestion entirely. Emit the log line as a standalone chat message before invoking the heavy phase: <code>compact_mode: auto — checkpoint at &lt;phase-label&gt; skipped; autocompact active</code> (where <code>&lt;phase-label&gt;</code> is the caller-supplied phase name, e.g. <code>execute</code> or <code>verify</code>). Then proceed immediately.</td>
+</tr>
+</tbody>
+</table>
+
+<div class="decision">
+<strong>D4.</strong> In <code>auto</code> mode, skip the checkpoint entirely (no prompt at all). The "Continue" option is the Recommended default even in manual mode — in auto mode, there is no decision to surface; just log and proceed.
+</div>
+
+<div class="decision">
+<strong>D4a.</strong> The log line is emitted as a standalone chat message <em>before</em> invoking the heavy phase, so it is visible at the phase-transition boundary rather than buried in phase output. The <code>&lt;phase-label&gt;</code> token is a human-readable name supplied by the caller (e.g., <code>execute</code>, <code>verify</code>, <code>wireframes</code>). Concrete example: <code>compact_mode: auto — checkpoint at execute skipped; autocompact active</code>.
+</div>
+
+<div class="note">
+<strong>Tier-1 gate unchanged:</strong> Tier-1 runs already skip the checkpoint entirely in both modes — the <code>compact_mode</code> reading is only reached at Tier 2+.
+</div>
+
+<h3 id="surface-phase-boundary">Surface 2 — <code>_shared/phase-boundary-handler.md</code> (owned by story S2)</h3>
+
+<table>
+<thead>
+<tr><th>compact_mode</th><th>HALT_FOR_COMPACT message</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><code>manual</code> (default)</td>
+<td>Current message unchanged: "Phase N verified green. Run <code>/compact</code> to clear context, then re-invoke <code>/execute --resume</code> to continue with phase N+1."</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>"Phase N verified green. Re-invoke <code>/execute --resume</code> to continue with phase N+1 (autocompact handles context)."</td>
+</tr>
+</tbody>
+</table>
+
+<div class="decision">
+<strong>D5.</strong> Still hard-stop in <code>auto</code> mode. The HALT serves two purposes: (a) clean stopping point for phase discipline and (b) /compact instruction. In <code>auto</code> mode (b) is unnecessary, but (a) still applies — phase boundaries exist to control context growth and the user still needs to re-invoke. The <code>RETURN HALT_FOR_COMPACT</code> return value is unchanged; only the message string differs.
+</div>
+
+<div class="decision">
+<strong>D5a.</strong> <code>compact_mode: auto</code> is a trust-based declaration — the skill trusts that autocompact is configured and active; it does not verify it at runtime. The failure mode is documented in <code>phase-boundary-handler.md</code>: if autocompact is not actually configured, context growth is unmanaged and the user is responsible for ensuring the autocompact window is set up before setting <code>compact_mode: auto</code>.
+</div>
+
+<h2 id="reading-the-setting">Reading the Setting</h2>
+
+<div class="invariant">
+<strong>Cross-skill invariant (I2):</strong> Both skills that consume these reference files (<code>/feature-sdlc</code> and <code>/execute</code>) already read <code>.pmos/settings.yaml</code> at Phase 0. The <code>compact_mode</code> value is read from the already-loaded settings dict — no second file read. Both reference files describe the conditional logic; callers apply it inline.
+</div>
+
+<p>Reading pattern (applies to both reference files):</p>
+
+<pre><code>compact_mode = settings.get("compact_mode", "manual")
+# valid: "manual" | "auto" (lowercase only; case-sensitive)
+# invalid / unrecognised → treat as "manual"; emit visible chat warning:
+#   compact_mode: unrecognised value '&lt;v&gt;'; treating as manual
+# file absent → settings is empty dict; compact_mode resolves to "manual"
+</code></pre>
+
+<p><strong>Call convention:</strong> Each reference file (<code>compact-checkpoint.md</code>, <code>phase-boundary-handler.md</code>) includes a "Reading <code>compact_mode</code>" section that callers implement inline using the already-resolved value from Phase 0 settings. The reference files do not issue their own file reads. The caller reads <code>.pmos/settings.yaml</code> once at Phase 0 and passes the resolved <code>compact_mode</code> value forward.</p>
+
+<p><strong>Log channel:</strong> Both the auto-mode checkpoint log line and the unrecognised-value warning are emitted to chat as visible output (same channel as other Phase 0 diagnostic lines like <code>mode: interactive (source: …)</code>), not to a file or stderr only.</p>
+
+<h2 id="story-split">Story Split</h2>
+
+<table>
+<thead>
+<tr><th>Story</th><th>Title</th><th>Files</th><th>Route</th><th>ACs</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>compact-checkpoint auto-mode</td>
+<td><code>reference/compact-checkpoint.md</code></td>
+<td>skill</td>
+<td>See <a href="#acs-s1">ACs S1</a></td>
+</tr>
+<tr>
+<td>S2</td>
+<td>phase-boundary-handler auto-mode</td>
+<td><code>_shared/phase-boundary-handler.md</code></td>
+<td>skill</td>
+<td>See <a href="#acs-s2">ACs S2</a></td>
+</tr>
+</tbody>
+</table>
+
+<p>S1 and S2 are independently shippable — each file is self-contained and its behavior is fully determined by the contract above. S2 adds its own minimal settings note (documenting <code>compact_mode</code> in the context of the phase boundary) rather than cross-referencing S1's addendum, since S2 may ship before S1. No hard dependency between stories.</p>
+
+<h3 id="acs-s1">S1 Acceptance Criteria</h3>
+<ol>
+<li><code>reference/compact-checkpoint.md</code> documents the <code>compact_mode</code> field (values, default, where to read it from).</li>
+<li>In <code>auto</code> mode: the "When the checkpoint fires" section describes skipping the AskUserQuestion and logging the canonical line.</li>
+<li>In <code>manual</code> mode: existing behavior is unchanged (same AskUserQuestion, same Pause contract).</li>
+<li>Tier-1 bypass logic is unchanged (still skips in both modes).</li>
+<li>Invalid <code>compact_mode</code> values fall through to <code>manual</code> with a visible chat warning.</li>
+<li>The log line for <code>auto</code> mode is emitted as a standalone chat message <em>before</em> the heavy phase is invoked. Format: <code>compact_mode: auto — checkpoint at &lt;phase-label&gt; skipped; autocompact active</code> (e.g. <code>… at execute skipped …</code>).</li>
+<li><code>reference/compact-checkpoint.md</code> documents the <code>compact_mode</code> field inline (values, default, call convention, log channel).</li>
+</ol>
+
+<h3 id="acs-s2">S2 Acceptance Criteria</h3>
+<ol>
+<li><code>_shared/phase-boundary-handler.md</code> documents the <code>compact_mode</code> field inline (values, default, call convention, log channel) — independent of S1's addendum.</li>
+<li>In <code>auto</code> mode: the HALT_FOR_COMPACT message changes per the behavioral contract table above — no <code>/compact</code> instruction.</li>
+<li>In <code>manual</code> mode: existing HALT message is unchanged.</li>
+<li>The HALT (hard-stop) behavior is preserved in both modes — only the message string differs.</li>
+<li>The <code>RETURN</code> value type (<code>HALT_FOR_COMPACT</code>) is unchanged.</li>
+<li>Invalid <code>compact_mode</code> values fall through to <code>manual</code> with a visible chat warning.</li>
+<li>Documents the trust-based nature of <code>auto</code> mode: skill does not verify autocompact is configured; failure mode documented.</li>
+</ol>
+
+<h2 id="settings-schema-addendum">Settings Schema Addendum</h2>
+
+<p>Both stories must add a documentation note for <code>compact_mode</code> wherever <code>.pmos/settings.yaml</code> fields are described. The canonical location is <code>_shared/pipeline-setup.md</code> Section A (first-run setup) — add a comment block after the existing fields describing the new field, its values, and when to set it to <code>auto</code>.</p>
+
+<div class="decision">
+<strong>D6.</strong> Both S1 and S2 add their own minimal settings note for <code>compact_mode</code> — scoped to the context of each file (checkpoint vs. phase boundary). This avoids a cross-story dependency while still giving each reference file's reader the full field contract inline.
+</div>
+
+<h2 id="invariants-summary">Cross-skill Invariants Summary</h2>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Invariant</th></tr>
+</thead>
+<tbody>
+<tr><td>I1</td><td>Both surfaces read <code>compact_mode</code> from <code>.pmos/settings.yaml</code>; absent field OR absent file → <code>manual</code>.</td></tr>
+<tr><td>I2</td><td>Both callers (<code>/feature-sdlc</code>, <code>/execute</code>) read settings at Phase 0 — no second file read for <code>compact_mode</code>. Callers inject the resolved value inline.</td></tr>
+<tr><td>I3</td><td>Hard-stop discipline is preserved in both modes for S2; only the message string differs.</td></tr>
+<tr><td>I4</td><td>Invalid/unrecognised values fall through to <code>manual</code> with a visible chat warning (never silent, never block).</td></tr>
+<tr><td>I5</td><td><code>compact_mode: auto</code> is trust-based — skills trust autocompact is configured; failure mode documented in each reference file.</td></tr>
+<tr><td>I6</td><td>Log channel for all <code>compact_mode</code> diagnostic output is visible chat, same as Phase 0 diagnostics.</td></tr>
+</tbody>
+</table>
+
+<script src="assets/comments.js?v=2.66.1"></script>
+</body>
+</html>

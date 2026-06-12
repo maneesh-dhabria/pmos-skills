@@ -1,0 +1,37 @@
+story: 0012
+spec: ../../02_design.html
+tasks:
+  - id: T1
+    title: "Add 'Reading compact_mode' section to compact-checkpoint.md"
+    deps: []
+    parallel: false
+    acceptance:
+      - "Section 'Reading compact_mode' exists in compact-checkpoint.md"
+      - "Documents: field values (manual|auto), default (absent field/file = manual), case-sensitivity (lowercase only), call convention (caller reads at Phase 0, applies inline), log channel (visible chat)"
+      - "Documents unrecognised value handling: fall through to manual with chat warning"
+      - "Documents file-absent case: treat as empty dict → manual"
+    status: pending
+    evidence:
+
+  - id: T2
+    title: "Update 'When the checkpoint fires' + 'AskUserQuestion' sections for compact_mode"
+    deps: [T1]
+    parallel: false
+    acceptance:
+      - "In auto mode: AskUserQuestion is skipped; log line emitted to chat before heavy phase: 'compact_mode: auto — checkpoint at <phase-label> skipped; autocompact active'"
+      - "Log line is emitted as standalone chat message BEFORE invoking the heavy phase"
+      - "In manual mode: existing AskUserQuestion behavior unchanged"
+      - "Tier-1 bypass logic unchanged (still evaluated before compact_mode check)"
+      - "Log line example included (e.g. '… at execute skipped …')"
+    status: pending
+    evidence:
+
+  - id: T3
+    title: "Add trust-based failure mode documentation to compact-checkpoint.md"
+    deps: [T1]
+    parallel: true
+    acceptance:
+      - "Documents trust-based nature of auto mode: skill trusts autocompact is configured, does not verify at runtime"
+      - "Failure mode documented: if autocompact not active, context growth is unmanaged; user responsibility"
+    status: pending
+    evidence:

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Feedback Triage — compact-mode-setting</title>
+<link rel="stylesheet" href="assets/comments.css?v=2.66.1">
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 2rem; color: #222; }
+h1 { border-bottom: 2px solid #ddd; padding-bottom: 0.5rem; }
+h2 { margin-top: 2rem; color: #333; border-left: 4px solid #0070f3; padding-left: 0.75rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; }
+th { background: #f5f5f5; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600; }
+.should-fix { background: #fff3cd; color: #856404; }
+.fix-as-proposed { background: #d1e7dd; color: #0f5132; }
+.ux-friction { background: #e2e3f5; color: #3a3b8c; }
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"threads":[]}</script>
+<!-- pmos-comments:end -->
+
+<h1 id="feedback-triage">Feedback Triage — compact-mode-setting</h1>
+
+<p><strong>Feedback source:</strong> inline text (user message)</p>
+<p><strong>Target skills:</strong> <code>feature-sdlc/reference/compact-checkpoint.md</code>, <code>_shared/phase-boundary-handler.md</code></p>
+<p><strong>Route promotion:</strong> raw feedback → <code>define --route skill</code> (synthesize design_doc from triage)</p>
+
+<h2 id="findings">Findings</h2>
+
+<table>
+<thead>
+<tr><th>#</th><th>File</th><th>Classification</th><th>Severity</th><th>Scope</th><th>Disposition</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td><code>reference/compact-checkpoint.md</code></td>
+<td><span class="badge ux-friction">ux-friction</span></td>
+<td><span class="badge should-fix">[Should-fix]</span></td>
+<td>medium</td>
+<td><span class="badge fix-as-proposed">fix-as-proposed</span></td>
+</tr>
+<tr>
+<td>F2</td>
+<td><code>_shared/phase-boundary-handler.md</code></td>
+<td><span class="badge ux-friction">ux-friction</span></td>
+<td><span class="badge should-fix">[Should-fix]</span></td>
+<td>small</td>
+<td><span class="badge fix-as-proposed">fix-as-proposed</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="finding-f1">F1 — compact-checkpoint.md: forced Pause flow unnecessary with autocompact</h2>
+
+<p><strong>Evidence:</strong> The <code>AskUserQuestion</code> in <code>compact-checkpoint.md</code> offers "Pause to /compact, then resume" as an option. When the user has configured an autocompact window in Claude Code, this flow requires unnecessary manual steps: pick Pause → type <code>/compact</code> → type <code>/feature-sdlc --resume</code>. Autocompact handles the context window automatically within the session.</p>
+
+<p><strong>Proposed fix:</strong> Add <code>compact_mode: manual | auto</code> to <code>.pmos/settings.yaml</code> (default: <code>manual</code>). When <code>compact_mode: auto</code>, skip the <code>AskUserQuestion</code> entirely at every compact checkpoint; log <code>compact_mode: auto — checkpoint at &lt;phase&gt; skipped; autocompact active</code> and proceed. The <code>manual</code> path is unchanged.</p>
+
+<p><strong>Already handled:</strong> no</p>
+
+<h2 id="finding-f2">F2 — phase-boundary-handler.md: HALT message instructs /compact when autocompact is active</h2>
+
+<p><strong>Evidence:</strong> <code>HALT_FOR_COMPACT</code> message reads: "Run <code>/compact</code> to clear context, then re-invoke <code>/execute --resume</code> to continue with phase N+1." With autocompact configured, the /compact instruction is unnecessary — autocompact fires automatically when context fills.</p>
+
+<p><strong>Proposed fix:</strong> In <code>auto</code> mode, change the HALT message to: "Phase N verified green. Re-invoke <code>/execute --resume</code> to continue with phase N+1 (autocompact handles context)." Still hard-stops for the clean stopping point + phase discipline, but removes the /compact instruction. The <code>manual</code> message is unchanged.</p>
+
+<p><strong>Already handled:</strong> no</p>
+
+<h2 id="out-of-scope">Out of scope</h2>
+<ul>
+<li><code>/plan/SKILL.md</code> and <code>plan/reference/plan-templates.md</code> — mention /compact only in descriptive prose about execute's behavior; no direct user instruction to change.</li>
+<li>First-run setup — <code>compact_mode</code> is not prompted at first-run (default <code>manual</code> is safe; users add <code>auto</code> when they configure autocompact).</li>
+<li>CLI flag override — user asked for settings-level only; no <code>--compact-mode</code> flag in scope.</li>
+</ul>
+
+<script src="assets/comments.js?v=2.66.1"></script>
+</body>
+</html>
