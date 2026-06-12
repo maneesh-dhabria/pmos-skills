@@ -36,3 +36,6 @@ plugins/pmos-toolkit/skills/architecture/tests/fixtures/*/docs/
 plugins/pmos-toolkit/skills/architecture/tests/fixtures/adr-reconcile/*/docs/adr/ADR-00[01][7-9]*-*.md
 plugins/pmos-toolkit/skills/architecture/tests/fixtures/adr-reconcile/*/docs/adr/ADR-001[0-9]-*.md
 plugins/pmos-toolkit/skills/architecture/tests/fixtures/adr-reconcile/*/docs/adr/ADR-00[2-9][0-9]-*.md
+
+# Backlog claim locks are transient, machine-local O_EXCL lockfiles (D13) — never committed.
+backlog/claims/

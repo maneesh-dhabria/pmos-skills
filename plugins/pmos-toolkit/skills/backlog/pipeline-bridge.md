@@ -12,9 +12,19 @@ Pipeline skills mutate backlog item state ONLY when `--backlog <id>` is explicit
 |---|---|---|
 | `/requirements --backlog <id>` writes its doc | item `source:` set to the requirements doc path | The `/requirements` skill invokes `/backlog set` (`SKILL.md#set`) after writing its output |
 | `/spec --backlog <id>` writes its doc | item `spec_doc:` set; status: `inbox`/`ready` -> `spec'd`; `planned`+ unchanged | `/spec` invokes `/backlog set` twice (one for spec_doc, one for status if applicable) |
-| `/plan --backlog <id>` writes its doc | item `plan_doc:` set; status -> `planned` | `/plan` invokes `/backlog set` |
+| `/plan --backlog <id>` writes its doc | item `plan_doc:` + `tasks_file:` set; status -> `planned` | `/plan` invokes `/backlog set` (the tasks.yaml emission is /plan's, per `schema.md`) |
 | `/execute --backlog <id>` starts | status -> `in-progress` | `/execute` invokes `/backlog set` at the start of execution |
-| `/verify --backlog <id>` reports pass | status -> `done`; `pr:` filled if available from git context | `/verify` invokes `/backlog set` |
+| `/verify --backlog <id>` reports PASS | status -> `done`; `pr:` filled if available from git context | `/verify` invokes `/backlog set` |
+| `/verify --backlog <id>` reports FAIL / PASS-WITH-GAPS | status -> `blocked`; gap lines appended to the item's `## Notes` body | `/verify` invokes `/backlog set` + appends the gap text (D11/the return-to-human channel) |
+| `/complete-dev --epic <id>` ships | `released: vX.Y.Z` on every shipped story + the epic | `/complete-dev` is the SOLE writer of `released:` (D6) |
+
+## Three-loop write-back rules (stories — D11/D12)
+
+When a pipeline skill mutates a **story** item (claim, status, blocked-gaps, released):
+
+1. **Main-checkout only.** Backlog item files are mutated exclusively in the main checkout, never via a worktree's copy — a status written on a story branch is invisible to the main-checkout picker until release, so `done` stories would be re-picked. Resolve the main checkout via `git worktree list --porcelain` (the entry whose branch is the default branch). `tasks.yaml`, by contrast, stays branch-local and is read **through** the worktree directory while a story is claimed.
+2. **Auto-commit, path-scoped.** Every mutation commits immediately with `git -C <main-checkout> commit -- backlog/` and a conventional message (`chore(backlog): 0012 → in-progress [claim]`). Docs-only, direct-to-main, same low-risk class as the definition merge (D20). This gives claims crash-durability + an audit trail and keeps main clean between unattended iterations.
+3. **PASS-WITH-GAPS is the human channel.** A story never silently passes with gaps: `/verify`'s PASS-WITH-GAPS (or FAIL) writes `blocked` and appends the enumerated gaps to `## Notes`, so the story resurfaces in `/backlog groom` for a human to unblock.
 
 ## Auto-prompt (offered seeds)
 
