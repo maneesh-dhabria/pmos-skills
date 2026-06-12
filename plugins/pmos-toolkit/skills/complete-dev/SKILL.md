@@ -1,8 +1,8 @@
 ---
 name: complete-dev
-description: End-of-development orchestrator that follows /verify — merges feature work into main, captures learnings into CLAUDE.md/AGENTS.md, regenerates the changelog, bumps versions, deploys per repo norms, tags the release, and pushes to all configured remotes. Supersedes the legacy /push skill. Terminal stage of the requirements -> spec -> plan -> execute -> verify -> complete-dev pipeline. Use when the user says "complete the dev cycle", "ship this work", "merge and deploy", "wrap up this branch", "finish development", "ready to push and deploy", "push to remotes", "push and ship", or "push the release".
+description: End-of-development orchestrator that follows /verify — merges feature work into main, captures learnings into CLAUDE.md/AGENTS.md, regenerates the changelog, bumps versions, deploys per repo norms, tags the release, and pushes to all configured remotes. `--epic <id>` runs the three-loop release train — merges an epic's finished story branches in dependency order, runs an integrated deterministic gate, then ships one changelog + one version bump + tag for the whole epic. Supersedes the legacy /push skill. Terminal stage of the requirements -> spec -> plan -> execute -> verify -> complete-dev pipeline. Use when the user says "complete the dev cycle", "ship this work", "merge and deploy", "wrap up this branch", "finish development", "ready to push and deploy", "push to remotes", "push and ship", "push the release", "release this epic", "ship the epic train", or "what can I release".
 user-invocable: true
-argument-hint: "[--plugin <name>] [--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
+argument-hint: "[--plugin <name>] [--epic [<id>]] [--stories <ids>] [--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
 ---
 
 # /complete-dev — end-of-development orchestrator
@@ -104,6 +104,18 @@ Run in parallel:
 - `git status -sb` (ahead/behind tracking)
 
 Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted: <N>; Remotes: <list>; Ahead of origin: <N>`.
+
+**Resolve `--epic` (three-loop release train) — checked first.** If `--epic` is present, this run is the epic release train (`#epic-train`), not the classic single-branch flow:
+
+1. **Bare `--epic` (no id, D23):** instead of erroring, run `/backlog releases --json` and offer the **release-ready** epics for selection. Loop 3 is always a deliberate human trigger, so a non-interactive run never auto-picks an epic to ship:
+   <!-- defer-only: ambiguous -->
+   `AskUserQuestion` — one option per release-ready epic, labelled `#<id> <title> — <N> stories, <plugin>` (no `(Recommended)`; non-interactive DEFERs — releasing is human-triggered). No release-ready epic → print the `in-flight`/`blocked` rollup and exit 0 (nothing to ship yet).
+2. **`--epic <id>`:** resolve the epic via `/backlog show <id>`. Precondition (D16): **all non-wontfix stories must be `done`** — else refuse with the in-flight/blocked rollup from `/backlog releases`, unless `--stories <ids>` names an explicit subset (a comma-separated story-id list), which is **confirmation-gated**:
+   <!-- defer-only: destructive -->
+   `AskUserQuestion` — "Release only stories <ids> from epic #<id> (partial release; remaining stories stay open)? " — **Release the subset** / **Cancel**.
+3. Set `epic_release_mode = true`, capture the ordered story list (dependency order, D6), and **resolve `--plugin` from the epic** (its single plugin/release unit is guaranteed by D17 — read it from the epic's `labels`/`route`, skipping the diff-router below). Then jump to `#epic-train` for the merge train; the classic Phases 3/8/9/13/16a/17 are replaced by their train variants documented there. The non-train phases (0a defaults, 5 deploy-norms, 6 learnings, 7 readme, 10 schema-validation, 11 commit, 12 stale-branches, 14 dry-run, 15 push, 16 push-tag) run unchanged.
+
+If `--epic` is absent, this is the classic single-branch release (D8 — "release the branch I'm standing in"); continue with `--plugin` resolution below.
 
 **Resolve `--plugin <name>` (multi-plugin marketplace).** In a multi-plugin repo (multiple `plugins/<name>/` directories under the repo root), Phase 0 must scope the release to exactly one plugin before any version-bump / tag / push work begins.
 
@@ -222,6 +234,19 @@ Determine:
 - Where's the root main checkout? (`git worktree list` first entry, or the dir whose `.git` is a directory not a file)
 
 If on `main` already: skip to Phase 5 (no merge needed; treat as direct-to-main flow).
+
+## Epic release train (`--epic`) — Loop 3 of the three-loop backlog {#epic-train}
+
+When `epic_release_mode` is set (Phase 0), the single-branch Phases 3, 8, 9, 13, 16a, and 17 are replaced by the train below; everything else runs unchanged. One epic = one release. Decisions D6, D8, D14, D16, D17, D23; full rationale in `docs/pmos/reviews/2026-06-10_ops-observations/backlog-three-loop-design.md`. The classic no-`--epic` flow is untouched (D8).
+
+1. **Merge train (replaces Phase 3).** Merge each finished story branch into main **in dependency order** (D6 — `dependencies:` doubles as merge order). Because a dependent story's worktree already merged its deps' commits at claim time (D9), git dedupes those merges cleanly. Conflict during the train → STOP, surface, human resolves (never auto-resolve) — the same conflict discipline as Phase 3. Per-story PASS-WITH-GAPS confirmation (the check shipped 2026-06-10) still applies — a story whose `/verify` left gaps prompts before its branch joins the train.
+2. **Integrated deterministic gate (D14 — new, runs on the merged tree BEFORE any version bump).** Two independently-PASSing stories can still interact badly. Run the repo's deterministic suite on the merged main — the test command(s), lints, and any hard-gate scripts detected in Phase 5's deploy-norms probe (e.g. `npm test`, the repo's `tools/*.sh` hygiene lints, skill-eval where applicable). **Red ⇒ the train stops: `/backlog set <epic-id> status=blocked`, nothing is bumped or tagged, surface the failing output, exit.** This is a deterministic gate only — no fresh LLM review pass (the 0-of-27 judge-rerun yield, per `06_self-verification-value.md`).
+3. **One changelog (replaces Phase 8).** Assemble a single `/changelog` entry for the whole epic from the shipped stories' one-line summaries (each story's `/verify` verdict line + title), not per-story entries.
+4. **One version bump + tag (Phases 9 + 13, run once).** A single bump of both `plugin.json` manifests and one annotated tag `<plugin>/v<semver>` for the epic — the single plugin is guaranteed by D17, so no multi-plugin ambiguity. Mechanics are exactly Phases 9/13; they just run once for the train rather than per story.
+5. **`released:` write-back (replaces Phase 17's lastrun write extension).** After the tag is pushed, write `released: vX.Y.Z` to **every shipped story** AND the **epic** via `/backlog set <id> released=<version>`, and set the epic `status: released`. `wontfix` stories are left as-is (the permanent descope record, D16). These are backlog mutations in the main checkout, auto-committed per `backlog/pipeline-bridge.md`.
+6. **Worktree cleanup (replaces Phase 16a).** Remove **all** story worktrees of the epic (each story's `worktree:`), not just one feature branch — same dirty-check + `ExitWorktree` + branch-delete discipline as Phase 16a, looped over the story set. Clear each story's `worktree:` field.
+
+Destructive prompts (merge conflict, stale-bump, push failure, tag collision, commit message) fire exactly as in the classic flow — the train never short-circuits them.
 
 ## Phase 3 — Merge feature → main {#merge}
 
