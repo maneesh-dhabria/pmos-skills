@@ -4,19 +4,20 @@ id: 0612-ejq
 kind: story
 title: Build the /summary-tldr pmos-toolkit skill — multi-input, grounded, compression-confirmed summaries with a first-time-reader review pass
 type: feature
-status: planned
+status: in-progress
 priority: should
 route: skill
 parent: 0612-h2j
 dependencies: []
-worktree:
+worktree: ../agent-skills-0612-ejq
 plan_doc: docs/pmos/features/2026-06-12_summary-tldr-skill/stories/0612-ejq-summary-tldr-skill-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_summary-tldr-skill/stories/0612-ejq-summary-tldr-skill-build/tasks.yaml
-claimed_by:
+claimed_by: build:3e313489-a624-4b93-b86e-c56f8eb34df6
+driver_holder: build:3e313489-a624-4b93-b86e-c56f8eb34df6
 released:
 labels: [pmos-toolkit, summary-tldr, content-tool, faithfulness-first]
 created: 2026-06-12
-updated: 2026-06-12
+updated: 2026-06-13
 source: 2026-06-12 /skill-sdlc define "I want to build a new skill called /summary-tldr in pmos-toolkit …"
 pr:
 ---
