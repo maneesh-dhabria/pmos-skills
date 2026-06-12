@@ -1,6 +1,17 @@
 # Changelog
 
-## 2026-06-10 — pmos-learnkit 0.18.0: `/frameworks` browse revamp — three views, inline diagrams, sidebar reader, sharper decision-types
+## 2026-06-12 — pmos-toolkit 2.63.0: skill-design P1/P2 — every skill rewritten against the codified design policies
+
+The full execution of the 2026-06-10 skill-design review's P1 (systemic hygiene) and P2 (design changes) across the plugin — one coordinated multi-wave campaign, behavior-preserving by contract (machine-coupled flags, log-line strings, state fields, output filenames all kept or explicitly aliased; verified by a repo-wide gate sweep plus four adversarial batch reviews over the full `main...HEAD` diff).
+
+- **Design policies codified.** `skill-patterns.md` gains §H–§L: gates (deterministic = hard, judgment = advisory, arithmetic = script), flags (hybrid NL-first; argument-hints carry contract flags only, the rest become `nl-sugar` silent aliases; machine-coupled flags never renamed), phases (integer phases + stable `{#kebab-slug}` anchors; cross-references cite slugs), one-fact-one-home, and subagent model selection. `skill-eval.md` mirrors them 1:1 — now 53 checks (47 gated: 24 [D] + 23 [J]; 6 advisory; pass floor 43), with `--selftest` asserting the counts structurally.
+- **Two new repo hygiene lints**, wired into CI (`.github/workflows/skill-hygiene.yml`): `tools/lint-flags-vs-hints.sh` (argument-hint ↔ body flag sync) and `tools/lint-phase-refs.sh` (every `Phase <N>` / `{#slug}` / cross-skill anchor must resolve). Both PASS across all 40 skills.
+- **Five canonical `_shared/` substrate surfaces** replace the worst duplication: `findings-dispositions.md` (Fix/Modify/Skip/Defer + `[Blocker]/[Should-fix]/[Nit]`), `folded-phase.md`, `tier-matrix.md` (incl. the `--depth brief|standard|deep` dial), `reviewer-protocol.md` (≥40-char quote grounding, 2-loop cap), `psych-scoring.md` (judgment-assigned Watch/Bounce/Cliff bands), plus a now-canonical `sim-spec-heuristics.md`. Consumers cite; they no longer restate.
+- **Every toolkit skill rewritten** to consume the substrate, drop FR-tag soup (each keeps one "Spec lineage" footnote), and adopt the flag/phase policies. Median SKILL.md roughly halved (spec 705→366 lines, requirements 721→406, wireframes 758→378 with a coherent renumber, readme 487→216 as a full intent-doc rewrite, mytasks+people 980→506). Notable structural work: /plan's four prose state machines replaced with model-executable equivalents; /architecture's judge modes merged and its drift-police scripts retired; /polish gains zero-dep `scripts/metrics.js` for its three metric checks; /diagram gets non-interactive self-fixing and a rebalanced rubric; /prototype gains the "what question must this prototype answer" gate and a `Verdict:` handoff line.
+- **Cross-skill contracts repaired, not just preserved:** the `/feature-sdlc --tier <N>` passthrough is now a documented contract in /spec and /plan; the `output_format` valid set converged on `{html, md}` everywhere (legacy `both` → `html`); /plan's stale claim that /execute reads `execution_mode` frontmatter corrected.
+- **Tests hardened against future refactors:** checked-in fixtures that grepped literal FR-tags/phase numbers were converted to renumber-proof slug/semantic greps; stale asserts (sync-shared, format valid-set, substrate-ref floor) aligned with the current contracts.
+
+
 
 A reading-experience overhaul of the `/frameworks` library, shaped from seven pieces of feedback. The corpus is the same 272 frameworks; what changed is how you browse, read, and slice them — and how the diagrams sit inside each framework.
 
