@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 // build-library.mjs — frameworks.json + owned SVG diagrams → a single self-contained
-// index.html. Three listing views (compact / detailed / list), group-by (Product Areas /
-// Tags), a layout-shifting sidebar reader, tag-chip + area + decision-type filters,
-// diagrams placed INLINE at their anchor inside the body, copy-markdown / share, and a
-// PMOS masthead. Offline from file://. Zero-dep Node ESM. (See reference/matching.md /
-// reference/corpus-schema.md / SKILL.md.)
+// index.html. Three listing views (compact / detailed / list) defaulting to LIST, each
+// view-toggle carrying an inline-SVG glyph; group-by (Product Areas / Tags); a
+// layout-shifting sidebar reader that highlights the open item and preserves page scroll;
+// area + multi-select decision-type & tag dropdown filters (tags dropdown has a
+// type-to-filter search) with an always-visible applied-filters bar (removable facet chips
+// + Clear all); product-area display labels via a presentation-only SUPER_CATEGORY_LABELS
+// map (corpus / --json / match.mjs untouched); diagrams placed INLINE at their anchor
+// inside the body; copy-markdown / share; and a PMOS masthead. Offline from file://.
+// Zero-dep Node ESM. (See reference/matching.md / reference/corpus-schema.md / SKILL.md.)
 //
 // Usage:
 //   node build-library.mjs --out <index.html> [--corpus <frameworks.json>] [--diagrams <dir>]
@@ -20,6 +24,19 @@ import { dirname, join } from 'node:path';
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+
+// D5 — presentation-only product-area display labels. Applied wherever a super_category is
+// SHOWN (the area-filter <option> labels and the applied-bar area chip). The filter VALUE
+// stored in state and compared in passes() stays the raw super_category, so matching,
+// grouping, --json, and match.mjs are unchanged. Unmapped values fall back to the raw
+// string (forward-safe if the corpus grows a new super_category).
+export const SUPER_CATEGORY_LABELS = {
+  'Analytics, Design & Finance': 'Cross Functional Skills',
+  'People, Personal & Career': 'PM Skills & Mindset',
+  'Product': 'Product Management',
+  'Strategy & Business': 'Business & Strategy',
+};
+const superLabel = (s) => SUPER_CATEGORY_LABELS[s] || s;
 
 function inlineMd(s) {
   // escape first, then re-introduce a tiny safe markdown subset.
@@ -155,6 +172,10 @@ export function buildHtml(records, diagramsFor) {
   const decisionTypes = [...new Set(enriched.map((e) => e.decision_type))].sort();
   const allTags = [...new Set(enriched.flatMap((e) => e.tags))].sort();
   const tagsJson = JSON.stringify(allTags).replace(/<\/script>/gi, '<\\/script>');
+  // D4d — per-option counts from the corpus, shown in each dropdown option label.
+  const dtCounts = {}; enriched.forEach((e) => { dtCounts[e.decision_type] = (dtCounts[e.decision_type] || 0) + 1; });
+  const tagCounts = {}; enriched.forEach((e) => (e.tags || []).forEach((t) => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
+  const labelsJson = JSON.stringify(SUPER_CATEGORY_LABELS).replace(/<\/script>/gi, '<\\/script>');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -182,15 +203,25 @@ header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var
 .viewswitch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .viewswitch button{background:var(--card);color:var(--muted);border:0;padding:8px 12px;font-size:13px;cursor:pointer}
 .viewswitch button.active{background:var(--accent);color:#0f1320;font-weight:600}
+.viewswitch button svg{width:13px;height:13px;vertical-align:-2px;margin-right:5px;fill:currentColor}
 .count{color:var(--muted);font-size:13px;margin-left:auto}
-.tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;max-height:84px;overflow:auto}
-.chip{background:var(--card);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
-.chip.active{background:#33523f;color:#9fe0b8;border-color:#2f5}
-.chip.clear{border-style:dashed}
-.morefilters{margin-top:8px;color:var(--muted);font-size:13px}
-.morefilters summary{cursor:pointer}
-.morefilters .mf-body{display:flex;gap:10px;align-items:center;margin-top:8px}
-.morefilters select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px}
+/* multi-select dropdown filters (D4) */
+.filterbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;position:relative}
+.dropdown{position:relative}
+.dd-trigger{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer}
+.dropdown.open .dd-trigger{border-color:var(--accent)}
+.dropdown .panel{position:absolute;top:calc(100% + 4px);left:0;z-index:10;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px;min-width:230px;max-height:340px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.dropdown .panel .opt{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:13px;color:var(--ink);cursor:pointer;border-radius:6px}
+.dropdown .panel .opt:hover{background:var(--card)}
+.dropdown .panel .opt .cnt{color:var(--muted);font-size:12px;margin-left:auto}
+.tag-search{width:100%;margin-bottom:6px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:13px}
+/* applied-filters bar (D4b) */
+.applied{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.applied:empty{display:none}
+.applied-chip{background:#243;color:#9fe0b8;border:1px solid #33523f;border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.applied-chip:hover{border-color:var(--accent)}
+.applied .clear-all{background:none;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+.applied .clear-all:hover{color:var(--ink);border-color:var(--accent)}
 #groups{padding:18px 20px}
 .group{margin-bottom:26px}
 .group>h3{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:6px}
@@ -207,8 +238,11 @@ header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var
 .dt{display:inline-block;background:#2a3252;color:var(--accent);border-radius:999px;padding:2px 8px;font-size:11px;margin-top:8px}
 .compact .row{margin:4px 0;line-height:1.7}
 .compact .row a{margin-right:2px}
+.compact .row a.selected{color:#0f1320;background:var(--accent);border-radius:4px;padding:1px 5px;font-weight:600}
 ul.listview{margin:0;padding-left:18px}
 ul.listview li{margin:6px 0}
+ul.listview li.selected{background:#1a2236;border-radius:6px;padding:2px 8px;margin-left:-8px;border-left:3px solid var(--accent)}
+ul.listview li.selected>a{color:var(--accent);font-weight:600}
 ul.listview .ls{color:var(--muted)}
 .empty{color:var(--muted);text-align:center;padding:40px}
 /* sidebar reader — layout-shifting, NOT a fixed overlay, NO backdrop */
@@ -244,16 +278,28 @@ ul.listview .ls{color:var(--muted)}
 <div class="controls">
 <input id="search" type="search" placeholder="Describe a problem or search a framework…" aria-label="Search frameworks">
 <div class="viewswitch" role="tablist" aria-label="View">
-<button type="button" data-view="compact" aria-label="Compact list view">Compact</button>
-<button type="button" data-view="detailed" class="active" aria-label="Detailed cards view">Detailed</button>
-<button type="button" data-view="list" aria-label="List view">List</button>
+<button type="button" data-view="compact" aria-label="Compact list view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2.5" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="11.5" width="14" height="2" rx="1"/></svg>Compact</button>
+<button type="button" data-view="detailed" aria-label="Detailed cards view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="6" height="6" rx="1"/><rect x="8.5" y="1.5" width="6" height="6" rx="1"/><rect x="1.5" y="8.5" width="6" height="6" rx="1"/><rect x="8.5" y="8.5" width="6" height="6" rx="1"/></svg>Detailed</button>
+<button type="button" data-view="list" class="active" aria-label="List view"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="2.5" cy="3.5" r="1.3"/><rect x="5.5" y="2.7" width="9.5" height="1.7" rx="0.8"/><circle cx="2.5" cy="8" r="1.3"/><rect x="5.5" y="7.2" width="9.5" height="1.7" rx="0.8"/><circle cx="2.5" cy="12.5" r="1.3"/><rect x="5.5" y="11.7" width="9.5" height="1.7" rx="0.8"/></svg>List</button>
 </div>
 <label>Group by <select id="groupBy" aria-label="Group by"><option value="category">Product Areas</option><option value="tags">Tags</option></select></label>
-<select id="superFilter" aria-label="Filter by area"><option value="">All areas</option>${superCats.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select>
-<span class="count" id="count"></span>
+<select id="superFilter" aria-label="Filter by area"><option value="">All areas</option>${superCats.map((s) => `<option value="${esc(s)}">${esc(superLabel(s))}</option>`).join('')}</select>
+<span class="count" id="count" aria-live="polite"></span>
 </div>
-<div class="tagrow" id="tagrow"></div>
-<details class="morefilters"><summary>More filters</summary><div class="mf-body"><label>Decision type <select id="dtFilter" aria-label="Filter by decision type"><option value="">All decision types</option>${decisionTypes.map((d) => `<option value="${esc(d)}">${esc(d)}</option>`).join('')}</select></label></div></details>
+<div class="filterbar" id="filterbar">
+<div class="dropdown" id="dd-dt">
+<button type="button" class="dd-trigger" data-dd="dt" aria-expanded="false" aria-controls="dd-dt-panel">Decision type <span class="caret" aria-hidden="true">▾</span></button>
+<div class="panel" id="dd-dt-panel" role="group" aria-label="Filter by decision type" hidden>${decisionTypes.map((d) => `<label class="opt"><input type="checkbox" data-dt="${esc(d)}"> ${esc(d)} <span class="cnt">(${dtCounts[d] || 0})</span></label>`).join('')}</div>
+</div>
+<div class="dropdown" id="dd-tags">
+<button type="button" class="dd-trigger" data-dd="tags" aria-expanded="false" aria-controls="dd-tags-panel">Tags <span class="caret" aria-hidden="true">▾</span></button>
+<div class="panel" id="dd-tags-panel" role="group" aria-label="Filter by tag" hidden>
+<input type="search" class="tag-search" id="tagSearch" placeholder="Filter tags…" aria-label="Type to filter the tag list">
+<div class="checklist" id="tagChecklist">${allTags.map((t) => `<label class="opt" data-tagopt="${esc(t)}"><input type="checkbox" data-tag="${esc(t)}"> ${esc(t)} <span class="cnt">(${tagCounts[t] || 0})</span></label>`).join('')}</div>
+</div>
+</div>
+</div>
+<div class="applied" id="applied"></div>
 </header>
 <div id="groups"></div>
 </main>
@@ -262,20 +308,26 @@ ul.listview .ls{color:var(--muted)}
 <div class="toast" id="toast"></div>
 <script id="frameworks-data" type="application/json">${data}</script>
 <script id="tags-data" type="application/json">${tagsJson}</script>
+<script id="labels-data" type="application/json">${labelsJson}</script>
 <script>
 var DATA = JSON.parse(document.getElementById('frameworks-data').textContent);
 var ALL_TAGS = JSON.parse(document.getElementById('tags-data').textContent);
+var SUPER_LABELS = JSON.parse(document.getElementById('labels-data').textContent);
+function superLabel(s){return SUPER_LABELS[s]||s;}
 var layout = document.getElementById('layout');
 var reader = document.getElementById('reader');
 var groupsEl = document.getElementById('groups');
-var tagrow = document.getElementById('tagrow');
+var filterbar = document.getElementById('filterbar');
+var appliedEl = document.getElementById('applied');
+var tagSearch = document.getElementById('tagSearch');
+var tagChecklist = document.getElementById('tagChecklist');
 var search = document.getElementById('search');
 var superFilter = document.getElementById('superFilter');
-var dtFilter = document.getElementById('dtFilter');
 var groupBy = document.getElementById('groupBy');
 var countEl = document.getElementById('count');
 var toastEl = document.getElementById('toast');
-var state = { view: 'detailed', groupBy: 'category', q: '', area: '', dt: '', tags: {}, openId: null };
+// state.dt and state.tags are SETS (object maps id→true) — OR within a facet, AND across facets.
+var state = { view: 'list', groupBy: 'category', q: '', area: '', dt: {}, tags: {}, openId: null };
 
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function matches(f, q){
@@ -283,13 +335,15 @@ function matches(f, q){
   var hay=(f.name+' '+f.summary+' '+f.category+' '+(f.tags||[]).join(' ')+' '+f.when_to_use).toLowerCase();
   return q.toLowerCase().split(/\\s+/).filter(Boolean).every(function(t){return hay.indexOf(t)>=0;});
 }
-function selectedTags(){return Object.keys(state.tags).filter(function(t){return state.tags[t];});}
+function selectedKeys(obj){return Object.keys(obj).filter(function(k){return obj[k];});}
+function selectedTags(){return selectedKeys(state.tags);}
 function passes(f){
   if(state.area && f.super_category!==state.area) return false;
-  if(state.dt && f.decision_type!==state.dt) return false;
+  var sd=selectedKeys(state.dt);
+  if(sd.length){ var anyDt=sd.some(function(d){return f.decision_type===d;}); if(!anyDt) return false; } // OR-within dt
   var st=selectedTags();
-  if(st.length){ var any=st.some(function(t){return (f.tags||[]).indexOf(t)>=0;}); if(!any) return false; }
-  return matches(f, state.q);
+  if(st.length){ var any=st.some(function(t){return (f.tags||[]).indexOf(t)>=0;}); if(!any) return false; } // OR-within tags
+  return matches(f, state.q); // AND across facets
 }
 function groupKeysFor(f){
   if(state.view==='compact') return [f.category||'Uncategorized'];
@@ -331,9 +385,9 @@ function render(){
     var items=map[name].slice().sort(function(a,b){return a.name.toLowerCase()<b.name.toLowerCase()?-1:1;});
     html+='<div class="group"><h3>'+esc(name)+'</h3>';
     if(state.view==='compact'){
-      html+='<div class="compact"><div class="row">'+items.map(function(f){return '<a href="#'+encodeURIComponent(f.id)+'" data-id="'+esc(f.id)+'">'+esc(f.name)+'</a>';}).join(', ')+'</div></div>';
+      html+='<div class="compact"><div class="row">'+items.map(function(f){return '<a href="#'+encodeURIComponent(f.id)+'" data-id="'+esc(f.id)+'"'+(f.id===state.openId?' class="selected"':'')+'>'+esc(f.name)+'</a>';}).join(', ')+'</div></div>';
     } else if(state.view==='list'){
-      html+='<ul class="listview">'+items.map(function(f){return '<li><a href="#'+encodeURIComponent(f.id)+'" data-id="'+esc(f.id)+'">'+esc(f.name)+'</a> <span class="ls">— '+esc(f.summary)+'</span></li>';}).join('')+'</ul>';
+      html+='<ul class="listview">'+items.map(function(f){return '<li'+(f.id===state.openId?' class="selected"':'')+'><a href="#'+encodeURIComponent(f.id)+'" data-id="'+esc(f.id)+'">'+esc(f.name)+'</a> <span class="ls">— '+esc(f.summary)+'</span></li>';}).join('')+'</ul>';
     } else {
       html+='<div class="cards">'+items.map(cardHtml).join('')+'</div>';
     }
@@ -353,12 +407,14 @@ function readerHtml(f){
 }
 function openReader(id){
   var f=DATA.filter(function(x){return x.id===id;})[0]; if(!f) return;
+  var sy=window.scrollY; // D1 — capture page scroll before the render() rebuild
   state.openId=id;
   reader.innerHTML=readerHtml(f);
   reader.setAttribute('aria-hidden','false');
   layout.classList.add('reader-open');
-  reader.scrollTop=0;
+  reader.scrollTop=0; // panel-local scroll reset (not the page)
   render();
+  window.scrollTo(0, sy); // D1 — restore page scroll so selecting a deep item never jumps the page
 }
 function closeReader(){ state.openId=null; layout.classList.remove('reader-open'); reader.setAttribute('aria-hidden','true'); reader.innerHTML=''; render(); }
 function toMarkdown(f){
@@ -389,16 +445,34 @@ function copyText(t){
     navigator.clipboard.writeText(t).then(function(){toast('Copied ✓');},function(){fallbackCopy(t);});
   } else { fallbackCopy(t); }
 }
-function renderTags(){
-  var st=state.tags;
-  var html=ALL_TAGS.map(function(t){return '<span class="chip'+(st[t]?' active':'')+'" data-tag="'+esc(t)+'">'+esc(t)+'</span>';}).join('');
-  if(selectedTags().length) html+='<span class="chip clear" data-clear="1">✕ clear tags</span>';
-  tagrow.innerHTML=html;
+// applied-filters bar (D4b) — one removable chip per active filter, facet-labeled, + Clear all.
+function appliedChip(facet,value,attr){
+  return '<button type="button" class="applied-chip" '+attr+' aria-label="Remove filter: '+esc(value)+'">'+esc(facet)+': '+esc(value)+' ✕</button>';
+}
+function renderApplied(){
+  var html='';
+  if(state.area) html+=appliedChip('Area', superLabel(state.area), 'data-rm-area="1"');
+  selectedKeys(state.dt).forEach(function(d){ html+=appliedChip('Decision', d, 'data-rm-dt="'+esc(d)+'"'); });
+  selectedKeys(state.tags).forEach(function(t){ html+=appliedChip('Tag', t, 'data-rm-tag="'+esc(t)+'"'); });
+  if(html) html+='<button type="button" class="clear-all" data-clear-all="1">Clear all</button>';
+  appliedEl.innerHTML=html;
+}
+// keep dropdown checkboxes in sync with state (chips ↔ checkboxes).
+function syncChecks(){
+  Array.prototype.forEach.call(document.querySelectorAll('input[data-dt]'), function(c){ c.checked=!!state.dt[c.getAttribute('data-dt')]; });
+  Array.prototype.forEach.call(document.querySelectorAll('input[data-tag]'), function(c){ c.checked=!!state.tags[c.getAttribute('data-tag')]; });
+}
+function closeDropdowns(except){
+  Array.prototype.forEach.call(document.querySelectorAll('.dropdown'), function(dd){
+    if(dd===except) return;
+    dd.classList.remove('open');
+    var t=dd.querySelector('.dd-trigger'); if(t) t.setAttribute('aria-expanded','false');
+    var p=dd.querySelector('.panel'); if(p) p.hidden=true;
+  });
 }
 // events
 search.addEventListener('input', render);
-superFilter.addEventListener('change', function(){ state.area=superFilter.value; render(); });
-dtFilter.addEventListener('change', function(){ state.dt=dtFilter.value; render(); });
+superFilter.addEventListener('change', function(){ state.area=superFilter.value; renderApplied(); render(); });
 groupBy.addEventListener('change', function(){ state.groupBy=groupBy.value; render(); });
 document.querySelector('.viewswitch').addEventListener('click', function(e){
   var b=e.target.closest('button[data-view]'); if(!b) return;
@@ -406,11 +480,44 @@ document.querySelector('.viewswitch').addEventListener('click', function(e){
   Array.prototype.forEach.call(this.querySelectorAll('button'), function(x){x.classList.toggle('active', x===b);});
   render();
 });
-tagrow.addEventListener('click', function(e){
-  var clear=e.target.closest('[data-clear]'); if(clear){ state.tags={}; renderTags(); render(); return; }
-  var chip=e.target.closest('[data-tag]'); if(!chip) return;
-  var t=chip.getAttribute('data-tag'); state.tags[t]=!state.tags[t]; renderTags(); render();
+// dropdown triggers — toggle open; one panel open at a time; stays open across picks.
+filterbar.addEventListener('click', function(e){
+  var t=e.target.closest('.dd-trigger'); if(!t) return;
+  var dd=t.closest('.dropdown'); var wasOpen=dd.classList.contains('open');
+  closeDropdowns();
+  if(!wasOpen){ dd.classList.add('open'); t.setAttribute('aria-expanded','true'); dd.querySelector('.panel').hidden=false; }
 });
+// checkbox change inside either panel — update the facet set (panel stays open).
+filterbar.addEventListener('change', function(e){
+  var c=e.target.closest('input[type=checkbox]'); if(!c) return;
+  if(c.hasAttribute('data-dt')){ var d=c.getAttribute('data-dt'); if(c.checked) state.dt[d]=true; else delete state.dt[d]; }
+  else if(c.hasAttribute('data-tag')){ var t=c.getAttribute('data-tag'); if(c.checked) state.tags[t]=true; else delete state.tags[t]; }
+  renderApplied(); render();
+});
+// type-to-filter the tag checkbox list (D4-control).
+tagSearch.addEventListener('input', function(){
+  var q=tagSearch.value.trim().toLowerCase();
+  Array.prototype.forEach.call(tagChecklist.querySelectorAll('[data-tagopt]'), function(l){
+    l.style.display=(!q || l.getAttribute('data-tagopt').toLowerCase().indexOf(q)>=0)?'':'none';
+  });
+});
+// applied-bar chip removal + Clear all (chips ↔ checkboxes synced).
+appliedEl.addEventListener('click', function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.hasAttribute('data-clear-all')){ state.area=''; state.dt={}; state.tags={}; superFilter.value=''; }
+  else if(b.hasAttribute('data-rm-area')){ state.area=''; superFilter.value=''; }
+  else if(b.hasAttribute('data-rm-dt')){ delete state.dt[b.getAttribute('data-rm-dt')]; }
+  else if(b.hasAttribute('data-rm-tag')){ delete state.tags[b.getAttribute('data-rm-tag')]; }
+  syncChecks(); renderApplied(); render();
+});
+// Escape closes the open panel and returns focus to its trigger (D4c).
+document.addEventListener('keydown', function(e){
+  if(e.key!=='Escape') return;
+  var open=document.querySelector('.dropdown.open'); if(!open) return;
+  var t=open.querySelector('.dd-trigger'); closeDropdowns(); if(t) t.focus();
+});
+// click outside any dropdown closes the panels.
+document.addEventListener('click', function(e){ if(!e.target.closest('.dropdown')) closeDropdowns(); });
 groupsEl.addEventListener('click', function(e){
   var el=e.target.closest('[data-id]'); if(!el) return;
   e.preventDefault(); openReader(el.getAttribute('data-id'));
@@ -424,7 +531,7 @@ reader.addEventListener('click', function(e){
   else if(act==='share'&&f) copyText(toShare(f));
 });
 window.addEventListener('hashchange', function(){ var id=decodeURIComponent(location.hash.slice(1)); if(DATA.some(function(f){return f.id===id;})) openReader(id); });
-renderTags();
+renderApplied();
 render();
 // deep-link: #id opens the reader on load
 if(location.hash){ var id0=decodeURIComponent(location.hash.slice(1)); if(DATA.some(function(f){return f.id===id0;})) openReader(id0); }
@@ -450,7 +557,9 @@ function runSelftest() {
   assert(!/<script[^>]+src="https?:/i.test(html), 'no external script');
   assert(html.includes('id="search"'), 'search control present');
   assert(html.includes('id="superFilter"'), 'area filter present');
-  assert(html.includes('id="dtFilter"'), 'decision-type filter present');
+  // D5 — area option shows the renamed display label while keeping the RAW super_category as the value.
+  assert(html.includes('<option value="Product">Product Management</option>'), 'area option uses SUPER_CATEGORY_LABELS display label with raw value');
+  assert(html.includes('value="Product"') && !html.includes('<option value="Product Management"'), 'option VALUE stays the raw super_category (rename is presentation-only)');
   assert(/PM&#39;s take|PM's take/.test(html), "PM's take block present");
   assert(html.includes('<strong>Reach</strong>'), 'markdown bold rendered');
   assert(html.includes('<li>'), 'markdown list rendered');
@@ -461,12 +570,42 @@ function runSelftest() {
   assert(html.includes('id="groupBy"') && html.includes('>Product Areas<') && html.includes('>Tags<'), 'group-by control with Product Areas + Tags');
   assert(html.includes('class="wordmark">PMOS<') && html.includes('Frameworks Library'), 'PMOS masthead + wordmark present');
 
-  // --- decision-type demoted into a secondary "More filters" disclosure ---
-  assert(html.includes('class="morefilters"') && html.includes('More filters'), 'More filters disclosure present');
-  assert(html.indexOf('<details class="morefilters"') < html.indexOf('id="dtFilter"') && html.indexOf('id="dtFilter"') < html.indexOf('</details>'), 'decision-type filter lives inside the disclosure');
+  // --- D2: list view is the default (list button active; detailed NOT active) ---
+  assert(/data-view="list"[^>]*class="active"/.test(html), 'list button carries class="active" (list is default)');
+  assert(!/data-view="detailed"[^>]*class="active"/.test(html), 'detailed button is NOT active');
+  assert(html.includes("view: 'list'"), "state.view defaults to 'list'");
 
-  // --- tag chip row ---
-  assert(html.includes('id="tagrow"') && html.includes('renderTags'), 'tag chip row present');
+  // --- D3: each view-toggle button carries an inline-SVG glyph (offline-safe, decorative) ---
+  assert(/<button[^>]*data-view="compact"[^>]*>\s*<svg/.test(html), 'compact toggle has an inline <svg> icon');
+  assert(/<button[^>]*data-view="detailed"[^>]*>\s*<svg/.test(html), 'detailed toggle has an inline <svg> icon');
+  assert(/<button[^>]*data-view="list"[^>]*>\s*<svg/.test(html), 'list toggle has an inline <svg> icon');
+
+  // --- D4: decision-type + tags as multi-select dropdowns (NO tag-cloud, NO More-filters disclosure) ---
+  assert(/data-dd="dt"[^>]*aria-expanded/.test(html) || /aria-expanded[^>]*data-dd="dt"/.test(html), 'decision-type dropdown trigger present (aria-expanded)');
+  assert(/data-dd="tags"[^>]*aria-expanded/.test(html) || /aria-expanded[^>]*data-dd="tags"/.test(html), 'tags dropdown trigger present (aria-expanded)');
+  assert(html.includes('<input type="checkbox" data-dt="prioritize">'), 'native checkbox per decision type');
+  assert(html.includes('<input type="checkbox" data-tag="prioritization">'), 'native checkbox per tag');
+  assert(html.includes('id="tagSearch"') && html.includes('class="tag-search"'), 'tag type-to-filter search input present');
+  assert(!html.includes('id="tagrow"') && !html.includes('renderTags'), 'old tag-chip cloud removed');
+  assert(!html.includes('class="morefilters"') && !html.includes('id="dtFilter"'), 'old More-filters disclosure + single-select dtFilter removed');
+  assert(html.includes('selectedKeys(state.dt)'), 'decision-type is a set; passes() uses OR-within membership');
+
+  // --- D4d: per-option counts in the dropdown labels (should) ---
+  assert(/class="cnt">\(1\)/.test(html), 'per-option count rendered in dropdown labels');
+
+  // --- D4b: applied-filters bar — facet-labeled removable chips + Clear all ---
+  assert(html.includes('id="applied"') && html.includes('renderApplied'), 'applied-filters bar present');
+  assert(html.includes('class="applied-chip"') && html.includes('Remove filter:'), 'applied chips are real buttons with accessible names');
+  assert(html.includes('data-rm-area') && html.includes('data-rm-dt') && html.includes('data-rm-tag'), 'per-facet chip removal wired');
+  assert(html.includes('data-clear-all') && html.includes('>Clear all<'), 'Clear all control present');
+  assert(html.includes('syncChecks'), 'chips ↔ checkboxes kept in sync');
+  // D4c: count is in an aria-live region; Escape closes + restores focus.
+  assert(/id="count"[^>]*aria-live="polite"|aria-live="polite"[^>]*id="count"/.test(html), 'result count is an aria-live region');
+  assert(html.includes("'Escape'") && html.includes('closeDropdowns'), 'Escape closes the dropdown panel');
+
+  // --- D1: selection highlight in all 3 views + no page auto-scroll on open ---
+  assert(html.includes("f.id===state.openId?' class=\"selected\"'"), 'list/compact items carry the selected class when open');
+  assert(html.includes('var sy=window.scrollY') && html.includes('window.scrollTo(0, sy)'), 'openReader saves + restores page scroll');
 
   // --- sidebar reader: layout-shift, not a fixed overlay, no backdrop ---
   assert(html.includes('<aside class="reader"'), 'reader is an aside in normal flow');
@@ -507,7 +646,7 @@ function runSelftest() {
   assert(gapH.indexOf('survivor-after') >= 0, 'surviving diagram still rendered when an earlier one is missing');
   assert(gapH.indexOf('survivor-after') > gapH.lastIndexOf(aTxt.slice(0, 40)), 'survivor pairs with its OWN anchor (after the block), not the missing diagram\'s null anchor');
 
-  console.log('build-library --selftest: PASS (views, group-by, sidebar, tags, share, masthead, inline-anchor diagrams, missing-svg alignment, self-contained)');
+  console.log('build-library --selftest: PASS (list-default + view icons, area rename, dropdown multi-select filters + applied bar, selection highlight + scroll-preserve, group-by, sidebar, share, masthead, inline-anchor diagrams, missing-svg alignment, self-contained)');
 }
 
 function main() {

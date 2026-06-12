@@ -174,17 +174,25 @@ single self-contained `index.html` that works offline from `file://`. Print the
 `file://` path. Diagrams are owned SVGs inlined into the page — **never** hot-linked
 S3 URLs. The library offers:
 
-- **Three listing views** — Compact List (Product Areas → comma-separated framework
-  links), Detailed (grouped cards with a primary-diagram thumbnail; the default), and
-  List (one bullet per framework). A **group-by** control switches the Detailed/List
-  axis between Product Areas (default) and Tags.
+- **Three listing views** — List (one bullet per framework; **the default**), Detailed
+  (grouped cards with a primary-diagram thumbnail), and Compact (Product Areas →
+  comma-separated framework links). Each view toggle carries a representative inline-SVG
+  icon. A **group-by** control switches the Detailed/List axis between Product Areas
+  (default) and Tags.
 - **A sidebar reader** — clicking a framework opens a two-pane reader that shifts the
-  listing aside (not an overlay); diagrams render **inline** next to the prose they
-  illustrate (placed at each framework's `diagram_anchors`), with **Copy markdown** and
-  **Share** buttons (clipboard, offline).
-- **Filters** — search · area · a multi-select **tag chip row** · and a decision-type
-  filter demoted into a "More filters" disclosure (the balanced 8-value cognitive-job
-  taxonomy — see `reference/corpus-schema.md`).
+  listing aside (not an overlay) and **highlights the selected item in the list without
+  jumping the page** (the page scroll position is preserved across the open); diagrams
+  render **inline** next to the prose they illustrate (placed at each framework's
+  `diagram_anchors`), with **Copy markdown** and **Share** buttons (clipboard, offline).
+- **Filters** — search · area · and **multi-select dropdowns** for decision type and tags
+  (the tags dropdown has a type-to-filter search; each option shows its corpus count).
+  Selecting within a facet is OR, across facets is AND. An always-visible
+  **applied-filters bar** shows every active filter as a removable, facet-labeled ✕ chip
+  plus a **Clear all** control (chips and dropdown checkboxes stay in sync). Decision type
+  uses the balanced 8-value cognitive-job taxonomy — see `reference/corpus-schema.md`.
+- **Renamed product areas** — the four `super_category` values display under friendlier
+  labels (e.g. *Product → Product Management*); this is presentation-only — the corpus,
+  `--json`, and matching are unchanged.
 - **A PMOS masthead** at the top.
 
 ## Phase 5: Sync — re-ingest from Notion {#sync}
