@@ -12,6 +12,8 @@ tasks:
     title: "state-schema — build phases[] gains reconcile + per-inner-phase status"
     ac: [AC1, AC6]
     deps: []
+    status: done
+    evidence: "state-schema.md build block: reconcile phase id + per-inner-phase status note + poison-guard fields cite (backlog/schema.md)"
     detail: >
       In reference/state-schema.md, extend the build-mode phases[] block: add a `reconcile`
       entry as the first build phase (before pick), and split the inner pipeline into
@@ -25,6 +27,8 @@ tasks:
     title: "claim-lock.js — holder-ownership reclaim (own-holder bypasses TTL wait)"
     ac: [AC3]
     deps: [T1]
+    status: done
+    evidence: "reclaimableByHolder() helper + acquire() trigger; --selftest PASS (own-holder reclaim, foreign-fresh contended, foreign-stale TTL)"
     detail: >
       In backlog/scripts/claim-lock.js, extend acquire() so a lock whose recorded holder EQUALS
       the requesting --holder is reclaimable immediately (own abandoned claim), while a DIFFERENT
@@ -38,6 +42,8 @@ tasks:
     title: "backlog/SKILL.md — in-progress query, holder threading, skill-managed fields"
     ac: [AC2, AC3, AC7]
     deps: [T1]
+    status: done
+    evidence: "next --status in-progress sweep (array + claim annotation); --holder threaded through claim/next; resume_attempts/last_progress/driver_holder skill-managed in set + schema.md"
     detail: >
       (a) Add a query path the reconcile sweep uses to list status:in-progress stories in D22
       order (e.g. `/backlog next --status in-progress` or a documented internal query); per-story
@@ -51,6 +57,8 @@ tasks:
     title: "feature-sdlc #build-mode — reconcile-in-flight step 0 + driver-identity contract"
     ac: [AC1, AC2, AC4, AC5, AC6]
     deps: [T1, T2, T3]
+    status: done
+    evidence: "#build-mode step 0 (query→guard→poison-reset→cap-blocked→resume-via-cursor→STOP / fall-through); driver-identity contract; execution-order diagram + unattended-posture note + dispatch bullet + pipeline-bridge rows updated"
     detail: >
       Insert step 0 `reconcile-in-flight` before pick in #build-mode and renumber the existing
       pick/claim/worktree/inner/verify/write-back steps. Logic per 02_design.html#decisions:
@@ -66,6 +74,8 @@ tasks:
     title: "Tests — claim-lock holder-ownership + reconcile selection"
     ac: [AC3, AC8]
     deps: [T2, T3]
+    status: done
+    evidence: "claim-lock.test.sh: own-holder re-acquire exit 0, foreign-holder exit 3 + reclaimableByHolder export check; scenarios.md: reconcile sweep selection + poison cap + set-rejection scenarios"
     detail: >
       Extend backlog/tests (claim-lock.test.sh + the backlog scenarios): own-holder lock is
       reclaimed immediately; foreign fresh holder is contended; foreign stale holder reclaimed at
@@ -77,6 +87,8 @@ tasks:
     title: "skill-eval + repo lints green; zero-crash pick path unregressed"
     ac: [AC8]
     deps: [T4]
+    status: done
+    evidence: "lint-phase-refs + lint-flags-vs-hints + lint-non-interactive-inline + audit-recommended all PASS; skill-eval-check [D] introduces zero new fails (the 2 feature-sdlc + 2 backlog fails are pre-existing on main); zero-in-progress sweep → [] fall-through (pick path unchanged)"
     detail: >
       Run feature-sdlc/tools/skill-eval-check.sh on the touched skills; satisfy [D] checks
       (name-matches-dir, phase anchors resolve, flags hinted/handled). Run tools/lint-phase-refs.sh

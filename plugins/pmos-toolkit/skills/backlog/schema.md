@@ -65,9 +65,15 @@ plan_doc:   docs/pmos/features/2026-06-12_magazine-interop/stories/0012-opml-exp
 tasks_file: docs/pmos/features/2026-06-12_magazine-interop/stories/0012-opml-export/tasks.yaml
 claimed_by:                    # display/audit MIRROR only — ground truth is backlog/claims/<id>.lock (O_EXCL, D13)
 pr:                            # optional, set by /verify --backlog or `link`
+# --- build-loop reconcile poison-guard fields (epic 0612-w4e; skill-managed) ---
+resume_attempts: 0             # skill-managed: consecutive UNPRODUCTIVE build-resume count; reset to 0 on forward progress; cap 2 → blocked (D4/D5)
+last_progress:                 # skill-managed: marker of the last observed progress — last completed task id OR the commit sha at the prior resume's start; reconcile compares against it to detect forward progress (D4)
+driver_holder:                 # skill-managed: stable per-loop holder id that last claimed/resumed (mirror of the claim lock's holder); lets reconcile recognize its own abandoned claim (D3)
 ```
 
 `dependencies:` is **inter-story only** and must point at sibling stories within the same epic (D24). Task-level ordering lives in `tasks.yaml deps:` and is **intra-story only** — the two systems never cross (D24 litmus: if a task in story A depends on a task in story B, the split is wrong — merge the stories or move the task).
+
+`resume_attempts`, `last_progress`, and `driver_holder` are the cross-tick durable store for the build loop's `reconcile-in-flight` step 0 (`feature-sdlc/SKILL.md#build-mode`) — they live on the story item (not in the per-worktree `state.yaml`) because `reconcile` runs **before** the story worktree exists and must survive a worktree recreated fresh. They are **skill-managed**: rejected by `/backlog set` with the standard `the skill manages it` message (same posture as `id`/`created`/`updated`, D7). Absent `resume_attempts` reads as `0`. Design + decision log: `docs/pmos/features/2026-06-12_build-resume-reconcile/02_design.html#decisions`.
 
 ### Enum values (the skill MUST validate against these and never invent new ones)
 
