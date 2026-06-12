@@ -2,7 +2,7 @@
 name: feature-sdlc
 description: End-to-end SDLC orchestrator. `/feature-sdlc <idea>` ships a feature through the pmos-toolkit pipeline (worktree → requirements → grill → spec → plan → execute → verify → complete-dev) with auto-tiering and resumable state. `skill <description>` / `skill --from-feedback <text|path|--from-reflect>` authors or revises skills, scored against the skill-eval rubric. `prototype <seed>` runs the discovery half only. `define <epic-id|idea>` runs the three-loop Define loop (epic requirements+spec, story split, per-story plan, docs-only merge); `build [--next|--story <id>]` runs one Build iteration (pick→claim→execute→verify→done/blocked). `list` shows in-flight worktrees. `/skill-sdlc` and `/prototype-sdlc` are thin aliases. Triggers — "build this end-to-end", "run the full SDLC", "create a skill", "author a new skill", "apply this retro feedback to the skill", "prototype this end-to-end", "define this epic", "build the next story", "what's next to build".
 user-invocable: true
-argument-hint: "[skill [--from-feedback] | prototype | define | build] <description|idea|epic-id> [--next] [--story <id>] [--epic <id>] [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--format html|md] [--non-interactive | --interactive] [--backlog <id>] [--minimal] [--reset-defaults] | list"
+argument-hint: "[skill [--from-feedback] | prototype | define | build] <description|idea|epic-id> [--route feature|skill|lite] [--next] [--story <id>] [--epic <id>] [--from-reflect] [--tier 1|2|3] [--resume] [--no-worktree] [--format html|md] [--non-interactive | --interactive] [--backlog <id>] [--minimal] [--reset-defaults] | list"
 ---
 
 # Feature SDLC
@@ -53,6 +53,8 @@ Every option also has a natural-language form — infer it from the request; an 
 - `--no-ideate` — pre-skips the Phase 1a gate; redundant with the deterministic fuzzy-seed classifier (which auto-skips formed seeds) and the gate's own Skip option.
 <!-- nl-sugar -->
 - `--format both` — retired value, treated as `html` (the mixed-format MD sidecar is retired); `--format <html|md>` is the documented contract.
+<!-- nl-sugar -->
+- `--monolithic` — on `skill --from-feedback`, suppresses the `#skill-route-promotion` to `define --route skill` and forces the classic single-run pipeline ("run it as one batch" ≡ this). Inferred from natural language; redundant with declining the promotion offer.
 
 ## Platform Adaptation
 
@@ -89,13 +91,13 @@ Before running pipeline-setup, resolve `pipeline_mode ∈ {feature, skill-new, s
 - **`--resume` present:** ignore any subcommand token entirely — `pipeline_mode` is read from `state.yaml` (set on the original run). If both `--resume` and a subcommand token are present → stderr warn `subcommand ignored on --resume; mode read from state.yaml` and continue with the state-file value. (The aliases forward `--resume` without their subcommand prefix for exactly this reason.)
 - **`list` (sole token):** short-circuit — skip pipeline-setup, Phase 0a, and Phase 0b; run the `list` logic below; exit 0.
 - **`skill` with no further description:** stderr `usage: /feature-sdlc skill <description> | /feature-sdlc skill --from-feedback <text|path|--from-reflect>`; exit 64.
-- **`skill --from-feedback <source>`:** `pipeline_mode = skill-feedback`. `<source>` is a quoted text blob, a file path, or `--from-reflect` (resolves to the `/reflect` output present in the current conversation — `/reflect` writes no artifact file; none present → stderr `no /reflect output in this conversation; pass feedback text or a file path`, exit 64). Neither a source nor `--from-reflect` → the usage error above, exit 64.
+- **`skill --from-feedback <source>`:** `pipeline_mode = skill-feedback`. `<source>` is a quoted text blob, a file path, or `--from-reflect` (resolves to the `/reflect` output present in the current conversation — `/reflect` writes no artifact file; none present → stderr `no /reflect output in this conversation; pass feedback text or a file path`, exit 64). Neither a source nor `--from-reflect` → the usage error above, exit 64. **Loop promotion (G4 — see `#skill-route-promotion`):** `skill-feedback` is the monolithic single-run mode and stays the default for small batches, but it may **promote** into `define --route skill` (the three-loop Define loop) when the work is epic-sized: a **design-doc seed** (a file whose shape passes the `#skill-route-promotion` design-doc test) promotes by default; **raw feedback / `--from-reflect`** promotes only after Phase 0c triage finds **N ≥ 3 in-scope skills** and the user accepts the offer. An explicit `--monolithic` flag suppresses promotion; an explicit `define` subcommand (below) is the direct door. The promotion decision is made at `#skill-route-promotion`, not here.
 - **`skill <description>`:** `pipeline_mode = skill-new`; the description is the seed for Phase 2.
 - **`prototype` with no seed:** stderr `usage: /feature-sdlc prototype <seed>`; exit 64.
 - **`prototype <seed>`:** `pipeline_mode = prototype`. Execution stops after Phase 3c (see `#prototype-ordering`); the worktree and branch are left intact to extend manually (edit `state.yaml.pipeline_mode` → `feature` and `--resume`) or discard.
-- **`define` with no seed:** stderr `usage: /feature-sdlc define <epic-id | idea>`; exit 64.
-- **`define <epic-id | idea>`:** `pipeline_mode = define` (Loop 1). If the seed resolves to an existing epic id, that epic is the unit; otherwise the seed is a fresh idea that becomes a new epic. Runs the define loop in `#define-mode` and stops at the docs-only definition merge. The worktree (branch `define/<epic-id>`) is left for the next loop.
-- **`build` (optionally `--next` or `--story <id>`):** `pipeline_mode = build` (Loop 2). `--next` (default when neither flag is present) picks via `/backlog next`; `--story <id>` builds that specific story. One bounded iteration = one story; runs the build loop in `#build-mode` and stops after the verify write-back. `--non-interactive` makes it unattended-safe (the W14 contract).
+- **`define` with no seed:** stderr `usage: /feature-sdlc define <epic-id | idea> [--route feature|skill|lite]`; exit 64.
+- **`define <epic-id | idea> [--route skill]`:** `pipeline_mode = define` (Loop 1). If the seed resolves to an existing epic id, that epic is the unit (its stored `route:` decides the discovery shape); otherwise the seed is a fresh idea that becomes a new epic. **`--route skill`** (or an existing `route: skill` epic, or a design-doc/`--from-feedback` seed) runs the **skill variant** of the define loop (`#define-mode` → "Route: skill" — epic `design_doc:` instead of a `/spec`, judgement story-split); the default `feature` route runs the feature variant. Stops at the docs-only definition merge; the worktree (branch `define/<epic-id>`) is left for the next loop.
+- **`build` (optionally `--next` or `--story <id>`):** `pipeline_mode = build` (Loop 2). `--next` (default when neither flag is present) picks via `/backlog next`; `--story <id>` builds that specific story. **The picked story's `route:` field selects the inner pipeline** at `#build-mode` — `feature`/`lite` → execute→verify; `skill` → skill-tier-resolve→execute→skill-eval→verify. One bounded iteration = one story; runs the build loop in `#build-mode` and stops after the verify write-back. `--non-interactive` makes it unattended-safe (the W14 contract).
 - **bare (no selector):** `pipeline_mode = feature`; the whole argument string (minus recognised flags — the list lives in `reference/fuzzy-idea-detection.md` § Inputs) is the feature seed.
 
 On Phase 0 entry, log to chat `pipeline_mode: <m> (source: cli|state)` (`cli` fresh, `state` on `--resume`) — alongside the `mode: <mode> (source: …)` line from the non-interactive block; keep both lines.
@@ -282,9 +284,9 @@ When state.yaml is present:
 
 On failure: hard-phase failure dialog (no Skip).
 
-## Phase 0d: /skill-tier-resolve (skill modes only) {#skill-tier-resolve}
+## Phase 0d: /skill-tier-resolve (skill modes + route:skill build) {#skill-tier-resolve}
 
-**Runs only when `pipeline_mode ∈ {skill-new, skill-feedback}`.** Hardness: **infra**. One repo-shape pass yields three values, recorded on the `skill-tier-resolve` state entry:
+**Runs when `pipeline_mode ∈ {skill-new, skill-feedback}`, OR in `build` mode for a `route: skill` story** (the build inner pipeline inserts this phase before `/execute` — see `#build-mode` step 4 and the `route: skill` build `phases[]` in `reference/state-schema.md`). Hardness: **infra**. One repo-shape pass yields three values, recorded on the `skill-tier-resolve` state entry (in build mode the story's ACs — the approved findings — are the change-set the tier resolves from):
 
 1. **Tier** — via `reference/skill-tier-matrix.md`. `skill-new`: from the described skill's expected shape. `skill-feedback`: per-skill tiers from each approved-change-set's size; run tier = max, shown with the breakdown. `--tier N` overrides the matrix and logs a divergence note to `child_tier_divergence` — the matrix recommendation is never silently dropped.
 2. **Skill location** — via `reference/repo-shape-detection.md`'s four-rung chain. Multiple candidate plugins at rung 2:
@@ -418,25 +420,66 @@ story-split → per-story /plan → definition-merge(docs-only) → final-summar
 
 On a hard-phase failure: the standard failure dialog (`reference/failure-dialog.md`). The story-split and definition-merge are define-specific hard phases.
 
+The numbered flow above is the **`route: feature`** variant. The **`route: skill`** variant (G2/G3/G7) differs only at the discovery and split steps — stated as deltas below; the worktree, definition-merge, and STOP semantics are identical.
+
+### Route: skill — define deltas {#define-route-skill}
+
+Selected by `--route skill`, an existing `route: skill` epic, or a `skill-feedback` promotion (`#skill-route-promotion`). Execution order:
+
+```
+worktree(define/<epic>) → init-state → resolve-epic →
+[adopt design-doc seed | feedback-triage→synthesize design page | skill-new: epic /requirements] →
+[ideate] → design-build → grill(against 02_design.html) → story-split(judgement) →
+per-story /plan → definition-merge(docs-only) → final-summary
+```
+
+(Phase ids match `reference/state-schema.md`'s `route: skill` define `phases[]`: `… resolve-epic, [feedback-triage], [requirements], ideate, design-build, grill, story-split, plan, definition-merge, …`. `ideate` may auto-skip on a formed seed; `grill` runs against `02_design.html` per the usual tier gates.)
+
+- **Step 2 delta — epic design instead of `/spec`.** There is **no epic-level `/spec`** (skill spec is per-skill, folds into each story's `/plan`). Instead the epic gets a **`design_doc:`** — the cross-skill coherence contract the stories cite by anchor (G2; the role `spec_doc:` plays for feature epics). Three sub-modes build it:
+  - **design-doc seed** (`--from-feedback <design-doc>` or `define` pointed at an epic whose `source:` is a design doc): **adopt the seed verbatim** as `02_design.html` (run it through the HTML substrate; it is already the design). Skip `/requirements`+`/spec`.
+  - **raw feedback** (`--from-feedback <reflect|prose>`): run **Phase 0c `/feedback-triage`** (the per-skill change-set source), then **synthesize a light epic-design page** — naming the cross-skill invariants + shared-substrate shape the per-skill triage cannot encode — as `02_design.html`.
+  - **`skill-new`** (authoring N brand-new related skills, G7): run a **light epic-level `/requirements`** to frame the shared shape, then synthesize `02_design.html` from it.
+
+  The backlog bridge stamps **`design_doc:`** on the epic (not `spec_doc:`). `/grill` runs against `02_design.html` per the usual tier gates; `/creativity`/`/wireframes`/`/prototype` stay suppressed (skills have no UI — same as the skill pipeline modes).
+- **Step 3 delta — judgement split, default 1-skill-1-story (G3).** Carve the change-set into stories: **default one story per in-scope skill**, but **fuse tightly-coupled skills into one story** when they cannot be independently `skill-eval`'d/shipped (an alias + the skill it forwards to; a co-designed pair; a skill + the substrate extracted from it). Independently-shippable substrate stays **its own story** with dependents listing it in `dependencies:` (D9 claim-time merge makes it present in the consumer's worktree before its `skill-eval`; the D24 litmus holds because "SKILL.md cites a new `_shared/` section" is a *story*-level dep, not a task-level one). Each story sets `route: skill`, ≥1 AC (the approved findings for that skill, verbatim, + `skill-patterns.md` + the `design_doc:` invariants). **Single-plugin validation (D17)** still applies — substrate-only stories use the existing "ride which release?" rule.
+- **Step 4 delta — `/plan` cites `design_doc:`.** Per-story `/plan` is scoped by (`design_doc:` anchors + story ACs); `tasks.yaml :: spec:` points at `../../02_design.html`. Otherwise identical.
+
+### Skill-route promotion (G4) {#skill-route-promotion}
+
+When `pipeline_mode == skill-feedback`, decide monolithic-vs-loop **before Phase 0c** runs in earnest. This is the only place the decision is made:
+
+1. **`--monolithic` present** → no promotion; run the classic single-run `skill-feedback` pipeline. Done.
+2. **Design-doc seed test.** The `<source>` is a **file path** AND the file passes the design-doc test — it contains *any two of*: a decisions/amendments table (a Markdown table whose header row includes `Decision`/`Amendment`/`D\d`), an explicit multi-skill change-list (a table or list naming ≥2 distinct skills), or explicit story/epic-candidate language (`story`, `epic`, `route: skill`). → **promote by default**: log `[orchestrator] skill-route: design-doc seed detected; promoting to define --route skill`, set `pipeline_mode = define`, epic `route: skill`, adopt the seed as `design_doc:`, run `#define-route-skill`. (User may decline via `--monolithic`.)
+3. **Raw feedback / `--from-reflect` / prose / non-design file** → run Phase 0c `/feedback-triage` first; once the in-scope skill set resolves, if **N ≥ 3**:
+<!-- defer-only: ambiguous -->
+   `AskUserQuestion` — `"Triage found N in-scope skills. Run as one batch, or define a skill epic and grind per-skill (resumable, unattended-capable)?"` options **Define a skill epic (Recommended)** (promote: `pipeline_mode = define`, `route: skill`, synthesize `design_doc:` from the triage, run `#define-route-skill`) / **One batch** (stay monolithic). N < 3 → stay monolithic, no prompt. In `--non-interactive`: AUTO-PICK the Recommended promote (the W14 contract) only when N ≥ 3; else monolithic.
+
+A promoted run is a normal `define` run from that point — the worktree branch is renamed/created as `define/<epic-id>` and the Phase 0b resume cursor reads `pipeline_mode: define` from state thereafter.
+
 ## Build mode — Loop 2 of the three-loop backlog {#build-mode}
 
 `/feature-sdlc build [--next | --story <id>] [--non-interactive]` runs **one bounded iteration = one story**, then stops. Designed to be driven repeatedly by the harness (`/loop`, cron) for unattended throughput; multiple drivers are safe via O_EXCL claims. Decisions: D1, D9–D14, D19, D21, D22, D29, D30. `phases[]` for `build` is in `reference/state-schema.md`.
 
-Execution order:
+Execution order (the inner pipeline branches on the picked story's `route:` — see step 4):
 
 ```
 init-state → pick → claim → worktree(create-or-reuse + dep-merge) →
-/execute(tasks.yaml) → /verify → write-back(done|blocked) → final-summary
+  route: feature|lite →                /execute(tasks.yaml) → /verify →            write-back
+  route: skill        → skill-tier-resolve → /execute(tasks.yaml) → /skill-eval → /verify → write-back
+→ final-summary
 ```
 
-1. **Pick**. `--story <id>` → that story (must be `planned`/`blocked`). `--next` (default) → `/backlog next --kind story --status planned --json`: deps all `done`/`released`, unclaimed, **in-flight-epic-first** then priority→score→updated (D22); a dep on a `wontfix` story poisons the dependent to `blocked` (D30). No candidate → log `[orchestrator] build mode: nothing ready; run /backlog groom` and exit 0.
+1. **Pick**. `--story <id>` → that story (must be `planned`/`blocked`). `--next` (default) → `/backlog next --kind story --status planned --json`: deps all `done`/`released`, unclaimed, **in-flight-epic-first** then priority→score→updated (D22); a dep on a `wontfix` story poisons the dependent to `blocked` (D30). No candidate → log `[orchestrator] build mode: nothing ready; run /backlog groom` and exit 0. **Record the picked story's `route:`** — it selects the inner pipeline (step 4) and the `phases[]` variant (`reference/state-schema.md` build block).
 2. **Claim**. `/backlog claim <id>` — O_EXCL lock under `backlog/claims/` (D13); stamp `claimed_by:` in the **main checkout** + auto-commit path-scoped (D11/D12). Contended → report the holder and exit 0 (another driver has it).
 3. **Worktree + dep-merge**. If the story's `worktree:` names an existing worktree, **re-enter and refresh** it (resume case, D19); else create `feat/<story-id>` **fresh from current main** and set the field (D10). Either way, **merge every `done` dep story's branch (transitive closure, D9)** into the worktree so the dependent builds against real dependency code, not a sibling branch's unmerged work.
-4. **/execute** consumes the story's `tasks.yaml` as its work queue (wave planner reads `deps`+`parallel`, derives readiness per D21; sole status writer; discovered-work routing per D29 — see `execute/SKILL.md#task-queue`, `#discovered-work`). Pass `--backlog <story-id>` so the bridge stamps `in-progress`.
-5. **/verify** — the story's ACs join the spec-compliance table; the browser-evidence hard gate applies (`verify/SKILL.md#spec-compliance`).
+4. **Inner pipeline (branches on `route:`, recorded at step 1).**
+   - **`route: skill` only — `/skill-tier-resolve` first** (Phase 0d): resolve this story's tier, skill location, and target platform from its change-set (the story's ACs are the approved findings). Records onto the build state entry; needed by `/execute` and `/skill-eval`.
+   - **`/execute`** consumes the story's `tasks.yaml` as its work queue (wave planner reads `deps`+`parallel`, derives readiness per D21; sole status writer; discovered-work routing per D29 — see `execute/SKILL.md#task-queue`, `#discovered-work`). Pass `--backlog <story-id>` so the bridge stamps `in-progress`. In a `route: skill` story `/execute` is the **sole writer of the skill** and cites `skill-patterns.md` as the implementation reference (same contract as the `skill-new`/`skill-feedback` Phase 6).
+   - **`route: skill` only — `/skill-eval` (Phase 6a, hard)** after `/execute`: score the story's skill against `reference/skill-eval.md` (`[D]` deterministic + `[J]` judge halves), with the ≤2-iteration remediation loop. This is the **only per-skill quality gate before release** under unattended build — non-skippable; "accept residuals as known risk" is the documented exit and the residuals ride into `/verify`. See `#skill-eval`.
+5. **/verify** — the story's ACs join the spec-compliance table; the browser-evidence hard gate applies (`verify/SKILL.md#spec-compliance`). In a `route: skill` story `/verify` additionally re-runs the `[D]` half of `skill-eval.md` and reconciles `accepted_residuals[]` (same as the skill pipeline's Phase 7).
 6. **Write-back (main checkout, D11; auto-commit, D12).** PASS → story `done`; FAIL / PASS-WITH-GAPS → story `blocked` + gaps appended to the item `## Notes` (the bridge does this — `backlog/pipeline-bridge.md`). **Remove the claim lock either way** (`/backlog unclaim <id>`). **STOP.**
 
-**Unattended posture:** under `--non-interactive`, the W14 contract applies (AUTO-PICK Recommended; buffer open questions into the item). Driver: `/loop 1h "/feature-sdlc build --next --non-interactive"` or a scheduled run.
+**Unattended posture:** under `--non-interactive`, the W14 contract applies (AUTO-PICK Recommended; buffer open questions into the item). Driver: `/loop 1h "/feature-sdlc build --next --non-interactive"` or a scheduled run. For `route: skill` stories the per-story `/skill-eval` is what makes lights-out build safe — a skill that fails the rubric after the remediation cap goes to `blocked`, never silently to `done`.
 
 ## Phase 3a: /creativity gate (soft, all modes) {#creativity-gate}
 
