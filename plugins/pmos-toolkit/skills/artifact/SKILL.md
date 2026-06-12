@@ -22,12 +22,13 @@ Generate, refine, and update structured PM/eng artifacts (PRD, Experiment Design
 
 These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption inline, document it in the artifact's frontmatter as `assumed: <field>`, proceed. User reviews after.
-- **No subagents:** Run the refinement reviewer inline as the same agent. Same eval.md; same output format.
+- **No subagents:** Run the refinement reviewer inline as the same agent. Same eval.md; same output format. The persona panel (3.5) and research fan-out (7.5) collapse to single-agent passes.
+- **`/artifact` is itself running as a subagent (skip-with-note):** skills cannot be invoked by a subagent, so the post-draft pipeline stages that call child skills — **3.7 diagram (`/diagram`), 3.8 polish (`/polish`), 3.9 grill (`/grill`)** — cannot run. When this skill detects it is a subagent (cannot call the `Skill` tool, or the dispatch prompt's `[mode: …]` marker indicates a parent), **skip those stages and emit a `<!-- pmos:deferred-pass: <stage> -->` note in the artifact plus a chat line recommending a manual `/artifact refine` / `/polish` / `/grill` run after the parent completes.** Never hard-fail. (The persona panel 3.5 and research 7.5 also collapse per the "No subagents" bullet.) This keeps `/artifact` usable as a `/feature-sdlc` child without blocking.
 - **Task tracking:** Use whatever task tool exists (TaskCreate / update_plan / verbal phase announcements).
 
 ## Track Progress
 
-Multi-phase flows (Create: Phases 0–6; Refine; Update each have their own). Create one task per phase with your agent's task-tracking tool; mark each completed as soon as it finishes.
+Multi-phase flows (Create: Phases 0–6, with depth-gated post-draft stages 3.5/3.7/3.8/3.9; Refine; Update each have their own). Create one task per phase with your agent's task-tracking tool; mark each completed as soon as it finishes.
 
 ## Phase 0: Load Context {#load-context}
 
@@ -232,6 +233,24 @@ After loop 2 (or loop 1 if no high remain):
 <!-- defer-only: ambiguous -->
 Present any `high` still remaining + all `medium` from loop 2 + any `low` deemed worth raising per `_shared/findings-dispositions.md` (severity tags, ≤4 findings per `AskUserQuestion` batch, the four dispositions, platform fallback — all canonical there). `/artifact` delta: **Defer** appends the finding to a `## Deferred Improvements` section at the end of the artifact. Apply user-confirmed fixes via `Edit`.
 
+> **Post-draft pipeline stages (Phases 3.5–3.9)** run only on the **create** flow, only in the **main agent** (skills cannot be invoked by a subagent — when `/artifact` itself is dispatched as a subagent, these stages degrade to skip-with-note per `## Platform Adaptation`), and are gated by `{depth}`. Order: persona panel → diagram pass → /polish → /grill.
+
+## Phase 3.5: Persona Panel {#persona-panel}
+
+**Gate:** `{depth} ∈ {standard, deep}` (skipped at `brief`). Multi-stakeholder critique distinct from the Phase 3 eval reviewer — 3–4 personas read the draft in parallel `sonnet` subagents, findings are validated (quote-grounded) and reconciled with the user before the draft updates. The full contract — persona resolution (template `personas:` or recommended), the per-persona subagent brief, parent-side validation, the findings-dispositions reconcile, and the NFR-1 value-signal log line — lives in `reference/persona-panel.md`. Non-interactive: AUTO-PICKs the persona set + Fix-as-proposed for blockers, buffers nits.
+
+## Phase 3.7: Diagram Pass {#diagram-pass}
+
+**Gate:** `{depth} == deep`, OR `.pmos/settings.yaml :: artifact.diagram_pass == true` (skipped otherwise). Propose 1–3 diagrams → user approves → the main agent runs `/diagram --non-interactive --on-failure drop` per diagram → **validate each SVG before inline insert** (parses, has the dark-mode background `<rect>`, and the post-insert heading-id + `build_sections_json.js` + comments-coverage smoke stays green) → insert validated SVGs, drop the rest with a logged note → optionally remember the preference. Full contract in `reference/diagram-pass.md`. Never blind-insert an unvalidated SVG.
+
+## Phase 3.8: Polish {#polish-pass}
+
+**Gate:** always (every `{depth}`). The main agent invokes `/pmos-toolkit:polish <artifact.html> [--non-interactive]` as a finishing pass. `/polish` round-trips the HTML, **auto-applies mechanical findings**, and routes voice-risk/high-risk findings through its own per-finding surface — so "always run" never means "always auto-apply" prose rewrites. Surface the polish summary (mechanical fixes applied, high-risk findings raised). `/polish` is single-doc and cannot be invoked by a subagent — this stage runs only in a main-agent `/artifact` run (see `## Platform Adaptation`).
+
+## Phase 3.9: Grill {#grill-pass}
+
+**Gate:** always (every `{depth}`), scaled by depth. The main agent invokes `/pmos-toolkit:grill <artifact.html> --depth <{depth}> [--non-interactive]`. Interactive → turn-by-turn adversarial interrogation (one light pass at `brief`, deeper at `standard`/`deep`); `--non-interactive` → `/grill` degrades to a written adversarial findings pass (no turn-by-turn) so `/artifact` stays headless-safe. Surface grill's findings; offer high-severity ones as edits via `_shared/findings-dispositions.md`. Grill is mandatory — there is no skip flag (a `brief` depth keeps it to a single light pass).
+
 ## Phase 4: Save & Confirm {#save-confirm}
 
 1. The artifact file at `{feature_folder}/{slug}.html` (plus `{slug}.sections.json` companion) already exists from Phase 2 (`#create`) step 8 and was edited in Phase 3.
@@ -308,10 +327,10 @@ At the bottom of the artifact (inside `<main>`, before any existing `<section id
 
 Apply via `Edit` against the HTML file; the post-edit re-emit (Phase 3, step 5) regenerates `sections.json` to include the new id. When primary is legacy MD (`output_format=md`), emit the same table as a markdown `## Comment Resolution Log` section instead.
 
-### Phase U.5 — Optional re-run of refinement loop
+### Phase U.5 — Optional re-run of refinement / pipeline passes
 
 <!-- defer-only: ambiguous -->
-Ask: "Run the eval loop on the updated artifact?" via `AskUserQuestion`. If yes, run Phase 3 (`#refinement-loop`).
+Ask via `AskUserQuestion` (multiSelect): which passes to re-run on the updated artifact — **None (Recommended)** / eval loop (Phase 3) / `/polish` (Phase 3.8) / `/grill` (Phase 3.9). The heavy create-only stages (research 7.5, persona panel 3.5, diagram pass 3.7) are **not** offered here — `update` is a stakeholder-feedback loop, not a re-build (OQ1: the new heavy phases are create-only; `update`/`refine` may re-`/polish` or re-`/grill` only on explicit request). Run each selected pass against the updated artifact.
 
 ### Phase U.6 — Save, then learnings capture
 
