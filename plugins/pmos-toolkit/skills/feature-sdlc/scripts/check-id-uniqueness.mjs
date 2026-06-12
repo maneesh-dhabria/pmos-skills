@@ -21,8 +21,10 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 
-// id is the leading <MMDD>-<rand3> or 4-digit prefix of the basename, then `-slug`.
-const ID_PREFIX_RE = /^([0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4})-/;
+// id is the leading <YYMMDD>-<rand3>, <MMDD>-<rand3>, or 4-digit prefix of the
+// basename, then `-slug`. The 6-digit arm is FIRST so it matches greedily before
+// the 4-digit arms can grab a shorter prefix (tracker-crudl §2.1 — three forms).
+const ID_PREFIX_RE = /^([0-9]{6}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4})-/;
 
 export function idFromFilename(name) {
   const base = path.basename(name);
