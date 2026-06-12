@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.69.0: the build loop self-heals stories that crash mid-build
+
+When an unattended `/feature-sdlc build` loop crashed partway through a story (mid-`/execute`, mid-`/verify`), that story used to leak forever — stuck at `in-progress` with its claim still held, neither done nor blocked, silently jamming the loop. `build` now reconciles in-flight stories *before* it picks new work.
+
+- **Resume-first step 0.** Before picking the next story, `build` looks for one it left `in-progress`. If the claim is absent, stale, or its own from a prior tick, it re-enters that story's worktree and resumes from where it crashed (via the phase cursor) instead of starting over — then stops, honoring the one-story-per-iteration contract.
+- **Own-claim reclaim without the wait.** Each loop claims with a stable per-loop holder (`build:<root-session-id>`), so the next tick recognizes its *own* abandoned claim and reclaims it immediately — no 4-hour stale-lease wait. A *different* driver's fresh claim is still respected.
+- **Forward-progress poison guard.** A story that keeps crashing without making progress is capped (2 unproductive resumes) and set to `blocked` with a diagnosable note — attempts, last completed task/sha, in-flight phase — so a genuinely poisoned story can't head-of-line-block the loop. Any new commit since the last attempt resets the counter.
+- **Finalize-only on a post-verify crash.** A crash *after* `/verify` passed but *before* write-back lands on write-back and finalizes idempotently — a flaky re-run never flips a correct PASS to `blocked`.
+
 ## 2026-06-12 — pmos-learnkit 0.21.0: /book-summary — verified public takeaways from any book, PM-framed
 
 A new `/book-summary` skill turns the public conversation around a book into durable, product-ready takeaways — without reproducing the book or making you read it cover-to-cover.
