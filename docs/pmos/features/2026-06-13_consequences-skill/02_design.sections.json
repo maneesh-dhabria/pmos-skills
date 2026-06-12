@@ -1,0 +1,74 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "charter-fit",
+    "level": 2,
+    "title": "Charter fit & coherence",
+    "parent_id": null
+  },
+  {
+    "id": "research",
+    "level": 2,
+    "title": "Research grounding",
+    "parent_id": null
+  },
+  {
+    "id": "pipeline",
+    "level": 2,
+    "title": "Pipeline (the process)",
+    "parent_id": null
+  },
+  {
+    "id": "simulation",
+    "level": 2,
+    "title": "Simulation method (the orders & lenses)",
+    "parent_id": null
+  },
+  {
+    "id": "scoring",
+    "level": 2,
+    "title": "Scoring & prioritization",
+    "parent_id": null
+  },
+  {
+    "id": "grill-loop",
+    "level": 2,
+    "title": "Grill loop (interrogation)",
+    "parent_id": null
+  },
+  {
+    "id": "output",
+    "level": 2,
+    "title": "Output structure",
+    "parent_id": null
+  },
+  {
+    "id": "dispatch",
+    "level": 2,
+    "title": "Subagent dispatch (&sect;L)",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions (captured at define, 2026-06-13)",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  },
+  {
+    "id": "conformance",
+    "level": 2,
+    "title": "Skill-authoring conformance",
+    "parent_id": null
+  }
+]
