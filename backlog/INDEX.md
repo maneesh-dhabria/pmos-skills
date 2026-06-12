@@ -15,6 +15,7 @@ Last regenerated: 2026-06-12
 | 0020 | released | skill | pmos-toolkit | 1/1 | Concurrency-safe backlog ids — date+short-rand scheme + define merge id-uniqueness gate + derived INDEX |
 | 0612-h2j | defined | skill | pmos-toolkit | 0/1 | /summary-tldr — faithful, grounded TL;DR of any user-supplied content (text/PDF/image/URL/email/tweet/podcast/video) |
 | 0612-w4e | defined | skill | pmos-toolkit | 0/1 | Build-loop resume-first reconcile-in-flight — self-heal stories that crash mid-build under /loop |
+| 0612-jjs | defined | skill | pmos-toolkit | 0/1 | Year-prefixed backlog ids — extend the <MMDD>-<rand3> scheme to <YYMMDD>-<rand3> |
 
 ## should
 
@@ -31,6 +32,7 @@ Last regenerated: 2026-06-12
 | 0021 | story | tech-debt | released | 0020 | Implement concurrency-safe ids — date+short-rand scheme, define merge id-uniqueness gate, derived INDEX | 02_design.html | 03_plan.html |  |
 | 0612-ejq | story | feature | planned | 0612-h2j | Build the /summary-tldr pmos-toolkit skill — multi-input, grounded, compression-confirmed summaries with a first-time-reader review pass | 02_design.html | 03_plan.html |  |
 | 0612-2w7 | story | feature | planned | 0612-w4e | Implement build-loop reconcile-in-flight — resume-first step 0, claim-ownership, forward-progress poison guard | 02_design.html | 03_plan.html |  |
+| 0612-d14 | story | enhancement | planned | 0612-jjs | Extend the backlog id scheme to <YYMMDD>-<rand3> — year-prefixed mint + triple-accept validator across /backlog and /mytasks | 02_design.html | 03_plan.html |  |
 
 ## could
 

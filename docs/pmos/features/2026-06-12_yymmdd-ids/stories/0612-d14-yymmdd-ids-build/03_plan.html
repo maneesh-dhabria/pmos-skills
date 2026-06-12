@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+  pmos artifact — feature: 2026-06-12_yymmdd-ids
+  story: 0612-d14 · epic: 0612-jjs · route: skill · plugin: pmos-toolkit
+  stage: define / 03_plan — task breakdown for the build story (mirrors tasks.yaml)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 0612-d14 year-prefixed backlog ids</title>
+<style>
+  body { font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color:#1a1a1a; max-width: 860px; margin: 2.5rem auto; padding: 0 1.25rem; }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; padding-bottom: .25rem; border-bottom: 2px solid #e2e2e2; }
+  .sub { color:#666; font-size:.92rem; margin: 0 0 1.4rem; }
+  code { background:#f6f8fa; padding:.1rem .35rem; border-radius:4px; font-size:.88em; }
+  table { border-collapse: collapse; width:100%; margin:.6rem 0; font-size:.9rem; }
+  th,td { border:1px solid #e2e2e2; padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:#fafafa; }
+  .deps { color:#666; font-size:.82rem; }
+</style>
+</head>
+<body>
+<h1>Plan — 0612-d14: year-prefixed backlog ids</h1>
+<p class="sub">Build story for epic <strong>0612-jjs</strong>. Contract: <code>../../02_design.html</code>. Single <code>/execute</code> run on <code>feat/0612-d14</code>; <code>skill-eval</code>'d before ship. Canonical task source: <code>tasks.yaml</code> (this page mirrors it).</p>
+
+<h2 id="approach">Approach</h2>
+<p>Additive, no-migration extension of epic 0020's coordination-free id scheme. Change the canonical format + validator in its single home, then ripple the year-prefix into the minter, keep the uniqueness gate format-agnostic, extend the scheme to <code>/mytasks</code> (veto-able), and guard the change with a triple-accept regression test. The validator must keep <strong>all three</strong> arms — the central correctness trap is silently dropping the current <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> arm.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+  <tr><th>Task</th><th>AC</th><th>Deps</th><th>What</th></tr>
+  <tr><td><strong>T1</strong> — canonical format + validator</td><td>AC1</td><td class="deps">—</td><td><code>_shared/tracker-crudl.md</code> §2.1/§2.3: add the <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> form + the triple-accept validator; both stores now mint date+rand. Single source (§K).</td></tr>
+  <tr><td><strong>T2</strong> — year-prefixed minter</td><td>AC2, AC3</td><td class="deps">T1</td><td><code>mint-id.mjs</code> <code>mintId()</code> prepends <code>YY</code>; <code>ID_RE</code> → triple-accept (byte-identical to §2.1); 6-digit <code>--date</code> override; help text.</td></tr>
+  <tr><td><strong>T3</strong> — uniqueness extractor</td><td>AC3</td><td class="deps">T1</td><td><code>check-id-uniqueness.mjs</code> <code>ID_PREFIX_RE</code> gains the 6-digit arm first; verify gate on mixed corpora.</td></tr>
+  <tr><td><strong>T4</strong> — /mytasks adoption <em>(veto-able)</em></td><td>AC4</td><td class="deps">T1</td><td><code>mytasks/SKILL.md</code> quick/rich capture mint <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> instead of <code>max+1</code>; serials stay valid. Drop if maintainer keeps serials — isolated.</td></tr>
+  <tr><td><strong>T5</strong> — tests + prose</td><td>AC5</td><td class="deps">T2, T3</td><td><code>id-scheme.test.sh</code>: 6-digit expectations + <strong>new "current <code>0612-k3f</code> still validates" regression check</strong>; keep legacy checks. Update <code>&lt;MMDD&gt;</code>→<code>&lt;YYMMDD&gt;</code> prose for new-id descriptions across 5 files.</td></tr>
+</table>
+
+<h2 id="verification">Verification</h2>
+<ul>
+  <li><code>bash plugins/pmos-toolkit/skills/backlog/tests/id-scheme.test.sh</code> — green, including the new triple-accept regression check and the legacy-accept checks.</li>
+  <li><code>node …/mint-id.mjs</code> prints a <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> id; <code>validate</code> accepts a legacy 4-digit, a current <code>0612-k3f</code>, and a new id; rejects garbage / look-alikes.</li>
+  <li><code>node …/check-id-uniqueness.mjs post-merge &lt;tmp&gt;</code> clean on a mixed legacy+current+new corpus; refuses a real duplicate (exit 3, names the id).</li>
+  <li><code>skill-eval</code> floor 43/47 for the edited <code>/backlog</code> and <code>/mytasks</code> skills.</li>
+</ul>
+
+<h2 id="release-prerequisites">Release prerequisites (NOT plan waves — /complete-dev owns)</h2>
+<ul>
+  <li>pmos-toolkit version bump (from 2.68.0) in both <code>plugin.json</code> manifests.</li>
+  <li>Changelog entry; <code>~/.pmos/learnings.md</code> header. No README row / marketplace change (no new skill).</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,74 @@
+schema_version: 1
+story: 0612-d14
+epic: 0612-jjs
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Additive year-prefix extension of the 0020 id scheme. Sequenced: canonical format+validator
+# (single home) → year-prefixed minter → uniqueness-gate extractor → /mytasks adoption → tests+prose.
+# Independent leaves (T3 extractor, T4 mytasks, T5 tests/prose) can run after T1; T2 follows T1.
+tasks:
+  - id: T1
+    title: "Canonical format + triple-accept validator in _shared/tracker-crudl.md §2 (single home)"
+    ac: [AC1]
+    deps: []
+    detail: >
+      §2.1: add the third permanently-valid form <YYMMDD>-<rand3> (example 260612-k3f) alongside the
+      grandfathered legacy 4-digit and current <MMDD>-<rand3> forms. Replace the dual validator with
+      the canonical triple-accept regex
+      ^([0-9]{4}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{6}-[0-9a-hj-km-np-tv-z]{3})$ and explain the
+      three unambiguous arms. §2.3: state that BOTH a concurrent store (/backlog) and a single-store
+      tracker (/mytasks) now mint the date+rand scheme (year-prefixed); drop the "single-store MAY keep
+      legacy serials" carve-out per D2/D3 (note serials stay grandfathered-valid). This file is the
+      SINGLE source (§K) — do not restate the format anywhere else; consumers cite §2.
+
+  - id: T2
+    title: "Year-prefixed minter + triple-accept ID_RE in backlog/scripts/mint-id.mjs"
+    ac: [AC2, AC3]
+    deps: [T1]
+    detail: >
+      mintId(): compute YY = String(d.getFullYear() % 100).padStart(2,'0') and return
+      `${YY}${MM}${DD}-${rand3()}`. Accept a 6-digit --date YYMMDD (or YY-MM-DD) testing override
+      (widen the override validation from ^[0-9]{4}$ to ^[0-9]{6}$ and re-derive). Replace ID_RE with
+      the canonical triple-accept regex (byte-identical to tracker-crudl §2.1, keep the "MUST stay
+      byte-identical" comment accurate). Update the usage/help text from <MMDD>-<rand3> to
+      <YYMMDD>-<rand3>. Keep crypto.randomBytes (no banned PRNG).
+
+  - id: T3
+    title: "Add the 6-digit arm to check-id-uniqueness.mjs ID_PREFIX_RE"
+    ac: [AC3]
+    deps: [T1]
+    detail: >
+      ID_PREFIX_RE → /^([0-9]{6}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4})-/
+      (6-digit arm FIRST so it matches greedily; the other two arms unchanged). Update the leading
+      comment. The gate logic is otherwise format-agnostic — verify it still passes on a corpus mixing
+      legacy 4-digit, current <MMDD>-<rand3>, and new <YYMMDD>-<rand3> filenames, and still refuses a
+      genuine duplicate.
+
+  - id: T4
+    title: "/mytasks adopts <YYMMDD>-<rand3> minting (D2/D3 — veto-able, isolated)"
+    ac: [AC4]
+    deps: [T1]
+    detail: >
+      mytasks/SKILL.md quick-capture (#quick-capture) step 2 and rich-capture (#rich-capture):
+      replace the "scan items/ + archive/ for max ^([0-9]{4})- prefix, allocate max+1" serial rule with
+      a mint of <YYMMDD>-<rand3> — resolve the shared mint-id.mjs path within pmos-toolkit
+      (../backlog/scripts/mint-id.mjs) or inline the tiny crypto-sourced mint; cite tracker-crudl §2.
+      Existing 4-digit serials remain valid (triple-accept). Keep quick-capture a single-tool-call,
+      no-clarifying-question flow. IF the maintainer vetoes the /mytasks move at build, SKIP this task
+      entirely — AC1–AC3/AC5 are independent of it.
+
+  - id: T5
+    title: "Tests + prose — triple-accept regression guard and <MMDD>→<YYMMDD> doc updates"
+    ac: [AC5]
+    deps: [T2, T3]
+    detail: >
+      backlog/tests/id-scheme.test.sh: update the format check (L24), filename round-trip (L43), and
+      claim-lock (L44) regexes to expect ^[0-9]{6}-[0-9a-hj-km-np-tv-z]{3}; KEEP the legacy-accept
+      checks; ADD a new check `validator accepts current MMDD-rand3` asserting
+      `node $MINT validate 0612-k3f` exits 0 (the regression guard against dropping the current arm).
+      Run the suite — all green. Update prose <MMDD> references that describe newly-minted ids to
+      <YYMMDD> in backlog/SKILL.md, backlog/schema.md, backlog/tests/scenarios.md,
+      feature-sdlc/SKILL.md (#define-mode mentions), docs/pmos/changelog.md — leaving descriptions of
+      the grandfathered legacy/current forms intact. Do NOT add version-bump/changelog-release/manifest
+      tasks here — /complete-dev owns release prerequisites.

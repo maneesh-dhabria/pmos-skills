@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+  pmos artifact — feature: 2026-06-12_yymmdd-ids
+  epic: 0612-jjs · story: 0612-d14 · route: skill · plugin: pmos-toolkit
+  stage: define / 02_design (the cross-cutting contract; no epic /spec — skill spec folds into the story /plan)
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — Year-prefixed backlog ids (&lt;YYMMDD&gt;-&lt;rand3&gt;)</title>
+<style>
+  :root { --ink:#1a1a1a; --muted:#666; --rule:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --code-bg:#f6f8fa; }
+  body { font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); max-width: 860px; margin: 2.5rem auto; padding: 0 1.25rem; }
+  h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 .25rem; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 .6rem; padding-bottom: .25rem; border-bottom: 2px solid var(--rule); }
+  h3 { font-size: 1.02rem; margin: 1.4rem 0 .4rem; }
+  .sub { color: var(--muted); font-size: .92rem; margin: 0 0 1.5rem; }
+  code { background: var(--code-bg); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  pre { background: var(--code-bg); padding: .8rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--rule); padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #fafafa; }
+  .warn { background: #fffbef; border-left: 3px solid var(--warn); padding: .6rem .9rem; margin: 1rem 0; border-radius: 0 4px 4px 0; }
+  .pill { display: inline-block; font-size: .72rem; font-weight: 600; padding: .08rem .45rem; border-radius: 10px; background: #edf2f7; color: var(--accent); }
+  ul { margin: .4rem 0 .8rem; } li { margin: .2rem 0; }
+</style>
+</head>
+<body>
+
+<h1>Year-prefixed backlog ids — <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code></h1>
+<p class="sub">Epic <strong>0612-jjs</strong> · route: skill · pmos-toolkit · singleton epic (D18) wrapping one build story (0612-d14). Define-stage design contract — the build story (<code>/plan</code> → <code>/execute</code> → <code>/skill-eval</code> → <code>/verify</code>) cites these anchors.</p>
+
+<h2 id="context">Context</h2>
+<p>Maintainer feedback (2026-06-12): <em>"Can we include the year number as well in the numbering logic in <code>/backlog</code> rather than only <code>mmdd-rnd</code> → <code>yymmdd-rnd</code> is what I am proposing."</em></p>
+<p>The id scheme shipped one bump ago in epic <strong>0020</strong> (<code>pmos-toolkit/v2.68.0</code>) as the coordination-free <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> form (e.g. <code>0612-k3f</code>) — see <code>plugins/pmos-toolkit/skills/_shared/tracker-crudl.md</code> §2 (the single home of the id format and validator). The <code>MMDD</code> date-hint omits the year, so a bare <code>0612</code> is <strong>ambiguous across years</strong> — last June and this June produce indistinguishable prefixes. Prepending a 2-digit year (<code>260612-k3f</code>) makes the date-hint complete and self-dating. This is a direct, mechanical extension of 0020, not a redesign.</p>
+
+<h2 id="decisions">Decisions captured at define</h2>
+<table>
+  <tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+  <tr>
+    <td><strong>D1</strong></td>
+    <td><strong>Additive triple-accept — no migration.</strong> Only newly-minted ids carry the year. The validator widens to accept <em>all three</em> permanently-valid forms: legacy 4-digit serial, current <code>&lt;MMDD&gt;-&lt;rand3&gt;</code>, and new <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code>. Existing ids, filenames, branches, claim locks, and <code>parent:</code>/<code>dependencies:</code> refs are never rewritten.</td>
+    <td>Rewriting an existing id is a corruption (it is referenced by branches, claims, and released changelog entries — tracker-crudl §2.1). The 0020 scheme already grandfathers legacy serials; this adds a third grandfathered arm rather than a one-time migration. Low risk, ~6 code sites.</td>
+  </tr>
+  <tr>
+    <td><strong>D2</strong></td>
+    <td><strong>Scope = both <code>/backlog</code> and <code>/mytasks</code></strong> mint year-prefixed ids going forward (maintainer-chosen at define).</td>
+    <td>The feedback names <code>/backlog</code>; the maintainer extended it to <code>/mytasks</code> for one uniform date-based scheme across both trackers. Both live in pmos-toolkit — one release unit, D17 satisfied.</td>
+  </tr>
+  <tr>
+    <td><strong>D3</strong> <span class="pill">veto-able at build</span></td>
+    <td><strong><code>/mytasks</code> adopts the same <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> scheme</strong> (not a year+serial hybrid). <code>/mytasks</code> ids today are pure 4-digit serials with <em>no</em> date prefix to extend, so "add the year" necessarily means moving to the only date-based scheme in the system. Existing serials stay valid under the triple-accept validator.</td>
+    <td>Inventing a third <code>&lt;YYMMDD&gt;-&lt;serial&gt;</code> hybrid would fork the scheme and re-introduce a counter. Trade-off: <code>/mytasks</code> ids lose their human-incrementable "task 42" quality (the <code>rand3</code> suffix is collision-free-by-construction, harmless for a single store). <strong>If the maintainer would rather keep <code>/mytasks</code> on human serials, drop the mytasks task at build — it is isolated.</strong></td>
+  </tr>
+  <tr>
+    <td><strong>D4</strong></td>
+    <td><strong>Ids remain NOT a sort key.</strong> The year makes the date-hint unambiguous, but the <code>rand3</code> suffix keeps ids non-monotonic within a day. The §2.2 invariant — <em>"no consumer may lexical-sort ids as a chronology proxy; sort on <code>created:</code>"</em> — is preserved verbatim.</td>
+    <td>Decouples this change from any sort-order rework; <code>created:</code> stays the chronology source (§3/§5). No <code>/backlog next</code> ordering change.</td>
+  </tr>
+</table>
+
+<h2 id="scheme">The new scheme (exact)</h2>
+<p>Format of a newly-minted id — <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code>:</p>
+<ul>
+  <li><strong>YY</strong> — 2-digit year (<code>getFullYear() % 100</code>, zero-padded).</li>
+  <li><strong>MM DD</strong> — 2-digit month + day (unchanged).</li>
+  <li><strong>rand3</strong> — 3 lowercase Crockford-base32 chars, alphabet <code>0123456789abcdefghjkmnpqrstvwxyz</code> (no <code>i l o u</code>) — unchanged.</li>
+  <li>Example: <code>260612-k3f</code>.</li>
+</ul>
+<p><strong>Canonical triple-accepting validator</strong> — this exact string is duplicated byte-identically in two homes (<code>mint-id.mjs</code> and <code>tracker-crudl.md</code> §2.1):</p>
+<pre>^([0-9]{4}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{6}-[0-9a-hj-km-np-tv-z]{3})$</pre>
+<p>The three arms are unambiguous — exactly 4 digits (legacy serial); 4 digits + <code>-</code> + 3 base32 (current); 6 digits + <code>-</code> + 3 base32 (new). The <code>-</code> separator plus the digit count disambiguates all three.</p>
+<div class="warn"><strong>Correctness trap (must-have regression test):</strong> the naive "swap <code>[0-9]{4}</code> → <code>[0-9]{6}</code>" widening <em>drops the current <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> arm</em> and would silently invalidate every existing <code>0612-xxx</code> id (epics <code>0612-h2j</code>, <code>0612-w4e</code>, <code>0612-jjs</code>; stories <code>0612-ejq</code>, <code>0612-2w7</code>, <code>0612-d14</code>; …). The validator MUST keep all three arms; the build adds an explicit test asserting a current <code>0612-k3f</code> id still validates.</div>
+
+<h2 id="impact">Impact map — every site that mints, validates, or parses an id</h2>
+<p>Grounded against the working tree at define time. Single <code>tracker-crudl.md</code> copy → <strong>no cross-plugin <code>_shared</code> sync</strong> (<code>sync-shared.sh</code> is a no-op for a file only one plugin owns).</p>
+<table>
+  <tr><th>Site</th><th>File:line</th><th>Change</th></tr>
+  <tr><td>Canonical format + validator (single home)</td><td><code>_shared/tracker-crudl.md</code> §2.1 (~L22, L25), §2.3 (~L34)</td><td>Document the third form; widen the validator string; update §2.3 so a single-store tracker also mints the date+rand scheme.</td></tr>
+  <tr><td>Minter</td><td><code>backlog/scripts/mint-id.mjs</code> <code>mintId()</code> (~L43–53)</td><td>Prepend 2-digit year to the date; build <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code>; accept a 6-digit <code>--date YYMMDD</code> (or <code>YY-MM-DD</code>) testing override; update help text.</td></tr>
+  <tr><td>Validator constant</td><td><code>backlog/scripts/mint-id.mjs</code> <code>ID_RE</code> (~L28)</td><td>Replace with the canonical triple-accept regex above (byte-identical to tracker-crudl §2.1).</td></tr>
+  <tr><td>Prefix extractor</td><td><code>feature-sdlc/scripts/check-id-uniqueness.mjs</code> <code>ID_PREFIX_RE</code> (~L25)</td><td>Add the 6-digit arm first: <code>/^([0-9]{6}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}|[0-9]{4})-/</code>. (Gate logic itself is format-agnostic.)</td></tr>
+  <tr><td><code>/mytasks</code> allocation (D2/D3)</td><td><code>mytasks/SKILL.md</code> §quick-capture step 2 (~L130) + §rich-capture</td><td>Replace the <code>max(^[0-9]{4}-)+1</code> serial scan with a mint of <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> (resolve the shared <code>mint-id.mjs</code> within pmos-toolkit, or inline the tiny mint). Cite tracker-crudl §2.</td></tr>
+  <tr><td>Behavioral tests</td><td><code>backlog/tests/id-scheme.test.sh</code> (L24, L43, L44)</td><td>Expect a 6-digit date prefix in the format/round-trip/claim-lock checks; <strong>add</strong> a regression check that a current <code>0612-k3f</code> id still validates; keep the legacy-accept checks.</td></tr>
+  <tr><td>Claim-lock selftest</td><td><code>backlog/scripts/claim-lock.js</code> (~L133–171)</td><td>Format-agnostic; no functional change. Optionally refresh hardcoded test ids to the new form for clarity.</td></tr>
+  <tr><td>Prose references</td><td><code>backlog/SKILL.md</code>, <code>backlog/schema.md</code>, <code>backlog/tests/scenarios.md</code>, <code>feature-sdlc/SKILL.md</code> #define-mode, <code>docs/pmos/changelog.md</code></td><td>Update <code>&lt;MMDD&gt;</code> mentions to <code>&lt;YYMMDD&gt;</code> where they describe newly-minted ids (not where they describe the grandfathered forms).</td></tr>
+</table>
+
+<h2 id="out-of-scope">Out of scope (v1)</h2>
+<ul>
+  <li>Migrating existing <code>&lt;MMDD&gt;-&lt;rand3&gt;</code> or legacy 4-digit ids (D1 — additive only).</li>
+  <li>Making ids a chronological sort key (D4 — <code>created:</code> stays canonical).</li>
+  <li>A <code>&lt;YYMMDD&gt;-&lt;serial&gt;</code> hybrid for <code>/mytasks</code> (D3 — one uniform scheme).</li>
+  <li>4-digit-year (<code>YYYY</code>) prefixes — the maintainer proposed 2-digit <code>YY</code>.</li>
+</ul>
+
+<h2 id="acceptance">Epic acceptance criteria</h2>
+<ul>
+  <li>New ids minted as <code>&lt;YYMMDD&gt;-&lt;rand3&gt;</code> in <code>/backlog</code> (and <code>/mytasks</code> per D3); no max+1 reintroduced.</li>
+  <li>The dual→triple validator accepts all three forms; every existing id (4-digit, <code>MMDD-rand3</code>, new) parses and is never rewritten.</li>
+  <li>Format + validator changed only in the single canonical home (<code>tracker-crudl.md</code> §2), cited — not restated — elsewhere (§K).</li>
+  <li>All id-consuming sites stay scheme-agnostic; <code>id-scheme.test.sh</code> green including the new triple-accept regression check; <code>/backlog add</code> stays a frictionless single-tool-call flow.</li>
+  <li>Skill rubric green (<code>skill-eval.md</code> floor 43/47) for the two edited skills.</li>
+</ul>
+
+</body>
+</html>
