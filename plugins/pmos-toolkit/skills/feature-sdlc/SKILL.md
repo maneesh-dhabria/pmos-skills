@@ -284,9 +284,9 @@ When state.yaml is present:
 
 On failure: hard-phase failure dialog (no Skip).
 
-## Phase 0d: /skill-tier-resolve (skill modes only) {#skill-tier-resolve}
+## Phase 0d: /skill-tier-resolve (skill modes + route:skill build) {#skill-tier-resolve}
 
-**Runs only when `pipeline_mode ∈ {skill-new, skill-feedback}`.** Hardness: **infra**. One repo-shape pass yields three values, recorded on the `skill-tier-resolve` state entry:
+**Runs when `pipeline_mode ∈ {skill-new, skill-feedback}`, OR in `build` mode for a `route: skill` story** (the build inner pipeline inserts this phase before `/execute` — see `#build-mode` step 4 and the `route: skill` build `phases[]` in `reference/state-schema.md`). Hardness: **infra**. One repo-shape pass yields three values, recorded on the `skill-tier-resolve` state entry (in build mode the story's ACs — the approved findings — are the change-set the tier resolves from):
 
 1. **Tier** — via `reference/skill-tier-matrix.md`. `skill-new`: from the described skill's expected shape. `skill-feedback`: per-skill tiers from each approved-change-set's size; run tier = max, shown with the breakdown. `--tier N` overrides the matrix and logs a divergence note to `child_tier_divergence` — the matrix recommendation is never silently dropped.
 2. **Skill location** — via `reference/repo-shape-detection.md`'s four-rung chain. Multiple candidate plugins at rung 2:
@@ -429,8 +429,11 @@ Selected by `--route skill`, an existing `route: skill` epic, or a `skill-feedba
 ```
 worktree(define/<epic>) → init-state → resolve-epic →
 [adopt design-doc seed | feedback-triage→synthesize design page | skill-new: epic /requirements] →
-build design_doc → story-split(judgement) → per-story /plan → definition-merge(docs-only) → final-summary
+[ideate] → design-build → grill(against 02_design.html) → story-split(judgement) →
+per-story /plan → definition-merge(docs-only) → final-summary
 ```
+
+(Phase ids match `reference/state-schema.md`'s `route: skill` define `phases[]`: `… resolve-epic, [feedback-triage], [requirements], ideate, design-build, grill, story-split, plan, definition-merge, …`. `ideate` may auto-skip on a formed seed; `grill` runs against `02_design.html` per the usual tier gates.)
 
 - **Step 2 delta — epic design instead of `/spec`.** There is **no epic-level `/spec`** (skill spec is per-skill, folds into each story's `/plan`). Instead the epic gets a **`design_doc:`** — the cross-skill coherence contract the stories cite by anchor (G2; the role `spec_doc:` plays for feature epics). Three sub-modes build it:
   - **design-doc seed** (`--from-feedback <design-doc>` or `define` pointed at an epic whose `source:` is a design doc): **adopt the seed verbatim** as `02_design.html` (run it through the HTML substrate; it is already the design). Skip `/requirements`+`/spec`.
