@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-12 — pmos-toolkit 2.67.0: `compact_mode` setting — skip `/compact` prompts when autocompact is on
+
+Add `compact_mode: manual | auto` to `.pmos/settings.yaml`. Set it to `auto` when you have autocompact configured — the pipeline stops asking you to run `/compact` and instead trusts autocompact to handle context between phases. Default is `manual`, so existing installs are unaffected.
+
+- **`/feature-sdlc` compact checkpoints.** In `auto` mode the pre-phase AskUserQuestion is skipped entirely; a single log line confirms the checkpoint was bypassed (`compact_mode: auto — checkpoint at <phase> skipped; autocompact active`). In `manual` mode (or absent) behaviour is unchanged.
+- **`/execute` phase-boundary handler.** In `auto` mode the `HALT_FOR_COMPACT` message drops the `/compact` instruction; the hard stop is preserved — you still re-invoke `/execute --resume` after each phase, but you no longer need to run `/compact` yourself.
+- **Trust-based.** The skills trust that autocompact is configured and active; they do not verify it at runtime. If autocompact is not active, context growth is unmanaged — configuring it correctly is the user's responsibility.
+
 ## 2026-06-12 — pmos-toolkit 2.66.1: skill feedback always goes through the loop
 
 `/skill-sdlc --from-feedback` now routes into the skill three-loop **every time**, not just for multi-skill batches. The earlier "offer the loop once 3+ skills are in scope" threshold is gone — a single-skill fix is a perfectly valid one-story epic, so the loop is the uniform path. Pass `--monolithic` for the old single-pass behaviour when you just want a quick one-shot fix.
