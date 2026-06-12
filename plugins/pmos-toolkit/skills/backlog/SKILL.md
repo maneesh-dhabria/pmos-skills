@@ -125,7 +125,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 
 `/backlog set <id> <field>=<value>`. `/requirements`, `/spec`, `/plan`, `/execute`, `/verify`, `/feature-sdlc`, and `/complete-dev` invoke this literal form per `pipeline-bridge.md`; keep its surface exact.
 
-1. **Field name.** Settable: `title`, `type`, `status`, `priority`, `score`, `labels`, `route`, `kind`, `parent`, `dependencies`, `source`, `feature_folder`, `requirements_doc`, `spec_doc`, `plan_doc`, `tasks_file`, `worktree`, `claimed_by`, `released`, `pr`. Skill-managed (reject with `Field '{field}' cannot be set directly. The skill manages it.`): `id`, `created`, `updated`.
+1. **Field name.** Settable: `title`, `type`, `status`, `priority`, `score`, `labels`, `route`, `kind`, `parent`, `dependencies`, `source`, `feature_folder`, `requirements_doc`, `spec_doc`, `design_doc`, `plan_doc`, `tasks_file`, `worktree`, `claimed_by`, `released`, `pr`. (`design_doc` is the `route: skill` epic's coherence contract, G2 — set by `/feature-sdlc define --route skill` in place of `spec_doc`.) Skill-managed (reject with `Field '{field}' cannot be set directly. The skill manages it.`): `id`, `created`, `updated`.
 2. **Value.** Validate against `schema.md` (the single enum source):
 
    | Field | Validation |
@@ -198,7 +198,7 @@ Legacy: `list --type/--status/--priority/--label <v>`, `--repo <name>`, `--works
 - Output the file contents verbatim, fenced.
 - **`--tasks`:** also render the story's `tasks_file` **read-only**, resolving the path **through the worktree** when the story is claimed (the branch-local `tasks.yaml` is the live state, D11) else from main. Derive each task's readiness (`pending` + all `deps` done) at render time (D21); never write.
 
-**link** — `/backlog link <id> <doc-or-url>`. Infer the field (`*/pull/N` → `pr`; `*-spec.*` → `spec_doc`; `*-plan.*` → `plan_doc`; `tasks.yaml` → `tasks_file`; `*-requirements.*` → `source`; else error `Cannot infer link type from '{value}'. Use /backlog set {id} <field>=<value>.`) and delegate to `#set`. Confirm one line.
+**link** — `/backlog link <id> <doc-or-url>`. Infer the field (`*/pull/N` → `pr`; `*-spec.*`/`*_spec.*` → `spec_doc`; `*-design.*`/`*_design.*` → `design_doc`; `*-plan.*` → `plan_doc`; `tasks.yaml` → `tasks_file`; `*-requirements.*` → `source`; else error `Cannot infer link type from '{value}'. Use /backlog set {id} <field>=<value>.`) and delegate to `#set`. Confirm one line.
 
 **archive** — `/backlog archive` (or "archive old done items", "archive into 2026-Q1").
 <!-- nl-sugar -->

@@ -47,8 +47,11 @@ kind: epic
 status: defined                # epic machine: inbox → defining → defined → released | wontfix
 feature_folder: docs/pmos/features/2026-06-12_magazine-interop/
 requirements_doc: docs/pmos/features/2026-06-12_magazine-interop/01_requirements.html  # set by /feature-sdlc define
-spec_doc:         docs/pmos/features/2026-06-12_magazine-interop/02_spec.html           # set by /feature-sdlc define
+spec_doc:         docs/pmos/features/2026-06-12_magazine-interop/02_spec.html           # set by /feature-sdlc define (feature/lite epics)
+design_doc:       docs/pmos/features/2026-06-12_magazine-interop/02_design.html         # route: skill epics ONLY — the cross-skill coherence contract stories cite (G2); set by /feature-sdlc define --route skill in place of spec_doc
 ```
+
+For `route: skill` epics there is **no epic-level `spec_doc:`** — the skill "spec" is per-skill and folds into each story's `/plan`. Instead the epic carries a **`design_doc:`** (G2): the shared design contract the stories cite by anchor (the role `spec_doc:` plays for feature epics). Its source is an adopted design-doc seed, a page synthesized from the feedback triage, or `skill-new` epic requirements. `feature`/`lite` epics carry `spec_doc:` and leave `design_doc:` absent; the two are mutually exclusive by route.
 
 ## Frontmatter — story-only fields
 
@@ -138,7 +141,7 @@ Tasks are NEVER backlog items. They live in one file per story, emitted by `/pla
 ```yaml
 # docs/pmos/features/<epic>/stories/<story>/tasks.yaml
 story: 0012
-spec: ../../02_spec.html          # the epic spec this plan implements
+spec: ../../02_spec.html          # the epic spec this plan implements (route: skill stories cite ../../02_design.html — the epic design_doc — instead, G2)
 tasks:
   - id: T1
     title: exporter script opml-export.js
@@ -169,8 +172,9 @@ Atomic story claims are O_EXCL lockfiles under `backlog/claims/<id>.lock`, manag
 
 ```
 docs/pmos/features/2026-06-12_magazine-interop/
-├── 01_requirements.html              # epic-level (Loop 1)
-├── 02_spec.html                      # epic-level (Loop 1)
+├── 01_requirements.html              # epic-level (Loop 1) — feature/lite; or skill-new epic requirements (G7)
+├── 02_spec.html                      # epic-level (Loop 1) — feature/lite epics
+│   (route: skill epics carry 02_design.html instead of 02_spec.html — the design_doc, G2)
 └── stories/
     ├── 0012-opml-export/{03_plan.html, tasks.yaml}
     ├── 0013-rss-import/{03_plan.html, tasks.yaml}
