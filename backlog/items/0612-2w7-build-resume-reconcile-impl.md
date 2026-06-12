@@ -5,7 +5,8 @@ kind: story
 title: Implement build-loop reconcile-in-flight — resume-first step 0, claim-ownership, forward-progress poison guard
 type: feature
 priority: should
-status: done
+status: released
+released: pmos-toolkit/v2.69.0
 route: skill
 plugin: pmos-toolkit
 parent: 0612-w4e
@@ -14,7 +15,7 @@ spec_doc: docs/pmos/features/2026-06-12_build-resume-reconcile/02_design.html
 plan: docs/pmos/features/2026-06-12_build-resume-reconcile/stories/0612-2w7-build-resume-reconcile/03_plan.html
 tasks: docs/pmos/features/2026-06-12_build-resume-reconcile/stories/0612-2w7-build-resume-reconcile/tasks.yaml
 dependencies: []
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-0612-2w7
+worktree:
 labels: [backlog, build-loop, resume, resilience, claim-lock]
 created: 2026-06-12
 updated: 2026-06-12

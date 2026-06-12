@@ -5,7 +5,8 @@ kind: epic
 title: Build-loop resume-first reconcile-in-flight — self-heal stories that crash mid-build under /loop
 type: feature
 priority: should
-status: defined
+status: released
+released: pmos-toolkit/v2.69.0
 route: skill
 plugin: pmos-toolkit
 feature_folder: docs/pmos/features/2026-06-12_build-resume-reconcile/
