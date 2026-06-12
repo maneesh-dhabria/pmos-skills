@@ -8,7 +8,7 @@ Last regenerated: 2026-06-12
 | id | status | route | plugin | stories (done/total) | title |
 |----|--------|-------|--------|----------------------|-------|
 | 0010 | released | | pmos-toolkit | 0/0 | Deepen /artifact into a document pipeline (pmos-toolkit/v2.65.0) |
-| 0011 | defined | skill | pmos-toolkit | 0/2 | compact-mode setting for /compact checkpoints |
+| 0011 | released | skill | pmos-toolkit | 2/2 | compact-mode setting for /compact checkpoints (pmos-toolkit/v2.67.0) |
 
 ## should
 

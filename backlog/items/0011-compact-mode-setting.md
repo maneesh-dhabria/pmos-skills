@@ -5,7 +5,7 @@ kind: epic
 title: compact-mode setting for /compact checkpoints
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-12_compact-mode-setting/
 requirements_doc:
