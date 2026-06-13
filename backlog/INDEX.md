@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (+ epic 260613-5av define)
+Last regenerated: 2026-06-13 (rebuild from items — 5 build write-backs reconciled)
 
-2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+5 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -19,11 +19,11 @@ Last regenerated: 2026-06-13 (+ epic 260613-5av define)
 | 0612-gd0 | released | skill | pmos-toolkit | 1/1 | /explainer-video — turn a doc/artifact/URL into a narrated slideshow video (local, $0) |
 | 0613-kr0 | released | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
 | 0613-dnv | released | skill | pmos-toolkit | 1/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
-| 0613-5pq | defined | skill | pmos-toolkit | 0/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
-| 260613-vba | defined | skill | pmos-toolkit | 0/2 | Build /research — PM decision-support deep-research skill |
-| 260613-yyj | defined | skill | pmos-toolkit | 0/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
-| 260613-4mw | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
-| 260613-7tm | defined | skill | pmos-toolkit | 0/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
+| 0613-5pq | defined | skill | pmos-toolkit | 1/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
+| 260613-vba | defined | skill | pmos-toolkit | 1/2 | Build /research — PM decision-support deep-research skill |
+| 260613-yyj | defined | skill | pmos-toolkit | 1/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
+| 260613-4mw | defined | skill | pmos-gamekit | 1/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
+| 260613-7tm | defined | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
 | 260613-5av | defined | skill | pmos-toolkit | 0/3 | /mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained) |
 
 ## should
@@ -45,12 +45,12 @@ Last regenerated: 2026-06-13 (+ epic 260613-5av define)
 | 0612-jc5 | story | feature | released | 0612-gd0 | Build the /explainer-video pmos-toolkit skill — doc/artifact/URL → narrated slideshow .mp4 ($0, local) | 02_design.html | 03_plan.html |  |
 | 0613-36f | story | feature | released | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
 | 0613-fzy | story | feature | released | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
-| 0613-rhf | story | enhancement | planned | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
-| 260613-m64 | story | feature | planned | 260613-vba | Author _shared/research/ substrate + the /research skill end-to-end | 02_design.html | 03_plan.html |  |
+| 0613-rhf | story | enhancement | done | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
+| 260613-m64 | story | feature | done | 260613-vba | Author _shared/research/ substrate + the /research skill end-to-end | 02_design.html | 03_plan.html |  |
 | 260613-dnp | story | feature | ready | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate |  |  |  |
-| 260613-3ff | story | enhancement | planned | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
+| 260613-3ff | story | enhancement | done | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
 | 260613-2m7 | story | enhancement | ready | 260613-yyj | /verify load-bearing dogfood gate (Phase-7 hard gate) + iterate-loop residual reconciliation | 02_design.html | 03_plan.html |  |
-| 260613-3jc | story | bug | planned | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
+| 260613-3jc | story | bug | done | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
 | 260613-7n1 | story | enhancement | planned | 260613-5av | Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix | 02_design.html | 03_plan.html |  |
 | 260613-044 | story | enhancement | planned | 260613-5av | Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering | 02_design.html | 03_plan.html |  |
 | 260613-yfr | story | feature | planned | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
@@ -65,4 +65,4 @@ Last regenerated: 2026-06-13 (+ epic 260613-5av define)
 | 0007 | story | feature | wontfix |  | /polish — symmetric \"expansion\" mode (grow a doc that's too thin) |  |  |  |
 | 0008 | story | tech-debt | wontfix |  | skill-eval-check.sh --selftest failure surfacing — bijection break (e.g., §[A-F] vs §G) exits 1 with no stdout; stderr alone is easy to lose |  |  |  |
 | 0003 | story | tech-debt | done |  | README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical |  |  |  |
-| 260613-c31 | story | feature | planned | 260613-4mw | Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests) | 02_design.html | 03_plan.html |  |
+| 260613-c31 | story | feature | done | 260613-4mw | Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests) | 02_design.html | 03_plan.html |  |
