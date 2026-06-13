@@ -2,7 +2,7 @@
 name: complete-dev
 description: End-of-development orchestrator that follows /verify — merges feature work into main, captures learnings into CLAUDE.md/AGENTS.md, regenerates the changelog, bumps versions, deploys per repo norms, tags the release, and pushes to all configured remotes. `--epic <id>` runs the three-loop release train — merges an epic's finished story branches in dependency order, runs an integrated deterministic gate, then ships one changelog + one version bump + tag for the whole epic. Supersedes the legacy /push skill. Terminal stage of the requirements -> spec -> plan -> execute -> verify -> complete-dev pipeline. Use when the user says "complete the dev cycle", "ship this work", "merge and deploy", "wrap up this branch", "finish development", "ready to push and deploy", "push to remotes", "push and ship", "push the release", "release this epic", "ship the epic train", or "what can I release".
 user-invocable: true
-argument-hint: "[--plugin <name>] [--epic [<id>]] [--stories <ids>] [--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
+argument-hint: "[--plugin <name>] [--epic [<id>|<id1>,<id2>,…]] [--stories <ids>] [--skip-changelog] [--skip-deploy] [--no-tag] [--force-cleanup] [--reset-defaults] [optional commit-message hint] [--non-interactive | --interactive]"
 ---
 
 # /complete-dev — end-of-development orchestrator
@@ -52,6 +52,12 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /complete-d
 
 `$ARGUMENTS` may contain:
 
+- `--epic [<id>|<id1>,<id2>,…]` — run the three-loop release train (`#epic-train`) instead of the classic single-branch flow. Three forms, resolved in Phase 0 (`#sanity-state` step 1):
+  - **bare `--epic`** (no id) — interactive: a **multi-select** picker of release-ready epics, each shipped sequentially; non-interactive: ships **ALL** release-ready epics with no prompt (the lights-out drain).
+  - **`--epic <id1>,<id2>,…`** (comma-separated id-list) — ships exactly those epics, in the order given, in **both** modes; each precondition-checked independently.
+  - **`--epic <id>`** (single id) — ships that one epic (a loop of length 1; behaves exactly as before).
+  Natural-language equivalents (§I): "ship all the ready epics" ≡ bare `--epic --non-interactive`; "release these two epics" ≡ `--epic <id1>,<id2>`; "release this epic" ≡ `--epic <id>`. `--epic` is an existing contract flag; this only widens its accepted value (an id-list) — no new flag is introduced.
+- `--stories <ids>` — partial-release modifier, **valid only with a single `--epic <id>`** (names a confirmation-gated subset of that epic's stories). Combined with any multi-epic set (bare, ship-all, or id-list) it is refused (exit 64) — see Phase 0 step 1.
 - `--skip-changelog` — bypass Phase 8 (still runs Phase 5 detection so dry-run summary documents what was skipped). Forces `run_defaults.changelog_disposition: skip` in Phase 0a.
 - `--skip-deploy` — bypass Phase 15's deploy invocation only (push and tag still happen). Forces `run_defaults.deploy_path: skip-deploy` in Phase 0a.
 - `--no-tag` — bypass Phase 13 tagging (push still happens)
@@ -105,15 +111,20 @@ Run in parallel:
 
 Print a one-line state summary: `Branch: <name>; Worktree: <yes|no>; Uncommitted: <N>; Remotes: <list>; Ahead of origin: <N>`.
 
-**Resolve `--epic` (three-loop release train) — checked first.** If `--epic` is present, this run is the epic release train (`#epic-train`), not the classic single-branch flow:
+**Resolve `--epic` (three-loop release train) — checked first.** If `--epic` is present, this run is the epic release train (`#epic-train`), not the classic single-branch flow. Resolution produces an **ordered epic set** — one or many epics, each a fully independent release run in sequence by the outer loop (`#epic-train`):
 
-1. **Bare `--epic` (no id, D23):** instead of erroring, run `/backlog releases --json` and offer the **release-ready** epics for selection. Loop 3 is always a deliberate human trigger, so a non-interactive run never auto-picks an epic to ship:
-   <!-- defer-only: ambiguous -->
-   `AskUserQuestion` — one option per release-ready epic, labelled `#<id> <title> — <N> stories, <plugin>` (no `(Recommended)`; non-interactive DEFERs — releasing is human-triggered). No release-ready epic → print the `in-flight`/`blocked` rollup and exit 0 (nothing to ship yet).
-2. **`--epic <id>`:** resolve the epic via `/backlog show <id>`. Precondition (D16): **all non-wontfix stories must be `done`** — else refuse with the in-flight/blocked rollup from `/backlog releases`, unless `--stories <ids>` names an explicit subset (a comma-separated story-id list), which is **confirmation-gated**:
+1. **Bare `--epic` (no id):** run `/backlog releases --json` for the **release-ready** epics, then branch on `mode` (D1/D9 — these are two documented mode branches, NOT an auto-pick of a deferred prompt):
+   - **interactive** → multi-select picker (D3, the realization of the feedback):
+     <!-- defer-only: ambiguous -->
+     `AskUserQuestion` (`multiSelect: true`) — one option per release-ready epic, labelled `#<id> <title> — <N> stories, <plugin>`, **≥1 selection required** (no `(Recommended)` — releasing is a deliberate human pick; empty selection → re-ask or cancel). The selected epics form the set.
+   - **non-interactive** → the set is **ALL** release-ready epics, **no prompt** (the lights-out drain, D1). Log the chat line `Phase 0: --non-interactive bare --epic → shipping all <N> release-ready epics`.
+   - **No release-ready epic** (either path) → print the `in-flight`/`blocked` rollup and exit 0 (nothing to ship yet, AC10).
+2. **`--epic <id>` or `--epic <id1>,<id2>,…` (comma-separated id-list):** resolve **each** id via `/backlog show <id>`, mode-agnostically, in the order given. Precondition-check **each** (D16): **all non-wontfix stories must be `done`** — else refuse **that id** with the in-flight/blocked rollup from `/backlog releases` (a single unknown / not-yet-ready id refuses the whole run, exit 64). The single-epic `--stories <ids>` subset (a comma-separated story-id list) is **confirmation-gated** and valid **only** with a single explicit `--epic <id>` (see the `--stories` guard below):
    <!-- defer-only: destructive -->
    `AskUserQuestion` — "Release only stories <ids> from epic #<id> (partial release; remaining stories stay open)? " — **Release the subset** / **Cancel**.
-3. Set `epic_release_mode = true`, capture the ordered story list (dependency order, D6), and **resolve `--plugin` from the epic** (its single plugin/release unit is guaranteed by D17 — read it from the epic's `labels`/`route`, skipping the diff-router below). Then jump to `#epic-train` for the merge train; the classic Phases 3/8/9/13/16a/17 are replaced by their train variants documented there. The non-train phases (0a defaults, 5 deploy-norms, 6 learnings, 7 readme, 10 schema-validation, 11 commit, 12 stale-branches, 14 dry-run, 15 push, 16 push-tag) run unchanged.
+3. **`--stories` guard (D7).** If `--stories` is present AND the resolved set is **not** a single explicit `--epic <id>` (i.e. it is bare/ship-all/multi-select or an id-list of length ≥2), emit `ERROR: --stories is only valid with a single --epic <id>. Exit 64.` to stderr and abort — `--stories`' meaning is undefined across a batch (fail loud, don't guess).
+4. **Order (D6).** An explicit id-list ships in the order given; multi-select & ship-all ship in **epic-id ascending** order (stable, reproducible — there is no cross-epic dependency model in v1).
+5. Set `epic_release_mode = true` and capture the **ordered epic set** for the outer loop. **`--plugin` is re-resolved per epic inside the loop** (`#epic-train` — each epic's single plugin/release unit is guaranteed by D17, read from its `labels`/`route`; the diff-router below is skipped). Then jump to `#epic-train`; the classic Phases 3/8/9/13/16a/17 are replaced by their train variants documented there. The non-train phases (0a defaults, 5 deploy-norms, 6 learnings, 7 readme, 10 schema-validation, 11 commit, 12 stale-branches, 14 dry-run, 15 push, 16 push-tag) run per epic, unchanged.
 
 If `--epic` is absent, this is the classic single-branch release (D8 — "release the branch I'm standing in"); continue with `--plugin` resolution below.
 
@@ -237,7 +248,15 @@ If on `main` already: skip to Phase 5 (no merge needed; treat as direct-to-main 
 
 ## Epic release train (`--epic`) — Loop 3 of the three-loop backlog {#epic-train}
 
-When `epic_release_mode` is set (Phase 0), the single-branch Phases 3, 8, 9, 13, 16a, and 17 are replaced by the train below; everything else runs unchanged. One epic = one release. Decisions D6, D8, D14, D16, D17, D23; full rationale in `docs/pmos/reviews/2026-06-10_ops-observations/backlog-three-loop-design.md`. The classic no-`--epic` flow is untouched (D8).
+When `epic_release_mode` is set (Phase 0), the single-branch Phases 3, 8, 9, 13, 16a, and 17 are replaced by the train below; everything else runs unchanged. One epic = one release. Decisions D6, D8, D14, D16, D17, D23; full rationale in `docs/pmos/reviews/2026-06-10_ops-observations/backlog-three-loop-design.md` and (multi-epic) `docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/02_design.html`. **D23 amended 2026-06-13 — multi-select picker + non-interactive ship-all (epic 0613-5pq, design D1/D9): the interactive bare `--epic` picker stays a deliberate human pick (now multi-select); the non-interactive ship-all is a documented mode branch, not an auto-pick of a deferred prompt.** The classic no-`--epic` flow is untouched (D8).
+
+**Outer loop over the ordered epic set (Phase 0 step 1).** Phase 0 resolved an **ordered epic set** (one id, an id-list, a multi-select, or the ship-all set). Run the **per-epic train (steps 1–6 below) once per epic, in order** — each epic is a fully independent release: **re-resolve `--plugin` from that epic first** (D17 — read its `labels`/`route`; a mixed-plugin batch is sound because one epic = one plugin), then run steps 1–6 to its tag + push. The per-epic train body (steps 1–6) is **byte-unchanged** from the single-epic flow (invariant I1) — this is purely an outer framing. A single-epic run (`--epic <id>`) is a loop of length 1 and behaves exactly as before.
+
+- **On a clean train:** record `shipped: <epic-id> → <plugin>/v<semver>` and continue to the next epic.
+- **On a failed train** (merge conflict, red integrated/coherence gate, PASS-WITH-GAPS abort, push failure): **STOP the loop (D2)** — the failing epic is already left `blocked` by the train's red-gate path; **attempt no further epics**. Already-shipped epics are irreversible (their tag + push are done) — there is no rollback.
+- **Per-epic outcome summary (always printed at the end, D2/AC4).** One line per epic in the set: `shipped (vX.Y.Z)` / `FAILED (<reason>)` / `not attempted`, with an explicit note that **shipped epics are irreversible** (tag + push complete) so the partial-completion state is unambiguous.
+
+Per-epic destructive DEFER gates (PASS-WITH-GAPS, the `--stories` subset confirm) are **preserved verbatim** per epic (D8/AC7); under `--non-interactive` they DEFER→abort that epic's train, which — per the stop-and-report rule above — **halts the loop** at that epic. The W14 inline non-interactive block is untouched (I4).
 
 1. **Merge train (replaces Phase 3).** Merge each finished story branch into main **in dependency order** (D6 — `dependencies:` doubles as merge order). Because a dependent story's worktree already merged its deps' commits at claim time (D9), git dedupes those merges cleanly. Conflict during the train → STOP, surface, human resolves (never auto-resolve) — the same conflict discipline as Phase 3. Per-story PASS-WITH-GAPS confirmation (the check shipped 2026-06-10) still applies — a story whose `/verify` left gaps prompts before its branch joins the train.
 2. **Integrated deterministic gate (D14 — new, runs on the merged tree BEFORE any version bump).** Two independently-PASSing stories can still interact badly. Run the repo's deterministic suite on the merged main — the test command(s), lints, and any hard-gate scripts detected in Phase 5's deploy-norms probe (e.g. `npm test`, the repo's `tools/*.sh` hygiene lints, skill-eval where applicable). **Red ⇒ the train stops: `/backlog set <epic-id> status=blocked`, nothing is bumped or tagged, surface the failing output, exit.** This is a deterministic gate only — no fresh LLM review pass (the 0-of-27 judge-rerun yield, per `06_self-verification-value.md`).
