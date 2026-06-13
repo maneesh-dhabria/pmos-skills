@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (+ epic 260613-7tm define)
+Last regenerated: 2026-06-13 (+ epic 260613-5av define)
 
 2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -24,6 +24,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-7tm define)
 | 260613-yyj | defined | skill | pmos-toolkit | 0/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
 | 260613-4mw | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
 | 260613-7tm | defined | skill | pmos-toolkit | 0/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
+| 260613-5av | defined | skill | pmos-toolkit | 0/3 | /mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained) |
 
 ## should
 
@@ -50,6 +51,9 @@ Last regenerated: 2026-06-13 (+ epic 260613-7tm define)
 | 260613-3ff | story | enhancement | planned | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
 | 260613-2m7 | story | enhancement | ready | 260613-yyj | /verify load-bearing dogfood gate (Phase-7 hard gate) + iterate-loop residual reconciliation | 02_design.html | 03_plan.html |  |
 | 260613-3jc | story | bug | planned | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
+| 260613-7n1 | story | enhancement | planned | 260613-5av | Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix | 02_design.html | 03_plan.html |  |
+| 260613-044 | story | enhancement | planned | 260613-5av | Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering | 02_design.html | 03_plan.html |  |
+| 260613-yfr | story | feature | planned | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
 
 ## could
 
