@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /backlog web viewer (epic 260613-p3c)</title>
+<style>
+  body { font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 28px; } h2 { font-size: 17px; margin-top: 2rem; border-bottom: 1px solid #e2e2e2; padding-bottom: .3rem; }
+  h3 { font-size: 16px; font-weight: 600; margin-top: 1.4rem; }
+  code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; font-size: 13px; }
+  pre { background: #f7f7f7; border: 1px solid #e2e2e2; border-radius: 6px; padding: .8rem; overflow-x: auto; font-size: 12.5px; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; } th, td { border-bottom: 1px solid #e2e2e2; padding: .4rem .6rem; text-align: left; vertical-align: top; }
+  .muted { color: #666; } ul li { margin: .2rem 0; }
+  .dec { background: #fafafa; border-left: 3px solid #999; padding: .5rem .8rem; margin: .6rem 0; }
+</style>
+</head>
+<body>
+<h1 id="design-backlog-web-viewer">Design — <code>/backlog web</code> viewer</h1>
+<p class="muted"><strong>Epic:</strong> 260613-p3c &nbsp;·&nbsp; <strong>Route:</strong> skill (this doc is the <code>design_doc:</code> coherence contract — there is no epic <code>/spec</code>) &nbsp;·&nbsp; <strong>Plugin:</strong> pmos-toolkit &nbsp;·&nbsp; <strong>Tier:</strong> 2 &nbsp;·&nbsp; <strong>Date:</strong> 2026-06-13</p>
+<p>Single in-scope skill: <code>/backlog</code>. One story (<code>260613-14b</code>) builds the whole viewer — the <code>web</code> verb, the server, the HTML viewer, and tests ship together (one <code>/execute</code>, one <code>/skill-eval</code>). The G3 default of one-story-per-skill holds because the parts are not independently <code>skill-eval</code>'able.</p>
+
+<h2 id="decisions">Decisions</h2>
+<div class="dec"><strong>D1 — New <code>web</code> verb on <code>/backlog</code>, not a new skill.</strong> The viewer reads the same <code>backlog/</code> store the skill already owns; a separate skill would duplicate the "where is the backlog" resolution and split the charter. Add one row to the <code>#routing</code> table and one <code>#web</code> handler section. (User-confirmed.)</div>
+<div class="dec"><strong>D2 — Live read on each request, served by an own zero-dep Node script.</strong> The viewer must reflect on-disk state on refresh, so the static game-launcher (<code>serve.js</code>, serves exactly one file) is insufficient. A new script <code>backlog/scripts/serve-web.mjs</code> borrows the launcher <em>conventions</em> (loopback <code>127.0.0.1</code>, ephemeral free port, default-browser auto-open, run-until-<code>Ctrl-C</code>, <code>--no-open</code> test seam) but adds a data route that parses the backlog per request. Node stdlib only (<code>node:http/fs/path/child_process</code>) — no dependencies. (User-confirmed: live read.)</div>
+<div class="dec"><strong>D3 — Read-only. No mutation endpoints exist.</strong> Only <code>GET /</code> (the HTML) and <code>GET /api/backlog</code> (the JSON). No <code>POST</code>/<code>PUT</code>/<code>/save</code>. The server opens no write handles to <code>backlog/</code>. (User: "Only looking to build a viewer.")</div>
+<div class="dec"><strong>D4 — Single-file HTML viewer, inline everything, no network.</strong> One <code>backlog/web/viewer.html</code> with inline <code>&lt;style&gt;</code> + <code>&lt;script&gt;</code>; vanilla JS, no Tailwind/CDN/build. It <code>fetch()</code>es <code>/api/backlog</code> (same-origin localhost) and renders client-side. "Single file that gets served" is honoured; the only runtime input is the local JSON.</div>
+<div class="dec"><strong>D5 — Derivation lives server-side, reusing the skill's existing rules.</strong> Epic rollups (<code>done/total</code>, in-flight), queue membership (groom/next/releases), and story readiness are <strong>derived in <code>serve-web.mjs</code></strong> from the same logic the terminal verbs specify (<code>schema.md</code> status machines; <code>SKILL.md#groom/#next/#releases</code>; readiness = planned + deps all done, D21). The viewer renders; it does not re-derive backlog semantics. One home for the rules.</div>
+<div class="dec"><strong>D6 — Views: epic→story tree + progress, three queues, filters (status/route/plugin). Dependency graph deferred.</strong> A story row MAY show a plain "blocked by #id" line when its <code>## Notes</code> records it (free from existing data); no graph is built. (User-selected view set.)</div>
+<div class="dec"><strong>D7 — Frontmatter parsing is shared, not reinvented.</strong> <code>serve-web.mjs</code> parses item frontmatter with the same minimal YAML-frontmatter reader the backlog scripts already use; if a reusable parser helper does not exist, add a tiny local one in <code>backlog/scripts/</code> and have both the (existing) index path and the web path call it. Malformed files are skipped with a warning (mirrors <code>#rebuild-index</code>), never abort the server.</div>
+
+<h2 id="server-contract">Server contract</h2>
+<p>Entry: <code>node backlog/scripts/serve-web.mjs [--no-open] [--port N]</code>, run from the repo root (resolve <code>&lt;repo&gt;</code> via <code>git rev-parse --show-toplevel</code>, fallback cwd).</p>
+<table>
+<tr><th>Route</th><th>Method</th><th>Response</th></tr>
+<tr><td><code>/</code></td><td>GET, HEAD</td><td><code>backlog/web/viewer.html</code> (text/html)</td></tr>
+<tr><td><code>/api/backlog</code></td><td>GET</td><td>Derived JSON model (below), parsed fresh from disk on every call</td></tr>
+<tr><td>anything else</td><td>any</td><td>404</td></tr>
+</table>
+<ul>
+  <li>Binds <code>127.0.0.1</code> on an ephemeral free port (or <code>--port</code> if given and free); prints <code>Backlog viewer ready at http://127.0.0.1:&lt;port&gt;/</code>; auto-opens the browser (open/xdg-open/start), degrading to a printed URL when headless or <code>--no-open</code>.</li>
+  <li>Node prerequisite error contract: if <code>node</code> is absent the <code>web</code> verb reports it and stops (no silent fallback).</li>
+  <li>Empty/absent backlog → <code>/api/backlog</code> returns empty arrays; the viewer shows an empty-state message.</li>
+</ul>
+
+<h3 id="api-shape">/api/backlog JSON shape</h3>
+<pre>{
+  "generated_at": "&lt;ISO&gt;",
+  "repo": "&lt;basename&gt;",
+  "epics": [
+    { "id","title","status","route","plugin","type","priority",
+      "progress": { "done": N, "total": M, "blocked": K },   // non-wontfix stories
+      "rollup": "inbox|defining|in-flight|all-stories-done|released",
+      "stories": [
+        { "id","title","status","route","type","priority","score",
+          "claimed_by", "claim_stale", "dependencies": [ids],
+          "blocked_by": "&lt;note text or null&gt;" }
+      ] }
+  ],
+  "queues": {
+    "groom":    { "needs_definition": [epicId], "needs_grooming": [storyId],
+                  "blocked": [storyId], "stale_claims": [storyId] },
+    "next":     { "pick": storyId | null },
+    "releases": { "release_ready": [epicId], "in_flight": [epicId], "blocked": [epicId] }
+  },
+  "facets": { "statuses": [...], "routes": [...], "plugins": [...], "types": [...] }  // for filter UI
+}</pre>
+<p>All derived fields (<code>progress</code>, <code>rollup</code>, <code>queues</code>, <code>claim_stale</code>) computed server-side per D5. <code>claim_stale</code> = claim lock older than the 4h TTL (read via the existing claim-lock status path). <code>plugin</code> derived from <code>labels</code>/<code>route</code> as <code>#releases</code> already does.</p>
+
+<h2 id="viewer-contract">Viewer contract</h2>
+<p><code>backlog/web/viewer.html</code> — three primary views, switchable via a top tab/segment control:</p>
+<ul>
+  <li><strong>Tree</strong> (default): each epic as a collapsible row — id, title, status badge, route/plugin chips, and a <code>done/total</code> progress bar; expand to list its stories with per-story status badges and a blocked-by line when present.</li>
+  <li><strong>Queues</strong>: three columns/lanes — <em>Groom</em> (needs-definition epics, needs-grooming + blocked stories, stale claims), <em>Next</em> (the single machine pick), <em>Releases</em> (release-ready / in-flight / blocked epics). Each row shows the copy-ready next command as text (display only — no execution).</li>
+  <li>A persistent <strong>filter bar</strong> (applies across views): multi-select status, route, plugin (built from <code>facets</code>); a clear-filters control; a result count.</li>
+</ul>
+<ul>
+  <li>Status badges use a small fixed colour map (e.g. inbox/draft grey, defining/ready/planned blue, in-progress amber, done/released green, blocked red, wontfix muted-strike).</li>
+  <li>A <strong>Refresh</strong> button re-<code>fetch</code>es <code>/api/backlog</code> (live read). Page also fetches on load.</li>
+  <li>No write controls anywhere in the UI (read-only contract, D3).</li>
+  <li>Self-contained: opening <code>viewer.html</code> from <code>file://</code> shows a graceful "start me with <code>/backlog web</code>" message when the <code>fetch</code> fails (no server).</li>
+</ul>
+
+<h2 id="file-layout">File layout (all under the existing backlog skill)</h2>
+<pre>plugins/pmos-toolkit/skills/backlog/
+  SKILL.md                 # + #routing row, + ## web {#web} handler, + argument-hint, + reference bullet
+  scripts/serve-web.mjs    # the live-read zero-dep server (new)
+  scripts/frontmatter.mjs  # tiny shared FM parser IF one doesn't already exist (D7)
+  web/viewer.html          # single-file viewer (new)
+  tests/serve-web.test.mjs # server behavioural tests (new)</pre>
+
+<h2 id="conformance">Conformance &amp; cross-skill invariants</h2>
+<ul>
+  <li><strong>Canonical path:</strong> all new files live under <code>plugins/pmos-toolkit/skills/backlog/</code> (CLAUDE.md §Canonical skill path). No new skill dir.</li>
+  <li><strong>skill-patterns.md §H gates:</strong> the routing decision is deterministic (verb match); derivation is script-side arithmetic (rollups, counts) — never model-judged at runtime.</li>
+  <li><strong>§I flags:</strong> <code>web</code> is a verb, not a flag; <code>--no-open</code>/<code>--port</code> are server-script args (machine-coupled, headless determinism) and belong in the script, surfaced in the <code>#web</code> body. Update <code>argument-hint</code> to list <code>web</code>.</li>
+  <li><strong>Non-interactive (W14):</strong> the <code>web</code> verb issues no prompts (like the machine verbs) — nothing to defer; the skill already carries the canonical block.</li>
+  <li><strong>§E scripts:</strong> server + tests under <code>scripts/</code> + <code>tests/</code>; bash/node portability per CLAUDE.md (stdlib only).</li>
+  <li><strong>Read-only safety:</strong> loopback bind only; no <code>0.0.0.0</code>; no write syscalls to <code>backlog/</code> on any path.</li>
+</ul>
+
+<h2 id="risks">Risks / open points (resolve at build)</h2>
+<ul>
+  <li>Whether a reusable frontmatter parser already exists in <code>backlog/scripts/</code> (mint-id/claim-lock don't parse items) — if not, D7 adds a tiny one; <code>rebuild-index</code> logic currently lives in SKILL prose, so the server implements parsing directly against <code>schema.md</code>.</li>
+  <li>Queue/readiness derivation must match the terminal verbs exactly — build verifies the web JSON against <code>/backlog next --json</code> / <code>releases --json</code> for the same repo state.</li>
+  <li>Live smoke at build: start the server, drive the served viewer in a browser (Playwright), assert tree + queues + filter all render against a real backlog — the load-bearing dogfood (a served-UI skill).</li>
+</ul>
+</body>
+</html>

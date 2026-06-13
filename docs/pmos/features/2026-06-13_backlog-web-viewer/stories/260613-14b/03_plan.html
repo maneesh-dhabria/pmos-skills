@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — story 260613-14b · /backlog web viewer</title>
+<style>
+  body { font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 28px; } h2 { font-size: 17px; margin-top: 2rem; border-bottom: 1px solid #e2e2e2; padding-bottom: .3rem; }
+  h3 { font-size: 16px; font-weight: 600; margin-top: 1.3rem; }
+  code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; font-size: 13px; }
+  .muted { color: #666; } ul li, ol li { margin: .25rem 0; }
+  .task { border-left: 3px solid #4a8; padding-left: .8rem; margin: 1rem 0; }
+</style>
+</head>
+<body>
+<h1 id="plan-backlog-web-viewer">Plan — <code>/backlog web</code> viewer</h1>
+<p class="muted"><strong>Story:</strong> 260613-14b &nbsp;·&nbsp; <strong>Epic:</strong> 260613-p3c &nbsp;·&nbsp; <strong>Route:</strong> skill &nbsp;·&nbsp; <strong>Design:</strong> <code>../../02_design.html</code> &nbsp;·&nbsp; <strong>Execution mode:</strong> inline</p>
+
+<h2 id="approach">Approach</h2>
+<p>TDD where the unit is testable (the server's parsing + derivation + routing), live-smoke for the served UI. Single wave — the tasks are sequential (parser → server → viewer → wire-up → dogfood). All files live under <code>plugins/pmos-toolkit/skills/backlog/</code>. Cite design anchors: server <code>#server-contract</code>/<code>#api-shape</code>, derivation <code>#decisions</code> (D5), viewer <code>#viewer-contract</code>, layout <code>#file-layout</code>, conformance <code>#conformance</code>.</p>
+
+<h2 id="release-prerequisites">Release prerequisites</h2>
+<p class="muted">Handled by <code>/complete-dev</code> (Loop 3), NOT tasks here: version bump of the two <code>pmos-toolkit</code> <code>plugin.json</code> manifests, CHANGELOG entry, README/skill-row touch if any, <code>~/.pmos/learnings.md</code> header. Do not add these to any wave.</p>
+
+<h2 id="tasks">Tasks</h2>
+
+<div class="task"><h3 id="t1">T1 — Frontmatter + derivation module (TDD)</h3>
+<p>Add <code>scripts/serve-web-lib.mjs</code> (pure, no I/O server) exporting: <code>parseItems(dir)</code> (read <code>backlog/items/*.md</code>, parse FM per <code>schema.md</code>, skip malformed with warning — D7), <code>buildModel(items, claimsDir)</code> producing the <code>/api/backlog</code> JSON (epics+stories, rollups, <code>queues</code>, <code>facets</code>) per design <code>#api-shape</code> + D5 derivation rules. <strong>Tests first</strong> (<code>tests/serve-web.test.mjs</code>): fixture backlog → assert epic rollup <code>done/total/blocked</code>, queue membership (groom/next/releases) and readiness match <code>schema.md</code> + <code>#next</code>/<code>#releases</code> rules; malformed item skipped not fatal; empty backlog → empty arrays.</p></div>
+
+<div class="task"><h3 id="t2">T2 — Zero-dep live server (TDD)</h3>
+<p>Add <code>scripts/serve-web.mjs</code>: <code>node:http</code> server on <code>127.0.0.1</code> ephemeral port (or <code>--port</code>), routes <code>GET /</code> → <code>web/viewer.html</code>, <code>GET /api/backlog</code> → <code>buildModel()</code> result (fresh parse each request — live read, D2), 404 else; <code>--no-open</code> test seam; browser auto-open + URL print + <code>Ctrl-C</code> shutdown borrowed from game-launcher conventions. <strong>Read-only:</strong> no write paths (D3). Tests: drive the server headless (<code>--no-open</code>), assert <code>/api/backlog</code> returns the model, <code>/</code> returns the HTML, unknown path 404s, a write request method is rejected/ignored.</p></div>
+
+<div class="task"><h3 id="t3">T3 — Single-file viewer</h3>
+<p>Add <code>web/viewer.html</code> (inline CSS+JS, no CDN — D4) implementing the three views per design <code>#viewer-contract</code>: Tree (epic→story + progress bars, status badges), Queues (groom/next/releases lanes with display-only next commands), persistent filter bar (status/route/plugin from <code>facets</code>), Refresh button (re-fetch), graceful <code>file://</code> empty-state. No write controls.</p></div>
+
+<div class="task"><h3 id="t4">T4 — Wire the <code>web</code> verb into SKILL.md</h3>
+<p>Edit <code>backlog/SKILL.md</code>: add <code>web</code> to the <code>#routing</code> table; add a <code>## web — read-only viewer {#web}</code> handler section (resolve repo root, assert node, launch <code>scripts/serve-web.mjs</code>, report URL + Ctrl-C, no prompts); add <code>web</code> + <code>--no-open</code>/<code>--port</code> to <code>argument-hint</code>; add a <code>References</code> bullet for <code>scripts/serve-web.mjs</code> + <code>web/viewer.html</code>. Conform to <code>#conformance</code> (§I: <code>web</code> verb literal; server args in body).</p></div>
+
+<div class="task"><h3 id="t5">T5 — Live dogfood (load-bearing, served-UI)</h3>
+<p>Start <code>node scripts/serve-web.mjs --no-open</code> against the real repo backlog; drive the served viewer in a browser (Playwright MCP — serve via the running server, not <code>file://</code>) and assert: tree renders epics+stories with correct counts, the Queues view matches <code>/backlog next --json</code> + <code>releases --json</code> for the same state, a filter narrows the set, Refresh re-reads after an on-disk add. Capture and fix any live-only bug (cap-2 iterate). This is the dogfood gate for a served-UI skill.</p></div>
+
+<h2 id="verification">Final verification checklist</h2>
+<ul>
+  <li><code>node --test</code> (or the repo's test runner) green for <code>serve-web.test.mjs</code>.</li>
+  <li><code>/skill-eval</code> <code>[D]</code> + <code>[J]</code> pass for <code>backlog</code> (skill-patterns conformance, canonical path, argument-hint↔body flag agreement).</li>
+  <li>Live smoke (T5) passes: viewer renders the real backlog; no server request mutates <code>backlog/</code>.</li>
+  <li>Repo lints green: <code>lint-flags-vs-hints.sh</code>, <code>lint-phase-refs.sh</code>, non-interactive inline, audit-recommended.</li>
+</ul>
+</body>
+</html>

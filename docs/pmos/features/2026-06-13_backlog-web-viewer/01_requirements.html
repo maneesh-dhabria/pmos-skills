@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Requirements — /backlog web viewer (epic 260613-p3c)</title>
+<style>
+  body { font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; color: #1a1a1a; }
+  h1 { font-size: 28px; } h2 { font-size: 17px; text-transform: none; margin-top: 2rem; border-bottom: 1px solid #e2e2e2; padding-bottom: .3rem; }
+  h3 { font-size: 16px; font-weight: 600; }
+  code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; font-size: 13px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; } th, td { border-bottom: 1px solid #e2e2e2; padding: .4rem .6rem; text-align: left; }
+  .muted { color: #666; } ul li { margin: .2rem 0; }
+</style>
+</head>
+<body>
+<h1 id="requirements-backlog-web-viewer">Requirements — <code>/backlog web</code> viewer</h1>
+<p class="muted"><strong>Epic:</strong> 260613-p3c &nbsp;·&nbsp; <strong>Route:</strong> skill &nbsp;·&nbsp; <strong>Plugin:</strong> pmos-toolkit &nbsp;·&nbsp; <strong>Tier:</strong> 2 &nbsp;·&nbsp; <strong>Date:</strong> 2026-06-13</p>
+
+<h2 id="problem">Problem</h2>
+<p>The backlog is a repo-resident set of markdown files (<code>backlog/items/*.md</code>) plus a regenerated <code>INDEX.md</code> and a <code>claims/</code> lock directory. Today the only ways to <em>see</em> the backlog are the terminal verbs (<code>/backlog</code>, <code>groom</code>, <code>next</code>, <code>releases</code>, <code>list</code>) and reading the raw markdown. For understanding <strong>status across the whole backlog at a glance</strong> — which epics are in flight, how far each is, what's ready to build vs. ship — a flat terminal dump is hard to scan. The user wants a visual, browsable view of the entire backlog and its status.</p>
+
+<h2 id="solution-direction">Solution direction</h2>
+<p>Add a <strong>read-only web viewer</strong> as a new <code>web</code> verb on the existing <code>/backlog</code> skill. <code>/backlog web</code> starts a lightweight local server that serves a <strong>single self-contained HTML file</strong>; the page reads the <strong>live</strong> backlog (parsed fresh on each request) and renders it for browsing. The viewer never mutates the backlog — all writes stay with the existing terminal verbs.</p>
+
+<h2 id="in-scope">In scope</h2>
+<ul>
+  <li>A <code>web</code> verb routed from <code>/backlog</code> that launches the viewer and opens the browser.</li>
+  <li>A zero-dependency Node server (loopback, ephemeral port) that, per request, parses <code>backlog/items/*.md</code> + reads claim locks and serves a derived JSON model; serves the single-file HTML viewer at <code>GET /</code>.</li>
+  <li>Single-file HTML viewer (inline CSS + JS, no build step, no external CDN) rendering three things the user asked for:
+    <ul>
+      <li><strong>Epic → story tree with progress</strong> (status badges, done/total per epic).</li>
+      <li><strong>Three release queues</strong> (groom / next / releases) mirroring the dashboard semantics.</li>
+      <li><strong>Filters</strong> by status, route, and plugin (and grouping the whole backlog by them).</li>
+    </ul>
+  </li>
+  <li>Live read: a refresh in the browser reflects the current on-disk backlog state.</li>
+</ul>
+
+<h2 id="out-of-scope">Out of scope (this epic)</h2>
+<ul>
+  <li><strong>Any mutation</strong> — no claim/unclaim, status edits, item creation, or refine from the web UI. Viewer only.</li>
+  <li><strong>Dependency graph view</strong> — explicitly deferred (user dropped it from the view set). A simple "blocked-by" hint inside a story row is acceptable if free; a graph is not built.</li>
+  <li>Workstream / multi-repo aggregation (the viewer reads the current repo's <code>backlog/</code> only).</li>
+  <li>Authentication, remote access, or binding beyond <code>127.0.0.1</code>.</li>
+</ul>
+
+<h2 id="users">Primary user &amp; journey</h2>
+<p>The repo maintainer driving the three-loop backlog. Journey: runs <code>/backlog web</code> → browser opens → scans the epic→story tree to see overall state → flips to the three-queue view to see what needs grooming / what's ready to build / what's release-ready → filters by plugin or status to narrow → leaves it open, refreshing as work progresses.</p>
+
+<h2 id="acceptance">Epic-level acceptance</h2>
+<ul>
+  <li><code>/backlog web</code> starts a local server and opens a browser to a working single-file viewer; <code>Ctrl-C</code> stops it.</li>
+  <li>The viewer shows every epic and story with accurate status and per-epic progress, derived using the same rules as the terminal verbs (<code>schema.md</code> status machines, <code>#groom/#next/#releases</code> membership).</li>
+  <li>A page refresh after an on-disk change (e.g. a new <code>/backlog add</code>) shows the change.</li>
+  <li>No request to the server mutates any file under <code>backlog/</code>.</li>
+  <li>Conforms to <code>skill-patterns.md §A–§L</code> and the repo's <code>CLAUDE.md</code> skill-authoring conventions (the standing acceptance criteria).</li>
+</ul>
+</body>
+</html>
