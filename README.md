@@ -64,6 +64,7 @@ Standalone environment diagnostics — neither a feature-delivery step nor a lea
 | Author a new skill (or revise one from feedback) | `/skill-sdlc` | Same pipeline, scored against a binary eval rubric before merge |
 | Draft a PRD / EDD / Discovery Doc | `/artifact` | Section-level eval + writing-style presets |
 | Tighten any prose | `/polish` | 14-check rubric; voice-preserving; optional editorial reduction pass |
+| Summarize any source into a faithful TL;DR | `/summary-tldr` | Any input (text / PDF / image / URL / email / tweet / podcast / video) → grounded, compression-confirmed summary; hybrid extract-then-generate, first-time-reader review pass, meta-description is a hard fail; saves a self-contained HTML artifact |
 | Audit, scaffold, or update a README | `/readme` | Rubric + 3-persona simulated reader |
 | Annotate any pmos-emitted HTML artifact in the browser | `/comments` | Highlight → comment → resolve via `/comments resolve <artifact>`; sidecar `<artifact>.comments.json` pairs to the HTML |
 | Design and field a survey | `/survey-design` | Then `/survey-analyse` on the responses |

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.73.0: /summary-tldr — a faithful TL;DR of any source
+
+A new `/summary-tldr` skill turns any single source — an article or web URL, raw text, a PDF, an image, an email thread, a tweet/thread, a podcast episode, or a video URL — into a grounded, front-loaded summary. Its north star: a reader who never saw the original comes away with the source's actual claims, numbers, and takeaways — not a meta-description of what the document is "about."
+
+- **Any input, with honest degradation.** Each source kind gets its own preprocessing — web pages fetched and stripped, PDFs and images read natively, email threads de-duplicated and ordered, tweet threads stitched in posting order, podcasts/videos transcribed (via pmos-learnkit's transcriber when installed). When extraction is partial or impossible, it flags low confidence or asks for a paste — it never fabricates content it couldn't read.
+- **Compression you confirm.** It measures the source, proposes an intent band — Tight ~10–20%, Standard ~20–30% (default), or Detailed ~30–40% — bounded by a length-scaled word cap so even long sources stay TL;DRs, and confirms the target before writing (or honors `--compression`).
+- **Grounded, not hand-wavy.** A hybrid extract-then-generate pipeline pulls a keyfact list first and writes to cover and assert it; exact numbers, entities, and named conclusions are preserved, and a meta-description ("this article discusses X") is a hard failure.
+- **A first-time-reader review pass.** Before emitting, it grades the draft from a fresh reader's perspective — coverage, faithfulness, standalone readability, asserts-not-describes, coherence — with up to two remediation loops and any residual gaps surfaced, not hidden.
+- **Pick a style; get a durable artifact.** Choose key-takeaway bullets (default), an executive narrative, nested bullets, or a layered/progressive read (or `--style`), with an optional `/diagram` handoff. Output saves as a self-contained HTML doc and refreshes a `summary-tldr` library listing.
+
 ## 2026-06-13 — pmos-toolkit 2.72.0: /logos — propose & generate on-brand SVG logo candidates from a brief
 
 A new `/logos` skill turns a brief — free text, a web URL, and/or existing brand assets — into a *set* of on-brand logo candidates, authored as real vector SVG in-session at `$0` (no paid image-generation API, ever). It is a sibling of `/diagram`: same renderer hard-gate, same deterministic-metrics-plus-vision eval shape.
