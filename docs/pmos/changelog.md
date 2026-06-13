@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.74.0: /explainer-video — turn any source into a narrated slideshow video
+
+A new `/explainer-video` skill turns a single document, pmos artifact, or web URL into a watchable narrated `.mp4` — a deck distilled to one idea per slide, narrated by a synthetic voice, and assembled with ffmpeg. It joins `/diagram`, `/logos`, and `/summary-tldr` as a shareable-artifact authoring tool, and runs end-to-end **locally at `$0`** — there is no cloud-TTS path in the skill, by design.
+
+- **Any source → one idea per slide.** It ingests a PDF, markdown/HTML/text file, pmos artifact, or web URL in-session (native `Read` for text incl. PDF pages, `WebFetch` for URLs — no bundled PDF parser), then distills a length-calibrated deck where each slide carries exactly one idea and bullets are minimal support. `--length quick|standard|deep` sets the target.
+- **Reuses the source's own figures.** A deterministic figure inventory pulls charts and diagrams from the source (resolving relative URLs, dropping nav/tracking/spacer images) and places the original asset on the slide it illustrates, rather than paraphrasing it away.
+- **Captured, narrated, and assembled with a binary self-check.** Slides are authored via the `_shared/html-authoring` substrate and screenshotted at 1920×1080 with Playwright; narration is one local WAV per slide (macOS `say` by default, auto-upgrading to Kokoro when installed); ffmpeg assembles a 16:9 H.264/AAC video with optional burned-in captions. A script-computed self-check verifies frame/slide parity, duration sum, non-silent audio, and resolved figure references before claiming success.
+- **Deps are honest hard gates.** `ffmpeg`/`ffprobe` are probed up front; a missing narration engine or Playwright stops with an install hint rather than a silent skip. (The release smoke against a dense Microsoft Research PDF caught and fixed a real ffmpeg bug — `-shortest` overrunning a looped still image — that would otherwise have failed the duration self-check on multi-slide decks.)
+
 ## 2026-06-13 — pmos-toolkit 2.73.0: /summary-tldr — a faithful TL;DR of any source
 
 A new `/summary-tldr` skill turns any single source — an article or web URL, raw text, a PDF, an image, an email thread, a tweet/thread, a podcast episode, or a video URL — into a grounded, front-loaded summary. Its north star: a reader who never saw the original comes away with the source's actual claims, numbers, and takeaways — not a meta-description of what the document is "about."
