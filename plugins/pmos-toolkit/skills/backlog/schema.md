@@ -172,7 +172,7 @@ Rules: `/plan` is the only creator — with one exception: `/execute` may append
 
 ## Claim locks (D13)
 
-Atomic story claims are O_EXCL lockfiles under `backlog/claims/<id>.lock`, managed by [`scripts/claim-lock.js`](scripts/claim-lock.js) (the re-homed /magazine-worker pattern). The lockfile is the ground truth; the item's `claimed_by:` is a display/audit mirror. Default stale-lease TTL is 4h with steal-on-warning; `/backlog unclaim <id>` releases manually. `backlog/claims/` is created on first claim; lockfiles are transient and gitignored (see Migration).
+Atomic story claims are O_EXCL lockfiles under `backlog/claims/<id>.lock`, managed by [`scripts/claim-lock.cjs`](scripts/claim-lock.cjs) (the re-homed /magazine-worker pattern). The lockfile is the ground truth; the item's `claimed_by:` is a display/audit mirror. Default stale-lease TTL is 4h with steal-on-warning; `/backlog unclaim <id>` releases manually. `backlog/claims/` is created on first claim; lockfiles are transient and gitignored (see Migration).
 
 ## Feature-folder layout per epic
 
