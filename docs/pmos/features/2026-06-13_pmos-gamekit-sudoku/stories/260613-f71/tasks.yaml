@@ -1,0 +1,177 @@
+schema_version: 1
+story: 260613-f71
+epic: 260613-e35
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/sudoku) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire,
+# already released on main, so this story has NO dependencies). All-new files under
+# plugins/pmos-gamekit/skills/sudoku/. NO release-prereq tasks here (changelog, learnings header,
+# version-sync validation, the v0.2.0 minor bump) — see the design doc's release-prerequisite note;
+# /complete-dev (Loop 3) is the sole writer of those. Single-file contract (D10) reconciled with
+# testability via an engine/render split (window.SudokuEngine, AC3). UNLIKE /poker there is no
+# reference codebase to port — the engine is built from the documented algorithms (unique-solution
+# dig-and-count generation; technique-grading logical solver) captured in the design doc + the
+# define-time research. T5 (TN-2) is this story's load-bearing dogfood (AC8); T6 (TN-1) bundles the
+# REQUIRED Playwright e2e (AC9, maintainer-mandated, NOT deferred) with skill-eval + lints as the
+# final-verification gate (AC10).
+tasks:
+  - id: T1
+    title: "Study reference: /solitaire bundle + game-launcher contract + the define-time sudoku research"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Read the shipped /solitaire game/solitaire.html for the engine/render split pattern
+      (window.SolitaireEngine DOM-decoupled, inline data-URI favicon to avoid the favicon-404 the
+      /solitaire e2e caught, no-persistence, win/confetti) and its tests/run.mjs (vm-extract the engine
+      <script>, evaluate with no DOM, assert objective gates + --selftest count). Read the /solitaire
+      SKILL.md (launch-only body to mirror) and plugins/pmos-gamekit/skills/_shared/game-launcher/
+      game-launcher.md (the launch + bundling + Node-prereq + no-persistence contract this skill cites,
+      consumed UNCHANGED). Re-read the design doc 02_design.html (decisions D1–D12, engine API surface,
+      difficulty mapping, error/hint/notes contracts). Produce no code — capture the SudokuEngine API
+      surface (makeSolvedGrid, countSolutions, generate, the technique solver, grade, nextHint,
+      conflicts, solutionErrors, candidatesFor) and the algorithm edge-cases (uniqueness via
+      count-up-to-2; technique ladder for grading; auto-clear candidates on placement) to drive T2's
+      TDD tests.
+    verify: >
+      Engine API + generation/grading algorithm + the conflict-vs-solution-deviation distinction (D7)
+      enumerated; engine/render split + launch contract understood; the technique ladder for difficulty
+      grading (D4) and the runtime unique-solution generation (D5) are clear before any code.
+
+  - id: T2
+    title: "Engine (TDD): window.SudokuEngine — grid build, unique-solution generator, technique solver, grader, hint, conflicts, candidates"
+    ac: [AC2, AC3, AC5, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.SudokuEngine, fully DOM-decoupled. Pieces: (a) makeSolvedGrid(rng) — randomized
+      backtracking to a complete valid 9x9 grid; (b) countSolutions(grid, cap=2) — backtracking solver
+      that keeps searching past the first solution and ABORTS at the 2nd (uniqueness test, never full
+      enumeration); (c) generate(difficulty, rng) — full grid -> dig holes one cell at a time (random
+      order; optional 180-deg rotational symmetry) -> keep a removal only if countSolutions===1 ->
+      grade() -> regenerate until the target tier is hit; returns {puzzle, solution, givens, difficulty};
+      (d) the technique solver — nakedSingle, hiddenSingle, lockedCandidate (pointing/claiming),
+      nakedPair, hiddenPair, xWing — each returning a step {technique, cells, value, reason}; (e)
+      grade(puzzle) -> 'easy'|'medium'|'hard' by the HARDEST technique needed to fully solve (singles ->
+      easy; locked candidates/pairs -> medium; X-Wing+ -> hard); (f) nextHint(board) -> next logical
+      step over live candidates (drives D6 tiered hints); (g) conflicts(board) -> row/col/box duplicate
+      cells (D7 always-on); (h) solutionErrors(board, solution) -> filled cells deviating from the
+      solution (D7 Check), NEVER flagging empty cells; (i) candidatesFor(board,r,c) + notes helpers
+      (auto-fill legal digits; auto-clear a placed digit from peers). Seedable RNG for deterministic
+      tests. Write tests/run.mjs in lockstep (see AC3 gates). NO DOM, NO npm, Node stdlib only.
+    verify: >
+      tests/run.mjs --selftest exercises solved-grid validity, uniqueness (==1 and cap-hit >=2),
+      generation bands + solution match, each technique on a fixture, grading (singles->easy,
+      X-Wing->hard), conflict detection, solutionErrors (flags wrong, passes correct partial, ignores
+      empty), candidate compute + auto-clear, and a legal nextHint; all engine gates green before any UI.
+
+  - id: T3
+    title: "Bundled game UI — game/sudoku.html single-file render layer over the engine"
+    ac: [AC1, AC4, AC5, AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/sudoku/game/sudoku.html — ONE self-contained file, all CSS+JS
+      embedded, offline, no external refs (D10), no persistence (D9), inline data-URI favicon (the
+      /solitaire favicon-404 lesson). The embedded engine from T2 (window.SudokuEngine) plus a DOM
+      render/UI layer that consumes it: a 9x9 grid with given cells visually fixed/non-editable and
+      thick 3x3 box borders; a difficulty picker (easy/medium/hard — D3) on new game with a brief
+      "generating..." state for hard (D5); selected-cell + PEER highlight (row/col/box) + SAME-NUMBER
+      highlight; a number pad 1-9 with REMAINING-COUNT badges (fade/disable a finished digit); NOTES
+      mode toggle (N key + pencil button) rendering candidates as small digits in a fixed 3x3 sub-grid,
+      a one-tap auto-fill-candidates button, and auto-clear-from-peers on placement (D8); a CHECK button
+      revealing solution-deviations on demand with always-on conflict highlighting and an opt-in
+      auto-check toggle off by default (D7); a HINT button — tiered: highlight next cell + name the
+      technique, then reveal the value (D6); undo/redo (session), timer with pause, optional mistake
+      counter; keyboard (arrows, 1-9, Delete/Backspace, N notes, H hint, C check); win detection +
+      confetti celebration. Reads ALL rules/state from window.SudokuEngine — NO duplicated logic in the
+      UI. Accessible: ARIA labels per cell, keyboard-navigable, never color-alone for errors (pair red
+      with an icon/border). Board art is CSS + Unicode/SVG — no image files (D10).
+    verify: >
+      sudoku.html opens standalone and plays; contains no http(s):// or src/href to external assets;
+      reads from window.SudokuEngine (no duplicated rules); difficulty picker, peer+same-number
+      highlight, number pad with badges, notes mode + auto-candidates + auto-clear, Check (on-demand)
+      + live conflicts + auto-check toggle, tiered Hint, undo, timer, keyboard, win celebration all
+      present; no console errors on load (inline favicon).
+
+  - id: T4
+    title: "/sudoku SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1, AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/sudoku/SKILL.md. Frontmatter: name sudoku (matches dir),
+      user-invocable true, a triggering description ("play sudoku", "/sudoku", "deal me a sudoku",
+      "I want to play sudoku", "sudoku puzzle"), argument-hint noting no args (difficulty/hints/notes/
+      check are in-game controls), allowed-tools Bash, Read. Body mirrors /solitaire: an Overview that
+      CITES ../_shared/game-launcher/game-launcher.md for the launch + bundling + no-persistence
+      contract and states ONLY the sudoku deltas (game file game/sudoku.html; title "Sudoku"; controls
+      summary — difficulty picker, notes mode, hint, check); a "Platform Adaptation" note; a tight
+      launch-only Phase — resolve the game path, assert Node present (D2 error verbatim if absent, no
+      silent file:// fallback), invoke ../_shared/game-launcher/serve.js, report the URL + controls +
+      Ctrl-C; a Load-Learnings and a Capture-Learnings note. Prompt-free: no AskUserQuestion. Run
+      tools/lint-non-interactive-inline.sh — inline the canonical NI block byte-identical from
+      skills/_shared/non-interactive.md (it was required for /solitaire, so expect it here). Conform to
+      skill-patterns.md §A–§L + the canonical skill path.
+    verify: >
+      name: sudoku matches dir; cites game-launcher.md, no restated launch contract; no AskUserQuestion;
+      lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, audit-recommended all green.
+
+  - id: T5
+    title: "TN-2: Dogfood / Utility Verification — actually play real puzzles"
+    ac: [AC8]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /sudoku (or serve.js directly) and play REAL puzzles: generate EACH difficulty
+      (easy/medium/hard) and confirm the grade feels right; place values via the number pad AND the
+      keyboard; toggle NOTES and enter candidates; use AUTO-FILL candidates and confirm auto-clear on
+      placement; press CHECK to reveal a deliberately-wrong entry (and confirm a correct-but-incomplete
+      board is NOT flagged as wrong); request a HINT (next-step named, then reveal); and SOLVE a puzzle
+      to the win celebration. OBJECTIVE gates: tests/run.mjs --selftest green; serve.js launches +
+      serves; no console errors; lint-phase-refs + skill-eval green. SUBJECTIVE: an independent BLIND
+      judge (fresh subagent) plays a puzzle and rates input clarity, notes/hint/check usefulness, error
+      legibility, and absence of stuck states — overall "frustration-free?" yes/no + enumerated gaps;
+      the judge makes NO edits. Iterate: gaps -> fix -> re-run, cap 2, net-worse guard, then
+      accept-residuals-and-surface. Record a Verdict line (satisfied/not + accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; all three difficulties generated, every input
+      path exercised (pad+keyboard, notes, auto-candidates, check, hint), win reached; Check correctly
+      distinguishes wrong-entry from empty-but-correct.
+
+  - id: T6
+    title: "TN-1/TN: Playwright e2e to a win (REQUIRED, NOT deferred) + skill-eval + lints + manifest sync"
+    ac: [AC9, AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred):
+      launch serve.js against game/sudoku.html and navigate Playwright (the playwright MCP) to the
+      printed localhost URL; pick a difficulty; PLACE digits via the number pad AND via keyboard
+      (assert the cell value in the DOM); toggle NOTES and place a candidate (assert the 3x3 sub-grid
+      digit); press CHECK after a wrong entry and assert that cell is flagged AND a correct cell is not
+      (the conflict-vs-solution-deviation distinction); request a HINT and assert the named cell
+      highlights; then complete the board (use a deterministic seed / a test hook the engine exposes to
+      fill toward the known solution if needed) and assert the WIN celebration; assert ZERO console
+      errors throughout; capture a screenshot of a solved/near-solved board + the check/hint states as
+      browser evidence (the /verify browser-evidence hard gate). If Playwright is unavailable in the
+      build host, provision it LOCALLY in the worktree (npm i, NOT -g — the explainer-video lesson); do
+      NOT silently defer the core playthrough; only a narrow, explicitly-named unreachable sub-check may
+      be recorded deferred-to-release, surfaced loudly.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the sudoku skill dir
+      (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name: sudoku matches
+      dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended) — green. Confirm zero external runtime deps and the single-file contract (no
+      external refs in sudoku.html). DO NOT write changelog / learnings header / bump the version / do
+      the release — those are ## Release prerequisites owned by /complete-dev (the v0.2.0 minor bump
+      lands at Loop 3). Enumerate any deferred-to-release visual checks for /complete-dev.
+    verify: >
+      Playwright drove a real puzzle: pad+keyboard entry asserted, a notes candidate placed, Check
+      correctly flagged a wrong cell but not a correct one, a Hint highlighted the named cell, a win
+      celebration reached, zero console errors, screenshot captured, no silent defer; skill-eval >=
+      43/47; all 4 lints green; single-file contract holds; deferred checks (if any) enumerated for
+      release.
