@@ -6,15 +6,15 @@ parent: 0613-5pq
 title: Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/
 plan_doc: docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/stories/0613-rhf/03_plan.html
 tasks: docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/stories/0613-rhf/tasks.yaml
 worktree: ../agent-skills-0613-rhf
-claimed_by:
-driver_holder:
+claimed_by: build:loop
+driver_holder: build:loop
 labels: [pmos-toolkit, complete-dev, release-train, non-interactive]
 created: 2026-06-13
 updated: 2026-06-13
