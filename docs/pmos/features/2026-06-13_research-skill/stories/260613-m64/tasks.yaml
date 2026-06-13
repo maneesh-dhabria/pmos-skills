@@ -1,0 +1,129 @@
+schema_version: 1
+story: 260613-m64
+epic: 260613-vba
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# New pmos-toolkit skill /research + a new _shared/research/ substrate (D2: ported from learnkit
+# topic-research patterns, NOT cross-cited). /research is the sole writer of its SKILL.md and the
+# substrate. Phase-ordered authoring. §K: source-tier + rank-then-verify live ONCE in the substrate,
+# cited from SKILL.md. NO release-prereq tasks here (version bump / changelog / README row / manifest
+# sync are release-only, per ## Release prerequisites in the design doc — /complete-dev owns them).
+# T1 (substrate) and T2 (SKILL skeleton) touch different files → parallel. T2→T9 edit one SKILL.md → sequential.
+tasks:
+  - id: T1
+    title: "Build _shared/research/ substrate (sourcing, source-tiers, fan-out)"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Create plugins/pmos-toolkit/skills/_shared/research/ with three files, porting (NOT
+      cross-citing) learnkit topic-research patterns: sourcing.md (rank-then-verify — rank
+      candidates first, fetch-verify only survivors, never emit an unfetched source, one shortlist
+      per sub-question, no flattening); source-tiers.md (binary hard gate: a source must be
+      attributable + reachable to be cited; T1–T4 ranking informs triangulation); fan-out.md (the
+      decompose→one-worker-per-sub-question→structured-findings→interim-report protocol, with the
+      §L model tiers). Keep each lean; these are the canonical home (§K) cited by both /research now
+      and /artifact later (Story 260613-dnp).
+
+  - id: T2
+    title: "Scaffold /research at canonical path + SKILL.md skeleton"
+    ac: [AC2, AC10]
+    deps: []
+    parallel: true
+    detail: >
+      Create plugins/pmos-toolkit/skills/research/SKILL.md. Frontmatter: name: research (matches
+      dir), user-invocable: true, description with trigger phrases ("research <topic>", "do deep
+      research on", "research to support a decision", "/research"), argument-hint listing ONLY
+      contract flags (§I 4-test): [<topic>] [--depth brief|standard|deep] [--decision <text>]
+      [--sources web,files,local,notion,drive] [--format <html|md>] [--non-interactive|--interactive].
+      Inline the canonical ~27-line non-interactive block byte-identical to
+      skills/_shared/non-interactive.md. Add Platform Adaptation, Track Progress, Load Learnings.
+      Declare integer phases 0–8 with stable {#kebab} anchors (setup, intake, plan, fan-out,
+      gap-fill, verify, synthesis, polish, capture-learnings). Announce line.
+
+  - id: T3
+    title: "Phase 0 setup + Phase 1 intake & scope-clarify"
+    ac: [AC2, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Phase 0 {#setup}: read .pmos/settings.yaml (docs_path, output_format), resolve --depth dial
+      via _shared/tier-matrix.md, load learnings. Phase 1 {#intake}: take topic + expectations;
+      AskUserQuestion (each with a (Recommended) default, defer-tagged appropriately) for THE
+      DECISION the research supports, depth/coverage, scope boundaries, source selection, and output
+      constraints (length/style). Validate enum flags → stderr + exit 64. Emit a scoped brief.
+
+  - id: T4
+    title: "Phase 2 research plan + approval gate (+ deep preliminary scoping)"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Phase 2 {#plan}: decompose the topic into sub-questions/perspectives (STORM-style); for deep,
+      first dispatch ONE brief preliminary scoping subagent (sonnet) to shape a better plan. Propose
+      a plan outline (sub-questions, sources, # workers per the depth matrix). HARD approval gate
+      before fan-out at standard+ (§H deterministic gate); lightweight confirm at brief. Persist the
+      approved plan before fan-out.
+
+  - id: T5
+    title: "Phase 3 fan-out + Phase 4 gap-fill/saturation"
+    ac: [AC6, AC3]
+    deps: [T1, T4]
+    parallel: false
+    detail: >
+      Phase 3 {#fan-out}: per the approved plan, dispatch one research worker (sonnet) per
+      sub-question following _shared/research/fan-out.md; each returns STRUCTURED findings (not
+      prose) and saves an interim report to <out>/interim-reports/<NN>-<slug>.{html,md}. Worker
+      counts per depth (brief 0 inline / standard 3–5 / deep ~5). Phase 4 {#gap-fill}: a
+      "what's-missing" critic pass; ONE capped follow-up wave at deep; stop on saturation. Collapse
+      to sequential inline when subagents are unavailable.
+
+  - id: T6
+    title: "Phase 5 verification (tier-scaled)"
+    ac: [AC7]
+    deps: [T1, T5]
+    parallel: false
+    detail: >
+      Phase 5 {#verify}, citing _shared/research/source-tiers.md (do NOT restate the gate): brief =
+      citation-only (every claim has a reachable+attributable source); standard = triangulation (≥2
+      independent sources for key claims); deep = adversarial refutation pass per major claim
+      (counter-evidence search). Drop/flag claims that fail their tier's bar.
+
+  - id: T7
+    title: "Phase 6 synthesis + write the decision-framed report"
+    ac: [AC8]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Phase 6 {#synthesis}: assemble the report from interim docs in the decision-support shape
+      (TL;DR+confidence → decision frame → options comparison table → evidence-by-sub-question →
+      what-would-change-my-mind → risks → source-quality appendix). Tables + nested bullets over
+      narrative. Emit self-contained HTML via _shared/html-authoring (template strip-leading-comment
+      gotcha, .sections.json companion, assets cp -n, <meta name="pmos:skill" content="research">)
+      to {docs_path}/research/{YYYY-MM-DD}-<topic-slug>/research-report.html. Reviewer subagent
+      (sonnet) scores-only with ≥40-char verbatim quote-grounding; orchestrator-side quote +
+      section validation; auto-apply cap = 1.
+
+  - id: T8
+    title: "Phase 7 polish + Phase 8 capture-learnings"
+    ac: [AC9]
+    deps: [T7]
+    parallel: false
+    detail: >
+      Phase 7 {#polish}: reference /polish writing guidelines for ALL output; INVOKE /polish only at
+      deep tier (mechanical findings auto-apply, voice-risk findings gated). Phase 8
+      {#capture-learnings}: inline _shared/learnings-capture.md.
+
+  - id: T9
+    title: "Conventions, §H–§L conformance, self-check"
+    ac: [AC10]
+    deps: [T8]
+    parallel: false
+    detail: >
+      Final pass: argument-hint vs body flag lint (tools/lint-flags-vs-hints.sh) clean; phase-ref
+      lint (tools/lint-phase-refs.sh) clean; every AskUserQuestion has (Recommended) or a defer tag
+      (audit-recommended.sh); non-interactive block byte-identical (lint-non-interactive-inline.sh);
+      §K cites (no restated source-tier/rank logic); §L dispatch table present. Run
+      feature-sdlc/tools/skill-eval-check.sh <skill_dir> and fix [D] fails. Do NOT add version-bump
+      / changelog / README-row / manifest-sync tasks — those are release-only (## Release prerequisites).

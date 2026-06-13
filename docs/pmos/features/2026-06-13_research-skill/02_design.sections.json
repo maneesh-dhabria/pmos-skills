@@ -1,0 +1,68 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "charter-fit",
+    "level": 2,
+    "title": "Charter fit & coherence",
+    "parent_id": null
+  },
+  {
+    "id": "research",
+    "level": 2,
+    "title": "Research grounding (deep-research agent best practices)",
+    "parent_id": null
+  },
+  {
+    "id": "pipeline",
+    "level": 2,
+    "title": "Pipeline (the process)",
+    "parent_id": null
+  },
+  {
+    "id": "depth",
+    "level": 2,
+    "title": "Depth-tier matrix",
+    "parent_id": null
+  },
+  {
+    "id": "sources",
+    "level": 2,
+    "title": "Source scope & approval gate",
+    "parent_id": null
+  },
+  {
+    "id": "output",
+    "level": 2,
+    "title": "Output structure",
+    "parent_id": null
+  },
+  {
+    "id": "dispatch",
+    "level": 2,
+    "title": "Subagent dispatch (§L)",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  },
+  {
+    "id": "conformance",
+    "level": 2,
+    "title": "Skill-authoring conformance",
+    "parent_id": null
+  }
+]
