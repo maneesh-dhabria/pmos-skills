@@ -5,7 +5,7 @@ kind: epic
 title: /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/
 requirements_doc:
@@ -14,7 +14,7 @@ design_doc: docs/pmos/features/2026-06-13_complete-dev-multi-epic-release/02_des
 labels: [pmos-toolkit, complete-dev, three-loop, release-train, non-interactive]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.75.0
 ---
 
 ## Context
