@@ -6,15 +6,15 @@ parent: 260613-5av
 title: "Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering"
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: [260613-7n1]
 feature_folder: docs/pmos/features/2026-06-13_mytasks-web/
 plan_doc: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-044/03_plan.html
 tasks: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-044/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: agent-skills-260613-044
+claimed_by: build:loop-mdh
+driver_holder: build:loop-mdh
 labels: [pmos-toolkit, mytasks, cli, terminal-parity]
 created: 2026-06-13
 updated: 2026-06-13
