@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (define 260613-e35 — /sudoku epic + story 260613-f71 added)
+Last regenerated: 2026-06-13 (define 260613-fc7 — /frameworks browse-view fixes epic + story 260613-gx8 added)
 
-7 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+9 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -29,6 +29,7 @@ Last regenerated: 2026-06-13 (define 260613-e35 — /sudoku epic + story 260613-
 | 260613-ev1 | defined | feature | pmos-toolkit | 0/1 | Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate) |
 | 260613-p3c | defined | skill | pmos-toolkit | 0/1 | /backlog web — read-only single-file HTML viewer served by a lightweight live-read server |
 | 260613-e35 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /sudoku (classic 9×9, easy/medium/hard, hints, pencil notes, on-demand error check) |
+| 260613-fc7 | defined | skill | pmos-learnkit | 0/1 | /frameworks browse view — fix design-crit observations (perceived-reload, reader a11y, deep-link, detailed-view perf, polish) |
 
 ## should
 
@@ -60,6 +61,7 @@ Last regenerated: 2026-06-13 (define 260613-e35 — /sudoku epic + story 260613-
 | 260613-yfr | story | feature | planned | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
 | 260613-h9r | story | enhancement | planned | 260613-ev1 | Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit | 02_spec.html |  |  |
 | 260613-14b | story | feature | planned | 260613-p3c | Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests | 02_design.html | 03_plan.html |  |
+| 260613-gx8 | story | bug | planned | 260613-fc7 | Fix the /frameworks browse-view design-crit findings (F1–F7) in build-library.mjs + tests + live dogfood | 02_design.html | 03_plan.html |  |
 
 ## could
 
