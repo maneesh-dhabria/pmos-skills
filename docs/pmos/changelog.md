@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.75.1: /feature-sdlc worktree isolation is now real, not nominal
+
+`/feature-sdlc` (and its `define` / `build` / `skill` modes) now reliably *enters* the isolated worktree it creates, instead of creating the worktree on disk but continuing to work in the main checkout. This is what makes parallel `define`/`build` sessions genuinely safe to run side by side.
+
+- **The worktree you create is the worktree you work in.** Previously the orchestrator could create a worktree, fail to enter it (the `EnterWorktree` tool is loaded on demand and guards against being called without explicit instruction), and then silently drive the worktree by absolute path from the main checkout — defeating isolation, risking `git add -A` cross-contamination between concurrent sessions, and breaking `--resume`. The skill now loads the worktree tool before calling it, treats reaching that step as the authorization to call it, and **hard-asserts that the session actually re-rooted** before proceeding — handing off cleanly if it didn't, never improvising remote control.
+- **Parallel sessions stay out of each other's way.** Because each run now lives inside its own worktree, you can keep multiple `define` sessions open to grow the backlog without one run's uncommitted work bleeding into another's release.
+
 ## 2026-06-13 — pmos-toolkit 2.75.0: /complete-dev ships several release-ready epics in one pass
 
 `/complete-dev --epic` now releases more than one epic per invocation, so a session that finished several epics can ship them all without re-running the release ceremony by hand each time.
