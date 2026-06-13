@@ -1,0 +1,80 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "baseline",
+    "level": 2,
+    "title": "Measured baseline (the evidence)",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions (maintainer-resolved)",
+    "parent_id": null
+  },
+  {
+    "id": "frs",
+    "level": 2,
+    "title": "Functional requirements (the change-set)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-scale",
+    "level": 3,
+    "title": "FR-1 — Real type scale",
+    "parent_id": null
+  },
+  {
+    "id": "fr-measure",
+    "level": 3,
+    "title": "FR-2 — Comfortable measure + body size",
+    "parent_id": null
+  },
+  {
+    "id": "fr-h1",
+    "level": 3,
+    "title": "FR-3 — Emit a real body H1 (template)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-tables",
+    "level": 3,
+    "title": "FR-4 — Calmer tables (D2) + size bump",
+    "parent_id": null
+  },
+  {
+    "id": "fr-contrast",
+    "level": 3,
+    "title": "FR-5 — Contrast: reserve faint for decoration",
+    "parent_id": null
+  },
+  {
+    "id": "fr-sync",
+    "level": 3,
+    "title": "FR-6 — Propagate to consumers",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (this round)",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance",
+    "level": 2,
+    "title": "Acceptance criteria (inherited by story 260613-h9r)",
+    "parent_id": null
+  }
+]
