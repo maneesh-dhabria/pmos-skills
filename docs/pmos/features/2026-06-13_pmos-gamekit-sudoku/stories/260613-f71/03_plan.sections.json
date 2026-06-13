@@ -1,0 +1,44 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Plan — story 260613-f71",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "Code study",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Task waves",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decision log (plan-level)",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]
