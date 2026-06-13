@@ -4,6 +4,18 @@ Per-developer, per-repo memory of the run-shaping choices made on the most recen
 
 **Gitignored** — different developers may want different defaults (different remotes pushed, different deploy paths), so this is personal state, not team-shared.
 
+## Contents
+
+- [Path](#path)
+- [Schema (v1)](#schema-v1)
+- [Read contract](#read-contract)
+- [Write contract](#write-contract)
+- [Built-in defaults](#built-in-defaults)
+- [Field reference](#field-reference)
+- [Destructive-prompt allowlist](#destructive-prompt-allowlist-always-re-prompted-even-when-confirmed)
+- [Non-interactive mode interaction](#non-interactive-mode-interaction)
+- [`--reset-defaults` flag](#--reset-defaults-flag)
+
 ## Path
 
 `.pmos/complete-dev.lastrun.yaml` (relative to repo root)
