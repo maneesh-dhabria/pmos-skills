@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.70.0: /ripple-effects — simulate the downstream effects of a proposal, then refine it
+
+A new `/ripple-effects` skill — a sibling of `/grill` — takes any proposal (a file, a pipeline-doc stem, or inline text) and walks its *external* ripple tree: "and then what?" Where `/grill` interrogates whether a decision is internally defensible, `/ripple-effects` traces what the decision sets in motion downstream, then uses what it surfaces to help you refine and de-risk the proposal.
+
+- **Futures-Wheel simulation across a product lens set.** It generates first-order effects across Users, Business, Team/Org, Technical, Market, and Ethics/Risk, then recursively expands each into second- and third-order ripples. Depth is yours to dial: `--orders 1|2|3` caps the recursion, `--depth brief|standard|deep` governs breadth (same semantics as `/grill`).
+- **Every notable effect scored, none filtered away.** Each ripple is tagged likelihood × impact × desirability (good/bad/mixed) and the interrogation is ordered by leverage — high-impact, uncertain, or negative effects first — but it surfaces every notable effect, not just a top-N.
+- **A scored consequence map before any questions.** You see the full 1st→2nd→3rd-order tree first, then a grill-style loop asks one question per effect — mitigate, accept, design-around, or invalidate — each with a recommended answer; a mitigation can spawn a new chain and a surprise can insert a missed effect.
+- **A durable report you can annotate.** Optionally saves a single self-contained HTML doc — the scored tree, the interrogation transcript, and a refinements/residual-risks summary — with the inline-comments overlay. Tree-only by design; no diagram to render.
+
 ## 2026-06-12 — pmos-toolkit 2.69.0: the build loop self-heals stories that crash mid-build
 
 When an unattended `/feature-sdlc build` loop crashed partway through a story (mid-`/execute`, mid-`/verify`), that story used to leak forever — stuck at `in-progress` with its claim still held, neither done nor blocked, silently jamming the loop. `build` now reconciles in-flight stories *before* it picks new work.

@@ -139,6 +139,7 @@ For the end-to-end "idea → shipped" flow, the skills compose like this:
 
 Adversarial passes are available at every stage:
   /grill          — interview on shaky assumptions
+  /ripple-effects — simulate 1st/2nd/3rd-order effects, then refine
   /msf-req        — user-friction analysis on requirements
   /msf-wf         — user-friction analysis on wireframes
   /creativity     — non-obvious alternatives
