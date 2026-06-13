@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (define 260613-v3y — pmos-gamekit /snake epic + story 260613-1vv added)
+Last regenerated: 2026-06-14 (define 260614-c29 — pmos-gamekit /tetris epic + story 260614-fqg added)
 
-9 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+11 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -31,6 +31,7 @@ Last regenerated: 2026-06-13 (define 260613-v3y — pmos-gamekit /snake epic + s
 | 260613-e35 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /sudoku (classic 9×9, easy/medium/hard, hints, pencil notes, on-demand error check) |
 | 260613-v3y | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /snake (classic feature-phone Snake, single-file HTML, walls-kill + wrap toggle, speed picker + progressive speed-up) |
 | 260613-fc7 | defined | skill | pmos-learnkit | 0/1 | /frameworks browse view — fix design-crit observations (perceived-reload, reader a11y, deep-link, detailed-view perf, polish) |
+| 260614-c29 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /tetris (modern guideline-style — SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up) |
 
 ## should
 
@@ -78,3 +79,4 @@ Last regenerated: 2026-06-13 (define 260613-v3y — pmos-gamekit /snake epic + s
 | 260613-kw5 | story | feature | planned | 260613-wqw | Build the /poker skill — single-file No-Limit Hold'em (6-max random bots, heuristic AI, side pots) + tests | 02_design.html | 03_plan.html |  |
 | 260613-f71 | story | feature | planned | 260613-e35 | Build the /sudoku skill — single-file classic 9×9 (easy/medium/hard, hints, pencil notes, on-demand check) + tests | 02_design.html | 03_plan.html |  |
 | 260613-1vv | story | feature | planned | 260613-v3y | Build the /snake skill — single-file classic Snake (speed picker + progressive speed-up, walls-kill + wrap toggle) + tests | 02_design.html | 03_plan.html |  |
+| 260614-fqg | story | feature | planned | 260614-c29 | Build the /tetris skill — single-file modern Tetris (SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up) + tests | 02_design.html | 03_plan.html |  |
