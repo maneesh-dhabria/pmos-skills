@@ -26,6 +26,13 @@
       "source": "./plugins/pmos-utilities",
       "category": "productivity",
       "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
+    },
+    {
+      "name": "pmos-gamekit",
+      "description": "Game kit — casual single-player browser games, pre-bundled as self-contained HTML and launched from a skill via a zero-dependency local server.",
+      "source": "./plugins/pmos-gamekit",
+      "category": "entertainment",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
     }
   ]
 }

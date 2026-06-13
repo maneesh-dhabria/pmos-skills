@@ -11,6 +11,7 @@ Each plugin answers one question. A new skill belongs to the plugin whose charte
 | **pmos-toolkit** | …**ship a feature** | the delivery pipeline (requirements → spec → plan → execute → verify → complete-dev) and its supporting authoring/release skills (artifact, diagram, wireframes, prototype, grill, polish, backlog, mytasks, people, changelog, session-log, feature-sdlc, …). |
 | **pmos-learnkit** | …**learn a topic** | verified-source, audience-shaped teachable artifacts (primer, learn-list, magazine) and the shared topic-research substrate. |
 | **pmos-utilities** | …**maintain my environment** | standalone diagnostics, cleanup, and meta-tooling that aren't part of a feature pipeline or a learning artifact (mac-health, reflect — a cross-plugin session retrospective). |
+| **pmos-gamekit** | …**play a casual game** | pre-bundled single-player browser games, each a self-contained HTML file launched from a skill via a zero-dependency local server (solitaire). |
 
 The charters are the membership test, not just a description. `mac-health` lives in `pmos-utilities` (not `pmos-toolkit`) because diagnosing a hot Mac maintains your environment — it neither ships a feature nor teaches a topic.
 
@@ -86,6 +87,7 @@ An unregistered plugin directory under `plugins/` is silently invisible to the m
 - pmos-toolkit
 - pmos-learnkit
 - pmos-utilities
+- pmos-gamekit
 
 ### Tag convention
 - Format: `<plugin>/v<semver>` (e.g. `pmos-toolkit/v2.50.0`).
