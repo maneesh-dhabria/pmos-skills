@@ -59,6 +59,13 @@ One `/execute` run = one PR. The substrate born here is what Story 2 (`260613-dn
 - [ ] **Polish:** references `/polish` guidelines for all output; runs `/polish` at deep.
 - [ ] **Quality:** passes `skill-eval` ([D]+[J]) per `skill-patterns.md §A–§L`; non-interactive
       block inlined byte-identical; canonical skill path; manifest version-sync handled by release.
+- [ ] **Dogfood (verify-time acceptance, task T10):** the built skill runs end-to-end at **deep**
+      tier with default values on "Semantic Layer for Metrics and its Use Cases", producing
+      `docs/pmos/research/<YYYY-MM-DD>-semantic-layer-for-metrics/research-report.html` +
+      `interim-reports/`; an **independent judge** subagent validates decision-support quality
+      (recommendation actionable, every claim cited to a reachable+attributable source, options
+      table grounded, no hallucinated sources); obvious gaps the run surfaces are fixed. Executed
+      during `/verify`, not `/execute`.
 
 ## Notes
 

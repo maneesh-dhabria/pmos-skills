@@ -955,6 +955,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
       <li><code>lint-flags-vs-hints.sh</code>, <code>lint-phase-refs.sh</code>, <code>lint-non-interactive-inline.sh</code>, <code>audit-recommended.sh</code> all green.</li>
       <li>Canonical path <code>plugins/pmos-toolkit/skills/research/SKILL.md</code>; <code>name: research</code> matches dir.</li>
       <li>A live smoke run produces a report at the spec'd path with an <code>interim-reports/</code> sub-folder, decision-framed sections, and citations.</li>
+      <li><strong>Task T10 (deep-tier dogfood, verify-time):</strong> a full end-to-end <code>deep</code> run with default values on <em>"Semantic Layer for Metrics and its Use Cases"</em> produces <code>docs/pmos/research/&lt;date&gt;-semantic-layer-for-metrics/research-report.html</code> + <code>interim-reports/</code>; an <strong>independent judge</strong> subagent validates decision-support quality (actionable recommendation, every claim cited to a reachable+attributable source, grounded options table, no hallucinated sources); obvious gaps fixed and skill-eval re-run.</li>
       <li>No release-prerequisite tasks were run in build (version/changelog/README/manifest are <code>/complete-dev</code>'s job).</li>
     </ul>
 

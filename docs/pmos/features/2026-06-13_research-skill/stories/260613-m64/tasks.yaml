@@ -127,3 +127,23 @@ tasks:
       §K cites (no restated source-tier/rank logic); §L dispatch table present. Run
       feature-sdlc/tools/skill-eval-check.sh <skill_dir> and fix [D] fails. Do NOT add version-bump
       / changelog / README-row / manifest-sync tasks — those are release-only (## Release prerequisites).
+
+  - id: T10
+    title: "VERIFICATION (run at /verify, not execute): deep-tier dogfood end-to-end + independent judge"
+    ac: [AC10]
+    deps: [T9]
+    parallel: false
+    kind: verification
+    detail: >
+      ACCEPTANCE / DOGFOOD — executed during the /verify phase of this story, NOT during /execute.
+      Run the freshly-built /research skill end-to-end at DEEP tier with default values on the topic
+      "Semantic Layer for Metrics and its Use Cases": intake → plan+approval → fan-out → gap-fill →
+      tier-scaled verification → synthesis → /polish, producing
+      docs/pmos/research/<YYYY-MM-DD>-semantic-layer-for-metrics/research-report.html with an
+      interim-reports/ sub-folder. Then dispatch an INDEPENDENT judge subagent (sonnet, separate
+      from the report reviewer) to score the report on decision-support quality: recommendation
+      present + actionable, every claim cited to a reachable+attributable source, options-comparison
+      table grounded, "what-would-change-my-mind" + risks present, no hallucinated sources. Capture
+      the judge verdict. Fix OBVIOUS skill gaps the run surfaces (re-run skill-eval after any edit).
+      This task validates the skill against a real run before the epic is released; it is a verify-
+      time acceptance gate, not part of the build edits.
