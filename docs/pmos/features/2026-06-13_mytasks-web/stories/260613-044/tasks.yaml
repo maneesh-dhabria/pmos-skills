@@ -1,0 +1,102 @@
+schema_version: 1
+story: 260613-044
+epic: 260613-5av
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Story B (terminal parity): CLI verbs/flags for projects, subtasks, recurrence, manual order +
+# quick-add token grammar + nested rendering. DEPENDS ON 260613-7n1 (schema fields + migration must
+# exist; claim-time dep-merge brings 7n1's branch in first). /execute is sole writer. §K: the
+# recurrence-on-complete spawn implemented here (Phase 9 `done`) is the canonical home the Story-C
+# web `POST /complete` reuses. NO release-prereq tasks (release-only — /complete-dev owns them).
+# File-conflict map: all tasks edit SKILL.md (sequential) EXCEPT T_INF (inference-heuristics.md, parallel).
+tasks:
+  - id: T1
+    title: "Phase 7 set — accept project=/parent=/recur=/order= with validation"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Edit mytasks SKILL.md Phase 7 (#set). Add `project`, `parent`, `recur`, `order` to the editable
+      field list. Validate: `project` free string (empty clears → Inbox); `parent` an id that must
+      resolve via the Phase-6 triple-accept locate (reject self-parent + nonexistent; reject a 2-level
+      cycle); `recur` against the closed grammar in schema.md (empty clears); `order` a non-negative
+      integer (empty clears). Drop `workstream` from the editable list (migrated to `project`). Update
+      the skill-managed vs editable wording.
+
+  - id: T2
+    title: "Phase 3 add --parent + new-field prompts; Phase 2 capture defaults"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 3 (#rich-capture): accept `--parent <id>` (and the NL form "subtask of <id>")
+      to capture a child task with `parent:` set; add `project` to the rich-capture prompt order
+      (manual, default Inbox); offer `recur` prompt (default none). Phase 2 (#quick-capture): write
+      `parent`/`order`/`recur` as bare keys by default (empty). Ensure a captured subtask file is a
+      normal full task file that merely carries `parent:`.
+
+  - id: T3
+    title: "Phase 2/3 quick-add token grammar — #project, +label (keep @=person)"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 2 (#quick-capture) step 3 + Phase 3 to parse inline tokens from bare text:
+      `#project` → set project (strip token); `+label` → append to labels (strip token); `@handle` →
+      person via /people find with the EXISTING single/multi/no-match disambiguation (unchanged); NL
+      dates via inference-heuristics. `@`=person is preserved (NOT Todoist @=label) — call this out.
+      Unresolved `@` tokens stay in the title + surface in the capture report. Order of stripping:
+      type → date → people(@) → #project → +label, then the remainder is the title.
+
+  - id: T_INF
+    title: "inference-heuristics.md — document #project / +label token rules"
+    ac: [AC5]
+    deps: []
+    parallel: true
+    detail: >
+      Edit mytasks inference-heuristics.md (parallel — different file). Add a "Project & label tokens"
+      section documenting `#project` (single token → project slug, stripped) and `+label` (one per
+      token, appended to labels, stripped), alongside the existing `@handle` person rule. Note `@` is
+      person (mytasks convention), `#` project, `+` label — and that a bare `#`/`+` with no following
+      word is left in the title.
+
+  - id: T4
+    title: "Phase 9 done — recurrence-on-complete spawn (canonical home for Story C)"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 9 (#done-drop). On `done <id>` where the item has non-empty `recur:`: set the
+      current item completed (as today), then mint a NEW task (fresh <YYMMDD>-<rand3> id via mint-id)
+      copying title/type/importance/project/labels/people/parent/recur, with `due`/`start` advanced by
+      the recur rule (reuse the check-in cadence math incl. monthly last-day clamp), `status: pending`,
+      fresh created/updated. Log the completion to the old item's `## Notes`. Output names both the
+      completed id and the spawned next-instance id. Make this the single documented spawn routine (§K)
+      that Story C's web `POST /complete` cites — do NOT duplicate the logic later.
+
+  - id: T5
+    title: "Phases 4/5/6 + routing — render project, subtasks (nested), recurrence; rename in <workstream>→in <project>"
+    ac: [AC5, AC6]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 6 (#show) to render `project`, `recur`, and a child list (items whose
+      `parent:` == this id). Phase 4 (#list) + Phase 5 (#named-views): add a `--project`/`in <project>`
+      filter (rename from `--workstream`/`in <workstream>`); render a `project` column; show subtasks
+      indented under their parent (or a `parent` column in flat tables); add a `--parent <id>` filter
+      and a `--recurring` filter. Update the #routing table + the named-views table for `in <project>`.
+      Update argument-hint in frontmatter to swap `in <workstream>` → `in <project>` and keep ONLY
+      contract flags (§I); mark NL-sugar flags appropriately.
+
+  - id: T6
+    title: "Verify gates — skill-eval-check [D] + repo lints + scenarios"
+    ac: [AC7]
+    deps: [T1, T2, T3, T_INF, T4, T5]
+    parallel: false
+    detail: >
+      Add tests/scenarios for: capture with `#project +label @person tomorrow`; `add --parent`;
+      `set <id> recur=weekly` then `done <id>` spawns a next instance; `in <project>` filter; nested
+      `show` rendering. Run skill-eval-check.sh --target claude-code (expect [D] pass) + the four repo
+      lints (flags-vs-hints especially, given the argument-hint change). Confirm non-interactive block
+      byte-identical. [J] + dogfood run at /skill-eval + /verify.

@@ -1,0 +1,111 @@
+schema_version: 1
+story: 260613-7n1
+epic: 260613-5av
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Story A (foundation): /mytasks schema extension + workstream→project migration + id-scheme
+# correctness fix. /execute is the sole writer of the skill files. §K: recurrence + subtask
+# semantics are DOCUMENTED here (schema.md) but the CLI `done`-spawn behavior lands in Story B;
+# this story only adds the schema contract + the migration + the Phase-6 id fix. NO release-prereq
+# tasks (version bump / changelog / README / manifest sync are release-only — /complete-dev owns them).
+# File-conflict map: T1 schema.md · T2/T3 SKILL.md (sequential) · T4 inference-heuristics.md ·
+# T5 output-formats.md · T6 tests/** . Different files → parallel where deps allow.
+tasks:
+  - id: T1
+    title: "schema.md — add project/parent/order/recur fields, enums, defaults, recurrence + subtask semantics, INDEX binding"
+    ac: [AC1, AC2, AC4]
+    deps: []
+    parallel: true
+    detail: >
+      Edit plugins/pmos-toolkit/skills/mytasks/schema.md. Replace `workstream:` with `project:`
+      (optional, user-curated, default none=Inbox — NOT auto-inferred). Add `parent:` (optional id;
+      a subtask is a full child task file), `order:` (optional integer; manual sort within a project),
+      `recur:` (optional recurrence rule). Bump `schema_version` 1→2 (note absent==1 still valid).
+      Document the recurrence rule grammar (closed set: `daily`, `weekly`, `biweekly`, `monthly`,
+      `every <N> days|weeks|months`, `every <weekday>`) and how due/start advance — REUSE the existing
+      check-in `monthly` last-day clamp (Jan 31 → Feb 28). Document subtask semantics: completing a
+      parent does NOT auto-complete children (independent status); spawn-new-instance on recurring
+      complete (D8). Update the enum table, the quick-capture + rich-capture default lists, and the
+      empty-optional bare-key binding (new optional fields written as bare keys, never omitted).
+      Update the INDEX.md format binding: `project` column replaces `workstream`; document the
+      subtask-in-INDEX decision (default: INDEX stays flat — subtasks listed as normal rows with a
+      parent ref column; nesting is a view-layer concern) — resolves design §9 open item.
+
+  - id: T2
+    title: "SKILL.md Phase 12 — fold idempotent workstream→project migration into rebuild-index"
+    ac: [AC3]
+    deps: []
+    parallel: true
+    detail: >
+      Edit plugins/pmos-toolkit/skills/mytasks/SKILL.md Phase 12 (#rebuild-index). Add a migration
+      step that, before regenerating INDEX, renames the `workstream:` frontmatter key to `project:`
+      in every ~/.pmos/tasks/items/**.md AND archive/**.md that still has it. Idempotent (no-op when
+      none remain), safe to re-run, never touches values (just the key). Items with empty/absent
+      value land in Inbox (bare `project:` key). Update the Phase 1 default-view + Phase 4 list source
+      notes that referenced `workstream`. Log a one-line `migrated N items workstream→project` on a
+      non-zero migration. Keep the routing table + #routing `in <workstream>` reference flagged for
+      Story B (the `in <project>` rename is Story 044; here just leave a note, do not break the verb).
+
+  - id: T3
+    title: "SKILL.md Phase 6 — triple-accept id locate/normalize (drop zero-pad-to-4 mangling)"
+    ac: [AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/mytasks/SKILL.md Phase 6 (#show) step 1. Replace
+      "accept 42, 0042 … zero-pad to 4 digits" with the triple-accepting locate per
+      _shared/tracker-crudl.md §2.1: accept `<YYMMDD>-<rand3>` and `<MMDD>-<rand3>` verbatim, and a
+      bare integer / zero-padded legacy serial (normalize ONLY the legacy-serial form to 4 digits).
+      Locate via `items/{id}-*.md` glob without mangling non-serial ids. Update the not-found
+      "Closest matches by prefix" wording so it works for date-rnd prefixes too. Same file as T2 →
+      sequential.
+
+  - id: T4
+    title: "inference-heuristics.md — drop workstream auto-inference (project is manual)"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Edit plugins/pmos-toolkit/skills/mytasks/inference-heuristics.md. Remove the "Workstream
+      inference" section (D3: project is fully manual, never auto-set from repo `.pmos/settings.yaml`).
+      Update the "What is NEVER inferred" list to include `project` (and note `parent`/`order`/`recur`
+      are never inferred at capture). Leave the type/date/`@person` rules unchanged — the `#project` /
+      `+label` quick-add token rules are Story 044's addition (note that here, do not add them).
+
+  - id: T5
+    title: "output-formats.md — refresh stale 0042 example to a date-rnd id"
+    ac: [AC6]
+    deps: []
+    parallel: true
+    detail: >
+      Edit plugins/pmos-toolkit/skills/mytasks/output-formats.md. Replace the `#0042` capture-report
+      example with a representative `<YYMMDD>-<rand3>` id (e.g. `#260613-c31`). Update any
+      `workstream` mention in the report templates to `project`. Keep templates otherwise intact.
+
+  - id: T6
+    title: "tests/ — refresh ids to date-rnd, keep ≥1 legacy-id fixture, add a migration scenario"
+    ac: [AC5, AC6, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Update plugins/pmos-toolkit/skills/mytasks/tests/scenarios.md + tests/fixtures/**. Convert the
+      illustrative `0001`-style ids in scenarios to representative `<YYMMDD>-<rand3>` ids, EXCEPT keep
+      one fixture (e.g. with-tasks) on a legacy 4-digit id to prove the triple validator still accepts
+      old files (add an explicit scenario asserting `show <legacy-id>` locates it). Rename `workstream`
+      → `project` in fixture frontmatter + INDEX fixtures. Add a migration scenario: a fixture with a
+      `workstream:` key, after `rebuild-index`, has it renamed to `project:` (idempotent on re-run).
+      Add a scenario for `show <date-rnd-id>` locating a parent + a `parent:`-bearing child fixture.
+
+  - id: T7
+    title: "Verify gates — skill-eval-check [D] + repo lints + scenario self-consistency"
+    ac: [AC7]
+    deps: [T1, T2, T3, T4, T5, T6]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the mytasks skill dir
+      (expect [D] all-pass; capture-learnings heading needs a COLON — known gotcha). Run the four repo
+      lints: tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh, tools/lint-non-interactive-inline.sh,
+      tools/audit-recommended.sh against the skill. Confirm the non-interactive block is byte-identical
+      to skills/_shared/non-interactive.md. This is the deterministic gate; the [J] half + dogfood run
+      at /skill-eval and /verify.

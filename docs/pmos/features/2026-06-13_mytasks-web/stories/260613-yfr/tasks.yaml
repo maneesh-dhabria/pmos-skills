@@ -1,0 +1,138 @@
+schema_version: 1
+story: 260613-yfr
+epic: 260613-5av
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Story C (web surface): zero-dep serve.js + JSON API + single-file Todoist-class app + launcher
+# trio + `/mytasks web` subcommand + behavioral/live tests. DEPENDS ON 260613-7n1 (schema) +
+# 260613-044 (CLI semantics; reuses the recurrence-on-complete spawn). claim-time dep-merge brings
+# both branches in first. /execute is sole writer. Server adapts (does NOT reinvent) the comments
+# serve.js atomicity/concurrency/PID/idle machinery. NO release-prereq tasks (release-only).
+# File-conflict map: T_SRV serve.js · T_API serve.js (seq after T_SRV) · T_APP/T_CSS/T_JS app files
+# (parallel) · T_LAUNCH launcher trio · T_SKILL SKILL.md · T_TEST tests/ · T_E2E live smoke.
+tasks:
+  - id: T_SRV
+    title: "serve.js — adapt comments server: localhost bind, static serve, atomic writes, PID reuse, idle shutdown"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/mytasks/scripts/serve.js by adapting the comments substrate
+      serve.js (_shared/html-authoring/assets/serve.js). Keep: 127.0.0.1-only bind, --port=0,
+      --pid-file, --idle=N auto-shutdown, temp-then-rename atomic writes, orphan-.tmp logging. Serve
+      the static app from scripts/webapp/ at `/`. Resolve the tasks root to ~/.pmos/tasks/ (override
+      via --tasks-dir for tests). Add a frontmatter parse/serialize helper (zero-dep) that round-trips
+      the mytasks item file shape (preserve bare-key empty optionals + body sections). Version token =
+      sha256 of file bytes (design §3.4).
+
+  - id: T_API
+    title: "JSON API endpoints — tasks CRUD, checkin/complete/drop, reorder, meta"
+    ac: [AC2]
+    deps: [T_SRV]
+    parallel: false
+    detail: >
+      In serve.js add the API per design §3.3: GET /api/tasks (parse all items/*.md → JSON; query
+      filters mirroring `list`); GET /api/tasks/:id; POST /api/tasks (mint <YYMMDD>-<rand3> via the
+      sibling mint-id.mjs; parse @/#/+ quick-add tokens reusing Story-B grammar; people via /people is
+      CLI-only, so web stores literal handles); PATCH /api/tasks/:id (expected_version → 409 + current
+      version on mismatch); POST /api/tasks/:id/checkin (append + advance next_checkin); POST
+      /api/tasks/:id/complete (status completed; if recur set, mint next instance — call the SAME spawn
+      routine documented in Story-B Phase 9, ported into a shared scripts/recur.js so CLI + web agree);
+      POST /api/tasks/:id/drop; POST /api/tasks/reorder (persist order[] for a project); GET /api/meta
+      (distinct projects + labels). Every mutation: validate enums (reuse schema enum list) → atomic
+      write → regenerate INDEX.md → return new version. NEVER delete a task file. Reject non-localhost
+      Origin.
+
+  - id: T_APP
+    title: "webapp index.html — three-pane layout shell + bootstrap"
+    ac: [AC3, AC5]
+    deps: [T_SRV]
+    parallel: true
+    detail: >
+      Create scripts/webapp/index.html — a single page with the three-pane layout (sidebar / task list
+      / detail panel) + quick-add bar, per design §5.1. Server-required modal (D11): on load, probe
+      GET /api/meta; on network failure show a blocking "run `/mytasks web`" modal (no file:// write
+      path). Vanilla JS + CDN-free (inline or sibling app.js/app.css served by serve.js). No build step.
+
+  - id: T_JS
+    title: "app.js — data fetch, render, interactions (quick-add, LNO, drag-reorder, subtasks, detail, freshness)"
+    ac: [AC3, AC4, AC5]
+    deps: [T_APP]
+    parallel: false
+    detail: >
+      scripts/webapp/app.js. Sidebar: smart views (Today/Upcoming/Overdue/Waiting/Check-ins due) +
+      Projects (+ Inbox) + Labels from /api/meta. List: render tasks for the selected view; LNO colored
+      flags (click to change importance via PATCH); drag-to-reorder WITHIN a project view only
+      (POST /reorder) — smart date-views stay date-sorted. Detail panel: title, notes, project, labels,
+      importance, due/start, people, recurrence, check-ins log, nested subtasks (list children, add a
+      child via POST /api/tasks with parent set, complete inline). Quick-add bar: send raw text to
+      POST /api/tasks (server parses @/#/+ + NL date). Complete/drop via the endpoints; a recurring
+      complete refreshes to show the spawned instance. Freshness: re-fetch on window focus + a light
+      visible-tab poll; on 409 show a reload banner. Optimistic-but-verified writes (send
+      expected_version).
+
+  - id: T_CSS
+    title: "app.css — Todoist-class styling, LNO flag colors, responsive three-pane"
+    ac: [AC3]
+    deps: [T_APP]
+    parallel: true
+    detail: >
+      scripts/webapp/app.css. Clean Todoist-class visual: sidebar, list rows with LNO flag colors
+      (leverage/neutral/overhead), detail panel, quick-add bar, drag affordance, reload banner, the
+      server-required modal. Keep the bundle within the comments-authoring size posture (≤ the
+      ~20KB-soft / ~40KB-hard authoring-asset budget; log if exceeded). pointer-events:none on the
+      dragged element while dragging (the /solitaire drag gotcha).
+
+  - id: T_LAUNCH
+    title: "Launcher trio — mytasks-open.command/.sh/.bat (reuse/spawn serve.js, open browser)"
+    ac: [AC6]
+    deps: [T_SRV]
+    parallel: true
+    detail: >
+      Create scripts/mytasks-open.{command,sh,bat} adapted from comments-open.*: precheck node, reuse a
+      live serve.js via .pmos-serve.pid or spawn fresh (--port=0 --idle=300), open the default browser
+      at http://127.0.0.1:<port>/. bash-3.2-safe; BASH_SOURCE[0] fallback per repo Bash-portability
+      invariant; cd to the script dir robustly.
+
+  - id: T_SKILL
+    title: "SKILL.md — `web` subcommand routing + Phase (launch UI), primary-mode framing"
+    ac: [AC6]
+    deps: [T_API, T_JS, T_LAUNCH]
+    parallel: false
+    detail: >
+      Edit mytasks SKILL.md: add `web` to the #routing table + argument-hint; add a Phase "Launch Web
+      UI" {#web} that prechecks node, reuses/spawns scripts/serve.js, opens the browser, and prints the
+      URL + how to stop (idle auto-shutdown). Update the skill intro to frame the web UI as the PRIMARY
+      mode with the terminal at full parity. Add a References entry for scripts/serve.js + webapp/. Keep
+      argument-hint to contract flags only (§I). Non-interactive: `web` is interactive-by-nature (opens
+      a browser) — mark refusal/degradation appropriately for --non-interactive (print the launch URL +
+      do not block).
+
+  - id: T_TEST
+    title: "tests/run.mjs --selftest — frontmatter round-trip, API CRUD, concurrency 409, atomic write, recur spawn"
+    ac: [AC7]
+    deps: [T_API]
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/mytasks/tests/run.mjs with a --selftest mode against a temp
+      --tasks-dir: frontmatter parse/serialize round-trip (incl. bare-key empties + body); POST/GET/
+      PATCH/complete/drop/checkin/reorder happy paths; a stale-version PATCH returns 409 + current
+      version; an interrupted write leaves the original intact (no partial); INDEX regenerated after a
+      mutation; a recurring complete mints exactly one next instance with advanced due. Deterministic,
+      zero-dep, exits non-zero on any failure (the per-skill behavioral gate, like /logos run.mjs).
+
+  - id: T_E2E
+    title: "Live browser smoke — drive the served app to create → subtask → complete → reorder (Playwright)"
+    ac: [AC4, AC7]
+    deps: [T_SKILL, T_TEST]
+    parallel: false
+    detail: >
+      A live end-to-end smoke (Playwright; install LOCALLY in the worktree — npm i -g needs sudo, the
+      explainer-video gotcha). Start serve.js on a temp --tasks-dir, drive the REAL served app:
+      quick-add a task with `#proj +tag tomorrow`, open it, add a subtask, complete the subtask,
+      complete a recurring task and assert a next instance appears, drag-reorder two tasks in a project
+      and assert order persists (re-fetch). Capture console errors (favicon-404 / drag-target gotchas
+      from /solitaire). This is the load-bearing live gate — it catches bugs [D]/[J]/selftests miss.
+      Runs at /verify (may be deferred-to-release if no renderer at build, per the explainer-video
+      lesson — but run the FULL flow when it runs).
