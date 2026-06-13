@@ -6,15 +6,15 @@ parent: 260613-vba
 title: Author _shared/research/ substrate + the /research skill end-to-end
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_research-skill/
 plan_doc: docs/pmos/features/2026-06-13_research-skill/stories/260613-m64/03_plan.html
 tasks: docs/pmos/features/2026-06-13_research-skill/stories/260613-m64/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: ../agent-skills-260613-m64
+claimed_by: build:loop
+driver_holder: build:loop
 labels: [pmos-toolkit, research, deep-research]
 created: 2026-06-13
 updated: 2026-06-13
