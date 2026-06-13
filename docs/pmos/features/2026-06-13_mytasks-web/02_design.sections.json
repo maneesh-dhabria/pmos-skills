@@ -1,0 +1,92 @@
+[
+  {
+    "id": "1-problem-intent",
+    "level": 2,
+    "title": "1. Problem & intent",
+    "parent_id": null
+  },
+  {
+    "id": "2-decisions-locked-with-the-user",
+    "level": 2,
+    "title": "2. Decisions (locked with the user)",
+    "parent_id": null
+  },
+  {
+    "id": "3-architecture",
+    "level": 2,
+    "title": "3. Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "3-1-components",
+    "level": 3,
+    "title": "3.1 Components",
+    "parent_id": null
+  },
+  {
+    "id": "3-2-launch-flow",
+    "level": 3,
+    "title": "3.2 Launch flow",
+    "parent_id": null
+  },
+  {
+    "id": "3-3-json-api-indicative",
+    "level": 3,
+    "title": "3.3 JSON API (indicative)",
+    "parent_id": null
+  },
+  {
+    "id": "3-4-concurrency-freshness",
+    "level": 3,
+    "title": "3.4 Concurrency & freshness",
+    "parent_id": null
+  },
+  {
+    "id": "4-data-model-changes-schema-md",
+    "level": 2,
+    "title": "4. Data model changes (schema.md)",
+    "parent_id": null
+  },
+  {
+    "id": "5-web-ux",
+    "level": 2,
+    "title": "5. Web UX",
+    "parent_id": null
+  },
+  {
+    "id": "5-1-layout",
+    "level": 3,
+    "title": "5.1 Layout",
+    "parent_id": null
+  },
+  {
+    "id": "5-2-interactions",
+    "level": 3,
+    "title": "5.2 Interactions",
+    "parent_id": null
+  },
+  {
+    "id": "6-correctness-fix-folded-in-id-scheme",
+    "level": 2,
+    "title": "6. Correctness fix folded in (id scheme)",
+    "parent_id": null
+  },
+  {
+    "id": "7-terminal-parity",
+    "level": 2,
+    "title": "7. Terminal parity",
+    "parent_id": null
+  },
+  {
+    "id": "8-scope-guard",
+    "level": 2,
+    "title": "8. Scope guard",
+    "parent_id": null
+  },
+  {
+    "id": "9-open-items-for-the-spec-stage",
+    "level": 2,
+    "title": "9. Open items for the spec stage",
+    "parent_id": null
+  }
+]
