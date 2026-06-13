@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.72.0: /logos — propose & generate on-brand SVG logo candidates from a brief
+
+A new `/logos` skill turns a brief — free text, a web URL, and/or existing brand assets — into a *set* of on-brand logo candidates, authored as real vector SVG in-session at `$0` (no paid image-generation API, ever). It is a sibling of `/diagram`: same renderer hard-gate, same deterministic-metrics-plus-vision eval shape.
+
+- **Decomposition-first.** Rather than emit one mark, `/logos` decomposes the brief into N named logo needs (a brand mark, a feature icon, a few nav glyphs…) with rationale, then works each need independently.
+- **Style-profile extraction from any reference.** Point it at a URL (Playwright screenshot + scraped CSS colors / `theme-color`), a local image (SVG parse if vector, k-means palette if raster), or an existing SVG seed (corner radii, stroke weight, geometry read from path commands) — every candidate is conditioned on *and* checked against the extracted palette, corner-style, stroke-ratio, and mood. Text-only briefs derive the profile from mood adjectives.
+- **2–3 structurally-divergent variants per need**, each a standalone self-contained `.svg` (valid XML, single `<svg viewBox>`, no raster embeds, no `<script>`, namespaced gradient/clip ids).
+- **Hybrid evaluator gates every candidate.** Deterministic SVG code-metrics as hard gates (no raster embed, bounded color count, min effective stroke at 16px, square-ish icon viewBox, path-budget) plus a renderer-backed vision check (favicon-16px legibility, monochrome-still-reads, brief-fit). No renderer present (Playwright → rsvg-convert → cairosvg) ⇒ it refuses to run with an install hint, exactly like `/diagram`.
+- **The deliverables logos actually need.** Combination/emblem/wordmark marks also emit an icon-only variant; every non-flat-theme candidate emits a flat monochrome fallback. A single self-contained `logos.html` showcases every need × variant inline, on light + dark, at full + favicon size, with per-file download links and the inline-comments overlay.
+- **A bundled starter theme set** — flat-minimal (default), line/outline, geometric/monogram, gradient/duotone, badge/emblem, and dimensional-flat (filter-based soft depth) — pickable per need or auto-selected.
+
 ## 2026-06-13 — pmos-toolkit 2.71.0: year-prefixed backlog & task ids
 
 Backlog and task ids now carry a two-digit year prefix — `<YYMMDD>-<rand3>` (e.g. `260613-waf`) instead of `<MMDD>-<rand3>`. The change keeps ids coordination-free (no shared counter, minted from crypto randomness) while making them unambiguous across year boundaries, so a December item and the following January item never collide on month-day alone.

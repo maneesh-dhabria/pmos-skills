@@ -68,6 +68,7 @@ Standalone environment diagnostics — neither a feature-delivery step nor a lea
 | Annotate any pmos-emitted HTML artifact in the browser | `/comments` | Highlight → comment → resolve via `/comments resolve <artifact>`; sidecar `<artifact>.comments.json` pairs to the HTML |
 | Design and field a survey | `/survey-design` | Then `/survey-analyse` on the responses |
 | Generate a vector diagram | `/diagram` | Brainstorms framings, self-evaluates against a hybrid rubric |
+| Generate on-brand SVG logo candidates from a brief | `/logos` | Decomposes a brief (text / URL / assets) into N logo needs → 2–3 self-contained `.svg` variants per need → hybrid eval (deterministic metrics + renderer-backed vision) → `logos.html` showcase; `$0` in-session, sibling of `/diagram` (same renderer hard-gate) |
 | Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs; `--from-spec` mode audits spec architectural assertions against code (folded into `/spec` Phase 6.6 + `/verify` Phase 4.7) |
 | Track personal tasks (LNO, due dates, people) | `/mytasks` | Lives at `~/.pmos/tasks/` |
 | Maintain a shared person / contact directory | `/people` | Handle, name, role, working relationship; consumed by `/mytasks` |
