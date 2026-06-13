@@ -5,7 +5,7 @@ kind: epic
 title: Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate)
 type: enhancement
 priority: should
-status: defining
+status: defined
 route: feature
 plugin: pmos-toolkit
 feature_folder: docs/pmos/features/2026-06-13_pipeline-doc-css-readability/
