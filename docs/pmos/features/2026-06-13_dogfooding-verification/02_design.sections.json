@@ -1,0 +1,128 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem — the gap today",
+    "parent_id": null
+  },
+  {
+    "id": "solution",
+    "level": 2,
+    "title": "Solution overview",
+    "parent_id": null
+  },
+  {
+    "id": "substrate",
+    "level": 2,
+    "title": "The substrate — _shared/dogfooding.md",
+    "parent_id": null
+  },
+  {
+    "id": "definition",
+    "level": 3,
+    "title": "Definition & distinction from the TN smoke test",
+    "parent_id": "substrate"
+  },
+  {
+    "id": "anatomy",
+    "level": 3,
+    "title": "Task anatomy",
+    "parent_id": "substrate"
+  },
+  {
+    "id": "eval-criteria",
+    "level": 2,
+    "title": "Eval criteria — objective AND subjective (D3)",
+    "parent_id": null
+  },
+  {
+    "id": "objective",
+    "level": 3,
+    "title": "Objective criteria (measurable, deterministic where possible)",
+    "parent_id": "eval-criteria"
+  },
+  {
+    "id": "subjective",
+    "level": 3,
+    "title": "Subjective criteria (blind LLM-judge rubric)",
+    "parent_id": "eval-criteria"
+  },
+  {
+    "id": "judge",
+    "level": 2,
+    "title": "Independent-judge contract (D4)",
+    "parent_id": null
+  },
+  {
+    "id": "archetypes",
+    "level": 2,
+    "title": "Archetype catalog (D8)",
+    "parent_id": null
+  },
+  {
+    "id": "iterate-loop",
+    "level": 2,
+    "title": "Iterate-until-satisfied protocol (D2)",
+    "parent_id": null
+  },
+  {
+    "id": "tier-policy",
+    "level": 2,
+    "title": "Tier policy (D1)",
+    "parent_id": null
+  },
+  {
+    "id": "approval-gate",
+    "level": 2,
+    "title": "Plan-time approval gate (D7)",
+    "parent_id": null
+  },
+  {
+    "id": "plan-changes",
+    "level": 2,
+    "title": "/plan changes (Story 260613-3ff)",
+    "parent_id": null
+  },
+  {
+    "id": "verify-changes",
+    "level": 2,
+    "title": "/verify changes (Story 260613-2m7)",
+    "parent_id": null
+  },
+  {
+    "id": "feature-sdlc",
+    "level": 2,
+    "title": "/feature-sdlc inheritance",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions (captured at define, 2026-06-13)",
+    "parent_id": null
+  },
+  {
+    "id": "stories",
+    "level": 2,
+    "title": "Stories",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  },
+  {
+    "id": "conformance",
+    "level": 2,
+    "title": "Skill-authoring conformance",
+    "parent_id": null
+  }
+]

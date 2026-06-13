@@ -1,0 +1,71 @@
+schema_version: 1
+story: 260613-2m7
+epic: 260613-yyj
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# /verify consumer story. Sole writer: verify/SKILL.md. Depends on 260613-3ff (the substrate +
+# the TN−1 task contract /verify gates on — claim-time dep-merge makes 260613-3ff present in this
+# worktree before skill-eval). DELIBERATELY LEAN (D9 §K): /verify cites _shared/dogfooding.md and
+# states only the verify-side delta. Tasks edit one SKILL.md → sequential. NO release-prereq tasks
+# (see the design doc's ## Release prerequisites). T3 is THIS story's own load-bearing dogfood (AC7).
+tasks:
+  - id: T1
+    title: "verify/SKILL.md — Phase-7 hard gate 'Dogfood verdict' + Phase-8 verdict-rule extension"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/verify/SKILL.md. Add a Phase-7 Hard Gate "Dogfood verdict"
+      (peer of the existing browser-evidence check): for Tier 2/3, the dogfood task (TN−1) must carry
+      a SATISFIED verdict — objective gates green AND the independent judge overall-satisfied (read
+      from the plan/feature-folder's TN−1 verdict line; cite _shared/dogfooding.md for the verdict
+      shape). A missing or unsatisfied verdict means the run cannot be bare PASS. Extend the Phase-8
+      verdict rule: an unsatisfied/missing dogfood verdict (T2/3) caps the verdict at PASS-WITH-GAPS
+      (or FAIL if a critical objective gate failed), with each gap enumerated one-per-line in the
+      verdict block. T1 with no dogfood task = gate N/A = clean pass. Make the gate non-skippable for
+      T2/3 (mirror the browser-evidence gate's non-skippable wording — AC3).
+    verify: >
+      grep shows a Phase-7 "Dogfood verdict" hard gate citing _shared/dogfooding.md; the Phase-8
+      verdict rule references the unsatisfied-dogfood → PASS-WITH-GAPS/FAIL mapping with per-gap
+      enumeration; T1-N/A and T2/3-non-skippable both stated.
+
+  - id: T2
+    title: "verify/SKILL.md — accepted_residuals reconciliation + substrate cite (lean)"
+    ac: [AC2, AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add residual reconciliation to /verify, modeled on the existing route:skill skill-eval residual
+      handling (cite that pattern, don't fork it): a still-failing item in the dogfood iterate loop's
+      accepted_residuals[] is reported `KNOWN / accepted` — non-blocking, surfaced LOUDLY in the
+      /verify report AND carried into the /complete-dev summary; a NEWLY-failing objective gate (not
+      previously accepted) blocks normally → drives PASS-WITH-GAPS/FAIL → blocked write-back. Ensure
+      /verify CITES _shared/dogfooding.md for the contract and states ONLY the verify-side delta (D9
+      §K) — no duplicated dogfood-protocol prose. Any cross-skill phase-ref (to plan/SKILL.md or the
+      substrate) uses resolvable slug anchors (lint-phase-refs).
+    verify: >
+      grep shows residual reconciliation with the KNOWN/accepted loud-surfacing + newly-failing-blocks
+      rules; /verify cites _shared/dogfooding.md; no restated protocol prose; cross-skill cites use
+      valid #slug anchors.
+
+  - id: T3
+    title: "Conventions + skill-eval + lints + load-bearing dogfood (AC7)"
+    ac: [AC5, AC6, AC7, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Conformance + this story's OWN load-bearing dogfood. Conformance: --non-interactive W14 (NI
+      block byte-identical); §H–§L; any new AskUserQuestion has (Recommended) or defer-only. Run
+      skill-eval-check.sh (floor 43/47, name==dir) + the 4 repo hygiene lints (lint-flags-vs-hints.sh,
+      lint-phase-refs.sh, lint-non-interactive-inline.sh, audit-recommended.sh). DOGFOOD (AC7):
+      construct a fixture feature folder with a TN−1 dogfood task in two states — (a) satisfied
+      verdict, (b) unsatisfied verdict + an accepted residual. Run /verify against each; objective
+      gates — (a) yields bare PASS, (b) yields PASS-WITH-GAPS with enumerated gaps AND the loud
+      `KNOWN / accepted` residual line. Subjective — an independent (blind) judge scores the gate's
+      report output against AC1–AC2; if not satisfied, enumerate gaps → fix → re-run (cap 2). NO
+      release-prereq tasks in waves (AC8).
+    verify: >
+      skill-eval-check.sh exit 0 (or accepted residuals recorded); 4 lints green; both fixture runs
+      produce the correct verdict (bare PASS vs PASS-WITH-GAPS + loud residual); judge satisfied (or
+      residuals accepted+surfaced); no release-prereq task in any wave.

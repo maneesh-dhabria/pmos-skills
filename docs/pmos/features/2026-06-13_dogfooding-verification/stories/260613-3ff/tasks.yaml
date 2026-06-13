@@ -1,0 +1,119 @@
+schema_version: 1
+story: 260613-3ff
+epic: 260613-yyj
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Substrate + /plan story for the load-bearing dogfooding epic. Two writers: a NEW substrate file
+# (_shared/dogfooding.md) and EDITS to /plan (SKILL.md + reference/plan-templates.md). Tasks are
+# sequential — the /plan edits cite the substrate, so the substrate lands first. DELIBERATELY LEAN
+# (D9 §K): the substrate holds the contract; /plan cites it and states only deltas. NO /execute edit
+# (D6 — discovered-work routing already exists). NO release-prereq tasks here (see the design doc's
+# ## Release prerequisites). The dogfood task (T5) is THIS story's own load-bearing dogfood (AC9).
+tasks:
+  - id: T1
+    title: "Author _shared/dogfooding.md substrate (the canonical contract)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/_shared/dogfooding.md as the canonical home (§K) for the
+      dogfooding contract. Sections, each terse and cite-able by anchor: (1) Definition & distinction
+      from the TN smoke test (additive, not a rename — D5); (2) Task anatomy (archetype, scenario,
+      objective criteria, subjective rubric, independent-judge dispatch, iterate protocol, verdict
+      line); (3) Eval criteria framework — BOTH objective (measurable: pass/fail gates, counts/rates,
+      console-errors=0, thresholds, golden-sample diffs) AND subjective (named-dimension blind
+      LLM-judge rubric with per-dimension verdict+rationale and an overall satisfied bar) — D3; (4)
+      Independent-judge contract (D4 — fresh blind subagent, structured verdict {per-dimension,
+      overall, enumerated gaps}, makes NO edits; non-subagent fallback = self-review framed
+      "judge as if first time", logged as downgrade); (5) Archetype catalog (D8 — skill→LLM-judge,
+      frontend→Playwright-friction, CLI→real-invocation, data→golden-sample, API→scenario; bespoke
+      when none fit); (6) Iterate-until-satisfied protocol (D2 — run→judge→if-unsatisfied enumerate
+      gaps→spawn fix tasks via /execute discovered-work routing→re-run; cap 2; net-worse guard;
+      past-cap AskUserQuestion {accept-residuals / iterate-manually / restore-previous / abort};
+      non-interactive defers approval + auto-iterates + accepts-residuals-and-surfaces); (7) Tier
+      policy (D1 — T2/T3 mandatory, T1 optional); (8) Plan-time approval gate (D7). State plainly the
+      loop reuses /execute's existing discovered-work routing — NO /execute change. Keep it lean;
+      this is reference prose, not a skill body.
+    verify: >
+      File exists at the canonical _shared path; contains anchored sections for all 8 items; declares
+      both objective AND subjective criteria; names the independent-judge structured-verdict shape;
+      states cap=2 + net-worse + non-interactive posture + T2/T3-mandatory/T1-optional.
+
+  - id: T2
+    title: "plan/reference/plan-templates.md — add TN−1 Dogfood task template before TN"
+    ac: [AC2, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      In plugins/pmos-toolkit/skills/plan/reference/plan-templates.md, add a `### TN−1: Dogfood /
+      Utility Verification` task template IMMEDIATELY BEFORE `### TN: Final Verification`, citing
+      _shared/dogfooding.md (cite, don't restate — §K). Template carries placeholders for: archetype,
+      concrete scenario (real task + representative input), an objective-criteria checklist (exact
+      commands + expected output), a subjective-rubric block (named dimensions + the independent-judge
+      dispatch), the iterate-protocol note (cap 2), and a final **Verdict** line (satisfied/
+      not-satisfied + accepted_residuals) that /verify reads. Update the skeleton's task-list line
+      (the `## Tasks` intro that mentions "T1 tracer-bullet template + TN Final Verification") to
+      include TN−1. Confirm TN stays LAST. Note in the Append-mode guidance that TN−1 moves with TN.
+    verify: >
+      grep shows the TN−1 template block precedes the TN block; it cites _shared/dogfooding.md; it
+      has objective + subjective placeholder sections + a Verdict line; the skeleton intro lists TN−1.
+
+  - id: T3
+    title: "plan/SKILL.md — Tier Gates require TN−1 (T2/3) + emission phase + plan-time approval gate"
+    ac: [AC3, AC5, AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/plan/SKILL.md. (a) Tier Gates: T2 and T3 plans MUST include
+      the TN−1 dogfood task (offer for T1); cite _shared/dogfooding.md for the contract (deltas only,
+      D9). (b) The plan-generation phase (where TN is emitted): select an archetype from the catalog
+      for this deliverable, draft the scenario + dual criteria + named independent judge, and emit
+      TN−1. (c) Add a plan-time AskUserQuestion that presents the proposed dogfood task (archetype /
+      scenario / objective criteria / subjective rubric) for the user to Approve (Recommended — the
+      auto-proposed scenario) / Edit scenario / Edit criteria — with a `(Recommended)` option so it
+      is NOT defer-only; under --non-interactive it defers to the recommended scenario (W14). (d)
+      Serialize TN−1 into tasks.yaml as a real task (keep TN last). Keep additions terse — cite the
+      substrate, don't transcribe it.
+    verify: >
+      grep shows Tier-Gates require TN−1 for T2/T3; an emission step selecting an archetype; a
+      plan-time AskUserQuestion with a (Recommended) option; a tasks.yaml serialization note; all new
+      prose cites _shared/dogfooding.md rather than restating it.
+
+  - id: T4
+    title: "plan/SKILL.md — review structural check + exit criteria for the dogfood task"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      In plan/SKILL.md's review section (the Structural Checklist + Exit Criteria): add a structural
+      check that FAILS any T2/T3 plan whose dogfood task is missing, not load-bearing, or lacks BOTH
+      objective and subjective criteria + a named independent judge. Add the matching Exit-Criteria
+      bullet. Keep numbering consistent (it's a numbered checklist) and update any "N checks" count if
+      one is stated.
+    verify: >
+      grep shows the new structural check naming both-criteria + load-bearing + independent-judge for
+      T2/T3, and a corresponding Exit-Criteria line; checklist numbering consistent.
+
+  - id: T5
+    title: "Conventions + skill-eval + lints + load-bearing dogfood (AC9)"
+    ac: [AC6, AC7, AC8, AC9, AC10]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Conformance + this story's OWN load-bearing dogfood (eat our own cooking — D2/D3/D7).
+      Conformance: /plan stays lean (D9 — cite the substrate); --non-interactive W14 (NI block
+      byte-identical; approval defers to recommended); §H–§L; every AskUserQuestion has (Recommended)
+      or defer-only; argument-hint flags (if any added) handled. Run skill-eval-check.sh (floor
+      43/47, name==dir) + the 4 repo hygiene lints (lint-flags-vs-hints.sh, lint-phase-refs.sh,
+      lint-non-interactive-inline.sh, audit-recommended.sh). DOGFOOD (AC9): run the revised /plan
+      end-to-end on a real T2 spec AND a real T3 spec; objective gates — TN−1 present in both emitted
+      plans, both criteria kinds present, approval AskUserQuestion present with (Recommended), TN−1
+      serialized into tasks.yaml with TN last, lint-phase-refs + skill-eval green. Subjective —
+      dispatch an independent (blind) judge to score the emitted dogfood task against the substrate's
+      anatomy + dual-criteria contract; if not satisfied, enumerate gaps → fix → re-run (cap 2). NO
+      release-prereq tasks anywhere in waves (AC10 — they live in ## Release prerequisites).
+    verify: >
+      skill-eval-check.sh exit 0 (or accepted residuals recorded); 4 lints green; the dogfood ran on
+      a T2 and a T3 spec with the objective gates green and the judge satisfied (or residuals
+      accepted+surfaced); no release-prereq task appears in any wave.
