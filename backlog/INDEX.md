@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (rebuild from items — 5 build write-backs reconciled)
+Last regenerated: 2026-06-13 (define 260613-wqw — /poker epic + story 260613-kw5 added)
 
 5 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -25,6 +25,7 @@ Last regenerated: 2026-06-13 (rebuild from items — 5 build write-backs reconci
 | 260613-4mw | defined | skill | pmos-gamekit | 1/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
 | 260613-7tm | defined | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
 | 260613-5av | defined | skill | pmos-toolkit | 0/3 | /mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained) |
+| 260613-wqw | defined | skill | pmos-gamekit | 0/1 | /poker — No-Limit Texas Hold'em, single-player vs heuristic bots (cash game), single-file HTML reusing game-launcher; deps 260613-4mw |
 
 ## should
 
@@ -66,3 +67,4 @@ Last regenerated: 2026-06-13 (rebuild from items — 5 build write-backs reconci
 | 0008 | story | tech-debt | wontfix |  | skill-eval-check.sh --selftest failure surfacing — bijection break (e.g., §[A-F] vs §G) exits 1 with no stdout; stderr alone is easy to lose |  |  |  |
 | 0003 | story | tech-debt | done |  | README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical |  |  |  |
 | 260613-c31 | story | feature | done | 260613-4mw | Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests) | 02_design.html | 03_plan.html |  |
+| 260613-kw5 | story | feature | planned | 260613-wqw | Build the /poker skill — single-file No-Limit Hold'em (6-max random bots, heuristic AI, side pots) + tests | 02_design.html | 03_plan.html |  |
