@@ -5,7 +5,7 @@ kind: epic
 title: /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it
 type: feature
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_ripple-effects-skill/
 requirements_doc:
@@ -14,7 +14,7 @@ design_doc: docs/pmos/features/2026-06-13_ripple-effects-skill/02_design.html
 labels: [pmos-toolkit, ripple-effects, review, foresight, grill-family]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.70.0
 ---
 
 ## Context

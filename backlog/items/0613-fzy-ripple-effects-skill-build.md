@@ -6,19 +6,19 @@ parent: 0613-dnv
 title: Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report
 type: feature
 priority: should
-status: done
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_ripple-effects-skill/
 plan_doc: docs/pmos/features/2026-06-13_ripple-effects-skill/stories/0613-fzy/03_plan.html
 tasks: docs/pmos/features/2026-06-13_ripple-effects-skill/stories/0613-fzy/tasks.yaml
-worktree: ../agent-skills-0613-fzy
+worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-toolkit, ripple-effects, grill-family]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.70.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 0613-fzy -->
