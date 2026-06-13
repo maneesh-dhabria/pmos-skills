@@ -13,9 +13,11 @@ Captured #{id} ({type}, {importance}): "{final title}"
 Append clauses for non-default values, separated by ` — `:
 
 - `due {due}` if due was inferred.
+- `project {project}` if a `#project` token set it (absent ⇒ Inbox, no clause).
 - `people: {comma-separated handles}` if any resolved.
+- `labels: {comma-separated}` if any `+label` token set them.
 
-(No `project` clause on quick-capture — `project` is manual and never inferred, so it is always Inbox/absent here.)
+(`project` is still never *auto-inferred* — the clause appears only when an explicit `#project` token was present.)
 
 Then, on subsequent indented lines, list any unresolved `@handle` tokens:
 
@@ -45,6 +47,8 @@ Append clauses (` — ` separated) for any non-default values:
 
 - `due {due}`
 - `project {project}`
+- `parent #{parent}` (when captured as a subtask)
+- `recur {recur}` (when a recurrence rule was set)
 - `people: {comma-separated handles}`
 - `checkin {cadence} (next {next_checkin})`
 

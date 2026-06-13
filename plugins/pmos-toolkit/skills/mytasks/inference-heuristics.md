@@ -46,9 +46,21 @@ For each `@handle` token:
 
 The original `@handle` text remains in the title for unresolved cases — preserves user intent for later cleanup.
 
+## Project & label tokens (`#project`, `+label`)
+
+Two more token prefixes are parsed from bare-text capture, applied **after** the `@handle` person pass (strip order: type → date → people(`@`) → `#project` → `+label`, then the remainder is the title). They mirror the established `@`=person convention:
+
+| Prefix | Sets | Rule |
+|---|---|---|
+| `@handle` | `people:` | person (mytasks convention — NOT Todoist's `@`=label); resolved via `/people find` (see above) |
+| `#project` | `project:` | **single** token → the project slug. The first `#token` wins; any further `#tokens` stay in the title (surfaced in the capture report). The token IS stripped from the title. |
+| `+label` | `labels:` | **each** `+token` is appended to `labels:` (multiple allowed). All are stripped from the title. |
+
+A bare `#` or `+` with **no following word** is left in the title verbatim (it is not a token). `#project` is the explicit, user-driven way to set a project at capture time — it does not change the rule below that `project` is never *auto-inferred* from repo context.
+
 ## What is NEVER inferred
 
-- `project` — **fully manual** (design D3). It is never auto-set from repo context — the old "infer `workstream` from the current repo's `.pmos/settings.yaml`" behavior was **removed** when `workstream` became `project`. The user assigns a project explicitly; a task with no `project` lands in Inbox. (The `#project` quick-add token that lets the user set it inline is a later story's addition — do not parse `#` tokens here yet.)
+- `project` — **never auto-inferred from repo context** (design D3). The old "infer `workstream` from the current repo's `.pmos/settings.yaml`" behavior was **removed** when `workstream` became `project`. A project is set only by an explicit `#project` token at capture, the `add` prompt, or `set <id> project=…`; a task with no `project` lands in Inbox.
 - `parent`, `order`, `recur` — never inferred at capture. A subtask, a manual order, or a recurrence rule is always set explicitly, never guessed from the text.
 - `importance` — too subjective. Always defaults to `neutral`.
 - `status` — always `pending` on capture.
