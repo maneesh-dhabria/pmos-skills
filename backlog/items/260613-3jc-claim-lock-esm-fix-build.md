@@ -6,15 +6,15 @@ parent: 260613-7tm
 title: Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard
 type: bug
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_claim-lock-esm/
 plan_doc: docs/pmos/features/2026-06-13_claim-lock-esm/stories/260613-3jc/03_plan.html
 tasks: docs/pmos/features/2026-06-13_claim-lock-esm/stories/260613-3jc/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: ../agent-skills-260613-3jc
+claimed_by: build:loop
+driver_holder: build:loop
 labels: [pmos-toolkit, backlog, feature-sdlc, build-loop, esm, bug]
 created: 2026-06-13
 updated: 2026-06-13
