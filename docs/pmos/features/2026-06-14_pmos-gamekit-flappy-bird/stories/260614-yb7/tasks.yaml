@@ -1,0 +1,197 @@
+schema_version: 1
+story: 260614-yb7
+epic: 260614-nvh
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/flappy-bird) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire,
+# already released on main, so this story has NO dependencies). All-new files under
+# plugins/pmos-gamekit/skills/flappy-bird/. NO release-prereq tasks here (changelog, learnings header,
+# version-sync validation, the minor bump) — see the design doc's release-prerequisite note;
+# /complete-dev (Loop 3) is the sole writer of those. Single-file contract (D10) reconciled with
+# testability via an engine/render split (window.FlappyEngine, AC3). Flappy-bird is a REAL-TIME arcade
+# game (a rAF loop drives step(dt)), like /snake and unlike the turn-based /solitaire & /sudoku — the
+# engine stays pure/deterministic (explicit dt, seedable RNG, NO timers/Date in the engine; the UI owns
+# the loop) so the headless selftest can pin physics and transitions. There is no reference codebase to
+# port — the engine is built from the documented physics in the design doc. T5 (TN-2) is this story's
+# load-bearing dogfood (AC10 dogfood half); T6 (TN-1) bundles the REQUIRED Playwright e2e (AC10 e2e
+# half, maintainer-mandated, NOT deferred) with skill-eval + lints as the final-verification gate.
+tasks:
+  - id: T1
+    title: "Study reference: /solitaire + /snake bundles + game-launcher contract + the flappy-bird design doc"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Read the shipped /solitaire game/solitaire.html for the engine/render split pattern
+      (window.SolitaireEngine DOM-decoupled, inline data-URI favicon to avoid the favicon-404 the
+      /solitaire e2e caught, no-persistence, win/confetti) and its tests/run.mjs (vm-extract the engine
+      <script>, evaluate with no DOM, assert objective gates + --selftest count). If a /snake bundle has
+      landed, skim it for the real-time-loop pattern (a UI loop driving a pure step() engine); otherwise
+      the design doc's engine/render split is the contract. Read the /solitaire SKILL.md (launch-only
+      body to mirror) and plugins/pmos-gamekit/skills/_shared/game-launcher/game-launcher.md (the launch
+      + bundling + Node-prereq + no-persistence contract this skill cites, consumed UNCHANGED). Re-read
+      the design doc 02_design.html (decisions D1–D12, the FlappyEngine API surface, the gravity+flap
+      physics, the difficulty gap/speed model, the constant-difficulty rule, scoring, end states).
+      Produce no code — capture the FlappyEngine API surface (createState, difficultyParams, flap,
+      step(dt), spawnPipe, collides, makeRng) and the physics/edge-cases (gravity integration order;
+      fixed flap impulse; ceiling CLAMP with NO top-death; ground+pipe death; AABB bird-vs-pipe-rect
+      collision; score exactly once per pipe via a 'scored' flag; pipe spawn-at-spacing + cull-offscreen;
+      gap placement within safe margins; difficulty bands) to drive T2's TDD tests.
+    verify: >
+      FlappyEngine API + the dt-stepped physics state machine + the ceiling-clamp-not-death rule (D4) +
+      the constant-difficulty rule (D5) + score-exactly-once (D7) + pipe lifecycle + difficulty bands
+      (D3) enumerated; engine/render split + launch contract understood before any code; it is clear the
+      engine holds NO timers and NO Date (the UI owns the real-time loop; step takes an explicit dt).
+
+  - id: T2
+    title: "Engine (TDD): window.FlappyEngine — createState, difficultyParams, flap, step(dt), spawnPipe, collides, seedable RNG"
+    ac: [AC3, AC4, AC5, AC9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.FlappyEngine, fully DOM-decoupled and TIMER-FREE (the UI owns the loop; step takes an
+      explicit dt; no Date/performance.now in the engine). Pieces: (a) makeRng(seed) — deterministic
+      PRNG so tests pin gap placement and outcomes; (b) difficultyParams(level) -> {pipeGap, pipeSpeed,
+      pipeSpacing, gravity, flapV} for 'easy'|'normal'|'hard' with gap DECREASING and speed INCREASING
+      easy->hard (D3), gravity/flap tuned for a fair controllable arc; (c) createState({width, height,
+      difficulty, seed}) -> {bird:{x (~width/3), y (centered), vy:0, r}, pipes:[], score:0, best:0,
+      status:'ready', params:difficultyParams(difficulty), groundY}; first pipe queued off the right
+      edge; (d) flap(state) — set bird.vy = params.flapV (instant upward impulse); from 'ready' ->
+      'playing'; no-op when 'over'; (e) step(state, dt) -> next state, one frame: while 'ready' the world
+      is static (hover) until first flap; when 'playing': vy += gravity*dt, y += vy*dt; CLAMP ceiling
+      (y >= r, never above — NO death at top); scroll each pipe x -= pipeSpeed*dt; cull pipes fully off
+      the left; spawn a new pipe (spawnPipe) when the last pipe has moved past the spacing threshold;
+      for each un-scored pipe whose far edge has passed bird.x -> score += 1, mark scored:true, best =
+      max(best, score) (EXACTLY ONCE — the scored flag prevents re-count); if collides(state) (any pipe
+      rect OR y+r >= groundY) -> status:'over'; (f) spawnPipe(state, rng) -> append {x:rightEdge, gapY:
+      uniform within [margin, height-groundH-margin-pipeGap], gapH:params.pipeGap, scored:false}; (g)
+      collides(state) -> bird AABB/circle vs each pipe's upper+lower rect and vs the ground; boolean.
+      Write tests/run.mjs in lockstep (see AC9 gates). NO DOM, NO npm, Node stdlib only (vm + fs).
+    verify: >
+      tests/run.mjs --selftest exercises: initial-state validity (bird centered, status 'ready', params
+      from difficulty); flap sets upward vy + ready->playing; gravity makes vy/y grow on repeated step
+      (no flap); a flap then steps shows rise-then-fall (a real arc); ceiling clamp (y never < r, never
+      'over' at the top); ground death (y+r >= groundY -> 'over'); pipe-rect collision -> 'over'; scoring
+      increments EXACTLY ONCE per pipe (a second step past the same pipe does not re-count); pipe
+      lifecycle (scroll left, cull off-screen, spawn at spacing); difficulty bands (easy.pipeGap >
+      normal > hard; easy.pipeSpeed < normal < hard); deterministic RNG for a fixed seed; all engine
+      gates green before any UI.
+
+  - id: T3
+    title: "Bundled game UI — game/flappy-bird.html single-file render layer + fixed-timestep rAF loop over the engine"
+    ac: [AC1, AC2, AC4, AC5, AC6, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/flappy-bird/game/flappy-bird.html — ONE self-contained file,
+      all CSS+JS embedded, offline, no external refs (D10), no persistence (D9), inline data-URI favicon
+      (the /solitaire favicon-404 lesson). The embedded engine from T2 (window.FlappyEngine) plus a DOM
+      render/UI layer that consumes it: a portrait-ish fixed-aspect stage (e.g. ~360x640 logical units,
+      responsively scaled) rendered via Canvas 2D — sky, scrolling pipes, a ground strip, the bird, all
+      as CSS/Canvas/inline-SVG shapes, NO image files; a start screen / new-game with a difficulty picker
+      (Easy/Normal/Hard — D3) and a "tap / Space to start" prompt (first flap begins — D6); a real-time
+      loop (requestAnimationFrame with a FIXED-TIMESTEP accumulator feeding step(state, dt)) so physics
+      is frame-rate independent and matches the headless tests, repainting each frame; the difficulty's
+      gap/speed held CONSTANT for the run (D5 — no ramp); controls (D6) — Space / ArrowUp / mouse click /
+      touch tap all flap, P pause/resume, R/N new game; a HUD with a large live score and a SESSION high
+      score (D9); end states (D8) — pipe/ground collision -> a game-over overlay with the final score +
+      session best + a restart button, a NEW session best -> a small celebratory flourish (reuse the
+      /solitaire win animation pattern, prefers-reduced-motion-aware). Reads ALL physics/state from
+      window.FlappyEngine — NO duplicated logic in the UI. Accessible: ARIA labels on the picker +
+      restart, keyboard-operable, visible focus, never color-alone for state, honor prefers-reduced-
+      motion for the flourish; high-contrast bird/pipe palette. No medals (minimal v1 — D8).
+    verify: >
+      flappy-bird.html opens standalone and plays; contains no http(s):// or src/href to external assets;
+      reads from window.FlappyEngine (no duplicated physics); difficulty picker, fixed-timestep rAF loop,
+      Space/click/tap flap, pause, game-over overlay + restart, session high score + new-best flourish
+      all present; constant difficulty within a run (no in-run ramp); no console errors on load (inline
+      favicon); responsive on laptop + phone widths.
+
+  - id: T4
+    title: "/flappy-bird SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1, AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/flappy-bird/SKILL.md. Frontmatter: name flappy-bird (matches
+      dir), user-invocable true, a triggering description ("play flappy bird", "/flappy-bird", "flappy
+      bird game", "I want to play flappy bird", "tap to flap"), argument-hint noting no args (difficulty
+      is an in-game picker; flap/pause/restart are in-game controls), allowed-tools Bash, Read. Body
+      mirrors /solitaire: an Overview that CITES ../_shared/game-launcher/game-launcher.md for the launch
+      + bundling + no-persistence contract and states ONLY the flappy-bird deltas (game file
+      game/flappy-bird.html; title "Flappy Bird"; controls summary — Easy/Normal/Hard picker, one-button
+      flap on Space/click/tap, P pause, R/N new game); a "Platform Adaptation" note; a tight launch-only
+      Phase — resolve the game path, assert Node present (D2 error verbatim if absent, no silent file://
+      fallback), invoke ../_shared/game-launcher/serve.js, report the URL + controls + Ctrl-C; a Load-
+      Learnings and a Capture-Learnings note. Prompt-free: no AskUserQuestion. Run
+      tools/lint-non-interactive-inline.sh — inline the canonical NI block byte-identical from
+      skills/_shared/non-interactive.md (it was required for /solitaire, so expect it here). Conform to
+      skill-patterns.md §A–§L + the canonical skill path.
+    verify: >
+      name: flappy-bird matches dir; cites game-launcher.md, no restated launch contract; no
+      AskUserQuestion; lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended all green.
+
+  - id: T5
+    title: "TN-2: Dogfood / Utility Verification — actually play the game"
+    ac: [AC10]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /flappy-bird (or serve.js directly) and PLAY: pick EACH difficulty (easy/normal/hard)
+      and confirm the gap width + scroll speed feel distinct and fair; flap with Space, with a mouse
+      click, AND with a touch tap and confirm a responsive, controllable rise-then-fall arc; thread
+      SEVERAL pipes and confirm the score increments exactly once per pipe; DIE on a pipe and on the
+      ground and confirm the game-over overlay + final score + restart; confirm the SESSION high score
+      updates across runs in one session and the new-best flourish fires; confirm the bird cannot fly off
+      the top (ceiling clamp, no death). OBJECTIVE gates: tests/run.mjs --selftest green; serve.js
+      launches + serves; no console errors; lint-phase-refs + skill-eval green. SUBJECTIVE: an
+      independent BLIND judge (fresh subagent) plays and rates input responsiveness/latency, the
+      game-feel/fairness of the physics, legibility, and absence of stuck/janky states — overall
+      "frustration-free?" yes/no + enumerated gaps; the judge makes NO edits. Iterate: gaps -> fix ->
+      re-run, cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict line
+      (satisfied/not + accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; all three difficulties played, all three input
+      paths (Space + click + tap) exercised, score increments once per pipe, death on pipe and on ground
+      reach the overlay + restart, session high score updates + flourish fires, ceiling clamp holds (no
+      top-death).
+
+  - id: T6
+    title: "TN-1/TN: Playwright e2e (REQUIRED, NOT deferred) + skill-eval + lints + single-file check"
+    ac: [AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred): launch
+      serve.js against game/flappy-bird.html and navigate Playwright (the playwright MCP) to the printed
+      localhost URL; pick a difficulty and start; dispatch flap inputs (Space key AND a click) and ASSERT
+      the bird's y RESPONDS — rises after a flap, falls under gravity between flaps — by reading the
+      exposed game state (a debug hook on window.FlappyEngine / the live state object); let the bird pass
+      a pipe and ASSERT the score increments; FORCE a collision (let it hit the ground by withholding
+      flaps, or steer into a pipe via a deterministic seed + a no-flap interval) and ASSERT the game-over
+      overlay appears; press restart and ASSERT a fresh game (score 0, status ready/playing, bird
+      re-centered); ASSERT ZERO console errors throughout; capture a screenshot of active play + the
+      game-over overlay as browser evidence (the /verify browser-evidence hard gate). To make
+      scoring/collisions deterministic in-harness use the engine's fixed-seed + state-read test hook;
+      only a sub-check genuinely unreachable in-harness may be recorded deferred-to-release, surfaced
+      LOUDLY. If Playwright is unavailable on the build host, provision it LOCALLY in the worktree
+      (npm i, NOT -g — the explainer-video lesson); do NOT silently defer the core playthrough.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the flappy-bird skill
+      dir (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name: flappy-bird
+      matches dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs,
+      lint-non-interactive-inline, audit-recommended) — green. Confirm zero external runtime deps and the
+      single-file contract (no external refs in flappy-bird.html). DO NOT write changelog / learnings
+      header / bump the version / do the release — those are ## Release prerequisites owned by
+      /complete-dev (the minor bump lands at Loop 3). Enumerate any deferred-to-release visual checks for
+      /complete-dev.
+    verify: >
+      Playwright drove the real game: flap input made the bird's y rise then fall (asserted via state),
+      a passed pipe incremented the score, a forced collision raised the game-over overlay, restart
+      yielded a fresh game, zero console errors, screenshot captured, no silent defer (collisions/scoring
+      reached via the test hook or loudly deferred); skill-eval >= 43/47; all 4 lints green; single-file
+      contract holds; deferred checks (if any) enumerated for release.

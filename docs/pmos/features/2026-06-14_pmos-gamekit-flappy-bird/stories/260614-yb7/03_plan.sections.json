@@ -1,0 +1,26 @@
+[
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Scope",
+    "parent_id": null
+  },
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks (see tasks.yaml for full detail + verify gates)",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Final verification",
+    "parent_id": null
+  }
+]
