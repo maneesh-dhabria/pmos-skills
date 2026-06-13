@@ -2,7 +2,7 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <workstream> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | rebuild-index] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | rebuild-index] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
@@ -37,7 +37,7 @@ These instructions use Claude Code tool names. In other environments:
 
 - `schema.md` — item file shape, **single source for enum values**, `INDEX.md` format (binds `_shared/tracker-crudl.md`)
 - `_shared/tracker-crudl.md` — shared tracker contract (id/slug §2, `created`/`updated`/`schema_version` §3, INDEX regenerability §5, archive §6)
-- `inference-heuristics.md` — quick-capture keyword + date + person parsing rules (`project` is manual, never inferred)
+- `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
 - `_shared/interactive-prompts.md` — interactive prompting protocol (used by `add`, `refine`, unknown-person flow)
 - Sibling skill `/people` — fuzzy-match person lookup via `/people find`
@@ -56,7 +56,7 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `add <text>` | Phase 3 (rich capture — interactive) |
 | `list [flags]` | Phase 4 (filtered list) |
 | `today` / `week` / `overdue` / `waiting` / `checkins` | Phase 5 (named view) |
-| `for <handle>` / `in <workstream>` | Phase 5 (named view) |
+| `for <handle>` / `in <project>` | Phase 5 (named view) |
 | `show <id>` | Phase 6 (render item) |
 | `set <id> <field>=<value>` | Phase 7 (single-field edit) |
 | `refine <id>` | Phase 8 (interactive multi-field refine) |
@@ -129,7 +129,14 @@ Triggered by `/mytasks <text>` where `<text>` does not start with a recognized v
 
 1. Ensure `~/.pmos/tasks/items/` exists (`mkdir -p`).
 2. Allocate id per `_shared/tracker-crudl.md` §2 — every id-keyed store now mints the year-prefixed `<YYMMDD>-<rand3>` scheme (§2.3, D2/D3), so `/mytasks` mints one too: run `node <pmos-toolkit>/skills/backlog/scripts/mint-id.mjs` (resolve the sibling skill's minter within pmos-toolkit; inline the tiny `crypto`-sourced mint if the path can't be resolved). This is a single tool call — do NOT scan for a max serial. Any pre-existing 4-digit serials stay valid under the §2.1 triple validator and are never rewritten.
-3. Apply `inference-heuristics.md` in order: **type** (keyword; fallback `execution` — the keyword is NOT stripped from the title), **due** (natural-language date; matched substring IS stripped), **people** (`@handle` tokens via `/people find` — resolved tokens stripped and added to `people:`; multi-match and no-match tokens stay in the title, collected for the report). **`project` is NOT inferred** (manual, design D3) — it stays absent (Inbox) on quick-capture; `parent`/`order`/`recur` are likewise never inferred.
+3. Apply `inference-heuristics.md` in this strip order, then the remainder is the `title:`:
+   1. **type** (keyword; fallback `execution` — the keyword is NOT stripped from the title).
+   2. **due** (natural-language date; matched substring IS stripped).
+   3. **people** (`@handle` tokens via `/people find` — resolved tokens stripped and added to `people:`; multi-match and no-match tokens stay in the title, collected for the report). `@`=**person** is the mytasks convention (NOT Todoist's `@`=label).
+   4. **`#project`** — a single `#`-prefixed token (e.g. `#home-reno`) sets `project:` to that slug and IS stripped from the title. If more than one `#token` appears, the **first** wins and the rest stay in the title (surfaced in the report). A bare `#` with no following word stays in the title.
+   5. **`+label`** — each `+`-prefixed token (e.g. `+urgent`) is appended to `labels:` and IS stripped; multiple `+tokens` are all collected. A bare `+` with no following word stays in the title.
+
+   `project` is still **never auto-inferred from repo context** (design D3) — only an explicit `#project` token sets it; absent ⇒ Inbox. `parent`/`order`/`recur` are never set at quick-capture (bare keys).
 4. Build the slug from the final title per `_shared/tracker-crudl.md` §2.2; prefer truncating at a hyphen boundary.
 5. Write `~/.pmos/tasks/items/{id}-{slug}.md` — frontmatter only, no body, per `schema.md` "Defaults on quick-capture". Optional fields with no value are written as bare keys (e.g., `start:`), not omitted.
 6. Regenerate INDEX inline (`#rebuild-index`). If regeneration fails, the item file is still written — warn suggesting `/mytasks rebuild-index`, but DO NOT roll back.
@@ -141,17 +148,18 @@ Triggered by `/mytasks <text>` where `<text>` does not start with a recognized v
 
 Triggered by `/mytasks add <text>`. Interactive — collects rich attributes upfront via `_shared/interactive-prompts.md`, ONE field at a time.
 
-1. Resolve `items/` and allocate id as in `#quick-capture` steps 1–2.
+1. Resolve `items/` and allocate id as in `#quick-capture` steps 1–2. **Subtask capture:** if `--parent <id>` is present (or the natural-language form `subtask of <id>` / `under <id>` appears in the request), resolve `<id>` via the `#show` triple-accept locate; on hit, this task is captured as a **subtask** — `parent:` is set to the resolved id (no prompt for it). Reject a missing target (`No item with id {id} to set as parent.`) and self-parent before writing. A subtask file is an ordinary full task file (all fields available) that merely carries `parent:`. Bare-text tokens in `<text>` are still parsed per `#quick-capture` step 3 (the `--parent` flag and the `subtask of <id>` phrase are stripped from the title).
 2. Prompt in this order (enum values per `schema.md`):
    1. **`importance`** — enum; default `neutral`.
    2. **`type`** — enum; default = value inferred from `<text>` per `inference-heuristics.md`, else `execution`.
-   3. **`project`** — free string (a project slug); default empty (the task lands in Inbox). **Manual — no auto-inference** (design D3; the old `.pmos/settings.yaml` workstream default was removed). Skippable. (The `#project` quick-add token and `set <id> project=…` verb arrive in story `260613-044`.)
+   3. **`project`** — free string (a project slug); default = any `#project` token parsed from `<text>` (per `#quick-capture` step 3), else empty (the task lands in Inbox). **Manual — no auto-inference from repo context** (design D3; the old `.pmos/settings.yaml` workstream default was removed). Skippable.
    4. **`due`** — date input; parse per `inference-heuristics.md` date rules. Skippable.
    5. **`people`** — comma-separated names or handles. For each token (strip any `@`), call `/people find`: single match → add the handle silently; multi-match or no-match → present the disambiguation prompt per `output-formats.md` "Unknown-person prompts" (no-match option (a) invokes `/people`'s reactive create — `/people` Phase 3 reactive entry point — and adds the returned handle; "skip" leaves the token unresolved, collected for the report).
-   6. **`checkin`** — enum; default `none`. Non-`none` cadence also sets `next_checkin: today + cadence` per `#checkin` cadence math.
-3. Build the slug from `<text>` and write the item file as in `#quick-capture` steps 4–5, with all collected values (skipped fields as bare keys).
+   6. **`recur`** — recurrence rule; default none. Validated against the closed grammar in `schema.md` ("Recurrence"). Skippable (most tasks are one-shot).
+   7. **`checkin`** — enum; default `none`. Non-`none` cadence also sets `next_checkin: today + cadence` per `#checkin` cadence math.
+3. Build the slug from `<text>` and write the item file as in `#quick-capture` steps 4–5, with all collected values (skipped fields as bare keys — including `parent:`, `order:`, `recur:`).
 4. Regenerate INDEX (`#rebuild-index`); same fail-soft semantics as `#quick-capture`.
-5. Report per `output-formats.md` "Rich-capture report".
+5. Report per `output-formats.md` "Rich-capture report" (the report names `parent` when the task is a subtask and `recur` when set).
 
 ---
 
@@ -162,18 +170,20 @@ Triggered by `/mytasks list ...` or any read-shaped request. Filters are inferre
 <!-- nl-sugar -->
 - `--status <s>` · `--type <t>` · `--importance <i>` — enum filters; values per `schema.md`
 <!-- nl-sugar -->
-- `--workstream <slug>` · `--person <handle>` · `--label <name>` — membership filters
+- `--project <slug>` · `--person <handle>` · `--label <name>` — membership filters
+<!-- nl-sugar -->
+- `--parent <id>` — only subtasks of `<id>` · `--recurring` — only tasks with a non-empty `recur:`
 <!-- nl-sugar -->
 - `--due <today|this-week|overdue|next-30>` — date window on `due:` · `--checkin-due` — `next_checkin <= today`
 <!-- nl-sugar -->
 - `--include-done` — include `completed`/`dropped` (excluded by default)
 
-> **Field rename — `workstream` → `project` (foundation, story 260613-7n1).** The stored field is now `project:` (schema v2). The `--workstream <slug>` filter flag and the `in <workstream>` named view (below) **still work** — they filter the renamed `project` field — but their *spelling* (`--project` / `in <project>`) and the `#project` quick-add token are intentionally NOT introduced here; that CLI surface rename ships in story `260613-044`. Do not break the existing verb/flag spelling in this story.
+> **Field rename — `workstream` → `project`.** The membership filter is `--project <slug>` and the named view is `in <project>` (Phase 5), both filtering the `project:` field (schema v2). The pre-rename `--workstream` / `in <workstream>` spellings are **retired** — `--workstream` is no longer parsed (a user typing it gets the unknown-filter error pointing at `--project`).
 
-1. **Source.** INDEX.md answers most filters; person/label filters and `--include-done` need the item files (`--include-done` also globs `archive/**/*.md`). `--workstream <slug>` matches the `project:` field (renamed; INDEX carries it as the `project` column).
+1. **Source.** INDEX.md answers most filters; person/label filters, `--parent`, `--recurring`, and `--include-done` need the item files (`--include-done` also globs `archive/**/*.md`). `--project <slug>` matches the `project:` field (INDEX carries it as the `project` column).
 2. **Validate** filter values against the enums in `schema.md`. Reject unknown values with the allowed list, e.g. `Unknown status 'open'. Allowed: pending, in-progress, waiting, completed, dropped.` No render.
 3. **Date windows:** `today` → `due == today` · `this-week` → `today <= due <= today + 7` · `overdue` → `due < today` AND `status` NOT in (completed, dropped) · `next-30` → `today <= due <= today + 30`.
-4. **Render** a flat markdown table (no grouping), sorted `due` asc (no-due last) → `updated` desc. Columns: `id | type | status | due | next_checkin | title | project`; add a `people` or `labels` column when filtering on it. Zero matches: `No items match.`
+4. **Render** a markdown table sorted `due` asc (no-due last) → `updated` desc. Columns: `id | type | status | due | next_checkin | title | project | parent`; add a `people` or `labels` column when filtering on it; add a `recur` column under `--recurring`. **Subtask nesting (view-layer only):** when a listed task's `parent:` is also present in the result set, render the child immediately under its parent with its `title` indented (two spaces + `↳ `); a child whose parent is NOT in the result set renders as an ordinary top-level row (its `parent` cell still shows the id). Nesting never changes the stored files (they stay flat — `schema.md` INDEX format). Zero matches: `No items match.`
 
 ---
 
@@ -189,7 +199,7 @@ Each named view dispatches to `#list` with the equivalent filters; output is ide
 | `/mytasks waiting` | `list --status waiting` |
 | `/mytasks checkins` | `list --checkin-due` |
 | `/mytasks for <handle>` | `list --person <handle>` |
-| `/mytasks in <workstream>` | `list --workstream <workstream>` |
+| `/mytasks in <project>` | `list --project <project>` |
 
 ---
 
@@ -205,7 +215,8 @@ Triggered by `/mytasks show <id>`. The locate/normalize logic here is shared by 
    Detection: if the trimmed id matches `^\d{1,4}$` (no hyphen), treat it as a legacy serial and zero-pad to 4 digits; otherwise (it contains a hyphen / non-digits) use it verbatim — do NOT pad or mangle it.
 2. Search `~/.pmos/tasks/items/{id}-*.md` (glob on the resolved id), then `~/.pmos/tasks/archive/**/{id}-*.md`. The `{id}-*` glob locates date-rnd and legacy ids identically.
 3. Still not found → list existing items whose id **shares the same prefix** as the (resolved) lookup id — the leading run of characters up to the first hyphen for a date-rnd id, or the digit prefix for a legacy serial — and output: `No item with id {id}. Closest matches by prefix: {comma-separated list or "(none)"}. Run /mytasks list to see all items.`
-4. Output the file contents verbatim, fenced as markdown.
+4. Output the file contents verbatim, fenced as markdown. The frontmatter already carries `project:` and `recur:`, so they render inline; when `recur:` is non-empty, add one line after the fence: `Recurs: {recur}.`
+5. **Subtasks.** Glob `~/.pmos/tasks/items/*.md` for any item whose `parent:` == this id. If ≥1, append a `### Subtasks` block listing each as `- #{child_id} [{status}] {title}{ — due {due} if set}`, sorted by `order` asc (no-order last) → `due` asc. None → omit the block (do not print an empty "Subtasks" heading). Showing a child never auto-shows its parent — the relationship is rendered from the parent's side only.
 
 ---
 
@@ -214,13 +225,16 @@ Triggered by `/mytasks show <id>`. The locate/normalize logic here is shared by 
 Triggered by `/mytasks set <id> <field>=<value>`.
 
 1. Locate the item via `#show` normalize-and-locate; if not found, error and exit (same message).
-2. Validate the field name. Editable: `title`, `type`, `importance`, `status`, `project`, `people`, `labels`, `links`, `due`, `start`, `checkin`, `next_checkin`, `completed`. Skill-managed (`id`, `created`, `updated`) → `Field '{field}' cannot be set directly. The skill manages it.` Unknown → `Field '{field}' is not recognized. Allowed: {comma-separated list}.` (Setting `parent`, `order`, and `recur` from the CLI — the subtask/order/recurrence parity verbs — arrives in story `260613-044`; this story adds the schema fields and the `project` rename only.)
+2. Validate the field name. Editable: `title`, `type`, `importance`, `status`, `project`, `parent`, `order`, `recur`, `people`, `labels`, `links`, `due`, `start`, `checkin`, `next_checkin`, `completed`. Skill-managed (`id`, `created`, `updated`) → `Field '{field}' cannot be set directly. The skill manages it.` Unknown → `Field '{field}' is not recognized. Allowed: {comma-separated list}.` (`workstream` is no longer an editable field — it was renamed to `project` in schema v2; setting `workstream=` errors as unrecognized, and the user is pointed at `project`.)
 3. Validate the value:
    - Enum fields (`type`, `importance`, `status`, `checkin`) — against `schema.md` enums. On violation: `Unknown {field} '{value}'. Allowed: {comma-separated list}.` No write.
    - Date fields (`due`, `start`, `next_checkin`, `completed`) — ISO `YYYY-MM-DD`, OR natural-language date per `inference-heuristics.md`, OR empty (to clear).
    - List fields (`people`, `labels`, `links`) — comma-separated; written as YAML list. For `people`, each token is a literal handle (NOT fuzzy-matched) — the user types exact handles when using `set`.
-   - Free strings (`title`, `workstream`).
-4. Load the item, update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to the new slug (preserve id prefix; slug rules as in `#quick-capture` step 4). Apply `#rebuild-index`. Output: `Updated #{id}: {field} = {value}.` — appending ` Renamed to {new-filename}.` on title change.
+   - **`parent`** — an id that MUST resolve via the `#show` triple-accept locate (the target item must exist). Reject **self-parent** (`parent` == this item's id → `A task cannot be its own parent.`) and a **2-level cycle** (the proposed parent's own `parent:` points back at this item → `That would create a parent/subtask cycle.`). Empty clears (the task becomes top-level). On a nonexistent target: `No item with id {value} to set as parent.` No write on any rejection.
+   - **`order`** — a non-negative integer (`^\d+$`). Violation: `order must be a non-negative integer (got '{value}').` Empty clears.
+   - **`recur`** — validated against the closed recurrence grammar in `schema.md` ("Recurrence") — `daily`/`weekly`/`biweekly`/`monthly`, `every <N> days|weeks|months`, `every <weekday>` (case-insensitive). Violation: `Unknown recurrence rule '{value}'. Allowed: daily, weekly, biweekly, monthly, every <N> days|weeks|months, every <weekday>.` Empty clears (the task becomes one-shot). No write on violation.
+   - Free strings (`title`, `project`). Empty `project` clears it (the task returns to Inbox).
+4. Load the item, update only the named field, set `updated:` to today, write back. If `title` changed, ALSO rename the file to the new slug (preserve id prefix; slug rules as in `#quick-capture` step 4). Apply `#rebuild-index`. Output: `Updated #{id}: {field} = {value}.` — appending ` Renamed to {new-filename}.` on title change. For a cleared field (empty value), the output reads `Updated #{id}: {field} cleared.`
 
 ---
 
@@ -242,7 +256,20 @@ Triggered by `/mytasks done <id> [note]` (status → completed) or `/mytasks dro
 1. Locate the item via `#show` normalize-and-locate; if not found, error and exit.
 2. Set `status:` (`completed` or `dropped`), `completed:` = today, `updated:` = today.
 3. If a note/reason was provided, append to `## Notes` (creating the section at the END of the body if absent): `- {today}: {note}` for `done`; `- {today}: dropped — {reason}` for `drop`.
-4. Apply `#rebuild-index` (the item leaves INDEX). Output: `Completed #{id}: "{title}".` or `Dropped #{id}: "{title}".`
+4. **Recurrence-on-complete spawn (`done` only, when the just-completed item has a non-empty `recur:`).** Run the `#recur-spawn` routine below to mint the next instance. (`drop` never spawns — dropping ends the series.)
+5. Apply `#rebuild-index` (the completed/dropped item leaves INDEX; a spawned next instance joins it). Output: `Completed #{id}: "{title}".` or `Dropped #{id}: "{title}".` — when a recurrence spawned, append ` Next instance #{new_id} due {new_due}.`
+
+### Recurrence spawn routine {#recur-spawn}
+
+**The single canonical home (§K) for recurrence-on-complete.** Story C's web `POST /api/tasks/:id/complete` (design §3.3) calls this exact routine — it is never reimplemented. Inputs: the just-completed item (already `completed`, with a non-empty `recur:`). Steps:
+
+1. **Mint a fresh id** — a new `<YYMMDD>-<rand3>` via `mint-id.mjs` (the `#quick-capture` step 2 mechanism). Never reuse the completed item's id.
+2. **Copy forward** these fields verbatim: `title`, `type`, `importance`, `project`, `parent`, `recur`, `people`, `labels`, `links`, `checkin`. (`order` is NOT copied — a fresh instance has no manual position until placed.)
+3. **Advance the dates.** For each of `due` and `start` that is non-empty on the completed item, advance it by the `recur:` rule using the date math in `schema.md` "Recurrence" (which reuses the `#checkin` `monthly` last-day clamp). A field that was empty stays empty. **Anchor on the completed item's own `due`/`start`** (not today), so a late completion does not drift the cadence. Set `next_checkin` per the copied `checkin` cadence (today + cadence) if `checkin` is non-`none`, else blank.
+4. **Reset lifecycle fields:** `status: pending`, `completed:` blank, `created`/`updated` = today.
+5. **Write** the new file `~/.pmos/tasks/items/{new_id}-{slug}.md` (slug from the carried title, `#quick-capture` step 4 rules).
+6. **Log** the completion + spawn on the *old* (completed) item's `## Notes` (create at end of body if absent): `- {today}: completed; recurring — spawned next instance #{new_id} (due {new_due or "—"}).`
+7. Return `{new_id, new_due}` to the caller (the `done` output line; the web endpoint's JSON).
 
 ---
 
