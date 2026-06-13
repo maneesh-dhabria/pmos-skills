@@ -1,0 +1,86 @@
+[
+  {
+    "id": "overview-heading",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "feasibility",
+    "level": 3,
+    "title": "Feasibility note (the user's explicit question)",
+    "parent_id": "overview"
+  },
+  {
+    "id": "charter-heading",
+    "level": 2,
+    "title": "Plugin charter — why a new plugin",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-heading",
+    "level": 2,
+    "title": "Decisions captured at define (2026-06-13, AskUserQuestion grill)",
+    "parent_id": null
+  },
+  {
+    "id": "architecture-heading",
+    "level": 2,
+    "title": "Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "plugin-scaffold",
+    "level": 3,
+    "title": "1. Plugin scaffold — pmos-gamekit",
+    "parent_id": "architecture"
+  },
+  {
+    "id": "substrate",
+    "level": 3,
+    "title": "2. Shared substrate — _shared/game-launcher/",
+    "parent_id": "architecture"
+  },
+  {
+    "id": "skill",
+    "level": 3,
+    "title": "3. Skill — /solitaire",
+    "parent_id": "architecture"
+  },
+  {
+    "id": "game-design-heading",
+    "level": 2,
+    "title": "Game design — Klondike (the bundled solitaire.html)",
+    "parent_id": null
+  },
+  {
+    "id": "testability-heading",
+    "level": 2,
+    "title": "Testability — single-file and testable",
+    "parent_id": null
+  },
+  {
+    "id": "dogfood-heading",
+    "level": 2,
+    "title": "Dogfood (load-bearing utility verification)",
+    "parent_id": null
+  },
+  {
+    "id": "story-split-heading",
+    "level": 2,
+    "title": "Story split — a singleton epic",
+    "parent_id": null
+  },
+  {
+    "id": "conventions-heading",
+    "level": 2,
+    "title": "Standing acceptance criteria & conventions",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope-heading",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  }
+]

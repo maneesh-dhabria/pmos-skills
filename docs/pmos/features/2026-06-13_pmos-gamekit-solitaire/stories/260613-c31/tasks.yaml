@@ -1,0 +1,209 @@
+schema_version: 1
+story: 260613-c31
+epic: 260613-4mw
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Fused singleton story: NEW plugin scaffold + NEW game-launcher substrate + NEW /solitaire skill
+# (SKILL.md + bundled single-file game + tests). Writers are all-new files (plus CLAUDE.md edits for
+# charter/plugins-list registration). Plugin scaffold (manifests + marketplace + CLAUDE.md) lands
+# FIRST so the skill registers and is loadable. NO release-prereq tasks here (changelog, learnings
+# header, version-sync validation) — see the design doc's ## Release prerequisites; /complete-dev is
+# the sole writer. The initial 0.1.0 plugin.json IS scaffolding (the plugin cannot exist without it),
+# not a version bump. T8 (TN-2) is this story's own load-bearing dogfood (AC9); T9 (TN-1) is a
+# REQUIRED Playwright end-to-end playthrough (AC11, maintainer-mandated — not deferred); T10 (TN) is
+# final verification. Single-file contract (D7) reconciled with testability by an engine/render split (AC7).
+tasks:
+  - id: T1
+    title: "Scaffold pmos-gamekit plugin (manifests + marketplace + CLAUDE.md registration)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/.claude-plugin/plugin.json and plugins/pmos-gamekit/.codex-plugin/
+      plugin.json — both version 0.1.0, name "pmos-gamekit", a charter-aligned description ("casual
+      single-player browser games, launched from a skill"), skills "./skills/"; the codex manifest
+      adds the interface block (displayName "PMOS GameKit", shortDescription, category "Games" or
+      "Entertainment"). Add a catalog entry to .claude-plugin/marketplace.json AND .codex-plugin/
+      marketplace.json (name/description/source "./plugins/pmos-gamekit"/category/homepage, NO version
+      field). Add pmos-gamekit to CLAUDE.md ## Plugin charters (charter: "…play a casual game") and to
+      ## Release policy → Plugins list. Mirror the existing pmos-learnkit manifests exactly for shape.
+    verify: >
+      Both plugin.json parse and carry version 0.1.0 + matching name; both marketplace.json have an
+      entry with no version field; CLAUDE.md lists pmos-gamekit in the charter table and Plugins list;
+      `ls plugins/pmos-gamekit/` shows the .claude-plugin/.codex-plugin dirs.
+
+  - id: T2
+    title: "game-launcher substrate — serve.js (zero-dep static server + auto-open)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Create plugins/pmos-gamekit/skills/_shared/game-launcher/serve.js (Node stdlib only). Takes a
+      game-file path arg; binds an ephemeral free port on 127.0.0.1 (listen on port 0, read the
+      assigned port); serves exactly that file at GET / (correct content-type), 404 for any other
+      path; auto-opens the default browser at the URL via open (darwin) / xdg-open (linux) / start
+      (win32) chosen by process.platform, with a graceful "couldn't auto-open — open <URL> manually"
+      message on spawn failure; prints the URL; keeps the process alive until SIGINT (Ctrl-C) with a
+      clean shutdown. Read-only — no /save, no writes, no state (D6). Honor BASH_SOURCE-style path
+      robustness for any wrapper. Document the Node-prerequisite contract here (the skill checks it).
+    verify: >
+      `node serve.js <a-file>` binds a port, serves the file at /, 404s elsewhere; SIGINT exits 0;
+      no npm imports (node:http / node:net / node:child_process / node:fs only).
+
+  - id: T3
+    title: "game-launcher.md — the §K substrate doc (bundling + launch contract)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Create plugins/pmos-gamekit/skills/_shared/game-launcher/game-launcher.md as the canonical home
+      (§K) for: the single-file bundling convention (D7 — all CSS/JS/assets embedded, offline, no
+      build, no external refs); the directory convention (each game skill ships game/<name>.html); the
+      launch contract a game SKILL.md follows (resolve path → assert Node → invoke serve.js → report
+      URL); the platform-open matrix; ephemeral-port selection; the Node-prerequisite error contract
+      (D2 — clear actionable message, no silent file:// fallback); the no-persistence rule (D6). Game
+      skills cite this and state only per-game deltas. Lean reference prose, not a skill body.
+    verify: >
+      File exists at the canonical _shared path; has anchored sections for bundling convention,
+      directory convention, launch contract, platform-open matrix, Node-prereq, no-persistence.
+
+  - id: T4
+    title: "Substrate self-test for serve.js"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Add plugins/pmos-gamekit/skills/_shared/game-launcher/tests/ (e.g. serve.test.mjs) runnable via
+      node with no deps: spins serve.js against a fixture file, asserts the chosen port binds, GET /
+      returns the fixture bytes + a sane content-type, GET /other returns 404, and SIGINT shuts down
+      cleanly. Exit 0 all-pass / non-zero on failure. Suppress the auto-open in test (env flag or a
+      no-op opener) so CI/headless does not spawn a browser.
+    verify: "node tests/serve.test.mjs exits 0; no browser spawned under the test env flag."
+
+  - id: T5
+    title: "Bundled game — game/solitaire.html (single-file Klondike, engine/render split)"
+    ac: [AC6, AC7]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Create plugins/pmos-gamekit/skills/solitaire/game/solitaire.html — ONE self-contained file, all
+      CSS+JS embedded, offline, no external refs (D7), no persistence (D6). Structure the embedded JS
+      as a PURE-LOGIC ENGINE (exposed on a global, e.g. window.SolitaireEngine) decoupled from a DOM
+      render layer that consumes it (AC7 testability). Engine: standard 52-card deck creation +
+      shuffle; Klondike state (stock, waste, 4 foundations, 7 tableau); legal-move predicate
+      (tableau builds down alternating color; foundations up by suit from Ace; King/King-run to empty
+      column); apply-move; win-check (4 complete foundations); undo stack. Render/UI: stock+waste
+      top-left, foundations top-right, 7 tableau columns; drag-and-drop AND click-to-move (click →
+      first legal destination, foundations preferred); pointer events for touch; in-game draw-1/draw-3
+      toggle (toggle starts a fresh deal); win animation; undo button (U); auto-move-to-foundations
+      (button + double-click + A); move counter + elapsed timer; new game/restart (N); draw-mode keys
+      (1/3); responsive layout; accessible focus + ARIA. Card faces via CSS + inline SVG/Unicode suit
+      glyphs (no image files). Keep the file readable — comment the engine API the test harness uses.
+    verify: >
+      File opens standalone in a browser and is playable; contains no http(s):// or src/href to
+      external assets; exposes the engine global; draw-1/draw-3, drag, click, undo, auto-move, timer,
+      counter, restart, win-detection all present.
+
+  - id: T6
+    title: "tests/run.mjs --selftest — objective engine gates"
+    ac: [AC7]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/solitaire/tests/run.mjs (node, no deps). Read
+      game/solitaire.html, extract the engine <script> block, evaluate it in a node:vm context (with a
+      minimal shim if it touches any global), then assert the OBJECTIVE gates: a deal yields 52 unique
+      cards in the correct stock(24)/tableau(28, columns 1..7) distribution; the legal-move predicate
+      accepts a valid foundation/tableau move and REJECTS an illegal one; win-check returns true only
+      for four complete foundations and false otherwise; undo restores the exact prior state after an
+      apply. --selftest asserts the expected check COUNT (spirit of skill-eval-check.sh --selftest).
+      Exit 0 all-pass / 1 any-fail. NO browser, NO npm.
+    verify: "node tests/run.mjs --selftest exits 0 and prints a PASS line per gate + the count assertion."
+
+  - id: T7
+    title: "/solitaire SKILL.md — launch-only, cites the substrate"
+    ac: [AC5, AC8]
+    deps: [T2, T3, T5]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/solitaire/SKILL.md. Frontmatter: name solitaire (matches
+      dir), a triggering description ("play solitaire", "open solitaire", "klondike", "/solitaire",
+      "deal me a game of solitaire"). Body: an Overview, a "Platform Adaptation" note, then a tight
+      launch-only flow — (0) resolve the bundled game path relative to the skill dir; (1) assert Node
+      present (clear actionable error if absent — D2, no silent file:// fallback); (2) invoke the
+      substrate serve.js with the game path; (3) report the printed URL and how to stop (Ctrl-C). Cite
+      _shared/game-launcher/game-launcher.md for the contract; state ONLY the solitaire delta (§K/D9).
+      Prompt-free: no AskUserQuestion (free port auto-selected; missing-Node is an error, not a
+      prompt). Run tools/lint-non-interactive-inline.sh and tools/audit-recommended.sh against it;
+      add the canonical NI inline block ONLY if the lint requires it for prompt-free skills, else add
+      a one-line note explaining the skill issues no prompts. Conform to skill-patterns.md §A–§L and
+      the canonical skill path.
+    verify: >
+      SKILL.md name matches dir; cites game-launcher.md; no AskUserQuestion (or, if any added, the NI
+      block is byte-identical + every ask has (Recommended)/defer-only); lint-flags-vs-hints,
+      lint-phase-refs, lint-non-interactive-inline, audit-recommended all pass.
+
+  - id: T8
+    title: "TN−2: Dogfood / Utility Verification — actually play a full game"
+    ac: [AC9]
+    deps: [T4, T6, T7]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual playthrough + independent judge; the Playwright e2e is T9).
+      Scenario: run /solitaire (or serve.js directly) to launch the bundled game; play a full hand to
+      a WIN (or drive the engine to a near-win and complete via auto-move) confirming win-detection +
+      animation fire; exercise each feature once — undo, auto-move-to-foundations, draw-1↔draw-3
+      toggle, a drag-and-drop move, and a click-to-move move. OBJECTIVE gates: tests/run.mjs
+      --selftest green; serve.js opens and serves the file; no console errors; lint-phase-refs +
+      skill-eval green. SUBJECTIVE: an independent blind judge (fresh subagent) plays a hand and rates
+      responsiveness, legibility (card faces), no-stuck-cards, and sensible auto-move — overall
+      "frustration-free?" yes/no + enumerated gaps; judge makes NO edits. Iterate: gaps → fix → re-run,
+      cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict line (satisfied/not +
+      accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; each feature exercised once.
+
+  - id: T9
+    title: "TN−1: Playwright end-to-end playthrough (REQUIRED final-verification gate)"
+    ac: [AC11]
+    deps: [T8]
+    parallel: false
+    detail: >
+      Drive the REAL served game in a browser via Playwright (the chrome/playwright MCP, or a local
+      playwright script) and assert it all works end to end — this is a REQUIRED final-verification
+      gate per the maintainer, NOT deferred. Steps: launch serve.js against game/solitaire.html and
+      navigate Playwright to the printed localhost URL; start a New Game; perform at least one
+      CLICK-TO-MOVE and one DRAG-AND-DROP move (Playwright drag) and assert the DOM reflects each;
+      toggle draw-1↔draw-3 and assert the deal/behavior changes; trigger UNDO and assert state
+      reverts; trigger AUTO-MOVE-TO-FOUNDATIONS; drive the game to a WIN (deterministically — e.g. a
+      test hook / pre-seeded near-win the engine exposes for testing, or scripted legal moves) and
+      assert the win-detection UI + animation appear; assert move-counter and timer update; assert
+      ZERO console errors throughout. Capture a screenshot of the win state as evidence (the /verify
+      browser-evidence hard gate). If Playwright is genuinely unavailable in the BUILD host, provision
+      it (it ships as an MCP here) — do NOT silently defer the core playthrough; only record a narrow,
+      explicitly-named sub-check as deferred-to-release if a specific capability is unreachable, and
+      surface it loudly. Record a Verdict line + the screenshot path.
+    verify: >
+      Playwright drove a full game to a win; click-move, drag-move, draw-toggle, undo, auto-move,
+      counter/timer, win-detection all asserted; zero console errors; win-state screenshot captured;
+      no silent defer of the core playthrough.
+
+  - id: T10
+    title: "TN: Final verification (skill-eval, lints, manifest sync, single-file contract)"
+    ac: [AC8, AC10]
+    deps: [T9]
+    parallel: false
+    detail: >
+      Final smoke/compliance pass. Run feature-sdlc/tools/skill-eval-check.sh against the solitaire
+      skill dir (target platform from skill-tier-resolve) — floor 43/47; confirm name: solitaire
+      matches dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs,
+      lint-non-interactive-inline, audit-recommended) — green. Confirm both pmos-gamekit plugin.json
+      carry 0.1.0 and are byte-consistent on name; marketplace entries have no version field; CLAUDE.md
+      registration present. Confirm zero external runtime deps. Re-confirm the single-file contract
+      (no external refs in solitaire.html). Enumerate any deferred-to-release visual checks for
+      /complete-dev. DO NOT write changelog / learnings header / do the release — those are
+      ## Release prerequisites owned by /complete-dev.
+    verify: >
+      skill-eval >= 43/47; all lints green; manifests + registration correct; single-file contract
+      holds; deferred checks (if any) enumerated for release.
