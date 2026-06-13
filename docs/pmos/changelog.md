@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.75.2: the backlog claim-lock now works in repos that use ES modules
+
+A bug fix for one specific failure: in a host project whose `package.json` declares `"type": "module"`, the backlog's story-claim lock script silently died on startup — which quietly disabled the whole `/loop … build` claim/unclaim/reconcile machinery in exactly the repos most likely to run an unattended build loop.
+
+- **The claim-lock script is now `claim-lock.cjs` (was `.js`).** Node reads a bare `.js` file as an ES module when the surrounding project opts into ESM, and the script is written in CommonJS — so it crashed before doing any work. The explicit `.cjs` extension pins it to CommonJS regardless of the host project's module setting. Every reference across `/backlog` and `/feature-sdlc` was repointed; the rename flows automatically through the scaffolding that ships the script into your repo.
+- **A regression test now guards it.** The test suite spins up a throwaway project with `"type": "module"` and asserts the lock still acquires, releases, and self-tests cleanly there, plus a structural check that no bare `.js` script can sneak back into the scripts directory.
+
 ## 2026-06-13 — pmos-gamekit 0.1.0: a new casual-games plugin, opening with /solitaire (Klondike)
 
 A brand-new plugin whose whole job is to let you **play a casual game** right from your skills — no install, no account, no cloud. Its first game is `/solitaire`, a full single-player Klondike that opens in your browser.
