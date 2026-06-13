@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-c29 — pmos-gamekit /tetris epic + story 260614-fqg added)
+Last regenerated: 2026-06-14 (define 260613-c9q — pmos-gamekit /2048 epic + story 260613-nay added)
 
-11 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+12 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -32,6 +32,7 @@ Last regenerated: 2026-06-14 (define 260614-c29 — pmos-gamekit /tetris epic + 
 | 260613-v3y | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /snake (classic feature-phone Snake, single-file HTML, walls-kill + wrap toggle, speed picker + progressive speed-up) |
 | 260613-fc7 | defined | skill | pmos-learnkit | 0/1 | /frameworks browse view — fix design-crit observations (perceived-reload, reader a11y, deep-link, detailed-view perf, polish) |
 | 260614-c29 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /tetris (modern guideline-style — SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up) |
+| 260613-c9q | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /2048 (classic sliding-tile puzzle, single-file HTML, board-size picker + one-step undo + keep-playing past 2048) |
 
 ## should
 
@@ -80,3 +81,4 @@ Last regenerated: 2026-06-14 (define 260614-c29 — pmos-gamekit /tetris epic + 
 | 260613-f71 | story | feature | planned | 260613-e35 | Build the /sudoku skill — single-file classic 9×9 (easy/medium/hard, hints, pencil notes, on-demand check) + tests | 02_design.html | 03_plan.html |  |
 | 260613-1vv | story | feature | planned | 260613-v3y | Build the /snake skill — single-file classic Snake (speed picker + progressive speed-up, walls-kill + wrap toggle) + tests | 02_design.html | 03_plan.html |  |
 | 260614-fqg | story | feature | planned | 260614-c29 | Build the /tetris skill — single-file modern Tetris (SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up) + tests | 02_design.html | 03_plan.html |  |
+| 260613-nay | story | feature | planned | 260613-c9q | Build the /2048 skill — single-file classic 2048 (board-size picker + one-step undo + keep-playing past 2048) + tests | 02_design.html | 03_plan.html |  |
