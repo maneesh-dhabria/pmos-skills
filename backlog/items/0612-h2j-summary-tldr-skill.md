@@ -5,7 +5,7 @@ kind: epic
 title: /summary-tldr — faithful, grounded TL;DR of any user-supplied content (text/PDF/image/URL/email/tweet/podcast/video)
 type: feature
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-12_summary-tldr-skill/
 requirements_doc:
@@ -13,8 +13,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html
 labels: [pmos-toolkit, summary-tldr, content-tool, faithfulness-first]
 created: 2026-06-12
-updated: 2026-06-12
-released:
+updated: 2026-06-13
+released: pmos-toolkit/v2.73.0
 ---
 
 ## Context

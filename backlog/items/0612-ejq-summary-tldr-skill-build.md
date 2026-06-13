@@ -4,17 +4,17 @@ id: 0612-ejq
 kind: story
 title: Build the /summary-tldr pmos-toolkit skill — multi-input, grounded, compression-confirmed summaries with a first-time-reader review pass
 type: feature
-status: done
+status: released
 priority: should
 route: skill
 parent: 0612-h2j
 dependencies: []
-worktree: ../agent-skills-0612-ejq
+worktree:
 plan_doc: docs/pmos/features/2026-06-12_summary-tldr-skill/stories/0612-ejq-summary-tldr-skill-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_summary-tldr-skill/stories/0612-ejq-summary-tldr-skill-build/tasks.yaml
 claimed_by:
 driver_holder:
-released:
+released: pmos-toolkit/v2.73.0
 labels: [pmos-toolkit, summary-tldr, content-tool, faithfulness-first]
 created: 2026-06-12
 updated: 2026-06-13
