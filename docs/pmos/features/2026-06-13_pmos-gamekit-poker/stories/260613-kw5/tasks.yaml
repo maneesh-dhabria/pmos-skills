@@ -1,0 +1,159 @@
+schema_version: 1
+story: 260613-kw5
+epic: 260613-wqw
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/poker) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire).
+# Writers are all-new files under plugins/pmos-gamekit/skills/poker/. NO release-prereq tasks here
+# (changelog, learnings header, version-sync validation, the v0.2.0 minor bump) — see the design doc's
+# release-prerequisite note; /complete-dev is the sole writer of those. Single-file contract (D8)
+# reconciled with testability via an engine/render split (AC3). Engine logic is PORTED from the
+# poker-coach reference (core/{eval,engine,sidepots,bots}), not invented. T5 (TN-2) is this story's
+# load-bearing dogfood (AC8); T6 (TN-1) bundles the REQUIRED Playwright e2e (AC9, maintainer-mandated,
+# NOT deferred) with skill-eval + lints as the final-verification gate (AC10).
+# DEPENDENCY: dependencies: [260613-4mw] — build loop will not pick this until pmos-gamekit +
+# _shared/game-launcher/ are on main (the launcher must exist before /poker can launch).
+tasks:
+  - id: T1
+    title: "Study reference: poker-coach core/* + /solitaire bundle + game-launcher contract"
+    ac: [AC1, AC3, AC4]
+    deps: []
+    parallel: false
+    detail: >
+      Read the poker-coach pure-logic core to port (NOT invent) the engine:
+      core/eval/handEval.ts (7-card 5-best ranking, kickers), core/engine/gameEngine.ts (NLHE betting
+      state machine, street flow, blinds/button rotation), core/engine/sidepots.ts (multi-way all-in
+      side-pot math), core/bots/{botEngine,personas,preflop}.ts (heuristic decision: hand strength +
+      pot odds + position + bluffing), core/engine/handFlow.ts (interactive driver). Also read the
+      shipped /solitaire game/solitaire.html (engine/render split pattern, window.SolitaireEngine,
+      inline favicon, no-persistence) and plugins/pmos-gamekit/skills/_shared/game-launcher/
+      game-launcher.md (the launch + bundling + Node-prereq + no-persistence contract this skill cites)
+      and the /solitaire SKILL.md (launch-only body to mirror). Produce no code in this task — capture
+      the engine API surface and the rules edge-cases (min-raise, all-in-for-less, split pots, dead
+      button) to drive T2's tests.
+    verify: >
+      Engine API + rules edge-cases enumerated; the engine/render split pattern and the launch
+      contract understood; no invented rules — each maps to a poker-coach core source.
+
+  - id: T2
+    title: "Engine (TDD): window.PokerEngine — deck/deal, evaluator, betting machine, side pots, showdown, bot"
+    ac: [AC3, AC4, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.PokerEngine, fully DOM-decoupled. Pieces: (a) 52-card deck creation + shuffle + deal
+      (2 hole/player, 5 board); (b) 7-card hand evaluator — best 5 of 7, all nine categories, correct
+      kicker tie-breaks + split detection (ported from core/eval/handEval); (c) betting state machine —
+      legal-action predicate (fold/check/call/bet/raise/all-in with min-raise + all-in-for-less +
+      over-stack rules), apply-action, turn order, street advance ONLY when betting is closed, blinds +
+      button rotation, cash top-up each hand (ported from core/engine/gameEngine); (d) side-pot
+      calculator for multi-way all-ins — chips conserved, per-pot eligibility correct (ported from
+      core/engine/sidepots); (e) showdown/winner resolver — evaluate eligible hands per pot, award or
+      split; (f) heuristic bot decision returning a legal action from hand strength + draws + pot odds
+      + position + light randomized bluff (ported from core/bots). Keep it readable; comment the API
+      the test harness uses. Write tests/run.mjs in lockstep (see AC6 gates). NO DOM, NO npm.
+    verify: >
+      tests/run.mjs --selftest exercises evaluator ordering + kickers + splits, illegal-action
+      rejection, side-pot conservation+eligibility, street-advance gating, and a legal bot action;
+      all engine gates green before any UI work.
+
+  - id: T3
+    title: "Bundled game UI — game/poker.html single-file render layer over the engine"
+    ac: [AC2, AC4, AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/poker/game/poker.html — ONE self-contained file, all CSS+JS
+      embedded, offline, no external refs (D8), no persistence (D7), inline data-URI favicon (the
+      /solitaire favicon-404 lesson). The embedded engine from T2 (window.PokerEngine) plus a DOM
+      render/UI layer that consumes it: an oval felt table with up to 6 seats (human bottom, random
+      1–5 bots per new game — D4), each seat showing name/stack/current-bet/button+blind badges and
+      face-down bot hole cards until showdown; community board + pot center; betting controls —
+      fold/check/call/bet/raise/all-in with a raise-size SLIDER + quick buttons (½ pot / pot / all-in),
+      min-raise enforced in the UI; "next hand" + "new game" (re-randomize opponents, reset stacks);
+      pure play — NO coaching/equity panel (D6). Polish (AC5): chip + pot-award animation, winner
+      highlight naming the winning hand at showdown, a hand/action log, responsive layout (laptop +
+      phone, pointer events for touch), keyboard shortcuts (F fold, C check/call, R raise, Enter
+      confirm, N next hand), accessible focus states + ARIA labels. Card faces via CSS + inline
+      SVG/Unicode suit glyphs (no image files — D8).
+    verify: >
+      poker.html opens standalone and plays a full hand to showdown; contains no http(s):// or
+      src/href to external assets; reads from window.PokerEngine (no duplicated rules in the UI);
+      slider + quick-bets, all-in, next-hand, new-game (re-randomized opponents), log, keyboard,
+      responsive all present; no console errors on load (inline favicon).
+
+  - id: T4
+    title: "/poker SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/poker/SKILL.md. Frontmatter: name poker (matches dir),
+      user-invocable true, a triggering description ("play poker", "texas hold'em", "deal me a poker
+      hand", "/poker", "play cards against bots"), argument-hint noting no args (random opponents +
+      in-game betting controls), allowed-tools Bash, Read. Body mirrors /solitaire: an Overview that
+      CITES ../_shared/game-launcher/game-launcher.md for the launch + bundling + no-persistence
+      contract and states ONLY the poker deltas (game file game/poker.html; title "No-Limit Texas
+      Hold'em"; controls summary); a "Platform Adaptation" note; a tight launch-only Phase — resolve
+      the game path, assert Node present (D2 error verbatim if absent, no silent file:// fallback),
+      invoke ../_shared/game-launcher/serve.js, report the URL + controls + Ctrl-C; a Load-Learnings
+      and a Capture-Learnings note. Prompt-free: no AskUserQuestion. Run
+      tools/lint-non-interactive-inline.sh — add the canonical NI inline block ONLY if the lint
+      requires it for prompt-free skills (it did for /solitaire, so expect to inline it byte-identical
+      from skills/_shared/non-interactive.md). Conform to skill-patterns.md §A–§L + canonical path.
+    verify: >
+      name: poker matches dir; cites game-launcher.md, no restated launch contract; no AskUserQuestion;
+      lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, audit-recommended all green.
+
+  - id: T5
+    title: "TN−2: Dogfood / Utility Verification — actually play real hands"
+    ac: [AC8]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /poker (or serve.js directly) and play REAL hands: complete multiple hands including
+      at least one SHOWDOWN and at least one ALL-IN that produces a SIDE POT; exercise each human
+      action once (fold, check, call, bet, raise/slider, all-in); trigger NEW GAME and confirm the
+      opponent count re-randomizes (1–5) and stacks reset. OBJECTIVE gates: tests/run.mjs --selftest
+      green; serve.js launches + serves; no console errors; lint-phase-refs + skill-eval green.
+      SUBJECTIVE: an independent BLIND judge (fresh subagent) plays a few hands and rates bot pacing,
+      betting-control clarity, winner obviousness, and absence of stuck/illegal-action lockups —
+      overall "frustration-free?" yes/no + enumerated gaps; the judge makes NO edits. Iterate: gaps →
+      fix → re-run, cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict line
+      (satisfied/not + accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; showdown + side-pot all-in + every human
+      action exercised; new-game re-randomization confirmed.
+
+  - id: T6
+    title: "TN−1/TN: Playwright e2e to showdown (REQUIRED, NOT deferred) + skill-eval + lints + manifest sync"
+    ac: [AC9, AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred):
+      launch serve.js against game/poker.html and navigate Playwright (the playwright MCP) to the
+      printed localhost URL; play a full hand to SHOWDOWN — human performs fold/call and a RAISE with
+      the slider (assert the slider + the resulting bet in the DOM), bots act, the board runs out, a
+      winner is awarded with the hand NAMED, and stacks update; drive at least one ALL-IN that yields a
+      correct SIDE-POT award (use a deterministic test hook / pre-seeded stacks the engine exposes for
+      testing if needed); assert ZERO console errors throughout; capture a SHOWDOWN screenshot as
+      browser evidence (the /verify browser-evidence hard gate). If Playwright is unavailable in the
+      build host, provision it — do NOT silently defer the core playthrough; only a narrow,
+      explicitly-named unreachable sub-check may be recorded deferred-to-release, surfaced loudly.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the poker skill dir
+      (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name: poker matches
+      dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended) — green. Confirm zero external runtime deps and the single-file contract
+      (no external refs in poker.html). DO NOT write changelog / learnings header / bump the version /
+      do the release — those are ## Release prerequisites owned by /complete-dev (the v0.2.0 minor bump
+      lands at Loop 3). Enumerate any deferred-to-release visual checks for /complete-dev.
+    verify: >
+      Playwright drove a full hand to a named-winner showdown incl. a correct side-pot all-in award,
+      raise-slider asserted, zero console errors, showdown screenshot captured, no silent defer;
+      skill-eval >= 43/47; all 4 lints green; single-file contract holds; deferred checks (if any)
+      enumerated for release.
