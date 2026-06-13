@@ -4,7 +4,7 @@ title: Weekly 1on1 prep
 type: execution
 importance: leverage
 status: in-progress
-workstream: platform-q3
+project: platform-q3
 people: [sarah-chen]
 labels: []
 links: []

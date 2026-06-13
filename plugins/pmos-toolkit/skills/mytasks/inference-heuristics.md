@@ -46,14 +46,10 @@ For each `@handle` token:
 
 The original `@handle` text remains in the title for unresolved cases — preserves user intent for later cleanup.
 
-## Workstream inference
-
-If invoked from a working directory that is inside a git repo AND that repo has `.pmos/settings.yaml` AND that yaml contains a `workstream:` key, set `workstream:` to that value. Otherwise leave absent.
-
-Detection: `git rev-parse --show-toplevel` (silent on failure); check for `.pmos/settings.yaml` at the result; parse the YAML; read the `workstream:` key.
-
 ## What is NEVER inferred
 
+- `project` — **fully manual** (design D3). It is never auto-set from repo context — the old "infer `workstream` from the current repo's `.pmos/settings.yaml`" behavior was **removed** when `workstream` became `project`. The user assigns a project explicitly; a task with no `project` lands in Inbox. (The `#project` quick-add token that lets the user set it inline is a later story's addition — do not parse `#` tokens here yet.)
+- `parent`, `order`, `recur` — never inferred at capture. A subtask, a manual order, or a recurrence rule is always set explicitly, never guessed from the text.
 - `importance` — too subjective. Always defaults to `neutral`.
 - `status` — always `pending` on capture.
 - `checkin`, `next_checkin`, `start`, `links`, `labels` — never inferred. Always absent on quick-capture.

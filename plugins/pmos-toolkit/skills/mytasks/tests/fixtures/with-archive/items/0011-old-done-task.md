@@ -4,7 +4,7 @@ title: Old done task
 type: execution
 importance: neutral
 status: completed
-workstream:
+project:
 people: []
 labels: []
 links: []
