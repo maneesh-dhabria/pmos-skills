@@ -1,0 +1,191 @@
+schema_version: 1
+story: 260613-nay
+epic: 260613-c9q
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/2048) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire,
+# already released on main, so this story has NO dependencies). All-new files under
+# plugins/pmos-gamekit/skills/2048/. NO release-prereq tasks here (changelog, learnings header,
+# version-sync validation, the minor bump) — see the design doc's release-prerequisite note;
+# /complete-dev (Loop 3) is the sole writer of those. Single-file contract (D10) reconciled with
+# testability via an engine/render split (window.Game2048Engine, AC3). 2048 is TURN-BASED (each move
+# is a discrete slide+merge+spawn), like /solitaire & /sudoku and unlike /snake — the engine is a pure
+# function with no timers; the only runtime non-determinism is the seedable tile spawn (D6). There is
+# no reference codebase to port — the engine is built from the documented 2048 algorithm in the design
+# doc (compress -> merge-once -> compress, spawn 2@90%/4@10%, win at 2048, over when no move). T5
+# (TN-2) is this story's load-bearing dogfood (AC10 dogfood half); T6 (TN-1) bundles the REQUIRED
+# Playwright e2e (AC10 e2e half, maintainer-mandated, NOT deferred) with skill-eval + lints as the
+# final-verification gate.
+tasks:
+  - id: T1
+    title: "Study reference: /solitaire bundle + game-launcher contract + the 2048 design doc"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Read the shipped /solitaire game/solitaire.html for the engine/render split pattern
+      (window.SolitaireEngine DOM-decoupled, inline data-URI favicon to avoid the favicon-404 the
+      /solitaire e2e caught, no-persistence, win/confetti) and its tests/run.mjs (vm-extract the engine
+      <script>, evaluate with no DOM, assert objective gates + --selftest count). Read the /solitaire
+      SKILL.md (launch-only body to mirror) and plugins/pmos-gamekit/skills/_shared/game-launcher/
+      game-launcher.md (the launch + bundling + Node-prereq + no-persistence contract this skill cites,
+      consumed UNCHANGED). Re-read the design doc 02_design.html (decisions D1–D12, the Game2048Engine
+      API surface, the board-size picker, the merge-once invariant, the spawn/win/over contracts, the
+      one-deep undo). Produce no code — capture the Game2048Engine API surface (makeRng, createState,
+      move, spawnTile, canMove, hasWon) and the algorithm edge-cases (merge EXACTLY once per move so
+      [2,2,2,2]->[4,4,0,0] not [8,0,0,0]; a no-op move spawns nothing and consumes no turn; spawn on a
+      uniformly-random EMPTY cell at 90%/10%; win threshold 2048 constant across sizes; over only when
+      no slide AND no merge in any direction; one-deep undo snapshots board+score+spawn) to drive T2's
+      TDD tests.
+    verify: >
+      Game2048Engine API + the per-move slide/merge/spawn pipeline + the merge-once invariant + the
+      no-op-move rule + spawn distribution + win-at-2048 + game-over detection + the one-deep undo model
+      enumerated; engine/render split + launch contract understood before any code; it is clear the
+      engine holds NO timers and NO DOM (the move() function is pure; the UI owns input + undo snapshot).
+
+  - id: T2
+    title: "Engine (TDD): window.Game2048Engine — makeRng, createState, move, spawnTile, canMove, hasWon"
+    ac: [AC3, AC4, AC5, AC9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.Game2048Engine, fully DOM-decoupled and TIMER-FREE. Pieces: (a) makeRng(seed) —
+      deterministic PRNG (e.g. mulberry32) so tests pin spawn cell + value; (b) createState({size=4,
+      seed}) -> {board (size*size, row-major, 0=empty), size, score:0, won:false, over:false, rng} with
+      EXACTLY two starting tiles (each 2@90%/4@10% via the rng) on empty cells; (c) move(state, dir) for
+      dir in up|down|left|right -> apply one move per line in travel order: COMPRESS (drop gaps), MERGE
+      each adjacent equal pair EXACTLY ONCE (a freshly merged tile cannot merge again this move),
+      COMPRESS again, pad; return {board, score, moved, gained, merges, spawned}; moved=false when the
+      board is unchanged (gained 0, NO spawn, no turn consumed); on a changed move call spawnTile for
+      exactly one tile and set won (any tile>=2048) / over (!canMove); (d) spawnTile(state) -> place one
+      tile (2@90%/4@10%) on a UNIFORMLY-chosen empty cell via the rng; no-op when full; (e) canMove(state)
+      -> any empty cell OR any orthogonally-adjacent equal pair; (f) hasWon(state) -> any tile>=2048.
+      Keep move() pure and SIZE-GENERIC (4/5/6). Write tests/run.mjs in lockstep (see AC9 gates). NO DOM,
+      NO npm, Node stdlib only (vm + fs).
+    verify: >
+      tests/run.mjs --selftest exercises initial-state validity (exactly two tiles in {2,4}, score 0),
+      [2,2,0,0]->[4,0,0,0] gained 4, the merge-once invariant ([2,2,2,2]->[4,4,0,0] gained 8 NOT
+      [8,0,0,0]; [4,4,4,0]->[8,4,0,0]) across all four directions, a no-op move (moved false, no spawn,
+      empty-count unchanged), spawn-on-change (exactly one new tile on a previously-empty cell, value in
+      {2,4}), win detection (a fixture one merge from 2048 -> won true), game-over (full board no equal
+      neighbour -> over true; full board WITH a neighbour -> over false), deterministic RNG (same seed ->
+      identical board + spawn sequence), score accumulation (sum of gained == score); all engine gates
+      green before any UI.
+
+  - id: T3
+    title: "Bundled game UI — game/2048.html single-file render layer + input + one-deep undo over the engine"
+    ac: [AC1, AC2, AC4, AC5, AC6, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/2048/game/2048.html — ONE self-contained file, all CSS+JS
+      embedded, offline, no external refs (D10), no persistence (D9), inline data-URI favicon (the
+      /solitaire favicon-404 lesson). The embedded engine from T2 (window.Game2048Engine) plus a DOM
+      render/UI layer that consumes it: a start screen with a board-size picker (4x4 / 5x5 / 6x6 — D3)
+      and Play; a square grid board rendered via CSS grid (no image files) with the classic 2048 colour
+      ramp and tile-font scaling for 4-digit tiles; slide + merge-pop + spawn animations via CSS
+      transitions gated on prefers-reduced-motion; controls (D7) — Arrow keys + WASD + pointer-SWIPE
+      (dominant drag axis past a threshold) + an on-screen D-pad, all mapping to move(); U = one-deep
+      undo (snapshot board+score+spawn BEFORE each move, disabled at game start and right after an undo —
+      D5), R/N new game, Esc closes overlays; a HUD with live score, a SESSION best (D9), and move count;
+      end states (D8) — first 2048 -> a win celebration overlay with confetti (reuse the /solitaire win
+      pattern) + Keep playing / New game (D4), board full with no move -> a game-over overlay with the
+      final score + New game. Reads ALL rules/state from window.Game2048Engine — NO duplicated logic in
+      the UI (the UI owns only input, the undo snapshot, animation, and the best-score HUD). Accessible:
+      ARIA labels on controls, keyboard-operable, visible focus, never color-alone for state, honor
+      prefers-reduced-motion for the confetti. Tile art is CSS only — no image files (D10).
+    verify: >
+      2048.html opens standalone and plays at every board size; contains no http(s):// or src/href to
+      external assets; reads from window.Game2048Engine (no duplicated rules); board-size picker, swipe +
+      arrow + WASD + D-pad controls, one-deep undo (correctly disabled), HUD with session best + move
+      count, win overlay + confetti + Keep playing, game-over overlay + restart all present; no console
+      errors on load (inline favicon); responsive on laptop + phone widths; prefers-reduced-motion
+      honored.
+
+  - id: T4
+    title: "/2048 SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1, AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/2048/SKILL.md. Frontmatter: name "2048" (matches dir),
+      user-invocable true, a triggering description ("play 2048", "/2048", "2048 game", "I want to play
+      2048", "sliding tile puzzle", "join the tiles get to 2048"), argument-hint noting no args (board
+      size / undo / new game are in-game controls), allowed-tools Bash, Read. Body mirrors /solitaire: an
+      Overview that CITES ../_shared/game-launcher/game-launcher.md for the launch + bundling +
+      no-persistence contract and states ONLY the 2048 deltas (game file game/2048.html; title "2048";
+      controls summary — board-size picker, arrows/WASD/swipe/D-pad, U undo, R/N new game); a "Platform
+      Adaptation" note; a tight launch-only Phase — resolve the game path, assert Node present (D2 error
+      verbatim if absent, no silent file:// fallback), invoke ../_shared/game-launcher/serve.js, report
+      the URL + controls + Ctrl-C; a Load-Learnings and a Capture-Learnings note. Prompt-free: no
+      AskUserQuestion. Run tools/lint-non-interactive-inline.sh — inline the canonical NI block
+      byte-identical from skills/_shared/non-interactive.md (it was required for /solitaire, so expect it
+      here). Conform to skill-patterns.md §A–§L + the canonical skill path. NOTE the directory name
+      starts with a digit ("2048") — confirm the loader + skill-eval a-name-matches-dir check accept it
+      (frontmatter name must be the quoted string "2048").
+    verify: >
+      name "2048" matches dir; cites game-launcher.md, no restated launch contract; no AskUserQuestion;
+      lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, audit-recommended all green;
+      digit-leading skill name accepted by the loader + a-name-matches-dir.
+
+  - id: T5
+    title: "TN-2: Dogfood / Utility Verification — actually play the game"
+    ac: [AC10]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /2048 (or serve.js directly) and PLAY: start EACH board size (4x4/5x5/6x6) and confirm
+      the grid renders with two starting tiles; slide with arrows, WASD, swipe, AND the D-pad and confirm
+      tiles slide + equal tiles merge + the score increments + a new tile appears; reach a 2048 tile
+      (ordinary play on 4x4, or via a seeded/tiny-board test hook) and confirm the win celebration +
+      Keep playing continues the game; force a game-over (fill the board) and confirm the overlay + New
+      game; exercise Undo — one move reverts board+score+spawn, and Undo is disabled at game start and
+      immediately after an undo; confirm the SESSION best updates across games and that a reload resets
+      everything (no persistence). OBJECTIVE gates: tests/run.mjs --selftest green; serve.js launches +
+      serves; no console errors; lint-phase-refs + skill-eval green. SUBJECTIVE: an independent BLIND
+      judge (fresh subagent) plays and rates input responsiveness/latency, control clarity (esp. swipe),
+      legibility (tile contrast + 4-digit fit), and absence of janky/stuck states — overall
+      "frustration-free?" yes/no + enumerated gaps; the judge makes NO edits. Iterate: gaps -> fix ->
+      re-run, cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict line
+      (satisfied/not + accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; all three board sizes played, all four input
+      paths (arrows + WASD + swipe + D-pad) exercised, merge/score/spawn confirmed, a 2048 tile reaches
+      the win + Keep playing, a full board reaches game-over + restart, one-deep undo works and is
+      correctly disabled, session best updates, reload resets (no persistence).
+
+  - id: T6
+    title: "TN-1/TN: Playwright e2e (REQUIRED, NOT deferred) + skill-eval + lints + single-file check"
+    ac: [AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred): launch
+      serve.js against game/2048.html and navigate Playwright (the playwright MCP) to the printed
+      localhost URL; pick a board size and assert the initial two tiles render; press arrow AND WASD keys
+      and ASSERT the board changes + a new tile appears + the score increments on a merge (read the grid
+      DOM or an exposed debug hook on window.Game2048Engine); steer via a deterministic seed + a
+      tiny-board test hook to reach a 2048 tile and ASSERT the win overlay + Keep playing; force a
+      game-over and ASSERT the overlay; click Undo and ASSERT the prior board+score are restored; ASSERT
+      ZERO console errors throughout; capture a screenshot of active play + the win overlay + the
+      game-over overlay as browser evidence (the /verify browser-evidence hard gate). Only the narrowest
+      hard-to-reach sub-check (e.g. a NATURAL board-fill on a 6x6) may be recorded deferred-to-release,
+      surfaced LOUDLY. If Playwright is unavailable in the build host, provision it LOCALLY in the
+      worktree (npm i, NOT -g — the explainer-video lesson); do NOT silently defer the core playthrough.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the 2048 skill dir
+      (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name "2048" matches
+      dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended) — green. Confirm zero external runtime deps and the single-file contract (no
+      external refs in 2048.html). DO NOT write changelog / learnings header / bump the version / do the
+      release — those are ## Release prerequisites owned by /complete-dev (the minor bump lands at
+      Loop 3). Enumerate any deferred-to-release visual checks for /complete-dev.
+    verify: >
+      Playwright drove the real game: arrow + WASD changed the board + spawned + scored, a merge to 2048
+      raised the win overlay + Keep playing, a full board raised the game-over overlay, Undo restored the
+      prior board+score, zero console errors, screenshots captured, no silent defer (win reached via test
+      hook or loudly deferred); skill-eval >= 43/47; all 4 lints green; single-file contract holds;
+      deferred checks (if any) enumerated for release.

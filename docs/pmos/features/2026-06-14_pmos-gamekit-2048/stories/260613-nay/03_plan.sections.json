@@ -1,0 +1,44 @@
+[
+  {
+    "id": "scope",
+    "level": 2,
+    "title": "Scope",
+    "parent_id": null
+  },
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach — engine/render split, TDD-first",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Key implementation decisions",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (NOT this story — /complete-dev owns these)",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Final verification",
+    "parent_id": null
+  }
+]
