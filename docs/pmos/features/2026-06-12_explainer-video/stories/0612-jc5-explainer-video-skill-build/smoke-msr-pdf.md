@@ -1,6 +1,6 @@
 # Live end-to-end smoke — /explainer-video vs the MSR research PDF (AC7)
 
-**Story:** 0612-jc5 · **Date:** 2026-06-13 · **Driver:** `build:3e313489` (Loop-2 build) · **Outcome:** **DEFERRED-TO-RELEASE** (one dep absent: the `playwright` npm library)
+**Story:** 0612-jc5 · **Date:** 2026-06-13 · **Driver:** `build:3e313489` (Loop-2 build) · **Outcome (Loop-2):** **DEFERRED-TO-RELEASE** (one dep absent: the `playwright` npm library) · **Outcome (Loop-3 release, 2026-06-13):** ✅ **CLEARED — full PDF→mp4 pipeline ran green** (see "Release clearance" below).
 
 ## Target
 
@@ -60,3 +60,34 @@ All three were caught only because the run used real binaries — strong evidenc
 - Narration is audible and matches the speaker notes verbatim (`say` reads the notes text).
 - One idea per slide held in the verification deck (write-path sharding; low-cost win) — no slide crammed two ideas.
 - ≥1 figure reused from the paper: **deferred** along with the full capture path (a real figure was rasterized from the PDF via `sips`, proving the asset is obtainable; placing it into a captured slide needs the Playwright stage).
+
+---
+
+## Release clearance (Loop 3 — `/complete-dev --epic 0612-gd0`, 2026-06-13)
+
+The deferral was cleared during the release train by running the **full** PDF→`video.mp4` pipeline end-to-end against the AC7 target paper — *Adtributor: Revenue Debugging in Advertising Systems* (Bhagwan et al., Microsoft) — at `--length standard`. Playwright was installed **locally** in the worktree (`npm i playwright` → `playwright@1.60.0`); `render-slides.mjs` resolves a local install via `import('playwright')` before the global fallback, so no `sudo` global install was needed. Chromium was already cached (`~/Library/Caches/ms-playwright`).
+
+**Every stage ran for real, including the previously-blocked Stage 4 capture:**
+
+| Stage | Result |
+|---|---|
+| 1 ingest — text | PDF read in-session (native `Read` pages 1–8) → clean text of the full paper |
+| 1 ingest — figures | Figure 1 (the ad-system architecture diagram) rasterized from page 3 (`pdftoppm` + `ffmpeg` crop) → `fig_1.png`; `figures.json` emitted |
+| 3 distill | 12 slides, **one idea each**, standard length; slide 6 references `fig_1` |
+| **4 capture (Playwright)** | **`render-slides.mjs` → 12 × 1920×1080 PNGs, exit 0** — the stage the Loop-2 deferral was isolated to |
+| 5 narrate (`say`) | 12 WAVs + `durations.json` (Σ 178.80 s); Enhanced-voice nudge fired once |
+| 6 assemble + self-check | `video.mp4` 1920×1080 H.264/AAC, burned-in captions, 178.76 s — **SELF-CHECK PASS (all 5 checks)** |
+
+Final self-check: `frame-slide-parity` 12==12 · `duration-sum` video 178.76 s ≈ Σ 178.80 s · `audio-non-silent` all 12 > −90 dB · `figures-resolved` `fig_1` ∈ inventory · `artifacts-present`. Spot-check: slides readable at 1920×1080; slide 6 places the reused paper figure; narration audible and verbatim to the notes; no slide crams two ideas.
+
+### Bug #4 — found + fixed by the full live run (would have shipped broken)
+
+The first full multi-slide assembly exposed a real defect in `assemble.sh` that the Loop-2 partial run (2 short slides, within tolerance) had masked:
+
+- **Symptom:** `duration-sum` FAIL — `video=199.4 s` vs `Σ=178.8 s` (~11.5% overrun).
+- **Cause:** `-shortest` does **not** reliably cut a `-loop 1` still-image video stream at audio EOF; the video stream overran its audio by ~1.4 s/slide (per-segment probe: audio 17.26 s, video 18.68 s), compounding over 12 slides.
+- **Fix:** compute each slide's narration duration **before** the segment encode and hard-cap the video with `-t "$dur"` (keeping `-shortest` as a backstop). Re-run → `duration-sum pass` (video 178.76 s ≈ Σ 178.80 s); full self-check green. Committed on `feat/0612-jc5` with this log.
+
+This is a fourth live-only bug caught by AC7 — and the strongest case yet for the deferred-smoke-as-release-gate contract: the duration overrun is invisible to every unit selftest and only manifests on a real, multi-slide, standard-length deck.
+
+> Release-run artifacts (the real `video.mp4` etc.) were generated to a scratch dir (`/tmp/ev-smoke/main-14/`) and **not committed** — the `.mp4` is a 6.4 MB verification artifact, not a shipped product. Re-derive any time with the re-run command above (local `npm i playwright` instead of `-g` if global needs root).

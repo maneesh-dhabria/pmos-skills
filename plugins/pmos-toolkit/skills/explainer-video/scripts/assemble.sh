@@ -80,14 +80,20 @@ while [ "$i" -lt "$NF" ]; do
   [ -f "$png" ] || { echo "assemble: missing frame $png" >&2; exit 2; }
   [ -f "$wav" ] || { echo "assemble: missing audio $wav" >&2; exit 2; }
   seg="$WORK/seg_${nn}.mp4"
-  # Still image + its narration; even dims; stop at the shorter (the audio).
+  # This slide's narration duration, computed BEFORE the segment build so it can
+  # hard-cap the looped still image via -t. `-shortest` alone does NOT reliably
+  # cut a `-loop 1` image stream at audio EOF — the video stream can overrun by
+  # ~1s per slide, compounding to a duration-sum self-check FAIL on a multi-slide
+  # deck (caught by the AC7 live smoke, 2026-06-13).
+  dur="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$wav" 2>/dev/null || echo 0)"
+  # Still image + its narration; even dims; -t caps the video to the audio length
+  # (-shortest kept as a backstop).
   ffmpeg -nostdin -y -loglevel error -loop 1 -i "$png" -i "$wav" \
     -c:v libx264 -tune stillimage -pix_fmt yuv420p \
     -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
-    -c:a aac -ar 44100 -shortest "$seg" </dev/null
+    -c:a aac -ar 44100 -t "$dur" -shortest "$seg" </dev/null
   echo "file '$seg'" >> "$concat_list"
-  # caption from this slide's narration duration
-  dur="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$wav" 2>/dev/null || echo 0)"
+  # caption from this slide's narration duration (dur computed above)
   if [ "$CAPTIONS" = "1" ] && [ -n "$DECK" ] && [ -f "$DECK" ]; then
     start="$(srt_ts "$cum")"; end="$(srt_ts "$(node -e 'console.log(+process.argv[1]+ +process.argv[2])' "$cum" "$dur")")"
     text="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const sl=JSON.parse(s).slides['"$i"'];process.stdout.write((sl&&(sl.speaker_notes||sl.idea)||"").replace(/\s+/g," ").trim())})' < "$DECK")"
