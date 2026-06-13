@@ -28,7 +28,7 @@ A repo-resident, AI-readable backlog. Two jobs: (1) a zero-friction capture buff
 These instructions use Claude Code tool names. In other environments:
 - **No interactive prompt tool:** State your assumption, document it in the output, and proceed (capture and the machine verbs never prompt anyway). The user reviews after completion.
 - **No subagents:** Perform research and analysis sequentially as a single agent.
-- **No `node`:** the claim lock (`scripts/claim-lock.js`) is the only hard dependency; without it, `claim`/`next --claim` degrade to a YAML-only `claimed_by:` write with a stderr warning that double-claim is unguarded (acceptable for single-driver use).
+- **No `node`:** the claim lock (`scripts/claim-lock.cjs`) is the only hard dependency; without it, `claim`/`next --claim` degrade to a YAML-only `claimed_by:` write with a stderr warning that double-claim is unguarded (acceptable for single-driver use).
 
 ## References
 
@@ -36,13 +36,13 @@ These instructions use Claude Code tool names. In other environments:
 - `_shared/tracker-crudl.md` — shared tracker invariants: id/slug (§2), universal fields (§3), INDEX-as-cache (§5), archive (§6).
 - `inference-heuristics.md` — keyword → type table for quick-capture.
 - `pipeline-bridge.md` — the `--backlog <id>` contract + three-loop story write-back rules (main-checkout-only, auto-commit, blocked channel).
-- `scripts/claim-lock.js` — O_EXCL story-claim lock (D13).
+- `scripts/claim-lock.cjs` — O_EXCL story-claim lock (D13).
 - `scripts/mint-id.mjs` — coordination-free id minter + triple-form validator (the `<YYMMDD>-<rand3>` allocation cited by `#add`; format owned by `_shared/tracker-crudl.md` §2).
 - `_shared/interactive-prompts.md` — prompting protocol for `refine`.
 
 ## Flags & natural language
 
-Options are NL-first: infer filters, scope, and destinations from the request ("list must-priority bugs", "across the workstream", "archive into 2026-Q1", "what's blocked on 0042"); an explicit flag overrides. Contract flags, kept literal: `--feature <slug>` (promote → `_shared/pipeline-setup.md` §B), `--kind epic|story` and `--epic <id>` (capture wiring), `--json` (machine read for `next`/`releases`/`list`), `--tasks` (`show` read-through), `--status <s>` (`next` candidate filter — `planned` default, `in-progress` selects the reconcile sweep, D1), `--holder <id>` (machine-coupled — the stable claim-owner string threaded into `claim-lock.js`; `claim`/`next --claim`), `--non-interactive`/`--interactive` (mode contract), and the `--backlog <id>` this skill's consumers pass per `pipeline-bridge.md`. Everything else stays parsed as back-compat sugar, marked `<!-- nl-sugar -->` at its definition site.
+Options are NL-first: infer filters, scope, and destinations from the request ("list must-priority bugs", "across the workstream", "archive into 2026-Q1", "what's blocked on 0042"); an explicit flag overrides. Contract flags, kept literal: `--feature <slug>` (promote → `_shared/pipeline-setup.md` §B), `--kind epic|story` and `--epic <id>` (capture wiring), `--json` (machine read for `next`/`releases`/`list`), `--tasks` (`show` read-through), `--status <s>` (`next` candidate filter — `planned` default, `in-progress` selects the reconcile sweep, D1), `--holder <id>` (machine-coupled — the stable claim-owner string threaded into `claim-lock.cjs`; `claim`/`next --claim`), `--non-interactive`/`--interactive` (mode contract), and the `--backlog <id>` this skill's consumers pass per `pipeline-bridge.md`. Everything else stays parsed as back-compat sugar, marked `<!-- nl-sugar -->` at its definition site.
 
 ---
 
@@ -146,7 +146,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 
 `/backlog next [--kind story] [--status planned|in-progress] [--route <r>] [--json] [--claim] [--holder <id>]`. Computes the single best ready story (or, with `--status in-progress`, the reconcile sweep list); `/feature-sdlc build --next` consumes `--json`. Readiness is **derived**, never stored.
 
-1. **Candidate set:** stories at `status: planned` (default) whose `dependencies:` are **all `done` or `released`**, and which are **unclaimed** (no live claim lock per `scripts/claim-lock.js status`).
+1. **Candidate set:** stories at `status: planned` (default) whose `dependencies:` are **all `done` or `released`**, and which are **unclaimed** (no live claim lock per `scripts/claim-lock.cjs status`).
 2. **Wontfix-dep poison (D30):** a dependency on a `wontfix` story is permanently unsatisfiable → that dependent is NOT a candidate; instead flip it to `blocked` (one-line note: `blocked: depends on wontfix #<dep>`) so it surfaces in `#groom`.
 3. **Order (D22):** stories of **in-flight epics first** (any sibling `in-progress`/`done`/`released`), then priority bucket (must>should>could>maybe) → score desc (nulls last) → updated desc. This drives epics to completion instead of spreading WIP.
 4. **Output:** the top candidate. `--json` → `{id, parent, title, route, plan_doc, tasks_file, worktree, dependencies}` (or `{}` when none). Human → one line: `Next: #{id} [{priority}] {title} (epic #{parent}). Claim with /backlog claim {id} or /feature-sdlc build --next.` No candidate → `No ready story. Run /backlog groom to see what's waiting on you.`
@@ -155,7 +155,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 **`--status in-progress` — the reconcile sweep (D1).** `/feature-sdlc build`'s `reconcile-in-flight` step 0 calls `/backlog next --kind story --status in-progress --json` to find a crashed-mid-build story to resume. In this mode the picker switches semantics:
    - **Candidate set:** stories at `status: in-progress` (claimed or not — they are already in flight; **no `dependencies:` gating**, those were satisfied at pickup). Never `blocked`/`done`/`released` (D7 — reconcile only ever touches in-progress).
    - **Order:** the same D22 order (in-flight-epic-first → priority → score → updated desc).
-   - **Per-story claim annotation:** for each candidate, read its claim via `scripts/claim-lock.js status <repo>/backlog/claims <id>` and attach `{claim_holder, claim_at, claim_stale}` (`claim_stale` = `at` older than the 4h TTL; absent lock → `claim_holder: null`). The caller applies the D2 ownership guard itself (resume iff the claim is absent / stale / its own holder); this query does **not** decide resumability — it surfaces the facts.
+   - **Per-story claim annotation:** for each candidate, read its claim via `scripts/claim-lock.cjs status <repo>/backlog/claims <id>` and attach `{claim_holder, claim_at, claim_stale}` (`claim_stale` = `at` older than the 4h TTL; absent lock → `claim_holder: null`). The caller applies the D2 ownership guard itself (resume iff the claim is absent / stale / its own holder); this query does **not** decide resumability — it surfaces the facts.
    - **Output:** `--json` → a JSON **array** (D22 order) of `{id, parent, title, route, plan_doc, tasks_file, worktree, dependencies, resume_attempts, last_progress, driver_holder, claim_holder, claim_at, claim_stale}`; `[]` when no in-progress story exists (the clean-backlog fall-through, D1). `--claim`/`--holder` are ignored in sweep mode (resumption claims happen in `#build-mode`, not here).
 
 ## claim / unclaim {#claim}
@@ -163,11 +163,11 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 `/backlog claim <id>` · `/backlog unclaim <id>`. The atomic story-claim primitive (D13).
 
 **claim:**
-1. Run `node scripts/claim-lock.js acquire <repo>/backlog/claims <id> --holder <holder>`. The `<holder>` is the caller's stable owner id: pass `--holder <id>` when given, else default to this session's id. **`/feature-sdlc build` passes a stable per-loop holder** (`build:<root-session-id>`, the driver-identity contract in `feature-sdlc/SKILL.md#build-mode`) so a crashed tick's own abandoned claim is reclaimed immediately by the next tick without the 4h TTL wait (epic 0612-w4e D3 — the own-holder reclaim trigger in `claim-lock.js`). Exit 0 → lock held; exit 3 → contended (print the holder; refuse: `#{id} is already claimed by {holder} since {at}. /backlog unclaim {id} to steal, or pick another.`).
+1. Run `node scripts/claim-lock.cjs acquire <repo>/backlog/claims <id> --holder <holder>`. The `<holder>` is the caller's stable owner id: pass `--holder <id>` when given, else default to this session's id. **`/feature-sdlc build` passes a stable per-loop holder** (`build:<root-session-id>`, the driver-identity contract in `feature-sdlc/SKILL.md#build-mode`) so a crashed tick's own abandoned claim is reclaimed immediately by the next tick without the 4h TTL wait (epic 0612-w4e D3 — the own-holder reclaim trigger in `claim-lock.cjs`). Exit 0 → lock held; exit 3 → contended (print the holder; refuse: `#{id} is already claimed by {holder} since {at}. /backlog unclaim {id} to steal, or pick another.`).
 2. On success, stamp `claimed_by:` and `driver_holder:` (the `<holder>` just used — mirror of the lock's owner, read by reconcile, D3); `status: in-progress` is NOT set here — claim only reserves; `/execute` sets `in-progress`. Write the mirrors in the **main checkout**, auto-commit `chore(backlog): {id} → claimed [claim]` (D12).
 3. Confirm: `Claimed #{id}. Worktree: {worktree or "(fresh from main)"}.`
 
-**unclaim:** `node scripts/claim-lock.js release <repo>/backlog/claims <id>`; clear `claimed_by:` in the main checkout; auto-commit `chore(backlog): {id} → unclaimed`. Confirm one line. Stale locks (>4h) are auto-reclaimed by `acquire`; `unclaim` is the manual override.
+**unclaim:** `node scripts/claim-lock.cjs release <repo>/backlog/claims <id>`; clear `claimed_by:` in the main checkout; auto-commit `chore(backlog): {id} → unclaimed`. Confirm one line. Stale locks (>4h) are auto-reclaimed by `acquire`; `unclaim` is the manual override.
 
 ## promote {#promote}
 
@@ -246,7 +246,7 @@ Write the body per `schema.md`'s section order (always `## Context` — use "_TB
 | **needs definition** | epics at `inbox`/`defining` | `/feature-sdlc define <epic-id>` |
 | **needs grooming** | stories at `draft` or missing ACs | `/backlog refine <story-id>` |
 | **blocked** | stories at `blocked` (show the gap text from `## Notes`) | fix, then `/feature-sdlc build --story <id>` |
-| **stale claims** | claim locks older than the 4h TTL (`scripts/claim-lock.js status` per claimed story) | `/backlog unclaim <id>` |
+| **stale claims** | claim locks older than the 4h TTL (`scripts/claim-lock.cjs status` per claimed story) | `/backlog unclaim <id>` |
 
 Empty groom: `Nothing waiting on you. Run /backlog next to see what the machine can pick up.`
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// claim-lock.js — atomic story-claim lock for /backlog's Loop-2 (build) picker.
+// claim-lock.cjs — atomic story-claim lock for /backlog's Loop-2 (build) picker.
 // Zero npm dependencies (node built-ins only). Requires: node >= 18.
 //
 // Why this exists (design D13): the build loop's atomic claim is
@@ -35,11 +35,11 @@
 // is the manual override.
 //
 // CLI:
-//   node claim-lock.js acquire <claims-dir> <id> [--holder <s>] [--stale-ms <n>]
-//   node claim-lock.js release <claims-dir> <id>
-//   node claim-lock.js status  <claims-dir> <id>
-//   node claim-lock.js steal   <claims-dir> <id> [--holder <s>]   # force-take
-//   node claim-lock.js --selftest
+//   node claim-lock.cjs acquire <claims-dir> <id> [--holder <s>] [--stale-ms <n>]
+//   node claim-lock.cjs release <claims-dir> <id>
+//   node claim-lock.cjs status  <claims-dir> <id>
+//   node claim-lock.cjs steal   <claims-dir> <id> [--holder <s>]   # force-take
+//   node claim-lock.cjs --selftest
 //
 // Exit codes: 0 ok · 3 contended (live fresh FOREIGN holder) · 4 not-held (release/status
 // of a free slot) · 64 usage error. On `acquire`/`status`/`steal` the current or
@@ -224,7 +224,7 @@ function selftest() {
   assert(reclaimableByHolder({ holder: 'x' }, null) === false, 'reclaimableByHolder: no requesting holder never matches');
 
   fs.rmSync(tmp, { recursive: true, force: true });
-  console.log(ok ? 'claim-lock.js --selftest: PASS' : 'claim-lock.js --selftest: FAIL');
+  console.log(ok ? 'claim-lock.cjs --selftest: PASS' : 'claim-lock.cjs --selftest: FAIL');
   process.exit(ok ? 0 : 1);
 }
 
@@ -243,7 +243,7 @@ function main() {
   if (argv.includes('--selftest')) return selftest();
   const f = parseFlags(argv);
   const [cmd, claimsDir, id] = f._;
-  const usage = 'usage: claim-lock.js <acquire|release|status|steal> <claims-dir> <id> [--holder <s>] [--stale-ms <n>] | --selftest';
+  const usage = 'usage: claim-lock.cjs <acquire|release|status|steal> <claims-dir> <id> [--holder <s>] [--stale-ms <n>] | --selftest';
   if (!cmd || !claimsDir || !id) { console.error(usage); process.exit(64); }
   const opts = { holder: f.holder, staleMs: f.staleMs };
   if (cmd === 'acquire') {

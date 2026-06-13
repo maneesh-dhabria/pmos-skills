@@ -112,7 +112,7 @@ Expected: with `#0011` at `planned`, `#0012`'s dep is unsatisfied → no candida
 
 ### Scenario: `/backlog claim 0012`
 
-Expected: `node scripts/claim-lock.js acquire <repo>/backlog/claims 0012 …` creates the lock (exit 0); stamp `claimed_by:` in the main checkout; auto-commit `chore(backlog): 0012 → claimed [claim]`. A second `claim 0012` while held → refuse with the holder. `/backlog unclaim 0012` releases the lock and clears `claimed_by:`.
+Expected: `node scripts/claim-lock.cjs acquire <repo>/backlog/claims 0012 …` creates the lock (exit 0); stamp `claimed_by:` in the main checkout; auto-commit `chore(backlog): 0012 → claimed [claim]`. A second `claim 0012` while held → refuse with the holder. `/backlog unclaim 0012` releases the lock and clears `claimed_by:`.
 
 ### Scenario: `/backlog show 0012 --tasks`
 
@@ -132,7 +132,7 @@ Expected: if `#0011` were `wontfix`, the picker treats `#0012`'s dep on it as pe
 
 ## Build-loop reconcile-in-flight (epic 0612-w4e)
 
-Behavioral expectations for the `--status in-progress` reconcile sweep and the skill-managed poison-guard fields. Mechanical coverage of the own-holder reclaim primitive is `tests/claim-lock.test.sh` + `scripts/claim-lock.js --selftest`.
+Behavioral expectations for the `--status in-progress` reconcile sweep and the skill-managed poison-guard fields. Mechanical coverage of the own-holder reclaim primitive is `tests/claim-lock.test.sh` + `scripts/claim-lock.cjs --selftest`.
 
 ### Scenario: `/backlog next --kind story --status in-progress --json` reconcile sweep
 
