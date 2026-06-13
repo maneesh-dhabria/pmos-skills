@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.75.0: /complete-dev ships several release-ready epics in one pass
+
+`/complete-dev --epic` now releases more than one epic per invocation, so a session that finished several epics can ship them all without re-running the release ceremony by hand each time.
+
+- **Bare `--epic` is now a picker, not a one-at-a-time prompt.** Interactively, it presents a **multi-select** list of the release-ready epics and ships each selected epic in turn as its own independent release (its own merge train, gate, changelog, version bump, and tag).
+- **`--epic <id1>,<id2>,…` ships an explicit list in order.** Name the epics you want, and they release sequentially — each precondition-checked on its own (an unknown or not-yet-ready id refuses the whole run before anything ships).
+- **`--non-interactive` drains the shelf.** A bare `--epic --non-interactive` ships **all** release-ready epics with no prompt — the lights-out path for unattended release loops — framed as a documented mode branch, not an auto-pick of a deferred question.
+- **Stop-and-report on the first failure.** If an epic's train hits a merge conflict, a red gate, or a push failure, the loop stops and the remaining epics are left untouched; a per-epic outcome summary (`shipped (vX.Y.Z)` / `FAILED` / `not attempted`) makes clear that already-shipped epics are irreversible. `--epic <id>` still behaves exactly as before (a loop of one), and `--stories` stays restricted to a single explicit `--epic <id>`.
+
 ## 2026-06-13 — pmos-toolkit 2.74.0: /explainer-video — turn any source into a narrated slideshow video
 
 A new `/explainer-video` skill turns a single document, pmos artifact, or web URL into a watchable narrated `.mp4` — a deck distilled to one idea per slide, narrated by a synthetic voice, and assembled with ffmpeg. It joins `/diagram`, `/logos`, and `/summary-tldr` as a shareable-artifact authoring tool, and runs end-to-end **locally at `$0`** — there is no cloud-TTS path in the skill, by design.
