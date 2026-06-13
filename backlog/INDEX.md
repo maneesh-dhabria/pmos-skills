@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (+ epic 260613-yyj define)
+Last regenerated: 2026-06-13 (+ epic 260613-4mw define)
 
 2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -22,6 +22,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-yyj define)
 | 0613-5pq | defined | skill | pmos-toolkit | 0/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
 | 260613-vba | defined | skill | pmos-toolkit | 0/2 | Build /research — PM decision-support deep-research skill |
 | 260613-yyj | defined | skill | pmos-toolkit | 0/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
+| 260613-4mw | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
 
 ## should
 
@@ -58,3 +59,4 @@ Last regenerated: 2026-06-13 (+ epic 260613-yyj define)
 | 0007 | story | feature | wontfix |  | /polish — symmetric \"expansion\" mode (grow a doc that's too thin) |  |  |  |
 | 0008 | story | tech-debt | wontfix |  | skill-eval-check.sh --selftest failure surfacing — bijection break (e.g., §[A-F] vs §G) exits 1 with no stdout; stderr alone is easy to lose |  |  |  |
 | 0003 | story | tech-debt | done |  | README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical |  |  |  |
+| 260613-c31 | story | feature | planned | 260613-4mw | Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests) | 02_design.html | 03_plan.html |  |
