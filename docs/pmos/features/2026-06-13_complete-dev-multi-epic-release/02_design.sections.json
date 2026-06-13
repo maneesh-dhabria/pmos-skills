@@ -1,0 +1,68 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem",
+    "parent_id": null
+  },
+  {
+    "id": "current-behaviour",
+    "level": 2,
+    "title": "Current behaviour (grounding)",
+    "parent_id": null
+  },
+  {
+    "id": "solution",
+    "level": 2,
+    "title": "Solution — an outer multi-epic loop",
+    "parent_id": null
+  },
+  {
+    "id": "selection",
+    "level": 3,
+    "title": "Epic-set resolution (Phase 0 step 1, rewritten)",
+    "parent_id": null
+  },
+  {
+    "id": "loop",
+    "level": 3,
+    "title": "The sequential train loop (wraps #epic-train)",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "frs",
+    "level": 2,
+    "title": "Functional requirements (the change-set)",
+    "parent_id": null
+  },
+  {
+    "id": "invariants",
+    "level": 2,
+    "title": "Cross-skill coherence invariants",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance",
+    "level": 2,
+    "title": "Acceptance criteria (inherited by story 0613-rhf)",
+    "parent_id": null
+  }
+]

@@ -1,0 +1,102 @@
+schema_version: 1
+story: 0613-rhf
+epic: 0613-5pq
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Revision to the EXISTING /complete-dev skill — additive only. The per-epic #epic-train
+# body must stay byte-unchanged (invariant I1); the change adds multi-epic SELECTION in
+# Phase 0 step 1 and an OUTER LOOP wrapping the existing train. All tasks edit one file
+# (plugins/pmos-toolkit/skills/complete-dev/SKILL.md), so they run sequentially. NO
+# release-prereq tasks here (version bump / changelog / etc. live in the design doc's
+# ## Release prerequisites — /complete-dev handles them at release, skill-mode scope rule).
+tasks:
+  - id: T1
+    title: "argument-hint + ## Arguments: document --epic id-list + multi-epic"
+    ac: [AC2, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Edit the frontmatter argument-hint (line ~5) so --epic is shown as optionally taking an
+      id-list: `[--epic [<id>|<id1>,<id2>,…]]`. In ## Arguments, expand the --epic entry to
+      document: bare --epic (interactive multi-select picker; non-interactive ships ALL
+      release-ready), and the comma-separated id-list form (ships exactly those, in order, in
+      both modes). Add the natural-language equivalents per §I ("ship all the ready epics" ≡
+      bare --epic --non-interactive; "release these two epics" ≡ --epic <id1>,<id2>). Keep
+      --stories documented as single-epic-only (forward-ref T2's guard). Do not add new contract
+      flags — --epic already exists; this only widens its accepted value.
+
+  - id: T2
+    title: "Phase 0 #sanity-state — rewrite epic-set resolution"
+    ac: [AC1, AC2, AC3, AC6, AC10]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Rewrite the `**Resolve --epic …**` block (Phase 0 step 1–3, the bare/<id> cases). New
+      resolution producing an ORDERED epic set:
+      (a) bare --epic + interactive → AskUserQuestion multiSelect:true over /backlog releases
+      --json, one option per release-ready epic labelled `#<id> <title> — <N> stories, <plugin>`,
+      ≥1 required; keep `defer-only: ambiguous` (no (Recommended)) — this prompt only exists on
+      the interactive path (D9).
+      (b) bare --epic + non-interactive → set = ALL release-ready epics, NO prompt (a documented
+      `mode == non-interactive` branch, NOT an auto-pick of the deferred prompt — D1/D9); log a
+      chat line `Phase 0: --non-interactive bare --epic → shipping all <N> release-ready epics`.
+      (c) --epic <id> or <comma-list> → resolve each id, precondition-check each (D16: all
+      non-wontfix stories done; else refuse that id with its rollup), mode-agnostic, order =
+      as-given.
+      Empty set (no release-ready) → rollup + exit 0 (both modes, unchanged, AC10).
+      Order rule (D6): id-list as-given; multi-select & ship-all → epic-id ascending.
+      Add the --stories guard (AC6): if --stories is present AND the resolved set is not a single
+      explicit --epic <id>, emit `ERROR: --stories is only valid with a single --epic <id>. Exit
+      64.` Set `epic_release_mode = true` and capture the ORDERED epic list for the loop (T3).
+      Use a stable {#kebab} anchor if introducing a sub-heading; reference phases by slug, never
+      bare number (§J / lint-phase-refs).
+
+  - id: T3
+    title: "#epic-train — wrap per-epic train in an outer sequential loop + stop-and-report"
+    ac: [AC4, AC5, AC7]
+    deps: [T2]
+    parallel: false
+    detail: >
+      In #epic-train, add an OUTER LOOP framing OVER the ordered epic set from Phase 0, WITHOUT
+      changing the per-epic train body (invariant I1 — steps 1–6 stay byte-identical). Per epic,
+      in order: re-resolve --plugin FROM that epic (D17 — read labels/route), then run the
+      existing train steps 1–6. On a clean train, record `shipped: <epic-id> → <plugin>/vX.Y.Z`
+      and continue. On a failed train (merge conflict, red integrated/coherence gate,
+      PASS-WITH-GAPS abort, push failure): STOP the loop (D2) — the failing epic is already left
+      `blocked` by the train's red-gate path; attempt no further epics. ALWAYS print a per-epic
+      OUTCOME SUMMARY at the end: each epic as `shipped (vX.Y.Z)` / `FAILED (<reason>)` /
+      `not attempted`, with an explicit note that shipped epics are irreversible (tag+push done).
+      State plainly that destructive DEFER gates (PASS-WITH-GAPS, --stories confirm) are preserved
+      per epic and that a DEFER-abort halts the loop (D8/AC7). Keep the W14 inline block untouched
+      (I4). Single-epic runs (one id) behave exactly as today — a loop of length 1.
+
+  - id: T4
+    title: "Amend the D23 note → D9; reconcile decision references"
+    ac: [AC8]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Update the inline D23 reference(s) (Phase 0 step 1 and #epic-train header `Decisions D6, D8,
+      …, D23`). D23 is AMENDED not deleted: the interactive picker stays a deliberate human pick
+      (now multi-select, still no (Recommended)); the NI ship-all is the new documented behaviour.
+      Add a one-line decision pointer (e.g. `D23 amended 2026-06-13 — multi-select + NI ship-all;
+      see epic 0613-5pq design`). Ensure every `Phase <N>` / `{#slug}` / cross-skill `…#anchor`
+      reference still resolves (lint-phase-refs); the feature-sdlc define STOP nudge
+      (`/complete-dev --epic <id>`) stays valid (single-id form unchanged, I2).
+
+  - id: T5
+    title: "Conventions pass + lints + skill-eval floor + release-prereq scope check"
+    ac: [AC8, AC9]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Final conformance pass on complete-dev/SKILL.md. Run repo hygiene lints:
+      tools/lint-flags-vs-hints.sh (the widened --epic value must not break flag/hint pairing),
+      tools/lint-phase-refs.sh, pmos-toolkit tools/lint-non-interactive-inline.sh (block unchanged),
+      tools/audit-recommended.sh (the new multiSelect prompt is defer-only — confirm the marker is
+      present and the audit stays green). Run skill-eval-check.sh against the complete-dev skill dir
+      (floor still passes — this is an edit to an existing passing skill, so confirm no regression).
+      Confirm NO release-prerequisite tasks leaked into any wave (AC9) — version bump, changelog,
+      manifest/README sync live in the design doc's ## Release prerequisites for /complete-dev only.
+      Spot-check the body for `(Recommended)`-or-defer marker coverage on any new AskUserQuestion.

@@ -19,6 +19,7 @@ Last regenerated: 2026-06-13
 | 0612-gd0 | defined | skill | pmos-toolkit | 1/1 | /explainer-video — turn a doc/artifact/URL into a narrated slideshow video (local, $0) |
 | 0613-kr0 | defined | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
 | 0613-dnv | released | skill | pmos-toolkit | 1/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
+| 0613-5pq | defined | skill | pmos-toolkit | 0/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
 
 ## should
 
@@ -39,6 +40,7 @@ Last regenerated: 2026-06-13
 | 0612-jc5 | story | feature | done | 0612-gd0 | Build the /explainer-video pmos-toolkit skill — doc/artifact/URL → narrated slideshow .mp4 ($0, local) | 02_design.html | 03_plan.html |  |
 | 0613-36f | story | feature | done | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
 | 0613-fzy | story | feature | released | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
+| 0613-rhf | story | enhancement | planned | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
 
 ## could
 

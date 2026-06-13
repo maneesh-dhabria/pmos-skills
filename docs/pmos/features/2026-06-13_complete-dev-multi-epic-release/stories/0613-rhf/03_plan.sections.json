@@ -1,0 +1,44 @@
+[
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "Code study (what the build agent must re-read)",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decision log (carried from the design)",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  }
+]
