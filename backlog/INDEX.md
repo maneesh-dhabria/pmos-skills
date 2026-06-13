@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (define 260613-p3c — /backlog web read-only viewer epic + story 260613-14b added)
+Last regenerated: 2026-06-13 (define 260613-e35 — /sudoku epic + story 260613-f71 added)
 
 7 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -28,6 +28,7 @@ Last regenerated: 2026-06-13 (define 260613-p3c — /backlog web read-only viewe
 | 260613-wqw | defined | skill | pmos-gamekit | 0/1 | /poker — No-Limit Texas Hold'em, single-player vs heuristic bots (cash game), single-file HTML reusing game-launcher; deps 260613-4mw |
 | 260613-ev1 | defined | feature | pmos-toolkit | 0/1 | Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate) |
 | 260613-p3c | defined | skill | pmos-toolkit | 0/1 | /backlog web — read-only single-file HTML viewer served by a lightweight live-read server |
+| 260613-e35 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /sudoku (classic 9×9, easy/medium/hard, hints, pencil notes, on-demand error check) |
 
 ## should
 
@@ -72,3 +73,4 @@ Last regenerated: 2026-06-13 (define 260613-p3c — /backlog web read-only viewe
 | 0003 | story | tech-debt | done |  | README.md still references /push for releases — CLAUDE.md says /complete-dev is canonical |  |  |  |
 | 260613-c31 | story | feature | released | 260613-4mw | Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests) | 02_design.html | 03_plan.html |  |
 | 260613-kw5 | story | feature | planned | 260613-wqw | Build the /poker skill — single-file No-Limit Hold'em (6-max random bots, heuristic AI, side pots) + tests | 02_design.html | 03_plan.html |  |
+| 260613-f71 | story | feature | planned | 260613-e35 | Build the /sudoku skill — single-file classic 9×9 (easy/medium/hard, hints, pencil notes, on-demand check) + tests | 02_design.html | 03_plan.html |  |
