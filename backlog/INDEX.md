@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13 (+ epic 260613-4mw define)
+Last regenerated: 2026-06-13 (+ epic 260613-7tm define)
 
 2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -23,6 +23,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-4mw define)
 | 260613-vba | defined | skill | pmos-toolkit | 0/2 | Build /research — PM decision-support deep-research skill |
 | 260613-yyj | defined | skill | pmos-toolkit | 0/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
 | 260613-4mw | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
+| 260613-7tm | defined | skill | pmos-toolkit | 0/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
 
 ## should
 
@@ -48,6 +49,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-4mw define)
 | 260613-dnp | story | feature | ready | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate |  |  |  |
 | 260613-3ff | story | enhancement | planned | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
 | 260613-2m7 | story | enhancement | ready | 260613-yyj | /verify load-bearing dogfood gate (Phase-7 hard gate) + iterate-loop residual reconciliation | 02_design.html | 03_plan.html |  |
+| 260613-3jc | story | bug | planned | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
 
 ## could
 
