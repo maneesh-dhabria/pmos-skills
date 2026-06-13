@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-solitaire/
 requirements_doc:
@@ -14,6 +14,7 @@ design_doc: docs/pmos/features/2026-06-13_pmos-gamekit-solitaire/02_design.html
 labels: [pmos-gamekit, new-plugin, solitaire, game-launcher, browser-game]
 created: 2026-06-13
 updated: 2026-06-13
+released: pmos-gamekit/v0.1.0
 ---
 
 ## Context

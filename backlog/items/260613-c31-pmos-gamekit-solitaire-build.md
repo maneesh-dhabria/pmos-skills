@@ -6,18 +6,19 @@ parent: 260613-4mw
 title: Scaffold pmos-gamekit + _shared/game-launcher substrate + /solitaire (bundled Klondike + tests)
 type: feature
 priority: could
-status: done
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-solitaire/
 plan_doc: docs/pmos/features/2026-06-13_pmos-gamekit-solitaire/stories/260613-c31/03_plan.html
 tasks: docs/pmos/features/2026-06-13_pmos-gamekit-solitaire/stories/260613-c31/tasks.yaml
-worktree: ../agent-skills-260613-c31
-claimed_by: build:loop
-driver_holder: build:loop
+worktree:
+claimed_by:
+driver_holder:
 labels: [pmos-gamekit, new-plugin, solitaire, game-launcher]
 created: 2026-06-13
 updated: 2026-06-13
+released: pmos-gamekit/v0.1.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-c31 -->
