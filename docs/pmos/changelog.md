@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-13 — pmos-toolkit 2.71.0: year-prefixed backlog & task ids
+
+Backlog and task ids now carry a two-digit year prefix — `<YYMMDD>-<rand3>` (e.g. `260613-waf`) instead of `<MMDD>-<rand3>`. The change keeps ids coordination-free (no shared counter, minted from crypto randomness) while making them unambiguous across year boundaries, so a December item and the following January item never collide on month-day alone.
+
+- **Every reader stays backward-compatible.** A single triple-accepting validator now recognizes all three forms — the original 4-digit ids (`0001`…`0019`), the interim `<MMDD>-<rand3>` ids (`0612-d14`), and the new year-prefixed ids — so nothing you already have is rewritten or invalidated. The `/feature-sdlc define` merge gate accepts all three too.
+- **One format, one home.** The scheme is defined once in the shared tracker substrate and cited by `/backlog`, `/mytasks`, and `/feature-sdlc` rather than re-specified in each — so the three skills can't drift out of agreement.
+
 ## 2026-06-13 — pmos-toolkit 2.70.0: /ripple-effects — simulate the downstream effects of a proposal, then refine it
 
 A new `/ripple-effects` skill — a sibling of `/grill` — takes any proposal (a file, a pipeline-doc stem, or inline text) and walks its *external* ripple tree: "and then what?" Where `/grill` interrogates whether a decision is internally defensible, `/ripple-effects` traces what the decision sets in motion downstream, then uses what it surfaces to help you refine and de-risk the proposal.
