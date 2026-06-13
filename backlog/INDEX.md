@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-13
+Last regenerated: 2026-06-13 (+ epic 260613-vba define)
 
 2 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -20,6 +20,7 @@ Last regenerated: 2026-06-13
 | 0613-kr0 | defined | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
 | 0613-dnv | released | skill | pmos-toolkit | 1/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
 | 0613-5pq | defined | skill | pmos-toolkit | 0/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
+| 260613-vba | defined | skill | pmos-toolkit | 0/2 | Build /research — PM decision-support deep-research skill |
 
 ## should
 
@@ -41,6 +42,8 @@ Last regenerated: 2026-06-13
 | 0613-36f | story | feature | done | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
 | 0613-fzy | story | feature | released | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
 | 0613-rhf | story | enhancement | planned | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
+| 260613-m64 | story | feature | planned | 260613-vba | Author _shared/research/ substrate + the /research skill end-to-end | 02_design.html | 03_plan.html |  |
+| 260613-dnp | story | feature | ready | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate |  |  |  |
 
 ## could
 

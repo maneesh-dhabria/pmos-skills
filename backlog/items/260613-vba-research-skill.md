@@ -4,7 +4,7 @@ id: 260613-vba
 title: "Build /research — PM decision-support deep-research skill"
 type: feature
 kind: epic
-status: defining
+status: defined
 priority: should
 labels: [research, pmos-toolkit, skill, deep-research, idea]
 created: 2026-06-13
