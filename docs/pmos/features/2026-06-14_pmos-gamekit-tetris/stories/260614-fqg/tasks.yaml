@@ -1,0 +1,172 @@
+schema_version: 1
+story: 260614-fqg
+epic: 260614-c29
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/tetris) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire,
+# already released on main, so this story has NO dependencies). All-new files under
+# plugins/pmos-gamekit/skills/tetris/. NO release-prereq tasks here (changelog, learnings header,
+# version-sync validation, the minor bump) — see the design doc's release-prerequisite note;
+# /complete-dev (Loop 3) is the sole writer of those. Single-file contract (D10) reconciled with
+# testability via an engine/render split (window.TetrisEngine, AC3). UNLIKE /poker there is no
+# reference codebase to port — the engine is built from the documented Tetris Guideline algorithms
+# (7-bag, SRS wall-kick tables, guideline scoring, the gravity curve) captured in the design doc.
+# T5 (TN-2) is this story's load-bearing dogfood (AC8); T6 (TN-1) bundles the REQUIRED Playwright
+# e2e (AC10, maintainer-mandated, NOT deferred) with skill-eval + lints as the final-verification gate.
+tasks:
+  - id: T1
+    title: "Study reference: /solitaire bundle + game-launcher contract + the Tetris Guideline mechanics in the design doc"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Read the shipped /solitaire game/solitaire.html for the engine/render split pattern
+      (window.SolitaireEngine DOM-decoupled, inline data-URI favicon to avoid the favicon-404 the
+      /solitaire e2e caught, no-persistence, win/celebration) and its tests/run.mjs (vm-extract the
+      engine <script>, evaluate with no DOM, assert objective gates + a --selftest count). Read the
+      /solitaire SKILL.md (launch-only body to mirror) and plugins/pmos-gamekit/skills/_shared/
+      game-launcher/game-launcher.md (the launch + bundling + Node-prereq + no-persistence contract
+      this skill cites, consumed UNCHANGED). Re-read the design doc 02_design.html (decisions D1–D12,
+      the #engine-api surface, the SRS wall-kick tables, guideline scoring, the gravity curve, lock
+      delay, T-spin 3-corner rule). Produce no code — capture the TetrisEngine API surface (SHAPES/
+      spawn, nextBag, collides, tryMove, tryRotate, ghostY, lock, clearLines, isTSpin, score,
+      dropInterval, isTopOut, hold) and the algorithm edge-cases (the JLSTZ vs I kick tables; O does
+      not rotate; the no-drought 7-bag; T-spin detection requires last-action-was-rotation + 3 corners)
+      to drive T2's TDD tests.
+    verify: >
+      Engine API + SRS kick tables + 7-bag + guideline scoring + gravity curve + lock-delay + T-spin
+      rule enumerated; engine/render split + launch contract understood before any code.
+
+  - id: T2
+    title: "Engine (TDD): window.TetrisEngine — 7-bag, collision, SRS rotation+kicks, ghost, clearLines, T-spin, scoring, gravity, top-out, hold"
+    ac: [AC2, AC3, AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.TetrisEngine, fully decoupled from DOM, requestAnimationFrame, and timers (gravity is
+      driven by the render loop calling pure step functions so tests advance state deterministically).
+      Pieces: (a) SHAPES + spawn(type) — the 7 tetromino rotation states (I,O,T,S,Z,J,L) with guideline
+      colors + spawn orientation/position; (b) nextBag(rng) — 7-bag shuffled permutation, queue refills
+      when drained; seedable RNG; (c) collides(field,piece,x,y,rot) — the single collision primitive
+      (bounds + filled cells); (d) tryMove(field,piece,dx,dy) -> moved piece or null; (e)
+      tryRotate(field,piece,dir) — SRS: basic rotation then walk the kick-offset table for the piece
+      class (JLSTZ table; I table; O no-op), returns {piece, kickIndex} or null; (f) ghostY(field,piece)
+      — lowest legal y (hard-drop landing); (g) lock(field,piece) -> new field; (h) clearLines(field) ->
+      {field, cleared 0–4}; (i) isTSpin(field,piece,lastKick) — T + last action rotation + >=3 diagonal
+      corners filled; (j) score(cleared,level,{tSpin,b2b,combo}) — guideline single/double/triple/Tetris
+      * level + T-spin/back-to-back/combo bonuses (drop bonuses applied by the caller); (k)
+      dropInterval(level) — ms/cell gravity curve, monotonic non-increasing, clamps at top; (l)
+      isTopOut(field,piece) — spawn collision; (m) hold(state) — swap active/held, locked once per drop.
+      Write tests/run.mjs in lockstep (see AC9 gates). NO DOM, NO npm, Node stdlib only.
+    verify: >
+      tests/run.mjs --selftest exercises 7-bag (permutation+fairness+no-drought), collision, SRS
+      rotation+kicks (basic, wall kick, I-piece, O-no-rotate, a T-spin kick fixture), ghostY over a
+      bumpy surface, clearLines 1–4 + partial intact, isTSpin (true 3-corner / false otherwise), scoring
+      scaling+bonuses, dropInterval monotonic+clamp, isTopOut; all engine gates green before any UI.
+
+  - id: T3
+    title: "Bundled game UI — game/tetris.html single-file render layer over the engine"
+    ac: [AC1, AC4, AC5, AC6, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/tetris/game/tetris.html — ONE self-contained file, all CSS+JS
+      embedded, offline, no external refs (D10), no persistence (D9), inline data-URI favicon (the
+      /solitaire favicon-404 lesson). The embedded engine from T2 (window.TetrisEngine) plus a canvas
+      (or CSS-grid) render/UI layer that consumes it: a 10x20 visible playfield (+ hidden spawn rows);
+      the 7 tetrominoes in guideline colors; a start-level picker (0–15, D5) on new game; a render loop
+      that applies gravity via dropInterval(level) and pure engine steps; soft/hard drop with score
+      bonuses; SRS rotation via the engine; LOCK DELAY (re-arm on move/rotate up to a reset cap); a
+      translucent GHOST piece at ghostY; a HOLD slot (greyed while locked for the current drop) + a
+      NEXT-3 preview from the bag queue; a HUD with score / level / lines and a brief flash on Tetris /
+      T-spin / back-to-back / combo; level += 1 every 10 lines; a PAUSE overlay (P) and game-over panel
+      on top-out with final score + R-to-restart. Keyboard-only (D7): arrows, Space, Z/X (or up), C/Shift
+      hold, P, R. Reads ALL rules/state from window.TetrisEngine — NO duplicated logic in the UI.
+      Accessible: distinct piece glyphs/borders (never color-alone), an ARIA live region announcing
+      level-ups / line clears / game over, full keyboard control. Board art is CSS + canvas/Unicode —
+      no image files (D10). Responsive to a laptop screen.
+    verify: >
+      tetris.html opens standalone and plays; contains no http(s):// or src/href to external assets;
+      reads from window.TetrisEngine (no duplicated rules); start-level picker, gravity + level-up,
+      SRS rotation + kicks, lock delay, ghost, hold + next-3, soft/hard drop, scoring HUD + flashes,
+      pause, top-out + restart, keyboard controls all present; no console errors on load (inline favicon).
+
+  - id: T4
+    title: "/tetris SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1, AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/tetris/SKILL.md. Frontmatter: name tetris (matches dir),
+      user-invocable true, a triggering description ("play tetris", "/tetris", "I want to play tetris",
+      "tetris", "falling blocks game"), argument-hint noting no args (start level / hold / rotate are
+      in-game controls), allowed-tools Bash, Read. Body mirrors /solitaire: an Overview that CITES
+      ../_shared/game-launcher/game-launcher.md for the launch + bundling + no-persistence contract and
+      states ONLY the tetris deltas (game file game/tetris.html; title "Tetris"; controls summary —
+      start-level picker, arrows/Space/Z-X/C-hold/P/R); a "Platform Adaptation" note; a tight
+      launch-only Phase — resolve the game path, assert Node present (D2 error verbatim if absent, no
+      silent file:// fallback), invoke ../_shared/game-launcher/serve.js, report the URL + controls +
+      Ctrl-C; a Load-Learnings and a Capture-Learnings note. Prompt-free: no AskUserQuestion. Run
+      tools/lint-non-interactive-inline.sh — inline the canonical NI block byte-identical from
+      skills/_shared/non-interactive.md (it was required for /solitaire, so expect it here). Conform to
+      skill-patterns.md §A–§L + the canonical skill path.
+    verify: >
+      name: tetris matches dir; cites game-launcher.md, no restated launch contract; no AskUserQuestion;
+      lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, audit-recommended all green.
+
+  - id: T5
+    title: "TN-2: Dogfood / Utility Verification — actually play real games"
+    ac: [AC10]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /tetris (or serve.js directly) and PLAY real games: start at a LOW and a HIGH start
+      level; move / rotate (both directions) / soft-drop / hard-drop pieces; use HOLD and read the
+      NEXT-3 preview; clear singles AND a TETRIS; trigger a T-SPIN; confirm LOCK DELAY lets a piece
+      slide into a gap after landing; confirm the LEVEL + SPEED increase every 10 lines; reach a TOP-OUT
+      game-over and RESTART. OBJECTIVE gates: tests/run.mjs --selftest green; serve.js launches + serves;
+      no console errors; lint-phase-refs + skill-eval green. SUBJECTIVE: an independent BLIND judge
+      (fresh subagent) plays and rates input responsiveness, rotation/kick feel, ghost + preview
+      usefulness, HUD legibility, and absence of input-lag or stuck states — overall "frustration-free?"
+      yes/no + enumerated gaps; the judge makes NO edits. Iterate: gaps -> fix -> re-run, cap 2,
+      net-worse guard, then accept-residuals-and-surface. Record a Verdict line (satisfied/not +
+      accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; both start levels played, every input path
+      exercised (move/rotate/soft/hard, hold, next), a Tetris + a T-spin + a lock-delay slide observed,
+      level-up confirmed, top-out + restart reached.
+
+  - id: T6
+    title: "TN-1/TN: Playwright e2e (REQUIRED, NOT deferred) + skill-eval + lints + single-file contract"
+    ac: [AC9, AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred):
+      launch serve.js against game/tetris.html and navigate Playwright (the playwright MCP) to the
+      printed localhost URL; start a game; MOVE and ROTATE a piece and assert the resulting cell
+      positions (via a deterministic seed + a test hook the engine exposes for the active piece /
+      field state); HARD-DROP and assert the score increments; HOLD a piece and assert the hold panel
+      shows it; clear a LINE and assert the lines counter; assert the GHOST piece renders; drive (via
+      a seeded / scripted piece sequence through a test hook) a multi-line clear and a LEVEL-UP and
+      assert the level HUD; assert ZERO console errors throughout; capture a SCREENSHOT of active play +
+      the HUD as browser evidence (the /verify browser-evidence hard gate). If Playwright is unavailable
+      in the build host, provision it LOCALLY in the worktree (npm i, NOT -g — the explainer-video
+      lesson); do NOT silently defer the core playthrough; only a narrow, explicitly-named unreachable
+      sub-check may be recorded deferred-to-release, surfaced loudly.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the tetris skill dir
+      (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name: tetris matches
+      dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended) — green. Confirm zero external runtime deps and the single-file contract (no
+      external refs in tetris.html). DO NOT write changelog / learnings header / bump the version / do
+      the release — those are ## Release prerequisites owned by /complete-dev (the minor bump lands at
+      Loop 3). Enumerate any deferred-to-release visual checks for /complete-dev.
+    verify: >
+      Playwright drove a real game: move+rotate asserted, hard-drop scored, hold panel shown, a line
+      clear + level-up asserted, ghost rendered, zero console errors, screenshot captured, no silent
+      defer; skill-eval >= 43/47; all 4 lints green; single-file contract holds; deferred checks (if
+      any) enumerated for release.
