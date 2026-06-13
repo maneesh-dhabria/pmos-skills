@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Solitaire — Klondike</title>
+<style>
+  :root {
+    --felt-a: #136a3a; --felt-b: #0d5530;
+    --card-w: 78px; --card-h: 108px; --gap: 12px; --radius: 8px;
+    --stack-y: 26px; --stack-y-down: 10px;
+    --red: #c0392b; --black: #1a1a1a;
+    --shadow: 0 1px 3px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 0%, var(--felt-a), var(--felt-b));
+    color: #eafff0; min-height: 100%; overflow-x: hidden; user-select: none;
+  }
+  header {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 10px 16px; background: rgba(0,0,0,.18); position: sticky; top: 0; z-index: 50;
+  }
+  header h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: .3px; }
+  .stats { display: flex; gap: 14px; font-variant-numeric: tabular-nums; font-size: 14px; opacity: .92; }
+  .stats b { font-weight: 700; }
+  .controls { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  button.btn {
+    font: inherit; font-size: 13px; cursor: pointer; color: #eafff0;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+    border-radius: 6px; padding: 6px 11px;
+  }
+  button.btn:hover { background: rgba(255,255,255,.22); }
+  button.btn:active { transform: translateY(1px); }
+  button.btn[aria-pressed="true"] { background: #f5d76e; color: #1a1a1a; border-color: #f5d76e; }
+  .toggle-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 1px solid rgba(255,255,255,.22); }
+  .toggle-group button { border: none; border-radius: 0; }
+  .board { padding: 16px; max-width: 760px; margin: 0 auto; }
+  .top-row { display: grid; grid-template-columns: repeat(7, var(--card-w)); gap: var(--gap); justify-content: center; }
+  .tableau { display: grid; grid-template-columns: repeat(7, var(--card-w)); gap: var(--gap); justify-content: center; margin-top: 22px; }
+  .pile { position: relative; width: var(--card-w); min-height: var(--card-h); }
+  .pile.tableau-col { min-height: calc(var(--card-h) + var(--stack-y) * 6); }
+  .slot {
+    position: absolute; top: 0; width: var(--card-w); height: var(--card-h);
+    border-radius: var(--radius); border: 2px dashed rgba(255,255,255,.28);
+  }
+  .slot.foundation::after {
+    content: attr(data-suit); position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 30px; opacity: .28;
+  }
+  .slot.stock-empty::after { content: "↺"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 28px; opacity: .4; }
+  .card {
+    position: absolute; width: var(--card-w); height: var(--card-h); border-radius: var(--radius);
+    background: #fff; box-shadow: var(--shadow); cursor: pointer; overflow: hidden;
+    transition: top .12s ease, left .12s ease, transform .08s ease;
+  }
+  .card.dragging { transition: none; z-index: 1000; cursor: grabbing; box-shadow: 0 8px 18px rgba(0,0,0,.4); }
+  .card .face { position: absolute; inset: 0; padding: 5px 6px; }
+  .card .corner { position: absolute; font-weight: 800; line-height: 1; font-size: 15px; text-align: center; }
+  .card .corner.tl { top: 5px; left: 6px; }
+  .card .corner.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+  .card .corner .pip { font-size: 13px; display: block; margin-top: 1px; }
+  .card .center { position: absolute; inset: 0; display: grid; place-items: center; font-size: 34px; }
+  .card.red { color: var(--red); }
+  .card.black { color: var(--black); }
+  .card.down {
+    background: repeating-linear-gradient(45deg, #2b5c8a, #2b5c8a 6px, #24507a 6px, #24507a 12px);
+    border: 2px solid #f4f6fb;
+  }
+  .card.down .face { display: none; }
+  .card.hint { outline: 3px solid #f5d76e; outline-offset: -1px; }
+  .win-banner {
+    position: fixed; inset: 0; display: none; place-items: center; z-index: 200;
+    background: rgba(0,0,0,.55); flex-direction: column; text-align: center;
+  }
+  .win-banner.show { display: grid; }
+  .win-banner .msg { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
+  .win-banner .sub { opacity: .9; margin-bottom: 16px; }
+  .confetti { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 150; pointer-events: none; border-radius: 2px; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: .9; } }
+  @media (max-width: 620px) {
+    :root { --card-w: 13.4vw; --card-h: 18.6vw; --gap: 1.4vw; --stack-y: 4.6vw; }
+    header h1 { font-size: 16px; }
+    .card .center { font-size: 7vw; }
+    .card .corner { font-size: 3.6vw; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Solitaire <span style="opacity:.7;font-weight:400">· Klondike</span></h1>
+  <div class="stats" aria-live="polite">
+    <span>Moves <b id="moveCount">0</b></span>
+    <span>Time <b id="timer">0:00</b></span>
+  </div>
+  <div class="controls">
+    <div class="toggle-group" role="group" aria-label="Draw mode">
+      <button class="btn" id="draw1" aria-pressed="true" title="Draw one card (key 1)">Draw 1</button>
+      <button class="btn" id="draw3" aria-pressed="false" title="Draw three cards (key 3)">Draw 3</button>
+    </div>
+    <button class="btn" id="undoBtn" title="Undo (U)">Undo</button>
+    <button class="btn" id="autoBtn" title="Auto-move to foundations (A)">Auto</button>
+    <button class="btn" id="newBtn" title="New game (N)">New Game</button>
+  </div>
+</header>
+
+<main class="board">
+  <div class="top-row" id="topRow">
+    <div class="pile" id="stock" data-zone="stock" aria-label="Stock"></div>
+    <div class="pile" id="waste" data-zone="waste" aria-label="Waste"></div>
+    <div class="pile" style="visibility:hidden"></div>
+    <div class="pile" id="foundation-S" data-zone="foundation" data-suit="S" aria-label="Foundation spades"></div>
+    <div class="pile" id="foundation-H" data-zone="foundation" data-suit="H" aria-label="Foundation hearts"></div>
+    <div class="pile" id="foundation-D" data-zone="foundation" data-suit="D" aria-label="Foundation diamonds"></div>
+    <div class="pile" id="foundation-C" data-zone="foundation" data-suit="C" aria-label="Foundation clubs"></div>
+  </div>
+  <div class="tableau" id="tableau"></div>
+</main>
+
+<div class="win-banner" id="winBanner" role="alertdialog" aria-modal="true">
+  <div class="msg">🎉 You win!</div>
+  <div class="sub" id="winSub">Solved in 0 moves.</div>
+  <button class="btn" id="winNew">New Game</button>
+</div>
+
+<script>
+/* =====================================================================
+   SolitaireEngine — pure logic, no DOM. Exposed on window for vm tests.
+   ===================================================================== */
+(function (root) {
+  'use strict';
+
+  var SUITS = ['S', 'H', 'D', 'C'];           // spades, hearts, diamonds, clubs
+  var RED = { H: true, D: true };
+  function color(suit) { return RED[suit] ? 'red' : 'black'; }
+  function cardId(suit, rank) { return suit + rank; }
+
+  function makeDeck() {
+    var d = [];
+    for (var s = 0; s < SUITS.length; s++) {
+      for (var r = 1; r <= 13; r++) {
+        d.push({ suit: SUITS[s], rank: r, faceUp: false, id: cardId(SUITS[s], r) });
+      }
+    }
+    return d; // 52 unique
+  }
+
+  // Mulberry32 — deterministic PRNG so tests/Playwright can seed reproducible deals.
+  function rngFrom(seed) {
+    var a = (seed >>> 0) || 0x9e3779b9;
+    return function () {
+      a |= 0; a = (a + 0x6d2b79f5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffle(deck, rng) {
+    rng = rng || Math.random;
+    var d = deck.slice();
+    for (var i = d.length - 1; i > 0; i--) {
+      var j = Math.floor(rng() * (i + 1));
+      var tmp = d[i]; d[i] = d[j]; d[j] = tmp;
+    }
+    return d;
+  }
+
+  function emptyState(drawCount) {
+    return {
+      stock: [], waste: [],
+      foundations: { S: [], H: [], D: [], C: [] },
+      tableau: [[], [], [], [], [], [], []],
+      drawCount: drawCount === 3 ? 3 : 1,
+    };
+  }
+
+  // Deal a fresh Klondike layout from a (already shuffled) 52-card deck.
+  function deal(deck, drawCount) {
+    var st = emptyState(drawCount);
+    var k = 0;
+    for (var col = 0; col < 7; col++) {
+      for (var n = 0; n <= col; n++) {
+        var c = deck[k++];
+        c.faceUp = (n === col); // last card in each column is face-up
+        st.tableau[col].push(c);
+      }
+    }
+    while (k < deck.length) {
+      var s = deck[k++]; s.faceUp = false; st.stock.push(s);
+    }
+    return st; // stock 24, tableau 28
+  }
+
+  function newGame(opts) {
+    opts = opts || {};
+    var rng = opts.seed != null ? rngFrom(opts.seed) : Math.random;
+    return deal(shuffle(makeDeck(), rng), opts.drawCount);
+  }
+
+  function clone(state) {
+    return JSON.parse(JSON.stringify(state));
+  }
+
+  function top(arr) { return arr.length ? arr[arr.length - 1] : null; }
+
+  // A tableau "run" starting at index i is movable iff every card from i is
+  // face-up and forms a descending, alternating-color sequence.
+  function isMovableRun(col, i) {
+    if (i < 0 || i >= col.length) return false;
+    for (var k = i; k < col.length; k++) {
+      if (!col[k].faceUp) return false;
+      if (k > i) {
+        var prev = col[k - 1], cur = col[k];
+        if (cur.rank !== prev.rank - 1) return false;
+        if (color(cur.suit) === color(prev.suit)) return false;
+      }
+    }
+    return true;
+  }
+
+  function canStackOnTableau(moving, targetTopCard) {
+    if (!targetTopCard) return moving.rank === 13; // only King to empty column
+    if (!targetTopCard.faceUp) return false;
+    return color(moving.suit) !== color(targetTopCard.suit) &&
+           moving.rank === targetTopCard.rank - 1;
+  }
+
+  function canStackOnFoundation(moving, foundationPile) {
+    if (foundationPile.length === 0) return moving.rank === 1; // Ace starts
+    var t = foundationPile[foundationPile.length - 1];
+    return moving.suit === t.suit && moving.rank === t.rank + 1;
+  }
+
+  /* Move shapes:
+     { type:'draw' }                          stock -> waste (drawCount)
+     { type:'recycle' }                       waste -> stock (only when stock empty)
+     { type:'wasteToFoundation' }
+     { type:'wasteToTableau', to }
+     { type:'tableauToFoundation', from }
+     { type:'tableauToTableau', from, to, index }
+     { type:'foundationToTableau', suit, to }
+  */
+  function isLegalMove(state, m) {
+    if (!m || !m.type) return false;
+    switch (m.type) {
+      case 'draw':
+        return state.stock.length > 0;
+      case 'recycle':
+        return state.stock.length === 0 && state.waste.length > 0;
+      case 'wasteToFoundation': {
+        var w = top(state.waste);
+        return !!w && canStackOnFoundation(w, state.foundations[w.suit]);
+      }
+      case 'wasteToTableau': {
+        var wc = top(state.waste);
+        return !!wc && canStackOnTableau(wc, top(state.tableau[m.to]));
+      }
+      case 'tableauToFoundation': {
+        var fc = top(state.tableau[m.from]);
+        return !!fc && fc.faceUp && canStackOnFoundation(fc, state.foundations[fc.suit]);
+      }
+      case 'tableauToTableau': {
+        var col = state.tableau[m.from];
+        if (!isMovableRun(col, m.index)) return false;
+        var moving = col[m.index];
+        if (m.from === m.to) return false;
+        return canStackOnTableau(moving, top(state.tableau[m.to]));
+      }
+      case 'foundationToTableau': {
+        var f = state.foundations[m.suit];
+        var card = top(f);
+        return !!card && canStackOnTableau(card, top(state.tableau[m.to]));
+      }
+      default:
+        return false;
+    }
+  }
+
+  function flipExposed(col) {
+    var t = top(col);
+    if (t && !t.faceUp) t.faceUp = true;
+  }
+
+  // Returns a NEW state with the move applied. Caller must pre-check isLegalMove
+  // (applyMove re-checks and throws on an illegal move to stay safe under tests).
+  function applyMove(state, m) {
+    if (!isLegalMove(state, m)) throw new Error('illegal move: ' + (m && m.type));
+    var st = clone(state);
+    switch (m.type) {
+      case 'draw': {
+        var n = Math.min(st.drawCount, st.stock.length);
+        for (var i = 0; i < n; i++) {
+          var c = st.stock.pop(); c.faceUp = true; st.waste.push(c);
+        }
+        break;
+      }
+      case 'recycle': {
+        while (st.waste.length) {
+          var rc = st.waste.pop(); rc.faceUp = false; st.stock.push(rc);
+        }
+        break;
+      }
+      case 'wasteToFoundation': {
+        var wf = st.waste.pop(); st.foundations[wf.suit].push(wf);
+        break;
+      }
+      case 'wasteToTableau': {
+        var wt = st.waste.pop(); st.tableau[m.to].push(wt);
+        break;
+      }
+      case 'tableauToFoundation': {
+        var tf = st.tableau[m.from].pop(); st.foundations[tf.suit].push(tf);
+        flipExposed(st.tableau[m.from]);
+        break;
+      }
+      case 'tableauToTableau': {
+        var moved = st.tableau[m.from].splice(m.index);
+        for (var j = 0; j < moved.length; j++) st.tableau[m.to].push(moved[j]);
+        flipExposed(st.tableau[m.from]);
+        break;
+      }
+      case 'foundationToTableau': {
+        var ft = st.foundations[m.suit].pop(); st.tableau[m.to].push(ft);
+        break;
+      }
+    }
+    return st;
+  }
+
+  function isWin(state) {
+    for (var s = 0; s < SUITS.length; s++) {
+      if (state.foundations[SUITS[s]].length !== 13) return false;
+    }
+    return true;
+  }
+
+  // Find the first legal "card -> foundation" move (waste or any tableau top).
+  function findFoundationMove(state) {
+    if (isLegalMove(state, { type: 'wasteToFoundation' })) return { type: 'wasteToFoundation' };
+    for (var c = 0; c < 7; c++) {
+      if (isLegalMove(state, { type: 'tableauToFoundation', from: c })) {
+        return { type: 'tableauToFoundation', from: c };
+      }
+    }
+    return null;
+  }
+
+  // A fully-solved state (for win-check tests).
+  function winState() {
+    var st = emptyState(1);
+    for (var s = 0; s < SUITS.length; s++) {
+      for (var r = 1; r <= 13; r++) {
+        st.foundations[SUITS[s]].push({ suit: SUITS[s], rank: r, faceUp: true, id: cardId(SUITS[s], r) });
+      }
+    }
+    return st;
+  }
+
+  // A near-win state: every foundation at King except spades missing only its King,
+  // which sits face-up alone on tableau column 0 — one auto-move from victory.
+  // Used by the Playwright e2e drive-to-win (?test=nearwin).
+  function nearWinState() {
+    var st = winState();
+    var sk = st.foundations.S.pop(); // remove S-King (rank 13)
+    sk.faceUp = true;
+    st.tableau[0].push(sk);
+    return st;
+  }
+
+  root.SolitaireEngine = {
+    SUITS: SUITS, color: color,
+    makeDeck: makeDeck, shuffle: shuffle, rngFrom: rngFrom,
+    deal: deal, newGame: newGame, clone: clone, top: top,
+    isMovableRun: isMovableRun,
+    canStackOnTableau: canStackOnTableau, canStackOnFoundation: canStackOnFoundation,
+    isLegalMove: isLegalMove, applyMove: applyMove, isWin: isWin,
+    findFoundationMove: findFoundationMove,
+    winState: winState, nearWinState: nearWinState,
+  };
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+
+
+/* =====================================================================
+   UI / render layer — only runs in a browser (guarded by document).
+   ===================================================================== */
+if (typeof document !== 'undefined') {
+(function () {
+  'use strict';
+  var E = window.SolitaireEngine;
+  var RANK_LABEL = { 1: 'A', 11: 'J', 12: 'Q', 13: 'K' };
+  var SUIT_GLYPH = { S: '♠', H: '♥', D: '♦', C: '♣' };
+
+  var state, history, moves, startTime, timerId, won;
+
+  function rankLabel(r) { return RANK_LABEL[r] || String(r); }
+
+  function setDrawMode(n) {
+    state.drawCount = n;
+    document.getElementById('draw1').setAttribute('aria-pressed', String(n === 1));
+    document.getElementById('draw3').setAttribute('aria-pressed', String(n === 3));
+  }
+
+  function pushHistory() { history.push(E.clone(state)); if (history.length > 400) history.shift(); }
+
+  function commit(newState) {
+    pushHistory();
+    state = newState;
+    moves += 1;
+    render();
+    checkWin();
+  }
+
+  function tryMove(m) {
+    if (E.isLegalMove(state, m)) { commit(E.applyMove(state, m)); return true; }
+    return false;
+  }
+
+  function undo() {
+    if (!history.length || won) return;
+    state = history.pop();
+    moves += 1;
+    render();
+  }
+
+  function newGame(opts) {
+    opts = opts || {};
+    var test = new URLSearchParams(location.search).get('test');
+    if (test === 'nearwin') {
+      state = E.nearWinState();
+      state.drawCount = (opts.drawCount || (state && state.drawCount) || 1);
+    } else {
+      state = E.newGame({ drawCount: opts.drawCount || (state ? state.drawCount : 1), seed: opts.seed });
+    }
+    history = []; moves = 0; won = false;
+    startTimer();
+    setDrawMode(state.drawCount);
+    render();
+  }
+
+  /* ---- timer ---- */
+  function startTimer() {
+    startTime = null; // starts on first move
+    if (timerId) clearInterval(timerId);
+    timerId = setInterval(updateTimer, 500);
+    document.getElementById('timer').textContent = '0:00';
+  }
+  function updateTimer() {
+    if (startTime == null) return;
+    var s = Math.floor((Date.now() - startTime) / 1000);
+    var m = Math.floor(s / 60);
+    document.getElementById('timer').textContent = m + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  /* ---- rendering ---- */
+  function cardEl(card, opts) {
+    opts = opts || {};
+    var el = document.createElement('div');
+    el.className = 'card ' + (card.faceUp ? E.color(card.suit) : 'down');
+    el.dataset.id = card.id;
+    if (card.faceUp) {
+      var g = SUIT_GLYPH[card.suit], lbl = rankLabel(card.rank);
+      el.innerHTML =
+        '<div class="face">' +
+          '<div class="corner tl">' + lbl + '<span class="pip">' + g + '</span></div>' +
+          '<div class="center">' + g + '</div>' +
+          '<div class="corner br">' + lbl + '<span class="pip">' + g + '</span></div>' +
+        '</div>';
+      el.setAttribute('aria-label', lbl + ' of ' + ({S:'spades',H:'hearts',D:'diamonds',C:'clubs'}[card.suit]));
+    } else {
+      el.setAttribute('aria-label', 'face-down card');
+    }
+    return el;
+  }
+
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  function render() {
+    document.getElementById('moveCount').textContent = String(moves);
+
+    // Stock
+    var stock = document.getElementById('stock'); clear(stock);
+    if (state.stock.length) {
+      var back = cardEl({ faceUp: false, id: 'stock-back', suit: 'S', rank: 0 });
+      back.style.top = '0px';
+      stock.appendChild(back);
+    } else {
+      var s = document.createElement('div'); s.className = 'slot stock-empty'; stock.appendChild(s);
+    }
+
+    // Waste — show up to last 3 fanned
+    var waste = document.getElementById('waste'); clear(waste);
+    var startIdx = Math.max(0, state.waste.length - 3);
+    for (var wi = startIdx; wi < state.waste.length; wi++) {
+      var wEl = cardEl(state.waste[wi]);
+      wEl.style.left = ((wi - startIdx) * 14) + 'px';
+      wEl.style.top = '0px';
+      if (wi === state.waste.length - 1) wEl.dataset.zone = 'waste';
+      waste.appendChild(wEl);
+    }
+
+    // Foundations
+    E.SUITS.forEach(function (suit) {
+      var pile = document.getElementById('foundation-' + suit); clear(pile);
+      var f = state.foundations[suit];
+      var slot = document.createElement('div');
+      slot.className = 'slot foundation'; slot.dataset.suit = SUIT_GLYPH[suit];
+      pile.appendChild(slot);
+      if (f.length) {
+        var top = cardEl(f[f.length - 1]); top.style.top = '0px';
+        top.dataset.zone = 'foundation'; top.dataset.suit = suit;
+        pile.appendChild(top);
+      }
+    });
+
+    // Tableau
+    var tab = document.getElementById('tableau'); clear(tab);
+    for (var c = 0; c < 7; c++) {
+      var colDiv = document.createElement('div');
+      colDiv.className = 'pile tableau-col'; colDiv.dataset.col = c;
+      var col = state.tableau[c];
+      if (!col.length) {
+        var empty = document.createElement('div'); empty.className = 'slot'; colDiv.appendChild(empty);
+      }
+      for (var i = 0; i < col.length; i++) {
+        var ce = cardEl(col[i]);
+        ce.style.top = cumulativeTop(col, i) + 'px';
+        ce.dataset.col = c; ce.dataset.index = i;
+        colDiv.appendChild(ce);
+      }
+      tab.appendChild(colDiv);
+    }
+  }
+
+  function getStackY() { return getComputedStyle(document.documentElement).getPropertyValue('--stack-y') || '26px'; }
+  function getStackYDown() { return getComputedStyle(document.documentElement).getPropertyValue('--stack-y-down') || '10px'; }
+  function cumulativeTop(col, i) {
+    var y = 0;
+    var up = parseFloat(getStackY()), down = parseFloat(getStackYDown());
+    for (var k = 0; k < i; k++) y += col[k].faceUp ? up : down;
+    return y;
+  }
+
+  /* ---- interaction: click-to-move + drag-and-drop ---- */
+
+  // Click-to-move: prefer foundation, else first legal tableau target.
+  function clickMove(src) {
+    if (src.zone === 'stock') { tryMove({ type: 'draw' }); return; }
+    if (src.zone === 'stock-empty') { tryMove({ type: 'recycle' }); return; }
+    if (src.zone === 'waste') {
+      if (tryMove({ type: 'wasteToFoundation' })) return;
+      for (var t = 0; t < 7; t++) if (tryMove({ type: 'wasteToTableau', to: t })) return;
+      return;
+    }
+    if (src.zone === 'tableau') {
+      var col = state.tableau[src.col];
+      if (src.index === col.length - 1 && tryMove({ type: 'tableauToFoundation', from: src.col })) return;
+      for (var tt = 0; tt < 7; tt++) {
+        if (tt === src.col) continue;
+        if (tryMove({ type: 'tableauToTableau', from: src.col, to: tt, index: src.index })) return;
+      }
+      return;
+    }
+    if (src.zone === 'foundation') {
+      for (var ft = 0; ft < 7; ft++) if (tryMove({ type: 'foundationToTableau', suit: src.suit, to: ft })) return;
+    }
+  }
+
+  function srcFromEl(el) {
+    if (!el) return null;
+    if (el.id === 'stock' || (el.closest && el.closest('#stock'))) {
+      return state.stock.length ? { zone: 'stock' } : { zone: 'stock-empty' };
+    }
+    if (el.dataset && el.dataset.zone === 'waste') return { zone: 'waste' };
+    if (el.dataset && el.dataset.zone === 'foundation') return { zone: 'foundation', suit: el.dataset.suit };
+    if (el.dataset && el.dataset.col != null && el.dataset.index != null) {
+      return { zone: 'tableau', col: +el.dataset.col, index: +el.dataset.index };
+    }
+    return null;
+  }
+
+  // Drag state
+  var drag = null;
+
+  function onPointerDown(ev) {
+    if (won) return;
+    var target = ev.target.closest ? ev.target.closest('.card,.slot') : null;
+    var pileStock = ev.target.closest && ev.target.closest('#stock');
+    if (pileStock) { startTimerIfNeeded(); clickMove(state.stock.length ? { zone: 'stock' } : { zone: 'stock-empty' }); return; }
+    if (!target || !target.classList.contains('card')) return;
+
+    var src = srcFromEl(target);
+    if (!src) return;
+    // Only face-up cards are draggable; for tableau, only a movable run.
+    if (src.zone === 'tableau') {
+      var col = state.tableau[src.col];
+      if (!col[src.index] || !col[src.index].faceUp) return;
+      if (!E.isMovableRun(col, src.index)) return;
+    }
+    if (src.zone === 'stock') return;
+
+    startTimerIfNeeded();
+
+    var rect = target.getBoundingClientRect();
+    var p = pointXY(ev);
+    drag = {
+      src: src, startX: p.x, startY: p.y, moved: false,
+      els: collectDragEls(src, target),
+      offX: p.x - rect.left, offY: p.y - rect.top,
+      origins: [],
+    };
+    drag.els.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      drag.origins.push({ el: el, baseX: r.left, baseY: r.top });
+      el.classList.add('dragging');
+    });
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    ev.preventDefault();
+  }
+
+  function collectDragEls(src, target) {
+    if (src.zone === 'tableau') {
+      var colDiv = target.parentElement;
+      var cards = Array.prototype.slice.call(colDiv.querySelectorAll('.card'));
+      return cards.filter(function (el) { return +el.dataset.index >= src.index; });
+    }
+    return [target];
+  }
+
+  function pointXY(ev) {
+    return { x: ev.clientX, y: ev.clientY };
+  }
+
+  function onPointerMove(ev) {
+    if (!drag) return;
+    var p = pointXY(ev);
+    var dx = p.x - drag.startX, dy = p.y - drag.startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) drag.moved = true;
+    drag.els.forEach(function (rec, i) {
+      var el = drag.origins[i].el;
+      el.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+    });
+  }
+
+  function onPointerUp(ev) {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    if (!drag) return;
+    var d = drag; drag = null;
+    d.origins.forEach(function (o) { o.el.classList.remove('dragging'); o.el.style.transform = ''; });
+
+    if (!d.moved) { clickMove(d.src); return; } // tap → click-move
+
+    // Determine drop target pile under the pointer.
+    var dropEl = document.elementFromPoint(ev.clientX, ev.clientY);
+    var destPile = dropEl && dropEl.closest ?
+      dropEl.closest('.tableau-col, [data-zone="foundation"], #foundation-S, #foundation-H, #foundation-D, #foundation-C') : null;
+
+    if (!destPile) { render(); return; }
+
+    if (destPile.classList.contains('tableau-col')) {
+      var toCol = +destPile.dataset.col;
+      if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToTableau', to: toCol })) render(); return; }
+      if (d.src.zone === 'tableau') { if (!tryMove({ type: 'tableauToTableau', from: d.src.col, to: toCol, index: d.src.index })) render(); return; }
+      if (d.src.zone === 'foundation') { if (!tryMove({ type: 'foundationToTableau', suit: d.src.suit, to: toCol })) render(); return; }
+      render(); return;
+    }
+    // foundation drop
+    var fid = destPile.id || '';
+    var suit = fid.indexOf('foundation-') === 0 ? fid.slice('foundation-'.length) : (destPile.dataset && destPile.dataset.suit);
+    if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToFoundation' })) render(); return; }
+    if (d.src.zone === 'tableau') {
+      var col = state.tableau[d.src.col];
+      if (d.src.index === col.length - 1) { if (!tryMove({ type: 'tableauToFoundation', from: d.src.col })) render(); return; }
+    }
+    render();
+  }
+
+  function startTimerIfNeeded() { if (startTime == null) startTime = Date.now(); }
+
+  // wrap commit to start timer on first move
+  var _commit = commit;
+  commit = function (ns) { startTimerIfNeeded(); _commit(ns); };
+
+  /* ---- auto-move + double-click ---- */
+  function autoMove() {
+    if (won) return;
+    var any = false;
+    var guard = 0;
+    while (guard++ < 200) {
+      var m = E.findFoundationMove(state);
+      if (!m) break;
+      commit(E.applyMove(state, m));
+      any = true;
+      if (won) break;
+    }
+    return any;
+  }
+
+  function onDblClick(ev) {
+    var card = ev.target.closest && ev.target.closest('.card');
+    if (!card) return;
+    var src = srcFromEl(card);
+    if (!src) return;
+    if (src.zone === 'waste') { tryMove({ type: 'wasteToFoundation' }); return; }
+    if (src.zone === 'tableau') {
+      var col = state.tableau[src.col];
+      if (src.index === col.length - 1) tryMove({ type: 'tableauToFoundation', from: src.col });
+    }
+  }
+
+  /* ---- win ---- */
+  function checkWin() {
+    if (E.isWin(state)) {
+      won = true;
+      if (timerId) clearInterval(timerId);
+      document.getElementById('winSub').textContent = 'Solved in ' + moves + ' moves.';
+      document.getElementById('winBanner').classList.add('show');
+      confetti();
+    }
+  }
+  function confetti() {
+    var colors = ['#f5d76e', '#e74c3c', '#3498db', '#2ecc71', '#fff', '#9b59b6'];
+    for (var i = 0; i < 80; i++) {
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random() * 100) + 'vw';
+      c.style.background = colors[i % colors.length];
+      c.style.animation = 'fall ' + (1.6 + Math.random() * 1.8) + 's linear ' + (Math.random() * 0.6) + 's forwards';
+      document.body.appendChild(c);
+      (function (node) { setTimeout(function () { node.remove(); }, 4200); })(c);
+    }
+  }
+
+  /* ---- wiring ---- */
+  function wire() {
+    var board = document.querySelector('.board');
+    board.addEventListener('pointerdown', onPointerDown);
+    board.addEventListener('dblclick', onDblClick);
+
+    document.getElementById('draw1').addEventListener('click', function () { setDrawMode(1); });
+    document.getElementById('draw3').addEventListener('click', function () { setDrawMode(3); });
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('autoBtn').addEventListener('click', autoMove);
+    document.getElementById('newBtn').addEventListener('click', function () { newGame({}); });
+    document.getElementById('winNew').addEventListener('click', function () {
+      document.getElementById('winBanner').classList.remove('show'); newGame({});
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      switch (e.key.toLowerCase()) {
+        case 'u': undo(); break;
+        case 'a': autoMove(); break;
+        case 'n': document.getElementById('winBanner').classList.remove('show'); newGame({}); break;
+        case '1': setDrawMode(1); break;
+        case '3': setDrawMode(3); break;
+      }
+    });
+  }
+
+  // Test hook for Playwright / debugging — does NOT persist anything.
+  window.__solitaire = {
+    getState: function () { return state; },
+    isWon: function () { return won; },
+    autoMove: autoMove,
+    newGame: newGame,
+  };
+
+  wire();
+  newGame({});
+})();
+}
+</script>
+</body>
+</html>
