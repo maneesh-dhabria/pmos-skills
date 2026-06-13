@@ -1,0 +1,116 @@
+schema_version: 1
+story: 260613-gx8
+epic: 260613-fc7
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+# All findings live in ONE file (plugins/pmos-learnkit/skills/frameworks/scripts/build-library.mjs),
+# which emits the browse-view client JS AND carries its inline behavioral assertions. Because every
+# task edits the same file, tasks are sequential (file-conflict) — no parallel waves. T1 is tests-first
+# (TDD); the live dogfood (T8) is load-bearing and runs last on a regenerated artifact.
+tasks:
+  - id: T1
+    title: "Tests-first: encode the new browse-view contracts as failing assertions (build-library.mjs inline + skill tests/)"
+    ac: [AC-tests]
+    deps: []
+    detail: >
+      Before any behavior change, add/rewrite the generator's inline assertions (and the skill's tests/
+      where appropriate) to pin the target behavior so they fail red first (TDD): (a) REPLACE the old
+      scroll-hack assertion (~L608 'openReader saves + restores page scroll') with assertions that the
+      emitted JS defines an updateSelection() called by openReader/closeReader and that openReader no
+      longer calls render(); (b) search listener is debounced (assert a setTimeout/clearTimeout debounce
+      wrapper around the input handler, not a bare 'addEventListener("input", render)'); (c) render()
+      preserves+restores window.scrollY; (d) openReader sets location.hash and the hashchange handler
+      guards against re-opening the current id; (e) a 'Copy link' action exists; (f) Escape closes the
+      reader when no dropdown is open; (g) detailed-view thumbnails are wired through an IntersectionObserver
+      (assert the observer is created and thumbnails are not all inlined at first render — e.g. a
+      data-thumb placeholder attribute); (h) the masthead subtitle count is emitted from DATA.length, not
+      a hardcoded '272'; (i) a search clear control exists and Clear-all resets the query. Keep assertions
+      string-grep-level against the emitted html (same style as existing ones). Run `node build-library.mjs`
+      (or the tests/ harness) to confirm red.
+
+  - id: T2
+    title: "F1 + F6: targeted updateSelection, search debounce, scroll preservation, dynamic subtitle"
+    ac: [AC-F1, AC-F6]
+    deps: [T1]
+    detail: >
+      In the emitted JS: add updateSelection() that toggles .open (cards) / .selected (list/compact rows)
+      on existing [data-id] nodes; change openReader()/closeReader() to call updateSelection() instead of
+      full render(); keep openReader's reader.innerHTML build. Debounce the search input handler
+      (~120 ms, clearTimeout/setTimeout) instead of calling render() per keystroke. In render(), capture
+      window.scrollY before the groupsEl.innerHTML swap and restore it after (mirror the existing
+      openReader // D1 pattern) so narrowing the result set does not snap to top. F6: emit the masthead
+      subtitle count from DATA.length (e.g. inject the number at generate time or set textContent on load)
+      — drop the hardcoded '272'. Make T1's F1/F6 assertions go green.
+
+  - id: T3
+    title: "F2: lazy-mount detailed-view SVG thumbnails via IntersectionObserver (D1)"
+    ac: [AC-F2]
+    deps: [T2]
+    detail: >
+      In the detailed (cards) render path, emit a thumbnail placeholder (e.g. <div class="thumb"
+      data-thumb="<id>"> with the SVG NOT inlined) instead of the full SVG. After render(), an
+      IntersectionObserver watches each placeholder; on intersect, inject that framework's thumb SVG once
+      and unobserve. Guard for absent IntersectionObserver (no-op → eager inject fallback) so file:// and
+      old browsers still work. Ensure switching views / re-render re-establishes the observer. Make T1's
+      F2 assertion green; confirm initial detailed render has 0 inlined <svg> in #groups.
+
+  - id: T4
+    title: "F3: reader keyboard + focus management (D5)"
+    ac: [AC-F3]
+    deps: [T3]
+    detail: >
+      Extend the keydown handler: Escape closes the reader when layout has reader-open AND no .dropdown.open
+      (dropdown-close keeps priority). openReader(): after building reader.innerHTML, move focus into the
+      reader (the close button or the <h2>, tabindex=-1 as needed). closeReader(): return focus to the
+      [data-id] element that opened the reader (track lastOpener). Keep aria-hidden in sync. Make T1's F3
+      assertion green.
+
+  - id: T5
+    title: "F4: deep-link hash on open + guarded hashchange + Copy-link action (D2)"
+    ac: [AC-F4]
+    deps: [T4]
+    detail: >
+      openReader(id): set location.hash to the encoded id (use history-friendly assignment; avoid adding a
+      scroll jump — set after the scrollY capture). Guard the hashchange handler so it does NOT re-open when
+      the decoded id equals state.openId. closeReader(): clear the hash (set to '#' or remove) without
+      triggering a re-open. Add a 'Copy link' button in the reader .actions that copies
+      location.origin+location.pathname+'#'+encodeURIComponent(id) via the existing copyText() (keep its
+      execCommand fallback); keep the existing 'Share' button copying social summary text. Make T1's F4
+      assertions green.
+
+  - id: T6
+    title: "F5: search clear control + Clear-all resets query + query chip (D6)"
+    ac: [AC-F5]
+    deps: [T5]
+    detail: >
+      Add an explicit clear (✕) control to the search field (button overlaid or adjacent) that empties
+      search.value and re-renders. Extend the applied-bar: render a removable chip for a non-empty text
+      query (facet-labeled 'Search: <q>'), and make the existing 'Clear all' reset state.q + search.value
+      in addition to area/dt/tags. Wire chip removal to clear the query. Make T1's F5 assertion green.
+
+  - id: T7
+    title: "F7: scroll reader into view on open at <=720px (D8)"
+    ac: [AC-F7]
+    deps: [T6]
+    detail: >
+      In openReader(), after the reader is shown, if window.matchMedia('(max-width:720px)').matches (or
+      innerWidth<=720), call reader.scrollIntoView({behavior:'smooth', block:'start'}) so mobile users land
+      on the opened framework (which renders after the list in DOM order at narrow widths). No-op on desktop.
+      Make T1's F7 assertion green. Then run the FULL generator self-tests + skill tests/ — all green.
+
+  - id: T8
+    title: "LOAD-BEARING live dogfood: regenerate a real browse index.html and drive it in a real browser (AC-dogfood)"
+    ac: [AC-dogfood, AC-F1, AC-F2, AC-F3, AC-F4, AC-F5, AC-F7]
+    deps: [T7]
+    detail: >
+      REQUIRED, runs last. Regenerate a real browse index.html from the live corpus via build-library.mjs,
+      serve it over http (python3 -m http.server — Playwright MCP blocks file://), and drive it in a real
+      browser: (1) instrument #groups with a MutationObserver and confirm clicking an item does NOT
+      wholesale-replace the subtree (selection-only update); (2) detailed view → assert 0 inlined <svg> at
+      first paint, then scroll and confirm thumbnails mount; (3) open reader, press Escape → reader closes,
+      focus returns to the item; (4) open a framework → location.hash set; reload → same framework re-opens;
+      click 'Copy link' → clipboard holds the deep URL; (5) scroll down, type a narrowing query → page does
+      NOT snap to top. Capture before/after evidence (screenshots / measured scrollY). Any failure → fix and
+      re-run before marking done. (The /solitaire + /explainer-video lesson: live dogfood catches bugs that
+      string-grep self-tests are blind to.)

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "the-headline-bug",
+    "level": 2,
+    "title": "The headline bug — \"the page keeps reloading\"",
+    "parent_id": null
+  },
+  {
+    "id": "findings",
+    "level": 2,
+    "title": "Findings",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions (locked at define grill, 2026-06-13)",
+    "parent_id": null
+  },
+  {
+    "id": "cross-cutting-invariants",
+    "level": 2,
+    "title": "Cross-cutting invariants (the build must preserve)",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance-criteria",
+    "level": 2,
+    "title": "Acceptance criteria (story-level)",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope",
+    "parent_id": null
+  }
+]

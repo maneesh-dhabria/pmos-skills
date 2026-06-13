@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sequencing",
+    "level": 2,
+    "title": "Sequencing & waves",
+    "parent_id": null
+  },
+  {
+    "id": "verification",
+    "level": 2,
+    "title": "Verification strategy",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites (NOT plan waves — /complete-dev owns these)",
+    "parent_id": null
+  }
+]
