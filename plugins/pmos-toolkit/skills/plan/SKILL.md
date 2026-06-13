@@ -192,11 +192,32 @@ The plan body cites task IDs and **never holds task status** (D4) — status liv
 
 Tier boundary semantics and the detect-once rule live in `_shared/tier-matrix.md`; the bullets below are /plan's per-artifact reaction:
 
-- **Tier 1 (bugfix):** ≥1 task floor; **no Decision-Log floor** (skip the table when there is exactly one obvious fix); reduced TN = `T0 + lint + test + Done-when walkthrough`.
-- **Tier 2 (enhancement):** ≥1 Decision-Log entry; 1 review loop; Risks and Rollback are optional unless triggered by content; full TN.
-- **Tier 3 (feature):** ≥3 Decision-Log entries; 2–4 review loops; mandatory Risks table; Rollback is conditional on data/deploy involvement; full TN.
+- **Tier 1 (bugfix):** ≥1 task floor; **no Decision-Log floor** (skip the table when there is exactly one obvious fix); reduced TN = `T0 + lint + test + Done-when walkthrough`. Dogfood task **offered, not required** (recommended-skip) — emit a TN−1 only when the fix warrants real-use validation.
+- **Tier 2 (enhancement):** ≥1 Decision-Log entry; 1 review loop; Risks and Rollback are optional unless triggered by content; full TN; **TN−1 dogfood task mandatory**.
+- **Tier 3 (feature):** ≥3 Decision-Log entries; 2–4 review loops; mandatory Risks table; Rollback is conditional on data/deploy involvement; full TN; **TN−1 dogfood task mandatory** (≥1 load-bearing).
+
+**Dogfood task (TN−1) — mandatory at Tier 2/3, offered at Tier 1.** A load-bearing **TN−1: Dogfood / Utility Verification** task exercises the actual deliverable on a real, representative task and has an independent blind judge score its output against BOTH objective and subjective criteria. The full contract — anatomy, dual-criteria, judge shape, iterate loop, tier policy, approval gate — lives in `_shared/dogfooding.md` (cite, don't restate — D9); emission + the plan-time approval gate are §Dogfood-task emission below, the review check is the Phase 4 structural checklist.
 
 **Done-when rules (all tiers):** the `**Done when:**` line states lower bounds and qualitative gates only, and MUST include ≥1 quantitative or executable assertion — e.g., "all 17 tests pass", "lint exits 0", "p95 < 500ms". The plan MUST include a "Done-when walkthrough" — a concrete narrative tracing the Done-when line through the system (replaces the legacy "Manual spot check" line).
+
+### Dogfood-task emission (TN−1) {#dogfood-task}
+
+For Tier 2/3 plans (offered at Tier 1), when emitting the breakdown, generate the **TN−1: Dogfood / Utility Verification** task immediately before TN. The contract lives in `_shared/dogfooding.md` (cite, don't restate — D9); this is /plan's emission + approval delta only.
+
+1. **Select an archetype** from `_shared/dogfooding.md`#archetypes by the deliverable's shape (skill/content-generator → Use→blind-LLM-judge; frontend → dev-server+browser-friction; CLI → real-invocation; data → golden-sample+spot-check; API → scenario-exercise; bespoke when none fit).
+2. **Draft the scenario + dual criteria + named judge:** a concrete real task + representative input; ≥1 **objective** criterion (measurable, exact command + expected output) AND a **subjective** rubric (named dimensions + an explicit satisfied bar); name the independent blind judge per `_shared/dogfooding.md`#judge. Emit the TN−1 block from `reference/plan-templates.md`.
+3. **Plan-time approval gate (D7).** Before finalizing the plan, present the proposed dogfood task for approval:
+
+   `AskUserQuestion`:
+   ```
+   question: "Proposed dogfood task (TN−1): <archetype> — scenario «<scenario>»; objective «<gates>»; subjective «<dimensions>», judged by <judge>. Approve or edit?"
+   options:
+     - Approve as proposed (Recommended)
+     - Edit scenario
+     - Edit criteria
+   ```
+   The `(Recommended)` option is the auto-proposed scenario (so this ask is NOT `defer-only`). On Edit, re-prompt for that field and re-emit TN−1. Under `--non-interactive` the classifier AUTO-PICKs Approve (the recommended scenario is used; W14), logged to `03_plan_auto.md`.
+4. **Serialize TN−1 into `tasks.yaml`** as a real task (see §Emit tasks.yaml) — its `acceptance` carries the objective gates + the judge-satisfied bar + the verdict line `/verify` reads. **TN stays last**; TN−1 is second-to-last.
 
 ### Code Study Notes structure
 
@@ -379,6 +400,7 @@ Each loop runs BOTH checks:
 11. **Final-verification polish coverage:** Does TN include the hard-reload-every-route step, the force-an-error-path step, the UX polish checklist line, and (if wireframes exist) the wireframe diff line?
 12. **Refactor-before-modify:** Does any task modify a function whose existing structure isn't preserved by the modification? If yes, the prerequisite refactor must be its own numbered sub-step before the additive change.
 13. **Vertical-slice shape:** Is each task a vertical slice or a declared `**Slice shape:**` exception, is every `## Phase N` grouping a deployable slice (not a layer), and is T1 a tracer bullet? Any miss is a finding — the rule and its exception taxonomy live in Phase 3 §Vertical-Slice Decomposition.
+14. **Dogfood task (T2/T3):** Does the plan include a load-bearing TN−1 dogfood task with BOTH objective AND subjective criteria and a named independent judge? **Hard-fail** any Tier 2/3 plan whose dogfood task is missing, not load-bearing, or lacks either criteria kind or the named judge (Tier 1 is exempt — it is offered, not required). Contract: `_shared/dogfooding.md`; emission: Phase 3 §Dogfood-task emission.
 
 **B. Design-Level Self-Critique** (catches wrong/shallow task decomposition):
 1. **Reviewer perspective:** If you were sent this plan for review, what comments would you add? Read it as a critical reviewer, not the author — flag tasks with unclear scope, missing verification steps, implicit dependencies, and assumptions about what's "obvious."
@@ -402,6 +424,7 @@ Each loop runs BOTH checks:
 - No placeholder language exists anywhere
 - Every task has inline verification with exact commands
 - Final verification task includes all applicable items
+- **Dogfood task (TN−1) present and load-bearing for Tier 2/3**, with both objective and subjective criteria and a named independent judge (Tier 1 exempt)
 - Last loop found only cosmetic issues
 - **User has confirmed they have no further concerns** (do not self-declare exit)
 
@@ -414,7 +437,7 @@ Mode is auto-detected from the existing-plan state plus the Phase 1 step 5 promp
 - **Fresh** — no existing `03_plan.{html,md}`. Generate from scratch.
 - **Edit** — bounded re-write of a single task or task-range (also entered via `--fix-from`); preserve untouched tasks verbatim including their step bodies.
 - **Replan** — discard existing tasks; preserve Decision Log + Risks (discard them too only when the user says so). Skip list preserved.
-- **Append** — add new tasks at the bottom (TN+1, TN+2, …) without renumbering existing tasks; the final-verification task moves to stay last. Useful for spec amendments mid-execution.
+- **Append** — add new tasks at the bottom (TN+1, TN+2, …) without renumbering existing tasks; the TN−1 dogfood task and the TN final-verification task move together to stay second-to-last and last respectively. Useful for spec amendments mid-execution.
 <!-- nl-sugar -->
 (`--edit`, `--replan`, `--append`, and `--reset-decisions` are parsed as explicit spellings of the above.)
 
