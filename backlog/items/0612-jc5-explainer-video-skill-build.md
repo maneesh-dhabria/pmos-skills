@@ -4,12 +4,12 @@ id: 0612-jc5
 kind: story
 title: Build the /explainer-video pmos-toolkit skill — doc/artifact/URL → narrated slideshow .mp4 ($0, local)
 type: feature
-status: done
+status: released
 priority: should
 route: skill
 parent: 0612-gd0
 dependencies: []
-worktree: ../agent-skills-0612-jc5
+worktree:
 plan_doc: docs/pmos/features/2026-06-12_explainer-video/stories/0612-jc5-explainer-video-skill-build/03_plan.html
 tasks_file: docs/pmos/features/2026-06-12_explainer-video/stories/0612-jc5-explainer-video-skill-build/tasks.yaml
 claimed_by:
@@ -18,8 +18,10 @@ labels: [pmos-toolkit, explainer-video, artifact-authoring, local-first]
 created: 2026-06-13
 updated: 2026-06-13
 source: 2026-06-12 /skill-sdlc define @docs/superpowers/specs/2026-06-12-explainer-video-design.md
+released: pmos-toolkit/v2.74.0
 pr:
 ---
+<!-- AC7 deferred-smoke CLEARED at release (pmos-toolkit/v2.74.0, 2026-06-13): the full MSR-PDF→mp4 pipeline ran green end-to-end and caught + fixed a -shortest image-overrun bug in assemble.sh. See the story's smoke-msr-pdf.md "Release clearance" section (now on main). -->
 
 ## Context
 

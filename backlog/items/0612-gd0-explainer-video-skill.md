@@ -5,7 +5,7 @@ kind: epic
 title: /explainer-video — turn a doc/artifact/URL into a narrated slideshow video (local, $0)
 type: feature
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-12_explainer-video/
 requirements_doc:
@@ -14,7 +14,7 @@ design_doc: docs/pmos/features/2026-06-12_explainer-video/02_design.html
 labels: [pmos-toolkit, explainer-video, artifact-authoring, local-first]
 created: 2026-06-12
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.74.0
 ---
 
 ## Context
