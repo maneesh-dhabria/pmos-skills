@@ -1,0 +1,78 @@
+schema_version: 1
+story: 260613-3jc
+epic: 260613-7tm
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/backlog
+# Change spans TWO skills' supporting files (D2 fused story):
+#   - plugins/pmos-toolkit/skills/backlog/        (the script + SKILL.md + schema.md + tests)
+#   - plugins/pmos-toolkit/skills/feature-sdlc/   (one prose reference at SKILL.md:481)
+# No SKILL.md *behavioral* surface changes — this is a script rename + reference repoint + test.
+# TDD order: reproduce the ESM break (red) → rename so it goes green → doc-sync → verify.
+tasks:
+  - id: T1
+    title: "Red: add the ESM-mode regression case to claim-lock.test.sh (reproduces the bug)"
+    ac: [AC4]
+    deps: []
+    parallel: false
+    detail: >
+      In plugins/pmos-toolkit/skills/backlog/tests/claim-lock.test.sh, add a new case AFTER the
+      existing ones: create a temp dir (mktemp -d), write package.json containing
+      {"type":"module"} into it, then run `node "$LOCK" --selftest` with that dir as the nearest
+      package root (cd into it, or place the lock invocation so node resolves that package.json),
+      plus an `acquire` then `release` round-trip against a claims dir under the temp tree —
+      asserting each exits 0. With LOCK still pointing at the CommonJS `.js` file this case FAILS
+      with "require is not defined in ES module scope" (the bug, reproduced). Run the test, confirm
+      it goes RED on exactly this case (the pre-existing cases still pass). Keep the claims-dir as
+      an explicit CLI arg so the script stays location-independent (no host fixture needed).
+
+  - id: T2
+    title: "Green: git mv claim-lock.js → .cjs, repoint the test LOCK path + add structural guard"
+    ac: [AC1, AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      `git mv plugins/pmos-toolkit/skills/backlog/scripts/claim-lock.js
+      plugins/pmos-toolkit/skills/backlog/scripts/claim-lock.cjs` — source body BYTE-UNCHANGED
+      (CommonJS require/module.exports/require.main retained; D1). Update the two self-referential
+      OUTPUT strings inside the file for accuracy: the `usage: claim-lock.js …` line and the
+      `claim-lock.js --selftest: PASS/FAIL` line → `claim-lock.cjs`. In claim-lock.test.sh, change
+      L7 `LOCK="$DIR/scripts/claim-lock.js"` → `.cjs` (the T1 ESM case now goes GREEN), and add the
+      D4 structural assertion: `ls "$DIR/scripts/"*.js` (or a glob check) matches nothing — no bare
+      `.js` survives in scripts/. Run `bash claim-lock.test.sh` → PASS; `node scripts/claim-lock.cjs
+      --selftest` → PASS.
+
+  - id: T3
+    title: "Doc-sync: repoint every remaining claim-lock.js reference (backlog + feature-sdlc)"
+    ac: [AC2, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Repoint every reference per the design's #reference-surface table —
+      backlog/SKILL.md (~8 lines: L31, L39, L45, L149, L158, L166, L170, L249 — file listing,
+      acquire/release/status invocations, prose), backlog/schema.md (L175 markdown link
+      [scripts/claim-lock.js](scripts/claim-lock.js)), backlog/tests/scenarios.md (L115 invocation
+      prose + L135 `scripts/claim-lock.js --selftest`), feature-sdlc/SKILL.md (L481 prose
+      "via claim-lock.js's own-holder reclaim trigger") — all `.js` → `.cjs`. Do NOT touch
+      backlog/tests/id-scheme.test.sh (its mentions are `<id>.lock` lock-files + the id round-trip,
+      not the script path). Then assert AC3: `grep -rn 'claim-lock\.js'
+      plugins/pmos-toolkit/skills/` returns no invocation / SKILL / schema / test / link to the old
+      name.
+
+  - id: T4
+    title: "Verify: full test + selftest + grep clean + hygiene lints + acceptance proof"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Run `bash plugins/pmos-toolkit/skills/backlog/tests/claim-lock.test.sh` (PASS incl. the new
+      ESM-mode + structural cases) and `node plugins/pmos-toolkit/skills/backlog/scripts/claim-lock.cjs
+      --selftest` (PASS). Confirm the AC3 grep is clean. Run the repo hygiene lints that apply to the
+      touched SKILL.md files — tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh,
+      tools/lint-non-interactive-inline.sh, tools/audit-recommended.sh (against backlog + feature-sdlc)
+      — all green (no flag/phase-ref/prompt/non-interactive-block drift was introduced; only a
+      filename string changed). Acceptance proof (AC6 spirit): the renamed script runs under an
+      ESM-mode package.json with no manual `.cjs` copy. Release prerequisites (version bump,
+      changelog, manifest sync) are NOT tasks here — they belong to /complete-dev (see the plan's
+      ## Release prerequisites).

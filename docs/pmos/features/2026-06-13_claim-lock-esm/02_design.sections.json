@@ -1,0 +1,38 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "The problem",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "reference-surface",
+    "level": 2,
+    "title": "Reference surface — every site to repoint",
+    "parent_id": null
+  },
+  {
+    "id": "invariant",
+    "level": 2,
+    "title": "Codified invariant",
+    "parent_id": null
+  },
+  {
+    "id": "regression-guard",
+    "level": 2,
+    "title": "Regression guard (D3) — shape",
+    "parent_id": null
+  },
+  {
+    "id": "acceptance",
+    "level": 2,
+    "title": "Epic acceptance contract",
+    "parent_id": null
+  }
+]
