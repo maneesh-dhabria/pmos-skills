@@ -6,19 +6,19 @@ parent: 0613-kr0
 title: Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html
 type: feature
 priority: should
-status: done
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_logos-skill/
 plan_doc: docs/pmos/features/2026-06-13_logos-skill/stories/0613-36f/03_plan.html
 tasks: docs/pmos/features/2026-06-13_logos-skill/stories/0613-36f/tasks.yaml
-worktree: ../agent-skills-0613-36f
+worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-toolkit, logos, svg]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.72.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 0613-36f -->

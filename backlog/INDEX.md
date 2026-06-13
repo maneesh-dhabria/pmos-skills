@@ -17,7 +17,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-vba define)
 | 0612-w4e | released | skill | pmos-toolkit | 1/1 | Build-loop resume-first reconcile-in-flight — self-heal stories that crash mid-build under /loop |
 | 0612-jjs | released | skill | pmos-toolkit | 1/1 | Year-prefixed backlog ids — extend the <MMDD>-<rand3> scheme to <YYMMDD>-<rand3> |
 | 0612-gd0 | defined | skill | pmos-toolkit | 1/1 | /explainer-video — turn a doc/artifact/URL into a narrated slideshow video (local, $0) |
-| 0613-kr0 | defined | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
+| 0613-kr0 | released | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
 | 0613-dnv | released | skill | pmos-toolkit | 1/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
 | 0613-5pq | defined | skill | pmos-toolkit | 0/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
 | 260613-vba | defined | skill | pmos-toolkit | 0/2 | Build /research — PM decision-support deep-research skill |
@@ -39,7 +39,7 @@ Last regenerated: 2026-06-13 (+ epic 260613-vba define)
 | 0612-2w7 | story | feature | released | 0612-w4e | Implement build-loop reconcile-in-flight — resume-first step 0, claim-ownership, forward-progress poison guard | 02_design.html | 03_plan.html |  |
 | 0612-d14 | story | enhancement | released | 0612-jjs | Extend the backlog id scheme to <YYMMDD>-<rand3> — year-prefixed mint + triple-accept validator across /backlog and /mytasks | 02_design.html | 03_plan.html |  |
 | 0612-jc5 | story | feature | done | 0612-gd0 | Build the /explainer-video pmos-toolkit skill — doc/artifact/URL → narrated slideshow .mp4 ($0, local) | 02_design.html | 03_plan.html |  |
-| 0613-36f | story | feature | done | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
+| 0613-36f | story | feature | released | 0613-kr0 | Author the /logos skill end-to-end — brief → logo-need decomposition → per-need SVG variants → eval → logos.html | 02_design.html | 03_plan.html |  |
 | 0613-fzy | story | feature | released | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
 | 0613-rhf | story | enhancement | planned | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
 | 260613-m64 | story | feature | planned | 260613-vba | Author _shared/research/ substrate + the /research skill end-to-end | 02_design.html | 03_plan.html |  |

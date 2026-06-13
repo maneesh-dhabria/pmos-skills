@@ -5,7 +5,7 @@ kind: epic
 title: /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets)
 type: feature
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_logos-skill/
 requirements_doc:
@@ -14,7 +14,7 @@ design_doc: docs/pmos/features/2026-06-13_logos-skill/02_design.html
 labels: [pmos-toolkit, logos, svg, brand, generation]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.72.0
 ---
 
 ## Context
