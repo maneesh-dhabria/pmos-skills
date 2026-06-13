@@ -37,7 +37,7 @@ These instructions use Claude Code tool names. In other environments:
 - `inference-heuristics.md` — keyword → type table for quick-capture.
 - `pipeline-bridge.md` — the `--backlog <id>` contract + three-loop story write-back rules (main-checkout-only, auto-commit, blocked channel).
 - `scripts/claim-lock.js` — O_EXCL story-claim lock (D13).
-- `scripts/mint-id.mjs` — coordination-free id minter + dual-form validator (the `<MMDD>-<rand3>` allocation cited by `#add`; format owned by `_shared/tracker-crudl.md` §2).
+- `scripts/mint-id.mjs` — coordination-free id minter + triple-form validator (the `<YYMMDD>-<rand3>` allocation cited by `#add`; format owned by `_shared/tracker-crudl.md` §2).
 - `_shared/interactive-prompts.md` — prompting protocol for `refine`.
 
 ## Flags & natural language
@@ -107,7 +107,7 @@ If the first token is not a recognized verb AND the argument is non-empty, treat
 **This handler MUST complete in a single tool-call sequence with NO clarifying questions.** Wrong inference is acceptable; capture friction is not (D26 — the quality bar is the `ready` gate, never `add`).
 
 1. Ensure `<repo>/backlog/items/` exists (`mkdir -p`).
-2. Mint id + derive slug per `_shared/tracker-crudl.md` §2 — id via `node scripts/mint-id.mjs` (coordination-free `<MMDD>-<rand3>`, §2.3); **no `max+1` scan, no counter**. Epics and stories draw from the same id space (the scheme needs no per-kind sequence). Slug per §2.2.
+2. Mint id + derive slug per `_shared/tracker-crudl.md` §2 — id via `node scripts/mint-id.mjs` (coordination-free `<YYMMDD>-<rand3>`, §2.3); **no `max+1` scan, no counter**. Epics and stories draw from the same id space (the scheme needs no per-kind sequence). Slug per §2.2.
 3. Infer `type` from `<text>` per `inference-heuristics.md` (case-insensitive, first-match-by-order; no match → `idea`, remember the fallback notice for step 6).
 4. **Decide the kind + parent (D18 auto-wrap):**
    - `--kind epic` → create an epic (`status: inbox`); done.

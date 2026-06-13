@@ -18,7 +18,7 @@ A repo with no `backlog/` directory yet.
 
 Expected agent behavior (single round-trip, no clarifying questions):
 1. Create `backlog/`, `backlog/items/`.
-2. **Mint** the story id coordination-free via `node scripts/mint-id.mjs` — a `<MMDD>-<rand3>` id (e.g. `0612-k3f`), **never** `max+1` or `0001` (`_shared/tracker-crudl.md` §2.3). Infer `type: bug` (keyword "flaky"); `kind: story`, `status: draft`, `priority: should`.
+2. **Mint** the story id coordination-free via `node scripts/mint-id.mjs` — a `<YYMMDD>-<rand3>` id (e.g. `260612-k3f`), **never** `max+1` or `0001` (`_shared/tracker-crudl.md` §2.3). Infer `type: bug` (keyword "flaky"); `kind: story`, `status: draft`, `priority: should`.
 3. **Auto-wrap (D18):** also mint a second id for a same-titled singleton **epic** (`status: inbox`); set the story's `parent:` to the epic id. The two minted ids differ (independent mints).
 4. Write both item files (frontmatter only, no body), `created`/`updated` = today.
 5. Generate `backlog/INDEX.md` (regenerated, never hand-appended — §5 / schema.md).
@@ -172,7 +172,7 @@ Behavioral expectations for the concurrency-safe id scheme. Mechanical coverage 
 
 ### Scenario: two parallel `define` sessions mint coordination-free
 
-Expected: two sessions branched off the same `main` each `/backlog add` an epic; because ids are minted as `<MMDD>-<rand3>` from date+`crypto` randomness (no `max+1`, no counter), the two minted ids **differ by construction** — no silent duplicate. (This is the exact incident in `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`, now prevented.)
+Expected: two sessions branched off the same `main` each `/backlog add` an epic; because ids are minted as `<YYMMDD>-<rand3>` from date+`crypto` randomness (no `max+1`, no counter), the two minted ids **differ by construction** — no silent duplicate. (This is the exact incident in `docs/pmos/features/2026-06-12_concurrency-safe-ids/02_design.html#incident`, now prevented.)
 
 ### Scenario: define definition-merge with a colliding id → loud refusal (AC3)
 

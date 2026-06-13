@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # id-scheme.test.sh — behavioral checks for the concurrency-safe id scheme
-# (epic 0020 / story 0021): coordination-free <MMDD>-<rand3> minting, the dual
-# (legacy + new) validator, the round-trip through filename/branch/claim-lock,
-# and the define-merge id-uniqueness gate. Run: bash id-scheme.test.sh
+# (epic 0020 / story 0021, extended by 0612-jjs / story 0612-d14): coordination-
+# free year-prefixed <YYMMDD>-<rand3> minting, the triple-accept validator (legacy
+# 4-digit + prior <MMDD>-<rand3> + current <YYMMDD>-<rand3>), the round-trip
+# through filename/branch/claim-lock, and the define-merge id-uniqueness gate.
+# Run: bash id-scheme.test.sh
 set -uo pipefail
 
 DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")/.." &>/dev/null && pwd)"          # backlog skill dir
@@ -21,16 +23,17 @@ chk "minter sources crypto"              "grep -q \"from 'node:crypto'\" '$MINT'
 
 # --- format (AC1) ---
 ID1="$(node "$MINT")"
-chk "minted id matches <MMDD>-<rand3>"   "printf '%s' '$ID1' | grep -Eq '^[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}$'"
+chk "minted id matches <YYMMDD>-<rand3>"  "printf '%s' '$ID1' | grep -Eq '^[0-9]{6}-[0-9a-hj-km-np-tv-z]{3}$'"
 chk "minted id excludes look-alikes iou" "! printf '%s' '${ID1#*-}' | grep -q '[ilou]'"
 
 # --- two parallel mints differ (AC1: coordination-free, no shared counter) ---
 A="$(node "$MINT")"; B="$(node "$MINT")"; C="$(node "$MINT")"
 chk "parallel mints differ (A!=B!=C)"    "[ \"$A\" != \"$B\" ] && [ \"$B\" != \"$C\" ] && [ \"$A\" != \"$C\" ]"
 
-# --- dual validator accepts both forms, rejects garbage (AC2) ---
+# --- triple-accept validator accepts all three forms, rejects garbage (AC2/AC3) ---
 chk "validator accepts legacy 0019"      "node '$MINT' validate 0019"
 chk "validator accepts legacy 0001"      "node '$MINT' validate 0001"
+chk "validator accepts current MMDD-rand3" "node '$MINT' validate 0612-k3f"   # regression guard: the prior <MMDD>-<rand3> arm must survive the 4→6 extension
 chk "validator accepts new id"           "node '$MINT' validate '$ID1'"
 chkfail "validator rejects look-alike iou" "node '$MINT' validate 0612-iou"
 chkfail "validator rejects 3-digit"      "node '$MINT' validate 012"
@@ -40,8 +43,8 @@ chkfail "validator rejects empty"        "node '$MINT' validate ''"
 # --- round-trip: id → filename / branch / claim-lock (AC5) ---
 chk "id is git-branch-safe (define/feat)" "git check-ref-format --branch 'define/$ID1' && git check-ref-format --branch 'feat/$ID1'"
 SLUG="concurrency-safe-ids"
-chk "id round-trips into {id}-{slug}.md"  "printf '%s' '$ID1-$SLUG.md' | grep -Eq '^[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}-[a-z0-9-]+\.md$'"
-chk "claim-lock filename is opaque-safe"  "printf '%s' '$ID1.lock' | grep -Eq '^[0-9]{4}-[0-9a-hj-km-np-tv-z]{3}\.lock$'"
+chk "id round-trips into {id}-{slug}.md"  "printf '%s' '$ID1-$SLUG.md' | grep -Eq '^[0-9]{6}-[0-9a-hj-km-np-tv-z]{3}-[a-z0-9-]+\.md$'"
+chk "claim-lock filename is opaque-safe"  "printf '%s' '$ID1.lock' | grep -Eq '^[0-9]{6}-[0-9a-hj-km-np-tv-z]{3}\.lock$'"
 
 # --- id-uniqueness gate: clean vs duplicate (AC3) ---
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
