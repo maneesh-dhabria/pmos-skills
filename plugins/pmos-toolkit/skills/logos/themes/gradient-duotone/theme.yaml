@@ -1,0 +1,21 @@
+name: gradient-duotone
+displayName: Gradient Duotone
+technique: Two-stop linearGradient duotone fills — shapes filled with a single namespaced gradient from accent to accent.
+palette:
+  max_colors: 5
+  ink: "#1C1917"
+  accents:
+    - hex: "#7C3AED"
+      name: violet
+    - hex: "#DB2777"
+      name: magenta
+stroke:
+  single_weight: false
+  min_effective_px: 1.0
+fallback:
+  requires_mono: true
+  forces_icon_only: false
+notes: >
+  Gradients must have a flat mono fallback (a single solid fill) — requires_mono
+  is true. Every <linearGradient> id is namespaced by need+variant because many
+  SVGs share one logos.html page.

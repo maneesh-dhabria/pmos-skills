@@ -1,0 +1,18 @@
+name: line-outline
+displayName: Line Outline
+technique: Single-weight outline / line-art marks — strokes carry the form, fill is minimal or absent.
+palette:
+  max_colors: 2
+  ink: "#1C1917"
+  accents:
+    - hex: "#0E7490"
+      name: teal
+stroke:
+  single_weight: true
+  min_effective_px: 1.25
+fallback:
+  requires_mono: false
+  forces_icon_only: false
+notes: >
+  Lines must survive the favicon — min_effective_px is raised to 1.25 so a
+  thin outline does not disappear at 16px.

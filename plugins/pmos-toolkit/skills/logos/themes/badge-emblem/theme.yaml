@@ -1,0 +1,21 @@
+name: badge-emblem
+displayName: Badge Emblem
+technique: Enclosed badge / emblem marks — an inner mark wrapped in a ring, shield, or seal enclosure, often with curved wordmark.
+palette:
+  max_colors: 4
+  ink: "#1C1917"
+  accents:
+    - hex: "#92400E"
+      name: bronze
+    - hex: "#15803D"
+      name: forest
+stroke:
+  single_weight: false
+  min_effective_px: 1.0
+fallback:
+  requires_mono: true
+  forces_icon_only: true
+notes: >
+  Emblems are detail-dense and lose legibility at 16px. They MUST also ship an
+  icon-only variant (the inner mark without the enclosure or wordmark) and a
+  flat mono variant — requires_mono and forces_icon_only are both true.

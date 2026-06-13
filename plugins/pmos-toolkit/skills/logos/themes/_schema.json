@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "logos theme.yaml",
+  "description": "Strict positive-list schema for /logos themes. theme.yaml is the single machine authority; `palette.max_colors` and `stroke.min_effective_px` are read by scripts/svg-metrics.mjs (the deterministic gate) — do not rename those keys. Layout, sizing, and per-need variant decisions are runtime, not theme tokens, and MUST NOT appear here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "displayName",
+    "technique",
+    "palette",
+    "stroke",
+    "fallback"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "displayName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "technique": {
+      "type": "string",
+      "minLength": 1
+    },
+    "palette": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_colors", "ink", "accents"],
+      "properties": {
+        "max_colors": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ink": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "accents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["hex"],
+            "properties": {
+              "hex": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+              "name": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "stroke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["single_weight", "min_effective_px"],
+      "properties": {
+        "single_weight": {"type": "boolean"},
+        "min_effective_px": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "fallback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requires_mono", "forces_icon_only"],
+      "properties": {
+        "requires_mono": {"type": "boolean"},
+        "forces_icon_only": {"type": "boolean"}
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
