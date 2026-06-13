@@ -5,7 +5,7 @@ kind: epic
 title: Year-prefixed backlog ids — extend the <MMDD>-<rand3> scheme to <YYMMDD>-<rand3>
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 plugin: pmos-toolkit
 feature_folder: docs/pmos/features/2026-06-12_yymmdd-ids/
@@ -14,8 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-12_yymmdd-ids/02_design.html
 labels: [backlog, mytasks, three-loop, ids, tracker-crudl]
 created: 2026-06-12
-updated: 2026-06-12
-released:
+updated: 2026-06-13
+released: pmos-toolkit/v2.71.0
 ---
 
 ## Context
