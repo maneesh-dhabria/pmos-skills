@@ -64,7 +64,7 @@ The subjective half is scored by a **fresh subagent, blind to the author's inten
 { per_dimension: [{dimension, verdict, rationale}], overall_satisfied: bool, gaps: [<enumerated, when not satisfied>] }
 ```
 
-The judge **makes no edits** — it scores and reports; the fix loop is driven separately ([iterate protocol](#iterate-loop)). **Non-subagent fallback:** self-review framed *"judge this as if seeing it for the first time,"* logged as a downgrade.
+The judge **makes no edits** — it scores and reports; the fix loop is driven separately ([iterate protocol](#iterate-loop)). The dispatch **inherits the parent model** (per `skill-patterns.md §L`) — blind quality judgement is genuine judgment, not mechanical extraction, so it is never downgraded to a cheaper tier. **Non-subagent fallback:** self-review framed *"judge this as if seeing it for the first time,"* logged as a downgrade.
 
 ## Archetype catalog (D8) {#archetypes}
 
