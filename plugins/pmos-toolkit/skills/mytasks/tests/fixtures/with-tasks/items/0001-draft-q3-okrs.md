@@ -4,7 +4,7 @@ title: Draft Q3 OKRs for Platform team
 type: execution
 importance: leverage
 status: in-progress
-workstream: platform-q3
+project: platform-q3
 people: [sarah-chen]
 labels: [okrs, planning]
 links: []
