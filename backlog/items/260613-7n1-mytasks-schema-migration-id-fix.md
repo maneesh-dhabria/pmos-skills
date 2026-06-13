@@ -6,15 +6,17 @@ parent: 260613-5av
 title: "Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix"
 type: enhancement
 priority: should
-status: in-progress
+status: done
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_mytasks-web/
 plan_doc: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-7n1/03_plan.html
 tasks: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-7n1/tasks.yaml
-worktree: agent-skills-260613-7n1
-claimed_by: build:loop-260613-5av
-driver_holder: build:loop-260613-5av
+worktree:
+claimed_by:
+driver_holder:
+build_branch: feat/260613-7n1
+build_commit: 281fdb9
 labels: [pmos-toolkit, mytasks, schema, migration]
 created: 2026-06-13
 updated: 2026-06-13
