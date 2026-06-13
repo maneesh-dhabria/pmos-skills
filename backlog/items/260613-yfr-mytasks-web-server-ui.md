@@ -6,15 +6,15 @@ parent: 260613-5av
 title: "Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher"
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: [260613-7n1, 260613-044]
 feature_folder: docs/pmos/features/2026-06-13_mytasks-web/
 plan_doc: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-yfr/03_plan.html
 tasks: docs/pmos/features/2026-06-13_mytasks-web/stories/260613-yfr/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: agent-skills-260613-yfr
+claimed_by: build:loop-mdh
+driver_holder: build:loop-mdh
 labels: [pmos-toolkit, mytasks, web-ui, server]
 created: 2026-06-13
 updated: 2026-06-13
