@@ -20,7 +20,7 @@ This is **orthogonal to the pipeline** — not a stage. Use it on any artifact a
 ## Platform Adaptation
 
 - **No interactive prompt tool:** fall back to numbered-choice plain-text per `_shared/interactive-prompts.md`.
-- **No subagents:** skip the optional codebase-exploration helper and grep directly.
+- **No subagents:** skip the optional codebase-exploration helper (a `sonnet` or session-inherited Task subagent — see Phase 4 {#grill}) and grep directly.
 
 ## Track Progress
 
@@ -49,7 +49,7 @@ Read `~/.pmos/learnings.md` if present and factor any entries under `## /ripple-
    | standard | top + immediate sub-effects | moderate |
    | deep | exhaust the tree | **no limit** — until the tree is exhausted or the user calls stop |
 
-4. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default `html`; valid `html`, `md` — legacy `both` treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` flag overrides settings (last flag wins). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the optional Phase 5 save only — chat output is unaffected.
+4. **Resolve `output_format`.** Read `output_format` from `.pmos/settings.yaml` (default `html`; valid `html`, `md` — legacy `both` treated as `html` per `_shared/html-authoring/README.md`). A `--format <html|md>` flag overrides settings (last flag wins). Print to stderr exactly: `output_format: <value> (source: <cli|settings|default>)` once at Phase 0 entry. Controls the optional save (Phase 5 {#report}) only — chat output is unaffected.
 
 ---
 
@@ -107,15 +107,15 @@ Tag every **notable** effect with three qualitative judgments (no arithmetic —
 
 ## Phase 3: Present the Consequence Map {#present}
 
-Before asking anything, emit the scored nested tree to chat — 1st → 2nd → 3rd order, each effect lens-tagged with its likelihood/impact/desirability — so the user sees the full ripple picture first. This map is the artifact the grill loop draws its questions from (and the body of the saved report, Phase 5).
+Before asking anything, emit the scored nested tree to chat — 1st → 2nd → 3rd order, each effect lens-tagged with its likelihood/impact/desirability — so the user sees the full ripple picture first. This map is the artifact the grill loop draws its questions from (and the body of the saved report — Phase 5 {#report}).
 
 ---
 
 ## Phase 4: Grill Loop {#grill}
 
-Sibling to `/grill`'s Phase 2 — but the questions come from the scored consequence tree, not the proposal's internal decisions. Walk the notable effects in **leverage order**:
+Sibling to `/grill`'s grill loop (`grill/SKILL.md#grill-loop`) — but the questions come from the scored consequence tree, not the proposal's internal decisions. Walk the notable effects in **leverage order**:
 
-1. **Answer from the codebase first.** If a consequence hinges on "what does the current rate limiter do?", grep/read — don't ask. (Same "answerable from code" class as `/grill`.)
+1. **Answer from the codebase first.** If a consequence hinges on "what does the current rate limiter do?", grep/read — don't ask. (Same "answerable from code" class as `/grill`.) §L dispatch: this skill runs **inline by default** (the simulation, scoring, and grill loop all need the live conversation); the one optional fan-out is a codebase-exploration helper to resolve a code-answerable consequence without polluting context — dispatch it as a `sonnet` Task subagent (or inherit the session model for a genuine-judgment read).
 
 <!-- defer-only: free-form -->
 2. **One `AskUserQuestion` per consequence**, then wait. Tie the ripple to a refinement of the proposal:
