@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-13 — pmos-gamekit 0.1.0: a new casual-games plugin, opening with /solitaire (Klondike)
+
+A brand-new plugin whose whole job is to let you **play a casual game** right from your skills — no install, no account, no cloud. Its first game is `/solitaire`, a full single-player Klondike that opens in your browser.
+
+- **`/solitaire` is a complete, self-contained Klondike.** The entire game — rules, board, drag-and-drop, draw-1/draw-3, undo, win detection — ships as one HTML file with all CSS and JS embedded. There are no external assets and nothing to download; the skill just launches it.
+- **Launch is one local, zero-dependency step.** A new reusable `_shared/game-launcher` substrate runs a tiny Node server on an ephemeral port and points your browser at the game — no framework, no package install, clean shutdown when you're done. Every future game in the plugin reuses the same launcher.
+- **The game logic is testable, not just playable.** The Klondike engine is separated from rendering so it can be exercised headlessly: a bundled `tests/run.mjs` checks move legality, foundation rules, undo purity, and win detection (13 checks), and the launcher has its own server smoke test (5 checks).
+- **First member of a growing kit.** `pmos-gamekit` is registered as its own marketplace plugin with the charter "help me play a casual game"; `/poker` (No-Limit Hold'em) is already queued to reuse the same launcher.
+
 ## 2026-06-13 — pmos-toolkit 2.75.1: /feature-sdlc worktree isolation is now real, not nominal
 
 `/feature-sdlc` (and its `define` / `build` / `skill` modes) now reliably *enters* the isolated worktree it creates, instead of creating the worktree on disk but continuing to work in the main checkout. This is what makes parallel `define`/`build` sessions genuinely safe to run side by side.
