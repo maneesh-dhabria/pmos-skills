@@ -1,0 +1,61 @@
+schema_version: 1
+story: 260613-14b
+epic: 260613-p3c
+route: skill
+spec: ../../02_design.html
+execution_mode: inline
+tasks:
+  - id: T1
+    title: Frontmatter + derivation module (parseItems + buildModel) with tests-first
+    status: pending
+    deps: []
+    parallel: false
+    spec_anchor: "#api-shape"
+    notes: >
+      Pure module scripts/serve-web-lib.mjs. parseItems reads backlog/items/*.md,
+      parses YAML frontmatter per schema.md, skips malformed (D7). buildModel derives
+      epics+stories, rollups (done/total/blocked), queues (groom/next/releases),
+      readiness (D21), facets — per D5. Write tests/serve-web.test.mjs FIRST against a
+      fixture backlog asserting rollups + queue membership match schema.md/#next/#releases.
+  - id: T2
+    title: Zero-dep live-read http server (serve-web.mjs)
+    status: pending
+    deps: [T1]
+    parallel: false
+    spec_anchor: "#server-contract"
+    notes: >
+      node:http on 127.0.0.1 ephemeral port (or --port). GET / -> web/viewer.html,
+      GET /api/backlog -> buildModel() fresh per request (live read, D2), 404 else.
+      --no-open test seam; browser auto-open + URL print + Ctrl-C. Read-only, no writes (D3).
+      Tests drive it headless.
+  - id: T3
+    title: Single-file viewer.html (tree + queues + filters)
+    status: pending
+    deps: [T2]
+    parallel: false
+    spec_anchor: "#viewer-contract"
+    notes: >
+      web/viewer.html inline CSS+JS, no CDN (D4). Tree view (epic->story + progress +
+      badges), Queues view (groom/next/releases lanes, display-only next commands),
+      persistent status/route/plugin filter bar, Refresh re-fetch, graceful file:// empty-state.
+      No write controls (D3).
+  - id: T4
+    title: Wire the web verb into backlog SKILL.md
+    status: pending
+    deps: [T3]
+    parallel: false
+    spec_anchor: "#conformance"
+    notes: >
+      Add web to #routing table; add ## web {#web} handler (resolve repo, assert node,
+      launch serve-web.mjs, report URL, no prompts); add web + --no-open/--port to
+      argument-hint; add References bullets. Conform to skill-patterns §I (web verb literal).
+  - id: T5
+    title: Live dogfood — drive served viewer in a browser (load-bearing)
+    status: pending
+    deps: [T4]
+    parallel: false
+    spec_anchor: "#risks"
+    notes: >
+      Start serve-web.mjs --no-open against real backlog; Playwright-drive the served
+      viewer (http, not file://). Assert tree counts, Queues == /backlog next/releases --json,
+      a filter narrows, Refresh re-reads after an add. Fix live-only bugs (cap-2). Served-UI dogfood gate.
