@@ -4,7 +4,7 @@ title: Read OKR best practices
 type: read
 importance: neutral
 status: pending
-workstream:
+project:
 people: []
 labels: [reading]
 links: [https://example.com/okrs]

@@ -4,7 +4,7 @@ title: Old dropped task
 type: idea
 importance: overhead
 status: dropped
-workstream:
+project:
 people: []
 labels: []
 links: []

@@ -13,23 +13,24 @@ Captured #{id} ({type}, {importance}): "{final title}"
 Append clauses for non-default values, separated by ` — `:
 
 - `due {due}` if due was inferred.
-- `workstream {workstream}` if inferred (annotate `(from current repo)` if from `.pmos/settings.yaml`).
 - `people: {comma-separated handles}` if any resolved.
+
+(No `project` clause on quick-capture — `project` is manual and never inferred, so it is always Inbox/absent here.)
 
 Then, on subsequent indented lines, list any unresolved `@handle` tokens:
 
 - No-match: `⚠ unresolved: @{token} — run /people add {token}, then /mytasks set {id} people=<handle>`
 - Multi-match: `⚠ unresolved: @{token} — multiple matches ({comma-separated handles}); run /mytasks set {id} people=<handle>`
 
-Examples:
+Examples (ids use the current `<YYMMDD>-<rand3>` scheme):
 
 ```
-Captured #0042 (call, neutral): "Call sarah about Q3 OKRs" — due 2026-05-01
+Captured #260613-c31 (call, neutral): "Call sarah about Q3 OKRs" — due 2026-05-01
 ```
 
 ```
-Captured #0043 (execution, neutral): "Sync with @sarah on roadmap"
-  ⚠ unresolved: @sarah — multiple matches (sarah-chen, sarah-patel); run /mytasks set 0043 people=<handle>
+Captured #260613-a3f (execution, neutral): "Sync with @sarah on roadmap"
+  ⚠ unresolved: @sarah — multiple matches (sarah-chen, sarah-patel); run /mytasks set 260613-a3f people=<handle>
 ```
 
 ## Rich-capture report
@@ -43,7 +44,7 @@ Added #{id} ({type}, {importance}): "{title}"
 Append clauses (` — ` separated) for any non-default values:
 
 - `due {due}`
-- `workstream {workstream}`
+- `project {project}`
 - `people: {comma-separated handles}`
 - `checkin {cadence} (next {next_checkin})`
 
