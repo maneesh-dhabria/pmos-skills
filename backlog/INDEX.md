@@ -23,7 +23,7 @@ Last regenerated: 2026-06-13 (define 260613-ev1 — pipeline-doc CSS readability
 | 260613-vba | defined | skill | pmos-toolkit | 1/2 | Build /research — PM decision-support deep-research skill |
 | 260613-yyj | defined | skill | pmos-toolkit | 1/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
 | 260613-4mw | released | skill | pmos-gamekit | 1/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
-| 260613-7tm | defined | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
+| 260613-7tm | released | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
 | 260613-5av | defined | skill | pmos-toolkit | 0/3 | /mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained) |
 | 260613-wqw | defined | skill | pmos-gamekit | 0/1 | /poker — No-Limit Texas Hold'em, single-player vs heuristic bots (cash game), single-file HTML reusing game-launcher; deps 260613-4mw |
 | 260613-ev1 | defined | feature | pmos-toolkit | 0/1 | Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate) |
@@ -52,7 +52,7 @@ Last regenerated: 2026-06-13 (define 260613-ev1 — pipeline-doc CSS readability
 | 260613-dnp | story | feature | ready | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate |  |  |  |
 | 260613-3ff | story | enhancement | done | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
 | 260613-2m7 | story | enhancement | ready | 260613-yyj | /verify load-bearing dogfood gate (Phase-7 hard gate) + iterate-loop residual reconciliation | 02_design.html | 03_plan.html |  |
-| 260613-3jc | story | bug | done | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
+| 260613-3jc | story | bug | released | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
 | 260613-7n1 | story | enhancement | planned | 260613-5av | Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix | 02_design.html | 03_plan.html |  |
 | 260613-044 | story | enhancement | planned | 260613-5av | Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering | 02_design.html | 03_plan.html |  |
 | 260613-yfr | story | feature | planned | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |

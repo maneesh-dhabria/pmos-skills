@@ -5,7 +5,7 @@ kind: epic
 title: claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test
 type: bug
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_claim-lock-esm/
 requirements_doc:
@@ -14,6 +14,7 @@ design_doc: docs/pmos/features/2026-06-13_claim-lock-esm/02_design.html
 labels: [pmos-toolkit, backlog, feature-sdlc, build-loop, esm, bug]
 created: 2026-06-13
 updated: 2026-06-13
+released: pmos-toolkit/v2.75.2
 ---
 
 ## Context
