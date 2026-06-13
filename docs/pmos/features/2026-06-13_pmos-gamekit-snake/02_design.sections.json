@@ -1,0 +1,80 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "charter",
+    "level": 2,
+    "title": "Plugin charter — fits the existing pmos-gamekit charter",
+    "parent_id": null
+  },
+  {
+    "id": "no-dep",
+    "level": 2,
+    "title": "No blocking dependency",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions captured at define (2026-06-13)",
+    "parent_id": null
+  },
+  {
+    "id": "architecture",
+    "level": 2,
+    "title": "Architecture",
+    "parent_id": null
+  },
+  {
+    "id": "engine-api",
+    "level": 2,
+    "title": "Engine API surface — window.SnakeEngine",
+    "parent_id": null
+  },
+  {
+    "id": "game-design",
+    "level": 2,
+    "title": "Game design — the bundled snake.html",
+    "parent_id": null
+  },
+  {
+    "id": "testability",
+    "level": 2,
+    "title": "Testability — single-file AND testable",
+    "parent_id": null
+  },
+  {
+    "id": "dogfood",
+    "level": 2,
+    "title": "Dogfood (load-bearing utility verification)",
+    "parent_id": null
+  },
+  {
+    "id": "playwright",
+    "level": 2,
+    "title": "Playwright end-to-end (required final-verification gate)",
+    "parent_id": null
+  },
+  {
+    "id": "story-split",
+    "level": 2,
+    "title": "Story split — a singleton epic",
+    "parent_id": null
+  },
+  {
+    "id": "conventions",
+    "level": 2,
+    "title": "Standing acceptance criteria & conventions",
+    "parent_id": null
+  },
+  {
+    "id": "out-of-scope",
+    "level": 2,
+    "title": "Out of scope (v1)",
+    "parent_id": null
+  }
+]

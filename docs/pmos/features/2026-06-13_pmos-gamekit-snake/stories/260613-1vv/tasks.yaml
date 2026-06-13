@@ -1,0 +1,184 @@
+schema_version: 1
+story: 260613-1vv
+epic: 260613-v3y
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+# Singleton story: ONE new skill (/snake) reusing the EXISTING _shared/game-launcher/ substrate
+# unchanged (no plugin scaffold, no launcher edits — those shipped with epic 260613-4mw / /solitaire,
+# already released on main, so this story has NO dependencies). All-new files under
+# plugins/pmos-gamekit/skills/snake/. NO release-prereq tasks here (changelog, learnings header,
+# version-sync validation, the minor bump) — see the design doc's release-prerequisite note;
+# /complete-dev (Loop 3) is the sole writer of those. Single-file contract (D10) reconciled with
+# testability via an engine/render split (window.SnakeEngine, AC3). Snake is a REAL-TIME arcade game
+# (a tick loop drives step()), unlike the turn-based /solitaire & /sudoku — the engine stays
+# pure/deterministic (seedable RNG, no timers in the engine; the UI owns the loop) so the headless
+# selftest can pin transitions. There is no reference codebase to port — the engine is built from the
+# documented algorithms in the design doc. T5 (TN-2) is this story's load-bearing dogfood (AC10
+# dogfood half); T6 (TN-1) bundles the REQUIRED Playwright e2e (AC10 e2e half, maintainer-mandated,
+# NOT deferred) with skill-eval + lints as the final-verification gate.
+tasks:
+  - id: T1
+    title: "Study reference: /solitaire bundle + game-launcher contract + the snake design doc"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Read the shipped /solitaire game/solitaire.html for the engine/render split pattern
+      (window.SolitaireEngine DOM-decoupled, inline data-URI favicon to avoid the favicon-404 the
+      /solitaire e2e caught, no-persistence, win/confetti) and its tests/run.mjs (vm-extract the engine
+      <script>, evaluate with no DOM, assert objective gates + --selftest count). Read the /solitaire
+      SKILL.md (launch-only body to mirror) and plugins/pmos-gamekit/skills/_shared/game-launcher/
+      game-launcher.md (the launch + bundling + Node-prereq + no-persistence contract this skill cites,
+      consumed UNCHANGED). Re-read the design doc 02_design.html (decisions D1–D12, the SnakeEngine API
+      surface, the difficulty/speed model, wall/wrap + food contracts, the win/end-state contract).
+      Produce no code — capture the SnakeEngine API surface (createState, setDirection, step, placeFood,
+      speedFor, makeRng) and the algorithm edge-cases (no-reverse validated against the LAST-APPLIED
+      heading and applied at most once per tick; wall-death vs wrap; self-collision including the tail-
+      tip edge case when growing vs not; food never on the snake; speed floor; board-fill win) to drive
+      T2's TDD tests.
+    verify: >
+      SnakeEngine API + the tick/step state machine + the no-reverse/per-tick-apply rule (D7) + wall-
+      kill-vs-wrap (D5) + food/growth/score + progressive speed-up floor (D4) + board-fill win (D8)
+      enumerated; engine/render split + launch contract understood before any code; it is clear that the
+      engine holds NO timers (the UI owns the real-time loop; the engine is a pure step function).
+
+  - id: T2
+    title: "Engine (TDD): window.SnakeEngine — createState, setDirection, step, placeFood, speedFor, seedable RNG"
+    ac: [AC3, AC4, AC5, AC9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author the PURE-LOGIC engine first (TDD — tests/run.mjs gates drive it), exposed on a global
+      window.SnakeEngine, fully DOM-decoupled and TIMER-FREE (the UI owns the loop; the engine is a pure
+      step function). Pieces: (a) makeRng(seed) — deterministic PRNG so tests pin food placement and
+      outcomes; (b) createState({cols, rows, startSpeed, wrap, seed}) -> {snake:[{x,y}...] (centered,
+      len ~3), dir, nextDir, food:{x,y} (on an empty cell), score, foodsEaten, tickMs (=startSpeed),
+      wrap, status:'playing'}; (c) setDirection(state, dir) — queues nextDir; IGNORES a 180° reverse
+      relative to the LAST-APPLIED dir (not a previously-queued one); (d) step(state) -> next state, one
+      tick: apply nextDir as the new dir; compute the new head; on a board edge -> wrap (if state.wrap)
+      else status:'over' (death); if the new head hits the snake body -> status:'over' (handle the tail-
+      tip correctly: when NOT eating, the tail cell about to vacate is not a collision); if the new head
+      is on food -> push head WITHOUT popping tail (grow +1), score += points, foodsEaten++, placeFood,
+      tickMs = speedFor(foodsEaten, startSpeed); else push head AND pop tail (move); if every cell is
+      occupied -> status:'won'; (e) placeFood(state, rng) -> uniform random EMPTY (non-snake) cell; no
+      empty cell -> win; (f) speedFor(foodsEaten, startSpeed) -> tick interval (ms), monotonically
+      non-increasing in steps with a HARD FLOOR. Write tests/run.mjs in lockstep (see AC9 gates). NO
+      DOM, NO npm, Node stdlib only (vm + fs).
+    verify: >
+      tests/run.mjs --selftest exercises initial-state validity (snake length + food on an empty non-
+      snake cell), setDirection (rejects 180° reverse vs last-applied, accepts a 90° turn), step head
+      advance, wall death (wrap off) at an edge, wrap (wrap on) reappears opposite + keeps playing, self-
+      collision death (incl. the tail-tip non-collision when moving), eat -> grow +1 + score + respawn on
+      an empty non-snake cell, speedFor strictly decreasing + floored, board-fill -> 'won' on a tiny
+      fixture, deterministic RNG for a fixed seed; all engine gates green before any UI.
+
+  - id: T3
+    title: "Bundled game UI — game/snake.html single-file render layer + real-time loop over the engine"
+    ac: [AC1, AC2, AC4, AC5, AC6, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/snake/game/snake.html — ONE self-contained file, all CSS+JS
+      embedded, offline, no external refs (D10), no persistence (D9), inline data-URI favicon (the
+      /solitaire favicon-404 lesson). The embedded engine from T2 (window.SnakeEngine) plus a DOM
+      render/UI layer that consumes it: a bounded grid board (default ~20x20) rendered via Canvas 2D or a
+      CSS grid with a thick border, no image files; a start screen / new-game with a difficulty picker
+      (Slow/Normal/Fast — D3) and the wrap toggle (off by default — D5); a real-time loop (requestAnimation
+      Frame or setInterval ALIGNED to the engine's tickMs) that calls step() each tick and repaints, with
+      a visible speed-up as the snake grows (D4); controls (D6) — Arrow keys + WASD + an on-screen D-pad
+      for touch, 180° reverse ignored and at most one turn applied per tick (call setDirection then let
+      step apply it), P/Space pause-resume, R/N new game; a HUD with live score, snake length, current
+      speed, and a SESSION high score (D9); end states (D8) — wall/self collision -> a game-over overlay
+      with the final score + a restart button, board-fill -> a win celebration with confetti (reuse the
+      /solitaire win animation pattern). Reads ALL rules/state from window.SnakeEngine — NO duplicated
+      logic in the UI. Accessible: ARIA labels on controls, keyboard-operable, visible focus, never
+      color-alone for state, honor prefers-reduced-motion for the confetti. Board art is CSS / Canvas /
+      Unicode / inline SVG — no image files (D10).
+    verify: >
+      snake.html opens standalone and plays; contains no http(s):// or src/href to external assets; reads
+      from window.SnakeEngine (no duplicated rules); difficulty picker, wrap toggle, real-time loop with
+      visible speed-up, arrow+WASD+D-pad controls with no-reverse, pause, game-over overlay + restart,
+      session high score, board-fill win + confetti all present; no console errors on load (inline
+      favicon); responsive on laptop + phone widths.
+
+  - id: T4
+    title: "/snake SKILL.md — launch-only, cites the game-launcher substrate"
+    ac: [AC1, AC7]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Create plugins/pmos-gamekit/skills/snake/SKILL.md. Frontmatter: name snake (matches dir),
+      user-invocable true, a triggering description ("play snake", "/snake", "snake game", "I want to
+      play snake", "feature phone snake"), argument-hint noting no args (difficulty / wrap / pause are
+      in-game controls), allowed-tools Bash, Read. Body mirrors /solitaire: an Overview that CITES
+      ../_shared/game-launcher/game-launcher.md for the launch + bundling + no-persistence contract and
+      states ONLY the snake deltas (game file game/snake.html; title "Snake"; controls summary —
+      difficulty picker, wrap toggle, arrows/WASD/D-pad, pause, restart); a "Platform Adaptation" note;
+      a tight launch-only Phase — resolve the game path, assert Node present (D2 error verbatim if
+      absent, no silent file:// fallback), invoke ../_shared/game-launcher/serve.js, report the URL +
+      controls + Ctrl-C; a Load-Learnings and a Capture-Learnings note. Prompt-free: no AskUserQuestion.
+      Run tools/lint-non-interactive-inline.sh — inline the canonical NI block byte-identical from
+      skills/_shared/non-interactive.md (it was required for /solitaire, so expect it here). Conform to
+      skill-patterns.md §A–§L + the canonical skill path.
+    verify: >
+      name: snake matches dir; cites game-launcher.md, no restated launch contract; no AskUserQuestion;
+      lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, audit-recommended all green.
+
+  - id: T5
+    title: "TN-2: Dogfood / Utility Verification — actually play the game"
+    ac: [AC10]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Archetype: frontend/game (manual/scripted playthrough + independent judge; the Playwright e2e is
+      T6). Launch /snake (or serve.js directly) and PLAY: pick EACH difficulty (slow/normal/fast) and
+      confirm the starting speed feels right; steer with BOTH arrows and WASD; eat food and confirm the
+      snake grows +1, the score rises, and the speed visibly ramps up as it grows; toggle WRAP and
+      confirm edge behavior flips (death-on-wall -> reappear-opposite); DIE on a wall and on self and
+      confirm the game-over overlay + score + restart; confirm the SESSION high score updates across
+      runs in one session; try the no-reverse guard (two fast opposite taps must NOT self-kill).
+      OBJECTIVE gates: tests/run.mjs --selftest green; serve.js launches + serves; no console errors;
+      lint-phase-refs + skill-eval green. SUBJECTIVE: an independent BLIND judge (fresh subagent) plays
+      and rates input responsiveness/latency, control clarity, legibility, and absence of stuck/janky
+      states — overall "frustration-free?" yes/no + enumerated gaps; the judge makes NO edits. Iterate:
+      gaps -> fix -> re-run, cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict
+      line (satisfied/not + accepted_residuals).
+    verify: >
+      Verdict recorded; selftest + launch + lint green; all three difficulties played, both input paths
+      (arrows + WASD) exercised, food/growth/score/speed-up confirmed, wrap toggle flips edge behavior,
+      death on wall and on self reach the overlay + restart, session high score updates, no-reverse guard
+      holds.
+
+  - id: T6
+    title: "TN-1/TN: Playwright e2e (REQUIRED, NOT deferred) + skill-eval + lints + single-file check"
+    ac: [AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Part A — Playwright end-to-end (maintainer-mandated final-verification gate, NOT deferred): launch
+      serve.js against game/snake.html and navigate Playwright (the playwright MCP) to the printed
+      localhost URL; pick a difficulty and start; press arrow AND WASD keys and ASSERT the snake's head
+      advances (read the cell/canvas state or an exposed debug hook on window.SnakeEngine); steer the
+      head onto food and ASSERT the score increments AND the snake length grows; steer into a wall (wrap
+      off) and ASSERT the game-over overlay appears; press restart and ASSERT a fresh game (score reset,
+      snake re-centered); ASSERT ZERO console errors throughout; capture a screenshot of active play +
+      the game-over overlay as browser evidence (the /verify browser-evidence hard gate). For the WIN
+      path (board-fill), use a deterministic seed + a tiny-board test hook the engine exposes to reach
+      'won' and assert the confetti/win overlay; only if genuinely unreachable in-harness may that narrow
+      win-celebration sub-check be recorded deferred-to-release, surfaced LOUDLY. If Playwright is
+      unavailable in the build host, provision it LOCALLY in the worktree (npm i, NOT -g — the
+      explainer-video lesson); do NOT silently defer the core playthrough.
+      Part B — final compliance: run feature-sdlc/tools/skill-eval-check.sh against the snake skill dir
+      (target platform from skill-tier-resolve) — [D] all-pass, [J] >= floor 43/47; name: snake matches
+      dir. Run repo hygiene lints (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline,
+      audit-recommended) — green. Confirm zero external runtime deps and the single-file contract (no
+      external refs in snake.html). DO NOT write changelog / learnings header / bump the version / do the
+      release — those are ## Release prerequisites owned by /complete-dev (the minor bump lands at
+      Loop 3). Enumerate any deferred-to-release visual checks for /complete-dev.
+    verify: >
+      Playwright drove the real game: arrow + WASD advance asserted, food eaten incremented score +
+      grew the snake, a wall collision raised the game-over overlay, restart yielded a fresh game, zero
+      console errors, screenshot captured, no silent defer (win reached via test hook or loudly
+      deferred); skill-eval >= 43/47; all 4 lints green; single-file contract holds; deferred checks (if
+      any) enumerated for release.
