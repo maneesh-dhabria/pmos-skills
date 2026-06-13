@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Solitaire — Klondike</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:,">
 <style>
   :root {
     --felt-a: #136a3a; --felt-b: #0d5530;
@@ -56,7 +58,7 @@
     background: #fff; box-shadow: var(--shadow); cursor: pointer; overflow: hidden;
     transition: top .12s ease, left .12s ease, transform .08s ease;
   }
-  .card.dragging { transition: none; z-index: 1000; cursor: grabbing; box-shadow: 0 8px 18px rgba(0,0,0,.4); }
+  .card.dragging { transition: none; z-index: 1000; cursor: grabbing; box-shadow: 0 8px 18px rgba(0,0,0,.4); pointer-events: none; }
   .card .face { position: absolute; inset: 0; padding: 5px 6px; }
   .card .corner { position: absolute; font-weight: 800; line-height: 1; font-size: 15px; text-align: center; }
   .card .corner.tl { top: 5px; left: 6px; }
@@ -71,6 +73,8 @@
   }
   .card.down .face { display: none; }
   .card.hint { outline: 3px solid #f5d76e; outline-offset: -1px; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+  .card.reject { animation: shake .32s ease; outline: 2px solid var(--red); outline-offset: -1px; }
   .win-banner {
     position: fixed; inset: 0; display: none; place-items: center; z-index: 200;
     background: rgba(0,0,0,.55); flex-direction: column; text-align: center;
@@ -650,36 +654,68 @@ if (typeof document !== 'undefined') {
     window.removeEventListener('pointerup', onPointerUp);
     if (!drag) return;
     var d = drag; drag = null;
-    d.origins.forEach(function (o) { o.el.classList.remove('dragging'); o.el.style.transform = ''; });
 
-    if (!d.moved) { clickMove(d.src); return; } // tap → click-move
+    if (!d.moved) {
+      d.origins.forEach(function (o) { o.el.classList.remove('dragging'); o.el.style.transform = ''; });
+      clickMove(d.src); return; // tap → click-move
+    }
 
-    // Determine drop target pile under the pointer.
+    // Determine drop target pile under the pointer. Cards still carry .dragging
+    // (pointer-events:none) so elementFromPoint sees the pile underneath, not the
+    // card being dragged. Snap back only after we've read the drop target.
     var dropEl = document.elementFromPoint(ev.clientX, ev.clientY);
+    var primaryEl = d.origins[0] && d.origins[0].el;
+    d.origins.forEach(function (o) { o.el.classList.remove('dragging'); o.el.style.transform = ''; });
     var destPile = dropEl && dropEl.closest ?
       dropEl.closest('.tableau-col, [data-zone="foundation"], #foundation-S, #foundation-H, #foundation-D, #foundation-C') : null;
 
-    if (!destPile) { render(); return; }
+    if (!destPile) { reject(primaryEl); return; }
 
     if (destPile.classList.contains('tableau-col')) {
       var toCol = +destPile.dataset.col;
-      if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToTableau', to: toCol })) render(); return; }
-      if (d.src.zone === 'tableau') { if (!tryMove({ type: 'tableauToTableau', from: d.src.col, to: toCol, index: d.src.index })) render(); return; }
-      if (d.src.zone === 'foundation') { if (!tryMove({ type: 'foundationToTableau', suit: d.src.suit, to: toCol })) render(); return; }
-      render(); return;
+      if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToTableau', to: toCol })) reject(primaryEl); return; }
+      if (d.src.zone === 'tableau') { if (!tryMove({ type: 'tableauToTableau', from: d.src.col, to: toCol, index: d.src.index })) reject(primaryEl); return; }
+      if (d.src.zone === 'foundation') { if (!tryMove({ type: 'foundationToTableau', suit: d.src.suit, to: toCol })) reject(primaryEl); return; }
+      reject(primaryEl); return;
     }
     // foundation drop
     var fid = destPile.id || '';
     var suit = fid.indexOf('foundation-') === 0 ? fid.slice('foundation-'.length) : (destPile.dataset && destPile.dataset.suit);
-    if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToFoundation' })) render(); return; }
+    if (d.src.zone === 'waste') { if (!tryMove({ type: 'wasteToFoundation' })) reject(primaryEl); return; }
     if (d.src.zone === 'tableau') {
       var col = state.tableau[d.src.col];
-      if (d.src.index === col.length - 1) { if (!tryMove({ type: 'tableauToFoundation', from: d.src.col })) render(); return; }
+      if (d.src.index === col.length - 1) { if (!tryMove({ type: 'tableauToFoundation', from: d.src.col })) reject(primaryEl); return; }
     }
-    render();
+    reject(primaryEl);
+  }
+
+  // Brief shake + red outline on an illegal drop so the player sees the move was
+  // rejected (no silent snap-back). The card is already back at its origin.
+  function reject(el) {
+    if (!el) return;
+    el.classList.add('reject');
+    setTimeout(function () { if (el) el.classList.remove('reject'); }, 340);
   }
 
   function startTimerIfNeeded() { if (startTime == null) startTime = Date.now(); }
+
+  // Hint (H): briefly outline the first card with a legal foundation move, else the
+  // first movable waste/tableau card with a legal tableau target — a gentle nudge.
+  function showHint() {
+    if (won) return;
+    var sel = null;
+    if (E.isLegalMove(state, { type: 'wasteToFoundation' })) sel = '#waste .card[data-zone="waste"]';
+    for (var c = 0; !sel && c < 7; c++) {
+      var col = state.tableau[c];
+      if (col.length && E.isLegalMove(state, { type: 'tableauToFoundation', from: c })) {
+        sel = '.card[data-col="' + c + '"][data-index="' + (col.length - 1) + '"]';
+      }
+    }
+    var el = sel && document.querySelector(sel);
+    if (!el) return; // no obvious hint — stay quiet rather than guess
+    el.classList.add('hint');
+    setTimeout(function () { if (el) el.classList.remove('hint'); }, 900);
+  }
 
   // wrap commit to start timer on first move
   var _commit = commit;
@@ -756,18 +792,24 @@ if (typeof document !== 'undefined') {
         case 'u': undo(); break;
         case 'a': autoMove(); break;
         case 'n': document.getElementById('winBanner').classList.remove('show'); newGame({}); break;
+        case 'h': showHint(); break;
         case '1': setDrawMode(1); break;
         case '3': setDrawMode(3); break;
       }
     });
   }
 
-  // Test hook for Playwright / debugging — does NOT persist anything.
+  // Test hook for Playwright / debugging — in-memory only, persists nothing (D6).
   window.__solitaire = {
     getState: function () { return state; },
     isWon: function () { return won; },
     autoMove: autoMove,
     newGame: newGame,
+    moveCount: function () { return moves; },
+    // Deterministic test seam: replace the live state and re-render. Used by the
+    // e2e to stage reproducible click / drag scenarios. No effect on normal play.
+    _setState: function (s) { state = E.clone(s); history = []; won = false; setDrawMode(state.drawCount); startTimerIfNeeded(); render(); },
+    _render: render,
   };
 
   wire();

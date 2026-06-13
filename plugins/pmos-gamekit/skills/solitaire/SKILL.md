@@ -93,8 +93,9 @@ to load.
    `Game ready at http://127.0.0.1:<port>/`, and auto-opens your default browser. If the
    browser does not open (headless), open the printed URL manually.
 4. **Report** the URL to the user and that gameplay controls are: draw-1/draw-3 toggle,
-   drag or click to move, **U** undo, **A** auto-move to foundations, **N** new game,
-   **1**/**3** set draw mode. Stopping is `Ctrl-C` in the launcher terminal. Per D6 the
+   drag or click to move, **U** undo, **A** auto-move to foundations, **H** hint,
+   **N** new game, **1**/**3** set draw mode. Stopping is `Ctrl-C` in the launcher
+   terminal. Per D6 the
    game keeps **no save state** — closing the tab discards the hand.
 
 ## Phase 1: Capture Learnings {#capture-learnings}
