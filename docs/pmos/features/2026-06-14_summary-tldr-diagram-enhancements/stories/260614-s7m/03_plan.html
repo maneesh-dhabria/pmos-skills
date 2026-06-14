@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan"><title>Plan — 260614-s7m /summary-tldr emit-before-diagram</title>
+<style>body{font-family:Inter,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:2.5rem 1.5rem;line-height:1.6;color:#1c1917}h1{font-size:1.5rem}h2{font-size:1.1rem;margin-top:1.8rem;border-bottom:1px solid #e7e5e4;padding-bottom:.3rem}code{background:#f0eeec;padding:.1em .35em;border-radius:3px}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #e7e5e4;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f0eeec}</style></head><body>
+<h1>Plan — Story 260614-s7m</h1>
+<p><strong>/summary-tldr</strong> · epic 260614-q4r · route: skill · plugin pmos-toolkit · spec: <code>../../02_design.html</code> (§summary-tldr, D1, D2)</p>
+<h2 id="approach">Approach</h2>
+<p>One structural change + one cosmetic change to <code>summary-tldr/SKILL.md</code>. <strong>Emit before diagram</strong> (D1): write the full summary HTML to disk first (reserving a diagram slot), move the diagram gate/run after the first emit, and inject the validated SVG into the on-disk file afterward — making the approved text crash-safe (resolves the [blocker] + obs-2) without a <code>.summary.tmp</code> side-file. <strong>Compact table</strong> (F3): render "Source &amp; confidence" as a two-column <code>&lt;table&gt;</code>. obs-1/h1 is out of scope (deferred to epic 260613-ev1 — D2). Preserve the existing main-agent <code>/diagram</code> handoff + SVG validation + provenance block; keep <code>lint-phase-refs.sh</code> and the non-interactive block intact.</p>
+<h2 id="tasks">Tasks</h2>
+<p>See <code>tasks.yaml</code> (T1 study → T2 reorder → T3 inject + table → T4 lints/skill-eval → T5 load-bearing dogfood). TDD-style verification per task; T5 is the load-bearing dogfood (real run, emit-before-diagram confirmed on disk).</p>
+<h2 id="risks">Risks</h2>
+<table><thead><tr><th>Risk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>Reorder breaks phase-anchor cross-refs</td><td>T2 renumbers + updates every <code>{#anchor}</code>; <code>lint-phase-refs.sh</code> gates T4.</td></tr>
+<tr><td>Diagram injection corrupts the emitted file</td><td>read → insert in reserved slot → atomic temp-then-rename; on failure leave the summary intact (no rollback).</td></tr>
+<tr><td>Double-h1 if ev1 lands later</td><td>obs-1 explicitly NOT implemented here (D2); summary supplies <code>{{title}}</code> only.</td></tr>
+</tbody></table>
+<h2 id="out-of-scope">Out of scope</h2>
+<p>h1/template/CSS (ev1); <code>.summary.tmp</code> (superseded by D1); release-prereqs (Loop 3).</p>
+</body></html>

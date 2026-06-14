@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /summary-tldr + /diagram enhancements (epic 260614-q4r)</title>
+<style>
+  :root { --ink:#1c1917; --muted:#57534e; --line:#e7e5e4; --bg:#faf9f7; --accent:#c2410c; }
+  body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color:var(--ink); background:var(--bg);
+         max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; line-height: 1.6; }
+  h1 { font-size: 1.7rem; line-height:1.25; margin-bottom:.25rem; }
+  h2 { font-size: 1.2rem; margin-top: 2.2rem; padding-bottom:.3rem; border-bottom:1px solid var(--line); }
+  h3 { font-size: 1.02rem; margin-top: 1.4rem; }
+  code { background:#f0eeec; padding:.1em .35em; border-radius:3px; font-size:.88em; }
+  table { border-collapse: collapse; width:100%; margin:1rem 0; font-size:.92rem; }
+  th, td { border:1px solid var(--line); padding:.5rem .6rem; text-align:left; vertical-align:top; }
+  th { background:#f0eeec; }
+  .sub { color:var(--muted); font-size:.9rem; }
+  .tag { display:inline-block; background:#f0eeec; border:1px solid var(--line); border-radius:10px;
+         padding:.05rem .55rem; font-size:.78rem; color:var(--muted); margin-right:.3rem; }
+  blockquote { border-left:3px solid var(--accent); margin:1rem 0; padding:.4rem 1rem; color:var(--muted); background:#f5f3f1; }
+</style>
+</head>
+<body>
+
+<h1>Design contract — Enhance <code>/summary-tldr</code> + <code>/diagram</code> + shared first-run default</h1>
+<p class="sub">Epic <strong>260614-q4r</strong> · route: skill · plugin: pmos-toolkit · 2026-06-14<br>
+Stories: <code>260614-s7m</code> (summary-tldr) · <code>260614-d3g</code> (diagram) · <code>260614-p8k</code> (substrate)</p>
+
+<p><span class="tag">retro-seeded</span><span class="tag">route:skill</span><span class="tag">docs-only define</span></p>
+
+<p>This is the cross-skill coherence contract for a <code>route: skill</code> epic of three <em>independent</em>
+stories. It is the synthesized epic-design page (raw-feedback sub-mode of the define loop): the per-story
+acceptance criteria carry the per-skill change-sets verbatim; this page names the cross-cutting invariants
+and the decisions that shaped the split.</p>
+
+<h2 id="findings">The finding set</h2>
+<p>From maintainer observations + two <code>/reflect</code> retros (2026-06-14), surfaced dogfooding
+<code>/summary-tldr</code> against a 170&nbsp;KB Porter Metric Store POV.</p>
+<table>
+  <thead><tr><th>#</th><th>Severity</th><th>Finding</th><th>Skill / file</th></tr></thead>
+  <tbody>
+    <tr><td>F1</td><td>blocker</td><td>Approved summary text lost to context compaction during the long Phase 6 <code>/diagram</code> loop; Phase 7 reconstructed from source.</td><td>summary-tldr/SKILL.md</td></tr>
+    <tr><td>F2</td><td>obs</td><td>Summary should be emitted before the (slow) optional diagram step so the reader isn't blocked.</td><td>summary-tldr/SKILL.md</td></tr>
+    <tr><td>F3</td><td>obs</td><td>"Source &amp; confidence" appendix should be compact / a table (currently a <code>&lt;dl&gt;</code>).</td><td>summary-tldr/SKILL.md</td></tr>
+    <tr><td>F4</td><td>obs</td><td>Summary artifact should have an h1 title.</td><td>(see <a href="#d-obs1">D2</a>)</td></tr>
+    <tr><td>F5</td><td>friction</td><td>Opaque contrast hard-fail when a <code>class="legend"</code> chip suppresses the expected background source.</td><td>diagram contrast checker</td></tr>
+    <tr><td>F6</td><td>nit</td><td>First draft uses off-palette colors despite the editorial theme being loaded.</td><td>diagram/themes/editorial/style.md</td></tr>
+    <tr><td>F7</td><td>friction</td><td>First-run <code>docs_path</code> prompt has no <code>(Recommended)</code> option → non-interactive DEFERs and dead-ends.</td><td>_shared/pipeline-setup.md</td></tr>
+  </tbody>
+</table>
+
+<h2 id="decisions">Decisions</h2>
+
+<h3 id="d-subsumes">D1 — obs-2 (emit-before-diagram) structurally subsumes the blocker (F1+F2 → one fix)</h3>
+<p>The blocker is a data-loss risk: the Phase 4/5-approved summary lives only in conversation context across
+the multi-turn diagram loop, and a compaction loses it. Rather than the retro's proposed
+<code>{out}.summary.tmp</code> side-file, the canonical fix is to <strong>reorder the phases</strong>:
+emit the full summary HTML to disk <em>first</em>, then run <code>/diagram</code> and inject the validated SVG
+into the on-disk artifact. The approved text is persisted in the real artifact before any long-running work,
+so it is crash-safe by construction — and no redundant temp file is introduced (the artifact is the single
+source, §K one-fact-one-home). One fix resolves F1 and F2.</p>
+<blockquote>Anti-pattern to encode: never run the slow diagram loop between Phase 5 approval and the first
+on-disk emit.</blockquote>
+
+<h3 id="d-obs1">D2 — obs-1 (h1 title) is OUT of this epic; deferred to epic 260613-ev1</h3>
+<p>A substrate-level body <code>&lt;h1&gt;</code> is already owned by <strong>epic 260613-ev1</strong>
+("Pipeline-doc CSS readability refresh", status <code>defined</code>): it converts the current ~12px toolbar
+title into a breadcrumb and renders a real body <code>&lt;h1&gt;</code> from <code>{{title}}</code> in
+<code>_shared/html-authoring/template.html</code> for <em>every</em> pipeline artifact. <code>/summary-tldr</code>
+already supplies a meaningful <code>{{title}}</code> (e.g. "Porter Metric Store POV — TL;DR"). Re-implementing an
+h1 inside <code>/summary-tldr</code> would duplicate that fix and double-up when ev1 lands. Maintainer decision
+(2026-06-14, via define grill): <strong>defer obs-1 to ev1; no <code>/summary-tldr</code> change</strong>.
+Documented, not silently dropped.</p>
+
+<h3 id="d-split">D3 — three independent stories, default one-per-skill (G3)</h3>
+<p>The change-sets are independent (different files, no inter-story coupling), so the split is the default
+one-story-per-skill plus one for the shared substrate. No story <code>dependencies:</code>. The substrate story
+is its own unit because the fix benefits every skill, not just summary-tldr.</p>
+
+<h3 id="d-release">D4 — single plugin / release unit (D17): pmos-toolkit</h3>
+<p>All three stories land in <strong>pmos-toolkit</strong>. The substrate edit (Story C) is authored canonically
+in pmos-toolkit and synced to pmos-learnkit via <code>scripts/sync-shared.sh --from=pmos-toolkit</code> at release.
+The whole epic rides one pmos-toolkit minor bump; <code>/complete-dev</code> (Loop 3) is the sole writer of the
+version bump, changelog, README rows, and tag. No release-prerequisite work appears in any story's
+<code>tasks.yaml</code>.</p>
+
+<h2 id="summary-tldr">Story 260614-s7m — /summary-tldr</h2>
+<p>Two changes (see ACs in the story item):</p>
+<ul>
+  <li><strong>Emit-before-diagram reorder (D1).</strong> Move the Phase 7 emit ahead of the optional diagram
+  step; the diagram gate + run move after the first emit; the validated SVG is injected into the on-disk file
+  (read → insert in the diagram slot → atomic temp-then-rename), then the library index regenerates. On diagram
+  failure the emitted summary is left intact. Preserve the existing main-agent <code>/diagram</code> handoff +
+  SVG validation contract (parses, dark-mode bg <code>&lt;rect&gt;</code>, heading-id smoke) and the provenance
+  block. Update the Phase numbering and <code>{#anchors}</code> cross-references (keep <code>lint-phase-refs.sh</code>
+  green).</li>
+  <li><strong>Compact "Source &amp; confidence" table (F3).</strong> Render the appendix as a compact two-column
+  <code>&lt;table&gt;</code> (Source kind / Source path / Extraction confidence / Source date / Coverage signal)
+  instead of a <code>&lt;dl&gt;</code>; keep the stable kebab heading id.</li>
+</ul>
+
+<h2 id="diagram">Story 260614-d3g — /diagram</h2>
+<ul>
+  <li><strong>Contrast diagnostic note (F5).</strong> In the diagram contrast checker, when a contrast hard-fail
+  is produced for an element whose background was resolved by falling back <em>past</em> a nearest ancestor
+  excluded due to <code>class="legend"</code>, append the suffix <code>(nearest ancestor excluded by
+  class=legend — remove class=legend from the chip rect if it is the actual background source)</code> to that
+  message only. The legend-exclusion logic itself is unchanged — this is message enrichment, scoped to the
+  legend-fallback case.</li>
+  <li><strong>Editorial palette hard-constraint preamble (F6).</strong> Add a one-line <code>PALETTE HARD
+  CONSTRAINT — only these hex values are permitted</code> block immediately above the color table in
+  <code>themes/editorial/style.md</code>, so it registers before color selection. No palette values change.</li>
+</ul>
+
+<h2 id="substrate">Story 260614-p8k — _shared/pipeline-setup.md</h2>
+<p>Mark <code>docs/pmos/</code> as the <code>(Recommended)</code> first-run <code>docs_path</code> option (first in
+the list, byte-exact " (Recommended)" suffix) so the non-interactive classifier AUTO-PICKs it instead of
+DEFERring and dead-ending. Reconcile any <code>defer-only</code> tag on the prompt (this is a non-destructive
+path choice — a Recommended option is correct). Cross-plugin sync is deferred to release.</p>
+
+<h2 id="non-goals">Non-goals</h2>
+<ul>
+  <li>obs-1 / any body-<code>&lt;h1&gt;</code> or template/CSS work — owned by epic 260613-ev1 (D2).</li>
+  <li>Any change to the <code>/diagram</code> contrast/legend <em>logic</em> or the editorial <em>palette values</em>
+  — only diagnostics and a constraint reminder.</li>
+  <li>Any release-prerequisite work (version bump, changelog, README rows, manifest sync) — <code>/complete-dev</code>
+  at Loop 3.</li>
+  <li>The retro's <code>.summary.tmp</code> side-file — superseded by the emit-before-diagram reorder (D1).</li>
+</ul>
+
+<h2 id="release-prerequisites">Release prerequisites (for Loop 3, not built here)</h2>
+<ul>
+  <li>One pmos-toolkit minor version bump (both <code>plugin.json</code> manifests).</li>
+  <li>Changelog entry covering the three enhancements.</li>
+  <li><code>scripts/sync-shared.sh --from=pmos-toolkit</code> to propagate the <code>pipeline-setup.md</code> change to pmos-learnkit.</li>
+</ul>
+
+</body>
+</html>
