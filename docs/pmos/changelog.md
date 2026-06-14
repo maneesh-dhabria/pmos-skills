@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-14 — pmos-toolkit 2.77.0: browse your backlog in a web page with /backlog web
+
+`/backlog` gains a `web` verb that opens your epics and stories as a clean, read-only web page instead of scrolling raw Markdown. It's a live view: a tiny local server re-reads your backlog files (and any in-flight claims) on each load, so what you see in the browser always reflects the real state on disk.
+
+- **A read-only backlog viewer in your browser.** `/backlog web` launches a single-file HTML view of your whole backlog — a tree of epics and their stories, the groom/next/releases queues, and filters to narrow by status, route, plugin, or kind. It's purely for reading and navigating; nothing in the page can edit, claim, or release anything, so it's always safe to leave open while a build loop runs.
+- **Always shows the live state.** The view is served by a small zero-dependency local server that re-reads your `backlog/` files and active claim locks on every request — no stale snapshot, no separate export step. In-progress stories show who's holding them. When you're done, the server shuts down cleanly.
+- **Stays out of the build loop's way.** The server only ever reads; it never opens a write handle to your backlog and never touches the claim lock, so running the viewer can't race or interfere with `/feature-sdlc build` or `/complete-dev --epic` working in the same repo.
+
 ## 2026-06-14 — pmos-toolkit 2.76.0: /mytasks gets a Todoist-class local web app, plus projects, subtasks, and recurrence
 
 `/mytasks` grows from a terminal task list into a full personal task manager you can drive from a browser or the command line — with projects, nested subtasks, and repeating tasks. Everything stays local: your tasks live as plain files in your repo, and the web app talks to a tiny zero-dependency server that re-reads those files on every request, so the terminal and the browser are always looking at the same source of truth.
