@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snake</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%F0%9F%90%8D%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:,">
+<style>
+  :root {
+    --bg-a: #0e1726; --bg-b: #0a1120;
+    --board: #11192b; --grid: #18223a;
+    --border: #2b3a5c;
+    --snake: #4ade80; --snake-head: #86efac; --food: #f87171;
+    --text: #e6edf6; --muted: #9aa7bd; --accent: #4ade80;
+    --panel: #16203400; --shadow: 0 2px 8px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at 50% 0%, var(--bg-a), var(--bg-b));
+    min-height: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px 12px 32px;
+  }
+  h1 { font-size: 22px; margin: 4px 0 2px; letter-spacing: .5px; font-weight: 700; }
+  h1 .em { font-size: 22px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+  .hud {
+    display: flex; gap: 18px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 10px; font-variant-numeric: tabular-nums;
+  }
+  .hud .stat { text-align: center; min-width: 58px; }
+  .hud .stat .k { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+  .hud .stat .v { font-size: 20px; font-weight: 700; }
+
+  .stage { position: relative; }
+  canvas#board {
+    background: var(--board);
+    border: 3px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    display: block;
+    touch-action: none;
+    max-width: 92vw; max-height: 62vh;
+  }
+
+  /* overlays */
+  .overlay {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center;
+    background: rgba(7, 12, 22, .82); border-radius: 10px; padding: 18px;
+  }
+  .overlay.show { display: flex; }
+  .overlay h2 { margin: 0; font-size: 24px; }
+  .overlay p { margin: 0; color: var(--muted); font-size: 14px; }
+  .overlay .big { font-size: 30px; font-weight: 800; color: var(--accent); }
+
+  /* difficulty picker */
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+  .seg button {
+    background: transparent; color: var(--muted); border: 0; padding: 8px 16px;
+    font-size: 14px; cursor: pointer; font-weight: 600;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #06210f; }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; cursor: pointer; }
+  .toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  button.btn {
+    background: var(--accent); color: #06210f; border: 0; border-radius: 8px;
+    padding: 10px 22px; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  button.btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  button.btn:focus-visible, button.btn.ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .controls { margin-top: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+  /* on-screen D-pad (touch) */
+  .dpad { display: grid; grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(3, 52px); gap: 6px; margin-top: 6px; }
+  .dpad button {
+    background: #1a2742; color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+    font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .dpad button:active { background: #243css; }
+  .dpad button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dpad .up { grid-column: 2; grid-row: 1; }
+  .dpad .left { grid-column: 1; grid-row: 2; }
+  .dpad .right { grid-column: 3; grid-row: 2; }
+  .dpad .down { grid-column: 2; grid-row: 3; }
+
+  .hint { color: var(--muted); font-size: 12.5px; margin-top: 6px; max-width: 460px; text-align: center; line-height: 1.5; }
+  kbd { background: #1a2742; border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; font-size: 12px; }
+
+  .confetti { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 150; pointer-events: none; border-radius: 2px; }
+  @keyframes fall { to { transform: translateY(108vh) rotate(540deg); opacity: .9; } }
+  @media (prefers-reduced-motion: reduce) {
+    .confetti { display: none !important; }
+  }
+</style>
+</head>
+<body>
+  <h1><span class="em">🐍</span> Snake</h1>
+  <div class="sub">Eat the food, grow, don't crash. Arrows / WASD to steer.</div>
+
+  <div class="hud" aria-live="polite">
+    <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+    <div class="stat"><div class="k">Length</div><div class="v" id="length">3</div></div>
+    <div class="stat"><div class="k">Speed</div><div class="v" id="speed">1</div></div>
+    <div class="stat"><div class="k">Best</div><div class="v" id="best">0</div></div>
+  </div>
+
+  <div class="stage">
+    <canvas id="board" width="420" height="420" role="img" aria-label="Snake game board"></canvas>
+
+    <!-- Start / new-game overlay -->
+    <div class="overlay show" id="startOverlay">
+      <h2>New game</h2>
+      <p>Pick a speed, then start.</p>
+      <div class="seg" role="group" aria-label="Difficulty">
+        <button id="diffSlow" aria-pressed="false">Slow</button>
+        <button id="diffNormal" aria-pressed="true">Normal</button>
+        <button id="diffFast" aria-pressed="false">Fast</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="wrapToggle"> Wrap around walls (off = walls kill)</label>
+      <button class="btn" id="startBtn">Start ▶</button>
+    </div>
+
+    <!-- Pause overlay -->
+    <div class="overlay" id="pauseOverlay">
+      <h2>Paused</h2>
+      <p>Press <kbd>P</kbd> or <kbd>Space</kbd> to resume.</p>
+      <button class="btn" id="resumeBtn">Resume</button>
+    </div>
+
+    <!-- Game-over overlay -->
+    <div class="overlay" id="overOverlay">
+      <h2>Game over</h2>
+      <p>Final score</p>
+      <div class="big" id="overScore">0</div>
+      <p id="overBest"></p>
+      <button class="btn" id="overRestart">Play again ↻</button>
+    </div>
+
+    <!-- Win overlay -->
+    <div class="overlay" id="winOverlay">
+      <h2>🏆 You filled the board!</h2>
+      <div class="big" id="winScore">0</div>
+      <button class="btn" id="winRestart">Play again ↻</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <button class="btn ghost" id="pauseBtn" aria-label="Pause or resume">⏸ Pause</button>
+      <button class="btn ghost" id="newBtn" aria-label="New game">↻ New game</button>
+    </div>
+    <div class="dpad" role="group" aria-label="Direction pad">
+      <button class="up" data-dir="up" aria-label="Up">▲</button>
+      <button class="left" data-dir="left" aria-label="Left">◀</button>
+      <button class="right" data-dir="right" aria-label="Right">▶</button>
+      <button class="down" data-dir="down" aria-label="Down">▼</button>
+    </div>
+    <div class="hint">
+      <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> steer ·
+      <kbd>P</kbd>/<kbd>Space</kbd> pause · <kbd>R</kbd>/<kbd>N</kbd> new game. A 180° turn into your own neck is ignored.
+    </div>
+  </div>
+
+<!-- ============================ ENGINE (pure, no DOM, no timers) ============================ -->
+<script>
+(function (root) {
+  'use strict';
+
+  // Directions as unit vectors. Head moves by dir each tick.
+  var DIRS = {
+    up:    { x: 0, y: -1 },
+    down:  { x: 0, y: 1 },
+    left:  { x: -1, y: 0 },
+    right: { x: 1, y: 0 }
+  };
+
+  function isOpposite(a, b) {
+    return a && b && (a.x + b.x === 0) && (a.y + b.y === 0) && (a.x !== 0 || a.y !== 0);
+  }
+  function sameDir(a, b) { return a && b && a.x === b.x && a.y === b.y; }
+
+  // Deterministic PRNG (mulberry32) so tests pin food placement + outcomes.
+  function makeRng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  var FOOD_POINTS = 10;
+  var SPEED_FLOOR_MS = 60;     // hard floor — never faster than this (D4)
+  var SPEED_FACTOR = 0.92;     // each food shortens the tick toward the floor
+
+  // Tick interval (ms) for a given foods-eaten count. Monotonically non-increasing,
+  // strictly decreasing until it reaches the floor (the progressive speed-up, D4).
+  function speedFor(foodsEaten, startSpeed) {
+    var ms = Math.round(startSpeed * Math.pow(SPEED_FACTOR, foodsEaten));
+    return ms < SPEED_FLOOR_MS ? SPEED_FLOOR_MS : ms;
+  }
+
+  // "Speed level" for the HUD — how many speed steps below the start (>=1).
+  function speedLevel(state) {
+    return state.foodsEaten + 1;
+  }
+
+  function cellOnSnake(snake, x, y, ignoreTail) {
+    var n = ignoreTail ? snake.length - 1 : snake.length;
+    for (var i = 0; i < n; i++) {
+      if (snake[i].x === x && snake[i].y === y) return true;
+    }
+    return false;
+  }
+
+  // Uniformly pick a random EMPTY (non-snake) cell. No empty cell -> null (board full -> win).
+  function placeFood(state, rng) {
+    var free = [];
+    for (var y = 0; y < state.rows; y++) {
+      for (var x = 0; x < state.cols; x++) {
+        if (!cellOnSnake(state.snake, x, y, false)) free.push({ x: x, y: y });
+      }
+    }
+    if (free.length === 0) return null;
+    var idx = Math.floor(rng() * free.length);
+    if (idx >= free.length) idx = free.length - 1;
+    return free[idx];
+  }
+
+  function createState(opts) {
+    opts = opts || {};
+    var cols = opts.cols || 20;
+    var rows = opts.rows || 20;
+    var startSpeed = opts.startSpeed || 130;
+    var wrap = !!opts.wrap;
+    var rng = makeRng(opts.seed == null ? 1 : opts.seed);
+
+    // Centered horizontal snake, length 3, heading right (head is index 0).
+    var cy = Math.floor(rows / 2);
+    var cx = Math.floor(cols / 2);
+    var snake = [
+      { x: cx,     y: cy },
+      { x: cx - 1, y: cy },
+      { x: cx - 2, y: cy }
+    ];
+
+    var state = {
+      cols: cols, rows: rows,
+      snake: snake,
+      dir: DIRS.right,
+      nextDir: DIRS.right,
+      food: null,
+      score: 0,
+      foodsEaten: 0,
+      startSpeed: startSpeed,
+      tickMs: startSpeed,
+      wrap: wrap,
+      status: 'playing',
+      rng: rng
+    };
+    state.food = placeFood(state, rng);
+    return state;
+  }
+
+  // Queue the next direction. Ignores a 180° reverse relative to the LAST-APPLIED
+  // heading (state.dir) — so a quick back-tap can never instantly self-kill (D7).
+  function setDirection(state, dir) {
+    var d = typeof dir === 'string' ? DIRS[dir] : dir;
+    if (!d) return state;
+    if (isOpposite(d, state.dir)) return state;     // reverse into the neck -> ignored
+    if (sameDir(d, state.dir)) { state.nextDir = d; return state; }
+    state.nextDir = d;
+    return state;
+  }
+
+  // Advance one tick. Mutates and returns state (the UI owns the real-time loop;
+  // the engine holds no timers and is deterministic given its seeded rng).
+  function step(state) {
+    if (state.status !== 'playing') return state;
+
+    // Apply the queued direction (at most one turn per tick).
+    state.dir = state.nextDir;
+
+    var head = state.snake[0];
+    var nx = head.x + state.dir.x;
+    var ny = head.y + state.dir.y;
+
+    // Edge handling: wrap or death.
+    if (nx < 0 || nx >= state.cols || ny < 0 || ny >= state.rows) {
+      if (state.wrap) {
+        nx = (nx + state.cols) % state.cols;
+        ny = (ny + state.rows) % state.rows;
+      } else {
+        state.status = 'over';
+        return state;
+      }
+    }
+
+    var willEat = state.food && state.food.x === nx && state.food.y === ny;
+
+    // Self-collision: when NOT eating the tail vacates its cell this tick, so it is
+    // not a collision target; when eating, the whole body stays.
+    if (cellOnSnake(state.snake, nx, ny, !willEat)) {
+      state.status = 'over';
+      return state;
+    }
+
+    state.snake.unshift({ x: nx, y: ny });
+
+    if (willEat) {
+      state.score += FOOD_POINTS;
+      state.foodsEaten += 1;
+      state.tickMs = speedFor(state.foodsEaten, state.startSpeed);
+      var f = placeFood(state, state.rng);
+      if (f === null) { state.food = null; state.status = 'won'; return state; }
+      state.food = f;
+    } else {
+      state.snake.pop();
+    }
+
+    return state;
+  }
+
+  function isOver(state) { return state.status === 'over'; }
+  function isWon(state) { return state.status === 'won'; }
+
+  root.SnakeEngine = {
+    DIRS: DIRS,
+    FOOD_POINTS: FOOD_POINTS,
+    SPEED_FLOOR_MS: SPEED_FLOOR_MS,
+    makeRng: makeRng,
+    createState: createState,
+    setDirection: setDirection,
+    step: step,
+    placeFood: placeFood,
+    speedFor: speedFor,
+    speedLevel: speedLevel,
+    isOpposite: isOpposite,
+    isOver: isOver,
+    isWon: isWon
+  };
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+</script>
+
+<!-- ============================ RENDER / UI (consumes the engine) ============================ -->
+<script>
+(function () {
+  'use strict';
+  var E = window.SnakeEngine;
+
+  var COLS = 20, ROWS = 20;
+  var SPEEDS = { slow: 180, normal: 130, fast: 90 };
+
+  var canvas = document.getElementById('board');
+  var ctx = canvas.getContext('2d');
+  var cell = Math.floor(canvas.width / COLS);
+
+  var state = null;
+  var timer = null;
+  var paused = false;
+  var best = 0;
+  var chosenDiff = 'normal';
+  var chosenWrap = false;
+
+  var els = {
+    score: document.getElementById('score'),
+    length: document.getElementById('length'),
+    speed: document.getElementById('speed'),
+    best: document.getElementById('best'),
+    startOverlay: document.getElementById('startOverlay'),
+    pauseOverlay: document.getElementById('pauseOverlay'),
+    overOverlay: document.getElementById('overOverlay'),
+    winOverlay: document.getElementById('winOverlay'),
+    overScore: document.getElementById('overScore'),
+    overBest: document.getElementById('overBest'),
+    winScore: document.getElementById('winScore')
+  };
+
+  function hideOverlays() {
+    els.startOverlay.classList.remove('show');
+    els.pauseOverlay.classList.remove('show');
+    els.overOverlay.classList.remove('show');
+    els.winOverlay.classList.remove('show');
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // grid
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid').trim() || '#18223a';
+    ctx.lineWidth = 1;
+    for (var i = 1; i < COLS; i++) {
+      ctx.beginPath(); ctx.moveTo(i * cell + .5, 0); ctx.lineTo(i * cell + .5, canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, i * cell + .5); ctx.lineTo(canvas.width, i * cell + .5); ctx.stroke();
+    }
+    if (!state) return;
+    // food
+    if (state.food) {
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--food').trim() || '#f87171';
+      var fx = state.food.x * cell, fy = state.food.y * cell;
+      ctx.beginPath();
+      ctx.arc(fx + cell / 2, fy + cell / 2, cell * 0.34, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // snake
+    var sn = state.snake;
+    for (var s = sn.length - 1; s >= 0; s--) {
+      ctx.fillStyle = s === 0
+        ? (getComputedStyle(document.documentElement).getPropertyValue('--snake-head').trim() || '#86efac')
+        : (getComputedStyle(document.documentElement).getPropertyValue('--snake').trim() || '#4ade80');
+      var px = sn[s].x * cell, py = sn[s].y * cell;
+      roundRect(px + 1, py + 1, cell - 2, cell - 2, 4);
+      ctx.fill();
+    }
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function updateHud() {
+    if (!state) return;
+    els.score.textContent = state.score;
+    els.length.textContent = state.snake.length;
+    els.speed.textContent = E.speedLevel(state);
+    els.best.textContent = best;
+  }
+
+  function clearTimer() { if (timer !== null) { clearInterval(timer); timer = null; } }
+
+  function scheduleTick() {
+    clearTimer();
+    if (!state || state.status !== 'playing' || paused) return;
+    timer = setInterval(tick, state.tickMs);
+  }
+
+  function tick() {
+    if (!state || paused) return;
+    var prevMs = state.tickMs;
+    E.step(state);
+    draw();
+    updateHud();
+    if (state.status === 'over') { endGame(); return; }
+    if (state.status === 'won') { winGame(); return; }
+    if (state.tickMs !== prevMs) scheduleTick();   // speed changed -> re-arm interval
+  }
+
+  function startGame() {
+    hideOverlays();
+    paused = false;
+    state = E.createState({
+      cols: COLS, rows: ROWS,
+      startSpeed: SPEEDS[chosenDiff],
+      wrap: chosenWrap,
+      seed: (Date.now ? Date.now() : 1) ^ Math.floor((window.performance && performance.now ? performance.now() : 1) * 1000)
+    });
+    draw();
+    updateHud();
+    scheduleTick();
+    canvas.focus && canvas.focus();
+  }
+
+  function endGame() {
+    clearTimer();
+    if (state.score > best) best = state.score;
+    els.overScore.textContent = state.score;
+    els.overBest.textContent = state.score >= best ? 'New best!' : ('Best: ' + best);
+    updateHud();
+    els.overOverlay.classList.add('show');
+  }
+
+  function winGame() {
+    clearTimer();
+    if (state.score > best) best = state.score;
+    els.winScore.textContent = state.score;
+    updateHud();
+    els.winOverlay.classList.add('show');
+    confetti();
+  }
+
+  function togglePause() {
+    if (!state || state.status !== 'playing') return;
+    paused = !paused;
+    if (paused) { clearTimer(); els.pauseOverlay.classList.add('show'); }
+    else { els.pauseOverlay.classList.remove('show'); scheduleTick(); }
+  }
+
+  function steer(dir) {
+    if (!state || state.status !== 'playing' || paused) return;
+    E.setDirection(state, dir);
+  }
+
+  function confetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var colors = ['#4ade80', '#f5d76e', '#e74c3c', '#3498db', '#fff', '#9b59b6'];
+    for (var i = 0; i < 80; i++) {
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random() * 100) + 'vw';
+      c.style.background = colors[i % colors.length];
+      c.style.animation = 'fall ' + (1.6 + Math.random() * 1.8) + 's linear ' + (Math.random() * 0.6) + 's forwards';
+      document.body.appendChild(c);
+      (function (node) { setTimeout(function () { node.remove(); }, 4200); })(c);
+    }
+  }
+
+  /* ---- wiring ---- */
+  var KEY_DIR = {
+    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+    w: 'up', s: 'down', a: 'left', d: 'right',
+    W: 'up', S: 'down', A: 'left', D: 'right'
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (KEY_DIR[e.key]) { steer(KEY_DIR[e.key]); e.preventDefault(); return; }
+    if (e.key === 'p' || e.key === 'P' || e.key === ' ' || e.key === 'Spacebar') { togglePause(); e.preventDefault(); return; }
+    if (e.key === 'r' || e.key === 'R' || e.key === 'n' || e.key === 'N') { startGame(); e.preventDefault(); return; }
+  });
+
+  // D-pad (touch + click)
+  var dpad = document.querySelector('.dpad');
+  dpad.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-dir]');
+    if (b) steer(b.getAttribute('data-dir'));
+  });
+
+  // difficulty picker
+  function setDiff(d) {
+    chosenDiff = d;
+    document.getElementById('diffSlow').setAttribute('aria-pressed', String(d === 'slow'));
+    document.getElementById('diffNormal').setAttribute('aria-pressed', String(d === 'normal'));
+    document.getElementById('diffFast').setAttribute('aria-pressed', String(d === 'fast'));
+  }
+  document.getElementById('diffSlow').addEventListener('click', function () { setDiff('slow'); });
+  document.getElementById('diffNormal').addEventListener('click', function () { setDiff('normal'); });
+  document.getElementById('diffFast').addEventListener('click', function () { setDiff('fast'); });
+  document.getElementById('wrapToggle').addEventListener('change', function (e) { chosenWrap = e.target.checked; });
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('resumeBtn').addEventListener('click', togglePause);
+  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+  document.getElementById('newBtn').addEventListener('click', function () { showStart(); });
+  document.getElementById('overRestart').addEventListener('click', startGame);
+  document.getElementById('winRestart').addEventListener('click', startGame);
+
+  function showStart() {
+    clearTimer();
+    state = null; paused = false;
+    hideOverlays();
+    els.startOverlay.classList.add('show');
+    draw();
+  }
+
+  // Test hook for the Playwright e2e + deterministic win path. Lets a driver FREEZE the
+  // real-time loop (so single-step assertions aren't raced by setInterval), steer, and
+  // advance the engine one deterministic tick at a time — including a tiny board to reach
+  // the win state. Read-only state access otherwise.
+  window.__SNAKE_TEST__ = {
+    getState: function () { return state; },
+    isPaused: function () { return paused; },
+    headCell: function () { return state ? { x: state.snake[0].x, y: state.snake[0].y } : null; },
+    overlayShown: function (id) { return document.getElementById(id).classList.contains('show'); },
+    // start a deterministic game with explicit params (used to drive the win path on a tiny board)
+    startDeterministic: function (opts) {
+      hideOverlays(); paused = false;
+      COLS = opts.cols || COLS; ROWS = opts.rows || ROWS;
+      cell = Math.floor(canvas.width / COLS);
+      state = E.createState({
+        cols: COLS, rows: ROWS,
+        startSpeed: opts.startSpeed || SPEEDS[chosenDiff],
+        wrap: !!opts.wrap, seed: opts.seed == null ? 42 : opts.seed
+      });
+      draw(); updateHud(); scheduleTick();
+      return state;
+    },
+    // Stop the live interval without entering the paused state, so stepEngine() can drive
+    // the game deterministically (the real loop would otherwise advance between calls).
+    freeze: function () { clearTimer(); },
+    setDir: function (d) { if (state) E.setDirection(state, d); },
+    // One deterministic engine tick wired to the same end/win handling as the live loop.
+    stepEngine: function () {
+      if (!state || state.status !== 'playing') return state ? state.status : null;
+      E.step(state); draw(); updateHud();
+      if (state.status === 'over') endGame();
+      else if (state.status === 'won') winGame();
+      return state.status;
+    },
+    tickOnce: function () { tick(); }
+  };
+
+  // initial paint
+  draw();
+})();
+</script>
+</body>
+</html>
