@@ -13,6 +13,8 @@ This file mirrors `themes/editorial/theme.yaml` for human reading. The YAML is t
 
 ## 5.2 Palette (token table)
 
+> **PALETTE HARD CONSTRAINT — only these hex values are permitted** (no off-palette greens/ambers, ever): `#F4EFE6`, `#0F172A`, `#475569`, `#1E3A8A`, `#B8351A`, `#B91C1C`, `#F5C9B8`, `#DCE0F0` (token source of truth: `themes/editorial/theme.yaml`). Choose every fill/stroke from this set **before** picking colors — anything else hard-fails the deterministic palette check.
+
 | Token | Hex | Purpose |
 |---|---|---|
 | `surface` | `#F4EFE6` | Page + diagram background |
