@@ -13,8 +13,11 @@ feature_folder: docs/pmos/features/2026-06-14_pmos-gamekit-tetris/
 plan_doc: docs/pmos/features/2026-06-14_pmos-gamekit-tetris/stories/260614-fqg/03_plan.html
 tasks: docs/pmos/features/2026-06-14_pmos-gamekit-tetris/stories/260614-fqg/tasks.yaml
 labels: [pmos-gamekit, tetris, game-launcher]
+worktree: feat/260614-fqg
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260614-fqg -->
