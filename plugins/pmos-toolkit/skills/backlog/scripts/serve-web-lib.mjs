@@ -33,8 +33,9 @@ function parseScalar(raw) {
   let v = raw.trim();
   if (v === '') return '';
   if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-    return v.slice(1, -1);
+    return v.slice(1, -1); // quoted — a literal "null" string survives, it is a real value
   }
+  if (v === 'null' || v === '~') return ''; // bare YAML null literal → empty for every field (FR-5)
   return v;
 }
 
@@ -285,6 +286,7 @@ export function buildModel(items, opts = {}) {
   const releases = { release_ready: [], in_flight: [], blocked: [] };
   for (const e of epicModels) {
     if (e.status === 'released' || e.status === 'inbox' || e.status === 'defining') continue;
+    if (e.progress.done === 0) continue; // FR-6: not-started epics (0 stories done) aren't on the release shelf
     if (e.progress.blocked > 0) releases.blocked.push(e.id);
     else if (e.progress.total > 0 && e.progress.done === e.progress.total) releases.release_ready.push(e.id);
     else releases.in_flight.push(e.id);
@@ -292,8 +294,16 @@ export function buildModel(items, opts = {}) {
 
   // --- facets -------------------------------------------------------------------------
   const uniq = (arr) => [...new Set(arr.filter(Boolean))].sort();
+  // FR-4: split status into lifecycle-ordered Epic / Story groups, present states only.
+  const EPIC_LIFECYCLE = ['inbox', 'defining', 'defined', 'released'];
+  const STORY_LIFECYCLE = ['draft', 'planned', 'ready', 'in-progress', 'blocked', 'done', 'released', 'wontfix'];
+  const orderedPresent = (order, present) => order.filter((s) => present.has(s));
+  const epicStatusSet = new Set(epics.map((e) => e.status).filter(Boolean));
+  const storyStatusSet = new Set(stories.map((s) => s.status).filter(Boolean));
   const facets = {
     statuses: uniq(items.map((i) => i.status)),
+    epic_statuses: orderedPresent(EPIC_LIFECYCLE, epicStatusSet),
+    story_statuses: orderedPresent(STORY_LIFECYCLE, storyStatusSet),
     routes: uniq(items.map((i) => i.route)),
     plugins: uniq(epicModels.map((e) => e.plugin)),
     types: uniq(items.map((i) => i.type)),
