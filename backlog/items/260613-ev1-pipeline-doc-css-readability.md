@@ -5,7 +5,8 @@ kind: epic
 title: Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate)
 type: enhancement
 priority: should
-status: defined
+status: superseded
+superseded_by: 260614-m68
 route: feature
 plugin: pmos-toolkit
 feature_folder: docs/pmos/features/2026-06-13_pipeline-doc-css-readability/
@@ -14,8 +15,10 @@ spec_doc: docs/pmos/features/2026-06-13_pipeline-doc-css-readability/02_spec.htm
 design_doc:
 labels: [html-authoring, substrate, typography, readability, design-crit, cross-plugin]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-14
 ---
+
+> **Superseded by epic [260614-m68](260614-m68-html-authoring-typography-refresh.md)** (2026-06-14, html-authoring "Editorial Technical" refresh). m68 is a fuller aesthetic evolution that subsumes this readability tune-up; every requirement here is folded into m68's decisions/FRs (type scale, measure, body H1, calmer tables, AA contrast, dark mode, cross-plugin sync, no-regression constraints, load-bearing dogfood). The `--pmos-fs-md2` token is absorbed into m68's full type scale. Do not build this epic — build `260614-tcx` instead.
 
 ## Context
 

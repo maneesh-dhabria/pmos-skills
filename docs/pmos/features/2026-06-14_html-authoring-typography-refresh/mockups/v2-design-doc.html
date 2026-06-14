@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v2 · /backlog web viewer — pmos type refresh (mixed-up, overlay comments)</title>
+<style>
+/* =====================================================================
+   PROPOSED pmos aesthetic v2 — "Editorial Technical, made ours"
+   Deltas vs v1:
+   • Three-voice type system: SERIF body (the reading win) + SANS headings
+     (editorial contrast) + MONO structural layer (section nos, labels,
+     table heads, wordmark) — distinct from the reference's all-serif look.
+   • Mono section number sits ABOVE the section title.
+   • Labelled lead (mono kicker + plain serif) instead of the reference's
+     italic-left-rule "mission".
+   • Full-bleed sticky toolbar; doc centered; tables/code break out to the
+     RIGHT only (left edge stays aligned with prose).
+   • Comments are INLINE: commented text gets a warm tint + accent underline,
+     and the thread renders inline on the same paper — no white panel.
+   ===================================================================== */
+:root {
+  --bg:        #f8f5ef;   /* a touch less cream than v1 — reads "tool", not "book" */
+  --surface:   #ffffff;
+  --surface-2: #f1ede4;
+  --surface-3: #e9e3d6;
+  --border:    #e2dac9;
+  --border-2:  #ece6da;
+  --rule:      #d9cfbd;
+  --text:   #201e1a;
+  --muted:  #655e54;     /* ≥4.5:1 on canvas — AA for text */
+  --faint:  #a59c8e;     /* decoration only (rules, markers) — never text */
+  --accent:        #b8431a;
+  --accent-strong: #8f3413;
+  --accent-bg:     #f6e4d6;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Charter", Georgia, "Times New Roman", serif;
+  --sans:  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --measure: 730px;
+  --wide:    880px;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font-family: var(--serif); font-size: 17px; line-height: 1.66;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---- Full-bleed sticky toolbar; inner content centered ---- */
+.toolbar {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(248,245,239,0.86); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+.toolbar-inner {
+  display: flex; align-items: center; gap: 14px;
+  max-width: var(--wide); margin: 0 auto; padding: 11px 28px;
+}
+.wordmark { font-family: var(--mono); font-weight: 700; font-size: 16px; letter-spacing: -0.03em; color: var(--text); display: inline-flex; align-items: center; }
+.wordmark::after { content: ""; display: inline-block; width: 0.3em; height: 0.92em; margin-left: 0.12em; background: var(--accent); border-radius: 1px; transform: translateY(0.06em); }
+/* toolbar title is now a breadcrumb, NOT an <h1> (real h1 lives in the body) */
+.crumb { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.02em; color: var(--muted); padding-left: 14px; border-left: 1px solid var(--rule); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn { font-family: var(--sans); font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 5px 11px; border-radius: 6px; cursor: pointer; }
+
+/* ---- Article body — centered, fixed measure ---- */
+.body { max-width: var(--measure); margin: 0 auto; padding: 48px 28px 96px; counter-reset: sec; }
+.body section { margin-bottom: 46px; }
+
+/* Lead: mono label + plain serif (NOT the reference's italic-left-rule) */
+.kicker { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.16em; font-size: 11px; font-weight: 700; color: var(--accent); margin: 0 0 14px; }
+h1 { font-family: var(--sans); font-weight: 700; font-size: 34px; line-height: 1.12; letter-spacing: -0.02em; margin: 0 0 16px; }
+.lead-label { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); background: var(--accent-bg); padding: 3px 8px; border-radius: 4px; }
+.lead { font-size: 19px; line-height: 1.55; color: var(--text); margin: 12px 0 8px; }
+
+/* Sans headings; mono section number sits ABOVE the title */
+h2 {
+  font-family: var(--sans); font-weight: 700; font-size: 21px; line-height: 1.25;
+  letter-spacing: -0.01em; margin: 44px 0 14px; padding-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+h2::before {
+  counter-increment: sec; content: counter(sec, decimal-leading-zero);
+  display: block; margin-bottom: 7px;
+  font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0; color: var(--accent);
+}
+h3 { font-family: var(--sans); font-weight: 600; font-size: 17px; margin: 26px 0 8px; }
+p { margin: 0 0 16px; }
+strong { font-weight: 600; }
+ul, ol { margin: 0 0 16px; padding-left: 24px; }
+li { margin: 7px 0; }
+li::marker { color: var(--faint); }
+code { font-family: var(--mono); font-size: 0.82em; background: var(--surface-3); color: var(--accent-strong); padding: 1.5px 6px; border-radius: 4px; }
+
+/* Aside */
+.aside { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 17px 20px; margin: 24px 0; }
+.aside .h { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-size: 11px; font-weight: 700; margin-bottom: 7px; }
+.aside p:last-child { margin-bottom: 0; }
+
+/* Tables / pre / figures break OUT to the RIGHT only — left edge stays
+   aligned with the prose so the eye keeps one left margin. */
+.body table, .body pre, .body figure {
+  width: calc(100% + 150px); max-width: var(--wide);
+  margin-left: 0; transform: none;
+}
+table { border-collapse: collapse; margin: 22px 0; font-size: 15px; line-height: 1.5; }
+thead th { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; font-weight: 700; color: var(--muted); text-align: left; padding: 9px 14px; border-bottom: 2px solid var(--rule); }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border-2); vertical-align: top; }   /* bottom borders only — no vertical rules */
+tbody tr:nth-child(even) td { background: var(--surface-2); }
+td code { font-size: 0.86em; }
+
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: #2a2620; color: #f0e9dd; border-radius: 9px; padding: 16px 18px; overflow-x: auto; margin: 22px 0; }
+pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+
+.pill { font-family: var(--mono); font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 4px; }
+.pill.epic { background: var(--accent-bg); color: var(--accent-strong); }
+.pill.story { background: var(--surface-3); color: var(--muted); }
+
+figure { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+figcaption { font-family: var(--sans); margin-top: 10px; font-size: 12.5px; color: var(--muted); text-align: center; }
+
+.footer { max-width: var(--measure); margin: 40px auto 0; padding: 18px 28px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.footer .wordmark { font-size: 13px; }
+
+/* ====== COMMENTS = inline, no white panel ======
+   Commented text is annotated with a warm tint slightly darker than the
+   canvas; the thread renders inline beneath the paragraph on the same
+   paper — no white card, no floating toolbar. */
+.has-cmt {
+  background: #efe6d4;                 /* a shade darker than --bg, same hue */
+  box-shadow: inset 0 -1px 0 var(--accent);   /* subtle accent underline */
+  border-radius: 2px; padding: 0 1px;
+}
+.cmt-thread {
+  background: #f0e8d8; border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0 6px;
+  font-family: var(--sans);
+}
+.cmt-author { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.cmt-author span { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 11.5px; }
+.cmt-body { font-size: 14px; color: var(--text); line-height: 1.5; margin-top: 4px; }
+.cmt-note { font-family: var(--sans); font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-inner">
+      <span class="wordmark">pmos</span>
+      <span class="crumb">features / backlog-web-clarity / 02_design</span>
+      <button class="btn">Copy section link</button>
+    </div>
+  </header>
+
+  <main class="body">
+    <p class="kicker">Design · route:feature · pmos-toolkit</p>
+    <h1>/backlog web viewer — nomenclature &amp; conceptual clarity</h1>
+    <p><span class="lead-label">Bottom line</span></p>
+    <p class="lead">The web viewer dumps the serve-web-lib data model straight onto the page with its internal vocabulary and
+      no translation layer — so a reader sees <code>@null</code>, raw lifecycle states, and unlabelled counts. This epic adds
+      the missing plain-language layer without touching the server contract.</p>
+
+    <section>
+      <h2>Problem &amp; findings</h2>
+      <p>A <code>/design-crit</code> pass on the viewer surfaced <span class="has-cmt">seven findings, all rooted in one
+        cause</span>: the viewer renders the model's field names rather than translating them into reader-facing language.
+        None require a server change.</p>
+      <div class="cmt-thread">
+        <div class="cmt-author">Maneesh <span>on "seven findings, all rooted in one cause"</span></div>
+        <div class="cmt-body">Can we link the design-crit doc here so the seven findings are one click away?</div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Finding</th><th>Severity</th></tr></thead>
+        <tbody>
+          <tr><td>F1</td><td>Column headers use internal field names (<code>kind</code>, <code>route</code>) with no subtitles.</td><td>Should-fix</td></tr>
+          <tr><td>F4</td><td>EPIC vs story rows are visually indistinguishable.</td><td>Blocker</td></tr>
+          <tr><td>F5</td><td><code>@null</code> leaks into the UI when a scalar field is unset.</td><td>Blocker</td></tr>
+          <tr><td>F6</td><td>No legend or tooltips explaining the queue semantics.</td><td>Nit</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Decisions</h2>
+      <p>Each finding maps to a locked decision and one or more functional requirements.</p>
+      <table>
+        <thead><tr><th>ID</th><th>Decision</th><th>Drives</th></tr></thead>
+        <tbody>
+          <tr><td><strong>D1</strong></td><td>Plain-language column labels + a one-line subtitle per column.</td><td>FR-1, FR-2</td></tr>
+          <tr><td><strong>D4</strong></td><td><span class="pill epic">epic</span> / <span class="pill story">story</span> pills distinguish row kinds at a glance.</td><td>FR-5</td></tr>
+          <tr><td><strong>D5</strong></td><td>Fix <code>@null</code> at the source: <code>parseScalar</code> null-coerces; viewer guards.</td><td>FR-6, FR-7</td></tr>
+        </tbody>
+      </table>
+      <div class="aside">
+        <div class="h">Scope guard</div>
+        <p>Three files change — <code>viewer.html</code>, <code>serve-web-lib.mjs</code>, and the test — and nothing in the
+          server contract or <code>_shared/</code>. The fix is canonical with a defensive viewer-side guard, so no other
+          consumer regresses.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>The null-coercion fix</h2>
+      <p>The leak happens because <code>parseScalar</code> returns the sentinel string when a field is unset. Coercing at the
+        parser is the canonical fix; the viewer guard is defence-in-depth.</p>
+      <pre><code>// serve-web-lib.mjs — canonical fix
+function parseScalar(raw) {
+  if (raw == null || raw === '@null') return '';   // coerce sentinel → empty
+  return String(raw).trim();
+}
+
+// viewer.html — defensive guard
+const cell = parseScalar(item[field]) || '—';</code></pre>
+    </section>
+
+    <section>
+      <h2>Stories</h2>
+      <p>One fused story — <code>260614-8v4</code> — carries all seven findings. Task T6 is a <strong>required</strong>
+        Playwright live-dogfood that drives the served viewer and asserts no <code>@null</code> renders.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="wordmark">pmos</span>
+    <span>Source: docs/pmos/features/2026-06-14_backlog-web-clarity/02_design.html</span>
+    <span>·</span><span>Created using pmos&#8209;toolkit</span>
+  </footer>
+
+</body>
+</html>

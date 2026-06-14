@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/backlog web viewer — nomenclature & clarity · pmos type refresh mockup</title>
+<style>
+/* =====================================================================
+   PROPOSED pmos html-authoring aesthetic — "Editorial Technical"
+   Identical CSS to mockup-summary-tldr.html — this page stress-tests it
+   against a dense technical doc (findings, decision table, FRs, code).
+   ===================================================================== */
+:root {
+  --bg:        #faf7f1;
+  --surface:   #ffffff;
+  --surface-2: #f4f0e8;
+  --surface-3: #ece6da;
+  --border:    #e4ddcf;
+  --border-2:  #ece6da;
+  --rule:      #ddd4c4;
+  --text:   #211e1a;
+  --muted:  #6a635a;
+  --faint:  #a59c8e;
+  --accent:        #b8431a;
+  --accent-strong: #8f3413;
+  --accent-bg:     #f6e4d6;
+  --good:          #1e6b3a;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Charter", Georgia, "Times New Roman", serif;
+  --sans:  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --measure: 720px;
+  --wide:    860px;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font-family: var(--serif); font-size: 17px; line-height: 1.65;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+.toolbar {
+  display: flex; align-items: center; gap: 14px;
+  max-width: var(--wide); margin: 0 auto; padding: 12px 28px;
+  border-bottom: 1px solid var(--rule);
+}
+.wordmark {
+  font-family: var(--mono); font-weight: 700; font-size: 16px;
+  letter-spacing: -0.03em; color: var(--text); display: inline-flex; align-items: center;
+}
+.wordmark::after {
+  content: ""; display: inline-block; width: 0.3em; height: 0.92em; margin-left: 0.12em;
+  background: var(--accent); border-radius: 1px; transform: translateY(0.06em);
+}
+.toolbar-title {
+  font-family: var(--sans); font-size: 12.5px; color: var(--muted);
+  padding-left: 14px; border-left: 1px solid var(--rule);
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.btn {
+  font-family: var(--sans); font-size: 12.5px; background: var(--surface-2);
+  border: 1px solid var(--border); color: var(--text); padding: 5px 11px; border-radius: 6px; cursor: pointer;
+}
+
+.body { max-width: var(--measure); margin: 0 auto; padding: 52px 28px 88px; counter-reset: sec; }
+.body section { margin-bottom: 44px; }
+
+.eyebrow {
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.16em;
+  font-size: 11.5px; font-weight: 700; color: var(--accent); margin: 0 0 12px;
+}
+h1 { font-family: var(--serif); font-weight: 600; font-size: 33px; line-height: 1.15; letter-spacing: -0.012em; margin: 0 0 14px; }
+.lead {
+  font-style: italic; color: var(--muted); font-size: 18.5px; line-height: 1.55;
+  border-left: 2px solid var(--rule); padding-left: 18px; margin: 0 0 8px;
+}
+h2 {
+  font-family: var(--serif); font-weight: 600; font-size: 23px; line-height: 1.25;
+  letter-spacing: -0.008em; margin: 46px 0 14px; padding-top: 26px; border-top: 1px solid var(--rule);
+}
+h2::before {
+  counter-increment: sec; content: counter(sec, decimal-leading-zero);
+  font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: 0;
+  color: var(--accent); display: block; margin-bottom: 6px;
+}
+h3 { font-family: var(--serif); font-weight: 600; font-size: 18.5px; margin: 28px 0 8px; }
+p { margin: 0 0 16px; }
+strong { font-weight: 600; }
+ul, ol { margin: 0 0 16px; padding-left: 24px; }
+li { margin: 7px 0; }
+li::marker { color: var(--faint); }
+code { font-family: var(--mono); font-size: 0.82em; background: var(--surface-3); color: var(--accent-strong); padding: 1.5px 6px; border-radius: 4px; }
+
+.aside { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 22px; margin: 24px 0; }
+.aside .h { font-family: var(--mono); font-variant: small-caps; text-transform: lowercase; letter-spacing: 0.04em; color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.aside p:last-child { margin-bottom: 0; }
+
+table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 15px; line-height: 1.5; }
+thead th {
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 11.5px; font-weight: 700; color: var(--muted); text-align: left;
+  padding: 9px 14px; border-bottom: 2px solid var(--rule);
+}
+td { padding: 11px 14px; border-bottom: 1px solid var(--border-2); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--surface-2); }
+td code { font-size: 0.86em; }
+
+/* Code block */
+pre {
+  font-family: var(--mono); font-size: 13px; line-height: 1.55;
+  background: #2b2722; color: #f0e9dd;
+  border-radius: 8px; padding: 16px 18px; overflow-x: auto; margin: 22px 0;
+}
+pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+
+/* Pills — EPIC / story badges (a clarity affordance from the source doc) */
+.pill {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 2px 7px; border-radius: 4px; vertical-align: middle;
+}
+.pill.epic  { background: var(--accent-bg); color: var(--accent-strong); }
+.pill.story { background: var(--surface-3); color: var(--muted); }
+
+.footer {
+  max-width: var(--measure); margin: 40px auto 0; padding: 18px 28px;
+  border-top: 1px solid var(--rule); font-family: var(--sans);
+  font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.footer .wordmark { font-size: 13px; }
+</style>
+</head>
+<body>
+  <header class="toolbar">
+    <span class="wordmark">pmos</span>
+    <span class="toolbar-title">/backlog web viewer — nomenclature &amp; conceptual clarity</span>
+    <button class="btn">Copy section link</button>
+  </header>
+
+  <main class="body">
+    <p class="eyebrow">Design · route:skill · pmos-toolkit</p>
+    <h1>/backlog web viewer — nomenclature &amp; conceptual clarity</h1>
+    <p class="lead">The web viewer dumps the serve-web-lib data model straight onto the page with its internal vocabulary and
+      no translation layer — so a reader sees <code>@null</code>, raw lifecycle states, and unlabelled counts. This epic adds
+      the missing plain-language layer without touching the server contract.</p>
+
+    <section>
+      <h2>Problem &amp; findings</h2>
+      <p>A <code>/design-crit</code> pass on the viewer surfaced seven findings, all rooted in one cause: the viewer renders
+        the model's field names rather than translating them into reader-facing language. None require a server change.</p>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Finding</th><th>Severity</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>F1</td><td>Column headers use internal field names (<code>kind</code>, <code>route</code>) with no subtitles.</td><td>Should-fix</td></tr>
+          <tr><td>F2</td><td>Releases queue shows items with 0 done stories; no progress indicator.</td><td>Should-fix</td></tr>
+          <tr><td>F3</td><td>Lifecycle status filter is a flat list of raw states, not grouped.</td><td>Nit</td></tr>
+          <tr><td>F4</td><td>EPIC vs story rows are visually indistinguishable.</td><td>Blocker</td></tr>
+          <tr><td>F5</td><td><code>@null</code> leaks into the UI when a scalar field is unset.</td><td>Blocker</td></tr>
+          <tr><td>F6</td><td>No legend or tooltips explaining the queue semantics.</td><td>Nit</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Decisions</h2>
+      <p>Each finding maps to a locked decision and one or more functional requirements. All seven were accepted as
+        Recommended at grooming.</p>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Decision</th><th>Drives</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>D1</strong></td><td>Plain-language column labels + a one-line subtitle per column.</td><td>FR-1, FR-2</td></tr>
+          <tr><td><strong>D2</strong></td><td>Releases queue hides 0-done items and shows an "In progress" progress bar.</td><td>FR-3</td></tr>
+          <tr><td><strong>D3</strong></td><td>Group the lifecycle status filter by phase (Define / Build / Release).</td><td>FR-4</td></tr>
+          <tr><td><strong>D4</strong></td><td><span class="pill epic">epic</span> / <span class="pill story">story</span> pills distinguish row kinds at a glance.</td><td>FR-5</td></tr>
+          <tr><td><strong>D5</strong></td><td>Fix <code>@null</code> at the source: <code>parseScalar</code> null-coerces; viewer guards.</td><td>FR-6, FR-7</td></tr>
+        </tbody>
+      </table>
+
+      <div class="aside">
+        <div class="h">Scope guard</div>
+        <p>Three files change — <code>viewer.html</code>, <code>serve-web-lib.mjs</code>, and the test — and nothing in the
+          server contract or <code>_shared/</code>. The <code>@null</code> fix is canonical (in <code>parseScalar</code>) with
+          a defensive viewer-side guard, so no other consumer regresses.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Functional requirements</h2>
+      <ol>
+        <li><strong>FR-1</strong> — Render reader-facing column labels from a label map, not raw field keys.</li>
+        <li><strong>FR-2</strong> — Each column header carries a muted one-line subtitle describing what it means.</li>
+        <li><strong>FR-3</strong> — The Releases queue filters out items with zero done stories and renders a progress bar.</li>
+        <li><strong>FR-6</strong> — <code>parseScalar</code> coerces an unset scalar to an empty string, never the literal <code>@null</code>.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>The null-coercion fix</h2>
+      <p>The leak happens because <code>parseScalar</code> returns the sentinel string when a field is unset. Coercing at the
+        parser is the canonical fix; the viewer guard is defence-in-depth.</p>
+      <pre><code>// serve-web-lib.mjs — canonical fix
+function parseScalar(raw) {
+  if (raw == null || raw === '@null') return '';   // coerce sentinel → empty
+  return String(raw).trim();
+}
+
+// viewer.html — defensive guard
+const cell = parseScalar(item[field]) || '—';</code></pre>
+    </section>
+
+    <section>
+      <h2>Stories</h2>
+      <p>One fused story — <code>260614-8v4</code> — carries all seven findings. Task T6 is a <strong>required</strong>
+        Playwright live-dogfood that drives the served viewer and asserts no <code>@null</code> renders and the pills appear.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="wordmark">pmos</span>
+    <span>Source: docs/pmos/features/2026-06-14_backlog-web-clarity/02_design.html</span>
+    <span>·</span>
+    <span>Created using pmos&#8209;toolkit</span>
+  </footer>
+</body>
+</html>
