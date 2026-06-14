@@ -4,7 +4,7 @@ id: 260613-p3c
 kind: epic
 title: "/backlog web — read-only single-file HTML viewer served by a lightweight live-read server"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-toolkit, backlog, web-ui]
 route: skill
@@ -16,6 +16,7 @@ requirements_doc: docs/pmos/features/2026-06-13_backlog-web-viewer/01_requiremen
 design_doc: docs/pmos/features/2026-06-13_backlog-web-viewer/02_design.html
 parent:
 dependencies: []
+released: pmos-toolkit/v2.77.0
 ---
 
 ## Context

@@ -4,7 +4,7 @@ id: 260613-14b
 kind: story
 title: "Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests"
 type: feature
-status: done
+status: released
 priority: should
 labels: [pmos-toolkit, backlog, web-ui]
 route: skill
@@ -18,6 +18,7 @@ plan_doc: docs/pmos/features/2026-06-13_backlog-web-viewer/stories/260613-14b/03
 tasks_file: docs/pmos/features/2026-06-13_backlog-web-viewer/stories/260613-14b/tasks.yaml
 build_branch: feat/260613-14b
 build_commit: 4313f34
+released: pmos-toolkit/v2.77.0
 ---
 
 ## Context
