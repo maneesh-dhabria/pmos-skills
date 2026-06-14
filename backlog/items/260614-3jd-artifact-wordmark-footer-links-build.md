@@ -9,11 +9,14 @@ priority: should
 route: feature
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: in-progress
+worktree: feat/260614-3jd
 feature_folder: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/
 plan_doc:
 tasks: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/stories/260614-3jd/tasks.yaml
 labels: [html-authoring, substrate, links, attribution, readme, cross-plugin]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 ---
