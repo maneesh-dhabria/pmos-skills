@@ -9,11 +9,14 @@ priority: should
 route: feature
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/
 plan_doc:
 tasks: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/stories/260614-tcx/tasks.yaml
+worktree: feat/260614-tcx
 labels: [html-authoring, substrate, typography, readability, cross-plugin, aesthetic]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 ---
