@@ -22,6 +22,14 @@ if [ -n "$_src" ] && [ -e "$_src" ]; then SELF_DIR="$(cd "$(dirname "$_src")" &&
 
 FRAMES="" ; AUDIO="" ; DURATIONS="" ; OUT="" ; DECK="" ; FIGS="" ; CAPTIONS=1 ; MODE="assemble"
 
+# Caption force_style (D5/FR-5): explicit PlayRes 1920×1080 so FontSize is true
+# pixels (libass otherwise scales against default PlayResY=288 → ~82px walls);
+# a small bottom-anchored style (FontSize 40, Alignment=2, lifted MarginV) with
+# generous side margins + WrapStyle so a long one-cue note wraps to a tidy 2–3
+# lines at the bottom. MarginV/MarginR keep the cue clear of the bottom-right
+# pmos-toolkit watermark (G1). One cue per slide — no per-sentence sub-splitting.
+CAPTION_FORCE_STYLE="PlayResX=1920,PlayResY=1080,FontName=Helvetica,FontSize=40,Alignment=2,MarginV=60,MarginL=140,MarginR=140,Outline=2,Shadow=1,BorderStyle=1,WrapStyle=0"
+
 while [ $# -gt 0 ]; do
   case "$1" in
     --frames)     FRAMES="$2"; shift 2 ;;
@@ -48,7 +56,32 @@ selftest() {
   # node sum arithmetic smoke
   local sum; sum="$(node -e 'console.log([1.5,2.5,3].reduce((a,b)=>a+b,0))')"
   [ "$sum" = "7" ] || { echo "FAIL: node sum (got $sum)"; ok=1; }
-  [ "$ok" = "0" ] && echo "SELFTEST PASS: assemble.sh srt + arithmetic helpers hold." || echo "SELFTEST FAIL"
+  # deck.json shape normalisation (D1/FR-1): a BARE top-level array reads its
+  # slide count like a wrapped {slides:[...]} object — no crash.
+  local nb; nb="$(printf '%s' '[{"idea":"a"},{"idea":"b"}]' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})')"
+  [ "$nb" = "2" ] || { echo "FAIL: bare-array deck normalise (got $nb)"; ok=1; }
+  local nw; nw="$(printf '%s' '{"slides":[{"idea":"a"}]}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})')"
+  [ "$nw" = "1" ] || { echo "FAIL: wrapped-object deck normalise (got $nw)"; ok=1; }
+  # caption force_style shape (D5/FR-5): explicit PlayRes, small bottom style, wrap bound.
+  case "$CAPTION_FORCE_STYLE" in
+    *PlayResX=1920*) : ;; *) echo "FAIL: force_style missing PlayResX=1920"; ok=1 ;;
+  esac
+  case "$CAPTION_FORCE_STYLE" in
+    *PlayResY=1080*) : ;; *) echo "FAIL: force_style missing PlayResY=1080"; ok=1 ;;
+  esac
+  case "$CAPTION_FORCE_STYLE" in
+    *Alignment=2*) : ;; *) echo "FAIL: force_style missing Alignment=2 (bottom-centre)"; ok=1 ;;
+  esac
+  # FontSize must be present and small-ish (<=48) so captions are not a half-screen wall.
+  local fs_val; fs_val="$(printf '%s' "$CAPTION_FORCE_STYLE" | grep -oE 'FontSize=[0-9]+' | grep -oE '[0-9]+' | head -1)"
+  [ -n "$fs_val" ] && [ "$fs_val" -le 48 ] || { echo "FAIL: force_style FontSize absent or >48 (got '${fs_val:-none}')"; ok=1; }
+  case "$CAPTION_FORCE_STYLE" in
+    *MarginV=*) : ;; *) echo "FAIL: force_style missing MarginV bound"; ok=1 ;;
+  esac
+  case "$CAPTION_FORCE_STYLE" in
+    *WrapStyle=*) : ;; *) echo "FAIL: force_style missing WrapStyle wrap bound"; ok=1 ;;
+  esac
+  [ "$ok" = "0" ] && echo "SELFTEST PASS: assemble.sh srt + arithmetic + deck-normalise + caption-style hold." || echo "SELFTEST FAIL"
   return "$ok"
 }
 
@@ -96,7 +129,7 @@ while [ "$i" -lt "$NF" ]; do
   # caption from this slide's narration duration (dur computed above)
   if [ "$CAPTIONS" = "1" ] && [ -n "$DECK" ] && [ -f "$DECK" ]; then
     start="$(srt_ts "$cum")"; end="$(srt_ts "$(node -e 'console.log(+process.argv[1]+ +process.argv[2])' "$cum" "$dur")")"
-    text="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const sl=JSON.parse(s).slides['"$i"'];process.stdout.write((sl&&(sl.speaker_notes||sl.idea)||"").replace(/\s+/g," ").trim())})' < "$DECK")"
+    text="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const slides=Array.isArray(d)?d:d.slides;const sl=slides['"$i"'];process.stdout.write((sl&&(sl.speaker_notes||sl.idea)||"").replace(/\s+/g," ").trim())})' < "$DECK")"
     printf '%s\n%s --> %s\n%s\n\n' "$sub_idx" "$start" "$end" "$text" >> "$srt_file"
     sub_idx=$((sub_idx+1))
   fi
@@ -110,7 +143,7 @@ ffmpeg -nostdin -y -loglevel error -f concat -safe 0 -i "$concat_list" -c copy -
 
 if [ "$CAPTIONS" = "1" ] && [ -s "$srt_file" ]; then
   # Burn captions in (re-encode video; audio copied).
-  ffmpeg -nostdin -y -loglevel error -i "$concat_mp4" -vf "subtitles=${srt_file}:force_style='FontSize=22,Outline=1,MarginV=40'" \
+  ffmpeg -nostdin -y -loglevel error -i "$concat_mp4" -vf "subtitles=${srt_file}:force_style='${CAPTION_FORCE_STYLE}'" \
     -c:v libx264 -pix_fmt yuv420p -c:a copy -movflags +faststart "$OUT" </dev/null
 else
   cp "$concat_mp4" "$OUT"
@@ -123,7 +156,7 @@ echo "# self-check (reference/eval-rubric.md)" >&2
 
 # 1. frame-slide-parity
 if [ -n "$DECK" ] && [ -f "$DECK" ]; then
-  NS="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).slides.length))' < "$DECK")"
+  NS="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})' < "$DECK")"
   if [ "$NF" = "$NS" ]; then echo "frame-slide-parity	pass	frames=$NF slides=$NS" >&2; else echo "frame-slide-parity	FAIL	frames=$NF slides=$NS" >&2; fail=1; fi
 else
   echo "frame-slide-parity	pass	frames=$NF (no deck for slide count; frames==audio: $NF/$NA)" >&2
@@ -153,11 +186,12 @@ done
 if [ -n "$DECK" ] && [ -f "$DECK" ] && [ -n "$FIGS" ] && [ -f "$FIGS" ]; then
   RES="$(node -e '
     const fs=require("fs");
-    const deck=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+    const deckRaw=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
+    const slides=Array.isArray(deckRaw)?deckRaw:deckRaw.slides;
     const figs=JSON.parse(fs.readFileSync(process.argv[2],"utf8"));
     const ids=new Set(figs.map(f=>f.id));
     const bad=[];
-    for (const s of deck.slides) if (s.figure && s.figure.source && !ids.has(s.figure.source)) bad.push(s.figure.source);
+    for (const s of slides) if (s.figure && s.figure.source && !ids.has(s.figure.source)) bad.push(s.figure.source);
     console.log(bad.length?("FAIL:"+bad.join(",")):"ok");
   ' "$DECK" "$FIGS")"
   if [ "$RES" = "ok" ]; then echo "figures-resolved	pass	all figure refs in inventory" >&2; else echo "figures-resolved	FAIL	$RES" >&2; fail=1; fi
