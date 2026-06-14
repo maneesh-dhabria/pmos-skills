@@ -5,14 +5,14 @@ kind: story
 title: "/explainer-video — first-run robustness + caption/watermark/UX fixes"
 type: bug
 priority: must
-status: planned
+status: in-progress
 route: skill
 parent: 260614-7g0
 dependencies: []
 worktree:
 plan_doc: docs/pmos/features/2026-06-14_explainer-video-fixes/stories/260614-a3g-explainer-video-fixes/03_plan.html
 tasks_file: docs/pmos/features/2026-06-14_explainer-video-fixes/stories/260614-a3g-explainer-video-fixes/tasks.yaml
-claimed_by: null
+claimed_by: build:explainer-a3g-loop
 pr:
 labels: [explainer-video, pmos-toolkit, retro, captions]
 created: 2026-06-14
