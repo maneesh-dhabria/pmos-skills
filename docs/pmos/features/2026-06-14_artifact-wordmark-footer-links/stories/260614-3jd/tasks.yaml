@@ -1,0 +1,111 @@
+schema_version: 1
+story: 260614-3jd
+epic: 260614-za3
+route: feature
+plugin: pmos-toolkit
+design: ../../02_design.html
+# Single route:feature story. CANONICAL edits are to the pmos-toolkit copy of _shared/html-authoring
+# (template.html + render.js); pmos-learnkit gets template.html/render.js via scripts/sync-shared.sh (T4),
+# NOT by hand-editing — EXCEPT render.js DEFAULTS.pluginUrl, which is plugin-specific (toolkit README vs
+# learnkit README), so T1 sets the correct per-plugin default in EACH copy and T4's diff then excludes the
+# DEFAULTS line by design (note it). T3 (READMEs) is independent content — parallel with T1/T2. NO
+# release-prereq tasks (version/changelog/manifest) — /complete-dev's job at Loop 3 ("ride which release?").
+tasks:
+  - id: T1
+    title: "template.html + render.js — add {{repo_url}} token, header wordmark → repo, footer wordmark → plugin README, fix stale pluginUrl default (FR-1, FR-2, FR-3, FR-4, FR-5)"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      Edit the canonical pmos-toolkit substrate. (1) render.js: add `repoUrl:
+      'https://github.com/maneesh-dhabria/pmos-skills'` to DEFAULTS; destructure `repoUrl =
+      DEFAULTS.repoUrl` in renderArtifact and add `'{{repo_url}}': repoUrl` to the `subs` map (mirror
+      {{plugin_url}} exactly). Repoint `DEFAULTS.pluginUrl` from the archived
+      'https://github.com/maneesh-dhabria/pmos-toolkit#readme' to
+      'https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md'. (2)
+      template.html: change ONLY the header wordmark (the `a.pmos-wordmark` inside
+      `header.pmos-artifact-toolbar`, ~line 26) href from `{{plugin_url}}` to `{{repo_url}}`. LEAVE the
+      footer wordmark (`a.pmos-wordmark--footer`, ~line 41) on `{{plugin_url}}`, and LEAVE both
+      attribution links (`a.pmos-attribution`, header + footer) on `{{plugin_url}}`. (3) Apply the SAME
+      render.js DEFAULTS edit to the pmos-learnkit copy, but set its `pluginUrl` to the LEARNKIT README
+      (`…/plugins/pmos-learnkit/README.md`) — per-plugin default. TDD: add/extend a render.js unit
+      assertion that renders the template and asserts header wordmark href === repo_url and footer
+      wordmark href === plugin_url (failing first on the old single-token behavior), then make it pass.
+    verify: >
+      node: render template via renderArtifact() → header a.pmos-wordmark href = repo root (no #readme),
+      footer a.pmos-wordmark--footer href = plugin README path; grep render.js (both copies) shows repoUrl
+      in DEFAULTS + {{repo_url}} in subs and NO pmos-toolkit#readme default; toolkit copy pluginUrl →
+      toolkit README, learnkit copy pluginUrl → learnkit README.
+
+  - id: T2
+    title: "Prose sweep — primer/SKILL.md, both index-generator.md, template.html header comment (FR-6)"
+    ac: [AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Update the docs that hardcode the URL/token. (1) Both index-generator.md (toolkit + learnkit):
+      the index.html masthead wordmark `<a class="pmos-wordmark" href="<plugin_url>"...>` → `href="<repo_url>"`
+      (the masthead wordmark is the brand mark, same rule as template.html); document the new token. (2)
+      primer/SKILL.md: fix the `{{plugin_url}}` prose to "the pmos-skills learnkit README"
+      (…/plugins/pmos-learnkit/README.md) and add a `{{repo_url}}` mention for the header wordmark. (3)
+      template.html header comment: document `{{repo_url}}` alongside `{{plugin_url}}` with corrected
+      defaults. After: grep `pmos-toolkit#readme` across plugins/**/*.md and the substrate = ZERO hits.
+    verify: >
+      grep -rn 'pmos-toolkit#readme' plugins/ → empty; index-generator.md (both) masthead wordmark uses
+      repo_url; primer/SKILL.md cites the learnkit README + repo_url; template.html comment documents
+      {{repo_url}}.
+
+  - id: T3
+    title: "Author plugins/<plugin>/README.md for all four plugins (FR-7)"
+    ac: [AC7]
+    deps: []
+    parallel: true
+    detail: >
+      Create plugins/pmos-toolkit/README.md, plugins/pmos-learnkit/README.md,
+      plugins/pmos-utilities/README.md, plugins/pmos-gamekit/README.md. Each: H1 = plugin name; a
+      one-paragraph charter lifted/condensed from CLAUDE.md "## Plugin charters" (the "help me…" line);
+      a "## Skills" list enumerating the plugin's skills with the one-line description from each SKILL.md
+      frontmatter (or the marketplace catalog); an "## Install" line referencing the marketplace
+      (`/plugin marketplace add maneesh-dhabria/pmos-skills` → `/plugin install <plugin>@pmos-skills`,
+      matching the repo's actual install flow — verify against existing docs); a link back to the repo
+      root. Plain, honest, factual — no marketing copy. Valid Markdown (GitHub-renderable).
+    verify: >
+      ls plugins/*/README.md = 4 files; each has H1 + charter para + Skills list + Install + repo link;
+      markdown lints clean / renders on GitHub; skill lists match each plugin's actual skills/ dir.
+
+  - id: T4
+    title: "sync-shared.sh propagation + no-regression guard (FR-8, FR-9)"
+    ac: [AC8, AC9]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Run `scripts/sync-shared.sh --from=pmos-toolkit`. Because render.js DEFAULTS.pluginUrl is
+      per-plugin (set by hand in each copy at T1), confirm the sync's intersection behavior keeps each
+      copy's correct pluginUrl (if sync would overwrite it, document the one expected diff line and
+      restore the learnkit default — note this in the task log). Verify template.html is byte-identical
+      across the two copies after sync. Regression: render a sample doc through the substrate and run
+      build_sections_json.js + chrome-strip.js on it — output must be identical to a pre-change render
+      except for the href attribute values; the inline-comments overlay (comments.js) is untouched.
+    verify: >
+      diff of the two _shared/html-authoring/template.html = clean; render.js differs ONLY on the
+      per-plugin pluginUrl default (documented); build_sections_json + chrome-strip output unchanged
+      (modulo href values); no comments-overlay regression.
+
+  - id: T5
+    title: "Load-bearing live dogfood — render toolkit + learnkit docs, verify links resolve in a browser (AC10)"
+    ac: [AC10]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Render ≥1 doc as pmos-toolkit and ≥1 doc as pmos-learnkit through the patched substrate. Serve the
+      feature folder over http (python3 -m http.server or the comments serve.js), open each in a real
+      browser (Playwright). For each: assert header a.pmos-wordmark href === repo root and footer
+      a.pmos-wordmark--footer / attribution href === that plugin's README path (getAttribute). Then
+      navigate to each href and confirm HTTP 200 on github.com (repo root and the plugin README) — NOT a
+      404 / archived-repo page. Screenshot the header + footer of each. If any link 404s or points at the
+      archived repo, fix (token/default/README path) and re-run (cap 2, then accept-residuals-and-surface
+      in the /verify report).
+    verify: >
+      Playwright: toolkit doc header→repo, footer→toolkit README; learnkit doc header→repo,
+      footer→learnkit README; all four target URLs return 200 on github.com; before/after screenshots
+      attached; zero hrefs to maneesh-dhabria/pmos-toolkit.
