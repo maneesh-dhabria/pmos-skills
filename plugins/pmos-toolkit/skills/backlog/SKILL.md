@@ -2,7 +2,7 @@
 name: backlog
 description: Maintain a lightweight, AI-readable backlog of epics and stories — features, bugs, tech-debt, chores, docs, spikes, and ideas — inside the repo. Zero-friction quick-capture (`/backlog add ...`) plus a three-queue tracker (groom / next / releases) driving the define → build → release loops. Integrates with the requirements → spec → plan → execute → verify pipeline via `--backlog <id>` and feeds `/feature-sdlc define|build` and `/complete-dev --epic`. Use when the user says "add to backlog", "capture this idea", "track this bug", "show the backlog", "what's next", "what needs grooming", "what can I release", "claim a story", or "promote a backlog item".
 user-invocable: true
-argument-hint: "[<text> | add <text> | list | show <id> [--tasks] | groom | next [--status planned|in-progress] | releases | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | claim <id> [--holder <id>] | unclaim <id> | link <id> <doc> | archive | rebuild-index] [--kind epic|story] [--epic <id>] [--json] [--non-interactive | --interactive]"
+argument-hint: "[<text> | add <text> | list | show <id> [--tasks] | groom | next [--status planned|in-progress] | releases | web [--no-open] [--port N] | refine <id> | set <id> <field>=<value> | promote <id> [--feature <slug>] | claim <id> [--holder <id>] | unclaim <id> | link <id> <doc> | archive | rebuild-index] [--kind epic|story] [--epic <id>] [--json] [--non-interactive | --interactive]"
 ---
 
 # Backlog
@@ -38,6 +38,10 @@ These instructions use Claude Code tool names. In other environments:
 - `pipeline-bridge.md` — the `--backlog <id>` contract + three-loop story write-back rules (main-checkout-only, auto-commit, blocked channel).
 - `scripts/claim-lock.cjs` — O_EXCL story-claim lock (D13).
 - `scripts/mint-id.mjs` — coordination-free id minter + triple-form validator (the `<YYMMDD>-<rand3>` allocation cited by `#add`; format owned by `_shared/tracker-crudl.md` §2).
+- `scripts/serve-web-lib.mjs` — pure derivation for the `web` viewer: `parseItems` + `buildModel` (epics, rollups, the three queues, readiness, facets). Single home for the read-side rules (D5) — mirrors `#next`/`#releases`/`#groom` + `schema.md`.
+- `scripts/serve-web.mjs` — the zero-dep live-read HTTP server behind `#web` (loopback, ephemeral port, read-only).
+- `web/viewer.html` — the single-file viewer (inline CSS+JS, no CDN) the server serves at `/`.
+- `tests/serve-web.test.mjs` — derivation + server behavioural tests for the `web` verb.
 - `_shared/interactive-prompts.md` — prompting protocol for `refine`.
 
 ## Flags & natural language
@@ -57,6 +61,7 @@ Parse the argument to pick a handler. Be liberal with the form — both `/backlo
 | `groom` | `#groom` |
 | `next` | `#next` |
 | `releases` | `#releases` |
+| `web` | `#web` (launch the read-only browser viewer) |
 | `claim <id>` / `unclaim <id>` | `#claim` |
 | `set <id> <field>=<value>` | `#set` |
 | `promote <id>` | `#promote` |
@@ -261,6 +266,17 @@ For each epic, roll up its non-wontfix stories:
 - **blocked** (a story is `blocked`): which story + the gap.
 
 `--json` emits `{release_ready: [...], in_flight: [...], blocked: [...]}` for `/complete-dev`. Human output groups the three with the release-ready set first. Empty: `No epics. Capture work with /backlog add <text>.`
+
+## web — the browser viewer {#web}
+
+`/backlog web [--no-open] [--port N]`. Launches a **read-only** local viewer of the backlog in a browser — the same three queues plus an epic→story tree, rendered from live on-disk data (a refresh re-reads the files). No write controls exist (D3); this verb only spawns a server and points the browser at it. **Issues no prompts** (a machine verb, like `#next`).
+
+`--no-open` (don't auto-open the browser; just print the URL) and `--port N` (bind a fixed port instead of an ephemeral one) are **machine-coupled server args** (headless determinism) passed straight through to `scripts/serve-web.mjs` — surfaced here, not parsed as NL.
+
+1. **Resolve `<repo>`** (`git rev-parse --show-toplevel`, fallback cwd) and assert `node` is available — if absent, report `/backlog web needs Node (not found on PATH).` and stop (no silent fallback).
+2. **Launch the server:** run `node <repo>/plugins/pmos-toolkit/skills/backlog/scripts/serve-web.mjs [--no-open] [--port N]` from `<repo>`. It binds `127.0.0.1` on an ephemeral free port (or `--port`), serves `GET /` (the viewer) + `GET /api/backlog` (derived JSON, parsed fresh per request via `scripts/serve-web-lib.mjs`), 404s everything else, and prints `Backlog viewer ready at http://127.0.0.1:<port>/`.
+3. **Report the URL** to the user and note it runs until `Ctrl-C`. The server auto-opens the default browser unless `--no-open` or a headless environment (it degrades to the printed URL).
+4. The viewer derivation (rollups, queues, readiness, facets) lives **server-side** in `serve-web-lib.mjs`, mirroring `#next`/`#releases`/`#groom` + `schema.md` (D5 — one home for the rules); the page only renders. Malformed item files are skipped with a stderr warning, never fatal (D7).
 
 ---
 
