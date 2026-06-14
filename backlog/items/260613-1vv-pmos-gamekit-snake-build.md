@@ -6,15 +6,18 @@ parent: 260613-v3y
 title: Build the /snake skill — single-file classic Snake (speed picker + progressive speed-up, walls-kill + wrap toggle) + tests
 type: feature
 priority: could
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-snake/
 plan_doc: docs/pmos/features/2026-06-13_pmos-gamekit-snake/stories/260613-1vv/03_plan.html
 tasks: docs/pmos/features/2026-06-13_pmos-gamekit-snake/stories/260613-1vv/tasks.yaml
 labels: [pmos-gamekit, snake, game-launcher]
+worktree: feat/260613-1vv
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-1vv -->
