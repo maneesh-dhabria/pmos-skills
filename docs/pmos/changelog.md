@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-14 — pmos-toolkit 2.76.0: /mytasks gets a Todoist-class local web app, plus projects, subtasks, and recurrence
+
+`/mytasks` grows from a terminal task list into a full personal task manager you can drive from a browser or the command line — with projects, nested subtasks, and repeating tasks. Everything stays local: your tasks live as plain files in your repo, and the web app talks to a tiny zero-dependency server that re-reads those files on every request, so the terminal and the browser are always looking at the same source of truth.
+
+- **A single-file web app for your tasks.** `/mytasks web` opens a three-pane Todoist-style interface in your browser — projects in a sidebar, a task list in the middle, and details on the right. You can add, edit, complete, reorder (drag-and-drop), and organize tasks without touching the command line. It's one HTML file served by a small local server; nothing is uploaded anywhere and there's no build step.
+- **Projects, subtasks, and recurrence everywhere.** Tasks can now belong to a project, nest under a parent as subtasks, carry a manual sort order, and repeat on a schedule. Completing a recurring task automatically spawns its next occurrence. These capabilities are available identically from the terminal and the web app — full parity, one data model.
+- **A faster terminal grammar.** The CLI gains a quick-add token grammar (set project, parent, recurrence, and ordering inline as you type) and nested rendering that shows subtasks under their parents, so the keyboard-first workflow keeps up with the web UI.
+- **Your existing workstreams migrate automatically.** The old `workstream:` field is renamed to `project:` and your tasks are migrated in place the first time the new version runs — idempotent and safe to re-run, with no manual cleanup.
+- **Skill quality & internals.** Recurrence lives in a single shared module so the CLI and the server can never drift; the task store gained content-hash versioning with optimistic-concurrency conflict detection (so two tabs editing at once can't silently clobber each other); and the web server, core library, and client app are covered by a 66-check self-test suite.
+
 ## 2026-06-13 — pmos-toolkit 2.75.2: the backlog claim-lock now works in repos that use ES modules
 
 A bug fix for one specific failure: in a host project whose `package.json` declares `"type": "module"`, the backlog's story-claim lock script silently died on startup — which quietly disabled the whole `/loop … build` claim/unclaim/reconcile machinery in exactly the repos most likely to run an unattended build loop.
