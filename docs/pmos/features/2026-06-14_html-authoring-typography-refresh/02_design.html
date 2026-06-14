@@ -42,7 +42,7 @@ strong { font-weight:600; }
 ul,ol { margin:0 0 16px; padding-left:24px; }
 li { margin:7px 0; }
 li::marker { color:var(--faint); }
-code { font-family:var(--mono); font-size:0.82em; background:var(--surface-3); color:var(--accent-strong); padding:1.5px 6px; border-radius:4px; }
+code { font-family:var(--mono); font-size:0.82em; background:#f1ece2; color:#6f5848; padding:1.5px 6px; border-radius:4px; }  /* calm warm-grey, not loud accent */
 .aside { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:17px 20px; margin:24px 0; }
 .aside .h { font-family:var(--mono); text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); font-size:11px; font-weight:700; margin-bottom:7px; }
 .aside p:last-child { margin-bottom:0; }
@@ -135,7 +135,7 @@ pre code { background:transparent; color:inherit; padding:0; font-size:inherit; 
     <section>
       <h2>Functional requirements</h2>
       <ol>
-        <li><strong>FR-1 — Tokens &amp; faces.</strong> Add <code>--pmos-font-serif</code> (system serif stack), <code>--pmos-font-sans</code> (system grotesque), keep <code>--pmos-font-display</code> (mono). Add the new type-scale + warm-palette tokens; preserve token names already consumed elsewhere.</li>
+        <li><strong>FR-1 — Tokens &amp; faces.</strong> Add <code>--pmos-font-serif</code> (system serif stack), <code>--pmos-font-sans</code> (system grotesque), keep <code>--pmos-font-display</code> (mono). Add the new type-scale + warm-palette tokens; preserve token names already consumed elsewhere. <strong>Inline <code>code</code> is calm</strong> — soft warm-grey on a light tint (<code>#6f5848</code> on <code>#f1ece2</code>), not the loud accent-strong colour (which read jarring).</li>
         <li><strong>FR-2 — Type scale.</strong> Body serif 17px / lh 1.66; h1 sans 34px; h2 sans 21px (sentence case, <code>text-transform:none</code>, top rule, mono <code>[NN]</code> above); h3 sans 17px/600 — a perceptible step at each level.</li>
         <li><strong>FR-3 — Measure &amp; layout.</strong> Article body centered at ~730px (60–75ch); full-bleed toolbar/footer with centered inner content; tables/<code>pre</code> break out to ~880px to the right only (left edge aligned with prose).</li>
         <li><strong>FR-4 — Real body H1.</strong> <code>template.html</code> emits one <code>&lt;h1&gt;</code> as the body's first child from <code>{{title}}</code>; toolbar title becomes a breadcrumb; <code>render.js</code> untouched; exactly one <code>&lt;h1&gt;</code> per doc.</li>

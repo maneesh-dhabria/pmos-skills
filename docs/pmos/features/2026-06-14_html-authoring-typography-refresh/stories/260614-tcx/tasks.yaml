@@ -30,12 +30,16 @@ tasks:
       h3 sans 17px/600. (4) Lead/eyebrow: mono uppercase `.pmos-eyebrow`/kicker; labelled lead (mono chip
       `.lead-label` + serif `.pmos-lead`) — REMOVE the italic-left-rule mission styling. (5) Layout:
       `.pmos-artifact-body` centered max-width ~730px; toolbar/footer full-bleed (bar spans viewport,
-      inner wrapper max-width ~880px centered). TDD: add an assertion (regex over the CSS or a
-      render+getComputedStyle check) that fails on OLD values first, then make it pass.
+      inner wrapper max-width ~880px centered). (6) Inline code: keep it CALM, not a loud accent — soft
+      warm-grey on a light tint (`code { background:#f1ece2; color:#6f5848 }`, or equivalent
+      `--pmos-code-bg`/`--pmos-code-fg` tokens); do NOT use `--pmos-accent-strong` for code text (reads
+      jarring per user feedback). TDD: add an assertion (regex over the CSS or a render+getComputedStyle
+      check) that fails on OLD values first, then make it pass.
     verify: >
       grep style.css shows --pmos-font-serif/--pmos-font-sans defined, body 17px serif lh1.66, h1 34
       sans, h2 21 sans text-transform:none, h3 17 sans 600, mono [NN] above h2, .pmos-artifact-body
-      ~730px centered, full-bleed toolbar inner ~880px; no italic-mission lead remains.
+      ~730px centered, full-bleed toolbar inner ~880px, inline code calm warm-grey (not accent-strong);
+      no italic-mission lead remains.
 
   - id: T2
     title: "style.css — break-out tables/code (right only) + calmer table style + AA contrast audit (FR-3, FR-6, FR-7)"
