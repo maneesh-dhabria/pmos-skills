@@ -13,6 +13,8 @@ dependencies: []
 plan_doc: docs/pmos/features/2026-06-14_backlog-web-clarity/stories/260614-8v4-backlog-web-viewer-clarity/03_plan.html
 tasks_file: docs/pmos/features/2026-06-14_backlog-web-clarity/stories/260614-8v4-backlog-web-viewer-clarity/tasks.yaml
 labels: [backlog, pmos-toolkit, design-crit, ux]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 released:
