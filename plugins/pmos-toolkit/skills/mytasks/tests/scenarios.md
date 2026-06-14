@@ -175,12 +175,12 @@ Expected:
 - Source: INDEX.md (status is an INDEX column).
 - Render flat sorted: 0002 first (has due), 0004 second.
 
-### Scenario: `/mytasks list --workstream platform-q3 --importance leverage`
+### Scenario: `/mytasks list --project platform-q3 --importance leverage`
 
-> The `--workstream` flag spelling is retained in this foundation story (the rename to `--project` ships in story `260613-044`); it filters the renamed `project` field.
+> The filter is `--project` (story 260613-044 retired the pre-rename `--workstream` spelling). A user typing `--workstream` now gets the unknown-filter error pointing at `--project`.
 
 Expected:
-- AND filter: project platform-q3 (matched via the retained `--workstream` flag) AND importance leverage.
+- AND filter: project platform-q3 AND importance leverage.
 - Match: 0001 only.
 - Source: INDEX.md (both filters map to INDEX columns; importance is the bucket).
 - Output: single-row table.
@@ -244,7 +244,7 @@ Expected:
 ### Scenario: `/mytasks in platform-q3`
 
 Expected:
-- Equivalent to `/mytasks list --workstream platform-q3` (the `in <workstream>` view verb spelling is retained until story `260613-044` renames it to `in <project>`; it filters the renamed `project` field).
+- Equivalent to `/mytasks list --project platform-q3` (the named view is `in <project>` as of story 260613-044, renamed from `in <workstream>`).
 - INDEX.md filter on `project`. Match: 0001, 0002.
 
 ### Scenario: `/mytasks list --status open` (invalid enum value)
@@ -463,3 +463,99 @@ Expected:
 - Normalize: `7` matches `^\d{1,4}$` (no hyphen) → legacy serial → zero-pad to `0007`.
 - Locate `~/.pmos/tasks/items/0007-*.md`. Found (proves old 4-digit files still resolve after the id-scheme fix).
 - Render the file verbatim.
+
+## Terminal parity (story 260613-044 — CLI verbs/flags, token grammar, nested rendering)
+
+Uses the `with-subtasks` fixture (`260613-a3f` parent / `260613-c31` subtask / `260613-9x2` recurring weekly, due 2026-06-15) unless noted.
+
+### Scenario: quick capture `/mytasks Ship launch deck #launch +urgent @sarah tomorrow` (today = 2026-06-13)
+
+Expected (Phase 2 strip order type → date → people(`@`) → `#project` → `+label`):
+- `type`: no keyword → `execution` (fallback).
+- `due`: `tomorrow` → 2026-06-14; substring stripped.
+- `@sarah` → `/people find` single match `sarah-chen`; token stripped, added to `people:`.
+- `#launch` → `project: launch`; token stripped.
+- `+urgent` → `labels: [urgent]`; token stripped.
+- Final `title:` = `Ship launch deck`.
+- Report (`output-formats.md` quick-capture): `Captured #{id} (execution, neutral): "Ship launch deck" — due 2026-06-14 — project launch — people: sarah-chen — labels: urgent`.
+
+### Scenario: quick capture `/mytasks Reread #notes and # alone +` (bare `#`/`+` not tokens)
+
+Expected:
+- First `#`-token `#notes` → `project: notes`, stripped.
+- A second `#`-style word? none — `# alone` is a bare `#` (space after) → stays in title. Trailing bare `+` → stays in title.
+- Title = `Reread and # alone +`. Only the first `#token` and well-formed `+token`s are consumed; bare `#`/`+` are literal.
+
+### Scenario: `/mytasks add Draft hero section --parent 260613-a3f` (subtask capture)
+
+Expected (Phase 3 step 1):
+- `--parent 260613-a3f` resolves via the `#show` triple-accept locate → exists. Captured as a subtask: `parent: 260613-a3f` set, no parent prompt. The `--parent …` flag is stripped from the title.
+- Remaining prompts run (importance/type/project/due/people/recur/checkin); a full child task file is written.
+- Rich-capture report names the parent: `… — parent #260613-a3f`.
+
+### Scenario: `/mytasks add Foo --parent 999999` (nonexistent parent)
+
+Expected:
+- `999999` does not resolve → `No item with id 999999 to set as parent.` No file written.
+
+### Scenario: `/mytasks set 260613-c31 parent=260613-c31` (self-parent rejected)
+
+Expected:
+- `A task cannot be its own parent.` No write.
+
+### Scenario: `/mytasks set 260613-a3f parent=260613-c31` (2-level cycle rejected)
+
+Expected:
+- `260613-c31`'s own `parent:` is `260613-a3f` → setting `260613-a3f`'s parent to `260613-c31` is a 2-level cycle → `That would create a parent/subtask cycle.` No write.
+
+### Scenario: `/mytasks set 260613-9x2 recur=fortnightly` (invalid rule) then `recur=biweekly` (valid) then `recur=` (clear)
+
+Expected:
+- `fortnightly` not in the closed grammar → `Unknown recurrence rule 'fortnightly'. Allowed: daily, weekly, biweekly, monthly, every <N> days|weeks|months, every <weekday>.` No write.
+- `biweekly` valid → written; `Updated #260613-9x2: recur = biweekly.`
+- empty value → cleared; `Updated #260613-9x2: recur cleared.`
+
+### Scenario: `/mytasks set 260613-a3f order=-1` (invalid) then `order=2` (valid)
+
+Expected:
+- `-1` fails `^\d+$` → `order must be a non-negative integer (got '-1').` No write.
+- `2` → `Updated #260613-a3f: order = 2.`
+
+### Scenario: `/mytasks set 260613-a3f workstream=foo` (retired field)
+
+Expected:
+- `workstream` is no longer editable (renamed to `project`) → `Field 'workstream' is not recognized. Allowed: …` (the allowed list names `project`).
+
+### Scenario: `/mytasks done 260613-9x2` (recurrence-on-complete spawn; today = 2026-06-16)
+
+Expected (Phase 9 step 4 → `#recur-spawn`):
+- `260613-9x2` has `recur: weekly` → after marking it `completed`/`completed: 2026-06-16`, mint a NEW task: fresh `<YYMMDD>-<rand3>` id, `title`/`type`/`importance`/`project`/`parent`/`recur: weekly`/`people`/`labels`/`links`/`checkin` copied; `due` advanced **from the completed item's own due** 2026-06-15 → 2026-06-22 (weekly, +7d); `order` NOT copied; `status: pending`, `completed:` blank, `created`/`updated` = 2026-06-16.
+- The old item's `## Notes` gains: `- 2026-06-16: completed; recurring — spawned next instance #{new_id} (due 2026-06-22).`
+- Output: `Completed #260613-9x2: "Weekly metrics review". Next instance #{new_id} due 2026-06-22.`
+
+### Scenario: `/mytasks drop 260613-9x2` (drop never spawns)
+
+Expected:
+- Status → `dropped`; **no** next instance is minted (dropping ends the series). Output is the plain `Dropped #…` line with no `Next instance` clause.
+
+### Scenario: `/mytasks show 260613-a3f` (parent renders its subtasks)
+
+Expected (Phase 6 step 5):
+- File rendered verbatim; below it a `### Subtasks` block lists `- #260613-c31 [pending] Draft hero copy — due 2026-06-16`.
+- `260613-9x2` (no parent) is NOT listed. Showing `260613-c31` (the child) does NOT list `260613-a3f`.
+
+### Scenario: `/mytasks list --recurring`
+
+Expected:
+- Reads item files (recur not in INDEX); match only tasks with non-empty `recur:` → `260613-9x2`.
+- Table includes the `recur` column showing `weekly`.
+
+### Scenario: `/mytasks list --parent 260613-a3f`
+
+Expected:
+- Match only subtasks of `260613-a3f` → `260613-c31`. Single row; `parent` cell = `260613-a3f`.
+
+### Scenario: `/mytasks list` nested rendering (parent + child both in result set)
+
+Expected:
+- When `260613-a3f` and `260613-c31` both appear, `260613-c31` renders immediately under `260613-a3f` with its title indented (`  ↳ Draft hero copy`). The stored files stay flat — nesting is view-only.
