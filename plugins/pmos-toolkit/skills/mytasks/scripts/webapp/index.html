@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Tasks</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="server-modal" class="modal hidden">
+  <div class="modal-card">
+    <h2>No server</h2>
+    <p>This page needs the local <code>mytasks</code> server to read and write your tasks.</p>
+    <p>Start it from your terminal:</p>
+    <pre><code>/mytasks web</code></pre>
+    <p class="muted">Then reload this page. (Tasks live in <code>~/.pmos/tasks/</code>.)</p>
+  </div>
+</div>
+
+<div id="reload-banner" class="banner hidden">
+  This task changed elsewhere. <button id="reload-btn">Reload</button>
+</div>
+
+<div id="app" class="layout">
+  <aside id="sidebar">
+    <div class="brand">My Tasks</div>
+    <nav id="smart-views"></nav>
+    <div class="side-section"><div class="side-head">Projects</div><nav id="projects"></nav></div>
+    <div class="side-section"><div class="side-head">Labels</div><nav id="labels"></nav></div>
+  </aside>
+
+  <main id="list-pane">
+    <header id="list-header"><h1 id="view-title">Today</h1></header>
+    <ul id="task-list"></ul>
+    <form id="quick-add" autocomplete="off">
+      <input id="quick-input" type="text" placeholder="+ Quick-add  (e.g. Call @sam #home +urgent tomorrow)">
+    </form>
+  </main>
+
+  <section id="detail-pane" class="empty">
+    <div id="detail-empty" class="muted">Select a task to see details.</div>
+    <div id="detail-body" class="hidden"></div>
+  </section>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

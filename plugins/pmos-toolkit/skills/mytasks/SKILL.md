@@ -2,12 +2,14 @@
 name: mytasks
 description: Persistent personal task tracker — distinct from Claude Code's session-scoped TaskCreate/TaskList tools. Use for real-world tasks (LNO importance, due dates, people, check-ins, projects, subtasks, recurrence). Lives at ~/.pmos/tasks/. Use when the user says "add a task", "what's on my plate", "tasks for sarah", "what's due this week", "check in on X", "/mytasks", or names a task to capture.
 user-invocable: true
-argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | rebuild-index] [--non-interactive | --interactive]"
+argument-hint: "[ | <text> | add <text> [--parent <id>] | list [filters] | today | week | overdue | waiting | checkins | for <handle> | in <project> | show <id> | set <id> <field>=<value> | refine <id> | done <id> [note] | drop <id> [reason] | checkin <id> [note] | archive [--quarter <YYYY-QN>] | rebuild-index | web] [--non-interactive | --interactive]"
 ---
 
 # My Tasks
 
 A lightweight, file-based personal task tracker. Asana/Todoist-class personal life-OS layer, but local-first, AI-native, and embedded in the `pmos-toolkit` ecosystem.
+
+**The web UI is the primary way to work day-to-day** — run `/mytasks web` to open a local Todoist-class app (sidebar smart-views + projects + labels, drag-to-reorder, inline subtasks, quick-add) backed by a zero-dep localhost server (`#web`). The terminal verbs below are at **full parity** with the web UI — every capability (capture, edit, subtasks, recurrence, check-ins, views) is reachable from either surface, and both read and write the **same** markdown files in `~/.pmos/tasks/`, so terminal and web edits never diverge.
 
 ```
                                        ┌─ default daily view ──┐
@@ -40,6 +42,7 @@ These instructions use Claude Code tool names. In other environments:
 - `inference-heuristics.md` — quick-capture keyword + date + person + `#project`/`+label` token rules (`project` is never auto-inferred — only an explicit `#project` token / prompt / `set` sets it)
 - `output-formats.md` — exact capture report templates and unknown-person prompt copy
 - `_shared/interactive-prompts.md` — interactive prompting protocol (used by `add`, `refine`, unknown-person flow)
+- `scripts/serve.js` — zero-dep localhost server + JSON API behind the web UI (adapts the `comments` substrate serve.js); `scripts/lib.js` (frontmatter round-trip, validation, INDEX regen, quick-add token parse), `scripts/recur.js` (the `#recur-spawn` routine, shared by CLI + web), `scripts/webapp/` (the single-file app), `scripts/mytasks-open.{command,sh,bat}` (launcher trio)
 - Sibling skill `/people` — fuzzy-match person lookup via `/people find`
 
 ---
@@ -65,6 +68,7 @@ Parse the user's argument to determine the subcommand. Be liberal with the form 
 | `checkin <id> [note]` | Phase 10 (check-in mechanics) |
 | `archive [--quarter Q]` | Phase 11 (archive completed/dropped) |
 | `rebuild-index` | Phase 12 (regenerate INDEX.md) |
+| `web` | Phase 13 (launch the web UI) |
 | (any other to-do-shaped free text) | Phase 2 (quick capture) |
 
 ---
@@ -310,3 +314,18 @@ Triggered by `/mytasks archive [--quarter Q]`. Archive semantics (move-not-delet
 2. Eligible: `status` in (`completed`, `dropped`) AND (today − `updated:`) > 30 days.
 3. Move each eligible item to `~/.pmos/tasks/archive/{quarter}/{file}` (`mkdir -p`; prefer `git mv` if `~/.pmos/` is a git repo).
 4. Apply `#rebuild-index` (refreshes `Last regenerated:`). Output: `Archived {N} items: {comma-separated "#{id} → {quarter}"}.` or `Archived 0 items: nothing eligible.`
+
+---
+
+## Phase 13: Launch Web UI {#web}
+
+Triggered by `/mytasks web`. Starts the local server (`scripts/serve.js`) and opens the Todoist-class web app in the default browser. The app and the terminal are the same data — both read/write `~/.pmos/tasks/items/*.md` (design §3); the server is stateless (re-reads files per request), so edits made in either surface appear in the other (web refreshes on focus + a light poll).
+
+1. **Precheck `node`.** `command -v node` — if absent, output `Node >=18 is required for the web UI (https://nodejs.org). The terminal verbs work without it.` and exit. (Everything else in `/mytasks` is node-free; only the web layer needs it.)
+2. **Reuse or spawn the server.** Resolve the script dir (`<pmos-toolkit>/skills/mytasks/scripts/`). If `scripts/.pmos-serve.pid` exists and names a live pid (`kill -0`), reuse its `port`. Otherwise spawn fresh: `node scripts/serve.js --port=0 --pid-file=scripts/.pmos-serve.pid --idle=300` (background), then read the port from the pid file (poll briefly for it to appear). The server hard-binds `127.0.0.1`, auto-shuts after 300s idle, and never deletes a task file.
+3. **Open the browser** at `http://127.0.0.1:<port>/` — prefer the launcher trio (`scripts/mytasks-open.command` on macOS, `.sh` on Linux, `.bat` on Windows), which encapsulates the precheck/reuse/spawn/open flow; or open the URL directly with the platform opener (`open` / `xdg-open` / `start`).
+4. **Report** the URL and how to stop: `Web UI at http://127.0.0.1:<port>/ — the server auto-stops after 5 min idle (or close it with: kill $(node -e '…').` Tasks live in `~/.pmos/tasks/`.
+
+**`--non-interactive`:** `web` is interactive-by-nature (it opens a browser for a human). Under `--non-interactive`, do NOT block or spawn a browser — start/reuse the server and **print the launch URL** (`Web UI at http://127.0.0.1:<port>/ (non-interactive: not opening a browser)`), then exit cleanly. This phase issues no interactive prompt, so the canonical classifier has nothing to defer.
+
+> **Server-required by design (D11):** the web app has **no `file://` mode**. Opening `index.html` from disk shows a blocking "run `/mytasks web`" modal — there is no degraded read-only path, because writes need the server. This mirrors the `comments` launcher posture.
