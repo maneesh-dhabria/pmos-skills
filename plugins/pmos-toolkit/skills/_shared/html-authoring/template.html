@@ -23,29 +23,34 @@
 </head>
 <body>
   <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
-    <a class="pmos-wordmark" href="{{plugin_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-    <h1 class="pmos-artifact-title">{{title}}</h1>
-    <div class="pmos-artifact-actions">
-      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    <div class="pmos-artifact-toolbar-inner">
+      <a class="pmos-wordmark" href="{{plugin_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
+      <span class="pmos-crumb" data-pmos-role="crumb">{{title}}</span>
+      <div class="pmos-artifact-actions">
+        <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+      </div>
+      <a class="pmos-attribution pmos-attribution--toolbar"
+         href="{{plugin_url}}"
+         target="_blank" rel="noopener noreferrer"
+         data-pmos-role="attribution"
+         data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
     </div>
-    <a class="pmos-attribution pmos-attribution--toolbar"
-       href="{{plugin_url}}"
-       target="_blank" rel="noopener noreferrer"
-       data-pmos-role="attribution"
-       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
   </header>
   <main class="pmos-artifact-body" data-pmos-role="body">
+    <h1 class="pmos-doc-title">{{title}}</h1>
 {{content}}
   </main>
   <footer class="pmos-artifact-footer" data-pmos-role="footer">
-    <a class="pmos-wordmark pmos-wordmark--footer" href="{{plugin_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
-    <span class="pmos-artifact-source">Source: {{source_path}}</span>
-    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
-    <a class="pmos-attribution pmos-attribution--footer"
-       href="{{plugin_url}}"
-       target="_blank" rel="noopener noreferrer"
-       data-pmos-role="attribution"
-       data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
+    <div class="pmos-artifact-footer-inner">
+      <a class="pmos-wordmark pmos-wordmark--footer" href="{{plugin_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
+      <span class="pmos-artifact-source">Source: {{source_path}}</span>
+      <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+      <a class="pmos-attribution pmos-attribution--footer"
+         href="{{plugin_url}}"
+         target="_blank" rel="noopener noreferrer"
+         data-pmos-role="attribution"
+         data-pmos-plugin="{{plugin_name}}">Created using {{plugin_name_nbsp}}</a>
+    </div>
   </footer>
   {{inline_js}}
   {{inline_comments_json}}

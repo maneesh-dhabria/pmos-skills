@@ -1,20 +1,37 @@
 /* comments.css — pmos-toolkit html-authoring substrate.
- * Inline-doc-comments overlay styles (T7).
- * Neutral zinc/grays + one warm warning red for the FSA banner.
- * Refs: FR-02, FR-03, FR-04, FR-10, FR-11, §10, §11.
+ * Inline-doc-comments overlay styles.
+ * "Editorial Technical" refresh (story 260614-tcx): the thread renders as a warm-paper
+ * popover anchored to the annotation — NOT a white fixed side-panel. Commented text
+ * gets a warm tint + thin accent underline. Token-driven, so it inherits the dark-mode
+ * palette automatically. The inline <script id="pmos-comments"> persistence contract and
+ * the serve.js /save path are unchanged — this is a presentation change only.
+ * Refs: FR-02, FR-03, FR-04, FR-08, FR-10, FR-11, §10, §11.
  */
+
+/* Commented text — a shade darker than the paper canvas + an inset accent underline.
+   Applied to the selected range when a comment is opened (the persisted model stores a
+   quote_hash, not the raw quote, so spans are highlighted in-session, not rehydrated). */
+.pmos-cmt {
+  background: #efe6d4;
+  box-shadow: inset 0 -1px 0 var(--pmos-accent);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+}
+@media (prefers-color-scheme: dark) {
+  .pmos-cmt { background: #34291a; }
+}
 
 .pmos-floating-btn {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   z-index: 9999;
-  background: #fff;
-  border: 1px solid #d4d4d8;
+  background: var(--pmos-surface);
+  border: 1px solid var(--pmos-border);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-shadow: var(--pmos-shadow);
   font-size: 14px;
   display: inline-flex;
   align-items: center;
@@ -22,34 +39,43 @@
   padding: 0;
 }
 
+/* The thread popover — warm paper, accent left-border, anchored near the annotation by
+   the JS (position:absolute + computed top/left). NO white card, NO full-height fixed
+   drawer: it overlays the article, so opening/closing never reflows the body. */
 .pmos-side-panel {
-  position: fixed;
+  position: absolute;
   top: 0;
-  right: 0;
-  width: 360px;
-  height: 100vh;
-  background: #fafafa;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-left: 1px solid #e4e4e7;
-  transform: translateX(100%);
-  transition: transform 200ms ease;
-  display: flex;
+  left: 0;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: 70vh;
+  background: #f0e8d8;
+  border: 1px solid var(--pmos-rule);
+  border-left: 2px solid var(--pmos-accent);
+  border-radius: 0 8px 8px 0;
+  box-shadow: var(--pmos-shadow-lg);
+  display: none;
   flex-direction: column;
   z-index: 9998;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--pmos-font-sans);
+  overflow: hidden;
 }
-
 .pmos-side-panel.open {
-  transform: translateX(0);
+  display: flex;
+}
+@media (prefers-color-scheme: dark) {
+  .pmos-side-panel { background: #241c12; }
 }
 
 .pmos-panel-header {
-  padding: 16px;
-  border-bottom: 1px solid #e4e4e7;
-  font-weight: 600;
-  font-size: 14px;
-  color: #18181b;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pmos-rule);
+  font-family: var(--pmos-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--pmos-accent);
   display: flex;
   align-items: center;
 }
@@ -61,43 +87,56 @@
 }
 
 .pmos-thread-card {
-  padding: 12px;
-  border-bottom: 1px solid #f4f4f5;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--pmos-border-2);
   font-size: 14px;
-  color: #27272a;
+  color: var(--pmos-text);
 }
 
+/* Long threads collapse to a one-line summary; click expands in place. */
 .pmos-thread-card.collapsed .pmos-thread-messages {
   display: none;
 }
-
 .pmos-thread-card.expanded .pmos-thread-messages {
   display: block;
 }
-
 .pmos-thread-messages {
   display: block;
+}
+
+.pmos-thread-card.collapsed .pmos-message:first-child {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pmos-message {
   padding: 8px 0;
   font-size: 14px;
-  color: #3f3f46;
-  line-height: 1.4;
+  line-height: 1.5;
+  color: var(--pmos-text);
+}
+.pmos-message .pmos-author {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--pmos-muted);
 }
 
 .pmos-thread-compose {
   padding: 12px;
-  border-top: 1px solid #e4e4e7;
+  border-top: 1px solid var(--pmos-rule);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .pmos-thread-compose textarea {
-  border: 1px solid #d4d4d8;
+  border: 1px solid var(--pmos-border);
   border-radius: 4px;
   padding: 8px;
+  background: var(--pmos-surface);
+  color: var(--pmos-text);
   font-family: inherit;
   font-size: 14px;
   resize: vertical;
@@ -107,51 +146,54 @@
 .pmos-thread-compose button,
 .pmos-compose-submit {
   align-self: flex-end;
-  padding: 6px 12px;
-  background: #18181b;
-  color: #fafafa;
-  border: 1px solid #18181b;
+  padding: 6px 14px;
+  background: var(--pmos-accent);
+  color: #fff;
+  border: 1px solid var(--pmos-accent);
   border-radius: 4px;
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
+.pmos-thread-compose button:hover,
+.pmos-compose-submit:hover { background: var(--pmos-accent-strong); border-color: var(--pmos-accent-strong); }
 
 .pmos-banner {
   position: fixed;
   bottom: 16px;
   right: 16px;
   padding: 12px 16px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--pmos-accent-bg);
+  border: 1px solid var(--pmos-accent);
   border-radius: 6px;
-  color: #991b1b;
+  color: var(--pmos-accent-strong);
   z-index: 10000;
   cursor: pointer;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--pmos-font-sans);
   font-size: 13px;
-  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.08);
+  box-shadow: var(--pmos-shadow);
 }
 
 .pmos-diagram-marker {
   position: absolute;
   width: 12px;
   height: 12px;
-  background: #fbbf24;
+  background: var(--pmos-accent);
   border-radius: 50%;
   pointer-events: auto;
   cursor: pointer;
 }
 
-/* T24 — Orphan banner (sticky-top warning inside the side panel). */
+/* Orphan banner — sticky-top warning inside the thread popover. */
 [data-pmos-orphan-banner] {
   position: sticky;
   top: 0;
   padding: 8px 12px;
-  background: #fffbeb;
-  border-bottom: 1px solid #fde68a;
-  color: #92400e;
+  background: var(--pmos-accent-bg);
+  border-bottom: 1px solid var(--pmos-rule);
+  color: var(--pmos-accent-strong);
   font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--pmos-font-sans);
   z-index: 2;
   display: flex;
   align-items: center;
@@ -161,48 +203,48 @@
 
 [data-pmos-reattach-btn] {
   padding: 2px 8px;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
+  background: var(--pmos-surface-2);
+  border: 1px solid var(--pmos-rule);
   border-radius: 3px;
-  color: #92400e;
+  color: var(--pmos-accent-strong);
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
 }
-
 [data-pmos-reattach-btn]:hover {
-  background: #fde68a;
+  background: var(--pmos-surface-3);
 }
 
 [data-pmos-reattach-anchor] {
   width: 100%;
   padding: 4px 8px;
-  border: 1px solid #fde68a;
+  border: 1px solid var(--pmos-border);
   border-radius: 3px;
   font-size: 12px;
   font-family: inherit;
-  color: #44403c;
+  color: var(--pmos-text);
+  background: var(--pmos-surface);
 }
 
-/* T24 — Diagram markers (16px circle overlaid on SVG anchors). */
+/* Diagram markers (16px circle overlaid on SVG anchors). */
 [data-pmos-diagram-marker] {
   position: absolute;
   width: 16px;
   height: 16px;
-  background: #6366f1;
+  background: var(--pmos-accent);
   border-radius: 50%;
   z-index: 5;
   cursor: pointer;
   transform: translate(-50%, -50%);
-  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.3);
+  box-shadow: var(--pmos-shadow);
   transition: background 120ms ease;
 }
-
 [data-pmos-diagram-marker]:hover {
-  background: #4f46e5;
+  background: var(--pmos-accent-strong);
 }
 
-/* T24 — file:// E1 blocking modal (full-viewport overlay). */
+/* file:// E1 blocking modal (full-viewport overlay). A read-only error dialog, not a
+   comment thread — kept as a centered card, surfaced on the paper surface token. */
 [data-pmos-file-warning] {
   position: fixed;
   inset: 0;
@@ -211,16 +253,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--pmos-font-sans);
 }
 
 [data-pmos-file-warning-modal] {
-  background: #fff;
+  background: var(--pmos-surface);
   border-radius: 8px;
   padding: 28px 32px;
   max-width: 460px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--pmos-shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -230,13 +272,13 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #18181b;
+  color: var(--pmos-text);
 }
 
 [data-pmos-file-warning-modal] p {
   margin: 0;
   font-size: 14px;
-  color: #52525b;
+  color: var(--pmos-muted);
   line-height: 1.5;
 }
 
@@ -244,9 +286,9 @@
 [data-pmos-copy-launcher] {
   padding: 8px 14px;
   border-radius: 5px;
-  border: 1px solid #d4d4d8;
-  background: #f4f4f5;
-  color: #18181b;
+  border: 1px solid var(--pmos-border);
+  background: var(--pmos-surface-2);
+  color: var(--pmos-text);
   font-size: 13px;
   cursor: pointer;
   text-align: left;
@@ -254,6 +296,6 @@
 
 [data-pmos-copy-serve]:hover,
 [data-pmos-copy-launcher]:hover {
-  background: #e4e4e7;
-  border-color: #a1a1aa;
+  background: var(--pmos-surface-3);
+  border-color: var(--pmos-border);
 }
