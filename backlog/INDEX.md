@@ -62,7 +62,7 @@ Last regenerated: 2026-06-14 (define 260614-nvh — pmos-gamekit /flappy-bird ep
 | 260613-3jc | story | bug | released | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
 | 260613-7n1 | story | enhancement | done | 260613-5av | Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix | 02_design.html | 03_plan.html |  |
 | 260613-044 | story | enhancement | done | 260613-5av | Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering | 02_design.html | 03_plan.html |  |
-| 260613-yfr | story | feature | planned | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
+| 260613-yfr | story | feature | done | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
 | 260613-h9r | story | enhancement | planned | 260613-ev1 | Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit | 02_spec.html |  |  |
 | 260613-14b | story | feature | planned | 260613-p3c | Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests | 02_design.html | 03_plan.html |  |
 | 260613-gx8 | story | bug | planned | 260613-fc7 | Fix the /frameworks browse-view design-crit findings (F1–F7) in build-library.mjs + tests + live dogfood | 02_design.html | 03_plan.html |  |
