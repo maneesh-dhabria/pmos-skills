@@ -6,14 +6,17 @@ parent: 260614-q4r
 title: /diagram — contrast-checker class="legend" diagnostic note + editorial-theme palette hard-constraint preamble
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/
 plan_doc: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-d3g/03_plan.html
 tasks: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-d3g/tasks.yaml
 plugin: pmos-toolkit
+worktree: feat/260614-d3g
 labels: [diagram, eval, diagnostics, editorial-theme]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 ---
