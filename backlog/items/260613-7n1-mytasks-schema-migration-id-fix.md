@@ -6,7 +6,7 @@ parent: 260613-5av
 title: "Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix"
 type: enhancement
 priority: should
-status: done
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_mytasks-web/
@@ -20,7 +20,7 @@ build_commit: 281fdb9
 labels: [pmos-toolkit, mytasks, schema, migration]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.76.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-7n1 -->

@@ -4,12 +4,12 @@ id: 260613-5av
 title: "/mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained)"
 type: feature
 kind: epic
-status: defined
+status: released
 priority: should
 labels: [mytasks, pmos-toolkit, skill, web-ui, server, idea]
 created: 2026-06-13
 updated: 2026-06-13
-released:
+released: pmos-toolkit/v2.76.0
 route: skill
 source: "skill-sdlc define (2026-06-13 session); design-doc seed adopted verbatim"
 design_doc: docs/pmos/features/2026-06-13_mytasks-web/02_design.html
