@@ -4,18 +4,21 @@ id: 260613-14b
 kind: story
 title: "Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests"
 type: feature
-status: planned
+status: in-progress
 priority: should
 labels: [pmos-toolkit, backlog, web-ui]
 route: skill
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-14
 parent: 260613-p3c
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_backlog-web-viewer/
 design_doc: docs/pmos/features/2026-06-13_backlog-web-viewer/02_design.html
 plan_doc: docs/pmos/features/2026-06-13_backlog-web-viewer/stories/260613-14b/03_plan.html
 tasks_file: docs/pmos/features/2026-06-13_backlog-web-viewer/stories/260613-14b/tasks.yaml
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260613-14b
+claimed_by: build:loop-mdh
+driver_holder: build:loop-mdh
 ---
 
 ## Context
