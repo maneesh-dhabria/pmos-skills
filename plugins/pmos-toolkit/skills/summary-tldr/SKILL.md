@@ -13,14 +13,14 @@ The one rule everything else serves: **a reader who never saw the original comes
 
 ## Flags & natural language
 
-Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 6 gate), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
+Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 7 diagram gate, `#diagram`), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
 <!-- defer-only: ambiguous -->
-- **No `AskUserQuestion` available:** the input-kind disambiguation (Phase 2), the compression confirm (Phase 3), the style ask (Phase 4), and the diagram gate (Phase 6) degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
+- **No `AskUserQuestion` available:** the input-kind disambiguation (Phase 2), the compression confirm (Phase 3), the style ask (Phase 4), and the diagram gate (Phase 7, `#diagram`) degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
 - **No `WebFetch`:** URL sources cannot be ingested — refuse the URL input with a one-line note and ask for a paste; never summarize a remembered version of the page.
 - **No vision `Read`:** image sources cannot be ingested — refuse with guidance; never invent the image's text.
 - **No `Task` subagent:** the Phase 4 map-reduce chunk-summarize and the Phase 5 reviewer run inline in the host conversation instead of as dispatched subagents.
@@ -28,7 +28,9 @@ These instructions use Claude Code tool names. In other environments:
 
 ## Track Progress
 
-This skill has 8 sequential phases (Setup, Ingest, Compress, Summarize, Review, Diagram, Emit, Capture Learnings). Create one task per phase using the host agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+This skill has 8 sequential phases (Setup, Ingest, Compress, Summarize, Review, Emit, Diagram, Capture Learnings). Create one task per phase using the host agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+
+**Emit precedes the diagram by design (crash-safety).** The Phase 5-approved summary is written to disk in Phase 6 (`#emit`) *before* the optional, slow, multi-turn `/diagram` loop runs in Phase 7 (`#diagram`). The approved text is therefore persisted by construction — a compaction or crash during the diagram loop cannot lose it, because the real artifact already holds it. No `.summary.tmp` side-file exists; the on-disk artifact is the single source.
 
 ## Phase 1: Setup & load learnings {#setup}
 
@@ -111,21 +113,27 @@ Before emit, run the review pass in `reference/review-rubric.md` from the perspe
 
 Dispatch the reviewer as a fresh `Task` subagent **`model: sonnet`** per `_shared/reviewer-protocol.md` (it scores only — it MUST NOT edit); any faithfulness/coverage `fail` must cite a ≥40-char verbatim source quote, and a fail whose quote misses is treated as `pass`. Auto-apply surviving fixes, re-run **once** (≤2-loop cap). Surface a coverage/faithfulness signal (matched-keyfacts ratio) to the user; residual gaps are surfaced in the artifact, never hidden.
 
-## Phase 6: Optional diagram {#diagram}
+## Phase 6: Emit the artifact {#emit}
 
-After the summary lands, offer the optional gate:
-
-- `AskUserQuestion` — `"Convert this summary into a diagram?"` options **Skip (Recommended)** / **Run /diagram**. `--diagram` pre-answers Run. Under non-interactive mode, AUTO-PICK Skip.
-
-On Run, the **main agent** (never a subagent — skills cannot invoke skills) calls `/diagram --source <summary.md> --theme editorial --non-interactive --on-failure drop`, then **validates the returned SVG before embedding** (it parses, carries the dark-mode background `<rect>`, and the post-insert heading-id smoke stays green) and inserts it into the summary HTML; on any failure it logs and continues without the diagram. Same handoff pattern as `artifact/SKILL.md#diagram-pass`.
-
-## Phase 7: Emit the artifact {#emit}
+Emit the full, Phase 5-approved summary to disk **now — before the optional diagram loop** (this is the crash-safety guarantee: the approved text is persisted by construction, so a compaction or crash during Phase 7's slow `/diagram` loop cannot lose it).
 
 **Emit per `_shared/html-authoring/README.md` checklist.** Deltas: artifact = `{summary_tldr_dir}/{YYYY-MM-DD}-<slug>.html` (slug derived from the source title/topic; `--out` overrides the path), `{{pmos_skill}}` = `summary-tldr`, `{{plugin_version}}` read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Write the `.html` and `.sections.json` via temp-then-rename; every `<h2>`/`<h3>` carries a stable kebab `id` per `_shared/html-authoring/conventions.md`; copy `assets/*` via `cp -n` (the comments overlay rides along); asset URLs carry `?v=<plugin-version>`.
 
-The artifact carries a **provenance block** (`source_kind`, URL/filename, `extraction_confidence`, retrieval timestamp) and surfaces the Phase 5 coverage/faithfulness signal. Body shape: BLUF line → the summary (in the chosen style) → optional diagram → "Source & confidence" appendix.
+The artifact carries a **provenance block** (`source_kind`, URL/filename, `extraction_confidence`, retrieval timestamp) and surfaces the Phase 5 coverage/faithfulness signal. Body shape: BLUF line → the summary (in the chosen style) → an **empty reserved diagram slot** → "Source & confidence" appendix. The diagram slot is an empty placeholder element with a stable id (e.g. `<figure id="summary-diagram" data-diagram-slot></figure>`) that Phase 7 fills in place; if the diagram gate resolves to Skip the empty slot is left as-is (renders to nothing).
+
+Render the "Source & confidence" appendix as a **compact two-column `<table>`** (not a `<dl>`) — one row per fact: Source kind / Source path / Extraction confidence / Source date / Coverage signal — under an `<h2>` with a stable kebab `id` (e.g. `id="source-and-confidence"`) per `_shared/html-authoring/conventions.md`.
 
 **Library regen.** Regenerate `{summary_tldr_dir}/summary-tldr.html` (one row per past summary, newest first) per `_shared/html-authoring/index-generator.md`; give every manifest entry the literal `phase: "Summaries"` so the viewer renders one flat group. Exclude `summary-tldr.html` itself. Atomic write.
+
+## Phase 7: Optional diagram {#diagram}
+
+With the summary already on disk (Phase 6), offer the optional gate:
+
+- `AskUserQuestion` — `"Convert this summary into a diagram?"` options **Skip (Recommended)** / **Run /diagram**. `--diagram` pre-answers Run. Under non-interactive mode, AUTO-PICK Skip.
+
+On Run, the **main agent** (never a subagent — skills cannot invoke skills) calls `/diagram --source <summary.md> --theme editorial --non-interactive --on-failure drop`, then **validates the returned SVG before injecting** (it parses, carries the dark-mode background `<rect>`, and the post-insert heading-id smoke stays green). It then **injects the validated SVG into the already-emitted on-disk artifact**: read the `.html` file → replace the reserved diagram slot (`#summary-diagram`) with the SVG → rewrite via atomic temp-then-rename → regenerate the library index. Same handoff + validation pattern as `artifact/SKILL.md#diagram-pass`.
+
+On **any** diagram or validation failure: leave the emitted summary on disk **intact** (no rollback — the approved text is already safe), log the failure, and continue. The on-disk artifact is the single source; never write a `.summary.tmp` side-file.
 
 ## Phase 8: Capture Learnings {#capture-learnings}
 
@@ -144,8 +152,9 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 4. **Computing the compression numbers by hand.** The band → target-range → cap arithmetic is `scripts/compression.js`'s job (§H). The model renders and confirms; it does not calculate.
 5. **Skipping the compression confirm.** The target is proposed and confirmed (or set by `--compression`) before generating — never summarize first and trim to fit later (I3).
 6. **Single-passing a long source.** Long sources are chunk-and-synthesized (map-reduce); a single pass drops mid-document facts (the lost-in-the-middle bias).
-7. **Invoking `/diagram` from a subagent.** The diagram handoff runs from the main agent only, and the returned SVG is validated before it is embedded — never blind-insert.
+7. **Invoking `/diagram` from a subagent.** The diagram handoff runs from the main agent only, and the returned SVG is validated before it is injected into the on-disk artifact — never blind-insert.
 8. **Letting the Phase 5 reviewer edit.** The reviewer scores and cites only; this skill applies the fixes. A reviewer that edits while reviewing makes the pass unreproducible.
+9. **Running the slow diagram loop before the first emit.** The approved summary is emitted to disk in Phase 6 (`#emit`) *before* the optional `/diagram` step in Phase 7 (`#diagram`). Never run the multi-turn diagram loop between Phase 5 approval and the first on-disk emit — that is the data-loss window a compaction would hit. The on-disk artifact is the single source of truth; do not introduce a `.summary.tmp` to "stage" the approved text (the real artifact already is the persistence).
 
 ## Worked example
 
@@ -155,7 +164,8 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 - **Phase 3.** `compression.js 3200 --band standard` → target 640–960, `word_cap` 481 → `final` 481–481 (capped — a long report still yields a TL;DR). Confirmed.
 - **Phase 4.** Source is long → map-reduce over four sections; keyfacts extracted (the 40% cost figure, the 4→11h review-turnaround number, the 3 named recommendations); generated as front-loaded bullets asserting each keyfact.
 - **Phase 5.** Reviewer (sonnet) flags one faithfulness miss — a bullet said "most teams" where the source said "two of nine teams"; auto-applied; re-run all-pass. Coverage 12/12 keyfacts surfaced.
-- **Phases 6–7.** Diagram skipped (Recommended). Artifact written to `docs/pmos/summary-tldr/2026-06-13-remote-work-report.html` + `.sections.json`; provenance block records the URL + high confidence; `summary-tldr.html` library regenerated.
+- **Phase 6 (emit).** Artifact written to `docs/pmos/summary-tldr/2026-06-13-remote-work-report.html` + `.sections.json` **first** (BLUF → bullets → empty `#summary-diagram` slot → compact "Source & confidence" `<table>`); provenance block records the URL + high confidence; `summary-tldr.html` library regenerated. The approved text is now persisted regardless of what happens next.
+- **Phase 7 (diagram).** Diagram skipped (Recommended) → the empty `#summary-diagram` slot renders to nothing, the on-disk artifact is unchanged. (Had `--diagram` been passed, `/diagram` would run, the validated SVG would be injected into that same on-disk file via atomic rewrite, and the index re-regenerated.)
 
 ---
 
