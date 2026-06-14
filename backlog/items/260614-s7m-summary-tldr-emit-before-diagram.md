@@ -6,14 +6,17 @@ parent: 260614-q4r
 title: /summary-tldr — emit summary before /diagram (crash-safe approved text) + compact Source&confidence table
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/
 plan_doc: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-s7m/03_plan.html
 tasks: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-s7m/tasks.yaml
 plugin: pmos-toolkit
+worktree: feat/260614-s7m
 labels: [summary-tldr, robustness, ux]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 ---
