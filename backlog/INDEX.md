@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-7g0 — /explainer-video first-run robustness + caption UX fixes epic + 1 story 260614-a3g added)
+Last regenerated: 2026-06-14 (define 260614-q3h — /backlog web viewer nomenclature & clarity epic + 1 story 260614-8v4 added)
 
-18 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+20 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -36,6 +36,7 @@ Last regenerated: 2026-06-14 (define 260614-7g0 — /explainer-video first-run r
 | 260614-nvh | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /flappy-bird (one-button arcade flappy game, single-file HTML, Easy/Normal/Hard picker, constant-difficulty runs) |
 | 260614-q4r | defined | skill | pmos-toolkit | 0/3 | Enhance /summary-tldr (crash-safe emit-before-diagram, compact source table) + /diagram (eval diagnostics, palette hard-constraint) + shared first-run docs_path default |
 | 260614-7g0 | defined | skill | pmos-toolkit | 0/1 | /explainer-video first-run robustness + caption UX fixes |
+| 260614-q3h | defined | skill | pmos-toolkit | 0/1 | /backlog web viewer — nomenclature & conceptual clarity (translation layer: plain labels, legend, kind pills, grouped-status filter, @null fix, Releases cleanup, tooltips) |
 
 ## must
 
@@ -77,6 +78,7 @@ Last regenerated: 2026-06-14 (define 260614-7g0 — /explainer-video first-run r
 | 260614-s7m | story | enhancement | planned | 260614-q4r | /summary-tldr — emit summary before /diagram (crash-safe approved text) + compact Source&confidence table | 02_design.html | 03_plan.html |  |
 | 260614-d3g | story | enhancement | planned | 260614-q4r | /diagram — contrast-checker class="legend" diagnostic note + editorial-theme palette hard-constraint preamble | 02_design.html | 03_plan.html |  |
 | 260614-p8k | story | enhancement | planned | 260614-q4r | _shared/pipeline-setup.md — mark docs/pmos/ as the (Recommended) first-run docs_path default | 02_design.html | 03_plan.html |  |
+| 260614-8v4 | story | enhancement | planned | 260614-q3h | /backlog web viewer — plain labels, legend, kind pills, grouped status filter, @null fix, Releases cleanup | 02_design.html | 03_plan.html |  |
 
 ## could
 
