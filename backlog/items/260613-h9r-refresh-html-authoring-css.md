@@ -6,7 +6,8 @@ parent: 260613-ev1
 title: Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit
 type: enhancement
 priority: should
-status: planned
+status: superseded
+superseded_by: 260614-tcx
 route: feature
 dependencies: []
 plugin: pmos-toolkit
@@ -15,10 +16,12 @@ plan_doc:
 tasks: docs/pmos/features/2026-06-13_pipeline-doc-css-readability/stories/260613-h9r/tasks.yaml
 labels: [html-authoring, substrate, typography, readability, cross-plugin]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-14
 ---
 
-<!-- status: planned at define (Loop 1); tasks.yaml authored, route:feature (no plan_doc HTML — lean). Build via /feature-sdlc build --story 260613-h9r -->
+> **Superseded by story [260614-tcx](260614-tcx-refresh-html-authoring-editorial-technical.md)** (epic 260614-m68, 2026-06-14). All of this story's ACs are folded into tcx's AC1–AC12. Build `260614-tcx`, not this.
+
+<!-- status: superseded by 260614-tcx (epic 260614-m68 supersedes 260613-ev1). Do not build. -->
 
 ## Context
 

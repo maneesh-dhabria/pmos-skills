@@ -1,0 +1,148 @@
+schema_version: 1
+story: 260614-tcx
+epic: 260614-m68
+route: feature
+plugin: pmos-toolkit
+design: ../../02_design.html
+# Single route:feature story for the html-authoring "Editorial Technical" refresh. ALL edits are to the
+# CANONICAL pmos-toolkit copy of _shared/html-authoring (style.css + template.html + comments.css/js);
+# pmos-learnkit gets the change via scripts/sync-shared.sh (T6), NOT by hand-editing its copy. The tasks
+# form a chain (T1→T2 both edit style.css; T3 template.html; T4 comments; T5 guards; T6 sync; T7 dogfood)
+# so they run sequential. NO release-prereq tasks (version/changelog/manifest) — those are /complete-dev's
+# job at Loop 3 ("ride which release?" for both plugins). Approved specimen: ../../mockups/v2-design-doc.html.
+tasks:
+  - id: T1
+    title: "style.css — three-voice type system, type scale, palette, measure & centered/full-bleed layout (FR-1, FR-2, FR-3, FR-5)"
+    ac: [AC1, AC2, AC3, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/_shared/html-authoring/assets/style.css against
+      ../../mockups/v2-design-doc.html. Map the specimen's bare tokens into the `--pmos-` namespace,
+      PRESERVING any token name consumed elsewhere (grep before renaming). (1) Faces: add
+      `--pmos-font-serif` (system serif: "Iowan Old Style","Palatino Linotype",Palatino,"Charter",
+      Georgia,serif), `--pmos-font-sans` (ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,…);
+      KEEP `--pmos-font-display` (JetBrains Mono) for the structural layer. (2) Palette: warm canvas
+      `--pmos-bg:#f8f5ef`, surfaces/borders/rule per specimen; prose accent `--pmos-accent:#b8431a`
+      (+ accent-strong/accent-bg); muted `#655e54`; faint `#a59c8e` (decoration only). (3) Type scale:
+      `html,body` serif 17px / lh 1.66; h1 sans 34px/700; h2 sans 21px/700 sentence-case
+      (text-transform:none, top rule, mono `[NN]` counter ABOVE the title via h2::before display:block);
+      h3 sans 17px/600. (4) Lead/eyebrow: mono uppercase `.pmos-eyebrow`/kicker; labelled lead (mono chip
+      `.lead-label` + serif `.pmos-lead`) — REMOVE the italic-left-rule mission styling. (5) Layout:
+      `.pmos-artifact-body` centered max-width ~730px; toolbar/footer full-bleed (bar spans viewport,
+      inner wrapper max-width ~880px centered). TDD: add an assertion (regex over the CSS or a
+      render+getComputedStyle check) that fails on OLD values first, then make it pass.
+    verify: >
+      grep style.css shows --pmos-font-serif/--pmos-font-sans defined, body 17px serif lh1.66, h1 34
+      sans, h2 21 sans text-transform:none, h3 17 sans 600, mono [NN] above h2, .pmos-artifact-body
+      ~730px centered, full-bleed toolbar inner ~880px; no italic-mission lead remains.
+
+  - id: T2
+    title: "style.css — break-out tables/code (right only) + calmer table style + AA contrast audit (FR-3, FR-6, FR-7)"
+    ac: [AC3, AC6, AC7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Continue in style.css. (1) Break-out: `.pmos-artifact-body table, .pmos-artifact-body pre {
+      width: calc(100% + 150px); max-width: var(--pmos-wide,880px); margin-left:0 }` — extends to the
+      RIGHT only, left edge aligned with prose (NOT centered/symmetric). (2) Tables: `table{font-size:
+      15px}`; `th,td{border:0; border-bottom:1px solid var(--pmos-border-2)}` (no vertical rules);
+      `thead th{ font-family:var(--pmos-font-display); text-transform:uppercase; letter-spacing:.06em;
+      font-size:11px; border-bottom:2px solid var(--pmos-rule)}`; keep zebra `tbody tr:nth-child(even)
+      td`. (3) Contrast: grep every `color: var(--pmos-faint)`; any TEXT context → `--pmos-muted`; leave
+      borders / list markers / anchor-icon faint. Extend the T1 assertion to cover these.
+    verify: >
+      table/pre width calc(100%+150px) max-width 880 margin-left:0; table 15px, bottom-only borders,
+      mono uppercase thead, zebra retained; no `color: var(--pmos-faint)` on any text selector.
+
+  - id: T3
+    title: "template.html — emit a real body H1, demote toolbar title to breadcrumb (FR-4)"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/_shared/html-authoring/template.html. Change the toolbar
+      `<h1 class="pmos-artifact-title">{{title}}</h1>` to a non-heading element (`<span/​p
+      class="pmos-crumb">{{title}}</span>` styled as a mono breadcrumb). Add
+      `<h1 class="pmos-doc-title">{{title}}</h1>` as the FIRST child of `<main class="pmos-artifact-body">`,
+      immediately before `{{content}}`. In style.css add `.pmos-doc-title { margin-bottom:
+      var(--pmos-sp-5) }` and `.pmos-crumb` mono/muted breadcrumb styling. Do NOT touch render.js (it
+      already replaceAll's {{title}}). If the old title style was `h1.pmos-artifact-title`, loosen to a
+      class-only selector. Exactly one `<h1>` per emitted doc.
+    verify: >
+      template.html has exactly one `<h1` (the body `.pmos-doc-title`); toolbar title is a non-heading
+      breadcrumb; a fresh render shows one body h1 at 34px sans and the toolbar crumb in mono.
+
+  - id: T4
+    title: "comments.css/js — inline warm-tinted comment treatment, no white panel (FR-8)"
+    ac: [AC8]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Edit _shared/html-authoring/assets/comments.css (and comments.js only if markup must change).
+      Replace the white side-panel/overlay styling with the inline treatment from the specimen:
+      commented text gets `background:#efe6d4` (a shade darker than --pmos-bg, same hue) + an inset
+      accent underline; the thread renders inline on the same paper (`#f0e8d8` block, 2px accent
+      left-border, NO white card, NO position:fixed toolbar). Author label in mono/sans, body 14px.
+      Long threads collapse to a one-line summary that expands on click. CRITICAL: the thread is in the
+      document flow but opening/closing it must NOT reflow the article body unexpectedly — verify
+      anchored expansion (e.g. height transition / absolutely-positioned popover anchored to the
+      annotation) keeps the surrounding paragraphs stable. Preserve the inline `<script id="pmos-comments">`
+      persistence contract and the serve.js save path — this is a STYLING change, not a data-model change.
+    verify: >
+      comments.css has no `position:fixed` white panel; commented text shows the warm tint + accent
+      underline; thread renders inline with no white card; collapse/expand works; the pmos-comments JSON
+      block + save flow are unchanged; opening a thread does not shift body text.
+
+  - id: T5
+    title: "Dark-mode parity + regression guard — sections.json, chrome-strip, [NN] counter (FR-9, FR-11)"
+    ac: [AC9, AC11]
+    deps: [T4]
+    parallel: false
+    detail: >
+      (1) Dark mode: add/extend the `prefers-color-scheme: dark` block so every NEW token (serif/sans
+      faces are face-only; palette tokens bg/surface/border/rule/text/muted/accent) has a dark value;
+      the new type scale inherits automatically. (2) Regression: render a fixture doc (body h1 + several
+      h2/h3 + a table + a comment) through render.js and assert — build_sections_json.js keys off h2/h3
+      ONLY (body h1 excluded, counts match a no-h1 baseline); chrome-strip.js still strips toolbar/footer
+      and retains the body h1 + content; the `h2::before` `[NN]` counter sequence is unchanged (h1 carries
+      no counter-increment). Add/extend a test under _shared/html-authoring/tests/ if a harness exists.
+    verify: >
+      dark-mode block covers all new tokens and renders correctly; sections.json for the fixture excludes
+      the body h1 and matches the pre-change h2/h3 set; chrome-strip retains body h1; [NN] sequence intact.
+
+  - id: T6
+    title: "Propagate to consumers — sync-shared to pmos-learnkit (FR-10)"
+    ac: [AC10]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run `bash scripts/sync-shared.sh --from=pmos-toolkit` from repo root. Then diff each touched file
+      between the two plugins: assets/style.css, template.html, assets/comments.css (+ comments.js if
+      changed) under _shared/html-authoring/ — all diffs must be empty (byte-identical). sync-shared is
+      intersection-only; every touched file pre-exists in both plugins, so they are in the sync set (no
+      bootstrap needed). If comments.js was NOT pre-existing in pmos-learnkit's _shared, place a
+      byte-identical copy manually first (per the CLAUDE.md bootstrap-gap rule).
+    verify: >
+      diff of style.css, template.html, comments.css (+ comments.js if touched) between pmos-toolkit and
+      pmos-learnkit copies is empty.
+
+  - id: T7
+    title: "Load-bearing live dogfood — re-render, serve, screenshot, measure, blind-judge (AC12)"
+    ac: [AC12]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Re-render (a) a representative real pipeline doc and (b) a comment-bearing doc through the refreshed
+      substrate. Serve over http (python3 -m http.server — Playwright MCP blocks file://) and load in
+      Playwright at 1440x900. Capture before/after screenshots into this story folder. Assert via
+      getComputedStyle: body == 17px serif, every h2 == 21px text-transform 'none', h3 == 17px/600, h1 ==
+      34px sans, .pmos-artifact-body width ~730px, prose measure 60–75ch, table font 15px with no vertical
+      borders, tables/pre left-aligned with prose & wider than the column, zero text nodes computing to
+      #a59c8e. For the comment doc: assert opening a thread does not change the body's scrollHeight/layout
+      and the panel is not a fixed white overlay. Independent blind judge reviews the after-screenshots
+      against AC2–AC8 (hierarchy skimmable? tables calmer? comment treatment clean & on-paper?). Gaps →
+      fix → re-run, cap 2 iterations, then accept-residuals-and-surface.
+    verify: >
+      after-render getComputedStyle assertions all pass; comment-open causes no body reflow; before/after
+      screenshots attached; blind judge satisfied (or residuals accepted + surfaced loudly).

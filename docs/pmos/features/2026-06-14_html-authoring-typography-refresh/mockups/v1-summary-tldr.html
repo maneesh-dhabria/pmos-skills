@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Porter Metric Store POV — TL;DR · pmos type refresh mockup</title>
+<style>
+/* =====================================================================
+   PROPOSED pmos html-authoring aesthetic — "Editorial Technical"
+   A mockup, not the shipped substrate. System fonts only (zero bundle
+   cost beyond the existing JetBrains Mono used for the wordmark/counter).
+   ===================================================================== */
+:root {
+  /* Canvas — warmer paper, echoing the reference's cream without copying it */
+  --bg:        #faf7f1;
+  --surface:   #ffffff;
+  --surface-2: #f4f0e8;
+  --surface-3: #ece6da;
+  --border:    #e4ddcf;
+  --border-2:  #ece6da;
+  --rule:      #ddd4c4;
+
+  /* Ink — warm near-black, calmer mid-grey for secondary text */
+  --text:   #211e1a;
+  --muted:  #6a635a;
+  --faint:  #a59c8e;
+
+  /* Signal accent — keep the pmos burnt-orange (diagrams share this palette),
+     used sparingly the way the reference uses its single deep red */
+  --accent:        #b8431a;
+  --accent-strong: #8f3413;
+  --accent-bg:     #f6e4d6;
+  --good:          #1e6b3a;
+
+  /* Type — system serif body (the single biggest reading-experience lever),
+     mono kept only for code, the [NN] counter, eyebrows, and the wordmark */
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Charter", Georgia, "Times New Roman", serif;
+  --sans:  ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --measure: 720px;   /* prose column — readable line length */
+  --wide:    860px;   /* chrome + breakout frame */
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ---- Toolbar chrome (kept; restyled to sit quietly above the page) ---- */
+.toolbar {
+  display: flex; align-items: center; gap: 14px;
+  max-width: var(--wide); margin: 0 auto;
+  padding: 12px 28px;
+  border-bottom: 1px solid var(--rule);
+}
+.wordmark {
+  font-family: var(--mono); font-weight: 700; font-size: 16px;
+  letter-spacing: -0.03em; color: var(--text);
+  display: inline-flex; align-items: center;
+}
+.wordmark::after {
+  content: ""; display: inline-block;
+  width: 0.3em; height: 0.92em; margin-left: 0.12em;
+  background: var(--accent); border-radius: 1px; transform: translateY(0.06em);
+}
+.toolbar-title {
+  font-family: var(--sans); font-size: 12.5px; color: var(--muted);
+  padding-left: 14px; border-left: 1px solid var(--rule);
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.btn {
+  font-family: var(--sans); font-size: 12.5px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--text); padding: 5px 11px; border-radius: 6px; cursor: pointer;
+}
+
+/* ---- Article body ---- */
+.body { max-width: var(--measure); margin: 0 auto; padding: 52px 28px 88px; counter-reset: sec; }
+.body section { margin-bottom: 44px; }
+
+/* Eyebrow / kicker — editorial, mono, restrained accent */
+.eyebrow {
+  font-family: var(--mono); text-transform: uppercase;
+  letter-spacing: 0.16em; font-size: 11.5px; font-weight: 700;
+  color: var(--accent); margin: 0 0 12px;
+}
+
+h1 {
+  font-family: var(--serif); font-weight: 600;
+  font-size: 33px; line-height: 1.15; letter-spacing: -0.012em;
+  margin: 0 0 14px;
+}
+
+/* Lead / BLUF — the reference's italic "mission" treatment with a left rule */
+.lead {
+  font-style: italic; color: var(--muted);
+  font-size: 18.5px; line-height: 1.55;
+  border-left: 2px solid var(--rule); padding-left: 18px;
+  margin: 0 0 8px;
+}
+
+h2 {
+  font-family: var(--serif); font-weight: 600;
+  font-size: 23px; line-height: 1.25; letter-spacing: -0.008em;
+  margin: 46px 0 14px; padding-top: 26px;
+  border-top: 1px solid var(--rule);
+}
+/* [NN] section signature retained — mono + accent, now a quiet superscript */
+h2::before {
+  counter-increment: sec;
+  content: counter(sec, decimal-leading-zero);
+  font-family: var(--mono); font-weight: 700; font-size: 12px;
+  letter-spacing: 0; color: var(--accent);
+  display: block; margin-bottom: 6px;
+}
+h3 { font-family: var(--serif); font-weight: 600; font-size: 18.5px; margin: 28px 0 8px; }
+
+p { margin: 0 0 16px; }
+strong { font-weight: 600; }
+
+ul, ol { margin: 0 0 16px; padding-left: 24px; }
+li { margin: 7px 0; }
+li::marker { color: var(--faint); }
+
+code {
+  font-family: var(--mono); font-size: 0.82em;
+  background: var(--surface-3); color: var(--accent-strong);
+  padding: 1.5px 6px; border-radius: 4px;
+}
+
+/* Aside / callout — reference's soft card + small-caps label */
+.aside {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 22px; margin: 24px 0;
+}
+.aside .h {
+  font-family: var(--mono); font-variant: small-caps; text-transform: lowercase;
+  letter-spacing: 0.04em; color: var(--accent); font-size: 13px;
+  font-weight: 700; margin-bottom: 6px;
+}
+.aside p:last-child { margin-bottom: 0; }
+
+/* Tables — larger type, lighter zebra, more air; mono uppercase header label */
+table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 15px; line-height: 1.5; }
+thead th {
+  font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 11.5px; font-weight: 700; color: var(--muted);
+  text-align: left; padding: 9px 14px; border-bottom: 2px solid var(--rule);
+}
+td { padding: 11px 14px; border-bottom: 1px solid var(--border-2); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--surface-2); }
+
+/* Figures */
+figure {
+  margin: 26px 0; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+}
+figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+figcaption {
+  font-family: var(--sans); margin-top: 10px; font-size: 12.5px;
+  color: var(--muted); font-style: italic; text-align: center;
+}
+
+/* Footer */
+.footer {
+  max-width: var(--measure); margin: 40px auto 0; padding: 18px 28px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--sans); font-size: 12.5px; color: var(--muted);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.footer .wordmark { font-size: 13px; }
+</style>
+</head>
+<body>
+  <header class="toolbar">
+    <span class="wordmark">pmos</span>
+    <span class="toolbar-title">Porter Metric Store POV — TL;DR</span>
+    <button class="btn">Copy section link</button>
+  </header>
+
+  <main class="body">
+    <p class="eyebrow">TL;DR · Summary</p>
+    <h1>Porter Metric Store POV</h1>
+    <p class="lead">Porter's metric stack fails in five concrete ways — and the Metric Store fixes all five by making the
+      semantic layer the durable substrate: analysts author each metric once, anyone asks for it in plain English, and the
+      system returns the right number or an honest confidence band — never a silent guess.</p>
+
+    <section>
+      <h2>Bottom line up front</h2>
+      <p>Porter's metric stack fails in five concrete ways: high friction to access numbers, no proactive signal on change,
+        poor cross-team discoverability, "Daily Active Partners" meaning three different things across three dashboards, and
+        AI tools that invent SQL and return plausible-but-wrong answers. The Metric Store (Project Argus) fixes this by making
+        the semantic layer the durable substrate — analysts author each metric once in Git-versioned YAML, and anyone asks for
+        it in plain English via a single skill on Claude Code, Claude Cowork, or Claude AI, getting the right number or an
+        honest confidence band, never a silent guess.</p>
+    </section>
+
+    <section>
+      <h2>What it decides</h2>
+      <ul>
+        <li><strong>Direction:</strong> build a skills layer on top of MetricFlow and existing catalog MCPs — not Snowflake
+          Cortex Analyst (same authoring effort, plus vendor lock on the AI surface), not a SaaS semantic layer (recurring
+          license for capability Porter already runs), not an AI wrap over Metabase tiles (scales existing definition drift
+          instead of fixing it).</li>
+        <li><strong>V1 cut:</strong> Claude Code + Cowork + Claude AI, 4–5 pilot charters selected on three hard criteria:
+          a metric-fluent PM co-owner, an exec sponsor, and a declared commitment to make <code>/query-metrics</code> the
+          charter's default for ad-hoc metric questions. Slack deferred to Next.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Three confidence tiers</h2>
+      <p>The core product contract. Every answer is labelled with the tier it came from, so a consumer always knows how much
+        to trust it.</p>
+      <table>
+        <thead>
+          <tr><th>Tier</th><th>What it covers</th><th>Confidence</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Defined</strong></td>
+            <td>Pre-authored metrics; same question, same answer every time. Covers DAP, Revenue, Orders and the metrics each charter names at kickoff.</td>
+            <td>100%</td>
+          </tr>
+          <tr>
+            <td><strong>Variant</strong></td>
+            <td>Standard math on defined metrics with the same data — MoM growth of Revenue, p10 when p90 is defined. Compiled deterministically by MetricFlow.</td>
+            <td>100%</td>
+          </tr>
+          <tr>
+            <td><strong>Undefined</strong></td>
+            <td>Composed on the fly from semantic-model measures; confidence score and composition shown inline; per-domain kill switch fires automatically.</td>
+            <td>≥70% / domain</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="aside">
+        <div class="h">The honest part</div>
+        <p><code>parse_metrics_request()</code> is the only AI step in the consumption path. It parses intent, routes via the
+          Catalog MCP, asks one clarification if ambiguous, and never guesses silently — the difference between a tool you can
+          cite in a board deck and one you can't.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>End-to-end flow</h2>
+      <figure>
+        <svg viewBox="0 0 720 150" role="img" aria-label="Authoring to consumption flow">
+          <style>
+            .nl { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 600; fill: #211e1a; }
+            .ns { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; fill: #6a635a; }
+          </style>
+          <rect width="720" height="150" fill="#ffffff"/>
+          <rect x="20" y="48" width="150" height="54" rx="7" fill="#f4f0e8" stroke="#211e1a" stroke-width="1.4"/>
+          <text class="nl" x="95" y="72" text-anchor="middle">Analyst</text>
+          <text class="ns" x="95" y="90" text-anchor="middle">authors YAML once</text>
+          <line x1="170" y1="75" x2="262" y2="75" stroke="#6a635a" stroke-width="1.4"/>
+          <polygon points="262,71 270,75 262,79" fill="#6a635a"/>
+          <rect x="270" y="48" width="170" height="54" rx="7" fill="#211e1a"/>
+          <text x="355" y="72" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="13" font-weight="600" fill="#faf7f1">Catalog MCP</text>
+          <text x="355" y="90" text-anchor="middle" font-family="ui-sans-serif,system-ui" font-size="11" fill="#cdbfae">5 CI gates · trust score</text>
+          <line x1="440" y1="75" x2="532" y2="75" stroke="#b8431a" stroke-width="1.6"/>
+          <polygon points="532,71 540,75 532,79" fill="#b8431a"/>
+          <rect x="540" y="48" width="160" height="54" rx="7" fill="#f4f0e8" stroke="#b8431a" stroke-width="1.4"/>
+          <text x="620" y="72" text-anchor="middle" font-family="JetBrains Mono,ui-monospace,monospace" font-size="13" font-weight="700" fill="#b8431a">/query-metrics</text>
+          <text class="ns" x="620" y="90" text-anchor="middle">plain English in</text>
+        </svg>
+        <figcaption>Authoring (left) compiles once into the Catalog MCP; consumption (right) is a single plain-English skill.</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>Read this next</h2>
+      <p>The full POV covers the CI-gate design, the trust-score formula (60% context · 40% quality), and the pilot-charter
+        selection rubric. Ask in the chat if you want the kill-switch thresholds or the Slack-deferral reasoning expanded.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="wordmark">pmos</span>
+    <span>Source: docs/pmos/summary-tldr/2026-06-14-porter-metric-store-pov.html</span>
+    <span>·</span>
+    <span>Created using pmos&#8209;toolkit</span>
+  </footer>
+</body>
+</html>

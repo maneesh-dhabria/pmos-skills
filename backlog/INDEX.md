@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-q3h — /backlog web viewer nomenclature & clarity epic + 1 story 260614-8v4 added)
+Last regenerated: 2026-06-14 (define 260614-m68 — html-authoring "Editorial Technical" typography refresh epic + 1 story 260614-tcx added; supersedes 260613-ev1 + 260613-h9r)
 
 20 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -26,7 +26,7 @@ Last regenerated: 2026-06-14 (define 260614-q3h — /backlog web viewer nomencla
 | 260613-7tm | released | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |
 | 260613-5av | released | skill | pmos-toolkit | 3/3 | /mytasks web UI — Todoist-class local web interface + lightweight server, with subtasks, projects, recurrence (terminal parity retained) |
 | 260613-wqw | defined | skill | pmos-gamekit | 0/1 | /poker — No-Limit Texas Hold'em, single-player vs heuristic bots (cash game), single-file HTML reusing game-launcher; deps 260613-4mw |
-| 260613-ev1 | defined | feature | pmos-toolkit | 0/1 | Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate) |
+| 260613-ev1 | superseded | feature | pmos-toolkit | 0/1 | Pipeline-doc CSS readability refresh — type scale, measure, body H1, calmer tables (html-authoring substrate) [→ 260614-m68] |
 | 260613-p3c | released | skill | pmos-toolkit | 1/1 | /backlog web — read-only single-file HTML viewer served by a lightweight live-read server |
 | 260613-e35 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /sudoku (classic 9×9, easy/medium/hard, hints, pencil notes, on-demand error check) |
 | 260613-v3y | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /snake (classic feature-phone Snake, single-file HTML, walls-kill + wrap toggle, speed picker + progressive speed-up) |
@@ -37,6 +37,7 @@ Last regenerated: 2026-06-14 (define 260614-q3h — /backlog web viewer nomencla
 | 260614-q4r | defined | skill | pmos-toolkit | 0/3 | Enhance /summary-tldr (crash-safe emit-before-diagram, compact source table) + /diagram (eval diagnostics, palette hard-constraint) + shared first-run docs_path default |
 | 260614-7g0 | defined | skill | pmos-toolkit | 0/1 | /explainer-video first-run robustness + caption UX fixes |
 | 260614-q3h | defined | skill | pmos-toolkit | 0/1 | /backlog web viewer — nomenclature & conceptual clarity (translation layer: plain labels, legend, kind pills, grouped-status filter, @null fix, Releases cleanup, tooltips) |
+| 260614-m68 | defined | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
 
 ## must
 
@@ -72,13 +73,14 @@ Last regenerated: 2026-06-14 (define 260614-q3h — /backlog web viewer nomencla
 | 260613-7n1 | story | enhancement | released | 260613-5av | Foundation — /mytasks schema extension (project/parent/order/recur) + workstream→project migration + id-scheme correctness fix | 02_design.html | 03_plan.html |  |
 | 260613-044 | story | enhancement | released | 260613-5av | Terminal parity — /mytasks CLI for projects, subtasks, recurrence, manual order + quick-add token grammar + nested rendering | 02_design.html | 03_plan.html |  |
 | 260613-yfr | story | feature | released | 260613-5av | Web server + UI — zero-dep serve.js + JSON API + single-file Todoist-class app + /mytasks web launcher | 02_design.html | 03_plan.html |  |
-| 260613-h9r | story | enhancement | planned | 260613-ev1 | Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit | 02_spec.html |  |  |
+| 260613-h9r | story | enhancement | superseded | 260613-ev1 | Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit [→ 260614-tcx] | 02_spec.html |  |  |
 | 260613-14b | story | feature | released | 260613-p3c | Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests | 02_design.html | 03_plan.html |  |
 | 260613-gx8 | story | bug | planned | 260613-fc7 | Fix the /frameworks browse-view design-crit findings (F1–F7) in build-library.mjs + tests + live dogfood | 02_design.html | 03_plan.html |  |
 | 260614-s7m | story | enhancement | planned | 260614-q4r | /summary-tldr — emit summary before /diagram (crash-safe approved text) + compact Source&confidence table | 02_design.html | 03_plan.html |  |
 | 260614-d3g | story | enhancement | planned | 260614-q4r | /diagram — contrast-checker class="legend" diagnostic note + editorial-theme palette hard-constraint preamble | 02_design.html | 03_plan.html |  |
 | 260614-p8k | story | enhancement | planned | 260614-q4r | _shared/pipeline-setup.md — mark docs/pmos/ as the (Recommended) first-run docs_path default | 02_design.html | 03_plan.html |  |
 | 260614-8v4 | story | enhancement | planned | 260614-q3h | /backlog web viewer — plain labels, legend, kind pills, grouped status filter, @null fix, Releases cleanup | 02_design.html | 03_plan.html |  |
+| 260614-tcx | story | enhancement | planned | 260614-m68 | Refresh html-authoring to "Editorial Technical" — serif body + sans heads + mono structure, centered doc, breakout tables, body H1, AA contrast, inline comments, dark mode; sync to pmos-learnkit | 02_design.html |  |  |
 
 ## could
 

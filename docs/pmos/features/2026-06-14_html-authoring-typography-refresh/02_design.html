@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design — html-authoring typography &amp; layout refresh (Editorial Technical) · epic 260614-m68</title>
+<style>
+/* This design doc is authored in the PROPOSED v2 aesthetic itself, so it
+   doubles as a live specimen of the target look. The real change lands in
+   the shared substrate (style.css + template.html); this inline copy is the
+   reference the build story re-derives the tokens from. */
+:root {
+  --bg:#f8f5ef; --surface:#ffffff; --surface-2:#f1ede4; --surface-3:#e9e3d6;
+  --border:#e2dac9; --border-2:#ece6da; --rule:#d9cfbd;
+  --text:#201e1a; --muted:#655e54; --faint:#a59c8e;
+  --accent:#b8431a; --accent-strong:#8f3413; --accent-bg:#f6e4d6; --good:#1e6b3a;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Charter",Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --measure:730px; --wide:880px;
+}
+* { box-sizing:border-box; }
+html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--serif); font-size:17px; line-height:1.66; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility; }
+a { color:var(--accent); text-decoration:none; }
+a:hover { text-decoration:underline; text-underline-offset:2px; }
+.toolbar { position:sticky; top:0; z-index:20; background:rgba(248,245,239,0.86); backdrop-filter:blur(8px); border-bottom:1px solid var(--rule); }
+.toolbar-inner { display:flex; align-items:center; gap:14px; max-width:var(--wide); margin:0 auto; padding:11px 28px; }
+.wordmark { font-family:var(--mono); font-weight:700; font-size:16px; letter-spacing:-0.03em; color:var(--text); display:inline-flex; align-items:center; }
+.wordmark::after { content:""; display:inline-block; width:0.3em; height:0.92em; margin-left:0.12em; background:var(--accent); border-radius:1px; transform:translateY(0.06em); }
+.crumb { font-family:var(--mono); font-size:11.5px; letter-spacing:0.02em; color:var(--muted); padding-left:14px; border-left:1px solid var(--rule); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.body { max-width:var(--measure); margin:0 auto; padding:48px 28px 96px; counter-reset:sec; }
+.body section { margin-bottom:46px; }
+.kicker { font-family:var(--mono); text-transform:uppercase; letter-spacing:0.16em; font-size:11px; font-weight:700; color:var(--accent); margin:0 0 14px; }
+h1 { font-family:var(--sans); font-weight:700; font-size:34px; line-height:1.12; letter-spacing:-0.02em; margin:0 0 16px; }
+.lead-label { font-family:var(--mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); background:var(--accent-bg); padding:3px 8px; border-radius:4px; }
+.lead { font-size:19px; line-height:1.55; color:var(--text); margin:12px 0 8px; }
+h2 { font-family:var(--sans); font-weight:700; font-size:21px; line-height:1.25; letter-spacing:-0.01em; margin:44px 0 14px; padding-top:24px; border-top:1px solid var(--rule); }
+h2::before { counter-increment:sec; content:counter(sec,decimal-leading-zero); display:block; margin-bottom:7px; font-family:var(--mono); font-weight:700; font-size:12px; color:var(--accent); }
+h3 { font-family:var(--sans); font-weight:600; font-size:17px; margin:26px 0 8px; }
+p { margin:0 0 16px; }
+strong { font-weight:600; }
+ul,ol { margin:0 0 16px; padding-left:24px; }
+li { margin:7px 0; }
+li::marker { color:var(--faint); }
+code { font-family:var(--mono); font-size:0.82em; background:var(--surface-3); color:var(--accent-strong); padding:1.5px 6px; border-radius:4px; }
+.aside { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:17px 20px; margin:24px 0; }
+.aside .h { font-family:var(--mono); text-transform:uppercase; letter-spacing:0.08em; color:var(--accent); font-size:11px; font-weight:700; margin-bottom:7px; }
+.aside p:last-child { margin-bottom:0; }
+.body table, .body pre { width:calc(100% + 150px); max-width:var(--wide); margin-left:0; transform:none; }
+table { border-collapse:collapse; margin:22px 0; font-size:15px; line-height:1.5; }
+thead th { font-family:var(--mono); text-transform:uppercase; letter-spacing:0.06em; font-size:11px; font-weight:700; color:var(--muted); text-align:left; padding:9px 14px; border-bottom:2px solid var(--rule); }
+td { padding:11px 14px; border-bottom:1px solid var(--border-2); vertical-align:top; }
+tbody tr:nth-child(even) td { background:var(--surface-2); }
+td code { font-size:0.86em; }
+pre { font-family:var(--mono); font-size:13px; line-height:1.55; background:#2a2620; color:#f0e9dd; border-radius:9px; padding:16px 18px; overflow-x:auto; margin:22px 0; }
+pre code { background:transparent; color:inherit; padding:0; font-size:inherit; }
+.footer { max-width:var(--measure); margin:40px auto 0; padding:18px 28px; border-top:1px solid var(--rule); font-family:var(--sans); font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.footer .wordmark { font-size:13px; }
+.tag { font-family:var(--mono); font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:2px 7px; border-radius:4px; background:var(--surface-3); color:var(--muted); }
+</style>
+</head>
+<body>
+  <header class="toolbar">
+    <div class="toolbar-inner">
+      <span class="wordmark">pmos</span>
+      <span class="crumb">features / html-authoring-typography-refresh / 02_design</span>
+      <span class="tag">epic 260614-m68</span>
+    </div>
+  </header>
+
+  <main class="body">
+    <p class="kicker">Design · route:feature · pmos-toolkit → pmos-learnkit</p>
+    <h1>html-authoring typography &amp; layout refresh — "Editorial Technical"</h1>
+    <p><span class="lead-label">Bottom line</span></p>
+    <p class="lead">Every pmos pipeline doc renders through one shared stylesheet. Today that stylesheet has no real
+      typographic hierarchy, too wide a measure, and stark structural devices. This epic replaces it with a serif reading
+      body, a sans heading voice, and a mono structural layer — a calmer, more credible "editorial technical" system that
+      keeps the pmos identity (mono wordmark, burnt-orange accent, <code>[NN]</code> section counters) but is distinctly ours.</p>
+
+    <section>
+      <h2>Why — the reading experience is the product surface</h2>
+      <p>pmos artifacts are how a stakeholder meets the work: a spec, a design doc, a TL;DR. The current substrate
+        (<code>_shared/html-authoring/assets/style.css</code>) renders all text in a 12–15px band — h2 is 15px, one pixel
+        above body; h2 and h3 are the same size; the doc title lives at 12px in the chrome. The column is 880px wide
+        (~115 chars/line, vs an ideal ~66). Tables and code sit at 12px and read dense. The result is technically correct
+        but flat — it doesn't invite reading.</p>
+      <p>The user supplied a reference aesthetic they admire (a serif, warm-canvas teaching page) and asked us to
+        <em>evolve our own styling to reflect it — not copy it</em>. This design takes the reading win (serif body, generous
+        line-height, a narrow measure) and makes the structural system unmistakably pmos.</p>
+    </section>
+
+    <section>
+      <h2>The proposed type system — three voices</h2>
+      <p>One reading face, one heading face, one structural face. The contrast between them is what makes the page read as
+        a considered editorial-technical document rather than either a plain web page or a clone of the reference.</p>
+      <table>
+        <thead><tr><th>Voice</th><th>Face</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Body</strong></td><td>System serif (Iowan / Palatino / Charter / Georgia)</td><td>Paragraphs, lists, the lead — the reading experience.</td></tr>
+          <tr><td><strong>Heading</strong></td><td>System sans (grotesque)</td><td>h1 / h2 / h3 — crisp editorial contrast against the serif body.</td></tr>
+          <tr><td><strong>Structure</strong></td><td>JetBrains Mono (existing pmos display face)</td><td>Section numbers, eyebrow/kicker, labels, table headers, wordmark, code.</td></tr>
+        </tbody>
+      </table>
+      <div class="aside">
+        <div class="h">Zero bundle cost</div>
+        <p>Body and heading faces are <strong>system stacks</strong> — nothing downloaded. Only the existing JetBrains Mono
+          display face (already bundled) is non-system, and it is confined to the structural layer. So the refresh adds
+          richer hierarchy with no new network weight.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Design decisions</h2>
+      <p>D1–D7 carry the new aesthetic; D8–D12 fold in the requirements of the superseded epic <code>260613-ev1</code> so
+        nothing it specified is lost.</p>
+      <table>
+        <thead><tr><th>ID</th><th>Decision</th></tr></thead>
+        <tbody>
+          <tr><td><strong>D1</strong></td><td><strong>Serif reading body</strong> at 17px / line-height 1.66 (was 14px sans / 1.55).</td></tr>
+          <tr><td><strong>D2</strong></td><td><strong>Sans headings</strong> — h1 34px / h2 21px / h3 17px, sentence case (not the reference's all-serif headings).</td></tr>
+          <tr><td><strong>D3</strong></td><td><strong>Mono section number above the title</strong> (<code>01</code>, <code>02</code>…), accent-coloured — the <code>[NN]</code> counter is retained and kept on top of the heading, not hung in the margin.</td></tr>
+          <tr><td><strong>D4</strong></td><td><strong>Labelled lead</strong> — a mono "Bottom line" chip + plain serif lead, replacing the reference's italic-left-rule "mission" treatment.</td></tr>
+          <tr><td><strong>D5</strong></td><td><strong>Centered doc, full-bleed chrome</strong> — the toolbar/footer bar spans the viewport with centered inner content; the article is centered at the reading measure. No reserved side column.</td></tr>
+          <tr><td><strong>D6</strong></td><td><strong>Tables &amp; code break out to the right only</strong> — their left edge stays aligned with the prose so the eye keeps a single left margin; they extend rightward to <code>--wide</code> (880px).</td></tr>
+          <tr><td><strong>D7</strong></td><td><strong>Inline comments, no white panel</strong> — commented text is annotated with a warm tint a shade darker than the canvas + a thin accent underline; the thread renders inline on the same paper. No floating white overlay toolbar. Long threads collapse to a one-line summary that expands on click so they don't push the doc around.</td></tr>
+          <tr><td><strong>D8</strong></td><td><strong>Real body <code>&lt;h1&gt;</code></strong> (from ev1 D3) — <code>template.html</code> demotes the toolbar title to a non-heading breadcrumb and emits exactly one <code>&lt;h1&gt;</code> as the first child of the article body; <code>render.js</code> unchanged.</td></tr>
+          <tr><td><strong>D9</strong></td><td><strong>AA contrast</strong> (from ev1) — no body <em>text</em> uses <code>--pmos-faint</code> (≈2.4:1); text uses <code>--pmos-muted</code> (≥4.5:1). Faint is decoration-only (rules, list markers).</td></tr>
+          <tr><td><strong>D10</strong></td><td><strong>Calmer tables</strong> (from ev1 D2) — zebra retained, bottom borders only, no internal vertical rules; mono uppercase header row.</td></tr>
+          <tr><td><strong>D11</strong></td><td><strong>Dark-mode parity</strong> (from ev1) — the warm palette gets a <code>prefers-color-scheme: dark</code> counterpart; all new tokens have dark values.</td></tr>
+          <tr><td><strong>D12</strong></td><td><strong>Edit canonical, then sync</strong> (from ev1 D4) — change <code>plugins/pmos-toolkit/.../html-authoring/</code>, then <code>scripts/sync-shared.sh --from=pmos-toolkit</code> to pmos-learnkit; each plugin ships on its next release.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Functional requirements</h2>
+      <ol>
+        <li><strong>FR-1 — Tokens &amp; faces.</strong> Add <code>--pmos-font-serif</code> (system serif stack), <code>--pmos-font-sans</code> (system grotesque), keep <code>--pmos-font-display</code> (mono). Add the new type-scale + warm-palette tokens; preserve token names already consumed elsewhere.</li>
+        <li><strong>FR-2 — Type scale.</strong> Body serif 17px / lh 1.66; h1 sans 34px; h2 sans 21px (sentence case, <code>text-transform:none</code>, top rule, mono <code>[NN]</code> above); h3 sans 17px/600 — a perceptible step at each level.</li>
+        <li><strong>FR-3 — Measure &amp; layout.</strong> Article body centered at ~730px (60–75ch); full-bleed toolbar/footer with centered inner content; tables/<code>pre</code> break out to ~880px to the right only (left edge aligned with prose).</li>
+        <li><strong>FR-4 — Real body H1.</strong> <code>template.html</code> emits one <code>&lt;h1&gt;</code> as the body's first child from <code>{{title}}</code>; toolbar title becomes a breadcrumb; <code>render.js</code> untouched; exactly one <code>&lt;h1&gt;</code> per doc.</li>
+        <li><strong>FR-5 — Lead &amp; eyebrow.</strong> Mono uppercase eyebrow/kicker; a labelled lead (mono chip + serif lead). No italic-left-rule mission block.</li>
+        <li><strong>FR-6 — Tables.</strong> 15px; zebra retained; bottom borders only; mono uppercase header; heavier header bottom border.</li>
+        <li><strong>FR-7 — Contrast.</strong> Audit every <code>color: var(--pmos-faint)</code>; text contexts switch to <code>--pmos-muted</code>; decoration may keep faint. All body text ≥4.5:1.</li>
+        <li><strong>FR-8 — Comments (inline).</strong> Update the comments overlay styling (<code>comments.css</code>) to the inline, warm-tinted treatment of D7 — annotated text + inline thread on the same paper, no white panel; long threads collapse/expand.</li>
+        <li><strong>FR-9 — Dark mode.</strong> A <code>prefers-color-scheme: dark</code> palette for every new token; verified to render correctly.</li>
+        <li><strong>FR-10 — Cross-plugin sync.</strong> After the canonical edit, <code>sync-shared.sh --from=pmos-toolkit</code> makes pmos-learnkit's copy byte-identical.</li>
+        <li><strong>FR-11 — No regressions.</strong> <code>build_sections_json.js</code> derives correct sections for a doc with a body h1 (h1 excluded); <code>chrome-strip.js</code> unaffected; <code>h2::before</code> counter sequence intact.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Acceptance criteria</h2>
+      <ul>
+        <li>Rendered scale: body serif 17px, h1 34px sans, h2 21px sans (none uppercase), h3 17px — perceptible step at each level (measured by <code>getComputedStyle</code>).</li>
+        <li>Article column ≈730px; prose line length 60–75ch; tables/<code>pre</code> reach ~880px and stay left-aligned with prose.</li>
+        <li>Exactly one body <code>&lt;h1&gt;</code> per emitted doc; toolbar title is a breadcrumb; <code>render.js</code> diff is empty.</li>
+        <li>No text node resolves to <code>--pmos-faint</code>; all body text ≥4.5:1 (AA).</li>
+        <li>Tables: zebra + bottom borders only; no vertical rules; mono uppercase header.</li>
+        <li>Comments render inline (warm-tinted annotation + inline thread, no white panel); long threads collapse/expand; opening a thread never reflows the document body.</li>
+        <li>Dark mode renders correctly for all new tokens.</li>
+        <li>pmos-learnkit copy byte-identical after sync (<code>diff</code> clean).</li>
+        <li>No regressions: <code>build_sections_json</code> (h1 excluded), <code>chrome-strip</code>, <code>[NN]</code> counter sequence.</li>
+        <li><strong>Load-bearing live dogfood:</strong> re-render ≥1 representative pipeline doc <em>and</em> a comment-bearing doc through the substrate, serve over http, screenshot at 1440×900, assert the metrics above by <code>getComputedStyle</code>; independent blind-judge confirms hierarchy is skimmable, tables calmer, and the comment treatment reads cleanly; gaps → fix → re-run (cap 2, then accept-residuals-and-surface).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Supersedes — epic 260613-ev1</h2>
+      <p>This epic <strong>supersedes</strong> <code>260613-ev1</code> ("Pipeline-doc CSS readability refresh") and its story
+        <code>260613-h9r</code>, both marked <code>superseded</code>. ev1 was a readability tune-up <em>within</em> the
+        existing look; this epic is a fuller aesthetic evolution that subsumes it. Every ev1 requirement is folded in above:
+        type scale (D1/D2), measure (D6/FR-3), real body H1 (D8/FR-4), calmer tables (D10/FR-6), AA contrast (D9/FR-7),
+        dark mode (D11/FR-9), cross-plugin sync (D12/FR-10), no-regression constraints (FR-11), and the load-bearing live
+        dogfood. ev1's <code>--pmos-fs-md2</code> token is absorbed into the new full type scale.</p>
+    </section>
+
+    <section>
+      <h2>Scope &amp; files</h2>
+      <p>Substrate-only, route:feature (CSS/template, not a <code>SKILL.md</code> — no skill-eval rubric).</p>
+      <ul>
+        <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/style.css</code> — the type system, palette, layout, tables.</li>
+        <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/template.html</code> — body <code>&lt;h1&gt;</code> + breadcrumb.</li>
+        <li><code>plugins/pmos-toolkit/skills/_shared/html-authoring/assets/comments.css</code> (+ <code>comments.js</code> if needed) — inline comment treatment.</li>
+        <li><code>scripts/sync-shared.sh --from=pmos-toolkit</code> — propagate to pmos-learnkit (byte-identical).</li>
+      </ul>
+      <div class="aside">
+        <div class="h">Ride which release?</div>
+        <p>A substrate change touches both plugins. Per the cross-plugin policy, pmos-toolkit and pmos-learnkit each ship
+          the refreshed CSS on their next respective release at Loop 3 — no coupled release.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Mockups</h2>
+      <p>Approved specimen and the iterations behind it live in <code>./mockups/</code>:</p>
+      <ul>
+        <li><strong><a href="mockups/v2-design-doc.html">v2-design-doc.html</a></strong> — the approved aesthetic (full-page screenshot: <code>mockups/v2-design-doc-full.png</code>).</li>
+        <li><a href="mockups/v1-design-doc.html">v1-design-doc.html</a> / <a href="mockups/v1-summary-tldr.html">v1-summary-tldr.html</a> — the earlier "closer to reference" iteration, kept for comparison.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="wordmark">pmos</span>
+    <span>epic 260614-m68 · story 260614-tcx · supersedes 260613-ev1</span>
+    <span>·</span><span>Created using pmos&#8209;toolkit</span>
+  </footer>
+</body>
+</html>
