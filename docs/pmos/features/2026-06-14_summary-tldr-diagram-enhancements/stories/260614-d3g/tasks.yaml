@@ -1,0 +1,88 @@
+schema_version: 1
+story: 260614-d3g
+epic: 260614-q4r
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# /diagram: contrast-checker class="legend" fallback diagnostic note (F5, friction) + editorial-theme
+# palette hard-constraint preamble (F6, nit). Edits to the contrast checker source under
+# plugins/pmos-toolkit/skills/diagram/ (locate the code emitting "contrast: ..." hard-fails that excludes
+# class="legend" from background detection) and themes/editorial/style.md. Message enrichment only — no
+# change to the legend-exclusion logic or to palette values. TDD: tests assert the diagnostic suffix shows
+# in the legend-fallback case and not otherwise. NO release-prereq tasks (Loop 3 owns those).
+tasks:
+  - id: T1
+    title: "Locate the contrast checker + the class=legend background-exclusion path"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Find the module emitting the "contrast: text '...' fill=#.. on #.. ratio=..:1" hard-fail strings (likely
+      diagram/scripts/run.py or an imported checker). Identify (a) where it resolves an element's background by
+      walking ancestors, (b) where it EXCLUDES elements carrying class="legend" as background sources, and (c)
+      the exact fall-back branch taken when the nearest ancestor is so excluded. Read the editorial theme color
+      table in themes/editorial/style.md and note the permitted hex set + where the table begins. Produce no
+      edits.
+    verify: >
+      The hard-fail emit site, the class=legend exclusion check, the fallback branch, and the editorial color
+      table location are all pinpointed.
+  - id: T2
+    title: "TDD: tests for the legend-fallback diagnostic suffix (present in legend case, absent otherwise)"
+    ac: [AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add tests (alongside tests/test_editorial_theme.py or the checker's own test file) with two synthetic SVG
+      fixtures: (1) a low-contrast fill whose nearest ancestor is a chip rect with class="legend" (background
+      resolved by fallback) -> expect the hard-fail string to END WITH the suffix "(nearest ancestor excluded by
+      class=legend — remove class=legend from the chip rect if it is the actual background source)"; (2) a normal
+      low-contrast fill with a non-legend background -> expect NO such suffix. Tests fail first (red).
+    verify: >
+      Both tests exist and fail before T3; they assert suffix presence/absence precisely (not just any failure).
+  - id: T3
+    title: "Append the legend-fallback diagnostic suffix to the contrast hard-fail message"
+    ac: [AC1, AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      In the fallback branch identified in T1, when the background was resolved by skipping a nearest ancestor
+      excluded due to class="legend", append the diagnostic suffix to THAT hard-fail message only. Preserve the
+      existing fill/background/ratio facts; do not alter the exclusion logic or any other contrast path. Make T2's
+      tests pass (green).
+    verify: >
+      T2 tests green; non-legend contrast fails are byte-unchanged; the legend-exclusion behavior is unchanged.
+  - id: T4
+    title: "Editorial palette hard-constraint preamble in themes/editorial/style.md"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Add a one-line "PALETTE HARD CONSTRAINT — only these hex values are permitted" block immediately above the
+      existing color table, referencing/listing the permitted hex set so it is read before color selection begins.
+      Match the file's existing voice; change no palette values, only add the constraint reminder.
+    verify: >
+      The constraint line sits directly above the color table; permitted hex set unchanged; existing golden/defect
+      editorial tests still green.
+  - id: T5
+    title: "Regression + compliance: full diagram test suite + skill-eval + lints"
+    ac: [AC4]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Run the diagram test suite (pytest — editorial golden/defects + the new contrast tests). Run
+      feature-sdlc/tools/skill-eval-check.sh on /diagram (>= floor) and the repo hygiene lints where applicable.
+      Fix any regressions.
+    verify: >
+      Whole diagram suite green incl. new tests; skill-eval >= floor; hygiene lints green.
+  - id: T6
+    title: "Dogfood (load-bearing): generate an editorial diagram with legend chips"
+    ac: [AC5]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Generate a diagram with the editorial theme using chip rects that previously triggered the opaque failure.
+      Confirm (a) the first draft no longer reaches for off-palette greens/ambers, and (b) if a legend-fallback
+      contrast fail occurs, the hard-fail now carries the diagnostic suffix pointing at the class="legend" chip.
+      Gaps -> fix -> re-run (cap 2, then accept-residuals-and-surface).
+    verify: >
+      Real editorial run: on-palette first draft; any legend-fallback fail carries the actionable suffix.

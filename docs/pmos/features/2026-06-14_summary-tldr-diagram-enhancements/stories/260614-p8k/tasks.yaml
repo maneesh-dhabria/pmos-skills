@@ -1,0 +1,61 @@
+schema_version: 1
+story: 260614-p8k
+epic: 260614-q4r
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Shared substrate: mark docs/pmos/ as the (Recommended) first-run docs_path default in
+# plugins/pmos-toolkit/skills/_shared/pipeline-setup.md (Section A first-run setup) so the non-interactive
+# classifier AUTO-PICKs it instead of DEFERring (F7). Canonical edit in pmos-toolkit; cross-plugin sync to
+# pmos-learnkit is DEFERRED to release (sync-shared.sh --from=pmos-toolkit), NOT in this story. One-line
+# change + audit. NO release-prereq tasks (Loop 3 owns the bump/changelog/sync).
+tasks:
+  - id: T1
+    title: "Locate the first-run docs_path prompt in pipeline-setup.md Section A"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Read plugins/pmos-toolkit/skills/_shared/pipeline-setup.md Section A first-run setup. Find the docs_path
+      AskUserQuestion and its option list (e.g. pov/, docs/pmos/, .). Check for an adjacent
+      <!-- defer-only: ... --> tag that would force a DEFER, and confirm the non-interactive classifier rule
+      (no option ends in "(Recommended)" -> DEFER) is why first-run headless dead-ends today.
+    verify: >
+      The exact prompt, its options, and any defer-only tag are identified; the dead-end cause is confirmed.
+  - id: T2
+    title: "Mark docs/pmos/ as the (Recommended) default (first option, byte-exact suffix)"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit the docs_path option so docs/pmos/ is the FIRST option and its label ends in the byte-exact
+      " (Recommended)" suffix (so the classifier AUTO-PICKs it). Keep the other paths available for interactive
+      choice. If a defer-only tag on this prompt would override the Recommended AUTO-PICK, reconcile it — this
+      is a non-destructive path choice, so a Recommended-governed AUTO-PICK is correct; remove/adjust the tag
+      accordingly. Change no other pipeline-setup behavior.
+    verify: >
+      docs/pmos/ is first and ends in " (Recommended)"; defer-only no longer forces a DEFER for this prompt;
+      no other behavior changed.
+  - id: T3
+    title: "Audit + compliance"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Run tools/audit-recommended.sh — confirm the prompt is now classified (Recommended present, no accepted-
+      failure). Confirm consistency with skill-patterns.md §I / the non-interactive contract. Do NOT run
+      sync-shared.sh here (cross-plugin sync is a Loop-3/release step). Fix any audit finding.
+    verify: >
+      audit-recommended.sh green; change is contract-consistent; no cross-plugin sync performed in this story.
+  - id: T4
+    title: "Dogfood (load-bearing): first-run non-interactive + interactive paths"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Simulate a first-run with no .pmos/settings.yaml under --non-interactive (or trace the classifier over the
+      edited prompt) and confirm it AUTO-PICKs docs/pmos/ without deferring. Confirm an interactive first-run
+      still presents the full path list with docs/pmos/ recommended. Gaps -> fix -> re-run (cap 2, then
+      accept-residuals-and-surface).
+    verify: >
+      Non-interactive first-run resolves docs/pmos/ (no DEFER); interactive run still offers the full list.

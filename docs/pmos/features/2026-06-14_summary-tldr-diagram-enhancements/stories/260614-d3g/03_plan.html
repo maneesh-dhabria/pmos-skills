@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan"><title>Plan — 260614-d3g /diagram eval diagnostics + palette</title>
+<style>body{font-family:Inter,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:2.5rem 1.5rem;line-height:1.6;color:#1c1917}h1{font-size:1.5rem}h2{font-size:1.1rem;margin-top:1.8rem;border-bottom:1px solid #e7e5e4;padding-bottom:.3rem}code{background:#f0eeec;padding:.1em .35em;border-radius:3px}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #e7e5e4;padding:.45rem .6rem;text-align:left;vertical-align:top}th{background:#f0eeec}</style></head><body>
+<h1>Plan — Story 260614-d3g</h1>
+<p><strong>/diagram</strong> · epic 260614-q4r · route: skill · plugin pmos-toolkit · spec: <code>../../02_design.html</code> (§diagram)</p>
+<h2 id="approach">Approach</h2>
+<p>Two narrow changes, message/reminder only — no logic or palette-value changes. <strong>Contrast diagnostic (F5):</strong> in the diagram contrast checker, when an element's background was resolved by falling back past a nearest ancestor excluded due to <code>class="legend"</code>, append a diagnostic suffix to that hard-fail string so the fix is one read away. <strong>Palette preamble (F6):</strong> add a one-line <code>PALETTE HARD CONSTRAINT</code> block above the editorial color table so it registers before color selection. TDD: tests assert the suffix appears only in the legend-fallback case.</p>
+<h2 id="tasks">Tasks</h2>
+<p>See <code>tasks.yaml</code> (T1 locate → T2 red tests → T3 implement suffix → T4 palette preamble [parallel] → T5 regression+compliance → T6 load-bearing dogfood).</p>
+<h2 id="risks">Risks</h2>
+<table><thead><tr><th>Risk</th><th>Mitigation</th></tr></thead><tbody>
+<tr><td>Suffix leaks onto non-legend contrast fails</td><td>T2 negative test asserts absence on a normal fail; T3 scopes the append to the legend-fallback branch only.</td></tr>
+<tr><td>Editorial golden tests drift from the preamble edit</td><td>T4 changes no palette values, only adds a reminder line; T5 runs the full golden/defect suite.</td></tr>
+</tbody></table>
+<h2 id="out-of-scope">Out of scope</h2>
+<p>Any change to the legend-exclusion logic or palette values; release-prereqs (Loop 3).</p>
+</body></html>

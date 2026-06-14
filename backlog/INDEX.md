@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-nvh — pmos-gamekit /flappy-bird epic + story 260614-yb7 added; concurrent /tetris 260614-c29, /2048 260613-c9q)
+Last regenerated: 2026-06-14 (define 260614-q4r — /summary-tldr + /diagram + pipeline-setup enhancements epic + 3 stories 260614-s7m/d3g/p8k added)
 
-12 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+16 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -34,6 +34,7 @@ Last regenerated: 2026-06-14 (define 260614-nvh — pmos-gamekit /flappy-bird ep
 | 260614-c29 | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /tetris (modern guideline-style — SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up) |
 | 260613-c9q | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /2048 (classic sliding-tile puzzle, single-file HTML, board-size picker + one-step undo + keep-playing past 2048) |
 | 260614-nvh | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /flappy-bird (one-button arcade flappy game, single-file HTML, Easy/Normal/Hard picker, constant-difficulty runs) |
+| 260614-q4r | defined | skill | pmos-toolkit | 0/3 | Enhance /summary-tldr (crash-safe emit-before-diagram, compact source table) + /diagram (eval diagnostics, palette hard-constraint) + shared first-run docs_path default |
 
 ## should
 
@@ -66,6 +67,9 @@ Last regenerated: 2026-06-14 (define 260614-nvh — pmos-gamekit /flappy-bird ep
 | 260613-h9r | story | enhancement | planned | 260613-ev1 | Refresh html-authoring CSS — type scale, 720px measure, body H1, calmer tables + contrast; sync to pmos-learnkit | 02_spec.html |  |  |
 | 260613-14b | story | feature | released | 260613-p3c | Build /backlog web: live-read zero-dep server + single-file HTML viewer + SKILL wiring + tests | 02_design.html | 03_plan.html |  |
 | 260613-gx8 | story | bug | planned | 260613-fc7 | Fix the /frameworks browse-view design-crit findings (F1–F7) in build-library.mjs + tests + live dogfood | 02_design.html | 03_plan.html |  |
+| 260614-s7m | story | enhancement | planned | 260614-q4r | /summary-tldr — emit summary before /diagram (crash-safe approved text) + compact Source&confidence table | 02_design.html | 03_plan.html |  |
+| 260614-d3g | story | enhancement | planned | 260614-q4r | /diagram — contrast-checker class="legend" diagnostic note + editorial-theme palette hard-constraint preamble | 02_design.html | 03_plan.html |  |
+| 260614-p8k | story | enhancement | planned | 260614-q4r | _shared/pipeline-setup.md — mark docs/pmos/ as the (Recommended) first-run docs_path default | 02_design.html | 03_plan.html |  |
 
 ## could
 

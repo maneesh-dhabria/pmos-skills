@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan"><title>Plan — 260614-p8k pipeline-setup docs_path default</title>
+<style>body{font-family:Inter,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:2.5rem 1.5rem;line-height:1.6;color:#1c1917}h1{font-size:1.5rem}h2{font-size:1.1rem;margin-top:1.8rem;border-bottom:1px solid #e7e5e4;padding-bottom:.3rem}code{background:#f0eeec;padding:.1em .35em;border-radius:3px}</style></head><body>
+<h1>Plan — Story 260614-p8k</h1>
+<p><strong>_shared/pipeline-setup.md</strong> · epic 260614-q4r · route: skill · plugin pmos-toolkit · spec: <code>../../02_design.html</code> (§substrate, D4)</p>
+<h2 id="approach">Approach</h2>
+<p>A one-line substrate fix: mark <code>docs/pmos/</code> as the byte-exact <code>(Recommended)</code> first option of the first-run <code>docs_path</code> prompt in <code>pipeline-setup.md</code> Section A, so the non-interactive classifier AUTO-PICKs it instead of DEFERring and dead-ending (F7). Reconcile any <code>defer-only</code> tag on that prompt (a non-destructive path choice should be Recommended-governed). Canonical edit in pmos-toolkit; the cross-plugin sync to pmos-learnkit is a Loop-3/release step (<code>sync-shared.sh --from=pmos-toolkit</code>), not part of this story.</p>
+<h2 id="tasks">Tasks</h2>
+<p>See <code>tasks.yaml</code> (T1 locate → T2 add Recommended default + reconcile defer-tag → T3 audit/compliance → T4 load-bearing dogfood of first-run NI + interactive paths).</p>
+<h2 id="risks">Risks</h2>
+<p>A defer-only tag could keep forcing a DEFER even with a Recommended option — T2 explicitly reconciles it; T3's <code>audit-recommended.sh</code> gates. Cross-plugin drift is avoided by deferring the sync to the single release step.</p>
+<h2 id="out-of-scope">Out of scope</h2>
+<p>Cross-plugin sync (Loop 3); any other pipeline-setup behavior; release-prereqs.</p>
+</body></html>

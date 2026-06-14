@@ -1,0 +1,87 @@
+schema_version: 1
+story: 260614-s7m
+epic: 260614-q4r
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# /summary-tldr: emit-before-diagram reorder (crash-safe approved text — D1, subsumes the blocker AND
+# obs-2) + compact Source&confidence table (F3). obs-1/h1 is OUT (deferred to epic 260613-ev1 — D2).
+# Edits are to plugins/pmos-toolkit/skills/summary-tldr/SKILL.md (a prose skill; "tests" are the repo
+# lints + skill-eval + the load-bearing dogfood). Preserve the existing main-agent /diagram handoff +
+# SVG validation contract and the provenance block; keep phase-ref + non-interactive lints green. NO
+# release-prereq tasks (version bump / changelog / sync) — /complete-dev owns those at Loop 3.
+tasks:
+  - id: T1
+    title: "Study: current summary-tldr Phase 6/7, the html-authoring emit substrate, and the /diagram handoff"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Re-read summary-tldr/SKILL.md Phase 6 (#diagram) + Phase 7 (#emit) and the design doc §summary-tldr +
+      D1. Read _shared/html-authoring/README.md (emit checklist) and conventions.md (kebab heading ids,
+      atomic temp-then-rename, sections.json, library index regen). Read how the SVG is currently embedded
+      at emit and the validation steps (parses, dark-mode bg <rect>, heading-id smoke). Capture the exact
+      insertion point for the diagram in the emitted body so T3 can define a stable "diagram slot" to inject
+      into. Produce no edits.
+    verify: >
+      The current emit shape, the diagram-embed point, and the validation contract are enumerated; a stable
+      diagram-slot anchor for post-emit injection is identified.
+  - id: T2
+    title: "Reorder: emit the summary HTML to disk BEFORE the optional /diagram step"
+    ac: [AC1, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Restructure the phases so the full summary artifact (BLUF -> summary -> Source&confidence) is written
+      via the Phase 7 emit substrate FIRST, with an empty diagram slot reserved. Move the diagram gate +
+      /diagram run to AFTER that first emit. Renumber phases and update every {#anchor} cross-reference
+      accordingly (Track Progress count, "8 sequential phases" text, anti-pattern refs). Add an anti-pattern
+      note: never run the slow diagram loop between Phase 5 approval and the first on-disk emit (this IS the
+      crash-safety guarantee). Do NOT introduce a .summary.tmp side-file — the on-disk artifact is the single
+      source.
+    verify: >
+      Reading top-to-bottom, the summary is emitted to disk before the diagram gate; the crash-safety rationale
+      is stated; no .summary.tmp is introduced; tools/lint-phase-refs.sh is green.
+  - id: T3
+    title: "Inject the validated SVG into the on-disk artifact + compact Source&confidence table"
+    ac: [AC2, AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Specify that on Run, the main agent calls /diagram (unchanged handoff + SVG validation), then injects the
+      validated SVG into the already-emitted HTML file (read file -> insert into the reserved diagram slot ->
+      atomic temp-then-rename), then regenerates the library index. On any diagram failure: leave the emitted
+      summary intact, log, continue (no rollback). Change the Phase 7 body-shape description and the worked
+      example so "Source & confidence" renders as a compact two-column <table> (rows: Source kind / Source path /
+      Extraction confidence / Source date / Coverage signal) instead of a <dl>; keep the stable kebab heading id.
+    verify: >
+      Phase text describes read-insert-rewrite injection into the on-disk file with atomic write + failure =
+      keep-intact; Source&confidence is described/exampled as a compact <table> with a stable id.
+  - id: T4
+    title: "Compliance: skill-eval + hygiene lints + non-interactive block integrity"
+    ac: [AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on summary-tldr (>= floor 43/47). Run
+      tools/lint-phase-refs.sh, tools/lint-flags-vs-hints.sh, tools/lint-non-interactive-inline.sh, and the
+      audit-recommended.sh over the skill. Confirm the non-interactive inline block is byte-identical to
+      skills/_shared/non-interactive.md and the diagram gate still carries its (Recommended)=Skip option.
+      Fix any failures introduced by the reorder.
+    verify: >
+      skill-eval >= floor; all four lints + audit green; non-interactive block byte-identical; diagram gate
+      classification intact.
+  - id: T5
+    title: "Dogfood (load-bearing) + final verification"
+    ac: [AC6]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Run /summary-tldr on a real source with --diagram. Confirm the summary HTML lands on disk BEFORE the
+      diagram loop starts (check file mtime / presence pre-diagram), the validated SVG is injected into that
+      same file afterward, and the Source&confidence table renders compactly. Independent blind read confirms
+      the emitted artifact is the approved summary, not a post-compaction reconstruction. Gaps -> fix -> re-run
+      (cap 2, then accept-residuals-and-surface).
+    verify: >
+      Real run shows emit-before-diagram ordering on disk, SVG injected into the persisted file, compact table
+      rendered, artifact == approved summary; dogfood judge frustration-free.
