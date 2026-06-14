@@ -13,8 +13,11 @@ feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-poker/
 plan_doc: docs/pmos/features/2026-06-13_pmos-gamekit-poker/stories/260613-kw5/03_plan.html
 tasks: docs/pmos/features/2026-06-13_pmos-gamekit-poker/stories/260613-kw5/tasks.yaml
 labels: [pmos-gamekit, poker, texas-holdem, game-launcher]
+worktree: feat/260613-kw5
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-kw5 -->
