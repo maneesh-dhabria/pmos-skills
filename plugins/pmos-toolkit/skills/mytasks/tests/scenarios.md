@@ -2,6 +2,8 @@
 
 Each section describes an expected agent behavior given the matching fixture under `tests/fixtures/`. To verify, the implementer reads the relevant SKILL.md phases and walks through each scenario manually.
 
+> **Mixed-id corpus (deliberate).** The fixtures use a mix of id schemes on purpose so the `_shared/tracker-crudl.md §2.1` triple validator is exercised against both: `with-subtasks` uses the current `<YYMMDD>-<rand3>` scheme (e.g. `260613-a3f`); `with-tasks`, `with-checkins`, `with-archive`, and `with-legacy-workstream` retain **legacy 4-digit serial ids** (e.g. `0001`, `0007`) to prove old files still locate and render after the id-scheme correctness fix. The `with-legacy-workstream` fixture additionally retains the pre-rename `workstream:` frontmatter key to exercise the Phase 12 migration.
+
 ## Fixture: empty-tasks
 
 A directory with no items (or missing `~/.pmos/tasks/`).
@@ -48,7 +50,7 @@ Expected single tool-call sequence (no blocking, no questions):
 2. Strip `by Friday` from the title; `Call` stays in title (it's the type signal but also natural language).
 3. The remaining title: `Call sarah about Q3 OKRs`.
 4. Allocate id `0001`.
-5. Workstream: if invoked outside a `.pmos/settings.yaml` repo, leave absent.
+5. Project: not inferred — `project` is manual (design D3), so it is always absent on quick-capture (the task lands in Inbox).
 6. People: `sarah` is bare (no `@`), stays in title. Empty `people:`.
 7. Slug: `call-sarah-about-q3-okrs`.
 8. Write `~/.pmos/tasks/items/0001-call-sarah-about-q3-okrs.md` with frontmatter only (no body).
@@ -102,7 +104,7 @@ Expected:
 Expected:
 1. No type keyword → default `execution`. No date.
 2. Title: `Buy birthday gift`.
-3. Output: `Captured #0006 (execution, neutral): "Buy birthday gift".` (No due, no people, no workstream — minimal report.)
+3. Output: `Captured #0006 (execution, neutral): "Buy birthday gift".` (No due, no people, no project — minimal report.)
 
 ### Scenario: `/mytasks what's due this week` (query-shaped free text — intent routing)
 
@@ -123,7 +125,7 @@ Expected interactive flow per `_shared/interactive-prompts.md`:
 1. Allocate id `0001`.
 2. Prompt `importance` (enum): `leverage`, `neutral` (default), `overhead`. User picks: `leverage`.
 3. Prompt `type` (enum): `execution` (default — no keyword inferred from "Prep board deck"), `follow-up`, `reminder`, `idea`, `read`, `call`. User: `<enter>` (keeps execution).
-4. Prompt `workstream` (free string, default = inferred from `.pmos/settings.yaml` if present, else empty). User: `board-q2`.
+4. Prompt `project` (free string, default empty/Inbox — manual, never inferred). User: `board-q2`.
 5. Prompt `due` (date input). User: `Friday`. Skill parses → next Friday's ISO date.
 6. Prompt `people` (comma-separated, skippable). User: `Mark, Lisa`.
 7. For each name token, call `/people find`:
@@ -141,7 +143,7 @@ Expected interactive flow per `_shared/interactive-prompts.md`:
 10. Build slug from title: `prep-board-deck`.
 11. Write `~/.pmos/tasks/items/0001-prep-board-deck.md` with collected fields.
 12. Apply Phase 12 (rebuild INDEX).
-13. Output: `Added #0001 (execution, leverage): "Prep board deck" — due {Friday-date}, workstream board-q2, people: mark-davis, lisa, checkin weekly (next 2026-05-02).`
+13. Output: `Added #0001 (execution, leverage): "Prep board deck" — due {Friday-date}, project board-q2, people: mark-davis, lisa, checkin weekly (next 2026-05-02).`
 
 ### Scenario: `/mytasks add Quick standalone task` (skip everything optional)
 
@@ -149,7 +151,7 @@ Expected:
 1. Allocate id.
 2. Prompt importance. User: `<enter>` (neutral default).
 3. Prompt type. User: `<enter>` (execution default).
-4. Prompt workstream. User: `skip` or `<enter>` (empty).
+4. Prompt project. User: `skip` or `<enter>` (empty → Inbox).
 5. Prompt due. User: `skip`.
 6. Prompt people. User: `skip`.
 7. Prompt checkin. User: `<enter>` (none default).
@@ -163,7 +165,7 @@ Expected:
 Expected:
 - Read INDEX.md.
 - Render flat sorted list (importance leverage > neutral > overhead → due asc → updated desc).
-- Output table columns: id, type, status, due, next_checkin, title, workstream.
+- Output table columns: id, type, status, due, next_checkin, title, project.
 - Order: 0001, 0002, 0004, 0003.
 
 ### Scenario: `/mytasks list --status pending`
@@ -175,8 +177,10 @@ Expected:
 
 ### Scenario: `/mytasks list --workstream platform-q3 --importance leverage`
 
+> The `--workstream` flag spelling is retained in this foundation story (the rename to `--project` ships in story `260613-044`); it filters the renamed `project` field.
+
 Expected:
-- AND filter: workstream platform-q3 AND importance leverage.
+- AND filter: project platform-q3 (matched via the retained `--workstream` flag) AND importance leverage.
 - Match: 0001 only.
 - Source: INDEX.md (both filters map to INDEX columns; importance is the bucket).
 - Output: single-row table.
@@ -240,8 +244,8 @@ Expected:
 ### Scenario: `/mytasks in platform-q3`
 
 Expected:
-- Equivalent to `/mytasks list --workstream platform-q3`.
-- INDEX.md filter. Match: 0001, 0002.
+- Equivalent to `/mytasks list --workstream platform-q3` (the `in <workstream>` view verb spelling is retained until story `260613-044` renames it to `in <project>`; it filters the renamed `project` field).
+- INDEX.md filter on `project`. Match: 0001, 0002.
 
 ### Scenario: `/mytasks list --status open` (invalid enum value)
 
@@ -301,7 +305,7 @@ Expected interactive flow per `_shared/interactive-prompts.md`, same field order
 1. Prompt title (current: `Draft Q3 OKRs for Platform team`). User: `<enter>`.
 2. Prompt importance (current: `leverage`). User: `<enter>`.
 3. Prompt type (current: `execution`). User: `<enter>`.
-4. Prompt workstream (current: `platform-q3`). User: `<enter>`.
+4. Prompt project (current: `platform-q3`). User: `<enter>`.
 5. Prompt due (current: `2026-05-12`). User: `2026-05-15`. Skill parses date.
 6. Prompt people (current: `sarah-chen`). User: `sarah-chen, mark-davis`. Skill resolves both via /people find.
 7. Prompt checkin (current: empty/none). User: `weekly`. Skill auto-sets `next_checkin: today + 7 days`.
@@ -401,3 +405,61 @@ Expected:
 - 0001 (in-progress), 0002 (pending), 0003 (waiting), 0004 (pending) — all active, none eligible.
 - No moves.
 - Output: `Archived 0 items: nothing eligible.`
+
+## Fixture: with-subtasks (project / subtasks / recurrence — current `<YYMMDD>-<rand3>` ids)
+
+Three items: `260613-a3f` (parent, project `launch`, leverage, in-progress, due 2026-06-20), `260613-c31` (subtask of `260613-a3f`, project `launch`, neutral, pending, due 2026-06-16), `260613-9x2` (recurring `recur: weekly`, neutral, pending, due 2026-06-15, no project → Inbox).
+
+### Scenario: `/mytasks show 260613-c31` (date-rnd id locate)
+
+Expected:
+- Normalize: `260613-c31` contains a hyphen → NOT a legacy serial → used **verbatim** (no zero-padding/mangling) per the Phase 6 triple-accept rule.
+- Locate `~/.pmos/tasks/items/260613-c31-*.md`. Found.
+- Render the file verbatim, fenced as markdown. The rendered frontmatter shows `parent: 260613-a3f` (this is a subtask) and `project: launch`.
+
+### Scenario: `/mytasks rebuild-index` (with-subtasks fixture)
+
+Expected:
+- No `workstream:` keys present → migration step is a silent no-op (no `migrated …` line).
+- Group by importance: leverage (`260613-a3f`), neutral (`260613-c31`, `260613-9x2`).
+- INDEX rows carry the `project` column (`launch` for the two launch tasks, empty for `260613-9x2`) and the `parent` column (`260613-a3f` on the `260613-c31` row, empty otherwise). Subtasks stay **flat** — `260613-c31` is an ordinary neutral-bucket row, not nested under its parent.
+- Within neutral: sort by due asc → `260613-9x2` (due 2026-06-15) before `260613-c31` (due 2026-06-16).
+- Output: `Regenerated INDEX.md: 3 active items (0 completed/dropped excluded).`
+
+### Scenario: completing a parent does NOT auto-complete its subtask
+
+Expected (subtask-independence semantics, schema.md):
+- Marking `260613-a3f` (parent) `completed` sets only that file's `status`/`completed`/`updated`.
+- `260613-c31` (its subtask) keeps its own `status: pending` — child status is independent; the skill never cascades completion to children.
+
+### Scenario: recurrence rule recognized on `260613-9x2`
+
+Expected (recurrence contract, schema.md — the `complete`-time spawn lands with the CLI/web layer in story 260613-044, this asserts the documented rule):
+- `260613-9x2` has `recur: weekly` → recognized as a recurring task.
+- On a future `complete`, the spawn-new-instance model (D8) mints a fresh `<YYMMDD>-<rand3>` task with `recur: weekly` carried over and `due` advanced by +7 days (2026-06-15 → 2026-06-22), per the weekly rule in schema.md "Recurrence".
+
+## Fixture: with-legacy-workstream (migration + legacy-id locate)
+
+One item: `0007` (legacy 4-digit serial id) whose frontmatter still has the pre-rename `workstream: platform-q3` key (`schema_version: 1`).
+
+### Scenario: `/mytasks rebuild-index` (migration — workstream→project)
+
+Expected (Phase 12 step 0):
+- The migration step finds `0007-quarterly-review.md` still carrying a `workstream:` key.
+- Rename the **key only**: `workstream: platform-q3` → `project: platform-q3` (value preserved). No other field, id, or slug changes.
+- Log: `migrated 1 items workstream→project`.
+- Then regenerate INDEX with `0007` in the neutral bucket, `project` column = `platform-q3`.
+- Output: `Regenerated INDEX.md: 1 active items (0 completed/dropped excluded).` (preceded by the migration log line).
+
+### Scenario: `/mytasks rebuild-index` run a second time (idempotent)
+
+Expected:
+- No `workstream:` keys remain → migration step is a no-op; **no** `migrated …` line printed.
+- INDEX regenerates identically. Safe to re-run.
+
+### Scenario: `/mytasks show 7` (legacy-serial id locate — triple validator)
+
+Expected:
+- Normalize: `7` matches `^\d{1,4}$` (no hyphen) → legacy serial → zero-pad to `0007`.
+- Locate `~/.pmos/tasks/items/0007-*.md`. Found (proves old 4-digit files still resolve after the id-scheme fix).
+- Render the file verbatim.
