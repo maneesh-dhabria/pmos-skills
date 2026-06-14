@@ -1,0 +1,121 @@
+schema_version: 1
+story: 260614-a3g
+epic: 260614-7g0
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Singleton route:skill story editing the EXISTING /explainer-video skill in pmos-toolkit.
+# Files in scope: plugins/pmos-toolkit/skills/explainer-video/{SKILL.md, scripts/narrate.sh,
+# scripts/assemble.sh, scripts/ingest.mjs, reference/distillation-contract.md,
+# reference/figure-inventory.md} + a new deck.html watermark in the Phase-4 authoring guidance.
+# Nine findings → FR-1..FR-10 (design 02_design.html#requirements), decisions D1..D9 (#decisions),
+# grill notes G1..G3 (#grill-notes). NO release-prereq tasks here (version bump, changelog, README row,
+# manifest version-sync, learnings header) — /complete-dev (Loop 3) is the sole writer; see the plan's
+# "Release prerequisites" section. Scripts are TDD-testable via --selftest; doc/skill-body edits are
+# graded by skill-eval [D]+[J] + the repo hygiene lints. T6 is the load-bearing live dogfood
+# (produces a real short mp4, visually confirms small captions + watermark — the exact surfaces the
+# retro/feedback flagged); T7 is the REQUIRED final-verification gate (selftests + skill-eval + lints).
+tasks:
+  - id: T1
+    title: "Study & ground: current SKILL.md + 3 scripts + 2 reference files + skill-patterns.md"
+    ac: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9, FR-10]
+    deps: []
+    parallel: false
+    detail: >
+      Re-read plugins/pmos-toolkit/skills/explainer-video/SKILL.md (Phases 1–6, Flags), scripts/
+      narrate.sh (the {"slides":[...]} reads at L106/151/160 + selftest), scripts/assemble.sh (the
+      .slides reads at L99/126 + the caption force_style at L113 + selftest), scripts/ingest.mjs (the
+      inline-svg source_ref=anchor at L107 + writeJson + selftest), reference/distillation-contract.md
+      (Schema L11-25 + worked example L56-64), reference/figure-inventory.md. Re-read the design doc
+      02_design.html (D1-D9, FR-1-FR-10, I1-I3, G1-G3) and skill-patterns.md §A–§L + the host CLAUDE.md
+      skill-authoring conventions. Produce no code — pin the exact edit sites and the selftest assertions
+      each FR will add.
+    verify: >
+      Each FR mapped to concrete file+line edit sites; the bare-array normalisation point in BOTH
+      narrate.sh and assemble.sh identified; the inline-svg extraction insertion point in ingest.mjs
+      identified; the caption force_style string identified; the §H/§K invariants (I1/I2) understood
+      (deck.json shape lives once in distillation-contract.md; validity/arithmetic stays script-side).
+  - id: T2
+    title: "ingest.mjs: extract inline <svg> figures to figures/<id>.svg (FR-2) — TDD"
+    ac: [FR-2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      First add a --selftest case asserting an inline-svg source produces a written figures/<id>.svg and
+      the inventory entry's source_ref points at that file (relative path). Then implement: when
+      --figures-out is given, write a sibling figures/ dir; for each kind:'svg' candidate write the
+      captured <svg>…</svg> block to figures/<id>.svg and set source_ref to that path. Keep <img>/markdown
+      source_ref as resolved URLs/paths (unchanged). Update reference/figure-inventory.md + SKILL.md
+      Phase 2/4 wording so "place the original asset"/"reuse source figures" matches what is produced.
+    verify: "ingest.mjs --selftest green incl. the new svg-file case; img/markdown cases unchanged; docs match output."
+  - id: T3
+    title: "narrate.sh + assemble.sh: normalise bare-array deck.json + doc the wrapper (FR-1) — TDD"
+    ac: [FR-1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      First add a --selftest case to each script feeding a BARE top-level array deck and asserting the
+      slide count reads correctly (no crash). Then implement a normalisation in each .slides read
+      (Array.isArray(d) ? d : d.slides). Update SKILL.md Phase 3 to show the full
+      {title, length_target, slides:[...]} object and add the wrapper to distillation-contract.md's
+      worked example (keep the canonical Schema as the one home, I1 — Phase 3 cites it).
+    verify: "narrate.sh & assemble.sh --selftest green incl. bare-array case; wrapper unambiguous in Phase 3 + worked example."
+  - id: T4
+    title: "assemble.sh: caption force_style — explicit PlayRes + small bottom + wrap bound (FR-5) — TDD"
+    ac: [FR-5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      First add/extend a --selftest assertion on the force_style string shape (PlayResX=1920,PlayResY=1080
+      present; sane FontSize ~40; Alignment=2; MarginV/MarginL/MarginR bounds). Then implement: replace the
+      L113 force_style with explicit PlayRes + small bottom-anchored style + wrap-width bound; keep
+      Outline/Shadow for legibility; respect G1 (clear the bottom-right watermark zone). --no-captions still
+      disables.
+    verify: "assemble.sh --selftest green incl. style-shape case; manual: a built video shows small bottom captions, not a half-screen wall."
+  - id: T5
+    title: "SKILL.md + reference edits: JSON gate, @path resolution, captions lastrun, watermark, time estimate, outline gate"
+    ac: [FR-3, FR-4, FR-6, FR-7, FR-8, FR-9]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Phase 3 end: JSON-validity gate command + unescaped-quote guidance (FR-3, script-side parse, I2).
+      Phase 1/2: deterministic source/@artifact resolution order + bounded find fallback erroring on
+      0/>1 (FR-4). Phase 1: captions resolved cli>lastrun>default(ON), persisted to
+      .pmos/explainer-video.lastrun.yaml alongside --length, print "captions: on|off (source: …)" (FR-6).
+      Phase 4 deck.html authoring: subtle bottom-right pmos-toolkit watermark via low-opacity CSS on every
+      section (FR-7, mind G1). Phase 1: deterministic run-time estimate from length/slide-count printed to
+      stderr; deep tier asks a confirm with a (Recommended) option, auto-proceed non-interactive (FR-8).
+      Phase 3→4: outline-approval gate (titles+ideas; AskUserQuestion approve-all vs edit; edit takes a
+      free-form drop/merge instruction that rewrites deck.json and re-runs the FR-3 gate; auto-proceed +
+      log under --non-interactive) per G3. Keep the frozen non-interactive block byte-identical; mark every
+      new AskUserQuestion with a (Recommended) option or a defer-only tag.
+    verify: >
+      All six FRs reflected in SKILL.md/reference; non-interactive block unchanged byte-for-byte; every new
+      AskUserQuestion has (Recommended) or a defer-only marker; argument-hint/flags consistent (no new
+      contract flag introduced — captions flag already exists).
+  - id: T6
+    title: "Load-bearing dogfood: real short mp4 — confirm small captions + watermark live"
+    ac: [FR-5, FR-7, FR-1, FR-2, FR-3]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Run the actual skill end-to-end on a small local source (a 3–5 slide deck) on this macOS host
+      (ffmpeg + say available; Playwright for capture). Confirm objectively: deck.json wrapper accepted;
+      inline-svg figure (if any) embedded from figures/<id>.svg; JSON gate runs; self-check PASS. Confirm
+      subjectively (blind-LLM-judge on a frame screenshot): captions are small/bottom/legible (NOT a
+      half-screen wall) and the pmos-toolkit watermark is visible bottom-right but subtle. Auto-iterate
+      (cap 2) on caption size / watermark opacity if the judge fails. If a host dep is missing, record
+      DEFERRED-TO-RELEASE with the exact re-run command (never silently pass).
+    verify: "A real video built; frame screenshot judged: small captions + subtle watermark; self-check PASS (or dep-deferred with command)."
+  - id: T7
+    title: "REQUIRED final gate: all --selftests + skill-eval [D]+[J] + repo hygiene lints"
+    ac: [FR-10]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Run narrate.sh/assemble.sh/ingest.mjs --selftest (all green). Run skill-eval-check.sh + the [J]
+      judge half against the edited skill dir (pass floor; remediate within the ≤2 cap). Run the repo
+      lints: tools/lint-non-interactive-inline.sh, tools/audit-recommended.sh, tools/lint-flags-vs-hints.sh,
+      tools/lint-phase-refs.sh (all clean for explainer-video). Any residual after the cap → accept
+      explicitly as known risk (recorded), never a silent pass.
+    verify: "3 selftests green; skill-eval pass (or accepted residuals recorded); 4 repo lints clean for explainer-video."

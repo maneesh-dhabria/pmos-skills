@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-q4r — /summary-tldr + /diagram + pipeline-setup enhancements epic + 3 stories 260614-s7m/d3g/p8k added)
+Last regenerated: 2026-06-14 (define 260614-7g0 — /explainer-video first-run robustness + caption UX fixes epic + 1 story 260614-a3g added)
 
-16 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+18 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -35,6 +35,13 @@ Last regenerated: 2026-06-14 (define 260614-q4r — /summary-tldr + /diagram + p
 | 260613-c9q | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /2048 (classic sliding-tile puzzle, single-file HTML, board-size picker + one-step undo + keep-playing past 2048) |
 | 260614-nvh | defined | skill | pmos-gamekit | 0/1 | pmos-gamekit — /flappy-bird (one-button arcade flappy game, single-file HTML, Easy/Normal/Hard picker, constant-difficulty runs) |
 | 260614-q4r | defined | skill | pmos-toolkit | 0/3 | Enhance /summary-tldr (crash-safe emit-before-diagram, compact source table) + /diagram (eval diagnostics, palette hard-constraint) + shared first-run docs_path default |
+| 260614-7g0 | defined | skill | pmos-toolkit | 0/1 | /explainer-video first-run robustness + caption UX fixes |
+
+## must
+
+| id | kind | type | status | parent | title | spec | plan | pr |
+|---|---|---|---|---|---|---|---|---|
+| 260614-a3g | story | bug | planned | 260614-7g0 | /explainer-video — first-run robustness + caption/watermark/UX fixes | 02_design.html | 03_plan.html |  |
 
 ## should
 
