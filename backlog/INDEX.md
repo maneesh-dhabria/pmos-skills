@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-14 (define 260614-m68 — html-authoring "Editorial Technical" typography refresh epic + 1 story 260614-tcx added; supersedes 260613-ev1 + 260613-h9r)
+Last regenerated: 2026-06-14 (define 260614-za3 — artifact wordmark + footer linking epic + 1 story 260614-3jd added)
 
-20 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+22 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -38,6 +38,7 @@ Last regenerated: 2026-06-14 (define 260614-m68 — html-authoring "Editorial Te
 | 260614-7g0 | defined | skill | pmos-toolkit | 0/1 | /explainer-video first-run robustness + caption UX fixes |
 | 260614-q3h | defined | skill | pmos-toolkit | 0/1 | /backlog web viewer — nomenclature & conceptual clarity (translation layer: plain labels, legend, kind pills, grouped-status filter, @null fix, Releases cleanup, tooltips) |
 | 260614-m68 | defined | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
+| 260614-za3 | defined | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
 
 ## must
 
@@ -81,6 +82,7 @@ Last regenerated: 2026-06-14 (define 260614-m68 — html-authoring "Editorial Te
 | 260614-p8k | story | enhancement | planned | 260614-q4r | _shared/pipeline-setup.md — mark docs/pmos/ as the (Recommended) first-run docs_path default | 02_design.html | 03_plan.html |  |
 | 260614-8v4 | story | enhancement | planned | 260614-q3h | /backlog web viewer — plain labels, legend, kind pills, grouped status filter, @null fix, Releases cleanup | 02_design.html | 03_plan.html |  |
 | 260614-tcx | story | enhancement | planned | 260614-m68 | Refresh html-authoring to "Editorial Technical" — serif body + sans heads + mono structure, centered doc, breakout tables, body H1, AA contrast, inline comments, dark mode; sync to pmos-learnkit | 02_design.html |  |  |
+| 260614-3jd | story | enhancement | planned | 260614-za3 | Wire artifact wordmark → pmos-skills repo + footer → per-plugin README (new {{repo_url}} token, fix stale archived-repo default, sweep prose, author 4 plugin READMEs, sync to pmos-learnkit) | 02_design.html |  |  |
 
 ## could
 
