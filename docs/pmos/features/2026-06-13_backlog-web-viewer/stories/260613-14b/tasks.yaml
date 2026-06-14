@@ -7,7 +7,7 @@ execution_mode: inline
 tasks:
   - id: T1
     title: Frontmatter + derivation module (parseItems + buildModel) with tests-first
-    status: pending
+    status: done
     deps: []
     parallel: false
     spec_anchor: "#api-shape"
@@ -19,7 +19,7 @@ tasks:
       fixture backlog asserting rollups + queue membership match schema.md/#next/#releases.
   - id: T2
     title: Zero-dep live-read http server (serve-web.mjs)
-    status: pending
+    status: done
     deps: [T1]
     parallel: false
     spec_anchor: "#server-contract"
@@ -30,7 +30,7 @@ tasks:
       Tests drive it headless.
   - id: T3
     title: Single-file viewer.html (tree + queues + filters)
-    status: pending
+    status: done
     deps: [T2]
     parallel: false
     spec_anchor: "#viewer-contract"
@@ -41,7 +41,7 @@ tasks:
       No write controls (D3).
   - id: T4
     title: Wire the web verb into backlog SKILL.md
-    status: pending
+    status: done
     deps: [T3]
     parallel: false
     spec_anchor: "#conformance"
@@ -51,7 +51,7 @@ tasks:
       argument-hint; add References bullets. Conform to skill-patterns §I (web verb literal).
   - id: T5
     title: Live dogfood — drive served viewer in a browser (load-bearing)
-    status: pending
+    status: done
     deps: [T4]
     parallel: false
     spec_anchor: "#risks"
