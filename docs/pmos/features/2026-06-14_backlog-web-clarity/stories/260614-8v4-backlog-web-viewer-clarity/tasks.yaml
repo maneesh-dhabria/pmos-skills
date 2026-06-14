@@ -1,0 +1,116 @@
+schema_version: 1
+story: 260614-8v4
+epic: 260614-q3h
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Singleton route:skill story over the EXISTING /backlog skill's `web` verb (pmos-toolkit).
+# Files in scope (all under plugins/pmos-toolkit/skills/backlog/):
+#   scripts/serve-web-lib.mjs  — derivation (parseScalar null-coercion FR-5, grouped-status facet FR-4,
+#                                 Releases not-started exclusion + done/total FR-6)
+#   web/viewer.html            — presentation (D1 labels+subtitles, D6 legend, D4 kind pills,
+#                                 D3 grouped-status filter UI, D5 claim guard, D2 Releases badge +
+#                                 "In progress", D7 tooltips)
+#   tests/serve-web.test.mjs   — new coverage for FR-5/FR-4/FR-6 (FR-8); existing tests stay green
+# Seven findings F1..F7 → decisions D1..D7 (02_design.html#decisions) → FR-1..FR-9 (#functional-requirements).
+# NO server/protocol/schema change; NO _shared/ touched. NO release-prereq tasks here (version bump,
+# changelog, README, manifest version-sync) — /complete-dev (Loop 3) is the sole writer; see the plan's
+# "Release prerequisites" section. TDD: derivation tests (T2) precede the serve-web-lib.mjs edits (T3).
+# T6 is the REQUIRED load-bearing live dogfood (Playwright drives the real served viewer); it is the
+# final-verification gate alongside selftests + skill-eval [D]+[J] + the 4 repo hygiene lints.
+tasks:
+  - id: T1
+    title: "Study & ground: serve-web-lib.mjs + viewer.html + serve-web.test.mjs + skill-patterns.md"
+    ac: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8, FR-9]
+    deps: []
+    parallel: false
+    detail: >
+      Re-read scripts/serve-web-lib.mjs (parseScalar L32-39, parseValue L41-51, buildModel facets L293-300,
+      releases rollup L283-291, epicRollup L166-173, epicProgress L175-182), web/viewer.html (column
+      headers L233/239/242, header block L76-87, tree rows L189-205, claim chip L200, progress bar
+      L51-54/193, badge classes L36-41), and tests/serve-web.test.mjs (current cases + baseline). Re-read
+      02_design.html (F1-F7, D1-D7, FR-1-FR-9, coherence) and skill-patterns.md §A-§L + host CLAUDE.md
+      skill-authoring conventions. Capture the current test baseline (all green). Produce no code — pin the
+      exact edit sites and the test assertions each FR will add.
+    verify: >
+      Each FR mapped to a concrete edit site; the parseScalar coercion point (FR-5) confirmed as the
+      canonical single fix covering all fields; the grouped-status facet shape (FR-4) sketched as additive
+      to facets (not a replacement); the Releases exclusion + done/total point (FR-6) identified in the
+      rollup; baseline test run captured green.
+  - id: T2
+    title: "Tests-first: failing cases for null-coercion (FR-5), grouped-status facet (FR-4), Releases exclusion (FR-6)"
+    ac: [FR-8, FR-5, FR-4, FR-6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add failing tests to tests/serve-web.test.mjs: (a) an item with claimed_by: null / ~ / empty parses
+      to '' (not the string "null"), asserted via parseItems/parseFrontmatter (FR-5); (b) buildModel emits
+      a grouped-status facet with an Epic-status group and a Story-status group, each lifecycle-ordered,
+      containing only states present in the input (FR-4); (c) a `defined` epic with 0 done stories is
+      excluded from queues.releases entirely, and a partially-done epic carries done/total (FR-6).
+    verify: >
+      The three new tests run and FAIL against current serve-web-lib.mjs for the expected reasons (string
+      "null" leaks; no grouped facet; not-started epic appears in releases.in_flight). Existing tests stay
+      green.
+  - id: T3
+    title: "serve-web-lib.mjs: null-literal coercion + grouped-status facet + Releases not-started exclusion (FR-5/FR-4/FR-6)"
+    ac: [FR-5, FR-4, FR-6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit parseScalar to coerce the YAML null/~/empty literal to '' for every field (canonical FR-5 fix).
+      Add a grouped-status facet to buildModel's facets: epic_statuses and story_statuses, each in lifecycle
+      order (epics: inbox→defining→defined→released; stories: draft→planned→ready→in-progress→blocked→done→
+      released→wontfix), filtered to states present. Exclude 0-done epics from the releases derivation and
+      carry done/total on the rest (rename in_flight semantics per D2; the viewer renders the "In progress"
+      label). Keep the flat facets.statuses for back-compat OR replace per the test contract — additive
+      preferred so no consumer breaks.
+    verify: >
+      T2's three tests pass; ALL pre-existing tests/serve-web.test.mjs cases stay green. No server/protocol
+      change. node scripts/serve-web-lib.mjs imports cleanly.
+  - id: T4
+    title: "viewer.html: labels+subtitles, legend, kind pills, grouped-status filter, claim guard, Releases badge, tooltips (FR-1/2/3/4/6/7 + D5)"
+    ac: [FR-1, FR-2, FR-3, FR-4, FR-6, FR-7, FR-5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Edit web/viewer.html: D1 column headers → "Needs you"/"Ready to build"/"Releases" each with the
+      design's subtitle (FR-1); D6 one-line legend under the title (Epic⊃Story, Define→Build→Release, Tree=
+      everything/Queues=what-to-do-next) (FR-2); D4 EPIC/story kind pill on every tree row (FR-3); D3 status
+      filter UI rendered as two labelled groups consuming the grouped facet (FR-4); D5 claim chip guard
+      treating "null"/"undefined" as empty (belt-and-suspenders, FR-5); D2 Releases column hides not-started
+      epics + done/total badge + "In progress" sub-header (FR-6); D7 tooltips on the progress bar + route
+      chip (FR-7). Inline CSS+JS only, no CDN.
+    verify: >
+      Viewer renders from a static buildModel fixture: three plain column labels + subtitles present, legend
+      present, kind pills on tree rows, status filter shows two labelled groups, no @null chip, Releases
+      shows done/total + "In progress" and omits 0-done epics, tooltips present on progress bar + route chip.
+  - id: T5
+    title: "Full suite green: selftests + serve-web.test.mjs + 4 repo lints + skill-eval [D]+[J]"
+    ac: [FR-8, FR-9]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Run the backlog skill's selftests and node --test tests/serve-web.test.mjs (all green, FR-8). Run the
+      4 repo hygiene lints (lint-non-interactive-inline.sh, audit-recommended.sh, lint-flags-vs-hints.sh,
+      lint-phase-refs.sh) and skill-eval-check.sh ([D]+[J]) for /backlog (FR-9). Treat any pre-existing
+      failures as residuals only if proven pre-existing vs the branch base.
+    verify: >
+      tests/serve-web.test.mjs green; selftests green; 4 lints green (or residuals proven pre-existing);
+      skill-eval [D]+[J] pass floor met.
+  - id: T6
+    title: "REQUIRED live dogfood: Playwright drives the real served viewer (FR-1..FR-7 visually confirmed)"
+    ac: [FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, FR-7]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Launch node scripts/serve-web.mjs against the real backlog/ and open the served URL with Playwright.
+      Assert against the live DOM: no element renders the text "@null"; the three queue columns show "Needs
+      you"/"Ready to build"/"Releases" with their subtitles; the legend line is present under the title; tree
+      rows show EPIC/story kind pills; the status filter shows two labelled groups (Epic status / Story
+      status); the Releases column omits not-started epics and shows a done/total badge with an "In progress"
+      sub-header; hovering the progress bar + route chip surfaces tooltips. Capture a screenshot for the
+      verify record. This is the load-bearing dogfood — the story does not close until it passes.
+    verify: >
+      All seven live assertions hold against the real served viewer; screenshot captured; server shuts down
+      clean. This gate is REQUIRED (load-bearing dogfood per the design's verification contract).
