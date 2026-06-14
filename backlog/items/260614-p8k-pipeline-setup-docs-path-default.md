@@ -6,14 +6,17 @@ parent: 260614-q4r
 title: _shared/pipeline-setup.md — mark docs/pmos/ as the (Recommended) first-run docs_path default
 type: enhancement
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/
 plan_doc: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-p8k/03_plan.html
 tasks: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-p8k/tasks.yaml
 plugin: pmos-toolkit
+worktree: feat/260614-p8k
 labels: [pipeline-setup, substrate, non-interactive, cross-plugin]
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-14
 ---
