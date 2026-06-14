@@ -40,6 +40,13 @@
   .s-blocked { background: #fbdcdc; color: #9b2226; }
   .s-wontfix { background: #ecedef; color: #98a0aa; text-decoration: line-through; }
   .chip { display: inline-block; background: var(--chip); border-radius: 4px; padding: 1px 7px; font-size: 11px; color: var(--muted); }
+  .legend { color: var(--muted); font-size: 12px; margin-top: 5px; }
+  .legend strong { color: var(--ink); font-weight: 600; }
+  /* kind pills (FR-3) */
+  .kind { display: inline-block; border-radius: 3px; padding: 0 5px; font-size: 10px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; vertical-align: middle; }
+  .kind-epic { background: #e6dbff; color: #5b3ea8; }
+  .kind-story { background: #eef1f5; color: #6b7480; }
+  .lane-sub { font-size: 12px; color: var(--muted); margin: 2px 0 9px; }
   /* tree */
   .epic { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
   .epic > .erow { display: flex; align-items: center; gap: 9px; padding: 11px 14px; cursor: pointer; flex-wrap: wrap; }
@@ -79,6 +86,7 @@
     <span class="repo" id="repo"></span>
     <span class="gen" id="gen"></span>
   </div>
+  <div class="legend">Epic ⊃ Story · Define → Build → Release · <strong>Tree</strong> = everything · <strong>Queues</strong> = what to do next</div>
   <div class="tabs" id="tabs">
     <button class="tab active" data-view="tree">Tree</button>
     <button class="tab" data-view="queues">Queues</button>
@@ -90,12 +98,20 @@
 <script>
 "use strict";
 const STATE = { model: null, view: "tree", filters: { status: new Set(), route: new Set(), plugin: new Set() }, openEpics: new Set() };
+// FR-7 tooltip copy for the unlabeled route chip.
+const ROUTE_TIP = "route — how this item ships: feature (full pipeline) · skill (skill-eval gate) · lite (fast path)";
 
 function badge(status) {
   return `<span class="badge s-${status || "draft"}">${status || "—"}</span>`;
 }
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+// D5 (belt-and-suspenders): treat the stringified null/undefined literals as empty so no @null
+// chip renders even if a model predates the parseScalar coercion fix.
+function emptyish(v) {
+  const s = String(v == null ? "" : v).trim().toLowerCase();
+  return s === "" || s === "null" || s === "undefined";
 }
 
 // id → {kind, obj, epic} flat index, for resolving queue ids + filtering
@@ -132,15 +148,22 @@ function matchEpic(e) {
 function renderFilters() {
   const m = STATE.model;
   const bar = document.getElementById("filterbar");
+  // FR-4: one status filter is split into two labelled, lifecycle-ordered groups (Epic / Story).
+  // Both write into the same `status` filter set — the match logic keys on the status string,
+  // so the split is purely presentational. Older models without the grouped facets fall back
+  // to the flat statuses list.
+  const epicStatuses = m.facets.epic_statuses || m.facets.statuses;
+  const storyStatuses = m.facets.story_statuses || [];
   const facets = [
-    ["status", m.facets.statuses],
-    ["route", m.facets.routes],
-    ["plugin", m.facets.plugins],
+    ["status", epicStatuses, "Epic status"],
+    ["status", storyStatuses, "Story status"],
+    ["route", m.facets.routes, "route"],
+    ["plugin", m.facets.plugins, "plugin"],
   ];
   let html = "";
-  for (const [key, vals] of facets) {
-    if (!vals.length) continue;
-    html += `<div class="facet"><span class="lbl">${key}</span><div class="opts">`;
+  for (const [key, vals, label] of facets) {
+    if (!vals || !vals.length) continue;
+    html += `<div class="facet"><span class="lbl">${label}</span><div class="opts">`;
     for (const v of vals) {
       const on = STATE.filters[key].has(v) ? " on" : "";
       html += `<span class="ftag${on}" data-facet="${key}" data-val="${esc(v)}">${esc(v)}</span>`;
@@ -185,21 +208,21 @@ function renderTree() {
   for (const e of epics) {
     const open = STATE.openEpics.has(e.id) ? " open" : "";
     const pct = e.progress.total ? Math.round((e.progress.done / e.progress.total) * 100) : 0;
-    const chips = [e.route && `<span class="chip">${esc(e.route)}</span>`, e.plugin && `<span class="chip">${esc(e.plugin)}</span>`].filter(Boolean).join("");
+    const chips = [e.route && `<span class="chip" title="${ROUTE_TIP}">${esc(e.route)}</span>`, e.plugin && `<span class="chip">${esc(e.plugin)}</span>`].filter(Boolean).join("");
     html += `<div class="epic${open}" data-epic="${esc(e.id)}">
       <div class="erow" data-toggle="${esc(e.id)}">
-        <span class="caret">▶</span><span class="id">#${esc(e.id)}</span>
+        <span class="caret">▶</span><span class="kind kind-epic">epic</span><span class="id">#${esc(e.id)}</span>
         <span class="etitle">${esc(e.title)}</span> ${badge(e.status)} ${chips}
-        <span class="progress"><span class="pbar"><span class="pfill" style="width:${pct}%"></span></span>
+        <span class="progress" title="${e.progress.done} of ${e.progress.total} stories done in this epic"><span class="pbar"><span class="pfill" style="width:${pct}%"></span></span>
           <span class="pnum">${e.progress.done}/${e.progress.total}${e.progress.blocked ? " · " + e.progress.blocked + " blocked" : ""}</span></span>
       </div><div class="stories">`;
     const stories = e.stories.filter((s) => matchStory(s, e));
     if (!stories.length) html += `<div class="srow" style="color:var(--muted)">no stories${e.stories.length ? " match the filter" : " yet"}</div>`;
     for (const s of stories) {
       const stale = s.claim_stale ? ` <span class="chip" title="claim older than 4h TTL">stale claim</span>` : "";
-      const claim = s.claimed_by ? ` <span class="chip">@${esc(s.claimed_by)}</span>` : "";
-      html += `<div class="srow"><span class="id">#${esc(s.id)}</span>
-        <span class="stitle">${esc(s.title)}</span> ${badge(s.status)}${s.route ? ` <span class="chip">${esc(s.route)}</span>` : ""}${claim}${stale}
+      const claim = !emptyish(s.claimed_by) ? ` <span class="chip">@${esc(s.claimed_by)}</span>` : "";
+      html += `<div class="srow"><span class="kind kind-story">story</span><span class="id">#${esc(s.id)}</span>
+        <span class="stitle">${esc(s.title)}</span> ${badge(s.status)}${s.route ? ` <span class="chip" title="${ROUTE_TIP}">${esc(s.route)}</span>` : ""}${claim}${stale}
         ${s.blocked_by ? `<div class="blockedby">⛔ blocked by: ${esc(s.blocked_by)}</div>` : ""}</div>`;
     }
     html += `</div></div>`;
@@ -223,25 +246,31 @@ function renderQueues() {
   const storyGroom = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}<code class="qcmd">/backlog refine ${esc(id)}</code></div>`;
   const storyBlocked = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}<code class="qcmd">/feature-sdlc build --story ${esc(id)}</code></div>`;
   const staleClaim = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}<code class="qcmd">/backlog unclaim ${esc(id)}</code></div>`;
-  const relReady = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}<code class="qcmd">/complete-dev --epic ${esc(id)}</code></div>`;
-  const relPlain = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}</div>`;
+  // FR-6: Releases items carry a done/total progress badge.
+  const progFor = (id) => { const h = STATE._ix.get(id); return h && h.obj && h.obj.progress ? h.obj.progress : null; };
+  const relBadge = (id) => { const p = progFor(id); return p ? ` <span class="chip" title="${p.done} of ${p.total} stories done">${p.done}/${p.total}</span>` : ""; };
+  const relReady = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}${relBadge(id)}<code class="qcmd">/complete-dev --epic ${esc(id)}</code></div>`;
+  const relPlain = (id) => `<div class="qitem"><span class="id">#${esc(id)}</span> ${esc(titleFor(id))}${relBadge(id)}</div>`;
 
   const groom = q.groom;
   const next = q.next.pick;
   const rel = q.releases;
   return `<div class="lanes">
-    <div class="lane"><h2>Groom — waiting on you</h2>
+    <div class="lane"><h2>Needs you</h2>
+      <div class="lane-sub">Define, refine, unblock — human decisions</div>
       <div class="sub">Needs definition</div>${laneList(groom.needs_definition, epicCmd)}
       <div class="sub">Needs grooming</div>${laneList(groom.needs_grooming, storyGroom)}
       <div class="sub">Blocked</div>${laneList(groom.blocked, storyBlocked)}
       <div class="sub">Stale claims</div>${laneList(groom.stale_claims, staleClaim)}
     </div>
-    <div class="lane"><h2>Next — the machine's pick</h2>
+    <div class="lane"><h2>Ready to build</h2>
+      <div class="lane-sub">What /feature-sdlc build picks next</div>
       ${next ? `<div class="qitem"><span class="id">#${esc(next)}</span> ${esc(titleFor(next))}<code class="qcmd">/feature-sdlc build --story ${esc(next)}</code></div>` : `<div class="none">nothing ready — run <code>/backlog groom</code></div>`}
     </div>
-    <div class="lane"><h2>Releases — the shelf</h2>
+    <div class="lane"><h2>Releases</h2>
+      <div class="lane-sub">Ready to ship, and what's still in progress</div>
       <div class="sub">Release-ready</div>${laneList(rel.release_ready, relReady)}
-      <div class="sub">In-flight</div>${laneList(rel.in_flight, relPlain)}
+      <div class="sub">In progress</div>${laneList(rel.in_flight, relPlain)}
       <div class="sub">Blocked</div>${laneList(rel.blocked, relPlain)}
     </div>
   </div>`;
