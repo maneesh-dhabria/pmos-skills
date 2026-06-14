@@ -6,15 +6,18 @@ parent: 260613-fc7
 title: Fix the /frameworks browse-view design-crit findings (F1–F7) in build-library.mjs + tests + live dogfood
 type: bug
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/
 plan_doc: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/stories/260613-gx8/03_plan.html
 tasks: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/stories/260613-gx8/tasks.yaml
 labels: [pmos-learnkit, frameworks, browse-ux, design-crit, a11y]
+worktree: feat/260613-gx8
+claimed_by: build:explainer-a3g-loop
+driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-14
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-gx8 -->
