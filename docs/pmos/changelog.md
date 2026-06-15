@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.2.0: slide the tiles — play 2048 with /2048
+
+A new game joins the kit. `/2048` opens the classic sliding-tile puzzle in your browser — combine matching tiles to reach 2048, then keep going past it.
+
+- **Play 2048, fully offline.** `/2048` launches a single-file game served by the same zero-dependency local launcher as `/solitaire` — no install, no account, no network. Slide with the arrow keys (or WASD); matching tiles merge and the board spawns a new tile each move.
+- **Pick your board, undo a slip, keep playing.** Choose a board size (4×4, 5×5, or 6×6) before you start, undo your last move one step when a slide goes wrong, and keep playing after you hit the 2048 tile to chase a higher score. Your best score for the session is tracked.
+
 ## 2026-06-15 — pmos-learnkit 0.22.0: browse a built-in library of 61 PM primers, and list your own, with /primer browse
 
 `/primer` gains a browse/library view and ships with a ready-made corpus of 61 product-management primers, so you can explore a whole curriculum of trustworthy, source-cited explainers without generating anything first — and your own primers show up in the same place.
