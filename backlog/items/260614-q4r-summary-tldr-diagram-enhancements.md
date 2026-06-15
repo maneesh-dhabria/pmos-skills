@@ -5,7 +5,7 @@ kind: epic
 title: Enhance /summary-tldr (crash-safe emit-before-diagram, compact source table) + /diagram (eval diagnostics, palette hard-constraint) + shared first-run docs_path default
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/02_design.html
 labels: [summary-tldr, diagram, html-authoring, pipeline-setup, retro, ux, robustness]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.82.0
 ---
 
 ## Context

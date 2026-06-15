@@ -13,12 +13,13 @@ feature_folder: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/
 plan_doc: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-s7m/03_plan.html
 tasks: docs/pmos/features/2026-06-14_summary-tldr-diagram-enhancements/stories/260614-s7m/tasks.yaml
 plugin: pmos-toolkit
-worktree: feat/260614-s7m
+worktree: 
 labels: [summary-tldr, robustness, ux]
 claimed_by:
 driver_holder:
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.82.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260614-s7m -->
