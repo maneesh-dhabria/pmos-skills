@@ -5,7 +5,7 @@ kind: epic
 title: /frameworks browse view — fix design-crit observations (perceived-reload, reader a11y, deep-link, detailed-view perf, polish)
 type: bug
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/
 requirements_doc:
@@ -13,7 +13,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/02_design.html
 labels: [pmos-learnkit, frameworks, browse-ux, design-crit, a11y]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
+released: 0.23.0
 ---
 
 ## Context

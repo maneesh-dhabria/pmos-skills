@@ -13,12 +13,13 @@ feature_folder: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/
 plan_doc: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/stories/260613-gx8/03_plan.html
 tasks: docs/pmos/features/2026-06-13_frameworks-browse-ux-fixes/stories/260613-gx8/tasks.yaml
 labels: [pmos-learnkit, frameworks, browse-ux, design-crit, a11y]
-worktree: feat/260613-gx8
+worktree: 
 claimed_by: build:explainer-a3g-loop
 driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
-updated: 2026-06-14
+updated: 2026-06-15
 build_commit: b46998f
+released: 0.23.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-gx8 -->
