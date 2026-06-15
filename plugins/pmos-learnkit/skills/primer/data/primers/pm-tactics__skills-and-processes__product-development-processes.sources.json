@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://agilemanifesto.org/",
+    "takeaway": "The 2001 Manifesto for Agile Software Development states its four values as a set of preferences, not absolutes: \"Individuals and interactions over processes and tools; Working software over comprehensive documentation; Customer collaboration over contract negotiation; Responding to change over following a plan.\" The closing line is the part most often forgotten: \"That is, while there is value in the items on the right, we value the items on the left more\" — the right-hand items are not discarded, they are subordinated. Every process that followed is a different bet on how to honor those four preferences.",
+    "topic": "the-agile-turn",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://agilemanifesto.org/principles.html",
+    "takeaway": "The twelve principles behind the Manifesto operationalize the values into working commitments: \"Our highest priority is to satisfy the customer through early and continuous delivery of valuable software,\" \"Welcome changing requirements, even late in development,\" and \"Working software is the primary measure of progress.\" Principle ten — \"Simplicity—the art of maximizing the amount of work not done—is essential\" — is the one most processes quietly violate. The principles are the testable layer; a team can claim to be agile and still fail most of them.",
+    "topic": "the-agile-turn",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://scrumguides.org/scrum-guide.html",
+    "takeaway": "Schwaber and Sutherland's Scrum Guide defines the framework tersely: \"Scrum is a lightweight framework that helps people, teams and organizations generate value through adaptive solutions for complex problems.\" Two phrases carry the weight. First, \"The Scrum framework is purposefully incomplete, only defining the parts required to implement Scrum theory\" — Scrum is a skeleton you wrap your own engineering practices around, not a complete process. Second, it rests on three empirical pillars — transparency, inspection, and adaptation — realized through five events (the Sprint container plus Planning, Daily Scrum, Review, Retrospective) and three accountabilities (Product Owner, Scrum Master, Developers), with Sprints fixed at \"one month or less.\"",
+    "topic": "scrum-the-dominant-framework",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://kanbantool.com/kanban-guide/agile-methodology",
+    "takeaway": "Kanban adapts the Toyota production signal to knowledge work through two governing moves: \"The Kanban method emphasizes visualizing the workflow and limiting work in progress (WIP),\" and \"Kanban centers on continuous delivery and encourages teams to optimize their workflow at every opportunity.\" The mechanism is a pull system — teams draw work as capacity frees up rather than committing a batch upfront — which produces continuous flow and shorter lead times without time-boxed iterations. Where Scrum changes what the team does in discrete sprint-sized steps, Kanban changes the flow continuously and treats WIP limits, not a sprint boundary, as the forcing function.",
+    "topic": "kanban-and-flow",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.brightwork.com/blog/agile-methodologies-scrum-and-kanban",
+    "takeaway": "BrightWork draws the operational line between the two dominant agile flavors: \"Scrum focuses on sprints that are a set period of time whereas Kanban cadence is focused on consistent and continuous workflow,\" and on stability, \"Kanban works best for teams with stable priorities that are unlikely to change over time. Scrum allows for changing priorities from sprint to sprint.\" The role difference is just as telling — \"The Scrum Master acts as the chief problem solver, unlike Kanban where every team member shares responsibility and leadership.\" Cadence, change-tolerance, and where authority sits are the three axes a team actually chooses on.",
+    "topic": "scrum-vs-kanban-and-scrumban",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/agileinsider/which-product-building-methodology-to-follow-31d8a8ba02e1",
+    "takeaway": "AgileInsider reframes the Scrum-vs-Kanban choice as a function of organizational shape rather than taste, sizing it on complexity: \"The larger the complexity of deliverables in your organization, the larger its size...you should start veering toward Scrum,\" while \"The smaller the complexity of deliverables, the smaller the size...you should keep hanging onto Kanban.\" The decision rests on four readable signals — org structure, team structure, the number of products in the stack, and the planning horizon — with quarterly-or-longer horizons and 3+ products pushing toward Scrum's planning ritual and simpler, shorter-horizon work sitting comfortably in Kanban's continuous flow.",
+    "topic": "scrum-vs-kanban-and-scrumban",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://basecamp.com/shapeup/0.3-chapter-01",
+    "takeaway": "Basecamp's Shape Up (Ryan Singer) replaces estimation with appetite — defined in the glossary as \"the amount of time we want to spend on a project, as opposed to an estimate.\" The reframe inverts the question from \"how long will this take?\" to \"how much time is this worth?\" so scope flexes to fit a fixed time rather than schedules flexing to fit fixed scope. Work runs in six-week cycles chosen at a betting table during a two-week cooldown, and a circuit breaker cancels anything that fails to ship within its cycle rather than extending it — making the deadline real from day one instead of a renegotiable target.",
+    "topic": "shape-up-the-basecamp-alternative",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/shape-up-method/",
+    "takeaway": "ProductPlan frames Shape Up as a full alternative grammar to sprint-based work: it gives teams \"language and specific techniques to address the risks and unknowns at each stage of product development,\" organized as three moves — shape, bet, and build — rather than a recurring sprint cadence. The contrast with Scrum is structural, not cosmetic: there is no continuously groomed backlog and no sprint commitment ritual; shaped pitches compete for a bet, and a winning bet gets one fixed cycle of uninterrupted time with variable scope. It is the clearest mainstream counter-proposal to the assumption that agile must mean sprints.",
+    "topic": "shape-up-the-basecamp-alternative",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.logrocket.com/product-management/dual-track-agile-continuous-discovery/",
+    "takeaway": "Dual-track agile, per LogRocket, \"integrates discovery efforts (determining what to build) with delivery efforts (building) while fostering collaboration across product, engineering, and design.\" Jeff Patton and Marty Cagan coined \"dual-track scrum\"/\"dual-track agile\" around 2012, and the most damaging misreading is structural: the tracks were never meant to be two teams or a sequential handoff — \"There are two separate teams for discovery and delivery or separate people with different responsibilities. This was never the intention.\" The two tracks describe two kinds of work and thinking done by one team in parallel, with discovery continuously feeding a validated backlog into delivery.",
+    "topic": "discovery-and-delivery-dual-track",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://learningloop.io/glossary/continuous-discovery",
+    "takeaway": "Continuous discovery is the habit layer that keeps the discovery track honest. Teresa Torres's operational definition is specific about cadence and ownership: \"Weekly touch points with customers, by the team building the product, where they conduct small research activities, in pursuit of a desired product outcome.\" The structuring artifact is the opportunity solution tree — start from a desired outcome, branch into the opportunities (customer needs) that could move it, then the solutions under each, then experiments — which forces solutions to trace back to a real, outcome-linked need rather than a stakeholder request. It reframes research from an occasional project into a standing weekly rhythm.",
+    "topic": "continuous-discovery",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.freecodecamp.org/news/agile-software-development-handbook/",
+    "takeaway": "The freeCodeCamp agile handbook names the working rituals plainly — Sprint Planning (\"the Product Owner and Development Team collaborate\"), the Daily Standup (\"a brief daily meeting where the Development Team synchronizes their work\"), the Sprint Review (demo to stakeholders for feedback), and the Retrospective (\"the team conducts the Sprint Retrospective to reflect on the previous sprint\"). It also fixes the baseline these rituals reacted against: \"Unlike traditional 'waterfall' methods, where all development occurs sequentially in one large phase, Agile divides the software development process into smaller iterations or time-boxed cycles\" — the ceremonies exist to create the feedback loops a single linear phase cannot.",
+    "topic": "the-rituals",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mountaingoatsoftware.com/blog/what-are-story-points",
+    "takeaway": "Mike Cohn's canonical framing: \"Story points are a unit of measure for expressing an estimate of the overall effort that will be required to fully implement a product backlog item or any other piece of work\" — a single relative number folding volume, complexity, and uncertainty together, deliberately not hours. The discipline is comparative, not absolute: \"What matters are the relative values,\" so \"a user story that is assigned two story points should be twice as much effort as a one-point story.\" The absolute numbers are arbitrary; only the ratios are meant to carry information, which is exactly why translating points back into hours quietly defeats the technique.",
+    "topic": "estimation-and-the-noestimates-debate",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/agileinsider/story-points-vs-time-based-estimation-what-does-research-say-84613cc91c7f",
+    "takeaway": "The empirical record undercuts the estimation wars from both sides. Larry Maccherone's analysis of tens of thousands of teams found \"no statistically significant advantage for SP over time-based estimation (or vice versa)\" and that \"the estimation unit (SP vs. time) has no meaningful impact on forecasting or team effectiveness.\" That vacuum is what the #NoEstimates movement (Vasco Duarte) exploits: break work into uniformly small slices, count throughput, and forecast with Monte Carlo on actuals rather than debating points upfront. The cited consensus is that team stability, consistent slicing, and release frequency drive predictability — not which estimation unit you argue over.",
+    "topic": "estimation-and-the-noestimates-debate",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.jeremiahlee.com/posts/failed-squad-goals/",
+    "takeaway": "Jeremiah Lee, who was inside Spotify as it scaled past 3,000 people, is the canonical insider correction: \"the famed squad model was only ever aspirational and never fully implemented,\" and the published whitepaper was meant to be a series on autonomy, alignment, and accountability of which \"only autonomy was documented and promoted.\" The structural failure he names is the matrix: \"Without a single engineering manager responsible for the engineers on a team, the product manager lacked an equivalent peer,\" so conflicts escalated through multiple chapter leads. His thesis — \"autonomy requires alignment\" — is the line most copycats missed.",
+    "topic": "scaling-and-the-spotify-model",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://peerdom.com/blog/spotify-model-squads-tribes-chapters-guide",
+    "takeaway": "Peerdom supplies the neutral definition the critiques argue about: a squad is \"a small, cross-functional team of 6 to 12 people with end-to-end responsibility for a specific feature area, product component, or user journey,\" nested in tribes (related squads), crossed by chapters (skill-based groups) and guilds (voluntary communities of interest). The framing the 2012 Kniberg/Ivarsson whitepaper itself insisted on: \"It was not a framework to be adopted. It was not a set of practices to follow\" — a descriptive snapshot of one company at one moment. The labels travel easily; the trust-and-autonomy culture underneath them does not.",
+    "topic": "scaling-and-the-spotify-model",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.chameleon.io/blog/spotify-squads",
+    "takeaway": "Chameleon's post-mortem locates the copy-failure in culture, not org chart. A co-creator's admission is the most quoted line: \"Even at the time we wrote it, we weren't doing it. It was part ambition, part approximation.\" The recurring symptom of autonomy without alignment is concrete — an in-house agile coach noting, \"Every time you have a new team, they have to reinvent the wheel in how they should be working\" — duplicated effort and knowledge silos. The lesson generalizes well past Spotify: importing a named structure without the practices and shared language that made it work installs the costs without the benefits.",
+    "topic": "scaling-and-the-spotify-model",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/scaled-agile-framework/",
+    "takeaway": "At the heavyweight end of the scaling spectrum sits SAFe — \"The Scaled Agile Framework, or SAFe, is an agile framework developed for development teams\" — built on Team, Program, and Portfolio levels with a Release Train Engineer coordinating multiple teams as an Agile Release Train. ProductPlan names the problem it answers honestly: \"traditional agile methodologies weren't designed to handle multiple interdependent teams,\" and \"when organizations have numerous teams whose work must integrate seamlessly, complete autonomy creates coordination problems.\" SAFe trades some autonomy for an explicit alignment-and-oversight layer — the same tension the Spotify model failed to resolve, answered with structure rather than culture.",
+    "topic": "waterfall-stage-gate-and-heavy-process",
+    "tier": "secondary-curation",
+    "paywalled": false
+  }
+]

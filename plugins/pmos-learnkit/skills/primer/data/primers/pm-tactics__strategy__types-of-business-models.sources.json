@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Business_model_canvas",
+    "takeaway": "Alexander Osterwalder's Business Model Canvas is \"a strategic management template that is used for developing new business models and documenting existing ones,\" organized into nine blocks across four categories — Infrastructure (key activities, resources, partners), Offering (value propositions), Customers (segments, channels, relationships), and Finances (cost structure, revenue streams). It enumerates the canonical revenue-stream types a model can run on: asset sale, usage fee, subscription fees, lending/leasing/renting, licensing, brokerage fees, and advertising.",
+    "topic": "what-a-business-model-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.gsb.stanford.edu/alumni/news/books/subscribed",
+    "takeaway": "Tien Tzuo (Zuora CEO, who coined \"the Subscription Economy\") argues in Subscribed (2018) that \"the world is shifting from products to services\" and that the winning move is to \"use subscriptions to build lucrative, ongoing one-on-one relationships with your customers.\" His thesis: \"subscription companies know their customers. A happy subscriber base is the ultimate economic moat.\"",
+    "topic": "what-a-business-model-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://sacks.substack.com/p/the-saas-metrics-that-matter",
+    "takeaway": "David Sacks frames the SaaS spine around retention and efficiency: \"Understanding retention rates of monthly cohorts, typically at months 12 and 24, is vital to the health of the business,\" and \"The best SaaS companies have 120%+ Dollar Retention each year.\" CAC payback = S&M spend divided by (MRR × Gross Margin); the Magic Number is \"the Net New ARR in a period divided by S&M expense from the prior period,\" ideally greater than one, with gross margin \"at least 75%.\"",
+    "topic": "saas-subscription",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.forentrepreneurs.com/saas-metrics-2/",
+    "takeaway": "David Skok's SaaS Metrics 2.0 reduces SaaS viability to one question — \"Can I make more profit from my customers than it costs me to acquire them?\" — answered by two guardrails: \"The best SaaS businesses have a LTV to CAC ratio that is higher than 3\" and \"many of the best SaaS businesses are able to recover their CAC in 5-7 months.\" On churn: chasing acquisition before retention means \"you will simply be filling a leaky bucket.\"",
+    "topic": "saas-subscription",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/16-startup-metrics/",
+    "takeaway": "a16z's canonical metrics primer draws the lines founders blur: bookings is \"the value of a contract between the company and the customer,\" while revenue is \"recognized when the service is actually provided\"; ARR \"should exclude one-time (non-recurring) fees.\" LTV is \"the present value of the future net profit from the customer\" — \"A common mistake is to estimate the LTV as a present value of revenue.\" It also separates gross churn (\"MRR lost ... / MRR at the beginning of the month\") from net churn, warning \"net revenue churn understates the losses.\"",
+    "topic": "saas-subscription",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Rule_of_40",
+    "takeaway": "The Rule of 40 holds that \"Growth Rate (%) + Profit Margin (%) ≥ 40%\" — a SaaS company's revenue growth and profit margin should add up to 40 or more, balancing \"two competing objectives: growth and profitability.\" Popularized by Brad Feld in a February 2, 2015 post. Critics note the 40% line is \"an arbitrary benchmark,\" the missing standard profit-margin definition enables \"metric shopping,\" and the rule is \"highly irrelevant for early-stage startups.\"",
+    "topic": "saas-subscription",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/13-metrics-for-marketplace-companies/",
+    "takeaway": "a16z's marketplace primer defines GMV as \"the total sales dollar volume of merchandise transacting through the marketplace in a specific period,\" revenue as \"the portion of GMV that the marketplace 'takes',\" and match rate / liquidity as \"the rate at which buyers can find sellers, and vice versa.\" The thirteen metrics exist \"both to calibrate their performance and evaluate future potential\" — match rate, take rate, retention cohorts (user, core-action, dollar), and power-user curves among them.",
+    "topic": "marketplaces",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/the-most-important-marketplace-metrics",
+    "takeaway": "Lenny Rachitsky (ex-Airbnb) names four marketplace metrics that matter most — fill rate, bookings growth, supply growth, GMV growth — and crowns one: fill rate is \"the ultimate measure of marketplace health, because it's the essence of what a marketplace is — a place people can consistently come to find what they want,\" while \"bookings is the best way to track marketplace growth.\"",
+    "topic": "marketplaces",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://abovethecrowd.com/2013/04/18/a-rake-too-far-optimal-platformpricing-strategy/",
+    "takeaway": "Bill Gurley's \"A Rake Too Far\" warns that \"there is a big difference between what you can extract versus what you should extract\" — because \"high rakes are a form of friction precisely because your rake becomes part of the landed price for the consumer.\" He contrasts high-rake players (GroupOn's effective ~70%, Shutterstock paying creators only 30%) against deliberately low rakes (OpenTable, HomeAway, oDesk cutting commission from 30% to 10%): \"High volume combined with a modest rake is the perfect formula for a true organic marketplace.\"",
+    "topic": "marketplaces",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://topgrowthmarketing.com/unit-economics-ecommerce/",
+    "takeaway": "For transactional/DTC businesses, contribution margin — not gross margin — governs whether you can scale on paid acquisition: \"Gross margin doesn't include shipping, fulfillment, payment processing, or returns — all of which scale per order. Contribution margin does,\" and \"Contribution margin funds CAC + fixed costs + profit. Below 30% you're going to struggle to scale profitably; 35–60% is the healthy range across DTC.\" Repeat purchase rate is the LTV lever: \"a 5-percentage-point increase in repeat rate typically out-earns a 10% AOV increase.\"",
+    "topic": "transactional-ecommerce",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://stratechery.com/2015/aggregation-theory/",
+    "takeaway": "Ben Thompson's Aggregation Theory holds that in the internet era \"suppliers can be commoditized leaving consumers/users as a first order priority\": the winners are \"aggregators who aggregate modularized suppliers — which they often don't pay for — to consumers/users,\" and \"the best distributors/aggregators/market-makers win by providing the best experience, which earns them the most consumers/users, which attracts the most suppliers.\" Google and Facebook integrated ad inventory with user profile data, \"enabling it to sell highly effective advertising.\"",
+    "topic": "advertising-aggregation",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://stratechery.com/2017/defining-aggregators/",
+    "takeaway": "Thompson's follow-up defines an aggregator by three traits: \"a direct relationship with users\" (payment, account, or regular usage), \"zero marginal costs for serving users,\" and \"demand-driven multi-sided networks with decreasing acquisition costs\" — \"customer acquisition costs decrease over time; marginal customers are attracted to the platform by virtue of the increasing number of suppliers.\" He ranks Level 1 (acquire supply), Level 2 (supply transaction costs), and Level 3 aggregators who \"incur no supplier acquisition costs.\"",
+    "topic": "advertising-aggregation",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.appsflyer.com/metrics-comparison/arpu-vs-ecpm/",
+    "takeaway": "An ad-supported model lives on two distinct yardsticks: ARPU \"shows how much money, on average, a single user generates over a set period of time,\" while eCPM \"is the actual revenue earned by a publisher for every 1,000 ad impressions displayed on their app.\" ARPU is the owner/marketer's monetization view across all revenue; eCPM is the publisher's per-impression ad-revenue view.",
+    "topic": "advertising-aggregation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/16-more-startup-metrics/",
+    "takeaway": "a16z's sequel sharpens engagement and vanity-metric discipline: for activity, \"common metrics of measure ... are MAUs, WAUs, DAUs,\" and \"we look carefully at the ratios of these metrics — e.g., DAUs-to-MAU\" for engagement. It warns off registered/cumulative counts: registered users is \"one of those dreaded 'cumulative' metrics that can go up-and-to-the-right even when a business is shrinking,\" so \"our preferred user metric is active users.\"",
+    "topic": "advertising-aggregation",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://tomtunguz.com/dropbox-s-1/",
+    "takeaway": "Tomasz Tunguz's Dropbox S-1 teardown shows freemium's signature shape: \"2% of those users convert to paid,\" yet \"90% of revenue originates through self serve channels — an astounding figure for company that generated more than $1B in revenue,\" because \"Dropbox spends more of its revenue on engineering than sales and marketing\" — \"the strategic advantages of the freemium go-to-market strategy.\"",
+    "topic": "freemium-plg",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://tomtunguz.com/when-to-go-freemium/",
+    "takeaway": "Tunguz's freemium-fit test: it works when \"the number of potential users numbers in the tens of millions,\" \"the marginal cost to serve a user is negligible,\" and \"the product downloaded by a free user has a simple and straightforward value proposition.\" The disqualifier: \"If the cost-to-serve a free user is significant, the freemium model will demand lots of cash\" — \"Freemium doesn't work for many different businesses.\"",
+    "topic": "freemium-plg",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

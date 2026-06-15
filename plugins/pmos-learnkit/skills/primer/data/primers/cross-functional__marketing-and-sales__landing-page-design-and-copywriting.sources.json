@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Landing_page",
+    "takeaway": "A landing page is \"a single web page that appears in response to clicking on a search engine optimized search result, marketing promotion, marketing email or an online advertisement\" — purpose-built for one marketing action, unlike a homepage's broad entry point. The two main types are reference pages (surround the visitor \"with all available information about the targeted product to convince them to take action\") and transactional pages, whose \"purpose… is to persuade a visitor to take action by completing a transaction.\"",
+    "topic": "what-a-landing-page-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.involve.me/blog/landing-page-structure",
+    "takeaway": "An effective landing page follows a focused sequence — Hero → Unique Value Proposition → Benefits & Features → Social Proof → Primary CTA/Form → Objection Handlers → Footer — because \"the ideal landing page structure is a focused sequence that takes visitors from promise to proof to action.\" The governing rule is \"One page. One job.\" — and \"removing navigation menus alone can double conversion rates by reducing distractions.\"",
+    "topic": "the-anatomy-of-a-landing-page",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.strategyzer.com/library/value-proposition-design-book-summary",
+    "takeaway": "Strategyzer's Value Proposition Canvas pairs a customer profile — customer jobs (\"the functional, social, and emotional tasks customers try to accomplish\"), pains (\"the negative experiences, risks, and obstacles\"), and gains (\"the positive outcomes and benefits customers expect or desire\") — against a value map of products/services, pain relievers, and gain creators. \"The ultimate goal is achieving 'fit', or the point when your pain relievers and gain creators directly address the most important customer pains and gains.\"",
+    "topic": "start-with-the-value-proposition",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://marketingexperiments.com/conversion-marketing/the-meclabs-conversion-heuristic-applied",
+    "takeaway": "MECLABS' Conversion Sequence Heuristic, distilled from testing \"more than 10,000 sales paths over the past 20 years,\" is \"a thinking tool anyone can use\" — \"a way of looking at a sales path and going through elements of the customer's experience of a particular page or process.\" Founder Flint McGlaughlin frames the probability of conversion as driven by visitor motivation and the force of the value proposition, minus the friction and anxiety in the process (offset by any incentive).",
+    "topic": "start-with-the-value-proposition",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://unbounce.com/conversion-glossary/definition/message-match/",
+    "takeaway": "Message match is \"a measure of how well your landing page copy matches the phrasing of the ad or link that brought the visitor there.\" Strong message match lifts conversions because it reassures visitors they've arrived at the right place; misaligned messaging \"essentially wastes the attention and trust visitors initially granted through their click.\"",
+    "topic": "message-match-and-focus",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://unbounce.com/ppc/poor-message-match/",
+    "takeaway": "Unbounce co-founder Oli Gardner examined 300 paid ads and found the vast majority failed to match their landing pages — hence \"98% of Marketers are Doing it WRONG!\" He defines attention ratio as \"the ratio of interaction points (links) to the number of calls to action on any given page\": a homepage runs around 40:1 (39 distractions to one desired action), while an optimized landing page aims for a focused 1:1.",
+    "topic": "message-match-and-focus",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://copyhackers.com/2013/03/how-much-copy-should-you-use-on-your-landing-page/",
+    "takeaway": "Joanna Wiebe of Copyhackers argues there is no universal word count: \"You'll need to provide sufficient copy to tap into the visitors' motivation for coming, and amplify that motivation so they take your desired action. If you provide too little copy, you may not adequately answer the visitors' questions; too much and you risk turning them off.\" She prizes a high \"word-to-meaning ratio\" — few words carrying a ton of value.",
+    "topic": "writing-headlines-that-work",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://copyhackers.com/a-super-speedy-formula-to-find-voc-fast/",
+    "takeaway": "Voice-of-customer (VoC) copywriting taps \"directly into what your customer's thinking and feeling\" by using the customer's own words rather than invented claims; Joanna Wiebe notes a Sweatblock page \"beat the control\" because \"all of the problems that follow, came directly from reviews for Sweatblock on Amazon.\" Review mining can be sped up with a search like `site:amazon.com inurl:\"product-reviews\" \"tired of\" [keyword]` to surface genuine pain-point language fast.",
+    "topic": "writing-headlines-that-work",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://growthexperts.co/copywriting-tips-from-harry-dry-three-rules-to-help-you-level-up/",
+    "takeaway": "Harry Dry of Marketing Examples gives copy three tests: visualizability (\"Can I visualize it?\"), falsifiability (\"Can I prove it true or false?\" — e.g. \"get your clients from 'signup' to 'first payment' in under 24 hours\"), and uniqueness (\"Can nobody else write this?\" — generic lines like \"We deliver innovative solutions tailored for your needs\" fail). \"If you can't say yes to all three, you've probably written fluff.\"",
+    "topic": "persuasive-body-copy",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.crazyegg.com/blog/high-converting-cta-buttons/",
+    "takeaway": "Crazy Egg's CTA guidance: write value-focused copy that tells users what they get (\"Get 30% Off\"), favor first-person variants (\"Start My Free Trial\"), and use action verbs over vague labels like \"Submit.\" Make the button \"clearly stand out from the background and everything else on the page,\" size it generously, give it whitespace, and \"ensure that users can see a CTA button as soon as they arrive on the page, without having to scroll.\"",
+    "topic": "the-call-to-action",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.kissmetrics.io/blog/cta-button-best-practices",
+    "takeaway": "Kissmetrics reports that \"benefit-oriented verbs outperform obligation-oriented ones\" ('Get Started' beats 'Register'), that changing \"Start Your Free Trial\" to \"Start My Free Trial\" \"increased conversions by 90%,\" and that a single CTA word change can swing conversions by 10–30% (a ContentVerve test lifted clicks 38% by switching \"Order Information\" to \"Get Your Free Quote\"). On color it notes contrast matters more than hue — \"Copy has a much larger impact on conversion than color.\"",
+    "topic": "the-call-to-action",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Robert_Cialdini",
+    "takeaway": "Robert Cialdini's *Influence: The Psychology of Persuasion* (1984) identified six principles — reciprocity, commitment and consistency, social proof, authority, liking, and scarcity — drawn from \"three undercover years\" inside car dealerships, fundraising, and telemarketing firms. He added a seventh, unity, in 2016: \"The more we identify ourselves with others, the more we are influenced by these others.\"",
+    "topic": "the-psychology-of-persuasion",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.netreputation.com/cialdinis-6-principles-of-persuasion/",
+    "takeaway": "Applied to marketing, Cialdini's principles become tactics: reciprocity (\"By offering something of value… we can create a sense of social obligation\"), scarcity (\"creating a sense of urgency and exclusivity by emphasizing the limited availability\"), authority (\"sharing relevant qualifications or accomplishments\"), consistency (\"getting individuals to commit to something small… can significantly increase the likelihood of them becoming customers\"), liking (\"highlighting shared experiences or beliefs\"), and social proof (\"highlighting how many people have already taken a certain action\").",
+    "topic": "the-psychology-of-persuasion",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.liquidlight.co.uk/blog/dont-make-me-think-a-bible-on-usability-by-steve-krug/",
+    "takeaway": "Steve Krug's *Don't Make Me Think* sets a first law of usability — \"make everything as self-evident and as self-explanatory as possible\" — and observes that users scan rather than read, so designers should \"establish clear visual hierarchies, define distinct page areas, highlight clickable elements, and eliminate visual clutter.\" Every needless question (\"Where am I?\", \"What's important here?\") wastes cognitive resources \"better spent accomplishing their actual tasks.\"",
+    "topic": "reducing-friction",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.convert.com/blog/a-b-testing/statistical-significance/",
+    "takeaway": "In A/B testing, \"statistical significance tells you if you can trust the observed results or not\" — whether a difference came from your change or random chance. 95% is the conventional CRO threshold but \"not universally required.\" Crucially, significance is not a stop signal: \"stat sig fluctuates\" daily, so stopping the moment a test crosses 95% (\"peeking\") is a mistake — pausing \"should be based on sample size.\"",
+    "topic": "optimizing-with-experiments",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.shopify.com/blog/the-complete-guide-to-ab-testing",
+    "takeaway": "Shopify's A/B testing process: start from a hypothesis (\"Because you see [research] you expect that [change] will cause [impact]\"), change one variable at a time (\"you might not be able to determine which change caused the effect\" otherwise), split traffic against a control, and meet both sample-size and run-time targets before deciding. Even losing tests pay off: \"even a loser is a winner, because you'll gain insights you can use for future tests.\"",
+    "topic": "optimizing-with-experiments",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://unbounce.com/landing-page-examples/high-converting-landing-pages/",
+    "takeaway": "Unbounce's teardown of high-converting pages shows the principles in the wild: edX won because \"shorter copy worked better than longer copy\"; Later kept \"conversion scent throughout the campaign. The offer matches what's in the ad, in the email\"; ooba used a \"descriptive button [that] confirms the action they're about to take\"; College Board (77% conversion) leaned on scarcity — \"Seats are filling up fast!\" — while FilterEasy's team admitted \"we're still constantly testing.\"",
+    "topic": "social-proof-and-trust",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

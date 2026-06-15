@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://amplitude.com/explore/analytics/cohort-retention-analysis",
+    "takeaway": "Amplitude defines cohort retention as tracking \"groups of users who started at the same time\" and measuring \"how many return over time,\" with retention rate being \"the percentage of users in a cohort who return and take an action in a subsequent period.\" It \"identifies specific drop-off points in the user journey\" and helps teams \"distinguish between acquiring new users and keeping existing ones.\"",
+    "topic": "what-cohort-analysis-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mparticle.com/blog/what-is-cohort-analysis-a-guide-to-increasing-customer-retention/",
+    "takeaway": "mParticle defines cohort analysis as \"a type of Product Analytics that groups users of your product into groups (called cohorts) based on characteristics, behaviors, or experiences those users share—usually within the same timeframe.\" Acquisition cohorts \"group users based on when they were acquired or completed signup,\" tracked \"based on daily, weekly, or monthly signups,\" while behavioral cohorts \"divide users into groups based on specific behaviors they exhibit within the app, during a particular time period.\"",
+    "topic": "acquisition-vs-behavioral-cohorts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://chartio.com/learn/marketing-analytics/cohort-analysis-primer/",
+    "takeaway": "Chartio explains how to read a cohort retention table: \"each row of the table tracks the activity of one cohort,\" while the columns are \"in terms of months since the user's start time\" rather than calendar months. Reading \"up the diagonals of the table\" recovers month-by-month totals and helps \"discriminate the effects of certain time periods on activity\" — which is why such tables show a triangular shape.",
+    "topic": "the-retention-table",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://countly.com/blog/the-complete-guide-to-measuring-user-retention-cohorts-curves-benchmarks",
+    "takeaway": "Countly contrasts a curve \"that drops steeply and keeps falling to zero\" (users not forming habits) with one \"that drops then flattens into a plateau\" (a core of habitual users). It stresses there is \"no universal number; it varies by product type and business model,\" and that \"A flattening curve, even at a modest level, beats a higher curve that's still sliding downward\" — \"the most useful benchmark is your own past.\"",
+    "topic": "the-retention-curve",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/cohorts-to-improve-your-retention",
+    "takeaway": "Amplitude warns that \"Acquisition cohorts alone don't give any information about how you can improve the user experience to retain your users\" because \"You can't isolate specific behaviors.\" Comparing a cohort that took an action against one that did not can find a behavior that correlates with retention — but cautions that correlation is not cause: \"Just because people who favorite songs and join communities churn less doesn't mean that driving people toward these behaviors will automatically reduce your churn rate.\"",
+    "topic": "common-pitfalls",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://articles.sequoiacap.com/retention",
+    "takeaway": "Sequoia calls retention \"a good way to measure product-market fit and by far the best lever for product growth,\" naming three curve shapes: flattening (\"a percentage of users who sampled the product found value in it and continued to return\"), declining (\"eventually reaching very few or zero users\"), and smiling (where \"its retention curve will actually rise\"). It urges benchmarking \"based on similar products in your genre\" — e.g. casual puzzle games at 7–10% 30-day retention versus strategy games above 30%.",
+    "topic": "retention-and-product-market-fit",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/ai-retention-benchmarks/",
+    "takeaway": "a16z calls strong retention \"a key signal that a product delivers ongoing, repeatable value,\" and describes the smiling curve as one where \"churned or lower-usage customers come back or use the product more often as the product's capabilities improve.\" As a business \"mixes into its older cohorts (well into their expansion phase), the overall NDR profile as reported will be much better\" — NDR meaning net dollar retention.",
+    "topic": "quality-trends-across-cohorts",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/swlh/estimating-customer-lifetime-value-via-cohort-retention-de960e2ee5b1",
+    "takeaway": "This Startup (Medium) guide shows cohort retention feeding lifetime-value estimates: \"A retention matrix, or a curve, visually represent how many of the acquired customers stayed with the business, continuing to generate revenue.\" The mechanics are simple — \"Average lifetime estimate for a cohort is just a sum of retentions for the cohort,\" and then \"lifetime value estimate is just a product of lifetime and value, on a cohort basis,\" where value is \"the recurring amount generated by a customer, net of operational costs.\"",
+    "topic": "cohort-based-ltv",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.kissmetrics.io/blog/cohort-analysis-guide",
+    "takeaway": "Kissmetrics defines a cohort as \"a group of users who share a common characteristic, typically defined by when they first did something,\" with time-based cohorts grouped by \"when they signed up, when they made their first purchase, or when they first performed some other significant action.\" It shows how comparing cohorts reveals progress: if \"your January cohort had 30% week-four retention, your March cohort had 33%, and your May cohort had 37%, your product is improving.\"",
+    "topic": "quality-trends-across-cohorts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.adasight.com/blog/cohort-analysis-definition-key-steps-examples",
+    "takeaway": "Adasight catalogs cohort pitfalls: survivorship bias \"occurs when the analysis focuses only on cohorts that have 'survived' or remained active, potentially overlooking valuable insights from churned customers\"; selection bias \"happens when a method of selecting cohorts introduces a systematic error\"; and wrong time frames skew results, since \"Short time frames may miss long-term trends, while long periods may dilute the relevance of data.\"",
+    "topic": "common-pitfalls",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://clevertap.com/blog/cohort-analysis/",
+    "takeaway": "CleverTap defines cohort analysis as \"the process of analyzing user behavior by grouping individuals into related groups called cohorts, each made up of users who share a common characteristic or starting point,\" and lists five types: acquisition, behavioral, time-based, segment-based, and size-based. Among its retention benefits, it \"Optimizes Acquisition Quality\" by revealing \"which acquisition sources lead to longer-lasting, higher-value users.\"",
+    "topic": "acquisition-vs-behavioral-cohorts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/retention-curve/",
+    "takeaway": "Userpilot defines a retention curve as \"a chart that answers one question: 'Of how many people who started using my product on Day 0, how many are still here?'\" It names the flattening curve (drops \"as bad-fit users leave, then stabilizes at a consistent level above zero\"), the leaky bucket (slides to 0%), and the smiling curve (\"drops initially, stabilizes, then goes back up\"). PMs should first \"Define the critical event\" — the action signifying value.",
+    "topic": "the-retention-curve",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/cohort-retention-analysis/",
+    "takeaway": "Userpilot gives the cohort retention formula: \"dividing the number of users who remain active during a given time period by the total number of users in the original cohort, then multiplying by 100.\" Acquisition cohorts are \"users grouped by when they signed up, tracked forward in time,\" while behavioral cohorts group users \"by the specific actions they did or didn't take inside the product\" — and the retention event should be a feature interaction, \"not logins.\"",
+    "topic": "tools-and-how-to-run-one",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.indiehackers.com/post/does-your-cohort-retention-curve-smile-8c574ccdcb",
+    "takeaway": "This Indie Hackers post frames the ideal: \"The magic happens when it smiles back which means even churned users are coming back to your product due to development or network effect.\" On the more common good case, \"A curve that flattens is considered to be good as it means you are able to retain some users. The higher the curve flattens, the better retention you have.\"",
+    "topic": "the-retention-curve",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.sarasanalytics.com/blog/cohort-retention-analysis",
+    "takeaway": "Saras Analytics lays out a seven-step cohort process — define criteria, collect data, segment, visualize (\"Each row represents a cohort, each column a time interval\"), analyze patterns, apply insights, and \"Track your cohorts regularly (monthly at minimum).\" On granularity it advises that \"For most DTC brands, acquisition month is the baseline,\" and to watch for spikes like churn \"after the third subscription cycle.\"",
+    "topic": "choosing-cohort-windows",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://usermaven.com/blog/cohort-analysis-to-measure-user-retention",
+    "takeaway": "Usermaven defines cohort analysis as \"the process of grouping users based on shared characteristics or behaviors and analyzing how they behave over time,\" illustrating retention plainly: \"If 100 people sign up in May and 40 are active 3 months later, the 3-month retention rate for that cohort is 40%.\" It frames the payoff as a habit: \"This build–measure–learn cycle is what transforms cohort analysis from a one-time report into an ongoing force for better decisions.\"",
+    "topic": "tools-and-how-to-run-one",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

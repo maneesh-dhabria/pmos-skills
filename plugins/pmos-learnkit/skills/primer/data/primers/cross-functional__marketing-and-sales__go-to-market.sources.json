@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://blog.hubspot.com/sales/gtm-strategy",
+    "takeaway": "A go-to-market (GTM) strategy is \"a step-by-step plan for bringing a new product to market and driving demand\" — cross-functional and built before launch, covering sales, marketing, pricing, distribution, and customer success. HubSpot distinguishes it from a marketing strategy (the company's ongoing, marketing-owned approach to the brand) and lists four sales models to choose from: self-service, inside sales, field sales, and channel/partner.",
+    "topic": "what-go-to-market-means",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://pipeline.zoominfo.com/marketing/go-to-market-strategy",
+    "takeaway": "ZoomInfo frames GTM as \"a comprehensive plan that details how a company will bring a product or service to market,\" and stresses cross-functional alignment: \"Buyers don't experience your company one department at a time, but as one unified journey. Marketing, sales, RevOps, product, customer success, and enablement all have a role to play, and all need to be operating from the same playbook.\" In its survey of 450 GTM leaders, \"48% of sales leaders identified lack of alignment as a top challenge.\"",
+    "topic": "what-go-to-market-means",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.thegrowthsyndicate.com/resources/go-to-market-strategy-guide-2026",
+    "takeaway": "A GTM strategy is \"the system that turns a product into revenue.\" The Growth Syndicate cites that \"companies with documented go to market strategies are 33% more likely to hit revenue targets\" and that aligned companies \"grow 19% faster and are 15% more profitable than peers with fragmented approaches\" — while \"between 25% and 95% of new products fail\" and \"seventy-two percent of failed products ignored customer feedback during development.\"",
+    "topic": "what-go-to-market-means",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://review.firstround.com/how-superhuman-built-an-engine-to-find-product-market-fit/",
+    "takeaway": "Product-market fit — Marc Andreessen's sense that \"customers are buying the product just as fast as you can make it\" — can be measured before scaling. Sean Ellis's leading indicator asks users \"How would you feel if you could no longer use the product?\"; 40% answering \"very disappointed\" is the threshold strong companies exceed. Rahul Vohra's Superhuman engine (segment to the High-Expectation Customer, double down on what fans love, convert the on-the-fence) lifted its score \"from 22% to 58% within three quarters.\"",
+    "topic": "it-starts-with-product-market-fit",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.antler.co/blog/tam-sam-som",
+    "takeaway": "Market sizing nests three numbers as a funnel (SOM inside SAM inside TAM): TAM (total addressable market) \"represents the revenue opportunity that a company has if it has a full 100% of the market share, and there is no competition\"; SAM (serviceable addressable market) is \"the 'slice' of the TAM 'pie' that can be served by a company's products and services\"; and SOM (serviceable obtainable market) is \"the actual amount of the market that is being served\" near-term.",
+    "topic": "sizing-the-market",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.kalungi.com/blog/how-to-define-b2b-ideal-customer-profile-template-icp",
+    "takeaway": "An Ideal Customer Profile (ICP) is \"a clear outline of your ideal customers — the ones you want more of\" who buy consistently, stay loyal, refer others, and see real value. It operates at the company level — firmographics (company size, industry, revenue), technographics (tech stack), and organizational buying behavior — whereas a buyer persona \"zooms in on the people within those companies.\" A focused ICP \"allows you to focus on the accounts that deliver the highest ROI.\"",
+    "topic": "the-ideal-customer-profile",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/summary-april-dunford-on-product",
+    "takeaway": "April Dunford defines positioning as \"how your product is the best in the world at delivering some value that a well-defined set of companies care a lot about\" — context that makes a product easy to understand. Her five components are competitive alternatives (what you must beat, including the status quo), unique attributes (\"capabilities or feature functions that the alternatives don't have\"), the differentiated value those enable, the target customers who care most about that value, and the market category you frame it in.",
+    "topic": "positioning-and-value-proposition",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/product-led-vs-sales-led/",
+    "takeaway": "In product-led growth (PLG) \"the product itself is the primary driver of customer acquisition, engagement, and retention,\" with users reaching value through self-serve trials or freemium; in sales-led growth (SLG) \"a dedicated sales team identifies, qualifies, and converts leads through personalized outreach.\" PLG fits individual buyers, ACV (annual contract value) under $5K and low complexity with lower CAC; SLG fits very high ACV, complex implementation, and multi-stakeholder buying — and hybrid PLG+SLG is now \"the dominant motion.\"",
+    "topic": "the-gtm-motions",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://sapphireventures.com/blog/navigating-product-led-growth-vs-sales-led-growth-models/",
+    "takeaway": "Sapphire Ventures rejects a binary: \"This comparison isn't about pitching PLG against SLG as rivals… there's no one-size-fits-all answer here.\" The right model \"varies based on things like target customer segments, size of deals/customer spend, optimal routes-to-market, product complexity, product time to value and market maturity,\" and switching is costly — PLG-upmarket needs \"stronger sales, marketing, and partnerships,\" while SLG-adding-self-serve faces \"enormous product development efforts.\"",
+    "topic": "the-gtm-motions",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://chaotic-flow.com/saas-startup-strategy-three-saas-sales-models/",
+    "takeaway": "Joel York maps SaaS selling onto three models by average selling price (ASP) and complexity: customer self-service (\"your ASP places a ceiling on your customer acquisition cost, which in turn limits your SaaS sales model options\"), transactional (inside sales, mid-range price, \"signed contracts, premium SLAs, invoicing\"), and enterprise (\"territory sales reps focused on a narrow set of target prospects\"). His constraint: \"You just can't give away complex software\" — price, complexity, and sales touch must line up.",
+    "topic": "sales-models-and-channels",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://fourweekmba.com/sales-distribution-peter-thiel/",
+    "takeaway": "Peter Thiel (Zero to One) argues \"poor sales rather than bad product is the most common cause of failure,\" and skewers the myth that \"if you have a great product, it will sell itself.\" Distribution obeys a power law — find and maximize one channel rather than dabbling in many — and viability hinges on the relationship between customer lifetime value (CLV) and customer acquisition cost (CAC). \"What nerds miss is that it takes hard work to make sales look easy.\"",
+    "topic": "distribution-the-overlooked-half",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.earlynode.com/newsletters/patrick-campbell-saas-pricing",
+    "takeaway": "Patrick Campbell (ProfitWell) argues for value-based pricing built on a value metric — a unit that \"directly correlates with customer value, and scales with usage\" so pricing rises as customers get more value; he reports value-based pricing yields \"up to 75% less churn and at least 30% more expansion revenue\" than feature-based pricing. He recommends Van Westendorp's four willingness-to-pay questions, annual price reviews, and treating pricing as cross-functional, not a one-time exercise.",
+    "topic": "pricing-and-packaging",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.pragmaticinstitute.com/resources/articles/product/prioritize-product-launch-resources-with-launch-tiers/",
+    "takeaway": "Pragmatic Institute prioritizes launches into three tiers by expected impact: Tier 1 for \"products that are expected to have the most impact\" (new categories, acquisitions — full resources), Tier 2 for incremental improvements with \"less of an impact,\" and Tier 3 for \"products that are expected to have minimal, if any, business or market impact\" (maintenance releases). Crucially, \"the amount of development effort does not automatically determine the launch priority. Market and business impact are the drivers.\"",
+    "topic": "planning-the-launch",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.growthspreeofficial.com/blogs/ltv-cac-ratio-b2b-saas-benchmarks-2026",
+    "takeaway": "Two numbers gauge GTM efficiency: CAC (customer acquisition cost) = \"Total Sales & Marketing Cost ÷ Number of New Customers,\" and LTV (lifetime value) = \"Average Revenue per Account × Gross Margin % × Average Customer Lifespan.\" \"A healthy B2B SaaS LTV:CAC ratio is 3:1 or higher\" — below that \"you're spending too much to acquire customers relative to their lifetime value\" — and the \"CAC payback target\" (months to recover acquisition cost) is \"under 12 months.\"",
+    "topic": "measuring-gtm-the-economics",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://slideworks.io/resources/go-to-market-gtm-strategy",
+    "takeaway": "Bain's GTM framework runs in three phases: Analyze (\"Define and understand the market… Map the customer journey and identify the most attractive customer segments and their needs\"), Design (\"Select your target segment and design a differentially better value proposition\"), and Deliver (\"Optimize sales, marketing, pricing, and distribution channels to serve and acquire target customers\") — a useful spine that sequences the other GTM decisions.",
+    "topic": "what-go-to-market-means",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

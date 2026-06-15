@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.astera.com/type/blog/data-warehouse-concepts/",
+    "takeaway": "Astera grounds the field in its two founders. Bill Inmon's classic definition is a \"Subject-oriented, nonvolatile, integrated, time-variant collection of data in support of management's decisions,\" built top-down as a normalized enterprise model that establishes \"a single source of truth across the enterprise.\" Ralph Kimball works bottom-up, where \"data marts are first formed based on the business requirements\" and a star schema combines \"a fact table with several dimensional tables.\"",
+    "topic": "what-a-data-warehouse-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.striim.com/blog/data-warehouse-vs-data-lake-vs-data-lakehouse-an-overview/",
+    "takeaway": "Striim frames the warehouse by its job: \"Data warehouses extract data from multiple sources and transform and clean the data before loading it into the warehousing system to serve as a single source of data truth.\" By contrast a data lake \"stores large amounts of structured and unstructured data in its raw, original, and unformatted form,\" and a lakehouse \"combines the best features of both data warehouses and data lakes.\"",
+    "topic": "what-a-data-warehouse-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://clickhouse.com/resources/engineering/oltp-vs-olap",
+    "takeaway": "ClickHouse draws the core split: \"OLTP optimises for high-frequency single-row reads and writes\" while \"OLAP optimises for aggregations across millions to billions of rows in sub-second time.\" The access patterns drive the storage: OLTP systems \"store rows together on disk because operational queries access most of a row's columns at once,\" whereas OLAP systems \"store columns together on disk because analytical queries access a few columns across many rows.\"",
+    "topic": "oltp-vs-olap-two-different-jobs",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.aegissofttech.com/insights/olap-vs-oltp/",
+    "takeaway": "Aegis gives the memorable one-liner: \"OLTP is the engine behind your daily transactions ... online shopping carts, bank transfers, and ticket bookings,\" while \"OLAP is the brain behind your dashboards and reports.\" Put another way, \"OLTP records the present; OLAP analyzes the past for insights\" — OLTP does \"fast inserts and small lookups\" and \"OLAP queries, by contrast, scan millions of rows for trends.\"",
+    "topic": "oltp-vs-olap-two-different-jobs",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_columnar_storage_disk_mem_mgmnt.html",
+    "takeaway": "AWS's official Redshift docs explain why warehouses flip the layout: \"Columnar storage for database tables is an important factor in optimizing analytic query performance, because it drastically reduces the overall disk I/O requirements.\" Because \"data warehouse queries commonly read only a few columns for a very large number of rows,\" a query using 5 of 100 columns \"will only need to read about five percent of the data,\" while a row store \"would read the blocks that contain the 95 unneeded columns as well.\"",
+    "topic": "why-warehouses-store-data-in-columns",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.stitchdata.com/columnardatabase/",
+    "takeaway": "Stitch states the design plainly: \"A columnar database stores data by columns rather than by rows, which makes it suitable for analytical query processing, and thus for data warehouses.\" Because \"all the values are of the same data type\" within a column, \"columnar databases compress similar data to reduce storage,\" cutting both disk footprint and the volume read per query.",
+    "topic": "why-warehouses-store-data-in-columns",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://airbyte.com/data-engineering-resources/columnar-storage",
+    "takeaway": "Airbyte details the compression that columnar layout unlocks — dictionary encoding (\"replacing recurring values with compact integer tokens\"), run-length encoding, and delta encoding — noting \"Compression ratios of 5–10x are common, directly saving memory and reducing cloud bills.\" It adds that \"Most BI queries reference only a handful of columns,\" so engines \"move far less data from disk to CPU, then leverage vectorized (SIMD) processing across thousands of values simultaneously.\"",
+    "topic": "why-warehouses-store-data-in-columns",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.holistics.io/books/setup-analytics/kimball-s-dimensional-data-modeling/",
+    "takeaway": "Holistics' Analytics Setup Guidebook explains dimensional modeling: \"The star schema is a particular way of organizing data for analytical purposes\" built from \"A fact table ... [that] contains the primary measurements, metrics, or 'facts' of a business process\" and dimension tables that \"contain 'dimensions' — that is, descriptive attributes.\" The dimension tables \"surround\" the fact table — hence \"star\" — and the whole philosophy is to \"do the hard work now, to make it easy to query later.\"",
+    "topic": "how-the-data-is-modeled",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.ssp.sh/brain/inmon-vs-kimball/",
+    "takeaway": "Simon Späti contrasts the two schools — Inmon \"Emphasizes a highly normalized structure\" beginning with a core \"closely aligned with the source system,\" while Kimball \"focuses on creating a Star Schema\" from a denormalized core. He stresses both remain valid: \"leveraging the strengths of both Inmon and Kimball's methods can be highly effective,\" and the real failure mode is building analytics without following \"some approach (whether Kimball or Inmon).\"",
+    "topic": "the-two-founding-philosophies",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.integrate.io/blog/etlt-with-snowflake-dbt-and-integrateio/",
+    "takeaway": "Integrate.io explains the ETL-to-ELT shift: ELT means \"load raw data directly into the data warehouse\" and transform afterward, made practical because cloud warehouses \"are so powerful and efficient that they can quickly and cost-effectively transform big data within the warehouse after loading\" — whereas pre-cloud, post-load transformation \"was slow, impractical, and expensive.\" It positions dbt cleanly: \"dbt is the T in ELT.\"",
+    "topic": "etl-vs-elt",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.alation.com/blog/modern-data-stack-explained/",
+    "takeaway": "Alation defines the modern data stack as \"a thoughtfully assembled collection of cloud-native tools ... that enables enterprises to ingest, store, transform, and analyze data with agility, scale, and governance,\" organized into layers (ingestion via \"Extract, Load, Transform (ELT)\" tools, storage in \"A data warehouse, data lake, or data lakehouse,\" transformation, orchestration, and BI). It captures the ELT shift as \"load raw data first, transform as needed,\" moving teams \"beyond 'data warehousing + BI' to a platform that supports self-service analytics.\"",
+    "topic": "the-modern-data-stack",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://airbyte.com/top-etl-tools-for-sources/the-essential-modern-data-stack-tools",
+    "takeaway": "Airbyte enumerates the stack's layers — \"data ingestion, storage, transformation, analytics, reverse ETL, orchestration, observability, and governance\" — with representative tools: ingestion (Airbyte), warehousing (Snowflake, \"separating compute and storage, enabling independent scaling\"), transformation (\"dbt standardizes data transformation through SQL-based modeling\"), and BI (Looker, whose semantic layer \"creates a single source of truth for business metrics\").",
+    "topic": "the-modern-data-stack",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.getdbt.com/product/what-is-dbt",
+    "takeaway": "dbt Labs describes its tool as bringing \"the best of software engineering to the analytics workflow\": teams \"Build maintainable models by writing SQL SELECT statements that reflect your business logic,\" executed inside the warehouse where the data already lives. It adds \"testing, versioning, and documentation to the world of analytics\" — catching anomalies early, tracking every change in Git, and documenting models and columns.",
+    "topic": "transformation-and-analytics-engineering",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://docs.cloud.google.com/bigquery/docs/introduction",
+    "takeaway": "Google's official docs describe BigQuery as \"a fully managed, AI-ready data platform,\" whose \"serverless architecture lets you use languages like SQL and Python to answer your organization's biggest questions with zero infrastructure management.\" Critically, \"BigQuery's separation of compute and storage layers lets each layer dynamically allocate resources without impacting the performance or availability of the other,\" supporting \"business intelligence, ad hoc analysis, geospatial analytics, and machine learning.\"",
+    "topic": "the-cloud-warehouses",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.databricks.com/blog/data-lakes-vs-data-warehouses-what-your-organization-needs-know",
+    "takeaway": "Databricks defines a warehouse as \"A data management system that stores data from multiple sources in a highly structured way\" where \"Data is cleansed, transformed and integrated into a schema\" — a \"schema-on-write\" approach — versus a data lake, \"A flexible repository that stores raw data in its native format\" using \"schema-on-read.\" The lakehouse \"combines the scale and flexibility of a data lake with the reliability and performance of a data warehouse.\"",
+    "topic": "warehouse-vs-data-lake-vs-lakehouse",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.montecarlo.ai/blog-data-warehouse-vs-data-lake-vs-data-lakehouse-definitions-similarities-and-differences/",
+    "takeaway": "Monte Carlo distinguishes by use case: a warehouse uses schema-on-write (\"cleaned, integrated, and processed before storage\") and is \"the most sensible choice for data platforms whose primary use case is for data analysis and reporting,\" while a data lake uses schema-on-read, storing \"raw data, leaving the processing part until the data is read for use\" — better for \"data scientists seeking to run advanced calculations and data exploration.\" A lakehouse stores raw data \"while also facilitating the option for preprocessed, structured data like a warehouse.\"",
+    "topic": "warehouse-vs-data-lake-vs-lakehouse",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

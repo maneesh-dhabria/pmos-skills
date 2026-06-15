@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://quoteinvestigator.com/2022/04/11/advertising/",
+    "takeaway": "The famous lament \"about one-half the money I spend for advertising is wasted, but I have never been able to decide which half\" is usually pinned on department-store magnate John Wanamaker, but Quote Investigator notes it \"has been unable to find a direct citation… hence, this ascription remains uncertain\" — the quote itself, traced to a 1919 speech, captures marketing's founding measurement problem.",
+    "topic": "why-measuring-marketing-is-hard",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Attribution_(marketing)",
+    "takeaway": "In marketing, attribution \"is the identification of a set of user actions ('events' or 'touchpoints') that contribute to a desired outcome, and then the assignment of a value to each of these events\" — the discipline of deciding which marketing moments get credit for a sale.",
+    "topic": "what-attribution-means",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nielsen.com/insights/2019/methods-models-a-guide-to-multi-touch-attribution/",
+    "takeaway": "Nielsen defines the rules-based models cleanly: in first-touch \"the first touchpoint… receives 100% of the credit,\" in last-touch \"the last touchpoint… receives 100% of the credit,\" linear gives \"all touchpoints… equal credit,\" and time-decay builds credit toward the final touch; multi-touch attribution instead \"takes all of the touchpoints… into consideration and assigns fractional credit to each.\"",
+    "topic": "single-touch-models",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.haus.io/blog/mta-vs-mmm-choosing-between-multi-touch-attribution-and-marketing-mix-modeling",
+    "takeaway": "Haus contrasts the two workhorse methods — \"MTA analyzes user-level digital interactions to assign credit across touchpoints, while MMM uses aggregated historical data to estimate the incremental impact\" — and warns both share a limit: \"both methods are observational and only become causal when paired with rigorous experimentation.\"",
+    "topic": "multi-touch-attribution",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://support.google.com/analytics/answer/3191594?hl=en",
+    "takeaway": "Google's data-driven attribution \"uses all available path data—including data from both converting and non-converting users—to understand how the presence of particular marketing touchpoints impacts your users' probability of conversion,\" computing each touchpoint's \"counterfactual gains\" — the conversion probability with the touchpoint present versus absent.",
+    "topic": "data-driven-attribution",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.amsive.com/insights/data-intelligence/the-science-behind-data-driven-attribution/",
+    "takeaway": "Data-driven attribution \"uses an algorithm based on a concept from cooperative game theory called the Shapley Value,\" which \"was developed by the economics Nobel Laureate Lloyd S. Shapley as an approach to fairly distributing the output of a team among the constituent team members\" — here the team members are channels and the output is conversions.",
+    "topic": "data-driven-attribution",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.within.co/blog/marketing-attribution-is-all-about-causation",
+    "takeaway": "WITHIN frames the core trap plainly: \"Correlation = two things move together. Causation = one thing caused the other,\" and warns that \"in a complex media mix, relying on a single model oversimplifies reality\" — last-touch puts \"100% of credit… on the final interaction\" and so confuses correlation with cause.",
+    "topic": "the-correlation-causation-trap",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.northbeam.io/blog/what-is-incrementality-in-marketing",
+    "takeaway": "Northbeam illustrates the organic-baseline problem: \"if a paid social campaign generates 1,000 purchases, but the control group, which wasn't shown the ads, still produces 800 purchases, the incremental lift is only 200 purchases\" — and stresses that \"incrementality seeks to establish causality, not just correlation,\" unlike click-and-view attribution.",
+    "topic": "the-correlation-causation-trap",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://improvado.io/blog/marketing-lift",
+    "takeaway": "Improvado defines marketing lift as \"the measurable increase in a desired outcome… caused by a specific marketing campaign,\" measured by splitting audiences into \"an exposed group that sees your campaign, and a control group that doesn't\"; lift percentage = \"((Exposed Group Conversions − Control Group Conversions) ÷ Control Group Conversions) × 100.\"",
+    "topic": "incrementality-and-lift-testing",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.triplewhale.com/blog/geolift-geo-based-incrementality-testing",
+    "takeaway": "Geo-based incrementality testing \"works by running a controlled experiment across geographic regions\" — treatment markets get ads, control markets don't — and is privacy-durable because it \"doesn't rely on user-level identifiers or personal data\"; advanced versions use a synthetic control, \"a weighted blend of control markets that mirrors how your treatment markets behaved before the test.\"",
+    "topic": "geo-experiments",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Marketing_mix_modeling",
+    "takeaway": "Marketing mix modeling (MMM) \"is a statistical causal inference and forecasting methodology used to estimate the impact of various marketing tactics on product sales,\" using \"statistical models, such as multivariate regressions\" on \"sales and marketing time-series data\" to gauge each element's contribution, efficiency, and return on investment (ROI).",
+    "topic": "marketing-mix-modeling",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.measured.com/faq/what-are-the-pros-and-cons-of-incrementality-testing-versus-mmm-or-mta/",
+    "takeaway": "Measured assigns the three methods distinct roles: incrementality \"measures the causal impact of media using controlled test-vs.-control experiments,\" MMM \"estimate[s] each channel's contribution to sales… but measures correlation — not causation,\" and MTA \"tracks user-level digital journeys\"; mature teams triangulate, with \"incrementality… as the causal foundation that calibrates broader measurement frameworks.\"",
+    "topic": "mta-vs-mmm-vs-incrementality",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://improvado.io/blog/mmm-vs-multi-touch-attribution",
+    "takeaway": "Improvado gives concrete selection thresholds: use MMM \"when offline channels represent more than 30% of total spend,\" the sales cycle \"exceeds 30 days,\" or identity resolution \"falls below 60%\"; use MTA when \"sales cycles are under 7 days\" with \"over 1,000 conversions monthly\" — and \"mature teams run both: MMM sets quarterly budget envelopes, MTA drives daily campaign optimization.\"",
+    "topic": "mta-vs-mmm-vs-incrementality",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.admetrics.io/en/post/marketing-attribution-bias",
+    "takeaway": "Privacy changes are eroding attribution accuracy: \"platforms like Meta acknowledging a potential 15% underreporting of iOS web conversions due to iOS privacy regulations,\" while \"most browsers now restrict the lifespan of first-party cookies to between seven to 45 days, complicating long-term user tracking\" — so click-based attribution increasingly undercounts delayed and cross-device conversions.",
+    "topic": "privacy-and-the-measurement-crisis",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://lifesight.io/us/article/marketing-measurement/",
+    "takeaway": "Marketing measurement is \"the process of evaluating the effectiveness of marketing efforts by collecting and analyzing data… across various channels,\" anchored on metrics such as ROAS (return on ad spend), CAC (customer acquisition cost), and ROMI (return on marketing investment); good measurement ensures \"every marketing activity is directly tied to measurable financial outcomes.\"",
+    "topic": "metrics-and-common-pitfalls",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

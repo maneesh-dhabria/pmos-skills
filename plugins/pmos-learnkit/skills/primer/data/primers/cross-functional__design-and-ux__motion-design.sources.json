@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Motion_graphic_design",
+    "takeaway": "Motion graphic design is \"a subset of graphic design which combines design with motion graphics and video production\"; effective motion work draws on both design principles and animation principles.",
+    "topic": "what-this-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/animation-purpose-ux/",
+    "takeaway": "Per NN/g, \"animations can be leveraged for usability: as clues about what is currently happening with the system, as signifiers for how UI elements will behave, and as easily understandable spatial metaphors\" — feedback, state changes, and orientation.",
+    "topic": "purpose-of-motion",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/animation-duration/",
+    "takeaway": "NN/g recommends UX animations of roughly 100–500ms (most 100–400ms): ~100ms for simple feedback, 200–300ms for modals, up to 400ms for large movements; \"At 500ms, animations start to feel like a real drag.\" Use ease-out for entering elements, ease-in for exiting.",
+    "topic": "easing-and-timing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://m1.material.io/motion/duration-easing.html",
+    "takeaway": "Material's standard (ease-in-out) curve has elements \"quickly accelerate and slowly decelerate\"; most mobile transitions are ~300ms (enter 225ms, exit 195ms), and anything over 400ms \"may feel too slow.\" Movement should be fast enough not to wait, slow enough to understand.",
+    "topic": "easing-and-timing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function",
+    "takeaway": "An easing function \"describes the rate at which a value changes\" over an animation's duration; common ones are linear, ease, ease-in, ease-out, ease-in-out, and custom cubic-bezier() — linear feels mechanical, eased motion feels natural.",
+    "topic": "easing-and-timing",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/google-design/implementing-motion-9f2839002016",
+    "takeaway": "Google Design's Jonas Naimark frames Material motion as adjustable: \"You can adjust a transition's duration, easing, and motion path to express the style of your app,\" with four transition patterns ranging from simple-functional to dramatic-emphasized.",
+    "topic": "choreography",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/microinteractions/",
+    "takeaway": "Per NN/g, \"Microinteractions convey system status, support error prevention, and communicate brand\" — small feedback moments (toggles, loaders, button states) that turn a good experience into a great one.",
+    "topic": "micro-interactions",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://archive.uie.com/brainsparks/2014/08/01/dan-saffer-big-considerations-from-microinteractions/",
+    "takeaway": "Dan Saffer's Microinteractions defines them through a structure of \"triggers, rules, feedback, loops, and modes\" — tiny details that, done thoughtfully, differentiate a product; the discipline is doing much with little.",
+    "topic": "micro-interactions",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/article/ui-animation-how-to-apply-disney-s-12-principles-of-animation-to-ui-design",
+    "takeaway": "The Interaction Design Foundation maps Disney's principles to UI: anticipation (hover states signaling interactivity), easing (natural rather than robotic motion), and arcs (curved paths) make interfaces feel more intuitive and alive.",
+    "topic": "disney-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://valhead.com/2016/01/18/what-does-disney-know-about-interface-animation-anyway/",
+    "takeaway": "Val Head (author of Designing Interface Animation) argues Disney's classic principles remain relevant: \"The 12 principles break down how to communicate with animation and how to control what it conveys to viewers\" — easing choices shape perception much as typography does.",
+    "topic": "disney-principles",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Twelve_basic_principles_of_animation",
+    "takeaway": "Disney animators Ollie Johnston and Frank Thomas introduced the 12 principles in their 1981 book The Illusion of Life; key ones include squash and stretch, anticipation (which \"prepare[s] the audience for an action\"), and slow in and slow out (the basis of easing).",
+    "topic": "disney-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/animation-usability/",
+    "takeaway": "Animation aids usability when it reinforces UI relationships or clarifies state changes in the user's focus, but harms it when gratuitous and repeated — users reported \"this was nice the first time, but now it's getting annoying.\"",
+    "topic": "when-motion-helps-vs-distracts",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion",
+    "takeaway": "The prefers-reduced-motion media feature detects when a user wants \"to minimize the amount of non-essential motion\"; such animations \"can trigger discomfort for those with vestibular motion disorders\" — scaling or panning large objects are common triggers.",
+    "topic": "accessibility-and-reduced-motion",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions.html",
+    "takeaway": "WCAG Success Criterion 2.3.3 requires that \"motion animation triggered by interaction can be disabled, unless the animation is essential\" — protecting users with vestibular disorders from non-essential motion that causes nausea or dizziness.",
+    "topic": "accessibility-and-reduced-motion",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://css-tricks.com/almanac/rules/m/media/prefers-reduced-motion/",
+    "takeaway": "CSS-Tricks recommends using @media (prefers-reduced-motion: reduce) to detect the OS setting and then reduce motion thoughtfully — leaning on fades and color changes rather than eliminating all movement, since \"animation isn't unnecessary.\"",
+    "topic": "accessibility-and-reduced-motion",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.productmarketingalliance.com/what-is-product-marketing/",
+    "takeaway": "The Product Marketing Alliance defines product marketing as \"the process of bringing a product to market and overseeing its ongoing success\" sitting at \"the intersection of product, sales, and marketing,\" and reports four foundational pillars from its survey: positioning and messaging (91% of PMMs), product launches (80.9%), sales enablement (78.7%), and market research (69.7%).",
+    "topic": "what-product-marketing-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productmarketingalliance.com/whats-the-difference-between-a-product-manager-and-a-product-marketing-manager/",
+    "takeaway": "PMA calls the popular saying \"product managers put products on the shelf and product marketers get products off the shelf\" inaccurate, framing PM as building the product and PMM as bringing it to market, and stresses product marketing \"shouldn't start only at launch\" but acts \"as the pulse of the customer and feeding insights into the product roadmap.\"",
+    "topic": "product-manager-vs-product-marketing-manager",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.tryexponent.com/blog/product-marketing-vs-product-management",
+    "takeaway": "Exponent distinguishes the roles by direction: product managers are \"responsible for understanding user needs, setting the product roadmap, working with engineering and design to deliver features,\" while a product marketing manager's \"main responsibility is to communicate the product's value to the market\" — the PM owns the why/what/when, the PMM owns communicating it.",
+    "topic": "product-manager-vs-product-marketing-manager",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.aprildunford.com/post/an-introduction-to-positioning",
+    "takeaway": "April Dunford (author of Obviously Awesome) defines positioning as \"context-setting for products… like the opening scene of a movie\" and breaks it into five components — competitive alternatives, differentiated features, the value those enable, the target customers who care most, and the market category — concluding \"positioning defines what market you intend to win and why you deserve to win it.\"",
+    "topic": "positioning-the-strategic-core",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Positioning_(marketing)",
+    "takeaway": "Positioning is \"the mental perception of a product or brand by customers,\" and the classic positioning-statement template is: \"For (target customer) who (need), the (product name) is a (product category) that (key benefit). Unlike (primary competitive alternative), our product (primary differentiation).\"",
+    "topic": "the-positioning-statement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://geoffreyamoore.com/positioning/",
+    "takeaway": "Geoffrey Moore frames positioning as \"establishing a unique identity or image in the minds\" of the target market, tailored to where a customer sits on the technology-adoption lifecycle — clear positioning is what reduces perceived adoption risk and helps a product bridge the gap between early adopters and the mainstream.",
+    "topic": "the-positioning-statement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Crossing_the_Chasm",
+    "takeaway": "Moore's Crossing the Chasm argues there is \"a chasm between the early adopters of the product (the technology enthusiasts and visionaries) and the early majority (the pragmatists),\" so firms should \"focus on one group of customers at a time, using each group as a base for marketing to the next group\" — a foundational idea for sequencing go-to-market.",
+    "topic": "go-to-market-strategy",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Value_proposition",
+    "takeaway": "A value proposition is \"a clear, simple statement of the benefits, both tangible and intangible, that the company will provide, along with the approximate price it will charge each customer segment for those benefits\" — the promise of value that messaging then expresses.",
+    "topic": "messaging-and-the-value-proposition",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Buyer_persona",
+    "takeaway": "A buyer persona is \"a semi-fictional characterization or representation of a typical customer segment or end user\"; personas \"help marketers and designers focus their efforts by humanizing data into relatable profiles\" so positioning and messaging can target a real, specific buyer.",
+    "topic": "buyer-personas-and-customer-insight",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/product-marketing/go-to-market-strategy",
+    "takeaway": "Product School defines a go-to-market strategy as \"the way your company turns a product bet into real, measurable outcomes in the market,\" built from six elements: market and customer definition; positioning, value proposition, and narrative; pricing, packaging, and commercial model; channels and GTM motion; revenue and success metrics; and operating model and enablement.",
+    "topic": "go-to-market-strategy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.highspot.com/blog/go-to-market-strategy/",
+    "takeaway": "Highspot frames a GTM strategy as the thing that \"aligns sales, marketing, enablement, and RevOps, ensuring every part of a brand campaign or product launch process… is well-executed across teams,\" and cites Gartner that \"companies with strong GTM strategies are 60% more likely to hit their revenue goals within a year of their product launch.\"",
+    "topic": "go-to-market-strategy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.pragmaticinstitute.com/resources/articles/product/prioritize-product-launch-resources-with-launch-tiers/",
+    "takeaway": "Pragmatic Institute's launch-tier framework categorizes launches \"based on the expected impact they are likely to have in the market and their projected business impact,\" and is explicit that \"the amount of development effort does not automatically determine the launch priority — market and business impact are the drivers,\" so resources flow to high-impact launches regardless of engineering complexity.",
+    "topic": "product-launches-and-launch-tiers",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://pipeline.zoominfo.com/sales/sales-enablement-strategy",
+    "takeaway": "Sales enablement is \"the strategic process of equipping sales teams with content, training, technology, and data they need to engage buyers effectively and close deals faster,\" where the content product marketing supplies includes \"case studies, battlecards, playbooks, email templates.\"",
+    "topic": "sales-enablement",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.highspot.com/blog/sales-battlecards/",
+    "takeaway": "A sales battlecard gives reps \"the field-ready competitive intelligence they need when it matters most,\" typically containing \"a concise competitor company overview with strengths and weaknesses, differentiators, price comparisons, strategic talking points, and responses to common pushback\" — a core product-marketing-owned enablement asset.",
+    "topic": "sales-enablement",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Competitive_intelligence",
+    "takeaway": "Competitive intelligence is \"the action of defining, gathering, analyzing, and distributing intelligence about products, customers, suppliers, competitors, and any aspect of the external business environment\" through \"systematically collecting and analysing information from multiple sources as part of a coordinated… program.\"",
+    "topic": "competitive-intelligence",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.pragmaticinstitute.com/resources/articles/product/7-metrics-every-product-marketing-manager-should-know/",
+    "takeaway": "Pragmatic Institute lists seven product-marketing metrics — adoption rate, retention rate, revenue, average length of a sale, close rate, customer lifetime value (CLV), and customer acquisition cost (CAC) — and warns that \"not every metric is a KPI,\" urging teams to connect activity to \"big-picture company goals\" rather than measuring tasks in isolation.",
+    "topic": "measuring-product-marketing",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

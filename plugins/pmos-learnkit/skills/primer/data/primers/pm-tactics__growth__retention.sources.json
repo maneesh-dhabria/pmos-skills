@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.startuparchive.org/p/facebook-vp-of-growth-alex-schultz-retention-is-the-single-most-important-thing-for-growth",
+    "takeaway": "Alex Schultz (Facebook VP Growth) argues retention is the single most important thing for growth: a retention curve that \"asymptotes to a line parallel to the x-axis\" proves product/market fit, and \"if you do not have a retention curve that flattens out, you do not have product/market fit and none of the growth hacking or virality tactics that people love to talk about will work.\"",
+    "topic": "why-retention-is-the-core-of-growth",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/quick-takes/retention-benchmarks",
+    "takeaway": "Brian Balfour (Reforge) calls retention an output, not a lever — \"Retention Is An Output\" driven by inputs like activation — and warns benchmark comparisons are inherently flawed because \"CAC is CAC. LTV is LTV. Retention is Retention. Right? Definitely not\": what counts as good retention depends on acquisition and expansion motion, so cross-category comparison misleads.",
+    "topic": "benchmarks-and-pitfalls",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/power-user-curve/",
+    "takeaway": "Andrew Chen's power user curve (the L30 activity histogram) plots users by number of active days in a month; the characteristic \"smile shape\" — a cluster of near-daily power users on the right — \"indicates there's a group of highly engaged users using the app daily or nearly daily,\" surfacing the engagement distribution that a single DAU/MAU average hides.",
+    "topic": "the-power-user-curve-and-the-smile",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/measuring-cohort-retention",
+    "takeaway": "Olga Berezovsky (via Lenny) frames cohort retention as a color-coded triangle table showing \"how many users registered each week and how many of them were retained in each subsequent week\"; the meaningful patterns emerge across cohorts, and retention is an output metric reflecting the cumulative product experience, with the flattening point revealing the natural retention equilibrium.",
+    "topic": "reading-cohort-retention",
+    "tier": "secondary-curation",
+    "paywalled": true
+  },
+  {
+    "url": "https://amplitude.com/blog/cohorts-to-improve-your-retention",
+    "takeaway": "Amplitude shows behavioral cohorts isolating retention drivers: in a music app \"almost 40% of all users churn within one day\" but \"only about 15% of users who favorite three or more songs drop off after day one,\" and inverted/combined cohorts (favoriting + community) lift retention above 75% vs under 25% without either — then A/B test to confirm causation rather than assume it.",
+    "topic": "reading-cohort-retention",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@amplitudeHQ/3-ways-to-measure-user-retention-2af5e4e82a45",
+    "takeaway": "Amplitude lays out three retention definitions — N-day (returned on a specific day, fits daily-habit products like mobile games), unbounded/rolling (returned on or any time after a day, fits sporadic products like grocery delivery), and bracketed (custom intervals) — and the matching principle: pick the type that matches your product's natural usage frequency.",
+    "topic": "choosing-the-right-retention-metric",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/the-hook-model",
+    "takeaway": "Nir Eyal's Hook Model (via Amplitude) cycles Trigger (external → internal) → Action → Variable Reward → Investment; rewards split into Tribe (\"connection or belonging\"), Hunt (tangible resources), and Self (mastery), and \"novelty activates the dopamine system,\" while the Investment phase loads the next trigger — repeated cycles build the habit that drives retention.",
+    "topic": "habit-and-frequency",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://nirandfar.com/how-to-manufacture-desire/",
+    "takeaway": "Nir Eyal argues habit-forming products move users from external triggers (\"an email, a link on a web site, or the app icon on a phone\") to internal ones: \"by cycling continuously through these hooks, users begin to form associations with internal triggers\" until \"the habit is formed\" and \"the first-to-mind solution wins\" — users self-initiate without marketing.",
+    "topic": "habit-and-frequency",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://sarahtavel.medium.com/the-hierarchy-of-engagement-5803bf4e6cfa",
+    "takeaway": "Sarah Tavel's Hierarchy of Engagement has three levels — growing engaged users, retaining them, and becoming self-perpetuating — built on completing the core action plus accruing benefits and mounting losses; she frames \"user engagement as the fuel powering products,\" where climbing the hierarchy makes products \"better, harder to leave, and ultimately create virtuous loops that make the product self-perpetuating.\"",
+    "topic": "accruing-benefits-and-mounting-losses",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/retention-lifecycle-framework",
+    "takeaway": "Amplitude's growth-accounting lifecycle segments users into New, Current, Resurrected, and Churned/Dormant states; the Quick Ratio = (New + Resurrected) / Churned reads >1 as growing and <1 as contracting, and the prescription is segment-specific — for new users ask \"how to get users to come back,\" for resurrected users investigate \"why users are coming back\" — because \"not all active users are created equal.\"",
+    "topic": "the-retention-lifecycle",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/re-engage-dormant-users",
+    "takeaway": "Amplitude treats resurrection as one of three retention levers (alongside new-user activation and engagement/stickiness): define dormancy by your product's usage pattern via the lifecycle chart, find \"external factors and previous campaigns that brought back some of your dormant users,\" then run targeted win-back campaigns — because \"acquisition won't help your business if you constantly lose new users after onboarding.\"",
+    "topic": "tactics-to-improve-retention",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@ukcharlietaylor/fooled-by-stickiness-a53d241ba463",
+    "takeaway": "Charlie Taylor shows DAU/MAU \"stickiness\" misleads: a 34% ratio can hide that \"most of the users use the product on less than 20% of the days\" and \"no users use the product on 34% of the days,\" so \"aggregated DAU/MAU might be good for slideshows, but it's a bad way to measure user behavior\" — it blends heterogeneous users and triggers premature product and marketing bets.",
+    "topic": "dau-mau-and-the-stickiness-trap",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/retention-curve/",
+    "takeaway": "Userpilot reads the retention curve in three parts: a steep early drop (users who never hit the aha moment, e.g. \"falling from 26.5% on Day 1 to 12% by Day 7\"), a flattening plateau (\"the flat section shows your product stickiness\" = the terminal retention rate and product-market fit), versus a curve that keeps sliding to zero — \"your product fails to solve a recurring problem or form a habit.\"",
+    "topic": "the-retention-curve-and-pmf",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://mode.com/blog/facebook-aha-moment-simpler-than-you-think/",
+    "takeaway": "Mode reframes the aha moment: Facebook's \"7 friends in 10 days\" (Chamath Palihapitiya) was a memorable rallying target, and \"the 'aha moment' is a misnomer... It's a set of actions that separate customers who find value in your product from those who don't\" — found by comparing retained vs churned users, with the explicit caveat that the relationship may be correlation, not causation, until forcing the action proves it lifts retention.",
+    "topic": "activation-and-the-aha-moment",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/hacking-product-growth-sean-ellis/",
+    "takeaway": "Sean Ellis positions activation as the bridge from acquisition to retention — get users to \"an experience where they actually say, oh my ... this product is amazing\" — found by mining your most engaged users (Slack's 2,000 messages, Facebook's 7 friends), and validates product/market fit with his must-have survey: if 40%+ would be \"very disappointed\" without the product, \"you're delivering the 'must-have' experience.\"",
+    "topic": "activation-and-the-aha-moment",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-increase-your-retention-issue",
+    "takeaway": "Lenny Rachitsky's retention playbook ranks tactics by impact — improve the product, then onboarding, stickiness, pre-churn intervention, value reminders, win-back, and better targeting — built on the finding that \"almost every big, lasting retention win I've seen came from improving the early user experience\" (the first 7–30 days), and that resurrection only works if the cohort curve isn't already trending to zero.",
+    "topic": "tactics-to-improve-retention",
+    "tier": "secondary-curation",
+    "paywalled": true
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://www.talkingroadmaps.com/episodes/are-roadmaps-ever-useful",
+    "takeaway": "Marty Cagan's position is that roadmaps are a tool, not the enemy: \"Used properly roadmaps are a helpful tool, the problem is almost no-one uses them that way.\" His indictment is sharp — \"95% of roadmaps are not outcome-based roadmaps. They're output roadmaps\" — and \"in feature team companies, roadmaps are usually the biggest single source of waste.\" The fix is sequencing: \"in a good product company, the roadmap is the communication tool once you actually know what you need to do,\" and teams are \"given problems to solve\" not features to build.",
+    "topic": "what-a-roadmap-is-for",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.producttalk.org/product-roadmaps/",
+    "takeaway": "Teresa Torres argues feature roadmaps are dishonest about uncertainty: \"Feature-based roadmaps are fiction. Everyone on the product team knows it,\" because \"nobody can predict the future\" and \"the further away something is, the more uncertain it is.\" A good roadmap mirrors the actual state of knowledge — \"specific in the near term, directional in the long term\" — and the unit that survives a pivot is the problem, not the feature: \"The solution changed, but the opportunity we're addressing hasn't.\" Breaking the implied delivery contract erodes stakeholder trust.",
+    "topic": "what-a-roadmap-is-for",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.prodpad.com/blog/invented-now-next-later-roadmap/",
+    "takeaway": "Janna Bastow invented the Now-Next-Later roadmap as a reaction against timeline/Gantt roadmaps: \"The Now-Next-Later roadmap exists because timeline roadmaps aren't effective, simple as that\" and \"Deadlines are the root cause of so much product management pain.\" Its core idea is to ration certainty by horizon — \"The Now column is definite, while the Later column is full of possibilities\" — which \"gives you the chance to become more certain, rather than commit too early\" and keeps teams \"focused on discovery\" rather than deadline-based delivery.",
+    "topic": "roadmap-formats",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://romanpichler.medium.com/should-product-roadmaps-have-dates-f50e8101884a",
+    "takeaway": "Roman Pichler's nuanced answer on dates: for an externally-facing roadmap \"I recommend that you do NOT state any dates,\" but for \"an internal product roadmap that guides the work of stakeholders and development teams, I recommend using specific time frames or dates.\" Where dates are used, prefer coarse ranges — \"big, coarse-grained time frames like 'in the first half of the year and the second half of the year'\" or Bastow's now-next-later — to avoid \"putting yourself and your development teams under pressure and disappointing customers.\"",
+    "topic": "roadmap-formats",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://romanpichler.medium.com/how-to-get-started-with-outcome-based-product-roadmaps-68f30098175a",
+    "takeaway": "Roman Pichler contrasts the two roadmap species: \"A traditional roadmap is essentially a list of features, which are mapped onto a timeline,\" while an outcome-based roadmap focuses on \"the specific value the product should create — the outcomes it should achieve.\" The shift is from what to why: \"Instead of focussing on what needs to be delivered, you ask why it is worthwhile progressing the product\" (acquiring users, reducing churn, increasing engagement). His GO Product Roadmap \"places the outcomes at the centre,\" with features kept \"coarse-grained\" and \"limited to three to five capabilities per goal.\"",
+    "topic": "outcome-based-roadmaps",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/product-fundamentals/rice-framework",
+    "takeaway": "RICE, \"Developed by Sean McBride at Intercom,\" scores initiatives on four factors and ranks by \"(Reach * Impact * Confidence) / Effort.\" Reach \"measures the number of people or users affected by a project within a specific time frame\"; Impact \"assesses the significance of the project's effect\"; Confidence \"reflects how certain you are about your estimates\" (a percentage that discounts wishful scoring); Effort \"measures the amount of work required.\" Its discipline is forcing reach, confidence, and effort into the decision rather than championing pet ideas.",
+    "topic": "rice",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/kano-model",
+    "takeaway": "The Kano Model (Noriaki Kano, 1980s) prioritizes features \"based on the degree to which they are likely to satisfy customers.\" Basic/threshold features are expected and taken for granted (\"a car's turn signal\"); performance/one-dimensional features deliver satisfaction in proportion to investment; excitement/attractive features create \"dramatic customer delight\" when present but \"customers might not even miss them\" when absent. Indifferent features customers \"won't care about.\" A known dynamic: today's delighter becomes tomorrow's expected baseline.",
+    "topic": "kano-model",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://blackswanfarming.com/wsjf-weighted-shortest-job-first/",
+    "takeaway": "Weighted Shortest Job First sequences work by \"dividing the estimated Cost of Delay by the estimated duration\" — \"the weighting that Don [Reinertsen] specifically recommends for product development is Cost of Delay\" because \"most organisations... are most interested in maximising their economic return.\" Putting duration in the denominator \"optimises the return on investment by minimising the total Delay Cost incurred\" and \"has the benefit of encouraging the breakdown of work into smaller batches.\"",
+    "topic": "cost-of-delay-and-wsjf",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://blackswanfarming.com/cost-of-delay/",
+    "takeaway": "Cost of Delay quantifies time's impact on value: \"Cost of Delay is a way of communicating the impact of time on the outcomes we hope to achieve.\" Its power is conceptual — Reinertsen calls it \"the golden key that unlocks many doors... an astonishing power to transform the mindset of a development organisation\" — because it \"combines urgency and value — two things that humans are not very good at distinguishing between,\" forcing teams to separate the genuinely time-critical from the merely valuable.",
+    "topic": "cost-of-delay-and-wsjf",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/opportunity-scoring",
+    "takeaway": "Opportunity scoring is \"an importance-versus-satisfaction analysis\" traceable to \"the outcome-driven-innovation (ODI) method created by business consultant Tony Ulwick in the 1990s.\" The opportunity algorithm is \"Importance + (importance – satisfaction) = opportunity,\" and \"the features or outcomes that represent your strongest opportunities will be those that receive the highest aggregate 'importance' and lowest aggregate 'satisfaction' scores\" — i.e., it surfaces what customers care about most and are served worst on.",
+    "topic": "opportunity-scoring",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Outcome-Driven_Innovation",
+    "takeaway": "Tony Ulwick's Outcome-Driven Innovation starts from jobs-to-be-done: \"People buy products and services to get jobs done,\" and \"as people complete these jobs, they have certain measurable outcomes that they are attempting to achieve.\" ODI \"attempts to identify jobs and outcomes that are either important but poorly served or unimportant but over-served,\" using \"Importance + (Importance-Satisfaction) = Opportunity\" — a formula that \"gives twice as much weight to importance as to satisfaction\" and segments markets by desired outcome rather than demographics.",
+    "topic": "opportunity-scoring",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://airfocus.com/glossary/what-is-moscow-prioritization/",
+    "takeaway": "MoSCoW sorts work into \"four prioritization categories: Must-have, Should-have, Could-have, and Won't-have.\" Must-haves are \"the minimum requirements... non-negotiable\"; Should-haves \"add substantial value\" but aren't essential; Could-haves are \"neat, interesting, or fun, but... [don't] necessarily serve any greater purpose\"; Won't-haves are explicitly deferred. Developed by \"Dai Clegg... consulting on software development at Oracle\" in 1994, it \"became popular in the agile project delivery framework DSDM.\"",
+    "topic": "lightweight-frameworks",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.whatmatters.com/faqs/okr-meaning-definition-example",
+    "takeaway": "John Doerr's OKR formula is \"I will (Objective) as measured by (Key Results).\" The Objective is \"what is to be achieved, no more and no less\"; Key Results \"benchmark and monitor how we get to the Objective,\" written \"with an Objective at the top and 3-5 supporting Key Results below it.\" The lineage: \"The OKR methodology was created by Andy Grove at Intel and taught to John Doerr by him\" — Grove \"rarely mentioned Objectives without tying them to 'Key Results,' a term he seems to have coined himself.\"",
+    "topic": "okrs-and-goal-setting",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/radical-focus-2-0-an-excerpt-from-christina-wodtke/",
+    "takeaway": "Christina Wodtke (Radical Focus) treats OKRs as forced focus and just-enough planning: \"You don't pour whiskey through a leaky funnel into a flask and hope to get drunk; you don't want a dozen Objectives for the same reason.\" Her planning posture is the \"Half-Built Strategy\" — \"You want just enough planning to know what to do and what to watch for, but not so much you are locked into a bad game plan\" — and she warns that \"Setting Key Results takes quite a bit of time,\" harder than writing the Objective itself.",
+    "topic": "okrs-and-goal-setting",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@meetfelipe/measure-what-really-matters-2de3569e55ec",
+    "takeaway": "Felipe Castro's central rule: \"Good Key Results measure outcomes: the value and the benefits you deliver to your customers or your company,\" and \"A major benefit of OKR is moving from project management to outcomes thinking.\" His test cuts through OKR theater — \"If you deliver all your tasks and nothing improves, are you still successful? Of course not\" — and he reinforces Doerr's \"amicable divorce between OKRs and compensation,\" keeping goal-setting and performance pay as \"two distinct conversations.\"",
+    "topic": "connecting-okrs-to-roadmap",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

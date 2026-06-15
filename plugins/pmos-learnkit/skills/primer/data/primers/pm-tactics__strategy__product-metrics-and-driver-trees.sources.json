@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://amplitude.com/blog/product-north-star-metric",
+    "takeaway": "Amplitude frames the North Star Metric as a leading indicator of product value — \"the relationship between the customer problems your product team is trying to solve and the revenue you aim to generate\" — paired with three to five complementary inputs the team can directly influence.",
+    "topic": "north-star-metric",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productcompass.pm/p/the-north-star-framework-101",
+    "takeaway": "Product Compass attributes the term 'North Star Metric' to Sean Ellis (who also coined 'growth hacking' at Dropbox) and Amplitude's research across 11,000+ companies into the three 'games' products play (attention, transaction, productivity).",
+    "topic": "north-star-framework",
+    "tier": "secondary-curation",
+    "paywalled": true
+  },
+  {
+    "url": "https://amplitude.com/blog/evolving-the-product-north-star-metric",
+    "takeaway": "Amplitude's own story of moving from Weekly Querying Users to Weekly Learning Users plus three leading indicators shows the constellation model in practice — a single primary metric is paired with inputs, and the metric itself evolves as the value definition sharpens.",
+    "topic": "north-star-framework",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://cutlefish.substack.com/p/tbm-852-the-data-informed-product",
+    "takeaway": "John Cutler describes the North Star Framework as 'a constellation of variables that together serve as a leading indicator of sustainable, differentiated product growth' and names the 'messy middle' failure: jumping from exec dashboards straight to roadmap features without the connecting model.",
+    "topic": "input-vs-output-metrics",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://mixpanel.com/blog/metric-trees-benefits-guide/",
+    "takeaway": "Mixpanel defines a metric tree as 'a hierarchical decomposition of business goals' built backward from the North Star into 'two or three key primary drivers,' connecting strategic priorities to daily team actions in one interconnected view.",
+    "topic": "metric-trees-and-driver-trees",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.leverslabs.com/article/introducing-metric-trees",
+    "takeaway": "Levers Labs casts a metric tree as 'an analytical model that takes metrics and their weighted relationships to represent the flow of inputs into a business and how they are transformed into outputs,' built backward from the North Star to form 'a causal chain all the way back to each action's impact.'",
+    "topic": "metric-trees-and-driver-trees",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@paul.levchuk/the-metric-tree-trap-4280405fd35e",
+    "takeaway": "Paul Levchuk warns that metric trees create 'the dangerous illusion that the tree holds only levers that matter' — multiplicative decompositions make parent-child correlations 'mathematically inevitable' but 'operationally misleading,' masking confounders, cohort mix shifts, and negative correlations between sub-metrics.",
+    "topic": "decomposing-a-goal",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/leading-lagging-indicators",
+    "takeaway": "Amplitude distinguishes leading indicators (predict future performance, drive daily initiatives — activation rate, sessions per user) from lagging indicators (confirm past results, shape long-term strategy — MRR, NRR), and stresses leading metrics are only useful when they correlate strongly with the lagging outcome.",
+    "topic": "leading-vs-lagging-indicators",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://mixpanel.com/blog/guardrail-metrics/",
+    "takeaway": "Mixpanel defines guardrail (counter) metrics as 'secondary metrics you monitor while conducting experiments' that act as 'an early warning of negative impact' — e.g. watching main-feed engagement or page-load time while optimising a new feature so a local win doesn't cause a global loss.",
+    "topic": "counter-metrics-and-guardrails",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://tim.blog/2009/05/19/vanity-metrics-vs-actionable-metrics/",
+    "takeaway": "Eric Ries's original guest essay separates vanity metrics ('total hits', cumulative counts that 'make you feel good but don't offer clear guidance') from actionable metrics — per-customer, hypothesis-testing numbers, with A/B split-tests 'the most actionable of all' because they confirm or refute a specific hypothesis.",
+    "topic": "vanity-vs-actionable-metrics",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/vanity-metrics/",
+    "takeaway": "ProductPlan catalogs the usual vanity metrics — raw pageviews, social followers, downloads, registered users, running customer totals — as numbers that 'look spectacular on the surface but don't translate to meaningful business results' and 'aren't related to anything you can control or repeat.'",
+    "topic": "vanity-vs-actionable-metrics",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/aarrr-framework",
+    "takeaway": "ProductPlan attributes AARRR 'Pirate Metrics' to Dave McClure (500 Startups) and lays out the five lifecycle stages — Acquisition, Activation, Retention, Referral, Revenue — created to help startups 'narrow their focus to only those metrics that can directly affect the health of their business.'",
+    "topic": "metric-frameworks",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/pirate-metrics-framework",
+    "takeaway": "Amplitude treats AARRR as a full-funnel loop where 'acquisition must drive activation, activation must feed retention, retention enables referrals,' steering teams away from vanity metrics toward the numbers that move business health at each stage.",
+    "topic": "metric-frameworks",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/glossary/heart-framework",
+    "takeaway": "ProductPlan documents Google's HEART framework (Kerry Rodden et al.) — Happiness, Engagement, Adoption, Retention, Task success — paired with the Goals-Signals-Metrics process, noting 'not all five elements will be relevant to every feature,' so teams pick the relevant subset.",
+    "topic": "metric-frameworks",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Goodhart%27s_law",
+    "takeaway": "Goodhart's law — Marilyn Strathern's 1997 phrasing 'when a measure becomes a target, it ceases to be a good measure' (from Charles Goodhart's 1975 monetary-policy observation) — is illustrated by gamed targets: hospital length-of-stay driving premature discharge, NCLB advancing unprepared students, the h-index decaying once weaponised.",
+    "topic": "goodharts-law-and-pitfalls",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://leananalyticsbook.com/one-metric-that-matters/",
+    "takeaway": "Croll & Yoskovitz's One Metric That Matters argues 'at any given time, there's one metric you should care about above all else,' changing by stage (empathy, stickiness, virality, revenue, scale); a 'squeeze toy' — optimising it makes the next constraint bulge out and become the new OMTM.",
+    "topic": "choosing-your-metrics",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  }
+]

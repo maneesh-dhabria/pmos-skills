@@ -1,0 +1,123 @@
+[
+  {
+    "url": "https://productschool.com/blog/leadership/product-team-structure",
+    "takeaway": "Surveys ten ways to organize a product team — autonomous squads, triads, centralized frameworks, full-stack teams — and stresses the optimal structure depends on the product's lifecycle, company culture, product-mix complexity, and whether the org prioritizes speed or alignment.",
+    "topic": "what-organizing-product-teams-means",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/practice-product/organize-your-product-teams-with-the-squad-model-part-1-4f9f84c651b8",
+    "takeaway": "Frames the squad as a Small Empowered Team (SET) — an autonomous cross-functional 'mini-startup' with a clear mission and a dual-reporting structure where members serve both their SET lead and their functional manager, creating shared accountability across vertical and horizontal lines.",
+    "topic": "the-empowered-team-as-the-unit",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://learningloop.io/glossary/conways-law",
+    "takeaway": "Conway's Law holds that a system's structure mirrors the communication patterns of the people who design it; the Inverse Conway Maneuver flips this by intentionally restructuring teams around the desired business capabilities and architecture rather than letting existing silos dictate the design.",
+    "topic": "conways-law-and-the-inverse-maneuver",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/product-leaders-guide-to-team-topologies/",
+    "takeaway": "Product leaders should let the flow of customer value drive structure, organizing around four team types and minimizing handoffs; redesign is collaborative — teams define their own purposes and boundaries to reduce cognitive load and enable autonomous decisions.",
+    "topic": "why-team-structure-is-a-product-decision",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://mcleanonline.medium.com/product-leadership-3e1fcb3fa11f",
+    "takeaway": "Distilling Cagan's EMPOWERED: empowered teams are given problems to solve (not features to build) plus the strategic context to decide autonomously, and the right topology structures teams around customer experiences rather than technical functions with minimal cross-team dependencies.",
+    "topic": "the-empowered-team-as-the-unit",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Cagan & Jones, EMPOWERED: Ordinary People, Extraordinary Products (Wiley, 2020)"
+  },
+  {
+    "url": "https://teamtopologies.com/key-concepts",
+    "takeaway": "Team Topologies defines four team types (stream-aligned, platform, enabling, complicated-subsystem) interacting through three modes (collaboration, X-as-a-service, facilitation), with 'respect cognitive limits' — teams have finite mental bandwidth — as a core design constraint.",
+    "topic": "team-topologies-the-four-types",
+    "tier": "practitioner-canon",
+    "paywalled": false,
+    "book_summary": "Skelton & Pais, Team Topologies (IT Revolution, 2019)"
+  },
+  {
+    "url": "https://itrevolution.com/articles/four-team-types/",
+    "takeaway": "Stream-aligned teams should be the primary team type because 'all other team types exist to reduce the burden on stream-aligned teams'; enabling, complicated-subsystem, and platform teams are supporting structures, not co-equal defaults.",
+    "topic": "team-topologies-the-four-types",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.chameleon.io/blog/spotify-squads",
+    "takeaway": "The Spotify model nests cross-functional squads (≤8 people) into tribes, with chapters for competency and guilds for interest; it fails when copied because firms underestimate coordination needs, lack management structure for cross-squad dependencies, and mistake smart people for people skilled at collaboration.",
+    "topic": "the-spotify-model-and-its-myths",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.usu.com/en-us/blog/the-spotify-model-magic-bullet-or-overrated",
+    "takeaway": "Argues blindly adopting the Spotify model fails because 'copying supposed best practices is not effective in contexts as multifaceted as a corporate organization' — success requires tailoring to a company's unique needs rather than treating the model as a universal blueprint.",
+    "topic": "the-spotify-model-and-its-myths",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.prodify.group/blog/8-ways-to-organize-your-product-development-squads",
+    "takeaway": "Lays out eight ways to slice squads — by technical layer, operating system, feature, workflow, customer segment, KPI, persona, or product — each a tradeoff: technical slices aid engineering specialization but distance teams from customers, while persona/workflow slices boost user focus but demand stronger design coordination.",
+    "topic": "ownership-models",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/learn/product-team-structure",
+    "takeaway": "Contrasts one-PM-per-product (clear ownership), PMs split by skill across products (domain depth), and autonomous cross-functional squads à la Spotify or Amazon's two-pizza teams (speed); the central tradeoff is specialized focus vs. knowledge loss when PMs leave, and autonomy vs. executive oversight.",
+    "topic": "ownership-models",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.petra-wille.com/blog/understanding-team-topologies-for-product-people",
+    "takeaway": "For product people, Team Topologies means minimizing dependencies and cognitive load by organizing around user journeys rather than technology or the org chart, giving teams clear user focus and end-to-end responsibility for a customer value stream.",
+    "topic": "cognitive-load-as-a-design-heuristic",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.bringthedonuts.com/newsletter/ideal-ratio-engineers-to-product-managers.html",
+    "takeaway": "Ken Norton puts the ideal ratio at 5–9 engineers per PM, but stresses it depends on the number of product surfaces, PM experience, company stage, and how involved the founding team remains in product decisions.",
+    "topic": "team-ratios-pm-design-engineering",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://jocatorres.medium.com/whats-the-best-ratio-between-eng-ux-and-pm-fb68c43ad3f",
+    "takeaway": "Recommends roughly 5–9 engineers per PM and one UX designer per PM, while warning the right ratio must adapt to product type — technically-deep or multi-segment products need more engineers per PM and correspondingly more design capacity for discovery.",
+    "topic": "team-ratios-pm-design-engineering",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://theorg.com/iterate/ideal-ratio-for-pm-ux-and-engineering",
+    "takeaway": "Cites the commonly-recommended 1:1:5 to 1:1:10 (PM:UX:Eng) band, with the ideal moving on backend complexity, feature scope, UX emphasis, and whether the product is UI-heavy versus an API or developer-facing tool.",
+    "topic": "team-ratios-pm-design-engineering",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/how-to-organize-product-team",
+    "takeaway": "To organize around a north-star metric, first define the measure of success, then build small autonomous groups 'defined by their common objective and measure of success'; journey-based and persona-based slices generally beat pure feature ownership for keeping autonomy aligned to strategy.",
+    "topic": "aligning-structure-to-strategy",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://teamtopologies.com/keynote-talks/moving-to-the-product-operating-model-with-team-topologies",
+    "takeaway": "Positions Team Topologies as the organizational scaffolding for Cagan's product operating model — organizing teams around independently-viable services with clear boundaries and 'vending-machine' interfaces aligns structure directly to product strategy and speeds value delivery.",
+    "topic": "aligning-structure-to-strategy",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  }
+]

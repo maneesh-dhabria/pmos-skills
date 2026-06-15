@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/DevOps",
+    "takeaway": "DevOps unites software development and IT operations to ship faster without sacrificing stability: it is \"a set of practices intended to reduce the time between committing a change to a system and the change being placed into normal production.\"",
+    "topic": "what-this-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Agile_software_development",
+    "takeaway": "DevOps extends agile's collaboration ethos from building to running software; agile's lineage is captured in the manifesto value \"Individuals and interactions over processes and tools.\"",
+    "topic": "culture",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Version_control",
+    "takeaway": "Version control is the bedrock everything else builds on — \"the software engineering practice of controlling, organizing, and tracking different versions in history of computer files,\" giving every change a record and a way back.",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/CI/CD",
+    "takeaway": "CI/CD is the automated assembly line of DevOps: it \"bridges the gaps between development and operation activities and teams by enforcing automation in building, testing and deployment of applications.\"",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Continuous_integration",
+    "takeaway": "Continuous integration means merging small changes often and checking them automatically: \"developers merge changes to an integration branch, and an automated system builds and tests the software system\" on every merge.",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Continuous_delivery",
+    "takeaway": "Continuous delivery keeps software always shippable so a release is a business decision, not a scramble; continuous deployment goes further — it \"can be considered a more sophisticated form of automation\" by removing the manual approval step.",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Continuous_deployment",
+    "takeaway": "Continuous deployment removes the last human gate: it \"extends the principles of continuous integration and delivery by including fully automated production deployment without the need for manual approval.\"",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Infrastructure_as_code",
+    "takeaway": "Infrastructure as code manages servers and networks the way teams manage software — \"managing and provisioning computer data center resources through machine-readable definition files, rather than via physical hardware configuration or interactive configuration tools\" — making environments reproducible and reviewable.",
+    "topic": "iac",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Observability_(software)",
+    "takeaway": "Observability is knowing what a live system is doing from the signals it emits — \"the ability to measure a system's current state based on the data it generates, such as logs, metrics, and traces\" — so teams can debug problems they did not anticipate.",
+    "topic": "observability",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Incident_management",
+    "takeaway": "Incident management is the discipline of getting back to normal fast: its primary goal is to \"restore a normal service operation as quickly as possible and to minimize the impact on business operations.\"",
+    "topic": "incident-response",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Postmortem_documentation",
+    "takeaway": "After an incident, a postmortem turns failure into learning — a structured review \"intended to inform process improvements which mitigate future risks and to promote iterative best practices,\" ideally blameless so people surface the truth.",
+    "topic": "incident-response",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Site_reliability_engineering",
+    "takeaway": "Site reliability engineering (SRE) applies software engineering to operations, owning \"a combination of system availability, latency, performance, efficiency, change management, monitoring, emergency response, and capacity planning\" via tools like SLOs and error budgets.",
+    "topic": "sre",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/DevOps_Research_and_Assessment",
+    "takeaway": "DORA (DevOps Research and Assessment, now at Google Cloud) defines four metrics — deployment frequency, change lead time, failure rate, and recovery time — but cautioned in October 2023 against misusing them \"to evaluate team-by-team performance.\"",
+    "topic": "dora-metrics",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://cloud.google.com/blog/products/devops-sre/using-the-four-keys-to-measure-your-devops-performance",
+    "takeaway": "The four key metrics split into two speed measures (deployment frequency, lead time for changes) and two stability measures (change failure rate, time to restore service); \"by measuring these values, and continuously iterating to improve on them, a team can achieve significantly better business outcomes.\"",
+    "topic": "dora-metrics",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/DevSecOps",
+    "takeaway": "DevSecOps folds security into the pipeline instead of bolting it on at the end: \"Security practices and testing are performed earlier in the development lifecycle, hence the term 'shift left.'\"",
+    "topic": "pm-implications",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Platform_engineering",
+    "takeaway": "Platform engineering is the evolving next chapter — building internal developer platforms and treating them \"as a product, applying product management principles to ensure they meet the evolving needs of engineering teams.\"",
+    "topic": "pm-implications",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

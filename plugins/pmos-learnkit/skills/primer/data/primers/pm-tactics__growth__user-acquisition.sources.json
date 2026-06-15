@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://brianbalfour.com/essays/product-channel-fit-for-growth",
+    "takeaway": "Brian Balfour's product-channel-fit thesis: \"Products are built to fit with channels. Channels do not mold to products.\" \"You control your product, you do not control the channel.\" And the power law: \"at a given moment in time a company that has product channel fit will get 70%+ of their growth from one channel.\"",
+    "topic": "product-channel-fit",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/four-fits-growth-framework",
+    "takeaway": "Balfour's Four Fits framework for $100M+ growth: Market-Product, Product-Channel, Channel-Model, Model-Market. \"You need all four Fits to grow to $100M+... you can't think about the four Fits in isolation because together they form an ecosystem for growth.\" \"Your channels are determined by your model and vice versa.\"",
+    "topic": "the-four-fits",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@yegg/the-bullseye-framework-for-getting-traction-ef49d05bfd7e",
+    "takeaway": "Gabriel Weinberg's Bullseye framework (from Traction): 19 traction channels, narrowed through three rings — outer (what's possible, all 19), middle (what's probable, cheap tests on 2-3), inner (what's working, the one dominant channel). \"Poor distribution — not product — is the number one cause of failure.\" \"you're aiming for the bullseye — the one traction channel at the center.\"",
+    "topic": "the-channel-landscape",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/the-law-of-shitty-clickthroughs/",
+    "takeaway": "Andrew Chen's Law of Shitty Clickthroughs: \"Over time, all marketing strategies result in shitty clickthrough rates.\" Banner CTR fell from 78% (HotWired, 1994) to 0.05% (Facebook, 2011). Primary driver: \"Customers respond to novelty, which inevitably fades.\" Every channel decays as users habituate and competitors crowd in.",
+    "topic": "channel-saturation",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://paulgraham.com/ds.html",
+    "takeaway": "Paul Graham, Do Things That Don't Scale: \"The most common unscalable thing founders have to do at the start is to recruit users manually.\" \"You can't wait for users to come to you. You have to go out and get them.\" Manual acquisition is \"a necessary part of the feedback loop that makes the product good,\" not merely permissible.",
+    "topic": "doing-things-that-dont-scale",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-win-your-first-10-b2b-customers",
+    "takeaway": "Lenny Rachitsky on first 10 B2B customers (interviews w/ Figma, Stripe, Gong, Census): early acquisition is concentric circles of decreasing trust radiating from the founder, starting with former colleagues. \"It's all a matter of trust. Somebody I trust is going to say, you should use this tool.\" Sequence: personal network → cold outbound → investor intros → communities → content → press → launch.",
+    "topic": "first-customers-and-trust",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://review.firstround.com/glossary/k-factor-virality/",
+    "takeaway": "First Round Review's K-factor definition: \"K = (average number of invites sent by each user) × (conversion rate of invitees).\" K>1 = \"Every user creates more users, leading to compounding growth\"; K<1 needs other acquisition to sustain. Caveat: \"A good virality score doesn't guarantee sustainability\" — virality without retention inflates then churns.",
+    "topic": "virality-and-k-factor",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.forentrepreneurs.com/saas-metrics-2/",
+    "takeaway": "David Skok's SaaS unit-economics guardrails: \"The best SaaS businesses have a LTV to CAC ratio that is higher than 3, sometimes as high as 7 or 8.\" And on CAC payback: \"profitability is anemic if the time to recover CAC extends beyond 12 months.\" The governing question: \"Can I make more profit from my customers than it costs me to acquire them?\"",
+    "topic": "unit-economics-cac-ltv",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/growth-is-getting-hard/",
+    "takeaway": "Andrew Chen on why growth is getting harder: channel saturation, intensifying ad-platform competition (\"competition is getting fiercer on Facebook ads, not less\"), and \"everyone's getting smarter about growth, including consumers.\" As channels oversaturate, returns compress and teams must diversify or find new channels.",
+    "topic": "channel-saturation",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://getlaunchlist.com/blog/viral-coefficient-k-factor-guide",
+    "takeaway": "Viral-coefficient guide quantifying virality realistically: \"most healthy waitlists land at K = 0.3–0.7,\" not K>1. Sub-viral still compounds: \"A K of 0.5 means every 1,000 signups you acquire eventually becomes ~2,000 signups.\" And \"None of them sustained K > 1 forever. K decays as you saturate the addressable network\" — virality is a multiplier on other acquisition, not a standalone engine.",
+    "topic": "virality-and-k-factor",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://review.firstround.com/drive-growth-by-picking-the-right-lane-a-customer-acquisition-playbook-for-consumer-startups/",
+    "takeaway": "First Round consumer-acquisition playbook: \"For consumer companies, there are only three growth 'lanes' that comprise the majority of new customer acquisition: Performance marketing, Virality, and Content.\" The failure mode is \"investing in too many channels at once, and as a result not investing in any one channel enough.\" \"you generally only need to excel at one lane to build a successful business.\"",
+    "topic": "choosing-channels",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://ortto.com/learn/growth-loops/",
+    "takeaway": "Growth-loops explainer: \"Growth Loops are closed systems designed to ensure every input goes through a series of pre-defined steps to generate an output,\" with the output reinvested as new input — \"one cohort of users leads to another cohort of users.\" Loop types: viral, user-generated-content (UGC drives search discovery), and paid (revenue funds more acquisition). Loops compound where funnels leak.",
+    "topic": "growth-loops",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://kellblog.com/2014/07/30/the-ultimate-saas-metric-ltv-cac/",
+    "takeaway": "Dave Kellogg on LTV/CAC as the ultimate SaaS metric: \"What you pay for something should be a function of what it's worth\"; rule of thumb \"LTV/CAC should be 3.0 or higher.\" Key caveat — it is backward-looking: \"today's churn rate is a function of yesterday's deals... like light arriving from a star that's three light-years away.\"",
+    "topic": "unit-economics-cac-ltv",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.omnius.so/blog/content-flywheel",
+    "takeaway": "Content-flywheel framing: \"The content flywheel model is a strategy where each piece of content you create builds on the success of the previous ones, fueling growth and momentum.\" Content is the acquisition channel that compounds — each asset keeps earning discovery over time rather than resetting when spend stops.",
+    "topic": "organic-and-content",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://readingraphics.com/book-summary-traction/",
+    "takeaway": "Traction (Weinberg & Mares) summary: \"spending 50% of your time on product and 50% on traction\"; \"Almost every failed startup has a product. What failed startups don't have is enough customers\"; and \"You can get a competitive advantage by acquiring customers in ways your competitor isn't.\" 19 channels, Bullseye three rings, overcome bias toward familiar channels.",
+    "topic": "the-channel-landscape",
+    "tier": "secondary-curation",
+    "paywalled": false
+  }
+]

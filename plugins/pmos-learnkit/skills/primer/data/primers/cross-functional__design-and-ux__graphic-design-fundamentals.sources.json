@@ -1,0 +1,128 @@
+[
+  {
+    "url": "https://designlab.wisc.edu/resources/design-tips-and-tricks/crap-principles/",
+    "takeaway": "The four C.R.A.P. principles: Contrast means \"avoid elements that are weakly similar by making them strongly different\"; Repetition unifies a design through repeated color and fonts; Alignment places elements intentionally; Proximity groups related items by closeness.",
+    "topic": "the-core-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://2012books.lardbucket.org/books/designing-business-information-systems-apps-websites-and-more/s07-01-c-r-a-p-principles-of-graphic-.html",
+    "takeaway": "This open textbook attributes the C.R.A.P. framework directly to Robin Williams' The Non-Designer's Design Book, calling it \"an essential reference used even in graphic design programs\" and the principles applicable across all visual media.",
+    "topic": "the-core-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/visual-hierarchy",
+    "takeaway": "Visual hierarchy arranges elements so people instantly recognize their order of importance; tools include size (\"Larger elements command more attention than smaller ones\"), color, contrast, alignment, repetition, proximity, and white space.",
+    "topic": "visual-hierarchy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/color-theory",
+    "takeaway": "\"Color theory is the study of how colors work together and how they affect our emotions and perceptions\"; the color wheel (invented by Newton in 1666) organizes hues into primary, secondary, and tertiary categories.",
+    "topic": "color",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/color-harmony",
+    "takeaway": "Color harmony is \"the balanced and aesthetically pleasing interaction of colors,\" achieved through schemes like complementary pairs (opposite on the wheel) and analogous sets (adjacent on the wheel).",
+    "topic": "color",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Color_theory",
+    "takeaway": "Color theory is \"a historical body of knowledge describing the behavior of colors,\" including color mixing, contrast, harmony, schemes, and symbolism; \"Colors seen together to produce a pleasing affective response are said to be in harmony.\"",
+    "topic": "color",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://webaim.org/articles/contrast/",
+    "takeaway": "WCAG 2 Level AA requires \"a contrast ratio of at least 4.5:1\" for normal text and \"at least 3:1\" for large text; Level AAA demands 7:1 and 4.5:1 respectively.",
+    "topic": "contrast-and-accessibility",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.section508.gov/create/making-color-usage-accessible/",
+    "takeaway": "Do not rely on color alone: \"Color is not used as the only visual means of conveying information, indicating an action, prompting a response, or distinguishing a visual element\" — supplement with text, icons, or patterns.",
+    "topic": "contrast-and-accessibility",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/using-grids-in-interface-designs/",
+    "takeaway": "Grids are frameworks of columns, gutters, and margins; per NN/g, \"grids improve page readability and scannability and allow people to quickly get where they need to go.\"",
+    "topic": "layout-and-grids",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://designsystem.digital.gov/utilities/layout-grid/",
+    "takeaway": "The U.S. Web Design System uses a mobile-first 12-column grid: \"The grid system uses a series of containers, rows, and columns to lay out and align content,\" with responsive breakpoints that stack columns on narrow screens.",
+    "topic": "layout-and-grids",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Page_layout",
+    "takeaway": "Page layout is \"the arrangement of visual elements on a page\"; a grid is \"a set of guidelines... for aligning and repeating elements on a page,\" visible in the design process but invisible to the end user.",
+    "topic": "layout-and-grids",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.designsystems.com/space-grids-and-layouts/",
+    "takeaway": "\"A spatial system is a set of rules for how you measure, size, and space your UI elements,\" creating visual rhythm and reducing the number of ad hoc spacing decisions.",
+    "topic": "spacing-and-whitespace",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/videos/whitespace/",
+    "takeaway": "Per NN/g, whitespace is \"an effective principle to achieve a balanced design, making it easier for your users to scan and read\"; pair it with a consistent spacing system and the proximity principle.",
+    "topic": "spacing-and-whitespace",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://practicaltypography.com/typography-in-ten-minutes.html",
+    "takeaway": "Butterick's core body-text rules: point size \"10–12 point\" in print or \"15–25 pixels\" on web; line spacing \"120–145%\" of point size; line length \"45–90 characters per line\"; and choose a professional font over system defaults.",
+    "topic": "typography",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://practicaltypography.com/summary-of-key-rules.html",
+    "takeaway": "Butterick names the four body-text levers — point size, line spacing, line length, font choice — and calls a professional font \"the easiest and most visible improvement\" you can make to typography.",
+    "topic": "typography",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/typography",
+    "takeaway": "Typography is \"the discipline designers use to arrange typefaces in a user interface to ensure text is legible, readable, and scalable\"; it establishes hierarchy and guides users to important content.",
+    "topic": "typography",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Typography",
+    "takeaway": "Typography is \"the art and technique of arranging type to make written language legible, readable and appealing\"; it involves typeface, point size, line length, line spacing (leading), and letter spacing.",
+    "topic": "typography",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/gestalt-principles",
+    "takeaway": "Gestalt principles explain grouping: \"We group closer-together elements, separating them from those farther apart\" (proximity), and matching visual characteristics read as one group (similarity) — the perceptual basis for proximity and repetition.",
+    "topic": "the-core-principles",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

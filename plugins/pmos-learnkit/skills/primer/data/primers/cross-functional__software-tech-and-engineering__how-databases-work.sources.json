@@ -1,0 +1,156 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Database",
+    "takeaway": "A database is an organized collection of data, and the DBMS is the software that manages it: 'a database is an organized collection of data... based on the use of a database management system (DBMS), the software that interacts with end users, applications, and the database itself to capture and analyze the data.'",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Relational_model",
+    "takeaway": "The relational model, introduced by Edgar Codd in 1969, lets you query data declaratively without knowing how it is stored: it is 'an approach to managing data using a structure and language consistent with first-order predicate logic.'",
+    "topic": "relational-model",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Relational_database",
+    "takeaway": "A relational database organizes data into tables linked by keys: 'A relational model organizes data into one or more tables (or \"relations\") of columns and rows, with a unique key identifying each row.'",
+    "topic": "relational-model",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Table_(database)",
+    "takeaway": "A table holds related records in rows and columns: 'a table is a set of data elements (values) using a model of vertical columns and horizontal rows.'",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/SQL",
+    "takeaway": "SQL is the standard language for querying relational data; it 'introduced the concept of accessing many records with one single command,' a leap over earlier record-at-a-time APIs.",
+    "topic": "sql",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Query_optimization",
+    "takeaway": "The database, not you, decides how to run a query efficiently: 'The purpose of query optimization, which is an automated process, is to find the way to process a given query in minimum time.'",
+    "topic": "sql",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Database_schema",
+    "takeaway": "A schema is the blueprint of the data: 'the schema defines the tables, fields, relationships, views, indexes, packages, procedures, functions, queues, triggers, types, sequences, materialized views, synonyms' and more.",
+    "topic": "schemas",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Primary_key",
+    "takeaway": "A primary key is the column(s) that uniquely identifies a row: 'a designated set of attributes (column(s)) that can reliably identify and distinguish between each individual record in a table.'",
+    "topic": "schemas",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Foreign_key",
+    "takeaway": "A foreign key wires one table to another: it is 'a set of attributes that references a candidate key' — usually the primary key of a related table.",
+    "topic": "schemas",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Database_normalization",
+    "takeaway": "Normalization splits data to avoid redundancy and update bugs: a key objective is to 'free the collection of relations from undesirable insertion, update and deletion dependencies.'",
+    "topic": "schemas",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Database_index",
+    "takeaway": "An index is the trade that makes reads fast and writes a little slower: it 'improves the speed of data retrieval operations on a database table at the cost of additional writes and storage space.'",
+    "topic": "indexes",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Database_transaction",
+    "takeaway": "A transaction is an all-or-nothing unit of work: it must be 'atomic (it must either be complete in its entirety or have no effect whatsoever).'",
+    "topic": "transactions-acid",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/ACID",
+    "takeaway": "ACID (Atomicity, Consistency, Isolation, Durability) is the reliability contract for transactions: each one 'is treated as a single \"unit\", which either succeeds completely or fails completely.'",
+    "topic": "transactions-acid",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mongodb.com/resources/basics/databases/acid-transactions",
+    "takeaway": "ACID is no longer relational-only: 'While early NoSQL databases lacked ACID compliance, modern systems like MongoDB provide full support for ACID transactions at scale.'",
+    "topic": "relational-vs-nosql",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/NoSQL",
+    "takeaway": "NoSQL drops fixed tables for flexible formats and 'scales easily to manage large, often unstructured datasets,' using key-value pairs, documents, and graphs instead of rows and columns.",
+    "topic": "relational-vs-nosql",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Document-oriented_database",
+    "takeaway": "Document stores keep each record as a self-contained unit: 'documents as self-contained units that encapsulate and encode data in a standardized format' such as JSON, so different records can have different shapes.",
+    "topic": "nosql-types",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Key%E2%80%93value_database",
+    "takeaway": "A key-value store is the simplest NoSQL shape: it treats 'the value as opaque to the database itself, and typically support[s] only simple operations such as storing, retrieving, updating, and deleting a value by its key.'",
+    "topic": "nosql-types",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Replication_(computing)",
+    "takeaway": "Replication keeps copies of the data on multiple servers for availability: 'In single-leader (also called primary/replica) replication, one database instance is designated as the leader (primary), which handles all write operations.'",
+    "topic": "scaling",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Shard_(database_architecture)",
+    "takeaway": "Sharding splits the rows themselves across servers to scale out: 'Each shard may be held on a separate database server instance in order to spread [load] across multiple servers.'",
+    "topic": "scaling",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/CAP_theorem",
+    "takeaway": "The CAP theorem names the unavoidable trade-off in distributed databases: 'if there is a network partition, one has to choose between consistency or availability.'",
+    "topic": "cap-consistency",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Eventual_consistency",
+    "takeaway": "Eventual consistency trades instant agreement for availability: replicas may briefly disagree, but 'a system that has achieved eventual consistency is said to have converged, or achieved replica convergence.'",
+    "topic": "cap-consistency",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Online_transaction_processing",
+    "takeaway": "Workload shape decides the database: OLTP handles many small live reads/writes, while 'OLAP is generally optimized for read-only operations' for analytics — the same data often lives in both.",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

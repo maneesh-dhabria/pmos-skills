@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/A/B_testing",
+    "takeaway": "An A/B test is \"a shorthand for a simple randomized controlled experiment, in which a number of samples (e.g. A and B) of a single vector-variable are compared.\" Randomization is the load-bearing mechanic: it makes treatment and control groups exchangeable so that any post-experiment difference in the metric is attributable to the change, not to confounds — the same logic as a clinical RCT, applied to a product surface.",
+    "topic": "what-controlled-experiments-are",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@arpita.k20/book-summary-trustworthy-online-controlled-experiments-4910812a9860",
+    "takeaway": "Summarizing Kohavi, Tang & Xu's Trustworthy Online Controlled Experiments: the Overall Evaluation Criterion (OEC) \"is a quantitative measure of the experiment's objective\" — a single agreed metric (or weighted set) the experiment is allowed to move, ideally a leading indicator of long-term value. The book also names Sample Ratio Mismatch as a top trust killer: \"deviating from the actual ratio of randomized unit in an experiment results in inaccurate results\" — an SRM means the randomizer or logging is broken and the result is void.",
+    "topic": "the-hypothesis-and-the-oec",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Null_hypothesis",
+    "takeaway": "The significance-testing frame inverts the question. \"The null hypothesis (often denoted H₀) is the claim in scientific research that the effect being studied does not exist\" — i.e., the variant does nothing. You then ask how surprising the data would be if H₀ were true: \"If the data-set of a randomly selected representative sample is very unlikely relative to the null hypothesis ... the experimenter rejects the null hypothesis, concluding it (probably) is false.\" Rejecting the null is the only move the test licenses; it never proves the alternative.",
+    "topic": "the-logic-of-significance-testing",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Statistical_significance",
+    "takeaway": "\"A result has statistical significance when a result at least as 'extreme' would be very infrequent if the null hypothesis were true.\" The significance level α is \"the probability of the study rejecting the null hypothesis, given that the null hypothesis is true\" — your self-imposed false-positive budget, conventionally 5%. Critically, \"statistical significance is not the same as research significance, theoretical significance, or practical significance\": passing the α threshold says only \"probably not noise,\" never \"big enough to matter.\"",
+    "topic": "the-logic-of-significance-testing",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/P-value",
+    "takeaway": "A p-value is \"the probability of obtaining test results at least as extreme as the result actually observed, under the assumption that the null hypothesis is correct.\" The near-universal misreading is to flip the conditional: \"p-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone.\" p is P(data | H₀), not P(H₀ | data) — a distinction that survives no amount of intuition and quietly corrupts most stand-up readouts.",
+    "topic": "what-a-p-value-is-not",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.crossfit.com/health/the-asa-statement-on-p-values-context-process-and-purpose",
+    "takeaway": "The American Statistical Association's 2016 statement on p-values, issued precisely because the metric is so abused: \"P-values do not measure the probability that the studied hypothesis is true, or the probability that the data were produced by random chance alone.\" Further: \"Scientific conclusions and business or policy decisions should not be based only on whether a p-value passes a specific threshold,\" and \"a p-value, or statistical significance, does not measure the size of an effect or the importance of a result.\" A rare instance of a professional body warning against its own field's house metric.",
+    "topic": "what-a-p-value-is-not",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Confidence_interval",
+    "takeaway": "A confidence interval is \"a range of values which is likely to contain (in repeated sampling) the true value of an unknown statistical parameter.\" The correct frequentist reading is about the procedure, not the one interval you have: \"if the same sampling procedure were repeated 100 times from the same population, approximately 95 of the resulting intervals would be expected to contain the true population mean.\" For PMs the CI is more decision-useful than the p-value because it shows the plausible effect range — including whether the whole range clears your practical-significance bar.",
+    "topic": "confidence-intervals-and-effect-size",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.analytics-toolkit.com/2017/statistical-significance-ab-testing-complete-guide/",
+    "takeaway": "Georgi Georgiev's guide frames significance as a decision tool, not a truth oracle: \"Statistical significance is a tool which allows action to be taken despite random uncertainty.\" Its headline failure mode in product work is \"confusing high statistical significance with substantive or practically relevant improvement ... a statistically significant result can be for an outcome so small in magnitude that it has no practical value.\" With enough traffic any difference becomes significant; the question that matters is whether the effect size clears the bar that justified the work.",
+    "topic": "confidence-intervals-and-effect-size",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Power_(statistics)",
+    "takeaway": "Statistical power is \"the probability of detecting an effect (i.e. rejecting the null hypothesis) given that some prespecified effect actually exists\" — your protection against false negatives (Type II error). It is governed by three levers: \"power increases with the values of the effect size\" and \"increases with ... the sample size,\" while it \"reduces with increasing variability.\" The practical consequence: you must fix a minimum detectable effect (MDE) and a power target (commonly 80%) before launch, which determines the sample size — and therefore the runtime — you are committing to.",
+    "topic": "statistical-power-and-sample-size",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.evanmiller.org/how-not-to-run-an-ab-test.html",
+    "takeaway": "Evan Miller's canonical warning on the peeking problem: \"Repeated significance testing always increases the rate of false positives, that is, you'll think many insignificant results are significant.\" Checking a fixed-horizon test repeatedly and stopping the moment it crosses p<0.05 can balloon the real false-positive rate from 5% toward 30%. His prescribed fixes are to commit to a sample size in advance, or to switch designs entirely: \"With Bayesian experiment design you can stop your experiment at any time and make perfectly valid inferences\" — a claim later sources sharply qualify.",
+    "topic": "the-peeking-problem",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.statsig.com/perspectives/sequential-testing-ab-peek",
+    "takeaway": "Sequential testing is the principled answer to a team that will peek no matter what: \"Sequential testing is basically A/B testing that expects you to peek. Instead of pretending we won't peek, sequential testing acknowledges reality and adjusts the math accordingly.\" The mechanism is a moving bar: \"statistical adjustments that essentially raise the bar for significance as you check more often. Early in the test, you need overwhelming evidence to call a winner.\" Always-valid / sequential methods keep the false-positive rate controlled under continuous monitoring, at the cost of needing more data to declare a small win.",
+    "topic": "sequential-and-always-valid-inference",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.convert.com/blog/a-b-testing/frequentist-vs-bayesian-ab-testing/",
+    "takeaway": "The frequentist/Bayesian split is a live, unsettled debate among experimentation practitioners. Frequentist: \"Requires a fixed sample size, set in advance. Underpowered tests miss effects; overpowered tests detect trivial ones.\" Bayesian: \"Updates beliefs continuously as data comes in. Needs enough evidence for stable posteriors.\" Practitioners genuinely disagree — one prefers Bayesian for speed (\"It gives directional answers like 'there's a 92% chance the variant is better,' which helps teams act fast\"), another stays frequentist \"for the simple reason of having transparent error control and being able to plan tests in advance.\"",
+    "topic": "frequentist-vs-bayesian",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.alexmolas.com/2025/10/30/bayesian-ab-test-peeking.html",
+    "takeaway": "A direct rebuttal to the folk belief that Bayesian methods make peeking free: \"Bayesian posteriors remain interpretable under continuous monitoring, but a fixed posterior threshold does not control false positives when you peek and stop on success.\" Empirically, \"the more you peek the higher the false positive rate\" — which prompts the pointed question, \"what advantage does it have over frequentist methods?\" The takeaway practitioners converge on: optional stopping inflates errors under either paradigm unless the stopping rule is built into the math; Bayes is not a loophole.",
+    "topic": "frequentist-vs-bayesian",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://dripagency.de/blog/cuped-variance-reduction",
+    "takeaway": "CUPED (Controlled-experiment Using Pre-Experiment Data) is the most-adopted variance-reduction technique: it \"reduces metric noise by leveraging historical user behavior\" by \"adjust[ing] each user's outcome by subtracting the predictable component estimated from pre-experiment behavior.\" Because power rises as variance falls, removing the predictable portion of a user's behavior tightens the confidence interval — reaching the same power in materially less time (often cutting required runtime substantially on high-variance metrics like revenue-per-user), with no change to the metric's expectation.",
+    "topic": "variance-reduction",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Twyman%27s_law",
+    "takeaway": "Twyman's law — the experimenter's reflex Kohavi elevates to a core discipline: \"Any figure that looks interesting or different is usually wrong,\" because \"the more unusual or interesting the data, the more likely they are to have been the result of an error of one kind or another.\" The operational rule: a too-good result (a 40% lift) is a prompt to audit instrumentation, randomization, and sample ratio first — not to ship and celebrate. Surprising wins are guilty until proven innocent.",
+    "topic": "trustworthy-experiments-and-twymans-law",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Simpson%27s_paradox",
+    "takeaway": "Simpson's paradox is when \"a trend appears in several groups of data but disappears or reverses when the groups are combined.\" In experimentation it surfaces when a variant looks better overall but worse within every segment (or vice versa), typically driven by an uneven mix — different traffic composition between arms, or aggregating across time windows or platforms. The defense is to pre-register the unit of analysis and check that segment-level and aggregate stories agree before trusting either.",
+    "topic": "classic-pitfalls",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Multiple_comparisons_problem",
+    "takeaway": "The multiple comparisons problem: \"Each test has its own chance of a Type I error (false positive), so the overall probability of making at least one false positive increases as the number of tests grows.\" Two product habits trigger it — testing many metrics or many segments on one experiment, and running many simultaneous variants. \"As more attributes are compared, it becomes increasingly likely that the treatment and control groups will appear to differ on at least one attribute due to random sampling error alone.\" Corrections (Bonferroni, Benjamini-Hochberg FDR) or a single pre-declared primary metric keep the error rate honest.",
+    "topic": "classic-pitfalls",
+    "tier": "reference",
+    "paywalled": false
+  }
+]

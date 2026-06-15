@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.epicenter.to/p/the-3-key-stages-of-saas-user-activation",
+    "takeaway": "The canonical activation model is three sequential moments, not signup: the setup moment (account-creation steps that capture the user's jobs-to-be-done and get them ready), the aha moment when \"the user actually experiences the product's core value,\" and the habit moment that \"defines the expected frequency at which your users keep using your product\" — signup alone is insufficient.",
+    "topic": "what-activation-actually-means",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/templates/topline-activation-kpi-dashboard",
+    "takeaway": "Elena Verna defines activation as \"taking a user from signing up to establishing a habit around your core value prop\" via setup → aha → habit, insists it \"should be predictive of monetization and retention,\" and flags the B2B trap that activation is often mis-measured at the user level when account-level activation is what matters — and that measuring retention on not-yet-activated users produces misleading data.",
+    "topic": "what-activation-actually-means",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/growthhackers/using-product-market-fit-to-drive-sustainable-growth-58e9124ee8db",
+    "takeaway": "Sean Ellis's must-have survey asks \"How would you feel if you could no longer use [product]?\" and treats ~40% \"very disappointed\" as the threshold where \"it becomes possible to sustainably grow a product\"; the method then mines those must-have users to learn \"the key benefit they receive\" and widen the aha experience for everyone else.",
+    "topic": "finding-your-aha-moment",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://learningloop.io/glossary/sean-ellis-score",
+    "takeaway": "The Sean Ellis Score = (very-disappointed responses / total respondents) × 100, with 40%+ signalling product/market fit; crucially it must be run on activated users — \"You should survey users who have experienced the core of your product offering\" who \"have used your product enough to understand its value proposition\" — and is improved by onboarding that reaches core value fast.",
+    "topic": "finding-your-aha-moment",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.prodpad.com/glossary/activation-rate/",
+    "takeaway": "Activation rate = (users who completed the key activation action / total new signups) × 100, where the activation milestone is \"the minimum action that reliably predicts long-term retention and value realization\" (e.g. \"created a project and added at least one task\"); ProdPad cites that \"a 25% increase in activation rate can translate to a roughly 34% increase in monthly recurring revenue over 12 months\" because activation compounds downstream.",
+    "topic": "defining-and-measuring-the-activation-rate",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://lennyrachitsky.wiki/articles/onboarding",
+    "takeaway": "Lenny Rachitsky's method for the activation metric is brainstorm candidate aha moments → regression to find the retention inflection → experiment to confirm causation (Bangaly Kaba's identify-best-retained-users / work-backward / isolate-the-action); \"improving the activation rate has an outsized impact on total retention,\" with activated users retaining 2–3x higher, and a counterintuitive note that a tighter (lower-percentage) activation bar can predict retention better than a loose one.",
+    "topic": "defining-and-measuring-the-activation-rate",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://productled.com/book/onboarding",
+    "takeaway": "Ramli John (with Wes Bush), Product-Led Onboarding, makes the central goal to \"minimize the time-to-value (TTV)... the amount of time it takes a new customer to realize value from a product,\" via the six-step EUREKA framework — but warns the shortest TTV isn't always ideal because some friction supports adoption; defines onboarding as moving users through perceiving, experiencing, and adopting value.",
+    "topic": "the-setup-moment-and-time-to-value",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.intercom.com/blog/podcasts/user-onboarding-interview-samuel-hulick/",
+    "takeaway": "Samuel Hulick defines onboarding as \"any time there's an opportunity to increase the likelihood that users are successful when trying to adopt your product\" — about user accomplishment, not feature tours; he favors action-based learning (\"we know what the very first thing that you should be doing is, so jump into this right now\") and, borrowing from game design, getting \"people to gain mastery without even explicitly realizing that they're being taught.\"",
+    "topic": "onboarding-as-the-activation-surface",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/resurrected-users/",
+    "takeaway": "Userpilot frames most inactivity as \"an activation failure, not a loyalty failure\" and splits dormant users into never-activated (re-inviting them to the same experience that lost them underperforms), activated-then-drifted (most recoverable — they \"know what good looks like\"), and context-changed (often self-reactivate); win-back works on specificity (\"You completed 70% of setup—let's finish domain verification\") not generic \"come back\" appeals.",
+    "topic": "resurrection-tactics-and-win-back",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.braze.com/resources/articles/what-is-a-win-back-campaign-anyway",
+    "takeaway": "Braze defines a win-back campaign as \"a targeted strategy to re-engage users who have become inactive or are showing signs of churn,\" triggered after a defined inactivity window (30/60/90 days), requiring granular segments rather than blanket outreach, and working best on \"those who already know your brand but have drifted away\" — lower-cost reactivation versus cold acquisition.",
+    "topic": "resurrection-tactics-and-win-back",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/explore/analytics/resurrected-user",
+    "takeaway": "Amplitude defines a resurrected user as \"a previously inactive customer who returns to use your product after a defined dormant period\" by performing a qualifying action; dormancy thresholds scale to usage (daily apps 7–14 days, weekly tools 21–28, monthly services 45–60); resurrection rate = resurrected / total dormant, and re-engaging existing users \"typically costs less than acquiring new customers.\"",
+    "topic": "defining-dormancy-and-the-resurrection-opportunity",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.getmonetizely.com/articles/how-to-calculate-resurrection-rate-for-dormant-users-a-critical-saas-metric",
+    "takeaway": "Resurrection rate = (resurrected users / total dormant users) × 100; the case for tracking it is that \"acquiring a new customer can cost 5 to 25 times more than retaining an existing one\" and a comprehensive growth strategy \"must address all three dimensions: acquisition, retention, and resurrection\" — but success \"depends on establishing clear operational definitions\" of active, dormant, and resurrected.",
+    "topic": "defining-dormancy-and-the-resurrection-opportunity",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/retention-lifecycle-framework",
+    "takeaway": "Amplitude's growth-accounting lifecycle (New / Current / Resurrected / Churned) makes resurrection one of three retention levers — new-user activation (\"how to get users to come back\"), current-user engagement, and resurrection (\"why users are coming back\") — and notes \"churned users are, in fact, the largest percentage of most products' potential user pool\" and that \"it's cheaper to resurrect a churned user than it is to acquire one.\"",
+    "topic": "resurrection-and-the-lifecycle-view",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/re-engage-dormant-users",
+    "takeaway": "Amplitude's resurrection playbook (part 3 of three retention levers) says to define dormancy by your own product's usage pattern, discover \"resurrected user triggers—the external factors and previous campaigns that brought back some of your dormant users,\" then run targeted win-back campaigns — under the leaky-bucket premise that \"acquisition won't help your business if you constantly lose new users after onboarding.\"",
+    "topic": "resurrection-and-the-lifecycle-view",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/user-retention-why-depending-on-notification-driven-retention-sucks/",
+    "takeaway": "Andrew Chen argues notification/resurrection-driven retention is the weakest rung: needing to \"push\" users back means \"your web product has failed to integrate itself in your user base's life,\" the math collapses (a notification-dependent base can contract from 1,000 to ~50 in a cycle), and the version that works is engaged users resurrecting others through natural product usage — you can't notification your way out of a product nobody wants.",
+    "topic": "the-case-against-resurrection",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nocap.lv/blog/retention-resurrection-retention-engagement",
+    "takeaway": "This piece sharpens the distinction: \"if you have to beg your users to come back, you've probably already lost them,\" resurrection \"doesn't scale as a growth strategy\" and traps teams in a leaky bucket, and \"every euro and hour spent on resurrection is an euro and hour not spent on improving the product\" — because \"retention is a product problem, not a marketing one,\" best solved by getting users to the aha moment.",
+    "topic": "the-case-against-resurrection",
+    "tier": "secondary-curation",
+    "paywalled": false
+  }
+]

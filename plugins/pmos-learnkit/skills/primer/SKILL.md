@@ -1,8 +1,8 @@
 ---
 name: primer
-description: Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted, and self-evaluated into a single teachable artifact. Use to ramp-up before a meeting / a scope / a doc review, when the user needs to learn a topic quickly with citations they can trust. Triggers when the user says "write me a primer on X", "ramp me up on Y", "generate a primer", "I need to learn about Z before a meeting", "/primer", "create a teachable artifact on this topic", "deep primer on X", or "brief primer on Y". Shapes depth, jargon, and examples to the chosen audience (senior-pms vs all-pms) and supports explicit sizing via --depth brief|standard|deep (the default depth tier is persisted per-project after the first run). Prefers primary sources over secondary commentary.
+description: Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted, and self-evaluated into a single teachable artifact. Use to ramp-up before a meeting / a scope / a doc review, when the user needs to learn a topic quickly with citations they can trust. Triggers when the user says "write me a primer on X", "ramp me up on Y", "generate a primer", "I need to learn about Z before a meeting", or "/primer". Shapes depth, jargon, and examples to the chosen audience (senior-pms vs all-pms) and supports explicit sizing via --depth brief|standard|deep (the default depth tier is persisted per-project after the first run). Prefers primary sources over secondary commentary. Ships a pre-built corpus of curated PM primers plus a `browse`/`list` verb (also bare `/primer`) that builds a single filterable, searchable, offline library page of all primers — curated and your own. Also triggers on "browse my primers", "primer library", or "list primers".
 user-invocable: true
-argument-hint: <topic> [--audience <senior-pms|all-pms>] [--depth <brief|standard|deep>] [--autonomous] [--non-interactive] [--interactive]
+argument-hint: "[<topic> | browse | list] [--audience <senior-pms|all-pms>] [--depth <brief|standard|deep>] [--autonomous] [--non-interactive] [--interactive]"
 ---
 
 # Primer
@@ -18,6 +18,7 @@ These instructions use Claude Code tool names. In other environments:
 <!-- defer-only: ambiguous -->
 - **No `AskUserQuestion` available:** intake confirmation, audience selection, and the lastrun consolidated confirm degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
 - **No `Task` subagent:** the Phase 5 reviewer runs inline in the host conversation; research and drafting already run inline.
+- **No browser / no Playwright (browse phase):** `build-library.mjs` still writes `library.html`; opening it is best-effort. If no opener is available, print the absolute path and stop — the page is on disk and opens from `file://` whenever the user is ready. Never treat a failed open as a run failure.
 - **No `WebFetch`:** Phase 3 verification is impossible — fall back to context7 MCP (if available) plus user-supplied URLs/snippets, and surface the degraded-source warning per `reference/source-floor.md` §"WebFetch unavailable".
 - **No `context7` MCP:** research falls back to `WebFetch` plus user-supplied material; if neither is available, refuse with a clear message naming the missing tools and exit 64.
 - **No Playwright MCP:** social sources are fetched through the shared free-fetch ladder in `_shared/topic-research/sourcing-ladder.md` with `reference/social-sourcing.md` carrying `/primer`'s citation discipline. Only the last-resort rung (un-unrolled X threads; member-only LinkedIn posts) is lost; such candidates are dropped silently rather than blocking the run.
@@ -68,6 +69,8 @@ The canonical non-interactive block below handles `mode` resolution + per-checkp
 
 ## Phase 1: Intake {#intake}
 
+**Verb dispatch (before anything else).** If the first token is exactly `browse` or `list`, **or** the invocation carries no topic at all (bare `/primer` with only flags or nothing), this is a library request, not a research run: go straight to the **Browse the library** phase ([`#browse`](#browse)) and skip Phases 2–6 entirely. Otherwise the first token is the `<topic>` and the research pipeline below runs.
+
 **Parse arguments.** Positional `<topic>` (1st arg, may be multi-word — strip surrounding quotes); flags `--audience <v>`, `--depth <v>`, `--autonomous`, `--non-interactive`, `--interactive`. Any unknown flag, or `--depth` / `--audience` with a value outside its enum → platform-aware error naming the valid set (per `_shared/platform-strings.md`); exit 64. Derive `<slug>` per `_shared/canonical-path.md` slug rules; the canonical artifact path is `{docs_path}/primer/{YYYY-MM-DD}_<slug>.html` (today's UTC date).
 
 **Lastrun consolidated confirm.** Read `.pmos/primer.lastrun.yaml` if present (shape: `last_topic`, `last_audience`, `last_depth`, `last_artifact_path`, `last_elapsed_seconds`). If present and `--autonomous` is NOT set, surface one prompt seeded from the prior values:
@@ -101,6 +104,20 @@ Under `--autonomous`, skip this gate: apply lastrun values when present, else bu
 - `AskUserQuestion` — `"<path> already exists. Choose:"` options: `Append -2 suffix (Recommended)` (lowest unused integer suffix) / `Overwrite (git-snapshot first)` (runs `git stash push --keep-index -m "primer-overwrite-{slug}-{date}"`) / `Abort`.
 
 See `reference/audience-presets.md` for the per-preset required-sections / vocab posture / closing-shape contract downstream phases consume.
+
+## Browse the library {#browse}
+
+Reached from the Phase-1 verb dispatch (`browse` | `list` | bare `/primer`). This is a read-only, terminal path — no research, no `AskUserQuestion`, no file mutation beyond the regenerable page.
+
+Build the library page from the committed corpus (shipped at `${CLAUDE_SKILL_DIR}/data/primers-index.json` + `data/primers/*.html`) plus any user-generated primers already in `{docs_path}/primer/`:
+
+```
+node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/primer/library.html
+```
+
+`build-library.mjs` (zero-dep Node ESM) emits **one** self-contained `library.html` that works offline from `file://`: every primer becomes a card (title, category, audience, depth, source-count, word-count, date) linking to its standalone HTML. The shipped corpus shows under **Collection = Curated**; primers found in the output directory show under **Collection = Yours**. Client-side facets (Collection / area / category / audience / depth) + free-text search + removable applied-filter chips. The page is gitignored (committed corpus, regenerable output — mirrors `/frameworks`).
+
+After writing, open it best-effort (`open`/`xdg-start`/`start`, or the platform default) and **print the absolute path** so the user can open it themselves. Opening is never load-bearing — see the Platform Adaptation note. Then exit cleanly (the research phases do not run).
 
 ## Phase 2: Canon & Outline (shared front half) {#canon-outline}
 
@@ -158,9 +175,9 @@ Single-pass draft against the approved outline, held in working memory (the file
    - `AskUserQuestion` — `"All checks resolved. Approve, iterate, or abort?"` options: `Approve and write (Recommended)` / `Iterate manually` / `Abort`. Under `--autonomous` this AUTO-PICKs approve; the hard-block and residual disclosure above still apply. When the reviewer ran, mention in the question text any off signals from R10's informational fields (worked-example-free H2s ≥30%; word count outside the depth target) — informational only, never blocking.
 
 7. **Write (atomic trio).** On approve, write `{date}_{slug}.html`, `.sections.json`, and `.sources.json` via temp-then-rename — all three temps succeed before any `mv`; on any rename failure, `rm` the temps and abort (no partial states). Render through `_shared/html-authoring/template.html` with the pmos-learnkit token values (`{{plugin_name}}` = `pmos-learnkit`, `{{plugin_url}}` = the pmos-skills learnkit readme, `{{plugin_version}}` read from `plugins/pmos-learnkit/.claude-plugin/plugin.json` — fail-fast if unparseable) and the standard substrate tokens; asset URLs carry `?v={{plugin_version}}` (the **learnkit** version). Copy `assets/*` from the learnkit html-authoring substrate to `{docs_path}/primer/assets/` via `cp -n`. Every `<h2>`/`<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md §3`, and `sections.json`'s id set MUST equal the on-page id set in document order (rubric R7 enforces).
-8. **Listing regen.** Regenerate `{docs_path}/primer/primers.html` so every primer is reachable from one listing page, newest first (filename-date desc), rendered through the same substrate template + token values, atomic write. The one non-obvious rule: do NOT use `_shared/html-authoring/index-generator.md`'s phase grouping — it groups by feature-pipeline phase, meaningless for a flat primer collection; give every manifest entry the literal `phase: "Primers"` so `viewer.js` renders one group. Exclude `primers.html` itself and any `*.draft.html` (rejected drafts are never listed).
+8. **Listing regen.** Regenerate the unified library page by invoking the browse generator — `node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/primer/library.html` — so the just-written primer (now on disk in `{docs_path}/primer/` under `Collection = Yours`) appears alongside the shipped corpus on one page. This **replaces** the old bespoke `primers.html` generator (one listing page, one code path — see [`#browse`](#browse)); the script already excludes the library page itself and any `*.draft.html`. Best-effort remove a stale `{docs_path}/primer/primers.html` if present. (The recovery path in step 10 still skips this regen.)
 9. **Update lastrun.** Write `.pmos/primer.lastrun.yaml` (`last_topic`, `last_audience`, `last_depth`, `last_artifact_path`, `last_elapsed_seconds` from the Phase-0 timestamp). Gitignore is handled at the repo level by /complete-dev.
-10. **Recovery path (trust hard-block).** When step 4 triggers: persist `sources.json` to its canonical path (research is not discarded); write the rejected draft to `{date}_{slug}.draft.html` with a sticky-top red banner `<div class="primer-rejected-banner" role="alert">REJECTED BY REVIEWER — DO NOT TRUST</div>` (inline CSS, e.g. `position:sticky;top:0;z-index:100;background:#b00020;color:#fff;font-size:1.25rem;padding:1rem;text-align:center`) followed by a `## Failing checks` section (each failing trust check with verdict + quote + evidence) above the full draft body. Print verbatim: `Trust-tier check '<name>' failed after auto-apply iteration. Hard-block: no primer artifact written. Draft preserved at <path>.draft.html for review. Manually patch and rerun, or rerun fresh.` Do NOT regenerate `primers.html`; do NOT update lastrun.
+10. **Recovery path (trust hard-block).** When step 4 triggers: persist `sources.json` to its canonical path (research is not discarded); write the rejected draft to `{date}_{slug}.draft.html` with a sticky-top red banner `<div class="primer-rejected-banner" role="alert">REJECTED BY REVIEWER — DO NOT TRUST</div>` (inline CSS, e.g. `position:sticky;top:0;z-index:100;background:#b00020;color:#fff;font-size:1.25rem;padding:1rem;text-align:center`) followed by a `## Failing checks` section (each failing trust check with verdict + quote + evidence) above the full draft body. Print verbatim: `Trust-tier check '<name>' failed after auto-apply iteration. Hard-block: no primer artifact written. Draft preserved at <path>.draft.html for review. Manually patch and rerun, or rerun fresh.` Do NOT regenerate `library.html`; do NOT update lastrun.
 
 ## Phase 6: Capture Learnings {#capture-learnings}
 
@@ -190,7 +207,7 @@ Topic: `"feature flagging at scale"`, first run in a project.
 - **Phase 2.** Canon discovery names ~5 practitioners + 3 books + 3 curations; the outline cascades 12 topics (provenance `curation-consensus`); preset shaping adds the required teach-sections; user approves at the confirm gate.
 - **Phase 3.** Est-cost line: `est. ~60 source verifications across 12 topics; proceeding`. Rank-then-verify yields per-topic shortlists; one content-farm listicle is dropped pre-fetch by the hard gate. 18 verified sources ≥ floor 10 → no thin-source disclosure.
 - **Phase 4.** ~4,800-word curator-voiced draft; 14 citations, all verbatim `sources.json[].url` members; two inline SVGs (a rollout-lifecycle flow, a build-vs-buy 2×2) per `reference/diagram-style.md`; closes with `## Where this connects` (3 pointers).
-- **Phase 5.** User asked for a review pass. Iteration 1: one R3 fail ("most teams use percentage rollouts", uncited) with a valid ≥40-char quote; auto-apply adds the citation; re-run all-pass. Write gate approves; atomic trio + `primers.html` regen (new primer first) + lastrun update. ~7 minutes wall-clock.
+- **Phase 5.** User asked for a review pass. Iteration 1: one R3 fail ("most teams use percentage rollouts", uncited) with a valid ≥40-char quote; auto-apply adds the citation; re-run all-pass. Write gate approves; atomic trio + `library.html` regen (new primer appears under Collection = Yours) + lastrun update. ~7 minutes wall-clock.
 
 ---
 

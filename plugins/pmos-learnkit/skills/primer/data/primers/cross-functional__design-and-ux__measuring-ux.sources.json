@@ -1,0 +1,135 @@
+[
+  {
+    "url": "https://www.lyssna.com/blog/usability-metrics/",
+    "takeaway": "Usability metrics fall into three core dimensions — effectiveness (can users finish?), efficiency (how fast?), and satisfaction (how do they feel?); they are \"the specific measurements and statistics used to evaluate how well a product or service supports users in accomplishing their goals.\"",
+    "topic": "what-measuring-ux-means",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/usability-metrics/",
+    "takeaway": "Nielsen Norman Group groups usability metrics into success rate, time, errors, and satisfaction, but cautions they are expensive and often less useful than qualitative insight: \"Generally, to improve a design, insight is better than numbers.\"",
+    "topic": "what-measuring-ux-means",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://measuringu.com/book/quantifying-the-user-experience-practical-statistics-for-user-research/",
+    "takeaway": "Sauro and Lewis's Quantifying the User Experience \"presents a practical guide on how to use statistics to solve common quantitative problems that arise in user research\" — comparing usability, estimating completion rates, and justifying conclusions with confidence.",
+    "topic": "why-bother-measuring-ux",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/which-ux-research-methods/",
+    "takeaway": "Christian Rohrer's NN/g framework places research methods on two axes — attitudinal vs behavioral (\"what people say\" vs \"what people do\") and qualitative vs quantitative; \"qualitative methods are much better suited for answering questions about why or how to fix a problem, whereas quantitative methods do a much better job answering how many and how much.\"",
+    "topic": "the-two-axes-of-measurement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/satisfaction-vs-performance-metrics/",
+    "takeaway": "Satisfaction (attitudinal) and performance (behavioral) metrics correlate only about .53, so they often disagree: \"Performance and satisfaction are different usability metrics, so you should consider both in the design process.\"",
+    "topic": "the-two-axes-of-measurement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/success-rate-the-simplest-usability-metric/",
+    "takeaway": "Success rate is \"the percentage of users who were able to complete a task in a study\" — the simplest bottom-line usability metric; partial success should be reported as separate levels rather than averaged, since success levels are an ordinal scale.",
+    "topic": "task-success-the-simplest-metric",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/quantitative-studies-how-many-users/",
+    "takeaway": "NN/g recommends testing with about 20 users for quantitative studies, which yields a confidence interval of roughly ±19% — enough to compare designs without over-investing in marginal precision.",
+    "topic": "how-much-to-trust-the-numbers",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/System_usability_scale",
+    "takeaway": "The System Usability Scale is a ten-item, five-point Likert questionnaire developed by John Brooke in 1986 that produces a single 0–100 score; it is widely adopted because \"it can be used to compare even systems that are outwardly dissimilar.\"",
+    "topic": "the-system-usability-scale",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://measuringu.com/sus/",
+    "takeaway": "MeasuringU reports that across 500 studies the average SUS score is 68, which serves as the benchmark line: a score above 68 is above average, below 68 is below average.",
+    "topic": "the-system-usability-scale",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://uxpajournal.org/supr-q-a-comprehensive-measure-of-the-quality-of-the-website-user-experience/",
+    "takeaway": "The SUPR-Q is an eight-item questionnaire whose four factors are usability, trust, appearance, and loyalty; it converts raw scores into a percentile rank against a normed database of 100+ websites.",
+    "topic": "other-standardized-questionnaires",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://measuringu.com/umux-lite/",
+    "takeaway": "The UMUX-Lite is a two-item questionnaire measuring perceived usefulness and ease of use; it \"nicely mimics the Technology Acceptance Model (TAM) in content,\" giving a very short alternative to longer instruments.",
+    "topic": "other-standardized-questionnaires",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/nps-ux/",
+    "takeaway": "Net Promoter Score asks how likely a user is to recommend a product on a 0–10 scale (promoters minus detractors); NN/g notes it is liked by management and correlates with usability, but doesn't explain why, needs large samples, and is easily gamed.",
+    "topic": "other-standardized-questionnaires",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://research.google/pubs/measuring-the-user-experience-on-a-large-scale-user-centered-metrics-for-web-applications/",
+    "takeaway": "Rodden, Hutchinson, and Fu introduced the HEART framework at CHI 2010, arguing \"there is a strong need for user-centered metrics for web applications, which can be used to measure progress towards key goals, and drive product decisions.\"",
+    "topic": "the-heart-framework",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/article/google-s-heart-framework-for-measuring-ux",
+    "takeaway": "HEART stands for Happiness, Engagement, Adoption, Retention, and Task success; the Interaction Design Foundation stresses that \"not all projects will require all the metrics and that metrics should be chosen (in combination) based on the outcomes required.\"",
+    "topic": "the-heart-framework",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://kerryrodden.com/heart/",
+    "takeaway": "Kerry Rodden pairs HEART with a Goals–Signals–Metrics process that helps teams \"choose and define appropriate metrics that reflect\" both the quality of the user experience and the goals of the product.",
+    "topic": "goals-signals-metrics",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/product-ux-benchmarks/",
+    "takeaway": "UX benchmarking measures a product's experience against meaningful standards (prior versions, competitors, industry norms); \"benchmarking is a fantastic tool to align and correlate UX efforts to overall organizational goals and outcomes.\"",
+    "topic": "benchmarking-over-time",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/mixed-methods-research/",
+    "takeaway": "Mixed-methods research \"combines qualitative and quantitative methods within a single research project to answer the same overarching research question\" — for example, an A/B test that shows which design wins plus interviews that explain why.",
+    "topic": "mixing-qualitative-and-quantitative",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/triangulation-better-research-results-using-multiple-ux-methods/",
+    "takeaway": "Triangulation is \"the practice of using multiple sources of data or multiple approaches to analyzing data, to enhance the credibility of a research study\" — backing a small qualitative test with large-scale analytics, for instance.",
+    "topic": "mixing-qualitative-and-quantitative",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://ixdf.org/literature/topics/triangulation-in-user-research",
+    "takeaway": "The Interaction Design Foundation defines triangulation as combining \"multiple methods, data sources, investigators, or theories to confirm and validate their findings,\" which reduces the bias of any single method.",
+    "topic": "choosing-what-to-measure",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

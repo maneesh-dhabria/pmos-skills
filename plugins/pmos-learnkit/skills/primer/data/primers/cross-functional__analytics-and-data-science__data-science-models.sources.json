@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://developers.google.com/machine-learning/intro-to-ml/what-is-ml",
+    "takeaway": "Google for Developers defines machine learning as \"a way to train software, called a model, to make predictions or generate content using data\" — a fundamentally different paradigm from hand-coded rules, where the model discovers mathematical relationships in data and applies them to new inputs. It names four system types: supervised, unsupervised, reinforcement, and generative.",
+    "topic": "what-a-data-science-model-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://aws.amazon.com/compare/the-difference-between-machine-learning-supervised-and-unsupervised/",
+    "takeaway": "AWS frames the master split: supervised learning trains \"with a set of input data and a corresponding set of paired labeled output data\" to \"predict an output based on known inputs,\" while unsupervised learning trains \"to discover hidden patterns in unlabeled data.\" Regression predicts \"a value from a continuous scale,\" classification predicts a categorical output, and clustering \"groups certain data inputs together.\"",
+    "topic": "supervised-vs-unsupervised-the-master-split",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.databricks.com/blog/supervised-vs-unsupervised-learning",
+    "takeaway": "Databricks gives the practical choice rule: \"Predict outcomes? Supervised learning fits. Explore unknown structure? Unsupervised learning is often the right entry point\" — gated on \"Do you have reliable labels today?\" It maps the uses: regression for \"continuous values, such as demand forecasts, pricing, or risk scores,\" classification for \"assigning input data to predefined classes,\" and clustering for \"grouping similar data points to reveal structure\" like customer segmentation.",
+    "topic": "supervised-vs-unsupervised-the-master-split",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.xoriant.com/blog/gradient-boosting-in-machine-learning-xgboost-lightgbm-random-forest-explained",
+    "takeaway": "Xoriant explains the tree family: a decision tree \"makes predictions by asking rule-based questions that split data into increasingly homogeneous groups.\" Random forest trains \"many trees on different random subsets of data and averaging them\" to stabilize predictions and prevent overfitting. Gradient boosting builds \"many small decision trees one after another, and each new tree tries to correct the mistakes the previous ones make\"; XGBoost adds regularization. Random forest reduces variance; boosting lowers bias.",
+    "topic": "trees-and-ensembles-the-everyday-workhorses",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geeksforgeeks.org/machine-learning/difference-between-random-forest-vs-xgboost/",
+    "takeaway": "GeeksforGeeks contrasts the two ensemble styles: random forest uses \"bagging (Bootstrap Aggregating)\" to build trees independently in parallel, each on a bootstrap sample, then averages or majority-votes. XGBoost \"develops one tree at a time, correcting faults caused by previously trained trees\" sequentially via gradient descent, with \"built-in regularization (L1 and L2).\"",
+    "topic": "trees-and-ensembles-the-everyday-workhorses",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://domino.ai/blog/recommender-systems-collaborative-filtering",
+    "takeaway": "Domino frames recommenders: collaborative filtering recommends \"items based on how similar users liked the item,\" working through user or item similarity, while content-based recommendation matches \"items with similar metadata tags.\" It names the cold-start problem: \"How do we make recommendations to new users whom we have little to no data about their preferences?\"",
+    "topic": "recommenders-what-to-show-next",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Collaborative_filtering",
+    "takeaway": "Wikipedia defines collaborative filtering as \"a method of making automatic predictions (filtering) about a user's interests by utilizing preferences or taste information collected from many users,\" on the principle that people who agree on one issue tend to agree on others. User-based finds similar people; item-based works as \"users who bought x also bought y.\" Cold start arises from \"insufficient data on these new entries.\"",
+    "topic": "recommenders-what-to-show-next",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.datacamp.com/tutorial/arima",
+    "takeaway": "DataCamp defines an ARIMA model as combining \"past observations (AR), differencing to achieve stationarity (I), and past errors to refine predictions (MA)\" for time-series forecasting. Stationarity (constant mean and variance) is required. ARIMA gives \"stable, long-term forecasts,\" while exponential smoothing weights recent observations more and \"performs better for short, volatile series.\"",
+    "topic": "forecasting-predicting-over-time",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://huggingface.co/learn/llm-course/en/chapter1/4",
+    "takeaway": "Hugging Face explains transformers: an attention layer lets a model \"focus selectively on certain words when processing language,\" because \"a word by itself has a meaning, but that meaning is deeply affected by the context.\" LLMs are trained with self-supervised learning — \"the objective is automatically computed from the inputs of the model\" so \"humans are not needed to label the data\" — via next-word or masked-word prediction, then fine-tuned.",
+    "topic": "nlp-and-large-language-models",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Large_language_model",
+    "takeaway": "Wikipedia defines a large language model as \"a neural network trained on a vast amount of text for natural language processing tasks, especially language generation,\" pretrained \"to predict the next word\" then fine-tuned (e.g. via RLHF). It flags hallucination: models \"generate syntactically fluent text that appears factually sound, but is internally inconsistent with training data or factually incorrect.\"",
+    "topic": "nlp-and-large-language-models",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://towardsdatascience.com/confusion-matrix-made-simple-accuracy-precision-recall-f1-score/",
+    "takeaway": "Towards Data Science breaks down classifier scoring via the confusion matrix (true/false positives and negatives). Precision is how often a positive prediction is correct (\"correct 98% of the time\"); recall is the share of actual positives caught (\"identified 94% of all Malignant Tumors\"); F1 \"balances both.\" The precision-recall tradeoff: \"if we push recall to 1.0 then the precision drops.\"",
+    "topic": "how-you-know-a-model-is-good",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@Monica-Ashok/day-8-train-test-split-evaluation-metrics-how-ml-models-prove-themselves-6c53b2cf16b5",
+    "takeaway": "This walkthrough defines overfitting as when a model \"memorizes rather than generalizes,\" learning the training data's noise instead of broad patterns. The train/test split keeps the test set \"hidden during training\" and \"used to measure how well the model generalizes to unseen data\" — it \"protects against overfitting\" and \"mimics real business scenarios.\"",
+    "topic": "how-you-know-a-model-is-good",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://blogs.sas.com/content/hiddeninsights/2022/08/10/interpretability-vs-explainability-the-black-box-of-machine-learning/",
+    "takeaway": "SAS distinguishes interpretability — \"determining how an analytical model or algorithm came to its conclusions,\" the inputs and processes (decision trees, linear regression are more interpretable) — from explainability, which addresses \"why an algorithm produces those responses\" even when the internals stay obscure. Opaque \"black boxes\" make decisions users can't follow.",
+    "topic": "bias-fairness-and-the-black-box",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.businessthink.unsw.edu.au/articles/black-box-AI-models-bias-interpretability",
+    "takeaway": "UNSW BusinessThink documents real-world bias: Amazon's hiring tool, \"trained on predominantly male resumes,\" discriminated against women, and after correction they \"couldn't be sure the AI wouldn't find other ways to discriminate.\" It warns that black-box models \"are often opaque,\" and that explanation tools like partial dependence plots can be manipulated to \"make the black-box model appear neutral\" while staying discriminatory.",
+    "topic": "bias-fairness-and-the-black-box",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://developers.google.com/machine-learning/managing-ml-projects/success",
+    "takeaway": "Google's ML project guide insists on two metric types up front: business metrics (\"revenue, click-through rate, or number of users\") and model metrics (\"Root Mean Squared Error, precision, or recall\"). Its warning is the core PM lesson: \"Don't confuse model success with business success\" — \"Great model metrics don't necessarily imply improved business metrics\" — so \"deploy the model to 1% of users and then monitor the business metric.\"",
+    "topic": "what-this-means-for-pms",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/artificial-intelligence/great-machine-learning-product-management-google",
+    "takeaway": "Product School lists when to use ML (complex logic, scales fast, real-time adaptation, personalization, existing answer examples) and when to avoid it (simple rules suffice, no adaptation, \"requires full interpretability,\" \"requires 100% accuracy\"). On collaboration: \"PMs who come prepared with a clear, preferably data-driven, problem and hypothesis will have a much more productive discussion,\" must make tradeoffs (accuracy vs interpretability, false positives vs false negatives), and remember \"ML creates tech debt.\"",
+    "topic": "what-this-means-for-pms",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://towardsdatascience.com/ml-for-product-managers-a214d823629d/",
+    "takeaway": "This PM guide stresses validating \"Is ML actually needed?\" since \"in many cases a heuristics-based approach can work better\" until rules stop scaling. Model choice turns on data availability (supervised needs labels), latency (stream vs batch), and complexity; data should have \"at least 10k examples\" and a user-feedback loop, because \"we ultimately live or die by business performance.\"",
+    "topic": "pitfalls-and-how-to-work-with-data-scientists",
+    "tier": "T2",
+    "paywalled": false
+  }
+]
