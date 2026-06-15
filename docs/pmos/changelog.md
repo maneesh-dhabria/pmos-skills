@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-learnkit 0.26.1: primers you generate now match the curated ones
+
+Primers you write with `/primer` now look exactly like the curated library primers. Previously a generated primer could render full-width and without the numbered section signatures, while curated primers showed a centered, numbered column — an inconsistency caused by the write step hand-building the page instead of using the shared document template. `/primer` now renders every primer through the same deterministic template the rest of the pipeline uses, with a built-in check that the page came out structurally correct.
+
+- **Consistent primer styling.** Your generated primers get the centered reading column and `[NN]` section numbers, identical to the curated corpus.
+- Internals: the write step renders through the `render.js` substrate (content-only fragment) with a hard post-render structural self-check; regression-tested.
+
 ## 2026-06-15 — pmos-toolkit 2.83.0 + pmos-learnkit 0.26.0: artifact wordmark → repo, footer + attribution → per-plugin README
 
 Every pmos-emitted HTML artifact now links its chrome correctly. The **header brand-mark wordmark** points at the canonical repo root via a new `{{repo_url}}` token, while the **footer wordmark and both "Created using …" attribution links** point at the producing plugin's README via `{{plugin_url}}`. The stale default that pointed at the **archived** `pmos-toolkit` repo is purged from both `render.js` copies, and four plugin READMEs (toolkit, learnkit, gamekit, utilities) are authored as the attribution targets. The masthead index generator, `emit-findings`, and the ideate artifact template are swept to match. Combines with the v2.80.0 "Editorial Technical" toolbar (which had already shipped the crumb + footer structure this work targets).
