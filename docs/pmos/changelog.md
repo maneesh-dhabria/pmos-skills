@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.80.0 + pmos-learnkit 0.24.0: a refreshed "Editorial Technical" look for every generated document
+
+Every HTML document the pipeline produces — specs, plans, requirements, primers, summaries, and more — gets a typographic refresh for cleaner, more readable artifacts. The change lives in the shared document styling, so both toolkit and learnkit ship it together.
+
+- **A three-voice type system.** Body copy is set in a readable serif at a comfortable measure, headings in a clear sans, and structural markers (section numbers, counters) in mono — so documents read like considered editorial pages rather than wall-to-wall sans-serif.
+- **Centered documents, full-bleed chrome, and tidier tables.** The reading column is centered for a natural line length, page chrome spans the full width, wide tables break to the right instead of overflowing, and inline comment threads use a warm tint that sits in the margin without a heavy panel — all at AA contrast.
+
 ## 2026-06-15 — pmos-gamekit 0.6.0: modern Tetris — play /tetris
 
 `/tetris` adds a full modern-guideline Tetris to the kit — stack the falling pieces, clear lines, and chase your level.
