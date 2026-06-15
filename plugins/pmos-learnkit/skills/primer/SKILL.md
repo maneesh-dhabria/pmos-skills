@@ -174,7 +174,37 @@ Single-pass draft against the approved outline, held in working memory (the file
    <!-- defer-only: ambiguous -->
    - `AskUserQuestion` — `"All checks resolved. Approve, iterate, or abort?"` options: `Approve and write (Recommended)` / `Iterate manually` / `Abort`. Under `--autonomous` this AUTO-PICKs approve; the hard-block and residual disclosure above still apply. When the reviewer ran, mention in the question text any off signals from R10's informational fields (worked-example-free H2s ≥30%; word count outside the depth target) — informational only, never blocking.
 
-7. **Write (atomic trio).** On approve, write `{date}_{slug}.html`, `.sections.json`, and `.sources.json` via temp-then-rename — all three temps succeed before any `mv`; on any rename failure, `rm` the temps and abort (no partial states). Render through `_shared/html-authoring/template.html` with the pmos-learnkit token values (`{{plugin_name}}` = `pmos-learnkit`, `{{plugin_url}}` = the pmos-skills learnkit readme — footer wordmark + attribution, `{{repo_url}}` = the repo root `https://github.com/maneesh-dhabria/pmos-skills` — header brand-mark wordmark, `{{plugin_version}}` read from `plugins/pmos-learnkit/.claude-plugin/plugin.json` — fail-fast if unparseable) and the standard substrate tokens; asset URLs carry `?v={{plugin_version}}` (the **learnkit** version). Copy `assets/*` from the learnkit html-authoring substrate to `{docs_path}/primer/assets/` via `cp -n`. Every `<h2>`/`<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md §3`, and `sections.json`'s id set MUST equal the on-page id set in document order (rubric R7 enforces).
+7. **Write (atomic trio).** On approve, write `{date}_{slug}.html`, `.sections.json`, and `.sources.json` via temp-then-rename — all three temps succeed before any `mv`; on any rename failure, `rm` the temps and abort (no partial states).
+
+   **The primer HTML MUST be rendered by the deterministic substrate renderer — never hand-authored.** Do NOT clone an existing primer file and swap its body: that path reproduces stale chrome and silently drops the `<main class="pmos-artifact-body">` wrapper (the bug that left custom-generated primers full-bleed and unnumbered while curated ones rendered as an 880px column with `[NN]` section signatures). Render through `render.js` → `renderArtifact()` with a **content-only** `{{content}}` fragment — the body sections **only**, with **no** `<header class="pmos-artifact-toolbar">`, **no** `<main class="pmos-artifact-body">`, and **no** `<h1 class="pmos-doc-title">`. Those three come from `template.html` itself (lines `<main class="pmos-artifact-body" data-pmos-role="body">` → `<h1 class="pmos-doc-title">{{title}}</h1>` → `{{content}}` → `</main>`); authoring them into `content` double-nests or omits them.
+
+   ```js
+   const { renderArtifact } = require('${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/render.js');
+   const fs = require('fs');
+   let template = fs.readFileSync('${CLAUDE_PLUGIN_ROOT}/skills/_shared/html-authoring/template.html', 'utf8');
+   // GOTCHA (regression-tested by the substrate's render tests): strip template.html's
+   // leading <!-- … --> doc-comment before rendering — otherwise the {{content}}/{{inline_css}}
+   // tokens inside that comment get substituted too and the body emits twice.
+   template = template.replace(/^\s*<!--[\s\S]*?-->\s*/, '');
+   const pv = JSON.parse(fs.readFileSync('${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json','utf8')).version; // fail-fast if unparseable
+   const html = renderArtifact({
+     template,
+     title: '<primer title> — Primer',
+     content,                                    // body sections ONLY (the {{content}} fragment)
+     sourcePath: '{date}_{slug}.html',
+     assetPrefix: 'assets/',
+     pluginVersion: pv,                          // the LEARNKIT version → asset ?v= cache-bust
+     pmosSkill: 'primer',
+     pluginName: 'pmos-learnkit',
+     pluginNameNbsp: 'pmos&#8209;learnkit',
+     pluginUrl: 'https://github.com/maneesh-dhabria/pmos-skills/tree/main/plugins/pmos-learnkit#readme', // footer wordmark + attribution
+     repoUrl: 'https://github.com/maneesh-dhabria/pmos-skills',                                          // header brand-mark wordmark
+   });
+   ```
+
+   **Post-render structural self-check (HARD — catches a hand-authored emit before it lands).** Before the `mv`, assert against the rendered `html` string: it contains **exactly one** `<main class="pmos-artifact-body" data-pmos-role="body">` AND **exactly one** `<h1 class="pmos-doc-title">`, and the `content` fragment you passed contains **zero** of `pmos-artifact-toolbar` / `pmos-artifact-body` / `pmos-doc-title` (proves you passed a content-only fragment, not a full document). Any assertion failing means the render was bypassed/hand-authored — discard the temp, re-render through `renderArtifact()`, do not `mv` a non-conforming file.
+
+   Copy `assets/*` from the learnkit html-authoring substrate to `{docs_path}/primer/assets/` via `cp -n`. Every `<h2>`/`<h3>` carries a stable kebab-case `id` per `_shared/html-authoring/conventions.md §3`, and `sections.json`'s id set MUST equal the on-page id set in document order (rubric R7 enforces).
 8. **Listing regen.** Regenerate the unified library page by invoking the browse generator — `node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/primer/library.html` — so the just-written primer (now on disk in `{docs_path}/primer/` under `Collection = Yours`) appears alongside the shipped corpus on one page. This **replaces** the old bespoke `primers.html` generator (one listing page, one code path — see [`#browse`](#browse)); the script already excludes the library page itself and any `*.draft.html`. Best-effort remove a stale `{docs_path}/primer/primers.html` if present. (The recovery path in step 10 still skips this regen.)
 9. **Update lastrun.** Write `.pmos/primer.lastrun.yaml` (`last_topic`, `last_audience`, `last_depth`, `last_artifact_path`, `last_elapsed_seconds` from the Phase-0 timestamp). Gitignore is handled at the repo level by /complete-dev.
 10. **Recovery path (trust hard-block).** When step 4 triggers: persist `sources.json` to its canonical path (research is not discarded); write the rejected draft to `{date}_{slug}.draft.html` with a sticky-top red banner `<div class="primer-rejected-banner" role="alert">REJECTED BY REVIEWER — DO NOT TRUST</div>` (inline CSS, e.g. `position:sticky;top:0;z-index:100;background:#b00020;color:#fff;font-size:1.25rem;padding:1rem;text-align:center`) followed by a `## Failing checks` section (each failing trust check with verdict + quote + evidence) above the full draft body. Print verbatim: `Trust-tier check '<name>' failed after auto-apply iteration. Hard-block: no primer artifact written. Draft preserved at <path>.draft.html for review. Manually patch and rerun, or rerun fresh.` Do NOT regenerate `library.html`; do NOT update lastrun.
@@ -198,6 +228,7 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 6. **Forcing diagrams.** Inline SVGs only where a structural shape earns one — decoration displaces citation density.
 7. **Mishandling social sources.** Never the paid X API or a bare `x.com` fetch (login wall); use the free-fetch ladder. Always paraphrase into the takeaway (verbatim post text is an R2 violation) and cite the original canonical post URL, never the fetch proxy (`api.fxtwitter.com`, `threadreaderapp.com`, `r.jina.ai`). Full discipline: `reference/social-sourcing.md`.
 8. **Spawning subagents outside Phase 5.** Only the reviewer is a subagent; Phases 1–4 run inline (the sourcing loop uses tool-level fetch parallelism, not dispatch).
+9. **Hand-authoring the primer HTML shell instead of rendering through `renderArtifact()`.** Cloning an existing primer file (or writing the `<head>`/toolbar/`<main>`/footer by hand) reproduces whatever chrome that example happened to carry and silently drops the `<main class="pmos-artifact-body">` wrapper — the exact divergence between custom-generated and curated primers (full-bleed + unnumbered vs. the centered, `[NN]`-signed 880px column). The shell is the deterministic substrate's job: pass `renderArtifact()` a **content-only** `{{content}}` fragment and let `template.html` own the toolbar, body wrapper, doc-title, and footer (Phase 5 step 7 + its post-render structural self-check).
 
 ## Worked example
 

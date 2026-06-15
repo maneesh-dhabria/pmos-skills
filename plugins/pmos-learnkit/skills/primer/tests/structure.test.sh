@@ -64,5 +64,14 @@ has '[Ww]here this connects|adjacency pointer' \
 # source-floor framed as eval-time signal (FR-13)
 has 'eval-time coverage signal' && ok "floor = eval-time coverage signal" || bad "floor not reframed as eval-time signal"
 
+# write step renders deterministically through the substrate renderer, not hand-authored.
+# This is the guard against the custom-vs-curated styling divergence: a hand-authored
+# emit drops the <main class="pmos-artifact-body"> wrapper that template.html supplies.
+has 'renderArtifact'                       && ok "write step calls renderArtifact()"            || bad "write step does not reference renderArtifact() — risks hand-authored HTML"
+has 'content-only'                         && ok "write step mandates a content-only fragment"  || bad "write step does not require a content-only {{content}} fragment"
+has 'pmos-artifact-body'                   && ok "write step asserts the pmos-artifact-body wrapper" || bad "write step missing the pmos-artifact-body structural self-check"
+# anti-pattern codifying the hand-authoring failure mode
+has '[Hh]and-authoring the primer HTML'    && ok "anti-pattern: no hand-authored HTML shell"    || bad "missing anti-pattern against hand-authoring the HTML shell"
+
 echo "----"
 if [[ $fails -eq 0 ]]; then echo "ALL PRIMER STRUCTURE CHECKS PASS"; exit 0; else echo "$fails FAILURE(S)"; exit 1; fi
