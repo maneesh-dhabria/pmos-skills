@@ -13,13 +13,14 @@ status: done
 feature_folder: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/
 plan_doc:
 tasks: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/stories/260614-tcx/tasks.yaml
-worktree: feat/260614-tcx
+worktree: 
 labels: [html-authoring, substrate, typography, readability, cross-plugin, aesthetic]
 claimed_by: build:explainer-a3g-loop
 driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
 build_commit: d23f185
+released: 2.80.0 (+pmos-learnkit/v0.24.0)
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:feature (no plan_doc HTML — lean). Build via /feature-sdlc build --story 260614-tcx -->

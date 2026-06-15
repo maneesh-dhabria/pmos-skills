@@ -7,7 +7,7 @@ type: enhancement
 priority: should
 route: feature
 plugin: pmos-toolkit
-status: defined
+status: released
 feature_folder: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/
 requirements_doc:
 spec_doc:
@@ -15,7 +15,8 @@ design_doc: docs/pmos/features/2026-06-14_html-authoring-typography-refresh/02_d
 supersedes: [260613-ev1]
 labels: [html-authoring, substrate, typography, readability, design-crit, cross-plugin, aesthetic]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.80.0 (+pmos-learnkit/v0.24.0)
 ---
 
 ## Context
