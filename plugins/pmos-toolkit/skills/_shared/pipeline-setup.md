@@ -50,9 +50,11 @@ If legacy state was detected, run **Section D migration** as part of first-run (
 Issue **one** `AskUserQuestion` call with three questions batched. (Platforms without `AskUserQuestion`: emit the three as a single numbered list and accept defaults if the user replies "ok" or similar.)
 
 **Q1 — Where should pipeline artifacts live?**
-- Recommended (legacy detected): `docs/` (preserves your existing layout)
-- Recommended (fresh repo): `docs/pmos/` (namespaced under docs/, default for new repos)
+- `docs/pmos/` — namespaced under docs/, the default for new repos (Recommended)
+- `docs/` — preserves an existing layout; auto-recommended instead when a legacy `docs/{requirements,specs,plans,features}/` layout is detected (see A.1)
 - Other... (free-form path)
+
+The `docs/pmos/` option carries the byte-exact ` (Recommended)` suffix so a `--non-interactive` first-run AUTO-PICKs it (the canonical classifier DEFERs only when *no* option ends in `(Recommended)`) — picking the namespaced default is non-destructive, so AUTO-PICK is correct here. When A.1 detects a legacy `docs/` layout, an interactive run should still steer the user toward `docs/` (it preserves their existing tree); the suffix governs only the headless default.
 
 **Q2 — Workstream context?**
 - List up to 5 most-recently-modified entries from `~/.pmos/workstreams/*.md`, labeled by frontmatter `name` + `type`
