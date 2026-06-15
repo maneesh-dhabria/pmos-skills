@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://plane.so/blog/how-to-write-a-prd-that-engineers-actually-read",
+    "takeaway": "Plane's guide reframes the PRD as a problem-clarity instrument, not a blueprint: \"A strong PRD crisply explains the problem, defines the boundaries, and gives engineers room to design the best solution,\" and \"A modern PRD is no longer a 20-page blueprint.\" Its five named failure modes — missing context/why, ambiguous scope, vague language (\"simple\", \"intuitive\"), unclear metrics, and staleness — are why engineers ignore documents; the corrective is to start with \"Who has the problem, What they are trying to do, What is going wrong today,\" link out to design/tech-spec/research rather than inline them, and prefer \"a clear 'TBD' over hidden assumptions.\" Match length to complexity, not to a template.",
+    "topic": "what-product-documents-are-for",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://formlabs.com/blog/product-requirements-document-prd-with-template/",
+    "takeaway": "Formlabs frames the PRD by what it deliberately excludes: it \"describes all aspects of a new idea required or desired to make its realization a success\" but \"is not a technical implementation plan—that's the engineers' responsibility,\" and requirements should be prioritized as must-haves / want-to-haves / nice-to-haves. The load-bearing caution is about rigidity — an over-specified PRD \"can impede design explorations of a more open kind that may lead to different kinds of successful products\" — so it must stay a living document that states the what and why and leaves the how to the people building it. The document is a constraint on ambiguity, not on solution space.",
+    "topic": "what-product-documents-are-for",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.ideaplan.io/compare/prd-vs-product-brief-vs-product-spec",
+    "takeaway": "IdeaPlan supplies the cleanest three-way map of the core artifacts by purpose, length, and audience: a product brief (1–2 pages, for executives) \"justifies investment in an initiative\"; a PRD (3–6 pages, for the product team, designers, engineers) \"defines what the team will build\"; a product spec (3–10 pages, for engineering) \"describes how the team will implement requirements.\" The two distinctions worth memorizing: \"The brief answers should we build this while the PRD answers what exactly are we building,\" and \"The PRD says what the user should experience. The spec says how the system will deliver that experience.\" Pick the document by the decision it has to unlock.",
+    "topic": "matching-the-document-to-the-decision",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.pendo.io/product-led/artifacts/product-requirements-document-prd-template/",
+    "takeaway": "Pendo's working definition: \"A product requirements document (PRD) is a living, detailed guide to your product's intended features, functionality, and purpose,\" whose job is that \"a well-structured PRD helps product managers, developers, and designers stay on the same page and reduce miscommunication.\" Its template skeleton is a useful default — overview (mission, target audience, use cases, strategy alignment), objectives & success metrics, target users/personas, key features & requirements, user stories, technical & design considerations, and assumptions/risks/open questions. The PRD is the cross-functional coordination artifact: its readers are the whole delivery trio, not just engineering.",
+    "topic": "the-prd",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.atlassian.com/software/confluence/templates/lennys-product-requirements",
+    "takeaway": "Lenny Rachitsky's widely-copied PRD template is built around a three-step discipline — crystallize the problem, align stakeholders, and then \"keep referring back to the problem to ensure that the team is still aligned and moving toward solving the original problem.\" Its problem-statement core is six questions: Description (what is it?), Problem (what does it solve?), Why (how do we know it's a real problem?), Success (how will we know we solved it?), Audience (who is it for?), and What (what does it look like in the product?). The structural bet is that nailing the problem statement, not enumerating features, is where a PRD earns its keep.",
+    "topic": "the-prd",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://pmcaffeine.substack.com/p/the-power-of-one-pagers",
+    "takeaway": "PMCaffeine argues the one-pager's value is the constraint itself: \"It's much better to rewrite your one-pager 100x until you have clarity on what problem to solve, with a straightforward way to test and measure its results, than build something that won't prove anything.\" It is a collaborative living document — \"When you start writing your one-pager, it's paramount that you bring your team together to get their inputs and feedbacks\" — that improves decision quality, de-risks bets, and forces cross-functional alignment before code. The single page is a forcing function for prioritization: anything that doesn't fit the page wasn't essential.",
+    "topic": "the-one-pager",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://productfolio.com/product-brief/",
+    "takeaway": "Productfolio defines the brief as the problem-framing front door: \"A product brief is a document that defines a problem to be solved and generally includes goals and/or some set of high-level requirements,\" and notes that \"the Product Brief by contrast, is often called a 'one pager' and is intentionally lightweight and focused on defining the problem, not the solution.\" Holding the brief to problem, use cases, timeline, differentiation, and success metrics — and stopping there — is what \"allows a more Agile and team-driven approach to solutioning,\" handing the solution space to the team rather than pre-deciding it. Brief and one-pager are often the same artifact under two names.",
+    "topic": "the-product-brief",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://workingbackwards.com/concepts/working-backwards-pr-faq-process/",
+    "takeaway": "The canonical PR/FAQ definition from Colin Bryar and Bill Carr's Working Backwards: \"Working Backwards is a systematic way to vet ideas and create new products,\" whose principal tool is a press release written as if the product has already launched (heading, sub-heading, summary, problem, solution, customer quotes) paired with a FAQ that handles both customer and internal-stakeholder questions. Their framing of the FAQ's job: \"Think of the FAQ section as the map to that destination and a detailed description of the dragons you will need to slay.\" Writing in the past/present tense of a shipped product forces customer-perspective thinking before any build commitment.",
+    "topic": "the-prfaq",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/product-fundamentals/prfaq",
+    "takeaway": "Product School fixes where the PR/FAQ sits in the lifecycle — early, before building: \"It's a simple way to articulate a vision and iron out potential issues long before development begins,\" and it \"sets the stage for deeper discussions without diving into detailed execution yet.\" That places it upstream of the PRD: the PR/FAQ argues whether a customer-valued idea is worth pursuing and what success would feel like, while the PRD (later) specifies what to build once that bet is made. The press release is the vision in customer language; the FAQ is where the hard internal questions get answered before money is spent.",
+    "topic": "the-prfaq",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.sixpagermemo.com/blog/what-is-an-amazon-six-pager",
+    "takeaway": "The Amazon six-pager is \"a comprehensive written six-page document designed to facilitate effective decision-making by providing substantial context and detail,\" conventionally structured as introduction, goals, tenets, state of the business, lessons learned, and strategic priorities. The rationale for banning slides in 2004 is blunt: presentations \"don't provide enough context and detail for making high-quality decisions.\" Where the PR/FAQ is for vetting a new product idea, the six-pager is the general-purpose narrative for any complex business decision or review — the same prose-forces-thinking discipline applied beyond launches.",
+    "topic": "the-narrative-memo-and-six-pager",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.aboutamazon.com/news/workplace/an-insider-look-at-amazons-culture-and-processes",
+    "takeaway": "Amazon's own account names the narrative as a deliberate cognitive forcing function: \"Its principal tool is a second form of written narrative called the PR/FAQ, short for press release/frequently asked questions,\" and the meeting ritual is that \"everyone reads it to themselves\" in silence before discussion so independent judgment precedes group influence. The length discipline is explicit — the PR is \"a few paragraphs, always less than one page,\" the FAQ \"should be five pages or less,\" and \"there are no awards for extra pages or more words.\" The constraint, not the page count, is the point: it forces the writer to decide what actually matters.",
+    "topic": "the-narrative-memo-and-six-pager",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://coda.io/@colin-bryar/working-backwards-how-write-an-amazon-pr-faq",
+    "takeaway": "Colin Bryar, who ran the Working Backwards process at Amazon, is explicit that the cost is the point: \"Done correctly, the Working Backwards process is a huge amount of work. But, it saves you even more work later,\" because \"the process forces you to slow down and define, in unambiguous terms, the problem you are solving for customers.\" The PR/FAQ splits into a press release, an external FAQ (customer/press questions), and an internal FAQ (the longer, harder stakeholder questions about risk and feasibility), and it is rewritten many times before any review meeting. Narrative prose, not bullets, is what exposes fuzzy thinking the writer could otherwise hide.",
+    "topic": "the-narrative-memo-and-six-pager",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://romanpichler.medium.com/my-product-strategy-model-cdb9e2673853",
+    "takeaway": "Roman Pichler's model orders the strategic artifacts as a hierarchy — vision (the ultimate reason the product exists), strategy (the approach to realize it), roadmap (implementation over 6–12 months via product goals), and backlog (epics and stories) — and holds that a product strategy must make four choices: target market/users, customer needs, standout features, and business goals. His warning against strategy-as-everything: \"A product that tries to please everyone risks not doing a good job for anybody.\" The strategy document's job is to record those four bets so roadmap and backlog have something to descend from; without it, the backlog is just a list.",
+    "topic": "the-strategy-doc-and-vision",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://melissaperri.com/blog/2016/07/14/what-is-good-product-strategy",
+    "takeaway": "Melissa Perri draws the line product teams most often blur — strategy is not a roadmap: \"Product Strategy is a system of achievable goals and visions that work together to align the team around desirable outcomes for both the business and your customers.\" When organizations write strategy as a fixed feature list, it \"typically fails because it ignores uncertainty and stops teams from questioning whether they're building the right things.\" A strategy document, done right, is a decision-making framework that connects vision to execution and survives changing tactics — not a dated list of features dressed up as a plan.",
+    "topic": "the-strategy-doc-and-vision",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.romanpichler.com/blog/double-vision-how-to-capture-the-product-vision/",
+    "takeaway": "Pichler defines the vision as distinct from, and more durable than, strategy: regard it \"as an aspirational goal that describes the ultimate reason for creating the product and the positive change it should bring about,\" and capture it \"as a memorable statement or slogan\" that is \"Inspiring: The vision resonates with the stakeholders and development teams.\" The vision stays stable while strategy shifts beneath it, which is why it belongs at the top of the document stack as a short, motivating sentence rather than a paragraph of positioning. A good vision is the fixed star the strategy navigates by.",
+    "topic": "the-strategy-doc-and-vision",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://commoncog.com/putting-amazons-pr-faq-to-practice/",
+    "takeaway": "Cedric Chin's practitioner account locates the PR/FAQ's real value in the discomfort it manufactures: writing the press release from the customer's point of view means \"customers care only about how your product makes their lives better,\" and \"it is very uncomfortable to have your idea ripped to shreds in front of you\" — but that confrontation is the feature, surfacing weak ideas before they consume a roadmap. His diagnosis of teams that reject the tool — claiming it doesn't fit small companies or uncertain ventures — is that the discomfort signals incomplete foundational work, not a bad method. The document is valuable precisely because it refuses to let you skip the hard questions.",
+    "topic": "why-writing-beats-slides",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  }
+]

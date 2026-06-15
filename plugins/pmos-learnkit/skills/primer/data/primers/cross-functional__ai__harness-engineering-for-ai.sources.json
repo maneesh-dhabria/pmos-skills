@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://huggingface.co/blog/agent-glossary",
+    "takeaway": "Hugging Face's agent glossary gives the cleanest split: the harness is \"the execution layer inside the agent: it calls the model, handles its tool calls, decides when to stop,\" while scaffolding is \"the behavior-defining layer around the model: system prompt, tool descriptions, how the model's responses get parsed, what it remembers across steps.\" Its headline equation is \"Agent = Model + Harness\" — \"An agent is a model plus everything around it that lets it act, not just respond ... taking in information, deciding what to do, and acting on the results.\"",
+    "topic": "what-harness-engineering-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@adnanmasood/agent-harness-engineering-the-rise-of-the-ai-control-plane-938ead884b1d",
+    "takeaway": "Adnan Masood defines the agent harness as \"the scaffolding around an LLM that turns it into a working agent — the loop, tool calls, context management, memory, guardrails, and tracing,\" or \"the runtime software infrastructure that acts as the operating system around the model.\" His provocation: \"Your Model Isn't the Problem — Your Harness Is,\" arguing that the harness is becoming an \"Enterprise AI Control Plane, resembling a blend of CI/CD, Identity and Access Management (IAM), and observability.\"",
+    "topic": "what-harness-engineering-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://github.com/ai-boost/awesome-harness-engineering",
+    "takeaway": "The awesome-harness-engineering list defines harness engineering as \"the discipline of designing the scaffolding — context delivery, tool interfaces, planning artifacts, verification loops, memory systems, and sandboxes — that surrounds an AI agent and determines whether it succeeds or fails on real tasks.\" Its scope spans \"tools, patterns, evals, memory, MCP, permissions, observability, and orchestration,\" with the framing note: \"This list focuses on the harness, not the model. Every component here exists because the model can't do it alone.\"",
+    "topic": "what-harness-engineering-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.anthropic.com/research/building-effective-agents",
+    "takeaway": "Anthropic distinguishes workflows — \"systems where LLMs and tools are orchestrated through predefined code paths\" — from agents — \"systems where LLMs dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks.\" Agents are \"LLMs using tools based on environmental feedback in a loop.\" Its core advice: prefer \"simple, composable patterns rather than complex frameworks,\" since frameworks \"often create extra layers of abstraction that can obscure the underlying prompts and responses, making them harder to debug.\"",
+    "topic": "workflows-versus-agents",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://react-lm.github.io/",
+    "takeaway": "The ReAct project (ICLR 2023) combines reasoning and acting: it generates \"both reasoning traces and task-specific actions in an interleaved manner ... reasoning traces help the model induce, track, and update action plans as well as handle exceptions, while actions allow it to interface with external sources, such as knowledge bases or environments, to gather additional information.\" The result is \"human-like task-solving trajectories that are more interpretable than baselines,\" and it reduces \"hallucination and error propagation\" by interacting with a real tool.",
+    "topic": "the-agent-loop",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.promptingguide.ai/techniques/react",
+    "takeaway": "The Prompt Engineering Guide describes ReAct as a loop: \"ReAct prompts LLMs to generate verbal reasoning traces and actions for a task,\" running \"multiple thought-action-observation steps\" where the model reasons, acts, receives an observation, and continues. It allows \"interaction to external environments ... to incorporate additional information into the reasoning,\" so the model can \"perform dynamic reasoning to create, maintain, and adjust plans for acting.\"",
+    "topic": "the-agent-loop",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+    "takeaway": "Anthropic frames tools as \"a new kind of software which reflects a contract between deterministic systems and non-deterministic agents,\" and warns that \"agents are only as effective as the tools we give them.\" Poor tool design produces specific failures — agents may \"call the wrong tools, call the right tools with the wrong parameters, call too few tools, or process tool responses incorrectly\" — so \"instead of writing tools ... the way we'd write functions and APIs for other developers ... we need to design them for agents.\"",
+    "topic": "tools-and-function-calling",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.langchain.com/langgraph",
+    "takeaway": "LangGraph provides \"low-level primitives\" to \"create fully customizable agents\" with \"diverse control flows — single, multi-agent, hierarchical.\" Its \"built-in memory stores conversation histories and maintains context over time,\" and it supports governance: \"Prevent agents from veering off course with easy-to-add moderation and quality controls. Add human-in-the-loop checks to steer and approve agent actions,\" plus \"native token-by-token streaming, showing agent reasoning and actions in real time.\"",
+    "topic": "control-flow-and-orchestration",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.datadoghq.com/blog/llm-guardrails-best-practices/",
+    "takeaway": "Datadog defines guardrails as mechanisms that \"create boundaries around the acceptable inputs and behavior of generative AI applications to enforce security, safety, and compliance in LLM interactions.\" They operate as \"User input validation (e.g., rejecting adversarial or off-topic user prompts)\" and \"LLM output filtering (e.g., protecting system prompt or training data leakage),\" functioning \"before, during, and after the ingestion of an input prompt\" — sitting between user and model to block prompt injection and data exfiltration.",
+    "topic": "guardrails-and-safety",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://docs.langchain.com/oss/python/langchain/guardrails",
+    "takeaway": "LangChain's guardrails docs show guardrails as middleware: \"You can implement guardrails using middleware to intercept execution at strategic points - before the agent starts, after it completes, or around model and tool calls.\" Before-agent hooks handle \"authentication, rate limiting, or blocking inappropriate requests\"; after-agent hooks do \"final compliance scans on the complete agent response.\" Two styles exist — deterministic (\"rule-based logic like regex patterns\") and model-based (\"LLMs or classifiers to evaluate content with semantic understanding\").",
+    "topic": "guardrails-and-safety",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+    "takeaway": "Anthropic defines an evaluation (\"eval\") as \"a test for an AI system: give an AI an input, then apply grading logic to its output to measure success.\" Evals matter because \"without them, it's easy to get stuck in reactive loops—catching issues only in production, where fixing one failure creates others.\" Regression evals \"should have a nearly 100% pass rate ... a decline in score signals that something is broken,\" making \"problems and behavioral changes visible before they affect users.\"",
+    "topic": "evaluation-harnesses",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://deepeval.com/blog/what-is-an-eval-harness",
+    "takeaway": "DeepEval calls an evaluation harness \"the validation layer for AI agents\" — it loops through a dataset of golden test cases, captures \"the response, and execution trace if available,\" and runs \"your metric suite on it\" to score. It draws a sharp line: \"The moment it's in the live path and gates the response, that's a guardrail, not an eval\" (evals run offline in development). Its thesis: \"when everyone has access to roughly the same frontier model, the harness around it is what's left to differentiate on.\"",
+    "topic": "evaluation-harnesses",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.langchain.com/langsmith/evaluation",
+    "takeaway": "LangSmith's agent evaluation \"captures the full trajectory of steps, tool calls, and reasoning your agent took,\" letting teams \"Define evaluators that score intermediate decisions and agent behavior to debug complex agent workflows and pinpoint where things went wrong.\" Because agents take many hidden steps, evaluating only the final output is not enough — capturing each step is how teams \"identify failure points in multi-turn workflows.\"",
+    "topic": "observability-and-tracing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.getmaxim.ai/articles/ensuring-ai-agent-reliability-in-production-environments-strategies-and-solutions/",
+    "takeaway": "Maxim argues that \"The gap between AI agents that work in demos and agents that work reliably in production determines which organizations will succeed with AI automation.\" The hard part is that \"Unlike traditional applications that fail with clear error messages, AI agents frequently experience silent quality degradation\" — so \"Traditional software reliability approaches prove inadequate for managing probabilistic systems where failures often manifest as subtle quality degradation rather than clear system errors,\" demanding observability, continuous evaluation, and purpose-built error handling.",
+    "topic": "reliability-in-production",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.aimagicx.com/blog/harness-engineering-replacing-prompt-engineering-2026",
+    "takeaway": "AI Magicx frames harness engineering as \"the execution environment, agent scaffolding, and orchestration logic around an LLM ... the new discipline that separates toy demos from production AI systems\" — \"everything around the LLM call: the execution environment, the tool integrations, the memory system, the retry logic, the guardrails, the context assembly pipeline, the output validation.\" It cites a Stanford HAI finding that \"prompt refinement beyond a reasonable baseline improved output quality by less than 3%\" while \"Harness-level changes -- adding retrieval, tool access, and structured validation -- improved quality by 28-47%.\"",
+    "topic": "harness-versus-prompt-and-context-engineering",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.pragmaticinstitute.com/resources/articles/product/ai-agents-for-product-managers/",
+    "takeaway": "Pragmatic Institute tells PMs that \"Agents are only as effective as the structure behind them.\" The job is to \"clearly define the goal, not just the task,\" to \"define each step of the task along the way,\" and to \"be explicit about what data can be used, what actions are allowed, and how you want the output to look.\" Its bottom line: \"Without structure, agents produce output. With structure, they produce something useful,\" because \"the quality of the output is directly tied to the clarity of the instruction.\"",
+    "topic": "what-this-means-for-pms",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/artificial-intelligence/ai-agents-product-managers",
+    "takeaway": "Product School defines AI agents as \"software systems that leverage artificial intelligence capabilities to offer autonomous action, logical reasoning, and continuous learning,\" able to \"string together multiple actions — planning and executing a sequence\" and \"make decisions on the fly.\" But it stresses oversight: \"Even great AI agents need oversight. Treat their outputs like drafts, not final answers,\" and \"treat AI agents like Associate Product Managers. They can get a lot done, but they still need guidance.\"",
+    "topic": "what-this-means-for-pms",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

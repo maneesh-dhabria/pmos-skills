@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.nngroup.com/articles/user-interviews/",
+    "takeaway": "NN/g defines a user interview as \"a research method where the interviewer asks participants questions about a topic, listens to their responses, and follows up with further questions to learn more\"; the core skills are open-ended questions, rapport, and genuine listening.",
+    "topic": "what-this-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://portigal.com/Books/interviewing-users-2/",
+    "takeaway": "Steve Portigal's Interviewing Users argues that interviewing is a learnable skill, not an innate talent, and that the goal is moving \"from simply gathering data to uncovering powerful insights about people.\"",
+    "topic": "what-this-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/@ttorres/continuous-interviewing-the-key-to-successful-product-teams-6bf63bfc1936",
+    "takeaway": "Teresa Torres warns that some question types \"let people answer with their ideal version of themselves rather than a realistic portrayal of their everyday behavior,\" so ask about specific past stories; she frames weekly interviewing as a keystone habit.",
+    "topic": "why-interviews-are-hard",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.sachinrekhi.com/p/the-mom-test-rob-fitzpatrick",
+    "takeaway": "Rob Fitzpatrick's The Mom Test teaches you to ask about the customer's actual life and past behavior instead of pitching, because people lie politely about hypotheticals; \"it's not a real sales lead until you've given them such a concrete chance to reject you.\"",
+    "topic": "why-interviews-are-hard",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/screening-participants/",
+    "takeaway": "Recruiting the right participants is what makes findings valid; screeners must hide the study's intent because \"since all questions in a written screener are typically visible upfront, participants may guess the purpose of the study and tailor their responses to fit.\"",
+    "topic": "recruiting-the-right-people",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/screening-questions-select-research-participants/",
+    "takeaway": "Good screening questions face two conflicting goals: \"They must elicit specific information about users. They should also avoid revealing specific information about the study\" — solved with open-ended wording or realistic distractor answers.",
+    "topic": "recruiting-the-right-people",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/interview-guide/",
+    "takeaway": "An interview guide is a flexible plan for a semi-structured interview: \"A good interview guide paves the way for a deep, free-flowing conversation with participants,\" pairing warmup rapport questions with an ordered set of research topics.",
+    "topic": "the-interview-guide",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/leading-questions/",
+    "takeaway": "A leading question includes or implies the desired answer in its phrasing, so participants echo the interviewer instead of sharing real experience — producing, in NN/g's words, \"biased or false answers.\"",
+    "topic": "open-ended-vs-leading-questions",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/open-ended-questions/",
+    "takeaway": "\"Open-ended questions allow participants to give a free-form text answer,\" surfacing surprises, while closed questions limit answers to fixed options; the funnel technique opens broad and narrows to specifics to avoid priming.",
+    "topic": "open-ended-vs-leading-questions",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.uxtweak.com/the-mom-test/",
+    "takeaway": "The Mom Test's three rules are: talk about their life, not your idea; ask about specifics in the past, not opinions about the future; and talk less, listen more — its foundational line is \"Talk about their life, not your idea.\"",
+    "topic": "asking-about-the-past",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/videos/funnel-technique-interviews/",
+    "takeaway": "The funnel technique means you \"start with broad, open-ended questions in your interviews before introducing more specific questions to gather accurate, in-depth information,\" so you don't bias early answers with narrow framing.",
+    "topic": "the-funnel-and-probing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/videos/probing-user-interviews/",
+    "takeaway": "Probing means following up to draw out detail with open prompts like \"tell me more\" and \"why,\" turning a thin first answer into the richer context behind it.",
+    "topic": "the-funnel-and-probing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/interview-facilitation-mistakes/",
+    "takeaway": "NN/g's five interview-facilitation mistakes are weak rapport, too little probing, multitasking, letting observers disrupt, and leading via questions or body language; note that \"participants will often 'mirror' the researcher, so speaking slowly will help them remain calm as well.\"",
+    "topic": "listening-silence-and-rapport",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://theinformed.life/2022/02/27/episode-82-indi-young/",
+    "takeaway": "Indi Young's listening sessions aim to understand a person's interior thinking rather than run a question list: \"We're just there to understand that person. We don't have a list of questions. We don't have a clock running.\"",
+    "topic": "deep-listening",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/affinity-diagram/",
+    "takeaway": "Affinity diagramming \"refers to organizing related observations, ideas, concepts, or findings into distinct clusters,\" turning a pile of interview notes into themes the team builds consensus around.",
+    "topic": "synthesis-from-notes-to-themes",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/thematic-analysis/",
+    "takeaway": "Thematic analysis systematically codes segments of qualitative data to surface recurring patterns; it \"renders important aspects of qualitative data visible and makes uncovering themes easier\" across many participants.",
+    "topic": "synthesis-from-notes-to-themes",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

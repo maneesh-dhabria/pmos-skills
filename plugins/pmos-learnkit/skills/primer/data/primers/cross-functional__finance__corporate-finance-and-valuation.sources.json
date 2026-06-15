@@ -1,0 +1,128 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Time_value_of_money",
+    "takeaway": "Wikipedia defines the time value of money as \"the idea that there is generally a greater benefit to receiving a sum of money now rather than an identical sum later,\" because \"money you have today can be invested to earn a positive rate of return, producing more money tomorrow.\" Future value is FV = PV(1+i)^n and present value reverses it: \"the present value of a sure amount FV due at time n is PV = FV(1+i)^-n.\"",
+    "topic": "the-time-value-of-money",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Present_value",
+    "takeaway": "Wikipedia defines present value as \"the value of an expected income stream determined as of the date of valuation,\" computed as PV = C/(1+i)^n. It states the core principle that \"the present value is usually less than the future value because money has interest-earning potential, a characteristic referred to as the time value of money\" — in short, \"a dollar today is worth more than a dollar tomorrow.\"",
+    "topic": "the-time-value-of-money",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/discounting/",
+    "takeaway": "Corporate Finance Institute defines discounting as \"the act of estimating the present value of a future payment or a series of cash flows that are to be received in the future,\" obtained \"by using a discount rate or factor and applying it to the cash flows.\" The present-value formula it gives is PV = FV / (1 + r)^t, where r is the discount rate and t is the time period.",
+    "topic": "present-value-and-discounting",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/discount-rate/",
+    "takeaway": "CFI defines the discount rate as \"the rate of return used to discount future cash flows back to their present value,\" and names the five types used in corporate finance: Weighted Average Cost of Capital (for enterprise value), cost of equity, cost of debt, a pre-defined hurdle rate (for internal projects), and the risk-free rate (for the time value of money). It frames the rate as the investor's opportunity cost and required return given perceived risk.",
+    "topic": "present-value-and-discounting",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Net_present_value",
+    "takeaway": "Wikipedia defines net present value as \"a method for assessing whether future amounts of money are worth more or less than the cost of an investment made today\" — the sum of discounted future cash flows minus the initial investment. The decision rule is clean: NPV > 0 means \"the investment would add value to the firm\" (accept), NPV < 0 means it \"would subtract value from the firm\" (reject), and NPV = 0 is a toss-up.",
+    "topic": "net-present-value",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.accountingtools.com/articles/the-difference-between-npv-and-irr.html",
+    "takeaway": "AccountingTools contrasts the two rules: \"the NPV method results in a dollar value that a project will produce, while IRR generates the percentage return that the project is expected to create.\" The decision rules are accept when NPV is greater than zero, or when IRR exceeds the hurdle rate. The two \"can lead to different decisions, especially when comparing mutually exclusive projects,\" and in those conflicts \"NPV is the more dependable approach.\"",
+    "topic": "comparing-investment-rules",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Internal_rate_of_return",
+    "takeaway": "Wikipedia defines the internal rate of return as the rate \"that sets the net present value (NPV) of all cash flows... from the investment equal to zero.\" The rule: \"if the estimated IRR of a project... exceeds the firm's cost of capital... the investment is profitable.\" It warns of limitations — when cash-flow signs change more than once \"the IRR may have multiple real values,\" and \"using IRR to sort projects in order of preference does not result in the same order as using NPV.\"",
+    "topic": "internal-rate-of-return",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/internal-rate-return-irr/",
+    "takeaway": "CFI defines IRR plainly as \"the discount rate that makes the net present value (NPV) of a project zero,\" with the rule that \"if the IRR is greater than or equal to the cost of capital, the company would accept the project.\" It flags three drawbacks: IRR \"doesn't give you the return on the initial investment in terms of real dollars,\" it struggles comparing projects of different durations, and \"it assumes all positive cash flows... will be reinvested at the same rate as the project.\"",
+    "topic": "internal-rate-of-return",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/financial-modeling/payback-period/",
+    "takeaway": "CFI defines the payback period as the measure that \"shows how long it takes for a business to recoup an investment,\" with the decision rule \"to minimize the time taken for the return on investment.\" Its critical limitation: payback \"does not show what the return on investment is\" and fails to \"explicitly discount for the risk and opportunity costs,\" so cash flows after the payback point are ignored entirely.",
+    "topic": "comparing-investment-rules",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/what-is-wacc-formula/",
+    "takeaway": "CFI defines the Weighted Average Cost of Capital as a firm's \"blended cost of capital across all sources, including common shares, preferred shares, and debt,\" given by WACC = (E/V × Re) + ((D/V × Rd) × (1 – T)), where equity and after-tax debt are weighted by their share of capital. It notes \"WACC is used in financial modeling as the discount rate to calculate the net present value of a business.\"",
+    "topic": "the-cost-of-capital",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.wallstreetprep.com/knowledge/wacc/",
+    "takeaway": "Wall Street Prep calls WACC \"one of the key inputs in discounted cash flow (DCF) analysis,\" and gives the cost-of-equity formula as \"Cost of equity = Risk free rate + [β x ERP],\" where beta is the company's sensitivity to market risk and ERP is the equity risk premium. It explains the debt side is taken after tax because \"the interest payments companies make are tax deductible, thus lowering the company's tax bill.\"",
+    "topic": "the-cost-of-capital",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Capital_asset_pricing_model",
+    "takeaway": "Wikipedia gives the CAPM formula E(Ri) = Rf + βi(E(Rm) − Rf): expected return equals the risk-free rate plus beta times the market risk premium. It explains the model \"takes into account the asset's sensitivity to non-diversifiable risk (also known as systematic risk or market risk), often represented by the quantity beta (β),\" and that it produces \"the asset-appropriate required return or discount rate.\"",
+    "topic": "risk-and-the-cost-of-equity",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Discounted_cash_flow",
+    "takeaway": "Wikipedia defines discounted cash flow analysis as \"a method used to value a security, project, company, or asset, that incorporates the time value of money.\" It projects free cash flow — \"cash produced by a company's business operations after paying for operating expenses and capital expenditures\" — discounts it at \"the cost of capital,\" and adds a terminal value for cash flows beyond the projection window, which \"is highly sensitive to growth and discount rate assumptions.\"",
+    "topic": "discounted-cash-flow-valuation",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Terminal_value_(finance)",
+    "takeaway": "Wikipedia defines terminal value as \"the present value at a future point in time of all future cash flows when we expect stable growth rate forever.\" Two methods estimate it: the Perpetuity Growth Model, which values free cash flows \"that continue growing at an assumed constant rate in perpetuity,\" and the Exit Multiple Approach, which \"assumes a business will be sold at the end of the projection period\" using a metric like Enterprise Value/EBITDA.",
+    "topic": "discounted-cash-flow-valuation",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Business_valuation",
+    "takeaway": "Wikipedia defines business valuation as \"a process and a set of procedures used to estimate the economic value of an owner's interest in a business,\" via three approaches: the income approach, which calculates \"the net present value of the benefit stream generated by the business (discounted cash flow)\"; the market approach, comparing the company to peers; and the asset-based approach. It cautions that results \"can vary considerably depending upon the choice of both the standard and premise of value.\"",
+    "topic": "what-valuation-means",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Valuation_using_multiples",
+    "takeaway": "Wikipedia describes valuation using multiples, or \"relative valuation,\" as \"identifying comparable assets (the peer group) and obtaining market values for these assets,\" then standardizing those prices against a key statistic. Common multiples include the price-to-earnings ratio (\"the most commonly used equity multiple\"), EV/EBITDA (\"probably the most popular of the EV based multiples\"), and price-to-sales, which stays \"applicable even when earnings are negative.\"",
+    "topic": "valuation-by-multiples",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/comparable-company-analysis/",
+    "takeaway": "CFI defines comparable company analysis (\"comps\") as \"a valuation methodology that looks at ratios of similar public companies and uses them to derive the value of another business\" — \"a relative form of valuation, unlike a discounted cash flow (DCF) analysis, which is an intrinsic form of valuation.\" Analysts \"take the average or median of the comparable companies' multiples and then apply them\" to the target's revenue, EBITDA, or net income.",
+    "topic": "valuation-by-multiples",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Enterprise_value",
+    "takeaway": "Wikipedia describes enterprise value as roughly \"common equity at market value + debt at market value... – cash and cash equivalents\" — \"the theoretical cost of acquiring an entire business,\" the amount \"a buyer would need to pay to settle with all security holders.\" Because \"EV is a capital structure-neutral metric, it is useful when comparing companies with diverse capital structures,\" which is why investors \"use EV/EBITDA to compare returns between equivalent companies.\"",
+    "topic": "valuation-by-multiples",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

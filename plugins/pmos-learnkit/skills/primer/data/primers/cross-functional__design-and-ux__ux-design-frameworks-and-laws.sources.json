@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://lawsofux.com/",
+    "takeaway": "Jon Yablonski's Laws of UX is the field's best-known curation of psychology-based design principles — \"a collection of best practices that designers can consider when building user interfaces\" — grouping heuristics, Gestalt principles, cognitive biases, and general principles in one reference.",
+    "topic": "what-this-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.uxdesigninstitute.com/blog/laws-of-ux/",
+    "takeaway": "The UX Design Institute frames the ~21 Laws of UX as psychology-rooted principles in four categories (heuristics, Gestalt, cognitive biases, general); \"they help us to understand how people perceive and interact with our products — allowing us to make better design choices.\"",
+    "topic": "heuristics-vs-laws",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nngroup.com/articles/ten-usability-heuristics/",
+    "takeaway": "Jakob Nielsen's 10 usability heuristics (1994) are the most-used rules of thumb in UX — including visibility of system status, user control, and error prevention; the first reads \"The design should always keep users informed about what is going on, through appropriate feedback within a reasonable amount of time.\"",
+    "topic": "nielsens-heuristics",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Jakob_Nielsen_(usability_consultant)",
+    "takeaway": "Jakob Nielsen, co-founder of the Nielsen Norman Group, authored the 10 heuristics and champions lightweight testing; he argued \"elaborate usability tests are a waste of resources\" because as few as five users surface most critical flaws.",
+    "topic": "nielsens-heuristics",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://thedecisionlab.com/reference-guide/design/nielsens-heuristics",
+    "takeaway": "Nielsen built the list to be usable: he sought \"a compact list of the most important and most general principles, so that it would be manageable, memorable, and mature enough to last a long time\" — which is why heuristic evaluation against them is the default quick audit.",
+    "topic": "applying-them",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Fitts%27s_law",
+    "takeaway": "Fitts's law is the research finding behind target sizing: \"the time required to rapidly move to a target area is a function of the ratio between the distance to the target and the width of the target\" — far, small targets are slow and error-prone.",
+    "topic": "fittss-law",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://lawsofux.com/fittss-law/",
+    "takeaway": "In design terms Fitts's law says make tap targets big and reachable, because \"the time to acquire a target is a function of the distance to and size of the target\" — especially on touch screens where finger precision is limited.",
+    "topic": "fittss-law",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Hick%27s_law",
+    "takeaway": "Hick's law quantifies choice overload: \"increasing the number of choices will increase the decision time logarithmically\" — reaction time rises with the number and complexity of options, though sub-linearly because people subdivide choices.",
+    "topic": "hicks-law",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://lawsofux.com/hicks-law/",
+    "takeaway": "The design move from Hick's law is to simplify: \"The time it takes to make a decision increases with the number and complexity of choices,\" so reduce options and break complex tasks into smaller steps.",
+    "topic": "hicks-law",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://lawsofux.com/jakobs-law/",
+    "takeaway": "Jakob's law says favor convention: \"Users prefer your site to work the same way as all the other sites they already know,\" and \"by leveraging existing mental models, we can create superior user experiences in which the users can focus on their tasks rather than on learning new models.\"",
+    "topic": "jakobs-law",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/The_Magical_Number_Seven,_Plus_or_Minus_Two",
+    "takeaway": "George Miller's 1956 paper on working-memory limits is widely misused: later research puts capacity nearer four chunks, and \"there is nothing 'magical' about the number seven\" — it never prescribed a limit on menu items or interface options.",
+    "topic": "millers-law",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://lawsofux.com/millers-law/",
+    "takeaway": "The legitimate design reading of Miller's law is chunking, not a hard cap: \"Organize content into smaller chunks to help users process, understand, and memorize easily.\"",
+    "topic": "millers-law",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Gestalt_psychology",
+    "takeaway": "Gestalt psychology holds that people perceive organized wholes, not isolated parts — \"The whole is something else than the sum of its parts\" — which is why layout cues like proximity and similarity drive how an interface reads.",
+    "topic": "gestalt-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Principles_of_grouping",
+    "takeaway": "The Gestalt grouping principles (proximity, similarity, closure, continuity, common region) predict perception: \"Objects or shapes that are close to one another appear to form groups\" even when they look quite different — the basis of visual hierarchy and spacing.",
+    "topic": "gestalt-principles",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Heuristic_evaluation",
+    "takeaway": "Heuristic evaluation is the method that makes the heuristics actionable — an expert inspection, typically 3–5 reviewers checking an interface against recognized principles to find major usability problems quickly and cheaply, without a full user test.",
+    "topic": "applying-them",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

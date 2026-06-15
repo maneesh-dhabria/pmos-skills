@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://www.stackadapt.com/resources/blog/martech-stack",
+    "takeaway": "StackAdapt defines a martech stack as \"the set of marketing tools and platforms that businesses use to reach, engage, convert, and retain their target audiences,\" spanning categories such as data/CRM/CDP/ABM, marketing automation, content management, ad tech, search, and analytics. Its blunt diagnosis: \"Martech stacks seldom underperform because of weak tools. Instead, weak infrastructure, fragmented data, and misalignment prevent companies from harnessing their technology effectively.\"",
+    "topic": "what-martech-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://cdp.com/glossary/martech/",
+    "takeaway": "CDP.com's glossary defines MarTech as \"the all-inclusive term for the software and digital solutions that support marketing operations,\" and notes the field's scale: industry analyst \"Scott Brinker... identified more than 8,000 MarTech solutions in his 2022 marketing technology landscape graphic.\"",
+    "topic": "what-martech-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martech.org/scott-brinker-unveils-2023-martech-landscape/",
+    "takeaway": "MarTech.org reports the landscape's growth from Scott Brinker's annual census: \"From 9,932 last year, the total number of solutions in the landscape has grown to 11,038\" — \"something like a 7,000% growth in the space over the last 12 years.\"",
+    "topic": "what-martech-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.hubspot.com/marketing/cdp-vs-crm",
+    "takeaway": "HubSpot frames the CRM (customer relationship management) system as the tool that helps teams \"track and manage interactions with customers and prospects throughout their entire lifecycle,\" while a CDP (customer data platform) gathers first-party data into a unified profile. Its one-line distinction: \"CDPs focus on customer interactions with your product or service. CRMs focus on customer interactions with your team.\"",
+    "topic": "the-crm",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.customerlabs.com/blog/crm-vs-dmp-vs-cdp/",
+    "takeaway": "CustomerLabs separates the three data tools cleanly: a DMP (data management platform) \"primarily collects data from other third-party sources and segments the data to build an audience\" (cookie-based, anonymized, for ad targeting); a CDP \"collects and unifies customer data from multiple sources under one umbrella, providing a 360 view\" (first-party, identified); and a CRM is built to \"manage customer relationships\" via \"phone calls, emails, and website visits.\"",
+    "topic": "the-cdp",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.sitecore.com/resources/insights/data-management/crm-vs-dmp-vs-cdp",
+    "takeaway": "Sitecore cites Gartner's definitions: a CRM is a \"business strategy that optimizes revenue and profitability while promoting customer satisfaction and loyalty\"; a DMP is \"software that controls the flow of data in and out of an organization... supports data-driven ad strategies such as segmentation\" (built for acquisition with third-party data); and a CDP \"unifies a company's customer data from marketing and other channels to enable customer modelling and optimize the timing and targeting of messages.\"",
+    "topic": "crm-vs-cdp-vs-dmp",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://storyteq.com/blog/how-do-marketing-automation-platforms-help-with-lead-nurturing/",
+    "takeaway": "Storyteq describes marketing automation as \"streamlining... building relationships... throughout their buying journey,\" and names its core mechanics: lead nurturing is \"the strategic process of developing relationships... at every stage,\" lead scoring is \"quantifying a prospect's sales readiness based on their activities,\" and segmentation means grouping \"similar leads for targeted campaigns.\"",
+    "topic": "marketing-automation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://monday.com/blog/crm-and-sales/lead-nurturing-software/",
+    "takeaway": "monday.com itemizes what automation software actually does: \"Automated drip campaigns deliver personalized email sequences based on lead behavior and pipeline stage progression,\" \"Lead scoring automatically tells you who's hot and who's not based on their actions,\" and \"Trigger-based workflows automatically move leads through nurturing sequences based on email opens, form submissions, and engagement milestones.\"",
+    "topic": "marketing-automation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://funnel.io/blog/multi-touch-attribution",
+    "takeaway": "Funnel.io defines multi-touch attribution (MTA) as a method that \"measures the impact of marketing channels... and how they influence conversions,\" via models including first-touch, last-touch, linear, time-decay, U-shaped, and W-shaped. It stresses the limits: \"No marketing attribution can ever be 100% objective,\" and only about a fifth of marketers \"believe they're using the right attribution model.\"",
+    "topic": "analytics-and-attribution",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://roivenue.com/articles/multi-touch-attribution-models-guide/",
+    "takeaway": "ROIVENUE contrasts the two attribution philosophies: \"Last-click attribution assigns 100% of conversion credit to the final touchpoint before purchase. Multi-touch attribution distributes credit across every interaction in the customer journey.\" It warns that last-click \"systematically undervalues awareness and consideration channels such as paid social, display, and video,\" and reports client data where \"over 50% of revenue is misattributed under last-click models.\"",
+    "topic": "analytics-and-attribution",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martech.org/these-are-the-challenges-and-barriers-impacting-your-martech-stack/",
+    "takeaway": "MarTech.org's survey finds integration is the central pain of owning a stack: \"data integration is the biggest stack management challenge, cited by 65.7% of respondents.\" Other barriers include data silos (24.7%), a skills gap (45%), the pace of change (32.5%), tool complexity (31.4%), and total cost of ownership (19.5%).",
+    "topic": "the-integration-problem",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://martech.org/the-hidden-tradeoffs-in-moving-to-a-composable-martech-stack/",
+    "takeaway": "MarTech.org explains the integration cost of a composable (best-of-breed, assembled) stack versus a monolith: \"With a monolith, integration is largely abstracted. In a composable model, integration becomes an ongoing responsibility — APIs break, schemas change and dependencies multiply.\"",
+    "topic": "the-data-warehouse-and-composable",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://martech360.com/marketing-automation/best-of-breed-vs-all-in-one-martech-platforms/",
+    "takeaway": "MarTech360 frames the buy decision as best-of-breed versus all-in-one: best-of-breed means specialized point tools but ongoing \"integration maintenance. APIs break\"; an all-in-one suite is \"One vendor. One contract... One data model,\" but carries an \"innovation tax. You pay for modules you do not fully use.\"",
+    "topic": "suite-vs-best-of-breed",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martech.org/marketers-are-only-using-one-third-of-their-stacks-capability/",
+    "takeaway": "Per Gartner's 2023 Martech Report (via MarTech.org), \"Marketers are using only one-third of their martech stack's capability\" — \"down from 42% last year and 58% in 2020\" — even as martech spend climbed from $15.3 billion (2020) to $23.6 billion (2023). Capability bought is far outpacing capability used.",
+    "topic": "the-utilization-gap",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://nav43.com/blog/b2b-martech-stack-in-2026-audit-consolidation-guide/",
+    "takeaway": "Nav43 makes the case for consolidation: \"Companies with five or fewer core tools report 23% higher marketing-attributed pipeline per headcount than those running ten or more,\" while \"Martech utilization has dropped to just 49%.\" Its governance test for any new tool starts with \"How will this integrate with our CRM?\"",
+    "topic": "what-pms-should-know",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

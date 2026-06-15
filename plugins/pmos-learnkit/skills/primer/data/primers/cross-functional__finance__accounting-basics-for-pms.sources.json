@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://www.freshbooks.com/hub/accounting/double-entry-bookkeeping",
+    "takeaway": "FreshBooks defines double-entry bookkeeping as \"an accounting method where each transaction is recorded in 2 or more accounts using debits and credits,\" governed by the accounting equation \"Assets = Liabilities + Equity.\" Both sides must agree: \"For each transaction, the total debits recorded must equal the total credits recorded\" — if they don't, \"there's a mistake in the books.\"",
+    "topic": "the-accounting-equation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.accountingcoach.com/debits-and-credits/explanation",
+    "takeaway": "AccountingCoach defines the mechanics plainly: \"To debit an account means to enter an amount on the left side of the account. To credit an account means to enter an amount on the right side.\" It teaches the mnemonics DEAL (Dividends/Draws, Expenses, Assets, Losses are \"increased with a debit\") and GIRLS (Gains, Income, Revenues, Liabilities, Stockholders' Equity are \"increased with a credit\"), and the core rule: \"The total of the amount(s) entered as debits must equal the total of the amount(s) entered as credits.\"",
+    "topic": "double-entry-debits-and-credits",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Debits_and_credits",
+    "takeaway": "Wikipedia frames debits and credits as transfers of value: \"A debit entry in an account represents a transfer of value to that account, and a credit entry represents a transfer from the account.\" The balancing rule holds for every transaction — \"the total debits must be equal to the total credits and therefore balance\" — and the account-type rule is fixed: \"Debits increase the value of assets and expense accounts,\" while \"credits increase the value of liability, equity, and revenue accounts.\"",
+    "topic": "double-entry-debits-and-credits",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Double-entry_bookkeeping",
+    "takeaway": "Wikipedia records that double-entry means \"every financial transaction is recorded with equal and opposite entries (debits and credits)\" so that every transaction keeps Assets = Liabilities + Equity in balance. It credits Luca Pacioli, who \"first codified the system in his mathematics textbook... published in Venice in 1494,\" as the \"father of accounting\" — though Florentine merchant Amatino Manucci's 1299–1300 ledger predates him.",
+    "topic": "what-accounting-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nerdwallet.com/article/small-business/accrual-vs-cash-basis-accounting",
+    "takeaway": "NerdWallet draws the cash-vs-accrual line by timing: under cash basis \"income and expenses are recognized only when payments are made,\" while accrual basis \"recognizes income and expenses when they are incurred.\" It notes accrual \"gives a fuller, more accurate view of your business's finances\" and is GAAP-compliant, whereas \"cash basis accounting is not GAAP compliant\" because it \"disregards the matching and revenue recognition principles of accounting.\"",
+    "topic": "cash-basis-vs-accrual-basis",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Accrual",
+    "takeaway": "Wikipedia defines accrual accounting as recognizing \"revenues and expenses when they are earned or incurred, not necessarily when cash is received or paid,\" contrasting it with cash basis, \"which recognizes transactions only when cash changes hands.\" Its example: \"if a company delivers a product in one financial year but will receive payment in the next, the revenue is recognized in the current financial year.\"",
+    "topic": "cash-basis-vs-accrual-basis",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://baremetrics.com/blog/matching-and-revenue-recognition-principles",
+    "takeaway": "Baremetrics defines the revenue recognition principle — \"a company should recognize revenue in the period in which it was earned, and not necessarily when the cash was received\" — and the matching principle, under which \"expenses should be matched to the revenue they generate and therefore be shifted into the period in which the revenue was earned instead of being recorded in the period they were paid for.\" It flags this as \"particularly important for subscription businesses that may receive annual payments but deliver services monthly.\"",
+    "topic": "the-matching-principle",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Revenue_recognition",
+    "takeaway": "Wikipedia states the principle — \"revenues are earned and recognized when they are realized or realizable, no matter when cash is received\" — and lays out the ASC 606 / IFRS 15 five-step model (May 2014): identify the contract, identify the performance obligations, determine the transaction price, allocate the transaction price, and recognize revenue when control transfers to the customer. Because \"cash can be received in an earlier or later period than when obligations are met,\" revenue is either accrued or deferred.",
+    "topic": "revenue-recognition",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.accountingcoach.com/adjusting-entries/explanation",
+    "takeaway": "AccountingCoach defines adjusting entries as \"accounting journal entries that convert a company's accounting records to the accrual basis of accounting,\" typically made \"just prior to issuing a company's financial statements.\" They exist because either nothing has been recorded yet for revenues/expenses that did occur, or an amount already recorded \"needs to be divided up between two or more accounting periods\" — the four types being accrued expenses, accrued revenues, deferred (prepaid) expenses, and deferred revenues.",
+    "topic": "adjusting-entries",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/accounting-cycle/",
+    "takeaway": "Corporate Finance Institute lays out the eight-step accounting cycle: financial transactions, journal entries \"in chronological order,\" posting to the general ledger, a trial balance where \"a total balance is calculated for the accounts,\" a worksheet to catch mismatches, adjusting entries \"posted to accounts for accruals and deferrals,\" preparing the \"balance sheet, income statement, and cash flow statement,\" and closing — where \"the revenue and expense accounts are closed and zeroed out for the next accounting cycle.\"",
+    "topic": "the-accounting-cycle",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Trial_balance",
+    "takeaway": "Wikipedia defines a trial balance as \"an internal financial statement that lists the adjusted closing balances of all the general ledger accounts,\" whose \"primary purpose... is to ensure the accuracy of an entity's double-entry bookkeeping system\" because \"the value of all the debit and credit balances on trial balance must be equal.\" Once it balances, \"the trading profit and loss statement and balance sheet and other financial reports can then be produced.\"",
+    "topic": "the-accounting-cycle",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.accountingcoach.com/financial-statements/explanation",
+    "takeaway": "AccountingCoach explains the statements are built from the same ledger: \"the amounts reported on the financial statements originated from the corporation's business transactions that were recorded and stored in the general ledger accounts.\" The income statement reports \"revenues, gains, expenses, losses, net income\" for a period; the balance sheet shows \"Assets = Liabilities + Stockholders' Equity\" at a point in time; and the cash flow statement \"reports the sources and uses of cash by operating activities, investing activities, financing activities.\"",
+    "topic": "building-the-income-statement-and-balance-sheet",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/indirect-method/",
+    "takeaway": "CFI describes the indirect method of the cash flow statement: it \"starts with net income and adjusts for non-cash items (like depreciation) and changes in working capital,\" via \"Net Income + Non-Cash Expenses – Increase in Current Assets + Increase in Current Liabilities = Cash Flow from Operations.\" The approach \"reconciles accrual-based net income to actual cash flow\" by adding back expenses that don't move cash and adjusting for accounts receivable, inventory, and accounts payable.",
+    "topic": "the-cash-flow-statement",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/gaap/",
+    "takeaway": "CFI defines GAAP as \"a commonly recognized set of rules and procedures designed to govern corporate accounting and financial reporting in the United States,\" developed by \"the Financial Accounting Standards Board (FASB) and the Governmental Accounting Standards Board (GASB).\" Its purpose is comparability — GAAP makes it \"easy for investors... to more easily comprehend financial statements and compare the financial statements of one company with those of another\" — and it emerged \"primarily as a response to the Stock Market Crash of 1929.\"",
+    "topic": "gaap-and-the-rules",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Generally_Accepted_Accounting_Principles_(United_States)",
+    "takeaway": "Wikipedia frames US GAAP as \"the set of default accounting standards used by companies based in the United States,\" \"published and maintained by the Financial Accounting Standards Board (FASB)\" through the Accounting Standards Codification. It names the core assumptions: going concern (\"the company will continue its business indefinitely\"), revenue recognition (\"record revenue when earned and not when received\"), the matching principle (\"expenses have to be matched with revenues\"), and consistency across periods.",
+    "topic": "gaap-and-the-rules",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

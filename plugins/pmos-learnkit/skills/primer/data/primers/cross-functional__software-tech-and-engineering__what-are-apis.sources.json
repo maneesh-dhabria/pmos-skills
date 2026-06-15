@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/API",
+    "takeaway": "An API is the agreed contract that lets two software programs talk: \"an API connects software entities together,\" serving as a defined interface between a service provider and the developers who rely on it.",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Web_API",
+    "takeaway": "A web API exposes server-side endpoints over HTTP so outside applications can request data and combine services: \"Mashups are web applications which combine the use of multiple server-side web APIs.\"",
+    "topic": "what-this-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview",
+    "takeaway": "Web APIs run on HTTP's request-response model: \"The messages sent by the client are called requests and the messages sent by the server as an answer are called responses\" — the client always asks first.",
+    "topic": "how-it-works",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods",
+    "takeaway": "HTTP verbs name the action: GET reads (\"should only retrieve data\"), while \"the POST method submits an entity to the specified resource, often causing a change in state or side effects on the server\"; PUT replaces and DELETE removes.",
+    "topic": "how-it-works",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Idempotence",
+    "takeaway": "Idempotent methods (GET, PUT, DELETE) make retries safe because repeating the call has the same effect: a client \"knows that repeating the request will have the same intended effect, even if the original request succeeded.\"",
+    "topic": "how-it-works",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Communication_endpoint",
+    "takeaway": "An endpoint is the specific address where a service can be reached — \"an interface exposed by a communicating party or by a communication channel\"; for web APIs that interface is a URL.",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/JSON",
+    "takeaway": "Most APIs return JSON, a language-independent text format that \"uses human-readable text to store and transmit data objects consisting of name–value pairs and arrays.\"",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/REST",
+    "takeaway": "REST is the dominant API style: resources are addressed by URLs and acted on with standard HTTP methods, an architecture Roy Fielding designed so that \"the only identifier that needs to be known is the identifier of the first resource requested.\"",
+    "topic": "rest",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/GraphQL",
+    "takeaway": "GraphQL, created at Facebook in 2012, lets the client ask for exactly the data it needs in one query: \"A GraphQL server can process a client query using data from separate sources and present the results in a unified graph.\"",
+    "topic": "graphql",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Webhook",
+    "takeaway": "Webhooks flip the direction of the call — the server notifies you when something happens: they are \"user-defined HTTP callbacks\" where \"the source site makes an HTTP request to the URL configured for the webhook\" on each event.",
+    "topic": "webhooks",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://nordicapis.com/when-to-use-what-rest-graphql-webhooks-grpc/",
+    "takeaway": "The choice is about access pattern: REST suits \"systems requiring rapid iteration and standardized HTTP verbiage,\" GraphQL fits when \"the requester needs the data in a specific format for a specific use,\" and webhooks push updates instead of being polled.",
+    "topic": "rest",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/OAuth",
+    "takeaway": "OAuth is the open standard for letting an app act on your behalf without your password: it \"allows access tokens to be issued to third-party clients by an authorization server, with the approval of the resource owner.\"",
+    "topic": "auth",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Application_programming_interface_key",
+    "takeaway": "An API key is a secret token that identifies the calling app, but it is weak as a security control: \"API keys are generally not considered secure; they are typically accessible to clients, making it easy for someone to steal an API key.\"",
+    "topic": "auth",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Rate_limiting",
+    "takeaway": "Rate limiting caps how many calls a client may make: it \"is used to control the rate of requests sent or received by a network interface controller,\" protecting the service from overload, abuse, and scraping.",
+    "topic": "rate-limits",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Software_versioning",
+    "takeaway": "Semantic versioning signals compatibility: \"Breaking changes are indicated by increasing the major number (high risk); new, non-breaking features increment the minor number... and all other non-breaking changes increment the patch number.\"",
+    "topic": "versioning",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Microservices",
+    "takeaway": "Modern systems are built as microservices that talk over APIs: services are \"loosely coupled, independently deployable, and often developed and scaled separately,\" with APIs as the integration glue between them.",
+    "topic": "consuming-vs-providing",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/API_management",
+    "takeaway": "Running an API as a product is its own discipline — API management covers \"enforcing their usage policies, controlling access, nurturing the subscriber community, collecting and analyzing usage statistics, and reporting on performance.\"",
+    "topic": "designing-as-pm",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

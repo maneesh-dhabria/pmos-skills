@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://sarahtavel.medium.com/the-hierarchy-of-engagement-5803bf4e6cfa",
+    "takeaway": "Sarah Tavel's hierarchy of engagement has \"three levels: 1) Growing engaged users, 2) Retaining users, and 3) Self-perpetuating\"; as a product climbs, it becomes better, harder to leave, and eventually self-perpetuating through loops — her core argument being that consumer-product builders should obsess over growing *engaged* users completing the core action rather than headline MAU.",
+    "topic": "the-hierarchy-of-engagement",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/the-hierarchy-of-engagement-by-sarah-tavel/",
+    "takeaway": "Tavel's mechanics: \"The core action is the single action users can take that forms the foundation of your product\"; retention comes from two forces — \"With accruing benefits, the more someone uses the product, the better it gets... In mounting loss, the more someone uses the product, the more they would lose if they left\" — and an enduring product takes users up all three levels, ending in \"a virtuous loop that builds self-perpetuating growth.\"",
+    "topic": "the-core-action",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/the-hierarchy-of-engagement-sarah",
+    "takeaway": "In Tavel's framing, \"Consumer social founders should ditch MAU metrics in favor of growing engaged users\" because \"when users engage with and complete the core action of the product repeatedly, it becomes more retentive for them\" — engagement, not headcount, is the fuel for an enduring product, and the tipping point shows up as rising cohort retention plus organic word of mouth.",
+    "topic": "the-core-action",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/the-hook-model",
+    "takeaway": "Nir Eyal's Hook Model has users \"repeatedly pass through the four stages of the 'hook': trigger, action, variable reward, and investment\"; the strategic shift is that hooked users \"transition from requiring an external trigger to cue their product use, like an advertisement, to using it because of an internal, unconscious trigger, like an emotion,\" so \"once customers are 'hooked,' they essentially trigger themselves and are less likely to churn\" — habit substitutes for paid re-acquisition.",
+    "topic": "the-hook-model-and-habit-formation",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nirandfar.com/how-to-manufacture-desire/",
+    "takeaway": "Eyal's own definition: the Hooked Model is \"a trigger to begin using the product, an action to satisfy the trigger, a variable reward for the action, and some type of investment that, ultimately, makes the product more valuable to the user\"; \"By cycling continuously through these hooks, users begin to form associations with internal triggers,\" so a cemented habit is when a user subconsciously thinks \"'I'm bored,' and instantly Facebook comes to mind.\"",
+    "topic": "the-hook-model-and-habit-formation",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/the-power-user-curve-the-best-way-to-understand-your-most-engaged-users/",
+    "takeaway": "The power user curve (Chen / Li Jin) is \"a histogram of users' engagement by the total number of days they were active in a month, from 1 day out of the month to all 30\"; \"A smile-shaped Power User Curve indicates there's a group of highly engaged users using the app daily or nearly daily,\" and it reveals heterogeneity a single DAU/MAU number hides — use L7 for weekly-cycle products and L30 for monthly.",
+    "topic": "the-power-user-curve",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/power-user-curve/",
+    "takeaway": "Chen argues DAU/MAU is \"a single number and so blurs this variance\"; the power user curve instead \"shows the characteristic smile shape that indicates there's a group of highly engaged users using the app daily or nearly daily,\" and you should \"hone in on an action that maps closely to users getting specific value out of your specific product and plot the Power User Curve for that action\" rather than for raw opens.",
+    "topic": "the-power-user-curve",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/deep-dive-product-engagement/",
+    "takeaway": "Product engagement \"is about how users interact with your product at the most granular level,\" and \"True engagement is about consistent, meaningful interactions that provide value to your users and, in turn, drive retention and growth\" — the article pushes builders past raw frequency counts toward a Product Engagement Score combining adoption, stickiness, and growth, prioritizing quality of interaction over quantity of usage.",
+    "topic": "the-three-dimensions-of-engagement",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewchen.com/user-retention-why-depending-on-notification-driven-retention-sucks/",
+    "takeaway": "Chen's caution on notification-driven engagement: when pushes carry the engagement, \"it means your web product has failed to integrate itself in your user base's life, and there isn't a recurring set of traffic that you can depend on\" — \"you are needing to 'push' information to the user rather than the user taking action themselves\" — the healthy version is users who \"come in day-in-and-day out\" on their own.",
+    "topic": "triggers-and-notifications",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://userpilot.com/blog/adoption-vs-engagement-metrics/",
+    "takeaway": "The distinction: \"Engagement metrics evaluate the depth, frequency, and duration of how users interact with your product over time,\" whereas \"Adoption metrics measure whether users are reaching the features that predict long-term retention,\" and \"Retention rate is the clearest signal that both adoption and engagement are working\" — a user can be highly engaged yet low-adoption (or vice versa), and each combination signals a different problem.",
+    "topic": "what-engagement-actually-is",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geckoboard.com/best-practice/kpi-examples/dau-mau-ratio/",
+    "takeaway": "DAU/MAU is \"the proportion of monthly active users who engage with your product in a single day window\" and is the standard stickiness measure; per Sequoia the \"standard DAU/MAU ratio ranges from 10-20%, with only a handful of companies exceeding 50%.\" Its key blind spot: \"you can't see which users are being retained and which users are churning,\" so it needs cohort retention analysis alongside it.",
+    "topic": "measuring-engagement-stickiness",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://mixpanel.com/blog/mau/",
+    "takeaway": "Mixpanel defines MAU as \"the number of unique users who performed a meaningful action in your product within a 30-day window\" and DAU/MAU as \"the most widely used measure of product stickiness\"; its warning is blunt — \"If the users counted in that figure aren't experiencing meaningful value, the metric is closer to noise than signal\" — with 2026 B2B SaaS stickiness averaging ~31% across North America and EMEA.",
+    "topic": "measuring-engagement-stickiness",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.prodpad.com/blog/growth-loops/",
+    "takeaway": "Growth loops are \"built around maintaining a continuous cycle of input, action, and output\" — unlike linear AAARRR funnels that \"end at the revenue stage\" — and \"Engagement and retention loops\" are a *type* of growth loop that \"aim to deepen user satisfaction and reduce customer churn by keeping users actively engaged,\" then feed well-engaged users into acquisition via referrals and reviews. Engagement is the loop's middle; output is what makes it compound.",
+    "topic": "engagement-loops-vs-growth-loops",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.braze.com/resources/articles/product-engagement",
+    "takeaway": "Braze defines product engagement as \"how users interact with your product, such as how often they use it, how deeply they explore its features, and how much value they get\" — tracked across adoption, frequency, and depth — and counsels focusing on \"behaviors tied to value\" rather than \"surface metrics like logins alone,\" guiding users \"based on what they've already done\" instead of showing every feature up front.",
+    "topic": "the-three-dimensions-of-engagement",
+    "tier": "secondary-curation",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nirandfar.com/the-art-of-manipulation/",
+    "takeaway": "Eyal's Manipulation Matrix asks two questions — \"Will I use the product myself?\" and \"Will the product help users materially improve their lives?\" — placing makers as facilitator, entertainer, peddler, or dealer; his ethical bar is that \"You have to want to use the product and believe it materially benefits your life as well as the lives of your users,\" because \"Attempting to create a persuasive technology that you don't find valuable enough to use yourself is nearly impossible.\"",
+    "topic": "the-ethics-of-engagement",
+    "tier": "primary-practitioner",
+    "paywalled": false
+  }
+]

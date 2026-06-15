@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://medium.com/swlh/diligence-at-social-capital-part-1-accounting-for-user-growth-4a8a449fddfc",
+    "takeaway": "Jonathan Hsu of Social Capital sorts every monthly active user into four mutually exclusive groups — new (\"those acquiring the product for the first time\"), retained (\"those active in consecutive periods\"), churned (\"those who were active previously but are no longer\"), and resurrected (\"those returning after periods of inactivity\") — tied together by the identity \"MAU(t) - MAU(t - 1 month) = new(t) + resurrected(t) - churned(t).\" He defines \"Quick Ratio = (new + resurrected)/churned,\" which \"must exceed 1.0 for growth.\"",
+    "topic": "the-core-identity",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://amplitude.com/blog/growth-accounting",
+    "takeaway": "Amplitude frames growth accounting as breaking \"down overall growth into growth across specific user segments\": New (\"users who were first active in the present month\"), Retained (\"Carried over by customers from the previous time period\"), Resurrected (\"users who had churned at some point in the past but resumed\"), and Churned (\"a user who was active in the previous month has no activity in the present\"). Quick ratio \"measures how efficiently a company is growing in terms of MAU gained per every unit of MAU lost,\" and \"a quick ratio below 1.0x means that total MAU must be shrinking.\"",
+    "topic": "the-four-user-states",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/swlh/diligence-at-social-capital-part-2-accounting-for-revenue-growth-551fa07dd972",
+    "takeaway": "Hsu extends growth accounting to dollars, adding two categories absent from the user version: expansion and contraction, because \"a single customer may be retained or churned but they may also be retained as a customer by spending more or less in the second period.\" He notes subscription economics differ fundamentally — \"Recurring subscription revenue is default-retained in contrast with recurring visitation which is default-not-retained\" — and that \"For enterprise SaaS companies, we prefer to invest in companies with a quick ratio greater than 4.\"",
+    "topic": "revenue-growth-accounting",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.theventure.city/article/quick-ratio-as-a-shortcut-to-understand-product-growth",
+    "takeaway": "TheVentureCity states it plainly: \"The ratio of the users added (new + resurrected) over the users lost (churned) is called the Quick Ratio.\" The reading is simple: \"If a Quick Ratio is >1 the number of users is growing; conversely, if it is <1 the number of users is declining.\"",
+    "topic": "the-quick-ratio",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.geckoboard.com/best-practice/kpi-examples/quick-ratio/",
+    "takeaway": "Geckoboard defines the SaaS quick ratio as calculating \"the ratio of your revenue gains to your revenue losses,\" with the formula \"New MRR + Expansion MRR / Churned MRR + Contraction MRR.\" It cites the common target that \"4 is a healthy quick ratio for a SaaS business,\" while noting business-specific context should temper comparisons.",
+    "topic": "revenue-growth-accounting",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://articles.sequoiacap.com/measuring-product-health",
+    "takeaway": "Sequoia describes growth accounting as splitting \"growth into new users, resurrected users, retained users and churned users,\" captured as \"Δ growth = new users + resurrected users - churned users.\" When the quick ratio \"is greater than one, there is positive net growth; when it is less than one, active users decrease month over month.\" At maturity, it notes, \"resurrection and churn roughly cancel each other out and much of the net growth happens through new user growth.\"",
+    "topic": "the-core-identity",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.wallstreetprep.com/knowledge/saas-quick-ratio/",
+    "takeaway": "Wall Street Prep gives the revenue formula as \"SaaS Quick Ratio = (New MRR + Expansion MRR) ÷ (Churned MRR + Contraction MRR)\" and calls \"4.0 ... the most frequently cited target benchmark.\" It makes the ratio concrete: a 4.0 means \"for every $4.00 in revenue generated, only $1.00 is lost from churn or contraction.\"",
+    "topic": "reading-the-quick-ratio",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://stripe.com/resources/more/net-dollar-retention-explained",
+    "takeaway": "Stripe defines net dollar retention as measuring \"how well a business retains its existing revenue from current customers, accounting for upgrades, downgrades, and churn,\" via \"NDR = ((Starting MRR + Expansion − Contraction − Churn) ÷ Starting MRR) × 100%.\" An \"NDR greater than 100% indicates that revenue from existing customers is growing,\" and per the 2022 OpenView benchmarks, midmarket and enterprise leaders reach 125% at the 80th percentile.",
+    "topic": "net-dollar-retention",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://tribecap.co/essays/a-quantitative-approach-to-product-market-fit",
+    "takeaway": "Tribe Capital treats growth accounting as a quantitative product-market-fit gauge — it \"breaks down overall growth in some activity across specific customer segments\" — visualized on two axes: one showing \"gains (new, resurrected, and expansion) and losses (churned and contraction)\" and the other tracking \"gross retention, quick ratio, and net churn.\" It stresses product-market fit is \"a spectrum\" rather than a binary verdict.",
+    "topic": "the-growth-accounting-chart",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://tomtunguz.com/what-is-quick-ratio-hiding/",
+    "takeaway": "Tomasz Tunguz warns the quick ratio is a single number that can flatter a sick business: \"High growth rates can mask high dollar churn rates.\" He shows that quick ratios of 4 can coexist with \"unsustainably high\" churn, urging readers to \"be mindful of the underlying churn rates in a business when evaluating your company based on its Quick Ratio.\"",
+    "topic": "limitations-and-pitfalls",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://bytepawn.com/backtraced-growth-accounting.html",
+    "takeaway": "Marton Trencseni's growth-accounting writeup highlights a key time-window limitation: \"DAU and WAU respond quicker to problems (with MAU, if there's a problem, people won't enter Churned for 28 days after the last activity), but are also more volatile.\" The choice of window is therefore a trade-off between sensitivity and noise.",
+    "topic": "limitations-and-pitfalls",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/swlh/diligence-at-social-capital-epilogue-introducing-the-8-ball-and-gaap-for-startups-7ab215c378bc",
+    "takeaway": "Hsu's epilogue places growth accounting inside a larger toolkit he calls the 8-ball: \"The 8-ball consists of the three pieces ... 1) growth accounting, 2) cohort behavior and 3) distribution of product-market fit all measured for the core unit of value for the business (typically users and/or (possibly recurring) revenue).\"",
+    "topic": "what-growth-accounting-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://benbregman.medium.com/growth-accounting-walkthrough-cbeac63009a3",
+    "takeaway": "Ben Bregman's walkthrough frames the core insight visually: \"the current [x]AU of your app at any point can be described as retained + new + resurrected users,\" so that \"changes in [x]AU can be explained by changes in incoming/outgoing users.\" A growth-accounting chart \"immediately provides explanation for the current [x]AU and any deltas over time.\"",
+    "topic": "the-growth-accounting-chart",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://newsletter.pmcurve.com/p/decoding-growth-where-is-growth-coming",
+    "takeaway": "PM Curve frames growth accounting as an early-warning system: \"Using growth rate and 3 metrics of growth accounting, we can quickly figure out whether there is any problem with current growth and fix it in advance, rather than seeing the dip in growth later when it's too late.\" The three diagnostic metrics are gross retention, quick ratio, and net churn — and this breakdown is what exposed companies acquiring new users to mask deteriorating retention.",
+    "topic": "what-pms-should-know",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://magliettastefano.medium.com/quick-ratio-a-powerful-user-growth-metric-8a715711e339",
+    "takeaway": "Stefano Maglietta calls the quick ratio \"a powerful metric to express user growth\" whose \"trend can quickly assess the health of the business,\" computed as \"New(t) + Resurrected(t)) / Churned(t).\" Its strength is compression: it is \"a comprehensive metric ... as elements of user acquisition, retention, churning and re-activation (resurrection) are blended into its calculation.\"",
+    "topic": "the-quick-ratio",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/valuation/net-dollar-retention-ndr",
+    "takeaway": "The Corporate Finance Institute defines net dollar retention as \"a financial metric that tracks how much recurring revenue a company retains from its existing customers over a given period,\" via \"NDR (%) = [(Starting MRR + Expansion MRR – Contraction – Churned MRR) / Starting MRR] × 100.\" An \"NDR above 100% means that monthly recurring revenue has grown due to expansion revenue outweighing any losses.\"",
+    "topic": "net-dollar-retention",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.cobloom.com/blog/quick-ratio",
+    "takeaway": "Cobloom offers a three-tier reading of the SaaS quick ratio, formula \"(New MRRt + Expansion MRRt) / (Churned MRRt + Contraction MRRt)\": below 1, \"You're losing revenue from churn faster than you can replace it\"; 1–4, growth that is real but inefficient; and above 4, \"The 'optimum' Quick Ratio.\" It notes InsightSquared found an average quick ratio of 3.9 among the fastest-growing SaaS companies.",
+    "topic": "reading-the-quick-ratio",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

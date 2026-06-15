@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://pmarchive.com/guide_to_startups_part4.html",
+    "takeaway": "Marc Andreessen's June 2007 essay \"The Only Thing That Matters\" defines product/market fit as \"being in a good market with a product that can satisfy that market,\" and argues \"the only thing that matters is getting to product/market fit.\" He quotes Andy Rachleff's law — \"When a great team meets a lousy market, market wins. When a lousy team meets a great market, market wins.\" You can feel fit's presence (\"The customers are buying the product just as fast as you can make it—or usage is growing just as fast as you can add more servers\") and its absence (\"word of mouth isn't spreading, usage isn't growing that fast\").",
+    "topic": "the-only-thing-that-matters",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Product-market_fit",
+    "takeaway": "Defines PMF as \"the degree to which a product satisfies a strong market demand,\" credits Don Valentine + Andy Rachleff (who first named it) and Marc Andreessen (who popularized it), and stresses that PMF \"is not binary—it exists on a spectrum,\" with early startups needing a high degree of fit. Lists the Sean Ellis 40% rule and five analytics signals (bounce rate, time on site, pages/visit, returning visitors, CLV).",
+    "topic": "what-pmf-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://review.firstround.com/how-superhuman-built-an-engine-to-find-product-market-fit/",
+    "takeaway": "Rahul Vohra (Superhuman founder/CEO) turns PMF into a repeatable engine built on Sean Ellis's survey question, \"How would you feel if you could no longer use Superhuman?\" The four steps: segment to the \"very disappointed\" users and build a High-Expectation Customer profile; analyze the \"somewhat disappointed\" whose main benefit matches the core strength (ignore the \"not disappointed\"); split the roadmap ~50/50 between doubling down on what users love and removing adoption blockers; survey continuously with the \"very disappointed\" % as the north-star metric. Superhuman's score rose from 22% to 58% in three quarters.",
+    "topic": "the-superhuman-engine",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-know-if-youve-got-productmarket",
+    "takeaway": "Lenny Rachitsky curates the canonical PMF signals. Quantitatively, a cohort retention curve that flattens (rather than declining to zero) is the most reliable measure — \"If it flattens off at some point, you have probably found product/market fit for some market or audience\" (Balfour) and a flattening curve means \"there is a group of customers that are finding value in your product, which means you have PMF\" (Casey Winters). Qualitatively, Emmett Shear's contrast: \"Pushing a boulder: don't have product/market fit. Chasing a boulder: have product/market fit.\"",
+    "topic": "what-it-feels-like",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://a16z.com/product-user-fit-comes-before-product-market-fit/",
+    "takeaway": "Peter Lauten and David Ulevitch (a16z, 2019) argue product-user fit precedes product-market fit: \"The honest version of 'we've got product-market fit on a small cohort of very early power users' is 'we've got product-user fit.'\" Product-user fit is \"the extent to which you've built the right product for the right user,\" and is \"almost always the thing that matters right before the only thing that ultimately matters\" — focus on power-user retention and engagement before scaling.",
+    "topic": "start-with-a-beachhead",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/four-fits-growth-framework",
+    "takeaway": "Brian Balfour's Four Fits framework: Market-Product, Product-Channel, Channel-Model, and Model-Market fit. \"You need all four Fits to grow to $100M+\" and \"you can't think about the four Fits in isolation because together they form an ecosystem for growth.\" A key law: \"Products are built to fit with channels. Channels do not mold to products.\" Channel-Model fit is \"the ARPU-CAC danger zone.\"",
+    "topic": "four-fits",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://learningloop.io/plays/product-market-fit-survey",
+    "takeaway": "The Sean Ellis survey asks \"How would you feel if you could no longer use [this product]?\" with options Very disappointed / Somewhat disappointed / Not disappointed / N/A. The rule: \"≥40% 'very disappointed' = product-market fit, go for growth; <40% = not there yet.\" Ellis found that \"if over 40% of users responded that they would be 'Very disappointed' to stop using the product, there's a great chance that the solution had found its Product-Market fit.\" Caveat: \"If you have to ask whether you have Product/Market Fit, the answer is simple: you don't.\"",
+    "topic": "the-sean-ellis-test",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://robwalling.com/essays/the-5-stages-of-product-market-fit-and-why-its-not-binary/",
+    "takeaway": "Rob Walling rejects the binary view — \"They treat it like a light switch. Either you have it or you don't.\" Instead, \"Product-market fit is a spectrum. You move through stages, and each stage requires different focus areas.\" His five stages: Pre-PMF, Weak PMF, Emerging PMF, Strong PMF, Mature PMF. The better question is \"what stage am I in, and what should I focus on to strengthen it?\"",
+    "topic": "pmf-is-a-spectrum",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.bvp.com/atlas/mastering-product-market-fit-a-detailed-playbook-for-ai-founders",
+    "takeaway": "Bessemer Venture Partners: \"PMF isn't binary; it's a spectrum\" with light / moderate / strong signal levels (strong = \"customers are pulling the product faster than you can deliver\"). PMF is \"more like a garden you tend daily\" than a summit climbed once. Recommended signals: retention by use case, Time to Value, second-bite usage rate, the Sean Ellis 40% threshold, and separating durable revenue (recurring/contractual) from experimental revenue (pilots, novelty spikes).",
+    "topic": "keeping-and-losing-pmf",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://gopractice.io/product/product-market-fit-can-be-weak-or-strong-and-can-change-over-time/",
+    "takeaway": "GoPractice: \"product/market fit is a spectrum. It can range between not being present to being weak, mild, or strong,\" and \"its strength can change over time.\" Strength = the proportion of situations in which users choose your product over alternatives (100% = maximum fit). PMF can be lost: as iOS/Android improved, \"the product/market fit of BlackBerry got weaker and weaker.\"",
+    "topic": "pmf-is-a-spectrum",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.crv.com/content/what-is-product-market-fit",
+    "takeaway": "CRV (2026): PMF is \"the point where a real market wants what you're building and your product reliably satisfies that demand,\" best treated \"as a spectrum rather than a binary event\" across Early / Developing / Strong / Extreme levels. Signals: the Sean Ellis 40% test, organic vs. paid growth (\"Organic growth is harder to fake\"), and \"Retention is the most honest signal of product-market fit.\" Red flag: \"Persistent high churn despite product improvements.\"",
+    "topic": "what-pmf-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/essays/product-market-fit-isnt-enough",
+    "takeaway": "Brian Balfour: \"There are plenty of companies that have all the product market fit signals... but still struggle to grow.\" Reaching $100M+ requires four interlocking fits, not one — \"Each of these fits influence each other, so you can't think about them in isolation.\" His example: Soldsie had strong PMF indicators yet failed to reach venture scale, proving \"product market fit is not the only thing that matters.\"",
+    "topic": "four-fits",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://brianbalfour.com/essays/market-product-fit",
+    "takeaway": "Brian Balfour reframes \"Product Market Fit\" as \"Market Product Fit\": \"Start with the market (problem), then the product (solution). Not the other way around.\" The mistake is \"a solution looking for a problem.\" Define four things first — Category, Who, Problems, Motivations — and \"defining the problems and the motivations behind those problems is far more important\" than category or audience.",
+    "topic": "the-market-comes-first",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://learningloop.io/glossary/sean-ellis-score",
+    "takeaway": "The Sean Ellis Score = (users answering 'Very disappointed' / total respondents) × 100; the goal is ≥40%. Sean Ellis is \"known for coining the term 'growth hacking.'\" Caveat: \"while the Sean Ellis Test is a useful tool, it is just one part of understanding your users\" and \"should be used in conjunction with other strategies such as customer feedback, market research, and iterative product development.\"",
+    "topic": "the-sean-ellis-test",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.opexengine.com/post/quantitative-indicators-of-product-market-fit",
+    "takeaway": "A roundup of quantitative PMF indicators: Dan Olsen — \"Retention rate is the best measure of product-market fit, because it is a behavioral measure of repeat usage\"; Andrew Chen — \"less than 2% monthly churn,\" a path to $100k MRR, 5% free-to-paid conversion; Net Dollar Retention above 100% with logo retention above 80% for the expansion stage; and the retention curve should \"flatten out to a non-zero retention rate percentage.\" Organic / word-of-mouth demand is emphasized over paid acquisition.",
+    "topic": "leading-vs-lagging-signals",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://paulgraham.com/startupideas.html",
+    "takeaway": "Paul Graham's \"How to Get Startup Ideas\" (2012): \"When a startup launches, there have to be at least some users who really need what they're making — not just people who could see themselves using it one day, but who want it urgently.\" Founders should solve real problems they understand and validate that urgent demand exists before building, rather than inventing ideas.",
+    "topic": "the-only-thing-that-matters",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-increase-your-retention-issue",
+    "takeaway": "Lenny Rachitsky on reading retention curves: \"if it flattens, or stops decreasing over time, that means there is a group of users who continue to find value in your product. This is important because it happens to be the best measure of product-market fit.\" A curve that flattens near ~10% (\"only 10% of your users stick around long-term\") is \"generally a bad retention rate\" — the height of the plateau, not just its existence, signals fit strength.",
+    "topic": "retention-curves",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

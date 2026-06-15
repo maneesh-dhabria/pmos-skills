@@ -1,0 +1,128 @@
+[
+  {
+    "url": "https://github.com/donnemartin/system-design-primer",
+    "takeaway": "The System Design Primer is the canonical free, open-source curation for this topic — its stated goal is to help engineers \"Learn how to design large-scale systems\" and \"Prep for the system design interview,\" organizing the whole landscape into one map.",
+    "topic": "what-this-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Scalability",
+    "takeaway": "Scalability is a system's capacity to handle growing load, achieved two ways: \"Scaling horizontally (out/in) means adding or removing nodes, such as adding a new computer to a distributed software application,\" versus scaling vertically by adding more power to one machine.",
+    "topic": "scalability",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Latency_(engineering)",
+    "takeaway": "Latency is the delay between a request and its response, and it has a floor you cannot buy your way under: \"Latency is physically a consequence of the limited velocity at which any physical interaction can propagate.\"",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/State_(computer_science)",
+    "takeaway": "A stateless server keeps no memory of past requests, so any copy can handle any request — which is exactly why stateless designs scale out so easily, while stateful ones \"must maintain this history, creating dependencies that complicate horizontal scaling.\"",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Microservices",
+    "takeaway": "Microservices split one big application into many small, independently deployable services — \"Complex service assemblies are abstracted behind simple URI interfaces\" — trading a simpler codebase for the operational complexity of running a distributed system.",
+    "topic": "how-it-works",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Reverse_proxy",
+    "takeaway": "A reverse proxy (the basis of an API gateway) is the front door that hides the servers behind it: it \"appears to any client to be an ordinary web server, but in reality merely acts as an intermediary that forwards the client's requests to one or more ordinary web servers.\"",
+    "topic": "how-it-works",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Load_balancing_(computing)",
+    "takeaway": "A load balancer spreads incoming requests across a pool of servers so none gets overwhelmed, \"making their overall processing more efficient\" and avoiding the case where some machines are overloaded while others sit idle.",
+    "topic": "load-balancing",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Cache_(computing)",
+    "takeaway": "A cache stores copies of hot data in faster storage so repeat requests skip the slow original lookup — and the economics are blunt: \"the more requests that can be served from the cache, the faster the system performs.\"",
+    "topic": "caching",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Content_delivery_network",
+    "takeaway": "A content delivery network (CDN) is caching moved geographically close to users, placing copies at edge locations to \"provide high availability and performance (\\\"speed\\\") through geographical distribution relative to end users.\"",
+    "topic": "caching",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Database",
+    "takeaway": "A database is the organized system of record managed by a database management system (DBMS); the central modern fork is structure versus flexibility — relational SQL databases enforce strict tables, while NoSQL databases \"avoid join operations by storing denormalized data.\"",
+    "topic": "databases",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Shard_(database_architecture)",
+    "takeaway": "Sharding scales a database by splitting its rows across machines: \"Each shard may be held on a separate database server instance in order to spread across multiple servers,\" which adds capacity at the cost of harder cross-shard queries.",
+    "topic": "databases",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Replication_(computing)",
+    "takeaway": "Replication keeps multiple copies of data on different machines so that \"systems can continue operating when components fail (failover), serve requests from geographically distributed locations, and balance load across multiple machines.\"",
+    "topic": "databases",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Message_queue",
+    "takeaway": "A message queue lets one part of a system hand work to another without waiting: \"Messages placed onto the queue are stored until the recipient retrieves them,\" so a traffic spike fills the queue instead of crashing the worker.",
+    "topic": "queues",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Redundancy_(engineering)",
+    "takeaway": "Redundancy is the deliberate doubling-up that buys reliability: \"the intentional duplication of critical components or functions of a system with the goal of increasing reliability,\" so one failed part does not stop the whole.",
+    "topic": "redundancy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Single_point_of_failure",
+    "takeaway": "A single point of failure is the thing you must hunt for and eliminate — \"a part of a system that would stop the entire system from working if it were to fail\" — and redundancy exists precisely to remove these.",
+    "topic": "redundancy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/High_availability",
+    "takeaway": "High availability is the goal redundancy serves, stated as a target: \"a characteristic of a system that aims to ensure an agreed level of operational performance, usually uptime, for a higher than normal period,\" commonly quoted in \"nines.\"",
+    "topic": "redundancy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/CAP_theorem",
+    "takeaway": "The CAP theorem names the trade-off you cannot escape in a distributed system: \"if there is a network partition, one has to choose between consistency or availability\" — you cannot have both when the network splits.",
+    "topic": "tradeoffs",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Eventual_consistency",
+    "takeaway": "Eventual consistency is the availability-favoring side of that trade-off: \"if no new updates are made to a given data item, eventually all read accesses to that item will return the last updated value\" — fast and always-on, but briefly out of date.",
+    "topic": "tradeoffs",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

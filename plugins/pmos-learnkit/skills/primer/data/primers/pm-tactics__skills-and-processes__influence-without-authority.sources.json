@@ -1,0 +1,108 @@
+[
+  {
+    "url": "https://businessanalyst.techcanvass.com/influencing-without-authority-pm/",
+    "takeaway": "Frames influence as the core currency of PM work: lacking authority over engineers, designers, and sales, PMs earn voluntary commitment through trust, clear reasoning, and treating cross-functional teams as allies — 'influence inspires motivation... creating long-term buy-in,' whereas authority only demands compliance.",
+    "topic": "what-influence-without-authority-is",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://amycmitchell.substack.com/p/influencing-without-authority",
+    "takeaway": "Amy Mitchell frames influence as foundational for PMs: success is not just convincing others but turning teams and stakeholders 'into evangelists for their customers, their metrics and most of all, their cause.'",
+    "topic": "what-influence-without-authority-is",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.aakashg.com/how-to-influence-without-authority/",
+    "takeaway": "Aakash Gupta's PM framework builds 'influence capital' across three currencies — expertise, relationships, and data — using Power/Interest stakeholder mapping and tools like Amazon's PR/FAQ and Disagree-and-Commit; 'your ability to lead through persuasion, not command, will define your career trajectory.'",
+    "topic": "why-it-defines-the-pm-role",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://maa1.medium.com/book-review-influence-without-authority-b7a9a9dcca24",
+    "takeaway": "Cohen & Bradford's model: influence without formal authority depends on identifying what others value and trading 'currencies' across five categories (inspiration, task, position, relationship, personal); success requires clarifying objectives, understanding allies' motivations, and selecting whom to approach.",
+    "topic": "the-cohen-bradford-currencies-model",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Cohen & Bradford, Influence Without Authority (Wiley, 3rd ed. 2017)"
+  },
+  {
+    "url": "https://marcabraham.com/2017/04/25/book-review-influence-without-authority/",
+    "takeaway": "Marc Abraham's review: the 'Model of Influence without Authority forms the backbone of this book' — currencies of exchange, clarity on objectives, and strategic ally selection, treating stakeholders as potential allies rather than obstacles via mutual benefit.",
+    "topic": "the-cohen-bradford-currencies-model",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.boundev.ai/blog/product-manager-influence-without-authority",
+    "takeaway": "Trust is the cornerstone of leading without authority, resting on three pillars (aligning with leadership strategy, respecting org processes, cultivating relationships); 'trust compounds: a PM who reliably follows through on minor requests earns the credibility to champion major initiatives.'",
+    "topic": "trust-as-the-foundation",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.reputationx.com/blog/6-principles-of-persuasion",
+    "takeaway": "Cialdini's six principles — reciprocity, commitment/consistency, social proof, authority, liking, scarcity — the levers that reliably shift compliance; 'when someone does something nice for us, we intuitively want to reciprocate.'",
+    "topic": "cialdinis-principles-of-persuasion",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Robert_Cialdini",
+    "takeaway": "Robert Cialdini, Regents' Professor Emeritus at Arizona State, wrote Influence: The Psychology of Persuasion (1984) from three years of undercover field research; added a seventh 'unity' principle in 2016 — 'the more we identify ourselves with others, the more we are influenced by these others.'",
+    "topic": "cialdinis-principles-of-persuasion",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://blog.logrocket.com/product-management/power-interest-grid/",
+    "takeaway": "The power-interest grid (Mendelow's matrix) sorts stakeholders into four quadrants by power and interest; those high on both are the 'key stakeholders' who deserve primary focus and collaboration.",
+    "topic": "stakeholder-mapping",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.romanpichler.com/blog/stakeholder-engagement-analysis-power-interest-grid/",
+    "takeaway": "Roman Pichler's engagement playbook: the high-power/high-interest 'players' are your most critical partners — 'collaborate with them closely... by inviting them to product strategy and roadmapping workshops and sprint review meetings' — while staying 'open and collaborative but decisive at the same time.'",
+    "topic": "stakeholder-mapping",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtools.com/aol0rms/stakeholder-analysis/",
+    "takeaway": "Stakeholder analysis in three steps — identify everyone affected, prioritize via a Power/Interest grid, then understand key stakeholders' motivations; 'early identification and engagement with stakeholders helps to secure buy-in, manages expectations, and ensures project alignment.'",
+    "topic": "stakeholder-mapping",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.questworks.io/blog/product-manager-influence-without-authority.html",
+    "takeaway": "Five concrete practices — stakeholder mapping, trade-off framing, decision pre-wiring, problem-first comms, relentless follow-through; the pre-wiring rule is blunt: 'the meeting where you present the decision should never be the first time stakeholders hear about it.'",
+    "topic": "alignment-and-decision-pre-wiring",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://medium.com/mr-plan-publication/11-lessons-learned-from-influence-without-authority-by-allan-r-cohen-and-david-l-bradford-4cd2c4a5f04a",
+    "takeaway": "Eleven lessons from Cohen & Bradford: influence operates through win-win exchanges, trust-building, currency exchange, and relationship investment before needing favors — 'identify what you can offer to make your requests compelling,' treating colleagues as allies with legitimate interests.",
+    "topic": "reciprocity-and-relationship-capital",
+    "tier": "book-summary",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Disagree_and_commit",
+    "takeaway": "'Disagree and commit' lets people voice dissent during a decision but requires full commitment once it's made, avoiding the 'consensus trap' where lack of agreement causes inaction; Amazon's principle: 'Leaders are obligated to respectfully challenge decisions when they disagree.'",
+    "topic": "handling-disagreement-and-conflict",
+    "tier": "reference",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.roadmapweekly.com/p/leading-without-authority-as-a-product",
+    "takeaway": "The counter-camp: leading purely through influence creates 'significant extra work' (constant persuasion, alignment meetings) and risks burnout; argues responsibility should be paired with real, scoped authority — authority as a 'dimmer switch,' temporary and earned, not binary.",
+    "topic": "common-failure-modes",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  }
+]

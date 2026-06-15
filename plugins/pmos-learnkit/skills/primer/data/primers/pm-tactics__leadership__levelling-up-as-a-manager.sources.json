@@ -1,0 +1,125 @@
+[
+  {
+    "url": "https://caseyaccidental.com/product-visionary-vs-product-leader/",
+    "takeaway": "Casey Winters separates the product visionary (who invents breakthrough ideas and finds product/market fit, usually a founder) from the product leader (who 'helps everyone understand what the vision and strategy is' and 'builds a process that helps a team execute on that vision'); most scaling companies need leaders, not visionaries, and if you only want to be the sole visionary you should start your own company rather than manage others' ideas.",
+    "topic": "the-shift-from-making-to-multiplying",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productledalliance.com/your-go-to-guide-to-product-leadership/",
+    "takeaway": "Product leadership is 'a whole other ladder completely' from senior PM work — leaders own hiring/mentoring, processes and tools, budgets, data-driven strategy, and cross-functional communication, architecting the systems, teams, and cultures that enable product success rather than making the day-to-day product decisions themselves.",
+    "topic": "the-shift-from-making-to-multiplying",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/blog/product-leader-traits/",
+    "takeaway": "Elite product leaders differ from status-quo ones on three shifts: they make alignment across vision, strategy, and goals 'sacred' and shared; they treat people development as seriously as product development through ongoing personalized mentoring; and they master storytelling to make the product vision shareable and emotionally memorable across the org.",
+    "topic": "what-changes-when-you-lead-product",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.launchnotes.com/blog/director-of-product-management-vs-head-of-product-operational-leadership-vs-strategic-ownership",
+    "takeaway": "A Director of Product owns roadmap execution and team performance within a domain (typically 3–10 reports), while a Head of Product owns portfolio ROI, the org's structure, and long-term market positioning — the role shifts from 'keeping the product train running on time' to defining where the entire train should go.",
+    "topic": "what-changes-when-you-lead-product",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/the-first-90-day-plan-for-new-product-leaders/",
+    "takeaway": "A new product leader's first 90 days split into Trust (days 1–30: build credibility by asking great questions and running 1:1s, define your management style rather than pushing delivery metrics), Output (30–60: help the team hit near-term goals and build a simple roadmap/metrics reporting cadence), and Lead the Way (60–90+: cultivate a growth-mindset culture and stay ahead of industry shifts).",
+    "topic": "the-first-90-days",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://nofearproductleadership.substack.com/p/rethinking-your-first-90-days-as",
+    "takeaway": "Rethinking the first 90 days, this piece argues the first 30 are for 'Listen and Learn' across strategy (how it translates to coherent action, not just a story), team execution, and PM craft — cautioning against moving to implementation too fast, illustrated by a failed startup whose employees could recite the mission verbatim while the product solved no real customer problem.",
+    "topic": "the-first-90-days",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.tryexponent.com/blog/product-manager-career-path",
+    "takeaway": "The PM ladder runs APM → PM → Senior PM → Product Leader (optional IC/management split) → Director → VP → CPO; the hardest transition, typically 7–10 years in, is the pivot from individual contribution to 'influencing people to be good at doing their jobs' rather than doing the work yourself.",
+    "topic": "managing-vs-doing",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://mcleanonline.medium.com/product-leadership-3e1fcb3fa11f",
+    "takeaway": "Distilling Cagan's EMPOWERED: coaching is a product leader's primary responsibility — the work is ongoing dialogue with each member, regular assessment of skills and competencies, and dedicated coaching plans focused on a few targeted development areas, with the difference between competent and truly effective PMs often hinging on people-skills development the leader enables.",
+    "topic": "coaching-as-the-core-job",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Cagan & Jones, EMPOWERED: Ordinary People, Extraordinary Products (Wiley, 2020)"
+  },
+  {
+    "url": "https://andrewclark.co.uk/product-book-summaries/empowered",
+    "takeaway": "EMPOWERED holds that 'developing people is job 1': run weekly 30-minute 1-on-1s focused on growth not status, assess capability gaps across product, process, and people skills, limit the coaching plan to three development areas, and align teams around a compelling vision and clear topology so empowered teams solve problems autonomously while staying accountable to results.",
+    "topic": "coaching-as-the-core-job",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Cagan & Jones, EMPOWERED: Ordinary People, Extraordinary Products (Wiley, 2020)"
+  },
+  {
+    "url": "https://www.ravi-mehta.com/product-manager-roles/",
+    "takeaway": "Ravi Mehta's 'What's Your Shape' maps 12 PM skills across Product Execution, Customer Insight, Product Strategy, and Influencing People into four archetypes (Project Manager, People Manager, Growth Hacker, Product Innovator); the governing rule for leaders is 'individuals should be spiky; teams should be well-rounded' — hire complementary spikes rather than cloning yourself.",
+    "topic": "hiring-product-managers",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productplan.com/learn/how-to-recruit-product-managers/",
+    "takeaway": "Hiring PMs is a structured funnel: diversify sourcing and broaden the pool past the 'perfect resume', run a transparent multi-round loop (phone screen → individual interviews → group presentation → references → offer) that includes cross-functional stakeholders, debrief as a group while impressions are fresh, and close by selling impact, autonomy, and growth.",
+    "topic": "hiring-product-managers",
+    "tier": "practitioner-blog",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/how-to-interview-product-managers",
+    "takeaway": "Lenny Rachitsky assesses six PM skills — communication, collaboration, execution, strategy, impact, and product sense — via a project component he calls 'the most informative', plus standardized questions with predefined good/bad answers to cut bias; expect to interview roughly 23 candidates to hire one strong PM.",
+    "topic": "hiring-product-managers",
+    "tier": "practitioner-canon",
+    "paywalled": true
+  },
+  {
+    "url": "https://www.mindtheproduct.com/deep-dive-crafting-your-product-vision-and-mission/",
+    "takeaway": "A product vision paints the customer-centric future you're trying to create 2–5 years out, while the mission states present-day purpose; a strong vision is customer-centric, inspiring yet achievable, shared as one org-wide North Star (not fragmented per team), and clear/memorable — common failures are confusing vision with mission, vague 'make lives better' statements, and internal-metric framing.",
+    "topic": "setting-a-product-vision",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productcompass.pm/p/product-model-first-principles-transformed-cagan",
+    "takeaway": "In Cagan's product-model first principles, empowered cross-functional teams are given problems to solve (not solutions to build) and own discovery and delivery, while product leaders bear singular responsibility for strategy — deciding which problems matter most — staying transparent about reasoning and grounding choices in customer, data, and technology insight.",
+    "topic": "from-vision-to-product-strategy",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://andrewclark.co.uk/product-book-summaries/escaping-the-build-trap",
+    "takeaway": "Perri's Escaping the Build Trap names the failure mode of measuring success by outputs (features shipped, velocity) over outcomes (customer value, business impact); escaping it means defining measurable outcome goals before building, validating problems via experimentation (the Product Kata), and restructuring incentives, budgets (funding products like a VC), and communication to reward learning over feature velocity.",
+    "topic": "building-product-culture",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Perri, Escaping the Build Trap (O'Reilly, 2018)"
+  },
+  {
+    "url": "https://cutlefish.substack.com/p/notes-on-product-management-theater",
+    "takeaway": "John Cutler's notes on Cagan's 'product management theater' surface a tension senior leaders should hold: Cagan dismisses proliferating roles (product owners, ops, coaches) and 'lowered bars' as theater, but Cutler argues these often patch real leadership gaps, and that organizational success depends on capabilities, competencies, and environment — so leaders should ask whether their own structural decisions created the dysfunction rather than blaming overhiring.",
+    "topic": "traps-in-the-transition",
+    "tier": "practitioner-canon",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.nateliason.com/notes/high-output-management-andy-grove",
+    "takeaway": "Andy Grove's High Output Management defines a manager's output as the output of their organization plus the neighboring teams they influence, with leverage = impact ÷ time; the highest-leverage activities are training and delegation-with-supervision (delegation without monitoring is abdication), and you match supervisory style to each report's task-relevant maturity, moving from structured direction to minimal involvement as capability grows.",
+    "topic": "scaling-yourself",
+    "tier": "book-summary",
+    "paywalled": false,
+    "book_summary": "Grove, High Output Management (Vintage, 1983; rev. 1995)"
+  }
+]

@@ -1,0 +1,114 @@
+[
+  {
+    "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "takeaway": "Anthropic defines context engineering as \"the set of strategies for curating and maintaining the optimal set of tokens (information) during LLM inference, including all the other information that may land there outside of the prompts,\" managing \"the entire context state (system instructions, tools, Model Context Protocol (MCP), external data, message history, etc).\" It stresses that \"context must be treated as a finite resource with diminishing marginal returns,\" because as context grows the model's ability to recall information decreases.",
+    "topic": "what-context-engineering-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.firecrawl.dev/blog/context-engineering",
+    "takeaway": "Firecrawl quotes a working definition: \"Context Engineering is the discipline of designing dynamic systems that provide the right information and tools, in the right format, at the right time, to give an LLM everything it needs to accomplish a task,\" and Shopify CEO Tobi Lutke's framing as \"the art of providing all the context for the task to be plausibly solvable by the LLM.\" It names four failure modes — \"Poisoning, distraction, confusion, and clash\" — and advises finding \"the minimum set of tokens that maximizes the likelihood of your desired outcome.\"",
+    "topic": "what-context-engineering-is",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.elastic.co/search-labs/blog/context-engineering-vs-prompt-engineering",
+    "takeaway": "Elastic draws the line: \"Prompt engineering focuses on how you communicate with the model. Context engineering focuses on what information the model has access to when it generates responses.\" Context includes \"the prompt and instructions,\" \"documents or external data you retrieve through retrieval-augmented generation (RAG),\" and \"past state, tool calls, or other history.\" It frames three failure modes: insufficient information (hallucination), excessive information (overflow), and conflicting data.",
+    "topic": "context-engineering-vs-prompt-engineering",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.memgraph.com/blog/prompt-engineering-vs-context-engineering",
+    "takeaway": "Memgraph contrasts the two questions: prompt engineering \"asks: How should the model behave for this task?\" while context engineering \"asks: What is the model allowed to know and use for this task?\" Prompt engineering \"shapes language and behaviour\" and sits \"close to the model\"; context engineering \"shapes what the model can see\" and sits \"in the architecture around the model.\" Its blunt production lesson: \"Prompt tweaks cannot fix missing or bad context.\"",
+    "topic": "context-engineering-vs-prompt-engineering",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Prompt_engineering",
+    "takeaway": "Wikipedia defines prompt engineering as \"the process of structuring natural language inputs (known as prompts) to produce specified outputs from a generative artificial intelligence (GenAI) model.\" It explains in-context learning: \"A model's ability to temporarily learn from prompts is known as in-context learning ... Unlike training and fine-tuning, which produce lasting changes, in-context learning is temporary,\" and notes a prompt \"may include a few examples for a model to learn from in context, an approach called few-shot learning.\"",
+    "topic": "context-engineering-vs-prompt-engineering",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Large_language_model",
+    "takeaway": "Wikipedia describes the context window as the span the attention mechanism works over: \"In order to find out which tokens are relevant to each other within the scope of the context window, the attention mechanism calculates 'soft' weights for each token.\" It gives a historical size marker — the 117M-parameter GPT-2 had \"a context window of only 1k tokens\" — illustrating that the window is the boundary of what a model can process at once.",
+    "topic": "the-context-window-as-working-memory",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.trychroma.com/research/context-rot",
+    "takeaway": "Chroma's study coins \"context rot\" — \"How Increasing Input Tokens Impacts LLM Performance\" — finding that \"models do not use their context uniformly; instead, their performance grows increasingly unreliable as input length grows.\" Across \"18 LLMs, including the state-of-the-art GPT-4.1, Claude 4, Gemini 2.5, and Qwen3 models,\" performance \"degrades as input length increases, often in surprising and non-uniform ways,\" even on simple tasks.",
+    "topic": "why-bigger-isnt-better-context-rot",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://research.ibm.com/blog/retrieval-augmented-generation-RAG",
+    "takeaway": "IBM Research defines RAG as \"an AI framework for retrieving facts from an external knowledge base to ground large language models (LLMs) on the most accurate, up-to-date information.\" Algorithms \"search for and retrieve snippets of information relevant to the user's prompt,\" then \"the LLM draws from the augmented prompt\" to answer. By grounding on external facts \"the model has fewer opportunities to ... 'hallucinate' incorrect or misleading information\" — the \"difference between an open-book and a closed-book exam.\"",
+    "topic": "retrieval-augmented-generation-rag",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Retrieval-augmented_generation",
+    "takeaway": "Wikipedia defines RAG as \"a technique that enables large language models (LLMs) to retrieve and incorporate new information from external data sources.\" With RAG, \"LLMs first refer to a specified set of documents, then respond to user queries,\" letting them \"use domain-specific and/or updated information that is not available in the training data.\" It \"helps reduce AI hallucinations, which have caused chatbots to describe policies that don't exist.\"",
+    "topic": "retrieval-augmented-generation-rag",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.databricks.com/glossary/retrieval-augmented-generation-rag",
+    "takeaway": "Databricks calls RAG \"a hybrid AI framework that bolsters large language models (LLMs) by combining them with external, up-to-date data sources.\" It \"retrieves relevant documents from external data sources and then feed[s] that context into the model,\" producing outputs that are \"more accurate, current and domain-specific\" without retraining — which helps \"reduce hallucinations, keep responses up to date and tailor outputs to an organization's own content.\"",
+    "topic": "retrieval-augmented-generation-rag",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+    "takeaway": "Anthropic's prompting guide recommends structuring inputs: \"XML tags help Claude parse complex prompts unambiguously, especially when your prompt mixes instructions, context, examples, and variable inputs.\" On examples: \"A few well-crafted examples (known as few-shot or multishot prompting) can dramatically improve accuracy and consistency\" — \"Include 3–5 examples for best results.\" For long inputs: \"Place your long documents and inputs near the top of your prompt, above your query.\"",
+    "topic": "prompt-structure-and-instructions",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://learnprompting.org/docs/basics/few_shot",
+    "takeaway": "Learn Prompting defines few-shot prompting as providing \"two or more examples, which helps the model recognize patterns and handle more complex tasks,\" noting \"with more examples, the model gains a better understanding of the task, leading to improved accuracy and consistency.\" It contrasts zero-shot, where \"the model has to rely entirely on its pre-trained knowledge to figure out how to complete the task.\"",
+    "topic": "few-shot-examples",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://developers.openai.com/cookbook/examples/agents_sdk/session_memory",
+    "takeaway": "OpenAI's cookbook splits agent memory into short-term — \"keep only the last N turns (a 'turn' = one user message and everything until the next user message)\" — and long-term, which \"compresses prior exchanges into structured summaries that persist across session boundaries.\" Managing context matters for coherence (\"keep the agent anchored to the latest user goal without dragging along stale details\") and cost (\"smaller, sharper prompts cut tokens per turn and attention load\"); summaries act as \"clean rooms.\"",
+    "topic": "memory-short-and-long-term",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://aws.amazon.com/what-is/agentic-ai/",
+    "takeaway": "Amazon Web Services defines agentic AI as \"an autonomous AI system that can act independently to achieve pre-determined goals,\" operating through stages where \"the act stage orchestrates several subtasks that the agentic models will then tackle sequentially.\" Agents use \"long-term memory systems to ensure that situational and context-dependent tasks remain consistent\" and can \"access administrator-installed plugins\" (tools) — every tool result becomes new context the agent must manage.",
+    "topic": "tool-results-and-agent-context",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.digitalocean.com/community/tutorials/context-engineering-moving-beyond-prompting-ai",
+    "takeaway": "DigitalOcean defines context engineering as \"the practice of carefully structuring and designing the input (context) and then providing this context to the large language model (LLM) so that the LLM provides useful, accurate, and relevant outputs\" — \"about managing the entire context window,\" not \"clever single-line prompts.\" It enumerates what fills the window: instructions, knowledge retrieved via RAG, tools and APIs, conversation history, and external memory (scratchpads and persistent memories), urging teams to \"curate, filter, and inject only the most useful content.\"",
+    "topic": "the-anatomy-of-a-context",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://productschool.com/blog/artificial-intelligence/guide-ai-product-manager",
+    "takeaway": "Product School tells AI PMs that data fluency is now \"part of your concern\": \"understanding the data your product and business generate, and how AI might use it ... knowing the basics of how models learn from data and the importance of data quality.\" It urges teams to \"Run rigorous AI evals\" and \"Set dual success metrics\" tracking \"both product outcomes ... and model evaluation metrics (precision, recall, latency).\" Its discipline check: \"If simple logic or deterministic rules solve the issue cleanly, use them.\"",
+    "topic": "what-this-means-for-pms",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

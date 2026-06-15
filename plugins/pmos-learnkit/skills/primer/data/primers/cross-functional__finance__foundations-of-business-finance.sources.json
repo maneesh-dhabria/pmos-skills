@@ -1,0 +1,121 @@
+[
+  {
+    "url": "https://readingraphics.com/book-summary-financial-intelligence/",
+    "takeaway": "Summarizing Karen Berman and Joe Knight's *Financial Intelligence: A Manager's Guide to Knowing What the Numbers Really Mean*, ReadinGraphics defines financial intelligence as \"the ability to measure financial success and understand how the numbers reflect or affect a company's performance,\" and stresses that finance is partly an art: \"Numbers don't tell the full story,\" because statements rest on assumptions and estimates. Its blunt mental-model line: \"Profits aren't real money. Cash is.\"",
+    "topic": "what-business-finance-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/three-financial-statements/",
+    "takeaway": "Corporate Finance Institute defines the three core statements: \"The income statement illustrates the profitability of a company under accrual accounting rules,\" \"the balance sheet shows a company's assets, liabilities, and shareholders' equity at a particular point in time,\" and \"the cash flow statement shows cash movements from operating, investing, and financing activities.\"",
+    "topic": "the-three-statements",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Income_statement",
+    "takeaway": "Wikipedia defines the income statement as the report that \"shows the company's revenues and expenses during a particular period\" and \"indicates how the revenues (also known as the 'top line') are transformed into the net income or net profit.\" Critically, it \"represents a period of time... This contrasts with the balance sheet, which represents a single moment in time.\"",
+    "topic": "the-income-statement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Balance_sheet",
+    "takeaway": "Wikipedia describes the balance sheet as \"a snapshot of a company's financial condition\" that \"applies to a single point in time,\" governed by the accounting equation: \"net worth must equal assets minus liabilities.\" Assets are \"all the things the business owns,\" while equity is the funds \"owing' to shareholders (after payment of all other liabilities).\"",
+    "topic": "the-balance-sheet",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Cash_flow_statement",
+    "takeaway": "Wikipedia defines the cash flow statement as the report that \"shows how changes in balance sheet accounts and income affect cash and cash equivalents,\" split into operating, investing, and financing activities. It excludes non-cash items like depreciation, which is why \"a company can report a profit on its income statement, but at the same time have insufficient cash to operate.\"",
+    "topic": "the-cash-flow-statement",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/3-financial-statements-linked/",
+    "takeaway": "CFI shows the statements are one connected system: \"Net income from the bottom of the income statement links to the balance sheet and cash flow statement. On the balance sheet, it feeds into retained earnings and on the cash flow statement, it is the starting point for the cash from operations section.\" The cash flow statement's ending balance \"becomes the current period closing cash balance on the balance sheet.\"",
+    "topic": "how-the-statements-connect",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.wallstreetprep.com/knowledge/how-are-the-financial-statements-linked/",
+    "takeaway": "Wall Street Prep names retained earnings as the hinge: \"Retained earnings is the centerpiece that links the three financial statements together,\" equal to \"Beginning Balance + Net Income – Dividends.\" It also explains the depreciation add-back — \"non-cash expenses like D&A\" are added back to net income on the cash flow statement — and that \"the ending cash balance calculated on the cash flow statement is the current period cash balance on the balance sheet.\"",
+    "topic": "how-the-statements-connect",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://ramp.com/blog/are-you-turning-a-profit-but-running-out-of-cash",
+    "takeaway": "Ramp draws the profit-versus-cash line sharply: \"Profit doesn't pay your bills—cash does. A business can be consistently profitable on paper and still run out of money.\" Profit is \"revenue minus expenses on paper, recognized when earned under accrual accounting rules,\" while cash flow is \"actual dollars available in your bank account.\" The trap: \"When you extend payment terms like net 30 or net 60 to customers, you've made the sale but haven't received the cash\" — so \"you can post record profits in the same quarter you struggle to make payroll.\"",
+    "topic": "profit-vs-cash",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.growthforce.com/blog/why-profits-dont-equal-cash-flow",
+    "takeaway": "GrowthForce attributes the profit-cash gap to accrual timing: \"the timing difference between when revenues and expenses are recognized in the books compared to their actual collection and payment can result in variances.\" When credit is extended, \"the income statement reflects revenue but no cash is being added to the bank account,\" and debt repayment hides too — \"the principal payment lowers the cash account but does not affect profits.\"",
+    "topic": "profit-vs-cash",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.wolterskluwer.com/en/expert-insights/the-difference-between-cash-flow-and-profit",
+    "takeaway": "Wolters Kluwer frames cash flow as being \"concerned with the movement of money in and out of a business... the time at which the movement of the money takes place,\" whereas \"the concept of profit is somewhat narrow, and only looks at income and expenses at a certain point in time.\" Relying on profit alone \"can create a false sense of financial health.\"",
+    "topic": "profit-vs-cash",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/profit-margin/",
+    "takeaway": "CFI defines the three margin tiers as you descend the income statement: gross profit margin is \"total revenue minus cost of goods sold (COGS)\" over revenue; operating profit margin is \"revenue minus COGS and operating expenses\" over revenue; and net profit margin is \"revenue minus all expenses, including interest and taxes\" over revenue.",
+    "topic": "the-language-of-margins",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.bdc.ca/en/articles-tools/entrepreneur-toolkit/templates-business-guides/glossary/ebitda",
+    "takeaway": "BDC defines EBITDA as \"earnings before interest, taxes, depreciation and amortization,\" which \"helps evaluate a business's core profitability\" and gives \"a good shortcut to give a quick picture of its available cash flow.\" But it carries a warning: \"Because EBITDA adds back interest, amortization and depreciation, a company may have no net profit but high EBITDA\" — so it must be read \"alongside other indicators.\"",
+    "topic": "the-language-of-margins",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Working_capital",
+    "takeaway": "Wikipedia defines working capital as \"current assets minus current liabilities,\" representing \"operating liquidity available to a business.\" The key accounts are cash, accounts receivable, inventory, and accounts payable; \"positive working capital is required to ensure that a firm is able to continue its operations,\" while a shortfall is a \"working capital deficiency.\"",
+    "topic": "working-capital-and-the-cash-cycle",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/accounting/cash-conversion-cycle/",
+    "takeaway": "CFI defines the cash conversion cycle as \"the amount of time it takes a company to convert its investments in inventory to cash,\" measured as Days Inventory Outstanding plus Days Sales Outstanding minus Days Payable Outstanding. \"The shorter the cash conversion cycle, the better the company is at selling inventories and recovering cash from these sales while paying suppliers.\"",
+    "topic": "working-capital-and-the-cash-cycle",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/commercial-lending/debt-vs-equity/",
+    "takeaway": "CFI contrasts the two ways to fund a business: debt financing \"refers to issuing bonds,\" equity financing \"refers to issuing stock.\" The trade-off centers on cost and control: \"the Cost of Equity is generally higher than the Cost of Debt since equity investors take on more risk,\" while \"stockholders have a lower claim on company assets in case of company default\" and \"dividends are discretionary.\"",
+    "topic": "how-companies-raise-money",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://corporatefinanceinstitute.com/resources/financial-modeling/capital-stack-structure-debt-equity/",
+    "takeaway": "CFI describes the capital stack as \"the structured hierarchy of financing sources used to fund a company's assets, operations, and growth,\" ordered by risk: senior debt is \"repaid first in the event of liquidation,\" subordinated debt \"ranks below senior debt,\" and equity \"carries the highest risk, and is repaid last but provides the greatest potential for long-term returns.\" The goal is \"an optimal capital structure... that minimizes risk and cost of capital while maximizing value.\"",
+    "topic": "how-companies-raise-money",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://propertymetrics.com/blog/time-value-of-money/",
+    "takeaway": "PropertyMetrics defines the time value of money as \"the economic principle that a dollar received today has greater value than a dollar received in the future,\" because today's dollar can be invested. Present value \"represents a single sum of money today,\" and discounting \"is about moving money backwards in time... the process of determining the present value of money to be received in the future.\"",
+    "topic": "the-time-value-of-money",
+    "tier": "T2",
+    "paywalled": false
+  }
+]

@@ -1,0 +1,149 @@
+[
+  {
+    "url": "https://en.wikipedia.org/wiki/Software_development_process",
+    "takeaway": "A software development process (or SDLC) is a structured framework that 'prescribes a process for developing software' and 'typically divides an overall effort into smaller steps or sub-processes that are intended to ensure high-quality results.'",
+    "topic": "what-this-is",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Systems_development_life_cycle",
+    "takeaway": "The SDLC 'describes the typical phases and progression between phases during the development of a computer-based system,' moving from conceptualization through requirements, design, build, test, deploy, and eventual decommissioning.",
+    "topic": "how-it-works",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Software_requirements_specification",
+    "takeaway": "A Software Requirements Specification documents the capabilities and constraints of a system to be built, capturing agreement on both 'functional and non-functional requirements' plus use cases for required user interactions.",
+    "topic": "core-concepts",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Waterfall_model",
+    "takeaway": "In the waterfall model, 'progress flows largely in one direction (like a waterfall)' through sequential phases where each must complete before the next begins — straightforward to manage but criticized as inflexible when requirements change.",
+    "topic": "models",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/V-model_(software_development)",
+    "takeaway": "The V-model pairs each design phase with a matching test phase; it 'demonstrates the relationships between each phase of the development life cycle and its associated phase of testing.'",
+    "topic": "models",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Iterative_and_incremental_development",
+    "takeaway": "Iterative and incremental development repeats cycles of build-and-learn: 'At each iteration, design modifications are made and new functional capabilities are added,' rather than delivering everything at the end.",
+    "topic": "models",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Agile_software_development",
+    "takeaway": "Agile software development favors iterative cycles and adaptive planning, valuing 'Individuals and interactions over processes and tools' and delivering working software in frequent increments rather than one final drop.",
+    "topic": "models",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://agilemanifesto.org/",
+    "takeaway": "The Manifesto for Agile Software Development states four values: 'Individuals and interactions over processes and tools', 'Working software over comprehensive documentation', 'Customer collaboration over contract negotiation', and 'Responding to change over following a plan.'",
+    "topic": "agile-practice",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Scrum_(software_development)",
+    "takeaway": "Scrum 'prescribes for teams to break work into goals to be completed within time-boxed iterations, called sprints,' with a product owner, developers, and a scrum master facilitating the process.",
+    "topic": "agile-practice",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Kanban_(development)",
+    "takeaway": "Kanban visualizes work on a board and limits work-in-progress so 'work is pulled as capacity permits, rather than work being pushed into the process when requested' — exposing bottlenecks and smoothing flow.",
+    "topic": "agile-practice",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Version_control",
+    "takeaway": "Version control tracks and manages changes to files over time so teams can collaborate safely with a complete history; it 'is a component of software configuration management' and enables easy recovery from mistakes.",
+    "topic": "version-control",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Code_review",
+    "takeaway": "Code review is a quality activity where people examine source code to find defects and share knowledge; it 'differs from related software quality assurance techniques like static code analysis, self-checks, testing, and pair programming.'",
+    "topic": "version-control",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Software_testing",
+    "takeaway": "Software testing 'can provide objective, independent information about the quality of software and the risk of its failure,' validating behavior across levels from isolated units to whole-system end-to-end tests.",
+    "topic": "testing",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martinfowler.com/bliki/TestPyramid.html",
+    "takeaway": "Martin Fowler's test pyramid argues for many fast low-level tests and few slow high-level ones: 'you should have many more low-level UnitTests than high level BroadStackTests running through a GUI.'",
+    "topic": "testing",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Continuous_integration",
+    "takeaway": "Continuous integration means 'developers merge changes to an integration branch, and an automated system builds and tests the software system' frequently, so integration problems surface early instead of at the end.",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/CI/CD",
+    "takeaway": "CI/CD 'bridges the gaps between development and operation activities and teams by enforcing automation in building, testing and deployment of applications,' increasing early defect discovery and release speed.",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martinfowler.com/bliki/ContinuousDelivery.html",
+    "takeaway": "Continuous delivery keeps software in a constantly releasable state through automation and tight feedback, so that 'the software can be released to production at any time.'",
+    "topic": "cicd",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/DevOps",
+    "takeaway": "DevOps is 'a set of practices intended to reduce the time between committing a change to a system and the change being placed into normal production, while ensuring high quality,' merging development with operations through automation.",
+    "topic": "cicd",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Software_development_effort_estimation",
+    "takeaway": "Effort estimation is hard because experts skew optimistic; as the field's folk wisdom puts it, 'the first 90 percent of the code accounts for the first 90 percent of the development time. The remaining 10 percent of the code accounts for the other 90 percent.'",
+    "topic": "estimation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Planning_poker",
+    "takeaway": "Planning poker has team members reveal estimate cards simultaneously so 'the group can avoid the cognitive bias of anchoring, where the first number spoken aloud sets a precedent for subsequent estimates.'",
+    "topic": "estimation",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://martinfowler.com/bliki/TechnicalDebt.html",
+    "takeaway": "Technical debt is the metaphor for internal-quality shortcuts that slow future change like interest on a loan; the interest 'compounds fastest in areas developers modify frequently,' so refactoring active code pays off most.",
+    "topic": "tech-debt",
+    "tier": "T1",
+    "paywalled": false
+  }
+]

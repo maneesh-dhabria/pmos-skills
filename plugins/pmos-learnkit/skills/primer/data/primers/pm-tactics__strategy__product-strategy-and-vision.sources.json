@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://www.alexmurrell.co.uk/summaries/richard-rumelt-good-strategy-bad-strategy",
+    "takeaway": "Rumelt's kernel of good strategy is three parts: a diagnosis that defines or explains the nature of the challenge by \"comprehending the situation and identifying the biggest barriers\"; a guiding policy \"Like the guardrails on a highway\" that channels action without dictating every move; and coherent actions that are coordinated to carry out the guiding policy. Rumelt's four hallmarks of bad strategy: fluff (gibberish masquerading as strategic concepts), failure to face the challenge, mistaking goals for strategy, and bad strategic objectives.",
+    "topic": "what-is-strategy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.lennysnewsletter.com/p/good-strategy-bad-strategy-richard",
+    "takeaway": "Lenny Rachitsky's distillation of Rumelt: the kernel is diagnosis, guiding policy, coherent action, and \"the most common cause of bad strategy is a weak diagnosis\" — a strategy that doesn't honestly name the central challenge can't address it. A strategy is not a goal, a vision, or a list of priorities; it is a way through a specific obstacle.",
+    "topic": "what-is-strategy",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://fs.blog/playing-to-win/",
+    "takeaway": "Lafley and Martin's Playing to Win frames strategy as \"a coordinated and integrated set of five choices: a winning aspiration, where to play, how to win, core capabilities, and management systems\" — \"strategy is about making specific choices to win in the marketplace.\" Strategy is \"an integrated set of choices that uniquely positions the firm in its industry so as to create sustainable advantage and superior value relative to the competition.\"",
+    "topic": "playing-to-win",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://rogermartin.medium.com/decoding-the-strategy-choice-cascade-475d40555eb1",
+    "takeaway": "Roger Martin's strategy choice cascade is five linked choices — winning aspiration, where to play, how to win, capabilities, management systems — and the where-to-play (WTP) and how-to-win (HTW) choices are inseparable: \"A WTP choice is useless without a HTW for that WTP. Likewise, a HTW is useless without a WTP on which to focus.\" Strategy is choosing both together, not picking a market then figuring out winning.",
+    "topic": "playing-to-win",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://melissaperri.com/blog/2016/07/14/what-is-good-product-strategy",
+    "takeaway": "Melissa Perri argues good product strategy is \"a system of achievable goals and visions that work together to align the team around desirable outcomes\" — not a plan. \"This isn't a strategy, this is a plan... when we treat a product strategy like a plan, it will almost always fail.\" Strategy is a deployable decision-making framework, not a Gantt chart of features.",
+    "topic": "good-product-strategy",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://t-ziegelbecker.medium.com/a-summary-of-escaping-the-build-trap-by-melissa-perri-d247f943a7b3",
+    "takeaway": "Perri's Escaping the Build Trap: the build trap is \"when organizations measure their success by outputs rather than outcomes\" — shipping features instead of creating value. Product strategy is \"not a plan but a framework that helps to make decisions\" and it \"connects vision to economic outcomes.\" A product-led organization \"is a culture that organizes around outcomes.\"",
+    "topic": "good-product-strategy",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.mindtheproduct.com/product-vision-and-strategy-marty-cagan-on-the-product-experience-part-1-of-2/",
+    "takeaway": "Marty Cagan distinguishes vision from strategy: \"Vision is describing your destination,\" typically \"five to 10 years out,\" while product strategy is \"a living thing\" you keep \"revisiting it every quarter.\" Empowered teams need strategic context to make good choices: \"In order to make good choices... they need that strategic context.\" Vision inspires; strategy sequences the path to it.",
+    "topic": "vision-strategy-roadmap",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://romanpichler.medium.com/my-product-strategy-model-cdb9e2673853",
+    "takeaway": "Roman Pichler frames a hierarchy: vision → strategy → roadmap → backlog, where decisions \"become more specific\" and time frames compress \"from five to ten years covered by the vision\" down to a backlog of \"the next few months.\" The vision \"describes the product's purpose, the ultimate reason for creating it, and the positive change it should bring about\"; the strategy \"communicates the approach chosen to realise the vision and to make the product successful\" via choices about customer needs, target market, differentiators, and business goals.",
+    "topic": "vision-strategy-roadmap",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://gibsonbiddle.medium.com/2-the-dhm-model-6ea5dfd80792",
+    "takeaway": "Gibson Biddle's DHM model defines product strategy as the answer to one question: \"How will your product delight customers in hard-to-copy, margin-enhancing ways?\" Delight (D) drives engagement, hard-to-copy (H) is the durable moat, and margin-enhancing (M) ties it to the business. A feature that delights but is trivially copyable, or is unique but unprofitable, is not strategy.",
+    "topic": "dhm-model",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.sachinrekhi.com/p/7-powers-hamilton-helmer",
+    "takeaway": "Hamilton Helmer's 7 Powers defines a Power as the source of \"persistent differential returns\" — sustained advantage that survives competition. Every Power has \"two critical components: a benefit and a barrier\" — the benefit improves economics, the barrier prevents competitors from arbitraging it away. The seven: scale economies, network economies, counter-positioning, switching costs, branding, cornered resource, and process power.",
+    "topic": "competitive-advantage",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://en.wikipedia.org/wiki/Wardley_map",
+    "takeaway": "Simon Wardley's mapping technique: \"A Wardley map is a map for business strategy\" that plots a value chain (user need at top, components beneath) against evolution (genesis → custom-built → product/rental → commodity/utility). Its purpose is situational awareness — \"the value [lies] in exposing assumptions\" about where components sit and where they are evolving, so strategy responds to the landscape rather than opinion.",
+    "topic": "situational-awareness",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.productcompass.pm/p/the-north-star-framework-101",
+    "takeaway": "The North Star Framework (Sean Ellis, Amplitude, John Cutler) centers a single metric that is customer-centric, a leading indicator of revenue, and a measure of the value customers get. A common misuse is naming several metrics \"North Star Metrics\" — \"a misunderstanding\"; the framework's discipline is exactly one North Star supported by a small set of inputs the team can move.",
+    "topic": "north-star-and-outcomes",
+    "tier": "T2",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.producttalk.org/outcomes-vs-outputs/",
+    "takeaway": "Teresa Torres distinguishes outputs from outcomes: \"An output is something you build or produce — a feature, a project, an initiative,\" while \"An outcome is the impact of that output — a change in customer behavior or a business result.\" Her core principle: \"Building something isn't the same as creating value.\" Outcome-assigned teams get autonomy to discover solutions; output-assigned teams just execute a feature roadmap.",
+    "topic": "north-star-and-outcomes",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://www.intercom.com/blog/podcasts/josh-seiden-on-why-product-teams-should-focus-on-outcome-vs-output/",
+    "takeaway": "Josh Seiden defines an outcome as \"a change in human behavior that drives business results.\" The reframe for teams: instead of asking \"What should we build?\", ask \"What will people be doing differently as a result of this feature?\" because \"just shipping features and moving on is a huge problem for product teams\" — a feature that ships but changes no behavior created no value.",
+    "topic": "north-star-and-outcomes",
+    "tier": "T1",
+    "paywalled": false
+  },
+  {
+    "url": "https://workingbackwards.com/concepts/working-backwards-pr-faq-process/",
+    "takeaway": "Amazon's Working Backwards is \"a systematic way to vet ideas and create new products\" whose principal tool is the PR/FAQ (press release + FAQ). Writing the press release first \"is a forcing function to ensure that the creator of the new product idea is focused on the customer\" — normally the last step, moved to the front so the team commits to a customer-facing vision before building. It operationalizes \"start with the customer and work backwards.\"",
+    "topic": "north-star-and-outcomes",
+    "tier": "T2",
+    "paywalled": false
+  }
+]
