@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.5.0: Texas Hold'em at your desk — play /poker
+
+`/poker` deals you into a single-player No-Limit Texas Hold'em cash game against computer opponents — no stakes, no account, just the cards.
+
+- **Play No-Limit Hold'em, fully offline.** `/poker` opens a full hand of Texas Hold'em in your browser via the same zero-dependency launcher as the other games. Choose how many bot opponents (1–5) to sit with; you act with check, call, bet, raise, and fold through every street to showdown.
+- **A real table, properly handled.** Hands are evaluated correctly across all seven cards, betting follows real No-Limit rules, and all-ins build proper side pots so chips are always awarded fairly. The bots play a reasonable heuristic game, and chip counts carry hand to hand.
+
 ## 2026-06-15 — pmos-gamekit 0.4.0: the classic Snake — play /snake
 
 `/snake` adds the feature-phone classic to the kit — steer a growing snake to eat and avoid biting your own tail.
