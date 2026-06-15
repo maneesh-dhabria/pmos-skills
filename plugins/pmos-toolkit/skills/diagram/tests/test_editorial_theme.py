@@ -72,3 +72,60 @@ def test_editorial_atoms_use_only_theme_palette():
         text = atom.read_text()
         for m in hex_pat.findall(text):
             assert m.upper() in palette, f"{atom.name}: color {m} not in editorial palette"
+
+
+# --- 260614-d3g: contrast hard-fail legend-fallback diagnostic suffix ---
+
+LEGEND_SUFFIX = (
+    "(nearest ancestor excluded by class=legend — remove "
+    "class=legend from the chip rect if it is the actual background source)"
+)
+
+
+def _write_svg(tmp_path, name, body):
+    p = tmp_path / name
+    p.write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" '
+        'viewBox="0 0 640 400">\n'
+        '<title>contrast diagnostic fixture</title>\n'
+        f'{body}\n</svg>\n'
+    )
+    return p
+
+
+def _contrast_fails(result):
+    return [f for f in result["hard_fails"] if f.startswith("contrast:")]
+
+
+def test_contrast_legend_fallback_appends_diagnostic_suffix(tmp_path):
+    """Low-contrast text whose nearest enclosing rect is class='legend' (so the
+    background resolves by falling back past it) gets the actionable suffix."""
+    # cream (#F4EFE6, a palette token) text sitting inside a lilac legend chip;
+    # the chip is excluded from background detection, so bg falls back to canvas.
+    svg = _write_svg(
+        tmp_path, "legend-fallback.svg",
+        '<rect class="legend" x="100" y="100" width="240" height="48" fill="#DCE0F0"/>\n'
+        '<text x="116" y="128" font-size="14" fill="#F4EFE6">DEFINED</text>',
+    )
+    result = run.evaluate(svg, theme="editorial")
+    fails = _contrast_fails(result)
+    assert fails, f"expected a contrast hard-fail, got: {result['hard_fails']}"
+    assert any(f.endswith(LEGEND_SUFFIX) for f in fails), (
+        f"expected a contrast fail ending with the legend suffix, got: {fails}"
+    )
+
+
+def test_contrast_non_legend_has_no_diagnostic_suffix(tmp_path):
+    """An identical low-contrast fail on a normal (non-legend) background carries
+    NO legend suffix — the diagnostic is scoped to the legend-fallback case."""
+    svg = _write_svg(
+        tmp_path, "non-legend.svg",
+        '<rect x="100" y="100" width="240" height="48" fill="#DCE0F0"/>\n'
+        '<text x="116" y="128" font-size="14" fill="#F4EFE6">DEFINED</text>',
+    )
+    result = run.evaluate(svg, theme="editorial")
+    fails = _contrast_fails(result)
+    assert fails, f"expected a contrast hard-fail, got: {result['hard_fails']}"
+    assert all("class=legend" not in f for f in fails), (
+        f"non-legend contrast fail must not carry the legend suffix, got: {fails}"
+    )

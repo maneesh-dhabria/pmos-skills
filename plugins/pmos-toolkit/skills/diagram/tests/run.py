@@ -433,6 +433,34 @@ def is_chrome_class(path_cls):
     return any(c in {"bg", "container", "backdrop", "chrome"} for c in path_cls)
 
 
+def shape_bbox(local_tag, el, m):
+    """Translated (x, y, w, h) for a rect/circle/ellipse, or None. Mirrors the node
+    bbox math; used to capture legend-classed background candidates for the contrast
+    diagnostic without altering node collection (260614-d3g)."""
+    try:
+        if local_tag == "rect":
+            x = float(el.get("x", 0)); y = float(el.get("y", 0))
+            w = float(el.get("width", 0)); h = float(el.get("height", 0))
+            if w <= 0 or h <= 0:
+                return None
+        elif local_tag == "circle":
+            cx = float(el.get("cx", 0)); cy = float(el.get("cy", 0)); r = float(el.get("r", 0))
+            if r <= 0:
+                return None
+            x, y, w, h = cx - r, cy - r, 2 * r, 2 * r
+        elif local_tag == "ellipse":
+            cx = float(el.get("cx", 0)); cy = float(el.get("cy", 0))
+            rx = float(el.get("rx", 0)); ry = float(el.get("ry", 0))
+            if rx <= 0 or ry <= 0:
+                return None
+            x, y, w, h = cx - rx, cy - ry, 2 * rx, 2 * ry
+        else:
+            return None
+    except ValueError:
+        return None
+    return (x + m[4], y + m[5], w, h)
+
+
 def in_defs(el, defs_set):
     return el in defs_set
 
@@ -603,6 +631,7 @@ def evaluate(
             hard_fails.append("transform: unsupported (e.g. matrix/skew) — use translate/scale/rotate only")
 
     nodes: list[dict[str, Any]] = []        # [{id, bbox, el, fill, stroke}]
+    legend_rects: list[dict[str, Any]] = [] # [{bbox, el}] — legend-classed bg candidates (260614-d3g)
     connectors: list[dict[str, Any]] = []   # [{waypoints, el}]
     bare_connectorish: list[str] = []       # stroked line/path/polyline without arrowheads
     text_records: list[dict[str, Any]] = [] # [{x, y, text, font_size, fill, el}]
@@ -682,6 +711,17 @@ def evaluate(
                               "stroke": resolve_attr(el, "stroke", styles, inh)})
             except ValueError:
                 continue
+
+        # LEGEND background-source capture (260614-d3g): rects/circles/ellipses that
+        # would be nodes but were excluded from `nodes` above by has_legend_class.
+        # Kept separately so the contrast check can name a chip rect whose class="legend"
+        # suppressed it as the real background. Node collection above is unchanged.
+        if (local_tag in ("rect", "circle", "ellipse")
+                and has_legend_class(path_cls)
+                and not is_chrome_class(path_cls)):
+            lb = shape_bbox(local_tag, el, m)
+            if lb is not None:
+                legend_rects.append({"bbox": lb, "el": el})
 
         # CONNECTOR detection
         marker_end = el.get("marker-end") or inh.get("marker-end")
@@ -828,9 +868,20 @@ def evaluate(
         ratio = contrast_ratio(fill, bg)
         floor = 4.5 if t["font_size"] < 16 else 3.0
         if ratio < floor:
-            hard_fails.append(
-                f"contrast: text '{t['text'][:24]}' fill={fill} on {bg} ratio={ratio:.2f}:1 < {floor}:1"
-            )
+            msg = f"contrast: text '{t['text'][:24]}' fill={fill} on {bg} ratio={ratio:.2f}:1 < {floor}:1"
+            # If a class="legend" rect is the nearest element enclosing this text but was
+            # excluded from background detection, `bg` fell back PAST it (to a larger node
+            # or the canvas). Point straight at it so the author can drop class=legend on a
+            # chip rect that is actually the background source (260614-d3g). Message-only —
+            # the legend-exclusion logic above is unchanged.
+            for lr in legend_rects:
+                lx, ly, lw, lh = lr["bbox"]
+                if (lx <= t["x"] <= lx + lw and ly <= t["y"] <= ly + lh
+                        and (lw * lh) < smallest_area):
+                    msg += (" (nearest ancestor excluded by class=legend — remove "
+                            "class=legend from the chip rect if it is the actual background source)")
+                    break
+            hard_fails.append(msg)
 
     # node count hard-fail
     n_nodes = len(nodes)
