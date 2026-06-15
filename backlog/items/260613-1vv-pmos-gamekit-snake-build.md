@@ -13,12 +13,13 @@ feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-snake/
 plan_doc: docs/pmos/features/2026-06-13_pmos-gamekit-snake/stories/260613-1vv/03_plan.html
 tasks: docs/pmos/features/2026-06-13_pmos-gamekit-snake/stories/260613-1vv/tasks.yaml
 labels: [pmos-gamekit, snake, game-launcher]
-worktree: feat/260613-1vv
+worktree: 
 claimed_by: build:explainer-a3g-loop
 driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
 updated: 2026-06-15
 build_commit: 056dda7
+released: 0.4.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-1vv -->

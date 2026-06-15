@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — /snake (classic feature-phone Snake, single-file HTML, walls-kill + wrap toggle, speed picker + progressive speed-up)
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-snake/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-13_pmos-gamekit-snake/02_design.html
 labels: [pmos-gamekit, snake, browser-game, game-launcher]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
+released: 0.4.0
 ---
 
 ## Context
