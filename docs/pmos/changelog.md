@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.78.0: the pipeline now dogfoods what it builds before passing verify
+
+The build pipeline gains a load-bearing self-check: a feature isn't "done" until its actual deliverable has been used on a real task and the result judged good. This closes the gap where something could pass tests and reviews yet still not work well in practice.
+
+- **/plan emits a mandatory dogfood task.** For enhancements and features, every plan now includes a "use the real thing on a representative task" step with both an objective check (a concrete command and expected output) and a subjective rubric scored by an independent blind judge — proposed for your approval as the plan is written.
+- **/verify gates on the dogfood verdict.** Verification now refuses a clean pass unless that dogfood task carried a satisfied verdict; a missing or not-satisfied verdict surfaces loudly as a gap rather than slipping through. Residuals the iterate loop explicitly accepted are reported as known-and-accepted instead of silently dropped.
+
 ## 2026-06-15 — pmos-gamekit 0.5.0: Texas Hold'em at your desk — play /poker
 
 `/poker` deals you into a single-player No-Limit Texas Hold'em cash game against computer opponents — no stakes, no account, just the cards.
