@@ -4,7 +4,8 @@ id: 260615-565
 kind: epic
 title: "/primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks)"
 type: feature
-status: defined
+status: released
+released: pmos-learnkit/v0.22.0
 priority: should
 labels: [pmos-learnkit, primer, browse, corpus, web-ui]
 route: skill

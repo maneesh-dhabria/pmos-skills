@@ -7,6 +7,7 @@ title: Implement /primer browse library — transplant 61-primer corpus + build-
 type: feature
 priority: should
 status: done
+released: pmos-learnkit/v0.22.0
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-15_primer-browse-library/
