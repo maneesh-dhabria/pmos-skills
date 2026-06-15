@@ -6,15 +6,18 @@ parent: 260614-nvh
 title: Build the /flappy-bird skill — single-file one-button arcade game (Easy/Normal/Hard, gravity+flap physics, constant-difficulty run) + tests
 type: feature
 priority: could
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/
 plan_doc: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/stories/260614-yb7/03_plan.html
 tasks: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/stories/260614-yb7/tasks.yaml
 labels: [pmos-gamekit, flappy-bird, game-launcher]
+claimed_by: build:flappy-yb7-loop
+driver_holder: build:flappy-yb7-loop
+worktree: feat/260614-yb7
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260614-yb7 -->
