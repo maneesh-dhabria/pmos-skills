@@ -6,7 +6,7 @@ parent: 260615-565
 title: Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests
 type: feature
 priority: should
-status: planned
+status: done
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-15_primer-browse-library/

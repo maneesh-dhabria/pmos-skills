@@ -39,7 +39,7 @@ Last regenerated: 2026-06-15 (define 260615-565 — /primer browse library epic 
 | 260614-q3h | defined | skill | pmos-toolkit | 0/1 | /backlog web viewer — nomenclature & conceptual clarity (translation layer: plain labels, legend, kind pills, grouped-status filter, @null fix, Releases cleanup, tooltips) |
 | 260614-m68 | defined | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
 | 260614-za3 | defined | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
-| 260615-565 | defined | skill | pmos-learnkit | 0/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) |
+| 260615-565 | defined | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) |
 
 ## must
 
@@ -51,7 +51,7 @@ Last regenerated: 2026-06-15 (define 260615-565 — /primer browse library epic 
 
 | id | kind | type | status | parent | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|---|
-| 260615-dhk | story | feature | planned | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
+| 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
 | 0009 | story | enhancement | wontfix |  | /feature-sdlc has no mid-flight base-drift check — origin can advance during a long single-session run, surfacing only at /complete-dev Phase 9 stale-bump |  |  |  |
