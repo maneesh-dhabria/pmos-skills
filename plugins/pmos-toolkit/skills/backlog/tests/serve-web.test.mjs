@@ -114,9 +114,10 @@ function testDerivation() {
   // should beats could → S2.
   eq(model.queues.next.pick, 'S2', 'next pick = S2 (in-flight epic, should > could)');
 
-  // releases
+  // releases — FR-6: not-started epics (0 stories done) are excluded from the column.
+  // E4 is blocked but has 0 done stories → excluded entirely (its blocked story stays in groom).
   eq(model.queues.releases.release_ready, ['E2'], 'release_ready = [E2]');
-  eq(model.queues.releases.blocked, ['E4'], 'releases blocked = [E4]');
+  eq(model.queues.releases.blocked, [], 'releases blocked = [] (E4 has 0 done → excluded, FR-6)');
   eq(model.queues.releases.in_flight, ['E1'], 'releases in_flight = [E1]');
 
   // facets
@@ -127,6 +128,62 @@ function testDerivation() {
   const p = parseFrontmatter('---\nid: X\ndependencies: [a, b, c]\nlabels: [one]\n---\nbody');
   eq(p.fm.dependencies, ['a', 'b', 'c'], 'parseFrontmatter inline array');
 
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// --- FR-5: null-literal coercion -------------------------------------------------------
+
+function testNullCoercion() {
+  // parseScalar (via parseFrontmatter) coerces the YAML null / ~ / empty literal to '' for
+  // every field — not just the ones with a `|| ''` fallback downstream.
+  const p = parseFrontmatter(
+    '---\nid: X\nclaimed_by: null\nreleased: ~\ntitle:\nstatus: planned\n---\nbody'
+  );
+  eq(p.fm.claimed_by, '', 'parseScalar coerces `null` literal to empty (FR-5)');
+  eq(p.fm.released, '', 'parseScalar coerces `~` literal to empty (FR-5)');
+  eq(p.fm.title, '', 'parseScalar leaves an empty value empty (FR-5)');
+  // a quoted "null" string is a real value, not the null literal — must survive.
+  const q = parseFrontmatter('---\nid: X\nclaimed_by: "null"\n---\nbody');
+  eq(q.fm.claimed_by, 'null', 'a quoted "null" string is preserved (not the null literal)');
+
+  // end-to-end: an item whose claimed_by is the bare null literal must not surface "null".
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'backlog-null-'));
+  const itemsDir = path.join(root, 'backlog', 'items');
+  fs.mkdirSync(itemsDir, { recursive: true });
+  fs.writeFileSync(path.join(itemsDir, 'e1.md'), item({ id: 'E1', kind: 'epic', title: 'E', status: 'defined', labels: ['pmos-toolkit'], created: '2026-06-10' }));
+  fs.writeFileSync(path.join(itemsDir, 's1.md'), item({ id: 'S1', kind: 'story', title: 'S1', status: 'planned', parent: 'E1', claimed_by: 'null' }));
+  const { items } = parseItems(itemsDir);
+  const s1 = items.find((i) => i.id === 'S1');
+  eq(s1.claimed_by, '', 'parseItems coerces `claimed_by: null` to empty (FR-5, no @null chip)');
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// --- FR-4: grouped, lifecycle-ordered status facets ------------------------------------
+
+function testGroupedStatusFacets() {
+  const root = buildFixture();
+  const { items } = parseItems(path.join(root, 'backlog', 'items'));
+  const model = buildModel(items, { now: Date.parse('2026-06-14T00:00:00Z') });
+
+  // Epic statuses present in the fixture: inbox (E3), defined (E1/E2/E4) → lifecycle order.
+  eq(model.facets.epic_statuses, ['inbox', 'defined'], 'epic_statuses lifecycle-ordered, present-only (FR-4)');
+  // Story statuses present: draft (S5), planned (S2/S6/S7), blocked (S4), done (S1/S3).
+  eq(model.facets.story_statuses, ['draft', 'planned', 'blocked', 'done'], 'story_statuses lifecycle-ordered, present-only (FR-4)');
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
+// --- FR-6: Releases excludes not-started (0-done) epics --------------------------------
+
+function testReleasesExclusion() {
+  const root = buildFixture();
+  const { items } = parseItems(path.join(root, 'backlog', 'items'));
+  const model = buildModel(items, { now: Date.parse('2026-06-14T00:00:00Z') });
+  const rel = model.queues.releases;
+  const all = [...rel.release_ready, ...rel.in_flight, ...rel.blocked];
+  ok(!all.includes('E4'), 'E4 (0 done) excluded from every Releases lane (FR-6)');
+  // sanity: the epics that DO appear all have at least one done story.
+  const byId = Object.fromEntries(model.epics.map((e) => [e.id, e]));
+  ok(all.every((id) => byId[id].progress.done > 0), 'every Releases epic has done > 0 (FR-6)');
   fs.rmSync(root, { recursive: true, force: true });
 }
 
@@ -225,6 +282,9 @@ async function testServer() {
 
 async function main() {
   testDerivation();
+  testNullCoercion();
+  testGroupedStatusFacets();
+  testReleasesExclusion();
   await testServer();
   console.log(`serve-web.test.mjs: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
