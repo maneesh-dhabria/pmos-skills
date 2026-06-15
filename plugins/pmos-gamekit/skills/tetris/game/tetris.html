@@ -624,7 +624,9 @@ if (typeof document !== 'undefined') {
 
   function loop(t){
     if (!game || game.over){ render(); return; }
-    if (paused){ lastTime = t; requestAnimationFrame(loop); return; }
+    // Pausing stops the rAF loop entirely; the P-key resume re-arms it exactly once
+    // (lastTime is reset there), so there is never a second concurrent loop scheduled.
+    if (paused){ return; }
     if (!lastTime) lastTime = t;
     var dt = t - lastTime; lastTime = t;
     var interval = E.dropInterval(game.level);
