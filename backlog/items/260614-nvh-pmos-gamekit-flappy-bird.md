@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — /flappy-bird (one-button arcade flappy game, single-file HTML, Easy/Normal/Hard picker, constant-difficulty runs)
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/02_design.html
 labels: [pmos-gamekit, flappy-bird, browser-game, game-launcher]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 0.7.0
 ---
 
 ## Context

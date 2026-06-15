@@ -15,10 +15,11 @@ tasks: docs/pmos/features/2026-06-14_pmos-gamekit-flappy-bird/stories/260614-yb7
 labels: [pmos-gamekit, flappy-bird, game-launcher]
 claimed_by: build:flappy-yb7-loop
 driver_holder: build:flappy-yb7-loop
-worktree: feat/260614-yb7
+worktree: 
 build_commit: fab2132
 created: 2026-06-14
 updated: 2026-06-15
+released: 0.7.0
 ---
 
 <!-- status: planned at define (Loop 1) → done at build (Loop 2, 2026-06-15). branch feat/260614-yb7: build d67baac (SKILL.md + game/flappy-bird.html + tests/run.mjs) + dogfood fab2132. Release prereqs (v0.2.0 bump, changelog, tag) are /complete-dev's at Loop 3 — NOT story tasks. -->
