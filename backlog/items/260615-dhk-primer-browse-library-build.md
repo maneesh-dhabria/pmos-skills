@@ -6,15 +6,15 @@ parent: 260615-565
 title: Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests
 type: feature
 priority: should
-status: in-progress
+status: planned
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-15_primer-browse-library/
 plan_doc: docs/pmos/features/2026-06-15_primer-browse-library/stories/260615-dhk/03_plan.html
 tasks: docs/pmos/features/2026-06-15_primer-browse-library/stories/260615-dhk/tasks.yaml
-worktree: feat/260615-dhk
-claimed_by: build:dhk-loop
-driver_holder: build:dhk-loop
+worktree:
+claimed_by:
+driver_holder:
 labels: [pmos-learnkit, primer, browse, corpus, web-ui]
 created: 2026-06-15
 updated: 2026-06-15
