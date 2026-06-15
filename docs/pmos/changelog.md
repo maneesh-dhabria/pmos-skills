@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.4.0: the classic Snake — play /snake
+
+`/snake` adds the feature-phone classic to the kit — steer a growing snake to eat and avoid biting your own tail.
+
+- **Play Snake, fully offline.** `/snake` opens the game in your browser via the same zero-dependency launcher as the other games. Steer with the arrow keys (or WASD); each pellet you eat grows the snake and bumps your score.
+- **Pick your speed and your walls.** Choose a starting speed and whether walls are deadly or wrap around to the opposite edge. As you grow, the game speeds up progressively for a rising challenge. Your best score for the session is tracked.
+
 ## 2026-06-15 — pmos-learnkit 0.23.0: a smoother /frameworks browse experience
 
 The `/frameworks` browse-and-search library page gets a round of UX fixes so exploring your framework collection feels stable and fast.
