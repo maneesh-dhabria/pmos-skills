@@ -537,11 +537,13 @@
     return panel;
   }
 
-  function onFloatingButtonClick(anchor) {
+  function onFloatingButtonClick(anchor, rect, range) {
     var panel = _ensurePanel();
     if (!panel) return;
     panel.classList.add('open');
     panel._pendingAnchor = anchor || null;
+    _positionPanel(panel, rect);
+    _highlightRange(range);
   }
 
   /* ---- mountBanner: idempotent toast. ---- */
@@ -578,13 +580,15 @@
           prefix: nodeText.slice(0, startOff),
           suffix: nodeText.slice(endOff)
         });
-        _placeFloatingButton(rect, anchor);
+        _placeFloatingButton(rect, anchor, (range && range.cloneRange) ? range.cloneRange() : null);
       } catch (_) { /* swallow — UI nicety */ }
     });
   }
 
-  function _placeFloatingButton(rect, anchor) {
+  function _placeFloatingButton(rect, anchor, range) {
     var doc = _doc(); if (!doc) return;
+    var sx = (typeof window !== 'undefined' && window.pageXOffset) || 0;
+    var sy = (typeof window !== 'undefined' && window.pageYOffset) || 0;
     var btn = doc.querySelector('.pmos-floating-btn');
     if (!btn) {
       btn = doc.createElement('button');
@@ -593,12 +597,47 @@
       btn.setAttribute('type', 'button');
       doc.body.appendChild(btn);
       btn.addEventListener('click', function () {
-        onFloatingButtonClick(btn._anchor);
+        onFloatingButtonClick(btn._anchor, btn._rect, btn._range);
       });
     }
     btn._anchor = anchor;
-    btn.style.top = ((rect.bottom || 0) + 8) + 'px';
-    btn.style.left = ((rect.right || 0) + 8) + 'px';
+    btn._rect = { left: (rect.left || 0) + sx, bottom: (rect.bottom || 0) + sy };
+    btn._range = range || null;
+    btn.style.top = ((rect.bottom || 0) + sy + 8) + 'px';
+    btn.style.left = ((rect.right || 0) + sx + 8) + 'px';
+  }
+
+  /* Position the thread popover just below/left-aligned with the annotation it belongs
+     to. The panel is position:absolute (document-relative), so it overlays the article
+     without reflowing it (story 260614-tcx, AC8). */
+  function _positionPanel(panel, pos) {
+    if (!panel || !pos) return;
+    panel.style.top = ((pos.bottom || 0) + 8) + 'px';
+    panel.style.left = (pos.left || 0) + 'px';
+  }
+
+  /* Wrap the just-commented range in a warm-tint highlight span. Best-effort: ranges that
+     cross element boundaries can't be surrounded — swallow and skip (no highlight, thread
+     still works). Not rehydrated on reload (the persisted model stores a hash, not the
+     quote), so this is a session-time affordance. */
+  function _highlightRange(range) {
+    if (!range || typeof range.surroundContents !== 'function') return;
+    var doc = _doc(); if (!doc) return;
+    try {
+      var span = doc.createElement('span');
+      span.className = 'pmos-cmt';
+      range.surroundContents(span);
+      span.addEventListener('click', function () {
+        var p = _ensurePanel(); if (!p) return;
+        p.classList.add('open');
+        var r = span.getBoundingClientRect ? span.getBoundingClientRect() : null;
+        if (r) {
+          var sx = (typeof window !== 'undefined' && window.pageXOffset) || 0;
+          var sy = (typeof window !== 'undefined' && window.pageYOffset) || 0;
+          _positionPanel(p, { left: r.left + sx, bottom: r.bottom + sy });
+        }
+      });
+    } catch (_) { /* range not surroundable — skip highlight */ }
   }
 
   /* ---- mount: idempotent. Wires DOM listeners + overlay surfaces.
