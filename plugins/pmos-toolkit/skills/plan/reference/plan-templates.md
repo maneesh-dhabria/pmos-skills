@@ -4,7 +4,7 @@ The plan document skeleton emitted by `/plan` Phase 3, including the per-task (T
 
 ## Contents
 
-The single fenced template below covers, in order: frontmatter · `## Overview` (Done-when + walkthrough + execution order) · `## Decision Log` · `## Code Study Notes` · `## Prerequisites` · `## File Map` · `## Risks` · `## Rollback` · `## Tasks` (T1 tracer-bullet template + TN Final Verification) · `## Review Log`.
+The single fenced template below covers, in order: frontmatter · `## Overview` (Done-when + walkthrough + execution order) · `## Decision Log` · `## Code Study Notes` · `## Prerequisites` · `## File Map` · `## Risks` · `## Rollback` · `## Tasks` (T1 tracer-bullet template + TN−1 Dogfood / Utility Verification + TN Final Verification) · `## Review Log`.
 
 ---
 
@@ -188,6 +188,31 @@ File-action verbs: `Create`, `Modify`, `Delete`, `Move`, `Rename`, `Test`. Move/
 **Inline verification:**
 - `ruff check src/path/file.py` — no lint errors
 - `<test-command-from-stack-file> tests/path/test.py -v` — N passed, 0 failed
+
+---
+
+### TN−1: Dogfood / Utility Verification
+
+> **Load-bearing.** Exercises the *actual deliverable* on a real, representative end-to-end task and judges the **utility and quality** of what it produces — additive to (never a substitute for) the TN smoke checklist. Full contract — anatomy, dual-criteria rules, judge shape, iterate loop, tier policy, approval gate — lives in `_shared/dogfooding.md` (cite, don't restate). Emitted for **Tier 2/3** (mandatory) and **offered for Tier 1**. Serializes into `tasks.yaml` as a real task `/execute` runs; in Append mode TN−1 moves with TN to stay second-to-last (see `SKILL.md` Operational Modes → Append).
+
+**Goal:** Prove the deliverable is good for the real task it exists to serve — not just that it runs.
+
+**Archetype:** [pick from `_shared/dogfooding.md`#archetypes — skill→Use→blind-LLM-judge · frontend→dev-server+browser-friction · CLI→real-invocation · data→golden-sample+spot-check · API→scenario-exercise · or a bespoke scenario]
+**Scenario:** [the real task + representative input — e.g. "invoke /research on the topic 'pricing models for usage-based SaaS' and judge the emitted report"]
+
+**Objective criteria** (measurable — exact commands + expected output; ≥1 required):
+- [ ] [pass/fail gate, e.g. "report emitted at <path>; exit 0"]
+- [ ] [count/rate, e.g. "uncaught console errors = 0", "citation count ≥ 5", "broken-link count = 0"]
+- [ ] [threshold or golden-sample diff, when applicable]
+
+**Subjective criteria** (blind LLM-judge rubric — named dimensions; required):
+- Dimensions: [e.g. accuracy · completeness · relevance · actionability · citation quality · clarity]
+- Bar: [e.g. "every dimension ≥ acceptable AND no dimension is a blocker"]
+- **Independent judge:** [name the judge — a fresh blind subagent per `_shared/dogfooding.md`#judge; returns `{per_dimension, overall_satisfied, gaps}`; makes no edits. Non-subagent platforms: self-review framed "judge as if seeing it for the first time," logged as a downgrade.]
+
+**Iterate protocol:** run → judge → if not satisfied, enumerate gaps → fix via `/execute` discovered-work routing → re-run. **Cap = 2** (net-worse guard; past-cap `AskUserQuestion` accept-residuals / iterate-manually / restore-previous / abort; `--non-interactive` auto-iterates then accepts-residuals-and-surfaces). See `_shared/dogfooding.md`#iterate-loop.
+
+**Verdict:** [`satisfied` | `not-satisfied`] · `accepted_residuals: [<check ids, when any>]` — **`/verify` reads this line and gates on it.**
 
 ---
 
