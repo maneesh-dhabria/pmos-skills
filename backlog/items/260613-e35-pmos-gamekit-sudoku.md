@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — /sudoku (classic 9×9, easy/medium/hard, hints, pencil notes, on-demand error check)
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-sudoku/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-13_pmos-gamekit-sudoku/02_design.html
 labels: [pmos-gamekit, sudoku, browser-game, game-launcher]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
+released: 0.3.0
 ---
 
 ## Context

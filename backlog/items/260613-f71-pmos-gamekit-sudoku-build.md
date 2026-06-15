@@ -13,12 +13,13 @@ feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-sudoku/
 plan_doc: docs/pmos/features/2026-06-13_pmos-gamekit-sudoku/stories/260613-f71/03_plan.html
 tasks: docs/pmos/features/2026-06-13_pmos-gamekit-sudoku/stories/260613-f71/tasks.yaml
 labels: [pmos-gamekit, sudoku, game-launcher]
-worktree: feat/260613-f71
+worktree: 
 claimed_by: build:explainer-a3g-loop
 driver_holder: build:explainer-a3g-loop
 created: 2026-06-13
 updated: 2026-06-15
 build_commit: 3ef2977
+released: 0.3.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-f71 -->
