@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — /tetris (modern guideline-style — SRS+kicks, 7-bag, hold/ghost/preview, lock delay, start-level picker + speed-up)
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-14_pmos-gamekit-tetris/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-14_pmos-gamekit-tetris/02_design.html
 labels: [pmos-gamekit, tetris, browser-game, game-launcher]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 0.6.0
 ---
 
 ## Context
