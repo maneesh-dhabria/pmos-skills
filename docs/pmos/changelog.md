@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.6.0: modern Tetris — play /tetris
+
+`/tetris` adds a full modern-guideline Tetris to the kit — stack the falling pieces, clear lines, and chase your level.
+
+- **Play guideline Tetris, fully offline.** `/tetris` opens the game in your browser via the same zero-dependency launcher as the other games. Move and soft/hard-drop with the arrow keys and space, rotate with proper wall-kicks, and use hold and the next-piece preview to plan ahead.
+- **The real ruleset.** Pieces come from a 7-bag randomizer, rotation uses the Super Rotation System with kick tables, a ghost piece shows where a drop lands, line clears (including T-spins) score by the guideline table, and gravity speeds up as your level climbs — until you top out.
+
 ## 2026-06-15 — pmos-toolkit 2.79.0: /explainer-video is more robust on the first run, with cleaner captions
 
 A batch of fixes makes `/explainer-video` work smoothly the first time on real inputs and produces tidier finished videos.

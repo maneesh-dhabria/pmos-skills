@@ -1,6 +1,6 @@
 {
   "name": "pmos-gamekit",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Game kit — casual single-player browser games, pre-bundled as self-contained HTML and launched from a skill via a zero-dependency local server.",
   "author": {
     "name": "Maneesh Dhabria"
