@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tetris</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23121225'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%2300b8d6'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%23f2c14e'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%23a05fd6'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%2358c25a'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0c0c18; --panel:#16162b; --panel2:#1f1f3a; --grid:#23233f;
+    --ink:#eef0ff; --muted:#9a9ec8; --accent:#7c5cff; --good:#58c25a; --warn:#f2c14e;
+    --cell:28px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 800px at 50% -10%,#1a1a32,var(--bg));
+    color:var(--ink); font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:18px;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{display:flex; gap:18px; align-items:flex-start}
+  h1{font-size:20px; margin:0 0 4px; letter-spacing:.06em}
+  .sub{color:var(--muted); font-size:12px; margin:0}
+  .stage{position:relative}
+  canvas#board{
+    display:block; background:var(--panel); border:2px solid var(--panel2);
+    border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,.45);
+    touch-action:none;
+  }
+  .side{display:flex; flex-direction:column; gap:14px; width:170px}
+  .card{background:var(--panel); border:1px solid var(--panel2); border-radius:10px; padding:10px 12px}
+  .card h2{margin:0 0 6px; font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted)}
+  .stat{display:flex; justify-content:space-between; font-variant-numeric:tabular-nums; margin:2px 0}
+  .stat b{font-weight:700}
+  canvas.mini{display:block; background:var(--panel2); border-radius:6px; margin:4px 0}
+  .next-list{display:flex; flex-direction:column; gap:6px}
+  .keys{color:var(--muted); font-size:11px; line-height:1.7}
+  .keys kbd{
+    background:var(--panel2); border:1px solid #2c2c4f; border-bottom-width:2px;
+    border-radius:4px; padding:0 5px; font:11px/1.6 ui-monospace,Menlo,Consolas,monospace; color:var(--ink);
+  }
+  /* overlays */
+  .overlay{
+    position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    flex-direction:column; gap:14px; text-align:center; padding:18px;
+    background:rgba(8,8,20,.86); border-radius:10px; backdrop-filter:blur(2px);
+  }
+  .overlay.show{display:flex}
+  .overlay h2{margin:0; font-size:22px; letter-spacing:.04em}
+  .overlay p{margin:0; color:var(--muted); font-size:13px}
+  .levelpick{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:240px}
+  .levelpick button{
+    width:38px; height:34px; border-radius:7px; border:1px solid #33335c; background:var(--panel2);
+    color:var(--ink); font:600 13px/1 system-ui; cursor:pointer;
+  }
+  .levelpick button[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:#fff}
+  .btn{
+    border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer;
+    border-radius:8px; padding:9px 16px; font:600 14px/1 system-ui;
+  }
+  .btn.ghost{background:transparent; color:var(--ink)}
+  .flash{
+    position:absolute; left:50%; top:34%;
+    transform:translateX(-50%);
+    color:var(--warn); font:800 20px/1 system-ui; letter-spacing:.04em; text-shadow:0 2px 10px rgba(0,0,0,.6);
+    opacity:0; pointer-events:none; white-space:nowrap;
+  }
+  .flash.go{animation:flashpop 1100ms ease-out}
+  @keyframes flashpop{0%{opacity:0; transform:translateX(-50%) scale(.7)}18%{opacity:1; transform:translateX(-50%) scale(1.05)}70%{opacity:1}100%{opacity:0; transform:translateX(-50%) scale(1)}}
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+  .foot{color:var(--muted); font-size:11px; margin-top:10px}
+  @media (prefers-reduced-motion: reduce){ .flash.go{animation:none; opacity:0} }
+  @media (max-width:760px){ .wrap{flex-direction:column; align-items:center} .side{width:auto; flex-direction:row; flex-wrap:wrap; justify-content:center} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="side" aria-hidden="false">
+      <div class="card">
+        <h1>TETRIS</h1>
+        <p class="sub">Guideline · 7-bag · SRS</p>
+      </div>
+      <div class="card">
+        <h2>Hold <kbd>C</kbd></h2>
+        <canvas id="holdCv" class="mini" width="100" height="64"></canvas>
+      </div>
+      <div class="card">
+        <h2>Score</h2>
+        <div class="stat"><span>Score</span><b id="score">0</b></div>
+        <div class="stat"><span>Lines</span><b id="lines">0</b></div>
+        <div class="stat"><span>Level</span><b id="level">0</b></div>
+        <div class="stat"><span>Best</span><b id="best">0</b></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <canvas id="board" width="280" height="560" role="img" aria-label="Tetris playfield"></canvas>
+      <div class="flash" id="flash"></div>
+      <div class="overlay" id="startOv">
+        <h2>Tetris</h2>
+        <p>Pick a start level, then press <kbd>Enter</kbd></p>
+        <div class="levelpick" id="levelPick" role="group" aria-label="Start level"></div>
+        <button class="btn" id="startBtn">Play</button>
+      </div>
+      <div class="overlay" id="pauseOv">
+        <h2>Paused</h2>
+        <p>Press <kbd>P</kbd> to resume · <kbd>R</kbd> to restart</p>
+      </div>
+      <div class="overlay" id="overOv">
+        <h2>Game over</h2>
+        <p id="overMsg">Final score 0</p>
+        <button class="btn" id="restartBtn">Play again <kbd>R</kbd></button>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>Next</h2>
+        <div class="next-list" id="nextList"></div>
+      </div>
+      <div class="card">
+        <h2>Controls</h2>
+        <div class="keys">
+          <kbd>&larr;</kbd> <kbd>&rarr;</kbd> move<br>
+          <kbd>&darr;</kbd> soft drop<br>
+          <kbd>Space</kbd> hard drop<br>
+          <kbd>Z</kbd> / <kbd>X</kbd> / <kbd>&uarr;</kbd> rotate<br>
+          <kbd>C</kbd> / <kbd>Shift</kbd> hold<br>
+          <kbd>P</kbd> pause · <kbd>R</kbd> restart
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sr" id="live" aria-live="polite"></div>
+
+<!-- ===================== ENGINE (pure, DOM-decoupled, on window.TetrisEngine) ===================== -->
+<script>
+(function (root) {
+  'use strict';
+  var WIDTH = 10, HEIGHT = 20;
+
+  // Tetromino rotation states as [col,row] within a local box (3-box for JLSTZ/S/Z/T/O, 4-box for I).
+  var SHAPES = {
+    I: [ [[0,1],[1,1],[2,1],[3,1]], [[2,0],[2,1],[2,2],[2,3]], [[0,2],[1,2],[2,2],[3,2]], [[1,0],[1,1],[1,2],[1,3]] ],
+    O: [ [[1,0],[2,0],[1,1],[2,1]], [[1,0],[2,0],[1,1],[2,1]], [[1,0],[2,0],[1,1],[2,1]], [[1,0],[2,0],[1,1],[2,1]] ],
+    T: [ [[1,0],[0,1],[1,1],[2,1]], [[1,0],[1,1],[2,1],[1,2]], [[0,1],[1,1],[2,1],[1,2]], [[1,0],[0,1],[1,1],[1,2]] ],
+    J: [ [[0,0],[0,1],[1,1],[2,1]], [[1,0],[2,0],[1,1],[1,2]], [[0,1],[1,1],[2,1],[2,2]], [[1,0],[1,1],[0,2],[1,2]] ],
+    L: [ [[2,0],[0,1],[1,1],[2,1]], [[1,0],[1,1],[1,2],[2,2]], [[0,1],[1,1],[2,1],[0,2]], [[0,0],[1,0],[1,1],[1,2]] ],
+    S: [ [[1,0],[2,0],[0,1],[1,1]], [[1,0],[1,1],[2,1],[2,2]], [[1,1],[2,1],[0,2],[1,2]], [[0,0],[0,1],[1,1],[1,2]] ],
+    Z: [ [[0,0],[1,0],[1,1],[2,1]], [[2,0],[1,1],[2,1],[1,2]], [[0,1],[1,1],[1,2],[2,2]], [[1,0],[0,1],[1,1],[0,2]] ]
+  };
+  var COLORS = { I:'#00b8d6', O:'#f2c14e', T:'#a05fd6', J:'#5b7cff', L:'#e8843c', S:'#58c25a', Z:'#e2536b' };
+  var TYPES = ['I','O','T','S','Z','J','L'];
+
+  // SRS wall-kick tables. Offsets are (x, y) with y UP (guideline convention);
+  // screen y is DOWN, so callers apply: nx = x + kx, ny = y - ky.
+  var JLSTZ_KICKS = {
+    '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '1>2': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '2>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '2>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+    '3>2': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]]
+  };
+  var I_KICKS = {
+    '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '1>2': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+    '2>1': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '2>3': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '3>2': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '3>0': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]]
+  };
+
+  function norm(rot){ return ((rot % 4) + 4) % 4; }
+  function shapeCells(type, rot){ return SHAPES[type][norm(rot)]; }
+
+  function emptyField(){
+    var f = [];
+    for (var y = 0; y < HEIGHT; y++){ f.push(new Array(WIDTH).fill(0)); }
+    return f;
+  }
+
+  // Deterministic PRNG (mulberry32). seed null -> random 32-bit.
+  function makeRng(seed){
+    var s = (seed == null) ? (Math.floor(Math.random() * 4294967296) >>> 0) : (seed >>> 0);
+    return function(){
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // 7-bag: a shuffled permutation of all 7 tetromino types.
+  function nextBag(rng){
+    var bag = TYPES.slice();
+    for (var i = bag.length - 1; i > 0; i--){
+      var j = Math.floor(rng() * (i + 1));
+      var tmp = bag[i]; bag[i] = bag[j]; bag[j] = tmp;
+    }
+    return bag;
+  }
+
+  function spawn(type){
+    // JLSTZ/I/O spawn box top-left at column 3, row 0.
+    return { type: type, x: 3, y: 0, rot: 0 };
+  }
+
+  // Collision primitive: piece's shape at candidate (x,y,rot) overlaps a wall, the floor, or a filled cell.
+  function collides(field, piece, x, y, rot){
+    var cells = shapeCells(piece.type, rot);
+    for (var i = 0; i < cells.length; i++){
+      var X = x + cells[i][0], Y = y + cells[i][1];
+      if (X < 0 || X >= WIDTH || Y >= HEIGHT) return true;
+      if (Y >= 0 && field[Y][X]) return true;
+    }
+    return false;
+  }
+
+  function tryMove(field, piece, dx, dy){
+    var nx = piece.x + dx, ny = piece.y + dy;
+    if (!collides(field, piece, nx, ny, piece.rot)){
+      return { type: piece.type, x: nx, y: ny, rot: piece.rot };
+    }
+    return null;
+  }
+
+  // SRS rotation with wall kicks. dir +1 = CW, -1 = CCW. Returns {piece, kickIndex} or null.
+  function tryRotate(field, piece, dir){
+    if (piece.type === 'O') return { piece: { type: 'O', x: piece.x, y: piece.y, rot: piece.rot }, kickIndex: 0 };
+    var from = norm(piece.rot), to = norm(piece.rot + (dir > 0 ? 1 : -1));
+    var table = (piece.type === 'I') ? I_KICKS : JLSTZ_KICKS;
+    var kicks = table[from + '>' + to];
+    for (var i = 0; i < kicks.length; i++){
+      var nx = piece.x + kicks[i][0];
+      var ny = piece.y - kicks[i][1]; // y-up table -> screen y-down
+      if (!collides(field, piece, nx, ny, to)){
+        return { piece: { type: piece.type, x: nx, y: ny, rot: to }, kickIndex: i };
+      }
+    }
+    return null;
+  }
+
+  // Lowest legal y for the piece (hard-drop landing row / ghost row).
+  function ghostY(field, piece){
+    var y = piece.y;
+    while (!collides(field, piece, piece.x, y + 1, piece.rot)) y++;
+    return y;
+  }
+
+  function lock(field, piece){
+    var nf = field.map(function(row){ return row.slice(); });
+    var cells = shapeCells(piece.type, piece.rot);
+    for (var i = 0; i < cells.length; i++){
+      var X = piece.x + cells[i][0], Y = piece.y + cells[i][1];
+      if (Y >= 0 && Y < HEIGHT && X >= 0 && X < WIDTH) nf[Y][X] = piece.type;
+    }
+    return nf;
+  }
+
+  function clearLines(field){
+    var kept = field.filter(function(row){ return row.some(function(c){ return !c; }); });
+    var cleared = HEIGHT - kept.length;
+    var nf = [];
+    for (var i = 0; i < cleared; i++) nf.push(new Array(WIDTH).fill(0));
+    for (var k = 0; k < kept.length; k++) nf.push(kept[k]);
+    return { field: nf, cleared: cleared };
+  }
+
+  // T-spin: a T whose last action was a rotation and that has >=3 of its 4 box corners filled.
+  function isTSpin(field, piece, lastWasRotate){
+    if (piece.type !== 'T' || !lastWasRotate) return false;
+    var corners = [[0,0],[2,0],[0,2],[2,2]];
+    var filled = 0;
+    for (var i = 0; i < corners.length; i++){
+      var X = piece.x + corners[i][0], Y = piece.y + corners[i][1];
+      if (X < 0 || X >= WIDTH || Y >= HEIGHT) { filled++; continue; }
+      if (Y >= 0 && field[Y][X]) filled++;
+    }
+    return filled >= 3;
+  }
+
+  // Guideline line-clear scoring (drop bonuses are applied by the caller). level multiplier = level+1.
+  function score(cleared, level, opts){
+    opts = opts || {};
+    var mult = (level || 0) + 1;
+    var base = opts.tSpin ? ([400, 800, 1200, 1600][cleared] || 0)
+                          : ([0, 100, 300, 500, 800][cleared] || 0);
+    var difficult = (cleared === 4) || (opts.tSpin && cleared >= 1);
+    if (opts.b2b && difficult) base = Math.floor(base * 1.5);
+    var pts = base * mult;
+    if (opts.combo && opts.combo > 0 && cleared > 0) pts += 50 * opts.combo * mult;
+    return pts;
+  }
+
+  // Gravity curve: ms per cell, monotonically non-increasing in level, clamped at the top.
+  var GRAVITY = [800, 720, 630, 550, 470, 380, 300, 220, 130, 100, 80, 80, 80, 70, 70, 70, 50];
+  function dropInterval(level){
+    var l = Math.max(0, level || 0);
+    return (l >= GRAVITY.length) ? GRAVITY[GRAVITY.length - 1] : GRAVITY[l];
+  }
+
+  function isTopOut(field, piece){
+    return collides(field, piece, piece.x, piece.y, piece.rot);
+  }
+
+  // ---- thin game-state layer (pure; the render loop drives gravity by calling these) ----
+  function _refill(state){
+    while (state.queue.length <= 7){
+      var b = nextBag(state.rng);
+      for (var i = 0; i < b.length; i++) state.queue.push(b[i]);
+    }
+  }
+  function _spawnNext(state){
+    _refill(state);
+    var p = spawn(state.queue.shift());
+    state.active = p;
+    state.canHold = true;
+    state.lastWasRotate = false;
+    if (isTopOut(state.field, p)) state.over = true;
+    return p;
+  }
+
+  function createGame(opts){
+    opts = opts || {};
+    var startLevel = opts.startLevel || 0;
+    var state = {
+      field: emptyField(),
+      rng: makeRng(opts.seed == null ? null : opts.seed),
+      queue: [],
+      active: null,
+      hold: null,
+      canHold: true,
+      score: 0,
+      lines: 0,
+      level: startLevel,
+      startLevel: startLevel,
+      combo: -1,
+      b2b: false,
+      over: false,
+      lastWasRotate: false,
+      lastKick: 0,
+      lastClear: null // for UI flashes: {cleared, tSpin, b2b, combo}
+    };
+    _spawnNext(state);
+    return state;
+  }
+
+  function moveActive(state, dx){
+    if (state.over || !state.active) return false;
+    var m = tryMove(state.field, state.active, dx, 0);
+    if (m){ state.active = m; state.lastWasRotate = false; return true; }
+    return false;
+  }
+  function rotateActive(state, dir){
+    if (state.over || !state.active) return false;
+    var r = tryRotate(state.field, state.active, dir);
+    if (r && r.piece.rot !== state.active.rot){
+      state.active = r.piece; state.lastWasRotate = true; state.lastKick = r.kickIndex; return true;
+    }
+    return false;
+  }
+  function softDrop(state){
+    if (state.over || !state.active) return false;
+    var m = tryMove(state.field, state.active, 0, 1);
+    if (m){ state.active = m; state.score += 1; state.lastWasRotate = false; return true; }
+    return false;
+  }
+  // returns true if the active piece could move down (still falling); false if it has landed.
+  function gravityStep(state){
+    if (state.over || !state.active) return false;
+    var m = tryMove(state.field, state.active, 0, 1);
+    if (m){ state.active = m; state.lastWasRotate = false; return true; }
+    return false;
+  }
+  function hardDrop(state){
+    if (state.over || !state.active) return false;
+    var gy = ghostY(state.field, state.active);
+    var dist = gy - state.active.y;
+    if (dist > 0) state.score += 2 * dist;
+    state.active = { type: state.active.type, x: state.active.x, y: gy, rot: state.active.rot };
+    lockAndNext(state);
+    return true;
+  }
+  function lockAndNext(state){
+    if (state.over || !state.active) return;
+    var tspin = isTSpin(state.field, state.active, state.lastWasRotate);
+    state.field = lock(state.field, state.active);
+    var res = clearLines(state.field);
+    state.field = res.field;
+    var cleared = res.cleared;
+    if (cleared > 0) state.combo += 1; else state.combo = -1;
+    var difficult = (cleared === 4) || (tspin && cleared >= 1);
+    var b2bActive = state.b2b && difficult;
+    var pts = score(cleared, state.level, { tSpin: tspin, b2b: b2bActive, combo: state.combo > 0 ? state.combo : 0 });
+    state.score += pts;
+    state.lines += cleared;
+    if (cleared > 0){ state.b2b = difficult; }
+    state.level = state.startLevel + Math.floor(state.lines / 10);
+    state.lastClear = (cleared > 0 || tspin) ? { cleared: cleared, tSpin: tspin, b2b: b2bActive, combo: state.combo } : null;
+    _spawnNext(state);
+  }
+  function holdActive(state){
+    if (state.over || !state.active || !state.canHold) return false;
+    var cur = state.active.type;
+    if (state.hold == null){ state.hold = cur; _spawnNext(state); }
+    else {
+      var h = state.hold; state.hold = cur;
+      state.active = spawn(h);
+      if (isTopOut(state.field, state.active)) state.over = true;
+    }
+    state.canHold = false;
+    state.lastWasRotate = false;
+    return true;
+  }
+
+  root.TetrisEngine = {
+    WIDTH: WIDTH, HEIGHT: HEIGHT, SHAPES: SHAPES, COLORS: COLORS, TYPES: TYPES,
+    JLSTZ_KICKS: JLSTZ_KICKS, I_KICKS: I_KICKS,
+    shapeCells: shapeCells, emptyField: emptyField,
+    makeRng: makeRng, nextBag: nextBag, spawn: spawn,
+    collides: collides, tryMove: tryMove, tryRotate: tryRotate,
+    ghostY: ghostY, lock: lock, clearLines: clearLines, isTSpin: isTSpin,
+    score: score, dropInterval: dropInterval, isTopOut: isTopOut,
+    // game-state layer
+    createGame: createGame, moveActive: moveActive, rotateActive: rotateActive,
+    softDrop: softDrop, gravityStep: gravityStep, hardDrop: hardDrop,
+    lockAndNext: lockAndNext, holdActive: holdActive, hold: holdActive
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- ===================== RENDER + UI (browser-only) ===================== -->
+<script>
+if (typeof document !== 'undefined') {
+  var E = window.TetrisEngine;
+  var W = E.WIDTH, H = E.HEIGHT, CELL = 28;
+  var board = document.getElementById('board');
+  var ctx = board.getContext('2d');
+  var holdCv = document.getElementById('holdCv'), holdCtx = holdCv.getContext('2d');
+  var nextList = document.getElementById('nextList');
+  var els = {
+    score: document.getElementById('score'), lines: document.getElementById('lines'),
+    level: document.getElementById('level'), best: document.getElementById('best'),
+    live: document.getElementById('live'), flash: document.getElementById('flash'),
+    overMsg: document.getElementById('overMsg')
+  };
+  var ov = {
+    start: document.getElementById('startOv'), pause: document.getElementById('pauseOv'),
+    over: document.getElementById('overOv')
+  };
+
+  board.width = W * CELL; board.height = H * CELL;
+
+  var game = null, paused = false, best = 0, startLevel = 0;
+  var lastTime = 0, gravAcc = 0;
+  var landed = false, lockTimer = 0, lockResets = 0;
+  var LOCK_DELAY = 500, LOCK_RESET_CAP = 15;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function announce(msg){ els.live.textContent = msg; }
+  function showFlash(text){
+    if (!text) return;
+    els.flash.textContent = text;
+    els.flash.classList.remove('go');
+    // reflow to restart animation
+    void els.flash.offsetWidth;
+    if (!reduceMotion) els.flash.classList.add('go');
+  }
+
+  // ---- start screen level picker ----
+  (function buildPicker(){
+    var pick = document.getElementById('levelPick');
+    for (var l = 0; l <= 15; l++){
+      (function(lvl){
+        var b = document.createElement('button');
+        b.textContent = lvl;
+        b.setAttribute('aria-pressed', lvl === 0 ? 'true' : 'false');
+        b.setAttribute('aria-label', 'Start level ' + lvl);
+        b.addEventListener('click', function(){
+          startLevel = lvl;
+          var all = pick.querySelectorAll('button');
+          for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', 'false');
+          b.setAttribute('aria-pressed', 'true');
+        });
+        pick.appendChild(b);
+      })(l);
+    }
+  })();
+
+  function drawCellRect(c, px, py, size, type, opts){
+    opts = opts || {};
+    var color = E.COLORS[type] || '#888';
+    c.fillStyle = opts.ghost ? 'rgba(255,255,255,0.10)' : color;
+    c.fillRect(px + 1, py + 1, size - 2, size - 2);
+    // border / glyph so cells aren't color-alone
+    c.strokeStyle = opts.ghost ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)';
+    c.lineWidth = 2;
+    c.strokeRect(px + 1.5, py + 1.5, size - 3, size - 3);
+    if (!opts.ghost){
+      c.fillStyle = 'rgba(255,255,255,0.85)';
+      c.font = '700 ' + Math.floor(size * 0.34) + 'px ui-monospace,monospace';
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(type, px + size / 2, py + size / 2 + 1);
+    }
+  }
+
+  function render(){
+    ctx.clearRect(0, 0, board.width, board.height);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (var gx = 1; gx < W; gx++){ ctx.beginPath(); ctx.moveTo(gx * CELL, 0); ctx.lineTo(gx * CELL, board.height); ctx.stroke(); }
+    for (var gy = 1; gy < H; gy++){ ctx.beginPath(); ctx.moveTo(0, gy * CELL); ctx.lineTo(board.width, gy * CELL); ctx.stroke(); }
+    if (!game) return;
+    // locked cells
+    for (var y = 0; y < H; y++){
+      for (var x = 0; x < W; x++){
+        if (game.field[y][x]) drawCellRect(ctx, x * CELL, y * CELL, CELL, game.field[y][x]);
+      }
+    }
+    if (game.active && !game.over){
+      // ghost
+      var gyy = E.ghostY(game.field, game.active);
+      var gcells = E.shapeCells(game.active.type, game.active.rot);
+      var i;
+      for (i = 0; i < gcells.length; i++){
+        var gX = game.active.x + gcells[i][0], gY = gyy + gcells[i][1];
+        if (gY >= 0) drawCellRect(ctx, gX * CELL, gY * CELL, CELL, game.active.type, { ghost: true });
+      }
+      // active
+      var acells = E.shapeCells(game.active.type, game.active.rot);
+      for (i = 0; i < acells.length; i++){
+        var aX = game.active.x + acells[i][0], aY = game.active.y + acells[i][1];
+        if (aY >= 0) drawCellRect(ctx, aX * CELL, aY * CELL, CELL, game.active.type);
+      }
+    }
+    // HUD
+    els.score.textContent = game.score;
+    els.lines.textContent = game.lines;
+    els.level.textContent = game.level;
+    els.best.textContent = best;
+    renderHold();
+    renderNext();
+  }
+
+  function renderPieceMini(c, type){
+    c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+    if (!type) return;
+    var cells = E.shapeCells(type, 0);
+    var minX = 9, maxX = -9, minY = 9, maxY = -9;
+    for (var i = 0; i < cells.length; i++){
+      minX = Math.min(minX, cells[i][0]); maxX = Math.max(maxX, cells[i][0]);
+      minY = Math.min(minY, cells[i][1]); maxY = Math.max(maxY, cells[i][1]);
+    }
+    var cw = (maxX - minX + 1), ch = (maxY - minY + 1);
+    var s = Math.min((c.canvas.width - 12) / cw, (c.canvas.height - 12) / ch, 18);
+    var ox = (c.canvas.width - cw * s) / 2, oy = (c.canvas.height - ch * s) / 2;
+    for (var k = 0; k < cells.length; k++){
+      drawCellRect(c, ox + (cells[k][0] - minX) * s, oy + (cells[k][1] - minY) * s, s, type);
+    }
+  }
+  function renderHold(){ renderPieceMini(holdCtx, game.hold); }
+  function renderNext(){
+    var want = 3;
+    while (nextList.children.length < want){
+      var cv = document.createElement('canvas');
+      cv.className = 'mini'; cv.width = 100; cv.height = 54;
+      nextList.appendChild(cv);
+    }
+    for (var i = 0; i < want; i++){
+      renderPieceMini(nextList.children[i].getContext('2d'), game.queue[i]);
+    }
+  }
+
+  function clearMessage(lc){
+    if (!lc) return '';
+    var parts = [];
+    if (lc.tSpin) parts.push('T-Spin');
+    if (lc.cleared === 4) parts.push('Tetris');
+    else if (lc.cleared === 3) parts.push('Triple');
+    else if (lc.cleared === 2) parts.push('Double');
+    else if (lc.cleared === 1 && !lc.tSpin) parts.push('Single');
+    if (lc.b2b) parts.unshift('B2B');
+    if (lc.combo && lc.combo > 0) parts.push('Combo ' + lc.combo);
+    return parts.join(' ');
+  }
+
+  function newGame(seed){
+    game = E.createGame({ startLevel: startLevel, seed: (seed == null ? null : seed) });
+    paused = false; landed = false; lockTimer = 0; lockResets = 0; gravAcc = 0;
+    ov.start.classList.remove('show');
+    ov.pause.classList.remove('show');
+    ov.over.classList.remove('show');
+    announce('New game. Level ' + game.level + '.');
+    render();
+    lastTime = 0;
+    requestAnimationFrame(loop);
+  }
+
+  function commitLock(){
+    var prevLevel = game.level;
+    E.lockAndNext(game);
+    landed = false; lockTimer = 0; lockResets = 0;
+    var msg = clearMessage(game.lastClear);
+    if (msg){ showFlash(msg); announce(msg + '. Score ' + game.score + '.'); }
+    if (game.level > prevLevel) announce('Level ' + game.level + '.');
+    if (game.score > best) best = game.score;
+    if (game.over) endGame();
+  }
+
+  function endGame(){
+    if (game.score > best) best = game.score;
+    els.overMsg.textContent = 'Final score ' + game.score + ' · level ' + game.level;
+    ov.over.classList.add('show');
+    announce('Game over. Final score ' + game.score + '.');
+    render();
+  }
+
+  function loop(t){
+    if (!game || game.over){ render(); return; }
+    if (paused){ lastTime = t; requestAnimationFrame(loop); return; }
+    if (!lastTime) lastTime = t;
+    var dt = t - lastTime; lastTime = t;
+    var interval = E.dropInterval(game.level);
+
+    if (!landed){
+      gravAcc += dt;
+      while (gravAcc >= interval){
+        gravAcc -= interval;
+        var fell = E.gravityStep(game);
+        if (!fell){ landed = true; lockTimer = 0; break; }
+      }
+    } else {
+      lockTimer += dt;
+      // if it can fall again (a slide opened space below), un-land
+      if (E.tryMove(game.field, game.active, 0, 1)){ landed = false; gravAcc = 0; }
+      else if (lockTimer >= LOCK_DELAY){ commitLock(); }
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function onLockReset(){
+    // called after a successful move/rotate while landed: re-arm lock delay up to a cap
+    if (landed){
+      if (lockResets < LOCK_RESET_CAP){ lockTimer = 0; lockResets += 1; }
+      // if the piece can now fall, loop() will un-land
+    }
+  }
+
+  document.addEventListener('keydown', function(ev){
+    var k = ev.key;
+    // start screen
+    if (ov.start.classList.contains('show')){
+      if (k === 'Enter' || k === ' '){ ev.preventDefault(); newGame(); }
+      return;
+    }
+    if (!game) return;
+    if (game.over){
+      if (k === 'r' || k === 'R'){ ev.preventDefault(); ov.start.classList.add('show'); ov.over.classList.remove('show'); }
+      return;
+    }
+    if (k === 'p' || k === 'P'){
+      ev.preventDefault(); paused = !paused;
+      ov.pause.classList.toggle('show', paused);
+      announce(paused ? 'Paused.' : 'Resumed.');
+      if (!paused){ lastTime = 0; requestAnimationFrame(loop); }
+      return;
+    }
+    if (k === 'r' || k === 'R'){ ev.preventDefault(); newGame(); return; }
+    if (paused) return;
+
+    var acted = false;
+    switch (k){
+      case 'ArrowLeft': case 'a': case 'A': if (E.moveActive(game, -1)) { onLockReset(); } acted = true; break;
+      case 'ArrowRight': case 'd': case 'D': if (E.moveActive(game, 1)) { onLockReset(); } acted = true; break;
+      case 'ArrowDown': case 's': case 'S': E.softDrop(game); acted = true; break;
+      case ' ': commitHardDrop(); acted = true; break;
+      case 'ArrowUp': case 'x': case 'X': if (E.rotateActive(game, 1)) { onLockReset(); } acted = true; break;
+      case 'z': case 'Z': if (E.rotateActive(game, -1)) { onLockReset(); } acted = true; break;
+      case 'c': case 'C': case 'Shift': if (E.holdActive(game)) { landed = false; lockTimer = 0; lockResets = 0; } acted = true; break;
+    }
+    if (acted){ ev.preventDefault(); render(); if (game.over) endGame(); }
+  });
+
+  function commitHardDrop(){
+    if (!game || game.over) return;
+    E.hardDrop(game);
+    landed = false; lockTimer = 0; lockResets = 0;
+    var msg = clearMessage(game.lastClear);
+    if (msg){ showFlash(msg); announce(msg + '. Score ' + game.score + '.'); }
+    if (game.score > best) best = game.score;
+    if (game.over) endGame();
+    render();
+  }
+
+  document.getElementById('startBtn').addEventListener('click', function(){ newGame(); });
+  document.getElementById('restartBtn').addEventListener('click', function(){ ov.start.classList.add('show'); ov.over.classList.remove('show'); });
+
+  // ---- e2e/test hook: deterministic seeding + state inspection (no gameplay logic here) ----
+  window.__TETRIS_TEST__ = {
+    newGame: function(opts){ opts = opts || {}; startLevel = opts.startLevel || 0; newGame(opts.seed == null ? null : opts.seed); },
+    getState: function(){
+      if (!game) return null;
+      return {
+        active: game.active ? { type: game.active.type, x: game.active.x, y: game.active.y, rot: game.active.rot } : null,
+        hold: game.hold, queue: game.queue.slice(0, 5),
+        score: game.score, lines: game.lines, level: game.level, over: game.over,
+        best: best, ghostY: game.active ? E.ghostY(game.field, game.active) : null
+      };
+    },
+    field: function(){ return game ? game.field.map(function(r){ return r.slice(); }) : null; },
+    // force the active piece + field for scripted scenarios (drives the real render/lock path)
+    rig: function(field, active){
+      if (!game) newGame(0);
+      if (field) game.field = field.map(function(r){ return r.slice(); });
+      if (active) game.active = { type: active.type, x: active.x, y: active.y, rot: active.rot || 0 };
+      landed = false; lockTimer = 0; lockResets = 0;
+      render();
+    },
+    move: function(dx){ var r = E.moveActive(game, dx); render(); return r; },
+    rotate: function(dir){ var r = E.rotateActive(game, dir); render(); return r; },
+    hardDrop: function(){ commitHardDrop(); },
+    hold: function(){ var r = E.holdActive(game); landed = false; render(); return r; },
+    overlays: function(){ return { start: ov.start.classList.contains('show'), pause: ov.pause.classList.contains('show'), over: ov.over.classList.contains('show') }; }
+  };
+
+  // boot to start screen
+  ov.start.classList.add('show');
+  render();
+}
+</script>
+</body>
+</html>
