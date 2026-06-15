@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.82.0 + pmos-learnkit 0.25.0: /summary-tldr emit ordering, /diagram legend-contrast diagnostics, pipeline-setup default
+
+Three improvements ship together. `/summary-tldr` now emits the summary to disk **first** — reserving a `#summary-diagram` slot — then injects the validated SVG via an atomic temp-then-rename, so a diagram failure can never lose the summary; the source-and-confidence block also compacts from a `<dl>` to a `<table>`. `/diagram`'s editorial theme gains legend-contrast eval diagnostics so low-contrast legends are caught at eval time. And `_shared/pipeline-setup.md` defaults the feature-folder destination to `docs/pmos` as the `(Recommended)` option. The pipeline-setup change is mirrored byte-identically into pmos-learnkit (the 0.25.0 bump).
+
+- `/summary-tldr`: on-disk-before-diagram emit, atomic SVG inject, compact source/confidence table.
+- `/diagram`: editorial-theme legend-contrast eval diagnostics.
+- `_shared/pipeline-setup.md`: `docs/pmos` `(Recommended)` default; synced to learnkit.
+
 ## 2026-06-15 — pmos-toolkit 2.81.0: /backlog web viewer — clarity & nomenclature pass
 
 The `/backlog web` viewer gets a readability overhaul. Lane labels drop jargon for plain language with subtitles, a legend explains the queues, and EPIC/story pills plus grouped Epic/Story status facets make the tree scannable at a glance. The Releases view now excludes 0-done epics and shows done/total with an "In progress" marker, and `@null` is killed at its `parseScalar` source so stray nulls never reach the UI. Tooltips round out the polish.
