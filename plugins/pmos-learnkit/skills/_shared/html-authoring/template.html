@@ -3,7 +3,10 @@
   Tokens (defaults shown — substituted by the renderer per host plugin):
     {{plugin_name}}      default: pmos-toolkit
     {{plugin_name_nbsp}} default: pmos&#8209;toolkit
-    {{plugin_url}}       default: https://github.com/maneesh-dhabria/pmos-toolkit#readme
+    {{repo_url}}         default: https://github.com/maneesh-dhabria/pmos-skills
+                         (brand mark — the header wordmark links to the repo root)
+    {{plugin_url}}       default: https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md
+                         (footer wordmark + both attribution links → producing plugin's README)
   Inline-asset tokens (T1 — substrate CSS+JS+seed-comments-JSON are inlined,
   not externally linked, per FR-01/FR-02/FR-03/FR-05):
     {{inline_css}}             → <style>…concatenated style.css + comments.css…</style>
@@ -24,7 +27,7 @@
 <body>
   <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
     <div class="pmos-artifact-toolbar-inner">
-      <a class="pmos-wordmark" href="{{plugin_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
+      <a class="pmos-wordmark" href="{{repo_url}}" target="_blank" rel="noopener noreferrer" data-pmos-role="wordmark" aria-label="pmos">pmos</a>
       <span class="pmos-crumb" data-pmos-role="crumb">{{title}}</span>
       <div class="pmos-artifact-actions">
         <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>

@@ -72,6 +72,38 @@ console.log('OK: freshEmit');
   console.log('OK: reEmit');
 })();
 
+(function wordmarkHrefs() {
+  // FR-1/2/3: header wordmark → repo root ({{repo_url}}); footer wordmark +
+  // attribution → producing plugin's README ({{plugin_url}}). Two distinct tokens.
+  const REPO = 'https://github.com/maneesh-dhabria/pmos-skills';
+  const PLUGIN = 'https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md';
+  const out = renderArtifact({
+    template: tmpl, title: 'x', content: '', sourcePath: 'x', assetPrefix: 'assets/',
+    pluginVersion: '2.58.0', pmosSkill: 'test',
+    repoUrl: REPO, pluginUrl: PLUGIN,
+  });
+  const header = out.match(/<a class="pmos-wordmark" href="([^"]*)"/);
+  assert.ok(header, 'header wordmark anchor not found');
+  assert.equal(header[1], REPO, 'header wordmark href must be the repo root');
+  assert.doesNotMatch(header[1], /#readme/, 'header wordmark must not point at #readme');
+  const footer = out.match(/<a class="pmos-wordmark pmos-wordmark--footer" href="([^"]*)"/);
+  assert.ok(footer, 'footer wordmark anchor not found');
+  assert.equal(footer[1], PLUGIN, 'footer wordmark href must be the plugin README');
+  // both attribution links stay on plugin README
+  const attrs = [...out.matchAll(/<a class="pmos-attribution[^"]*"\s+href="([^"]*)"/g)];
+  assert.equal(attrs.length, 2, 'expected two attribution anchors');
+  for (const a of attrs) assert.equal(a[1], PLUGIN, 'attribution href must be the plugin README');
+  // default repoUrl (no override) renders the repo root, never the archived repo
+  const outDef = renderArtifact({
+    template: tmpl, title: 'x', content: '', sourcePath: 'x', assetPrefix: 'assets/',
+    pluginVersion: '2.58.0', pmosSkill: 'test',
+  });
+  const hDef = outDef.match(/<a class="pmos-wordmark" href="([^"]*)"/);
+  assert.equal(hDef[1], 'https://github.com/maneesh-dhabria/pmos-skills', 'default header wordmark = repo root');
+  assert.doesNotMatch(outDef, /maneesh-dhabria\/pmos-toolkit/, 'no default may reference the archived pmos-toolkit repo');
+  console.log('OK: wordmarkHrefs');
+})();
+
 (function missingBlock() {
   // E13: pre-feature artifact with no inline block — fall back to fresh seed
   const out = renderArtifact({

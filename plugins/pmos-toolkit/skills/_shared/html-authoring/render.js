@@ -18,7 +18,10 @@ const ASSETS_DIR = path.join(__dirname, 'assets');
 const DEFAULTS = {
   pluginName: 'pmos-toolkit',
   pluginNameNbsp: 'pmos&#8209;toolkit',
-  pluginUrl: 'https://github.com/maneesh-dhabria/pmos-toolkit#readme',
+  // Brand mark (header wordmark) → the canonical repo root.
+  repoUrl: 'https://github.com/maneesh-dhabria/pmos-skills',
+  // Producing plugin's README (footer wordmark + attribution) — per-plugin default.
+  pluginUrl: 'https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md',
 };
 
 function readAsset(name) {
@@ -86,6 +89,7 @@ function renderArtifact(opts) {
     pluginName = DEFAULTS.pluginName,
     pluginNameNbsp = DEFAULTS.pluginNameNbsp,
     pluginUrl = DEFAULTS.pluginUrl,
+    repoUrl = DEFAULTS.repoUrl,
   } = opts;
 
   const inlineCss = buildInlineCss();
@@ -106,6 +110,7 @@ function renderArtifact(opts) {
     '{{plugin_name}}': pluginName,
     '{{plugin_name_nbsp}}': pluginNameNbsp,
     '{{plugin_url}}': pluginUrl,
+    '{{repo_url}}': repoUrl,
   };
 
   let out = template;
