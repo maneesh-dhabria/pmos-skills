@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.83.0 + pmos-learnkit 0.26.0: artifact wordmark → repo, footer + attribution → per-plugin README
+
+Every pmos-emitted HTML artifact now links its chrome correctly. The **header brand-mark wordmark** points at the canonical repo root via a new `{{repo_url}}` token, while the **footer wordmark and both "Created using …" attribution links** point at the producing plugin's README via `{{plugin_url}}`. The stale default that pointed at the **archived** `pmos-toolkit` repo is purged from both `render.js` copies, and four plugin READMEs (toolkit, learnkit, gamekit, utilities) are authored as the attribution targets. The masthead index generator, `emit-findings`, and the ideate artifact template are swept to match. Combines with the v2.80.0 "Editorial Technical" toolbar (which had already shipped the crumb + footer structure this work targets).
+
+- New `{{repo_url}}` token: header wordmark → repo root; footer wordmark + attributions → per-plugin README.
+- Archived-repo default removed from both `html-authoring/render.js` copies.
+- Four plugin READMEs authored (toolkit, learnkit, gamekit, utilities).
+- Tests: two-token `wordmarkHrefs` + `template-bytestable.sh` contract across both substrate copies.
+
 ## 2026-06-15 — pmos-toolkit 2.82.0 + pmos-learnkit 0.25.0: /summary-tldr emit ordering, /diagram legend-contrast diagnostics, pipeline-setup default
 
 Three improvements ship together. `/summary-tldr` now emits the summary to disk **first** — reserving a `#summary-diagram` slot — then injects the validated SVG via an atomic temp-then-rename, so a diagram failure can never lose the summary; the source-and-confidence block also compacts from a `<dl>` to a `<table>`. `/diagram`'s editorial theme gains legend-contrast eval diagnostics so low-contrast legends are caught at eval time. And `_shared/pipeline-setup.md` defaults the feature-folder destination to `docs/pmos` as the `(Recommended)` option. The pipeline-setup change is mirrored byte-identically into pmos-learnkit (the 0.25.0 bump).
