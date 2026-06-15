@@ -199,6 +199,10 @@ header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .controls input,.controls select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px}
 .controls input{flex:1;min-width:200px}
+.searchwrap{flex:1;min-width:200px;position:relative;display:flex}
+.searchwrap input{flex:1;width:100%}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;padding:2px 4px;line-height:1}
+.search-clear:hover{color:var(--ink)}
 .controls label{color:var(--muted);font-size:13px;display:flex;gap:6px;align-items:center}
 .viewswitch{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .viewswitch button{background:var(--card);color:var(--muted);border:0;padding:8px 12px;font-size:13px;cursor:pointer}
@@ -229,6 +233,7 @@ header{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
 .card:hover,.card.open{border-color:var(--accent)}
 .card .thumb{background:#fff;border-radius:8px;padding:6px;margin:-2px 0 10px;max-height:130px;overflow:hidden;display:flex;justify-content:center}
+.card .thumb[data-thumb]:empty{min-height:60px;background:var(--card);border:1px dashed var(--line)}
 .card .thumb svg{max-width:100%;max-height:118px;height:auto}
 .card h4.name{margin:0 0 4px;font-size:16px}
 .card .cat{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
@@ -274,9 +279,9 @@ ul.listview .ls{color:var(--muted)}
 <div class="layout" id="layout">
 <main class="listing">
 <header>
-<div class="masthead"><span class="wordmark">PMOS</span><div class="mast-text"><h1>Frameworks Library</h1><div class="subtitle">${enriched.length} PM thinking tools — describe a problem or browse</div></div></div>
+<div class="masthead"><span class="wordmark">PMOS</span><div class="mast-text"><h1>Frameworks Library</h1><div class="subtitle"><span id="subtitleCount">${enriched.length}</span> PM thinking tools — describe a problem or browse</div></div></div>
 <div class="controls">
-<input id="search" type="search" placeholder="Describe a problem or search a framework…" aria-label="Search frameworks">
+<span class="searchwrap"><input id="search" type="search" placeholder="Describe a problem or search a framework…" aria-label="Search frameworks"><button id="searchClear" type="button" class="search-clear" aria-label="Clear search" hidden>✕</button></span>
 <div class="viewswitch" role="tablist" aria-label="View">
 <button type="button" data-view="compact" aria-label="Compact list view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2.5" width="14" height="2" rx="1"/><rect x="1" y="7" width="14" height="2" rx="1"/><rect x="1" y="11.5" width="14" height="2" rx="1"/></svg>Compact</button>
 <button type="button" data-view="detailed" aria-label="Detailed cards view"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="6" height="6" rx="1"/><rect x="8.5" y="1.5" width="6" height="6" rx="1"/><rect x="1.5" y="8.5" width="6" height="6" rx="1"/><rect x="8.5" y="8.5" width="6" height="6" rx="1"/></svg>Detailed</button>
@@ -322,10 +327,15 @@ var appliedEl = document.getElementById('applied');
 var tagSearch = document.getElementById('tagSearch');
 var tagChecklist = document.getElementById('tagChecklist');
 var search = document.getElementById('search');
+var searchClear = document.getElementById('searchClear');
 var superFilter = document.getElementById('superFilter');
 var groupBy = document.getElementById('groupBy');
 var countEl = document.getElementById('count');
+var subtitleCount = document.getElementById('subtitleCount');
 var toastEl = document.getElementById('toast');
+var byId = {}; DATA.forEach(function(f){ byId[f.id]=f; });
+var lastOpener = null;        // F3 — the [data-id] element that opened the reader (focus returns here)
+var thumbObserver = null;     // F2 — IntersectionObserver for lazy detailed-view thumbnails
 // state.dt and state.tags are SETS (object maps id→true) — OR within a facet, AND across facets.
 var state = { view: 'list', groupBy: 'category', q: '', area: '', dt: {}, tags: {}, openId: null };
 
@@ -363,7 +373,28 @@ function buildGroups(list){
   list.forEach(function(f){ groupKeysFor(f).forEach(function(k){ (map[k]=map[k]||[]).push(f); }); });
   return map;
 }
-function thumbHtml(f){ return f.thumb?('<div class="thumb">'+f.thumb+'</div>'):''; }
+// F2 — emit a placeholder; the SVG is injected lazily by mountThumbs() (IntersectionObserver).
+function thumbHtml(f){ return f.thumb?('<div class="thumb" data-thumb="'+esc(f.id)+'"></div>'):''; }
+// F2 — lazy-mount detailed-view thumbnails as cards approach the viewport. Re-established on
+// every render(). Falls back to eager injection where IntersectionObserver is absent (old file://).
+function injectThumb(el){ var f=byId[el.getAttribute('data-thumb')]; if(f&&f.thumb&&!el.firstChild){ el.innerHTML=f.thumb; } }
+function mountThumbs(){
+  var placeholders=groupsEl.querySelectorAll('[data-thumb]');
+  if(!('IntersectionObserver' in window)){ Array.prototype.forEach.call(placeholders, injectThumb); return; }
+  if(thumbObserver) thumbObserver.disconnect();
+  thumbObserver=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ injectThumb(en.target); thumbObserver.unobserve(en.target); } });
+  }, { rootMargin: '200px 0px' });
+  Array.prototype.forEach.call(placeholders, function(el){ thumbObserver.observe(el); });
+}
+// F1 — toggle selection on the EXISTING [data-id] nodes without rebuilding #groups (no perceived reload).
+function updateSelection(){
+  Array.prototype.forEach.call(groupsEl.querySelectorAll('[data-id]'), function(el){
+    var on=el.getAttribute('data-id')===state.openId;
+    if(el.classList.contains('card')){ el.classList.toggle('open', on); }
+    else { el.classList.toggle('selected', on); }
+  });
+}
 function cardHtml(f){
   return '<div class="card'+(f.id===state.openId?' open':'')+'" data-id="'+esc(f.id)+'">'
     +thumbHtml(f)
@@ -373,11 +404,13 @@ function cardHtml(f){
     +'<span class="dt">'+esc(f.decision_type)+'</span></div>';
 }
 function render(){
+  var sy=window.scrollY; // F1 — preserve page scroll across the #groups rebuild (no snap-to-top on narrowing)
   state.q=search.value.trim();
+  if(searchClear) searchClear.hidden=!state.q;
   var list=DATA.filter(passes);
   countEl.textContent=list.length+' of '+DATA.length;
   groupBy.disabled=(state.view==='compact');
-  if(!list.length){ groupsEl.innerHTML='<div class="empty">No frameworks match. Try fewer words or clear the filters.</div>'; return; }
+  if(!list.length){ groupsEl.innerHTML='<div class="empty">No frameworks match. Try fewer words or clear the filters.</div>'; window.scrollTo(0, sy); return; }
   var map=buildGroups(list);
   var names=sortGroupNames(Object.keys(map));
   var html='';
@@ -394,29 +427,46 @@ function render(){
     html+='</div>';
   });
   groupsEl.innerHTML=html;
+  if(state.view==='detailed') mountThumbs(); // F2 — wire lazy thumbnails after the rebuild
+  window.scrollTo(0, sy); // F1 — restore page scroll
 }
 function readerHtml(f){
   var refs=(f.references||[]).map(function(r){return '<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.type||'Link')+'</a>';}).join('');
   return '<button class="close" type="button" data-act="close">close ✕</button>'
     +'<h2>'+esc(f.name)+'</h2><div class="meta">'+esc(f.category)+(f.author?' · '+esc(f.author):'')+' · <span class="dt">'+esc(f.decision_type)+'</span></div>'
-    +'<div class="actions"><button type="button" data-act="copy">Copy markdown</button><button type="button" data-act="share">Share</button></div>'
+    +'<div class="actions"><button type="button" data-act="copy">Copy markdown</button><button type="button" data-act="copylink">Copy link</button><button type="button" data-act="share">Share</button></div>'
     +(f.commentary?'<div class="take"><b>PM&#39;s take:</b> '+esc(f.commentary)+'</div>':'')
     +'<div class="when">'+(f.when_to_use?'<div><h4>When to use</h4>'+esc(f.when_to_use)+'</div>':'')+(f.when_not_to_use?'<div><h4>When not to use</h4>'+esc(f.when_not_to_use)+'</div>':'')+'</div>'
     +'<div class="body">'+f.body_html+'</div>'
     +(refs?'<div class="refs"><h4>References</h4>'+refs+'</div>':'');
 }
 function openReader(id){
-  var f=DATA.filter(function(x){return x.id===id;})[0]; if(!f) return;
-  var sy=window.scrollY; // D1 — capture page scroll before the render() rebuild
+  var f=byId[id]; if(!f) return;
+  // F3 — remember the [data-id] node that opened the reader so focus can return on close.
+  var opener=null;
+  Array.prototype.forEach.call(groupsEl.querySelectorAll('[data-id]'), function(el){ if(el.getAttribute('data-id')===id) opener=el; });
+  if(opener) lastOpener=opener;
   state.openId=id;
   reader.innerHTML=readerHtml(f);
   reader.setAttribute('aria-hidden','false');
   layout.classList.add('reader-open');
   reader.scrollTop=0; // panel-local scroll reset (not the page)
-  render();
-  window.scrollTo(0, sy); // D1 — restore page scroll so selecting a deep item never jumps the page
+  updateSelection(); // F1 — targeted highlight only; NO render() rebuild (kills the perceived reload)
+  // F4 — reflect the open framework in the URL; the hashchange guard prevents a re-open loop.
+  if(decodeURIComponent(location.hash.slice(1))!==id){ location.hash=encodeURIComponent(id); }
+  // F3 — move focus into the reader (the close button).
+  var cb=reader.querySelector('button.close'); if(cb) cb.focus();
+  // F7 — on narrow viewports the reader renders below the list; bring it into view.
+  if(window.matchMedia&&window.matchMedia('(max-width:720px)').matches){ reader.scrollIntoView({behavior:'smooth',block:'start'}); }
 }
-function closeReader(){ state.openId=null; layout.classList.remove('reader-open'); reader.setAttribute('aria-hidden','true'); reader.innerHTML=''; render(); }
+function closeReader(){
+  state.openId=null; layout.classList.remove('reader-open'); reader.setAttribute('aria-hidden','true'); reader.innerHTML='';
+  updateSelection(); // F1 — targeted, not a full render()
+  // F4 — drop the hash without triggering a re-open.
+  if(location.hash){ history.replaceState(null,'',location.pathname+location.search); }
+  // F3 — return focus to the item that opened the reader.
+  if(lastOpener&&lastOpener.focus){ lastOpener.focus(); lastOpener=null; }
+}
 function toMarkdown(f){
   var md='# '+f.name+'\\n\\n';
   if(f.summary) md+=f.summary+'\\n\\n';
@@ -451,6 +501,8 @@ function appliedChip(facet,value,attr){
 }
 function renderApplied(){
   var html='';
+  var q=(search.value||'').trim();
+  if(q) html+=appliedChip('Search', q, 'data-rm-q="1"'); // F5 — removable query chip
   if(state.area) html+=appliedChip('Area', superLabel(state.area), 'data-rm-area="1"');
   selectedKeys(state.dt).forEach(function(d){ html+=appliedChip('Decision', d, 'data-rm-dt="'+esc(d)+'"'); });
   selectedKeys(state.tags).forEach(function(t){ html+=appliedChip('Tag', t, 'data-rm-tag="'+esc(t)+'"'); });
@@ -471,7 +523,11 @@ function closeDropdowns(except){
   });
 }
 // events
-search.addEventListener('input', render);
+// F1 — debounce the search handler (~120 ms) so each keystroke no longer triggers a full render().
+var searchDebounce=null;
+search.addEventListener('input', function(){ clearTimeout(searchDebounce); searchDebounce=setTimeout(function(){ render(); renderApplied(); }, 120); });
+// F5 — explicit clear (✕) control empties the query and re-renders.
+searchClear.addEventListener('click', function(){ search.value=''; search.focus(); render(); renderApplied(); });
 superFilter.addEventListener('change', function(){ state.area=superFilter.value; renderApplied(); render(); });
 groupBy.addEventListener('change', function(){ state.groupBy=groupBy.value; render(); });
 document.querySelector('.viewswitch').addEventListener('click', function(e){
@@ -504,17 +560,20 @@ tagSearch.addEventListener('input', function(){
 // applied-bar chip removal + Clear all (chips ↔ checkboxes synced).
 appliedEl.addEventListener('click', function(e){
   var b=e.target.closest('button'); if(!b) return;
-  if(b.hasAttribute('data-clear-all')){ state.area=''; state.dt={}; state.tags={}; superFilter.value=''; }
+  if(b.hasAttribute('data-clear-all')){ state.area=''; state.dt={}; state.tags={}; superFilter.value=''; state.q=''; search.value=''; }
+  else if(b.hasAttribute('data-rm-q')){ state.q=''; search.value=''; }
   else if(b.hasAttribute('data-rm-area')){ state.area=''; superFilter.value=''; }
   else if(b.hasAttribute('data-rm-dt')){ delete state.dt[b.getAttribute('data-rm-dt')]; }
   else if(b.hasAttribute('data-rm-tag')){ delete state.tags[b.getAttribute('data-rm-tag')]; }
   syncChecks(); renderApplied(); render();
 });
-// Escape closes the open panel and returns focus to its trigger (D4c).
+// Escape: close an open dropdown panel first (returning focus to its trigger); if none is
+// open, Escape closes the reader (F3) — dropdown-close keeps priority.
 document.addEventListener('keydown', function(e){
   if(e.key!=='Escape') return;
-  var open=document.querySelector('.dropdown.open'); if(!open) return;
-  var t=open.querySelector('.dd-trigger'); closeDropdowns(); if(t) t.focus();
+  var open=document.querySelector('.dropdown.open');
+  if(open){ var t=open.querySelector('.dd-trigger'); closeDropdowns(); if(t) t.focus(); return; }
+  if(layout.classList.contains('reader-open')) closeReader(); // F3 — Escape closes the reader
 });
 // click outside any dropdown closes the panels.
 document.addEventListener('click', function(e){ if(!e.target.closest('.dropdown')) closeDropdowns(); });
@@ -528,13 +587,20 @@ reader.addEventListener('click', function(e){
   var f=DATA.filter(function(x){return x.id===state.openId;})[0];
   if(act==='close') closeReader();
   else if(act==='copy'&&f) copyText(toMarkdown(f));
+  else if(act==='copylink'&&f) copyText(location.origin+location.pathname+'#'+encodeURIComponent(f.id)); // F4
   else if(act==='share'&&f) copyText(toShare(f));
 });
-window.addEventListener('hashchange', function(){ var id=decodeURIComponent(location.hash.slice(1)); if(DATA.some(function(f){return f.id===id;})) openReader(id); });
+// F4 — react to back/forward + manual hash edits; guard against re-opening the already-open id.
+window.addEventListener('hashchange', function(){
+  var id=decodeURIComponent(location.hash.slice(1));
+  if(id===state.openId) return;
+  if(byId[id]) openReader(id); else if(!id) closeReader();
+});
+if(subtitleCount) subtitleCount.textContent=DATA.length; // F6 — dynamic count, never hardcoded
 renderApplied();
 render();
 // deep-link: #id opens the reader on load
-if(location.hash){ var id0=decodeURIComponent(location.hash.slice(1)); if(DATA.some(function(f){return f.id===id0;})) openReader(id0); }
+if(location.hash){ var id0=decodeURIComponent(location.hash.slice(1)); if(byId[id0]) openReader(id0); }
 </script>
 </body>
 </html>
@@ -605,7 +671,51 @@ function runSelftest() {
 
   // --- D1: selection highlight in all 3 views + no page auto-scroll on open ---
   assert(html.includes("f.id===state.openId?' class=\"selected\"'"), 'list/compact items carry the selected class when open');
-  assert(html.includes('var sy=window.scrollY') && html.includes('window.scrollTo(0, sy)'), 'openReader saves + restores page scroll');
+
+  // --- F1 (browse-ux): perceived-reload killed — targeted updateSelection, debounced search, scroll-preserving render ---
+  // Slice each function's body precisely (start → next top-level `function `) so the assertions
+  // don't depend on a brittle char window.
+  const sliceFn = (name) => { const a = html.indexOf('function ' + name); if (a < 0) return ''; const b = html.indexOf('\nfunction ', a + 1); return html.slice(a, b < 0 ? a + 600 : b); };
+  const openFn = sliceFn('openReader(id)');
+  const closeFn = sliceFn('closeReader()');
+  const renderFn = sliceFn('render()');
+  assert(html.includes('function updateSelection'), 'F1: updateSelection() defined (targeted selection toggle, no full rebuild)');
+  assert(openFn.includes('updateSelection()'), 'F1: openReader calls updateSelection() instead of render()');
+  assert(closeFn.includes('updateSelection()'), 'F1: closeReader calls updateSelection() instead of render()');
+  assert(!/\brender\(\);/.test(openFn), 'F1: openReader no longer calls render() (no wholesale #groups rebuild on open)');
+  assert(!/\brender\(\);/.test(closeFn), 'F1: closeReader no longer calls render() either');
+  assert(renderFn.includes('var sy=window.scrollY') && renderFn.includes('window.scrollTo(0, sy)'), 'F1: render() captures+restores window.scrollY around the groupsEl rebuild');
+  assert(!html.includes("search.addEventListener('input', render)"), 'F1: search input is NOT bound straight to render (must be debounced)');
+  assert(html.includes('searchDebounce') && html.includes('clearTimeout') && html.includes('setTimeout'), 'F1: debounce wrapper around the search handler');
+
+  // --- F6: masthead subtitle count comes from DATA.length, not a hardcoded number ---
+  assert(html.includes('id="subtitleCount"'), 'F6: subtitle count lives in an id="subtitleCount" element');
+  assert(html.includes('subtitleCount.textContent=DATA.length') || /subtitleCount[^;]*DATA\.length/.test(html), 'F6: subtitle count set from DATA.length at runtime');
+  assert(!/>272 PM thinking/.test(html), 'F6: no hardcoded 272 in the subtitle');
+
+  // --- F2: detailed-view thumbnails lazy-mount via IntersectionObserver (not all inlined at first paint) ---
+  assert(html.includes('IntersectionObserver'), 'F2: IntersectionObserver used for lazy thumbnails');
+  assert(html.includes('data-thumb'), 'F2: detailed cards emit a data-thumb placeholder (SVG not inlined at render)');
+  assert(/function thumbHtml\(f\)\{[\s\S]{0,160}data-thumb/.test(html) && !/thumbHtml\(f\)\{[^}]*\+f\.thumb\+/.test(html), 'F2: thumbHtml emits a data-thumb placeholder, not the inline thumb SVG');
+  assert(html.includes('function mountThumbs'), 'F2: mountThumbs() wires the observer after render');
+
+  // --- F3: reader keyboard + focus management ---
+  assert(/Escape[\s\S]{0,400}closeReader\(\)/.test(html) || /reader-open[\s\S]{0,200}closeReader\(\)/.test(html), 'F3: Escape closes the reader when open and no dropdown is open');
+  assert(html.includes('lastOpener'), 'F3: closeReader returns focus to the triggering item (lastOpener tracked)');
+
+  // --- F4: deep link — hash on open, guarded hashchange, Copy link action ---
+  assert(openFn.includes('location.hash'), 'F4: openReader sets location.hash');
+  assert(/hashchange[\s\S]{0,200}state\.openId/.test(html), 'F4: hashchange handler guards against re-opening the current id');
+  assert(html.includes('>Copy link<') && html.includes('data-act="copylink"'), 'F4: Copy link action present');
+
+  // --- F5: search clear control + Clear-all resets query + query chip ---
+  assert(html.includes('id="searchClear"'), 'F5: explicit search clear (✕) control present');
+  assert(/data-clear-all[\s\S]*?state\.q='|data-clear-all[\s\S]{0,400}search\.value=''/.test(html) || /clear-all[\s\S]{0,400}search\.value=''/.test(html), 'F5: Clear all resets the text query');
+  assert(html.includes('data-rm-q') && html.includes("appliedChip('Search'"), 'F5: a removable query chip is shown for a non-empty search');
+
+  // --- F7: mobile reader scrolls into view at <=720px ---
+  assert(html.includes('scrollIntoView'), 'F7: reader.scrollIntoView() on open');
+  assert(/max-width:720px|innerWidth\s*<=\s*720|innerWidth\s*<\s*721/.test(html), 'F7: gated to <=720px viewports');
 
   // --- sidebar reader: layout-shift, not a fixed overlay, no backdrop ---
   assert(html.includes('<aside class="reader"'), 'reader is an aside in normal flow');
