@@ -51,16 +51,22 @@ When a figure from the inventory (`reference/figure-inventory.md`) illustrates a
 
 ## Worked example
 
-A research-paper section "We cut p99 latency 38% by sharding the write path" with an architecture diagram (`fig_2` in the inventory) distills to:
+A research-paper section "We cut p99 latency 38% by sharding the write path" with an architecture diagram (`fig_2` in the inventory) distills to a `deck.json` like this — note the **top-level `{title, length_target, slides:[…]}` wrapper**; a slide object is always an element of `slides`, never the top level:
 
 ```json
 {
-  "idea": "Sharding the write path cut p99 latency 38%.",
-  "title": "Write-path sharding",
-  "bullets": ["p99: 410ms → 254ms"],
-  "speaker_notes": "The team sharded the write path across eight partitions. That single change cut p99 latency thirty-eight percent — from four hundred ten milliseconds down to two fifty-four — with no read-path changes.",
-  "figure": { "source": "fig_2", "kind": "svg" }
+  "title": "How we cut p99 latency",
+  "length_target": "standard",
+  "slides": [
+    {
+      "idea": "Sharding the write path cut p99 latency 38%.",
+      "title": "Write-path sharding",
+      "bullets": ["p99: 410ms → 254ms"],
+      "speaker_notes": "The team sharded the write path across eight partitions. That single change cut p99 latency thirty-eight percent — from four hundred ten milliseconds down to two fifty-four — with no read-path changes.",
+      "figure": { "source": "fig_2", "kind": "svg" }
+    }
+  ]
 }
 ```
 
-One idea (the latency win), one supporting number as a bullet, notes that assert the claim with the exact figures, and the paper's own diagram reused rather than redrawn.
+One idea (the latency win), one supporting number as a bullet, notes that assert the claim with the exact figures, and the paper's own diagram reused rather than redrawn — all inside the `slides` array of the wrapped object.

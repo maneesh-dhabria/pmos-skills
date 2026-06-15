@@ -32,8 +32,9 @@
  */
 'use strict';
 
-import { readFileSync, writeFileSync, renameSync } from 'node:fs';
-import { resolve as pathResolve, dirname, extname } from 'node:path';
+import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
+import { resolve as pathResolve, dirname, extname, join as pathJoin } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const DROP_RE = /(?:^|[^a-z])(nav|logo|icon|sprite|avatar|tracking|pixel|spacer|beacon|ad[-_]|banner)(?:[^a-z]|$)/i;
 
@@ -106,7 +107,7 @@ function svgsFromHtml(html) {
     const anchor = attr(open, 'data-anchor') || attr(open, 'id') || `svg-${i}`;
     out.push({ kind: 'svg', src: anchor, alt: attr(open, 'aria-label'),
                cls: attr(open, 'class'), id: attr(open, 'id'), role: '',
-               width: 0, height: 0 });
+               width: 0, height: 0, svg: block });
     i++;
   }
   return out;
@@ -125,23 +126,34 @@ function imgsFromMarkdown(md, base) {
 }
 
 // Build the final inventory: filter, assign stable ids, project to the schema.
-function buildInventory(candidates) {
+// When `figuresDir` is given, inline <svg> figures are written to
+// `<figuresDir>/<id>.svg` and their source_ref points at that file (relative,
+// `<basename(figuresDir)>/<id>.svg`) so Phase 4 can embed the original asset
+// from disk (D2 / FR-2). <img>/markdown figures keep their resolved URL/path
+// source_ref unchanged. Without a figuresDir (stdout-only runs), an <svg>
+// entry keeps its anchor source_ref (no file to write to).
+function buildInventory(candidates, figuresDir) {
   const kept = candidates.filter((c) => !isDecorative(c));
-  return kept.map((c, i) => ({
-    id: `fig_${i + 1}`,
-    source_ref: c.src,
-    kind: c.kind,
-    alt: c.alt || '',
-    width: c.width || 0,
-    height: c.height || 0,
-  }));
+  const relName = figuresDir ? figuresDir.replace(/\/+$/, '').split('/').pop() : '';
+  let svgDirReady = false;
+  return kept.map((c, i) => {
+    const id = `fig_${i + 1}`;
+    let source_ref = c.src;
+    if (figuresDir && c.kind === 'svg' && c.svg) {
+      if (!svgDirReady) { mkdirSync(figuresDir, { recursive: true }); svgDirReady = true; }
+      const file = pathJoin(figuresDir, `${id}.svg`);
+      writeFileSync(file, c.svg.endsWith('\n') ? c.svg : c.svg + '\n');
+      source_ref = `${relName}/${id}.svg`;
+    }
+    return { id, source_ref, kind: c.kind, alt: c.alt || '', width: c.width || 0, height: c.height || 0 };
+  });
 }
 
-function inventoryFromSource(source, content, base) {
+function inventoryFromSource(source, content, base, figuresDir) {
   const ext = extname(source).toLowerCase();
-  if (ext === '.md' || ext === '.markdown') return buildInventory(imgsFromMarkdown(content, base));
+  if (ext === '.md' || ext === '.markdown') return buildInventory(imgsFromMarkdown(content, base), figuresDir);
   // html / pmos-artifact / fetched web page
-  return buildInventory([...svgsFromHtml(content), ...imgsFromHtml(content, base)]);
+  return buildInventory([...svgsFromHtml(content), ...imgsFromHtml(content, base)], figuresDir);
 }
 
 function selftest() {
@@ -174,10 +186,24 @@ function selftest() {
   ok(minv.length === 1, `md: 1 img kept, icon dropped (got ${minv.length})`);
   ok(minv[0].source_ref === '/tmp/docs/diagrams/flow.png', 'md: filesystem base resolve');
 
-  // Inline SVG (pmos figure) → anchor source_ref.
+  // Inline SVG (pmos figure), stdout-only (no figuresDir) → anchor source_ref.
   const psvg = `<figure><svg data-anchor="arch-diagram" aria-label="Arch"><rect/></svg></figure>`;
   const sinv = inventoryFromSource('artifact.html', psvg, null);
-  ok(sinv.length === 1 && sinv[0].kind === 'svg' && sinv[0].source_ref === 'arch-diagram', 'svg anchor');
+  ok(sinv.length === 1 && sinv[0].kind === 'svg' && sinv[0].source_ref === 'arch-diagram', 'svg anchor (no figures dir)');
+
+  // Inline SVG with a figures dir (FR-2): the <svg> block is WRITTEN to
+  // figures/<id>.svg and source_ref points at that relative file; <img> in the
+  // same source keeps its resolved URL source_ref (unchanged).
+  const fdir = pathJoin(tmpdir(), `ev-ingest-selftest-${process.pid}`, 'figures');
+  const mixed = `<figure><svg id="flow" aria-label="Flow"><path d="M0 0"/></svg></figure>
+                 <img src="chart.png" width="900" height="500" alt="Chart">`;
+  const finv = inventoryFromSource('artifact.html', mixed, 'https://ex.com/', fdir);
+  const svgEntry = finv.find((f) => f.kind === 'svg');
+  const imgEntry = finv.find((f) => f.kind === 'img');
+  ok(svgEntry && svgEntry.source_ref === `figures/${svgEntry.id}.svg`, 'svg-file: source_ref → figures/<id>.svg');
+  const wrote = (() => { try { return readFileSync(pathJoin(fdir, `${svgEntry.id}.svg`), 'utf8'); } catch { return ''; } })();
+  ok(/<svg\b[\s\S]*<\/svg>/.test(wrote), 'svg-file: <svg> block written to disk');
+  ok(imgEntry && imgEntry.source_ref === 'https://ex.com/chart.png', 'svg-file: <img> source_ref unchanged (resolved URL)');
 
   if (fails.length) { process.stderr.write('SELFTEST FAIL:\n  ' + fails.join('\n  ') + '\n'); process.exit(1); }
   process.stderr.write('SELFTEST PASS: ingest.mjs figure extraction + filter + resolve hold.\n');
@@ -220,8 +246,15 @@ function main(argv) {
     resolvedBase = base || (ext === '.md' || ext === '.markdown' || ext === '.html' || ext === '.txt' ? dirname(pathResolve(source)) : null);
   }
 
-  const inventory = inventoryFromSource(source, content, resolvedBase);
-  if (figuresOut) { writeJson(figuresOut, inventory); process.stderr.write(`ingest: ${inventory.length} figure(s) → ${figuresOut}\n`); }
+  // When writing figures.json, inline <svg> figures are extracted to a sibling
+  // figures/ dir (D2 / FR-2); without --figures-out there is no dir to write to.
+  const figuresDir = figuresOut ? pathJoin(dirname(pathResolve(figuresOut)), 'figures') : null;
+  const inventory = inventoryFromSource(source, content, resolvedBase, figuresDir);
+  if (figuresOut) {
+    writeJson(figuresOut, inventory);
+    const nsvg = inventory.filter((f) => f.kind === 'svg').length;
+    process.stderr.write(`ingest: ${inventory.length} figure(s) → ${figuresOut}${nsvg ? ` (${nsvg} inline svg → figures/)` : ''}\n`);
+  }
   else process.stdout.write(JSON.stringify(inventory, null, 2) + '\n');
 }
 

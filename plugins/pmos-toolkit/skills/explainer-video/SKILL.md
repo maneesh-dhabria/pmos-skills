@@ -48,6 +48,18 @@ Read `~/.pmos/learnings.md` if present; factor in any entries under `## /explain
 
 **Resolve the length dial.** `cli > .pmos/explainer-video.lastrun.yaml > skill default (standard)`. After a run, persist the resolved `--length` atomically (temp-then-rename). Print to stderr `length: <quick|standard|deep> (source: <cli|lastrun|default|confirmed>)`.
 
+**Resolve captions (D6/FR-6).** Precedence `cli (--captions/--no-captions) > .pmos/explainer-video.lastrun.yaml :: captions > default (on, D4)`. The flag, when present, always wins and updates the remembered value. Persist the resolved choice to the same `.pmos/explainer-video.lastrun.yaml` (a single file holding both `length:` and `captions:`, written atomically temp-then-rename after the run). Print to stderr exactly `captions: <on|off> (source: <cli|lastrun|default>)`. No new `settings.yaml` surface. The resolved value is carried into Phase 6 (`assemble.sh` gets `--no-captions` when off).
+
+**Print the run-time estimate (D8/FR-8).** The full pipeline (Playwright capture + local TTS + ffmpeg assemble) is slow and scales with slide count, so print an approximate total to stderr before starting. The slide count is the resolved length band's typical figure (quick ≈ 6, standard ≈ 13, deep ≈ 24); the per-slide cost is a documented rough heuristic — ~4 s capture + ~12 s narration + ~6 s assemble per slide, plus ~20 s fixed overhead. **Arithmetic is script-side, never model-guessed (§H/I2)** — compute and print it with:
+
+```
+node -e 'const L=process.argv[1];const S={quick:6,standard:13,deep:24}[L]||13;const sec=Math.round(20+S*(4+12+6));process.stderr.write(`est. run time: ~${sec}s (${L}, ~${S} slides)\n`)' <length>
+```
+
+For the **`deep` tier**, additionally ask a one-line confirm before starting (the run is the longest); quick/standard print the estimate without blocking:
+
+- `AskUserQuestion` — `"This deep run is ~<N>s (~24 slides of capture + narration + assemble). Proceed?"` options **Proceed (Recommended)** / **Cancel**. The Recommended option means the non-interactive classifier AUTO-PICKs Proceed; log `explainer-video: deep run auto-proceeded (non-interactive), est ~<N>s`.
+
 If `--length` is unset and mode is interactive, ask once (the distiller needs it to calibrate slide count, `reference/distillation-contract.md`):
 
 - `AskUserQuestion` — `"How long should the video be?"` options **Standard — 3–5 min (Recommended)** / **Quick — 1–2 min** / **Deep — 5–10 min**. `--length` pre-answers this and skips the prompt. Under non-interactive mode, AUTO-PICK Standard (the Recommended option).
@@ -86,7 +98,16 @@ The canonical non-interactive block below handles `mode` resolution + per-checkp
 
 ## Phase 2: Ingest the source {#ingest}
 
-Resolve the source to **clean text plus a figure inventory** per `reference/figure-inventory.md`. There is **no bundled PDF parser** (no poppler/`pdftotext`/vendored JS): text comes from the host's native capabilities, figures from `ingest.mjs`.
+**Resolve the source argument to a concrete path or URL first (D4/FR-4) — a deterministic order, no silent guessing:**
+
+1. **URL** — `http(s)://…` is used as-is (fetched in step 1 below via `WebFetch`).
+2. **Literal path** — the `<source>` exactly as given (relative to cwd) **if it exists** on disk. Use it.
+3. **`@artifact` / bare-relative form** — for an `@name/rest` (strip the leading `@`) or a bare relative path that did not exist in step 2, try `{docs_path}/{rest}`. If that exists, use it.
+4. **Bounded `find` fallback** — search by basename under the repo root: `find <repo-root> -name '<basename>' -not -path '*/node_modules/*'`. **Exactly one match → use it; 0 matches → error** `explainer-video: source not found: <source> (tried literal, {docs_path}/, and a basename search)`; **>1 match → error** listing the candidates and asking the user to pass an unambiguous path. Exit 64 on either. Never pick one of several silently.
+
+Log the resolved path to stderr: `source: <resolved> (via <literal|docs_path|find>)`.
+
+Then resolve the source to **clean text plus a figure inventory** per `reference/figure-inventory.md`. There is **no bundled PDF parser** (no poppler/`pdftotext`/vendored JS): text comes from the host's native capabilities, figures from `ingest.mjs`.
 
 1. **Dispatch an in-session distiller subagent** (`model: sonnet` per §L — bounded extraction, not frontier judgment) that reads the source directly to clean text: native `Read` for local `.md/.html/.txt` and PDFs (`Read` with `pages` for long PDFs), `WebFetch` for URLs, pmos-artifact section reads for a pmos `.html` artifact. The subagent returns the cleaned plaintext (readability-stripped for web) — never a remembered version of the source.
 2. **Run `ingest.mjs` for the figure inventory** (deterministic asset extraction):
@@ -95,7 +116,7 @@ Resolve the source to **clean text plus a figure inventory** per `reference/figu
    node ${CLAUDE_PLUGIN_ROOT}/skills/explainer-video/scripts/ingest.mjs <source> --figures-out <ev_dir>/<slug>/figures.json
    ```
 
-   It extracts pmos owned SVGs, local HTML/MD `<img>`/`<figure>`, and fetched web-page images; resolves relative URLs against the page base; and filters by size/role to drop nav/tracking/spacer/decorative images (thresholds in `reference/figure-inventory.md`). Each entry: `{id, source_ref, kind: svg|img, alt, width, height}`.
+   It extracts pmos owned SVGs, local HTML/MD `<img>`/`<figure>`, and fetched web-page images; resolves relative URLs against the page base; and filters by size/role to drop nav/tracking/spacer/decorative images (thresholds in `reference/figure-inventory.md`). Each entry: `{id, source_ref, kind: svg|img, alt, width, height}`. **Inline pmos `<svg>` figures are written to a sibling `figures/` dir** (`figures/<id>.svg`) and their `source_ref` points at that file — so Phase 4 embeds the original asset from disk rather than re-deriving it; `<img>`/markdown figures keep their resolved path/URL `source_ref`.
 
 **Honest degradation:** when extraction confidence is low — a scanned PDF that barely reads, a fetch failure, an unreadable source — FLAG it (proceed only on what was actually extracted, and say so) or REFUSE that source with concrete guidance. Never fabricate source text or figures.
 
@@ -106,14 +127,31 @@ The `--length` dial resolved in Phase 1 is carried into Phase 3.
 Produce `deck.json` validated against `reference/distillation-contract.md`. This is the **only model-judgment stage**. The distiller MUST obey:
 
 - **One idea per slide (hard).** Each slide carries exactly one idea; bullets are minimal support (cap 3, prefer 0–1). A slide that reads like two ideas is re-split before proceeding.
-- **Length calibration as a starting point, not a quota.** From `--length`: quick 5–8 slides / 25–35 words/slide; standard 10–16 / 30–45; deep 18–30 / 35–50 (~140 wpm). Adapt to the source's natural structure rather than padding or truncating to a number.
+- **Length calibration as a starting point, not a quota.** Map the resolved `--length` to its slide-count / words-per-slide band via the table in `reference/distillation-contract.md#length-calibration` (the one home, I1 — do not restate the numbers here); adapt to the source's natural structure rather than padding or truncating to a number.
 - **Reuse source figures.** When a figure from the Phase 2 inventory illustrates a slide's idea, reference it by `id` in the slide's `figure` field and place the **original asset** rather than paraphrasing it. Every `figure` reference MUST resolve against the inventory (unresolved → self-check fail in Phase 6).
 
-Schema per slide: `{idea, title, bullets[≤3], speaker_notes (length-calibrated), figure?: {source, kind}}`. Write `deck.json` to `<ev_dir>/<slug>/deck.json` (temp-then-rename). A worked example slide object lives in `reference/distillation-contract.md`.
+`deck.json` is a **single top-level object** `{title, length_target, slides:[…]}` — the `slides` array holds the per-slide objects `{idea, title, bullets[≤3], speaker_notes (length-calibrated), figure?: {source, kind}}`. **Write the wrapper, not a bare `[…]` array** — the canonical shape and a worked example live in `reference/distillation-contract.md#schema` (the one home, I1; do not re-specify it divergently here). The narrate/assemble scripts also normalise a bare top-level array as a safety net (D1), but the contract is the wrapped object. Write `deck.json` to `<ev_dir>/<slug>/deck.json` (temp-then-rename).
+
+**JSON-validity gate (D3/FR-3) — run immediately after writing `deck.json`, before Phase 4.** The model authors `deck.json` by hand, so an unescaped `"` in `speaker_notes` yields invalid JSON that would otherwise surface only when a script tries to parse it. **Author guidance:** `speaker_notes` must not contain unescaped double-quotes — prefer curly quotes (`"…"`) or escape them (`\"`). Gate (a parse failure **stops the run** with a clear message — §H/I2, the parse is script-side):
+
+```
+node -e 'const fs=require("fs");try{const d=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));const sl=Array.isArray(d)?d:d.slides;if(!Array.isArray(sl)||!sl.length)throw new Error("top-level has no slides array");process.stderr.write(`deck.json valid: ${sl.length} slides\n`)}catch(e){process.stderr.write(`deck.json INVALID — ${e.message}. Check for unescaped double-quotes in speaker_notes.\n`);process.exit(1)}' <ev_dir>/<slug>/deck.json
+```
+
+A non-zero exit stops the pipeline; fix the offending field and re-run the gate before continuing.
+
+**Outline-approval gate (D9/FR-10 — after the JSON gate, before the expensive Phase 4 capture+narrate half).** Present the deck outline — each slide's `title` + one-line `idea` (numbered) — and let the user trim before paying for capture + TTS + assemble:
+
+- `AskUserQuestion` — `"<N>-slide outline ready. Approve and continue to capture + narration?"` options **Approve & continue (Recommended)** / **Edit the outline**. The Recommended option means the non-interactive classifier AUTO-PICKs Approve; log `explainer-video: outline auto-approved (non-interactive), <N> slides`.
+- On **Edit the outline**: take a free-form instruction (which slides to drop or merge — e.g. "drop 4 and 7, merge 9 into 8"), apply it to `slides[]`, **rewrite `deck.json` (temp-then-rename) and re-run the JSON-validity gate above**, then re-present the outline. Loop until Approve. (G3: a free-form drop/merge instruction, not a structured editor.)
+
+Only after approval proceed to Phase 4.
 
 ## Phase 4: Author the deck + capture frames {#author-capture}
 
-**Author `deck.html`** as a self-contained pmos artifact per `_shared/html-authoring/README.md` checklist. Deltas: artifact = `<ev_dir>/<slug>/deck.html`, `{{pmos_skill}}` = `explainer-video`, `{{plugin_version}}` read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. One `<section>` per slide (stable kebab `id`); each `<section>` carries its `speaker_notes` in a `data-notes` attribute (the narration source) and places its resolved figure as the original asset. v1 is **mp4-only** — `deck.html` is the silent slide source the capturer screenshots, not an audio-wired player.
+**Author `deck.html`** as a self-contained pmos artifact per `_shared/html-authoring/README.md` checklist. Deltas: artifact = `<ev_dir>/<slug>/deck.html`, `{{pmos_skill}}` = `explainer-video`, `{{plugin_version}}` read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. One `<section>` per slide (stable kebab `id`); each `<section>` carries its `speaker_notes` in a `data-notes` attribute (the narration source) and places its resolved figure as the original asset — for an inline `<svg>` figure, inline the contents of the extracted `figures/<id>.svg` (its `source_ref`); for an `<img>`, use the resolved path/URL. v1 is **mp4-only** — `deck.html` is the silent slide source the capturer screenshots, not an audio-wired player.
+
+**Watermark (D7/FR-7).** Bake a subtle bottom-right `pmos-toolkit` watermark into `deck.html` via low-opacity CSS so it is captured naturally into every frame at 1920×1080 — no ffmpeg change, no font/logo asset. Add it once (a single element that shows on every `<section>`, e.g. a `position: fixed` corner mark, or a `::after` on each slide), styled `position: fixed; right: 28px; bottom: 20px; opacity: 0.12; font-size: 18px; letter-spacing: 0.04em; pointer-events: none;` with the text `pmos-toolkit`. Keep it **bottom-right and faint** so it stays clear of the bottom-centre burned-in captions (G1 — the low opacity makes any wide-wrap overlap visually benign). Confirm it renders into the captured frames (it is part of the AC7 live smoke).
 
 **Capture frames** with Playwright:
 

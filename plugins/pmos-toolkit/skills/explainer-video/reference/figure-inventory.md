@@ -13,11 +13,11 @@ Consumed by `SKILL.md` Phase 2 (`{#ingest}`) and implemented by `scripts/ingest.
   "alt": "alt or caption text", "width": 1200, "height": 740 }
 ```
 
-`id` is a stable `fig_<N>` assigned in document order. `source_ref` is what Phase 4 loads to place the original asset (a local path, a resolved absolute URL, or a pmos SVG anchor). `width`/`height` are intrinsic pixels when known (0 if unknowable, e.g. an SVG without a viewBox).
+`id` is a stable `fig_<N>` assigned in document order. `source_ref` is what Phase 4 loads to place the original asset: a local path, a resolved absolute URL, or — for an inline pmos `<svg>` — a relative path to the **extracted SVG file** (`figures/<id>.svg`, written beside `figures.json`). `width`/`height` are intrinsic pixels when known (0 if unknowable, e.g. an SVG without a viewBox).
 
 ## Sources
 
-- **pmos artifacts** — owned inline `<svg>` elements and `<figure>`s carrying `data-anchor`; `source_ref` is the anchor.
+- **pmos artifacts** — owned inline `<svg>` elements and `<figure>`s carrying `data-anchor`. When `--figures-out` is given, each inline `<svg>` block is **written to `figures/<id>.svg`** (a dir beside `figures.json`) and `source_ref` points at that file (`figures/<id>.svg`), so Phase 4 embeds the original asset from disk — no hand-rolled extraction. (Without `--figures-out`, stdout-only runs fall back to the `data-anchor`/`id` anchor as `source_ref`.)
 - **Local HTML/MD** — `<img src>` / `<figure>` in HTML; `![alt](path)` in markdown. Relative `src` resolved against the file's directory.
 - **Fetched web pages** — `<img>` / `<figure>` / `<picture>` in the fetched DOM. **Relative URLs resolved against the page base** (`<base href>` or the document URL).
 
@@ -33,4 +33,4 @@ An image with no known size is **kept** (unknown ≠ decorative) unless its path
 
 ## Reuse rule
 
-Place the **original asset** when it illustrates a slide's idea (design figure-reuse), rather than paraphrasing it in prose. The distiller (Phase 3) references a figure by `id`; Phase 4 loads `source_ref` and embeds the original SVG/image into the slide `<section>`. One figure per slide max; text-only when no inventory figure fits.
+Place the **original asset** when it illustrates a slide's idea (design figure-reuse), rather than paraphrasing it in prose. The distiller (Phase 3) references a figure by `id`; Phase 4 loads `source_ref` and embeds the original asset into the slide `<section>` — for an inline `<svg>` it inlines the contents of the extracted `figures/<id>.svg`; for an `<img>` it uses the resolved path/URL. One figure per slide max; text-only when no inventory figure fits.

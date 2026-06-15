@@ -102,9 +102,12 @@ selftest() {
   else echo "selftest: TTS engine = $eng"; fi
   # check_deps returns 0/1 without crashing.
   if check_deps; then echo "selftest: ffmpeg+ffprobe present"; else echo "selftest: ffmpeg/ffprobe missing (gate path reachable)"; fi
-  # node JSON parse smoke
-  local n; n="$(printf '%s' '{"slides":[{"speaker_notes":"a"},{"speaker_notes":"b"}]}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{console.log(JSON.parse(s).slides.length)})')"
-  [ "$n" = "2" ] || { echo "FAIL: node slide parse (got $n)"; ok=1; }
+  # node JSON parse smoke — wrapped {slides:[...]} object
+  local n; n="$(printf '%s' '{"slides":[{"speaker_notes":"a"},{"speaker_notes":"b"}]}' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})')"
+  [ "$n" = "2" ] || { echo "FAIL: node slide parse, wrapped object (got $n)"; ok=1; }
+  # bare top-level array deck.json must normalise (D1/FR-1) — no crash, count reads.
+  local na; na="$(printf '%s' '[{"speaker_notes":"a"},{"speaker_notes":"b"},{"speaker_notes":"c"}]' | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})')"
+  [ "$na" = "3" ] || { echo "FAIL: node slide parse, bare array (got $na)"; ok=1; }
   [ "$ok" = "0" ] && echo "SELFTEST PASS: narrate.sh detection + gate + parse hold." || echo "SELFTEST FAIL"
   return "$ok"
 }
@@ -148,7 +151,7 @@ mkdir -p "$OUT"
 [ -n "$DURATIONS_OUT" ] || DURATIONS_OUT="$(cd "$OUT/.." && pwd)/durations.json"
 
 # Number of slides + per-slide notes via node (JSON, no jq dependency).
-N="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{console.log(JSON.parse(s).slides.length)})' < "$DECK")"
+N="$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const sl=Array.isArray(d)?d:d.slides;console.log(sl.length)})' < "$DECK")"
 [ "$N" -gt 0 ] 2>/dev/null || { echo "narrate: deck.json has no slides" >&2; exit 2; }
 
 durs=""
@@ -157,7 +160,7 @@ while [ "$i" -lt "$N" ]; do
   idx=$((i+1))
   nn="$(printf '%02d' "$idx")"
   notes_file="$OUT/.notes_${nn}.txt"
-  node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const slides=JSON.parse(s).slides;const n=slides['"$i"'].speaker_notes||slides['"$i"'].idea||" ";process.stdout.write(String(n))})' < "$DECK" > "$notes_file"
+  node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s);const slides=Array.isArray(d)?d:d.slides;const n=slides['"$i"'].speaker_notes||slides['"$i"'].idea||" ";process.stdout.write(String(n))})' < "$DECK" > "$notes_file"
   outwav="$OUT/slide_${nn}.wav"
   synth_one "$ENGINE" "$notes_file" "$outwav" || { echo "narrate: synth failed on slide $idx" >&2; exit 2; }
   rm -f "$notes_file"
