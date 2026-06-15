@@ -9,14 +9,15 @@ status: done
 route: skill
 parent: 260614-7g0
 dependencies: []
-worktree: feat/260614-a3g
+worktree: 
 plan_doc: docs/pmos/features/2026-06-14_explainer-video-fixes/stories/260614-a3g-explainer-video-fixes/03_plan.html
 tasks_file: docs/pmos/features/2026-06-14_explainer-video-fixes/stories/260614-a3g-explainer-video-fixes/tasks.yaml
 claimed_by: build:explainer-a3g-loop
 pr:
 labels: [explainer-video, pmos-toolkit, retro, captions]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.79.0
 ---
 
 ## Context

@@ -5,7 +5,7 @@ kind: epic
 title: "/explainer-video first-run robustness + caption UX fixes"
 type: bug
 priority: must
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-14_explainer-video-fixes/
 requirements_doc:
@@ -13,8 +13,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-14_explainer-video-fixes/02_design.html
 labels: [explainer-video, pmos-toolkit, retro, captions]
 created: 2026-06-14
-updated: 2026-06-14
-released:
+updated: 2026-06-15
+released: 2.79.0
 parent:
 dependencies: []
 ---
