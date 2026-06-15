@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.79.0: /explainer-video is more robust on the first run, with cleaner captions
+
+A batch of fixes makes `/explainer-video` work smoothly the first time on real inputs and produces tidier finished videos.
+
+- **More reliable ingestion and assembly.** Figures are extracted and resolved more dependably from source docs and artifacts, the deck JSON is validated and normalized before rendering, and assembly handles edge cases that previously needed a manual retry.
+- **Cleaner captions, watermark, and timing.** Captions are sized to fit the frame, the watermark renders correctly, and the on-screen time estimate is accurate — so the finished video looks polished without hand-tweaking.
+
 ## 2026-06-15 — pmos-toolkit 2.78.0: the pipeline now dogfoods what it builds before passing verify
 
 The build pipeline gains a load-bearing self-check: a feature isn't "done" until its actual deliverable has been used on a real task and the result judged good. This closes the gap where something could pass tests and reviews yet still not work well in practice.
