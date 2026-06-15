@@ -13,12 +13,13 @@ feature_folder: docs/pmos/features/2026-06-14_pmos-gamekit-2048/
 plan_doc: docs/pmos/features/2026-06-14_pmos-gamekit-2048/stories/260613-nay/03_plan.html
 tasks: docs/pmos/features/2026-06-14_pmos-gamekit-2048/stories/260613-nay/tasks.yaml
 labels: [pmos-gamekit, 2048, game-launcher]
-worktree: feat/260613-nay
+worktree:
 claimed_by: build:explainer-a3g-loop
 driver_holder: build:explainer-a3g-loop
 created: 2026-06-14
 updated: 2026-06-15
 build_commit: bf02222
+released: 0.2.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-nay -->
