@@ -38,7 +38,7 @@ Last regenerated: 2026-06-15 (release train — 12 epics shipped via /complete-d
 | 260614-7g0 | released | skill | pmos-toolkit | 0/1 | /explainer-video first-run robustness + caption UX fixes |
 | 260614-q3h | released | skill | pmos-toolkit | 0/1 | /backlog web viewer — nomenclature & conceptual clarity (translation layer: plain labels, legend, kind pills, grouped-status filter, @null fix, Releases cleanup, tooltips) |
 | 260614-m68 | released | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
-| 260614-za3 | defined | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
+| 260614-za3 | released | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
 | 260615-565 | released | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) — pmos-learnkit/v0.22.0 |
 
 ## must

@@ -10,7 +10,7 @@ route: feature
 dependencies: []
 plugin: pmos-toolkit
 status: done
-worktree: feat/260614-3jd
+worktree: 
 feature_folder: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/
 plan_doc:
 tasks: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/stories/260614-3jd/tasks.yaml
@@ -18,7 +18,8 @@ labels: [html-authoring, substrate, links, attribution, readme, cross-plugin]
 claimed_by:
 driver_holder:
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.83.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:feature (no plan_doc HTML — lean). Build via /feature-sdlc build --story 260614-3jd -->

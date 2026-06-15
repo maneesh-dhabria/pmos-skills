@@ -7,14 +7,15 @@ type: enhancement
 priority: should
 route: feature
 plugin: pmos-toolkit
-status: defined
+status: released
 feature_folder: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/
 requirements_doc:
 spec_doc:
 design_doc: docs/pmos/features/2026-06-14_artifact-wordmark-footer-links/02_design.html
 labels: [html-authoring, substrate, links, attribution, readme, cross-plugin]
 created: 2026-06-14
-updated: 2026-06-14
+updated: 2026-06-15
+released: 2.83.0
 ---
 
 ## Context
