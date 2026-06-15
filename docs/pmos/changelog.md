@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.7.0: one-button arcade — play /flappy-bird
+
+`/flappy-bird` adds the one-button arcade classic to the kit — flap to stay airborne and thread the gaps between pipes.
+
+- **Play flappy-bird, fully offline.** `/flappy-bird` opens the game in your browser via the same zero-dependency launcher as the other games. One control — tap space (or click) to flap; gravity does the rest. Each pipe you clear scores a point.
+- **Pick your difficulty for a steady run.** Choose Easy, Normal, or Hard before you start — the setting fixes the gap size and scroll speed for the whole run (no mid-game ramp), and the ceiling is forgiving rather than instantly fatal. Your session-best score is tracked.
+
 ## 2026-06-15 — pmos-toolkit 2.80.0 + pmos-learnkit 0.24.0: a refreshed "Editorial Technical" look for every generated document
 
 Every HTML document the pipeline produces — specs, plans, requirements, primers, summaries, and more — gets a typographic refresh for cleaner, more readable artifacts. The change lives in the shared document styling, so both toolkit and learnkit ship it together.
