@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-15 — pmos-toolkit 2.81.0: /backlog web viewer — clarity & nomenclature pass
+
+The `/backlog web` viewer gets a readability overhaul. Lane labels drop jargon for plain language with subtitles, a legend explains the queues, and EPIC/story pills plus grouped Epic/Story status facets make the tree scannable at a glance. The Releases view now excludes 0-done epics and shows done/total with an "In progress" marker, and `@null` is killed at its `parseScalar` source so stray nulls never reach the UI. Tooltips round out the polish.
+
+- Plain lane labels + per-lane subtitles; queue legend.
+- EPIC/story pills; grouped Epic/Story status facets.
+- `@null` eliminated at `parseScalar` source.
+- Releases: 0-done exclusion, done/total counts, "In progress" marker, tooltips.
+
 ## 2026-06-15 — pmos-gamekit 0.7.0: one-button arcade — play /flappy-bird
 
 `/flappy-bird` adds the one-button arcade classic to the kit — flap to stay airborne and thread the gaps between pipes.
