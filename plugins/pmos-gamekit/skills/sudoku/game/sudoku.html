@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Sudoku</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231d3b53'/%3E%3Cg fill='none' stroke='%2358c4dc' stroke-width='1'%3E%3Cpath d='M1.5 6.5h13M1.5 10.5h13M5.5 1.5v13M10.5 1.5v13'/%3E%3C/g%3E%3Ctext x='8' y='11' font-family='monospace' font-size='8' fill='%23eaf6f9' text-anchor='middle'%3E9%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0f2233; --panel:#15324a; --panel2:#1d3b53; --line:#2c5778; --line-thick:#79c7df;
+    --ink:#eaf6f9; --muted:#9fc2d6; --given:#eaf6f9; --entry:#7fd6ee; --accent:#58c4dc;
+    --sel:#2d6f8e; --peer:#21465f; --same:#34607a; --bad:#e0586b; --good:#4fc78a;
+    --note:#7fa6bd; --pad:#1d3b53; --padhi:#2d6f8e;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 800px at 50% -10%,#163349,#0f2233 60%);
+    color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;flex-direction:column;align-items:center;min-height:100%;padding:14px;
+  }
+  h1{font-size:20px;letter-spacing:.5px;margin:2px 0 8px;font-weight:650}
+  h1 span{color:var(--accent)}
+  .wrap{width:100%;max-width:540px;display:flex;flex-direction:column;gap:12px}
+  .hud{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+  .stats{display:flex;gap:14px;flex-wrap:wrap}
+  .stat{display:flex;flex-direction:column;line-height:1.1}
+  .stat b{font-size:17px}
+  .stat small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  .stat.bad b{color:var(--bad)}
+  .toolbar{display:flex;gap:6px;flex-wrap:wrap}
+  button{
+    font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+    border-radius:9px;padding:8px 11px;cursor:pointer;line-height:1;transition:background .12s,border-color .12s;
+  }
+  button:hover{background:var(--padhi)}
+  button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  button[aria-pressed="true"]{background:var(--accent);color:#06212f;border-color:var(--accent);font-weight:650}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .board-wrap{position:relative;width:100%;aspect-ratio:1/1}
+  table.board{
+    width:100%;height:100%;border-collapse:collapse;background:var(--panel);
+    border:3px solid var(--line-thick);border-radius:8px;overflow:hidden;table-layout:fixed;
+    user-select:none;touch-action:manipulation;
+  }
+  table.board td{
+    position:relative;border:1px solid var(--line);text-align:center;vertical-align:middle;
+    cursor:pointer;padding:0;
+  }
+  /* thick 3x3 box separators */
+  table.board td:nth-child(3n){border-right:2px solid var(--line-thick)}
+  table.board td:first-child{border-left:2px solid var(--line-thick)}
+  table.board tr:nth-child(3n) td{border-bottom:2px solid var(--line-thick)}
+  table.board tr:first-child td{border-top:2px solid var(--line-thick)}
+  td .val{font-size:clamp(18px,5.4vw,30px);font-weight:600;color:var(--entry)}
+  td.given .val{color:var(--given);font-weight:700}
+  td.bad .val{color:var(--bad)}
+  td.peer{background:var(--peer)}
+  td.same{background:var(--same)}
+  td.sel{background:var(--sel);box-shadow:inset 0 0 0 2px var(--accent)}
+  td.badcell{background:rgba(224,88,107,.20)}
+  td.badcell::after{content:"";position:absolute;left:3px;top:3px;width:6px;height:6px;border-radius:50%;background:var(--bad)}
+  td.hintcell{animation:hintpulse 1.1s ease-in-out 2}
+  @keyframes hintpulse{0%,100%{box-shadow:inset 0 0 0 0 var(--good)}50%{box-shadow:inset 0 0 0 4px var(--good)}}
+  .notes{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+    font-size:clamp(7px,2.1vw,11px);color:var(--note);pointer-events:none}
+  .notes span{display:flex;align-items:center;justify-content:center;line-height:1}
+  .pad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .pad button{position:relative;padding:12px 0;font-size:19px}
+  .pad button .rem{position:absolute;right:4px;bottom:2px;font-size:9px;color:var(--muted);font-weight:400}
+  .pad button.done{opacity:.4}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .actions button{flex:1 1 auto;min-width:64px}
+  .start,.overlay{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;background:rgba(8,22,34,.92);border-radius:8px;text-align:center;padding:18px;backdrop-filter:blur(2px);
+  }
+  .start h2,.overlay h2{margin:0;font-size:22px}
+  .diffs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .diffs button{padding:12px 16px;min-width:104px}
+  .diffs button small{display:block;color:var(--muted);font-size:11px;margin-top:3px;font-weight:400}
+  .hidden{display:none!important}
+  .msg{min-height:18px;font-size:13px;color:var(--muted);text-align:center}
+  .msg.bad{color:var(--bad)}
+  .msg.good{color:var(--good)}
+  .legend{font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11px}
+  .confetti{position:fixed;top:-12px;width:9px;height:14px;border-radius:2px;pointer-events:none;z-index:50;will-change:transform}
+  @media (prefers-reduced-motion:reduce){.confetti{display:none}.hintcell{animation:none;box-shadow:inset 0 0 0 3px var(--good)}}
+  .spinner{width:34px;height:34px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<h1><span>◧</span> Sudoku</h1>
+<div class="wrap">
+  <div class="hud">
+    <div class="stats">
+      <div class="stat"><b id="hud-diff">—</b><small>Level</small></div>
+      <div class="stat"><b id="hud-time">0:00</b><small>Time</small></div>
+      <div class="stat" id="hud-mistakes-wrap"><b id="hud-mistakes">0</b><small>Mistakes</small></div>
+    </div>
+    <div class="toolbar">
+      <button id="btn-pause" aria-label="Pause or resume the timer">⏸ Pause</button>
+      <button id="btn-new" aria-label="Start a new game">New</button>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <table class="board" id="board" aria-label="Sudoku board"><tbody></tbody></table>
+
+    <div class="start" id="start" role="dialog" aria-label="Choose difficulty">
+      <h2>New game</h2>
+      <p class="legend">Pick a difficulty. Each puzzle has exactly one solution.</p>
+      <div class="diffs">
+        <button data-diff="easy">Easy<small>singles only</small></button>
+        <button data-diff="medium">Medium<small>locked pairs</small></button>
+        <button data-diff="hard">Hard<small>X-Wing+</small></button>
+      </div>
+      <div class="msg" id="gen-msg"></div>
+    </div>
+
+    <div class="overlay hidden" id="win" role="dialog" aria-label="Puzzle solved">
+      <h2>Solved! 🎉</h2>
+      <p class="legend" id="win-stats"></p>
+      <button data-diff="" id="win-again">Play again</button>
+    </div>
+  </div>
+
+  <div class="pad" id="pad" aria-label="Number pad"></div>
+
+  <div class="actions">
+    <button id="btn-notes" aria-pressed="false" aria-label="Toggle pencil-notes entry mode">✎ Notes</button>
+    <button id="btn-auto" aria-label="Auto-fill pencil candidates in every empty cell">Auto-notes</button>
+    <button id="btn-erase" aria-label="Erase the selected cell">⌫ Erase</button>
+    <button id="btn-hint" aria-label="Reveal one logical next step">💡 Hint</button>
+    <button id="btn-check" aria-label="Check the board for wrong entries">✓ Check</button>
+    <button id="btn-autocheck" aria-pressed="false" aria-label="Toggle auto-check of every entry">Auto-check</button>
+    <button id="btn-undo" aria-label="Undo">↶ Undo</button>
+    <button id="btn-redo" aria-label="Redo">↷ Redo</button>
+  </div>
+
+  <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  <div class="legend">
+    <kbd>1</kbd>–<kbd>9</kbd> enter · <kbd>↑↓←→</kbd> move · <kbd>⌫</kbd> erase ·
+    <kbd>N</kbd> notes · <kbd>H</kbd> hint · <kbd>C</kbd> check · <kbd>Space</kbd> pause
+  </div>
+</div>
+
+<!-- ============================ ENGINE ============================ -->
+<script>
+/* Pure, DOM-decoupled Sudoku engine on window.SudokuEngine.
+   Grid representation: a flat Int array of length 81, value 0 = empty, 1..9 = filled.
+   idx = row*9 + col. No timers, no DOM — fully deterministic given a seeded RNG. */
+(function (root) {
+  "use strict";
+
+  // ---- units & peers (precomputed once) ----
+  var ROWS = [], COLS = [], BOXES = [], UNITS = [], PEERS = [];
+  for (var i = 0; i < 9; i++) { ROWS.push([]); COLS.push([]); BOXES.push([]); }
+  for (var idx = 0; idx < 81; idx++) {
+    var r = (idx / 9) | 0, c = idx % 9, b = ((r / 3) | 0) * 3 + ((c / 3) | 0);
+    ROWS[r].push(idx); COLS[c].push(idx); BOXES[b].push(idx);
+  }
+  for (var u = 0; u < 9; u++) { UNITS.push(ROWS[u]); UNITS.push(COLS[u]); UNITS.push(BOXES[u]); }
+  for (var p = 0; p < 81; p++) {
+    var rr = (p / 9) | 0, cc = p % 9, bb = ((rr / 3) | 0) * 3 + ((cc / 3) | 0);
+    var set = {};
+    [ROWS[rr], COLS[cc], BOXES[bb]].forEach(function (un) {
+      un.forEach(function (cell) { if (cell !== p) set[cell] = true; });
+    });
+    PEERS.push(Object.keys(set).map(Number));
+  }
+  function rowOf(i){return (i/9)|0;} function colOf(i){return i%9;}
+  function boxOf(i){return (((i/9|0)/3)|0)*3 + (((i%9)/3)|0);}
+
+  // ---- seedable RNG (mulberry32) ----
+  function makeRng(seed) {
+    var a = (seed >>> 0) || 0x9e3779b9;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffled(arr, rng) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = (rng() * (i + 1)) | 0;
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // ---- low-level validity ----
+  function canPlace(grid, idx, val) {
+    var peers = PEERS[idx];
+    for (var k = 0; k < peers.length; k++) if (grid[peers[k]] === val) return false;
+    return true;
+  }
+  function firstEmpty(grid) {
+    for (var i = 0; i < 81; i++) if (grid[i] === 0) return i;
+    return -1;
+  }
+  // cell with the fewest candidates (MRV) — speeds the backtracking solvers
+  function bestEmpty(grid) {
+    var best = -1, bestN = 10, bestCands = null;
+    for (var i = 0; i < 81; i++) {
+      if (grid[i] !== 0) continue;
+      var cands = [];
+      for (var v = 1; v <= 9; v++) if (canPlace(grid, i, v)) cands.push(v);
+      if (cands.length < bestN) { bestN = cands.length; best = i; bestCands = cands; if (bestN <= 1) break; }
+    }
+    return best === -1 ? null : { idx: best, cands: bestCands };
+  }
+
+  // ---- candidates ----
+  function candidatesAt(grid, idx) {
+    if (grid[idx] !== 0) return [];
+    var out = [];
+    for (var v = 1; v <= 9; v++) if (canPlace(grid, idx, v)) out.push(v);
+    return out;
+  }
+  // public signature: candidatesFor(grid, r, c)
+  function candidatesFor(grid, r, c) { return candidatesAt(grid, r * 9 + c); }
+  // working candidate grid: Array(81) of Sets (empty cells) or null (filled)
+  function buildCandidates(grid) {
+    var cand = new Array(81);
+    for (var i = 0; i < 81; i++) {
+      if (grid[i] !== 0) { cand[i] = null; continue; }
+      var s = {};
+      candidatesAt(grid, i).forEach(function (v) { s[v] = true; });
+      cand[i] = s;
+    }
+    return cand;
+  }
+  function candList(set){ return set ? Object.keys(set).map(Number).sort() : []; }
+  function candSize(set){ return set ? Object.keys(set).length : 0; }
+
+  // ---- generation: a random complete valid grid ----
+  function makeSolvedGrid(rng) {
+    var grid = new Array(81).fill(0);
+    function fill() {
+      var slot = bestEmpty(grid);
+      if (!slot) return true;
+      var order = shuffled(slot.cands, rng);
+      for (var k = 0; k < order.length; k++) {
+        grid[slot.idx] = order[k];
+        if (fill()) return true;
+        grid[slot.idx] = 0;
+      }
+      return false;
+    }
+    fill();
+    return grid;
+  }
+
+  // ---- uniqueness: count solutions up to `cap`, abort early ----
+  function countSolutions(grid, cap) {
+    cap = cap || 2;
+    var work = grid.slice(), count = 0;
+    function rec() {
+      var slot = bestEmpty(work);
+      if (!slot) { count++; return; }
+      if (slot.cands.length === 0) return;
+      for (var k = 0; k < slot.cands.length && count < cap; k++) {
+        work[slot.idx] = slot.cands[k];
+        rec();
+        work[slot.idx] = 0;
+      }
+    }
+    rec();
+    return count;
+  }
+
+  // ================= human-style technique solver =================
+  // Each technique reads/mutates a working candidate grid `cand` + `grid`.
+  // Placement techniques return {type:'place',technique,idx,value,reason}.
+  // Elimination techniques return {type:'eliminate',technique,removals:[{idx,value}],cells,reason}.
+
+  function tNakedSingle(grid, cand) {
+    for (var i = 0; i < 81; i++) {
+      if (cand[i] && candSize(cand[i]) === 1) {
+        var v = candList(cand[i])[0];
+        return { type: 'place', technique: 'nakedSingle', idx: i, value: v,
+                 reason: 'R' + (rowOf(i)+1) + 'C' + (colOf(i)+1) + ' has only one candidate (' + v + ').' };
+      }
+    }
+    return null;
+  }
+
+  function tHiddenSingle(grid, cand) {
+    for (var u = 0; u < UNITS.length; u++) {
+      var unit = UNITS[u];
+      for (var v = 1; v <= 9; v++) {
+        var spot = -1, n = 0;
+        for (var k = 0; k < unit.length; k++) {
+          var ci = unit[k];
+          if (cand[ci] && cand[ci][v]) { spot = ci; n++; if (n > 1) break; }
+        }
+        if (n === 1) {
+          return { type: 'place', technique: 'hiddenSingle', idx: spot, value: v,
+                   reason: 'Only R' + (rowOf(spot)+1) + 'C' + (colOf(spot)+1) + ' can hold ' + v + ' in its ' + unitName(u) + '.' };
+        }
+      }
+    }
+    return null;
+  }
+  function unitName(u){ var t=u%3; return t===0?'row':t===1?'column':'box'; }
+
+  // Locked candidate (pointing + claiming): a digit confined within an intersection.
+  function tLockedCandidate(grid, cand) {
+    // pointing: in a box, a digit only in one row (or col) -> remove from rest of that row/col
+    for (var b = 0; b < 9; b++) {
+      var boxCells = BOXES[b];
+      for (var v = 1; v <= 9; v++) {
+        var spots = boxCells.filter(function (ci) { return cand[ci] && cand[ci][v]; });
+        if (spots.length < 2) continue;
+        var rows = uniq(spots.map(rowOf)), cols = uniq(spots.map(colOf));
+        if (rows.length === 1) {
+          var rem = ROWS[rows[0]].filter(function (ci) { return boxOf(ci) !== b && cand[ci] && cand[ci][v]; });
+          if (rem.length) return mkElim('lockedCandidate', rem, v, spots,
+            v + ' in box ' + (b+1) + ' is locked to row ' + (rows[0]+1) + '.');
+        }
+        if (cols.length === 1) {
+          var rem2 = COLS[cols[0]].filter(function (ci) { return boxOf(ci) !== b && cand[ci] && cand[ci][v]; });
+          if (rem2.length) return mkElim('lockedCandidate', rem2, v, spots,
+            v + ' in box ' + (b+1) + ' is locked to column ' + (cols[0]+1) + '.');
+        }
+      }
+    }
+    // claiming: in a row/col, a digit only inside one box -> remove from rest of that box
+    for (var l = 0; l < 9; l++) {
+      var lines = [ROWS[l], COLS[l]];
+      for (var s = 0; s < 2; s++) {
+        var line = lines[s];
+        for (var vv = 1; vv <= 9; vv++) {
+          var sp = line.filter(function (ci) { return cand[ci] && cand[ci][vv]; });
+          if (sp.length < 2) continue;
+          var boxes = uniq(sp.map(boxOf));
+          if (boxes.length === 1) {
+            var rem3 = BOXES[boxes[0]].filter(function (ci) {
+              return (s === 0 ? rowOf(ci) !== l : colOf(ci) !== l) && cand[ci] && cand[ci][vv];
+            });
+            if (rem3.length) return mkElim('lockedCandidate', rem3, vv, sp,
+              vv + ' in ' + (s===0?'row':'column') + ' ' + (l+1) + ' is locked to box ' + (boxes[0]+1) + '.');
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // Naked pair: two cells in a unit share the same 2 candidates -> eliminate elsewhere in the unit.
+  function tNakedPair(grid, cand) {
+    for (var u = 0; u < UNITS.length; u++) {
+      var unit = UNITS[u];
+      var pairs = unit.filter(function (ci) { return cand[ci] && candSize(cand[ci]) === 2; });
+      for (var a = 0; a < pairs.length; a++) {
+        for (var b = a + 1; b < pairs.length; b++) {
+          var ka = candList(cand[pairs[a]]).join(''), kb = candList(cand[pairs[b]]).join('');
+          if (ka !== kb) continue;
+          var digs = candList(cand[pairs[a]]);
+          var removals = [];
+          for (var k = 0; k < unit.length; k++) {
+            var ci = unit[k];
+            if (ci === pairs[a] || ci === pairs[b] || !cand[ci]) continue;
+            digs.forEach(function (d) { if (cand[ci][d]) removals.push({ idx: ci, value: d }); });
+          }
+          if (removals.length) return { type: 'eliminate', technique: 'nakedPair', removals: removals,
+            cells: [pairs[a], pairs[b]], reason: 'Naked pair {' + digs.join(',') + '} in a ' + unitName(u) + '.' };
+        }
+      }
+    }
+    return null;
+  }
+
+  // Hidden pair: two digits confined to the same two cells of a unit -> strip other candidates from those cells.
+  function tHiddenPair(grid, cand) {
+    for (var u = 0; u < UNITS.length; u++) {
+      var unit = UNITS[u];
+      var spotsByDigit = {};
+      for (var v = 1; v <= 9; v++) {
+        spotsByDigit[v] = unit.filter(function (ci) { return cand[ci] && cand[ci][v]; });
+      }
+      for (var d1 = 1; d1 <= 9; d1++) {
+        if (spotsByDigit[d1].length !== 2) continue;
+        for (var d2 = d1 + 1; d2 <= 9; d2++) {
+          if (spotsByDigit[d2].length !== 2) continue;
+          if (spotsByDigit[d1][0] !== spotsByDigit[d2][0] || spotsByDigit[d1][1] !== spotsByDigit[d2][1]) continue;
+          var cells = spotsByDigit[d1];
+          var removals = [];
+          cells.forEach(function (ci) {
+            candList(cand[ci]).forEach(function (d) {
+              if (d !== d1 && d !== d2) removals.push({ idx: ci, value: d });
+            });
+          });
+          if (removals.length) return { type: 'eliminate', technique: 'hiddenPair', removals: removals,
+            cells: cells, reason: 'Hidden pair {' + d1 + ',' + d2 + '} in a ' + unitName(u) + '.' };
+        }
+      }
+    }
+    return null;
+  }
+
+  // X-Wing: a digit forming a rectangle across two rows/cols -> eliminate from the crossing lines.
+  function tXWing(grid, cand) {
+    for (var v = 1; v <= 9; v++) {
+      // row-based: two rows where v sits in exactly the same two columns
+      var byRow = [];
+      for (var r = 0; r < 9; r++) {
+        var cols = ROWS[r].filter(function (ci) { return cand[ci] && cand[ci][v]; }).map(colOf);
+        byRow.push(cols);
+      }
+      for (var r1 = 0; r1 < 9; r1++) {
+        if (byRow[r1].length !== 2) continue;
+        for (var r2 = r1 + 1; r2 < 9; r2++) {
+          if (byRow[r2].length !== 2) continue;
+          if (byRow[r1][0] !== byRow[r2][0] || byRow[r1][1] !== byRow[r2][1]) continue;
+          var cA = byRow[r1][0], cB = byRow[r1][1];
+          var removals = [];
+          [cA, cB].forEach(function (col) {
+            COLS[col].forEach(function (ci) {
+              if (rowOf(ci) !== r1 && rowOf(ci) !== r2 && cand[ci] && cand[ci][v]) removals.push({ idx: ci, value: v });
+            });
+          });
+          if (removals.length) return { type: 'eliminate', technique: 'xWing', removals: removals,
+            cells: [r1*9+cA, r1*9+cB, r2*9+cA, r2*9+cB],
+            reason: 'X-Wing on ' + v + ' (rows ' + (r1+1) + ',' + (r2+1) + ').' };
+        }
+      }
+      // col-based
+      var byCol = [];
+      for (var c = 0; c < 9; c++) {
+        var rows = COLS[c].filter(function (ci) { return cand[ci] && cand[ci][v]; }).map(rowOf);
+        byCol.push(rows);
+      }
+      for (var c1 = 0; c1 < 9; c1++) {
+        if (byCol[c1].length !== 2) continue;
+        for (var c2 = c1 + 1; c2 < 9; c2++) {
+          if (byCol[c2].length !== 2) continue;
+          if (byCol[c1][0] !== byCol[c2][0] || byCol[c1][1] !== byCol[c2][1]) continue;
+          var rA = byCol[c1][0], rB = byCol[c1][1];
+          var removals2 = [];
+          [rA, rB].forEach(function (row) {
+            ROWS[row].forEach(function (ci) {
+              if (colOf(ci) !== c1 && colOf(ci) !== c2 && cand[ci] && cand[ci][v]) removals2.push({ idx: ci, value: v });
+            });
+          });
+          if (removals2.length) return { type: 'eliminate', technique: 'xWing', removals: removals2,
+            cells: [rA*9+c1, rB*9+c1, rA*9+c2, rB*9+c2],
+            reason: 'X-Wing on ' + v + ' (columns ' + (c1+1) + ',' + (c2+1) + ').' };
+        }
+      }
+    }
+    return null;
+  }
+
+  // XY-Wing: a bi-value pivot {A,B} with wings {A,C} and {B,C} -> any cell seeing both wings can't be C.
+  // (An "X-Wing or deeper" advanced technique per the difficulty contract.)
+  function tXYWing(grid, cand) {
+    var biv = [];
+    for (var i = 0; i < 81; i++) if (cand[i] && candSize(cand[i]) === 2) biv.push(i);
+    for (var p = 0; p < biv.length; p++) {
+      var pivot = biv[p], pc = candList(cand[pivot]), A = pc[0], B = pc[1];
+      var seers = biv.filter(function (w) { return w !== pivot && PEERS[pivot].indexOf(w) !== -1; });
+      for (var x = 0; x < seers.length; x++) {
+        var w1 = seers[x], c1 = candList(cand[w1]);
+        if (c1.indexOf(A) === -1) continue;
+        var C = c1[0] === A ? c1[1] : c1[0];
+        if (C === A || C === B) continue;
+        for (var y = 0; y < seers.length; y++) {
+          if (y === x) continue;
+          var w2 = seers[y], c2 = candList(cand[w2]);
+          if (!(c2.length === 2 && c2.indexOf(B) !== -1 && c2.indexOf(C) !== -1)) continue;
+          var removals = [];
+          for (var t = 0; t < 81; t++) {
+            if (t === pivot || t === w1 || t === w2 || !cand[t] || !cand[t][C]) continue;
+            if (PEERS[w1].indexOf(t) !== -1 && PEERS[w2].indexOf(t) !== -1) removals.push({ idx: t, value: C });
+          }
+          if (removals.length) return { type: 'eliminate', technique: 'xyWing', removals: removals,
+            cells: [pivot, w1, w2], reason: 'XY-Wing on pivot {' + A + ',' + B + '} eliminates ' + C + '.' };
+        }
+      }
+    }
+    return null;
+  }
+
+  function mkElim(technique, cells, value, source, reason) {
+    return { type: 'eliminate', technique: technique,
+      removals: cells.map(function (ci) { return { idx: ci, value: value }; }),
+      cells: source, reason: reason };
+  }
+  function uniq(a){ var s={}; a.forEach(function(x){s[x]=true;}); return Object.keys(s).map(Number); }
+
+  // technique ladder, easiest first; rank drives grading
+  var LADDER = [
+    { fn: tNakedSingle,    rank: 1 },
+    { fn: tHiddenSingle,   rank: 1 },
+    { fn: tLockedCandidate,rank: 2 },
+    { fn: tNakedPair,      rank: 2 },
+    { fn: tHiddenPair,     rank: 2 },
+    { fn: tXWing,          rank: 3 },
+    { fn: tXYWing,         rank: 3 }
+  ];
+
+  function applyStep(grid, cand, step) {
+    if (step.type === 'place') {
+      grid[step.idx] = step.value;
+      cand[step.idx] = null;
+      PEERS[step.idx].forEach(function (pi) { if (cand[pi]) delete cand[pi][step.value]; });
+    } else {
+      step.removals.forEach(function (rm) { if (cand[rm.idx]) delete cand[rm.idx][rm.value]; });
+    }
+  }
+
+  // Solve as far as the ladder allows; report whether solved + the hardest rank used.
+  function solveLogically(grid) {
+    var work = grid.slice(), cand = buildCandidates(work), maxRank = 0, guard = 0;
+    while (guard++ < 2000) {
+      if (firstEmpty(work) === -1) return { solved: true, maxRank: maxRank };
+      var moved = null, rank = 0;
+      for (var t = 0; t < LADDER.length; t++) {
+        var step = LADDER[t].fn(work, cand);
+        if (step) { moved = step; rank = LADDER[t].rank; break; }
+      }
+      if (!moved) return { solved: false, maxRank: maxRank };
+      if (rank > maxRank) maxRank = rank;
+      applyStep(work, cand, moved);
+    }
+    return { solved: false, maxRank: maxRank };
+  }
+
+  var RANK_TIER = { 0: 'easy', 1: 'easy', 2: 'medium', 3: 'hard' };
+  function grade(puzzle) {
+    var res = solveLogically(puzzle);
+    if (!res.solved) return null;            // needs deeper logic / guessing
+    return RANK_TIER[res.maxRank];
+  }
+
+  // nextHint: the next value-placing step over live candidates (applies eliminations silently first).
+  function nextHint(board) {
+    var work = board.slice(), cand = buildCandidates(work), guard = 0;
+    while (guard++ < 2000) {
+      if (firstEmpty(work) === -1) return null; // already complete
+      var place = tNakedSingle(work, cand) || tHiddenSingle(work, cand);
+      if (place) return { technique: place.technique, cells: [place.idx], value: place.value, reason: place.reason };
+      var elim = null;
+      for (var t = 2; t < LADDER.length; t++) { elim = LADDER[t].fn(work, cand); if (elim) break; }
+      if (!elim) return null; // stuck with this technique set
+      applyStep(work, cand, elim);
+    }
+    return null;
+  }
+
+  // ---- difficulty mapping ----
+  // Each tier digs while staying solvable within its technique ceiling; the grade (hardest
+  // technique required) is authoritative. Clue count is secondary: `floor` stops easy digging
+  // early so it keeps a friendly number of givens; medium/hard dig maximally so the boundary
+  // puzzle genuinely requires the tier's technique. ("hard" = X-Wing or XY-Wing, i.e. "X-Wing+".)
+  var DIFF = {
+    easy:   { rank: 1, floor: 40 },
+    medium: { rank: 2, floor: 0 },
+    hard:   { rank: 3, floor: 0 }
+  };
+  var BANDS = { easy: [36, 48], medium: [22, 36], hard: [22, 34] };
+
+  function generate(difficulty, rng) {
+    difficulty = difficulty || 'easy';
+    rng = rng || makeRng(1);
+    var cfg = DIFF[difficulty] || DIFF.easy, rank = cfg.rank;
+    var best = null;
+    for (var attempt = 0; attempt < 150; attempt++) {
+      var full = makeSolvedGrid(rng);
+      var puzzle = full.slice(), givens = 81;
+      var order = shuffled(rangeArr(81), rng);
+      for (var k = 0; k < order.length; k++) {
+        if (cfg.floor && givens <= cfg.floor) break; // easy: stop while plenty of givens remain
+        var ci = order[k];
+        if (puzzle[ci] === 0) continue;
+        var saved = puzzle[ci];
+        puzzle[ci] = 0;
+        if (countSolutions(puzzle, 2) !== 1) { puzzle[ci] = saved; continue; } // must stay unique
+        var g = solveLogically(puzzle);
+        if (!g.solved || g.maxRank > rank) { puzzle[ci] = saved; }             // never exceed the tier ceiling
+        else givens--;
+      }
+      var finalTier = grade(puzzle);
+      var nGivens = puzzle.filter(function (x) { return x !== 0; }).length;
+      var out = { puzzle: puzzle, solution: full, givens: nGivens, difficulty: finalTier };
+      if (finalTier === difficulty) return out;
+      if (!best || Math.abs(({easy:1,medium:2,hard:3}[finalTier]||9) - rank) <
+                   Math.abs(({easy:1,medium:2,hard:3}[best.difficulty]||9) - rank)) best = out;
+    }
+    if (best) { best.degraded = true; return best; }
+    return { puzzle: makeSolvedGrid(rng), solution: null, givens: 81, difficulty: 'easy', degraded: true };
+  }
+  function rangeArr(n){ var a=[]; for(var i=0;i<n;i++)a.push(i); return a; }
+
+  // ---- conflicts: cells whose placed value duplicates a peer (row/col/box uniqueness) ----
+  function conflicts(board) {
+    var bad = {};
+    for (var i = 0; i < 81; i++) {
+      if (board[i] === 0) continue;
+      var peers = PEERS[i];
+      for (var k = 0; k < peers.length; k++) {
+        if (board[peers[k]] === board[i]) { bad[i] = true; bad[peers[k]] = true; }
+      }
+    }
+    return Object.keys(bad).map(Number);
+  }
+
+  // ---- solutionErrors: filled cells that deviate from the unique solution (NEVER flags empties) ----
+  function solutionErrors(board, solution) {
+    var out = [];
+    for (var i = 0; i < 81; i++) {
+      if (board[i] !== 0 && board[i] !== solution[i]) out.push(i);
+    }
+    return out;
+  }
+
+  function isComplete(board) {
+    return firstEmpty(board) === -1 && conflicts(board).length === 0;
+  }
+
+  root.SudokuEngine = {
+    makeRng: makeRng,
+    makeSolvedGrid: makeSolvedGrid,
+    countSolutions: countSolutions,
+    generate: generate,
+    grade: grade,
+    nextHint: nextHint,
+    conflicts: conflicts,
+    solutionErrors: solutionErrors,
+    candidatesFor: candidatesFor,
+    candidatesAt: candidatesAt,
+    buildCandidates: buildCandidates,
+    isComplete: isComplete,
+    // technique probes (for tests + hint internals)
+    techniques: {
+      nakedSingle: tNakedSingle, hiddenSingle: tHiddenSingle, lockedCandidate: tLockedCandidate,
+      nakedPair: tNakedPair, hiddenPair: tHiddenPair, xWing: tXWing, xyWing: tXYWing
+    },
+    BANDS: BANDS,
+    _units: { ROWS: ROWS, COLS: COLS, BOXES: BOXES, PEERS: PEERS }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<!-- ============================ UI / RENDER ============================ -->
+<script>
+(function () {
+  "use strict";
+  if (typeof window === 'undefined' || !window.SudokuEngine) return;
+  var E = window.SudokuEngine;
+
+  var boardEl = document.getElementById('board').querySelector('tbody');
+  var padEl = document.getElementById('pad');
+  var startEl = document.getElementById('start');
+  var winEl = document.getElementById('win');
+  var genMsg = document.getElementById('gen-msg');
+  var msgEl = document.getElementById('msg');
+
+  var G = null; // game state
+
+  function newGame(difficulty) {
+    genMsg.textContent = difficulty === 'hard' ? 'Generating a hard puzzle…' : 'Generating…';
+    genMsg.innerHTML = '<span class="spinner" aria-hidden="true"></span>';
+    // let the spinner paint before the (synchronous) generate for hard puzzles
+    setTimeout(function () {
+      var seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+      var gen = E.generate(difficulty, E.makeRng(seed));
+      G = {
+        difficulty: difficulty,
+        puzzle: gen.puzzle.slice(),
+        solution: gen.solution ? gen.solution.slice() : null,
+        board: gen.puzzle.slice(),
+        given: gen.puzzle.map(function (v) { return v !== 0; }),
+        notes: Array.from({ length: 81 }, function () { return {}; }),
+        sel: -1,
+        notesMode: false,
+        autoCheck: false,
+        mistakes: 0,
+        history: [],
+        future: [],
+        startedAt: Date.now(),
+        elapsed: 0,
+        paused: false,
+        won: false
+      };
+      genMsg.textContent = '';
+      startEl.classList.add('hidden');
+      winEl.classList.add('hidden');
+      document.getElementById('hud-diff').textContent =
+        difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+      setMsg('', '');
+      render();
+      startTimer();
+    }, 30);
+  }
+
+  // ---------- timer ----------
+  var timerId = null;
+  function startTimer() {
+    stopTimer();
+    timerId = setInterval(function () {
+      if (G && !G.paused && !G.won) {
+        G.elapsed = Math.floor((Date.now() - G.startedAt) / 1000);
+        document.getElementById('hud-time').textContent = fmtTime(G.elapsed);
+      }
+    }, 1000);
+  }
+  function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+  function fmtTime(s) { var m = Math.floor(s / 60); return m + ':' + String(s % 60).padStart(2, '0'); }
+
+  // ---------- history ----------
+  function pushHistory() {
+    G.history.push({ board: G.board.slice(), notes: G.notes.map(cloneNotes), mistakes: G.mistakes });
+    if (G.history.length > 200) G.history.shift();
+    G.future = [];
+  }
+  function cloneNotes(n) { var o = {}; for (var k in n) o[k] = true; return o; }
+  function undo() {
+    if (!G || !G.history.length) return;
+    G.future.push({ board: G.board.slice(), notes: G.notes.map(cloneNotes), mistakes: G.mistakes });
+    var s = G.history.pop();
+    G.board = s.board; G.notes = s.notes; G.mistakes = s.mistakes;
+    render();
+  }
+  function redo() {
+    if (!G || !G.future.length) return;
+    G.history.push({ board: G.board.slice(), notes: G.notes.map(cloneNotes), mistakes: G.mistakes });
+    var s = G.future.pop();
+    G.board = s.board; G.notes = s.notes; G.mistakes = s.mistakes;
+    render();
+  }
+
+  // ---------- moves ----------
+  function placeDigit(d) {
+    if (!G || G.won || G.paused || G.sel < 0) return;
+    var i = G.sel;
+    if (G.given[i]) return;
+    if (G.notesMode && d !== 0) {
+      pushHistory();
+      if (G.notes[i][d]) delete G.notes[i][d]; else G.notes[i][d] = true;
+      render();
+      return;
+    }
+    pushHistory();
+    if (d === 0) { G.board[i] = 0; }
+    else {
+      G.board[i] = d;
+      G.notes[i] = {};
+      // auto-clear this digit from peers' pencil notes
+      E._units.PEERS[i].forEach(function (pi) { if (G.notes[pi]) delete G.notes[pi][d]; });
+      if (G.autoCheck && G.solution && d !== G.solution[i]) { G.mistakes++; }
+      else if (!G.solution && d !== 0) {
+        // no stored solution (degraded gen) — fall back to conflict check
+        if (G.autoCheck && E.conflicts(G.board).indexOf(i) !== -1) G.mistakes++;
+      }
+    }
+    afterMove();
+  }
+
+  function afterMove() {
+    render();
+    if (G.solution ? boardMatchesSolution() : E.isComplete(G.board)) win();
+  }
+  function boardMatchesSolution() {
+    for (var i = 0; i < 81; i++) if (G.board[i] !== G.solution[i]) return false;
+    return true;
+  }
+
+  function eraseSel() { placeDigit(0); }
+
+  function win() {
+    G.won = true;
+    stopTimer();
+    document.getElementById('win-stats').textContent =
+      'Level ' + G.difficulty + ' · ' + fmtTime(G.elapsed) + ' · ' + G.mistakes + ' mistake' + (G.mistakes === 1 ? '' : 's');
+    winEl.classList.remove('hidden');
+    confetti();
+  }
+
+  // ---------- check / hint ----------
+  function check() {
+    if (!G || G.won) return;
+    var wrong = G.solution ? E.solutionErrors(G.board, G.solution) : E.conflicts(G.board);
+    paintBad(wrong);
+    if (!wrong.length) {
+      var emptyN = G.board.filter(function (v) { return v === 0; }).length;
+      setMsg(emptyN ? 'No mistakes so far — ' + emptyN + ' cell' + (emptyN === 1 ? '' : 's') + ' left.' : 'All correct!', 'good');
+    } else {
+      setMsg(wrong.length + ' wrong cell' + (wrong.length === 1 ? '' : 's') + ' highlighted.', 'bad');
+    }
+  }
+
+  function hint() {
+    if (!G || G.won || G.paused) return;
+    var step = E.nextHint(G.board);
+    if (!step) {
+      // engine-logic exhausted; if we know the solution, reveal the selected/first empty cell
+      if (G.solution) {
+        var target = (G.sel >= 0 && G.board[G.sel] === 0 && !G.given[G.sel]) ? G.sel : G.board.indexOf(0);
+        if (target >= 0) { revealCell(target, G.solution[target], 'Revealed R' + (((target/9)|0)+1) + 'C' + ((target%9)+1) + '.'); return; }
+      }
+      setMsg('No logical step available.', 'bad');
+      return;
+    }
+    revealCell(step.cells[0], step.value, step.reason);
+  }
+  function revealCell(i, v, reason) {
+    pushHistory();
+    G.sel = i;
+    G.board[i] = v;
+    G.notes[i] = {};
+    E._units.PEERS[i].forEach(function (pi) { if (G.notes[pi]) delete G.notes[pi][v]; });
+    render();
+    var td = boardEl.querySelector('td[data-i="' + i + '"]');
+    if (td) td.classList.add('hintcell');
+    setMsg('Hint: ' + reason, 'good');
+    if (G.solution ? boardMatchesSolution() : E.isComplete(G.board)) win();
+  }
+
+  function autoNotes() {
+    if (!G || G.won || G.paused) return;
+    pushHistory();
+    for (var i = 0; i < 81; i++) {
+      if (G.board[i] !== 0) { G.notes[i] = {}; continue; }
+      var s = {};
+      E.candidatesAt(G.board, i).forEach(function (v) { s[v] = true; });
+      G.notes[i] = s;
+    }
+    render();
+    setMsg('Filled pencil candidates for every empty cell.', '');
+  }
+
+  // ---------- render ----------
+  function buildBoard() {
+    var html = '';
+    for (var r = 0; r < 9; r++) {
+      html += '<tr>';
+      for (var c = 0; c < 9; c++) {
+        var i = r * 9 + c;
+        html += '<td data-i="' + i + '" tabindex="-1" role="gridcell" aria-label="row ' + (r+1) + ' column ' + (c+1) + '"></td>';
+      }
+      html += '</tr>';
+    }
+    boardEl.innerHTML = html;
+    boardEl.querySelectorAll('td').forEach(function (td) {
+      td.addEventListener('click', function () {
+        if (!G || G.paused) return;
+        G.sel = +td.getAttribute('data-i');
+        render();
+      });
+    });
+  }
+
+  function render() {
+    if (!G) return;
+    var conf = E.conflicts(G.board);
+    var confSet = {}; conf.forEach(function (i) { confSet[i] = true; });
+    var selVal = G.sel >= 0 ? G.board[G.sel] : 0;
+    var tds = boardEl.querySelectorAll('td');
+    for (var i = 0; i < 81; i++) {
+      var td = tds[i];
+      td.className = '';
+      if (G.given[i]) td.classList.add('given');
+      var content = '';
+      if (G.board[i] !== 0) {
+        content = '<span class="val">' + G.board[i] + '</span>';
+        if (confSet[i]) td.classList.add('bad');
+      } else if (Object.keys(G.notes[i]).length) {
+        var ng = '<div class="notes">';
+        for (var d = 1; d <= 9; d++) ng += '<span>' + (G.notes[i][d] ? d : '') + '</span>';
+        ng += '</div>';
+        content = ng;
+      }
+      td.innerHTML = content;
+      if (G.sel === i) td.classList.add('sel');
+      else if (G.sel >= 0) {
+        if (E._units.PEERS[G.sel].indexOf(i) !== -1) td.classList.add('peer');
+        if (selVal !== 0 && G.board[i] === selVal) td.classList.add('same');
+      }
+    }
+    // HUD
+    document.getElementById('hud-time').textContent = fmtTime(G.elapsed);
+    var mEl = document.getElementById('hud-mistakes');
+    mEl.textContent = G.mistakes;
+    document.getElementById('hud-mistakes-wrap').classList.toggle('bad', G.mistakes > 0);
+    document.getElementById('btn-pause').textContent = G.paused ? '▶ Resume' : '⏸ Pause';
+    document.getElementById('btn-notes').setAttribute('aria-pressed', String(G.notesMode));
+    document.getElementById('btn-autocheck').setAttribute('aria-pressed', String(G.autoCheck));
+    renderPad();
+  }
+
+  function renderPad() {
+    var counts = {};
+    for (var d = 1; d <= 9; d++) counts[d] = 0;
+    G.board.forEach(function (v) { if (v) counts[v]++; });
+    var html = '';
+    for (var n = 1; n <= 9; n++) {
+      var done = counts[n] >= 9 ? ' done' : '';
+      html += '<button class="num' + done + '" data-n="' + n + '" aria-label="Enter ' + n + '">' + n +
+              '<span class="rem">' + (9 - counts[n]) + '</span></button>';
+    }
+    padEl.innerHTML = html;
+    padEl.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () { placeDigit(+b.getAttribute('data-n')); });
+    });
+  }
+
+  function paintBad(list) {
+    boardEl.querySelectorAll('td.badcell').forEach(function (td) { td.classList.remove('badcell'); });
+    list.forEach(function (i) {
+      var td = boardEl.querySelector('td[data-i="' + i + '"]');
+      if (td) td.classList.add('badcell');
+    });
+  }
+
+  function setMsg(t, kind) { msgEl.textContent = t; msgEl.className = 'msg' + (kind ? ' ' + kind : ''); }
+
+  // ---------- selection movement ----------
+  function move(dr, dc) {
+    if (!G) return;
+    var i = G.sel < 0 ? 0 : G.sel;
+    var r = Math.min(8, Math.max(0, ((i / 9) | 0) + dr));
+    var c = Math.min(8, Math.max(0, (i % 9) + dc));
+    G.sel = r * 9 + c;
+    render();
+  }
+
+  // ---------- pause ----------
+  function togglePause() {
+    if (!G || G.won) return;
+    G.paused = !G.paused;
+    if (G.paused) { G.elapsed = Math.floor((Date.now() - G.startedAt) / 1000); }
+    else { G.startedAt = Date.now() - G.elapsed * 1000; }
+    render();
+  }
+
+  // ---------- confetti ----------
+  function confetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var colors = ['#58c4dc', '#4fc78a', '#e0b94f', '#e0586b', '#a78bfa'];
+    for (var k = 0; k < 90; k++) {
+      var el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[k % colors.length];
+      var dur = 1.6 + Math.random() * 1.6, delay = Math.random() * 0.5;
+      el.animate([
+        { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+        { transform: 'translateY(102vh) rotate(' + (360 + Math.random() * 540) + 'deg)', opacity: 0.9 }
+      ], { duration: dur * 1000, delay: delay * 1000, easing: 'ease-in' });
+      document.body.appendChild(el);
+      setTimeout(function (n) { return function () { n.remove(); }; }(el), (dur + delay) * 1000 + 60);
+    }
+  }
+
+  // ---------- wiring ----------
+  startEl.querySelectorAll('button[data-diff]').forEach(function (b) {
+    b.addEventListener('click', function () { newGame(b.getAttribute('data-diff')); });
+  });
+  document.getElementById('win-again').addEventListener('click', function () {
+    winEl.classList.add('hidden'); startEl.classList.remove('hidden');
+  });
+  document.getElementById('btn-new').addEventListener('click', function () {
+    stopTimer(); winEl.classList.add('hidden'); startEl.classList.remove('hidden');
+  });
+  document.getElementById('btn-pause').addEventListener('click', togglePause);
+  document.getElementById('btn-notes').addEventListener('click', function () { if (G) { G.notesMode = !G.notesMode; render(); } });
+  document.getElementById('btn-auto').addEventListener('click', autoNotes);
+  document.getElementById('btn-erase').addEventListener('click', eraseSel);
+  document.getElementById('btn-hint').addEventListener('click', hint);
+  document.getElementById('btn-check').addEventListener('click', check);
+  document.getElementById('btn-autocheck').addEventListener('click', function () { if (G) { G.autoCheck = !G.autoCheck; render(); } });
+  document.getElementById('btn-undo').addEventListener('click', undo);
+  document.getElementById('btn-redo').addEventListener('click', redo);
+
+  document.addEventListener('keydown', function (e) {
+    if (!G) return;
+    var k = e.key;
+    if (k >= '1' && k <= '9') { placeDigit(+k); e.preventDefault(); return; }
+    switch (k) {
+      case 'ArrowUp': move(-1, 0); e.preventDefault(); break;
+      case 'ArrowDown': move(1, 0); e.preventDefault(); break;
+      case 'ArrowLeft': move(0, -1); e.preventDefault(); break;
+      case 'ArrowRight': move(0, 1); e.preventDefault(); break;
+      case 'Backspace': case 'Delete': case '0': eraseSel(); e.preventDefault(); break;
+      case 'n': case 'N': if (G) { G.notesMode = !G.notesMode; render(); } break;
+      case 'h': case 'H': hint(); break;
+      case 'c': case 'C': check(); break;
+      case ' ': togglePause(); e.preventDefault(); break;
+    }
+  });
+
+  buildBoard();
+
+  // ---- minimal test seam (lets the e2e drive the engine deterministically toward a win) ----
+  window.__SUDOKU_TEST__ = {
+    getState: function () { return G; },
+    setGame: function (puzzle, solution, difficulty) {
+      G = {
+        difficulty: difficulty || 'easy', puzzle: puzzle.slice(), solution: solution.slice(),
+        board: puzzle.slice(), given: puzzle.map(function (v) { return v !== 0; }),
+        notes: Array.from({ length: 81 }, function () { return {}; }),
+        sel: -1, notesMode: false, autoCheck: false, mistakes: 0,
+        history: [], future: [], startedAt: Date.now(), elapsed: 0, paused: false, won: false
+      };
+      startEl.classList.add('hidden'); winEl.classList.add('hidden');
+      document.getElementById('hud-diff').textContent = G.difficulty;
+      render(); startTimer();
+    },
+    select: function (i) { if (G) { G.sel = i; render(); } },
+    place: function (d) { placeDigit(d); },
+    solveAllButOne: function () {
+      if (!G || !G.solution) return;
+      for (var i = 0; i < 81; i++) if (!G.given[i] && i !== 80) { G.board[i] = G.solution[i]; }
+      G.sel = 80; render();
+    },
+    winNow: function () {
+      if (!G || !G.solution) return;
+      for (var i = 0; i < 81; i++) G.board[i] = G.solution[i];
+      afterMove();
+    },
+    isWon: function () { return !!(G && G.won); }
+  };
+})();
+</script>
+</body>
+</html>
