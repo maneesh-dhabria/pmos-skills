@@ -181,7 +181,7 @@ Single-pass draft against the approved outline, held in working memory (the file
 
 ## Phase 6: Capture Learnings {#capture-learnings}
 
-**This skill is not complete until the learnings reflection has produced a one-line output.** Read and follow `learnings/learnings-capture.md` (relative to the skills directory). Reflect on whether this session surfaced anything worth keeping under `## /primer` in `~/.pmos/learnings.md` — surprising source-quality patterns, audience-shaping heuristics, rubric edge-cases, framing-prompt failures that ended in recovery. Emit exactly one of:
+**This skill is not complete until the learnings reflection has produced a one-line output.** Reflect on whether this session surfaced anything worth keeping under `## /primer` in `~/.pmos/learnings.md` — surprising source-quality patterns, audience-shaping heuristics, rubric edge-cases, framing-prompt failures that ended in recovery. Emit exactly one of:
 
 - `Learning: <new entry written to ~/.pmos/learnings.md under ## /primer>`
 - `No new learnings this session because <specific reason tied to this session>` — the reason must be specific, not boilerplate.

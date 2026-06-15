@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-15 — pmos-learnkit 0.22.0: browse a built-in library of 61 PM primers, and list your own, with /primer browse
+
+`/primer` gains a browse/library view and ships with a ready-made corpus of 61 product-management primers, so you can explore a whole curriculum of trustworthy, source-cited explainers without generating anything first — and your own primers show up in the same place.
+
+- **A built-in library of 61 PM primers.** `/primer` now ships a curated, verified-source corpus spanning the PM curriculum — AI fundamentals, analytics, finance, design, marketing, strategy, and more. Every primer is a self-contained page with its sources, ready to read offline.
+- **Browse and search the whole collection.** `/primer browse` (or `/primer list`, or just `/primer` with no topic) builds a single filterable, searchable page of every primer — faceted by category, audience, and depth, with a card per primer linking straight to it. The page is fully offline: open it from disk, no server or network needed.
+- **Your primers and the curated ones, together.** The library folds in any primers you've generated yourself (shown under "Yours") alongside the shipped corpus (shown under "Curated"), so everything you can read is reachable from one page. The page is regenerated on demand and stays out of version control.
+- **Skill quality & internals.** The browse page is produced by a zero-dependency generator with its own self-test and a test suite that builds against the shipped corpus; the curated corpus is committed while the generated page is gitignored (mirroring `/frameworks`). A stale internal documentation pointer in the skill's learnings step was also corrected.
+
 ## 2026-06-14 — pmos-toolkit 2.77.0: browse your backlog in a web page with /backlog web
 
 `/backlog` gains a `web` verb that opens your epics and stories as a clean, read-only web page instead of scrolling raw Markdown. It's a live view: a tiny local server re-reads your backlog files (and any in-flight claims) on each load, so what you see in the browser always reflects the real state on disk.
