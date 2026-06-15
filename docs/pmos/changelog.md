@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-15 — pmos-gamekit 0.3.0: a full Sudoku board — play /sudoku
+
+`/sudoku` brings the classic 9×9 number puzzle to the kit — generate a fresh, uniquely-solvable board at the difficulty you want and solve it with pencil marks, hints, and on-demand error checking.
+
+- **Play classic 9×9 Sudoku, fully offline.** `/sudoku` opens a freshly generated puzzle in your browser via the same zero-dependency launcher as the other games. Pick Easy, Medium, or Hard — each difficulty is graded by the solving techniques the puzzle actually requires, so "Hard" really is hard.
+- **Pencil notes, hints, and error-checking on demand.** Toggle pencil-mark notes into cells, ask for a hint when you're stuck (it fills a correct next move), and check your work on demand to flag wrong entries — without spoiling the cells you haven't filled yet. Finish the board for a small celebration.
+
 ## 2026-06-15 — pmos-gamekit 0.2.0: slide the tiles — play 2048 with /2048
 
 A new game joins the kit. `/2048` opens the classic sliding-tile puzzle in your browser — combine matching tiles to reach 2048, then keep going past it.
