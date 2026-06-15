@@ -5,7 +5,7 @@ kind: epic
 title: pmos-gamekit — /poker (No-Limit Texas Hold'em, single-player vs heuristic bots, cash game)
 type: feature
 priority: could
-status: defined
+status: released
 route: skill
 dependencies: [260613-4mw]
 feature_folder: docs/pmos/features/2026-06-13_pmos-gamekit-poker/
@@ -14,7 +14,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-13_pmos-gamekit-poker/02_design.html
 labels: [pmos-gamekit, poker, texas-holdem, browser-game, game-launcher]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
+released: 0.5.0
 ---
 
 ## Context
