@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Plan — /primer browse library (story 260615-dhk)</title>
+<style>
+  body { font: 17px/1.6 Georgia, serif; color:#1a1a1a; max-width: 50rem; margin: 2rem auto; padding: 0 1.25rem; }
+  h1,h2,h3 { font-family: -apple-system, system-ui, sans-serif; line-height:1.25; }
+  h2 { font-size:1.35rem; margin-top:2rem; border-bottom:2px solid #e2e2e2; padding-bottom:.3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size:.9em; background:#f4f4f4; padding:.1em .35em; border-radius:3px; }
+  pre { background:#f7f7f7; padding:.8rem 1rem; border-radius:6px; overflow:auto; }
+  table { border-collapse:collapse; width:100%; font-size:.95rem; margin:1rem 0; }
+  th,td { border:1px solid #e2e2e2; padding:.5rem .6rem; text-align:left; vertical-align:top; }
+  th { background:#faf7ff; font-family:system-ui,sans-serif; }
+  .id { font-family: ui-monospace, monospace; }
+  .tag { font-family:system-ui,sans-serif; font-size:.78rem; background:#eee; border-radius:4px; padding:.1em .45em; }
+</style>
+</head>
+<body>
+
+<h1>Implementation plan — <code>/primer</code> browse library</h1>
+<p>
+  Story <span class="id">260615-dhk</span> · parent epic <span class="id">260615-565</span> · route: skill · plugin: pmos-learnkit.<br>
+  Contract: <code>docs/pmos/features/2026-06-15_primer-browse-library/02_design.html</code>.
+  One <code>/execute</code> run = one PR. Skill-mode authoring criteria apply
+  (<code>feature-sdlc/reference/skill-patterns.md §A–§L</code>; repo <code>CLAUDE.md</code>).
+</p>
+
+<h2>Approach</h2>
+<p>
+  Copy the proven <code>/frameworks</code> browse shape into <code>/primer</code>: committed corpus + zero-dep <code>build-library.mjs</code> + gitignored single-file page, exposed through a <code>browse</code>/<code>list</code> verb. The one design-specific twist is the <strong>unified page</strong> (curated corpus + user-generated primers, distinguished by a Collection facet) which retires the bespoke <code>primers.html</code> step. Build <code>build-library.mjs</code> by adapting <code>frameworks/scripts/build-library.mjs</code> (do not import it — primer's corpus shape and the dual-population scan differ).
+</p>
+
+<h2>Tasks</h2>
+<table>
+  <tr><th>#</th><th>Task</th><th>Files</th><th>Done when</th></tr>
+
+  <tr>
+    <td>T1</td>
+    <td><strong>Transplant the corpus.</strong> On the build branch (branched from clean main), run <code>git checkout feat/primer-bundle -- plugins/pmos-learnkit/skills/primer/data/</code>. Add <code>data/.gitignore</code> (<code>library.html</code>, <code>.scratch/</code>). <em>Never merge <code>feat/primer-bundle</code> itself.</em></td>
+    <td><code>plugins/pmos-learnkit/skills/primer/data/primers-index.json</code>, <code>data/primers/*</code> (61+61), <code>data/.gitignore</code></td>
+    <td>61 html + 61 sources.json + index committed; <code>node -e</code> parse confirms 61-entry array; <code>.gitignore</code> covers the generated page.</td>
+  </tr>
+
+  <tr>
+    <td>T2</td>
+    <td><strong>Author <code>build-library.mjs</code></strong> (zero-dep Node ESM). Read sibling <code>../data/primers-index.json</code> (resolve relative to script file). Scan <code>dirname(--out)</code> for user primers (<code>*.html</code> minus the page + <code>*.draft.html</code>). Render one self-contained <code>library.html</code> (inline CSS+JS, no external refs): cards (title/category/audience/depth/source-count/word-count/date) + Collection/super_category/category/audience/depth facets + free-text search + applied-filter chips. Curated <code>href</code> = relative path <code>--out</code> dir → skill <code>data/primers/</code>; user <code>href</code> = sibling basename. Atomic temp-then-rename. <code>--out</code> + <code>--selftest</code> flags.</td>
+    <td><code>plugins/pmos-learnkit/skills/primer/scripts/build-library.mjs</code> (new)</td>
+    <td><code>--selftest</code> exits 0; running with <code>--out /tmp/x.html</code> against shipped index produces a file with 61 curated cards and no <code>http(s)://</code> / external <code>src=</code>/<code>href=</code> asset refs.</td>
+  </tr>
+
+  <tr>
+    <td>T3</td>
+    <td><strong>Wire SKILL.md.</strong> <code>argument-hint</code> gains <code>browse | list</code>. Add a <code>#browse</code> phase (build <code>library.html</code> via <code>build-library.mjs --out {docs_path}/primer/library.html</code>, open best-effort, print path). Route <code>browse</code>/<code>list</code>/bare-no-topic → <code>#browse</code> in Phase 1 dispatch. Reconcile Phase-5 step 8: call <code>build-library.mjs</code>, retire the bespoke <code>primers.html</code> generator (best-effort remove stale file). Add the no-browser degradation bullet. Keep the W14 non-interactive block byte-identical; no new <code>AskUserQuestion</code> expected (browse is read-only).</td>
+    <td><code>plugins/pmos-learnkit/skills/primer/SKILL.md</code></td>
+    <td>argument-hint lists the verb; <code>#browse</code> phase + dispatch present; step-8 calls the script; description mentions browse so it triggers.</td>
+  </tr>
+
+  <tr>
+    <td>T4</td>
+    <td><strong>Tests.</strong> Under <code>skills/primer/tests/</code>: assert <code>build-library --selftest</code> passes; build against the shipped index and assert 61 curated cards, every facet value present, every curated <code>href</code> resolves to an existing file, single-file/offline (no external asset refs), and that a seeded fake user primer in a temp out-dir is picked up under Collection=Yours.</td>
+    <td><code>plugins/pmos-learnkit/skills/primer/tests/*</code> (mirror the existing test runner shape)</td>
+    <td>test runner green; ≥6 assertions covering AC2–AC5.</td>
+  </tr>
+
+  <tr>
+    <td>T5 <span class="tag">dogfood — load-bearing (TN−1)</span></td>
+    <td><strong>Live dogfood.</strong> Build <code>library.html</code> against the shipped corpus; open it with Playwright at <code>file://</code>. <em>Objective:</em> 61 curated cards rendered; each facet dropdown populated; typing in search narrows the list; clicking ≥1 card opens a primer that itself renders (file:// link resolves); 0 console errors; 0 network requests (single-file). <em>Subjective (blind-LLM-judge):</em> the page reads as a usable library a PM would browse. Auto-iterate fixes, cap 2.</td>
+    <td>(dogfood evidence under <code>stories/260615-dhk/dogfood/</code>; generated page gitignored)</td>
+    <td>all objective checks pass live; judge verdict SHIP; screenshots saved.</td>
+  </tr>
+
+  <tr>
+    <td>T6 <span class="tag">verify gates (TN)</span></td>
+    <td><strong>Verify.</strong> skill-eval <code>[D]</code> floor on the SKILL.md; the four lints (<code>lint-flags-vs-hints</code>, <code>lint-phase-refs</code>, <code>lint-non-interactive-inline</code>, <code>audit-recommended</code>); route:skill coherence. Record any accepted pre-existing residuals (diff vs <code>HEAD^1</code>).</td>
+    <td>(no new files; gate run)</td>
+    <td>all gates green or residuals proven pre-existing; ACs 1–9 confirmed.</td>
+  </tr>
+</table>
+
+<h2>Wave / ordering</h2>
+<p>
+  Strictly sequential — each task depends on the prior (corpus → script → wiring → tests → dogfood → verify). No parallel waves. T1 must run on a branch based on clean <code>main</code> so the transplant is the only cross-branch content.
+</p>
+
+<h2>Release prerequisites (NOT execute tasks)</h2>
+<ul>
+  <li>pmos-learnkit version bump (both <code>plugin.json</code> files) — handled by <code>/complete-dev</code> at Loop 3, not here.</li>
+  <li>Changelog entry — Loop 3.</li>
+  <li>No cross-plugin <code>_shared</code> change in this story → no <code>sync-shared.sh</code> needed.</li>
+</ul>
+
+</body>
+</html>

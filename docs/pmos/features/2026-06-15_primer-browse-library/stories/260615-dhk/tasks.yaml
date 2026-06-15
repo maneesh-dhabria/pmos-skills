@@ -1,0 +1,129 @@
+schema_version: 1
+story: 260615-dhk
+epic: 260615-565
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+# Singleton fused story: enhances the EXISTING /primer skill with a browse library, modeled on the
+# released /frameworks browse (committed corpus + zero-dep build-library.mjs + gitignored single-file
+# offline page). The 61-primer corpus is transplanted from the never-merged feat/primer-bundle branch
+# via a path-scoped `git checkout feat/primer-bundle -- <data path>` (T1) — feat/primer-bundle itself is
+# NEVER merged. Files: plugins/pmos-learnkit/skills/primer/{data/ (corpus, committed), scripts/
+# build-library.mjs (new), SKILL.md (verb + #browse phase + Phase-5 reconcile), tests/}. Key design
+# twist: ONE unified library.html renders BOTH the curated corpus (Collection=Curated) and user-
+# generated primers scanned from the out-dir (Collection=Yours), retiring the bespoke primers.html
+# step-8 generator (D-UNIFY/D-RETIRE in the design doc). NO release-prereq tasks here (changelog,
+# version bump, version-sync) — /complete-dev (Loop 3) is the sole writer of those. Strictly sequential
+# (no parallel waves): corpus -> script -> wiring -> tests -> dogfood -> verify. T5 (TN-1) is the load-
+# bearing live dogfood (Playwright at file://); T6 (TN) is skill-eval + lints + coherence.
+tasks:
+  - id: T1
+    title: "Transplant the 61-primer corpus from feat/primer-bundle; add data/.gitignore"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      On the build branch (branched from clean main), run
+      `git checkout feat/primer-bundle -- plugins/pmos-learnkit/skills/primer/data/` to bring in the
+      committed corpus: primers-index.json (array of 61 entries) + data/primers/*.html (61) +
+      data/primers/*.sources.json (61). Add plugins/pmos-learnkit/skills/primer/data/.gitignore with
+      `library.html` and `.scratch/` so the regenerable page never gets committed. Do NOT merge the
+      feat/primer-bundle branch itself — it carries unrelated harness contamination; the path-scoped
+      checkout is the only sanctioned import. Stage ONLY the explicit data/ paths.
+    verify: >
+      `node -e` parses primers-index.json as a 61-element array with the §3 schema; `ls data/primers/`
+      shows 61 .html + 61 .sources.json; `git check-ignore data/library.html` exits 0.
+
+  - id: T2
+    title: "Author build-library.mjs (zero-dep Node ESM; dual-population, single-file, offline)"
+    ac: [AC2, AC3, AC4, AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      New plugins/pmos-learnkit/skills/primer/scripts/build-library.mjs adapted from
+      frameworks/scripts/build-library.mjs (adapt, do not import — corpus shape differs). Resolve the
+      committed corpus as ../data/primers-index.json relative to the script's own file location (not
+      CWD). Scan dirname(--out) for user primers: *.html minus the page itself minus *.draft.html;
+      derive title from <title>/<h1>, date from the YYYY-MM-DD_<slug> filename, audience/depth = "—"
+      when unknown. Emit ONE self-contained library.html: inline CSS + JS only, ZERO external asset
+      refs (no http(s)://, no external src=/href= to css/js/fonts/images). One card per primer with
+      title, category, audience, depth, source-count, word-count, date. Curated card href = relative
+      path from the --out directory to the skill data/primers/ dir (computed at build time; must
+      resolve at file:// in repo AND installed plugin cache); user card href = bare sibling basename.
+      Client-side facets: Collection (Curated|Yours), super_category, category, audience, depth; plus a
+      free-text search over title+category; applied-filter chips + Clear all (mirror frameworks UX).
+      Atomic temp-then-rename write. Flags: --out <path>, --selftest. esc() all interpolated strings.
+    verify: >
+      `node build-library.mjs --selftest` exits 0; `node build-library.mjs --out /tmp/lib.html`
+      produces a file containing 61 curated cards; a grep for `https?://` / external asset refs in the
+      emitted file finds none; seeding a fake 2026-01-01_x.html in the out-dir makes it appear under
+      Collection=Yours.
+
+  - id: T3
+    title: "Wire SKILL.md: browse|list verb, #browse phase, Phase-5 reconcile, degradation"
+    ac: [AC6, AC7, AC8]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Update plugins/pmos-learnkit/skills/primer/SKILL.md. argument-hint gains `browse | list` as a
+      leading verb form (alongside <topic>). Add a #browse phase that runs
+      `node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/primer/library.html`, opens
+      it best-effort, and prints the path. Route browse/list/bare-no-topic to #browse in the Phase-1
+      dispatch/intake. Reconcile Phase-5 step 8 "Listing regen": replace the bespoke primers.html
+      generation with a call to build-library.mjs (so a freshly written primer appears in library.html);
+      best-effort remove a stale primers.html. Add a no-browser/Playwright degradation bullet to the
+      Platform Adaptation section (page still written; opening best-effort; never a hard fail). Update
+      the description to mention browsing the library so the skill triggers on "browse my primers".
+      Keep the W14 non-interactive block byte-identical; browse is read-only (no new AskUserQuestion).
+    verify: >
+      argument-hint lists the verb; #browse heading + a {#browse} anchor exist and Phase-1 dispatch
+      references it; step 8 calls build-library.mjs and no longer hand-writes primers.html; lint-phase-
+      refs + lint-flags-vs-hints pass on the file.
+
+  - id: T4
+    title: "Tests under skills/primer/tests/ covering build-library against the shipped index"
+    ac: [AC2, AC3, AC4, AC5, AC9]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Add a test (mirror the existing primer/tests runner shape) that: (a) runs build-library --selftest
+      and asserts exit 0; (b) builds against the shipped index into a temp out-dir and asserts exactly
+      61 curated cards; (c) asserts every distinct super_category/category/audience/depth value appears
+      as a facet option; (d) asserts every curated href resolves to an existing file on disk; (e)
+      asserts the emitted HTML is single-file/offline (no external asset refs); (f) seeds a fake user
+      primer in the out-dir and asserts it is listed under Collection=Yours. Keep it zero-dep Node.
+    verify: >
+      the primer test runner is green with the new test included; ≥6 assertions present mapping to
+      AC2–AC5.
+
+  - id: T5
+    title: "Load-bearing dogfood: build + open library.html live via Playwright at file://"
+    ac: [AC3, AC4, AC5, AC8]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Build library.html against the shipped corpus and open it with Playwright at file://. OBJECTIVE
+      gates: 61 curated cards render; each facet dropdown is populated; typing in the search box narrows
+      the visible cards; clicking at least one card opens a primer HTML that itself renders (the file://
+      relative link resolves); 0 console errors; 0 network requests (single-file/offline). SUBJECTIVE
+      (blind-LLM-judge per _shared/dogfooding.md): the page reads as a library a PM would actually
+      browse — scannable cards, sensible facets. Auto-iterate fixes with a cap of 2. Save screenshots +
+      a short evidence note under stories/260615-dhk/dogfood/ (the generated page stays gitignored).
+    verify: >
+      all objective checks pass against the REAL served page; judge verdict = SHIP; screenshots saved
+      under the dogfood dir.
+
+  - id: T6
+    title: "Verify gates: skill-eval [D] floor, four lints, route:skill coherence"
+    ac: [AC9]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Run skill-eval-check.sh (the [D] deterministic floor) on the primer SKILL.md dir; run the four
+      hygiene lints — lint-flags-vs-hints.sh, lint-phase-refs.sh, lint-non-interactive-inline.sh,
+      audit-recommended.sh; confirm route:skill coherence (no dangling cross-plugin substrate cites —
+      none expected, this story adds no _shared file). Any skill-eval failure must be proven pre-existing
+      by diffing against HEAD^1 and recorded as an accepted residual; otherwise fix in scope.
+    verify: >
+      skill-eval [D] passes its floor (or residuals proven pre-existing vs HEAD^1); all four lints
+      green; ACs 1–9 confirmed in the write-back note.
