@@ -5,7 +5,7 @@ kind: epic
 title: "/backlog web viewer — nomenclature & conceptual clarity"
 type: enhancement
 priority: should
-status: defined
+status: released
 route: skill
 feature_folder: docs/pmos/features/2026-06-14_backlog-web-clarity/
 requirements_doc:
@@ -13,8 +13,8 @@ spec_doc:
 design_doc: docs/pmos/features/2026-06-14_backlog-web-clarity/02_design.html
 labels: [backlog, pmos-toolkit, design-crit, ux]
 created: 2026-06-14
-updated: 2026-06-14
-released:
+updated: 2026-06-15
+released: 2.81.0
 parent:
 dependencies: []
 ---
