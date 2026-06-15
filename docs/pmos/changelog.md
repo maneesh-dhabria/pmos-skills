@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-15 — pmos-learnkit 0.23.0: a smoother /frameworks browse experience
+
+The `/frameworks` browse-and-search library page gets a round of UX fixes so exploring your framework collection feels stable and fast.
+
+- **No more jarring reloads or jumps.** Opening a framework's details no longer makes the whole page appear to reload, and the list keeps its scroll position instead of snapping back to the top — so you can scan, open, close, and keep your place.
+- **Faster first paint, and deep-linkable.** Diagram thumbnails load lazily as you scroll rather than all at once, the page opens quickly even with the full corpus, and the framework you're viewing is reflected in the URL so you can link straight to it.
+- **Friendlier to keyboard and mobile.** The reader pane is keyboard-navigable, search gains a clear button, the subtitle updates to reflect what you're filtering, and the layout holds together on small screens.
+
 ## 2026-06-15 — pmos-gamekit 0.3.0: a full Sudoku board — play /sudoku
 
 `/sudoku` brings the classic 9×9 number puzzle to the kit — generate a fresh, uniquely-solvable board at the difficulty you want and solve it with pencil marks, hints, and on-demand error checking.
