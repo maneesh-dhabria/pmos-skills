@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Flappy Bird</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%234ec0ca'/%3E%3Ccircle cx='14' cy='16' r='7' fill='%23ffd43b' stroke='%23222' stroke-width='1.5'/%3E%3Ccircle cx='17' cy='14' r='1.6' fill='%23222'/%3E%3Cpath d='M20 16 l5 -2 v4 z' fill='%23ff8c42' stroke='%23222' stroke-width='1'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --sky:#4ec0ca; --sky2:#71d3dc; --ground:#ded895; --ground2:#c4ba6a;
+    --pipe:#5bbf3a; --pipe-dk:#3f8f27; --bird:#ffd43b; --ink:#1e2330; --panel:#fffef7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:#15202b;
+    color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh; padding:12px;
+    -webkit-user-select:none; user-select:none; touch-action:manipulation;
+  }
+  #stage{
+    position:relative; width:min(94vw, 56vh); aspect-ratio:360/640;
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(0,0,0,.45); background:var(--sky);
+  }
+  canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+
+  /* HUD */
+  #hud{
+    position:absolute; top:0; left:0; right:0; padding:10px 14px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    pointer-events:none; z-index:3; font-variant-numeric:tabular-nums;
+  }
+  #score{
+    font-size:clamp(28px,7vw,46px); font-weight:800; color:#fff;
+    text-shadow:0 2px 0 rgba(0,0,0,.35), 0 0 2px rgba(0,0,0,.5); line-height:1;
+  }
+  #best{
+    text-align:right; font-weight:700; color:#fff; font-size:clamp(11px,2.6vw,14px);
+    text-shadow:0 1px 2px rgba(0,0,0,.4); opacity:.95;
+  }
+  #best b{display:block; font-size:clamp(16px,4vw,22px)}
+
+  /* Overlays */
+  .overlay{
+    position:absolute; inset:0; z-index:4; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    gap:14px; padding:22px; text-align:center;
+    background:rgba(20,32,43,.46); backdrop-filter:blur(2px);
+  }
+  .overlay.show{display:flex}
+  .card{
+    background:var(--panel); border-radius:18px; padding:20px 22px;
+    box-shadow:0 12px 30px rgba(0,0,0,.3); max-width:88%;
+    display:flex; flex-direction:column; gap:14px; align-items:center;
+  }
+  .card h1{margin:0; font-size:clamp(22px,6vw,30px); letter-spacing:.5px}
+  .card h2{margin:0; font-size:clamp(18px,5vw,24px)}
+  .card p{margin:0; font-size:clamp(13px,3.4vw,15px); color:#445; line-height:1.5}
+
+  fieldset{border:0; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; width:100%}
+  legend{font-weight:700; font-size:14px; margin-bottom:4px}
+  .diffs{display:flex; gap:8px; justify-content:center}
+  .diff{
+    flex:1; cursor:pointer; border:2px solid #cfd3c4; border-radius:12px;
+    background:#fff; padding:10px 6px; font:inherit; font-weight:700;
+    display:flex; flex-direction:column; gap:3px; align-items:center; color:var(--ink);
+  }
+  .diff .sub{font-size:11px; font-weight:600; color:#778}
+  .diff[aria-pressed="true"]{border-color:var(--pipe-dk); background:#eaf7e3; box-shadow:0 0 0 2px rgba(63,143,39,.25)}
+  .diff:focus-visible, .btn:focus-visible, .diff:focus, .btn:focus{outline:3px solid #1d6fe0; outline-offset:2px}
+  .btn{
+    cursor:pointer; border:0; border-radius:12px; padding:12px 22px;
+    font:inherit; font-weight:800; font-size:16px; color:#fff;
+    background:var(--pipe-dk); box-shadow:0 4px 0 #2f6c1d;
+  }
+  .btn:active{transform:translateY(2px); box-shadow:0 2px 0 #2f6c1d}
+  .hint{font-size:12px; color:#667; display:flex; align-items:center; gap:6px}
+  .kbd{
+    font:inherit; font-size:11px; font-weight:700; background:#eef0e6; color:#445;
+    border:1px solid #cfd3c4; border-bottom-width:2px; border-radius:5px; padding:1px 6px;
+  }
+  .final{display:flex; gap:18px; justify-content:center}
+  .final div{display:flex; flex-direction:column; gap:2px}
+  .final .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#889; font-weight:700}
+  .final .val{font-size:clamp(24px,7vw,34px); font-weight:800; line-height:1}
+  .nb{
+    color:var(--pipe-dk); font-weight:800; font-size:14px; display:flex; align-items:center; gap:6px;
+  }
+  .controls{font-size:11px; color:#778; line-height:1.7}
+
+  /* New-best celebratory flourish */
+  #flourish{position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden; display:none}
+  #flourish.show{display:block}
+  .spark{
+    position:absolute; top:-14px; width:9px; height:14px; border-radius:2px; opacity:.95;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{ to{ transform:translateY(118%) rotate(540deg); opacity:.4 } }
+
+  @media (prefers-reduced-motion: reduce){
+    .btn:active{transform:none}
+    #flourish{display:none !important}
+    .spark{animation:none !important}
+  }
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+</style>
+</head>
+<body>
+  <main id="stage" aria-label="Flappy Bird game stage">
+    <canvas id="cv" width="360" height="640" role="img" aria-label="Flappy Bird play area"></canvas>
+
+    <div id="hud" aria-hidden="false">
+      <div id="score" aria-live="off">0</div>
+      <div id="best">BEST<b id="bestVal">0</b></div>
+    </div>
+
+    <!-- Start / new-game overlay -->
+    <div class="overlay show" id="startOv" role="dialog" aria-modal="true" aria-label="New game">
+      <div class="card">
+        <h1>🐤 Flappy Bird</h1>
+        <fieldset>
+          <legend id="diffLegend">Difficulty</legend>
+          <div class="diffs" role="group" aria-labelledby="diffLegend">
+            <button type="button" class="diff" data-diff="easy"   aria-pressed="false">Easy<span class="sub">wide · slow</span></button>
+            <button type="button" class="diff" data-diff="normal" aria-pressed="true">Normal<span class="sub">balanced</span></button>
+            <button type="button" class="diff" data-diff="hard"   aria-pressed="false">Hard<span class="sub">narrow · fast</span></button>
+          </div>
+        </fieldset>
+        <button type="button" class="btn" id="playBtn">Play ▶</button>
+        <p class="hint"><span class="kbd">Space</span> / <span class="kbd">↑</span> / tap to flap · <span class="kbd">P</span> pause · <span class="kbd">R</span> restart</p>
+      </div>
+    </div>
+
+    <!-- Game-over overlay -->
+    <div class="overlay" id="overOv" role="dialog" aria-modal="true" aria-label="Game over">
+      <div class="card">
+        <h2>Game Over</h2>
+        <div class="nb" id="newBest" hidden>★ New best!</div>
+        <div class="final">
+          <div><span class="lbl">Score</span><span class="val" id="finalScore">0</span></div>
+          <div><span class="lbl">Best</span><span class="val" id="finalBest">0</span></div>
+        </div>
+        <button type="button" class="btn" id="againBtn">Play again ↻</button>
+        <p class="controls"><span class="kbd">R</span>/<span class="kbd">N</span> new game · <span class="kbd">Space</span> flap</p>
+      </div>
+    </div>
+
+    <!-- Pause overlay -->
+    <div class="overlay" id="pauseOv" role="dialog" aria-modal="true" aria-label="Paused">
+      <div class="card">
+        <h2>Paused</h2>
+        <p>Press <span class="kbd">P</span> to resume.</p>
+        <button type="button" class="btn" id="resumeBtn">Resume</button>
+      </div>
+    </div>
+
+    <div id="flourish" aria-hidden="true"></div>
+    <div class="sr" id="live" aria-live="polite"></div>
+  </main>
+
+<script>
+/* ============================================================================
+ * FlappyEngine — pure logic, DOM-decoupled, timer-free, seedable.
+ * Stepped by an explicit dt (seconds) so simulation is deterministic and the
+ * headless selftest can pin physics + transitions. No Date / performance.now.
+ * Exposed on a global so tests/run.mjs can vm-extract and exercise it.
+ * ==========================================================================*/
+(function (root) {
+  'use strict';
+
+  var PIPE_W   = 60;    // pipe width (logical px)
+  var BIRD_R   = 14;    // bird radius
+  var GROUND_H = 96;    // ground strip height
+  var TOP_MARGIN = 56;  // safe margin from the top for a gap
+  var BOT_MARGIN = 24;  // safe margin above the ground for a gap
+
+  // Difficulty bands: gap height DECREASES and scroll speed INCREASES easy->hard.
+  var DIFFS = {
+    easy:   { pipeGap: 200, pipeSpeed: 118, pipeSpacing: 250, gravity: 1150, flapV: -372 },
+    normal: { pipeGap: 162, pipeSpeed: 150, pipeSpacing: 224, gravity: 1300, flapV: -402 },
+    hard:   { pipeGap: 132, pipeSpeed: 188, pipeSpacing: 200, gravity: 1480, flapV: -432 }
+  };
+
+  function difficultyParams(level) {
+    var d = DIFFS[level] || DIFFS.normal;
+    // return a copy so callers cannot mutate the shared band table
+    return { pipeGap: d.pipeGap, pipeSpeed: d.pipeSpeed, pipeSpacing: d.pipeSpacing,
+             gravity: d.gravity, flapV: d.flapV };
+  }
+
+  // mulberry32 — deterministic PRNG; null/undefined seed -> a random 32-bit seed.
+  function makeRng(seed) {
+    var s;
+    if (seed === null || seed === undefined) {
+      s = (Math.floor(Math.random() * 0xffffffff)) >>> 0;
+    } else {
+      s = (seed >>> 0);
+    }
+    return function () {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function gapBounds(state) {
+    // valid range for the TOP of a gap so the whole gap fits above the ground
+    var lo = TOP_MARGIN;
+    var hi = state.groundY - BOT_MARGIN - state.params.pipeGap;
+    if (hi < lo) hi = lo;
+    return { lo: lo, hi: hi };
+  }
+
+  function spawnPipe(state, rng) {
+    var r = rng || state.rng;
+    var b = gapBounds(state);
+    var gapY = b.lo + (b.hi - b.lo) * r();
+    state.pipes.push({ x: state.width, gapY: gapY, gapH: state.params.pipeGap, scored: false });
+    return state;
+  }
+
+  function createState(opts) {
+    opts = opts || {};
+    var width  = opts.width  || 360;
+    var height = opts.height || 640;
+    var difficulty = opts.difficulty || 'normal';
+    var params = difficultyParams(difficulty);
+    var groundY = height - GROUND_H;
+    var state = {
+      width: width, height: height, groundY: groundY,
+      difficulty: difficulty, params: params,
+      bird: { x: Math.round(width / 3), y: Math.round(height / 2), vy: 0, r: BIRD_R },
+      pipes: [],
+      score: 0, best: opts.best || 0,
+      status: 'ready',
+      seed: (opts.seed === undefined ? null : opts.seed),
+      rng: makeRng(opts.seed === undefined ? null : opts.seed)
+    };
+    // queue the first pipe off the right edge; it hovers until the first flap.
+    spawnPipe(state, state.rng);
+    return state;
+  }
+
+  function flap(state) {
+    if (state.status === 'over') return state;
+    if (state.status === 'ready') state.status = 'playing';
+    state.bird.vy = state.params.flapV;
+    return state;
+  }
+
+  function circleRect(cx, cy, r, rx, ry, rw, rh) {
+    var nx = cx < rx ? rx : (cx > rx + rw ? rx + rw : cx);
+    var ny = cy < ry ? ry : (cy > ry + rh ? ry + rh : cy);
+    var dx = cx - nx, dy = cy - ny;
+    return (dx * dx + dy * dy) < (r * r);
+  }
+
+  function collides(state) {
+    var b = state.bird;
+    if (b.y + b.r >= state.groundY) return true;     // ground is lethal
+    for (var i = 0; i < state.pipes.length; i++) {
+      var p = state.pipes[i];
+      // upper pipe rect: [0 .. gapY]; lower pipe rect: [gapY+gapH .. groundY]
+      if (circleRect(b.x, b.y, b.r, p.x, 0, PIPE_W, p.gapY)) return true;
+      var lowY = p.gapY + p.gapH;
+      if (circleRect(b.x, b.y, b.r, p.x, lowY, PIPE_W, state.groundY - lowY)) return true;
+    }
+    return false;
+  }
+
+  function step(state, dt) {
+    if (state.status !== 'playing') return state;   // 'ready' hovers, 'over' frozen
+    var p = state.params, b = state.bird;
+
+    // integrate gravity into velocity, then velocity into position
+    b.vy += p.gravity * dt;
+    b.y  += b.vy * dt;
+
+    // ceiling clamp — the bird cannot rise above its radius; NOT lethal
+    if (b.y < b.r) { b.y = b.r; if (b.vy < 0) b.vy = 0; }
+
+    // scroll pipes left
+    for (var i = 0; i < state.pipes.length; i++) state.pipes[i].x -= p.pipeSpeed * dt;
+
+    // cull fully off-screen pipes
+    while (state.pipes.length && (state.pipes[0].x + PIPE_W) < 0) state.pipes.shift();
+
+    // spawn a new pipe once the last one has moved past the spacing threshold
+    var last = state.pipes[state.pipes.length - 1];
+    if (!last || last.x <= (state.width - p.pipeSpacing)) spawnPipe(state, state.rng);
+
+    // scoring — exactly once per pipe, when its far edge passes the bird's x
+    for (var j = 0; j < state.pipes.length; j++) {
+      var pp = state.pipes[j];
+      if (!pp.scored && (pp.x + PIPE_W) < b.x) {
+        pp.scored = true;
+        state.score += 1;
+        if (state.score > state.best) state.best = state.score;
+      }
+    }
+
+    // collision ends the run
+    if (collides(state)) state.status = 'over';
+    return state;
+  }
+
+  root.FlappyEngine = {
+    createState: createState,
+    difficultyParams: difficultyParams,
+    flap: flap,
+    step: step,
+    spawnPipe: spawnPipe,
+    collides: collides,
+    makeRng: makeRng,
+    constants: { PIPE_W: PIPE_W, BIRD_R: BIRD_R, GROUND_H: GROUND_H }
+  };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+/* ============================================================================
+ * Render / UI layer — consumes FlappyEngine. Guarded so the headless vm
+ * (no document) only loads the engine above.
+ * ==========================================================================*/
+if (typeof document !== 'undefined') (function () {
+  'use strict';
+  var E = window.FlappyEngine;
+  var W = 360, H = 640;
+  var PIPE_W = E.constants.PIPE_W;
+
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var scoreEl = document.getElementById('score');
+  var bestEl  = document.getElementById('bestVal');
+  var startOv = document.getElementById('startOv');
+  var overOv  = document.getElementById('overOv');
+  var pauseOv = document.getElementById('pauseOv');
+  var flourish = document.getElementById('flourish');
+  var live = document.getElementById('live');
+
+  var state = null;
+  var difficulty = 'normal';
+  var sessionBest = 0;
+  var paused = false;
+  var running = false;     // rAF loop armed?
+  var lastT = 0;
+  var acc = 0;
+  var STEP = 1 / 120;      // fixed-timestep (seconds)
+  var birdFlap = 0;        // wing-flap animation phase (render only)
+  var bobT = 0;            // ready-state hover bob (render only)
+
+  function announce(msg) { live.textContent = msg; }
+
+  function newGame() {
+    state = E.createState({ width: W, height: H, difficulty: difficulty, seed: null, best: sessionBest });
+    paused = false;
+    acc = 0; lastT = 0;
+    overOv.classList.remove('show');
+    pauseOv.classList.remove('show');
+    startOv.classList.remove('show');
+    flourish.classList.remove('show'); flourish.innerHTML = '';
+    syncHud();
+    arm();
+    announce('New game, ' + difficulty + ' difficulty. Tap or press Space to flap.');
+  }
+
+  function arm() {
+    if (running) return;
+    running = true;
+    lastT = 0;
+    requestAnimationFrame(loop);
+  }
+
+  function syncHud() {
+    scoreEl.textContent = state ? state.score : 0;
+    bestEl.textContent = Math.max(sessionBest, state ? state.best : 0);
+  }
+
+  function doFlap() {
+    if (!state || state.status === 'over' || paused) return;
+    E.flap(state);
+    birdFlap = 1;
+  }
+
+  function togglePause() {
+    if (!state || state.status !== 'playing') return;
+    paused = !paused;
+    if (paused) {
+      pauseOv.classList.add('show');
+      announce('Paused.');
+    } else {
+      pauseOv.classList.remove('show');
+      lastT = 0;            // drop the accumulated wall-clock gap
+      announce('Resumed.');
+      arm();
+    }
+  }
+
+  function onOver() {
+    var sb = state.score;
+    var isNewBest = sb > sessionBest && sb > 0;
+    if (sb > sessionBest) sessionBest = sb;
+    document.getElementById('finalScore').textContent = state.score;
+    document.getElementById('finalBest').textContent = sessionBest;
+    document.getElementById('newBest').hidden = !isNewBest;
+    overOv.classList.add('show');
+    announce('Game over. Score ' + state.score + '. Best ' + sessionBest + '.' + (isNewBest ? ' New best!' : ''));
+    if (isNewBest) celebrate();
+  }
+
+  function celebrate() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    flourish.innerHTML = '';
+    var colors = ['#ffd43b', '#5bbf3a', '#4ec0ca', '#ff8c42', '#ffffff'];
+    for (var i = 0; i < 40; i++) {
+      var s = document.createElement('span');
+      s.className = 'spark';
+      s.style.left = (Math.random() * 100) + '%';
+      s.style.background = colors[i % colors.length];
+      s.style.animationDuration = (0.9 + Math.random() * 0.8) + 's';
+      s.style.animationDelay = (Math.random() * 0.25) + 's';
+      flourish.appendChild(s);
+    }
+    flourish.classList.add('show');
+    setTimeout(function () { flourish.classList.remove('show'); flourish.innerHTML = ''; }, 1700);
+  }
+
+  /* -- the fixed-timestep real-time loop ----------------------------------- */
+  function loop(t) {
+    if (!running) return;
+    if (!state || state.status === 'over' || paused) {
+      running = false;
+      if (state && state.status === 'over') onOver();
+      draw();
+      return;
+    }
+    if (!lastT) lastT = t;
+    var frame = (t - lastT) / 1000;
+    if (frame > 0.25) frame = 0.25;   // clamp huge gaps (tab refocus)
+    lastT = t;
+
+    if (state.status === 'playing') {
+      acc += frame;
+      while (acc >= STEP) { E.step(state, STEP); acc -= STEP; if (state.status === 'over') break; }
+    }
+    bobT += frame; birdFlap = Math.max(0, birdFlap - frame * 3);
+    syncHud();
+    draw();
+
+    if (state.status === 'over') { running = false; onOver(); return; }
+    requestAnimationFrame(loop);
+  }
+
+  /* -- drawing ------------------------------------------------------------- */
+  function draw() {
+    if (!state) return;
+    var gy = state.groundY;
+    // sky gradient
+    var g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#4ec0ca'); g.addColorStop(1, '#8fe0e6');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // pipes
+    for (var i = 0; i < state.pipes.length; i++) {
+      drawPipe(state.pipes[i], gy);
+    }
+
+    // ground
+    ctx.fillStyle = '#ded895'; ctx.fillRect(0, gy, W, H - gy);
+    ctx.fillStyle = '#c4ba6a'; ctx.fillRect(0, gy, W, 10);
+    ctx.fillStyle = 'rgba(0,0,0,.08)';
+    for (var x = 0; x < W; x += 24) ctx.fillRect(x, gy + 12, 12, 6);
+
+    // bird
+    drawBird();
+
+    // ready hint
+    if (state.status === 'ready') {
+      ctx.fillStyle = 'rgba(30,35,48,.55)';
+      ctx.font = '700 18px system-ui,sans-serif';
+      ctx.textAlign = 'center';
+      var bob = Math.sin(bobT * 4) * 4;
+      ctx.fillText('Tap / Space to start', W / 2, gy * 0.62 + bob);
+    }
+  }
+
+  function drawPipe(p, gy) {
+    var topH = p.gapY, lowY = p.gapY + p.gapH;
+    ctx.fillStyle = '#5bbf3a';
+    ctx.fillRect(p.x, 0, PIPE_W, topH);
+    ctx.fillRect(p.x, lowY, PIPE_W, gy - lowY);
+    // lips
+    ctx.fillStyle = '#3f8f27';
+    ctx.fillRect(p.x - 3, topH - 16, PIPE_W + 6, 16);
+    ctx.fillRect(p.x - 3, lowY, PIPE_W + 6, 16);
+    // highlight stripe (shape cue, not color-alone)
+    ctx.fillStyle = 'rgba(255,255,255,.22)';
+    ctx.fillRect(p.x + 6, 0, 6, topH);
+    ctx.fillRect(p.x + 6, lowY, 6, gy - lowY);
+  }
+
+  function drawBird() {
+    var b = state.bird;
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    var ang = Math.max(-0.5, Math.min(1.1, b.vy / 520));
+    ctx.rotate(ang);
+    // body
+    ctx.fillStyle = '#ffd43b';
+    ctx.strokeStyle = '#1e2330'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // belly
+    ctx.fillStyle = '#fff3bf';
+    ctx.beginPath(); ctx.arc(-2, 4, b.r * 0.55, 0, Math.PI * 2); ctx.fill();
+    // wing (flap phase)
+    ctx.fillStyle = '#f59f00';
+    var wy = -2 + (birdFlap > 0.5 ? -5 : 4);
+    ctx.beginPath(); ctx.ellipse(-3, wy, 7, 4, -0.3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    // eye
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(6, -4, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1e2330';
+    ctx.beginPath(); ctx.arc(7.5, -4, 2, 0, Math.PI * 2); ctx.fill();
+    // beak
+    ctx.fillStyle = '#ff8c42';
+    ctx.beginPath(); ctx.moveTo(b.r - 2, -1); ctx.lineTo(b.r + 7, 2); ctx.lineTo(b.r - 2, 5); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* -- input --------------------------------------------------------------- */
+  function setDifficulty(d) {
+    difficulty = d;
+    var btns = document.querySelectorAll('.diff');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', btns[i].dataset.diff === d ? 'true' : 'false');
+    }
+  }
+
+  document.querySelectorAll('.diff').forEach(function (btn) {
+    btn.addEventListener('click', function () { setDifficulty(btn.dataset.diff); });
+  });
+  document.getElementById('playBtn').addEventListener('click', newGame);
+  document.getElementById('againBtn').addEventListener('click', newGame);
+  document.getElementById('resumeBtn').addEventListener('click', togglePause);
+
+  // pointer / touch — flap (but not when a button was the target)
+  function pointerFlap(e) {
+    if (e.target.closest('button')) return;
+    if (startOv.classList.contains('show') || overOv.classList.contains('show')) return;
+    e.preventDefault();
+    if (paused) return;
+    doFlap();
+  }
+  cv.addEventListener('pointerdown', pointerFlap);
+
+  document.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'Up') {
+      e.preventDefault();
+      if (startOv.classList.contains('show')) { newGame(); return; }
+      if (overOv.classList.contains('show')) { newGame(); return; }
+      doFlap();
+    } else if (k === 'p' || k === 'P') {
+      e.preventDefault(); togglePause();
+    } else if (k === 'r' || k === 'R' || k === 'n' || k === 'N') {
+      e.preventDefault(); newGame();
+    }
+  });
+
+  // initial paint (ready preview behind the start overlay)
+  state = E.createState({ width: W, height: H, difficulty: difficulty, seed: 1, best: 0 });
+  draw();
+
+  /* -- test hook: deterministic drive for the Playwright e2e --------------- */
+  window.__FLAPPY_TEST__ = {
+    newGame: function (opts) {
+      opts = opts || {};
+      if (opts.difficulty) setDifficulty(opts.difficulty);
+      state = E.createState({ width: W, height: H, difficulty: difficulty, seed: (opts.seed === undefined ? null : opts.seed), best: sessionBest });
+      paused = false; acc = 0; lastT = 0;
+      startOv.classList.remove('show'); overOv.classList.remove('show'); pauseOv.classList.remove('show');
+      flourish.classList.remove('show'); flourish.innerHTML = '';
+      syncHud(); draw();
+      return getState();
+    },
+    flap: function () { E.flap(state); birdFlap = 1; syncHud(); draw(); return getState(); },
+    // advance the engine deterministically by n fixed steps (no rAF / wall-clock)
+    advance: function (n, dt) {
+      dt = dt || STEP;
+      for (var i = 0; i < (n || 1); i++) { E.step(state, dt); if (state.status === 'over') break; }
+      if (state.status === 'over') onOver();
+      syncHud(); draw();
+      return getState();
+    },
+    pause: togglePause,
+    overlays: function () {
+      return {
+        start: startOv.classList.contains('show'),
+        over: overOv.classList.contains('show'),
+        pause: pauseOv.classList.contains('show'),
+        newBest: !document.getElementById('newBest').hidden
+      };
+    },
+    getState: getState
+  };
+  function getState() {
+    return {
+      status: state.status, score: state.score, best: state.best,
+      birdY: state.bird.y, birdVY: state.bird.vy, birdX: state.bird.x,
+      pipes: state.pipes.length, difficulty: difficulty,
+      params: state.params, groundY: state.groundY, sessionBest: sessionBest
+    };
+  }
+})();
+</script>
+</body>
+</html>
