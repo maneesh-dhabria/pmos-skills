@@ -54,6 +54,12 @@ row for the resolved depth and sizes its outline, sourcing, and adjacency accord
 | Outline-confirm gate (see `outline.md`) | confirm/edit | confirm/edit | confirm/edit |
 | Fan-out (see `sourcing.md`) | sequential / in-context | one unit per topic | one unit per topic + per adjacency cluster |
 
+If an optional curated-references overlay is present (see `curated-references.md`), its
+per-topic curated slice rides this **same** row — the same top-N target and depth — as
+live sourcing. There is no separate cap or dial for the curated source; it over-supplies
+candidates into the same pool, and the "Verified sources per topic" target above still
+governs how many survive.
+
 ## Topic-richness classifier (typed verdict)
 
 Before building the outline, classify the topic. Run this prompt verbatim and keep the

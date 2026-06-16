@@ -28,7 +28,7 @@ annotation, the adjacency rabbit-holes section, the follow-list, and the paste-b
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion`:** intake (audience) and the outline-confirm gate degrade to
+- **No `AskUserQuestion` tool:** intake (audience) and the outline-confirm gate degrade to
   numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive
   auto-pick contract (Recommended → AUTO-PICK; outline gate auto-proceeds; audience
   auto-picks senior-pms) still applies.
@@ -147,6 +147,9 @@ subagents — one `Task` per topic at `standard`/`deep` (sequential at `brief`),
 `model: haiku` (fetch+verify+annotate work whose output the Phase 6 self-review
 re-checks: dead links, slop gate, grounding). Degradation when subagents are missing:
 see Platform Adaptation.
+
+<!-- nl-sugar -->
+**Optional curated-references overlay.** When `_shared/topic-research/curated-references.json` is present, the substrate augments each topic's candidate pool from that pre-curated corpus and hard-gates / fetch-verifies it identically to live sources — mechanism (prefilter, coverage gate, suppression) lives in `_shared/topic-research/curated-references.md`; nothing in this skill changes. Suppress it with `--no-curated` (a boolean suppression toggle inferred from natural language — parsed as a silent alias per §I, not an advertised contract flag).
 
 This skill's back-half use of each shortlist (its own reaction to the substrate output):
 
