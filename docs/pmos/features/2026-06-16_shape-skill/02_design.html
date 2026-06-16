@@ -1084,11 +1084,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
       <tr><td>D2</td><td>Terminal scope</td><td><strong>Problem-only, hard handoff.</strong> Solutions explicitly out of scope. This discipline is the reason to exist (vs <code>/ideate</code>).</td></tr>
       <tr><td>D3</td><td>Questioning cadence</td><td><strong>Hybrid:</strong> <code>/grill</code>'s one-question-per-turn rhythm, seeded by <code>/ideate</code>'s HMW+JTBD frame. Recommended answers ONLY on convergence moves; open probing (no recommended answer) on exploration moves (laddering, reframing). Divergent early, convergent late.</td></tr>
       <tr><td>D4</td><td>Output &amp; handoff</td><td><strong>Single commentable problem-brief HTML artifact</strong> rendering the full lens ledger → handoff to <code>/requirements</code>, <code>/ideate</code>, <code>/backlog</code>, optional <code>/ripple-effects</code>.</td></tr>
-      <tr><td>D5</td><td>Context-gate persistence</td><td>Read workstream → else <code>.pmos/settings.yaml</code> → confirm-once only when absent / doc-seeded / conflicting → persist. Never re-ask per run.</td></tr>
+      <tr><td>D5</td><td>Context-gate persistence</td><td>Read workstream → else <code>.pmos/settings.yaml</code> → confirm-once only when absent / doc-seeded / conflicting → persist. Never re-ask per run. <strong>What persists = the <em>classification</em></strong> (side-project / feature / new-bet / internal), not the answers. Precedence: workstream signal &gt; <code>settings.yaml</code>. A "conflict" = a fresh signal contradicting the persisted classification → re-confirm once and overwrite. Correction path: a later run with a conflicting signal triggers the same confirm-once, so a wrong classification self-heals on the next divergent run.</td></tr>
       <tr><td>D6</td><td><code>/ripple-effects</code> in problem shaping</td><td><strong>Fold the spirit, not the machinery.</strong> Lens 5 absorbs a lightweight "and then what" at problem altitude; REFRAME adds ripple-on-the-framing; full <code>/ripple-effects</code> is a handoff suggestion. Keeps ripple orthogonal per its charter.</td></tr>
       <tr><td>D7</td><td>Solution-shaping (the symmetric question)</td><td><strong>Extract the lens architecture as shared substrate; no twin skill yet.</strong> Solution shaping is <em>fragmented</em> across <code>/ideate</code> + <code>/requirements</code> + <code>/grill</code> + <code>/ripple</code> — not absent like the problem gap. Reuse the PATTERN later inside those if dogfooding proves a real gap; do not duplicate the machinery or add a 5th colliding front-end skill.</td></tr>
-      <tr><td>D8</td><td>Pipeline placement</td><td><strong><code>/shape</code> becomes the gated Phase-1 front of <code>/feature-sdlc</code></strong> (before <code>/ideate</code> + <code>/requirements</code>). <code>/ideate</code> becomes the solution-exploration step and <strong>consumes <code>/shape</code>'s HMW+JTBD frame</strong> instead of re-deriving it.</td></tr>
+      <tr><td>D8</td><td>Pipeline placement</td><td><strong><code>/shape</code> becomes the gated Phase-1 front of <code>/feature-sdlc</code></strong> (before <code>/ideate</code> + <code>/requirements</code>). <code>/ideate</code> becomes the solution-exploration step and <strong>consumes <code>/shape</code>'s HMW+JTBD frame</strong> instead of re-deriving it. <strong>Additive + version-gated</strong> (no breaking change): the phase is inserted additively and the state <code>schema_version</code> bumps; resume states lacking the phase skip it, so in-flight worktrees / existing epics keep the old order.</td></tr>
       <tr><td>D9</td><td>Gating posture</td><td><strong>Tier 1 → auto-skip. Tier 2 → mandatory. Tier 3 / new-bet → mandatory.</strong> Always available standalone (like <code>/grill</code>, <code>/ripple</code>). The context classifier from D5 also feeds this gate.</td></tr>
+      <tr><td>D10</td><td>Non-interactive degradation (W14 contract)</td><td><code>/shape</code> is fundamentally interactive, so under <code>--non-interactive</code> the mandatory Tier-2/3 gate <strong>does not deadlock and does not hard-refuse.</strong> It runs an <strong>autonomous best-effort shaping</strong>: parallel lens subagents draft each applicable lens's disposition from seed + workstream + research, a <strong>reviewer subagent applies seasoned-leader judgement</strong> to converge the framing and run the ceiling-breaker, and the brief is written with assumptions recorded and unresolved items logged as <strong>Open questions</strong>. Escalates to an explicit prompt <strong>only</strong> for a <em>major</em> blocking gap (expected rare); else assume-or-open-question and proceed. This is the canonical non-interactive path, not a skip.</td></tr>
     </tbody>
   </table>
 </section>
@@ -1127,6 +1128,18 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
       <tr><td><strong>6. Constraints &amp; dependencies</strong></td><td>Hard constraints that <em>shape</em> the problem (legal, brand, a team you depend on, a deadline). Who else must care for this to matter?</td><td>Surfaced when signals appear; not asked reflexively.</td></tr>
     </tbody>
   </table>
+  <p><strong>Downshift matrix (all four context buckets).</strong> The "applies as floor when…" column is the per-lens rule; this is the full matrix the context gate applies — <code>F</code> = full floor, <code>↓</code> = downshifted (lightweight one-liner), <code>N/A</code> = drop unless a signal forces it, <code>sig</code> = surfaced only on a signal:</p>
+  <table>
+    <thead><tr><th>Lens</th><th>side-project</th><th>feature-in-product</th><th>new-bet</th><th>internal-tool</th></tr></thead>
+    <tbody>
+      <tr><td>1 Customer &amp; pain</td><td>F (user = often you)</td><td>F</td><td>F (at depth)</td><td>F (the internal user)</td></tr>
+      <tr><td>2 Framing &amp; hypothesis</td><td>F</td><td>F</td><td>F</td><td>F</td></tr>
+      <tr><td>3 Success &amp; guardrails</td><td>↓ ("good enough?")</td><td>F</td><td>F (at depth)</td><td>↓ (adoption-only)</td></tr>
+      <tr><td>4 Strategy &amp; fit</td><td>N/A</td><td>F</td><td>F (at depth)</td><td>↓ ("worth the team's time?")</td></tr>
+      <tr><td>5 Risks/urgency/reversibility</td><td>↓ (light)</td><td>F</td><td>F (at depth)</td><td>↓</td></tr>
+      <tr><td>6 Constraints &amp; dependencies</td><td>sig</td><td>sig</td><td>F (at depth)</td><td>F (often dependency-heavy)</td></tr>
+    </tbody>
+  </table>
 </section>
 
 <section id="lens-ledger">
@@ -1134,11 +1147,13 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   <p>Extracted to shared substrate <code>_shared/lens-ledger.md</code> (so a future solution deck can adopt it without duplicating machinery, per D7). Three mechanisms:</p>
   <ol>
     <li><strong>Floor = disposition, not interrogation.</strong> Terminal state requires every <em>applicable</em> lens in one of four states — <strong>Answered / Parked (out-of-scope, with reason) / Open question / N/A-for-context</strong>. "Answered" often comes from what the user already said or from research, not a fresh question. (Reuses the repo's <code>findings-dispositions</code> discipline.) → makes it a floor without making it an interrogation.</li>
-    <li><strong>Ceiling-breaker = mandatory meta-probe.</strong> Before CONVERGE, the model (acting as the seasoned leader) MUST surface ≥1 problem-specific probe <em>not</em> in the deck and justify why it matters here. Plus an <strong>adaptive-lens rule</strong>: treat the deck as the starting hand; spin up a problem-specific lens when signals appear (regulatory, ethical, technical-feasibility-as-constraint, network-effects, hard dependency). → structurally forces beyond the list every run. (Mirrors <code>/critical-thinking</code>, which grades on reasoning moves.)</li>
+    <li><strong>Ceiling-breaker = mandatory meta-probe.</strong> Before CONVERGE, the model (acting as the seasoned leader) MUST surface ≥1 problem-specific probe <em>not</em> in the deck and justify why it matters here. Plus an <strong>adaptive-lens rule</strong>: treat the deck as the starting hand; spin up a problem-specific lens when signals appear (regulatory, ethical, technical-feasibility-as-constraint, network-effects, hard dependency). → structurally forces beyond the list every run. (Mirrors <code>/critical-thinking</code>, which grades on reasoning moves.) <strong>Escape (anti–manufactured-probe):</strong> if no genuine off-deck dimension exists, record an explicit one-line attestation — <em>"deck sufficient for this problem because …"</em> — rather than fabricate a low-value probe (forcing a hollow question is the checklist anti-pattern inverted). The eval accepts a real off-deck probe <strong>or</strong> a justified sufficiency attestation.</li>
     <li><strong>Context gate = the side-project nuance.</strong> Classify context first; each lens's applicability test downshifts or drops it. → a one-off never gets grilled on strategic positioning; a new bet gets all six at depth. (Same shape as <code>/requirements</code>' tiering, applied to <em>problem context</em> instead of <em>scope</em>.)</li>
   </ol>
   <p><strong>Transparency forcing-function:</strong> the problem-brief artifact renders the <strong>full lens ledger</strong> — every lens with its disposition, including N/A and Parked-with-reason — so a missing dimension is <em>visible</em> rather than silently absent.</p>
-  <p><strong>skill-eval delta:</strong> add one check that rewards surfacing ≥1 off-deck dimension — the eval enforces the ceiling-breaker, not just the floor.</p>
+  <p><strong>Non-interactive path (D10):</strong> under <code>--non-interactive</code> the same three mechanisms run <strong>autonomously</strong> — parallel lens subagents draft each applicable lens's disposition, a reviewer subagent applies seasoned-leader judgement to converge + run the ceiling-breaker, and unresolved lenses land as <strong>Open question</strong> dispositions (not skipped). Only a <em>major</em> blocking gap escalates to a prompt. Same artifact; the difference is who fills it.</p>
+  <p><strong>Operational problem/solution boundary (makes anti-pattern #1 enforceable).</strong> A statement is <strong>solution-shaped</strong> if it names a <em>mechanism, feature, or implementation</em> ("add a button that…", "use a queue"); <strong>problem-shaped</strong> if it names a <em>felt outcome + who + when</em> ("user X can't accomplish Y at moment Z, and it costs them W"). The terminal brief must contain only problem-shaped statements; REFRAME framings are admissible only as <em>lenses on the problem</em>, never solution commitments.</p>
+  <p><strong>skill-eval deltas:</strong> (1) a check that rewards surfacing ≥1 off-deck dimension <strong>or</strong> a justified sufficiency attestation — enforces the ceiling-breaker, not just the floor; (2) a check that fails the brief if any terminal problem statement is solution-shaped per the operational test above.</p>
 </section>
 
 <section id="layout">
@@ -1153,11 +1168,10 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 <section id="epic-scope">
   <h2 id="epic-scope">Epic scope (multi-story)</h2>
-  <p>This spans 4 surfaces — it is an epic, not a single skill drop:</p>
+  <p>This spans 3 surfaces — it is an epic, not a single skill drop:</p>
   <ol>
-    <li><strong><code>/shape</code> skill</strong> — new SKILL.md + lens-deck reference + artifact template + context-gate persistence + comment-resolver shim/tests + non-interactive block.</li>
-    <li><strong><code>_shared/lens-ledger.md</code> substrate</strong> — the floor/ceiling/context-gate mechanism (cross-plugin sync follows <code>sync-shared.sh</code> rules; place in pmos-toolkit canonical home).</li>
-    <li><strong><code>/feature-sdlc</code> rewiring</strong> — <code>/shape</code> as gated Phase-1 front (Tier 1 skip, Tier 2 + Tier 3 mandatory); update the pipeline diagram + gate table.</li>
+    <li><strong><code>/shape</code> skill + <code>_shared/lens-ledger.md</code> substrate</strong> — new SKILL.md + lens-deck reference + artifact template + context-gate persistence + comment-resolver shim/tests + non-interactive block, <strong>and</strong> the <code>_shared/lens-ledger.md</code> mechanism file in the same surface. <em>One surface owns both so the file and its cite ship together — closing the dangling-cite bootstrap gap.</em> Both live in pmos-toolkit's canonical home, so the cross-plugin <code>sync-shared.sh</code> bootstrap gap does not apply here.</li>
+    <li><strong><code>/feature-sdlc</code> rewiring</strong> — <code>/shape</code> as gated Phase-1 front (Tier 1 skip, Tier 2 + Tier 3 mandatory); update the pipeline diagram + gate table. <strong>Additive + version-gated</strong>: new phase inserted additively, state <code>schema_version</code> bumped, resume states predating it skip it — no migration.</li>
     <li><strong><code>/ideate</code> frame-dedup</strong> — <code>/ideate</code>'s Frame phase consumes <code>/shape</code>'s HMW+JTBD brief when present instead of re-deriving.</li>
   </ol>
   <p><strong>Explicitly deferred:</strong> a symmetric solution-shaping skill (per D7). The lens-ledger substrate is built to be reused there <em>if</em> dogfooding shows <code>/ideate</code>+<code>/requirements</code>+<code>/grill</code>+<code>/ripple</code> are genuinely insufficient.</p>
@@ -1165,7 +1179,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 <section id="naming">
   <h2 id="naming">Naming</h2>
-  <p>Candidates: <code>/shape</code> (primary) · <code>/frame</code> · <code>/unpack</code>. Not load-bearing; resolve during define. Brief uses <code>/shape</code> throughout.</p>
+  <p>Candidates: <code>/shape</code> (primary) · <code>/frame</code> · <code>/unpack</code>. Resolved to <strong><code>/shape</code></strong> during define. <strong>Known tension (grill nit):</strong> "shape" overlaps Basecamp's <em>Shape Up</em>, which connotes solution-shaping — the opposite of this skill's problem-only charter (D2). Accepted: the charter line, anti-pattern #1, and the operational boundary (§5) make the problem-only intent explicit in-skill, and <code>/shape</code> reads better as a verb for the cadence than <code>/frame</code>/<code>/unpack</code>. Recorded so the choice is deliberate.</p>
 </section>
 
 <section id="anti-patterns">
@@ -2218,7 +2232,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 </script>
   <!-- pmos-comments:start -->
 <script id="pmos-comments" type="application/json">
-{"schema":1,"version":0,"generated_at":"2026-06-16T16:47:55.996Z","threads":[]}
+{"schema":1,"version":0,"generated_at":"2026-06-16T17:02:00.044Z","threads":[]}
 </script>
 <!-- pmos-comments:end -->
 </body>

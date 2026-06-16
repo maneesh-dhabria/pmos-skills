@@ -44,11 +44,20 @@ Full decision log (D1–D9) + sharpened lens deck in the design brief
 (`docs/design-briefs/2026-06-16-shape-skill-design.md`), adopted verbatim as the epic
 `design_doc:` (02_design.html).
 
-Spans 4 surfaces (story-split carved during define):
-1. `/shape` skill + `_shared/lens-ledger.md` substrate.
+Spans 3 surfaces (story-split carved during define):
+1. `/shape` skill **+ `_shared/lens-ledger.md` substrate in the same surface** (so the cite and the
+   file ship together — closes the dangling-cite bootstrap gap).
 2. `/feature-sdlc` Phase-1 front-gate rewiring — `/shape` becomes the gated front (Tier 1 skip,
-   **Tier 2 + Tier 3 mandatory**); `/ideate` becomes the solution-exploration step.
+   **Tier 2 + Tier 3 mandatory**), **additive + version-gated** (resume states predating the phase
+   skip it; no migration); `/ideate` becomes the solution-exploration step.
 3. `/ideate` frame-dedup — consume `/shape`'s HMW+JTBD frame instead of re-deriving.
+
+Grill (define-loop) resolved 3 blockers + 6 should-fix/nit into the design seed: surface ownership
+merged (1+2→1), D5 persistence sharpened (classification persists, self-healing correction), **D10
+non-interactive degradation** added (autonomous lens subagents + reviewer-judgement convergence,
+escalate only on major gaps), D8 made additive/version-gated, full 4-bucket downshift matrix,
+ceiling-breaker sufficiency-attestation escape, operational problem/solution boundary + 2 skill-eval
+deltas, and the `/shape`-vs-Shape-Up naming tension recorded.
 
 Explicitly deferred: a symmetric solution-shaping twin skill (D7) — reuse the lens-ledger
 pattern inside existing skills later if dogfooding proves a gap.

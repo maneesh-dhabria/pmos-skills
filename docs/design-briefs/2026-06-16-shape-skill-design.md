@@ -33,11 +33,12 @@ The user's own request was the meta-example: fuzzy sense → probed to decompose
 | D2 | Terminal scope | **Problem-only, hard handoff.** Solutions explicitly out of scope. This discipline is the reason to exist (vs `/ideate`). |
 | D3 | Questioning cadence | **Hybrid:** `/grill`'s one-question-per-turn rhythm, seeded by `/ideate`'s HMW+JTBD frame. Recommended answers ONLY on convergence moves; open probing (no recommended answer) on exploration moves (laddering, reframing) so the skill doesn't think *for* the user. Divergent early, convergent late. |
 | D4 | Output & handoff | **Single commentable problem-brief HTML artifact** rendering the full lens ledger → handoff suggestions to `/requirements`, `/ideate`, `/backlog`, optional `/ripple-effects`. |
-| D5 | Context-gate persistence | Read workstream → else `.pmos/settings.yaml` → confirm-once only when absent / doc-seeded / conflicting → persist. Never re-ask per run. |
+| D5 | Context-gate persistence | Read workstream → else `.pmos/settings.yaml` → confirm-once only when absent / doc-seeded / conflicting → persist. Never re-ask per run. **What persists = the *classification* (side-project / feature / new-bet / internal), not the answers.** Precedence: workstream signal > `settings.yaml`. A "conflict" = a fresh signal that contradicts the persisted classification (e.g. workstream now says new-bet but settings say side-project) → re-confirm once and overwrite. Correction path: a later run whose signal conflicts triggers the same confirm-once, so a wrong classification self-heals on the next divergent run. |
 | D6 | `/ripple-effects` in problem shaping | **Fold the spirit, not the machinery.** Lens 5 absorbs a lightweight "and then what" at problem altitude; REFRAME adds ripple-on-the-framing; full `/ripple-effects` is a handoff suggestion. Keeps ripple orthogonal per its charter. |
 | D7 | Solution-shaping (the symmetric question) | **Extract the lens architecture as shared substrate; no twin skill yet.** Solution shaping is *fragmented* across `/ideate` + `/requirements` + `/grill` + `/ripple` — not absent like the problem gap. Reuse the PATTERN later inside those if dogfooding proves a real gap; do not duplicate the machinery or add a 5th colliding front-end skill. |
-| D8 | Pipeline placement | **`/shape` becomes the gated Phase-1 front of `/feature-sdlc`** (before `/ideate` + `/requirements`). `/ideate` becomes the solution-exploration step and **consumes `/shape`'s HMW+JTBD frame** instead of re-deriving it. |
+| D8 | Pipeline placement | **`/shape` becomes the gated Phase-1 front of `/feature-sdlc`** (before `/ideate` + `/requirements`). `/ideate` becomes the solution-exploration step and **consumes `/shape`'s HMW+JTBD frame** instead of re-deriving it. **Additive + version-gated** (no breaking change): the phase is inserted additively and the state `schema_version` bumps; resume states lacking the phase skip it, so in-flight worktrees / existing epics keep the old order. |
 | D9 | Gating posture | **Tier 1 → auto-skip. Tier 2 → mandatory. Tier 3 / new-bet → mandatory.** Always available standalone (like `/grill`, `/ripple`). The context classifier from D5 also feeds this gate. |
+| D10 | Non-interactive degradation (the W14 contract) | `/shape` is fundamentally interactive (one-question-per-turn), so under `--non-interactive` the mandatory Tier-2/3 gate **does not deadlock and does not hard-refuse.** Instead `/shape` runs an **autonomous best-effort shaping**: parallel lens subagents draft each applicable lens's disposition from the seed + workstream + research, a **reviewer subagent applies seasoned-leader judgement** to converge the framing and run the ceiling-breaker, and the brief is written with assumptions recorded and unresolved items logged as **Open questions**. It escalates to an explicit prompt **only** for a *major* gap that genuinely blocks a defensible problem statement (expected rare); everything else becomes an assumption-or-open-question and the pipeline proceeds. This is the canonical non-interactive path, not a skip. |
 
 ---
 
@@ -80,6 +81,17 @@ Lives in `reference/problem-lenses.md`. Six lenses, each tagged with an applicab
 | **5. Risks, urgency & reversibility** | Biggest risk in solving it. Cost of *not* solving it now — urgency, cost of delay (the "and then what" of inaction). One-way or two-way door / cost of being wrong? | Always — depth scales with stakes. |
 | **6. Constraints & dependencies** | Hard constraints that *shape* the problem (legal, brand, a team you depend on, a deadline). Who else must care for this to matter? | Surfaced when signals appear; not asked reflexively. |
 
+**Downshift matrix (all four context buckets).** The "applies as floor when…" column above is the per-lens rule; this is the full matrix the context gate applies — `F` = full floor, `↓` = downshifted (lightweight one-liner), `N/A` = drop unless a signal forces it, `sig` = surfaced only on a signal:
+
+| Lens | side-project | feature-in-product | new-bet | internal-tool |
+|---|---|---|---|---|
+| 1 Customer & pain | F (user = often you) | F | F (at depth) | F (the internal user) |
+| 2 Framing & hypothesis | F | F | F | F |
+| 3 Success & guardrails | ↓ ("good enough?") | F | F (at depth) | ↓ (adoption-only) |
+| 4 Strategy & fit | N/A | F | F (at depth) | ↓ ("worth the team's time?") |
+| 5 Risks/urgency/reversibility | ↓ (light) | F | F (at depth) | ↓ |
+| 6 Constraints & dependencies | sig | sig | F (at depth) | F (often dependency-heavy) |
+
 ---
 
 ## 5. Floor-not-ceiling architecture — the "lens ledger"
@@ -88,13 +100,17 @@ Extracted to shared substrate **`_shared/lens-ledger.md`** (so a future solution
 
 1. **Floor = disposition, not interrogation.** Terminal state requires every *applicable* lens in one of four states — **Answered / Parked (out-of-scope, with reason) / Open question / N/A-for-context**. "Answered" often comes from what the user already said or from research, not a fresh question. (Reuses the repo's `findings-dispositions` discipline.) → makes it a floor without making it an interrogation.
 
-2. **Ceiling-breaker = mandatory meta-probe.** Before CONVERGE, the model (acting as the seasoned leader) MUST surface ≥1 problem-specific probe *not* in the deck and justify why it matters here. Plus an **adaptive-lens rule**: treat the deck as the starting hand; spin up a problem-specific lens when signals appear (regulatory, ethical, technical-feasibility-as-constraint, network-effects, hard dependency). → structurally forces beyond the list every run. (Mirrors `/critical-thinking`, which grades on reasoning moves.)
+2. **Ceiling-breaker = mandatory meta-probe.** Before CONVERGE, the model (acting as the seasoned leader) MUST surface ≥1 problem-specific probe *not* in the deck and justify why it matters here. Plus an **adaptive-lens rule**: treat the deck as the starting hand; spin up a problem-specific lens when signals appear (regulatory, ethical, technical-feasibility-as-constraint, network-effects, hard dependency). → structurally forces beyond the list every run. (Mirrors `/critical-thinking`, which grades on reasoning moves.) **Escape (anti–manufactured-probe):** if no genuine off-deck dimension exists, the model may instead record an explicit one-line attestation — *"deck sufficient for this problem because …"* — rather than fabricate a low-value probe. Forcing a hollow question would itself be the checklist anti-pattern, inverted; the eval accepts either a real off-deck probe **or** a justified sufficiency attestation.
 
 3. **Context gate = the side-project nuance.** Classify context first; each lens's applicability test downshifts or drops it. → a one-off never gets grilled on strategic positioning; a new bet gets all six at depth. (Same shape as `/requirements`' tiering, applied to *problem context* instead of *scope*.)
 
 **Transparency forcing-function:** the problem-brief artifact renders the **full lens ledger** — every lens with its disposition, including N/A and Parked-with-reason — so a missing dimension is *visible* rather than silently absent.
 
-**skill-eval delta:** add one check that rewards surfacing ≥1 off-deck dimension — the eval enforces the ceiling-breaker, not just the floor.
+**Non-interactive path (D10):** under `--non-interactive` the same three mechanisms run **autonomously** — parallel lens subagents draft each applicable lens's disposition, a reviewer subagent applies seasoned-leader judgement to converge + run the ceiling-breaker, and unresolved lenses land as **Open question** dispositions (not skipped). Only a *major* blocking gap escalates to a prompt. The lens ledger is the same artifact; the difference is who fills it.
+
+**Operational problem/solution boundary (makes anti-pattern #1 enforceable).** "Shaping the solution" is not a vibe — it's testable: a statement is **solution-shaped** if it names a *mechanism, feature, or implementation* ("add a button that…", "use a queue"); it is **problem-shaped** if it names a *felt outcome + who + when* ("user X can't accomplish Y at moment Z, and it costs them W"). `/shape`'s terminal brief must contain only problem-shaped statements; framings in REFRAME are admissible only as *lenses on the problem*, not solution commitments.
+
+**skill-eval deltas:** (1) one check that rewards surfacing ≥1 off-deck dimension **or** a justified sufficiency attestation — enforces the ceiling-breaker, not just the floor; (2) one check that fails the brief if any terminal problem statement is solution-shaped per the operational test above.
 
 ---
 
@@ -109,12 +125,11 @@ Extracted to shared substrate **`_shared/lens-ledger.md`** (so a future solution
 
 ## 7. Epic scope (multi-story)
 
-This spans 4 surfaces — it is an epic, not a single skill drop:
+This spans 3 surfaces — it is an epic, not a single skill drop:
 
-1. **`/shape` skill** — new SKILL.md + lens-deck reference + artifact template + context-gate persistence + comment-resolver shim/tests + non-interactive block.
-2. **`_shared/lens-ledger.md` substrate** — the floor/ceiling/context-gate mechanism (cross-plugin sync follows `sync-shared.sh` rules; place in pmos-toolkit canonical home).
-3. **`/feature-sdlc` rewiring** — `/shape` as gated Phase-1 front (Tier 1 skip, Tier 2 + Tier 3 mandatory); update the pipeline diagram + gate table.
-4. **`/ideate` frame-dedup** — `/ideate`'s Frame phase consumes `/shape`'s HMW+JTBD brief when present instead of re-deriving.
+1. **`/shape` skill + `_shared/lens-ledger.md` substrate** — new SKILL.md + lens-deck reference + artifact template + context-gate persistence + comment-resolver shim/tests + non-interactive block, **and** the `_shared/lens-ledger.md` mechanism file in the same surface. *One surface owns both so the file and its cite ship together — this closes the dangling-cite bootstrap gap (no consumer references a substrate file that doesn't yet exist).* Both live in pmos-toolkit's canonical home, so the cross-plugin `sync-shared.sh` bootstrap gap does not apply here; cross-plugin sync (if a consumer plugin ever needs it) follows `sync-shared.sh` rules.
+2. **`/feature-sdlc` rewiring** — `/shape` as gated Phase-1 front (Tier 1 skip, Tier 2 + Tier 3 mandatory); update the pipeline diagram + gate table. **Additive + version-gated:** the new phase is inserted additively and the state `schema_version` is bumped — resume states that predate it skip it (back-compat by absence), so in-flight worktrees and already-defined epics are unaffected; only fresh runs get the gate. No migration step.
+3. **`/ideate` frame-dedup** — `/ideate`'s Frame phase consumes `/shape`'s HMW+JTBD brief when present instead of re-deriving.
 
 **Explicitly deferred:** a symmetric solution-shaping skill (per D7). The lens-ledger substrate is built to be reused there *if* dogfooding shows `/ideate`+`/requirements`+`/grill`+`/ripple` are genuinely insufficient.
 
@@ -122,7 +137,7 @@ This spans 4 surfaces — it is an epic, not a single skill drop:
 
 ## 8. Naming
 
-Candidates: `/shape` (primary) · `/frame` · `/unpack`. Not load-bearing; resolve during define. Brief uses `/shape` throughout.
+Candidates: `/shape` (primary) · `/frame` · `/unpack`. Resolved to **`/shape`** during define. **Known tension (grill nit):** "shape" overlaps Basecamp's *Shape Up*, which connotes solution-shaping — the opposite of this skill's problem-only charter (D2). Accepted: the charter line, anti-pattern #1, and the operational boundary (§5) make the problem-only intent explicit in-skill, and `/shape` reads better as a verb for the cadence than `/frame`/`/unpack`. Recorded so the naming choice is deliberate, not accidental.
 
 ---
 
