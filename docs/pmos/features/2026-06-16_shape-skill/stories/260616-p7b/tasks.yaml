@@ -1,0 +1,179 @@
+schema_version: 1
+story: 260616-p7b
+epic: 260616-bq9
+route: skill
+plugin: pmos-toolkit
+design: ../../02_design.html
+# Foundational story: ONE new skill (/shape) + ONE new shared substrate file (_shared/lens-ledger.md),
+# shipped in the SAME surface so the cite and the file land together (closes the dangling-cite bootstrap
+# gap; both live in pmos-toolkit's canonical home so the cross-plugin sync-shared.sh gap does not apply).
+# All-new files under plugins/pmos-toolkit/skills/shape/ + the one substrate file. NO release-prereq tasks
+# (changelog, learnings header, version bump) — /complete-dev (Loop 3) is the sole writer of those, riding
+# the epic 260616-bq9. The load-bearing design is the floor-not-ceiling lens ledger; /shape is an
+# instruction/prompt skill (no engine to port), so its dogfood (TN-2) actually RUNS /shape on a fuzzy seed
+# and validates the produced problem-brief (full lens ledger rendered, ZERO solution content, ceiling-
+# breaker satisfied), plus exercises the --non-interactive autonomous path (D10). Tasks form a chain:
+# substrate -> deck -> template -> SKILL.md -> resolver/coverage -> brief-validation -> dogfood/eval/lints.
+tasks:
+  - id: T1
+    title: "Study reference: /grill + /ideate + /requirements cadence/framing, _shared substrate + findings-dispositions, skill-patterns §A–§L, the design doc"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Read /grill SKILL.md (the one-question-per-turn decision-tree cadence to mirror), /ideate SKILL.md
+      (the HMW+JTBD Frame phase /shape seeds FRAME from, and that 260616-4pg will later make consume
+      /shape's brief), /requirements SKILL.md (the tiering shape the context gate mirrors + the handoff
+      contract). Read skills/_shared/findings-dispositions.md (the Answered/Parked/Open/N-A discipline the
+      floor reuses), _shared/non-interactive.md (the canonical inline block + the autonomous-degradation
+      pattern), _shared/reviewer-protocol.md (the reviewer-subagent input contract the D10 reviewer step
+      reuses), and an existing prompt-skill SKILL.md for structure. Re-read the design doc 02_design.html
+      (D1–D10, the spine, the 6-lens deck + 4-bucket downshift matrix, the three lens-ledger mechanisms,
+      the operational problem/solution boundary, the two skill-eval deltas). Produce no files — capture the
+      mechanism surface (floor-disposition gate · mandatory ceiling-breaker + sufficiency-attestation
+      escape · context-gate classifier + downshift matrix · D10 autonomous path) and what belongs in the
+      substrate vs the deck vs SKILL.md (one fact, one home — §K).
+    verify: >
+      The three mechanisms, the spine, the deck/downshift split, the D10 autonomous path, the operational
+      problem/solution boundary, and the substrate-vs-deck-vs-SKILL boundary are all enumerated before any
+      authoring; cadence + handoff + NI patterns understood from the cited skills.
+
+  - id: T2
+    title: "_shared/lens-ledger.md — the reusable floor/ceiling/context-gate mechanism (canonical home)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author plugins/pmos-toolkit/skills/_shared/lens-ledger.md as a skill-agnostic substrate (names no
+      skill): (1) FLOOR = disposition not interrogation — every applicable lens in Answered/Parked(reason)/
+      Open/N-A; "Answered" may come from prior context or research, not a fresh question (cites
+      findings-dispositions); (2) CEILING-BREAKER = mandatory meta-probe before convergence: surface ≥1
+      off-deck problem-specific probe with justification, OR record an explicit one-line sufficiency
+      attestation ("deck sufficient because …"); plus the adaptive-lens rule (spin up a lens on
+      regulatory/ethical/feasibility/network-effects/dependency signals); (3) CONTEXT GATE = classify
+      context first, then apply a downshift map; persistence = the CLASSIFICATION persists (not answers),
+      workstream>settings precedence, confirm-once on absent/doc-seeded/conflicting, self-healing on a
+      later conflicting signal. State the AUTONOMOUS (non-interactive) variant of all three: parallel lens
+      drafters + a reviewer-judgement convergence pass, unresolved → Open, escalate only on a major gap.
+      The substrate defines the MECHANISM and the ledger output shape; the concrete lenses live in the
+      consumer's deck (§K — one fact, one home).
+    verify: >
+      lens-ledger.md exists at the canonical pmos-toolkit _shared path, names no skill, defines all three
+      mechanisms + the sufficiency-attestation escape + the autonomous variant + the persistence model
+      (classification persists, precedence, self-heal); cites findings-dispositions rather than restating
+      it.
+
+  - id: T3
+    title: "shape/reference/problem-lenses.md — the 6-lens deck (the floor) + the full 4-bucket downshift matrix"
+    ac: [AC1, AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Author plugins/pmos-toolkit/skills/shape/reference/problem-lenses.md: the six lenses with their
+      sharpened probes and per-lens applicability test (1 Customer & pain, 2 Framing & hypothesis
+      [falsifiable], 3 Success & guardrails [counter-metric], 4 Strategy & fit, 5 Risks/urgency/
+      reversibility [absorbs the lightweight "and then what" of inaction per D6], 6 Constraints &
+      dependencies), then the full context × lens downshift matrix (side-project / feature-in-product /
+      new-bet / internal-tool × the 6 lenses; F / ↓ / N/A / sig per the design). The deck is the FLOOR, not
+      a script; it is the concrete content the mechanism in lens-ledger.md operates over.
+    verify: >
+      All 6 lenses with probes + applicability tests present; the full 4-bucket × 6-lens downshift matrix
+      present and matching the design; framed explicitly as the floor (deck), not a checklist/ceiling.
+
+  - id: T4
+    title: "shape/reference/artifact-template.html — the commentable problem-brief template (full lens ledger)"
+    ac: [AC3]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Author plugins/pmos-toolkit/skills/shape/reference/artifact-template.html as the problem-brief
+      template rendering through the html-authoring substrate (inline style, pmos-comments block, comments
+      overlay JS, meta pmos:skill=shape per the inline-comments contract). Sections: context/classification,
+      HMW + JTBD + felt-problem, abstraction-ladder + decomposition, competing framings + chosen framing,
+      the sharpest 1–2 problem statement(s) with who/when/why-now, the FULL LENS LEDGER table (every lens
+      with its disposition incl. N/A + Parked-with-reason), the ceiling-breaker outcome (off-deck probe or
+      sufficiency attestation), Open questions, and HANDOFF suggestions (/requirements · /ideate · /backlog
+      · optional /ripple-effects). The template must be capable of holding ONLY problem-shaped statements
+      (no solution slots).
+    verify: >
+      Template renders via the html-authoring substrate with the comments overlay + meta pmos:skill=shape;
+      contains the full-lens-ledger table (incl. N/A + Parked), the ceiling-breaker outcome slot, open
+      questions, and handoff suggestions; has no solution-content slot.
+
+  - id: T5
+    title: "shape/SKILL.md — mechanisms only, cites the deck + substrate; spine; /grill cadence; D10 autonomous path; inline NI block"
+    ac: [AC1, AC5]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/shape/SKILL.md. Frontmatter: name shape (matches dir),
+      user-invocable true, triggering description ("shape a problem", "/shape", "help me figure out the
+      real problem", "decompose this idea", "frame this problem before building"), argument-hint
+      "<fuzzy thought>", allowed-tools per need (Read, Write, AskUserQuestion, Task for the D10 subagents).
+      Body carries ONLY the mechanisms (cites _shared/lens-ledger.md for floor/ceiling/context-gate and
+      reference/problem-lenses.md as "the floor" — §K, no restating) and the spine CONTEXT-GATE → FRAME →
+      LADDER → DECOMPOSE → REFRAME → CONVERGE → WRITE → HANDOFF. Interaction: /grill cadence, one
+      AskUserQuestion per turn, walk by leverage, never batch; recommended answers ONLY on convergence
+      moves, open probing on exploration moves (D3). Terminal discipline (D2 + the operational boundary):
+      produce a shaped PROBLEM, never a solution. The mandatory ceiling-breaker fires before CONVERGE with
+      the sufficiency-attestation escape. The WRITE step emits the artifact-template.html problem-brief
+      (full lens ledger). The non-interactive section implements D10: parallel lens subagents (Task) draft
+      dispositions, a reviewer subagent applies seasoned-leader judgement to converge + run the ceiling-
+      breaker, unresolved → Open questions, escalate to a prompt only on a MAJOR blocking gap. Inline the
+      canonical NI block byte-identical from skills/_shared/non-interactive.md. Mark every AskUserQuestion
+      with a (Recommended) option or an adjacent defer-only tag. Conform to skill-patterns.md §A–§L + the
+      canonical skill path; integer top-level phases with stable {#kebab-slug} anchors (§J).
+    verify: >
+      name: shape matches dir; body cites lens-ledger.md + problem-lenses.md without restating them; the
+      spine + /grill cadence + adaptive answer rule + terminal problem-only discipline + mandatory ceiling-
+      breaker(+escape) + D10 autonomous path all present; NI block inlined byte-identical; every
+      AskUserQuestion has (Recommended) or a defer-only tag; §J phase anchors stable.
+
+  - id: T6
+    title: "Comment-resolver shim + tests + comments-coverage; /shape's brief-validation checks (off-deck/attestation + no-solution)"
+    ac: [AC3, AC5]
+    deps: [T5]
+    parallel: false
+    detail: >
+      Add /shape's apply-edit-at-anchor resolver shim + tests so /comments resolve routes back to /shape
+      (id-first + ≥40-char substring anchor resolver per the inline-comments contract), and ensure the
+      emit passes scripts/check-comments-coverage.sh (the /verify Phase-7 hard gate: contract tests, emit
+      reference, resolver integration, anchor calibration). Implement the two design §5 brief-validation
+      checks as /shape-SPECIFIC validation on the PRODUCED problem-brief (NOT additions to the generic
+      skill-eval.md rubric, which would wrongly fail other skills): (1) reward/require ≥1 off-deck probe OR
+      a justified sufficiency attestation; (2) FAIL if any terminal problem statement is solution-shaped
+      per the operational test (names a mechanism/feature/implementation) rather than problem-shaped (felt
+      outcome + who + when). House these as a small checker the dogfood (T7) runs against a generated brief.
+    verify: >
+      Resolver shim + tests present and routed; check-comments-coverage.sh green for the /shape emit; the
+      two brief-validation checks exist as /shape-specific validation (not in generic skill-eval.md) and
+      flag a solution-shaped statement + the missing-ceiling-breaker case on fixtures.
+
+  - id: T7
+    title: "TN: Dogfood (run /shape for real) + autonomous-NI dogfood + skill-eval + lints + comments-coverage gate"
+    ac: [AC1, AC3, AC5]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Load-bearing dogfood (per _shared/dogfooding.md). INTERACTIVE path: run /shape on a genuinely fuzzy
+      seed (e.g. a half-baked feature idea) through the full spine to a written problem-brief; ASSERT the
+      brief renders the FULL lens ledger (every applicable lens dispositioned, incl. N/A + Parked-with-
+      reason), the ceiling-breaker is satisfied (≥1 off-deck probe OR a justified sufficiency attestation),
+      and there is ZERO solution content (run the T6 no-solution check — must pass). Confirm the context
+      gate downshifts correctly on a side-project seed (lens 4 N/A, lenses 3/5 ↓). AUTONOMOUS (D10) path:
+      run the same seed under --non-interactive and ASSERT it does NOT deadlock and does NOT hard-refuse —
+      parallel lens subagents + reviewer-judgement convergence produce a brief with assumptions recorded
+      and unresolved lenses as Open questions; no prompt fires absent a major gap. Then an independent BLIND
+      judge (fresh subagent) reads the produced brief and rates: is the problem genuinely sharper than the
+      seed? is it problem-shaped (not a smuggled solution)? is the lens coverage honest (no silently-absent
+      dimension)? — yes/no + enumerated gaps, no edits. OBJECTIVE gates: skill-eval-check.sh against the
+      shape skill dir ([D] all-pass, [J] ≥ floor); the 4 repo lints (lint-flags-vs-hints, lint-phase-refs,
+      lint-non-interactive-inline, audit-recommended) green; check-comments-coverage.sh green. Iterate gaps
+      → fix → re-run, cap 2, net-worse guard, then accept-residuals-and-surface. Record a Verdict line.
+      DO NOT write changelog/learnings/version — /complete-dev owns those at Loop 3.
+    verify: >
+      Verdict recorded; a real /shape run produced a problem-brief with the full lens ledger, a satisfied
+      ceiling-breaker, and zero solution content (no-solution check passed); the context gate downshifted on
+      a side-project seed; the --non-interactive autonomous path produced a brief without deadlock/refusal
+      (assumptions + Open questions present); blind judge ran; skill-eval [D] all-pass + [J] ≥ floor; all 4
+      lints + comments-coverage green; no release-prereq edits.

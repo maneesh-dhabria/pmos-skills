@@ -1,0 +1,56 @@
+[
+  {
+    "id": "problem",
+    "level": 2,
+    "title": "Problem this skill solves",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions (all confirmed with the user)",
+    "parent_id": null
+  },
+  {
+    "id": "skill-shape",
+    "level": 2,
+    "title": "Skill shape",
+    "parent_id": null
+  },
+  {
+    "id": "lens-deck",
+    "level": 2,
+    "title": "The lens deck (the floor)",
+    "parent_id": null
+  },
+  {
+    "id": "lens-ledger",
+    "level": 2,
+    "title": "Floor-not-ceiling architecture — the \"lens ledger\"",
+    "parent_id": null
+  },
+  {
+    "id": "layout",
+    "level": 2,
+    "title": "Where things physically live",
+    "parent_id": null
+  },
+  {
+    "id": "epic-scope",
+    "level": 2,
+    "title": "Epic scope (multi-story)",
+    "parent_id": null
+  },
+  {
+    "id": "naming",
+    "level": 2,
+    "title": "Naming",
+    "parent_id": null
+  },
+  {
+    "id": "anti-patterns",
+    "level": 2,
+    "title": "Anti-patterns (carry into the skill)",
+    "parent_id": null
+  }
+]

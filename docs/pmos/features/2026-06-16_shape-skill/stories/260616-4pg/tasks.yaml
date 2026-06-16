@@ -1,0 +1,56 @@
+schema_version: 1
+story: 260616-4pg
+epic: 260616-bq9
+route: skill
+plugin: pmos-toolkit
+design: ../../02_design.html
+# DEP: 260616-p7b (/shape's problem-brief must exist as the input to consume). Independent of 260616-xqm
+# (buildable in parallel once /shape lands). Single-file instruction edit to /ideate SKILL.md: its Frame
+# phase consumes a /shape HMW+JTBD problem-brief when present instead of re-deriving, with a clean
+# fall-back to deriving when absent (standalone usability preserved). NO release-prereq tasks — Loop 3.
+tasks:
+  - id: T1
+    title: "Study reference: /ideate Frame phase + /shape's problem-brief output contract"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Read /ideate SKILL.md's Frame phase (how it currently derives HMW + JTBD from scratch) and the
+      /shape artifact-template.html problem-brief (260616-p7b) to fix the exact fields /ideate should
+      read — HMW statement(s), JTBD, the chosen framing, and the sharpest problem statement(s). Capture the
+      detection signal (a /shape brief passed by the pipeline or discoverable in the feature folder) and
+      the precise adopt-vs-derive boundary so the change is a clean dedup, not a behavior fork.
+    verify: >
+      The /shape brief fields /ideate will consume + the detection signal + the adopt-vs-derive boundary
+      are enumerated before editing.
+
+  - id: T2
+    title: "/ideate Frame phase: consume /shape's frame when present; clean fall-back when absent"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/ideate/SKILL.md so the Frame phase: (a) when a /shape problem-brief
+      is present, ADOPTS its HMW + JTBD + chosen framing instead of re-deriving (no duplicated framing
+      work), proceeding directly to solution generation from the shaped problem; (b) when absent, falls
+      back to deriving the frame exactly as today (standalone usability preserved). Cite /shape's artifact
+      contract (§K — read the fields, do not restate /shape's job). Keep /ideate's solution-space charter
+      intact — it consumes the problem frame, it does not re-shape the problem.
+    verify: >
+      Frame phase adopts a present /shape frame (HMW+JTBD+chosen framing) without re-deriving; falls back
+      to deriving when absent; cites /shape's artifact contract; /ideate's solution-space charter unchanged.
+
+  - id: T3
+    title: "TN: Verify — dogfood adopt + fall-back paths; skill-eval on /ideate; lints"
+    ac: [AC1, AC2, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Load-bearing dogfood: (1) ADOPT path — with a /shape problem-brief present, run /ideate's Frame phase
+      and confirm it reuses the HMW+JTBD+chosen framing (no re-derivation) and moves to generation;
+      (2) FALL-BACK path — with no /shape brief, confirm /ideate derives the frame as today. OBJECTIVE:
+      skill-eval-check.sh against /ideate — [D] all-pass (accept PRE-EXISTING residuals vs HEAD^1), [J] ≥
+      floor; the 4 repo lints green. Record a Verdict line. NO release-prereq edits — Loop 3 owns those.
+    verify: >
+      Verdict recorded; adopt path reuses the /shape frame (no re-derive), fall-back path derives as today;
+      skill-eval [D] all-pass (residuals accepted) + [J] ≥ floor; 4 lints green; no release-prereq edits.
