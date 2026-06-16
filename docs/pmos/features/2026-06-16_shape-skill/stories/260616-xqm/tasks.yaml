@@ -1,0 +1,86 @@
+schema_version: 1
+story: 260616-xqm
+epic: 260616-bq9
+route: skill
+plugin: pmos-toolkit
+design: ../../02_design.html
+# DEP: 260616-p7b (/shape must exist on main to wire it in). Independent of 260616-4pg. Rewires
+# /feature-sdlc so /shape is the gated Phase-1 front (D8/D9), ADDITIVE + version-gated so no in-flight
+# worktree or already-defined epic changes behavior (resume states predating the phase skip it). This is
+# an instruction-only edit to /feature-sdlc SKILL.md + reference/state-schema.md (phase membership +
+# hardness + schema_version bump) + the pipeline diagram + the mode × phase gate table. NO release-prereq
+# tasks — /complete-dev (Loop 3) owns changelog/version, riding epic 260616-bq9.
+tasks:
+  - id: T1
+    title: "Study reference: /feature-sdlc phase machinery, state-schema phase membership + hardness, the gate table, the design doc D8/D9/D10"
+    ac: [AC1, AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Read /feature-sdlc SKILL.md (the Pipeline-position diagram, the mode × phase table, the 1a /ideate
+      gate, the soft/hard gate machinery, the tier-resolution + gate-recommendation logic) and
+      reference/state-schema.md (the single source for phases[] membership + "Phase identifiers + hardness"
+      + the schema_version history). Confirm how an existing 1a /ideate soft gate is declared so the new
+      /shape gate mirrors that shape. Re-read the design doc for D8 (additive + version-gated placement),
+      D9 (Tier 1 skip / Tier 2 + Tier 3 mandatory; standalone always), and D10 (the --non-interactive
+      autonomous path /shape itself implements — this story only routes the gate to it). Capture exactly
+      which files declare phase order + hardness so the insertion is complete and consistent.
+    verify: >
+      The phase-membership source (state-schema.md), the gate-declaration pattern, the diagram + gate
+      table, and the D8 additive/version-gated + D9 tiering + D10 routing requirements are all enumerated
+      before editing.
+
+  - id: T2
+    title: "Insert the Phase-1 /shape gate (additive + version-gated) in /feature-sdlc + state-schema; bump schema_version with absence-skip for legacy resumes"
+    ac: [AC1, AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add /shape as the gated Phase-1 front (before /ideate + /requirements) in feature mode (and the
+      skill modes per the design). Gating per D9: Tier 1 → auto-skip; Tier 2 → mandatory; Tier 3 / new-bet
+      → mandatory; always available standalone. Make it ADDITIVE + version-gated (D8): add the phase to
+      phases[] in reference/state-schema.md, bump schema_version, and add the absence-skip rule so a resume
+      state that predates the phase SKIPS it (in-flight worktrees + already-defined epics keep the old
+      order — NO migration). Route the mandatory gate under --non-interactive to /shape's autonomous path
+      (D10) so the pipeline never deadlocks — /shape owns the autonomous machinery (260616-p7b); this story
+      only ensures the gate calls it rather than hard-blocking. The context classifier (from /shape's
+      context gate) also feeds the gate per D9.
+    verify: >
+      /shape is declared as the Phase-1 front with D9 tiering (Tier1 skip / Tier2+Tier3 mandatory /
+      standalone); state-schema.md phases[] includes it; schema_version bumped; the absence-skip rule means
+      a pre-phase resume state skips it; the mandatory gate routes --non-interactive to /shape's autonomous
+      path (no deadlock, no hard-refuse).
+
+  - id: T3
+    title: "Update the pipeline-position diagram + the mode × phase gate table; reframe /ideate as the solution-exploration step"
+    ac: [AC1, AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Update the ASCII Pipeline-position diagram and the mode × phase table in /feature-sdlc SKILL.md so
+      /shape appears as the gated Phase-1 front and /ideate is labeled the solution-exploration step that
+      follows it (the actual /ideate consuming-change ships in 260616-4pg; here it is the orchestrator-side
+      ordering + labels only). Keep every cross-reference citing the {#kebab-slug} anchors, never bare phase
+      numbers (§J) so the insertion does not ghost existing references.
+    verify: >
+      Diagram + gate table show /shape as Phase-1 front and /ideate as the solution-exploration step;
+      all phase cross-references cite slugs (no bare numbers); no dangling phase refs.
+
+  - id: T4
+    title: "TN: Verify — lint-phase-refs + skill-eval on /feature-sdlc + a resume back-compat check; lints"
+    ac: [AC1, AC2, AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Run tools/lint-phase-refs.sh (every Phase <N>/{#slug}/skill#anchor reference resolves — the new
+      gate must not break existing refs) and tools/lint-flags-vs-hints.sh + lint-non-interactive-inline.sh
+      + audit-recommended.sh — all green. Run feature-sdlc/tools/skill-eval-check.sh against /feature-sdlc
+      — [D] all-pass (note any PRE-EXISTING residuals vs HEAD^1 and accept them), [J] ≥ floor. BACK-COMPAT
+      check (the load-bearing dogfood for this story): construct/point at a resume state.yaml that PREDATES
+      the new phase (lacks it) and confirm the absence-skip rule means it resumes WITHOUT the /shape gate
+      (old order preserved); confirm a FRESH run includes the gate. Record a Verdict line. NO release-prereq
+      edits — /complete-dev owns changelog/version at Loop 3.
+    verify: >
+      Verdict recorded; lint-phase-refs + the other 3 lints green; skill-eval [D] all-pass (pre-existing
+      residuals accepted) + [J] ≥ floor; a pre-phase resume state skips the gate (back-compat proven) while
+      a fresh run includes it; no release-prereq edits.
