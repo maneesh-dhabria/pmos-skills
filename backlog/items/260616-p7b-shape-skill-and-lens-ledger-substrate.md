@@ -9,14 +9,16 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-p7b/tasks.yaml
-worktree:
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-p7b
+claimed_by: build:cron-p7b
+driver_holder: build:cron-p7b
 labels: [pmos-toolkit, shape, problem-discovery, lens-ledger, substrate, new-skill]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260616-p7b -->
