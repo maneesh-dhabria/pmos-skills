@@ -1,0 +1,185 @@
+---
+name: interview-feedback
+description: Turn a candidate's interview inputs (recording or transcript, interviewer notes, the round's scorecard and brief) into two grounded artifacts — a filled scorecard and per-interviewer effectiveness notes — where every subjective claim is tagged by evidence tier and transcript citations are verified verbatim. Use when scoring a candidate after an interview round, writing up interview feedback, filling an interview scorecard, evaluating how an interviewer ran a round, or setting up a role's interview process and round guidelines. Triggers: "score this candidate", "fill the interview scorecard", "write up interview feedback", "how did the interviewer do", "set up the interview loop for <role>".
+user-invocable: true
+argument-hint: "setup [role] | <candidate inputs…> (score) | list   [--root <path>] [--reference <path>] [--model <medium|base>] [--no-transcribe] [--non-interactive]"
+---
+
+# Interview feedback
+
+Turn the raw inputs from one interview round into two grounded, self-contained HTML artifacts:
+
+- **(a) a filled scorecard** — every dimension scored on the sheet's own scale, green/red flags ticked, qualitative notes written, and an overall hire/no-hire recommendation — with **every subjective claim carrying an evidence-tier citation**.
+- **(b) interviewer-effectiveness notes** — per interviewer, scored against a bundled researched rubric: what they did well, what to improve.
+
+Grounding is enforced, not asserted. A deterministic gate (`scripts/check-citations.mjs`) refuses any output whose transcript-tier citation is not a verbatim ≥40-char substring of the refined transcript.
+
+**Announce at start:** "Using interview-feedback — turning this round's inputs into a grounded scorecard and interviewer notes." (In `setup`: "…— scaffolding this role's interview process." In `list`: omit; just print the table.)
+
+This skill follows the SKILLS-standard authoring guide at `../feature-sdlc/reference/skill-patterns.md` (pmos-toolkit) — frontmatter, triggering, progressive disclosure, §H gates, §I flags, §J phases. Reference docs live in `reference/`; scripts in `scripts/`; tests in `tests/`.
+
+## Verbs
+
+The first token selects the verb **only** when it is exactly `setup` or `list`; everything else is candidate input for the default **score** verb.
+
+- **`setup [role]`** — scaffold a role: compile the JD + interview process into `role/`, define the rounds, attach or generate each round's interviewer reference + scorecard. Writes `role.json` (§ role.json). → Phase [Setup](#setup).
+- **`<candidate inputs…>`** (bare, the default = **score**) — evaluate one candidate in one round from whatever inputs are supplied (recording, transcript, notes, the round's scorecard + brief). → Phases [Resolve](#resolve) → [Transcribe](#transcribe) → [Ground](#ground) → [Score](#score) → [Coach](#coach).
+- **`list`** (sole token) — print the roles and candidates under the storage root as a table, then exit 0. → Phase [List](#list).
+
+## Flags & natural language
+
+Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "store it under <path>" ≡ `--root <path>`, "use this scorecard/brief" ≡ `--reference <path>`, "don't transcribe / I already have the transcript" ≡ `--no-transcribe`, "use the base model" ≡ `--model base`.
+
+Contract flags (machine-coupled, typed, or headless-determinism — §I), shown in `argument-hint`:
+
+- `--root <path>` — storage root override (typed path; resolution order in Phase [Resolve](#resolve)).
+- `--reference <path>` — explicit per-round interviewer-reference/scorecard override (§ Reference resolution).
+- `--model <medium|base>` — pin the whisper model rather than auto-resolving (typed value).
+- `--no-transcribe` — skip transcription; expect a transcript among the inputs (headless determinism).
+- `--non-interactive` / `--interactive` — see the non-interactive block.
+
+<!-- nl-sugar -->
+- `--candidate <name>` / `--round <id>` — parsed aliases for values normally inferred from the inputs/folder; silent.
+
+## Platform Adaptation
+
+These instructions use Claude Code tool names. In other environments:
+
+- **No `AskUserQuestion` tool:** every prompt below degrades to a numbered free-form question; the non-interactive auto-pick contract still applies (Recommended → AUTO-PICK).
+- **No subagents:** the verified-source research in Phase [Setup](#setup) and the rubric authoring run inline; no parallel work to degrade.
+- **TaskCreate / TodoWrite missing:** the skill body works without task tracking; the on-disk artifacts are the canonical progress record.
+- **`ffmpeg` / `whisper-cli` missing:** Phase [Transcribe](#transcribe) degrades gracefully to interviewer-notes (tier 2) or an emitted recall questionnaire (tier 3) — it never blocks and never fabricates.
+- **`.pmos/settings.yaml` missing:** storage-root resolution falls through to its built-in default (`./interviews/`); mode resolution uses the built-in default (`interactive`).
+
+<!-- non-interactive-block:start -->
+1. **Mode resolution.** Compute `(mode, source)` with precedence: `cli_flag > parent_marker > settings.default_mode > builtin-default ("interactive")` (FR-01).
+   - `cli_flag` is `--non-interactive` or `--interactive` parsed from this skill's argument string. Last flag wins on conflict (FR-01.1).
+   - `parent_marker` is set if the original prompt's first line matches `^\[mode: (interactive|non-interactive)\]$` (FR-06.1).
+   - `settings.default_mode` is `.pmos/settings.yaml :: default_mode` if present and one of `interactive`/`non-interactive`. Unknown values → warn on stderr `settings: invalid default_mode value '<v>'; ignoring` and fall through (FR-01.3).
+   - If `.pmos/settings.yaml` is malformed (not parseable as YAML, or missing `version`): print to stderr `settings.yaml malformed; fix and re-run` and exit 64 (FR-01.5).
+   - On Phase 0 entry, always print to stderr exactly: `mode: <mode> (source: <source>)` (FR-01.2).
+
+2. **Per-checkpoint classifier.** Before issuing any `AskUserQuestion` call, classify it (FR-02):
+   - The defer-only tag, if present, is the literal previous non-empty line: `<!-- defer-only: <reason> -->` where `<reason>` ∈ {`destructive`, `free-form`, `ambiguous`} (FR-02.5).
+   - Decision (in order): tag adjacent → DEFER; multiSelect with 0 Recommended → DEFER; 0 options OR no option label ends in `(Recommended)` → DEFER; else AUTO-PICK the (Recommended) option (FR-02.2).
+
+3. **Buffer + flush.** Maintain an append-only OQ buffer in conversation memory. On each AUTO-PICK or DEFER classification, append one entry per the schema in spec §11.2. At end-of-skill (or in a caught error before exit), flush (FR-03):
+   - Primary artifact is single Markdown → append `## Open Questions (Non-Interactive Run)` section with one fenced YAML block per entry; update prose frontmatter (`**Mode:**`, `**Run Outcome:**`, `**Open Questions:** N` where N counts deferred only — see FR-03.4) (FR-03.1).
+   - Skill produces multiple artifacts → write a single `_open_questions.md` aggregator at the artifact directory root; primary artifact's frontmatter `**Open Questions:** N — see _open_questions.md` (FR-03.5).
+   - Primary artifact is non-MD (SVG, etc.) → write sidecar `<artifact>.open-questions.md` (FR-03.2).
+   - No persistent artifact (chat-only) → emit buffer to stderr at end-of-run as a single block prefixed `--- OPEN QUESTIONS ---` (FR-03.3).
+   - Mid-skill error → flush partial buffer under heading `## Open Questions (Non-Interactive Run — partial; skill errored)`; set `**Run Outcome:** error`; exit 1 (E13).
+
+4. **Subagent dispatch.** When dispatching a child skill via Task tool or inline invocation, prepend the literal first line: `[mode: <current-mode>]\n` to the child's prompt (FR-06).
+
+5. **Call-site auditing (CI only).** This runtime classifier reads the call it is about to make — it does not run awk. Static/offline auditing of `AskUserQuestion` call sites across SKILL.md files is performed by `tools/audit-recommended.sh`, which sources the shared call-site extractor from Section D of this file (`_shared/non-interactive.md`). Runtime and audit therefore share one decision contract without inlining the extractor into every skill (FR-02.6).
+
+6. **Refusal check.** If this SKILL.md contains a `<!-- non-interactive: refused; ... -->` marker (regex: `<!--[[:space:]]*non-interactive:[[:space:]]*refused`), and `mode` resolved to `non-interactive`: emit refusal per Section A and exit 64 (FR-07).
+
+7. **Pre-rollout BC.** If the `--non-interactive` argument is present BUT this SKILL.md does NOT contain the `<!-- non-interactive-block:start -->` marker (i.e., this skill hasn't been rolled out yet): emit `WARNING: --non-interactive not yet supported by /<skill>; falling back to interactive.` to stderr; continue in interactive mode (FR-08).
+
+8. **End-of-skill summary.** Print to stderr at exit: `pmos-toolkit: /<skill> finished — outcome=<clean|deferred|error>, open_questions=<N>` (NFR-07).
+<!-- non-interactive-block:end -->
+
+> **Tier-3 questionnaire is interactive-only by contract.** The score path can fall through to an *interviewer-recall questionnaire* (Phase [Ground](#ground), tier 3) when there is no transcript and no usable notes. That questionnaire is a back-and-forth that only a present interviewer can answer; under `--non-interactive` the skill **emits the blank questionnaire form to disk and refuses to fabricate answers** rather than inventing a candidate's responses. This is a scoped, per-path refusal — `setup`, `score` with a transcript or notes, and `list` all run unattended normally.
+>
+> <!-- non-interactive: refused; the tier-3 interviewer-recall questionnaire (score path with no transcript and no notes) requires interactive answers and must never be auto-filled — emit the blank form and stop -->
+
+## Track Progress
+
+This skill has multiple phases. On the `score` path, create one task per phase (Resolve → Transcribe → Ground → Score → Coach) using your agent's task-tracking tool. Mark each in-progress when you start and completed as soon as it finishes — do not batch.
+
+## Phase 0: Setup {#setup-load}
+
+Before the verb runs: read `~/.pmos/learnings.md` if present and factor any entries under `## /interview-feedback` into your approach (skill body wins on conflict; surface conflicts to the user before applying). Resolve `(mode, source)` per the non-interactive block and print the `mode:` line to stderr.
+
+## Phase: Resolve {#resolve}
+
+Resolve the **storage root** and the **inputs**.
+
+1. **Root.** Precedence: `--root <path>` → `.pmos/settings.yaml :: managerkit.interview_root` → built-in default `./interviews/`. Call `scripts/storage.sh resolve-root` (it applies the same precedence and prints the absolute root). Inside a git repo, `storage.sh` installs/refreshes a **gitignore guard** so confidential candidate data is never committed; if the guard cannot be written, warn and continue (the operator is responsible — see § Confidentiality).
+2. **Locate the round.** From the inputs (or `--round`/`--candidate`), resolve the round folder under the role per the storage layout (§ Storage). New candidate → `scripts/storage.sh new-candidate <role> <round> <candidate>` creates the folder and copies each raw input into `inputs/` verbatim (never mutate originals).
+3. **Reference resolution.** Resolve the round's interviewer-reference + scorecard: `--reference <path>` wins; else the round-level guideline under `guidelines/<round>/`; else fall back to the role-level default. Under `--non-interactive`, if resolution is ambiguous, **DEFER** (log an open question) rather than guessing — see the non-interactive block. (Full precedence + the interviewer model lead/shadow/panel wiring live in `reference/reference-resolution.md`.)
+
+## Phase: Transcribe {#transcribe}
+
+Only on the `score` path, and only if a recording is present and `--no-transcribe` is not set.
+
+Run `scripts/transcribe.sh <recording> <out-dir>`. It extracts audio with `ffmpeg` (`-vn -ar 16000 -ac 1`), resolves a whisper model (`~/whisper-models/`, `~/.pmos/managerkit/models/`, `./models`; `ggml-medium.bin` then `ggml-base.bin`; `--model` pins one), transcribes with `whisper-cli` (timestamped, chunked for long audio), and writes `transcript.refined.txt`. **Speaker attribution:** the refined transcript carries timestamps only; an LLM-refine pass may *propose provisional* speaker labels from explicit self-introductions but must never guess — unattributable per-interviewer claims fall to tier 3 and are flagged in output (b).
+
+**Graceful degrade (never fail the run).** No model / no `whisper-cli` / no `ffmpeg` → `transcribe.sh` exits non-zero with a one-line install nudge and a `degrade:tier2` (notes present) or `degrade:tier3` (no notes) signal on stdout. Honor it: drop to interviewer-notes grounding, or to the recall questionnaire (interactive-only — see the refusal note above).
+
+## Phase: Ground {#ground}
+
+Establish the evidence basis before scoring. Three tiers (best first):
+
+1. **transcript** — verbatim ≥40-char quotes from `transcript.refined.txt`.
+2. **interviewer-notes** — the interviewer's own written notes (must name the note source).
+3. **interviewer-recalled** — answers captured via the emitted recall questionnaire (must name the interviewer).
+
+Every subjective claim in either output carries `<cite data-cite-tier="transcript|notes|recalled" data-source="…">`. When the only available basis is tier 3 and the run is non-interactive, emit the blank questionnaire (`scripts/questionnaire.mjs` derives it from the scorecard dimensions + reference) and stop the score path with the refusal above — do not fabricate.
+
+## Phase: Score {#score}
+
+Fill the scorecard. Read the round's scorecard via its machine anchors (`reference/scorecard-skeleton.html` is the contract: `data-dim`, `data-weight`, `data-scale`, `data-v`, `data-input="notes:<dim>"`, `data-flags`, `data-input="reco"`). `scripts/fill-scorecard.mjs` parses the anchors → dimensions/scales/flags and produces `filled-scorecard.html`.
+
+**Foreign scorecard (no anchors).** If the round's scorecard lacks the anchors, infer the dimensions/scales from its DOM, then: interactive → echo the inferred structure for confirmation before filling; non-interactive → fill but log every inference as an open question. Never silently guess.
+
+Score each dimension on its own scale with grounded notes + flags, then set the overall `reco`. Run `scripts/check-citations.mjs filled-scorecard.html transcript.refined.txt` — **hard gate**: any transcript-tier citation that is not a verbatim ≥40-char substring fails the run.
+
+## Phase: Coach {#coach}
+
+Emit **interviewer-effectiveness notes** (output b), one section per interviewer, scored against `reference/interviewer-effectiveness.html` (the bundled researched rubric — structured/consistent questioning, probing depth, leading-question avoidance, talk-time balance, coverage, bias mitigation, note quality, calibration). Each interviewer's lead/shadow/panel role (from `role.json`) sets expectations. Subjective claims carry the same `data-cite-tier`; per-interviewer claims that could not be attributed are flagged with attribution-confidence. Re-run `check-citations.mjs` over this output too.
+
+## Phase: Setup {#setup}
+
+Scaffold a role's interview process. Compile the JD + process into `role/00_jd-and-process.html`; define the rounds (each an archetype from the 7 bundled PM round types or `custom`); for each round, attach the provided interviewer-reference + scorecard or generate them by instantiating `reference/reference-skeleton.html` + `reference/scorecard-skeleton.html`. Write `role.json` (§ role.json). `setup` runs unattended under `--non-interactive` (round/archetype choices AUTO-PICK their Recommended option; genuinely missing inputs DEFER).
+
+## Phase: List {#list}
+
+Walk the storage root; print one table — `Role | Round | Candidate | Scored?` — ordered by role then candidate. Empty root → `No roles yet. Scaffold one with /interview-feedback setup <role>.` Exit 0.
+
+## role.json {#role-json}
+
+`scripts/storage.sh` reads/writes the canonical role manifest (design §16.5):
+
+```json
+{
+  "role": "Senior Product Manager",
+  "team": "Marketplace",
+  "date": "2026-06-17",
+  "rounds": [
+    {
+      "id": "product-sense",
+      "name": "Product sense / design",
+      "archetype": "product-sense",
+      "guidelines_path": "guidelines/product-sense/",
+      "additional_docs": [],
+      "interviewers": [{ "name": "…", "role": "lead" }]
+    }
+  ]
+}
+```
+
+`archetype ∈` {`recruiter-screen`, `product-sense`, `analytical`, `technical`, `behavioral`, `case-study`, `case-presentation`} (the 7 bundled PM round types) `| custom`. `interviewers[].role ∈` {`lead`, `shadow`, `panel`}.
+
+## Storage {#storage}
+
+```
+<root>/<date>-<role-kebab>-<team>/
+  role/{ 00_jd-and-process.html, role.json }
+  guidelines/<round>/{ interviewer-reference.html, scorecard.html, additional/ }
+  <date>-<round>-<candidate>-<lastco>/
+    inputs/                 (raw inputs, copied verbatim — never mutated)
+    transcript.refined.txt
+    filled-scorecard.html   (output a)
+    interviewer-notes.html  (output b)
+```
+
+## Phase N: Capture Learnings {#capture-learnings}
+
+After a run, if you discovered something reusable — a transcription gotcha, a foreign-scorecard inference pattern, a grounding-tier judgment call — append it under `## /interview-feedback` in `~/.pmos/learnings.md` (create the file if absent). Keep entries one or two lines; never record candidate content (it is confidential — see § Confidentiality).
+
+## Confidentiality {#confidentiality}
+
+Candidate data is confidential. The storage root carries a gitignore guard installed by `scripts/storage.sh`; the skill never commits candidate content and never sends it to an external service. Transcription is fully local (`ffmpeg` + `whisper.cpp`). Out of scope (design §15): no comments/overlay substrate, no multi-candidate comparison, no ATS integration, no markdown companion — the HTML artifacts are self-contained and standalone.

@@ -1,0 +1,21 @@
+{
+  "name": "pmos-managerkit",
+  "version": "0.1.0",
+  "description": "Manager kit — skills that help you do manager work: hiring, team, and reviews. Ships /interview-feedback, which turns a candidate's interview inputs into a grounded scorecard plus per-interviewer coaching notes.",
+  "author": {
+    "name": "Maneesh Dhabria"
+  },
+  "homepage": "https://github.com/maneesh-dhabria/pmos-skills",
+  "repository": "https://github.com/maneesh-dhabria/pmos-skills",
+  "license": "MIT",
+  "keywords": [
+    "manager",
+    "hiring",
+    "interview",
+    "scorecard",
+    "feedback",
+    "coaching",
+    "transcription"
+  ],
+  "skills": "./skills/"
+}

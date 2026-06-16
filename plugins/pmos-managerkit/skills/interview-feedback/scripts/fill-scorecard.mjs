@@ -1,0 +1,451 @@
+#!/usr/bin/env node
+// fill-scorecard.mjs — scorecard parser + filler for /interview-feedback (pmos-managerkit).
+//
+// Zero-dependency, Node built-ins only. Operates on the canonical scorecard DOM contract
+// (reference/scorecard-skeleton.html): root <main data-card="scorecard">, per-dimension
+// <section data-dim data-weight> with a data-scale="1-4" container of data-v options, a
+// data-input="notes:<dim>" slot, and data-flags="green"/"red" lists; plus an overall
+// data-input="reco" control of data-reco options and a data-input="notes:reco" slot.
+//
+// No DOM library: we work on the HTML as text with targeted, anchor-scoped replacements,
+// preserving everything else byte-for-byte.
+//
+// Usage:
+//   node fill-scorecard.mjs parse <scorecard.html>
+//   node fill-scorecard.mjs fill  <scorecard.html> <values.json> [--out <path>]
+//   node fill-scorecard.mjs --selftest
+
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, resolve } from 'node:path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const SKELETON = resolve(__dirname, '..', 'reference', 'scorecard-skeleton.html');
+
+// ---------------------------------------------------------------------------
+// helpers
+// ---------------------------------------------------------------------------
+
+function attr(name, tagText) {
+  // Extract attribute value from a single opening-tag substring.
+  const m = tagText.match(new RegExp(name + '\\s*=\\s*"([^"]*)"'));
+  return m ? m[1] : null;
+}
+
+function hasAttr(name, tagText) {
+  return new RegExp('(?:^|\\s)' + name + '(?=[\\s/>=])').test(tagText);
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+// Find the matching close index for an element that starts at openTagStart.
+// `tag` is the tag name (e.g. "section"). Returns the index just past </tag>.
+function matchElementEnd(html, openTagStart, tag) {
+  const openRe = new RegExp('<' + tag + '(?=[\\s/>])', 'g');
+  const closeRe = new RegExp('</' + tag + '\\s*>', 'g');
+  // Move past the first opening tag's '>'.
+  let cursor = html.indexOf('>', openTagStart);
+  if (cursor < 0) return -1;
+  cursor += 1;
+  let depth = 1;
+  while (depth > 0) {
+    openRe.lastIndex = cursor;
+    closeRe.lastIndex = cursor;
+    const o = openRe.exec(html);
+    const c = closeRe.exec(html);
+    if (!c) return -1;
+    if (o && o.index < c.index) {
+      depth += 1;
+      cursor = o.index + 1;
+    } else {
+      depth -= 1;
+      cursor = c.index + c[0].length;
+    }
+  }
+  return cursor;
+}
+
+// Locate each <section ... data-dim="..."> block: returns array of
+// {id, weight, scale, openStart, openEnd, blockStart, blockEnd, block}.
+function findDimSections(html) {
+  const out = [];
+  const re = /<section\b[^>]*\bdata-dim\s*=\s*"[^"]*"[^>]*>/g;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    const openTag = m[0];
+    const id = attr('data-dim', openTag);
+    const weightRaw = attr('data-weight', openTag);
+    const blockStart = m.index;
+    const blockEnd = matchElementEnd(html, blockStart, 'section');
+    const block = html.slice(blockStart, blockEnd);
+    const scaleTag = block.match(/<[^>]*\bdata-scale\s*=\s*"([^"]*)"[^>]*>/);
+    out.push({
+      id,
+      weight: weightRaw == null ? null : Number(weightRaw),
+      scale: scaleTag ? scaleTag[1] : null,
+      blockStart,
+      blockEnd,
+      block,
+    });
+  }
+  return out;
+}
+
+function scaleScores(block) {
+  const out = [];
+  const re = /data-v\s*=\s*"([^"]*)"/g;
+  let m;
+  while ((m = re.exec(block)) !== null) out.push(Number(m[1]));
+  return out;
+}
+
+// ---------------------------------------------------------------------------
+// parse
+// ---------------------------------------------------------------------------
+
+function parse(html) {
+  const anchored = /<main\b[^>]*\bdata-card\s*=\s*"scorecard"/.test(html);
+  if (anchored) {
+    const dims = findDimSections(html).map((s) => ({
+      id: s.id,
+      weight: s.weight,
+      scale: s.scale,
+      scores: scaleScores(s.block),
+    }));
+    const hasReco = /data-input\s*=\s*"reco"/.test(html);
+    return { anchored: true, dims, hasReco };
+  }
+  // FOREIGN sheet: best-effort infer a dimension list from DOM structure.
+  const echo = inferDimensionLabels(html);
+  const dims = echo.map((label) => ({ id: slugify(label), label, inferred: true }));
+  return { anchored: false, inferred: true, dims, echo, hasReco: false };
+}
+
+function slugify(s) {
+  return String(s)
+    .trim()
+    .toLowerCase()
+    .replace(/<[^>]+>/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function inferDimensionLabels(html) {
+  const labels = [];
+  const seen = new Set();
+  const push = (raw) => {
+    if (!raw) return;
+    const text = raw.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    if (!text || text.length > 120) return;
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    labels.push(text);
+  };
+  // Strategy 1: headings (h2..h4) — common scorecard section titles.
+  let m;
+  const hRe = /<h([2-4])\b[^>]*>([\s\S]*?)<\/h\1>/gi;
+  while ((m = hRe.exec(html)) !== null) push(m[2]);
+  // Strategy 2: table rows — first cell of each <tr> (skip header row of <th>).
+  if (labels.length === 0) {
+    const trRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    while ((m = trRe.exec(html)) !== null) {
+      const cell = m[1].match(/<td\b[^>]*>([\s\S]*?)<\/td>/i);
+      if (cell) push(cell[1]);
+    }
+  }
+  // Strategy 3: repeated <li> blocks as a last resort.
+  if (labels.length === 0) {
+    const liRe = /<li\b[^>]*>([\s\S]*?)<\/li>/gi;
+    while ((m = liRe.exec(html)) !== null) push(m[1]);
+  }
+  return labels;
+}
+
+// ---------------------------------------------------------------------------
+// fill
+// ---------------------------------------------------------------------------
+
+function fill(html, values) {
+  const scores = values.scores || {};
+  const notes = values.notes || {};
+  const flags = values.flags || {};
+
+  // Rebuild dim by dim so index offsets from earlier edits don't invalidate later anchors.
+  // We process sections from last to first to keep earlier offsets stable.
+  let out = html;
+  const sections = findDimSections(out);
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const s = sections[i];
+    let block = s.block;
+    const id = s.id;
+
+    // 1. Select the chosen score option.
+    if (scores[id] != null) {
+      const want = String(scores[id]);
+      block = block.replace(
+        /<([a-zA-Z0-9]+)\b([^>]*\bdata-v\s*=\s*"([^"]*)"[^>]*)>/g,
+        (full, tag, rest, v) => {
+          // Strip any pre-existing data-selected, then add if this is the chosen v.
+          let cleaned = rest.replace(/\s+data-selected(?=[\s>])/g, '');
+          if (v === want && !hasAttr('data-selected', cleaned)) {
+            cleaned = cleaned + ' data-selected';
+          }
+          return '<' + tag + cleaned + '>';
+        }
+      );
+    }
+
+    // 2. Inject notes HTML into the notes:<dim> slot.
+    if (notes[id] != null) {
+      block = injectInputSlot(block, 'notes:' + id, notes[id]);
+    }
+
+    // 3. Append flag <li> items.
+    const f = flags[id] || {};
+    if (Array.isArray(f.green) && f.green.length) {
+      block = appendFlags(block, 'green', f.green);
+    }
+    if (Array.isArray(f.red) && f.red.length) {
+      block = appendFlags(block, 'red', f.red);
+    }
+
+    out = out.slice(0, s.blockStart) + block + out.slice(s.blockEnd);
+  }
+
+  // 4. Mark the chosen reco.
+  if (values.reco != null) {
+    const want = String(values.reco);
+    out = out.replace(
+      /<([a-zA-Z0-9]+)\b([^>]*\bdata-reco\s*=\s*"([^"]*)"[^>]*)>/g,
+      (full, tag, rest, r) => {
+        let cleaned = rest.replace(/\s+data-selected(?=[\s>])/g, '');
+        if (r === want && !hasAttr('data-selected', cleaned)) {
+          cleaned = cleaned + ' data-selected';
+        }
+        return '<' + tag + cleaned + '>';
+      }
+    );
+  }
+
+  // 5. Fill notes:reco.
+  if (values.recoNotes != null) {
+    out = injectInputSlot(out, 'notes:reco', values.recoNotes);
+  }
+
+  return out;
+}
+
+// Replace the inner content of the element bearing data-input="<key>".
+function injectInputSlot(html, key, innerHtml) {
+  const re = new RegExp('<([a-zA-Z0-9]+)\\b[^>]*\\bdata-input\\s*=\\s*"' + escapeRe(key) + '"[^>]*>', 'g');
+  const m = re.exec(html);
+  if (!m) return html;
+  const tag = m[1];
+  const innerStart = m.index + m[0].length;
+  const end = matchElementEnd(html, m.index, tag);
+  if (end < 0) return html;
+  const closeStart = html.lastIndexOf('</' + tag, end);
+  return html.slice(0, innerStart) + innerHtml + html.slice(closeStart);
+}
+
+// Append <li> items to the <ul data-flags="<kind>"> list within a block.
+function appendFlags(block, kind, items) {
+  const re = new RegExp('<ul\\b[^>]*\\bdata-flags\\s*=\\s*"' + kind + '"[^>]*>', 'g');
+  const m = re.exec(block);
+  if (!m) return block;
+  const end = matchElementEnd(block, m.index, 'ul');
+  if (end < 0) return block;
+  const closeStart = block.lastIndexOf('</ul', end);
+  const lis = items.map((it) => '<li>' + it + '</li>').join('');
+  return block.slice(0, closeStart) + lis + block.slice(closeStart);
+}
+
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ---------------------------------------------------------------------------
+// selftest
+// ---------------------------------------------------------------------------
+
+function selftest() {
+  let pass = 0;
+  let total = 0;
+  const checks = [];
+  const assert = (cond, label) => {
+    total += 1;
+    if (cond) pass += 1;
+    checks.push((cond ? 'ok   ' : 'FAIL ') + label);
+  };
+
+  const skeleton = readFileSync(SKELETON, 'utf8');
+
+  // (a) parse skeleton -> anchored:true, two example dims with weights.
+  const p = parse(skeleton);
+  assert(p.anchored === true, 'parse: anchored true on skeleton');
+  assert(Array.isArray(p.dims) && p.dims.length === 2, 'parse: two dims');
+  const ids = p.dims.map((d) => d.id);
+  assert(
+    ids.includes('example-dimension-one') && ids.includes('example-dimension-two'),
+    'parse: example dim ids present'
+  );
+  assert(
+    p.dims.every((d) => d.weight === 50),
+    'parse: each example weight is 50'
+  );
+  assert(
+    p.dims.every((d) => d.scale === '1-4' && d.scores.join(',') === '1,2,3,4'),
+    'parse: scale 1-4 with scores 1..4'
+  );
+  assert(p.hasReco === true, 'parse: hasReco true');
+
+  // (b) fill -> select scores, inject notes, add flags, mark reco; re-parse to confirm.
+  const values = {
+    scores: { 'example-dimension-one': 4, 'example-dimension-two': 2 },
+    notes: {
+      'example-dimension-one': 'Strong structured answer. UNIQUE_NOTE_TOKEN_X1',
+      'example-dimension-two': 'Some hesitation on tradeoffs.',
+    },
+    flags: {
+      'example-dimension-one': { green: ['Clear thesis', 'Quantified impact'], red: [] },
+      'example-dimension-two': { green: [], red: ['Vague on metrics'] },
+    },
+    reco: 'yes',
+    recoNotes: 'Lean hire. RECO_NOTE_TOKEN_Y2',
+  };
+  const filled = fill(skeleton, values);
+
+  // re-parse structure stays anchored
+  const pf = parse(filled);
+  assert(pf.anchored === true, 'fill: filled output still anchored');
+
+  // data-selected on chosen score options (dim one -> v4, dim two -> v2)
+  const dimOne = sliceDim(filled, 'example-dimension-one');
+  const dimTwo = sliceDim(filled, 'example-dimension-two');
+  assert(
+    /<span\b[^>]*data-v\s*=\s*"4"[^>]*data-selected/.test(dimOne) ||
+      /<span\b[^>]*data-selected[^>]*data-v\s*=\s*"4"/.test(dimOne),
+    'fill: dim-one v4 marked data-selected'
+  );
+  assert(
+    countSelected(dimOne, 'data-v') === 1,
+    'fill: dim-one has exactly one selected score'
+  );
+  assert(
+    /<span\b[^>]*data-v\s*=\s*"2"[^>]*data-selected/.test(dimTwo) ||
+      /<span\b[^>]*data-selected[^>]*data-v\s*=\s*"2"/.test(dimTwo),
+    'fill: dim-two v2 marked data-selected'
+  );
+
+  // injected note text present
+  assert(dimOne.includes('UNIQUE_NOTE_TOKEN_X1'), 'fill: dim-one note injected');
+  assert(dimTwo.includes('Some hesitation on tradeoffs.'), 'fill: dim-two note injected');
+
+  // flags appended
+  assert(/data-flags="green"[\s\S]*?Clear thesis/.test(dimOne), 'fill: dim-one green flag added');
+  assert(/data-flags="red"[\s\S]*?Vague on metrics/.test(dimTwo), 'fill: dim-two red flag added');
+
+  // reco marked
+  assert(
+    /<span\b[^>]*data-reco\s*=\s*"yes"[^>]*data-selected/.test(filled) ||
+      /<span\b[^>]*data-selected[^>]*data-reco\s*=\s*"yes"/.test(filled),
+    'fill: reco "yes" marked data-selected'
+  );
+  assert(countSelected(filled, 'data-reco') === 1, 'fill: exactly one reco selected');
+  assert(filled.includes('RECO_NOTE_TOKEN_Y2'), 'fill: reco notes injected');
+
+  // byte-for-byte preservation of the <head> region (untouched)
+  const headOrig = skeleton.slice(0, skeleton.indexOf('<body'));
+  const headFilled = filled.slice(0, filled.indexOf('<body'));
+  assert(headOrig === headFilled, 'fill: head preserved byte-for-byte');
+
+  // (c) FOREIGN fixture -> anchored:false with non-empty inferred echo.
+  const foreign = `<!DOCTYPE html><html><body>
+    <h1>Engineering Loop Feedback</h1>
+    <h2>Problem Solving</h2><p>notes...</p>
+    <h2>Coding</h2><p>notes...</p>
+    <h2>Communication</h2><p>notes...</p>
+  </body></html>`;
+  const pforeign = parse(foreign);
+  assert(pforeign.anchored === false, 'parse: foreign anchored false');
+  assert(
+    Array.isArray(pforeign.echo) && pforeign.echo.length >= 1,
+    'parse: foreign non-empty inferred echo'
+  );
+  assert(
+    pforeign.echo.includes('Problem Solving') && pforeign.echo.includes('Coding'),
+    'parse: foreign inferred labels from headings'
+  );
+  assert(pforeign.dims.every((d) => d.inferred === true), 'parse: foreign dims marked inferred');
+
+  for (const line of checks) console.error(line);
+  console.log(`fill-scorecard selftest: ${pass}/${total} PASS`);
+  return pass === total ? 0 : 1;
+}
+
+function sliceDim(html, id) {
+  const re = new RegExp('<section\\b[^>]*\\bdata-dim\\s*=\\s*"' + escapeRe(id) + '"[^>]*>', 'g');
+  const m = re.exec(html);
+  if (!m) return '';
+  const end = matchElementEnd(html, m.index, 'section');
+  return html.slice(m.index, end);
+}
+
+function countSelected(html, anchorAttr) {
+  const re = new RegExp('<[a-zA-Z0-9]+\\b[^>]*\\b' + anchorAttr + '\\s*=\\s*"[^"]*"[^>]*>', 'g');
+  let n = 0;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    if (hasAttr('data-selected', m[0])) n += 1;
+  }
+  return n;
+}
+
+// ---------------------------------------------------------------------------
+// CLI
+// ---------------------------------------------------------------------------
+
+function main(argv) {
+  const args = argv.slice(2);
+  if (args.includes('--selftest')) {
+    process.exit(selftest());
+  }
+  const cmd = args[0];
+
+  if (cmd === 'parse') {
+    const file = args[1];
+    if (!file) die('usage: fill-scorecard.mjs parse <scorecard.html>');
+    const html = readFileSync(resolve(file), 'utf8');
+    process.stdout.write(JSON.stringify(parse(html), null, 2) + '\n');
+    return;
+  }
+
+  if (cmd === 'fill') {
+    const file = args[1];
+    const valuesFile = args[2];
+    if (!file || !valuesFile) die('usage: fill-scorecard.mjs fill <scorecard.html> <values.json> [--out <path>]');
+    const outIdx = args.indexOf('--out');
+    const html = readFileSync(resolve(file), 'utf8');
+    const values = JSON.parse(readFileSync(resolve(valuesFile), 'utf8'));
+    const out =
+      outIdx >= 0 && args[outIdx + 1]
+        ? resolve(args[outIdx + 1])
+        : join(dirname(resolve(file)), 'filled-scorecard.html');
+    writeFileSync(out, fill(html, values));
+    process.stdout.write(out + '\n');
+    return;
+  }
+
+  die('usage: fill-scorecard.mjs <parse|fill|--selftest> ...');
+}
+
+function die(msg) {
+  console.error(msg);
+  process.exit(2);
+}
+
+main(process.argv);
