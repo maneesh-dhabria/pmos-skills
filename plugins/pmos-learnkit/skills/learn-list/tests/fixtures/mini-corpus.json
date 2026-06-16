@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "generated": "2026-06-16",
+    "count": 3,
+    "note": "tiny fixture for build-library.test.sh — NOT the shipped corpus"
+  },
+  "references": [
+    {
+      "id": "ref_test000001",
+      "url": "https://www.svpg.com/product-vs-feature-teams/",
+      "title": "Product vs. Feature Teams",
+      "source_type": "article",
+      "publication_date": "2019-07-08",
+      "tags": ["product", "teams", "operating-model"],
+      "summary": "Marty Cagan contrasts empowered product teams with feature teams and why the distinction drives outcomes.",
+      "summary_grounded": true
+    },
+    {
+      "id": "ref_test000002",
+      "url": "https://www.youtube.com/watch?v=example-pricing",
+      "title": "Pricing Strategy for Product Managers",
+      "source_type": "video",
+      "publication_date": "2023-02-14",
+      "tags": ["pricing", "monetization", "product"],
+      "summary": "A walkthrough of value-based pricing, willingness-to-pay research, and packaging tiers for PMs.",
+      "summary_grounded": false
+    },
+    {
+      "id": "ref_test000003_poison",
+      "url": "https://example.com/notion-leak-check",
+      "title": "Poison record — carries forbidden Notion fields the adapter must drop",
+      "source_type": "article",
+      "publication_date": "2024-11-01",
+      "tags": ["governance"],
+      "summary": "If any of the forbidden keys below reach the DOM, the PII allowlist contract is broken.",
+      "summary_grounded": true,
+      "page_id": "PAGEID_LEAK_should_never_render",
+      "database_id": "DBID_LEAK_should_never_render",
+      "occurrence": "OCCURRENCE_LEAK_should_never_render",
+      "snapshot": "SNAPSHOT_LEAK_should_never_render",
+      "workspace": "WORKSPACE_LEAK_should_never_render",
+      "notion_id": "NOTIONID_LEAK_should_never_render"
+    }
+  ]
+}

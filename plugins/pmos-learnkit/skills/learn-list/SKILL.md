@@ -1,8 +1,8 @@
 ---
 name: learn-list
-description: Turns any topic into a verified, anti-slop, multi-format curated reading list for product managers — organized by a canon-derived topic outline, every link fetched and verified before it ships, each ranked and annotated with a ≤2-sentence why, audience-shaped for senior vs all PMs, closing with a follow-list of people, newsletters, books (with summaries) and practitioners' signature writings plus a copy-ready paste-block. Standalone learnkit utility; effort scales via --depth brief|standard|deep. Use when a PM says "build me a reading list on X", "what should I read to learn Y", "curate the best sources on Z", "get me smart on this topic fast", "who should I follow to learn X", "give me a learning list for Y", or "/learn-list". Verification-first — it never emits a link it has not fetched this run.
+description: Turns any topic into a verified, anti-slop, multi-format curated reading list for product managers — organized by a canon-derived topic outline, every link fetched and verified before it ships, each ranked and annotated with a ≤2-sentence why, audience-shaped for senior vs all PMs, closing with a follow-list of people, newsletters, books (with summaries) and practitioners' signature writings plus a copy-ready paste-block. Standalone learnkit utility; effort scales via --depth brief|standard|deep. Use when a PM says "build me a reading list on X", "what should I read to learn Y", "curate the best sources on Z", "who should I follow to learn X", or "/learn-list". Verification-first — it never emits a link it has not fetched this run. Also ships a `browse`/`list` verb (or bare `/learn-list`) that builds a filterable, searchable, offline reference-library page from the curated-references corpus. Also triggers on "browse references", "reference library", or "list references".
 user-invocable: true
-argument-hint: <topic> [--depth <brief|standard|deep>] [--audience <senior-pms|all-pms>] [--format <html|md|both>] [--non-interactive] [--interactive]
+argument-hint: "[<topic> | browse | list] [--depth <brief|standard|deep>] [--audience <senior-pms|all-pms>] [--format <html|md|both>] [--non-interactive] [--interactive]"
 ---
 
 # /learn-list
@@ -43,6 +43,9 @@ These instructions use Claude Code tool names. In other environments:
   `_shared/topic-research/sourcing-ladder.md` still runs over `WebFetch`; only the
   optional last rung for JS-heavy social content is lost. Such candidates are dropped,
   never emitted unverified.
+- **No browser / no Playwright (browse phase):** `build-library.mjs` still writes
+  `library.html`; only the best-effort auto-open is lost. Print the absolute path so the
+  user opens it themselves — opening is never load-bearing.
 
 ## Track Progress
 
@@ -50,7 +53,9 @@ This skill has 8 sequential phases (Setup, Intake, Canon, Outline, Source, Adjac
 Follow-list, Eval + Write, Capture Learnings). Create one task per phase using the host
 agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task
 in-progress when you start it and completed as soon as it finishes — do not batch
-completions.
+completions. (The `browse`/`list` verb short-circuits to the terminal **Browse the
+reference library** phase ([`#browse`](#browse)) and runs none of the research phases — a
+single task is enough for that path.)
 
 ## Phase 0: Setup + Load Learnings {#setup}
 
@@ -103,6 +108,12 @@ The canonical non-interactive block below handles `mode` resolution + per-checkp
 
 Goal: pin **topic + depth + audience** in one short pass.
 
+**Verb dispatch (before anything else).** If the first token is exactly `browse` or `list`,
+**or** the invocation carries no topic at all (bare `/learn-list` with only flags or
+nothing), this is a reference-library request, not a research run: go straight to the
+**Browse the reference library** phase ([`#browse`](#browse)) and skip Phases 2–7 entirely.
+Otherwise the first token is the `<topic>` and the research pipeline below runs.
+
 1. **Parse arguments.** `<topic>` is required.
 2. **Retired-flag rejection.** If `--mode` is present → emit platform-aware error
    `unknown flag '--mode'. Use --depth brief|standard|deep instead.` and exit 64. If
@@ -123,6 +134,34 @@ Goal: pin **topic + depth + audience** in one short pass.
    shape-different but the list is still useful.
 5. **Confirm** topic + depth + audience in a single line and proceed. Do not re-ask
    anything the flags already settled.
+
+## Browse the reference library {#browse}
+
+Reached from the Phase-1 verb dispatch (`browse` | `list` | bare `/learn-list`). This is a
+read-only, terminal path — no research, no canon discovery, no `AskUserQuestion`, no file
+mutation beyond the regenerable page.
+
+Build the reference-library page from the shipped curated-references corpus
+(`${CLAUDE_SKILL_DIR}/../_shared/topic-research/curated-references.json`):
+
+```
+node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {learn_list_dir}/library.html
+```
+
+`build-library.mjs` (zero-dep Node ESM, a thin consumer of the shared
+`_shared/library-viewer/` substrate) emits **one** self-contained `library.html` that works
+offline from `file://`: every curated reference becomes a card (title, source type,
+publication date, tags) opening a sidebar reader with its ≤2-sentence summary and a
+**Visit source** link. Client-side facets (source type / tags / publication year) + a
+title+summary search + removable applied-filter chips + masthead. The viewer surfaces **only
+the allowlisted corpus fields** — no Notion-internal field can reach the DOM (the adapter
+whitelists, never blanket-spreads). When the corpus is absent it degrades to a visible
+empty-state, never a crash. The page is regenerable (mirrors `/frameworks` and `/primer`).
+
+After writing, open it best-effort (`open`/`xdg-open`/`start`, or the platform default) and
+**print the absolute path** so the user can open it themselves. Opening is never
+load-bearing — see the Platform Adaptation note. Then exit cleanly (the research phases do
+not run).
 
 ## Phase 2: Canon & curations (shared) {#canon}
 
