@@ -6,15 +6,15 @@ parent: 260616-tqf
 title: Retrofit /primer browse viewer onto the library-viewer substrate (preserve Curated/Yours)
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: [260616-f7w]
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 plan_doc: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-w1v/03_plan.html
 tasks: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-w1v/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: ~/Desktop/Projects/agent-skills-260616-w1v
+claimed_by: build:cron-w1v
+driver_holder: build:cron-w1v
 labels: [pmos-learnkit, library-viewer, primer, browse, web-ui]
 created: 2026-06-16
 updated: 2026-06-16
