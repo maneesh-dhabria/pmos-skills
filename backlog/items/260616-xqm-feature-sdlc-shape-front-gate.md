@@ -9,14 +9,16 @@ priority: should
 route: skill
 dependencies: [260616-p7b]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-xqm/tasks.yaml
-worktree:
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-xqm
+claimed_by: build:cron-xqm
+driver_holder: build:cron-xqm
 labels: [pmos-toolkit, shape, feature-sdlc, pipeline, gating]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260616-xqm. DEP: 260616-p7b (/shape must exist). -->
