@@ -18,11 +18,14 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
     └─> [worktree + slug]            • bare  /feature-sdlc <idea>            → pipeline_mode = feature
         └─> [feedback-triage]        • /feature-sdlc skill <description>     → pipeline_mode = skill-new
         └─> [skill-tier-resolve]     • /feature-sdlc skill --from-feedback <text|path|--from-reflect> → skill-feedback
-        └─> [/ideate]                • /feature-sdlc prototype <seed>        → pipeline_mode = prototype
-        └─> /requirements            (/skill-sdlc, /prototype-sdlc are thin aliases)
+        └─> [/shape]                 • /feature-sdlc prototype <seed>        → pipeline_mode = prototype
+        └─> [/ideate]                (/skill-sdlc, /prototype-sdlc are thin aliases)
+        └─> /requirements
               └─> [/grill] └─> [/creativity] └─> [/wireframes └─> /prototype]
         └─> /spec → /plan → /execute → [/skill-eval] → /verify → /complete-dev → [/reflect]
 ```
+
+`/shape` is the gated **problem-shaping front** (Phase 1a — auto-skip Tier 1, mandatory Tier 2/3); `/ideate` follows as the **solution-exploration step** (Phase 1b) that consumes `/shape`'s frame.
 
 **Mode × phase** (presentation: which gates present per mode — execution order and hardness live in `reference/state-schema.md` § "Phase identifiers + hardness", the single source for `phases[]` membership):
 
@@ -31,7 +34,8 @@ Top-level orchestrator that drives the full pmos-toolkit pipeline from an initia
 | `0c` /feedback-triage | — | — | ✓ (hard) | — |
 | `0d` /skill-tier-resolve | — | ✓ (infra) | ✓ (infra) | — |
 | `0e` confirm soft-gate defaults | ✓ (2nd-run) | ✓ (2nd-run) | ✓ (2nd-run) | — |
-| `1a` /ideate gate | ✓ (soft) | ✓ (soft) | — | ✓ (soft) |
+| `1a` /shape gate | ✓ (T1 skip / T2+ hard) | ✓ (T1 skip / T2+ hard) | — | ✓ (T1 skip / T2+ hard) |
+| `1b` /ideate gate | ✓ (soft) | ✓ (soft) | — | ✓ (soft) |
 | `2` /requirements · `2a` /grill · `3a` /creativity | ✓ | ✓ | ✓ | ✓ |
 | `3b` /wireframes · `3c` /prototype | ✓ (soft gates) | — | — | ✓ (hard, always-run) |
 | `4` /spec | ✓ | ✓ | ✓ | ✓ (runs before 3b — see `#prototype-ordering`) |
@@ -50,7 +54,7 @@ Two further modes — `define` and `build` (the three-loop backlog loops) — re
 Every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "resume the pipeline" ≡ `--resume`, "skip all the optional stages" ≡ `--minimal`, "don't bother with a worktree" ≡ `--no-worktree`, "forget my saved gate answers" ≡ `--reset-defaults`. Two spellings stay parsed for back-compat but are deliberately not advertised:
 
 <!-- nl-sugar -->
-- `--no-ideate` — pre-skips the Phase 1a gate; redundant with the deterministic fuzzy-seed classifier (which auto-skips formed seeds) and the gate's own Skip option.
+- `--no-ideate` — pre-skips the Phase 1b gate; redundant with the deterministic fuzzy-seed classifier (which auto-skips formed seeds) and the gate's own Skip option.
 <!-- nl-sugar -->
 - `--format both` — retired value, treated as `html` (the mixed-format MD sidecar is retired); `--format <html|md>` is the documented contract.
 <!-- nl-sugar -->
@@ -308,7 +312,7 @@ On failure: failure dialog (infra — Retry / Pause / Abort).
 
 ## Phase 0e: Confirm soft-gate defaults (2nd-run consolidation) {#soft-gate-defaults}
 
-Collapses the five non-destructive soft gates (`1a` ideate, `3a` creativity, `3b` wireframes, `3c` prototype, `8a` retro) into ONE confirm seeded from the prior run. Mirrors `/complete-dev` Phase 0a. Full read/write/field contract: `reference/soft-gate-lastrun-schema.md`.
+Collapses the five non-destructive soft gates (`1b` ideate, `3a` creativity, `3b` wireframes, `3c` prototype, `8a` retro) into ONE confirm seeded from the prior run. Mirrors `/complete-dev` Phase 0a. Full read/write/field contract: `reference/soft-gate-lastrun-schema.md`.
 
 **Skip this phase entirely (gates fire individually) when ANY of:** Phase 0b entered resume mode; `soft_gate_defaults` unset (first run / malformed / `--reset-defaults`); `pipeline_mode == prototype` (its 3b/3c are hard, not gated); `--minimal` active (log `Phase 0e skipped (--minimal active)`); `mode == non-interactive` (the canonical block AUTO-PICKs each gate — log `Phase 0e auto-confirmed (non-interactive); defaults source: lastrun`).
 
@@ -325,7 +329,7 @@ options:
 - **Confirm all:** set `soft_gates_confirmed = true`. Each gate phase consults `soft_gate_defaults` and short-circuits its prompt (the "Short-circuit when Phase 0e confirmed" clauses below). The destructive/judgement prompts listed in `reference/soft-gate-lastrun-schema.md` § "never consolidated" always fire.
 - **Edit one or more:**
 <!-- defer-only: ambiguous -->
-  `AskUserQuestion` (multiSelect, only the gates applicable to this mode) — which gates to change; for each selected gate present that gate's own option list (reuse the Phase 1a/3a/3b/3c/8a prompts verbatim), update `soft_gate_defaults`, re-display the summary, re-ask — loop until Confirm.
+  `AskUserQuestion` (multiSelect, only the gates applicable to this mode) — which gates to change; for each selected gate present that gate's own option list (reuse the Phase 1b/3a/3b/3c/8a prompts verbatim), update `soft_gate_defaults`, re-display the summary, re-ask — loop until Confirm.
 - **Cancel:** exit with no side effects (any Phase 0a worktree is left for the user — same as any pre-Phase-1 abort).
 
 ## Phase 1: Initialize state {#init-state}
@@ -348,24 +352,39 @@ After every phase end (pass / fail / skip / pause), do all three atomically — 
 
 Not a numbered phase. When it fires (mode- and tier-dependent), the prompt shape, and the three-part pause-resumable exit contract all live in `reference/compact-checkpoint.md` — the single source. Skills cannot trigger `/compact` — only the user can; the checkpoint surfaces the choice, and "Pause" exits cleanly so the user can `/compact` and re-run with `--resume`.
 
-## Phase 1a: /ideate gate (soft; feature + skill-new + prototype) {#ideate-gate}
+## Phase 1a: /shape gate (problem-shaping front; feature + skill-new + prototype) {#shape-gate}
 
-**Not presented in `skill-feedback`** (the triage doc is already structured — phase id `ideate` is absent from its `phases[]`). Hardness: **soft**. **Goal:** when the seed is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; a Tier-3-sized brief auto-chains `/grill --depth deep`.
+The gated **problem-shaping front** of the pipeline — `/shape` shapes the *problem* (HMW + JTBD + lens ledger) before any solution work, so `/ideate` (Phase 1b) and `/requirements` inherit a converged problem frame instead of re-deriving it. **Not presented in `skill-feedback`** (the triage doc is already a structured per-skill seed — phase id `shape` is absent from its `phases[]`, the same mode-conditional non-presentation as `ideate`). **Always available standalone** (like `/grill`, `/ripple`).
 
-1. **Classify.** If `--no-ideate` was passed, log `[orchestrator] phase 1a ideate: --no-ideate flag; skipping`, set `status = skipped-flag`, proceed. Else apply `reference/fuzzy-idea-detection.md` to the seed + `doc_attached` flag → `seed_shape ∈ {fuzzy, formed}` (record on the `ideate` state entry). `formed` → log `[orchestrator] phase 1a ideate: formed seed detected; skipping`, `status = skipped-formed` — auto-skip is allowed because the classifier ran (Anti-pattern #14). `fuzzy` → present the gate:
+**Additive + version-gated (D8 — no breaking change):** this phase was inserted additively and the state `schema_version` bumped (`reference/state-schema.md ## schema_version`); a resume state that predates the phase has no `shape` entry in `phases[]` and the Phase 0b cursor **advances past it** (back-compat by absence) — in-flight worktrees and already-defined epics keep the old phase order, no migration.
+
+**Hardness: auto-skip at Tier 1 / hard (mandatory) at Tier 2+ (D9).** The disposition is deterministic — no user skip prompt exists at any tier, so `/shape` is **not** a Phase 0e soft-gate-defaults entry:
+
+1. **Resolve the gate disposition from `{tier}` + the context bucket (D9).** `{tier}` at this point: an explicit `--tier N`; otherwise unresolved in feature mode (`/requirements` auto-tiers at Phase 2) → use the **Tier-3 conservative default** (per "Tier resolution"); in skill modes the Phase 0d `skill-tier-resolve` already set it.
+   - **Explicit `--tier 1`** → auto-skip: log `[orchestrator] phase 1a shape: --tier 1; problem-shaping front skipped (auto)`, set `status = skipped-tier1`, proceed to Phase 1b. Auto-skip is allowed because the tier is explicit + deterministic (Anti-pattern #14).
+   - **Tier 2, Tier 3, or unresolved-conservative-3, OR `/shape`'s context classifier returns `new-bet`** → **mandatory**: `/shape` runs (no skip option). The context classifier (`/shape`'s context gate — side-project / feature-in-product / new-bet / internal-tool) also forces mandatory on `new-bet`.
+2. **Run `/shape`** (mandatory case): invoke `/pmos-toolkit:shape` with the seed (`[mode: …]` + `[output_format: …]` first lines). Copy the problem-brief into the feature folder as `00c_shape.html` (atomic-write substrate); resolve via `_shared/resolve-input.md` `phase=shape`, falling back to `find {docs_path}/shape -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path` + the brief's context bucket on the `shape` state entry. The brief is passed downstream: Phase 1b `/ideate` and Phase 2 `/requirements` receive `[shape-brief: <path>]` so they consume the frame rather than re-deriving it (the `/ideate` consuming-change ships in story `260616-4pg`).
+3. **Non-interactive (D10 — the W14 contract).** Under `--non-interactive` the mandatory Tier-2/3 gate **does not deadlock and does not hard-refuse** — it invokes `/shape`'s **autonomous path** (`/shape` owns the machinery: parallel lens-drafter subagents + a reviewer subagent that converges the framing and runs the ceiling-breaker; unresolved lenses land as Open questions; only a major blocking gap escalates). This story only routes the gate to that path rather than skipping. Log `[orchestrator] phase 1a shape: Tier <N> mandatory; --non-interactive → /shape autonomous path (no deadlock)`. `status = completed`. On `/shape` failure: hard-phase failure dialog (no Skip — the gate is mandatory at this tier).
+
+## Phase 1b: /ideate gate (soft; feature + skill-new + prototype) {#ideate-gate}
+
+**Not presented in `skill-feedback`** (the triage doc is already structured — phase id `ideate` is absent from its `phases[]`). Hardness: **soft**. **Goal:** the **solution-exploration step** — when the seed (or the Phase 1a `/shape` frame) is half-formed, give the user a one-prompt path to brainstorm via `/ideate`; a Tier-3-sized brief auto-chains `/grill --depth deep`. When a `/shape` brief is present it is passed through (`[shape-brief: <path>]`) so `/ideate` adopts the shaped frame instead of re-deriving it.
+
+1. **Classify.** If `--no-ideate` was passed, log `[orchestrator] phase 1b ideate: --no-ideate flag; skipping`, set `status = skipped-flag`, proceed. Else apply `reference/fuzzy-idea-detection.md` to the seed + `doc_attached` flag → `seed_shape ∈ {fuzzy, formed}` (record on the `ideate` state entry). `formed` → log `[orchestrator] phase 1b ideate: formed seed detected; skipping`, `status = skipped-formed` — auto-skip is allowed because the classifier ran (Anti-pattern #14). `fuzzy` → present the gate:
 
 <!-- defer-only: ambiguous -->
    `AskUserQuestion` — **Run /ideate (Recommended)** (brainstorm; brief seeds /requirements) / **Skip** (proceed straight to /requirements; pick this if the detector misfired). In `--non-interactive`: deferred per canonical block; default = Skip; `status = skipped-non-interactive` with an explicit log line (Anti-pattern #7).
 
-   **Short-circuit when Phase 0e confirmed:** after the flag and `formed` auto-skips (they take precedence), a would-present `fuzzy` gate applies `soft_gate_defaults.ideate` instead — log `[orchestrator] phase 1a ideate: auto-<run|skip> via Phase 0e`, skip the prompt.
+   **Short-circuit when Phase 0e confirmed:** after the flag and `formed` auto-skips (they take precedence), a would-present `fuzzy` gate applies `soft_gate_defaults.ideate` instead — log `[orchestrator] phase 1b ideate: auto-<run|skip> via Phase 0e`, skip the prompt.
 
 2. **Run `/ideate`** (Run picked): invoke `/pmos-toolkit:ideate` with the seed (`[mode: …]` + `[output_format: …]` first lines). Copy the brief into the feature folder as `00d_ideate.html` (atomic-write substrate); resolve via `_shared/resolve-input.md` `phase=ideate`, falling back to `find {docs_path}/ideate -newer {state.yaml} -name '*.html' | sort | tail -1`. Record `artifact_path`. On `/ideate` failure: soft-phase failure dialog (Skip SHOWN — proceed without a brief).
-3. **Tier-3 auto-chain.** `ideate_tier_estimate = 3` iff `--tier 3` was explicit OR the brief has ≥3 user-journey `<section>` blocks (ids matching `#journey-`/`#scenario-`/`#user-`, case-insensitive) OR ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test`/`#premortem`); else 2 (default). If 3: invoke `/pmos-toolkit:grill --depth deep` against `00d_ideate.html` → `00d-grill_ideate.html`; log `[orchestrator] phase 1a ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --depth deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else log `[orchestrator] phase 1a ideate: tier estimate <N>; grill --depth deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`). On unexpected failure: soft-phase failure dialog.
+3. **Tier-3 auto-chain.** `ideate_tier_estimate = 3` iff `--tier 3` was explicit OR the brief has ≥3 user-journey `<section>` blocks (ids matching `#journey-`/`#scenario-`/`#user-`, case-insensitive) OR ≥5 pressure-test findings (`class="finding"` or `<li>` under `#pressure-test`/`#premortem`); else 2 (default). If 3: invoke `/pmos-toolkit:grill --depth deep` against `00d_ideate.html` → `00d-grill_ideate.html`; log `[orchestrator] phase 1b ideate: Tier-3 detected (reason=<flag|journeys|findings>); auto-ran /grill --depth deep`; set `grill_deep_chained = true` + `grill_deep_artifact_path`. Else log `[orchestrator] phase 1b ideate: tier estimate <N>; grill --depth deep skipped`. Mark `status = completed` (or the appropriate `skipped-*`). On unexpected failure: soft-phase failure dialog.
 
 ## Phase 2: /requirements (hard) {#requirements}
 
 Invoke `/pmos-toolkit:requirements` with the seed for this mode (feature/prototype: the initial context; `skill-new`: the `skill <description>` text; `skill-feedback`: the combined per-skill seed built in Phase 0c step 6). Prepend `[mode: <current-mode>]\n` + `[output_format: <resolved>]\n`; pass `--tier <N>` if set (always so in skill modes) and `--backlog <id>` if given.
 
+- **Shape passthrough:** if `state.yaml.phases.shape.artifact_path` is non-null (Phase 1a ran), append `[shape-brief: <path>]` so `/requirements` builds on the shaped problem frame. `skipped-tier1` / absent states write nothing.
 - **Ideate passthrough:** if `state.yaml.phases.ideate.artifact_path` is non-null, append `[ideate-brief: <path>]`; if `grill_deep_artifact_path` too, append `[ideate-grill: <path>]`. Skipped-* states write nothing.
 - **In skill modes:** prepend a line citing `reference/skill-patterns.md` as the standing acceptance criteria — "the produced/revised skill must conform to `skill-patterns.md §A–§L`".
 
@@ -419,7 +438,7 @@ story-split → per-story /plan → definition-merge(docs-only) → final-summar
 ```
 
 1. **Resolve the epic**. Existing id → load it (`/backlog show`), status → `defining`. A fresh idea → `/backlog add --kind epic "<title>"` (or pre-wrapped singleton epic per D18), status `defining`. Epics stay open for story additions after `defined` (D16).
-2. **Epic-level discovery.** Create the worktree on branch `define/<epic-id>`. **Ideate-brief detect (D28):** if the epic's `source:` points at an `/ideate` brief, Phase 1a skips re-ideating and feeds the brief into `/requirements` as the seed (`[ideate-brief: <path>]`); else the normal Phase 1a gate runs. Then `/requirements` → `/grill` → (`/creativity`, `/wireframes`, `/prototype` per the usual tier gates) → `/spec`, all at epic level. The backlog bridge stamps `requirements_doc:` / `spec_doc:` on the epic.
+2. **Epic-level discovery.** Create the worktree on branch `define/<epic-id>`. **Ideate-brief detect (D28):** if the epic's `source:` points at an `/ideate` brief, Phase 1b skips re-ideating and feeds the brief into `/requirements` as the seed (`[ideate-brief: <path>]`); else the normal Phase 1b gate runs. Then `/requirements` → `/grill` → (`/creativity`, `/wireframes`, `/prototype` per the usual tier gates) → `/spec`, all at epic level. The backlog bridge stamps `requirements_doc:` / `spec_doc:` on the epic.
 3. **Story-split step**. Carve the spec into stories *with the maintainer* — each gets title, ≥1 AC, `dependencies:`, `route:`. Create them as `kind: story` children (`/backlog add --epic <epic-id>`), `draft` → `ready` once ACs land. Sizing rule: **a story is what one `/execute` run can carry** (one session, one PR); default to vertical slices, and apply the **D24 litmus** — if a task in one story would depend on a task in another, fix the split. **Validate every story targets the epic's single plugin / release unit (D17).** Non-interactive: defer the split (it needs human judgement) and surface it in the OQ log.
 4. **Per ready story: `/plan` in the definition worktree (D10).** Invoke `/plan` scoped by (epic-spec anchors + story ACs) → emits `stories/<story>/03_plan.html` + `tasks.yaml` → story `planned`. `route: lite` stories skip the plan HTML; grooming authored their `tasks.yaml` (D15). **No story worktrees are created here** — all plans ride the definition merge.
 5. **Definition merge (docs-only, D20) → exit + teardown.** Before merging `define/<epic-id>` to main, run two deterministic gates:
@@ -669,7 +688,7 @@ Print the full pipeline-status table from `00_pipeline.html`, plus:
 11. **Letting the Phase 6a reviewer make edits.** The reviewer scores and reports only; `/execute` is the sole writer. A reviewer that fixes while reviewing makes the eval unreproducible.
 12. **Treating "accept residuals" as a silent pass.** Residuals are recorded, re-checked by `/verify`, and surfaced in the `/verify` report and `/complete-dev` summary. And never exceed the 2-iteration cap — past it, the only exits are the four post-cap options.
 13. **Inferring the run mode from seed text.** `pipeline_mode` comes from the explicit subcommand token, never from sniffing whether the idea "sounds like a skill". A bare `/feature-sdlc <text>` is always feature mode.
-14. **Skipping the Phase 1a gate without running the classifier.** `reference/fuzzy-idea-detection.md` runs deterministically on every eligible run (unless `--no-ideate`); `skipped-formed` is legitimate only because the classifier ran. The Tier-3 grill-chain heuristic is likewise deterministic — no LLM gut-feel.
+14. **Skipping the Phase 1b gate without running the classifier.** `reference/fuzzy-idea-detection.md` runs deterministically on every eligible run (unless `--no-ideate`); `skipped-formed` is legitimate only because the classifier ran. The Tier-3 grill-chain heuristic is likewise deterministic — no LLM gut-feel.
 15. **Improvising remote-control of the worktree after a failed or absent `EnterWorktree`.** If the session is not inside the worktree — `EnterWorktree` was unavailable, errored, or the Phase 0a Step 3 step 5 assertion (`#enter-contract`) found `pwd` still on the main checkout — the only two moves are *enter it* or *hand off and exit*. Never run the pipeline against `git -C "$ABS_PATH"` / `cd "$ABS_PATH"` from main: remote-control defeats isolation (parallel `define`/`build` runs then share the main checkout, where a stray `git add -A` stages another run's work), and it leaves `realpath(pwd) != state.worktree_path`, which the Phase 0b drift-check rejects on `--resume`. Loading the deferred `EnterWorktree` schema first (`ToolSearch select:EnterWorktree,ExitWorktree`) and asserting the re-root is what makes the worktree's isolation real rather than nominal.
 
 ---
@@ -693,4 +712,4 @@ The `/feature-sdlc` entrypoint that `/comments resolve` dispatches into when wal
 
 ---
 
-*Spec lineage: `docs/pmos/features/2026-05-09_feature-sdlc-skill/` (orchestrator, gates, failure dialogs), `2026-05-10_feature-sdlc-worktree-resume/` (worktree + resume contract), `2026-05-11_feature-sdlc-skill-mode/` (skill modes, skill-eval loop), `2026-05-23_feature-sdlc-ideate-phase/` (Phase 1a), `2026-05-23_inline-doc-comments/` + `2026-05-28_inline-html-artifacts/` (comment-resolver surfaces), `2026-05-24_prototype-sdlc-skill/` (prototype mode), `2026-05-10_pipeline-consolidation/` (folded phases, `--minimal`, Phase 0e soft-gate defaults).*
+*Spec lineage: `docs/pmos/features/2026-05-09_feature-sdlc-skill/` (orchestrator, gates, failure dialogs), `2026-05-10_feature-sdlc-worktree-resume/` (worktree + resume contract), `2026-05-11_feature-sdlc-skill-mode/` (skill modes, skill-eval loop), `2026-05-23_feature-sdlc-ideate-phase/` (Phase 1b), `2026-05-23_inline-doc-comments/` + `2026-05-28_inline-html-artifacts/` (comment-resolver surfaces), `2026-05-24_prototype-sdlc-skill/` (prototype mode), `2026-05-10_pipeline-consolidation/` (folded phases, `--minimal`, Phase 0e soft-gate defaults).*
