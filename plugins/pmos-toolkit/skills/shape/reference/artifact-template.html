@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="pmos:skill" content="shape">
+  <meta name="pmos:shape-phase" content="{{phase_cursor}}">
+  <meta name="pmos:shape-slug" content="{{slug}}">
+  <meta name="pmos:shape-date" content="{{date}}">
+  <meta name="pmos:shape-context" content="{{context_bucket}}">
+  <title>{{title}} — Problem Brief</title>
+  <link rel="stylesheet" href="assets/style.css?v={{plugin_version}}">
+  <script defer src="assets/viewer.js?v={{plugin_version}}"></script>
+</head>
+<body>
+  <header class="pmos-artifact-toolbar" data-pmos-role="toolbar">
+    <h1 class="pmos-artifact-title">{{title}}</h1>
+    <div class="pmos-artifact-actions">
+      <button type="button" class="pmos-btn" data-pmos-action="copy-link">Copy section link</button>
+    </div>
+    <a class="pmos-attribution pmos-attribution--toolbar"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </header>
+  <main class="pmos-artifact-body" data-pmos-role="body">
+
+<section id="tldr">
+<h2 id="tldr">The shaped problem</h2>
+<p>{{sharpest_problem_statement}}</p>
+<p><strong>Who / when / why-now:</strong> {{who_when_whynow}}</p>
+<p><em>This is a <strong>problem</strong> brief. It deliberately proposes no solution — see Handoff below.</em></p>
+</section>
+
+<section id="felt-problem">
+<h2 id="felt-problem">Felt problem (HMW + JTBD)</h2>
+<p><strong>How might we:</strong> {{hmw_statement}}</p>
+<p><strong>Who:</strong> {{user_persona}}</p>
+<p><strong>When / where:</strong> {{user_context}}</p>
+<p><strong>Job-to-be-done:</strong> {{jtbd}}</p>
+<p><strong>Falsifiable hypothesis:</strong> If we solve {{hypothesis_x}}, then {{hypothesis_y}} observably changes.</p>
+</section>
+
+<section id="context-classification">
+<h2 id="context-classification">Context classification</h2>
+<p><strong>Bucket:</strong> {{context_bucket}} <span class="pmos-muted">({{context_source}})</span></p>
+<p>{{context_rationale}}</p>
+<p class="pmos-muted">Classification persists (not the answers); workstream &gt; settings; re-confirmed only on absent/doc-seeded/conflicting signals.</p>
+</section>
+
+<section id="ladder">
+<h2 id="ladder">Abstraction ladder</h2>
+<p>Climbing <em>why</em> / descending <em>how</em> to find the right altitude{{five_whys_note}}.</p>
+<ul>
+{{ladder_rungs}}
+</ul>
+<p><strong>Chosen altitude:</strong> {{chosen_altitude}}</p>
+</section>
+
+<section id="decomposition">
+<h2 id="decomposition">Decomposition</h2>
+<p>Sub-problems, with the real one marked ★.</p>
+<ol>
+{{subproblems_list}}
+</ol>
+</section>
+
+<section id="framings">
+<h2 id="framings">Competing framings</h2>
+<p>2–3 ways to frame the problem (lenses on the problem, <em>not</em> solution commitments), with the ripple-on-the-framing — "if framed as X vs Y, what does each set in motion downstream?"</p>
+<table>
+<tr><th>Framing</th><th>What it sets in motion</th><th>Kept / rejected &amp; why</th></tr>
+{{framing_rows}}
+</table>
+<p><strong>Chosen framing:</strong> {{chosen_framing}}</p>
+</section>
+
+<section id="lens-ledger">
+<h2 id="lens-ledger">Lens ledger</h2>
+<p>Every applicable lens with its disposition — <strong>including N/A and Parked-with-reason</strong> — so any uncovered dimension is visible, not silently absent. Dispositions: Answered · Parked (out-of-scope, with reason) · Open question · N/A-for-context. See <code>_shared/lens-ledger.md</code>.</p>
+<table>
+<tr><th>Lens</th><th>Disposition</th><th>Note (evidence / reason / why dropped)</th></tr>
+{{lens_ledger_rows}}
+</table>
+<p><strong>Ceiling-breaker:</strong> {{ceiling_breaker_outcome}}</p>
+</section>
+
+<section id="open-questions">
+<h2 id="open-questions">Open questions</h2>
+<ul>
+{{open_questions_list}}
+</ul>
+</section>
+
+<section id="handoff">
+<h2 id="handoff">Handoff</h2>
+<p>This brief shapes the <em>problem</em>. Pick zero or more next steps — solution work begins downstream:</p>
+<ul>
+{{handoff_commands}}
+</ul>
+</section>
+
+  </main>
+  <footer class="pmos-artifact-footer" data-pmos-role="footer">
+    <span class="pmos-artifact-source">Source: {{source_path}}</span>
+    <span class="pmos-attribution-sep" aria-hidden="true">·</span>
+    <a class="pmos-attribution pmos-attribution--footer"
+       href="https://github.com/maneesh-dhabria/pmos-skills/blob/main/plugins/pmos-toolkit/README.md"
+       target="_blank" rel="noopener noreferrer"
+       data-pmos-role="attribution">Created using pmos&#8209;toolkit</a>
+  </footer>
+</body>
+</html>
