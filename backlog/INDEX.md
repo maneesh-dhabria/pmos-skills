@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-16 (define: epic 260616-bq9 — /shape problem-shaping skill — defined with 3 planned stories)
+Last regenerated: 2026-06-16 (define: epic 260616-tqf — curated-references overlay + library-viewer substrate — defined with 4 planned stories)
 
-31 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+36 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -42,6 +42,7 @@ Last regenerated: 2026-06-16 (define: epic 260616-bq9 — /shape problem-shaping
 | 260615-565 | released | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) — pmos-learnkit/v0.22.0 |
 | 260616-9bt | defined | skill | pmos-managerkit | 0/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 | 260616-bq9 | defined | skill | pmos-toolkit | 0/3 | /shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup |
+| 260616-tqf | defined | skill | pmos-learnkit | 0/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
 
 ## must
 
@@ -53,6 +54,10 @@ Last regenerated: 2026-06-16 (define: epic 260616-bq9 — /shape problem-shaping
 
 | id | kind | type | status | parent | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|---|
+| 260616-v4h | story | feature | planned | 260616-tqf | Curated-references overlay engine — ship scrubbed corpus + IDF prefilter + research-phase subagent + sourcing.md patch | 02_design.html | 03_plan.html |  |
+| 260616-f7w | story | feature | planned | 260616-tqf | Extract _shared/library-viewer/ substrate + retrofit /frameworks onto it (zero regression) | 02_design.html | 03_plan.html |  |
+| 260616-w1v | story | feature | planned | 260616-tqf | Retrofit /primer browse viewer onto the library-viewer substrate (preserve Curated/Yours) | 02_design.html | 03_plan.html |  |
+| 260616-y9f | story | feature | planned | 260616-tqf | Build the /learn-list reference viewer on the substrate + curated corpus | 02_design.html | 03_plan.html |  |
 | 260616-vwn | story | feature | planned | 260616-9bt | pmos-managerkit + /interview-feedback core | 02_design.html | 03_plan.html |  |
 | 260616-06q | story | feature | planned | 260616-9bt | Bundled PM round guideline starter set (deps 260616-vwn) | 02_design.html | 03_plan.html |  |
 | 260616-p7b | story | feature | planned | 260616-bq9 | /shape skill + _shared/lens-ledger.md substrate — floor/ceiling/context-gate probing, full lens ledger artifact, autonomous non-interactive path |  |  |  |
