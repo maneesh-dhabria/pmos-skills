@@ -1,0 +1,140 @@
+[
+  {
+    "id": "dependency-s2-h",
+    "level": 2,
+    "title": "Dependency on the S2 substrate",
+    "parent_id": null
+  },
+  {
+    "id": "api-expectations",
+    "level": 3,
+    "title": "API expectations of the substrate",
+    "parent_id": "dependency-s2"
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study — primer build-library.mjs structure",
+    "parent_id": null
+  },
+  {
+    "id": "corpus-load",
+    "level": 3,
+    "title": "Corpus load (becomes the adapter)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "dual-population",
+    "level": 3,
+    "title": "Dual-population (Curated vs Yours)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "facets-views",
+    "level": 3,
+    "title": "Facets + client behaviour",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "emit-selftest",
+    "level": 3,
+    "title": "Emit + selftest",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "task-breakdown-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "dependency-s2-h",
+    "level": 2,
+    "title": "Dependency on the S2 substrate",
+    "parent_id": null
+  },
+  {
+    "id": "api-expectations",
+    "level": 3,
+    "title": "API expectations of the substrate",
+    "parent_id": "dependency-s2"
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study — primer build-library.mjs structure",
+    "parent_id": null
+  },
+  {
+    "id": "corpus-load",
+    "level": 3,
+    "title": "Corpus load (becomes the adapter)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "dual-population",
+    "level": 3,
+    "title": "Dual-population (Curated vs Yours)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "facets-views",
+    "level": 3,
+    "title": "Facets + client behaviour",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "emit-selftest",
+    "level": 3,
+    "title": "Emit + selftest",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "task-breakdown-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]

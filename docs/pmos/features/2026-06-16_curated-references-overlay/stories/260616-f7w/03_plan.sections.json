@@ -1,0 +1,104 @@
+[
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study — what frameworks build-library.mjs contains",
+    "parent_id": null
+  },
+  {
+    "id": "reusable-core",
+    "level": 3,
+    "title": "Reusable core — lift into the substrate",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "skill-specific",
+    "level": 3,
+    "title": "Skill-specific — stays in frameworks' adapter",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "substrate-api-h",
+    "level": 2,
+    "title": "Proposed substrate API (frozen for S3/S4)",
+    "parent_id": null
+  },
+  {
+    "id": "tasks-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study — what frameworks build-library.mjs contains",
+    "parent_id": null
+  },
+  {
+    "id": "reusable-core",
+    "level": 3,
+    "title": "Reusable core — lift into the substrate",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "skill-specific",
+    "level": 3,
+    "title": "Skill-specific — stays in frameworks' adapter",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "substrate-api-h",
+    "level": 2,
+    "title": "Proposed substrate API (frozen for S3/S4)",
+    "parent_id": null
+  },
+  {
+    "id": "tasks-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]

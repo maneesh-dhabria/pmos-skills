@@ -1,0 +1,116 @@
+[
+  {
+    "id": "dependencies-h",
+    "level": 2,
+    "title": "Dependencies on S2 + S1",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study",
+    "parent_id": null
+  },
+  {
+    "id": "cs-verb-surface",
+    "level": 3,
+    "title": "learn-list SKILL verb surface (where browse slots in)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "cs-substrate",
+    "level": 3,
+    "title": "Substrate consumption (thin consumer, not a copy)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "cs-corpus",
+    "level": 3,
+    "title": "Corpus shape",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "task-breakdown-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "overview-h",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "dependencies-h",
+    "level": 2,
+    "title": "Dependencies on S2 + S1",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-h",
+    "level": 2,
+    "title": "Code study",
+    "parent_id": null
+  },
+  {
+    "id": "cs-verb-surface",
+    "level": 3,
+    "title": "learn-list SKILL verb surface (where browse slots in)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "cs-substrate",
+    "level": 3,
+    "title": "Substrate consumption (thin consumer, not a copy)",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "cs-corpus",
+    "level": 3,
+    "title": "Corpus shape",
+    "parent_id": "code-study"
+  },
+  {
+    "id": "task-breakdown-h",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-risks-h",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-h",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]

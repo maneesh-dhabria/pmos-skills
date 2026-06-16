@@ -1,0 +1,153 @@
+schema_version: 1
+story: 260616-y9f
+epic: 260616-tqf
+route: skill
+spec: ../../02_design.html
+execution_mode: inline
+tasks:
+  - id: T1
+    status: pending
+    parallel: false
+    deps: []
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      Dependency pre-flight (read-only, no code). Confirm BOTH deps are merged into this
+      worktree before any build: (a) S2 substrate present at
+      plugins/pmos-learnkit/skills/_shared/library-viewer/ with its frozen public API
+      (facet extraction + counts, filter/search/sort engine, applied-filter chips, view
+      toggles, single-file HTML emit, masthead/theme — per #b-substrate); (b) S1 corpus
+      present at plugins/pmos-learnkit/skills/_shared/topic-research/curated-references.json
+      with allowed fields {id,url,title,source_type,publication_date,tags,summary,
+      summary_grounded} + meta. Read the substrate's entrypoint/exports and the corpus
+      shape; record the exact import path + exported function names this viewer will call.
+      How: ls + read the substrate index module and the corpus JSON head. Test: none
+      (gate); if either dep is missing, STOP — this story cannot build until S2 (API
+      frozen) and S1 (corpus shipped) land (build order per design story-map).
+
+  - id: T2
+    status: pending
+    parallel: false
+    deps: [T1]
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      TESTS-FIRST: author plugins/pmos-learnkit/skills/learn-list/tests/build-library.test.sh
+      (failing-first), mirroring frameworks/tests/build-library.test.sh structure (bash-3.2
+      safe; runs node build-library.mjs --out <tmp>; asserts on the emitted HTML). Cases:
+      (a) BUILD OFFLINE — script exits 0 with no network, emits one self-contained
+      library.html (no external http(s) asset refs / no <link rel=stylesheet href=http>);
+      (b) CORPUS RENDERS — given a small fixture corpus, the page contains a card per
+      record (title + url present); (c) FACETS — page exposes facet controls for
+      source_type, tags, and publication_date(year); (d) SEARCH — a free-text search input
+      over title+summary is present; (e) READER/DETAIL — a detail/reader affordance exists;
+      (f) APPLIED-FILTER CHIPS + MASTHEAD present. How: heredoc fixture JSON in tests/
+      fixtures/, grep the emitted HTML. Test: run the script — every case FAILS now (no
+      build-library.mjs yet). This is the regression gate per #cross-skill-coherence-h(4).
+
+  - id: T3
+    status: pending
+    parallel: false
+    deps: [T1]
+    spec_anchor: "#corpus-and-pii-h"
+    notes: >
+      TESTS-FIRST (PII no-new-field gate): add a deterministic case to build-library.test.sh
+      (or a sibling tests/pii.test.sh) asserting the emitted DOM surfaces ONLY the allowed
+      corpus fields {id,url,title,source_type,publication_date,tags,summary,
+      summary_grounded} and introduces NO notion-specific field. How: feed a fixture corpus
+      record that ALSO carries forbidden keys (page_id, database_id, occurrence, snapshot,
+      workspace, notion_id) as a poison test, build, then grep the emitted HTML and assert
+      ZERO matches for /page_id|database_id|occurrence|snapshot|workspace|notion_/ (case-
+      insensitive). Also assert the viewer reads no field outside the allowlist (the builder
+      adapter must whitelist, not blanket-spread the record). Test: FAILS now (no builder).
+      This codifies #corpus-and-pii-h's field-allowlist contract at the viewer boundary.
+
+  - id: T4
+    status: pending
+    parallel: false
+    deps: [T1]
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      TESTS-FIRST (graceful degrade): add a case asserting that when
+      curated-references.json is ABSENT, the script still exits 0 and emits a library.html
+      with a visible empty-state (e.g. "no curated references found"), never a crash/non-zero
+      exit. How: run node build-library.mjs --out <tmp> --corpus <nonexistent path>; assert
+      exit 0 + grep empty-state marker + absence of any card. Test: FAILS now. Rationale:
+      the overlay is optional/if-present per the design — a missing corpus must degrade, not
+      error.
+
+  - id: T5
+    status: pending
+    parallel: false
+    deps: [T2, T3, T4]
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      Implement NEW plugins/pmos-learnkit/skills/learn-list/scripts/build-library.mjs as a
+      THIN consumer of the S2 _shared/library-viewer/ substrate (import its engine; supply
+      ONLY the corpus adapter record→card-fields + learn-list extras). It reads the shipped
+      corpus at plugins/pmos-learnkit/skills/_shared/topic-research/curated-references.json
+      (resolve relative to the skill dir; allow --corpus override), renders a faceted,
+      searchable, sortable single-file offline (file://) reference viewer: facets on
+      source_type / tags / publication_date(year); free-text search over title+summary; a
+      reader/detail view; applied-filter chips; masthead. The adapter MUST whitelist exactly
+      {id,url,title,source_type,publication_date,tags,summary,summary_grounded} — never
+      blanket-spread a record (PII contract). Empty-state when corpus absent/empty.
+      --out <path> + --selftest flags mirror the other viewers. Zero-dep Node ESM; NO
+      ESM-in-emitted-assets; no external asset refs (offline contract per #b-substrate).
+      How: import substrate, write adapter + CLI wrapper. Test: T2/T3/T4 now PASS.
+
+  - id: T6
+    status: pending
+    parallel: false
+    deps: [T5]
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      EDIT plugins/pmos-learnkit/skills/learn-list/SKILL.md — add the browse/list (and bare)
+      verb + a #browse phase, mirroring /primer's Phase-1 verb dispatch + #browse section
+      and /frameworks. Concretely: (1) Phase-1 Intake gains a verb-dispatch preamble — if
+      the first token is exactly `browse` or `list`, OR the invocation carries no topic
+      (bare /learn-list with only flags or nothing), route to the new #browse phase and skip
+      the research phases; otherwise the first token is <topic>. (2) Add a "Browse the
+      reference library {#browse}" phase: read-only/terminal (no AskUserQuestion, no file
+      mutation beyond the regenerable page), builds the viewer via
+      `node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {learn_list_dir}/library.html`,
+      opens best-effort, prints the absolute path, exits cleanly. (3) Update the description
+      + argument-hint to advertise browse/list (mirror /primer's frontmatter). (4) Update the
+      "Track Progress" phase count / list. Keep the non-interactive block byte-identical.
+      How: targeted edits to SKILL.md only. Test: lint-flags-vs-hints.sh + lint-phase-refs.sh
+      green on the skill dir (a real #browse anchor exists; verb is hinted).
+
+  - id: T7
+    status: pending
+    parallel: false
+    deps: [T6]
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >
+      Skill-eval + hygiene lints. Run feature-sdlc skill-eval-check.sh against the learn-list
+      skill DIR; run tools/lint-non-interactive-inline.sh, tools/audit-recommended.sh,
+      tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh. Fix any [D] deterministic
+      failures introduced by the SKILL.md edit (a-name-matches-dir, j-slug anchors for
+      #browse, flags-vs-hints for the browse/list verb). Pre-existing residuals are recorded,
+      not fixed here. How: run the scripts (lints take the SKILL.md FILE path; skill-eval-
+      check takes the DIR — opposite arg shapes). Test: skill-eval [D] EXIT 0 (or only
+      accepted pre-existing residuals) + 4 lints green. Honors #cross-skill-coherence-h(1)
+      (substrate stays skill-agnostic — no learn-list special-casing reached back into
+      _shared/).
+
+  - id: T8
+    status: pending
+    parallel: false
+    deps: [T7]
+    spec_anchor: "#b-learnlist-viewer"
+    notes: >
+      LOAD-BEARING LIVE DOGFOOD (non-skippable). Build the real viewer against the shipped
+      corpus: node scripts/build-library.mjs --out <dogfood>/library.html. Serve/open it in a
+      real browser via Playwright MCP from file:// (offline — no network). Drive and assert:
+      (a) the corpus renders (≥1 reference card visible, real title+url); (b) a source_type
+      facet filters the list (click → count changes); (c) a tags facet filters; (d) free-text
+      search over title+summary narrows results live; (e) the reader/detail view opens for a
+      card; (f) applied-filter chips appear and Clear-all resets. Then the PII assertion in
+      the LIVE DOM: page-evaluate document.documentElement.outerHTML and assert ZERO matches
+      for /page_id|database_id|occurrence|snapshot|workspace|notion_/i — NO notion-specific
+      field present in the rendered DOM. Capture screenshots into this story's dogfood/ dir +
+      console-errors:none. How: Playwright MCP navigate file://, click facets, type search,
+      browser_evaluate for the PII grep. Test: all 6 interactions + the PII DOM assertion
+      PASS, 0 console errors. Evidence saved under stories/260616-y9f/dogfood/.

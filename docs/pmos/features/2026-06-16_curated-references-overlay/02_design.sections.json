@@ -1,0 +1,248 @@
+[
+  {
+    "id": "context-and-goals-h",
+    "level": 2,
+    "title": "Context & goals",
+    "parent_id": null
+  },
+  {
+    "id": "evidence",
+    "level": 3,
+    "title": "Evidence from the spike (informative)",
+    "parent_id": "context-and-goals"
+  },
+  {
+    "id": "deliverable-a-overlay-h",
+    "level": 2,
+    "title": "Deliverable A — the curated-references overlay",
+    "parent_id": null
+  },
+  {
+    "id": "a-overlay-file",
+    "level": 3,
+    "title": "A.1 — Overlay corpus (shipped, if-present)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-prefilter",
+    "level": 3,
+    "title": "A.2 — Deterministic prefilter (ships beside the overlay)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-subagent",
+    "level": 3,
+    "title": "A.3 — The curated-references subagent (the one new dispatch)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-integration",
+    "level": 3,
+    "title": "A.4 — Substrate integration point (minimal diff)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-coverage-gate",
+    "level": 3,
+    "title": "A.5 — Coverage gate (no domain classifier)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-flag",
+    "level": 3,
+    "title": "A.6 — Suppression control",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "deliverable-b-viewer-substrate-h",
+    "level": 2,
+    "title": "Deliverable B — shared library-viewer substrate + retrofits + new viewer",
+    "parent_id": null
+  },
+  {
+    "id": "b-substrate",
+    "level": 3,
+    "title": "B.1 — _shared/library-viewer/ substrate",
+    "parent_id": "deliverable-b-viewer-substrate"
+  },
+  {
+    "id": "b-learnlist-viewer",
+    "level": 3,
+    "title": "B.2 — New /learn-list reference viewer",
+    "parent_id": "deliverable-b-viewer-substrate"
+  },
+  {
+    "id": "corpus-and-pii-h",
+    "level": 2,
+    "title": "Corpus ship policy & PII contract",
+    "parent_id": null
+  },
+  {
+    "id": "pii-gate",
+    "level": 3,
+    "title": "PII scrub gate (hard, deterministic)",
+    "parent_id": "corpus-and-pii"
+  },
+  {
+    "id": "junk-policy",
+    "level": 3,
+    "title": "Junk cleanup policy (informative, from brief §5)",
+    "parent_id": "corpus-and-pii"
+  },
+  {
+    "id": "cross-skill-coherence-h",
+    "level": 2,
+    "title": "Cross-skill coherence contract",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-h",
+    "level": 2,
+    "title": "Decision log (maintainer, define 2026-06-16)",
+    "parent_id": null
+  },
+  {
+    "id": "story-map-h",
+    "level": 2,
+    "title": "Story map",
+    "parent_id": null
+  },
+  {
+    "id": "risks-open-questions-h",
+    "level": 2,
+    "title": "Risks & open questions",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites (not /execute tasks)",
+    "parent_id": null
+  },
+  {
+    "id": "summary-h",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "context-and-goals-h",
+    "level": 2,
+    "title": "Context & goals",
+    "parent_id": null
+  },
+  {
+    "id": "evidence",
+    "level": 3,
+    "title": "Evidence from the spike (informative)",
+    "parent_id": "context-and-goals"
+  },
+  {
+    "id": "deliverable-a-overlay-h",
+    "level": 2,
+    "title": "Deliverable A — the curated-references overlay",
+    "parent_id": null
+  },
+  {
+    "id": "a-overlay-file",
+    "level": 3,
+    "title": "A.1 — Overlay corpus (shipped, if-present)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-prefilter",
+    "level": 3,
+    "title": "A.2 — Deterministic prefilter (ships beside the overlay)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-subagent",
+    "level": 3,
+    "title": "A.3 — The curated-references subagent (the one new dispatch)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-integration",
+    "level": 3,
+    "title": "A.4 — Substrate integration point (minimal diff)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-coverage-gate",
+    "level": 3,
+    "title": "A.5 — Coverage gate (no domain classifier)",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "a-flag",
+    "level": 3,
+    "title": "A.6 — Suppression control",
+    "parent_id": "deliverable-a-overlay"
+  },
+  {
+    "id": "deliverable-b-viewer-substrate-h",
+    "level": 2,
+    "title": "Deliverable B — shared library-viewer substrate + retrofits + new viewer",
+    "parent_id": null
+  },
+  {
+    "id": "b-substrate",
+    "level": 3,
+    "title": "B.1 — _shared/library-viewer/ substrate",
+    "parent_id": "deliverable-b-viewer-substrate"
+  },
+  {
+    "id": "b-learnlist-viewer",
+    "level": 3,
+    "title": "B.2 — New /learn-list reference viewer",
+    "parent_id": "deliverable-b-viewer-substrate"
+  },
+  {
+    "id": "corpus-and-pii-h",
+    "level": 2,
+    "title": "Corpus ship policy & PII contract",
+    "parent_id": null
+  },
+  {
+    "id": "pii-gate",
+    "level": 3,
+    "title": "PII scrub gate (hard, deterministic)",
+    "parent_id": "corpus-and-pii"
+  },
+  {
+    "id": "junk-policy",
+    "level": 3,
+    "title": "Junk cleanup policy (informative, from brief §5)",
+    "parent_id": "corpus-and-pii"
+  },
+  {
+    "id": "cross-skill-coherence-h",
+    "level": 2,
+    "title": "Cross-skill coherence contract",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-h",
+    "level": 2,
+    "title": "Decision log (maintainer, define 2026-06-16)",
+    "parent_id": null
+  },
+  {
+    "id": "story-map-h",
+    "level": 2,
+    "title": "Story map",
+    "parent_id": null
+  },
+  {
+    "id": "risks-open-questions-h",
+    "level": 2,
+    "title": "Risks & open questions",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-h",
+    "level": 2,
+    "title": "Release prerequisites (not /execute tasks)",
+    "parent_id": null
+  }
+]
