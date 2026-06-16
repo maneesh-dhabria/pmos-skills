@@ -7,7 +7,7 @@ execution_mode: inline
 tasks:
   - id: T1
     title: Author guidelines.md — the library-viewer design contract
-    status: pending
+    status: done
     deps: []
     parallel: false
     spec_anchor: "#b-substrate"
@@ -28,7 +28,7 @@ tasks:
       but T6 cross-checks that the engine API matches the documented behaviour.
   - id: T2
     title: Define + freeze the public substrate API (tests first, TDD red)
-    status: pending
+    status: done
     deps: [T1]
     parallel: false
     spec_anchor: "#b-substrate"
@@ -48,7 +48,7 @@ tasks:
       plugins/pmos-learnkit/skills/_shared/library-viewer/tests/` exits non-zero pre-T3.
   - id: T3
     title: Implement the zero-dep ESM engine to green T2
-    status: pending
+    status: done
     deps: [T2]
     parallel: false
     spec_anchor: "#b-substrate"
@@ -68,7 +68,7 @@ tasks:
       TEST: T2 suite now GREEN; engine importable + pure under `node -e`.
   - id: T4
     title: Substrate selftest + skill-agnostic assertion
-    status: pending
+    status: done
     deps: [T3]
     parallel: false
     spec_anchor: "#cross-skill-coherence-h"
@@ -83,7 +83,7 @@ tasks:
       zero skill names in lib.mjs.
   - id: T5
     title: Refactor frameworks build-library.mjs onto the substrate
-    status: pending
+    status: done
     deps: [T4]
     parallel: false
     spec_anchor: "#b-substrate"
@@ -103,7 +103,7 @@ tasks:
       T6/T7 (do not declare done until regression + selftest pass).
   - id: T6
     title: frameworks --selftest green (in-script regression)
-    status: pending
+    status: done
     deps: [T5]
     parallel: false
     spec_anchor: "#b-substrate"
@@ -118,7 +118,7 @@ tasks:
       exit 0.
   - id: T7
     title: frameworks build-library.test.sh green (shipped regression gate)
-    status: pending
+    status: done
     deps: [T5]
     parallel: true
     spec_anchor: "#cross-skill-coherence-h"
@@ -133,7 +133,7 @@ tasks:
       to the test. TEST: prints "build-library.test.sh: PASS", exit 0.
   - id: T8
     title: Hygiene lints + skill-eval no new residuals
-    status: pending
+    status: done
     deps: [T6, T7]
     parallel: false
     spec_anchor: "#cross-skill-coherence-h"
@@ -147,7 +147,7 @@ tasks:
       each lint exits 0 (or documents an unchanged pre-existing residual against HEAD).
   - id: T9
     title: Live browser dogfood — rebuilt /frameworks browse page, no regression (LOAD-BEARING)
-    status: pending
+    status: done
     deps: [T8]
     parallel: false
     spec_anchor: "#risks-open-questions-h"
