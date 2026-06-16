@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<!--
+  Technical round interviewer reference — /interview-feedback (pmos-managerkit).
+  Instantiates the canonical interviewer-reference DOM contract (reference/reference-skeleton.html).
+  PM-flavored technical/system round: tests the technical judgment a PM needs to partner with eng,
+  NOT coding. data-area ids map 1:1 to the scorecard's data-dim ids. Self-contained HTML.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer reference — Technical round</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a; --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.6;font-size:16px}
+  main{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .purpose{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1.6rem}
+  .area{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .area-name{font-family:var(--sans);font-weight:600;font-size:1.05rem;margin:0 0 .4rem}
+  .signals{display:flex;gap:2rem;font-family:var(--sans);font-size:.88rem;margin:.4rem 0}
+  ul[data-signals="green"] li{color:var(--green)}
+  ul[data-signals="red"] li{color:var(--red)}
+  .probes-label{font-family:var(--sans);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.7rem 0 .2rem}
+  ul[data-probes]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-probes] li{margin:.15rem 0}
+  .calib{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:1.6rem 0 1rem}
+  .calib h2{font-family:var(--sans);font-size:1.05rem;margin:0 0 .5rem}
+  .calib p{margin:.3rem 0}
+</style>
+</head>
+<body>
+<main data-ref="round" data-archetype="technical">
+  <h1>Technical round — interviewer reference</h1>
+  <p class="sub">technical round · what to probe, what good and weak answers look like</p>
+
+  <div class="purpose">
+    <strong>Purpose of this round.</strong> This is a PM-flavored technical/system round, not a coding
+    exercise. You are testing the technical judgment a product manager needs to partner credibly with
+    engineering: can the candidate hold a mental model of a system, reason about tradeoffs, scope
+    realistically, and speak the language of data and APIs — without pretending to be an engineer.
+    Score the quality of reasoning, not whether they would write the code.
+  </div>
+
+  <section class="area" data-area="system-understanding">
+    <p class="area-name">System understanding</p>
+    <p>Can the candidate decompose a product into its moving parts — clients, services, data stores,
+      external dependencies — and trace how a request or a piece of data flows through them? You are
+      looking for a coherent mental model, not encyclopedic component names.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Sketches components and the data flow between them unprompted</li>
+          <li>Names where state lives and what talks to what, at the right altitude</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Treats the system as a black box; can't say what happens after a click</li>
+          <li>Lists buzzwords without showing how the pieces connect</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="system-understanding">
+      <li>How would you design the notifications system end to end? Walk me from the trigger to the user's phone.</li>
+      <li>When a user submits this form, what happens between the click and the confirmation screen?</li>
+      <li>Where does the data for this feature live, and who reads or writes it?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="technical-tradeoffs">
+    <p class="area-name">Technical tradeoffs</p>
+    <p>Does the candidate recognize that engineering choices trade off against each other, and can they
+      reason about the dimensions that matter to the product — latency, cost, complexity, consistency,
+      reliability? You want them to weigh options, not just pick one.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Surfaces a tradeoff axis (e.g. real-time vs. cost) and reasons about both sides</li>
+          <li>Ties the technical choice back to a user or business consequence</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Asserts one "right" answer with no awareness of the cost</li>
+          <li>Optimizes for an axis the product doesn't care about</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="technical-tradeoffs">
+      <li>Should this feature update in real time or is a few minutes' delay fine? What does each choice cost us?</li>
+      <li>What would you give up to ship this twice as fast, and what would break if you did?</li>
+      <li>When is eventual consistency acceptable here, and when would it burn a user?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="eng-collaboration">
+    <p class="area-name">Engineering collaboration</p>
+    <p>Does the candidate know where the PM's input belongs and where the engineer's does? You want a
+      partner who brings the problem, constraints, and priorities — and trusts engineering on the
+      implementation — not someone who either rubber-stamps or dictates the solution.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Frames the problem and constraints, then asks eng for the how</li>
+          <li>Knows which decisions are theirs to make vs. the team's to make</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Defers every technical question — "whatever eng thinks"</li>
+          <li>Over-specifies the implementation and crowds out the engineers</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="eng-collaboration">
+      <li>An engineer pushes back that your approach is too expensive to build. How do you handle that conversation?</li>
+      <li>Where do you draw the line between what you decide and what the engineering team decides?</li>
+      <li>Tell me about a time you disagreed with engineering on a technical direction. What did you do?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="feasibility-judgment">
+    <p class="area-name">Feasibility judgment</p>
+    <p>Can the candidate scope a realistic MVP and sequence the work by risk rather than by wishlist?
+      You want to see them cut scope deliberately and tackle the scariest unknowns first.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Carves out a thin first slice and names what's deferred</li>
+          <li>Sequences by what's most likely to fail or surprise</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Proposes a sweeping build with no phasing or risk ordering</li>
+          <li>Can't say what they'd cut if the timeline halved</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="feasibility-judgment">
+      <li>If you had four weeks instead of four months, what's the first thing you'd ship?</li>
+      <li>What's the riskiest assumption in this design, and how would you de-risk it early?</li>
+      <li>Which part of this would you build first, and why that part?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="data-api-literacy">
+    <p class="area-name">Data &amp; API literacy</p>
+    <p>Is the candidate comfortable reasoning about data shapes, contracts between systems, and what to
+      instrument? You're not asking them to write SQL — you want them fluent enough to spec an API,
+      read a schema, and know what events they'd need to answer a product question.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Reasons about what fields/entities a feature needs and how they relate</li>
+          <li>Names the events or metrics they'd instrument to measure success</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Can't describe the data a feature produces or consumes</li>
+          <li>Treats analytics and instrumentation as an afterthought</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="data-api-literacy">
+      <li>What does the API for this feature need to return, and what would a consumer send it?</li>
+      <li>What events would you instrument to know whether this feature is working?</li>
+      <li>Walk me through the data model — what are the main entities and how do they relate?</li>
+    </ul>
+  </section>
+
+  <section class="calib">
+    <h2>Calibration</h2>
+    <p><strong>What a strong PM sounds like.</strong> They reason out loud, build a model with you,
+      surface the tradeoff before you ask, and stay in their lane — bringing problem and priority,
+      trusting eng on craft. They are comfortable saying "I'd ask an engineer to confirm, but my
+      instinct is…" and then giving a defensible instinct.</p>
+    <p><strong>Anchoring the scale.</strong> A 2 is someone who can follow the system once you draw it
+      but never leads. A 3 builds the model and weighs one real tradeoff. A 4 does it unprompted,
+      across multiple axes, and connects every technical choice back to the user.</p>
+    <h2 style="margin-top:1rem">Common mistakes (interviewer)</h2>
+    <p><strong>Don't reward the candidate who pretends to be an engineer.</strong> Confident
+      jargon and a deep dive into algorithms is not the bar — and a PM who over-claims technical
+      authority is a red flag, not a green one.</p>
+    <p><strong>Don't penalize honest "I don't know."</strong> A PM who says "I'd defer that
+      implementation detail to eng, but here's the constraint I'd give them" is showing exactly the
+      judgment this round tests. Penalize abdication of <em>reasoning</em>, not abdication of
+      <em>coding</em>.</p>
+    <p><strong>Don't let one strong axis mask a weak one.</strong> A great system sketch with zero
+      tradeoff awareness is a split score, not a uniform high one — score each dimension on its own.</p>
+  </section>
+</main>
+</body>
+</html>

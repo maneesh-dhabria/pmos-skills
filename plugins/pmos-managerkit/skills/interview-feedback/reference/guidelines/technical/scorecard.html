@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<!--
+  Technical round scorecard — /interview-feedback (pmos-managerkit).
+  Instantiates the canonical scorecard DOM contract (reference/scorecard-skeleton.html).
+  PM-flavored technical/system round: judges technical JUDGMENT a PM needs to partner with eng,
+  NOT coding/implementation. Weights sum to 100. Self-contained HTML.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Scorecard — Technical round — {{candidate}}</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a;
+    --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.55;font-size:16px}
+  main{max-width:880px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .meta{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--sans);font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.7rem 0;margin-bottom:1.8rem}
+  .dim{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .weight{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .scale{display:flex;gap:.4rem;margin:.6rem 0}
+  .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
+  .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .scale-caption{display:flex;justify-content:space-between;gap:1rem;font-family:var(--sans);font-size:.78rem;color:var(--muted);margin:.1rem 0 0}
+  .notes{font-size:.95rem;margin:.5rem 0 0}
+  .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
+  .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
+  ul[data-flags]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-flags="green"] li{color:var(--green)}
+  ul[data-flags="red"] li{color:var(--red)}
+  cite{font-style:normal;display:block;font-size:.82rem;color:var(--muted);font-family:var(--sans);margin-top:.25rem;padding-left:.7rem;border-left:2px solid var(--rule)}
+  cite[data-cite-tier="transcript"]{border-left-color:var(--accent)}
+  .reco{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-top:1.6rem}
+  .reco-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+  .reco-opts [data-reco]{font-family:var(--sans);font-size:.85rem;border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem}
+  .reco-opts [data-reco][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<main data-card="scorecard" data-archetype="technical">
+  <h1>Technical round — Scorecard</h1>
+  <p class="sub">technical round · weights sum to 100</p>
+  <div class="meta">
+    <span>Candidate: {{candidate}}</span>
+    <span>Round: Technical</span>
+    <span>Interviewer: {{lead_interviewer}}</span>
+    <span>Date: {{date}}</span>
+  </div>
+
+  <section class="dim" data-dim="system-understanding" data-weight="25">
+    <div class="dim-head">
+      <span class="dim-name">System understanding</span>
+      <span class="weight">weight 25</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — can't reason about components/data flow</span>
+      <span>4 — clear mental model of the system</span>
+    </div>
+    <div class="notes" data-input="notes:system-understanding"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="technical-tradeoffs" data-weight="25">
+    <div class="dim-head">
+      <span class="dim-name">Technical tradeoffs</span>
+      <span class="weight">weight 25</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — no tradeoff awareness</span>
+      <span>4 — reasons about latency/cost/complexity/consistency tradeoffs</span>
+    </div>
+    <div class="notes" data-input="notes:technical-tradeoffs"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="eng-collaboration" data-weight="20">
+    <div class="dim-head">
+      <span class="dim-name">Engineering collaboration</span>
+      <span class="weight">weight 20</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — defers everything / over-specifies</span>
+      <span>4 — partners well, knows where PM input belongs</span>
+    </div>
+    <div class="notes" data-input="notes:eng-collaboration"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="feasibility-judgment" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Feasibility judgment</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — unrealistic scope</span>
+      <span>4 — scopes an MVP, sequences by risk</span>
+    </div>
+    <div class="notes" data-input="notes:feasibility-judgment"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="data-api-literacy" data-weight="15">
+    <div class="dim-head">
+      <span class="dim-name">Data &amp; API literacy</span>
+      <span class="weight">weight 15</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="scale-caption">
+      <span>1 — cannot reason about data/contracts</span>
+      <span>4 — comfortable with schemas, APIs, instrumentation</span>
+    </div>
+    <div class="notes" data-input="notes:data-api-literacy"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="reco">
+    <div class="dim-name">Overall recommendation</div>
+    <div class="reco-opts" data-input="reco">
+      <span data-reco="strong-no">Strong no-hire</span>
+      <span data-reco="no">No-hire</span>
+      <span data-reco="yes">Hire</span>
+      <span data-reco="strong-yes">Strong hire</span>
+    </div>
+    <div class="notes" data-input="notes:reco"></div>
+  </section>
+</main>
+</body>
+</html>
