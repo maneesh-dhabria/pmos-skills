@@ -9,14 +9,16 @@ priority: should
 route: skill
 dependencies: [260616-p7b]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-4pg/tasks.yaml
-worktree:
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-4pg
+claimed_by: build:cron-4pg
+driver_holder: build:cron-4pg
 labels: [pmos-toolkit, shape, ideate, frame-dedup]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260616-4pg. DEP: 260616-p7b (/shape's frame must exist). Independent of 260616-xqm. -->
