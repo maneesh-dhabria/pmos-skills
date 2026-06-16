@@ -1,0 +1,14 @@
+{
+  "name": "pmos-managerkit",
+  "version": "0.1.0",
+  "description": "Manager kit — skills that help you do manager work: hiring, team, and reviews. Ships /interview-feedback, which turns a candidate's interview inputs into a grounded scorecard plus per-interviewer coaching notes.",
+  "author": {
+    "name": "Maneesh Dhabria"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PMOS ManagerKit",
+    "shortDescription": "Do manager work — hiring, team, and reviews",
+    "category": "Productivity"
+  }
+}
