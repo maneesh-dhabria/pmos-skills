@@ -4,14 +4,17 @@ id: 260616-06q
 title: "Bundled PM round guideline starter set"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [interview-feedback, pmos-managerkit, content, guidelines]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 parent: 260616-9bt
 dependencies: [260616-vwn]
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-06q
+claimed_by: build:cron-06q
+driver_holder: build:cron-06q
 design_doc: docs/pmos/features/2026-06-16_interview-feedback/02_design.html
 plan_doc: docs/pmos/features/2026-06-16_interview-feedback/stories/260616-06q/03_plan.html
 tasks_file: docs/pmos/features/2026-06-16_interview-feedback/stories/260616-06q/tasks.yaml
