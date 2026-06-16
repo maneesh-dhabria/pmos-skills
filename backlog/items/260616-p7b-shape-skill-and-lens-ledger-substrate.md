@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-p7b/tasks.yaml
 worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-p7b
-claimed_by: build:cron-p7b
-driver_holder: build:cron-p7b
+claimed_by:
+driver_holder:
 labels: [pmos-toolkit, shape, problem-discovery, lens-ledger, substrate, new-skill]
 created: 2026-06-16
 updated: 2026-06-17
@@ -76,3 +76,33 @@ define-loop grill.
 - Under `--non-interactive`, `/shape` runs the autonomous lens-subagent + reviewer-judgement path
   (D10): it does not deadlock, does not hard-refuse, records assumptions, logs unresolved lenses as
   Open questions, and escalates only on a major blocking gap.
+
+## Build outcome (2026-06-17, Loop-2)
+
+**BUILT — all ACs met.** Branch `feat/260616-p7b` @ `1e10c4a` (worktree
+`agent-skills-260616-p7b`, KEPT for Loop-3). Files: `_shared/lens-ledger.md` (skill-agnostic;
+cites findings-dispositions + reviewer-protocol; names no consumer), `shape/SKILL.md`,
+`shape/reference/{problem-lenses.md, artifact-template.html}`,
+`shape/scripts/{validate-brief.mjs, apply-edit-at-anchor.js}`, comment-resolver test (5 cases) +
+fixture + wrapper `tests/scripts/assert_apply_edit_at_anchor_shape.sh`.
+
+- [x] AC1 — `/shape` at canonical path; `skill-eval-check` [D] **EXIT 0** (`--target claude-code`,
+  all 22 applicable checks pass); 4 lints PASS; NI-inline OK; audit-recommended PASS.
+- [x] AC2 — mechanism in `_shared/lens-ledger.md`, **cited not restated**; file ships in the same
+  commit as its first cite (no dangling cite); substrate names no skill (grep-verified).
+- [x] AC3 — single commentable problem-brief HTML rendering the **full lens ledger** (incl. N/A +
+  Parked); **no solution content** — enforced by `validate-brief.mjs` gate 2 (negative control with
+  an injected solution-shaped terminal statement correctly FAILS).
+- [x] AC4 — ceiling-breaker satisfied by off-deck probe **or** sufficiency attestation
+  (`validate-brief.mjs` gate 1); context gate applies the 4-bucket downshift matrix (dogfood:
+  side-project → Strategy N/A, Success downshifted, Risks light).
+- [x] AC5 — D10 autonomous NI path present (no refusal marker → no hard-refuse; parallel lens
+  drafters `sonnet` + reviewer inherit; unresolved → Open questions; escalate only on major gap).
+
+**Dogfood:** real side-project brief PASSES `validate-brief`; blind judge **SHIP 5/5/5/4/5**, no
+blocking defect (1 advisory nit on example ceiling-breaker overlap — accepted residual, not a skill
+defect). `check-comments-coverage` stays green (`/shape` is a new skill outside its hardcoded 13+1
+roster; its resolver shim is validated by its own wrapper test).
+
+**Next:** Loop-3 `/complete-dev --epic 260616-bq9` rides this + the epic's remaining stories
+(`/feature-sdlc` rewiring, `/ideate` frame-dedup).
