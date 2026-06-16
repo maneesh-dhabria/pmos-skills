@@ -6,18 +6,18 @@ parent: 260616-tqf
 title: Build the /learn-list reference viewer on the substrate + curated corpus
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: [260616-f7w, 260616-v4h]
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 plan_doc: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-y9f/03_plan.html
 tasks: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-y9f/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-y9f
+claimed_by: build:cron-y9f
+driver_holder: build:cron-y9f
 labels: [pmos-learnkit, library-viewer, learn-list, browse, curated-references, web-ui]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260616-y9f -->
