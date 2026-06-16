@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-15 (release train — 12 epics shipped via /complete-dev --epic; status synced to item frontmatter)
+Last regenerated: 2026-06-16 (define: epic 260616-9bt — /interview-feedback + pmos-managerkit — defined with 2 planned stories)
 
-24 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+27 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -40,6 +40,7 @@ Last regenerated: 2026-06-15 (release train — 12 epics shipped via /complete-d
 | 260614-m68 | released | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
 | 260614-za3 | released | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
 | 260615-565 | released | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) — pmos-learnkit/v0.22.0 |
+| 260616-9bt | defined | skill | pmos-managerkit | 0/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 
 ## must
 
@@ -51,6 +52,8 @@ Last regenerated: 2026-06-15 (release train — 12 epics shipped via /complete-d
 
 | id | kind | type | status | parent | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|---|
+| 260616-vwn | story | feature | planned | 260616-9bt | pmos-managerkit + /interview-feedback core | 02_design.html | 03_plan.html |  |
+| 260616-06q | story | feature | planned | 260616-9bt | Bundled PM round guideline starter set (deps 260616-vwn) | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |

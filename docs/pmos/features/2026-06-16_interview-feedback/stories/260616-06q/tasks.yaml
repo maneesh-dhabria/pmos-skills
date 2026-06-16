@@ -1,0 +1,54 @@
+schema_version: 1
+story: 260616-06q
+epic: 260616-9bt
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# Story B — 7 bundled PM round guideline templates. Depends on Story A (260616-vwn) for the
+# canonical scorecard + reference skeletons and the archetype enum (§16.5, §16.7).
+# Largely content authoring on top of Story A's contract.
+tasks:
+  - id: T1
+    title: "Confirm archetype enum + skeleton contract from Story A; set up reference/guidelines/<archetype>/ layout"
+    ac: [AC4]
+    deps: []
+    parallel: false
+    detail: >
+      Read Story A's reference/scorecard-skeleton.html + reference-skeleton.html and the role.json archetype
+      enum. Create reference/guidelines/<archetype>/ dirs for the 7 archetypes with ids matching the enum
+      EXACTLY. Each will hold interviewer-reference.html + scorecard.html (+ an additional-doc placeholder
+      for case/take-home).
+
+  - id: T2
+    title: "Author 7 scorecards instantiating the canonical skeleton with §16.1 anchors"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      For each archetype (recruiter-screen, product-sense, analytical-execution, technical-system,
+      behavioral-leadership, case-or-takehome, panel-presentation) author scorecard.html from the canonical
+      skeleton: archetype-appropriate weighted dimensions, 1–4 scale markers (poor / PM-bar / senior-signal),
+      green/red flags, reco. MUST carry data-dim/data-weight/data-scale/data-v/data-input/data-flags so the
+      Story A filler targets them unmodified.
+
+  - id: T3
+    title: "Author 7 interviewer-references (model-answer guidance, good/avg/poor markers, probes, common mistakes)"
+    ac: [AC1, AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      For each archetype author interviewer-reference.html from the reference skeleton: what good/avg/poor
+      looks like, probing ladders, common mistakes & wrong paths, calibration. Researched/grounded; role-
+      agnostic where possible, PM-shaped where not. The case-or-takehome archetype documents the additional-
+      doc (case study / take-home) slot.
+
+  - id: T4
+    title: "Cross-story integration check: setup scaffolds each archetype and Story A score fills it unmodified"
+    ac: [AC5]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      For each of the 7 archetypes, run setup to scaffold it into a throwaway role's guidelines/<round>/ and
+      confirm the Story A fill-scorecard path parses + fills the bundled scorecard with zero special-casing
+      (anchors resolve). Fix any drift between the skeleton contract and the instantiated templates.

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "waves-derived-from-tasks-yaml-deps",
+    "level": 2,
+    "title": "Waves (derived from tasks.yaml deps)",
+    "parent_id": null
+  },
+  {
+    "id": "key-risks-decisions",
+    "level": 2,
+    "title": "Key risks & decisions",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-not-in-any-wave-complete-dev-owns",
+    "level": 2,
+    "title": "Release prerequisites (NOT in any wave — /complete-dev owns)",
+    "parent_id": null
+  },
+  {
+    "id": "approach",
+    "level": 2,
+    "title": "Approach",
+    "parent_id": null
+  },
+  {
+    "id": "waves-derived-from-tasks-yaml-deps",
+    "level": 2,
+    "title": "Waves (derived from tasks.yaml deps)",
+    "parent_id": null
+  },
+  {
+    "id": "key-risks-decisions",
+    "level": 2,
+    "title": "Key risks & decisions",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites-not-in-any-wave-complete-dev-owns",
+    "level": 2,
+    "title": "Release prerequisites (NOT in any wave — /complete-dev owns)",
+    "parent_id": null
+  }
+]
