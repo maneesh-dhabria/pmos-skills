@@ -1,0 +1,162 @@
+schema_version: 1
+story: 260616-v4h
+epic: 260616-tqf
+route: skill
+spec: ../../02_design.html
+execution_mode: inline
+tasks:
+  - id: T1
+    title: Author the PII scrub-gate test (tests-first, deterministic, RED)
+    status: pending
+    deps: []
+    parallel: false
+    spec_anchor: "#pii-gate"
+    notes: >
+      Write plugins/pmos-learnkit/skills/_shared/topic-research/tests/test_pii_scrub_gate.sh
+      (bash + node ESM helper, zero-dep). It loads curated-references.json and asserts the
+      HARD deterministic contract from #pii-gate: (a) every record key is in the allowlist
+      {id,url,title,source_type,publication_date,tags,summary,summary_grounded} and NOTHING
+      else; (b) NO key anywhere matches the forbidden regex page_id|database_id|occurrence|
+      snapshot|workspace|notion_* (case-insensitive); (c) meta has only {schema_version,
+      source,counts:{total,grounded,weak}} and meta.source is NOT "notion-reference-crawler";
+      (d) every id is content-derived: id == "ref_" + sha256(url).slice(0,12) recomputed at
+      test time. Include a --selftest mode that injects a planted bad record (e.g. a
+      notion_page_id field) into an in-memory copy and proves the gate FAILS, then a real run
+      over the shipped file that must PASS. Authored first; RED until the corpus exists (T2).
+  - id: T2
+    title: Convert spike YAML -> curated-references.json via a documented one-shot importer
+    status: pending
+    deps: [T1]
+    parallel: false
+    spec_anchor: "#a-overlay-file"
+    notes: >
+      Author scripts/import-curated-references.mjs (zero-dep Node ESM; reads the spike YAML at
+      /Users/.../personal/notion-writing-backup/spikes/curated-references/curated-references.yaml
+      with a tiny inline YAML reader OR a documented `node --experimental` path — decision: a
+      minimal hand-rolled parser for this flat known shape to stay zero-dep). For each of the
+      1821 records: keep ONLY {url,title,source_type,publication_date,tags,summary,
+      summary_grounded}; re-mint id = "ref_"+sha256(url).slice(0,12) (node:crypto); EXCLUDE
+      DEAD entries (summary admits 404 / "no longer exists" per #junk-policy); KEEP WEAK
+      (summary_grounded:false retained, prefilter deprioritizes). Emit meta.counts
+      {total,grounded,weak} recomputed post-exclusion and meta.source = "curated-references"
+      (genericised, #pii-gate). Write the JSON to
+      plugins/pmos-learnkit/skills/_shared/topic-research/curated-references.json. Document the
+      exact run command in the plan + a header comment in the script. Test: T1 PII gate now
+      passes GREEN over the produced file (run it).
+  - id: T3
+    title: Author the prefilter determinism + correctness test (tests-first, RED)
+    status: pending
+    deps: [T2]
+    parallel: false
+    spec_anchor: "#a-prefilter"
+    notes: >
+      Write tests/test_prefilter.sh (bash + node ESM). Assert: (a) determinism — same
+      (tags,K,corpus) input yields byte-identical ordered output across two runs; (b) IDF
+      weighting — a rare tag outranks a common tag for the same overlap count (synthetic mini
+      corpus fixture); (c) bot-wall titles are pre-rejected ("Just a moment…",
+      "Attention Required! | Cloudflare", and 4xx/5xx title patterns); (d) summary_grounded:false
+      candidates are down-weighted vs an otherwise-equal grounded candidate; (e) forbes.com (and
+      the hard-blocked-domain list) candidates are skipped entirely; (f) top-K respected. Uses a
+      small in-test fixture corpus (not the 1821-row file) for the logic asserts so it is fast and
+      stable. RED until T4.
+  - id: T4
+    title: Implement the deterministic prefilter (curated-references-match.mjs)
+    status: pending
+    deps: [T3]
+    parallel: false
+    spec_anchor: "#a-prefilter"
+    notes: >
+      Author plugins/pmos-learnkit/skills/_shared/topic-research/curated-references-match.mjs —
+      zero-dep Node ESM. Exported pure function match({tags, corpus, k, scoreFloor}) plus a thin
+      CLI. Score = sum over query-tag∩record-tag of w(tag)=log(N/(1+df(tag))) where N=corpus
+      size, df=document frequency of the tag across the corpus. Multiply by a penalty factor when
+      summary_grounded===false. Pre-reject records whose title matches the bot-wall / 4xx-5xx
+      patterns. Skip records whose URL host is in HARD_BLOCKED_DOMAINS (["forbes.com"]).
+      Stable sort (score desc, then id asc) for determinism. Return top-K. No Date/Math.random,
+      no network, no API. Make T3 GREEN.
+  - id: T5
+    title: Author the curated-references subagent contract doc (skill-agnostic)
+    status: pending
+    deps: []
+    parallel: true
+    spec_anchor: "#a-subagent"
+    notes: >
+      Create plugins/pmos-learnkit/skills/_shared/topic-research/curated-references.md — a NEW
+      skill-agnostic substrate doc describing the ONE research-phase subagent: for each outline
+      topic (1) pick ~5–8 tags from the corpus tag-vocabulary; (2) run the prefilter -> ~30
+      candidates; (3) rerank for relevance/authority/recency, drop residual junk; (4) hand
+      survivors into sourcing.md step 1's candidate pool (hard-gate/tier-rank/fetch-verify by the
+      existing loop). Runs ONCE across all topics, returns a topic -> candidates[] map. Present
+      only if curated-references.json exists. Embeds the coverage gate (#a-coverage-gate) and the
+      --no-curated / curated_references:off suppression note (#a-flag) as MECHANISM. MUST NOT name
+      primer/learn-list/frameworks (D12). Follows skill-patterns.md §L subagent-dispatch + §K
+      one-fact-one-home (cite intake.md dials, don't restate). Test: T8
+      assert_substrate_skill_agnostic.sh stays green over this new file.
+  - id: T6
+    title: Patch sourcing.md step 1 to add the curated overlay as a third candidate source
+    status: pending
+    deps: [T5]
+    parallel: false
+    spec_anchor: "#a-integration"
+    notes: >
+      Minimal diff to plugins/pmos-learnkit/skills/_shared/topic-research/sourcing.md, "Rank-
+      then-verify loop (per topic)" step 1 ONLY. New text: gather candidates from live search +
+      harvested curations + (present only if curated-references.json exists) the curated overlay
+      via the curated-references subagent (cite curated-references.md). Raise the pool cap from
+      "~3× the links-to-emit" to "~3–4× the links-to-emit (curated yield ~30%)". No other step
+      changes. Stays skill-agnostic (no skill names). Test: assert_substrate_skill_agnostic.sh
+      stays green (T8); a grep confirms the cap text and the if-present clause are present.
+  - id: T7
+    title: Note the curated slice rides the same dials in intake.md
+    status: pending
+    deps: [T5]
+    parallel: true
+    spec_anchor: "#a-integration"
+    notes: >
+      Add one note to plugins/pmos-learnkit/skills/_shared/topic-research/intake.md (near the
+      dial matrix / emitted-result) that the optional curated overlay slice rides the SAME
+      top-N/depth dials as live sourcing — no separate cap. Skill-agnostic; one-fact-one-home
+      (the dial matrix stays canonical, this is a one-line pointer). Test:
+      assert_substrate_skill_agnostic.sh stays green (T8).
+  - id: T8
+    title: Keep assert_substrate_skill_agnostic.sh green over all new/edited substrate
+    status: pending
+    deps: [T5, T6, T7]
+    parallel: false
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >
+      Run plugins/pmos-learnkit/skills/_shared/topic-research/tests/assert_substrate_skill_agnostic.sh
+      (and its --selftest). It scans *.md in the substrate dir for primer|learn-list. Confirm the
+      new curated-references.md, patched sourcing.md, and intake.md note contain NO skill names
+      (D12, #cross-skill-coherence-h). No code change expected — this task is the gate; if it
+      fails, fix the offending substrate doc, not the test.
+  - id: T9
+    title: One-line overlay note in primer/SKILL.md and learn-list/SKILL.md sourcing sections
+    status: pending
+    deps: [T5, T6]
+    parallel: false
+    spec_anchor: "#a-flag"
+    notes: >
+      The ONLY two skill-file edits in this story. Add one sentence to the sourcing section of
+      plugins/pmos-learnkit/skills/primer/SKILL.md AND plugins/pmos-learnkit/skills/learn-list/
+      SKILL.md: an optional curated-references overlay may augment the candidate pool when present,
+      suppressible via --no-curated (natural language) or the curated_references:off settings key.
+      Keep the substrate skill-agnostic — the mechanism lives in curated-references.md, the skills
+      only point at it (§K one-fact-one-home). Mark the suppression flag per §I (this is nl-sugar
+      unless it meets the 4-test machine-coupling bar — note classification in the SKILL body).
+      Test: lint-flags-vs-hints.sh + lint-phase-refs.sh stay green on both skill dirs.
+  - id: T10
+    title: Live dogfood — prefilter against the real shipped corpus + scrub-gate planted-fail proof
+    status: pending
+    deps: [T2, T4, T8, T9]
+    parallel: false
+    spec_anchor: "#a-prefilter"
+    notes: >
+      LOAD-BEARING live verification (not a unit test). (1) Run curated-references-match.mjs CLI
+      against the REAL shipped curated-references.json for a known PM topic (e.g. tags
+      ["pricing","monetization"] and tags ["developer-relations","devrel"]); assert it returns a
+      sane, non-empty, score-ordered candidate set for the rich topic and that the coverage gate
+      (#a-coverage-gate) correctly distinguishes a well-covered topic (pricing ~154) from a thin
+      one (devrel ~40) at the tuned T/S. Capture the actual counts to confirm/adjust T/S in this
+      build. (2) Run the T1 PII scrub-gate --selftest to PROVE it FAILS on a planted bad field
+      (notion_page_id) and PASSES on the real file. Record both outputs as the dogfood verdict.

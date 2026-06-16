@@ -1,0 +1,68 @@
+[
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "Code study",
+    "parent_id": null
+  },
+  {
+    "id": "task-breakdown",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-and-risks",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-checklist",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  },
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "code-study",
+    "level": 2,
+    "title": "Code study",
+    "parent_id": null
+  },
+  {
+    "id": "task-breakdown",
+    "level": 2,
+    "title": "Task breakdown",
+    "parent_id": null
+  },
+  {
+    "id": "decisions-and-risks",
+    "level": 2,
+    "title": "Decisions & risks",
+    "parent_id": null
+  },
+  {
+    "id": "release-prerequisites",
+    "level": 2,
+    "title": "Release prerequisites",
+    "parent_id": null
+  },
+  {
+    "id": "final-verification-checklist",
+    "level": 2,
+    "title": "Final verification checklist",
+    "parent_id": null
+  }
+]

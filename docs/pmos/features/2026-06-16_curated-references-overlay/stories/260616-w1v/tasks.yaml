@@ -1,0 +1,152 @@
+schema_version: 1
+story: 260616-w1v
+epic: 260616-tqf
+route: skill
+spec: ../../02_design.html
+execution_mode: inline
+tasks:
+  - id: T1
+    status: pending
+    parallel: false
+    deps: []
+    spec_anchor: "#b-substrate"
+    notes: >-
+      Establish the regression baseline + confirm the S2 API is present in this
+      worktree (D9 claim-time merge of dep 260616-f7w brings _shared/library-viewer/ in).
+      WHAT: run `bash plugins/pmos-learnkit/skills/primer/tests/build-library.test.sh`
+      UNCHANGED against the current primer build-library.mjs and record it GREEN as the
+      pre-refactor baseline (selftest + single-file/offline + N curated cards + facets +
+      resolvable links + dual-population). Then `ls plugins/pmos-learnkit/skills/_shared/library-viewer/`
+      and read its guidelines.md + the engine's exported surface (facet extraction+counts,
+      filter/search/sort engine, applied-chips, view toggles, single-file HTML emit,
+      masthead/theme). HOW/TEST: capture the exact exported function names + signatures the
+      substrate offers into a short notes block in the plan; if the substrate is MISSING
+      (S2 not yet merged) STOP and surface a blocker — this story cannot build before S2.
+  - id: T2
+    status: pending
+    parallel: false
+    deps: [T1]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      API-gap reconciliation (coordination gate, NOT a silent assumption). WHAT: map every
+      primer-specific behaviour in the current build-library.mjs to a substrate capability —
+      facets {collection, super_category, category, audience, depth}; the metarow pills
+      (audience/depth/sources_count/word_count/date + the `file missing` warn pill); the
+      Curated-vs-Yours badge styling; the `exists===false` → non-linked title behaviour;
+      the masthead subtitle `N curated · M of yours`. HOW/TEST: for each, note whether the
+      S2 public API covers it via the corpus adapter (record→card fields) + skill-extras
+      hook, or whether it needs an API the substrate may not expose. Any uncovered need is
+      logged in the plan's Decisions & risks as a coordination note against S2 (the API is
+      FROZEN — do not edit the substrate; if truly blocked, escalate to re-open S2, do not
+      fork the engine). Output: a covered/uncovered table; zero uncovered ⇒ proceed.
+  - id: T3
+    status: pending
+    parallel: false
+    deps: [T2]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      Add substrate-consumer assertions to build-library.test.sh BEFORE refactoring
+      (TDD: failing-first where they assert the new wiring). WHAT: extend
+      plugins/pmos-learnkit/skills/primer/tests/build-library.test.sh with assertions that
+      (a) the refactored build-library.mjs imports from _shared/library-viewer/ (grep the
+      script source for the substrate import path), and (b) all EXISTING behavioural checks
+      still hold (selftest, single-file/offline forbids, every facet id, dual-population,
+      self-page exclusion, resolvable curated hrefs, curated card count == index length).
+      HOW/TEST: run the suite — the new import assertion FAILS red against today's
+      self-contained script (proves the assertion bites); every other check stays green.
+      Keep all existing checks verbatim — they are the no-regression spine.
+  - id: T4
+    status: pending
+    parallel: false
+    deps: [T3]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      Extract the primer corpus adapter. WHAT: refactor build-library.mjs so loadCurated()
+      and scanUserPrimers() are reframed as the primer CORPUS ADAPTER — each maps a raw
+      input (primers-index.json entry OR a scanned *.html in the out-dir) to the substrate's
+      canonical record shape {collection, id, title, super_category, category, audience,
+      depth, sources_count, word_count, date, href, exists}. PRESERVE EXACTLY: corpus inputs
+      (data/primers-index.json + data/primers/*.html), the SCRIPT_DIR-relative resolution of
+      the committed corpus, hrefFrom() math, the title-from-<title>/<h1> extraction, the
+      `YYYY-MM-DD_` date prefix parse, and the draft/self-page exclusion filter. HOW/TEST:
+      adapter functions stay exported (selftest + the data-level node assertions call them);
+      re-run suite — dual-population + curated-count checks stay green.
+  - id: T5
+    status: pending
+    parallel: false
+    deps: [T4]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      Port the faceting/filter/search/sort/view-toggle/applied-chips/masthead emit onto the
+      substrate engine. WHAT: replace the hand-rolled buildHtml() (facet extraction,
+      uniqSorted, the inline CSS, the embedded client JS for matches/passes/render/applied
+      chips, the masthead, the single-file emit) with calls into the _shared/library-viewer/
+      engine, supplying ONLY the corpus adapter output + primer-specific extras (the
+      Curated/Yours badge classes, the metarow pill set incl. `file missing` warn pill, the
+      `N curated · M of yours` subtitle, and the non-linked title when exists===false).
+      Keep the page self-contained/offline (inline CSS+JS, no ESM in the emitted asset,
+      data:, favicon only). HOW/TEST: run the FULL suite after the swap — every existing
+      forbid/need + node data-assertion + dual-population check must pass GREEN; the new
+      import assertion from T3 now also passes. This is the regression-green milestone.
+  - id: T6
+    status: pending
+    parallel: false
+    deps: [T5]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      Reconcile the generator's --selftest with the substrate. WHAT: ensure runSelftest()
+      still proves the dual-population path (curated corpus + 1 synthetic Yours record),
+      doctype, pmos:skill meta, every facet id, empty cards container, no external refs,
+      embedded-data round-trip, and Curated/Yours option presence — now via the substrate
+      emit. HOW/TEST: `node build-library.mjs --selftest` PASS; the test.sh selftest hook
+      (line 33) passes. Adjust selftest assertions only where the substrate legitimately
+      relabels an internal detail — never weaken a behavioural guarantee.
+  - id: T7
+    status: pending
+    parallel: false
+    deps: [T6]
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >-
+      SKILL.md fidelity check (no behavioural drift in the verb contract). WHAT: read
+      primer/SKILL.md #browse (the build-library.mjs invocation at line ~115, the
+      Curated/Yours description at ~118) + the Phase-5 step-8 listing regen (~208) + the
+      verb dispatch (~72). Confirm the refactor preserves: the exact CLI
+      (`--out {docs_path}/primer/library.html`, optional --index/--skill-dir), the
+      browse/list/bare verb behaviour, the Collection=Curated vs Yours framing, and the
+      gitignored-output / committed-corpus posture. HOW/TEST: if any doc sentence no longer
+      matches the script's behaviour, update SKILL.md to match (instruction-only, no new
+      flags); otherwise leave it byte-unchanged. Run repo lints: tools/lint-flags-vs-hints.sh
+      + tools/lint-phase-refs.sh on the primer skill dir — both green. (No skill-eval [D]
+      change expected unless SKILL.md is touched.)
+  - id: T8
+    status: pending
+    parallel: false
+    deps: [T7]
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >-
+      Skill-agnostic + single-plugin coherence assertions. WHAT: confirm the substrate stays
+      skill-agnostic (D12) — the refactor must NOT push primer-specific names/branches into
+      _shared/library-viewer/; all primer specifics live in primer/scripts/build-library.mjs.
+      HOW/TEST: `grep -rniE 'primer|frameworks|learn-list' plugins/pmos-learnkit/skills/_shared/library-viewer/`
+      returns nothing skill-coupled; if assert_substrate_skill_agnostic.sh (or its
+      library-viewer analogue) exists, run it green. Verify the story touched only
+      pmos-learnkit (single-plugin D17). Note any cross-plugin _shared dependency for the
+      release-prereq section (sync-shared intersection-only caveat).
+  - id: T9
+    status: pending
+    parallel: false
+    deps: [T8]
+    spec_anchor: "#b-substrate"
+    notes: >-
+      LOAD-BEARING live dogfood — drive the rebuilt /primer browse page in a real browser.
+      WHAT: build the page against the shipped corpus into a temp out-dir, seed ≥1 synthetic
+      Yours primer (a `2026-01-01_seeded.html` with a <title>), regenerate, then open
+      library.html in a browser (Playwright/file://). ASSERT IN THE LIVE DOM (no regression):
+      both Collection sections present (≥1 Curated card + the seeded Yours card with its
+      title + working href); every facet dropdown (Collection/Area/Category/Audience/Depth)
+      + search box render and FUNCTION — pick a facet value → card list narrows; type a
+      search term → narrows; an applied-filter chip appears and clears; the masthead subtitle
+      reads `N curated · 1 of yours`; the page made ZERO network requests (offline/self-
+      contained); console is error-free. HOW/TEST: capture screenshots into the story dogfood
+      dir; a single live-only failure (e.g. broken card link, dead facet) is a blocker. This
+      is the no-behavioural-regression proof beyond the headless suite.

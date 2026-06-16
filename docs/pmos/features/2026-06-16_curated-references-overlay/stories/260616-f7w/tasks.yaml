@@ -1,0 +1,167 @@
+schema_version: 1
+story: 260616-f7w
+epic: 260616-tqf
+route: skill
+spec: ../../02_design.html
+execution_mode: inline
+tasks:
+  - id: T1
+    title: Author guidelines.md — the library-viewer design contract
+    status: pending
+    deps: []
+    parallel: false
+    spec_anchor: "#b-substrate"
+    notes: >
+      WHAT: NEW plugins/pmos-learnkit/skills/_shared/library-viewer/guidelines.md — the design
+      guidelines every consumer (frameworks/primer/learn-list) follows. HOW: codify the three
+      listing views (list default / detailed / compact); facet-dropdown + applied-filter-chip
+      behaviour (OR within a facet, AND across facets, removable chips + Clear all); free-text
+      search (multi-token AND, debounced); sorting (alpha within group, Uncategorized/untagged
+      trail last); sidebar reader as layout-shift NOT overlay (preserves page scrollY, no
+      backdrop, Escape-to-close, focus-return, deep-link hash); mobile rules (<=720px stacks,
+      reader scrollIntoView); masthead/theme (PMOS wordmark + dynamic count from corpus length).
+      Hard constraints section MUST state: offline from file://, zero external asset refs, zero
+      runtime deps, NO ES modules in the EMITTED asset JS (the in-page <script> is plain
+      var-style ES5-safe vanilla JS — only the BUILD tool is Node ESM), vanilla CSS only. Cite
+      the existing build-library.mjs (frameworks) as the reference implementation. Must NOT name
+      or branch on any single skill (D12 skill-agnostic). TEST: prose doc — no executable gate,
+      but T6 cross-checks that the engine API matches the documented behaviour.
+  - id: T2
+    title: Define + freeze the public substrate API (tests first, TDD red)
+    status: pending
+    deps: [T1]
+    parallel: false
+    spec_anchor: "#b-substrate"
+    notes: >
+      WHAT: NEW plugins/pmos-learnkit/skills/_shared/library-viewer/tests/lib.test.mjs (or
+      .test.sh harness invoking a node --test) that EXERCISES the not-yet-written engine, so it
+      fails first. HOW: write assertions that pin the frozen public API surface the engine must
+      expose — drawn from the richest viewer (frameworks build-library.mjs) so S3/S4 inherit a
+      complete API. Candidate exports (finalize in T3, this test is the contract): extractFacets(records, fieldSpecs)
+      -> {facets:{key:{values:[{value,count}]}}}; buildIndex(records, adapter) -> normalized cards;
+      filterEngine(cards, state) where state={q, facetSelections:{key:{val:true}}} applying
+      OR-within / AND-across + multi-token search; sortGroups(names, {trailing}); emitHtml({cards,
+      facets, adapter, masthead, theme, extraHead, extraScript, bodyRenderer}) -> single-file
+      self-contained HTML string. Assert the engine is PURE (no DOM, runs under node) and the
+      EMITTED html has NO external asset refs (no <link href=http, <script src=http, <img,
+      amazonaws). TDD: run it now, confirm RED (module missing). TEST: `node --test
+      plugins/pmos-learnkit/skills/_shared/library-viewer/tests/` exits non-zero pre-T3.
+  - id: T3
+    title: Implement the zero-dep ESM engine to green T2
+    status: pending
+    deps: [T2]
+    parallel: false
+    spec_anchor: "#b-substrate"
+    notes: >
+      WHAT: NEW plugins/pmos-learnkit/skills/_shared/library-viewer/lib.mjs (single module, or
+      split: facets.mjs / engine.mjs / emit.mjs re-exported from lib.mjs). HOW: lift the
+      reusable, skill-agnostic core OUT of frameworks build-library.mjs WITHOUT importing it back
+      yet — facet extraction + per-value counts (D4d), the filter/search/sort engine (passes()
+      OR-within/AND-across + matches() multi-token, render grouping + sortGroupNames trailing),
+      the in-page client JS template factory (applied-filter chips renderApplied + syncChecks,
+      view toggles with inline-SVG glyphs, debounced search + search-clear, dropdown open/close +
+      Escape, sidebar reader open/close/hash/focus-return, IntersectionObserver lazy thumbs hook,
+      copy/share/toast), single-file HTML emit, masthead/theme. The emitted client script stays
+      PLAIN vanilla JS (no import/export inside the page). Provide extension seams the adapter
+      uses: extraHead (CSS), bodyRenderer(card)->html (frameworks injects inline-anchored
+      diagrams here), card-field adapter, extra facet specs. Zero deps, Node ESM build side only.
+      TEST: T2 suite now GREEN; engine importable + pure under `node -e`.
+  - id: T4
+    title: Substrate selftest + skill-agnostic assertion
+    status: pending
+    deps: [T3]
+    parallel: false
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >
+      WHAT: extend tests/ with (a) a `--selftest`-style emit smoke that builds a tiny 2-record
+      corpus through emitHtml and asserts self-contained + all three views + facet dropdowns +
+      applied bar + sidebar reader markup present, and (b) an assertion that lib.mjs source
+      contains NO occurrence of the strings `frameworks`/`primer`/`learn-list` (D12 substrate
+      stays skill-agnostic; mirrors the epic's assert_substrate_skill_agnostic.sh invariant).
+      HOW: grep-style source check + emit-output greps, bash-3.2-safe + BASH_SOURCE fallback per
+      repo portability rule. TEST: the substrate test runner is GREEN and the agnostic grep finds
+      zero skill names in lib.mjs.
+  - id: T5
+    title: Refactor frameworks build-library.mjs onto the substrate
+    status: pending
+    deps: [T4]
+    parallel: false
+    spec_anchor: "#b-substrate"
+    notes: >
+      WHAT: REWRITE plugins/pmos-learnkit/skills/frameworks/scripts/build-library.mjs to import
+      the substrate (relative import ../../_shared/library-viewer/lib.mjs) and supply ONLY a
+      frameworks corpus adapter + skill-specific extras. HOW: keep frameworks-local — the
+      record→card adapter (name/category/super_category/decision_type/summary/tags(problem_tags)/
+      when_to_use/when_not_to_use/commentary/author/references/related/body_md), SUPER_CATEGORY_LABELS
+      display-label map (presentation-only, value stays raw super_category — D5), the diagram
+      pipeline (diagramsFor + readSvg + renderBody/parseBlocks/renderMarkdown inline-anchored SVG
+      placement with index-aligned diagram_anchors + missing-svg-keeps-alignment), thumb = primary
+      diagram, the area filter + Decision-type/Tags multi-select facets, group-by Product Areas/Tags.
+      The bodyRenderer extension seam carries renderBody so diagrams stay inline-anchored. The CLI
+      surface (--out/--corpus/--diagrams/--selftest) is unchanged. Preserve EVERY shipped feature:
+      3 views, lazy thumbs, deep-link hash, copy/share, masthead, applied bar. TEST: deferred to
+      T6/T7 (do not declare done until regression + selftest pass).
+  - id: T6
+    title: frameworks --selftest green (in-script regression)
+    status: pending
+    deps: [T5]
+    parallel: false
+    spec_anchor: "#b-substrate"
+    notes: >
+      WHAT: run `node plugins/pmos-learnkit/skills/frameworks/scripts/build-library.mjs --selftest`.
+      HOW: the existing ~60-assertion selftest (list-default + view icons, D5 area rename
+      keeping raw value, dropdown multi-select + applied bar, selection highlight + scroll
+      preserve, group-by, sidebar non-overlay, share, masthead, inline-anchor diagram placement,
+      missing-svg alignment, self-contained) MUST pass unchanged against the refactored builder.
+      If the selftest lives partly in the moved code, port the assertions so they still run from
+      the frameworks builder (regression gate must not be weakened). TEST: selftest prints PASS,
+      exit 0.
+  - id: T7
+    title: frameworks build-library.test.sh green (shipped regression gate)
+    status: pending
+    deps: [T5]
+    parallel: true
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >
+      WHAT: run `bash plugins/pmos-learnkit/skills/frameworks/tests/build-library.test.sh` (>=2x
+      for SIGPIPE noise per its header). HOW: the shipped test builds index.html from the mini
+      fixture corpus + diagrams and asserts self-contained (no external asset/S3/img refs),
+      features present (search, superFilter, dt/tags dropdowns, tagSearch, applied bar, clear-all,
+      Product Management display label with raw Product value, inlined rice SVG + content, extra
+      diagram, PM's take), and old affordances removed (dtFilter/tagrow/morefilters). This is the
+      load-bearing zero-regression gate (coherence contract #4). MUST stay green with zero edits
+      to the test. TEST: prints "build-library.test.sh: PASS", exit 0.
+  - id: T8
+    title: Hygiene lints + skill-eval no new residuals
+    status: pending
+    deps: [T6, T7]
+    parallel: false
+    spec_anchor: "#cross-skill-coherence-h"
+    notes: >
+      WHAT: run the repo skill-hygiene lints relevant to this change and confirm no NEW failures.
+      HOW: tools/lint-phase-refs.sh + tools/lint-flags-vs-hints.sh (no SKILL.md flag/phase
+      surface changed here, so expect green or only pre-existing residuals); pmos-toolkit
+      tools/lint-non-interactive-inline.sh + tools/audit-recommended.sh (no prompts added). The
+      SKILL.md for /frameworks is not edited by this story (engine-only refactor), so skill-eval
+      [D] checks should show only any PRE-EXISTING residuals — record them, introduce none. TEST:
+      each lint exits 0 (or documents an unchanged pre-existing residual against HEAD).
+  - id: T9
+    title: Live browser dogfood — rebuilt /frameworks browse page, no regression (LOAD-BEARING)
+    status: pending
+    deps: [T8]
+    parallel: false
+    spec_anchor: "#risks-open-questions-h"
+    notes: >
+      WHAT: build the REAL frameworks index.html from the full 272-record corpus via the
+      refactored builder, open it in a browser (Playwright), and assert no behavioural regression
+      vs the shipped viewer. HOW: `node build-library.mjs --out /tmp/fw-dogfood.html` then
+      Playwright navigate file:// and exercise: (1) default view is LIST; (2) free-text search
+      narrows the count (debounced, scrollY preserved — no snap-to-top); (3) a Decision-type
+      facet + a Tag facet apply OR-within/AND-across, applied chips appear, Clear all resets; (4)
+      switch to Detailed — thumbnails lazy-mount (IntersectionObserver), not all inlined at first
+      paint; (5) open a framework → sidebar reader layout-shifts (NOT overlay, no backdrop),
+      inline-anchored SVG diagram renders in the body, hash updates (#id), Copy link / Copy
+      markdown / Share work; (6) Escape closes reader, focus returns to opener; (7) zero console
+      errors. Capture screenshots into stories/260616-f7w/dogfood/. This is the non-skippable
+      Dogfood verdict gate — done requires a 5/5 objective pass. TEST: every assertion above
+      passes against the live served page; 0 console errors.
