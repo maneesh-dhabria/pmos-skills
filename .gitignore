@@ -42,3 +42,6 @@ backlog/claims/
 
 # /explainer-video live-smoke binary artifacts (runtime output, not source)
 docs/pmos/explainer-video/*_msr-smoke/
+
+# Local dogfooding scratch — confidential interview data, never commit
+.interview-dogfood/
