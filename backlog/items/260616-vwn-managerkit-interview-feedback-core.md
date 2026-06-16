@@ -4,14 +4,17 @@ id: 260616-vwn
 title: "pmos-managerkit + /interview-feedback core"
 type: feature
 kind: story
-status: planned
+status: in-progress
 route: skill
 priority: should
 labels: [interview-feedback, pmos-managerkit, new-plugin, skill]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 parent: 260616-9bt
 dependencies: []
+worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-vwn
+claimed_by: build:cron-vwn
+driver_holder: build:cron-vwn
 design_doc: docs/pmos/features/2026-06-16_interview-feedback/02_design.html
 plan_doc: docs/pmos/features/2026-06-16_interview-feedback/stories/260616-vwn/03_plan.html
 tasks_file: docs/pmos/features/2026-06-16_interview-feedback/stories/260616-vwn/tasks.yaml
