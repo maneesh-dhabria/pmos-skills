@@ -6,7 +6,7 @@ parent: 260616-tqf
 title: Extract _shared/library-viewer/ substrate + retrofit /frameworks onto it (zero regression)
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
