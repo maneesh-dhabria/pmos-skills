@@ -371,6 +371,17 @@ export function emitHtml(opts) {
       refsField: reader.refsField || 'references',
       markdownBodyField: reader.markdownBodyField || 'body_md',
     },
+    // optional skill-agnostic card-extras hook (badges, link-out titles, metarow pills).
+    // Absent → cards render via the default reader-driven path (back-compat). Present →
+    // titles link out (no in-page reader), with an optional badge + a declarative pill row.
+    card: cfg.card ? {
+      link: cfg.card.link ? { hrefField: cfg.card.link.hrefField, existsField: cfg.card.link.existsField || null } : null,
+      badge: cfg.card.badge ? { field: cfg.card.badge.field } : null,
+      pills: (cfg.card.pills || []).map((p) => ({
+        field: p.field || null, suffix: p.suffix || '', thousands: !!p.thousands,
+        skip: p.skip || [], whenFalse: p.whenFalse || null, text: p.text || '', cls: p.cls || '',
+      })),
+    } : null,
   };
   // value-label maps for single-select applied chips (presentation-only).
   const valueLabels = {};
@@ -385,6 +396,7 @@ export function emitHtml(opts) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 ${skillMeta}<title>${esc(masthead.title || 'Library')}</title>
 ${style}
 </head>
@@ -451,6 +463,29 @@ CFG.multi.forEach(function(f){ state[f.key]={}; });
 
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function selectedKeys(obj){return Object.keys(obj).filter(function(k){return obj[k];});}
+// ---- optional card-extras hook (CFG.card): link-out titles, badge, metarow pills ----
+function cardLinkOut(){ return !!(CFG.card && CFG.card.link); }
+function cardLinks(f){ var c=CFG.card&&CFG.card.link; if(!c) return true; if(!c.existsField) return true; return f[c.existsField]!==false; }
+function cardHref(f){ var c=CFG.card&&CFG.card.link; return (c && f[c.hrefField]) ? f[c.hrefField] : ('#'+encodeURIComponent(f[F.id])); }
+// title cell: when linking out, an <a href> that navigates (or plain text if the target is missing);
+// otherwise the default in-page reader anchor (intercepted click → openReader).
+function titleCell(f, cls){
+  var t=esc(f[F.name]); var c=cls?(' class="'+cls+'"'):'';
+  if(cardLinkOut()){ return cardLinks(f) ? '<a href="'+esc(cardHref(f))+'"'+c+'>'+t+'</a>' : '<span'+c+'>'+t+'</span>'; }
+  return '<a href="#'+encodeURIComponent(f[F.id])+'" data-id="'+esc(f[F.id])+'"'+c+'>'+t+'</a>';
+}
+function cardBadge(f){ var b=CFG.card&&CFG.card.badge; if(!b||!b.field) return ''; var v=f[b.field]; if(v==null||v==='') return ''; return '<span class="badge '+esc(String(v).toLowerCase())+'">'+esc(v)+'</span>'; }
+function cardPills(f){
+  var ps=CFG.card&&CFG.card.pills; if(!ps||!ps.length) return '';
+  var out=[];
+  ps.forEach(function(p){
+    if(p.whenFalse){ if(f[p.whenFalse]===false) out.push('<span class="pill '+esc(p.cls||'')+'">'+esc(p.text)+'</span>'); return; }
+    var v=f[p.field]; if(v==null||v===''||(p.skip&&p.skip.indexOf(v)>=0)) return;
+    var disp=(p.thousands&&typeof v==='number')?v.toLocaleString():v;
+    out.push('<span class="pill">'+esc(disp)+esc(p.suffix||'')+'</span>');
+  });
+  return out.length?('<div class="metarow">'+out.join('')+'</div>'):'';
+}
 function matches(f, q){
   if(!q) return true;
   var parts=[];
@@ -505,6 +540,13 @@ function updateSelection(){
   });
 }
 function cardHtml(f){
+  if(CFG.card){
+    // card-extras layout: badge + category, link-out title, declarative metarow.
+    return '<div class="card" data-id="'+esc(f[F.id])+'">'
+      +'<div class="top">'+cardBadge(f)+'<span class="cat">'+esc(f[F.category])+'</span></div>'
+      +'<h4 class="name">'+titleCell(f)+'</h4>'
+      +cardPills(f)+'</div>';
+  }
   return '<div class="card'+(f[F.id]===state.openId?' open':'')+'" data-id="'+esc(f[F.id])+'">'
     +thumbHtml(f)
     +'<div class="cat">'+esc(f[F.category])+'</div><h4 class="name">'+esc(f[F.name])+'</h4>'
@@ -527,9 +569,15 @@ function render(){
     var items=map[name].slice().sort(function(a,b){return a[F.name].toLowerCase()<b[F.name].toLowerCase()?-1:1;});
     html+='<div class="group"><h3>'+esc(name)+'</h3>';
     if(state.view==='compact'){
-      html+='<div class="compact"><div class="row">'+items.map(function(f){return '<a href="#'+encodeURIComponent(f[F.id])+'" data-id="'+esc(f[F.id])+'"'+(f[F.id]===state.openId?' class="selected"':'')+'>'+esc(f[F.name])+'</a>';}).join(', ')+'</div></div>';
+      html+='<div class="compact"><div class="row">'+items.map(function(f){
+        if(CFG.card) return titleCell(f, f[F.id]===state.openId?'selected':'');
+        return '<a href="#'+encodeURIComponent(f[F.id])+'" data-id="'+esc(f[F.id])+'"'+(f[F.id]===state.openId?' class="selected"':'')+'>'+esc(f[F.name])+'</a>';
+      }).join(', ')+'</div></div>';
     } else if(state.view==='list'){
-      html+='<ul class="listview">'+items.map(function(f){return '<li'+(f[F.id]===state.openId?' class="selected"':'')+'><a href="#'+encodeURIComponent(f[F.id])+'" data-id="'+esc(f[F.id])+'">'+esc(f[F.name])+'</a> <span class="ls">— '+esc(f[F.summary])+'</span></li>';}).join('')+'</ul>';
+      html+='<ul class="listview">'+items.map(function(f){
+        if(CFG.card) return '<li>'+cardBadge(f)+titleCell(f)+cardPills(f)+'</li>';
+        return '<li'+(f[F.id]===state.openId?' class="selected"':'')+'><a href="#'+encodeURIComponent(f[F.id])+'" data-id="'+esc(f[F.id])+'">'+esc(f[F.name])+'</a> <span class="ls">— '+esc(f[F.summary])+'</span></li>';
+      }).join('')+'</ul>';
     } else {
       html+='<div class="cards">'+items.map(cardHtml).join('')+'</div>';
     }
@@ -683,7 +731,10 @@ document.addEventListener('keydown', function(e){
   if(layout.classList.contains('reader-open')) closeReader();
 });
 document.addEventListener('click', function(e){ if(!e.target.closest('.dropdown')) closeDropdowns(); });
-groupsEl.addEventListener('click', function(e){ var el=e.target.closest('[data-id]'); if(!el) return; e.preventDefault(); openReader(el.getAttribute('data-id')); });
+groupsEl.addEventListener('click', function(e){
+  if(cardLinkOut()) return; // titles are real <a href> links — let the browser navigate
+  var el=e.target.closest('[data-id]'); if(!el) return; e.preventDefault(); openReader(el.getAttribute('data-id'));
+});
 reader.addEventListener('click', function(e){
   var b=e.target.closest('button[data-act]'); if(!b) return;
   var act=b.getAttribute('data-act');
@@ -694,6 +745,7 @@ reader.addEventListener('click', function(e){
   else if(act==='share'&&f) copyText(toShare(f));
 });
 window.addEventListener('hashchange', function(){
+  if(cardLinkOut()) return; // no in-page reader when titles link out
   var id=decodeURIComponent(location.hash.slice(1));
   if(id===state.openId) return;
   if(byId[id]) openReader(id); else if(!id) closeReader();
@@ -701,5 +753,5 @@ window.addEventListener('hashchange', function(){
 if(subtitleCount) subtitleCount.textContent=DATA.length;
 renderApplied();
 render();
-if(location.hash){ var id0=decodeURIComponent(location.hash.slice(1)); if(byId[id0]) openReader(id0); }
+if(!cardLinkOut() && location.hash){ var id0=decodeURIComponent(location.hash.slice(1)); if(byId[id0]) openReader(id0); }
 `;
