@@ -1,0 +1,284 @@
+[
+  {
+    "id": "2-plugin-scaffold-pmos-managerkit",
+    "level": 2,
+    "title": "2. Plugin scaffold — pmos-managerkit",
+    "parent_id": null
+  },
+  {
+    "id": "3-skill-shape-one-skill-verb-based",
+    "level": 2,
+    "title": "3. Skill shape — one skill, verb-based",
+    "parent_id": null
+  },
+  {
+    "id": "4-storage-model",
+    "level": 2,
+    "title": "4. Storage model",
+    "parent_id": null
+  },
+  {
+    "id": "5-inputs-mandatory-vs-optional-with-nudges",
+    "level": 2,
+    "title": "5. Inputs — mandatory vs optional (with nudges)",
+    "parent_id": null
+  },
+  {
+    "id": "6-bundled-pm-round-guidelines-researched-starter-set",
+    "level": 2,
+    "title": "6. Bundled PM round guidelines (researched starter set)",
+    "parent_id": null
+  },
+  {
+    "id": "7-reference-override-resolution",
+    "level": 2,
+    "title": "7. Reference-override resolution",
+    "parent_id": null
+  },
+  {
+    "id": "8-interviewer-model",
+    "level": 2,
+    "title": "8. Interviewer model",
+    "parent_id": null
+  },
+  {
+    "id": "9-input-grounding-three-tiers",
+    "level": 2,
+    "title": "9. Input grounding — three tiers",
+    "parent_id": null
+  },
+  {
+    "id": "10-transcription-pipeline-graceful-degrade",
+    "level": 2,
+    "title": "10. Transcription pipeline (graceful degrade)",
+    "parent_id": null
+  },
+  {
+    "id": "11-interviewer-effectiveness-rubric-researched-bundled-inter",
+    "level": 2,
+    "title": "11. Interviewer-effectiveness rubric (researched, bundled, interview-agnostic)",
+    "parent_id": null
+  },
+  {
+    "id": "12-output-contract",
+    "level": 2,
+    "title": "12. Output contract",
+    "parent_id": null
+  },
+  {
+    "id": "13-dogfood-case-gitignored-never-committed",
+    "level": 2,
+    "title": "13. Dogfood case (gitignored, never committed)",
+    "parent_id": null
+  },
+  {
+    "id": "14-build-path",
+    "level": 2,
+    "title": "14. Build path",
+    "parent_id": null
+  },
+  {
+    "id": "15-out-of-scope-v1-yagni",
+    "level": 2,
+    "title": "15. Out of scope (v1, YAGNI)",
+    "parent_id": null
+  },
+  {
+    "id": "16-build-readiness-resolutions-from-grill",
+    "level": 2,
+    "title": "16. Build-readiness resolutions (from grill)",
+    "parent_id": null
+  },
+  {
+    "id": "16-1-scorecard-machine-anchoring-schema-blocker",
+    "level": 3,
+    "title": "16.1 Scorecard machine-anchoring schema (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-2-transcription-contract-managerkit-owned-blocker",
+    "level": 3,
+    "title": "16.2 Transcription contract — managerkit-owned (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-3-speaker-attribution-degrade-blocker",
+    "level": 3,
+    "title": "16.3 Speaker attribution degrade (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-4-grounding-integrity-gate-blocker",
+    "level": 3,
+    "title": "16.4 Grounding-integrity gate (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-5-role-json-schema-round-archetype-enum-should-fix",
+    "level": 3,
+    "title": "16.5 role.json schema + round archetype enum (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-6-questionnaire-as-an-emitted-form-not-a-prompt-loop-shou",
+    "level": 3,
+    "title": "16.6 Questionnaire as an emitted form, not a prompt loop (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-7-one-canonical-skeleton-for-all-scorecards-the-rubric-sh",
+    "level": 3,
+    "title": "16.7 One canonical skeleton for all scorecards + the rubric (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-8-new-plugin-scaffold-dangling-cite-guard-nit",
+    "level": 3,
+    "title": "16.8 New-plugin scaffold + dangling-cite guard (Nit)",
+    "parent_id": null
+  },
+  {
+    "id": "1-problem-intent",
+    "level": 2,
+    "title": "1. Problem & intent",
+    "parent_id": null
+  },
+  {
+    "id": "2-plugin-scaffold-pmos-managerkit",
+    "level": 2,
+    "title": "2. Plugin scaffold — pmos-managerkit",
+    "parent_id": null
+  },
+  {
+    "id": "3-skill-shape-one-skill-verb-based",
+    "level": 2,
+    "title": "3. Skill shape — one skill, verb-based",
+    "parent_id": null
+  },
+  {
+    "id": "4-storage-model",
+    "level": 2,
+    "title": "4. Storage model",
+    "parent_id": null
+  },
+  {
+    "id": "5-inputs-mandatory-vs-optional-with-nudges",
+    "level": 2,
+    "title": "5. Inputs — mandatory vs optional (with nudges)",
+    "parent_id": null
+  },
+  {
+    "id": "6-bundled-pm-round-guidelines-researched-starter-set",
+    "level": 2,
+    "title": "6. Bundled PM round guidelines (researched starter set)",
+    "parent_id": null
+  },
+  {
+    "id": "7-reference-override-resolution",
+    "level": 2,
+    "title": "7. Reference-override resolution",
+    "parent_id": null
+  },
+  {
+    "id": "8-interviewer-model",
+    "level": 2,
+    "title": "8. Interviewer model",
+    "parent_id": null
+  },
+  {
+    "id": "9-input-grounding-three-tiers",
+    "level": 2,
+    "title": "9. Input grounding — three tiers",
+    "parent_id": null
+  },
+  {
+    "id": "10-transcription-pipeline-graceful-degrade",
+    "level": 2,
+    "title": "10. Transcription pipeline (graceful degrade)",
+    "parent_id": null
+  },
+  {
+    "id": "11-interviewer-effectiveness-rubric-researched-bundled-inter",
+    "level": 2,
+    "title": "11. Interviewer-effectiveness rubric (researched, bundled, interview-agnostic)",
+    "parent_id": null
+  },
+  {
+    "id": "12-output-contract",
+    "level": 2,
+    "title": "12. Output contract",
+    "parent_id": null
+  },
+  {
+    "id": "13-dogfood-case-gitignored-never-committed",
+    "level": 2,
+    "title": "13. Dogfood case (gitignored, never committed)",
+    "parent_id": null
+  },
+  {
+    "id": "14-build-path",
+    "level": 2,
+    "title": "14. Build path",
+    "parent_id": null
+  },
+  {
+    "id": "15-out-of-scope-v1-yagni",
+    "level": 2,
+    "title": "15. Out of scope (v1, YAGNI)",
+    "parent_id": null
+  },
+  {
+    "id": "16-build-readiness-resolutions-from-grill",
+    "level": 2,
+    "title": "16. Build-readiness resolutions (from grill)",
+    "parent_id": null
+  },
+  {
+    "id": "16-1-scorecard-machine-anchoring-schema-blocker",
+    "level": 3,
+    "title": "16.1 Scorecard machine-anchoring schema (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-2-transcription-contract-managerkit-owned-blocker",
+    "level": 3,
+    "title": "16.2 Transcription contract — managerkit-owned (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-3-speaker-attribution-degrade-blocker",
+    "level": 3,
+    "title": "16.3 Speaker attribution degrade (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-4-grounding-integrity-gate-blocker",
+    "level": 3,
+    "title": "16.4 Grounding-integrity gate (Blocker)",
+    "parent_id": null
+  },
+  {
+    "id": "16-5-role-json-schema-round-archetype-enum-should-fix",
+    "level": 3,
+    "title": "16.5 role.json schema + round archetype enum (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-6-questionnaire-as-an-emitted-form-not-a-prompt-loop-shou",
+    "level": 3,
+    "title": "16.6 Questionnaire as an emitted form, not a prompt loop (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-7-one-canonical-skeleton-for-all-scorecards-the-rubric-sh",
+    "level": 3,
+    "title": "16.7 One canonical skeleton for all scorecards + the rubric (Should-fix)",
+    "parent_id": null
+  },
+  {
+    "id": "16-8-new-plugin-scaffold-dangling-cite-guard-nit",
+    "level": 3,
+    "title": "16.8 New-plugin scaffold + dangling-cite guard (Nit)",
+    "parent_id": null
+  }
+]

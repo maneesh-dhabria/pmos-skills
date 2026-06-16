@@ -1,0 +1,160 @@
+schema_version: 1
+story: 260616-vwn
+epic: 260616-9bt
+route: skill
+plugin: pmos-managerkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-managerkit/skills/interview-feedback
+# Story A — new plugin scaffold + /interview-feedback skill core.
+# Dogfoothable alone: the Porter case (.interview-dogfood/) supplies its own guidelines.
+# TDD: each script ships a --selftest; the live dogfood (T13) is the load-bearing end-to-end gate.
+# Release prerequisites (v0.1.0 baseline, manifest sync, README row) are NOT tasks here —
+# they live under the design's Release prerequisites; /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Scaffold pmos-managerkit plugin (both manifests v0.1.0, marketplace entries no-version, CLAUDE.md charter + Plugins-list, README)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-managerkit/.claude-plugin/plugin.json (name pmos-managerkit, version 0.1.0,
+      description, skills "./skills/") and .codex-plugin/plugin.json (mirror + interface block). Add
+      entries to .claude-plugin/marketplace.json and .codex-plugin/marketplace.json (name, description,
+      source ./plugins/pmos-managerkit, category, homepage — NO version field). Add the plugin to
+      CLAUDE.md "## Plugin charters" (charter: help me do manager work) and "## Release policy → Plugins
+      list". Add plugins/pmos-managerkit/README.md. Verify: ls plugins/pmos-managerkit/skills/ exists.
+
+  - id: T2
+    title: "Author canonical scorecard + reference skeletons (reference/ partials) with §16.1 machine anchors"
+    ac: [AC5]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Create reference/scorecard-skeleton.html and reference/reference-skeleton.html. Scorecard carries
+      data-dim, data-weight, data-scale="1-4" with data-v options, data-input="notes:<dim>",
+      data-flags="green|red", data-input="reco". This is the SINGLE DOM contract the filler (T8) and the
+      bundled templates (Story B) + the rubric (T10) instantiate (§16.7). Model the visual house style on
+      the Porter sample scorecard. Self-contained HTML.
+
+  - id: T3
+    title: "SKILL.md — verb skill (setup | bare/score | list), frontmatter, inline non-interactive block, argument-hint, platform adaptation"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author SKILL.md per skill-patterns.md §A–§L and repo canonical-path rule. Verbs: setup, score (bare),
+      list. Inline the canonical non-interactive block byte-identical from skills/_shared/non-interactive.md.
+      argument-hint lists only contract flags (§I). Phases with stable kebab anchors (§J). Mark the tier-3
+      questionnaire-refuse path with <!-- non-interactive: refused … -->. Cite skill-patterns.md as the
+      authoring reference.
+
+  - id: T4
+    title: "Storage + role.json: configurable root, default ./interviews/ with gitignore guard; setup writes role.json (§16.5)"
+    ac: [AC3]
+    deps: [T3]
+    parallel: false
+    detail: >
+      scripts/storage.sh (or .mjs): resolve root (flag > config > ./interviews/); if inside a git repo and
+      root is under it, ensure a gitignore guard (refuse or auto-append). Create role folder
+      <date>-<role-kebab>-<team>/ and candidate folder <date>-<round>-<candidate>-<lastco>/; copy raw inputs
+      into inputs/. setup writes role.json: rounds[]{id,name,archetype(enum=7+custom),guidelines_path,
+      additional_docs[],interviewers[]{name,role:lead|shadow|panel}}. --selftest covers guard + role.json shape.
+
+  - id: T5
+    title: "Transcription: ffmpeg extract → whisper-cli, model resolution (~/whisper-models default medium), graceful degrade (§16.2)"
+    ac: [AC8]
+    deps: [T3]
+    parallel: true
+    detail: >
+      scripts/transcribe.sh (managerkit-owned, NOT magazine's): ffmpeg -i <video> -vn -ar 16000 -ac 1 wav;
+      whisper-cli -m <model> with timestamps; long-audio chunking. Model search ~/whisper-models/,
+      ~/.pmos/managerkit/models/, ./models for ggml-medium.bin then ggml-base.bin; none → exit with a
+      nudge + signal tier-2/3 degrade (do NOT fail the run). --selftest covers model-resolution + degrade
+      path (no model present).
+
+  - id: T6
+    title: "Grounding-integrity gate: deterministic verbatim ≥40-char citation check vs transcript.refined.txt (§16.4)"
+    ac: [AC7]
+    deps: [T3]
+    parallel: true
+    detail: >
+      scripts/check-citations.mjs: given an output HTML + transcript.refined.txt, assert every
+      transcript-tier citation (marked data-cite-tier="transcript") is a verbatim substring (≥40 chars) of
+      the transcript; interviewer-notes / interviewer-recalled tiers exempt but must name a source. Exit
+      non-zero on any unresolved transcript citation (fails verify). --selftest with pass + fail fixtures.
+
+  - id: T7
+    title: "Tier-3 questionnaire form emitter + non-interactive refuse"
+    ac: [AC6]
+    deps: [T2, T4]
+    parallel: false
+    detail: >
+      When neither transcript nor notes exist, emit a single questionnaire form (HTML/md) derived from the
+      round's scorecard dimensions + reference (per-dimension recall prompts, moments, green/red flags,
+      lean). HM fills and re-supplies as an input file to a fresh score run. Under --non-interactive: emit
+      the blank form and refuse to fabricate (the refused marker path from T3).
+
+  - id: T8
+    title: "Scorecard filler: parse §16.1 anchors, fill scores/notes/flags/reco; foreign-sheet infer+confirm"
+    ac: [AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      scripts/fill-scorecard.mjs: read a scorecard's data-* anchors → dimension list/scales/flags; produce
+      filled-scorecard.html with selected data-v, populated notes, ticked flags, reco. Foreign sheet (no
+      anchors): infer dimensions from DOM, echo inferred list for confirmation (interactive) or to the
+      open-questions log (non-interactive) before filling. --selftest against the Porter sample sheet.
+
+  - id: T9
+    title: "Output renderers: filled scorecard HTML + interviewer-performance notes HTML (grounded, source-tagged, concise/bulleted)"
+    ac: [AC10]
+    deps: [T8, T6]
+    parallel: false
+    detail: >
+      Compose outputs (a) filled-scorecard.html and (b) interviewer-notes.html. Every subjective claim
+      carries a citation with data-cite-tier (transcript|notes|recalled) + source; concise bullets/nested
+      bullets. (b) is per-interviewer with attribution-confidence flags (§16.3). Self-contained HTML in the
+      Porter house style.
+
+  - id: T10
+    title: "Interviewer-effectiveness rubric: research (verified-source) + author as a scorecard-skeleton instance (§11, §16.7)"
+    ac: [AC9]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Research interviewing best-practices + common mistakes via the verified-source approach (deep-research /
+      fetch-and-cite). Author reference/interviewer-effectiveness.html instantiating the canonical scorecard
+      skeleton (structured/consistent questioning, probing depth, no leading questions, talk-time balance,
+      area coverage, bias mitigation, note-taking, calibration). Output (b) scores against it. Bundled, role-
+      agnostic. Capture provenance.
+
+  - id: T11
+    title: "Reference-override resolution (§7) + interviewer model lead/shadow/panel (§8)"
+    ac: [AC11]
+    deps: [T4]
+    parallel: false
+    detail: >
+      If a candidate folder's interviewer-reference differs from the role-level one, stop and ask which to
+      use (recommended default role-level; non-interactive defers to role-level + logs OQ). Wire the
+      interviewer roster (lead required, shadows/observers, panel) from role.json into output (b).
+
+  - id: T12
+    title: "Tests: aggregate selftests + a skill-level smoke (verbs resolve, storage guard, role.json, citation gate)"
+    ac: [AC2, AC3, AC7]
+    deps: [T5, T6, T7, T8, T9, T10, T11]
+    parallel: false
+    detail: >
+      A tests/ harness running every script --selftest plus a smoke that exercises setup → score wiring on a
+      tiny fixture. Keep bash-3.2-safe. Lints: non-interactive inline, flags-vs-hints, phase-refs.
+
+  - id: T13
+    title: "Live dogfood: score the Porter PM case end-to-end (transcript if model present, else tier-2/3) and verify outputs + citation gate"
+    ac: [AC12]
+    deps: [T12]
+    parallel: false
+    detail: >
+      Run score against .interview-dogfood/ (Porter case: JD, resume, brief, scorecard, case question,
+      recording.mp4). If a whisper model is present, transcribe the mp4 and ground citations against it
+      (run T6 gate → must pass); else exercise tier-2/3 with interviewer notes / questionnaire. Inspect both
+      outputs: scores filled, flags ticked, hire/no-hire set, every subjective claim grounded + source-tagged,
+      interviewer-notes per-interviewer. Fix live-only issues. NEVER commit any case content (gitignored).
