@@ -13,8 +13,8 @@ feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 plan_doc: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-f7w/03_plan.html
 tasks: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-f7w/tasks.yaml
 worktree:
-claimed_by:
-driver_holder:
+claimed_by: build:cron-9ab6e541
+driver_holder: build:cron-9ab6e541
 labels: [pmos-learnkit, library-viewer, frameworks, browse, web-ui]
 created: 2026-06-16
 updated: 2026-06-16
