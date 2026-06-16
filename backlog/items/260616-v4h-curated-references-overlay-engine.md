@@ -6,15 +6,15 @@ parent: 260616-tqf
 title: Curated-references overlay engine — ship scrubbed corpus + IDF prefilter + research-phase subagent + sourcing.md patch
 type: feature
 priority: should
-status: planned
+status: in-progress
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 plan_doc: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-v4h/03_plan.html
 tasks: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-v4h/tasks.yaml
 worktree:
-claimed_by:
-driver_holder:
+claimed_by: build:cron-v4h
+driver_holder: build:cron-v4h
 labels: [pmos-learnkit, topic-research, curated-references, sourcing]
 created: 2026-06-16
 updated: 2026-06-16
