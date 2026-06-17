@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 2,
+  "theme": "technical",
+  "mode": "mindmap",
+  "concept": "PM Craft skills mind map",
+  "approach": "tree",
+  "layoutEngine": "mindmap-tidytree",
+  "alternativesConsidered": [
+    "radial"
+  ],
+  "canvas": {
+    "width": 572,
+    "height": 736
+  },
+  "positions": {
+    "pm": {
+      "x": 100,
+      "y": 384
+    },
+    "disc": {
+      "x": 288,
+      "y": 124
+    },
+    "res": {
+      "x": 476,
+      "y": 52
+    },
+    "jtbd": {
+      "x": 476,
+      "y": 124
+    },
+    "mkt": {
+      "x": 476,
+      "y": 192
+    },
+    "deliv": {
+      "x": 288,
+      "y": 332
+    },
+    "spec": {
+      "x": 476,
+      "y": 264
+    },
+    "plan": {
+      "x": 476,
+      "y": 332
+    },
+    "ship": {
+      "x": 476,
+      "y": 404
+    },
+    "growth": {
+      "x": 288,
+      "y": 508
+    },
+    "exp": {
+      "x": 476,
+      "y": 472
+    },
+    "metrics": {
+      "x": 476,
+      "y": 544
+    },
+    "lead": {
+      "x": 288,
+      "y": 648
+    },
+    "comm": {
+      "x": 476,
+      "y": 612
+    },
+    "stake": {
+      "x": 476,
+      "y": 684
+    }
+  },
+  "entities": [
+    {
+      "id": "pm",
+      "label": "PM Craft",
+      "category": "node"
+    },
+    {
+      "id": "disc",
+      "label": "Discovery",
+      "category": "node"
+    },
+    {
+      "id": "res",
+      "label": "User research",
+      "category": "node"
+    },
+    {
+      "id": "jtbd",
+      "label": "JTBD",
+      "category": "node"
+    },
+    {
+      "id": "mkt",
+      "label": "Market sizing",
+      "category": "node"
+    },
+    {
+      "id": "deliv",
+      "label": "Delivery",
+      "category": "node"
+    },
+    {
+      "id": "spec",
+      "label": "Specs",
+      "category": "node"
+    },
+    {
+      "id": "plan",
+      "label": "Planning",
+      "category": "node"
+    },
+    {
+      "id": "ship",
+      "label": "Shipping",
+      "category": "node"
+    },
+    {
+      "id": "growth",
+      "label": "Growth",
+      "category": "node"
+    },
+    {
+      "id": "exp",
+      "label": "Experiments",
+      "category": "node"
+    },
+    {
+      "id": "metrics",
+      "label": "Metrics",
+      "category": "node"
+    },
+    {
+      "id": "lead",
+      "label": "Leadership",
+      "category": "node"
+    },
+    {
+      "id": "comm",
+      "label": "Comms",
+      "category": "node"
+    },
+    {
+      "id": "stake",
+      "label": "Stakeholders",
+      "category": "node"
+    }
+  ],
+  "relationships": [
+    {
+      "from": "pm",
+      "to": "disc",
+      "kind": "directed"
+    },
+    {
+      "from": "disc",
+      "to": "res",
+      "kind": "directed"
+    },
+    {
+      "from": "disc",
+      "to": "jtbd",
+      "kind": "directed"
+    },
+    {
+      "from": "disc",
+      "to": "mkt",
+      "kind": "directed"
+    },
+    {
+      "from": "pm",
+      "to": "deliv",
+      "kind": "directed"
+    },
+    {
+      "from": "deliv",
+      "to": "spec",
+      "kind": "directed"
+    },
+    {
+      "from": "deliv",
+      "to": "plan",
+      "kind": "directed"
+    },
+    {
+      "from": "deliv",
+      "to": "ship",
+      "kind": "directed"
+    },
+    {
+      "from": "pm",
+      "to": "growth",
+      "kind": "directed"
+    },
+    {
+      "from": "growth",
+      "to": "exp",
+      "kind": "directed"
+    },
+    {
+      "from": "growth",
+      "to": "metrics",
+      "kind": "directed"
+    },
+    {
+      "from": "pm",
+      "to": "lead",
+      "kind": "directed"
+    },
+    {
+      "from": "lead",
+      "to": "comm",
+      "kind": "directed"
+    },
+    {
+      "from": "lead",
+      "to": "stake",
+      "kind": "directed"
+    }
+  ],
+  "createdBy": "pmos-toolkit:diagram@v2 (260617-1aq dogfood)"
+}
