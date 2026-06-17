@@ -1,8 +1,8 @@
 ---
 name: summary-tldr
-description: Produces a faithful, grounded TL;DR of any single piece of user-supplied content — a web URL or article, raw pasted text, a PDF, a markdown file, an image, an email thread, a tweet thread, a podcast, or a video — at a user-confirmed compression target and in a chosen output style, then runs a first-time-reader review pass and saves a self-contained HTML artifact. Use when someone wants the actual claims, numbers, and takeaways of something they have no time to read in full — not a description of what it is about. Triggers when the user says "summarize this", "give me a TL;DR of <url>", "tldr this article", "key takeaways from this PDF", "summarize this podcast / email thread / tweet thread", "what does this actually say", "condense this for me", or "/summary-tldr". Every claim traces to source content fetched or extracted this run; nothing ships from memory. Offers compression bands (tight/standard/detailed), four output styles, shapes vocabulary to the audience, and can hand the result to /diagram.
+description: Produces a faithful, grounded TL;DR of any single piece of user-supplied content — a web URL, pasted text, a PDF, a markdown file, an image, an email or tweet thread, a podcast, or a video — at a user-confirmed compression target and in a chosen output style, then runs a first-time-reader review pass and saves a self-contained HTML artifact. Use when someone wants the actual claims, numbers, and takeaways of something they have no time to read in full — not a description of what it is about. Triggers when the user says "summarize this", "give me a TL;DR of <url>", "key takeaways from this PDF", "what does this actually say", or "/summary-tldr". Every claim traces to source content fetched or extracted this run; nothing ships from memory. Offers compression bands, four output styles, audience-shaped vocabulary, and an output mode (--mode) — narrative text (default), a mindmap diagram, a video, or swipeable cards ("summarize this as a mind map"); the grounded text summary is always produced first.
 user-invocable: true
-argument-hint: "<source: URL | file path (pdf/md/image/txt) | pasted text> [--compression tight|standard|detailed] [--style bullets|exec|nested|layered] [--audience <who>] [--diagram] [--out <path>] [--non-interactive | --interactive]"
+argument-hint: "<source: URL | file path (pdf/md/image/txt) | pasted text> [--mode narrative|mindmap|video|shorts] [--compression tight|standard|detailed] [--style bullets|exec|nested|layered] [--audience <who>] [--diagram] [--out <path>] [--non-interactive | --interactive]"
 ---
 
 # Summary TL;DR
@@ -13,14 +13,31 @@ The one rule everything else serves: **a reader who never saw the original comes
 
 ## Flags & natural language
 
-Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 7 diagram gate, `#diagram`), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
+Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "as a mind map" / "make it a mindmap" ≡ `--mode mindmap`, "as a video" / "narrate it" ≡ `--mode video`, "as swipeable cards" / "as shorts" ≡ `--mode shorts`, "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--mode` (typed value that changes the OUTPUT shape — see "## Output modes"), `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 7 diagram gate, `#diagram`), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
+
+## Output modes {#modes}
+
+`--mode` is a NEW output-format dimension, **orthogonal to `--style`** (D1/INV2): `--mode` chooses the *shape* of the output; `--style` shapes only the narrative *text*. Default `narrative`. **Single mode per run** (v1). The deterministic mode dispatch — enum validation, `--style` applicability, and which modes are live this release — is owned by `scripts/mode.js` (`skill-patterns.md §H`), never decided by the model:
+
+```
+node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mode.js --mode <m> [--style]
+```
+
+| Mode | Output | This story |
+|---|---|---|
+| `narrative` *(default)* | Today's grounded text TL;DR (unchanged) — `--style bullets\|exec\|nested\|layered` applies here | **Implemented** (back-compat, INV6) |
+| `mindmap` | The canonical text **plus** a tree/radial diagram of the source's key arguments, via `/diagram --mode mindmap` | **Implemented** (delegates to story `260617-1aq`'s capability) |
+| `video` | A narrated `.mp4` via `/explainer-video` | Accepted value → graceful "not yet available" note; ships in `260617-gfx` |
+| `shorts` | A swipeable card carousel | Accepted value → graceful "not yet available" note; ships in `260617-wf6` |
+
+**Three invariants hold in every mode** (design `#invariants`): the grounded TEXT summary is **always emitted first** (D2/INV3 — crash-safety); non-narrative renderings derive from the **grounded this-run extraction** (the cleaned text + Phase 4 keyfacts), never the lossy compressed prose or model memory (D3/INV4); and the skill **reuses, never rebuilds** a renderer — mindmap → `/diagram`, video → `/explainer-video` (INV5).
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
 <!-- defer-only: ambiguous -->
-- **No `AskUserQuestion` available:** the input-kind disambiguation (Phase 2), the compression confirm (Phase 3), the style ask (Phase 4), and the diagram gate (Phase 7, `#diagram`) degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
+- **No `AskUserQuestion` available:** the mode picker (Phase 1, `#modes`), the input-kind disambiguation (Phase 2), the compression confirm (Phase 3), the style ask (Phase 4), and the diagram gate (Phase 7, `#diagram`) degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
 - **No `WebFetch`:** URL sources cannot be ingested — refuse the URL input with a one-line note and ask for a paste; never summarize a remembered version of the page.
 - **No vision `Read`:** image sources cannot be ingested — refuse with guidance; never invent the image's text.
 - **No `Task` subagent:** the Phase 4 map-reduce chunk-summarize and the Phase 5 reviewer run inline in the host conversation instead of as dispatched subagents.
@@ -28,9 +45,9 @@ These instructions use Claude Code tool names. In other environments:
 
 ## Track Progress
 
-This skill has 8 sequential phases (Setup, Ingest, Compress, Summarize, Review, Emit, Diagram, Capture Learnings). Create one task per phase using the host agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
+This skill has 8 sequential phases (Setup, Ingest, Compress, Summarize, Review, Emit, Mode-render, Capture Learnings). Create one task per phase using the host agent's task-tracking tool (e.g., `TaskCreate` in Claude Code). Mark each task in-progress when you start it and completed as soon as it finishes — do not batch completions.
 
-**Emit precedes the diagram by design (crash-safety).** The Phase 5-approved summary is written to disk in Phase 6 (`#emit`) *before* the optional, slow, multi-turn `/diagram` loop runs in Phase 7 (`#diagram`). The approved text is therefore persisted by construction — a compaction or crash during the diagram loop cannot lose it, because the real artifact already holds it. No `.summary.tmp` side-file exists; the on-disk artifact is the single source.
+**Emit precedes any mode rendering by design (crash-safety).** The Phase 5-approved canonical text summary is written to disk in Phase 6 (`#emit`) *before* any slower mode rendering runs in Phase 7 (`#mode-render`) — the optional `/diagram` add-on for narrative, or the mindmap / video / shorts rendering. The approved text is therefore persisted by construction in **every** mode (D2/INV3) — a compaction or crash during a rendering loop cannot lose it, because the real artifact already holds it. No `.summary.tmp` side-file exists; the on-disk artifact is the single source.
 
 ## Phase 1: Setup & load learnings {#setup}
 
@@ -38,9 +55,24 @@ Inline `_shared/pipeline-setup.md` to: read `.pmos/settings.yaml` (REQUIRE `vers
 
 Read `~/.pmos/learnings.md` if present; factor in any entries under `## /summary-tldr`. The skill body wins on conflict — surface conflicts to the user before applying a learning.
 
-**Parse arguments.** Positional `<source>` (a URL, a local file path, or pasted inline content). Flags `--compression <v>`, `--style <v>`, `--audience <who>`, `--diagram`, `--out <path>`, `--non-interactive`, `--interactive`. Any unknown flag, or `--compression`/`--style` with a value outside its enum → platform-aware error naming the valid set (per `_shared/platform-strings.md`); exit 64.
+**Parse arguments.** Positional `<source>` (a URL, a local file path, or pasted inline content). Flags `--mode <v>`, `--compression <v>`, `--style <v>`, `--audience <who>`, `--diagram`, `--out <path>`, `--non-interactive`, `--interactive`. Any unknown flag, or `--compression`/`--style` with a value outside its enum → platform-aware error naming the valid set (per `_shared/platform-strings.md`); exit 64.
 
-**Resolve the dials.** `--compression` and `--style` may persist per-project (the `/primer` lastrun pattern, optional): `cli > .pmos/summary-tldr.lastrun.yaml > skill default`. Defaults: compression `standard`, style `bullets`. After a run, persist the resolved values atomically (temp-then-rename). Print to stderr `compression: <band> (source: <cli|lastrun|default|confirmed>)` once the band is final (Phase 3 may update it).
+**Resolve the output mode (`--mode`, FR-B1/D10).** Validate and dispatch deterministically via the script (`skill-patterns.md §H` — the model never decides mode validity or routing):
+
+```
+node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mode.js --mode <v> [--style]
+```
+
+An invalid `--mode` value → the script prints `error: --mode must be one of narrative|mindmap|video|shorts (got '<v>')` and exits 64; surface that and stop. Otherwise:
+
+- **`--mode` given** → it pre-answers the picker; record `mode` and skip the prompt below.
+- **No `--mode`, interactive** → present the picker:
+
+  - `AskUserQuestion` — `"Which output do you want?"` options **Narrative — grounded text TL;DR (Recommended)** / **Mindmap — tree diagram of the key arguments** / **Video — narrated .mp4** / **Shorts — swipeable cards**. Under non-interactive mode, AUTO-PICK Narrative (the Recommended option).
+
+- The script's JSON tells you `styleApplies` and (for `video`/`shorts`) the graceful-degradation `note`. **If `--style` was provided with a non-narrative mode** (`styleApplies:false`), emit the script's one-line `warn` to stderr and ignore `--style` for rendering (the canonical text still emits at the resolved narrative style — D1/INV2). Record the resolved `mode`; it gates Phase 7 (`#mode-render`). `narrative` and `mindmap` are fully rendered this release; `video`/`shorts` parse and route to the deferred note (their renderers ship in later stories).
+
+**Resolve the dials.** `--compression` and `--style` may persist per-project (the `/primer` lastrun pattern, optional): `cli > .pmos/summary-tldr.lastrun.yaml > skill default`. Defaults: compression `standard`, style `bullets`. After a run, persist the resolved values atomically (temp-then-rename). Print to stderr `compression: <band> (source: <cli|lastrun|default|confirmed>)` once the band is final (Phase 3 may update it). `--style` shapes the canonical text in every mode (it is the narrative sub-style); it only additionally *drives a rendering* when `mode==narrative`.
 
 The canonical non-interactive block below handles `mode` resolution + per-checkpoint classifier + OQ buffer + end-of-skill summary. Do not paraphrase or move this block.
 
@@ -107,6 +139,8 @@ Run the grounded pipeline in `reference/summary-pipeline.md`: **map-reduce chunk
 
 If a bounded subagent is dispatched to summarize a chunk, dispatch it **`model: sonnet`** (§L — bounded, parent-validated work, not a frontier-judgment role).
 
+**Retain the grounded extraction for mode rendering (D3/INV4).** Keep the cleaned full text and the extracted **keyfact list** (claims, numbers, named conclusions, entities) available for Phase 7 (`#mode-render`): every non-narrative rendering derives from this grounded this-run extraction — never the lossy compressed prose, never model memory. The mindmap hierarchy in particular is built from the keyfacts (root = topic, branches = key arguments, leaves = takeaways/numbers), not from the generated bullets.
+
 ## Phase 5: First-time-reader review pass {#review}
 
 Before emit, run the review pass in `reference/review-rubric.md` from the perspective of a reader who never saw the original: **coverage** (every source keyfact present), **faithfulness** (every sentence traces to source; scan the 7 error types), **standalone** (no dangling references or undefined pronouns), **asserts-not-describes** (meta-description = hard fail → rewrite to the actual claim), **coherence**. Apply the inlined `/polish` writing checks the same pass — deterministic checks (clutter, AI-slop hard-bans, em-dash, hedging) auto-apply; judgment checks surface per `_shared/findings-dispositions.md`.
@@ -115,7 +149,7 @@ Dispatch the reviewer as a fresh `Task` subagent **`model: sonnet`** per `_share
 
 ## Phase 6: Emit the artifact {#emit}
 
-Emit the full, Phase 5-approved summary to disk **now — before the optional diagram loop** (this is the crash-safety guarantee: the approved text is persisted by construction, so a compaction or crash during Phase 7's slow `/diagram` loop cannot lose it).
+Emit the full, Phase 5-approved canonical **text** summary to disk **now — before any mode rendering**, in **every** mode (D2/INV3). This is the crash-safety guarantee: the approved text is persisted by construction, so a compaction or crash during Phase 7's slower rendering (the `/diagram` add-on, or the mindmap / video / shorts renderer) cannot lose it. The canonical text artifact is identical across modes — the mode only adds a sibling rendering and a link in Phase 7.
 
 **Emit per `_shared/html-authoring/README.md` checklist.** Deltas: artifact = `{summary_tldr_dir}/{YYYY-MM-DD}-<slug>.html` (slug derived from the source title/topic; `--out` overrides the path), `{{pmos_skill}}` = `summary-tldr`, `{{plugin_version}}` read from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`. Write the `.html` and `.sections.json` via temp-then-rename; every `<h2>`/`<h3>` carries a stable kebab `id` per `_shared/html-authoring/conventions.md`; copy `assets/*` via `cp -n` (the comments overlay rides along); asset URLs carry `?v=<plugin-version>`.
 
@@ -125,9 +159,41 @@ Render the "Source & confidence" appendix as a **compact two-column `<table>`** 
 
 **Library regen.** Regenerate `{summary_tldr_dir}/summary-tldr.html` (one row per past summary, newest first) per `_shared/html-authoring/index-generator.md`; give every manifest entry the literal `phase: "Summaries"` so the viewer renders one flat group. Exclude `summary-tldr.html` itself. Atomic write.
 
-## Phase 7: Optional diagram {#diagram}
+## Phase 7: Render the selected mode {#mode-render}
 
-With the summary already on disk (Phase 6), offer the optional gate:
+With the canonical text summary already on disk (Phase 6), produce the rendering for the resolved `mode`. **Every path here is additive and post-emit** — a rendering failure never rolls back the canonical text (D2/INV3). Dispatch on `mode`:
+
+- **`narrative`** → run the optional `/diagram` add-on gate below (`#diagram`).
+- **`mindmap`** → run the mindmap rendering (`#mindmap-mode`).
+- **`video` / `shorts`** → these renderers ship in later stories (`260617-gfx` / `260617-wf6`). `scripts/mode.js` already returned the graceful `note`; print it to chat/stderr and finish — the canonical text summary has already shipped (D11). Do not fabricate the rendering.
+
+### Mindmap mode {#mindmap-mode}
+
+The mindmap rendering, derived from the **grounded keyfacts** (Phase 4), delegating layout + theming to `/diagram --mode mindmap` (INV5 — `/summary-tldr` never builds a renderer):
+
+1. **Derive the hierarchy** from the keyfact list (D3/D4): root = the source's topic; branches = its key arguments; leaves = the takeaways / numbers under each. Build it as `{topic, branches:[{label, leaves:[…]}]}`, then normalize + floor-gate it through the script (`§H` — the model supplies the *content*; the script owns ids + the degradation floor):
+
+   ```
+   echo '<hierarchy-json>' | node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mindmap-hierarchy.js
+   ```
+
+   It prints the normalized `{id,label,children}` tree (exactly the shape `/diagram --mode mindmap` consumes) on success. **Exit 3 = below the usefulness floor** (too few branches/keyfacts) → graceful degradation (D11/D12): print the `degrade:` reason, ship the canonical text **only** (no mindmap), and finish. Never fabricate a hierarchy to clear the floor.
+
+2. **Hand off to `/diagram` from the main agent** (never a subagent — skills cannot invoke skills from a subagent). Write the normalized tree to a temp source file and call:
+
+   ```
+   /diagram --mode mindmap --source <tree.json> --theme editorial --non-interactive --on-failure drop
+   ```
+
+   (`--theme editorial` supports mindmap with a radial default; `--on-failure drop` returns nothing rather than a degraded SVG.)
+
+3. **Validate the returned SVG before saving** (same discipline as the narrative `#diagram` add-on): it parses as XML, carries the theme background `<rect>`, and a post-insert heading-id smoke stays green. Only then save it as a sibling **`<slug>-mindmap.svg`** next to the canonical `.html`, link it from the canonical doc (a `<figure>` with a caption + the SVG, or an `<a>` to the sibling file) via atomic temp-then-rename, and **regenerate the library index** so the row reflects the mindmap.
+
+4. **On any `/diagram` drop, validation miss, or failure:** leave the canonical text on disk **intact** (no rollback — it is already safe), log the failure, and finish (D11). The on-disk artifact is the single source; never write a `.summary.tmp` side-file.
+
+### Optional diagram (narrative add-on) {#diagram}
+
+In `narrative` mode, offer the existing optional add-on gate (a single decorative diagram injected into the canonical doc — distinct from `mindmap` mode):
 
 - `AskUserQuestion` — `"Convert this summary into a diagram?"` options **Skip (Recommended)** / **Run /diagram**. `--diagram` pre-answers Run. Under non-interactive mode, AUTO-PICK Skip.
 
@@ -154,7 +220,9 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 6. **Single-passing a long source.** Long sources are chunk-and-synthesized (map-reduce); a single pass drops mid-document facts (the lost-in-the-middle bias).
 7. **Invoking `/diagram` from a subagent.** The diagram handoff runs from the main agent only, and the returned SVG is validated before it is injected into the on-disk artifact — never blind-insert.
 8. **Letting the Phase 5 reviewer edit.** The reviewer scores and cites only; this skill applies the fixes. A reviewer that edits while reviewing makes the pass unreproducible.
-9. **Running the slow diagram loop before the first emit.** The approved summary is emitted to disk in Phase 6 (`#emit`) *before* the optional `/diagram` step in Phase 7 (`#diagram`). Never run the multi-turn diagram loop between Phase 5 approval and the first on-disk emit — that is the data-loss window a compaction would hit. The on-disk artifact is the single source of truth; do not introduce a `.summary.tmp` to "stage" the approved text (the real artifact already is the persistence).
+9. **Running the slow diagram loop before the first emit.** The approved summary is emitted to disk in Phase 6 (`#emit`) *before* any Phase 7 (`#mode-render`) rendering — the optional `/diagram` add-on or the mindmap/video/shorts renderer. Never run a multi-turn rendering loop between Phase 5 approval and the first on-disk emit — that is the data-loss window a compaction would hit. The on-disk artifact is the single source of truth; do not introduce a `.summary.tmp` to "stage" the approved text (the real artifact already is the persistence).
+10. **Building the mindmap from the compressed prose, or fabricating it to clear the floor.** The mindmap hierarchy derives from the grounded Phase 4 **keyfacts** (D3), never the generated bullets and never model memory. When `scripts/mindmap-hierarchy.js` reports below-floor (exit 3), ship the canonical text alone — never pad branches/leaves to force a map (D11/D12).
+11. **Letting `--mode` and `--style` collide, or regressing narrative.** `--mode` (output shape) is orthogonal to `--style` (narrative sub-style) — with a non-narrative mode, `--style` is ignored-with-warn, not an error (D1/INV2). `mode==narrative` must reproduce today's output byte-for-byte (INV6); the existing tests are the guard.
 
 ## Worked example
 
@@ -165,8 +233,14 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 - **Phase 4.** Source is long → map-reduce over four sections; keyfacts extracted (the 40% cost figure, the 4→11h review-turnaround number, the 3 named recommendations); generated as front-loaded bullets asserting each keyfact.
 - **Phase 5.** Reviewer (sonnet) flags one faithfulness miss — a bullet said "most teams" where the source said "two of nine teams"; auto-applied; re-run all-pass. Coverage 12/12 keyfacts surfaced.
 - **Phase 6 (emit).** Artifact written to `docs/pmos/summary-tldr/2026-06-13-remote-work-report.html` + `.sections.json` **first** (BLUF → bullets → empty `#summary-diagram` slot → compact "Source & confidence" `<table>`); provenance block records the URL + high confidence; `summary-tldr.html` library regenerated. The approved text is now persisted regardless of what happens next.
-- **Phase 7 (diagram).** Diagram skipped (Recommended) → the empty `#summary-diagram` slot renders to nothing, the on-disk artifact is unchanged. (Had `--diagram` been passed, `/diagram` would run, the validated SVG would be injected into that same on-disk file via atomic rewrite, and the index re-regenerated.)
+- **Phase 7 (mode-render, narrative).** `mode` resolved to `narrative` (default — no `--mode`), so the optional `#diagram` add-on gate fires: skipped (Recommended) → the empty `#summary-diagram` slot renders to nothing, the on-disk artifact is unchanged. (Had `--diagram` been passed, `/diagram` would run, the validated SVG would be injected into that same on-disk file via atomic rewrite, and the index re-regenerated.)
+
+**Mindmap variant** — `/summary-tldr <same URL> --mode mindmap`:
+
+- **Phase 1.** `mode.js --mode mindmap` → `{mode:"mindmap", styleApplies:false, status:"implemented"}`; the picker is skipped (pre-answered). `--style` (if given) is ignored-with-warn.
+- **Phases 2–6.** Identical to above — the **same** canonical text artifact is emitted first (D2/INV3). Keyfacts retained.
+- **Phase 7 (mode-render, mindmap, `#mindmap-mode`).** Hierarchy derived from keyfacts (root "Remote Work Report"; branches Costs / Velocity / Recommendations; leaves the 40% figure, the 4→11h number, the 3 recs) → `mindmap-hierarchy.js` normalizes it (5 leaves ≥ floor) → main-agent hand-off `/diagram --mode mindmap --source <tree.json> --theme editorial --non-interactive --on-failure drop` → returned SVG validated → saved as `2026-06-13-remote-work-report-mindmap.svg`, linked from the canonical doc, library index regenerated. (Had the source yielded only one argument, the hierarchy script would exit 3 and the canonical text would ship alone — D11.)
 
 ---
 
-*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*
+*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. The `--mode` output dimension + mindmap mode: epic `260617-jy8` design at `docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html` (`#frs-scaffold` FR-B1..B6, D1/D2/D3/D4/D10/D11, INV2/INV3/INV6), story `260617-xn4`; mindmap layout delegates to story `260617-1aq`'s `/diagram --mode mindmap`. Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*

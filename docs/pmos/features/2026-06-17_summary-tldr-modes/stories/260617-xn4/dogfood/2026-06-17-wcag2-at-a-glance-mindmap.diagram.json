@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "theme": "editorial",
+  "mode": "mindmap",
+  "approach": "radial",
+  "layoutEngine": "mindmap-radial",
+  "canvas": {
+    "width": 856,
+    "height": 776
+  },
+  "positions": {
+    "wcag-2-at-a-glance": {
+      "x": 428,
+      "y": 388
+    },
+    "perceivable": {
+      "x": 548,
+      "y": 508
+    },
+    "text-alternatives": {
+      "x": 764,
+      "y": 388
+    },
+    "captions-audio": {
+      "x": 720,
+      "y": 556
+    },
+    "adaptable-layout": {
+      "x": 596,
+      "y": 680
+    },
+    "distinguishable-contrast": {
+      "x": 428,
+      "y": 724
+    },
+    "operable": {
+      "x": 264,
+      "y": 432
+    },
+    "keyboard-accessible": {
+      "x": 260,
+      "y": 680
+    },
+    "enough-time": {
+      "x": 136,
+      "y": 556
+    },
+    "no-seizures": {
+      "x": 92,
+      "y": 388
+    },
+    "navigable": {
+      "x": 136,
+      "y": 220
+    },
+    "understandable": {
+      "x": 428,
+      "y": 220
+    },
+    "readable": {
+      "x": 260,
+      "y": 96
+    },
+    "predictable": {
+      "x": 428,
+      "y": 52
+    },
+    "input-assistance": {
+      "x": 596,
+      "y": 96
+    },
+    "robust": {
+      "x": 572,
+      "y": 304
+    },
+    "compatible-with-assistive-tech": {
+      "x": 720,
+      "y": 220
+    }
+  },
+  "createdBy": "pmos-toolkit:summary-tldr@--mode mindmap (260617-xn4 dogfood)"
+}
