@@ -1,0 +1,50 @@
+[
+  {
+    "id": "summary",
+    "level": 2,
+    "title": "Summary",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks & mitigations",
+    "parent_id": null
+  },
+  {
+    "id": "done-when",
+    "level": 2,
+    "title": "Done-when walkthrough",
+    "parent_id": null
+  },
+  {
+    "id": "release-prereqs",
+    "level": 2,
+    "title": "Release prerequisites (NOT build tasks)",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]
