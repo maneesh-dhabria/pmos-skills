@@ -13,7 +13,7 @@ created: 2026-06-16
 updated: 2026-06-17
 parent: 260616-9bt
 dependencies: []
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-vwn
+worktree:
 build_branch: feat/260616-vwn
 build_commit: deb6df0
 claimed_by: null
