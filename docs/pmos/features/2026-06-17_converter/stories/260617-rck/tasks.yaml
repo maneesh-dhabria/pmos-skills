@@ -1,0 +1,70 @@
+schema_version: 1
+story: 260617-rck
+epic: 260617-vvd
+route: skill
+plugin: pmos-utilities
+spec: ../../02_design.html
+skill_dir: plugins/pmos-utilities/skills/converter
+# /converter document pair — HTML↔MD. Adds two PURE descriptors to the EXISTING registry (from 260617-7ag,
+# merged into this worktree at claim time, D9) with zero server/UI structural edits (Inv-1).
+# Reference: skill-patterns.md §A–§L + host CLAUDE.md. Release prereqs are /complete-dev's, not story tasks.
+# Markdown/HTML scope: design D10 (CommonMark-ish subset; lossy round-trips documented).
+tasks:
+  - id: T1
+    title: "lib/markdown.js — mdToHtml + block model (D10)"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Vendored, zero-dep. mdToHtml(md)->html over the CommonMark-ish subset: ATX headings, paragraphs,
+      emphasis/strong, inline code, links, images, ordered/unordered lists (nested), blockquotes, fenced code
+      blocks, thematic breaks, and basic pipe tables. Internally parse to a block model (a list of typed blocks
+      with inline spans) and render HTML from it — EXPORT that block model (e.g. parseBlocks(md)) because S3's
+      pdf-writer.js reuses it. Document the subset + known lossy edges in a header comment (D10). TDD FIRST in
+      tests/run.mjs: golden cases per construct; nested list + fenced code render correctly.
+
+  - id: T2
+    title: "lib/html-parser.js — tolerant HTML tokenizer → node tree (D2)"
+    ac: [AC2]
+    deps: []
+    parallel: true
+    detail: >
+      Vendored, zero-dep (no server-side DOMParser). Tokenize HTML into a lightweight tree of {tag, attrs,
+      children, text} nodes; tolerant of malformed/partial HTML, unclosed tags, and void elements — never throw.
+      TDD FIRST: parse a well-formed snippet; parse malformed HTML (unclosed <p>, stray text) without throwing;
+      nested lists + a table parse into the expected shape. Pure (Inv-2).
+
+  - id: T3
+    title: "htmlToMd(html)->md walking the parser tree (D10)"
+    ac: [AC1]
+    deps: [T2]
+    parallel: false
+    detail: >
+      In lib/markdown.js, add htmlToMd(html)->md: parse via html-parser.js, walk the tree mapping elements to
+      Markdown (h1-6, p, strong/em, code, pre, a, img, ul/ol/li, blockquote, hr, table). Unknown/unsupported
+      elements degrade to their text content (documented lossy edge). TDD FIRST: golden html→md per construct;
+      a real-ish HTML fragment converts to clean Markdown.
+
+  - id: T4
+    title: "lib/converters/html-md.js — register html→md + md→html (Inv-1)"
+    ac: [AC3, AC4]
+    deps: [T1, T3]
+    parallel: false
+    detail: >
+      Register two PURE descriptors: 'html→md' (markdown.htmlToMd) and 'md→html' (markdown.mdToHtml), both
+      text↔text. They must appear in /conversions and work end-to-end in the UI with NO edits to server.js or
+      ui/converter.html (the proof of Inv-1 — only the registry grows). TDD: after discover(), list() now has 6
+      ids; get('md→html').convert('# Hi') yields <h1>Hi</h1>; get('html→md').convert('<h1>Hi</h1>') yields '# Hi'.
+
+  - id: T5
+    title: "Round-trip stability + suite green; load-bearing dogfood + conformance"
+    ac: [AC5, AC6]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Add a md→html→md stability test over the canonical subset (assert the documented lossy edges explicitly,
+      don't silently drop them). `node tests/run.mjs` green (incl. the S1 suite still passing). Load-bearing
+      dogfood (gated by /verify): launch /converter, in the browser convert a real HTML page → MD and a real
+      Markdown doc → HTML, verify quality, iterate until satisfied; confirm the new conversions appeared in the
+      selector with zero UI code changes. Conformance: skill-patterns.md §A–§L + host CLAUDE.md; no
+      version-bump/changelog/README tasks.

@@ -1,0 +1,132 @@
+schema_version: 1
+story: 260617-7ag
+epic: 260617-vvd
+route: skill
+plugin: pmos-utilities
+spec: ../../02_design.html
+skill_dir: plugins/pmos-utilities/skills/converter
+# /converter foundation + data pair. Builds the launch + server + UI + REGISTRY substrate that S2/S3
+# extend, plus the two pure data pairs (JSON↔YAML, CSV↔JSON).
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path
+#   plugins/pmos-utilities/skills/converter, non-interactive inline block per lint-non-interactive-inline.sh).
+# Release prereqs (version bump / changelog / README / manifest sync) are /complete-dev's, NOT story tasks (design "Release prerequisites").
+# Inv-1: registry is the only extension point — server.js + ui never hardcode a conversion.
+# Inv-2: pure converters are pure (no net/fs/DOM/global state). Inv-3: zero npm deps. Inv-4: single-file UI.
+tasks:
+  - id: T1
+    title: "Skill scaffold + launch-only SKILL.md (mirror the gamekit launch contract, D7)"
+    ac: [AC1, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-utilities/skills/converter/SKILL.md (canonical skill path; name 'converter' matches
+      dir per skill-patterns §a-name-matches-dir). Body is launch-only: resolve <skill-dir>/server.js; assert
+      `node --version` (on failure emit a Node-prerequisite hard error and stop — NO silent file:// fallback,
+      Inv-5); run `node server.js`; report the printed http://127.0.0.1:<port>/ URL and that Ctrl-C stops it;
+      list the supported conversions. Include the canonical non-interactive inline block byte-identical to
+      skills/_shared/non-interactive.md (the skill issues no AskUserQuestion; the lint is the arbiter, like the
+      game skills). Frontmatter: name/description/triggers per skill-patterns §A. Verify: `bash tools/lint-non-interactive-inline.sh`
+      and `ls plugins/pmos-utilities/skills/converter/` show the dir registered.
+
+  - id: T2
+    title: "Converter registry — register() + auto-discovery + lookup (Inv-1)"
+    ac: [AC3]
+    deps: []
+    parallel: true
+    detail: >
+      lib/registry.js: a registry holding descriptors {id, from, to, label, kind:'pure'|'llm', requires:[],
+      inputMode:'text'|'binary', outputMode:'text'|'binary', convert(input,ctx)}. Export register(descriptor)
+      (validates shape, rejects dup id), discover(dir) that requires every lib/converters/*.js so each self-
+      registers, list() returning the descriptor metadata (NO convert fn) for /conversions, and get(id). Pure,
+      no server coupling. TDD in tests/run.mjs FIRST: registering two descriptors then list()/get() returns them;
+      dup id throws; a malformed descriptor (missing from/to/convert) is rejected.
+
+  - id: T3
+    title: "lib/yaml.js — vendored YAML subset parse/stringify (D9)"
+    ac: [AC5]
+    deps: []
+    parallel: true
+    detail: >
+      Zero-dep YAML over the D9 subset: parse(yamlText)->value and stringify(value)->yamlText. Support maps,
+      sequences, scalars (string/number/bool/null), block + common flow ([..],{..}) styles, '#' comments on
+      parse, and safe quoting on stringify (quote strings needing it; multiline via block scalars or quoting).
+      Out of scope (document in a header comment): anchors/aliases, tags, multi-doc streams, complex keys.
+      TDD FIRST in tests/run.mjs: round-trip parse(stringify(x)) deepEqual x over fixtures (nested maps, arrays
+      of objects, mixed scalars, a PM config + a doc frontmatter block); parsing a comment-laden file ignores
+      comments; stringify quotes a value with a leading ':' or '#'. Pure (Inv-2).
+
+  - id: T4
+    title: "lib/csv.js — vendored RFC-4180 CSV parse/serialize"
+    ac: [AC6]
+    deps: []
+    parallel: true
+    detail: >
+      Zero-dep CSV: parse(csvText,{delimiter=','})-> array of row-objects keyed by the header row (RFC-4180:
+      double-quoted fields, embedded commas/newlines, "" escaped quotes, CRLF/LF); serialize(rows,{delimiter})
+      -> csvText quoting fields that need it. TDD FIRST in tests/run.mjs: parse a quoted field containing a
+      comma and a newline; round-trip rows->csv->rows deepEqual; a field with embedded quotes serializes with
+      doubled quotes and re-parses equal; custom delimiter (tab). Pure (Inv-2).
+
+  - id: T5
+    title: "Data-pair descriptors json-yaml.js + csv-json.js (Inv-1)"
+    ac: [AC5, AC6]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      lib/converters/json-yaml.js: register two descriptors — 'json→yaml' (parse JSON, yaml.stringify) and
+      'yaml→json' (yaml.parse, JSON.stringify pretty). lib/converters/csv-json.js: 'csv→json' (csv.parse →
+      JSON.stringify pretty) and 'json→csv' (JSON.parse → csv.serialize; require an array of flat objects, else
+      a clear error). All pure, text↔text. They must register WITHOUT any edit to server.js or the UI (proves
+      Inv-1). TDD: after discover(), list() contains all four ids; get('json→yaml').convert('{"a":1}') yields
+      valid YAML that yaml.parse round-trips.
+
+  - id: T6
+    title: "Zero-dep server.js — GET / , GET /conversions , POST /convert (D2, ephemeral port)"
+    ac: [AC2]
+    deps: [T2, T5]
+    parallel: false
+    detail: >
+      server.js using ONLY built-ins (http, fs, path, url, crypto, os). On start: discover the registry, bind
+      127.0.0.1 on an ephemeral port (port 0 → read server.address().port), print the http URL, handle SIGINT
+      to stop. Routes: GET / serves ui/converter.html (text/html); GET /conversions returns registry.list() as
+      JSON; POST /convert reads {id, input (text) | raw binary body} + content negotiation, runs get(id).convert,
+      returns text (text/plain, preview) or a binary download (Content-Type from descriptor.outputMode +
+      Content-Disposition) per Inv-6; unknown id / convert throw → structured JSON error + 4xx (Inv-5). No
+      external deps. TDD in tests/run.mjs (mirror gamekit serve.test.mjs): boot on an ephemeral port, GET
+      /conversions returns the 4 ids, POST /convert round-trips a json→yaml sample.
+
+  - id: T7
+    title: "Single-file UI ui/converter.html (Inv-4, registry-driven, OQ1)"
+    ac: [AC4]
+    deps: [T6]
+    parallel: false
+    detail: >
+      One self-contained HTML file — inline CSS + JS, no external refs/CDN/build (Inv-4). On load, GET
+      /conversions and build the conversion <select> from the descriptors (Inv-1 — never hardcode the list).
+      Input affordances (OQ1): a paste <textarea> AND a file picker / drag-drop zone (read file → send as the
+      body; binary inputs sent raw). On convert: POST /convert, then for text show a preview + a Download
+      button; for binary (none yet in S1) trigger a download. Show descriptor badges (kind/requires) generically
+      so S3's llm badge needs no UI edit. Keep it clean and minimal. Verified live in T9 dogfood.
+
+  - id: T8
+    title: "Zero-dep assertion + full test suite green (Inv-3, D7-test)"
+    ac: [AC7]
+    deps: [T5, T6]
+    parallel: false
+    detail: >
+      Ensure tests/run.mjs aggregates the T2–T6 cases and add: a test asserting the skill ships zero npm runtime
+      dependencies (no package.json deps, or an empty/absent dependencies map) — Inv-3. `node tests/run.mjs`
+      green. If a package.json exists it declares no dependencies and only built-ins are require()'d.
+
+  - id: T9
+    title: "Load-bearing dogfood + conformance (gated by /verify)"
+    ac: [AC1, AC7, AC8]
+    deps: [T1, T7, T8]
+    parallel: false
+    detail: >
+      Launch `/converter` for real (node server.js), open the UI in a browser (Playwright), and convert a real
+      sample BOTH ways for each S1 pair: paste a JSON object → YAML and back; paste a CSV → JSON and back.
+      Capture objective evidence (output correctness, round-trip equality) + a subjective UX read; iterate until
+      satisfied. Confirm Ctrl-C stops the server and a missing-Node run errors cleanly. Final conformance:
+      skill-patterns.md §A–§L (frontmatter/name-matches-dir, NI block intact via the lint) + host CLAUDE.md
+      (canonical skill path, no version-bump/changelog/README tasks here — design "Release prerequisites").

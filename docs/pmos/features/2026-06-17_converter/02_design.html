@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/converter — epic design (260617-vvd)</title>
+<style>
+  :root { --ink:#1c1b19; --muted:#6b6862; --rule:#e3e0d8; --accent:#7a5cff; --code-bg:#f5f3ee; }
+  body { font:17px/1.6 Georgia, 'Times New Roman', serif; color:var(--ink); max-width:46rem; margin:2rem auto; padding:0 1.2rem; }
+  h1,h2,h3 { font-family:-apple-system, system-ui, sans-serif; line-height:1.2; }
+  h1 { font-size:2rem; } h2 { font-size:1.35rem; margin-top:2.2rem; border-bottom:1px solid var(--rule); padding-bottom:.25rem; }
+  h3 { font-size:1.05rem; margin-top:1.4rem; }
+  code, pre { font-family:'SF Mono', ui-monospace, Menlo, monospace; font-size:.86em; }
+  code { background:var(--code-bg); padding:.1em .35em; border-radius:3px; }
+  pre { background:var(--code-bg); padding:.8rem 1rem; border-radius:6px; overflow-x:auto; line-height:1.45; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; margin:1rem 0; }
+  th,td { border:1px solid var(--rule); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code-bg); font-family:system-ui,sans-serif; }
+  .muted { color:var(--muted); }
+  .tag { font-family:system-ui,sans-serif; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; background:var(--accent); color:#fff; padding:.1em .5em; border-radius:3px; }
+  blockquote { border-left:3px solid var(--accent); margin:1rem 0; padding:.3rem 1rem; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>/converter — file-format conversion via a single-file web UI</h1>
+<p class="muted">Epic <code>260617-vvd</code> · route: <span class="tag">skill</span> · plugin <code>pmos-utilities</code> · 2026-06-17 · This is the epic <strong>design doc</strong> (the cross-skill coherence contract every story cites by anchor) — the role <code>spec_doc:</code> plays for feature epics.</p>
+
+<h2 id="overview">Overview</h2>
+<p><code>/converter</code> is a new launch-only skill that starts a tiny zero-dependency Node server and opens a single self-contained HTML page in the browser. The page lets a PM convert one file format into another. v1 ships <strong>four bidirectional pairs (8 directions)</strong>: JSON↔YAML, CSV↔JSON, HTML↔MD, and PDF↔MD. The whole thing is architected around a <strong>converter registry</strong> so new conversions are added by dropping in one library module — no server or UI edits (<a href="#inv">Inv-1</a>).</p>
+<p>Architecturally it mirrors <code>pmos-gamekit</code>'s launch pattern (single-file HTML + zero-dep loopback server, ephemeral port, Ctrl-C stops, Node-prerequisite hard error) but adds a <code>/convert</code> backend endpoint. It lives in <code>pmos-utilities</code> (<a href="#d1">D1</a>).</p>
+
+<h2 id="goals">Goals &amp; non-goals</h2>
+<h3>Goals</h3>
+<ul>
+  <li>A browser UI a PM can use to convert files between the v1 formats, launched with one command, fully local.</li>
+  <li><strong>Zero npm dependencies</strong> — Node built-ins only; every conversion's logic is a vendored, reusable lib module (<a href="#d6">D6</a>, <a href="#inv">Inv-3</a>).</li>
+  <li><strong>Extensible</strong> — the registry is the single extension point; a new conversion is one new lib module (<a href="#registry">registry</a>, Inv-1).</li>
+  <li>Pure converters are deterministic and headlessly unit-testable; the one LLM-backed converter is clearly isolated (<a href="#backends">D4</a>).</li>
+</ul>
+<h3>Non-goals (v1)</h3>
+<ul>
+  <li>OCR / scanned-image PDFs, multi-column layout reconstruction, complex tables in PDF (<a href="#d11">D11</a>).</li>
+  <li>Full YAML 1.2 (anchors/aliases/tags/multi-doc) — a pragmatic subset only (<a href="#d9">D9</a>).</li>
+  <li>Lossless Markdown round-trips for every construct (lossy edges documented) (<a href="#d10">D10</a>).</li>
+  <li>Auth, multi-user, cloud, persistence, file history. It is a local single-user tool.</li>
+</ul>
+
+<h2 id="d1">D1 — Plugin placement: pmos-utilities</h2>
+<p><code>/converter</code> serves none of the charters cleanly (it doesn't ship a feature, teach a topic, or play a game). It is <em>standalone meta-tooling</em>, which is what <code>pmos-utilities</code> holds (alongside <code>/mac-health</code>, <code>/reflect</code>). Chosen over a new <code>pmos-convertkit</code> plugin to avoid new-plugin scaffolding and ship faster; extensibility is satisfied <em>inside</em> the skill via the registry, not at the plugin level. <span class="muted">Runner-up (deferred): a dedicated <code>pmos-convertkit</code> if the transform toolbox grows beyond a single skill.</span></p>
+
+<h2 id="architecture">Architecture</h2>
+<p>Three pieces, all under <code>plugins/pmos-utilities/skills/converter/</code>:</p>
+<pre>plugins/pmos-utilities/skills/converter/
+  SKILL.md                  # launch-only (+ a short conversions list); cites this design
+  server.js                 # zero-dep Node server: GET / , GET /conversions , POST /convert
+  ui/converter.html         # single self-contained HTML page (all CSS/JS inline) — the client
+  lib/
+    registry.js             # the converter registry: register() + auto-discovery + lookup
+    converters/             # one descriptor module per direction (auto-discovered)
+      json-yaml.js          #   json→yaml , yaml→json
+      csv-json.js           #   csv→json , json→csv
+      html-md.js            #   html→md , md→html        (S2)
+      pdf-md.js             #   pdf→md (llm) , md→pdf (pure)  (S3)
+    yaml.js                 # vendored YAML subset parse/stringify       (S1)
+    csv.js                  # vendored RFC-4180 CSV parse/serialize      (S1)
+    markdown.js             # vendored md→html + html→md                 (S2)
+    html-parser.js          # vendored tolerant HTML tokenizer/DOM       (S2)
+    pdf-writer.js           # vendored minimal standard-14-font PDF writer (S3)
+    pdf-text.js             # vendored FlateDecode text extractor (fallback) (S3)
+  tests/
+    run.mjs                 # node test harness: per-lib golden + round-trip + server endpoint tests</pre>
+
+<h3 id="locus">D2 — Conversion runs server-side in Node</h3>
+<p>The HTML page is a <strong>thin client</strong>: pick a conversion, drop/select a file or paste text, <code>POST /convert</code>, preview + download the result. All conversion logic runs in the Node server. Rationale: Node gives us built-in <code>zlib</code> (PDF FlateDecode), <code>Buffer</code> (binary), filesystem, and <code>child_process</code> (the <code>claude</code> backend); converter modules stay pure and unit-testable without a browser; no reliance on browser-only APIs. The user explicitly approved a backend (&ldquo;run a small http server with a basic backend script&hellip; prefer node js&rdquo;).</p>
+
+<h3 id="endpoints">Server endpoints</h3>
+<table>
+  <tr><th>Endpoint</th><th>Returns</th></tr>
+  <tr><td><code>GET /</code></td><td>the single-file <code>ui/converter.html</code></td></tr>
+  <tr><td><code>GET /conversions</code></td><td>JSON list of registry descriptors (id, from, to, label, kind, requires, inputMode, outputMode) — the UI builds its selector from this (Inv-1)</td></tr>
+  <tr><td><code>POST /convert</code></td><td>runs the chosen converter on the request body; returns text (preview) or a binary download with the right <code>Content-Type</code> (<a href="#inv">Inv-6</a>). Errors return a structured JSON error with an actionable message (Inv-5).</td></tr>
+</table>
+<p>Server uses only Node built-ins: <code>http, fs, path, url, zlib, child_process, crypto, os, buffer</code>. Loopback only (<code>127.0.0.1</code>), ephemeral port, Ctrl-C stops.</p>
+
+<h2 id="registry">D3 — The converter registry (the extensibility contract)</h2>
+<p>Every conversion is a <strong>descriptor</strong>:</p>
+<pre>{
+  id: 'json-to-yaml',          // unique
+  from: 'json', to: 'yaml',
+  label: 'JSON → YAML',
+  kind: 'pure' | 'llm',        // pure = deterministic vendored lib; llm = claude subprocess
+  requires: [],                // e.g. ['claude-cli'] for an llm converter; UI badges it
+  inputMode: 'text' | 'binary',
+  outputMode: 'text' | 'binary',
+  convert(input, ctx) -> output | Promise&lt;output&gt;   // input: string|Buffer ; ctx: { log, tmpdir }
+}</pre>
+<p>The registry auto-discovers <code>lib/converters/*.js</code> at server start (each module registers one or more descriptors). <code>GET /conversions</code> exposes the list; the UI renders the dropdown from it. <strong>Adding a conversion = add one descriptor module — zero server/UI edits</strong> (Inv-1). &ldquo;2-way&rdquo; ships as two descriptors per pair (forward + inverse), keeping the registry a flat list of 8 in v1.</p>
+
+<h2 id="backends">D4 — Backend types: <code>pure</code> vs <code>llm</code></h2>
+<ul>
+  <li><span class="tag">pure</span> — deterministic vendored lib. Synchronous-friendly, offline, no network, unit-tested with golden + round-trip fixtures. Seven of v1's eight directions are <code>pure</code>.</li>
+  <li><span class="tag">llm</span> — shells out to the host <code>claude</code> CLI (<code>claude -p</code>) as a subprocess. Async; needs the CLI installed + network + tokens. <strong>Only <code>pdf→md</code> is <code>llm</code> in v1.</strong> Marked <code>kind:'llm'</code>, <code>requires:['claude-cli']</code> so the UI badges it (&ldquo;Uses Claude — needs the CLI + network&rdquo;).</li>
+</ul>
+<p>This split is itself the future-extension story: later hard conversions (OCR, docx→md, image→text) reuse the <code>llm</code> backend without touching the <code>pure</code> path.</p>
+
+<h2 id="pdf">D5 — PDF↔MD strategy (hybrid)</h2>
+<p>The two directions are asymmetric because Claude emits <em>text tokens</em>, not binary files:</p>
+<table>
+  <tr><th>Direction</th><th>Backend</th><th>How</th></tr>
+  <tr><td><code>pdf→md</code></td><td><span class="tag">llm</span> + pure fallback</td><td>Primary: a mockable seam <code>runClaudePdfToMd(pdfBuffer) → md</code> that writes the PDF to <code>os.tmpdir()</code> and invokes the <code>claude</code> CLI to extract clean Markdown (handles real-world layouts/scans far better than any hand-rolled parser). Fallback when the CLI is absent/errors: the vendored <code>lib/pdf-text.js</code> FlateDecode text extractor, returning best-effort Markdown <strong>with a quality caveat surfaced in the response</strong> (Inv-5). Never crash/hang.</td></tr>
+  <tr><td><code>md→pdf</code></td><td><span class="tag">pure</span></td><td>The vendored <code>lib/pdf-writer.js</code> — a minimal PDF writer using the 14 standard base fonts (no font embedding needed): headings (by font size), paragraphs with word-wrap via embedded AFM metrics, lists, blockquotes, and code blocks (Courier). Consumes the block model from <code>lib/markdown.js</code>. No images / complex tables in v1.</td></tr>
+</table>
+
+<h2 id="d6">D6 — &ldquo;No dependencies&rdquo; defined</h2>
+<p>&ldquo;No dependencies&rdquo; means <strong>no npm packages installed</strong>. Allowed: Node built-in modules, and the host <code>claude</code> CLI as an <em>optional</em> backend for the one <code>llm</code> converter. The skill runs with <strong>zero installed packages and no network</strong> for 7 of 8 directions; <code>pdf→md</code> degrades gracefully to a built-in fallback if <code>claude</code> isn't available. A test asserts the skill's <code>dependencies</code> are empty (Inv-3). Every third-party concern is re-implemented as a vendored <code>lib/</code> module we own and can extend.</p>
+
+<h2 id="launch">D7 — Launch contract (mirrors the game-launcher)</h2>
+<p>The SKILL.md body is launch-only (plus a short list of supported conversions). It: (1) resolves <code>server.js</code>; (2) asserts Node is present (<code>node --version</code>) and on failure emits a Node-prerequisite hard error and stops — <strong>no silent <code>file://</code> fallback</strong> (Inv-5); (3) runs <code>node server.js</code>; (4) reports the printed <code>http://127.0.0.1:&lt;port&gt;/</code> URL and that Ctrl-C stops it. A free port is auto-selected and a missing Node is a hard error, so the skill issues no <code>AskUserQuestion</code>. It still carries the canonical non-interactive inline block per <code>lint-non-interactive-inline.sh</code> (the lint is the arbiter, like the game skills).</p>
+
+<h2 id="vendored">Vendored libraries (zero-dep)</h2>
+<table>
+  <tr><th>Lib</th><th>Story</th><th>Scope</th></tr>
+  <tr><td><code>yaml.js</code></td><td>S1</td><td><code>parse</code>/<code>stringify</code>. Maps, sequences, scalars (string/number/bool/null), block + common flow styles, comment-tolerant parse, safe quoting on stringify. See <a href="#d9">D9</a>.</td></tr>
+  <tr><td><code>csv.js</code></td><td>S1</td><td>RFC-4180 parse (quoted fields, embedded commas/newlines/escaped quotes, header row → array of objects) + serialize with correct quoting; configurable delimiter.</td></tr>
+  <tr><td><code>markdown.js</code></td><td>S2</td><td><code>mdToHtml</code> + <code>htmlToMd</code>, CommonMark-ish subset (headings, emphasis, inline code, links, images, lists, blockquotes, fenced code, hr, basic tables). Exposes a block model reused by <code>pdf-writer.js</code>. See <a href="#d10">D10</a>.</td></tr>
+  <tr><td><code>html-parser.js</code></td><td>S2</td><td>Small tolerant HTML tokenizer → lightweight node tree (no server-side DOMParser); walked by <code>htmlToMd</code>.</td></tr>
+  <tr><td><code>pdf-writer.js</code></td><td>S3</td><td>Minimal standard-14-font PDF writer with AFM-metric word-wrap; produces a valid <code>%PDF</code> file.</td></tr>
+  <tr><td><code>pdf-text.js</code></td><td>S3</td><td>Fallback PDF→text: parse xref/objects, inflate FlateDecode via <code>zlib</code>, extract <code>Tj</code>/<code>TJ</code> text, basic paragraph reconstruction.</td></tr>
+</table>
+
+<h2 id="conversions">v1 conversions (8 directions)</h2>
+<table>
+  <tr><th>Pair</th><th>Directions</th><th>Backend</th><th>Modes</th><th>Story</th></tr>
+  <tr><td>JSON ↔ YAML</td><td>json→yaml, yaml→json</td><td>pure</td><td>text↔text</td><td>S1</td></tr>
+  <tr><td>CSV ↔ JSON</td><td>csv→json, json→csv</td><td>pure</td><td>text↔text</td><td>S1</td></tr>
+  <tr><td>HTML ↔ MD</td><td>html→md, md→html</td><td>pure</td><td>text↔text</td><td>S2</td></tr>
+  <tr><td>PDF ↔ MD</td><td>pdf→md, md→pdf</td><td>llm (+fallback) / pure</td><td>binary→text / text→binary</td><td>S3</td></tr>
+</table>
+
+<h2 id="testing">D7-test — Testing strategy</h2>
+<ul>
+  <li><strong>Per-lib golden + round-trip</strong> (<code>node tests/run.mjs</code>): <code>parse(stringify(x)) deepEqual x</code> for json/yaml; csv↔json on fixtures; <code>md→html→md</code> stable over the canonical subset (lossy edges asserted as documented).</li>
+  <li><strong>Server endpoint tests</strong>: <code>GET /conversions</code> returns the full registry; <code>POST /convert</code> round-trips a sample per <code>pure</code> converter (mirrors gamekit's <code>serve.test.mjs</code>).</li>
+  <li><strong>LLM converter</strong>: tested with the <code>runClaudePdfToMd</code> seam <em>mocked</em> (canned MD) + a fallback-path test (claude absent → vendored extractor invoked). <strong>No live API call in tests.</strong></li>
+  <li><strong>pdf-writer</strong>: structural assertion — output begins <code>%PDF-</code>, has an xref/trailer, and opens.</li>
+  <li>Per the host dogf_ood norm, the build also drives the running server + UI once (Playwright) and converts a real sample per pair.</li>
+</ul>
+
+<h2 id="inv">Invariants (cross-story coherence contract)</h2>
+<table>
+  <tr><th>Id</th><th>Invariant</th></tr>
+  <tr><td>Inv-1</td><td><strong>Registry is the only extension point.</strong> Neither <code>server.js</code> nor the UI hardcodes a conversion; both derive from the registry. A new converter = one lib module, zero server/UI edits.</td></tr>
+  <tr><td>Inv-2</td><td><strong>Pure converters are pure.</strong> <code>lib/converters/*</code> of <code>kind:'pure'</code> export <code>convert</code> with no network/fs/DOM/global state; deterministic; headlessly testable. The one <code>llm</code> converter is the sole, explicitly-marked exception.</td></tr>
+  <tr><td>Inv-3</td><td><strong>Zero npm deps.</strong> No runtime dependency is added; built-ins + optional host <code>claude</code> CLI only; a test asserts <code>dependencies</code> is empty.</td></tr>
+  <tr><td>Inv-4</td><td><strong>Single-file UI.</strong> The served HTML is one self-contained file — no external refs, CDN, or build step.</td></tr>
+  <tr><td>Inv-5</td><td><strong>Graceful degradation.</strong> An <code>llm</code> converter whose backend is unavailable degrades to a vendored fallback or a clear actionable error — never crash/hang. Node-missing is a hard launch error (no silent <code>file://</code> fallback).</td></tr>
+  <tr><td>Inv-6</td><td><strong>Text/binary contract.</strong> Descriptors declare input/output mode; the server delivers binary outputs (PDF) as a download with the correct <code>Content-Type</code>, text as preview + download.</td></tr>
+</table>
+
+<h2 id="stories">D8 — Story split (3 stories)</h2>
+<p>All <code>route: skill</code>, plugin <code>pmos-utilities</code> (<a href="#d1">D1</a>, single-plugin per repo D17). The registry/scaffold is the substrate; S2 and S3 each depend only on S1 (a <em>story</em>-level dep — present in the worktree via claim-time merge of the done dep — satisfying the D24 litmus), and are independent of each other (can build in either order or in parallel after S1).</p>
+<table>
+  <tr><th>Story</th><th>Id</th><th>Scope</th><th>Deps</th></tr>
+  <tr><td><strong>S1 — Foundation + data pair</strong></td><td><code>260617-7ag</code></td><td>SKILL.md (launch-only), <code>server.js</code>, single-file <code>ui/converter.html</code>, the <strong>registry</strong> (<code>register()</code> + auto-discovery + <code>/conversions</code>), <code>lib/yaml.js</code>, <code>lib/csv.js</code>, the JSON↔YAML + CSV↔JSON descriptors, and the <code>tests/</code> harness. Ships a working skill with two pairs.</td><td>—</td></tr>
+  <tr><td><strong>S2 — Document pair (HTML↔MD)</strong></td><td><code>260617-rck</code></td><td><code>lib/html-parser.js</code> + <code>lib/markdown.js</code> + the html→md / md→html descriptors + tests. Builds against S1's registry.</td><td><code>260617-7ag</code></td></tr>
+  <tr><td><strong>S3 — PDF pair (PDF↔MD)</strong></td><td><code>260617-ade</code></td><td><code>lib/pdf-writer.js</code> (md→pdf, pure), the <code>claude</code> subprocess seam + <code>lib/pdf-text.js</code> fallback (pdf→md, llm), the two descriptors, the <code>kind:'llm'</code>/<code>requires</code> UI badge wiring, and tests (mocked backend). Builds against S1's registry.</td><td><code>260617-7ag</code></td></tr>
+</table>
+
+<h2 id="decisions">Decision log</h2>
+<table>
+  <tr><th>#</th><th>Decision</th><th>Why / runner-up</th></tr>
+  <tr><td id="d1-row">D1</td><td>Plugin = <code>pmos-utilities</code></td><td>Standalone meta-tooling; no new-plugin scaffold. RU: new <code>pmos-convertkit</code> (deferred).</td></tr>
+  <tr><td>D2</td><td>Conversion runs server-side in Node</td><td>Built-in zlib/Buffer/child_process; pure testable modules; user approved a backend. RU: browser-side (no zlib/claude, harder PDF).</td></tr>
+  <tr><td>D3</td><td>Converter registry + auto-discovery</td><td>One extension point; new conversion = one lib module (Inv-1).</td></tr>
+  <tr><td>D4</td><td>Two backend kinds: <code>pure</code> / <code>llm</code></td><td>Isolates the one non-deterministic converter; future hard conversions reuse <code>llm</code>.</td></tr>
+  <tr><td>D5</td><td>PDF hybrid: claude for pdf→md (vendored fallback), vendored writer for md→pdf</td><td>Claude reads PDFs well but can't emit binary PDF. RU: all-vendored (poor pdf→md quality); claude-both (needs a vendored binary step anyway).</td></tr>
+  <tr><td>D6</td><td>&ldquo;No deps&rdquo; = no npm; built-ins + optional host <code>claude</code> CLI allowed</td><td>Vendored libs we own; 7/8 directions fully offline, pdf→md degrades.</td></tr>
+  <tr><td>D7</td><td>Launch mirrors the game-launcher</td><td>Node-prereq hard error, ephemeral loopback port, Ctrl-C, no silent <code>file://</code>.</td></tr>
+  <tr><td>D8</td><td>3-story split (foundation+data / document / pdf)</td><td>Each one <code>/execute</code>-sized; S2/S3 depend only on S1 (D24 litmus holds).</td></tr>
+  <tr><td id="d9-row">D9</td><td>YAML = pragmatic subset</td><td>Maps/seqs/scalars/flow+block + comments. No anchors/aliases/tags/multi-doc. Target: PM configs + frontmatter.</td></tr>
+  <tr><td id="d10-row">D10</td><td>Markdown = CommonMark-ish subset; lossy round-trips documented</td><td>Headings/emphasis/code/links/images/lists/blockquotes/fenced/hr/basic tables.</td></tr>
+  <tr><td id="d11-row">D11</td><td>PDF = text-only scope</td><td>No OCR/scanned/images/complex tables; UI shows a clear limitation note.</td></tr>
+  <tr><td>D12</td><td>Binary handled via descriptor modes</td><td>PDF delivered as a download with <code>application/pdf</code> (Inv-6).</td></tr>
+</table>
+
+<h2 id="open-questions">Open questions (carried to build)</h2>
+<ul>
+  <li><strong>OQ1 (S1 UI):</strong> input affordances — support <em>both</em> a paste text-area and file upload/drag-drop (recommended); finalize layout in S1.</li>
+  <li><strong>OQ2 (S1 YAML):</strong> exact subset boundaries — finalize against real PM YAML fixtures (configs + frontmatter) during S1.</li>
+  <li><strong>OQ3 (S3 claude):</strong> exact <code>claude</code> CLI invocation/flags for PDF→MD — the design fixes the <em>contract</em> (a mockable <code>runClaudePdfToMd(pdfBuffer)→md</code> seam), not the flags; finalize the invocation in S3 build.</li>
+  <li><strong>OQ4 (S3 temp files):</strong> the claude seam writes the PDF to <code>os.tmpdir()</code> and cleans up; confirm cleanup-on-error in S3.</li>
+</ul>
+
+<h2 id="release-prereqs">Release prerequisites (for /complete-dev — NOT story tasks)</h2>
+<p>Per <code>skill-patterns.md §G</code> these are <code>/complete-dev</code>'s at epic release, not story <code>tasks.yaml</code> entries:</p>
+<ul>
+  <li>Bump <code>pmos-utilities</code> version in both <code>plugins/pmos-utilities/.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code> (same version). No new plugin → normal minor bump.</li>
+  <li>Add a <code>/converter</code> row to the pmos-utilities README and the root README marketplace table.</li>
+  <li>Changelog entry.</li>
+  <li>No <code>marketplace.json</code> version field (per repo invariant).</li>
+</ul>
+
+<p class="muted" style="margin-top:2.5rem; border-top:1px solid var(--rule); padding-top:1rem;">Defined via <code>/skill-sdlc define</code> (Loop 1, route: skill) 2026-06-17. Build the stories with <code>/skill-sdlc build --next</code> (or <code>--story &lt;id&gt;</code>), S1 first.</p>
+
+</body>
+</html>

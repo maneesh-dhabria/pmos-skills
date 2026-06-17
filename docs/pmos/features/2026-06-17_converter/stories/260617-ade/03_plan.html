@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>S3 plan — /converter PDF↔MD (260617-ade)</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:44rem;margin:2rem auto;padding:0 1.1rem;color:#1c1b19}h1{font-size:1.6rem}h2{font-size:1.15rem;margin-top:1.8rem;border-bottom:1px solid #e3e0d8;padding-bottom:.2rem}code{background:#f5f3ee;padding:.1em .35em;border-radius:3px;font-size:.88em}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #e3e0d8;padding:.4rem .55rem;text-align:left;vertical-align:top}th{background:#f5f3ee}.muted{color:#6b6862}</style>
+</head><body>
+<h1>S3 — /converter PDF pair (PDF↔MD)</h1>
+<p class="muted">Story <code>260617-ade</code> · epic <code>260617-vvd</code> · route: skill · plugin pmos-utilities · deps: <code>260617-7ag</code> (independent of <code>260617-rck</code>)<br>
+Design: <a href="../../02_design.html">02_design.html</a> · Tasks: <a href="tasks.yaml">tasks.yaml</a></p>
+
+<h2 id="goal">Goal</h2>
+<p>Add the hardest pair, isolated. Introduce the <code>llm</code> backend kind (design <a href="../../02_design.html#backends">D4</a>): <strong>pdf→md</strong> via a mockable <code>claude</code> subprocess seam with a vendored FlateDecode fallback (Inv-5), and <strong>md→pdf</strong> via a vendored standard-14-font PDF writer — because Claude can't emit binary PDF (<a href="../../02_design.html#pdf">D5</a>). Text-only PDF scope (<a href="../../02_design.html#d11">D11</a>).</p>
+<p><strong>Dependency:</strong> 260617-7ag's branch merged in at claim time (design D9) — registry/server/UI/test-harness present. If S2 has merged, reuse its markdown block model; else a minimal local block parser.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>What</th></tr>
+<tr><td>1 (parallel)</td><td>T1, T2, T3</td><td><code>pdf-writer.js</code> (md→pdf); <code>runClaudePdfToMd</code> seam (mockable exec); <code>pdf-text.js</code> fallback extractor.</td></tr>
+<tr><td>2</td><td>T4</td><td><code>lib/converters/pdf-md.js</code> registers pdf→md (llm+fallback) + md→pdf (pure); UI llm badge from descriptor; binary download (registry now lists 8).</td></tr>
+<tr><td>3</td><td>T5</td><td>Suite green (no live API) + browser dogfood (real PDF→MD, MD→downloadable PDF) + conformance.</td></tr>
+</table>
+
+<h2 id="risks">Key risks</h2>
+<ul>
+<li><strong>claude invocation form</strong> (OQ3) — the seam fixes the <em>contract</em> (<code>runClaudePdfToMd(buffer)→md</code>, exec injected); finalize the exact flags in build. Tests always mock exec — <strong>no live API call in the suite</strong>.</li>
+<li><strong>Graceful degradation</strong> (Inv-5) — CLI absent/error must fall back to the vendored extractor with a visible caveat, never crash/hang. Temp files cleaned up on success AND error (OQ4).</li>
+<li><strong>PDF writer correctness</strong> — valid xref/trailer + AFM word-wrap is fiddly; assert structurally (<code>%PDF-</code>, opens) and keep scope text-only (D11).</li>
+</ul>
+
+<h2 id="verify">Final verification</h2>
+<p><code>node tests/run.mjs</code> green incl. S1 (and S2 if merged) — pdf→md tested with mocked claude + forced-fallback; md→pdf structural; <strong>zero live API calls</strong>. Browser dogfood: a real text PDF → MD (live claude if available else fallback+caveat) and a real MD → an opening PDF; llm badge shows; md→pdf downloads as <code>application/pdf</code>. <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code> conformance; lints green.</p>
+</body></html>
