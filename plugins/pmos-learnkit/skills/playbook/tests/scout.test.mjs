@@ -1,11 +1,15 @@
-// scout.test.mjs — unit tests for clustering, instructiveness floor, scoring, merge-suggest.
+// scout.test.mjs — unit tests for the evolution milestone-spine scout.
 // Run: node --test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { extractSessionMeta, clusterThreads, passesFloor, withMergeSuggestions, scoutRepo, slugify } from '../scripts/scout.mjs';
+import {
+  extractSessionMeta, slugify,
+  parseChangelogMilestones, featureMilestones, mergeMilestones, buildSpine, spineFromInputs,
+  mapSessionsToSpine, metaUsesSkill, milestoneAboutSkill, scoutRepo, nonTrivialSkills,
+} from '../scripts/scout.mjs';
 
 function tmp() { return fs.mkdtempSync(path.join(os.tmpdir(), 'pbs-')); }
 function writeSession(dir, name, records, mtime) {
@@ -20,10 +24,11 @@ const u = (text, extra = {}) => ({ type: 'user', message: { content: text }, ...
 const auq = () => ({ type: 'assistant', message: { content: [{ type: 'tool_use', name: 'AskUserQuestion', input: {} }] } });
 const pm = () => ({ type: 'permission-mode' });
 const title = (t) => ({ type: 'ai-title', aiTitle: t });
+const dateMs = (d) => Date.parse(`${d}T00:00:00Z`);
 
-test('extractSessionMeta: pulls aiTitle, first non-command prompt, skills, decision signals', () => {
+test('extractSessionMeta: verbatim opening prompt, skills, decision signals, session_id', () => {
   const root = tmp(); const dir = path.join(root, 'd');
-  const f = writeSession(dir, 's.jsonl', [
+  const f = writeSession(dir, 'abc.jsonl', [
     title('Design the survey skill'),
     u('<command-name>/ideate</command-name>', { gitBranch: 'feat/survey' }),
     u('I want to build a survey designer; what are the tradeoffs?'),
@@ -31,9 +36,10 @@ test('extractSessionMeta: pulls aiTitle, first non-command prompt, skills, decis
     u("let's do the JSON-schema approach instead of a form builder"),
   ]);
   const m = extractSessionMeta(f);
+  assert.equal(m.session_id, 'abc');
   assert.equal(m.aiTitle, 'Design the survey skill');
   assert.equal(m.gitBranch, 'feat/survey');
-  assert.ok(m.firstPrompt.startsWith('I want to build a survey'));
+  assert.equal(m.firstPrompt, 'I want to build a survey designer; what are the tradeoffs?'); // verbatim
   assert.ok(m.skills.has('/ideate'));
   assert.ok(m.decisionSignals >= 2); // AskUserQuestion + "instead" pushback
 });
@@ -44,104 +50,128 @@ test('extractSessionMeta: skips compaction-injected first message', () => {
     u('This session is being continued from a previous conversation...'),
     u('the real starting question is here'),
   ]);
-  const m = extractSessionMeta(f);
-  assert.equal(m.firstPrompt, 'the real starting question is here');
+  assert.equal(extractSessionMeta(f).firstPrompt, 'the real starting question is here');
 });
 
-test('clusterThreads: groups by non-HEAD branch', () => {
-  const root = tmp(); const dir = path.join(root, 'd');
+test('spine: changelog + feature-doc + merge are parsed and unioned', () => {
+  const cl = parseChangelogMilestones('## [2.84.0] - 2026-06-17 Shape skill front gate\n### 2026-06-10 Inline comments');
+  assert.equal(cl.length, 2);
+  assert.equal(cl[0].date, '2026-06-17');
+
+  const fm = featureMilestones(['2026-06-03_playbook', 'junk']);
+  assert.equal(fm.length, 1);
+  assert.equal(fm[0].source, 'feature-doc');
+  assert.equal(fm[0].featureDir, '2026-06-03_playbook');
+
+  const mm = mergeMilestones("2026-06-17\tMerge branch 'feat/evo'");
+  assert.equal(mm[0].branch, 'feat/evo');
+});
+
+test('buildSpine: dedupes by date|slug (richer source wins), sorts by date asc', () => {
+  const spine = buildSpine([
+    [{ date: '2026-06-03', title: 'playbook', slug: 'playbook', source: 'merge', branch: 'feat/playbook', featureDir: null }],
+    [{ date: '2026-06-03', title: 'playbook', slug: 'playbook', source: 'feature-doc', branch: null, featureDir: '2026-06-03_playbook' }],
+    [{ date: '2026-06-01', title: 'earlier', slug: 'earlier', source: 'merge', branch: null, featureDir: null }],
+  ]);
+  assert.equal(spine.length, 2);
+  assert.equal(spine[0].date, '2026-06-01');
+  const pb = spine.find(m => m.slug === 'playbook');
+  assert.equal(pb.source, 'feature-doc');     // feature-doc beats merge
+  assert.equal(pb.branch, 'feat/playbook');   // branch carried over from the merge entry
+});
+
+test('mapSessionsToSpine: branch match dominates; pre-build session lands on its milestone', () => {
+  const spine = spineFromInputs({ featureDirs: ['2026-06-01_earlier', '2026-06-10_playbook'] });
   const metas = [
-    extractSessionMeta(writeSession(dir, 'a.jsonl', [title('feature a'), u('x', { gitBranch: 'feat/a' }), auq(), u('/exit<command-name>/grill</command-name>')], Date.now() - 3 * day)),
-    extractSessionMeta(writeSession(dir, 'b.jsonl', [title('feature a more'), u('y', { gitBranch: 'feat/a' })], Date.now() - 2 * day)),
-    extractSessionMeta(writeSession(dir, 'c.jsonl', [title('feature b'), u('z', { gitBranch: 'feat/b' })], Date.now() - day)),
+    // branched session for the playbook milestone, built just before its date
+    { file: 'a.jsonl', session_id: 'a', gitBranch: 'feat/playbook', firstPrompt: 'build playbook', skills: new Set(['/spec', '/exit']), decisionSignals: 2, mtime: dateMs('2026-06-09'), topic: new Set(['playbook']) },
+    // HEAD session in the earlier window
+    { file: 'b.jsonl', session_id: 'b', gitBranch: 'HEAD', firstPrompt: 'earlier work', skills: new Set(['/ideate']), decisionSignals: 1, mtime: dateMs('2025-12-30'), topic: new Set(['earlier']) },
   ];
-  const threads = clusterThreads(metas);
-  const branches = threads.map(t => t.branch).sort();
-  assert.deepEqual(branches, ['feat/a', 'feat/b']);
-  const a = threads.find(t => t.branch === 'feat/a');
-  assert.equal(a.sessions.length, 2);
+  const { milestones, unmapped } = mapSessionsToSpine(spine, metas);
+  const pmile = milestones.find(m => m.slug === 'playbook');
+  assert.equal(pmile.sessions.length, 1);
+  assert.equal(pmile.opening_prompt, 'build playbook');           // verbatim, in milestone
+  assert.deepEqual([...pmile.skills], ['/spec']);                 // /exit (trivial) dropped
+  assert.equal(unmapped.length, 0);
 });
 
-test('clusterThreads: HEAD sessions split on topic shift + temporal gap', () => {
-  const root = tmp(); const dir = path.join(root, 'd');
-  const base = Date.now() - 30 * day;
-  const metas = [
-    extractSessionMeta(writeSession(dir, 'p1.jsonl', [title('poker equity calculator math'), u('build poker equity engine', { gitBranch: 'HEAD' })], base)),
-    extractSessionMeta(writeSession(dir, 'p2.jsonl', [title('poker equity calculator ui'), u('poker equity calculator ui polish', { gitBranch: 'HEAD' })], base + 3600000)),
-    extractSessionMeta(writeSession(dir, 'q1.jsonl', [title('income tax filing helper'), u('totally different income tax topic', { gitBranch: 'HEAD' })], base + 10 * day)),
-  ];
-  const threads = clusterThreads(metas).filter(t => t.branch === 'HEAD');
-  assert.equal(threads.length, 2, 'poker thread + tax thread');
+test('mapSessionsToSpine: post-spine unshipped session is unmapped', () => {
+  const spine = spineFromInputs({ featureDirs: ['2026-06-03_playbook'] });
+  const metas = [{ file: 'z.jsonl', session_id: 'z', gitBranch: 'HEAD', firstPrompt: 'brand new idea', skills: new Set(['/spec']), decisionSignals: 0, mtime: dateMs('2027-01-01'), topic: new Set(['brandnew']) }];
+  const { milestones, unmapped } = mapSessionsToSpine(spine, metas);
+  assert.equal(milestones[0].sessions.length, 0);
+  assert.equal(unmapped.length, 1);
+  assert.equal(unmapped[0].session_id, 'z');
 });
 
-test('passesFloor: thin session (1 session, only /exit, no decisions) is suppressed', () => {
-  const root = tmp(); const dir = path.join(root, 'd');
-  const m = extractSessionMeta(writeSession(dir, 't.jsonl', [u('<command-name>/exit</command-name>', { gitBranch: 'HEAD' })]));
-  const [thread] = clusterThreads([m]);
-  assert.equal(passesFloor(thread), false);
+test('skill scoping: metaUsesSkill + milestoneAboutSkill', () => {
+  assert.equal(metaUsesSkill({ gitBranch: 'feat/other', skills: new Set(['/spec']), topic: new Set(['unrelated']) }, '/playbook'), false);
+  assert.equal(metaUsesSkill({ gitBranch: 'HEAD', skills: new Set(['/pmos-learnkit:playbook']), topic: new Set() }, 'playbook'), true);
+  assert.equal(metaUsesSkill({ gitBranch: 'feat/playbook-x', skills: new Set(), topic: new Set() }, 'playbook'), true);
+  const m = { slug: 'playbook-evolution', title: 'playbook', branch: null, featureDir: null };
+  assert.equal(milestoneAboutSkill(m, 'playbook'), true);
+  assert.equal(milestoneAboutSkill(m, 'frameworks'), false);
 });
 
-test('passesFloor: short-but-rich (1 session, decision + real skill) qualifies', () => {
-  const root = tmp(); const dir = path.join(root, 'd');
-  const m = extractSessionMeta(writeSession(dir, 'r.jsonl', [
-    u('<command-name>/feature-sdlc</command-name>', { gitBranch: 'feat/x' }),
-    u('build the thing'), auq(),
-  ]));
-  const [thread] = clusterThreads([m]);
-  assert.equal(passesFloor(thread), true);
-});
-
-test('withMergeSuggestions: branch thread + same-topic HEAD thread => suggestion', () => {
-  const root = tmp(); const dir = path.join(root, 'd');
-  const base = Date.now() - 5 * day;
-  const metas = [
-    extractSessionMeta(writeSession(dir, 'b.jsonl', [title('memory book editor inline'), u('memory book editor inline edit', { gitBranch: 'feat/memory-book-editor' }), auq()], base)),
-    extractSessionMeta(writeSession(dir, 'h.jsonl', [title('memory book editor followup'), u('memory book editor inline followup work', { gitBranch: 'HEAD' }), auq()], base + day)),
-  ];
-  let threads = clusterThreads(metas);
-  threads = withMergeSuggestions(threads);
-  const b = threads.find(t => t.branch !== 'HEAD');
-  assert.ok(b.merge_suggestion, 'expected a merge suggestion');
-  assert.ok(b.merge_suggestion.confidence >= 0.3);
-});
-
-test('scoutRepo: end-to-end emits ranked candidates + coverage; suppresses thin', () => {
+test('scoutRepo: end-to-end emits milestones + coverage with NO scoring fields; cheap-scout', () => {
   const root = tmp();
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
-  // rich interactive thread
   writeSession(path.join(root, 'rich'), 'r.jsonl', [
     title('survey designer skill'),
     u('<command-name>/ideate</command-name>', { cwd: repo, gitBranch: 'feat/survey' }),
     pm(), u('build a survey designer'), auq(),
     u("let's go with json schema instead"),
-  ], Date.now() - 2 * day);
-  // thin interactive thread (no decision, only /exit)
-  writeSession(path.join(root, 'thin'), 't.jsonl', [
-    u('<command-name>/exit</command-name>', { cwd: repo, gitBranch: 'HEAD' }), pm(),
-  ], Date.now() - day);
-  const out = scoutRepo({ repo, roots: [root], mergeBranches: new Set(), windowDays: null });
-  assert.equal(out.candidates.length, 1);
-  assert.equal(out.candidates[0].branch, 'feat/survey');
-  assert.ok(out.coverage.suppressed_thin >= 1);
-  assert.ok(out.candidates[0].why_teachable.length > 0);
+  ], dateMs('2026-06-09'));
+
+  const out = scoutRepo({
+    repo, roots: [root], mergeBranches: new Set(),
+    spineInputs: { featureDirs: ['2026-06-10_survey'], mergeLog: "2026-06-10\tMerge branch 'feat/survey'" },
+  });
+
+  assert.equal(out.scope, 'repo');
+  assert.ok(Array.isArray(out.milestones) && out.milestones.length >= 1);
+  const surveyM = out.milestones.find(m => m.slug.includes('survey'));
+  assert.ok(surveyM, 'survey milestone present');
+  assert.ok(surveyM.session_ids.includes('r'), 'branched session mapped onto milestone');
+  assert.equal(surveyM.opening_prompt, 'build a survey designer');
+  // contract carries NO clustering/scoring leftovers
+  for (const m of out.milestones) {
+    assert.ok(!('score' in m) && !('boundary_confidence' in m) && !('merge_suggestion' in m));
+  }
+  assert.equal(typeof out.coverage.milestones, 'number');
+  assert.equal(typeof out.coverage.mapped_sessions, 'number');
 });
 
-test('slugify: kebab, <=4 words, stopwords dropped', () => {
+test('scoutRepo: --skill narrows to that skill arc', () => {
+  const root = tmp();
+  const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-'));
+  writeSession(path.join(root, 'p'), 'p.jsonl', [
+    title('playbook evolution rewrite'),
+    u('<command-name>/pmos-learnkit:playbook</command-name>', { cwd: repo, gitBranch: 'feat/playbook' }),
+    pm(), u('rewrite playbook to evolution mode'), auq(),
+  ], dateMs('2026-06-16'));
+  writeSession(path.join(root, 'f'), 'f.jsonl', [
+    title('frameworks corpus'),
+    u('<command-name>/frameworks</command-name>', { cwd: repo, gitBranch: 'feat/frameworks' }),
+    pm(), u('add frameworks'), auq(),
+  ], dateMs('2026-06-14'));
+
+  const out = scoutRepo({
+    repo, roots: [root], mergeBranches: new Set(), skill: 'playbook',
+    spineInputs: { featureDirs: ['2026-06-17_playbook-evolution', '2026-06-14_frameworks-corpus'] },
+  });
+  assert.equal(out.scope, 'skill:playbook');
+  // only playbook-scoped sessions survive
+  const ids = out.milestones.flatMap(m => m.session_ids);
+  assert.ok(ids.includes('p'));
+  assert.ok(!ids.includes('f'), 'frameworks session excluded under --skill playbook');
+});
+
+test('slugify: kebab, stopwords dropped', () => {
   assert.equal(slugify('How to build the survey designer skill'), 'survey-designer-skill');
 });
 
-// --- regression (verify Phase 6): clusterThreads must not mutate input metas' topic sets ---
-test('clusterThreads does not mutate the input metas topic Sets (no aliasing)', () => {
-  const mk = (file, topic, mtime) => ({
-    file, gitBranch: 'HEAD', topic: new Set(topic), mtime,
-    skills: new Set(['/spec']), decisionSignals: 2, aiTitle: file, firstPrompt: file,
-  });
-  // overlapping topics => jaccard >= TOPIC_THRESHOLD, close mtimes => same thread (merge path)
-  const m1 = mk('s1.jsonl', ['alpha', 'beta', 'gamma'], 1_000_000);
-  const m2 = mk('s2.jsonl', ['beta', 'gamma', 'delta'], 1_000_000 + 60_000);
-  const before = new Set(m1.topic);
-  clusterThreads([m1, m2]);
-  assert.deepEqual([...m1.topic].sort(), [...before].sort(),
-    'first session topic Set must be untouched after clustering (pre-fix it was widened in place)');
-  assert.equal(m1.topic.size, 3);
+test('nonTrivialSkills: filters the trivial set', () => {
+  assert.deepEqual(nonTrivialSkills(new Set(['/exit', '/spec', '/compact', '/grill'])).sort(), ['/grill', '/spec']);
 });

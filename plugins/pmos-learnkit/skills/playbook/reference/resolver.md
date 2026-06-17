@@ -48,8 +48,9 @@ Print before any heavy read:
 
 ```
 found <session_dirs> session dirs (<via_worktree> via worktree/sibling/merged),
-<interactive> interactive sessions (<headless_dropped> headless dropped, <low_confidence> low-confidence), <candidates> candidate threads
+<interactive> interactive sessions (<headless_dropped> headless dropped, <low_confidence> low-confidence)
 ```
 
 The script returns this as the `coverage` object plus `attributed[]` (each with `signals`,
-`low_confidence`) and `ambiguous[]`.
+`low_confidence`) and `ambiguous[]`. The scout (`scripts/scout.mjs`) consumes these and maps the
+attributed sessions onto the milestone spine (`reference/evolution-sources.md`).
