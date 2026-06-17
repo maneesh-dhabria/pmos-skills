@@ -136,6 +136,9 @@ After writing, open it best-effort (`open`/`xdg-start`/`start`, or the platform 
 
 Sourcing runs **after** the outline is confirmed (never source the wrong topics). **Inline `_shared/topic-research/sourcing.md`** and follow it — per confirmed topic, run the rank-then-verify loop and emit one verified, ranked, annotated shortlist (candidate pool pre-stocked from `canon.curations`; est-cost line before the first fetch). The anti-slop hard gate + tier ranking live in `_shared/topic-research/source-tiers.md`; the verification pass-bar + free-fetch ladder + book summaries in `_shared/topic-research/sourcing-ladder.md`. Run the loop inline (no subagents; tool-level fetch parallelism only).
 
+<!-- nl-sugar -->
+**Optional curated-references overlay.** When `_shared/topic-research/curated-references.json` is present, the substrate augments each topic's candidate pool from that pre-curated corpus and hard-gates / fetch-verifies it identically to live sources — mechanism (prefilter, coverage gate, suppression) lives in `_shared/topic-research/curated-references.md`; nothing in this skill changes. Suppress it with `--no-curated` (a boolean suppression toggle inferred from natural language — parsed as a silent alias per §I, not an advertised contract flag).
+
 `/primer`'s reactions to the substrate output:
 
 - **Per-H2 evidence map.** Each topic's verified shortlist is the evidence set for the corresponding `<h2>` in Phase 4 — keep the per-topic structure, never flatten. Read + synthesize **every** verified source; the `--depth` dial is the sole cost governor (no short-circuit).

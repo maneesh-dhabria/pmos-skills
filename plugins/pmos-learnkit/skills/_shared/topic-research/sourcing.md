@@ -43,7 +43,14 @@ For each topic in `outline.topics`, sized by the depth row in `intake.md`'s dial
 (top-N = 3 / 5 / 5–8):
 
 1. **Gather candidates** from live search + the harvested curations
-   (`canon.curations[].recurring_entries`) — cap the pool at ~3× the links-to-emit.
+   (`canon.curations[].recurring_entries`) + — present only when
+   `curated-references.json` exists beside this file — the curated-references overlay,
+   injected per topic by the curated-references subagent (rarity-weighted prefilter →
+   rerank; see `curated-references.md`). Cap the pool at ~3× the links-to-emit, or
+   ~3–4× when the overlay contributes (its fetch-verify yield is ~30%, so over-supply
+   to absorb the attrition). The overlay's candidates are hard-gated, tier-ranked, and
+   fetch-verified by the steps below exactly like live ones — origin makes no
+   difference past this step.
 2. **Apply the hard gate** from `source-tiers.md` (attributable + plausibly real) —
    discard failures cheaply on metadata, before any fetch.
 3. **Tier-rank** survivors (`source-tiers.md` T1–T4); take the top-N for the depth.
