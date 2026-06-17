@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-17 — pmos-learnkit 0.27.0: curated-references overlay + browsable libraries
+
+`/primer` and `/learn-list` now draw on a **shipped, pre-curated reference corpus** in addition to live sourcing — a PII-scrubbed library of ~1,800 vetted references that the topic-research substrate augments each topic's candidate pool from and hard-gates / fetch-verifies identically to live sources (suppress with `--no-curated`). Both skills also gain an **offline, browsable library view** (the same faceted single-file viewer `/frameworks` uses, now extracted into a shared `library-viewer` substrate): browse, search, and filter your primers and curated reading lists with no server and no network.
+
+- **Curated-references overlay.** A vetted, PII-scrubbed corpus augments `/primer` and `/learn-list` sourcing, verified to the same bar as live sources; an IDF prefilter and coverage gate keep it relevant, and `--no-curated` turns it off.
+- **Browsable libraries for `/primer` and `/learn-list`.** Offline faceted viewers (source / year / tags facets, search, reader) over your generated corpus — built on a new shared `library-viewer` substrate.
+- **`/frameworks` refactored onto `library-viewer`** with zero behavior change (the viewer engine is now skill-agnostic and shared).
+
 ## 2026-06-17 — pmos-toolkit 2.85.0: /shape — explore the problem before you solve it
 
 A new **`/shape`** command collaboratively explores the *problem space* before any solutioning. It probes the problem from multiple lenses (floor, ceiling, and context), keeps a visible "lens ledger" so an uncovered dimension is never silently skipped, runs a mandatory off-deck ceiling-breaker, and converges to a one-page problem brief (HMW + JTBD + felt problem + competing framings) — without ever naming a solution. The brief now feeds the rest of the pipeline: `/ideate` adopts `/shape`'s frame instead of re-deriving it, and `/feature-sdlc` runs `/shape` as a gated problem-shaping front (auto-skipped for trivial work, required for features).

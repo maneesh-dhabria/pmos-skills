@@ -4,8 +4,8 @@
 
 ## Skills
 
-- **/primer** — A verified-source, audience-shaped HTML primer on any topic; ramp up before a meeting or a doc review.
-- **/learn-list** — Turn a topic into a verified, anti-slop, multi-format curated reading list for PMs.
+- **/primer** — A verified-source, audience-shaped HTML primer on any topic; ramp up before a meeting or a doc review; browse your primer library offline.
+- **/learn-list** — Turn a topic into a verified, anti-slop, multi-format curated reading list for PMs; browse the curated-reference library offline.
 - **/book-summary** — Distil publicly available material about a named book into verified, PM-framed takeaways.
 - **/frameworks** — A searchable library of PM frameworks: describe a problem, get the 2–5 most relevant with owned diagrams; browse offline.
 - **/magazine** — Turn your RSS subscriptions (newsletters + podcasts) into one skimmable, filterable HTML digest of what's new.
