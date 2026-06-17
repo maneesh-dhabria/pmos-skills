@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-17 — pmos-toolkit 2.86.0: /feature-sdlc grills you live in interactive runs
+
+When you run the pipeline interactively (`/feature-sdlc`, `/skill-sdlc define`, and friends), the `/grill` step now actually **interviews you** — one question at a time — instead of running a silent background reviewer pass. Previously, even an interactive run dispatched `/grill` as a non-conversational reviewer that produced a findings doc without ever asking you anything, so the adversarial interview you expected never happened. Now, at Tier 2+ in an interactive run, `/grill` runs its real one-question-at-a-time interview by default (no opt-in needed) against the document under review — your requirements doc, or the design doc in a `route: skill` define run.
+
+- **Interactive `/grill` by default.** Tier 2+ interactive pipeline runs get the live `/grill` interview, not a silent reviewer pass.
+- **Unattended runs unchanged.** Non-interactive runs (`--non-interactive`, `/loop`, scheduled builds) still auto-skip `/grill` as before; Tier 1 still skips it. The reviewer's quote-grounding contract is untouched wherever it still runs (e.g. `/verify`, the skill-eval judge).
+
 ## 2026-06-17 — pmos-learnkit 0.27.0: curated-references overlay + browsable libraries
 
 `/primer` and `/learn-list` now draw on a **shipped, pre-curated reference corpus** in addition to live sourcing — a PII-scrubbed library of ~1,800 vetted references that the topic-research substrate augments each topic's candidate pool from and hard-gates / fetch-verifies identically to live sources (suppress with `--no-curated`). Both skills also gain an **offline, browsable library view** (the same faceted single-file viewer `/frameworks` uses, now extracted into a shared `library-viewer` substrate): browse, search, and filter your primers and curated reading lists with no server and no network.
