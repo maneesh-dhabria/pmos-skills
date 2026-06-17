@@ -15,7 +15,7 @@ An enclosure makes the mark feel earned. Badge and emblem logos wrap an inner sy
 
 - Author on a square `viewBox` (e.g. `0 0 64 64`). Effective stroke px is `stroke-width * 16 / viewBox-height`; floor `1.0`.
 - Build the enclosure as a single `<circle>`/`<path>` so the icon-only variant is a clean delete of that element plus the wordmark.
-- For a curved wordmark, define a `<path>` in `<defs>` and reference it from `<textPath href="#…">`. **Namespace that path id by need + variant** — the shared `logos.html` page hosts many emblems and a bare `ring` id collides.
+- For a curved wordmark, define a `<path>` in `<defs>` and reference it from `<textPath href="#…">`. **Namespace that path id by need + variant** — the shared `logo.html` page hosts many emblems and a bare `ring` id collides.
 - Keep inner detail coarse. Every hairline you add is a pixel that dies at small sizes.
 
 ## Legibility warning

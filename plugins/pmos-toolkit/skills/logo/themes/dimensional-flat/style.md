@@ -13,7 +13,7 @@ Flat shapes that float, not 3-D objects. Dimensional-flat keeps the flat-fill di
 
 ## SVG technique — the soft-shadow filter (REQUIRED recipe)
 
-Depth is produced by exactly this filter shape: blur the alpha, offset it down, then merge the shadow under the original graphic. **Filter ids are namespaced by need + variant** — the shared `logos.html` page hosts many marks and a bare `shadow` id collides.
+Depth is produced by exactly this filter shape: blur the alpha, offset it down, then merge the shadow under the original graphic. **Filter ids are namespaced by need + variant** — the shared `logo.html` page hosts many marks and a bare `shadow` id collides.
 
 ```xml
 <defs>

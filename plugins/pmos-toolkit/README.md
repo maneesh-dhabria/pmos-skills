@@ -29,7 +29,7 @@
 ### Authoring & artifacts
 - **/artifact** — Generate and refine PM/eng artifacts (PRD, design docs, discovery doc) from context.
 - **/diagram** — Generate a single themed SVG diagram from a description.
-- **/logos** — Propose and generate on-brand SVG logo candidates from a brief.
+- **/logo** — Propose and generate on-brand SVG logo candidates from a brief.
 - **/polish** — Critique and refactor a single document (Markdown or HTML) for clarity and de-AI-slop.
 - **/readme** — Audit, scaffold, or update READMEs against a binary rubric and a simulated reader.
 - **/summary-tldr** — Faithful, grounded TL;DR of any content (URL, PDF, text, image, podcast, video).

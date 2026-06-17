@@ -112,6 +112,32 @@ export function run(assert) {
     assert.ok(!has(ev(ok), 'viewbox-not-square'), 'aspect 1.2 within tolerance');
   }
 
+  // --- viewbox-not-square --mark-type bounds (FR6 / AC5) ------------------
+  {
+    // A wide lockup mark: aspect = 192/64 = 3.0.
+    const wide = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 64"><rect width="1" height="1" fill="#1C1917"/></svg>`;
+    const evMt = (svg, markType) => evaluateSvg(svg, theme, markType);
+
+    // lockup-passes-wordmark: aspect 3.0 with markType='wordmark' -> within [0.8,4.0] -> NO fail
+    assert.ok(!has(evMt(wide, 'wordmark'), 'viewbox-not-square'), 'wide wordmark lockup passes (band [0.8,4.0])');
+    assert.ok(!has(evMt(wide, 'combination'), 'viewbox-not-square'), 'wide combination lockup passes');
+    assert.ok(!has(evMt(wide, 'emblem'), 'viewbox-not-square'), 'wide emblem lockup passes');
+
+    // lockup-fails-favicon: SAME wide viewBox with markType='favicon' -> square band -> DOES fail
+    assert.ok(has(evMt(wide, 'favicon'), 'viewbox-not-square'), 'wide favicon (square band) fails');
+    assert.ok(has(evMt(wide, 'pictorial'), 'viewbox-not-square'), 'wide pictorial (square band) fails');
+
+    // default-unchanged: wide viewBox, no mark type -> still square band [0.8,1.25] -> fails (back-compat)
+    assert.ok(has(ev(wide), 'viewbox-not-square'), 'wide viewBox with no mark type still fails (back-compat)');
+
+    // a lockup wider than 4.0 still fails even as wordmark (aspect = 320/64 = 5.0)
+    const tooWide = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64"><rect width="1" height="1" fill="#1C1917"/></svg>`;
+    assert.ok(has(evMt(tooWide, 'wordmark'), 'viewbox-not-square'), 'aspect 5.0 exceeds lockup ceiling 4.0');
+
+    // square mark still passes under a lockup mark type (lower bound shared)
+    assert.ok(!has(evMt(CLEAN, 'wordmark'), 'viewbox-not-square'), 'square mark passes under wordmark band too');
+  }
+
   // --- path-budget --------------------------------------------------------
   {
     const longD = 'M0 0 ' + 'L1 1 '.repeat(900); // > 4000 chars

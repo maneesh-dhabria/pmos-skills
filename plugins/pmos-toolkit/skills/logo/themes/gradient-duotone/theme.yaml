@@ -18,4 +18,4 @@ fallback:
 notes: >
   Gradients must have a flat mono fallback (a single solid fill) — requires_mono
   is true. Every <linearGradient> id is namespaced by need+variant because many
-  SVGs share one logos.html page.
+  SVGs share one logo.html page.
