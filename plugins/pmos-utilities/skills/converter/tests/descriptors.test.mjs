@@ -25,9 +25,11 @@ const reg = createRegistry();
 reg.discover(path.join(here, '..', 'lib', 'converters'));
 const ids = reg.list().map((d) => d.id).sort();
 
-check('auto-discovery registered all four ids',
-  eq(ids, ['csv→json', 'json→csv', 'json→yaml', 'yaml→json']));
-check('all data-pair descriptors are kind:pure', reg.list().every((d) => d.kind === 'pure'));
+const DATA_IDS = ['csv→json', 'json→csv', 'json→yaml', 'yaml→json'];
+check('auto-discovery registered the four data-pair ids',
+  DATA_IDS.every((id) => ids.includes(id)));
+check('the four data-pair descriptors are kind:pure',
+  reg.list().filter((d) => DATA_IDS.includes(d.id)).every((d) => d.kind === 'pure'));
 
 // JSON → YAML → JSON round-trips
 const obj = { name: 'pmos', tags: ['a', 'b'], nested: { n: 1, ok: true }, note: null };
