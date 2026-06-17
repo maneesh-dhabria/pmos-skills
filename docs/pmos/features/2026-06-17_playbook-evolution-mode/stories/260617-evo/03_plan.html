@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — /playbook evolution-mode rewrite (260617-evo)</title>
+<style>
+  body { font: 16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; color:#1a1a1a; max-width:46rem; margin:0 auto; padding:2rem 1.25rem 5rem; }
+  h1 { font-size:1.5rem; } h2 { font-size:1.2rem; margin-top:2rem; border-bottom:2px solid #e2e2e2; padding-bottom:.3rem; }
+  code { background:#f4f4f4; padding:.1em .35em; border-radius:3px; font-size:.88em; }
+  table { border-collapse:collapse; width:100%; font-size:.9rem; margin:1rem 0; }
+  th,td { border:1px solid #e2e2e2; padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:#fafafa; }
+  .meta { color:#666; font-size:.85rem; }
+  ul { padding-left:1.2rem; }
+</style>
+</head>
+<body>
+<h1>Plan — /playbook evolution-mode rewrite</h1>
+<p class="meta">Story <code>260617-evo</code> · epic <code>260617-pbk</code> · route: skill · pmos-learnkit<br>
+spec: <code>../../02_design.html</code> · tasks: <code>tasks.yaml</code> · skill_dir: <code>plugins/pmos-learnkit/skills/playbook</code></p>
+
+<h2 id="approach">Approach</h2>
+<p>One vertical slice rewriting <code>/playbook</code> from per-problem case-study to evolution-only. TDD where there is testable code (the scout rewrite + its test, the structure test); instruction-only edits for SKILL.md and the reference docs verified by the four hygiene lints, <code>skill-eval [D]</code>, and a load-bearing live dogfood against two repo shapes (marketplace = this repo; non-marketplace = poker-coach). Reference: <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code>.</p>
+
+<h2 id="waves">Waves</h2>
+<table>
+<thead><tr><th>Wave</th><th>Tasks</th><th>Gate</th></tr></thead>
+<tbody>
+<tr><td>1 — Reference contracts (parallel)</td><td>T1 evolution-sources.md · T2 article-schema rewrite (schema + voice + self-check)</td><td>files exist; cited by SKILL.md later</td></tr>
+<tr><td>2 — Prune</td><td>T3 remove clustering.md; reconcile resolver/session-log-format</td><td>no orphaned clustering prose; resolver contract intact</td></tr>
+<tr><td>3 — Engine (TDD)</td><td>T4 scout.mjs → milestone-spine builder (+ --selftest) · T5 rewrite scout.test.mjs to spine contract</td><td>scout selftest + scout.test.mjs green; resolver.test.mjs + render-surface.test.sh + structure.test.sh green</td></tr>
+<tr><td>4 — SKILL.md rewrite</td><td>T6 frontmatter, target-resolution phase, mining/scout/synthesize phases, screenshot sourcing, anti-patterns, NI block byte-identical</td><td>phases coherent; cites land; NI block matches _shared</td></tr>
+<tr><td>5 — Gates</td><td>T7 4 lints + audit-recommended + skill-eval [D]</td><td>EXIT 0 (or recorded accepted residuals); a-name-matches-dir passes</td></tr>
+<tr><td>6 — Dogfood</td><td>T8 live run vs marketplace + non-marketplace</td><td>schema + voice + screenshot + single-folder asserts; evidence saved</td></tr>
+</tbody>
+</table>
+
+<h2 id="verification">Final verification checklist</h2>
+<ul>
+  <li>Marketplace repo: skill-picker lists installed skills + "whole repo (Recommended)"; non-marketplace: no prompt (FR-1/2).</li>
+  <li><code>--skill &lt;name&gt;</code> skips the prompt; unknown name errors with the skill list (FR-3).</li>
+  <li><code>--days/--sessions/--since</code> absent from hint + body; <code>--skill</code> handled (lint-flags-vs-hints green) (FR-5).</li>
+  <li>Rendered article DOM: cold-reader "What this is" first; ≥1 milestone with a verbatim prompt quote + a "Where the pipeline mattered" callout; cross-cutting section; subtle close (FR-6).</li>
+  <li>Pre-emit voice self-check present + regenerates on fail (FR-7).</li>
+  <li><code>reference/evolution-sources.md</code> exists + cited, no dangling cite (FR-8).</li>
+  <li>Screenshot step prefers committed wireframes + cleans <code>.playwright-mcp/</code>; never hard-fails (FR-9).</li>
+  <li>Removed set gone; kept set (resolver, anonymizer/share-gate, tweet-thread, render, NI block) intact + tests green (D10/D11).</li>
+  <li>One <code>…-evolution/</code> folder with overwrite/suffix/cancel + tweet-thread.md (FR-11/D12).</li>
+  <li><code>skill-eval [D]</code> EXIT 0; NI inline block byte-identical; every AskUserQuestion has a Recommended option (AC11).</li>
+</ul>
+
+<h2 id="release-prereqs">Release prerequisites (/complete-dev owns — not /execute tasks)</h2>
+<ul>
+  <li>Version bump: <code>plugins/pmos-learnkit/.claude-plugin/plugin.json</code> + <code>.codex-plugin/plugin.json</code> (same version; minor bump from 0.27.0).</li>
+  <li>Changelog entry; README row/description refresh for the evolution-mode behavior.</li>
+  <li>Manifest version-sync; marketplace entries stay version-free.</li>
+</ul>
+</body>
+</html>
