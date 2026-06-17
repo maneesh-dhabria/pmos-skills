@@ -1,0 +1,10 @@
+{
+  "topic": "Remote Work, Two Years On",
+  "cards": [
+    {"text": "Office real-estate costs fell 40% after the company went remote-first.", "keyfact": "office real-estate costs down 40 percent post remote-first", "source_anchor": "costs"},
+    {"text": "Median code-review turnaround grew from 4 hours to 11 hours.", "keyfact": "code review turnaround 4 hours to 11 hours median", "source_anchor": "velocity"},
+    {"text": "Engineer-reported focus time rose to 3.2 deep-work hours per day.", "keyfact": "deep work focus time 3.2 hours per day reported", "source_anchor": "focus"},
+    {"text": "Two of nine teams missed their quarterly OKRs, both newly formed.", "keyfact": "two of nine teams missed quarterly OKRs newly formed", "source_anchor": "okrs"},
+    {"text": "Adopt a hybrid 3-day-anchor schedule to protect review latency.", "keyfact": "recommendation hybrid three day anchor schedule review latency", "source_anchor": "recommendation"}
+  ]
+}

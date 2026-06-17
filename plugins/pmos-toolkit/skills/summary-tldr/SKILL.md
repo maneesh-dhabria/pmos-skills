@@ -28,7 +28,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mode.js --mode <m> [--sty
 | `narrative` *(default)* | Today's grounded text TL;DR (unchanged) — `--style bullets\|exec\|nested\|layered` applies here | **Implemented** (back-compat, INV6) |
 | `mindmap` | The canonical text **plus** a tree/radial diagram of the source's key arguments, via `/diagram --mode mindmap` | **Implemented** (delegates to story `260617-1aq`'s capability) |
 | `video` | A narrated `.mp4` via `/explainer-video` | Accepted value → graceful "not yet available" note; ships in `260617-gfx` |
-| `shorts` | A swipeable card carousel | Accepted value → graceful "not yet available" note; ships in `260617-wf6` |
+| `shorts` | The canonical text **plus** a self-contained swipeable carousel of ≤140-char cards (one key takeaway each), each pairing relevant existing media when available | **Implemented** (`#shorts-mode`) |
 
 **Three invariants hold in every mode** (design `#invariants`): the grounded TEXT summary is **always emitted first** (D2/INV3 — crash-safety); non-narrative renderings derive from the **grounded this-run extraction** (the cleaned text + Phase 4 keyfacts), never the lossy compressed prose or model memory (D3/INV4); and the skill **reuses, never rebuilds** a renderer — mindmap → `/diagram`, video → `/explainer-video` (INV5).
 
@@ -70,7 +70,7 @@ An invalid `--mode` value → the script prints `error: --mode must be one of na
 
   - `AskUserQuestion` — `"Which output do you want?"` options **Narrative — grounded text TL;DR (Recommended)** / **Mindmap — tree diagram of the key arguments** / **Video — narrated .mp4** / **Shorts — swipeable cards**. Under non-interactive mode, AUTO-PICK Narrative (the Recommended option).
 
-- The script's JSON tells you `styleApplies` and (for `video`/`shorts`) the graceful-degradation `note`. **If `--style` was provided with a non-narrative mode** (`styleApplies:false`), emit the script's one-line `warn` to stderr and ignore `--style` for rendering (the canonical text still emits at the resolved narrative style — D1/INV2). Record the resolved `mode`; it gates Phase 7 (`#mode-render`). `narrative` and `mindmap` are fully rendered this release; `video`/`shorts` parse and route to the deferred note (their renderers ship in later stories).
+- The script's JSON tells you `styleApplies` and (for the still-deferred `video`) the graceful-degradation `note`. **If `--style` was provided with a non-narrative mode** (`styleApplies:false`), emit the script's one-line `warn` to stderr and ignore `--style` for rendering (the canonical text still emits at the resolved narrative style — D1/INV2). Record the resolved `mode`; it gates Phase 7 (`#mode-render`). `narrative`, `mindmap`, and `shorts` are fully rendered this release; `video` parses and routes to the deferred note (its renderer ships in `260617-gfx`).
 
 **Resolve the dials.** `--compression` and `--style` may persist per-project (the `/primer` lastrun pattern, optional): `cli > .pmos/summary-tldr.lastrun.yaml > skill default`. Defaults: compression `standard`, style `bullets`. After a run, persist the resolved values atomically (temp-then-rename). Print to stderr `compression: <band> (source: <cli|lastrun|default|confirmed>)` once the band is final (Phase 3 may update it). `--style` shapes the canonical text in every mode (it is the narrative sub-style); it only additionally *drives a rendering* when `mode==narrative`.
 
@@ -165,7 +165,8 @@ With the canonical text summary already on disk (Phase 6), produce the rendering
 
 - **`narrative`** → run the optional `/diagram` add-on gate below (`#diagram`).
 - **`mindmap`** → run the mindmap rendering (`#mindmap-mode`).
-- **`video` / `shorts`** → these renderers ship in later stories (`260617-gfx` / `260617-wf6`). `scripts/mode.js` already returned the graceful `note`; print it to chat/stderr and finish — the canonical text summary has already shipped (D11). Do not fabricate the rendering.
+- **`shorts`** → run the shorts carousel rendering (`#shorts-mode`).
+- **`video`** → this renderer ships in `260617-gfx`. `scripts/mode.js` already returned the graceful `note`; print it to chat/stderr and finish — the canonical text summary has already shipped (D11). Do not fabricate the rendering.
 
 ### Mindmap mode {#mindmap-mode}
 
@@ -190,6 +191,42 @@ The mindmap rendering, derived from the **grounded keyfacts** (Phase 4), delegat
 3. **Validate the returned SVG before saving** (same discipline as the narrative `#diagram` add-on): it parses as XML, carries the theme background `<rect>`, and a post-insert heading-id smoke stays green. Only then save it as a sibling **`<slug>-mindmap.svg`** next to the canonical `.html`, link it from the canonical doc (a `<figure>` with a caption + the SVG, or an `<a>` to the sibling file) via atomic temp-then-rename, and **regenerate the library index** so the row reflects the mindmap.
 
 4. **On any `/diagram` drop, validation miss, or failure:** leave the canonical text on disk **intact** (no rollback — it is already safe), log the failure, and finish (D11). The on-disk artifact is the single source; never write a `.summary.tmp` side-file.
+
+### Shorts mode {#shorts-mode}
+
+A self-contained, swipeable carousel of **bite-size ≤140-char cards** (one key takeaway each), each pairing **relevant existing** media when available — emitted as a sibling `<slug>-shorts.html` next to the canonical doc. House guidelines + the card model live in `reference/card-carousel-guidelines.md` (a generic study of the bite-size card-story genre — **never name any specific app** in the skill or its output). All the deterministic work (the ≤140 hard gate, the ≥2-card floor, the keyfact↔figure relevance match, the carousel HTML emit) is owned by `scripts/shorts.js` (`§H`); the model supplies only the card *content*, derived from the grounded keyfacts:
+
+1. **Derive the cards from the grounded keyfacts** (Phase 4, D3/D7 — **never** the compressed prose, never model memory). One takeaway per card, ≤140 chars, BLUF, front-loaded, asserting the source's actual claim/number. Build `{topic, cards:[{text, keyfact, source_anchor?}]}`, then enforce + normalize through the script:
+
+   ```
+   echo '<model-json>' | node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/shorts.js --derive-cards
+   ```
+
+   It assigns stable ids and prints the normalized cards. **Exit 4 = a card exceeds 140 chars** → re-derive that card *shorter* (never truncate — truncation is a fail); the error names the offending card + length. **Exit 3 = below the ≥2-card floor** → graceful degradation (D11/D12): print the `degrade:` reason, ship the canonical text **only** (no carousel), and finish. Never pad with filler cards to clear the floor.
+
+2. **Pair relevant existing media** (D8 — reuse, never rebuild an extractor, INV5). Build the source's figure inventory by running `/explainer-video`'s `ingest.mjs` as a subprocess (no new extractor):
+
+   ```
+   node ${CLAUDE_PLUGIN_ROOT}/skills/explainer-video/scripts/ingest.mjs <source-or-saved-html> --figures-out <figs.json>
+   ```
+
+   (For a fetched URL, pass the WebFetch-saved HTML via `--html`; for a `.pdf` the inventory is empty by design — pair only the this-run media.) Optionally also list any artifact **this run** already produced (a `--mode mindmap` SVG, a `--mode video` `.mp4`) in an `extra-media.json` array of `{kind, source_ref, alt}`. Then match cards to media deterministically:
+
+   ```
+   node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/shorts.js --pair-media --inventory <figs.json> [--extra <extra-media.json>] < cards.json
+   ```
+
+   The script matches each card's `keyfact`/`text` to a figure's `alt`/caption by token overlap (a figure is used at most once; a card below the relevance floor stays text-only). It **never fabricates media** and never embeds a card with an unrelated figure.
+
+3. **Emit the self-contained carousel** (FR-D2 — zero-dep, offline, comments-overlay-compatible). The script renders through the shared `_shared/html-authoring` substrate (`render.js` + `template.html`), so the page carries `<meta name="pmos:skill" content="summary-tldr">`, the inline `pmos-comments` block, and the inlined comments overlay — fully self-contained with no CDN. The carousel CSS/JS (swipe + ←/→ keyboard nav + card counter + accessible labels) is embedded:
+
+   ```
+   node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/shorts.js --emit --cards <paired-cards.json> --meta <meta.json> --out {summary_tldr_dir}/<slug>-shorts.html
+   ```
+
+   `meta.json` carries `{title, topic, canonical_href, source_path, plugin_version}`. After emit, **copy `assets/*` alongside** the carousel (the launcher trio + `serve.js` for the localhost comments write-path) per the `_shared/html-authoring` checklist, **link the carousel** from the canonical doc (a `<figure>`/`<a>` to the sibling file) via atomic temp-then-rename, and **regenerate the library index** so the row reflects the shorts rendering.
+
+4. **On any media-extraction failure or emit error** (FR-D4/D11): the canonical text on disk stays **intact** (no rollback — already safe); the carousel ships **text-only** (empty inventory → all text cards) or is skipped with a logged reason. Never fabricate; never embed a broken/re-fetched asset. The on-disk canonical artifact is the single source.
 
 ### Optional diagram (narrative add-on) {#diagram}
 
@@ -223,6 +260,7 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 9. **Running the slow diagram loop before the first emit.** The approved summary is emitted to disk in Phase 6 (`#emit`) *before* any Phase 7 (`#mode-render`) rendering — the optional `/diagram` add-on or the mindmap/video/shorts renderer. Never run a multi-turn rendering loop between Phase 5 approval and the first on-disk emit — that is the data-loss window a compaction would hit. The on-disk artifact is the single source of truth; do not introduce a `.summary.tmp` to "stage" the approved text (the real artifact already is the persistence).
 10. **Building the mindmap from the compressed prose, or fabricating it to clear the floor.** The mindmap hierarchy derives from the grounded Phase 4 **keyfacts** (D3), never the generated bullets and never model memory. When `scripts/mindmap-hierarchy.js` reports below-floor (exit 3), ship the canonical text alone — never pad branches/leaves to force a map (D11/D12).
 11. **Letting `--mode` and `--style` collide, or regressing narrative.** `--mode` (output shape) is orthogonal to `--style` (narrative sub-style) — with a non-narrative mode, `--style` is ignored-with-warn, not an error (D1/INV2). `mode==narrative` must reproduce today's output byte-for-byte (INV6); the existing tests are the guard.
+12. **Truncating a shorts card, padding to clear the floor, fabricating card media, or naming an app.** A card over 140 chars is re-derived shorter, **never** truncated (`scripts/shorts.js` exit 4 enforces this). Below the ≥2-card floor (exit 3) ship the canonical text alone — never invent filler cards (D11/D12). Card media is paired from *existing* figures only (the source's `ingest.mjs` inventory + this-run mindmap/video) by relevance — never fabricated, never an unrelated figure stretched onto a card, and **no per-card video generation** (D7/D8). The card-carousel guidelines and output are studied from the genre, not any product — **never name a specific app** anywhere.
 
 ## Worked example
 
@@ -241,6 +279,12 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 - **Phases 2–6.** Identical to above — the **same** canonical text artifact is emitted first (D2/INV3). Keyfacts retained.
 - **Phase 7 (mode-render, mindmap, `#mindmap-mode`).** Hierarchy derived from keyfacts (root "Remote Work Report"; branches Costs / Velocity / Recommendations; leaves the 40% figure, the 4→11h number, the 3 recs) → `mindmap-hierarchy.js` normalizes it (5 leaves ≥ floor) → main-agent hand-off `/diagram --mode mindmap --source <tree.json> --theme editorial --non-interactive --on-failure drop` → returned SVG validated → saved as `2026-06-13-remote-work-report-mindmap.svg`, linked from the canonical doc, library index regenerated. (Had the source yielded only one argument, the hierarchy script would exit 3 and the canonical text would ship alone — D11.)
 
+**Shorts variant** — `/summary-tldr <same URL> --mode shorts`:
+
+- **Phase 1.** `mode.js --mode shorts` → `{mode:"shorts", styleApplies:false, status:"implemented"}`; the picker is skipped (pre-answered). `--style` (if given) is ignored-with-warn.
+- **Phases 2–6.** Identical — the **same** canonical text artifact is emitted first (D2/INV3). Keyfacts retained.
+- **Phase 7 (mode-render, shorts, `#shorts-mode`).** Cards derived from the keyfacts (e.g. "Office costs fell 40% after the remote shift." / "Code-review turnaround grew from 4h to 11h." / "Adopt a hybrid schedule.") → `shorts.js --derive-cards` enforces ≤140 + the ≥2 floor → `ingest.mjs` builds the source figure inventory → `shorts.js --pair-media` matches the costs figure to card 1 and the velocity figure to card 2 (card 3 stays text-only) → `shorts.js --emit` writes `2026-06-13-remote-work-report-shorts.html` (self-contained swipe + ←/→ carousel), assets copied alongside, linked from the canonical doc, library index regenerated. (Had only one card been derivable, `--derive-cards` would exit 3 and the canonical text would ship alone — D11.)
+
 ---
 
-*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. The `--mode` output dimension + mindmap mode: epic `260617-jy8` design at `docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html` (`#frs-scaffold` FR-B1..B6, D1/D2/D3/D4/D10/D11, INV2/INV3/INV6), story `260617-xn4`; mindmap layout delegates to story `260617-1aq`'s `/diagram --mode mindmap`. Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*
+*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. The `--mode` output dimension + mindmap mode: epic `260617-jy8` design at `docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html` (`#frs-scaffold` FR-B1..B6, D1/D2/D3/D4/D10/D11, INV2/INV3/INV6), story `260617-xn4`; mindmap layout delegates to story `260617-1aq`'s `/diagram --mode mindmap`. Shorts mode (`#shorts-mode`): same epic design `#frs-shorts` FR-D1..D4, D7/D8/D11/D12, story `260617-wf6`; card model + house guidelines in `reference/card-carousel-guidelines.md`; figure inventory reuses `/explainer-video`'s `scripts/ingest.mjs` (INV5, no new extractor). Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*

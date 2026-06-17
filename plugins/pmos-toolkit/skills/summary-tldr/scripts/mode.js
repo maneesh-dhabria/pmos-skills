@@ -8,7 +8,7 @@
 //   narrative — default; today's grounded text TL;DR (back-compat). `--style` applies HERE only.
 //   mindmap   — tree/radial diagram via /diagram --mode mindmap (implemented in this story, deps 1aq).
 //   video     — narrated .mp4 via /explainer-video (ships in story gfx) — DEFERRED here.
-//   shorts    — swipeable card carousel (ships in story wf6) — DEFERRED here.
+//   shorts    — swipeable ≤140-char card carousel + relevant-media pairing (implemented; story wf6).
 //
 // `--mode` is ORTHOGONAL to `--style` (INV2): style shapes only the narrative text; with a
 // non-narrative mode it is recorded ignored-with-warn. Single mode per run (v1, D10).
@@ -22,8 +22,8 @@
 const MODES = ['narrative', 'mindmap', 'video', 'shorts'];
 // Modes fully implemented in THIS story (260617-xn4). The rest are accepted values that route to a
 // graceful "not yet available" note here and ship in a later story (gfx=video, wf6=shorts).
-const IMPLEMENTED = new Set(['narrative', 'mindmap']);
-const SHIPS_IN = { video: '260617-gfx', shorts: '260617-wf6' };
+const IMPLEMENTED = new Set(['narrative', 'mindmap', 'shorts']);
+const SHIPS_IN = { video: '260617-gfx' };
 
 const DEFAULT_MODE = 'narrative';
 
@@ -98,8 +98,15 @@ function selftest() {
   d = dispatch('mindmap', false);
   assert('mindmap no-style no warn', !d.warn);
 
-  // video/shorts deferred with note
-  for (const m of ['video', 'shorts']) {
+  // shorts implemented (story wf6); style does not apply
+  d = dispatch('shorts', true);
+  assert('shorts resolves', d.mode === 'shorts');
+  assert('shorts implemented', d.status === 'implemented');
+  assert('shorts style not applied', d.styleApplies === false);
+  assert('shorts+style warns', typeof d.warn === 'string' && d.warn.includes('ignored'));
+
+  // video still deferred with note
+  for (const m of ['video']) {
     d = dispatch(m, false);
     assert(`${m} resolves`, d.mode === m);
     assert(`${m} deferred`, d.status === 'deferred');
