@@ -1,0 +1,87 @@
+schema_version: 1
+story: 260617-xn4
+epic: 260617-jy8
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/summary-tldr
+# Story B — /summary-tldr --mode scaffold + narrative back-compat + mindmap mode.
+# Depends on 260617-1aq (/diagram --mode mindmap) — claim-time transitive merge brings it in (epic INV1).
+# Design anchors: #frs-scaffold (FR-B1..B6), #decisions D1/D2/D3/D4/D10/D11, #invariants INV2/INV3/INV6.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Add the --mode output dimension: parse + interactive picker + non-interactive auto-pick"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Per FR-B1 / D10. Parse --mode narrative|mindmap|video|shorts (default narrative) in Phase 0/Setup. With no
+      --mode and interactive: an AskUserQuestion picker with Narrative (Recommended) + Mindmap + Video + Shorts;
+      --mode pre-answers and skips it; non-interactive AUTO-PICKs narrative (Recommended). Invalid value →
+      platform-aware error naming the set, exit 64. video/shorts route to a graceful "mode not yet available — see
+      a later release" note in THIS story (implemented in gfx/wf6). Update argument-hint + Flags; classify --mode
+      as a contract flag per §I (typed value changing output).
+  - id: T2
+    title: "Refactor current behavior as mode==narrative (byte-for-byte back-compat); --style scoped to narrative"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per FR-B2 / D1 / INV2 / INV6. Wrap today's phases as the narrative branch with identical output (same
+      artifact, same --style bullets|exec|nested|layered, same optional --diagram Phase 7 add-on). --style applies
+      only when mode==narrative; with a non-narrative mode, record it ignored with a one-line stderr warn. Existing
+      summary-tldr tests must stay green unchanged.
+  - id: T3
+    title: "Canonical text emitted first in every mode (crash-safety)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per FR-B3 / D2 / INV3. Ensure the grounded text summary (existing Phase 6 emit) writes to disk BEFORE any
+      mode rendering runs, in every mode. The mode rendering is an additive post-emit step (same discipline as
+      today's Phase 6→7). A rendering failure never rolls back the canonical text.
+  - id: T4
+    title: "Mindmap mode — derive hierarchy from keyfacts, hand off to /diagram --mode mindmap, validate + link"
+    ac: [AC4]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Per FR-B4 / D3 / D4. From the grounded keyfact extraction (Phase 4), derive a hierarchy (root=topic;
+      branches=key arguments; leaves=takeaways/numbers) — NOT from the compressed prose. The MAIN AGENT (never a
+      subagent — skills can't invoke skills from a subagent) hands off to
+      `/diagram --mode mindmap --source <hierarchy> --theme editorial --non-interactive --on-failure drop`.
+      VALIDATE the returned SVG (parses as XML, theme background present, post-insert heading-id smoke green)
+      before saving as a sibling <slug>-mindmap.svg and linking it from the canonical doc + the library index
+      (regen summary-tldr.html). Mirror the existing Phase 7 handoff+validate discipline. (260617-1aq must be
+      merged into this worktree at claim time — epic INV1.)
+  - id: T5
+    title: "Graceful degradation for mindmap mode"
+    ac: [AC5]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Per FR-B5 / D11 / D12. Too few keyfacts for a useful mindmap → a clear note + the canonical text summary
+      still ships (no mindmap). A /diagram drop or failure → canonical text intact (no rollback), failure logged
+      to chat/stderr. Never fabricate a mindmap.
+  - id: T6
+    title: "Tests + live dogfood (narrative unchanged + mindmap end-to-end); existing tests green"
+    ac: [AC6]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Per FR-B6 / INV6. Add mode-dispatch + mindmap tests (mode parse, narrative back-compat snapshot, mindmap
+      handoff/validate/link, degradation path). Run the shipped summary-tldr tests/ green. Live dogfood on a real
+      source: --mode narrative reproduces today's output, --mode mindmap produces a valid linked mindmap SVG; save
+      evidence under this story's dir.
+  - id: T7
+    title: "SKILL.md doc surface + skill-eval [D] + repo lints"
+    ac: [AC2, AC7]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Per FR-B1/B2/B6. Update SKILL.md: --mode in argument-hint + a Modes section + Phase notes (mode dispatch,
+      canonical-first, mindmap handoff) + anti-pattern if warranted. Run skill-eval [D]
+      (feature-sdlc/tools/skill-eval-check.sh) to EXIT 0; run the 4 repo lints + comments-coverage. Keep the
+      non-interactive inline block byte-identical; the new picker AskUserQuestion has Narrative (Recommended).

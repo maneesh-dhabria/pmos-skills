@@ -1,0 +1,63 @@
+schema_version: 1
+story: 260617-gfx
+epic: 260617-jy8
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/summary-tldr
+# Story C — /summary-tldr --mode video. Delegate to /explainer-video on the ORIGINAL source.
+# Depends on 260617-xn4 (mode-dispatch scaffold).
+# Design anchors: #frs-video (FR-C1..C4), #decisions D9/D11.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Wire --mode video into the scaffold: canonical text first, then delegate to /explainer-video on the original source"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Per FR-C1 / D9. Replace the xn4 "not yet available" stub for video with the real path: emit the canonical
+      text summary first (D2), then the MAIN AGENT (never a subagent) hands off to
+      `/explainer-video <ORIGINAL-SOURCE> --non-interactive`. Pass the user's original source path/URL — NOT the
+      compressed summary (/explainer-video does its own grounded ingest). Map length from --compression
+      (tight→quick, standard→standard, detailed→deep); honor a --video-length quick|standard|deep override
+      (contract flag per §I). Add to argument-hint + Flags.
+  - id: T2
+    title: "Link the produced mp4 + provenance into the canonical doc + library; do not re-host"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per FR-C2. On a successful /explainer-video run, link the produced .mp4 (in explainer-video's own output
+      dir) from the canonical summary artifact and the summary-tldr library index (regen summary-tldr.html), with
+      provenance (source, resolved length, path, timestamp). Do NOT copy/duplicate the video into the summary-tldr
+      dir.
+  - id: T3
+    title: "Graceful dependency degradation (no ffmpeg/Playwright/TTS → canonical text still ships)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per FR-C3 / D11. If /explainer-video reports missing deps (ffmpeg/ffprobe, Playwright, local TTS) or returns
+      non-zero, /summary-tldr reports the precise reason + install hint and the canonical text summary still ships
+      (additive mode; never blocks the run). No fabricated/empty video link is written.
+  - id: T4
+    title: "Tests + dogfood; existing summary-tldr tests green"
+    ac: [AC4]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Per FR-C4. Tests: mode routing, length mapping (compression→length + override), degradation path (deps
+      missing → text ships, no broken link). Run shipped summary-tldr tests/ green. Dogfood --mode video
+      end-to-end on a real source on a host with deps; if deps absent, record DEFERRED-TO-RELEASE naming the
+      missing binary, per /explainer-video's own smoke contract.
+  - id: T5
+    title: "SKILL.md doc surface + skill-eval [D] + repo lints"
+    ac: [AC5]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Per FR-C1/C4. Update SKILL.md (--mode video + --video-length in argument-hint + Modes section + Phase notes).
+      Run skill-eval [D] to EXIT 0; run the 4 repo lints + comments-coverage; keep the non-interactive inline block
+      byte-identical.

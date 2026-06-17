@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-xn4 /summary-tldr --mode scaffold + mindmap</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — /summary-tldr <code>--mode</code> scaffold + narrative + mindmap</h1>
+<p class="sub">Story <code>260617-xn4</code> · epic <code>260617-jy8</code> · route: skill · plugin: pmos-toolkit · deps: <code>260617-1aq</code> · skill_dir <code>plugins/pmos-toolkit/skills/summary-tldr</code></p>
+
+<h2 id="approach">Approach</h2>
+<p>Introduce the <code>--mode narrative|mindmap|video|shorts</code> output dimension (orthogonal to <code>--style</code>, design
+<a href="../../02_design.html#decisions">D1</a>), refactor today's behavior as <code>mode==narrative</code> with byte-for-byte
+back-compat (<a href="../../02_design.html#invariants">INV6</a>), keep the canonical text emitted first in every mode
+(<a href="../../02_design.html#invariants">INV3</a>), and implement the first new mode — <strong>mindmap</strong> — by
+main-agent hand-off to <code>/diagram --mode mindmap</code> (built in <code>260617-1aq</code>, present via claim-time merge per
+<a href="../../02_design.html#invariants">INV1</a>). <code>video</code>/<code>shorts</code> are accepted but stubbed to a graceful
+"later release" note here. Design FRs: <a href="../../02_design.html#frs-scaffold">#frs-scaffold</a>.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>AC</th><th>Deps</th></tr>
+<tr><td>T1</td><td>Parse <code>--mode</code> + interactive picker (Narrative Recommended) + non-interactive auto-pick</td><td>AC1</td><td>—</td></tr>
+<tr><td>T2</td><td>Refactor today's behavior as <code>mode==narrative</code> (byte-for-byte); <code>--style</code> scoped to narrative</td><td>AC2</td><td>T1</td></tr>
+<tr><td>T3</td><td>Canonical text emitted first in every mode (crash-safety)</td><td>AC3</td><td>T1</td></tr>
+<tr><td>T4</td><td>Mindmap mode — derive hierarchy from keyfacts → hand off to <code>/diagram --mode mindmap</code> → validate + link</td><td>AC4</td><td>T2,T3</td></tr>
+<tr><td>T5</td><td>Graceful degradation (too few keyfacts / diagram drop → text still ships)</td><td>AC5</td><td>T4</td></tr>
+<tr><td>T6</td><td>Tests + live dogfood (narrative unchanged + mindmap e2e); existing tests green</td><td>AC6</td><td>T4,T5</td></tr>
+<tr><td>T7</td><td>SKILL.md doc surface + skill-eval <code>[D]</code> + 4 repo lints + comments-coverage</td><td>AC2,AC7</td><td>T4,T5</td></tr>
+</table>
+
+<h2 id="waves">Wave order</h2>
+<p>Wave 1: T1. Wave 2: T2, T3 (parallel). Wave 3: T4 → T5. Wave 4: T6, T7. Depends on <code>260617-1aq</code> being merged into this worktree at claim time. Release prerequisites are <code>/complete-dev</code>'s.</p>
+</body>
+</html>

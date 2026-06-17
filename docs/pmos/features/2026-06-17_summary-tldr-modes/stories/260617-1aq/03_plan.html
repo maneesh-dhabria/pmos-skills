@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-1aq /diagram --mode mindmap</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — /diagram <code>--mode mindmap</code></h1>
+<p class="sub">Story <code>260617-1aq</code> · epic <code>260617-jy8</code> · route: skill · plugin: pmos-toolkit · deps: none · skill_dir <code>plugins/pmos-toolkit/skills/diagram</code></p>
+
+<h2 id="approach">Approach</h2>
+<p>Add a new <code>--mode mindmap</code> to <code>/diagram</code> backed by a <strong>vendored, zero-dependency</strong> tidy-tree/radial
+layout (design <a href="../../02_design.html#decisions">D5</a>). The layout module computes coordinates as pure
+functions; <code>/diagram</code> then authors <strong>themed</strong> SVG from them (its existing theme tokens + connector rules) and runs
+the existing eval with the node-cap <strong>relaxed for the mode</strong> (<a href="../../02_design.html#decisions">D6</a>). No npm,
+no npx, no network, no browser — <code>npx d3-hierarchy</code> is rejected (no CLI bin → network fetch) and mermaid is rejected
+(puppeteer + theme clash). Design FRs: <a href="../../02_design.html#frs-mindmap-engine">#frs-mindmap-engine</a>.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>AC</th><th>Deps</th></tr>
+<tr><td>T1</td><td>Vendor <code>scripts/mindmap-layout.mjs</code> (tidy-tree + radial), pure fns + <code>--selftest</code> fixtures, deterministic</td><td>AC2</td><td>—</td></tr>
+<tr><td>T2</td><td>Parse <code>--mode mindmap</code> in Phase 0 + hierarchy input model (flat→single-level radial)</td><td>AC1</td><td>—</td></tr>
+<tr><td>T3</td><td>Mindmap drawing path — themed SVG from computed coords + sidecar <code>layoutEngine</code>/<code>positions</code></td><td>AC3</td><td>T1,T2</td></tr>
+<tr><td>T4</td><td>Relax <code>&gt;30</code>-node cap for mindmap; keep overlap/tunnel/legibility/angular eval gating</td><td>AC4</td><td>T3</td></tr>
+<tr><td>T5</td><td>Non-interactive contract (<code>--approach radial|tree</code>, <code>--on-failure</code>, exit codes)</td><td>AC5</td><td>T2</td></tr>
+<tr><td>T6</td><td>Tests + live ~15-node dogfood; existing <code>/diagram</code> tests green</td><td>AC6</td><td>T3,T4,T5</td></tr>
+<tr><td>T7</td><td>SKILL.md doc surface + skill-eval <code>[D]</code> + 4 repo lints + comments-coverage</td><td>AC1,AC7</td><td>T3,T4,T5</td></tr>
+</table>
+
+<h2 id="waves">Wave order</h2>
+<p>Wave 1: T1, T2 (parallel). Wave 2: T3 → T4; T5 (parallel with T3/T4 after T2). Wave 3: T6, T7. Release prerequisites (bump/changelog/README/manifest) are <code>/complete-dev</code>'s, not <code>/execute</code>'s.</p>
+</body>
+</html>
