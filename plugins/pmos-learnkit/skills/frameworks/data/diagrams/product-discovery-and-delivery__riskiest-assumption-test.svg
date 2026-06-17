@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Riskiest Assumption Test diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Riskiest Assumption Test (RAT)</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Test the one belief most likely to kill the idea — cheapest test first</text>
+
+  <!-- Left: assumption stack ranked by risk -->
+  <text x="32" y="92" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">1 · List &amp; rank assumptions by risk</text>
+  <rect x="32" y="104" width="240" height="34" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="44" y="125" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Riskiest assumption</text>
+  <rect x="32" y="146" width="240" height="30" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="44" y="165" font-family="sans-serif" font-size="12" fill="#5b6680">Next assumption</text>
+  <rect x="32" y="184" width="240" height="30" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="44" y="203" font-family="sans-serif" font-size="12" fill="#5b6680">Lower-risk assumption</text>
+  <rect x="32" y="222" width="240" height="30" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <text x="44" y="241" font-family="sans-serif" font-size="12" fill="#5b6680">Safe assumption</text>
+
+  <!-- arrow to test -->
+  <line x1="280" y1="121" x2="328" y2="121" stroke="#2563eb" stroke-width="2.5" marker-end="url(#ah)"/>
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <!-- Right: cheapest test panel -->
+  <text x="336" y="92" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">2 · Design cheapest test for THAT one</text>
+  <rect x="336" y="104" width="272" height="118" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="352" y="130" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">RAT — not a product</text>
+  <text x="352" y="152" font-family="sans-serif" font-size="12" fill="#5b6680">Fake door · landing page · concierge</text>
+  <text x="352" y="170" font-family="sans-serif" font-size="12" fill="#5b6680">Wizard-of-Oz · interviews · prototype</text>
+  <text x="352" y="194" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">Goal: learn, not ship</text>
+  <text x="352" y="212" font-family="sans-serif" font-size="12" fill="#5b6680">Minimize cost-to-evidence</text>
+
+  <!-- Loop back -->
+  <text x="32" y="296" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">3 · Validated? Move to next riskiest. Invalidated? Pivot or kill.</text>
+  <rect x="32" y="312" width="180" height="48" rx="8" fill="#ecfdf5" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="122" y="335" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">Validated</text>
+  <text x="122" y="352" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">→ next assumption</text>
+
+  <rect x="232" y="312" width="180" height="48" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="2"/>
+  <text x="322" y="335" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b" text-anchor="middle">Invalidated</text>
+  <text x="322" y="352" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">→ pivot or kill cheaply</text>
+
+  <rect x="432" y="312" width="176" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="520" y="335" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb" text-anchor="middle">Repeat</text>
+  <text x="520" y="352" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">until idea is de-risked</text>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Aesthetic-Usability Effect diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Aesthetic-Usability Effect</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Attractive design is perceived as more usable — and forgives small flaws</text>
+
+  <!-- Left panel: attractive -->
+  <rect x="32" y="84" width="266" height="276" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="112" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Attractive design</text>
+
+  <text x="48" y="150" font-family="sans-serif" font-size="13" fill="#1d2438">First impression:</text>
+  <text x="48" y="170" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">“This feels easy to use”</text>
+
+  <text x="48" y="206" font-family="sans-serif" font-size="13" fill="#5b6680">Positive affect →</text>
+  <text x="48" y="224" font-family="sans-serif" font-size="13" fill="#5b6680">more patience, more trust</text>
+
+  <!-- forgiveness gauge -->
+  <text x="48" y="262" font-family="sans-serif" font-size="13" fill="#1d2438">Tolerance for small flaws</text>
+  <rect x="48" y="274" width="234" height="14" rx="7" fill="#e4ecff"/>
+  <rect x="48" y="274" width="200" height="14" rx="7" fill="#0ea5a4"/>
+  <text x="48" y="316" font-family="sans-serif" font-size="13" fill="#5b6680">Minor friction is excused;</text>
+  <text x="48" y="334" font-family="sans-serif" font-size="13" fill="#5b6680">satisfaction stays high</text>
+
+  <!-- Right panel: plain -->
+  <rect x="342" y="84" width="266" height="276" rx="10" fill="#ffffff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="358" y="112" font-family="sans-serif" font-size="15" font-weight="700" fill="#5b6680">Plain / clunky design</text>
+
+  <text x="358" y="150" font-family="sans-serif" font-size="13" fill="#1d2438">First impression:</text>
+  <text x="358" y="170" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">“This looks hard to use”</text>
+
+  <text x="358" y="206" font-family="sans-serif" font-size="13" fill="#5b6680">Negative affect →</text>
+  <text x="358" y="224" font-family="sans-serif" font-size="13" fill="#5b6680">less patience, quick to blame UI</text>
+
+  <text x="358" y="262" font-family="sans-serif" font-size="13" fill="#1d2438">Tolerance for small flaws</text>
+  <rect x="358" y="274" width="234" height="14" rx="7" fill="#f1f3f8"/>
+  <rect x="358" y="274" width="62" height="14" rx="7" fill="#ef4444"/>
+  <text x="358" y="316" font-family="sans-serif" font-size="13" fill="#5b6680">Same flaw feels broken;</text>
+  <text x="358" y="334" font-family="sans-serif" font-size="13" fill="#5b6680">usability problems surface fast</text>
+
+  <!-- caution band -->
+  <text x="320" y="388" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#f59e0b">Caution: beauty can mask real usability defects in testing</text>
+</svg>

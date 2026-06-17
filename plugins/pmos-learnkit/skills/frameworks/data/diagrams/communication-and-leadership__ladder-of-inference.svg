@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Ladder of Inference diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Ladder of Inference</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">How we climb from raw data to action — often distorting reality</text>
+
+  <!-- rungs, bottom = data, top = action -->
+  <!-- rung 7: Action -->
+  <rect x="120" y="78" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="100" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">7 · Action — I act on my beliefs</text>
+
+  <!-- rung 6: Beliefs -->
+  <rect x="120" y="118" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="140" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">6 · Beliefs — I adopt beliefs about the world</text>
+
+  <!-- rung 5: Conclusions -->
+  <rect x="120" y="158" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="320" y="180" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">5 · Conclusions — I draw conclusions</text>
+
+  <!-- rung 4: Assumptions -->
+  <rect x="120" y="198" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="220" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">4 · Assumptions — I make assumptions</text>
+
+  <!-- rung 3: Meaning -->
+  <rect x="120" y="238" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="320" y="260" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">3 · Meaning — I add interpreted meaning</text>
+
+  <!-- rung 2: Selected data -->
+  <rect x="120" y="278" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="320" y="300" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">2 · Selected data — I pick what I notice</text>
+
+  <!-- rung 1: Observable data -->
+  <rect x="120" y="318" width="400" height="34" rx="5" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="320" y="340" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">1 · Observable data &amp; experience (reality)</text>
+
+  <!-- upward arrow (climbing) -->
+  <line x1="92" y1="346" x2="92" y2="92" stroke="#2563eb" stroke-width="2.5"/>
+  <polygon points="92,80 86,96 98,96" fill="#2563eb"/>
+  <text x="78" y="220" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle" transform="rotate(-90 78 220)">we climb in a millisecond</text>
+
+  <!-- reflexive loop downward -->
+  <line x1="548" y1="95" x2="548" y2="335" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 4"/>
+  <polygon points="548,348 542,332 554,332" fill="#ef4444"/>
+  <text x="566" y="220" font-family="sans-serif" font-size="11" fill="#ef4444" text-anchor="middle" transform="rotate(90 566 220)">reflexive loop: beliefs filter the data we select</text>
+</svg>

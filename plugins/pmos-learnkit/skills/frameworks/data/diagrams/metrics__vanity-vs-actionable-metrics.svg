@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Vanity Vs. Actionable Metrics diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Vanity vs. Actionable Metrics</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Eric Ries: does the number change how you act?</text>
+
+  <!-- Left panel: Vanity -->
+  <rect x="28" y="80" width="276" height="288" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="166" y="110" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#ef4444">VANITY</text>
+  <text x="166" y="130" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">flattering, can only go up</text>
+
+  <text x="48" y="166" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Cumulative totals</text>
+  <text x="48" y="184" font-family="sans-serif" font-size="12" fill="#5b6680">total signups, lifetime pageviews</text>
+  <text x="48" y="212" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Raw counts</text>
+  <text x="48" y="230" font-family="sans-serif" font-size="12" fill="#5b6680">hits, downloads, followers</text>
+  <text x="48" y="258" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">No cause &amp; effect</text>
+  <text x="48" y="276" font-family="sans-serif" font-size="12" fill="#5b6680">number rose — but why?</text>
+
+  <text x="48" y="320" font-family="sans-serif" font-size="12" font-style="italic" fill="#ef4444">"We grew!"</text>
+  <text x="48" y="344" font-family="sans-serif" font-size="12" fill="#5b6680">→ no decision follows</text>
+
+  <!-- Right panel: Actionable -->
+  <rect x="336" y="80" width="276" height="288" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="474" y="110" text-anchor="middle" font-family="sans-serif" font-size="17" font-weight="700" fill="#0ea5a4">ACTIONABLE</text>
+  <text x="474" y="130" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">the 3 A's: actionable · accessible · auditable</text>
+
+  <text x="356" y="166" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Per-user &amp; ratios</text>
+  <text x="356" y="184" font-family="sans-serif" font-size="12" fill="#5b6680">conversion %, ARPU, retention</text>
+  <text x="356" y="212" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Cohort-based</text>
+  <text x="356" y="230" font-family="sans-serif" font-size="12" fill="#5b6680">behavior of one group over time</text>
+  <text x="356" y="258" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Clear cause &amp; effect</text>
+  <text x="356" y="276" font-family="sans-serif" font-size="12" fill="#5b6680">A/B split test isolates the lever</text>
+
+  <text x="356" y="320" font-family="sans-serif" font-size="12" font-style="italic" fill="#0ea5a4">"This change lifted week-2 retention 4%"</text>
+  <text x="356" y="344" font-family="sans-serif" font-size="12" fill="#2563eb">→ a decision follows</text>
+
+  <!-- divider arrow -->
+  <text x="320" y="230" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#5b6680">→</text>
+</svg>

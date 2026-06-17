@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Fake Door Test diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Fake Door Test</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Measure click intent for a feature that does not exist yet</text>
+
+  <!-- Step 1: door -->
+  <rect x="40" y="96" width="150" height="240" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="115" y="120" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">1. Painted door</text>
+  <!-- door shape -->
+  <rect x="80" y="140" width="70" height="150" rx="4" fill="#ffffff" stroke="#5b6680" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <circle cx="138" cy="218" r="4" fill="#f59e0b"/>
+  <text x="115" y="312" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Button / link /</text>
+  <text x="115" y="326" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">landing page</text>
+
+  <!-- arrow -->
+  <line x1="196" y1="216" x2="232" y2="216" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="232,210 244,216 232,222" fill="#1d2438"/>
+
+  <!-- Step 2: click -->
+  <rect x="250" y="96" width="150" height="240" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="325" y="120" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">2. User clicks</text>
+  <circle cx="325" cy="210" r="46" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="325" y="206" font-family="sans-serif" font-size="26" font-weight="700" fill="#0ea5a4" text-anchor="middle">28%</text>
+  <text x="325" y="226" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">click rate</text>
+  <text x="325" y="300" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Revealed demand,</text>
+  <text x="325" y="314" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">not survey intent</text>
+
+  <!-- arrow -->
+  <line x1="406" y1="216" x2="442" y2="216" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="442,210 454,216 442,222" fill="#1d2438"/>
+
+  <!-- Step 3: honest decision -->
+  <rect x="460" y="96" width="150" height="240" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="535" y="120" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">3. Honest curtain</text>
+  <rect x="485" y="142" width="100" height="58" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1.2"/>
+  <text x="535" y="166" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">“Coming soon —</text>
+  <text x="535" y="182" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">notify me”</text>
+  <line x1="500" y1="222" x2="570" y2="222" stroke="#5b6680" stroke-width="1"/>
+  <text x="535" y="252" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb" text-anchor="middle">Build it?</text>
+  <text x="503" y="280" font-family="sans-serif" font-size="11" fill="#0ea5a4">✓ high intent → build</text>
+  <text x="503" y="300" font-family="sans-serif" font-size="11" fill="#ef4444">✗ low intent → drop</text>
+  <text x="535" y="324" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">Decide before coding</text>
+
+  <text x="32" y="372" font-family="sans-serif" font-size="12" fill="#5b6680">Pretotyping (Savoia): test The Right It with revealed demand before you build It right.</text>
+</svg>

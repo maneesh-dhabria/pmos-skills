@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Five Whys diagram">
+<rect width="640" height="400" fill="#ffffff"/>
+<text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Five Whys</text>
+<text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Ask &#8220;Why?&#8221; ~5 times &#8212; each answer feeds the next &#8212; to reach root cause.</text>
+
+<!-- Symptom box -->
+<rect x="32" y="78" width="220" height="40" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+<text x="44" y="103" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Symptom: site is down</text>
+
+<!-- chevron down -->
+<path d="M250 98 L268 98 L259 110 Z" fill="#5b6680"/>
+
+<!-- Why ladder -->
+<g font-family="sans-serif">
+<!-- Why 1 -->
+<rect x="32" y="124" width="540" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+<circle cx="52" cy="143" r="13" fill="#2563eb"/>
+<text x="52" y="148" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+<text x="76" y="139" font-size="12" font-weight="700" fill="#1d2438">Why down?</text>
+<text x="76" y="155" font-size="12" fill="#5b6680">A server overloaded.</text>
+
+<!-- Why 2 -->
+<rect x="32" y="166" width="540" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+<circle cx="52" cy="185" r="13" fill="#2563eb"/>
+<text x="52" y="190" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+<text x="76" y="181" font-size="12" font-weight="700" fill="#1d2438">Why overloaded?</text>
+<text x="76" y="197" font-size="12" fill="#5b6680">A bad config was deployed.</text>
+
+<!-- Why 3 -->
+<rect x="32" y="208" width="540" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+<circle cx="52" cy="227" r="13" fill="#2563eb"/>
+<text x="52" y="232" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+<text x="76" y="223" font-size="12" font-weight="700" fill="#1d2438">Why bad config?</text>
+<text x="76" y="239" font-size="12" fill="#5b6680">An engineer wasn&#8217;t trained on it.</text>
+
+<!-- Why 4 -->
+<rect x="32" y="250" width="540" height="38" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.2"/>
+<circle cx="52" cy="269" r="13" fill="#2563eb"/>
+<text x="52" y="274" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+<text x="76" y="265" font-size="12" font-weight="700" fill="#1d2438">Why untrained?</text>
+<text x="76" y="281" font-size="12" fill="#5b6680">No onboarding checklist exists.</text>
+
+<!-- Why 5 -->
+<rect x="32" y="292" width="540" height="38" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+<circle cx="52" cy="311" r="13" fill="#0ea5a4"/>
+<text x="52" y="316" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+<text x="76" y="307" font-size="12" font-weight="700" fill="#1d2438">Why no checklist?</text>
+<text x="76" y="323" font-size="12" fill="#5b6680">Root cause &#8212; no onboarding process.</text>
+</g>
+
+<!-- chevron to fix -->
+<path d="M296 332 L344 332 L320 346 Z" fill="#0ea5a4"/>
+
+<!-- Fix box -->
+<rect x="160" y="350" width="320" height="38" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.6"/>
+<text x="320" y="374" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4" text-anchor="middle">Fix the root cause: build an onboarding process</text>
+</svg>

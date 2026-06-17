@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Business of Platforms diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Business of Platforms</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Two platform types — and the four levers to win the multi-sided market</text>
+
+  <!-- Two type panels -->
+  <rect x="32" y="78" width="280" height="118" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="104" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Innovation platform</text>
+  <text x="48" y="126" font-family="sans-serif" font-size="12" fill="#1d2438">A foundation others build on top of.</text>
+  <text x="48" y="146" font-family="sans-serif" font-size="12" fill="#5b6680">Value = complements &amp; ecosystem.</text>
+  <text x="48" y="176" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">e.g. iOS · Windows · AWS</text>
+
+  <rect x="328" y="78" width="280" height="118" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="344" y="104" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Transaction platform</text>
+  <text x="344" y="126" font-family="sans-serif" font-size="12" fill="#1d2438">Matches two or more sides.</text>
+  <text x="344" y="146" font-family="sans-serif" font-size="12" fill="#5b6680">Value = each match completed.</text>
+  <text x="344" y="176" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#1d2438">e.g. Uber · Airbnb · Amazon Mktpl.</text>
+
+  <!-- Four levers ladder -->
+  <text x="32" y="228" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Four design levers to win</text>
+
+  <rect x="32" y="240" width="576" height="34" rx="7" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <circle cx="52" cy="257" r="9" fill="#2563eb"/>
+  <text x="52" y="261" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">1</text>
+  <text x="72" y="261" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Pick the sides &amp; market</tspan> — choose the two-plus sides whose interaction creates value.</text>
+
+  <rect x="32" y="280" width="576" height="34" rx="7" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <circle cx="52" cy="297" r="9" fill="#0ea5a4"/>
+  <text x="52" y="301" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">2</text>
+  <text x="72" y="301" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Solve chicken-or-egg</tspan> — subsidize the hard side, seed supply, go market-by-market.</text>
+
+  <rect x="32" y="320" width="576" height="34" rx="7" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <circle cx="52" cy="337" r="9" fill="#f59e0b"/>
+  <text x="52" y="341" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">3</text>
+  <text x="72" y="341" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Price the multi-sided market</tspan> — subsidize one side, monetize the side that pays.</text>
+
+  <rect x="32" y="360" width="576" height="34" rx="7" fill="#ffffff" stroke="#5b6680" stroke-width="1"/>
+  <circle cx="52" cy="377" r="9" fill="#ef4444"/>
+  <text x="52" y="381" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">4</text>
+  <text x="72" y="381" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700">Govern the ecosystem</tspan> — set rules, curate quality, keep trust without killing growth.</text>
+</svg>
