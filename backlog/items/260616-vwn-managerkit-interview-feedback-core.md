@@ -5,6 +5,7 @@ title: "pmos-managerkit + /interview-feedback core"
 type: feature
 kind: story
 status: done
+released: 0.1.0
 route: skill
 priority: should
 labels: [interview-feedback, pmos-managerkit, new-plugin, skill]

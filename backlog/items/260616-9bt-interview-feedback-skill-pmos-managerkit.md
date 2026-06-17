@@ -4,12 +4,13 @@ id: 260616-9bt
 title: "/interview-feedback skill + pmos-managerkit plugin"
 type: feature
 kind: epic
-status: defined
+status: released
+released: 0.1.0
 route: skill
 priority: should
 labels: [interview-feedback, pmos-managerkit, new-plugin, skill]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 source: docs/design-briefs/2026-06-16-interview-feedback-skill.md
 design_doc: docs/pmos/features/2026-06-16_interview-feedback/02_design.html
 parent:

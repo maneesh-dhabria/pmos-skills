@@ -40,7 +40,7 @@ Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit
 | 260614-m68 | released | feature | pmos-toolkit | 0/1 | html-authoring typography & layout refresh ("Editorial Technical") — serif body + sans headings + mono structure, centered doc, inline comments (supersedes 260613-ev1) |
 | 260614-za3 | released | feature | pmos-toolkit | 0/1 | Artifact wordmark + footer linking — header wordmark → pmos-skills repo, footer → per-plugin README; fix stale archived-repo URL; author 4 plugin READMEs |
 | 260615-565 | released | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) — pmos-learnkit/v0.22.0 |
-| 260616-9bt | defined | skill | pmos-managerkit | 0/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
+| 260616-9bt | released | skill | pmos-managerkit | 2/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 | 260616-bq9 | defined | skill | pmos-toolkit | 0/3 | /shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup |
 | 260616-tqf | defined | skill | pmos-learnkit | 0/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
 
