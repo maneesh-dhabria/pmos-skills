@@ -9,13 +9,15 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-learnkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_playbook-evolution-mode/
 plan_doc: docs/pmos/features/2026-06-17_playbook-evolution-mode/stories/260617-evo/03_plan.html
 tasks: docs/pmos/features/2026-06-17_playbook-evolution-mode/stories/260617-evo/tasks.yaml
 worktree: .claude/worktrees/feat-260617-evo
 claimed_by: build:loop-main
 driver_holder: build:loop-main
+build_branch: feat/260617-evo
+build_commit: af22119
 labels: [pmos-learnkit, playbook, evolution-mode, new-skill]
 created: 2026-06-17
 updated: 2026-06-18
