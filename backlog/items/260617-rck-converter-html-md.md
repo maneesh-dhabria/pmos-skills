@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: [260617-7ag]
 plugin: pmos-utilities
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_converter/
 plan_doc: docs/pmos/features/2026-06-17_converter/stories/260617-rck/03_plan.html
 tasks: docs/pmos/features/2026-06-17_converter/stories/260617-rck/tasks.yaml
 worktree: .claude/worktrees/feat-260617-rck
-claimed_by: build:loop-main
-driver_holder: build:loop-main
+build_branch: feat/260617-rck
+build_commit: e08c7e1
 labels: [pmos-utilities, converter, markdown, html]
 created: 2026-06-17
 updated: 2026-06-18
