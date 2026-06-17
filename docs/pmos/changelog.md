@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-17 — pmos-toolkit 2.85.0: /shape — explore the problem before you solve it
+
+A new **`/shape`** command collaboratively explores the *problem space* before any solutioning. It probes the problem from multiple lenses (floor, ceiling, and context), keeps a visible "lens ledger" so an uncovered dimension is never silently skipped, runs a mandatory off-deck ceiling-breaker, and converges to a one-page problem brief (HMW + JTBD + felt problem + competing framings) — without ever naming a solution. The brief now feeds the rest of the pipeline: `/ideate` adopts `/shape`'s frame instead of re-deriving it, and `/feature-sdlc` runs `/shape` as a gated problem-shaping front (auto-skipped for trivial work, required for features).
+
+- **`/shape`.** Turn a fuzzy problem into a converged, well-explored problem brief before committing to a solution.
+- **`/ideate` adopts a `/shape` brief.** Hand `/ideate` a `/shape` brief (`--from-shape`, or auto-discovered) and it skips re-framing, spending its effort on the solution space.
+- **`/feature-sdlc` problem-shaping front-gate.** Features now run `/shape` as Phase 1a (mandatory for Tier 2+, auto-skipped at Tier 1); additive and back-compatible — in-flight runs are unaffected.
+
 ## 2026-06-17 — pmos-managerkit 0.1.0: new plugin — /interview-feedback
 
 A new **pmos-managerkit** plugin joins the marketplace, for manager work — hiring, team, and reviews. Its first command, **`/interview-feedback`**, turns a candidate's interview inputs (notes, transcripts, recordings) into a grounded, filled-in scorecard plus per-interviewer coaching notes. Every score and observation is cited back to verbatim evidence from the interview — it won't assert a rating it can't ground in at least a 40-character quote. It ships with starter scorecard + interviewer-reference guideline pairs for seven common PM interview rounds, and recordings are transcribed locally (ffmpeg + whisper when present, with graceful degradation otherwise).

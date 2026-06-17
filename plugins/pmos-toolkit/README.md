@@ -14,6 +14,7 @@
 - **/feature-sdlc** — End-to-end SDLC orchestrator across all of the above; also `skill`, `prototype`, `define`, and `build` modes. `/skill-sdlc` and `/prototype-sdlc` are thin aliases.
 
 ### Discovery & design
+- **/shape** — Collaboratively explore the problem space before solutioning — floor/ceiling/context lens-ledger probing into a converged problem brief.
 - **/ideate** — Turn a fuzzy idea into a pressure-tested one-page brief.
 - **/grill** — Adversarially interview you about a plan, spec, or design to surface shaky assumptions.
 - **/creativity** — Apply structured creativity techniques to requirements before /spec.
