@@ -13,7 +13,7 @@ dependencies: [260616-f7w, 260616-v4h]
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 plan_doc: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-y9f/03_plan.html
 tasks: docs/pmos/features/2026-06-16_curated-references-overlay/stories/260616-y9f/tasks.yaml
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-y9f
+worktree:
 claimed_by: null
 driver_holder: null
 labels: [pmos-learnkit, library-viewer, learn-list, browse, curated-references, web-ui]
