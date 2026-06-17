@@ -7,6 +7,7 @@ title: Extract _shared/library-viewer/ substrate + retrofit /frameworks onto it 
 type: feature
 priority: should
 status: done
+released: 0.27.0
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
@@ -17,7 +18,7 @@ claimed_by:
 driver_holder:
 labels: [pmos-learnkit, library-viewer, frameworks, browse, web-ui]
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260616-f7w -->

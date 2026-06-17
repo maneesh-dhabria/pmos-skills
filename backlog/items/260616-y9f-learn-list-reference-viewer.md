@@ -7,6 +7,7 @@ title: Build the /learn-list reference viewer on the substrate + curated corpus
 type: feature
 priority: should
 status: done
+released: 0.27.0
 route: skill
 dependencies: [260616-f7w, 260616-v4h]
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/

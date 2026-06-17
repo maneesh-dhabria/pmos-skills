@@ -7,6 +7,7 @@ title: Retrofit /primer browse viewer onto the library-viewer substrate (preserv
 type: feature
 priority: should
 status: done
+released: 0.27.0
 route: skill
 dependencies: [260616-f7w]
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/

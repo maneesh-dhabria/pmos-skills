@@ -7,6 +7,7 @@ title: Curated-references overlay engine — ship scrubbed corpus + IDF prefilte
 type: feature
 priority: should
 status: done
+released: 0.27.0
 route: skill
 dependencies: []
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/

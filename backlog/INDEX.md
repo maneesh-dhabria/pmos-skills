@@ -42,7 +42,7 @@ Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit
 | 260615-565 | released | skill | pmos-learnkit | 1/1 | /primer browse library — ship the pre-built 61-primer corpus + a filterable offline listing page (modeled on /frameworks) — pmos-learnkit/v0.22.0 |
 | 260616-9bt | released | skill | pmos-managerkit | 2/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 | 260616-bq9 | released | skill | pmos-toolkit | 3/3 | /shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup |
-| 260616-tqf | defined | skill | pmos-learnkit | 0/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
+| 260616-tqf | released | skill | pmos-learnkit | 4/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
 
 ## must
 

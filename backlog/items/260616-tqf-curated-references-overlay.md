@@ -4,12 +4,13 @@ id: 260616-tqf
 kind: epic
 title: "Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer"
 type: feature
-status: defined
+status: released
+released: 0.27.0
 priority: should
 labels: [pmos-learnkit, topic-research, curated-references, library-viewer, browse, primer, learn-list]
 route: skill
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 source: docs/pmos/features/2026-06-16_curated-references-overlay/02_design.html
 feature_folder: docs/pmos/features/2026-06-16_curated-references-overlay/
 design_doc: docs/pmos/features/2026-06-16_curated-references-overlay/02_design.html
