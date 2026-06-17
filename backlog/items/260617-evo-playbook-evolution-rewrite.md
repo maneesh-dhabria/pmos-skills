@@ -9,16 +9,16 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-learnkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-17_playbook-evolution-mode/
 plan_doc: docs/pmos/features/2026-06-17_playbook-evolution-mode/stories/260617-evo/03_plan.html
 tasks: docs/pmos/features/2026-06-17_playbook-evolution-mode/stories/260617-evo/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260617-evo
+claimed_by: build:loop-main
+driver_holder: build:loop-main
 labels: [pmos-learnkit, playbook, evolution-mode, new-skill]
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-evo -->
