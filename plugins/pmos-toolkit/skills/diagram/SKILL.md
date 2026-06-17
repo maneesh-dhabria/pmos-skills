@@ -2,7 +2,7 @@
 name: diagram
 description: Generate a single SVG vector diagram from a free-form description (with optional source markdown) — architecture, flow, hierarchy, dependency, sequence, state, mental-model, etc. Brainstorms 2–3 structural framings from first principles, asks the user to pick, then drafts and self-evaluates against a hybrid rubric (deterministic SVG metrics with hard-fails + a binary vision check on a rendered raster) with up to 2 refinement loops. Applies a configurable theme (default `technical`; switch with `--theme editorial`) so every output is consistent. Standalone utility — does not load workstream context. Use when the user says "draw a diagram", "create an architecture diagram", "show how X flows", "make an SVG of this concept", "diagram this", or wants a vector visual of any system/flow/structure.
 user-invocable: true
-argument-hint: "<free-form description> [--source <path>] [--out <path>] [--approach <free-text>] [--theme technical|editorial] [--mode diagram|infographic] [--rigor high|medium|low] [--clear-cache] [--selftest] [--non-interactive | --interactive] [--on-failure drop|ship-with-warning|exit-nonzero]"
+argument-hint: "<free-form description> [--source <path>] [--out <path>] [--approach <free-text>] [--theme technical|editorial] [--mode diagram|infographic|mindmap] [--rigor high|medium|low] [--clear-cache] [--selftest] [--non-interactive | --interactive] [--on-failure drop|ship-with-warning|exit-nonzero]"
 ---
 
 # `/diagram` — SVG Diagram Generator
@@ -11,7 +11,7 @@ argument-hint: "<free-form description> [--source <path>] [--out <path>] [--appr
 
 Produce one `.svg` file plus a `<slug>.diagram.json` sidecar that records the design decisions. The active theme (`themes/<theme>/theme.yaml`) is the single machine authority for visual style; a hybrid eval (`eval/code-metrics.md` + `eval/rubric.md`) gates the output. The skill is **standalone** — it does not load workstream context and does not gate any pipeline stage.
 
-**NL-first options:** infer flag values from the request — "quick draft" ≡ `--rigor low`, "editorial style" ≡ `--theme editorial`, "make it an infographic" ≡ `--mode infographic`; an explicit flag always overrides. Never infer `--clear-cache` (destructive) or `--on-failure` (machine contract for callers).
+**NL-first options:** infer flag values from the request — "quick draft" ≡ `--rigor low`, "editorial style" ≡ `--theme editorial`, "make it an infographic" ≡ `--mode infographic`, "draw a mind map" / "as a mindmap" ≡ `--mode mindmap`; an explicit flag always overrides. Never infer `--clear-cache` (destructive) or `--on-failure` (machine contract for callers).
 
 ---
 
@@ -46,7 +46,8 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /diagram` a
 
 1. **Parse args.**
    - Positional: free-form description (required, unless `--clear-cache` or `--selftest` is the only arg).
-   - Flags: `--source <path>`, `--out <path>`, `--approach <text>`, `--theme <name>` (default `technical`), `--mode diagram|infographic` (default `diagram`), `--rigor high|medium|low` (default `high`), `--clear-cache`, `--selftest`, `--on-failure {drop|ship-with-warning|exit-nonzero}`.
+   - Flags: `--source <path>`, `--out <path>`, `--approach <text>`, `--theme <name>` (default `technical`), `--mode diagram|infographic|mindmap` (default `diagram`), `--rigor high|medium|low` (default `high`), `--clear-cache`, `--selftest`, `--on-failure {drop|ship-with-warning|exit-nonzero}`.
+   - **`--approach` for `--mode mindmap`:** the value `radial` or `tree` selects the layout family (forces it, skips the Phase 2 brainstorm exactly as `--approach <text>` does for other modes); any other `--approach` text is treated as a free-text framing and the theme's `mindmap.defaultLayout` chooses the family.
    - `--on-failure` validation: unknown value → print `error: --on-failure must be one of {drop, ship-with-warning, exit-nonzero}` to stderr, exit 64. Default when `mode == non-interactive` and flag absent: `exit-nonzero`. When `mode == interactive` the flag is parsed but advisory only — Phase 7's interactive prompt remains the source of truth.
    - Derive `<slug>` = first 5–6 content words of the description, kebab-cased.
    - **Resolve `{docs_path}`**: read `.pmos/settings.yaml` in the current repo; if present, use its `docs_path` value. If absent, fall back to `docs/pmos/` (create on demand).
@@ -60,7 +61,7 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /diagram` a
 
 4. **Resolve `--theme`** (default `technical`). Load `themes/<theme>/theme.yaml` and validate it against `themes/_schema.json`. Missing file or schema failure → print the error and exit 2. The theme governs palette, typography, strokes, connector dispatch, arrowheads, and rubric overrides.
 
-5. **Resolve `--mode`** (default `diagram`). If `--mode infographic` AND `theme.infographic.supported: false`, refuse with: `Theme '<theme>' does not support infographic mode. Use --theme editorial or --mode diagram.` Exit 2.
+5. **Resolve `--mode`** (default `diagram`). If `--mode infographic` AND `theme.infographic.supported: false`, refuse with: `Theme '<theme>' does not support infographic mode. Use --theme editorial or --mode diagram.` Exit 2. If `--mode mindmap` AND the active theme lacks a `mindmap` block OR has `mindmap.supported: false`, refuse with: `Theme '<theme>' does not support mindmap mode. Use --theme technical or a mindmap-capable theme.` Exit 2. (Both default themes — `technical`, `editorial` — support mindmap; the refuse path guards future themes that don't.)
 
 6. **Read `themes/<theme>/style.md`** end-to-end — it carries the rationale and layout guidance behind the theme.yaml tokens.
 
@@ -123,11 +124,18 @@ Read `~/.pmos/learnings.md` if it exists. Note any entries under `## /diagram` a
    ```
    When the active theme has `connectors.mixingPermitted: true`, Phase 3 MUST assign a `role` to every relationship (default to `default` only when no other role fits). When `mixingPermitted: false`, `role` is optional and ignored at draw time. This becomes the sidecar's `entities` / `relationships` arrays.
 
+   **Mindmap hierarchy model (`--mode mindmap`, FR-A1).** Build a single rooted tree `{ id, label, children: [...] }` instead of (or in addition to) the flat entity/relationship lists: take the root from the most central concept in `--source`/the description, nest children by the document's explicit hierarchy (headings, indented bullets, "X has A, B, C"). A **flat input with no hierarchy degrades to a single-level radial** — root + every entity as a depth-1 leaf. Each tree node still becomes an `entities` row; every parent→child link becomes a `relationships` row (`kind: directed`) so the sidecar and eval stay uniform.
+
 ---
 
 ## Phase 2 — Approach selection {#approach}
 
-If `--approach <text>` was passed: skip the brainstorm, use the supplied framing, announce it. Sidecar `alternativesConsidered` is `[]`.
+If `--approach <text>` was passed: skip the brainstorm, use the supplied framing, announce it. Sidecar `alternativesConsidered` is `[]`. (In `--mode mindmap`, `--approach radial|tree` forces that layout family directly — see Phase 0 — and likewise skips the brainstorm.)
+
+**In `--mode mindmap`**, the framing dimension is the layout family, not the diagram type. When no `--approach` was given, brainstorm exactly two framings — **`tree`** (Reingold–Tilford tidy tree; best for a clear parent→child hierarchy read left-to-right or top-down) and **`radial`** (root-centered rings; best for a balanced fan of sibling branches).
+
+<!-- defer-only: ambiguous -->
+Issue one `AskUserQuestion` ("Lay this mindmap out as a tree or radial?") with the two options — the one matching the theme's `mindmap.defaultLayout` carries `(Recommended)`. Prose-fallback: default to `mindmap.defaultLayout`. Record the choice in sidecar `approach` and proceed to Phase 3's mindmap drawing path. (Everything below this paragraph is the non-mindmap brainstorm.)
 
 Otherwise, **brainstorm 2–3 structurally distinct framings from first principles** for THIS specific content — do not pick from a hardcoded list of diagram types. Vary real structural dimensions: hierarchy direction, what's primary (actor vs artifact vs trigger), granularity, sync-vs-async edges, nesting.
 
@@ -139,6 +147,23 @@ Record the chosen framing and the rejected ones in sidecar `approach` and `alter
 ---
 
 ## Phase 3 — Draft {#draft}
+
+### Mindmap drawing path (`--mode mindmap` only, FR-A3) {#draft-mindmap}
+
+When `--mode mindmap`, replace the hand-placement of steps 2–3 below with **computed coordinates**, then author themed SVG exactly as the rest of Phase 3 prescribes:
+
+1. **Compute layout.** Pass the Phase 1 hierarchy tree to the vendored layout module:
+   ```bash
+   echo '<tree-json>' | node "${CLAUDE_PLUGIN_ROOT}/skills/diagram/scripts/mindmap-layout.mjs" --layout <tree|radial>
+   ```
+   (or `import { layout } from '.../scripts/mindmap-layout.mjs'`). The `--layout` value is the Phase 2 family (`mindmap.defaultLayout` if not chosen). It returns `{ positions: {id:{x,y}}, edges, bounds:{width,height}, layoutEngine }` — all coordinates pre-spaced to be non-overlapping. **Do not hand-nudge** the returned coordinates; the layout is authoritative (re-run with a different family if it reads poorly).
+2. **Size the canvas** to the returned `bounds` (don't force a fixed aspect — a mindmap's extent is data-driven). Snap the viewBox to multiples of 4.
+3. **Author SVG** per steps 3–4 of the standard path (the `svg-primer.md` scaffold + the active theme's tokens), placing each node rect/label at its computed `positions[id]`. Draw every `edges` entry as a **curved connector** when `theme.mindmap.connector: curved` (a quadratic/cubic `<path>` from parent to child), else per the theme's connector rule. Color by depth or branch using only declared palette tokens; add a legend only if ≥2 categorical colors are used.
+4. **Write the working sidecar** (step 7 below) with the extra mindmap fields: `mode: "mindmap"`, `layoutEngine` (from the module — `"mindmap-tidytree"` or `"mindmap-radial"`), and `positions` (the computed map). An Extend re-run (Phase 1) treats these `positions` as fixed, exactly like any other diagram.
+
+Then continue at step 6 below (temp write) — steps 4 (code-metrics) onward are identical; the eval reads `mode: "mindmap"` from the working sidecar and applies the relaxed node cap automatically.
+
+### Standard drawing path (`--mode diagram|infographic`)
 
 1. **Choose canvas** from the active theme's `style.md` §5.7 by content shape — 16:10 (flows, architectures, sequences; default), 1:1 (hierarchies, radial), 4:5 (tall trees, deep stacks). Announce the choice and why.
 
@@ -165,7 +190,7 @@ python3 -c "
 import sys, json
 sys.path.insert(0, '${CLAUDE_PLUGIN_ROOT}/skills/diagram/tests')
 import run
-print(json.dumps(run.evaluate('<out>.svg.tmp', theme='<active-theme>', sidecar_path='<out>.diagram.json.tmp'), indent=2))
+print(json.dumps(run.evaluate('<out>.svg.tmp', theme='<active-theme>', sidecar_path='<out>.diagram.json.tmp', mode='<active-mode>'), indent=2))
 "
 ```
 
@@ -175,7 +200,7 @@ Metric definitions live in `eval/code-metrics.md`; the implementation is `tests/
 
 - `hard_fails == []` AND `code_score >= 0.8` → proceed to Phase 5.
 - Any `hard_fails` OR `code_score < 0.8` →
-  - If node-count diagnostic is in [21, 30]: issue the node-count split prompt now — `AskUserQuestion`: "This diagram has N nodes. Split into 2 diagrams or proceed?" Options: **Proceed anyway (Recommended)** / **Split** / **Cancel**. Record any override in sidecar `evalSummary.userOverrides`.
+  - If node-count diagnostic is in [21, 30] **and `--mode` is not `mindmap`**: issue the node-count split prompt now — `AskUserQuestion`: "This diagram has N nodes. Split into 2 diagrams or proceed?" Options: **Proceed anyway (Recommended)** / **Split** / **Cancel**. Record any override in sidecar `evalSummary.userOverrides`. (Mindmap mode is built for higher density — no split prompt; its cap is `theme.mindmap.nodeCap`.)
   - Otherwise: enter Phase 6 with these findings as targets. Skip Phase 5 for now (vision review is wasted on a code-failing draft).
 
 ---
@@ -292,7 +317,7 @@ Runs after Phase 6 produces a clean diagram; skipped for `--mode diagram` (Phase
    ```
    This injects `data-anchor="<slug>"` on every `<g>`, top-level `<rect>`, and top-level `<path>`. Slug derivation order: `kebab(id)` → `kebab(aria-label)` → `kebab(first <text> child)` → `shape-<N>` ordinal; duplicates get `-2`/`-3` suffixes. Idempotent — re-applying is a no-op. These anchors are consumed by `/comments resolve`'s svg-data-anchor strategy when routing comment threads to diagram nodes.
 
-2. **Write `<out>.diagram.json`** (finalizing the working sidecar) via `write_sidecar()` per `reference/sidecar-schema.md`: `schemaVersion: 2`, `theme`, `mode`, `concept`, `approach`, `alternativesConsidered`, `canvas`, `entities`, `relationships` (with `role`/`_svgId` where assigned), `positions`, `colorAssignments`, `evalSummary` (including `visionItems` keyed by stable rubric IDs and `dispositions[]` from Phase 6), `createdAt` (ISO 8601 UTC), `createdBy: "pmos-toolkit:diagram@v2"`.
+2. **Write `<out>.diagram.json`** (finalizing the working sidecar) via `write_sidecar()` per `reference/sidecar-schema.md`: `schemaVersion: 2`, `theme`, `mode` (`"mindmap"` for mindmap output), `concept`, `approach`, `alternativesConsidered`, `canvas`, `entities`, `relationships` (with `role`/`_svgId` where assigned), `positions`, `colorAssignments`, `evalSummary` (in mindmap mode also persist `layoutEngine` so an Extend re-run reuses the same layout family) (including `visionItems` keyed by stable rubric IDs and `dispositions[]` from Phase 6), `createdAt` (ISO 8601 UTC), `createdBy: "pmos-toolkit:diagram@v2"`.
 
 3. **Print final stdout** (one line of path + one line of eval summary):
    ```
@@ -318,6 +343,7 @@ Runs after Phase 6 produces a clean diagram; skipped for `--mode diagram` (Phase
 - Do NOT brainstorm from a hardcoded list of diagram types ("flowchart vs hierarchy vs swimlane"). Always reason from the specific content's structure.
 - Do NOT copy the structure of any file in a theme's `atoms/` directory — those are visual primitives, not templates. Re-derive layout each time.
 - Do NOT regenerate the entire SVG when the user requests a tweak via the extend flow. Apply minimal patches preserving sidecar `positions`.
+- Do NOT hand-place or hand-nudge nodes in `--mode mindmap`. Coordinates come from `scripts/mindmap-layout.mjs` (the vendored zero-dep tidy-tree/radial layout); if the result reads poorly, switch the layout family (`tree`↔`radial`) and recompute — never improvise positions, which reintroduces the overlaps the layout engine exists to prevent.
 - Do NOT silently dump prose findings in Phase 6 — interactive findings go through `_shared/findings-dispositions.md`; non-interactive auto-applies are recorded in `evalSummary.dispositions`, never invisible.
 
 (Everything else the old anti-pattern list restated — palette, font floor, node cap, connector mixing, forbidden SVG features, renderer gate — is enforced by the Phase 0/4 hard gates and `themes/<theme>/style.md` §5.9; one home each.)

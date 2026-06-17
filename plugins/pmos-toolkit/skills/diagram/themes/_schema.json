@@ -183,6 +183,17 @@
         }
       }
     },
+    "mindmap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supported"],
+      "properties": {
+        "supported": {"type": "boolean"},
+        "defaultLayout": {"type": "string", "enum": ["tree", "radial"]},
+        "connector": {"type": "string", "enum": ["curved", "orthogonal", "straight"]},
+        "nodeCap": {"type": "integer"}
+      }
+    },
     "infographic": {
       "type": "object",
       "additionalProperties": false,

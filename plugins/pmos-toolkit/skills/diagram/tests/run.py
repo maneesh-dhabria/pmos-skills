@@ -587,6 +587,7 @@ def evaluate(
     svg_path: str | pathlib.Path,
     theme: str = "technical",
     sidecar_path: str | pathlib.Path | None = None,
+    mode: str | None = None,
 ) -> dict[str, Any]:
     svg_path = pathlib.Path(svg_path)
     theme_dict = load_theme(theme)
@@ -609,16 +610,23 @@ def evaluate(
         if not ok:
             hard_fails.append(reason)
 
-    # Caption-color-not-in-diagram hard-fail (infographic mode only)
+    # Resolve diagram mode: explicit `mode` arg wins, else read the sidecar's `mode`
+    # field (default "diagram"). Drives the node-count cap (mindmap relaxes it, 260617-1aq/D6).
+    diagram_mode = mode
     if sidecar_path.is_file():
         try:
             sidecar_data = json.loads(sidecar_path.read_text())
+            if diagram_mode is None:
+                diagram_mode = sidecar_data.get("mode")
+            # Caption-color-not-in-diagram hard-fail (infographic mode only)
             if sidecar_data.get("mode") == "infographic":
                 ok2, reason2 = check_caption_colors_in_diagram(svg_path)
                 if not ok2:
                     hard_fails.append(reason2)
         except json.JSONDecodeError:
             pass
+    if diagram_mode is None:
+        diagram_mode = "diagram"
 
     # Collect title
     title_el = root.find(f"{{{SVG_NS}}}title")
@@ -883,11 +891,17 @@ def evaluate(
                     break
             hard_fails.append(msg)
 
-    # node count hard-fail
+    # node count hard-fail. The cap is mode-aware (260617-1aq / design D6): mindmap mode
+    # relaxes the >30 hard-fail up to ~60 (auto-layout handles density that hand-placement
+    # cannot), while diagram/infographic keep the 30-node cap unchanged. The overlap,
+    # edge-tunnel, legibility, and angular-resolution checks above/below still gate for ALL
+    # modes — only the raw count ceiling moves.
     n_nodes = len(nodes)
     diagnostics["node_count"] = n_nodes
-    if n_nodes > 30:
-        hard_fails.append(f"node-count: {n_nodes} nodes exceeds maximum 30")
+    node_cap = 60 if diagram_mode == "mindmap" else 30
+    diagnostics["node_cap"] = node_cap
+    if n_nodes > node_cap:
+        hard_fails.append(f"node-count: {n_nodes} nodes exceeds maximum {node_cap}")
 
     # arrowhead-mix hard-fail (moved from the vision rubric, 2026-06-10):
     # some connectors carry arrowheads while other connector-shaped strokes
@@ -960,8 +974,19 @@ def evaluate(
             diagnostics["off_grid_coords"].append(f"{label} (abs={absval})")
     grid_snap_score = (snapped / total) if total else 1.0
 
-    # node count soft
-    if n_nodes <= 12:
+    # node count soft. Mindmap mode uses relaxed thresholds matched to its higher cap so a
+    # normal auto-laid-out mindmap (15–40 nodes) is not soft-penalized into failing the
+    # code_score >= 0.8 gate; diagram/infographic keep the original tighter curve.
+    if diagram_mode == "mindmap":
+        if n_nodes <= 20:
+            node_count_score = 1.0
+        elif n_nodes <= 40:
+            node_count_score = 0.7
+        elif n_nodes <= 60:
+            node_count_score = 0.4
+        else:
+            node_count_score = 0.0
+    elif n_nodes <= 12:
         node_count_score = 1.0
     elif n_nodes <= 20:
         node_count_score = 0.7
@@ -1019,6 +1044,105 @@ def evaluate(
 
 
 # ---------- Selftest harness ----------
+
+def _grid_svg(n: int) -> str:
+    """Synthesize an SVG of `n` non-overlapping rect nodes in a grid (for cap tests).
+
+    Surface fill + ink stroke keep it palette-clean; generous 160x100 cells keep nodes
+    far apart so the only metric that varies with `n` is the node count itself.
+    """
+    cols = 8
+    cell_w, cell_h = 160, 100
+    rect_w, rect_h = 120, 40
+    rows = (n + cols - 1) // cols
+    width = 32 + cols * cell_w
+    height = 32 + rows * cell_h
+    parts = [
+        f'<?xml version="1.0" encoding="UTF-8"?>',
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
+        f'width="{width}" height="{height}" font-family="sans-serif">',
+        "<title>cap fixture</title>",
+    ]
+    for i in range(n):
+        r, c = divmod(i, cols)
+        x = 32 + c * cell_w
+        y = 32 + r * cell_h
+        parts.append(
+            f'<rect x="{x}" y="{y}" width="{rect_w}" height="{rect_h}" '
+            f'fill="#FFFFFF" stroke="#1C1917" stroke-width="2"/>'
+        )
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def check_mindmap_cap() -> list[str]:
+    """Assert the mode-aware node-count cap (260617-1aq / D6):
+
+    a 40-node MINDMAP passes the count gate while a 40-node DIAGRAM trips the >30 cap;
+    a 61-node mindmap trips the ~60 ceiling.
+    """
+    failures: list[str] = []
+    import tempfile
+
+    def has_count_fail(svg_text: str, mode: str | None) -> bool:
+        with tempfile.TemporaryDirectory() as d:
+            p = pathlib.Path(d) / "m.svg"
+            p.write_text(svg_text)
+            res = evaluate(p, theme="technical", mode=mode)
+            return any(hf.startswith("node-count:") for hf in res["hard_fails"])
+
+    cases = [
+        ("40-node mindmap passes count gate", _grid_svg(40), "mindmap", False),
+        ("40-node diagram trips >30 cap", _grid_svg(40), "diagram", True),
+        ("40-node default (no mode) trips >30 cap", _grid_svg(40), None, True),
+        ("61-node mindmap trips ~60 cap", _grid_svg(61), "mindmap", True),
+        ("60-node mindmap passes count gate", _grid_svg(60), "mindmap", False),
+    ]
+    print("=" * 64)
+    print("MINDMAP NODE-CAP")
+    print("=" * 64)
+    for name, svg, mode, expect_fail in cases:
+        got = has_count_fail(svg, mode)
+        ok = got == expect_fail
+        status = "PASS" if ok else "FAIL"
+        if not ok:
+            failures.append(f"mindmap-cap: {name}: expected count-fail={expect_fail}, got {got}")
+        print(f"  {status}  {name}  (count-fail={got})")
+    print()
+    return failures
+
+
+def check_mindmap_layout_selftest() -> list[str]:
+    """Run the vendored layout module's own `--selftest` (no-overlap + determinism fixtures)
+    and surface its result in the python suite (T6). Node absent → skip, not fail."""
+    import shutil
+    import subprocess
+
+    failures: list[str] = []
+    print("=" * 64)
+    print("MINDMAP LAYOUT (mindmap-layout.mjs --selftest)")
+    print("=" * 64)
+    node = shutil.which("node")
+    script = HERE.parent / "scripts" / "mindmap-layout.mjs"
+    if node is None:
+        print("  SKIP  node not on PATH — layout selftest not run")
+        print()
+        return failures
+    if not script.is_file():
+        failures.append(f"mindmap-layout: script missing at {script}")
+        print(f"  FAIL  script missing at {script}")
+        print()
+        return failures
+    proc = subprocess.run(
+        [node, str(script), "--selftest"], capture_output=True, text=True
+    )
+    for line in proc.stdout.splitlines():
+        print(f"  {line}")
+    if proc.returncode != 0:
+        failures.append(f"mindmap-layout: --selftest exited {proc.returncode}")
+    print()
+    return failures
+
 
 def _iter_corpus(base_dir: pathlib.Path) -> list[tuple[pathlib.Path, str]]:
     """Yield (svg_path, theme_name) for every fixture under base_dir.
@@ -1123,6 +1247,9 @@ def run_corpus(update_snapshots: bool = False) -> int:
             print(f"  SKIP  {svg.name}  (vision-only defect; not gated by code metrics)")
 
     print()
+    failures.extend(check_mindmap_cap())
+    failures.extend(check_mindmap_layout_selftest())
+
     print("=" * 64)
     if failures:
         print(f"FAIL — {len(failures)} issue(s):")
