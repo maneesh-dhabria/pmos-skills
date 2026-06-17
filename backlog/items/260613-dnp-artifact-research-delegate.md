@@ -6,24 +6,26 @@ parent: 260613-vba
 title: Refactor /artifact research phase to delegate to _shared/research/ substrate
 type: feature
 priority: should
-status: ready
+status: planned
 route: skill
 dependencies: [260613-m64]
 feature_folder: docs/pmos/features/2026-06-13_research-skill/
-plan_doc:
-tasks:
+plan_doc: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/03_plan.html
+tasks: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/tasks.yaml
 worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-toolkit, artifact, research]
 created: 2026-06-13
-updated: 2026-06-15
+updated: 2026-06-17
 released:
 ---
 
-<!-- status: ready (ACs defined); plan DEFERRED until 260613-m64 lands — the /artifact refactor
-     depends on the realized shape of _shared/research/. Plan this story in a follow-up define
-     touch (epics stay open for planning after `defined`, D16), or at build pick once m64 is done. -->
+<!-- status: planned (2026-06-17 follow-up define touch, dep 260613-m64 now done). Plan +
+     tasks.yaml emitted under stories/260613-dnp/. The substrate (_shared/research/) lands in the
+     BUILD worktree via the D9 claim-time merge of feat/260613-m64; T1 step 0 asserts its presence.
+     Next: Loop-2 build pick. -->
+<!-- prior: ready (ACs defined); plan deferred-by-design until 260613-m64 landed (D16). -->
 
 ## Context
 
@@ -45,4 +47,8 @@ Depends on `260613-m64`; D9 claim-time merge makes the substrate present in this
 
 ## Notes
 
-Plan deferred by design — see the status comment above. Build only after `260613-m64` is `done`.
+Planned 2026-06-17 (follow-up define touch). 6 tasks: T1–T4 cite-not-restate edits to
+`research-phase.md` + `SKILL.md` (preserving /artifact deltas: warrant check, approval gate,
+deep-only gating, general-purpose dispatch, single loose-sidecar output); T5/T6 are
+`kind: verification` (deep-tier dogfood + skill-eval [D]+[J]). Build only after `260613-m64`
+is `done` (it is) — substrate arrives via the D9 claim-time dep-merge into the build worktree.

@@ -1,0 +1,138 @@
+schema_version: 1
+story: 260613-dnp
+epic: 260613-vba
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Story 2 of epic 260613-vba: refactor /artifact's deep-depth research stage to DELEGATE to the
+# _shared/research/ substrate that story 260613-m64 built (D1/D2). §K one-fact-one-home: the
+# source-tier HARD GATE and the rank-then-verify loop live ONCE in the substrate; /artifact CITES
+# them, never restates. /artifact KEEPS its own deltas (AC2 no-regression bar): the warrant/
+# auto-skip check, deep-only gating, the user-approved research plan (approval gate), the
+# general-purpose subagent dispatch, and the SINGLE loose-sidecar output contract
+# (<feature_folder>/research/<slug>-research.md — NOT an interim-reports/ subdir).
+#
+# Build-time dependency: the substrate (plugins/pmos-toolkit/skills/_shared/research/{sourcing,
+# source-tiers,fan-out}.md) lands in this story's build worktree via D9 claim-time merge of the
+# done dep feat/260613-m64 — it is NOT on main yet. T1 step 0 asserts the files are present.
+#
+# Edits touch /artifact's files ONLY (research-phase.md + SKILL.md). /execute is the sole writer.
+# T1–T4 edit two files sequentially (same files → no parallelism). T5/T6 are kind: verification —
+# run at /verify, NOT /execute. NO release-prereq tasks here (version/changelog/README/manifest are
+# release-only — ## Release prerequisites; /complete-dev owns them).
+tasks:
+  - id: T1
+    title: "Delegate research-phase.md Steps B–C (decompose + fan-out + gather) to the substrate"
+    ac: [AC1, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Step 0 (precondition): assert plugins/pmos-toolkit/skills/_shared/research/{sourcing.md,
+      source-tiers.md,fan-out.md} exist in the worktree (present via the D9 dep-merge of
+      feat/260613-m64); if absent, STOP — the dep-merge did not run. Then refactor
+      plugins/pmos-toolkit/skills/artifact/reference/research-phase.md:
+      (a) Step B "Research plan + approval" — keep the deep-only AskUserQuestion approval gate
+      verbatim (the /artifact delta), but replace any restated "break into questions" wording with a
+      cite to _shared/research/fan-out.md#decompose for HOW to decompose into independent
+      sub-questions; add the est-cost log line citing _shared/research/sourcing.md#est-cost before
+      fan-out.
+      (b) Step C "Subagent fan-out" — replace the inline worker-contract restatement (the
+      {idx,claim,source_url,confidence} shape, "verifiable URLs only", "omit rather than guess")
+      with cites: dispatch per _shared/research/fan-out.md#worker-contract and #roles; each worker
+      gathers per _shared/research/sourcing.md#rank-then-verify and obeys the hard gate at
+      _shared/research/source-tiers.md#hard-gate. PRESERVE the /artifact deltas explicitly as stated
+      deltas (not restated method): general-purpose subagent type at sonnet tier, deep-only gating,
+      concurrency cap ~4. Do NOT restate the hard gate or the rank-then-verify steps — cite them.
+      Add a short "Substrate delegation" note + Contents anchor naming the three cited files.
+
+  - id: T2
+    title: "Delegate Step D + Output contract + non-interactive degradation; preserve single-sidecar output"
+    ac: [AC1, AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Continue editing research-phase.md:
+      (a) Step D "Merge + save" — the "drop claims with no source_url / validating+tolerant reducer"
+      is the substrate hard gate: cite _shared/research/source-tiers.md#hard-gate instead of
+      restating the drop rule; keep the dedupe-by-(claim,source) + URL-normalize reducer (a
+      /artifact merge delta).
+      (b) Output contract — KEEP UNCHANGED as the explicit /artifact delta (AC2 no-regression): a
+      single loose markdown sidecar at <feature_folder>/research/<slug>-research.md, NOT rendered
+      through the HTML substrate, NOT indexed, NOT commentable, and NOT an interim-reports/ subdir.
+      State plainly that /artifact deviates from fan-out.md#interim-reports here by design (single
+      sidecar, not per-sub-question interim files) so the cite cannot be misread as adopting the
+      substrate's file layout.
+      (c) Non-interactive degradation — keep the AUTO-PICK-Approve + subagent-skip behaviour; add a
+      cite to _shared/research/fan-out.md#degrade for the collapse-to-sequential-inline rule.
+
+  - id: T3
+    title: "Trim SKILL.md Step 7.5 restatement to cite the substrate via research-phase.md"
+    ac: [AC1, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Edit plugins/pmos-toolkit/skills/artifact/SKILL.md "Step 7.5 — Research phase" (the
+      --depth deep gate). It currently restates the method inline ("the general-purpose subagent
+      fan-out (verifiable-URLs-only, omit-rather-than-guess) ..."). Trim that restatement so the line
+      cites reference/research-phase.md as the contract owner and notes the method now lives in
+      _shared/research/ (sourcing/source-tiers/fan-out), keeping only the /artifact-level facts
+      (deep-only gate, the research/<slug>-research.md sidecar fold into gathered_context). Ensure no
+      sourcing/source-tier/fan-out METHOD is restated anywhere else in SKILL.md (grep "verifiable
+      URLs", "omit rather than guess", "rank-then-verify", "hard gate").
+
+  - id: T4
+    title: "§K conformance + dangling-cite sweep + lint clean"
+    ac: [AC1, AC3, AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Conformance pass on the two edited files against reference/skill-patterns.md §A–§L (esp. §K
+      one-fact-one-home): (a) grep that every substrate cite uses a resolvable relative path +
+      anchor (../../_shared/research/<file>.md#<anchor> from research-phase.md's location — verify
+      each anchor exists in the target file's headings); (b) confirm ZERO restated hard-gate /
+      rank-then-verify / worker-contract method remains in research-phase.md or SKILL.md (cites
+      only); (c) both files are intra-plugin (pmos-toolkit → pmos-toolkit/_shared/research/) so there
+      is NO cross-plugin dangling-cite risk — record that fact. Run the repo lints and fix any
+      regressions introduced by the edits: tools/lint-flags-vs-hints.sh, tools/lint-phase-refs.sh
+      (artifact dir), tools/audit-recommended.sh (SKILL.md path), and the non-interactive-inline
+      lint. Do NOT add release-prereq tasks.
+
+  - id: T5
+    title: "VERIFICATION (run at /verify): deep-tier /artifact dogfood — zero behavioural regression"
+    ac: [AC2]
+    deps: [T4]
+    parallel: false
+    kind: verification
+    detail: >
+      DOGFOOD — executed during /verify, NOT /execute. Run /artifact create end-to-end at
+      --depth deep on a real representative doc whose content warrants external research (so the
+      warrant check fires "warranted"), with default values. Assert ZERO behavioural regression vs
+      the pre-refactor contract (AC2): (objective) the Step B approval gate fires (research plan
+      presented), the fan-out dispatches research workers, a single loose sidecar is written at
+      <feature_folder>/research/<slug>-research.md (NOT an interim-reports/ subdir, NOT indexed in
+      index.html, NOT commentable), and every research-derived claim in the sidecar carries a
+      verifiable [source](url) that resolves (provenance preserved). Then dispatch an INDEPENDENT
+      blind judge subagent (sonnet, separate from any reviewer) to score the research sidecar on
+      decision-support quality: every claim attributable + reachable per the cited
+      source-tiers.md#hard-gate, no hallucinated/unfetched sources, honest gaps over padding. Named
+      judge + dual criteria (objective gates above + subjective rubric: source quality, no slop,
+      gap-honesty). Capture the verdict. Fix obvious gaps the run surfaces (re-run skill-eval after
+      any edit). Verify-time acceptance gate, not a build edit.
+
+  - id: T6
+    title: "VERIFICATION (run at /verify): skill-eval [D]+[J] green + epic-coherence clean + Done-when walkthrough"
+    ac: [AC4]
+    deps: [T5]
+    parallel: false
+    kind: verification
+    detail: >
+      Final verification at /verify. (a) Run feature-sdlc/tools/skill-eval-check.sh
+      plugins/pmos-toolkit/skills/artifact ([D] half) — EXIT 0 or only documented pre-existing
+      residuals (capture any against HEAD^ to prove pre-existing); plus the [J] judge half against
+      reference/skill-eval.md. (b) Epic-coherence / dangling-cite check: confirm /artifact's
+      substrate cites resolve against the merged _shared/research/ tree (route:skill epic coherence
+      [J] gate clean — no dangling cite). (c) Done-when walkthrough: trace a deep-tier /artifact run
+      narratively from warrant → cited decompose → fan-out under the cited hard gate → merge →
+      single sidecar, confirming the method text is all cites and the observable behaviour is
+      unchanged. Done when: skill-eval [D]+[J] pass (or only proven pre-existing residuals), zero
+      dangling cites, T5 dogfood judge verdict = ship, all four lints green.
