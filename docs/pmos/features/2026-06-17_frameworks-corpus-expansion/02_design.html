@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /frameworks corpus expansion + re-found on direct authoring (260617-4w1)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --red:#ef4444; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+  .tag { display:inline-block; font-family: ui-monospace, monospace; font-size:.78rem; background:var(--panel); color:var(--accent); border-radius:4px; padding:.05em .4em; }
+  blockquote { border-left: 3px solid var(--teal); margin: 1rem 0; padding: .3rem 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1 id="title">Design — /frameworks corpus expansion &amp; re-found on direct authoring</h1>
+<p class="sub">Epic <code>260617-4w1</code> · route: skill · plugin: pmos-learnkit · 2026-06-17 · This is the epic <code>design_doc</code> — the cross-skill coherence contract; per-story <code>/plan</code>s cite its anchors.</p>
+
+<h2 id="context">Context</h2>
+<p>A corpus-expansion research run (documented in the source repo at
+<code>learn-magazine/docs/pmos/frameworks/</code>) produced <strong>74 net-new, ready-to-ingest framework
+records</strong> — each an embedded JSON record + a paired, house-style owned SVG — plus a written, repeatable
+<strong>research + authoring process</strong> (<code>RESEARCH-PROCESS.md</code>, <code>AUTHORING-TEMPLATE.md</code>).
+The maintainer wants those 74 merged into the bundled <code>/frameworks</code> corpus, the process captured <em>inside</em>
+the skill so future expansions are repeatable, and — a re-founding decision — the legacy <strong>Notion <code>sync</code>
+pipeline removed entirely</strong>: the corpus is now maintained by direct authoring + the documented process, so Notion is
+no longer the source of truth.</p>
+
+<p>Today the corpus is <strong>bundled and git-tracked</strong> (<code>data/frameworks.json</code> = 272 entries,
++ 421 tracked diagram SVGs). Runtime paths (retrieve / <code>--json</code> / <code>browse</code> / <code>situations</code>)
+are fully offline over that shipped corpus. Only <code>sync</code> ever touched Notion.</p>
+
+<h3 id="preflight">Pre-flight (run against the actual shipped corpus, 2026-06-17)</h3>
+<p>The 74-record batch was re-validated against <em>this</em> repo's corpus (not the author's local copy):</p>
+<table>
+<tr><th>Gate</th><th>Result</th></tr>
+<tr><td>Records parse (embedded JSON in each <code>.md</code>)</td><td>74 / 74 ✓</td></tr>
+<tr><td>id collisions vs. shipped 272 corpus / internal dupes</td><td>0 / 0 ✓</td></tr>
+<tr><td><code>problem_tags</code> ⊆ shipped 48-tag registry</td><td>0 violations ✓</td></tr>
+<tr><td><code>related[]</code> ids resolve against the merged 346 corpus</td><td>0 dangling ✓</td></tr>
+<tr><td>decision_type distribution on merged corpus (gate: no value &gt;30%, n/a ≤5%)</td><td>top = <code>strategize</code> 24.6%, <code>n/a</code> 0.9% ✓</td></tr>
+<tr><td>Each <code>.md</code> has a paired SVG under <code>candidates/diagrams/</code></td><td>74 / 74 ✓</td></tr>
+</table>
+<p>So the ingestion is low-risk mechanical work that the existing <code>validate-corpus.mjs</code> gates; the only residual
+build risk is the <code>diagram_anchors</code> ≥40-char-substring check (authored against the source body_md — must re-pass
+on this corpus) and the merged distribution gate (re-confirm post-merge).</p>
+
+<h2 id="goal">Goal &amp; non-goals</h2>
+<ul>
+<li><strong>Goal.</strong> Merge the 74 frameworks into the bundled corpus; capture the research + authoring process as shipped
+<code>/frameworks</code> reference docs; remove the Notion <code>sync</code> feature, leaving direct authoring as the single
+corpus-maintenance path.</li>
+<li><strong>Non-goal — curator <code>commentary</code>.</strong> All 74 records ship with <code>commentary: null</code> <em>by
+design</em>: per <code>AUTHORING-TEMPLATE.md</code> the "PM's take" is the curator's to write personally, never the drafter's.
+The library already renders entries with null commentary cleanly. Writing the 74 takes is deliberately out of scope (a later
+curator pass).</li>
+<li><strong>Non-goal — re-authoring the 74 records.</strong> They are accepted as-authored; the build splices them verbatim and
+relies on <code>validate-corpus.mjs</code> as the gate, only touching a record if a gate genuinely fails on this corpus.</li>
+</ul>
+
+<h2 id="decisions">Decisions</h2>
+<table>
+<tr><th>#</th><th>Decision</th><th>Why</th></tr>
+<tr><td>D1</td><td><strong>Direct-authoring ingestion path</strong>, not Notion-first. Splice the 74 embedded JSON records into <code>frameworks.json</code> + copy the 74 SVGs into <code>data/diagrams/</code>.</td><td>The candidates are net-new and <em>not</em> in Notion; the research process explicitly sanctions direct authoring for this case. Also consistent with D5 (removing sync).</td></tr>
+<tr><td>D2</td><td><strong>Drive the splice through a script</strong> (a one-shot merge helper or <code>node -e</code>), never a hand-edited 1.1 MB JSON.</td><td>Anti-pattern in SKILL.md: never hand-parse <code>frameworks.json</code>. A deterministic merge + re-serialization preserves field order/formatting and is reproducible.</td></tr>
+<tr><td>D3</td><td><strong><code>validate-corpus.mjs</code> on the merged corpus is the ingestion gate.</strong> Build is done when it exits 0 (+ <code>build-library.mjs</code> renders the new cards/diagrams).</td><td>The validator already enforces every contract that matters (required fields, tag registry, enums, related resolution, anchors, distribution, coverage). No new gate needed.</td></tr>
+<tr><td>D4</td><td><strong>Capture the process as shipped reference docs.</strong> Add <code>reference/corpus-expansion.md</code> (the research process) and fold the authoring contract (record + SVG recipe) into the skill's reference set; cite from <code>SKILL.md</code>.</td><td>Makes future expansions repeatable from within the skill; the authoring template is also what a maintainer needs to hand-author the next net-new entry now that sync is gone.</td></tr>
+<tr><td>D5</td><td><strong>Remove the Notion <code>sync</code> feature entirely</strong> — the <code>sync</code> verb/phase, its dispatch, the Notion-only Stage-A/Stage-B scripts, and <code>reference/ingestion.md</code>.</td><td>Maintainer decision: "remove frameworks sync — won't be needed." Direct authoring + the documented process replaces it; Notion is no longer the corpus source of truth.</td></tr>
+<tr><td>D6</td><td><strong>Preserve the validation substrate</strong> when removing sync. <code>derive-fields.mjs</code> exports <code>DECISION_TYPES</code>, <code>LIFECYCLE_STAGES</code>, <code>validateAnchors</code> that <code>validate-corpus.mjs</code> imports — these MUST survive. Keep them in a retained module (relocate into <code>validate-corpus.mjs</code> or a small shared file; or keep a trimmed <code>derive-fields.mjs</code> carrying only the validation exports).</td><td>This is the load-bearing coupling. Removing sync must not break the corpus validator or any runtime/authoring path. See <a href="#invariants">Invariants</a>.</td></tr>
+<tr><td>D7</td><td><strong>Story split = 2 stories</strong> (ingest; remove-sync+process), <code>route: skill</code>, story 2 depends on story 1.</td><td>Independently shippable, but both edit <code>SKILL.md</code> (count/description vs. verb surface) → serialize via dependency so the SKILL.md edits don't collide and story 2's rewrite reflects the new 346-entry, sync-free reality. See <a href="#story-split">Story split</a>.</td></tr>
+<tr><td>D8</td><td><strong>Release prerequisites are not <code>/execute</code> tasks.</strong> Version bump, changelog, README row, manifest version-sync, learnings header — all deferred to <code>/complete-dev</code> per <code>skill-patterns.md §G</code>.</td><td>Repo norm; <code>/complete-dev</code> is the sole writer of those files.</td></tr>
+</table>
+
+<h2 id="invariants">Invariants (cross-skill coherence contract)</h2>
+<p>Every story's <code>/plan</code> and <code>/skill-eval</code> is bound by these:</p>
+<ol>
+<li id="inv-runtime"><strong>Runtime + authoring paths keep working unchanged.</strong> <code>match.mjs</code> (retrieve / <code>--json</code>), <code>build-library.mjs</code> (browse), and <code>validate-corpus.mjs</code> (the corpus gate) are NOT sync — they survive intact and their <code>--selftest</code> / <code>tests/</code> stay green.</li>
+<li id="inv-validate"><strong>The corpus validator's imports never break.</strong> <code>validate-corpus.mjs</code> must keep importing <code>DECISION_TYPES</code>, <code>LIFECYCLE_STAGES</code>, <code>validateAnchors</code> from a retained module (D6). <code>node validate-corpus.mjs --selftest</code> passes after every change.</li>
+<li id="inv-offline"><strong>The corpus stays a self-contained, offline, bundled artifact.</strong> Diagrams are owned inline SVGs (no <code>http(s)</code>/S3 refs); the 74 new SVGs are git-tracked under <code>data/diagrams/</code> with the flattened <code>&lt;category&gt;__&lt;name&gt;.svg</code> names the records already reference.</li>
+<li id="inv-nodangle"><strong>No dangling cites after sync removal.</strong> Removing <code>ingestion.md</code> means <code>SKILL.md</code> and <code>corpus-schema.md</code>/<code>situation-taxonomy.md</code> must drop or repoint every reference to it and to the removed scripts (<code>split-corpus.mjs</code>, <code>apply-rederive.mjs</code>, the <code>sync</code> verb). Grep-clean is an AC.</li>
+<li id="inv-merge-once"><strong>Distribution + anchor gates re-confirmed on the merged 346 corpus</strong> — not trusted from the author's local validation.</li>
+</ol>
+
+<h2 id="frs">Functional requirements</h2>
+<h3 id="frs-ingest">Deliverable A — ingest the 74 (story <code>260617-2gw</code>)</h3>
+<ul>
+<li><strong>FR-A1.</strong> All 74 embedded JSON records are merged into <code>data/frameworks.json</code> (272 → 346), via a deterministic script (D2), preserving the existing record shape and stable ordering.</li>
+<li><strong>FR-A2.</strong> All 74 paired SVGs are copied into <code>data/diagrams/</code> under the exact flattened filenames the records' <code>diagram</code>/<code>diagrams</code> fields reference, and git-tracked.</li>
+<li><strong>FR-A3.</strong> <code>node scripts/validate-corpus.mjs data/frameworks.json data/situations.json</code> exits 0 on the merged corpus — required fields, tag registry, enums, <code>related</code> resolution, <code>diagram_anchors</code> substring + length, distribution gate, ≥95% coverage all green.</li>
+<li><strong>FR-A4.</strong> <code>node scripts/build-library.mjs --out &lt;docs&gt;/frameworks/index.html</code> renders; the new cards appear and each new framework's inline SVG renders at its <code>diagram_anchors</code> position (spot-checked live).</li>
+<li><strong>FR-A5.</strong> Any <code>SKILL.md</code>/reference hardcoded corpus-count reference is updated to 346 (coordinated with Deliverable B per D7).</li>
+</ul>
+<h3 id="frs-refound">Deliverable B — re-found on direct authoring (story <code>260617-kac</code>)</h3>
+<ul>
+<li><strong>FR-B1.</strong> The <code>sync</code> command surface is removed: Phase 5 <code>#sync</code>, the Phase 1 dispatch branch, the <code>argument-hint</code> token, the frontmatter Notion/sync language + the "rebuild the frameworks corpus" trigger, the <code>#sync</code> Track-Progress note, and the Notion/S3/<code>--changed-only</code>/write-back anti-patterns + Platform-Adaptation Notion notes.</li>
+<li><strong>FR-B2.</strong> The Notion-only pipeline scripts <code>split-corpus.mjs</code> and <code>apply-rederive.mjs</code> are deleted; their tests (<code>tests/split-corpus.test.mjs</code>) are removed and <code>tests/structure.test.sh</code> is updated so it no longer asserts the removed scripts.</li>
+<li><strong>FR-B3.</strong> The validation exports are preserved (D6 / <a href="#inv-validate">inv-validate</a>): <code>validate-corpus.mjs --selftest</code> still passes.</li>
+<li><strong>FR-B4.</strong> <code>reference/ingestion.md</code> is removed; <code>SKILL.md</code>, <code>corpus-schema.md</code>, and <code>situation-taxonomy.md</code> drop/repoint every cite to it and to the removed scripts (<a href="#inv-nodangle">inv-nodangle</a>; grep-clean AC).</li>
+<li><strong>FR-B5.</strong> A new <code>reference/corpus-expansion.md</code> ships the repeatable research process (adapted from <code>RESEARCH-PROCESS.md</code>) + the entry-authoring contract (record fields + SVG recipe, adapted from <code>AUTHORING-TEMPLATE.md</code>), pointing at the now-canonical direct-authoring + <code>validate-corpus.mjs</code> path (no Notion). <code>SKILL.md</code> cites it as how to grow the corpus.</li>
+<li><strong>FR-B6.</strong> <code>SKILL.md</code> description/body reflect the new reality: a bundled, directly-authored corpus (no Notion sourcing claim), 346 entries.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One skill (<code>/frameworks</code>), two vertical slices. Default 1-skill-1-story is overridden into two because the work is two
+distinct change-sets (a data merge vs. a feature removal + docs) that are each independently shippable and each scored once
+against <code>skill-eval.md</code>:</p>
+<table>
+<tr><th>Story</th><th>Scope</th><th>route</th><th>depends on</th></tr>
+<tr><td><code>260617-2gw</code> — ingest the 74-framework batch</td><td>Deliverable A (FR-A1..A5)</td><td>skill</td><td>—</td></tr>
+<tr><td><code>260617-kac</code> — re-found on direct authoring (remove sync + ship process docs)</td><td>Deliverable B (FR-B1..B6)</td><td>skill</td><td><code>260617-2gw</code></td></tr>
+</table>
+<p><strong>Why story 2 depends on story 1 (D7):</strong> both edit <code>SKILL.md</code>. Story 1 bumps the corpus count to 346; story 2
+rewrites the description/verb surface for the sync-free, directly-authored reality. Serializing means story 2's rewrite is authored
+on top of the 346-count tree and the two SKILL.md edit-sets never collide. At build (Loop 2), story 2's claim-time transitive
+dep-merge brings story 1's branch in first, so the SKILL.md it edits already carries the count bump. (The D24 litmus holds: the only
+shared file is <code>SKILL.md</code>, handled as a story-level dependency, not a task-level one.)</p>
+
+<h2 id="kept-removed">Kept-vs-removed inventory (sync removal)</h2>
+<table>
+<tr><th>Asset</th><th>Disposition</th><th>Reason</th></tr>
+<tr><td><code>scripts/match.mjs</code></td><td><strong>KEEP</strong></td><td>retrieve / <code>--json</code> runtime path</td></tr>
+<tr><td><code>scripts/build-library.mjs</code></td><td><strong>KEEP</strong></td><td>browse library build</td></tr>
+<tr><td><code>scripts/validate-corpus.mjs</code></td><td><strong>KEEP</strong></td><td>corpus gate (used by direct authoring)</td></tr>
+<tr><td><code>scripts/derive-fields.mjs</code></td><td><strong>KEEP exports / strip pipeline</strong></td><td>D6 — <code>DECISION_TYPES</code>/<code>LIFECYCLE_STAGES</code>/<code>validateAnchors</code> are imported by the validator; the Stage-B merge function (<code>deriveMerge</code>) is sync-only and may go</td></tr>
+<tr><td><code>scripts/split-corpus.mjs</code></td><td><strong>REMOVE</strong></td><td>Notion Stage-A only</td></tr>
+<tr><td><code>scripts/apply-rederive.mjs</code></td><td><strong>REMOVE</strong></td><td>Notion Stage-B only</td></tr>
+<tr><td><code>reference/ingestion.md</code></td><td><strong>REMOVE</strong></td><td>the sync pipeline doc; replaced by <code>corpus-expansion.md</code></td></tr>
+<tr><td><code>tests/split-corpus.test.mjs</code></td><td><strong>REMOVE</strong></td><td>tests a removed script</td></tr>
+<tr><td><code>tests/structure.test.sh</code></td><td><strong>UPDATE</strong></td><td>drop assertions on removed scripts/refs</td></tr>
+<tr><td><code>SKILL.md</code> · <code>corpus-schema.md</code> · <code>situation-taxonomy.md</code></td><td><strong>UPDATE</strong></td><td>repoint/drop sync + removed-script cites</td></tr>
+</table>
+
+<h2 id="risks">Risks</h2>
+<ul>
+<li><strong>diagram_anchors re-validation</strong> — anchors authored against the source body_md; if any record's body_md was altered in transit, the ≥40-char substring check fails. Mitigation: the splice is verbatim; validator catches any miss → fix the anchor.</li>
+<li><strong>derive-fields coupling missed</strong> — deleting <code>derive-fields.mjs</code> wholesale would break the validator. Mitigation: <a href="#inv-validate">inv-validate</a> + a <code>--selftest</code> gate in the plan.</li>
+<li><strong>dangling cites after <code>ingestion.md</code> removal</strong> — caught by a grep-clean AC and the <code>/complete-dev</code> route:skill coherence <code>[J]</code> gate at release.</li>
+</ul>
+
+</body>
+</html>

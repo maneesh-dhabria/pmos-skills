@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-kac re-found /frameworks on direct authoring</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; } .warn { color:#ef4444; font-weight:700; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — Re-found /frameworks on direct authoring (story 260617-kac)</h1>
+<p class="sub">Epic <code>260617-4w1</code> · route: skill · depends on <code>260617-2gw</code> · spec = <code>../../02_design.html</code> (Deliverable B). Tasks in <code>tasks.yaml</code>.</p>
+
+<h2 id="approach">Approach</h2>
+<p>Remove the Notion <code>sync</code> feature and ship the research/authoring process as reference docs, leaving direct
+authoring as the single corpus-maintenance path. The work is ordered around <strong>one load-bearing constraint</strong>:
+<code>validate-corpus.mjs</code> imports <code>DECISION_TYPES</code> / <code>LIFECYCLE_STAGES</code> / <code>validateAnchors</code>
+from <code>derive-fields.mjs</code> (a sync-pipeline file). <span class="warn">T1 preserves those exports and re-passes
+<code>--selftest</code> before any deletion happens.</span> After that the removals (scripts, tests, <code>SKILL.md</code>
+surface, <code>ingestion.md</code>) and the new <code>corpus-expansion.md</code> are independent edits, closed out by a grep-clean
++ full regression.</p>
+
+<h2 id="order">Task order &amp; dependency rationale</h2>
+<table>
+<tr><th>Task</th><th>AC</th><th>deps</th><th>why</th></tr>
+<tr><td>T1 — preserve validation substrate</td><td>AC3</td><td>—</td><td>safety floor; everything else can break the validator if this isn't done first</td></tr>
+<tr><td>T2 — delete sync scripts + tests; fix structure.test.sh</td><td>AC2</td><td>T1</td><td>scripts/apply-rederive import on derive-fields dies safely once T1 retained the exports elsewhere</td></tr>
+<tr><td>T3 — strip sync surface from SKILL.md (rewrite description/body)</td><td>AC1, AC6</td><td>T1</td><td>independent of script deletion; keeps non-interactive block byte-identical</td></tr>
+<tr><td>T4 — remove ingestion.md + repoint cites (grep-clean)</td><td>AC4</td><td>T2, T3</td><td>cites live in the files T2/T3 touch — repoint after they settle</td></tr>
+<tr><td>T5 — author corpus-expansion.md + cite it</td><td>AC5</td><td>T3</td><td>the replacement narrative for ingestion.md; SKILL.md cite added alongside T3's rewrite</td></tr>
+<tr><td>T6 — final regression</td><td>AC7, AC8</td><td>all</td><td>runtime paths + gates green; grep-clean confirmed</td></tr>
+</table>
+
+<h2 id="final">Final verification checklist</h2>
+<ul>
+<li><code>validate-corpus.mjs --selftest</code> PASS (substrate preserved) · merged-corpus validate still PASS (346)</li>
+<li><code>match.mjs --selftest</code> + a real query rank · <code>build-library.mjs</code> renders — runtime paths unchanged</li>
+<li><code>grep -rn 'ingestion.md\|split-corpus\|apply-rederive\|sync'</code> over the skill → no stale refs</li>
+<li><code>reference/corpus-expansion.md</code> exists, cited from <code>SKILL.md</code>; no dangling cites</li>
+<li>non-interactive inline block byte-identical; only the <code>#sync</code> <code>AskUserQuestion</code> removed</li>
+<li>4 repo lints + <code>[D]</code> half of <code>skill-eval.md</code> PASS (build gate)</li>
+</ul>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+<li><strong>Substrate coupling (top risk)</strong> — mitigated by T1-first + a <code>--selftest</code> gate. Deleting <code>derive-fields.mjs</code> wholesale is the trap; either trim it to the 3 exports or relocate them.</li>
+<li><strong>Dangling cites</strong> — <code>corpus-schema.md</code> + <code>situation-taxonomy.md</code> currently describe fields as "extracted from Notion by split-corpus.mjs"; T4 repoints these to the authoring contract while keeping the <code>validate-corpus.mjs</code> enforcement note. Backstopped by <code>/complete-dev</code>'s route:skill coherence <code>[J]</code> gate at release.</li>
+<li><strong>Process-docs shape</strong> — default: a single <code>reference/corpus-expansion.md</code> merging research + authoring (vs. two files). Adjustable.</li>
+</ul>
+</body>
+</html>
