@@ -1,0 +1,71 @@
+schema_version: 1
+story: 260617-2gw
+epic: 260617-4w1
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/frameworks
+# Deliverable A — ingest the 74-framework batch (272 → 346). Mechanical, gated by validate-corpus.mjs.
+# Source candidates (read-only): /Users/maneeshdhabria/Desktop/Projects/personal/learn-magazine/docs/pmos/frameworks/candidates/
+#   - 74 *.md each carrying an embedded ```json fenced record (the authoritative ingest unit).
+#   - diagrams/<id-flattened>.svg paired with each .md.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical path).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Write a deterministic merge helper + splice the 74 embedded JSON records into data/frameworks.json (272 → 346)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Per design #frs-ingest FR-A1 / D2. Write a small one-shot Node merge (a scripts/ helper with a
+      --selftest, or a documented node -e) that: reads each candidate .md, extracts the embedded ```json
+      record (the first fenced json block), JSON-parses it, and appends it to the array read from
+      data/frameworks.json. NEVER hand-edit the 1.1 MB file. Re-serialize with the same 2-space-indent /
+      key-order shape the file already uses (read an existing record to match). Splice verbatim — commentary
+      stays null (Non-goal in design #goal). Assert post-merge: 346 records, 0 duplicate ids (collision guard),
+      stable ordering (append-after-existing, or group-by-category to match house order — pick one and keep it
+      deterministic). Print the new count.
+  - id: T2
+    title: "Copy the 74 paired SVGs into data/diagrams/ under their flattened filenames + git add"
+    ac: [AC2]
+    deps: []
+    parallel: true
+    detail: >
+      Per FR-A2 / inv-offline. Copy candidates/diagrams/<id-flattened>.svg → skills/frameworks/data/diagrams/
+      using the exact filename each record's diagram/diagrams field references (<category>__<name>.svg). Verify
+      every merged record's diagram path now resolves to a file on disk. Assert no SVG contains http(s):// or
+      amazonaws.com (grep). git add the new SVGs (data/.gitignore ignores index.html / .scratch — diagrams are tracked).
+  - id: T3
+    title: "Validate the merged corpus — validate-corpus.mjs exits 0; fix any genuine field miss"
+    ac: [AC3]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Per FR-A3 / D3 / inv-merge-once. Run node scripts/validate-corpus.mjs data/frameworks.json
+      data/situations.json. Must exit 0: required fields, problem_tags ⊆ registry, decision_type/lifecycle ∈
+      enums, related[] resolve, diagram_anchors present + length-matched + ≥40-char verbatim body_md substring,
+      distribution gate (no value >30%, n/a ≤5%), ≥95% name+body coverage. If a check fails, fix the offending
+      record's field (e.g. re-derive a broken anchor from the actual body_md) — never weaken the gate. Capture
+      the PASS line + the distribution report as evidence.
+  - id: T4
+    title: "Rebuild the library + live-render spot-check the new cards and inline diagrams"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per FR-A4. Run node scripts/build-library.mjs --out {docs_path}/frameworks/index.html. Serve it (zero-dep
+      http server) and open in a browser / Playwright @1280×800: confirm ≥3 of the new frameworks (e.g. Cynefin,
+      Wardley Mapping, The Mom Test) appear as cards and each renders its inline SVG at its diagram_anchors
+      position — not a broken image. Save a screenshot as evidence. (index.html is gitignored — evidence only.)
+  - id: T5
+    title: "Update the corpus-count reference + confirm all existing tests/selftests stay green"
+    ac: [AC5, AC6]
+    deps: [T3]
+    parallel: true
+    detail: >
+      Per FR-A5 / inv-runtime. Grep SKILL.md + reference/ for a hardcoded corpus count (e.g. "272") and update to
+      346 (the ONLY SKILL.md edit in this story — the verb-surface rewrite is story kac). Run the shipped gates
+      green: node scripts/validate-corpus.mjs --selftest, node scripts/match.mjs --selftest (retrieve/--json
+      path unaffected), and bash tests/*.sh + node tests/*.mjs (build-library, structure, json-contract,
+      split-corpus — split-corpus still exists in this story; it is removed in kac).

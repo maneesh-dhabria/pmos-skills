@@ -1,0 +1,88 @@
+schema_version: 1
+story: 260617-kac
+epic: 260617-4w1
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/frameworks
+# Deliverable B — re-found on direct authoring: remove the Notion sync feature + ship the research/authoring process.
+# Depends on 260617-2gw (both edit SKILL.md); claim-time transitive dep-merge brings the 346-count tree in first.
+# LOAD-BEARING: validate-corpus.mjs imports DECISION_TYPES/LIFECYCLE_STAGES/validateAnchors from derive-fields.mjs —
+#   T1 preserves those BEFORE any deletion (design D6 / inv-validate). Do T1 first.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md. Release prereqs are /complete-dev's, not tasks.
+tasks:
+  - id: T1
+    title: "Preserve the validation substrate — retain DECISION_TYPES / LIFECYCLE_STAGES / validateAnchors; keep validate-corpus.mjs importing them"
+    ac: [AC3]
+    deps: []
+    parallel: false
+    detail: >
+      Per design D6 / inv-validate. validate-corpus.mjs imports { DECISION_TYPES, LIFECYCLE_STAGES, validateAnchors }
+      from ./derive-fields.mjs. Choose one: (a) trim derive-fields.mjs to ONLY those three exports (drop the
+      Stage-B deriveMerge + the CLI main — sync-only), keeping its --selftest scoped to validateAnchors; or
+      (b) relocate the three into validate-corpus.mjs (or a new scripts/corpus-vocab.mjs) and repoint the import.
+      Prefer (b) if it leaves a cleaner module boundary; either way `node scripts/validate-corpus.mjs --selftest`
+      MUST pass after this task and before any deletion. This is the safety floor — do it first and verify.
+  - id: T2
+    title: "Delete the Notion-only pipeline scripts + their tests; update tests/structure.test.sh"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per FR-B2. git rm scripts/split-corpus.mjs and scripts/apply-rederive.mjs (apply-rederive also imported from
+      derive-fields — that import dies with it). Remove tests/split-corpus.test.mjs. Edit tests/structure.test.sh
+      to drop any assertion that those scripts / the sync verb exist, and add (if cheap) an assertion they are
+      GONE. Run bash tests/structure.test.sh + the remaining tests/ green.
+  - id: T3
+    title: "Remove the sync command surface from SKILL.md"
+    ac: [AC1, AC6]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per FR-B1 / FR-B6. In SKILL.md delete: Phase 5 #sync; the Phase 1 dispatch `sync [--changed-only]` branch;
+      the `sync` token in argument-hint; the frontmatter "Ships a pre-built corpus sourced from your Notion
+      framework database; re-ingest with sync" + the "rebuild the frameworks corpus" trigger; the Track-Progress
+      #sync note; the Notion/S3-hotlink/--changed-only/Notion-write-back Anti-Patterns; the Notion-specific
+      Platform-Adaptation bullets (No Notion MCP / no-diagram-at-sync / sync confirmation). Rewrite the
+      description + the "corpus ships pre-built … sourced from Notion" body lines to describe a bundled,
+      directly-authored, offline corpus at 346 entries. Keep every runtime path (retrieve/--json/browse/situations)
+      and the non-interactive inline block BYTE-IDENTICAL. Update the spec-lineage footer if it cites sync.
+  - id: T4
+    title: "Remove reference/ingestion.md + repoint all cites (grep-clean, no danglers)"
+    ac: [AC4]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Per FR-B4 / inv-nodangle. git rm reference/ingestion.md. In SKILL.md, reference/corpus-schema.md, and
+      reference/situation-taxonomy.md, drop or repoint every reference to ingestion.md, split-corpus.mjs,
+      apply-rederive.mjs, and the sync verb (corpus-schema/situation-taxonomy currently say fields are "extracted
+      from Notion by split-corpus.mjs" / "derive-fields.mjs rejects…" — repoint to the authoring contract in
+      corpus-expansion.md, keeping the validate-corpus.mjs enforcement note). Final gate: grep -rn
+      'ingestion.md\|split-corpus\|apply-rederive\|sync' across the skill dir returns no stale references (the
+      retained derive-fields validation note, if any, is fine; everything sync-pipeline must be gone).
+  - id: T5
+    title: "Author reference/corpus-expansion.md (repeatable research + authoring contract) + cite from SKILL.md"
+    ac: [AC5]
+    deps: [T3]
+    parallel: true
+    detail: >
+      Per FR-B5 / D4. New reference/corpus-expansion.md adapted from the source RESEARCH-PROCESS.md +
+      AUTHORING-TEMPLATE.md: (a) the repeatable discovery process (when to run, the bar, the de-dupe inventory
+      from data/frameworks.json names+aliases, parallel domain fan-out, the per-candidate output contract,
+      synthesis/dedupe, distribution awareness); (b) the entry-authoring contract (record fields, the closed
+      48-tag registry + 8-value decision_type enum, the body_md house style, the owned-SVG 640×400 white-bg
+      palette recipe, the diagram_anchors ≥40-char rule). Point at the canonical path: hand-author the record +
+      SVG, splice into data/frameworks.json + data/diagrams/, run validate-corpus.mjs + build-library.mjs. NO
+      Notion. Cite it from SKILL.md as "how to grow the corpus" (replacing the old ingestion.md cite).
+  - id: T6
+    title: "Final regression — runtime paths intact + all gates green"
+    ac: [AC7, AC8]
+    deps: [T1, T2, T3, T4, T5]
+    parallel: false
+    detail: >
+      Per inv-runtime. Confirm: node scripts/validate-corpus.mjs --selftest PASS; node scripts/match.mjs
+      --selftest PASS + a real query still returns ranked frameworks (retrieve/--json unchanged); node
+      scripts/build-library.mjs renders (browse unchanged); node scripts/validate-corpus.mjs data/frameworks.json
+      data/situations.json still PASS on the 346 corpus. Run the 4 repo lints + the [D] half of skill-eval.md
+      (build gate). Confirm the non-interactive inline block is byte-identical and the only removed AskUserQuestion
+      is the #sync one.

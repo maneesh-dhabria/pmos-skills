@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-2gw ingest 74-framework batch</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — Ingest the 74-framework batch (story 260617-2gw)</h1>
+<p class="sub">Epic <code>260617-4w1</code> · route: skill · plugin: pmos-learnkit · spec = <code>../../02_design.html</code> (Deliverable A). Tasks in <code>tasks.yaml</code>.</p>
+
+<h2 id="approach">Approach</h2>
+<p>This is a deterministic data merge gated by an existing validator. The source candidates
+(<code>learn-magazine/docs/pmos/frameworks/candidates/</code>) hold 74 <code>.md</code> files, each with an embedded
+<code>json</code> record + a paired SVG. The plan: extract + splice the records via a script (never hand-edit the 1.1 MB
+file), copy the SVGs, then let <code>validate-corpus.mjs</code> be the gate, rebuild and eyeball the library. Pre-flight (epic
+<code>design_doc</code> #preflight) already proved the batch clean against this corpus, so the live build is largely a
+confirmation — the only real work is re-passing the <code>diagram_anchors</code> substring check and the merged distribution
+gate on this tree.</p>
+
+<h2 id="tasks">Tasks &amp; verification (TDD-where-it-applies)</h2>
+<table>
+<tr><th>Task</th><th>AC</th><th>Verify</th></tr>
+<tr><td>T1 — deterministic merge helper splices 74 records into <code>frameworks.json</code></td><td>AC1</td><td>helper has a <code>--selftest</code>; post-merge assert count=346, 0 dup ids, stable order</td></tr>
+<tr><td>T2 — copy 74 SVGs into <code>data/diagrams/</code> (flattened names) + git add</td><td>AC2</td><td>every record's diagram path resolves on disk; grep proves no <code>http(s)</code>/S3 ref</td></tr>
+<tr><td>T3 — validate merged corpus</td><td>AC3</td><td><code>validate-corpus.mjs</code> exits 0; capture PASS + distribution report; fix any field miss in the record, not the gate</td></tr>
+<tr><td>T4 — rebuild library + live render spot-check</td><td>AC4</td><td>served + browser/Playwright; ≥3 new cards + inline SVGs at anchors; screenshot evidence</td></tr>
+<tr><td>T5 — corpus-count bump + existing tests green</td><td>AC5, AC6</td><td>count→346 in SKILL.md/reference; all <code>--selftest</code> + <code>tests/</code> pass</td></tr>
+</table>
+
+<h2 id="final">Final verification checklist</h2>
+<ul>
+<li><code>node scripts/validate-corpus.mjs data/frameworks.json data/situations.json</code> → PASS (346, distribution under caps)</li>
+<li><code>node scripts/validate-corpus.mjs --selftest</code> → PASS · <code>node scripts/match.mjs --selftest</code> → PASS</li>
+<li>shipped <code>tests/</code> (build-library, structure, json-contract, split-corpus) → green</li>
+<li>library renders new cards + inline diagrams (screenshot)</li>
+<li><code>[D]</code> half of <code>skill-eval.md</code> → PASS (build gate, not a task); commentary stays <code>null</code> (by design)</li>
+</ul>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+<li><strong>Anchor re-validation</strong> — verbatim splice keeps anchors valid; validator catches any miss → fix the anchor from the actual body_md.</li>
+<li><strong>Ordering</strong> — append-after-existing or group-by-category; pick one deterministic order in T1 and keep it (matching diff-friendliness of the house order is preferred).</li>
+<li><strong>SKILL.md seam</strong> — only the count bump here; the sync-free description rewrite is story <code>260617-kac</code> (which depends on this story).</li>
+</ul>
+</body>
+</html>
