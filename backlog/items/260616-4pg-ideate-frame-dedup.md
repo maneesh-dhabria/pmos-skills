@@ -14,7 +14,7 @@ released: 2.85.0
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-4pg/tasks.yaml
-worktree: /Users/maneeshdhabria/Desktop/Projects/agent-skills-260616-4pg
+worktree:
 claimed_by:
 driver_holder:
 labels: [pmos-toolkit, shape, ideate, frame-dedup]
