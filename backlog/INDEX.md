@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (define: epic 260617-bx0 → defined; story 260617-ks1 planned)
+Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 260617-7ag/rck/ade planned)
 
-48 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+52 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -47,6 +47,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-bx0 → defined; story 260617-
 | 260617-4w1 | defined | skill | pmos-learnkit | 0/2 | /frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process) |
 | 260617-jy8 | defined | skill | pmos-toolkit | 0/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
 | 260617-bx0 | defined | skill | pmos-gamekit | 0/1 | /solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation) |
+| 260617-vvd | defined | skill | pmos-utilities | 0/3 | /converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server |
 
 ## must
 
@@ -75,6 +76,9 @@ Last regenerated: 2026-06-17 (define: epic 260617-bx0 → defined; story 260617-
 | 260617-2gw | story | feature | planned | 260617-4w1 | Ingest the 74-framework research batch into the bundled /frameworks corpus (272 → 346) + rebuild library | 02_design.html | 03_plan.html |  |
 | 260617-kac | story | feature | planned | 260617-4w1 | Re-found /frameworks on direct authoring: remove the Notion sync feature + ship the research/authoring process as reference docs | 02_design.html | 03_plan.html |  |
 | 260617-ks1 | story | feature | planned | 260617-bx0 | /solitaire first-run fixes batch — header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation | 02_design.html | 03_plan.html |  |
+| 260617-7ag | story | feature | planned | 260617-vvd | /converter foundation + data pair — skill scaffold, zero-dep server, single-file UI, converter registry, JSON↔YAML + CSV↔JSON | 02_design.html | 03_plan.html |  |
+| 260617-rck | story | feature | planned | 260617-vvd | /converter document pair — HTML↔MD (vendored markdown + tolerant HTML parser) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
+| 260617-ade | story | feature | planned | 260617-vvd | /converter PDF pair — PDF↔MD (claude pdf→md + vendored md→pdf) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
