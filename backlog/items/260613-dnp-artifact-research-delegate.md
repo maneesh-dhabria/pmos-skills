@@ -6,15 +6,15 @@ parent: 260613-vba
 title: Refactor /artifact research phase to delegate to _shared/research/ substrate
 type: feature
 priority: should
-status: planned
+status: done
 route: skill
 dependencies: [260613-m64]
 feature_folder: docs/pmos/features/2026-06-13_research-skill/
 plan_doc: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/03_plan.html
 tasks: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/tasks.yaml
 worktree:
-claimed_by: build:cron-dnp
-driver_holder: build:cron-dnp
+claimed_by:
+driver_holder:
 labels: [pmos-toolkit, artifact, research]
 created: 2026-06-13
 updated: 2026-06-17

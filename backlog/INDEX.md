@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (define: epic 260613-vba — planned ready story 260613-dnp /artifact research-phase delegation; epic stays defined, 1/2 done)
+Last regenerated: 2026-06-17 (build: story 260613-dnp /artifact research-phase delegation → done; epic 260613-vba 2/2 stories done, release-ready for Loop-3)
 
 36 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -81,7 +81,7 @@ Last regenerated: 2026-06-17 (define: epic 260613-vba — planned ready story 26
 | 0613-fzy | story | feature | released | 0613-dnv | Author the /ripple-effects skill end-to-end — proposal → Futures-Wheel effect simulation → scored consequence tree → grill loop → report | 02_design.html | 03_plan.html |  |
 | 0613-rhf | story | enhancement | released | 0613-5pq | Implement /complete-dev multi-epic release + non-interactive ship-all — multi-select picker, id-list, outer sequential train loop, stop-and-report | 02_design.html | 03_plan.html |  |
 | 260613-m64 | story | feature | done | 260613-vba | Author _shared/research/ substrate + the /research skill end-to-end | 02_design.html | 03_plan.html |  |
-| 260613-dnp | story | feature | planned | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate | 02_design.html | 03_plan.html |  |
+| 260613-dnp | story | feature | done | 260613-vba | Refactor /artifact research phase to delegate to _shared/research/ substrate | 02_design.html | 03_plan.html |  |
 | 260613-3ff | story | enhancement | done | 260613-yyj | Author _shared/dogfooding.md substrate + /plan dogfood-task emission, approval gate, and review checks | 02_design.html | 03_plan.html |  |
 | 260613-2m7 | story | enhancement | done | 260613-yyj | /verify load-bearing dogfood gate (Phase-7 hard gate) + iterate-loop residual reconciliation | 02_design.html | 03_plan.html |  |
 | 260613-3jc | story | bug | released | 260613-7tm | Rename claim-lock.js → .cjs, repoint every reference, add ESM-mode regression + structural guard | 02_design.html | 03_plan.html |  |
