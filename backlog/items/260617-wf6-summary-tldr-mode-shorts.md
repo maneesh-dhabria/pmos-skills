@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: [260617-xn4]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-17_summary-tldr-modes/
 plan_doc: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-wf6/03_plan.html
 tasks: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-wf6/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260617-wf6
+claimed_by: build:loop-main
+driver_holder: build:loop-main
 labels: [pmos-toolkit, summary-tldr, modes, shorts, carousel]
 created: 2026-06-17
 updated: 2026-06-17
