@@ -178,7 +178,7 @@ Load the chosen preset's rendering rules and voice notes for use in step 8.
 
 ### Step 7.5 — Research phase (gated on `--depth deep`)
 
-When `{depth} == deep`, run the research stage before drafting per `reference/research-phase.md` — it owns the warrant check (auto-skip when internal context suffices), the user-approved research plan, the `general-purpose` subagent fan-out (verifiable-URLs-only, omit-rather-than-guess), and the save to `<feature_folder>/research/<slug>-research.md` (a loose markdown sidecar — not indexed/commentable). At `brief`/`standard`, skip with `research: skipped (depth=<d>)`. The synthesized research doc is folded into `gathered_context` for Step 8.
+When `{depth} == deep`, run the research stage before drafting per `reference/research-phase.md` (the contract owner) — it owns the `/artifact`-level facts: the warrant check (auto-skip when internal context suffices), the user-approved research plan, the deep-only gate, and the save to `<feature_folder>/research/<slug>-research.md` (a single loose markdown sidecar — not indexed/commentable). The research *method* it delegates to lives in the shared `_shared/research/` substrate (`sourcing`, `source-tiers`, `fan-out`) — `/artifact` cites it, does not restate it (§K). At `brief`/`standard`, skip with `research: skipped (depth=<d>)`. The synthesized research doc is folded into `gathered_context` for Step 8.
 
 ### Step 8 — Generate draft
 
