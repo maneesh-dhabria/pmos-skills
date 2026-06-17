@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-17 — pmos-managerkit 0.1.0: new plugin — /interview-feedback
+
+A new **pmos-managerkit** plugin joins the marketplace, for manager work — hiring, team, and reviews. Its first command, **`/interview-feedback`**, turns a candidate's interview inputs (notes, transcripts, recordings) into a grounded, filled-in scorecard plus per-interviewer coaching notes. Every score and observation is cited back to verbatim evidence from the interview — it won't assert a rating it can't ground in at least a 40-character quote. It ships with starter scorecard + interviewer-reference guideline pairs for seven common PM interview rounds, and recordings are transcribed locally (ffmpeg + whisper when present, with graceful degradation otherwise).
+
+- **`/interview-feedback`.** Feed it a round's inputs and get back a structured scorecard with grounded per-dimension scores, per-interviewer notes, and flags — no ungrounded assertions.
+- **Seven bundled PM round guideline pairs** (scorecard + interviewer reference), filled unmodified out of the box.
+- New `pmos-managerkit` plugin registered in both marketplaces at v0.1.0.
+
 ## 2026-06-17 — pmos-toolkit 2.84.0: /research — decision-support deep research
 
 A new **`/research`** command runs decision-support research for you: it decomposes a question into sub-questions, fans out a worker per sub-question to gather evidence, verifies every source against a binary anti-slop gate (it fetches what it cites and reports honest gaps rather than guessing), then synthesizes one cited report. Depth scales with `--depth brief|standard|deep`, and a hard approval gate shows you the research plan and estimated cost before any large fan-out spends.
