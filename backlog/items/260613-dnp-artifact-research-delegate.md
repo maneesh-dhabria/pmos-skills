@@ -18,7 +18,7 @@ driver_holder:
 labels: [pmos-toolkit, artifact, research]
 created: 2026-06-13
 updated: 2026-06-17
-released:
+released: 2.84.0
 ---
 
 <!-- status: planned (2026-06-17 follow-up define touch, dep 260613-m64 now done). Plan +

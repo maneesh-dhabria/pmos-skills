@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (build: story 260613-dnp /artifact research-phase delegation → done; epic 260613-vba 2/2 stories done, release-ready for Loop-3)
+Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit v2.84.0; stories 260613-m64 + 260613-dnp released)
 
 36 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -20,7 +20,7 @@ Last regenerated: 2026-06-17 (build: story 260613-dnp /artifact research-phase d
 | 0613-kr0 | released | skill | pmos-toolkit | 1/1 | /logos — propose & generate on-brand SVG logo candidates from a brief (text / URL / existing assets) |
 | 0613-dnv | released | skill | pmos-toolkit | 1/1 | /ripple-effects — simulate 1st/2nd/3rd-order effects of a proposal (Futures Wheel), then grill the user to refine it |
 | 0613-5pq | released | skill | pmos-toolkit | 1/1 | /complete-dev --epic multi-select + non-interactive ship-all — release several release-ready epics one-by-one in one session |
-| 260613-vba | defined | skill | pmos-toolkit | 1/2 | Build /research — PM decision-support deep-research skill |
+| 260613-vba | released | skill | pmos-toolkit | 2/2 | Build /research — PM decision-support deep-research skill |
 | 260613-yyj | released | skill | pmos-toolkit | 1/2 | Load-bearing dogfooding verification — /plan emits a mandatory utility-dogfood task (objective + subjective eval, iterate-until-satisfied) gated by /verify |
 | 260613-4mw | released | skill | pmos-gamekit | 1/1 | pmos-gamekit — new casual-games plugin + /solitaire (Klondike) first game, with a reusable game-launcher substrate |
 | 260613-7tm | released | skill | pmos-toolkit | 1/1 | claim-lock script breaks in ESM host repos ("type":"module") — rename .js → .cjs + ESM regression test |

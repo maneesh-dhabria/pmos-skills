@@ -4,12 +4,12 @@ id: 260613-vba
 title: "Build /research — PM decision-support deep-research skill"
 type: feature
 kind: epic
-status: defined
+status: released
 priority: should
 labels: [research, pmos-toolkit, skill, deep-research, idea]
 created: 2026-06-13
-updated: 2026-06-13
-released:
+updated: 2026-06-17
+released: 2.84.0
 route: skill
 source: "skill-sdlc define (2026-06-13 session)"
 design_doc: docs/pmos/features/2026-06-13_research-skill/02_design.html

@@ -17,8 +17,8 @@ claimed_by: build:loop
 driver_holder: build:loop
 labels: [pmos-toolkit, research, deep-research]
 created: 2026-06-13
-updated: 2026-06-13
-released:
+updated: 2026-06-17
+released: 2.84.0
 ---
 
 <!-- status: planned at define (Loop 1); plan_doc + tasks.yaml authored. Build via /feature-sdlc build --story 260613-m64 -->
