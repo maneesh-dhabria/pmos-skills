@@ -9,12 +9,12 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-learnkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/
 plan_doc: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-2gw/03_plan.html
 tasks: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-2gw/tasks.yaml
 worktree: .claude/worktrees/feat-260617-2gw
-claimed_by: build:loop-main
+claimed_by:
 driver_holder: build:loop-main
 labels: [pmos-learnkit, frameworks, corpus, ingest]
 created: 2026-06-17
@@ -22,6 +22,16 @@ updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-2gw -->
+<!-- status: done at build (Loop 2, 2026-06-18) on feat/260617-2gw (603c05e). All 7 ACs met: 74 records merged
+     272→346 via deterministic execute/merge-batch.mjs (collision-guarded, byte-stable); 74 paired SVGs in
+     data/diagrams/ (offline, no http/S3); validate-corpus PASS (name+body 100%, diagram 100%, distribution gate
+     clear — top 24.6%<30%, n/a 0.9%≤5%); validate/match/build-library selftests + shipped tests/ all green;
+     reference/ingestion.md diagram count ~272→~346 (no SKILL.md edit — verb-surface rewrite reserved for kac).
+     skill-eval [D] EXIT 0; 3/4 lints + comments-coverage PASS (audit-recommended exit 1 = PRE-EXISTING
+     false-positive on an unmodified SKILL.md prose bullet "No `AskUserQuestion`:" lacking the exempt "tool" word,
+     equal to main). Live Playwright dogfood: Cynefin / Wardley Mapping / The Mom Test each render their inline
+     diagram SVG at its anchor, 0 console errors. Worktree KEPT for Loop-3. Deliverable A of epic 260617-4w1
+     (story 260617-kac = remove Notion sync + direct-authoring docs still pending → epic NOT yet fully built). -->
 
 ## Context
 
