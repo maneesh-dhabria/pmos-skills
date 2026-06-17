@@ -48,6 +48,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 26061
 | 260617-jy8 | defined | skill | pmos-toolkit | 0/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
 | 260617-bx0 | defined | skill | pmos-gamekit | 0/1 | /solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation) |
 | 260617-vvd | defined | skill | pmos-utilities | 0/3 | /converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server |
+| 260617-n7a | defined | skill | pmos-toolkit | 0/1 | /logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval |
 
 ## must
 
@@ -79,6 +80,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 26061
 | 260617-7ag | story | feature | planned | 260617-vvd | /converter foundation + data pair — skill scaffold, zero-dep server, single-file UI, converter registry, JSON↔YAML + CSV↔JSON | 02_design.html | 03_plan.html |  |
 | 260617-rck | story | feature | planned | 260617-vvd | /converter document pair — HTML↔MD (vendored markdown + tolerant HTML parser) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
 | 260617-ade | story | feature | planned | 260617-vvd | /converter PDF pair — PDF↔MD (claude pdf→md + vendored md→pdf) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
+| 260617-3z4 | story | enhancement | planned | 260617-n7a | /logo refinements batch — rename /logos→/logo + concept/style exploration & approval + clarify gate + mark-type aspect gate + learnings-approval | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
