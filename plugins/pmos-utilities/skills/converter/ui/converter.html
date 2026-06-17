@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Converter</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1d2129; --ink: #e8eaed; --muted: #9aa3b2;
+    --line: #2a2f3a; --accent: #6aa3ff; --accent2: #8bd5a0; --warn: #e6b86a; --err: #e88;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 18px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 12px; }
+  header h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: .2px; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  main { max-width: 1080px; margin: 0 auto; padding: 22px 24px 60px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+  label.field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--muted); }
+  select, button { font: inherit; }
+  select { background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 12px; min-width: 220px; }
+  .badges { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line);
+    color: var(--muted); background: var(--panel); }
+  .badge.pure { color: var(--accent2); border-color: #2f4a39; }
+  .badge.llm { color: var(--warn); border-color: #4a3f2a; }
+  .badge.req { color: var(--accent); border-color: #2a3a52; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .pane h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .6px; padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex;
+    justify-content: space-between; align-items: center; }
+  textarea, pre { width: 100%; margin: 0; border: 0; background: transparent; color: var(--ink);
+    font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; padding: 14px; resize: vertical; }
+  textarea { min-height: 320px; outline: none; }
+  textarea.drag { background: #1b2330; }
+  pre { min-height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+  .drop-hint { font-size: 11px; color: var(--muted); padding: 0 14px 12px; }
+  .actions { display: flex; gap: 10px; align-items: center; margin: 16px 0 6px; }
+  button.primary { background: var(--accent); color: #06101f; border: 0; border-radius: 8px;
+    padding: 10px 18px; font-weight: 650; cursor: pointer; }
+  button.primary:hover { filter: brightness(1.08); }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+  button.ghost:disabled { opacity: .4; cursor: not-allowed; }
+  input[type=file] { display: none; }
+  .file-btn { background: var(--panel2); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 9px 12px; cursor: pointer; font-size: 13px; }
+  .status { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .status.ok { color: var(--accent2); }
+  .status.err { color: var(--err); }
+  .filemeta { font-size: 11px; color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Converter</h1>
+  <span class="sub">local file-format conversion · runs entirely on your machine</span>
+</header>
+<main>
+  <div class="controls">
+    <label class="field">Conversion
+      <select id="conv" aria-label="Conversion"></select>
+    </label>
+    <div class="badges" id="badges"></div>
+  </div>
+
+  <div class="grid">
+    <div class="pane">
+      <h2><span>Input</span>
+        <span class="badges">
+          <label class="file-btn" for="file">Choose file…</label>
+          <input type="file" id="file">
+          <span class="filemeta" id="filemeta"></span>
+        </span>
+      </h2>
+      <textarea id="input" placeholder="Paste text here, or drop / choose a file…" spellcheck="false"></textarea>
+      <div class="drop-hint">Tip: drag &amp; drop a file anywhere on this box.</div>
+    </div>
+    <div class="pane">
+      <h2><span>Output</span></h2>
+      <pre id="output" aria-live="polite"></pre>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="run">Convert →</button>
+    <button class="ghost" id="download" disabled>Download</button>
+    <button class="ghost" id="clear">Clear</button>
+    <span class="status" id="status"></span>
+  </div>
+</main>
+
+<script>
+'use strict';
+(function () {
+  var convSel = document.getElementById('conv');
+  var badges = document.getElementById('badges');
+  var inputEl = document.getElementById('input');
+  var outputEl = document.getElementById('output');
+  var statusEl = document.getElementById('status');
+  var fileEl = document.getElementById('file');
+  var fileMeta = document.getElementById('filemeta');
+  var runBtn = document.getElementById('run');
+  var dlBtn = document.getElementById('download');
+  var clearBtn = document.getElementById('clear');
+
+  var descriptors = [];
+  var fileBuffer = null;      // ArrayBuffer when a binary file was loaded
+  var lastResult = null;      // { blob, filename } for download
+
+  function byId(id) { for (var i = 0; i < descriptors.length; i++) if (descriptors[i].id === id) return descriptors[i]; return null; }
+
+  function setStatus(msg, cls) { statusEl.textContent = msg || ''; statusEl.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  function renderBadges(d) {
+    badges.innerHTML = '';
+    if (!d) return;
+    var k = document.createElement('span');
+    k.className = 'badge ' + (d.kind === 'llm' ? 'llm' : 'pure');
+    k.textContent = d.kind === 'llm' ? 'Uses Claude' : 'offline · deterministic';
+    badges.appendChild(k);
+    (d.requires || []).forEach(function (r) {
+      var b = document.createElement('span'); b.className = 'badge req'; b.textContent = 'needs ' + r; badges.appendChild(b);
+    });
+    var io = document.createElement('span'); io.className = 'badge';
+    io.textContent = d.inputMode + ' → ' + d.outputMode; badges.appendChild(io);
+  }
+
+  function loadConversions() {
+    fetch('/conversions').then(function (r) { return r.json(); }).then(function (data) {
+      descriptors = (data && data.conversions) || [];
+      convSel.innerHTML = '';
+      descriptors.forEach(function (d) {
+        var o = document.createElement('option'); o.value = d.id; o.textContent = d.label || d.id; convSel.appendChild(o);
+      });
+      renderBadges(descriptors[0]);
+      if (!descriptors.length) setStatus('no conversions registered', 'err');
+    }).catch(function (e) { setStatus('could not load conversions: ' + e.message, 'err'); });
+  }
+
+  convSel.addEventListener('change', function () { renderBadges(byId(convSel.value)); });
+
+  // File input + drag/drop -------------------------------------------------
+  function loadFile(file) {
+    var d = byId(convSel.value);
+    fileMeta.textContent = file.name + ' (' + file.size + ' B)';
+    if (d && d.inputMode === 'binary') {
+      var rb = new FileReader();
+      rb.onload = function () { fileBuffer = rb.result; inputEl.value = '[binary file loaded: ' + file.name + ']'; inputEl.disabled = true; };
+      rb.readAsArrayBuffer(file);
+    } else {
+      var rt = new FileReader();
+      rt.onload = function () { fileBuffer = null; inputEl.disabled = false; inputEl.value = rt.result; };
+      rt.readAsText(file);
+    }
+  }
+  fileEl.addEventListener('change', function () { if (fileEl.files[0]) loadFile(fileEl.files[0]); });
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    inputEl.addEventListener(ev, function (e) { e.preventDefault(); inputEl.classList.add('drag'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    inputEl.addEventListener(ev, function (e) { e.preventDefault(); inputEl.classList.remove('drag'); });
+  });
+  inputEl.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+  });
+
+  // Convert ----------------------------------------------------------------
+  function doConvert() {
+    var d = byId(convSel.value);
+    if (!d) { setStatus('pick a conversion first', 'err'); return; }
+    setStatus('converting…');
+    dlBtn.disabled = true; lastResult = null;
+
+    var opts;
+    if (d.inputMode === 'binary' && fileBuffer) {
+      opts = { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: fileBuffer };
+      opts.url = '/convert?id=' + encodeURIComponent(d.id);
+    } else {
+      opts = { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: d.id, input: inputEl.value }), url: '/convert' };
+    }
+
+    fetch(opts.url || '/convert', opts).then(function (res) {
+      var outMode = res.headers.get('X-Output-Mode');
+      var ext = res.headers.get('X-Output-Ext') || (d.to || 'txt');
+      if (!res.ok) {
+        return res.json().then(function (j) { throw new Error(j.error || ('HTTP ' + res.status)); });
+      }
+      if (outMode === 'binary') {
+        return res.blob().then(function (blob) {
+          lastResult = { blob: blob, filename: 'converted.' + ext };
+          outputEl.textContent = '[binary output ready — click Download]';
+          dlBtn.disabled = false; setStatus('done · binary', 'ok');
+        });
+      }
+      return res.text().then(function (text) {
+        outputEl.textContent = text;
+        lastResult = { blob: new Blob([text], { type: 'text/plain' }), filename: 'converted.' + ext };
+        dlBtn.disabled = false; setStatus('done', 'ok');
+      });
+    }).catch(function (e) { outputEl.textContent = ''; setStatus(e.message, 'err'); });
+  }
+  runBtn.addEventListener('click', doConvert);
+
+  dlBtn.addEventListener('click', function () {
+    if (!lastResult) return;
+    var url = URL.createObjectURL(lastResult.blob);
+    var a = document.createElement('a'); a.href = url; a.download = lastResult.filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+
+  clearBtn.addEventListener('click', function () {
+    inputEl.value = ''; inputEl.disabled = false; outputEl.textContent = '';
+    fileBuffer = null; fileMeta.textContent = ''; fileEl.value = '';
+    dlBtn.disabled = true; lastResult = null; setStatus('');
+  });
+
+  loadConversions();
+})();
+</script>
+</body>
+</html>
