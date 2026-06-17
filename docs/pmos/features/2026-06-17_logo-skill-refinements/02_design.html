@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /logo skill refinements (260617-n7a)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --red:#ef4444; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+  .tag { display:inline-block; font-family: ui-monospace, monospace; font-size:.78rem; background:var(--panel); color:var(--accent); border-radius:4px; padding:.05em .4em; }
+  blockquote { border-left: 3px solid var(--teal); margin: 1rem 0; padding: .3rem 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/logo</code> skill refinements <span class="sub">(epic 260617-n7a · route: skill · pmos-toolkit)</span></h1>
+
+<p>This epic refines the <code>/logos</code> skill (built in <code>2026-06-13_logos-skill</code>, story 0613-36f) from one
+retro run, and <strong>renames it <code>/logos</code> → <code>/logo</code></strong>. The skill decomposes a brief into N named
+logo needs, extracts a style-profile, authors 2–3 self-contained SVG variants per need conditioned on a bundled
+<em>theme</em>, gates each through a deterministic SVG-metrics script plus a renderer-backed vision check, and emits a
+self-contained showcase. Today its biggest gap is upstream of generation: it picks the <em>idea</em> and the <em>visual
+style</em> silently and never seeks the user's input — no research, no clarification, no approval — so the first time the
+user sees a direction is when eight finished SVGs already exist. The bulk of this epic adds a <strong>concept- and
+style-exploration phase with explicit approval</strong> in front of generation; the rest are smaller correctness/UX
+fixes from the retro.</p>
+
+<p>Product decisions on the genuinely open questions (exploration shape; clarification scope; rename scope; aspect-gate
+fix) were resolved with the maintainer up front via structured questions — see D1–D8. The exploration reframe (D2/D3)
+came directly from the maintainer's insight that a "theme" today is only a rendering <em>style</em>, never the
+<em>concept</em> the mark expresses.</p>
+
+<h2 id="findings">What the retro + maintainer reported</h2>
+<table>
+  <tr><th>#</th><th>Reported</th><th>Current state in the skill</th></tr>
+  <tr><td>R0</td><td><strong>Rename <code>/logos</code> → <code>/logo</code></strong> (drop the plural).</td><td>Skill lives at <code>plugins/pmos-toolkit/skills/logos/</code>, <code>name: logos</code>, emits <code>logos.html</code> / <code>&lt;slug&gt;.logos.json</code>, caches under <code>~/.pmos/logos-cache/</code>, writes to <code>{docs_path}/logos/</code>.</td></tr>
+  <tr><td>R1 <span class="tag">maintainer</span></td><td>It should <strong>ask for approval on the proposed themes</strong> rather than silently generating/choosing them.</td><td>Phase 0 resolves <code>--theme</code> (default <code>flat-minimal</code>) with no prompt; the theme is never surfaced for approval.</td></tr>
+  <tr><td>R2 <span class="tag">maintainer</span></td><td>There was <strong>no research / exploration step</strong>, and <strong>no context or clarifications</strong> were sought from the user anywhere to gather ideas / narrow choices.</td><td>Phases 1→2→3 go intake → decompose → generate with zero user touchpoint except the Phase 2 decomposition confirm.</td></tr>
+  <tr><td>R3 <span class="tag">maintainer</span></td><td>A direction should be about the <strong>concept</strong>, not <strong>style alone</strong> — what's the conceptual difference between the options?</td><td>The 6 bundled "themes" are purely rendering styles (flat / gradient / strokes / badge / monogram-construction / soft-shadow). The <em>concept</em> (the metaphor a mark depicts) is decided implicitly inside Phase 3 generation and never surfaced.</td></tr>
+  <tr><td>F1 <span class="tag">friction</span></td><td>The deterministic gate's <code>viewbox-not-square</code> (aspect 0.8–1.25) is applied to <em>every</em> SVG including combination/wordmark/emblem lockups — which are naturally wide.</td><td><code>svg-metrics.mjs</code> line ~277–281 hard-fails any aspect outside [0.8, 1.25] regardless of mark type; a horizontal "[icon] WORDMARK" lockup hard-fails.</td></tr>
+  <tr><td>F2 <span class="tag">friction</span></td><td>Phase 6's learnings step is a one-line pointer to <code>_shared/learnings-capture.md</code>, easy to short-circuit into a silent disk-append (no y/n/edit approval surfaced).</td><td>Phase 6 (line ~221–223) says "read and follow <code>_shared/learnings-capture.md</code>"; the approval convention lives only in that referenced file.</td></tr>
+  <tr><td>F3 <span class="tag">nit</span></td><td><code>--types</code> and theme-palette tension is unaddressed for inherently multi-color subjects (e.g. "solitaire" wants card-red + felt-green, but <code>flat-minimal</code>'s ≤3-color ceiling forces dropping suit-red).</td><td>No guidance to suggest a better-fit theme when the subject's conventional colors exceed the run theme's ceiling.</td></tr>
+</table>
+
+<h2 id="decisions">Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td>D1</td><td><strong>Full rename <code>/logos</code> → <code>/logo</code>, no back-compat alias.</strong> <code>git mv skills/logos → skills/logo</code>; frontmatter <code>name: logo</code>; every internal command/path ref; output artifacts <code>logo.html</code> + <code>&lt;slug&gt;.logo.json</code>; cache <code>~/.pmos/logo-cache/</code>; default out <code>{docs_path}/logo/</code>; <code>&lt;meta name="pmos:skill" content="logo"&gt;</code>; learnings header <code>## /logo</code>; plus a repo-wide sweep of <em>live</em> <code>/logos</code> references (root <code>README.md</code>, the pmos-toolkit README skill row, any sibling-skill citations).</td><td>Maintainer pick (R0 + chose "Full rename, no alias"). Skill is new and low-usage — a clean break is simpler than carrying an alias. Directory-driven discovery (<code>plugin.json: skills: "./skills/"</code>) makes the rename transparent to the manifest/marketplace (no per-skill entry exists).</td></tr>
+  <tr><td>D2</td><td><strong>New exploration phase before generation, with a two-axis approval: CONCEPT and STYLE chosen separately.</strong> The skill researches the subject (and any <code>--ref</code> signals) and proposes <strong>2–3 distinct concept directions</strong> (the idea/metaphor each mark would express, with the subject's conventional colors/symbolism noted) <em>and</em> <strong>2–3 candidate styles</strong> (from the 6 bundled themes, chosen to serve the leading concept). The user approves a concept (or two) and a style independently; only then does generation run, conditioned on the approved direction.</td><td>Maintainer pick (chose "Two-axis: concept AND style"). Directly answers R1+R2+R3: the idea and the style are both surfaced and approved before any SVG is authored, instead of being invented silently inside Phase 3.</td></tr>
+  <tr><td>D3</td><td><strong>Concept and style are distinct axes and the skill must name the difference.</strong> A <em>style</em> = a rendering technique + palette ceiling (the 6 bundled themes). A <em>concept</em> = the depicted idea/metaphor/symbol (e.g. for "solitaire": a fanned hand, a single ace, felt + suit pips, a monogram K). Generation may diverge on variants <em>within</em> the approved concept, but the concept itself is never auto-decided silently.</td><td>The maintainer's reframe (R3). Making the axis distinction explicit in the skill is what prevents the regression back to "approve a style, get a surprise idea".</td></tr>
+  <tr><td>D4</td><td><strong>Clarification gate (consolidated, conditional).</strong> When the brief is thin/ambiguous, the exploration phase fires ONE <code>AskUserQuestion</code> gathering the high-value unknowns — primary usage context (favicon / app-nav / marketing), color or vibe leanings + hard constraints, and must-work-in-one-color — and feeds the answers into the concept/style proposals. Skipped when the brief already supplies them; under <code>--non-interactive</code> the questions are recorded to the open-questions buffer and best-fit defaults proceed.</td><td>Maintainer pick (chose "Consolidated clarify prompt"). Answers R2's "no clarifications sought" without nagging on already-rich briefs.</td></tr>
+  <tr><td>D5</td><td><strong>F1 fix: mark-type-aware aspect bounds in the deterministic gate.</strong> <code>svg-metrics.mjs</code> gains a <code>--mark-type &lt;type&gt;</code> flag (seeded from the need's mark type). Square-context types (<code>favicon</code>, <code>pictorial</code>, <code>abstract</code>, <code>lettermark</code>/<code>monogram</code>, <code>mascot</code>) keep <code>[0.8, 1.25]</code>; lockup types (<code>combination</code>, <code>emblem</code>, <code>wordmark</code>) get a relaxed <code>[0.8, 4.0]</code>. <strong>Absent <code>--mark-type</code>, the bound stays <code>[0.8, 1.25]</code></strong> (back-compat). The <em>icon-only</em> deliverable of a lockup is checked as a square icon, not a lockup.</td><td>Maintainer pick (chose "Mark-type-aware bounds"). Precise — no false-fails for legal horizontal lockups, no hole that lets a favicon ship too-wide. Arithmetic stays in the script (§H).</td></tr>
+  <tr><td>D6</td><td><strong>F2 fix: inline the learnings-approval rule into the (renumbered) learnings phase.</strong> The phase text itself states: surface the exact proposed bullet(s), get y/n/edit approval, and never silently disk-append — independent of whether the agent opens the referenced shared file.</td><td>The approval gate must not depend on the agent following a one-line pointer. Inlining makes it the load-bearing instruction.</td></tr>
+  <tr><td>D7</td><td><strong>F3 folds into D2/D3.</strong> Because the concept is chosen first and the style/palette is chosen to <em>serve</em> it, the style proposals explicitly flag when the leading concept's natural palette exceeds a candidate style's color ceiling (e.g. suit-red under <code>flat-minimal</code>'s ≤3) and recommend a better-fit style (e.g. <code>gradient-duotone</code>, ≤5). <strong>No new themes are authored</strong> — the fix is better selection among the existing six.</td><td>Resolves the multi-color tension at the point the choice is made, not as an afterthought during generation. Authoring new themes is out of scope for this epic.</td></tr>
+  <tr><td>D8</td><td><strong>One story; release prereqs are <code>/complete-dev</code>'s.</strong> All work edits the one skill's files plus a repo-wide live-ref sweep; the version bump / CHANGELOG / per-plugin README version row / manifest sync are NOT story tasks (skill-patterns §G). The README <em>skill-row content</em> edit (logos→logo) and live cross-skill <code>/logos</code> refs ARE story-owned content edits (they are not release-prereq files).</td><td>D24 litmus: the rename and the new phase both rewrite <code>SKILL.md</code> and cannot be independently skill-eval'd or shipped — tightly coupled, one <code>/execute</code> run.</td></tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+
+<h3 id="fr-rename">FR1 — Rename to <code>/logo</code></h3>
+<ul>
+  <li>FR1.1 — The skill directory is <code>plugins/pmos-toolkit/skills/logo/</code> (via <code>git mv</code>, preserving history) and frontmatter <code>name: logo</code> (a-name-matches-dir).</li>
+  <li>FR1.2 — Every user-facing and internal reference to the command is <code>/logo</code> (announce line, prose, anti-patterns, spec-lineage).</li>
+  <li>FR1.3 — Output artifacts rename: showcase <code>logo.html</code>; sidecar <code>&lt;run-slug&gt;.logo.json</code>; cache dir <code>~/.pmos/logo-cache/</code>; default out dir <code>{docs_path}/logo/&lt;run-slug&gt;/</code>; the showcase carries <code>&lt;meta name="pmos:skill" content="logo"&gt;</code>; the learnings header is <code>## /logo</code>.</li>
+  <li>FR1.4 — Repo-wide sweep: update <em>live</em> <code>/logos</code> / <code>skills/logos</code> references (root <code>README.md</code>, <code>plugins/pmos-toolkit/README.md</code> skill row, any sibling-skill citations). Historical references (changelog entries, other features' spec-lineage) are left as-is.</li>
+  <li>FR1.5 — No <code>/logos</code> back-compat alias is created.</li>
+  <li>FR1.6 — No dangling reference remains: a repo grep for live <code>/logos\b</code>, <code>skills/logos</code>, <code>logos-cache</code>, and <code>content="logos"</code> returns only intentional-historical hits.</li>
+</ul>
+
+<h3 id="fr-clarify">FR2 — Clarification gate</h3>
+<ul>
+  <li>FR2.1 — A deterministic "thin-brief" check decides whether to clarify: a brief is thin when it lacks an explicit usage context AND lacks any color/vibe signal (from text or <code>--ref</code>). Rich briefs skip the gate (logged, not silent).</li>
+  <li>FR2.2 — When thin, fire ONE consolidated <code>AskUserQuestion</code> covering: primary usage context (favicon / app-nav / marketing/brand), color or vibe leanings + any hard constraints, and must-work-in-one-color (yes/no). Each sub-choice carries a Recommended default.</li>
+  <li>FR2.3 — Answers are merged into the style-profile and threaded into the concept + style proposals (FR3/FR4).</li>
+  <li>FR2.4 — Under <code>--non-interactive</code>, the gate defers per the canonical block (questions recorded to the OQ buffer) and best-fit defaults proceed — no deadlock.</li>
+</ul>
+
+<h3 id="fr-concept">FR3 — Concept exploration &amp; approval</h3>
+<ul>
+  <li>FR3.1 — After decomposition, the skill researches the subject (text brief + any <code>--ref</code> signals + clarify answers) and proposes <strong>2–3 distinct concept directions</strong>. Each concept names: the idea/metaphor, what it depicts, the symbolism, and the subject's conventional colors (e.g. solitaire → card-red + felt-green).</li>
+  <li>FR3.2 — The concepts must be genuinely different ideas (not three renderings of one) — the same divergence discipline the generation phase already requires of variants.</li>
+  <li>FR3.3 — Interactive: one <code>AskUserQuestion</code> to approve a concept (or two), edit, or re-explore; the message is self-contained (lists each concept + its metaphor). Non-interactive: AUTO-PICK the best-fit concept, recording the choice + the alternatives weighed to the <code>logo.json</code> sidecar and OQ buffer.</li>
+  <li>FR3.4 — The approved concept(s) are recorded as the binding direction for generation; the concept is never silently invented inside Phase 4.</li>
+</ul>
+
+<h3 id="fr-style">FR4 — Style exploration &amp; approval</h3>
+<ul>
+  <li>FR4.1 — Alongside the concept proposals, the skill proposes <strong>2–3 candidate styles</strong> drawn from the 6 bundled themes, each chosen to serve the leading concept, with a one-line rationale.</li>
+  <li>FR4.2 — Each style proposal states its color ceiling and <strong>flags when the leading concept's natural palette exceeds it</strong> (D7), recommending a better-fit style (e.g. suit-red ⇒ prefer <code>gradient-duotone</code> over <code>flat-minimal</code>).</li>
+  <li>FR4.3 — Interactive: a separate approval (the second axis) selects the style; an explicit <code>--theme</code> flag still overrides and is surfaced as the pre-selected option rather than skipping the approval. Non-interactive: AUTO-PICK the best-fit style + record rationale.</li>
+  <li>FR4.4 — The approved style governs the per-variant technique/palette in generation exactly as <code>--theme</code> does today.</li>
+</ul>
+
+<h3 id="fr-generate">FR5 — Generation consumes the approved direction</h3>
+<ul>
+  <li>FR5.1 — The generation phase authors variants <em>within</em> the approved concept(s) × approved style — diverging on structural dimensions, not re-deciding the idea.</li>
+  <li>FR5.2 — Per-need mark type is passed to the evaluator's deterministic gate (FR6) so lockups are checked with the right bound.</li>
+</ul>
+
+<h3 id="fr-aspect">FR6 — Mark-type-aware aspect gate</h3>
+<ul>
+  <li>FR6.1 — <code>svg-metrics.mjs</code> accepts <code>--mark-type &lt;type&gt;</code> (and <code>--mark-type=…</code>). Square-context types keep <code>[0.8, 1.25]</code>; lockup types (<code>combination</code>, <code>emblem</code>, <code>wordmark</code>) use <code>[0.8, 4.0]</code>.</li>
+  <li>FR6.2 — Absent the flag, the bound is the current <code>[0.8, 1.25]</code> (back-compat — existing callers and the <code>svg-metrics.test.mjs</code> default cases are unaffected).</li>
+  <li>FR6.3 — An unknown <code>--mark-type</code> value is a usage error (exit 64) with the valid list, mirroring the <code>--theme</code>/<code>--renderer</code> enum handling.</li>
+  <li>FR6.4 — The icon-only deliverable of a lockup need is gated as a square icon (it must work at favicon/nav size), not as a lockup.</li>
+  <li>FR6.5 — <code>eval/code-metrics.md</code> documents the new bound table; the hard-fail id stays <code>viewbox-not-square</code>.</li>
+</ul>
+
+<h3 id="fr-learnings">FR7 — Learnings approval rule inlined</h3>
+<ul>
+  <li>FR7.1 — The learnings phase text states the rule directly: surface the exact proposed bullet(s) in chat, get y/n/edit approval, and never silently append to <code>~/.pmos/learnings.md</code> — independent of opening <code>_shared/learnings-capture.md</code> (which it still cites for format).</li>
+  <li>FR7.2 — Under <code>--non-interactive</code>, the proposed bullets are recorded to the OQ buffer rather than auto-written (no silent disk-append).</li>
+</ul>
+
+<h2 id="invariants">Invariants (coherence contract)</h2>
+<ul>
+  <li><strong>Inv-1 ($0 authoring):</strong> SVGs are authored in-session; no paid generation API, ever (unchanged core constraint, shared with <code>/diagram</code>).</li>
+  <li><strong>Inv-2 (renderer hard-gate):</strong> the Phase 0 renderer detection (Playwright → rsvg-convert → cairosvg) stays a hard gate — refuse to run with none present.</li>
+  <li><strong>Inv-3 (metrics are script-only):</strong> color counts, stroke ratios, and the new mark-type aspect bound are script arithmetic (§H); the model judges vision only.</li>
+  <li><strong>Inv-4 (rename completeness):</strong> the rename is complete and consistent — no dangling live <code>/logos</code>/<code>skills/logos</code> reference; <code>name: logo</code> in <code>skills/logo/</code> (a-name-matches-dir holds).</li>
+  <li><strong>Inv-5 (svg-metrics back-compat):</strong> absent <code>--mark-type</code>, behavior is byte-identical to today; pre-existing <code>svg-metrics.test.mjs</code> cases pass unchanged (new cases are additive).</li>
+  <li><strong>Inv-6 (non-interactive contract):</strong> every new gate (clarify, concept, style) carries a Recommended option or a <code>defer-only</code> tag; the inline non-interactive block stays byte-identical to <code>_shared/non-interactive.md</code>; <code>audit-recommended.sh</code> + <code>lint-non-interactive-inline.sh</code> stay green.</li>
+  <li><strong>Inv-7 (skill conformance):</strong> the skill conforms to <code>skill-patterns.md §A–§L</code> and the host <code>CLAUDE.md</code> (canonical path <code>plugins/pmos-toolkit/skills/logo</code>, no release-prereq tasks in the plan). <code>lint-phase-refs.sh</code> + <code>lint-flags-vs-hints.sh</code> stay green across the phase renumber.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story (D8): <code>260617-3z4</code> — "/logo refinements: rename + concept/style exploration + mark-type aspect gate + learnings-approval", <code>route: skill</code>, plugin <code>pmos-toolkit</code>, no dependencies. Its ACs are the seven FR groups above plus the invariants; <code>skill-patterns.md §A–§L</code> + the host <code>CLAUDE.md</code> are standing acceptance criteria. The per-story <code>/plan</code> cites this design's anchors. Build via <code>/skill-sdlc build --story 260617-3z4</code>.</p>
+
+<h2 id="open-questions">Open questions / deferred</h2>
+<ul>
+  <li><strong>Per-need concepts (deferred):</strong> the maintainer chose run-level two-axis approval; proposing/approving a concept separately per decomposed need was the runner-up. Revisit if multi-need briefs feel under-served.</li>
+  <li><strong>New themes (out of scope, D7):</strong> a richer multi-color theme for inherently colorful subjects is not authored here — the fix is better selection among the existing six. A future epic could add one.</li>
+  <li><strong>Lockup aspect ceiling:</strong> <code>4.0</code> is the proposed wide bound; the implementer may settle in <code>3.0–4.0</code> based on what real wordmark/combination lockups need during the build self-check.</li>
+  <li><strong>Thin-brief threshold:</strong> the exact "thin vs rich" rule (FR2.1) is a heuristic; the implementer tunes it so rich briefs don't get nagged and bare briefs always clarify.</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+schema_version: 1
+story: 260617-3z4
+epic: 260617-n7a
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/logo
+# /logo refinements — rename /logos→/logo + a new concept/style exploration phase + a mark-type-aware aspect gate
+#   + an inlined learnings-approval rule. Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md
+#   (canonical skill path skills/logo, manifest version-sync is /complete-dev's). Release prereqs (version bump /
+#   changelog / README version row / manifest sync) are NOT story tasks (design D8).
+# Do the rename FIRST (T1) so all later edits target the renamed paths. Deterministic metrics stay script-only (Inv-3);
+#   the new gates must preserve the byte-identical non-interactive inline block + Recommended/defer-only tags (Inv-6).
+tasks:
+  - id: T1
+    title: "FR1 — rename /logos → /logo (dir + identity + artifacts + repo-wide live-ref sweep)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Rename the skill end to end. (1) `git mv plugins/pmos-toolkit/skills/logos plugins/pmos-toolkit/skills/logo`
+      (preserve history). (2) In skills/logo/SKILL.md: frontmatter `name: logos`→`name: logo`; the announce line,
+      title `# /logos`, all prose `/logos` refs, anti-patterns, and the spec-lineage line → `/logo`. (3) Output
+      artifacts: showcase `logos.html`→`logo.html`; sidecar `<run-slug>.logos.json`→`<run-slug>.logo.json`; cache
+      `~/.pmos/logos-cache/`→`~/.pmos/logo-cache/` (Phase 0 `--clear-cache` path too); default out
+      `{docs_path}/logos/`→`{docs_path}/logo/`; the showcase `renderArtifact({ pmosSkill: 'logos' })` and the baked
+      `<meta name="pmos:skill" content="logos">` → `logo`; learnings header `## /logos`→`## /logo`. (4) Sweep cited
+      files under the dir (eval/code-metrics.md, eval/rubric.md, scripts/*, tests/*) for `/logos`/`skills/logos`/
+      `logos-cache`/`logos.html`/`logos.json` and update. (5) Repo-wide: update LIVE `/logos` refs — root README.md,
+      plugins/pmos-toolkit/README.md skill row, any sibling-skill citations (e.g. /diagram cross-refs). Do NOT create
+      a /logos alias (FR1.5). Leave HISTORICAL refs as-is (CHANGELOG entries, other features' spec-lineage, the
+      2026-06-13_logos-skill folder). VERIFY: `grep -rn '/logos\b\|skills/logos\|logos-cache\|content="logos"\|logos\.\(html\|json\)' --include='*.md' --include='*.mjs' --include='*.js' .` returns only intentional-historical hits;
+      a-name-matches-dir holds (name: logo in skills/logo/). (FR1.1–FR1.6, Inv-4)
+
+  - id: T2
+    title: "FR6 — svg-metrics.mjs mark-type-aware aspect gate + TDD + code-metrics.md"
+    ac: [AC5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In skills/logo/scripts/svg-metrics.mjs: add `--mark-type <type>` (and `--mark-type=…`) parsing alongside the
+      existing `--theme` parse (main(), ~line 382–392). Define a bounds table: square-context types
+      {favicon, pictorial, abstract, lettermark, monogram, mascot} → [0.8, 1.25]; lockup types
+      {combination, emblem, wordmark} → [0.8, 4.0]; ABSENT flag → [0.8, 1.25] (back-compat, Inv-5). Replace the
+      hardcoded `aspect < 0.8 || aspect > 1.25` (line ~280) with the resolved [min,max] for the active mark type;
+      keep the hard-fail id `viewbox-not-square`. Unknown `--mark-type` value → stderr the valid list + exit 64
+      (mirror the --theme/--renderer enum handling, FR6.3). Thread the bound through `evaluateSvg`/the exported
+      analyze fn (add an optional `markType` arg, default undefined = square) so both CLI and the in-process eval get
+      it. TDD FIRST in skills/logo/scripts/svg-metrics.test.mjs: (a) a wide [0.8,4.0]-shaped lockup SVG PASSES with
+      markType=wordmark and FAILS with no markType; (b) a wide SVG FAILS with markType=favicon; (c) an existing
+      square case is byte-identical with and without the flag (default-unchanged). Document the bound table in
+      skills/logo/eval/code-metrics.md (the `viewbox-not-square` section). `node skills/logo/tests/run.mjs` green
+      (selftest runs svg-metrics.test.mjs). The arithmetic lives in the script, never the model (§H/Inv-3). (FR6.1–FR6.5)
+
+  - id: T3
+    title: "FR2/FR3/FR4/FR5/FR7 — SKILL.md: new exploration Phase 3 + renumber + wiring + learnings rule"
+    ac: [AC2, AC3, AC4, AC6, AC7]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Edit skills/logo/SKILL.md. (A) INSERT a new integer Phase 3 — "Clarify + explore: concept & style"
+      {#explore} — between Phase 2 (decompose {#decompose}) and the current generate phase. It must, in order:
+      (i) CLARIFY (FR2): run a deterministic thin-brief check (thin = no explicit usage context AND no color/vibe
+      signal from text or --ref); when thin, fire ONE consolidated AskUserQuestion (usage context: favicon/app-nav/
+      marketing; color or vibe leanings + hard constraints; must-work-in-one-color) each sub-choice carrying a
+      Recommended default; rich briefs skip (log it); merge answers into the style-profile. (ii) PROPOSE CONCEPTS
+      (FR3): research the subject + --ref + clarify answers → 2–3 DISTINCT concept directions (idea/metaphor, what it
+      depicts, symbolism, the subject's conventional colors) — genuinely different ideas, not recolors. (iii) PROPOSE
+      STYLES (FR4): 2–3 candidate styles from the 6 bundled themes chosen to serve the leading concept, each stating
+      its color ceiling and FLAGGING when the concept's natural palette exceeds it (D7 — e.g. suit-red ⇒ prefer
+      gradient-duotone over flat-minimal). (iv) APPROVE on TWO SEPARATE AXES: one AskUserQuestion to approve the
+      concept(s) (Recommended = best-fit; edit / re-explore), a second to approve the style (Recommended = best-fit;
+      an explicit --theme is surfaced as the pre-selected option, NOT a skip). Record the approved concept+style as
+      the binding direction. (v) NON-INTERACTIVE (Inv-6): each gate carries a Recommended option (classifier
+      AUTO-PICKs best-fit) or a defer-only tag; record the chosen concept/style + alternatives weighed to the
+      logo.json sidecar + OQ buffer; no deadlock. Add the explicit conceptual-difference framing (D3: style = render
+      technique+palette; concept = depicted idea) into the phase preamble. (B) RENUMBER the downstream phases:
+      generate→Phase 4, evaluate→Phase 5, deliver→Phase 6, learnings→Phase 7. KEEP the stable {#slug} anchors
+      (#generate, #evaluate, #deliver, #capture-learnings) and update every visible integer + prose cross-ref
+      (lint-phase-refs.sh is the backstop, Inv-7). Update "Track Progress" to phases 0–7. (C) WIRE generation (now
+      Phase 4, FR5): author variants WITHIN the approved concept × approved style (diverge on structure, not the
+      idea); pass each need's mark type to the evaluator. (D) WIRE the evaluator (now Phase 5, FR6): invoke
+      svg-metrics.mjs with `--mark-type <need.markType>`; gate a lockup's icon-only deliverable as a square icon
+      (FR6.4). (E) INLINE the learnings rule (now Phase 7, FR7/D6): state directly — surface the exact proposed
+      bullet(s), get y/n/edit approval, never silently append to ~/.pmos/learnings.md (still cite
+      _shared/learnings-capture.md for format); --non-interactive records bullets to the OQ buffer, no auto-write.
+      (F) Update Platform Adaptation (the new clarify/concept/style gates' no-prompt degradation), Anti-patterns
+      (do-not-auto-decide-the-concept; do-not-skip-approval), argument-hint (keep --theme; --concept stays an
+      inferred nl-sugar free-text seed, NOT in argument-hint), and the description (mention the explore/approve step
+      within the 1024-char cap). Keep the non-interactive inline block byte-identical to _shared/non-interactive.md.
+      (FR2–FR5, FR7, D2/D3/D4/D7, Inv-6/Inv-7)
+
+  - id: T4
+    title: "Conformance closeout — 4 lints + audit + skill-eval + selftest"
+    ac: [AC7]
+    deps: [T1, T2, T3]
+    parallel: false
+    detail: >
+      Run, from repo root, against skills/logo: tools/lint-non-interactive-inline.sh; tools/audit-recommended.sh
+      plugins/pmos-toolkit/skills/logo/SKILL.md; tools/lint-flags-vs-hints.sh plugins/pmos-toolkit/skills/logo;
+      tools/lint-phase-refs.sh plugins/pmos-toolkit/skills/logo; the skill-eval deterministic check
+      `plugins/pmos-toolkit/skills/feature-sdlc/tools/skill-eval-check.sh --target claude-code
+      plugins/pmos-toolkit/skills/logo`; and `node plugins/pmos-toolkit/skills/logo/tests/run.mjs`. All green
+      (skill-eval [D] EXIT 0 or only documented pre-existing residuals). Fix residuals introduced by this story.
+      Confirm: NI inline block byte-identical to skills/_shared/non-interactive.md; a-name-matches-dir; no live
+      dangling /logos ref. Do NOT add version-bump/changelog/README-version/manifest tasks (D8). (AC7, Inv-6/Inv-7)

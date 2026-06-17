@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-3z4 /logo refinements</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — /logo refinements (story 260617-3z4)</h1>
+<p class="sub">Epic <code>260617-n7a</code> · route: skill · plugin: pmos-toolkit · spec = <code>../../02_design.html</code>. Tasks in <code>tasks.yaml</code>.</p>
+
+<h2 id="approach">Approach</h2>
+<p>The work splits along two axes that mostly don't collide: a <strong>rename</strong> (mechanical, repo-wide) and a set of
+<strong>behavior edits</strong> (the new exploration phase + the aspect-gate fix + the learnings rule). The rename must land
+<em>first</em> (<a href="../../02_design.html#decisions">D1</a>) so the behavior edits target the renamed paths
+(<code>skills/logo/SKILL.md</code>, <code>skills/logo/scripts/svg-metrics.mjs</code>). After that, the script change
+(<code>svg-metrics.mjs</code> + tests + <code>code-metrics.md</code>) and the <code>SKILL.md</code> rewrite (new Phase 3,
+phase renumber, learnings rule) edit disjoint files and can proceed in parallel. A final conformance task runs the four
+hygiene lints, the audit, <code>skill-eval</code>, and the selftest. Deterministic arithmetic stays in the script
+(<a href="../../02_design.html#invariants">Inv-3</a>); the new gates preserve the non-interactive contract (Inv-6).</p>
+
+<h2 id="waves">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Tasks</th><th>Why</th></tr>
+  <tr><td>1</td><td>T1 (rename + sweep)</td><td>Must precede every other edit — moves <code>SKILL.md</code> and <code>svg-metrics.mjs</code> to <code>skills/logo/</code>.</td></tr>
+  <tr><td>2</td><td>T2 (svg-metrics mark-type + tests), T3 (SKILL.md: new Phase 3 + renumber + wiring + learnings rule)</td><td>Disjoint files (<code>scripts/</code>+tests+<code>eval/</code> vs <code>SKILL.md</code>); both depend only on the rename.</td></tr>
+  <tr><td>3</td><td>T4 (conformance: 4 lints + audit + skill-eval + selftest)</td><td>Closeout after all edits land.</td></tr>
+</table>
+
+<h2 id="tasks">Tasks &amp; verification</h2>
+<table>
+  <tr><th>Task</th><th>AC</th><th>Verification</th></tr>
+  <tr><td>T1 — rename <code>/logos</code>→<code>/logo</code> + repo-wide live-ref sweep</td><td>AC1</td><td><code>git mv</code> preserved history; <code>name: logo</code> in <code>skills/logo/SKILL.md</code>; repo grep for live <code>/logos\b</code>/<code>skills/logos</code>/<code>logos-cache</code>/<code>content="logos"</code> returns only historical hits.</td></tr>
+  <tr><td>T2 — <code>svg-metrics.mjs --mark-type</code> + TDD + <code>code-metrics.md</code></td><td>AC5</td><td>New tests (lockup-passes-wide, icon-fails-wide, default-unchanged) written first; <code>node tests/run.mjs</code> green; unknown mark-type exits 64.</td></tr>
+  <tr><td>T3 — <code>SKILL.md</code>: new Phase 3 (clarify+concept+style) + renumber 4–7 + wire generation/eval + inline learnings rule + Track-Progress/Platform/Anti-patterns/argument-hint/description</td><td>AC2, AC3, AC4, AC6, AC7</td><td>Phases read 0–7 with stable <code>{#slug}</code> anchors; concept/style are two separate approvals; generation cites the approved direction; eval passes <code>--mark-type</code> per need; learnings rule inlined.</td></tr>
+  <tr><td>T4 — conformance closeout</td><td>AC7</td><td>4 lints (<code>lint-non-interactive-inline</code>, <code>audit-recommended</code>, <code>lint-flags-vs-hints</code>, <code>lint-phase-refs</code>) + <code>skill-eval-check.sh --target claude-code skills/logo</code> + selftest all green; NI inline block byte-identical.</td></tr>
+</table>
+
+<h2 id="risks">Risks</h2>
+<ul>
+  <li><strong>Phase renumber drift:</strong> inserting Phase 3 shifts generate/evaluate/deliver/learnings to 4–7. Stable slug anchors (<code>#generate</code>, <code>#evaluate</code>, <code>#deliver</code>, <code>#capture-learnings</code>) don't change; the visible integers + prose cross-refs do. <code>lint-phase-refs.sh</code> is the backstop (Inv-7).</li>
+  <li><strong>svg-metrics back-compat:</strong> the default (no <code>--mark-type</code>) must stay <code>[0.8,1.25]</code> so existing test cases and icon callers are unaffected (Inv-5) — new cases are additive.</li>
+  <li><strong>Dangling refs:</strong> the rename touches many files; the grep gate (AC1) is the completeness check (Inv-4). Skip historical changelog / other-feature spec-lineage hits deliberately.</li>
+  <li><strong>NI contract:</strong> three new gates — each needs a Recommended option or a <code>defer-only</code> tag, or <code>audit-recommended.sh</code> fails (Inv-6).</li>
+</ul>
+
+<h2 id="release-prereqs">Release prerequisites (NOT story tasks — /complete-dev's, D8)</h2>
+<ul>
+  <li>Version bump of the two <code>pmos-toolkit</code> <code>plugin.json</code> manifests.</li>
+  <li>CHANGELOG entry + per-plugin README version row.</li>
+  <li>Tag + push to all remotes.</li>
+</ul>
+
+</body>
+</html>
