@@ -87,6 +87,12 @@ rubricOverrides:
       prompt: "All edges sharing a `role` use the same connector style (stroke/dash/shape)"
       evidenceHint: "compare like-roled edges' SVG attributes"
 
+mindmap:
+  supported: true
+  defaultLayout: radial
+  connector: curved
+  nodeCap: 60
+
 infographic:
   supported: true
   layout: editorial-v1
