@@ -2,7 +2,7 @@
 name: ideate
 description: Turn a fuzzy idea into a structured, pressure-tested one-page brief in ~10–15 minutes. Standalone utility — runs a 3-phase default loop (Frame → Expand → Pressure-test) with always-on premortem + inversion + assumption-mapping against the chosen idea, plus an opt-in Amplify phase (Brian Chesky's 11-star ladder) between Expand and Pressure-test that recommends a sweet-spot reframe of the finalist. Writes a single per-idea HTML artifact to {docs_path}/ideate/{YYYY-MM-DD}_<slug>.html (markdown sidecar when output_format=both). Lives outside the requirements→spec→plan pipeline — for pre-requirements ideation, not committed-plan interrogation. Use when the user says "help me brainstorm this idea", "stress-test this idea", "I have a half-formed idea", "ideate on X", "what should we build to solve Y", "pressure-test this concept", "poke holes in this idea before I write it up", "11-star this idea", "amplify this idea past its obvious shape", or "/ideate".
 user-invocable: true
-argument-hint: "<seed-text> [--format html|md|both] [--no-stress-test] [--slug <slug>] [--resume <path>] [--non-interactive | --interactive]"
+argument-hint: "<seed-text> [--from-shape <path>] [--format html|md|both] [--no-stress-test] [--slug <slug>] [--resume <path>] [--non-interactive | --interactive]"
 ---
 
 # /ideate
@@ -100,7 +100,11 @@ This skill honours `--non-interactive` per the canonical contract inlined below 
 
 ## Phase 1: Frame {#frame}
 
-Goal: pin **HMW + JTBD + success signal** in one short pass, then classify the idea so the Expand phase auto-picks the right techniques.
+Goal: pin **HMW + JTBD + success signal** in one short pass, then classify the idea so the Expand phase auto-picks the right techniques. The frame is either **adopted** from an upstream `/shape` problem-brief (when one exists) or **derived** here — `/ideate` never re-shapes a problem that `/shape` already shaped; it consumes that shape and spends its effort on the solution space.
+
+**Adopt a `/shape` frame when one is present (skip derivation).** A `/shape` problem-brief is an HTML file carrying `<meta name="pmos:skill" content="shape">`. Resolve one, in order: (i) an explicit `--from-shape <path>` — the pipeline passes this when `/feature-sdlc`'s problem-shaping front-gate hands `/shape`'s brief to `/ideate`; (ii) otherwise the most recent `*.html` under `{feature_folder}` (or `{docs_path}/shape/`) whose `pmos:skill` meta is `shape`. A `--from-shape <path>` that is missing or lacks the `shape` meta → abort with `--from-shape: <path> is not a /shape problem-brief`. When a brief resolves, **read its frame instead of re-deriving** — per `skills/shape/reference/artifact-template.html` (§K — read the fields, do not restate `/shape`'s job): **HMW** + **JTBD** from `<section id="felt-problem">` (the "How might we:" / "Job-to-be-done:" lines), the **chosen framing** from `<section id="framings">` ("Chosen framing:"), the **sharpest problem statement** from `<section id="tldr">`, and the falsifiable hypothesis as the **success signal**. Echo the adopted frame in one chat line (`Adopting /shape frame — HMW: <…> · framing: <…>`), then **skip step 1 below and proceed to step 2** — no framing questions, no re-derivation. This is read-only consumption of `/shape`'s output; `/ideate`'s solution-space charter is unchanged.
+
+When **no** brief resolves, derive the frame exactly as standalone (steps 1–3):
 
 <!-- defer-only: free-form -->
 1. **Auto-derive from the seed.** If the seed contains a verb + object + audience signal, draft HMW + JTBD + success signal yourself. Otherwise emit one consolidated `AskUserQuestion` with up to 4 sub-questions to gather them — one question per missing field.
