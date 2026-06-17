@@ -13,8 +13,8 @@ feature_folder: docs/pmos/features/2026-06-13_research-skill/
 plan_doc: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/03_plan.html
 tasks: docs/pmos/features/2026-06-13_research-skill/stories/260613-dnp/tasks.yaml
 worktree:
-claimed_by:
-driver_holder:
+claimed_by: build:cron-dnp
+driver_holder: build:cron-dnp
 labels: [pmos-toolkit, artifact, research]
 created: 2026-06-13
 updated: 2026-06-17
