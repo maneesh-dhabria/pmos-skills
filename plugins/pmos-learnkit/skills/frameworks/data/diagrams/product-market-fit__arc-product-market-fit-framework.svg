@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Arc Product-Market Fit Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Arc Product-Market Fit Framework</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Sequoia: three PMF archetypes, each with its own GTM, competition &amp; risk</text>
+
+  <!-- Hair on Fire -->
+  <rect x="32" y="84" width="186" height="276" rx="10" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+  <text x="125" y="116" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438" text-anchor="middle">Hair on Fire</text>
+  <text x="125" y="138" font-family="sans-serif" font-size="11" fill="#ef4444" text-anchor="middle" font-weight="700">URGENT KNOWN PROBLEM</text>
+  <text x="48" y="170" font-family="sans-serif" font-size="11.5" fill="#5b6680">Problem: pressing, obvious</text>
+  <text x="48" y="190" font-family="sans-serif" font-size="11.5" fill="#5b6680">Market: crowded, saturated</text>
+  <text x="48" y="210" font-family="sans-serif" font-size="11.5" fill="#5b6680">GTM: race to be best-in-class</text>
+  <text x="48" y="230" font-family="sans-serif" font-size="11.5" fill="#5b6680">Risk: differentiation</text>
+  <text x="48" y="262" font-family="sans-serif" font-size="11.5" fill="#1d2438" font-weight="700">Win by: 10x better</text>
+  <text x="48" y="282" font-family="sans-serif" font-size="11.5" fill="#1d2438">execution &amp; speed</text>
+  <text x="125" y="338" font-family="sans-serif" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">e.g. Zoom</text>
+
+  <!-- Hard Fact -->
+  <rect x="227" y="84" width="186" height="276" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <text x="320" y="116" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438" text-anchor="middle">Hard Fact</text>
+  <text x="320" y="138" font-family="sans-serif" font-size="11" fill="#f59e0b" text-anchor="middle" font-weight="700">ACCEPTED STATUS QUO</text>
+  <text x="243" y="170" font-family="sans-serif" font-size="11.5" fill="#5b6680">Problem: tolerated pain</text>
+  <text x="243" y="190" font-family="sans-serif" font-size="11.5" fill="#5b6680">Market: stagnant, resigned</text>
+  <text x="243" y="210" font-family="sans-serif" font-size="11.5" fill="#5b6680">GTM: prove change is worth it</text>
+  <text x="243" y="230" font-family="sans-serif" font-size="11.5" fill="#5b6680">Risk: inertia / "good enough"</text>
+  <text x="243" y="262" font-family="sans-serif" font-size="11.5" fill="#1d2438" font-weight="700">Win by: novel approach</text>
+  <text x="243" y="282" font-family="sans-serif" font-size="11.5" fill="#1d2438">to an old constraint</text>
+  <text x="320" y="338" font-family="sans-serif" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">e.g. Notion</text>
+
+  <!-- Future Vision -->
+  <rect x="422" y="84" width="186" height="276" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <text x="515" y="116" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438" text-anchor="middle">Future Vision</text>
+  <text x="515" y="138" font-family="sans-serif" font-size="11" fill="#0ea5a4" text-anchor="middle" font-weight="700">REIMAGINE THE WORLD</text>
+  <text x="438" y="170" font-family="sans-serif" font-size="11.5" fill="#5b6680">Problem: not yet felt</text>
+  <text x="438" y="190" font-family="sans-serif" font-size="11.5" fill="#5b6680">Market: doesn't exist yet</text>
+  <text x="438" y="210" font-family="sans-serif" font-size="11.5" fill="#5b6680">GTM: educate &amp; create demand</text>
+  <text x="438" y="230" font-family="sans-serif" font-size="11.5" fill="#5b6680">Risk: highest; many ways to fail</text>
+  <text x="438" y="262" font-family="sans-serif" font-size="11.5" fill="#1d2438" font-weight="700">Win by: a new paradigm</text>
+  <text x="438" y="282" font-family="sans-serif" font-size="11.5" fill="#1d2438">+ biggest payoff</text>
+  <text x="515" y="338" font-family="sans-serif" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">e.g. Apple / iPhone</text>
+</svg>

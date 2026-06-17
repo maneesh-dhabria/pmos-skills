@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="GROW Coaching Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">GROW Coaching Model</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">A four-step dialogue that helps a report solve their own problem</text>
+
+  <!-- Step 1: Goal -->
+  <rect x="32" y="80" width="576" height="64" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <circle cx="64" cy="112" r="16" fill="#2563eb"/>
+  <text x="64" y="118" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">G</text>
+  <text x="96" y="106" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Goal</text>
+  <text x="96" y="128" font-family="sans-serif" font-size="13" fill="#5b6680">What do you want from this? &#8220;What does good look like?&#8221;</text>
+
+  <!-- Step 2: Reality -->
+  <rect x="32" y="156" width="576" height="64" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <circle cx="64" cy="188" r="16" fill="#0ea5a4"/>
+  <text x="64" y="194" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">R</text>
+  <text x="96" y="182" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Reality</text>
+  <text x="96" y="204" font-family="sans-serif" font-size="13" fill="#5b6680">What&#8217;s happening now? &#8220;What have you already tried?&#8221;</text>
+
+  <!-- Step 3: Options -->
+  <rect x="32" y="232" width="576" height="64" rx="8" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="64" cy="264" r="16" fill="#f59e0b"/>
+  <text x="64" y="270" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">O</text>
+  <text x="96" y="258" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Options</text>
+  <text x="96" y="280" font-family="sans-serif" font-size="13" fill="#5b6680">What could you do? &#8220;What else? And if money were no object?&#8221;</text>
+
+  <!-- Step 4: Will -->
+  <rect x="32" y="308" width="576" height="64" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+  <circle cx="64" cy="340" r="16" fill="#ef4444"/>
+  <text x="64" y="346" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff" text-anchor="middle">W</text>
+  <text x="96" y="334" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Will / Way Forward</text>
+  <text x="96" y="356" font-family="sans-serif" font-size="13" fill="#5b6680">What will you do, by when? &#8220;On 1&#8211;10, how committed are you?&#8221;</text>
+
+  <!-- flow arrows -->
+  <path d="M320 144 L320 156" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M320 220 L320 232" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a)"/>
+  <path d="M320 296 L320 308" stroke="#5b6680" stroke-width="1.5" marker-end="url(#a)"/>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="#5b6680"/>
+    </marker>
+  </defs>
+</svg>

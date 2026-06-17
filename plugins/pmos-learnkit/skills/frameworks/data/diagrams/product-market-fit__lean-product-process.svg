@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Lean Product Process diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Lean Product Process</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Product-Market Fit Pyramid — built bottom-up, tested top-down</text>
+
+  <!-- Market / Product split labels -->
+  <text x="565" y="150" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4" text-anchor="middle">PRODUCT</text>
+  <text x="565" y="320" font-family="sans-serif" font-size="11" font-weight="700" fill="#f59e0b" text-anchor="middle">MARKET</text>
+  <line x1="40" y1="232" x2="500" y2="232" stroke="#5b6680" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="270" y="226" font-family="sans-serif" font-size="11" font-style="italic" fill="#5b6680" text-anchor="middle">— product-market fit —</text>
+
+  <!-- Pyramid: 5 stacked trapezoid-ish bands, narrowest on top -->
+  <!-- UX (top) -->
+  <polygon points="200,80 340,80 360,116 180,116" fill="#0ea5a4"/>
+  <text x="270" y="103" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">UX</text>
+  <!-- Feature Set -->
+  <polygon points="180,118 360,118 380,154 160,154" fill="#2563eb"/>
+  <text x="270" y="141" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Feature Set</text>
+  <!-- Value Proposition -->
+  <polygon points="160,156 380,156 400,192 140,192" fill="#2563eb" opacity="0.82"/>
+  <text x="270" y="179" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">Value Proposition</text>
+  <!-- Underserved Needs -->
+  <polygon points="140,234 400,234 420,270 120,270" fill="#f59e0b"/>
+  <text x="270" y="257" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Underserved Needs</text>
+  <!-- Target Customer (base) -->
+  <polygon points="120,272 420,272 440,308 100,308" fill="#f59e0b" opacity="0.82"/>
+  <text x="270" y="295" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Target Customer</text>
+
+  <!-- Build-up arrow (bottom-up articulation) -->
+  <line x1="70" y1="300" x2="70" y2="96" stroke="#5b6680" stroke-width="2"/>
+  <polygon points="70,86 65,98 75,98" fill="#5b6680"/>
+  <text x="55" y="200" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle" transform="rotate(-90 55 200)">articulate hypotheses</text>
+
+  <!-- 6-step loop on the right -->
+  <text x="470" y="92" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">6-step loop</text>
+  <text x="470" y="112" font-family="sans-serif" font-size="11" fill="#5b6680">1 Target customer</text>
+  <text x="470" y="130" font-family="sans-serif" font-size="11" fill="#5b6680">2 Underserved needs</text>
+  <text x="470" y="148" font-family="sans-serif" font-size="11" fill="#5b6680">3 Value proposition</text>
+  <text x="470" y="166" font-family="sans-serif" font-size="11" fill="#5b6680">4 MVP feature set</text>
+  <text x="470" y="184" font-family="sans-serif" font-size="11" fill="#5b6680">5 Build MVP prototype</text>
+  <text x="470" y="202" font-family="sans-serif" font-size="11" fill="#ef4444" font-weight="700">6 Test with customers ↺</text>
+
+  <text x="32" y="372" font-family="sans-serif" font-size="11" fill="#5b6680">Each layer must fit the one below it; iterate the loop until the test layer (UX) validates the base.</text>
+</svg>

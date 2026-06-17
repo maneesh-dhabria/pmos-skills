@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Tesler's Law diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Tesler's Law</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Complexity is conserved — someone always absorbs it</text>
+
+  <!-- fixed total complexity bar -->
+  <text x="320" y="92" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Irreducible complexity (fixed total)</text>
+  <rect x="80" y="104" width="480" height="34" rx="6" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+  <rect x="80" y="104" width="300" height="34" rx="6" fill="#2563eb"/>
+  <rect x="380" y="104" width="180" height="34" fill="#0ea5a4"/>
+  <line x1="380" y1="98" x2="380" y2="148" stroke="#1d2438" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="230" y="126" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">absorbed by system / team</text>
+  <text x="470" y="126" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">absorbed by user</text>
+  <text x="380" y="166" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">the line moves — the total does not</text>
+
+  <!-- two panels -->
+  <rect x="40" y="200" width="270" height="168" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="175" y="226" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">System / team absorbs</text>
+  <text x="60" y="252" font-family="sans-serif" font-size="12" fill="#1d2438">+ Smart defaults &amp; auto-fill</text>
+  <text x="60" y="276" font-family="sans-serif" font-size="12" fill="#1d2438">+ Engineering effort up front</text>
+  <text x="60" y="300" font-family="sans-serif" font-size="12" fill="#1d2438">+ Hidden logic, fewer choices</text>
+  <text x="60" y="330" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">= Effortless for the user</text>
+  <text x="60" y="352" font-family="sans-serif" font-size="11" fill="#5b6680">Google search box, TurboTax</text>
+
+  <rect x="330" y="200" width="270" height="168" rx="10" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="465" y="226" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">User absorbs</text>
+  <text x="350" y="252" font-family="sans-serif" font-size="12" fill="#1d2438">+ Manual steps &amp; config</text>
+  <text x="350" y="276" font-family="sans-serif" font-size="12" fill="#1d2438">+ Simpler code to ship</text>
+  <text x="350" y="300" font-family="sans-serif" font-size="12" fill="#1d2438">+ More choices, more learning</text>
+  <text x="350" y="330" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">= Burden on the user</text>
+  <text x="350" y="352" font-family="sans-serif" font-size="11" fill="#5b6680">Raw SQL, early Linux setup</text>
+</svg>

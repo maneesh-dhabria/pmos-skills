@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Assumption Mapping diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="40" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Assumption Mapping</text>
+  <text x="40" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Plot assumptions on importance × evidence; test the leap-of-faith ones first</text>
+
+  <!-- Matrix panel -->
+  <rect x="120" y="80" width="440" height="280" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+
+  <!-- Quadrant divider lines -->
+  <line x1="340" y1="80" x2="340" y2="360" stroke="#5b6680" stroke-width="1"/>
+  <line x1="120" y1="220" x2="560" y2="220" stroke="#5b6680" stroke-width="1"/>
+
+  <!-- Axis labels -->
+  <text x="340" y="384" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="middle">Evidence  (have we tested it?)</text>
+  <text x="116" y="76" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438" text-anchor="end">Importance</text>
+  <text x="200" y="376" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">low ◀</text>
+  <text x="480" y="376" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">▶ high</text>
+  <text x="112" y="345" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">low</text>
+  <text x="112" y="100" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="end">high</text>
+
+  <!-- Top-left: leap of faith (test first) -->
+  <rect x="120" y="80" width="220" height="140" fill="#ef4444" fill-opacity="0.12"/>
+  <text x="230" y="135" font-family="sans-serif" font-size="14" font-weight="700" fill="#ef4444" text-anchor="middle">LEAP-OF-FAITH</text>
+  <text x="230" y="155" font-family="sans-serif" font-size="11" fill="#1d2438" text-anchor="middle">important + unproven</text>
+  <text x="230" y="173" font-family="sans-serif" font-size="11" font-weight="700" fill="#1d2438" text-anchor="middle">→ test these first</text>
+
+  <!-- Top-right: important + supported -->
+  <text x="450" y="140" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">important +</text>
+  <text x="450" y="156" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">supported → monitor</text>
+
+  <!-- Bottom-left -->
+  <text x="230" y="290" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">low-stakes +</text>
+  <text x="230" y="306" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">unproven → park</text>
+
+  <!-- Bottom-right -->
+  <text x="450" y="290" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">low-stakes +</text>
+  <text x="450" y="306" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">supported → ignore</text>
+
+  <!-- Lens legend -->
+  <text x="120" y="78" font-family="sans-serif" font-size="11" fill="#5b6680">Lenses:</text>
+  <circle cx="180" cy="74" r="5" fill="#2563eb"/>
+  <text x="190" y="78" font-family="sans-serif" font-size="11" fill="#1d2438">Desirability</text>
+  <circle cx="285" cy="74" r="5" fill="#0ea5a4"/>
+  <text x="295" y="78" font-family="sans-serif" font-size="11" fill="#1d2438">Viability</text>
+  <circle cx="370" cy="74" r="5" fill="#f59e0b"/>
+  <text x="380" y="78" font-family="sans-serif" font-size="11" fill="#1d2438">Feasibility</text>
+</svg>

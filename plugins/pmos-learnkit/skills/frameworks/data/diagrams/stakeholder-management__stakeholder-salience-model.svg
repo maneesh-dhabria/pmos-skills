@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Stakeholder Salience Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Stakeholder Salience Model</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Power × Legitimacy × Urgency — three circles, seven classes</text>
+
+  <!-- Three overlapping circles -->
+  <circle cx="250" cy="220" r="120" fill="#2563eb" fill-opacity="0.12" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="390" cy="220" r="120" fill="#0ea5a4" fill-opacity="0.12" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="320" cy="320" r="120" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="2"/>
+
+  <!-- Attribute labels -->
+  <text x="170" y="150" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">POWER</text>
+  <text x="470" y="150" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">LEGITIMACY</text>
+  <text x="320" y="395" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">URGENCY</text>
+
+  <!-- Latent (1 attr) -->
+  <text x="170" y="225" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Dormant</text>
+  <text x="470" y="225" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Discretionary</text>
+  <text x="320" y="350" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Demanding</text>
+
+  <!-- Expectant (2 attr) -->
+  <text x="320" y="195" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Dominant</text>
+  <text x="235" y="290" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Dangerous</text>
+  <text x="408" y="290" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Dependent</text>
+
+  <!-- Definitive (3 attr) -->
+  <rect x="282" y="248" width="76" height="26" rx="6" fill="#ef4444"/>
+  <text x="320" y="266" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Definitive</text>
+
+  <text x="595" y="380" text-anchor="end" font-family="sans-serif" font-size="11" fill="#5b6680">more attributes = higher priority</text>
+</svg>

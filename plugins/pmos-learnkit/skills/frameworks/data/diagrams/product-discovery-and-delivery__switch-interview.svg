@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Switch Interview diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Switch Interview</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Replay a real purchase on a timeline; weigh the Four Forces that drive vs. resist the switch.</text>
+
+  <!-- Timeline -->
+  <text x="32" y="84" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">THE TIMELINE</text>
+  <line x1="48" y1="104" x2="592" y2="104" stroke="#1d2438" stroke-width="2"/>
+  <circle cx="100" cy="104" r="5" fill="#2563eb"/>
+  <text x="100" y="126" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">First thought</text>
+  <circle cx="270" cy="104" r="5" fill="#2563eb"/>
+  <text x="270" y="126" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Passive look</text>
+  <circle cx="430" cy="104" r="5" fill="#2563eb"/>
+  <text x="430" y="126" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Active look</text>
+  <circle cx="560" cy="104" r="6" fill="#0ea5a4"/>
+  <text x="560" y="126" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#0ea5a4">Switch</text>
+
+  <!-- Four Forces -->
+  <text x="32" y="162" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">THE FOUR FORCES</text>
+
+  <!-- Drive change (right arrow) -->
+  <rect x="32" y="176" width="270" height="92" rx="8" fill="#f4f7ff"/>
+  <text x="48" y="198" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Drive the switch →</text>
+  <text x="48" y="222" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700">Push</tspan> — pain of the current situation.</text>
+  <text x="48" y="246" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700">Pull</tspan> — magnetism of the new option.</text>
+
+  <!-- Resist change (left arrow) -->
+  <rect x="338" y="176" width="270" height="92" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="354" y="198" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">← Resist the switch</text>
+  <text x="354" y="222" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700">Anxiety</tspan> — fear of the new choice.</text>
+  <text x="354" y="246" font-family="sans-serif" font-size="12" fill="#1d2438"><tspan font-weight="700">Habit</tspan> — comfort of what's already there.</text>
+
+  <!-- Balance equation -->
+  <rect x="32" y="284" width="576" height="40" rx="8" fill="#f4f7ff"/>
+  <text x="320" y="309" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438"><tspan fill="#2563eb">Push + Pull</tspan>  &gt;  <tspan fill="#ef4444">Anxiety + Habit</tspan>   →  a switch happens</text>
+
+  <!-- Outcome -->
+  <rect x="32" y="340" width="576" height="36" rx="8" fill="#2563eb"/>
+  <text x="320" y="363" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">The struggling moment that tipped the balance reveals the real job.</text>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Cost of Delay diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="40" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Cost of Delay</text>
+  <text x="40" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">The economic loss per week of NOT shipping a feature now</text>
+
+  <!-- axes -->
+  <line x1="90" y1="330" x2="600" y2="330" stroke="#5b6680" stroke-width="1.5"/>
+  <line x1="90" y1="330" x2="90" y2="90" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="345" y="365" font-family="sans-serif" font-size="13" fill="#5b6680" text-anchor="middle">Time delayed (weeks)</text>
+  <text x="50" y="210" font-family="sans-serif" font-size="13" fill="#5b6680" text-anchor="middle" transform="rotate(-90 50 210)">Value ($)</text>
+
+  <!-- value-if-shipped-now line (flat at top) -->
+  <line x1="90" y1="120" x2="600" y2="120" stroke="#0ea5a4" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="600" y="114" font-family="sans-serif" font-size="12" fill="#0ea5a4" text-anchor="end" font-weight="700">value if shipped today</text>
+
+  <!-- decaying value if delayed -->
+  <path d="M90 120 C 260 150, 420 250, 600 305" fill="none" stroke="#ef4444" stroke-width="2.5"/>
+  <text x="470" y="285" font-family="sans-serif" font-size="12" fill="#ef4444" font-weight="700">value if delayed</text>
+
+  <!-- gap = cost of delay -->
+  <line x1="380" y1="120" x2="380" y2="218" stroke="#f59e0b" stroke-width="2.5"/>
+  <line x1="376" y1="124" x2="384" y2="124" stroke="#f59e0b" stroke-width="2.5"/>
+  <line x1="376" y1="214" x2="384" y2="214" stroke="#f59e0b" stroke-width="2.5"/>
+  <rect x="392" y="150" width="150" height="40" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1"/>
+  <text x="467" y="166" font-family="sans-serif" font-size="12" fill="#1d2438" text-anchor="middle" font-weight="700">Cost of Delay</text>
+  <text x="467" y="182" font-family="sans-serif" font-size="11" fill="#5b6680" text-anchor="middle">= value lost per week</text>
+
+  <!-- formula footer -->
+  <rect x="90" y="380" width="510" height="0" fill="none"/>
+  <text x="90" y="395" font-family="sans-serif" font-size="13" fill="#2563eb" font-weight="700">WSJF = Cost of Delay ÷ job duration  →  do the highest first</text>
+</svg>

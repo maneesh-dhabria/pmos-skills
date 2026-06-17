@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="RAPID Decision Making Framework diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">RAPID Decision Making Framework</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Bain's five decision roles — one Decider, no re-litigation</text>
+
+  <!-- R -->
+  <g font-family="sans-serif">
+    <rect x="32" y="80" width="576" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <circle cx="62" cy="106" r="16" fill="#2563eb"/>
+    <text x="62" y="111" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">R</text>
+    <text x="92" y="102" font-size="15" font-weight="700" fill="#1d2438">Recommend</text>
+    <text x="92" y="120" font-size="12" fill="#5b6680">Drives the proposal — gathers input, weighs options, makes the case</text>
+
+    <!-- A -->
+    <rect x="32" y="142" width="576" height="52" rx="8" fill="#ffffff" stroke="#0ea5a4"/>
+    <circle cx="62" cy="168" r="16" fill="#0ea5a4"/>
+    <text x="62" y="173" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">A</text>
+    <text x="92" y="164" font-size="15" font-weight="700" fill="#1d2438">Agree</text>
+    <text x="92" y="182" font-size="12" fill="#5b6680">Holds a formal veto — must sign off (legal, compliance, partner)</text>
+
+    <!-- P -->
+    <rect x="32" y="204" width="576" height="52" rx="8" fill="#ffffff" stroke="#f59e0b"/>
+    <circle cx="62" cy="230" r="16" fill="#f59e0b"/>
+    <text x="62" y="235" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">P</text>
+    <text x="92" y="226" font-size="15" font-weight="700" fill="#1d2438">Perform</text>
+    <text x="92" y="244" font-size="12" fill="#5b6680">Executes once the call is made — owns implementation</text>
+
+    <!-- I -->
+    <rect x="32" y="266" width="576" height="52" rx="8" fill="#ffffff" stroke="#5b6680"/>
+    <circle cx="62" cy="292" r="16" fill="#5b6680"/>
+    <text x="62" y="297" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">I</text>
+    <text x="92" y="288" font-size="15" font-weight="700" fill="#1d2438">Input</text>
+    <text x="92" y="306" font-size="12" fill="#5b6680">Consulted for facts &amp; perspective — advisory, no veto</text>
+
+    <!-- D -->
+    <rect x="32" y="328" width="576" height="52" rx="8" fill="#f4f7ff" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="62" cy="354" r="16" fill="#ef4444"/>
+    <text x="62" y="359" font-size="16" font-weight="700" fill="#ffffff" text-anchor="middle">D</text>
+    <text x="92" y="350" font-size="15" font-weight="700" fill="#1d2438">Decide  — the single accountable owner</text>
+    <text x="92" y="368" font-size="12" fill="#5b6680">One person commits the call and is answerable for the outcome</text>
+  </g>
+</svg>

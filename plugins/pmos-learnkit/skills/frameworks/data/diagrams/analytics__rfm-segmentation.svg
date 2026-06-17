@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="RFM Segmentation diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">RFM Segmentation</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Score each customer 1–5 on three behavioral axes, then act on the cells</text>
+
+  <!-- Three axis bars -->
+  <g font-family="sans-serif">
+    <!-- Recency -->
+    <text x="32" y="98" font-size="14" font-weight="700" fill="#2563eb">Recency</text>
+    <text x="32" y="114" font-size="11" fill="#5b6680">how recently they bought</text>
+    <rect x="160" y="84" width="60" height="22" fill="#f4f7ff" stroke="#2563eb"/>
+    <rect x="222" y="84" width="60" height="22" fill="#f4f7ff" stroke="#2563eb"/>
+    <rect x="284" y="84" width="60" height="22" fill="#dbe6ff" stroke="#2563eb"/>
+    <rect x="346" y="84" width="60" height="22" fill="#bcd2ff" stroke="#2563eb"/>
+    <rect x="408" y="84" width="60" height="22" fill="#2563eb" stroke="#2563eb"/>
+    <text x="438" y="100" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+
+    <!-- Frequency -->
+    <text x="32" y="158" font-size="14" font-weight="700" fill="#0ea5a4">Frequency</text>
+    <text x="32" y="174" font-size="11" fill="#5b6680">how often they buy</text>
+    <rect x="160" y="144" width="60" height="22" fill="#eafaf9" stroke="#0ea5a4"/>
+    <rect x="222" y="144" width="60" height="22" fill="#eafaf9" stroke="#0ea5a4"/>
+    <rect x="284" y="144" width="60" height="22" fill="#c9f0ee" stroke="#0ea5a4"/>
+    <rect x="346" y="144" width="60" height="22" fill="#a3e6e2" stroke="#0ea5a4"/>
+    <rect x="408" y="144" width="60" height="22" fill="#0ea5a4" stroke="#0ea5a4"/>
+    <text x="438" y="160" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+
+    <!-- Monetary -->
+    <text x="32" y="218" font-size="14" font-weight="700" fill="#f59e0b">Monetary</text>
+    <text x="32" y="234" font-size="11" fill="#5b6680">how much they spend</text>
+    <rect x="160" y="204" width="60" height="22" fill="#fef3da" stroke="#f59e0b"/>
+    <rect x="222" y="204" width="60" height="22" fill="#fef3da" stroke="#f59e0b"/>
+    <rect x="284" y="204" width="60" height="22" fill="#fde4b3" stroke="#f59e0b"/>
+    <rect x="346" y="204" width="60" height="22" fill="#fbd385" stroke="#f59e0b"/>
+    <rect x="408" y="204" width="60" height="22" fill="#f59e0b" stroke="#f59e0b"/>
+    <text x="438" y="220" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">5</text>
+
+    <text x="160" y="252" font-size="11" fill="#5b6680">low</text>
+    <text x="438" y="252" font-size="11" fill="#5b6680" text-anchor="middle">high</text>
+  </g>
+
+  <!-- Segment outcomes -->
+  <g font-family="sans-serif">
+    <rect x="32" y="278" width="180" height="92" rx="6" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="300" font-size="13" font-weight="700" fill="#1d2438">5-5-5 Champions</text>
+    <text x="44" y="320" font-size="11" fill="#5b6680">recent, frequent, big</text>
+    <text x="44" y="338" font-size="11" fill="#5b6680">spend → reward, retain,</text>
+    <text x="44" y="354" font-size="11" fill="#5b6680">upsell</text>
+
+    <rect x="230" y="278" width="180" height="92" rx="6" fill="#fff7ed" stroke="#f59e0b"/>
+    <text x="242" y="300" font-size="13" font-weight="700" fill="#1d2438">1-5-5 At-risk whales</text>
+    <text x="242" y="320" font-size="11" fill="#5b6680">used to spend big,</text>
+    <text x="242" y="338" font-size="11" fill="#5b6680">gone quiet → win-back</text>
+    <text x="242" y="354" font-size="11" fill="#5b6680">before they churn</text>
+
+    <rect x="428" y="278" width="180" height="92" rx="6" fill="#fef2f2" stroke="#ef4444"/>
+    <text x="440" y="300" font-size="13" font-weight="700" fill="#1d2438">1-1-1 Lost / low</text>
+    <text x="440" y="320" font-size="11" fill="#5b6680">cold, one-time, cheap</text>
+    <text x="440" y="338" font-size="11" fill="#5b6680">→ deprioritize spend,</text>
+    <text x="440" y="354" font-size="11" fill="#5b6680">cheap reactivation only</text>
+  </g>
+</svg>
