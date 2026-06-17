@@ -9,13 +9,15 @@ priority: should
 route: skill
 dependencies: [260617-7ag]
 plugin: pmos-utilities
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_converter/
 plan_doc: docs/pmos/features/2026-06-17_converter/stories/260617-ade/03_plan.html
 tasks: docs/pmos/features/2026-06-17_converter/stories/260617-ade/tasks.yaml
 worktree: .claude/worktrees/feat-260617-ade
-claimed_by: build:loop-main
-driver_holder: build:loop-main
+build_branch: feat/260617-ade
+build_commit: 03e762b
+claimed_by: null
+driver_holder: null
 labels: [pmos-utilities, converter, pdf, llm]
 created: 2026-06-17
 updated: 2026-06-18
