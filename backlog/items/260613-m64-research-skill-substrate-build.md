@@ -12,7 +12,7 @@ dependencies: []
 feature_folder: docs/pmos/features/2026-06-13_research-skill/
 plan_doc: docs/pmos/features/2026-06-13_research-skill/stories/260613-m64/03_plan.html
 tasks: docs/pmos/features/2026-06-13_research-skill/stories/260613-m64/tasks.yaml
-worktree: ../agent-skills-260613-m64
+worktree:
 claimed_by: build:loop
 driver_holder: build:loop
 labels: [pmos-toolkit, research, deep-research]
