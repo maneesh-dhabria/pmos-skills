@@ -9,19 +9,34 @@ priority: should
 route: skill
 dependencies: [260617-2gw]
 plugin: pmos-learnkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/
 plan_doc: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-kac/03_plan.html
 tasks: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-kac/tasks.yaml
 worktree: .claude/worktrees/feat-260617-kac
-claimed_by: build:loop-main
-driver_holder: build:loop-main
+build_branch: feat/260617-kac
+build_commit: 419aa97
+claimed_by: null
+driver_holder: null
 labels: [pmos-learnkit, frameworks, sync-removal, docs]
 created: 2026-06-17
 updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-kac. Depends on 260617-2gw (both edit SKILL.md). -->
+<!-- BUILT (Loop 2) 2026-06-18 on feat/260617-kac @ 419aa97 (worktree dep-merged 2gw's 346-count tree first).
+     All 8 ACs green. Removed sync pipeline (split-corpus/apply-rederive/derive-fields.mjs, split-corpus.test.mjs,
+     ingestion.md); extracted the load-bearing validation substrate into scripts/corpus-vocab.mjs (DECISION_TYPES,
+     LIFECYCLE_STAGES, validateAnchors) and repointed validate-corpus.mjs's import; re-founded SKILL.md (dropped
+     #sync phase/dispatch/argument-hint token + Notion frontmatter/anti-patterns/platform bullets, renumbered
+     Capture Learnings to Phase 5, description now = directly-authored offline 346-corpus); authored
+     reference/corpus-expansion.md (research process + field/SVG authoring contract); reframed corpus-schema.md +
+     situation-taxonomy.md from Notion/sync provenance to direct authoring; updated structure.test.sh rosters +
+     GONE-assertion. Gates: 4 script --selftests PASS, 346-corpus validate PASS (dist top 24.6%<30%, n/a 0.9%),
+     structure+build-library+json-contract tests PASS, 4 repo lints PASS (audit-recommended now fully clean — old
+     #sync false-positive gone), skill-eval [D] exit 0. Live dogfood: self-contained library builds from 346
+     corpus, match --json + human paths return contract objects. Worktree KEPT for Loop-3. Completes epic 4w1
+     (Deliverable A=2gw done + Deliverable B=kac done) → /complete-dev --epic 260617-4w1. -->
 
 ## Context
 
