@@ -29,6 +29,12 @@ fail=0
 need()   { grep -q -- "$1" "$OUT" || { echo "  FAIL: expected to find: $1" >&2; fail=1; }; }
 forbid() { if grep -Eq -- "$1" "$OUT"; then echo "  FAIL: forbidden pattern present: $1" >&2; fail=1; fi; }
 
+# --- substrate consumer: the generator must build on the shared library-viewer engine
+#     (not a forked, self-contained copy). The facet/filter/search/sort/view/masthead logic
+#     lives in _shared/library-viewer/lib.mjs; primer supplies only the corpus adapter + extras. ---
+grep -Eq "_shared/library-viewer/lib\.mjs" "$SCRIPT" \
+  || { echo "  FAIL: build-library.mjs does not import the shared library-viewer substrate" >&2; fail=1; }
+
 # --- the generator's own selftest ---
 node "$SCRIPT" --selftest >/dev/null || { echo "  FAIL: build-library.mjs --selftest failed" >&2; fail=1; }
 
@@ -57,15 +63,15 @@ need 'id="applied"'
 need 'meta name="pmos:skill" content="primer"'
 
 # cards render client-side from an embedded data block (static container is empty)
-need '<div id="cards"></div>'
+need '<div id="groups"></div>'
 
 # data-level assertions via node (count, facet values, link resolution, dual-population)
 node - "$OUT" "$INDEX_N" <<'NODE'
 const fs = require('fs'), path = require('path');
 const [out, indexN] = [process.argv[2], Number(process.argv[3])];
 const h = fs.readFileSync(out, 'utf8');
-const m = h.match(/<script id="primers-data"[^>]*>([\s\S]*?)<\/script>/);
-if (!m) { console.error('  FAIL: no embedded primers-data block'); process.exit(1); }
+const m = h.match(/<script id="lv-data"[^>]*>([\s\S]*?)<\/script>/);
+if (!m) { console.error('  FAIL: no embedded lv-data block'); process.exit(1); }
 const data = JSON.parse(m[1]);
 let bad = 0;
 const curated = data.filter(r => r.collection === 'Curated');
@@ -94,7 +100,7 @@ node "$SCRIPT" --out "$OUT" >/dev/null
 node - "$OUT" <<'NODE'
 const fs = require('fs');
 const h = fs.readFileSync(process.argv[2], 'utf8');
-const data = JSON.parse(h.match(/<script id="primers-data"[^>]*>([\s\S]*?)<\/script>/)[1]);
+const data = JSON.parse(h.match(/<script id="lv-data"[^>]*>([\s\S]*?)<\/script>/)[1]);
 const yours = data.filter(r => r.collection === 'Yours');
 let bad = 0;
 if (!yours.some(r => r.title === 'Seeded User Primer' && r.href === '2026-01-01_seeded.html' && r.date === '2026-01-01')) {

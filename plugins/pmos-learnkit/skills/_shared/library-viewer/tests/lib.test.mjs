@@ -173,3 +173,60 @@ test('emitHtml — value labels remap option display while keeping the raw value
   assert.match(html, /<option value="Raw">Pretty<\/option>/, 'display label remapped, raw value kept');
   assert.doesNotMatch(html, /<option value="Pretty"/, 'value stays raw');
 });
+
+test('emitHtml — emits a data: favicon so an offline page makes zero network requests', () => {
+  const html = emitHtml({
+    cards: [{ id: 'a', name: 'A', category: 'C', summary: '', tags: [], body_html: '' }],
+    facets: [], config: { idField: 'id', nameField: 'name', categoryField: 'category', reader: { columns: [] } },
+    masthead: { wordmark: 'PMOS', title: 'T', subtitleTemplate: '{count}' },
+  });
+  assert.match(html, /<link rel="icon" href="data:,">/, 'inline data: favicon present');
+});
+
+test('emitHtml — config.card hook: link-out titles + badge + metarow pills (default-off, skill-agnostic)', () => {
+  const cards = [
+    { id: 'c1', title: 'Curated One', category: 'Cat', collection: 'Curated', audience: 'PMs', depth: 'deep', sources_count: 5, word_count: 2400, date: '2026-01-02', href: 'data/primers/c1.html', exists: true },
+    { id: 'y1', title: 'Yours One', category: 'Your primers', collection: 'Yours', date: '2026-01-01', href: '2026-01-01_x.html', exists: false },
+  ];
+  const html = emitHtml({
+    cards,
+    facets: [{ key: 'collection', field: 'collection', kind: 'single-select', controlId: 'f-collection', label: 'Collection', values: [{ value: 'Curated', count: 1 }, { value: 'Yours', count: 1 }] }],
+    config: {
+      idField: 'id', nameField: 'title', categoryField: 'category', summaryField: 'summary',
+      searchFields: ['title', 'category'],
+      views: [{ id: 'detailed', default: true }],
+      groupBy: [{ value: 'collection', label: 'Collection', field: 'collection' }],
+      defaultGroupValue: 'collection',
+      reader: { columns: [] },
+      card: {
+        link: { hrefField: 'href', existsField: 'exists' },
+        badge: { field: 'collection' },
+        pills: [
+          { field: 'audience', skip: ['—'] },
+          { field: 'word_count', suffix: ' words', thousands: true },
+          { whenFalse: 'exists', text: 'file missing', cls: 'warn' },
+        ],
+      },
+    },
+    masthead: { wordmark: 'PMOS', title: 'Primer Library', subtitleTemplate: '1 curated · 1 of yours' },
+  });
+  // the baked client config carries the normalized card hook
+  assert.match(html, /"card":\{"link":\{"hrefField":"href","existsField":"exists"\}/, 'card.link plumbed into client config');
+  assert.match(html, /"badge":\{"field":"collection"\}/, 'card.badge plumbed');
+  // runtime helpers that drive link-out rendering are present
+  assert.match(html, /function cardLinkOut\(\)/);
+  assert.match(html, /function titleCell\(f, cls\)/);
+  assert.match(html, /function cardBadge\(f\)/);
+  assert.match(html, /function cardPills\(f\)/);
+  // link-out cards do NOT intercept clicks for the in-page reader
+  assert.match(html, /if\(cardLinkOut\(\)\) return; \/\/ titles are real/);
+  // subtitle bakes the two-population string verbatim (no {count} placeholder needed)
+  assert.match(html, /1 curated · 1 of yours/);
+  // default-off: a config WITHOUT card normalizes to null (frameworks path unaffected)
+  const plain = emitHtml({
+    cards: [{ id: 'a', name: 'A', category: 'C', summary: '', tags: [], body_html: '' }],
+    facets: [], config: { idField: 'id', nameField: 'name', categoryField: 'category', reader: { columns: [] } },
+    masthead: { wordmark: 'PMOS', title: 'T', subtitleTemplate: '{count}' },
+  });
+  assert.match(plain, /"card":null/, 'no card config → card:null (back-compat)');
+});
