@@ -1,0 +1,101 @@
+schema_version: 1
+story: 260617-ks1
+epic: 260617-bx0
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-gamekit/skills/solitaire
+# /solitaire first-run fixes — all five edits live in game/solitaire.html (engine lines 1-387, UI 393-820)
+# + tests/run.mjs (engine selftest) + minimal SKILL.md copy.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path, gamekit launch
+#   contract). Release prereqs (version bump / changelog / README) are /complete-dev's, NOT story tasks (design D8).
+# Engine purity (Inv-1): new state-decidable logic goes in window.SolitaireEngine, no DOM, covered by tests/run.mjs.
+# Cosmetic isolation (Inv-2): back choice, hint outline, deadlock banner, draw animation never mutate state/history.
+tasks:
+  - id: T1
+    title: "F1 — remove 'Klondike' from the user-facing header (<title> + <h1>)"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Edit game/solitaire.html: <title> (line ~6) "Solitaire — Klondike" → "Solitaire";
+      <h1> (line ~97) drop the "· Klondike" <span>, leaving just "Solitaire". Do NOT change Klondike
+      rules/engine or the SKILL.md rules description — only the visible header + window title (FR1.3).
+      Verify by loading the file: header reads "Solitaire", no "Klondike" in the chrome.
+
+  - id: T2
+    title: "F4/F3 engine core — add hasProductiveMove(state), firstProductiveMove(state), isDeadlocked(state); export + selftest"
+    ac: [AC3, AC4, AC6]
+    deps: []
+    parallel: false
+    detail: >
+      In the engine module (window.SolitaireEngine, lines 1-387), add three PURE helpers (no DOM):
+      (1) firstProductiveMove(state) — returns the first legal NON-draw/recycle move by enumerating the
+      move shapes via isLegalMove: wasteToFoundation, then each tableauToFoundation(from), then
+      wasteToTableau(to) ×7, then tableauToTableau(from,index,to) over movable runs, then foundationToTableau.
+      Return the move object (with the source locator so the UI can outline the card) or null.
+      (2) hasProductiveMove(state) = firstProductiveMove(state) !== null.
+      (3) isDeadlocked(state): clone state; if hasProductiveMove now → false; else simulate the full stock
+      cycle — repeatedly apply {type:'draw'} (and one {type:'recycle'} when stock empties, at most once back to
+      the start) checking hasProductiveMove after each draw; if any position yields a productive move → false;
+      if a complete cycle returns to the start with none → true. Pure, terminating, no history mutation (Inv-2/4).
+      Export all three on SolitaireEngine. TDD: add cases to tests/run.mjs FIRST — a known winnable deal is
+      NOT deadlocked; a hand-built dead position (no productive move anywhere in the cycle) IS; firstProductiveMove
+      finds a tableau→tableau move that findFoundationMove would miss. `node tests/run.mjs` green.
+
+  - id: T3
+    title: "F3 — idle auto-hint + generalize manual H to firstProductiveMove"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      UI layer: refactor showHint() (line ~704) to call E.firstProductiveMove(state) and outline that move's
+      source card (reuse the .hint outline class + the existing data-locator scheme; keep the 900ms manual clear).
+      Add an idle timer: on each user interaction (pointerdown/keydown) and after each committed move, reset a
+      ~8s timer (design Open-Q: 6-10s acceptable); on fire, if !won && a productive move exists, outline its
+      source card (static outline; pulse only when !prefers-reduced-motion); clear on next interaction/move.
+      Pause/clear the idle timer on win and when isDeadlocked (the T4 banner owns that state). The timer/outline
+      are presentation-only — never touch state or history (Inv-2). Verify: leave the game idle → hint appears;
+      interact → it clears and re-arms; H still works and now points at non-foundation moves.
+
+  - id: T4
+    title: "F4 — non-blocking 'no moves left — deal a new game?' banner driven by isDeadlocked"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      UI layer: after each committed move (in the same commit/render path that checks isWin), evaluate
+      E.isDeadlocked(state); if true && !isWin, render a non-blocking banner ("No moves left — deal a new game?")
+      with a New-game button (calls the existing new-game path) and a dismiss control. The banner must not block
+      drag/click input and must clear on new game (FR4.4) and when no longer deadlocked. No false positives —
+      it is gated on the full-cycle isDeadlocked, not a single-position check (Inv-4). Style it consistently with
+      the existing win overlay but non-modal. Verify with a hand-built dead position via the __solitaire test hook.
+
+  - id: T5
+    title: "F5 — draw animation: card flies stock→waste, fan eases into place"
+    ac: [AC5]
+    deps: []
+    parallel: true
+    detail: >
+      Replace the jarring draw reflow. On a {type:'draw'} commit, animate the newly-drawn card from the stock
+      pile's screen position to the top of the waste fan (FLIP-style: measure old/new rects, translate, then
+      transition to identity), and ease the previously-fanned waste cards to their new left offsets instead of
+      snapping. The blanket `transition: top/left .12s` (line ~59) likely causes the current jank — scope the
+      transition so the draw motion is deliberate and other moves stay snappy as desired. MUST: interruptible,
+      never blocks input, rapid repeated draws degrade cleanly (no queue pile-up / stuck cards), and the final
+      DOM equals a plain render() (animation is cosmetic, Inv-2). Honor prefers-reduced-motion (instant place).
+      Verify by drawing repeatedly and spamming the stock: motion reads as one card moving onto the fan, no reflow.
+
+  - id: T6
+    title: "SKILL.md copy + final selftest/e2e pass + conformance"
+    ac: [AC1, AC6, AC7]
+    deps: [T1, T3, T4, T5]
+    parallel: false
+    detail: >
+      Update SKILL.md only where user-facing behavior changed: the Title line if it names "Klondike" in the
+      header sense (the rules description may keep "Klondike"); note that an idle hint appears automatically
+      (H still manual). Confirm conformance to skill-patterns.md §A–§L (frontmatter/name-matches-dir,
+      non-interactive block intact) and host CLAUDE.md (canonical skill path plugins/pmos-gamekit/skills/solitaire,
+      gamekit launch contract). Run `node tests/run.mjs` (engine selftest incl. the new T2 cases) and the
+      ?test=nearwin Playwright drive-to-win — both green. Do NOT add version-bump / changelog / README / manifest
+      tasks (design D8 — /complete-dev owns those).

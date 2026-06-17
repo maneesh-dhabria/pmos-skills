@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /solitaire fixes (260617-bx0)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --red:#ef4444; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+  .tag { display:inline-block; font-family: ui-monospace, monospace; font-size:.78rem; background:var(--panel); color:var(--accent); border-radius:4px; padding:.05em .4em; }
+  blockquote { border-left: 3px solid var(--teal); margin: 1rem 0; padding: .3rem 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1 id="title">Design — /solitaire fixes</h1>
+<p class="sub">Epic <code>260617-bx0</code> · route: skill · plugin: pmos-gamekit · 2026-06-17 · This is the epic <code>design_doc</code> — the coherence contract; the single story's <code>/plan</code> cites its anchors.</p>
+
+<h2 id="context">Context</h2>
+<p><code>/solitaire</code> is a launch-only pmos-gamekit skill: it serves one self-contained, offline
+Klondike file — <code>plugins/pmos-gamekit/skills/solitaire/game/solitaire.html</code> (~820 lines) — through
+the shared zero-dependency game launcher. All gameplay lives in that one file. The engine
+(<code>window.SolitaireEngine</code>, lines 1–387) is a pure, browser-agnostic module exposing
+<code>isLegalMove(state, m)</code>, <code>applyMove</code>, <code>clone</code>, <code>newGame</code>, <code>isWin</code>,
+<code>findFoundationMove</code>, <code>nearWinState</code>, <code>isMovableRun</code>, etc.; the UI/render layer
+(lines 393–820, guarded by <code>document</code>) renders it and wires interaction. Tests live in
+<code>tests/run.mjs</code> (engine selftest) plus a Playwright e2e drive-to-win (<code>?test=nearwin</code>).</p>
+
+<p>The maintainer reported five first-run rough edges. All five are confined to the single game file
+and ship as one <code>/solitaire</code> release, so this is a <strong>one-story skill epic</strong> (the D24 litmus:
+the items are tightly coupled in one file and cannot be independently <code>skill-eval</code>'d or shipped).
+Product decisions on the two genuinely open questions (card-back variety; draw-animation feel) were
+resolved with the maintainer up front — see D2 and D5.</p>
+
+<h2 id="the-five">The five fixes</h2>
+<table>
+  <tr><th>#</th><th>Reported</th><th>Current state in the file</th></tr>
+  <tr><td>F1</td><td>Remove "Klondike" from the header.</td><td><code>&lt;title&gt;</code> (line 6) and <code>&lt;h1&gt;Solitaire <span class="sub">· Klondike</span>&lt;/h1&gt;</code> (line 97).</td></tr>
+  <tr><td>F2</td><td>Card back cover should change every game; ship some covers.</td><td>Face-down cards get class <code>down</code> (<code>cardEl</code>, line 465); one static back design.</td></tr>
+  <tr><td>F3</td><td>Auto-hint a possible move after idle.</td><td>Manual <code>H</code> hint exists (<code>showHint</code>, line 704) but only finds <em>foundation</em> moves and never fires on its own.</td></tr>
+  <tr><td>F4</td><td>Recognize when no moves are possible; suggest a new game.</td><td>No deadlock detection exists; the player can get stuck silently.</td></tr>
+  <tr><td>F5</td><td>Draw animation (waste fan shift + card slide) feels poor.</td><td>Cards have a blanket <code>transition: top .12s, left .12s</code> (line 59); the draw re-renders the fan, causing a jarring reflow.</td></tr>
+</table>
+
+<h2 id="decisions">Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td>D1</td><td>One story, one <code>/solitaire</code> release. All work edits <code>game/solitaire.html</code> (+ tests).</td><td>Tightly coupled in one file; one <code>/execute</code> run carries it. Maintainer chose "one story".</td></tr>
+  <tr><td>D2</td><td><strong>Card backs: ship a small curated set of ~6 hand-designed CSS/SVG back covers; pick one at random per new game. No picker UI.</strong></td><td>Maintainer pick. Visible variety, zero friction, stays self-contained and offline. A picker was the runner-up; deferred (see Open Q).</td></tr>
+  <tr><td>D3</td><td>Random back selection is seeded off the same RNG entry point as the deal where practical, but is <em>cosmetic only</em> — it never touches engine state and is excluded from undo/history.</td><td>Keeps the engine pure (Inv-1); a re-render must not change the chosen back mid-game.</td></tr>
+  <tr><td>D4</td><td><strong>Idle auto-hint:</strong> after <code>~8s</code> of no user activity, outline the first available <em>productive</em> move (not just foundation moves); re-arm the timer on any interaction; clear the outline on the next move. Generalize <code>showHint</code> to use a shared "first productive move" finder.</td><td>F3 asks for help on inactivity. Reuse the existing <code>.hint</code> outline. "Productive" excludes <code>draw</code>/<code>recycle</code> so the hint points at a meaningful move.</td></tr>
+  <tr><td>D5</td><td><strong>Draw animation: animate the drawn card flying from the stock position to the top of the waste fan; existing fanned cards ease to their new offsets.</strong> One deliberate motion; kill the layout-shift jank.</td><td>Maintainer pick. Replaces the blanket transition reflow with an intentional stock→waste motion. Respects <code>prefers-reduced-motion</code>.</td></tr>
+  <tr><td>D6</td><td><strong>No-moves detection</strong> = no productive move exists across an <em>entire</em> stock cycle. Implement a pure engine helper <code>hasProductiveMove(state)</code> + a cycle-scan <code>isDeadlocked(state)</code> that simulates drawing through the whole stock/waste once. When deadlocked (and not won), show a non-blocking "No moves left — deal a new game?" banner with a New-game action.</td><td>Single-position "no legal move" is wrong for Klondike (a draw may expose a move). The full-cycle scan is the standard, deterministic correct check. Engine-pure so it is unit-testable in <code>tests/run.mjs</code>.</td></tr>
+  <tr><td>D7</td><td>All new gameplay logic that is decidable from state goes in the <strong>engine</strong> layer (exported on <code>SolitaireEngine</code>) and gets selftest coverage; only rendering/animation/timers live in the UI layer.</td><td>Keeps the deterministic core testable headless; matches the existing engine/UI split.</td></tr>
+  <tr><td>D8</td><td>Update <code>SKILL.md</code> controls/copy only where user-facing behavior changed (the title/header wording; the idle-hint is automatic so no new key; <code>H</code> still works). No version-bump / changelog / README tasks in the plan — those are <code>/complete-dev</code>'s per repo norms.</td><td>skill-patterns §G: release prereqs are not story tasks.</td></tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<h3 id="fr-header">FR1 — Header wording</h3>
+<ul>
+  <li>FR1.1 — The <code>&lt;h1&gt;</code> reads <strong>"Solitaire"</strong> with no "· Klondike" suffix span.</li>
+  <li>FR1.2 — <code>&lt;title&gt;</code> reads "Solitaire" (drop "— Klondike").</li>
+  <li>FR1.3 — The skill stays Klondike-rules solitaire; only the displayed/window wording changes. <code>SKILL.md</code>'s internal "Klondike" references (rules description) may stay; the user-facing header must not say it.</li>
+</ul>
+<h3 id="fr-backs">FR2 — Per-game card backs</h3>
+<ul>
+  <li>FR2.1 — Bundle ~6 visually distinct, self-contained back-cover designs (CSS gradients/patterns or inline SVG; no external assets, no network).</li>
+  <li>FR2.2 — On each new game, choose one back at random and apply it to every face-down card uniformly for that game.</li>
+  <li>FR2.3 — The chosen back is fixed for the duration of a game (re-renders, undo, draw, recycle do not change it). D3.</li>
+  <li>FR2.4 — Each back is legible as a "card back" (covers the card, good contrast against the table, readable at the mobile breakpoint).</li>
+</ul>
+<h3 id="fr-hint">FR3 — Idle auto-hint</h3>
+<ul>
+  <li>FR3.1 — A shared finder returns the first <em>productive</em> legal move for a state (foundation moves, waste→tableau, tableau→tableau, tableau→foundation; excludes <code>draw</code>/<code>recycle</code>). The manual <code>H</code> hint reuses it (so <code>H</code> now hints non-foundation moves too).</li>
+  <li>FR3.2 — After ~8s of no pointer/keyboard activity in the game, outline the source card of that move using the existing <code>.hint</code> style; clear it on the next interaction or move.</li>
+  <li>FR3.3 — The idle timer re-arms on any interaction and is paused/cleared on win or when no productive move exists (the F4 banner takes over).</li>
+  <li>FR3.4 — Honor <code>prefers-reduced-motion</code> for any pulse; the outline itself is static.</li>
+</ul>
+<h3 id="fr-nomoves">FR4 — No-moves detection</h3>
+<ul>
+  <li>FR4.1 — Engine helpers: <code>hasProductiveMove(state)</code> (any non-draw/recycle legal move now) and <code>isDeadlocked(state)</code> (no productive move appears at any point in one full stock-cycle simulation), both pure and exported.</li>
+  <li>FR4.2 — After each committed move, if <code>!isWin(state) &amp;&amp; isDeadlocked(state)</code>, show a non-blocking banner: "No moves left — deal a new game?" with a New-game button; dismissible.</li>
+  <li>FR4.3 — The banner must never appear on a winnable position (no false positives) — the cycle scan, not a single-position check, guarantees this.</li>
+  <li>FR4.4 — Starting a new game clears the banner.</li>
+</ul>
+<h3 id="fr-anim">FR5 — Draw animation</h3>
+<ul>
+  <li>FR5.1 — On a <code>draw</code>, the newly-drawn card visually originates at the stock pile and moves to the top of the waste fan in one smooth motion.</li>
+  <li>FR5.2 — The previously-fanned waste cards ease to their new offsets rather than snapping/reflowing.</li>
+  <li>FR5.3 — Animation is interruptible and never blocks input; rapid draws degrade gracefully (no queue pile-up, no stuck cards). Final DOM state equals a plain re-render.</li>
+  <li>FR5.4 — Honor <code>prefers-reduced-motion</code> (instant placement when set).</li>
+</ul>
+
+<h2 id="invariants">Invariants (coherence contract)</h2>
+<ul>
+  <li><strong>Inv-1 (engine purity):</strong> the engine module stays browser-agnostic and side-effect-free; new logic (FR3.1 finder, FR4.1 helpers) is added to it without importing DOM. <code>tests/run.mjs</code> must pass headless.</li>
+  <li><strong>Inv-2 (cosmetic isolation):</strong> card-back choice, hint outline, deadlock banner, and draw animation are presentation-only — none mutate <code>state</code> or enter <code>history</code>/undo.</li>
+  <li><strong>Inv-3 (offline + self-contained):</strong> no new external assets, fonts, or network. Everything inlines into the one HTML file.</li>
+  <li><strong>Inv-4 (no false deadlock):</strong> <code>isDeadlocked</code> uses the full stock-cycle scan; a position with any reachable productive move (including after exhausting draws) is not deadlocked.</li>
+  <li><strong>Inv-5 (test harness intact):</strong> the <code>?test=nearwin</code> / <code>__solitaire</code> hooks and the win animation keep working; new engine exports get selftest cases.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story (D1): <code>260617-ks1</code> — "/solitaire first-run fixes (header, card backs, idle hint, no-moves, draw anim)", <code>route: skill</code>, plugin <code>pmos-gamekit</code>, no dependencies. Its ACs are the five FR groups above plus the invariants; <code>skill-patterns.md §A–§L</code> + the host <code>CLAUDE.md</code> are standing acceptance criteria. The per-story <code>/plan</code> cites this design's anchors.</p>
+
+<h2 id="open-questions">Open questions / deferred</h2>
+<ul>
+  <li><strong>Card-back picker (deferred, D2):</strong> a user-facing control to choose/lock a favorite back was the runner-up option. Deferred — revisit if players ask for it. The random-per-game default ships first.</li>
+  <li><strong>Idle delay tuning:</strong> 8s is the proposed default; the implementer may settle on 6–10s based on feel during the build self-check.</li>
+  <li><strong>Back-cover count:</strong> "~6" is a target, not a contract; 5–8 polished designs is acceptable so long as variety is obvious.</li>
+</ul>
+
+</body>
+</html>

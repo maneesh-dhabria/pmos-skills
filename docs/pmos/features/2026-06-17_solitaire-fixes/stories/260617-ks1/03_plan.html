@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-ks1 /solitaire first-run fixes</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — /solitaire first-run fixes (story 260617-ks1)</h1>
+<p class="sub">Epic <code>260617-bx0</code> · route: skill · plugin: pmos-gamekit · spec = <code>../../02_design.html</code>. Tasks in <code>tasks.yaml</code>.</p>
+
+<h2 id="approach">Approach</h2>
+<p>All five fixes live in one file — <code>plugins/pmos-gamekit/skills/solitaire/game/solitaire.html</code> — which
+cleanly splits into a pure engine module (<code>window.SolitaireEngine</code>, lines 1–387) and a DOM-guarded UI/render
+layer (393–820). The plan honors that split (design <a href="../../02_design.html#decisions">D7</a> / Inv-1): everything
+decidable from state — the productive-move finder and the deadlock scan — goes in the <strong>engine</strong> with selftest
+coverage in <code>tests/run.mjs</code>; only outlines, banners, timers, and animation live in the UI. The two cosmetic-only
+items (header text, draw animation) and the engine core can proceed in parallel; the idle-hint and no-moves banner both
+consume the engine core, so they follow it.</p>
+
+<h2 id="waves">Waves</h2>
+<table>
+  <tr><th>Wave</th><th>Tasks</th><th>Why</th></tr>
+  <tr><td>1</td><td>T1 (header), T2 (engine core), T5 (draw anim)</td><td>Independent. T1 is a 2-line copy change; T2 is the pure engine foundation (TDD via <code>tests/run.mjs</code>); T5 is a self-contained UI animation refactor.</td></tr>
+  <tr><td>2</td><td>T3 (idle hint), T4 (no-moves banner)</td><td>Both depend on T2's <code>firstProductiveMove</code> / <code>isDeadlocked</code>. UI-only, presentation isolation (Inv-2).</td></tr>
+  <tr><td>3</td><td>T6 (SKILL.md copy + final selftest/e2e + conformance)</td><td>Closeout after all behavior lands.</td></tr>
+</table>
+
+<h2 id="tasks">Tasks &amp; verification</h2>
+<table>
+  <tr><th>Task</th><th>AC</th><th>Verification</th></tr>
+  <tr><td>T1 — header wording (F1)</td><td>AC1</td><td>Load the file; <code>&lt;h1&gt;</code> = "Solitaire", <code>&lt;title&gt;</code> = "Solitaire"; no "Klondike" in chrome; rules/engine untouched.</td></tr>
+  <tr><td>T2 — engine: <code>firstProductiveMove</code> / <code>hasProductiveMove</code> / <code>isDeadlocked</code> (F3/F4 core)</td><td>AC3, AC4, AC6</td><td><strong>TDD:</strong> add cases to <code>tests/run.mjs</code> first — winnable deal not deadlocked; hand-built dead position is; finder returns a tableau→tableau move <code>findFoundationMove</code> misses. <code>node tests/run.mjs</code> green. Pure, terminating, no history mutation.</td></tr>
+  <tr><td>T3 — idle auto-hint + generalize <code>H</code> (F3)</td><td>AC3</td><td>Idle ~8s → source card outlines via <code>.hint</code>; interaction clears + re-arms; <code>H</code> now hints non-foundation moves; paused on win / deadlock; never mutates state.</td></tr>
+  <tr><td>T4 — no-moves banner (F4)</td><td>AC4</td><td>Hand-built dead position (via <code>__solitaire</code> hook) → non-blocking "deal a new game?" banner + New-game action; never on a winnable position; clears on new game; input not blocked.</td></tr>
+  <tr><td>T5 — draw animation (F5)</td><td>AC5</td><td>Drawing reads as one card moving stock→top-of-fan; fan eases (no reflow); interruptible; rapid draws degrade cleanly; final DOM == plain render; <code>prefers-reduced-motion</code> = instant.</td></tr>
+  <tr><td>T6 — copy + closeout</td><td>AC1, AC6, AC7</td><td><code>SKILL.md</code> copy updated where user-facing; conforms to <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code>; <code>node tests/run.mjs</code> + <code>?test=nearwin</code> e2e green. No release-prereq tasks (D8).</td></tr>
+</table>
+
+<h2 id="risks">Risks &amp; notes</h2>
+<ul>
+  <li><strong>False deadlock</strong> is the main correctness risk — mitigated by the full stock-cycle scan in <code>isDeadlocked</code> (Inv-4), not a single-position check. The TDD case with a winnable deal guards against it.</li>
+  <li><strong>Animation race</strong> on rapid draws — require FLIP measure/transition to be interruptible and idempotent against <code>render()</code>; final DOM must equal a plain re-render.</li>
+  <li><strong>Card-back legibility</strong> at the mobile breakpoint — verify contrast/coverage; keep designs CSS/SVG-inline (Inv-3, no assets).</li>
+  <li>Idle delay (8s) and back-cover count (~6) are tunable per the design Open-Questions; implementer settles them by feel during the self-check.</li>
+</ul>
+
+</body>
+</html>
