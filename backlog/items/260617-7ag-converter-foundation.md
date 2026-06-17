@@ -9,19 +9,36 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-utilities
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_converter/
 plan_doc: docs/pmos/features/2026-06-17_converter/stories/260617-7ag/03_plan.html
 tasks: docs/pmos/features/2026-06-17_converter/stories/260617-7ag/tasks.yaml
 worktree: .claude/worktrees/feat-260617-7ag
-claimed_by: build:loop-main
-driver_holder: build:loop-main
+build_branch: feat/260617-7ag
+build_commit: f29f505
+claimed_by: null
+driver_holder: null
 labels: [pmos-utilities, converter, web-ui]
 created: 2026-06-17
 updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-7ag -->
+<!-- BUILT (Loop 2) 2026-06-18 on feat/260617-7ag @ f29f505. All 8 ACs green.
+     Launch-only /converter (pmos-utilities): zero-dep Node server scripts/server.js
+     (built-ins only — deps.test asserts no npm deps; loopback + ephemeral port; GET / +
+     /conversions + POST /convert) serving single self-contained ui/converter.html (inline
+     CSS/JS, paste + file-picker + drag-drop, registry-driven selector, preview + download,
+     binary-mode handling). Converter registry lib/registry.js (register + discover +
+     lookup) auto-discovers lib/converters/*.js descriptors — new conversion = 1 module,
+     0 server/UI edits. Two pure pairs: JSON↔YAML (lib/yaml.js D9 subset) + CSV↔JSON
+     (lib/csv.js RFC-4180); ids json→yaml/yaml→json/csv→json/json→csv all end-to-end.
+     Gates: tests 6 suites/56 checks; 4 lints (NI-inline byte-identical, audit-recommended
+     0-calls, flags-vs-hints, phase-refs) PASS; skill-eval [D] 18/18 exit 0. Load-bearing
+     browser dogfood (Playwright): all 4 conversions exercised live (CSV→JSON embedded-comma
+     quoting preserved, JSON→YAML, YAML→JSON nested+list), console clean. No bump/changelog/
+     README (D8 — /complete-dev's). Worktree KEPT for Loop-3. Epic 260617-vvd NOT fully built
+     — rck (HTML↔MD) + ade (PDF↔MD) remain before /complete-dev --epic 260617-vvd. -->
 
 ## Context
 
