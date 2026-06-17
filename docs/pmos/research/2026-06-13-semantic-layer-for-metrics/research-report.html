@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="research">
+<title>Research — Semantic Layer for Metrics and its Use Cases</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#5a5a5a; --line:#e2e2e2; --bg:#fff; --accent:#2d5fa8; --hi:#f4f7fc; --warn:#9a6b00; }
+  * { box-sizing:border-box; }
+  body { font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); margin:0; }
+  .wrap { max-width:920px; margin:0 auto; padding:48px 28px 96px; }
+  h1 { font-size:30px; line-height:1.25; margin:0 0 4px; }
+  h2 { font-size:22px; margin:44px 0 12px; padding-top:14px; border-top:2px solid var(--line); }
+  h3 { font-size:17px; margin:26px 0 8px; }
+  .sub { color:var(--mut); font-size:14px; margin:0 0 8px; }
+  .pill { display:inline-block; font-size:12px; font-weight:600; padding:2px 9px; border-radius:999px; }
+  .conf-med { background:#fff4d6; color:var(--warn); }
+  .rec { background:var(--hi); border:1px solid #cfe0f5; border-left:4px solid var(--accent); padding:16px 20px; border-radius:6px; margin:18px 0; }
+  table { border-collapse:collapse; width:100%; margin:14px 0; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--hi); font-weight:600; }
+  td.good { background:#f1f8f1; } td.warn { background:#fdf6e8; } td.bad { background:#fbeeee; }
+  ul { margin:8px 0 8px; padding-left:22px; } li { margin:4px 0; }
+  cite, .cite { font-style:normal; color:var(--mut); font-size:12.5px; }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  .tier { font-weight:600; font-size:11px; padding:1px 6px; border-radius:4px; background:#eef; color:#334; }
+  .note { background:#fbf7ef; border:1px solid #ece0c8; padding:10px 14px; border-radius:6px; font-size:13.5px; color:#604; }
+  .meta { font-size:12.5px; color:var(--mut); border-top:1px solid var(--line); margin-top:40px; padding-top:14px; }
+  ol.apx { font-size:13px; }
+  code { background:#f3f3f3; padding:1px 5px; border-radius:4px; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1 id="title">Semantic Layer for Metrics &amp; its Use Cases</h1>
+<p class="sub">Decision-support research report · depth: <strong>deep</strong> · 6 sub-questions · 35+ sources fetched 2026-06-13 · <span class="pill conf-med">Overall confidence: Medium-High</span></p>
+
+<div class="rec">
+<strong>The decision this supports:</strong> Should a data/analytics organization adopt a dedicated semantic layer for metrics, and if so, which approach?
+</div>
+
+<h2 id="tldr">1. TL;DR + Recommendation</h2>
+<ul>
+<li><strong>Adopt a semantic layer if you have ≥2 BI/consumption surfaces or are putting LLMs/agents on your data — otherwise wait.</strong> The core value (one governed definition of <em>revenue / active user / churn</em> served to every tool) only pays off when more than one tool, or an AI agent, consumes the metric. For a single-BI, single-warehouse shop it is overhead, not insurance. <span class="cite">[SQ2, SQ5]</span></li>
+<li><strong>Match the tool to your stack, not to the hype.</strong> Already on dbt → <strong>dbt Semantic Layer (MetricFlow)</strong> is the lowest-friction path. Need a headless API for embedded analytics / agents → <strong>Cube</strong>. Heavy legacy Power BI / Excel estate → <strong>AtScale</strong> or stay native with the <strong>Power BI semantic model</strong>. Committed single-warehouse → the <strong>warehouse-native</strong> layer (Snowflake Semantic Views / Databricks Metric Views). <span class="cite">[SQ3, SQ6]</span></li>
+<li><strong>The hard part is organizational, not technical.</strong> The first month is "a business alignment exercise disguised as a data engineering task" — agreeing what <em>Customer</em> means across CRM, billing and product. A semantic layer on ungoverned data produces "consistent, governed transformations of inconsistent data," not governance. <span class="cite">[SQ5]</span></li>
+<li><strong>AI is the strongest new reason to adopt now.</strong> Ungrounded text-to-SQL fails on table/join/grain selection; grounding it in defined metrics is the leading fix. Treat the headline accuracy figures as directional (vendor-sourced), but the mechanism is sound and corroborated across vendors. <span class="cite">[SQ2, SQ4]</span></li>
+<li><strong>Lock-in is the dominant long-term risk.</strong> Every native option (LookML, Snowflake, Databricks, Power BI/Fabric, dbt-Cloud-gated) trades portability for simplicity. If a second warehouse or BI tool is plausible, weight a standalone/portable layer (Cube, dbt SL, AtScale) or watch the Open Semantic Interchange standard. <span class="cite">[SQ3, SQ5]</span></li>
+</ul>
+
+<h2 id="frame">2. Decision Frame</h2>
+<p><strong>Options on the table:</strong> (A) No dedicated layer — model in the warehouse + define metrics in one BI tool; (B) BI-native layer (Looker/LookML or Power BI semantic model); (C) Standalone/universal layer (dbt Semantic Layer, Cube, AtScale); (D) Warehouse-native layer (Snowflake Semantic Views, Databricks Metric Views).</p>
+<p><strong>Criteria:</strong> metric consistency across consumers · portability / lock-in · governance &amp; certified metrics · AI / agent readiness · query performance &amp; cost · implementation &amp; operating effort.</p>
+
+<h2 id="options">3. Options Comparison</h2>
+<table>
+<thead><tr><th>Option</th><th>Consistency across tools</th><th>Portability / lock-in</th><th>Governance</th><th>AI readiness</th><th>Effort &amp; cost</th><th>Best fit</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>A. No layer</strong> (warehouse + 1 BI tool)</td>
+  <td class="bad">Low — logic duplicated per report; "three dashboards, three Q3 revenue numbers"</td>
+  <td class="good">None — nothing to lock into</td>
+  <td class="bad">Per-tool, inconsistent</td>
+  <td class="bad">Weak — LLM picks tables/joins/grain itself</td>
+  <td class="good">Lowest</td>
+  <td>&lt;5-person team, 2–3 sources, one BI tool</td>
+</tr>
+<tr>
+  <td><strong>B. dbt Semantic Layer</strong> (MetricFlow)</td>
+  <td class="good">High — define once in YAML, served to all tools</td>
+  <td class="warn">Medium — needs dbt Cloud (≥$100/seat/mo); MetricFlow engine is OSS</td>
+  <td class="good">Code-first, versioned, peer-reviewed</td>
+  <td class="good">Strong — deterministic SQL, MCP/agent path</td>
+  <td class="warn">Medium; no Looker/Mode/Metabase native yet</td>
+  <td>Teams already on dbt</td>
+</tr>
+<tr>
+  <td><strong>B. Cube</strong> (headless)</td>
+  <td class="good">High — API-first, tool-agnostic</td>
+  <td class="good">Low — OSS core (Apache 2.0) + managed cloud</td>
+  <td class="good">Code-defined; RLS</td>
+  <td class="good">Strong — SQL/REST/GraphQL + MCP; reads dbt models</td>
+  <td class="warn">Medium — "a platform to operate, not a dashboard builder"; pre-agg design risk</td>
+  <td>Embedded analytics, agents, multi-tool</td>
+</tr>
+<tr>
+  <td><strong>B. AtScale</strong> (universal)</td>
+  <td class="good">High — MDX/SQL/DAX/REST to any BI</td>
+  <td class="warn">Medium — commercial; warehouse-agnostic</td>
+  <td class="good">Enterprise-grade; aggregate awareness</td>
+  <td class="good">Strong — agent + BI from one model</td>
+  <td class="bad">High — complex deploy, enterprise pricing</td>
+  <td>Large legacy Power BI/Excel estates</td>
+</tr>
+<tr>
+  <td><strong>C. Looker / LookML</strong></td>
+  <td class="warn">High <em>within Looker</em> only</td>
+  <td class="bad">High lock-in — non-Looker consumption "limited to data on BigQuery only"</td>
+  <td class="good">Mature at scale</td>
+  <td class="warn">Gemini-integrated, Looker-bound</td>
+  <td class="bad">High — from ~$5k/mo</td>
+  <td>Committed Looker shops</td>
+</tr>
+<tr>
+  <td><strong>C. Power BI semantic model</strong></td>
+  <td class="warn">High in Fabric/Excel; XMLA opens read-only to 3rd-party tools</td>
+  <td class="bad">High — DAX measures model-bound, not portable</td>
+  <td class="good">RLS/OLS honored via XMLA</td>
+  <td class="good">Deep Copilot + Fabric IQ / Agent-365 MCP</td>
+  <td class="warn">Medium if already on Power BI</td>
+  <td>Microsoft-centric estates</td>
+</tr>
+<tr>
+  <td><strong>D. Warehouse-native</strong> (Snowflake / Databricks)</td>
+  <td class="warn">High within the platform; BI discovery still maturing</td>
+  <td class="bad">High — single-vendor by construction</td>
+  <td class="good">Native optimizer + catalog governance</td>
+  <td class="good">Cortex Analyst / Genie native</td>
+  <td class="good">Lowest infra (zero extra service)</td>
+  <td>Single-warehouse commitments</td>
+</tr>
+</tbody>
+</table>
+<p class="note">Cells grade <em>relative</em> fit, not absolute quality. "High lock-in" is not automatically bad — it is the right trade when the single-platform commitment is genuine (SQ5).</p>
+
+<h2 id="evidence">4. Evidence by Sub-Question</h2>
+
+<h3>SQ1 — What a semantic layer is, and what it solves</h3>
+<ul>
+<li>A query-time abstraction between the warehouse and BI/AI consumers that maps physical tables to business entities, metrics and policies — it <em>stores no data</em>: "sits between the raw tables in your warehouse and the BI tools, dashboards, and AI models that consume data." <cite>— Dremio docs <span class="tier">T1</span></cite></li>
+<li>Primary problem solved is metric inconsistency: "A semantic layer enforces one definition per metric. No matter which tool runs the query, the answer is the same." <cite>— Dremio <span class="tier">T1</span></cite>; the "CFO asks 'What was Q3 revenue?' and gets three different answers" failure mode. <cite>— Typedef.ai <span class="tier">T2</span></cite></li>
+<li>Differs from a BI-native model by portability: "a metric defined in Tableau doesn't automatically flow to Looker or Excel" whereas a modern layer is "reusable across all tools regardless of vendor." <cite>— Typedef.ai <span class="tier">T2</span></cite></li>
+<li>Governance: "A semantic layer applies access policies at the data definition level, so restrictions are enforced regardless of how the data is accessed." <cite>— Dremio <span class="tier">T1</span></cite></li>
+</ul>
+
+<h3>SQ2 — Use cases &amp; where value lands</h3>
+<ul>
+<li><strong>Multi-tool consistency</strong> — "the control plane that decides whether your company has one shared definition of revenue, churn, active users… or five different ones." <cite>— Omni <span class="tier">T2</span></cite> dbt cites a customer "decreasing data costs by 80%" by centralizing entity relationships <cite>— dbt product page <span class="tier">T1</span></cite> <span class="pill conf-med">vendor-sourced</span>.</li>
+<li><strong>Self-serve analytics</strong> — "exposes approved metrics and dimensions while limiting unsafe paths," preventing invalid joins / grain mismatches. <cite>— Omni <span class="tier">T2</span></cite></li>
+<li><strong>Governed / certified metrics</strong> — "every risk AI model and regulatory report resolves against the same certified definition, with end-to-end lineage." <cite>— OvalEdge <span class="tier">T2</span></cite></li>
+<li><strong>AI / text-to-metric</strong> — "AI analytics is only reliable when the model has governed business context… defining the right metrics, joins, grain, and permissions before a question is translated into analysis." <cite>— Omni <span class="tier">T2</span></cite>. Quantified accuracy gains are practitioner/vendor figures — directional only: the "80% ungrounded hallucination" figure is Airbyte's <cite>— Airbyte <span class="tier">T2</span></cite>; the separate "3× accuracy at 95% reliability across a 522-query workload" is Atlan's (Snowflake Intelligence) <cite>— Atlan <span class="tier">T2</span></cite>. <span class="pill conf-med">directional</span></li>
+</ul>
+
+<h3>SQ3 — Vendor / tool landscape</h3>
+<ul>
+<li><strong>dbt SL / MetricFlow</strong>: define once in YAML; "near-perfect accuracy… returns an explicit error rather than a wrong answer" out of scope <cite>— dbt blog <span class="tier">T1</span></cite>; limitation — historically "does not support multi-hop joins" in some configs, no native Looker. <cite>— Honeydew <span class="tier">T2</span></cite></li>
+<li><strong>Cube</strong>: OSS core + cloud; "reads your dbt models as the foundation"; "a platform to operate, not a dashboard builder." <cite>— Cube <span class="tier">T1</span></cite></li>
+<li><strong>Looker/LookML</strong>: originated the pattern; non-Looker consumption "limited today to data on BigQuery only." <cite>— Honeydew <span class="tier">T2</span></cite></li>
+<li><strong>AtScale</strong>: "a universal semantic layer with a compute engine that optimizes executable SQL underneath it." <cite>— AtScale <span class="tier">T1</span></cite></li>
+<li><strong>Malloy</strong>: OSS DSL combining "the safety of a semantic data model with the full flexibility of a relational query language" — experimental, no managed cloud. <cite>— malloydata.dev <span class="tier">T1</span></cite></li>
+<li><strong>Warehouse-native</strong> (Snowflake Semantic Views, Databricks Metric Views) + the <strong>Open Semantic Interchange</strong> portability standard (Snowflake, Salesforce/Tableau, Databricks, AtScale, dbt anchor; Microsoft &amp; GCP notably absent). <cite>— Atlan <span class="tier">T2</span>, David Jayatilake <span class="tier">T3</span></cite></li>
+</ul>
+
+<h3>SQ3b (gap-fill) — Microsoft Power BI semantic model</h3>
+<ul>
+<li>BI-native with Analysis Services lineage: "XMLA is the communication protocol used by the Microsoft Analysis Services engine, which runs Power BI's semantic modeling." <cite>— Microsoft Learn <span class="tier">T1</span></cite></li>
+<li>Partial openness: XMLA lets Excel/SSMS/Tableau query models read-only, but "DAX measures are defined within a specific semantic model… Other tools cannot natively consume Power BI measures." <cite>— Holistics <span class="tier">T2</span></cite></li>
+<li>AI coupling is deep: Copilot + "Fabric IQ is now integrated with Agent 365 as a first-party MCP tool" so agents query certified models as governed tool calls. <cite>— Microsoft Learn <span class="tier">T1</span>, EPC Group <span class="tier">T3</span></cite></li>
+</ul>
+
+<h3>SQ4 — Architecture &amp; integration</h3>
+<ul>
+<li>Three patterns: warehouse-native, transformation-layer (dbt), OLAP-acceleration (Cube). <cite>— Typedef.ai <span class="tier">T2</span></cite></li>
+<li>Query pushdown vs in-memory: Cube "may decide to transpile an incoming SQL query, in Postgres dialect, to the SQL dialect of the supported upstream data source"; pre-aggregations route to cache (10–50ms) else live warehouse (2–10s). <cite>— Cube blog <span class="tier">T1</span>, Typedef <span class="tier">T2</span></cite></li>
+<li>API surface: dbt exposes GraphQL + JDBC (Arrow Flight SQL); Cube exposes Postgres-wire SQL + REST + GraphQL. <cite>— dbt FAQ <span class="tier">T1</span>, Cube <span class="tier">T1</span></cite></li>
+<li>Join safety: MetricFlow "chooses the appropriate join type and avoids fan-out or chasm joins… based on the entity types." <cite>— dbt FAQ <span class="tier">T1</span></cite></li>
+<li>For agents: "An AI-based application would first read Cube's meta API endpoint, downloading all the definitions… as embeddings," then query in business terms. <cite>— Cube <span class="tier">T1</span></cite></li>
+</ul>
+
+<h3>SQ5 — Risks, costs &amp; when NOT to adopt</h3>
+<ul>
+<li><strong>Migration cost</strong>: ~$30,000 / 10 weeks for 50 metrics, "30% revert due to missing features when migrating from LookML." <cite>— Reliable Data Engineering <span class="tier">T3</span></cite> <span class="pill conf-med">single source</span></li>
+<li><strong>Lock-in</strong>: "if there is any chance you will add a second warehouse… that lock-in will cost you later"; "57% of enterprises using vendor-native implementations are considering platform changes this year." <cite>— Unwind Data <span class="tier">T3</span>, AtScale/GigaOm <span class="tier">T2</span> (vendor-framed)</cite></li>
+<li><strong>Org buy-in is the real blocker</strong>: "The first month… is usually a business alignment exercise disguised as a data engineering task." <cite>— Unwind Data <span class="tier">T3</span></cite></li>
+<li><strong>"Treats symptoms not cause"</strong>: "A semantic layer built on top of inconsistent, ungoverned data… produces consistent, governed transformations of inconsistent data." <cite>— Unwind Data <span class="tier">T3</span></cite>; the modeling-first critique — "metric inconsistencies… come from a lack of proper data modeling." <cite>— Madison Mae, "Data modeling solves what semantic [layers don't]" <span class="tier">T3</span></cite></li>
+<li><strong>Historical failure mode</strong>: standalone layers "required upfront investment before generating value… nobody really used them." <cite>— Context&amp;Chaos <span class="tier">T3</span>; Madison Mae, "I was wrong about semantic layers" <span class="tier">T3</span></cite>. <span class="note" style="display:inline">Note: this same practitioner has since <em>reversed</em> her skepticism, now endorsing semantic layers specifically for AI/agent grounding — cited here for the historical critique, not as a standing objection.</span></li>
+<li><strong>Don't adopt</strong> if: &lt;5 people / 2–3 sources / one BI tool ("overhead… outweighs the benefits"); or if source data isn't yet clean and entity relationships aren't agreed. <cite>— Polar Analytics, Unwind Data <span class="tier">T3</span></cite></li>
+</ul>
+
+<h2 id="change-mind">5. What Would Change the Recommendation</h2>
+<ul>
+<li><strong>If you have exactly one BI tool and no AI-on-data plans</strong> → the consistency argument collapses; model in the warehouse + dbt and skip the dedicated layer. This is the single biggest swing factor.</li>
+<li><strong>If source data / entity definitions are not yet governed</strong> → fix modeling first; a layer will only launder the inconsistency.</li>
+<li><strong>If you are irreversibly committed to one platform</strong> (all-Snowflake, all-Databricks, all-Power-BI) → the lock-in penalty disappears and the native layer becomes the lowest-effort right answer.</li>
+<li><strong>If the Open Semantic Interchange standard gains Microsoft + GCP and real cross-tool portability ships</strong> → the "avoid lock-in → pick standalone" logic weakens and native layers become safer.</li>
+</ul>
+
+<h2 id="risks">6. Risks &amp; Unknowns</h2>
+<ul>
+<li><strong>Evidence base skews vendor/practitioner.</strong> No fetchable independent analyst report (Gartner/Forrester) corroborated benefit or adoption claims this run — quantified figures (80% hallucination, 3× accuracy, 80% cost cut, 57% replatforming) should be read as directional, not measured.</li>
+<li><strong>Tooling is young and fragmenting.</strong> dbt SL is ~2 years vs LookML's 12+; competing definition standards (MetricFlow, LookML, Malloy, OSI) risk a "one universal standard spawns another" outcome.</li>
+<li><strong>"Semantic-washing"</strong>: vendors relabel existing features — demand to see actual model files (YAML/LookML/JSON) before believing a "semantic layer" claim.</li>
+<li><strong>Migration revert risk</strong> (30% from LookML) rests on a single T3 source; treat as a caution flag, not a planning number.</li>
+</ul>
+
+<h2 id="appendix">7. Source-Quality Appendix</h2>
+<p class="sub">All sources fetched 2026-06-13. Tier: T1 primary/vendor-official · T2 practitioner · T3 reputable publication/independent analyst · T4 aggregator. Per-sub-question raw findings in <code>interim-reports/</code>.</p>
+<ol class="apx">
+<li><span class="tier">T1</span> dbt Labs — dbt Semantic Layer docs / FAQ / 2026 benchmark blog · <a href="https://docs.getdbt.com/docs/use-dbt-semantic-layer/dbt-sl">getdbt.com</a></li>
+<li><span class="tier">T1</span> Cube.dev — query pushdown, universal semantic layer, AI backbone blogs · <a href="https://cube.dev/blog/query-push-down-in-cubes-semantic-layer">cube.dev</a></li>
+<li><span class="tier">T1</span> AtScale — universal semantic layer, hybrid query architecture, 2025 review · <a href="https://www.atscale.com/use-cases/universal-semantic-layer/">atscale.com</a></li>
+<li><span class="tier">T1</span> Dremio — Complete Guide on Semantic Layer Tools · <a href="https://www.dremio.com/blog/semantic-layer-tools/">dremio.com</a></li>
+<li><span class="tier">T1</span> Malloy — official site · <a href="https://www.malloydata.dev/">malloydata.dev</a></li>
+<li><span class="tier">T1</span> Microsoft Learn — XMLA endpoint, Copilot with semantic models, Copilot in Fabric · <a href="https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-premium-connect-tools">learn.microsoft.com</a></li>
+<li><span class="tier">T2</span> Typedef.ai — Semantic Layer Architectures Explained · <a href="https://www.typedef.ai/resources/semantic-layer-architectures-explained-warehouse-native-vs-dbt-vs-cube">typedef.ai</a></li>
+<li><span class="tier">T2</span> Omni Analytics — Best Semantic Layer for AI and BI (2026) · <a href="https://omni.co/articles/best-semantic-layer-for-ai-and-bi-2026">omni.co</a></li>
+<li><span class="tier">T2</span> Atlan — Best Semantic Layer Tools (2026) · <a href="https://atlan.com/know/best-semantic-layer-tools/">atlan.com</a></li>
+<li><span class="tier">T2</span> Airbyte — Rise of the Semantic Layer · <a href="https://airbyte.com/blog/the-rise-of-the-semantic-layer-metrics-on-the-fly">airbyte.com</a></li>
+<li><span class="tier">T2</span> OvalEdge — Governed Semantic Layer for AI · <a href="https://www.ovaledge.com/blog/governed-semantic-layer-for-ai">ovaledge.com</a></li>
+<li><span class="tier">T2</span> Honeydew — dbt SL vs Looker LookML · <a href="https://honeydew.ai/blog/dbt-semantic-layer-vs-looker-lookml/">honeydew.ai</a></li>
+<li><span class="tier">T2</span> Holistics — BI Tools with Semantic Layers (2026) · <a href="https://www.holistics.io/bi-tools/semantic-layer/">holistics.io</a></li>
+<li><span class="tier">T2</span> Coalesce — Semantic Layers 2025 Playbook · <a href="https://coalesce.io/data-insights/semantic-layers-2025-catalog-owner-data-leader-playbook/">coalesce.io</a></li>
+<li><span class="tier">T2</span> Secoda · Upsolve · Tabular Editor (architecture/integration detail)</li>
+<li><span class="tier">T3</span> Unwind Data — Best Semantic Layer Tool (no vendor bias) · <a href="https://unwinddata.com/best-semantic-layer-tool">unwinddata.com</a></li>
+<li><span class="tier">T3</span> Madison Mae — Learn Analytics Engineering (skeptical practitioner) · <a href="https://learnanalyticsengineering.substack.com/p/i-was-wrong-about-semantic-layers">substack</a></li>
+<li><span class="tier">T3</span> Polar Analytics · Reliable Data Engineering (Medium) · Data Engineering Weekly · Context&amp;Chaos · David Jayatilake · Dimension Labs · EPC Group</li>
+</ol>
+
+<p class="meta">Generated by <code>/research</code> (pmos-toolkit) · deep tier · decision-support mode · This report cites only sources fetched during the run; vendor-sourced quantitative claims are flagged directional. Independent analyst corroboration is an open gap.</p>
+
+</div>
+</body>
+</html>
