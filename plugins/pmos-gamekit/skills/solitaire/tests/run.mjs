@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HTML = path.join(__dirname, '..', 'game', 'solitaire.html');
 
-const EXPECTED_CHECKS = 13;
+const EXPECTED_CHECKS = 24;
 const selftest = process.argv.includes('--selftest');
 
 let passed = 0;
@@ -85,6 +85,71 @@ function run() {
   const changed = after.waste.length === 1 && after.stock.length === 23;
   const restored = JSON.stringify(before) === JSON.stringify(game); // game itself untouched (applyMove is pure)
   check('applyMove is pure and undo restores prior state', changed && restored);
+
+  // 7. Productive-move finder + deadlock detection (F3/F4).
+  // Plain-object state builder matching the engine schema (no exported emptyState).
+  const mk = (over) => Object.assign({
+    stock: [], waste: [],
+    foundations: { S: [], H: [], D: [], C: [] },
+    tableau: [[], [], [], [], [], [], []],
+    drawCount: 1,
+  }, over || {});
+  const card = (id, faceUp) => ({ suit: id[0], rank: Number(id.slice(1)), faceUp: faceUp !== false, id });
+
+  // 7a. firstProductiveMove prefers waste→foundation and carries a source locator.
+  const aceWaste = mk({ waste: [card('H1')] });
+  const fpAce = E.firstProductiveMove(aceWaste);
+  check('firstProductiveMove finds waste→foundation with waste source',
+    !!fpAce && fpAce.type === 'wasteToFoundation' && fpAce.source && fpAce.source.zone === 'waste');
+
+  // 7b. tableau→foundation surfaced with a tableau source locator (col/index of the top).
+  const aceTab = mk({ tableau: [[card('S1')], [], [], [], [], [], []] });
+  const fpTab = E.firstProductiveMove(aceTab);
+  check('firstProductiveMove finds tableau→foundation with tableau source',
+    !!fpTab && fpTab.type === 'tableauToFoundation' && fpTab.from === 0 &&
+    fpTab.source && fpTab.source.zone === 'tableau' && fpTab.source.col === 0 && fpTab.source.index === 0);
+
+  // 7c. A pure tableau→tableau move that findFoundationMove would miss (red 6 onto black 7).
+  const tabShuffle = mk({ tableau: [[card('H6')], [card('S7')], [], [], [], [], []] });
+  const fpShuffle = E.firstProductiveMove(tabShuffle);
+  check('firstProductiveMove finds a tableau→tableau move findFoundationMove misses',
+    E.findFoundationMove(tabShuffle) === null &&
+    !!fpShuffle && fpShuffle.type === 'tableauToTableau' && fpShuffle.from === 0 && fpShuffle.to === 1);
+
+  // 7d. A hand-built dead position: all tops same color (black), no aces, no empties,
+  //     empty stock + waste → no productive move now or across a cycle.
+  const dead = mk({
+    tableau: [[card('S5')], [card('S7')], [card('S9')], [card('C4')], [card('C6')], [card('C8')], [card('C10')]],
+  });
+  check('hasProductiveMove false on a dead position', E.hasProductiveMove(dead) === false);
+  check('hasProductiveMove true on a productive position', E.hasProductiveMove(aceWaste) === true);
+  check('firstProductiveMove null on a dead position', E.firstProductiveMove(dead) === null);
+  check('isDeadlocked true on a hand-built dead position', E.isDeadlocked(dead) === true);
+
+  // 7e. Never a false positive: a fresh winnable deal and a solved board are not deadlocked.
+  check('isDeadlocked false on a real deal and on a won board',
+    E.isDeadlocked(game) === false && E.isDeadlocked(E.winState()) === false);
+
+  // 7f. A future draw rescues the position: same dead tableau, but an Ace waits in the stock.
+  const drawRescue = mk({
+    tableau: dead.tableau.map((c) => c.slice()),
+    stock: [card('H1', false)],
+  });
+  check('isDeadlocked false when a stock draw reveals a productive move',
+    E.isDeadlocked(drawRescue) === false);
+
+  // 7g. A recycle rescues the position: stock empty, the Ace sits at the bottom of the waste.
+  const recycleRescue = mk({
+    tableau: dead.tableau.map((c) => c.slice()),
+    waste: [card('H1'), card('C2')], // top (C2) is unplayable; H1 only reachable after recycle
+  });
+  check('isDeadlocked false when a recycle reveals a productive move',
+    E.isDeadlocked(recycleRescue) === false);
+
+  // 7h. Purity: the finders never mutate their input.
+  const snap = JSON.stringify(dead);
+  E.firstProductiveMove(dead); E.hasProductiveMove(dead); E.isDeadlocked(drawRescue);
+  check('firstProductiveMove / isDeadlocked do not mutate input', JSON.stringify(dead) === snap);
 
   finish();
 }

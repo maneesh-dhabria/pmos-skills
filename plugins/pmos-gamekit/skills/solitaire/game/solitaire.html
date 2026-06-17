@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Solitaire — Klondike</title>
+<title>Solitaire</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='14' font-size='14'%3E%E2%99%A0%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:,">
 <style>
@@ -56,7 +56,10 @@
   .card {
     position: absolute; width: var(--card-w); height: var(--card-h); border-radius: var(--radius);
     background: #fff; box-shadow: var(--shadow); cursor: pointer; overflow: hidden;
-    transition: top .12s ease, left .12s ease, transform .08s ease;
+    /* Scoped to transform only: render() rebuilds card nodes at their final top/left, so a
+       top/left transition never fired anyway (fresh nodes). The deliberate draw motion (F5)
+       sets its own transform transition inline; drag uses .dragging { transition:none }. */
+    transition: transform .08s ease;
   }
   .card.dragging { transition: none; z-index: 1000; cursor: grabbing; box-shadow: 0 8px 18px rgba(0,0,0,.4); pointer-events: none; }
   .card .face { position: absolute; inset: 0; padding: 5px 6px; }
@@ -72,6 +75,40 @@
     border: 2px solid #f4f6fb;
   }
   .card.down .face { display: none; }
+  /* Curated, self-contained card backs (F2). One is chosen at random per new game and
+     stays uniform across every face-down card for that game's duration — pure CSS, no
+     external assets or network. */
+  .card.down.back-0 {
+    background: repeating-linear-gradient(45deg, #2b5c8a, #2b5c8a 6px, #24507a 6px, #24507a 12px);
+  }
+  .card.down.back-1 {
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 2px, transparent 2px 8px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.12) 0 2px, transparent 2px 8px),
+      linear-gradient(160deg, #8a2b3a, #6e2430);
+  }
+  .card.down.back-2 {
+    background:
+      radial-gradient(circle, rgba(255,255,255,.22) 1.6px, transparent 2px) 0 0 / 10px 10px,
+      linear-gradient(160deg, #1c6b66, #155350);
+  }
+  .card.down.back-3 {
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10px),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.14) 0 1px, transparent 1px 10px),
+      linear-gradient(160deg, #3a3a8a, #2e2e6e);
+  }
+  .card.down.back-4 {
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 3px, transparent 3px 6px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px),
+      linear-gradient(160deg, #2f7d4f, #246340);
+  }
+  .card.down.back-5 {
+    background:
+      radial-gradient(circle at 30% 28%, rgba(255,255,255,.20), transparent 42%),
+      linear-gradient(135deg, #7a3a8a, #5a2a66);
+  }
   .card.hint { outline: 3px solid #f5d76e; outline-offset: -1px; }
   @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
   .card.reject { animation: shake .32s ease; outline: 2px solid var(--red); outline-offset: -1px; }
@@ -82,6 +119,19 @@
   .win-banner.show { display: grid; }
   .win-banner .msg { font-size: 30px; font-weight: 800; margin-bottom: 6px; }
   .win-banner .sub { opacity: .9; margin-bottom: 16px; }
+  /* Non-blocking "no moves left" toast (F4) — a small bottom bar, NOT a full-screen
+     overlay, so it never blocks drag/click on the board. */
+  .deadlock-banner {
+    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    display: none; align-items: center; gap: 12px; z-index: 180;
+    background: rgba(20,20,20,.92); color: #eafff0;
+    border: 1px solid rgba(255,255,255,.22); border-radius: 10px;
+    padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.4);
+    max-width: calc(100vw - 24px);
+  }
+  .deadlock-banner.show { display: flex; }
+  .deadlock-banner .dl-msg { font-size: 14px; font-weight: 600; }
+  .deadlock-banner .dl-dismiss { padding: 4px 9px; }
   .confetti { position: fixed; width: 10px; height: 14px; top: -20px; z-index: 150; pointer-events: none; border-radius: 2px; }
   @keyframes fall { to { transform: translateY(110vh) rotate(540deg); opacity: .9; } }
   @media (max-width: 620px) {
@@ -94,7 +144,7 @@
 </head>
 <body>
 <header>
-  <h1>Solitaire <span style="opacity:.7;font-weight:400">· Klondike</span></h1>
+  <h1>Solitaire</h1>
   <div class="stats" aria-live="polite">
     <span>Moves <b id="moveCount">0</b></span>
     <span>Time <b id="timer">0:00</b></span>
@@ -127,6 +177,12 @@
   <div class="msg">🎉 You win!</div>
   <div class="sub" id="winSub">Solved in 0 moves.</div>
   <button class="btn" id="winNew">New Game</button>
+</div>
+
+<div class="deadlock-banner" id="deadlockBanner" role="status" aria-live="polite">
+  <span class="dl-msg">No moves left — deal a new game?</span>
+  <button class="btn" id="deadlockNew">New Game</button>
+  <button class="btn dl-dismiss" id="deadlockDismiss" aria-label="Dismiss">✕</button>
 </div>
 
 <script>
@@ -352,6 +408,81 @@
     return null;
   }
 
+  // The first "productive" (non-stock) move available right now, returned as a move
+  // object that also carries a `source` locator so the UI can outline the originating
+  // card; null when none exists. Priority (the order the hint should suggest):
+  // waste→foundation, tableau→foundation, waste→tableau, tableau→tableau (over any
+  // movable run), foundation→tableau. Pure — reads state only.
+  function firstProductiveMove(state) {
+    if (isLegalMove(state, { type: 'wasteToFoundation' })) {
+      return { type: 'wasteToFoundation', source: { zone: 'waste' } };
+    }
+    for (var c = 0; c < 7; c++) {
+      if (isLegalMove(state, { type: 'tableauToFoundation', from: c })) {
+        return { type: 'tableauToFoundation', from: c,
+                 source: { zone: 'tableau', col: c, index: state.tableau[c].length - 1 } };
+      }
+    }
+    for (var wt = 0; wt < 7; wt++) {
+      if (isLegalMove(state, { type: 'wasteToTableau', to: wt })) {
+        return { type: 'wasteToTableau', to: wt, source: { zone: 'waste' } };
+      }
+    }
+    for (var from = 0; from < 7; from++) {
+      var fcol = state.tableau[from];
+      for (var i = 0; i < fcol.length; i++) {
+        if (!isMovableRun(fcol, i)) continue;
+        for (var to = 0; to < 7; to++) {
+          if (to === from) continue;
+          if (isLegalMove(state, { type: 'tableauToTableau', from: from, to: to, index: i })) {
+            return { type: 'tableauToTableau', from: from, to: to, index: i,
+                     source: { zone: 'tableau', col: from, index: i } };
+          }
+        }
+      }
+    }
+    for (var si = 0; si < SUITS.length; si++) {
+      var suit = SUITS[si];
+      for (var ft = 0; ft < 7; ft++) {
+        if (isLegalMove(state, { type: 'foundationToTableau', suit: suit, to: ft })) {
+          return { type: 'foundationToTableau', suit: suit, to: ft,
+                   source: { zone: 'foundation', suit: suit } };
+        }
+      }
+    }
+    return null;
+  }
+
+  function hasProductiveMove(state) {
+    return firstProductiveMove(state) !== null;
+  }
+
+  // Is the position a dead end? True only when NO productive move exists now AND none
+  // becomes available across one full stock cycle — draw through the stock, recycle
+  // once, draw through again. The hypothetical scan forces draw-1 so every stock card
+  // is examined as a reachable waste top, which strictly avoids false positives
+  // (Inv-4: never flag a winnable/playable position). Pure + terminating.
+  function isDeadlocked(state) {
+    if (isWin(state)) return false;
+    var st = clone(state);
+    st.drawCount = 1; // scan one card at a time for maximal reachability
+    if (hasProductiveMove(st)) return false;
+    var recycled = false, guard = 0;
+    while (guard++ < 1000) {
+      if (st.stock.length > 0) {
+        st = applyMove(st, { type: 'draw' });
+        if (hasProductiveMove(st)) return false;
+      } else if (st.waste.length > 0 && !recycled) {
+        st = applyMove(st, { type: 'recycle' });
+        recycled = true;
+        if (hasProductiveMove(st)) return false;
+      } else {
+        break; // stock exhausted and already recycled (or nothing left to recycle)
+      }
+    }
+    return true;
+  }
+
   // A fully-solved state (for win-check tests).
   function winState() {
     var st = emptyState(1);
@@ -382,6 +513,8 @@
     canStackOnTableau: canStackOnTableau, canStackOnFoundation: canStackOnFoundation,
     isLegalMove: isLegalMove, applyMove: applyMove, isWin: isWin,
     findFoundationMove: findFoundationMove,
+    firstProductiveMove: firstProductiveMove, hasProductiveMove: hasProductiveMove,
+    isDeadlocked: isDeadlocked,
     winState: winState, nearWinState: nearWinState,
   };
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
@@ -398,6 +531,8 @@ if (typeof document !== 'undefined') {
   var SUIT_GLYPH = { S: '♠', H: '♥', D: '♦', C: '♣' };
 
   var state, history, moves, startTime, timerId, won;
+  var BACK_COUNT = 6;           // number of curated card backs (F2)
+  var currentBack = 0;          // chosen per new game, uniform + fixed for its duration (cosmetic only — D3)
 
   function rankLabel(r) { return RANK_LABEL[r] || String(r); }
 
@@ -418,8 +553,12 @@ if (typeof document !== 'undefined') {
   }
 
   function tryMove(m) {
-    if (E.isLegalMove(state, m)) { commit(E.applyMove(state, m)); return true; }
-    return false;
+    if (!E.isLegalMove(state, m)) return false;
+    // Capture pre-move geometry so a draw can fly the card stock→waste (F5).
+    var drawGeo = (m.type === 'draw' && !reducedMotion()) ? captureWasteGeometry() : null;
+    commit(E.applyMove(state, m));
+    if (drawGeo) animateDraw(drawGeo);
+    return true;
   }
 
   function undo() {
@@ -427,6 +566,7 @@ if (typeof document !== 'undefined') {
     state = history.pop();
     moves += 1;
     render();
+    afterStateChange();
   }
 
   function newGame(opts) {
@@ -439,9 +579,14 @@ if (typeof document !== 'undefined') {
       state = E.newGame({ drawCount: opts.drawCount || (state ? state.drawCount : 1), seed: opts.seed });
     }
     history = []; moves = 0; won = false;
+    currentBack = Math.floor(Math.random() * BACK_COUNT); // new back each deal, fixed for the game (D2/D3)
+    bannerDismissed = false;
     startTimer();
     setDrawMode(state.drawCount);
     render();
+    hideDeadlockBanner();
+    clearHint();
+    armIdleHint();
   }
 
   /* ---- timer ---- */
@@ -462,7 +607,7 @@ if (typeof document !== 'undefined') {
   function cardEl(card, opts) {
     opts = opts || {};
     var el = document.createElement('div');
-    el.className = 'card ' + (card.faceUp ? E.color(card.suit) : 'down');
+    el.className = 'card ' + (card.faceUp ? E.color(card.suit) : 'down back-' + currentBack);
     el.dataset.id = card.id;
     if (card.faceUp) {
       var g = SUIT_GLYPH[card.suit], lbl = rankLabel(card.rank);
@@ -699,27 +844,118 @@ if (typeof document !== 'undefined') {
 
   function startTimerIfNeeded() { if (startTime == null) startTime = Date.now(); }
 
-  // Hint (H): briefly outline the first card with a legal foundation move, else the
-  // first movable waste/tableau card with a legal tableau target — a gentle nudge.
-  function showHint() {
-    if (won) return;
-    var sel = null;
-    if (E.isLegalMove(state, { type: 'wasteToFoundation' })) sel = '#waste .card[data-zone="waste"]';
-    for (var c = 0; !sel && c < 7; c++) {
-      var col = state.tableau[c];
-      if (col.length && E.isLegalMove(state, { type: 'tableauToFoundation', from: c })) {
-        sel = '.card[data-col="' + c + '"][data-index="' + (col.length - 1) + '"]';
-      }
-    }
-    var el = sel && document.querySelector(sel);
-    if (!el) return; // no obvious hint — stay quiet rather than guess
-    el.classList.add('hint');
-    setTimeout(function () { if (el) el.classList.remove('hint'); }, 900);
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
 
-  // wrap commit to start timer on first move
+  /* ---- hint (F3): outline the source card of the first productive move ---- */
+
+  // Map a firstProductiveMove() source locator to the DOM card it points at.
+  function hintSelector(move) {
+    if (!move || !move.source) return null;
+    var s = move.source;
+    if (s.zone === 'waste') return '#waste .card[data-zone="waste"]';
+    if (s.zone === 'foundation') return '.card[data-zone="foundation"][data-suit="' + s.suit + '"]';
+    if (s.zone === 'tableau') return '.card[data-col="' + s.col + '"][data-index="' + s.index + '"]';
+    return null;
+  }
+
+  function clearHint() {
+    var outlined = document.querySelectorAll('.card.hint');
+    Array.prototype.forEach.call(outlined, function (el) { el.classList.remove('hint'); });
+  }
+
+  // Outline the first productive move's source card. `auto` = idle-triggered (static
+  // outline that persists until the next interaction); manual H keeps a brief 900ms
+  // flash. Presentation-only — reads state, never mutates it or history (Inv-2).
+  function showHint(auto) {
+    if (won) return;
+    clearHint();
+    var sel = hintSelector(E.firstProductiveMove(state));
+    var el = sel && document.querySelector(sel);
+    if (!el) return; // nothing productive to point at — stay quiet
+    el.classList.add('hint');
+    if (!auto) setTimeout(function () { if (el) el.classList.remove('hint'); }, 900);
+  }
+
+  /* ---- idle auto-hint timer (F3) ---- */
+  var IDLE_MS = 8000;           // ~8s of inactivity before a gentle hint (design Open-Q: 6–10s OK)
+  var idleTimer = null;
+
+  function clearIdleTimer() { if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; } }
+
+  function armIdleHint() {
+    clearIdleTimer();
+    if (won || E.isDeadlocked(state)) return; // paused on win; the banner owns the dead state
+    idleTimer = setTimeout(function () {
+      if (!won && E.hasProductiveMove(state)) showHint(true);
+    }, IDLE_MS);
+  }
+
+  // Any user activity clears a lingering outline and restarts the idle countdown.
+  function onActivity() { clearHint(); armIdleHint(); }
+
+  /* ---- no-moves banner (F4) ---- */
+  var bannerDismissed = false;
+
+  function updateDeadlockBanner() {
+    var banner = document.getElementById('deadlockBanner');
+    var dead = !won && E.isDeadlocked(state);
+    if (!dead) bannerDismissed = false; // re-arm for a future dead end
+    if (dead && !bannerDismissed) banner.classList.add('show');
+    else banner.classList.remove('show');
+  }
+  function hideDeadlockBanner() { document.getElementById('deadlockBanner').classList.remove('show'); }
+
+  /* ---- draw animation (F5): FLIP the drawn card stock→waste fan ---- */
+
+  // Snapshot stock + waste card screen rects BEFORE the draw commit/re-render.
+  function captureWasteGeometry() {
+    var rects = {};
+    var stockEl = document.querySelector('#stock .card');
+    var wasteCards = document.querySelectorAll('#waste .card');
+    Array.prototype.forEach.call(wasteCards, function (el) {
+      rects[el.dataset.id] = el.getBoundingClientRect();
+    });
+    return { stockRect: stockEl ? stockEl.getBoundingClientRect() : null, waste: rects };
+  }
+
+  // After the re-render, translate each waste card from its old position (or, for the
+  // newly-drawn cards, from the stock pile) to identity — the browser eases it home.
+  // Cosmetic: the DOM is already at its final state (Inv-2); interrupting draws just
+  // replace these nodes on the next render, so nothing piles up or sticks.
+  function animateDraw(geo) {
+    var wasteCards = document.querySelectorAll('#waste .card');
+    Array.prototype.forEach.call(wasteCards, function (el) {
+      var newRect = el.getBoundingClientRect();
+      var old = geo.waste[el.dataset.id] || geo.stockRect;
+      if (!old) return;
+      var fromX = old.left - newRect.left, fromY = old.top - newRect.top;
+      if (!fromX && !fromY) return;
+      el.style.transition = 'none';
+      el.style.transform = 'translate(' + fromX + 'px,' + fromY + 'px)';
+      void el.offsetWidth; // force reflow so the next change transitions
+      el.style.transition = 'transform .22s ease';
+      el.style.transform = 'translate(0,0)';
+      el.addEventListener('transitionend', function te() {
+        el.style.transition = ''; el.style.transform = '';
+        el.removeEventListener('transitionend', te);
+      });
+    });
+  }
+
+  // Post-move housekeeping shared by commit + undo: refresh the banner, then either
+  // stop (win) or re-arm the idle hint.
+  function afterStateChange() {
+    clearHint();
+    updateDeadlockBanner();
+    if (won) { clearIdleTimer(); return; }
+    armIdleHint();
+  }
+
+  // wrap commit to start timer on first move + run post-move housekeeping
   var _commit = commit;
-  commit = function (ns) { startTimerIfNeeded(); _commit(ns); };
+  commit = function (ns) { startTimerIfNeeded(); _commit(ns); afterStateChange(); };
 
   /* ---- auto-move + double-click ---- */
   function autoMove() {
@@ -785,6 +1021,10 @@ if (typeof document !== 'undefined') {
     document.getElementById('winNew').addEventListener('click', function () {
       document.getElementById('winBanner').classList.remove('show'); newGame({});
     });
+    document.getElementById('deadlockNew').addEventListener('click', function () { newGame({}); });
+    document.getElementById('deadlockDismiss').addEventListener('click', function () {
+      bannerDismissed = true; hideDeadlockBanner();
+    });
 
     document.addEventListener('keydown', function (e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -797,6 +1037,12 @@ if (typeof document !== 'undefined') {
         case '3': setDrawMode(3); break;
       }
     });
+
+    // Idle-hint activity tracking: any pointer/key activity clears a lingering hint and
+    // restarts the ~8s countdown. Capture-phase so it registers even when a handler
+    // below consumes the event.
+    document.addEventListener('pointerdown', onActivity, true);
+    document.addEventListener('keydown', onActivity, true);
   }
 
   // Test hook for Playwright / debugging — in-memory only, persists nothing (D6).
@@ -807,9 +1053,15 @@ if (typeof document !== 'undefined') {
     newGame: newGame,
     moveCount: function () { return moves; },
     // Deterministic test seam: replace the live state and re-render. Used by the
-    // e2e to stage reproducible click / drag scenarios. No effect on normal play.
-    _setState: function (s) { state = E.clone(s); history = []; won = false; setDrawMode(state.drawCount); startTimerIfNeeded(); render(); },
+    // e2e to stage reproducible click / drag / deadlock scenarios. No effect on normal play.
+    _setState: function (s) {
+      state = E.clone(s); history = []; won = false; bannerDismissed = false;
+      setDrawMode(state.drawCount); startTimerIfNeeded(); render(); afterStateChange();
+    },
     _render: render,
+    // Read-only test peeks for the F2/F3/F4 e2e (cosmetic state, not game state).
+    _currentBack: function () { return currentBack; },
+    _hintCount: function () { return document.querySelectorAll('.card.hint').length; },
   };
 
   wire();
