@@ -9,19 +9,26 @@ priority: should
 route: skill
 dependencies: [260617-xn4]
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_summary-tldr-modes/
 plan_doc: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-wf6/03_plan.html
 tasks: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-wf6/tasks.yaml
 worktree: .claude/worktrees/feat-260617-wf6
-claimed_by: build:loop-main
+claimed_by:
 driver_holder: build:loop-main
 labels: [pmos-toolkit, summary-tldr, modes, shorts, carousel]
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-wf6 -->
+<!-- status: done at build (Loop 2, 2026-06-18) on feat/260617-wf6 (a9fb459). All 6 ACs met: shorts.js
+     derive(≤140 exit4 / ≥2-floor exit3)+pairMedia+emit; card-carousel-guidelines.md (no app named); mode.js
+     shorts→implemented; SKILL.md #shorts-mode; tests 45/45 + shorts.js 30-check selftest. skill-eval [D] EXIT 0,
+     4 lints + comments-coverage PASS. Live Playwright dogfood (real source w/ figures): 5 cards, ←/→ + counter +
+     boundaries, source-figure + this-run-mindmap pairing, unrelated decoy rejected, 0 console errors. Caught+fixed
+     a render-token gotcha (template leading doc-comment leak via {{inline_comments_json}} `-->`; stripLeadingDocComment
+     + 2 guards). Worktree KEPT for Loop-3. EPIC jy8 now fully built (1aq+xn4+gfx+wf6) → /complete-dev --epic 260617-jy8. -->
 
 ## Context
 
