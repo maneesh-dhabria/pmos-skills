@@ -3,7 +3,7 @@
 Multi-plugin marketplace for Claude Code and Codex. Install:
 
 ```
-/plugin marketplace add maneesh-dhabria/pmos-toolkit
+/plugin marketplace add maneesh-dhabria/pmos-skills
 ```
 
 ## One-time setup

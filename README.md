@@ -1,89 +1,77 @@
 # pmos-skills
 
-> **Migration breadcrumb (2026-05):** previously distributed as the `pmos-toolkit`
-> marketplace; now the `pmos-skills` multi-plugin marketplace hosting `pmos-toolkit`
-> (and future `pmos-*` plugins). Install: `/plugin marketplace add maneesh-dhabria/pmos-skills`.
-> Cached `v2.49.0` installs of the old `pmos-toolkit` repo continue read-only;
-> new installs flow through `pmos-skills`.
+A marketplace of Claude Code and Codex plugins for product builders. Take a
+fuzzy idea all the way to shipped code, learn a topic from verified sources,
+keep your machine healthy, run the manager parts of your job, or take a
+five-minute break — all without leaving your terminal.
 
-## PMOS Toolkit
+Five plugins, each answering one question:
 
-A Claude Code and Codex plugin for product builders. Turn fuzzy ideas into
-shipped features, run user research, draft PRDs and design docs, critique UIs,
-and track personal work — without leaving your terminal.
+| Plugin | Helps you… | Headline skills |
+|---|---|---|
+| **pmos-toolkit** | ship a feature | `/feature-sdlc`, `/requirements` → `/spec` → `/plan` → `/execute` → `/verify` → `/complete-dev`, `/grill`, `/artifact` |
+| **pmos-learnkit** | learn a topic | `/primer`, `/learn-list`, `/frameworks`, `/magazine`, `/playbook`, `/book-summary`, `/critical-thinking` |
+| **pmos-utilities** | maintain your environment | `/mac-health`, `/reflect` |
+| **pmos-managerkit** | do manager work | `/interview-feedback` |
+| **pmos-gamekit** | take a break | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` |
 
 **What makes it different:** every workflow has built-in adversarial and
-user-perspective checks, so the output survives contact with reality:
-
-- `/grill` interviews you on shaky assumptions before you commit to a direction.
-- `/msf-req` and `/msf-wf` simulate user friction against requirements and wireframes.
-- `/simulate-spec` pressure-tests a technical design before any code is written.
-- `/creativity` surfaces non-obvious alternatives you'd otherwise miss.
-- `/ideate` runs premortem + inversion + assumption-mapping on a half-formed idea.
-
-Skills are namespaced `/pmos-toolkit:<name>` — for brevity the rest of this
-README drops the prefix.
-
-## PMOS LearnKit
-
-A companion plugin for ramp-up. Skills namespaced `/pmos-learnkit:<name>`.
-
-| Skill | What it does |
-|---|---|
-| `/primer <topic>` | Produces a verified-source, audience-shaped HTML primer on any topic — researched, outlined, drafted with inline SVG diagrams where a visual aids comprehension, and self-evaluated into a single teachable artifact. Use before a meeting, a scope, or a doc review when you need citations you can trust. |
-| `/critical-thinking [quick\|standard\|deep\|marathon]` | Runs a low-friction, time-boxed critical-thinking practice session for PMs — a varied mix of reasoning exercises (pick-and-defend, assumption-hunt, spot-the-bias, calibration, second-order mapping, reframing, metric-choice) generated fresh at runtime, graded on reasoning moves rather than the answer, with an accumulating per-muscle + calibration scorecard. Standalone; optionally pulls scenarios from the current repo (`--no-repo` to disable). |
-| `/learn-list <topic> [--depth brief\|standard\|deep] [--audience senior-pms\|all-pms]` | Turns any topic into a verified, anti-slop, multi-format curated reading list for product managers — organized by a canon-derived topic outline, every link fetched and verified before it ships, each ranked and annotated with a ≤2-sentence why, audience-shaped, closing with a follow-list of people, newsletters, books (with summaries) and practitioners' signature writings plus a copy-ready paste-block. Verification-first; shares the topic-research front half with `/primer`; effort scales by `--depth`. |
-| `/frameworks [\"\<problem>\" \| browse \| list \| situations \| sync] [--json] [--floor N]` | Your searchable offline library of ~270 PM frameworks — describe a problem and get the 2–5 most relevant (RICE, JTBD, Kano, regret-minimization, …), each with a one-line "why it fits", a PM's-take commentary, and owned SVG diagram(s) placed inline at the point in the body they illustrate. `browse` opens a self-contained `file://` library with three listing views (compact / detailed cards / list), group-by area or tag, tag filtering, and a sidebar reader that shifts the layout (not an overlay) — plus per-framework share + copy-markdown. Frameworks carry problem-tags, a cognitive-job decision-type, and when-to-use / when-not-to-use guidance so matching is precise; a `--json` mode lets other skills ask "which framework for this?" programmatically. Ships a pre-built corpus sourced from a Notion framework database; re-ingest with `sync`. |
-| `/magazine [add \<url\> \| add --from \<file\> \| remove \<name\> \| list] [--days N] [--feed \<name\>]` | Turns your scattered public RSS subscriptions (newsletters + podcasts) into one filterable, self-contained HTML digest of what's new since last time. A resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable cross-issue library, all offline from `file://`. Assisted import from CSV/OPML/screenshot. v1 public feeds only. |
-| `/playbook [--repo \<path>] [--days N \| --sessions N \| --since \<date>] [--include-headless] [--format \<html\|md\|both>]` | Turns your own Claude Code session history for one repo into focused, self-sufficient case-study articles that teach fellow PMs how you used AI to solve a real problem — mining your starting prompts, how you refined the idea, the trade-offs you decided, and the skills you used, then emitting a shareable HTML article + tweet thread per problem with a safety-review checklist. Repo-scoped; finds work scattered across worktrees (even merged-and-deleted ones); filters out headless/subprocess noise. Never posts anything — you are the share gate. |
-| `/book-summary \<book title> [--depth \<brief\|standard\|deep>] [--audience \<senior-pms\|all-pms>]` | Curates publicly available material about a named book — author interviews, podcasts, talks, reputable reviews, corroborating social posts — and distils it into verified, theme-grouped, PM-framed takeaways in a single self-contained HTML artifact. Use when a PM wants the durable ideas of a book translated into product practice without reading it cover-to-cover. Every emitted source is fetched and identity-matched this run; nothing ships from memory. Shapes depth and vocabulary to the audience; curates *public material about a book* — it does not summarize a user PDF, reproduce the text, or transcribe audio. |
-
-## PMOS Utilities
-
-Standalone environment diagnostics — neither a feature-delivery step nor a learning artifact. Skills namespaced `/pmos-utilities:<name>`.
-
-| Skill | What it does |
-|---|---|
-| `/mac-health [--non-interactive \| --interactive]` | Diagnoses a hot, slow, battery-hungry, or memory-pressured Mac before recommending cleanup — orphaned (`ppid 1`) processes, browser-extension/helper leaks, stale dev services, and sleep-assertion blockers — with a read-first, diagnose-then-confirm posture (never kills a process or stops a service without explicit confirmation) and a before/after impact summary. |
+user-perspective checks, so the output survives contact with reality —
+`/grill` interviews you on shaky assumptions, `/msf-req` and `/msf-wf`
+simulate user friction, `/simulate-spec` pressure-tests a design before any
+code is written, and verified-source skills never ship a link or claim they
+didn't fetch this run.
 
 ## What do you want to do?
 
-| I want to… | Use | Notes |
+Skills are namespaced `/<plugin>:<name>` — for brevity the table drops the
+prefix. The plugin each skill belongs to is in the last column.
+
+| I want to… | Use | Plugin |
 |---|---|---|
-| Take an idea all the way to shipped code | `/feature-sdlc <idea>` | Drives the full pipeline: requirements → grill → spec → plan → execute → verify → ship |
-| Pressure-test a half-formed idea before writing it up | `/ideate` | Frame → expand → premortem + inversion; outputs a one-page brief |
-| Shape just requirements (no code yet) | `/requirements` | Stress-test with `/grill` or `/msf-req` after |
-| Mock up the UI before specifying it | `/wireframes` → `/prototype` | Static HTML wireframes, then a clickable React prototype |
-| Run the discovery half of the pipeline only (no /plan or /execute) | `/prototype-sdlc <seed>` | requirements → grill → spec → wireframes → prototype, then stop. Branch left intact for the user to extend (`--resume`) or discard. Thin alias of `/feature-sdlc prototype …` |
-| Critique an existing UI, wireframes, or prototype | `/design-crit` | Nielsen + WCAG 2.2 + Gestalt + PSYCH/MSF rubric |
-| Write a technical design doc | `/spec`, or `/artifact` for a standalone EDD/PRD | `/simulate-spec` to pressure-test |
-| Break a spec into TDD tasks | `/plan` | Then `/execute` to implement |
-| Implement an existing plan | `/execute` | `--subagent-driven` for parallel waves with per-task review |
-| Verify and ship work | `/verify` → `/complete-dev` | Lint, test, multi-agent review, then merge + version + push |
-| Generate a changelog entry after merging | `/changelog` | Invoked by `/complete-dev`; user-facing entries describing what the system can now do |
-| Author a new skill (or revise one from feedback) | `/skill-sdlc` | Same pipeline, scored against a binary eval rubric before merge |
-| Draft a PRD / EDD / Discovery Doc | `/artifact` | Section-level eval + writing-style presets |
-| Tighten any prose | `/polish` | 14-check rubric; voice-preserving; optional editorial reduction pass |
-| Summarize any source into a faithful TL;DR | `/summary-tldr` | Any input (text / PDF / image / URL / email / tweet / podcast / video) → grounded, compression-confirmed summary; hybrid extract-then-generate, first-time-reader review pass, meta-description is a hard fail; saves a self-contained HTML artifact |
-| Audit, scaffold, or update a README | `/readme` | Rubric + 3-persona simulated reader |
-| Annotate any pmos-emitted HTML artifact in the browser | `/comments` | Highlight → comment → resolve via `/comments resolve <artifact>`; sidecar `<artifact>.comments.json` pairs to the HTML |
-| Design and field a survey | `/survey-design` | Then `/survey-analyse` on the responses |
-| Generate a vector diagram | `/diagram` | Brainstorms framings, self-evaluates against a hybrid rubric |
-| Generate on-brand SVG logo candidates from a brief | `/logos` | Decomposes a brief (text / URL / assets) into N logo needs → 2–3 self-contained `.svg` variants per need → hybrid eval (deterministic metrics + renderer-backed vision) → `logos.html` showcase; `$0` in-session, sibling of `/diagram` (same renderer hard-gate) |
-| Turn a doc/artifact/URL into a narrated explainer video | `/explainer-video` | Distills any source (PDF / md / html / URL / pmos artifact) into a one-idea-per-slide deck (reusing the source's own figures), captures slides at 1920×1080 via Playwright, narrates each locally at `$0` (macOS `say` or Kokoro — never cloud), assembles a 16:9 H.264 `.mp4` with ffmpeg, and self-checks frame/duration/audio parity |
-| Audit a codebase against architectural principles | `/architecture` | L1 universal + L2 stack + L3 per-repo; promotes findings to ADRs; `--from-spec` mode audits spec architectural assertions against code (folded into `/spec` Phase 6.6 + `/verify` Phase 4.7) |
-| Track personal tasks (LNO, due dates, people) | `/mytasks` | Lives at `~/.pmos/tasks/` |
-| Maintain a shared person / contact directory | `/people` | Handle, name, role, working relationship; consumed by `/mytasks` |
-| Track a lightweight repo backlog | `/backlog` | Hybrid quick-capture + a three-queue tracker (`groom` / `next` / `releases`) over epics and stories |
-| Run the three-loop backlog (define → build → release) | `/feature-sdlc define <epic>` → `/feature-sdlc build --next` → `/complete-dev --epic <id>` | Loop 1 shapes an epic into ready stories; Loop 2 builds one story per (optionally unattended) iteration — `/backlog next` picks, an O_EXCL lock claims; Loop 3 merges the epic's story branches as one release train |
-| Persist context across sessions and repos | `/product-context` | Workstream / product / feature scope |
-| Capture session learnings | `/session-log` | Decisions, gotchas, patterns |
-| Send feedback to skill authors | `/reflect` | Severity-tagged, per-skill, from the session transcript |
-| Diagnose a slow / hot Mac | `/mac-health` | Background processes, extension leaks, sleep blockers |
+| Take an idea all the way to shipped code | `/feature-sdlc <idea>` | toolkit |
+| Pressure-test a half-formed idea before writing it up | `/ideate` | toolkit |
+| Shape just requirements (no code yet) | `/requirements` | toolkit |
+| Mock up the UI before specifying it | `/wireframes` → `/prototype` | toolkit |
+| Run the discovery half only (no /plan or /execute) | `/prototype-sdlc <seed>` | toolkit |
+| Critique an existing UI, wireframes, or prototype | `/design-crit` | toolkit |
+| Write a technical design doc | `/spec`, or `/artifact` for a standalone EDD/PRD | toolkit |
+| Break a spec into TDD tasks | `/plan` → `/execute` | toolkit |
+| Implement an existing plan | `/execute` | toolkit |
+| Verify and ship work | `/verify` → `/complete-dev` | toolkit |
+| Generate a changelog entry after merging | `/changelog` | toolkit |
+| Author a new skill (or revise one from feedback) | `/skill-sdlc` | toolkit |
+| Draft a PRD / EDD / Discovery Doc | `/artifact` | toolkit |
+| Tighten any prose | `/polish` | toolkit |
+| Summarize any source into a faithful TL;DR | `/summary-tldr` | toolkit |
+| Audit, scaffold, or update a README | `/readme` | toolkit |
+| Annotate any pmos-emitted HTML artifact in the browser | `/comments` | toolkit |
+| Design and field a survey | `/survey-design` → `/survey-analyse` | toolkit |
+| Generate a vector diagram | `/diagram` | toolkit |
+| Generate on-brand SVG logo candidates | `/logos` | toolkit |
+| Turn a doc/artifact/URL into a narrated explainer video | `/explainer-video` | toolkit |
+| Audit a codebase against architectural principles | `/architecture` | toolkit |
+| Track personal tasks (LNO, due dates, people) | `/mytasks` | toolkit |
+| Maintain a shared person / contact directory | `/people` | toolkit |
+| Track a lightweight repo backlog | `/backlog` | toolkit |
+| Run the three-loop backlog (define → build → release) | `/feature-sdlc define` → `build --next` → `/complete-dev --epic` | toolkit |
+| Persist context across sessions and repos | `/product-context` | toolkit |
+| Capture session learnings | `/session-log` | toolkit |
+| Send feedback to skill authors | `/reflect` | utilities |
+| Ramp up on a topic with cited sources | `/primer <topic>` | learnkit |
+| Get a verified, anti-slop reading list | `/learn-list <topic>` | learnkit |
+| Find the right PM framework for a decision | `/frameworks "<problem>"` | learnkit |
+| Digest your newsletter + podcast backlog | `/magazine` | learnkit |
+| Turn your AI sessions into shareable case studies | `/playbook` | learnkit |
+| Get the durable ideas of a book, PM-framed | `/book-summary <title>` | learnkit |
+| Practice product judgment / critical thinking | `/critical-thinking` | learnkit |
+| Diagnose a slow / hot / battery-hungry Mac | `/mac-health` | utilities |
+| Score interview rounds into a grounded scorecard | `/interview-feedback` | managerkit |
+| Play a quick browser game | `/solitaire`, `/2048`, `/tetris`, `/sudoku`, `/snake`, `/poker`, `/flappy-bird` | gamekit |
 
 ## How it works
 
-Five cross-cutting capabilities the whole toolkit is built on:
+Five cross-cutting capabilities the toolkit is built on:
 
 - **HTML-primary artifacts with Markdown sidecar.** Pipeline skills emit HTML
   by default (better for review and stakeholder sharing) with a Markdown
@@ -92,12 +80,10 @@ Five cross-cutting capabilities the whole toolkit is built on:
 - **Resumable worktree pipelines.** `/feature-sdlc` runs each feature in its
   own git worktree with state persisted to `.pmos/feature-sdlc/state.yaml`.
   Crash, close the session, switch machines — `cd` back in and resume from the
-  last checkpoint. `/feature-sdlc list` shows everything in flight across all
-  `feat/*` worktrees.
+  last checkpoint. `/feature-sdlc list` shows everything in flight.
 - **Auto-tiering by scope.** Every pipeline skill detects whether you're doing
   a bug fix, an enhancement, or a feature, and adjusts depth automatically
-  (Tier 1 = lightweight, Tier 3 = full ceremony). You don't pick the tier;
-  the skill does.
+  (Tier 1 = lightweight, Tier 3 = full ceremony). The skill picks the tier.
 - **Adversarial self-evaluation loops.** `/wireframes`, `/prototype`,
   `/diagram`, `/survey-design`, `/artifact`, `/readme` all dispatch a reviewer
   subagent against the draft, apply approved fixes, and loop up to two
@@ -114,17 +100,15 @@ Five cross-cutting capabilities the whole toolkit is built on:
   answers (`.pmos/complete-dev.lastrun.yaml`) and short-circuits the confirm
   prompts on subsequent runs. Destructive prompts still fire.
 - **Parallel subagent execution.** `/execute --subagent-driven` runs
-  independent tasks in parallel waves with two-stage review (spec compliance
-  + code quality). `/readme`'s simulated-reader dispatches three reader
-  personas concurrently. `/wireframes` and `/prototype` parallelise per-device
-  generation.
+  independent tasks in parallel waves with two-stage review. `/readme`'s
+  simulated-reader dispatches four reader personas concurrently. `/wireframes`
+  and `/prototype` parallelise per-device generation.
 - **User-extensible templates.** `/artifact` reads custom templates from
   `~/.pmos/artifacts/`; `/polish` reads custom checks from
-  `~/.pmos/polish/custom-checks.yaml`. Bring your own writing-style preset or
-  rubric.
+  `~/.pmos/polish/custom-checks.yaml`.
 - **Per-skill learnings capture.** Every skill appends session lessons to
   `~/.pmos/learnings.md` under `## /<skill-name>`, then reads them on next
-  invocation. The toolkit gets smarter about your workflow over time.
+  invocation.
 - **Cross-platform, non-interactive ready.** The same skill bodies run under
   Claude Code and Codex CLI. A canonical `--non-interactive` mode auto-picks
   recommended answers and defers ambiguous or destructive choices to an
@@ -132,9 +116,9 @@ Five cross-cutting capabilities the whole toolkit is built on:
 
 </details>
 
-## The build-a-feature pipeline
+## Build a feature, end to end
 
-For the end-to-end "idea → shipped" flow, the skills compose like this:
+For the "idea → shipped" flow, the toolkit skills compose like this:
 
 ```
 /ideate? → /requirements → [/wireframes → /prototype] → /spec → /plan → /execute → /verify → /complete-dev
@@ -150,68 +134,84 @@ Adversarial passes are available at every stage:
 ```
 
 `/feature-sdlc` runs this whole chain for you, auto-tiering each stage by
-scope (bug fix vs. enhancement vs. feature) and persisting resumable state in
-a worktree.
+scope and persisting resumable state in a worktree. Every other skill is
+standalone — invoke at any point.
 
-Every other skill is standalone — invoke at any point.
+## The plugins
+
+Each plugin versions and installs independently. See each plugin's own README
+for its full skill reference.
+
+- **[pmos-toolkit](plugins/pmos-toolkit/README.md)** — the feature-delivery
+  pipeline plus authoring and release skills.
+- **[pmos-learnkit](plugins/pmos-learnkit/README.md)** — verified-source,
+  audience-shaped learning artifacts (primers, reading lists, framework
+  library, feed digest, case-study playbooks).
+- **[pmos-utilities](plugins/pmos-utilities/README.md)** — standalone
+  diagnostics and meta-tooling (`/mac-health`, `/reflect`).
+- **[pmos-managerkit](plugins/pmos-managerkit/README.md)** — manager-facing
+  skills for hiring, team, and reviews, starting with `/interview-feedback`.
+- **[pmos-gamekit](plugins/pmos-gamekit/README.md)** — pre-bundled,
+  offline single-player browser games launched from a skill.
 
 ## Install
 
 ```bash
-# Claude Code
-/plugin marketplace add maneesh-dhabria/pmos-toolkit
-/plugin install pmos-toolkit
+# Claude Code — add the marketplace, then install the plugins you want
+/plugin marketplace add maneesh-dhabria/pmos-skills
+/plugin install pmos-toolkit@pmos-skills
+/plugin install pmos-learnkit@pmos-skills
+/plugin install pmos-utilities@pmos-skills
+/plugin install pmos-managerkit@pmos-skills
+/plugin install pmos-gamekit@pmos-skills
 ```
 
 Smoke test: run `/pmos-toolkit:mytasks` or `/pmos-toolkit:backlog` — both work
 on a fresh install with no prior artifacts.
 
-### Codex (recommended)
+> **Migration note (2026-05):** this marketplace was previously distributed as
+> the single-plugin `pmos-toolkit` repo. It is now the `pmos-skills`
+> multi-plugin marketplace. Cached `v2.49.0` installs of the old repo continue
+> read-only; new installs flow through `pmos-skills`.
 
-Tell Codex:
+### Codex
 
-```
-Fetch and follow instructions from https://raw.githubusercontent.com/maneesh-dhabria/pmos-toolkit/refs/heads/main/.codex/INSTALL.md
+For each plugin you want, clone the repo once and symlink that plugin's skills
+into Codex's discovery path:
+
+```bash
+git clone https://github.com/maneesh-dhabria/pmos-skills.git ~/.codex/pmos-skills
+mkdir -p ~/.agents/skills
+# repeat the symlink per plugin you want (pmos-toolkit shown):
+ln -s ~/.codex/pmos-skills/plugins/pmos-toolkit/skills ~/.agents/skills/pmos-toolkit
 ```
 
 Then restart Codex.
 
-<details>
-<summary>Codex — manual install</summary>
+## Develop locally
 
 ```bash
-git clone https://github.com/maneesh-dhabria/pmos-toolkit.git ~/.codex/pmos-toolkit
-mkdir -p ~/.agents/skills
-ln -s ~/.codex/pmos-toolkit/plugins/pmos-toolkit/skills ~/.agents/skills/pmos-toolkit
-```
-
-</details>
-
-## Local development
-
-```bash
-git clone https://github.com/maneesh-dhabria/pmos-toolkit.git
-claude --plugin-dir /path/to/pmos-toolkit
+git clone https://github.com/maneesh-dhabria/pmos-skills.git
+claude --plugin-dir /path/to/pmos-skills
 ```
 
 Changes take effect after restarting the session or running `/reload-plugins`.
-Plugin caching is keyed by `version` in `plugin.json` — bump the version on
-any skill content change. Both `.claude-plugin/plugin.json` and
-`.codex-plugin/plugin.json` versions must match (enforced by
-`.githooks/pre-push`).
+Plugin caching is keyed by `version` in `plugin.json` — bump the version on any
+skill content change. Each plugin carries the version in **both**
+`.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`, and the two must
+match.
 
-Skills live under `plugins/pmos-toolkit/skills/<skill-name>/SKILL.md` — that
-path is the only one the loader reads.
+Skills live under `plugins/<plugin>/skills/<skill-name>/SKILL.md` — that path
+is the only one each plugin's loader reads. To add or revise a skill, use
+`/skill-sdlc <description>` (or `/skill-sdlc --from-feedback <text|path>` to
+apply retro feedback).
 
-To add or revise a skill, use `/skill-sdlc <description>` (or
-`/skill-sdlc --from-feedback <text|path>` to apply retro feedback).
-
-## Updating
+## Update
 
 Claude Code updates automatically via the marketplace. For Codex:
 
 ```bash
-cd ~/.codex/pmos-toolkit && git pull
+cd ~/.codex/pmos-skills && git pull
 ```
 
 ## Requirements
@@ -224,13 +224,11 @@ This is a solo-maintained project. To keep the surface area honest:
 
 - **Feedback is welcome** — open a GitHub issue, or run `/pmos-utilities:reflect`
   at the end of a session and paste the output. `/reflect` produces
-  severity-tagged, per-skill feedback that's the easiest signal for me to act
-  on.
+  severity-tagged, per-skill feedback that's the easiest signal to act on.
 - **Bug reports are welcome** — issues with a reproducer get priority.
-- **Unsolicited PRs are not accepted.** If you'd like to propose a skill
-  change, run `/pmos-toolkit:skill-sdlc --from-feedback <description>` on your
-  end, share the proposed diff in an issue, and we'll discuss before any code
-  lands.
+- **Unsolicited PRs are not accepted.** To propose a skill change, run
+  `/pmos-toolkit:skill-sdlc --from-feedback <description>` on your end, share
+  the proposed diff in an issue, and we'll discuss before any code lands.
 - **Forks are fine.** MIT means you can take the toolkit in any direction you
   want under your own name.
 

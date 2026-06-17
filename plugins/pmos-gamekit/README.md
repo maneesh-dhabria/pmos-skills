@@ -4,7 +4,15 @@
 
 ## Skills
 
-- **/solitaire** — Play Klondike solitaire in your browser, served offline from a tiny local server.
+- **/solitaire** — Klondike solitaire.
+- **/2048** — slide tiles to reach 2048.
+- **/tetris** — stack falling blocks.
+- **/sudoku** — the classic 9×9 number-logic puzzle.
+- **/snake** — classic arcade Snake.
+- **/poker** — No-Limit Texas Hold'em against bots.
+- **/flappy-bird** — one-button flap-through-the-pipes arcade.
+
+Each game is served offline from a tiny local server.
 
 ## Install
 
@@ -15,4 +23,4 @@
 
 ## Repository
 
-Part of the [pmos-skills](https://github.com/maneesh-dhabria/pmos-skills) marketplace, alongside `pmos-toolkit`, `pmos-learnkit`, and `pmos-utilities`.
+Part of the [pmos-skills](https://github.com/maneesh-dhabria/pmos-skills) marketplace, alongside `pmos-toolkit`, `pmos-learnkit`, `pmos-utilities`, and `pmos-managerkit`.
