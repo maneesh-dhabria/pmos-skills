@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit v2.84.0; stories 260613-m64 + 260613-dnp released)
+Last regenerated: 2026-06-17 (define: epic 260617-pbk → defined; story 260617-evo planned)
 
-36 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+38 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -43,6 +43,7 @@ Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit
 | 260616-9bt | released | skill | pmos-managerkit | 2/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 | 260616-bq9 | released | skill | pmos-toolkit | 3/3 | /shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup |
 | 260616-tqf | released | skill | pmos-learnkit | 4/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
+| 260617-pbk | defined | skill | pmos-learnkit | 0/1 | /playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything) |
 
 ## must
 
@@ -63,6 +64,7 @@ Last regenerated: 2026-06-17 (release: epic 260613-vba → released pmos-toolkit
 | 260616-p7b | story | feature | planned | 260616-bq9 | /shape skill + _shared/lens-ledger.md substrate — floor/ceiling/context-gate probing, full lens ledger artifact, autonomous non-interactive path |  |  |  |
 | 260616-xqm | story | feature | planned | 260616-bq9 | /feature-sdlc Phase-1 front-gate — /shape as the gated problem-shaping front (Tier 1 skip, Tier 2+3 mandatory), additive + version-gated; /ideate → solution-exploration step (deps 260616-p7b) |  |  |  |
 | 260616-4pg | story | enhancement | planned | 260616-bq9 | /ideate frame-dedup — Frame phase consumes /shape's HMW+JTBD brief when present instead of re-deriving (deps 260616-p7b) |  |  |  |
+| 260617-evo | story | feature | planned | 260617-pbk | /playbook evolution-mode rewrite — default-evolution, marketplace skill-picker, mine-everything, new milestone schema + voice self-check, remove case-study mode | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
