@@ -4,12 +4,13 @@ id: 260616-bq9
 kind: epic
 title: "/shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup"
 type: feature
-status: defined
+status: released
+released: 2.85.0
 priority: should
 labels: [pmos-toolkit, shape, problem-discovery, lens-ledger]
 route: skill
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 defined: 2026-06-16
 source: docs/design-briefs/2026-06-16-shape-skill-design.md
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/

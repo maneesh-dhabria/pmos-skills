@@ -10,6 +10,7 @@ route: skill
 dependencies: [260616-p7b]
 plugin: pmos-toolkit
 status: done
+released: 2.85.0
 feature_folder: docs/pmos/features/2026-06-16_shape-skill/
 plan_doc:
 tasks: docs/pmos/features/2026-06-16_shape-skill/stories/260616-4pg/tasks.yaml
