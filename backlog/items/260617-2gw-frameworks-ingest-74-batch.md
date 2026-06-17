@@ -9,16 +9,16 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-learnkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/
 plan_doc: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-2gw/03_plan.html
 tasks: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-2gw/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260617-2gw
+claimed_by: build:loop-main
+driver_holder: build:loop-main
 labels: [pmos-learnkit, frameworks, corpus, ingest]
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-2gw -->
