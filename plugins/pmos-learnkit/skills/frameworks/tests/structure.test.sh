@@ -50,17 +50,22 @@ grep -qF '<!-- non-interactive-block:start -->' "$SKILL" \
   && ok "non-interactive block markers" || bad "missing non-interactive block markers"
 
 # §C reference docs each have a ## Contents TOC
-for ref in corpus-schema situation-taxonomy ingestion matching; do
+for ref in corpus-schema situation-taxonomy corpus-expansion matching; do
   f="$SK/reference/$ref.md"
   [ -f "$f" ] || { bad "missing reference/$ref.md"; continue; }
   grep -qF '## Contents' "$f" && ok "reference/$ref.md has ## Contents" || bad "reference/$ref.md missing ## Contents"
 done
 
 # §E every script has a --selftest mode
-for s in split-corpus derive-fields validate-corpus apply-rederive match build-library; do
+for s in corpus-vocab validate-corpus match build-library; do
   f="$SK/scripts/$s.mjs"
   [ -f "$f" ] || { bad "missing scripts/$s.mjs"; continue; }
   grep -qF -- '--selftest' "$f" && ok "scripts/$s.mjs --selftest" || bad "scripts/$s.mjs missing --selftest"
+done
+
+# Notion sync pipeline removed (story 260617-kac) — these must be GONE
+for gone in scripts/split-corpus.mjs scripts/apply-rederive.mjs scripts/derive-fields.mjs reference/ingestion.md; do
+  [ ! -e "$SK/$gone" ] && ok "removed: $gone" || bad "$gone still present (sync pipeline should be gone)"
 done
 
 # data corpus + taxonomy present

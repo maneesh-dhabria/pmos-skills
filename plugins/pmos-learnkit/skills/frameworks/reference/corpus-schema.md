@@ -1,9 +1,11 @@
 # Corpus schema — `data/frameworks.json`
 
-The shipped corpus is a JSON **array of framework records**. Each record has two
-layers: **lean fields** extracted deterministically from Notion by `split-corpus.mjs`,
-and **cached match-fields** derived once by an LLM at `sync` time and validated by
-`derive-fields.mjs`. Runtime never recomputes the cached fields — it reads them.
+The shipped corpus is a JSON **array of framework records**, maintained by **direct
+authoring** (see `reference/corpus-expansion.md`). Each record has two layers: **core
+fields** (the framework's prose, references, and owned diagram) and **match-fields**
+(the tags, decision-type, and when-to-use metadata that drive retrieval). Both are
+authored into the record and then validated by `validate-corpus.mjs`; runtime reads
+the match-fields, never recomputes them.
 
 ## Contents
 
@@ -26,14 +28,14 @@ and **cached match-fields** derived once by an LLM at `sync` time and validated 
   "category_code": "2.4.4",
   "super_category": "People, Personal & Career",
   "summary": "≤160-char one-liner — what the framework is, in plain words.",
-  "body_md": "<verbatim Overview markdown from Notion — nothing dropped>",
+  "body_md": "<the framework's Overview markdown — authored in full, nothing dropped>",
   "references": [{"type": "Article", "url": "https://..."}],
   "author": "Jeff Bezos",
   "commentary": "<verbatim 💡 callout text — the curator's 'PM's take'>",
   "diagram": "data/diagrams/decision-making__regret-minimization.svg",
   "diagrams": ["data/diagrams/decision-making__regret-minimization.svg"],
   "diagram_anchors": ["Imagine yourself at 80 looking back and minimize future regret"],
-  "source_url": "https://notion.so/<page>#<framework>",
+  "source_url": "https://example.com/<framework-reference>",
   "last_synced": "2026-06-07",
 
   "problem_tags": ["irreversible-decision", "high-stakes"],
@@ -47,30 +49,30 @@ and **cached match-fields** derived once by an LLM at `sync` time and validated 
 
 ## Field reference
 
-| Field | Layer | Source | Notes |
+| Field | Layer | How it's set | Notes |
 |---|---|---|---|
-| `id` | lean | derived | `<category-slug>/<name-slug>`, stable across syncs (see [the id contract](#the-id-contract)). |
-| `name` | lean | Notion `### ` heading | verbatim. **Required.** |
-| `aliases` | lean | LLM/derive | other names the framework goes by; `[]` if none. |
-| `category` | lean | page title | e.g. "Decision Making". **Required.** |
-| `category_code` | lean | page title | e.g. `2.4.4`; drives `super_category`. May be `null` if the page has no code. |
-| `super_category` | lean | derived from `category_code` | see [map](#super_category-map). `null` if no code. |
-| `summary` | cached | LLM | ≤160 chars; falls back to the first sentence of `body_md` if the LLM step is skipped. |
-| `body_md` | lean | Notion Overview | verbatim markdown — **never dropped or paraphrased.** **Required.** |
-| `references` | lean | `- Reference - [Type](url)` lines | array of `{type, url}`; `[]` if none. |
-| `author` | lean | `- Author -` line | string or `null`. |
-| `commentary` | lean | trailing 💡 callout | verbatim string or `null`. The "PM's take" shown in the library. |
-| `diagram` | build | direct SVG gen | repo-relative path to the **primary** owned SVG, or `null` (ship-with-warning). Kept as the back-compat single-diagram field — the `--json` match contract returns this. |
-| `diagrams` | build | direct SVG gen | array of repo-relative SVG paths, `[primary, ...extras]`. Always starts with `diagram` when non-null. Extra entries (`<flat>__2.svg`, `<flat>__3.svg`) exist only for frameworks whose source carried **multiple distinct structural** sub-concepts (second pass — skips screenshots/photos/duplicate illustrations). `[]` when `diagram` is `null`. The library inlines **every** entry; `--json` consumers read `diagram` (primary) only. |
-| `diagram_anchors` | cached | LLM | array **parallel and equal-length to `diagrams`**. Entry `i` marks where diagram `i` belongs inside `body_md`: a **≥40-char verbatim substring of this record's `body_md`**, or `null` (no good in-body location → the renderer falls back to top-of-body for that one diagram). `[]` when `diagrams` is `[]`. See [the diagram_anchors contract](#the-diagram_anchors-contract). |
-| `source_url` | lean | Notion | deep link to the framework within its page. |
-| `last_synced` | lean | `sync` run | ISO date `YYYY-MM-DD`. |
-| `problem_tags` | cached | LLM | ⊆ the closed registry in `situations.json`. Drives matching weight ×3. |
-| `when_to_use` | cached | LLM | ≤1 sentence. |
-| `when_not_to_use` | cached | LLM | ≤1 sentence. |
-| `decision_type` | cached | LLM | one of the [enum](#enums). |
-| `lifecycle_stage` | cached | LLM | array, subset of the [enum](#enums). |
-| `related` | cached | LLM | array of other corpus `id`s; validated for danglers. |
+| `id` | core | derived from name+category | `<category-slug>/<name-slug>`, stable across revisions (see [the id contract](#the-id-contract)). |
+| `name` | core | authored | the framework's name, verbatim. **Required.** |
+| `aliases` | core | authored | other names the framework goes by; `[]` if none. |
+| `category` | core | authored | e.g. "Decision Making". **Required.** |
+| `category_code` | core | authored | e.g. `2.4.4`; drives `super_category`. May be `null` if the record has no code. |
+| `super_category` | core | derived from `category_code` | see [map](#super_category-map). `null` if no code. |
+| `summary` | match | authored | ≤160 chars; falls back to the first sentence of `body_md` if omitted. |
+| `body_md` | core | authored | the framework's Overview markdown — authored in full, **never dropped or paraphrased.** **Required.** |
+| `references` | core | authored | array of `{type, url}`; `[]` if none. |
+| `author` | core | authored | string or `null`. |
+| `commentary` | core | authored | the "PM's take" callout shown in the library — string or `null`. |
+| `diagram` | core | owned SVG | repo-relative path to the **primary** owned SVG, or `null` (ship-with-warning). Kept as the back-compat single-diagram field — the `--json` match contract returns this. |
+| `diagrams` | core | owned SVGs | array of repo-relative SVG paths, `[primary, ...extras]`. Always starts with `diagram` when non-null. Extra entries (`<flat>__2.svg`, `<flat>__3.svg`) exist only for frameworks carrying **multiple distinct structural** sub-concepts. `[]` when `diagram` is `null`. The library inlines **every** entry; `--json` consumers read `diagram` (primary) only. |
+| `diagram_anchors` | match | authored | array **parallel and equal-length to `diagrams`**. Entry `i` marks where diagram `i` belongs inside `body_md`: a **≥40-char verbatim substring of this record's `body_md`**, or `null` (no good in-body location → the renderer falls back to top-of-body for that one diagram). `[]` when `diagrams` is `[]`. See [the diagram_anchors contract](#the-diagram_anchors-contract). |
+| `source_url` | core | authored | deep link to the framework's reference material. |
+| `last_synced` | core | authored | ISO date `YYYY-MM-DD` the record was last authored or revised. |
+| `problem_tags` | match | authored | ⊆ the closed registry in `situations.json`. Drives matching weight ×3. |
+| `when_to_use` | match | authored | ≤1 sentence. |
+| `when_not_to_use` | match | authored | ≤1 sentence. |
+| `decision_type` | match | authored | one of the [enum](#enums). |
+| `lifecycle_stage` | match | authored | array, subset of the [enum](#enums). |
+| `related` | match | authored | array of other corpus `id`s; validated for danglers. |
 
 ## super_category map
 
@@ -92,14 +94,15 @@ A record with no `category_code` gets `super_category: null` and is grouped unde
   `prioritize` | `decide` | `diagnose` | `estimate` | `strategize` | `design` | `communicate` | `frame` | `n/a`
 - `lifecycle_stage` (array, subset): `discovery` | `definition` | `delivery` | `growth` | `any`
 
-`derive-fields.mjs` rejects any value outside these enums and any `problem_tags` entry
-outside the registry. The pre-v0.18 enum (`judgment`/`analysis`/`prioritization`/`framing`/
-`estimation`) is **retired** — a clean break (no migration). Those values are now rejected.
+`validate-corpus.mjs` (via the `corpus-vocab.mjs` enums) rejects any value outside these
+enums and any `problem_tags` entry outside the registry. The pre-v0.18 enum
+(`judgment`/`analysis`/`prioritization`/`framing`/`estimation`) is **retired** — a clean
+break (no migration). Those values are now rejected.
 
 ### decision_type — per-value definition
 
-This is also the Stage-B classification rubric. Classify by the framework's **primary**
-cognitive job from `body_md` (not a mechanical old→new remap):
+This is the classification rubric to apply when authoring a record. Classify by the
+framework's **primary** cognitive job from `body_md`:
 
 | Value | The job | Examples |
 |---|---|---|
@@ -132,7 +135,7 @@ cognitive job from `body_md` (not a mechanical old→new remap):
 - `null` (or an anchor that no longer resolves) → that diagram falls back to the **top-of-body**
   leading group. Never dropped, never a broken render.
 - `[]` when `diagrams` is `[]`.
-- Derived offline by the Stage-B pass over `body_md` (see `reference/ingestion.md`).
+- Authored alongside the record by reading `body_md` (see `reference/corpus-expansion.md`).
 
 ## Validation rules
 
@@ -156,8 +159,8 @@ Enforced by `validate-corpus.mjs`:
 ## The id contract
 
 `id = <category-slug>/<name-slug>` where both halves are kebab-cased ASCII (lowercase,
-spaces→`-`, punctuation dropped). The id is **stable**: a re-sync of the same framework
-must produce the same id so diagrams, `related[]`, and situation mappings stay valid.
+spaces→`-`, punctuation dropped). The id is **stable**: re-authoring or revising the same
+framework must keep the same id so diagrams, `related[]`, and situation mappings stay valid.
 The diagram filename flattens the id with `__` (slash→double-underscore) because a
 filesystem path can't carry the slash: `decision-making/regret-minimization` →
 `data/diagrams/decision-making__regret-minimization.svg`. Second-pass extra diagrams
