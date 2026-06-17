@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!--
+  Behavioral round interviewer reference — /interview-feedback (pmos-managerkit), design §16.1 + §16.7.
+  Instantiates the canonical interviewer-reference DOM contract (reference/reference-skeleton.html).
+  area ids map 1:1 to behavioral/scorecard.html data-dim ids.
+  Self-contained HTML — no external assets, editable in a browser.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer reference — Behavioral</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a; --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.6;font-size:16px}
+  main{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .purpose{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1.6rem}
+  .area{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .area-name{font-family:var(--sans);font-weight:600;font-size:1.05rem;margin:0 0 .4rem}
+  .signals{display:flex;gap:2rem;font-family:var(--sans);font-size:.88rem;margin:.4rem 0}
+  ul[data-signals="green"] li{color:var(--green)}
+  ul[data-signals="red"] li{color:var(--red)}
+  .probes-label{font-family:var(--sans);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.7rem 0 .2rem}
+  ul[data-probes]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-probes] li{margin:.15rem 0}
+  .calib{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:1.6rem 0 1rem}
+  .calib h2{font-family:var(--sans);font-size:1.05rem;margin:0 0 .4rem}
+  .calib ul{padding-left:1.1rem;margin:.3rem 0}
+</style>
+</head>
+<body>
+<main data-ref="round" data-archetype="behavioral">
+  <h1>Behavioral — interviewer reference</h1>
+  <p class="sub">behavioral round · what to probe, what good and weak answers look like</p>
+
+  <div class="purpose">
+    <strong>Purpose of this round.</strong> Test leadership and values through real past
+    situations, not hypotheticals. Drive every answer to STAR — Situation, Task, the candidate's
+    own Action, and the Result. Your job is to keep pulling the story toward what
+    <em>this person</em> actually did, with measurable outcomes, until you can score from evidence.
+  </div>
+
+  <section class="area" data-area="leadership-and-influence">
+    <p class="area-name">Leadership &amp; influence</p>
+    <p>Whether the candidate moves outcomes through people they don't manage — peers, partner
+      teams, leadership — by building conviction rather than relying on a title or escalation.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Names specific people they persuaded and the argument that turned them</li>
+          <li>Outcome reached across a team boundary they had no authority over</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>"I told them to" — relied on authority or escalation as the first move</li>
+          <li>Influence claimed but no named person, decision, or change of mind</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="leadership-and-influence">
+      <li>Tell me about a time you got a team you didn't manage to change direction. How?</li>
+      <li>When did you have to lead without the formal authority to decide? What did you do?</li>
+      <li>Walk me through the hardest person you've had to bring around — what was your argument?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="conflict-navigation">
+    <p class="area-name">Conflict navigation</p>
+    <p>How the candidate handles real disagreement — with a peer, manager, or partner — whether
+      they surface it directly and drive to a resolution that holds, versus avoiding it or kicking
+      it up the chain.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Raised the disagreement directly with the person, early</li>
+          <li>Resolution that stuck and preserved the working relationship</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Let it fester, went around the person, or escalated without trying first</li>
+          <li>"Won" the argument but the relationship or outcome was damaged</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="conflict-navigation">
+      <li>Tell me about a time you disagreed with your eng lead — what happened?</li>
+      <li>Describe a conflict with a peer that you had to resolve yourself. How did it end?</li>
+      <li>When did a disagreement not go your way? What did you do next?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="ownership">
+    <p class="area-name">Ownership &amp; bias for action</p>
+    <p>Whether the candidate takes end-to-end responsibility for outcomes and acts under
+      ambiguity, versus waiting for direction, perfect information, or someone else to own it.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Stepped into an unowned problem and saw it through to the result</li>
+          <li>Acted on a reasonable call before the situation was fully clear</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Blames process, manager, or other teams for a poor outcome</li>
+          <li>Waited to be told, or stalled until ambiguity resolved itself</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="ownership">
+      <li>Tell me about a problem nobody owned that you picked up. What did you do?</li>
+      <li>Describe a time you had to act without clear direction. How did you decide?</li>
+      <li>Tell me about something that went wrong on your watch. What was your part in it?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="stakeholder-management">
+    <p class="area-name">Stakeholder management</p>
+    <p>How the candidate keeps execs, eng, and design aligned — proactively reading what each
+      needs and getting ahead of misalignment, versus pushing information one direction and
+      reacting once things break.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Tailored the message to what each stakeholder cared about</li>
+          <li>Surfaced and closed a misalignment before it became a problem</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>One-directional updates; treated stakeholders as a broadcast list</li>
+          <li>Only engaged a stakeholder after a conflict or escalation forced it</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="stakeholder-management">
+      <li>Tell me about a time execs, eng, and design wanted different things. How did you align them?</li>
+      <li>Describe a stakeholder you struggled to keep on side. What did you change?</li>
+      <li>When did you catch a misalignment early? How did you spot it?</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="self-awareness">
+    <p class="area-name">Self-awareness &amp; growth</p>
+    <p>Whether the candidate reflects honestly on real failures and can name what specifically
+      changed in how they work afterward — versus a polished non-answer or a "weakness" that's
+      secretly a strength.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Names a concrete failure and their own contribution to it</li>
+          <li>Articulates a specific behavior change and how it played out later</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>"My weakness is I care too much" — humble-brag, no real reflection</li>
+          <li>Lesson stated in the abstract with no evidence it changed behavior</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="self-awareness">
+      <li>Tell me about a time you failed. What did you do differently afterward?</li>
+      <li>What's a piece of feedback that was hard to hear? What changed because of it?</li>
+      <li>Looking back at that story — what would you do differently now?</li>
+    </ul>
+  </section>
+
+  <div class="calib">
+    <h2>Calibration</h2>
+    <ul>
+      <li><strong>4</strong> — a real, owned STAR story per dimension with the candidate's own
+        actions and a measurable result; you could retell it without them in the room.</li>
+      <li><strong>3</strong> — a real situation with clear personal action, but the result is soft
+        or the story needed pulling.</li>
+      <li><strong>2</strong> — generic or team-credit answer; the candidate's specific contribution
+        stays fuzzy even after probing.</li>
+      <li><strong>1</strong> — hypothetical, deflective, or contradicts the role's bar; no real
+        situation surfaces.</li>
+    </ul>
+  </div>
+
+  <div class="calib">
+    <h2>Common mistakes</h2>
+    <ul>
+      <li><strong>Accepting a hypothetical.</strong> "I would…" is not evidence. Redirect: "Tell me
+        about a specific time this actually happened."</li>
+      <li><strong>Letting "we" stand.</strong> Vague team-credit hides whether the candidate did
+        anything. Always ask "what did <em>you</em> personally do?"</li>
+      <li><strong>Leading questions.</strong> Don't hand the candidate the answer ("So you escalated,
+        right?"). Ask open questions and let them tell the story — leading is an interviewer
+        anti-pattern that manufactures false signal.</li>
+      <li><strong>Scoring on polish.</strong> A confident delivery of a thin story is still a thin
+        story. Score the evidence, not the storytelling.</li>
+      <li><strong>One story, one dimension.</strong> Don't let a single strong anecdote inflate
+        every score — probe each dimension on its own.</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>

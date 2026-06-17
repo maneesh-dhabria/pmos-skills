@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<!--
+  Interviewer reference — case-presentation round (candidate presents a case to a PANEL).
+  Instantiates the canonical DOM contract in reference/reference-skeleton.html.
+  area ids map 1:1 to scorecard.html data-dim ids. Self-contained HTML — no external assets.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer reference — Case presentation</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a; --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.6;font-size:16px}
+  main{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .purpose{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1.6rem}
+  .panel-note{background:#fdf6ec;border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:.9rem 1.1rem;margin:0 0 1.6rem;font-size:.95rem}
+  .panel-note strong{font-family:var(--sans)}
+  .area{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .area-name{font-family:var(--sans);font-weight:600;font-size:1.05rem;margin:0 0 .4rem}
+  .signals{display:flex;gap:2rem;font-family:var(--sans);font-size:.88rem;margin:.4rem 0}
+  ul[data-signals="green"] li{color:var(--green)}
+  ul[data-signals="red"] li{color:var(--red)}
+  .probes-label{font-family:var(--sans);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.7rem 0 .2rem}
+  ul[data-probes]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-probes] li{margin:.15rem 0}
+  .calibration{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:1.6rem 0 1rem}
+  .calibration h2,.mistakes h2{font-family:var(--sans);font-size:1.05rem;margin:0 0 .5rem}
+  .mistakes{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem}
+  .calibration ul,.mistakes ul{margin:.3rem 0;padding-left:1.1rem}
+  .calibration li,.mistakes li{margin:.25rem 0}
+</style>
+</head>
+<body>
+<main data-ref="round" data-archetype="case-presentation">
+  <h1>Case presentation — interviewer reference</h1>
+  <p class="sub">case-presentation round · what to probe, what good and weak answers look like</p>
+
+  <div class="purpose">
+    <strong>Purpose of this round.</strong> The candidate presents a prepared case — a product
+    decision, a strategy, or a take-home — to a <strong>panel</strong> and then defends it in live
+    Q&amp;A. This round tests communication and composure under cross-functional scrutiny: can they
+    tell a clear story to a senior, mixed-function audience, lead with the recommendation, and hold
+    their reasoning together when several people push on it at once? It is a proxy for a real PM
+    moment — walking a leadership review or steering committee through a call and absorbing the
+    challenge without losing the thread.
+  </div>
+
+  <div class="panel-note">
+    <strong>⚠ This is a PANEL round.</strong> Multiple interviewers are in the room at once (ties
+    into the skill's interviewer-model <code>panel</code> role). Per-interviewer talk-time and
+    coverage are <strong>shared responsibilities</strong>: agree before the session who opens, who
+    owns which probe areas, and who watches the clock so the candidate gets a fair, non-overlapping
+    Q&amp;A and every dimension below is actually exercised. Do not let one voice dominate or leave a
+    dimension un-probed because each assumed another would cover it. <strong>Each panelist scores
+    this card independently</strong> — fill it from your own observation, then calibrate together
+    afterward; do not converge on a number live in the room.
+  </div>
+
+  <section class="area" data-area="presentation-structure">
+    <p class="area-name">Presentation structure</p>
+    <p>Whether the talk has a spine. A strong case moves problem → insight → recommendation so the
+      panel can follow without reconstructing the logic themselves. Watch how they open, how each
+      section earns its place, and whether the slides serve the argument or just hold data.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Opens by framing the problem and where it's headed, then delivers a clean arc.</li>
+          <li>Each section sets up the next; the recommendation feels earned, not bolted on.</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>A pile of slides with no through-line; the panel assembles the story.</li>
+          <li>Jumps to a conclusion the build never supported.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="presentation-structure">
+      <li>"In one sentence, what's the story you're telling us here?"</li>
+      <li>"Walk us from the problem to your recommendation — what's the connective tissue?"</li>
+      <li>"If you had half the slides, which would you cut and why?"</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="executive-communication">
+    <p class="area-name">Executive communication</p>
+    <p>Altitude and answer-first instinct. A senior panel wants the recommendation up front, with the
+      reasoning available on demand — not a build-up that makes them wait. Watch whether they pitch
+      to the room's altitude and can flex up or down when a panelist signals they want more or less.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Leads with the answer, then supports it; respects the panel's time.</li>
+          <li>Reads the room and adjusts depth when a panelist wants more or less detail.</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Lives in the weeds; the panel has to ask "so what's your recommendation?"</li>
+          <li>Same altitude regardless of who's asking or what they signal.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="executive-communication">
+      <li>"Give me the 30-second version a busy exec would want."</li>
+      <li>"If this were a one-line update to the CEO, what would it say?"</li>
+      <li>"You're deep in the analysis — pull us back up: what's the decision you're asking for?"</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="handling-pushback">
+    <p class="area-name">Handling pushback &amp; Q&amp;A</p>
+    <p>How they behave when the room disagrees. The point of a panel is live challenge — watch whether
+      they engage the substance of an objection, change their mind for a good reason without folding
+      for a bad one, and stay composed when challenges come from several directions at once.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Engages the actual objection; concedes a fair point and defends a sound one with reason.</li>
+          <li>Stays composed and curious when several panelists push at once.</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Gets defensive, talks over the challenge, or restates the original claim louder.</li>
+          <li>Folds instantly on any pushback regardless of whether it's right.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="handling-pushback">
+      <li>"I disagree with your core assumption — convince me, or tell me what would change your mind."</li>
+      <li>"Engineering will say this is twice the scope you think. How does that move your recommendation?"</li>
+      <li>"Two of us just gave you conflicting feedback. How do you reconcile it?"</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="depth-under-scrutiny">
+    <p class="area-name">Depth under scrutiny</p>
+    <p>Whether the substance is real. Panels drill below the slide — watch whether the reasoning,
+      numbers, and assumptions hold when probed a layer deeper, and whether they actually did the work
+      behind the headline or are running on a thin veneer.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>Reasoning holds up when probed; can show the working behind a claim.</li>
+          <li>Knows the soft spots in their own analysis and names them before you do.</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Crumbles one question past the slide; the depth was an illusion.</li>
+          <li>Hand-waves numbers or assumptions they clearly never pressure-tested.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="depth-under-scrutiny">
+      <li>"Where does this number come from, and what would break it?"</li>
+      <li>"What's the weakest assumption in this case, and why did you accept it?"</li>
+      <li>"Show me the step behind that conclusion — why does it follow?"</li>
+    </ul>
+  </section>
+
+  <section class="area" data-area="message-prioritization">
+    <p class="area-name">Message prioritization</p>
+    <p>Whether they know what matters most. With limited panel attention, a strong candidate makes the
+      single most important point unmistakable and lets the rest recede. Watch whether everything is
+      weighted equally (so nothing lands) or there's a clear hierarchy of what to remember.</p>
+    <div class="signals">
+      <div><strong>✓ Strong looks like</strong>
+        <ul data-signals="green">
+          <li>One headline takeaway is unmistakable; supporting detail is clearly secondary.</li>
+          <li>Cuts or de-emphasizes the merely-interesting to protect the essential.</li>
+        </ul>
+      </div>
+      <div><strong>✕ Watch for</strong>
+        <ul data-signals="red">
+          <li>Everything weighted equally; the panel can't tell what the point was.</li>
+          <li>Buries the key insight under detail no one needed.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="probes-label">Suggested probes</p>
+    <ul data-probes="message-prioritization">
+      <li>"If the panel remembers exactly one thing from this, what should it be?"</li>
+      <li>"What did you deliberately leave out, and why didn't it make the cut?"</li>
+      <li>"Rank your three points — which one carries the decision?"</li>
+    </ul>
+  </section>
+
+  <section class="calibration">
+    <h2>Calibration</h2>
+    <ul>
+      <li><strong>Score the presenter, not the polish.</strong> A confident delivery can mask thin
+        substance, and a nervous one can hide real depth — weight <em>depth-under-scrutiny</em> and
+        <em>handling-pushback</em> on what survives probing, not on stage presence alone.</li>
+      <li><strong>Separate the case from the candidate's prep time.</strong> If everyone got the same
+        prompt and window, judge the thinking, not how glossy the deck is.</li>
+      <li><strong>Anchor to the round's bar.</strong> A "4" is a presentation you'd let a candidate
+        give to your own leadership unaccompanied — not merely "above average for the loop."</li>
+      <li><strong>Panel calibration is post-hoc.</strong> Each panelist scores independently from
+        their own notes first; only then compare. Treat divergence as signal worth discussing, not
+        an error to average away in the room.</li>
+    </ul>
+  </section>
+
+  <section class="mistakes">
+    <h2>Common mistakes (interviewer &amp; candidate)</h2>
+    <ul>
+      <li><strong>Candidate presents analysis instead of a recommendation.</strong> A tour of the data
+        with no decision is a red flag for <em>executive-communication</em> and
+        <em>message-prioritization</em> — probe for the actual call before scoring.</li>
+      <li><strong>Candidate doesn't budget time for Q&amp;A.</strong> Burning the full slot on the
+        deck leaves no room for the part this round most measures. Note it, and make sure the panel
+        reserves time so <em>handling-pushback</em> can be observed at all.</li>
+      <li><strong>Panel lets one interviewer dominate.</strong> If one voice runs the Q&amp;A, coverage
+        of the other dimensions silently drops — pre-assign probe areas (see the panel note above).</li>
+      <li><strong>Interviewer rewards charisma over substance.</strong> Smooth delivery is not depth;
+        always probe one layer past the slide before trusting a high score.</li>
+      <li><strong>Interviewer converges on a score live.</strong> Nodding along to the loudest panelist
+        contaminates independent judgment — hold your number until the debrief.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

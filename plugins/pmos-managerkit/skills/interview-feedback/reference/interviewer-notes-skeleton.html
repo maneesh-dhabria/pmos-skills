@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+  Interviewer-notes skeleton (output b) — /interview-feedback (pmos-managerkit).
+
+  The Coach phase (SKILL.md#coach) instantiates THIS template: one <section.interviewer> per
+  interviewer in the round's roster, each scored against reference/interviewer-effectiveness.html.
+  Every subjective claim carries <cite data-cite-tier="transcript|notes|recalled" data-source="…">;
+  transcript cites are verbatim ≥40-char substrings (scripts/check-citations.mjs gates this file too).
+
+  Anchors:
+    - data-output="interviewer-notes"        on root <main>.
+    - data-interviewer="<name>"              one per interviewer.
+    - data-model-role="lead|shadow|panel"    sets which rubric dimensions apply (reference-resolution.md §8).
+    - data-attr-confidence="high|medium|low" when a claim's attribution to this interviewer is uncertain.
+  Self-contained HTML — no external assets.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer notes — {{round_name}} — {{candidate}}</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a; --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.6;font-size:16px}
+  main{max-width:820px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .interviewer{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.2rem;margin:0 0 1.2rem}
+  .iv-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-bottom:1px solid var(--rule);padding-bottom:.5rem;margin-bottom:.6rem}
+  .iv-name{font-family:var(--sans);font-weight:600;font-size:1.1rem}
+  .iv-role{font-family:var(--sans);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .block-label{font-family:var(--sans);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:.8rem 0 .2rem}
+  ul.well li{color:var(--green)}
+  ul.improve li{color:var(--red)}
+  cite{font-style:normal;display:block;font-size:.82rem;color:var(--muted);font-family:var(--sans);margin-top:.2rem;padding-left:.7rem;border-left:2px solid var(--rule)}
+  cite[data-cite-tier="transcript"]{border-left-color:var(--accent)}
+  [data-attr-confidence]{position:relative}
+  [data-attr-confidence="low"]::after,[data-attr-confidence="medium"]::after{content:" ⚠ attribution " attr(data-attr-confidence);font-family:var(--sans);font-size:.7rem;color:var(--red)}
+</style>
+</head>
+<body>
+<main data-output="interviewer-notes">
+  <h1>Interviewer notes — {{round_name}}</h1>
+  <p class="sub">Candidate: {{candidate}} · scored against the interviewer-effectiveness rubric</p>
+
+  <!-- One block per interviewer. data-model-role selects the applicable rubric dimensions. -->
+  <section class="interviewer" data-interviewer="{{interviewer_name}}" data-model-role="lead">
+    <div class="iv-head">
+      <span class="iv-name">{{interviewer_name}}</span>
+      <span class="iv-role">lead</span>
+    </div>
+
+    <p class="block-label">What went well</p>
+    <ul class="well">
+      <li>{{strength}}
+        <cite data-cite-tier="transcript" data-source="transcript.refined.txt">{{verbatim ≥40-char quote}}</cite>
+      </li>
+    </ul>
+
+    <p class="block-label">What to improve</p>
+    <ul class="improve">
+      <li data-attr-confidence="high">{{improvement}}
+        <cite data-cite-tier="notes" data-source="{{note source}}">{{evidence}}</cite>
+      </li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

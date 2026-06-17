@@ -32,6 +32,13 @@
       "source": "./plugins/pmos-gamekit",
       "category": "entertainment",
       "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
+    },
+    {
+      "name": "pmos-managerkit",
+      "description": "Manager kit — skills that help you do manager work: hiring, team, and reviews. Ships /interview-feedback, which turns a candidate's interview inputs into a grounded scorecard plus per-interviewer coaching notes.",
+      "source": "./plugins/pmos-managerkit",
+      "category": "productivity",
+      "homepage": "https://github.com/maneesh-dhabria/pmos-skills"
     }
   ]
 }

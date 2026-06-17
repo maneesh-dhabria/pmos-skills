@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--
+  Canonical scorecard skeleton — /interview-feedback (pmos-managerkit), design §16.1 + §16.7.
+
+  THE single DOM contract. Every bundled round scorecard (Story B), the interviewer-effectiveness
+  rubric (reference/interviewer-effectiveness.html), and any skill-emitted scorecard instantiate
+  THIS structure, so the filler (scripts/fill-scorecard.mjs) targets exactly one contract.
+
+  Machine anchors (a filler MUST be able to discover dimensions/scales/flags deterministically):
+    - data-card="scorecard"                  on the root <main>; identifies an anchored sheet.
+    - data-dim="<id>"                         one per scored dimension (kebab id, stable).
+    - data-weight="<n>"                       integer weight; the weights across dims should sum to 100.
+    - data-scale="1-4"                        the scale container for that dimension.
+        - each option carries data-v="<n>"    selectable score; data-selected on the chosen one.
+    - data-input="notes:<dim>"                the qualitative/citation slot for that dimension.
+    - data-flags="green" / data-flags="red"   the per-dimension flag containers (0+ <li> each).
+    - data-input="reco"                       the single overall hire/no-hire control.
+        - each option carries data-reco="strong-yes|yes|no|strong-no".
+
+  Filling discipline (design §9, §12, §16.4): every filled note that makes a subjective claim
+  carries a <cite data-cite-tier="transcript|notes|recalled" data-source="…">…</cite>; transcript
+  citations are verbatim ≥40-char substrings of transcript.refined.txt (enforced by
+  scripts/check-citations.mjs). Self-contained HTML — no external assets, editable in a browser.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Scorecard — {{round_name}} — {{candidate}}</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a;
+    --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.55;font-size:16px}
+  main{max-width:880px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .meta{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--sans);font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.7rem 0;margin-bottom:1.8rem}
+  .dim{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .weight{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .scale{display:flex;gap:.4rem;margin:.6rem 0}
+  .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
+  .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .notes{font-size:.95rem;margin:.5rem 0 0}
+  .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
+  .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
+  ul[data-flags]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-flags="green"] li{color:var(--green)}
+  ul[data-flags="red"] li{color:var(--red)}
+  cite{font-style:normal;display:block;font-size:.82rem;color:var(--muted);font-family:var(--sans);margin-top:.25rem;padding-left:.7rem;border-left:2px solid var(--rule)}
+  cite[data-cite-tier="transcript"]{border-left-color:var(--accent)}
+  .reco{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-top:1.6rem}
+  .reco-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+  .reco-opts [data-reco]{font-family:var(--sans);font-size:.85rem;border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem}
+  .reco-opts [data-reco][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<main data-card="scorecard" data-archetype="{{archetype}}">
+  <h1>{{round_name}} — Scorecard</h1>
+  <p class="sub">{{archetype}} round · weights sum to 100</p>
+  <div class="meta">
+    <span>Candidate: {{candidate}}</span>
+    <span>Round: {{round_name}}</span>
+    <span>Interviewer: {{lead_interviewer}}</span>
+    <span>Date: {{date}}</span>
+  </div>
+
+  <!-- One <section.dim> per scored dimension. Replace these two examples with the round's
+       real dimensions; keep every data-* anchor. data-weight values must sum to 100. -->
+  <section class="dim" data-dim="example-dimension-one" data-weight="50">
+    <div class="dim-head">
+      <span class="dim-name">Example dimension one</span>
+      <span class="weight">weight 50</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:example-dimension-one"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="dim" data-dim="example-dimension-two" data-weight="50">
+    <div class="dim-head">
+      <span class="dim-name">Example dimension two</span>
+      <span class="weight">weight 50</span>
+    </div>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:example-dimension-two"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green"></ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red"></ul></div>
+    </div>
+  </section>
+
+  <section class="reco">
+    <div class="dim-name">Overall recommendation</div>
+    <div class="reco-opts" data-input="reco">
+      <span data-reco="strong-no">Strong no-hire</span>
+      <span data-reco="no">No-hire</span>
+      <span data-reco="yes">Hire</span>
+      <span data-reco="strong-yes">Strong hire</span>
+    </div>
+    <div class="notes" data-input="notes:reco"></div>
+  </section>
+</main>
+</body>
+</html>

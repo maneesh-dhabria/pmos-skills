@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<!--
+  Interviewer-effectiveness rubric — /interview-feedback (pmos-managerkit).
+
+  Instantiates THE canonical scorecard DOM contract (reference/scorecard-skeleton.html):
+  same :root vars, same classes, same data-* anchors (data-card="scorecard", data-dim,
+  data-weight, data-scale="1-4", data-input="notes:<dim>", data-flags green/red, data-input="reco"
+  with data-reco values strong-yes|yes|no|strong-no). The "candidate" here is the INTERVIEWER and
+  the dimensions are interviewing competencies; the reco options are relabeled to a development
+  framing while keeping the data-reco machine values intact.
+
+  Unlike a blank candidate scorecard, the green/red flag lists ARE pre-populated — they are the
+  rubric's behavioral anchors (BARS-style). 8 dimensions; data-weight values sum to 100.
+
+  PROVENANCE — sources consulted this run (title · URL · what it supports):
+    1. Google re:Work — "A guide to structured interviewing for better hiring practices"
+       https://rework.withgoogle.com/intl/en/guides/a-guide-to-structured-interviewing-for-better-hiring-practices
+       → structured-questioning (same vetted questions + standardized rubric across candidates),
+         area-coverage (vetted role-relevant questions), note-quality (record comprehensive feedback
+         of answers), calibration (standardized scoring scale + interviewer calibration/training).
+    2. Schmidt & Hunter (1998) / Sackett et al. (2022) meta-analyses, as reported by
+       Plum (https://www.plum.io/blog/schmidt-hunter-meta-analysis) and
+       Test Partnership (https://www.testpartnership.com/blog/structured-vs-unstructured-interviews.html)
+       → structured-questioning weight rationale: structured interviews are substantially more
+         predictive of job performance (r≈.51 vs .38 in Schmidt & Hunter; .42 vs .19 in Sackett 2022).
+         NOTE: figures are quoted from these secondary summaries, not the primary papers opened this run.
+    3. "8020 rule applied to interviewing" + "Are you talking too much in your interview?" (LinkedIn);
+       general interviewing guidance
+       → talk-time-balance (candidate should do the substantial majority of the talking; common
+         anchors are ~80/20 interviewer-listening or 60/40 candidate-speaking). Specific ratio is a
+         best-practice convention, not a single peer-reviewed constant — see note below.
+    4. Cogn-IQ — "7 Cognitive Biases That Distort Hiring Decisions (and How to Neutralize Them)"
+       https://www.cogn-iq.org/blog/cognitive-bias-hiring/
+       → bias-mitigation, leading-question-avoidance (halo/affinity/recency mechanisms;
+         halo creates a positive anchor that triggers confirmation-seeking).
+    5. HR University / Aivy / eLeaP — Behaviorally Anchored Rating Scales (BARS)
+       https://hr.university/shrm/performance-management/behaviorally-anchored-rating-scale/
+       → bias-mitigation + calibration + note-quality: behavioral anchors force evaluation on
+         observed behavior rather than impression, reducing halo/affinity/recency; this rubric's
+         pre-filled flag lists ARE such anchors.
+
+  Verification posture: dimension DEFINITIONS are grounded in the reputable sources above
+  (re:Work, BARS guides, bias-mitigation guidance) consulted this run. The specific validity
+  COEFFICIENTS (.51/.38, .42/.19) are quoted from secondary summaries of Schmidt & Hunter (1998)
+  and Sackett et al. (2022) — the primary papers were NOT opened this run, so treat the exact
+  numbers as reported-secondhand. The talk-time RATIO (~80/20, ~60/40) is a widely-repeated
+  practitioner convention rather than a single peer-reviewed constant — best-practice, exact
+  threshold unverified against a primary study this run. No citations to specific studies that
+  were not actually consulted have been fabricated.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="interview-feedback">
+<title>Interviewer-effectiveness rubric — /interview-feedback</title>
+<style>
+  :root{
+    --bg:#f8f5ef; --surface:#fff; --border:#e2dac9; --rule:#d9cfbd;
+    --text:#201e1a; --muted:#655e54; --accent:#b8431a;
+    --green:#16a34a; --red:#b91c1c;
+    --serif:Georgia,"Iowan Old Style",serif; --sans:-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--serif);line-height:1.55;font-size:16px}
+  main{max-width:880px;margin:0 auto;padding:2.2rem 1.4rem 4rem}
+  h1{font-family:var(--sans);font-size:1.55rem;margin:0 0 .2rem}
+  .sub{color:var(--muted);font-size:.9rem;margin:0 0 1.6rem;font-family:var(--sans)}
+  .meta{display:flex;flex-wrap:wrap;gap:1.2rem;font-family:var(--sans);font-size:.85rem;color:var(--muted);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:.7rem 0;margin-bottom:1.8rem}
+  .dim{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem}
+  .dim-head{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+  .dim-name{font-family:var(--sans);font-weight:600;font-size:1.02rem}
+  .weight{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+  .def{font-size:.92rem;color:var(--muted);margin:.35rem 0 0;font-style:italic}
+  .scale{display:flex;gap:.4rem;margin:.6rem 0}
+  .scale [data-v]{display:inline-flex;align-items:center;justify-content:center;width:2rem;height:2rem;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);cursor:default}
+  .scale [data-v][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+  .notes{font-size:.95rem;margin:.5rem 0 0}
+  .notes[data-input^="notes"]:empty::before{content:"— not yet scored —";color:var(--muted);font-style:italic}
+  .flags{display:flex;gap:2rem;margin:.6rem 0 0;font-family:var(--sans);font-size:.88rem}
+  ul[data-flags]{margin:.2rem 0;padding-left:1.1rem}
+  ul[data-flags="green"] li{color:var(--green)}
+  ul[data-flags="red"] li{color:var(--red)}
+  cite{font-style:normal;display:block;font-size:.82rem;color:var(--muted);font-family:var(--sans);margin-top:.25rem;padding-left:.7rem;border-left:2px solid var(--rule)}
+  cite[data-cite-tier="transcript"]{border-left-color:var(--accent)}
+  .reco{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-top:1.6rem}
+  .reco-opts{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+  .reco-opts [data-reco]{font-family:var(--sans);font-size:.85rem;border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem}
+  .reco-opts [data-reco][data-selected]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<main data-card="scorecard" data-archetype="interviewer-effectiveness">
+  <h1>Interviewer-effectiveness rubric</h1>
+  <p class="sub">The "candidate" is the interviewer · competencies of structured interviewing · weights sum to 100</p>
+  <div class="meta">
+    <span>Interviewer: {{interviewer}}</span>
+    <span>Round observed: {{round_name}}</span>
+    <span>Reviewer: {{reviewer}}</span>
+    <span>Date: {{date}}</span>
+  </div>
+
+  <!-- 1 -->
+  <section class="dim" data-dim="structured-questioning" data-weight="16">
+    <div class="dim-head">
+      <span class="dim-name">Structured questioning</span>
+      <span class="weight">weight 16</span>
+    </div>
+    <p class="def">Asks consistent, pre-planned, role-relevant questions across every candidate so answers are comparable on one rubric.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:structured-questioning"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Worked from the round's vetted question set; same core questions asked of comparable candidates.</li>
+        <li>Tied each question to a defined competency on the scorecard.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Improvised an ad-hoc line of questioning unique to this candidate.</li>
+        <li>Skipped planned questions, leaving dimensions unassessable.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="dim" data-dim="probing-depth" data-weight="16">
+    <div class="dim-head">
+      <span class="dim-name">Probing depth</span>
+      <span class="weight">weight 16</span>
+    </div>
+    <p class="def">Uses follow-ups that get past rehearsed or surface answers to the candidate's actual reasoning, trade-offs, and contribution.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:probing-depth"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Asked "what exactly did you do" / "why that and not the alternative" to separate ownership from team work.</li>
+        <li>Followed a vague claim with a concrete, specific drill-down.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Accepted rehearsed headlines without testing the reasoning beneath them.</li>
+        <li>Moved on after the first answer even when it was thin or evasive.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="dim" data-dim="leading-question-avoidance" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Leading-question avoidance</span>
+      <span class="weight">weight 10</span>
+    </div>
+    <p class="def">Does not telegraph the desired answer; keeps questions open so the candidate, not the interviewer, supplies the substance.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:leading-question-avoidance"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Posed neutral, open questions and let silence pull out the answer.</li>
+        <li>Withheld the "right" framing even when the candidate stalled.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Baked the expected answer into the question ("you'd of course choose X, right?").</li>
+        <li>Coached a struggling candidate toward the model answer, contaminating the signal.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="dim" data-dim="talk-time-balance" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Talk-time balance</span>
+      <span class="weight">weight 10</span>
+    </div>
+    <p class="def">Candidate speaks substantially more than the interviewer (commonly cited as ~80/20 listening, or at least ~60/40 in the candidate's favor).</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:talk-time-balance"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Candidate held the floor for the large majority of the session.</li>
+        <li>Interviewer's airtime was mostly questions and brief clarifications.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Interviewer dominated — long monologues, war stories, or selling the company mid-evaluation.</li>
+        <li>Interrupted or finished the candidate's sentences, suppressing evidence.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="dim" data-dim="area-coverage" data-weight="12">
+    <div class="dim-head">
+      <span class="dim-name">Area coverage</span>
+      <span class="weight">weight 12</span>
+    </div>
+    <p class="def">Covers the round's intended competencies in the time available so the loop gets the signal this round was assigned to produce.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:area-coverage"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Touched every competency the round owns; managed time so none were rushed at the end.</li>
+        <li>Avoided redundant overlap with adjacent rounds.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Ran out of time with assigned areas unassessed.</li>
+        <li>Over-indexed on one favorite topic and left a competency blank.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="dim" data-dim="bias-mitigation" data-weight="16">
+    <div class="dim-head">
+      <span class="dim-name">Bias mitigation</span>
+      <span class="weight">weight 16</span>
+    </div>
+    <p class="def">Evaluates on observed evidence and resists halo, affinity, and recency bias rather than rating on impression or similarity.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:bias-mitigation"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Judged behavior against anchors, not "I just liked them" or a single strong first impression.</li>
+        <li>Weighted the whole session, not only the last or most vivid moment.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Halo/horn: one trait (school, charisma, a stumble) colored every dimension.</li>
+        <li>Affinity: rated a "like me" candidate up, or a dissimilar one down, on shared background.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="dim" data-dim="note-quality" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Note quality</span>
+      <span class="weight">weight 10</span>
+    </div>
+    <p class="def">Captures specific, quotable evidence — what the candidate actually said and did — rather than adjectives and impressions.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:note-quality"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Recorded near-verbatim quotes and concrete behaviors tied to each dimension.</li>
+        <li>Notes let a reader reconstruct the evidence without having been in the room.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Wrote only impressions ("smart", "weak", "good vibes") with nothing to ground them.</li>
+        <li>Sparse or no notes; relied on memory at debrief.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="dim" data-dim="calibration" data-weight="10">
+    <div class="dim-head">
+      <span class="dim-name">Calibration</span>
+      <span class="weight">weight 10</span>
+    </div>
+    <p class="def">Ratings are well-anchored to the standardized scale and defensible — the same answer would earn the same score from a trained peer.</p>
+    <div class="scale" data-scale="1-4">
+      <span data-v="1">1</span><span data-v="2">2</span><span data-v="3">3</span><span data-v="4">4</span>
+    </div>
+    <div class="notes" data-input="notes:calibration"></div>
+    <div class="flags">
+      <div><strong>✓ Green</strong><ul data-flags="green">
+        <li>Scores map cleanly to the rubric's anchor definitions; evidence justifies the number.</li>
+        <li>Stood by a rating with specifics at debrief, and updated when shown contrary evidence.</li>
+      </ul></div>
+      <div><strong>✕ Red</strong><ul data-flags="red">
+        <li>Chronically lenient or harsh, or clusters everyone at "3" to avoid committing.</li>
+        <li>Score and written evidence point in different directions.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section class="reco">
+    <div class="dim-name">Overall interviewer development call</div>
+    <div class="reco-opts" data-input="reco">
+      <span data-reco="strong-no">Significant gaps</span>
+      <span data-reco="no">Needs coaching</span>
+      <span data-reco="yes">Solid</span>
+      <span data-reco="strong-yes">Calibrated</span>
+    </div>
+    <div class="notes" data-input="notes:reco"></div>
+  </section>
+</main>
+</body>
+</html>
