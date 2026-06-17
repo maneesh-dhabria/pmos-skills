@@ -9,7 +9,7 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_summary-tldr-modes/
 plan_doc: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-1aq/03_plan.html
 tasks: docs/pmos/features/2026-06-17_summary-tldr-modes/stories/260617-1aq/tasks.yaml
