@@ -1,0 +1,74 @@
+schema_version: 1
+story: 260617-wf6
+epic: 260617-jy8
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/summary-tldr
+# Story D — /summary-tldr --mode shorts. Self-contained swipeable ≤140-char card carousel + relevant-media pairing.
+# Depends on 260617-xn4 (mode-dispatch scaffold). NO per-card video generation; pair EXISTING media only.
+# Design anchors: #frs-shorts (FR-D1..D4), #decisions D7/D8/D11/D12.
+# Author guidance: study the bite-size-news card-carousel experience; DO NOT name any specific app in docs/output.
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Author the card-carousel house guidelines (generic, no app names) + the card model"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Per FR-D1 / D7. Write reference guidelines for a bite-size card-carousel experience derived from studying the
+      genre (DO NOT name any specific app anywhere in docs or output): one key takeaway per card, ≤140 chars, BLUF
+      front-loaded, scannable, sequential. Define the card model {text(≤140), media?(ref), source_anchor}.
+  - id: T2
+    title: "Derive ≤140-char cards from the grounded keyfact extraction; enforce limit + ≥2 floor"
+    ac: [AC1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per FR-D1 / D3 / D12. After the canonical text emit (D2), derive cards from the grounded keyfact extraction
+      (Phase 4) — NOT the compressed prose. Enforce ≤140 chars DETERMINISTICALLY (a card over the limit is a fail
+      to be re-derived, never silently truncated). ≥2-card floor; below it, degrade per AC4.
+  - id: T3
+    title: "Emit the self-contained sibling carousel <slug>-shorts.html (zero-dep, offline, swipe+keyboard, comments-compatible)"
+    ac: [AC2]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Per FR-D2 / D7. Emit <slug>-shorts.html: a standalone, zero-dep, offline (no CDN) carousel with swipe
+      (pointer/touch) + keyboard nav (←/→), a card counter, and accessible markup. Compatible with the inline
+      comments overlay substrate (copy assets/* alongside per _shared/html-authoring; <meta name="pmos:skill"
+      content="summary-tldr">). Link it from the canonical summary artifact + the library index (regen
+      summary-tldr.html).
+  - id: T4
+    title: "Relevant-media pairing — reuse explainer-video ingest.mjs figure inventory + this-run mindmap/video"
+    ac: [AC3]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Per FR-D3 / D8. Build the source's figure inventory by REUSING /explainer-video's ingest.mjs (no new
+      extractor). Candidate media = source figures + any mindmap SVG / video produced this run. Match a card to
+      media by relevance (keyfact ↔ figure alt/caption/proximity). A card with no relevant media is text-only.
+      Never fabricate media; never embed a broken/again-fetched asset.
+  - id: T5
+    title: "Graceful degradation + tests + live dogfood"
+    ac: [AC4, AC5]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Per FR-D4 / D11 / D12. <2 derivable cards or a media-extraction failure → a clear note; canonical text still
+      ships; carousel ships text-only or is skipped with a logged reason. Tests: card derivation (≤140 enforcement,
+      ≥2 floor), carousel emit, media pairing, degradation. Existing summary-tldr tests stay green. Live dogfood:
+      open <slug>-shorts.html in a browser/Playwright, confirm swipe + keyboard nav + ≥1 media-paired card on a
+      real source with figures; save evidence.
+  - id: T6
+    title: "SKILL.md doc surface + skill-eval [D] + repo lints"
+    ac: [AC6]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Per FR-D1..D4. Update SKILL.md (--mode shorts in argument-hint + Modes section + Phase notes; cite the
+      guidelines ref). Run skill-eval [D] to EXIT 0; run the 4 repo lints + comments-coverage; keep the
+      non-interactive inline block byte-identical. Confirm NO specific app name appears anywhere in the skill or
+      its output.

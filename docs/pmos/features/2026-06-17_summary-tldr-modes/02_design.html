@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /summary-tldr output modes + /diagram mindmap capability (260617-jy8)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --red:#ef4444; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+  .tag { display:inline-block; font-family: ui-monospace, monospace; font-size:.78rem; background:var(--panel); color:var(--accent); border-radius:4px; padding:.05em .4em; }
+  blockquote { border-left: 3px solid var(--teal); margin: 1rem 0; padding: .3rem 1rem; color: var(--muted); }
+  ul,ol { padding-left: 1.3rem; }
+</style>
+</head>
+<body>
+
+<h1 id="title">Design — /summary-tldr output modes + /diagram mindmap capability</h1>
+<p class="sub">Epic <code>260617-jy8</code> · route: skill · plugin: pmos-toolkit · 2026-06-17 · This is the epic <code>design_doc</code> — the cross-skill coherence contract; per-story <code>/plan</code>s cite its anchors.</p>
+
+<h2 id="context">Context</h2>
+<p><code>/summary-tldr</code> today emits exactly one shape of output: a grounded TEXT TL;DR (Phase 6 <em>emit</em>), with
+a <code>--style bullets|exec|nested|layered</code> sub-style dimension and an optional Phase 7 hand-off to
+<code>/diagram</code> for a single add-on diagram. The maintainer wants a new <strong>output-mode dimension</strong> —
+<code>--mode narrative|mindmap|video|shorts</code> (also an interactive picker) — so the <em>same grounded source</em>
+can be rendered as a mindmap tree, an explainer video, or a swipeable card carousel, in addition to the canonical text.</p>
+<p>Four modes:</p>
+<ul>
+  <li><strong>narrative</strong> — the default; today's grounded text TL;DR (unchanged, back-compat).</li>
+  <li><strong>mindmap</strong> — a tree/radial diagram of the source's key arguments and takeaways.</li>
+  <li><strong>video</strong> — a narrated slideshow <code>.mp4</code> via <code>/explainer-video</code>.</li>
+  <li><strong>shorts</strong> — a swipeable carousel of bite-size (&le;140-char) cards, one key takeaway each, each pairing relevant media when one exists.</li>
+</ul>
+
+<h3 id="spike">Define-time spike — /diagram cannot do mindmaps today</h3>
+<p>A read-only spike this run (against <code>plugins/pmos-toolkit/skills/diagram/</code>) found <code>/diagram</code> is
+<strong>insufficient for mindmaps</strong>: it lists <code>mental-model</code> in its description and picks a 1:1 radial canvas, but it
+has <strong>no automatic layout engine</strong> — every node is hand-placed by coordinate (<code>SKILL.md</code> Phase 3,
+<code>svg-primer.md</code>) — and <strong>hard-fails above 30 nodes</strong> (<code>eval/code-metrics.md</code>; the 21–30 split prompt at
+<code>SKILL.md</code> ~line 178). Grep across the skill found no <code>mermaid</code>/<code>dagre</code>/<code>elk</code>/<code>d3</code>/auto-layout.
+Hand-placing a 15–30-node radial tree reliably triggers overlap/tunnel hard-fails. So the mindmap mode requires a
+<strong>new <code>/diagram</code> capability</strong> — making this a <strong>two-skill epic</strong>.</p>
+
+<h2 id="goal">Goal &amp; non-goals</h2>
+<p><strong>Goal.</strong> (1) Add the <code>--mode</code> output dimension to <code>/summary-tldr</code> — <code>narrative</code> default (byte-for-byte
+back-compat) plus <code>mindmap</code>/<code>video</code>/<code>shorts</code> renderings derived from the grounded original source. (2) Add a new
+<code>--mode mindmap</code> to <code>/diagram</code> backed by a <strong>vendored, zero-dependency</strong> auto-layout, with <code>/diagram</code> as the
+post-layout theme + eval engine.</p>
+<p><strong>Non-goals.</strong> Per-card video generation (shorts pairs <em>existing</em> media only); multi-mode-per-run (single
+mode per run in v1); replacing the canonical text summary (it is always emitted); any cloud / browser-render
+dependency (mermaid + puppeteer rejected, see <a href="#decisions">D5</a>); cross-document synthesis; re-hosting the
+video (it is linked, not copied). Writing curator commentary is N/A here.</p>
+
+<h2 id="decisions">Decisions</h2>
+<table>
+<tr><th>#</th><th>Decision</th></tr>
+<tr><td>D1</td><td><code>--mode</code> is a NEW output-format dimension, <strong>orthogonal to <code>--style</code></strong>. Default <code>narrative</code>. <code>--style</code> shapes <em>only</em> the narrative text; with a non-narrative mode it is recorded as ignored with a one-line warn (the canonical text still emits at the default/lastrun style).</td></tr>
+<tr><td>D2</td><td>The grounded TEXT summary is <strong>ALWAYS emitted first</strong> as the canonical, crash-safe artifact, in <em>every</em> mode. Non-narrative renderings are produced <em>in addition</em>, after the canonical emit — the same emit-before-slow-step discipline as today's Phase 6→7 (the approved text is persisted by construction before any slow rendering runs).</td></tr>
+<tr><td>D3</td><td>Non-narrative renderings derive from the <strong>grounded this-run extraction of the original doc</strong> (the cleaned full text + keyfact list from Phase 4), NOT the lossy compressed prose. Mindmap &amp; shorts derive from the keyfact/structure extraction; <strong>video re-ingests the ORIGINAL SOURCE</strong> via <code>/explainer-video</code> (its own grounded ingest). All existing grounding rules hold — nothing from model memory (<a href="#invariants">INV4</a>).</td></tr>
+<tr><td>D4</td><td>Mindmap mode <strong>delegates to <code>/diagram --mode mindmap</code></strong> (the new capability). <code>/summary-tldr</code> never builds a renderer (<a href="#invariants">INV5</a>).</td></tr>
+<tr><td>D5</td><td><code>/diagram --mode mindmap</code> uses a <strong>vendored, zero-dependency tidy-tree/radial layout module</strong> (Reingold–Tilford / Buchheim linear-time + a radial <code>depth→radius, breadth→angle</code> transform) to compute coordinates, then theme-authors SVG with existing theme tokens. <strong>No npm, no npx, no network, no browser render-path for layout.</strong> <em>npx rejected:</em> <code>d3-hierarchy</code> ships no CLI bin, so <code>npx -p d3-hierarchy …</code> fetches the package over the network at runtime — breaking the offline + deterministic posture <code>/diagram</code> and <code>/explainer-video</code> share. <em>mermaid rejected:</em> needs puppeteer/a browser and clashes with the theme tokens. Layout is pure math → deterministic (no <code>Math.random</code>/<code>Date</code>; resume-safe).</td></tr>
+<tr><td>D6</td><td>Mindmap mode <strong>relaxes <code>/diagram</code>'s &gt;30-node hard cap</strong> (auto-layout handles density) up to a documented ceiling (~60); the overlap / tunnel / legibility / angular-resolution eval still applies. A TL;DR keyfact list naturally bounds nodes (~10–25).</td></tr>
+<tr><td>D7</td><td>Shorts = a swipeable carousel of <strong>&le;140-char cards</strong>, one key takeaway each (BLUF), emitted as a <strong>self-contained SIBLING artifact</strong> <code>&lt;slug&gt;-shorts.html</code> (swipe + keyboard nav, zero-dep, offline), linked from the canonical summary + library. Each card pairs <strong>relevant existing media</strong> when available; else full text. NO per-card video generation.</td></tr>
+<tr><td>D8</td><td>Shorts media comes from the source's <strong>figure inventory</strong> (reuse <code>/explainer-video</code>'s <code>ingest.mjs</code> deterministic figure extraction) plus any artifact this run already produced (the mindmap SVG, the video). Relevance = keyfact ↔ figure (alt / caption / proximity). No fabrication; a card with no relevant media is text-only.</td></tr>
+<tr><td>D9</td><td>Video mode <strong>delegates to <code>/explainer-video</code> on the ORIGINAL SOURCE</strong> (main-agent hand-off — skills cannot invoke skills from a subagent). Length maps from <code>--compression</code> (tight→quick, standard→standard, detailed→deep); a <code>--video-length quick|standard|deep</code> override is honored. The <code>.mp4</code> lands in <code>/explainer-video</code>'s dir; <code>/summary-tldr</code> links it + records provenance (not re-hosted).</td></tr>
+<tr><td>D10</td><td>Mode-selection UX: interactive with no <code>--mode</code> → an <code>AskUserQuestion</code> picker with <strong>Narrative (Recommended)</strong>; <code>--mode &lt;m&gt;</code> pre-answers and skips it; non-interactive AUTO-PICKs narrative. <strong>Single mode per run</strong> (v1; a comma-list is a deferred future).</td></tr>
+<tr><td>D11</td><td><strong>Graceful degradation</strong> (additive modes + D2 make this safe): a mode whose deps/inputs are unavailable (no ffmpeg/Playwright/TTS for video; too few keyfacts for a mindmap; &lt;2 cards for shorts) reports the precise reason + an install/why hint and STILL ships the canonical text summary. Never fabricate; never silent-fail (mirrors the skill's existing honest-degradation rule).</td></tr>
+<tr><td>D12</td><td>Mode × source-kind feasibility floors: mindmap needs ≥ a handful of keyfacts; video defers slide-count calibration to <code>/explainer-video</code>; shorts needs ≥2 cards. Below floor → degrade-with-note per D11.</td></tr>
+</table>
+
+<h2 id="invariants">Invariants (cross-skill coherence contract)</h2>
+<ul>
+  <li><strong>INV1</strong> — <code>/diagram --mode mindmap</code> is a self-contained, independently-shippable, independently <code>skill-eval</code>'d capability. <code>/summary-tldr</code>'s mindmap mode <em>depends</em> on it (story dep; claim-time transitive merge makes it present in the consumer's worktree before its build, per build-loop D9).</li>
+  <li><strong>INV2</strong> — <code>--mode</code> (output format) ⟂ <code>--style</code> (narrative sub-style). The canonical text emits at the resolved narrative style; <code>--style</code> is meaningful only when <code>mode==narrative</code>, else ignored-with-warn (D1).</li>
+  <li><strong>INV3</strong> — the canonical grounded text summary is emitted <em>first</em> (crash-safety) before any mode rendering runs (D2).</li>
+  <li><strong>INV4</strong> — every rendering traces to the grounded this-run extraction / original source; the Phase 5 first-time-reader review + grounding rules hold; nothing from model memory (D3).</li>
+  <li><strong>INV5</strong> — reuse, don't rebuild: mindmap → <code>/diagram --mode mindmap</code>; video → <code>/explainer-video</code>; shorts media → <code>ingest.mjs</code> figure inventory. Zero duplicated renderers inside <code>/summary-tldr</code>.</li>
+  <li><strong>INV6</strong> — additive + back-compat: <code>mode==narrative</code> reproduces today's behavior exactly; every new flag is optional; existing <code>/summary-tldr</code> and <code>/diagram</code> tests stay green.</li>
+</ul>
+
+<h2 id="frs">Functional requirements</h2>
+
+<h3 id="frs-mindmap-engine">Story A — <code>/diagram --mode mindmap</code> (story <code>260617-1aq</code>, no deps)</h3>
+<ul>
+  <li><strong>FR-A1</strong> — new <code>--mode mindmap</code> value (alongside <code>diagram</code>/<code>infographic</code>) parsed in Phase 0; it accepts a hierarchical input (root + nested nodes) from <code>--source</code> and/or the description; a flat description degrades to a single-level radial.</li>
+  <li><strong>FR-A2</strong> — a <strong>vendored zero-dep layout module</strong> (e.g. <code>scripts/mindmap-layout.mjs</code>) computing tidy-tree + radial coordinates as pure functions, with a <code>--selftest</code> over fixtures; deterministic (no <code>Math.random</code>/<code>Date</code>) per D5.</li>
+  <li><strong>FR-A3</strong> — a mindmap drawing path that authors <strong>themed</strong> SVG from the computed coordinates using the active theme's tokens (palette/typography/strokes, curved connectors for tree/radial edges per the theme's connector rules), and writes the sidecar with <code>layoutEngine</code> + computed <code>positions</code>.</li>
+  <li><strong>FR-A4</strong> — node-cap relaxed for mindmap mode (&gt;30 up to a documented ceiling, D6); overlap/tunnel/legibility/angular-resolution eval still applies (no weakening of the gate).</li>
+  <li><strong>FR-A5</strong> — non-interactive contract preserved: optional <code>--approach</code> (e.g. <code>radial</code> vs <code>tree</code>), <code>--on-failure drop|ship-with-warning|exit-nonzero</code> honored, returns an SVG a caller can inject; exit-code contract unchanged.</li>
+  <li><strong>FR-A6</strong> — fixture-based layout selftest + an eval/apply test; passes <code>skill-eval.md</code> <code>[D]</code>; conforms to <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code>.</li>
+</ul>
+
+<h3 id="frs-scaffold">Story B — <code>/summary-tldr</code> mode scaffold + narrative refactor + mindmap mode (story <code>260617-xn4</code>, deps <code>260617-1aq</code>)</h3>
+<ul>
+  <li><strong>FR-B1</strong> — parse <code>--mode narrative|mindmap|video|shorts</code> (default <code>narrative</code>); interactive picker (D10) with Narrative Recommended; <code>--mode</code> pre-answers; non-interactive AUTO-PICK narrative; invalid value → platform-aware error naming the set; exit 64.</li>
+  <li><strong>FR-B2</strong> — refactor current behavior as <code>mode==narrative</code> — byte-for-byte back-compat (INV6); <code>--style</code> applies only here, else ignored-with-warn (D1/INV2).</li>
+  <li><strong>FR-B3</strong> — the canonical grounded text summary is always emitted first (D2/INV3), regardless of mode, before any rendering.</li>
+  <li><strong>FR-B4</strong> — mindmap mode derives a hierarchy from the keyfact extraction (root = topic; branches = key arguments; leaves = takeaways/numbers, D3), then <strong>main-agent hand-off</strong> to <code>/diagram --mode mindmap --non-interactive --on-failure drop</code>; validate the returned SVG (parses, theme background, heading-id smoke) before saving as a sibling <code>&lt;slug&gt;-mindmap.svg</code> and linking it from the canonical doc + library (same handoff+validate pattern as today's Phase 7).</li>
+  <li><strong>FR-B5</strong> — graceful degradation (D11/D12): too few keyfacts → note + text-only canonical ships.</li>
+  <li><strong>FR-B6</strong> — tests + <code>skill-eval</code>; existing <code>/summary-tldr</code> tests stay green (INV6).</li>
+</ul>
+
+<h3 id="frs-video">Story C — <code>/summary-tldr --mode video</code> (story <code>260617-gfx</code>, deps <code>260617-xn4</code>)</h3>
+<ul>
+  <li><strong>FR-C1</strong> — video mode: main-agent hand-off to <code>/explainer-video</code> on the <strong>original source</strong> (D9); length mapped from <code>--compression</code> with a <code>--video-length</code> override.</li>
+  <li><strong>FR-C2</strong> — link the produced <code>.mp4</code> + provenance into the canonical doc + library; do NOT re-host.</li>
+  <li><strong>FR-C3</strong> — graceful dep degradation (no ffmpeg/Playwright/TTS) → the precise install hint + the canonical text still ships (D11).</li>
+  <li><strong>FR-C4</strong> — tests + <code>skill-eval</code>.</li>
+</ul>
+
+<h3 id="frs-shorts">Story D — <code>/summary-tldr --mode shorts</code> (story <code>260617-wf6</code>, deps <code>260617-xn4</code>)</h3>
+<ul>
+  <li><strong>FR-D1</strong> — derive <code>&le;140</code>-char cards (one key takeaway each, BLUF) from the keyfact extraction (D3/D7); ≥2-card floor (D12).</li>
+  <li><strong>FR-D2</strong> — emit a self-contained sibling <code>&lt;slug&gt;-shorts.html</code>: a swipeable + keyboard-nav carousel, zero-dep, offline (no CDN), compatible with the inline-comments overlay; linked from the canonical doc + library.</li>
+  <li><strong>FR-D3</strong> — media pairing (D8): reuse <code>ingest.mjs</code> figure inventory + any mindmap/video produced this run; relevance match keyfact↔figure; text-only card when no relevant media; never fabricate.</li>
+  <li><strong>FR-D4</strong> — graceful degradation + tests + <code>skill-eval</code>.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>Four stories on two skills in one plugin (<code>pmos-toolkit</code>), a clean DAG:</p>
+<pre><code>260617-1aq  (/diagram --mode mindmap)        no deps      ─┐
+260617-xn4  (/summary-tldr scaffold+narrative+mindmap)  deps: 1aq  ─┐
+260617-gfx  (/summary-tldr --mode video)     deps: xn4   ─┤
+260617-wf6  (/summary-tldr --mode shorts)    deps: xn4   ─┘</code></pre>
+<ul>
+  <li><strong>1aq</strong> is a standalone <code>/diagram</code> capability that B's mindmap mode needs (INV1; claim-time transitive merge makes it present before B builds).</li>
+  <li><strong>xn4</strong> is the mode-dispatch scaffold + narrative back-compat + the cheapest new mode (mindmap, once 1aq exists) — the first end-to-end "modes work" vertical slice.</li>
+  <li><strong>gfx</strong> and <strong>wf6</strong> are independent leaf modes, each its own shippable slice, both depending only on xn4's scaffold. The D24 litmus holds — their tasks never cross each other (the only cross-story dep is the story-level "scaffold exists").</li>
+</ul>
+<p>All four are <code>route: skill</code>, plugin <code>pmos-toolkit</code> (single-plugin, D17 satisfied). Each is scored once against <code>skill-eval.md</code>.</p>
+
+<h2 id="risks">Risks &amp; mitigations</h2>
+<table>
+<tr><th>Risk</th><th>Mitigation</th></tr>
+<tr><td><code>/explainer-video</code> is heavy (ffmpeg/Playwright/TTS) and may be absent on a host.</td><td>D11 graceful degradation + D2 always-emit canonical text — video mode never blocks the run.</td></tr>
+<tr><td>Vendored layout math could be subtly wrong at scale.</td><td>Fixture selftests (FR-A2) + the existing <code>/diagram</code> overlap/tunnel/angular eval gate (FR-A4) catch bad layouts.</td></tr>
+<tr><td>Shorts carousel JS could clash with the inline-comments overlay.</td><td>FR-D2 explicitly requires offline, zero-dep, comments-overlay-compatible; verify at build (live dogfood).</td></tr>
+<tr><td>Scope (4 stories).</td><td>Critical path is 1aq→xn4 (mindmap end-to-end); gfx/wf6 are independent leaves that can ship incrementally if needed.</td></tr>
+<tr><td>Back-compat regression in <code>/summary-tldr</code>.</td><td>INV6 + FR-B2 require <code>mode==narrative</code> to reproduce today exactly; existing tests stay green as an AC.</td></tr>
+</table>
+
+<p class="sub">Spike lineage: read-only define-time spike of <code>plugins/pmos-toolkit/skills/diagram/</code> (2026-06-17) — no auto-layout engine, &gt;30-node hard cap, <code>--approach</code> forces framing not layout → new capability required (D5). Substrate reuse: <code>/explainer-video</code> <code>ingest.mjs</code> (figure inventory), <code>/diagram</code> theme tokens + eval, <code>_shared/html-authoring/</code> (artifacts), <code>_shared/non-interactive.md</code>, <code>_shared/findings-dispositions.md</code>, <code>_shared/reviewer-protocol.md</code>.</p>
+
+</body>
+</html>

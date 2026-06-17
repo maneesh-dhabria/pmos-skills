@@ -1,0 +1,89 @@
+schema_version: 1
+story: 260617-1aq
+epic: 260617-jy8
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/diagram
+# Story A — /diagram --mode mindmap. Vendored zero-dep tidy-tree/radial layout → themed SVG.
+# Design anchors: #frs-mindmap-engine (FR-A1..A6), #decisions D5 (zero-dep, npx/mermaid rejected) + D6 (node cap).
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical skill path).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Vendor the zero-dep mindmap layout module (tidy-tree + radial), pure functions + --selftest fixtures"
+    ac: [AC2]
+    deps: []
+    parallel: false
+    detail: >
+      Per FR-A2 / D5. Add scripts/mindmap-layout.mjs: a pure-JS Reingold–Tilford / Buchheim linear-time tidy-tree
+      that takes a node tree {id,label,children[]} and returns {id -> {x,y}} non-overlapping coordinates, plus a
+      radial transform (depth -> radius, breadth -> angle) selectable by a layout arg ('tree' | 'radial'). NO
+      external package, NO npx, NO network, NO browser. Deterministic — no Math.random / no Date (resume-safe per
+      repo JS rules; cf. mint-id sourcing crypto only). Ship `node scripts/mindmap-layout.mjs --selftest` over
+      committed fixtures (a balanced tree, a deep chain, a wide fan, a single node) asserting no-overlap + stable
+      coordinates. Document the rejected alternatives (npx d3-hierarchy has no CLI bin → network fetch; mermaid →
+      puppeteer + theme clash) in a header comment citing design D5.
+  - id: T2
+    title: "Parse --mode mindmap in Phase 0 + build the hierarchy input model"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Per FR-A1. Add `mindmap` to the --mode enum (alongside diagram|infographic) in SKILL.md Phase 0 parsing.
+      Derive a hierarchy (root + nested nodes) from --source and/or the free-form description; a flat input
+      degrades to a single-level radial (root + leaves). Reject an unsupported theme cleanly via the existing
+      exit-2 path. Keep the default --mode diagram untouched.
+  - id: T3
+    title: "Mindmap drawing path — author themed SVG from computed coordinates + sidecar"
+    ac: [AC3]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Per FR-A3. New draft path for --mode mindmap: call mindmap-layout.mjs for coordinates, then author SVG using
+      the ACTIVE THEME's tokens (palette/typography/stroke weights; curved connectors for tree/radial edges per
+      theme.connectors), placing each node at its computed (x,y). Reuse the existing svg-primer scaffold (xmlns,
+      viewBox, <title>, marker defs, class palette). Write the sidecar with layoutEngine:"mindmap-tidytree" (or
+      "...-radial") and the computed positions, so an Extend re-run preserves them. Apply the data-anchor retrofit
+      (Phase 9) as for any /diagram SVG.
+  - id: T4
+    title: "Relax the >30-node hard cap for mindmap mode; keep overlap/tunnel/legibility/angular eval gating"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per FR-A4 / D6. In the code-metrics path, gate the node-count hard-fail on mode: for --mode mindmap allow up
+      to a documented ceiling (~60) instead of 30; leave the cap unchanged for diagram/infographic. The overlap,
+      edge-tunnel, legibility, and angular-resolution checks MUST still run and still gate for mindmap (no gate
+      weakened). Add/adjust tests so a 40-node mindmap passes while a 40-node diagram still trips the cap.
+  - id: T5
+    title: "Preserve the non-interactive contract for --mode mindmap (--approach, --on-failure, exit codes)"
+    ac: [AC5]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Per FR-A5. --approach accepts radial|tree (forces the layout variant, skips brainstorm). --on-failure
+      drop|ship-with-warning|exit-nonzero behaves exactly as for other modes; the SVG is returned for a caller to
+      inject. Confirm the exit-code contract (0/2/3/4/64) is unchanged for existing modes and well-defined for
+      mindmap. This is the contract /summary-tldr's mindmap mode (story xn4) calls.
+  - id: T6
+    title: "Tests + live dogfood; existing /diagram tests stay green"
+    ac: [AC6]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      Per FR-A6. Add a layout selftest (T1's --selftest wired into the suite) + an eval/apply test for a mindmap
+      SVG. Run the shipped diagram tests/ (python3 tests/run.py) — diagram/infographic behavior unchanged. Live
+      dogfood: render a ~15-node mindmap from a sample hierarchy via the renderer, confirm a clean tree/radial with
+      no overlaps/tunnels; save the SVG + raster as evidence under this story's dir.
+  - id: T7
+    title: "SKILL.md doc surface + skill-eval [D] + repo lints"
+    ac: [AC1, AC7]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      Per FR-A1/A6/A7. Update SKILL.md: --mode mindmap in argument-hint + Phase 0 + Phase 3 (the mindmap draft
+      path) + an anti-pattern if warranted; keep the description's mental-model wording aligned. Run skill-eval [D]
+      (feature-sdlc/tools/skill-eval-check.sh) to EXIT 0; run the 4 repo lints (lint-non-interactive-inline.sh,
+      audit-recommended.sh, lint-flags-vs-hints.sh, lint-phase-refs.sh) + comments-coverage. NL-sugar/contract-flag
+      classification for --mode mindmap per §I (typed value changing output → contract flag, listed in hint).

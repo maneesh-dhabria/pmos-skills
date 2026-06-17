@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Plan — 260617-gfx /summary-tldr --mode video</title>
+<style>
+  body { font-family: Georgia, serif; color:#1d2438; max-width:800px; margin:0 auto; padding:2.5rem 1.25rem 5rem; line-height:1.6; }
+  h1,h2 { font-family:-apple-system,Helvetica,Arial,sans-serif; } h2 { margin-top:2rem; border-bottom:2px solid #f4f7ff; padding-bottom:.3rem; }
+  code { font-family:ui-monospace,Menlo,monospace; background:#f4f7ff; padding:.1em .35em; border-radius:4px; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-family:-apple-system,Helvetica,Arial,sans-serif; font-size:.92rem; }
+  th,td { border:1px solid #d7def0; padding:.5rem .6rem; text-align:left; vertical-align:top; } th { background:#f4f7ff; }
+  .sub { color:#5b6680; font-style:italic; }
+</style>
+</head>
+<body>
+<h1 id="title">Plan — /summary-tldr <code>--mode video</code></h1>
+<p class="sub">Story <code>260617-gfx</code> · epic <code>260617-jy8</code> · route: skill · plugin: pmos-toolkit · deps: <code>260617-xn4</code> · skill_dir <code>plugins/pmos-toolkit/skills/summary-tldr</code></p>
+
+<h2 id="approach">Approach</h2>
+<p>Implement <code>--mode video</code> on the scaffold from <code>260617-xn4</code>: emit the canonical text first
+(<a href="../../02_design.html#invariants">INV3</a>), then main-agent hand-off to <code>/explainer-video</code> on the
+<strong>original source</strong> (design <a href="../../02_design.html#decisions">D9</a> — it does its own grounded ingest), map
+length from <code>--compression</code> with a <code>--video-length</code> override, then link the <code>.mp4</code> + provenance (no re-host).
+Graceful dep degradation keeps the text shipping (<a href="../../02_design.html#decisions">D11</a>). Design FRs:
+<a href="../../02_design.html#frs-video">#frs-video</a>.</p>
+
+<h2 id="tasks">Tasks</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>AC</th><th>Deps</th></tr>
+<tr><td>T1</td><td>Wire <code>--mode video</code>: canonical text first → delegate to <code>/explainer-video</code> on original source; length mapping + <code>--video-length</code></td><td>AC1</td><td>—</td></tr>
+<tr><td>T2</td><td>Link the produced <code>.mp4</code> + provenance into canonical doc + library; no re-host</td><td>AC2</td><td>T1</td></tr>
+<tr><td>T3</td><td>Graceful dep degradation (missing ffmpeg/Playwright/TTS → text ships)</td><td>AC3</td><td>T1</td></tr>
+<tr><td>T4</td><td>Tests + dogfood; existing tests green</td><td>AC4</td><td>T2,T3</td></tr>
+<tr><td>T5</td><td>SKILL.md doc surface + skill-eval <code>[D]</code> + 4 repo lints + comments-coverage</td><td>AC5</td><td>T2,T3</td></tr>
+</table>
+
+<h2 id="waves">Wave order</h2>
+<p>Wave 1: T1. Wave 2: T2, T3 (parallel). Wave 3: T4, T5. Release prerequisites are <code>/complete-dev</code>'s.</p>
+</body>
+</html>
