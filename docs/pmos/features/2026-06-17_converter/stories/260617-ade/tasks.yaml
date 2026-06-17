@@ -1,0 +1,82 @@
+schema_version: 1
+story: 260617-ade
+epic: 260617-vvd
+route: skill
+plugin: pmos-utilities
+spec: ../../02_design.html
+skill_dir: plugins/pmos-utilities/skills/converter
+# /converter PDF pair — PDF↔MD. Introduces the 'llm' backend kind alongside 'pure' (design D4/D5).
+# Adds descriptors to the EXISTING registry (from 260617-7ag, merged in at claim time, D9); independent of S2.
+# Reference: skill-patterns.md §A–§L + host CLAUDE.md. Release prereqs are /complete-dev's, not story tasks.
+# PDF scope text-only: design D11 (no OCR/scanned/images/complex tables). Inv-5: graceful degradation, never crash/hang.
+tasks:
+  - id: T1
+    title: "lib/pdf-writer.js — vendored standard-14-font PDF writer (md→pdf, pure / D5)"
+    ac: [AC1]
+    deps: []
+    parallel: true
+    detail: >
+      Zero-dep PDF writer producing a valid %PDF (header, objects, xref, trailer). Use the 14 standard base
+      fonts (Helvetica/Helvetica-Bold/Courier/Times) — NO font embedding. Embed the AFM glyph-width tables for
+      the fonts used and word-wrap text to the page width by those metrics. Consume S2's markdown block model
+      (lib/markdown.js parseBlocks) when present; else a minimal inline block parser local to this story. Render
+      headings (by font size), paragraphs, ordered/unordered lists, blockquotes, and code blocks (Courier).
+      Page breaking when content overflows. No images/complex tables (D11). TDD FIRST in tests/run.mjs:
+      writePdf(blocks) output begins '%PDF-', contains 'xref' + 'trailer' + '%%EOF', and a multi-page document
+      emits >1 page object. Pure (Inv-2).
+
+  - id: T2
+    title: "claude subprocess seam runClaudePdfToMd(pdfBuffer)->md (llm primary, D5/OQ3/OQ4)"
+    ac: [AC2]
+    deps: []
+    parallel: true
+    detail: >
+      A small module exporting runClaudePdfToMd(pdfBuffer, {tmpdir, exec})->Promise<md>: write the PDF to a
+      unique file under os.tmpdir() (crypto-random name), invoke the host `claude` CLI to extract clean Markdown
+      (finalize the exact flags in build — OQ3; e.g. `claude -p` with the PDF passed as a file/attachment), read
+      stdout as the Markdown, and ALWAYS clean up the temp file (success AND error — OQ4). The child_process exec
+      is injected via the `exec` param so tests can mock it (no live API). Detect CLI absence (ENOENT / non-zero)
+      and throw a typed error the descriptor catches for fallback. TDD FIRST: with a mocked exec returning canned
+      MD, the seam returns it and the temp file is gone afterward; with a mocked exec throwing ENOENT, the seam
+      throws the typed 'cli-unavailable' error and still cleans up.
+
+  - id: T3
+    title: "lib/pdf-text.js — vendored FlateDecode text extractor (pdf→md fallback, Inv-5)"
+    ac: [AC3]
+    deps: []
+    parallel: true
+    detail: >
+      Zero-dep fallback PDF→text using built-in zlib. Parse the PDF cross-reference + objects, inflate
+      FlateDecode content streams (zlib.inflateSync), extract text from Tj/TJ operators, and reconstruct basic
+      paragraphs/line breaks → best-effort Markdown. Text-layer PDFs only (D11) — no OCR. TDD FIRST: extract text
+      from a small fixture PDF with a FlateDecode stream (commit the fixture); a PDF with no text layer returns
+      empty + a caveat flag (not a throw). Pure (Inv-2).
+
+  - id: T4
+    title: "lib/converters/pdf-md.js — pdf→md (llm + fallback) + md→pdf (pure), UI badge (Inv-1/Inv-5/Inv-6)"
+    ac: [AC2, AC3, AC4]
+    deps: [T1, T2, T3]
+    parallel: false
+    detail: >
+      Register two descriptors. 'pdf→md': kind:'llm', requires:['claude-cli'], inputMode:'binary',
+      outputMode:'text'; convert(buffer,ctx) tries runClaudePdfToMd, and on the typed cli-unavailable error (or
+      any claude failure) falls back to pdf-text.js, attaching a quality-caveat note to the result (Inv-5 — never
+      crash/hang). 'md→pdf': kind:'pure', inputMode:'text', outputMode:'binary'; convert(md) → pdf-writer bytes.
+      Confirm the UI renders the llm badge from kind/requires with NO UI structural edit (the generic
+      badge-from-descriptor rendering built in S1 — Inv-1) and that the binary md→pdf output downloads with
+      application/pdf (Inv-6). TDD: after discover(), list() has 8 ids; pdf→md with mocked claude returns the
+      canned MD; pdf→md with claude forced-absent returns the fallback text + caveat; md→pdf yields %PDF bytes.
+
+  - id: T5
+    title: "Suite green (no live API) + load-bearing dogfood + conformance"
+    ac: [AC5, AC6]
+    deps: [T4]
+    parallel: false
+    detail: >
+      `node tests/run.mjs` green incl. the S1 suite — NO live claude call anywhere in the suite (the seam is
+      always mocked; the fallback path is exercised directly). md→pdf asserted structurally (%PDF-, xref,
+      trailer). Load-bearing dogfood (gated by /verify): launch /converter, in the browser convert a real
+      text-based PDF → MD (live claude if installed+authed, else the vendored fallback with its caveat shown) and
+      a real Markdown doc → a downloadable PDF that opens; verify quality, iterate until satisfied; confirm the
+      pdf→md llm badge shows and md→pdf downloads as application/pdf. Conformance: skill-patterns.md §A–§L + host
+      CLAUDE.md; no version-bump/changelog/README tasks (design "Release prerequisites").

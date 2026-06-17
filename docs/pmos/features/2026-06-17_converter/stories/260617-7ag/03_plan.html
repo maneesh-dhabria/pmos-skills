@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>S1 plan — /converter foundation (260617-7ag)</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:44rem;margin:2rem auto;padding:0 1.1rem;color:#1c1b19}h1{font-size:1.6rem}h2{font-size:1.15rem;margin-top:1.8rem;border-bottom:1px solid #e3e0d8;padding-bottom:.2rem}code{background:#f5f3ee;padding:.1em .35em;border-radius:3px;font-size:.88em}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #e3e0d8;padding:.4rem .55rem;text-align:left;vertical-align:top}th{background:#f5f3ee}.muted{color:#6b6862}</style>
+</head><body>
+<h1>S1 — /converter foundation + data pair</h1>
+<p class="muted">Story <code>260617-7ag</code> · epic <code>260617-vvd</code> · route: skill · plugin pmos-utilities · deps: none<br>
+Design: <a href="../../02_design.html">02_design.html</a> · Tasks: <a href="tasks.yaml">tasks.yaml</a></p>
+
+<h2 id="goal">Goal</h2>
+<p>Build the launch + zero-dep server + single-file UI + <strong>converter registry</strong> substrate (the extension point S2/S3 depend on), and ship a working skill with the two pure data pairs JSON↔YAML and CSV↔JSON. See design <a href="../../02_design.html#architecture">#architecture</a>, <a href="../../02_design.html#registry">#registry</a>, <a href="../../02_design.html#inv">Inv-1..Inv-6</a>.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>What</th></tr>
+<tr><td>1 (parallel)</td><td>T1, T2, T3, T4</td><td>SKILL.md scaffold; registry; <code>lib/yaml.js</code>; <code>lib/csv.js</code> — independent, TDD-first.</td></tr>
+<tr><td>2</td><td>T5</td><td>Data-pair descriptors wiring yaml/csv into the registry (Inv-1 proof).</td></tr>
+<tr><td>3</td><td>T6 → T7</td><td>Zero-dep <code>server.js</code> (/ , /conversions , /convert); then the single-file <code>ui/converter.html</code>.</td></tr>
+<tr><td>4</td><td>T8, T9</td><td>Zero-dep assertion + suite green; load-bearing browser dogfood + conformance.</td></tr>
+</table>
+
+<h2 id="risks">Key risks</h2>
+<ul>
+<li><strong>YAML subset boundary</strong> (D9/OQ2) — keep to maps/seqs/scalars/flow+block; validate against real PM fixtures; document what's out.</li>
+<li><strong>Registry-as-only-extension-point</strong> (Inv-1) — server/UI must read <code>/conversions</code>, never hardcode; S2/S3 acceptance literally depends on this holding.</li>
+<li><strong>Binary plumbing</strong> (Inv-6) — design the <code>/convert</code> body + response so S3's PDF (binary) needs no server rework.</li>
+</ul>
+
+<h2 id="verify">Final verification</h2>
+<p><code>node tests/run.mjs</code> green (registry, yaml, csv, server endpoints, zero-dep assertion); launch + browser dogfood converts each pair both ways; Ctrl-C stops; missing-Node errors cleanly; <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code> conformance; lints (non-interactive inline, flags-vs-hints, phase-refs) green.</p>
+</body></html>

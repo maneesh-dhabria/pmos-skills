@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>S2 plan — /converter HTML↔MD (260617-rck)</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:44rem;margin:2rem auto;padding:0 1.1rem;color:#1c1b19}h1{font-size:1.6rem}h2{font-size:1.15rem;margin-top:1.8rem;border-bottom:1px solid #e3e0d8;padding-bottom:.2rem}code{background:#f5f3ee;padding:.1em .35em;border-radius:3px;font-size:.88em}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #e3e0d8;padding:.4rem .55rem;text-align:left;vertical-align:top}th{background:#f5f3ee}.muted{color:#6b6862}</style>
+</head><body>
+<h1>S2 — /converter document pair (HTML↔MD)</h1>
+<p class="muted">Story <code>260617-rck</code> · epic <code>260617-vvd</code> · route: skill · plugin pmos-utilities · deps: <code>260617-7ag</code><br>
+Design: <a href="../../02_design.html">02_design.html</a> · Tasks: <a href="tasks.yaml">tasks.yaml</a></p>
+
+<h2 id="goal">Goal</h2>
+<p>Add the HTML↔MD pair by registering two <code>pure</code> descriptors against the <strong>existing registry</strong> from S1 — zero <code>server.js</code>/UI structural edits (the Inv-1 proof). All logic is vendored and zero-dep. Scope: design <a href="../../02_design.html#d10">D10</a> (CommonMark-ish; lossy round-trips documented).</p>
+<p><strong>Dependency:</strong> 260617-7ag's branch is merged into this worktree at claim time (design D9), so the registry/server/UI/test-harness are present before this story builds.</p>
+
+<h2 id="waves">Task waves</h2>
+<table>
+<tr><th>Wave</th><th>Tasks</th><th>What</th></tr>
+<tr><td>1 (parallel)</td><td>T1, T2</td><td><code>lib/markdown.js</code> (mdToHtml + exported block model); <code>lib/html-parser.js</code> (tolerant tokenizer).</td></tr>
+<tr><td>2</td><td>T3</td><td><code>htmlToMd</code> walking the parser tree.</td></tr>
+<tr><td>3</td><td>T4</td><td><code>lib/converters/html-md.js</code> registers html→md + md→html (registry now lists 6).</td></tr>
+<tr><td>4</td><td>T5</td><td>md→html→md stability + suite green; browser dogfood + conformance.</td></tr>
+</table>
+
+<h2 id="risks">Key risks</h2>
+<ul>
+<li><strong>Block model contract</strong> — export <code>parseBlocks</code> so S3's <code>pdf-writer.js</code> can reuse it; design the shape now.</li>
+<li><strong>HTML tolerance</strong> — the parser must not throw on malformed/partial HTML (real-world input); test that explicitly.</li>
+<li><strong>Lossy round-trips</strong> (D10) — assert the documented lossy edges in tests rather than silently dropping them.</li>
+</ul>
+
+<h2 id="verify">Final verification</h2>
+<p><code>node tests/run.mjs</code> green incl. the S1 suite; the two new conversions appear in the selector with no UI code change; browser dogfood converts a real HTML page → MD and a real MD doc → HTML; <code>skill-patterns.md §A–§L</code> + host <code>CLAUDE.md</code> conformance; lints green.</p>
+</body></html>
