@@ -9,19 +9,37 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-17_logo-skill-refinements/
 plan_doc: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/03_plan.html
 tasks: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/tasks.yaml
 worktree: .claude/worktrees/feat-260617-3z4
-claimed_by: build:loop-main
-driver_holder: build:loop-main
+build_branch: feat/260617-3z4
+build_commit: cd2847f
+claimed_by: null
+driver_holder: null
 labels: [pmos-toolkit, logo, exploration, rename]
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-3z4 -->
+<!-- BUILT (Loop 2) 2026-06-18 on feat/260617-3z4 @ cd2847f. All 7 ACs green.
+     T1 rename /logos→/logo (git mv; name: logo; logo.html / <slug>.logo.json / logo-cache /
+     pmos:skill content="logo"; README rows + sibling /logo run.mjs citation swept; only
+     changelog/backlog history retains /logos). T2 svg-metrics --mark-type: lockup
+     (combination/emblem/wordmark) [0.8,4.0], square types [0.8,1.25], absent=back-compat,
+     unknown→exit 64, hard-fail id stays viewbox-not-square; TDD-first, +6 cases. T3 new
+     integer Phase 3 {#explore}: deterministic thin-brief clarify gate (consolidated
+     AskUserQuestion, each Q a Recommended) + 2–3 distinct concept directions + candidate
+     styles approved on two separate axes (idea, then look; --theme pre-selects, never skips);
+     generate/evaluate/deliver/learnings renumbered Phases 4–7, slugs preserved; learnings
+     inlines surface-bullets/y-n-edit-approval/never-silent-write; desc/Track-Progress/
+     Platform-Adaptation/Anti-patterns updated. No bump/changelog (D8 — /complete-dev's).
+     Gates: selftest 52/52, 4 lints + audit-recommended + skill-eval [D] exit 0,
+     comments-coverage PASS, live mark-type gate verified (lockup passes wide, favicon/default
+     fire, bogus exit 64). Worktree KEPT for Loop-3. Completes epic 260617-n7a (singleton)
+     → /complete-dev --epic 260617-n7a. -->
 
 ## Context
 
