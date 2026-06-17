@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-17_logo-skill-refinements/
 plan_doc: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/03_plan.html
 tasks: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260617-3z4
+claimed_by: build:loop-main
+driver_holder: build:loop-main
 labels: [pmos-toolkit, logo, exploration, rename]
 created: 2026-06-17
 updated: 2026-06-17
