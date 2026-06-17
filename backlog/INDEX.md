@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (define: epic 260617-jy8 → defined; stories 260617-1aq, 260617-xn4, 260617-gfx, 260617-wf6 planned)
+Last regenerated: 2026-06-17 (define: epic 260617-bx0 → defined; story 260617-ks1 planned)
 
-46 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+48 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -46,6 +46,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-jy8 → defined; stories 26061
 | 260617-pbk | defined | skill | pmos-learnkit | 0/1 | /playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything) |
 | 260617-4w1 | defined | skill | pmos-learnkit | 0/2 | /frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process) |
 | 260617-jy8 | defined | skill | pmos-toolkit | 0/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
+| 260617-bx0 | defined | skill | pmos-gamekit | 0/1 | /solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation) |
 
 ## must
 
@@ -73,6 +74,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-jy8 → defined; stories 26061
 | 260617-evo | story | feature | planned | 260617-pbk | /playbook evolution-mode rewrite — default-evolution, marketplace skill-picker, mine-everything, new milestone schema + voice self-check, remove case-study mode | 02_design.html | 03_plan.html |  |
 | 260617-2gw | story | feature | planned | 260617-4w1 | Ingest the 74-framework research batch into the bundled /frameworks corpus (272 → 346) + rebuild library | 02_design.html | 03_plan.html |  |
 | 260617-kac | story | feature | planned | 260617-4w1 | Re-found /frameworks on direct authoring: remove the Notion sync feature + ship the research/authoring process as reference docs | 02_design.html | 03_plan.html |  |
+| 260617-ks1 | story | feature | planned | 260617-bx0 | /solitaire first-run fixes batch — header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
