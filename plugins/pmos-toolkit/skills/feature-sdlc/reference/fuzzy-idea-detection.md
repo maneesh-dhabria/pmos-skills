@@ -1,6 +1,6 @@
-# Fuzzy-idea detection (Phase 1a)
+# Fuzzy-idea detection (Phase 1b)
 
-Deterministic heuristic used by `/feature-sdlc` Phase 1a to classify the run's seed as **fuzzy** (warrants `/ideate`) or **formed** (skip straight to `/requirements`). Mirrors the shape of `frontend-detection.md` — small, transparent, side-effect-free.
+Deterministic heuristic used by `/feature-sdlc` Phase 1b to classify the run's seed as **fuzzy** (warrants `/ideate`) or **formed** (skip straight to `/requirements`). Mirrors the shape of `frontend-detection.md` — small, transparent, side-effect-free.
 
 ## Inputs
 

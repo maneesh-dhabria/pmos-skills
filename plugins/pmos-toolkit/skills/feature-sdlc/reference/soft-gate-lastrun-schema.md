@@ -24,7 +24,7 @@ main_root="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"   # parent of th
 version: 1
 last_updated: 2026-06-05T14:23:00Z   # ISO-8601 UTC; bumped on every successful Phase 9 write
 defaults:
-  ideate: skip        # Phase 1a. run | skip
+  ideate: skip        # Phase 1b. run | skip
   creativity: skip    # Phase 3a. run | skip
   wireframes: run     # Phase 3b. run | skip
   prototype: skip     # Phase 3c. run | skip
@@ -49,7 +49,7 @@ Read once in Phase 0 (after the learnings load), into an in-memory `soft_gate_de
 
 complete-dev seeds Phase 0a from built-in defaults even on the first run, because every signal it needs (detected deploy path, merge guard, current version) is available at Phase 0. feature-sdlc's soft gates are different: two of them carry recommendations that can only be computed from artifacts produced later in the pipeline —
 
-- `/ideate` (Phase 1a) recommends Run/Skip from `reference/fuzzy-idea-detection.md` applied to the seed.
+- `/ideate` (Phase 1b) recommends Run/Skip from `reference/fuzzy-idea-detection.md` applied to the seed.
 - `/wireframes` (Phase 3b) recommends Run/Skip from `reference/frontend-detection.md` applied to the **requirements doc**, which does not exist until Phase 2.
 
 A consolidated first-run prompt would therefore have to *guess* those recommendations before the evidence exists — worse than letting each gate fire with its real heuristic. So there are **no built-in defaults**: with no lastrun, Phase 0e is skipped and each gate behaves exactly as it did before this feature. Consolidation is a pure 2nd-run-onward optimisation.
@@ -67,7 +67,7 @@ Written at the **end of Phase 9 (final summary)** — after the pipeline has run
 
 | Field | Phase | Effect when Phase 0e confirmed |
 |---|---|---|
-| `ideate: run` / `skip` | 1a | Gate prompt suppressed; remembered disposition applied. The `--no-ideate` flag and the `formed`-seed auto-skip still take precedence (they are evaluated first); only a `fuzzy` seed that would otherwise present the gate is short-circuited. |
+| `ideate: run` / `skip` | 1b | Gate prompt suppressed; remembered disposition applied. The `--no-ideate` flag and the `formed`-seed auto-skip still take precedence (they are evaluated first); only a `fuzzy` seed that would otherwise present the gate is short-circuited. |
 | `creativity: run` / `skip` | 3a | Gate prompt suppressed; remembered disposition applied. |
 | `wireframes: run` / `skip` | 3b | Gate prompt suppressed **iff** the recomputed frontend heuristic class equals `detected_signals.frontend` (unchanged). If the class **changed** since lastrun, the gate **re-fires** (the requirements shifted — the prior choice may be wrong). Tier-1's force-skip still wins regardless (existing rule). |
 | `prototype: run` / `skip` | 3c | Gate prompt suppressed; remembered disposition applied. |
