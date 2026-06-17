@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (define: epic 260617-4w1 → defined; stories 260617-2gw, 260617-kac planned)
+Last regenerated: 2026-06-17 (define: epic 260617-jy8 → defined; stories 260617-1aq, 260617-xn4, 260617-gfx, 260617-wf6 planned)
 
-41 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+46 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -45,6 +45,7 @@ Last regenerated: 2026-06-17 (define: epic 260617-4w1 → defined; stories 26061
 | 260616-tqf | released | skill | pmos-learnkit | 4/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
 | 260617-pbk | defined | skill | pmos-learnkit | 0/1 | /playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything) |
 | 260617-4w1 | defined | skill | pmos-learnkit | 0/2 | /frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process) |
+| 260617-jy8 | defined | skill | pmos-toolkit | 0/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
 
 ## must
 
@@ -56,6 +57,10 @@ Last regenerated: 2026-06-17 (define: epic 260617-4w1 → defined; stories 26061
 
 | id | kind | type | status | parent | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|---|
+| 260617-1aq | story | feature | planned | 260617-jy8 | /diagram --mode mindmap — vendored zero-dep tidy-tree/radial auto-layout → themed SVG | 02_design.html | 03_plan.html |  |
+| 260617-xn4 | story | feature | planned | 260617-jy8 | /summary-tldr --mode scaffold + narrative refactor (back-compat) + mindmap mode (deps 260617-1aq) | 02_design.html | 03_plan.html |  |
+| 260617-gfx | story | feature | planned | 260617-jy8 | /summary-tldr --mode video — delegate to /explainer-video on the original source (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
+| 260617-wf6 | story | feature | planned | 260617-jy8 | /summary-tldr --mode shorts — self-contained ≤140-char card carousel + relevant-media pairing (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
 | 260616-v4h | story | feature | planned | 260616-tqf | Curated-references overlay engine — ship scrubbed corpus + IDF prefilter + research-phase subagent + sourcing.md patch | 02_design.html | 03_plan.html |  |
 | 260616-f7w | story | feature | planned | 260616-tqf | Extract _shared/library-viewer/ substrate + retrofit /frameworks onto it (zero regression) | 02_design.html | 03_plan.html |  |
 | 260616-w1v | story | feature | planned | 260616-tqf | Retrofit /primer browse viewer onto the library-viewer substrate (preserve Curated/Yours) | 02_design.html | 03_plan.html |  |
