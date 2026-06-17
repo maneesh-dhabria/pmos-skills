@@ -1,0 +1,117 @@
+schema_version: 1
+story: 260617-evo
+epic: 260617-pbk
+route: skill
+plugin: pmos-learnkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-learnkit/skills/playbook
+# Singleton skill epic — full /playbook rewrite (case-study → evolution-only). One vertical slice.
+# Reference: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md.
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks here —
+# they live in the design's #acceptance / release-prereqs section; /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Author reference/evolution-sources.md (two-source mining split: docs = what was decided, sessions = raw author inputs)"
+    ac: [AC4]
+    deps: []
+    parallel: true
+    detail: >
+      New reference file per design #mining + D5. Document the four-source spine (changelog,
+      features/*, git log, session logs) and the docs-vs-sessions authority split, the
+      mine-everything / no-window rule (D4), and the skill-scoped filter (D3). This is the file
+      SKILL.md's mining + synthesize phases cite (FR-8) — no dangling cite.
+  - id: T2
+    title: "Rewrite reference/article-schema.md to the evolution schema + §Voice rules + pre-emit self-check"
+    ac: [AC6, AC7]
+    deps: []
+    parallel: true
+    detail: >
+      Replace the per-problem section list with the evolution schema (design #schema): mandatory
+      cold-reader "What this is" first; one section per milestone anchored on 1–2 inflection
+      decisions, each with a verbatim opening-prompt quote (in-narrative, not a gallery) + a
+      "Where the pipeline mattered" callout naming the pmos skill; a cross-cutting "How the
+      pipeline shaped the whole arc"; a short understated close. Add §Voice (4 rules: plain title /
+      cold-reader-first / understated / implied lesson) + the binary pre-emit self-check (design
+      #voice, FR-6/7). Keep the self-sufficiency rule, the tweet-thread spec, and the single-folder
+      output layout (D12 — repo|skill -evolution/; tweet-thread.md kept). Drop the thin-thread
+      quality gate (D11).
+  - id: T3
+    title: "Remove reference/clustering.md and reconcile session-log-format.md / resolver.md (keep resolver, drop clustering-only contracts)"
+    ac: [AC5, AC9]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Delete reference/clustering.md (D11). Keep resolver.md + session-log-format.md (D10) but
+      strip any clustering/scoring/boundary_confidence/merge_suggestion prose that no longer has a
+      consumer. Confirm the decision-signal + starting-prompt extraction prose survives — the
+      milestone→session verbatim-input pass still needs it.
+  - id: T4
+    title: "Rewrite scripts/scout.mjs into a milestone-spine builder + add a --selftest"
+    ac: [AC5]
+    deps: [T1, T3]
+    parallel: false
+    detail: >
+      Per design #scout. Inventory changelog + features/* into an ordered milestone list (named
+      decisions, doc paths); for skill mode filter to the target skill's files (AC2/D3). Call the
+      retained resolver to attribute sessions + print the coverage line. Map each milestone to its
+      originating session(s) by feature-slug / branch / time window. Emit milestone-spine JSON with
+      NO scoring / boundary_confidence / merge_suggestion. Preserve the cheap-scout invariant (no
+      raw session bodies at scout time — only changelog/feature text + cheap session fields). Ship a
+      --selftest over fixtures.
+  - id: T5
+    title: "Rewrite tests/scout.test.mjs to the spine contract; keep resolver.test.mjs + render-surface.test.sh + structure.test.sh green"
+    ac: [AC5, AC9]
+    deps: [T4]
+    parallel: false
+    detail: >
+      Failing-first then green. Replace clustering/ranking assertions with milestone-spine
+      assertions (ordered milestones, milestone→session mapping, no-scoring-fields, cheap-scout
+      no-body-read). Update fixtures as needed. resolver.test.mjs and render-surface.test.sh must
+      still pass unchanged (D10). Update structure.test.sh for the new reference file set
+      (evolution-sources.md present, clustering.md absent).
+  - id: T6
+    title: "Rewrite SKILL.md: frontmatter (desc + argument-hint), target-resolution phase, mining/scout/synthesize phases, screenshot sourcing, anti-patterns"
+    ac: [AC1, AC2, AC3, AC8, AC10, AC11]
+    deps: [T1, T2, T4]
+    parallel: false
+    detail: >
+      The load-bearing rewrite. (a) Frontmatter: rewrite description for evolution-only triggers;
+      argument-hint = "[--repo <path>] [--skill <name>] [--include-headless] [--format <html|md|both>]
+      [--non-interactive] [--interactive]" (drop --days/--sessions/--since per D4/D11; add --skill).
+      (b) New "Resolve target" phase: deterministic marketplace detection (3 signals) → AskUserQuestion
+      listing installed skills + "whole repo / a plugin (Recommended)" in a marketplace; no prompt
+      otherwise; --skill pre-selects; unknown name errors with the skill list (FR-1/2/3). Mark the
+      AskUserQuestion with the Recommended option (whole repo). Non-interactive defers → whole repo +
+      OQ (D13). (c) Replace Resolve/Filter + Propose + Pick + Deep-read with: scout-spine →
+      deep-read-per-milestone (cite evolution-sources.md). (d) Synthesize: evolution schema + the
+      pre-emit voice self-check (regenerate on fail). (e) Screenshot step: prefer committed
+      wireframes (served + Playwright @1280×800) before text-degrade; clean up .playwright-mcp/
+      (FR-9). (f) Emit: single folder (D12). (g) Anti-Patterns: drop clustering/padding/multi-repo
+      ones; keep raw-body-at-scout, path-prefix-resolution, headless-default, never-post/never-safe,
+      workstream-pollution. (h) Keep the non-interactive inline block BYTE-IDENTICAL to
+      skills/_shared/non-interactive.md. Update the spec-lineage footer to the new design_doc.
+  - id: T7
+    title: "Run the 4 hygiene lints + audit-recommended + skill-eval [D] half; fix to green (or record accepted residuals)"
+    ac: [AC11]
+    deps: [T5, T6]
+    parallel: false
+    detail: >
+      Run tools/lint-non-interactive-inline.sh, tools/lint-flags-vs-hints.sh (every hint flag handled;
+      --skill handled; --days/--sessions/--since fully removed), tools/lint-phase-refs.sh,
+      tools/audit-recommended.sh (the target-resolution AskUserQuestion has a Recommended option),
+      and feature-sdlc/tools/skill-eval-check.sh --target generic on the skill dir. Fix all [D]
+      failures; a-name-matches-dir must pass.
+  - id: T8
+    title: "Load-bearing live dogfood: run the rewritten /playbook against this repo (marketplace path) and against poker-coach (repo path)"
+    ac: [AC1, AC2, AC6, AC8, AC10]
+    deps: [T7]
+    parallel: false
+    detail: >
+      End-to-end gate. (1) In agent-skills (a marketplace) → confirm the skill-picker lists installed
+      skills + whole-repo; pick a skill (e.g. /playbook itself) → assert skill-scoped spine + an
+      article whose DOM has the cold-reader "What this is" first, ≥1 milestone with a verbatim prompt
+      quote + a "Where the pipeline mattered" callout, the cross-cutting section, and a subtle close;
+      run the voice self-check. (2) Against poker-coach (non-marketplace) → no target prompt; compare
+      the output shape to the hand-built worked target. Capture screenshots from committed wireframes;
+      verify .playwright-mcp/ is cleaned up. Confirm one -evolution/ folder + tweet-thread.md +
+      REVIEW-BEFORE-SHARING.md. Save evidence under the story dogfood/ dir.

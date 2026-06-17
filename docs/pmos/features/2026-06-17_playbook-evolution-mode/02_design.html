@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/playbook → evolution-only mode — epic design (260617-pbk)</title>
+<style>
+  :root { --ink:#1a1a1a; --mut:#666; --line:#e2e2e2; --accent:#2b6cb0; --warn:#b7791f; --pos:#2f855a; }
+  body { font: 16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; color:var(--ink); max-width:48rem; margin:0 auto; padding:2rem 1.25rem 6rem; }
+  h1 { font-size:1.7rem; line-height:1.25; }
+  h2 { font-size:1.25rem; margin-top:2.4rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin-top:1.6rem; }
+  code { background:#f4f4f4; padding:.1em .35em; border-radius:3px; font-size:.88em; }
+  pre { background:#f7f7f7; border:1px solid var(--line); border-radius:6px; padding:.8rem 1rem; overflow:auto; font-size:.85rem; }
+  table { border-collapse:collapse; width:100%; font-size:.9rem; margin:1rem 0; }
+  th,td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:#fafafa; }
+  blockquote { border-left:3px solid var(--accent); margin:.8rem 0; padding:.2rem 1rem; color:#333; background:#f8fbff; }
+  .meta { color:var(--mut); font-size:.85rem; }
+  .tag { display:inline-block; font-size:.72rem; font-weight:600; padding:.1em .5em; border-radius:10px; }
+  .tag.block { background:#fde8e8; color:#9b2c2c; }
+  .tag.fric { background:#fdf2e0; color:#b7791f; }
+  .tag.nit { background:#edf2f7; color:#4a5568; }
+  .callout { border:1px solid var(--line); border-left:4px solid var(--accent); background:#f8fbff; padding:.7rem 1rem; border-radius:0 6px 6px 0; margin:1rem 0; }
+  .callout.warn { border-left-color:var(--warn); background:#fffdf5; }
+  .keep { color:var(--pos); font-weight:600; }
+  .drop { color:#9b2c2c; font-weight:600; }
+</style>
+</head>
+<body>
+
+<h1>/playbook → evolution-only mode</h1>
+<p class="meta">Epic <code>260617-pbk</code> · route: skill · pmos-learnkit · design_doc · 2026-06-17<br>
+Source: <code>docs/pmos/playbooks/SKILL-FEEDBACK-for-playbook-author.md</code> (real run on <code>poker-coach</code>, plugin v0.27.0) + three maintainer guideline overrides. Worked target: <code>poker-coach/docs/pmos/playbooks/2026-06-17_poker-coach-evolution/index.html</code>.</p>
+
+<h2 id="summary">Summary</h2>
+<p><code>/playbook</code> is rebuilt around a single idea: <strong>trace how a product (or one skill) evolved, and how the AI-SDLC pipeline shaped the decisions along the way</strong> — structured by inflection points, not a release log. The per-problem case-study mode (FR-50/51, clustering, ranked propose/pick) is <strong>removed entirely</strong> to keep the skill simple. Evolution becomes the default and only mode; there is no subcommand for the common case.</p>
+<p>Three maintainer overrides drive the shape and <em>win over the source feedback wherever they conflict</em> (the feedback proposed "keep both modes"; the maintainer chose evolution-only):</p>
+<ol>
+  <li><strong>Evolution is the default, always.</strong> In a Claude Code / Codex skills-marketplace repo, prompt the user to choose a target (a specific skill <em>or</em> the whole repo). Otherwise, target the repo's own evolution with no prompt.</li>
+  <li><strong>Case-study mode is removed.</strong> Simpler, easier to understand.</li>
+  <li><strong>No day/session window.</strong> Mine everything related to the repo/skill; the milestone spine comes from committed artifacts, not a user-supplied window.</li>
+</ol>
+
+<h2 id="context">Context — the run that prompted this</h2>
+<p>A real <code>/playbook</code> run produced two accurate per-problem case studies, but the maintainer's verdict was they "will not be useful for PMs": a single problem thread's takeaway is entangled with the domain (poker), so little transfers. The reusable asset is the <em>evolution arc</em> and the pipeline's influence on it. The maintainer discarded the case studies and hand-built a project-evolution playbook (the worked target above) — milestones anchored on inflection points, a "Where the pipeline mattered" callout per milestone, a cross-cutting process section, a plain title, a cold-reader intro, and a subtle close. This epic encodes that worked example into the skill.</p>
+
+<h2 id="decisions">Decision log</h2>
+<table>
+<thead><tr><th>ID</th><th>Decision</th><th>Why / source</th></tr></thead>
+<tbody>
+<tr><td>D1</td><td><strong>Evolution mode is the default and only mode.</strong> Case-study mode removed.</td><td>Maintainer override #2; "keep /playbook simple."</td></tr>
+<tr><td>D2</td><td><strong>Target resolution by repo shape.</strong> If the repo is a CC/Codex skills marketplace → prompt: each installed skill <em>or</em> "the whole repo / a plugin" (Recommended = whole repo). Else → target the repo directly, no prompt. <code>--skill &lt;name&gt;</code> (or NL "evolve the X skill") pre-selects and skips the prompt.</td><td>Maintainer override #1 + Q1 answer (pick-skill-or-whole-repo).</td></tr>
+<tr><td>D3</td><td><strong>Skill-evolution mining is skill-scoped:</strong> only the feature folders and sessions that touch that skill's files (<code>SKILL.md</code> / <code>reference/</code> / <code>scripts/</code>), not the whole plugin.</td><td>Q2 answer (skill-scoped).</td></tr>
+<tr><td>D4</td><td><strong>Mine everything — no time/count window.</strong> Remove <code>--days</code>/<code>--sessions</code>/<code>--since</code>. The milestone spine is derived from committed pipeline artifacts; sessions are mined in full and deep-read in per-milestone windows derived from that spine.</td><td>Maintainer override #3.</td></tr>
+<tr><td>D5</td><td><strong>Two co-equal mining sources.</strong> Docs are the authority for <em>what was decided</em>; sessions are the authority for <em>what the author originally said and fed in</em> (verbatim opening prompt, <code>@</code>-files, pasted context). Not docs-only; not sessions-led. New <code>reference/evolution-sources.md</code> documents the split.</td><td>Feedback §1.</td></tr>
+<tr><td>D6</td><td><strong>New evolution article schema</strong> (replaces the per-problem section list). See <a href="#schema">#schema</a>.</td><td>Feedback §1 + worked target.</td></tr>
+<tr><td>D7</td><td><strong>Voice rules + pre-emit binary self-check.</strong> Plain descriptive titles; cold-reader context first; understated voice; implied lesson. See <a href="#voice">#voice</a>.</td><td>Feedback §2.</td></tr>
+<tr><td>D8</td><td><strong>Milestone spine</strong> = changelog milestones (named decisions) + <code>features/*</code> (requirements/grills/spec/verify) + <code>git log</code> ordering, each mapped to its originating session(s) for the verbatim-input pass.</td><td>Feedback §1 (4-source list).</td></tr>
+<tr><td>D9</td><td><strong>Screenshots prefer committed wireframes.</strong> <code>docs/pmos/features/*/wireframes*.html</code> are self-contained; serve via <code>python3 -m http.server</code> + Playwright @1280×800 before degrading to text. Clean up the <code>.playwright-mcp/</code> cache (temp dir or remove after).</td><td>Feedback §4 nits.</td></tr>
+<tr><td>D10</td><td><strong>Kept unchanged:</strong> the multi-signal resolver (still needed to find sessions across worktrees), the anonymizer + <code>REVIEW-BEFORE-SHARING.md</code> share gate, the tweet-thread emit, shared-substrate rendering, the non-interactive contract.</td><td>Feedback §4 (resolver, render path validated) + share-gate invariant.</td></tr>
+<tr><td>D11</td><td><strong>Removed:</strong> <code>reference/clustering.md</code>; scout clustering/scoring/boundary-confidence/merge-suggestion logic; the ranked Propose + Pick phases; the per-problem <code>article-schema.md</code> sections; the thin-thread quality gate; the <code>--days/--sessions/--since</code> flags. <code>--include-headless</code> stays (headless filtering is still relevant).</td><td>D1, D4.</td></tr>
+<tr><td>D12</td><td><strong>Single article per run.</strong> One folder: repo mode → <code>{docs_path}/playbooks/{YYYY-MM-DD}_&lt;repo&gt;-evolution/</code>; skill mode → <code>…_&lt;skill&gt;-evolution/</code>. Not one folder per problem.</td><td>D1.</td></tr>
+<tr><td>D13</td><td><strong>Non-interactive:</strong> a bare invocation in a marketplace repo defers the target choice and uses the Recommended default (whole repo), logged as an open question; <code>--skill</code> is deterministic and never prompts.</td><td>Non-interactive contract (W14).</td></tr>
+</tbody>
+</table>
+
+<h2 id="mode-model">The mode model</h2>
+<h3>Target resolution (Phase: resolve-target)</h3>
+<p>After setup, <code>/playbook</code> resolves a single <code>target ∈ {repo, skill:&lt;name&gt;}</code>:</p>
+<ol>
+  <li><strong>Explicit:</strong> <code>--skill &lt;name&gt;</code> (or NL "the &lt;name&gt; skill") → <code>skill:&lt;name&gt;</code>. <code>--repo &lt;path&gt;</code> still sets which repo; it does not pick skill-vs-repo.</li>
+  <li><strong>Marketplace detection</strong> (deterministic): the resolved repo is a skills marketplace iff any of — a <code>.claude-plugin/marketplace.json</code>, a <code>.codex-plugin/marketplace.json</code>, or ≥1 <code>plugins/*/skills/*/SKILL.md</code> — is present.</li>
+  <li><strong>Marketplace + no explicit target:</strong> present an <code>AskUserQuestion</code> listing each installed skill plus "The whole repo / a plugin (Recommended)". The user picks one. (Non-interactive → Recommended = whole repo, logged as OQ.)</li>
+  <li><strong>Not a marketplace:</strong> <code>target = repo</code>, no prompt.</li>
+</ol>
+<div class="callout">The prompt's Recommended option is <strong>whole repo</strong>, so the non-interactive auto-pick and the interactive default agree — a marketplace run with no <code>--skill</code> evolves the whole repo unless the user chooses a skill.</div>
+
+<h2 id="mining">Mining strategy — mine everything, two sources</h2>
+<p>No window. The skill inventories the full committed history and the full attributed session set, then anchors the deep read on the milestone spine:</p>
+<table>
+<thead><tr><th>Source</th><th>Authority for</th><th>Read at</th></tr></thead>
+<tbody>
+<tr><td><code>changelog.md</code> (or repo changelog)</td><td>milestone spine + named per-version decisions</td><td>scout (cheap)</td></tr>
+<tr><td><code>features/&lt;f&gt;/</code> — <code>01_requirements</code>, <code>grills/*</code>, <code>02_spec</code> (D/S/P ids), <code>verify/*</code></td><td>problem framing, the decisions that changed direction, what verification caught</td><td>scout (inventory) → deep-read (per picked milestone)</td></tr>
+<tr><td><code>git log</code></td><td>ordering + in-flight/unreleased work ("where it's headed")</td><td>scout (cheap)</td></tr>
+<tr><td><strong>session logs</strong> (via the resolver)</td><td><strong>the raw, un-synthesized author inputs the docs drop</strong> — verbatim opening prompt, <code>@</code>-files / pasted context, original phrasing, inflection quotes</td><td>deep-read, scoped to each milestone's session window</td></tr>
+</tbody>
+</table>
+<p><strong>Net:</strong> docs say <em>what was decided</em>; sessions say <em>what the author originally said and fed in</em>. An evolution article needs both — the cost saving from D4 is in not clustering the whole repo's sessions, <em>not</em> in skipping the session read. The split lives in <code>reference/evolution-sources.md</code>.</p>
+<p><strong>Skill-scoped (D3):</strong> when <code>target = skill:&lt;name&gt;</code>, the spine is filtered to feature folders and changelog entries whose changes touch that skill's files, and the session window is filtered to sessions that invoked or edited that skill.</p>
+
+<h2 id="scout">Scout rewrite</h2>
+<p><code>scripts/scout.mjs</code> is rewritten from a session-clustering ranker into a <strong>milestone-spine builder</strong>:</p>
+<ol>
+  <li>Inventory <code>changelog</code> + <code>features/*</code> → an ordered list of milestones (version/feature, named decisions, doc paths). For skill mode, filter to the target skill.</li>
+  <li>Run the <strong>retained resolver</strong> to attribute all sessions to the repo (across worktrees / merged-deleted), printing the coverage line.</li>
+  <li>Map each milestone → its originating session(s) by feature-folder slug / branch / time window, so the deep read can recover the verbatim opening prompt per milestone.</li>
+  <li>Emit a milestone-spine JSON (no scoring, no boundary_confidence, no merge_suggestion). The cheap-scout invariant holds: <strong>no raw session bodies are read at scout time</strong> — only changelog/feature text + cheap session fields.</li>
+</ol>
+<p>The deterministic <code>session-log-format.md</code> field contract and the resolver's three signals are unchanged.</p>
+
+<h2 id="schema">Evolution article schema</h2>
+<p>Replaces the per-problem section list in <code>article-schema.md</code>. Section order:</p>
+<ol>
+  <li><strong>"What this is"</strong> — cold-reader context: what the product/repo (or skill) is and what the document covers. <strong>Mandatory first section, before any takeaway or claim.</strong></li>
+  <li><strong>One section per milestone</strong>, versioned/named (e.g. <code>v0.3 — Playing it exposed the real product</code>), each:
+    <ul>
+      <li>anchored on its <strong>1–2 inflection decisions</strong> (not every change);</li>
+      <li>carrying the author's <strong>verbatim opening prompt / context input</strong> as short quoted blocks <em>inside the milestone narrative</em> (not a separate gallery);</li>
+      <li>carrying a <strong>"Where the pipeline mattered"</strong> callout naming the specific pmos skill (<code>/grill</code>, <code>/spec</code>, <code>/verify</code>, …) and what it changed.</li>
+    </ul>
+  </li>
+  <li><strong>"How the pipeline shaped the whole arc"</strong> — cross-cutting reflection on the pipeline's influence.</li>
+  <li><strong>A short, understated takeaway</strong> — a reflective close, not a bulleted billboard.</li>
+</ol>
+<p>The self-sufficiency rule (reader has no repo access → embed excerpts/screenshots inline) carries over.</p>
+
+<h2 id="voice">Voice rules + pre-emit self-check</h2>
+<p>Encoded in <code>article-schema.md §Voice</code> and enforced by a binary self-check run before emit (regenerate on any fail):</p>
+<table>
+<thead><tr><th>Rule</th><th>Self-check question</th></tr></thead>
+<tbody>
+<tr><td><span class="tag fric">friction</span> Plain titles</td><td>Does the title avoid hook patterns ("X → Y → Z", curiosity-gap)? Is it plainly descriptive?</td></tr>
+<tr><td><span class="tag block">blocker</span> Cold-reader context</td><td>Is there context establishing what the project/skill is before the first claim?</td></tr>
+<tr><td><span class="tag fric">friction</span> Understated voice</td><td>Any sentence overclaiming the author's or the AI's cleverness ("I made the AI teach me…")?</td></tr>
+<tr><td><span class="tag fric">friction</span> Implied lesson</td><td>Is the lesson shown/reflective rather than declared as bold pronouncements?</td></tr>
+</tbody>
+</table>
+
+<h2 id="screenshots">Screenshots &amp; capture hygiene</h2>
+<ul>
+  <li><span class="tag nit">nit</span> Prefer committed wireframes as a reliable visual source when the live app is hard to drive: <code>docs/pmos/features/*/wireframes*.html</code> are self-contained — serve with <code>python3 -m http.server</code> and capture via Playwright at 1280×800, before falling back to a text excerpt.</li>
+  <li><span class="tag nit">nit</span> Run capture in a temp dir or clean up the <code>.playwright-mcp/</code> cache afterward — it must not be left in the repo root.</li>
+  <li><span class="tag nit">nit</span> The render doc-comment-strip gotcha is real and already documented in <code>artifact-template.html</code>; no change.</li>
+</ul>
+
+<h2 id="removal">What is removed vs kept</h2>
+<p><span class="drop">Removed:</span> <code>reference/clustering.md</code>; scout clustering/scoring/boundary-confidence/merge-suggestion; the ranked Propose + Pick phases; the per-problem <code>article-schema.md</code> sections (TL;DR / Starting-prompts gallery / Decision-ledger table / per-problem Takeaway); the thin-thread quality gate; <code>--days</code>/<code>--sessions</code>/<code>--since</code>; the clustering/padding/multi-repo Anti-Patterns.</p>
+<p><span class="keep">Kept:</span> the multi-signal resolver + coverage line; <code>session-log-format.md</code>; the anonymizer + <code>REVIEW-BEFORE-SHARING.md</code> share gate (the inviolable "never post, never mark safe" rule); the tweet-thread emit; shared-substrate render + the doc-comment-strip note; the non-interactive block; <code>--include-headless</code>; <code>--format</code>; <code>--repo</code>.</p>
+
+<h2 id="flags">Flag surface (after change)</h2>
+<pre>argument-hint: "[--repo &lt;path&gt;] [--skill &lt;name&gt;] [--include-headless] [--format &lt;html|md|both&gt;] [--non-interactive] [--interactive]"</pre>
+<p><code>--skill</code> is a new contract flag (typed value, headless determinism — passes the §I 4-test). <code>--days/--sessions/--since</code> are deleted from the hint and the body.</p>
+
+<h2 id="frs">Functional requirements</h2>
+<table>
+<thead><tr><th>FR</th><th>Requirement</th><th>Verify</th></tr></thead>
+<tbody>
+<tr><td>FR-1</td><td>Bare <code>/playbook</code> in a non-marketplace repo runs evolution mode against the repo with no target prompt.</td><td>marketplace-detection returns false → no AskUserQuestion; target=repo.</td></tr>
+<tr><td>FR-2</td><td>Bare <code>/playbook</code> in a marketplace repo prompts with each installed skill + "whole repo / a plugin (Recommended)".</td><td>detection true → one AskUserQuestion whose options include every <code>plugins/*/skills/*</code> name and a whole-repo option marked Recommended.</td></tr>
+<tr><td>FR-3</td><td><code>--skill &lt;name&gt;</code> (or NL form) sets <code>target=skill:&lt;name&gt;</code> and skips the prompt; unknown name → error listing available skills.</td><td>flag present → no prompt; bad name → exit with skill list.</td></tr>
+<tr><td>FR-4</td><td>Skill-evolution mining is skill-scoped (feature folders + sessions touching the skill's files only).</td><td>spine + session window filtered to the target skill.</td></tr>
+<tr><td>FR-5</td><td>No <code>--days/--sessions/--since</code>; the full history is mined; the spine comes from committed artifacts.</td><td>flags absent from hint + body; scout reads changelog+features for the spine.</td></tr>
+<tr><td>FR-6</td><td>The article follows the <a href="#schema">evolution schema</a>: cold-reader "What this is" first; per-milestone sections with verbatim prompt + "Where the pipeline mattered" callout; cross-cutting section; subtle close.</td><td>rendered DOM has the mandatory first section + ≥1 milestone with both a quoted prompt and a pipeline callout.</td></tr>
+<tr><td>FR-7</td><td>Pre-emit voice self-check (4 binary questions) runs and regenerates on fail.</td><td>self-check questions present in the synthesize phase; documented in §Voice.</td></tr>
+<tr><td>FR-8</td><td>Two-source mining is documented in <code>reference/evolution-sources.md</code> and cited by the mining + synthesize phases.</td><td>file exists; SKILL.md cites it; no dangling cite.</td></tr>
+<tr><td>FR-9</td><td>Screenshots prefer committed wireframes; Playwright cache is cleaned up; capture never hard-fails.</td><td>screenshot step names the wireframes source + cleanup.</td></tr>
+<tr><td>FR-10</td><td>Resolver, anonymizer/share-gate, tweet-thread, substrate render, non-interactive block all retained and still pass their existing tests.</td><td>kept references intact; <code>tests/</code> green after removal of clustering tests.</td></tr>
+<tr><td>FR-11</td><td>Single output folder per run (D12); existing folder → overwrite/suffix/cancel prompt.</td><td>emit writes one <code>…-evolution/</code> folder.</td></tr>
+</tbody>
+</table>
+
+<h2 id="acceptance">Skill-eval &amp; release prerequisites</h2>
+<p>The rewritten skill must conform to <code>plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§L</code> and the host <code>CLAUDE.md</code> conventions (canonical skill path, manifest version-sync, release entry point). The non-interactive inline block must stay byte-identical to <code>skills/_shared/non-interactive.md</code>; every <code>AskUserQuestion</code> needs a <code>(Recommended)</code> option or a <code>defer-only</code> tag. Version bump, changelog, README row, and manifest sync are <strong>release prerequisites for /complete-dev</strong> — not <code>/execute</code> tasks.</p>
+
+<h2 id="out-of-scope">Out of scope / non-goals</h2>
+<ul>
+  <li>Per-problem case-study mode (removed) and its clustering/ranking.</li>
+  <li>Day/session windowing.</li>
+  <li>Multi-repo "how I use AI" generalization.</li>
+  <li>Auto-posting or auto-marking content safe (the share gate is inviolable).</li>
+  <li>Markdown/Substack/LinkedIn export variants (still deferred).</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>This epic touches exactly one skill, and every change is interdependent (the SKILL.md phases reference the new scout contract and the new schema; the scout rewrite and the schema rewrite are one vertical slice). Splitting would create cross-story task dependencies → fails the D24 litmus. <strong>Singleton skill epic = one story</strong> (<code>260617-evo</code>), carrying the full rewrite, scored once against <code>skill-eval.md</code> at build.</p>
+
+</body>
+</html>
