@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-17 — pmos-toolkit 2.84.0: /research — decision-support deep research
+
+A new **`/research`** command runs decision-support research for you: it decomposes a question into sub-questions, fans out a worker per sub-question to gather evidence, verifies every source against a binary anti-slop gate (it fetches what it cites and reports honest gaps rather than guessing), then synthesizes one cited report. Depth scales with `--depth brief|standard|deep`, and a hard approval gate shows you the research plan and estimated cost before any large fan-out spends.
+
+- **`/research`.** Ask a decision question and get back a fan-out → verify → synthesize report with tiered, fetched-and-attributable citations — no hallucinated sources.
+- Skill quality & internals: the research *method* now lives once in a shared `_shared/research/` substrate (sourcing, source-tiers, fan-out), and `/artifact`'s research phase was refactored to delegate to it — so the toolkit has exactly one research engine instead of two divergent copies.
+
 ## 2026-06-15 — pmos-learnkit 0.26.1: primers you generate now match the curated ones
 
 Primers you write with `/primer` now look exactly like the curated library primers. Previously a generated primer could render full-width and without the numbered section signatures, while curated primers showed a centered, numbered column — an inconsistency caused by the write step hand-building the page instead of using the shared document template. `/primer` now renders every primer through the same deterministic template the rest of the pipeline uses, with a built-in check that the page came out structurally correct.

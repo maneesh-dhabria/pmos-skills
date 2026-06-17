@@ -18,6 +18,7 @@
 - **/grill** — Adversarially interview you about a plan, spec, or design to surface shaky assumptions.
 - **/creativity** — Apply structured creativity techniques to requirements before /spec.
 - **/ripple-effects** — Simulate first-, second-, and third-order effects via the Futures Wheel.
+- **/research** — PM decision-support deep-research skill: fan-out sourcing, tiered source verification, and a synthesized cited report.
 - **/simulate-spec** — Pressure-test a spec against realistic and adversarial scenarios.
 - **/wireframes** — Static mid-fi HTML wireframes plus a Figma-like canvas viewer.
 - **/prototype** — High-fidelity, single-HTML interactive prototype stitched from wireframes.
