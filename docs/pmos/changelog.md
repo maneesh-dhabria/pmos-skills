@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-18 — pmos-utilities 0.3.0: new /converter — offline file-format conversion
+
+**New skill: `/converter`.** A zero-dependency, registry-driven file-format converter that runs entirely offline — a small local Node server with a single-file HTML UI, no npm install, no network. Drop in a file, pick a target format, get the result. v1 ships eight conversions across four reversible pairs:
+
+- **JSON ↔ YAML** and **CSV ↔ JSON** — pure data round-trips.
+- **HTML ↔ Markdown** — a vendored zero-dep Markdown engine plus a tolerant HTML parser; lossy edges (scripts, styles, titles) are stripped on the way to Markdown.
+- **PDF ↔ Markdown** — PDF→MD reads text with a graceful vendored-parser fallback (and an optional host `claude` CLI for higher fidelity); MD→PDF writes via a vendored standard-14 PDF writer.
+
+Conversions are auto-discovered from drop-in modules — adding a new pair is one self-registering file. The engine is pure and self-tested; the server and UI never touch conversion logic.
+
 ## 2026-06-18 — pmos-learnkit 0.29.0: /playbook is now an evolution story-teller
 
 **`/playbook` is re-founded on evolution mode.** Instead of writing a single case study, it now traces how a skill — or a whole marketplace — *evolved* over time. It builds a milestone spine from your changelog, feature folders, and git merge history, mines two sources for each milestone, and tells the arc of how the work changed. Point it at a marketplace and pick a single skill (or the whole repo); the output is a milestone-by-milestone evolution with verbatim prompts and a "Where the pipeline mattered" callout, run through a voice self-check before it ships.

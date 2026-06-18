@@ -1,6 +1,6 @@
 {
   "name": "pmos-utilities",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Environment utilities — keep your machine and working setup healthy. Standalone diagnostics and cleanup (e.g. Mac health) that aren't part of the delivery pipeline or the learning kit.",
   "author": {
     "name": "Maneesh Dhabria"
