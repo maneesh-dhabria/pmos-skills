@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-18 — pmos-toolkit 2.87.0: /summary-tldr output modes + /diagram mindmaps
+
+`/summary-tldr` now does more than text. A new **`--mode`** dimension lets the same grounded summary come out as a **mindmap**, a **narrated video**, or a **swipeable shorts carousel** — and `/diagram` gained a first-class **mindmap auto-layout** that powers it. The text summary is always emitted first (crash-safe), then the chosen mode renders on top of it; every mode derives from the grounded this-run extraction, never a summary-of-a-summary, and reuses an existing renderer rather than building a new one.
+
+- **`/summary-tldr --mode mindmap`** — render the summary as a tree/radial mindmap (via `/diagram`).
+- **`/summary-tldr --mode video`** — hand the **original source** to `/explainer-video` for a narrated `.mp4`, with length derived from `--compression` (override with `--video-length`); the video is linked with provenance, never re-hosted, and degrades gracefully if media tooling is absent.
+- **`/summary-tldr --mode shorts`** — a self-contained, swipeable carousel of ≤140-char takeaway cards, each pairing relevant existing media when available.
+- **`/diagram --mode mindmap`** — a new vendored, zero-dependency tidy-tree / radial auto-layout, themed like every other diagram.
+- `narrative` mode is unchanged and remains the default (byte-for-byte back-compatible).
+
 ## 2026-06-18 — pmos-gamekit 0.8.0: /solitaire feels finished
 
 `/solitaire` got a batch of first-run polish. The board no longer shows a redundant "Klondike" header, each game deals with one of several **randomly-chosen card backs**, and the game now **helps you when you're stuck**: after a short idle it surfaces a hint highlighting your first productive move, and if no legal move exists anywhere (after scanning a full stock cycle) it tells you the game is deadlocked instead of leaving you guessing. Drawing from the stock now animates the card flipping to the waste pile.
