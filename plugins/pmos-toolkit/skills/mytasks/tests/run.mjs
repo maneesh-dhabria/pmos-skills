@@ -2,7 +2,7 @@
 // run.mjs — behavioral gate for the /mytasks web layer (story 260613-yfr).
 //
 // Zero-dep, deterministic. Exits non-zero on any failure (the per-skill quality
-// gate, like /logos run.mjs + /solitaire). Covers: frontmatter round-trip,
+// gate, like /logo run.mjs + /solitaire). Covers: frontmatter round-trip,
 // recurrence date math + spawn, INDEX regen, and the live HTTP API (CRUD,
 // quick-add tokens, optimistic-concurrency 409, atomic write, complete-spawn).
 //

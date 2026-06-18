@@ -48,7 +48,7 @@ prefix. The plugin each skill belongs to is in the last column.
 | Annotate any pmos-emitted HTML artifact in the browser | `/comments` | toolkit |
 | Design and field a survey | `/survey-design` → `/survey-analyse` | toolkit |
 | Generate a vector diagram | `/diagram` | toolkit |
-| Generate on-brand SVG logo candidates | `/logos` | toolkit |
+| Generate on-brand SVG logo candidates | `/logo` | toolkit |
 | Turn a doc/artifact/URL into a narrated explainer video | `/explainer-video` | toolkit |
 | Audit a codebase against architectural principles | `/architecture` | toolkit |
 | Track personal tasks (LNO, due dates, people) | `/mytasks` | toolkit |

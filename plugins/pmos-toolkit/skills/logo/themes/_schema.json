@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "logos theme.yaml",
-  "description": "Strict positive-list schema for /logos themes. theme.yaml is the single machine authority; `palette.max_colors` and `stroke.min_effective_px` are read by scripts/svg-metrics.mjs (the deterministic gate) — do not rename those keys. Layout, sizing, and per-need variant decisions are runtime, not theme tokens, and MUST NOT appear here.",
+  "title": "logo theme.yaml",
+  "description": "Strict positive-list schema for /logo themes. theme.yaml is the single machine authority; `palette.max_colors` and `stroke.min_effective_px` are read by scripts/svg-metrics.mjs (the deterministic gate) — do not rename those keys. Layout, sizing, and per-need variant decisions are runtime, not theme tokens, and MUST NOT appear here.",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -13,7 +13,7 @@ Two colors, one smooth transition. A duotone mark fills its shapes with a single
 
 ## SVG technique — namespaced gradient ids (REQUIRED)
 
-Many marks share one `logos.html` page, so **every `<linearGradient>` id is namespaced by need + variant** — never a bare `grad` or `g1`. A duplicate id silently makes one mark steal another's gradient.
+Many marks share one `logo.html` page, so **every `<linearGradient>` id is namespaced by need + variant** — never a bare `grad` or `g1`. A duplicate id silently makes one mark steal another's gradient.
 
 ```xml
 <defs>

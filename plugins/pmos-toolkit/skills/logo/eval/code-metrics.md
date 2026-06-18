@@ -1,6 +1,6 @@
 # Code Metrics — Deterministic SVG Hard Gates
 
-The deterministic half of `/logos`' Phase 4 hybrid evaluator. Every metric here is a **hard gate**: it computes a fact about the SVG source and either passes or fails — no scores, no taste. The arithmetic lives in the script, never the model (§H).
+The deterministic half of `/logo`' Phase 4 hybrid evaluator. Every metric here is a **hard gate**: it computes a fact about the SVG source and either passes or fails — no scores, no taste. The arithmetic lives in the script, never the model (§H).
 
 This file documents the contract of `scripts/svg-metrics.mjs` (authored separately). SKILL.md Phase 4 and `eval/rubric.md` cite the metric ids below by name.
 
@@ -14,8 +14,10 @@ This file documents the contract of `scripts/svg-metrics.mjs` (authored separate
 ## Invocation {#invocation}
 
 ```bash
-node scripts/svg-metrics.mjs <file.svg> --theme <theme>
+node scripts/svg-metrics.mjs <file.svg> --theme <theme> [--mark-type <type>]
 ```
+
+The optional `--mark-type <type>` widens the `viewbox-not-square` aspect band for lockup marks (see [`viewbox-not-square`](#hard-fail-metrics)).
 
 Returns JSON:
 
@@ -53,7 +55,7 @@ The document lacks a single root `<svg>` element, or that root carries no `viewB
 
 ### `raster-embed`
 
-Any `<image>` element or any `data:image` URI is present. `/logos` ships pure vector marks; an embedded raster defeats favicon-size crispness and bloats the inlined `logos.html`.
+Any `<image>` element or any `data:image` URI is present. `/logo` ships pure vector marks; an embedded raster defeats favicon-size crispness and bloats the inlined `logo.html`.
 
 ### `script-present`
 
@@ -75,7 +77,17 @@ A hairline that looks fine at full size vanishes at 16px; this catches it determ
 
 ### `viewbox-not-square`
 
-For an **icon-context** mark (favicon, nav glyph, feature icon — any need whose usage is not a wide wordmark), the viewBox aspect ratio `width ÷ height` falls outside `[0.8, 1.25]`. Icon-context marks must sit in a near-square box so they crop cleanly into square favicon and toolbar slots. Wordmark-context needs are exempt.
+The viewBox aspect ratio `width ÷ height` falls outside the band allowed for the mark's intended usage. The band is selected by the optional `--mark-type <type>` flag:
+
+| Mark type | Aspect band | Types |
+| --- | --- | --- |
+| **lockup** | `[0.8, 4.0]` | `combination`, `emblem`, `wordmark` |
+| **square** | `[0.8, 1.25]` | `favicon`, `pictorial`, `abstract`, `lettermark`, `monogram`, `mascot` |
+| **flag absent** | `[0.8, 1.25]` | back-compat default — unchanged behavior |
+
+Lockup marks (a wordmark or a combination mark) are legitimately wide, so they get the relaxed `[0.8, 4.0]` band. Square marks must sit in a near-square box so they crop cleanly into favicon and toolbar slots. When `--mark-type` is omitted the gate uses the square default, preserving the original behavior. An icon-only variant of a lockup is gated as a square icon — the caller checks that file with a square mark type (or omits the flag), not the lockup type.
+
+An **unknown** `--mark-type` value is a usage error: the script prints the valid list to stderr and exits with code `64` (it never silently falls back to a band).
 
 ### `path-budget`
 
@@ -88,7 +100,7 @@ A logo is a mark, not an illustration. An over-budget candidate is almost always
 
 ### `id-collision`
 
-Any gradient, `clipPath`, `filter`, or `mask` `id` is either **non-unique within the file** OR **not namespaced** (missing the need+variant prefix, e.g. `reports-icon-v2-`). Phase 5 inlines many marks on one `logos.html`; a bare `id="grad"` reused across two marks silently cross-wires `url(#grad)` fills. The gate forces every def id to be both unique and prefixed.
+Any gradient, `clipPath`, `filter`, or `mask` `id` is either **non-unique within the file** OR **not namespaced** (missing the need+variant prefix, e.g. `reports-icon-v2-`). Phase 5 inlines many marks on one `logo.html`; a bare `id="grad"` reused across two marks silently cross-wires `url(#grad)` fills. The gate forces every def id to be both unique and prefixed.
 
 ### `fake-negative-space`
 

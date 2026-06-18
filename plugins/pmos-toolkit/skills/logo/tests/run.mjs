@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// run.mjs — /logos self-test entry. SKILL.md Phase 0 runs `node tests/run.mjs`.
+// run.mjs — /logo self-test entry. SKILL.md Phase 0 runs `node tests/run.mjs`.
 // Runs all unit + fixture suites, prints a TAP-ish summary, exits 0 if all pass else 1.
 // No test framework — a hand-rolled assert wrapper over node:assert that counts checks.
 

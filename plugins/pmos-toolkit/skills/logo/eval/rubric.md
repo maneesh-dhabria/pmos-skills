@@ -1,6 +1,6 @@
 # Vision Rubric — Renderer-Backed Binary Review
 
-The judgment half of `/logos`' Phase 4 hybrid evaluator. A reviewer (subagent when available per §L, else inline) judges a **rasterized PNG** of each candidate and returns binary verdicts grounded in what the render actually shows. No scores, no shades — each item passes or fails on visible evidence.
+The judgment half of `/logo`' Phase 4 hybrid evaluator. A reviewer (subagent when available per §L, else inline) judges a **rasterized PNG** of each candidate and returns binary verdicts grounded in what the render actually shows. No scores, no shades — each item passes or fails on visible evidence.
 
 This file documents the rubric SKILL.md Phase 4 step 2 applies. The deterministic hard gates that run first live in `eval/code-metrics.md`.
 
@@ -77,4 +77,4 @@ Exactly three items, all gating. Each judges the rendered raster (full-size and 
 
 ## Renderer is a Phase-0 hard gate {#renderer-gate}
 
-This entire rubric depends on a rasterizer — every item judges a PNG. The renderer is detected and gated in **Phase 0** (Playwright → `rsvg-convert` → `cairosvg`, first hit wins). With no rasterizer present, half the evaluator is missing: `favicon-legibility` and `monochrome-reads` cannot be checked at all. So `/logos` **refuses to run** when none is available (D2) rather than shipping candidates that passed only the deterministic gates. The vision rubric never runs in a degraded "code-metrics-only" mode.
+This entire rubric depends on a rasterizer — every item judges a PNG. The renderer is detected and gated in **Phase 0** (Playwright → `rsvg-convert` → `cairosvg`, first hit wins). With no rasterizer present, half the evaluator is missing: `favicon-legibility` and `monochrome-reads` cannot be checked at all. So `/logo` **refuses to run** when none is available (D2) rather than shipping candidates that passed only the deterministic gates. The vision rubric never runs in a degraded "code-metrics-only" mode.

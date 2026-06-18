@@ -110,6 +110,31 @@ function readThemeYaml(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Mark-type aspect bounds (FR6).
+// The `viewbox-not-square` gate compares the viewBox aspect against a band that
+// depends on the mark's intended usage:
+//   - lockup types (combination/emblem/wordmark) are legitimately wide -> [0.8, 4.0]
+//   - square types (favicon/pictorial/abstract/lettermark/monogram/mascot) -> [0.8, 1.25]
+//   - flag absent -> back-compat default square band [0.8, 1.25]
+// An icon-only variant of a lockup is gated as a square icon by the caller passing
+// a square mark type (or omitting the flag) when it checks the icon file.
+// ---------------------------------------------------------------------------
+const LOCKUP_MARK_TYPES = ['combination', 'emblem', 'wordmark'];
+const SQUARE_MARK_TYPES = ['favicon', 'pictorial', 'abstract', 'lettermark', 'monogram', 'mascot'];
+const ALL_MARK_TYPES = [...LOCKUP_MARK_TYPES, ...SQUARE_MARK_TYPES];
+const SQUARE_ASPECT_BOUNDS = { min: 0.8, max: 1.25 };
+const LOCKUP_ASPECT_BOUNDS = { min: 0.8, max: 4.0 };
+
+// Resolve the allowed aspect band for a mark type. `null`/undefined -> square default.
+// An unknown (non-null) value returns null so callers can reject it.
+function aspectBoundsFor(markType) {
+  if (markType == null) return SQUARE_ASPECT_BOUNDS;
+  if (LOCKUP_MARK_TYPES.includes(markType)) return LOCKUP_ASPECT_BOUNDS;
+  if (SQUARE_MARK_TYPES.includes(markType)) return SQUARE_ASPECT_BOUNDS;
+  return null; // unknown mark type
+}
+
+// ---------------------------------------------------------------------------
 // Color normalization
 // ---------------------------------------------------------------------------
 const NAMED_COLORS = {
@@ -175,7 +200,7 @@ function styleDeclColors(svg) {
   return out;
 }
 
-function computeMetrics(svg, theme) {
+function computeMetrics(svg, theme, markType = null) {
   const hard_fails = [];
 
   // --- root <svg> + viewBox ---------------------------------------------
@@ -275,10 +300,14 @@ function computeMetrics(svg, theme) {
   }
 
   // --- viewbox-not-square -----------------------------------------------
-  // ASSUMPTION: /logos is icon-context by default — marks render in square-ish
-  // tiles (favicon, nav glyph, brand tile). Aspect outside [0.8, 1.25] fails.
+  // The allowed aspect band depends on the mark type (FR6): lockup marks
+  // (combination/emblem/wordmark) are legitimately wide -> [0.8, 4.0]; square
+  // marks and the flag-absent default sit in [0.8, 1.25]. An unknown markType
+  // is rejected at the CLI/arg boundary before reaching here, so by this point
+  // aspectBoundsFor() always resolves to a real band.
   if (aspect != null) {
-    if (aspect < 0.8 || aspect > 1.25) hard_fails.push('viewbox-not-square');
+    const bounds = aspectBoundsFor(markType) || SQUARE_ASPECT_BOUNDS;
+    if (aspect < bounds.min || aspect > bounds.max) hard_fails.push('viewbox-not-square');
   }
 
   // --- path-budget ------------------------------------------------------
@@ -344,8 +373,8 @@ function computeMetrics(svg, theme) {
 // ---------------------------------------------------------------------------
 // Exported entry (used by tests)
 // ---------------------------------------------------------------------------
-export function evaluateSvg(svgText, theme) {
-  const { hard_fails, metrics } = computeMetrics(svgText, theme);
+export function evaluateSvg(svgText, theme, markType = null) {
+  const { hard_fails, metrics } = computeMetrics(svgText, theme, markType);
   return { hard_fails, metrics, pass: hard_fails.length === 0 };
 }
 
@@ -382,14 +411,21 @@ function main(argv) {
   const args = argv.slice(2);
   let file = null;
   let themeName = null;
+  let markType = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--theme') { themeName = args[++i]; }
     else if (args[i].startsWith('--theme=')) { themeName = args[i].slice('--theme='.length); }
+    else if (args[i] === '--mark-type') { markType = args[++i]; }
+    else if (args[i].startsWith('--mark-type=')) { markType = args[i].slice('--mark-type='.length); }
     else if (!args[i].startsWith('--')) { file = args[i]; }
   }
 
-  if (!file) { process.stderr.write('error: missing <file.svg>\nusage: node svg-metrics.mjs <file.svg> --theme <theme-name>\n'); process.exit(64); }
+  if (!file) { process.stderr.write('error: missing <file.svg>\nusage: node svg-metrics.mjs <file.svg> --theme <theme-name> [--mark-type <type>]\n'); process.exit(64); }
   if (!themeName) { process.stderr.write('error: missing --theme <theme-name>\n'); process.exit(64); }
+  if (markType != null && aspectBoundsFor(markType) === null) {
+    process.stderr.write(`error: unknown --mark-type '${markType}'\nvalid mark types: ${ALL_MARK_TYPES.join(', ')}\n`);
+    process.exit(64);
+  }
 
   let svgText;
   try {
@@ -405,7 +441,7 @@ function main(argv) {
     process.stderr.write(`error: ${e.message}\n`); process.exit(e.exitCode || 2);
   }
 
-  const result = evaluateSvg(svgText, theme);
+  const result = evaluateSvg(svgText, theme, markType);
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
   process.exit(0);
 }
