@@ -41,7 +41,7 @@ has 'Capture Learnings'         && ok "has Capture Learnings phase" || bad "miss
 grep -q 'No new learnings this session because' "$SKILL" && ok "has learnings one-line contract" || bad "missing learnings one-line contract"
 
 # 5. required reference + script files exist
-for f in reference/session-log-format.md reference/resolver.md reference/clustering.md \
+for f in reference/session-log-format.md reference/resolver.md reference/evolution-sources.md \
          reference/article-schema.md reference/anonymizer.md reference/artifact-template.html \
          scripts/resolve_repo_sessions.mjs scripts/scout.mjs \
          tests/resolver.test.mjs tests/scout.test.mjs tests/render-surface.test.sh; do
