@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Goodhart's Law diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Goodhart's Law</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">When a measure becomes a target, it ceases to be a good measure — four ways it breaks.</text>
+
+  <!-- Top flow: measure -> target -> gaming -->
+  <rect x="32" y="76" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="107" y="101" font-family="sans-serif" font-size="13" fill="#1d2438" text-anchor="middle">Proxy measure</text>
+  <text x="200" y="101" font-family="sans-serif" font-size="18" fill="#5b6680" text-anchor="middle">→</text>
+  <rect x="222" y="76" width="150" height="40" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="297" y="101" font-family="sans-serif" font-size="13" fill="#1d2438" text-anchor="middle">becomes a target</text>
+  <text x="390" y="101" font-family="sans-serif" font-size="18" fill="#5b6680" text-anchor="middle">→</text>
+  <rect x="412" y="76" width="196" height="40" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="510" y="101" font-family="sans-serif" font-size="13" fill="#1d2438" text-anchor="middle">link to true goal decays</text>
+
+  <text x="32" y="148" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">Four failure modes (Manheim &amp; Garrabrant)</text>
+
+  <!-- Four quadrant cards -->
+  <rect x="32" y="160" width="280" height="100" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="184" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Regressional</text>
+  <text x="48" y="206" font-family="sans-serif" font-size="12" fill="#1d2438">Proxy ≠ goal; noise dominates the</text>
+  <text x="48" y="222" font-family="sans-serif" font-size="12" fill="#1d2438">top performers. The chosen ones look</text>
+  <text x="48" y="238" font-family="sans-serif" font-size="12" fill="#1d2438">great by luck, not merit.</text>
+
+  <rect x="328" y="160" width="280" height="100" rx="8" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="344" y="184" font-family="sans-serif" font-size="15" font-weight="700" fill="#0ea5a4">Extremal</text>
+  <text x="344" y="206" font-family="sans-serif" font-size="12" fill="#1d2438">Push the metric to extremes and you</text>
+  <text x="344" y="222" font-family="sans-serif" font-size="12" fill="#1d2438">leave the region where proxy and goal</text>
+  <text x="344" y="238" font-family="sans-serif" font-size="12" fill="#1d2438">ever agreed.</text>
+
+  <rect x="32" y="270" width="280" height="100" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="48" y="294" font-family="sans-serif" font-size="15" font-weight="700" fill="#f59e0b">Causal</text>
+  <text x="48" y="316" font-family="sans-serif" font-size="12" fill="#1d2438">You act on a correlation that isn't</text>
+  <text x="48" y="332" font-family="sans-serif" font-size="12" fill="#1d2438">causal — moving the proxy directly</text>
+  <text x="48" y="348" font-family="sans-serif" font-size="12" fill="#1d2438">does nothing for the goal.</text>
+
+  <rect x="328" y="270" width="280" height="100" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="344" y="294" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">Adversarial</text>
+  <text x="344" y="316" font-family="sans-serif" font-size="12" fill="#1d2438">Agents who know the metric game it —</text>
+  <text x="344" y="332" font-family="sans-serif" font-size="12" fill="#1d2438">optimizing the number on purpose</text>
+  <text x="344" y="348" font-family="sans-serif" font-size="12" fill="#1d2438">while the goal rots.</text>
+</svg>

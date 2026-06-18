@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Von Restorff Effect diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Von Restorff Effect</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">The item that differs most is the one we notice and remember</text>
+
+  <!-- Row of similar items, one isolated -->
+  <text x="60" y="110" font-family="sans-serif" font-size="13" font-weight="700" fill="#5b6680">Uniform set</text>
+  <g font-family="sans-serif" font-size="13" fill="#5b6680">
+    <rect x="60" y="124" width="90" height="54" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+    <text x="105" y="156" text-anchor="middle">Item</text>
+    <rect x="160" y="124" width="90" height="54" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+    <text x="205" y="156" text-anchor="middle">Item</text>
+    <rect x="260" y="124" width="90" height="54" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+    <text x="305" y="156" text-anchor="middle">Item</text>
+    <rect x="360" y="124" width="90" height="54" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+    <text x="405" y="156" text-anchor="middle">Item</text>
+    <rect x="460" y="124" width="90" height="54" rx="8" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+    <text x="505" y="156" text-anchor="middle">Item</text>
+  </g>
+
+  <!-- The isolated, distinctive item -->
+  <rect x="260" y="232" width="120" height="64" rx="10" fill="#2563eb"/>
+  <text x="320" y="270" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">Key action</text>
+  <text x="320" y="216" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#2563eb">Isolate by contrast (color · size · shape)</text>
+
+  <!-- Attention arrow -->
+  <text x="320" y="332" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">↑ noticed &amp; recalled</text>
+
+  <!-- Caution -->
+  <text x="320" y="372" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#ef4444">Emphasize one thing — too many highlights cancel out (banner blindness)</text>
+</svg>

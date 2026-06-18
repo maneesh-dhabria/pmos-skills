@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SCARF Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">SCARF Model</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Five social domains that trigger the brain&#8217;s threat / reward response</text>
+
+  <!-- threat / reward axis -->
+  <text x="120" y="92" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#ef4444">THREAT &#8593; impairs collaboration</text>
+  <text x="520" y="92" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">REWARD &#8595; improves it</text>
+
+  <!-- 5 domain rows -->
+  <!-- S -->
+  <rect x="40" y="108" width="560" height="46" rx="8" fill="#f4f7ff"/>
+  <circle cx="66" cy="131" r="16" fill="#2563eb"/>
+  <text x="66" y="137" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">S</text>
+  <text x="96" y="127" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Status</text>
+  <text x="96" y="145" font-family="sans-serif" font-size="12" fill="#5b6680">relative standing &#8212; threatened by being corrected or outranked</text>
+
+  <!-- C -->
+  <rect x="40" y="160" width="560" height="46" rx="8" fill="#f4f7ff"/>
+  <circle cx="66" cy="183" r="16" fill="#0ea5a4"/>
+  <text x="66" y="189" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">C</text>
+  <text x="96" y="179" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Certainty</text>
+  <text x="96" y="197" font-family="sans-serif" font-size="12" fill="#5b6680">ability to predict the future &#8212; threatened by ambiguity</text>
+
+  <!-- A -->
+  <rect x="40" y="212" width="560" height="46" rx="8" fill="#f4f7ff"/>
+  <circle cx="66" cy="235" r="16" fill="#f59e0b"/>
+  <text x="66" y="241" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">A</text>
+  <text x="96" y="231" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Autonomy</text>
+  <text x="96" y="249" font-family="sans-serif" font-size="12" fill="#5b6680">sense of control &#8212; threatened by micromanagement</text>
+
+  <!-- R -->
+  <rect x="40" y="264" width="560" height="46" rx="8" fill="#f4f7ff"/>
+  <circle cx="66" cy="287" r="16" fill="#2563eb"/>
+  <text x="66" y="293" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">R</text>
+  <text x="96" y="283" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Relatedness</text>
+  <text x="96" y="301" font-family="sans-serif" font-size="12" fill="#5b6680">in-group safety &#8212; threatened by strangers or exclusion</text>
+
+  <!-- F -->
+  <rect x="40" y="316" width="560" height="46" rx="8" fill="#f4f7ff"/>
+  <circle cx="66" cy="339" r="16" fill="#ef4444"/>
+  <text x="66" y="345" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="700" fill="#ffffff">F</text>
+  <text x="96" y="335" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Fairness</text>
+  <text x="96" y="353" font-family="sans-serif" font-size="12" fill="#5b6680">perceived equity of exchange &#8212; threatened by unfair treatment</text>
+
+  <text x="320" y="384" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">David Rock (2008) &#183; same circuitry as physical survival &#8212; minimize threat, increase reward</text>
+</svg>

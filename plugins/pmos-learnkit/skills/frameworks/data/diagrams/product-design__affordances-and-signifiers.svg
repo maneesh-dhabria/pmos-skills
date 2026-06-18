@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Affordances and Signifiers diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Affordances &amp; Signifiers</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">What an object lets you do vs. the cue that says how</text>
+
+  <!-- Left panel: Affordance -->
+  <rect x="40" y="84" width="260" height="260" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="170" y="112" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#2563eb">AFFORDANCE</text>
+  <text x="170" y="132" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">action the object makes possible</text>
+
+  <!-- plain door (affords push/pull, no cue) -->
+  <rect x="120" y="156" width="100" height="150" rx="4" fill="#ffffff" stroke="#1d2438" stroke-width="2"/>
+  <line x1="120" y1="231" x2="220" y2="231" stroke="#1d2438" stroke-width="1" opacity="0.3"/>
+  <text x="170" y="330" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">A door affords push &amp; pull</text>
+  <text x="170" y="346" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#ef4444">…but which? unclear</text>
+
+  <!-- Right panel: Signifier -->
+  <rect x="340" y="84" width="260" height="260" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="470" y="112" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#0ea5a4">SIGNIFIER</text>
+  <text x="470" y="132" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">perceivable cue: where/how to act</text>
+
+  <!-- door with flat plate signifier -->
+  <rect x="420" y="156" width="100" height="150" rx="4" fill="#ffffff" stroke="#1d2438" stroke-width="2"/>
+  <rect x="488" y="206" width="22" height="50" rx="3" fill="#0ea5a4"/>
+  <text x="499" y="282" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#0ea5a4">PUSH</text>
+  <text x="470" y="330" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#1d2438">Flat plate signals: push here</text>
+  <text x="470" y="346" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#0ea5a4">right action is discoverable</text>
+
+  <!-- arrow between -->
+  <line x1="300" y1="214" x2="340" y2="214" stroke="#f59e0b" stroke-width="2.5"/>
+  <polygon points="340,214 330,209 330,219" fill="#f59e0b"/>
+  <text x="320" y="204" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#f59e0b">cue it</text>
+</svg>

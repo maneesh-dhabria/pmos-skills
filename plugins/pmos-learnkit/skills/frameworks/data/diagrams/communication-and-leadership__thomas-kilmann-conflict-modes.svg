@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Thomas-Kilmann Conflict Modes diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Thomas-Kilmann Conflict Modes</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Assertiveness × Cooperativeness → five ways to handle conflict</text>
+
+  <!-- axes frame -->
+  <rect x="150" y="86" width="380" height="270" fill="#f4f7ff" stroke="#5b6680" stroke-width="1"/>
+
+  <!-- Y axis label (assertiveness) -->
+  <text x="118" y="225" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680" transform="rotate(-90 118 225)">Assertiveness (my needs) →</text>
+  <!-- X axis label (cooperativeness) -->
+  <text x="340" y="382" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#5b6680">Cooperativeness (their needs) →</text>
+
+  <!-- quadrant grid lines -->
+  <line x1="340" y1="86" x2="340" y2="356" stroke="#5b6680" stroke-width="0.6" stroke-dasharray="3 3"/>
+  <line x1="150" y1="221" x2="530" y2="221" stroke="#5b6680" stroke-width="0.6" stroke-dasharray="3 3"/>
+
+  <!-- Competing: high assertive, low cooperative (top-left) -->
+  <rect x="158" y="94" width="174" height="120" rx="6" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="245" y="130" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Competing</text>
+  <text x="245" y="150" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">I win, you lose</text>
+  <text x="245" y="166" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">power, speed, crises</text>
+
+  <!-- Collaborating: high assertive, high cooperative (top-right) -->
+  <rect x="340" y="94" width="182" height="120" rx="6" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="431" y="130" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Collaborating</text>
+  <text x="431" y="150" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">win / win</text>
+  <text x="431" y="166" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">merge both interests</text>
+
+  <!-- Avoiding: low assertive, low cooperative (bottom-left) -->
+  <rect x="158" y="228" width="174" height="120" rx="6" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="245" y="264" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Avoiding</text>
+  <text x="245" y="284" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">no win, no lose</text>
+  <text x="245" y="300" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">defer, sidestep</text>
+
+  <!-- Accommodating: low assertive, high cooperative (bottom-right) -->
+  <rect x="340" y="228" width="182" height="120" rx="6" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="431" y="264" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">Accommodating</text>
+  <text x="431" y="284" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">I lose, you win</text>
+  <text x="431" y="300" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#5b6680">yield, keep peace</text>
+
+  <!-- Compromising: center -->
+  <circle cx="340" cy="221" r="42" fill="#f4f7ff" stroke="#1d2438" stroke-width="1.5"/>
+  <text x="340" y="218" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Compromising</text>
+  <text x="340" y="234" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#5b6680">split the difference</text>
+</svg>

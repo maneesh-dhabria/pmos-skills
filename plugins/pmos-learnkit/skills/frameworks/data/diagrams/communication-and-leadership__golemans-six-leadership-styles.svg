@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Goleman's Six Leadership Styles diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Goleman's Six Leadership Styles</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">An EI repertoire — switch by situation; each shifts the climate</text>
+
+  <!-- column headers -->
+  <text x="170" y="86" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#0ea5a4">USUALLY LIFTS CLIMATE</text>
+  <text x="470" y="86" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#f59e0b">USE SPARINGLY</text>
+
+  <!-- positive styles -->
+  <g font-family="sans-serif">
+    <rect x="30" y="100" width="280" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="122" font-size="14" font-weight="700" fill="#1d2438">Authoritative — "Come with me"</text>
+    <text x="44" y="140" font-size="11" fill="#5b6680">Mobilizes toward a vision · most positive</text>
+
+    <rect x="30" y="160" width="280" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="182" font-size="14" font-weight="700" fill="#1d2438">Affiliative — "People first"</text>
+    <text x="44" y="200" font-size="11" fill="#5b6680">Builds harmony, heals rifts</text>
+
+    <rect x="30" y="220" width="280" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="242" font-size="14" font-weight="700" fill="#1d2438">Democratic — "What do you think?"</text>
+    <text x="44" y="260" font-size="11" fill="#5b6680">Builds consensus &amp; buy-in</text>
+
+    <rect x="30" y="280" width="280" height="52" rx="8" fill="#f4f7ff" stroke="#2563eb"/>
+    <text x="44" y="302" font-size="14" font-weight="700" fill="#1d2438">Coaching — "Try this"</text>
+    <text x="44" y="320" font-size="11" fill="#5b6680">Develops people for the future</text>
+  </g>
+
+  <!-- caution styles -->
+  <g font-family="sans-serif">
+    <rect x="330" y="130" width="280" height="64" rx="8" fill="#ffffff" stroke="#f59e0b"/>
+    <text x="344" y="154" font-size="14" font-weight="700" fill="#1d2438">Coercive — "Do what I say"</text>
+    <text x="344" y="172" font-size="11" fill="#5b6680">Demands compliance · for crises only</text>
+    <text x="344" y="188" font-size="11" fill="#ef4444">Often damages climate</text>
+
+    <rect x="330" y="208" width="280" height="64" rx="8" fill="#ffffff" stroke="#f59e0b"/>
+    <text x="344" y="232" font-size="14" font-weight="700" fill="#1d2438">Pacesetting — "Do as I do, now"</text>
+    <text x="344" y="250" font-size="11" fill="#5b6680">Sets high bars · for a skilled, motivated team</text>
+    <text x="344" y="266" font-size="11" fill="#ef4444">Often damages climate</text>
+  </g>
+
+  <!-- bottom note -->
+  <text x="320" y="368" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">The best leaders fluidly blend several styles in a given week, matched to the moment.</text>
+  <text x="320" y="388" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">Each style draws on emotional-intelligence competencies (self-awareness, empathy, social skill).</text>
+</svg>

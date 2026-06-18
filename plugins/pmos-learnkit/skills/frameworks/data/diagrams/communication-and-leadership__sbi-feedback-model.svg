@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="SBI Feedback Model diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">SBI Feedback Model</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Anchor feedback on facts, not interpretation: Situation &#8594; Behavior &#8594; Impact</text>
+
+  <!-- Stage 1: Situation -->
+  <rect x="32" y="92" width="170" height="240" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="62" cy="122" r="14" fill="#2563eb"/>
+  <text x="62" y="127" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">S</text>
+  <text x="86" y="127" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Situation</text>
+  <text x="48" y="160" font-family="sans-serif" font-size="12" fill="#5b6680">Pin down WHERE</text>
+  <text x="48" y="178" font-family="sans-serif" font-size="12" fill="#5b6680">and WHEN it</text>
+  <text x="48" y="196" font-family="sans-serif" font-size="12" fill="#5b6680">happened.</text>
+  <text x="48" y="234" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">"In yesterday's</text>
+  <text x="48" y="250" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">sprint review&#8230;"</text>
+
+  <!-- Stage 2: Behavior -->
+  <rect x="235" y="92" width="170" height="240" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="265" cy="122" r="14" fill="#0ea5a4"/>
+  <text x="265" y="127" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">B</text>
+  <text x="289" y="127" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Behavior</text>
+  <text x="251" y="160" font-family="sans-serif" font-size="12" fill="#5b6680">Describe the</text>
+  <text x="251" y="178" font-family="sans-serif" font-size="12" fill="#5b6680">OBSERVABLE act</text>
+  <text x="251" y="196" font-family="sans-serif" font-size="12" fill="#5b6680">&#8212; no labels.</text>
+  <text x="251" y="234" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">"you cut off</text>
+  <text x="251" y="250" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">Priya twice&#8230;"</text>
+
+  <!-- Stage 3: Impact -->
+  <rect x="438" y="92" width="170" height="240" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="468" cy="122" r="14" fill="#f59e0b"/>
+  <text x="468" y="127" font-family="sans-serif" font-size="14" font-weight="700" fill="#ffffff" text-anchor="middle">I</text>
+  <text x="492" y="127" font-family="sans-serif" font-size="16" font-weight="700" fill="#1d2438">Impact</text>
+  <text x="454" y="160" font-family="sans-serif" font-size="12" fill="#5b6680">State the EFFECT</text>
+  <text x="454" y="178" font-family="sans-serif" font-size="12" fill="#5b6680">on you, team,</text>
+  <text x="454" y="196" font-family="sans-serif" font-size="12" fill="#5b6680">or outcome.</text>
+  <text x="454" y="234" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">"&#8230;so she stopped</text>
+  <text x="454" y="250" font-family="sans-serif" font-size="11" font-style="italic" fill="#1d2438">contributing."</text>
+
+  <!-- arrows -->
+  <path d="M205 212 L232 212" stroke="#5b6680" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+  <path d="M408 212 L435 212" stroke="#5b6680" stroke-width="2" fill="none" marker-end="url(#ar)"/>
+  <defs>
+    <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0 0 L6 3 L0 6 z" fill="#5b6680"/>
+    </marker>
+  </defs>
+
+  <text x="320" y="372" font-family="sans-serif" font-size="12" fill="#5b6680" text-anchor="middle">Facts before judgment &#8594; concrete, low-defensiveness feedback</text>
+</svg>

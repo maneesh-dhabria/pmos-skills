@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="The Mom Test diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">The Mom Test</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Talk about their life, not your idea — and dodge the three bad-data traps.</text>
+
+  <!-- Three rules panel -->
+  <rect x="32" y="78" width="576" height="118" rx="8" fill="#f4f7ff"/>
+  <text x="48" y="100" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">The three rules</text>
+  <text x="48" y="124" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700" fill="#2563eb">1.</tspan> Talk about their <tspan font-weight="700">life</tspan>, not your idea.</text>
+  <text x="48" y="148" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700" fill="#2563eb">2.</tspan> Ask about <tspan font-weight="700">specifics in the past</tspan>, not opinions about the future.</text>
+  <text x="48" y="172" font-family="sans-serif" font-size="12.5" fill="#1d2438"><tspan font-weight="700" fill="#2563eb">3.</tspan> Talk <tspan font-weight="700">less</tspan>, listen more.</text>
+
+  <!-- Three bad-data traps -->
+  <text x="32" y="226" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">The three bad-data traps</text>
+
+  <rect x="32" y="238" width="182" height="92" rx="8" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="123" y="262" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ef4444">Compliments</text>
+  <text x="123" y="286" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#5b6680">"That's a great idea!"</text>
+  <text x="123" y="306" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Ignore — it's politeness.</text>
+
+  <rect x="229" y="238" width="182" height="92" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="320" y="262" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#f59e0b">Fluff</text>
+  <text x="320" y="286" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#5b6680">"I usually... I would..."</text>
+  <text x="320" y="306" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Anchor to a real case.</text>
+
+  <rect x="426" y="238" width="182" height="92" rx="8" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="517" y="262" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#0ea5a4">Hypotheticals</text>
+  <text x="517" y="286" text-anchor="middle" font-family="sans-serif" font-size="11.5" fill="#5b6680">"I'd definitely buy that."</text>
+  <text x="517" y="306" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#1d2438">Get past behavior &amp; spend.</text>
+
+  <!-- Outcome bar -->
+  <rect x="32" y="348" width="576" height="34" rx="8" fill="#2563eb"/>
+  <text x="320" y="370" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#ffffff">Good data = facts about their past, not approval of your future.</text>
+</svg>

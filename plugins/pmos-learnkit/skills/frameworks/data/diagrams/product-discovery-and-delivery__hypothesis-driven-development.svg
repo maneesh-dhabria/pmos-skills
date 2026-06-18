@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Hypothesis-Driven Development diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Hypothesis-Driven Development</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Every build is an experiment: frame a falsifiable bet, test small, let evidence decide.</text>
+
+  <!-- Hypothesis card -->
+  <rect x="32" y="78" width="576" height="84" rx="8" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="100" font-family="sans-serif" font-size="12" font-weight="700" fill="#2563eb">THE HYPOTHESIS</text>
+  <text x="48" y="122" font-family="sans-serif" font-size="13" fill="#1d2438">We <tspan font-weight="700">believe</tspan> [capability] will achieve [outcome].</text>
+  <text x="48" y="142" font-family="sans-serif" font-size="13" fill="#1d2438">We'll <tspan font-weight="700">know we're right</tspan> when we see [measurable signal].</text>
+
+  <!-- Loop -->
+  <!-- Build -->
+  <rect x="32" y="196" width="170" height="64" rx="8" fill="#ffffff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="117" y="222" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">Build smallest test</text>
+  <text x="117" y="242" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">MVP, fake door, prototype</text>
+
+  <!-- Measure -->
+  <rect x="235" y="196" width="170" height="64" rx="8" fill="#ffffff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="320" y="222" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">Measure signal</text>
+  <text x="320" y="242" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">against the success metric</text>
+
+  <!-- Decide -->
+  <rect x="438" y="196" width="170" height="64" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="523" y="222" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">Decide on evidence</text>
+  <text x="523" y="242" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">persevere · pivot · kill</text>
+
+  <!-- arrows -->
+  <path d="M202 228 L233 228" stroke="#5b6680" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <path d="M405 228 L436 228" stroke="#5b6680" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="#5b6680"/></marker>
+  </defs>
+
+  <!-- feedback loop back to hypothesis -->
+  <path d="M523 260 L523 300 L117 300 L117 264" stroke="#5b6680" stroke-width="1.5" fill="none" stroke-dasharray="5 4" marker-end="url(#a)"/>
+  <text x="320" y="294" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">validated learning &#8594; next hypothesis</text>
+
+  <!-- outcomes -->
+  <text x="32" y="340" font-family="sans-serif" font-size="12" font-weight="700" fill="#1d2438">Outcomes</text>
+  <circle cx="44" cy="358" r="5" fill="#0ea5a4"/>
+  <text x="56" y="362" font-family="sans-serif" font-size="12" fill="#5b6680">Right &#8594; persevere &amp; scale</text>
+  <circle cx="246" cy="358" r="5" fill="#f59e0b"/>
+  <text x="258" y="362" font-family="sans-serif" font-size="12" fill="#5b6680">Wrong &#8594; pivot the approach</text>
+  <circle cx="450" cy="358" r="5" fill="#ef4444"/>
+  <text x="462" y="362" font-family="sans-serif" font-size="12" fill="#5b6680">No signal &#8594; kill, free capacity</text>
+</svg>

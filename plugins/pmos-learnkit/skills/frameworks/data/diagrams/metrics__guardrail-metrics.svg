@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Guardrail Metrics diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Guardrail Metrics</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Win on the primary metric without breaking what must not move</text>
+
+  <!-- Primary metric panel -->
+  <rect x="32" y="86" width="252" height="280" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="158" y="116" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">PRIMARY METRIC</text>
+  <text x="158" y="138" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">what the test is trying to move</text>
+
+  <rect x="60" y="168" width="196" height="44" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="158" y="195" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Conversion / Revenue ▲</text>
+
+  <text x="158" y="250" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Optimize this —</text>
+  <text x="158" y="268" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">but only if the guardrails</text>
+  <text x="158" y="286" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">stay inside their bounds.</text>
+
+  <!-- arrow -->
+  <line x1="284" y1="226" x2="332" y2="226" stroke="#1d2438" stroke-width="2"/>
+  <polygon points="332,220 344,226 332,232" fill="#1d2438"/>
+  <text x="314" y="216" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#5b6680">gated by</text>
+
+  <!-- Guardrails panel -->
+  <rect x="356" y="86" width="252" height="280" rx="10" fill="#ffffff" stroke="#5b6680" stroke-width="1.5"/>
+  <text x="482" y="116" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="700" fill="#1d2438">GUARDRAILS</text>
+  <text x="482" y="138" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">must NOT regress beyond a bound</text>
+
+  <!-- guardrail rows -->
+  <g font-family="sans-serif" font-size="13" fill="#1d2438">
+    <circle cx="384" cy="165" r="5" fill="#0ea5a4"/>
+    <text x="398" y="169">Latency / page load</text>
+    <circle cx="384" cy="200" r="5" fill="#f59e0b"/>
+    <text x="398" y="204">Churn &amp; retention</text>
+    <circle cx="384" cy="235" r="5" fill="#ef4444"/>
+    <text x="398" y="239">Complaints / unsubscribes</text>
+    <circle cx="384" cy="270" r="5" fill="#ef4444"/>
+    <text x="398" y="274">Sample Ratio Mismatch (SRM)</text>
+    <circle cx="384" cy="305" r="5" fill="#0ea5a4"/>
+    <text x="398" y="309">Crash / error rate</text>
+  </g>
+
+  <!-- threshold line -->
+  <line x1="376" y1="332" x2="588" y2="332" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="482" y="352" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#ef4444">cross the bound → the “win” is rejected</text>
+</svg>

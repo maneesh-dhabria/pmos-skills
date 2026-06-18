@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Job Story diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Job Story</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Context-first requirement: trigger &#8594; motivation &#8594; outcome</text>
+
+  <!-- WHEN panel -->
+  <rect x="32" y="84" width="576" height="78" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="52" y="112" font-family="sans-serif" font-size="14" font-weight="700" fill="#2563eb">When</text>
+  <text x="52" y="112" font-family="sans-serif" font-size="13" fill="#5b6680" dx="44">[ situation / trigger ]</text>
+  <text x="52" y="138" font-family="sans-serif" font-size="14" fill="#1d2438">&#8220;When I land on a long article I haven&#8217;t time to read,&#8221;</text>
+
+  <!-- arrow -->
+  <text x="320" y="182" font-family="sans-serif" font-size="20" fill="#5b6680" text-anchor="middle">&#8595;</text>
+
+  <!-- I WANT panel -->
+  <rect x="32" y="196" width="576" height="78" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+  <text x="52" y="224" font-family="sans-serif" font-size="14" font-weight="700" fill="#0ea5a4">I want to</text>
+  <text x="52" y="224" font-family="sans-serif" font-size="13" fill="#5b6680" dx="66">[ motivation ]</text>
+  <text x="52" y="250" font-family="sans-serif" font-size="14" fill="#1d2438">&#8220;save it for later in one tap,&#8221;</text>
+
+  <!-- arrow -->
+  <text x="320" y="294" font-family="sans-serif" font-size="20" fill="#5b6680" text-anchor="middle">&#8595;</text>
+
+  <!-- SO I CAN panel -->
+  <rect x="32" y="308" width="576" height="78" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="52" y="336" font-family="sans-serif" font-size="14" font-weight="700" fill="#f59e0b">So I can</text>
+  <text x="52" y="336" font-family="sans-serif" font-size="13" fill="#5b6680" dx="62">[ expected outcome ]</text>
+  <text x="52" y="362" font-family="sans-serif" font-size="14" fill="#1d2438">&#8220;read it on the train without losing the link.&#8221;</text>
+</svg>

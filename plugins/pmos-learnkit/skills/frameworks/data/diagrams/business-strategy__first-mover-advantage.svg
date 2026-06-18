@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="First-Mover Advantage diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">First-Mover Advantage</text>
+  <text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Lieberman &amp; Montgomery: weigh pioneer gains against pioneer risks</text>
+
+  <!-- Advantages panel -->
+  <rect x="32" y="78" width="276" height="288" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="48" y="106" font-family="sans-serif" font-size="15" font-weight="700" fill="#2563eb">Advantages (push to lead)</text>
+
+  <rect x="48" y="120" width="244" height="68" rx="7" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+  <text x="60" y="142" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Tech &amp; learning leadership</text>
+  <text x="60" y="160" font-family="sans-serif" font-size="11" fill="#5b6680">Patents, R&amp;D lead, cost down</text>
+  <text x="60" y="175" font-family="sans-serif" font-size="11" fill="#5b6680">the experience curve</text>
+
+  <rect x="48" y="196" width="244" height="68" rx="7" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+  <text x="60" y="218" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Preemption of assets</text>
+  <text x="60" y="236" font-family="sans-serif" font-size="11" fill="#5b6680">Grab scarce shelf, spectrum,</text>
+  <text x="60" y="251" font-family="sans-serif" font-size="11" fill="#5b6680">talent, mindshare first</text>
+
+  <rect x="48" y="272" width="244" height="68" rx="7" fill="#ffffff" stroke="#2563eb" stroke-width="1"/>
+  <text x="60" y="294" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Buyer switching costs</text>
+  <text x="60" y="312" font-family="sans-serif" font-size="11" fill="#5b6680">Lock-in: data, habit, integration</text>
+  <text x="60" y="327" font-family="sans-serif" font-size="11" fill="#5b6680">make defection painful</text>
+
+  <!-- Disadvantages panel -->
+  <rect x="332" y="78" width="276" height="288" rx="10" fill="#ffffff" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="348" y="106" font-family="sans-serif" font-size="15" font-weight="700" fill="#ef4444">Disadvantages (push to wait)</text>
+
+  <rect x="348" y="120" width="244" height="68" rx="7" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>
+  <text x="360" y="142" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Free-rider effects</text>
+  <text x="360" y="160" font-family="sans-serif" font-size="11" fill="#5b6680">Followers copy R&amp;D, market,</text>
+  <text x="360" y="175" font-family="sans-serif" font-size="11" fill="#5b6680">infrastructure for cheap</text>
+
+  <rect x="348" y="196" width="244" height="68" rx="7" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>
+  <text x="360" y="218" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Resolution of uncertainty</text>
+  <text x="360" y="236" font-family="sans-serif" font-size="11" fill="#5b6680">Pioneer bets blind; later</text>
+  <text x="360" y="251" font-family="sans-serif" font-size="11" fill="#5b6680">entrants see what works</text>
+
+  <rect x="348" y="272" width="244" height="68" rx="7" fill="#ffffff" stroke="#ef4444" stroke-width="1"/>
+  <text x="360" y="294" font-family="sans-serif" font-size="13" font-weight="700" fill="#1d2438">Incumbent inertia</text>
+  <text x="360" y="312" font-family="sans-serif" font-size="11" fill="#5b6680">Locked into old tech / model,</text>
+  <text x="360" y="327" font-family="sans-serif" font-size="11" fill="#5b6680">slow to pivot when share shifts</text>
+
+  <text x="320" y="388" font-family="sans-serif" font-size="12" font-style="italic" fill="#5b6680" text-anchor="middle">Net pioneer payoff = advantages − disadvantages, set by the market's mechanism</text>
+</svg>

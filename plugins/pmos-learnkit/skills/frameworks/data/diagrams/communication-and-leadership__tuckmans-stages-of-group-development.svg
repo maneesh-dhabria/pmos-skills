@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Tuckman's Stages of Group Development diagram">
+<rect width="640" height="400" fill="#ffffff"/>
+<text x="32" y="34" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Tuckman's Stages of Group Development</text>
+<text x="32" y="56" font-family="sans-serif" font-size="13" fill="#5b6680">Teams climb a predictable ladder — each stage needs a different kind of leadership.</text>
+
+<!-- staged ascending ladder -->
+<!-- Forming -->
+<rect x="32" y="300" width="108" height="56" rx="6" fill="#f4f7ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="86" y="324" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Forming</text>
+<text x="86" y="342" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">polite, unsure</text>
+
+<!-- Storming -->
+<rect x="148" y="252" width="108" height="56" rx="6" fill="#f4f7ff" stroke="#ef4444" stroke-width="1.5"/>
+<text x="202" y="276" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Storming</text>
+<text x="202" y="294" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">conflict, friction</text>
+
+<!-- Norming -->
+<rect x="264" y="204" width="108" height="56" rx="6" fill="#f4f7ff" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="318" y="228" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Norming</text>
+<text x="318" y="246" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">norms, trust</text>
+
+<!-- Performing -->
+<rect x="380" y="156" width="108" height="56" rx="6" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="1.5"/>
+<text x="434" y="180" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Performing</text>
+<text x="434" y="198" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">high autonomy</text>
+
+<!-- Adjourning -->
+<rect x="496" y="108" width="112" height="56" rx="6" fill="#ffffff" stroke="#5b6680" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="552" y="132" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="700" fill="#1d2438">Adjourning</text>
+<text x="552" y="150" text-anchor="middle" font-family="sans-serif" font-size="10.5" fill="#5b6680">disband, close</text>
+
+<!-- connecting arrows -->
+<g stroke="#5b6680" stroke-width="1.5" fill="none">
+<path d="M140 312 L148 300"/>
+<path d="M256 264 L264 252"/>
+<path d="M372 216 L380 204"/>
+<path d="M488 168 L496 156"/>
+</g>
+
+<!-- leadership move labels -->
+<text x="32" y="384" font-family="sans-serif" font-size="11" fill="#2563eb">Direct →</text>
+<text x="148" y="384" font-family="sans-serif" font-size="11" fill="#ef4444">Coach →</text>
+<text x="264" y="384" font-family="sans-serif" font-size="11" fill="#f59e0b">Support →</text>
+<text x="380" y="384" font-family="sans-serif" font-size="11" fill="#0ea5a4">Delegate →</text>
+<text x="496" y="384" font-family="sans-serif" font-size="11" fill="#5b6680">Celebrate</text>
+</svg>

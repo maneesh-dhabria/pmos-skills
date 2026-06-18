@@ -103,7 +103,7 @@ diagram **requirement** — owned, consistent, inlined, never hot-linked — at 
 > — is unchanged and fully satisfied. `/diagram` remains the right tool for a one-off
 > hero diagram a user elaborates by hand.
 
-**SVG style guide (keep all ~272 diagrams consistent):**
+**SVG style guide (keep all ~346 diagrams consistent):**
 
 - Root: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="<name> diagram">`. No `width`/`height` (responsive). The library renders SVGs on a **white** card, so design for a light background with dark ink.
 - Palette: background `#ffffff` or `#f4f7ff`; ink `#1d2438`; muted `#5b6680`; accent `#2563eb`; secondary accents `#0ea5a4`, `#f59e0b`, `#ef4444`. Stick to this set so the corpus reads as one family.

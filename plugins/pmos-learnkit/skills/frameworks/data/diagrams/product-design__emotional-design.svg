@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Emotional Design diagram">
+  <rect width="640" height="400" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" font-family="sans-serif" font-size="22" font-weight="700" fill="#1d2438">Emotional Design</text>
+  <text x="320" y="56" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5b6680">Three levels a great product must speak to (Don Norman)</text>
+
+  <!-- Visceral -->
+  <rect x="80" y="80" width="480" height="80" rx="10" fill="#f4f7ff" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="120" cy="120" r="18" fill="#2563eb"/>
+  <text x="120" y="125" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">1</text>
+  <text x="160" y="112" font-family="sans-serif" font-size="17" font-weight="700" fill="#1d2438">Visceral — first look</text>
+  <text x="160" y="138" font-family="sans-serif" font-size="13" fill="#5b6680">Immediate gut reaction to appearance, feel, sound</text>
+
+  <!-- Behavioral -->
+  <rect x="80" y="172" width="480" height="80" rx="10" fill="#f4f7ff" stroke="#0ea5a4" stroke-width="2"/>
+  <circle cx="120" cy="212" r="18" fill="#0ea5a4"/>
+  <text x="120" y="217" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">2</text>
+  <text x="160" y="204" font-family="sans-serif" font-size="17" font-weight="700" fill="#1d2438">Behavioral — in use</text>
+  <text x="160" y="230" font-family="sans-serif" font-size="13" fill="#5b6680">Pleasure and effectiveness of actually using it</text>
+
+  <!-- Reflective -->
+  <rect x="80" y="264" width="480" height="80" rx="10" fill="#f4f7ff" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="120" cy="304" r="18" fill="#f59e0b"/>
+  <text x="120" y="309" text-anchor="middle" font-family="sans-serif" font-size="16" font-weight="700" fill="#ffffff">3</text>
+  <text x="160" y="296" font-family="sans-serif" font-size="17" font-weight="700" fill="#1d2438">Reflective — after</text>
+  <text x="160" y="322" font-family="sans-serif" font-size="13" fill="#5b6680">Meaning, memory, identity, the story you tell</text>
+
+  <text x="320" y="378" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#5b6680">Visceral hooks · Behavioral retains · Reflective makes it loved</text>
+</svg>
