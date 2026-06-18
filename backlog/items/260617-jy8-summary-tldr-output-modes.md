@@ -4,18 +4,19 @@ id: 260617-jy8
 kind: epic
 title: "/summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-toolkit, summary-tldr, diagram, modes]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_summary-tldr-modes/
 design_doc: docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html
 parent:
 dependencies: []
+released: v2.87.0
 ---
 
 ## Context
