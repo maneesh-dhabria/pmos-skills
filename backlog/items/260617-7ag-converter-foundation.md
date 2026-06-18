@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-utilities
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-17_converter/
 plan_doc: docs/pmos/features/2026-06-17_converter/stories/260617-7ag/03_plan.html
 tasks: docs/pmos/features/2026-06-17_converter/stories/260617-7ag/tasks.yaml
-worktree: .claude/worktrees/feat-260617-7ag
+worktree:
 build_branch: feat/260617-7ag
 build_commit: f29f505
 claimed_by: null
@@ -21,6 +21,7 @@ driver_holder: null
 labels: [pmos-utilities, converter, web-ui]
 created: 2026-06-17
 updated: 2026-06-18
+released: v0.3.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-7ag -->

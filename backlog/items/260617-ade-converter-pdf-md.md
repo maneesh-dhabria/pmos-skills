@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: [260617-7ag]
 plugin: pmos-utilities
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-17_converter/
 plan_doc: docs/pmos/features/2026-06-17_converter/stories/260617-ade/03_plan.html
 tasks: docs/pmos/features/2026-06-17_converter/stories/260617-ade/tasks.yaml
-worktree: .claude/worktrees/feat-260617-ade
+worktree:
 build_branch: feat/260617-ade
 build_commit: 03e762b
 claimed_by: null
@@ -21,6 +21,7 @@ driver_holder: null
 labels: [pmos-utilities, converter, pdf, llm]
 created: 2026-06-17
 updated: 2026-06-18
+released: v0.3.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-ade. Depends on 260617-7ag (registry); independent of 260617-rck. -->

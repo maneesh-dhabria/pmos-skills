@@ -4,18 +4,19 @@ id: 260617-vvd
 kind: epic
 title: "/converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-utilities, converter, web-ui, tooling]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_converter/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_converter/
 design_doc: docs/pmos/features/2026-06-17_converter/02_design.html
 parent:
 dependencies: []
+released: v0.3.0
 ---
 
 ## Context
