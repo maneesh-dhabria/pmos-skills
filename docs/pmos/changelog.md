@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-06-18 — pmos-gamekit 0.8.0: /solitaire feels finished
+
+`/solitaire` got a batch of first-run polish. The board no longer shows a redundant "Klondike" header, each game deals with one of several **randomly-chosen card backs**, and the game now **helps you when you're stuck**: after a short idle it surfaces a hint highlighting your first productive move, and if no legal move exists anywhere (after scanning a full stock cycle) it tells you the game is deadlocked instead of leaving you guessing. Drawing from the stock now animates the card flipping to the waste pile.
+
+- **Cleaner header** — the redundant "Klondike" label is gone.
+- **Per-game card backs** — a random back design each deal.
+- **Idle auto-hint** — after ~8s idle, your first productive move is highlighted; press H any time for a manual hint.
+- **No-moves detection** — a non-blocking banner when the deal is genuinely deadlocked (full stock-cycle scan).
+- **Draw animation** — stock → waste now flips with a FLIP transition.
+
 ## 2026-06-18 — pmos-learnkit 0.28.0: bigger /frameworks library, now directly authored
 
 The `/frameworks` library grew from **272 to 346 frameworks** — 74 net-new PM thinking tools (each with problem-tags, a decision-type, when-to-use/when-not guidance, and an owned offline diagram) now show up in matching and in the browsable library. The library is also now **directly authored and fully offline**: the old Notion-sync pipeline is gone, so rebuilding or expanding the corpus no longer depends on any external service or account.
