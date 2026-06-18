@@ -11,8 +11,9 @@ allowed-tools: Bash, Read
 Launch-only skill. It does not generate anything — it serves a pre-bundled, fully
 self-contained Klondike game (`game/solitaire.html`) through the shared zero-dependency
 launcher and points your browser at it. All gameplay (draw-1/draw-3 toggle, drag-and-drop,
-click-to-move, undo, auto-move to foundations, move counter + timer, win animation) lives
-inside the one HTML file and runs offline.
+click-to-move, undo, auto-move to foundations, an idle hint, a no-moves-left prompt,
+randomised card backs, move counter + timer, draw + win animations) lives inside the one
+HTML file and runs offline.
 
 This skill follows the launch contract in
 `../_shared/game-launcher/game-launcher.md` (the §K canonical home for the bundling
@@ -94,8 +95,9 @@ to load.
    browser does not open (headless), open the printed URL manually.
 4. **Report** the URL to the user and that gameplay controls are: draw-1/draw-3 toggle,
    drag or click to move, **U** undo, **A** auto-move to foundations, **H** hint,
-   **N** new game, **1**/**3** set draw mode. Stopping is `Ctrl-C` in the launcher
-   terminal. Per D6 the
+   **N** new game, **1**/**3** set draw mode. A hint also appears on its own after a
+   short idle, and a non-blocking "no moves left — deal a new game?" prompt surfaces when
+   the deal is genuinely stuck. Stopping is `Ctrl-C` in the launcher terminal. Per D6 the
    game keeps **no save state** — closing the tab discards the hand.
 
 ## Phase 1: Capture Learnings {#capture-learnings}
