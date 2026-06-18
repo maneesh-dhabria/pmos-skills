@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-18 — pmos-toolkit 2.88.0: /logos is now /logo, with concept exploration
+
+The logo skill is renamed from **`/logos` to `/logo`** (singular), and it now **explores before it generates**. A new exploration step proposes concept and style directions across two axes and gets your approval before drafting any SVGs, so you steer the brand direction up front instead of reacting to finished candidates. A new mark-type aspect-ratio gate keeps lockups, emblems, wordmarks, and square marks within sane proportions, and the run's captured learnings are now shown for your approval before they're saved.
+
+- **Renamed `/logos` → `/logo`** (no alias; all references swept).
+- **Concept + style exploration gate** — pick a direction on two axes before any SVG is drafted.
+- **Mark-type aspect gate** — `--mark-type` validates proportions per mark type (lockup / emblem / wordmark / square), with back-compatible default behavior.
+- **Learnings approval** — review captured learnings before they're written.
+
 ## 2026-06-18 — pmos-toolkit 2.87.0: /summary-tldr output modes + /diagram mindmaps
 
 `/summary-tldr` now does more than text. A new **`--mode`** dimension lets the same grounded summary come out as a **mindmap**, a **narrated video**, or a **swipeable shorts carousel** — and `/diagram` gained a first-class **mindmap auto-layout** that powers it. The text summary is always emitted first (crash-safe), then the chosen mode renders on top of it; every mode derives from the grounded this-run extraction, never a summary-of-a-summary, and reuses an existing renderer rather than building a new one.
