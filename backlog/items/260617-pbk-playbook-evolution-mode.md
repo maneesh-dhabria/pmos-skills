@@ -4,18 +4,19 @@ id: 260617-pbk
 kind: epic
 title: "/playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything)"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-learnkit, playbook, evolution-mode]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_playbook-evolution-mode/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_playbook-evolution-mode/
 design_doc: docs/pmos/features/2026-06-17_playbook-evolution-mode/02_design.html
 parent:
 dependencies: []
+released: v0.29.0
 ---
 
 ## Context
