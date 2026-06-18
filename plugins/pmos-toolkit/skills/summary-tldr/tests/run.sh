@@ -26,6 +26,7 @@ echo "== script selftests =="
 if node "$SCRIPTS/mode.js" --selftest >/dev/null 2>&1; then ok "mode.js --selftest"; else bad "mode.js --selftest"; fi
 if node "$SCRIPTS/mindmap-hierarchy.js" --selftest >/dev/null 2>&1; then ok "mindmap-hierarchy.js --selftest"; else bad "mindmap-hierarchy.js --selftest"; fi
 if node "$SCRIPTS/compression.js" --selftest >/dev/null 2>&1; then ok "compression.js --selftest (existing, stays green)"; else bad "compression.js --selftest"; fi
+if node "$SCRIPTS/shorts.js" --selftest >/dev/null 2>&1; then ok "shorts.js --selftest"; else bad "shorts.js --selftest"; fi
 
 echo "== mode.js behavior =="
 # default → narrative
@@ -44,10 +45,10 @@ check "mindmap+style warns" "echo '$out' | grep -q 'ignored in --mode mindmap'"
 out="$(node "$SCRIPTS/mode.js" --mode video)"
 check "video is implemented" "echo '$out' | grep -q '\"status\":\"implemented\"'"
 check "video styleApplies=false" "echo '$out' | grep -q '\"styleApplies\":false'"
-# shorts still deferred with a note that promises the canonical text
+# shorts is now implemented (story wf6); style does not apply
 out="$(node "$SCRIPTS/mode.js" --mode shorts)"
-check "shorts is deferred" "echo '$out' | grep -q '\"status\":\"deferred\"'"
-check "shorts note promises canonical text" "echo '$out' | grep -q 'canonical text'"
+check "shorts is implemented" "echo '$out' | grep -q '\"status\":\"implemented\"'"
+check "shorts styleApplies=false" "echo '$out' | grep -q '\"styleApplies\":false'"
 
 echo "== video length mapping (FR-C1/D9) =="
 out="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression tight)"
@@ -61,6 +62,36 @@ node "$SCRIPTS/mode.js" --video-length-resolve --compression tight --video-lengt
 check "invalid --video-length exits 64" "[ $rc -eq 64 ]"
 err="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression tight --video-length bogus 2>&1)"
 check "invalid --video-length names the set" "echo '$err' | grep -q 'quick|standard|deep'"
+
+echo "== shorts.js card derivation + media pairing (FR-D1/D3/D7/D8/D12) =="
+cards_model='{"topic":"Remote Work","cards":[{"text":"Office costs fell 40% after the remote shift.","keyfact":"office real-estate costs down 40 percent"},{"text":"Code-review turnaround grew from 4h to 11h.","keyfact":"code review velocity turnaround hours"},{"text":"Adopt a hybrid schedule.","keyfact":"hybrid schedule recommendation"}]}'
+cards="$(echo "$cards_model" | node "$SCRIPTS/shorts.js" --derive-cards)"
+check "derive: stable card ids" "echo '$cards' | grep -q '\"id\":\"card-1\"'"
+# over-limit card → exit 4 (re-derive, never truncate)
+longtext="$(printf 'x%.0s' $(seq 1 141))"
+echo "{\"topic\":\"t\",\"cards\":[{\"text\":\"$longtext\",\"keyfact\":\"k\"},{\"text\":\"ok\",\"keyfact\":\"k\"}]}" | node "$SCRIPTS/shorts.js" --derive-cards >/dev/null 2>&1; rc=$?
+check "over-140 card exits 4 (no truncation)" "[ $rc -eq 4 ]"
+# below ≥2 floor → exit 3 (degrade)
+echo '{"topic":"t","cards":[{"text":"only one card","keyfact":"k"}]}' | node "$SCRIPTS/shorts.js" --derive-cards >/dev/null 2>&1; rc=$?
+check "below ≥2-card floor exits 3 (degrade)" "[ $rc -eq 3 ]"
+# media pairing: relevant figure attaches; unrelated does not
+inv="$(mktemp)"; printf '[{"id":"fig_1","source_ref":"costs.png","kind":"img","alt":"Office real-estate costs chart 40 percent decline"}]' > "$inv"
+paired="$(echo "$cards" | node "$SCRIPTS/shorts.js" --pair-media --inventory "$inv")"
+check "pair-media attaches the relevant figure to card 1" "echo '$paired' | grep -q 'costs.png'"
+unrel="$(mktemp)"; printf '[{"id":"fig_x","source_ref":"cat.png","kind":"img","alt":"A photo of a sleeping cat"}]' > "$unrel"
+paired2="$(echo "$cards" | node "$SCRIPTS/shorts.js" --pair-media --inventory "$unrel")"
+check "pair-media never force-attaches an unrelated figure" "! echo '$paired2' | grep -q 'cat.png'"
+# emit: self-contained carousel carries the comments hooks + meta + carousel JS
+emit_out="$(mktemp -u).html"; meta="$(mktemp)"
+printf '{"title":"Remote Work","canonical_href":"./c.html","plugin_version":"0.0.0"}' > "$meta"
+echo "$paired" > "$inv.cards"
+node "$SCRIPTS/shorts.js" --emit --cards "$inv.cards" --meta "$meta" --out "$emit_out" >/dev/null 2>&1
+check "emit: writes the carousel file" "[ -f '$emit_out' ]"
+check "emit: carries pmos:skill meta" "grep -q 'pmos:skill\" content=\"summary-tldr\"' '$emit_out'"
+check "emit: carries inline pmos-comments block" "grep -q 'pmos-comments:start' '$emit_out'"
+check "emit: carousel JS embedded (swipe/keyboard)" "grep -q 'shorts-track' '$emit_out'"
+check "emit: self-contained (no external stylesheet link)" "! grep -qiE '<link[^>]*stylesheet' '$emit_out'"
+rm -f "$inv" "$inv.cards" "$unrel" "$meta" "$emit_out"
 
 echo "== mindmap-hierarchy.js behavior =="
 good='{"topic":"Remote Work","branches":[{"label":"Costs","leaves":["40% down","real estate"]},{"label":"Velocity","leaves":["4h to 11h"]},{"label":"Recs","leaves":["hybrid"]}]}'
@@ -87,11 +118,30 @@ grep_md "mode picker has Narrative (Recommended)" 'grounded text TL;DR (Recommen
 grep_md "mode-render phase anchor present" '{#mode-render}'
 grep_md "mindmap-mode sub-anchor present" '{#mindmap-mode}'
 grep_md "video-mode sub-anchor present" '{#video-mode}'
+grep_md "shorts-mode sub-anchor present" '{#shorts-mode}'
 grep_md "diagram add-on anchor preserved (back-compat)" '{#diagram}'
 grep_md "canonical-first invariant stated (D2/INV3)" 'before any mode rendering'
 grep_md "mindmap handoff cites /diagram --mode mindmap" '/diagram --mode mindmap --source'
 grep_md "video handoff cites /explainer-video on original source" '/explainer-video <ORIGINAL-SOURCE>'
 grep_md "video length resolved via script (§H)" '--video-length-resolve --compression'
+grep_md "shorts derives cards via script (§H)" 'shorts.js --derive-cards'
+grep_md "shorts pairs media via script (§H)" 'shorts.js --pair-media'
+grep_md "shorts reuses explainer-video ingest.mjs (INV5)" 'explainer-video/scripts/ingest.mjs'
+grep_md "shorts cites the card-carousel guidelines ref" 'reference/card-carousel-guidelines.md'
+
+echo "== no specific app named anywhere in the skill or its output (maintainer rule) =="
+# The bite-size card-story genre is studied as a FORM; no product is ever named.
+# These are the forbidden brand names this guard scans the skill surface + emitted output for.
+FORBIDDEN='Snapchat|Snap Discover|Instagram Stories|TikTok|Google Web Stories|AMP Stories|Flipboard|Apple News'
+SCAN_TARGETS="$SKILL_DIR/SKILL.md $SKILL_DIR/reference/card-carousel-guidelines.md $SCRIPTS/shorts.js"
+if grep -rEi "$FORBIDDEN" $SCAN_TARGETS >/dev/null 2>&1; then bad "no forbidden app name in skill surface"; else ok "no forbidden app name in skill surface"; fi
+# also scan a freshly emitted carousel (the OUTPUT)
+em="$(mktemp -u).html"; mt="$(mktemp)"; cm="$(mktemp)"
+printf '{"title":"Sample","canonical_href":"./c.html","plugin_version":"0.0.0"}' > "$mt"
+echo '{"topic":"Sample","cards":[{"text":"First takeaway asserts a real claim.","keyfact":"k1"},{"text":"Second takeaway asserts another.","keyfact":"k2"}]}' | node "$SCRIPTS/shorts.js" --derive-cards > "$cm"
+node "$SCRIPTS/shorts.js" --emit --cards "$cm" --meta "$mt" --out "$em" >/dev/null 2>&1
+if grep -Ei "$FORBIDDEN" "$em" >/dev/null 2>&1; then bad "no forbidden app name in emitted carousel"; else ok "no forbidden app name in emitted carousel"; fi
+rm -f "$em" "$mt" "$cm"
 grep_md "deterministic mode dispatch via script (§H)" 'scripts/mode.js'
 grep_md "hierarchy floor via script (§H)" 'mindmap-hierarchy.js'
 grep_md "orthogonal mode/style invariant" 'orthogonal to'

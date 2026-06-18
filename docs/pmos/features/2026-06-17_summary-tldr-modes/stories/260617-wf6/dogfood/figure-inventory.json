@@ -1,0 +1,5 @@
+[
+  {"id": "fig_1", "source_ref": "assets/costs-chart.png", "kind": "img", "alt": "Bar chart of office real-estate costs declining 40 percent after the remote-first shift", "width": 720, "height": 420},
+  {"id": "fig_2", "source_ref": "assets/review-latency.png", "kind": "img", "alt": "Line chart of median code-review turnaround rising from 4 to 11 hours", "width": 720, "height": 420},
+  {"id": "fig_3", "source_ref": "assets/team-photo.png", "kind": "img", "alt": "A group photo of the engineering offsite by the lake", "width": 720, "height": 480}
+]
