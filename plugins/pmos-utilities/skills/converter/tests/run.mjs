@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 
 // Deterministic order; server test last (it spawns a subprocess of its own).
-const ORDER = ['registry', 'yaml', 'csv', 'descriptors', 'deps', 'server'];
+const ORDER = ['registry', 'yaml', 'csv', 'descriptors', 'markdown', 'html-parser', 'html-descriptors', 'roundtrip', 'deps', 'server'];
 const suites = fs.readdirSync(here)
   .filter((f) => f.endsWith('.test.mjs'))
   .sort((a, b) => {
