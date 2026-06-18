@@ -4,18 +4,19 @@ id: 260617-bx0
 kind: epic
 title: "/solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation)"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-gamekit, solitaire, polish]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_solitaire-fixes/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_solitaire-fixes/
 design_doc: docs/pmos/features/2026-06-17_solitaire-fixes/02_design.html
 parent:
 dependencies: []
+released: v0.8.0
 ---
 
 ## Context

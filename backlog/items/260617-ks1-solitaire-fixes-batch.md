@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-gamekit
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-17_solitaire-fixes/
 plan_doc: docs/pmos/features/2026-06-17_solitaire-fixes/stories/260617-ks1/03_plan.html
 tasks: docs/pmos/features/2026-06-17_solitaire-fixes/stories/260617-ks1/tasks.yaml
-worktree: .claude/worktrees/feat-260617-ks1
+worktree:
 claimed_by: build:loop-main
 driver_holder: build:loop-main
 build_branch: feat/260617-ks1
@@ -21,6 +21,7 @@ build_commit: e5a4385
 labels: [pmos-gamekit, solitaire, polish]
 created: 2026-06-17
 updated: 2026-06-18
+released: v0.8.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-ks1 -->
