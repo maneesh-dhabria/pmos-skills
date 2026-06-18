@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-06-18 — pmos-learnkit 0.29.0: /playbook is now an evolution story-teller
+
+**`/playbook` is re-founded on evolution mode.** Instead of writing a single case study, it now traces how a skill — or a whole marketplace — *evolved* over time. It builds a milestone spine from your changelog, feature folders, and git merge history, mines two sources for each milestone, and tells the arc of how the work changed. Point it at a marketplace and pick a single skill (or the whole repo); the output is a milestone-by-milestone evolution with verbatim prompts and a "Where the pipeline mattered" callout, run through a voice self-check before it ships.
+
+- **Evolution is the default (and only) mode** — case-study mode is retired.
+- **Marketplace + skill scoping** — `--skill` scopes to one skill; a marketplace picker chooses the target, or trace the whole repo.
+- **Milestone spine from real history** — changelog + `features/*` + git merges, two-source mining per milestone.
+- **New evolution schema** — verbatim-prompt capture, "Where the pipeline mattered" callout, voice self-check; clustering and `--days`/`--since` windowing removed (evolution is the whole arc).
+
 ## 2026-06-18 — pmos-toolkit 2.88.0: /logos is now /logo, with concept exploration
 
 The logo skill is renamed from **`/logos` to `/logo`** (singular), and it now **explores before it generates**. A new exploration step proposes concept and style directions across two axes and gets your approval before drafting any SVGs, so you steer the brand direction up front instead of reacting to finished candidates. A new mark-type aspect-ratio gate keeps lockups, emblems, wordmarks, and square marks within sane proportions, and the run's captured learnings are now shown for your approval before they're saved.
