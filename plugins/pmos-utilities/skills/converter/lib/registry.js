@@ -46,6 +46,9 @@ function createRegistry() {
     if (d.requires != null && !Array.isArray(d.requires)) {
       throw new Error(`descriptor.requires must be an array (id=${d.id})`);
     }
+    if (d.contentType != null && typeof d.contentType !== 'string') {
+      throw new Error(`descriptor.contentType must be a string (id=${d.id})`);
+    }
     return {
       id: d.id,
       from: d.from,
@@ -55,6 +58,9 @@ function createRegistry() {
       requires: d.requires ? d.requires.slice() : [],
       inputMode,
       outputMode,
+      // Optional: binary descriptors declare the download Content-Type (Inv-6); the server
+      // falls back to application/octet-stream when absent. Pure-text pairs omit it.
+      ...(d.contentType ? { contentType: d.contentType } : {}),
       convert: d.convert,
     };
   }

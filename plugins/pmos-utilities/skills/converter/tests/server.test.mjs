@@ -60,8 +60,8 @@ async function main() {
   const conv = await request(port, 'GET', '/conversions').catch(() => ({ status: 0, body: '{}' }));
   let ids = [];
   try { ids = (JSON.parse(conv.body).conversions || []).map((d) => d.id).sort(); } catch (_e) {}
-  check('GET /conversions returns the registry ids (4 data pairs + the HTML↔MD pair)',
-    conv.status === 200 && JSON.stringify(ids) === JSON.stringify(['csv→json', 'html→md', 'json→csv', 'json→yaml', 'md→html', 'yaml→json']));
+  check('GET /conversions returns the registry ids (4 data pairs + the HTML↔MD and PDF↔MD pairs)',
+    conv.status === 200 && JSON.stringify(ids) === JSON.stringify(['csv→json', 'html→md', 'json→csv', 'json→yaml', 'md→html', 'md→pdf', 'pdf→md', 'yaml→json']));
 
   const payload = JSON.stringify({ id: 'json→yaml', input: '{"a":1,"b":[2,3]}' });
   const cv = await request(port, 'POST', '/convert', payload, { 'Content-Type': 'application/json' }).catch(() => ({ status: 0, body: '' }));

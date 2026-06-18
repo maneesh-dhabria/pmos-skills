@@ -27,8 +27,8 @@ const ids = reg.list().map((d) => d.id).sort();
 // AC3 — both directions are registered via auto-discovery, alongside the 4 data pairs.
 check('auto-discovery registered md→html', ids.includes('md→html'));
 check('auto-discovery registered html→md', ids.includes('html→md'));
-check('the full registry is the 6 expected ids (4 data + HTML↔MD pair)',
-  JSON.stringify(ids) === JSON.stringify(['csv→json', 'html→md', 'json→csv', 'json→yaml', 'md→html', 'yaml→json']));
+check('the full registry is the 8 expected ids (4 data + HTML↔MD + PDF↔MD pairs)',
+  JSON.stringify(ids) === JSON.stringify(['csv→json', 'html→md', 'json→csv', 'json→yaml', 'md→html', 'md→pdf', 'pdf→md', 'yaml→json']));
 
 // AC4 — both new descriptors are pure, text↔text.
 const mh = reg.get('md→html');
