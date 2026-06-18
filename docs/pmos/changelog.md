@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-18 — pmos-learnkit 0.28.0: bigger /frameworks library, now directly authored
+
+The `/frameworks` library grew from **272 to 346 frameworks** — 74 net-new PM thinking tools (each with problem-tags, a decision-type, when-to-use/when-not guidance, and an owned offline diagram) now show up in matching and in the browsable library. The library is also now **directly authored and fully offline**: the old Notion-sync pipeline is gone, so rebuilding or expanding the corpus no longer depends on any external service or account.
+
+- **74 new frameworks** (corpus 272 → 346) across discovery, prioritization, strategy, stakeholder management, and more — searchable, matchable, and diagrammed.
+- **Directly-authored, offline corpus.** The Notion `sync` mode was removed; the repeatable research/authoring process is now documented in-repo, and re-ingestion is a deterministic, account-free script.
+
 ## 2026-06-17 — pmos-toolkit 2.86.0: /feature-sdlc grills you live in interactive runs
 
 When you run the pipeline interactively (`/feature-sdlc`, `/skill-sdlc define`, and friends), the `/grill` step now actually **interviews you** — one question at a time — instead of running a silent background reviewer pass. Previously, even an interactive run dispatched `/grill` as a non-conversational reviewer that produced a findings doc without ever asking you anything, so the adversarial interview you expected never happened. Now, at Tier 2+ in an interactive run, `/grill` runs its real one-question-at-a-time interview by default (no opt-in needed) against the document under review — your requirements doc, or the design doc in a `route: skill` define run.
