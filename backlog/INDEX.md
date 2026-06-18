@@ -1,6 +1,6 @@
 # Backlog
 
-Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 260617-7ag/rck/ade planned)
+Last regenerated: 2026-06-18 (release: epics jy8/bx0/4w1/n7a/pbk/vvd → released across pmos-toolkit v2.87.0+v2.88.0, pmos-gamekit v0.8.0, pmos-learnkit v0.28.0+v0.29.0, pmos-utilities v0.3.0)
 
 52 open items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
@@ -43,12 +43,12 @@ Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 26061
 | 260616-9bt | released | skill | pmos-managerkit | 2/2 | /interview-feedback skill + pmos-managerkit plugin (NEW plugin — charter: help me do manager work) |
 | 260616-bq9 | released | skill | pmos-toolkit | 3/3 | /shape — collaborative problem-space exploration skill (lens-ledger floor/ceiling probing) + feature-sdlc front-gate + ideate frame-dedup |
 | 260616-tqf | released | skill | pmos-learnkit | 4/4 | Curated-references overlay + shared library-viewer substrate — improve /primer & /learn-list sourcing indirectly, and give /learn-list a reference viewer |
-| 260617-pbk | defined | skill | pmos-learnkit | 0/1 | /playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything) |
-| 260617-4w1 | defined | skill | pmos-learnkit | 0/2 | /frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process) |
-| 260617-jy8 | defined | skill | pmos-toolkit | 0/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
-| 260617-bx0 | defined | skill | pmos-gamekit | 0/1 | /solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation) |
-| 260617-vvd | defined | skill | pmos-utilities | 0/3 | /converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server |
-| 260617-n7a | defined | skill | pmos-toolkit | 0/1 | /logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval |
+| 260617-pbk | released | skill | pmos-learnkit | 1/1 | /playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything) |
+| 260617-4w1 | released | skill | pmos-learnkit | 2/2 | /frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process) |
+| 260617-jy8 | released | skill | pmos-toolkit | 4/4 | /summary-tldr output modes (narrative/mindmap/video/shorts) + /diagram mindmap auto-layout capability |
+| 260617-bx0 | released | skill | pmos-gamekit | 1/1 | /solitaire first-run fixes (header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation) |
+| 260617-vvd | released | skill | pmos-utilities | 3/3 | /converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server |
+| 260617-n7a | released | skill | pmos-toolkit | 1/1 | /logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval |
 
 ## must
 
@@ -60,10 +60,10 @@ Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 26061
 
 | id | kind | type | status | parent | title | spec | plan | pr |
 |---|---|---|---|---|---|---|---|---|
-| 260617-1aq | story | feature | planned | 260617-jy8 | /diagram --mode mindmap — vendored zero-dep tidy-tree/radial auto-layout → themed SVG | 02_design.html | 03_plan.html |  |
-| 260617-xn4 | story | feature | planned | 260617-jy8 | /summary-tldr --mode scaffold + narrative refactor (back-compat) + mindmap mode (deps 260617-1aq) | 02_design.html | 03_plan.html |  |
-| 260617-gfx | story | feature | planned | 260617-jy8 | /summary-tldr --mode video — delegate to /explainer-video on the original source (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
-| 260617-wf6 | story | feature | planned | 260617-jy8 | /summary-tldr --mode shorts — self-contained ≤140-char card carousel + relevant-media pairing (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
+| 260617-1aq | story | feature | released | 260617-jy8 | /diagram --mode mindmap — vendored zero-dep tidy-tree/radial auto-layout → themed SVG | 02_design.html | 03_plan.html |  |
+| 260617-xn4 | story | feature | released | 260617-jy8 | /summary-tldr --mode scaffold + narrative refactor (back-compat) + mindmap mode (deps 260617-1aq) | 02_design.html | 03_plan.html |  |
+| 260617-gfx | story | feature | released | 260617-jy8 | /summary-tldr --mode video — delegate to /explainer-video on the original source (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
+| 260617-wf6 | story | feature | released | 260617-jy8 | /summary-tldr --mode shorts — self-contained ≤140-char card carousel + relevant-media pairing (deps 260617-xn4) | 02_design.html | 03_plan.html |  |
 | 260616-v4h | story | feature | planned | 260616-tqf | Curated-references overlay engine — ship scrubbed corpus + IDF prefilter + research-phase subagent + sourcing.md patch | 02_design.html | 03_plan.html |  |
 | 260616-f7w | story | feature | planned | 260616-tqf | Extract _shared/library-viewer/ substrate + retrofit /frameworks onto it (zero regression) | 02_design.html | 03_plan.html |  |
 | 260616-w1v | story | feature | planned | 260616-tqf | Retrofit /primer browse viewer onto the library-viewer substrate (preserve Curated/Yours) | 02_design.html | 03_plan.html |  |
@@ -73,14 +73,14 @@ Last regenerated: 2026-06-17 (define: epic 260617-vvd → defined; stories 26061
 | 260616-p7b | story | feature | planned | 260616-bq9 | /shape skill + _shared/lens-ledger.md substrate — floor/ceiling/context-gate probing, full lens ledger artifact, autonomous non-interactive path |  |  |  |
 | 260616-xqm | story | feature | planned | 260616-bq9 | /feature-sdlc Phase-1 front-gate — /shape as the gated problem-shaping front (Tier 1 skip, Tier 2+3 mandatory), additive + version-gated; /ideate → solution-exploration step (deps 260616-p7b) |  |  |  |
 | 260616-4pg | story | enhancement | planned | 260616-bq9 | /ideate frame-dedup — Frame phase consumes /shape's HMW+JTBD brief when present instead of re-deriving (deps 260616-p7b) |  |  |  |
-| 260617-evo | story | feature | planned | 260617-pbk | /playbook evolution-mode rewrite — default-evolution, marketplace skill-picker, mine-everything, new milestone schema + voice self-check, remove case-study mode | 02_design.html | 03_plan.html |  |
-| 260617-2gw | story | feature | planned | 260617-4w1 | Ingest the 74-framework research batch into the bundled /frameworks corpus (272 → 346) + rebuild library | 02_design.html | 03_plan.html |  |
-| 260617-kac | story | feature | planned | 260617-4w1 | Re-found /frameworks on direct authoring: remove the Notion sync feature + ship the research/authoring process as reference docs | 02_design.html | 03_plan.html |  |
-| 260617-ks1 | story | feature | planned | 260617-bx0 | /solitaire first-run fixes batch — header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation | 02_design.html | 03_plan.html |  |
-| 260617-7ag | story | feature | planned | 260617-vvd | /converter foundation + data pair — skill scaffold, zero-dep server, single-file UI, converter registry, JSON↔YAML + CSV↔JSON | 02_design.html | 03_plan.html |  |
-| 260617-rck | story | feature | planned | 260617-vvd | /converter document pair — HTML↔MD (vendored markdown + tolerant HTML parser) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
-| 260617-ade | story | feature | planned | 260617-vvd | /converter PDF pair — PDF↔MD (claude pdf→md + vendored md→pdf) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
-| 260617-3z4 | story | enhancement | planned | 260617-n7a | /logo refinements batch — rename /logos→/logo + concept/style exploration & approval + clarify gate + mark-type aspect gate + learnings-approval | 02_design.html | 03_plan.html |  |
+| 260617-evo | story | feature | released | 260617-pbk | /playbook evolution-mode rewrite — default-evolution, marketplace skill-picker, mine-everything, new milestone schema + voice self-check, remove case-study mode | 02_design.html | 03_plan.html |  |
+| 260617-2gw | story | feature | released | 260617-4w1 | Ingest the 74-framework research batch into the bundled /frameworks corpus (272 → 346) + rebuild library | 02_design.html | 03_plan.html |  |
+| 260617-kac | story | feature | released | 260617-4w1 | Re-found /frameworks on direct authoring: remove the Notion sync feature + ship the research/authoring process as reference docs | 02_design.html | 03_plan.html |  |
+| 260617-ks1 | story | feature | released | 260617-bx0 | /solitaire first-run fixes batch — header wording, per-game card backs, idle auto-hint, no-moves detection, draw animation | 02_design.html | 03_plan.html |  |
+| 260617-7ag | story | feature | released | 260617-vvd | /converter foundation + data pair — skill scaffold, zero-dep server, single-file UI, converter registry, JSON↔YAML + CSV↔JSON | 02_design.html | 03_plan.html |  |
+| 260617-rck | story | feature | released | 260617-vvd | /converter document pair — HTML↔MD (vendored markdown + tolerant HTML parser) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
+| 260617-ade | story | feature | released | 260617-vvd | /converter PDF pair — PDF↔MD (claude pdf→md + vendored md→pdf) (deps 260617-7ag) | 02_design.html | 03_plan.html |  |
+| 260617-3z4 | story | enhancement | released | 260617-n7a | /logo refinements batch — rename /logos→/logo + concept/style exploration & approval + clarify gate + mark-type aspect gate + learnings-approval | 02_design.html | 03_plan.html |  |
 | 260615-dhk | story | feature | done | 260615-565 | Implement /primer browse library — transplant 61-primer corpus + build-library.mjs + browse verb + tests | 02_design.html | 03_plan.html |  |
 | 0001 | story | tech-debt | wontfix |  | /feature-sdlc fails its own skill-eval-check.sh — e-scripts-dir (script at tools/ not scripts/) + c-portable-paths (heuristic flags prose example paths) |  |  |  |
 | 0004 | story | bug | wontfix |  | skill-eval-check.sh --selftest aborts before reaching selftest dispatch (arg-validation order bug) |  |  |  |
