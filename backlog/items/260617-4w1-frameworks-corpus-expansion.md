@@ -4,18 +4,19 @@ id: 260617-4w1
 kind: epic
 title: "/frameworks corpus expansion + re-found on direct authoring (ingest 74-framework batch; remove Notion sync; ship the research process)"
 type: feature
-status: defined
+status: released
 priority: should
 labels: [pmos-learnkit, frameworks, corpus]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/
 design_doc: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/02_design.html
 parent:
 dependencies: []
+released: v0.28.0
 ---
 
 ## Context

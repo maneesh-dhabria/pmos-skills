@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: [260617-2gw]
 plugin: pmos-learnkit
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/
 plan_doc: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-kac/03_plan.html
 tasks: docs/pmos/features/2026-06-17_frameworks-corpus-expansion/stories/260617-kac/tasks.yaml
-worktree: .claude/worktrees/feat-260617-kac
+worktree:
 build_branch: feat/260617-kac
 build_commit: 419aa97
 claimed_by: null
@@ -21,6 +21,7 @@ driver_holder: null
 labels: [pmos-learnkit, frameworks, sync-removal, docs]
 created: 2026-06-17
 updated: 2026-06-18
+released: v0.28.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-kac. Depends on 260617-2gw (both edit SKILL.md). -->
