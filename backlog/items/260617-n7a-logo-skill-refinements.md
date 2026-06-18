@@ -4,18 +4,19 @@ id: 260617-n7a
 kind: epic
 title: "/logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval"
 type: enhancement
-status: defined
+status: released
 priority: should
 labels: [pmos-toolkit, logo, exploration, rename]
 route: skill
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-06-18
 defined: 2026-06-17
 source: docs/pmos/features/2026-06-17_logo-skill-refinements/02_design.html
 feature_folder: docs/pmos/features/2026-06-17_logo-skill-refinements/
 design_doc: docs/pmos/features/2026-06-17_logo-skill-refinements/02_design.html
 parent:
 dependencies: []
+released: v2.88.0
 ---
 
 <!-- status: defined at Loop 1; one story 260617-3z4 planned (route:skill). Build via /skill-sdlc build --story 260617-3z4 -->

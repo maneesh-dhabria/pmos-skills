@@ -9,11 +9,11 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: done
+status: released
 feature_folder: docs/pmos/features/2026-06-17_logo-skill-refinements/
 plan_doc: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/03_plan.html
 tasks: docs/pmos/features/2026-06-17_logo-skill-refinements/stories/260617-3z4/tasks.yaml
-worktree: .claude/worktrees/feat-260617-3z4
+worktree:
 build_branch: feat/260617-3z4
 build_commit: cd2847f
 claimed_by: null
@@ -21,6 +21,7 @@ driver_holder: null
 labels: [pmos-toolkit, logo, exploration, rename]
 created: 2026-06-17
 updated: 2026-06-18
+released: v2.88.0
 ---
 
 <!-- status: planned at define (Loop 1); tasks.yaml authored, route:skill. Build via /skill-sdlc build --story 260617-3z4 -->
