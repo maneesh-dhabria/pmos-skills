@@ -6,8 +6,8 @@
 //
 // Modes (design 260617-jy8 #frs-scaffold, D1/D10/D11):
 //   narrative — default; today's grounded text TL;DR (back-compat). `--style` applies HERE only.
-//   mindmap   — tree/radial diagram via /diagram --mode mindmap (implemented in this story, deps 1aq).
-//   video     — narrated .mp4 via /explainer-video (ships in story gfx) — DEFERRED here.
+//   mindmap   — tree/radial diagram via /diagram --mode mindmap (story 1aq).
+//   video     — narrated .mp4 via /explainer-video on the ORIGINAL source (story gfx, D9).
 //   shorts    — swipeable card carousel (ships in story wf6) — DEFERRED here.
 //
 // `--mode` is ORTHOGONAL to `--style` (INV2): style shapes only the narrative text; with a
@@ -15,17 +15,47 @@
 //
 // CLI:
 //   node mode.js --mode <m> [--style <s>]   → prints JSON {mode, styleApplies, status, warn?}; invalid → exit 64
+//   node mode.js --video-length-resolve --compression <c> [--video-length <v>]
+//                                           → prints JSON {length, source}; invalid override → exit 64
 //   node mode.js --selftest                 → runs fixtures, exit 0 (pass) / 1 (fail)
 
 'use strict';
 
 const MODES = ['narrative', 'mindmap', 'video', 'shorts'];
-// Modes fully implemented in THIS story (260617-xn4). The rest are accepted values that route to a
-// graceful "not yet available" note here and ship in a later story (gfx=video, wf6=shorts).
-const IMPLEMENTED = new Set(['narrative', 'mindmap']);
-const SHIPS_IN = { video: '260617-gfx', shorts: '260617-wf6' };
+// Modes fully implemented as of story 260617-gfx (narrative+mindmap from xn4/1aq, video here).
+// The rest are accepted values that route to a graceful "not yet available" note and ship in a
+// later story (wf6=shorts).
+const IMPLEMENTED = new Set(['narrative', 'mindmap', 'video']);
+const SHIPS_IN = { shorts: '260617-wf6' };
 
 const DEFAULT_MODE = 'narrative';
+
+// --- Video length mapping (story gfx, FR-C1/D9, §I) ------------------------------------------
+// `--mode video` delegates to /explainer-video, whose length dial is quick|standard|deep. The
+// length is DERIVED from /summary-tldr's --compression band, with an explicit --video-length
+// override. This is deterministic routing (§H) — the model never picks the length.
+const VIDEO_LENGTHS = ['quick', 'standard', 'deep'];
+const COMPRESSION_TO_VIDEO_LENGTH = { tight: 'quick', standard: 'standard', detailed: 'deep' };
+
+// Resolve the /explainer-video --length for video mode. `overrideLength` (the --video-length
+// contract flag) wins when present + valid; otherwise map the compression band. Returns
+// {length, source} (source ∈ override|compression|default) or {error} (caller → exit 64).
+function resolveVideoLength(compression, overrideLength) {
+  if (overrideLength !== undefined && overrideLength !== null && overrideLength !== '') {
+    const v = String(overrideLength).trim().toLowerCase();
+    if (!VIDEO_LENGTHS.includes(v)) {
+      return { error: `error: --video-length must be one of ${VIDEO_LENGTHS.join('|')} (got '${overrideLength}')` };
+    }
+    return { length: v, source: 'override' };
+  }
+  const raw = compression === undefined || compression === null || compression === '' ? 'standard' : compression;
+  const c = String(raw).trim().toLowerCase();
+  const length = COMPRESSION_TO_VIDEO_LENGTH[c];
+  // An unvalidated/unknown band shouldn't reach here (Phase 1 validates --compression), but be
+  // safe rather than emit an undefined length to the handoff.
+  if (!length) return { length: 'standard', source: 'default' };
+  return { length, source: 'compression' };
+}
 
 // Resolve + validate a mode value. Returns {mode} or {error} (caller maps error → exit 64).
 function resolveMode(raw) {
@@ -98,14 +128,38 @@ function selftest() {
   d = dispatch('mindmap', false);
   assert('mindmap no-style no warn', !d.warn);
 
-  // video/shorts deferred with note
-  for (const m of ['video', 'shorts']) {
-    d = dispatch(m, false);
-    assert(`${m} resolves`, d.mode === m);
-    assert(`${m} deferred`, d.status === 'deferred');
-    assert(`${m} note names ship story`, d.note && d.note.includes(SHIPS_IN[m]));
-    assert(`${m} note promises canonical text`, d.note.includes('canonical text'));
-  }
+  // video implemented (story gfx), style does not apply, warns when style provided
+  d = dispatch('video', true);
+  assert('video resolves', d.mode === 'video');
+  assert('video implemented', d.status === 'implemented');
+  assert('video style not applied', d.styleApplies === false);
+  assert('video+style warns', typeof d.warn === 'string' && d.warn.includes('ignored'));
+
+  // shorts still deferred with note
+  d = dispatch('shorts', false);
+  assert('shorts resolves', d.mode === 'shorts');
+  assert('shorts deferred', d.status === 'deferred');
+  assert('shorts note names ship story', d.note && d.note.includes(SHIPS_IN.shorts));
+  assert('shorts note promises canonical text', d.note.includes('canonical text'));
+
+  // video length mapping (FR-C1/D9): compression band → /explainer-video --length
+  let v = resolveVideoLength('tight', undefined);
+  assert('tight → quick', v.length === 'quick' && v.source === 'compression');
+  v = resolveVideoLength('standard', undefined);
+  assert('standard → standard', v.length === 'standard' && v.source === 'compression');
+  v = resolveVideoLength('detailed', undefined);
+  assert('detailed → deep', v.length === 'deep' && v.source === 'compression');
+  v = resolveVideoLength(undefined, undefined);
+  assert('no compression → standard', v.length === 'standard');
+  // --video-length override wins over the band
+  v = resolveVideoLength('tight', 'deep');
+  assert('override beats band', v.length === 'deep' && v.source === 'override');
+  v = resolveVideoLength('detailed', '  Quick ');
+  assert('override case-insensitive + trimmed', v.length === 'quick' && v.source === 'override');
+  // invalid override → error naming the set
+  v = resolveVideoLength('standard', 'epic');
+  assert('invalid override errors', !!v.error);
+  assert('override error names set', v.error.includes(VIDEO_LENGTHS.join('|')));
 
   // case-insensitive + trims
   d = dispatch('  MindMap ', false);
@@ -129,6 +183,17 @@ function main() {
   const args = process.argv.slice(2);
   if (args.includes('--selftest')) return selftest();
 
+  // Video length resolution subcommand (story gfx) — deterministic --compression → --length map.
+  if (args.includes('--video-length-resolve')) {
+    const out = resolveVideoLength(getFlag(args, '--compression'), getFlag(args, '--video-length'));
+    if (out.error) {
+      process.stderr.write(out.error + '\n');
+      process.exit(64);
+    }
+    process.stdout.write(JSON.stringify(out) + '\n');
+    return;
+  }
+
   const rawMode = getFlag(args, '--mode');
   const styleProvided = args.includes('--style');
   const out = dispatch(rawMode, styleProvided);
@@ -141,4 +206,7 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { MODES, IMPLEMENTED, DEFAULT_MODE, resolveMode, styleApplies, modeStatus, dispatch };
+module.exports = {
+  MODES, IMPLEMENTED, DEFAULT_MODE, VIDEO_LENGTHS, COMPRESSION_TO_VIDEO_LENGTH,
+  resolveMode, styleApplies, modeStatus, dispatch, resolveVideoLength,
+};

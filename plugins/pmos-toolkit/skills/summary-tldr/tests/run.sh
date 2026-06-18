@@ -20,7 +20,7 @@ pass=0; fail=0
 ok()   { pass=$((pass+1)); printf '  ok   %s\n' "$1"; }
 bad()  { fail=$((fail+1)); printf '  FAIL %s\n' "$1"; }
 check(){ if eval "$2" >/dev/null 2>&1; then ok "$1"; else bad "$1"; fi; }
-grep_md(){ if grep -qF "$2" "$SKILL_MD"; then ok "$1"; else bad "$1"; fi; }
+grep_md(){ if grep -qF -- "$2" "$SKILL_MD"; then ok "$1"; else bad "$1"; fi; }
 
 echo "== script selftests =="
 if node "$SCRIPTS/mode.js" --selftest >/dev/null 2>&1; then ok "mode.js --selftest"; else bad "mode.js --selftest"; fi
@@ -40,10 +40,27 @@ check "invalid mode names the full set" "echo '$err' | grep -q 'narrative|mindma
 out="$(node "$SCRIPTS/mode.js" --mode mindmap --style bullets)"
 check "mindmap styleApplies=false" "echo '$out' | grep -q '\"styleApplies\":false'"
 check "mindmap+style warns" "echo '$out' | grep -q 'ignored in --mode mindmap'"
-# video deferred with a note that promises the canonical text
+# video is now implemented (story gfx); style does not apply
 out="$(node "$SCRIPTS/mode.js" --mode video)"
-check "video is deferred" "echo '$out' | grep -q '\"status\":\"deferred\"'"
-check "video note promises canonical text" "echo '$out' | grep -q 'canonical text'"
+check "video is implemented" "echo '$out' | grep -q '\"status\":\"implemented\"'"
+check "video styleApplies=false" "echo '$out' | grep -q '\"styleApplies\":false'"
+# shorts still deferred with a note that promises the canonical text
+out="$(node "$SCRIPTS/mode.js" --mode shorts)"
+check "shorts is deferred" "echo '$out' | grep -q '\"status\":\"deferred\"'"
+check "shorts note promises canonical text" "echo '$out' | grep -q 'canonical text'"
+
+echo "== video length mapping (FR-C1/D9) =="
+out="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression tight)"
+check "tight -> quick" "echo '$out' | grep -q '\"length\":\"quick\"'"
+out="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression detailed)"
+check "detailed -> deep" "echo '$out' | grep -q '\"length\":\"deep\"'"
+out="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression tight --video-length standard)"
+check "--video-length override wins" "echo '$out' | grep -q '\"length\":\"standard\".*\"source\":\"override\"'"
+# invalid override → exit 64 naming the set
+node "$SCRIPTS/mode.js" --video-length-resolve --compression tight --video-length bogus >/dev/null 2>&1; rc=$?
+check "invalid --video-length exits 64" "[ $rc -eq 64 ]"
+err="$(node "$SCRIPTS/mode.js" --video-length-resolve --compression tight --video-length bogus 2>&1)"
+check "invalid --video-length names the set" "echo '$err' | grep -q 'quick|standard|deep'"
 
 echo "== mindmap-hierarchy.js behavior =="
 good='{"topic":"Remote Work","branches":[{"label":"Costs","leaves":["40% down","real estate"]},{"label":"Velocity","leaves":["4h to 11h"]},{"label":"Recs","leaves":["hybrid"]}]}'
@@ -65,12 +82,16 @@ fi
 
 echo "== SKILL.md contract (back-compat + mode wiring) =="
 grep_md "argument-hint lists --mode enum" '[--mode narrative|mindmap|video|shorts]'
+grep_md "argument-hint lists --video-length enum" '[--video-length quick|standard|deep]'
 grep_md "mode picker has Narrative (Recommended)" 'grounded text TL;DR (Recommended)'
 grep_md "mode-render phase anchor present" '{#mode-render}'
 grep_md "mindmap-mode sub-anchor present" '{#mindmap-mode}'
+grep_md "video-mode sub-anchor present" '{#video-mode}'
 grep_md "diagram add-on anchor preserved (back-compat)" '{#diagram}'
 grep_md "canonical-first invariant stated (D2/INV3)" 'before any mode rendering'
 grep_md "mindmap handoff cites /diagram --mode mindmap" '/diagram --mode mindmap --source'
+grep_md "video handoff cites /explainer-video on original source" '/explainer-video <ORIGINAL-SOURCE>'
+grep_md "video length resolved via script (§H)" '--video-length-resolve --compression'
 grep_md "deterministic mode dispatch via script (§H)" 'scripts/mode.js'
 grep_md "hierarchy floor via script (§H)" 'mindmap-hierarchy.js'
 grep_md "orthogonal mode/style invariant" 'orthogonal to'

@@ -2,7 +2,7 @@
 name: summary-tldr
 description: Produces a faithful, grounded TL;DR of any single piece of user-supplied content — a web URL, pasted text, a PDF, a markdown file, an image, an email or tweet thread, a podcast, or a video — at a user-confirmed compression target and in a chosen output style, then runs a first-time-reader review pass and saves a self-contained HTML artifact. Use when someone wants the actual claims, numbers, and takeaways of something they have no time to read in full — not a description of what it is about. Triggers when the user says "summarize this", "give me a TL;DR of <url>", "key takeaways from this PDF", "what does this actually say", or "/summary-tldr". Every claim traces to source content fetched or extracted this run; nothing ships from memory. Offers compression bands, four output styles, audience-shaped vocabulary, and an output mode (--mode) — narrative text (default), a mindmap diagram, a video, or swipeable cards ("summarize this as a mind map"); the grounded text summary is always produced first.
 user-invocable: true
-argument-hint: "<source: URL | file path (pdf/md/image/txt) | pasted text> [--mode narrative|mindmap|video|shorts] [--compression tight|standard|detailed] [--style bullets|exec|nested|layered] [--audience <who>] [--diagram] [--out <path>] [--non-interactive | --interactive]"
+argument-hint: "<source: URL | file path (pdf/md/image/txt) | pasted text> [--mode narrative|mindmap|video|shorts] [--video-length quick|standard|deep] [--compression tight|standard|detailed] [--style bullets|exec|nested|layered] [--audience <who>] [--diagram] [--out <path>] [--non-interactive | --interactive]"
 ---
 
 # Summary TL;DR
@@ -13,7 +13,7 @@ The one rule everything else serves: **a reader who never saw the original comes
 
 ## Flags & natural language
 
-Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "as a mind map" / "make it a mindmap" ≡ `--mode mindmap`, "as a video" / "narrate it" ≡ `--mode video`, "as swipeable cards" / "as shorts" ≡ `--mode shorts`, "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--mode` (typed value that changes the OUTPUT shape — see "## Output modes"), `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 7 diagram gate, `#diagram`), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
+Natural-language-first (`skill-patterns.md §I`): every option also has a natural-language form — infer it from the request; an explicit flag overrides. Canonical phrasings: "as a mind map" / "make it a mindmap" ≡ `--mode mindmap`, "as a video" / "narrate it" ≡ `--mode video`, "as swipeable cards" / "as shorts" ≡ `--mode shorts`, "keep the video short" / "a quick video" ≡ `--video-length quick`, "go deep on the video" ≡ `--video-length deep`, "just the gist" / "really tight" ≡ `--compression tight`, "give me the detail" ≡ `--compression detailed`, "as bullets" ≡ `--style bullets`, "write it as a paragraph" ≡ `--style exec`, "for an exec" / "for engineers" ≡ `--audience <who>`, "and draw it" ≡ `--diagram`. Contract flags (each passes the §I 4-test — typed value, machine coupling, or headless determinism): `--mode` (typed value that changes the OUTPUT shape — see "## Output modes"), `--video-length` (typed value passed to `/explainer-video`; overrides the `--compression`→length map, `#video-mode`), `--compression` and `--style` and `--audience` (typed values), `--out` (typed path), `--diagram` (pre-answers the Phase 7 diagram gate, `#diagram`), `--non-interactive`/`--interactive` (headless determinism). All are listed in `argument-hint`; there is no natural-language sugar flag to hide.
 
 ## Output modes {#modes}
 
@@ -27,10 +27,10 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mode.js --mode <m> [--sty
 |---|---|---|
 | `narrative` *(default)* | Today's grounded text TL;DR (unchanged) — `--style bullets\|exec\|nested\|layered` applies here | **Implemented** (back-compat, INV6) |
 | `mindmap` | The canonical text **plus** a tree/radial diagram of the source's key arguments, via `/diagram --mode mindmap` | **Implemented** (delegates to story `260617-1aq`'s capability) |
-| `video` | A narrated `.mp4` via `/explainer-video` | Accepted value → graceful "not yet available" note; ships in `260617-gfx` |
+| `video` | The canonical text **plus** a narrated `.mp4` via `/explainer-video` run on the **original source** (D9) — length from `--compression` or `--video-length` | **Implemented** (delegates to `/explainer-video`; `#video-mode`) |
 | `shorts` | A swipeable card carousel | Accepted value → graceful "not yet available" note; ships in `260617-wf6` |
 
-**Three invariants hold in every mode** (design `#invariants`): the grounded TEXT summary is **always emitted first** (D2/INV3 — crash-safety); non-narrative renderings derive from the **grounded this-run extraction** (the cleaned text + Phase 4 keyfacts), never the lossy compressed prose or model memory (D3/INV4); and the skill **reuses, never rebuilds** a renderer — mindmap → `/diagram`, video → `/explainer-video` (INV5).
+**Three invariants hold in every mode** (design `#invariants`): the grounded TEXT summary is **always emitted first** (D2/INV3 — crash-safety); non-narrative renderings derive from the **grounded this-run extraction** (the cleaned text + Phase 4 keyfacts), never the lossy compressed prose or model memory (D3/INV4); and the skill **reuses, never rebuilds** a renderer — mindmap → `/diagram`, video → `/explainer-video` (INV5). **Video mode is the one exception to "derive from the this-run extraction": it hands `/explainer-video` the *original source*, not the keyfacts** — `/explainer-video` does its own grounded ingest, which is exactly "use the original doc" (D9), so the run never narrates a summary-of-a-summary.
 
 ## Platform Adaptation
 
@@ -55,7 +55,7 @@ Inline `_shared/pipeline-setup.md` to: read `.pmos/settings.yaml` (REQUIRE `vers
 
 Read `~/.pmos/learnings.md` if present; factor in any entries under `## /summary-tldr`. The skill body wins on conflict — surface conflicts to the user before applying a learning.
 
-**Parse arguments.** Positional `<source>` (a URL, a local file path, or pasted inline content). Flags `--mode <v>`, `--compression <v>`, `--style <v>`, `--audience <who>`, `--diagram`, `--out <path>`, `--non-interactive`, `--interactive`. Any unknown flag, or `--compression`/`--style` with a value outside its enum → platform-aware error naming the valid set (per `_shared/platform-strings.md`); exit 64.
+**Parse arguments.** Positional `<source>` (a URL, a local file path, or pasted inline content). Flags `--mode <v>`, `--video-length <v>`, `--compression <v>`, `--style <v>`, `--audience <who>`, `--diagram`, `--out <path>`, `--non-interactive`, `--interactive`. Any unknown flag, or `--compression`/`--style`/`--video-length` with a value outside its enum → platform-aware error naming the valid set (per `_shared/platform-strings.md`); exit 64. (`--video-length` is enum-validated deterministically by `mode.js` at the Phase 7 video handoff — `#video-mode`; it is meaningful only in `--mode video`.)
 
 **Resolve the output mode (`--mode`, FR-B1/D10).** Validate and dispatch deterministically via the script (`skill-patterns.md §H` — the model never decides mode validity or routing):
 
@@ -165,7 +165,8 @@ With the canonical text summary already on disk (Phase 6), produce the rendering
 
 - **`narrative`** → run the optional `/diagram` add-on gate below (`#diagram`).
 - **`mindmap`** → run the mindmap rendering (`#mindmap-mode`).
-- **`video` / `shorts`** → these renderers ship in later stories (`260617-gfx` / `260617-wf6`). `scripts/mode.js` already returned the graceful `note`; print it to chat/stderr and finish — the canonical text summary has already shipped (D11). Do not fabricate the rendering.
+- **`video`** → run the video rendering (`#video-mode`).
+- **`shorts`** → this renderer ships in a later story (`260617-wf6`). `scripts/mode.js` already returned the graceful `note`; print it to chat/stderr and finish — the canonical text summary has already shipped (D11). Do not fabricate the rendering.
 
 ### Mindmap mode {#mindmap-mode}
 
@@ -190,6 +191,28 @@ The mindmap rendering, derived from the **grounded keyfacts** (Phase 4), delegat
 3. **Validate the returned SVG before saving** (same discipline as the narrative `#diagram` add-on): it parses as XML, carries the theme background `<rect>`, and a post-insert heading-id smoke stays green. Only then save it as a sibling **`<slug>-mindmap.svg`** next to the canonical `.html`, link it from the canonical doc (a `<figure>` with a caption + the SVG, or an `<a>` to the sibling file) via atomic temp-then-rename, and **regenerate the library index** so the row reflects the mindmap.
 
 4. **On any `/diagram` drop, validation miss, or failure:** leave the canonical text on disk **intact** (no rollback — it is already safe), log the failure, and finish (D11). The on-disk artifact is the single source; never write a `.summary.tmp` side-file.
+
+### Video mode {#video-mode}
+
+A narrated `.mp4` produced by `/explainer-video`, run on the **original source** (D9 — `/explainer-video` does its own grounded ingest of the real document, which IS "use the original doc"). `/summary-tldr` never builds a video renderer (INV5); it delegates, then links the result with provenance.
+
+1. **Resolve the video length deterministically** (`§H` — the model never picks the length). Map the run's `--compression` band to the `/explainer-video` length, honoring a `--video-length` override:
+
+   ```
+   node ${CLAUDE_PLUGIN_ROOT}/skills/summary-tldr/scripts/mode.js --video-length-resolve --compression <band> [--video-length <override>]
+   ```
+
+   It prints `{"length":"quick|standard|deep","source":"compression|override|default"}` (mapping `tight→quick`, `standard→standard`, `detailed→deep`); an invalid `--video-length` value → it prints `error: --video-length must be one of quick|standard|deep (got '<v>')` and exits 64 — surface that and stop (the canonical text is already on disk, so nothing is lost).
+
+2. **Hand off to `/explainer-video` from the main agent** (never a subagent — skills cannot invoke skills from a subagent). Pass the user's **original `<source>`** (path or URL) — NOT the compressed summary and NOT the keyfacts:
+
+   ```
+   /explainer-video <ORIGINAL-SOURCE> --length <resolved-length> --non-interactive
+   ```
+
+3. **On success, link + provenance — never re-host (FR-C2).** The `.mp4` lives in `/explainer-video`'s own output dir (`{docs_path}/explainer-video/`); do **not** copy or duplicate it into `{summary_tldr_dir}`. Read the on-disk canonical `.html`, inject a provenance block near the reserved diagram slot — a `<figure>`/`<dl>` with: a link (`<a href>`) to the produced `.mp4` (relative path), the resolved length, the original source, and the retrieval timestamp — via atomic temp-then-rename, then **regenerate the library index** so the row reflects the linked video. The video itself is referenced, not embedded.
+
+4. **Graceful dependency degradation (FR-C3/D11).** `/explainer-video` requires ffmpeg/ffprobe, Playwright, and a local TTS engine. If it reports a missing dependency or returns non-zero, **the canonical text summary still ships** (additive mode — video mode never blocks the run): report the precise reason + the install hint `/explainer-video` surfaced, write **no** video link (no fabricated/empty `<a>`), log the failure, and finish. The on-disk text artifact is the single source; never write a `.summary.tmp` side-file.
 
 ### Optional diagram (narrative add-on) {#diagram}
 
@@ -223,6 +246,7 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 9. **Running the slow diagram loop before the first emit.** The approved summary is emitted to disk in Phase 6 (`#emit`) *before* any Phase 7 (`#mode-render`) rendering — the optional `/diagram` add-on or the mindmap/video/shorts renderer. Never run a multi-turn rendering loop between Phase 5 approval and the first on-disk emit — that is the data-loss window a compaction would hit. The on-disk artifact is the single source of truth; do not introduce a `.summary.tmp` to "stage" the approved text (the real artifact already is the persistence).
 10. **Building the mindmap from the compressed prose, or fabricating it to clear the floor.** The mindmap hierarchy derives from the grounded Phase 4 **keyfacts** (D3), never the generated bullets and never model memory. When `scripts/mindmap-hierarchy.js` reports below-floor (exit 3), ship the canonical text alone — never pad branches/leaves to force a map (D11/D12).
 11. **Letting `--mode` and `--style` collide, or regressing narrative.** `--mode` (output shape) is orthogonal to `--style` (narrative sub-style) — with a non-narrative mode, `--style` is ignored-with-warn, not an error (D1/INV2). `mode==narrative` must reproduce today's output byte-for-byte (INV6); the existing tests are the guard.
+12. **Handing `/explainer-video` the compressed summary instead of the original source.** Video mode passes the user's **original `<source>`** to `/explainer-video` (D9) — it does its own grounded ingest. Narrating the summary would be a summary-of-a-summary, doubly lossy. Likewise: never re-host the produced `.mp4` inside `{summary_tldr_dir}` (link it with provenance, FR-C2), and never write a video link when `/explainer-video`'s deps are missing — the canonical text still ships, but the video link is omitted, not faked (FR-C3).
 
 ## Worked example
 
@@ -241,6 +265,12 @@ Empty reflection (no line) counts as unfinished work. Skip silently only if the 
 - **Phases 2–6.** Identical to above — the **same** canonical text artifact is emitted first (D2/INV3). Keyfacts retained.
 - **Phase 7 (mode-render, mindmap, `#mindmap-mode`).** Hierarchy derived from keyfacts (root "Remote Work Report"; branches Costs / Velocity / Recommendations; leaves the 40% figure, the 4→11h number, the 3 recs) → `mindmap-hierarchy.js` normalizes it (5 leaves ≥ floor) → main-agent hand-off `/diagram --mode mindmap --source <tree.json> --theme editorial --non-interactive --on-failure drop` → returned SVG validated → saved as `2026-06-13-remote-work-report-mindmap.svg`, linked from the canonical doc, library index regenerated. (Had the source yielded only one argument, the hierarchy script would exit 3 and the canonical text would ship alone — D11.)
 
+**Video variant** — `/summary-tldr <same URL> --mode video --compression detailed`:
+
+- **Phase 1.** `mode.js --mode video` → `{mode:"video", styleApplies:false, status:"implemented"}`; picker skipped. `--style` (if given) ignored-with-warn.
+- **Phases 2–6.** Identical — the **same** canonical text artifact is emitted first (D2/INV3).
+- **Phase 7 (mode-render, video, `#video-mode`).** `mode.js --video-length-resolve --compression detailed` → `{"length":"deep","source":"compression"}` (a `--video-length quick` override would have won instead). Main-agent hand-off `/explainer-video https://example.com/the-remote-work-report --length deep --non-interactive` — the **original URL**, not the summary. On success the produced `.mp4` (in `docs/pmos/explainer-video/`) is linked from the canonical doc with provenance (source, length `deep`, path, timestamp) and the library index regenerated — the video is referenced, not copied. (Had ffmpeg/Playwright/TTS been absent, `/explainer-video` would report the missing binary, the canonical text would ship with no video link, and the run would finish cleanly — D11/FR-C3.)
+
 ---
 
-*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. The `--mode` output dimension + mindmap mode: epic `260617-jy8` design at `docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html` (`#frs-scaffold` FR-B1..B6, D1/D2/D3/D4/D10/D11, INV2/INV3/INV6), story `260617-xn4`; mindmap layout delegates to story `260617-1aq`'s `/diagram --mode mindmap`. Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*
+*Spec lineage: epic 0612-h2j design contract at `docs/pmos/features/2026-06-12_summary-tldr-skill/02_design.html` (D1–D4, I1–I6); story 0612-ejq. The `--mode` output dimension + mindmap mode: epic `260617-jy8` design at `docs/pmos/features/2026-06-17_summary-tldr-modes/02_design.html` (`#frs-scaffold` FR-B1..B6, D1/D2/D3/D4/D10/D11, INV2/INV3/INV6), story `260617-xn4`; mindmap layout delegates to story `260617-1aq`'s `/diagram --mode mindmap`. Video mode (`#video-mode`): same epic design `#frs-video` (FR-C1..C4, D9/D11), story `260617-gfx` — delegates to `/explainer-video` on the original source. Authoring + emit substrate reused from `_shared/html-authoring/`, `_shared/non-interactive.md`, `_shared/findings-dispositions.md`, `_shared/reviewer-protocol.md`; `/polish` resolver + rubric and `/magazine` `transcribe.sh` cited per the input dispatcher.*
