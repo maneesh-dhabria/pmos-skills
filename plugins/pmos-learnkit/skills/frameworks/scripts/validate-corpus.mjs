@@ -16,7 +16,7 @@
 import { readFileSync } from 'node:fs';
 import { argv } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { DECISION_TYPES, LIFECYCLE_STAGES, validateAnchors } from './derive-fields.mjs';
+import { DECISION_TYPES, LIFECYCLE_STAGES, validateAnchors } from './corpus-vocab.mjs';
 
 const REQUIRED = ['id', 'name', 'category', 'body_md'];
 // decision_type distribution gate — guards against a mega-bucket facet re-forming.

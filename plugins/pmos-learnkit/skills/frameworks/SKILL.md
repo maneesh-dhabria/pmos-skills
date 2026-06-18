@@ -1,8 +1,8 @@
 ---
 name: frameworks
-description: Your searchable library of PM frameworks — describe a problem and get the 2–5 most relevant frameworks (RICE, JTBD, Kano, regret-minimization, …) with a one-line "why it fits", a PM's-take commentary, and an owned diagram, or browse the whole filterable collection offline from file://. Each framework carries problem-tags, a decision-type, and when-to-use / when-not-to-use guidance so matching is precise, and a --json mode lets other skills ask "which framework for this?" programmatically. Ships a pre-built corpus sourced from your Notion framework database; re-ingest with sync. Use when the user is stuck on a decision and wants a thinking tool, asks which framework applies, or wants to browse the library. Triggers when the user says "/frameworks", "which framework should I use", "find a PM framework for this", "frameworks for prioritization", "what framework helps with this decision", "browse my framework library", or "rebuild the frameworks corpus".
+description: Your searchable library of PM frameworks — describe a problem and get the 2–5 most relevant frameworks (RICE, JTBD, Kano, regret-minimization, …) with a one-line "why it fits", a PM's-take commentary, and an owned diagram, or browse the whole filterable collection offline from file://. Each framework carries problem-tags, a decision-type, and when-to-use / when-not-to-use guidance so matching is precise, and a --json mode lets other skills ask "which framework for this?" programmatically. Ships a bundled, directly-authored corpus of 346 frameworks — fully offline, no account or network needed. Use when the user is stuck on a decision and wants a thinking tool, asks which framework applies, or wants to browse the library. Triggers when the user says "/frameworks", "which framework should I use", "find a PM framework for this", "frameworks for prioritization", "what framework helps with this decision", or "browse my framework library".
 user-invocable: true
-argument-hint: "[\"<problem>\" | browse | list | situations | sync [--changed-only]] [--json] [--non-interactive] [--interactive]"
+argument-hint: "[\"<problem>\" | browse | list | situations] [--json] [--non-interactive] [--interactive]"
 ---
 
 # Frameworks
@@ -15,52 +15,41 @@ plain words and get the handful of frameworks actually worth reaching for, each 
 a one-line reason it fits, the curator's "PM's take", and an owned diagram. Other
 skills can ask the same question programmatically via `--json`.
 
-The corpus ships pre-built under `${CLAUDE_SKILL_DIR}/data/` (sourced from the user's
-Notion framework database). Runtime retrieval, browse, and `--json` are **fully
-offline** over that shipped corpus — no network, no Notion. Only `sync` touches the
-network, and a failed `sync` never disturbs the shipped corpus.
+The corpus ships pre-built under `${CLAUDE_SKILL_DIR}/data/` — **346 directly-authored
+frameworks**, each a hand-written record + an owned SVG diagram, bundled with the skill.
+Runtime retrieval, browse, and `--json` are **fully offline** over that shipped corpus —
+no network, no account. To grow the corpus, hand-author new records + diagrams per
+`reference/corpus-expansion.md` and re-validate; there is no sync/import step.
 
-Options are NL-first: infer them from the request ("rebuild only what changed" ≡
-`sync --changed-only`); an explicit flag overrides the inference. `--json` is the
-machine contract — other skills and scripts pass it literally.
+`--json` is the machine contract — other skills and scripts pass it literally.
 
 The deep mechanics live one hop away in `reference/` — keep this body lean:
 
 - `${CLAUDE_SKILL_DIR}/reference/corpus-schema.md` — the `frameworks.json` record contract (lean fields + cached match-fields).
 - `${CLAUDE_SKILL_DIR}/reference/situation-taxonomy.md` — the closed `problem_tags` registry + the situations design.
-- `${CLAUDE_SKILL_DIR}/reference/ingestion.md` — the `sync` pipeline (Stage-A scripts + Stage-B agents) and the diagram-generation + `diagram_anchors` contracts.
+- `${CLAUDE_SKILL_DIR}/reference/corpus-expansion.md` — how to grow the corpus: the repeatable research process + the entry-authoring contract (record fields, owned-SVG recipe, the `validate-corpus.mjs` gate).
 - `${CLAUDE_SKILL_DIR}/reference/matching.md` — the two-stage ranking algorithm and the `--json` contract.
 
-The Stage-A scripts under `${CLAUDE_SKILL_DIR}/scripts/` are zero-dep Node `.mjs`
-with a `--selftest` mode each. Drive ingestion and matching through them — never
-hand-parse `frameworks.json`.
+The scripts under `${CLAUDE_SKILL_DIR}/scripts/` are zero-dep Node `.mjs` with a
+`--selftest` mode each. Drive matching, validation, and library-build through them —
+never hand-parse `frameworks.json`.
 
 ## Platform Adaptation
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion`:** the `sync` confirmation and any disambiguation prompt
-  degrade to numbered free-form prompts per `_shared/interactive-prompts.md`. The
-  non-interactive auto-pick contract (Recommended → AUTO-PICK) still applies.
-- **No `Task` subagent:** the Stage-B match-field derivation, the `diagram_anchors` /
-  `decision_type` (re-)derivation, and the diagram batch run sequentially in the
-  host conversation — one framework after another. Slower, identical output.
-- **No diagram generation (or it fails for a framework):** `sync` still writes the
-  corpus; it logs each affected framework with `diagram: null` and a
-  `ship-with-warning` note. The library renders a clean text-only card for those —
-  never a broken image. (Diagrams are owned SVGs generated directly at sync time per
-  `reference/ingestion.md`; the `/diagram` skill is reserved for one-off hero diagrams.)
-- **No Notion MCP:** `sync` is unavailable (it fails cleanly with that reason); all
-  runtime paths (`"<problem>"`, `browse`, `situations`, `--json`) keep working over
-  the shipped corpus.
+- **No `AskUserQuestion` tool:** any disambiguation prompt degrades to numbered
+  free-form prompts per `_shared/interactive-prompts.md`. The non-interactive
+  auto-pick contract (Recommended → AUTO-PICK) still applies. (No runtime path issues
+  a confirmation prompt — every path reads the shipped corpus.)
 - **No browser / Playwright:** `browse` still writes `index.html`; opening it is a
   manual step the skill prints as a `file://` path.
 
 ## Track Progress
 
-Only `#sync` is long enough to track: create one task per pipeline step (per
-`reference/ingestion.md`) and complete each as it finishes. The runtime paths
-(retrieve / browse / situations) are one or two tool calls — no task ceremony.
+Every runtime path (retrieve / browse / situations) is one or two tool calls — no
+task ceremony. Growing the corpus is an authoring session, not a runtime path; track
+that work with the checklist in `reference/corpus-expansion.md` if you take it on.
 
 ## When NOT to use
 
@@ -127,7 +116,6 @@ Dispatch the argument string by its first token:
 
 - `browse` | `list` (or bare `/frameworks` with no problem text) → `#browse`.
 - `situations` → `#situations`.
-- `sync` `[--changed-only]` → `#sync`: re-ingest from Notion. This is the only network path; warn it is long and token-heavy before starting.
 - anything else (a quoted or bare problem string) → `#retrieve`.
 
 `--json` is a modifier on the retrieve path (structured output, no chat prose, no
@@ -172,7 +160,7 @@ node ${CLAUDE_SKILL_DIR}/scripts/build-library.mjs --out {docs_path}/frameworks/
 `build-library.mjs` reads `data/frameworks.json` + `data/diagrams/*.svg` and emits a
 single self-contained `index.html` that works offline from `file://`. Print the
 `file://` path. Diagrams are owned SVGs inlined into the page — **never** hot-linked
-S3 URLs. The library offers:
+external URLs. The library offers:
 
 - **Three listing views** — List (one bullet per framework; **the default**), Detailed
   (grouped cards with a primary-diagram thumbnail), and Compact (Product Areas →
@@ -195,55 +183,36 @@ S3 URLs. The library offers:
   `--json`, and matching are unchanged.
 - **A PMOS masthead** at the top.
 
-## Phase 5: Sync — re-ingest from Notion {#sync}
-
-The full ingestion pipeline. Network + token-heavy; confirm before running.
-
-<!-- defer-only: destructive -->
-Confirm via `AskUserQuestion` — **Sync now (Recommended)** / **Cancel** — before the
-fetch. (`--changed-only` makes this cheap; a full sync regenerates every diagram.)
-
-Then follow `${CLAUDE_SKILL_DIR}/reference/ingestion.md` end to end — fetch → split →
-derive match-fields → diagrams → `diagram_anchors` → assemble + validate → build
-library. Every step's contract lives there (which script drives it, the subagent
-fan-out + model pins, the 8-value `decision_type` taxonomy, the diagram style guide,
-`--changed-only` hashing, the coverage + distribution gates) — do not improvise the
-pipeline from memory. `sync` never writes derived fields back to Notion, never
-hot-links S3, and on a Notion-unreachable error fails cleanly leaving the shipped
-corpus untouched.
-
-## Phase 6: Capture Learnings {#capture-learnings}
+## Phase 5: Capture Learnings {#capture-learnings}
 
 Reflect on whether this session surfaced anything worth recording about `/frameworks`
-itself — a Notion page that broke `split-corpus`, a matching miss, a taxonomy
-coverage gap. If so, append it under the `## /frameworks` heading in
+itself — a matching miss, a taxonomy coverage gap, or a snag hit while authoring a new
+corpus entry. If so, append it under the `## /frameworks` heading in
 `~/.pmos/learnings.md` (create the heading if missing). Zero learnings is valid — the
 gate is that the reflection happens, not that an entry is written.
 
 ## Anti-Patterns (DO NOT)
 
-- **DO NOT hot-link S3 image URLs** from Notion into the corpus or library — they
-  expire in ~1 hour. Diagrams are owned SVGs generated at sync time, inlined.
-- **DO NOT block any runtime path on Notion.** Retrieve / browse / situations /
-  `--json` read the shipped corpus only and must work with no network.
+- **DO NOT hot-link external image URLs** into the corpus or library — diagrams are
+  owned SVGs authored alongside the record and inlined.
+- **DO NOT block any runtime path on the network.** Retrieve / browse / situations /
+  `--json` read the shipped corpus only and must work fully offline.
 - **DO NOT pad matches past the confidence floor.** Below-floor input presents ≤2
   closest with a `low_confidence` caveat, not a fabricated top-5; nothing-scores
   means zero matches, not invented ones.
-- **DO NOT regenerate unchanged diagrams under `--changed-only`** — honor the
-  content-hash cache; a full regen is the explicit non-`--changed-only` path.
-- **DO NOT write derived match-fields back to Notion.** The taxonomy is skill-owned;
-  Notion is the source of framework prose only.
-- **DO NOT hand-parse `frameworks.json` or the Notion markdown** — go through the
-  Stage-A `.mjs` scripts so extraction stays deterministic and tested.
+- **DO NOT hand-parse `frameworks.json`** — go through the `.mjs` scripts so reads stay
+  deterministic and tested; author new records per `reference/corpus-expansion.md`.
 - **DO NOT let one `decision_type` value become a mega-bucket** — classify by each
   framework's *primary* cognitive job, preferring the more specific value;
-  `validate-corpus.mjs` enforces the distribution gate (see `reference/ingestion.md`).
+  `validate-corpus.mjs` enforces the distribution gate (see `reference/corpus-expansion.md`).
 
 ---
 
 *Spec lineage: `docs/pmos/ideate/2026-06-07_pm-frameworks-skill.html` (problem +
 caps/no-pad rationale, OQ2) and the 2026-06-07 frameworks-skill feature worktree
-(corpus contract, matcher, `--json`, ingestion; the per-rule FR-SCHEMA-* / FR-JSON-* /
-FR-ING-* / FR-TAX-* ids live in `reference/`); v0.18.0 browse-UX revamp (views,
-sidebar reader, `diagram_anchors`, 8-value `decision_type` + distribution gate);
-matcher normalization + pool/zero-score fixes per the 2026-06-10 skill-design review.*
+(corpus contract, matcher, `--json`; the per-rule FR-SCHEMA-* / FR-JSON-* / FR-TAX-*
+ids live in `reference/`); v0.18.0 browse-UX revamp (views, sidebar reader,
+`diagram_anchors`, 8-value `decision_type` + distribution gate); matcher normalization
++ pool/zero-score fixes per the 2026-06-10 skill-design review; story 260617-kac
+re-founded the skill on direct authoring — the Notion `sync` pipeline was removed and
+the repeatable research/authoring process moved to `reference/corpus-expansion.md`.*

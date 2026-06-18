@@ -1,6 +1,6 @@
 # Situation taxonomy & tag registry — `data/situations.json`
 
-Skill-owned (never written back to Notion). Two things live here: the **closed
+Skill-owned and directly authored. Two things live here: the **closed
 `problem_tags` registry** that constrains `frameworks.json` matching, and a set of
 **~15–25 recognizable PM situations** pre-mapped to framework ids — the "I don't know
 what to search for" entry point.
@@ -45,9 +45,9 @@ itself — `prioritization`, `pricing`, `positioning`, `north-star-metric`,
 `retention`, `activation`, `experiment-design`, `team-health`, `career-growth`, etc.
 
 The registry is the **single source of truth** for the `problem_tags` field on every
-framework record. `derive-fields.mjs` rejects any framework tag not in this list, so
+framework record. `validate-corpus.mjs` rejects any framework tag not in this list, so
 the vocabulary cannot drift framework-by-framework. Growing the vocabulary is a
-deliberate edit here, then a re-derive.
+deliberate edit here, then a re-validate.
 
 ## Situations
 
@@ -60,16 +60,15 @@ roadmap", "I'm trying to size a market", "my team keeps missing estimates"), car
 - `tags` — registry tags this situation implies (used to rank its frameworks).
 - `frameworks` — the curated framework ids that answer it, best-first.
 
-Situations are authored from the 22 Notion categories during `sync` — aim for ~15–25
-that cover the common PM jobs without exploding into one-per-framework. They give the
-matcher a high-precision shortcut: an input that matches a situation label skips the
-free-text scorer entirely.
+Situations are authored directly — aim for ~15–25 that cover the common PM jobs
+without exploding into one-per-framework. They give the matcher a high-precision
+shortcut: an input that matches a situation label skips the free-text scorer entirely.
 
 ## Why closed
 
 A closed tag registry + a curated situation set is what makes matching *precise*
 instead of a fuzzy embedding guess. The cost is maintenance (new frameworks may need a
-new tag), paid deliberately at `sync` time. This resolves OQ3 (taxonomy shape): flat
+new tag), paid deliberately when authoring. This resolves OQ3 (taxonomy shape): flat
 tags, situations grouped under the four super-categories for display only.
 
 ## Validation rules
