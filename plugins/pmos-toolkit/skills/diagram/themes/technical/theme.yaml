@@ -60,5 +60,11 @@ rubricOverrides:
   waive: []
   add: []
 
+mindmap:
+  supported: true
+  defaultLayout: tree
+  connector: curved
+  nodeCap: 60
+
 infographic:
   supported: false
