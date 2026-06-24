@@ -1,0 +1,48 @@
+{
+  "generated": "dogfood-2026-06-25",
+  "source": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260624-shm/docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-shm/dogfood/sample-landing.html",
+  "engine": "/Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260624-shm/plugins/pmos-toolkit/skills/_shared/slop-engine/browser.js",
+  "overlaysRendered": 5,
+  "findings": [
+    {
+      "id": "gradient-text",
+      "category": "quality",
+      "severity": "warning",
+      "snippet": "background-clip: text + gradient",
+      "selector": "",
+      "section": "Color & Contrast"
+    },
+    {
+      "id": "ai-color-palette",
+      "category": "quality",
+      "severity": "warning",
+      "snippet": "Purple/violet gradient background",
+      "selector": "",
+      "section": "Color & Contrast"
+    },
+    {
+      "id": "side-tab",
+      "category": "quality",
+      "severity": "warning",
+      "snippet": "border-left: 4px + border-radius: 12px",
+      "selector": "",
+      "section": "Visual Details"
+    },
+    {
+      "id": "ai-color-palette",
+      "category": "quality",
+      "severity": "warning",
+      "snippet": "Purple/violet accent colors detected",
+      "selector": "",
+      "section": "Color & Contrast"
+    },
+    {
+      "id": "gradient-text",
+      "category": "quality",
+      "severity": "warning",
+      "snippet": "background-clip: text + gradient",
+      "selector": "",
+      "section": "Color & Contrast"
+    }
+  ]
+}
