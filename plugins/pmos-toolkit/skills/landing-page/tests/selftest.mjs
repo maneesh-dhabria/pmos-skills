@@ -89,7 +89,9 @@ const gallery = read(path.join(REF, "style-gallery.html"));
 if (gallery) {
   ok(!/https?:\/\//i.test(gallery), "style-gallery.html is self-contained — no http(s):// (no CDN)");
   ok(/<style[\s>]/i.test(gallery), "style-gallery.html has an inline <style> block");
-  const styleAttrs = [...gallery.matchAll(/data-style="([^"]+)"/g)].map(m => m[1]);
+  // count swatches in the MARKUP only — strip <script> blocks so JS selector strings don't inflate it
+  const markup = gallery.replace(/<script[\s\S]*?<\/script>/gi, "");
+  const styleAttrs = [...markup.matchAll(/data-style="([^"]+)"/g)].map(m => m[1]);
   const uniq = new Set(styleAttrs);
   ok(uniq.size === 6, `gallery renders 6 distinct data-style swatches (found ${uniq.size})`);
   for (const exp of EXPECTED) {
