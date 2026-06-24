@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-24_wiki/
 plan_doc: docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/03_plan.md
 tasks: docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/tasks.yaml
 worktree: .claude/worktrees/feat-260624-1e5
-claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
-driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+claimed_by:
+driver_holder:
 labels: [pmos-toolkit, wiki, engine, viewer, substrate, new-substrate]
 created: 2026-06-24
 updated: 2026-06-24
@@ -56,3 +56,20 @@ Scope is fixed by `02_design.html` §4 (data model / frozen sidecar schema), §6
    skim toggle, a facet filter, and an annotation round-trip with zero console errors.
 5. **No `SKILL.md`** in this story; engine files are source-agnostic (no MCP/transport code — that is D15,
    Story B). Verified by the story's selftest/eval gate + the 4 repo hygiene lints where applicable.
+
+## Notes
+
+- **2026-06-25 — BUILT (Loop-2, build --next --non-interactive).** Branch `feat/260624-1e5`
+  (commit `5cfaee4c`), worktree kept for Loop-3. Files under
+  `plugins/pmos-toolkit/skills/wiki/{reference,scripts,tests}/`, NO SKILL.md (Story `rmq` authors it).
+  - `reference/sidecar-schema.md` (AC1, frozen contract); `scripts/{hash,stitch,queue,retrieval}.mjs`
+    (AC2, pure); `reference/wiki-viewer.html` (AC3, zero-dep, all 12 §6 fold-ins).
+  - Gates: `tests/selftest.mjs` **34/34**, `tests/viewer.test.mjs` **33/33**, live headless Playwright
+    dogfood (skim↔full, facet narrowing incl. `(unclassified)`, annotation round-trip persisting into
+    `#wiki-corpus`, title toggle, exclude restore) — **zero console errors**. Repo hygiene lints green
+    repo-wide (56/57/38). `node --check` all scripts OK. Screenshot:
+    `docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/dogfood-viewer-full.png`.
+  - **Phase 6a skill-eval: N/A** — engine-only story has no SKILL.md by design (AC5); story `rmq`'s
+    skill-eval scores the SKILL.md. Story quality gate per AC4/AC5 = selftest + viewer test + dogfood, all PASS.
+  - Two fixes found via the live dogfood: favicon 404 → `data:` favicon (kept zero-dep); null-workstream
+    docs ignored the facet → added an explicit `(unclassified)` facet so filtering is exhaustive.
