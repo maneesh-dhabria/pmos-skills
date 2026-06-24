@@ -9,12 +9,12 @@ priority: should
 route: skill
 dependencies: [260624-dqg]
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-24_landing-page/
 plan_doc: docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/03_plan.md
 tasks: docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/tasks.yaml
 worktree: .claude/worktrees/feat-260624-pe2
-claimed_by: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
+claimed_by:
 driver_holder: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
 labels: [pmos-toolkit, landing-page, skill, new-skill]
 created: 2026-06-24
@@ -65,3 +65,33 @@ brief). Cites `design_doc:` anchors `#workflow`, `#hero-fold`, `#style-system`, 
 
 Depends on 260624-dqg (the style tokens, gallery, and reference files must exist in the worktree before this
 story's skill-eval — D9 claim-time dep-merge). File-disjoint: this story writes only `SKILL.md`.
+
+### Build verdict — 2026-06-24 (Loop 2, branch `feat/260624-pe2`, kept for Loop 3)
+
+**SATISFIED — all 7 ACs met.** Authored `plugins/pmos-toolkit/skills/landing-page/SKILL.md` (289 lines):
+the six-phase guided workflow (Phase 1 `#research-brief` → 2 `#propose-structure` → 3 `#hero-explore` → 4
+`#style-pick` → 5 `#draft` → 6 `#self-review`, + Phase 0 setup + Phase 7 `#capture-learnings`). Cites the
+dqg substrate (`reference/{section-scaffolds,hero-archetypes,copy-gates,style-tokens}.md|json`,
+`style-gallery.html`) — does not restate (one fact, one home). Frontmatter triggers ("create a landing
+page" / "build a landing page for my product" / "marketing page" / "/landing-page"); `argument-hint`
+contract-flags-only (`--docs-path`, `--non-interactive`); web-research toggle `nl-sugar`-marked. NI block
+inlined byte-identical; 3 `AskUserQuestion` gates all `(Recommended)`-marked (product-type-driven AUTO-PICK,
+D5); brief-confirm `defer-only: free-form`.
+
+**Gates (in `feat/260624-pe2`, dqg dep-merged):** skill-eval [D] 20/20 `pass`, 0 `fail`, EXIT 0 (no
+residuals); `lint-flags-vs-hints` PASS; `lint-phase-refs` PASS; `audit-recommended` PASS (3 calls / 3
+Recommended); `lint-non-interactive-inline` PASS (53/53 canonical); dqg `selftest.mjs` 200/200.
+
+**Load-bearing dogfood (AC7) — TARGET = the pmos-skills repo itself:** ran `/landing-page` end-to-end
+against THIS marketplace → `docs/pmos/landing-page/2026-06-24-pmos-skills/` with cited `brief.md` (product
+_type Dev tool, 0 invented facts) + self-contained `index.html` (dark-developer-tool tokens bound,
+dev-tool scaffold, product-as-demo terminal hero, single first-person CTA "Install the marketplace",
+real in-repo proof counts + D6 labelled placeholders, inline pmos-comments block + `pmos:skill` meta) +
+`working/` (hero-options.html, desktop+mobile renders, self-review.md). Phase-6 self-review: copy gates +
+visual self-check (served on localhost — `file://` blocked in MCP) PASS; structural gate 17/17.
+**Iterated** once (a11y/SEO: `<meta name=description>`, `:focus-visible`, `prefers-reduced-motion`) — no
+visual regression, gates still green; reviewer SHIP. Inverted dqg's transient "no SKILL.md" selftest guard
+to assert SKILL.md present (long-lived invariant now that substrate + consumer ship together).
+
+**EPIC 260624-ajy NOW FULLY BUILT** (dqg + pe2) → next Loop 3: `/complete-dev --epic 260624-ajy`. Release
+prerequisites (version bump, changelog, README row, manifest sync) deferred to that release.
