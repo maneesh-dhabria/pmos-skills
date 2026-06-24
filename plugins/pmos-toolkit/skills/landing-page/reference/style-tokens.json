@@ -1,0 +1,176 @@
+{
+  "schema": "pmos-landing-page/style-tokens/v1",
+  "note": "Frozen, contrast-pre-checked theme-token sets — one per visual style (02_design.html#styles). Pure data: the generator (Story B SKILL.md) and the swatch gallery (style-gallery.html) both bind these. Adding a style = adding a set here + a swatch in the gallery; never edit the skill body. Each set's --fg/--bg and --accent-fg/--accent pairings pass WCAG AA (tests/selftest.mjs asserts it).",
+  "required_vars": {
+    "palette": ["--bg", "--fg", "--accent", "--accent-fg", "--muted", "--surface", "--surface-2", "--border"],
+    "type": ["--font-display", "--font-body", "--scale-base", "--scale-ratio", "--weight-display", "--weight-body"],
+    "density": ["--space-unit", "--section-pad"],
+    "radius": ["--radius"],
+    "shadow": ["--shadow"]
+  },
+  "styles": [
+    {
+      "id": "clean-minimal-saas",
+      "name": "Clean minimal SaaS",
+      "exemplars": "Linear, Vercel, Notion",
+      "palette": {
+        "--bg": "#ffffff",
+        "--fg": "#0a0a0a",
+        "--accent": "#4338ca",
+        "--accent-fg": "#ffffff",
+        "--muted": "#52525b",
+        "--surface": "#f9fafb",
+        "--surface-2": "#f3f4f6",
+        "--border": "#e5e7eb"
+      },
+      "type": {
+        "--font-display": "'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif",
+        "--font-body": "'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif",
+        "--scale-base": "16px",
+        "--scale-ratio": "1.25",
+        "--weight-display": "700",
+        "--weight-body": "400"
+      },
+      "density": { "label": "low", "--space-unit": "8px", "--section-pad": "6rem" },
+      "radius": { "--radius": "10px" },
+      "shadow": { "--shadow": "0 1px 2px rgba(16,24,40,.06), 0 8px 24px rgba(16,24,40,.06)" },
+      "imagery": "Crisp product-UI screenshots on generous whitespace; one accent only; no stock photography."
+    },
+    {
+      "id": "dark-developer-tool",
+      "name": "Dark developer tool",
+      "exemplars": "Vercel, Supabase",
+      "palette": {
+        "--bg": "#0d1117",
+        "--fg": "#e6edf3",
+        "--accent": "#3fb950",
+        "--accent-fg": "#06240d",
+        "--muted": "#9da7b3",
+        "--surface": "#161b22",
+        "--surface-2": "#21262d",
+        "--border": "#30363d"
+      },
+      "type": {
+        "--font-display": "'Inter', -apple-system, system-ui, sans-serif",
+        "--font-body": "'Inter', -apple-system, system-ui, sans-serif",
+        "--font-mono": "ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace",
+        "--scale-base": "16px",
+        "--scale-ratio": "1.2",
+        "--weight-display": "700",
+        "--weight-body": "400"
+      },
+      "density": { "label": "medium (bento)", "--space-unit": "8px", "--section-pad": "5rem" },
+      "radius": { "--radius": "8px" },
+      "shadow": { "--shadow": "0 0 0 1px rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.5)" },
+      "imagery": "Live code samples, terminal/demo frames, bento grids; product-as-demo, never abstract."
+    },
+    {
+      "id": "bold-playful-illustration",
+      "name": "Bold playful illustration",
+      "exemplars": "growth.design, Duolingo",
+      "palette": {
+        "--bg": "#fffaf2",
+        "--fg": "#1a1730",
+        "--accent": "#d6336c",
+        "--accent-fg": "#ffffff",
+        "--muted": "#6b6478",
+        "--surface": "#fff1e6",
+        "--surface-2": "#ffe3cc",
+        "--border": "#f0cdb0"
+      },
+      "type": {
+        "--font-display": "'Poppins', 'Inter', system-ui, sans-serif",
+        "--font-body": "'Inter', system-ui, sans-serif",
+        "--scale-base": "17px",
+        "--scale-ratio": "1.333",
+        "--weight-display": "800",
+        "--weight-body": "400"
+      },
+      "density": { "label": "medium", "--space-unit": "8px", "--section-pad": "5.5rem" },
+      "radius": { "--radius": "18px" },
+      "shadow": { "--shadow": "0 6px 0 rgba(26,23,48,.12), 0 12px 28px rgba(214,51,108,.14)" },
+      "imagery": "Custom flat illustrations, big friendly display type, high-contrast warm accents."
+    },
+    {
+      "id": "editorial-typographic",
+      "name": "Editorial / typographic",
+      "exemplars": "Premium editorial / long-form brands",
+      "palette": {
+        "--bg": "#faf6ef",
+        "--fg": "#211d18",
+        "--accent": "#2c3e50",
+        "--accent-fg": "#ffffff",
+        "--muted": "#5d574d",
+        "--surface": "#f3ece0",
+        "--surface-2": "#e9dfce",
+        "--border": "#ddd0ba"
+      },
+      "type": {
+        "--font-display": "'Playfair Display', Georgia, 'Times New Roman', serif",
+        "--font-body": "-apple-system, system-ui, 'Segoe UI', sans-serif",
+        "--scale-base": "18px",
+        "--scale-ratio": "1.414",
+        "--weight-display": "700",
+        "--weight-body": "400"
+      },
+      "density": { "label": "low (breathing room)", "--space-unit": "8px", "--section-pad": "7rem" },
+      "radius": { "--radius": "4px" },
+      "shadow": { "--shadow": "0 1px 2px rgba(33,29,24,.08)" },
+      "imagery": "Type-led layouts, minimal restrained imagery, large drop-cap headlines, wide margins."
+    },
+    {
+      "id": "warm-consumer-lifestyle",
+      "name": "Warm consumer lifestyle",
+      "exemplars": "Consumer / wellness / D2C",
+      "palette": {
+        "--bg": "#fdf8f4",
+        "--fg": "#2b2420",
+        "--accent": "#c2410c",
+        "--accent-fg": "#ffffff",
+        "--muted": "#6b5d52",
+        "--surface": "#f7ede4",
+        "--surface-2": "#f0e0d2",
+        "--border": "#e6d2bf"
+      },
+      "type": {
+        "--font-display": "'Nunito', 'Quicksand', system-ui, sans-serif",
+        "--font-body": "'Nunito', system-ui, sans-serif",
+        "--scale-base": "17px",
+        "--scale-ratio": "1.25",
+        "--weight-display": "700",
+        "--weight-body": "400"
+      },
+      "density": { "label": "medium", "--space-unit": "8px", "--section-pad": "5.5rem" },
+      "radius": { "--radius": "16px" },
+      "shadow": { "--shadow": "0 2px 8px rgba(43,36,32,.06), 0 16px 40px rgba(194,65,12,.08)" },
+      "imagery": "Real-people photography, warm soft tones, rounded humanist sans, lifestyle context."
+    },
+    {
+      "id": "enterprise-trust",
+      "name": "Enterprise trust",
+      "exemplars": "Enterprise B2B",
+      "palette": {
+        "--bg": "#ffffff",
+        "--fg": "#0f172a",
+        "--accent": "#1d4ed8",
+        "--accent-fg": "#ffffff",
+        "--muted": "#475569",
+        "--surface": "#f8fafc",
+        "--surface-2": "#f1f5f9",
+        "--border": "#e2e8f0"
+      },
+      "type": {
+        "--font-display": "'IBM Plex Sans', -apple-system, system-ui, 'Segoe UI', sans-serif",
+        "--font-body": "-apple-system, system-ui, 'Segoe UI', Roboto, sans-serif",
+        "--scale-base": "16px",
+        "--scale-ratio": "1.2",
+        "--weight-display": "600",
+        "--weight-body": "400"
+      },
+      "density": { "label": "higher", "--space-unit": "8px", "--section-pad": "4.5rem" },
+      "radius": { "--radius": "6px" },
+      "shadow": { "--shadow": "0 1px 2px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.05)" },
+      "imagery": "Logo walls, certification/security badges, restrained corporate blues, quantified ROI charts."
+    }
+  ]
+}
