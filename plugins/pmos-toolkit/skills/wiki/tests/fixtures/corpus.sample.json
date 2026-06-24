@@ -1,0 +1,135 @@
+{
+  "generated": "2026-06-24T12:00:00.000Z",
+  "config": {
+    "workstreams": ["onboarding", "pricing", "platform"],
+    "exclude_patterns": ["scratch/*"]
+  },
+  "vocab": ["onboarding", "pricing", "platform", "activation", "retention"],
+  "docs": [
+    {
+      "src": "notion",
+      "id": "hub-onboarding",
+      "source_hash": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
+      "created": "2026-01-05T09:00:00.000Z",
+      "last_edited": "2026-03-12T14:30:00.000Z",
+      "length_tier": "long",
+      "ancestor_path": ["Company Wiki", "Product"],
+      "original_title": "Onboarding hub (raw)",
+      "section_offsets": [
+        { "heading": "Activation funnel", "level": 1, "offset": 0 },
+        { "heading": "First-run checklist", "level": 2, "offset": 420 },
+        { "heading": "Retention loops", "level": 1, "offset": 980 }
+      ],
+      "summary": "The onboarding hub: how new users move from signup to activation, the first-run checklist, and the retention loops we lean on.",
+      "section_summaries": [
+        { "heading": "Activation funnel", "level": 1, "summary": "Signup to first value in four steps; the biggest drop is at email verification." },
+        { "heading": "First-run checklist", "level": 2, "summary": "Six tasks shown on first login; completing three predicts week-1 retention." },
+        { "heading": "Retention loops", "level": 1, "summary": "Two habit loops: the weekly digest and the collaboration nudge." }
+      ],
+      "glossary_terms": [
+        { "term": "Activation", "definition": "A new user reaching first value (completing 3 first-run tasks)." },
+        { "term": "Retention loop", "definition": "A recurring trigger that brings a user back without a new acquisition cost." }
+      ],
+      "external_links": [
+        { "label": "Activation funnel (Figma)", "url": "https://figma.com/file/activation-funnel" },
+        { "label": "Cohort sheet (Sheets)", "url": "https://docs.google.com/spreadsheets/d/cohorts" }
+      ],
+      "llm_title": "Onboarding & Activation Hub",
+      "workstream": "onboarding",
+      "workstream_confidence": 0.92,
+      "exclude": null,
+      "citation_anchors": [
+        { "anchor": "hub-onboarding#activation-funnel", "doc_id": "hub-onboarding" }
+      ],
+      "body_md": "# Activation funnel\n\nNew users move from signup to first value in four steps. The biggest drop-off is at **email verification** (~28%).\n\n## First-run checklist\n\nSix tasks appear on first login. Completing three predicts week-1 retention.\n\n# Retention loops\n\nWe lean on two habit loops: the weekly digest and the collaboration nudge.",
+      "comments": [
+        {
+          "id": "c1",
+          "quote_anchor": { "text": "The biggest drop-off is at email verification" },
+          "thread": [
+            { "author": "maneesh", "at": "2026-03-13T10:00:00.000Z", "text": "Is this still true after the magic-link rollout?" }
+          ]
+        }
+      ]
+    },
+    {
+      "src": "gdocs",
+      "id": "pricing-2026-experiments",
+      "source_hash": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+      "created": "2026-02-18T11:00:00.000Z",
+      "last_edited": "2026-04-01T16:45:00.000Z",
+      "length_tier": "medium",
+      "ancestor_path": ["Company Wiki", "Growth", "Pricing"],
+      "original_title": "Pricing experiments 2026",
+      "section_offsets": [
+        { "heading": "Q1 results", "level": 1, "offset": 0 },
+        { "heading": "Q2 hypotheses", "level": 1, "offset": 510 }
+      ],
+      "summary": "Pricing experiments for 2026: the Q1 packaging test moved conversion +6%; Q2 explores annual-default and usage tiers.",
+      "section_summaries": [
+        { "heading": "Q1 results", "level": 1, "summary": "Three-tier packaging beat the two-tier control by 6% on paid conversion." },
+        { "heading": "Q2 hypotheses", "level": 1, "summary": "Annual-as-default and a usage-based add-on tier are the two bets." }
+      ],
+      "glossary_terms": [
+        { "term": "Annual-default", "definition": "Presenting the annual plan pre-selected at checkout." }
+      ],
+      "external_links": [
+        { "label": "Experiment log (Sheets)", "url": "https://docs.google.com/spreadsheets/d/pricing-log" }
+      ],
+      "llm_title": "2026 Pricing Experiment Plan",
+      "workstream": "pricing",
+      "workstream_confidence": 0.81,
+      "exclude": null,
+      "citation_anchors": null,
+      "body_md": "# Q1 results\n\nThe three-tier packaging test beat the two-tier control by **6%** on paid conversion.\n\n# Q2 hypotheses\n\nWe are testing annual-as-default and a usage-based add-on tier.",
+      "comments": []
+    },
+    {
+      "src": "notion",
+      "id": "scratch-meeting-notes",
+      "source_hash": "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
+      "created": "2026-05-20T13:00:00.000Z",
+      "last_edited": "2026-05-20T13:05:00.000Z",
+      "length_tier": "short",
+      "ancestor_path": ["Company Wiki", "Scratch"],
+      "original_title": "Untitled meeting notes",
+      "section_offsets": [],
+      "summary": "Sparse meeting stub — three bullet points, no durable content.",
+      "section_summaries": null,
+      "glossary_terms": null,
+      "external_links": null,
+      "llm_title": null,
+      "workstream": "platform",
+      "workstream_confidence": 0.35,
+      "exclude": { "reason": "thin-doc: short length tier and no headings (substance below threshold)" },
+      "citation_anchors": null,
+      "body_md": "- talked about the thing\n- follow up next week\n- TODO: nobody assigned",
+      "comments": []
+    },
+    {
+      "src": "github",
+      "id": "platform-readme",
+      "source_hash": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
+      "created": "2026-06-01T08:00:00.000Z",
+      "last_edited": null,
+      "length_tier": "medium",
+      "ancestor_path": ["org", "platform-service"],
+      "original_title": "platform-service README",
+      "section_offsets": [
+        { "heading": "Overview", "level": 1, "offset": 0 },
+        { "heading": "Local setup", "level": 2, "offset": 300 }
+      ],
+      "summary": null,
+      "section_summaries": null,
+      "glossary_terms": null,
+      "external_links": null,
+      "llm_title": null,
+      "workstream": null,
+      "workstream_confidence": null,
+      "exclude": null,
+      "citation_anchors": null,
+      "body_md": "# Overview\n\nThe platform-service hosts the shared auth and billing APIs.\n\n## Local setup\n\nRun `make dev` after copying `.env.example`.",
+      "comments": []
+    }
+  ]
+}

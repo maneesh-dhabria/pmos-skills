@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<!--
+  wiki-viewer.html — the bundled, zero-dep, single-file /wiki viewer (Story 260624-1e5, AC3).
+  Renders an embedded corpus JSON (#wiki-corpus, shape: reference/sidecar-schema.md "corpus JSON").
+  Story 260624-rmq emits a copy of this skeleton into the substrate with the real corpus injected
+  into #wiki-corpus. No external dependencies; works from file:// (offline) and http://localhost.
+
+  Fold-ins (02_design.html#viewer): skim↔full toggle · per-section summaries · time + workstream +
+  exclude facets (excluded hidden by default, restorable) · glossary section · created/modified
+  header · LLM-vs-original title toggle · external-reference links · inline-comment annotation
+  threads that persist inside the HTML (skill-local overlay, NOT a library-viewer dependency, D14).
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="wiki">
+<link rel="icon" href="data:,">
+<title>Wiki</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --card:#1c2029; --line:#2a2f3a; --ink:#e7ebf2;
+    --muted:#9aa3b2; --accent:#6ea8fe; --accent-soft:#2a3a57; --warn:#e0b341; --ok:#5dd6a0;
+    --tag:#23303f; --tag-ink:#a9c7f0;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--ink); }
+  a { color:var(--accent); }
+  header.top { display:flex; align-items:center; gap:16px; padding:14px 22px; border-bottom:1px solid var(--line);
+               background:var(--panel); position:sticky; top:0; z-index:5; }
+  header.top h1 { font-size:18px; margin:0; letter-spacing:.2px; }
+  .wordmark { margin-left:auto; font-size:12px; color:var(--muted); letter-spacing:.18em; text-transform:uppercase; }
+  .wordmark b { color:var(--accent); }
+  .toolbar { display:flex; gap:10px; align-items:center; }
+  .btn { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px;
+         padding:6px 12px; cursor:pointer; font-size:13px; }
+  .btn:hover { border-color:var(--accent); }
+  .btn.active { background:var(--accent-soft); border-color:var(--accent); }
+  input[type=search], input[type=text], input.note { background:var(--bg); border:1px solid var(--line);
+         color:var(--ink); border-radius:8px; padding:6px 10px; font-size:13px; }
+  .layout { display:grid; grid-template-columns:240px 1fr; gap:0; align-items:start; }
+  aside.facets { padding:18px; border-right:1px solid var(--line); position:sticky; top:57px; height:calc(100vh - 57px);
+                 overflow:auto; background:var(--panel); }
+  aside.facets h3 { font-size:11px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted);
+                    margin:18px 0 8px; }
+  aside.facets h3:first-child { margin-top:0; }
+  .facet-row { display:flex; align-items:center; gap:8px; margin:5px 0; font-size:13px; }
+  main { padding:20px 26px; max-width:920px; }
+  .count { color:var(--muted); font-size:13px; margin-bottom:14px; }
+  article.doc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px;
+                margin-bottom:16px; }
+  article.doc.excluded { opacity:.55; border-style:dashed; }
+  .doc-title { font-size:17px; margin:0 0 2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .meta { color:var(--muted); font-size:12.5px; margin:2px 0 10px; display:flex; gap:10px; flex-wrap:wrap; }
+  .tag { background:var(--tag); color:var(--tag-ink); border-radius:20px; padding:1px 9px; font-size:11.5px; }
+  .summary { margin:6px 0; }
+  .sections { margin:10px 0 4px; border-left:2px solid var(--accent-soft); padding-left:12px; }
+  .sections .sec { margin:6px 0; }
+  .sections .sec b { font-weight:600; }
+  .lvl2 { margin-left:14px; }
+  .links a { display:inline-block; margin:2px 10px 2px 0; font-size:12.5px; }
+  .body-md { border-top:1px solid var(--line); margin-top:12px; padding-top:10px; font-size:14px; }
+  .body-md h1,.body-md h2 { font-size:15px; margin:12px 0 4px; }
+  .body-md code { background:#0b0d11; padding:1px 5px; border-radius:5px; font-size:13px; }
+  .excluded-banner { color:var(--warn); font-size:12.5px; margin:6px 0; }
+  .comments { border-top:1px dashed var(--line); margin-top:12px; padding-top:10px; }
+  .comments h4 { font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:0 0 8px; }
+  .thread { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin:6px 0; }
+  .thread .q { color:var(--muted); font-size:12px; font-style:italic; margin-bottom:4px; }
+  .thread .msg { font-size:13px; margin:3px 0; }
+  .thread .msg .who { color:var(--accent); font-weight:600; }
+  .addnote { display:flex; gap:8px; margin-top:8px; }
+  .addnote input.note { flex:1; }
+  section.glossary { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:30px; }
+  section.glossary h2 { font-size:15px; margin:0 0 10px; }
+  .gterm { margin:6px 0; } .gterm b { color:var(--ink); } .gterm span { color:var(--muted); }
+  .hidden { display:none !important; }
+  .empty { color:var(--muted); padding:30px; text-align:center; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Wiki</h1>
+  <div class="toolbar">
+    <button class="btn" id="mode-skim">Skim</button>
+    <button class="btn" id="mode-full">Full</button>
+    <input type="search" id="q" placeholder="Filter docs…" aria-label="Filter documents">
+  </div>
+  <div class="wordmark">made with <b>pmos</b></div>
+</header>
+
+<div class="layout">
+  <aside class="facets">
+    <h3>Workstream</h3>
+    <div id="facet-ws"></div>
+    <h3>Modified after</h3>
+    <div class="facet-row"><input type="text" id="facet-date" placeholder="YYYY-MM-DD" style="width:100%"></div>
+    <h3>Excluded</h3>
+    <div class="facet-row"><label><input type="checkbox" id="facet-excluded"> Show excluded docs</label></div>
+  </aside>
+  <main>
+    <div class="count" id="count"></div>
+    <div id="docs"></div>
+    <section class="glossary" id="glossary"></section>
+  </main>
+</div>
+
+<!-- The corpus. Story rmq replaces this block's content with the real emitted corpus. -->
+<script id="wiki-corpus" type="application/json">
+{
+  "generated": "2026-06-24T12:00:00.000Z",
+  "config": { "workstreams": ["demo"] },
+  "vocab": ["demo"],
+  "docs": [
+    {
+      "src": "notion", "id": "demo-1",
+      "source_hash": "0", "created": "2026-01-01T00:00:00.000Z", "last_edited": "2026-02-01T00:00:00.000Z",
+      "length_tier": "short", "ancestor_path": ["Demo"], "original_title": "Demo page (raw)",
+      "section_offsets": [{ "heading": "Hello", "level": 1, "offset": 0 }],
+      "summary": "A demo document so the bare viewer renders. Story rmq replaces this corpus.",
+      "section_summaries": [{ "heading": "Hello", "level": 1, "summary": "A single demo section." }],
+      "glossary_terms": [{ "term": "Demo", "definition": "Placeholder content." }],
+      "external_links": [], "llm_title": "Demo Page", "workstream": "demo", "workstream_confidence": 1.0,
+      "exclude": null, "citation_anchors": null,
+      "body_md": "# Hello\n\nThis is a **demo** body. Replace `#wiki-corpus` with a real corpus.",
+      "comments": []
+    }
+  ]
+}
+</script>
+
+<script>
+"use strict";
+const WikiViewer = (() => {
+  const state = { corpus: null, mode: 'skim', titleLLM: {}, query: '', ws: new Set(), dateAfter: '', showExcluded: false };
+
+  function loadCorpus() {
+    const el = document.getElementById('wiki-corpus');
+    try { state.corpus = JSON.parse(el.textContent); }
+    catch (e) { state.corpus = { docs: [] }; }
+    if (!state.corpus.docs) state.corpus.docs = [];
+    // default: full corpus visible, exclude hidden, all workstreams on.
+    // A doc with no workstream lives in the explicit "(unclassified)" facet so filtering is exhaustive.
+    for (const d of state.corpus.docs) {
+      state.ws.add(d.workstream || '(unclassified)');
+      if (!Array.isArray(d.comments)) d.comments = [];
+    }
+    return state.corpus;
+  }
+
+  function esc(s) { return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // Minimal, safe markdown → HTML (headings, bold, inline code, lists, paragraphs). Zero-dep.
+  function renderMd(md) {
+    const lines = String(md || '').split('\n');
+    let html = '', inList = false;
+    const inline = (t) => esc(t)
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/,'');
+      if (/^#\s+/.test(line)) { if (inList){html+='</ul>';inList=false;} html += `<h1>${inline(line.replace(/^#\s+/,''))}</h1>`; }
+      else if (/^##\s+/.test(line)) { if (inList){html+='</ul>';inList=false;} html += `<h2>${inline(line.replace(/^##\s+/,''))}</h2>`; }
+      else if (/^[-*]\s+/.test(line)) { if (!inList){html+='<ul>';inList=true;} html += `<li>${inline(line.replace(/^[-*]\s+/,''))}</li>`; }
+      else if (line.trim() === '') { if (inList){html+='</ul>';inList=false;} }
+      else { if (inList){html+='</ul>';inList=false;} html += `<p>${inline(line)}</p>`; }
+    }
+    if (inList) html += '</ul>';
+    return html;
+  }
+
+  function isExcluded(d) { return d.exclude != null; }
+
+  function visibleDocs() {
+    const q = state.query.trim().toLowerCase();
+    return state.corpus.docs.filter((d) => {
+      if (isExcluded(d) && !state.showExcluded) return false;
+      const dws = d.workstream || '(unclassified)';
+      if (state.ws.size && !state.ws.has(dws)) return false;
+      if (state.dateAfter) {
+        const le = d.last_edited || d.created || '';
+        if (!(le && le >= state.dateAfter)) return false;
+      }
+      if (q) {
+        const hay = [d.original_title, d.llm_title, d.summary,
+          ...(d.section_summaries||[]).map(s=>s.heading+' '+s.summary)].filter(Boolean).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function titleFor(d) {
+    const useLLM = state.titleLLM[d.id] !== false; // default to LLM title when present
+    if (useLLM && d.llm_title) return d.llm_title;
+    return d.original_title;
+  }
+
+  function fmtDate(s) { return s ? String(s).slice(0,10) : '—'; }
+
+  function renderDoc(d) {
+    const ex = isExcluded(d);
+    const hasToggle = d.llm_title && d.original_title;
+    const showingLLM = state.titleLLM[d.id] !== false && !!d.llm_title;
+    let h = `<article class="doc${ex ? ' excluded' : ''}" data-id="${esc(d.id)}">`;
+    h += `<h2 class="doc-title"><span class="t">${esc(titleFor(d))}</span>`;
+    if (hasToggle) h += `<button class="btn title-toggle" data-id="${esc(d.id)}" style="padding:2px 8px;font-size:11px">${showingLLM ? 'show original' : 'show generated'}</button>`;
+    h += `</h2>`;
+    h += `<div class="meta"><span>${esc(d.src)}</span>`;
+    h += `<span>created ${fmtDate(d.created)}</span><span>modified ${fmtDate(d.last_edited)}</span>`;
+    if (d.workstream) h += `<span class="tag">${esc(d.workstream)}</span>`;
+    h += `<span>${esc(d.length_tier||'')}</span></div>`;
+    if (ex) h += `<div class="excluded-banner">hidden — ${esc(d.exclude.reason || 'excluded')} · <a href="#" class="restore" data-id="${esc(d.id)}">restore</a></div>`;
+    if (d.summary) h += `<div class="summary">${esc(d.summary)}</div>`;
+    if (Array.isArray(d.section_summaries) && d.section_summaries.length) {
+      h += `<div class="sections">`;
+      for (const s of d.section_summaries)
+        h += `<div class="sec${s.level===2?' lvl2':''}"><b>${esc(s.heading)}</b> — ${esc(s.summary)}</div>`;
+      h += `</div>`;
+    }
+    if (Array.isArray(d.external_links) && d.external_links.length) {
+      h += `<div class="links">`;
+      for (const l of d.external_links) h += `<a href="${esc(l.url)}" target="_blank" rel="noopener">↗ ${esc(l.label)}</a>`;
+      h += `</div>`;
+    }
+    if (state.mode === 'full') h += `<div class="body-md">${renderMd(d.body_md)}</div>`;
+    // comments / annotations
+    h += `<div class="comments"><h4>Notes &amp; questions</h4>`;
+    for (const c of (d.comments||[])) {
+      h += `<div class="thread">`;
+      if (c.quote_anchor && c.quote_anchor.text) h += `<div class="q">“${esc(c.quote_anchor.text)}”</div>`;
+      for (const m of (c.thread||[])) h += `<div class="msg"><span class="who">${esc(m.author||'you')}</span> ${esc(m.text)}</div>`;
+      h += `</div>`;
+    }
+    h += `<div class="addnote"><input class="note" data-id="${esc(d.id)}" placeholder="Add a note or question…">
+          <button class="btn add-note" data-id="${esc(d.id)}">Add</button></div>`;
+    h += `</div></article>`;
+    return h;
+  }
+
+  function renderGlossary(docs) {
+    const terms = [];
+    for (const d of docs) for (const g of (d.glossary_terms||[])) terms.push(g);
+    terms.sort((a,b)=> (a.term||'').localeCompare(b.term||''));
+    let h = `<h2>Glossary</h2>`;
+    if (!terms.length) { h += `<div class="gterm"><span>No glossary terms in the visible docs.</span></div>`; }
+    for (const g of terms) h += `<div class="gterm"><b>${esc(g.term)}</b> — <span>${esc(g.definition)}</span></div>`;
+    return h;
+  }
+
+  function renderFacets() {
+    const wsAll = [...new Set(state.corpus.docs.map(d=>d.workstream || '(unclassified)'))].sort();
+    const fw = document.getElementById('facet-ws');
+    fw.innerHTML = wsAll.map(w =>
+      `<div class="facet-row"><label><input type="checkbox" class="ws-cb" value="${esc(w)}" ${state.ws.has(w)?'checked':''}> ${esc(w)}</label></div>`
+    ).join('') || '<div class="facet-row"><span style="color:var(--muted)">none</span></div>';
+    fw.querySelectorAll('.ws-cb').forEach(cb => cb.addEventListener('change', () => {
+      if (cb.checked) state.ws.add(cb.value); else state.ws.delete(cb.value); render();
+    }));
+  }
+
+  function render() {
+    const docs = visibleDocs();
+    document.getElementById('count').textContent =
+      `${docs.length} of ${state.corpus.docs.length} documents · ${state.mode} mode`;
+    document.getElementById('docs').innerHTML = docs.length
+      ? docs.map(renderDoc).join('')
+      : `<div class="empty">No documents match the current filters.</div>`;
+    document.getElementById('glossary').innerHTML = renderGlossary(docs);
+    document.getElementById('mode-skim').classList.toggle('active', state.mode==='skim');
+    document.getElementById('mode-full').classList.toggle('active', state.mode==='full');
+    wireDocEvents();
+  }
+
+  function findDoc(id) { return state.corpus.docs.find(d=>d.id===id); }
+
+  // Re-serialize the live corpus back into the #wiki-corpus block so annotations persist in the HTML
+  // (survives "Save Page As"; the launcher/serve path can POST it for true disk persistence — Story B).
+  function persist() {
+    document.getElementById('wiki-corpus').textContent = JSON.stringify(state.corpus, null, 2);
+  }
+
+  function addNote(id, text) {
+    const d = findDoc(id); if (!d || !text.trim()) return;
+    d.comments = d.comments || [];
+    d.comments.push({ id: 'n'+(d.comments.length+1), thread: [{ author: 'you', at: '', text: text.trim() }] });
+    persist(); render();
+  }
+
+  function wireDocEvents() {
+    document.querySelectorAll('.title-toggle').forEach(b => b.addEventListener('click', () => {
+      const id = b.dataset.id;
+      const showingLLM = state.titleLLM[id] !== false; // default (undefined) = showing LLM title
+      state.titleLLM[id] = !showingLLM;                 // flip
+      render();
+    }));
+    document.querySelectorAll('.restore').forEach(a => a.addEventListener('click', (e) => {
+      e.preventDefault(); const d = findDoc(a.dataset.id); if (d){ d.exclude = null; persist(); render(); }
+    }));
+    document.querySelectorAll('.add-note').forEach(b => b.addEventListener('click', () => {
+      const inp = document.querySelector(`input.note[data-id="${CSS.escape(b.dataset.id)}"]`);
+      if (inp){ addNote(b.dataset.id, inp.value); }
+    }));
+  }
+
+  function init() {
+    loadCorpus();
+    renderFacets();
+    document.getElementById('mode-skim').addEventListener('click', () => { state.mode='skim'; render(); });
+    document.getElementById('mode-full').addEventListener('click', () => { state.mode='full'; render(); });
+    document.getElementById('q').addEventListener('input', (e) => { state.query=e.target.value; render(); });
+    document.getElementById('facet-date').addEventListener('input', (e)=>{ state.dateAfter=e.target.value.trim(); render(); });
+    document.getElementById('facet-excluded').addEventListener('change', (e)=>{ state.showExcluded=e.target.checked; render(); });
+    render();
+  }
+
+  // expose for tests / Story B
+  return { init, state, visibleDocs, renderMd, addNote, persist, _render: render };
+})();
+document.addEventListener('DOMContentLoaded', WikiViewer.init);
+window.WikiViewer = WikiViewer;
+</script>
+</body>
+</html>
