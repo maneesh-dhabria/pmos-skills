@@ -1,0 +1,107 @@
+schema_version: 1
+story: 260624-pe2
+epic: 260624-ajy
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+# Implementation reference: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§L
+# Eval rubric: plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-eval.md ([D] hard gates + [J] judgment)
+# Host-repo policy: CLAUDE.md (canonical skill path plugins/<plugin>/skills/<name>/SKILL.md; inline
+#   non-interactive block byte-identical to skills/_shared/non-interactive.md; audit-recommended;
+#   hygiene lints lint-flags-vs-hints / lint-phase-refs / lint-non-interactive-inline).
+#
+# SCOPE: this story writes EXACTLY ONE file —
+#   plugins/pmos-toolkit/skills/landing-page/SKILL.md
+# It DEPENDS ON story 260624-dqg (D7), whose bundled reference/ (style-tokens, style-gallery.html,
+# section-scaffolds.md, hero-archetypes.md, copy-gates.md) + tests/ already exist in the worktree at
+# claim time (D9 claim-time dep-merge). The SKILL CITES those references; it never restates them
+# (§K one-fact-one-home) — this is also how the body stays under the c-body-size 800-line cap.
+# NO release-prereq tasks here (version bump, changelog, README row, manifest sync) — those are owned
+# solely by /complete-dev (Loop 3); see the "## Release prerequisites" note in 03_plan.md.
+tasks:
+  - id: T1
+    title: "Study reference: design doc anchors + dqg bundled references + skill-patterns §A–§L + an authoring exemplar"
+    deps: []
+    parallel: false
+    acceptance:
+      - "Re-read 02_design.html §2 #workflow (six phases + gates + non-interactive degradation), §4 #hero-fold (4 archetypes + hero rules + Phase-3 mechanism), §5 #style-system (6 styles + tokens + gallery), §6 #output (per-page folder contract + D3 self-contained), §7 #copy-gates (litmus/3-tests/6-criteria/psych/anti-patterns + D10 visual self-check), §8 #ingestion (Phase-1 research+brief, D6/D9), and §9 D1–D10."
+      - "Open dqg's bundled files in the worktree (D9 dep-merge present): reference/style-tokens(.md/.json), reference/style-gallery.html, reference/section-scaffolds.md, reference/hero-archetypes.md, reference/copy-gates.md, tests/ — capture each file's exact relative path + heading anchors so SKILL phases can CITE them (§K) rather than restate."
+      - "Read plugins/pmos-toolkit/skills/feature-sdlc/reference/skill-patterns.md §A–§L and skill-eval.md; enumerate the gated checks this skill must pass (a-name-matches-dir, b-desc-trigger-phrases, f-cc-user-invocable, f-cc-argument-hint-matches, i-hint-contract-only, j-phases-integer, j-phase-slug-anchors, d-progress-tracking, d-platform-adaptation, d-learnings-load-line, d-capture-learnings-phase, c-body-size, c-progressive-disclosure)."
+      - "Read CLAUDE.md skill conventions (canonical path; byte-identical inline non-interactive block; §H gates / §I flags / §J phases / §K one-home / §L dispatch) and skills/_shared/non-interactive.md (the block to paste verbatim). Read one shipped authoring SKILL.md (e.g. /wireframes or /prototype) for the Track Progress / Platform Adaptation / Capture Learnings shapes and the Playwright visual-self-check ≤2-loop pattern (D10) this skill reuses. Produce no SKILL.md yet — output the phase/anchor/citation map that drives T2–T5."
+    verify: >
+      The six §2 phases, their gate semantics, the bundled reference each phase cites + its anchor, the
+      D5 product_type→scaffold/archetype/style mapping, the D10 visual-self-check loop + text fallback,
+      and the full gated skill-eval check list are all enumerated before any SKILL.md is written.
+
+  - id: T2
+    title: "Frontmatter + skeleton: name/description/triggers/argument-hint + Track Progress + Platform Adaptation + learnings load-line (AC1, AC6)"
+    deps: [T1]
+    parallel: false
+    acceptance:
+      - "Create plugins/pmos-toolkit/skills/landing-page/SKILL.md (the ONLY file this story writes; canonical path per CLAUDE.md). Frontmatter: name: landing-page (matches dir → a-name-matches-dir); user-invocable true (f-cc-user-invocable)."
+      - "Single-line quoted description: with rich triggers — 'create a landing page', 'build a landing page for my product', 'marketing page', '/landing-page' (design §10 #skill-shape; AC1; b-desc-trigger-phrases). Within the 1024-char description cap."
+      - "argument-hint lists CONTRACT flags only (§I 4-test; i-hint-contract-only; f-cc-argument-hint-matches): only --non-interactive (headless determinism) and --docs-path <dir> (typed value) qualify; any natural-language sugar (e.g. opt-in web-research toggle) stays a body-parsed alias marked <!-- nl-sugar --> and is NOT hinted. allowed-tools includes Read, Write, Bash, AskUserQuestion, and the Playwright MCP for D10."
+      - "Body opens with: a learnings load-line near the top (d-learnings-load-line); a '## Track Progress' section instructing a per-phase checklist/TodoWrite (d-progress-tracking); a '## Platform Adaptation' note (d-platform-adaptation) covering the 'No AskUserQuestion tool' degradation and the headless-browser-absent fallback (D10). Cites design_doc: 02_design.html#workflow for the overall pipeline."
+    verify: >
+      name matches dir; description is single-line/quoted with all four trigger phrases and under the cap;
+      argument-hint carries only the two contract flags (nl-sugar marked in body, not hinted); learnings
+      load-line + Track Progress + Platform Adaptation present.
+
+  - id: T3
+    title: "Phases 1–3: research+brief (#research-brief), propose-structure (#propose-structure), hero-explore (#hero-explore) (AC2, AC3)"
+    deps: [T2]
+    parallel: false
+    acceptance:
+      - "Three integer top-level phases with stable {#kebab-slug} anchors (j-phases-integer, j-phase-slug-anchors): '## Phase 1: Research & brief {#research-brief}', '## Phase 2: Propose section structure {#propose-structure}', '## Phase 3: Explore the hero fold {#hero-explore}'. Each cites its design anchor (§2/§8, §3, §4) and the dqg bundled reference it consumes (§K — cite, do not restate)."
+      - "Phase 1 (#research-brief) implements §8 #ingestion + D9/D6: accept a local repo path / GitHub URL / doc / free-form description; RESEARCH the provided context (read repo/docs); write a CITED brief.md into the page folder with every field cited to its source (repo file / doc / 'asked'); copy extracted source into reference/; CONFIRM the brief with the user. Web fetch is OPT-IN, default OFF (D9) — only on user-named references/approval. Missing fields are ASKED, NEVER invented (D6)."
+      - "Phase 2 (#propose-structure) implements §3 + D4: ALWAYS propose an ordered section list from the product-type-aware default scaffold (cites reference/section-scaffolds.md) and WAIT for approve/edit before any drafting (hard gate). Product_type from the brief selects the variant (D5)."
+      - "Phase 3 (#hero-explore) implements §4 + D2: generate 2–3 ACTUALLY-RENDERED hero options (distinct archetypes, real copy, in the eventual style) into working/hero-options.html in the page folder; user views in-browser and picks/refines (hard gate). Cites reference/hero-archetypes.md for the 4 archetypes + hero rules."
+    verify: >
+      Phases 1–3 are integer + slug-anchored, each citing a design anchor and a dqg reference; Phase 1
+      writes a source-cited brief.md + reference/ extraction, confirms with user, web-fetch opt-in default
+      off, never-invent; Phase 2 always-propose-and-approve; Phase 3 emits 2–3 rendered hero options to
+      working/hero-options.html and gates on a pick.
+
+  - id: T4
+    title: "Phases 4–6: style-pick (#style-pick), draft (#draft) w/ per-page folder output, self-review (#self-review) gates + visual self-check (AC2, AC4, AC5)"
+    deps: [T2]
+    parallel: true
+    acceptance:
+      - "'## Phase 4: Pick visual style {#style-pick}' (§5 + D1) — open the bundled offline reference/style-gallery.html swatch gallery; user picks one of the 6 named styles; the generator binds that style's theme tokens (cites reference/style-tokens). '## Phase 5: Draft {#draft}' (§6) and '## Phase 6: Self-review before emit {#self-review}' (§7), integer + slug-anchored."
+      - "Phase 5 (#draft) implements §6 #output + D8/D3 (AC4): emit a per-page folder {docs_path}/landing-page/<YYYY-MM-DD>-<title-slug>/ containing brief.md, index.html, reference/, working/hero-options.html. index.html is a SINGLE self-contained file — inline <style> (CSS variables = bound theme tokens) + vanilla JS only, NO CDN, NO build step (D3), opens from file://. It carries the inline pmos-comments block + <meta name=\"pmos:skill\" content=\"landing-page\"> (repo HTML-artifact convention). Missing assets emit clearly-LABELLED placeholders, never fabricated metrics/quotes/logos (D6)."
+      - "Phase 6 (#self-review) implements §7 #copy-gates (AC5): apply the copy/conversion gates by CITING reference/copy-gates.md (Julian litmus / Harry Dry 3-tests / 6-criteria / psychology levers / anti-pattern avoid-list) and revise the draft in place; assert the page structurally contains a hero with exactly one isolated primary CTA + the approved sections in order + the bound style tokens."
+      - "Phase 6 visual self-check (D10): render index.html HEADLESS (Playwright), screenshot desktop + mobile into working/, run a reviewer pass (≤2-iteration fix loop, /wireframes-/prototype pattern) that verifies hero/CTA/sections/style render correctly and fixes issues in place. GRACEFUL fallback: when no headless browser is available, fall back to the text gates + a structural-HTML check and LOG the skipped visual pass (never silent — design §7)."
+    verify: >
+      Phases 4–6 integer + slug-anchored; Phase 4 opens style-gallery.html and binds chosen tokens;
+      Phase 5 emits the D8 per-page folder with a self-contained no-CDN index.html carrying inline
+      pmos-comments + pmos:skill meta + labelled placeholders; Phase 6 cites copy-gates.md, applies them,
+      runs the headless screenshot reviewer ≤2-loop, and logs a text-gate fallback when no browser.
+
+  - id: T5
+    title: "Required scaffolding: inline non-interactive block byte-identical + AUTO-PICK gate defaults + literal Capture Learnings phase (AC6)"
+    deps: [T3, T4]
+    parallel: false
+    acceptance:
+      - "Inline the canonical non-interactive block between <!-- non-interactive-block:start --> / <!-- :end -->, BYTE-IDENTICAL to skills/_shared/non-interactive.md (CLAUDE.md W14 posture; enforced by lint-non-interactive-inline.sh)."
+      - "Under --non-interactive, the THREE hard gates (Phase 2 structure, Phase 3 hero, Phase 4 style) AUTO-PICK their Recommended default deterministically from the brief's product_type (D5 §2 degradation: product-type default scaffold / best-fit hero archetype / best-fit style) and LOG each pick + open question per the W14 contract — no AskUserQuestion blocking. Each interactive AskUserQuestion carries a (Recommended) option (audit-recommended)."
+      - "A literal '## Phase N: ... Capture Learnings' section exists (d-capture-learnings-phase) — exact heading form so the rubric's literal match passes; uses the next integer after Phase 6 (j-phases-integer)."
+      - "Body stays under the 800-line c-body-size cap by citing dqg's bundled references rather than restating their content (§K one-fact-one-home; c-progressive-disclosure). Each phase's heavy detail lives in its reference file, cited by relative path."
+    verify: >
+      Inline NI block byte-matches the canonical source; --non-interactive AUTO-PICKs all three gate
+      defaults from product_type (D5) + logs OQs; every AskUserQuestion has a (Recommended) option; a
+      literal '## Phase N: ... Capture Learnings' heading exists; body < 800 lines via reference citation.
+
+  - id: T6
+    title: "Gates-green + load-bearing dogfood: skill-eval [D]+[J], 4 hygiene lints + audit + NI lint, end-to-end run producing a styled gate-passing index.html (AC7)"
+    deps: [T5]
+    parallel: false
+    acceptance:
+      - "Run feature-sdlc/tools/skill-eval-check.sh against plugins/pmos-toolkit/skills/landing-page/ (target platform from skill-tier-resolve): [D] all-pass (or self-documented accepted residuals), [J] >= pass floor. Confirm a-name-matches-dir, b-desc-trigger-phrases, f-cc-user-invocable, f-cc-argument-hint-matches, i-hint-contract-only, j-phases-integer, j-phase-slug-anchors, d-progress-tracking, d-platform-adaptation, d-learnings-load-line, d-capture-learnings-phase, c-body-size all pass."
+      - "Run the repo hygiene lints + audit: tools/lint-flags-vs-hints.sh (every argument-hint flag handled in body; every body flag hinted or nl-sugar-marked), tools/lint-phase-refs.sh (every Phase N / {#slug} / <skill>/file#anchor reference resolves), tools/lint-non-interactive-inline.sh (block byte-match), tools/audit-recommended.sh (every prompt classified) — ALL green."
+      - "Load-bearing end-to-end DOGFOOD (AC7): run /landing-page on a real product (e.g. this repo) through all six phases — confirm a per-page folder lands at {docs_path}/landing-page/<date>-<title>/ with a CITED brief.md AND a styled, self-contained index.html that PASSES the §7 copy gates + visual self-check (hero + single primary CTA + approved sections in order + bound style tokens; inline pmos-comments + pmos:skill meta present; no CDN refs). Capture the produced folder as evidence."
+      - "Record a Verdict line (satisfied / accepted_residuals). DO NOT bump the version, write the changelog, add a README row, or sync manifests — those are ## Release prerequisites owned by /complete-dev (Loop 3); enumerate any deferred-to-release checks for it."
+    verify: >
+      skill-eval [D] all-pass + [J] >= floor; all 4 hygiene lints + audit-recommended green; a real
+      end-to-end dogfood produced a per-page folder with a cited brief.md and a gate-passing styled
+      no-CDN index.html (inline pmos-comments + pmos:skill meta); Verdict recorded; no release-prereq
+      task performed.

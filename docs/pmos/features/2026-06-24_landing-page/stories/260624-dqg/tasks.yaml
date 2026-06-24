@@ -1,0 +1,142 @@
+schema_version: 1
+story: 260624-dqg
+epic: 260624-ajy
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/landing-page
+# Story A — bundled style system + reference substrate (NO SKILL.md). The independently-shippable,
+# self-tested half of /landing-page: 6 frozen theme-token sets, an offline style-gallery.html swatch
+# gallery rendered from those tokens, the section-scaffold / hero-archetype / copy-gates reference
+# files, and a pure selftest. Produces a previewable style gallery from data with NO LLM at runtime.
+# All files under plugins/pmos-toolkit/skills/landing-page/{reference,tests}/. Story 260624-pe2 (B)
+# authors SKILL.md and consumes these (D7/D9 claim-time dep-merge makes them present in B's worktree).
+#
+# Design anchors (02_design.html): #style-system / #styles (the 6 styles + theme-token schema + the
+# gallery + the restraint design bias), #section-taxonomy (11-row default scaffold + 4 product-type
+# variants + governing-equation filter), #hero-fold (4 archetypes + hero rules), #copy-gates (Julian
+# litmus + 6-criteria, Harry Dry 3-test, von Restorff single-CTA, psychology-by-section, anti-pattern
+# avoid-list), #substrate-map (Story A file rows + file-disjoint rationale).
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §H (deterministic = script: contrast math and
+# token-shape validation are computed by the selftest, never model-judged) + §K (one fact, one home:
+# the token sets are the single source the gallery + the generator both bind). Host CLAUDE.md: canonical
+# skill path = plugins/pmos-toolkit/skills/landing-page/; reference-file hygiene (one level deep,
+# leading ToC, portable paths).
+#
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks here
+# — /complete-dev owns them at epic release. This story creates NO SKILL.md.
+#
+# TDD posture: tests/selftest.mjs (T2 sets it up fail-first) is the gate; it asserts token-set
+# well-formedness + WCAG-AA contrast (AC2/AC6), gallery renders 6 distinct named styles offline
+# (AC3/AC6), and the reference files carry the required sections/rows (AC4/AC5/AC6). The closing task
+# (T6) establishes the full green bar.
+tasks:
+  - id: T1
+    title: "Scaffold landing-page/{reference,tests} + author the 6 frozen theme-token sets (reference/style-tokens.json + style-tokens.md doc)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/landing-page/{reference,tests/fixtures}/ (no SKILL.md).
+      Author reference/style-tokens.json — one frozen token set per #styles style: (1) Clean minimal
+      SaaS, (2) Dark developer tool, (3) Bold playful illustration, (4) Editorial/typographic,
+      (5) Warm consumer lifestyle, (6) Enterprise trust. Each set is pure data carrying the full
+      CSS-variable schema per #style-system: palette (--bg, --fg, --accent, --muted + named surfaces),
+      type (display + body font stacks, modular scale, weights), spacing/density, radius, shadow, and an
+      imagery directive (what the visual slots contain). Also author reference/style-tokens.md as the
+      human-readable companion (leading ToC; a labelled table per style mirroring the JSON; the
+      "new style = add a token set + a swatch, never edit the skill body" invariant; portable paths).
+    acceptance:
+      - "reference/style-tokens.json defines exactly 6 named token sets matching #styles names verbatim (AC1)"
+      - "every set carries the full CSS-var schema from #style-system: --bg/--fg/--accent/--muted + surfaces, display+body font stacks, scale, weight, spacing/density, radius, shadow, imagery directive (AC1)"
+      - "token data is the single home both the gallery (T3) and the future generator bind — skill-patterns.md §K; adding a style = adding a set, no skill-body edit"
+      - "reference/style-tokens.md is one level deep, leads with a ToC, has portable paths, and mirrors each set as a labelled table"
+      - "NO SKILL.md is created by this task"
+  - id: T2
+    title: "Stand up tests/selftest.mjs fail-first (pure, no network/LLM) — token shape + contrast + gallery + reference-section assertions"
+    ac: [AC2, AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Author tests/selftest.mjs as a pure Node script (no network, no LLM, no browser): it reads the
+      token JSON, the gallery HTML, and the reference .md files from disk and asserts. Include an inline
+      relative-luminance + WCAG-AA contrast-ratio helper (§H — arithmetic done by the script, never the
+      model) and assert each set's --fg/--bg and CTA (--accent surface vs its text) pairing meets AA
+      (≥4.5:1 normal / ≥3:1 large). Written fail-first against not-yet-existing T3/T4/T5 outputs so the
+      bar is red until they land. Self-contained; runnable as `node tests/selftest.mjs`.
+    acceptance:
+      - "tests/selftest.mjs runs under plain `node`, no npm install, no network, no LLM, no headless browser (AC6)"
+      - "asserts every token set is well-formed: all required CSS vars from #style-system present and non-empty (AC6)"
+      - "asserts WCAG-AA contrast for each set's fg/bg and CTA pairing via an inline luminance/ratio helper — computed, not model-judged (AC2/AC6, skill-patterns.md §H)"
+      - "fails first (red) before T3/T4/T5 exist, proving the gate is real (TDD)"
+  - id: T3
+    title: "Build reference/style-gallery.html — offline self-contained swatch gallery rendering 6 labelled styles from the tokens"
+    ac: [AC3]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Author reference/style-gallery.html as ONE self-contained file (inline <style> + inline vanilla
+      JS, no CDN, no build) per #style-system. It binds the 6 token sets (inlined or read from the
+      sibling JSON via fetch-with-file-fallback so it opens from file://) and renders each style as a
+      labelled hero+section SWATCH (not a full page): a mini hero band + a section row using that set's
+      CSS vars, captioned with the style name. Favors restraint + a point of view over commodity effects
+      (#style-system design bias). Opens offline from file://. Each swatch carries a stable identifier
+      (e.g. data-style="<name>") so the selftest can assert 6 distinct named styles render.
+    acceptance:
+      - "style-gallery.html is one self-contained file: inline CSS + inline vanilla JS, no CDN, no build step, opens from file:// (AC3, D3)"
+      - "renders all 6 styles as labelled hero+section swatches (not full pages) bound from their token sets so preview == what the generator binds (AC3)"
+      - "each swatch is named + uniquely identifiable (e.g. data-style) for selftest assertion; gallery favors restraint over commodity effects (#style-system)"
+  - id: T4
+    title: "Author reference/section-scaffolds.md — 11-row §3 taxonomy + 4 product-type variants + governing equation"
+    ac: [AC4]
+    deps: []
+    parallel: true
+    detail: >
+      Author reference/section-scaffolds.md per #section-taxonomy: the full 11-row default scaffold
+      (Navbar → Hero → Social-proof → Problem → Solution → Features-as-objection-handling → Deeper social
+      proof → Objection/FAQ → Pricing → Final CTA → Footer) with each row's purpose + essential/optional
+      rule; the 4 product-type variant scaffolds (B2B SaaS / Consumer app / Dev tool / Info-product); the
+      governing-equation filter and the copy-length-by-price rule. Reference-file hygiene: one level
+      deep, leading ToC, portable paths.
+    acceptance:
+      - "section-scaffolds.md contains all 11 default taxonomy rows with purpose + essential/optional, verbatim to #section-taxonomy (AC4)"
+      - "contains the 4 product-type variant scaffolds (B2B SaaS, Consumer app, Dev tool, Info-product) and the governing-equation filter + copy-length rule (AC4)"
+      - "one level deep, leads with a ToC, portable paths (reference-file hygiene)"
+  - id: T5
+    title: "Author reference/hero-archetypes.md (4 archetypes + rules) and reference/copy-gates.md (litmus/3-test/6-criteria/von Restorff/psychology/anti-patterns)"
+    ac: [AC5]
+    deps: []
+    parallel: true
+    detail: >
+      Author reference/hero-archetypes.md per #hero-fold: the 4 selectable archetypes (A benefit-led +
+      product shot, B outcome + live demo, C bold statement + illustration, D social-proof-forward) with
+      shape + best-for, and the enforced hero rules (Julian litmus, subhead ≤2 sentences, one isolated
+      primary CTA von Restorff, first-person outcome-led CTA copy, product-in-action visual). Author
+      reference/copy-gates.md per #copy-gates: Julian's headline litmus + 6-criteria review (Conversion ·
+      Interest · Clarity · Expansion · Brevity · Disbelief), Harry Dry's 3 tests (visualize / falsify /
+      nobody-else), von Restorff single-CTA + 1:1 attention ratio, psychology levers placed by section,
+      and the anti-pattern avoid-list. Both files: one level deep, leading ToC, portable paths.
+    acceptance:
+      - "hero-archetypes.md contains the 4 #hero-fold archetypes (shape + best-for) and the enforced hero rules (Julian litmus, single von-Restorff CTA, first-person CTA copy, product-in-action visual) (AC5)"
+      - "copy-gates.md contains Julian litmus + 6-criteria, Harry Dry 3-test, von Restorff single-CTA, psychology-by-section, and the anti-pattern avoid-list, verbatim to #copy-gates (AC5)"
+      - "both files one level deep, leading ToC, portable paths (reference-file hygiene)"
+  - id: T6
+    title: "Green bar — make tests/selftest.mjs pass against all artifacts + verify gallery opens offline; no SKILL.md"
+    ac: [AC2, AC3, AC4, AC5, AC6]
+    deps: [T2, T3, T4, T5]
+    parallel: false
+    detail: >
+      Extend/complete tests/selftest.mjs so it asserts across the now-existing artifacts and turns green:
+      gallery renders 6 distinct NAMED styles offline (parse the HTML for 6 unique data-style swatches),
+      every token set well-formed + AA-contrast-passing (from T2), section-scaffolds.md has all 11 rows +
+      4 variants, hero-archetypes.md has 4 archetypes + rules, copy-gates.md has the litmus/3-test/
+      6-criteria/von-Restorff/psychology/anti-patterns sections. Confirm `node tests/selftest.mjs` exits
+      0 and the gallery opens from file:// with no network. Assert the story created NO SKILL.md under
+      the skill dir (B owns it).
+    acceptance:
+      - "`node tests/selftest.mjs` exits 0 — pure, no network/LLM/browser (AC6)"
+      - "selftest asserts gallery renders 6 distinct named styles offline (AC3/AC6) + token sets well-formed & contrast-pass (AC2/AC6)"
+      - "selftest asserts the reference files contain the required sections/rows: 11-row taxonomy + 4 variants (AC4), 4 hero archetypes + rules and all copy-gate sections (AC5)"
+      - "style-gallery.html confirmed opening from file:// with no CDN/network (AC3)"
+      - "NO SKILL.md exists under plugins/pmos-toolkit/skills/landing-page/ at story end (D7 — Story B authors it)"

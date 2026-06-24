@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /landing-page (epic 260624-ajy)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/landing-page</code></h1>
+<p><strong>Epic:</strong> 260624-ajy · <strong>Plugin:</strong> pmos-toolkit · <strong>Route:</strong> skill ·
+<strong>Status:</strong> defining (define run 2026-06-24)</p>
+<p><strong>Lineage.</strong> A brand-new skill (no prior brief). Shaped during this define run from the
+maintainer's seed + a research pass over the canonical craft sources: Julian Shapiro's landing-page guide
+(<code>julian.com/guide/startup/landing-pages</code>, the structural spine), the growth.design
+product-psychology page (the output-quality exemplar), and modern SaaS / CRO references (CXL, Harry Dry /
+Marketing Examples, Laws of UX). This page is the epic <code>design_doc:</code> — the cross-skill coherence
+contract the two build stories cite by anchor. Four shaping decisions were taken with the maintainer
+(<a href="#decisions">§9 D1–D4</a>); the rest are resolved here.</p>
+
+<h2 id="problem">1. Problem &amp; positioning</h2>
+<p>A PM or founder has a product — a repo, a doc, or a description — and wants a <em>high-converting</em>
+landing page, not a generic AI-stamped hero-with-three-cards. The toolkit can author many artifacts but none
+produces a marketing landing page grounded in established conversion craft.</p>
+<table>
+<thead><tr><th>Skill</th><th>Produces</th><th>Gap vs. this</th></tr></thead>
+<tbody>
+<tr><td><code>/wireframes</code></td><td>mid-fi internal UI screens</td><td>app screens, not a persuasive public marketing page</td></tr>
+<tr><td><code>/prototype</code></td><td>clickable app journeys</td><td>product UX, not a conversion-optimized sales page</td></tr>
+<tr><td><code>/artifact</code></td><td>templated docs (PRD, etc.)</td><td>internal docs, no hero/CTA/conversion craft</td></tr>
+<tr><td><code>/logo</code></td><td>a single brand mark</td><td>one asset, not a full page</td></tr>
+<tr><td><code>/diagram</code></td><td>one SVG</td><td>a visual, not a page</td></tr>
+</tbody></table>
+<p><strong>The missing primitive:</strong> a guided generator that turns product context into a single,
+portable, self-contained HTML landing page — opinionated about section order, hero craft, copy, and visual
+style — through a workflow that keeps the user in control at the three highest-leverage decisions (section
+structure, hero fold, visual style). The <strong>governing filter</strong> (Julian Shapiro) is baked in:
+<code>Purchase&nbsp;Rate = Desire − (Labor + Confusion)</code> — every section must add desire or remove
+labor/confusion, or it is cut.</p>
+
+<h2 id="workflow">2. Workflow (six phases)</h2>
+<p>The skill is a guided, gated pipeline. The three <em>approval</em> gates (structure, hero, style) are the
+maintainer's stated priorities; the rest is automated.</p>
+<table>
+<thead><tr><th>#</th><th>Phase</th><th>What happens</th><th>Gate</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Research &amp; brief</strong></td><td>Accept a local path, a GitHub URL, a doc, or a description; <em>research</em> the context (read repo/docs, optionally fetch competitor/reference pages) and write a <strong>persisted design brief</strong> (<code>brief.md</code>) into the page's own folder — product, audience, value prop, product-type, proof assets, primary action, plus extracted reference material. User confirms the brief. See <a href="#ingestion">§8</a> and the folder layout in <a href="#output">§6</a>.</td><td>Confirm brief</td></tr>
+<tr><td>2</td><td><strong>Propose section structure</strong></td><td>Propose an ordered section list from the product-type-aware default scaffold (<a href="#section-taxonomy">§3</a>); user approves or edits before any drafting. <strong>Always</strong> proposes + waits (D4).</td><td>Approve (hard)</td></tr>
+<tr><td>3</td><td><strong>Explore the hero fold</strong></td><td>Generate <strong>2–3 actually-rendered</strong> hero-fold options (distinct archetypes, real copy, in the eventual style) into <code>working/hero-options.html</code> in the page folder; user views in-browser and picks/refines (D2). Highest-leverage fold.</td><td>Pick (hard)</td></tr>
+<tr><td>4</td><td><strong>Pick visual style</strong></td><td>Open the bundled offline <code>style-gallery.html</code> swatch gallery (<a href="#style-system">§5</a>); user picks one of the 6 named styles. The generator binds that style's theme tokens (D1).</td><td>Pick (hard)</td></tr>
+<tr><td>5</td><td><strong>Draft</strong></td><td>Assemble the full page — approved sections, chosen hero, chosen style tokens — as one self-contained HTML file (<a href="#output">§6</a>) at the page folder's <code>index.html</code>.</td><td>—</td></tr>
+<tr><td>6</td><td><strong>Self-review before emit</strong></td><td>Run the copy &amp; conversion gates (<a href="#copy-gates">§7</a>) and an <strong>automated visual self-check</strong> (D10) — render <code>index.html</code> headless, screenshot desktop + mobile, a reviewer pass verifies hero/CTA/sections/style render correctly and fixes issues in place — then surface the page + a short "what I'd test next" note.</td><td>—</td></tr>
+</tbody></table>
+<p><strong>Non-interactive degradation:</strong> under <code>--non-interactive</code> the three gates AUTO-PICK
+their Recommended default (the product-type default scaffold; the best-fit hero archetype for the
+product-type; the best-fit style for the product-type) and log each pick + open question per the W14 contract.</p>
+
+<h2 id="section-taxonomy">3. Section taxonomy (default scaffold)</h2>
+<p>Default order = Julian's 7-element backbone, expanded to a fuller CRO taxonomy. Each row is filtered by
+the governing equation. The proposer adapts the default by <em>product-type</em> before presenting it.</p>
+<table>
+<thead><tr><th>#</th><th>Section</th><th>Purpose</th><th>Essential / optional</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Navbar</td><td>Minimal orient + top-right CTA (strip links on a 1:1 campaign page)</td><td>Essential</td></tr>
+<tr><td>2</td><td>Hero</td><td>Say exactly what you sell + primary CTA, above the fold</td><td><strong>Always</strong></td></tr>
+<tr><td>3</td><td>Social-proof strip</td><td>Borrow credibility immediately (logos / "trusted by")</td><td>If any proof exists</td></tr>
+<tr><td>4</td><td>Problem (PAS / JTBD)</td><td>Name the pain in the visitor's words</td><td>Heavy consumer/info; light dev-tool</td></tr>
+<tr><td>5</td><td>Solution / How-it-works</td><td>Frame the product as the obvious fix (3-step / demo)</td><td>Essential</td></tr>
+<tr><td>6</td><td>Features as objection-handling</td><td>header + paragraph (handles an objection) + image; each ties back to the hero's value prop</td><td>Essential</td></tr>
+<tr><td>7</td><td>Deeper social proof</td><td>Quantified testimonials (name + role + company + photo)</td><td>Essential at higher price</td></tr>
+<tr><td>8</td><td>Objection / FAQ</td><td>Kill last doubts; "Is this for me?"</td><td>Essential for paid/considered</td></tr>
+<tr><td>9</td><td>Pricing</td><td>Clear offer + guarantee</td><td>Paid only; omit for waitlist</td></tr>
+<tr><td>10</td><td>Repeat / final CTA</td><td>Restate the offer at peak intent</td><td>Essential</td></tr>
+<tr><td>11</td><td>Footer</td><td>Trust, legal, secondary links</td><td>Essential</td></tr>
+</tbody></table>
+<p><strong>Product-type variants</strong> (the scaffold the proposer starts from):</p>
+<ul>
+<li><strong>B2B SaaS</strong> — heavy logo bars, quantified ROI testimonials, security/trust, demo CTA.</li>
+<li><strong>Consumer app</strong> — lead with felt problem + outcome; lighter copy; lifestyle imagery; app-store badges.</li>
+<li><strong>Dev tool</strong> — compress the Problem section (devs know it); product-as-demo, code samples, dark mode.</li>
+<li><strong>Info-product / course</strong> (the growth.design archetype) — long copy, curriculum modules, instructor authority, money-back guarantee, "Is this course for me?".</li>
+</ul>
+<p><strong>Copy-length rule:</strong> free offer → short copy; paid → longer copy, effectiveness rising with price.</p>
+
+<h2 id="hero-fold">4. Hero fold</h2>
+<p>The hero is the page's single most important decision, so Phase 3 always explores it with
+<strong>real renders</strong> (D2), not descriptions. Elements (all above the fold): headline · subhead ·
+primary CTA · optional secondary CTA · hero visual · trust strip. Four selectable archetypes:</p>
+<table>
+<thead><tr><th>Archetype</th><th>Shape</th><th>Best for</th></tr></thead>
+<tbody>
+<tr><td><strong>A. Benefit-led + product shot</strong></td><td>Bold outcome headline + crisp UI screenshot/GIF</td><td>B2B SaaS, productivity</td></tr>
+<tr><td><strong>B. Outcome + live demo</strong></td><td>"Product is the demo" framing + demo frame</td><td>Dev tools, complex products</td></tr>
+<tr><td><strong>C. Bold statement + illustration</strong></td><td>Provocative one-liner + custom illustration</td><td>Info-product, brand-led, consumer</td></tr>
+<tr><td><strong>D. Social-proof-forward</strong></td><td>Headline + immediate user-count / logo wall / rating</td><td>Category leaders, waitlists</td></tr>
+</tbody></table>
+<p><strong>Hero rules</strong> (enforced regardless of archetype): headline passes Julian's litmus —
+<em>"if the visitor reads only this text, will they know exactly what you sell?"</em>; subhead ≤ 2 sentences;
+exactly one visually-isolated primary CTA (von Restorff); CTA copy is first-person + outcome-led
+("Start free", "Book my demo" — never "Submit"/"Learn more"); the visual shows the product in action, never
+abstract stock imagery.</p>
+<p><strong>Phase-3 mechanism:</strong> emit <code>working/hero-options.html</code> in the page folder (a working
+artifact, not the final output) containing 2–3 fully-styled hero renders stacked for side-by-side comparison, each
+labelled with its archetype. The user picks an option (and may request copy/layout tweaks); the chosen hero is
+carried verbatim into Phase 5.</p>
+
+<h2 id="style-system">5. Visual style system (D1)</h2>
+<p>Two coupled deliverables: a <strong>bundled offline swatch gallery</strong> the user previews, and a
+<strong>theme-token set per style</strong> the generator binds at draft time. No full sample pages (rejected —
+they go stale and bias content); no description-only picker (rejected — no live preview).</p>
+<h3 id="styles">The six styles</h3>
+<table>
+<thead><tr><th>Style</th><th>Palette</th><th>Type</th><th>Density</th><th>Imagery</th><th>Exemplars</th></tr></thead>
+<tbody>
+<tr><td>1. Clean minimal SaaS</td><td>White + 1 accent, airy</td><td>Geometric sans (Inter)</td><td>Low</td><td>Crisp product UI</td><td>Linear, Vercel, Notion</td></tr>
+<tr><td>2. Dark developer tool</td><td>Near-black + neon accent</td><td>Sans + mono code</td><td>Medium, bento</td><td>Code, live demos</td><td>Vercel, Supabase</td></tr>
+<tr><td>3. Bold playful illustration</td><td>Bright warm, high-contrast</td><td>Friendly sans, big display</td><td>Medium</td><td>Custom illustration</td><td>growth.design, Duolingo</td></tr>
+<tr><td>4. Editorial / typographic</td><td>Cream + serif</td><td>Serif display + sans body</td><td>Low, breathing room</td><td>Type-led, minimal img</td><td>Premium editorial</td></tr>
+<tr><td>5. Warm consumer lifestyle</td><td>Soft warm, photographic</td><td>Rounded humanist sans</td><td>Medium</td><td>Real-people photography</td><td>Consumer / wellness / D2C</td></tr>
+<tr><td>6. Enterprise trust</td><td>Navy/blue, restrained</td><td>Corporate sans</td><td>Higher</td><td>Logo walls, certs, badges</td><td>Enterprise B2B</td></tr>
+</tbody></table>
+<p><strong>Theme tokens.</strong> Each style is a named token set — CSS-variable values for palette
+(<code>--bg</code>, <code>--fg</code>, <code>--accent</code>, <code>--muted</code>, surfaces), type
+(display/body font stacks, scale, weight), spacing/density, radius, shadow, and an imagery directive (what the
+visual slots should contain). Stored as a frozen, validated reference data file (<a href="#substrate-map">§10</a>).
+The generator emits inline CSS from the chosen token set (<a href="#output">§6</a>) — themes are pure data, so a
+new style is added by adding a token set + a gallery swatch, never by editing the SKILL body.</p>
+<p><strong>style-gallery.html.</strong> One bundled, self-contained, offline HTML file rendering all six styles as
+labelled hero+section <em>swatches</em> (not full pages) from their token sets, so what the user previews is
+exactly what the generator will bind. The skill opens it (launcher / local server convention) at Phase 4.
+Design bias from the research: <em>favor restraint + a point of view over commodity effects</em> (shaders, bento,
+WebGL are now baseline) — the gallery shows tasteful, distinctive swatches.</p>
+
+<h2 id="output">6. Output contract</h2>
+<p><strong>Per-page folder</strong> (D8) — each landing page gets its own directory so the brief, extracted
+reference material, and working artifacts live beside the final page and survive for later iteration:</p>
+<pre>{docs_path}/landing-page/&lt;YYYY-MM-DD&gt;-&lt;title-slug&gt;/
+  brief.md            # Phase 1 persisted design brief (product + research + decisions)
+  index.html          # the final self-contained landing page (the deliverable)
+  reference/          # extracted source material (README excerpts, copy, asset notes, fetched refs)
+  working/
+    hero-options.html # Phase 3 throwaway hero renders (kept for traceability)</pre>
+<ul>
+<li><strong>Final page format:</strong> a single <strong>self-contained</strong> <code>index.html</code> (D3) — inline <code>&lt;style&gt;</code>
+(CSS variables = the bound theme tokens) + vanilla JS only; <strong>no CDN, no build step</strong>; opens offline
+from <code>file://</code>. Matches the gamekit / single-file-artifact convention.</li>
+<li><strong>Responsive + accessible:</strong> mobile-first, semantic landmarks, alt text, prefers-color-scheme respected where the style allows, focus-visible CTAs, contrast-safe palettes (the token sets are pre-checked).</li>
+<li><strong>Placeholders, honestly marked:</strong> where the brief lacks a real asset (logo, screenshot, testimonial), emit a clearly-labelled placeholder (never invented fake metrics or fake customer quotes — <a href="#copy-gates">§7</a> forbids unfalsifiable/fabricated proof).</li>
+<li><strong>Inline pmos-comments block</strong> + <code>&lt;meta name="pmos:skill" content="landing-page"&gt;</code> per the repo HTML-artifact convention, so the page is annotatable.</li>
+</ul>
+
+<h2 id="copy-gates">7. Copy &amp; conversion gates (pre-emit self-review)</h2>
+<p>Phase 6 runs these deterministically-described checks and revises the draft in place before surfacing it:</p>
+<ul>
+<li><strong>Julian's headline litmus</strong> — "read only this, know exactly what's sold?"; no slogans; inject specificity.</li>
+<li><strong>Harry Dry's 3 tests</strong> on every headline/claim — Can I visualize it? Can I falsify it (numbers/dates)? Can nobody else say this?</li>
+<li><strong>Julian's 6-criteria review</strong> — Conversion · Interest (1–10) · Clarity · Expansion · Brevity · Disbelief.</li>
+<li><strong>One isolated primary CTA</strong> (von Restorff); 1:1 attention ratio on campaign pages (strip distractions).</li>
+<li><strong>Clarity &gt; cleverness</strong>, always; benefits not self-congratulation; no wall of text; handle only major objections.</li>
+<li><strong>Psychology levers placed by section</strong> — social proof, authority, reciprocity, scarcity (only if true), commitment, liking, unity.</li>
+<li><strong>Anti-pattern avoid-list</strong> — corporate slogans, vague phrasing, bloated header, abstract stock imagery, vague testimonials, low-contrast CTA, wrong copy-length for price.</li>
+</ul>
+<p><strong>Visual self-check (D10).</strong> After the text gates, render <code>index.html</code> headless
+(Playwright), screenshot desktop + mobile into <code>working/</code>, and run a reviewer pass that confirms the
+hero/CTA/sections/style render correctly and look right (no overflow, contrast OK, CTA visible above the fold),
+fixing issues in place — a bounded ≤2-iteration loop, same pattern as <code>/wireframes</code> and
+<code>/prototype</code>. Graceful degradation: if no headless browser is available, fall back to the text gates +
+a structural HTML check and log the skipped visual pass (never silently drop it).</p>
+<p>These also become the <strong>skill-eval acceptance surface</strong>: the skill must <em>cite and apply</em> these
+gates, and a generated page must structurally contain a hero with a single primary CTA, the approved sections in
+order, and the bound style's tokens.</p>
+
+<h2 id="ingestion">8. Research &amp; design brief (Phase 1)</h2>
+<p>Phase 1 is a real <em>understanding</em> step, not a one-shot extraction — it researches the context and
+persists a brief the rest of the run (and future re-runs) build on. It accepts, in priority of richness: a
+<strong>local repo path</strong> (read README, package manifests, docs, existing marketing copy) · a
+<strong>GitHub URL</strong> (fetch README + about) · a <strong>doc</strong> (PRD, one-pager) · a
+<strong>free-form description</strong>. Optionally, with the user's go-ahead, it fetches 1–2 reference/competitor
+pages the user names to inform positioning and style.</p>
+<p>It writes <code>brief.md</code> into the page folder (<a href="#output">§6</a>) and copies any extracted
+source material into <code>reference/</code>. The brief captures:
+<code>{name, what_it_is, audience, core_value_prop, differentiators[], product_type, proof_assets[],
+primary_action, secondary_action, tone, recommended_hero_archetype, recommended_style}</code> — with
+each field <strong>cited to where it came from</strong> (repo file, doc, or "asked"). The brief is then
+<strong>confirmed with the user</strong> (correcting the brief is far cheaper than correcting the page); missing
+fields are asked, never invented (<a href="#decisions">D6</a>). The <code>product_type</code> drives the §3
+scaffold variant and the §4/§5 archetype/style recommendations (D5). Persisting the brief makes the page folder
+self-describing and lets a later run regenerate or restyle without re-researching from scratch.</p>
+
+<h2 id="decisions">9. Decisions</h2>
+<table>
+<thead><tr><th>ID</th><th>Decision</th><th>Resolution</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>D1</td><td>Visual-style selector mechanism</td><td><strong>Bundled offline swatch gallery + reusable theme tokens.</strong> Real preview + clean data-driven generation. (Rejected: full sample pages — stale/biasing; description-only picker — no live preview.)</td><td>Maintainer</td></tr>
+<tr><td>D2</td><td>Hero-fold exploration format</td><td><strong>2–3 actually-rendered mini-previews</strong> in a throwaway <code>hero-options.html</code>, side-by-side. (Rejected: text-only described concepts.)</td><td>Maintainer</td></tr>
+<tr><td>D3</td><td>Output tech</td><td><strong>Self-contained inline CSS + vanilla JS</strong>, no CDN — truly portable single file. (Rejected: Tailwind CDN — needs network.)</td><td>Maintainer</td></tr>
+<tr><td>D4</td><td>Section-structure interactivity</td><td><strong>Always propose + approve</strong> before drafting. (Rejected: auto-for-simple.)</td><td>Maintainer</td></tr>
+<tr><td>D5</td><td>Hero/style recommendation basis</td><td>Recommendations branch deterministically on the brief's <code>product_type</code> (the §3/§4/§5 mappings), so the non-interactive default is principled, not arbitrary.</td><td>Define</td></tr>
+<tr><td>D6</td><td>Proof honesty</td><td>Never fabricate metrics/testimonials/logos; emit clearly-labelled placeholders. Enforced by the §7 falsifiability gate.</td><td>Define</td></tr>
+<tr><td>D7</td><td>Story split</td><td>Two file-disjoint stories — bundled style+reference substrate (A) → SKILL.md (B, depends on A). See <a href="#stories">§11</a>.</td><td>Define</td></tr>
+<tr><td>D8</td><td>Per-page folder + persisted brief</td><td>Each landing page gets its own folder holding <code>brief.md</code> (Phase 1 research/understanding, persisted + cited), <code>reference/</code> (extracted source material), <code>working/</code> (hero options), and <code>index.html</code> (the deliverable) — instead of a single flat HTML file. Makes the page self-describing and re-runnable. <a href="#output">§6</a>.</td><td>Maintainer</td></tr>
+<tr><td>D9</td><td>Web research in Phase 1</td><td><strong>Opt-in, default off.</strong> Brief is grounded in provided context (repo/doc/description); the skill fetches external reference/competitor pages only when the user names them or approves. Deterministic + private by default, richer on request.</td><td>Maintainer</td></tr>
+<tr><td>D10</td><td>Visual self-check before emit</td><td><strong>Render + screenshot + reviewer pass</strong> (Playwright, desktop + mobile, ≤2-iteration fix loop) in Phase 6, same pattern as <code>/wireframes</code>/<code>/prototype</code>; graceful text-gate fallback when no headless browser. Adds the dependency + review loop to Story B. <a href="#copy-gates">§7</a>.</td><td>Maintainer</td></tr>
+</tbody></table>
+
+<h2 id="skill-shape">10. Skill shape</h2>
+<ul>
+<li><strong>Path:</strong> <code>plugins/pmos-toolkit/skills/landing-page/SKILL.md</code> (charter: "help me ship a feature" — a landing page is a feature deliverable; lives with the other authoring skills).</li>
+<li><strong>Frontmatter:</strong> single-line quoted <code>description:</code> with rich triggers ("create a landing page", "build a landing page for my product", "marketing page", "/landing-page"); name matches dir.</li>
+<li><strong>Body:</strong> the six §2 phases as integer phases with stable <code>{#kebab-slug}</code> anchors; Track Progress; Platform Adaptation; the inline non-interactive block (byte-identical to <code>_shared/non-interactive.md</code>); learnings load-line; a literal <code>## Phase N: … Capture Learnings</code> section.</li>
+<li><strong>References (bundled with the skill):</strong> see <a href="#substrate-map">§11</a>.</li>
+<li><strong>Eval:</strong> passes <code>skill-patterns.md §A–§L</code> + the repo CLAUDE.md skill conventions; the §7 gates are the domain acceptance surface.</li>
+</ul>
+
+<h2 id="substrate-map">11. Substrate map &amp; stories</h2>
+<p>All files live under <code>plugins/pmos-toolkit/skills/landing-page/</code>. File-disjoint vertical split so the
+two stories never collide on a file; B depends on A's reference data + gallery existing (D9 claim-time dep-merge
+makes them present in B's worktree before its skill-eval).</p>
+<table>
+<thead><tr><th>File</th><th>What</th><th>Story</th></tr></thead>
+<tbody>
+<tr><td><code>reference/style-tokens.md</code> (or <code>.json</code>)</td><td>6 frozen theme-token sets (palette/type/density/imagery), contrast-pre-checked</td><td>A</td></tr>
+<tr><td><code>reference/style-gallery.html</code></td><td>bundled offline swatch gallery rendering all 6 styles from the tokens</td><td>A</td></tr>
+<tr><td><code>reference/section-scaffolds.md</code></td><td>the §3 taxonomy + 4 product-type variant scaffolds</td><td>A</td></tr>
+<tr><td><code>reference/hero-archetypes.md</code></td><td>the 4 §4 archetypes + hero rules</td><td>A</td></tr>
+<tr><td><code>reference/copy-gates.md</code></td><td>the §7 litmus/3-tests/6-criteria/psychology/anti-patterns checklist</td><td>A</td></tr>
+<tr><td><code>tests/</code> selftest</td><td>asserts the gallery renders 6 distinct named styles offline + token sets are well-formed/contrast-pass</td><td>A</td></tr>
+<tr><td><code>SKILL.md</code></td><td>the six-phase workflow consuming all of the above; non-interactive contract; skill-eval</td><td>B</td></tr>
+</tbody></table>
+
+<h2 id="stories">12. Stories</h2>
+<p><strong>Story A — bundled style system + reference substrate (no SKILL.md).</strong> The independently-shippable,
+self-tested half: the 6 theme-token sets, the offline <code>style-gallery.html</code>, the section-scaffold /
+hero-archetype / copy-gates reference files, and a selftest. Produces a working, previewable style gallery from
+data with no LLM present. <code>route: skill</code>, plugin pmos-toolkit, no dependencies.</p>
+<p><strong>Story B — the <code>/landing-page</code> SKILL.md.</strong> The six-phase guided workflow (research+brief →
+propose-structure → hero-explore → style-pick → draft → self-review), the per-page folder output contract (D8),
+opt-in Phase-1 web research (D9), the Phase-6 visual self-check — render + screenshot + reviewer ≤2-loop with text
+fallback (D10), the non-interactive contract, and skill-eval. Cites <code>design_doc:</code> anchors
+<code>#workflow</code>, <code>#hero-fold</code>, <code>#style-system</code>, <code>#output</code>,
+<code>#copy-gates</code>, <code>#ingestion</code>. <code>route: skill</code>, plugin pmos-toolkit,
+<strong>depends on Story A</strong>.</p>
+
+<h2 id="out-of-scope">13. Out of scope (v1)</h2>
+<ul>
+<li>Deploying/hosting the page (the user takes the HTML file where they want).</li>
+<li>A/B test variants or analytics wiring.</li>
+<li>Real image generation / logo design (use <code>/logo</code>; v1 emits labelled placeholders).</li>
+<li>Multi-page sites or routing — one landing page per run.</li>
+<li>CMS/React/framework output — single self-contained HTML only (D3).</li>
+</ul>
+
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">{"version":1,"threads":[]}</script>
+<!-- pmos-comments:end -->
+</body>
+</html>
