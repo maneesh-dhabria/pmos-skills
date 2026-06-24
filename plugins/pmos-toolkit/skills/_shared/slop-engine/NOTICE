@@ -1,0 +1,46 @@
+pmos slop-engine
+================
+
+This directory (plugins/pmos-toolkit/skills/_shared/slop-engine/) vendors the
+deterministic frontend design-slop detection engine from:
+
+    impeccable — https://github.com/pbakaus/impeccable
+    Copyright (c) 2026 Paul Bakaus
+    Licensed under the Apache License, Version 2.0
+
+The rule set (SLOP_RULES in registry.mjs), the pure detection logic
+(checks.mjs, color.mjs, constants.mjs, page.mjs, inline-ignores.mjs,
+findings.mjs, design-system.mjs), the static-HTML cascade + Node path
+(css-cascade.mjs, detect-text.mjs, detect.mjs), the browser detector
+(browser.js), and the two-column fixture convention are ported VERBATIM from
+impeccable under the terms of the Apache License 2.0 (full text in
+LICENSE-impeccable.txt, retained per Apache-2.0 §4(a)).
+
+All pmos-side identifiers, globals, CSS class names, and user-visible strings
+have been renamed to pmos-native equivalents per the epic's D-NAMING decision:
+
+    window.impeccableScan        ->  window.pmosDesignScan
+    .impeccable-overlay/-label   ->  .pmos-slop-overlay / .pmos-slop-label
+    const ANTIPATTERNS           ->  const SLOP_RULES
+    __IMPECCABLE_CONFIG__        ->  __PMOS_SLOP_CONFIG__
+
+The generic check-function names (checkBorders, checkColors, …) and rule ids
+(side-tab, icon-tile-stack, …) are kept verbatim to preserve upstream parity
+and ease future rule re-sync — they are generic descriptors, not branded.
+
+Per the design's Inv-3, the string "impeccable" survives ONLY in this NOTICE,
+in LICENSE-impeccable.txt, and in the design-doc lineage prose
+(docs/pmos/features/2026-06-24_design-slop-engine/02_design.html#lineage).
+A copy of the Apache License 2.0 is at https://www.apache.org/licenses/LICENSE-2.0
+
+----------------------------------------------------------------------
+Vendored Node parser stack (vendor/parsers.mjs)
+----------------------------------------------------------------------
+The offline Node detection path (detect.mjs) imports a pre-bundled parser stack
+so the engine runs with NO `npm install` and NO jsdom at runtime. The bundle is
+built with esbuild from the following MIT-licensed libraries (full license texts
+in vendor/NOTICE-3RD-PARTY.txt):
+
+    htmlparser2, css-select, css-tree, domutils
+    (+ transitive deps: css-what, domhandler, nth-check, boolbase,
+       domelementtype, entities)
