@@ -9,16 +9,16 @@ priority: should
 route: skill
 dependencies: [260624-1e5]
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-24_wiki/
 plan_doc: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/03_plan.md
 tasks: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/tasks.yaml
 worktree: .claude/worktrees/feat-260624-rmq
-claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
-driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+claimed_by: null
+driver_holder: null
 labels: [pmos-toolkit, wiki, skill, mcp, qa, new-skill]
 created: 2026-06-24
-updated: 2026-06-24
+updated: 2026-06-25
 ---
 
 ## Story
@@ -58,3 +58,30 @@ Scope is fixed by `02_design.html` §5 (verb set), §7 (generic-MCP pipeline + i
    every `AskUserQuestion` `(Recommended)`-tagged or `defer-only`-marked; §H–§L skill-patterns compliance.
    Passes `skill-eval` (the binary rubric), the 4 hygiene lints, `audit-recommended.sh`, and a live
    ingest→view→ask dogfood.
+
+## Notes
+
+**BUILT 2026-06-25** (Loop-2, `/feature-sdlc build --next --non-interactive`, hourly session loop).
+Branch `feat/260624-rmq` commit `0ac5d7cb`; write-back to `main` path-scoped to `backlog/`. **Completes
+epic 260624-c62** (engine story `260624-1e5` already done) → Loop-3 `/complete-dev --epic 260624-c62`.
+
+Deliverables (all under `plugins/pmos-toolkit/skills/wiki/`):
+- `SKILL.md` — 170 body lines; five verbs `add/sync/view/ask/curate` (NL-first dispatch, `add` ≠ `sync`
+  enforced); inline NI block byte-identical to `_shared/non-interactive.md`; Platform Adaptation; Track
+  Progress; numbered `## Phase 6: Capture Learnings`; 7 anti-patterns. Calls `scripts/*.mjs`, never
+  reimplements (anti-pattern #6). Anchors `#add/#sync/#view/#ask/#curate/#workstream-inference/#confidentiality`.
+- `reference/mcp-protocol.md` (D15) — generic `fetch/search/extract-links` contract, **runtime tool-discovery
+  (no per-source adapter code)**, auth-on-missing clean-halt/resume (deferred under `--non-interactive`).
+- `reference/enrichment-contract.md` (D6) — anti-slop authoring bar (per-field "author it to be / slop to
+  reject", null-over-filler), retrieval tie-in. Cites the frozen `sidecar-schema.md` for field shape (§K).
+- `tests/dogfood/dogfood.mjs` — live `add→view→ask→curate→sync` against the **real** engine scripts +
+  bundled viewer (only MCP transport faked): proves deterministic-first ingest, resumable queue checkpoint,
+  auth DEFER, byte-exact stitch, corpus embed, BM25 cited ask, curate, incremental drift. **26/26**.
+- `tests/viewer.test.mjs` — **semantic-merge flip**: the 1e5 guard "AC5 no SKILL.md (rmq authors it)" was a
+  precondition this story deliberately invalidates → now asserts the SKILL.md exists + is `name: wiki`.
+
+Gates: skill-eval `[D]` **22/22 EXIT0** (zero residuals); engine selftest 34/34; viewer 34/34; dogfood 26/26;
+NI-inline OK; `audit-recommended.sh` PASS; `lint-flags-vs-hints` + `lint-phase-refs` OK; blind judge **SHIP
+5/5/5/5/5** (only note: cosmetic D7-vs-D16 decision-label in the *frozen, out-of-scope* sidecar-schema —
+below nit). Argument-hint contract flags `--depth N` / `--all` / `--non-interactive|--interactive` all
+body-handled. Worktree kept for Loop-3.
