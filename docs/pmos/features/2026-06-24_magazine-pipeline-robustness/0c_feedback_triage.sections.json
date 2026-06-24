@@ -1,0 +1,38 @@
+[
+  {
+    "id": "findings-parsed",
+    "level": 2,
+    "title": "Findings (parsed)",
+    "parent_id": null
+  },
+  {
+    "id": "critique",
+    "level": 2,
+    "title": "Critique (grounded against live source 2026-06-24)",
+    "parent_id": null
+  },
+  {
+    "id": "disposition-log",
+    "level": 2,
+    "title": "Disposition log",
+    "parent_id": null
+  },
+  {
+    "id": "approved-changes-by-skill",
+    "level": 2,
+    "title": "Approved changes by skill",
+    "parent_id": null
+  },
+  {
+    "id": "magazine",
+    "level": 3,
+    "title": "/magazine",
+    "parent_id": null
+  },
+  {
+    "id": "per-skill-tier",
+    "level": 2,
+    "title": "Per-skill tier",
+    "parent_id": null
+  }
+]

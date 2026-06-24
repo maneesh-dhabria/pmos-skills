@@ -1,0 +1,115 @@
+story: 260624-9fw
+spec: ../../02_design.html
+tasks:
+  - id: T1
+    title: Shared GUID module + normalized reconciliation helper (tracer bullet)
+    deps: []
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "node scripts/lib-guid.js --selftest prints PASS, exit 0"
+      - "matchByGuid(['.../p/glm-5-2'], '.../p_glm-5-2') returns the manifest GUID (safe-ified key reconciles)"
+      - "an unrelated key returns null (never a silent pick)"
+      - "node scripts/magazine-run.js --selftest still PASS (safeGuid call-sites unaffected)"
+      - "grep -q 'module.exports' scripts/lib-guid.js and magazine-run.js requires ./lib-guid"
+
+  - id: T2
+    title: Phase-4 prompt — verbatim GUID echo + normalized reconciliation
+    deps: [T1]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "SKILL.md Phase 4 instructs summarizers to echo the source GUID verbatim (opaque field, not re-derived)"
+      - "SKILL.md Phase 4 specifies the normalized-key reconciliation fallback via matchByGuid"
+      - "an unmatched summarizer result is surfaced loudly (listed), never silently dropped (Inv-1)"
+      - "no instruction tells the summarizer to re-derive or safe-ify the GUID"
+
+  - id: T3
+    title: render-issue.js issue mode persists the per-issue items JSON sidecar
+    deps: []
+    parallel: true
+    status: pending
+    evidence: []
+    acceptance:
+      - "issue mode accepts an optional 2nd positional <out-html>; when present writes HTML there + sidecar <dir>/<date>_items.json"
+      - "sidecar carries items[].bullets and round-trips (render-issue --selftest asserts file exists, parses, bullets present)"
+      - "back-compat: issue <data.json> with no out-path still writes HTML to stdout and writes no sidecar"
+      - "sidecar written whole-file via temp-then-rename"
+
+  - id: T4
+    title: render-issue.js library assembles from sidecars + loud skip-notice
+    deps: [T3]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "library <dir> globs *_items.json and emits the existing {issues:[...]} library HTML"
+      - "every *_issue.html with no sibling *_items.json triggers one loud stderr notice naming it, and is omitted (no crash)"
+      - "no HTML or pre-data-guid legacy parser is added (D8)"
+      - "legacy library <issues.json> file-arg path retained unchanged"
+      - "render-issue --selftest: dir with 2 sidecars + 1 sidecar-less issue -> 2 issues listed, notice names the sidecar-less issue"
+
+  - id: T5
+    title: Reuse persisted takeaways on render (overlapping-window)
+    deps: [T3]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "mergeCachedBullets(snapshotItems, sidecarItems) hydrates already-summarized/rendered items from matching sidecar (matchByGuid)"
+      - "returns {hydrated, needsStageB} where needsStageB is only the no-cache subset"
+      - "render-issue --selftest: 2 cached + 1 new fixture -> 2 hydrated (bullets equal sidecar), needsStageB === the 1 new item"
+      - "SKILL.md Phase 5 documents hydrate-before-Stage-B reuse; grep -q reuse in Phase 5"
+
+  - id: T6
+    title: Feed-failure tracking + suggest-only quarantine
+    deps: []
+    parallel: true
+    status: pending
+    evidence: []
+    acceptance:
+      - "magazine-state.js schema tolerates feedHealth[slug].consecFails (absent -> 0)"
+      - "recordFeedResult(state, slug, ok): ok -> set 0, fail -> increment; feedsToSuggest(state, threshold) lists slugs >= threshold"
+      - "magazine-run.js defines FEED_QUARANTINE_THRESHOLD=3, records per-feed by slug in fetchOne path, prints one compact suggestion line per run at >=3; never auto-disables"
+      - "magazine-state --selftest: 3 fails cross threshold then a success resets and silences"
+      - "node scripts/magazine-run.js --selftest PASS; grep -q FEED_QUARANTINE_THRESHOLD scripts/magazine-run.js"
+
+  - id: T7
+    title: Wire selftests + docs (structure.test.sh, SKILL.md Phase 5, issue-format.md)
+    deps: [T1, T2, T3, T4, T5, T6]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "tests/structure.test.sh adds chk lines: lib-guid selftest + present + required; render-issue greps writeSidecar/mergeCachedBullets/skip-notice; magazine-state greps recordFeedResult/feedsToSuggest; magazine-run greps FEED_QUARANTINE_THRESHOLD; SKILL.md greps Phase-4 verbatim-echo + Phase-5 reuse phrase"
+      - "SKILL.md Phase 5 commands rewritten: issue <items.json> <out-html> (writes sidecar) + library <dir> > index.html (dir-glob)"
+      - "reference/issue-format.md card/library row schema unchanged (Inv-5); git diff --stat shows no schema change"
+      - "bash tests/structure.test.sh exits 0, every new chk PASS, 0 FAIL"
+
+  - id: T8
+    title: "Dogfood — overlapping-window issue + library on a real fixture (TN-1)"
+    deps: [T4, T5, T6, T7]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "real render+library invocation on a temp root: 2 prior weekly issues w/ sidecars + 1 sidecar-less issue + a monthly snapshot overlapping both + 2 new items + svpg feed failed 3 runs"
+      - "objective: monthly issue's already-rendered items show bullets identical to sidecars (reuse), needsStageB.length === 2"
+      - "objective: library <dir> lists all sidecar-backed issues + exactly one loud notice naming the sidecar-less issue, exit non-error"
+      - "objective: new issue writes its own <date>_items.json sidecar; svpg at consecFails=3 emits exactly one suggestion line, no auto-disable"
+      - "subjective: blind general-purpose judge returns SHIP on trust, honesty-of-notices, coherence; evidence saved under stories/260624-9fw/dogfood/"
+
+  - id: T9
+    title: "Final verification (TN)"
+    deps: [T8]
+    parallel: false
+    status: pending
+    evidence: []
+    acceptance:
+      - "bash tests/structure.test.sh exits 0, 0 FAIL (note pass count)"
+      - "every script selftest passes individually: lib-guid, render-issue, magazine-state, magazine-run"
+      - "error path: library on a dir with a sidecar-less issue fires the loud notice and exits non-error (no crash)"
+      - "back-compat sweep: issue <data.json> stdout path + library <issues.json> file-arg still work; watch.test.sh and bundles.test.sh stay green"
+      - "cleanup: temp roots not intentionally saved under dogfood/ are removed"

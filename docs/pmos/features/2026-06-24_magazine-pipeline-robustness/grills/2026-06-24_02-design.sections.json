@@ -1,0 +1,56 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Grill report — 02_design.html (epic 260624-2bm)",
+    "parent_id": null
+  },
+  {
+    "id": "resolved",
+    "level": 2,
+    "title": "Resolved",
+    "parent_id": null
+  },
+  {
+    "id": "resolved-cursor-fate",
+    "level": 3,
+    "title": "Cursor fate (NEW, most load-bearing)",
+    "parent_id": "resolved"
+  },
+  {
+    "id": "resolved-sidecar-backfill",
+    "level": 3,
+    "title": "Sidecar backfill",
+    "parent_id": "resolved"
+  },
+  {
+    "id": "resolved-quarantine-cadence",
+    "level": 3,
+    "title": "Quarantine cadence",
+    "parent_id": "resolved"
+  },
+  {
+    "id": "resolved-snapshot-lifecycle",
+    "level": 3,
+    "title": "Snapshot lifecycle",
+    "parent_id": "resolved"
+  },
+  {
+    "id": "resolved-loud-unknown-flag",
+    "level": 3,
+    "title": "Loud-unknown-flag back-compat (grounded from code, not asked)",
+    "parent_id": "resolved"
+  },
+  {
+    "id": "gaps-surfaced",
+    "level": 2,
+    "title": "Gaps surfaced (fold before /plan)",
+    "parent_id": null
+  },
+  {
+    "id": "recommended-next-step",
+    "level": 2,
+    "title": "Recommended next step",
+    "parent_id": null
+  }
+]

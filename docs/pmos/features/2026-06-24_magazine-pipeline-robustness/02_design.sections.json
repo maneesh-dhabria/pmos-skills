@@ -1,0 +1,62 @@
+[
+  {
+    "id": "context",
+    "level": 2,
+    "title": "Context",
+    "parent_id": null
+  },
+  {
+    "id": "pre-flight",
+    "level": 2,
+    "title": "Pre-flight — grounded against live source (2026-06-24)",
+    "parent_id": null
+  },
+  {
+    "id": "goal-non-goals",
+    "level": 2,
+    "title": "Goal & non-goals",
+    "parent_id": null
+  },
+  {
+    "id": "decisions",
+    "level": 2,
+    "title": "Decisions",
+    "parent_id": null
+  },
+  {
+    "id": "invariants",
+    "level": 2,
+    "title": "Invariants (cross-skill coherence contract)",
+    "parent_id": null
+  },
+  {
+    "id": "functional-requirements",
+    "level": 2,
+    "title": "Functional requirements",
+    "parent_id": null
+  },
+  {
+    "id": "fr-story-a",
+    "level": 3,
+    "title": "Story A — windowing + prep snapshot-scoping (#1, #2, #6)",
+    "parent_id": null
+  },
+  {
+    "id": "fr-story-b",
+    "level": 3,
+    "title": "Story B — Stage-B reconciliation + durable items + feed health (#3, #4, #5)",
+    "parent_id": null
+  },
+  {
+    "id": "story-split",
+    "level": 2,
+    "title": "Story split",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  }
+]
