@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-kkw + 2 stories)
+Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-2bm + 2 stories)
 
-119 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+122 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -49,6 +49,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-kkw +
 | 260617-n7a | released | skill | pmos-toolkit | 1/1 | "/logo skill refinements — rename /logos→/logo + concept/style exploration & approval + mark-type aspect gate + learnings-approval" |
 | 260617-pbk | released | skill | pmos-learnkit | 1/1 | "/playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything)" |
 | 260617-vvd | released | skill | pmos-utilities | 3/3 | "/converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server" |
+| 260624-2bm | defined | skill | pmos-learnkit | 0/2 | "/magazine pipeline robustness — windowing flags (days/since/until + date range), prep snapshot-scoping, Stage-B GUID reconciliation, durable per-issue items, feed quarantine" |
 | 260624-3jp | defined | skill | pmos-toolkit | 0/4 | "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint" |
 | 260624-kkw | defined | skill | pmos-toolkit | 0/2 | "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate" |
 
@@ -117,6 +118,8 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-kkw +
 | 260617-7ag | story | feature | released | 260617-vvd | "/converter foundation + data pair — skill scaffold, zero-dep server, single-file UI, converter registry, JSON↔YAML + CSV↔JSON" |  | docs/pmos/features/2026-06-17_converter/stories/260617-7ag/03_plan.html |  |
 | 260617-ade | story | feature | released | 260617-vvd | "/converter PDF pair — PDF↔MD (claude subprocess for pdf→md + vendored fallback; vendored standard-14 PDF writer for md→pdf)" |  | docs/pmos/features/2026-06-17_converter/stories/260617-ade/03_plan.html |  |
 | 260617-rck | story | feature | released | 260617-vvd | "/converter document pair — HTML↔MD (vendored markdown + tolerant HTML parser)" |  | docs/pmos/features/2026-06-17_converter/stories/260617-rck/03_plan.html |  |
+| 260624-xck | story | feature | planned | 260624-2bm | "/magazine windowing flags (days/since/until + date range) + loud unknown-flag + prep snapshot-scoping" | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/02_design.html | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-xck/03_plan.html |  |
+| 260624-9fw | story | feature | planned | 260624-2bm | "/magazine Stage-B GUID reconciliation + durable per-issue items JSON + feed-failure quarantine suggestion" | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/02_design.html | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-9fw/03_plan.html |  |
 | 260624-cg6 | story | feature | planned | 260624-3jp | "Vendor the design-slop engine into _shared/slop-engine/ — pmos-native registry + verbatim checks + jsdom-free Node adapter + browser adapter + rules generator + NOTICE + fixtures" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-cg6/03_plan.md |  |
 | 260624-shm | story | feature | planned | 260624-3jp | "/design-crit — deterministic slop pre-pass: inject the browser detector into the existing Playwright session, surface engine findings ahead of the LLM critique" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-shm/03_plan.md |  |
 | 260624-y9m | story | feature | planned | 260624-3jp | "/verify — frontend slop gate: run the engine via the cheap Node path (no Playwright), route findings through dispositions, tiered mandatory-for-UI, slop advisory / quality blocking" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/03_plan.md |  |
