@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /wiki (epic 260624-c62)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/wiki</code></h1>
+<p><strong>Epic:</strong> 260624-c62 · <strong>Plugin:</strong> pmos-toolkit · <strong>Route:</strong> skill ·
+<strong>Status:</strong> defined (define run 2026-06-24)</p>
+<p><strong>Lineage.</strong> Adopted from the shaped seed brief
+<code>docs/design-briefs/2026-06-24-wiki-skill.md</code> (<code>/shape</code>, 8 user-confirmed forks),
+itself reverse-engineered from two prior implementations in <code>porter/llm-wiki-prototype</code>
+(the FastAPI web prototype, D1–D26; the skill-native <code>kb/</code> four-skill system, D1–D15 — the
+architectural ancestor). This page is the epic <code>design_doc:</code> — the cross-skill coherence
+contract the two build stories cite by anchor. It carries the brief verbatim in substance and
+<strong>resolves the brief's §10 "open items for define"</strong> into concrete contracts via the
+define-run grill (2026-06-24, 4 branches): the viewer build (fork), the generic MCP-adapter protocol,
+the verb set, the incremental re-derivation contract, the workstream-inference mechanism, and the Q&amp;A
+retrieval model.</p>
+
+<h2 id="problem">1. Problem &amp; positioning</h2>
+<p>A PM (or chief-of-staff) ramping onto a new charter inherits 150+ of their <strong>own</strong> working
+docs — a Notion hub, scattered Google Docs, Figma links, dashboards — with no map. Reading linearly is too
+slow; native search returns <em>pages, not understanding</em>; nothing lets them skim the corpus
+document-by-document, filter to one charter, see what's current, prune the noise, and capture their own open
+questions as they go. They hit this in <strong>week 1 of a new charter, and again every few months</strong>
+when the next charter lands.</p>
+<p><strong>Felt problem.</strong> <em>"I have a pile of my own docs and no fast, trustworthy way to build —
+and keep — a mental map of this workstream."</em></p>
+<p><strong>JTBD.</strong> <em>When I'm ramping into a new charter facing a tree of my own working docs, give me
+a queryable, citation-grounded, skimmable wiki that I assemble incrementally, filter to one workstream or cut
+across all, and keep fresh — without re-architecting per source or per charter.</em></p>
+<p>This is an <strong>internal productivity tool</strong> for the PM, shipped in <code>pmos-toolkit</code>.
+The honest charter reconciliation: you onboard to a charter <em>so you can ship features in it</em> —
+<code>/wiki</code> is the upstream context-gathering step of the delivery pipeline, alongside
+<code>product-context</code>, <code>people</code>, <code>mytasks</code>. Charter-fit was flagged as a routing
+watch-item during <code>/shape</code> and accepted by the maintainer (plugin = pmos-toolkit, D1).</p>
+<table>
+<thead><tr><th>Skill</th><th>Does</th><th>Gap vs. <code>/wiki</code></th></tr></thead>
+<tbody>
+<tr><td><code>product-context</code></td><td>captures product context as an artifact</td><td>hand-authored; not a corpus ingester or browsable library</td></tr>
+<tr><td><code>research</code> / learnkit <code>topic-research</code></td><td>gathers <em>verified public</em> sources on a topic</td><td>public web, not the PM's confidential working docs</td></tr>
+<tr><td><code>/frameworks</code>, <code>/primer browse</code>, <code>/learn-list</code></td><td>faceted browse over a curated library (<code>library-viewer</code>)</td><td>catalog of <em>cards</em>, not ingested <em>document bodies</em> with section summaries + citations</td></tr>
+<tr><td><code>/primer</code></td><td>one teachable artifact on a topic</td><td>single synthesized doc, not a navigable multi-doc corpus</td></tr>
+</tbody></table>
+<p><strong>The missing primitive:</strong> nothing today ingests a personal corpus into a browsable,
+skimmable, citation-grounded wiki. <code>/wiki</code> fills that gap.</p>
+
+<h2 id="evidence">2. Evidence base — what the two prototypes taught us</h2>
+<p>The prototypes already solved most of the hard architecture twice. These are carried forward
+verbatim and are <strong>not</strong> up for re-litigation:</p>
+<ul>
+<li><strong>Workstream = a sidecar <em>tag</em>, not a folder</strong> (skill-native D1/D2). One shared tree;
+scoping and cross-charter cuts are filters, not joins. Re-filing a doc is a one-field edit, zero moves.</li>
+<li><strong>Curated-emergent taxonomy</strong> (D2 + FR-20/34): propose draft vocab from corpus signal →
+classify <em>strictly</em> against it → park low-confidence as <code>uncategorized</code> rather than
+force-tag. <strong>Never force-tag.</strong></li>
+<li><strong>Resumable, smallest-first, checkpointed enrichment queue</strong> (D8): a half-finished sync always
+leaves a usable wiki; resume at the first un-enriched doc, no dupes. Load-bearing for token/usage caps.</li>
+<li><strong>Two-factor drift</strong> (D10): <code>last_edited_time</code> (cheap pre-filter) confirmed by a
+<em>normalized</em> content hash (strips fetch timestamp, sorts frontmatter, collapses whitespace). Degrades
+to hash-only when edit-time is absent.</li>
+<li><strong>Byte-exact overflow stitch</strong> (FR-11/38): large pages that overflow the MCP get reassembled
+by pure byte concatenation — corruption-proof. The real MCP mechanism is a <em>saved-file</em> path, not
+inline windows (Phase-0 finding).</li>
+<li><strong>MCP-direct fetch, no <code>claude -p</code> chokepoint</strong> (D12): the LLM <em>is</em> the skill
+body; deterministic work (hashing, stitch, queue, ranking) lives in helper scripts the body calls but never
+reimplements.</li>
+<li><strong>Anti-slop summary contract</strong> (v0.9.0): lead with substance, <strong>metrics with their
+numbers</strong> ("downtime 679→323, −52%"), structure over prose, <strong>ban meta-phrasing</strong>
+("this document covers…"), per-tier compression budgets. This is what makes skim mode useful, not sludge.</li>
+</ul>
+<p>Two things were <strong>unsolved in both</strong> prototypes and are net-new here:
+<strong>source-platform nesting capture</strong> (<code>ancestor_path</code> was always empty) and
+<strong>external-reference surfacing</strong> (Figma/Sheets links were dropped in synthesis).</p>
+
+<h2 id="decisions">3. Decisions</h2>
+<p>D1–D13 carry from the shaped brief; <strong>D14–D17 are added by the define grill</strong> (resolving §10).</p>
+<table>
+<thead><tr><th>#</th><th>Decision</th><th>Rationale</th></tr></thead>
+<tbody>
+<tr><td><strong>D1</strong></td><td>Context bucket = <strong>internal tool</strong>.</td><td>A PM's personal onboarding tool; downshifts multi-tenant / distribution / market lenses.</td></tr>
+<tr><td><strong>D2</strong></td><td>Single skill with commands — <code>/wiki &lt;command&gt;</code>.</td><td>User-confirmed; prototype D3 ("modes are flags") generalized to one skill.</td></tr>
+<tr><td><strong>D3</strong></td><td>Heart = the generated viewer. Browse &amp; skim to build the map is the core loop; Q&amp;A is first-class but secondary.</td><td>~10/12 fold-ins are browse/skim UX. The viewer <em>is</em> the product.</td></tr>
+<tr><td><strong>D4</strong></td><td>Viewer is a <strong>purpose-built, skill-bundled single-file HTML</strong> (see D14). Inline annotations reuse the <code>comments</code> overlay pattern.</td><td>Grill chose fork over extending <code>library-viewer</code> (D14) — the wiki renders document <em>bodies</em>, not catalog cards.</td></tr>
+<tr><td><strong>D5</strong></td><td>Viewer skeleton is <strong>bundled with the skill</strong> — zero-dep single-file HTML, emitted into the substrate on first <code>view</code>.</td><td>Matches gamekit/library-viewer pattern; recommended skeleton shipped, not BYO.</td></tr>
+<tr><td><strong>D6</strong></td><td><strong>Atomic unit = the document; understanding is a derived, cited, regenerable layer.</strong></td><td>Documents are the only stored ground truth + the resume/skim unit. Topic pages, primer, glossary, entity index, Q&amp;A are <em>synthesized from docs with citations</em> and re-derived on change → no drift, freshness = re-derive.</td></tr>
+<tr><td><strong>D7</strong></td><td><strong>Workstream is inferred from ingestion and user-editable</strong> — no up-front <code>/wiki-init &lt;ws&gt; --seeds</code>.</td><td>Adding docs over time <em>builds</em> context; inferred classification is correctable (see D16 mechanism).</td></tr>
+<tr><td><strong>D8</strong></td><td><strong>Source-agnostic ingestion via a generic MCP protocol</strong> — superseded by D15. Any source with an MCP is ingestible: Docs (Notion/GDocs/Confluence), Code (GitHub), Design (Figma), Analytics (Snowflake/Metabase), Apps (store links).</td><td>A PM's holistic understanding spans all of these.</td></tr>
+<tr><td><strong>D9</strong></td><td><strong>Resumable ingestion/summarization pipeline is mandatory.</strong></td><td>Token/usage caps mean a large doc set can't be fetched + enriched in one go. Resume from the last completed doc, no dupes.</td></tr>
+<tr><td><strong>D10</strong></td><td>Kickstart needs ≥1 doc; a seed may be a single page or a hub page whose child links fan out into the crawl pipeline.</td><td>The PM points at one Notion hub that links to others → those become crawl candidates.</td></tr>
+<tr><td><strong>D11</strong></td><td><strong>Substrate lives where the skill is instantiated/triggered</strong> (cwd-relative), resolved via <code>.pmos/settings</code>.</td><td>Storage follows where it was triggered, not a forced-external path.</td></tr>
+<tr><td><strong>D12</strong></td><td><strong>Confidentiality is the end-user's decision</strong> — configurable default + visible warning, <em>not</em> a fail-closed never-push gate; default gitignored.</td><td>User owns the risk/convenience trade-off. Honest caveat retained: an accidental substrate commit leaks irreversibly; warn, default-ignore, don't hard-refuse.</td></tr>
+<tr><td><strong>D13</strong></td><td><strong>Q&amp;A in v1</strong> — cited, grounded answers over the document layer, scoped by workstream or <code>--all</code> (see D17 retrieval model).</td><td>User-confirmed; secondary to browse but present at launch.</td></tr>
+<tr><td><strong>D14</strong> <span class="tag">grill</span></td><td><strong>Fork the viewer — purpose-build a wiki-only single-file HTML viewer bundled with the skill.</strong> Do <em>not</em> extend <code>library-viewer</code>.</td><td>The wiki renders document bodies + per-section summaries + skim mode — not the flat catalog cards <code>library-viewer</code> serves. Forking avoids regressing <code>/frameworks</code> / <code>/primer</code> / <code>/learn-list</code> and avoids contorting the shared engine. Accepted cost: faceting / time-filter / markdown-render are re-implemented in the bundled viewer (zero-dep, self-tested).</td></tr>
+<tr><td><strong>D15</strong> <span class="tag">grill</span></td><td><strong>Generic, instruction-driven MCP adapter — no per-tool adapter code.</strong> The skill body (the LLM) is given a generic <code>fetch / search / extract-links</code> contract in prose and <em>discovers the right MCP tools</em> for the page's source at run time. If the source's MCP is unauthenticated (in Claude Code), the skill <strong>prompts the user to authenticate</strong> and resumes; if no MCP exists for the source, that is surfaced honestly, not a crash.</td><td>Maintainer's call: building/maintaining adapters for Notion/GDocs/GitHub/Figma/Metabase/… does not scale and is the wrong abstraction. One generic protocol + agent tool-discovery + auth-on-missing covers every present and future MCP. The deterministic helpers (hash, stitch, queue, drift, retrieval) stay source-agnostic and never touch transport.</td></tr>
+<tr><td><strong>D16</strong> <span class="tag">grill</span></td><td><strong>Workstream inference = hub-provenance (primary) + corpus tag-overlap (secondary), low-confidence → <code>uncategorized</code>, edited via <code>curate</code>.</strong></td><td>Resolves §10.5. A doc reached by fanning out from a seed hub inherits that hub's workstream as the prior; corpus tag-overlap against the curated-emergent vocab refines it; anything below threshold parks as <code>uncategorized</code> (never force-tagged). The user re-tags via the <code>curate</code> verb (the editable side of D7).</td></tr>
+<tr><td><strong>D17</strong> <span class="tag">grill</span></td><td><strong>Q&amp;A retrieval = ripgrep + BM25 over the structured sidecars, heading-path citation anchors</strong> (block-ID fallback when absent), scoped by workstream or <code>--all</code>.</td><td>Resolves §10.6. Carries the prototype's retrieval verbatim; deterministic helper-script retrieval, no vector store. Citations resolve to a heading path within a doc; when the source exposes stable block IDs, those are preferred.</td></tr>
+</tbody></table>
+
+<h2 id="data-model">4. The data model (the spine)</h2>
+<p>Two layers; only the first is durable ground truth.</p>
+<pre>&lt;substrate root, cwd-relative, gitignored by default&gt;/
+  config            inferred workstreams, thresholds, exclude patterns, source registry
+  vocab             curated-emergent controlled vocabulary (workstream-scoped tags); user-editable
+  sources/&lt;src&gt;/&lt;id&gt;        verbatim mirror — byte-exact, reversible (the DOCUMENT layer)
+  index/&lt;src&gt;/&lt;id&gt;          sidecar: summary, section-summaries, glossary terms, external links,
+                            created/last_edited, length tier, source hash, inferred workstream tag,
+                            title (original + LLM), exclude flag, citation anchors, ancestor_path
+  derived/                  the UNDERSTANDING layer (regenerable, never hand-edited as ground truth):
+                            topic pages, onboarding primer, glossary, entity / who-owns-what index
+  .ingest-state             resumable queue checkpoint (smallest-first, no dupes)
+  wiki.html                 the bundled single-file viewer (the heart)</pre>
+<ul>
+<li><strong>Document layer</strong> = the skim/browse unit and the resume unit. Each doc carries
+<em>deterministic</em> fields (computed free at ingest, so an interrupted run still yields a greppable wiki)
+and <em>LLM-enriched</em> fields (summary, section summaries, glossary, classification — queued).</li>
+<li><strong>Understanding layer</strong> = derived-with-citations, re-generated when documents change.
+Nothing here is separately authored ground truth, so it can never drift from or contradict the docs.
+Freshness is "re-derive," not "re-sync two stores."</li>
+</ul>
+<p><strong>Sidecar schema (the engine contract, §10.2 resolved).</strong> The sidecar is the single structured
+record per document. Its field set is frozen here as the contract Story A's helpers write and Story B's verbs
+read: deterministic fields (<code>src</code>, <code>id</code>, <code>source_hash</code>,
+<code>created</code>, <code>last_edited</code>, <code>length_tier</code>, <code>ancestor_path</code>,
+<code>original_title</code>, <code>section_offsets</code>) land before any LLM work; enriched fields
+(<code>summary</code>, <code>section_summaries[]</code>, <code>glossary_terms[]</code>,
+<code>external_links[]</code>, <code>llm_title</code>, <code>workstream</code>,
+<code>workstream_confidence</code>, <code>exclude</code>, <code>citation_anchors[]</code>) are filled by the
+queued enrichment pass and are individually nullable so a half-enriched doc is valid.</p>
+
+<h2 id="skill-shape">5. Skill shape — the verb set (§10.1 resolved)</h2>
+<p><code>/wiki &lt;command&gt;</code>, a single skill. The verb set is locked at <strong>five verbs; <code>add</code>
+and <code>sync</code> stay distinct</strong> (grill) — different intent, scope, and default:</p>
+<ul>
+<li><strong>add / ingest</strong> <code>&lt;page-url|id&gt;[,…] [--depth N]</code> — the everyday verb (user adds
+docs over time). Accepts a single page or a hub page that fans out to child links. Runs the
+<strong>resumable pipeline</strong>: discover-MCP-and-auth (D15) → crawl → byte-exact mirror + deterministic
+sidecar → queued LLM enrichment (summary, section summaries, glossary, external-link extraction, inferred
+workstream). Halts cleanly on a usage cap; resumes at the next un-enriched doc.</li>
+<li><strong>sync / refetch</strong> <code>[&lt;page&gt;|--all]</code> — manual-only re-crawl + re-enrich of
+<em>already-ingested</em> drifted docs (two-factor drift, D10). User indicates which docs (or everything).
+Triggers incremental re-derivation of the understanding layer (D6 + §10.3 below).</li>
+<li><strong>view / browse</strong> <code>[&lt;ws&gt;|--all]</code> — (re)generate and open the bundled single-file
+HTML wiki. <code>--all</code> cuts across workstreams; a workstream arg scopes. Hosts skim mode, facets,
+glossary, annotations.</li>
+<li><strong>ask</strong> <code>[&lt;ws&gt;|--all] "&lt;query&gt;"</code> — grounded, cited answer over the document
+layer (D13/D17). Secondary mode.</li>
+<li><strong>curate</strong> — surface + apply classification edits: re-tag a doc's inferred workstream/topic,
+mark a doc irrelevant (exclusion list), promote a glossary term, accept/reject vocab proposals (the
+user-editable side of D7/D16).</li>
+</ul>
+<p>Non-interactive contract, <code>(Recommended)</code>-tagged prompts, and the canonical inline blocks per repo
+skill-authoring conventions apply (Story B AC).</p>
+
+<h2 id="viewer">6. The viewer (the heart) — where the fold-in fixes land</h2>
+<p>One faceted, skimmable, annotatable single-file HTML wiki, <strong>purpose-built and bundled</strong> (D14),
+reading an embedded corpus JSON. The 12 fold-in fixes map to three buckets:</p>
+<p><strong>From the corpus/sidecar (filter + flag work)</strong></p>
+<ul>
+<li><strong>Annotate &amp; add questions/clarifications</strong> → inline-<code>comments</code>-style threads that
+persist in the HTML itself.</li>
+<li><strong>Time-based filters</strong> + <strong>workstream filter</strong> → viewer facets over sidecar fields.</li>
+<li><strong>Mark page irrelevant / exclusion list</strong> → facet + <code>exclude</code> sidecar flag (hidden by
+default, restorable).</li>
+</ul>
+<p><strong>Viewer-render additions (net-new render work — Story A)</strong></p>
+<ul>
+<li><strong>Inshorts / skim mode</strong> — summary/abstract only, document-by-document.</li>
+<li><strong>Section-level summaries</strong> — per-H1/H2 within a doc.</li>
+<li><strong>Glossary as its own section</strong> — promoted terms with definitions.</li>
+<li><strong>Created / last-modified header</strong> under each title.</li>
+<li><strong>Page-title toggle</strong> — LLM-generated vs. retain-original.</li>
+<li><strong>External-reference links surfaced in each summary</strong> — Figma / Sheets / Docs links extracted
+into the sidecar and shown.</li>
+</ul>
+<p><strong>Net-new ingestion work (unsolved in both prototypes — Story B)</strong></p>
+<ul>
+<li><strong>Source-platform nesting</strong> captured as <code>ancestor_path</code> — a classification signal
+<em>and</em> a crawler-candidate source.</li>
+<li><strong>Empty / low-substance docs ignored</strong> — beyond the prototype's thin-source notice, actually
+skip/de-emphasize (sets <code>exclude</code> with a reason).</li>
+<li><strong>Taxonomy options proposed</strong> — pre-bundled vs. emergent presented at init; default is
+curated-emergent (propose → human-curate).</li>
+</ul>
+
+<h2 id="pipeline">7. Ingestion pipeline (resumable, generic-MCP, deterministic-vs-LLM split)</h2>
+<ul>
+<li><strong>Generic MCP protocol</strong> (D15): the skill body, given a page URL/id, identifies the source,
+discovers the available MCP tools for it, prompts auth if missing, and applies the generic
+<code>fetch / search / extract-links</code> contract. No per-source adapter code ships. Absent MCP → that
+source is unavailable, surfaced honestly.</li>
+<li><strong>Resumable queue</strong> (D9): smallest-first, checkpointed after each doc; a rate-limit halt exits
+clean and resumable. Verbatim mirror + deterministic sidecar written <em>before</em> any LLM work, so an
+interruption never loses a fetched doc.</li>
+<li><strong>Overflow stitch</strong> for large docs (byte-exact, saved-file mechanism).</li>
+<li><strong>Deterministic-vs-LLM split</strong>: hashing, stitch, queue, drift, retrieval ranking are
+<em>helper-script</em> work (Story A); the skill body does the MCP fetch + enrichment authoring +
+classification + citation phrasing (Story B).</li>
+<li><strong>Incremental re-derivation</strong> (§10.3 resolved): the understanding layer is <em>not</em>
+re-derived wholesale on every change. Each derived artifact records the citation anchors (doc ids) it depends
+on; a <code>sync</code> that changes doc <em>X</em> dirties only the derived artifacts whose dependency set
+includes <em>X</em> (topic pages citing X, primer sections citing X, glossary terms sourced from X). This is
+the freshness analog of the resumable ingest queue — bounded, checkpointed, cap-safe.</li>
+</ul>
+
+<h2 id="anti-patterns">8. Anti-patterns to carry into the skill</h2>
+<ol>
+<li><strong>Topic pages as a second source of truth.</strong> The understanding layer is <em>derived</em>; never
+let it be hand-edited ground truth that drifts (the web prototype's failure).</li>
+<li><strong>Force-tagging low-confidence docs.</strong> Park as <code>uncategorized</code> + propose; the human is
+the only writer to vocab.</li>
+<li><strong>Summary sludge.</strong> Enforce the anti-slop contract — metrics with numbers, no "this document
+covers…" meta-phrasing.</li>
+<li><strong>Losing a fetched doc on interruption.</strong> Mirror + deterministic sidecar land before LLM work;
+resume is per-doc, no dupes.</li>
+<li><strong>Silent confidentiality assumptions.</strong> Default gitignored + warn, but the user owns the call
+(D12) — don't pretend a hard gate exists, don't hide the leak risk.</li>
+<li><strong>Per-tool MCP adapters.</strong> Resist building source-specific fetch code (D15); the generic
+protocol + agent tool-discovery is the abstraction.</li>
+</ol>
+
+<h2 id="story-split">9. Story split (route: skill — judgement, §define-route-skill)</h2>
+<p>One skill, but split into two <strong>file-disjoint</strong> vertical stories so each is one <code>/execute</code>
+run and they cannot conflict on <code>SKILL.md</code>. The engine (deterministic scripts + bundled viewer
+skeleton) is independently buildable and self-tested, so it is its own story; the skill consumes it.</p>
+<table>
+<thead><tr><th>Story</th><th>Id</th><th>Scope</th><th>Deps</th></tr></thead>
+<tbody>
+<tr><td><strong>A — engine &amp; bundled viewer</strong></td><td><code>260624-1e5</code></td>
+<td>The zero-dep <strong>bundled wiki-viewer skeleton</strong> (single-file HTML rendering an embedded corpus
+JSON: skim mode, per-section summaries, time/workstream/exclude facets, glossary section, created/modified
+header, title toggle, external-link surfacing, inline-comment annotations) <em>plus</em> the
+<strong>deterministic helper scripts</strong> (normalized-hash, byte-exact overflow-stitch, resumable
+smallest-first queue, two-factor drift, ripgrep+BM25 retrieval) <em>plus</em> the frozen
+<strong>sidecar/data-model schema</strong> — all under <code>plugins/pmos-toolkit/skills/wiki/{reference,scripts}/</code>,
+with selftests. <strong>No <code>SKILL.md</code>.</strong> Verified by its own selftest/eval gate and a live
+viewer dogfood against a corpus fixture.</td><td>—</td></tr>
+<tr><td><strong>B — the /wiki skill</strong></td><td><code>260624-rmq</code></td>
+<td><code>plugins/pmos-toolkit/skills/wiki/SKILL.md</code> + the five verbs (add/sync/view/ask/curate) + the
+generic MCP-adapter protocol (D15) + resumable pipeline orchestration (D9) + incremental re-derivation (§7) +
+Q&amp;A (D17) + curate/classification (D16) + workstream inference + the non-interactive inline block,
+<code>(Recommended)</code>-tagged prompts, and skill-authoring conventions. Consumes Story A's scripts +
+viewer skeleton. Verified by <code>skill-eval</code> + the 4 hygiene lints + a live ingest→view→ask dogfood.</td>
+<td><code>260624-1e5</code></td></tr>
+</tbody></table>
+<p>Both stories are <code>route: skill</code>, single plugin (<code>pmos-toolkit</code>, D17 single-plugin
+validation holds). Story B lists A in <code>dependencies:</code>; D9 claim-time dep-merge makes A's engine
+present in B's worktree before B's <code>skill-eval</code>. The D24 litmus holds: A and B touch disjoint files,
+so no task in B depends on an unbuilt task in A beyond the story-level engine dependency.</p>
+
+<h2 id="lives">10. Where it physically lives</h2>
+<ul>
+<li><strong>Skill:</strong> <code>plugins/pmos-toolkit/skills/wiki/SKILL.md</code> (+ <code>reference/</code>,
+<code>scripts/</code>, <code>tests/</code>).</li>
+<li><strong>Bundled viewer skeleton:</strong> ships with the skill (<code>reference/</code>); emitted into the
+substrate root on first <code>view</code>.</li>
+<li><strong>Substrate (corpus):</strong> cwd-relative, resolved via <code>.pmos/settings</code>, gitignored by
+default (D11/D12).</li>
+<li><strong>No cross-plugin <code>_shared</code> dependency</strong> — the fork decision (D14) keeps the viewer
+skill-local, so the <code>library-viewer</code> bootstrap-gap does not apply.</li>
+</ul>
+
+<h2 id="open">11. Residual open items (for per-story spec/plan)</h2>
+<ul>
+<li><strong>BM25 corpus weighting</strong> over sidecars vs. full mirrors — Story A plan to pin the index input.</li>
+<li><strong>Multi-MCP auth UX</strong> — the exact auth-prompt copy + resume point when a source's MCP is
+unauthenticated (D15); Story B plan to specify the prompt and the clean-halt/resume contract.</li>
+<li><strong>Thin-doc threshold</strong> — the substance heuristic that sets <code>exclude</code> (length +
+structure signal); Story A plan to pin the cutoff and make it config-overridable.</li>
+<li><strong>Taxonomy bootstrap</strong> — the pre-bundled-vs-emergent first-run prompt copy and the default
+seed-vocab source; Story B plan.</li>
+</ul>
+
+</body>
+</html>
