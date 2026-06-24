@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pmos-skills — hero options (Phase 3 working artifact)</title>
+<style>
+  :root{--bg:#0d1117;--fg:#e6edf3;--accent:#3fb950;--accent-fg:#06240d;--muted:#9da7b3;
+    --surface:#161b22;--surface-2:#21262d;--border:#30363d;
+    --font-display:'Inter',-apple-system,system-ui,sans-serif;--font-mono:ui-monospace,'SF Mono',Menlo,monospace;}
+  *{box-sizing:border-box} body{margin:0;background:#05080c;color:var(--fg);font-family:var(--font-display)}
+  .note{max-width:880px;margin:2rem auto;padding:0 1.5rem;color:var(--muted);font-size:.9rem;line-height:1.6}
+  .opt{max-width:880px;margin:1.5rem auto;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--bg)}
+  .opt .lbl{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;
+    padding:.6rem 1rem;background:var(--surface-2);border-bottom:1px solid var(--border);color:var(--muted)}
+  .opt.chosen .lbl{color:var(--accent)} .opt.chosen{outline:2px solid var(--accent)}
+  .hero{padding:2.5rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center}
+  h1{font-size:2rem;letter-spacing:-.02em;margin:.2rem 0 .6rem;line-height:1.15}
+  .sub{color:var(--muted);max-width:34ch;margin-bottom:1.2rem}
+  .cta{display:inline-block;background:var(--accent);color:var(--accent-fg);font-weight:700;padding:.7rem 1.4rem;border-radius:8px}
+  .ghost{display:inline-block;color:var(--fg);border:1px solid var(--border);border-radius:8px;padding:.7rem 1.4rem;margin-left:.6rem;font-weight:500}
+  .term{background:var(--surface);border:1px solid var(--border);border-radius:8px}
+  .term .bar{display:flex;gap:7px;padding:9px 12px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+  .term .bar i{width:10px;height:10px;border-radius:50%;display:block;background:var(--border)}
+  .term pre{margin:0;padding:14px;font-family:var(--font-mono);font-size:.8rem;line-height:1.6;color:var(--fg)}
+  .c{color:var(--accent)}.m{color:var(--muted)}.k{color:#79c0ff}
+  .shot{background:var(--surface);border:1px dashed var(--border);border-radius:8px;height:160px;display:flex;
+    align-items:center;justify-content:center;color:var(--muted);font-family:var(--font-mono);font-size:.8rem;text-align:center;padding:1rem}
+  .logos{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem}
+  .logos span{border:1px dashed var(--border);border-radius:6px;padding:.4rem .7rem;color:var(--muted);font-family:var(--font-mono);font-size:.72rem}
+  @media(max-width:680px){.hero{grid-template-columns:1fr}}
+</style></head>
+<body>
+<div class="note"><strong>Phase 3 working artifact — not the final page.</strong> Three hero folds explored
+for <code>product_type: Dev tool</code>. Each obeys the enforced hero rules (Julian litmus, subhead ≤2
+sentences, one isolated first-person CTA, product-in-action visual). <strong>Chosen: Option B</strong> —
+"the product is the demo" fits a CLI skills marketplace best; carried verbatim into Phase 5.</div>
+
+<!-- Option B — Outcome + live demo (CHOSEN) -->
+<section class="opt chosen"><div class="lbl">Option B · Outcome + live demo · CHOSEN</div>
+  <div class="hero"><div>
+    <h1>Turn Claude Code into a product-delivery OS.</h1>
+    <p class="sub">Install one marketplace and get a versioned pipeline — requirements → spec → plan →
+      execute → verify → release. Every skill is gated, not guessed.</p>
+    <a class="cta" href="#">Install the marketplace</a><a class="ghost" href="#">View source</a>
+  </div><div class="term"><div class="bar"><i></i><i></i><i></i></div>
+<pre><span class="c">&gt;</span> /feature-sdlc <span class="k">"add CSV export"</span>
+<span class="m">✓ requirements spec plan execute</span>
+<span class="m">✓ verify (skill-eval 24/24)</span>
+<span class="c">→</span> shipped: <span class="k">feat/report-csv</span></pre></div></div>
+</section>
+
+<!-- Option A — Benefit-led + product shot -->
+<section class="opt"><div class="lbl">Option A · Benefit-led + product shot</div>
+  <div class="hero"><div>
+    <h1>Ship features on a pipeline, not on vibes.</h1>
+    <p class="sub">A gated requirements→release workflow for Claude Code, installable from one marketplace.</p>
+    <a class="cta" href="#">Install the marketplace</a><a class="ghost" href="#">View source</a>
+  </div><div class="shot">screenshot: skill gallery / pipeline run — placeholder</div></div>
+</section>
+
+<!-- Option D — Social-proof-forward -->
+<section class="opt"><div class="lbl">Option D · Social-proof-forward</div>
+  <div class="hero"><div>
+    <h1>The product-delivery OS for Claude Code.</h1>
+    <p class="sub">5 plugins, 50+ gated skills — every release shipped through its own verify train.</p>
+    <a class="cta" href="#">Install the marketplace</a><a class="ghost" href="#">View source</a>
+    <div class="logos"><span>adopter logo — placeholder</span><span>adopter logo — placeholder</span></div>
+  </div><div class="shot">user-count / star wall — placeholder (no fabricated proof)</div></div>
+</section>
+</body></html>
