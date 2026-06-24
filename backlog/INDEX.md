@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-ajy /landing-page + 2 stories)
+Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-3nj /poker references + restyle + 1 story)
 
-130 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+132 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -55,6 +55,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-ajy /
 | 260624-c62 | defined | skill | pmos-toolkit | 0/2 | "/wiki — self-assembling onboarding wiki over a PM's own working docs (resumable generic-MCP ingestion → byte-exact document mirror + derived/cited understanding layer → purpose-built skimmable/faceted/annotatable single-file viewer + grounded Q&A), filterable to one workstream or --all" |
 | 260624-ajy | defined | skill | pmos-toolkit | 0/2 | "/landing-page — guided product landing-page generator (research+cited brief → approved section structure → 2-3 rendered hero options → bundled visual-style selector → single self-contained HTML in a per-page folder → copy+visual self-review)" |
 | 260624-fly | defined | skill | pmos-gamekit | 0/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
+| 260624-3nj | defined | skill | pmos-gamekit | 0/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
 
 ## must
 
@@ -134,6 +135,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-ajy /
 | 260624-dqg | story | feature | planned | 260624-ajy | "Bundled style system + reference substrate — 6 frozen theme-token sets + offline style-gallery.html swatch gallery + section-scaffolds/hero-archetypes/copy-gates references + selftest; no SKILL.md" | docs/pmos/features/2026-06-24_landing-page/02_design.html | docs/pmos/features/2026-06-24_landing-page/stories/260624-dqg/03_plan.md |  |
 | 260624-pe2 | story | feature | planned | 260624-ajy | "/landing-page SKILL.md — six-phase guided workflow (research+brief → propose-structure → hero-explore → style-pick → draft → visual self-review) + per-page folder output + opt-in web research + non-interactive contract + skill-eval (deps 260624-dqg)" | docs/pmos/features/2026-06-24_landing-page/02_design.html | docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/03_plan.md |  |
 | 260624-vry | story | feature | planned | 260624-fly | "Build /flappy-bird visual variety — 7 background themes + 4 bird shapes + 5-color contrast-safe palette + top-HUD pmos wordmark, behind a pure seedable pickVariants() picker, with engine selftests (contrast/no-repeat/determinism/coverage) + headless dogfood" | docs/pmos/features/2026-06-24_flappy-bird-variety/02_design.html | docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md |  |
+| 260624-f62 | story | feature | planned | 260624-3nj | "/poker References panel + restyle — collapsible right-side panel with 3 static references (hand rankings, interactive preflop chart, pot-odds/Rule-of-2&4) + bundled chart data & pure handKey/chartAction helpers + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark + extended selftest" | docs/pmos/features/2026-06-24_poker-references-restyle/02_design.html | docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md |  |
 
 ## could
 
