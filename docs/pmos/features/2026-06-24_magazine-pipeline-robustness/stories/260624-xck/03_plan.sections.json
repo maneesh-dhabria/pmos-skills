@@ -1,0 +1,104 @@
+[
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns-to-follow",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": null
+  },
+  {
+    "id": "existing-code-to-reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": null
+  },
+  {
+    "id": "constraints-discovered",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": null
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "t1",
+    "level": 3,
+    "title": "T1: Window resolution + require-a-window + loud unknown-flag reject (tracer bullet)",
+    "parent_id": null
+  },
+  {
+    "id": "t2",
+    "level": 3,
+    "title": "T2: Upper-bound filter in fetch-feed.js (range crawl)",
+    "parent_id": null
+  },
+  {
+    "id": "t3",
+    "level": 3,
+    "title": "T3: Date aliases + inclusive bare-date parsing",
+    "parent_id": null
+  },
+  {
+    "id": "t4",
+    "level": 3,
+    "title": "T4: Persist single-latest discover snapshot",
+    "parent_id": null
+  },
+  {
+    "id": "t5",
+    "level": 3,
+    "title": "T5: Scope prep to the latest snapshot (+ D6 reuse semantics)",
+    "parent_id": null
+  },
+  {
+    "id": "t6",
+    "level": 3,
+    "title": "T6: Make the cursor watch-internal (stop interactive cursor advance)",
+    "parent_id": null
+  },
+  {
+    "id": "t7",
+    "level": 3,
+    "title": "T7: Rewrite the windowing docs to the real flag surface",
+    "parent_id": null
+  },
+  {
+    "id": "t8",
+    "level": 3,
+    "title": "T8: Dogfood / Utility Verification (TN−1)",
+    "parent_id": null
+  },
+  {
+    "id": "t9",
+    "level": 3,
+    "title": "T9: Final verification (TN)",
+    "parent_id": null
+  },
+  {
+    "id": "execution-order",
+    "level": 2,
+    "title": "Execution order & risks",
+    "parent_id": null
+  }
+]
