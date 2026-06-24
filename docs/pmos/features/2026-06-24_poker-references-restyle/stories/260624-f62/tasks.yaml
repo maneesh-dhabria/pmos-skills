@@ -1,0 +1,175 @@
+schema_version: 1
+story: 260624-f62
+epic: 260624-3nj
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-gamekit/skills/poker
+# Single-story epic (D8): every change lands in the one self-contained
+# game/poker.html (+ tests/run.mjs). Adds a collapsible right-hand References panel (D1) with three
+# STATIC references (D3/D4) — hand rankings, an interactive preflop chart, a pot-odds/Rule-of-2&4 card;
+# restyles the table to the poker-coach look (D2) — oval felt, seat tiles + per-street chip strips, gold
+# hero/winner glow, card faces, action-bar styling; renames the in-game HUD heading to "Poker" and adds a
+# pmos wordmark linking to github.com/maneesh-dhabria/pmos-skills (D7). NO live coaching, NO equity engine,
+# NO persistence, NO network — the zero-dep self-contained launch contract and the pure window-exposed
+# engine are preserved (§6 invariants).
+#
+# Design anchors (02_design.html): #surface (toggle-able side panel layout + <880px overlay),
+# #references / #rankings / #preflop / #potodds (the three static references + content), #restyle (table
+# visual targets + explicit non-goals), #hud (title "Poker" + pmos watermark), #invariants (single-file,
+# pure selftested engine, no coaching/equity/persistence), #story-split (one vertical slice), #decisions
+# (D1-D8).
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §H (deterministic = script: the 169-key chart lookup
+# and handKey() are pure functions gated by tests/run.mjs, never model-judged) + §K (one fact, one home:
+# the bundled hand-ranking rows + range/equity tables are the single source the references render from).
+# Host CLAUDE.md: canonical skill path = plugins/pmos-gamekit/skills/poker/; game-launcher launch contract
+# unchanged; pmos-gamekit charter (a self-contained single-player browser game).
+#
+# Release prerequisites (version bump, CHANGELOG, README row, manifest version-sync) are NOT tasks here —
+# /complete-dev owns them at epic release. This story edits the EXISTING skill (no new SKILL.md; it only
+# refreshes the existing SKILL.md description + launch-report text).
+#
+# Data fidelity (D6): the preflop open ranges + BB-defend + 169-key equity are COPIED from the maintainer's
+# own poker-coach JSON (core/charts/preflopCharts.json + preflopEquity.json), not re-derived; keep the
+# "transparent baseline, not solver output" caveat verbatim.
+#
+# TDD posture: tests/run.mjs (already green for the engine) is extended fail-first in T2 to assert the new
+# pure helpers handKey()/chartAction(cards,position,facing) over known spots; T8 establishes the full green
+# bar + a live Playwright dogfood of every surface.
+tasks:
+  - id: T1
+    title: "Two-column layout shell + collapsible References panel + HUD References toggle; table scale-to-fit re-fits on toggle; <880px overlay"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Wrap the existing table in a two-column flex shell: table (flex-grow) + aside.refs (~340px fixed).
+      Add a "References" toggle button to the HUD that opens/closes the panel (session-only state, no
+      persistence). When closed the table reclaims full width. Ensure the existing fixed-design-box +
+      transform:scale()-to-fit + ResizeObserver logic re-fits the table whenever the panel toggles (and
+      keep the MIN_TABLE_SCALE readability floor). Below ~880px the panel becomes a full-width overlay
+      above the table, dismissed by the same button / Esc. The panel hosts three reference sections
+      (rankings / preflop chart / pot odds) as a small tab strip or single scroll — pick whatever reads
+      cleaner at 340px. No Live-Feedback / Coaching tabs.
+    acceptance:
+      - "table + aside.refs render as a two-column shell; HUD 'References' button toggles the panel open/closed (AC1)"
+      - "table re-fits via the existing scale()-to-fit + ResizeObserver when the panel toggles; readability floor preserved (AC1, #surface)"
+      - "below ~880px the panel is a full-width overlay dismissible by button/Esc; no persistence of panel state (AC1, D5)"
+      - "panel hosts exactly the three reference sections; no Live-Feedback/Coaching tabs exist (#references)"
+  - id: T2
+    title: "Bundle static reference DATA inline (ranking rows, per-position open ranges + BB-defend, 169-key equity) + pure handKey()/chartAction() helpers; fail-first tests"
+    ac: [AC4, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Add inline static JS data to poker.html, copied from poker-coach: (a) the 9 hand-ranking rows
+      (category + example) per #rankings; (b) `open` — per-position RFI arrays (UTG/MP/CO/BTN/SB) of
+      169-grid keys; (c) `vsOpen.BB` raise/call buckets; (d) `equity169` — win% vs random for all 169 keys.
+      Add pure, DOM-free helpers on the window-exposed engine: handKey(cards) -> "AA"/"AKs"/"72o",
+      allHands169(), chartAction(cards|key, position, facing) -> 'raise'|'fold'|'unmodeled', and a
+      cellRationale()/equityOf(key) lookup. Extend tests/run.mjs FAIL-FIRST: assert handKey() canonical
+      forms and chartAction() over a handful of known spots (AA always raise; a button-wide hand; a
+      UTG-fold trash hand; a BB-defend hand vs raise; an unmodeled BB-unopened spot returns 'unmodeled').
+      Helpers stay pure (no DOM) so run.mjs can VM-test them.
+    acceptance:
+      - "ranking rows + open ranges + BB-defend + 169-key equity are inlined as static data copied from poker-coach (not re-derived) — single home both references bind (AC4, §K, D6)"
+      - "handKey()/chartAction()/allHands169()/equity lookup are pure, DOM-free, and exposed on window.PokerEngine (AC7, §6)"
+      - "tests/run.mjs extended fail-first asserts handKey canonical forms + chartAction over known raise/fold/unmodeled spots (AC7, TDD)"
+  - id: T3
+    title: "Hand-rankings reference section (9 categories + examples) rendered from bundled data"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Render the hand-rankings ladder in the panel from the bundled rows (#rankings): numbered 1-9 strongest
+      first, each with its plain example, a short intro line ("Strongest at the top. The best five-card hand
+      wins the pot."). Suit glyphs colored to match the card faces. Static; no per-hand state.
+    acceptance:
+      - "renders all 9 categories strongest-first with examples, from the bundled data (AC2, #rankings)"
+      - "static content; no equity/coaching; suit glyphs colored consistently with the table cards (AC2)"
+  - id: T4
+    title: "Interactive preflop chart — 13x13 grid, Position x Facing selectors, raise/fold coloring, click-for-detail, baseline caveat + unmodeled panel"
+    ac: [AC3]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Build the preflop chart per #preflop: a 13x13 button grid of all 169 hands (pairs diagonal, suited
+      upper-right, offsuit lower-left) via allHands169(); Position selector (UTG/MP/CO/BTN/SB/BB) and Facing
+      selector (first-in unopened / vs a raise); each cell colored by chartAction() (raise=green,
+      fold=muted/red); clicking a cell shows a detail line (hand, action, win% from equity169, plain
+      rationale). Default the Position selector to the hero's current seat (browsable convenience, D3 — not
+      advice). Show the "transparent baseline, not solver output" caveat, and an explanatory panel (never a
+      fabricated all-fold grid) for spots the baseline doesn't model (BB unopened, position vs-raise outside
+      the defend range -> chartAction returns 'unmodeled').
+    acceptance:
+      - "13x13 grid of 169 hands with Position x Facing selectors; cells colored raise/fold by chartAction() (AC3, #preflop)"
+      - "clicking a cell shows hand + action + static win% (equity169) + rationale; Position defaults to hero seat but is freely changeable (AC3, D3)"
+      - "carries the baseline-not-solver caveat; renders an explanatory panel (not an all-fold grid) for unmodeled spots (AC3, #preflop)"
+  - id: T5
+    title: "Pot-odds + Rule-of-2&4 static card (outs, x2/x4, break-even formula + table, putting-it-together)"
+    ac: [AC5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Author the pot-odds reference card per #potodds as fixed explainer content (the live six-step
+      walkthrough is dropped): counting outs (flush draw 9, OESD 8, gutshot 4, overcards ~6 soft); Rule of
+      2 & 4 (outs x4 by river on the flop, outs x2 next card on the turn) + the big-draw caveat (x4
+      overcounts above ~12 outs); pot odds break-even% = toCall/(pot+toCall) with a worked example and a
+      small reference table (half-pot ~25%, pot-sized ~33%); putting-it-together (call when equity beats
+      break-even). No state, no per-hand numbers.
+    acceptance:
+      - "static card covers outs counting, Rule of 2 & 4 (+big-draw caveat), break-even formula + a small table, and the compare-to-decide step (AC5, #potodds)"
+      - "no per-hand readout, no equity engine, no state (AC5, D3)"
+  - id: T6
+    title: "Table restyle to poker-coach look — oval felt, seat tiles + per-street chip strips, gold hero/winner glow, card faces, action-bar styling"
+    ac: [AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Restyle the table to match poker-coach (#restyle) within the existing fixed-design-box scale-to-fit:
+      oval felt with hero anchored bottom-center and opponents around the oval, pot/board centered; seat
+      tiles showing stack + last action + acting glow + winner glow + a per-street chip strip (P/F/T/R
+      badges with amount committed that street); card faces (cream face, red hearts/diamonds vs near-black
+      spades/clubs, green-gradient back, gold outline on winning cards); reconcile the felt-green/gold
+      palette with the source tokens (drop verdict colors); align the action bar (fold/check/call/raise +
+      size slider + 1/2 / 3/4 / Pot quick buttons + USD/BB unit toggle). Do NOT add the setup-screen
+      bot-style/preset pickers, bankroll persistence, or the one-at-a-time reveal animation (D2 — out of
+      scope, §9). Keep the existing simple opponent-count start screen and no-save rule.
+    acceptance:
+      - "table shows oval felt, hero bottom-center, seat tiles with per-street chip strips, gold hero + winner glow, restyled card faces (AC6, #restyle)"
+      - "scale()-to-fit + ResizeObserver + readability floor retained; action bar aligned to source styling (AC6)"
+      - "NO setup-screen parity (bot pickers/presets/depth), NO bankroll persistence, NO reveal animation added (D2, §9)"
+  - id: T7
+    title: 'HUD heading -> "Poker" (all in-game display strings) + pmos wordmark linking to pmos-skills repo (new tab, focusable)'
+    ac: [AC8]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Change the in-game HUD/display heading to "Poker" everywhere it currently reads "No-Limit Hold'em" /
+      "No-Limit Texas Hold'em" as USER-FACING display (the <title>, the start <h1>, the panel header). Leave
+      the engine internals and the skill's external name:/description/triggers unchanged (§7). Add a small
+      pmos wordmark in the HUD (corner/top strip) that links to https://github.com/maneesh-dhabria/pmos-skills
+      opening in a new tab (target=_blank rel=noopener), keyboard-focusable, not overlapping play controls —
+      mirroring the /flappy-bird top-HUD pmos wordmark.
+    acceptance:
+      - 'in-game HUD heading reads "Poker"; user-facing display strings updated; skill external name/triggers unchanged (AC8, #hud, §7)'
+      - "pmos wordmark links to github.com/maneesh-dhabria/pmos-skills in a new tab (rel=noopener), focusable, non-overlapping (AC8, D7)"
+  - id: T8
+    title: "Green bar — run.mjs covers chart helpers + engine purity; no coaching/equity/persistence regressions; live Playwright dogfood of every surface"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8]
+    deps: [T2, T3, T4, T5, T6, T7]
+    parallel: false
+    detail: >
+      Complete tests/run.mjs so `node tests/run.mjs` exits 0: handKey()/chartAction() assertions pass over
+      the known spots; assert PokerEngine is still window-exposed and pure (no DOM in the new helpers).
+      Grep-assert no coaching/equity/EV/persistence/network code was reintroduced (no fetch, no equity
+      Monte-Carlo, no localStorage save). Live Playwright dogfood: launch via game-launcher, toggle the
+      panel open/closed (table re-fits), verify all three references render (rankings 9 rows; chart 169
+      cells with raise/fold coloring + Position x Facing + click-detail + caveat; pot-odds card), confirm
+      the restyled oval table + seat chip strips + gold hero, the "Poker" HUD heading, and the pmos
+      wordmark opening the repo in a new tab. Capture screenshots.
+    acceptance:
+      - "`node tests/run.mjs` exits 0 — pure, no network/DOM; covers handKey/chartAction; asserts engine window-exposed & pure (AC7)"
+      - "grep-assert no coaching/equity/EV/persistence/network reintroduced (AC4 scope, §6/§9)"
+      - "live dogfood proves panel toggle+refit (AC1), 3 references render correctly (AC2/AC3/AC5), restyled table (AC6), 'Poker' HUD + working pmos wordmark (AC8); screenshots captured"
