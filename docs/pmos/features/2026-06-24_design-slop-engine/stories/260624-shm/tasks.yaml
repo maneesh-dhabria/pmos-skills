@@ -1,0 +1,135 @@
+schema_version: 1
+story: 260624-shm
+epic: 260624-3jp
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/design-crit
+# Story B — /design-crit deterministic slop pre-pass: inject the engine browser bundle into design-crit's
+# EXISTING Playwright page, call window.pmosDesignScan(), read .pmos-slop-* findings from the DOM
+# (programmatically — NOT via screenshot), and surface them as a distinct lane FIRST, then layer the
+# existing LLM Nielsen/WCAG/PSYCH critique after (D-STACK). Additive + graceful (Inv-5) — never replaces
+# the LLM critique (non-duplication), never regresses today's flow if the engine is absent.
+#
+# DEP: 260624-cg6 (the engine — story A · _shared/slop-engine/). Claim-time TRANSITIVE merge brings the
+# vendored engine (registry.mjs · checks.mjs · detect.mjs · browser.js) into THIS worktree before
+# skill-eval runs (epic Inv-1 — one engine, A is sole author; D9 claim-time merge). This story authors
+# NO engine code — it only wires the existing browser bundle into the open Playwright session.
+#
+# Design anchors: #c-design-crit (the consumer contract), #d-stack (engine-first-then-LLM distinct lanes),
+# #non-duplication (complement, don't replace), #invariants Inv-3 (zero "impeccable" strings — engine is
+# referenced by its pmos-native paths/globals: window.pmosDesignScan / .pmos-slop-*), Inv-4 (deterministic
+# + offline — no LLM/network in the engine lane), Inv-5 (graceful degradation — engine-absent never
+# hard-fails), #engine-internals (read .pmos-slop-* from DOM; snippets wrap identifying text in straight
+# double-quotes /"([^"]+)"/), #naming (D-NAMING — pmos-native, NOT impeccable).
+#
+# Integration point in design-crit's flow: a NEW phase between Phase 3 (Capture flow screenshots
+# {#capture-screenshots} — already runs Playwright via assets/capture.mjs) and Phase 4 (Heuristic
+# evaluation against the rubric {#heuristic-eval} — the LLM lane). The engine lane reuses Phase 3's
+# already-open Playwright page; the engine findings feed the report's first lane (Phase 6
+# {#synthesise-report}) ahead of the LLM recommendations.
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L (esp. §H deterministic-is-a-script,
+# §I flags hybrid-NL-first, §J integer phases with stable {#kebab-slug} anchors, §K one-fact-one-home,
+# §L subagent/model tiers) + host CLAUDE.md (canonical skill path, non-interactive inline contract).
+# Release prerequisites (version bump, changelog, README row, plugin.json manifest version-sync, tag) are
+# NOT tasks here — /complete-dev --epic owns them.
+tasks:
+  - id: T1
+    title: "Add the slop-engine injection helper script that drives the open Playwright page + reads .pmos-slop-* from the DOM"
+    ac: [AC1, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Per #c-design-crit / #engine-internals / Inv-3 / Inv-4. Add an assets/slop-prepass.mjs to the
+      design-crit skill (TDD: failing test first). It opens the captured artifact/URL in a Playwright page
+      (the SAME Chromium/launch path assets/capture.mjs already uses — reuse its browser-launch helper; do
+      NOT add a new browser dependency), injects the vendored engine bundle via
+      page.addScriptTag({ path: '<repo>/plugins/pmos-toolkit/skills/_shared/slop-engine/browser.js' }),
+      calls await page.evaluate(() => window.pmosDesignScan()), then reads the findings from the DOM
+      programmatically (page.$$eval over .pmos-slop-* — rule-id + snippet + category), NOT by screenshot.
+      Resolve the engine path RELATIVE to the skill dir so the claim-time-merged _shared/slop-engine/
+      resolves in-worktree (epic Inv-1). Emit findings as JSON to {out_dir}/slop-findings.json with shape
+      [{ id, category, snippet, section }]. Snippets carry their identifying text in straight double-quotes
+      per the engine convention (/"([^"]+)"/). Inv-3: reference the engine ONLY by its pmos-native path +
+      window.pmosDesignScan + .pmos-slop-* globals — introduce NO "impeccable" string anywhere. Inv-4: the
+      helper makes no LLM/network call. Test (node --test) drives the helper against a tiny fixture HTML
+      carrying a known side-tab tell and asserts the rule id + quoted snippet are read from the DOM.
+  - id: T2
+    title: "Graceful-degradation + crash-safety guard in the helper (Inv-5)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per Inv-5 / #c-design-crit. Wrap injection + scan in a guard: if the engine bundle is missing/unreadable,
+      addScriptTag throws, window.pmosDesignScan is undefined, or evaluate() errors, the helper logs a single
+      clear stderr note (e.g. "slop-engine unavailable — skipping deterministic pre-pass: <reason>"), writes
+      an EMPTY slop-findings.json (or omits it with a recorded skip), and exits 0 so /design-crit proceeds
+      EXACTLY as today. The engine lane being empty/absent must never roll back, abort, or alter the existing
+      capture → LLM critique flow. Add a failing-first test that points the helper at a non-existent engine
+      path and asserts: exit 0, the stderr skip note fired, no exception propagated, no findings file with
+      bogus content.
+  - id: T3
+    title: "Insert the Phase 3.5 slop pre-pass into SKILL.md (engine lane runs after capture, before the LLM eval) — §A–§L conformant"
+    ac: [AC1, AC2, AC5]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      Per #c-design-crit / #d-stack / §J. Add a new integer-anchored phase
+      "## Phase 3.5: Deterministic slop pre-pass {#slop-prepass}" between Phase 3 {#capture-screenshots}
+      and Phase 4 {#heuristic-eval} (keep all existing {#kebab-slug} anchors stable; renumber bare prose
+      "Phase 4..8" references by hand only where a number is cited — every cross-ref must still resolve,
+      lint-phase-refs.sh). The phase: runs assets/slop-prepass.mjs on the captured source reusing Phase 3's
+      open page, reads .pmos-slop-* from the DOM (NOT a screenshot — call this out explicitly per
+      #engine-internals), writes slop-findings.json. State plainly (D-STACK) that the engine lane is
+      deterministic + objective (rule id + snippet + fix guidance) and is presented FIRST, with the LLM
+      Nielsen/WCAG/PSYCH critique layered AFTER as a separate lane — the engine COMPLEMENTS, never replaces,
+      the LLM pass (non-duplication, AC4). Add the Inv-5 graceful-fallback note (engine-absent → behaves as
+      today, logged). §H: this is deterministic work → a script (slop-prepass.mjs), the model only narrates
+      lanes. §K: cite #engine-internals + #non-duplication once, don't restate the engine's internals here.
+      No new AskUserQuestion prompt is added (no picker needed); the non-interactive inline block stays
+      byte-identical.
+  - id: T4
+    title: "Engine lane FIRST in the report; preserve the existing LLM critique unchanged (D-STACK + non-duplication)"
+    ac: [AC2, AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per #d-stack / #non-duplication / AC2 / AC4. Edit Phase 6 {#synthesise-report}: add a new top section
+      to the design-crit report — "## Deterministic slop findings (machine-flagged)" — listing each engine
+      finding (rule id + snippet + one-line fix guidance from the rule), rendered BEFORE the existing
+      LLM-judged "## Recommendations by journey / component / Cross-cutting" sections. The two lanes are
+      visibly distinct so a reader can tell machine-flagged tells from judged UX issues. Do NOT fold engine
+      findings into the LLM disposition loop (Phase 4) and do NOT let them replace any LLM section — the LLM
+      critique sections remain byte-equivalent in structure to today (non-duplication; AC4). If
+      slop-findings.json is empty/absent (Inv-5 fallback), the section renders a one-line "no deterministic
+      findings (or engine unavailable)" note and the rest of the report is unchanged.
+  - id: T5
+    title: "skill-eval [D] + judge, 4 lints + audit clean, non-interactive contract intact"
+    ac: [AC5, AC7]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Per AC5 / AC7 / host CLAUDE.md. Run feature-sdlc/tools/skill-eval-check.sh on design-crit to EXIT 0
+      (the [D] deterministic half) and pass the judge pass; SKILL.md edit conforms to skill-patterns §A–§L
+      (frontmatter unchanged shape, §J phase anchors resolve, §I flags — no new contract flag introduced so
+      argument-hint is unchanged, §K one-fact-one-home cites). Run the 4 repo lints
+      (lint-non-interactive-inline.sh, lint-flags-vs-hints.sh, lint-phase-refs.sh — the new Phase 3.5 anchor
+      + any renumbered refs must resolve; tools/lint-slop-rules.sh is story D's, not this story's) +
+      tools/audit-recommended.sh + comments-coverage. Keep the non-interactive inline block byte-identical;
+      no new prompt added. Inv-3: grep -i impeccable over the SKILL.md + assets/ returns ZERO hits.
+  - id: T6
+    title: "Live dogfood — engine lane flags a known side-tab tell, LLM lane adds judgement; evidence saved"
+    ac: [AC6]
+    deps: [T4, T5]
+    parallel: false
+    detail: >
+      Per AC6 / #d-stack. Author a small HTML artifact carrying a KNOWN slop tell (a side-tab — thick
+      colored border on one side of a rounded card — the simplest engine rule per anti-patterns.md). Run the
+      real /design-crit (Skill tool, not hand-rolled) against it end-to-end. CONFIRM: (a) Phase 3.5 injects
+      browser.js into the open Playwright page, window.pmosDesignScan runs, and the side-tab rule id + its
+      quoted snippet are read from .pmos-slop-* in the DOM into slop-findings.json; (b) the report renders
+      the deterministic slop lane FIRST with that finding, then the LLM lane adds UX judgement after
+      (distinct lanes, D-STACK); (c) running with the engine path made unreadable → /design-crit behaves
+      exactly as today with a logged skip (Inv-5). Save the dogfood artifact + slop-findings.json + report +
+      a short evidence note under this story's dir.

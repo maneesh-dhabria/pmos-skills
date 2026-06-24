@@ -1,0 +1,143 @@
+schema_version: 1
+story: 260624-y9m
+epic: 260624-3jp
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/verify
+# Story C — /verify frontend slop gate: run _shared/slop-engine/detect.mjs on the
+# generated HTML via the cheap Node path (NO Playwright), route findings through
+# _shared/findings-dispositions.md (quality faults can be [Blocker] and gate; slop
+# tells are [Should-fix]/[Nit], surfaced loudly but NEVER hard-block — grill-confirmed
+# D-TIER 2026-06-24), tiered mandatory-for-UI / skipped-with-log non-UI, graceful-degrade.
+#
+# Depends on 260624-cg6 (engine-vendor story A). The engine substrate
+# (_shared/slop-engine/registry.mjs · checks.mjs · detect.mjs Node adapter + ported
+# fixtures) must be present in THIS worktree at claim time via the D9 claim-time
+# transitive merge (epic Inv-1: one engine, this story is a CONSUMER — it never forks
+# or re-authors the rules).
+#
+# Design anchors: 02_design.html#c-verify (the /verify consumer contract),
+# #d-tier (D-TIER: mandatory-for-UI / skipped-non-UI / graceful-degrade),
+# #invariants (Inv-1 one engine, Inv-3 zero impeccable strings, Inv-4 deterministic+offline,
+# Inv-5 graceful degradation never hard-fails a consumer).
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L + host CLAUDE.md (canonical
+# skill path: plugins/pmos-toolkit/skills/verify/SKILL.md; §H deterministic-as-script;
+# §I flags; §J integer phases + {#kebab-slug} anchors; §K one-fact-one-home).
+# Release prerequisites (version bump, changelog, README row, plugin.json version-sync)
+# are NOT tasks — /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Failing tests first — Node-path engine invocation + finding-to-disposition mapping"
+    ac: [AC1, AC2, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Per AC1/AC2/AC7, Inv-4. Add failing tests under plugins/pmos-toolkit/skills/verify/tests/
+      (slop-gate.test.* sibling to the shipped suite) that pin the contract before any SKILL.md
+      edit: (a) the gate invokes the vendored _shared/slop-engine/detect.mjs on a generated HTML
+      file via the Node adapter (NO Playwright / browser tool — assert detect runs with no
+      `browser_*` call and no network); (b) the category→severity map is deterministic — a
+      `category:'quality'` finding maps to [Blocker] or [Should-fix] (can gate), a
+      `category:'slop'` finding maps to [Should-fix]/[Nit] (advisory, never gating); (c) Inv-4
+      neg-control — detect.mjs makes zero LLM/network calls (offline). Fixtures: one HTML with a
+      planted quality fault (WCAG contrast fail) and one with only a `gradient-text` slop tell.
+      These tests fail until T2–T4 land. (Engine present via claim-time merge of cg6 — Inv-1.)
+  - id: T2
+    title: "Wire the slop gate into /verify Phase 4 (4d) as the Node-path frontend pre-check, reusing the existing frontend-detection"
+    ac: [AC1, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per AC1/AC3, #c-verify, #d-tier (D-TIER), §H (deterministic = script), §K (cite, don't
+      restate). In SKILL.md add the slop gate to Phase 4 (#deploy-verification), sub-step 4d
+      (Frontend Verification) as a Node-path step that runs BEFORE/alongside the Playwright walk:
+      run `_shared/slop-engine/detect.mjs` on the generated HTML artifact (cheap, fast, no
+      browser). TIERING reuses the EXISTING deterministic browser-mandatory trigger (the Phase 4
+      entry-gate changed-files/`.html`-emit signal at line ~196–200) — do NOT re-invent
+      frontend-detection: when that trigger is positive the slop gate is MANDATORY; when it is
+      negative (non-UI feature) the gate is SKIPPED-WITH-LOG (one-sentence skip note in the Phase 8
+      report, mirroring 4f's "Skip only if zero UI surface" discipline). Add `--mode node` /
+      Node-path framing in the body; the gate is a script step, not an AskUserQuestion. Mark it as
+      distinct from the Playwright sub-steps so it cannot be conflated with 4d screenshot evidence.
+  - id: T3
+    title: "Route findings through findings-dispositions.md: quality can [Blocker]+gate; slop is [Should-fix]/[Nit] advisory, never hard-blocks"
+    ac: [AC2, AC5]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Per AC2/AC5, #c-verify, #d-tier (grill-confirmed), _shared/findings-dispositions.md, §K.
+      In SKILL.md route slop-engine findings through findings-dispositions.md (Fix / Modify / Skip
+      / Defer; severity [Blocker]/[Should-fix]/[Nit]) — cite the substrate by path, state only the
+      per-skill delta here: category drives severity. `quality`-category findings (contrast/a11y
+      arithmetic) map to [Blocker]/[Should-fix] and CAN GATE — a [Blocker] quality fault drives the
+      Phase 8 verdict rule (#commit-report) below bare PASS exactly like any unfixed critical 5e
+      gap. `slop`-category findings (taste/AI-tell) map to [Should-fix]/[Nit], are surfaced LOUDLY
+      but NEVER hard-block (taste must not stop a ship — D-TIER grill-confirmed 2026-06-24).
+      Surface BOTH lanes in the report as a distinct slop-findings section (Phase 5d/5e + the
+      Phase 8 verdict block) so /complete-dev inherits it into its summary (AC5). Findings classify
+      per the non-interactive contract: mechanical fixes get (Recommended); judgment calls get an
+      adjacent `<!-- defer-only: … -->` tag (audit-recommended.sh clean — AC6).
+  - id: T4
+    title: "Graceful degradation (Inv-5) — engine/parser absent logs a non-fatal note, never flips a correct PASS to fail"
+    ac: [AC4, AC7]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Per AC4/AC7, #d-tier, Inv-5, Inv-4. In SKILL.md specify the degradation path: if
+      _shared/slop-engine/ is absent, detect.mjs throws, or the vendored parser can't process the
+      HTML, the gate logs a non-fatal note ("slop gate skipped — engine/parser unavailable") and
+      /verify CONTINUES with prior behaviour — it NEVER flips a correct PASS to FAIL on tooling
+      absence (mirror the existing comments-coverage existence-guard discipline at #hard-gates and
+      the Phase 4d browser-tool ladder rung-4 logged-skip pattern). Per-check browser-only fallback
+      (D-DEPS): a check the Node parser can't reproduce is skipped on the Node path with a logged
+      note (runnable via /design-crit's browser path, story B) — never silently dropped. Add the
+      Inv-5 degradation test to the T1 suite (engine-absent → logged note, verdict unchanged).
+  - id: T5
+    title: "Surface the slop-findings section in the /verify report (5d/5e + Phase 8 verdict block) — inherited by /complete-dev"
+    ac: [AC5]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per AC5, #spec-compliance (5d/5e), #commit-report (Phase 8). In SKILL.md give the slop gate a
+      distinct section in the Phase 5 compliance output (a slop-findings sub-table beside 5d UX
+      Polish / 5e Gap Report) and in the Phase 8 verdict block + user report: quality [Blocker]s
+      enumerated one-per-line in the verdict block (they gate); slop [Should-fix]/[Nit] surfaced as
+      a clearly-labelled advisory lane that does NOT affect the verdict. The section is the read
+      surface /complete-dev's summary inherits (same pattern as the dogfood-verdict KNOWN/accepted
+      lines /complete-dev already reads). Inv-3: introduce no `impeccable` string anywhere in the
+      SKILL.md edit (and no `impeccable`/`impeccably` prose); the gate references the pmos-native
+      `_shared/slop-engine/` substrate only.
+  - id: T6
+    title: "Live dogfood — both branches: quality [Blocker] blocks; slop-only passes with advisory"
+    ac: [AC8]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      Per AC8, the TN−1 load-bearing dogfood (_shared/dogfooding.md). Run /verify (the real skill,
+      via build/skill-mode) on a UI artifact: BRANCH 1 — the artifact carries a planted WCAG
+      contrast failure → the quality finding routes as [Blocker] and the Phase 8 verdict drops
+      below bare PASS (gate fires). BRANCH 2 — the SAME artifact with only a `gradient-text` slop
+      tell (contrast fixed) → the slop finding is surfaced as an advisory [Should-fix]/[Nit] and
+      the verdict is a clean PASS (slop never hard-blocks). Capture evidence (verdict lines + the
+      slop-findings section for both runs) under this story's dir; write the satisfied/not-satisfied
+      Verdict line per _shared/dogfooding.md#anatomy item 6. Both branches deterministic + offline
+      (Inv-4) — no Playwright, no network.
+  - id: T7
+    title: "SKILL.md conforms to skill-patterns §A–§L + skill-eval [D] EXIT 0 + 4 repo lints + audit clean"
+    ac: [AC6]
+    deps: [T2, T3, T4, T5]
+    parallel: false
+    detail: >
+      Per AC6, skill-patterns §A–§L, host CLAUDE.md. Confirm the SKILL.md edit conforms: §H
+      (deterministic gate = script step, never model arithmetic — the engine does the contrast
+      math), §I (any new flag handled in body + in argument-hint or marked `nl-sugar`; the
+      Node-path slop gate is a phase step, not a contract flag), §J (the gate lives under existing
+      integer phase 4 / {#deploy-verification}; every cross-ref cites a {#slug} not a bare number),
+      §K (cite findings-dispositions.md / dogfooding.md, don't restate). Keep the non-interactive
+      inline block byte-identical. Run skill-eval [D]
+      (feature-sdlc/tools/skill-eval-check.sh <skill_dir>) to EXIT 0 (reconcile any pre-existing
+      accepted_residuals — record them, do not weaken). Run the 4 repo lints
+      (lint-non-interactive-inline.sh, audit-recommended.sh, tools/lint-flags-vs-hints.sh,
+      tools/lint-phase-refs.sh) + comments-coverage — all clean. Inv-3: grep `-i impeccable` over
+      the SKILL.md diff returns zero hits.

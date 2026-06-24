@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — Design-slop engine (epic 260624-3jp)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — Design-slop engine</h1>
+<p><strong>Epic 260624-3jp · route: skill · pmos-toolkit · Tier 3</strong>. This is the cross-skill
+coherence contract (the <code>design_doc:</code>) the stories cite by anchor. It is the design <em>output</em>
+of the <code>/shape</code> session held earlier in this conversation; no epic-level <code>/spec</code> exists for a
+route:skill epic (skill spec is per-skill, folds into each story's <code>/plan</code>).</p>
+
+<h2 id="tldr">TL;DR</h2>
+<p>Port <strong>impeccable</strong>'s deterministic frontend design-slop detector into pmos as a
+<strong>both-faces</strong> capability, vendored <strong>once</strong> as shared substrate and threaded through skills
+we already own — <strong>no new slash command</strong>. One engine; three consumers (detect via
+<code>/design-crit</code> + <code>/verify</code>, prevent via a generated rules floor); a drift-lint keeps detection
+and prevention in sync. All code/UI identifiers are pmos-native; the only tie to impeccable is one
+Apache-2.0 <code>NOTICE</code>.</p>
+
+<h2 id="context-classification">Context classification</h2>
+<p><span class="tag">internal-tool</span> — this is pipeline tooling for pmos itself (it improves the
+quality of what pmos generates and verifies). The lens floor downshifts strategic-positioning probes;
+the load-bearing lenses are <em>feasibility-as-constraint</em> (the dependency wrinkle, <a href="#d-deps">D-DEPS</a>),
+<em>licensing</em> (<a href="#d-vendor">D-VENDOR</a>), and <em>coherence with existing critique skills</em>
+(<a href="#non-duplication">non-duplication</a>).</p>
+
+<h2 id="architecture">Architecture — one engine, three mouths</h2>
+<pre>
+                    _shared/slop-engine/   (vendored, pmos-native, NOTICE)
+                    registry.mjs · checks.mjs · detect.mjs · browser.js
+                              │  one source of truth: the rule set
+        ┌─────────────────────┼─────────────────────────┐
+   DETECT (browser)      DETECT (node)              PREVENT (generated)
+   /design-crit          /verify frontend gate      _shared/design-slop-rules.md
+   injects browser.js    detect.mjs via jsdom/      (DON'T lines, from registry
+   into its Playwright   parser — no browser        skillGuideline) — cited as a
+   session, reads DOM    findings → dispositions    FLOOR by /wireframes,
+   findings, THEN runs   tiered UI/non-UI           /prototype, frontend /execute
+   its LLM critique
+                              │
+                    tools/lint-slop-rules.sh  (CI: skill-hygiene.yml)
+              every rule's skillGuideline substring MUST appear in the rules floor
+</pre>
+<p>This is impeccable's own two-faces design (detector ↔ skill, cross-validated), but the surfaces are
+<em>our existing skills</em> instead of a standalone plugin + CLI + extension.</p>
+
+<h2 id="naming">D-NAMING — pmos-native identifiers (no "impeccable" in code or UI)</h2>
+<table>
+<tr><th>Upstream (impeccable)</th><th>pmos-native</th></tr>
+<tr><td><code>src/detect-antipatterns.mjs</code> + browser build</td><td><code>_shared/slop-engine/{registry,checks,detect,browser}.mjs</code></td></tr>
+<tr><td><code>const ANTIPATTERNS</code></td><td><code>const SLOP_RULES</code> (in <code>registry.mjs</code>)</td></tr>
+<tr><td><code>window.impeccableScan()</code></td><td><code>window.pmosDesignScan()</code></td></tr>
+<tr><td><code>.impeccable-overlay</code> / <code>.impeccable-label</code></td><td><code>.pmos-slop-overlay</code> / <code>.pmos-slop-label</code></td></tr>
+<tr><td>npm bin <code>impeccable</code></td><td>(none — no CLI/bin shipped this epic)</td></tr>
+</table>
+<p>The pure check helpers (<code>checkBorders</code>, <code>checkColors</code>, <code>checkIconTile</code>, …) and the rule
+<code>id</code>s (<code>side-tab</code>, <code>icon-tile-stack</code>, …) are <strong>generic descriptors, not impeccable-branded</strong> —
+keep verbatim to preserve upstream parity and ease future rule-sync. Categories stay <code>slop</code> / <code>quality</code>.</p>
+
+<h2 id="engine-internals">Engine internals (the vendored substrate)</h2>
+<p>Faithfully ported from impeccable's documented structure (see <code>plugins/pmos-toolkit/agents/anti-patterns.md</code>,
+which is impeccable's own maintenance guide carried in this repo for reference):</p>
+<ul>
+<li><strong>Rule registry</strong> (<code>registry.mjs</code>) — declarative array; each rule
+<code>{ id, category: 'slop'|'quality', name, description, skillSection, skillGuideline }</code>.
+~44 rules. <code>skillSection</code> ∈ { Typography, Color &amp; Contrast, Layout &amp; Space, Visual Details,
+Motion, Interaction, Responsive, UX Writing }. <code>skillGuideline</code> = a 3–6-word substring that must
+appear verbatim in the matching DON'T line of the prevention reference (the drift-lint key).</li>
+<li><strong>Pure checks</strong> (<code>checks.mjs</code>) — <code>checkXxx(opts) → [{ id, snippet }]</code>; no DOM
+access, plain options in. Real CSS/contrast math (<code>contrastRatio</code>, <code>relativeLuminance</code>,
+gradient parsing). Logic copied <strong>verbatim</strong> (D-VENDOR).</li>
+<li><strong>Two adapters</strong> wrap the pure checks: a <strong>browser adapter</strong> (uses
+<code>getComputedStyle</code> + <code>getBoundingClientRect</code>; the injected detector + <code>window.pmosDesignScan()</code>),
+and a <strong>Node adapter</strong> (no layout — reads explicit pixel dims via <code>parseFloat(style.width)</code>;
+gates vertical-position checks behind a browser-only guard).</li>
+<li><strong>Snippet convention</strong> — every finding's <code>snippet</code> wraps its identifying text in
+straight double-quotes so tests can extract it (<code>/"([^"]+)"/</code>).</li>
+</ul>
+
+<h2 id="d-deps">D-DEPS — the dependency wrinkle (the one thing story A must settle first)</h2>
+<p>The Node/static path needs to parse HTML + computed CSS without a browser. This is the single
+open mechanical decision; <strong>story A's <code>/plan</code> resolves it before any other story can build</strong>.
+Options, with leaning:</p>
+<table>
+<tr><th>Option</th><th>Fit with repo no-npm/vendored posture</th></tr>
+<tr><td><strong>(a) Vendor impeccable's own parser stack</strong> — htmlparser2 + css-select + css-tree (all MIT), pre-bundled into <code>slop-engine/</code> as vendored JS, no <code>npm install</code> at runtime. <span class="tag">LEANING</span></td><td>Best — matches the repo's vendored-zero-dep pattern (cf. /converter vendored FlateDecode, /diagram vendored tidy-tree). Faithful to impeccable's actual static path.</td></tr>
+<tr><td>(b) jsdom for the Node path</td><td>Weak — jsdom is a heavy npm dependency; would be the repo's first. Convenient (full DOM) but cuts against the grain. Acceptable only as a <em>test/dev</em> dependency for fixtures, not a runtime requirement.</td></tr>
+<tr><td>(c) Reuse the vendored browser bundle inside a minimal DOM shim</td><td>Fragile — re-implements half of jsdom. Rejected unless (a) proves infeasible.</td></tr>
+</table>
+<p><strong>Decision:</strong> default <strong>(a)</strong> — vendor the minimal MIT parser stack so the runtime engine is
+offline + npm-free; jsdom, if used at all, is confined to <em>test fixtures</em>. Story A confirms (a) is
+feasible during planning; if a vendored parser can't reproduce a given check, that specific check
+degrades to browser-only (run via <code>/design-crit</code>) and is skipped on the Node path with a logged note —
+never silently dropped.</p>
+
+<h2 id="consumer-contracts">Consumer contracts</h2>
+
+<h3 id="c-design-crit">/design-crit — deterministic slop pre-pass (story B)</h3>
+<ul>
+<li>Before its LLM Nielsen/WCAG/PSYCH critique, <code>/design-crit</code> injects <code>slop-engine/browser.js</code>
+into its <strong>already-open Playwright page</strong>, calls <code>window.pmosDesignScan()</code>, and reads the findings
+from the DOM (per the anti-patterns agent: read <code>.pmos-slop-*</code> programmatically, don't screenshot).</li>
+<li>Deterministic findings are presented <strong>first</strong> (objective, with rule id + snippet + fix
+guidance), then the LLM critique layers UX judgement on top — they are reported as distinct lanes so a
+reader sees "machine-flagged tells" vs "judged UX issues".</li>
+<li>Additive + graceful: if the engine can't load, <code>/design-crit</code> behaves exactly as today (logged note).</li>
+</ul>
+
+<h3 id="c-verify">/verify — frontend slop gate (story C)</h3>
+<ul>
+<li>In the frontend-QA hard-gate phase, <code>/verify</code> runs <code>detect.mjs</code> on the generated HTML via the
+<strong>Node path (no Playwright)</strong> — cheap, fast, gate-able.</li>
+<li>Findings route through <code>_shared/findings-dispositions.md</code> (Fix / Modify / Skip / Defer; severity
+<code>[Blocker]/[Should-fix]/[Nit]</code>). <code>quality</code>-category contrast/a11y faults map to <code>[Blocker]/[Should-fix]</code> and <strong>can gate the release</strong>;
+<code>slop</code> tells map to <code>[Should-fix]/[Nit]</code> and are surfaced loudly but <strong>never hard-block</strong> (taste must
+not stop a ship). <span class="tag">grill-confirmed 2026-06-24</span></li>
+<li><strong>Tiered:</strong> mandatory for UI features (frontend-detection positive), skipped-with-log for
+non-UI work. Degrades gracefully when the Node parser/jsdom is unavailable (logged, non-fatal — never
+flips a correct PASS to fail on tooling absence).</li>
+</ul>
+
+<h3 id="c-prevention">Prevention reference (story D)</h3>
+<ul>
+<li><code>_shared/design-slop-rules.md</code> — DON'T lines grouped by the <code>skillSection</code> headings,
+<strong>generated from the registry's <code>skillGuideline</code> fields</strong> (a small generator script in
+<code>slop-engine/</code>, so the floor can't drift from the rules by hand).</li>
+<li>Cited as a <strong>floor</strong> (one-line cite, per skill-patterns §K one-fact-one-home) by
+<code>/wireframes</code>, <code>/prototype</code>, and frontend <code>/execute</code> — alongside the existing <code>DESIGN.md</code> house style.</li>
+</ul>
+
+<h3 id="c-drift-lint">Drift-guard lint (story D)</h3>
+<ul>
+<li><code>tools/lint-slop-rules.sh</code> (repo-root, bash-3.2-safe) — for every rule with a <code>skillGuideline</code>,
+assert that substring appears in <code>_shared/design-slop-rules.md</code>; fail loudly on drift. Ports
+impeccable's <code>validateAntipatternRules()</code> cross-validator.</li>
+<li>Wired into <code>.github/workflows/skill-hygiene.yml</code> next to the existing lints.</li>
+</ul>
+
+<h2 id="non-duplication">Non-duplication vs existing critique skills</h2>
+<p><code>/design-crit</code> and <code>/msf-wf</code> are <strong>LLM-judged</strong> (Nielsen, WCAG-by-reading, PSYCH, journey
+friction). The slop engine is <strong>deterministic, zero-LLM</strong>, taste/freshness-focused ("AI tells") plus
+arithmetic a11y (contrast ratios, line length). They are <strong>complementary lanes</strong>: the engine gives
+objective machine findings; the LLM gives judgement. Story B explicitly stacks them (engine first, then
+judgement) rather than replacing either.</p>
+
+<h2 id="story-split">Story split (judgement; default 1-skill-1-story, independently-shippable substrate is its own story)</h2>
+<table>
+<tr><th>Story</th><th>Surface(s)</th><th>route</th><th>deps</th></tr>
+<tr><td><strong>A · engine-vendor</strong></td><td><code>_shared/slop-engine/</code> (substrate): registry + verbatim checks + Node adapter (D-DEPS resolved) + browser adapter + rules generator + <code>NOTICE</code> + ported fixtures/tests</td><td>skill</td><td>—</td></tr>
+<tr><td><strong>B · design-crit pre-pass</strong></td><td><code>/design-crit</code> SKILL.md + scripts</td><td>skill</td><td>A</td></tr>
+<tr><td><strong>C · verify slop gate</strong></td><td><code>/verify</code> SKILL.md + scripts</td><td>skill</td><td>A</td></tr>
+<tr><td><strong>D · prevention reference + drift-lint</strong></td><td><code>_shared/design-slop-rules.md</code> (generated) + <code>/wireframes</code>, <code>/prototype</code>, <code>/execute</code> one-line cites + <code>tools/lint-slop-rules.sh</code> + <code>skill-hygiene.yml</code></td><td>skill</td><td>A</td></tr>
+</table>
+<p>A is independently-shippable substrate → its own story; B/C/D each depend on A (D9 claim-time merge
+makes the engine present in each consumer's worktree before its <code>skill-eval</code>). B/C/D are mutually
+independent and can build in parallel once A is done. <strong>Single-plugin validation (D17):</strong> every
+surface is in <strong>pmos-toolkit</strong>; the whole epic rides one pmos-toolkit release.</p>
+
+<h2 id="decisions">Decision log</h2>
+<table>
+<tr><th>ID</th><th>Decision</th><th>Why</th></tr>
+<tr><td id="d-vendor">D-VENDOR</td><td>Vendor impeccable's check logic verbatim (don't reimplement; don't <code>npx impeccable</code>)</td><td>Apache-2.0 permits it; proven 44 rules; offline/self-contained matches repo posture; avoids external version coupling + network/npm at runtime.</td></tr>
+<tr><td>D-NAMING</td><td>Rename every identifier/global/CSS/string to pmos-native; keep generic check fn names + rule ids verbatim</td><td>User requirement: nothing impeccable-branded in code or UI. Generic names aren't branded and ease rule-sync.</td></tr>
+<tr><td>D-NOTICE</td><td>Ship one Apache-2.0 <code>NOTICE</code> in <code>slop-engine/</code> crediting <code>pbakaus/impeccable</code> + a lineage note here</td><td>Legally required when copying Apache-2.0 code; the only residual tie; lives in a NOTICE file, never in identifiers.</td></tr>
+<tr><td>D-NOCMD</td><td>No new slash command; the engine is a script with three existing-skill consumers</td><td>skill-patterns §H (deterministic = script); avoids surface proliferation; reuses skills that already have the inputs (Playwright in /design-crit; HTML in /verify).</td></tr>
+<tr><td>D-DEPS</td><td>Node path vendors the minimal MIT parser stack (option a); jsdom test-only; per-check browser-only fallback with logged skip</td><td>Honor repo no-npm/vendored posture; faithful to impeccable's static path; never silently drop a check.</td></tr>
+<tr><td>D-STACK</td><td>/design-crit stacks engine-first-then-LLM as distinct lanes; does not replace the LLM critique</td><td>Deterministic + judgement are complementary; preserves existing /design-crit value.</td></tr>
+<tr><td>D-GEN</td><td>Prevention reference is generated from the registry, not hand-authored</td><td>One source of truth; the drift-lint enforces it; matches impeccable's cross-validated design.</td></tr>
+<tr><td>D-TIER</td><td>/verify slop gate mandatory-for-UI, skipped-for-non-UI, graceful-degrade on missing tooling</td><td>/verify is non-skippable but the slop gate must not block non-UI work or fail on tooling absence.</td></tr>
+</table>
+
+<h2 id="invariants">Cross-skill invariants (coherence the stories must hold)</h2>
+<ol>
+<li><strong>Inv-1 — one engine.</strong> All four stories read the <em>same</em> <code>_shared/slop-engine/</code>; no consumer forks the rules. Story A is the sole author of the engine.</li>
+<li><strong>Inv-2 — registry is the source of truth.</strong> The prevention reference is generated from it; the drift-lint enforces the link; <code>skillGuideline</code> substrings are the contract between rule and DON'T line.</li>
+<li><strong>Inv-3 — zero impeccable strings.</strong> A grep for <code>impeccable</code> (case-insensitive) over the engine + consumers returns hits <em>only</em> in <code>NOTICE</code> and design-doc lineage prose. Story A and D each assert this.</li>
+<li><strong>Inv-4 — deterministic + offline.</strong> No engine path calls an LLM or the network. The LLM lives only in <code>/design-crit</code>'s existing critique, layered after.</li>
+<li><strong>Inv-5 — graceful degradation.</strong> Engine-absent / parser-absent never hard-fails a consumer; it logs and falls back to prior behaviour.</li>
+</ol>
+
+<h2 id="risks">Risks &amp; open questions</h2>
+<ul>
+<li><strong>D-DEPS feasibility</strong> — can the vendored MIT parser stack reproduce every check that impeccable's static path does? Story A planning must verify; checks that can't are browser-only (run via /design-crit) with a logged Node-path skip.</li>
+<li><strong>Rule false-positives on pmos's own artifacts</strong> — the engine must produce zero false positives on existing pmos HTML (the comment-overlay chrome, editorial template). Port impeccable's two-column flag/pass fixture discipline and add pmos-artifact pass-cases.</li>
+<li><strong>Browser-bundle size</strong> — impeccable's bundle is ~217 KB; injected into /design-crit's page only, not shipped to users. Acceptable, but note vs any bundle-size lints.</li>
+<li><strong>Upstream drift</strong> — we fork at a point in time; future impeccable rule updates are a manual re-sync, not automatic. Acceptable (this is a vendored port, not a dependency).</li>
+</ul>
+
+<h2 id="out-of-scope">Out of scope (this epic)</h2>
+<p>A standalone <code>/slop</code> command; a browser extension; a public website/overlay; live-URL crawling beyond
+/design-crit's existing Playwright; authoring net-new rules beyond impeccable's set; an npm-published CLI.</p>
+
+<h2 id="lineage">Lineage &amp; attribution</h2>
+<p>Engine logic and rule set are vendored from <strong>impeccable</strong> (<a href="https://github.com/pbakaus/impeccable">github.com/pbakaus/impeccable</a>),
+© Paul Bakaus, <strong>Apache License 2.0</strong>. The vendored substrate ships a <code>NOTICE</code> file reproducing the
+required attribution. All pmos-side naming is original (D-NAMING). This design doc is the output of the
+<code>/shape</code> session on 2026-06-24.</p>
+
+</body>
+</html>
