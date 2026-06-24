@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /poker references + restyle (epic 260624-3nj)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/poker</code> references + table restyle</h1>
+<p><strong>Epic:</strong> 260624-3nj · <strong>Plugin:</strong> pmos-gamekit · <strong>Route:</strong> skill ·
+<strong>Status:</strong> defining (define run 2026-06-24)</p>
+
+<p><strong>Lineage.</strong> An enhancement to the existing single-file <code>/poker</code> game
+(<code>plugins/pmos-gamekit/skills/poker/game/poker.html</code>, 1,152 lines — its engine was originally
+ported from the maintainer's <code>poker-coach</code> repo). Shaped during this define run from the
+maintainer's seed plus a first-hand study of the source app at
+<code>/Users/maneeshdhabria/Desktop/Projects/personal/poker-coach</code> (Next.js + React + zustand):
+the running dev server was played for several hands and every reference surface was screenshotted, and the
+codebase was mapped to the file level (<code>core/charts/</code>, <code>core/mental/</code>,
+<code>components/RankingsTab.tsx</code>, <code>components/PreflopChartTab.tsx</code>,
+<code>components/table/</code>). This page is the epic <code>design_doc:</code> — the coherence contract
+the single build story cites by anchor. Eight decisions were taken (four with the maintainer up front, two
+added mid-run, two resolved here — <a href="#decisions">§8 D1–D8</a>).</p>
+
+<h2 id="problem">1. Problem &amp; positioning</h2>
+<p>The maintainer's <code>poker-coach</code> app pairs a No-Limit Hold'em table with a right-hand panel of
+genuinely useful <em>static</em> learning references — a hand-ranking ladder, an interactive preflop
+opening chart, and a pot-odds / mental-math method. Those references are valuable on their own and worth
+having beside any casual game. The shipped <code>/poker</code> gamekit skill, by contrast, is
+<strong>pure play — no references at all</strong>, and its table, while already felt-green/gold, does not
+match the source app's polished oval-felt look.</p>
+<p><strong>What to take, what to leave.</strong> <code>poker-coach</code> also has heavy
+<em>live coaching</em> — per-decision verdicts (✅/⚠️/❌), a Monte-Carlo equity engine, live "chart says
+raise" hints, and a narrative Coaching tab. The maintainer explicitly does <strong>not</strong> want any of
+that: it makes a casual game feel like homework and drags in an equity engine, workers, and an analysis
+layer the gamekit charter has no room for. The goal is the <strong>references, not the coach</strong>.</p>
+<table>
+<thead><tr><th>Source surface</th><th>Disposition</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>References tab — hand rankings, preflop chart, pot-odds method</td><td><strong>Adopt (static)</strong></td><td>The valuable, evergreen learning content; no per-hand computation needed</td></tr>
+<tr><td>Oval-felt table, seat tiles, gold hero highlight, per-street chip strips</td><td><strong>Adopt (restyle)</strong></td><td>Polished look the maintainer wants to replicate; palette already close</td></tr>
+<tr><td>Live Feedback tab — verdicts, equity bar, EV table</td><td><strong>Drop</strong></td><td>Live coaching; out of scope by maintainer decision (D2)</td></tr>
+<tr><td>Monte-Carlo equity engine, equity worker</td><td><strong>Drop</strong></td><td>No runtime equity in a casual single-file game (D3)</td></tr>
+<tr><td>Coaching tab (narrative, file-backed)</td><td><strong>Drop</strong></td><td>Needs a server + skill; not a game feature</td></tr>
+<tr><td>Setup screen (bot styles/presets/skill), bankroll persistence</td><td><strong>Drop</strong></td><td>Beyond the chosen fidelity tier (D2); /poker keeps its simple opponent-count start + no-save rule</td></tr>
+</tbody></table>
+
+<h2 id="surface">2. Reference surface — the toggle-able side panel (D1)</h2>
+<p>The references live in a <strong>collapsible right-hand panel</strong> that mirrors
+<code>poker-coach</code>'s layout: the table occupies the left, the panel the right, toggled by a
+<code>References</code> button in the HUD. This is the maintainer's chosen surface (over a full-screen
+overlay or a top tab-toggle) because it keeps references visible <em>alongside</em> play — the way the
+source app works.</p>
+<ul>
+<li><strong>Layout.</strong> A two-column flex shell: <code>table</code> (flex-grow) + <code>aside.refs</code>
+(fixed ~340px). The existing table's responsive <code>scale()</code>-to-fit logic absorbs the narrower
+column. Toggling the panel re-fits the table.</li>
+<li><strong>Collapse.</strong> The panel is open/closed by the HUD button and remembers its state for the
+session only (no persistence — D5). When closed, the table reclaims the full width.</li>
+<li><strong>Narrow viewports.</strong> Below ~880px the panel becomes a full-width overlay above the table
+(the source app collapses 2-col → 1-col at the same breakpoint), dismissed by the same button / Esc.</li>
+<li><strong>Tabs inside the panel.</strong> Three stacked reference sections — <em>Hand rankings</em>,
+<em>Preflop chart</em>, <em>Pot odds</em> — presented as a small tab strip (matching the source's tabs) or
+a single scroll; the build story picks whichever reads cleaner at 340px. No "Live Feedback" / "Coaching"
+tabs exist (dropped).</li>
+</ul>
+
+<h2 id="references">3. The three references (static — D3, D4)</h2>
+<p>Every reference is <strong>static</strong>: it is the same content regardless of the hand in play, and
+nothing is computed per-decision. The one concession to convenience (D3): the preflop chart may
+<em>default</em> its Position selector to the hero's current seat — a pure pre-selection of a browsable
+control, not advice — and is freely changeable.</p>
+
+<h3 id="rankings">3.1 Hand rankings</h3>
+<p>The 9 hand categories, strongest first, each with a plain example — adopted verbatim from
+<code>poker-coach</code>'s <code>RankingsTab.tsx</code> (whose rows are derived from the
+<code>HandCategory</code> enum the evaluator already uses, so the labels can't drift from
+<code>/poker</code>'s own <code>handEval</code>). Content (single home — §K — is the bundled data table):</p>
+<table>
+<thead><tr><th>#</th><th>Category</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Straight Flush</td><td>Five in a row, all one suit — e.g. 9♥ 8♥ 7♥ 6♥ 5♥ (Ace-high is a Royal Flush)</td></tr>
+<tr><td>2</td><td>Four of a Kind</td><td>All four of one rank — e.g. K♠ K♥ K♦ K♣</td></tr>
+<tr><td>3</td><td>Full House</td><td>Three of a kind plus a pair — e.g. Q Q Q · 7 7</td></tr>
+<tr><td>4</td><td>Flush</td><td>Any five of one suit — e.g. A♦ J♦ 8♦ 5♦ 2♦</td></tr>
+<tr><td>5</td><td>Straight</td><td>Five in a row, mixed suits — e.g. 8♠ 7♥ 6♦ 5♣ 4♠</td></tr>
+<tr><td>6</td><td>Three of a Kind</td><td>Three of one rank — e.g. 9 9 9</td></tr>
+<tr><td>7</td><td>Two Pair</td><td>Two different pairs — e.g. J J · 4 4</td></tr>
+<tr><td>8</td><td>Pair</td><td>Two cards of the same rank — e.g. 10 10</td></tr>
+<tr><td>9</td><td>High Card</td><td>No pair or better — your highest card plays, e.g. A-high</td></tr>
+</tbody></table>
+
+<h3 id="preflop">3.2 Interactive preflop chart</h3>
+<p>A 13×13 grid of the 169 canonical starting hands (pairs on the diagonal, suited upper-right, offsuit
+lower-left), each cell a real button colored by recommended action (<em>raise</em> = green,
+<em>fold</em> = muted/red), with two selectors — <strong>Position</strong> (UTG / MP / CO / BTN / SB / BB)
+and <strong>Facing</strong> (first-in unopened / vs a raise). Clicking a cell shows a small detail line:
+the hand, its action, its win% vs a random hand, and the plain rationale. This replicates
+<code>poker-coach</code>'s <code>PreflopChartTab.tsx</code>.</p>
+<p><strong>Data (D6).</strong> The chart binds three bundled, inline static data structures adapted from
+the maintainer's own <code>poker-coach</code> (their work — no third-party licensing):</p>
+<ul>
+<li><code>open</code> — per-position RFI (raise-first-in) ranges as arrays of 169-grid keys, for UTG / MP /
+CO / BTN / SB. Ranges widen by seat (UTG tightest ~27 hands; BTN widest). Source:
+<code>core/charts/preflopCharts.json</code>.</li>
+<li><code>vsOpen.BB</code> — the big-blind defend range, split into 3-bet (<code>raise</code>) and
+<code>call</code> buckets. Source: same JSON.</li>
+<li><code>equity169</code> — precomputed win% vs one random hand for all 169 keys (e.g. AA 85.3, AKs 67.3,
+22 50.4). Source: <code>core/charts/preflopEquity.json</code>.</li>
+</ul>
+<p><strong>Honesty caveat (preserved).</strong> The source labels these a "transparent baseline, not solver
+output." The chart carries the same one-line note, and shows an explanatory panel (never a fabricated
+all-fold grid) for the spots the baseline doesn't model — BB unopened, and any position vs-a-raise outside
+the defend range. This is the only place any "should-you-raise" claim appears, and it is framed as a
+reference chart, not live advice (so it does <em>not</em> reintroduce the dropped coaching).</p>
+
+<h3 id="potodds">3.3 Pot odds + Rule of 2 &amp; 4</h3>
+<p>A static "how to do the math in your head" card — the <em>method</em>, not a live per-hand readout.
+Adapted from <code>poker-coach</code>'s <code>MentalMathSection.tsx</code> + <code>core/mental/</code>, but
+reduced to a fixed explainer (the live six-step walkthrough is part of the dropped coaching):</p>
+<ul>
+<li><strong>Counting outs</strong> — what an out is; the common draws (flush draw = 9, open-ended straight =
+8, gutshot = 4, overcards = ~6 soft).</li>
+<li><strong>Rule of 2 &amp; 4</strong> — outs × 4 ≈ chance to hit by the river (on the flop), outs × 2 ≈
+chance to hit on the next card (turn); the big-draw caveat (×4 overcounts above ~12 outs).</li>
+<li><strong>Pot odds &amp; break-even</strong> — <code>break-even% = toCall / (pot + toCall)</code>, with a
+worked example and a small reference table (e.g. half-pot bet = call needs ~25%, pot-sized = ~33%).</li>
+<li><strong>Putting it together</strong> — compare your chance-to-hit to the price; call when your equity
+beats the break-even number.</li>
+</ul>
+<p>This is presented as a compact illustrated card. No state, no per-hand numbers, no equity engine.</p>
+
+<h2 id="restyle">4. Table restyle (D2)</h2>
+<p>The chosen fidelity tier is <strong>references + match the table look</strong> — adopt
+<code>poker-coach</code>'s table visuals without the full setup/parity overhaul. Targets, taken from the
+source's <code>components/table/</code>:</p>
+<ul>
+<li><strong>Oval felt</strong> with the hero anchored bottom-center, opponents arranged around the oval, and
+the pot/board in the vertical center. The existing fixed-design-box + <code>transform: scale()</code>-to-fit
+approach is retained (and is what lets the side panel coexist) — the build keeps a readability floor and a
+<code>ResizeObserver</code> re-fit.</li>
+<li><strong>Seat tiles</strong> showing stack, last action, an acting glow, a winner glow, and a per-street
+chip strip (P / F / T / R badges with the amount committed that street) — replicating the source seat.</li>
+<li><strong>Card faces</strong> — cream face, red hearts/diamonds vs near-black spades/clubs, green-gradient
+back, gold outline on winning cards.</li>
+<li><strong>Felt-green / gold palette</strong> reconciled with the source tokens (<code>--felt</code>,
+<code>--gold</code>, verdict colors are dropped). The existing game already uses a close palette, so this is
+a refinement, not a rewrite.</li>
+<li><strong>Action bar</strong> — fold / check / call / raise with the size slider + ½ / ¾ / Pot quick
+buttons and unit toggle (USD / BB), matching the source's <code>ActionBar</code>. The existing game already
+has most of this; align the styling.</li>
+</ul>
+<p><strong>Explicitly NOT in scope (D2):</strong> the setup screen's per-bot style/skill pickers and table
+presets, bankroll persistence across sessions, and the one-at-a-time bot-action reveal animation are
+<em>not</em> required (they belong to the "full parity" tier the maintainer did not pick). <code>/poker</code>
+keeps its existing simple start screen (opponent count) and its no-save rule (D5/D7-existing).</p>
+
+<h2 id="hud">5. HUD title + pmos watermark (D7)</h2>
+<p>Two maintainer-requested HUD changes (added mid-define):</p>
+<ul>
+<li><strong>Title → "Poker".</strong> The in-game HUD/title currently reads "No-Limit Hold'em" /
+"No-Limit Texas Hold'em" in four places (<code>&lt;title&gt;</code>, the start <code>&lt;h1&gt;</code>, an
+engine comment, and a panel header). The user-facing HUD heading becomes simply <strong>Poker</strong>.
+(The skill's external <code>name:</code> / description and the launcher title stay as-is — see §7; this is a
+display-string change inside the game.)</li>
+<li><strong>pmos watermark.</strong> A small <code>pmos</code> wordmark in the HUD (corner / top strip)
+linking to the pmos-skills GitHub repo — <code>https://github.com/maneesh-dhabria/pmos-skills</code> —
+opening in a new tab (<code>target="_blank" rel="noopener"</code>). Mirrors the recent gamekit pattern
+(the <code>/flappy-bird</code> top-HUD pmos wordmark). Unobtrusive, does not overlap play controls, and is
+keyboard-focusable.</li>
+</ul>
+
+<h2 id="invariants">6. Invariants (unchanged contract)</h2>
+<ul>
+<li><strong>Single self-contained HTML</strong> (<code>game/poker.html</code>) — zero dependencies, no CDN,
+no build step, opens offline from <code>file://</code>, launched through the shared
+<code>_shared/game-launcher</code> (D5). The references, chart data, and restyle are all inlined.</li>
+<li><strong>Pure, window-exposed, self-tested engine.</strong> <code>PokerEngine</code> stays DOM-free and
+exposed on <code>window</code> for the existing VM tests; <code>tests/run.mjs</code> stays green and is
+extended to cover any new <em>pure</em> reference helpers (e.g. the 169-key chart lookup
+<code>chartAction(cards, position, facing)</code> and <code>handKey()</code>) — those are pure data
+functions and belong in the selftest (§H: deterministic logic is gated by a script, not the model).</li>
+<li><strong>No coaching, no equity engine, no network, no persistence.</strong> Closing the tab discards the
+table; nothing is saved.</li>
+</ul>
+
+<h2 id="story-split">7. Story split — one story (D8)</h2>
+<p><strong>Single story, no split.</strong> Every change lands in the one self-contained
+<code>game/poker.html</code> (plus its <code>tests/run.mjs</code>): the side panel, the three references,
+the chart data, the table restyle, and the HUD/watermark all share the same file and the same CSS/layout
+surface. Parallel story branches would conflict on essentially every section, and none of these pieces is
+independently shippable on its own (the panel needs the layout; the references need the panel; the restyle
+touches the same DOM). Per the D24 split litmus — if a task in one story would depend on a task in another,
+fix the split — this is one vertical slice. The epic is therefore a singleton: epic 260624-3nj → story
+260624-f62, <code>route: skill</code>, plugin <code>pmos-gamekit</code>, no dependencies.</p>
+<p>The skill's <code>SKILL.md</code> gets a small edit: the "<em>pure play — no coaching or equity
+panel</em>" line becomes "pure play plus a static References panel (hand rankings, preflop chart, pot-odds
+math)", and the launch-report text mentions the References toggle. The external <code>name:</code> and
+trigger phrases are unchanged.</p>
+
+<h2 id="decisions">8. Decisions</h2>
+<table>
+<thead><tr><th>#</th><th>Decision</th><th>Resolution</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>D1</td><td>How do references surface in the single-file game?</td><td><strong>Toggle-able right-side panel</strong> (table left, panel right), collapsible; full-width overlay below ~880px. Over full-screen overlay / top tab-toggle.</td><td>Maintainer (AskUserQuestion)</td></tr>
+<tr><td>D2</td><td>How far does "replicate as much as possible" go?</td><td><strong>References + match the table look</strong> (oval felt, seat tiles, gold hero, chip strips). NOT full parity — setup-screen bot pickers/presets, bankroll, and reveal animation are out.</td><td>Maintainer (AskUserQuestion)</td></tr>
+<tr><td>D3</td><td>Static vs context-aware references?</td><td><strong>Static.</strong> No live per-hand advice, no equity engine. The preflop chart may pre-select the hero's current seat (browsable convenience), which is not coaching.</td><td>Resolved here + maintainer</td></tr>
+<tr><td>D4</td><td>Which references?</td><td><strong>Hand rankings + interactive preflop chart + pot-odds/Rule-of-2&amp;4.</strong> Bot-style guide dropped (bot styles aren't surfaced in /poker).</td><td>Maintainer (AskUserQuestion, multiSelect)</td></tr>
+<tr><td>D5</td><td>Bundling &amp; launch contract?</td><td><strong>Unchanged.</strong> One self-contained HTML, zero-dep, offline, via game-launcher. References + data inlined. No persistence.</td><td>Invariant</td></tr>
+<tr><td>D6</td><td>Preflop chart data source?</td><td><strong>Bundle the baseline ranges + 169-key equity</strong> as inline static JS data adapted from the maintainer's own poker-coach JSON. Keep the "baseline, not solver" honesty caveat.</td><td>Resolved here</td></tr>
+<tr><td>D7</td><td>HUD title + watermark?</td><td>HUD heading → <strong>"Poker"</strong>; add a small <strong>pmos wordmark</strong> linking to <code>github.com/maneesh-dhabria/pmos-skills</code> (new tab). External skill name/triggers unchanged.</td><td>Maintainer (mid-define)</td></tr>
+<tr><td>D8</td><td>Story split?</td><td><strong>One story</strong> — single self-contained HTML file; everything is one vertical slice (D24 litmus). Singleton epic.</td><td>Resolved here</td></tr>
+</tbody></table>
+
+<h2 id="out-of-scope">9. Out of scope (v1)</h2>
+<ul>
+<li>Any live coaching: per-decision verdicts, equity bars, EV tables, "chart says raise" live hints, the
+narrative Coaching tab, the Monte-Carlo equity engine + worker.</li>
+<li>Setup-screen parity: per-bot style/skill pickers, table presets, coaching-depth selector,
+instant-feedback toggle.</li>
+<li>Bankroll / session persistence, hand history, save state.</li>
+<li>One-at-a-time bot-action reveal animation and showdown narrative banners beyond the existing
+winner display (nice-to-have; not required at this tier).</li>
+<li>A bot-style reference card (D4 — dropped; bot personas aren't exposed in /poker's start screen).</li>
+</ul>
+
+</body>
+</html>
