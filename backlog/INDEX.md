@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-c62 /wiki + 2 stories)
+Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-fly /flappy-bird visual variety + 1 story)
 
-125 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+127 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -53,6 +53,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-c62 /
 | 260624-3jp | defined | skill | pmos-toolkit | 0/4 | "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint" |
 | 260624-kkw | defined | skill | pmos-toolkit | 0/2 | "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate" |
 | 260624-c62 | defined | skill | pmos-toolkit | 0/2 | "/wiki — self-assembling onboarding wiki over a PM's own working docs (resumable generic-MCP ingestion → byte-exact document mirror + derived/cited understanding layer → purpose-built skimmable/faceted/annotatable single-file viewer + grounded Q&A), filterable to one workstream or --all" |
+| 260624-fly | defined | skill | pmos-gamekit | 0/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
 
 ## must
 
@@ -129,6 +130,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-c62 /
 | 260624-aa8 | story | feature | planned | 260624-kkw | "/artifact-critique SKILL.md — ingest + doc-type detection + single-pass axis scoring + per-axis deep-dive + ranked weakest-claims + synthesize + HTML emit with embedded findings block + two-tier quality gate + voice rubric & few-shot" | docs/pmos/features/2026-06-24_artifact-critique/02_design.html | docs/pmos/features/2026-06-24_artifact-critique/stories/260624-aa8/03_plan.md |  |
 | 260624-1e5 | story | feature | planned | 260624-c62 | "/wiki engine & bundled viewer — deterministic helper scripts (normalized-hash + two-factor drift, byte-exact overflow-stitch, resumable smallest-first queue, ripgrep+BM25 retrieval) + zero-dep single-file wiki-viewer skeleton (skim mode, section summaries, facets, glossary, title toggle, annotations) + frozen sidecar schema + selftests; no SKILL.md" | docs/pmos/features/2026-06-24_wiki/02_design.html | docs/pmos/features/2026-06-24_wiki/stories/260624-1e5/03_plan.md |  |
 | 260624-rmq | story | feature | planned | 260624-c62 | "/wiki SKILL.md — five verbs (add/sync/view/ask/curate) + generic instruction-driven MCP adapter (tool-discovery + auth-on-missing, no per-tool code) + resumable enrichment pipeline + incremental understanding-layer re-derivation + grounded ripgrep+BM25 Q&A + curate/classification (deps 260624-1e5)" | docs/pmos/features/2026-06-24_wiki/02_design.html | docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/03_plan.md |  |
+| 260624-vry | story | feature | planned | 260624-fly | "Build /flappy-bird visual variety — 7 background themes + 4 bird shapes + 5-color contrast-safe palette + top-HUD pmos wordmark, behind a pure seedable pickVariants() picker, with engine selftests (contrast/no-repeat/determinism/coverage) + headless dogfood" | docs/pmos/features/2026-06-24_flappy-bird-variety/02_design.html | docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md |  |
 
 ## could
 
