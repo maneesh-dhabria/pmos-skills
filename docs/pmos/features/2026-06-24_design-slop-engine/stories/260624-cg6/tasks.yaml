@@ -1,0 +1,154 @@
+schema_version: 1
+story: 260624-cg6
+epic: 260624-3jp
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/_shared/slop-engine
+# Story A — FOUNDATIONAL substrate: vendor impeccable's deterministic design-slop engine
+# into _shared/slop-engine/ as pmos-native, npm-free, offline shared substrate. NO DEPS — B/C/D
+# all depend on this (D9 claim-time merge brings the engine into each consumer's worktree).
+#
+# This is SUBSTRATE, not a SKILL.md — no slash command this epic (D-NOCMD). It is a set of .mjs
+# modules + a .js browser adapter + NOTICE + fixtures/tests under _shared/slop-engine/.
+#
+# Design anchors (02_design.html): #engine-internals (registry/checks/adapters/snippet convention),
+# #naming (D-NAMING rename table), #d-deps (D-DEPS option (a) — the one mechanical decision THIS
+# story resolves before B/C/D build), #decisions (D-VENDOR, D-NAMING, D-NOTICE, D-DEPS, D-GEN),
+# #invariants (Inv-1 one engine, Inv-2 registry source-of-truth, Inv-3 zero impeccable strings,
+# Inv-4 deterministic+offline, Inv-5 graceful degradation), #risks (D-DEPS feasibility + pmos
+# false-positives). Upstream reference: plugins/pmos-toolkit/agents/anti-patterns.md (impeccable's
+# own maintenance guide carried in-repo — rule schema, pure-check shape, snippet regex, jsdom gotchas).
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L is the authoring standard.
+#   §H gates (deterministic=script — the whole engine IS the §H "arithmetic a script does, not the model")
+#   §K one-fact-one-home (registry is the single rule source; consumers cite, never fork — Inv-1/Inv-2)
+#   §L subagent/model tiers (build tasks are mechanical; no model dispatch needed in the engine itself).
+# Host CLAUDE.md: canonical skill path = plugins/<plugin>/skills/_shared/<name>/ — substrate lives
+# under pmos-toolkit's _shared/; cross-plugin sync is scripts/sync-shared.sh only (not this story).
+#
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks
+# here — /complete-dev owns them at epic release.
+#
+# TDD posture: D-DEPS feasibility spike (T4 detect path) and the fixture+test harness (T7) are
+# authored to FAIL-FIRST against the empty engine, then the ports (T2/T3) and adapters (T4/T5) make
+# them green. Inv-3 grep (T8) is the closing gate.
+tasks:
+  - id: T1
+    title: "Scaffold _shared/slop-engine/ + Apache-2.0 NOTICE (D-NOTICE)"
+    ac: [AC6, AC10]
+    deps: []
+    parallel: false
+    detail: >
+      Per #naming / D-NOTICE / host CLAUDE.md canonical path. Create
+      plugins/pmos-toolkit/skills/_shared/slop-engine/ with the module skeleton the design names:
+      registry.mjs, checks.mjs, detect.mjs, browser.js, gen-rules-doc.mjs, vendor/ (for the MIT
+      parser stack, T4), and tests/ + tests/fixtures/. Author NOTICE reproducing the Apache-2.0
+      attribution to pbakaus/impeccable (© Paul Bakaus, Apache License 2.0) with a one-line lineage
+      note — this is the ONLY surface allowed to name impeccable (Inv-3). No SKILL.md (D-NOCMD —
+      substrate, not a command). Run `ls plugins/pmos-toolkit/skills/_shared/slop-engine/` to confirm
+      the directory registers under the canonical path. Conforms to skill-patterns §A–§L as substrate.
+  - id: T2
+    title: "Port registry.mjs SLOP_RULES — ~44 rules verbatim, pmos-native names"
+    ac: [AC1, AC5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per #engine-internals / #naming / D-VENDOR / D-NAMING / Inv-2. Port impeccable's ANTIPATTERNS
+      array into `export const SLOP_RULES` (the rename per the #naming table — `ANTIPATTERNS` →
+      `SLOP_RULES`). ALL ~44 rules (per grill: all of them, not a subset). Each rule
+      `{ id, category: 'slop'|'quality', name, description, skillSection, skillGuideline }`. Keep rule
+      `id`s and `skillSection`/`skillGuideline` text VERBATIM (generic descriptors, not impeccable-
+      branded — preserves upstream parity + future rule-sync per #naming). `skillSection` ∈ the 8
+      allowed: Typography, Color & Contrast, Layout & Space, Visual Details, Motion, Interaction,
+      Responsive, UX Writing (normalize `Color & Theme`→`Color & Contrast` per anti-patterns.md).
+      `skillGuideline` is the 3–6-word drift-lint key consumed by story D's generator/lint. NO
+      identifier or string may contain "impeccable" (Inv-3 / D-NAMING).
+  - id: T3
+    title: "Port checks.mjs pure functions verbatim (no DOM access)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per #engine-internals / D-VENDOR. Port the pure `checkXxx(opts) → [{ id, snippet }]` helpers
+      (checkBorders, checkColors, checkIconTile, checkMotion, checkGlow, checkPageTypography, …) and
+      the CSS/contrast math VERBATIM: contrastRatio, relativeLuminance, gradient parsing
+      (resolveBackground, resolveGradientStops, parseGradientColors). Plain options in, findings out —
+      NO `document`/`window`/`getComputedStyle`/`getBoundingClientRect` in the pure layer (that is the
+      adapter boundary, T4/T5). Preserve the snippet convention: identifying text wrapped in straight
+      double-quotes so the test regex `/"([^"]+)"/` can extract it (#engine-internals). pmos-native
+      module/identifier names only (Inv-3); generic check fn names kept verbatim per #naming.
+  - id: T4
+    title: "D-DEPS option (a) — vendor MIT parser stack + build detect.mjs Node adapter (no npm/no jsdom at runtime)"
+    ac: [AC3, AC9]
+    deps: [T2, T3, T7]
+    parallel: false
+    detail: >
+      Per #d-deps / D-DEPS / Inv-4 / Inv-5 / #risks. THE mechanical decision this story settles for the
+      whole epic. Pre-bundle htmlparser2 + css-select + css-tree (all MIT) into slop-engine/vendor/ as
+      vendored JS — NO `npm install` and NO jsdom at runtime (matches repo vendored-zero-dep posture:
+      /converter FlateDecode, /diagram tidy-tree). Build the Node adapter in detect.mjs: parse HTML +
+      explicit/computed CSS via the vendored stack, gather plain opts (read explicit pixel dims via
+      parseFloat(style.width) — NO layout available, mirroring the jsdom constraint in anti-patterns.md),
+      and feed checks.mjs. Export the public API `detectHtml(pathOrString) → findings[]` consumed by
+      /verify (story C, AC9). FEASIBILITY (per #risks): for each impeccable check, confirm the vendored
+      parsers reproduce it; any check that needs layout/vertical-position the static path can't do
+      DEGRADES to browser-only — SKIPPED on the Node path with a LOGGED note, NEVER silently dropped
+      (Inv-5). Record the per-check Node-vs-browser coverage map in 03_plan.md. jsdom, if used at all,
+      is a TEST-ONLY devDependency for fixtures (D-DEPS), never required by detect.mjs at runtime.
+  - id: T5
+    title: "browser.js adapter — window.pmosDesignScan() + .pmos-slop-* overlays"
+    ac: [AC4, AC9]
+    deps: [T2, T3]
+    parallel: true
+    detail: >
+      Per #engine-internals / #naming / #c-design-crit. Build the self-contained browser adapter: a
+      per-element DOM gatherer (uses getComputedStyle + getBoundingClientRect — has layout, so it can
+      run the vertical-position checks the Node path skips) feeding the same checks.mjs pure layer,
+      exposing `window.pmosDesignScan()` (renamed from `window.impeccableScan` per #naming) which
+      injects `.pmos-slop-overlay` / `.pmos-slop-label` elements readable from the DOM (per the
+      anti-patterns agent: consumers read the overlays programmatically, don't screenshot). Self-
+      contained for injection into /design-crit's already-open Playwright page (story B, AC9). All
+      globals/CSS class names pmos-native (Inv-3 / D-NAMING).
+  - id: T6
+    title: "gen-rules-doc.mjs — prevention-reference generator from SLOP_RULES (D-GEN)"
+    ac: [AC7]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Per #c-prevention / #c-drift-lint / D-GEN / Inv-2. Build the generator that emits the prevention-
+      reference markdown DON'T lines from `SLOP_RULES`, grouped under the `skillSection` headings, using
+      each rule's `skillGuideline` (the drift-lint key) — so the floor can't be hand-drifted from the
+      rules. This story SHIPS the generator only; story D wires it to write _shared/design-slop-rules.md
+      and adds tools/lint-slop-rules.sh + skill-hygiene.yml. Generator MUST be IDEMPOTENT (re-running on
+      an unchanged registry yields byte-identical output) — assert in T7. pmos-native identifiers (Inv-3).
+  - id: T7
+    title: "Port two-column flag/pass fixtures + Node tests, INCLUDING pmos-artifact pass-cases (zero false positives)"
+    ac: [AC8]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per #engine-internals (snippet/two-column convention) / #risks (pmos false-positives) / anti-
+      patterns.md TDD recipe. FAIL-FIRST: author this against the empty engine before T2–T6 implement.
+      Port impeccable's two-column fixtures (left=should-flag with unique <h3> text per case; right=
+      should-pass covering every false-positive shape; EXPLICIT pixel dims so the no-layout Node path
+      can match) and the Node test (`detectHtml(fixture)` → extract heading via `/"([^"]+)"/` → assert
+      SHOULD_FLAG ⊆ flagged and SHOULD_PASS ∩ flagged = ∅). ADD pmos-artifact pass-cases (#risks): the
+      comment-overlay chrome (the inline pmos-comments `<style>`/overlay JS baked into pmos artifacts)
+      and the editorial template (skills/_shared/html-authoring) — run detectHtml over each and assert
+      ZERO findings (no false positives on what pmos itself emits). Add a test asserting gen-rules-doc.mjs
+      is idempotent (T6) and that `detectHtml` exports a stable findings shape (AC9 — the public API
+      story C consumes). Tests are `node --test`, zero-runtime-dep; jsdom only if a fixture needs it
+      (test-only per D-DEPS). State per-skill deltas at the call site; cite dogfooding.md discipline.
+  - id: T8
+    title: "Inv-3 assertion — case-insensitive grep for 'impeccable' across slop-engine/** hits only NOTICE"
+    ac: [AC5]
+    deps: [T2, T3, T4, T5, T6, T7]
+    parallel: false
+    detail: >
+      Per #naming / D-NAMING / Inv-3 (Story A asserts this; story D re-asserts across consumers). Add a
+      check (a tests/ assertion or a small grep step in the test harness, bash-3.2-safe) that
+      `grep -ri impeccable plugins/pmos-toolkit/skills/_shared/slop-engine/` returns hits ONLY in
+      NOTICE — every identifier, global, CSS class, string, comment, and fixture is pmos-native. Failing
+      this is a hard stop. Closing gate of the story (runs after all ports + adapters + generator +
+      fixtures land).

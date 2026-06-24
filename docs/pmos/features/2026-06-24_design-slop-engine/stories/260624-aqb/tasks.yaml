@@ -1,0 +1,113 @@
+schema_version: 1
+story: 260624-aqb
+epic: 260624-3jp
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/_shared/slop-engine
+# Story D — prevention reference + drift-lint. Port impeccable's prevention face + its cross-validator.
+# Depends on 260624-cg6 (story A: the slop-engine substrate — registry.mjs SLOP_RULES + its
+#   gen-rules-doc.mjs generator + the engine's NOTICE). D9 claim-time merge brings story A into THIS
+#   worktree before any task runs, so the registry + generator are present (epic Inv-1 — one engine,
+#   story A is the sole author; this story is a pure consumer that NEVER forks the rules).
+# Design anchors: #c-prevention (generated floor) · #c-drift-lint (lint + CI) · #d-gen (D-GEN: floor is
+#   GENERATED from the registry, not hand-authored) · #invariants (Inv-2 registry is source of truth;
+#   Inv-3 zero impeccable strings; Inv-5 graceful degradation).
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L (esp. §K one-fact-one-home for the floor
+#   cites — cite, never restate) + host CLAUDE.md (canonical skill path; the 3 SKILL.md edits stay
+#   path-correct; non-interactive inline block byte-identical; argument-hints unchanged).
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks —
+#   /complete-dev owns them.
+tasks:
+  - id: T1
+    title: "Generate _shared/slop-engine/design-slop-rules.md from the registry via story-A's gen-rules-doc.mjs"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Per #c-prevention / #d-gen / Inv-2. The prevention reference is GENERATED, never hand-authored:
+      run story A's `_shared/slop-engine/gen-rules-doc.mjs` (present in this worktree via the D9
+      claim-time merge of 260624-cg6) to emit `_shared/slop-engine/design-slop-rules.md` — DON'T lines
+      grouped by the `SLOP_RULES[].skillSection` headings (Typography, Color & Contrast, Layout & Space,
+      Visual Details, Motion, Interaction, Responsive, UX Writing), each line carrying the rule's
+      `skillGuideline` verbatim substring. TDD: first a test asserting the generator is IDEMPOTENT
+      (re-running over an unchanged registry yields a byte-identical file — `node gen-rules-doc.mjs`
+      twice, diff clean) and that every `SLOP_RULES` entry with a non-empty `skillGuideline` appears in
+      the output grouped under its `skillSection`. Do NOT edit registry.mjs or the generator (story A
+      owns them — Inv-1); if the generator is missing or errors, STOP and surface it (claim-merge gap),
+      never hand-write the floor. The committed `design-slop-rules.md` is the generator's exact output.
+  - id: T2
+    title: "Add a one-line floor cite (per §K, no restating) in /wireframes, /prototype, AND frontend /execute"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per #c-prevention / skill-patterns §K (one fact, one home — cite the floor, never restate the
+      rules at the call site). Grill-confirmed 2026-06-24: ALL THREE UI-generating surfaces get the
+      cite, alongside the surface's existing DESIGN.md house-style cite. (a) /wireframes — in
+      `#resolve-design-md` / `#generate`, one line: emitted screens must also clear the generated
+      design-slop floor at `../_shared/slop-engine/design-slop-rules.md` (the DON'T lines /verify's slop
+      gate checks). (b) /prototype — in `#design-context` / `#generate-devices`, alongside the merged
+      DESIGN.md verbatim, the same one-line floor cite. (c) /execute — in Phase 2 `#execute-tasks`
+      per-task loop (the UI-task line, step 5), a one-line cite: frontend/UI tasks honor the same floor.
+      Each cite is a single line pointing at the floor path; NO rule text duplicated (Inv-2 — registry is
+      the source of truth, the floor is its generated form). Keep each SKILL.md's argument-hint, phase
+      anchors, and the byte-identical non-interactive inline block untouched (§A–§L; host CLAUDE.md).
+  - id: T3
+    title: "Write tools/lint-slop-rules.sh (repo-root, bash-3.2-safe) — every skillGuideline substring must appear in the floor"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per #c-drift-lint / Inv-2. New `tools/lint-slop-rules.sh`, modeled on tools/lint-phase-refs.sh
+      style (set -euo pipefail; LC_ALL=C; BASH_SOURCE[0]:-$0 repo-root resolution with the marketplace.json
+      walk-up fallback per CLAUDE.md "Bash portability"; bash-3.2-safe — no associative arrays, no mapfile,
+      awk does the bookkeeping). Ports impeccable's `validateAntipatternRules()`: extract every
+      `SLOP_RULES[].skillGuideline` from `_shared/slop-engine/registry.mjs` and assert each non-empty
+      substring appears VERBATIM in `_shared/slop-engine/design-slop-rules.md`; on any missing substring,
+      print a per-rule FAIL line (rule id + the absent skillGuideline) and exit 1; exit 0 only when every
+      guideline is present; exit 2 on invocation error (missing registry or floor). TDD: a test driving
+      the script against a registry/floor pair that is in sync (exit 0) and a deliberately-drifted pair
+      (exit 1, names the offending guideline). Fail LOUDLY — never a silent pass on a parse miss.
+  - id: T4
+    title: "Wire lint-slop-rules.sh into .github/workflows/skill-hygiene.yml + add a deliberately-broken fixture"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per #c-drift-lint. (a) Add a `Run lint-slop-rules` step to `.github/workflows/skill-hygiene.yml`
+      alongside the existing lint-flags-vs-hints / lint-phase-refs steps, and add the engine paths
+      (`plugins/pmos-toolkit/skills/_shared/slop-engine/registry.mjs`, `…/design-slop-rules.md`) +
+      `tools/lint-slop-rules.sh` to the workflow's `paths:` trigger so a drift-inducing edit runs it.
+      (b) Add a deliberately-broken fixture (a registry+floor pair with one removed/altered guideline)
+      under this story's dir or a tools/test fixtures dir, and a test that runs lint-slop-rules.sh against
+      it and asserts a non-zero exit — proving the lint actually fails on drift (not a no-op). The real
+      `_shared/slop-engine/design-slop-rules.md` ↔ `registry.mjs` pair must pass the lint (exit 0).
+  - id: T5
+    title: "Inv-3 grep clean + the 3 SKILL.md edits conform to §A–§L; skill-eval green for each; 4 lints + audit clean"
+    ac: [AC5, AC6]
+    deps: [T2, T4]
+    parallel: false
+    detail: >
+      Per Inv-3 + AC6. (a) Inv-3: `grep -ri impeccable` over the files this story creates/edits
+      (design-slop-rules.md, lint-slop-rules.sh, skill-hygiene.yml, the 3 SKILL.md cites, the fixture)
+      returns hits ONLY in design-doc lineage prose / the engine NOTICE (neither introduced here) — the
+      generated floor + cites + lint carry zero impeccable strings. (b) Run skill-eval
+      (feature-sdlc/tools/skill-eval-check.sh) for each touched skill — /wireframes, /prototype,
+      /execute — to EXIT 0 (the cites are §K-compliant one-liners; argument-hints, phase anchors, and the
+      non-interactive inline block are untouched, so no new residuals). (c) Run the 4 repo lints
+      (lint-flags-vs-hints, lint-phase-refs, lint-non-interactive-inline, lint-slop-rules) + audit-recommended
+      + comments-coverage — all clean. No release-prereq tasks (those are /complete-dev's).
+  - id: T6
+    title: "Live dogfood — break a skillGuideline → lint fails; regenerate the floor → lint passes"
+    ac: [AC7]
+    deps: [T1, T3, T4]
+    parallel: false
+    detail: >
+      Per AC7. End-to-end proof on the real engine: (1) edit one `SLOP_RULES[].skillGuideline` in
+      `registry.mjs` (or, equivalently, delete its DON'T line from the floor) WITHOUT regenerating —
+      run `tools/lint-slop-rules.sh` and capture the FAIL output naming the drifted rule (exit 1).
+      (2) Re-run `gen-rules-doc.mjs` to regenerate `design-slop-rules.md` from the registry, re-run the
+      lint, capture exit 0. (3) Revert the registry edit; confirm generator idempotent (diff clean) and
+      lint still green. Save the captured fails-then-passes evidence under this story's dir. (Do not
+      leave a forked registry behind — story A owns it, Inv-1.)
