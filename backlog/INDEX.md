@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-3jp + 4 stories)
+Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-kkw + 2 stories)
 
-116 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+119 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -50,6 +50,7 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-3jp +
 | 260617-pbk | released | skill | pmos-learnkit | 1/1 | "/playbook → evolution-only mode (remove case-study mode; default-evolution + marketplace skill-picker; mine everything)" |
 | 260617-vvd | released | skill | pmos-utilities | 3/3 | "/converter — convert files between formats (JSON↔YAML, CSV↔JSON, HTML↔MD, PDF↔MD) via a single-file web UI + zero-dep Node server" |
 | 260624-3jp | defined | skill | pmos-toolkit | 0/4 | "Design-slop engine — vendored _shared/slop-engine (pmos-native, NOTICE-credited) + /design-crit detect pre-pass + /verify slop gate + prevention reference & drift-lint" |
+| 260624-kkw | defined | skill | pmos-toolkit | 0/2 | "/artifact-critique — opinionated, axis-by-axis product-doc critique skill (10-axis verdict scorecard + quote-grounded deep-dives + ranked weakest-claims) on a shared _shared/critique-rubric/ substrate" |
 
 ## must
 
@@ -120,6 +121,8 @@ Last regenerated: 2026-06-24 (hand-regen after define merge of epic 260624-3jp +
 | 260624-shm | story | feature | planned | 260624-3jp | "/design-crit — deterministic slop pre-pass: inject the browser detector into the existing Playwright session, surface engine findings ahead of the LLM critique" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-shm/03_plan.md |  |
 | 260624-y9m | story | feature | planned | 260624-3jp | "/verify — frontend slop gate: run the engine via the cheap Node path (no Playwright), route findings through dispositions, tiered mandatory-for-UI, slop advisory / quality blocking" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/03_plan.md |  |
 | 260624-aqb | story | feature | planned | 260624-3jp | "Prevention reference + drift-lint: generate _shared/design-slop-rules.md from the registry, cite it as a floor in /wireframes /prototype /execute, add tools/lint-slop-rules.sh to skill-hygiene.yml" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-aqb/03_plan.md |  |
+| 260624-fbd | story | feature | planned | 260624-kkw | "Substrate _shared/critique-rubric/ — axes.md (10 axes + per-axis checks) + heuristics.md (reasoning spine) + doc-types.md (applicability map + verdict scale + findings schema) + vendored anonymized corpus samples" | docs/pmos/features/2026-06-24_artifact-critique/02_design.html | docs/pmos/features/2026-06-24_artifact-critique/stories/260624-fbd/03_plan.md |  |
+| 260624-aa8 | story | feature | planned | 260624-kkw | "/artifact-critique SKILL.md — ingest + doc-type detection + single-pass axis scoring + per-axis deep-dive + ranked weakest-claims + synthesize + HTML emit with embedded findings block + two-tier quality gate + voice rubric & few-shot" | docs/pmos/features/2026-06-24_artifact-critique/02_design.html | docs/pmos/features/2026-06-24_artifact-critique/stories/260624-aa8/03_plan.md |  |
 
 ## could
 

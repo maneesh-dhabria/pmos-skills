@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /artifact-critique (epic 260624-kkw)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/artifact-critique</code></h1>
+<p><strong>Epic:</strong> 260624-kkw · <strong>Plugin:</strong> pmos-toolkit · <strong>Route:</strong> skill ·
+<strong>Status:</strong> defined (define run 2026-06-24)</p>
+<p><strong>Lineage.</strong> Adopted from the locked seed brief
+<code>docs/design-briefs/2026-06-24-artifact-critique-skill.md</code> (deep grill 2026-06-24, 13 branches).
+This page is the epic <code>design_doc:</code> — the cross-skill coherence contract the two build stories
+cite by anchor. It carries the brief verbatim in substance and <strong>resolves the brief's §6
+"open items for define"</strong> into concrete contracts (the findings schema, the applicability map,
+the eval-script checks, the corpus/few-shot approach).</p>
+
+<h2 id="problem">1. Problem &amp; positioning</h2>
+<p>A PM finishes a PRD/strategy doc and wants the review a seasoned product leader would give before exec
+sign-off: <em>where is this weak, what's missing entirely, and which load-bearing claims won't survive
+scrutiny?</em> The toolkit critiques slices of this but never the whole product-doc as an opinionated
+standalone peer.</p>
+<table>
+<thead><tr><th>Skill</th><th>Critiques</th><th>Gap vs. this</th></tr></thead>
+<tbody>
+<tr><td><code>/polish</code></td><td>prose quality</td><td>judges <em>writing</em>, not <em>product thinking</em></td></tr>
+<tr><td><code>/grill</code></td><td>a committed artifact, live</td><td>needs a human in the loop; no written scorecard</td></tr>
+<tr><td><code>/msf-req</code></td><td>requirements, end-user lens</td><td>UX lens, not strategy/PRD rigor</td></tr>
+<tr><td><code>/simulate-spec</code></td><td>a spec vs scenarios</td><td>implementation-readiness, not doc quality</td></tr>
+<tr><td><code>/design-crit</code></td><td>an app/UI</td><td>UX of a built thing, not a document</td></tr>
+<tr><td><code>/artifact refine</code></td><td>a doc it generated</td><td>improves toward a template; not an adversarial standalone verdict</td></tr>
+</tbody></table>
+<p><strong>The missing primitive:</strong> a standalone, opinionated, scannable verdict-by-axis scorecard
+with a forced-ranking of the weakest claims, as a written artifact the author can act on without a live
+session. Envisioned arc (D5): <code>/artifact</code> (generate) → <code>/artifact-critique</code> (review)
+→ <code>/artifact refine</code> (rewrite to findings) → loop, eventually orchestrated by a future
+<code>/artifact-sdlc</code>. Must also run <strong>standalone</strong> on any doc path the user passes.</p>
+
+<h2 id="framework">2. The reverse-engineered framework (the substance to replicate)</h2>
+
+<h3 id="axes">2.1 Fixed 10-axis rubric (the coverage surface)</h3>
+<p>Every doc is scored on the <strong>same 10 axes, in this order</strong>, regardless of type:</p>
+<p><code>Customer · Solution · Scope · Metrics · Pricing · Strategy · GTM · Stage · AI · Risks</code></p>
+<p>The list is fixed <em>precisely so omissions surface</em> — an axis the author never addressed gets an
+<code>ABSENT</code> verdict (the highest-value output).</p>
+
+<h3 id="verdict-scale">2.2 Verdict vocabulary — single ordinal scale + reason tag (locked)</h3>
+<table>
+<thead><tr><th>Verdict</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>STRONG</code></td><td>present, concrete, evidenced — a first-class, <strong>freely-given</strong> verdict</td></tr>
+<tr><td><code>MIXED</code></td><td>partially there; strengths + real gaps</td></tr>
+<tr><td><code>WEAK</code></td><td>gestured at, not concrete/quantified</td></tr>
+<tr><td><code>ABSENT</code></td><td>expected for this doc-type but not addressed (a real defect)</td></tr>
+<tr><td><code>N/A</code></td><td>not applicable to this doc-type — but <strong>stated</strong>, never silently skipped</td></tr>
+</tbody></table>
+<p>The sharp shape-language ("output, not outcome"; "wedge, not a moat") lives in the free-text
+<strong>reason</strong>, keeping the at-a-glance scorecard a clean ordinal. <code>ABSENT</code> vs
+<code>N/A</code> is decided <strong>deterministically</strong> by the doc-type applicability map
+(<a href="#doc-types">§4.3</a>), never ad hoc.</p>
+
+<h3 id="skeleton">2.3 Critique structure (identical skeleton every run)</h3>
+<ol>
+<li><strong>Opening framing</strong> — names the doc-type and commits: "On a careful read, this is a [type]…
+I'll push hardest on [up to three things]."</li>
+<li><strong>Verdict by Axis</strong> — the scannable scorecard (10 × verdict + one-line summary).</li>
+<li><strong>Per-axis deep-dives</strong> — each header is itself a verdict; pulls a <strong>verbatim
+block-quote</strong> from the source, interrogates it, closes with a prescriptive <strong>"What I'd want
+to see:"</strong> ask (a concrete artifact).</li>
+<li><strong>Weakest Claims (0–3)</strong> — ranked load-bearing assertions + bulleted follow-up questions.
+May return fewer/none; <strong>never padded</strong> to a quota.</li>
+<li><strong>Bottom line</strong> — synthesis; credits strengths, names the 3 must-dos.</li>
+</ol>
+
+<h3 id="heuristics">2.4 Cross-cutting heuristics (the reasoning spine — doc-type-agnostic)</h3>
+<p>These recur on every axis and are the real intelligence — extracted as <code>heuristics.md</code> (Inv-1):</p>
+<ul>
+<li><strong>Assertion vs. evidence</strong> — "asserted, not demonstrated." Demands verbatim user quotes /
+incident data / ticket counts, not category descriptions.</li>
+<li><strong>Hypothesis falsifiability</strong> — every solution needs a stated if/then with a named
+<strong>mechanism</strong>. "A list of features is not a hypothesis."</li>
+<li><strong>Outcome vs. output metrics</strong> — every metric needs baseline + target + timeframe +
+counter-metric + kill/scale/graduate threshold.</li>
+<li><strong>Durable vs. current advantage</strong> — "Affordable pricing is a wedge, not a moat."</li>
+<li><strong>Stage-fit</strong> — scope/rigor must match lifecycle stage.</li>
+<li><strong>AI as a risk surface</strong> — any AI feature needs a Behavior Contract (GOOD/BAD/REJECT),
+fallback/kill-switch, eval metrics, red-team list.</li>
+<li><strong>Pre-mortem</strong> — "6 weeks post-launch and it failed — what happened?" Generates missing failure modes.</li>
+<li><strong>Alternatives-considered</strong>; <strong>Scope IN/OUT/CUT discipline</strong>;
+<strong>multi-sided completeness</strong> (every affected party); <strong>no-burial</strong> (load-bearing
+content in the body, not an annexure).</li>
+</ul>
+
+<h2 id="decisions">3. Decisions (from the locked brief)</h2>
+<table>
+<thead><tr><th>#</th><th>Decision</th><th>Choice</th></tr></thead>
+<tbody>
+<tr><td>D0</td><td>Separate skill vs. mode of <code>/artifact</code></td><td><strong>Separate standalone skill</strong> — judging a foreign doc is distinct from authoring one; runs on docs <code>/artifact</code> never made.</td></tr>
+<tr><td>D1</td><td>Critique vs. rewrite</td><td><strong>Critique-only.</strong> Rewrite delegated to <code>/artifact</code>; hand-off vehicle = the persisted critique's structured-findings block. No <code>/artifact</code> change in v1.</td></tr>
+<tr><td>D2</td><td>Shared substrate</td><td>Author <code>_shared/critique-rubric/</code> now; only <code>/artifact-critique</code> consumes it in v1. <code>/artifact</code> adoption is an explicit later story (dangling-cite guard — Inv-6).</td></tr>
+<tr><td>D3</td><td>Output format</td><td><strong>HTML-primary, <code>--format html|md</code>, drop <code>both</code></strong> (repo retired the MD sidecar). "Copy markdown" affordance on the HTML.</td></tr>
+<tr><td>D4</td><td>Replicate vs. generalize</td><td><strong>Keep both layers</strong> — the fixed 10 axes (coverage-of-absence, scannability, shared vocabulary, clean doc-type adaptivity) AND the heuristic spine (the reasoning). Coach uses both; so do we.</td></tr>
+<tr><td>D5</td><td>Positioning &amp; pipeline</td><td>Closely tied to <code>/artifact</code>; a stage in a future <code>/artifact-sdlc</code>. Runs standalone in v1; no hard coupling.</td></tr>
+<tr><td>D6</td><td>Input handling</td><td>Doc path (md/html/pdf) or pasted content; traverse Notion exports; read embedded diagrams/images and factor into scoring; full-doc-in-context by default, map-reduce <em>evidence-gathering</em> (verbatim quotes, never summaries) only past the real context limit; never silently truncate.</td></tr>
+<tr><td>D7</td><td>Honesty about limits</td><td>An inferred-but-unverifiable gap is "not visible in this doc", never asserted as fact (Inv-5).</td></tr>
+</tbody></table>
+
+<h2 id="resolved">4. Resolved define-time open items (brief §6 → concrete contracts)</h2>
+
+<h3 id="findings-schema">4.1 Structured-findings block — the <code>/artifact</code> hand-off contract</h3>
+<p><strong>Carrier (define decision):</strong> a dedicated inline
+<code>&lt;script id="pmos-critique-findings" type="application/json"&gt;</code> block baked into the HTML
+artifact (the same single-source-of-truth philosophy as the inline <code>pmos-comments</code> block, per
+CLAUDE.md), wrapped in <code>&lt;!-- pmos-critique-findings:start/end --&gt;</code> sentinels — <strong>not</strong>
+a <code>.sections.json</code> sidecar. In <code>--format md</code> the same JSON is emitted in a fenced
+<code>```json</code> block. Schema <code>pmos-critique-findings/v1</code>:</p>
+<pre>{
+  "schema": "pmos-critique-findings/v1",
+  "skill": "artifact-critique",
+  "doc": { "title", "type": "prd|strategy|pov|roadmap",
+           "type_confidence": "detected|inferred", "hybrid_of": ["strategy","prd"]|null,
+           "char_count", "source_path" },
+  "opening": { "pushing_hardest_on": ["…", "…", "…"] },          // 1–3 entries
+  "axes": [ {
+    "axis": "Metrics", "applicable": true,
+    "verdict": "STRONG|MIXED|WEAK|ABSENT|N/A",
+    "reason": "Outputs dressed as outcomes; no baseline/target/threshold.",
+    "quote": "&lt;≥40-char verbatim substring of source, or null when ABSENT/N/A&gt;",
+    "quote_section": "§4.2",
+    "what_id_want_to_see": "A baseline, a 6-month target, and a rollback threshold per north-star metric."
+  } ],                                                            // one per axis, all 10, in fixed order
+  "weakest_claims": [ {
+    "rank": 1, "claim": "&lt;verbatim load-bearing assertion&gt;",
+    "quote": "&lt;≥40-char verbatim&gt;", "quote_section": "§2.1",
+    "followups": ["…", "…"]
+  } ],                                                            // 0–3, ranks unique 1..n
+  "bottom_line": { "strengths": ["…"], "must_dos": ["…","…","…"] },
+  "limits": ["Pricing not visible in this doc — may live in an annexure", "Figure 3 unreadable"]
+}</pre>
+<p>This block is what a future <code>/artifact</code> rewrite step consumes; the standalone hand-off prose
+in v1 is advisory.</p>
+
+<h3 id="axes-checks">4.2 <code>axes.md</code> — per-axis checks (the spine mapped onto axes)</h3>
+<p><code>axes.md</code> declares, for each of the 10 axes: a one-line scope, the <strong>concrete checks</strong>
+(which §2.4 heuristics apply), and the <strong>"what I'd want to see" template</strong>. Illustrative
+(authored fully in story <code>fbd</code>):</p>
+<table>
+<thead><tr><th>Axis</th><th>Core check(s)</th></tr></thead>
+<tbody>
+<tr><td>Customer</td><td>evidence-vs-assertion; verbatim user quotes / segment sizing — not a category description; multi-sided completeness</td></tr>
+<tr><td>Solution</td><td>falsifiable hypothesis w/ named mechanism; alternatives-considered; "a list of features is not a hypothesis"</td></tr>
+<tr><td>Scope</td><td>explicit IN / OUT / CUT lists; v1 cut decisions; stage-fit</td></tr>
+<tr><td>Metrics</td><td>outcome-vs-output; baseline + target + timeframe + counter-metric + kill/scale/graduate threshold</td></tr>
+<tr><td>Pricing</td><td>durable-vs-current (wedge vs moat); willingness-to-pay evidence; (build-vs-buy + opportunity cost for internal tools)</td></tr>
+<tr><td>Strategy</td><td>positioning vs benchmarking; durable advantage; for internal platforms reframed as build-vs-buy</td></tr>
+<tr><td>GTM</td><td>channel/motion named; first-customer path; not "we'll figure it out"</td></tr>
+<tr><td>Stage</td><td>lifecycle stage stated and matched by scope/rigor (pre-PMF vs Series-A scope mismatch)</td></tr>
+<tr><td>AI</td><td>Behavior Contract (GOOD/BAD/REJECT); fallback/kill-switch; eval metrics; red-team list; "a wrong answer is a learning harm, not a UX bug"</td></tr>
+<tr><td>Risks</td><td>pre-mortem present; failure modes + mitigations; no-burial of financial/risk content</td></tr>
+</tbody></table>
+
+<h3 id="doc-types">4.3 <code>doc-types.md</code> — applicability map (drives ABSENT vs N/A)</h3>
+<p>Per doc-type, each axis is <strong>E</strong> (expected — missing ⇒ <code>ABSENT</code>),
+<strong>N/A</strong> (not applicable — missing ⇒ stated <code>N/A</code>), or <strong>C</strong>
+(conditional — a rule promotes it to E or N/A). <strong>Hybrids take the union</strong> (any axis E in any
+detected type is E), so nothing expected gets a free <code>N/A</code>.</p>
+<table>
+<thead><tr><th>Axis</th><th>PRD</th><th>Strategy</th><th>POV</th><th>Roadmap</th></tr></thead>
+<tbody>
+<tr><td>Customer</td><td>E</td><td>E</td><td>E</td><td>C</td></tr>
+<tr><td>Solution</td><td>E</td><td>C</td><td>C</td><td>E</td></tr>
+<tr><td>Scope</td><td>E</td><td>E</td><td>C</td><td>E</td></tr>
+<tr><td>Metrics</td><td>E</td><td>E</td><td>C</td><td>E</td></tr>
+<tr><td>Pricing</td><td>C¹</td><td>E¹</td><td>C</td><td>N/A</td></tr>
+<tr><td>Strategy</td><td>C</td><td>E</td><td>E</td><td>E</td></tr>
+<tr><td>GTM</td><td>E</td><td>E</td><td>C</td><td>E</td></tr>
+<tr><td>Stage</td><td>E</td><td>E</td><td>E</td><td>E</td></tr>
+<tr><td>AI</td><td>C²</td><td>C²</td><td>C²</td><td>C²</td></tr>
+<tr><td>Risks</td><td>E</td><td>E</td><td>E</td><td>E</td></tr>
+</tbody></table>
+<p><strong>Conditional rules:</strong> ¹ Pricing → <code>N/A</code> for internal tools / platforms (no external
+price), reframed as build-vs-buy + opportunity cost under Strategy. ² AI → <code>E</code> iff the doc
+proposes an AI/LLM feature; else <code>N/A</code>. The map text doubles as the author-facing explanation
+("PRDs are expected to address Risks"). The skill <strong>auto-detects the type and declares it in the
+opening line</strong> (user-correctable interactively / recorded as an assumption non-interactively); a
+<code>&lt;Work in Progress&gt;</code>/placeholder section is treated as a decision-blocking gap, not absence.</p>
+
+<h3 id="eval-checks">4.4 Deterministic eval script (hard gate, 100% pass)</h3>
+<p>A Node script (skill-patterns §H: deterministic = script, never LLM-counted) takes the extracted
+<strong>source text</strong> + the parsed <strong>findings JSON</strong> and asserts:</p>
+<table>
+<thead><tr><th>Check</th><th>Assertion</th></tr></thead>
+<tbody>
+<tr><td>E-schema</td><td>findings JSON parses + conforms to <code>pmos-critique-findings/v1</code></td></tr>
+<tr><td>E-axes-complete</td><td>all 10 axes present, in fixed order, each verdict ∈ the ordinal set</td></tr>
+<tr><td>E-applicable-consistency</td><td><code>applicable=false ⇔ verdict=N/A</code>; the applicable set matches the resolved doc-type map (union for hybrids)</td></tr>
+<tr><td>E-quote-len</td><td>every non-null <code>quote</code> ≥40 chars</td></tr>
+<tr><td>E-quote-in-source</td><td>every <code>quote</code>, whitespace-normalized, is a verbatim substring of the whitespace-normalized source text (the §6 verification mechanism)</td></tr>
+<tr><td>E-gap-named</td><td>every <code>ABSENT</code>/<code>WEAK</code> axis has a non-empty <code>reason</code></td></tr>
+<tr><td>E-weakest-ranked</td><td><code>weakest_claims</code> length 0–3; ranks unique 1..n; each has a source-verified quote ≥40 chars</td></tr>
+<tr><td>E-opening</td><td><code>opening.pushing_hardest_on</code> has 1–3 entries</td></tr>
+</tbody></table>
+<p>Exits 0 (all pass) / 1 (≥1 fail, listing them) / 2 (script error → the skill surfaces, never silently
+passes). <strong>Advisory reviewer (separate agent, per <code>_shared/reviewer-protocol.md</code>, ≤2
+loops):</strong> judges grounding quality, fairness (credits strengths <em>before</em> attacking), voice
+adherence, and flags manufactured/nitpick findings — non-blocking, surfaced.</p>
+
+<h3 id="corpus">4.5 Corpus, few-shot exemplars &amp; fixtures</h3>
+<p><strong>Define decision: vendor anonymized samples.</strong> The 5-doc Coach corpus
+(<code>~/Downloads/critique/</code>) is confidential internal product docs — <strong>none is committed</strong>.
+Story <code>fbd</code> creates a small set of <strong>anonymized/redacted mini-samples</strong> (doc-excerpt
++ paired critique-output JSON) under
+<code>docs/pmos/features/2026-06-24_artifact-critique/corpus-samples/</code>, covering ≥2 doc-types and an
+AI-feature case, so the eval-script fixtures and the few-shot voice exemplars are <strong>self-contained
+and reproducible</strong> without the author's local machine. Few-shot voice exemplars are short curated
+critique <em>lines</em> (≤~12), drawn from the anonymized samples — never the "Gokul Rajaram" attribution
+(D5/§6 of the brief; voice = unnamed seasoned-product-leader persona).</p>
+
+<h2 id="skill-shape">5. Skill shape — phases</h2>
+<p><strong>Charter:</strong> Give a product document the opinionated, axis-by-axis review a seasoned product
+leader would — a scannable verdict scorecard, quote-grounded per-axis critique, and a forced-ranking of the
+weakest claims — as a written artifact, then hand off to <code>/artifact</code> to rewrite.</p>
+<ol start="0">
+<li><strong>Load context</strong> — pipeline-setup, resolve <code>output_format</code>/<code>--format</code>, read learnings.</li>
+<li><strong>Ingest</strong> — resolve the doc (path/paste/Notion-export traversal), extract text + section
+structure, <strong>read embedded diagrams/images</strong> (D6); note unreadable visuals (Inv-5). Full doc
+in context; map-reduce verbatim-quote gathering only past the real limit; never silently truncate.</li>
+<li><strong>Doc-type detection</strong> — classify (PRD/strategy/POV/roadmap/hybrid), <strong>declare in the
+opening line</strong> (user-correctable / assumption in NI); resolve the applicable-axis set from
+<code>doc-types.md</code> (union for hybrids).</li>
+<li><strong>Axis scoring — single-pass reviewer</strong> — one agent reads the whole doc and scores all
+axes against <code>axes.md</code> checks + <code>heuristics.md</code> spine → ordinal verdict + reason.
+Per-axis fan-out deferred as a latency optimization only (keeps cross-axis reasoning intact).</li>
+<li><strong>Per-axis deep-dive</strong> — verbatim quote → interrogation → "What I'd want to see:".</li>
+<li><strong>Weakest Claims (0–3)</strong> — ranked + follow-ups; may return fewer/none; never padded.</li>
+<li><strong>Synthesize</strong> — opening framing ("push hardest on …") + bottom-line.</li>
+<li><strong>Emit</strong> — <code>output_format</code>-respecting artifact (HTML primary via html-authoring;
+"Copy markdown" affordance) with the embedded structured-findings block (<a href="#findings-schema">§4.1</a>);
+advisory hand-off prose. Run the two-tier quality gate (<a href="#eval-checks">§4.4</a>) before finalizing.</li>
+</ol>
+
+<h2 id="voice">6. Voice (locked)</h2>
+<p>Replicate the opinionated senior-operator register via an <strong>unnamed "seasoned product leader"
+persona</strong>, held by an explicit voice rubric (take a position; no hedging; <strong>credit strengths
+before attacking</strong>; ground every critique in a quote; ventriloquize the executive reader — "The CPO
+should ask…") plus a few curated few-shot exemplar lines. <strong>Do not</strong> copy the "Gokul Rajaram"
+attribution; use the pmos wordmark/footer. The advisory reviewer scores voice adherence to resist drift
+toward generic-helpful/hedged output.</p>
+
+<h2 id="invariants">7. Cross-skill invariants (cite by anchor)</h2>
+<ul>
+<li><strong>Inv-1 — one rubric, one home.</strong> The 10 axes, the §2.4 spine, the verdict scale, and the
+applicability map live in <code>_shared/critique-rubric/</code> and nowhere else; the skill cites, never
+restates or forks (CLAUDE.md §K).</li>
+<li><strong>Inv-2 — coverage-of-absence is load-bearing.</strong> Every applicable axis gets a verdict each
+run; missing+expected ⇒ <code>ABSENT</code>, missing+not-applicable ⇒ stated <code>N/A</code>; the
+applicable set is resolved deterministically from <code>doc-types.md</code>.</li>
+<li><strong>Inv-3 — quote grounding.</strong> Every deep-dive + weakest-claim is grounded in a verbatim
+≥40-char quote <strong>verified present in the source</strong> by the deterministic gate (never an LLM
+string-match — CLAUDE.md §H).</li>
+<li><strong>Inv-4 — no padding.</strong> Weakest-claims 0–3, never padded; <code>STRONG</code> is freely
+given.</li>
+<li><strong>Inv-5 — honest about limits.</strong> Inferred-but-unverifiable ⇒ "not visible in this doc";
+unreadable visual named, its content not scored <code>ABSENT</code>.</li>
+<li><strong>Inv-6 — dangling-cite guard.</strong> Nothing references <code>_shared/critique-rubric/</code>
+except <code>/artifact-critique</code> until the <code>/artifact</code> adoption story lands. (Backstop:
+<code>/complete-dev --epic</code> route:skill coherence <code>[J]</code> gate surfaces dangling cites at
+release.)</li>
+</ul>
+
+<h2 id="substrate-map">8. Substrate file map</h2>
+<pre>plugins/pmos-toolkit/skills/
+├── _shared/critique-rubric/            ← story fbd (substrate)
+│   ├── axes.md                         10 axes + per-axis checks + "what I'd want to see" templates
+│   ├── heuristics.md                   the §2.4 reasoning spine (doc-type-agnostic)
+│   └── doc-types.md                    applicability map + verdict scale + findings schema (v1)
+└── artifact-critique/                  ← story aa8 (the skill)
+    ├── SKILL.md                        phases 0–7; cites critique-rubric (Inv-1); non-interactive block
+    ├── reference/
+    │   ├── voice-rubric.md             persona + voice rules + curated few-shot exemplar lines
+    │   └── ingest.md                   path/paste/Notion/PDF/image extraction + section-ref mapping
+    ├── scripts/
+    │   └── critique-eval.mjs           the §4.4 deterministic hard gate
+    └── tests/                          fixtures from the vendored anonymized corpus-samples
+
+docs/pmos/features/2026-06-24_artifact-critique/corpus-samples/   ← story fbd (anonymized; committed)</pre>
+<p>Substrate consumed by exactly one skill in v1 (D2); split into two stories so the rubric data lands and
+is internally validated before the skill orchestration is built on top.</p>
+
+<h2 id="stories">9. Stories</h2>
+<table>
+<thead><tr><th>Id</th><th>Title</th><th>Deps</th><th>Route</th></tr></thead>
+<tbody>
+<tr><td><code>260624-fbd</code></td><td>Substrate <code>_shared/critique-rubric/</code> — axes.md + heuristics.md + doc-types.md (applicability map + verdict scale + findings schema) + vendored anonymized corpus samples</td><td>—</td><td>skill</td></tr>
+<tr><td><code>260624-aa8</code></td><td>The <code>/artifact-critique</code> SKILL.md + voice rubric + few-shot + ingest + axis-scoring/deep-dive/weakest-claims/synthesize/emit phases + two-tier gate + HTML emit w/ embedded findings block + "Copy markdown"</td><td>fbd</td><td>skill</td></tr>
+</tbody></table>
+<p>Each story is one <code>/execute</code> session / one PR. <code>aa8</code> claim-time-merges
+<code>fbd</code>'s branch so it builds against the real substrate (D9). The D24 litmus holds — the only
+cross-story dependency is "SKILL.md cites a new <code>_shared/</code> section", a story-level dep, not a
+task-level one.</p>
+
+<h2 id="out-of-scope">10. Out of scope (v1)</h2>
+<ul>
+<li><strong><code>/artifact</code> rubric adoption</strong> — consume <code>heuristics.md</code> in
+<code>/artifact refine</code>; explicit later story tied to <code>/artifact-sdlc</code>. Until it lands, no
+<code>/artifact</code> cite of the substrate (Inv-6).</li>
+<li><strong><code>/artifact-sdlc</code></strong> orchestrator — the findings block is designed so it can slot
+in.</li>
+<li><strong>The REWRITE half</strong> of Coach — delegated to <code>/artifact</code>, not replicated (D1).</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+schema_version: 1
+story: 260624-fbd
+epic: 260624-kkw
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/_shared/critique-rubric
+# Story A — FOUNDATIONAL substrate (no deps). Authors _shared/critique-rubric/ as the single home
+# (Inv-1) for the 10-axis rubric, the heuristic spine, the verdict scale, the doc-type applicability
+# map, and the pmos-critique-findings/v1 schema. Story aa8 (the SKILL.md) claim-time-merges this
+# (D9) and cites it — never forks it.
+#
+# This is SUBSTRATE, not a SKILL.md — no slash command. Pure markdown reference/data files +
+# vendored anonymized fixtures + one internal-consistency self-check.
+#
+# Design anchors (02_design.html): #framework (the 10 axes + verdict scale + skeleton + spine),
+# #resolved (the define-time contracts), #axes-checks (axes.md shape), #doc-types (applicability map
+# + conditional rules + hybrid-union), #findings-schema (pmos-critique-findings/v1), #corpus
+# (anonymized-samples decision), #invariants (Inv-1 one home, Inv-2 coverage-of-absence, Inv-6
+# dangling-cite guard), #substrate-map.
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L is the authoring standard (as substrate):
+#   §H deterministic=script (the applicability map + schema are data a script reads, not LLM-judged),
+#   §K one-fact-one-home (this dir is the single rubric home; aa8 cites, never restates).
+# Host CLAUDE.md: canonical substrate path = plugins/pmos-toolkit/skills/_shared/<name>/.
+#
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks
+# here — /complete-dev owns them at epic release.
+#
+# TDD posture: the internal-consistency self-check (T5) is authored to FAIL-FIRST against the empty
+# dir, then T1–T4 make it green. T5 is the closing gate that proves axes/heuristics/map/schema/samples
+# are mutually consistent.
+tasks:
+  - id: T1
+    title: "Scaffold _shared/critique-rubric/ + author heuristics.md (the §2.4 reasoning spine)"
+    ac: [AC2, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Per #heuristics / host CLAUDE.md canonical path. Create
+      plugins/pmos-toolkit/skills/_shared/critique-rubric/ and author heuristics.md: each
+      doc-type-agnostic heuristic from 02_design.html#heuristics as a NAMED, citable entry
+      (assertion-vs-evidence, hypothesis-falsifiability+mechanism, outcome-vs-output with the full
+      baseline/target/timeframe/counter-metric/threshold checklist, durable-vs-current, stage-fit,
+      AI-as-risk-surface with the Behavior-Contract GOOD/BAD/REJECT shape, pre-mortem,
+      alternatives-considered, scope-IN/OUT/CUT, multi-sided-completeness, no-burial). Each entry: a
+      short id/handle, the rule, the sharp aphorism, and what it demands. Run
+      `ls plugins/pmos-toolkit/skills/_shared/critique-rubric/` to confirm canonical-path registration.
+      Conforms to skill-patterns §A–§L as substrate (leading ToC if >100 lines).
+  - id: T2
+    title: "Author axes.md — fixed 10 axes (in order) + per-axis checks + 'what I'd want to see' templates"
+    ac: [AC1]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per #axes / #axes-checks / Inv-1. Author axes.md declaring the fixed 10 axes in order
+      (Customer · Solution · Scope · Metrics · Pricing · Strategy · GTM · Stage · AI · Risks). For each
+      axis: a one-line scope, the concrete checks expressed as references to the heuristics.md handles
+      authored in T1 (every referenced heuristic MUST exist — T5 enforces), and a "what I'd want to
+      see" prescription template (a concrete artifact, e.g. Metrics → "a baseline, a 6-month target,
+      and a rollback threshold per north-star metric"). This file is the single source of the axis set
+      + order that aa8 reads. Flesh out the illustrative table at #axes-checks into full prose.
+  - id: T3
+    title: "Author doc-types.md — verdict scale + applicability map + conditional rules + hybrid-union + findings schema"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per #verdict-scale / #doc-types / #findings-schema / Inv-2. Three sections: (1) the verdict scale
+      (STRONG/MIXED/WEAK/ABSENT/N/A — ordinal meanings + the reason-line convention); (2) the
+      applicability map — a per-doc-type (PRD/strategy/POV/roadmap) table marking each axis E / N/A / C,
+      the conditional rules (Pricing N/A for internal tools → reframe as build-vs-buy under Strategy;
+      AI E iff the doc proposes an AI/LLM feature), and the explicit hybrid-UNION rule (any axis E in
+      any detected type is E for the hybrid). Map text doubles as author-facing explanation. (3) the
+      pmos-critique-findings/v1 schema verbatim from #findings-schema (doc/opening/axes/weakest_claims/
+      bottom_line/limits), including the axis enum (all 10) the schema validates against.
+  - id: T4
+    title: "Vendor anonymized corpus-samples (≥2 doc-types + an AI case) — excerpt + critique-output pairs"
+    ac: [AC4]
+    deps: [T3]
+    parallel: false
+    detail: >
+      Per #corpus (define decision: vendor anonymized samples; NEVER commit a real corpus doc). Read
+      ~/Downloads/critique/ (author's machine) for reference, then author SMALL anonymized/redacted
+      mini-samples under docs/pmos/features/2026-06-24_artifact-critique/corpus-samples/ — each a
+      doc-excerpt (md) + a paired critique-output JSON conforming to pmos-critique-findings/v1. Cover
+      ≥2 doc-types (e.g. an internal-platform PRD with Pricing N/A, and a strategy/POV) plus one
+      AI-feature case (exercises the AI axis Behavior-Contract check + AI=E conditional). Scrub all
+      identifying names/numbers/products. These are aa8's few-shot exemplar source + eval fixtures.
+  - id: T5
+    title: "Internal-consistency self-check (fail-first) — axes ⊆ map ⊆ schema; heuristic refs resolve; samples parse"
+    ac: [AC5, AC6]
+    deps: [T2, T3, T4]
+    parallel: false
+    detail: >
+      Per #invariants / Inv-1 / Inv-6. Author a small Node self-check (critique-rubric/selftest.mjs or a
+      tests/ entry) that asserts: every axis in axes.md appears in the doc-types.md applicability map AND
+      the findings-schema axis enum; every heuristic handle referenced by an axes.md check exists in
+      heuristics.md; every corpus-samples/*.json parses against pmos-critique-findings/v1 and uses only
+      valid axes/verdicts. Author it to FAIL-FIRST against the empty/partial dir, then confirm green
+      after T1–T4. Add the Inv-6 dangling-cite grep: `grep -rl critique-rubric plugins/ docs/` returns
+      only this epic's surfaces (no /artifact cite). Exit non-zero on any failure (surfaced, never silent).
