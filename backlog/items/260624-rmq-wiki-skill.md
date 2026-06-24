@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: [260624-1e5]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-24_wiki/
 plan_doc: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/03_plan.md
 tasks: docs/pmos/features/2026-06-24_wiki/stories/260624-rmq/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260624-rmq
+claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 labels: [pmos-toolkit, wiki, skill, mcp, qa, new-skill]
 created: 2026-06-24
 updated: 2026-06-24
