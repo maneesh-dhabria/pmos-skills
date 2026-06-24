@@ -54,8 +54,12 @@ brief). Cites `design_doc:` anchors `#workflow`, `#hero-fold`, `#style-system`, 
    (byte-identical to `_shared/non-interactive.md`), learnings load-line, a literal `## Phase N: … Capture
    Learnings` section. Non-interactive run AUTO-PICKs the 3 gate defaults (product-type-driven, D5) + logs OQs.
 7. **Gates green** — `skill-eval` [D]+[J] pass (or accepted residuals), 4 hygiene lints + audit-recommended pass,
-   non-interactive lint passes (inline block byte-match). Load-bearing dogfood: run the skill end-to-end on a real
-   product (e.g. this repo) and confirm a styled, gate-passing `index.html` + cited `brief.md` land in the folder.
+   non-interactive lint passes (inline block byte-match). **Load-bearing dogfood — target the pmos-skills repo
+   itself:** run `/landing-page` end-to-end against THIS repo (the agent-skills / pmos-skills plugin marketplace as
+   the "product") through all six phases, and confirm a styled, gate-passing `index.html` + cited `brief.md` land in
+   the per-page folder. Then **iterate** on the produced page (re-run the §7 copy gates + Phase-6 visual self-check,
+   refine hero / sections / style) until it ships clean. Commit the produced folder under `{docs_path}/landing-page/`
+   as dogfood evidence.
 
 ## Notes
 
