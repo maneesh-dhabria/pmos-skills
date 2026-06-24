@@ -9,12 +9,12 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-24_landing-page/
 plan_doc: docs/pmos/features/2026-06-24_landing-page/stories/260624-dqg/03_plan.md
 tasks: docs/pmos/features/2026-06-24_landing-page/stories/260624-dqg/tasks.yaml
 worktree: .claude/worktrees/feat-260624-dqg
-claimed_by: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
+claimed_by:
 driver_holder: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
 labels: [pmos-toolkit, landing-page, substrate, style-system, new-substrate]
 created: 2026-06-24
@@ -57,3 +57,18 @@ archetypes), §7 (copy gates), and §11 (substrate map / story A rows). Cites `d
 
 File-disjoint from Story B (no `SKILL.md`); independently shippable. D9 claim-time dep-merge makes these present
 in B's worktree before its skill-eval.
+
+### Build verdict — 2026-06-24 (Loop 2, branch `feat/260624-dqg`, kept for Loop 3)
+
+**SATISFIED** — all 6 ACs met; `node tests/selftest.mjs` exits 0 (**200 assertions**: 6 token sets full schema +
+WCAG-AA contrast computed in-script (§H), gallery 6 distinct named offline swatches + 0 http refs, all reference
+sections/rows). Delivered under `plugins/pmos-toolkit/skills/landing-page/`: `reference/{style-tokens.json,
+style-tokens.md, style-gallery.html, section-scaffolds.md, hero-archetypes.md, copy-gates.md}` +
+`tests/selftest.mjs`. Live Playwright render (localhost; `file://` blocked in MCP) confirmed all 6 swatches
+populate from tokens, dark theme binds `--bg #0d1117`, 0 page errors (favicon-only) — evidence at
+`stories/260624-dqg/style-gallery-render.png`. **No SKILL.md** (D7 — Story B/pe2 owns it).
+
+**skill-eval (Phase 6a): N/A** — this substrate story authors no SKILL.md by design (D7), so `skill-eval-check.sh`
+errors `no SKILL.md` and the 4 hygiene lints (all SKILL.md-targeted) have nothing to score; the substrate's quality
+gate is the pure selftest (green). skill-eval + the lints apply at Story B. **Release prerequisites** (version bump,
+changelog, README row, manifest sync) deferred to `/complete-dev --epic 260624-ajy` (Loop 3).
