@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="flappy-bird">
+<title>/flappy-bird visual variety — design (epic 260624-fly)</title>
+<style>
+  :root{ --ink:#1e2330; --muted:#5b6472; --line:#e3e6ec; --accent:#3f8f27; --code:#f4f6f8; }
+  body{ font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; color:var(--ink);
+        max-width:880px; margin:0 auto; padding:32px 22px 80px; }
+  h1{ font-size:26px; line-height:1.25; margin:0 0 4px; }
+  h2{ font-size:19px; margin:34px 0 10px; padding-bottom:5px; border-bottom:2px solid var(--line); }
+  h3{ font-size:15.5px; margin:20px 0 6px; }
+  .sub{ color:var(--muted); margin:0 0 18px; }
+  code{ background:var(--code); padding:1px 5px; border-radius:4px; font-size:13px; }
+  pre{ background:var(--code); padding:12px 14px; border-radius:8px; overflow:auto; font-size:12.5px; }
+  table{ border-collapse:collapse; width:100%; margin:10px 0; font-size:13.5px; }
+  th,td{ border:1px solid var(--line); padding:6px 9px; text-align:left; vertical-align:top; }
+  th{ background:#fafbfc; }
+  ul,ol{ padding-left:22px; }
+  li{ margin:3px 0; }
+  .tag{ display:inline-block; background:#eaf7e3; color:var(--accent); border-radius:5px;
+        padding:1px 8px; font-size:12px; font-weight:700; }
+  .swatch{ display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle;
+           margin-right:5px; border:1px solid rgba(0,0,0,.15); }
+</style>
+</head>
+<body>
+
+<h1>/flappy-bird visual variety</h1>
+<p class="sub"><span class="tag">epic 260624-fly</span> · route: skill · plugin pmos-gamekit · define run 2026-06-24</p>
+
+<h2 id="context">1 · Context &amp; scope</h2>
+<p>
+  <code>/flappy-bird</code> is a launch-only pmos-gamekit skill that serves one self-contained file,
+  <code>game/flappy-bird.html</code> (621 lines), through the shared zero-dependency game launcher. The file
+  splits cleanly into a <strong>pure engine</strong> (<code>window.FlappyEngine</code> — physics, scoring,
+  state transitions; DOM-decoupled, timer-free, seedable; <strong>Inv-1</strong>) and a <strong>render/UI
+  layer</strong> that consumes it. Today it ships one teal sky, one yellow round bird, and no attribution.
+</p>
+<p>This epic adds four cosmetic enhancements and one attribution mark — <strong>no gameplay change</strong>:</p>
+<ol>
+  <li><strong>Backgrounds</strong> — 7 procedural themes, random per game, no immediate repeat.</li>
+  <li><strong>Bird shapes</strong> — 4 procedural silhouettes, random per game.</li>
+  <li><strong>Bird color</strong> — fixed 5-color palette (color + accents), contrast-safe pick.</li>
+  <li><strong>pmos wordmark</strong> — subtle top-HUD link to the repo.</li>
+</ol>
+<p>
+  <strong>Out of scope:</strong> physics, gravity/flap impulse, pipe gaps, difficulty tiers, scoring,
+  ceiling clamp, pause, game-over, session-best + new-best flourish, the launcher/serve contract, and the
+  SKILL.md launch flow. These are behavior-preserved; only the cosmetic render + HUD layers move.
+</p>
+
+<h2 id="decisions">2 · Decisions</h2>
+<table>
+  <tr><th>#</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td>D1</td><td>Variant selection is a <strong>pure, seedable</strong> <code>pickVariants(seed, prevBg)</code> on the engine surface; render only consumes its output.</td><td>Preserves Inv-1 — randomization is testable, not a render-only side effect. Real games pass a fresh seed; selftests pin one.</td></tr>
+  <tr><td>D2</td><td><strong>Contrast invariant is a hard selftest.</strong> For every emittable <code>(bg,color)</code> pair, bird-vs-bg AND pipe-vs-bg luminance deltas exceed the threshold.</td><td>Protects playability — the bird and pipes are never lost against a background. The picker is constrained to never emit a failing pair.</td></tr>
+  <tr><td>D3</td><td><strong>No-immediate-repeat applies to background only.</strong> Bird shape &amp; color may repeat.</td><td>"Every game a different background" is the explicit ask. The shape×color combination space (20) is large enough that forcing all-three non-repeat adds branch complexity for no felt benefit.</td></tr>
+  <tr><td>D4</td><td><strong>Single file, single story.</strong> All four enhancements + selftests in <code>flappy-bird.html</code> (+ <code>tests/run.mjs</code>).</td><td>One <code>/execute</code> session; no cross-task split (D24 litmus passes) → a singleton epic with one story.</td></tr>
+  <tr><td>D5</td><td>Per-theme <strong>pipe tint + ground spec</strong> allowed.</td><td>Classic green pipes blend into the forest theme; space has no grassy ground. Each theme coordinates its own pipe/ground so contrast holds everywhere.</td></tr>
+  <tr><td>D6</td><td>Variants picked at <strong>newGame</strong>; the initial ready-preview behind the start overlay stays the default <code>sky</code> theme.</td><td>A calm, recognizable baseline before play; each game then re-rolls a fresh, different theme.</td></tr>
+</table>
+
+<h2 id="data-model">3 · Data model (pure registries)</h2>
+
+<h3>3.1 Theme registry — 7 backgrounds</h3>
+<p>A pure array; each entry is data only (no DOM). The motif <em>draw</em> functions live in the render layer (§5) and are keyed by <code>motif</code>.</p>
+<pre>// index 0 is the default (sky); order is stable (selftests assert by id)
+THEMES = [
+  { id:'sky',        grad:[...], ground:{top,fill}, pipe:null,        lum:'light', motif:'clouds'   },
+  { id:'ocean',      grad:[...], ground:{...},       pipe:null,        lum:'mid',   motif:'bubbles'  },
+  { id:'space',      grad:[...], ground:{platform},  pipe:{...tint},   lum:'dark',  motif:'stars'    },
+  { id:'sunset',     grad:[...], ground:{...},       pipe:{...tint},   lum:'mid',   motif:'sunhills' },
+  { id:'night-city', grad:[...], ground:{...},       pipe:{...tint},   lum:'dark',  motif:'skyline'  },
+  { id:'forest',     grad:[...], ground:{...},       pipe:{...tint},   lum:'mid',   motif:'hills'    },
+  { id:'cave',       grad:[...], ground:{...},       pipe:{...tint},   lum:'dark',  motif:'stalac'   },
+]</pre>
+<ul>
+  <li><code>grad</code> — sky gradient stops (top→bottom).</li>
+  <li><code>ground</code> — ground band colors; <code>space</code> uses a thin dark platform, others a tinted strip.</li>
+  <li><code>pipe</code> — optional <code>{light,dark,shine}</code> tint overriding the default green where needed (D5).</li>
+  <li><code>lum</code> — coarse luminance class of the upper play area where the bird flies (<code>light|mid|dark</code>), used by the contrast rule. A numeric reference luminance backs it for the selftest delta math.</li>
+  <li><code>motif</code> — render-layer draw key.</li>
+</ul>
+
+<h3>3.2 Bird palette — 5 colors</h3>
+<table>
+  <tr><th>id</th><th>body</th><th>accent (belly/cheek)</th><th>beak</th><th>lum</th></tr>
+  <tr><td>sunflower</td><td><span class="swatch" style="background:#ffd43b"></span>#ffd43b</td><td>#fff3bf</td><td>#ff8c42</td><td>light</td></tr>
+  <tr><td>coral</td><td><span class="swatch" style="background:#ff6b6b"></span>#ff6b6b</td><td>#ffd8d8</td><td>#d6336c</td><td>mid</td></tr>
+  <tr><td>sky-blue</td><td><span class="swatch" style="background:#4dabf7"></span>#4dabf7</td><td>#d0ebff</td><td>#1971c2</td><td>mid</td></tr>
+  <tr><td>mint</td><td><span class="swatch" style="background:#51cf66"></span>#51cf66</td><td>#d3f9d8</td><td>#2f9e44</td><td>mid</td></tr>
+  <tr><td>grape</td><td><span class="swatch" style="background:#cc5de8"></span>#cc5de8</td><td>#f3d9fa</td><td>#9c36b5</td><td>mid</td></tr>
+</table>
+<p>Each color carries a numeric reference luminance (for the delta math). Shape and color are chosen independently (D3).</p>
+
+<h3>3.3 Bird shapes — 4</h3>
+<p>Ids: <code>round</code> (classic), <code>sparrow</code> (slim body, pointed beak), <code>duck</code> (broad body, flat bill), <code>owl</code> (round head, ear tufts, large eyes). Each is a pure draw function (§5.2) taking the chosen <code>{body,accent,beak}</code> + the existing wing-flap phase.</p>
+
+<h2 id="picker">4 · The seedable picker (Inv-1)</h2>
+<pre>// pure; lives on the engine surface (e.g. FlappyEngine.pickVariants)
+pickVariants(seed, prevBg) -> { bg, bird, color }   // all integer indices
+  rng   = mulberry32(seed)                 // the engine's existing seedable PRNG
+  bg    = a theme index != prevBg          // D3: never the previous background
+  color = a palette index whose lum delta vs THEMES[bg] >= THRESHOLD   // D2: contrast-safe
+  bird  = any of the 4 shape indices       // free
+  return { bg, bird, color }</pre>
+<p><strong>Invariants the picker guarantees</strong> (asserted by §6 selftests):</p>
+<ul>
+  <li><strong>I-repeat:</strong> <code>bg !== prevBg</code> for any seed (when ≥2 themes exist).</li>
+  <li><strong>I-contrast:</strong> the emitted <code>(bg,color)</code> always satisfies the bird-vs-bg luminance threshold; and every theme's pipe (default or tint) satisfies pipe-vs-bg (a per-theme property, checked exhaustively).</li>
+  <li><strong>I-determinism:</strong> same <code>(seed, prevBg)</code> ⇒ identical result.</li>
+  <li><strong>I-coverage:</strong> across many seeds, all 7 backgrounds / 4 birds / 5 colors are reachable (no theme/color is unintentionally excluded for some <code>prevBg</code>).</li>
+</ul>
+<p>
+  Contrast feasibility is pre-checked at design time: each background admits at least two palette colors
+  above the threshold, so the <code>color</code> selection never dead-ends regardless of <code>bg</code>.
+  If a future theme/palette edit broke that, the I-coverage selftest fails loudly.
+</p>
+
+<h2 id="rendering">5 · Rendering integration</h2>
+<h3>5.1 Background</h3>
+<p>
+  The render <code>draw()</code> currently hardcodes a teal gradient + grass ground (lines ~461–476).
+  Replace with: read the active theme (chosen at <code>newGame</code>), paint its <code>grad</code>, call its
+  <code>motif</code> draw fn (subtle, optionally slow-parallax with the existing scroll clock), then paint its
+  <code>ground</code>. Pipes use <code>theme.pipe</code> tint when present, else the default green
+  (lines ~492–503). Motifs are lightweight (a few shapes); no new asset files, no new timers.
+</p>
+<h3>5.2 Bird</h3>
+<p>
+  <code>drawBird()</code> (lines ~505–531) currently hardcodes the yellow round bird. Replace its single body
+  with a <code>switch(birdShape)</code> over the 4 pure draw fns, each consuming the active
+  <code>{body,accent,beak}</code> color and the existing <code>birdFlap</code> phase + eye. The collision
+  radius (<code>BIRD_R</code>) and physics are unchanged — shapes are silhouettes within the same hitbox.
+</p>
+<h3>5.3 Selection wiring</h3>
+<p>
+  <code>newGame()</code> picks a fresh seed (the engine already has mulberry32), calls
+  <code>pickVariants(seed, prevBgIndex)</code>, stores the active theme/bird/color + records the new bg index
+  as <code>prevBgIndex</code> for the next game. Initial load paints the default <code>sky</code> theme behind
+  the start overlay (D6).
+</p>
+
+<h2 id="wordmark">6 · pmos wordmark (top HUD)</h2>
+<p>
+  Add an <code>&lt;a&gt;</code> inside <code>#hud</code> reading <code>pmos · flappy-bird</code>, linking to
+  <code>https://github.com/maneesh-dhabria/pmos-skills</code> with <code>target="_blank" rel="noopener"</code>.
+  Styling: small, translucent, its own faint rounded backing so it stays legible over any theme; positioned
+  in the top bar without overlapping the score (left) or best (right) — e.g. centered or pinned to a HUD
+  corner. It must <strong>not</strong> intercept the flap key/tap/click handlers (the flap listeners are on the
+  stage/canvas/keydown; the anchor is a normal link and pointer events on it are isolated). Includes the
+  literal text <code>flappy-bird</code> per the request.
+</p>
+
+<h2 id="selftests">7 · Selftests &amp; verification</h2>
+<p>Extend <code>tests/run.mjs</code> (the headless selftest harness). New assertions:</p>
+<ul>
+  <li>Registry completeness: 7 themes each with all required fields; 4 bird shape ids; 5 palette colors each with <code>{body,accent,beak,lum}</code>.</li>
+  <li>I-contrast: iterate every <code>(bg,color)</code> the picker can emit → bird-vs-bg delta ≥ threshold; iterate every theme → pipe-vs-bg delta ≥ threshold.</li>
+  <li>I-repeat: for each <code>prevBg</code> in 0..6 and many seeds, <code>pickVariants(seed,prevBg).bg !== prevBg</code>.</li>
+  <li>I-determinism: <code>pickVariants(s,p)</code> equals itself on repeat.</li>
+  <li>I-coverage: union over many seeds reaches all 7 bg / 4 bird / 5 color indices.</li>
+  <li>Existing physics/scoring/transition selftests unchanged and green.</li>
+</ul>
+<p>
+  Plus a <strong>headless live dogfood</strong>: boot the game, drive a seeded game, assert a non-default
+  theme + non-round/non-yellow bird render, the wordmark href equals the repo URL, a flap→score→game-over→
+  restart cycle works, and the console is error-free.
+</p>
+
+<h2 id="story-split">8 · Story split</h2>
+<p>
+  One story — <strong>260624-vry</strong> (route: skill, pmos-gamekit). Everything lives in one file built in
+  one session; no task in any candidate split depends on a task in another (D24 litmus passes), so the
+  singleton-epic wrap (D18) applies. Release: a <strong>minor</strong> pmos-gamekit bump in Loop-3
+  <code>/complete-dev --epic 260624-fly</code> (not in this define run — define merges docs only).
+</p>
+
+<h2 id="release">9 · Release prerequisites (handled by /complete-dev, not /plan)</h2>
+<ul>
+  <li>pmos-gamekit minor version bump in both <code>.claude-plugin/plugin.json</code> and <code>.codex-plugin/plugin.json</code>.</li>
+  <li>Changelog entry describing the new visual variety + attribution.</li>
+  <li>No new dependencies, no manifest/marketplace shape change, no README-row change (the skill already exists).</li>
+</ul>
+<p>These are listed for the release stage only; the per-story <code>/plan</code> must not place them in any build wave.</p>
+
+</body>
+</html>

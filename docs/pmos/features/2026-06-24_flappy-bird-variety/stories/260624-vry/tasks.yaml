@@ -1,0 +1,120 @@
+schema_version: 1
+story: 260624-vry
+epic: 260624-fly
+route: skill
+plugin: pmos-gamekit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-gamekit/skills/flappy-bird
+# Single-story build of /flappy-bird visual variety. Everything lands in the one self-contained
+# game/flappy-bird.html (engine + render layers) plus selftest additions in tests/run.mjs.
+#
+# Inv-1 (engine pure, DOM-decoupled, timer-free, seedable, selftested) MUST hold: the theme/palette
+# registries and pickVariants() are pure data + a pure function on the engine surface; only their
+# consumption is render-side. Motif/bird DRAW functions are render-only (canvas) and not selftested
+# directly, but the metadata they read IS selftested.
+#
+# Design anchors (02_design.html): #data-model (registries), #picker (seedable pickVariants +
+# invariants I-repeat/I-contrast/I-determinism/I-coverage), #rendering (background + bird + wiring),
+# #wordmark (top-HUD link), #selftests.
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §H — deterministic = selftest (the contrast /
+# no-repeat / determinism / coverage invariants are script-checked, never LLM-judged). Host CLAUDE.md:
+# canonical skill path = plugins/pmos-gamekit/skills/flappy-bird/.
+#
+# Gameplay is behavior-preserved (D5): physics, scoring, difficulty, ceiling clamp, pause, game-over,
+# session best, new-best flourish, and the launcher/serve contract are untouched.
+#
+# Release prerequisites (pmos-gamekit version bump, changelog) are NOT tasks here — /complete-dev owns
+# them at epic release (02_design.html#release).
+#
+# TDD posture: T2 writes the picker/registry selftests FAIL-FIRST; T1 + T3 turn them green. The live
+# headless dogfood (T8) is the closing gate proving themes/birds/wordmark render in a real browser.
+tasks:
+  - id: T1
+    title: "Add pure registries: THEMES[7] + PALETTE[5] + bird shape ids, with reference luminance values"
+    ac: [AC1, AC2, AC3]
+    deps: []
+    parallel: false
+    detail: >
+      On the engine surface (near FlappyEngine, kept pure/data-only), add: THEMES — 7 entries
+      (sky, ocean, space, sunset, night-city, forest, cave) each with grad stops, ground spec
+      (space=dark platform), optional pipe tint, lum class + a numeric reference luminance, and a
+      motif id, per 02_design.html#data-model §3.1; PALETTE — 5 colors (sunflower, coral, sky-blue,
+      mint, grape) each {body, accent, beak, lum + numeric luminance} per §3.2; the 4 bird shape ids
+      (round, sparrow, duck, owl). Index 0 of THEMES = sky (default). No DOM here.
+  - id: T2
+    title: "Write FAIL-FIRST selftests in tests/run.mjs for registries + picker invariants"
+    ac: [AC6]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per 02_design.html#selftests. Add assertions: registry completeness (7 themes × required fields,
+      4 bird ids, 5 palette colors × {body,accent,beak,lum}); I-contrast (every emittable (bg,color)
+      bird-vs-bg delta >= THRESHOLD; every theme pipe-vs-bg delta >= THRESHOLD); I-repeat
+      (pickVariants(seed,prevBg).bg !== prevBg across many seeds, all prevBg 0..6); I-determinism (same
+      seed+prevBg => identical); I-coverage (union over many seeds reaches all 7 bg / 4 bird / 5 color).
+      These MUST fail (red) before T3 exists. Existing physics/scoring selftests stay untouched + green.
+  - id: T3
+    title: "Implement pure pickVariants(seed, prevBg) -> {bg, bird, color}; turn T2 green"
+    ac: [AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Per 02_design.html#picker. Pure function on the engine surface using the existing mulberry32 RNG.
+      bg = a theme index != prevBg; color = a palette index whose luminance delta vs THEMES[bg] >=
+      THRESHOLD (contrast-safe, D2); bird = any of the 4. Pre-verify every theme admits >=2 colors so
+      color never dead-ends. Make all T2 assertions pass.
+  - id: T4
+    title: "4 procedural bird draw functions + drawBird() switch on active shape/color"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per 02_design.html#rendering §5.2. Replace the single hardcoded yellow round bird in drawBird()
+      (~lines 505-531) with a switch over round/sparrow/duck/owl pure draw fns, each consuming the
+      active {body,accent,beak} color and the existing birdFlap wing phase + eye. Hitbox (BIRD_R) and
+      physics unchanged — shapes are silhouettes within the same collision radius.
+  - id: T5
+    title: "7 background motif draw functions + per-theme gradient/ground/pipe tint in draw()"
+    ac: [AC1]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per 02_design.html#rendering §5.1. Replace the hardcoded teal gradient + grass ground (~lines
+      461-476) and pipe colors (~492-503) with: paint active theme grad; call its motif draw fn
+      (clouds/bubbles/stars/sunhills/skyline/hills/stalac — subtle, optionally slow-parallax off the
+      existing scroll clock, no new timers/assets); paint its ground spec; pipes use theme.pipe tint
+      when present else default green. Cheap shapes only.
+  - id: T6
+    title: "Wire selection into newGame; keep default sky ready-preview (D6)"
+    ac: [AC4]
+    deps: [T3, T4, T5]
+    parallel: false
+    detail: >
+      newGame() picks a fresh seed (engine mulberry32), calls pickVariants(seed, prevBgIndex), stores
+      active theme/bird/color, and records the new bg index as prevBgIndex for the next game. Initial
+      page load paints the default sky theme behind the start overlay; each newGame re-rolls a fresh,
+      different background.
+  - id: T7
+    title: "Add subtle top-HUD pmos wordmark link (pmos · flappy-bird -> repo)"
+    ac: [AC5]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Per 02_design.html#wordmark. Add an <a> in #hud reading 'pmos · flappy-bird', href
+      https://github.com/maneesh-dhabria/pmos-skills, target=_blank rel=noopener. Small, translucent,
+      own faint rounded backing for legibility over any theme; positioned without overlapping score
+      (left) / best (right); must NOT intercept flap key/tap/click handlers. Includes the literal text
+      'flappy-bird'.
+  - id: T8
+    title: "Headless live dogfood + selftest green + SKILL.md launch-paragraph touch"
+    ac: [AC6, AC7, AC8]
+    deps: [T6, T7]
+    parallel: false
+    detail: >
+      Run tests/run.mjs — all selftests (new + existing) green. Headless dogfood (per #selftests): boot
+      the game, drive a seeded game, assert a non-default theme + non-round/non-yellow bird render, the
+      wordmark href equals the repo URL, a flap->score->game-over->restart cycle works, console
+      error-free; capture evidence. Confirm skill-eval [D] passes with no new residuals and the 4 repo
+      hygiene lints pass. Optionally update the SKILL.md launch-description paragraph to mention the
+      per-game variety + pmos attribution (the launch CONTRACT stays unchanged).
