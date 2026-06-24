@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: [260624-dqg]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-24_landing-page/
 plan_doc: docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/03_plan.md
 tasks: docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260624-pe2
+claimed_by: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
+driver_holder: build:360c93c8-71d2-4f84-a4b4-db50aec1d4f9
 labels: [pmos-toolkit, landing-page, skill, new-skill]
 created: 2026-06-24
 updated: 2026-06-24
