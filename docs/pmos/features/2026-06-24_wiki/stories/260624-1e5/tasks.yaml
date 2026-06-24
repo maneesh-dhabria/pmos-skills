@@ -1,0 +1,108 @@
+schema_version: 1
+story: 260624-1e5
+epic: 260624-c62
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wiki
+# Story A — FOUNDATIONAL engine + bundled viewer (no deps). Authors the deterministic helper scripts,
+# the frozen sidecar/data-model schema, and the zero-dep single-file wiki-viewer skeleton under
+# plugins/pmos-toolkit/skills/wiki/{reference,scripts,tests}/. NO SKILL.md — Story rmq authors that,
+# claim-time-merges this (D9), and CALLS these scripts (never reimplements them — anti-pattern #6).
+#
+# All engine files are source-agnostic: NO MCP/transport code (that is D15, Story B).
+#
+# Design anchors (02_design.html): #data-model (sidecar schema + two-layer spine), #viewer (the 12
+# fold-ins, three buckets), #pipeline (deterministic-vs-LLM split, overflow stitch, resumable queue,
+# incremental re-derivation), #story-split (story A row + file-disjoint rationale).
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L as engine/substrate: §H deterministic =
+# script (hash/stitch/queue/drift/retrieval are scripts, never LLM-judged); §K one-fact-one-home (the
+# sidecar schema is the single home rmq cites). Host CLAUDE.md: canonical skill path =
+# plugins/pmos-toolkit/skills/wiki/.
+#
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks
+# here — /complete-dev owns them at epic release.
+#
+# TDD posture: tests/selftest.mjs (T2 sets it up fail-first) gates the scripts; the viewer dogfood
+# (T7) is the closing gate proving every §6 fold-in renders.
+tasks:
+  - id: T1
+    title: "Scaffold wiki/ + freeze the sidecar/data-model schema (reference/sidecar-schema.md)"
+    ac: [AC1]
+    deps: []
+    parallel: false
+    detail: >
+      Create plugins/pmos-toolkit/skills/wiki/{reference,scripts,tests/fixtures}/ and author
+      reference/sidecar-schema.md per 02_design.html#data-model: the deterministic fields (src, id,
+      source_hash, created, last_edited, length_tier, ancestor_path, original_title, section_offsets)
+      + the nullable enriched fields (summary, section_summaries[], glossary_terms[], external_links[],
+      llm_title, workstream, workstream_confidence, exclude, citation_anchors[]). State explicitly that
+      a sidecar with all enriched fields null is VALID (half-enriched docs). Add a small
+      tests/fixtures/corpus.sample.json with ≥1 fully-enriched + ≥1 half-enriched doc. Run
+      `ls plugins/pmos-toolkit/skills/wiki/` to confirm canonical-path registration.
+  - id: T2
+    title: "Author tests/selftest.mjs FAIL-FIRST against empty scripts/"
+    ac: [AC2, AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Per §H. Write the script selftest harness asserting the four helpers' contracts (hash
+      determinism + drift verdicts, stitch byte-exactness, queue resume/no-dupes, retrieval ranking +
+      anchor shape) against the fixture. It MUST fail (red) before T3–T5 exist. This is the gate the
+      next three tasks turn green.
+  - id: T3
+    title: "scripts/hash.mjs — normalized hash + two-factor drift (D10)"
+    ac: [AC2]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Pure, no deps beyond node stdlib. Normalized content hash strips the fetch timestamp, sorts
+      frontmatter keys, collapses whitespace before hashing (so a re-fetch with only a new fetch-ts is
+      NOT drift). Two-factor drift: last_edited_time as cheap pre-filter confirmed by the normalized
+      hash; degrade to hash-only when last_edited absent. Turn the matching selftest assertions green.
+  - id: T4
+    title: "scripts/stitch.mjs + scripts/queue.mjs — overflow stitch + resumable queue (D9)"
+    ac: [AC2]
+    deps: [T2]
+    parallel: true
+    detail: >
+      stitch.mjs: byte-exact reassembly of overflow parts by pure byte concatenation (saved-file
+      mechanism, corruption-proof) — round-trips a large fixture exactly. queue.mjs: smallest-first
+      ordering, checkpoint after each item, idempotent resume (no dupes), and a clean
+      RateLimitHalt-style exit that leaves a resumable .ingest-state. Turn the matching selftest
+      assertions green.
+  - id: T5
+    title: "scripts/retrieval.mjs — ripgrep+BM25 over sidecars → heading-path anchors (D17)"
+    ac: [AC2]
+    deps: [T2]
+    parallel: true
+    detail: >
+      ripgrep candidate gather + BM25 rank over the structured sidecars (pin the index input — sidecar
+      summary/section fields, not full mirrors — per 02_design.html#open). Return heading-path citation
+      anchors with block-ID preference when present. Scoping by workstream / --all is a query param.
+      Turn the matching selftest assertions green; selftest is now fully green.
+  - id: T6
+    title: "reference/wiki-viewer.html — zero-dep single-file viewer (all §6 fold-ins)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Zero external deps; renders an embedded corpus JSON (same shape as the fixture). Implement every
+      02_design.html#viewer fold-in: skim mode (summary-only, doc-by-doc) ↔ full toggle; per-H1/H2
+      section summaries; time + workstream + exclude facets (exclude hidden by default, restorable);
+      a glossary section; a created/last-modified header under each title; an LLM-vs-original title
+      toggle; external-reference links surfaced per summary; and inline-comment annotation threads that
+      persist inside the HTML (reuse the comments overlay pattern, skill-local copy — NOT a
+      library-viewer dependency, D14).
+  - id: T7
+    title: "tests/viewer.test.* — fixture render assertions + headless dogfood (closing gate)"
+    ac: [AC3, AC4, AC5]
+    deps: [T5, T6]
+    parallel: false
+    detail: >
+      Static assertions that each fold-in renders against tests/fixtures/corpus.sample.json. Then a
+      headless (Playwright) dogfood proving: skim↔full toggle, one facet filter narrows the doc list,
+      and an annotation round-trip persists — all with ZERO console errors. Confirm no SKILL.md exists
+      in wiki/ (AC5) and engine files contain no MCP/transport references. Run the 4 repo hygiene lints
+      where applicable. This is the story's closing gate.

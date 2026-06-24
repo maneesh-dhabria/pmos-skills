@@ -1,0 +1,101 @@
+schema_version: 1
+story: 260624-rmq
+epic: 260624-c62
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+skill_dir: plugins/pmos-toolkit/skills/wiki
+depends_on: [260624-1e5]
+# Story B — the /wiki SKILL.md + verb behaviours. DEPENDS on 260624-1e5 (engine + bundled viewer):
+# D9 claim-time dep-merge brings those files into this worktree before skill-eval. This story owns
+# everything LLM-side and CALLS the engine scripts (§H, anti-pattern #6 — never reimplement them).
+#
+# Defining constraint: D15 — NO per-tool MCP adapter code. The body discovers MCP tools at run time
+# against a generic fetch/search/extract-links contract and prompts auth on a missing MCP.
+#
+# Design anchors (02_design.html): #skill-shape (five verbs, add≠sync), #decisions (D12/D15/D16/D17),
+# #pipeline (generic-MCP pipeline, resumable queue, incremental re-derivation), #story-split (story B
+# row + dependency rationale).
+#
+# Reference: feature-sdlc/reference/skill-patterns.md §A–§L (full user-invocable-skill rubric); scored
+# against reference/skill-eval.md. Host CLAUDE.md: non-interactive inline block byte-identical to
+# skills/_shared/non-interactive.md; every AskUserQuestion (Recommended)-tagged or defer-only-marked.
+#
+# Release prerequisites (version bump, changelog, README row, manifest version-sync) are NOT tasks
+# here — /complete-dev owns them at epic release.
+#
+# TDD posture: skill-eval (the binary rubric) + the 4 hygiene lints + audit-recommended.sh + the live
+# ingest→view→ask dogfood (T6) are the closing gates.
+tasks:
+  - id: T1
+    title: "Author wiki/SKILL.md skeleton — frontmatter, triggering, five-verb dispatch, phases (§I/§J)"
+    ac: [AC1, AC8]
+    deps: []
+    parallel: false
+    detail: >
+      Per skill-patterns §A–§L. Frontmatter name=wiki matches dir (a-name-matches-dir). Description +
+      triggers per §A. Five verbs add/sync/view/ask/curate dispatched (§I NL-first: every verb has a
+      natural-language form; argument-hint lists only contract flags — --depth, --all — others stay
+      nl-sugar). Integer top-level phases with stable {#kebab-slug} anchors (§J). Inline the canonical
+      non-interactive block byte-identical to skills/_shared/non-interactive.md. Pin the taxonomy
+      bootstrap first-run prompt (pre-bundled vs emergent; default curated-emergent) here, (Recommended)-
+      tagged. Run `ls plugins/pmos-toolkit/skills/wiki/` to confirm registration.
+  - id: T2
+    title: "reference/mcp-protocol.md — generic fetch/search/extract-links + tool-discovery + auth-on-missing (D15)"
+    ac: [AC2]
+    deps: [T1]
+    parallel: true
+    detail: >
+      The generic MCP contract: given a page URL/id, identify the source, discover the available MCP
+      tools, and apply fetch/search/extract-links — NO per-source adapter code. Specify the
+      auth-on-missing UX: when the source's MCP is unauthenticated (in Claude Code), prompt the user to
+      authenticate, halt cleanly, and resume at the same queue position. Absent MCP → surfaced honestly,
+      not a crash. Pin the auth-prompt copy + the clean-halt/resume contract (02_design.html#open).
+  - id: T3
+    title: "add/sync verbs — resumable pipeline on the engine + incremental re-derivation (D9, §7)"
+    ac: [AC3, AC4]
+    deps: [T1, T2]
+    parallel: false
+    detail: >
+      add: discover-MCP+auth → crawl (hub fan-out to --depth) → engine mirror+deterministic sidecar
+      (BEFORE any LLM work) → engine queue → body enrichment (summary/section-summaries/glossary/
+      external-links/inferred workstream) honoring the anti-slop contract (reference/enrichment-
+      contract.md) → checkpoint; clean halt on usage cap, resume at next un-enriched doc, no dupes.
+      sync: engine two-factor drift over already-ingested docs (page or --all) → re-enrich drifted →
+      INCREMENTAL re-derivation: dirty only the derived/ artifacts whose citation set includes a changed
+      doc (§7), not the whole understanding layer.
+  - id: T4
+    title: "view + ask verbs — emit bundled viewer; grounded cited Q&A (D13/D17)"
+    ac: [AC1, AC5]
+    deps: [T1, T3]
+    parallel: false
+    detail: >
+      view [<ws>|--all]: inject the corpus JSON into the engine's reference/wiki-viewer.html and open
+      it; --all cross-workstream, ws-arg scopes. ask [<ws>|--all] "<q>": call scripts/retrieval.mjs
+      (ripgrep+BM25 over sidecars), phrase a grounded answer with heading-path citation anchors, scoped
+      by workstream/--all; refuse-honestly when sources are too thin to answer (carry the prototype's
+      low-confidence refusal).
+  - id: T5
+    title: "curate verb + workstream inference (D16) + confidentiality default (D12)"
+    ac: [AC6, AC7]
+    deps: [T1, T3]
+    parallel: true
+    detail: >
+      Workstream inference at ingest = hub-provenance (primary) + corpus tag-overlap against the
+      curated-emergent vocab (secondary); below threshold → uncategorized, NEVER force-tagged. curate:
+      re-tag workstream/topic, mark a doc exclude (irrelevant), promote a glossary term, accept/reject
+      vocab proposals — the human is the only writer to vocab. Confidentiality: substrate gitignored by
+      default + a visible warning on first ingest; NOT a fail-closed never-push gate (D12) — and do not
+      hide the leak risk.
+  - id: T6
+    title: "Live ingest→view→ask dogfood + skill-eval + 4 lints + audit (closing gates)"
+    ac: [AC8]
+    deps: [T2, T3, T4, T5]
+    parallel: false
+    detail: >
+      Live dogfood: ingest a small real source (recorded MCP fixture or a local-doc source standing in
+      for an MCP) → view (assert skim mode + a facet + an annotation persist) → ask (assert a cited,
+      grounded answer with a resolvable heading-path anchor). Then run skill-eval (the binary rubric,
+      EXIT 0 / no new residuals), the 4 repo hygiene lints (lint-non-interactive-inline, flags-vs-hints,
+      phase-refs, plus audit-recommended.sh), and comments-coverage if applicable. This is the story's
+      closing gate before the epic release train.
