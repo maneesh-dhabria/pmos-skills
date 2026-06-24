@@ -1,0 +1,116 @@
+[
+  {
+    "id": "overview",
+    "level": 2,
+    "title": "Overview",
+    "parent_id": null
+  },
+  {
+    "id": "code-study-notes",
+    "level": 2,
+    "title": "Code Study Notes",
+    "parent_id": null
+  },
+  {
+    "id": "patterns-to-follow",
+    "level": 3,
+    "title": "Patterns to follow",
+    "parent_id": null
+  },
+  {
+    "id": "existing-code-to-reuse",
+    "level": 3,
+    "title": "Existing code to reuse",
+    "parent_id": null
+  },
+  {
+    "id": "constraints-discovered",
+    "level": 3,
+    "title": "Constraints discovered",
+    "parent_id": null
+  },
+  {
+    "id": "stack-signals",
+    "level": 3,
+    "title": "Stack signals",
+    "parent_id": null
+  },
+  {
+    "id": "decision-log",
+    "level": 2,
+    "title": "Decision Log",
+    "parent_id": null
+  },
+  {
+    "id": "tasks",
+    "level": 2,
+    "title": "Tasks",
+    "parent_id": null
+  },
+  {
+    "id": "t1",
+    "level": 3,
+    "title": "T1: Shared GUID module + normalized reconciliation helper (tracer bullet)",
+    "parent_id": null
+  },
+  {
+    "id": "t2",
+    "level": 3,
+    "title": "T2: Phase-4 prompt — verbatim GUID echo + normalized reconciliation",
+    "parent_id": null
+  },
+  {
+    "id": "t3",
+    "level": 3,
+    "title": "T3: render-issue.js issue mode persists the per-issue items JSON sidecar",
+    "parent_id": null
+  },
+  {
+    "id": "t4",
+    "level": 3,
+    "title": "T4: render-issue.js library assembles from sidecars + loud skip-notice",
+    "parent_id": null
+  },
+  {
+    "id": "t5",
+    "level": 3,
+    "title": "T5: Reuse persisted takeaways on render (overlapping-window)",
+    "parent_id": null
+  },
+  {
+    "id": "t6",
+    "level": 3,
+    "title": "T6: Feed-failure tracking + suggest-only quarantine",
+    "parent_id": null
+  },
+  {
+    "id": "t7",
+    "level": 3,
+    "title": "T7: Wire selftests + docs (structure.test.sh, SKILL.md Phase 5, issue-format.md)",
+    "parent_id": null
+  },
+  {
+    "id": "t8",
+    "level": 3,
+    "title": "T8 (TN−1): Dogfood — overlapping-window issue + library on a real fixture",
+    "parent_id": null
+  },
+  {
+    "id": "t9",
+    "level": 3,
+    "title": "T9 (TN): Final verification",
+    "parent_id": null
+  },
+  {
+    "id": "risks",
+    "level": 2,
+    "title": "Risks",
+    "parent_id": null
+  },
+  {
+    "id": "review-log",
+    "level": 2,
+    "title": "Review Log",
+    "parent_id": null
+  }
+]
