@@ -89,8 +89,12 @@ function sectionBody(body, heading) {
 }
 
 function hasAcceptanceCriteria(body) {
+  // Groomed = a non-empty `## Acceptance Criteria` section carrying >=1 enumerated
+  // criterion in ANY form: checkbox (- [ ] / - [x]), plain/bold dash or star bullet,
+  // or numbered (1. / 2) / 1)). Heading-only or prose-only sections do NOT count.
+  // (Checkbox stays the recommended canonical form — see schema.md.)
   const ac = sectionBody(body, 'Acceptance Criteria');
-  return !!ac && /-\s*\[[ xX]\]/.test(ac);
+  return !!ac && /^\s*(?:[-*]\s+|\d+[.)]\s+)/m.test(ac);
 }
 
 // --- parseItems ------------------------------------------------------------------------
