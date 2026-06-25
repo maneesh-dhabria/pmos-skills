@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>slop-engine fixture — two-column flag/pass</title>
+<style>
+  /* Two-column convention (anti-patterns.md): left = should-flag, right = should-pass.
+     EXPLICIT pixel dims throughout — the Node static path has no layout engine. */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 960px; margin: 0 auto; padding: 24px; }
+  .col h2 { font-size: 14px; text-transform: uppercase; }
+  .card { width: 360px; padding: 24px; margin-bottom: 16px; background: #ffffff; }
+
+  /* FLAG cases */
+  .f-sidetab { border-left: 4px solid #6366f1; border-radius: 12px; }
+  .f-lowcontrast { color: #9ca3af; background: #ffffff; font-size: 16px; }
+  .f-gradtext { background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 40px; }
+
+  /* PASS cases */
+  .p-fullborder { border: 1px solid #dddddd; border-radius: 8px; }
+  .p-goodcontrast { color: #111827; background: #ffffff; font-size: 16px; }
+  .p-solidheading { color: #111827; font-size: 40px; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="col" data-col="flag">
+    <h2>Should flag</h2>
+
+    <div class="card f-sidetab">
+      <h3>Side Tab Accent</h3>
+      <p>A thick colored border on one side of a rounded card.</p>
+    </div>
+
+    <div class="card">
+      <h3>Low Contrast Body</h3>
+      <p class="f-lowcontrast">Grey text on white that fails WCAG AA contrast.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="f-gradtext">Gradient Clipped Heading</h3>
+      <p>A heading painted with a purple-to-pink gradient clipped to the text.</p>
+    </div>
+  </div>
+
+  <div class="col" data-col="pass">
+    <h2>Should pass</h2>
+
+    <div class="card p-fullborder">
+      <h3>Full Border Card</h3>
+      <p>An even border on all four sides, not a one-sided accent.</p>
+    </div>
+
+    <div class="card">
+      <h3>Good Contrast Body</h3>
+      <p class="p-goodcontrast">Near-black text on white, comfortably above AA.</p>
+    </div>
+
+    <div class="card">
+      <h3 class="p-solidheading">Solid Color Heading</h3>
+      <p>A large heading in a single solid ink color, no gradient fill.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
