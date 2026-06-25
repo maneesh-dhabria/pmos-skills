@@ -9,7 +9,7 @@ priority: should
 route: skill
 dependencies: [260624-cg6]
 plugin: pmos-toolkit
-status: in-progress
+status: done
 feature_folder: docs/pmos/features/2026-06-24_design-slop-engine/
 plan_doc: docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/03_plan.md
 tasks: docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/tasks.yaml
@@ -49,3 +49,29 @@ must degrade gracefully and never block non-UI work.
    string introduced.
 - [ ] Live dogfood: `/verify` on a UI artifact with a planted WCAG contrast failure blocks (quality
    [Blocker]); the same artifact with only a `gradient-text` slop tell passes with an advisory note.
+
+## Build notes (Loop-2, 2026-06-25)
+
+BUILT on `feat/260624-y9m` (commit `122811ed`; cg6 engine merged in). route:skill inner
+pipeline: skill-tier-resolve → execute → skill-eval [J] → verify → write-back.
+
+- **Gate runner** `verify/scripts/slop-gate.mjs`: frozen `BLOCKING_QUALITY` id set (§H — script
+  computes the bracket, never model arithmetic); exit 2 = [Blocker] quality fault present
+  (verdict drops below PASS), 0 = clean/skipped, 64 = usage. Inv-5 graceful skip (engine-absent
+  / parser-throw → exit 0, never flips a correct PASS). Inv-4 offline (no Playwright/network/LLM).
+- **SKILL.md**: 4d `#slop-gate` pre-check (reuses the browser-mandatory trigger), 4g
+  `#slop-routing` (cites `_shared/findings-dispositions.md`), 5f `#slop-findings` distinct lane,
+  Phase 8 `#commit-report` folds unfixed [Blocker] quality faults below bare PASS. Added
+  `## Track Progress` to clear the pre-existing `d-progress-tracking` [D] fail.
+- **Tests** `verify/tests/slop-gate.test.mjs`: 5/5 — both lanes, determinism, Inv-5 skip,
+  Inv-4 offline neg-control.
+
+Gates: skill-eval [D] improved 2→1 fail (fixed d-progress-tracking). 4 repo lints + audit +
+comments-coverage PASS; Inv-3 grep clean (zero `impeccable`). Live dogfood **satisfied**
+(contrast→exit2 [Blocker]; gradient-only→exit0 advisory; engine-absent→exit0 skip);
+blind judge **SHIP 5/5/5/5/5**.
+
+**Accepted residual** (pre-existing, on files NOT touched by this story): skill-eval [D]
+`c-reference-toc` fails for `verify/reference/folded-phases.md` + `design-drift-check.md`
+(>100 lines, no leading ToC). Fails identically on the merge base; out of scope for the slop
+gate. Record, do not weaken.
