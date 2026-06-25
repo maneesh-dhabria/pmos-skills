@@ -11,9 +11,10 @@
 // never aborts the whole issue (FR-7).
 //
 // Usage:
-//   node fetch-feed.js <url> [--since <ISO>] [--max <N>] [--timeout-ms <N>]
-//   node fetch-feed.js --file <path.xml> [--since <ISO>] [--max <N>]
+//   node fetch-feed.js <url> [--since <ISO>] [--until <ISO>] [--max <N>] [--timeout-ms <N>]
+//   node fetch-feed.js --file <path.xml> [--since <ISO>] [--until <ISO>] [--max <N>]
 //   node fetch-feed.js --selftest
+// --since is the (exclusive) lower bound; --until the (inclusive) upper bound.
 'use strict';
 
 const fs = require('fs');
@@ -84,9 +85,16 @@ function parseItems(xml) {
   });
 }
 
-function windowItems(items, sinceISO, max) {
+// Window an item set to a date range. Lower bound (`sinceISO`) is exclusive (>);
+// upper bound (`untilISO`, optional) is INCLUSIVE (<=) so a bare `--to YYYY-MM-DD`
+// resolved to that day's 23:59:59.999Z admits everything published on that day
+// (FR-6.2). Undated items pass both bounds (we never drop an item for a missing
+// date). `max` caps the newest-first result. untilISO omitted → no upper bound
+// (back-compat with the 3-arg signature).
+function windowItems(items, sinceISO, max, untilISO) {
   let out = items.filter((it) => it.guid && it.link);
   if (sinceISO) out = out.filter((it) => !it.published || it.published > sinceISO);
+  if (untilISO) out = out.filter((it) => !it.published || it.published <= untilISO);
   out.sort((a, b) => (b.published || '').localeCompare(a.published || ''));
   if (max && out.length > max) out = out.slice(0, max);
   return out;
@@ -124,6 +132,19 @@ function selftest() {
   const capped = windowItems(items, null, 1);
   assert(capped.length === 1, '--max caps the set');
 
+  // FR-6.2 (T2): the upper bound filters too, and is INCLUSIVE. post-0002 is
+  // published exactly at 2026-05-30T12:00:00.000Z; an `until` at that instant
+  // must still admit it. The newer 2026-06-02 post-0001 is excluded.
+  const atUntil = '2026-05-30T12:00:00.000Z';
+  const upper = windowItems(items, null, 0, atUntil);
+  assert(upper.some((it) => it.guid === 'post-0002'), 'T2: item exactly at the upper bound is included (inclusive)');
+  assert(!upper.some((it) => it.guid === 'post-0001'), 'T2: an item published after the upper bound is excluded');
+  assert(upper.length === 3, 'T2: upper bound admits the 2019 + two May items (post-0001 dropped), got ' + upper.length);
+  // A since/until RANGE keeps only the items strictly after since and at/under until.
+  const ranged = windowItems(items, '2026-05-29T00:00:00.000Z', 0, '2026-05-31T00:00:00.000Z');
+  assert(ranged.length === 1 && ranged[0].guid === 'post-0002',
+    'T2: since+until range keeps only the in-range item, got ' + JSON.stringify(ranged.map((i) => i.guid)));
+
   // Regression (FR-P5): XML entities in URLs are decoded, not passed through.
   const pod = items.find((it) => it.guid === 'substack:post:198591907');
   assert(pod, 'podcast fixture item present');
@@ -150,14 +171,15 @@ if (require.main === module) {
     if (argv.includes('--selftest')) return selftest();
 
     const since = arg('--since', null);
+    const until = arg('--until', null);
     const max = parseInt(arg('--max', '0'), 10) || 0;
     const timeoutMs = parseInt(arg('--timeout-ms', '15000'), 10);
     const file = arg('--file', null);
-    const url = argv.find((a) => !a.startsWith('--') && a !== since && a !== file && String(max) !== a);
+    const url = argv.find((a) => !a.startsWith('--') && a !== since && a !== until && a !== file && String(max) !== a);
 
     try {
       const xml = file ? fs.readFileSync(file, 'utf8') : await fetchXml(url, timeoutMs);
-      const items = windowItems(parseItems(xml), since, max);
+      const items = windowItems(parseItems(xml), since, max, until);
       process.stdout.write(JSON.stringify(items, null, 2) + '\n');
     } catch (e) {
       process.stderr.write('fetch-feed: ' + (file || url) + ': ' + e.message + '\n');

@@ -91,12 +91,13 @@ function feedKeyPairs(root) {
 // Run fetch-feed.js for one feed. A local path is read with --file (used by the
 // selftest and by file:// feeds); anything else is fetched as a URL. fetch-feed
 // emits "[]" + exit 1 on failure, which we surface as an empty, reported set.
-function fetchOne(feed, since, max) {
+function fetchOne(feed, since, max, until) {
   const args = [FETCH];
   if (fs.existsSync(feed)) args.push('--file', feed);
   else args.push(feed);
   if (since) args.push('--since', since);
   if (max) args.push('--max', String(max));
+  if (until) args.push('--until', until); // optional window upper bound (FR-6.2)
   try {
     const out = execFileSync(process.execPath, args, { maxBuffer: 32 * 1024 * 1024 }).toString();
     return JSON.parse(out);
@@ -108,6 +109,9 @@ function fetchOne(feed, since, max) {
 
 function cmdDiscover(opts) {
   const root = opts.root || defaultRoot();
+  // D1/D7: resolve the EXPLICIT window first (throws 'window required' on a bare
+  // discover, before any feed I/O). Both bounds are passed per-feed below.
+  const { since, until } = resolveWindow(opts);
   // Iterate feed OBJECTS so the ledger item's `feed` is the slug (name) — the
   // single canonical key shared with cursors + enqueue (FR-R4). Explicit --feed
   // URLs (selftest fixtures, ad-hoc single feed) have no slug, so they key by URL.
@@ -126,7 +130,7 @@ function cmdDiscover(opts) {
   let dupes = 0;
   for (const fo of feedObjs) {
     const feedKey = fo.name || fo.url;
-    for (const it of fetchOne(fo.url, opts.since, opts.max)) {
+    for (const it of fetchOne(fo.url, since, opts.max, until)) {
       const meta = {
         feed: feedKey, link: it.link, title: it.title,
         published: it.published, enclosure: it.enclosure,
@@ -141,6 +145,11 @@ function cmdDiscover(opts) {
     }
   }
   if (dupes) process.stderr.write('magazine-run discover: collapsed ' + dupes + ' cross-feed duplicate(s)\n');
+  // D2: persist this run's issue-defining set as the SINGLE latest snapshot,
+  // keyed by the discover's ISO timestamp, overwriting any prior snapshot (one
+  // object retained — no list, no GC). `prep` scopes its crawl to these guids.
+  // opts._now is an injectable run-id for deterministic tests (defaults to now).
+  st.snapshot = { id: opts._now || new Date().toISOString(), guids: snapshot.map((s) => s.guid) };
   state.save(file, st);
   return snapshot;
 }
@@ -163,10 +172,19 @@ function cmdPrep(opts) {
   const hasNewsletterFeed = typed.some((f) => f.type === 'newsletter');
   const route = { crawled: 0, queued: 0, unknownFeed: 0, newsletterQueued: 0, discovered: 0 };
 
+  // D2: scope the crawl to the latest discover snapshot. `discovered` items outside
+  // it are NOT crawled (a bad/over-fetched discover can no longer balloon prep).
+  // No snapshot in the ledger → fall back to whole-ledger behavior (Inv-4). The
+  // snapshot bounds only what prep CRAWLS; the issue may still reference in-window
+  // items already at summarized/rendered (D6 — they keep their advanced status).
+  void opts.snapshot; // --snapshot <id> is parsed-but-inert (D2 hook; no multi-snapshot store)
+  const snapGuids = (st.snapshot && Array.isArray(st.snapshot.guids)) ? new Set(st.snapshot.guids) : null;
+
   const results = [];
   for (const guid of Object.keys(st.items)) {
     const item = st.items[guid];
     if (item.status !== 'discovered') continue; // resumable: skip already-prepped
+    if (snapGuids && !snapGuids.has(guid)) continue; // D2: out-of-snapshot stays discovered
     const r = { guid, crawl: null, transcribe: null };
     route.discovered++;
     const ftype = typeByKey[item.feed];
@@ -421,7 +439,10 @@ function cmdStatus(opts) {
 }
 
 function parseOpts(argv) {
-  const opts = { feeds: [], since: null, max: 0, root: null, minChars: 0, backfill: 0, budgetSec: 0 };
+  const opts = {
+    feeds: [], since: null, until: null, from: null, to: null, days: null,
+    snapshot: null, max: 0, root: null, minChars: 0, backfill: 0, budgetSec: 0,
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--feed') opts.feeds.push(argv[++i]);
@@ -431,14 +452,71 @@ function parseOpts(argv) {
         const t = line.trim();
         if (t && !t.startsWith('#')) opts.feeds.push(t);
       }
-    } else if (a === '--since') opts.since = argv[++i];
+    } else if (a === '--since') opts.since = argv[++i];        // ISO lower bound (hidden/deprecated alias of --from)
+    else if (a === '--until') opts.until = argv[++i];          // ISO upper bound
+    else if (a === '--from') opts.from = argv[++i];            // window lower bound (YYYY-MM-DD | ISO)
+    else if (a === '--to') opts.to = argv[++i];                // window upper bound (YYYY-MM-DD | ISO)
+    else if (a === '--days') opts.days = argv[++i];            // trailing-window sugar: now − N days .. now
+    else if (a === '--snapshot') opts.snapshot = argv[++i];    // parsed-but-inert hook (D2) — no multi-snapshot store
     else if (a === '--max') opts.max = parseInt(argv[++i], 10) || 0;
+    else if (a === '--max-per-feed') opts.max = parseInt(argv[++i], 10) || 0; // NL alias surfaced in argument-hint
     else if (a === '--root') opts.root = argv[++i];
     else if (a === '--min-chars') opts.minChars = parseInt(argv[++i], 10) || 0;
     else if (a === '--backfill') opts.backfill = parseInt(argv[++i], 10) || 0;
     else if (a === '--budget-sec') opts.budgetSec = parseInt(argv[++i], 10) || 0;
+    // Loud unknown-flag reject (FR-1.2/AC3): an unrecognized `--`-prefixed token is
+    // an error — silently dropping it is exactly what hid finding #1 (a `--days`
+    // the entrypoint never consumed). Positional tokens are still tolerated.
+    else if (a.startsWith('--')) {
+      throw new Error('magazine-run: unknown flag ' + a +
+        ' (known: --feed --feeds --from --to --since --until --days --snapshot ' +
+        '--max --max-per-feed --root --min-chars --backfill --budget-sec)');
+    }
   }
   return opts;
+}
+
+// Resolve an EXPLICIT discovery window into { since, until } ISO bounds (D1/D7).
+// The interactive interface requires a window — there is NO cursor or unbounded
+// fallback (the cursor is watch-internal only). Lower-bound precedence:
+// explicit --from/--since > --days N. Upper bound (--to/--until) is optional.
+// Bare calendar dates parse inclusively: --from YYYY-MM-DD → that day 00:00:00.000Z,
+// --to YYYY-MM-DD → that day 23:59:59.999Z. A full ISO timestamp passes through
+// verbatim. A garbage date throws a clear error naming the flag. Never consults
+// st.cursors. `nowMs` is injectable for deterministic tests (defaults to now).
+function parseDateBound(raw, flag, edge) {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const iso = s + (edge === 'end' ? 'T23:59:59.999Z' : 'T00:00:00.000Z');
+    if (isNaN(new Date(iso).getTime())) throw new Error('magazine-run: ' + flag + ': invalid date "' + s + '"');
+    return iso; // inclusive bare-date semantics
+  }
+  if (isNaN(new Date(s).getTime())) {
+    throw new Error('magazine-run: ' + flag + ': invalid date "' + s + '" (use YYYY-MM-DD or an ISO 8601 timestamp)');
+  }
+  return s; // full ISO passes through verbatim
+}
+
+function resolveWindow(opts, nowMs) {
+  opts = opts || {};
+  const now = (typeof nowMs === 'number') ? nowMs : Date.now();
+  let since = null;
+  if (opts.from != null) since = parseDateBound(opts.from, '--from', 'start');
+  else if (opts.since != null) since = parseDateBound(opts.since, '--since', 'start');
+  else if (opts.days != null && opts.days !== '') {
+    const n = parseInt(opts.days, 10);
+    if (!Number.isFinite(n) || n <= 0) throw new Error('magazine-run: --days: expected a positive integer, got "' + opts.days + '"');
+    since = new Date(now - n * 86400000).toISOString();
+  }
+  if (!since) {
+    throw new Error('window required: pass --from <YYYY-MM-DD>/--to, --since <ISO>/--until, or --days N ' +
+      '(interactive discover no longer falls back to a cursor or full history)');
+  }
+  let until = null;
+  if (opts.to != null) until = parseDateBound(opts.to, '--to', 'end');
+  else if (opts.until != null) until = parseDateBound(opts.until, '--until', 'end');
+  return { since, until };
 }
 
 function selftest() {
@@ -446,19 +524,72 @@ function selftest() {
   const assert = (c, m) => { if (!c) { ok = false; console.error('FAIL:', m); } };
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-run-'));
   const fixture = path.join(SCRIPTS, '..', 'tests', 'fixtures', 'sample-feed.xml');
+  const WIDE = 36500; // --days value wide enough to admit every fixture item (incl. the 2019 one)
 
-  const snap = cmdDiscover({ feeds: [fixture], since: null, max: 0, root: tmp });
+  // --- T1: resolveWindow + require-a-window + loud unknown-flag reject ---
+  // A trailing --days N window resolves a lower bound at now − N days and no upper.
+  const wd = resolveWindow({ days: 7 }, Date.UTC(2026, 5, 25)); // 2026-06-25
+  assert(wd.since === '2026-06-18T00:00:00.000Z' && wd.until === null,
+    'resolveWindow({days:7}) → lower bound now−7d, no upper; got ' + JSON.stringify(wd));
+  let threwWin = false;
+  try { resolveWindow({}); } catch (e) { threwWin = /window required/.test(e.message); }
+  assert(threwWin, "resolveWindow({}) throws 'window required'");
+
+  // --- T3: date aliases + inclusive bare-date parsing ---
+  const range = resolveWindow({ from: '2026-03-01', to: '2026-03-31' });
+  assert(range.since === '2026-03-01T00:00:00.000Z' && range.until === '2026-03-31T23:59:59.999Z',
+    'T3: bare --from/--to parse to inclusive day bounds; got ' + JSON.stringify(range));
+  const isoPass = resolveWindow({ since: '2026-03-01T12:00:00.000Z' });
+  assert(isoPass.since === '2026-03-01T12:00:00.000Z', 'T3: a full ISO --since passes through verbatim');
+  // explicit lower bound wins over --days; --to alone is a valid optional upper.
+  const prec = resolveWindow({ from: '2026-03-01', days: 9999 });
+  assert(prec.since === '2026-03-01T00:00:00.000Z', 'T3: explicit --from precedes --days');
+  let threwDate = false;
+  try { resolveWindow({ from: 'notadate' }); } catch (e) { threwDate = /--from/.test(e.message) && /invalid date/.test(e.message); }
+  assert(threwDate, 'T3: --from notadate throws a clear error naming the flag');
+  // resolveWindow must never consult cursors (T6): a state with cursors is irrelevant.
+  assert(resolveWindow({ days: 1 }).since && !('cursors' in resolveWindow({ days: 1 })),
+    'resolveWindow returns only {since,until} — never reads st.cursors');
+  // parseOpts rejects an unknown --flag loudly, naming it.
+  let threwFlag = false;
+  try { parseOpts(['--bogus', '1']); } catch (e) { threwFlag = /unknown flag --bogus/.test(e.message); }
+  assert(threwFlag, 'parseOpts rejects --bogus naming it');
+  // CLI exit-64 contract (child process): bare discover + unknown flag both exit 64.
+  const selfPath = path.join(SCRIPTS, 'magazine-run.js');
+  const runExit = (args) => {
+    try { execFileSync(process.execPath, [selfPath].concat(args), { stdio: ['ignore', 'ignore', 'pipe'] }); return { code: 0, err: '' }; }
+    catch (e) { return { code: e.status, err: (e.stderr || '').toString() }; }
+  };
+  const bare = runExit(['discover', '--root', tmp]);
+  assert(bare.code === 64 && /window required/.test(bare.err), 'bare discover exits 64 with window-required msg');
+  const bogus = runExit(['discover', '--root', tmp, '--bogus', '1']);
+  assert(bogus.code === 64 && /--bogus/.test(bogus.err), 'discover --bogus exits 64 naming the flag');
+  const wide = runExit(['discover', '--feed', fixture, '--days', String(WIDE), '--root', tmp]);
+  assert(wide.code === 0, 'discover --feed <fixture> --days <wide> exits 0');
+
+  const snap = cmdDiscover({ feeds: [fixture], days: WIDE, max: 0, root: tmp, _now: '2026-06-25T00:00:00.000Z' });
   assert(snap.length >= 1, 'discover emitted >=1 item, got ' + snap.length);
   assert(snap.every((s) => s.guid), 'every snapshot item has a guid');
 
   const st = state.load(statePath(tmp));
   assert(Object.values(st.items).every((it) => it.status === 'discovered'), 'all recorded at discovered');
 
-  // Re-discover is idempotent: ledger size is stable.
+  // --- T4: discover persists a SINGLE latest snapshot {id, guids} ---
+  assert(st.snapshot && typeof st.snapshot.id === 'string' && Array.isArray(st.snapshot.guids),
+    'state.snapshot is a single {id, guids} object');
+  assert(st.snapshot.guids.length === snap.length, 'snapshot.guids count matches the printed array length');
+  const firstSnapId = st.snapshot.id;
+
+  // Re-discover is idempotent: ledger size is stable; snapshot overwrites (id changes, stays one object).
   const before = Object.keys(st.items).length;
-  cmdDiscover({ feeds: [fixture], since: null, max: 0, root: tmp });
-  const after = Object.keys(state.load(statePath(tmp)).items).length;
+  cmdDiscover({ feeds: [fixture], days: WIDE, max: 0, root: tmp, _now: '2026-06-26T00:00:00.000Z' });
+  const st2 = state.load(statePath(tmp));
+  const after = Object.keys(st2.items).length;
   assert(before === after, 'idempotent re-discover (no duplicates)');
+  assert(st2.snapshot && st2.snapshot.id !== firstSnapId && !Array.isArray(st2.snapshot),
+    'second discover overwrites the snapshot (id changes, stays a single object not a list)');
+  // T6: two discovers leave cursors unchanged (cursor is watch-internal, never advanced here).
+  assert(JSON.stringify(st2.cursors) === JSON.stringify(st.cursors), 'discover does not advance cursors (T6)');
 
   const stat = cmdStatus({ root: tmp });
   assert(stat.total === before, 'status total matches ledger');
@@ -467,7 +598,7 @@ function selftest() {
   // different GUID. The snapshot collapses it; the ledger catalogues it.
   const tmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-run-dedup-'));
   const fixture2 = path.join(SCRIPTS, '..', 'tests', 'fixtures', 'sample-feed-2.xml');
-  const snap2 = cmdDiscover({ feeds: [fixture, fixture2], since: null, max: 0, root: tmp2 });
+  const snap2 = cmdDiscover({ feeds: [fixture, fixture2], days: WIDE, max: 0, root: tmp2 });
   const epInSnap = snap2.filter((s) => /\/ep\?id=42/.test(s.link || ''));
   assert(epInSnap.length === 1, 'episode appears exactly once in the snapshot, got ' + epInSnap.length);
   const led2 = state.load(statePath(tmp2));
@@ -633,7 +764,7 @@ function selftest() {
   const r4droot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-discover-slug-'));
   fs.writeFileSync(path.join(r4droot, 'feeds.yaml'),
     'feeds:\n  - name: fixturepod\n    url: ' + fixture + '\n    type: podcast\n');
-  cmdDiscover({ root: r4droot });
+  cmdDiscover({ root: r4droot, days: WIDE });
   const r4dfin = state.load(statePath(r4droot));
   assert(Object.values(r4dfin.items).every((it) => it.feed === 'fixturepod'),
     'FR-R4: discover stores the feed slug as item.feed (not the URL)');
@@ -649,25 +780,70 @@ function selftest() {
     'FR-R5: status flags an orphaned cursor');
   fs.rmSync(r5root, { recursive: true, force: true });
 
+  // --- T5: prep scopes its crawl to the latest snapshot (+ D6 reuse / Inv-4 fallback) ---
+  // Three discovered article items; only two are in state.snapshot.guids. cmdPrep
+  // must crawl ONLY the two in-snapshot items; the out-of-snapshot one stays
+  // `discovered`. extract-article on a bogus link fails → status `failed` (still a
+  // transition away from `discovered`, which is all we assert here).
+  const sroot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-snap-'));
+  const sst = { cursors: {}, items: {} };
+  state.discover(sst, 'in1', { feed: 'n', link: 'http://127.0.0.1:9/in1', published: '2026-06-03' });
+  state.discover(sst, 'in2', { feed: 'n', link: 'http://127.0.0.1:9/in2', published: '2026-06-02' });
+  state.discover(sst, 'out1', { feed: 'n', link: 'http://127.0.0.1:9/out1', published: '2026-06-01' });
+  // a snapshot guid already advanced to 'summarized' must NOT be re-crawled, yet
+  // stays referenced by the snapshot (D6 — wider window still renders prior items).
+  state.discover(sst, 'reuse1', { feed: 'n', link: 'http://127.0.0.1:9/reuse1', published: '2026-05-30' });
+  state.transition(sst, 'reuse1', 'summarized');
+  sst.snapshot = { id: '2026-06-03T00:00:00.000Z', guids: ['in1', 'in2', 'reuse1'] };
+  state.save(statePath(sroot), sst);
+  cmdPrep({ root: sroot, max: 0 });
+  const sfin = state.load(statePath(sroot));
+  assert(sfin.items.out1.status === 'discovered', 'T5: out-of-snapshot item stays discovered (not crawled)');
+  assert(sfin.items.in1.status !== 'discovered' && sfin.items.in2.status !== 'discovered',
+    'T5: in-snapshot items are crawled (left discovered no more)');
+  assert(sfin.items.reuse1.status === 'summarized', 'T5/D6: a summarized snapshot guid is not re-crawled (kept referenced)');
+  assert(sfin.snapshot.guids.indexOf('reuse1') >= 0, 'T5/D6: snapshot still references the already-processed item');
+
+  // Inv-4: no state.snapshot → prep falls back to whole-ledger behavior (crawls the lone item).
+  const nroot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-nosnap-'));
+  const nst = { cursors: {}, items: {} };
+  state.discover(nst, 'a1', { feed: 'n', link: 'http://127.0.0.1:9/a1', published: '2026-06-01' });
+  state.save(statePath(nroot), nst);
+  cmdPrep({ root: nroot, max: 0 });
+  assert(state.load(statePath(nroot)).items.a1.status !== 'discovered',
+    'T5/Inv-4: with no snapshot, prep falls back to whole-ledger (crawls the item)');
+  fs.rmSync(sroot, { recursive: true, force: true });
+  fs.rmSync(nroot, { recursive: true, force: true });
+
   console.log(ok ? 'magazine-run.js --selftest: PASS' : 'magazine-run.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
 }
 
-module.exports = { cmdDiscover, cmdPrep, cmdStatus, cmdEnqueue, cmdDrain, safeGuid, readFeeds, readFeedsTyped, feedKeyPairs };
+module.exports = {
+  cmdDiscover, cmdPrep, cmdStatus, cmdEnqueue, cmdDrain, safeGuid,
+  readFeeds, readFeedsTyped, feedKeyPairs, parseOpts, resolveWindow,
+};
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) { selftest(); }
   else {
     const cmd = argv[0];
-    const opts = parseOpts(argv.slice(1));
-    if (cmd === 'discover') process.stdout.write(JSON.stringify(cmdDiscover(opts), null, 2) + '\n');
-    else if (cmd === 'prep') process.stdout.write(JSON.stringify(cmdPrep(opts), null, 2) + '\n');
-    else if (cmd === 'status') process.stdout.write(JSON.stringify(cmdStatus(opts), null, 2) + '\n');
-    else if (cmd === 'enqueue') process.stdout.write(JSON.stringify(cmdEnqueue(opts), null, 2) + '\n');
-    else if (cmd === 'drain') process.stdout.write(JSON.stringify(cmdDrain(opts), null, 2) + '\n');
-    else {
-      process.stderr.write('usage: magazine-run.js <discover|prep|status|enqueue|drain> [opts]  |  --selftest\n');
+    // A bad flag (unknown --flag, missing window, garbage date) is a usage error:
+    // name it on stderr + exit 64 — never a silent drop or a stack trace (AC3/D7).
+    try {
+      const opts = parseOpts(argv.slice(1));
+      if (cmd === 'discover') process.stdout.write(JSON.stringify(cmdDiscover(opts), null, 2) + '\n');
+      else if (cmd === 'prep') process.stdout.write(JSON.stringify(cmdPrep(opts), null, 2) + '\n');
+      else if (cmd === 'status') process.stdout.write(JSON.stringify(cmdStatus(opts), null, 2) + '\n');
+      else if (cmd === 'enqueue') process.stdout.write(JSON.stringify(cmdEnqueue(opts), null, 2) + '\n');
+      else if (cmd === 'drain') process.stdout.write(JSON.stringify(cmdDrain(opts), null, 2) + '\n');
+      else {
+        process.stderr.write('usage: magazine-run.js <discover|prep|status|enqueue|drain> [opts]  |  --selftest\n');
+        process.exit(64);
+      }
+    } catch (e) {
+      process.stderr.write((e && e.message ? e.message : String(e)) + '\n');
       process.exit(64);
     }
   }
