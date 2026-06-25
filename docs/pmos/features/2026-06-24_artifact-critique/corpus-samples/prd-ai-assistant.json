@@ -1,0 +1,148 @@
+{
+  "schema": "pmos-critique-findings/v1",
+  "skill": "artifact-critique",
+  "doc": {
+    "title": "Inbox Copilot — AI reply drafting (PRD)",
+    "type": "prd",
+    "type_confidence": "detected",
+    "hybrid_of": null,
+    "char_count": 1370,
+    "source_path": "corpus-samples/prd-ai-assistant.md"
+  },
+  "opening": {
+    "pushing_hardest_on": [
+      "The AI feature ships with no Behavior Contract, kill-switch, or eval bar",
+      "The core mechanism — that typing is the bottleneck — is assumed, not evidenced",
+      "Metrics have a real outcome but no quality counter-metric"
+    ]
+  },
+  "axes": [
+    {
+      "axis": "Customer",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "Quantified pain from two independent sources — a measured reply time and an exit-survey ranking — not an asserted category description.",
+      "quote": "support measured an average first-reply time of six hours, and exit surveys named slow replies as the top complaint",
+      "quote_section": "§1",
+      "what_id_want_to_see": "Already strong — a breakdown of where the six hours go would also de-risk the Solution mechanism."
+    },
+    {
+      "axis": "Solution",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "A real if/then/because hypothesis, but the load-bearing mechanism — that typing is the slowest step — is assumed rather than shown.",
+      "quote": "Drafting the reply will cut reply time because typing is the slowest step in handling a ticket.",
+      "quote_section": "§2",
+      "what_id_want_to_see": "Evidence that composition, not triage or lookup, is the bottleneck — e.g. a time-and-motion breakdown of the six-hour reply time."
+    },
+    {
+      "axis": "Scope",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Clean IN / OUT boundary, but no CUT history or v1 trade-off rationale.",
+      "quote": "In scope: English-language email tickets. Out of scope: chat, phone, and non-English tickets in v1.",
+      "quote_section": "§3",
+      "what_id_want_to_see": "A CUT list — anything considered for v1 and dropped, and why."
+    },
+    {
+      "axis": "Metrics",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Median reply time is a genuine outcome, but draft-acceptance is an output, and there is no quality counter-metric, baseline, or threshold.",
+      "quote": "We will track median first-reply time and the percentage of drafts sent without edits.",
+      "quote_section": "§4",
+      "what_id_want_to_see": "A baseline (six hours today), a target and timeframe, and a counter-metric — re-open or CSAT — so a faster wrong reply can't read as success."
+    },
+    {
+      "axis": "Pricing",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "A feature within an existing product; no new pricing decision is at stake.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — no pricing question raised."
+    },
+    {
+      "axis": "Strategy",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "A feature PRD within an established product; strategic positioning is out of scope for this doc.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — strategy is not re-decided here."
+    },
+    {
+      "axis": "GTM",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "A staged internal rollout gated on a metric, but the expansion trigger is vague ('once reply time improves') with no number.",
+      "quote": "We will enable Copilot for ten percent of agents first, then expand once reply time improves.",
+      "quote_section": "§6",
+      "what_id_want_to_see": "A concrete expansion gate — the reply-time delta and the draft-quality bar that must be met before widening rollout."
+    },
+    {
+      "axis": "Stage",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "Stage is clear — an addition to a mature, daily-used console — and the reliability-first framing fits it.",
+      "quote": "This adds to our existing support console, which hundreds of agents already use every day.",
+      "quote_section": "§7",
+      "what_id_want_to_see": "Already strong — an SLO for draft latency would round out the at-scale framing."
+    },
+    {
+      "axis": "AI",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "An LLM-backed feature with no Behavior Contract (GOOD/BAD/REJECT), no fallback or kill-switch for low-confidence drafts, no eval metric or ship bar, and no red-team list — 'monitor and improve over time' is not a launch control. A wrong drafted reply to a customer is a trust harm, not a UX nit.",
+      "quote": "We will monitor draft quality and improve the model over time as we gather agent feedback.",
+      "quote_section": "§5",
+      "what_id_want_to_see": "A Behavior Contract with GOOD/BAD/REJECT exemplars; a low-confidence fallback (suppress the draft); offline + online eval metrics with a ship bar; and a red-team list (PII leakage, confidently-wrong policy answers, prompt injection from ticket text)."
+    },
+    {
+      "axis": "Risks",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Names the single most important risk (over-trust of wrong drafts) but offers no mitigation and no broader pre-mortem.",
+      "quote": "The main risk is that agents over-trust a draft and send a customer the wrong information.",
+      "quote_section": "§8",
+      "what_id_want_to_see": "A mitigation for over-trust (confidence signals, mandatory-edit for policy answers) and a pre-mortem covering model outage, PII leakage, and injection."
+    }
+  ],
+  "weakest_claims": [
+    {
+      "rank": 1,
+      "claim": "Model quality can be handled by monitoring and improving over time.",
+      "quote": "We will monitor draft quality and improve the model over time as we gather agent feedback.",
+      "quote_section": "§5",
+      "followups": [
+        "What is the GOOD/BAD/REJECT contract and the eval bar the model must clear before it reaches a single customer?",
+        "On a low-confidence draft, what happens — is there a kill-switch, or does the agent still see it?"
+      ]
+    },
+    {
+      "rank": 2,
+      "claim": "Typing is the slowest step, so drafting cuts reply time.",
+      "quote": "Drafting the reply will cut reply time because typing is the slowest step in handling a ticket.",
+      "quote_section": "§2",
+      "followups": [
+        "Is composition actually the bottleneck, versus triage, lookup, or approvals?",
+        "If agents must read and verify every draft, does net handle-time fall or just shift?"
+      ]
+    }
+  ],
+  "bottom_line": {
+    "strengths": [
+      "Quantified, multi-source customer pain",
+      "A real falsifiable hypothesis with a stated mechanism",
+      "Honest stage framing on a mature, high-volume surface"
+    ],
+    "must_dos": [
+      "Add a Behavior Contract, low-confidence fallback, eval bar, and red-team list before any customer sees a draft",
+      "Add a quality counter-metric so a faster wrong reply can't read as success",
+      "Evidence that typing — not triage or lookup — is the reply-time bottleneck"
+    ]
+  },
+  "limits": [
+    "The model, prompt, and data-handling details are summarized in one section — a linked technical design may carry the eval and safety specifics not visible here"
+  ]
+}

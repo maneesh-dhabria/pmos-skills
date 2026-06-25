@@ -1,0 +1,148 @@
+{
+  "schema": "pmos-critique-findings/v1",
+  "skill": "artifact-critique",
+  "doc": {
+    "title": "Unified Asset Pipeline — internal media-processing platform (PRD)",
+    "type": "prd",
+    "type_confidence": "detected",
+    "hybrid_of": null,
+    "char_count": 1640,
+    "source_path": "corpus-samples/prd-internal-platform.md"
+  },
+  "opening": {
+    "pushing_hardest_on": [
+      "Success metrics are output counts (teams onboarded, jobs/day), not outcomes",
+      "No build-vs-buy: a hosted transcode service is the obvious alternative and isn't weighed",
+      "No risks or migration pre-mortem for moving the third team off its legacy scripts"
+    ]
+  },
+  "axes": [
+    {
+      "axis": "Customer",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Real internal demand and a quantified pain signal, but no sizing of the firefighting cost beyond a rough estimate.",
+      "quote": "on-call engineers spend roughly a day a week firefighting failed batches",
+      "quote_section": "§1",
+      "what_id_want_to_see": "The actual on-call hours lost per team per month, and the two requesting teams' own words on what breaks."
+    },
+    {
+      "axis": "Solution",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "Described as a capability, not a falsifiable hypothesis — no if/then/because and no stated mechanism for why a shared API reduces firefighting.",
+      "quote": "Teams call one API instead of maintaining their own scripts.",
+      "quote_section": "§2",
+      "what_id_want_to_see": "An if/then/because: if teams move to one API, on-call load drops by N because failures route to one owned service instead of three drifting scripts."
+    },
+    {
+      "axis": "Scope",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "Clear IN and OUT lists, but no CUT history or v1 trade-offs named.",
+      "quote": "Out of scope: audio, live streaming, and a self-serve UI",
+      "quote_section": "§3",
+      "what_id_want_to_see": "A CUT list: what was in an earlier draft and removed to make v1, and why."
+    },
+    {
+      "axis": "Metrics",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "Outputs dressed as outcomes — teams-onboarded and jobs/day measure activity, not the firefighting reduction the project exists to deliver; no baseline, counter-metric, or threshold.",
+      "quote": "We will measure success by the number of teams onboarded and the number of jobs processed per day.",
+      "quote_section": "§4",
+      "what_id_want_to_see": "On-call hours reclaimed as the north-star: a baseline (today's day/week/team), a target, a timeframe, and a failure-rate counter-metric that must not regress."
+    },
+    {
+      "axis": "Pricing",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "Internal platform with no external price — the economics are reframed as build-vs-buy under Strategy.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — see Strategy for the build-vs-buy question."
+    },
+    {
+      "axis": "Strategy",
+      "applicable": true,
+      "verdict": "ABSENT",
+      "reason": "Build-vs-buy is unaddressed: a hosted transcode/thumbnail service is the obvious alternative to a home-built platform and is never weighed.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "A build-vs-buy comparison against a hosted media-processing service, with the opportunity cost of the platform team's time."
+    },
+    {
+      "axis": "GTM",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "Concrete staged internal rollout with a design partner first and parity sign-off gating each migration.",
+      "quote": "Onboard the team that asked first as a design partner, then the second team, then migrate the third off",
+      "quote_section": "§5",
+      "what_id_want_to_see": "Already strong — a date or trigger for each stage would make it fully committed."
+    },
+    {
+      "axis": "Stage",
+      "applicable": true,
+      "verdict": "STRONG",
+      "reason": "Stage is stated and the scope matches it — a reliability-driven consolidation of capabilities already in production, not premature discovery.",
+      "quote": "This is a platform consolidation of capabilities all three teams already run in production",
+      "quote_section": "§6",
+      "what_id_want_to_see": "Already strong — explicit reliability targets (SLO) would complete the stage-fit picture."
+    },
+    {
+      "axis": "AI",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "No AI/LLM feature is proposed; transcode/thumbnail/metadata are deterministic processing.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — no model-backed behavior to govern."
+    },
+    {
+      "axis": "Risks",
+      "applicable": true,
+      "verdict": "ABSENT",
+      "reason": "No risks section and no pre-mortem — the third team's migration off legacy scripts is the obvious failure mode and is left unexamined.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "A pre-mortem: it is six weeks post-cutover and the third team rolled back — what happened? Each failure mode with a leading indicator and a mitigation."
+    }
+  ],
+  "weakest_claims": [
+    {
+      "rank": 1,
+      "claim": "Teams-onboarded and jobs-per-day are the right success measures.",
+      "quote": "We will measure success by the number of teams onboarded and the number of jobs processed per day.",
+      "quote_section": "§4",
+      "followups": [
+        "Both can hit target while on-call load is unchanged — what outcome do they actually proxy?",
+        "What is today's firefighting baseline, and what reduction counts as success?"
+      ]
+    },
+    {
+      "rank": 2,
+      "claim": "One shared API removes the firefighting problem.",
+      "quote": "Teams call one API instead of maintaining their own scripts.",
+      "quote_section": "§2",
+      "followups": [
+        "What happens to on-call when the shared service itself fails — does one outage now hit all three teams?",
+        "What's the migration cost for the third team, and does it exceed a quarter of saved firefighting?"
+      ]
+    }
+  ],
+  "bottom_line": {
+    "strengths": [
+      "Disciplined scope with an explicit OUT list",
+      "Concrete staged rollout gated on parity sign-off",
+      "Honest stage framing — reliability consolidation, not discovery"
+    ],
+    "must_dos": [
+      "Replace output counts with an outcome metric (on-call hours reclaimed: baseline → target → threshold)",
+      "Weigh build-vs-buy against a hosted transcode service under Strategy",
+      "Add a pre-mortem for the legacy-script migration"
+    ]
+  },
+  "limits": [
+    "Cost and opportunity-cost figures are not visible in this excerpt — they may live in a linked budget doc"
+  ]
+}

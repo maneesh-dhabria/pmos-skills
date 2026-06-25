@@ -1,0 +1,157 @@
+{
+  "schema": "pmos-critique-findings/v1",
+  "skill": "artifact-critique",
+  "doc": {
+    "title": "Two-Sided Repair Marketplace — market entry strategy",
+    "type": "strategy",
+    "type_confidence": "detected",
+    "hybrid_of": null,
+    "char_count": 1490,
+    "source_path": "corpus-samples/strategy-marketplace.md"
+  },
+  "opening": {
+    "pushing_hardest_on": [
+      "The supply side of a two-sided marketplace is never addressed",
+      "Price is treated as a moat when it is a wedge a funded incumbent copies",
+      "No stage is stated — the plan assumes product-market fit and jumps to geo-scaling"
+    ]
+  },
+  "axes": [
+    {
+      "axis": "Customer",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "The demand segment is specific, but it is asserted with no sizing or evidence, and the supply side (the professionals) — the other half of the marketplace — is entirely absent.",
+      "quote": "Homeowners aged thirty to fifty in mid-size metros who are comfortable booking services on their phone",
+      "quote_section": "Target",
+      "what_id_want_to_see": "Sizing and demand evidence for the homeowner segment, plus a full profile of the supply side: who the professionals are and what makes them join and stay."
+    },
+    {
+      "axis": "Solution",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "A market-entry strategy doc — the product solution hypothesis is carried by the Strategy axis, not a separate PRD-style solution.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — see Strategy."
+    },
+    {
+      "axis": "Scope",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "A growth sequence, not a scope — no explicit IN / OUT / CUT and no statement of what is deliberately deferred.",
+      "quote": "Launch in one metro, subsidize the first thousand bookings to seed demand, and grow city by city.",
+      "quote_section": "The plan",
+      "what_id_want_to_see": "IN / OUT / CUT for the first metro: which job categories, which neighborhoods, what is explicitly not attempted in v1."
+    },
+    {
+      "axis": "Metrics",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "CAC is named only as a spending guardrail; there is no outcome metric for the strategy — no target take-rate, liquidity, retention, baseline, or kill threshold.",
+      "quote": "We will watch CAC closely and slow spending if it runs high.",
+      "quote_section": "Risks",
+      "what_id_want_to_see": "A liquidity outcome (e.g. % of requests filled within X hours) with baseline, target, timeframe, and a counter-metric on quality."
+    },
+    {
+      "axis": "Pricing",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "Price leadership is a wedge, not a moat — a 10% take rate is trivially matched by a funded incumbent, and there is no willingness-to-pay evidence beyond 'cheaper'.",
+      "quote": "Our take rate of ten percent undercuts the incumbents' fifteen to twenty percent",
+      "quote_section": "The plan",
+      "what_id_want_to_see": "Evidence either side will pay a sustainable rate, and what durable position the low take rate buys time to build."
+    },
+    {
+      "axis": "Strategy",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "Asserts a scale flywheel but names no mechanism for why scale durably lowers a marketplace's prices; 'cheaper and simpler' is copyable, not a structural advantage.",
+      "quote": "As we grow, our scale lets us push prices down further, which brings in more customers.",
+      "quote_section": "Differentiation",
+      "what_id_want_to_see": "A named moat — supply-side switching costs, liquidity/network effects, or proprietary trust/vetting data — and why it compounds."
+    },
+    {
+      "axis": "GTM",
+      "applicable": true,
+      "verdict": "MIXED",
+      "reason": "The demand-seeding motion is concrete, but supply-side acquisition — the harder half of marketplace cold-start — is unaddressed.",
+      "quote": "subsidize the first thousand bookings to seed demand, and grow city by city",
+      "quote_section": "The plan",
+      "what_id_want_to_see": "How the first professionals are recruited and vetted before demand subsidies arrive, so the first bookings have anyone to fulfill them."
+    },
+    {
+      "axis": "Stage",
+      "applicable": true,
+      "verdict": "ABSENT",
+      "reason": "The lifecycle stage is never stated; the plan assumes product-market fit and proceeds straight to city-by-city scaling.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "An explicit stage (this is pre-PMF market entry) and the evidence — fill rate, repeat rate — that would justify geo-scaling."
+    },
+    {
+      "axis": "AI",
+      "applicable": false,
+      "verdict": "N/A",
+      "reason": "No AI/LLM feature is proposed.",
+      "quote": null,
+      "quote_section": null,
+      "what_id_want_to_see": "n/a — no model-backed behavior to govern."
+    },
+    {
+      "axis": "Risks",
+      "applicable": true,
+      "verdict": "WEAK",
+      "reason": "A single demand-side risk (CAC) with no pre-mortem; the existential marketplace risks — supply liquidity, vetting/quality failure, and off-platform leakage — are all missing.",
+      "quote": "The main risk is that customer acquisition is more expensive than planned.",
+      "quote_section": "Risks",
+      "what_id_want_to_see": "A pre-mortem covering supply liquidity collapse, a vetting failure that injures trust, and customers and pros booking off-platform after the first match."
+    }
+  ],
+  "weakest_claims": [
+    {
+      "rank": 1,
+      "claim": "The marketplace can be planned from the demand side alone.",
+      "quote": "subsidize the first thousand bookings to seed demand, and grow city by city",
+      "quote_section": "The plan",
+      "followups": [
+        "Who supplies the vetted professionals, and how are they acquired and retained before demand arrives?",
+        "Who pays for 'vetted', and what does a vetting failure cost the brand?"
+      ]
+    },
+    {
+      "rank": 2,
+      "claim": "Scale creates a durable price advantage.",
+      "quote": "As we grow, our scale lets us push prices down further, which brings in more customers.",
+      "quote_section": "Differentiation",
+      "followups": [
+        "What structurally stops a funded incumbent from matching a 10% take rate next quarter?",
+        "Does lower price compound into a moat, or just compress everyone's margins?"
+      ]
+    },
+    {
+      "rank": 3,
+      "claim": "Lowest price plus simplest app is the winning differentiation.",
+      "quote": "We are cheaper and simpler than anyone else in the market.",
+      "quote_section": "Differentiation",
+      "followups": [
+        "Both are copyable within a quarter — what is left when an incumbent matches them?",
+        "Is 'simpler' evidenced by any usability benchmark, or asserted?"
+      ]
+    }
+  ],
+  "bottom_line": {
+    "strengths": [
+      "A clear, concrete demand-seeding motion (subsidize first bookings, then geo-expand)",
+      "An honest, specific target demand segment"
+    ],
+    "must_dos": [
+      "Model the supply side — acquisition, vetting cost, and liquidity per metro",
+      "Name a durable advantage beyond price and simplicity",
+      "State the stage and the PMF evidence the geo-scaling assumes"
+    ]
+  },
+  "limits": [
+    "Unit economics (CAC, LTV, contribution margin) are not in this excerpt — they may live in a financial model"
+  ]
+}
