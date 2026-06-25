@@ -2,7 +2,7 @@
 name: magazine
 description: Turns your scattered public RSS subscriptions — newsletters and podcasts — into one skimmable, filterable HTML digest of what's new since last time: a resumable local pipeline crawls each article, transcribes podcasts (whisper-if-installed), summarizes every item into 3–5 trustworthy bullets with a read/listen link, auto-tags from a closed registry, and ranks a Top-picks lane — saved as a durable issue plus a searchable library, offline from file://. Ships a verified PM feed catalog + starter bundles, and an optional local background worker that keeps podcasts transcribed so issues build fast. Use when the user wants to catch up on their feed backlog, wants recommended feeds, or wants podcasts pre-transcribed in the background. Triggers when the user says "digest my newsletters", "what's new in my feeds", "summarize my podcasts", "/magazine", "add a feed", "starter feeds", "add a feed bundle", "keep my podcasts transcribed", "/magazine watch", or "curate a feed catalog".
 user-invocable: true
-argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list | watch <--install|--status|--run-now|--uninstall>] [--days N] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--interval H] [--max K] [--ac-only] [--backfill DAYS] [--non-interactive] [--interactive]"
+argument-hint: "[add <url> | add --bundle <id> | add --from <file> | remove <name> | bundles | curate | list | watch <--install|--status|--run-now|--uninstall>] [--days N | --from <YYYY-MM-DD> --to <YYYY-MM-DD>] [--feed <name>] [--max-per-feed N] [--medium <newsletter|podcast>] [--audience <a>] [--media <newsletters|podcasts|both>] [--out <dir>] [--interval H] [--max K] [--ac-only] [--backfill DAYS] [--non-interactive] [--interactive]"
 ---
 
 # Magazine
@@ -43,7 +43,7 @@ The skill ships a verified PM feed catalog and starter bundles under
 
 These instructions use Claude Code tool names. In other environments:
 
-- **No `AskUserQuestion`:** the first-run interview, tag-registry approval, and
+- **No `AskUserQuestion` tool:** the first-run interview, tag-registry approval, and
   import batch-approval degrade to numbered free-form prompts per
   `_shared/interactive-prompts.md`. The non-interactive auto-pick contract
   (Recommended → AUTO-PICK) still applies.
@@ -144,30 +144,48 @@ skipping all of them is allowed.
 **Stale-ledger check.** When a `state.json` IS present, run
 `node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js status` and surface its
 `orphanCursors` to the user — cursor keys matching no current feed slug; re-importing
-a publication under a different slug resets its "since last run" anchor. (Legacy
-URL-keyed cursors are remapped to the slug automatically on the next run.)
+a publication under a different slug resets that feed's **watch poll-memory** anchor
+(the cursor is watch-internal — see Phase 6). (Legacy URL-keyed cursors are remapped
+to the slug automatically on the next run.)
 
 ## Phase 2: Discover (Stage A) {#discover}
 
-Resolve the window per `reference/pipeline.md` §Windowing — lookback: `--days` flag →
-`interest.yaml :: defaults.days` → built-in `7`; per-feed cap: `--max-per-feed` flag
-→ `interest.yaml :: defaults.max_per_feed` → uncapped — so a plain `/magazine` build
-needs **no window prompt** after first-run setup. Then drive discovery through the
-Stage-A entrypoint — never hand-write a per-feed driver:
+**Discover requires an explicit window** (`reference/pipeline.md` §Windowing). Resolve
+a **lower bound** and an optional **upper bound**, then pass them on the command line —
+the entrypoint no longer falls back to a cursor or to full history, and a bare
+`discover` errors loudly (exit 64) demanding a window:
+
+- **Trailing window:** `--days N` (items from `now − N days` to now). When the user
+  gives no explicit window, choose `N` from `interest.yaml :: defaults.days` → built-in
+  `7`, so a plain `/magazine` build still needs **no window prompt** — you supply the
+  flag, the script never silently defaults.
+- **Date range:** `--from <YYYY-MM-DD> --to <YYYY-MM-DD>` (bare dates are inclusive of
+  the whole day) or the ISO equivalents `--since <ISO> --until <ISO>`. The lower bound
+  is exclusive, the upper inclusive.
+- **Precedence:** an explicit `--from`/`--since` beats `--days`. Per-feed cap:
+  `--max-per-feed N` → `interest.yaml :: defaults.max_per_feed` → uncapped.
+
+Then drive discovery through the Stage-A entrypoint — never hand-write a per-feed
+driver, and never hand-convert `--days` into a `--since` cursor:
 
 ```
-node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover [--since <cursor>] [--max <N>]
+node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover --days N            [--max-per-feed <N>] [--feed <url>]
+node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js discover --from 2026-06-01 --to 2026-06-30  [--feed <url>]
 ```
 
 It fetches every feed in isolation (a failing feed is skipped and reported, never
 aborting the issue), dedups two-layer (idempotent GUID + cross-feed link), records
-GUIDs in the ledger, and prints the snapshot item set as JSON. **That snapshot
-defines the issue.** For an ad-hoc single feed, pass `--feed <url>`.
+GUIDs in the ledger, prints the in-window snapshot item set as JSON, and persists it
+as the single latest `state.snapshot`. **That snapshot defines the issue** and bounds
+what Phase 3 crawls. For an ad-hoc single feed, pass `--feed <url>`.
 
 ## Phase 3: Prep — crawl + transcribe (Stage A) {#prep}
 
 Run `node ${CLAUDE_SKILL_DIR}/scripts/magazine-run.js prep` — deterministic (no
 LLM), resumable per-item, may run long; cached results are never recomputed. It
+**scopes its crawl to the latest discover snapshot** — a `discovered` item outside
+`state.snapshot` is left untouched, so a bad/over-fetched discover can't balloon
+prep (no snapshot in the ledger → it falls back to crawling the whole ledger). It
 routes by **feed `type`, not enclosure presence**: newsletters are crawled to
 `~/.pmos/magazine/crawl-cache/`, podcasts go through the shared transcription queue
 (a bounded foreground drain, claimed under the same lock an installed background
@@ -203,13 +221,16 @@ Failed items still render as degraded cards (status `failed`, per the trust rule
 On `file://` the user reloads to see new cards (no meta-refresh in v1). Mark each
 rendered item `rendered`.
 
-## Phase 6: Commit cursor {#commit-cursor}
+## Phase 6: Finalize issue {#commit-cursor}
 
-Only when every snapshot item is `rendered` or `failed`, advance the per-feed
-cursors via `magazine-state.js advanceCursors()`, so the next "since last run"
-starts cleanly. Advancing earlier would risk dropping items on an interrupt — the
-cursor is the completeness guarantee. Report the issue path and any skipped feeds /
-degraded items to the user.
+The **snapshot** (persisted at discover) is the issue's completeness guarantee:
+the issue is done when every `state.snapshot` GUID is `rendered` or `failed`.
+Interactive discover is window-scoped and **does not touch the per-feed cursor** —
+the cursor is **watch-internal poll memory** (the `/magazine watch` worker's
+forward-only anchor, advanced inside `enqueue`/`drain`); do **not** call
+`advanceCursors()` on the interactive path. Re-running `/magazine` with the same
+window re-discovers idempotently and resumes only the items behind. Report the issue
+path and any skipped feeds / degraded items to the user.
 
 ## Phase 7: Capture Learnings {#capture-learnings}
 

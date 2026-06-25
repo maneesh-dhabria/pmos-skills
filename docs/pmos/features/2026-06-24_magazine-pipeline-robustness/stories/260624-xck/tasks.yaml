@@ -11,7 +11,7 @@ tasks:
       - "node scripts/magazine-run.js discover (no flags) prints the window-required message and exits 64"
       - "node scripts/magazine-run.js discover --bogus 1 names --bogus on stderr and exits 64"
       - "node scripts/magazine-run.js discover --feed tests/fixtures/<feed>.xml --days 3650 exits 0 and prints a snapshot array"
-    status: pending
+    status: done
     evidence:
   - id: T2
     title: "Upper-bound filter in fetch-feed.js (range crawl)"
@@ -21,7 +21,7 @@ tasks:
       - "node scripts/fetch-feed.js --selftest passes: windowItems(items, since, max, until) returns only items with published <= until and > since; an item exactly at until is included (inclusive)"
       - "fetchOne(feed, since, max, until) pushes --until and cmdDiscover passes the resolved upper bound"
       - "node scripts/fetch-feed.js --file tests/fixtures/<feed>.xml --since 2020-01-01T00:00:00.000Z --until 2021-01-01T00:00:00.000Z returns only 2020 items"
-    status: pending
+    status: done
     evidence:
   - id: T3
     title: "Date aliases + inclusive bare-date parsing"
@@ -31,7 +31,7 @@ tasks:
       - "selftest: resolveWindow({from:'2026-03-01',to:'2026-03-31'}) -> since 2026-03-01T00:00:00.000Z, until 2026-03-31T23:59:59.999Z"
       - "selftest: resolveWindow({since:'2026-03-01T12:00:00.000Z'}) passes ISO through verbatim; --from notadate throws a clear error naming the flag"
       - "node scripts/magazine-run.js discover --feed tests/fixtures/<feed>.xml --from 2020-01-01 --to 2020-12-31 exits 0 and snapshot contains only 2020 items"
-    status: pending
+    status: done
     evidence:
   - id: T4
     title: "Persist single-latest discover snapshot"
@@ -41,7 +41,7 @@ tasks:
       - "selftest: after cmdDiscover, state.load(file).snapshot == {id:<ISO>, guids:[...]}; second cmdDiscover overwrites it (id changes, snapshot stays a single object not a list)"
       - "printed discover return value (snapshot array) is byte-unchanged from prior behavior"
       - "run discover twice on a fixture; state.json .snapshot is one object whose id changed and whose guids count matches the printed array length"
-    status: pending
+    status: done
     evidence:
   - id: T5
     title: "Scope prep to the latest snapshot (+ D6 reuse semantics)"
@@ -52,7 +52,7 @@ tasks:
       - "selftest: a snapshot guid already at 'summarized' is not re-crawled yet remains referenced (D6); with no state.snapshot, prep falls back to whole-ledger behavior (Inv-4)"
       - "--snapshot <id> is parsed-but-inert (one-line comment marks the hook)"
       - "proof-of-life: prep --root <root> with 1 in-snapshot + 1 out item -> only the in-snapshot item advances in state.json"
-    status: pending
+    status: done
     evidence:
   - id: T6
     title: "Make the cursor watch-internal (stop interactive cursor advance) — resolves AC8"
@@ -63,7 +63,7 @@ tasks:
       - "selftest asserts resolveWindow never consults st.cursors"
       - "interactive Phase-6 cursor-advance instruction + any interactive-only advanceCursors call removed; function retained for enqueue/drain"
       - "bash tests/watch.test.sh exits 0 (FR-7/FR-R4 cursor invariants intact); re-running discover twice leaves state.json.cursors unchanged"
-    status: pending
+    status: done
     evidence:
   - id: T7
     title: "Rewrite the windowing docs to the real flag surface"
@@ -74,7 +74,7 @@ tasks:
       - "argument-hint keeps --days N and does not advertise --since"
       - "reference/pipeline.md §Windowing rewritten: explicit window required; cursor = watch forward-only poll memory; Phase-6 advanceCursors interactive instruction removed"
       - "grep -n 'since last run|--since <cursor>' SKILL.md reference/pipeline.md returns no interactive-default cursor language; bash tests/structure.test.sh exits 0"
-    status: pending
+    status: done
     evidence:
   - id: T8
     title: "Dogfood / Utility Verification (TN-1)"
@@ -84,7 +84,7 @@ tasks:
       - "real Stage-A flow on fixtures: narrow --from/--to discover, then wider overlapping discover; narrow snapshot guid set is a subset of wide; state.json.snapshot is a single object after both runs"
       - "already-discovered items keep their status across the overlapping run (D6); prep crawls only the latest snapshot; bare-discover and unknown-flag both exit 64 with clear messages"
       - "blind judge given only 02_design.html + the dogfood transcript scores error-clarity, doc-truthfulness, reuse-intuitiveness >=4/5 each and emits DOGFOOD: SHIP | ITERATE"
-    status: pending
+    status: done
     evidence:
   - id: T9
     title: "Final verification (TN)"
@@ -95,5 +95,5 @@ tasks:
       - "bash tests/structure.test.sh, bash tests/watch.test.sh, bash tests/bundles.test.sh all exit 0"
       - "error paths forced: bare discover -> 64; discover --nope -> 64 naming flag; discover --from baddate -> clear date error"
       - "AC9 conformance: diff carries no version-bump/changelog/README/manifest-sync change; argument-hint matches parsed flags; no hard-coded user paths; temp fixture roots cleaned up"
-    status: pending
+    status: done
     evidence:

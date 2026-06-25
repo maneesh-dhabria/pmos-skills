@@ -1,0 +1,24 @@
+# /magazine windowing + snapshot-scoping — dogfood transcript (story 260624-xck)
+# fixture items: post-0001=2026-06-02, substack:post:198591907=2026-05-28, post-0002=2026-05-30, post-0000=2019-01-01
+
+## 1. Narrow window: discover --from 2026-05-28 --to 2026-05-30
+narrow snapshot guids: post-0002, substack:post:198591907
+state.snapshot (object?): id=2026-06-25T08:44:24.553Z guids=[post-0002,substack:post:198591907] isArray=false
+
+## 2. prep (narrow) — crawls only the 2 in-snapshot items
+route: {"crawled":2,"queued":0,"unknownFeed":2,"newsletterQueued":0,"discovered":2}
+statuses after narrow prep: post-0002:failed | substack:post:198591907:failed
+
+## 3. Wider overlapping window: discover --from 2026-05-01 --to 2026-06-30
+wide snapshot guids: post-0001, post-0002, substack:post:198591907
+statuses after wide discover (D6 — prior items keep advanced status): post-0001:discovered | post-0002:failed | substack:post:198591907:failed
+state.snapshot still single object: isArray=false guids=[post-0001,post-0002,substack:post:198591907]
+
+## 4. prep (wide) — scopes to latest snapshot; already-prepped items NOT re-crawled (D6)
+route: {"crawled":1,"queued":0,"unknownFeed":1,"newsletterQueued":0,"discovered":1}
+  (route.discovered = items still at 'discovered' AND in snapshot = only the newly-added post-0001)
+
+## 5. Error paths
+bare discover -> exit=64 | window required: pass --from <YYYY-MM-DD>/--to, --since <ISO>/--until, or --days N (interactive discover no longer falls back to a cursor or full history)
+unknown flag  -> exit=64 | magazine-run: unknown flag --bogus (known: --feed --feeds --from --to --since --until --days --snapshot --max --max-per-feed --root --min-chars --backfill --budget-sec)
+bad date      -> exit=64 | magazine-run: --from: invalid date "notadate" (use YYYY-MM-DD or an ISO 8601 timestamp)
