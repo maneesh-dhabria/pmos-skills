@@ -206,20 +206,47 @@ takeaways (soft ≤240 chars each), a read/listen link, and tags chosen **only**
 thin/empty source → a **degraded card** with the reason (the trust rule above).
 Status → `summarized`.
 
+**GUID echo + reconciliation (don't lose a summary to a mangled key).** Each
+subagent is handed the item's source GUID and must **echo it back verbatim** in a
+`guid` field — it is an **opaque identifier**, never something to re-derive,
+shorten, or filesystem-safe-ify. When you fold a returned result back into the
+ledger, reconcile its `guid` against the snapshot's real GUIDs with
+`matchByGuid(snapshotGuids, returned.guid)` from `scripts/lib-guid.js` (the single
+source of truth for the safe-ify rule). `matchByGuid` tries an **exact** match
+first, then a **normalized** fallback — so a key that round-tripped through a
+filename (`…/p/slug` → `…/p_slug`) still reconciles to its original GUID instead of
+silently dropping the item. A result whose `guid` matches **nothing** is **surfaced
+loudly** — list it for the user as an unmatched summary and keep the item at
+`downloaded`/`transcribed` for the next run; **never** silently discard it (Inv-1)
+and **never** guess a target (`matchByGuid` returns null rather than mis-bind).
+
 ## Phase 5: Curate Top picks + render incrementally (Stage B) {#curate-render}
+
+**Reuse before you re-summarize (overlapping windows).** Before fanning out Stage B,
+hydrate the snapshot against the **prior issue's sidecar** (the `<date>_items.json`
+beside an earlier issue HTML) with
+`mergeCachedBullets(snapshotItems, sidecarItems)` from `render-issue.js`: it returns
+`{ hydrated, needsStageB }`, reusing an already-summarized item's bullets/tags by
+normalized GUID match so a **monthly issue overlapping a weekly one never
+re-summarizes the shared articles**. Run Stage B only over `needsStageB`.
 
 Rank the summarized items against `interest.yaml` (sparse interests → rank on
 item-intrinsic importance, never random); mark the top items `top_pick`. After each
-item (or small batch) completes, build the items JSON and re-emit the issue:
+item (or small batch) completes, build the items JSON and re-emit the issue.
+Pass the issue's **out-path as a second argument** so each render also persists the
+per-issue `<date>_items.json` sidecar (the library is rebuilt from those sidecars,
+never re-parsed out of HTML — D8):
 
 ```
-node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js issue  <items.json>  > {docs_path}/magazine/{YYYY-MM-DD}_issue.html
-node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js library <issues.json> > {docs_path}/magazine/index.html
+node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js issue  <items.json> {docs_path}/magazine/{YYYY-MM-DD}_issue.html
+node ${CLAUDE_SKILL_DIR}/scripts/render-issue.js library {docs_path}/magazine > {docs_path}/magazine/index.html
 ```
 
-Failed items still render as degraded cards (status `failed`, per the trust rule).
-On `file://` the user reloads to see new cards (no meta-refresh in v1). Mark each
-rendered item `rendered`.
+`library <dir>` globs the directory's `*_items.json` sidecars; any `*_issue.html`
+lacking its sibling sidecar fires one loud stderr skip-notice and is omitted (the
+legacy `library <issues.json>` file-arg path still works). Failed items still render
+as degraded cards (status `failed`, per the trust rule). On `file://` the user
+reloads to see new cards (no meta-refresh in v1). Mark each rendered item `rendered`.
 
 ## Phase 6: Finalize issue {#commit-cursor}
 

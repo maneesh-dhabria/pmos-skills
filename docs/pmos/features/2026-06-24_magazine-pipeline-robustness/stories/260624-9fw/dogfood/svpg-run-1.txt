@@ -1,0 +1,4 @@
+fetch-feed: http://127.0.0.1:9/svpg.xml: fetch failed
+magazine-run: feed skipped (http://127.0.0.1:9/svpg.xml): Command failed: /usr/local/bin/node /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260624-9fw/plugins/pmos-learnkit/skills/magazine/scripts/fetch-feed.js http://127.0.0.1:9/svpg.xml --since 2016-06-27T09:06:38.832Z
+fetch-feed: http://127.0.0.1:9/svpg.xml: fetch failed
+

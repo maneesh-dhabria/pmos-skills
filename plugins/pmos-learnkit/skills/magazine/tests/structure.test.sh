@@ -111,6 +111,23 @@ chk "R5: SKILL first-run uses state.json"    "grep -q 'no .state.json. AND no .f
 chk "R6: transcribe --check-model"           "grep -q -- '--check-model' '$DIR/scripts/transcribe.sh'"
 chk "R6: install runs smoke check"           "grep -q 'function smokeCheck' '$DIR/scripts/magazine-watch.js'"
 
+# --- story 260624-9fw: GUID reconciliation + sidecar library + feed quarantine ---
+chk "9fw: lib-guid.js exists"                "[ -f '$DIR/scripts/lib-guid.js' ]"
+chk "9fw: lib-guid --selftest"               "node '$DIR/scripts/lib-guid.js' --selftest >/dev/null"
+chk "9fw: lib-guid exports safeGuid+matchByGuid" "grep -q 'module.exports' '$DIR/scripts/lib-guid.js' && grep -q 'safeGuid' '$DIR/scripts/lib-guid.js' && grep -q 'matchByGuid' '$DIR/scripts/lib-guid.js'"
+chk "9fw: magazine-run requires lib-guid"    "grep -q \"require('./lib-guid.js')\" '$DIR/scripts/magazine-run.js'"
+chk "9fw: render-issue requires lib-guid"    "grep -q \"require('./lib-guid.js')\" '$DIR/scripts/render-issue.js'"
+chk "9fw: render-issue writeSidecar"         "grep -q 'function writeSidecar' '$DIR/scripts/render-issue.js'"
+chk "9fw: render-issue libraryFromDir"       "grep -q 'function libraryFromDir' '$DIR/scripts/render-issue.js'"
+chk "9fw: render-issue mergeCachedBullets"   "grep -q 'function mergeCachedBullets' '$DIR/scripts/render-issue.js'"
+chk "9fw: render-issue loud skip-notice"     "grep -q 'skip-notice' '$DIR/scripts/render-issue.js'"
+chk "9fw: state recordFeedResult+feedsToSuggest" "grep -q 'function recordFeedResult' '$DIR/scripts/magazine-state.js' && grep -q 'function feedsToSuggest' '$DIR/scripts/magazine-state.js'"
+chk "9fw: run FEED_QUARANTINE_THRESHOLD"     "grep -q 'FEED_QUARANTINE_THRESHOLD' '$DIR/scripts/magazine-run.js'"
+chk "9fw: run suggest-only, never auto-disable" "grep -q 'never auto-disabled' '$DIR/scripts/magazine-run.js'"
+chk "9fw: SKILL Phase 4 verbatim GUID echo"  "grep -qi 'echo it back verbatim' '$SKILL' && grep -q 'matchByGuid' '$SKILL'"
+chk "9fw: SKILL Phase 5 reuse documented"    "grep -q 'mergeCachedBullets' '$SKILL' && grep -qi 'Reuse before you re-summarize' '$SKILL'"
+chk "9fw: SKILL Phase 5 library <dir>"       "grep -q 'render-issue.js library {docs_path}/magazine' '$SKILL'"
+
 # --- no loose files in skill root (§C asset layout) ---
 loose="$(find "$DIR" -maxdepth 1 -type f ! -name 'SKILL.md' | wc -l | tr -d ' ')"
 chk "no loose files in skill root"          "[ \"$loose\" = '0' ]"

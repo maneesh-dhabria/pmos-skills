@@ -170,6 +170,29 @@ function orphanCursors(state, feeds) {
   return Object.keys((state && state.cursors) || {}).filter((k) => !valid.has(k));
 }
 
+// --- Feed-health tracking (FR-5.1 / D3 — suggest-only quarantine) ---
+
+// Count CONSECUTIVE runs a feed's fetch failed. `ok` resets the counter to 0;
+// a failure increments it. "Consecutive runs" is the unit even when runs are
+// days apart (the counter lives in the ledger, not wall-clock). The map is
+// additive — an absent `feedHealth` or absent slug reads as 0. This NEVER
+// disables a feed; `feedsToSuggest` only surfaces a suggestion (no silent drop).
+function recordFeedResult(state, slug, ok) {
+  if (!state.feedHealth) state.feedHealth = {};
+  if (!slug) return state.feedHealth;
+  const h = state.feedHealth[slug] || { consecFails: 0 };
+  h.consecFails = ok ? 0 : (h.consecFails || 0) + 1;
+  state.feedHealth[slug] = h;
+  return h;
+}
+
+// The slugs whose consecutive-failure count is at/above `threshold` — the feeds
+// a run should suggest quarantining. Tolerates a missing/empty feedHealth map.
+function feedsToSuggest(state, threshold) {
+  const fh = (state && state.feedHealth) || {};
+  return Object.keys(fh).filter((s) => ((fh[s] && fh[s].consecFails) || 0) >= threshold);
+}
+
 // --- Transcription queue ops (PURE — caller wraps these in magazine-lock) ---
 
 // The pending queue: podcast items (have an enclosure) still at `discovered`,
@@ -339,6 +362,21 @@ function selftest() {
   assert(orph.length === 1 && orph[0] === 'old-renamed-feed', 'orphanCursors flags a key matching no current feed');
   assert(orphanCursors({ cursors: { acquired: '2026-06-01' } }, feedsMeta).length === 0, 'orphanCursors: a valid slug is not an orphan');
 
+  // --- FR-5.1/D3: feed-health tracking (suggest-only quarantine) ---
+  const fh = { cursors: {}, items: {} };
+  assert(feedsToSuggest(fh, 3).length === 0, 'feedsToSuggest tolerates an absent feedHealth map (empty)');
+  recordFeedResult(fh, 'svpg', false);
+  assert(fh.feedHealth.svpg.consecFails === 1, 'first failure -> consecFails 1');
+  recordFeedResult(fh, 'svpg', false);
+  recordFeedResult(fh, 'svpg', false);
+  assert(fh.feedHealth.svpg.consecFails === 3, 'three failing runs -> consecFails 3');
+  assert(feedsToSuggest(fh, 3).join() === 'svpg', 'feedsToSuggest lists a feed at the threshold');
+  recordFeedResult(fh, 'svpg', true); // a successful fetch resets + silences
+  assert(fh.feedHealth.svpg.consecFails === 0, 'a success resets the counter to 0');
+  assert(feedsToSuggest(fh, 3).length === 0, 'a reset feed drops out of the suggestion list');
+  recordFeedResult(fh, 'lenny', false); // a second feed counts independently
+  assert(feedsToSuggest(fh, 3).length === 0 && fh.feedHealth.lenny.consecFails === 1, 'per-slug counters are independent');
+
   fs.rmSync(tmpdir, { recursive: true, force: true });
   console.log(ok ? 'magazine-state.js --selftest: PASS' : 'magazine-state.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
@@ -347,6 +385,7 @@ function selftest() {
 module.exports = {
   STATES, defaultPath, canonicalLink, load, save, discover, transition, advanceCursors,
   remapCursors, orphanCursors, pendingPodcasts, claim, release, reclaimStale,
+  recordFeedResult, feedsToSuggest,
 };
 
 if (require.main === module) {
