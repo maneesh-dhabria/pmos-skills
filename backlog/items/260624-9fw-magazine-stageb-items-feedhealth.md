@@ -4,12 +4,14 @@ id: 260624-9fw
 kind: story
 title: "/magazine Stage-B GUID reconciliation + durable per-issue items JSON + feed-failure quarantine suggestion"
 type: feature
-status: planned
+status: in-progress
 priority: should
 labels: [pmos-learnkit, magazine]
 route: skill
 created: 2026-06-24
 updated: 2026-06-25
+claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 plan_doc: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-9fw/03_plan.html
 tasks_file: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-9fw/tasks.yaml
 parent: 260624-2bm
