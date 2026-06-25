@@ -34,7 +34,7 @@ feeds:
   the ledger item's `feed`, and the source badge on each card — one slug everywhere.
   Older ledgers that keyed cursors by feed URL are remapped to the slug automatically
   on the next `discover`/`enqueue`. Re-importing a publication under a different slug
-  resets its "since last run" anchor (see [state.json → Cursor rule](#statejson)).
+  resets that feed's **watch poll-memory** anchor (see [state.json → Cursor rule](#statejson)).
 - `type` decides Stage A routing (FR-R1): **only `podcast` items are transcribed**;
   `newsletter` items are crawled — *even when they carry an audio enclosure* (every
   Substack post does). An enclosure is necessary but not sufficient to transcribe.
@@ -93,11 +93,14 @@ Empty/sparse `topics`/`priority_feeds` → Top-picks ranks on item-intrinsic
 importance instead, so the lane is never random.
 
 `defaults` (FR-Q3) stores the build window so a plain `/magazine` needs no
-interactive prompt: the lookback resolves `--days` flag → `defaults.days` →
-built-in `7`, and the cap resolves `--max-per-feed` flag → `defaults.max_per_feed`
-→ uncapped (see `pipeline.md` → Windowing). First-run setup captures both; a flag
-always overrides for a one-off run without rewriting the stored default. Absent
-`defaults` (pre-FR-Q3 configs) falls through to the built-ins.
+interactive prompt: when the user gives no explicit window, the skill reads
+`defaults.days` (→ built-in `7`) and passes it as `--days N` on the discover command —
+the *skill* supplies the value, the *script* still requires an explicit window and
+errors on a bare call (see `pipeline.md` → Windowing). The cap resolves
+`--max-per-feed` flag → `defaults.max_per_feed` → uncapped. First-run setup captures
+both; an explicit `--days`/`--from`/`--to` overrides for a one-off run without
+rewriting the stored default. Absent `defaults` (pre-FR-Q3 configs) falls through to
+the built-in `7`.
 
 ## state.json
 
@@ -144,9 +147,12 @@ to `~/.pmos/magazine/watch.log`. See [`watch.md`](watch.md). **Back-compat:** a
 podcast left at `downloaded` by an older `prep` with a cached transcript is treated
 as already-done; the new state/field are additive.
 
-**Cursor rule:** `advanceCursors()` moves each feed cursor to the newest
-`published` among its `rendered` items, and is called **only when the whole issue
-completes** — so an interrupt + resume never drops or double-counts (FR-16, NFR-2).
+**Cursor rule (watch-internal):** the per-feed cursor is the `/magazine watch`
+worker's forward-only poll memory. `advanceCursors()` moves each cursor to the newest
+`published` among its `rendered` items; it is **not** called on the interactive
+discover/render path (which is window-scoped — the snapshot, not the cursor, is the
+interactive completeness guarantee). Interactive resume never drops or double-counts
+because discover is GUID-idempotent over an explicit window (FR-16, NFR-2).
 
 **Dedup (two layers):**
 - *GUID dedup* — `discover(guid, …)` is idempotent: re-discovering a known GUID is

@@ -13,23 +13,41 @@ runs resumably, and updates the issue as items complete.
 
 ## Windowing
 
-A run's scope is, in precedence order:
+Interactive `discover` requires an **explicit window** (D1/D7). There is **no**
+cursor or full-history fallback — the cursor is watch-internal poll memory (see
+"Cursor", below). A bare `discover` exits 64 demanding a window. The window is:
 
-1. `--feed <name>` — restrict to one feed.
-2. **Lookback (`--days N`)** — items published in the last N days. Resolution:
-   `--days` flag → else `interest.yaml :: defaults.days` (captured at first-run,
-   FR-Q3) → else built-in **7**. This bounds the window on a first run (no cursor
-   yet) and caps how far back a long-idle feed reaches.
-3. default time anchor — items newer than each feed's `state.json` cursor
-   ("since last run"), within the lookback above.
+1. `--feed <name>` — restrict to one feed (optional, orthogonal to the date window).
+2. **Lower bound (required).** One of:
+   - **`--days N`** — a trailing window, `now − N days` .. now. When the user gives no
+     explicit window, the skill chooses `N` from `interest.yaml :: defaults.days`
+     (captured at first-run, FR-Q3) → built-in **7**, and passes it as `--days N`.
+     The *skill* supplies the value; the *script* never silently defaults — so a
+     plain `/magazine` still needs no interactive prompt, yet a bare CLI call errors.
+   - **`--from <YYYY-MM-DD>`** (inclusive of the whole day) or the ISO **`--since <ISO>`**.
+     An explicit `--from`/`--since` takes precedence over `--days`.
+3. **Upper bound (optional).** `--to <YYYY-MM-DD>` (inclusive end-of-day) or the ISO
+   **`--until <ISO>`**. Omitted → open-ended up to now. The lower bound is exclusive,
+   the upper inclusive (so a `--from A --to B` range includes all of day B).
 4. **Per-feed cap (`--max-per-feed N`)** — cap items taken from any single feed.
    Resolution: `--max-per-feed` flag → else `interest.yaml :: defaults.max_per_feed`
    → else uncapped. Keeps a prolific feed from ballooning the issue.
 
-Because the lookback and cap default to the stored `interest.yaml` values, a plain
-`/magazine` build needs **no interactive window prompt** after first-run setup
-(FR-Q3). After windowing, subtract already-`rendered` GUIDs, then **snapshot the
-resulting item set** — that snapshot defines the issue and does not change mid-run.
+Each item is filtered by **both** bounds (`fetch-feed.js` applies the lower *and*
+upper bound). After windowing, subtract already-`rendered` GUIDs, then **snapshot the
+resulting item set** under a run-id (the discover's ISO timestamp) as the single
+`state.snapshot`, overwriting any prior one. That snapshot defines the issue, does
+not change mid-run, and **scopes what `prep` crawls** (D2). A wider, overlapping
+window legitimately re-references in-window items already processed in a prior run —
+`discover` stays GUID-idempotent, so they keep their advanced status and still render
+(D6); snapshot-scoping bounds only what `prep` *crawls*, never what the issue
+*contains*.
+
+**Cursor (watch-internal only).** The per-feed `state.json` cursor is the
+`/magazine watch` worker's forward-only poll memory (advanced inside `enqueue`/
+`drain`). Interactive `discover`/render **neither read nor advance it** — the issue's
+completeness guarantee is the snapshot, not the cursor. `advanceCursors()` is retained
+for the watch path; do not call it on the interactive path.
 
 ## Stage A — deterministic prep
 
@@ -40,18 +58,21 @@ it can run long in the background.
 hand-writing per-phase drivers against the module APIs:
 
 ```
-node scripts/magazine-run.js discover [--feed <url>|--feeds <file>] [--since <ISO>] [--max <N>]
+node scripts/magazine-run.js discover [--feed <url>|--feeds <file>] (--days N | --from <date> --to <date> | --since <ISO> --until <ISO>) [--max-per-feed <N>]
 node scripts/magazine-run.js prep     [--min-chars <N>]
 node scripts/magazine-run.js status
 ```
+
+A window is **required** (see [Windowing](#windowing)); a bare `discover` exits 64.
 
 `magazine-run.js` shells the individual scripts below (it does **not** re-implement
 them) and records every transition through `scripts/magazine-state.js`. Calling the
 individual scripts directly is still supported for one-off work — when you do, follow
 the **"redirect, don't pipe"** rule in step 2.
 
-1. **Discover** — `scripts/fetch-feed.js <url> --since <cursor> --max <N>` per feed,
-   each in isolation. A dead/malformed feed exits non-zero with a reason; skip and
+1. **Discover** — `scripts/fetch-feed.js <url> --since <ISO> [--until <ISO>] --max <N>`
+   per feed, each in isolation (the entrypoint passes the resolved window bounds —
+   never a cursor). A dead/malformed feed exits non-zero with a reason; skip and
    report it, never abort the issue (FR-7). `discover()` each returned GUID
    (idempotent GUID dedup) → status `discovered`. URLs **and titles** are returned
    with XML entities already decoded (`&amp;`→`&`, `&apos;`→`'`), so query params
@@ -103,16 +124,20 @@ Subagent fan-out, incremental. Runs in the host session because it is LLM work.
    self-contained issue HTML, then `render-issue.js library <issues.json>` to update
    the library index. Status → `rendered`. On `file://` the user reloads to see new
    cards (v1 has no meta-refresh — grill decision).
-7. **Commit on completion** — only when every snapshot item is `rendered` or
-   `failed`, call `advanceCursors()` so the next "since last run" starts cleanly.
+7. **Finalize on completion** — the issue is done when every `state.snapshot` item is
+   `rendered` or `failed`. Interactive render does **not** advance the per-feed cursor
+   (it is watch-internal poll memory — see [Windowing](#windowing)); the snapshot, not
+   the cursor, is the interactive completeness guarantee. Resuming re-discovers the
+   same window idempotently and processes only the items behind.
 
 ## Resume
 
-Any interrupt (crash, `/compact`, user stop) is recovered by re-running `/magazine`:
-re-discover (idempotent), then process only items whose status is behind. Cached
-`crawl-cache/` and `transcripts/` mean no re-crawl / re-transcribe. Because the
-cursor advances only on full completion, resume never drops or double-counts
-(NFR-2).
+Any interrupt (crash, `/compact`, user stop) is recovered by re-running `/magazine`
+with the **same window**: re-discover (idempotent) rebuilds the same snapshot, then
+process only items whose status is behind. Cached `crawl-cache/` and `transcripts/`
+mean no re-crawl / re-transcribe. Because the window is explicit and discover is
+GUID-idempotent, resume never drops or double-counts (NFR-2) — it no longer depends
+on a cursor on the interactive path.
 
 ## Degraded items
 
