@@ -278,6 +278,44 @@ async function testServer() {
   }
 }
 
+// --- AC-format matrix (story 260625-751): grooming detection must accept any ----------
+// enumerated AC style — checkbox, plain/bold dash bullet, or numbered — not only checkboxes.
+
+function testAcFormatMatrix() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'backlog-acfmt-'));
+  const itemsDir = path.join(root, 'backlog', 'items');
+  fs.mkdirSync(itemsDir, { recursive: true });
+  const w = (name, text) => fs.writeFileSync(path.join(itemsDir, name), text);
+
+  w('e.md', item({ id: 'EF', kind: 'epic', title: 'Format epic', status: 'defined', route: 'skill', labels: ['pmos-toolkit'], created: '2026-06-20' }));
+  // numbered ACs (1./2.) — the /feature-sdlc define story-split style
+  w('n1.md', item({ id: 'NUM', kind: 'story', title: 'Numbered', status: 'planned', route: 'skill', priority: 'should', parent: 'EF', dependencies: [] }, '## Acceptance criteria\n\n1. does a thing\n2. does another\n'));
+  // bold-dash bullets (- **AC1 …**) — the other define style
+  w('d1.md', item({ id: 'DASH', kind: 'story', title: 'Dash', status: 'planned', route: 'skill', priority: 'should', parent: 'EF', dependencies: [] }, '## Acceptance criteria\n\n- **AC1** does x\n- **AC2** does y\n'));
+  // checkbox ACs — the documented canonical form, must STILL pass
+  w('c1.md', item({ id: 'CHK', kind: 'story', title: 'Checkbox', status: 'planned', route: 'skill', priority: 'should', parent: 'EF', dependencies: [] }, '## Acceptance criteria\n\n- [ ] does z\n'));
+  // heading-only / content-empty AC section — must remain ungroomed (has_ac false)
+  w('h1.md', item({ id: 'EMPTY', kind: 'story', title: 'HeadingOnly', status: 'planned', route: 'skill', priority: 'should', parent: 'EF', dependencies: [] }, '## Acceptance criteria\n\nSome prose but no enumerated list items.\n'));
+
+  const { items } = parseItems(itemsDir);
+  const model = buildModel(items, { now: Date.parse('2026-06-25T00:00:00Z') });
+  const byId = Object.fromEntries(items.map((s) => [s.id, s])); // has_ac is derived on the item
+  const groom = model.queues.groom.needs_grooming;
+
+  // numbered + dash + checkbox all count as groomed (has_ac true, absent from needs_grooming)
+  ok(byId.NUM.has_ac === true, 'numbered-AC story has_ac=true');
+  ok(!groom.includes('NUM'), 'numbered-AC story excluded from needs_grooming');
+  ok(byId.DASH.has_ac === true, 'bold-dash-AC story has_ac=true');
+  ok(!groom.includes('DASH'), 'bold-dash-AC story excluded from needs_grooming');
+  ok(byId.CHK.has_ac === true, 'checkbox-AC story has_ac=true (canonical form retained)');
+  ok(!groom.includes('CHK'), 'checkbox-AC story excluded from needs_grooming');
+  // heading-only AC section is NOT groomed
+  ok(byId.EMPTY.has_ac === false, 'heading-only AC section has_ac=false');
+  ok(groom.includes('EMPTY'), 'heading-only AC story still flagged in needs_grooming');
+
+  fs.rmSync(root, { recursive: true, force: true });
+}
+
 // --- run -------------------------------------------------------------------------------
 
 async function main() {
@@ -285,6 +323,7 @@ async function main() {
   testNullCoercion();
   testGroupedStatusFacets();
   testReleasesExclusion();
+  testAcFormatMatrix();
   await testServer();
   console.log(`serve-web.test.mjs: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
