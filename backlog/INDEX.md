@@ -56,7 +56,7 @@ Last regenerated: 2026-06-25 (hand-regen: define merge of epic 260625-sm0 /backl
 | 260624-ajy | defined | skill | pmos-toolkit | 2/2 | "/landing-page — guided product landing-page generator (research+cited brief → approved section structure → 2-3 rendered hero options → bundled visual-style selector → single self-contained HTML in a per-page folder → copy+visual self-review)" |
 | 260624-fly | defined | skill | pmos-gamekit | 1/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
 | 260624-3nj | defined | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
-| 260625-sm0 | defined | skill | pmos-toolkit | 0/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
+| 260625-sm0 | defined | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 
 ## must
 
@@ -137,7 +137,7 @@ Last regenerated: 2026-06-25 (hand-regen: define merge of epic 260625-sm0 /backl
 | 260624-pe2 | story | feature | done | 260624-ajy | "/landing-page SKILL.md — six-phase guided workflow (research+brief → propose-structure → hero-explore → style-pick → draft → visual self-review) + per-page folder output + opt-in web research + non-interactive contract + skill-eval (deps 260624-dqg)" | docs/pmos/features/2026-06-24_landing-page/02_design.html | docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/03_plan.md |  |
 | 260624-vry | story | feature | done | 260624-fly | "Build /flappy-bird visual variety — 7 background themes + 4 bird shapes + 5-color contrast-safe palette + top-HUD pmos wordmark, behind a pure seedable pickVariants() picker, with engine selftests (contrast/no-repeat/determinism/coverage) + headless dogfood" | docs/pmos/features/2026-06-24_flappy-bird-variety/02_design.html | docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md |  |
 | 260624-f62 | story | feature | done | 260624-3nj | "/poker References panel + restyle — collapsible right-side panel with 3 static references (hand rankings, interactive preflop chart, pot-odds/Rule-of-2&4) + bundled chart data & pure handKey/chartAction helpers + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark + extended selftest" | docs/pmos/features/2026-06-24_poker-references-restyle/02_design.html | docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md |  |
-| 260625-751 | story | bug | planned | 260625-sm0 | "/backlog grooming AC detection — accept checkbox/dash/numbered criteria; reconcile schema.md; regression-test the format matrix" | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/02_design.md | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md |  |
+| 260625-751 | story | bug | done | 260625-sm0 | "/backlog grooming AC detection — accept checkbox/dash/numbered criteria; reconcile schema.md; regression-test the format matrix" | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/02_design.md | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md |  |
 
 ## could
 
