@@ -9,13 +9,13 @@ priority: should
 route: skill
 dependencies: []
 plugin: pmos-toolkit
-status: planned
+status: done
 feature_folder: docs/pmos/features/2026-06-24_artifact-critique/
 plan_doc: docs/pmos/features/2026-06-24_artifact-critique/stories/260624-fbd/03_plan.md
 tasks: docs/pmos/features/2026-06-24_artifact-critique/stories/260624-fbd/tasks.yaml
-worktree:
-claimed_by:
-driver_holder:
+worktree: .claude/worktrees/feat-260624-fbd
+claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
 labels: [pmos-toolkit, artifact-critique, critique-rubric, substrate, new-substrate]
 created: 2026-06-24
 updated: 2026-06-25
@@ -34,31 +34,49 @@ fixtures; no SKILL.md here. Design contract: `02_design.html` — see `#framewor
 
 ## Acceptance criteria
 
-- [ ] `_shared/critique-rubric/axes.md` declares the **fixed 10 axes in order** (`Customer · Solution ·
+- [x] `_shared/critique-rubric/axes.md` declares the **fixed 10 axes in order** (`Customer · Solution ·
    Scope · Metrics · Pricing · Strategy · GTM · Stage · AI · Risks`); for each axis: a one-line scope,
    the concrete checks (which `heuristics.md` heuristics apply — per `02_design.html#axes-checks`), and
    a "what I'd want to see" template. The axis set + order are the single source `aa8` reads.
-- [ ] `_shared/critique-rubric/heuristics.md` captures the doc-type-agnostic reasoning spine
+- [x] `_shared/critique-rubric/heuristics.md` captures the doc-type-agnostic reasoning spine
    (`02_design.html#heuristics`): assertion-vs-evidence, hypothesis falsifiability + named mechanism,
    outcome-vs-output (baseline/target/timeframe/counter-metric/threshold), durable-vs-current,
    stage-fit, AI-as-risk-surface (Behavior Contract), pre-mortem, alternatives-considered,
    scope IN/OUT/CUT, multi-sided completeness, no-burial. Each as a named, citable heuristic.
-- [ ] `_shared/critique-rubric/doc-types.md` declares: (a) the **verdict scale** (`STRONG/MIXED/WEAK/
+- [x] `_shared/critique-rubric/doc-types.md` declares: (a) the **verdict scale** (`STRONG/MIXED/WEAK/
    ABSENT/N/A`, ordinal + free-text reason — `02_design.html#verdict-scale`); (b) the **applicability
    map** per doc-type (PRD/strategy/POV/roadmap) marking each axis E / N/A / C, with the conditional
    rules (Pricing N/A for internal tools; AI E iff an AI/LLM feature) and the **hybrid-union rule**
    (`02_design.html#doc-types`); (c) the `pmos-critique-findings/v1` **structured-findings schema**
    (`02_design.html#findings-schema`). The map drives ABSENT vs N/A deterministically.
-- [ ] **Vendored anonymized corpus samples** under
+- [x] **Vendored anonymized corpus samples** under
    `docs/pmos/features/2026-06-24_artifact-critique/corpus-samples/` — anonymized/redacted
    doc-excerpt + paired critique-output JSON, ≥2 doc-types + an AI-feature case; **no real/confidential
    corpus doc committed** (per the define decision). Used as `aa8`'s few-shot exemplars + eval fixtures.
-- [ ] **Internal-consistency self-check** (a small script or test asserts): every axis named in `axes.md`
+- [x] **Internal-consistency self-check** (a small script or test asserts): every axis named in `axes.md`
    appears in the `doc-types.md` applicability map and the findings schema's axis enum; every heuristic
    referenced by an `axes.md` check exists in `heuristics.md`; every sample in `corpus-samples/` parses
    against `pmos-critique-findings/v1`. No dangling internal references.
-- [ ] **Inv-6 dangling-cite guard:** nothing outside this epic references `_shared/critique-rubric/`; a
+- [x] **Inv-6 dangling-cite guard:** nothing outside this epic references `_shared/critique-rubric/`; a
    grep proves only `aa8`'s SKILL.md (built next) will cite it. No `/artifact` cite ships.
-- [ ] Conforms to `feature-sdlc/reference/skill-patterns.md §A–§L` (as substrate, not a SKILL.md) + host
+- [x] Conforms to `feature-sdlc/reference/skill-patterns.md §A–§L` (as substrate, not a SKILL.md) + host
    `CLAUDE.md` (canonical `_shared/` path; no version/changelog/README tasks — those are
    `/complete-dev`'s at epic release).
+
+## Build notes (Loop-2, 2026-06-25)
+
+Built on `feat/260624-fbd` (commit `91062f98`). Authored `_shared/critique-rubric/` (heuristics.md ·
+axes.md · doc-types.md · selftest.mjs) + 3 synthetic anonymized corpus-sample pairs under the feature
+folder. **No SKILL.md** (dependent story `aa8` carries it).
+
+- **selftest.mjs PASS (exit 0)** — TDD fail-first → green. C1–C7 + per-fixture `validateFindings`:
+  axes ⊆ map ⊆ schema enum; **11/11** heuristic handles defined and cited (0 dangling, 0 orphan);
+  all 3 samples conform to `pmos-critique-findings/v1`; Inv-6 grep clean.
+- **Inv-3 quote grounding** — 28/28 quotes verbatim, whitespace-normalized ≥40-char substrings of
+  paired sources; 0 problems. `applicable===false ⇔ verdict==="N/A"` holds on every axis.
+- **lint-phase-refs PASS** (56 skills). **skill-eval N/A** — no SKILL.md in this story.
+- **Blind adversarial judge SHIP 5/5/5/5/5** (0 Blockers, 0 Should-fix, 2 Nits; Nit-1 §3 table-row
+  wording fixed, selftest re-run green; Nit-2 left as judge-agreed non-issue).
+- **Confidential corpus never read/committed** — all samples synthetic, banner-marked.
+
+Worktree kept for the dependent `aa8` build + Loop-3. Epic `260624-kkw` **not** fully built until `aa8`.
