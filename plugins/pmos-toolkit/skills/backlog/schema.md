@@ -138,6 +138,8 @@ Why this exists, what problem it solves, links to discussions. (Epics: the goal 
 Free-form. Investigation, decisions, screenshots, links. /verify appends gap lines here on a blocked story.
 ```
 
+The `## Acceptance Criteria` section counts as present (groomed — clears it from the `/backlog groom` queue) when it carries at least one **enumerated** criterion in any markdown list form: a checkbox (`- [ ]` / `- [x]`), a plain or bold dash/star bullet (`- …`, `* …`, `- **AC1** …`), or a numbered item (`1.` / `2)`). A heading with no list items (or prose only) does not count. The checkbox form above remains the **recommended canonical** style.
+
 Items captured via `/backlog add` may have NO body at all — title-only is valid (D26: shape is enforced at the `ready` gate, never at capture). The body is created on first refine/promote/define.
 
 ## tasks.yaml — single home of task state (D4)
