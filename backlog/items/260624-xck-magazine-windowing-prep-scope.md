@@ -4,12 +4,16 @@ id: 260624-xck
 kind: story
 title: "/magazine windowing flags (days/since/until + date range) + loud unknown-flag + prep snapshot-scoping"
 type: feature
-status: planned
+status: in-progress
 priority: should
 labels: [pmos-learnkit, magazine]
 route: skill
 created: 2026-06-24
 updated: 2026-06-25
+status_note: claimed by build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+claimed_by: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+driver_holder: build:6681ff46-e6d7-4cb7-854d-4ca3ea2b44ff
+worktree: feat/260624-xck
 plan_doc: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-xck/03_plan.html
 tasks_file: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-xck/tasks.yaml
 parent: 260624-2bm
