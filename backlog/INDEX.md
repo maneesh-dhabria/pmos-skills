@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-25 (hand-regen: cg6/shm/rmq/1e5 builds → done + epic rollups 3jp 2/4, c62 2/2; 8 stories' ACs normalized to checkbox form)
+Last regenerated: 2026-06-25 (hand-regen: define merge of epic 260625-sm0 /backlog grooming AC-format + 1 story; earlier same-day cg6/shm/rmq/1e5 → done + 8 stories' ACs normalized)
 
-132 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+134 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -56,6 +56,7 @@ Last regenerated: 2026-06-25 (hand-regen: cg6/shm/rmq/1e5 builds → done + epic
 | 260624-ajy | defined | skill | pmos-toolkit | 2/2 | "/landing-page — guided product landing-page generator (research+cited brief → approved section structure → 2-3 rendered hero options → bundled visual-style selector → single self-contained HTML in a per-page folder → copy+visual self-review)" |
 | 260624-fly | defined | skill | pmos-gamekit | 0/1 | "/flappy-bird visual variety — 7 procedural background themes + 4 procedural bird shapes + 5-color contrast-safe palette + subtle top-HUD pmos wordmark, behind a pure seedable pickVariants() picker (Inv-1 preserved)" |
 | 260624-3nj | defined | skill | pmos-gamekit | 0/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
+| 260625-sm0 | defined | skill | pmos-toolkit | 0/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 
 ## must
 
@@ -126,7 +127,7 @@ Last regenerated: 2026-06-25 (hand-regen: cg6/shm/rmq/1e5 builds → done + epic
 | 260624-9fw | story | feature | planned | 260624-2bm | "/magazine Stage-B GUID reconciliation + durable per-issue items JSON + feed-failure quarantine suggestion" | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/02_design.html | docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-9fw/03_plan.html |  |
 | 260624-cg6 | story | feature | done | 260624-3jp | "Vendor the design-slop engine into _shared/slop-engine/ — pmos-native registry + verbatim checks + jsdom-free Node adapter + browser adapter + rules generator + NOTICE + fixtures" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-cg6/03_plan.md |  |
 | 260624-shm | story | feature | done | 260624-3jp | "/design-crit — deterministic slop pre-pass: inject the browser detector into the existing Playwright session, surface engine findings ahead of the LLM critique" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-shm/03_plan.md |  |
-| 260624-y9m | story | feature | planned | 260624-3jp | "/verify — frontend slop gate: run the engine via the cheap Node path (no Playwright), route findings through dispositions, tiered mandatory-for-UI, slop advisory / quality blocking" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/03_plan.md |  |
+| 260624-y9m | story | feature | in-progress | 260624-3jp | "/verify — frontend slop gate: run the engine via the cheap Node path (no Playwright), route findings through dispositions, tiered mandatory-for-UI, slop advisory / quality blocking" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-y9m/03_plan.md |  |
 | 260624-aqb | story | feature | planned | 260624-3jp | "Prevention reference + drift-lint: generate _shared/design-slop-rules.md from the registry, cite it as a floor in /wireframes /prototype /execute, add tools/lint-slop-rules.sh to skill-hygiene.yml" | docs/pmos/features/2026-06-24_design-slop-engine/02_design.html | docs/pmos/features/2026-06-24_design-slop-engine/stories/260624-aqb/03_plan.md |  |
 | 260624-fbd | story | feature | planned | 260624-kkw | "Substrate _shared/critique-rubric/ — axes.md (10 axes + per-axis checks) + heuristics.md (reasoning spine) + doc-types.md (applicability map + verdict scale + findings schema) + vendored anonymized corpus samples" | docs/pmos/features/2026-06-24_artifact-critique/02_design.html | docs/pmos/features/2026-06-24_artifact-critique/stories/260624-fbd/03_plan.md |  |
 | 260624-aa8 | story | feature | planned | 260624-kkw | "/artifact-critique SKILL.md — ingest + doc-type detection + single-pass axis scoring + per-axis deep-dive + ranked weakest-claims + synthesize + HTML emit with embedded findings block + two-tier quality gate + voice rubric & few-shot" | docs/pmos/features/2026-06-24_artifact-critique/02_design.html | docs/pmos/features/2026-06-24_artifact-critique/stories/260624-aa8/03_plan.md |  |
@@ -136,6 +137,7 @@ Last regenerated: 2026-06-25 (hand-regen: cg6/shm/rmq/1e5 builds → done + epic
 | 260624-pe2 | story | feature | done | 260624-ajy | "/landing-page SKILL.md — six-phase guided workflow (research+brief → propose-structure → hero-explore → style-pick → draft → visual self-review) + per-page folder output + opt-in web research + non-interactive contract + skill-eval (deps 260624-dqg)" | docs/pmos/features/2026-06-24_landing-page/02_design.html | docs/pmos/features/2026-06-24_landing-page/stories/260624-pe2/03_plan.md |  |
 | 260624-vry | story | feature | planned | 260624-fly | "Build /flappy-bird visual variety — 7 background themes + 4 bird shapes + 5-color contrast-safe palette + top-HUD pmos wordmark, behind a pure seedable pickVariants() picker, with engine selftests (contrast/no-repeat/determinism/coverage) + headless dogfood" | docs/pmos/features/2026-06-24_flappy-bird-variety/02_design.html | docs/pmos/features/2026-06-24_flappy-bird-variety/stories/260624-vry/03_plan.md |  |
 | 260624-f62 | story | feature | planned | 260624-3nj | "/poker References panel + restyle — collapsible right-side panel with 3 static references (hand rankings, interactive preflop chart, pot-odds/Rule-of-2&4) + bundled chart data & pure handKey/chartAction helpers + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark + extended selftest" | docs/pmos/features/2026-06-24_poker-references-restyle/02_design.html | docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md |  |
+| 260625-751 | story | bug | planned | 260625-sm0 | "/backlog grooming AC detection — accept checkbox/dash/numbered criteria; reconcile schema.md; regression-test the format matrix" | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/02_design.md | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md |  |
 
 ## could
 
