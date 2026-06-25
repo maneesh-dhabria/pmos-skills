@@ -18,7 +18,7 @@ claimed_by:
 driver_holder:
 labels: [pmos-toolkit, verify, slop-engine, detect, gate]
 created: 2026-06-24
-updated: 2026-06-24
+updated: 2026-06-25
 ---
 
 <!-- status: planned at define (Loop 1); route:skill. Build via /skill-sdlc build --story 260624-y9m -->
@@ -31,21 +31,21 @@ must degrade gracefully and never block non-UI work.
 
 ## Acceptance criteria
 
-1. `/verify`'s frontend-QA phase runs `_shared/slop-engine/detect.mjs` on the generated HTML via the
+- [ ] `/verify`'s frontend-QA phase runs `_shared/slop-engine/detect.mjs` on the generated HTML via the
    **Node path (no Playwright)** — cheap, fast.
-2. Findings route through `_shared/findings-dispositions.md` (Fix / Modify / Skip / Defer; severity
+- [ ] Findings route through `_shared/findings-dispositions.md` (Fix / Modify / Skip / Defer; severity
    `[Blocker]/[Should-fix]/[Nit]`). **quality**-category faults can be `[Blocker]` and **gate the
    release**; **slop** tells are `[Should-fix]/[Nit]`, surfaced loudly but **never hard-block**
    (grill-confirmed D-TIER).
-3. **Tiered:** mandatory when the existing frontend-detection signal is positive; **skipped-with-log**
+- [ ] **Tiered:** mandatory when the existing frontend-detection signal is positive; **skipped-with-log**
    for non-UI features (reuse `/verify`'s existing frontend-detection — do not re-invent).
-4. **Graceful degradation (Inv-5):** if the engine/parser is unavailable, log a non-fatal note and
+- [ ] **Graceful degradation (Inv-5):** if the engine/parser is unavailable, log a non-fatal note and
    continue — never flip a correct PASS to fail on tooling absence.
-5. Surfaced in the `/verify` report (and inherited by `/complete-dev`'s summary) as a distinct
+- [ ] Surfaced in the `/verify` report (and inherited by `/complete-dev`'s summary) as a distinct
    slop-findings section.
-6. `SKILL.md` edit conforms to `skill-patterns.md §A–§L`; passes `skill-eval`; 4 lints + audit clean;
+- [ ] `SKILL.md` edit conforms to `skill-patterns.md §A–§L`; passes `skill-eval`; 4 lints + audit clean;
    no release-prereq tasks in the plan.
-7. Inv-4 holds: the gate calls no LLM and no network (deterministic, offline). Inv-3: no `impeccable`
+- [ ] Inv-4 holds: the gate calls no LLM and no network (deterministic, offline). Inv-3: no `impeccable`
    string introduced.
-8. Live dogfood: `/verify` on a UI artifact with a planted WCAG contrast failure blocks (quality
+- [ ] Live dogfood: `/verify` on a UI artifact with a planted WCAG contrast failure blocks (quality
    [Blocker]); the same artifact with only a `gradient-text` slop tell passes with an advisory note.
