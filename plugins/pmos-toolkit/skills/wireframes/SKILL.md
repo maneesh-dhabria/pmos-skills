@@ -223,6 +223,7 @@ If the copy fails, `Read` the skill's `assets/wireframe.css` and `Write` it to t
 - **`components_inventory`** + instruction: prefer COMPONENTS.md variant names over inventing new ones; mock genuinely new components AND flag them in the file footer under "New components proposed: <list>".
 - **`layout_anchor`** (name + skeleton) + instruction: use as the chrome for screen-level wireframes; modals/overlays exempt. Omit when "None — start fresh".
 - **`decision_context`** + instruction: honor every anti-pattern; a wireframe that must violate one flags it in the footer with rationale.
+- **The design-slop floor** at `../_shared/slop-engine/design-slop-rules.md` — emitted screens must also clear its generated DON'T lines (the same deterministic tells `/verify`'s slop gate checks). Honor the floor; do not restate it here.
 - **If the component has an anchored screenshot:** only that screenshot's description block + the original image's absolute path, plus the IA-preservation instruction from `reference/screenshot-ingestion.md` (match layout/IA; may improve states/a11y/copy; must NOT silently reorganize IA).
 - Strict instruction: produce ONLY the HTML file(s), no commentary.
 

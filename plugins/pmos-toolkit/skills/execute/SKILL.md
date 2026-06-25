@@ -23,6 +23,12 @@ These instructions use Claude Code tool names. In other environments:
 
 ---
 
+## Track Progress
+
+This skill has multiple phases and runs a per-task loop. **Create one task per plan task** (from `tasks.yaml`, else the prose-parsed plan — see `#task-queue`) using your agent's task-tracking tool: mark each in-progress when you start it and completed as soon as it finishes — do not batch completions. The `tasks.yaml` `status:` field and the per-task `task-NN.md` logs are the durable record (`#per-task-loop`); the task tracker mirrors them. If no task tool is available, track via the `T<N>`-bearing commit subjects and per-task logs and report phase transitions verbally.
+
+---
+
 ## Backlog Bridge
 
 This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skills/backlog/pipeline-bridge.md`.
@@ -197,7 +203,7 @@ Work through the queue's tasks in order (from `tasks.yaml` when present, else th
 4. **Run the verify-fix loop** (see below).
 5. **Produce runtime evidence before committing:**
    - **API tasks:** curl every new/modified endpoint against the running dev server. Paste the output.
-   - **UI tasks:** open the affected page in Playwright MCP (or fallback). Paste screenshot or programmatic output.
+   - **UI tasks:** open the affected page in Playwright MCP (or fallback). Paste screenshot or programmatic output. Frontend/UI tasks also honor the design-slop floor at `../_shared/slop-engine/design-slop-rules.md` (the generated DON'T lines `/verify`'s slop gate checks) — cite, don't restate.
    - If you cannot produce runtime evidence for an API or UI task, the task is not done. Do not commit.
 6. **Commit** — small, focused commit per task. Not one giant commit at the end. **Commit subject MUST contain the task number in the form `T<N>`** (e.g., `feat(T5): add audit-log migration` or `T5: add audit-log migration`). The Phase 0c resolver greps `\bT[0-9]+\b` from `git log` to detect mid-task interruption — without `T<N>` in the subject, in-flight detection degrades.
 7. **Maintain the per-task log** at `{feature_folder}/execute/task-{NN}.md` (zero-padded 2 digits). The log has a structured frontmatter and a free-form body. Lifecycle:
