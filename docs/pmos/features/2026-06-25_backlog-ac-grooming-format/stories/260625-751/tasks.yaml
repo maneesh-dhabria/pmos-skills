@@ -1,0 +1,71 @@
+schema_version: 1
+story: 260625-751
+epic: 260625-sm0
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.md
+skill_dir: plugins/pmos-toolkit/skills/backlog
+# /backlog grooming false-positive: hasAcceptanceCriteria() in
+# scripts/serve-web-lib.mjs requires a markdown checkbox (/-\s*\[[ xX]\]/), so
+# numbered/dash-bullet ACs read as ungroomed and false-flag planned stories in
+# /backlog + /backlog groom. Make the detector format-robust (accept checkbox,
+# dash/star bullet, or numbered criteria; empty only when heading-only), reconcile
+# schema.md, regression-test the format matrix. Confined to the derivation lib + its
+# test (D5 — viewer.html/serve-web.mjs untouched). Pure zero-dep.
+#
+# Design anchors: ../../02_design.md — Root cause, D1 (format-robust detector),
+# D3 (schema reconcile), D4 (regression matrix), D5 (single home, no viewer/server change).
+# Reference: feature-sdlc/reference/skill-patterns.md §A-§L + host CLAUDE.md
+# (canonical skill path: plugins/pmos-toolkit/skills/backlog/SKILL.md).
+# Release prerequisites (version bump, changelog, README row, plugin.json version-sync)
+# are NOT tasks — /complete-dev owns them at epic release.
+tasks:
+  - id: T1
+    title: "Failing tests first — AC-format matrix (numbered/dash has_ac=true; heading-only has_ac=false)"
+    ac: [AC1, AC2, AC4]
+    deps: []
+    parallel: false
+    status: pending
+    detail: >
+      Per AC1/AC2/AC4. Extend plugins/pmos-toolkit/skills/backlog/tests/serve-web.test.mjs BEFORE
+      touching the lib: (a) numbered-AC story (1./2.) -> has_ac true AND absent from
+      buildModel().queues.groom.needs_grooming; (b) bold-dash-bullet AC story (- **AC1 ...**) -> same;
+      (c) heading-only/content-empty AC section -> has_ac false AND present in needs_grooming when
+      planned/ready; (d) keep an existing checkbox-AC case green. Use the suite's existing style
+      (parseFrontmatter/parseItems/buildModel over in-test fixtures). Run -> numbered/dash cases FAIL
+      against the checkbox-only regex; commit red.
+  - id: T2
+    title: "Make hasAcceptanceCriteria format-robust (checkbox/dash/numbered); no viewer/server change"
+    ac: [AC1, AC5]
+    deps: [T1]
+    parallel: false
+    status: pending
+    detail: >
+      Per AC1/AC5, D1/D5. In scripts/serve-web-lib.mjs replace the checkbox-only test
+      (/-\s*\[[ xX]\]/) with an any-enumerated-criterion test: section non-empty AND a line matches
+      /^\s*(?:[-*]\s+|\d+[.)]\s+)/m (covers - [ ] / - [x], plain -/* bullets, and 1./2./1) numbered).
+      Keep sectionBody case-insensitive heading match; no signature change. Do NOT edit viewer.html or
+      serve-web.mjs (D5). Run suite -> all green. Pure zero-dep.
+  - id: T3
+    title: "Reconcile schema.md — grooming detection accepts checkbox/dash/numbered"
+    ac: [AC3]
+    deps: [T2]
+    parallel: false
+    status: pending
+    detail: >
+      Per AC3/D3. In plugins/pmos-toolkit/skills/backlog/schema.md, beside the ## Acceptance Criteria
+      example (~line 133) and/or the ready-gate row, add one line: grooming AC detection accepts
+      checkbox, dash, or numbered criteria; checkbox (- [ ]) remains the recommended canonical form.
+      No other schema change.
+  - id: T4
+    title: "Live dogfood + gates (real backlog/items needs_grooming; skill-eval [D] + lints + audit)"
+    ac: [AC2, AC6, AC7]
+    deps: [T3]
+    parallel: false
+    status: pending
+    detail: >
+      Per AC2/AC6/AC7. Rebuild the model from real backlog/items (parseItems -> buildModel); assert
+      needs_grooming excludes the repo's numbered/dash-AC stories while a genuinely AC-less draft
+      (temp fixture, not committed) still flags. Then: /backlog skill-eval [D] green (SKILL.md surface
+      unchanged); 4 repo hygiene lints (tools/lint-*) + audit-recommended.sh clean. Capture
+      before/after needs_grooming as evidence.
