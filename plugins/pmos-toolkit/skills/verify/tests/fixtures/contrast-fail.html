@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>verify slop-gate fixture — planted WCAG contrast fail (quality blocker)</title>
+<style>
+  /* Realistic small marketing page. EXPLICIT px dims — the Node static path
+     has no layout engine. Carries a deliberate WCAG AA contrast failure and
+     NO slop tells, so the gate's QUALITY lane is exercised in isolation. */
+  body { background: #ffffff; font-family: Georgia, 'Times New Roman', serif; margin: 0; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+  h1 { color: #111827; font-size: 40px; margin: 0 0 24px; }
+  .lead { color: #1f2937; background: #ffffff; font-size: 18px; line-height: 1.6; }
+  /* PLANTED FAULT: light-gray body text on white — fails WCAG AA (≈1.6:1). */
+  .fineprint { color: #cbd5e1; background: #ffffff; font-size: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Quarterly Operations Review</h1>
+  <p class="lead">Near-black lead copy on white, comfortably above AA contrast.</p>
+  <p class="fineprint">This fine print is light gray on white and fails the WCAG AA contrast ratio for body text.</p>
+</main>
+</body>
+</html>

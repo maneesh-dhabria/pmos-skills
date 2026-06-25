@@ -41,7 +41,9 @@ This skill optionally integrates with `/backlog`. See `plugins/pmos-toolkit/skil
 
 ---
 
-**Create verification tasks** at the start using your available task tracking tool:
+## Track Progress
+
+This skill has multiple phases. **Create one verification task per phase** at the start using your available task-tracking tool (e.g., `TaskCreate`/`TaskUpdate` in Claude Code), and mark each in-progress when you start it and completed as soon as it finishes — do not batch completions. If no task tool is available, announce phase transitions verbally (see Platform Adaptation):
 
 1. Gather Context
 2. Static Verification (lint, types, tests)
@@ -267,6 +269,21 @@ curl -sf <endpoint> | python3 -m json.tool
 
 ### 4d. Frontend Verification (Playwright MCP)
 
+**Slop gate — deterministic Node-path pre-check (runs before the browser walk; distinct from screenshot evidence) {#slop-gate}**
+
+Before resolving a browser tool, run the vendored design-slop detector over each generated HTML artifact via the **cheap Node path** — no Playwright, no browser, no network, no LLM. It is deterministic (§H — the engine does the contrast/a11y arithmetic; the model never eyeballs it):
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/verify/scripts/slop-gate.mjs" --source <generated-or-served-html>
+```
+
+- **Tiering reuses the existing browser-mandatory trigger** (the Phase 4 entry gate above) — do NOT re-invent frontend detection. Trigger **positive** ⇒ the slop gate is **mandatory** (run it on every generated `.html` artifact and affected UI file). Trigger **negative** (non-UI change) ⇒ **skipped-with-log**: emit one sentence to the Phase 8 report — `slop gate: skipped — no UI surface (browser-mandatory trigger negative)` — the same discipline as 4f's "skip only if zero UI surface".
+- **It is distinct from the Playwright sub-steps below.** The slop gate is a static pre-pass on the HTML *source*; it is NOT screenshot evidence and never substitutes for the 4d browser walk (which still runs). The two lanes are reported separately so they can never be conflated.
+- **Two finding lanes — category drives severity** (see `#slop-routing`): `quality` (contrast/a11y/rendering arithmetic) findings can be `[Blocker]` and **gate**; `slop` (taste / AI-tell) findings are `[Should-fix]`/`[Nit]`, surfaced loudly but **never hard-block** (D-TIER — taste must not stop a ship). The runner's **exit code is the deterministic signal**: `2` = a `[Blocker]` quality fault is present (the gate fires; the Phase 8 verdict drops below bare PASS), `0` = no quality blocker (slop, if any, is advisory only).
+- **Graceful degradation (Inv-5) — never flips a correct PASS to FAIL on tooling absence.** If `_shared/slop-engine/` is absent, `detect.mjs` throws, or the vendored parser can't process the HTML, the runner prints a non-fatal `slop gate skipped — engine/parser unavailable` note and exits `0`; `/verify` continues with prior behaviour. This mirrors the `#hard-gates` comments-coverage existence-guard and the browser-tool-ladder rung-4 logged-skip below. A check the Node parser can't reproduce (the engine's layout-dependent `BROWSER_ONLY_RULES`) is skipped on the Node path with a logged note — it runs via `/design-crit`'s browser path (story B) — never silently dropped.
+
+Findings route per `#slop-routing` and surface as a distinct section in Phase 5 (`#slop-findings`) and the Phase 8 verdict block (`#commit-report`).
+
 **Resolve your browser tool first (in order; stop at the first rung that works):**
 
 1. **Playwright MCP** — if `browser_*` tools are not in your immediate tool schema, they may be DEFERRED: load them first (e.g., ToolSearch `select:browser_navigate,browser_snapshot,browser_take_screenshot,browser_console_messages`). Then prove liveness: `browser_navigate` to the target URL.
@@ -330,6 +347,17 @@ This sub-step exists because automated tests, API smoke tests, and happy-path Pl
 | P12 | No raw external/internal anchors leak into rendered content (e.g., EPUB `#filepos2205`, file-system paths, dev-only URLs) | `browser_evaluate` `[...document.querySelectorAll('a')].map(a=>a.href)` and inspect for non-app schemes/paths |
 
 **Evidence required (per the entry gate's 4f row):** the polished-checklist table with one outcome per row (`pass` / `fail` / `NA — reason`) AND, if wireframes existed, a wireframe-diff entry per affected screen. Failures become Phase 5 5d gaps and Phase 6 regression tests.
+
+### 4g. Slop-finding routing {#slop-routing}
+
+The slop gate (`#slop-gate`) emits findings in two categories; route them through `_shared/findings-dispositions.md` (the canonical disposition + severity + non-interactive contract — cite, don't restate). The **per-skill delta** is the deterministic category→severity map below — the engine assigns it (§H arithmetic), the model never re-judges it:
+
+| Engine category | Severity bracket | Gating? | Disposition default |
+|---|---|---|---|
+| `quality` (contrast / a11y / rendering arithmetic) | `[Blocker]` (curated WCAG/render faults) or `[Should-fix]` | **CAN GATE** — a `[Blocker]` quality fault drops the Phase 8 verdict below bare PASS (`#commit-report`) | Fix-as-proposed (a contrast/clipping fault is mechanical) |
+| `slop` (taste / AI-tell) | `[Should-fix]` or `[Nit]` (the 8 engine-`advisory` tells) | **NEVER hard-blocks** — surfaced loudly, advisory only (D-TIER, grill-confirmed: taste must not stop a ship) | Skip/Defer is acceptable; record the call |
+
+The bracket is **not** read from engine severity (most rules default `warning`, which is uninformative) — it is the gate runner's frozen `BLOCKING_QUALITY` id set (§H: a script computes it, deterministically and reproducibly; the model does not). **Non-interactive** (`--non-interactive`): per `findings-dispositions.md`, `[Blocker]` quality faults are auto-fixed-as-proposed when mechanical (and otherwise surfaced as the gap that drops the verdict); `slop` findings are buffered to the report as advisory and never block — no `AskUserQuestion` is issued (the gate is automatic, the routing deterministic).
 
 ---
 
@@ -435,6 +463,19 @@ List every gap found:
 
 **If critical gaps exist:** Fix them before proceeding. Re-run affected verification steps.
 
+### 5f. Slop-Findings (machine-flagged, deterministic) {#slop-findings}
+
+A distinct section for the `#slop-gate` output — kept separate from the human-judged 5d UX-polish table so the two lanes are never conflated (the slop gate is a static pre-pass on HTML *source*; 4f is an interactive browser walk). Skip with one logged sentence when the browser-mandatory trigger was negative — `slop gate: skipped — no UI surface` — never silently.
+
+Two lanes, mirroring `#slop-routing`:
+
+| Lane | Findings | Verdict effect |
+|---|---|---|
+| **Quality faults** | `[Blocker]` / `[Should-fix]` `quality`-category findings (id, snippet, file) | a `[Blocker]` row is a **critical gap** — it joins 5e and drops the Phase 8 verdict below bare PASS (`#commit-report`). A fixed-this-pass `[Blocker]` cites its fix commit. |
+| **Slop tells** | `[Should-fix]` / `[Nit]` `slop`-category findings (id, snippet, file) | **advisory** — surfaced loudly but never a gap; recorded with its disposition (Fixed / Skipped / Deferred per `_shared/findings-dispositions.md`). |
+
+The read surface `/complete-dev`'s summary inherits is this 5f section plus the `#commit-report` verdict block — so a skipped quality blocker and the advisory slop list both reach the release summary.
+
 ---
 
 ## Phase 6: Harden the Test Suite {#harden-tests}
@@ -506,9 +547,9 @@ This phase does NOT generate wireframes, regenerate `design-overlay.css`, auto-c
 
 **Verdict rule (deterministic — compute before writing the report):** the final report carries exactly one verdict line: `PASS`, `PASS-WITH-GAPS`, or `FAIL`.
 
-- **`PASS`** — every compliance row resolved `Verified` or `NA — alt-evidence`, all Phase 7 hard gates green, AND — whenever the browser-mandatory trigger (Phase 4 entry gate) fired — at least one screenshot file from this run exists under `{feature_folder}/verify/` AND zero UI-affecting FRs sit at `Unverified — action required` AND — whenever a TN−1 dogfood task exists (Tier 2/3) — its verdict is `satisfied` (Phase 7 dogfood-verdict gate green, no still-failing residuals). Bare `PASS` without that browser evidence, or with a missing/`not-satisfied` dogfood verdict, is not available.
-- **`PASS-WITH-GAPS`** — verification is materially complete but enumerated gaps remain: all browser-tool rungs failed (4d ladder, rung 4), UI-surface rows left `Unverified — action required`, a sub-step skipped with a named blocker, **or** a missing/`not-satisfied` dogfood verdict (Tier 2/3) — with each dogfood `gaps:` entry enumerated one-per-line in the verdict block, and each still-failing `accepted_residuals[]` item surfaced as a loud `KNOWN / accepted` line (non-blocking, carried into the `/complete-dev` summary). The verdict block MUST enumerate each gap — one line per gap naming the row ID, the blocker, and the user action required. Never collapse these into a bare `PASS`. `/complete-dev` treats `PASS-WITH-GAPS` as confirmation-required, not a green light.
-- **`FAIL`** — a Phase 7 hard gate failed, a critical 5e gap remains unfixed, or a *critical* dogfood objective gate failed.
+- **`PASS`** — every compliance row resolved `Verified` or `NA — alt-evidence`, all Phase 7 hard gates green, AND — whenever the browser-mandatory trigger (Phase 4 entry gate) fired — at least one screenshot file from this run exists under `{feature_folder}/verify/` AND zero UI-affecting FRs sit at `Unverified — action required` AND — whenever a TN−1 dogfood task exists (Tier 2/3) — its verdict is `satisfied` (Phase 7 dogfood-verdict gate green, no still-failing residuals) AND — whenever the slop gate ran (`#slop-gate`, browser-trigger positive) — zero unfixed `[Blocker]` quality faults remain (slop-category tells never affect this — they are advisory per `#slop-routing`). Bare `PASS` without that browser evidence, with a missing/`not-satisfied` dogfood verdict, or with an unfixed `[Blocker]` quality fault, is not available.
+- **`PASS-WITH-GAPS`** — verification is materially complete but enumerated gaps remain: all browser-tool rungs failed (4d ladder, rung 4), UI-surface rows left `Unverified — action required`, a sub-step skipped with a named blocker, a missing/`not-satisfied` dogfood verdict (Tier 2/3), **or** an unfixed `[Blocker]` quality fault from the slop gate that is otherwise material (advisory `slop` tells are listed in 5f but never drive this) — with each dogfood `gaps:` entry enumerated one-per-line in the verdict block, and each still-failing `accepted_residuals[]` item surfaced as a loud `KNOWN / accepted` line (non-blocking, carried into the `/complete-dev` summary). The verdict block MUST enumerate each gap — one line per gap naming the row ID, the blocker, and the user action required. Never collapse these into a bare `PASS`. `/complete-dev` treats `PASS-WITH-GAPS` as confirmation-required, not a green light.
+- **`FAIL`** — a Phase 7 hard gate failed, a critical 5e gap remains unfixed (an unfixed `[Blocker]` quality fault from the slop gate is a critical gap), or a *critical* dogfood objective gate failed.
 
 1. **Commit all changes** (fixes, new tests, documentation updates):
    ```bash

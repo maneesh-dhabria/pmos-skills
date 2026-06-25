@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>verify slop-gate fixture — gradient-text slop tell only (contrast fixed)</title>
+<style>
+  /* SAME page as contrast-fail.html with the contrast fault corrected
+     (fineprint darkened to #1f2937, above AA) and a single SLOP tell added:
+     a gradient-clipped heading. Exercises the gate's ADVISORY lane in
+     isolation — a slop finding that must NOT gate the verdict. */
+  body { background: #ffffff; font-family: Georgia, 'Times New Roman', serif; margin: 0; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+  /* SLOP TELL: purple→pink gradient clipped to heading text. */
+  h1 { background: linear-gradient(90deg, #a855f7, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 40px; margin: 0 0 24px; }
+  .lead { color: #1f2937; background: #ffffff; font-size: 18px; line-height: 1.6; }
+  .fineprint { color: #1f2937; background: #ffffff; font-size: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Quarterly Operations Review</h1>
+  <p class="lead">Near-black lead copy on white, comfortably above AA contrast.</p>
+  <p class="fineprint">This fine print is now dark slate on white and passes WCAG AA for body text.</p>
+</main>
+</body>
+</html>
