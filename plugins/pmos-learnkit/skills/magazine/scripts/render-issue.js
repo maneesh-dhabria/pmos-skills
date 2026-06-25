@@ -15,17 +15,22 @@
 // with JavaScript disabled the grid + every bullet + the read links still work.
 //
 // Usage:
-//   node render-issue.js issue   <items.json>   > {date}_issue.html
-//   node render-issue.js library <issues.json>  > index.html
+//   node render-issue.js issue   <items.json> [<out-html>]   (out-html: also writes <date>_items.json sidecar; else stdout)
+//   node render-issue.js library <dir|issues.json>  > index.html  (dir: rebuilt from *_items.json sidecars)
 //   node render-issue.js --selftest
 //
 // issue items.json:   { "issue_date": "2026-06-03",
 //   "items": [{ guid, feed, type, title, link, published, reading_time?,
 //               bullets: [..], tags: [..], top_pick?: bool, degraded?: "reason" }] }
 // library issues.json: { "issues": [{ date, file, items: [{title, feed, tags, date, link}] }] }
+// per-issue sidecar:   { "issue_date": "2026-06-03", "items": [ <full item objects, bullets included> ] }
+//   — persisted beside the issue HTML so the library rebuilds from DATA (never re-parsed
+//     out of HTML, D8) and an overlapping later issue can reuse already-summarized bullets.
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
+const { matchByGuid } = require('./lib-guid.js');
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -325,6 +330,83 @@ table{border-collapse:collapse;width:100%;font-size:.9rem}td,th{border:1px solid
 </body></html>`;
 }
 
+// The per-issue sidecar lives beside the issue HTML, named <date>_items.json.
+function sidecarPathFor(outHtml, issueDate) {
+  const dir = path.dirname(outHtml);
+  const date = issueDate || path.basename(outHtml).replace(/_issue\.html$/, '').replace(/\.html$/, '');
+  return path.join(dir, `${date}_items.json`);
+}
+
+// Persist the per-issue items JSON sidecar (T3/D8/FR-E). It carries the FULL item
+// objects (bullets included) so the library rebuilds from data and a later
+// overlapping issue can reuse the takeaways. Whole-file via temp-then-rename so a
+// crash never leaves a half-written sidecar; the prior sidecar stays intact.
+function writeSidecar(outHtml, data) {
+  const sidecar = sidecarPathFor(outHtml, data.issue_date);
+  const payload = JSON.stringify({ issue_date: data.issue_date || '', items: data.items || [] }, null, 2);
+  const tmp = sidecar + '.tmp';
+  fs.writeFileSync(tmp, payload);
+  fs.renameSync(tmp, sidecar);
+  return sidecar;
+}
+
+// Build the library {issues:[...]} model from a directory of per-issue sidecars
+// (T4/D8: from DATA, never parsed back out of HTML). Every *_issue.html that has
+// no sibling *_items.json is surfaced LOUDLY — one stderr skip-notice naming it —
+// and omitted; it never crashes the build and is never silently dropped (Inv-1).
+function libraryFromDir(dir) {
+  const entries = fs.readdirSync(dir);
+  const sidecars = entries.filter((f) => /_items\.json$/.test(f)).sort();
+  const issues = [];
+  for (const f of sidecars) {
+    let parsed;
+    try { parsed = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); }
+    catch (e) { process.stderr.write(`render-issue library: skip-notice — unreadable sidecar ${f}: ${e.message}\n`); continue; }
+    const date = parsed.issue_date || f.replace(/_items\.json$/, '');
+    const file = `${date}_issue.html`;
+    const items = (parsed.items || []).map((it) => ({
+      title: it.title, feed: it.feed, tags: it.tags || [],
+      date: (it.published || '').slice(0, 10), link: it.link,
+    }));
+    issues.push({ date, file, items });
+  }
+  // Loud skip-notice for any issue HTML whose sidecar is missing (legacy / data lost).
+  const sidecarBases = new Set(sidecars.map((f) => f.replace(/_items\.json$/, '')));
+  const orphans = entries.filter((f) => /_issue\.html$/.test(f))
+    .filter((f) => !sidecarBases.has(f.replace(/_issue\.html$/, ''))).sort();
+  for (const f of orphans) {
+    process.stderr.write(`render-issue library: skip-notice — ${f} has no sibling *_items.json sidecar; omitted from the library (re-render that issue to restore it)\n`);
+  }
+  return { issues };
+}
+
+// Reuse already-summarized takeaways across overlapping windows (T5/D6/FR-E5).
+// Partition the current window's snapshot items against a prior issue's sidecar:
+//   hydrated    — items that matched a sidecar item (by GUID, normalized via
+//                 matchByGuid), carrying that sidecar's bullets/tags forward so
+//                 a monthly issue overlapping a weekly one never re-summarizes.
+//   needsStageB — exactly the no-cache subset the caller must still run Stage B on.
+function mergeCachedBullets(snapshotItems, sidecarItems) {
+  const cache = sidecarItems || [];
+  const keyOf = (it) => (it.guid != null ? it.guid : (it.link || it.title));
+  const cacheGuids = cache.map(keyOf);
+  const hydrated = [];
+  const needsStageB = [];
+  for (const it of (snapshotItems || [])) {
+    const match = matchByGuid(cacheGuids, keyOf(it));
+    if (match != null) {
+      const cached = cache.find((c) => keyOf(c) === match);
+      hydrated.push(Object.assign({}, it, {
+        bullets: cached.bullets || [],
+        tags: (cached.tags && cached.tags.length) ? cached.tags : (it.tags || []),
+      }));
+    } else {
+      needsStageB.push(it);
+    }
+  }
+  return { hydrated, needsStageB };
+}
+
 function selftest() {
   let ok = true;
   const assert = (c, m) => { if (!c) { ok = false; console.error('FAIL:', m); } };
@@ -398,6 +480,57 @@ function selftest() {
   assert(lib.includes('id="q"'), 'library search box present');
   assert((lib.match(/<tr data-search/g) || []).length === 1, 'library dedups repeated link across issues');
 
+  // ---- T3: issue mode writes a sidecar next to the HTML (temp-then-rename) ----
+  const os = require('os');
+  const troot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-render-'));
+  const outHtml = path.join(troot, '2026-06-10_issue.html');
+  const issueData = { issue_date: '2026-06-10', items: [
+    { guid: 'sc1', feed: 'F', type: 'newsletter', title: 'Cached one', link: 'https://x/sc1', published: '2026-06-09T00:00:00Z', bullets: ['k1', 'k2'], tags: ['t'] },
+  ] };
+  fs.writeFileSync(outHtml, renderIssue(issueData));
+  const sc = writeSidecar(outHtml, issueData);
+  assert(fs.existsSync(sc), 'T3: sidecar file written next to issue HTML');
+  assert(sc === path.join(troot, '2026-06-10_items.json'), 'T3: sidecar named <date>_items.json beside the HTML');
+  const scParsed = JSON.parse(fs.readFileSync(sc, 'utf8'));
+  assert(Array.isArray(scParsed.items) && scParsed.items[0].bullets[0] === 'k1', 'T3: sidecar carries items[].bullets and round-trips');
+  assert(!fs.existsSync(sc + '.tmp'), 'T3: temp file renamed away (no orphan .tmp)');
+
+  // ---- T4: library from a dir of sidecars + loud skip-notice for a sidecar-less issue ----
+  const out2 = path.join(troot, '2026-06-03_issue.html');
+  const data2 = { issue_date: '2026-06-03', items: [
+    { guid: 'sc2', feed: 'G', type: 'newsletter', title: 'Older', link: 'https://x/sc2', published: '2026-06-02T00:00:00Z', bullets: ['z'], tags: ['p'] },
+  ] };
+  fs.writeFileSync(out2, renderIssue(data2));
+  writeSidecar(out2, data2);
+  fs.writeFileSync(path.join(troot, '2026-05-27_issue.html'), '<html></html>'); // sidecar-less
+  const origErr = process.stderr.write.bind(process.stderr);
+  let captured = '';
+  process.stderr.write = (s) => { captured += s; return true; };
+  let libModel;
+  try { libModel = libraryFromDir(troot); } finally { process.stderr.write = origErr; }
+  assert(libModel.issues.length === 2, 'T4: library from dir lists exactly the 2 sidecar-backed issues');
+  assert(/2026-05-27_issue\.html/.test(captured) && /no sibling/.test(captured), 'T4: loud skip-notice names the sidecar-less issue');
+  assert(!/2026-06-10_issue\.html[^\n]*no sibling/.test(captured), 'T4: no false notice for a sidecar-backed issue');
+  const libHtml = renderLibrary(libModel);
+  assert(libHtml.includes('Cached one') && libHtml.includes('Older'), 'T4: rendered library HTML carries both sidecar issues');
+
+  // ---- T5: mergeCachedBullets reuses sidecar takeaways across overlapping windows ----
+  const sidecarCache = [
+    { guid: 'https://x.com/p/glm-5-2', bullets: ['cached-A'], tags: ['ai'] },
+    { guid: 'g-two', bullets: ['cached-B'], tags: [] },
+  ];
+  const snapshot = [
+    { guid: 'https://x.com/p_glm-5-2', title: 'GLM', link: 'l1', bullets: [] }, // safe-ified key reconciles
+    { guid: 'g-two', title: 'Two', link: 'l2', bullets: [] },
+    { guid: 'brand-new', title: 'New', link: 'l3', bullets: [] },
+  ];
+  const merged = mergeCachedBullets(snapshot, sidecarCache);
+  assert(merged.hydrated.length === 2, 'T5: 2 overlapping items hydrated from sidecar');
+  assert(merged.hydrated[0].bullets[0] === 'cached-A', 'T5: hydrated bullets equal the sidecar (normalized GUID match)');
+  assert(merged.needsStageB.length === 1 && merged.needsStageB[0].guid === 'brand-new', 'T5: needsStageB is only the no-cache subset');
+
+  fs.rmSync(troot, { recursive: true, force: true });
+
   // pure helpers
   assert(hashHue('ai') === hashHue('ai') && hashHue('ai') >= 0 && hashHue('ai') < 360, 'hashHue deterministic + in range');
   assert(parseMinutes('101 min listen') === 101 && parseMinutes('6 min') === 6 && parseMinutes('') === 0, 'parseMinutes extracts leading int');
@@ -406,19 +539,37 @@ function selftest() {
   process.exit(ok ? 0 : 1);
 }
 
-module.exports = { renderIssue, renderLibrary, hashHue, parseMinutes };
+module.exports = { renderIssue, renderLibrary, hashHue, parseMinutes, writeSidecar, sidecarPathFor, libraryFromDir, mergeCachedBullets };
 
 if (require.main === module) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) { selftest(); }
   else {
     const mode = argv[0];
-    const file = argv[1];
-    if ((mode !== 'issue' && mode !== 'library') || !file) {
-      console.error('usage: render-issue.js issue|library <data.json>  (or --selftest)');
+    const arg = argv[1];
+    const out = argv[2];
+    if ((mode !== 'issue' && mode !== 'library') || !arg) {
+      console.error('usage: render-issue.js issue <items.json> [<out-html>] | library <dir|issues.json>  (or --selftest)');
       process.exit(64);
     }
-    const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-    process.stdout.write(mode === 'issue' ? renderIssue(data) : renderLibrary(data));
+    if (mode === 'issue') {
+      const data = JSON.parse(fs.readFileSync(arg, 'utf8'));
+      const html = renderIssue(data);
+      if (out) {
+        // Write HTML whole-file via temp-then-rename, then persist the sidecar.
+        const tmp = out + '.tmp';
+        fs.writeFileSync(tmp, html);
+        fs.renameSync(tmp, out);
+        const sidecar = writeSidecar(out, data);
+        process.stderr.write(`render-issue: wrote ${out} + sidecar ${path.basename(sidecar)}\n`);
+      } else {
+        process.stdout.write(html); // back-compat: stdout, no sidecar
+      }
+    } else { // library: dir of sidecars (D8) or legacy issues.json file
+      const data = fs.statSync(arg).isDirectory()
+        ? libraryFromDir(arg)
+        : JSON.parse(fs.readFileSync(arg, 'utf8'));
+      process.stdout.write(renderLibrary(data));
+    }
   }
 }

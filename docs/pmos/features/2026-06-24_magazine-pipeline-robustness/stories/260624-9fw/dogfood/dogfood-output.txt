@@ -1,0 +1,36 @@
+skill scripts: /Users/maneeshdhabria/Desktop/Projects/agent-skills/.claude/worktrees/feat-260624-9fw/plugins/pmos-learnkit/skills/magazine/scripts
+magazine dir:  /var/folders/j8/y35gyrf93wggf116qrstxzqc0000gn/T//mag-dogfood-2YEB
+
+render-issue: wrote /var/folders/j8/y35gyrf93wggf116qrstxzqc0000gn/T//mag-dogfood-2YEB/2026-06-08_issue.html + sidecar 2026-06-08_items.json
+render-issue: wrote /var/folders/j8/y35gyrf93wggf116qrstxzqc0000gn/T//mag-dogfood-2YEB/2026-06-15_issue.html + sidecar 2026-06-15_items.json
+issues + sidecars on disk:
+2026-06-01_issue.html
+2026-06-08_issue.html
+2026-06-08_items.json
+2026-06-15_issue.html
+2026-06-15_items.json
+
+=== T8 objective: reuse (mergeCachedBullets) ===
+hydrated: 2 -> GLM-5.2 ships | Agent evals that matter
+hydrated[0] bullets (from sidecar): ["Mixture-of-experts at 200B","Open weights, Apache-2.0","Beats prior gen on MMLU"]
+needsStageB: 2 -> Is RAG dead? | PM comp in 2026
+OK: 2 overlapping items reused from sidecar (one via safe-ified key), 2 new -> Stage B
+
+=== T8 objective: library <dir> lists sidecar-backed issues + ONE loud notice ===
+library issues listed: 3
+skip-notice(s):
+render-issue library: skip-notice — 2026-06-01_issue.html has no sibling *_items.json sidecar; omitted from the library (re-render that issue to restore it)
+
+=== T8 objective: a NEW monthly issue writes its OWN sidecar ===
+render-issue: wrote /var/folders/j8/y35gyrf93wggf116qrstxzqc0000gn/T//mag-dogfood-2YEB/2026-06-30_issue.html + sidecar 2026-06-30_items.json
+OK: monthly issue wrote 2026-06-30_items.json sidecar
+
+=== T8 objective: svpg feed failed 3 runs -> ONE suggestion line, no auto-disable ===
+run 1 stderr (no suggestion yet):
+0
+run 3 stderr (suggestion fires once):
+magazine-run: feed(s) failed >= 3 consecutive runs — consider disabling/removing (never auto-disabled): http://127.0.0.1:9/svpg.xml
+feedHealth: {"http://127.0.0.1:9/svpg.xml":{"consecFails":3}}
+feedsToSuggest(>=3): ["http://127.0.0.1:9/svpg.xml"]
+
+ALL T8 OBJECTIVES MET

@@ -30,6 +30,9 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const state = require('./magazine-state.js');
 const lock = require('./magazine-lock.js');
+// Shared GUID-safe-ify + reconciliation (FR-3.1): one source of truth for the
+// safe-ify rule, reused for cache-key derivation and summarizer-key matching.
+const { safeGuid, matchByGuid } = require('./lib-guid.js');
 
 const SCRIPTS = __dirname;
 const FETCH = path.join(SCRIPTS, 'fetch-feed.js');
@@ -38,9 +41,6 @@ const TRANSCRIBE = path.join(SCRIPTS, 'transcribe.sh');
 
 function defaultRoot() {
   return path.join(os.homedir(), '.pmos', 'magazine');
-}
-function safeGuid(guid) {
-  return String(guid).replace(/[^A-Za-z0-9._-]/g, '_');
 }
 function statePath(root) {
   return path.join(root, 'state.json');
@@ -88,9 +88,17 @@ function feedKeyPairs(root) {
   return readFeedsTyped(root).map((f) => ({ name: f.name, url: f.url }));
 }
 
+// At/above this many CONSECUTIVE failing runs a feed earns a one-line "consider
+// disabling" suggestion (FR-5.1/D3). It is suggest-ONLY — a feed is never
+// auto-disabled (the no-silent-drop trust rule).
+const FEED_QUARANTINE_THRESHOLD = 3;
+
 // Run fetch-feed.js for one feed. A local path is read with --file (used by the
 // selftest and by file:// feeds); anything else is fetched as a URL. fetch-feed
-// emits "[]" + exit 1 on failure, which we surface as an empty, reported set.
+// emits "[]" + exit 1 on failure. Returns { ok, items }: `ok` distinguishes a
+// genuine fetch FAILURE (exit non-zero / unparseable) from a successful fetch
+// that simply had no items in the window — the input the feed-health counter
+// needs (an empty-but-successful window must NOT count as a failure).
 function fetchOne(feed, since, max, until) {
   const args = [FETCH];
   if (fs.existsSync(feed)) args.push('--file', feed);
@@ -100,11 +108,22 @@ function fetchOne(feed, since, max, until) {
   if (until) args.push('--until', until); // optional window upper bound (FR-6.2)
   try {
     const out = execFileSync(process.execPath, args, { maxBuffer: 32 * 1024 * 1024 }).toString();
-    return JSON.parse(out);
+    return { ok: true, items: JSON.parse(out) };
   } catch (e) {
     process.stderr.write('magazine-run: feed skipped (' + feed + '): ' + (e.message || e) + '\n');
-    return [];
+    return { ok: false, items: [] };
   }
+}
+
+// One compact, suggest-only line per run naming feeds at/above the failure
+// threshold. Reads the persisted counter; never mutates, never auto-disables.
+function suggestQuarantine(st) {
+  const suggest = state.feedsToSuggest(st, FEED_QUARANTINE_THRESHOLD);
+  if (suggest.length) {
+    process.stderr.write('magazine-run: feed(s) failed >= ' + FEED_QUARANTINE_THRESHOLD +
+      ' consecutive runs — consider disabling/removing (never auto-disabled): ' + suggest.join(', ') + '\n');
+  }
+  return suggest;
 }
 
 function cmdDiscover(opts) {
@@ -130,7 +149,10 @@ function cmdDiscover(opts) {
   let dupes = 0;
   for (const fo of feedObjs) {
     const feedKey = fo.name || fo.url;
-    for (const it of fetchOne(fo.url, since, opts.max, until)) {
+    const res = fetchOne(fo.url, since, opts.max, until);
+    // FR-5.1/D3: count consecutive fetch failures per feed slug (success resets).
+    state.recordFeedResult(st, feedKey, res.ok);
+    for (const it of res.items) {
       const meta = {
         feed: feedKey, link: it.link, title: it.title,
         published: it.published, enclosure: it.enclosure,
@@ -151,6 +173,7 @@ function cmdDiscover(opts) {
   // opts._now is an injectable run-id for deterministic tests (defaults to now).
   st.snapshot = { id: opts._now || new Date().toISOString(), guids: snapshot.map((s) => s.guid) };
   state.save(file, st);
+  suggestQuarantine(st); // FR-5.1/D3: one compact suggest-only line per run
   return snapshot;
 }
 
@@ -247,6 +270,7 @@ function cmdPrep(opts) {
   }
   results.push({ route });
   state.save(file, st);
+  suggestQuarantine(st); // FR-5.1/D3: surface any standing feed-quarantine suggestion
 
   // Foreground-drain a BOUNDED number of queued podcasts (FR-8). Shares the lock
   // with any background watcher (no double-transcribe); items beyond the cap stay
@@ -291,7 +315,9 @@ function cmdEnqueue(opts) {
     const since = opts.backfill
       ? new Date(Date.now() - opts.backfill * 86400000).toISOString()
       : (st.cursors[feedKey] || null);
-    for (const it of fetchOne(f.url, since, opts.max)) {
+    const res = fetchOne(f.url, since, opts.max);
+    state.recordFeedResult(st, feedKey, res.ok); // FR-5.1/D3: same counter on the watch path
+    for (const it of res.items) {
       const meta = { feed: feedKey, link: it.link, title: it.title, published: it.published, enclosure: it.enclosure };
       const isNew = state.discover(st, it.guid, meta);
       if (isNew) enqueued++; else already++;
@@ -814,6 +840,31 @@ function selftest() {
     'T5/Inv-4: with no snapshot, prep falls back to whole-ledger (crawls the item)');
   fs.rmSync(sroot, { recursive: true, force: true });
   fs.rmSync(nroot, { recursive: true, force: true });
+
+  // --- T6 (FR-5.1/D3): feed-failure tracking + suggest-only quarantine ---
+  assert(FEED_QUARANTINE_THRESHOLD === 3, 'T6: quarantine threshold constant is 3');
+  const fhroot = fs.mkdtempSync(path.join(os.tmpdir(), 'mag-fh-'));
+  const badFeed = 'http://127.0.0.1:9/nope.xml'; // connection refused -> fetch fails fast
+  // spawnSync (not runExit) so we capture stderr even when discover exits 0 — the
+  // feed is skipped (run still succeeds) but the suggestion is written to stderr.
+  const { spawnSync } = require('child_process');
+  const dQ = () => {
+    const r = spawnSync(process.execPath, [selfPath, 'discover', '--feed', badFeed, '--days', String(WIDE), '--root', fhroot], { encoding: 'utf8' });
+    return { code: r.status, err: r.stderr || '' };
+  };
+  const q1 = dQ(); const q2 = dQ(); const q3 = dQ();
+  assert(q1.code === 0 && q2.code === 0 && q3.code === 0,
+    'T6: discover over a failing feed still exits 0 (feed skipped, not fatal)');
+  assert(!/consecutive runs/.test(q1.err) && !/consecutive runs/.test(q2.err),
+    'T6: no quarantine suggestion before the threshold');
+  assert(/consecutive runs/.test(q3.err) && /127\.0\.0\.1/.test(q3.err),
+    'T6: the 3rd failing run emits one suggestion line naming the feed');
+  assert(/never auto-disabled/.test(q3.err), 'T6: the suggestion is explicit it never auto-disables');
+  const qst = state.load(statePath(fhroot));
+  assert(qst.feedHealth[badFeed].consecFails === 3, 'T6: the ledger records 3 consecutive fails');
+  assert(state.feedsToSuggest(qst, FEED_QUARANTINE_THRESHOLD).indexOf(badFeed) >= 0,
+    'T6: feedsToSuggest lists the failing feed at the threshold');
+  fs.rmSync(fhroot, { recursive: true, force: true });
 
   console.log(ok ? 'magazine-run.js --selftest: PASS' : 'magazine-run.js --selftest: FAIL');
   process.exit(ok ? 0 : 1);
