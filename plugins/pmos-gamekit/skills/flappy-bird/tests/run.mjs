@@ -12,7 +12,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 
-const EXPECTED_CHECKS = 47;
+const EXPECTED_CHECKS = 65;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const htmlPath = join(__dirname, '..', 'game', 'flappy-bird.html');
@@ -228,6 +228,75 @@ function freshPlaying(opts) {
   check('rng: same seed yields the same first gapY', s1.pipes[0].gapY === s2.pipes[0].gapY);
   const r = E.makeRng();  // no seed -> still in range
   check('rng: an unseeded generator still returns [0, 1)', (() => { for (let i = 0; i < 20; i++) { const v = r(); if (!(v >= 0 && v < 1)) return false; } return true; })());
+}
+
+// === visual variety: registries (AC1/AC2/AC3) ==============================
+{
+  const T = E.THEMES, P = E.PALETTE, B = E.BIRD_SHAPES;
+  const hex = /^#[0-9a-f]{6}$/i;
+  check('themes: registry has 7 entries', Array.isArray(T) && T.length === 7);
+  check('themes: index 0 is the default sky', !!T[0] && T[0].id === 'sky');
+  const themeIds = ['sky', 'ocean', 'space', 'sunset', 'night-city', 'forest', 'cave'];
+  check('themes: ids match the spec order', T.length === 7 && T.every((t, i) => t.id === themeIds[i]));
+  check('themes: every theme has grad(2)+ground+lum+motif', T.every(t =>
+    Array.isArray(t.grad) && t.grad.length >= 2 && t.grad.every(c => hex.test(c)) &&
+    t.ground && typeof t.ground.fill === 'string' &&
+    typeof t.lum === 'string' && typeof t.motif === 'string'));
+  check('palette: registry has 5 colors', Array.isArray(P) && P.length === 5);
+  const palIds = ['sunflower', 'coral', 'sky-blue', 'mint', 'grape'];
+  check('palette: ids match the spec order', P.length === 5 && P.every((c, i) => c.id === palIds[i]));
+  check('palette: every color has body+accent+beak+lum', P.every(c =>
+    hex.test(c.body) && hex.test(c.accent) && hex.test(c.beak) && typeof c.lum === 'string'));
+  check('birds: 4 shape ids in spec order', Array.isArray(B) && B.length === 4 &&
+    ['round', 'sparrow', 'duck', 'owl'].every((id, i) => B[i] === id));
+}
+
+// === picker invariants (AC4): I-contrast / I-repeat / I-determinism / I-coverage
+{
+  const C = E.contrast, THRESH = C.THRESHOLD;
+  check('contrast: threshold is a positive number', typeof THRESH === 'number' && THRESH > 0);
+
+  // I-contrast — every safe (bg,color) clears the threshold; every theme admits >=2
+  let allSafeClear = true, everyThemeHas2 = true;
+  for (let bg = 0; bg < E.THEMES.length; bg++) {
+    const safe = C.safeColors(bg);
+    if (safe.length < 2) everyThemeHas2 = false;
+    for (const c of safe) if (Math.abs(C.themeBg(bg) - C.color(c)) < THRESH) allSafeClear = false;
+  }
+  check('I-contrast: every safe (bg,color) clears the threshold', allSafeClear);
+  check('I-contrast: every theme admits >=2 contrast-safe colors', everyThemeHas2);
+
+  // I-contrast — every theme's pipe clears the bg threshold
+  let pipeClear = true;
+  for (let i = 0; i < E.THEMES.length; i++) if (Math.abs(C.themeBg(i) - C.themePipe(i)) < THRESH) pipeClear = false;
+  check('I-contrast: every theme pipe clears the bg threshold', pipeClear);
+
+  // I-repeat / picker-only-emits-safe / I-determinism — over many seeds × every prevBg
+  let repeatOk = true, emittedSafe = true, detOk = true;
+  for (let prevBg = 0; prevBg < E.THEMES.length; prevBg++) {
+    for (let s = 0; s < 400; s++) {
+      const seed = (s * 2654435761) >>> 0;
+      const v = E.pickVariants(seed, prevBg);
+      if (v.bg === prevBg) repeatOk = false;
+      if (!C.safeColors(v.bg).includes(v.color)) emittedSafe = false;
+      const v2 = E.pickVariants(seed, prevBg);
+      if (v2.bg !== v.bg || v2.bird !== v.bird || v2.color !== v.color) detOk = false;
+    }
+  }
+  check('I-repeat: pickVariants never returns prevBg as the bg', repeatOk);
+  check('I-contrast: the picker only ever emits contrast-safe colors', emittedSafe);
+  check('I-determinism: same (seed,prevBg) => identical result', detOk);
+
+  // I-coverage — union over many seeds reaches all 7 bg / 4 bird / 5 color
+  const bgSeen = new Set(), birdSeen = new Set(), colSeen = new Set();
+  for (let prevBg = 0; prevBg < E.THEMES.length; prevBg++)
+    for (let s = 0; s < 600; s++) {
+      const v = E.pickVariants((s * 40503 + prevBg * 7) >>> 0, prevBg);
+      bgSeen.add(v.bg); birdSeen.add(v.bird); colSeen.add(v.color);
+    }
+  check('I-coverage: all 7 backgrounds reachable', bgSeen.size === 7);
+  check('I-coverage: all 4 bird shapes reachable', birdSeen.size === 4);
+  check('I-coverage: all 5 colors reachable', colSeen.size === 5);
 }
 
 // --- report ----------------------------------------------------------------
