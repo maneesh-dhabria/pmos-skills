@@ -15,8 +15,10 @@ launcher and points your browser at it. It is a single-player cash game: you sit
 play full hands — preflop / flop / turn / river betting with fold / check / call / bet / raise
 (min-raise enforced, a raise-size slider plus ½-pot / pot / all-in quick buttons), correct
 **side pots** for multi-way all-ins, rotating button and blinds, and a showdown that names the
-winning hand and awards the pot. It is **pure play — no coaching or equity panel**. All
-gameplay lives inside the one HTML file and runs offline.
+winning hand and awards the pot. It is **pure play plus a static References panel** (hand
+rankings, an interactive preflop opening chart, and pot-odds / Rule-of-2&4 math) opened from the
+HUD — **no live coaching or equity engine**. All gameplay lives inside the one HTML file and
+runs offline.
 
 This skill follows the launch contract in
 `../_shared/game-launcher/game-launcher.md` (the §K canonical home for the bundling
@@ -102,8 +104,11 @@ to load.
    get two hole cards; act with **F** fold, **C** check/call, **R** raise (focuses the
    raise-size slider — use the **½ Pot / Pot / Min / All-in** quick buttons or drag the
    slider, then **Enter** to confirm). **N** deals the next hand; **New game** re-randomizes
-   the opponents and resets stacks. Stopping is `Ctrl-C` in the launcher terminal. Per D7 the
-   game keeps **no save state** — closing the tab discards the table.
+   the opponents and resets stacks. The **References** button in the HUD opens a collapsible
+   side panel with hand rankings, an interactive preflop chart, and pot-odds math (**Esc** or ✕
+   closes it); a **Show BB / Show chips** button toggles the display units. Stopping is `Ctrl-C`
+   in the launcher terminal. Per D7 the game keeps **no save state** — closing the tab discards
+   the table.
 
 ## Phase 1: Capture Learnings {#capture-learnings}
 
