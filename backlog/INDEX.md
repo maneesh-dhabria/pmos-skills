@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (define 260626-4sm — /to-notion-doc skill epic defined; story 260626-sbf planned)
+Last regenerated: 2026-06-26 (define 260626-804 — slop-engine proof-of-execution epic defined; stories 260626-pgh + 260626-4mc planned)
 
-136 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+139 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -58,6 +58,7 @@ Last regenerated: 2026-06-26 (define 260626-4sm — /to-notion-doc skill epic de
 | 260624-3nj | released | skill | pmos-gamekit | 1/1 | "/poker — static References panel (hand rankings + interactive preflop chart + pot-odds/Rule-of-2&4) + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark; drop all live coaching" |
 | 260625-sm0 | released | skill | pmos-toolkit | 1/1 | "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed" |
 | 260626-4sm | defined | skill | pmos-utilities | 0/1 | "/to-notion-doc — convert md/html/txt → a faithful Notion page via the Notion MCP (heading/style prefs, image-upload ladder, table-fidelity, chunked write, create-or-update, verification)" |
+| 260626-804 | defined | skill | pmos-toolkit | 0/2 | "slop-engine proof-of-execution — /design-crit + /verify must prove the deterministic slop lane ran, never claim graceful degradation by assertion" |
 
 ## must
 
@@ -140,6 +141,8 @@ Last regenerated: 2026-06-26 (define 260626-4sm — /to-notion-doc skill epic de
 | 260624-f62 | story | feature | done | 260624-3nj | "/poker References panel + restyle — collapsible right-side panel with 3 static references (hand rankings, interactive preflop chart, pot-odds/Rule-of-2&4) + bundled chart data & pure handKey/chartAction helpers + table restyle to poker-coach look + HUD 'Poker' title + pmos watermark + extended selftest" | docs/pmos/features/2026-06-24_poker-references-restyle/02_design.html | docs/pmos/features/2026-06-24_poker-references-restyle/stories/260624-f62/03_plan.md |  |
 | 260625-751 | story | bug | done | 260625-sm0 | "/backlog grooming AC detection — accept checkbox/dash/numbered criteria; reconcile schema.md; regression-test the format matrix" | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/02_design.md | docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md |  |
 | 260626-sbf | story | feature | planned | 260626-4sm | "/to-notion-doc skill — parse md/html/txt → faithful Notion page via MCP; remembered heading+style prefs in settings.yaml; runtime-gated image-upload ladder; table-fidelity; chunked/resumable write; create-or-update (rewrite/archive/in-place); completeness+integrity verification" | docs/pmos/features/2026-06-26_to-notion-doc/02_design.html | docs/pmos/features/2026-06-26_to-notion-doc/stories/260626-sbf/03_plan.html |  |
+| 260626-pgh | story | enhancement | planned | 260626-804 | "/design-crit — Phase 3.5 slop pre-pass proof-of-execution hard gate (blocker) + stateful/SPA capture path + --report-only mode + md fallback when html-authoring substrate unresolvable" | docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/02_design.html | docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-pgh/03_plan.html |  |
+| 260626-4mc | story | enhancement | planned | 260626-804 | "/verify — Slop gate skip-branch proof: surface the runner line, tie ran-vs-skipped to the JSON report + exit code, never narrative" | docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/02_design.html | docs/pmos/features/2026-06-26_slop-engine-proof-of-execution/stories/260626-4mc/03_plan.html |  |
 
 ## could
 
