@@ -40,6 +40,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { loadVocab, normalizeTags } from './normalize-tags.mjs';
 
 const DEFAULT_SRC =
   '/Users/maneeshdhabria/Desktop/Projects/personal/notion-writing-backup/spikes/curated-references/curated-references.yaml';
@@ -175,13 +176,20 @@ function importCorpus(srcPath) {
   const yamlText = readFileSync(srcPath, 'utf8');
   const raw = parseReferences(yamlText);
 
+  // Closed-vocabulary tag normalization (story 260626-ex8, D2/D3): map each record's
+  // tags onto the canonical vocabulary at import time, collecting any out-of-vocabulary
+  // tag for the D7 gate below. One enforcement point — the same normalizeTags() the
+  // standalone CLI uses (one fact, one home).
+  const tagModel = loadVocab();
+  const unknownTags = new Map();
+
   const kept = [];
   let dropped = 0;
   for (const r of raw) {
     const url = typeof r.url === 'string' ? r.url.trim() : '';
     if (!url) { dropped++; continue; }
     if (isDead(r.title, r.summary)) { dropped++; continue; }
-    const tags = Array.isArray(r.tags) ? r.tags.filter((t) => typeof t === 'string' && t) : [];
+    const tags = normalizeTags(r.tags, tagModel, unknownTags);
     kept.push({
       id: refId(url),
       url,
@@ -192,6 +200,17 @@ function importCorpus(srcPath) {
       summary: typeof r.summary === 'string' ? r.summary : (r.summary == null ? '' : String(r.summary)),
       summary_grounded: r.summary_grounded === true,
     });
+  }
+
+  // D7 gate: nothing outside the closed vocabulary ships. A non-zero unknown count is a
+  // loud build failure listing every offender — never a silent pass — so the taxonomy
+  // cannot re-sprawl on a future refresh.
+  if (unknownTags.size) {
+    const offenders = [...unknownTags.entries()].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} (${n})`);
+    throw new Error(
+      `tag-vocabulary gate (D7): ${unknownTags.size} tag(s) outside the closed vocabulary after normalization:\n  ${offenders.join('\n  ')}\n` +
+      'Fix: add each to tag-vocabulary.json, or map/drop it in tag-synonyms.json.',
+    );
   }
 
   // Deterministic order: id ascending (stable git diffs + reproducible runs).

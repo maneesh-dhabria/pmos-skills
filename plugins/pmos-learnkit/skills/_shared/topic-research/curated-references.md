@@ -24,7 +24,12 @@ not edited by hand. A refresh from a fresh export is always **import → backfil
 
 1. **Import** (`scripts/import-curated-references.mjs`) scrubs the raw export into the
    7-field PII-safe shape with content-derived ids — titles/summaries verbatim from the
-   crawl, dead pages excluded.
+   crawl, dead pages excluded. It also **normalizes every tag to the closed vocabulary**
+   (`scripts/normalize-tags.mjs`, reading `tag-vocabulary.json` + `tag-synonyms.json`):
+   variants/plurals/spelling drift collapse to a canonical member and brand/noise tags
+   drop, so the facet list stays usably narrow. A tag that resolves to nothing in the
+   closed set is a **build-time failure** listing the offender — the taxonomy cannot
+   silently re-sprawl on a refresh.
 2. **Backfill** (`scripts/backfill-titles.mjs`) recovers real titles for junk-title
    records (bot-wall / error / host-only) and re-summarizes ungrounded ones over a
    throttled headless-Chromium pass (Playwright is a **build-time tool only** — never a
@@ -58,8 +63,10 @@ treats curated survivors identically to live-search candidates.
 Inputs handed to the subagent:
 
 - `outline.topics` — the topics to source for.
-- the corpus tag-vocabulary — the distinct `tags[]` values across `curated-references.json`
-  (the subagent picks query tags from this controlled vocabulary, not free text).
+- the corpus tag-vocabulary — the closed canonical tag set in `tag-vocabulary.json`
+  (sibling of this file), which equals the distinct `tags[]` values across
+  `curated-references.json` by construction (every shipped tag is normalized to a member at
+  import time). The subagent picks query tags from this controlled vocabulary, not free text.
 - the resolved `depth` (from `intake.md`) so the per-topic target count matches the dial
   matrix — the curated slice rides the **same** top-N / depth dials as live sourcing
   (one fact, one home: the matrix lives in `intake.md`; do not restate it here).
