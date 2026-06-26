@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>Design — /poker fixes (260626-fdh)</title>
+<style>
+  :root { --ink:#1d2438; --muted:#5b6680; --accent:#2563eb; --teal:#0ea5a4; --red:#ef4444; --panel:#f4f7ff; }
+  body { font-family: Georgia, 'Times New Roman', serif; color: var(--ink); max-width: 820px; margin: 0 auto; padding: 2.5rem 1.25rem 6rem; line-height: 1.6; }
+  h1,h2,h3 { font-family: -apple-system, Helvetica, Arial, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.35rem; margin-top: 2.2rem; border-bottom: 2px solid var(--panel); padding-bottom: .3rem; } h3 { font-size: 1.08rem; margin-top: 1.5rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: var(--panel); padding: .1em .35em; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: .92rem; }
+  th,td { border: 1px solid #d7def0; padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .sub { color: var(--muted); font-style: italic; }
+  .tag { display:inline-block; font-family: ui-monospace, monospace; font-size:.78rem; background:var(--panel); color:var(--accent); border-radius:4px; padding:.05em .4em; }
+  blockquote { border-left: 3px solid var(--teal); margin: 1rem 0; padding: .3rem 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1 id="title">Design — /poker fixes</h1>
+<p class="sub">Epic <code>260626-fdh</code> · route: skill · plugin: pmos-gamekit · 2026-06-26 · This is the epic <code>design_doc</code> — the coherence contract; the single story's <code>/plan</code> cites its anchors.</p>
+
+<h2 id="context">Context</h2>
+<p><code>/poker</code> is a launch-only pmos-gamekit skill: it serves one self-contained, offline
+No-Limit Texas Hold'em file — <code>plugins/pmos-gamekit/skills/poker/game/poker.html</code> (~1575 lines) —
+through the shared zero-dependency game launcher. All gameplay lives in that one file. The engine
+(<code>window.PokerEngine</code>, the pure-logic <code>&lt;script&gt;</code> that assigns <code>PokerEngine</code>) is a
+browser-agnostic module exposing <code>createHand</code>, the 7-card evaluator (<code>rank7</code>/<code>categoryOf</code>),
+<code>buildSidePots</code>, <code>decide</code>/<code>preflopStrength</code>, <code>personaFor</code>, <code>randomTable</code>, and
+the static preflop reference data; the UI/render layer (guarded by <code>document</code>) renders the felt, seats,
+and action bar. Tests live in <code>tests/run.mjs</code> (engine selftest, <code>node run.mjs --selftest</code>).</p>
+
+<p>The maintainer reported two first-run rough edges, both confined to that single game file. They are tiny and
+unrelated in mechanism (one is layout CSS, one is a one-line RNG floor), but both ship as one <code>/poker</code>
+release, so this is a <strong>one-story skill epic</strong> (the D24 litmus: tightly coupled in one file, cannot be
+independently <code>skill-eval</code>'d or shipped). The one genuinely open question — what "at least 2 players"
+means in poker terms, where the hero is always seated — was resolved with the maintainer up front (see D3).</p>
+
+<h2 id="the-two">The two fixes</h2>
+<table>
+  <tr><th>#</th><th>Reported</th><th>Current state in the file</th></tr>
+  <tr><td>F1</td><td>The bottom "You" (hero) seat overlaps the action-bar status text on the new-game/table view; worse as the window narrows.</td><td><code>.table-col</code> (line ~155) stacks <code>.table-wrap</code> (line 280) and <code>.actionbar</code> (line 290) with only <code>gap: 8px</code>. <code>.felt</code> (line 47) has <code>aspect-ratio: 16/10</code> so it scales with width; the hero seat sits at <code>SLOTS[0] = { l:50, t:92 }</code> (line 914, % of the felt) and <code>.seat</code> is a fixed-height absolutely-positioned block (face-up holecards + nameplate + betchip + lastact). The hero's fixed-height block overhangs the felt's bottom edge and lands on <code>.actionbar .msg</code>.</td></tr>
+  <tr><td>F2</td><td>Random mode should pick at least 2 players minimum.</td><td><code>newGame()</code> (line 1239): <code>var numBots = numBotsOpt || (1 + Math.floor(rng() * 5)); // 1..5</code>. The "Random" picker button (<code>data-n="0"</code>, line 1484) calls <code>newGame()</code> with no arg, so random can deal a single opponent — a heads-up (2-player) table.</td></tr>
+</table>
+
+<h2 id="decisions">Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Decision</th><th>Rationale</th></tr>
+  <tr><td>D1</td><td>One story, one <code>/poker</code> release. Both fixes edit <code>game/poker.html</code> (+ <code>tests/run.mjs</code> only if a pure helper is added for F2).</td><td>Tightly coupled in one file; one <code>/execute</code> run carries both. One-story skill epic.</td></tr>
+  <tr><td>D2</td><td><strong>F1 fix: guarantee fixed clearance below the felt so the hero's seat overhang never reaches the action bar — apply BOTH levers: add <code>margin-bottom</code> (~30px) below the felt/table-wrap AND pull the hero slot up (<code>t: 92 → ~88</code>).</strong></td><td>The overhang grows as the felt shrinks (it is a % of a width-driven <code>aspect-ratio</code> box while the seat is fixed-height), so a single fixed margin alone can be defeated at narrow widths; combining a pixel clearance with a smaller hero <code>t%</code> is robust across the viewport range. The maintainer's own analysis proposed exactly these two levers.</td></tr>
+  <tr><td>D3</td><td><strong>F2 semantics: "at least 2 players" = at least 2 <em>opponents</em>. Random deals 2–5 bots → a 3-to-6-handed table, never heads-up.</strong> Implementation: <code>numBots = 2 + Math.floor(rng() * 4)</code> at the random-count site.</td><td>Resolved with the maintainer (AskUserQuestion). The hero is always seated, so the current floor is already 2 players total (1 bot + hero); the only behavior the request can change is excluding the heads-up case → a ≥2-opponent floor. The explicit "Random" picker is the only path that auto-chooses a count; explicit count buttons are unaffected.</td></tr>
+  <tr><td>D4</td><td>F1 is pure presentation (CSS + one SLOTS coordinate) and F2 is a UI default; neither alters engine state, the deal, side-pots, or showdown. Verification is a rendered/Playwright check, not an engine selftest — except the optional F2 pure-count helper (D5).</td><td>Keeps the engine pure and the change low-risk; the <code>tests/run.mjs</code> engine selftest must still pass unchanged.</td></tr>
+  <tr><td>D5</td><td>F2 may be implemented as a one-line change at the random-count site, OR by extracting a tiny pure <code>randomSeatCount(rng)</code> helper onto <code>PokerEngine</code> with a selftest asserting the 2–5 range — implementer's choice; prefer the helper only if it is clean.</td><td>The floor is a product rule worth a deterministic test, but a one-line UI default is acceptable and verifiable via the new-game log line. No over-engineering mandated.</td></tr>
+  <tr><td>D6</td><td>No version-bump / changelog / README / manifest tasks in the plan — those are <code>/complete-dev</code>'s per repo norms (skill-patterns §G).</td><td>Release prereqs are not story tasks.</td></tr>
+</table>
+
+<h2 id="frs">Functional requirements</h2>
+<h3 id="fr-overlap">FR1 — Hero seat clearance (no action-bar overlap)</h3>
+<ul>
+  <li>FR1.1 — On the table view, the hero ("You") seat block — holecards, nameplate, betchip, and lastact line — never visually overlaps <code>.actionbar</code> / <code>.actionbar .msg</code> ("Your move — …").</li>
+  <li>FR1.2 — Clearance holds across the viewport range: verified at <strong>desktop (1280px), a tablet width, and a narrow (~640px) width</strong>. The fix accounts for the overhang growing as the felt (a width-driven <code>aspect-ratio</code> box) shrinks.</li>
+  <li>FR1.3 — Apply both levers (D2): fixed clearance below the felt (<code>margin-bottom</code> on <code>.table-wrap</code> / the felt, or an increased <code>.table-col</code> gap) <em>and</em> a smaller hero slot <code>t%</code> (<code>SLOTS[0].t</code> 92 → ~88). Opponent seats and the rest of the table layout are unchanged (only the hero shows full-height face-up cards at the bottom edge).</li>
+  <li>FR1.4 — No new external assets; the felt's shape/aspect-ratio and the seat layout for all other positions stay visually intact.</li>
+</ul>
+<h3 id="fr-random">FR2 — Random mode minimum opponents</h3>
+<ul>
+  <li>FR2.1 — Selecting "Random" opponents deals at least <strong>2 opponents</strong> (a 3-handed-or-larger table); a single-opponent heads-up game is never produced by Random. (D3)</li>
+  <li>FR2.2 — The random count stays bounded by the existing table maximum (5 opponents / 6 seats — there are 6 <code>SLOTS</code>); i.e. random ∈ {2,3,4,5} opponents.</li>
+  <li>FR2.3 — Explicit opponent-count picks (the numbered buttons) are unaffected — only the auto-random path gets the floor.</li>
+  <li>FR2.4 — The "New game — N opponent(s) (…)" log line and the singular/plural wording remain correct for the new range.</li>
+</ul>
+
+<h2 id="invariants">Invariants (coherence contract)</h2>
+<ul>
+  <li><strong>Inv-1 (engine purity):</strong> <code>window.PokerEngine</code> stays browser-agnostic and side-effect-free; no DOM enters it. If F2 adds a pure count helper it is exported and covered in <code>tests/run.mjs</code>; otherwise the engine is untouched. <code>node tests/run.mjs --selftest</code> stays green.</li>
+  <li><strong>Inv-2 (cosmetic/UI isolation):</strong> the F1 CSS + SLOTS change and the F2 default are presentation/UI-config only — they never alter the deal, hand evaluation, betting, side-pots, or showdown.</li>
+  <li><strong>Inv-3 (offline + self-contained):</strong> no new external assets, fonts, or network. Everything inlines into the one HTML file.</li>
+  <li><strong>Inv-4 (no layout regression):</strong> the F1 clearance does not push the felt off-screen, shrink it below usability, or displace opponent seats / the references panel; the table reads correctly at all three test widths.</li>
+  <li><strong>Inv-5 (test/launch harness intact):</strong> the engine selftest and the gamekit launch contract keep working; the existing card-deal animation and seat render are not broken by the SLOTS edit.</li>
+</ul>
+
+<h2 id="story-split">Story split</h2>
+<p>One story (D1): <code>260626-vpj</code> — "/poker layout + random-table fixes (hero-seat / action-bar overlap; random mode ≥2 opponents)", <code>route: skill</code>, plugin <code>pmos-gamekit</code>, no dependencies. Its ACs are the two FR groups above plus the invariants; <code>skill-patterns.md §A–§L</code> + the host <code>CLAUDE.md</code> (canonical skill path, gamekit launch contract) are standing acceptance criteria. The per-story <code>/plan</code> cites this design's anchors.</p>
+
+<h2 id="open-questions">Open questions / deferred</h2>
+<ul>
+  <li><strong>F1 magnitudes (tunable, not contract):</strong> "<code>margin-bottom</code> ~30px" and "<code>t: 92 → ~88</code>" are the proposed starting values; the implementer may settle on nearby values during the 3-width self-check so long as FR1.1/FR1.2 hold with comfortable clearance and no felt clipping.</li>
+  <li><strong>F2 max unchanged:</strong> only the floor moves (1→2 opponents); the upper bound stays 5 opponents. Raising the cap was not requested and is out of scope.</li>
+  <li><strong>F2 helper vs one-liner (D5):</strong> implementer's choice; default to the minimal one-line change unless a pure helper is obviously cleaner and earns a selftest.</li>
+</ul>
+
+</body>
+</html>
