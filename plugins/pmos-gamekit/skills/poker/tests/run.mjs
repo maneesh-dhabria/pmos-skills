@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const HTML = path.join(__dirname, '..', 'game', 'poker.html');
 
-const EXPECTED_CHECKS = 39;
+const EXPECTED_CHECKS = 47;
 const selftest = process.argv.includes('--selftest');
 
 let passed = 0;
@@ -219,6 +219,51 @@ function run() {
     [params.vpip, params.aggression, params.bluffFreq, params.callStation].every((v) => v >= 0 && v <= 1));
   const table = E.randomTable(3, E.mulberry32(8));
   check('randomTable builds the requested number of bot personas', Array.isArray(table) && table.length === 3);
+
+  // ---- 15. Preflop reference helpers (pure, DOM-free — they run in this no-DOM vm) ----
+  // handKey: canonical 169-grid notation (higher rank first; suited 's' / offsuit 'o'; pairs ignore suit).
+  check('handKey produces canonical 169-grid keys',
+    E.handKey(['Ah', 'Ad']) === 'AA' && E.handKey(['Ah', 'Kh']) === 'AKs' &&
+    E.handKey(['Ah', 'Kd']) === 'AKo' && E.handKey(['2h', '7d']) === '72o' &&
+    E.handKey(['Kh', 'Ah']) === 'AKs'); // suit order does not change the key
+
+  // allHands169: exactly the 169 canonical hands (13 pairs + 78 suited + 78 offsuit), unique, with landmarks.
+  const hands169 = E.allHands169();
+  check('allHands169 returns the 169 unique canonical hands',
+    hands169.length === 169 && new Set(hands169).size === 169 &&
+    hands169.includes('AA') && hands169.includes('AKs') && hands169.includes('72o') &&
+    hands169.filter((h) => h.length === 2).length === 13);
+
+  // chartAction: AA is a raise-first-in from every modeled (non-BB) position.
+  check('chartAction raises AA first-in from every modeled position',
+    ['UTG', 'MP', 'CO', 'BTN', 'SB'].every((p) => E.chartAction('AA', p, 'unopened') === 'raise'));
+
+  // Tight UTG folds trash; the wide button opens a suited connector.
+  check('chartAction folds trash UTG and opens 54s on the button',
+    E.chartAction('72o', 'UTG', 'unopened') === 'fold' &&
+    E.chartAction('54s', 'BTN', 'unopened') === 'raise' &&
+    E.chartAction('54s', 'UTG', 'unopened') === 'fold');
+
+  // Big-blind defense vs a single raise: 3-bet / flat-call / fold buckets.
+  check('chartAction models BB defense vs a raise (3-bet / call / fold)',
+    E.chartAction('AA', 'BB', 'vsraise') === 'raise' &&
+    E.chartAction('76s', 'BB', 'vsraise') === 'call' &&
+    E.chartAction('92o', 'BB', 'vsraise') === 'fold');
+
+  // Unmodeled spots return 'unmodeled' (never a fabricated fold): BB first-in, and non-BB vs a raise.
+  check('chartAction reports unmodeled spots rather than fabricating a fold',
+    E.chartAction('AA', 'BB', 'unopened') === 'unmodeled' &&
+    E.chartAction('AA', 'UTG', 'vsraise') === 'unmodeled');
+
+  // equityOf: a known win% and a null for an absent key.
+  check('equityOf returns the static 169-key win% (and null for an unknown key)',
+    E.equityOf('AA') === 85.3 && E.equityOf('AKs') === 67.3 && E.equityOf('ZZ') === null);
+
+  // ---- 16. No live coaching / equity engine / persistence / network was reintroduced ----
+  const htmlSrc = fs.readFileSync(HTML, 'utf8');
+  const forbidden = [/fetch\s*\(/, /localStorage/, /sessionStorage/, /new\s+Worker\b/, /WebSocket/, /XMLHttpRequest/, /Live Feedback/, /Monte[\s-]?Carlo/i];
+  const reintroduced = forbidden.filter((re) => re.test(htmlSrc)).map((re) => re.source);
+  check('no network / persistence / live-coaching code in poker.html', reintroduced.length === 0);
 
   finish();
 }
