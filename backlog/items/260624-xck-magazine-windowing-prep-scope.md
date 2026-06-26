@@ -5,6 +5,7 @@ kind: story
 title: "/magazine windowing flags (days/since/until + date range) + loud unknown-flag + prep snapshot-scoping"
 type: feature
 status: done
+released: v0.30.0
 priority: should
 labels: [pmos-learnkit, magazine]
 route: skill
@@ -13,7 +14,7 @@ updated: 2026-06-25
 status_note: "built 2026-06-25 Loop-2 (build commit 394f9fd2 on feat/260624-xck); all gates green, judge SHIP"
 claimed_by:
 driver_holder:
-worktree: feat/260624-xck
+worktree:
 plan_doc: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-xck/03_plan.html
 tasks_file: docs/pmos/features/2026-06-24_magazine-pipeline-robustness/stories/260624-xck/tasks.yaml
 parent: 260624-2bm

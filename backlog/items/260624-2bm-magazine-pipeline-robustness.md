@@ -4,7 +4,8 @@ id: 260624-2bm
 kind: epic
 title: "/magazine pipeline robustness — windowing flags (days/since/until + date range), prep snapshot-scoping, Stage-B GUID reconciliation, durable per-issue items, feed quarantine"
 type: feature
-status: defined
+status: released
+released: v0.30.0
 priority: should
 labels: [pmos-learnkit, magazine]
 route: skill

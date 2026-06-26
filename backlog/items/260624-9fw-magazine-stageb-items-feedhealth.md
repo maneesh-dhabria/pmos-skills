@@ -5,6 +5,7 @@ kind: story
 title: "/magazine Stage-B GUID reconciliation + durable per-issue items JSON + feed-failure quarantine suggestion"
 type: feature
 status: done
+released: v0.30.0
 priority: should
 labels: [pmos-learnkit, magazine]
 route: skill
