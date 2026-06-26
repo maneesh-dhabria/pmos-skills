@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-25 — pmos-learnkit 0.30.0: /magazine pipeline robustness
+
+**`/magazine` now scopes what it digests and never silently drops items.** Catching up on a feed backlog is more controllable and more reliable:
+
+- **Pick your window.** New flags let you bound an issue to a recent stretch (`--days N`) or an explicit date range (`--from` / `--to`), instead of always digesting everything new since last run.
+- **Durable issues you can re-open.** Each built issue now writes a per-issue items sidecar, so `library <dir>` can rebuild the browsable view from saved data — your past digests survive and stay skimmable.
+- **No more vanished articles.** Stage-B summarization reconciles items by GUID (exact, then normalized), so a feed that rewrites its links (e.g. `/p/slug` → `/p_slug`) no longer drops the article from your digest.
+- **Flaky feeds get flagged, not retried forever.** A feed that fails repeatedly is surfaced as a quarantine suggestion rather than stalling the run.
+
+**Skill quality & internals.** Snapshot-scoped prep and overlapping-window bullet reuse reduce redundant crawling; pipeline cursor semantics and the windowing logic are covered by expanded structure tests.
+
 ## 2026-06-18 — pmos-utilities 0.3.0: new /converter — offline file-format conversion
 
 **New skill: `/converter`.** A zero-dependency, registry-driven file-format converter that runs entirely offline — a small local Node server with a single-file HTML UI, no npm install, no network. Drop in a file, pick a target format, get the result. v1 ships eight conversions across four reversible pairs:
