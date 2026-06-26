@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-25 — pmos-gamekit 0.10.0: /flappy-bird visual variety
+
+**`/flappy-bird` looks different every game.** Each run now picks from 7 procedural background themes and 4 procedural bird shapes drawn from a 5-color contrast-safe palette, with a subtle pmos wordmark in the top HUD. Variety comes from a pure, seedable picker that guarantees a fresh background each game and only ever pairs colors that stay readable against each other.
+
 ## 2026-06-25 — pmos-toolkit 2.91.0: new /wiki — self-assembling onboarding wiki
 
 **New skill: `/wiki`.** Builds a living onboarding wiki over a PM's own working docs. It ingests source documents through a resumable, generic-MCP connection (no per-source adapters), mirrors each document byte-for-byte, then derives a cited understanding layer on top — so every claim links back to the exact source. The result renders as a single-file, skimmable, faceted, annotatable HTML viewer with grounded Q&A, and can be scoped to one workstream or built across everything. Five verbs — `add`, `sync`, `view`, `ask`, `curate` — cover the full lifecycle.
