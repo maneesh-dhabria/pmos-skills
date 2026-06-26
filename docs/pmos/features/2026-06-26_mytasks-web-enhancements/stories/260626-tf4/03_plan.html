@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /mytasks web UI overhaul (story 260626-tf4)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code,th { background:#2a2724; } th,td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — /mytasks web UI overhaul (inline everything)</h1>
+<p><strong>Story</strong> 260626-tf4 · <strong>Epic</strong> 260626-a8a · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Deps</strong> 260626-71x · <strong>Tasks</strong> see
+<code>tasks.yaml</code></p>
+<p>The interaction overhaul of <code>scripts/webapp/{app.js,app.css,index.html}</code>, consuming the
+foundation endpoints. Zero new dependencies — native browser elements only. Design contract:
+<a href="../../02_design.html">02_design.html</a> §6 (the seed-ask → design table). Decisions D1 (type stays
+the 6-value enum, made editable), D2 (LNO badge green-L / blue-N / none).</p>
+
+<h2>Task graph</h2>
+<table>
+  <tr><th>Task</th><th>AC</th><th>Deps</th></tr>
+  <tr><td>T1 Study (app.js/css/html + new endpoints)</td><td>all</td><td>—</td></tr>
+  <tr><td>T2 LNO badge + bigger checkbox + strikethrough</td><td>A6,A7</td><td>T1</td></tr>
+  <tr><td>T3 Nested collapsed subtasks + parent in toolbar</td><td>A8,A9</td><td>T1</td></tr>
+  <tr><td>T4 Inline title edit + pencil→toolbar + "+ Add task" below list</td><td>A3,A5</td><td>T1 (∥)</td></tr>
+  <tr><td>T5 @/#/+ autocomplete dropdowns</td><td>A4</td><td>T4</td></tr>
+  <tr><td>T6 Check-in note + type dropdown + recurrence control</td><td>A10,A11,A12</td><td>T1 (∥)</td></tr>
+  <tr><td>T7 Sidebar inline projects/labels + People nav + toolbar field upgrades</td><td>A1,A2,A13</td><td>T1 (∥)</td></tr>
+  <tr><td>T8 Verify (skill-eval + lints + full Playwright dogfood)</td><td>all</td><td>T2,T3,T5,T6,T7</td></tr>
+</table>
+
+<h2>Key risks</h2>
+<ul>
+  <li><strong>Inline edit vs. row click collision.</strong> Default text click = inline edit; pencil =
+  toolbar; checkbox/badge keep <code>stopPropagation</code>. T4 must keep all three click targets working.</li>
+  <li><strong>Autocomplete + quick-add parser.</strong> The dropdown only assists typing; the server's
+  <code>parseQuickAdd</code> still does the actual <code>@/#/+</code> parse — the dropdown must produce text
+  that parser accepts (T5).</li>
+  <li><strong>Subtask nesting depends on 71x.</strong> Uses <code>include_children=1</code>; build merges the
+  71x branch first (dependency).</li>
+  <li><strong>Zero-dep datepickers/dropdowns.</strong> Native <code>&lt;input type=date&gt;</code> and custom
+  positioned lists only — no library.</li>
+</ul>
+</body>
+</html>

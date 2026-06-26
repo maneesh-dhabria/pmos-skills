@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /mytasks import (story 260626-j9v)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code,th { background:#2a2724; } th,td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — /mytasks import</h1>
+<p><strong>Story</strong> 260626-j9v · <strong>Epic</strong> 260626-a8a · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Deps</strong> 260626-71x · <strong>Tasks</strong> see
+<code>tasks.yaml</code></p>
+<p>A new agent-driven <code>import</code> subcommand: paste a text outline → parse (structure-first + AI
+fallback) → confirm the tree → write items. Reuses <code>lib.js</code> + <code>mint-id.mjs</code> + the
+registry from 260626-71x. Design contract: <a href="../../02_design.html">02_design.html</a> §7. Invariants
+I2 (no new fields), I5 (agent-driven, not a server endpoint).</p>
+
+<h2>Task graph</h2>
+<table>
+  <tr><th>Task</th><th>AC</th><th>Deps</th></tr>
+  <tr><td>T1 Study (routing, token rules, output-formats, /people, tests)</td><td>all</td><td>—</td></tr>
+  <tr><td>T2 #import phase: routing + structure-first parse + AI fallback</td><td>A1,A2,A3</td><td>T1</td></tr>
+  <tr><td>T3 Confirm-before-write gate (+ non-interactive contract)</td><td>A4</td><td>T2</td></tr>
+  <tr><td>T4 Write items + registry + INDEX regen + report</td><td>A5,A6</td><td>T2 (∥)</td></tr>
+  <tr><td>T5 argument-hint + non-interactive accuracy</td><td>A1</td><td>T2 (∥)</td></tr>
+  <tr><td>T6 Parser fixtures (tests/)</td><td>A7</td><td>T2,T4</td></tr>
+  <tr><td>T7 Verify (skill-eval + lints + dogfood)</td><td>all</td><td>T3,T5,T6</td></tr>
+</table>
+
+<h2>Key risks</h2>
+<ul>
+  <li><strong>Structure-vs-inference ambiguity.</strong> The rule is fixed: structure always wins on
+  conflict; only the unresolved remainder is inferred (T2). The confirm gate (T3) is the safety net — nothing
+  writes unconfirmed.</li>
+  <li><strong>Testing an agent-driven parse.</strong> If no pure tokenizer is factored out, fixtures are
+  documented expected-tree scenarios; T6 still asserts the five cases (indentation, markers, tokens,
+  inferred, structure-wins).</li>
+  <li><strong>People never invented.</strong> Tokens resolve via <code>/people find</code>; unresolved ones
+  are flagged in the report, not created (T4).</li>
+  <li><strong>Non-interactive safety.</strong> AUTO-PICK the recommended reading + record ambiguities as open
+  questions; block stays byte-identical (T3/T5).</li>
+</ul>
+</body>
+</html>
