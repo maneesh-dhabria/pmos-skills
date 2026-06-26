@@ -1,0 +1,139 @@
+schema_version: 1
+story: 260626-h70
+epic: 260626-7s4
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story A (deps: none): content/structure half of the /landing-page enhancement epic. Edits the upstream
+# brief + structure phases. /execute is the SOLE writer of the skill (plugins/pmos-toolkit/skills/landing-page/).
+# Decisions: D1 (do>show>tell principle + signature moments), D2 (persona narrowing + jargon), D3 (who-for/not-for
+# row + dedup), D4 (>=3 structure variants), D9 (multi-product), D11 (footer). One fact, one home (C2): rules land
+# in reference/*; SKILL.md body cites them. NO release-prereq tasks — /complete-dev (Loop 3) owns version/changelog/README.
+tasks:
+  - id: T1
+    title: "Study: design doc D1/D2/D3/D4/D9/D11 + current SKILL.md Phases 1/2/5 + section-scaffolds.md + copy-gates.md"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (decisions D1, D2, D3, D4, D9, D11; constraints C1-C5; feedback-map rows for
+      this story). Read the current plugins/pmos-toolkit/skills/landing-page/SKILL.md (Phases 0/1/2/5/6) and
+      reference/section-scaffolds.md + reference/copy-gates.md to know exactly what each cites today. Read
+      skill-patterns.md §A-§L and skill-eval.md so edits stay rubric-clean. Confirm the {{repo_url}} footer
+      token convention already used elsewhere in the repo (grep template.html / wordmark work). Produce NO edits.
+    verify: >
+      The exact cite-points in SKILL.md for each reference file are pinned; the governing-equation home in
+      section-scaffolds.md identified; the {{repo_url}} token convention confirmed; nothing duplicated.
+
+  - id: T2
+    title: "AC2/AC1: Phase 1 brief — add persona selection (1-2, jargon tolerance) + signature-moments field"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 1 (#research-brief): the brief now selects 1-2 personas, each with a jargon
+      tolerance (novice/fluent); unknowns asked never invented (D6 preserved). Add a "signature moments to
+      demonstrate" field (2-4 product moments worth showing). Keep the body thin — cite the persona/jargon
+      RULE that lands in copy-gates.md (T6), don't restate it.
+    verify: >
+      Phase 1 brief lists persona(s)+jargon-tolerance and signature-moments as captured fields; interactive
+      asks / non-interactive TODO+OQ behavior preserved; no rule text duplicated from copy-gates.md.
+
+  - id: T3
+    title: "AC3: Elevate do>show>tell to a governing principle (SKILL.md + section-scaffolds.md)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      In section-scaffolds.md, add do>show>tell as a stated governing principle alongside the governing
+      equation (one home). In SKILL.md cite it from Phase 2/5. The brief's signature-moments (T2) map to a
+      show-surface (screenshot / annotated shot / carousel / video / interactive snippet) at Phase 2.
+    verify: >
+      do>show>tell appears once (section-scaffolds.md) and is cited (not restated) in the body; Phase 2 maps
+      signature moments to show-surfaces.
+
+  - id: T4
+    title: "AC4: section-scaffolds.md — add 'Who this is for / not for' row + product-type placement"
+    ac: [AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add a taxonomy row "Who this is for / not for" (qualifies the visitor, removes labor/confusion) to the
+      11-row table and place it in the product-type variants. Update the row count references in the body
+      (the SKILL.md "11-row taxonomy" mention) so the count stays accurate.
+    verify: >
+      New row present + placed per product-type; every "N-row" count reference updated consistently; equation
+      rationale stated for the new row.
+
+  - id: T5
+    title: "AC5/AC6: Phase 2 — coherence/dedup pass + >=3 structure variants gate"
+    ac: [AC5, AC6]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 2 (#propose-structure): (a) add a coherence/dedup pass — below-hero proof omitted
+      when the hero caption already carries those values; no section restates the hero value prop. (b) Replace
+      the single proposed list with >=3 distinct variants (section order / framing problem-vs-outcome-vs-proof
+      / copy length), each one-line-summarised, recommended default first. Update the AskUserQuestion gate to
+      a pick-among-variants with a (Recommended) option (AUTO-PICKs non-interactively, C4). Keep the defer-only
+      / non-interactive contract intact.
+    verify: >
+      Phase 2 emits >=3 variants with a recommended default; gate has a (Recommended) option; dedup pass
+      documented; audit-recommended.sh still green on the new call site.
+
+  - id: T6
+    title: "AC8: copy-gates.md — persona-jargon rule + do>show>tell show-ratio check"
+    ac: [AC8]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Add to copy-gates.md: (a) persona-jargon rule — when any selected persona is novice, undefined domain
+      jargon (e.g. equity, GTO) is rejected unless inline-defined or replaced with plain language; (b) a
+      do>show>tell show-ratio check (advisory/judgment, not arithmetic) flagging sections that TELL a benefit a
+      captured asset could SHOW. Cite both from SKILL.md Phase 6 (don't restate).
+    verify: >
+      Both checks live once in copy-gates.md and are cited from Phase 6; show-ratio is advisory not a hard
+      arithmetic gate (§H respected).
+
+  - id: T7
+    title: "AC7: New reference/multi-product.md + Phase 1 detection + Phase 2 per-product sections"
+    ac: [AC7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Create reference/multi-product.md: detection heuristic (monorepo with N user-facing apps; plugin with N
+      user-facing skills) + 3 organizing principles (suite page one-section-per-product / product-index hub /
+      single-focus). Edit SKILL.md Phase 1 to detect single-vs-multi-product, Phase 2 to apply the chosen
+      principle (per-product section slices / brief slices). Non-interactive default = single-focus on the most
+      prominent product + OQ logged (C4). Add the gate with a (Recommended) option.
+    verify: >
+      multi-product.md carries detection + 3 principles; Phase 1 detects, Phase 2 applies; non-interactive
+      default is single-focus+OQ; new gate audit-recommended-clean.
+
+  - id: T8
+    title: "AC9: Phase 5 — bake 'Built with pmos-toolkit' + repo-link footer"
+    ac: [AC9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 5 (#draft): every emitted index.html (and per-product page) bakes a small footer line
+      "Built with pmos-toolkit" linking to the repo via the {{repo_url}} convention. Additive to the footer
+      section — does not displace product trust/legal links. Keep output self-contained (C1).
+    verify: >
+      Footer attribution baked into the draft contract; uses {{repo_url}}; additive; page still self-contained.
+
+  - id: T9
+    title: "AC10/AC11: Consistency + lint/eval pass (flags-vs-hints, phase-refs, NI block, audit-recommended)"
+    ac: [AC10, AC11]
+    deps: [T2, T3, T4, T5, T6, T7, T8]
+    parallel: false
+    detail: >
+      Sweep the whole skill for C1-C5: no rule duplicated body-vs-reference (C2); no fabricated proof language
+      introduced (C3); every new gate has a (Recommended) or defer-only tag (C4). Run tools/lint-flags-vs-hints.sh,
+      tools/lint-phase-refs.sh, tools/lint-non-interactive-inline.sh, tools/audit-recommended.sh against the
+      landing-page skill dir. Update argument-hint only if a new contract flag was added (none expected — new
+      behavior is gate-driven, not flag-driven). Confirm any new phase anchors ({#kebab}) resolve.
+    verify: >
+      All four lints + audit green on landing-page; phase-ref/slug clean; skill-eval [D] half passes; no
+      orphaned cites or duplicated rules.

@@ -1,0 +1,143 @@
+schema_version: 1
+story: 260626-qrm
+epic: 260626-7s4
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story B (deps: 260626-h70): visual/media half. CLAIM-TIME: merge feat/260626-h70 into this worktree first
+# (D9 transitive-dep merge) so this builds on top of A's SKILL.md edits, not against a stale base. /execute is
+# the SOLE writer of the skill. Decisions: D5 (logo), D6 (media+video), D7 (asset fidelity+mobile), D8 (live
+# style preview), D10 (shared design substrate). One fact, one home (C2). NO release-prereq tasks.
+tasks:
+  - id: T1
+    title: "Study: design D5/D6/D7/D8/D10 + post-h70 SKILL.md Phases 4/5/6 + copy-gates + hero-archetypes + Playwright recordVideo/ffmpeg"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7, AC8, AC9]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (D5, D6, D7, D8, D10; constraints C1-C5). Read the post-h70-merge SKILL.md
+      (Phases 0/3/4/5/6), reference/copy-gates.md (#visual-self-check), reference/hero-archetypes.md
+      (Phase-3 mechanism), reference/style-tokens.* + style-gallery.html. Confirm the repo's Playwright access
+      (recordVideo context option) and how other skills serve over http://localhost; confirm ffmpeg-presence
+      detection pattern. Identify the canonical shared design-authoring file/section that /wireframes /prototype
+      /design-crit honour (DESIGN.md + the shared responsive checklist) for the D10 cite. Read skill-patterns
+      §A-§L + skill-eval. Produce NO edits.
+    verify: >
+      The Phase-3 hero-render mechanism (reused for Phase 4 preview) is understood; Playwright recordVideo +
+      ffmpeg capability-detection path confirmed; the canonical shared-design citation target pinned; no dup.
+
+  - id: T2
+    title: "AC1: Phase 0 — media capability detection (ffmpeg? headless browser/Playwright?) cached for 4.5/6"
+    ac: [AC1]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 0 (#setup): detect ffmpeg presence and headless-browser/Playwright availability once,
+      cache the result for Phase 4.5 (capture) and Phase 6 (visual self-check). Document the detection in the
+      body, cite the degrade ladder home (media-strategy.md, T5).
+    verify: >
+      Phase 0 detects + caches both capabilities; degrade decisions reference media-strategy.md, not inline rules.
+
+  - id: T3
+    title: "AC2: New optional Phase 1.5 logo — detect → offer /logo → bind"
+    ac: [AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Add SKILL.md Phase 1.5 (#logo, stable kebab anchor): detect an existing logo/brand mark in researched
+      assets; if absent, offer to run /logo via a gate whose (Recommended) option is a no-heavy-op-safe default
+      (simple wordmark) so it AUTO-PICKs non-interactively without spawning a heavy skill (C4). Bind /logo output
+      (SVG/favicon/monochrome) in Phase 5 draft + the footer. Update the Overview phase list + any phase-count
+      references.
+    verify: >
+      Phase 1.5 present with stable anchor; gate recommended-safe; logo output bound in Phase 5+footer;
+      Overview/phase-refs updated; audit-recommended green on the new gate.
+
+  - id: T4
+    title: "AC3: Phase 4 — live hero-in-style preview (working/style-options.html)"
+    ac: [AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 4 (#style-pick): in addition to the static style-gallery.html reference, render the
+      Phase-3 chosen hero in 2-3 candidate styles as a side-by-side working/style-options.html (the same
+      show-don't-ask mechanism Phase 3 uses for heroes). The gallery stays the full reference; the rendered
+      preview is the decision surface. Update reference/hero-archetypes.md Phase-3 mechanism note if it must
+      feed the preview.
+    verify: >
+      Phase 4 emits a rendered style preview from the chosen hero; gallery retained as reference; gate intact.
+
+  - id: T5
+    title: "AC4/AC5/AC6: New Phase 4.5 media-strategy gate + reference/media-strategy.md (video via Playwright+ffmpeg, degrade ladder)"
+    ac: [AC4, AC5, AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create reference/media-strategy.md: the format menu (static device-framed / carousel / video), capability
+      detection (from Phase 0), the video pipeline (Playwright recordVideo captures a real product flow → ffmpeg
+      trim/compress/poster → embedded muted-loop <video> or animated WebP), the degrade ladder (no ffmpeg →
+      GIF/WebP if Playwright; no headless browser → captioned static + logged skip), and embed rules (data: URI
+      or page-folder-relative, NEVER remote — C1). Add SKILL.md Phase 4.5 (#media-strategy) gate: per-moment /
+      page format pick, recommended default = static device-framed (AUTO-PICKs non-interactively, never blocks
+      on capture — C4). Video content is captured from the REAL product, never mocked (C3).
+    verify: >
+      media-strategy.md carries menu+detection+video-pipeline+degrade+embed rules once; Phase 4.5 gate present,
+      recommended-safe; video path real-product-only; no remote asset; audit-recommended green.
+
+  - id: T6
+    title: "AC7: Asset fidelity — Phase 5 + copy-gates.md (aspect ratio, device frames, mobile assets)"
+    ac: [AC7]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 5 (#draft) asset rules + copy-gates.md: preserve native aspect ratio (store intrinsic
+      dimensions; render with object-fit contain/cover in fixed frames — never stretch/skew); device frames for
+      product shots; mobile-appropriate assets (portrait crop / alt image where a wide desktop shot is illegible
+      on a phone). One home (copy-gates.md), cited from Phase 5/6.
+    verify: >
+      Aspect-ratio + device-frame + mobile-asset rules live in copy-gates.md and are cited; no stretch path;
+      no rule duplicated in the body.
+
+  - id: T7
+    title: "AC8: Visual self-check — mobile a HARD pass dimension"
+    ac: [AC8]
+    deps: [T6]
+    parallel: false
+    detail: >
+      Edit copy-gates.md #visual-self-check (cited from SKILL.md Phase 6): the mobile screenshot becomes a hard
+      pass dimension — no overflow, CTA visible above the fold, images not skewed/clipped. A mobile failure
+      blocks emit within the existing <=2-iteration fix loop (not informational). Keep the no-headless-browser
+      degraded fallback (text + structural check + logged skip) intact.
+    verify: >
+      Mobile is a blocking dimension in the <=2-iteration loop; degraded fallback preserved + logged; Phase 6
+      cite unchanged in shape.
+
+  - id: T8
+    title: "AC9: Shared design-authoring substrate — Phase 5/6 cite DESIGN.md + shared responsive checklist"
+    ac: [AC9]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Edit SKILL.md Phase 5/6: read host repo DESIGN.md when present and bias style/token choice + spacing
+      toward it; cite the shared responsive/contrast checklist used by /wireframes /prototype /design-crit
+      (the canonical file/section pinned in T1) in the visual self-check, rather than re-deriving layout rules.
+      Cite, don't restate (C2).
+    verify: >
+      DESIGN.md read-if-present wired into Phase 5; shared responsive checklist cited in Phase 6; no duplicated
+      layout rules.
+
+  - id: T9
+    title: "AC10/AC11: Consistency + lint/eval pass"
+    ac: [AC10, AC11]
+    deps: [T2, T3, T4, T5, T6, T7, T8]
+    parallel: false
+    detail: >
+      Sweep for C1-C5: self-contained output preserved with embedded/relative media (C1); no rule duplicated
+      body-vs-reference (C2); video/demo content real-product-only (C3); every new gate (Phase 1.5, 4.5) has a
+      (Recommended) or defer-only tag (C4). Run tools/lint-flags-vs-hints.sh, lint-phase-refs.sh,
+      lint-non-interactive-inline.sh, audit-recommended.sh against landing-page. Update argument-hint only if a
+      contract flag was added (none expected). Confirm new anchors (#logo, #media-strategy) resolve.
+    verify: >
+      All four lints + audit green; phase-refs/slugs clean (incl. #logo, #media-strategy); skill-eval [D] half
+      passes; output still single self-contained file.

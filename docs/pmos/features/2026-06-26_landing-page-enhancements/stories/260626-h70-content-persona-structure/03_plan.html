@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Plan — 260626-h70 content/persona/structure</title>
+<style>
+ body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1a1a1a;max-width:56rem;margin:2rem auto;padding:0 1.25rem}
+ h1{font-size:1.6rem}h2{border-top:2px solid #e2e2e2;padding-top:.5rem;margin-top:2rem}
+ code{background:#f6f8fa;padding:.1rem .35rem;border-radius:4px}
+ table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.6rem 0}
+ th,td{border:1px solid #e2e2e2;padding:.4rem .55rem;text-align:left;vertical-align:top}
+ th{background:#f6f8fa}.meta{color:#5a5a5a;font-size:.88rem}
+</style></head><body>
+<!-- pmos-comments:start --><script id="pmos-comments" type="application/json">[]</script><!-- pmos-comments:end -->
+<h1>Plan — Story A: content, persona &amp; structure</h1>
+<p class="meta">Story <code>260626-h70</code> · epic <code>260626-7s4</code> · route: skill · plugin: pmos-toolkit ·
+spec: <code>../../02_design.html</code></p>
+<p>Carries the upstream (brief + structure) half of the <code>/landing-page</code> enhancement epic. <code>/execute</code> is
+the sole writer of the skill at <code>plugins/pmos-toolkit/skills/landing-page/</code>. Decisions D1/D2/D3/D4/D9/D11.
+Task queue: <code>tasks.yaml</code>.</p>
+
+<h2>Task waves</h2>
+<table><thead><tr><th>Task</th><th>What</th><th>Deps</th><th>Decision/AC</th></tr></thead><tbody>
+<tr><td>T1</td><td>Study design + current skill cite-points</td><td>—</td><td>all</td></tr>
+<tr><td>T2</td><td>Phase 1 brief: persona (1–2 + jargon tolerance) + signature-moments field</td><td>T1</td><td>D2/D1 · AC1,AC2</td></tr>
+<tr><td>T3</td><td>do&gt;show&gt;tell as governing principle (section-scaffolds.md, cited from body)</td><td>T1</td><td>D1 · AC3</td></tr>
+<tr><td>T4</td><td>"Who this is for / not for" taxonomy row + placement</td><td>T1</td><td>D3 · AC4</td></tr>
+<tr><td>T5</td><td>Phase 2: coherence/dedup pass + ≥3 structure variants gate</td><td>T3,T4</td><td>D3/D4 · AC5,AC6</td></tr>
+<tr><td>T6</td><td>copy-gates.md: persona-jargon rule + show-ratio check (advisory)</td><td>T2,T3</td><td>D1/D2 · AC8</td></tr>
+<tr><td>T7</td><td>New reference/multi-product.md + Phase 1 detect + Phase 2 per-product sections</td><td>T1</td><td>D9 · AC7</td></tr>
+<tr><td>T8</td><td>Phase 5: "Built with pmos-toolkit" + repo-link footer</td><td>T1</td><td>D11 · AC9</td></tr>
+<tr><td>T9</td><td>Consistency + 4 lints + audit-recommended + skill-eval [D]</td><td>T2–T8</td><td>C1–C5 · AC10,AC11</td></tr>
+</tbody></table>
+
+<h2>Key risks</h2>
+<ul>
+<li><strong>One fact, one home (C2):</strong> persona-jargon, do&gt;show&gt;tell, who-for/not-for, multi-product all land in
+reference files; the SKILL.md body only cites. T9 sweeps for accidental duplication.</li>
+<li><strong>Non-interactive safety (C4):</strong> the new ≥3-variant gate and the multi-product gate each need a
+<code>(Recommended)</code> option so <code>audit-recommended.sh</code> stays green and unattended runs AUTO-PICK a safe default.</li>
+<li><strong>Phase/row count drift:</strong> adding a taxonomy row changes the "11-row" count cited in the body — T4 fixes every reference.</li>
+</ul>
+
+<h2>Verification</h2>
+<p>Per-task <code>verify:</code> in <code>tasks.yaml</code>; story-level gate = all four hygiene lints + audit-recommended green on the
+landing-page skill dir, <code>skill-eval.md</code> [D] half passing, and a dry read-through proving no rule is duplicated between body
+and reference. <code>/verify</code> (Loop 2) re-runs the [D] half + reconciles residuals.</p>
+</body></html>

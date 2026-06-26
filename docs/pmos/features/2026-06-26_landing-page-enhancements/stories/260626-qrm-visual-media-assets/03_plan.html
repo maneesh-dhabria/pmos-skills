@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="plan">
+<title>Plan — 260626-qrm visual/media/assets</title>
+<style>
+ body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#1a1a1a;max-width:56rem;margin:2rem auto;padding:0 1.25rem}
+ h1{font-size:1.6rem}h2{border-top:2px solid #e2e2e2;padding-top:.5rem;margin-top:2rem}
+ code{background:#f6f8fa;padding:.1rem .35rem;border-radius:4px}
+ table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.6rem 0}
+ th,td{border:1px solid #e2e2e2;padding:.4rem .55rem;text-align:left;vertical-align:top}
+ th{background:#f6f8fa}.meta{color:#5a5a5a;font-size:.88rem}
+</style></head><body>
+<!-- pmos-comments:start --><script id="pmos-comments" type="application/json">[]</script><!-- pmos-comments:end -->
+<h1>Plan — Story B: visual, media &amp; assets</h1>
+<p class="meta">Story <code>260626-qrm</code> · epic <code>260626-7s4</code> · route: skill · depends <code>260626-h70</code> ·
+spec: <code>../../02_design.html</code></p>
+<p><strong>Claim-time:</strong> merge <code>feat/260626-h70</code> into this worktree before building (D9 transitive-dep merge) —
+both stories edit the same <code>SKILL.md</code>, so B builds on A's edits, not a stale base. <code>/execute</code> is the sole
+writer. Decisions D5/D6/D7/D8/D10. Task queue: <code>tasks.yaml</code>.</p>
+
+<h2>Task waves</h2>
+<table><thead><tr><th>Task</th><th>What</th><th>Deps</th><th>Decision/AC</th></tr></thead><tbody>
+<tr><td>T1</td><td>Study design + post-h70 skill + Playwright recordVideo/ffmpeg + shared-design citation target</td><td>—</td><td>all</td></tr>
+<tr><td>T2</td><td>Phase 0 media capability detection (ffmpeg? headless?) cached</td><td>T1</td><td>D6 · AC1</td></tr>
+<tr><td>T3</td><td>New Phase 1.5 logo: detect → offer /logo (recommended-safe) → bind</td><td>T1</td><td>D5 · AC2</td></tr>
+<tr><td>T4</td><td>Phase 4 live hero-in-style preview (working/style-options.html)</td><td>T1</td><td>D8 · AC3</td></tr>
+<tr><td>T5</td><td>New Phase 4.5 media gate + reference/media-strategy.md (video Playwright+ffmpeg, degrade)</td><td>T2</td><td>D6 · AC4,AC5,AC6</td></tr>
+<tr><td>T6</td><td>Asset fidelity (aspect ratio, device frames, mobile assets) — Phase 5 + copy-gates.md</td><td>T1</td><td>D7 · AC7</td></tr>
+<tr><td>T7</td><td>Visual self-check: mobile a HARD pass dimension</td><td>T6</td><td>D7 · AC8</td></tr>
+<tr><td>T8</td><td>Shared design substrate: Phase 5/6 cite DESIGN.md + responsive checklist</td><td>T1</td><td>D10 · AC9</td></tr>
+<tr><td>T9</td><td>Consistency + 4 lints + audit-recommended + skill-eval [D]</td><td>T2–T8</td><td>C1–C5 · AC10,AC11</td></tr>
+</tbody></table>
+
+<h2>Key risks</h2>
+<ul>
+<li><strong>Self-contained constraint (C1):</strong> video/carousel assets must embed (<code>data:</code> URI) or live page-folder-relative —
+never a remote <code>&lt;script src&gt;</code> / hotlink. media-strategy.md states this once; T9 verifies.</li>
+<li><strong>Heavy ops unattended (C4):</strong> Playwright recording and the <code>/logo</code> spawn must never fire under
+<code>--non-interactive</code> without an explicit recommended-safe default (static device-framed; simple wordmark).</li>
+<li><strong>No fabricated demo (C3):</strong> the "video of an actual hand + feedback" is captured from the running product, not mocked.</li>
+<li><strong>Same-file dependency:</strong> A and B both edit SKILL.md — the claim-time merge of <code>feat/260626-h70</code> is mandatory before T2.</li>
+<li><strong>D10 citation target:</strong> T1 must pin the canonical shared design-authoring file/section before T8 cites it (avoid a dangling cite — the route:skill coherence [J] gate is the release backstop).</li>
+</ul>
+
+<h2>Verification</h2>
+<p>Per-task <code>verify:</code> in <code>tasks.yaml</code>; story-level gate = four hygiene lints + audit-recommended green, new anchors
+(<code>#logo</code>, <code>#media-strategy</code>) resolve, <code>skill-eval.md</code> [D] half passes, and the emitted page remains a single
+self-contained <code>file://</code> HTML with embedded/relative media. <code>/verify</code> (Loop 2) re-runs the [D] half + reconciles residuals.</p>
+</body></html>

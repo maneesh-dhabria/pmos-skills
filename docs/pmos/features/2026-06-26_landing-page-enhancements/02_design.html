@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/landing-page enhancements — epic design (260626-7s4)</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#0b6e4f;--bg:#fff;--code:#f6f8fa;--warn:#b4690e}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.8rem;line-height:1.2;margin:0 0 .25rem}
+  h2{font-size:1.3rem;margin:2.4rem 0 .6rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  h3{font-size:1.05rem;margin:1.4rem 0 .4rem;color:var(--accent)}
+  .sub{color:var(--muted);margin:0 0 1.5rem}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  .d{scroll-margin-top:1rem}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:var(--accent);color:#fff;vertical-align:middle}
+  .storyA{background:#0b6e4f}.storyB{background:#1d4ed8}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  li{margin:.2rem 0}
+  blockquote{margin:.6rem 0;padding:.5rem .9rem;border-left:3px solid var(--accent);background:var(--code);color:var(--muted)}
+  .meta{font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<!-- pmos-comments:start -->
+<script id="pmos-comments" type="application/json">[]</script>
+<!-- pmos-comments:end -->
+
+<h1>/landing-page enhancements</h1>
+<p class="sub">Epic <code>260626-7s4</code> · route: skill · pmos-toolkit · <span class="meta">defined 2026-06-26</span></p>
+
+<p>This epic revises the existing <code>/landing-page</code> skill in response to grounded feedback from a real run
+(the <em>poker-coach</em> landing page). The skill is sound in its bones — a six-phase, reference-grounded,
+self-contained-HTML generator — but the run exposed structural gaps in <strong>what it shows</strong>,
+<strong>who it speaks to</strong>, <strong>how it renders choices</strong>, and <strong>how assets and media are handled</strong>.
+This document is the cross-cutting design contract the two stories cite by anchor; it does not restate the
+skill body or its reference files (one fact, one home).</p>
+
+<p class="meta">Skill under revision: <code>plugins/pmos-toolkit/skills/landing-page/SKILL.md</code> +
+<code>reference/{section-scaffolds,hero-archetypes,copy-gates,style-tokens}.*</code>.
+Original design lineage: <code>docs/pmos/features/2026-06-24_landing-page/02_design.html</code>.</p>
+
+<h2 id="feedback-map">1. Feedback → fix map</h2>
+<p>Every feedback point from the session, mapped to a structural fix and the story that carries it.</p>
+<table>
+<thead><tr><th>Feedback</th><th>Structural fix</th><th>Phase touched</th><th>Story</th></tr></thead>
+<tbody>
+<tr><td>Screenshots skewed / wrong aspect ratio</td><td>Asset-fidelity rule: preserve native aspect ratio, <code>object-fit</code>, device frames; never force dimensions</td><td>5 (draft), 6 (visual gate)</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Mobile not laid out; no images that work on mobile</td><td>Mobile-first responsive constraints + mobile becomes a <strong>hard</strong> visual-gate dimension w/ mobile-appropriate asset handling</td><td>5, 6</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Pot-equity feedback / rule of 2&amp;4 / coaching / player-types never shown</td><td>Brief captures <strong>signature features &amp; "moments to demonstrate"</strong>; draft <em>shows</em> them (do&gt;show&gt;tell)</td><td>1 (brief), 2, 5</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>Over-reliance on <em>tell</em>; no balance of do&gt;show&gt;tell</td><td>do&gt;show&gt;tell as a first-class governing principle + a balance gate; "show" assets default-on</td><td>2, 5, 6</td><td><span class="pill storyA">A</span> (principle) + <span class="pill storyB">B</span> (assets)</td></tr>
+<tr><td>Jargon (equity, GTO) overwhelming; persona not narrowed</td><td>Brief selects <strong>1–2 personas</strong>; copy + jargon calibrated to them</td><td>1, 5</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>Below-hero social-proof redundant with hero caption</td><td>Section-coherence / dedup pass: proof placed once; no value-prop restatement</td><td>2</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>No "Who this is for / not for" section</td><td>New taxonomy row + product-type placement</td><td>2</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>Only one structure shown; want ≥3 variants</td><td>Phase 2 proposes <strong>≥3 structure variants</strong> (copy/layout/order); Phase 3 already renders 2–3 heroes</td><td>2 (+3)</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>Visual preference asked, not shown</td><td>Phase 4 renders <strong>live hero-in-style previews</strong>, not a static gallery link</td><td>4</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Use /logo; add optional logo step when none exists</td><td>Optional logo phase: detect → offer <code>/logo</code> → bind output</td><td>new 1.5</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Borrow shared design authoring guidelines (/wireframes, /prototype, /design-crit)</td><td>Adopt the shared house-style / responsive substrate; cite it from the draft + gate phases</td><td>5, 6</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Static images / carousels / videos? ffmpeg? Playwright record?</td><td><strong>Media-strategy gate</strong>: static device-framed / carousel / video; video = Playwright <code>recordVideo</code> + ffmpeg, graceful degrade</td><td>new 4.5, 5, 6</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Capture a video of an actual hand + feedback</td><td>Covered by the media gate's video path (record a real product flow)</td><td>4.5, 5</td><td><span class="pill storyB">B</span></td></tr>
+<tr><td>Multi-product repos (monorepo, multi-skill plugin)</td><td>Detect products → choose <strong>organizing principle</strong> → per-product sections or product-index</td><td>1, 2</td><td><span class="pill storyA">A</span></td></tr>
+<tr><td>Footer: "built with pmos-toolkit" + repo link</td><td>Bake attribution footer into every emitted page</td><td>5</td><td><span class="pill storyA">A</span></td></tr>
+</tbody>
+</table>
+
+<h2 id="decisions">2. Decisions</h2>
+
+<h3 class="d" id="d1">D1 — do&gt;show&gt;tell is a governing principle, not a single gate</h3>
+<p>Elevate <em>do &gt; show &gt; tell</em> to a stated principle alongside the existing governing equation
+(<code>Purchase Rate = Desire − (Labor + Confusion)</code>). The brief gains a <strong>"signature moments to demonstrate"</strong>
+field (the 2–4 product moments worth <em>showing</em> — e.g. pot-equity readout, coaching card, opponent-type picker).
+Phase 2 maps each to a show-surface (screenshot / annotated shot / carousel / video / interactive snippet).
+Phase 6 adds a <strong>show-ratio check</strong>: flag sections that <em>tell</em> a benefit a captured asset could <em>show</em>.
+This is advisory (judgment), not a hard arithmetic gate.</p>
+
+<h3 class="d" id="d2">D2 — Persona narrowing to 1–2 personas, with jargon calibration</h3>
+<p>The brief's loose "target audience" becomes an explicit <strong>1–2 persona</strong> selection (interactive pick; non-interactive
+picks the product-type default and logs an OQ). Each persona carries a <strong>jargon tolerance</strong> (novice / fluent). When any
+selected persona is novice, the copy gates reject undefined domain jargon (equity, GTO) unless inline-defined or replaced with
+plain language. Personas live in the brief; the rule lives in <code>copy-gates.md</code>.</p>
+
+<h3 class="d" id="d3">D3 — New section taxonomy rows + dedup pass</h3>
+<p>Add to <code>section-scaffolds.md</code>: a <strong>"Who this is for / not for"</strong> row (qualifies the visitor, removes labor/confusion)
+and an explicit note that the <strong>below-hero proof strip is omitted when the hero caption already carries those proof values</strong>
+(no double-counting). Phase 2 runs a <strong>coherence pass</strong>: no section restates the hero's value prop or duplicates proof.</p>
+
+<h3 class="d" id="d4">D4 — ≥3 structure variants at Phase 2</h3>
+<p>Phase 2 stops proposing a single ordered list. It proposes <strong>≥3 distinct variants</strong> — varying section order, framing
+(problem-led vs outcome-led vs proof-led), and copy length — each one-line-summarised, with a recommended default. The gate becomes
+a pick among variants (AUTO-PICK recommended non-interactively). Reuses the Phase-3 rendered-comparison muscle where cheap.</p>
+
+<h3 class="d" id="d5">D5 — Logo phase (new Phase 1.5), optional</h3>
+<p>After the brief, detect an existing logo/brand mark in the researched assets. If present → bind it. If absent → <strong>offer to run
+<code>/logo</code></strong> (gated; recommended = "use a simple wordmark", so it AUTO-PICKs to a no-op-safe default non-interactively rather than
+spawning a heavy skill unattended). <code>/logo</code> output (SVG + favicon + monochrome) is bound in Phase 5 and the footer.</p>
+
+<h3 class="d" id="d6">D6 — Media-strategy gate (new Phase 4.5)</h3>
+<p>A new gate asks the show-format per signature moment / for the page overall: <strong>static device-framed image · carousel · video</strong>.
+Video path uses <strong>Playwright's <code>recordVideo</code></strong> context option to capture a real product flow, then <strong>ffmpeg</strong> to
+trim / compress / generate a poster + (optionally) a muted autoplay-loop <code>&lt;video&gt;</code> or animated WebP.
+<strong>Graceful degrade</strong> (no ffmpeg / no headless browser): video → animated GIF/WebP if Playwright present, else a captioned static
+shot + logged skip. Recommended default = static device-framed (cheapest, always works), so non-interactive runs never block on capture.
+The capability detection + degrade ladder lives in a new <code>reference/media-strategy.md</code>.</p>
+
+<h3 class="d" id="d7">D7 — Asset fidelity + mobile as a hard visual dimension</h3>
+<p><code>copy-gates.md#visual-self-check</code> (and the draft rules) gain: <strong>preserve native aspect ratio</strong> (capture/store intrinsic
+dimensions; render with <code>object-fit: contain/cover</code> inside fixed frames — never stretch), <strong>device frames</strong> for product shots,
+and <strong>mobile-appropriate assets</strong> (portrait crop / different image where a wide desktop shot is illegible on a phone). The visual
+self-check's mobile screenshot becomes a <strong>hard pass dimension</strong>: layout must not overflow, CTA must stay visible, images must not
+skew or clip. Mobile failure blocks emit (within the existing ≤2-iteration fix loop) rather than being informational.</p>
+
+<h3 class="d" id="d8">D8 — Live style preview at Phase 4</h3>
+<p>Phase 4 no longer just points at the static <code>style-gallery.html</code>. It <strong>renders the chosen hero (from Phase 3) in 2–3 candidate
+styles</strong> as a side-by-side comparison artifact (<code>working/style-options.html</code>), the same "show, don't ask" mechanism Phase 3 uses
+for heroes. The gallery stays as the full reference; the preview is the decision surface.</p>
+
+<h3 class="d" id="d9">D9 — Multi-product organizing principle</h3>
+<p>Phase 1 detects whether the input is a <strong>single product or a multi-product repo</strong> (monorepo with N user-facing apps; a plugin
+with N user-facing skills). When multi-product, Phase 1 proposes an <strong>organizing principle</strong> and the user picks:
+<strong>(a) one page, one section per product</strong> (a suite/overview page), <strong>(b) a product-index/hub</strong> linking to per-product pages, or
+<strong>(c) focus on one product</strong> (pick which). Each chosen product gets its own brief slice (persona, signature moments, sections). The
+detection heuristic + the three organizing principles live in a new <code>reference/multi-product.md</code>. Non-interactive default = focus on
+the single most-prominent product, OQ logged.</p>
+
+<h3 class="d" id="d10">D10 — Shared design-authoring substrate</h3>
+<p>Adopt the house-style / responsive guidance the other visual skills honour. Phase 5 + Phase 6 cite the host repo's <code>DESIGN.md</code>
+(when present) and the shared responsive/contrast norms used by <code>/wireframes</code> · <code>/prototype</code> · <code>/design-crit</code>, rather than
+re-deriving layout rules. Concretely: read <code>DESIGN.md</code> if present and bias style/token choice + spacing toward it; cite the shared
+responsive checklist in the visual self-check. (Spec resolves exactly which shared file/section is the canonical citation.)</p>
+
+<h3 class="d" id="d11">D11 — Footer attribution</h3>
+<p>Every emitted <code>index.html</code> (and per-product page) bakes a small footer line: <strong>"Built with pmos-toolkit"</strong> linking to the
+repo (<code>{{repo_url}}</code> convention, per the repo's existing wordmark/footer token work). Additive to the existing footer section; does
+not displace product trust/legal links.</p>
+
+<h2 id="constraints">3. Constraints (single-skill invariants)</h2>
+<ul>
+<li><strong>C1 — Self-contained output is preserved.</strong> Every fix must keep the page a single <code>file://</code>-openable HTML with inline
+CSS + vanilla JS and no CDN (D3 of the original design). Video/carousel assets are embedded (<code>data:</code> URI) or stored inside the page
+folder and referenced relatively — never a remote <code>&lt;script src&gt;</code> or hotlink.</li>
+<li><strong>C2 — One fact, one home.</strong> New rules land in reference files (<code>media-strategy.md</code>, <code>multi-product.md</code>, and edits to
+<code>section-scaffolds.md</code> / <code>hero-archetypes.md</code> / <code>copy-gates.md</code>); the SKILL.md body <em>cites</em> them. No rule is duplicated in the body.</li>
+<li><strong>C3 — No fabricated proof.</strong> The do&gt;show&gt;tell push must not invent demo content. "Show" assets come from the real product
+(captured screenshots/recordings) or are labelled placeholders (original D6). A video of "an actual hand + feedback" is captured from the
+running product, not mocked.</li>
+<li><strong>C4 — Gates stay non-interactive-safe.</strong> Every new gate (media-strategy 4.5, logo 1.5, structure-variants, multi-product, persona)
+carries a <code>(Recommended)</code> option that AUTO-PICKs a no-heavy-op-safe default under <code>--non-interactive</code>, per the W14 contract; new
+heavy ops (Playwright recording, <code>/logo</code> spawn) never run unattended without an explicit recommended-safe default.</li>
+<li><strong>C5 — skill-patterns §A–§L + skill-eval.</strong> The revised skill must still pass <code>reference/skill-patterns.md §A–§L</code> and the
+binary <code>skill-eval.md</code> rubric — argument-hint vs body flags lint, phase-ref/slug lint, non-interactive inline block, audit-recommended.</li>
+</ul>
+
+<h2 id="phase-shape">4. Resulting phase shape (target)</h2>
+<table>
+<thead><tr><th>Phase</th><th>Change</th></tr></thead>
+<tbody>
+<tr><td>0 setup</td><td>+ media/ffmpeg/Playwright capability detection (cached for 4.5/6)</td></tr>
+<tr><td>1 research → brief</td><td>+ persona selection (D2), + signature moments (D1), + multi-product detection (D9)</td></tr>
+<tr><td><strong>1.5 logo</strong> (new)</td><td>detect logo → offer <code>/logo</code> → bind (D5)</td></tr>
+<tr><td>2 structure</td><td>≥3 variants (D4), + who-for/not-for row &amp; dedup (D3), + per-product sections (D9), + show-surface mapping (D1)</td></tr>
+<tr><td>3 hero</td><td>unchanged (already renders 2–3); feeds Phase 4 preview</td></tr>
+<tr><td>4 style</td><td>live rendered preview of hero-in-style (D8)</td></tr>
+<tr><td><strong>4.5 media strategy</strong> (new)</td><td>static / carousel / video pick per moment; capture ladder (D6)</td></tr>
+<tr><td>5 draft</td><td>+ asset fidelity (D7), + bound media (D6), + bound logo (D5), + footer attribution (D11), + DESIGN.md house-style (D10)</td></tr>
+<tr><td>6 self-review</td><td>+ mobile hard dimension &amp; aspect-ratio check (D7), + show-ratio check (D1), + persona-jargon gate (D2), + shared responsive checklist (D10)</td></tr>
+</tbody>
+</table>
+
+<h2 id="stories">5. Story split</h2>
+<p>Two route:skill stories. Both edit the same <code>SKILL.md</code>, so they are <strong>sequential</strong> — Story B depends on Story A and merges A's
+branch at claim time (D9 claim-time merge), avoiding a parallel same-file conflict.</p>
+
+<h3 id="story-a"><span class="pill storyA">A</span> 260626-h70 — Content, persona &amp; structure</h3>
+<p class="meta">route: skill · dependencies: none · upstream (brief + structure)</p>
+<p>Carries the <em>content/structure</em> half: persona narrowing (D2), do&gt;show&gt;tell principle + signature-moments brief field (D1, principle),
+new "Who this is for / not for" row + dedup pass (D3), ≥3 structure variants (D4), multi-product organizing principle + per-product sections
+(D9), footer attribution (D11). Edits: <code>SKILL.md</code> (Phases 1, 2, 5-footer), <code>section-scaffolds.md</code>, new <code>multi-product.md</code>,
+<code>copy-gates.md</code> (persona-jargon rule, show-ratio check).</p>
+
+<h3 id="story-b"><span class="pill storyB">B</span> 260626-qrm — Visual, media &amp; assets</h3>
+<p class="meta">route: skill · dependencies: [260626-h70] · downstream (visual + media)</p>
+<p>Carries the <em>visual/media</em> half: asset fidelity + mobile hard gate (D7), live style preview (D8), logo phase (D5), media-strategy gate
+incl. video via Playwright+ffmpeg (D6), shared design substrate adoption (D10). Edits: <code>SKILL.md</code> (Phase 1.5, 4, 4.5, 5-assets, 6),
+<code>hero-archetypes.md</code> (preview feed), <code>copy-gates.md</code> (visual self-check / mobile / aspect-ratio), new <code>media-strategy.md</code>,
+<code>style-tokens</code> docs (preview mechanism).</p>
+
+<h2 id="acceptance">6. Epic acceptance surface</h2>
+<p>The epic is done when both stories ship and a re-run of <code>/landing-page</code> on a multi-product input demonstrates: narrowed persona +
+calibrated jargon; a who-for/not-for section; ≥3 offered structure variants; a live style preview; a media-format choice (with a working video
+path when ffmpeg+Playwright present, graceful degrade otherwise); aspect-correct, mobile-correct assets; a "show"-balanced page; an attribution
+footer; and an organizing principle applied for multi-product repos — all while the page stays a single self-contained <code>file://</code> HTML and
+the skill passes <code>skill-eval.md</code>.</p>
+
+</body>
+</html>
