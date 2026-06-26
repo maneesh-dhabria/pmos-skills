@@ -9,16 +9,18 @@ priority: should
 route: skill
 dependencies: [260626-psr]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-26_trackers-index-merge-tax/
 plan_doc: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-3d4/03_plan.html
 tasks: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-3d4/tasks.yaml
-worktree:
-build_branch:
+worktree: .claude/worktrees/feat-260626-3d4
+build_branch: feat/260626-3d4
 build_commit:
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 labels: [pmos-toolkit, mytasks, tracker-crudl, merge-path]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 <!-- status: planned at define (Loop 1). Depends on 260626-psr so the rewritten _shared/tracker-crudl.md §5 is merged into this worktree at claim time (D9). Build via /skill-sdlc build --story 260626-3d4. -->
