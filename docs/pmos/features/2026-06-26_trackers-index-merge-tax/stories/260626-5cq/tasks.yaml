@@ -1,0 +1,72 @@
+schema_version: 1
+story: 260626-5cq
+epic: 260626-8pa
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story S3 (deps: 260626-psr): remove the committed ~/.pmos/people/INDEX.md from /people (the inline
+# LLM-regenerated mirror of /backlog's anti-pattern — no script). Retire the rebuild-index procedure from
+# add/set/refine + Phase 8; bare /people renders an inline view derived from ~/.pmos/people/*.md on read.
+# This is the PREREQUISITE for S4 (260626-nq0, the new web viewer). Skill:
+# plugins/pmos-toolkit/skills/people/. Claim AFTER 260626-psr merges so the rewritten _shared/tracker-crudl.md
+# §5 is in this worktree. NO release-prereq tasks — /complete-dev (Loop 3) owns those.
+tasks:
+  - id: T1
+    title: "Study: design doc #change-people, people SKILL.md rebuild-index sites + Phase 8, schema.md, fixtures"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (#change-people, FR-7/FR-3/FR-1, INV-2). Read
+      plugins/pmos-toolkit/skills/people/SKILL.md — the index refs (:83-85), the inline "Regenerate INDEX"
+      procedure inside add (:146), set (:218), refine (:229), and Phase 8 (:89). Read people/schema.md
+      (:63 INDEX format). Locate the with-people/INDEX.md test fixture and any assertion expecting it. Read
+      skill-patterns.md §A–§L. Confirm the rewritten _shared/tracker-crudl.md §5 (from 260626-psr) is present
+      in this worktree. Produce NO edits.
+    verify: >
+      Every rebuild-index site (:146/:218/:229), Phase 8 (:89), the index refs (:83-85), schema.md (:63), and
+      the with-people/INDEX.md fixture located; §5 confirmed present from the dep story.
+
+  - id: T2
+    title: "AC1/AC2/AC3: delete people/INDEX.md, retire rebuild-index from add/set/refine + Phase 8, inline derived render"
+    ac: [AC1, AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Delete the committed ~/.pmos/people/INDEX.md. Remove the inline "Regenerate INDEX" procedure from add
+      (:146), set (:218), refine (:229), and retire Phase 8 (:89) entirely — no mutating handler regenerates
+      an index. Rewrite the bare-/people surface so it renders an inline view derived from ~/.pmos/people/*.md
+      on read (the web-default surface arrives in S4 260626-nq0; this story leaves the inline derived render
+      as the read path). Gate empty-state on "no person files", never on a missing index; never print an
+      INDEX blob. Update the index refs at :83-85 to the derive-on-read contract.
+    verify: >
+      No ~/.pmos/people/INDEX.md; no handler regenerates an index; Phase 8 gone; bare /people renders an
+      inline view derived from person files; empty-state gated on absence of *.md.
+
+  - id: T3
+    title: "AC4: schema.md INDEX format → index view format; remove with-people/INDEX.md fixture"
+    ac: [AC4]
+    deps: [T1]
+    parallel: true
+    detail: >
+      In people/schema.md, change `## INDEX.md format` (:63) to `## Index view format` (derived, not
+      persisted; same columns/grouping). Remove the with-people/INDEX.md test fixture and drop any fixture
+      assertion that expects a committed people INDEX.
+    verify: >
+      schema.md reworded to a derived view; with-people/INDEX.md fixture removed; no assertion references it.
+
+  - id: T4
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, dogfood inline derived render with no INDEX"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: [T2, T3]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the people skill dir; run the four
+      hygiene lints + audit-recommended (green). Dogfood (load-bearing): seed a ~/.pmos/people/ store with a
+      couple of person files and NO INDEX.md, run bare /people --non-interactive, and confirm it renders the
+      inline view derived from the *.md files (not an error about a missing index, and no INDEX written back).
+      Confirm an empty store yields the "no person files" empty-state, not an index error.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; dogfood shows inline derived render with INDEX absent + correct empty-state.

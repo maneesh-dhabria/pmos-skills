@@ -1,0 +1,104 @@
+schema_version: 1
+story: 260626-psr
+epic: 260626-8pa
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story S1 (foundation, no deps): remove the committed backlog/INDEX.md cache, rewrite the bare /backlog
+# surface to web-default + inline derived-render fallback, REWRITE the shared substrate
+# _shared/tracker-crudl.md §5/§6 to encode INV-1/2/3 (the load-bearing change — stops the anti-pattern
+# reappearing in any tracker), and drop the one external consumer call (feature-sdlc/SKILL.md:448).
+# Skill: plugins/pmos-toolkit/skills/backlog/. Substrate: plugins/pmos-toolkit/skills/_shared/tracker-crudl.md.
+# NO release-prereq tasks (version bump, changelog, README, manifest sync) — /complete-dev (Loop 3) owns those.
+tasks:
+  - id: T1
+    title: "Study: design doc, backlog SKILL.md/schema.md INDEX sites, tracker-crudl.md §5/§6, feature-sdlc:448, serve-web tests"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (INV-1/2/3, decisions D1/D1b/D1c/D6/D9, #substrate-change, #change-backlog,
+      FR-1..FR-5/FR-8/FR-9). Fix exact line ranges in plugins/pmos-toolkit/skills/backlog/SKILL.md for
+      #rebuild-index (:187), the dashboard (:237/:243), and the four mutating handlers that regenerate the
+      index — #add (:123), set (:148), archive (:220), refine (:229). Read backlog/schema.md (:194 INDEX
+      format, :223/:225 sanctioned-writer/archive). Read _shared/tracker-crudl.md §5 (lines 53-61), §6
+      (63-69), and the binding checklist (:81). Read feature-sdlc/SKILL.md:448 (the define-merge
+      `/backlog rebuild-index` call) and confirm the post-merge guard is check-id-uniqueness.mjs over
+      items/, not INDEX. Read backlog/tests/serve-web.test.mjs + backlog/tests/scenarios.md (:24/:51/:95).
+      Read skill-patterns.md §A–§L. Produce NO edits — capture insertion/deletion points.
+    verify: >
+      Exact line ranges fixed for every INDEX write-site, the substrate §5/§6 + checklist, schema.md, and
+      feature-sdlc:448; confirmed serve-web tests derive from YAML (no INDEX dependency) so AC6 is a
+      no-regression check, not a rewrite.
+
+  - id: T2
+    title: "Substrate rewrite (load-bearing): _shared/tracker-crudl.md §5/§6 + checklist → INV-1/2/3"
+    ac: [AC4]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Rewrite §5 ("regenerable cache") to forbid the anti-pattern: encode INV-1 (no committed,
+      mutation-written derived file on the merge path — a derived view is rendered on read, never persisted
+      and committed), INV-2 (trackers default to a web view; the inline derived render is the
+      non-interactive/headless fallback), INV-3 (no static export / no gitignored dump either — derive fresh
+      per read). Add a NAMED merge-path invariant line stating WHY (a single committed file every mutation
+      rewrites is a merge-conflict magnet in the parallel-worktree + release-train model). Rewrite §6
+      archive's "never appears in INDEX" → "never appears in the derived view". Update binding-checklist
+      item 5 (:81) from "regenerate the index before any read" to the derive-on-read contract. This is the
+      change that stops the pattern recurring in the next tracker.
+    verify: >
+      §5 names INV-1/2/3 + the merge-path rationale; §6 + checklist item 5 updated; a fresh reader of
+      tracker-crudl.md cannot conclude a committed index is sanctioned. No tracker skill is left citing a
+      removed §5 clause.
+
+  - id: T3
+    title: "AC1-AC3/AC6: /backlog — delete INDEX.md, strip regenerators, web-default + inline fallback, schema.md + scenarios"
+    ac: [AC1, AC2, AC3, AC6]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Delete the committed backlog/INDEX.md. Remove #rebuild-index (:187) and every "Regenerate INDEX" step
+      from #add (:123), set (:148), archive (:220), refine (:229), and the promote/define-merge regenerators
+      named in schema.md:223. Rewrite the bare-/backlog surface (dashboard :237/:243) to default to the web
+      viewer (web / serve-web.mjs), degrading under --non-interactive/headless/no-browser to an inline view
+      derived from items/*.md (gate empty-state on "no items/*.md", never on a missing index; never print an
+      INDEX blob). schema.md: `## INDEX.md format` (:194) → `## Index view format` (same columns/grouping,
+      not persisted); :223 "only sanctioned writer is rebuild-index" → "no writer — derived on read"; :225
+      archive wording. Update backlog/tests/scenarios.md INDEX lines (:24/:51/:95) to derived-view wording.
+      Confirm backlog/tests/serve-web.test.mjs still passes unchanged.
+    verify: >
+      No backlog/INDEX.md on disk; no handler regenerates an index; bare /backlog launches web + falls back
+      to inline derived render; schema.md/scenarios.md reworded; serve-web.test.mjs green unchanged.
+
+  - id: T4
+    title: "AC5: feature-sdlc/SKILL.md:448 — drop the /backlog rebuild-index define-merge call"
+    ac: [AC5]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Remove the `/backlog rebuild-index` invocation at feature-sdlc/SKILL.md:448 from the define-merge
+      sequence. Leave the immediately-adjacent post-merge `check-id-uniqueness.mjs post-merge
+      <root>/backlog/items` assertion intact (it reads items/, not INDEX — the uniqueness guard is
+      unaffected). Confirm no other define/build phase in feature-sdlc depends on a regenerated INDEX.
+    verify: >
+      feature-sdlc:448 no longer calls rebuild-index; the id-uniqueness post-merge check is unchanged and
+      still reads items/; grep finds no remaining `/backlog rebuild-index` call in any skill.
+
+  - id: T5
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, no dangling cites, dogfood derive-on-read + web-default fallback"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the backlog skill dir. Run the four
+      hygiene lints (lint-non-interactive-inline.sh, audit-recommended.sh, lint-flags-vs-hints.sh,
+      lint-phase-refs.sh) + grep the repo for any surviving citation of the removed §5 clause / rebuild-index
+      verb (no dangling cites in /mytasks or /people — those are fixed in their own stories but must not
+      newly break). Run backlog/tests/serve-web.test.mjs (green unchanged). Dogfood (load-bearing): with no
+      INDEX.md present, run bare /backlog in --non-interactive and confirm it renders the inline view derived
+      from items/*.md (not an error about a missing index); then confirm the web verb derives the same listing.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; serve-web.test.mjs green; no surviving rebuild-index cite; dogfood proves derive-on-read +
+      web-default fallback with INDEX.md absent.

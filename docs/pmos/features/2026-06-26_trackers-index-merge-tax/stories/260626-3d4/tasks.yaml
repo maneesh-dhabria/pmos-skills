@@ -1,0 +1,92 @@
+schema_version: 1
+story: 260626-3d4
+epic: 260626-8pa
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story S2 (deps: 260626-psr): remove the committed ~/.pmos/tasks/INDEX.md from /mytasks. The wrinkle (D6):
+# lib.js:regenerateIndex() ALSO folds the workstream→project migration, so the write can't just be deleted —
+# the migration relocates to load-time normalization in loadAllItems and must still run on every read.
+# regenerateIndex → renderIndex (returns the bucketed md string, no write); six serve.js call-sites stop
+# writing; bare /mytasks goes web-default with an inline derived fallback. Skill:
+# plugins/pmos-toolkit/skills/mytasks/. Claim AFTER 260626-psr merges so the rewritten _shared/tracker-crudl.md
+# §5 (INV-1/2/3) is in this worktree. NO release-prereq tasks — /complete-dev (Loop 3) owns those.
+tasks:
+  - id: T1
+    title: "Study: design doc #change-mytasks, lib.js regenerateIndex + loadAllItems, serve.js call-sites, run.mjs, SKILL.md"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (#change-mytasks, D6 migration-relocation, FR-6/FR-6a/FR-3/FR-8). Read
+      plugins/pmos-toolkit/skills/mytasks/scripts/lib.js — regenerateIndex (:332/:360) and loadAllItems —
+      and isolate EXACTLY which lines perform the workstream→project migration vs. which build the bucketed
+      Markdown. Read serve.js and fix the six regen call-sites (188/204/254/264/281/290). Read tests/run.mjs
+      (testIndex 128-138, the on-disk "INDEX exists" assertion at 229) and the committed-INDEX fixtures.
+      Read mytasks/SKILL.md (index refs :110-112, Phase 12 :116, :187). Read skill-patterns.md §A–§L.
+      Confirm the rewritten _shared/tracker-crudl.md §5 (from 260626-psr) is present in this worktree.
+      Produce NO edits.
+    verify: >
+      The migration code is separated from the index-build code in lib.js; all six serve.js call-sites and
+      the run.mjs assertions (128-138, 229) + fixtures located; §5 confirmed present from the dep story.
+
+  - id: T2
+    title: "AC2/AC3/AC6a: lib.js — regenerateIndex→renderIndex (no write) + relocate migration into loadAllItems"
+    ac: [AC2, AC3]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Replace regenerateIndex() with renderIndex() that RETURNS the bucketed Markdown string (## leverage /
+      ## neutral / ## overhead, completed excluded) and writes NOTHING. Move the workstream→project migration
+      that lived inside regenerateIndex into load-time normalization in loadAllItems, so every read still
+      normalizes items on disk (D6 — no migration regression). Ensure renderIndex consumes already-normalized
+      items so output is unchanged.
+    verify: >
+      renderIndex returns the md string and performs no file write; the migration runs from loadAllItems on
+      every read; no caller persists renderIndex output.
+
+  - id: T3
+    title: "AC1/AC4: serve.js — drop the six index writes; SKILL.md — bare /mytasks web-default + inline fallback"
+    ac: [AC1, AC4]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Remove the index regeneration/write at serve.js 188/204/254/264/281/290 (callers now use renderIndex
+      only where an inline view is needed; never write ~/.pmos/tasks/INDEX.md). Rewrite the bare-/mytasks
+      surface so it defaults to launching the web UI; under --non-interactive/headless/no-browser it degrades
+      to the inline renderIndex() view derived from items/*.md. Update SKILL.md index refs (:110-112), Phase
+      12 (:116), and :187 to the derive-on-read + web-default contract. No committed INDEX is ever written.
+    verify: >
+      No ~/.pmos/tasks/INDEX.md is written by any serve.js path; bare /mytasks launches web + falls back to
+      inline derived render; SKILL.md reworded.
+
+  - id: T4
+    title: "AC5/AC6: tests/run.mjs — retarget testIndex to renderIndex string; drop on-disk assertion + INDEX fixtures"
+    ac: [AC5, AC6]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Retarget testIndex (128-138) to read renderIndex()'s returned string and assert byte-equivalence with
+      the old buckets (## leverage / ## neutral / ## overhead, completed excluded). Delete the "INDEX exists
+      on disk" assertion (229) and remove the committed-INDEX fixtures. Add/keep a migration assertion that
+      loadAllItems still performs the workstream→project fold (guards D6). Run the full tests/run.mjs green.
+    verify: >
+      tests/run.mjs passes; testIndex asserts on the returned string (no file); the on-disk assertion +
+      INDEX fixtures are gone; a migration-still-runs assertion is present.
+
+  - id: T5
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, dogfood web-default fallback + migration-on-read"
+    ac: [AC1, AC2, AC3, AC4, AC5, AC6, AC7]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the mytasks skill dir; run the four
+      hygiene lints + audit-recommended (green). Run tests/run.mjs (green). Dogfood (load-bearing): seed a
+      tasks store containing a legacy workstream-keyed item, run bare /mytasks --non-interactive, and confirm
+      (a) it renders the inline derived buckets with NO INDEX.md written, and (b) the legacy item is migrated
+      to project-keyed on read — proving the migration survived the regenerateIndex removal.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; run.mjs green; dogfood shows inline derived render with no INDEX written AND the migration still
+      firing on read.

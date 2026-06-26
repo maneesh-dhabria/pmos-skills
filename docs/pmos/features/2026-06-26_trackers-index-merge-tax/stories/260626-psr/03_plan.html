@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="plan">
+<title>Plan — /backlog index removal + tracker-crudl.md rewrite (story 260626-psr)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.9rem; } h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; }
+  code { font-family: ui-monospace, Menlo, monospace; background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background:#1a1816; color:#e8e4da; } code, th { background:#2a2724; } th, td { border-color:#3a3530; } h2 { border-color:#3a3530; } }
+</style>
+</head>
+<body>
+<h1>Plan — <code>/backlog</code> index removal + <code>tracker-crudl.md</code> rewrite</h1>
+<p><strong>Story</strong> 260626-psr · <strong>Epic</strong> 260626-8pa · <strong>Route</strong> skill ·
+<strong>Plugin</strong> pmos-toolkit · <strong>Deps</strong> none (foundation) · <strong>Spec</strong>
+<a href="../../02_design.html">02_design.html</a> (#substrate-change, #change-backlog).</p>
+<p>Executable plan is <a href="tasks.yaml"><code>tasks.yaml</code></a>; this is the human-readable companion.</p>
+
+<h2 id="scope">Scope</h2>
+<p>The foundation story. Three moves: (1) delete the committed <code>backlog/INDEX.md</code> and strip every
+handler that regenerates it; (2) <strong>rewrite the shared substrate <code>_shared/tracker-crudl.md</code>
+§5/§6</strong> to encode INV-1/2/3 so no future tracker re-introduces a committed-index-on-the-merge-path —
+the load-bearing change; (3) drop the one external consumer call (<code>feature-sdlc/SKILL.md:448</code>).
+Bare <code>/backlog</code> becomes web-default with an inline derived render as the headless fallback.</p>
+
+<h2 id="tasks">Tasks (waves)</h2>
+<table>
+  <thead><tr><th>Task</th><th>AC</th><th>Deps</th><th>What</th></tr></thead>
+  <tbody>
+    <tr><td>T1</td><td>AC1–AC7</td><td>—</td><td>Study: design doc, backlog SKILL.md/schema.md INDEX sites, tracker-crudl.md §5/§6 + checklist, feature-sdlc:448, serve-web tests.</td></tr>
+    <tr><td>T2</td><td>AC4</td><td>T1</td><td><strong>Load-bearing:</strong> rewrite <code>tracker-crudl.md</code> §5/§6 + checklist → INV-1/2/3 + named merge-path rationale.</td></tr>
+    <tr><td>T3</td><td>AC1–AC3, AC6</td><td>T2</td><td>Delete <code>backlog/INDEX.md</code>; strip regenerators; web-default + inline fallback; reword schema.md + scenarios.md.</td></tr>
+    <tr><td>T4</td><td>AC5</td><td>T2</td><td>Drop <code>/backlog rebuild-index</code> at <code>feature-sdlc:448</code>; leave the id-uniqueness guard (reads items/).</td></tr>
+    <tr><td>T5</td><td>AC1–AC7</td><td>T3, T4</td><td>Verify: skill-eval [D]+[J], 4 lints + audit, no dangling cites, dogfood derive-on-read + web-default fallback.</td></tr>
+  </tbody>
+</table>
+<p>T4 is independent of T3 once the substrate (T2) lands; T2 is the change that prevents recurrence.</p>
+
+<h2 id="risks">Risks &amp; decisions</h2>
+<ul>
+  <li><strong>Removal safety (D1c).</strong> The only external INDEX consumer is the define-merge step at
+    <code>feature-sdlc:448</code>, and its real guard is <code>check-id-uniqueness.mjs</code> over
+    <code>items/</code> — not the INDEX. Removing the regeneration cannot break the uniqueness gate.</li>
+  <li><strong>Substrate is the point.</strong> Fixing the three skills without §5 would let the next tracker
+    re-inherit the anti-pattern. T2 is sequenced before the skill edit and before S2/S3 depend on it (D9:
+    they claim after this story merges so the rewritten §5 is in their worktrees).</li>
+  <li><strong>serve-web is already derived.</strong> AC6 is a no-regression check — the web viewer reads
+    YAML today; it never depended on INDEX.</li>
+</ul>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+  <li>No <code>backlog/INDEX.md</code> on disk; no handler regenerates an index.</li>
+  <li>skill-eval <code>[D]</code> exits 0 (or only pre-existing residuals on untouched lines); <code>[J]</code> passes.</li>
+  <li>4 hygiene lints + audit green; no surviving <code>rebuild-index</code> citation anywhere.</li>
+  <li><code>backlog/tests/serve-web.test.mjs</code> green unchanged.</li>
+  <li>Dogfood: bare <code>/backlog --non-interactive</code> with INDEX absent renders the inline derived view; web verb derives the same listing.</li>
+</ul>
+</body>
+</html>

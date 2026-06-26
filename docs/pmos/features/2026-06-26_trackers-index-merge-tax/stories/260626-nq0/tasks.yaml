@@ -1,0 +1,88 @@
+schema_version: 1
+story: 260626-nq0
+epic: 260626-8pa
+route: skill
+plugin: pmos-toolkit
+spec: ../../02_design.html
+execution_mode: inline
+# Story S4 (deps: 260626-5cq): the only NEW BUILD in the epic. After S3 makes /people derive-on-read, bring
+# /people to parity with /backlog + /mytasks by adding a zero-dependency local web viewer so bare /people
+# defaults to the web UI (INV-2). Modeled on /backlog's serve-web.mjs + serve-web-lib.mjs + web/viewer.html
+# trio; the server derives the people view fresh per request directly from ~/.pmos/people/*.md — never reads
+# or writes an index (INV-3). Skill: plugins/pmos-toolkit/skills/people/. Claim AFTER 260626-5cq merges.
+# NO release-prereq tasks — /complete-dev (Loop 3) owns those.
+tasks:
+  - id: T1
+    title: "Study: design doc #change-people-web, /backlog serve-web trio + its test, people read path from S3"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (#change-people-web, FR-10/FR-3/FR-8, INV-2/INV-3). Read /backlog's
+      serve-web.mjs, serve-web-lib.mjs, web/viewer.html, and backlog/tests/serve-web.test.mjs as the model
+      (shape, zero-dep Node-stdlib server, derive-from-YAML API, the PII/whitelist discipline). Read the
+      now-derive-on-read /people read path (from 260626-5cq, merged into this worktree) so the web server and
+      the inline fallback share the same person-file parsing. Read people/schema.md for the person record
+      shape + which fields are safe to surface (PII whitelist). Read skill-patterns.md §A–§L. Produce NO edits.
+    verify: >
+      The /backlog trio + test understood as the template; the S3 derive-on-read person parser identified for
+      reuse; the person-record PII whitelist (surfaceable fields) pinned before building the API.
+
+  - id: T2
+    title: "AC1/AC2: people/scripts/serve-web.mjs + serve-web-lib.mjs — zero-dep server deriving from ~/.pmos/people/*.md"
+    ac: [AC1, AC2]
+    deps: [T1]
+    parallel: false
+    detail: >
+      Create people/scripts/serve-web.mjs (Node-stdlib http server, no external deps) + serve-web-lib.mjs
+      (the request handler + people-deriving logic), modeled on /backlog's trio. The server derives the
+      people listing FRESH per request directly from ~/.pmos/people/*.md — it never reads or writes any
+      INDEX.md or other static export (INV-3). The API payload exposes only the whitelisted (non-PII-leaking)
+      fields identified in T1. Reuse the S3 person-file parser so web + inline render agree.
+    verify: >
+      serve-web.mjs + serve-web-lib.mjs exist, zero external deps; the server derives per request from person
+      files; no index read/write; API payload limited to the whitelist.
+
+  - id: T3
+    title: "AC1/AC3: people/web/viewer.html + web verb + bare /people web-default + inline fallback"
+    ac: [AC1, AC3]
+    deps: [T2]
+    parallel: false
+    detail: >
+      Create people/web/viewer.html (single-file zero-dep UI, modeled on /backlog's viewer.html — fetches the
+      derived API and renders the people listing). Add a `web` verb to people/SKILL.md that launches the
+      viewer, and make bare /people default to it; under --non-interactive/headless/no-browser it degrades to
+      the inline derived render from S3 (INV-2). Document the web-default + fallback contract in SKILL.md.
+    verify: >
+      viewer.html renders the derived listing; `web` verb launches it; bare /people defaults to web and falls
+      back to inline derived render headless.
+
+  - id: T4
+    title: "AC4: people/tests/serve-web.test.mjs — assert derived API from person files + PII-safety"
+    ac: [AC4]
+    deps: [T2]
+    parallel: true
+    detail: >
+      Create people/tests/serve-web.test.mjs modeled on backlog/tests/serve-web.test.mjs: assert the API
+      payload is derived from seeded ~/.pmos/people/*.md fixtures (not an index), and include a PII-safety
+      assertion that the payload contains ONLY the whitelisted fields — no unintended person fields leak
+      beyond the viewer's whitelist. Run it green.
+    verify: >
+      serve-web.test.mjs passes; asserts derived-from-person-files; PII-safety assertion confirms the payload
+      is whitelist-only.
+
+  - id: T5
+    title: "Verify: skill-eval [D]+[J], 4 lints + audit, live dogfood web viewer derives + inline fallback"
+    ac: [AC1, AC2, AC3, AC4, AC5]
+    deps: [T3, T4]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the people skill dir; run the four
+      hygiene lints + audit-recommended (green; the new `web` verb must be hinted/handled). Run
+      people/tests/serve-web.test.mjs green. Dogfood (load-bearing): seed ~/.pmos/people/*.md, launch the web
+      server, and confirm the viewer renders the listing derived fresh from the files with NO INDEX present;
+      then run bare /people --non-interactive (no browser) and confirm the inline derived fallback render.
+    verify: >
+      skill-eval [D] exits 0 (or only pre-existing residuals on untouched lines); [J] passes; 4 lints + audit
+      green; serve-web.test.mjs green; dogfood shows the web viewer deriving from person files (no INDEX) AND
+      the headless inline fallback.
