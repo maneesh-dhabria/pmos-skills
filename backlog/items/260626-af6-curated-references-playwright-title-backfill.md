@@ -30,6 +30,12 @@ ungrounded, the body content — for each junk record, writing the cleaned corpu
 Proven over a 50-record sample (2026-06-26): 90% reachable, 70% clean first pass. The shipped script must
 harden the prototype's known failure modes.
 
+Two scope additions verified live 2026-06-26: (1) **205 of the 1,817 refs are X/Twitter URLs** with generic
+`"Thread Reader App"` titles and 149 ungrounded — recoverable via server-rendered meta (`document.title` +
+`og:description`) despite the SPA login wall (design D8); (2) the ~800 total navigations need **throttling**
+(per-host serialization, jitter, 429-aware backoff) so the burst doesn't earn rate-limit junk that recreates
+the very defect being fixed (design D9).
+
 ## Acceptance Criteria
 
 - [ ] A reusable script recovers titles via `og:title` → `document.title` → `<h1>`, following redirects to the canonical URL, and writes the cleaned corpus back (idempotent; re-runnable)
@@ -38,6 +44,8 @@ harden the prototype's known failure modes.
 - [ ] Amazon (98 records) recovered via the real-browser escalation (proven to work interactively); URL-slug fallback only if the real browser also fails, and slug-derived titles are marked for audit
 - [ ] Navigation timeout raised (25s → ~40s); transient errors retried, not fatal
 - [ ] Drop policy is CONSERVATIVE (design D6): a record is dropped ONLY when confirmed genuinely-dead (hard 404 / dead domain / `"Deployment Paused"`) AFTER the full escalation ladder; alive-but-hard-to-fetch records are kept with their recovered title, never dropped, never re-shipped with an error label
+- [ ] X/Twitter records (205 refs; design D8) use a host-specific branch — title from `document.title` (strip ` / X`), summary-grounding from `og:description` (server-rendered meta survive the SPA login wall); link/image-only tweets stay WEAK (no fabricated summary), tombstones fall to D6 drop. The 149 ungrounded tweets are explicitly in scope, not skipped by the generic article handler
+- [ ] Throttling (design D9) is first-class: per-host serialization + randomized politeness delay, bounded global concurrency, `429`/`503`/challenge-aware exponential backoff honouring `Retry-After`. A host still rate-limited after the retry budget is recorded as **rate-limited, not dead** (kept + flagged for re-run, never dropped); the report lists the rate-limited worklist for an idempotent second pass
 - [ ] Records with `summary_grounded:false` are re-summarized from recovered body content in the same pass and flipped to grounded only when a real summary is produced
 - [ ] Junk-title rate over the full corpus drops to <5% (report before/after counts)
 - [ ] T1 PII scrub gate (`tests/test_pii_scrub_gate.sh`) passes GREEN over the regenerated corpus

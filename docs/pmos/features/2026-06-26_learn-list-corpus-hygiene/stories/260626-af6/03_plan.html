@@ -21,7 +21,7 @@
 </head>
 <body>
 <h1>Plan — Story A: Playwright title + content backfill</h1>
-<p class="sub">Story <code>260626-af6</code> · epic <code>260626-j5k</code> · route: skill · plugin: pmos-learnkit · deps: none. Scoped by design D5/D6/D1/D3 + the story ACs.</p>
+<p class="sub">Story <code>260626-af6</code> · epic <code>260626-j5k</code> · route: skill · plugin: pmos-learnkit · deps: none. Scoped by design D1/D3/D5/D6/D8/D9 + the story ACs.</p>
 
 <h2>Task waves</h2>
 <p>Wave 1: study (T1). Wave 2: build the recovery engine (T2) + drop/report policy (T3). Wave 3: run + re-summarize (T4, T5). Wave 4: validate cross-cutting invariants (T6) + skill conformance (T7).</p>
@@ -32,6 +32,8 @@
   <li><strong>id re-mint on URL canonicalization.</strong> Redirect-following can change the canonical URL, which re-mints <code>ref_&lt;sha256(url)&gt;</code> (C4). Mitigation: re-mint deterministically, report id changes, and keep the redirect decision explicit (only adopt canonical when it's a stable 301/308, not a transient).</li>
   <li><strong>PII in recovered text.</strong> Recovered titles/summaries must pass the same T1 scrub (C1). Mitigation: route every recovered field through the importer's scrub before writing.</li>
   <li><strong>Re-summarization drift.</strong> Re-summarizing ungrounded records could lower quality. Mitigation: only flip <code>summary_grounded:true</code> when a real summary is produced from real body text; otherwise leave the record WEAK, unchanged.</li>
+  <li><strong>X/Twitter login wall (D8).</strong> The rendered SPA is login-walled, so DOM scraping returns null tweet text. Mitigation: tweet-specific branch reads server-rendered meta (<code>document.title</code> for the quoted text, <code>og:description</code> for the body) — proven live on 3 tweets; link/image-only tweets stay WEAK rather than fabricating.</li>
+  <li><strong>Rate-limiting recreates the junk (D9).</strong> ~800 navigations against X/Cloudflare/Amazon can earn <code>429</code>/<code>"Just a moment…"</code> responses that look exactly like the junk titles being removed — and could false-drop alive records under D6. Mitigation: per-host serialization + jitter + 429-aware backoff; a host still rate-limited after the retry budget is flagged <em>rate-limited, not dead</em> (kept + queued for an idempotent re-run), never dropped.</li>
 </ul>
 
 <h2>Verification</h2>

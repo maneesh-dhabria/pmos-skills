@@ -31,8 +31,8 @@ tasks:
       gate's expectations are understood; nothing about the schema (C4) will change.
 
   - id: T2
-    title: "AC1/AC2/AC3/AC4: author the recovery engine (escalation ladder) under _shared/topic-research/scripts/"
-    ac: [AC1, AC2, AC3, AC4]
+    title: "Recovery engine: D5 escalation ladder + D8 tweet branch + D9 throttling, under _shared/topic-research/scripts/"
+    ac: [recovery-ladder, tweet-branch, throttling]
     deps: [T1]
     parallel: false
     detail: >
@@ -43,10 +43,20 @@ tasks:
       applied to generic/error titles like "Amazon.com" too; (4) URL-slug last resort, marking slug-derived
       titles for audit. Timeout 40s; transient errors retried not fatal. Idempotent + re-runnable. Zero new npm
       deps — resolve Playwright from the installed cache, degrade with a clear error if absent (D1).
+      HOST-SPECIFIC TWEET BRANCH (D8): for x.com/twitter.com hosts, run this branch FIRST with INVERTED
+      precedence — title <- document.title (strip trailing " / X"), summary-grounding <- og:description (the
+      server-rendered meta survive the SPA login wall that nulls [data-testid=tweetText]); NOT og:title (author-
+      only for tweets). Link/image-only tweets (og:description is a bare t.co link) stay WEAK; tweet tombstones
+      fall to D6 drop. Covers all 205 tweet refs incl. the 149 ungrounded.
+      THROTTLING (D9): group fetches by registrable domain; serialize same-host requests with a randomized
+      1.5-4s jitter delay; bounded global concurrency (<=4 distinct hosts); 429/503/challenge-aware exponential
+      backoff honouring Retry-After. A host still rate-limited after the retry budget is flagged rate-limited
+      (KEPT, not dead) and added to the report's re-run worklist.
     verify: >
       Engine recovers the 4 prototype proof cases (Amazon book, andrewchen 403, technically empty, wikipedia)
-      with clean titles; a planted host-only "medium.com" triggers escalation not acceptance; absent-Playwright
-      path errors clearly instead of silently no-op'ing.
+      with clean titles; a planted host-only "medium.com" triggers escalation not acceptance; the shreyas tweet
+      recovers full text via document.title + og:description, the garrytan link-only tweet stays WEAK; a 429
+      triggers backoff + keeps-not-drops; absent-Playwright path errors clearly instead of silently no-op'ing.
 
   - id: T3
     title: "AC5/AC6: conservative-drop policy + auditable report (counts, drop list, slug-fallback list, id re-mints)"
@@ -57,12 +67,14 @@ tasks:
       Drop a record ONLY when the post-escalation live fetch confirms it is genuinely dead (hard 404 / dead
       domain / "Deployment Paused") — D6. Alive-but-hard records are KEPT with their recovered title, never
       dropped, never re-shipped with an error label. Emit a machine-readable report: before/after total, junk
-      counts per category before/after, the confirmed-dead drop list, the slug-fallback title list, and every
+      counts per category before/after, the confirmed-dead drop list, the slug-fallback title list, the
+      rate-limited re-run worklist (D9 — hosts that exhausted the retry budget, KEPT not dropped), and every
       ref_ id that changed due to URL canonicalization (C4). Route every recovered title/summary through the
       importer's PII scrub before it is written (C1).
     verify: >
-      No record is dropped that the report does not list as confirmed-dead; every slug-derived title is flagged;
-      id re-mints are enumerated; recovered fields are scrubbed.
+      No record is dropped that the report does not list as confirmed-dead; rate-limited records appear on the
+      re-run worklist and are NOT in the drop list; every slug-derived title is flagged; id re-mints are
+      enumerated; recovered fields are scrubbed.
 
   - id: T4
     title: "AC7: wire backfill into the generation path + run over the full corpus -> regenerated JSON"
