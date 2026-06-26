@@ -10,10 +10,11 @@ route: skill
 dependencies: []
 plugin: pmos-toolkit
 status: done
+released: v2.93.0
 feature_folder: docs/pmos/features/2026-06-25_backlog-ac-grooming-format/
 plan_doc: docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/03_plan.md
 tasks: docs/pmos/features/2026-06-25_backlog-ac-grooming-format/stories/260625-751/tasks.yaml
-worktree: .claude/worktrees/feat-260625-751
+worktree:
 labels: [pmos-toolkit, backlog, grooming, viewer, derivation]
 created: 2026-06-25
 updated: 2026-06-25

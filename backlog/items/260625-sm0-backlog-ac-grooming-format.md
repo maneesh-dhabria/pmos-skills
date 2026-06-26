@@ -4,7 +4,8 @@ id: 260625-sm0
 kind: epic
 title: "/backlog grooming false-positive — AC detection requires checkbox markers, so numbered/dash ACs read as ungroomed"
 type: bug
-status: defined
+status: released
+released: v2.93.0
 priority: should
 labels: [pmos-toolkit, backlog, grooming, viewer, derivation]
 route: skill
