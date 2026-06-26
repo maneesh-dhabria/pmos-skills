@@ -63,23 +63,86 @@ Critical path: **T1 → T2/T3 → T4 → T8**. T5, T6 ride alongside and feed B/
    computed colors aren't normalized off-browser. Port the `resolveBackground` /
    `resolveGradientStops` / `parseGradientColors` helpers verbatim (T3) — they already handle both.
 
+## Per-check Node-vs-browser coverage map (T4 / Inv-4, Inv-5)
+
+The vendored Node static path (`detect.mjs` over `vendor/parsers.mjs`) resolves computed style
+structurally — `parseFloat()` on declared px, cascade resolution, contrast/gradient math, and
+cross-document statistics (distinct-font/color/radius counts) — all of which run **without a layout
+engine**. Of the 44 rules in `SLOP_RULES`, **40 fully fire on the Node path** and **4 degrade to
+browser-only** because their detection materially depends on *rendered geometry* that a no-layout
+DOM cannot supply.
+
+**Node-path full coverage (40):** ai-color-palette, all-caps-body, aphoristic-cadence,
+border-accent-on-rounded, bounce-easing, broken-image, clipped-overflow-container, cramped-padding,
+cream-palette, dark-glow, design-system-color, design-system-font, design-system-radius,
+em-dash-overuse, extreme-negative-tracking, flat-type-hierarchy, gpt-thin-border-wide-shadow,
+gradient-text, gray-on-color, hero-eyebrow-chip, italic-serif-display, justified-text,
+layout-transition, line-length, low-contrast, marketing-buzzword, monotonous-spacing, nested-cards,
+numbered-section-markers, overused-font, repeated-section-kickers, repeating-stripes-gradient,
+side-tab, single-font, skipped-heading, text-overflow, theater-slop-phrase, tight-leading,
+tiny-text, wide-tracking.
+
+**Browser-only — degraded, never dropped (4):**
+
+| Rule | Why it needs the browser | Node-path behavior |
+|---|---|---|
+| `icon-tile-stack` | "icon stacked *above* a heading" is a vertical box-position test (`getBoundingClientRect`) | Element handler runs but the positional branch guard-skips (Node nodes have no `getBoundingClientRect`) |
+| `oversized-h1` | flags font-size relative to the **rendered viewport** (`window.innerWidth/Height`) | Viewport branch guard-skips off-browser |
+| `body-text-viewport-edge` | proximity of body text to the **viewport edge** is rendered geometry | Guard-skips off-browser |
+| `image-hover-transform` | a `:hover` transform only exists in a **live browser** | Guard-skips off-browser |
+
+These four are enumerated in `detect.mjs`'s exported `BROWSER_ONLY_RULES`, and `detectHtml()` emits a
+**one-time stderr note** listing them on first run (Inv-5: "skipped on the Node path with a logged
+note — never silently dropped"). Consumers that need full coverage (e.g. `/design-crit`, story B) run
+the browser detector `browser.js` (`window.pmosDesignScan()`), where all 44 fire. The check math
+itself is identical across both paths — only the layout inputs differ — so the degradation is a
+*scope* reduction, not a *fidelity* one. Verified empirically: the offline Node path fires `side-tab`,
+`low-contrast`, `gradient-text`, `cream-palette`, and `ai-color-palette` on the slop fixture and
+returns **zero findings** on pmos's own editorial chrome (AC8).
+
+## Vendor rebuild (reproducible re-sync of `vendor/parsers.mjs`)
+
+`vendor/parsers.mjs` is a pre-bundled offline ESM of the four MIT parser libs (+ transitive deps) the
+Node path imports — committed so the engine runs with **no `npm install` and no jsdom at runtime**. To
+re-sync after an upstream parser bump:
+
+```sh
+# in a throwaway dir
+npm i htmlparser2 css-select css-tree domutils esbuild
+cat > entry.mjs <<'EOF'
+export { parseDocument } from 'htmlparser2';
+export { selectAll, selectOne, is } from 'css-select';
+export * as csstree from 'css-tree/dist/csstree.esm';   # prebuilt dist — data inlined; the bare
+export * as domutils from 'domutils';                   # 'css-tree' entry eagerly createRequire()s
+                                                         # ../data/patch.json and breaks esbuild.
+EOF
+npx esbuild entry.mjs --bundle --format=esm --platform=node \
+  --legal-comments=none --outfile=vendor/parsers.mjs
+# then refresh vendor/NOTICE-3RD-PARTY.txt from the installed packages' LICENSE files.
+```
+
+The `css-tree/dist/csstree.esm` specifier (no `.js` — the exports map maps `"./dist/*"` →
+`"./dist/*.js"`) is load-bearing: the top-level `css-tree` index builds its lexer via
+`createRequire('../data/patch.json')`, which esbuild cannot inline → `MODULE_NOT_FOUND` at runtime.
+The prebuilt dist has the data inlined.
+
 ## Final verification checklist
 
-- [ ] `ls plugins/pmos-toolkit/skills/_shared/slop-engine/` shows registry/checks/detect/browser/
+- [x] `ls plugins/pmos-toolkit/skills/_shared/slop-engine/` shows registry/checks/detect/browser/
       gen-rules-doc + vendor/ + tests/ + NOTICE under the canonical path.
-- [ ] `SLOP_RULES` has all ~44 rules; every `skillSection` ∈ the 8 allowed; categories are
+- [x] `SLOP_RULES` has all ~44 rules; every `skillSection` ∈ the 8 allowed; categories are
       `slop`/`quality` only (AC1).
-- [ ] `node --test` over `slop-engine/tests/` is green — flag column flagged, pass column clean,
+- [x] `node --test` over `slop-engine/tests/` is green — flag column flagged, pass column clean,
       **pmos comment-chrome + editorial template pass-cases zero findings** (AC8).
-- [ ] **Inv-3 clean:** `grep -ri impeccable plugins/pmos-toolkit/skills/_shared/slop-engine/` →
+- [x] **Inv-3 clean:** `grep -ri impeccable plugins/pmos-toolkit/skills/_shared/slop-engine/` →
       hits only in `NOTICE` (T8 / AC5).
-- [ ] `gen-rules-doc.mjs` is **idempotent** — re-run on unchanged registry → byte-identical output
+- [x] `gen-rules-doc.mjs` is **idempotent** — re-run on unchanged registry → byte-identical output
       (AC7).
-- [ ] **`detect.mjs` public API usable by consumers:** `detectHtml(pathOrString)` returns a stable
+- [x] **`detect.mjs` public API usable by consumers:** `detectHtml(pathOrString)` returns a stable
       findings array, no `npm install`, no jsdom at runtime; per-check Node-vs-browser coverage map
       recorded; degraded checks log a skip note (AC3, AC9, Inv-4, Inv-5).
-- [ ] `browser.js` exposes `window.pmosDesignScan()` rendering `.pmos-slop-overlay` /
+- [x] `browser.js` exposes `window.pmosDesignScan()` rendering `.pmos-slop-overlay` /
       `.pmos-slop-label`, injectable + DOM-readable (AC4, AC9).
-- [ ] `NOTICE` reproduces the Apache-2.0 attribution to `pbakaus/impeccable` (AC6).
-- [ ] Conforms to `skill-patterns.md §A–§L` as substrate; **no** version/changelog/README/manifest
+- [x] `NOTICE` reproduces the Apache-2.0 attribution to `pbakaus/impeccable` (AC6).
+- [x] Conforms to `skill-patterns.md §A–§L` as substrate; **no** version/changelog/README/manifest
       tasks (release prereqs are /complete-dev's) (AC10).
