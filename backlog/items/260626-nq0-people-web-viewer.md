@@ -9,16 +9,18 @@ priority: should
 route: skill
 dependencies: [260626-5cq]
 plugin: pmos-toolkit
-status: planned
+status: in-progress
 feature_folder: docs/pmos/features/2026-06-26_trackers-index-merge-tax/
 plan_doc: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-nq0/03_plan.html
 tasks: docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-nq0/tasks.yaml
-worktree:
-build_branch:
+worktree: .claude/worktrees/feat-260626-nq0
+build_branch: feat/260626-nq0
 build_commit:
+claimed_by: build:e385ea38
+driver_holder: build:e385ea38
 labels: [pmos-toolkit, people, web-viewer]
 created: 2026-06-26
-updated: 2026-06-26
+updated: 2026-06-27
 ---
 
 <!-- status: planned at define (Loop 1). Depends on 260626-5cq (people read path must already be derive-on-read before adding the web-default surface). Build via /skill-sdlc build --story 260626-nq0. -->
