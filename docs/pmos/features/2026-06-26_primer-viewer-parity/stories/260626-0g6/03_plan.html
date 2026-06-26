@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/primer library-viewer parity — story plan (260626-0g6)</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#0b6e4f;--bg:#fff;--code:#f6f8fa;--warn:#b4690e}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.7rem;line-height:1.2;margin:0 0 .25rem}
+  h2{font-size:1.25rem;margin:2.2rem 0 .6rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  h3{font-size:1.02rem;margin:1.3rem 0 .35rem;color:var(--accent)}
+  .sub{color:var(--muted);margin:0 0 1.5rem}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.9rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  li{margin:.2rem 0}
+  .meta{font-size:.85rem;color:var(--muted)}
+  .tid{font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<h1>/primer library-viewer full parity with /frameworks — story plan</h1>
+<p class="sub">Story <code>260626-0g6</code> · epic <code>260626-z2p</code> · route: skill · plugin: pmos-learnkit · execution_mode: inline. Machine-readable task queue: <code>tasks.yaml</code>. Spec: <a href="../../02_design.html">02_design.html</a>.</p>
+
+<h2 id="approach">Approach</h2>
+<p>Singleton-epic story. The work is one cohesive change across the substrate seam and the primer consumer, sequenced so the consumer is built on a real (tested) substrate seam:</p>
+<ul>
+  <li><strong>Substrate first</strong> (<code>_shared/library-viewer/lib.mjs</code>): add an additive, default-off <code>reader.mode:'iframe'</code> seam — a sandboxed lazy iframe reader — proven byte-identical to today when unset (INV-1).</li>
+  <li><strong>Consumer next</strong> (<code>primer/scripts/build-library.mjs</code>): opt into the seam and reach full <code>/frameworks</code> parity (3 views, multi-select facets, <code>valueLabels</code>, named <code>toCard</code>+<code>ALLOWED</code>), fixing the dynamic <code>{count}</code> subtitle bug and dropping dead config.</li>
+  <li><strong>Prove zero-regression</strong>: re-run the shipped, un-edited <code>/frameworks</code> + <code>/learn-list</code> suites green (INV-2).</li>
+</ul>
+
+<h2 id="tasks">Task waves</h2>
+<table>
+  <thead><tr><th>Task</th><th>What</th><th>Deps</th><th>Key design refs</th></tr></thead>
+  <tbody>
+    <tr><td class="tid">T1</td><td>Study — design doc, <code>lib.mjs</code> reader/emit path, frameworks (reference) + primer (subject) + learn-list build-library, all three test suites. No edits.</td><td>—</td><td>D1–D9, INV-1..6</td></tr>
+    <tr><td class="tid">T2</td><td>Substrate: add default-off <code>reader.mode:'iframe'</code> seam to <code>lib.mjs</code> (sandboxed iframe, lazy src, open-in-new-tab, empty-state) + <code>guidelines.md</code>; columns-mode byte-identical.</td><td>T1</td><td>D1, D3, INV-1/4/5</td></tr>
+    <tr><td class="tid">T3</td><td>Consumer: retrofit <code>primer/scripts/build-library.mjs</code> — iframe reader, 3 views (drop CSS hack), multi-select <code>category</code>/<code>audience</code>, <code>valueLabels</code>, <code>toCard</code>+<code>ALLOWED</code>, dynamic <code>{count}</code>, drop dead <code>summaryField</code>.</td><td>T2</td><td>D2–D7</td></tr>
+    <tr><td class="tid">T4</td><td>Tests: extend primer <code>build-library.test.sh</code> + selftest (iframe/views/multi-facets/<code>valueLabels</code>/<code>#subtitleCount</code>); re-run frameworks + learn-list suites UN-EDITED.</td><td>T3</td><td>D9, INV-1/2</td></tr>
+    <tr><td class="tid">T5</td><td>SKILL.md <code>#browse</code> prose: describe in-page iframe reader + 3 views + multi-select facets (accurate, no overclaim).</td><td>T3 (∥ T4)</td><td>D3–D5, §K</td></tr>
+    <tr><td class="tid">T6</td><td>Live dogfood (build, open, verify reader/views/facets offline) + lints + audit + comments-coverage; skill-eval prep.</td><td>T4, T5</td><td>INV-4, eval</td></tr>
+  </tbody>
+</table>
+
+<h2 id="risks">Risks &amp; how the plan handles them</h2>
+<ul>
+  <li><strong>iframe <code>sandbox</code> tokens.</strong> Primers are self-contained inline-CSS/JS docs; reading needs no scripts. Use a reading-only sandbox plus <code>allow-popups</code>/<code>allow-popups-to-escape-sandbox</code> for "Open in new tab"; never combine <code>allow-same-origin</code>+<code>allow-scripts</code> (escape risk). Final token set fixed in T2.</li>
+  <li><strong><code>file://</code> iframe load.</strong> The library page and primers co-locate in <code>{docs_path}/primer/</code>; iframe <code>src</code> is sibling-relative. T6 dogfood verifies it loads under <code>file://</code>; same-directory relative fallback if a browser blocks it.</li>
+  <li><strong>Perf with 60+ primers.</strong> Only the opened primer's <code>src</code> is set (lazy) — no eager load. Asserted in T2/T6.</li>
+  <li><strong>Substrate regression.</strong> T2 golden-compares the columns-mode emit against pre-change output; T4 re-runs both consumers' shipped suites un-edited.</li>
+</ul>
+
+<h2 id="verification">Final verification</h2>
+<ul>
+  <li>primer <code>--selftest</code> + <code>build-library.test.sh</code> green with all new assertions.</li>
+  <li>frameworks + learn-list shipped suites green with <code>git diff</code> showing zero changes under their dirs.</li>
+  <li>Live dogfood: card opens primer in sandboxed iframe; views switch; multi-facets filter; <code>#subtitleCount</code> live; no external network requests (offline).</li>
+  <li>4 hygiene lints + audit-recommended + comments-coverage green; <code>skill-eval.md</code> ([D]+[J]) and <code>/verify</code> clean.</li>
+</ul>
+
+<p class="meta">Release prerequisites (version bump, changelog, README row) are owned by <code>/complete-dev</code> (Loop 3), not this plan — no such tasks appear in any wave.</p>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<title>/primer library-viewer parity with /frameworks — epic design (260626-z2p)</title>
+<style>
+  :root{--ink:#1a1a1a;--muted:#5a5a5a;--line:#e2e2e2;--accent:#0b6e4f;--bg:#fff;--code:#f6f8fa;--warn:#b4690e}
+  *{box-sizing:border-box}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:2rem 1.25rem;max-width:60rem;margin-inline:auto}
+  h1{font-size:1.8rem;line-height:1.2;margin:0 0 .25rem}
+  h2{font-size:1.3rem;margin:2.4rem 0 .6rem;padding-top:.4rem;border-top:2px solid var(--line)}
+  h3{font-size:1.05rem;margin:1.4rem 0 .4rem;color:var(--accent)}
+  .sub{color:var(--muted);margin:0 0 1.5rem}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  code{background:var(--code);padding:.1rem .35rem;border-radius:4px;font-size:.88em}
+  .d{scroll-margin-top:1rem}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:var(--accent);color:#fff;vertical-align:middle}
+  .sub-sub{background:#1d4ed8}.sub-skill{background:#0b6e4f}
+  ul{margin:.4rem 0 .8rem;padding-left:1.3rem}
+  li{margin:.2rem 0}
+  blockquote{margin:.6rem 0;padding:.5rem .9rem;border-left:3px solid var(--accent);background:var(--code);color:var(--muted)}
+  .meta{font-size:.85rem;color:var(--muted)}
+  .keep{color:var(--accent);font-weight:600}.fix{color:var(--warn);font-weight:600}
+</style>
+</head>
+<body>
+<h1>/primer library-viewer parity with /frameworks</h1>
+<p class="sub">Epic <code>260626-z2p</code> · route: skill · plugin: pmos-learnkit · one story (<span class="pill sub-skill">0g6</span>). Bring <code>/primer</code>'s browse library to full feature parity with <code>/frameworks</code> under the shared <code>_shared/library-viewer/</code> interface, fixing the one genuine contract break in passing.</p>
+
+<p class="meta">This is the epic <strong>design_doc</strong> (the <code>route: skill</code> analogue of a <code>/spec</code>): it names the cross-cutting invariants and the substrate↔consumer boundary the story's <code>/plan</code> must honour. Per-task implementation detail lives in the story's <code>/plan</code>, not here.</p>
+
+<h2 id="problem">1. Problem</h2>
+<p>Both <code>/frameworks</code> and <code>/primer</code> ship a <code>browse</code>/<code>list</code> verb that builds a self-contained, offline, faceted library page via a <code>scripts/build-library.mjs</code> that consumes the shared zero-dep engine <code>plugins/pmos-learnkit/skills/_shared/library-viewer/lib.mjs</code> (public surface frozen in <code>library-viewer/guidelines.md</code>: <code>esc, renderMarkdown, parseBlocks, renderBody, extractFacets, buildIndex, filterEngine, sortGroups, emitHtml</code>).</p>
+<p>A code-level audit (2026-06-26) found that <strong><code>/primer</code> is already a faithful <em>thin</em> consumer of the substrate</strong> — it is not forked, not reinventing the engine. But against <code>/frameworks</code> (the reference consumer) it is feature-poor and carries one genuine contract violation:</p>
+<ul>
+  <li><strong class="fix">Real bug — hard-coded subtitle count.</strong> <code>build-library.mjs</code> builds <code>const sub = `${curatedN} curated…`</code> and passes it as <code>subtitleTemplate</code> with <strong>no <code>{count}</code> placeholder</strong>. The substrate's <code>.replace('{count}', …)</code> is therefore a no-op, no <code>#subtitleCount</code> element is emitted, and the runtime line <code>subtitleCount.textContent = DATA.length</code> never fires. This violates the hard constraint in <code>guidelines.md</code> ("count is dynamic … never a hard-coded number") that <code>/frameworks</code> and <code>/learn-list</code> both honour. Primer's own selftest <em>cements</em> the bug by asserting the static form (<code>/· 1 of yours/</code>).</li>
+  <li><strong>Feature gap — link-out only.</strong> Primer sets <code>cfg.card</code> (link-out cards) and ships no in-page reader, one view only (<code>detailed</code>, with a <code>.viewswitch{display:none}</code> CSS hack over a config that already emits the switch), all-single-select facets, no <code>valueLabels</code> rename seam, and a dead <code>summaryField:'summary'</code> pointing at a field no card carries. <code>/frameworks</code> ships the in-page sidebar reader, three views (list/cards/detailed), multi-select dropdown facets, and the <code>valueLabels</code> seam.</li>
+  <li><strong>Adapter shape drift.</strong> Primer builds cards inline across two loaders (<code>loadCurated()</code> + <code>scanUserPrimers()</code>) with no single named <code>toCard</code> adapter or <code>ALLOWED</code> whitelist constant — unlike <code>/frameworks</code> (<code>toCard(r, svgs)</code>) and <code>/learn-list</code> (<code>toCard(r)</code> + <code>ALLOWED</code>).</li>
+</ul>
+<p><strong>Decided scope (user, 2026-06-26):</strong> <em>full feature parity</em> with <code>/frameworks</code> — adopt the in-page reader, multi-select facets, three views, and <code>valueLabels</code>, plus the bug fix and adapter tidy-ups. The reader's content model is the one design fork (primers are standalone HTML documents, not corpus markdown blocks): the user chose a <strong>lazy-loaded sandboxed iframe</strong> of the primer's own HTML (<a href="#d3">D3</a>).</p>
+
+<h2 id="gap-map">2. Gap → fix map</h2>
+<table>
+  <thead><tr><th>Observed gap vs /frameworks</th><th>Evidence</th><th>Fix</th><th>Where it lands</th></tr></thead>
+  <tbody>
+    <tr><td>Subtitle count hard-coded; <code>#subtitleCount</code> never emitted</td><td><code>subtitleTemplate</code> has no <code>{count}</code> token; selftest asserts <code>/· 1 of yours/</code></td><td>Pass a <code>{count}</code>-bearing template; fix the selftest assertion</td><td><span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>No in-page reader (link-out only)</td><td><code>cfg.card</code> link-out; <code>reader:{columns:[]}</code> vestigial</td><td>Lazy sandboxed iframe reader of the primer's standalone HTML, with an "Open in new tab" affordance retained (<a href="#d3">D3</a>)</td><td><span class="pill sub-sub">substrate</span> + <span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>One view only; switch hidden by CSS</td><td><code>views:[{detailed}]</code> + <code>.viewswitch{display:none}</code></td><td>Three views (list/cards/detailed), list default; remove the CSS hack (<a href="#d5">D5</a>)</td><td><span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>All-single-select facets; no <code>valueLabels</code></td><td>5 facets, all <code>single-select</code></td><td>Make <code>category</code> + <code>audience</code> multi-dropdown; adopt <code>valueLabels</code> for <code>super_category</code> (<a href="#d4">D4</a>)</td><td><span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>No single <code>toCard</code> adapter / whitelist</td><td>cards built inline in two loaders</td><td>One named <code>toCard</code> + <code>ALLOWED</code> constant both loaders feed (<a href="#d6">D6</a>)</td><td><span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>Dead <code>summaryField:'summary'</code> config</td><td>no card carries <code>summary</code>; not in <code>searchFields</code></td><td>Drop the dead config (<a href="#d7">D7</a>)</td><td><span class="pill sub-skill">consumer</span></td></tr>
+    <tr><td>No thumbnails</td><td>primers carry no image asset</td><td>Out of scope for v1 — no image data to anchor a thumbnail; documented gap, not a regression (<a href="#d8">D8</a>)</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2 id="boundary">3. Substrate ↔ consumer boundary</h2>
+<p>The single most important coherence rule: <strong>the iframe reader is a <span class="pill sub-sub">substrate</span> capability, added generically — not bespoke primer code.</strong> The substrate's current reader renders <code>reader.columns</code> from corpus markdown; an iframe is a new <em>reader mode</em>. It is added to <code>lib.mjs</code> as an <strong>additive, default-off</strong> seam (e.g. <code>config.reader.mode: 'iframe'</code> + <code>config.reader.iframeField</code>) so any consumer can opt in. Rationale (<a href="#d1">D1</a>): a primer-only iframe hack would re-fork what the substrate exists to prevent, and a generic seam is equally available to a future <code>/learn-list</code> or <code>/frameworks</code> need.</p>
+<table>
+  <thead><tr><th>Lands in <code>_shared/library-viewer/lib.mjs</code> (substrate)</th><th>Lands in <code>primer/scripts/build-library.mjs</code> (consumer)</th></tr></thead>
+  <tbody>
+    <tr><td>Additive <code>reader.mode:'iframe'</code> path: emit a sandboxed <code>&lt;iframe&gt;</code> in the reader pane, lazy-set <code>src</code> from <code>iframeField</code> on card-open, "Open in new tab" link, empty-state when no selection. Default-off (absent ⇒ current markdown-column reader, byte-identical).</td><td>Opt into <code>reader.mode:'iframe'</code> with <code>iframeField:'href'</code>; switch cards from link-out (<code>cfg.card</code>) to reader-open; configure 3 views, multi-select facets, <code>valueLabels</code>, the named <code>toCard</code> + <code>ALLOWED</code>; pass a <code>{count}</code> subtitle; drop dead <code>summaryField</code>.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="invariants">4. Cross-skill invariants (the design_doc contract)</h2>
+<ul>
+  <li><strong>INV-1 — substrate change is additive + default-off.</strong> Every existing consumer that does <em>not</em> set <code>reader.mode</code> (or sets <code>'columns'</code>) renders byte-identically to today. Proven by re-running the <em>shipped, un-edited</em> <code>/frameworks</code> and <code>/learn-list</code> build-library test suites green.</li>
+  <li><strong>INV-2 — <code>/frameworks</code> and <code>/learn-list</code> are zero-regression.</strong> No edits to their <code>build-library.mjs</code> or corpora. Their selftests and <code>*.test.sh</code> pass unchanged.</li>
+  <li><strong>INV-3 — primer stays a thin consumer.</strong> No engine logic forked into primer; new behaviour rides substrate seams only.</li>
+  <li><strong>INV-4 — offline + self-contained preserved.</strong> The page (and the iframe-loaded primers) work from <code>file://</code> with no external <code>&lt;link&gt;/&lt;script src&gt;/&lt;img&gt;</code>; the iframe is <code>sandbox</code>ed and points only at sibling on-disk primer files.</li>
+  <li><strong>INV-5 — substrate public surface stable.</strong> The 9 frozen exports in <code>guidelines.md</code> keep their signatures; the new reader mode is config-driven, not a new export. <code>guidelines.md</code> is updated to document the seam.</li>
+  <li><strong>INV-6 — single plugin / single release unit.</strong> All edits are within <code>pmos-learnkit</code>; rides one pmos-learnkit release. The substrate is learnkit-only (no cross-plugin <code>sync-shared</code>).</li>
+</ul>
+
+<h2 id="decisions">5. Decisions</h2>
+
+<h3 class="d" id="d1">D1 — The iframe reader is a generic substrate seam, never primer-bespoke</h3>
+<p>Add the iframe reader mode to <code>lib.mjs</code> as an additive, default-off config path, not as primer-local code. Keeps INV-1/INV-3 and lets <code>/frameworks</code>/<code>/learn-list</code> adopt it later for free. The alternative (a primer-only iframe injection) was rejected: it re-forks the engine the substrate exists to unify.</p>
+
+<h3 class="d" id="d2">D2 — Fix the dynamic <code>{count}</code> subtitle (the real bug) and its selftest</h3>
+<p>Pass a <code>subtitleTemplate</code> that contains the literal <code>{count}</code> token so the substrate emits <code>#subtitleCount</code> and the runtime sets it from <code>DATA.length</code>. The curated/yours static breakdown may stay as surrounding prose, but the live total must be the dynamic token. The primer selftest assertion <code>/· 1 of yours/</code> is updated to assert the <code>{count}</code>/<code>#subtitleCount</code> form (it currently locks in the defect).</p>
+
+<h3 class="d" id="d3">D3 — In-page reader = lazy sandboxed iframe of the primer's standalone HTML (user decision)</h3>
+<p>Primers are full standalone HTML documents, so the reader pane lazy-loads the selected primer in a <code>sandbox</code>ed <code>&lt;iframe&gt;</code> (closest to frameworks' read-without-leaving feel; works offline from <code>file://</code>). Only the opened primer's <code>src</code> is set (no eager load of all 60+). The iframe carries the primer's own toolbar/styling — acceptable. An <strong>"Open in new tab"</strong> control is retained in the reader header so the link-out affordance is not lost. Empty-state message when nothing is selected. <em>Considered + rejected:</em> metadata+excerpt+button (lighter, but not "read without leaving" — the user explicitly chose true in-page reading).</p>
+
+<h3 class="d" id="d4">D4 — Multi-select facets: <code>category</code> + <code>audience</code> become multi-dropdown; <code>valueLabels</code> for <code>super_category</code></h3>
+<p>Facets that are naturally multi-valued or wide become <code>multi-dropdown</code> (<code>category</code>; add <code>+ search</code> if option count warrants), and <code>audience</code> multi-dropdown. <code>collection</code> (Curated/Yours), <code>depth</code> (brief/standard/deep), and <code>super_category</code> stay single-select. Adopt the <code>valueLabels</code> presentation-rename seam for <code>super_category</code> (parity with frameworks' <code>SUPER_CATEGORY_LABELS</code>). Exact per-facet kinds finalized in the story plan against live option counts.</p>
+
+<h3 class="d" id="d5">D5 — Three views with list default; remove the CSS view-hide hack</h3>
+<p>Configure <code>views:[list, cards, detailed]</code> with <code>list</code> default (the substrate default), matching frameworks. Delete the <code>.viewswitch{display:none}</code> rule from <code>PRIMER_CSS</code> — it was a presentational workaround over the single-view config.</p>
+
+<h3 class="d" id="d6">D6 — Single named <code>toCard</code> adapter + <code>ALLOWED</code> whitelist</h3>
+<p>Replace the inline card construction in <code>loadCurated()</code> and <code>scanUserPrimers()</code> with one named <code>toCard(rec)</code> adapter (explicit field-by-field, never spread) plus an <code>ALLOWED</code> constant, mirroring <code>/learn-list</code>. Behaviour-neutral; aligns the adapter seam and keeps the PII-safe explicit-whitelist posture.</p>
+
+<h3 class="d" id="d7">D7 — Drop the dead <code>summaryField:'summary'</code> config</h3>
+<p>No primer card carries a <code>summary</code> field and it is absent from <code>searchFields</code>; the config is inert. Remove it so config and data agree. (If a future excerpt field is wanted it can be added deliberately with matching card data + <code>searchFields</code>.)</p>
+
+<h3 class="d" id="d8">D8 — Thumbnails are out of scope for v1</h3>
+<p>Frameworks' <code>thumbField</code> + lazy <code>IntersectionObserver</code> thumbnails have no analogue in primer: primers carry no image asset to anchor a thumbnail. Generating cover tiles is scope creep beyond "match the viewer interface". Documented as an intentional parity gap, not a regression — revisit only if primers gain cover images.</p>
+
+<h3 class="d" id="d9">D9 — Tests adopt frameworks-style reader-path assertions</h3>
+<p>Primer's <code>build-library.test.sh</code> + selftest gain assertions for the new contract: the iframe reader element + lazy-src plumbing, the three-view switch present (not CSS-hidden), the multi-dropdown facet controls, the <code>valueLabels</code> rename, and the dynamic <code>{count}</code>/<code>#subtitleCount</code>. The shipped <code>/frameworks</code> and <code>/learn-list</code> suites are re-run un-edited to prove INV-1/INV-2.</p>
+
+<h2 id="story-plan">6. Story plan</h2>
+<p>One in-scope skill (<code>/primer</code>) and one cohesive change set spanning the substrate seam + the primer consumer + tests + the <code>#browse</code> SKILL.md prose — all touching the same files, sequential by nature. Per the route:skill split rule this is a <strong>singleton epic → one story</strong>; the substrate seam is fused into the same story because it is small, only meaningful with the consumer that exercises it, and cannot be independently <code>skill-eval</code>'d.</p>
+<ul>
+  <li><span class="pill sub-skill">260626-0g6</span> — <strong>/primer library-viewer full parity with /frameworks</strong> (route: skill, no deps). Adds the default-off iframe reader seam to <code>_shared/library-viewer/lib.mjs</code>; retrofits <code>primer/scripts/build-library.mjs</code> onto it (iframe reader, 3 views, multi-select facets, <code>valueLabels</code>, named <code>toCard</code>+<code>ALLOWED</code>, dynamic <code>{count}</code>, drop dead <code>summaryField</code>); updates tests + <code>#browse</code> prose; proves <code>/frameworks</code> + <code>/learn-list</code> zero-regression.</li>
+</ul>
+
+<h2 id="out-of-scope">7. Out of scope</h2>
+<ul>
+  <li>Thumbnails / cover images for primers (<a href="#d8">D8</a>).</li>
+  <li>Any change to <code>/frameworks</code> or <code>/learn-list</code> <code>build-library.mjs</code> or their corpora (INV-2) — they may adopt the new iframe seam in a future, separate story.</li>
+  <li>The primer research pipeline (Phases 2–6) — this epic touches the <code>#browse</code> path only.</li>
+  <li>Corpus content (titles/tags) — that is the separate epic <code>260626-j5k</code>.</li>
+</ul>
+
+<p class="meta">Lineage: code audit 2026-06-26 (substrate <code>_shared/library-viewer/lib.mjs</code> + <code>guidelines.md</code>; consumers <code>frameworks/</code>, <code>primer/</code>, <code>learn-list/</code> <code>scripts/build-library.mjs</code>). Substrate built in epic 260616-tqf / 260616-f7w; primer retrofitted in 260616-w1v (card-seam). User decisions 2026-06-26: full feature parity; iframe in-page reader.</p>
+</body>
+</html>
