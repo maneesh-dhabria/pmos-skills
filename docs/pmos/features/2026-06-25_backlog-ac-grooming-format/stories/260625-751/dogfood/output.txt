@@ -1,0 +1,6 @@
+real numbered-AC body sourced from: 260617-1aq-diagram-mode-mindmap.md
+real dash-AC body sourced from:     0001-feature-sdlc-fails-own-skill-eval-check-sh.md
+OLD needs_grooming: [DASH, DRAFT, EMPTY, NUM]
+NEW needs_grooming: [DRAFT, EMPTY]
+
+run-dogfood: 6 passed, 0 failed
