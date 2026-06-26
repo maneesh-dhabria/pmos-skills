@@ -1,0 +1,196 @@
+schema_version: 1
+story: 260626-sbf
+epic: 260626-4sm
+route: skill
+plugin: pmos-utilities
+spec: ../../02_design.html
+execution_mode: inline
+# Singleton story: ONE new pmos-utilities skill (/to-notion-doc). All-new files under
+# plugins/pmos-utilities/skills/to-notion-doc/. No dependencies, no plugin scaffold (pmos-utilities
+# already exists), no substrate extraction (Notion-API facts live in this skill's own reference/).
+# NO release-prereq tasks here (version bump, changelog, README row, manifest version-sync,
+# learnings-header bootstrap) — see the design doc §12 release-prereq note; /complete-dev (Loop 3) is
+# the sole writer of those at epic release. Deterministic logic (parse, table-cell padding, chunk
+# arithmetic, lang/color validation, reconciliation) lives in zero-dep Node scripts with headless
+# selftests (§H: never have the model do arithmetic a script can do); SKILL.md orchestrates the MCP
+# calls, AskUserQuestion gates, and settings.yaml I/O. Grounded in ../../research/notion-api-findings.md.
+tasks:
+  - id: T1
+    title: "Study: design doc, research findings, a pmos-utilities skill, skill-patterns, the dogfood doc"
+    ac: [AC1, AC14]
+    deps: []
+    parallel: false
+    detail: >
+      Read ../../02_design.html (decisions D1–D11, the six-phase flow, the §5 block-map, §6 image ladder,
+      §7 chunking, §8 verification, §9 style mapping, §10 settings schema) and
+      ../../research/notion-api-findings.md (the authoritative Notion-API facts). Read an existing
+      pmos-utilities skill (/converter SKILL.md + its scripts) for the plugin's house pattern, the
+      zero-dep Node-script convention, and the launch/orchestration style. Read
+      feature-sdlc/reference/skill-patterns.md §A–§L and skills/_shared/non-interactive.md (the block to
+      inline byte-identical). Inspect the dogfood doc
+      /Users/maneeshdhabria/Desktop/Projects/porter/pm-docs/metrics-store/pov/pov_v6.html to enumerate the
+      real block variety the parser+mapper must handle (9 tables, 2 inline SVGs, 17 dividers, nested
+      lists, code, links). Produce NO code — capture the parse-doc / map-to-notion / chunk-blocks /
+      verify-page API surfaces and the edge cases (ragged tables, code-language enum, color enum, 2-level
+      nesting, toggle headings) to drive the TDD tests.
+    verify: >
+      All four script API surfaces enumerated; the Notion block-map + table-fidelity invariant
+      (cells.length == table_width) + image ladder + chunk limits understood from the research file (not
+      memory); skill-patterns §A–§L acceptance criteria and the non-interactive block located before any
+      code is written.
+
+  - id: T2
+    title: "reference/notion-blocks.md — the skill's single-home Notion-API guideline"
+    ac: [AC2, AC6, AC7, AC8, AC14]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Distill ../../research/notion-api-findings.md into the skill's own reference file
+      plugins/pmos-utilities/skills/to-notion-doc/reference/notion-blocks.md (one-fact-one-home, §K — the
+      skill cites THIS, the feature research file stays in docs/). Cover: the conversion block catalog +
+      shapes; the table-fidelity contract (table_width immutable, cells.length == table_width, ≥1 row at
+      create, ≤100-row append batches, no full-width API); the image ladder (File Upload API 3-step + 1h
+      window + size caps, external-URL constraints, the local-extract stub) and that the MCP itself cannot
+      upload; the 100-block / 2-level limits; the code-language enum and the 19-value color enum.
+    verify: >
+      reference/notion-blocks.md exists, is self-contained, and every Notion-API claim the SKILL.md and
+      scripts rely on is stated here with no contradiction; no Notion-API fact is duplicated into SKILL.md
+      prose (cited, not restated).
+
+  - id: T3
+    title: "scripts/parse-doc.mjs + selftest — md/html/txt → normalized block tree (TDD)"
+    ac: [AC1]
+    deps: [T1]
+    parallel: true
+    detail: >
+      Write failing selftests FIRST (tests fixtures: a small md, a small html with a table + nested list +
+      code + divider + inline SVG, a txt with ALL-CAPS/underlined headings), then implement
+      scripts/parse-doc.mjs: a zero-dep parser emitting a normalized block-tree JSON (node type + rich-text
+      spans with marks + children + a source-index for reconciliation). MD parsed structurally; HTML parsed
+      with a tolerant parse of the conversion-relevant tags; .txt with LIGHT heuristics (blank-line
+      paragraphs, ALL-CAPS / underlined === / --- lines → headings, '- ' → bullets). Unmappable rich media
+      (inline SVG/embed/iframe/card/footnote) emitted as an `ambiguous` node carrying the raw source so the
+      SKILL.md can queue it. Deterministic: stable source-index ordering.
+    verify: >
+      `node scripts/parse-doc.mjs --selftest` exits 0; fixtures covering every §5 source type + the txt
+      heuristics + the ambiguous-node path pass; the block tree carries stable source-indices.
+
+  - id: T4
+    title: "scripts/map-to-notion.mjs + selftest — block tree → Notion block payloads (TDD)"
+    ac: [AC2, AC3, AC4, AC7]
+    deps: [T3]
+    parallel: false
+    detail: >
+      TDD. Map the normalized tree → Notion append-block-children payloads. Load-bearing deterministic
+      logic: heading toggle-vs-normal (is_toggleable + children placement, D5); minimal-vs-expressive
+      decoration (emoji/color/callout per §9, D6) behind a style param; table builder enforcing the
+      fidelity contract (set table_width once, pad short rows with empty [] cells to table_width, truncate
+      + flag over-long rows, header row, ≥1 row at create — AC7/D4); code-language validation against the
+      Notion enum (unknown → 'plain text'); color validation against the 19-value enum; rich-text mark
+      mapping (bold/italic/strike/code/link, + color only in expressive). Selftest asserts a ragged input
+      table is padded to a rectangular table, an unknown code language degrades, an invalid color is
+      rejected, and toggle vs normal headings differ only by is_toggleable+children.
+    verify: >
+      `node scripts/map-to-notion.mjs --selftest` exits 0; a deliberately ragged 3-col table input yields
+      rows all of cells.length==3; unknown language → plain text; minimal output contains no emoji/color/
+      callout while expressive does; toggle headings nest body in children.
+
+  - id: T5
+    title: "scripts/chunk-blocks.mjs + selftest — ≤100/≤2-level batching & create-then-append plan (TDD)"
+    ac: [AC8]
+    deps: [T4]
+    parallel: true
+    detail: >
+      TDD. Given a flat-or-nested payload list, emit an ordered write plan: a create/first-append batch
+      (≤100 top-level blocks) then ≤100-block append batches; for blocks needing depth >2 (nested toggles,
+      deep lists, column_list) emit a create-then-append step keyed on the parent's returned id placeholder;
+      for tables >~99 rows, split header+first rows from the rest into ≤100-row append batches. Pure
+      arithmetic + ordering — no network. Each batch carries the source-index range it covers (drives the
+      resumable write cursor, D7/AC8).
+    verify: >
+      `node scripts/chunk-blocks.mjs --selftest` exits 0; a 250-block input yields 3 batches (100/100/50);
+      a 3-level-nested input yields a create-then-append step; a 150-row table splits into header-batch +
+      append batches; every batch carries a contiguous source-index range with no gaps/overlaps.
+
+  - id: T6
+    title: "scripts/upload-image.mjs + stub extraction + selftest — the image ladder (TDD)"
+    ac: [AC6]
+    deps: [T4]
+    parallel: true
+    detail: >
+      TDD (mock the HTTP layer; no live Notion calls in selftest). Implement the File Upload API client
+      (create → send multipart `file` → return file_upload id) reading the token from the env var named in
+      settings (default NOTION_TOKEN); plus the local-extract stub builder (copy image to
+      ./to-notion-doc-assets/<slug>/, build the callout-path + empty-image-placeholder block pair) and the
+      external-URL passthrough builder. Selftest the decision ladder (token present → upload-payload shape;
+      external https URL → external image block; neither → stub pair with correct relative path), the size/
+      1h-window guardrails (warn past free-plan 5 MiB), and that NO token value is ever logged or written
+      to settings.
+    verify: >
+      `node scripts/upload-image.mjs --selftest` exits 0; the three ladder branches produce the correct
+      block shapes; the stub writes assets under ./to-notion-doc-assets/<slug>/ with a matching relative
+      path in the callout; token value never persisted/logged.
+
+  - id: T7
+    title: "scripts/verify-page.mjs + selftest — completeness + integrity reconciliation (TDD)"
+    ac: [AC11]
+    deps: [T4]
+    parallel: true
+    detail: >
+      TDD. Given the source block tree (with source-indices) and the re-fetched page block list, produce a
+      reconciliation report: each source block → disposition {mapped, stubbed, user-skipped}; flag any
+      unaccounted-for source block. Integrity asserts: no orphaned block (child without its intended
+      parent), every table_row.cells.length == its table's table_width, no accidentally-empty block where
+      source had content, all code languages in-enum, all colors in-enum. Returns a structured result the
+      SKILL.md renders as the conversion report.
+    verify: >
+      `node scripts/verify-page.mjs --selftest` exits 0; a dropped source block is reported
+      unaccounted-for; a ragged fetched table fails integrity; a fully-mapped fixture passes with zero
+      findings.
+
+  - id: T8
+    title: "SKILL.md — orchestrate phases 0–5, MCP calls, AskUserQuestion gates, settings.yaml I/O, create-or-update"
+    ac: [AC1, AC3, AC4, AC5, AC9, AC10, AC12, AC14]
+    deps: [T2, T3, T4, T5, T6, T7]
+    parallel: false
+    detail: >
+      Author plugins/pmos-utilities/skills/to-notion-doc/SKILL.md (canonical path) with integer phases +
+      {#kebab-slug} anchors (§J): Phase 0 resolve+confirm prefs (read/write .pmos/settings.yaml
+      to_notion_doc block — heading_style, visual_style, last_parent, notion_token_env, updated;
+      confirm-against-last-run one prompt, AC5); Phase 1 parse+map (call parse-doc + map-to-notion); Phase 2
+      resolve ambiguities (per-item AskUserQuestion, AC10) + image-token ask + build image blocks via
+      upload-image (AC6); Phase 3 create-or-update — bare→create under parent (--parent | search+pick |
+      suggest last_parent), --into→ask update mode rewrite/archive-under-toggle-H1/in-place (AC9/D11) — then
+      chunked write via chunk-blocks with a resumable cursor (AC8); Phase 4+5 verify via verify-page +
+      render the report. Inline the non-interactive block byte-identical to skills/_shared/non-interactive.md;
+      mark every AskUserQuestion with a (Recommended) option or a defer-only tag (AUTO-PICK map per AC12);
+      argument-hint lists only contract flags (--parent, --into, --update-mode, --style, --headings,
+      --non-interactive), other flags as nl-sugar. Frontmatter name == dir (to-notion-doc); description with
+      trigger phrases.
+    verify: >
+      SKILL.md at plugins/pmos-utilities/skills/to-notion-doc/SKILL.md; name matches dir; phases are
+      integers with stable slugs; the non-interactive block is byte-identical to the shared source; every
+      AskUserQuestion has (Recommended) or a defer-only tag; settings.yaml read+write of the to_notion_doc
+      block works (confirm-against-last-run on a second run); the three update modes are specified incl. the
+      archive-under-toggleable-heading_1 path.
+
+  - id: T9
+    title: "Final gate — skill-eval [D], 4 hygiene lints, audit, and the live pov_v6 dogfood"
+    ac: [AC11, AC13, AC14]
+    deps: [T8]
+    parallel: false
+    detail: >
+      Run feature-sdlc/tools/skill-eval-check.sh --target claude-code on the skill dir (resolve residuals
+      to zero or documented-accepted). Run the 4 hygiene lints (lint-non-interactive-inline.sh,
+      lint-flags-vs-hints.sh, lint-phase-refs.sh, and the audit-recommended.sh) clean. Live dogfood: run
+      /to-notion-doc end-to-end against
+      /Users/maneeshdhabria/Desktop/Projects/porter/pm-docs/metrics-store/pov/pov_v6.html into a scratch
+      Notion page — assert the 9 tables render with correct column/row counts, the 2 inline SVGs trigger
+      ambiguity prompts, chunking handles the 845-line doc, both style modes produce valid output, and the
+      verification pass reports zero unaccounted-for source blocks. Capture the conversion report +
+      reconciliation table under stories/260626-sbf/dogfood/ (Notion content is the maintainer's; never
+      committed — only the report/reconciliation evidence).
+    verify: >
+      skill-eval [D] EXIT 0 (or only documented-accepted residuals); 4 lints + audit clean; dogfood report
+      shows correct tables, the SVG ambiguity prompts fired, and zero unaccounted-for source blocks in the
+      reconciliation.

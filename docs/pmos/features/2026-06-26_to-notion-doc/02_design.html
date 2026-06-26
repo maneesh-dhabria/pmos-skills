@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="pmos:skill" content="feature-sdlc">
+<meta name="pmos:artifact" content="design">
+<title>Design — /to-notion-doc (epic 260626-4sm)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: Georgia, "Times New Roman", serif; max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem; line-height: 1.6; color: #1a1a1a; background: #fbfaf6; }
+  h1, h2, h3 { font-family: -apple-system, system-ui, sans-serif; line-height: 1.25; }
+  h1 { font-size: 2rem; } h2 { font-size: 1.3rem; margin-top: 2.2rem; border-bottom: 1px solid #ddd; padding-bottom: .3rem; } h3 { font-size: 1.05rem; }
+  code, pre { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  code { background: #efece3; padding: .1em .35em; border-radius: 3px; font-size: .9em; }
+  pre { background: #efece3; padding: .9rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: 1rem 0; }
+  th, td { border: 1px solid #d6d2c6; padding: .45rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #efece3; font-family: system-ui, sans-serif; }
+  .tag { display: inline-block; font: 600 .72rem system-ui; padding: .1em .5em; border-radius: 3px; background: #e3dcc9; }
+  blockquote { border-left: 3px solid #c9b98c; margin: 1rem 0; padding: .3rem 1rem; color: #555; background: #f4f1e8; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1816; color: #e8e4da; } code, pre, th { background: #2a2724; } th, td { border-color: #3a3530; }
+    h2 { border-color: #3a3530; } blockquote { background: #232019; color: #c9c2b2; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Design — <code>/to-notion-doc</code></h1>
+<p><strong>Epic</strong> 260626-4sm · <strong>Plugin</strong> pmos-utilities · <strong>Route</strong> skill ·
+<strong>Status</strong> defining · <strong>Date</strong> 2026-06-26</p>
+<p>This is the cross-cutting design contract for the single-story epic. Grounded in
+<a href="research/notion-api-findings.md"><code>research/notion-api-findings.md</code></a> (verified Notion-docs
+research). Two architectural forks resolved with the maintainer during this define run are marked
+<span class="tag">resolved</span>.</p>
+
+<h2 id="problem">1. Problem &amp; charter fit</h2>
+<p>A PM has a finished local document (<code>.md</code> / <code>.html</code> / <code>.txt</code>) and wants it as a
+faithful Notion page. Driving it through the raw Notion MCP by hand is high-friction: heading-style and
+visual-style preferences are re-litigated every time; images silently fail (the MCP cannot upload local
+files); and tables frequently render with dropped rows/columns. <code>/to-notion-doc</code> is the
+purpose-built converter that designs that friction out.</p>
+<p><strong>Charter:</strong> pmos-utilities — a standalone document-format converter, sibling to
+<code>/converter</code> (JSON↔YAML, HTML↔MD, PDF↔MD). It neither ships a feature nor teaches a topic; it
+converts one artifact into another. <span class="tag">resolved — maintainer chose pmos-utilities</span></p>
+
+<h2 id="surface">2. Skill surface</h2>
+<ul>
+  <li><strong>Invocation:</strong> <code>/to-notion-doc &lt;path-to-source&gt; [--parent &lt;notion-page-url-or-id&gt;]
+    [--into &lt;existing-page-url-or-id&gt;] [--update-mode rewrite|archive|in-place]
+    [--style minimal|expressive] [--headings toggle|normal] [--non-interactive]</code>. Bare
+    <code>/to-notion-doc &lt;path&gt;</code> is the happy path (create-new under a chosen parent); every flag has a
+    natural-language form and a remembered default. <code>--into</code> targets an existing page (§ D11).</li>
+  <li><strong>Inputs:</strong> a single local source file. Format inferred from extension; HTML and Markdown
+    are parsed structurally, <code>.txt</code> is treated as paragraphs (blank-line separated) with light
+    heuristics (ALL-CAPS / underlined lines → headings).</li>
+  <li><strong>Output:</strong> a new Notion page under a user-chosen parent, plus an in-chat conversion report
+    (block counts, ambiguities resolved, images handled, verification result) and — when images fell to the
+    stub ladder — a local <code>./to-notion-doc-assets/&lt;slug&gt;/</code> folder beside the trigger dir.</li>
+  <li><strong>Dependencies:</strong> the Notion MCP (page create + append-block-children + search). Optionally
+    a Notion integration token for the File Upload API (images only — see §6). No npm dependencies; parsing is
+    done in-skill / with a zero-dep parser script.</li>
+</ul>
+
+<h2 id="flow">3. Control flow</h2>
+<p>Six phases, mirroring the maintainer's stated process:</p>
+<ol>
+  <li><strong>Resolve preferences (Phase 0).</strong> Read <code>.pmos/settings.yaml :: to_notion_doc</code>
+    (heading style, visual style). Present-and-valid → confirm-against-last-run in one prompt (mirrors
+    <code>/feature-sdlc</code> Phase 0e soft-gate-defaults). Absent → ask both, then persist. Flags override.
+    <span class="tag">resolved — prefs live in .pmos/settings.yaml</span></li>
+  <li><strong>Parse + block-map (Phase 1).</strong> Parse the source into a normalized block tree, then map each
+    node to its best-match Notion block (§5). Collect an <em>ambiguity queue</em> of nodes with no faithful
+    mapping (rich media: inline SVG/diagrams, embeds, cards, iframes, footnotes, complex nested layout).</li>
+  <li><strong>Resolve ambiguities + image strategy (Phase 2).</strong> For each ambiguity-queue entry, one
+    <code>AskUserQuestion</code> offering the realistic conversions (e.g. an inline SVG → "upload as image" /
+    "bookmark the source" / "skip with a placeholder callout"). If the doc has images, ask once whether a
+    Notion File Upload API token is configured (§6); if not, fall back to the local-extract stub.</li>
+  <li><strong>Create-or-update + write blocks (Phase 3).</strong> <em>Create-new:</em> make the page under the
+    parent. <em>Update (<code>--into</code>, D11):</em> resolve the target and the update mode (rewrite /
+    archive-under-toggle-H1 / in-place); the archive mode wraps existing top-level blocks under a new collapsed
+    <code>heading_1</code> "Archive" first. Then write blocks in <strong>chunked, resumable batches</strong>
+    (§7): ≤100 blocks/request, ≤2 nesting levels/request, create-then-append for deep nesting and large tables.
+    Track a write cursor so a mid-write crash resumes.</li>
+  <li><strong>Verify completeness (Phase 4).</strong> Re-fetch the page's blocks and reconcile against the
+    source block tree: every source block accounted for (mapped / explicitly-stubbed / user-skipped), none
+    dropped (§8).</li>
+  <li><strong>Verify integrity (Phase 5).</strong> No orphaned blocks, no ragged tables (every row's cell count
+    == <code>table_width</code>), no empty-on-error blocks, valid code languages, valid colors. Emit the report.</li>
+</ol>
+
+<h2 id="decisions">4. Decisions</h2>
+<table>
+  <thead><tr><th>#</th><th>Decision</th><th>Resolution</th></tr></thead>
+  <tbody>
+    <tr><td>D1</td><td>Plugin home</td><td><strong>pmos-utilities</strong>, beside <code>/converter</code>.
+      No new-plugin scaffold. <span class="tag">resolved</span></td></tr>
+    <tr><td>D2</td><td>Image embedding path</td><td><strong>Ask-at-runtime ladder.</strong> If the source has
+      images, ask whether a Notion File Upload API token is configured. Yes → upload via the File Upload API
+      (3-step: create → send bytes → attach <code>{type:"file_upload",id}</code>). No → <strong>local-extract
+      stub</strong>: copy each image to <code>./to-notion-doc-assets/&lt;slug&gt;/</code>, emit a
+      <code>callout</code> naming the relative path + filename, then an empty <code>image</code> placeholder
+      block beneath. <span class="tag">resolved</span></td></tr>
+    <tr><td>D3</td><td>Table full-width</td><td><strong>Dropped intent — not API-controllable.</strong> The
+      <code>table</code> block exposes only <code>table_width</code> / <code>has_column_header</code> /
+      <code>has_row_header</code>; full-width is a page-display setting with no API. The achievable win is
+      column/row <em>fidelity</em> (D4), which is the real cause of the user's "dropped rows/columns".</td></tr>
+    <tr><td>D4</td><td>Table fidelity contract</td><td>Every <code>table_row.cells</code> length MUST equal
+      <code>table_width</code> (pad short rows with empty <code>[]</code> cells, truncate/flag over-long rows);
+      set <code>table_width</code> once (immutable); create the table with ≥1 row; append remaining rows in
+      ≤100-row batches. This is the guideline that fixes malformed tables. See §8.</td></tr>
+    <tr><td>D5</td><td>Heading style preference</td><td>Two modes: <strong>toggle</strong>
+      (<code>heading_N.is_toggleable:true</code>, body nested as <code>children</code>) vs <strong>normal</strong>.
+      Remembered in settings.yaml, confirmed not re-asked.</td></tr>
+    <tr><td>D6</td><td>Visual style</td><td><strong>minimal</strong> (no emojis, no text colors, no callouts —
+      plain paragraphs/headings/lists/quotes) vs <strong>expressive</strong> (emojis on headings/callouts,
+      semantic text colors, callout blocks for notes/warnings/tips). Mapping table in §9.</td></tr>
+    <tr><td>D7</td><td>Large documents</td><td><strong>Chunked + resumable write.</strong> Parse fully, then
+      stream blocks in ≤100/request batches with a persisted write cursor; create-then-append for nesting
+      &gt;2 levels and tables &gt;~99 rows. A crash mid-write resumes from the cursor rather than duplicating
+      (idempotency key = source-block index already written). <span class="tag">resolved — maintainer raised</span></td></tr>
+    <tr><td>D8</td><td>Parent page</td><td><code>--parent</code> flag (URL or id) wins; else
+      <code>notion-search</code> + an <code>AskUserQuestion</code> pick; remember last parent in settings as a
+      default suggestion (not auto-applied).</td></tr>
+    <tr><td>D9</td><td>Non-interactive posture</td><td>W14 contract. Ambiguities + image-token + parent
+      prompts all carry a Recommended/auto-pick (AUTO-PICK: image→stub, ambiguity→placeholder-callout,
+      parent→error if none given) and buffer Open Questions into the report. Honors the inline
+      non-interactive block byte-for-byte.</td></tr>
+    <tr><td>D10</td><td>Rich-media ambiguity</td><td>Inline SVG / diagrams / embeds / cards / iframes /
+      footnotes → ambiguity queue → per-item <code>AskUserQuestion</code> (§3 Phase 2). Never silently drop;
+      the fallback is always a labeled placeholder callout so verification (§8) can account for it.</td></tr>
+    <tr><td>D11</td><td>Existing-page target (update)</td><td><strong>v1 supports update.</strong> With
+      <code>--into &lt;page&gt;</code> (or when the user picks an existing page), ask the update mode:
+      <strong>(a) fresh rewrite</strong> — archive nothing, clear the page body and write anew;
+      <strong>(b) archive</strong> — move the page's existing top-level blocks under a new
+      <strong>toggleable <code>heading_1</code> "Archive"</strong> (collapsed), then write the new content above
+      it; <strong>(c) update in place</strong> — append/reconcile the new content into the existing body.
+      Default = archive (non-destructive). Create-new remains the bare-invocation default.
+      <span class="tag">resolved — maintainer raised</span></td></tr>
+  </tbody>
+</table>
+<p><strong>Token (D2 cont.):</strong> the upload token is discovered by <em>env-var name stored in settings</em>
+(<code>to_notion_doc.notion_token_env</code>, default <code>NOTION_TOKEN</code>); the value lives only in the
+environment — never committed. <strong>TXT parsing:</strong> light heuristics (blank-line paragraphs +
+ALL-CAPS / underlined-line heading detection + <code>- </code> bullets), not pure paragraphs.
+<span class="tag">resolved</span></p>
+
+<h2 id="block-map">5. Source → Notion block mapping</h2>
+<p>Drives the parser. <code>rich_text</code> spans carry inline marks (bold/italic/strike/code/link, and in
+<em>expressive</em> mode, color).</p>
+<table>
+  <thead><tr><th>Source (MD / HTML)</th><th>Notion block</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><code>#</code> / <code>&lt;h1&gt;</code> … <code>###</code> / <code>&lt;h3&gt;</code></td>
+      <td><code>heading_1/2/3</code> (<code>is_toggleable</code> per D5)</td><td>h4+ → <code>heading_3</code> + bold, or nested.</td></tr>
+    <tr><td>paragraph / <code>&lt;p&gt;</code></td><td><code>paragraph</code></td><td>Empty → <code>rich_text:[]</code>.</td></tr>
+    <tr><td><code>- </code>/<code>&lt;ul&gt;&lt;li&gt;</code></td><td><code>bulleted_list_item</code></td><td>Nested via <code>children</code> (2-level limit → create-then-append).</td></tr>
+    <tr><td><code>1.</code>/<code>&lt;ol&gt;&lt;li&gt;</code></td><td><code>numbered_list_item</code></td><td>Notion auto-numbers.</td></tr>
+    <tr><td><code>- [ ]</code> task list</td><td><code>to_do</code></td><td><code>checked</code> from <code>[x]</code>.</td></tr>
+    <tr><td><code>&gt; </code>/<code>&lt;blockquote&gt;</code></td><td><code>quote</code></td><td>Admonitions (NOTE/WARN/TIP) → <code>callout</code> in expressive mode.</td></tr>
+    <tr><td>fenced code / <code>&lt;pre&gt;&lt;code&gt;</code></td><td><code>code</code></td><td>Validate <code>language</code> against Notion's enum; unknown → <code>plain text</code>.</td></tr>
+    <tr><td><code>---</code> / <code>&lt;hr&gt;</code></td><td><code>divider</code></td><td>pov_v6 has 17 of these.</td></tr>
+    <tr><td><code>&lt;table&gt;</code> / GFM table</td><td><code>table</code> + <code>table_row</code></td><td>§8 fidelity contract. pov_v6 has 9.</td></tr>
+    <tr><td><code>![]()</code> / <code>&lt;img&gt;</code></td><td><code>image</code> (file_upload / external / stub)</td><td>§6 ladder.</td></tr>
+    <tr><td>link <code>&lt;a&gt;</code> (bare URL block)</td><td><code>bookmark</code> or inline link</td><td>Standalone URL → bookmark; inline → rich-text link.</td></tr>
+    <tr><td>inline SVG / diagram / embed / card</td><td>ambiguity queue → user choice</td><td>D10. pov_v6 has 2 inline SVGs.</td></tr>
+    <tr><td>math <code>$$…$$</code></td><td><code>equation</code></td><td>LaTeX expression.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="images">6. Image ladder (the core friction)</h2>
+<p>The official Notion MCP <strong>cannot upload local images</strong> (no file-upload tool; icon/cover accept
+external URLs only). So:</p>
+<ol>
+  <li><strong>If an integration token is configured</strong> (maintainer-confirmed at runtime; read from
+    <code>NOTION_TOKEN</code> env or <code>.pmos/settings.yaml :: to_notion_doc.notion_token_env</code>):
+    upload each local image via the <strong>File Upload API</strong> — <code>POST /v1/file_uploads</code> →
+    <code>POST /v1/file_uploads/{id}/send</code> (multipart, key <code>file</code>) → append an
+    <code>image</code> block <code>{type:"file_upload", id}</code>. Attach within the 1-hour window. Single-part
+    ≤20 MB (≤5 MiB on a free workspace — downscale or warn past that).</li>
+  <li><strong>External URL already present</strong> in the source (<code>![](https://…)</code>): pass through as
+    an <code>external</code> image (must be public HTTPS; Notion hotlinks, never re-hosts).</li>
+  <li><strong>Otherwise — local-extract stub (the always-available rung):</strong> copy the image to
+    <code>./to-notion-doc-assets/&lt;slug&gt;/&lt;name&gt;</code>, emit a <code>callout</code> ("🖼 Image:
+    <code>&lt;relative-path&gt;</code> — &lt;alt/name&gt;") followed by an empty <code>image</code> placeholder
+    block for the user to drag-drop fill in Notion. Verification (§8) counts these as accounted-for.</li>
+</ol>
+<p>Google Drive URL trick is researched but <strong>rejected</strong> (Google throttles hot-linking; brittle).</p>
+
+<h2 id="chunking">7. Large-document chunking &amp; resumable write</h2>
+<ul>
+  <li>Hard API limits: <strong>100 blocks per append request</strong>; <strong>2 nesting levels per request</strong>.</li>
+  <li>Write algorithm: create the page with the first batch (≤100 top-level blocks), then
+    <code>PATCH /blocks/{id}/children</code> in ≤100-block batches. For blocks needing depth &gt;2 (nested
+    toggles, columns, deep lists), emit to the limit, capture returned ids, append children to them.</li>
+  <li>Tables &gt; ~99 rows: create with the header + first rows, append the rest in ≤100-row batches.</li>
+  <li><strong>Resumability:</strong> persist a write cursor (page id + last source-block index written) to a
+    run-state file; a re-run with the same source + page resumes from the cursor instead of re-appending
+    (idempotency = source-block index). Bounds the blast radius of a Notion API hiccup on a big doc.</li>
+</ul>
+
+<h2 id="verify">8. Verification passes</h2>
+<p><strong>Completeness (Phase 4):</strong> re-fetch page blocks; build a reconciliation table source-block →
+disposition ∈ {mapped, stubbed, user-skipped}; fail loudly if any source block is unaccounted-for. Report the
+count.</p>
+<p><strong>Integrity (Phase 5):</strong> assert no orphaned blocks (no child whose intended parent is missing);
+every <code>table_row.cells.length == table_width</code>; no accidentally-empty blocks where source had
+content; all <code>code.language</code> in the enum; all colors in the 19-value enum. Any failure → surface in
+the report with the offending source location; offer a targeted re-write of just those blocks.</p>
+
+<h2 id="styles">9. Visual style mapping (minimal vs expressive)</h2>
+<table>
+  <thead><tr><th>Element</th><th>minimal</th><th>expressive</th></tr></thead>
+  <tbody>
+    <tr><td>Headings</td><td>plain</td><td>optional leading emoji by section semantics; default color</td></tr>
+    <tr><td>Admonition / note blockquote</td><td><code>quote</code></td><td><code>callout</code> + emoji
+      (💡 tip / ⚠️ warn / ℹ️ note) + <code>*_background</code> color</td></tr>
+    <tr><td>Emphasis (<code>**</code>/<code>*</code>)</td><td>bold/italic only</td><td>bold/italic; semantic text
+      color for keywords where the source signals it</td></tr>
+    <tr><td>Text colors</td><td>none (<code>default</code>)</td><td>from the 19-value enum, used sparingly</td></tr>
+    <tr><td>Emojis</td><td>none</td><td>on callouts &amp; (optionally) headings</td></tr>
+  </tbody>
+</table>
+<p>Both modes produce identical <em>structure</em>; expressive only adds icon/color/callout decoration. minimal
+is the default for the first run.</p>
+
+<h2 id="prefs">10. Preference persistence</h2>
+<p>Under <code>.pmos/settings.yaml</code>:</p>
+<pre>to_notion_doc:
+  heading_style: toggle | normal      # D5
+  visual_style: minimal | expressive  # D6
+  last_parent: &lt;page-id&gt;               # D8 — suggestion only, never auto-applied
+  notion_token_env: NOTION_TOKEN       # D2 — name of the env var holding the upload token (optional)
+  updated: &lt;YYYY-MM-DD&gt;</pre>
+<p>First run: ask heading + visual style, write the block. Subsequent runs: one confirm-against-last-run prompt
+(Confirm all / Edit). Flags override for the run without rewriting settings unless the user opts to save.</p>
+
+<h2 id="dogfood">11. Dogfood</h2>
+<p>Build verification uses a real document:
+<code>/Users/maneeshdhabria/Desktop/Projects/porter/pm-docs/metrics-store/pov/pov_v6.html</code> — 845 lines with
+<strong>9 tables</strong> (the table-fidelity path), <strong>2 inline SVG diagrams</strong> (the rich-media
+ambiguity path → D10), 17 dividers, nested lists, inline code, links, bold/italic. It exercises every load-bearing
+path: table contract (D4), chunking (D7), ambiguity prompts (D10), and both style modes. (Notion content is the
+maintainer's; never committed — dogfood evidence is the conversion report + reconciliation table.)</p>
+
+<h2 id="conformance">12. Conformance</h2>
+<ul>
+  <li>Conforms to <code>feature-sdlc/reference/skill-patterns.md §A–§L</code> (frontmatter &amp; triggering;
+    §H gates — deterministic table/limit checks are hard gates, style is judgement-advisory; §I hybrid NL-first
+    flags; §J integer phases with <code>{#slug}</code> anchors; §K one-fact-one-home — the research file is the
+    single home for Notion-API facts).</li>
+  <li>Honors host <code>CLAUDE.md</code>: canonical skill path
+    <code>plugins/pmos-utilities/skills/to-notion-doc/SKILL.md</code>; non-interactive inline block byte-identical
+    to <code>skills/_shared/non-interactive.md</code>; every <code>AskUserQuestion</code> carries a
+    <code>(Recommended)</code> option or a defer-only tag.</li>
+  <li>Release prerequisites (version bump, changelog, README row, manifest sync) are <strong>NOT</strong> plan
+    tasks — listed under "Release prerequisites" for <code>/complete-dev</code> at epic release.</li>
+</ul>
+
+<h2 id="stories">13. Story split (preview)</h2>
+<p>One vertical slice — the whole skill is a single <code>/execute</code> run (parser + block-mapper + image
+ladder + chunked writer + verification + SKILL.md are co-designed and cannot be independently skill-eval'd or
+shipped). Story <code>260626-sbf</code> carries the full design as ACs. No substrate is extracted (the Notion-API
+guidelines live in the skill's own <code>reference/</code>).</p>
+
+<h2 id="open">14. Open questions — resolved in grill (2026-06-26)</h2>
+<ul>
+  <li><strong>Token discovery</strong> → env-var name in settings (<code>notion_token_env</code>), value in env;
+    never committed (D2).</li>
+  <li><strong>.txt parsing</strong> → light heuristics (headings + bullets inferred), not pure paragraphs (§5).</li>
+  <li><strong>Update existing page</strong> → supported in v1 via <code>--into</code> with three modes
+    (rewrite / archive-under-toggle-H1 / in-place); create-new stays the bare default (D11).</li>
+</ul>
+<p>No open questions remain; the design is ready for story-split.</p>
+
+</body>
+</html>
