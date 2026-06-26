@@ -1,8 +1,8 @@
 # Backlog
 
-Last regenerated: 2026-06-26 (define 260626-8pa — trackers index-merge-tax epic defined; stories 260626-psr + 260626-3d4 + 260626-5cq + 260626-nq0 planned)
+Last regenerated: 2026-06-26 (define 260626-fdh — /poker fixes epic defined; story 260626-vpj planned)
 
-148 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
+150 items. Capture more with `/backlog add <text>`; refine with `/backlog refine <id>`; promote with `/backlog promote <id>`.
 
 ## Epics
 | id | status | route | plugin | stories (done/total) | title |
@@ -61,6 +61,7 @@ Last regenerated: 2026-06-26 (define 260626-8pa — trackers index-merge-tax epi
 | 260626-804 | defined | skill | pmos-toolkit | 0/2 | "slop-engine proof-of-execution — /design-crit + /verify must prove the deterministic slop lane ran, never claim graceful degradation by assertion" |
 | 260626-8pa | defined | skill | pmos-toolkit | 0/4 | "Get derivable status off the merge path across the three trackers (/backlog, /mytasks, /people) + harden tracker-crudl.md" |
 | 260626-a8a | defined | skill | pmos-toolkit | 0/3 | "/mytasks web UI enhancements — inline-everything overhaul (sidebar projects/labels/people, inline edit + @/#/+ autocomplete, nested subtasks, type/recur/checkin controls, LNO badge redesign) + /mytasks import" |
+| 260626-fdh | defined | skill | pmos-gamekit | 0/1 | "/poker fixes — hero seat overlaps the action-bar status text; random mode minimum 2 opponents" |
 
 ## must
 
@@ -152,6 +153,7 @@ Last regenerated: 2026-06-26 (define 260626-8pa — trackers index-merge-tax epi
 | 260626-3d4 | story | tech-debt | planned | 260626-8pa | "/mytasks — delete committed INDEX, regenerateIndex→renderIndex (no write), web-default + inline fallback, migration moved to load-time normalization" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-3d4/03_plan.html |  |
 | 260626-5cq | story | tech-debt | planned | 260626-8pa | "/people — delete committed INDEX, retire rebuild-index from add/set/refine + Phase 8, inline derived render" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-5cq/03_plan.html |  |
 | 260626-nq0 | story | feature | planned | 260626-8pa | "/people — NEW zero-dep web viewer (serve-web.mjs + viewer.html), derives from person files per request, web-default + inline fallback" |  | docs/pmos/features/2026-06-26_trackers-index-merge-tax/stories/260626-nq0/03_plan.html |  |
+| 260626-vpj | story | feature | planned | 260626-fdh | "/poker layout + random-table fixes — hero-seat/action-bar overlap; random mode ≥2 opponents" | docs/pmos/features/2026-06-26_poker-fixes/02_design.html | docs/pmos/features/2026-06-26_poker-fixes/stories/260626-vpj/03_plan.html |  |
 
 ## could
 
