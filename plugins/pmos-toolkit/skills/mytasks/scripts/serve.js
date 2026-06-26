@@ -18,6 +18,8 @@ const os = require('os');
 const path = require('path');
 
 const lib = require('./lib.js');
+const registry = require('./registry.js');
+const people = require('./people.js');
 const { spawnRecurrence } = require('./recur.js');
 
 const BIND_HOST = '127.0.0.1';
@@ -59,7 +61,7 @@ async function loadMinter() {
 function mintId() { return _mint(); }
 
 function parseArgs(argv) {
-  const out = { tasksDir: defaultTasksDir(), port: null, pidFile: null, idleSec: DEFAULT_IDLE_SEC };
+  const out = { tasksDir: defaultTasksDir(), peopleDir: null, port: null, pidFile: null, idleSec: DEFAULT_IDLE_SEC };
   const take = (i, name) => {
     const a = argv[i];
     if (a === name) return [argv[i + 1], i + 1];
@@ -70,6 +72,7 @@ function parseArgs(argv) {
     const a = argv[i]; let v, ni;
     if (a === '--help' || a === '-h') { out.help = true; continue; }
     [v, ni] = take(i, '--tasks-dir'); if (v !== null) { out.tasksDir = path.resolve(v); i = ni; continue; }
+    [v, ni] = take(i, '--people-dir'); if (v !== null) { out.peopleDir = path.resolve(v); i = ni; continue; }
     [v, ni] = take(i, '--port'); if (v !== null) { out.port = parseInt(v, 10); i = ni; continue; }
     [v, ni] = take(i, '--pid-file'); if (v !== null) { out.pidFile = v; i = ni; continue; }
     [v, ni] = take(i, '--idle'); if (v !== null) { out.idleSec = parseFloat(v); i = ni; continue; }
@@ -126,20 +129,64 @@ function itemJson(it) {
 }
 
 // ── API ──
-async function handleApi(tasksDir, req, res, pathname, query) {
+async function handleApi(tasksDir, peopleDir, req, res, pathname, query) {
   const today = lib.isoToday();
   const mutating = req.method !== 'GET';
   if (mutating && !localOrigin(req)) return sendJson(res, 403, { error: 'forbidden-origin' });
 
-  // GET /api/meta
+  // GET /api/meta — the sorted, deduped UNION of registry entries and values derived
+  // from task frontmatter (design D5: a registry-only empty container still appears).
   if (pathname === '/api/meta' && req.method === 'GET') {
     const items = lib.loadAllItems(tasksDir);
-    const projects = new Set(), labels = new Set();
+    const reg = registry.readRegistry(tasksDir);
+    const projects = new Set(reg.projects), labels = new Set(reg.labels);
     for (const it of items) {
       if (it.fm.project) projects.add(it.fm.project);
       for (const l of (it.fm.labels || [])) labels.add(l);
     }
     return sendJson(res, 200, { projects: [...projects].sort(), labels: [...labels].sort() });
+  }
+
+  // ── Registry: POST /api/projects, POST /api/labels (add empty container, design D5) ──
+  if ((pathname === '/api/projects' || pathname === '/api/labels') && req.method === 'POST') {
+    const kind = pathname === '/api/projects' ? 'projects' : 'labels';
+    let body; try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { error: 'bad-body' }); }
+    const raw = (body.name || '').toString().trim();
+    if (!raw) return sendJson(res, 400, { error: 'validation', detail: 'name is required.' });
+    const slug = lib.slugify(raw);
+    // A name already present (in registry OR derived from a task) is a no-op success —
+    // the registry only adds visibility, never duplicates what tasks already surface.
+    const reg = registry.readRegistry(tasksDir);
+    const derived = new Set();
+    for (const it of lib.loadAllItems(tasksDir)) {
+      if (kind === 'projects') { if (it.fm.project) derived.add(it.fm.project); }
+      else for (const l of (it.fm.labels || [])) derived.add(l);
+    }
+    if (reg[kind].includes(slug) || derived.has(slug)) return sendJson(res, 200, { [kind]: reg[kind] });
+    const list = registry.addRegistryEntry(tasksDir, kind, raw);
+    return sendJson(res, 200, { [kind]: list });
+  }
+
+  // ── People: shared ~/.pmos/people store (design D6) ──
+  if (pathname === '/api/people' && req.method === 'GET') {
+    return sendJson(res, 200, { people: people.listPeople(peopleDir) });
+  }
+  if (pathname === '/api/people' && req.method === 'POST') {
+    let body; try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { error: 'bad-body' }); }
+    const r = people.createPerson(peopleDir, body || {});
+    if (r.error === 'missing-name') return sendJson(res, 400, { error: 'validation', detail: 'name is required.' });
+    if (r.error === 'duplicate-handle') return sendJson(res, 409, { error: 'duplicate-handle', person: r.existing });
+    if (r.error) return sendJson(res, 400, { error: r.error });
+    return sendJson(res, 201, { person: r.record });
+  }
+  const pm = pathname.match(/^\/api\/people\/([^/]+)$/);
+  if (pm && req.method === 'PATCH') {
+    const handle = decodeURIComponent(pm[1]);
+    let body; try { body = await readBody(req); } catch (e) { return sendJson(res, 400, { error: 'bad-body' }); }
+    const r = people.patchPerson(peopleDir, handle, body.fields || {});
+    if (r.error === 'not-found') return sendJson(res, 404, { error: 'not-found', handle });
+    if (r.error) return sendJson(res, 400, { error: r.error });
+    return sendJson(res, 200, { person: r.record });
   }
 
   // GET /api/tasks  (+ filters)
@@ -160,6 +207,27 @@ async function handleApi(tasksDir, req, res, pathname, query) {
     if (dw) items = items.filter((it) => dueWindow(it.fm, dw, today));
     if (query.get('checkin_due') === '1') items = items.filter((it) => it.fm.next_checkin && it.fm.next_checkin <= today);
     items = lib.listSort(items, { byProject: f('project') !== null || f('parent') !== null });
+    // include_children=1: when a parent survives the filter/view, attach its subtasks
+    // even if a child would not have matched on its own (deduped; client nests via
+    // each child's `parent`). No flag → behavior is byte-identical to before.
+    if (query.get('include_children') === '1') {
+      const all = lib.loadAllItems(tasksDir);
+      const childrenOf = new Map();
+      for (const c of all) {
+        const p = c.fm.parent || '';
+        if (!p) continue;
+        if (!childrenOf.has(p)) childrenOf.set(p, []);
+        childrenOf.get(p).push(c);
+      }
+      const included = new Set(items.map((it) => it.fm.id));
+      const out = [];
+      for (const it of items) {
+        out.push(it);
+        const kids = lib.listSort((childrenOf.get(it.fm.id) || []).filter((c) => !included.has(c.fm.id)), {});
+        for (const k of kids) { included.add(k.fm.id); out.push(k); }
+      }
+      items = out;
+    }
     return sendJson(res, 200, { tasks: items.map(itemJson) });
   }
 
@@ -350,11 +418,11 @@ function staticServe(res, reqPath) {
   });
 }
 
-function handler(tasksDir) {
+function handler(tasksDir, peopleDir) {
   return (req, res) => {
     let u; try { u = new URL(req.url || '/', 'http://x'); } catch (_) { return sendText(res, 400, 'Bad Request\n'); }
     if (u.pathname.startsWith('/api/')) {
-      handleApi(tasksDir, req, res, u.pathname, u.searchParams).catch((e) => {
+      handleApi(tasksDir, peopleDir, req, res, u.pathname, u.searchParams).catch((e) => {
         sendJson(res, 500, { error: 'internal', detail: String(e && e.message || e) });
       });
       return;
@@ -387,7 +455,8 @@ function writePidFileAtomic(pidFile, payload) {
 async function start(opts) {
   await loadMinter();
   const tasksDir = path.resolve(opts.tasksDir);
-  const server = http.createServer(handler(tasksDir));
+  const peopleDir = opts.peopleDir ? path.resolve(opts.peopleDir) : people.defaultPeopleDir(tasksDir);
+  const server = http.createServer(handler(tasksDir, peopleDir));
 
   let bound = null;
   if (Number.isFinite(opts.port) && opts.port === 0) {
@@ -432,7 +501,7 @@ async function start(opts) {
 if (require.main === module) {
   const args = parseArgs(process.argv);
   if (args.help) {
-    process.stdout.write('Usage: node serve.js [--tasks-dir DIR] [--port N] [--pid-file FILE] [--idle SEC]\n');
+    process.stdout.write('Usage: node serve.js [--tasks-dir DIR] [--people-dir DIR] [--port N] [--pid-file FILE] [--idle SEC]\n');
     process.exit(0);
   }
   start(args).catch((e) => { process.stderr.write(`serve.js: ${e.message}\n`); process.exit(1); });
